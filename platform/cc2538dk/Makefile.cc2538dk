@@ -22,11 +22,6 @@ ifndef SMALL
   SMALL = 1
 endif
 
-### If the prject's Makefile specified IPv6, the pre-processor needs to know
-ifeq ($(UIP_CONF_IPV6),1)
-  CFLAGS += -DUIP_CONF_IPV6=1
-endif
-
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
 include $(CONTIKI_CPU)/Makefile.cc2538

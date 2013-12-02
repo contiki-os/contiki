@@ -52,14 +52,14 @@ import javax.swing.Timer;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
-import se.sics.cooja.Mote;
-import se.sics.cooja.MotePlugin;
-import se.sics.cooja.PluginType;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.VisPlugin;
-import se.sics.cooja.interfaces.SerialPort;
+import org.contikios.cooja.ClassDescription;
+import org.contikios.cooja.Cooja;
+import org.contikios.cooja.Mote;
+import org.contikios.cooja.MotePlugin;
+import org.contikios.cooja.PluginType;
+import org.contikios.cooja.Simulation;
+import org.contikios.cooja.VisPlugin;
+import org.contikios.cooja.interfaces.SerialPort;
 
 /**
  * Socket to simulated serial port forwarder. Server version.
@@ -90,7 +90,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
   private Mote mote;
 
-  public SerialSocketServer(Mote mote, Simulation simulation, final GUI gui) {
+  public SerialSocketServer(Mote mote, Simulation simulation, final Cooja gui) {
     super("Serial Socket (SERVER) (" + mote + ")", gui, false);
     this.mote = mote;
 
@@ -99,7 +99,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
     LISTEN_PORT = 60000 + mote.getID();
 
     /* GUI components */
-    if (GUI.isVisualized()) {
+    if (Cooja.isVisualized()) {
       Box northBox = Box.createHorizontalBox();
       northBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
       statusLabel = configureLabel(northBox, "", "");
@@ -122,7 +122,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
     try {
       logger.info("Listening on port: " + LISTEN_PORT);
-      if (GUI.isVisualized()) {
+      if (Cooja.isVisualized()) {
         statusLabel.setText("Listening on port: " + LISTEN_PORT);
       }
       server = new ServerSocket(LISTEN_PORT);
@@ -136,7 +136,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
               out.flush();
 
               startSocketReadThread(in);
-              if (GUI.isVisualized()) {
+              if (Cooja.isVisualized()) {
                 statusLabel.setText("Client connected: " + client.getInetAddress());
               }
             } catch (IOException e) {
@@ -247,7 +247,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
     } catch (IOException e) {
     }
 
-    if (GUI.isVisualized()) {
+    if (Cooja.isVisualized()) {
       SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           statusLabel.setText("Listening on port: " + LISTEN_PORT);

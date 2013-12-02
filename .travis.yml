@@ -21,9 +21,15 @@ before_script:
        https://raw.github.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc.tar.gz \
          | tar xzf - -C /tmp/ && sudo cp -f -r /tmp/sdcc/* /usr/local/ && rm -rf /tmp/sdcc && sdcc --version || true"
   - "[ ${BUILD_ARCH:-0} = 8051 ] && sudo apt-get -qq install srecord || true"
+  
+  ## Clone and build cc65 when testing 6502 ports
+  - "[ ${BUILD_ARCH:-0} = 6502 ] && git clone \
+       https://github.com/oliverschmidt/cc65 /tmp/cc65 && \
+       make -C /tmp/cc65 bin apple2enh atarixl c64 c128 && sudo make -C /tmp/cc65 avail && \
+       export CC65_HOME=/tmp/cc65/ && cc65 --version || true"
 
   ## Compile cooja.jar only when it's going to be needed
-  - "[ ${BUILD_CATEGORY:-sim} = sim ] && java -version && ant -q -f tools/cooja/build.xml jar || true"
+  - "[ ${BUILD_CATEGORY:-sim} = sim ] && java -version && ant -q -f tools/cooja/build.xml jar && sudo java -Xshare:dump -version || true"
 
   ## IMPORTANT: The commands here have to end with `|| true`,
   ## because it would make the test fail if BUILD_TYPE test fails
@@ -62,3 +68,4 @@ env:
   - BUILD_TYPE='ipv6-apps'
   - BUILD_TYPE='compile-8051-ports' BUILD_CATEGORY='compile' BUILD_ARCH='8051'
   - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm'
+  - BUILD_TYPE='compile-6502-ports' BUILD_CATEGORY='compile' BUILD_ARCH='6502'

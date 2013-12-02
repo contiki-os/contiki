@@ -43,8 +43,8 @@
  *
  */
 
-#ifndef __UIP_DS6_NEIGHBOR_H__
-#define __UIP_DS6_NEIGHBOR_H__
+#ifndef UIP_DS6_NEIGHBOR_H_
+#define UIP_DS6_NEIGHBOR_H_
 
 #include "net/uip.h"
 #include "net/nbr-table.h"
@@ -83,15 +83,15 @@ typedef struct uip_ds6_nbr {
 void uip_ds6_neighbors_init(void);
 
 /** \brief Neighbor Cache basic routines */
-uip_ds6_nbr_t *uip_ds6_nbr_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
+uip_ds6_nbr_t *uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
                                uint8_t isrouter, uint8_t state);
 void uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
-uip_lladdr_t *uip_ds6_nbr_get_ll(uip_ds6_nbr_t *nbr);
-uip_ipaddr_t *uip_ds6_nbr_get_ipaddr(uip_ds6_nbr_t *nbr);
-uip_ds6_nbr_t *uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr);
-uip_ds6_nbr_t *uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr);
-uip_ipaddr_t *uip_ds6_nbr_ipaddr_from_lladdr(uip_lladdr_t *lladdr);
-uip_lladdr_t *uip_ds6_nbr_lladdr_from_ipaddr(uip_ipaddr_t *ipaddr);
+const uip_lladdr_t *uip_ds6_nbr_get_ll(const uip_ds6_nbr_t *nbr);
+const uip_ipaddr_t *uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr);
+uip_ds6_nbr_t *uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr);
+uip_ds6_nbr_t *uip_ds6_nbr_ll_lookup(const uip_lladdr_t *lladdr);
+uip_ipaddr_t *uip_ds6_nbr_ipaddr_from_lladdr(const uip_lladdr_t *lladdr);
+const uip_lladdr_t *uip_ds6_nbr_lladdr_from_ipaddr(const uip_ipaddr_t *ipaddr);
 void uip_ds6_link_neighbor_callback(int status, int numtx);
 void uip_ds6_neighbor_periodic(void);
 int uip_ds6_nbr_num(void);
@@ -107,4 +107,4 @@ int uip_ds6_nbr_num(void);
  */
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
 
-#endif /* __UIP_DS6_NEIGHBOR_H__ */
+#endif /* UIP_DS6_NEIGHBOR_H_ */

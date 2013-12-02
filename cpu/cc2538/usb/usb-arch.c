@@ -46,10 +46,12 @@
 #include "dev/ioc.h"
 #include "dev/udma.h"
 #include "sys/clock.h"
+#include "lpm.h"
 #include "reg.h"
 
 #include "dev/watchdog.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
 /* EP max FIFO sizes without double buffering */
@@ -303,11 +305,23 @@ reset(void)
   usb_arch_setup_control_endpoint(0);
 }
 /*---------------------------------------------------------------------------*/
+static bool
+permit_pm1(void)
+{
+  /*
+   * Note: USB Suspend/Resume/Remote Wake-Up are not supported. Once the PLL is
+   * on, it stays on.
+   */
+  return REG(USB_CTRL) == 0;
+}
+/*---------------------------------------------------------------------------*/
 /* Init USB */
 void
 usb_arch_setup(void)
 {
   uint8_t i;
+
+  lpm_register_peripheral(permit_pm1);
 
   /* Switch on USB PLL & USB module */
   REG(USB_CTRL) = USB_CTRL_USB_EN | USB_CTRL_PLL_EN;
@@ -317,7 +331,7 @@ usb_arch_setup(void)
 
   /* Enable pull-up on usb port */
   GPIO_SET_OUTPUT(USB_PULLUP_PORT, USB_PULLUP_PIN_MASK);
-  REG((USB_PULLUP_PORT | GPIO_DATA) + (USB_PULLUP_PIN_MASK << 2)) = 1;
+  GPIO_SET_PIN(USB_PULLUP_PORT, USB_PULLUP_PIN_MASK);
 
   for(i = 0; i < USB_MAX_ENDPOINTS; i++) {
     usb_endpoints[i].flags = 0;

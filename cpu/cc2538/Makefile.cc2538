@@ -5,6 +5,9 @@ AR      = arm-none-eabi-ar
 OBJCOPY = arm-none-eabi-objcopy
 NM      = arm-none-eabi-nm
 
+ifndef SOURCE_LDSCRIPT
+SOURCE_LDSCRIPT = $(CONTIKI_CPU)/cc2538.lds
+endif
 LDSCRIPT = $(OBJECTDIR)/cc2538.ld
 
 CFLAGS += -O2 -mcpu=cortex-m3 -mthumb -mlittle-endian
@@ -27,7 +30,7 @@ ifdef NODEID
 endif
 
 ### CPU-dependent cleanup files
-CLEAN += symbols.c symbols.h *.d *.elf
+CLEAN += symbols.c symbols.h *.d *.elf *.hex
 
 ### CPU-dependent directories
 CONTIKI_CPU_DIRS = . dev usb
@@ -54,7 +57,7 @@ CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 CONTIKI_SOURCEFILES += $(USB_CORE_SOURCEFILES) $(USB_ARCH_SOURCEFILES)
 
 ### Don't treat the .elf as intermediate
-.PRECIOUS: %.elf %.bin
+.PRECIOUS: %.elf %.hex %.bin
 
 ### Always re-build ieee-addr.o in case the command line passes a new NODEID
 FORCE:
@@ -70,12 +73,15 @@ CUSTOM_RULE_LINK=1
 	$(TRACE_LD)
 	$(Q)$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} -o $@
 
+%.hex: %.elf
+	$(OBJCOPY) -O ihex $< $@
+
 %.bin: %.elf
 	$(OBJCOPY) $(OBJCOPY_FLAGS) $< $@
 
-### We don't really need the .bin for the .$(TARGET) but let's make sure it
-### gets built
-%.$(TARGET): %.elf %.bin
+### We don't really need the .hex and .bin for the .$(TARGET) but let's make
+### sure they get built
+%.$(TARGET): %.elf %.hex %.bin
 	cp $< $@
 
 ### This rule is used to generate the correct linker script
@@ -85,6 +91,6 @@ LDGENFLAGS += -imacros "contiki-conf.h"
 LDGENFLAGS += -x c -P -E
 
 # NB: Assumes LDSCRIPT was not overridden and is in $(OBJECTDIR)
-$(LDSCRIPT): $(CONTIKI_CPU)/cc2538.lds FORCE | $(OBJECTDIR)
+$(LDSCRIPT): $(SOURCE_LDSCRIPT) FORCE | $(OBJECTDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) $(LDGENFLAGS) $< -o $@

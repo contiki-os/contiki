@@ -51,8 +51,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __COMPOWER_H__
-#define __COMPOWER_H__
+#ifndef COMPOWER_H_
+#define COMPOWER_H_
 
 /**
  * \brief      An activity record that contains power consumption information for a specific communication activity.
@@ -129,7 +129,7 @@ void compower_attrconv(struct compower_activity *a);
  */
 void compower_accumulate_attrs(struct compower_activity *a);
 
-#endif /* __COMPOWER_H__ */
+#endif /* COMPOWER_H_ */
 
 /** @} */
 /** @} */

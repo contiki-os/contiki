@@ -37,9 +37,9 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_RIME_NEIGHBORS_H__
-#define __SHELL_RIME_NEIGHBORS_H__
+#ifndef SHELL_RIME_NEIGHBORS_H_
+#define SHELL_RIME_NEIGHBORS_H_
 
 void shell_rime_neighbors_init(void);
 
-#endif /* __SHELL-RIME_-NEIGHBORS_H__ */
+#endif /* SHELL-RIME_-NEIGHBORS_H_ */

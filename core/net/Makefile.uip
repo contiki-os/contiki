@@ -1,6 +1,5 @@
 NET =						\
 dhcpc.c						\
-hc.c						\
 nbr-table.c			\
 netstack.c					\
 packetbuf.c					\
@@ -10,7 +9,6 @@ queuebuf.c					\
 resolv.c					\
 sicslowpan.c					\
 simple-udp.c					\
-tcpdump.c					\
 tcpip.c						\
 uaodv-rt.c					\
 uaodv.c						\

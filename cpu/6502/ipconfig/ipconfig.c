@@ -197,6 +197,8 @@ PROCESS_THREAD(ipconfig_process, ev, data)
 
   CTK_WIDGET_FOCUS(&window, &requestbutton);  
 
+  makestrings();
+
   ctk_window_open(&window);
 
   /* Allow resolver to set DNS server address. */

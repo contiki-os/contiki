@@ -28,9 +28,9 @@
  *
  */
 
-#ifndef __MOTEID_H__
-#define __MOTEID_H__
+#ifndef MOTEID_H_
+#define MOTEID_H_
 
 extern int simMoteID;
 
-#endif /* __MOTEID_H__ */
+#endif /* MOTEID_H_ */

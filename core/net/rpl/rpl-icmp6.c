@@ -84,15 +84,6 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 
-/* some debug callbacks useful when debugging RPL networks */
-#ifdef RPL_DEBUG_DIO_INPUT
-void RPL_DEBUG_DIO_INPUT(uip_ipaddr_t *, rpl_dio_t *);
-#endif
-
-#ifdef RPL_DEBUG_DAO_OUTPUT
-void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
-#endif
-
 extern rpl_of_t RPL_OF;
 
 /*---------------------------------------------------------------------------*/
@@ -155,7 +146,8 @@ dis_input(void)
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
 
-  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
     if(instance->used == 1) {
 #if RPL_LEAF_ONLY
       if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
@@ -587,6 +579,7 @@ dao_input(void)
   int i;
   int learned_from;
   rpl_parent_t *p;
+  uip_ds6_nbr_t *nbr;
 
   prefixlen = 0;
 
@@ -676,6 +669,20 @@ dao_input(void)
       PRINTF("\n");
       rep->state.nopath_received = 1;
       rep->state.lifetime = DAO_EXPIRATION_TIMEOUT;
+
+      /* We forward the incoming no-path DAO to our parent, if we have
+         one. */
+      if(dag->preferred_parent != NULL &&
+         rpl_get_parent_ipaddr(dag->preferred_parent) != NULL) {
+        PRINTF("RPL: Forwarding no-path DAO to parent ");
+        PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
+        PRINTF("\n");
+        uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
+                       ICMP6_RPL, RPL_CODE_DAO, buffer_length);
+      }
+      if(flags & RPL_DAO_K_FLAG) {
+        dao_ack_output(instance, &dao_sender_addr, sequence);
+      }
     }
     return;
   }
@@ -709,6 +716,32 @@ dao_input(void)
   }
 
   PRINTF("RPL: adding DAO route\n");
+
+  if((nbr = uip_ds6_nbr_lookup(&dao_sender_addr)) == NULL) {
+    if((nbr = uip_ds6_nbr_add(&dao_sender_addr,
+                              (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                              0, NBR_REACHABLE)) != NULL) {
+      /* set reachable timer */
+      stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+      PRINTF("RPL: Neighbor added to neighbor cache ");
+      PRINT6ADDR(&dao_sender_addr);
+      PRINTF(", ");
+      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      PRINTF("\n");
+    } else {
+      PRINTF("RPL: Out of Memory, dropping DAO from ");
+      PRINT6ADDR(&dao_sender_addr);
+      PRINTF(", ");
+      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      PRINTF("\n");
+      return;
+    }
+  } else {
+    PRINTF("RPL: Neighbor already in neighbor cache\n");
+  }
+
+  rpl_lock_parent(p);
+
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
   if(rep == NULL) {
     RPL_STAT(rpl_stats.mem_overflows++);
@@ -759,6 +792,11 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
   int pos;
 
   /* Destination Advertisement Object */
+
+  /* If we are in feather mode, we should not send any DAOs */
+  if(rpl_get_mode() == RPL_MODE_FEATHER) {
+    return;
+  }
 
   if(parent == NULL) {
     PRINTF("RPL dao_output_target error parent NULL\n");

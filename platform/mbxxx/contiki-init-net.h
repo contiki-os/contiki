@@ -44,10 +44,10 @@
 */
 /*---------------------------------------------------------------------------*/
 
-#ifndef __CONTIKI_INIT_NET_H__
-#define __CONTIKI_INIT_NET_H__
+#ifndef CONTIKI_INIT_NET_H_
+#define CONTIKI_INIT_NET_H_
 
 void print_address(uip_ds6_addr_t *lladdr);
 
-#endif /* __CONTIKI_INIT_NET_H__ */
+#endif /* CONTIKI_INIT_NET_H_ */
 /** @} */

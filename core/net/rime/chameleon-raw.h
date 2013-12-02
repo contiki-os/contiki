@@ -37,11 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __CHAMELEON_RAW_H__
-#define __CHAMELEON_RAW_H__
+#ifndef CHAMELEON_RAW_H_
+#define CHAMELEON_RAW_H_
 
 #include "sys/cc.h"
 
 extern CC_CONST_FUNCTION struct chameleon_module chameleon_raw;
 
-#endif /* __CHAMELEON_RAW_H__ */
+#endif /* CHAMELEON_RAW_H_ */

@@ -200,7 +200,7 @@ static uint8_t rime_hdr_len;
  * headers (can be the IP payload if the IP header only is compressed
  * or the UDP payload if the UDP header is also compressed)
  */
-static uint8_t rime_payload_len;
+static int rime_payload_len;
 
 /**
  * uncomp_hdr_len is the length of the headers before compression (if HC2
@@ -256,6 +256,8 @@ static struct timer reass_timer;
 #define sicslowpan_buf uip_buf
 #define sicslowpan_len uip_len
 #endif /* SICSLOWPAN_CONF_FRAG */
+
+static int last_rssi;
 
 /*-------------------------------------------------------------------------*/
 /* Rime Sniffer support for one single listener to enable powertrace of IP */
@@ -999,9 +1001,10 @@ uncompress_hdr_hc06(uint16_t ip_len)
   
   /* IP length field. */
   if(ip_len == 0) {
+    int len = packetbuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
     /* This is not a fragmented packet */
-    SICSLOWPAN_IP_BUF->len[0] = 0;
-    SICSLOWPAN_IP_BUF->len[1] = packetbuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
+    SICSLOWPAN_IP_BUF->len[0] = len >> 8;
+    SICSLOWPAN_IP_BUF->len[1] = len & 0x00FF;
   } else {
     /* This is a 1st fragment */
     SICSLOWPAN_IP_BUF->len[0] = (ip_len - UIP_IPH_LEN) >> 8;
@@ -1246,9 +1249,10 @@ uncompress_hdr_hc1(uint16_t ip_len)
   
   /* IP length field. */
   if(ip_len == 0) {
+    int len = packetbuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
     /* This is not a fragmented packet */
-    SICSLOWPAN_IP_BUF->len[0] = 0;
-    SICSLOWPAN_IP_BUF->len[1] = packetbuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
+    SICSLOWPAN_IP_BUF->len[0] = len >> 8;
+    SICSLOWPAN_IP_BUF->len[1] = len & 0x00FF;
   } else {
     /* This is a 1st fragment */
     SICSLOWPAN_IP_BUF->len[0] = (ip_len - UIP_IPH_LEN) >> 8;
@@ -1354,7 +1358,7 @@ send_packet(rimeaddr_t *dest)
  *  MAC.
  */
 static uint8_t
-output(uip_lladdr_t *localdest)
+output(const uip_lladdr_t *localdest)
 {
   int framer_hdrlen;
 
@@ -1480,7 +1484,7 @@ output(uip_lladdr_t *localdest)
 
     /* Copy payload and send */
     rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
-    rime_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - rime_hdr_len) & 0xf8;
+    rime_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - rime_hdr_len) & 0xfffffff8;
     PRINTFO("(len %d, tag %d)\n", rime_payload_len, my_tag);
     memcpy(rime_ptr + rime_hdr_len,
            (uint8_t *)UIP_IP_BUF + uncomp_hdr_len, rime_payload_len);
@@ -1516,7 +1520,7 @@ output(uip_lladdr_t *localdest)
 /*       uip_htons((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len); */
     SET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len));
-    rime_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - rime_hdr_len) & 0xf8;
+    rime_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - rime_hdr_len) & 0xfffffff8;
     while(processed_ip_out_len < uip_len) {
       PRINTFO("sicslowpan output: fragment ");
       RIME_FRAG_PTR[RIME_FRAG_OFFSET] = processed_ip_out_len >> 3;
@@ -1602,6 +1606,9 @@ input(void)
   /* The MAC puts the 15.4 payload inside the RIME data buffer */
   rime_ptr = packetbuf_dataptr();
 
+  /* Save the RSSI of the incoming packet in case the upper layer will
+     want to query us for it later. */
+  last_rssi = (signed short)packetbuf_attr(PACKETBUF_ATTR_RSSI);
 #if SICSLOWPAN_CONF_FRAG
   /* if reassembly timed out, cancel it */
   if(timer_expired(&reass_timer)) {
@@ -1664,7 +1671,12 @@ input(void)
    */
 #define PRIORITIZE_NEW_PACKETS 1
 #if PRIORITIZE_NEW_PACKETS
-  if(processed_ip_in_len > 0 && first_fragment
+
+  if(!is_fragment) {
+    /* Prioritize non-fragment packets too. */
+    sicslowpan_len = 0;
+    processed_ip_in_len = 0;
+  } else if(processed_ip_in_len > 0 && first_fragment
       && !rimeaddr_cmp(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER))) {
     sicslowpan_len = 0;
     processed_ip_in_len = 0;
@@ -1896,6 +1908,12 @@ sicslowpan_init(void)
 #endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 1 */
 
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06 */
+}
+/*--------------------------------------------------------------------*/
+int
+sicslowpan_get_last_rssi(void)
+{
+  return last_rssi;
 }
 /*--------------------------------------------------------------------*/
 const struct network_driver sicslowpan_driver = {

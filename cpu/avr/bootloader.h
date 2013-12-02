@@ -1,5 +1,5 @@
-#ifndef __AVR_BOOTLOADER_H__
-#define __AVR_BOOTLOADER_H__
+#ifndef AVR_BOOTLOADER_H_
+#define AVR_BOOTLOADER_H_
 
 #include <inttypes.h>
 #include <avr/io.h>

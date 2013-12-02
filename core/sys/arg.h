@@ -31,12 +31,12 @@
  *
  *
  */
-#ifndef __ARG_H__
-#define __ARG_H__
+#ifndef ARG_H_
+#define ARG_H_
 
 void arg_init(void);
 
 char *arg_alloc(char size);
 void arg_free(char *arg);
 
-#endif /* __ARG_H__ */
+#endif /* ARG_H_ */

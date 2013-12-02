@@ -31,7 +31,6 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 
-#include "sleep.h"
 #include "board-sensors.h"
 #include "board.h"
 

@@ -38,8 +38,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __CC2420_H__
-#define __CC2420_H__
+#ifndef CC2420_H_
+#define CC2420_H_
 
 #include "contiki.h"
 #include "dev/spi.h"
@@ -200,4 +200,4 @@ void cc2420_set_cca_threshold(int value);
     CC2420_SPI_DISABLE();                       \
   } while (0)
 
-#endif /* __CC2420_H__ */
+#endif /* CC2420_H_ */

@@ -57,55 +57,53 @@ static int
 active(void)
 {
   uint8_t reg;
-  if(!i2c_read_reg (kLIS3L02DQ_SLAVE_ADDR,CTRL_REG1, &reg, 1))
+  if(!MEMS_Read_Reg (kLIS3L02DQ_SLAVE_ADDR, CTRL_REG1, &reg, 1))
     return FALSE;
-  
+
   return (reg & 0x40) ? TRUE : FALSE ;
 }
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-  
   int8_t i2c_data = 0;
   uint8_t reg_addr;
-  
+
   switch(type) {
     case ACC_X_AXIS:
       reg_addr = OUTX_H;
       break;
-      
+
     case ACC_Y_AXIS:
       reg_addr = OUTY_H;
       break;
-      
+
     case ACC_Z_AXIS:
       reg_addr = OUTZ_H;
       break;
-      
+
     default:
-      return 0;    
-  }
-  
-  i2c_read_reg(kLIS3L02DQ_SLAVE_ADDR, reg_addr, (uint8_t *)&i2c_data, 1);
-  
-  if(MEMS_GetFullScale()==ACC_HIGH_RANGE){
-    return ((int16_t)i2c_data)*HIGH_RANGE_SENSITIVITY;
-  }
-  else {
-    return ((int16_t)i2c_data)*LOW_RANGE_SENSITIVITY;
+      return 0;
   }
 
+  MEMS_Read_Reg(kLIS3L02DQ_SLAVE_ADDR, reg_addr, (uint8_t *)&i2c_data, 1);
+
+  if(MEMS_GetFullScale()==ACC_HIGH_RANGE){
+    return ((int16_t)i2c_data) * HIGH_RANGE_SENSITIVITY;
+  }
+  else {
+    return ((int16_t)i2c_data) * LOW_RANGE_SENSITIVITY;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
 configure(int type, int value)
 {
   switch(type) {
-    
+
     case SENSORS_HW_INIT:
-       return Mems_Init();
-       
+       return MEMS_Init();
+
     case SENSORS_ACTIVE:
       if(value){
           if(MEMS_On()){
@@ -115,17 +113,18 @@ configure(int type, int value)
           return 0;
       }
       else
-        return MEMS_Off();      
-    
+        return MEMS_Off();
+
     case ACC_RANGE:
       return MEMS_SetFullScale((boolean)value);
-      
-    case ACC_HPF:      
+
+    case ACC_HPF:
       if(value < ACC_HPF_DISABLE){
-        return i2c_write_reg(kLIS3L02DQ_SLAVE_ADDR, CTRL_REG2, (1<<4) | (uint8_t)value);
+        return MEMS_Write_Reg(kLIS3L02DQ_SLAVE_ADDR, CTRL_REG2,
+			      (1<<4) | (uint8_t)value);
       }
       else {
-        return i2c_write_reg(kLIS3L02DQ_SLAVE_ADDR, CTRL_REG2, 0x00);
+        return MEMS_Write_Reg(kLIS3L02DQ_SLAVE_ADDR, CTRL_REG2, 0x00);
       }
   }
   return 0;
@@ -135,18 +134,15 @@ static int
 status(int type)
 {
   switch(type) {
-    
+
   case SENSORS_READY:
     return active();
   }
-  
+
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(acc_sensor, ACC_SENSOR,
-	       value, configure, status);
-
-
+SENSORS_SENSOR(acc_sensor, ACC_SENSOR, value, configure, status);
 
 
 /** @} */

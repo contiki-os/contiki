@@ -53,7 +53,6 @@
 #include "cfs-coffee-arch.h"
 #include "cfs/cfs-coffee.h"
 #include "sys/autostart.h"
-#include "sys/profile.h"
 
 #if UIP_CONF_ROUTER
 
@@ -115,10 +114,7 @@ force_float_inclusion()
 #endif
 /*---------------------------------------------------------------------------*/
 void uip_log(char *msg) { puts(msg); }
-/*---------------------------------------------------------------------------*/
-#ifndef RF_CHANNEL
-#define RF_CHANNEL              26
-#endif
+
 /*---------------------------------------------------------------------------*/
 #if 0
 void
@@ -272,7 +268,6 @@ main(int argc, char **argv)
     
     cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
   }
-  cc2420_set_channel(RF_CHANNEL);
 
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
@@ -289,7 +284,7 @@ main(int argc, char **argv)
   memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
 /*   sicslowpan_init(sicslowmac_init(&cc2420_driver)); */
-/*   printf(" %s channel %u\n", sicslowmac_driver.name, RF_CHANNEL); */
+/*   printf(" %s channel %u\n", sicslowmac_driver.name, CC2420_CONF_CCA_THRESH); */
 
   /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
@@ -297,11 +292,12 @@ main(int argc, char **argv)
   NETSTACK_MAC.init();
   NETSTACK_NETWORK.init();
 
-  printf("%s %s, channel check rate %lu Hz, radio channel %u\n",
+  printf("%s %s, channel check rate %lu Hz, radio channel %u, CCA threshold %i\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
                          NETSTACK_RDC.channel_check_interval()),
-         RF_CHANNEL);
+         CC2420_CONF_CHANNEL,
+         CC2420_CONF_CCA_THRESH);
 
   process_start(&tcpip_process, NULL);
 
@@ -342,17 +338,13 @@ main(int argc, char **argv)
          NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0? 1:
                          NETSTACK_RDC.channel_check_interval()),
-         RF_CHANNEL);
+         CC2420_CONF_CCA_THRESH);
 #endif /* WITH_UIP6 */
 
 #if !WITH_UIP && !WITH_UIP6
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
-
-#if PROFILE_CONF_ON
-  profile_init();
-#endif /* PROFILE_CONF_ON */
 
   leds_off(LEDS_GREEN);
 
@@ -412,17 +404,11 @@ main(int argc, char **argv)
   /*  watchdog_stop();*/
   while(1) {
     int r;
-#if PROFILE_CONF_ON
-    profile_episode_start();
-#endif /* PROFILE_CONF_ON */
     do {
       /* Reset watchdog. */
       watchdog_periodic();
       r = process_run();
     } while(r > 0);
-#if PROFILE_CONF_ON
-    profile_episode_end();
-#endif /* PROFILE_CONF_ON */
 
     /*
      * Idle processing.

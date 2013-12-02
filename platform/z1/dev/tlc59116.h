@@ -38,8 +38,8 @@
  *         Jelmer Tiete, VUB <jelmer@tiete.be>
  */
 
-#ifndef __TLC59116_H__
-#define __TLC59116_H__
+#ifndef TLC59116_H_
+#define TLC59116_H_
 #include <stdio.h>
 #include "dev/i2cmaster.h"
 
@@ -139,4 +139,4 @@ void tlc59116_led(uint8_t led, uint8_t pwm);
 /* More registers follow, but not used in this implementation */
 
 /* -------------------------------------------------------------------------- */
-#endif /* ifndef __TLC59116_H__ */
+#endif /* ifndef TLC59116_H_ */

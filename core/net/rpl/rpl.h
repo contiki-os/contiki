@@ -46,9 +46,6 @@
 #include "sys/ctimer.h"
 
 /*---------------------------------------------------------------------------*/
-/* The amount of parents that this node has in a particular DAG. */
-#define RPL_PARENT_COUNT(dag)   list_length((dag)->parents)
-/*---------------------------------------------------------------------------*/
 typedef uint16_t rpl_rank_t;
 typedef uint16_t rpl_ocp_t;
 /*---------------------------------------------------------------------------*/
@@ -142,7 +139,6 @@ struct rpl_dag {
   rpl_parent_t *preferred_parent;
   rpl_rank_t rank;
   struct rpl_instance *instance;
-  LIST_STRUCT(parents);
   rpl_prefix_t prefix_info;
 };
 typedef struct rpl_dag rpl_dag_t;
@@ -225,6 +221,7 @@ struct rpl_instance {
   clock_time_t dio_next_delay; /* delay for completion of dio interval */
   struct ctimer dio_timer;
   struct ctimer dao_timer;
+  struct ctimer dao_lifetime_timer;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -245,7 +242,40 @@ void rpl_remove_header(void);
 uint8_t rpl_invert_header(void);
 uip_ipaddr_t *rpl_get_parent_ipaddr(rpl_parent_t *nbr);
 rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
-uint16_t rpl_get_parent_link_metric(uip_lladdr_t *addr);
+uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
+
+
+/**
+ * RPL modes
+ *
+ * The RPL module can be in either of three modes: mesh mode
+ * (RPL_MODE_MESH), feater mode (RPL_MODE_FEATHER), and leaf mode
+ * (RPL_MODE_LEAF). In mesh mode, nodes forward data for other nodes,
+ * and are reachable by others. In feather mode, nodes can forward
+ * data for other nodes, but are not reachable themselves. In leaf
+ * mode, nodes do not forward data for others, but are reachable by
+ * others. */
+enum rpl_mode {
+  RPL_MODE_MESH = 0,
+  RPL_MODE_FEATHER = 1,
+  RPL_MODE_LEAF = 2,
+};
+
+/**
+ * Set the RPL mode
+ *
+ * \param mode The new RPL mode
+ * \retval The previous RPL mode
+ */
+enum rpl_mode rpl_set_mode(enum rpl_mode mode);
+
+/**
+ * Get the RPL mode
+ *
+ * \retval The RPL mode
+ */
+enum rpl_mode rpl_get_mode(void);
+
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */

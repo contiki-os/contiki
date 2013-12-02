@@ -127,12 +127,12 @@ int
 main(void)
 {
   nvic_init();
+  ioc_init();
   sys_ctrl_init();
   clock_init();
   lpm_init();
   rtimer_init();
   gpio_init();
-  ioc_init();
 
   leds_init();
   fade(LEDS_YELLOW);

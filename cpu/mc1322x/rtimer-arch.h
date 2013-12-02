@@ -40,8 +40,8 @@
  *         Mariano Alvira <mar@devl.org>
  */
 
-#ifndef __RTIMER_ARCH_H__
-#define __RTIMER_ARCH_H__
+#ifndef RTIMER_ARCH_H_
+#define RTIMER_ARCH_H_
 
 /* contiki */
 #include "sys/rtimer.h"
@@ -58,4 +58,4 @@
 #define rtimer_arch_now() (CRM->RTC_COUNT)
 
 
-#endif /* __RTIMER_ARCH_H__ */
+#endif /* RTIMER_ARCH_H_ */

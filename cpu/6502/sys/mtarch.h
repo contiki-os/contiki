@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef __MTARCH_H__
-#define __MTARCH_H__
+#ifndef MTARCH_H_
+#define MTARCH_H_
 
 #define MTARCH_CPUSTACKSIZE 256
 #define MTARCH_CSTACKSIZE   256
@@ -46,4 +46,4 @@ struct mtarch_thread {
   unsigned char zp      [MTARCH_ZPSIZE];
 };
 
-#endif /* __MTARCH_H__ */
+#endif /* MTARCH_H_ */

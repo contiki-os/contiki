@@ -78,7 +78,7 @@ uip_ds6_neighbors_init(void)
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
-uip_ds6_nbr_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
+uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
                 uint8_t isrouter, uint8_t state)
 {
   uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (rimeaddr_t*)lladdr);
@@ -125,17 +125,17 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 }
 
 /*---------------------------------------------------------------------------*/
-uip_ipaddr_t *
-uip_ds6_nbr_get_ipaddr(uip_ds6_nbr_t *nbr)
+const uip_ipaddr_t *
+uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr)
 {
   return (nbr != NULL) ? &nbr->ipaddr : NULL;
 }
 
 /*---------------------------------------------------------------------------*/
-uip_lladdr_t *
-uip_ds6_nbr_get_ll(uip_ds6_nbr_t *nbr)
+const uip_lladdr_t *
+uip_ds6_nbr_get_ll(const uip_ds6_nbr_t *nbr)
 {
-  return (uip_lladdr_t *)nbr_table_get_lladdr(ds6_neighbors, nbr);
+  return (const uip_lladdr_t *)nbr_table_get_lladdr(ds6_neighbors, nbr);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -154,7 +154,7 @@ uip_ds6_nbr_num(void)
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
-uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr)
+uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr)
 {
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   if(ipaddr != NULL) {
@@ -169,22 +169,22 @@ uip_ds6_nbr_lookup(uip_ipaddr_t *ipaddr)
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
-uip_ds6_nbr_ll_lookup(uip_lladdr_t *lladdr)
+uip_ds6_nbr_ll_lookup(const uip_lladdr_t *lladdr)
 {
   return nbr_table_get_from_lladdr(ds6_neighbors, (rimeaddr_t*)lladdr);
 }
 
 /*---------------------------------------------------------------------------*/
 uip_ipaddr_t *
-uip_ds6_nbr_ipaddr_from_lladdr(uip_lladdr_t *lladdr)
+uip_ds6_nbr_ipaddr_from_lladdr(const uip_lladdr_t *lladdr)
 {
   uip_ds6_nbr_t *nbr = uip_ds6_nbr_ll_lookup(lladdr);
   return nbr ? &nbr->ipaddr : NULL;
 }
 
 /*---------------------------------------------------------------------------*/
-uip_lladdr_t *
-uip_ds6_nbr_lladdr_from_ipaddr(uip_ipaddr_t *ipaddr)
+const uip_lladdr_t *
+uip_ds6_nbr_lladdr_from_ipaddr(const uip_ipaddr_t *ipaddr)
 {
   uip_ds6_nbr_t *nbr = uip_ds6_nbr_lookup(ipaddr);
   return nbr ? uip_ds6_nbr_get_ll(nbr) : NULL;
@@ -276,7 +276,6 @@ uip_ds6_neighbor_periodic(void)
     nbr = nbr_table_next(ds6_neighbors, nbr);
   }
 }
-
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 uip_ds6_get_least_lifetime_neighbor(void)
@@ -296,3 +295,4 @@ uip_ds6_get_least_lifetime_neighbor(void)
   }
   return nbr_expiring;
 }
+/*---------------------------------------------------------------------------*/

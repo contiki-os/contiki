@@ -1,5 +1,5 @@
-#ifndef __EFSL_SPI_H__6B6MX40N68__
-#define __EFSL_SPI_H__6B6MX40N68__
+#ifndef EFSL_SPI_H_6B6MX40N68__
+#define EFSL_SPI_H_6B6MX40N68__
 
 #include <types.h>
 
@@ -18,4 +18,4 @@ void if_spiSetSpeed(euint8 speed);
 euint8 if_spiSend(hwInterface *iface, euint8 outgoing);
 
 
-#endif /* __EFSL_SPI_H__6B6MX40N68__ */
+#endif /* EFSL_SPI_H_6B6MX40N68__ */

@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef __PROJECT_RPL_WEB_CONF_H__
-#define __PROJECT_RPL_WEB_CONF_H__
+#ifndef PROJECT_RPL_WEB_CONF_H_
+#define PROJECT_RPL_WEB_CONF_H_
 
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          2
@@ -46,4 +46,4 @@
 #undef WITH_SERIAL_LINE_INPUT
 #define WITH_SERIAL_LINE_INPUT 0
 
-#endif /* __PROJECT_RPL_WEB_CONF_H__ */
+#endif /* PROJECT_RPL_WEB_CONF_H_ */

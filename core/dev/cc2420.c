@@ -50,8 +50,6 @@
 #include "net/rime/rimestats.h"
 #include "net/netstack.h"
 
-#include "sys/timetable.h"
-
 #define WITH_SEND_CCA 1
 
 #define FOOTER_LEN 2
@@ -59,6 +57,15 @@
 #ifndef CC2420_CONF_CHECKSUM
 #define CC2420_CONF_CHECKSUM 0
 #endif /* CC2420_CONF_CHECKSUM */
+
+#ifndef CC2420_CONF_CHANNEL
+#define CC2420_CONF_CHANNEL 26
+#endif /* CC2420_CONF_CHANNEL */
+
+#ifndef CC2420_CONF_CCA_THRESH
+#define CC2420_CONF_CCA_THRESH -45
+#endif /* CC2420_CONF_CCA_THRESH */
+
 
 #ifndef CC2420_CONF_AUTOACK
 #define CC2420_CONF_AUTOACK 0
@@ -331,7 +338,8 @@ cc2420_init(void)
   setreg(CC2420_SECCTRL0, reg);
 
   cc2420_set_pan_addr(0xffff, 0x0000, NULL);
-  cc2420_set_channel(26);
+  cc2420_set_channel(CC2420_CONF_CHANNEL);
+  cc2420_set_cca_threshold(CC2420_CONF_CCA_THRESH);
 
   flushrx();
 
@@ -605,20 +613,11 @@ cc2420_set_pan_addr(unsigned pan,
 /*
  * Interrupt leaves frame intact in FIFO.
  */
-#if CC2420_TIMETABLE_PROFILING
-#define cc2420_timetable_size 16
-TIMETABLE(cc2420_timetable);
-TIMETABLE_AGGREGATE(aggregate_time, 10);
-#endif /* CC2420_TIMETABLE_PROFILING */
 int
 cc2420_interrupt(void)
 {
   CC2420_CLEAR_FIFOP_INT();
   process_poll(&cc2420_process);
-#if CC2420_TIMETABLE_PROFILING
-  timetable_clear(&cc2420_timetable);
-  TIMETABLE_TIMESTAMP(cc2420_timetable, "interrupt");
-#endif /* CC2420_TIMETABLE_PROFILING */
 
   last_packet_timestamp = cc2420_sfd_start_time;
   pending++;
@@ -635,10 +634,7 @@ PROCESS_THREAD(cc2420_process, ev, data)
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-#if CC2420_TIMETABLE_PROFILING
-    TIMETABLE_TIMESTAMP(cc2420_timetable, "poll");
-#endif /* CC2420_TIMETABLE_PROFILING */
-    
+
     PRINTF("cc2420_process: calling receiver callback\n");
 
     packetbuf_clear();
@@ -648,12 +644,6 @@ PROCESS_THREAD(cc2420_process, ev, data)
     packetbuf_set_datalen(len);
     
     NETSTACK_RDC.input();
-#if CC2420_TIMETABLE_PROFILING
-    TIMETABLE_TIMESTAMP(cc2420_timetable, "end");
-    timetable_aggregate_compute_detailed(&aggregate_time,
-                                         &cc2420_timetable);
-      timetable_clear(&cc2420_timetable);
-#endif /* CC2420_TIMETABLE_PROFILING */
   }
 
   PROCESS_END();

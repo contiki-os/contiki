@@ -67,8 +67,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __MULTIHOP_H__
-#define __MULTIHOP_H__
+#ifndef MULTIHOP_H_
+#define MULTIHOP_H_
 
 #include "net/rime/unicast.h"
 #include "net/rime/rimeaddr.h"
@@ -105,6 +105,6 @@ void multihop_close(struct multihop_conn *c);
 int multihop_send(struct multihop_conn *c, const rimeaddr_t *to);
 void multihop_resend(struct multihop_conn *c, const rimeaddr_t *nexthop);
 
-#endif /* __MULTIHOP_H__ */
+#endif /* MULTIHOP_H_ */
 /** @} */
 /** @} */

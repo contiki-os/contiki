@@ -57,6 +57,21 @@
 #define SPI_WAITFOREORx() do { \
   while(!(REG(SSI0_BASE + SSI_SR) & SSI_SR_RNE)); \
 } while (0)
+/*---------------------------------------------------------------------------*/
+/** \name Arch-specific SPI functions
+ * @{
+ */
+
+/** \brief Enables the SPI peripheral
+ */
+void spi_enable(void);
+
+/** \brief Disables the SPI peripheral
+ * \note Call this function to save power when the SPI is unused.
+ */
+void spi_disable(void);
+
+/** @} */
 
 #endif /* SPI_ARCH_H_ */
 

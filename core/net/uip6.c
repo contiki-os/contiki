@@ -1460,7 +1460,6 @@ uip_process(uint8_t flag)
   remove_ext_hdr();
 
   PRINTF("Receiving UDP packet\n");
-  UIP_STAT(++uip_stat.udp.recv);
  
   /* UDP processing is really just a hack. We don't do anything to the
      UDP/IP headers, but let the UDP application do all the hard
@@ -1512,10 +1511,10 @@ uip_process(uint8_t flag)
     }
   }
   PRINTF("udp: no matching connection found\n");
+  UIP_STAT(++uip_stat.udp.drop);
 
 #if UIP_UDP_SEND_UNREACH_NOPORT
   uip_icmp6_error_output(ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_NOPORT, 0);
-  UIP_STAT(++uip_stat.ip.drop);
   goto send;
 #else
   goto drop;
@@ -1523,6 +1522,7 @@ uip_process(uint8_t flag)
 
  udp_found:
   PRINTF("In udp_found\n");
+  UIP_STAT(++uip_stat.udp.recv);
  
   uip_conn = NULL;
   uip_flags = UIP_NEWDATA;

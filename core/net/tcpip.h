@@ -63,8 +63,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __TCPIP_H__
-#define __TCPIP_H__
+#ifndef TCPIP_H_
+#define TCPIP_H_
 
 #include "contiki.h"
 
@@ -340,8 +340,8 @@ CCIF void tcpip_input(void);
  * The eventual parameter is the MAC address of the destination.
  */
 #if UIP_CONF_IPV6
-uint8_t tcpip_output(uip_lladdr_t *);
-void tcpip_set_outputfunc(uint8_t (* f)(uip_lladdr_t *));
+uint8_t tcpip_output(const uip_lladdr_t *);
+void tcpip_set_outputfunc(uint8_t (* f)(const uip_lladdr_t *));
 #else
 uint8_t tcpip_output(void);
 void tcpip_set_outputfunc(uint8_t (* f)(void));
@@ -371,7 +371,7 @@ extern unsigned char tcpip_is_forwarding;
 
 PROCESS_NAME(tcpip_process);
 
-#endif /* __TCPIP_H__ */
+#endif /* TCPIP_H_ */
 
 /** @} */
 /** @} */

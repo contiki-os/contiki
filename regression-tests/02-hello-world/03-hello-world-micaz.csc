@@ -5,7 +5,7 @@
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
-      se.sics.cooja.radiomediums.UDGM
+      org.contikios.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
       <interference_range>100.0</interference_range>
       <success_ratio_tx>1.0</success_ratio_tx>
@@ -15,37 +15,37 @@
       <logoutput>40000</logoutput>
     </events>
     <motetype>
-      se.sics.cooja.avrmote.MicaZMoteType
+      org.contikios.cooja.avrmote.MicaZMoteType
       <identifier>micaz1</identifier>
       <description>MicaZ Mote Type #micaz1</description>
       <source>[CONTIKI_DIR]/examples/hello-world/hello-world.c</source>
       <commands>make hello-world.elf TARGET=micaz</commands>
       <firmware>[CONTIKI_DIR]/examples/hello-world/hello-world.elf</firmware>
-      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.avrmote.interfaces.MicaZID</moteinterface>
-      <moteinterface>se.sics.cooja.avrmote.interfaces.MicaZLED</moteinterface>
-      <moteinterface>se.sics.cooja.avrmote.interfaces.MicaZRadio</moteinterface>
-      <moteinterface>se.sics.cooja.avrmote.interfaces.MicaClock</moteinterface>
-      <moteinterface>se.sics.cooja.avrmote.interfaces.MicaSerial</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
+      <moteinterface>org.contikios.cooja.avrmote.interfaces.MicaZID</moteinterface>
+      <moteinterface>org.contikios.cooja.avrmote.interfaces.MicaZLED</moteinterface>
+      <moteinterface>org.contikios.cooja.avrmote.interfaces.MicaZRadio</moteinterface>
+      <moteinterface>org.contikios.cooja.avrmote.interfaces.MicaClock</moteinterface>
+      <moteinterface>org.contikios.cooja.avrmote.interfaces.MicaSerial</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.MoteAttributes</moteinterface>
     </motetype>
     <mote>
       <interface_config>
-        se.sics.cooja.interfaces.Position
+        org.contikios.cooja.interfaces.Position
         <x>36.478849033811386</x>
         <y>97.17795415366507</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.avrmote.interfaces.MicaZID
+        org.contikios.cooja.avrmote.interfaces.MicaZID
         <id>1</id>
       </interface_config>
       <motetype_identifier>micaz1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
-    se.sics.cooja.plugins.SimControl
+    org.contikios.cooja.plugins.SimControl
     <width>280</width>
     <z>2</z>
     <height>160</height>
@@ -53,7 +53,7 @@
     <location_y>16</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.LogListener
+    org.contikios.cooja.plugins.LogListener
     <plugin_config>
       <filter />
     </plugin_config>
@@ -64,7 +64,7 @@
     <location_y>285</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.ScriptRunner
+    org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
       <scriptfile>[CONFIG_DIR]/hello-world.js</scriptfile>
       <active>true</active>
