@@ -679,7 +679,7 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary = null;
     try {
       Constructor<? extends CoreComm> constr = javaLibraryClass.getConstructor(new Class[] { File.class });
-      javaLibrary = constr.newInstance(new Object[] { cLibraryFile });
+      javaLibrary = constr.newInstance(cLibraryFile);
     } catch (Exception e) {
       e.printStackTrace(errorStream);
       testOutput.addMessage("### Error: " + e.getMessage(), MessageList.ERROR);

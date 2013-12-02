@@ -79,7 +79,7 @@ public abstract class MoteInterface extends Observable {
       Class<? extends MoteInterface> interfaceClass, Mote mote) {
     try {
       MoteInterface instance = interfaceClass.getConstructor(
-          new Class[] { Mote.class }).newInstance(new Object[] { mote });
+          new Class[] { Mote.class }).newInstance(mote);
 
       return instance;
     } catch (Exception e) {
