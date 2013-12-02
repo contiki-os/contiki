@@ -1,3 +1,5 @@
+MODULES += core/net/ipv6 core/net/mac/sicslowmac
+
 CONTIKI_TARGET_DIRS = . apps net loader dev/usb dev/serial
 CONTIKI_CORE=contiki-raven-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
