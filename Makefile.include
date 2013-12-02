@@ -58,8 +58,7 @@ UPPERCASE = _ABCDEFGHIJKLMNOPQRSTUVWXYZ
 TARGET_UPPERCASE := ${strip ${shell echo $(TARGET) | sed y!$(LOWERCASE)!$(UPPERCASE)!}}
 CFLAGS += -DCONTIKI=1 -DCONTIKI_TARGET_$(TARGET_UPPERCASE)=1
 
-MODULES += \
-          core/sys core/dev \
+MODULES += core/sys core/dev core/lib \
           core/net/ipv6 core/net/ipv4 core/net/rime core/net/mac core/net/mac/contikimac
 
 #include $(CONTIKI)/core/net/rime/Makefile.rime
@@ -67,8 +66,8 @@ MODULES += \
 #SYSTEM  = process.c procinit.c autostart.c elfloader.c \
 #          compower.c serial-line.c
 #THREADS = mt.c
-LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c trickle-timer.c \
-          print-stats.c ifft.c crc16.c random.c ringbuf.c settings.c
+#LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c trickle-timer.c \
+#          print-stats.c ifft.c crc16.c random.c ringbuf.c settings.c
 #DEV     = nullradio.c
 
 #include $(CONTIKI)/core/net/Makefile.uip
