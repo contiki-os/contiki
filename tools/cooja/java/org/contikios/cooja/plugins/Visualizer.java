@@ -528,7 +528,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         Transferable transferable = dtde.getTransferable();
 
         /* Only accept single files */
-        File file = null;
+        File file;
         if (!transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
           dtde.rejectDrop();
           return;

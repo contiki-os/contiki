@@ -113,7 +113,7 @@ public class ArrayUtils {
     FileInputStream fileIn;
     DataInputStream dataIn;
     int offset = 0;
-    int numRead = 0;
+    int numRead;
     try {
       fileIn = new FileInputStream(file);
       dataIn = new DataInputStream(fileIn);
@@ -132,7 +132,7 @@ public class ArrayUtils {
 
   public static byte[] readFromStream(InputStream input) {
     try {
-      int numRead = 0;
+      int numRead;
       int offset = 0;
       byte data[] = new byte[input.available()*2];
       DataInputStream dataIn = new DataInputStream(input);

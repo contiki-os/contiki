@@ -112,7 +112,7 @@ public class AddMoteDialog extends JDialog {
   public static Vector<Mote> showDialog(Container parentContainer,
       Simulation simulation, MoteType moteType) {
 
-    AddMoteDialog myDialog = null;
+    AddMoteDialog myDialog;
     if (parentContainer instanceof Window) {
       myDialog = new AddMoteDialog((Window)parentContainer, simulation, moteType);
     } else if (parentContainer instanceof Dialog) {

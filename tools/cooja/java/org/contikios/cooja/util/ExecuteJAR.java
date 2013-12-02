@@ -205,7 +205,7 @@ public class ExecuteJAR {
    * @param outputFile Output file
    */
   public static boolean buildExecutableJAR(Cooja gui, File outputFile) {
-    String executeDir = null;
+    String executeDir;
     executeDir = outputFile.getName();
     if (!executeDir.endsWith(".jar")) {
       throw new RuntimeException("Not a proper JAR archive: " + executeDir);

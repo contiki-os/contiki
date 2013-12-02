@@ -136,7 +136,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
     }
 
     /* Prepare compiler environment */
-    String[][] env = null;
+    String[][] env;
     try {
       env = CompileContiki.createCompilationEnvironment(
           moteType.getIdentifier(),

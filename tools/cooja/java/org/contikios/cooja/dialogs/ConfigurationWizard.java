@@ -540,7 +540,7 @@ public class ConfigurationWizard extends JDialog {
     cLibraryFile = new File(ContikiMoteType.tempOutputDirectory, cLibraryName + ContikiMoteType.librarySuffix);
 
     testOutput.addMessage("### Reading C library template source: " + testTemplate, MessageList.NORMAL);
-    BufferedReader templateReader = null;
+    BufferedReader templateReader;
     try {
       if ((new File(testTemplate)).exists()) {
         templateReader = new BufferedReader(new FileReader(testTemplate));
@@ -571,7 +571,7 @@ public class ConfigurationWizard extends JDialog {
       testOutput.addMessage("### Error: " + e.getMessage(), MessageList.ERROR);
       return false;
     }
-    BufferedWriter cLibraryWriter = null;
+    BufferedWriter cLibraryWriter;
     try {
       cLibraryWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(cLibrarySourceFile)));
       String line;
@@ -660,7 +660,7 @@ public class ConfigurationWizard extends JDialog {
     }
 
     testOutput.addMessage("### Loading Java library class: org/contikios/cooja/corecomm/" + javaLibraryName);
-    Class<? extends CoreComm> javaLibraryClass = null;
+    Class<? extends CoreComm> javaLibraryClass;
     try {
       javaLibraryClass = (Class<? extends CoreComm>) CoreComm.loadClassFile(javaLibraryName);
     } catch (MoteTypeCreationException e) {
@@ -698,8 +698,8 @@ public class ConfigurationWizard extends JDialog {
     }
     dummyStream.close();
 
-    boolean successMap = false;
-    boolean successCommand = false;
+    boolean successMap;
+    boolean successCommand;
 
     successMap = performMapAddressTest(testOutput, normalStream, errorStream);
     testOutput.addMessage("");

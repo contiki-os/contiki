@@ -2166,7 +2166,7 @@ public class Cooja extends Observable {
     mySimulation.stopSimulation();
 
     // Create mote type
-    MoteType newMoteType = null;
+    MoteType newMoteType;
     try {
       newMoteType = moteTypeClass.newInstance();
       if (!newMoteType.configureAndInit(Cooja.getTopParentContainer(), mySimulation, isVisualized())) {
@@ -2389,8 +2389,8 @@ public class Cooja extends Observable {
 
     // Load simulation in this thread, while showing progress monitor
     final File fileToLoad = configFile;
-    Simulation newSim = null;
-    boolean shouldRetry = false;
+    Simulation newSim;
+    boolean shouldRetry;
     do {
       try {
         shouldRetry = false;
@@ -2454,7 +2454,7 @@ public class Cooja extends Observable {
         }
 
         /* Remove current simulation, and load config */
-        boolean shouldRetry = false;
+        boolean shouldRetry;
         do {
           try {
             shouldRetry = false;
@@ -2807,7 +2807,7 @@ public class Cooja extends Observable {
     String osName = System.getProperty("os.name").toLowerCase();
     String osArch = System.getProperty("os.arch").toLowerCase();
 
-    String filename = null;
+    String filename;
     if (osName.startsWith("win")) {
       filename = Cooja.EXTERNAL_TOOLS_WIN32_SETTINGS_FILENAME;
     } else if (osName.startsWith("mac os x")) {
@@ -3200,7 +3200,7 @@ public class Cooja extends Observable {
         contikiApp = contikiApp.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
       }
 
-      Simulation sim = null;
+      Simulation sim;
       if (contikiApp.endsWith(".csc")) {
         sim = quickStartSimulationConfig(new File(contikiApp), true, randomSeed);
       } else {
@@ -4104,7 +4104,7 @@ public class Cooja extends Observable {
   }
 
   public File createPortablePath(File file, boolean allowConfigRelativePaths) {
-    File portable = null;
+    File portable;
 
     portable = createContikiRelativePath(file);
     if (portable != null) {
@@ -4138,7 +4138,7 @@ public class Cooja extends Observable {
       return file;
     }
 
-    File absolute = null;
+    File absolute;
     absolute = restoreContikiRelativePath(file);
     if (absolute != null) {
       /*logger.info("Restored Contiki relative path '" + file.getPath() + "' to '" + absolute.getPath() + "'");*/
@@ -4212,8 +4212,8 @@ public class Cooja extends Observable {
   
   private File restoreContikiRelativePath(File portable) {
   	int elem = PATH_IDENTIFIER.length;
-  	File path = null;
-	String canonical = null;
+  	File path;
+	String canonical;
 	
     try {
     	    	

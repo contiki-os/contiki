@@ -428,7 +428,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       for (MoteEvents me: allMoteEvents.toArray(new MoteEvents[0])) {
         double d = me.mote.getInterfaces().getPosition().getDistanceTo(m);
 
-        int i=0;
+        int i;
         for (i=0; i < sortedMoteEvents.size(); i++) {
           double d2 = m.getInterfaces().getPosition().getDistanceTo(sortedMoteEvents.get(i).mote);
           if (d < d2) {

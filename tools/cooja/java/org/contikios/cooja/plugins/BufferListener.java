@@ -368,7 +368,7 @@ public class BufferListener extends VisPlugin {
               table, value, isSelected, hasFocus, row, column);
         }
 
-        Color bgColor = null;
+        Color bgColor;
         if (backgroundColors) {
           BufferAccess d = logs.get(logTable.getRowSorter().convertRowIndexToModel(row));
           char last = d.getID().charAt(d.getID().length()-1);
@@ -1316,7 +1316,7 @@ public class BufferListener extends VisPlugin {
   }
 
   private void setParser(Class<? extends Parser> bpClass) {
-    Parser bp = null;
+    Parser bp;
     try {
       bp = bpClass.newInstance();
     } catch (InstantiationException e) {

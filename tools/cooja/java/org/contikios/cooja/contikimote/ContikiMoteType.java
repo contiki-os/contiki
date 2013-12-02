@@ -383,10 +383,10 @@ public class ContikiMoteType implements MoteType {
     /* Parse addresses using map file or command */
     boolean useCommand = Boolean.parseBoolean(Cooja.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
 
-    int dataSectionAddr = -1, dataSectionSize = -1;
-    int bssSectionAddr = -1, bssSectionSize = -1;
-    int commonSectionAddr = -1, commonSectionSize = -1;
-    int readonlySectionAddr = -1, readonlySectionSize = -1;
+    int dataSectionAddr, dataSectionSize;
+    int bssSectionAddr, bssSectionSize;
+    int commonSectionAddr, commonSectionSize;
+    int readonlySectionAddr, readonlySectionSize;
 
     HashMap<String, Integer> addresses = new HashMap<String, Integer>();
     if (useCommand) {

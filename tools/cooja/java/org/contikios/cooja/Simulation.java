@@ -620,7 +620,7 @@ public class Simulation extends Observable implements Runnable {
         }
 
         // Show configure simulation dialog
-        boolean createdOK = false;
+        boolean createdOK;
         if (visAvailable) {
           createdOK = CreateSimDialog.showDialog(Cooja.getTopParentContainer(), this);
         } else {
