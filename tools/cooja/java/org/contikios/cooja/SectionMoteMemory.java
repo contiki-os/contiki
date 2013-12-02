@@ -76,7 +76,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
       throw new UnknownVariableException(varName);
     }
     
-    return addresses.get(varName).intValue() + offset;
+    return addresses.get(varName) + offset;
   }
 
   public int getIntegerLength() {

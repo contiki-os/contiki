@@ -3760,7 +3760,7 @@ public class Cooja extends Observable {
           if (plugin.getClientProperty("zorder") == null) {
           	continue;
           }
-          int zOrder = ((Integer) plugin.getClientProperty("zorder")).intValue();
+          int zOrder = (Integer) plugin.getClientProperty("zorder");
           if (zOrder != z) {
           	continue;
           }

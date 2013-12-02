@@ -152,7 +152,7 @@ public class DGRMConfigurator extends VisPlugin {
           setText(value.toString());
           return;
         }
-        double v = ((Double) value).doubleValue();
+        double v = (Double) value;
         setText(String.format("%1.1f%%", 100*v));
       }
     });
@@ -163,7 +163,7 @@ public class DGRMConfigurator extends VisPlugin {
           setText(value.toString());
           return;
         }
-        double v = ((Double) value).doubleValue();
+        double v = (Double) value;
         setText(String.format("%1.1f dBm", v));
       }
     });
@@ -174,7 +174,7 @@ public class DGRMConfigurator extends VisPlugin {
 	      setText(value.toString());
 	      return;
 	    }
-    	long v = ((Long) value).longValue();
+    	long v = (Long) value;
     	setText(String.valueOf(v));
 		}
     });
@@ -185,7 +185,7 @@ public class DGRMConfigurator extends VisPlugin {
           setText(value.toString());
           return;
         }
-        long v = ((Long) value).longValue();
+        long v = (Long) value;
         setText(v + " ms");
       }
     });

@@ -134,15 +134,15 @@ public class SimControl extends VisPlugin implements HasQuickHelp {
 
     if (simulation.getSpeedLimit() == null) {
       limitMenuItemNo.setSelected(true);
-    } else if (simulation.getSpeedLimit().doubleValue() == 0.01) {
+    } else if (simulation.getSpeedLimit() == 0.01) {
       limitMenuItem1.setSelected(true);
-    } else if (simulation.getSpeedLimit().doubleValue() == 0.10) {
+    } else if (simulation.getSpeedLimit() == 0.10) {
       limitMenuItem2.setSelected(true);
-    } else if (simulation.getSpeedLimit().doubleValue() == 1.0) {
+    } else if (simulation.getSpeedLimit() == 1.0) {
         limitMenuItem3.setSelected(true);
-    } else if (simulation.getSpeedLimit().doubleValue() == 2.0) {
+    } else if (simulation.getSpeedLimit() == 2.0) {
         limitMenuItem200.setSelected(true);
-    } else if (simulation.getSpeedLimit().doubleValue() == 10) {
+    } else if (simulation.getSpeedLimit() == 10) {
       limitMenuItem4.setSelected(true);
     }
 

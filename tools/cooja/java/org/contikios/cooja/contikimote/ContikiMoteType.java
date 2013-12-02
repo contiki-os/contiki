@@ -734,7 +734,7 @@ public class ContikiMoteType implements MoteType {
   private static int getMapFileVarAddress(String[] mapFileData, String varName, HashMap<String, Integer> varAddresses) {
     Integer varAddrInteger;
     if ((varAddrInteger = varAddresses.get(varName)) != null) {
-      return varAddrInteger.intValue();
+      return varAddrInteger;
     }
 
     String regExp =
@@ -746,7 +746,7 @@ public class ContikiMoteType implements MoteType {
     if (retString != null) {
       varAddrInteger = Integer.parseInt(retString.trim(), 16);
       varAddresses.put(varName, varAddrInteger);
-      return varAddrInteger.intValue();
+      return varAddrInteger;
     } else {
       return -1;
     }
@@ -808,8 +808,8 @@ public class ContikiMoteType implements MoteType {
     for (String line : lines) {
       Matcher matcher = pattern.matcher(line);
       if (matcher.find()) {
-        if (Integer.decode(matcher.group(1)).intValue() >= startAddress
-            && Integer.decode(matcher.group(1)).intValue() <= endAddress) {
+        if (Integer.decode(matcher.group(1)) >= startAddress
+            && Integer.decode(matcher.group(1)) <= endAddress) {
           varNames.add(matcher.group(2));
         }
       }

@@ -1012,7 +1012,7 @@ public class Simulation extends Observable implements Runnable {
         speedLimitNone = false;
         speedLimitLastRealtime = System.currentTimeMillis();
         speedLimitLastSimtime = getSimulationTime();
-        speedLimit = newSpeedLimit.doubleValue();
+        speedLimit = newSpeedLimit;
 
         if (delayEvent.isScheduled()) {
           delayEvent.remove();
