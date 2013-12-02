@@ -96,6 +96,8 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFI
 $(OBJECTDIR):
 	mkdir $@
 
+uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
+
 ### Include application makefiles
 
 ifdef APPS
@@ -125,8 +127,9 @@ else
 endif
 
 ifdef MODULES
-  MODULESSUBST = ${subst /,-,$(MODULES)}
-  MODULEDIRS = ${wildcard ${addprefix $(CONTIKI)/, $(MODULES)}}
+  UNIQUEMODULES = $(call uniq,$(MODULES))
+  MODULESSUBST = ${subst /,-,$(UNIQUEMODULES)}
+  MODULEDIRS = ${wildcard ${addprefix $(CONTIKI)/, $(UNIQUEMODULES)}}
   MODULEINCLUDES = ${foreach m, $(MODULESSUBST), ${wildcard ${foreach d, $(MODULEDIRS), $(d)/Makefile.$(m)}}}
   -include $(MODULEINCLUDES)
   MODULES_SOURCES = ${foreach m, $(MODULESSUBST), $($(m)_src)}
