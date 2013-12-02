@@ -253,7 +253,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 
 					String newDefaultProjectDirs = "";
 					for (COOJAProject p: currentProjects) {
-						if (newDefaultProjectDirs != "") {
+						if (!newDefaultProjectDirs.equals("")) {
 							newDefaultProjectDirs += ";";
 						}
 
