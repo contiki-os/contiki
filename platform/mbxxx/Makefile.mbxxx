@@ -1,4 +1,4 @@
-ARCH= irq.c sensors.c acc-sensor.c button-sensor.c temperature-sensor.c mems.c contact-sensor.c
+ARCH= irq.c sensors.c acc-sensor.c button-sensor.c temperature-sensor.c mems.c contact-sensor.c i2c.c eeprom.c
 
 
 CONTIKI_TARGET_DIRS = . dev

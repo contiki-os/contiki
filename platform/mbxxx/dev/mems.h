@@ -49,17 +49,19 @@ typedef struct {
 /* Functions -----------------------------------------------------------------*/
 
 /* Mems Initialization function */
-uint8_t Mems_Init(void);
+uint8_t MEMS_Init(void);
 
 uint8_t MEMS_On(void);
 uint8_t MEMS_Off(void);
 uint8_t MEMS_SetFullScale(boolean range);
 boolean MEMS_GetFullScale(void);
-
-/* Get mems acceleration values */
-uint8_t Mems_GetValue(t_mems_data *mems_data);
+uint8_t MEMS_Read_Reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t *pBuffer,
+		       uint8_t NoOfBytes);
+uint8_t MEMS_Write_Reg (uint8_t slave_addr, uint8_t reg_addr,
+			uint8_t reg_value);
 
 #endif /*MEMS_H_ */
 
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/
 /** @} */
+
