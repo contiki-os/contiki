@@ -120,7 +120,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 			return null;
 		}
 
-		ProjectDirectoriesDialog dialog = new ProjectDirectoriesDialog((Window) parent, currentProjects);
+		ProjectDirectoriesDialog dialog = new ProjectDirectoriesDialog(parent, currentProjects);
 		dialog.gui = gui;
 		dialog.setLocationRelativeTo(parent);
 		dialog.setVisible(true);

@@ -132,7 +132,7 @@ public class DGRMConfigurator extends VisPlugin {
           }
         } else if (column == IDX_LQI) {
             for (int d = 110; d > 50; d -= 5) {
-              combo.addItem((int) d);
+              combo.addItem(d);
             }
         } else if (column == IDX_DELAY) {
           for (double d=0; d <= 5; d++) {
@@ -424,16 +424,16 @@ public class DGRMConfigurator extends VisPlugin {
         return edge.superDest.radio.getMote();
       }
       if (column == IDX_RATIO) {
-        return ((DGRMDestinationRadio)edge.superDest).ratio;
+        return edge.superDest.ratio;
       }
       if (column == IDX_SIGNAL) {
-        return ((DGRMDestinationRadio)edge.superDest).signal;
+        return edge.superDest.signal;
       }
       if (column == IDX_LQI) {
-          return ((DGRMDestinationRadio)edge.superDest).lqi;
+          return edge.superDest.lqi;
         }
       if (column == IDX_DELAY) {
-        return ((DGRMDestinationRadio)edge.superDest).delay / Simulation.MILLISECOND;
+        return edge.superDest.delay / Simulation.MILLISECOND;
       }
       return "";
     }
@@ -448,14 +448,14 @@ public class DGRMConfigurator extends VisPlugin {
       DirectedGraphMedium.Edge edge = radioMedium.getEdges()[row];
       try {
       	if (column == IDX_RATIO) {
-      		((DGRMDestinationRadio)edge.superDest).ratio = ((Number)value).doubleValue();
+      		edge.superDest.ratio = ((Number)value).doubleValue();
       	} else if (column == IDX_SIGNAL) {
-      		((DGRMDestinationRadio)edge.superDest).signal = ((Number)value).doubleValue();
+      		edge.superDest.signal = ((Number)value).doubleValue();
       	} else if (column == IDX_DELAY) {
-      		((DGRMDestinationRadio)edge.superDest).delay =
+      		edge.superDest.delay =
       			((Number)value).longValue() * Simulation.MILLISECOND;
       	} else if (column == IDX_LQI) {
-  			((DGRMDestinationRadio)edge.superDest).lqi = ((Number)value).intValue();
+  			edge.superDest.lqi = ((Number)value).intValue();
       	} 
       	else {
           super.setValueAt(value, row, column);

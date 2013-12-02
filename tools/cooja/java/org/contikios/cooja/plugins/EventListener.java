@@ -183,7 +183,7 @@ public class EventListener extends VisPlugin {
 
     for (MoteType moteType : simulationToControl.getMoteTypes()) {
       if (moteType instanceof ContikiMoteType) {
-        Class<? extends MoteInterface>[] arr = ((ContikiMoteType) moteType).getMoteInterfaceClasses();
+        Class<? extends MoteInterface>[] arr = moteType.getMoteInterfaceClasses();
         for (Class<? extends MoteInterface> intf : arr) {
           allInterfacesDups.add(intf);
         }

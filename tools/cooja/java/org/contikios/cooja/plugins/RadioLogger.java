@@ -209,9 +209,9 @@ public class RadioLogger extends VisPlugin {
         RadioConnectionLog conn = connections.get(row);
         if (col == COLUMN_NO) {
           if (!showDuplicates && conn.hides > 0) {
-            return (String) "" + (row + 1) + "+" + conn.hides;
+            return "" + (row + 1) + "+" + conn.hides;
           }
-          return (String) "" + (row + 1);
+          return "" + (row + 1);
         } else if (col == COLUMN_TIME) {
           if (formatTimeString) {
             return LogListener.getFormattedTime(conn.startTime);
@@ -738,7 +738,7 @@ public class RadioLogger extends VisPlugin {
 
     if (packet instanceof ConvertedRadioPacket && packet.getPacketData().length > 0) {
       byte[] original = ((ConvertedRadioPacket)packet).getOriginalPacketData();
-      byte[] converted = ((ConvertedRadioPacket)packet).getPacketData();
+      byte[] converted = packet.getPacketData();
       conn.tooltip = "<html><font face=\"Monospaced\">" +
       "<b>Packet data (" + original.length + " bytes)</b><br>" +
       "<pre>" + StringUtils.hexDump(original) + "</pre>" +

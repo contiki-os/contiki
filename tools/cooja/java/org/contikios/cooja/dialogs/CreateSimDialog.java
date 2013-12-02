@@ -363,7 +363,7 @@ public class CreateSimDialog extends JDialog {
         mySimulation.setRandomSeed(((Number) randomSeed.getValue()).longValue());
       }
 
-      mySimulation.setDelayedMoteStartupTime((int) ((Number) delayedStartup.getValue()).intValue()*Simulation.MILLISECOND);
+      mySimulation.setDelayedMoteStartupTime(((Number) delayedStartup.getValue()).intValue() *Simulation.MILLISECOND);
 
       dispose();
     }

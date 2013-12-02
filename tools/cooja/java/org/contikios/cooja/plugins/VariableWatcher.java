@@ -124,7 +124,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   public VariableWatcher(Mote moteToView, Simulation simulation, Cooja gui) {
     super("Variable Watcher (" + moteToView + ")", gui);
     this.mote = moteToView;
-    moteMemory = (AddressMemory) moteToView.getMemory();
+    moteMemory = moteToView.getMemory();
 
     JLabel label;
     integerFormat = NumberFormat.getIntegerInstance();

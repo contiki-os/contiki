@@ -4681,7 +4681,7 @@ public class Cooja extends Observable {
       quickHelpTextPane.setVisible(show);
       quickHelpScroll.setVisible(show);
       setExternalToolsSetting("SHOW_QUICKHELP", new Boolean(show).toString());
-      ((JPanel)frame.getContentPane()).revalidate();
+      frame.getContentPane().revalidate();
       updateDesktopSize(getDesktopPane());
     }
 
