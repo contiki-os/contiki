@@ -40,11 +40,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -785,17 +781,13 @@ public class ContikiMoteType implements MoteType {
         mapFileData,
         parseMapDataSectionAddr(mapFileData),
         parseMapDataSectionAddr(mapFileData) + parseMapDataSectionSize(mapFileData));
-    for (String v: dataVariables) {
-      varNames.add(v);
-    }
+      Collections.addAll(varNames, dataVariables);
 
     String[] bssVariables = getAllVariableNames(
         mapFileData,
         parseMapBssSectionAddr(mapFileData),
         parseMapBssSectionAddr(mapFileData) + parseMapBssSectionSize(mapFileData));
-    for (String v: bssVariables) {
-      varNames.add(v);
-    }
+      Collections.addAll(varNames, bssVariables);
 
     return varNames.toArray(new String[0]);
   }
@@ -1099,9 +1091,7 @@ public class ContikiMoteType implements MoteType {
 
   public void setMoteInterfaceClasses(Class<? extends MoteInterface>[] moteInterfaces) {
     this.moteInterfacesClasses = new ArrayList<Class<? extends MoteInterface>>();
-    for (Class<? extends MoteInterface> intf: moteInterfaces) {
-      this.moteInterfacesClasses.add(intf);
-    }
+      Collections.addAll(this.moteInterfacesClasses, moteInterfaces);
   }
 
   /**
@@ -1417,9 +1407,7 @@ public class ContikiMoteType implements MoteType {
         continue;
       }
 
-      for (String dep: deps) {
-        coreInterfacesList.add(dep);
-      }
+        Collections.addAll(coreInterfacesList, deps);
     }
 
     String[] coreInterfaces = new String[coreInterfacesList.size()];

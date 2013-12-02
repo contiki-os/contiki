@@ -65,14 +65,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessControlException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.Properties;
-import java.util.Vector;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -2955,9 +2948,7 @@ public class Cooja extends Observable {
         );
         if (newProjects != null) {
         	currentProjects.clear();
-        	for (COOJAProject p: newProjects) {
-            currentProjects.add(p);
-        	}
+            Collections.addAll(currentProjects, newProjects);
           try {
             reparseProjectConfig();
           } catch (ParseProjectsException ex) {
