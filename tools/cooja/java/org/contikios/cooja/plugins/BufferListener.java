@@ -643,9 +643,9 @@ public class BufferListener extends VisPlugin {
     return true;
   }
 
-  public enum MemoryMonitorType { SEGMENT, POINTER, CONSTPOINTER };
+  public enum MemoryMonitorType { SEGMENT, POINTER, CONSTPOINTER }
 
-  static class PointerMemoryMonitor extends SegmentMemoryMonitor {
+    static class PointerMemoryMonitor extends SegmentMemoryMonitor {
     private SegmentMemoryMonitor segmentMonitor = null;
     private int lastSegmentAddress = -1;
     private final int pointerAddress;
@@ -1676,8 +1676,9 @@ public class BufferListener extends VisPlugin {
 
       parser.paintComponent(g, this);
     }
-  };
-  private GrapicalParserPanel graphicalParserPanel = new GrapicalParserPanel();
+  }
+
+    private GrapicalParserPanel graphicalParserPanel = new GrapicalParserPanel();
 
   @ClassDescription("Graphical: Height")
   public static class GraphicalHeight4BitsParser extends GraphicalParser {
