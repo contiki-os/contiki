@@ -140,7 +140,7 @@ public class ExecuteJAR {
     try {
       InputStream inputStream;
       File diskFile = new File(executeDir, SIMCONFIG_FILENAME);
-      if (OVERWRITE || !diskFile.exists()) {
+      if (!diskFile.exists()) {
         logger.info("Unpacking simulation config: " + SIMCONFIG_FILENAME + " -> " + diskFile.getName());
         inputStream = Cooja.class.getResourceAsStream("/" + SIMCONFIG_FILENAME);
         byte[] fileData = ArrayUtils.readFromStream(inputStream);
@@ -158,7 +158,7 @@ public class ExecuteJAR {
       }
 
       diskFile = new File(executeDir, EXTERNALTOOLS_FILENAME);
-      if (OVERWRITE || !diskFile.exists()) {
+      if (!diskFile.exists()) {
         logger.info("Unpacking external tools config: " + EXTERNALTOOLS_FILENAME + " -> " + diskFile.getName());
         inputStream = Cooja.class.getResourceAsStream("/" + EXTERNALTOOLS_FILENAME);
         byte[] fileData = ArrayUtils.readFromStream(inputStream);
@@ -508,7 +508,7 @@ public class ExecuteJAR {
           logger.info("Failed unpacking file");
           throw new RuntimeException("Could not unpack file: " + file);
         }
-        if (OVERWRITE || !file.exists()) {
+        if (!file.exists()) {
           boolean ok = ArrayUtils.writeToFile(file, fileData);
           if (!ok) {
             throw new RuntimeException("Failed unpacking file: " + file);
