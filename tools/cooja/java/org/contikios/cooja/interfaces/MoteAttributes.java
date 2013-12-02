@@ -160,7 +160,7 @@ public class MoteAttributes extends MoteInterface {
   }
   
   public String getText() {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       Object[] keys = attributes.keySet().toArray();
       for (Object key : keys) {
           sb.append(key).append("=").append(attributes.get(key)).append("\n");
