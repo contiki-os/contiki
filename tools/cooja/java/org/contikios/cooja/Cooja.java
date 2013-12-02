@@ -4680,7 +4680,7 @@ public class Cooja extends Observable {
       boolean show = ((JCheckBoxMenuItem) e.getSource()).isSelected();
       quickHelpTextPane.setVisible(show);
       quickHelpScroll.setVisible(show);
-      setExternalToolsSetting("SHOW_QUICKHELP", new Boolean(show).toString());
+      setExternalToolsSetting("SHOW_QUICKHELP", Boolean.toString(show));
       frame.getContentPane().revalidate();
       updateDesktopSize(getDesktopPane());
     }
