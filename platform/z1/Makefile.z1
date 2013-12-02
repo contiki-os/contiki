@@ -5,4 +5,5 @@ CLEAN += *.z1
 
 include $(CONTIKI)/platform/z1/Makefile.common
 
-MODULES += core/net/ipv6 core/net/ipv4 core/net/rime core/net/mac/contikimac dev/cc2420
+MODULES += core/net/ipv6 core/net/ipv4 core/net/rime core/net/mac/contikimac \
+           dev/cc2420 dev/sht11
