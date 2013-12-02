@@ -143,10 +143,7 @@ public class ImportAppMoteDialog extends JDialog {
               return true;
             }
             String filename = f.getName();
-            if (filename != null && filename.endsWith(".class")) {
-              return true;
-            }
-            return false;
+              return filename != null && filename.endsWith(".class");
           }
 
           public String getDescription() {

@@ -217,11 +217,8 @@ public class Cooja extends Observable {
       if (file.getName().endsWith(".csc")) {
         return true;
       }
-      if (file.getName().endsWith(".csc.gz")) {
-        return true;
-      }
+        return file.getName().endsWith(".csc.gz");
 
-      return false;
     }
     public String getDescription() {
       return "Cooja simulation (.csc, .csc.gz)";
@@ -2213,10 +2210,7 @@ public class Cooja extends Observable {
               "You have an active simulation.\nDo you want to remove it?",
               "Remove current simulation?", JOptionPane.YES_NO_OPTION,
               JOptionPane.QUESTION_MESSAGE, null, options, s2);
-          if (n != JOptionPane.YES_OPTION) {
-            return false;
-          }
-          return true;
+            return n == JOptionPane.YES_OPTION;
         }
       }.invokeAndWait();
 
@@ -3908,10 +3902,7 @@ public class Cooja extends Observable {
         errorDialog.setLocationRelativeTo(parentComponent);
         errorDialog.setVisible(true); /* BLOCKS */
 
-        if (errorDialog.getTitle().equals("-RETRY-")) {
-          return true;
-        }
-        return false;
+          return errorDialog.getTitle().equals("-RETRY-");
 
       }
     }.invokeAndWait();
@@ -4532,10 +4523,7 @@ public class Cooja extends Observable {
           if (file.isDirectory()) {
             return true;
           }
-          if (file.getName().endsWith(".jar")) {
-            return true;
-          }
-          return false;
+            return file.getName().endsWith(".jar");
         }
         public String getDescription() {
           return "Java archive";
@@ -4589,10 +4577,7 @@ public class Cooja extends Observable {
       cooja.doQuit(true);
     }
     public boolean shouldBeEnabled() {
-      if (isVisualizedInApplet()) {
-        return false;
-      }
-      return true;
+        return !isVisualizedInApplet();
     }
   };
   GUIAction startStopSimulationAction = new GUIAction("Start simulation", KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)) {

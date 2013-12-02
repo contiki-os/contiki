@@ -890,11 +890,8 @@ class DirectoryTreePanel extends JPanel {
 				if (!file.isDirectory()) {
 					return false;
 				}
-				if (file.getName().startsWith(".")) {
-					return false;
-				}
-				return true;
-			}
+                return !file.getName().startsWith(".");
+            }
 		};
 		private File[] getDirectoryList(File parent) {
 			File[] dirs = parent.listFiles(DIRECTORIES);

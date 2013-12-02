@@ -488,10 +488,7 @@ public class DGRMConfigurator extends VisPlugin {
       if (column == IDX_LQI) {
         return true;
       }
-      if (column == IDX_DELAY) {
-        return true;
-      }
-      return false;
+        return column == IDX_DELAY;
     }
 
     public Class<? extends Object> getColumnClass(int c) {

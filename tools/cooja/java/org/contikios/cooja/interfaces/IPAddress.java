@@ -148,11 +148,7 @@ public class IPAddress extends MoteInterface {
 				  structData, offset+2/* ipaddr offset */,
 				  addressData, 0, 16);
 
-		  if (addressData[0] == (byte)0xFE && addressData[1] == (byte)0x80) {
-			  ipv6IsGlobal = false;
-		  } else {
-			  ipv6IsGlobal = true;
-		  }
+          ipv6IsGlobal = !(addressData[0] == (byte) 0xFE && addressData[1] == (byte) 0x80);
 
 		  ip = addressData;
 		  ipv6AddressIndex = addressIndex;

@@ -709,10 +709,7 @@ public class ScriptRunner extends VisPlugin {
       fileChooser.setFileFilter(new FileFilter() {
         public boolean accept(File file) {
           if (file.isDirectory()) { return true; }
-          if (file.getName().endsWith(".js")) {
-            return true;
-          }
-          return false;
+            return file.getName().endsWith(".js");
         }
         public String getDescription() {
           return "Javascript";

@@ -178,11 +178,8 @@ public class ConfigurationWizard extends JDialog {
     }
 
     /* Test 4 - Memory replacement */
-    if (!doMemoryReplacementTest((JFrame)parentContainer, gui)) {
-      return false;
-    }
+      return doMemoryReplacementTest((JFrame) parentContainer, gui);
 
-    return true;
   }
 
   public static boolean showWizardInfo(Container parent, Cooja gui) {
@@ -199,11 +196,8 @@ public class ConfigurationWizard extends JDialog {
         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE,
         null, options, options[0]);
 
-    if (value != JOptionPane.YES_OPTION) {
-      return false;
-    }
+      return value == JOptionPane.YES_OPTION;
 
-    return true;
   }
 
   public static boolean doCompileCTest(JFrame parent, Cooja gui) {

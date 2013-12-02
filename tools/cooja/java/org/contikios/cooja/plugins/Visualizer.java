@@ -880,7 +880,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         }
       }
     }
-    return showMenuItem;
+      return showMenuItem;
   }
 
   private void handleMousePress(MouseEvent mouseEvent) {
@@ -1734,7 +1734,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     @Override
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
-      return visualizer.getUI() instanceof BasicInternalFrameUI;
+        return visualizer.getUI() instanceof BasicInternalFrameUI;
     }
   }
 
