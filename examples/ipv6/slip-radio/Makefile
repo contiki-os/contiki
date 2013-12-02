@@ -19,5 +19,11 @@ PROJECT_SOURCEFILES += slip-net.c no-framer.c
 ifeq ($(TARGET),sky)
   PROJECT_SOURCEFILES += slip-radio-cc2420.c slip-radio-sky-sensors.c
 endif
+ifeq ($(TARGET),nooliberry)
+  PROJECT_SOURCEFILES += slip-radio-rf230.c
+endif
+ifeq ($(TARGET),econotag)
+  PROJECT_SOURCEFILES += slip-radio-mc1322x.c
+endif
 
 include $(CONTIKI)/Makefile.include
