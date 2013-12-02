@@ -3449,7 +3449,6 @@ public class Cooja extends Observable {
    * Saves current simulation configuration to given file and notifies
    * observers.
    *
-   * @see #loadSimulationConfig(File, boolean)
    * @param file
    *          File to write
    */

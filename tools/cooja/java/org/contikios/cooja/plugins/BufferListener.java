@@ -1411,8 +1411,6 @@ public class BufferListener extends VisPlugin {
 
   public static interface Parser {
     /**
-     * @param mm Memory monitor
-     * @param address Address that changed. May not contain all changes
      * @param ba Buffer Access object
      * @return String or custom graphical object
      */

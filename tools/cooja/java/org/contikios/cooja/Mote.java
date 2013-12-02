@@ -52,7 +52,6 @@ public interface Mote {
   /**
    * Returns the interface handler of this mote.
    *
-   * @see #setInterfaces(MoteInterfaceHandler)
    * @return Mote interface handler
    */
   public MoteInterfaceHandler getInterfaces();
@@ -60,7 +59,6 @@ public interface Mote {
   /**
    * Returns the memory of this mote.
    *
-   * @see #setMemory(MoteMemory)
    * @return Mote memory
    */
   public MoteMemory getMemory();
@@ -68,7 +66,6 @@ public interface Mote {
   /**
    * Returns mote type.
    *
-   * @see #setType(MoteType)
    * @return Mote type
    */
   public MoteType getType();
@@ -76,7 +73,6 @@ public interface Mote {
   /**
    * Returns simulation which holds this mote.
    *
-   * @see #setSimulation(Simulation)
    * @return Simulation
    */
   public Simulation getSimulation();
