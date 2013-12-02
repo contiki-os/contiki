@@ -220,7 +220,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     varData[pos++] = (byte) ((newValToSet & 0xFF000000) >> 24);
     varData[pos++] = (byte) ((newValToSet & 0xFF0000) >> 16);
     varData[pos++] = (byte) ((newValToSet & 0xFF00) >> 8);
-    varData[pos++] = (byte) ((newValToSet & 0xFF) >> 0);
+    varData[pos++] = (byte) ((newValToSet & 0xFF));
 
     setMemorySegment(varAddr, varData);
   }
@@ -423,7 +423,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     retVal += ((memorySegment[pos++] & 0xFF)) << 24;
     retVal += ((memorySegment[pos++] & 0xFF)) << 16;
     retVal += ((memorySegment[pos++] & 0xFF)) << 8;
-    retVal += ((memorySegment[pos++] & 0xFF)) << 0;
+    retVal += ((memorySegment[pos++] & 0xFF));
 
     retVal = Integer.reverseBytes(retVal);
     return retVal;
