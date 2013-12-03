@@ -478,7 +478,7 @@ public class ExecuteJAR {
           throw new RuntimeException("Error when copying file: " + file);
         }
         logger.info("Simconfig: Copied file: " + file.getAbsolutePath() + " -> " + ("[CONFIG_DIR]/" + newFilename));
-        ((Element)c).setText("[CONFIG_DIR]/" + newFilename);
+        c.setText("[CONFIG_DIR]/" + newFilename);
       } else if (a != null && a.getValue().equals("discard")) {
         /* Remove config element */
         e.removeChild(c.getName());
