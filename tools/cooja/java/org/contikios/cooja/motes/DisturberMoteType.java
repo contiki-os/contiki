@@ -45,7 +45,6 @@ import org.contikios.cooja.RadioPacket;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.MoteType.MoteTypeCreationException;
 import org.contikios.cooja.interfaces.ApplicationRadio;
-import org.contikios.cooja.interfaces.Radio.RadioEvent;
 
 /**
  * Simple application-level mote that periodically transmits dummy radio packets

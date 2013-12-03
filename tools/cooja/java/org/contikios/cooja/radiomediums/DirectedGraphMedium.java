@@ -45,7 +45,6 @@ import org.contikios.cooja.Mote;
 import org.contikios.cooja.RadioConnection;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Radio;
-import org.contikios.cooja.plugins.Visualizer;
 
 /**
  * Directed Graph Radio Medium.
