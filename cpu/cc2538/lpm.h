@@ -150,6 +150,12 @@ void lpm_enter(void);
  * interrupt. This may lead to other parts of the code trying to use the RF,
  * so we need to switch the clock source \e before said code gets executed.
  *
+ * This function also makes sure that the sleep timer value is up-to-date
+ * following wake-up from PM1/2 so that RTIMER_NOW() works.
+ *
+ * \note This function should be called at the very beginning of ISRs waking up
+ * the SoC in order to restore all clocks and timers.
+ *
  * \sa lpm_enter(), rtimer_isr()
  */
 void lpm_exit(void);

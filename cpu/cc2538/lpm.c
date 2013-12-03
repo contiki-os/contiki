@@ -199,6 +199,16 @@ lpm_exit()
     return;
   }
 
+  /*
+   * When returning from PM1/2, the sleep timer value (used by RTIMER_NOW()) is
+   * not up-to-date until a positive edge on the 32-kHz clock has been detected
+   * after the system clock restarted. To ensure an updated value is read, wait
+   * for a positive transition on the 32-kHz clock by polling the
+   * SYS_CTRL_CLOCK_STA.SYNC_32K bit, before reading the sleep timer value.
+   */
+  while(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K);
+  while(!(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K));
+
   LPM_STATS_ADD(REG(SYS_CTRL_PMCTL) & SYS_CTRL_PMCTL_PM3,
                 RTIMER_NOW() - sleep_enter_time);
 
