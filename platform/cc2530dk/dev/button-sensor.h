@@ -37,8 +37,8 @@
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
-#ifndef __BUTTON_SENSOR_H__
-#define __BUTTON_SENSOR_H__
+#ifndef BUTTON_SENSOR_H_
+#define BUTTON_SENSOR_H_
 
 #include "contiki-conf.h"
 #include "lib/sensors.h"
@@ -105,4 +105,4 @@ void port_0_isr(void) __interrupt(P0INT_VECTOR);
 #define BUTTON_IRQ_ON_PRESS(b)   PORT_IRQ_EDGE_RISE(BUTTON##b##_PORT, BUTTON##b##_PIN)
 #define BUTTON_IRQ_ON_RELEASE(b) PORT_IRQ_EDGE_FALL(BUTTON##b##_PORT, BUTTON##b##_PIN)
 
-#endif /* __BUTTON_SENSOR_H__ */
+#endif /* BUTTON_SENSOR_H_ */

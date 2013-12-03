@@ -22,9 +22,9 @@
     </events>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype748</identifier>
+      <identifier>mtype958</identifier>
       <description>Sender</description>
-      <source>[CONFIG_DIR]/code/sender-node.c</source>
+      <source>[CONTIKI_DIR]/regression-tests/12-rpl/code/sender-node.c</source>
       <commands>make TARGET=cooja clean
 make sender-node.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
@@ -47,9 +47,9 @@ make sender-node.cooja TARGET=cooja</commands>
     </motetype>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype442</identifier>
+      <identifier>mtype837</identifier>
       <description>RPL root</description>
-      <source>[CONFIG_DIR]/code/root-node.c</source>
+      <source>[CONTIKI_DIR]/regression-tests/12-rpl/code/root-node.c</source>
       <commands>make TARGET=cooja clean
 make root-node.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
@@ -72,9 +72,9 @@ make root-node.cooja TARGET=cooja</commands>
     </motetype>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype236</identifier>
+      <identifier>mtype358</identifier>
       <description>Receiver</description>
-      <source>[CONFIG_DIR]/code/receiver-node.c</source>
+      <source>[CONTIKI_DIR]/regression-tests/12-rpl/code/receiver-node.c</source>
       <commands>make TARGET=cooja clean
 make receiver-node.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
@@ -110,7 +110,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype236</motetype_identifier>
+      <motetype_identifier>mtype358</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -127,7 +127,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype748</motetype_identifier>
+      <motetype_identifier>mtype958</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -144,7 +144,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype236</motetype_identifier>
+      <motetype_identifier>mtype358</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -161,7 +161,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype236</motetype_identifier>
+      <motetype_identifier>mtype358</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -178,7 +178,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype236</motetype_identifier>
+      <motetype_identifier>mtype358</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -195,7 +195,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype236</motetype_identifier>
+      <motetype_identifier>mtype358</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -212,7 +212,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype236</motetype_identifier>
+      <motetype_identifier>mtype358</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -229,7 +229,7 @@ make receiver-node.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiRadio
         <bitrate>250.0</bitrate>
       </interface_config>
-      <motetype_identifier>mtype442</motetype_identifier>
+      <motetype_identifier>mtype837</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -260,6 +260,7 @@ make receiver-node.cooja TARGET=cooja</commands>
     <plugin_config>
       <filter />
       <formatted_time />
+      <coloring />
     </plugin_config>
     <width>1184</width>
     <z>3</z>

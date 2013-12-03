@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __UAODV_RT_H__
-#define __UAODV_RT_H__
+#ifndef UAODV_RT_H_
+#define UAODV_RT_H_
 
 #include "contiki-net.h"
 
@@ -60,4 +60,4 @@ void uaodv_rt_remove(struct uaodv_rt_entry *e);
 void uaodv_rt_lru(struct uaodv_rt_entry *e);
 void uaodv_rt_flush_all(void);
 
-#endif /* __UAODV_RT_H__ */
+#endif /* UAODV_RT_H_ */

@@ -29,8 +29,8 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __RANDOM_H__
-#define __RANDOM_H__
+#ifndef RANDOM_H_
+#define RANDOM_H_
 
 /*
  * Initialize the pseudo-random generator.
@@ -49,4 +49,4 @@ unsigned short random_rand(void);
 /* Since random_rand casts to unsigned short, we'll use this maxmimum */
 #define RANDOM_RAND_MAX 65535U
 
-#endif /* __RANDOM_H__ */
+#endif /* RANDOM_H_ */

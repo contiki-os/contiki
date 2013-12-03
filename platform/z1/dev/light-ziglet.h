@@ -38,8 +38,8 @@
  *         Marcus Lundén, SICS <mlunden@sics.se>
  */
 
-#ifndef __LIGHT_ZIGLET_H__
-#define __LIGHT_ZIGLET_H__
+#ifndef LIGHT_ZIGLET_H_
+#define LIGHT_ZIGLET_H_
 #include <stdio.h>
 #include "i2cmaster.h"
 
@@ -121,7 +121,7 @@ uint16_t light_ziglet_on(void);
 #define M8T 0x0000
 
 /* -------------------------------------------------------------------------- */
-#endif /* ifndef __LIGHT_ZIGLET_H__ */
+#endif /* ifndef LIGHT_ZIGLET_H_ */
 
 
 

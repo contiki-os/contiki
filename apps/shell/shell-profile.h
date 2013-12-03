@@ -37,11 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_PROFILE_H__
-#define __SHELL_PROFILE_H__
+#ifndef SHELL_PROFILE_H_
+#define SHELL_PROFILE_H_
 
 #include "shell.h"
 
 void shell_profile_init(void);
 
-#endif /* __SHELL_PROFILE_H__ */
+#endif /* SHELL_PROFILE_H_ */

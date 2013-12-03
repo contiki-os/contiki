@@ -1,5 +1,5 @@
-#ifndef __DHCPS_H__6M2XYUGNTK__
-#define __DHCPS_H__6M2XYUGNTK__
+#ifndef DHCPS_H_6M2XYUGNTK__
+#define DHCPS_H_6M2XYUGNTK__
 #include "contiki-net.h"
 #include <stdint.h>
 
@@ -44,4 +44,4 @@ struct dhcps_config
  **/
 void dhcps_init(const struct dhcps_config *conf);
 
-#endif /* __DHCPS_H__6M2XYUGNTK__ */
+#endif /* DHCPS_H_6M2XYUGNTK__ */

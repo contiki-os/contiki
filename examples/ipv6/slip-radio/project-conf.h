@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef __PROJECT_CONF_H__
-#define __PROJECT_CONF_H__
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          4
@@ -48,6 +48,11 @@
 #ifdef CONTIKI_TARGET_SKY
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_cc2420
 #define SLIP_RADIO_CONF_SENSORS slip_radio_sky_sensors
+/* add the cmd_handler_rf230 if TARGET_NOOLIBERRY. Other RF230 platforms can be added */
+#elif CONTIKI_TARGET_NOOLIBERRY
+#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_rf230
+#elif CONTIKI_TARGET_ECONOTAG
+#define CMD_CONF_HANDLERS slip_radio_cmd_handler,cmd_handler_mc1322x
 #else
 #define CMD_CONF_HANDLERS slip_radio_cmd_handler
 #endif
@@ -73,4 +78,4 @@
 #undef UART1_CONF_RX_WITH_DMA
 #define UART1_CONF_RX_WITH_DMA           1
 
-#endif /* __PROJECT_CONF_H__ */
+#endif /* PROJECT_CONF_H_ */

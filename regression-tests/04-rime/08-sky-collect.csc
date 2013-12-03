@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
+  <project EXPORT="discard">[APPS_DIR]/mrm</project>
+  <project EXPORT="discard">[APPS_DIR]/mspsim</project>
+  <project EXPORT="discard">[APPS_DIR]/avrora</project>
+  <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
+  <project EXPORT="discard">[APPS_DIR]/collect-view</project>
+  <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>My simulation</title>
-    <delaytime>0</delaytime>
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -30,7 +35,7 @@ make example-collect.sky TARGET=sky</commands>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyFlash</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
@@ -323,7 +328,7 @@ make example-collect.sky TARGET=sky</commands>
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>247</width>
-    <z>3</z>
+    <z>0</z>
     <height>227</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -336,7 +341,7 @@ make example-collect.sky TARGET=sky</commands>
       <viewport>1.685403700540615 0.0 0.0 1.685403700540615 23.872012513439184 -0.545889466623605</viewport>
     </plugin_config>
     <width>224</width>
-    <z>2</z>
+    <z>3</z>
     <height>225</height>
     <location_x>247</location_x>
     <location_y>1</location_y>
@@ -346,9 +351,10 @@ make example-collect.sky TARGET=sky</commands>
     <plugin_config>
       <filter />
       <formatted_time />
+      <coloring />
     </plugin_config>
     <width>469</width>
-    <z>0</z>
+    <z>1</z>
     <height>473</height>
     <location_x>0</location_x>
     <location_y>226</location_y>
@@ -432,7 +438,7 @@ while(true) {
       <active>true</active>
     </plugin_config>
     <width>600</width>
-    <z>1</z>
+    <z>2</z>
     <height>700</height>
     <location_x>469</location_x>
     <location_y>0</location_y>

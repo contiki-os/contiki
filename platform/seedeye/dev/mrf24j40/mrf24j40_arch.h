@@ -47,8 +47,8 @@
  * \date   2012-03-21
  */
 
-#ifndef __MRF24J40_ARCH_H__
-#define __MRF24J40_ARCH_H__
+#ifndef MRF24J40_ARCH_H_
+#define MRF24J40_ARCH_H_
 
 #include "p32xxxx.h"
 
@@ -123,6 +123,6 @@ do {                                                                        \
     MRF24J40_INTERRUPT_ENABLE_SET();                                        \
 } while(0)
 
-#endif /* __MRF24J40_ARCH_H__ */
+#endif /* MRF24J40_ARCH_H_ */
 
 /** @} */

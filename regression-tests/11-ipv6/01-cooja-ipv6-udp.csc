@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
-  <project>[CONTIKI_DIR]/tools/cooja/apps/native_gateway</project>
+  <project EXPORT="discard">[APPS_DIR]/mrm</project>
+  <project EXPORT="discard">[APPS_DIR]/mspsim</project>
+  <project EXPORT="discard">[APPS_DIR]/avrora</project>
+  <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
+  <project EXPORT="discard">[APPS_DIR]/collect-view</project>
+  <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>My simulation</title>
-    <delaytime>0</delaytime>
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -21,9 +22,9 @@
     </events>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype783</identifier>
+      <identifier>mtype350</identifier>
       <description>Receiver</description>
-      <contikiapp>[CONTIKI_DIR]/examples/udp-ipv6/udp-server.c</contikiapp>
+      <source>[CONTIKI_DIR]/examples/udp-ipv6/udp-server.c</source>
       <commands>make TARGET=cooja clean
 make udp-server.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
@@ -46,9 +47,9 @@ make udp-server.cooja TARGET=cooja</commands>
     </motetype>
     <motetype>
       org.contikios.cooja.contikimote.ContikiMoteType
-      <identifier>mtype512</identifier>
+      <identifier>mtype981</identifier>
       <description>Sender</description>
-      <contikiapp>[CONTIKI_DIR]/examples/udp-ipv6/udp-client.c</contikiapp>
+      <source>[CONTIKI_DIR]/examples/udp-ipv6/udp-client.c</source>
       <commands>make udp-client.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
@@ -79,7 +80,11 @@ make udp-server.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>1</id>
       </interface_config>
-      <motetype_identifier>mtype783</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype350</motetype_identifier>
     </mote>
     <mote>
       <interface_config>
@@ -92,7 +97,11 @@ make udp-server.cooja TARGET=cooja</commands>
         org.contikios.cooja.contikimote.interfaces.ContikiMoteID
         <id>2</id>
       </interface_config>
-      <motetype_identifier>mtype512</motetype_identifier>
+      <interface_config>
+        org.contikios.cooja.contikimote.interfaces.ContikiRadio
+        <bitrate>250.0</bitrate>
+      </interface_config>
+      <motetype_identifier>mtype981</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
@@ -102,19 +111,19 @@ make udp-server.cooja TARGET=cooja</commands>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
       <filter>ID:1</filter>
+      <formatted_time />
+      <coloring />
     </plugin_config>
     <width>851</width>
     <z>1</z>
     <height>187</height>
     <location_x>1</location_x>
     <location_y>521</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Visualizer
@@ -129,19 +138,20 @@ make udp-server.cooja TARGET=cooja</commands>
     <height>121</height>
     <location_x>1</location_x>
     <location_y>201</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.RadioLogger
     <plugin_config>
-      <split>150</split>
+      <split>133</split>
+      <formatted_time />
+      <showdups>false</showdups>
+      <hidenodests>false</hidenodests>
     </plugin_config>
     <width>246</width>
     <z>4</z>
     <height>198</height>
     <location_x>0</location_x>
     <location_y>323</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
@@ -168,7 +178,6 @@ log.testOK(); /* Report test success and quit */</script>
     <height>520</height>
     <location_x>250</location_x>
     <location_y>-1</location_y>
-    <minimized>false</minimized>
   </plugin>
 </simconf>
 

@@ -63,8 +63,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __TCPIP_H__
-#define __TCPIP_H__
+#ifndef TCPIP_H_
+#define TCPIP_H_
 
 #include "contiki.h"
 
@@ -371,7 +371,7 @@ extern unsigned char tcpip_is_forwarding;
 
 PROCESS_NAME(tcpip_process);
 
-#endif /* __TCPIP_H__ */
+#endif /* TCPIP_H_ */
 
 /** @} */
 /** @} */

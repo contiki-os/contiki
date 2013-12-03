@@ -30,8 +30,8 @@
  *
  */
 
-#ifndef __SENSORS_H__
-#define __SENSORS_H__
+#ifndef SENSORS_H_
+#define SENSORS_H_
 
 #include "contiki.h"
 
@@ -69,4 +69,4 @@ extern process_event_t sensors_event;
 
 PROCESS_NAME(sensors_process);
 
-#endif /* __SENSORS_H__ */
+#endif /* SENSORS_H_ */

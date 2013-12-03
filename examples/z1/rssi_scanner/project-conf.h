@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef __PROJECT_CONF_H__
-#define __PROJECT_CONF_H__
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
 #undef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC nullmac_driver
@@ -43,4 +43,4 @@
 #undef NETSTACK_RDC
 #define NETSTACK_RDC nullrdc_driver
 
-#endif /* __PROJECT_CONF_H__ */
+#endif /* PROJECT_CONF_H_ */

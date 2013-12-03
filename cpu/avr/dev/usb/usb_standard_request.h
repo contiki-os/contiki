@@ -46,8 +46,8 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _USB_ENUM_H_
-#define _USB_ENUM_H_
+#ifndef USB_ENUM_H_
+#define USB_ENUM_H_
 
 //_____ I N C L U D E S ____________________________________________________
 
@@ -84,5 +84,5 @@ void    usb_process_request( void);
 extern  U8   usb_configuration_nb;
 
 
-#endif  // _USB_ENUM_H_
+#endif  //USB_ENUM_H_
 

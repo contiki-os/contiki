@@ -45,9 +45,7 @@ import org.contikios.cooja.Mote;
 import org.contikios.cooja.RadioConnection;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Radio;
-import org.contikios.cooja.plugins.DGRMConfigurator;
 import org.contikios.cooja.plugins.Visualizer;
-import org.contikios.cooja.plugins.skins.DGRMVisualizerSkin;
 
 /**
  * Directed Graph Radio Medium.
@@ -77,7 +75,6 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
   public DirectedGraphMedium() {
     /* Do not initialize radio medium: use only for hash table */
     super(null);
-    Visualizer.registerVisualizerSkin(DGRMVisualizerSkin.class);
   }
 
   public DirectedGraphMedium(Simulation simulation) {
@@ -86,18 +83,10 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     random = simulation.getRandomGenerator();
 
     requestEdgeAnalysis();
-
-    /* Register plugin and visualizer skin */
-    simulation.getCooja().registerPlugin(DGRMConfigurator.class);
-    Visualizer.registerVisualizerSkin(DGRMVisualizerSkin.class);
   }
 
   public void removed() {
     super.removed();
-
-    /* Unregister plugin and visualizer skin */
-    simulation.getCooja().unregisterPlugin(DGRMConfigurator.class);
-    Visualizer.unregisterVisualizerSkin(DGRMVisualizerSkin.class);
   }
 
   public void addEdge(Edge e) {

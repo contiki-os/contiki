@@ -29,12 +29,12 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __ME_TABS_H__
-#define __ME_TABS_H__
+#ifndef ME_TABS_H_
+#define ME_TABS_H_
 
 extern const unsigned short me_encode_tab[256];
 extern const unsigned char  me_decode_tab[256];
 extern const unsigned char  me_valid_tab[256];
 
-#endif /* __ME_TABS_H__ */
+#endif /* ME_TABS_H_ */
 	

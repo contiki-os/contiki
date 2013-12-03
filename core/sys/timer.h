@@ -70,8 +70,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __TIMER_H__
-#define __TIMER_H__
+#ifndef TIMER_H_
+#define TIMER_H_
 
 #include "sys/clock.h"
 
@@ -95,7 +95,7 @@ CCIF int timer_expired(struct timer *t);
 clock_time_t timer_remaining(struct timer *t);
 
 
-#endif /* __TIMER_H__ */
+#endif /* TIMER_H_ */
 
 /** @} */
 /** @} */

@@ -48,13 +48,13 @@
 */
 /*---------------------------------------------------------------------------*/
 
-#ifndef __PLATFORM_CONF_H__
-#define __PLATFORM_CONF_H__
+#ifndef PLATFORM_CONF_H_
+#define PLATFORM_CONF_H_
 
 #include PLATFORM_HEADER
 
 #include <inttypes.h>
-#include <string.h>  // For memcpm().
+#include <string.h>             // For memcpm().
 
 /* Platform-dependent definitions */
 #define CC_CONF_REGISTER_ARGS          0
@@ -84,6 +84,7 @@ typedef unsigned long clock_time_t;
 #define CLOCK_CONF_SECOND 1000
 
 typedef unsigned long rtimer_clock_t;
+
 #define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
 
 #define LEDS_CONF_RED_PIN     boardDescription->io->leds[1].gpioPin
@@ -97,6 +98,7 @@ typedef unsigned long rtimer_clock_t;
 #define UIP_ARCH_CHKSUM          0
 
 #define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
+#define EEPROM_CONF_SIZE	8000
 
-#endif /* __PLATFORM_CONF_H__ */
+#endif /* PLATFORM_CONF_H_ */
 /** @} */

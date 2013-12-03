@@ -142,4 +142,4 @@
 #define PORT1_0_IRQ_EDGE_R_X()  do { PICTL &= ~PICTL_P1ICONL; } while(0)
 /*---------------------------------------------------------------------------*/
 
-#endif /* __PORT_H__ */
+#endif /* PORT_H_ */

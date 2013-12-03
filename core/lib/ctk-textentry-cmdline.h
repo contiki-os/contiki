@@ -31,12 +31,12 @@
  *
  *
  */
-#ifndef __CTK_TEXTENTRY_CMDLINE_H__
-#define __CTK_TEXTENTRY_CMDLINE_H__
+#ifndef CTK_TEXTENTRY_CMDLINE_H_
+#define CTK_TEXTENTRY_CMDLINE_H_
 
 #include "ctk/ctk.h"
 
 unsigned char ctk_textentry_cmdline_input(ctk_arch_key_t c,
 					  struct ctk_textentry *t);
 
-#endif /* __CTK_TEXTENTRY_CMDLINE_H__ */
+#endif /* CTK_TEXTENTRY_CMDLINE_H_ */

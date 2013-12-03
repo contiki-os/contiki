@@ -46,8 +46,8 @@
  *
  */
 
-#ifndef __IEEEMANAGER_H__
-#define __IEEEMANAGER_H__
+#ifndef IEEEMANAGER_H_
+#define IEEEMANAGER_H_
 
 /** \brief The interface structure for the 802.15.4 quasi-MAC. */
 typedef struct ieee_15_4_manager{
@@ -110,5 +110,5 @@ typedef struct ieee_15_4_manager{
 
 void ieee_15_4_init(struct ieee_15_4_manager *pieee_15_4_manager);
 
-#endif /* __IEEEMANAGER_H__ */
+#endif /* IEEEMANAGER_H_ */
 /** \} */

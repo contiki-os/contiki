@@ -42,12 +42,12 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __SICSLOWMAC_H__
-#define __SICSLOWMAC_H__
+#ifndef SICSLOWMAC_H_
+#define SICSLOWMAC_H_
 
 #include "net/mac/rdc.h"
 #include "dev/radio.h"
 
 extern const struct rdc_driver sicslowmac_driver;
 
-#endif /* __SICSLOWMAC_H__ */
+#endif /* SICSLOWMAC_H_ */

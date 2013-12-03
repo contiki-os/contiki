@@ -144,6 +144,8 @@ public class RadioLogger extends VisPlugin {
   private HashMap<String,Action> analyzerMap = new HashMap<String,Action>();
   private String analyzerName = null;
   private ArrayList<PacketAnalyzer> analyzers = null;
+  private IEEE802154Analyzer analyzerWithPcap;
+  private File pcapFile;
 
   private JTextField searchField = new JTextField(30);
 
@@ -174,8 +176,9 @@ public class RadioLogger extends VisPlugin {
     lowpanAnalyzers.add(new IPv6PacketAnalyzer());
     lowpanAnalyzers.add(new ICMPv6Analyzer());
 
+    analyzerWithPcap = new IEEE802154Analyzer(true);
     ArrayList<PacketAnalyzer> lowpanAnalyzersPcap = new ArrayList<PacketAnalyzer>();
-    lowpanAnalyzersPcap.add(new IEEE802154Analyzer(true));
+    lowpanAnalyzersPcap.add(analyzerWithPcap);
     lowpanAnalyzersPcap.add(new IPHCPacketAnalyzer());
     lowpanAnalyzersPcap.add(new IPv6PacketAnalyzer());
     lowpanAnalyzersPcap.add(new ICMPv6Analyzer());
@@ -801,6 +804,14 @@ public class RadioLogger extends VisPlugin {
       }
     }
 
+    if (pcapFile != null) {
+      element = new Element("pcap_file");
+      File file = simulation.getCooja().createPortablePath(pcapFile);
+      element.setText(pcapFile.getPath().replaceAll("\\\\", "/"));
+      element.setAttribute("EXPORT", "discard");
+      config.add(element);
+    }
+
     return config;
   }
 
@@ -833,6 +844,9 @@ public class RadioLogger extends VisPlugin {
             }
           });
         }
+      } else if (name.equals("pcap_file")) {
+        pcapFile = simulation.getCooja().restorePortablePath(new File(element.getText()));
+        analyzerWithPcap.setPcapFile(pcapFile);
       }
     }
     return true;
