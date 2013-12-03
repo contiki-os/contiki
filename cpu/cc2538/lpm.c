@@ -301,6 +301,11 @@ lpm_enter()
     select_32_mhz_xosc();
 
     REG(SYS_CTRL_PMCTL) = SYS_CTRL_PMCTL_PM0;
+
+    /* Remember IRQ energest for next pass */
+    ENERGEST_IRQ_SAVE(irq_energest);
+    ENERGEST_ON(ENERGEST_TYPE_CPU);
+    ENERGEST_OFF(ENERGEST_TYPE_LPM);
   } else {
     /* All clear. Assert WFI and drop to PM1/2. This is now un-interruptible */
     assert_wfi();
