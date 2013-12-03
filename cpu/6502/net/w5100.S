@@ -79,7 +79,7 @@ fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup17-fixup16, fixup18-fixup17, fixup19-fixup18
 	.byte	fixup20-fixup19, fixup21-fixup20, fixup22-fixup21
 	.byte	fixup23-fixup22, fixup24-fixup23, fixup25-fixup24
-	.byte	fixup26-fixup25, fixup27-fixup26
+	.byte	fixup26-fixup25
 
 fixups	= * - fixup
 
@@ -181,7 +181,7 @@ fixup09:lda data
 :	tax
 	rts
 
-	; Socket RX Received Size Register: != 0 ?
+	; Socket 0 RX Received Size Register: != 0 ?
 :	ldy #$26		; Socket RX Received Size Register
 	jsr set_addrsocket0
 fixup10:lda data		; Hibyte
@@ -199,8 +199,12 @@ fixup11:ora data		; Lobyte
 	; ldy #$28		; Socket RX Read Pointer Register
 	; jsr set_addrsocket0
 
-	; Calculate and set pyhsical address
+	; Calculate and set physical address
 	jsr set_addrphysical
+
+	; Move physical address shadow to $F000-$FFFF
+	ora #>$F000
+	tax
 
 	; Read MAC raw 2byte packet size header
 	jsr get_datacheckaddr	; Hibyte
@@ -241,8 +245,8 @@ fixup11:ora data		; Lobyte
 	; Advance pointer register
 common: jsr set_addrsocket0
 	tay			; Save command
-	lda reg
 	clc
+	lda reg
 	adc adv
 	tax
 	lda reg+1
@@ -283,7 +287,7 @@ fixup15:lda data
 	bne :-
 
 	; Socket 0 TX Free Size Register: < length ?
-:	ldy #$20
+:	ldy #$20		; Socket TX Free Size Register
 	jsr set_addrsocket0
 fixup16:lda data		; Hibyte
 fixup17:ldx data		; Lobyte
@@ -318,8 +322,8 @@ exit:
 set_addrphysical:
 fixup18:lda data		; Hibyte
 fixup19:ldy data		; Lobyte
-	sta reg+1
 	sty reg
+	sta reg+1
 	and #>$1FFF		; Socket Mask Address (hibyte)
 	ora bas			; Socket Base Address (hibyte)
 	tax
@@ -341,10 +345,11 @@ set_addrbase:
 
 get_datacheckaddr:
 fixup22:lda data
-fixup23:ldx addr		; Hibyte
-	cpx lim			; Socket memory limit (hibyte)
-	bcs set_addrbase
-	rts
+	iny			; Physical address shadow (lobyte)
+	bne :+
+	inx			; Physical address shadow (hibyte)
+	beq set_addrbase
+:	rts
 
 ;---------------------------------------------------------------------
 
@@ -380,10 +385,10 @@ mov_data:
 	; R/W without address wraparound possible because 
 	; highest R/W address > actual R/W address ?
 	; sec
-fixup24:sbc addr+1		; Lobyte
+fixup23:sbc addr+1		; Lobyte
 	tay
 	txa
-fixup25:sbc addr		; Hibyte
+fixup24:sbc addr		; Hibyte
 	tax
 	tya
 	bcs :+
@@ -444,7 +449,7 @@ rw_data:eor #$FF		; Two's complement part 1
 
 	; Read data
 :
-fixup26:lda data
+fixup25:lda data
 	sta (ptr),y
 	iny
 	bne :-
@@ -455,7 +460,7 @@ fixup26:lda data
 
 	; Write data
 :	lda (ptr),y
-fixup27:sta data
+fixup26:sta data
 	iny
 	bne :-
 	inc ptr+1
