@@ -166,11 +166,20 @@ select_32_mhz_xosc(void)
 
   /* Wait for the switch to take place */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_OSC) != 0);
+
+  /* Power down the unused oscillator. */
+  REG(SYS_CTRL_CLOCK_CTRL) |= SYS_CTRL_CLOCK_CTRL_OSC_PD;
 }
 /*---------------------------------------------------------------------------*/
 static void
 select_16_mhz_rcosc(void)
 {
+  /*
+   * Power up both oscillators in order to speed up the transition to the 32-MHz
+   * XOSC after wake up.
+   */
+  REG(SYS_CTRL_CLOCK_CTRL) &= ~SYS_CTRL_CLOCK_CTRL_OSC_PD;
+
   /*First, make sure there is no ongoing clock source change */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SOURCE_CHANGE) != 0);
 
