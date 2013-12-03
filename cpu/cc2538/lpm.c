@@ -158,6 +158,9 @@ enter_pm0(void)
 static void
 select_32_mhz_xosc(void)
 {
+  /*First, make sure there is no ongoing clock source change */
+  while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SOURCE_CHANGE) != 0);
+
   /* Turn on the 32 MHz XOSC and source the system clock on it. */
   REG(SYS_CTRL_CLOCK_CTRL) &= ~SYS_CTRL_CLOCK_CTRL_OSC;
 
