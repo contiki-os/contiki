@@ -401,11 +401,7 @@ public class ExecuteJAR {
     if (manifestFile.exists()) {
       manifestFile.delete();
     }
-    StringBuilder sb = new StringBuilder();
-    sb.append("Manifest-Version: 1.0\r\n");
-    sb.append("Main-Class: " + ExecuteJAR.class.getName() + "\r\n");
-    sb.append("Class-path: .\r\n");
-    StringUtils.saveToFile(manifestFile, sb.toString());
+      StringUtils.saveToFile(manifestFile, "Manifest-Version: 1.0\r\n" + "Main-Class: " + ExecuteJAR.class.getName() + "\r\n" + "Class-path: .\r\n");
     logger.info("Wrote manifest file: " + manifestFile.getName());
 
     /* Build executable JAR */

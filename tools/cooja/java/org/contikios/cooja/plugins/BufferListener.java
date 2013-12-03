@@ -1636,15 +1636,7 @@ public class BufferListener extends VisPlugin {
       if (ba.mem.length < 4) {
         return "[must monitor at least 4 bytes]";
       }
-      StringBuilder sb = new StringBuilder();
-      sb.append(0xff&ba.mem[0]);
-      sb.append(".");
-      sb.append(0xff&ba.mem[1]);
-      sb.append(".");
-      sb.append(0xff&ba.mem[2]);
-      sb.append(".");
-      sb.append(0xff&ba.mem[3]);
-      return sb.toString();
+        return String.valueOf(0xff & ba.mem[0]) + "." + (0xff & ba.mem[1]) + "." + (0xff & ba.mem[2]) + "." + (0xff & ba.mem[3]);
     }
   }
 
