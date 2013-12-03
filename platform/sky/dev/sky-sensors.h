@@ -36,11 +36,11 @@
  *           $Revision: 1.2 $
  */
 
-#ifndef __SKY_SENSORS_H__
-#define __SKY_SENSORS_H__
+#ifndef SKY_SENSORS_H_
+#define SKY_SENSORS_H_
 
 int  sky_sensors_status(uint16_t input, int type);
 int  sky_sensors_configure(uint16_t input, uint8_t reference,
                            int type, int value);
 
-#endif /* __SKY_SENSORS_H__ */
+#endif /* SKY_SENSORS_H_ */

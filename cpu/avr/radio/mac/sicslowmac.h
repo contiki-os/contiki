@@ -44,8 +44,8 @@
    \addtogroup rf230mac
 */
 
-#ifndef __SICSLOWMAC_H__
-#define __SICSLOWMAC_H__
+#ifndef SICSLOWMAC_H_
+#define SICSLOWMAC_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -91,4 +91,4 @@ void byte_reverse(uint8_t * bytes, uint8_t num);
 struct mac_driver * sicslowmac_get_driver(void);
 parsed_frame_t * sicslowmac_get_frame(void);
 
-#endif /* __SICSLOWMAC_H__ */
+#endif /* SICSLOWMAC_H_ */

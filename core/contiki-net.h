@@ -31,8 +31,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __CONTIKI_NET_H__
-#define __CONTIKI_NET_H__
+#ifndef CONTIKI_NET_H_
+#define CONTIKI_NET_H_
 
 #include "contiki.h"
 
@@ -58,4 +58,4 @@
 
 #include "net/netstack.h"
 
-#endif /* __CONTIKI_NET_H__ */
+#endif /* CONTIKI_NET_H_ */

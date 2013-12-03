@@ -45,8 +45,8 @@
  \defgroup usbstorage USB Mass Storage Task
  @{
 */
-#ifndef _STORAGE_TASK_H_
-#define _STORAGE_TASK_H_
+#ifndef STORAGE_TASK_H_
+#define STORAGE_TASK_H_
 
 //_____ I N C L U D E S ____________________________________________________
 
@@ -65,5 +65,5 @@ void sof_action(void);
 
 PROCESS_NAME(storage_process);
 
-#endif /* _STORAGE_TASK_H_ */
+#endif /*STORAGE_TASK_H_ */
 /** @} */

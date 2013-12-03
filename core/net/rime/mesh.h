@@ -58,8 +58,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __MESH_H__
-#define __MESH_H__
+#ifndef MESH_H_
+#define MESH_H_
 
 #include "net/queuebuf.h"
 #include "net/rime/multihop.h"
@@ -141,6 +141,6 @@ int mesh_send(struct mesh_conn *c, const rimeaddr_t *dest);
  */
 int mesh_ready(struct mesh_conn *c);
 
-#endif /* __MESH_H__ */
+#endif /* MESH_H_ */
 /** @} */
 /** @} */

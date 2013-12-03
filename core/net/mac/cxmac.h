@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __CXMAC_H__
-#define __CXMAC_H__
+#ifndef CXMAC_H_
+#define CXMAC_H_
 
 #include "sys/rtimer.h"
 #include "net/mac/rdc.h"
@@ -60,4 +60,4 @@ struct cxmac_config {
 extern const struct rdc_driver cxmac_driver;
 
 
-#endif /* __CXMAC_H__ */
+#endif /* CXMAC_H_ */

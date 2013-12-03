@@ -841,6 +841,7 @@ public class Simulation extends Observable implements Runnable {
 
         setChanged();
         notifyObservers(mote);
+        cooja.updateGUIComponentState();
       }
     };
 

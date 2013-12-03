@@ -4,8 +4,8 @@
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
-#ifndef _TEMP_SENSOR_H_
-#define _TEMP_SENSOR_H_
+#ifndef TEMP_SENSOR_H_
+#define TEMP_SENSOR_H_
 
 /* Include --------------------------------------------------------------------*/
 #include "hal/micro/adc.h"
@@ -23,5 +23,5 @@ void temperatureSensor_Init(void);
 */
 uint32_t temperatureSensor_GetValue(void);
 
-#endif /* _TEMP_SENSOR_H_ */
+#endif /*TEMP_SENSOR_H_ */
 

@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef __PROJECT_CONF_H__
-#define __PROJECT_CONF_H__
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
 #include "jsontree.h"
 #define HTTPD_WS_CONF_USER_STATE struct jsontree_context json
@@ -74,4 +74,4 @@
 #undef WEBSERVER_CONF_CFS_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 3
 
-#endif /* __PROJECT_CONF_H__ */
+#endif /* PROJECT_CONF_H_ */

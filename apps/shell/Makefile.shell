@@ -5,7 +5,7 @@ shell_src = shell.c shell-reboot.c \
             shell-rime-ping.c shell-rime-sniff.c shell-rime-netcmd.c \
             shell-rime-debug.c shell-rime-debug-runicast.c shell-coffee.c \
             shell-wget.c shell-httpd.c shell-irc.c \
-            shell-checkpoint.c shell-power.c \
+            shell-power.c \
             shell-tcpsend.c shell-udpsend.c shell-ping.c shell-netstat.c \
             shell-rime-sendcmd.c shell-download.c shell-rime-neighbors.c \
             shell-rime-unicast.c \

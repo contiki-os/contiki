@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/avrora</project>
-  <project>../apps/native_gateway</project>
+  <project EXPORT="discard">[APPS_DIR]/mrm</project>
+  <project EXPORT="discard">[APPS_DIR]/mspsim</project>
+  <project EXPORT="discard">[APPS_DIR]/avrora</project>
+  <project EXPORT="discard">[APPS_DIR]/serial_socket</project>
+  <project EXPORT="discard">[APPS_DIR]/collect-view</project>
+  <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>My simulation</title>
-    <delaytime>0</delaytime>
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -16,14 +17,17 @@
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
+    <events>
+      <logoutput>40000</logoutput>
+    </events>
     <motetype>
       org.contikios.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>[CONTIKI_DIR]/examples/rime/example-trickle.c</source>
-      <commands>make clean TARGET=sky
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/rime/example-trickle.c</source>
+      <commands EXPORT="discard">make clean TARGET=sky
 make example-trickle.sky TARGET=sky</commands>
-      <firmware>[CONTIKI_DIR]/examples/rime/example-trickle.sky</firmware>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rime/example-trickle.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -31,13 +35,11 @@ make example-trickle.sky TARGET=sky</commands>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyFlash</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -49,10 +51,9 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -64,10 +65,9 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -79,10 +79,9 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>3</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -94,10 +93,9 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>4</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -109,10 +107,9 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>5</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -124,10 +121,9 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>6</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -139,10 +135,9 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>7</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -154,10 +149,9 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>8</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -169,10 +163,9 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>9</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
-      org.contikios.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
@@ -184,20 +177,21 @@ make example-trickle.sky TARGET=sky</commands>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>10</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     org.contikios.cooja.plugins.Visualizer
     <plugin_config>
-      <skin>Mote IDs</skin>
-      <skin>Radio environment (UDGM)</skin>
+      <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <viewport>1.2387343127698363 0.0 0.0 1.2387343127698363 92.01494285570652 -13.3846131531305</viewport>
     </plugin_config>
     <width>310</width>
     <z>2</z>
     <height>169</height>
     <location_x>2</location_x>
     <location_y>199</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.SimControl
@@ -206,19 +200,19 @@ make example-trickle.sky TARGET=sky</commands>
     <height>199</height>
     <location_x>1</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
       <filter />
+      <formatted_time />
+      <coloring />
     </plugin_config>
     <width>310</width>
     <z>1</z>
     <height>331</height>
     <location_x>3</location_x>
     <location_y>368</location_y>
-    <minimized>false</minimized>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
@@ -257,7 +251,6 @@ while (true) {
     <height>700</height>
     <location_x>314</location_x>
     <location_y>0</location_y>
-    <minimized>false</minimized>
   </plugin>
 </simconf>
 

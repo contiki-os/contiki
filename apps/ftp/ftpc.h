@@ -31,8 +31,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __FTPC_H__
-#define __FTPC_H__
+#ifndef FTPC_H_
+#define FTPC_H_
 
 #include "contiki-net.h"
 
@@ -64,4 +64,4 @@ void ftpc_timedout(void);
 void ftpc_list_file(char *filename);
 void ftpc_data(uint8_t *data, uint16_t len);
 
-#endif /* __FTPC_H__ */
+#endif /* FTPC_H_ */

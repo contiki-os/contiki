@@ -35,8 +35,8 @@
  * @author Takahide Matsutsuka <markn@markn.org>
  */
 
-#ifndef __IHX2BIN_H__
-#define __IHX2BIN_H__
+#ifndef IHX2BIN_H_
+#define IHX2BIN_H_
 
 #define DEF_MAX         1024
 #define DEF_NAMELEN     256
@@ -61,4 +61,4 @@ struct ConvertInfo {
 // int ihx2bin(FILE* dst, const char *src, unsigned char verbose);
 int ihx2bin(struct ConvertInfo* info);
 
-#endif /* __IHX2BIN_H__ */
+#endif /* IHX2BIN_H_ */

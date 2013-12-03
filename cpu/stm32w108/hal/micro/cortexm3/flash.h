@@ -19,8 +19,8 @@
  *@{
  */
 
-#ifndef __FLASH_H__
-#define __FLASH_H__
+#ifndef FLASH_H_
+#define FLASH_H_
 
 #include "memmap.h"
 
@@ -120,7 +120,7 @@ StStatus halInternalCibOptionByteWrite(uint8_t byte, uint8_t data);
 
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-#endif //__FLASH_H__
+#endif //FLASH_H_
 
 /** @} END addtogroup */
 

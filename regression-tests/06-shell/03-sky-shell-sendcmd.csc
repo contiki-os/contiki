@@ -22,10 +22,10 @@
       org.contikios.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #sky1</description>
-      <source>[CONTIKI_DIR]/examples/sky-shell/sky-checkpoint.c</source>
+      <source>[CONTIKI_DIR]/examples/sky-shell/sky-shell.c</source>
       <commands>make clean TARGET=sky
-make sky-checkpoint.sky TARGET=sky</commands>
-      <firmware>[CONTIKI_DIR]/examples/sky-shell/sky-checkpoint.sky</firmware>
+make sky-shell.sky TARGET=sky</commands>
+      <firmware>[CONTIKI_DIR]/examples/sky-shell/sky-shell.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>

@@ -50,8 +50,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __QUEUEBUF_H__
-#define __QUEUEBUF_H__
+#ifndef QUEUEBUF_H_
+#define QUEUEBUF_H_
 
 #include "net/packetbuf.h"
 
@@ -108,7 +108,7 @@ packetbuf_attr_t queuebuf_attr(struct queuebuf *b, uint8_t type);
 
 void queuebuf_debug_print(void);
 
-#endif /* __QUEUEBUF_H__ */
+#endif /* QUEUEBUF_H_ */
 
 /** @} */
 /** @} */

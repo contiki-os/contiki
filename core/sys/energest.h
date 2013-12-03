@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __ENERGEST_H__
-#define __ENERGEST_H__
+#ifndef ENERGEST_H_
+#define ENERGEST_H_
 
 #include "sys/rtimer.h"
 
@@ -126,4 +126,4 @@ extern energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVI
 #define ENERGEST_OFF_LEVEL(type,level) do { } while(0)
 #endif /* ENERGEST_CONF_ON */
 
-#endif /* __ENERGEST_H__ */
+#endif /* ENERGEST_H_ */

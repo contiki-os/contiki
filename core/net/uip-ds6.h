@@ -39,8 +39,8 @@
  *
  */
 
-#ifndef __UIP_DS6_H__
-#define __UIP_DS6_H__
+#ifndef UIP_DS6_H_
+#define UIP_DS6_H_
 
 #include "net/uip.h"
 #include "sys/stimer.h"
@@ -337,4 +337,4 @@ uint32_t uip_ds6_compute_reachable_time(void); /** \brief compute random reachab
 /** @} */
 /** @} */
 
-#endif /* __UIP_DS6_H__ */
+#endif /* UIP_DS6_H_ */
