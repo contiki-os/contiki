@@ -188,7 +188,7 @@ clock_adjust(clock_time_t ticks)
    * Update internal second countdown so that next second change will actually
    * happen when it's meant to happen.
    */
-  second_countdown -= ticks;
+  second_countdown -= ticks & 127;
 
   if(second_countdown == 0 || second_countdown > 128) {
     secs++;
