@@ -10,7 +10,7 @@ SOURCE_LDSCRIPT = $(CONTIKI_CPU)/cc2538.lds
 endif
 LDSCRIPT = $(OBJECTDIR)/cc2538.ld
 
-CFLAGS += -O2 -mcpu=cortex-m3 -mthumb -mlittle-endian
+CFLAGS += -O2 -mcpu=cortex-m3 -mthumb -mlittle-endian -mfix-cortex-m3-ldrd
 CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
 CFLAGS += -Wall
 LDFLAGS += -mcpu=cortex-m3 -mthumb -nostartfiles
