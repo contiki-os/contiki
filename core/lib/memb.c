@@ -51,8 +51,8 @@
 void
 memb_init(struct memb *m)
 {
-  memset(m->count, 0, m->num);
-  memset(m->mem, 0, m->size * m->num);
+  memset((void *)m->count, 0, m->num);
+  memset((void *)m->mem, 0, m->size * m->num);
 }
 /*---------------------------------------------------------------------------*/
 void *
@@ -85,7 +85,7 @@ memb_free(struct memb *m, void *ptr)
      which the pointer "ptr" points to. */
   ptr2 = (char *)m->mem;
   for(i = 0; i < m->num; ++i) {
-    
+
     if(ptr2 == (char *)ptr) {
       /* We've found to block to which "ptr" points so we decrease the
 	 reference count and return the new value of it. */

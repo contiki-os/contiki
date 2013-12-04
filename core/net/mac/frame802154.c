@@ -95,7 +95,7 @@ static void
 field_len(frame802154_t *p, field_length_t *flen)
 {
   /* init flen to zeros */
-  memset(flen, 0, sizeof(field_length_t));
+  memset((void *)flen, 0, sizeof(field_length_t));
 
   /* Determine lengths of each field based on fcf and other args */
   if(p->fcf.dest_addr_mode & 3) {

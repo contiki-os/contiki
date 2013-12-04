@@ -702,7 +702,7 @@ check_entries(void)
         namemapptr->retries = 0;
       }
       hdr = (struct dns_hdr *)uip_appdata;
-      memset(hdr, 0, sizeof(struct dns_hdr));
+      memset((void *)hdr, 0, sizeof(struct dns_hdr));
       hdr->id = RESOLV_ENCODE_INDEX(i);
 #if RESOLV_CONF_SUPPORTS_MDNS
       if(!namemapptr->is_mdns || namemapptr->is_probe) {
@@ -1262,7 +1262,7 @@ resolv_query(const char *name)
 
   PRINTF("resolver: Starting query for \"%s\".\n", name);
 
-  memset(nameptr, 0, sizeof(*nameptr));
+  memset((void *)nameptr, 0, sizeof(*nameptr));
 
   strncpy(nameptr->name, name, sizeof(nameptr->name));
   nameptr->state = STATE_NEW;
