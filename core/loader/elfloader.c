@@ -181,7 +181,7 @@ find_local_symbol(int fd, const char *symbol,
   unsigned int a;
   char name[30];
   struct relevant_section *sect;
-  
+
   for(a = symtab; a < symtab + symtabsize; a += sizeof(s)) {
     seek_read(fd, a, (char *)&s, sizeof(s));
 
@@ -231,7 +231,7 @@ relocate_section(int fd,
   } else {
     rel_size = sizeof(struct elf32_rel);
   }
-  
+
   for(a = section; a < section + size; a += rel_size) {
     seek_read(fd, a, (char *)&rela, rel_size);
     seek_read(fd,
@@ -276,7 +276,7 @@ relocate_section(int fd,
       } else {
 	return ELFLOADER_SEGMENT_NOT_FOUND;
       }
-      
+
       addr = sect->address;
     }
 
@@ -298,7 +298,7 @@ find_program_processes(int fd,
   struct elf32_sym s;
   unsigned int a;
   char name[30];
-  
+
   for(a = symtab; a < symtab + size; a += sizeof(s)) {
     seek_read(fd, a, (char *)&s, sizeof(s));
 
@@ -345,7 +345,7 @@ elfloader_load(int fd)
   unsigned int shdrptr;
   unsigned int nameptr;
   char name[12];
-  
+
   int i;
   unsigned short shdrnum, shdrsize;
 
@@ -376,13 +376,13 @@ elfloader_load(int fd)
   /* Grab the section header. */
   shdrptr = ehdr.e_shoff;
   seek_read(fd, shdrptr, (char *)&shdr, sizeof(shdr));
-  
+
   /* Get the size and number of entries of the section header. */
   shdrsize = ehdr.e_shentsize;
   shdrnum = ehdr.e_shnum;
 
   PRINTF("Section header: size %d num %d\n", shdrsize, shdrnum);
-  
+
   /* The string table section: holds the names of the sections. */
   seek_read(fd, ehdr.e_shoff + shdrsize * ehdr.e_shstrndx,
 	    (char *)&strtable, sizeof(strtable));
@@ -393,7 +393,7 @@ elfloader_load(int fd)
   strs = strtable.sh_offset;
 
   PRINTF("Strtable offset %d\n", strs);
-  
+
   /* Go through all sections and pick out the relevant ones. The
      ".text" segment holds the actual code from the ELF file, the
      ".data" segment contains initialized data, the ".bss" segment
@@ -416,12 +416,12 @@ elfloader_load(int fd)
     rodatasize = rodatarelasize = symtabsize = strtabsize = 0;
 
   bss.number = data.number = rodata.number = text.number = -1;
-		
+
   shdrptr = ehdr.e_shoff;
   for(i = 0; i < shdrnum; ++i) {
 
     seek_read(fd, shdrptr, (char *)&shdr, sizeof(shdr));
-    
+
     /* The name of the section is contained in the strings table. */
     nameptr = strs + shdr.sh_name;
     seek_read(fd, nameptr, name, sizeof(name));
@@ -510,7 +510,7 @@ elfloader_load(int fd)
   PRINTF("before allocate rom\n");
   text.address = (char *)elfloader_arch_allocate_rom(textsize + rodatasize);
   rodata.address = (char *)text.address + textsize;
-  
+
 
   PRINTF("bss base address: bss.address = 0x%08x\n", bss.address);
   PRINTF("data base address: data.address = 0x%08x\n", data.address);
@@ -568,8 +568,8 @@ elfloader_load(int fd)
   /* Write text and rodata segment into flash and data segment into RAM. */
   elfloader_arch_write_rom(fd, textoff, textsize, text.address);
   elfloader_arch_write_rom(fd, rodataoff, rodatasize, rodata.address);
-  
-  memset(bss.address, 0, bsssize);
+
+  memset((void *)bss.address, 0, bsssize);
   seek_read(fd, dataoff, data.address, datasize);
 
   PRINTF("elfloader: autostart search\n");

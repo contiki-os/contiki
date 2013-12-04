@@ -8,7 +8,7 @@
 *.ihex
 *.pyc
 *.redbee-econotag
-*.econotag 
+*.econotag
 *.native
 *.z1
 *.minimal-net
@@ -84,3 +84,6 @@ contiki-cc2530dk.lib
 
 #regression tests artifacts
 *.testlog
+
+# vim
+*.swp

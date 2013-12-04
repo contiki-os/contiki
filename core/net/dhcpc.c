@@ -149,17 +149,17 @@ create_msg(CC_REGISTER_ARG struct dhcp_msg *m)
   m->flags = UIP_HTONS(BOOTP_BROADCAST); /*  Broadcast bit. */
   /*  uip_ipaddr_copy(m->ciaddr, uip_hostaddr);*/
   memcpy(m->ciaddr, uip_hostaddr.u16, sizeof(m->ciaddr));
-  memset(m->yiaddr, 0, sizeof(m->yiaddr));
-  memset(m->siaddr, 0, sizeof(m->siaddr));
-  memset(m->giaddr, 0, sizeof(m->giaddr));
+  memset((void *)m->yiaddr, 0, sizeof(m->yiaddr));
+  memset((void *)m->siaddr, 0, sizeof(m->siaddr));
+  memset((void *)m->giaddr, 0, sizeof(m->giaddr));
   memcpy(m->chaddr, s.mac_addr, s.mac_len);
-  memset(&m->chaddr[s.mac_len], 0, sizeof(m->chaddr) - s.mac_len);
+  memset((void *)&m->chaddr[s.mac_len], 0, sizeof(m->chaddr) - s.mac_len);
 #ifndef UIP_CONF_DHCP_LIGHT
-  memset(m->sname, 0, sizeof(m->sname));
-  memset(m->file, 0, sizeof(m->file));
+  memset((void *)m->sname, 0, sizeof(m->sname));
+  memset((void *)m->file, 0, sizeof(m->file));
 #endif
 
-  memcpy(m->options, magic_cookie, sizeof(magic_cookie));
+  memcpy((void *)m->options, magic_cookie, sizeof(magic_cookie));
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -184,12 +184,12 @@ send_request(void)
   struct dhcp_msg *m = (struct dhcp_msg *)uip_appdata;
 
   create_msg(m);
-  
+
   end = add_msg_type(&m->options[4], DHCPREQUEST);
   end = add_server_id(end);
   end = add_req_ipaddr(end);
   end = add_end(end);
-  
+
   uip_send(uip_appdata, (int)(end - (uint8_t *)uip_appdata));
 }
 /*---------------------------------------------------------------------------*/
@@ -232,7 +232,7 @@ static uint8_t
 parse_msg(void)
 {
   struct dhcp_msg *m = (struct dhcp_msg *)uip_appdata;
-  
+
   if(m->op == DHCP_REPLY &&
      memcmp(m->xid, &xid, sizeof(xid)) == 0 &&
      memcmp(m->chaddr, s.mac_addr, s.mac_len) == 0) {
@@ -251,7 +251,7 @@ msg_for_me(void)
   struct dhcp_msg *m = (struct dhcp_msg *)uip_appdata;
   uint8_t *optptr = &m->options[4];
   uint8_t *end = (uint8_t*)uip_appdata + uip_datalen();
-  
+
   if(m->op == DHCP_REPLY &&
      memcmp(m->xid, &xid, sizeof(xid)) == 0 &&
      memcmp(m->chaddr, s.mac_addr, s.mac_len) == 0) {
@@ -273,7 +273,7 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
   clock_time_t ticks;
 
   PT_BEGIN(&s.pt);
-  
+
  init:
   xid++;
   s.state = STATE_SENDING;
@@ -298,7 +298,7 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
       s.ticks *= 2;
     }
   }
-  
+
  selecting:
   xid++;
   s.ticks = CLOCK_SECOND;
@@ -324,7 +324,7 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
       goto init;
     }
   } while(s.state != STATE_CONFIG_RECEIVED);
-  
+
  bound:
 #if 0
   printf("Got IP address %d.%d.%d.%d\n", uip_ipaddr_to_quad(&s.ipaddr));
@@ -337,7 +337,7 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
 #endif
 
   dhcpc_configured(&s);
-  
+
 #define MAX_TICKS (~((clock_time_t)0) / 2)
 #define MAX_TICKS32 (~((uint32_t)0))
 #define IMIN(a, b) ((a) < (b) ? (a) : (b))
@@ -398,7 +398,7 @@ void
 dhcpc_init(const void *mac_addr, int mac_len)
 {
   uip_ipaddr_t addr;
-  
+
   s.mac_addr = mac_addr;
   s.mac_len  = mac_len;
 
@@ -423,7 +423,7 @@ void
 dhcpc_request(void)
 {
   uip_ipaddr_t ipaddr;
-  
+
   if(s.state == STATE_INITIAL) {
     uip_ipaddr(&ipaddr, 0,0,0,0);
     uip_sethostaddr(&ipaddr);
