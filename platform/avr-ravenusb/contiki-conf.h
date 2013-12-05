@@ -374,6 +374,7 @@ typedef unsigned short uip_stats_t;
 //#pragma mark RPL Settings
 /* ************************************************************************** */
 
+#define UIP_CONF_IPV6_RPL        0
 #if UIP_CONF_IPV6_RPL
 
 /* Not completely working yet. Works on Ubuntu after $ifconfig usb0 -arp to drop the neighbor solitications */

@@ -1,6 +1,3 @@
-
-MODULES += core/net/ipv6 core/net/mac/sicslowmac
-
 CONTIKI_TARGET_DIRS = . apps net loader
 
 CONTIKI_CORE=contiki-raven-main
@@ -37,3 +34,5 @@ AVRDUDE_MCU=m1284p
 
 include $(CONTIKIAVR)/Makefile.avr
 include $(CONTIKIAVR)/radio/Makefile.radio
+
+MODULES += core/net/ipv6 core/net/ipv4 core/net/mac core/net core/net/rime core/net/mac/sicslowmac

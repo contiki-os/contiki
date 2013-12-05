@@ -20,3 +20,5 @@ SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-linux
 ifeq ($(HOST_OS),Windows)
   SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-windows
 endif
+
+MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 core/net/rime core/net/mac core/nnet/mac/contikimac
