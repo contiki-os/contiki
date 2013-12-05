@@ -32,7 +32,7 @@
 #include "contiki-net.h"
 #include "net/ip/uip.h"
 #include "net/rpl/rpl.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 
 #include "net/netstack.h"
 #include "dev/button-sensor.h"

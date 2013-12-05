@@ -55,7 +55,7 @@
 #include "net/rime/polite-announcement.h"
 #include "net/rime/polite.h"
 #include "net/queuebuf.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/rime/rmh.h"

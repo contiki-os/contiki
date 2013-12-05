@@ -66,7 +66,7 @@
 #define BROADCAST_H_
 
 #include "net/rime/abc.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 
 struct broadcast_conn;
 

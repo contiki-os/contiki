@@ -66,7 +66,7 @@
 #ifndef ANNOUNCEMENT_H_
 #define ANNOUNCEMENT_H_
 
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 
 struct announcement;
 

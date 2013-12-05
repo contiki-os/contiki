@@ -41,7 +41,7 @@
 #include "sys/rtimer.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/netstack.h"
 #include "sys/energest.h"
 #include "dev/cc2538-rf.h"

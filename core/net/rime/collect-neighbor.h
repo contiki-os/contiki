@@ -51,7 +51,7 @@
 #ifndef COLLECT_NEIGHBOR_H_
 #define COLLECT_NEIGHBOR_H_
 
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/rime/collect-link-estimate.h"
 #include "lib/list.h"
 

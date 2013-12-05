@@ -42,7 +42,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include <string.h>
 
 rimeaddr_t rimeaddr_node_addr;

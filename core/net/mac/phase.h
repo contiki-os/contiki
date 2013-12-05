@@ -40,7 +40,7 @@
 #ifndef PHASE_H
 #define PHASE_H
 
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "sys/timer.h"
 #include "sys/rtimer.h"
 #include "lib/list.h"

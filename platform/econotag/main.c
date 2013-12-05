@@ -39,7 +39,7 @@
 /* contiki */
 #include "contiki.h"
 #include "dev/button-sensor.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/netstack.h"
 
 /* mc1322x */

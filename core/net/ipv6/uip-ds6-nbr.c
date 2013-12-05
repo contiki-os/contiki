@@ -47,7 +47,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "lib/list.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/packetbuf.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 

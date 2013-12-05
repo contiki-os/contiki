@@ -53,7 +53,7 @@
 #define PACKETBUF_H_
 
 #include "contiki-conf.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 
 /**
  * \brief      The size of the packetbuf, in bytes

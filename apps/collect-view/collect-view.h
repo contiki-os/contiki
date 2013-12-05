@@ -2,7 +2,7 @@
 #define COLLECT_VIEW_H
 
 #include "contiki-conf.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/rime/collect.h"
 
 struct collect_view_data_msg {
