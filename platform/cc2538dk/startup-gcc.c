@@ -38,13 +38,11 @@
  */
 #include "contiki.h"
 #include "reg.h"
+#include "flash-cca.h"
+#include "sys-ctrl.h"
 #include "uart.h"
 
 #include <stdint.h>
-
-#define FLASH_START_ADDR                0x00200000
-#define BOOTLOADER_BACKDOOR_DISABLE     0xEFFFFFFF
-#define SYS_CTRL_EMUOVR                 0x400D20B4
 /*---------------------------------------------------------------------------*/
 extern int main(void);
 /*---------------------------------------------------------------------------*/
@@ -92,22 +90,19 @@ void uart_isr(void);
 /* Allocate stack space */
 static unsigned long stack[512];
 /*---------------------------------------------------------------------------*/
-/*
- * Customer Configuration Area in the Lock Page
- * Holds Image Vector table address (bytes 2012 - 2015) and
- * Image Valid bytes (bytes 2008 -2011)
- */
-typedef struct {
-  unsigned long bootldr_cfg;
-  unsigned long image_valid;
-  unsigned long image_vector_addr;
-} lock_page_cca_t;
+/* Linker construct indicating .text section location */
+extern uint8_t _text[0];
 /*---------------------------------------------------------------------------*/
 __attribute__ ((section(".flashcca"), used))
-const lock_page_cca_t __cca = {
-  BOOTLOADER_BACKDOOR_DISABLE, /* Bootloader backdoor disabled */
-  0,                           /* Image valid bytes */
-  FLASH_START_ADDR             /* Vector table located at the start of flash */
+const flash_cca_lock_page_t __cca = {
+  FLASH_CCA_BOOTLDR_CFG_DISABLE, /* Bootloader backdoor disabled */
+  FLASH_CCA_IMAGE_VALID,         /* Image valid */
+  &_text,                        /* Vector table located at the start of .text */
+  /* Unlock all pages and debug */
+  { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
 };
 /*---------------------------------------------------------------------------*/
 __attribute__ ((section(".vectors"), used))
