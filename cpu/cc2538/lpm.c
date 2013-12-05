@@ -158,16 +158,28 @@ enter_pm0(void)
 static void
 select_32_mhz_xosc(void)
 {
+  /*First, make sure there is no ongoing clock source change */
+  while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SOURCE_CHANGE) != 0);
+
   /* Turn on the 32 MHz XOSC and source the system clock on it. */
   REG(SYS_CTRL_CLOCK_CTRL) &= ~SYS_CTRL_CLOCK_CTRL_OSC;
 
   /* Wait for the switch to take place */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_OSC) != 0);
+
+  /* Power down the unused oscillator. */
+  REG(SYS_CTRL_CLOCK_CTRL) |= SYS_CTRL_CLOCK_CTRL_OSC_PD;
 }
 /*---------------------------------------------------------------------------*/
 static void
 select_16_mhz_rcosc(void)
 {
+  /*
+   * Power up both oscillators in order to speed up the transition to the 32-MHz
+   * XOSC after wake up.
+   */
+  REG(SYS_CTRL_CLOCK_CTRL) &= ~SYS_CTRL_CLOCK_CTRL_OSC_PD;
+
   /*First, make sure there is no ongoing clock source change */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SOURCE_CHANGE) != 0);
 
@@ -186,6 +198,16 @@ lpm_exit()
      * We don't need to do anything clever */
     return;
   }
+
+  /*
+   * When returning from PM1/2, the sleep timer value (used by RTIMER_NOW()) is
+   * not up-to-date until a positive edge on the 32-kHz clock has been detected
+   * after the system clock restarted. To ensure an updated value is read, wait
+   * for a positive transition on the 32-kHz clock by polling the
+   * SYS_CTRL_CLOCK_STA.SYNC_32K bit, before reading the sleep timer value.
+   */
+  while(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K);
+  while(!(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K));
 
   LPM_STATS_ADD(REG(SYS_CTRL_PMCTL) & SYS_CTRL_PMCTL_PM3,
                 RTIMER_NOW() - sleep_enter_time);
@@ -301,6 +323,11 @@ lpm_enter()
     select_32_mhz_xosc();
 
     REG(SYS_CTRL_PMCTL) = SYS_CTRL_PMCTL_PM0;
+
+    /* Remember IRQ energest for next pass */
+    ENERGEST_IRQ_SAVE(irq_energest);
+    ENERGEST_ON(ENERGEST_TYPE_CPU);
+    ENERGEST_OFF(ENERGEST_TYPE_LPM);
   } else {
     /* All clear. Assert WFI and drop to PM1/2. This is now un-interruptible */
     assert_wfi();
