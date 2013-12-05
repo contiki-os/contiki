@@ -54,6 +54,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
+#ifdef USB_PULLUP_PORT
+#define USB_PULLUP_PORT_BASE     GPIO_PORT_TO_BASE(USB_PULLUP_PORT)
+#endif
+#ifdef USB_PULLUP_PIN
+#define USB_PULLUP_PIN_MASK      GPIO_PIN_MASK(USB_PULLUP_PIN)
+#endif
+/*---------------------------------------------------------------------------*/
 /* EP max FIFO sizes without double buffering */
 #if CTRL_EP_SIZE > 32
 #error Control endpoint size too big
@@ -329,9 +336,11 @@ usb_arch_setup(void)
   /* Wait until USB PLL is stable */
   while(!(REG(USB_CTRL) & USB_CTRL_PLL_LOCKED));
 
-  /* Enable pull-up on usb port */
-  GPIO_SET_OUTPUT(USB_PULLUP_PORT, USB_PULLUP_PIN_MASK);
-  GPIO_SET_PIN(USB_PULLUP_PORT, USB_PULLUP_PIN_MASK);
+  /* Enable pull-up on usb port if driven by GPIO */
+#if defined(USB_PULLUP_PORT_BASE) && defined(USB_PULLUP_PIN_MASK)
+  GPIO_SET_OUTPUT(USB_PULLUP_PORT_BASE, USB_PULLUP_PIN_MASK);
+  GPIO_SET_PIN(USB_PULLUP_PORT_BASE, USB_PULLUP_PIN_MASK);
+#endif
 
   for(i = 0; i < USB_MAX_ENDPOINTS; i++) {
     usb_endpoints[i].flags = 0;
