@@ -14,7 +14,7 @@ CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c leds.c leds-arch.c cfs-posix
 ifeq ($(HOST_OS),Windows)
 CONTIKI_TARGET_SOURCEFILES += wpcap-drv.c wpcap.c
 else
-CONTIKI_TARGET_SOURCEFILES += tapdev-drv.c tapdev.c tapdev6.c
+CONTIKI_TARGET_SOURCEFILES += tapdev-drv.c tapdev.c tapdev6.c linuxradio-drv.c
 endif
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
