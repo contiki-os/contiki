@@ -119,8 +119,9 @@ PROCESS_THREAD(cc2538_demo_process, ev, data)
   counter = 0;
   broadcast_open(&bc, BROADCAST_CHANNEL, &bc_rx);
 
+  etimer_set(&et, CLOCK_SECOND);
+
   while(1) {
-    etimer_set(&et, CLOCK_SECOND);
 
     PROCESS_YIELD();
 
@@ -131,6 +132,7 @@ PROCESS_THREAD(cc2538_demo_process, ev, data)
       etimer_set(&et, CLOCK_SECOND);
       rtimer_set(&rt, RTIMER_NOW() + LEDS_OFF_HYSTERISIS, 1,
                  rt_callback, NULL);
+      counter++;
     } else if(ev == sensors_event) {
       if(data == &button_select_sensor) {
         packetbuf_copyfrom(&counter, sizeof(counter));
@@ -147,7 +149,6 @@ PROCESS_THREAD(cc2538_demo_process, ev, data)
     } else if(ev == serial_line_event_message) {
       leds_toggle(LEDS_SERIAL_IN);
     }
-    counter++;
   }
 
   PROCESS_END();
