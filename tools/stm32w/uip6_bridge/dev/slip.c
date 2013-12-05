@@ -36,7 +36,7 @@
 #include <string.h>
 #include "contiki.h"
 
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "sys/ctimer.h"
 
 #include "net/ip/uip.h"

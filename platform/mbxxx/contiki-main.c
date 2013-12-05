@@ -68,7 +68,7 @@
 
 #include "dev/stm32w-radio.h"
 #include "net/netstack.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/rime.h"
 #include "net/rime/rime-udp.h"
 #include "net/ip/uip.h"

@@ -39,7 +39,7 @@
 #define COLLECT_COMMON_H_
 
 #include "contiki.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 
 void collect_common_net_init(void);
 void collect_common_net_print(void);

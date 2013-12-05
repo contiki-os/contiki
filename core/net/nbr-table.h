@@ -36,7 +36,7 @@
 #define NBR_TABLE_H_
 
 #include "contiki.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/netstack.h"
 
 /* Neighbor table size */
