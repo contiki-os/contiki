@@ -66,7 +66,6 @@
  */
 
 #include "uip.h"
-#include "uip-fw.h"
 #include "slipdev.h"
 #include <string.h>  /* For memcpy() */
 
@@ -89,7 +88,7 @@ static uint8_t lastc;
  * from the uip_buf buffer, and the following bytes (the application
  * data) are read from the uip_appdata buffer.
  *
- * \return This function will always return UIP_FW_OK.
+ * \return This function will always return 0.
  */
 /*-----------------------------------------------------------------------------------*/
 uint8_t
@@ -123,7 +122,7 @@ slipdev_send(void)
   }
   slipdev_char_put(SLIP_END);
 
-  return UIP_FW_OK;
+  return 0;
 }
 /*-----------------------------------------------------------------------------------*/
 /** 
