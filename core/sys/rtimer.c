@@ -44,6 +44,8 @@
  *
  */
 
+#include <stdbool.h>
+
 #include "sys/rtimer.h"
 #include "contiki.h"
 
@@ -56,6 +58,9 @@
 #endif
 
 static struct rtimer *next_rtimer;
+static volatile bool locked = 0;	/* timer list is locked */
+static volatile bool deferred = 0;	/* run a timer after unlocking */
+
 
 /*---------------------------------------------------------------------------*/
 void
@@ -64,44 +69,136 @@ rtimer_init(void)
   rtimer_arch_init();
 }
 /*---------------------------------------------------------------------------*/
+static void
+schedule_locked(rtimer_clock_t time)
+{
+    rtimer_arch_schedule(time);
+
+    /*
+     * The behaviour of rtimer_arch_schedule when the time is in the past,
+     * equal to the present, or changes from future to past/present while
+     * rtimer_arch_schedule is running is undefined. In particular, no timer
+     * interrupt may be generated in such cases, causing the timer to expire
+     * in the distant future or possibly never at all.
+     *
+     * We therefore check whether the expiration time is still in the future
+     * after rtimer_arch_schedule. If not, the timer may still be pending and
+     * we have to process it "manually" (through run_deferred).
+     *
+     * Since schedule_locked is run while "locked" is set, we're guaranteed
+     * that "deferred" will be checked later on.
+     */
+    if(!RTIMER_CLOCK_LT(RTIMER_NOW(), time)) {
+      deferred = 1;
+    }
+}
+/*---------------------------------------------------------------------------*/
+static int
+set_locked(struct rtimer *rtimer, rtimer_clock_t time,
+	   rtimer_callback_t func, void *ptr)
+{
+  struct rtimer **anchor;
+
+  /*
+   * RTIMER_ERR_ALREADY_SCHEDULED in rtimer.h suggests we should fail if the
+   * timer is already scheduled. However, the original implementation allows
+   * timers to be rescheduled with impunity, so we maintain de facto
+   * compatibility.
+   */
+  for(anchor = &next_rtimer; *anchor; anchor = &(*anchor)->next) {
+    if(*anchor == rtimer) {
+      *anchor = rtimer->next;
+      break;
+    }
+  }
+  rtimer->time = time;
+  rtimer->func = func;
+  rtimer->ptr = func;
+  rtimer->cancel = 0;
+
+  for(anchor = &next_rtimer; *anchor; anchor = &(*anchor)->next) {
+    if(!RTIMER_CLOCK_LT((*anchor)->time, time)) {
+      break;
+    }
+  }
+  rtimer->next = *anchor;
+  *anchor = rtimer;
+
+  if(next_rtimer == rtimer) {
+    schedule_locked(time);
+  }
+  return RTIMER_OK;
+}
+/*---------------------------------------------------------------------------*/
+static void
+next_timer_locked(void)
+{
+  rtimer_clock_t now = RTIMER_NOW();
+  struct rtimer *t;
+  bool need_sched = 0;
+
+  while(next_rtimer && !RTIMER_CLOCK_LT(now, next_rtimer->time)) {
+    t = next_rtimer;   
+    next_rtimer = t->next;
+    if(!t->cancel) {
+      t->func(t, t->ptr);
+      need_sched |= t != next_rtimer;
+    }
+  }
+  if(next_rtimer && need_sched) {
+    schedule_locked(next_rtimer->time);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+run_deferred(void)
+{
+  while(deferred) {
+    locked = 1;
+    deferred = 0;
+    next_timer_locked();
+    locked = 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
 int
 rtimer_set(struct rtimer *rtimer, rtimer_clock_t time,
 	   rtimer_clock_t duration,
 	   rtimer_callback_t func, void *ptr)
 {
-  int first = 0;
+  int res;
 
   PRINTF("rtimer_set time %d\n", time);
 
-  if(next_rtimer == NULL) {
-    first = 1;
+  if(locked) {
+    res = set_locked(rtimer, time, func, ptr);
+  } else {
+    locked = 1;
+    res = set_locked(rtimer, time, func, ptr);
+    locked = 0;
+    run_deferred();
   }
-
-  rtimer->func = func;
-  rtimer->ptr = ptr;
-
-  rtimer->time = time;
-  next_rtimer = rtimer;
-
-  if(first == 1) {
-    rtimer_arch_schedule(time);
-  }
-  return RTIMER_OK;
+  return res;
+}
+/*---------------------------------------------------------------------------*/
+void
+rtimer_cancel(struct rtimer *rtimer)
+{
+  rtimer->cancel = 1;
 }
 /*---------------------------------------------------------------------------*/
 void
 rtimer_run_next(void)
 {
-  struct rtimer *t;
-  if(next_rtimer == NULL) {
+  if(locked) {
+    deferred = 1;
     return;
   }
-  t = next_rtimer;
-  next_rtimer = NULL;
-  t->func(t, t->ptr);
-  if(next_rtimer != NULL) {
-    rtimer_arch_schedule(next_rtimer->time);
-  }
-  return;
+
+  /* lock just to make sure ... */
+  locked = 1;
+  next_timer_locked();
+  locked = 0;
+  run_deferred();
 }
 /*---------------------------------------------------------------------------*/
