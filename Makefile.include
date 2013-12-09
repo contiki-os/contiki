@@ -220,6 +220,8 @@ clean:
 distclean: clean
 	-rm -rf $(CONTIKI_PROJECT).$(TARGET)
 
+-include $(CONTIKI)/platform/$(TARGET)/Makefile.customrules-$(TARGET)
+
 ifndef CUSTOM_RULE_C_TO_CE
 %.ce: %.c
 	$(TRACE_CC)
