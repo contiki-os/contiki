@@ -1,0 +1,80 @@
+### Compilation rules
+
+SEGMENT_RULE_FILES = $(foreach dir, . $(CONTIKI_PLATFORM_DIRS) \
+	$(CONTIKI_CPU_DIRS_LIST), $(wildcard $(dir)/segment.rules) )
+
+# NB: Assumes SEGMENT_RULES was not overridden and is in $(OBJECTDIR)
+$(SEGMENT_RULES): $(SEGMENT_RULE_FILES) | $(OBJECTDIR)
+	cat $(SEGMENT_RULE_FILES) | \
+	   sed -e 's/#.*$$//' -e 's/^\s*//' -e '/^$$/d' > $@
+
+CUSTOM_RULE_LINK=1
+CUSTOM_RULE_C_TO_OBJECTDIR_O=1
+CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
+
+$(OBJECTDIR)/%.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(call c_seg,$<,$@) $(CFLAGS) -c $< -o $@ -Wp,-MMD,$(@:.rel=.d),-MQ,$@
+	@$(FINALIZE_SDCC_DEPENDENCY)
+
+contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) \
+	$(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
+	rm -f $@
+	for target in $^; do echo $$target >> $@; done
+
+.PRECIOUS: %.$(TARGET) %.hex
+
+# build app/example local object files. We need a separate rule so that we can
+# pass -DAUTOSTART_ENABLE for those files only
+$(OBJECTDIR)/%.app.rel: %.c $(SEGMENT_RULES) | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(call c_seg,$<,$@) -DAUTOSTART_ENABLE $(CFLAGS) -c $< -o $@
+
+# .ihx is the sdcc binary output file
+ifeq ($(HAVE_BANKING),1)
+### Build bankable firmware
+%.ihx: $(OBJECTDIR)/%.app.rel $(CONTIKI_TARGET_MAIN) contiki-$(TARGET).lib
+	@echo "\nFirst Link"
+	@echo "==============="
+	$(TRACE_LD)
+	$(Q)$(CC) $(LDFLAGS) $(LD_PRE_FLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
+
+%.flags: %.ihx
+### Allocate modules to banks and relocate object files
+	@echo "\nBank Allocation"
+	@echo "==============="
+	python $(BANK_ALLOC) $(basename $(@F)) $(SEGMENT_RULES) $(OFFSET_FIRMWARE)
+
+%.banked-hex: %.flags
+### Link again with new bank allocations
+	@echo "\nFinal Link"
+	@echo "==============="
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(shell cat $<) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
+
+%.hex: %.banked-hex
+### Post-process the hex file for programmers which dislike SDCC output hex format
+	$(eval BANKS := $(shell egrep '(^BANK[0-9])=' $(@:.hex=.map) | sed -e 's/BANK\([0-9]\).*/\1/' | uniq))
+	$(eval FILES := $(addsuffix .hex,$(addprefix bank,$(BANKS))))
+	@echo "\nPack hex file"
+	@echo "==============="
+	@for bank in $(BANKS); do \
+		echo $(SREC_CAT) $(SREC_FLAGS) $(@:.hex=.banked-hex) -intel \
+		-crop 0x"$$bank"8000 "0x"$$bank"FFFF" \
+		-offset -$$((0x8000 * $$bank + 0x08000)) -o bank"$$bank".hex -intel; \
+		$(SREC_CAT) $(SREC_FLAGS) $(@:.hex=.banked-hex) -intel \
+		-crop 0x"$$bank"8000 "0x"$$bank"FFFF" \
+		-offset -$$((0x8000 * $$bank + 0x08000)) -o bank"$$bank".hex -intel; \
+	done 
+	$(SREC_CAT) $(SREC_FLAGS) $(@:.hex=.banked-hex) -intel -crop 0x00000 0x07FFF -o home.ihx -intel
+	srec_cat home.ihx -intel $(foreach file,$(FILES),$(file) -intel) -o $@ -intel
+	rm -f home.ihx $(FILES)
+else
+### Build non-banked firmware
+%.ihx: $(OBJECTDIR)/%.app.rel $(CONTIKI_TARGET_MAIN) contiki-$(TARGET).lib
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) -o $@ $(CONTIKI_TARGET_MAIN) $(OBJECTDIR)/$*.app.rel -llibsdcc.lib -lcontiki-$(TARGET).lib
+
+%.hex: %.ihx
+	$(PACKIHX) $< > $@
+endif
