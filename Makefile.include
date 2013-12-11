@@ -60,26 +60,6 @@ CFLAGS += -DCONTIKI=1 -DCONTIKI_TARGET_$(TARGET_UPPERCASE)=1
 
 MODULES += core/sys core/dev core/lib
 
-#include $(CONTIKI)/core/net/rime/Makefile.rime
-#include $(CONTIKI)/core/net/mac/Makefile.mac
-#SYSTEM  = process.c procinit.c autostart.c elfloader.c \
-#          compower.c serial-line.c
-#THREADS = mt.c
-#LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c trickle-timer.c \
-#          print-stats.c ifft.c crc16.c random.c ringbuf.c settings.c
-#DEV     = nullradio.c
-
-#include $(CONTIKI)/core/net/Makefile.uip
-#include $(CONTIKI)/core/net/rpl/Makefile.rpl
-
-CTK     = ctk.c
-
-ifndef CONTIKI_NO_NET
-  CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(THREADS) $(DHCP) $(DEV)
-else
-  CONTIKIFILES = $(SYSTEM) $(LIBS) $(THREADS) $(DEV) sicslowpan.c fakeuip.c
-endif
-
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 
 CONTIKIDIRS += ${addprefix $(CONTIKI)/core/,dev lib net net/mac net/rime \
