@@ -116,19 +116,6 @@ ifdef MODULES
   APPDS += $(MODULEDIRS)
 endif
 
-ifdef PLATFORMAPPS
-  PLATFORMAPPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(PLATFORMAPPS)}}} \
-             ${wildcard ${addprefix $(CONTIKI)/apps/, $(PLATFORMAPPS)} \
-             ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(PLATFORMAPPS)} \
-             $(PLATFORMAPPS)}
-  PLATFORMAPPINCLUDES = ${foreach APP, $(PLATFORMAPPS), \
-      ${wildcard ${foreach DIR, $(PLATFORMAPPDS), $(DIR)/Makefile.$(APP)}}}
-  -include $(PLATFORMAPPINCLUDES)
-  PLATFORMAPP_SOURCES = ${foreach APP, $(PLATFORMAPPS), $($(APP)_src)}
-  CONTIKI_SOURCEFILES += $(PLATFORMAPP_SOURCES)
-  APPDS += $(PLATFORMAPPDS)
-endif
-
 ### Verbosity control. Use  make V=1  to get verbose builds.
 
 ifeq ($(V),1)
