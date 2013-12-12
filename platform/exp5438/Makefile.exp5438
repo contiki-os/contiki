@@ -1,7 +1,8 @@
 # $Id: Makefile.z1,v 1.4 2010/11/07 08:40:24 enricmcalvo Exp $
 # msp430flasher -n msp430x5437 -w "Firmware.txt" -v -z [VCC]
 
-MODULES += core/net/ipv6 core/net/ipv4 core/net/rime core/net/mac/contikimac \
+MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 \
+           core/net/mac core/net/rpl core/net/rime core/net/mac/contikimac \
            dev/cc2420
 
 ifdef IAR
