@@ -36,7 +36,7 @@
 
 #include "ctk/ctk.h"
 
-#include "lib/ctk-textentry-multiline.h"
+#include "ctk/ctk-textentry-multiline.h"
 
 /*-----------------------------------------------------------------------------------*/
 unsigned char

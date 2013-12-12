@@ -36,7 +36,7 @@
 
 #include "shell.h"
 
-#include "lib/ctk-textentry-cmdline.h"
+#include "ctk/ctk-textentry-cmdline.h"
 
 #include <string.h>
 
