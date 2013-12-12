@@ -33,7 +33,7 @@
  */
 
 #include "contiki.h"
-#include "lib/ctk-filedialog.h"
+#include "ctk/ctk-filedialog.h"
 #include "ctk/ctk.h"
 #include "cfs/cfs.h"
 
