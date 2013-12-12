@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, CETIC, www.cetic.be.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,35 +30,45 @@
  *
  */
 
-/**
- * \file
- *         A simple power saving MAC protocol based on X-MAC [SenSys 2006]
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#include "contiki.h"
+#include "contiki-lib.h"
+#include "contiki-net.h"
+#include "net/rpl/rpl.h"
+#include "net/uip.h"
+#include <string.h>
 
-#ifndef XMAC_H_
-#define XMAC_H_
+#define DEBUG DEBUG_FULL
+#include "net/uip-debug.h"
 
-#include "sys/rtimer.h"
-#include "net/mac/rdc.h"
-#include "dev/radio.h"
+#define INTERVAL    5 * CLOCK_SECOND
 
-#define XMAC_RECEIVER "xmac.recv"
-#define XMAC_STROBES "xmac.strobes"
-#define XMAC_SEND_WITH_ACK "xmac.send.ack"
-#define XMAC_SEND_WITH_NOACK "xmac.send.noack"
+/*---------------------------------------------------------------------------*/
+PROCESS(wait_for_dag, "Wait for DAG process");
+AUTOSTART_PROCESSES(&wait_for_dag);
+/*---------------------------------------------------------------------------*/
+static void
+timeout_handler(void)
+{
+  rpl_dag_t *dag = rpl_get_any_dag();
+  if (dag != NULL) {
+    PRINTF("DAG Found\n");
+  }
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(wait_for_dag, ev, data)
+{
+  static struct etimer et;
 
-
-struct xmac_config {
-  rtimer_clock_t on_time;
-  rtimer_clock_t off_time;
-  rtimer_clock_t strobe_time;
-  rtimer_clock_t strobe_wait_time;
-};
-
-extern const struct rdc_driver xmac_driver;
-
-void xmac_set_announcement_radio_txpower(int txpower);
-
-#endif /* XMAC_H_ */
+  PROCESS_BEGIN();
+  PRINTF("Wait for DAG process started\n");
+  etimer_set(&et, INTERVAL);
+  while(1) {
+    PROCESS_YIELD();
+    if(etimer_expired(&et)) {
+      timeout_handler();
+      etimer_restart(&et);
+    } 
+  }
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/

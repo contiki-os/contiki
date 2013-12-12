@@ -214,6 +214,51 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
 #define GPIO_SOFTWARE_CONTROL(PORT_BASE, PIN_MASK) \
   do { REG((PORT_BASE) | GPIO_AFSEL) &= ~(PIN_MASK); } while(0)
 
+/** \brief Set pins with PIN_MASK of port PORT to trigger a power-up interrupt
+ * on rising edge.
+ * \param PORT GPIO Port (not port base address)
+ * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
+ */
+#define GPIO_POWER_UP_ON_RISING(PORT, PIN_MASK) \
+  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_P_EDGE_CTRL) &= \
+       ~((PIN_MASK) << ((PORT) << 3)); } while(0)
+
+/** \brief Set pins with PIN_MASK of port PORT to trigger a power-up interrupt
+ * on falling edge.
+ * \param PORT GPIO Port (not port base address)
+ * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
+ */
+#define GPIO_POWER_UP_ON_FALLING(PORT, PIN_MASK) \
+  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_P_EDGE_CTRL) |= \
+       (PIN_MASK) << ((PORT) << 3); } while(0)
+
+/** \brief Enable power-up interrupt triggering for pins with PIN_MASK of port
+ * PORT.
+ * \param PORT GPIO Port (not port base address)
+ * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
+ */
+#define GPIO_ENABLE_POWER_UP_INTERRUPT(PORT, PIN_MASK) \
+  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_PI_IEN) |= \
+       (PIN_MASK) << ((PORT) << 3); } while(0)
+
+/** \brief Disable power-up interrupt triggering for pins with PIN_MASK of port
+ * PORT.
+ * \param PORT GPIO Port (not port base address)
+ * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
+ */
+#define GPIO_DISABLE_POWER_UP_INTERRUPT(PORT, PIN_MASK) \
+  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_PI_IEN) &= \
+       ~((PIN_MASK) << ((PORT) << 3)); } while(0)
+
+/** \brief Clear power-up interrupt triggering for pins with PIN_MASK of port
+ * PORT.
+ * \param PORT GPIO Port (not port base address)
+ * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
+ */
+#define GPIO_CLEAR_POWER_UP_INTERRUPT(PORT, PIN_MASK) \
+  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_IRQ_DETECT_ACK) = \
+       (PIN_MASK) << ((PORT) << 3); } while(0)
+
 /**
  * \brief Converts a pin number to a pin mask
  * \param The pin number in the range [0..7]

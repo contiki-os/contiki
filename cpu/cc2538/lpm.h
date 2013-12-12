@@ -126,6 +126,12 @@ void lpm_init(void);
  * lpm_exit(), which will always be called from within the Sleep Timer ISR
  * context.
  *
+ * \note Dropping to PM2 means that data in the SRAM non-retention area will
+ * be lost. It is recommended to disable PM2 if the total RAM footprint is
+ * larger than what will fit in the retention area.
+ * .nrdata* sections can be used to place uninitialized data in the SRAM
+ * non-retention area.
+ *
  * \sa main(), rtimer_arch_next_trigger(), lpm_exit(), lpm_set_max_pm()
  */
 void lpm_enter(void);
@@ -143,6 +149,12 @@ void lpm_enter(void);
  * We always exit PM1/2 as a result of a scheduled rtimer task or a GPIO
  * interrupt. This may lead to other parts of the code trying to use the RF,
  * so we need to switch the clock source \e before said code gets executed.
+ *
+ * This function also makes sure that the sleep timer value is up-to-date
+ * following wake-up from PM1/2 so that RTIMER_NOW() works.
+ *
+ * \note This function should be called at the very beginning of ISRs waking up
+ * the SoC in order to restore all clocks and timers.
  *
  * \sa lpm_enter(), rtimer_isr()
  */

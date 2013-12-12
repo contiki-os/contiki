@@ -144,7 +144,11 @@
  *
  * This should normally not be changed.
  */
+#ifdef UIP_CONF_TTL
+#define UIP_TTL         UIP_CONF_TTL
+#else /* UIP_CONF_TTL */
 #define UIP_TTL         64
+#endif /* UIP_CONF_TTL */
 
 /**
  * The maximum time an IP fragment should wait in the reassembly
@@ -378,7 +382,10 @@
  * UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN.
  */
 #ifdef UIP_CONF_TCP_MSS
-#define UIP_TCP_MSS (UIP_CONF_TCP_MSS)
+#if UIP_CONF_TCP_MSS < (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
+#error UIP_CONF_TCP_MSS is too large for the current UIP_BUFSIZE
+#endif /* UIP_CONF_TCP_MSS < (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN) */
+#define UIP_TCP_MSS     (UIP_CONF_TCP_MSS)
 #else
 #define UIP_TCP_MSS     (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
 #endif

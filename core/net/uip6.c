@@ -1832,8 +1832,12 @@ uip_process(uint8_t flag)
         UIP_TCP_BUF->seqno[2] != uip_connr->rcv_nxt[2] ||
         UIP_TCP_BUF->seqno[3] != uip_connr->rcv_nxt[3])) {
 
-      if(UIP_TCP_BUF->flags & TCP_SYN) {
-        goto tcp_send_synack;
+      if((UIP_TCP_BUF->flags & TCP_SYN)) {
+        if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) {
+          goto tcp_send_synack;
+        } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
+          goto tcp_send_syn;
+        }
       }
       goto tcp_send_ack;
     }
@@ -2315,12 +2319,23 @@ uip_send(const void *data, int len)
 {
   int copylen;
 #define MIN(a,b) ((a) < (b)? (a): (b))
-  copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -
-                (int)((char *)uip_sappdata - (char *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN]));
+
+  if(uip_sappdata != NULL) {
+    copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -
+                  (int)((char *)uip_sappdata -
+                        (char *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN]));
+  } else {
+    copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN);
+  }
   if(copylen > 0) {
     uip_slen = copylen;
     if(data != uip_sappdata) {
-      memcpy(uip_sappdata, (data), uip_slen);
+      if(uip_sappdata == NULL) {
+        memcpy((char *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN],
+               (data), uip_slen);
+      } else {
+        memcpy(uip_sappdata, (data), uip_slen);
+      }
     }
   }
 }
