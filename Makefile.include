@@ -109,9 +109,7 @@ ifdef MODULES
   UNIQUEMODULES = $(call uniq,$(MODULES))
   MODULESSUBST = ${subst /,-,$(UNIQUEMODULES)}
   MODULEDIRS = ${wildcard ${addprefix $(CONTIKI)/, $(UNIQUEMODULES)}}
-  MODULEINCLUDES = ${foreach m, $(MODULESSUBST), ${wildcard ${foreach d, $(MODULEDIRS), $(d)/Makefile.$(m)}}}
-  -include $(MODULEINCLUDES)
-  MODULES_SOURCES = ${foreach m, $(MODULESSUBST), $($(m)_src)}
+  MODULES_SOURCES = ${foreach d, $(MODULEDIRS), ${subst ${d}/,,${wildcard $(d)/*.c}}}
   CONTIKI_SOURCEFILES += $(MODULES_SOURCES)
   APPDS += $(MODULEDIRS)
 endif

@@ -1,4 +1,0 @@
-core-net_src = netstack.c  packetbuf.c  packetqueue.c	queuebuf.c nbr-table.c rimeaddr.c
-
-MODULES += core/net/mac
-include $(CONTIKI)/core/net/mac/Makefile.core-net-mac
