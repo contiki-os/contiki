@@ -201,7 +201,7 @@ static struct compower_activity current_packet;
 
 struct encounter {
   struct encounter *next;
-  rimeaddr_t neighbor;
+  linkaddr_t neighbor;
   rtimer_clock_t time;
 };
 
@@ -211,7 +211,7 @@ MEMB(encounter_memb, struct encounter, MAX_ENCOUNTERS);
 #endif /* WITH_ENCOUNTER_OPTIMIZATION */
 
 static uint8_t is_streaming;
-static rimeaddr_t is_streaming_to, is_streaming_to_too;
+static linkaddr_t is_streaming_to, is_streaming_to_too;
 static rtimer_clock_t stream_until;
 #define DEFAULT_STREAM_TIME (RTIMER_ARCH_SECOND)
 
@@ -283,8 +283,8 @@ cpowercycle(void *ptr)
   if(is_streaming) {
     if(!RTIMER_CLOCK_LT(RTIMER_NOW(), stream_until)) {
       is_streaming = 0;
-      rimeaddr_copy(&is_streaming_to, &rimeaddr_null);
-      rimeaddr_copy(&is_streaming_to_too, &rimeaddr_null);
+      linkaddr_copy(&is_streaming_to, &linkaddr_null);
+      linkaddr_copy(&is_streaming_to_too, &linkaddr_null);
     }
   }
 
@@ -323,7 +323,7 @@ cpowercycle(void *ptr)
 /*---------------------------------------------------------------------------*/
 #if CXMAC_CONF_ANNOUNCEMENTS
 static int
-parse_announcements(const rimeaddr_t *from)
+parse_announcements(const linkaddr_t *from)
 {
   /* Parse incoming announcements */
   struct announcement_msg adata;
@@ -332,7 +332,7 @@ parse_announcements(const rimeaddr_t *from)
   memcpy(&adata, packetbuf_dataptr(), MIN(packetbuf_datalen(), sizeof(adata)));
 
   /*  printf("%d.%d: probe from %d.%d with %d announcements\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], adata->num);*/
   /*  for(i = 0; i < packetbuf_datalen(); ++i) {
     printf("%02x ", ((uint8_t *)packetbuf_dataptr())[i]);
@@ -341,7 +341,7 @@ parse_announcements(const rimeaddr_t *from)
 
   for(i = 0; i < adata.num; ++i) {
     /*   printf("%d.%d: announcement %d: %d\n",
-	  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	  linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	  adata->data[i].id,
 	  adata->data[i].value);*/
 
@@ -383,13 +383,13 @@ format_announcement(char *hdr)
 /*---------------------------------------------------------------------------*/
 #if WITH_ENCOUNTER_OPTIMIZATION
 static void
-register_encounter(const rimeaddr_t *neighbor, rtimer_clock_t time)
+register_encounter(const linkaddr_t *neighbor, rtimer_clock_t time)
 {
   struct encounter *e;
 
   /* If we have an entry for this neighbor already, we renew it. */
   for(e = list_head(encounter_list); e != NULL; e = list_item_next(e)) {
-    if(rimeaddr_cmp(neighbor, &e->neighbor)) {
+    if(linkaddr_cmp(neighbor, &e->neighbor)) {
       e->time = time;
       break;
     }
@@ -401,7 +401,7 @@ register_encounter(const rimeaddr_t *neighbor, rtimer_clock_t time)
       /* We could not allocate memory for this encounter, so we just drop it. */
       return;
     }
-    rimeaddr_copy(&e->neighbor, neighbor);
+    linkaddr_copy(&e->neighbor, neighbor);
     e->time = time;
     list_add(encounter_list, e);
   }
@@ -431,9 +431,9 @@ send_packet(void)
   /* Create the X-MAC header for the data packet. */
 #if !NETSTACK_CONF_BRIDGE_MODE
   /* If NETSTACK_CONF_BRIDGE_MODE is set, assume PACKETBUF_ADDR_SENDER is already set. */
-  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
 #endif
-  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
     is_broadcast = 1;
     PRINTDEBUG("cxmac: send broadcast\n");
   } else {
@@ -477,19 +477,19 @@ send_packet(void)
 
 #if WITH_STREAMING
   if(is_streaming == 1 &&
-     (rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+     (linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
 		   &is_streaming_to) ||
-      rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+      linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
 		   &is_streaming_to_too))) {
     is_already_streaming = 1;
   }
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
      PACKETBUF_ATTR_PACKET_TYPE_STREAM) {
     is_streaming = 1;
-    if(rimeaddr_cmp(&is_streaming_to, &rimeaddr_null)) {
-      rimeaddr_copy(&is_streaming_to, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-    } else if(!rimeaddr_cmp(&is_streaming_to, packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {
-      rimeaddr_copy(&is_streaming_to_too, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    if(linkaddr_cmp(&is_streaming_to, &linkaddr_null)) {
+      linkaddr_copy(&is_streaming_to, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    } else if(!linkaddr_cmp(&is_streaming_to, packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {
+      linkaddr_copy(&is_streaming_to_too, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     }
     stream_until = RTIMER_NOW() + DEFAULT_STREAM_TIME;
   }
@@ -503,9 +503,9 @@ send_packet(void)
      the time for the next expected encounter and setup a ctimer to
      switch on the radio just before the encounter. */
   for(e = list_head(encounter_list); e != NULL; e = list_item_next(e)) {
-    const rimeaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+    const linkaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
-    if(rimeaddr_cmp(neighbor, &e->neighbor)) {
+    if(linkaddr_cmp(neighbor, &e->neighbor)) {
       rtimer_clock_t wait, now, expected;
 
       /* We expect encounters to happen every DEFAULT_PERIOD time
@@ -573,8 +573,8 @@ send_packet(void)
 	    is_dispatch = hdr->dispatch == DISPATCH;
 	    is_strobe_ack = hdr->type == TYPE_STROBE_ACK;
 	    if(is_dispatch && is_strobe_ack) {
-	      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-			      &rimeaddr_node_addr)) {
+	      if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+			      &linkaddr_node_addr)) {
 		/* We got an ACK from the receiver, so we can immediately send
 		   the packet. */
 		got_strobe_ack = 1;
@@ -723,10 +723,10 @@ input_packet(void)
 
     if(hdr->dispatch != DISPATCH) {
       someone_is_sending = 0;
-      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                                     &rimeaddr_node_addr) ||
-	 rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                      &rimeaddr_null)) {
+      if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                                     &linkaddr_node_addr) ||
+	 linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                      &linkaddr_null)) {
 	/* This is a regular packet that is destined to us or to the
 	   broadcast address. */
 
@@ -760,8 +760,8 @@ input_packet(void)
     } else if(hdr->type == TYPE_STROBE) {
       someone_is_sending = 2;
 
-      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                      &rimeaddr_node_addr)) {
+      if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                      &linkaddr_node_addr)) {
 	/* This is a strobe packet for us. */
 
 	/* If the sender address is someone else, we should
@@ -771,7 +771,7 @@ input_packet(void)
 	hdr->type = TYPE_STROBE_ACK;
 	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER,
 			   packetbuf_addr(PACKETBUF_ADDR_SENDER));
-	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
 	packetbuf_compact();
 	if(NETSTACK_FRAMER.create() >= 0) {
 	  /* We turn on the radio in anticipation of the incoming
@@ -784,8 +784,8 @@ input_packet(void)
 	} else {
 	  PRINTF("cxmac: failed to send strobe ack\n");
 	}
-      } else if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                             &rimeaddr_null)) {
+      } else if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                             &linkaddr_null)) {
 	/* If the receiver address is null, the strobe is sent to
 	   prepare for an incoming broadcast packet. If this is the
 	   case, we turn on the radio and wait for the incoming
@@ -834,8 +834,8 @@ send_announcement(void *ptr)
     hdr->dispatch = DISPATCH;
     hdr->type = TYPE_ANNOUNCEMENT;
 
-    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
-    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
+    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &linkaddr_null);
     packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER, announcement_radio_txpower);
     if(NETSTACK_FRAMER.create() >= 0) {
       NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());

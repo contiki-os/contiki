@@ -98,7 +98,7 @@
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
-rimeaddr_t macLongAddr;
+linkaddr_t macLongAddr;
 #define	tmp_addr	macLongAddr
 #else                 //legacy radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
@@ -493,7 +493,7 @@ uint16_t p=(uint16_t)&__bss_end;
 
   /* Set addresses BEFORE starting tcpip process */
 
-  memset(&tmp_addr, 0, sizeof(rimeaddr_t));
+  memset(&tmp_addr, 0, sizeof(linkaddr_t));
 
   if(get_eui64_from_eeprom(tmp_addr.u8));
    
@@ -513,7 +513,7 @@ uint16_t p=(uint16_t)&__bss_end;
   rf230_set_channel(get_channel_from_eeprom());
   rf230_set_txpower(get_txpower_from_eeprom());
 
-  rimeaddr_set_node_addr(&tmp_addr); 
+  linkaddr_set_node_addr(&tmp_addr); 
 
   /* Initialize stack protocols */
   queuebuf_init();

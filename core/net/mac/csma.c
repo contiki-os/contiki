@@ -94,7 +94,7 @@ struct qbuf_metadata {
 /* Every neighbor has its own packet queue */
 struct neighbor_queue {
   struct neighbor_queue *next;
-  rimeaddr_t addr;
+  linkaddr_t addr;
   struct ctimer transmit_timer;
   uint8_t transmissions;
   uint8_t collisions, deferrals;
@@ -119,11 +119,11 @@ static void transmit_packet_list(void *ptr);
 
 /*---------------------------------------------------------------------------*/
 static struct neighbor_queue *
-neighbor_queue_from_addr(const rimeaddr_t *addr)
+neighbor_queue_from_addr(const linkaddr_t *addr)
 {
   struct neighbor_queue *n = list_head(neighbor_list);
   while(n != NULL) {
-    if(rimeaddr_cmp(&n->addr, addr)) {
+    if(linkaddr_cmp(&n->addr, addr)) {
       return n;
     }
     n = list_item_next(n);
@@ -308,7 +308,7 @@ send_packet(mac_callback_t sent, void *ptr)
   struct neighbor_queue *n;
   static uint8_t initialized = 0;
   static uint16_t seqno;
-  const rimeaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+  const linkaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
   if(!initialized) {
     initialized = 1;
@@ -330,7 +330,7 @@ send_packet(mac_callback_t sent, void *ptr)
     n = memb_alloc(&neighbor_memb);
     if(n != NULL) {
       /* Init neighbor entry */
-      rimeaddr_copy(&n->addr, addr);
+      linkaddr_copy(&n->addr, addr);
       n->transmissions = 0;
       n->collisions = 0;
       n->deferrals = 0;

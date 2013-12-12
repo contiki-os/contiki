@@ -115,17 +115,17 @@ PROCESS_THREAD(example_rucb_process, ev, data)
 
   PROCESS_PAUSE();
 
-  if(rimeaddr_node_addr.u8[0] == 51 &&
-      rimeaddr_node_addr.u8[1] == 0) {
-    rimeaddr_t recv;
+  if(linkaddr_node_addr.u8[0] == 51 &&
+      linkaddr_node_addr.u8[1] == 0) {
+    linkaddr_t recv;
 
     recv.u8[0] = 52;
     recv.u8[1] = 0;
     start_time = clock_time();
 
     /*printf("%u.%u: sending rucb to address %u.%u at time %u\n",
-        rimeaddr_node_addr.u8[0],
-        rimeaddr_node_addr.u8[1],
+        linkaddr_node_addr.u8[0],
+        linkaddr_node_addr.u8[1],
         recv.u8[0],
         recv.u8[1],
         start_time);*/

@@ -95,7 +95,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define CC_CONF_INLINE inline
 #endif
 
-#define RIMEADDR_CONF_SIZE       8
+#define LINKADDR_CONF_SIZE       8
 #define PACKETBUF_CONF_HDR_SIZE    0
 
 //define UIP_CONF_IPV6            1 //Let the makefile do this, allows hello-world to compile

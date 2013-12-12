@@ -37,10 +37,10 @@ PROCESS(mesh_node_process, "Mesh node");
 AUTOSTART_PROCESSES(&mesh_node_process);
 /*---------------------------------------------------------------------------*/
 static void
-mesh_recv(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops)
+mesh_recv(struct mesh_conn *c, const linkaddr_t *from, uint8_t hops)
 {
   printf("%d.%d: mesh message received '%s'\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 (char *)packetbuf_dataptr());
 }
 const static struct mesh_callbacks mesh_callback = {mesh_recv, NULL, NULL};
@@ -57,7 +57,7 @@ PROCESS_THREAD(mesh_node_process, ev, data)
     etimer_set(&et, CLOCK_SECOND * 20);
     PROCESS_WAIT_UNTIL(etimer_expired(&et));
     if(node_id == 200) {
-      rimeaddr_t receiver;
+      linkaddr_t receiver;
       packetbuf_copyfrom("Hello, world", 13);
 
       receiver.u8[0] = 1;

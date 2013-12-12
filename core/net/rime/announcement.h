@@ -66,12 +66,12 @@
 #ifndef ANNOUNCEMENT_H_
 #define ANNOUNCEMENT_H_
 
-#include "net/rimeaddr.h"
+#include "net/linkaddr.h"
 
 struct announcement;
 
 typedef void (*announcement_callback_t)(struct announcement *a,
-					const rimeaddr_t *from,
+					const linkaddr_t *from,
 					uint16_t id, uint16_t val);
 
 /**
@@ -224,7 +224,7 @@ struct announcement *announcement_list(void);
  *             neighbor has been heard.
  *
  */
-void announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value);
+void announcement_heard(const linkaddr_t *from, uint16_t id, uint16_t value);
 
 /**
  * \brief      Register a listen callback with the announcement module

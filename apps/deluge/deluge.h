@@ -142,7 +142,7 @@ struct deluge_object {
   uint8_t current_page[S_PAGE];
   uint8_t tx_set;
   int cfs_fd;
-  rimeaddr_t summary_from;
+  linkaddr_t summary_from;
 };
 
 struct deluge_page {

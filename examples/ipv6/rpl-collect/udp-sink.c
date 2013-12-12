@@ -32,7 +32,7 @@
 #include "contiki-net.h"
 #include "net/ip/uip.h"
 #include "net/rpl/rpl.h"
-#include "net/rimeaddr.h"
+#include "net/linkaddr.h"
 
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
@@ -96,7 +96,7 @@ static void
 tcpip_handler(void)
 {
   uint8_t *appdata;
-  rimeaddr_t sender;
+  linkaddr_t sender;
   uint8_t seqno;
   uint8_t hops;
 

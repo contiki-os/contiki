@@ -4,10 +4,10 @@
  */
 
 /**
- * \defgroup rimeaddr Rime addresses
+ * \defgroup linkaddr Rime addresses
  * @{
  *
- * The rimeaddr module is an abstract representation of addresses in
+ * The linkaddr module is an abstract representation of addresses in
  * Rime.
  *
  */
@@ -51,20 +51,20 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef RIMEADDR_H_
-#define RIMEADDR_H_
+#ifndef LINKADDR_H_
+#define LINKADDR_H_
 
 #include "contiki-conf.h"
 
-#ifdef RIMEADDR_CONF_SIZE
-#define RIMEADDR_SIZE RIMEADDR_CONF_SIZE
-#else /* RIMEADDR_SIZE */
-#define RIMEADDR_SIZE 2
-#endif /* RIMEADDR_SIZE */
+#ifdef LINKADDR_CONF_SIZE
+#define LINKADDR_SIZE LINKADDR_CONF_SIZE
+#else /* LINKADDR_SIZE */
+#define LINKADDR_SIZE 2
+#endif /* LINKADDR_SIZE */
 
 typedef union {
-  unsigned char u8[RIMEADDR_SIZE];
-} rimeaddr_t;
+  unsigned char u8[LINKADDR_SIZE];
+} linkaddr_t;
 
 
 /**
@@ -76,7 +76,7 @@ typedef union {
  *             to another.
  *
  */
-void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
+void linkaddr_copy(linkaddr_t *dest, const linkaddr_t *from);
 
 /**
  * \brief      Compare two Rime addresses
@@ -90,7 +90,7 @@ void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
  *             are the same, and zero if the addresses are different.
  *
  */
-int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
+int linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2);
 
 
 /**
@@ -100,18 +100,18 @@ int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
  *             This function sets the Rime address of the node.
  *
  */
-void rimeaddr_set_node_addr(rimeaddr_t *addr);
+void linkaddr_set_node_addr(linkaddr_t *addr);
 
 /**
  * \brief      The Rime address of the node
  *
  *             This variable contains the Rime address of the
  *             node. This variable should not be changed directly;
- *             rather, the rimeaddr_set_node_addr() function should be
+ *             rather, the linkaddr_set_node_addr() function should be
  *             used.
  *
  */
-extern rimeaddr_t rimeaddr_node_addr;
+extern linkaddr_t linkaddr_node_addr;
 
 /**
  * \brief      The null Rime address
@@ -124,8 +124,8 @@ extern rimeaddr_t rimeaddr_node_addr;
  *             with other nodes.
  *
  */
-extern const rimeaddr_t rimeaddr_null;
+extern const linkaddr_t linkaddr_null;
 
-#endif /* RIMEADDR_H_ */
+#endif /* LINKADDR_H_ */
 /** @} */
 /** @} */

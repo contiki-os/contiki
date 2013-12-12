@@ -43,7 +43,7 @@
 /* List of link-layer addresses of the neighbors, used as key in the tables */
 typedef struct nbr_table_key {
   struct nbr_table_key *next;
-  rimeaddr_t lladdr;
+  linkaddr_t lladdr;
 } nbr_table_key_t;
 
 /* For each neighbor, a map of the tables that use the neighbor.
@@ -107,17 +107,17 @@ key_from_item(nbr_table_t *table, const nbr_table_item_t *item)
 /*---------------------------------------------------------------------------*/
 /* Get the index of a neighbor from its link-layer address */
 static int
-index_from_lladdr(const rimeaddr_t *lladdr)
+index_from_lladdr(const linkaddr_t *lladdr)
 {
   nbr_table_key_t *key;
   /* Allow lladdr-free insertion, useful e.g. for IPv6 ND.
-   * Only one such entry is possible at a time, indexed by rimeaddr_null. */
+   * Only one such entry is possible at a time, indexed by linkaddr_null. */
   if(lladdr == NULL) {
-    lladdr = &rimeaddr_null;
+    lladdr = &linkaddr_null;
   }
   key = list_head(nbr_table_keys);
   while(key != NULL) {
-    if(lladdr && rimeaddr_cmp(lladdr, &key->lladdr)) {
+    if(lladdr && linkaddr_cmp(lladdr, &key->lladdr)) {
       return index_from_key(key);
     }
     key = list_item_next(key);
@@ -269,16 +269,16 @@ nbr_table_next(nbr_table_t *table, nbr_table_item_t *item)
 /*---------------------------------------------------------------------------*/
 /* Add a neighbor indexed with its link-layer address */
 nbr_table_item_t *
-nbr_table_add_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
+nbr_table_add_lladdr(nbr_table_t *table, const linkaddr_t *lladdr)
 {
   int index;
   nbr_table_item_t *item;
   nbr_table_key_t *key;
 
   /* Allow lladdr-free insertion, useful e.g. for IPv6 ND.
-   * Only one such entry is possible at a time, indexed by rimeaddr_null. */
+   * Only one such entry is possible at a time, indexed by linkaddr_null. */
   if(lladdr == NULL) {
-    lladdr = &rimeaddr_null;
+    lladdr = &linkaddr_null;
   }
 
   if((index = index_from_lladdr(lladdr)) == -1) {
@@ -297,7 +297,7 @@ nbr_table_add_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
     index = index_from_key(key);
 
     /* Set link-layer address */
-    rimeaddr_copy(&key->lladdr, lladdr);
+    linkaddr_copy(&key->lladdr, lladdr);
   }
 
   /* Get item in the current table */
@@ -312,7 +312,7 @@ nbr_table_add_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
 /*---------------------------------------------------------------------------*/
 /* Get an item from its link-layer address */
 void *
-nbr_table_get_from_lladdr(nbr_table_t *table, const rimeaddr_t *lladdr)
+nbr_table_get_from_lladdr(nbr_table_t *table, const linkaddr_t *lladdr)
 {
   void *item = item_from_index(table, index_from_lladdr(lladdr));
   return nbr_get_bit(used_map, table, item) ? item : NULL;
@@ -342,7 +342,7 @@ nbr_table_unlock(nbr_table_t *table, void *item)
 }
 /*---------------------------------------------------------------------------*/
 /* Get link-layer address of an item */
-rimeaddr_t *
+linkaddr_t *
 nbr_table_get_lladdr(nbr_table_t *table, const void *item)
 {
   nbr_table_key_t *key = key_from_item(table, item);

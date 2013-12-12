@@ -71,5 +71,5 @@ MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 \
          core/net/rime core/net/mac core/net/mac/sicslowmac
 else
 vpath %.c $(CONTIKI)/core/net/ipv6
-CONTIKI_SOURCEFILES += sicslowpan.c rimeaddr.c
+CONTIKI_SOURCEFILES += sicslowpan.c linkaddr.c
 endif

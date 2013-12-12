@@ -83,7 +83,7 @@ PT_THREAD(nodeidcall(struct httpd_state *s, char *ptr))
   static char buf[10];
   PSOCK_BEGIN(&s->sout);
   snprintf(buf, sizeof(buf), "%d.%d",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
   PSOCK_SEND_STR(&s->sout, buf);
   PSOCK_END(&s->sout);
 }
@@ -203,7 +203,7 @@ PT_THREAD(neighborscall(struct httpd_state *s, char *ptr))
 /*---------------------------------------------------------------------------*/
 
 static void
-received_announcement(struct announcement *a, const rimeaddr_t *from,
+received_announcement(struct announcement *a, const linkaddr_t *from,
 	     uint16_t id, uint16_t value)
 {
   struct collect_neighbor *n;

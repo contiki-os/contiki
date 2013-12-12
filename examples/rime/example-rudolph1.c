@@ -93,7 +93,7 @@ write_chunk(struct rudolph1_conn *c, int offset, int flag,
   if(flag == RUDOLPH1_FLAG_LASTCHUNK) {
     int i;
     printf("+++ rudolph1 entire file received at %d, %d\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
     leds_off(LEDS_RED);
     leds_on(LEDS_YELLOW);
 
@@ -103,7 +103,7 @@ write_chunk(struct rudolph1_conn *c, int offset, int flag,
       cfs_read(fd, &buf, 1);
       if(buf != (unsigned char)i) {
 	printf("%d.%d: error: diff at %d, %d != %d\n",
-	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	       linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	       i, i, buf);
 	break;
       }
@@ -125,7 +125,7 @@ read_chunk(struct rudolph1_conn *c, int offset, uint8_t *to, int maxsize)
   cfs_seek(fd, offset, CFS_SEEK_SET);
   ret = cfs_read(fd, to, maxsize);
   /*  printf("%d.%d: read_chunk %d bytes at %d, %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 ret, offset, (unsigned char)to[0]);*/
   cfs_close(fd);
   return ret;
@@ -166,8 +166,8 @@ PROCESS_THREAD(example_rudolph1_process, ev, data)
   
   PROCESS_PAUSE();
   
-  if(rimeaddr_node_addr.u8[0] == 1 &&
-     rimeaddr_node_addr.u8[1] == 1) {
+  if(linkaddr_node_addr.u8[0] == 1 &&
+     linkaddr_node_addr.u8[1] == 1) {
     {
       int i;
  

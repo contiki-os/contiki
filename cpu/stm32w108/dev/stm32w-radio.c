@@ -294,7 +294,7 @@ stm32w_radio_init(void)
   CLEAN_RXBUFS();
   CLEAN_TXBUF();
 
-#if ST_RADIO_AUTOACK && !(UIP_CONF_LL_802154 && RIMEADDR_CONF_SIZE==8)
+#if ST_RADIO_AUTOACK && !(UIP_CONF_LL_802154 && LINKADDR_CONF_SIZE==8)
 #error "Autoack and address filtering can only be used with EUI 64"
 #endif
   ST_RadioEnableAutoAck(ST_RADIO_AUTOACK);
