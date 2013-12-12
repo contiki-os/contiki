@@ -89,9 +89,9 @@ struct runicast_conn;
                              { PACKETBUF_ATTR_PACKET_ID, PACKETBUF_ATTR_BIT * RUNICAST_PACKET_ID_BITS }, \
                              STUNICAST_ATTRIBUTES
 struct runicast_callbacks {
-  void (* recv)(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno);
-  void (* sent)(struct runicast_conn *c, const rimeaddr_t *to, uint8_t retransmissions);
-  void (* timedout)(struct runicast_conn *c, const rimeaddr_t *to, uint8_t retransmissions);
+  void (* recv)(struct runicast_conn *c, const linkaddr_t *from, uint8_t seqno);
+  void (* sent)(struct runicast_conn *c, const linkaddr_t *to, uint8_t retransmissions);
+  void (* timedout)(struct runicast_conn *c, const linkaddr_t *to, uint8_t retransmissions);
 };
 
 struct runicast_conn {
@@ -107,7 +107,7 @@ void runicast_open(struct runicast_conn *c, uint16_t channel,
 	       const struct runicast_callbacks *u);
 void runicast_close(struct runicast_conn *c);
 
-int runicast_send(struct runicast_conn *c, const rimeaddr_t *receiver,
+int runicast_send(struct runicast_conn *c, const linkaddr_t *receiver,
 		  uint8_t max_retransmissions);
 
 uint8_t runicast_is_transmitting(struct runicast_conn *c);

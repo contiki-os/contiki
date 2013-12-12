@@ -50,7 +50,7 @@
 #define ROUTE_TIMEOUT CLOCK_SECOND * 4
 
 static struct queuebuf *queued_packet;
-static rimeaddr_t queued_receiver;
+static linkaddr_t queued_receiver;
 
  /* Connection for route discovery: */
 static struct route_discovery_conn route_discovery;
@@ -73,15 +73,15 @@ static struct trickle_conn gateway_announce_conn;
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 static struct uip_fw_netif *gw_netif;
-static rimeaddr_t gateway;
+static linkaddr_t gateway;
 static uip_ipaddr_t netaddr, netmask;
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_data(struct unicast_conn *c, const rimeaddr_t *from)
+recv_data(struct unicast_conn *c, const linkaddr_t *from)
 {
   struct route_entry *e;
-  rimeaddr_t source;
+  linkaddr_t source;
     
   uip_len = packetbuf_copyto(&uip_buf[UIP_LLH_LEN]);
 
@@ -106,21 +106,21 @@ recv_data(struct unicast_conn *c, const rimeaddr_t *from)
 
 
   PRINTF("uip-over-mesh: %d.%d: recv_data with len %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], uip_len);
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], uip_len);
   tcpip_input();
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_data(rimeaddr_t *next)
+send_data(linkaddr_t *next)
 {
   PRINTF("uip-over-mesh: %d.%d: send_data with len %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 packetbuf_totlen());
   unicast_send(&dataconn, next);
 }
 /*---------------------------------------------------------------------------*/
 static void
-new_route(struct route_discovery_conn *c, const rimeaddr_t *to)
+new_route(struct route_discovery_conn *c, const linkaddr_t *to)
 {
   struct route_entry *rt;
   
@@ -154,7 +154,7 @@ static const struct unicast_callbacks data_callbacks = { recv_data };
 static const struct route_discovery_callbacks rdc = { new_route, timedout };
 /*---------------------------------------------------------------------------*/
 struct gateway_msg {
-  rimeaddr_t gateway;
+  linkaddr_t gateway;
 };
 
 static uint8_t is_gateway;
@@ -165,7 +165,7 @@ gateway_announce_recv(struct trickle_conn *c)
   struct gateway_msg *msg;
   msg = packetbuf_dataptr();
   PRINTF("%d.%d: gateway message: %d.%d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 msg->gateway.u8[0], msg->gateway.u8[1]);
 
   if(!is_gateway) {
@@ -182,9 +182,9 @@ uip_over_mesh_make_announced_gateway(void)
      gateway. */
   if(!is_gateway) {
     PRINTF("%d.%d: making myself the gateway\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-    uip_over_mesh_set_gateway(&rimeaddr_node_addr);
-    rimeaddr_copy(&(msg.gateway), &rimeaddr_node_addr);
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
+    uip_over_mesh_set_gateway(&linkaddr_node_addr);
+    linkaddr_copy(&(msg.gateway), &linkaddr_node_addr);
     packetbuf_copyfrom(&msg, sizeof(struct gateway_msg));
     trickle_send(&gateway_announce_conn);
     is_gateway = 1;
@@ -197,7 +197,7 @@ uip_over_mesh_init(uint16_t channels)
 {
 
   PRINTF("Our address is %d.%d (%d.%d.%d.%d)\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 uip_hostaddr.u8[0], uip_hostaddr.u8[1],
 	 uip_hostaddr.u8[2], uip_hostaddr.u8[3]);
 
@@ -215,7 +215,7 @@ uip_over_mesh_init(uint16_t channels)
 uint8_t
 uip_over_mesh_send(void)
 {
-  rimeaddr_t receiver;
+  linkaddr_t receiver;
   struct route_entry *rt;
 
   /* This function is called by the uip-fw module to send out an IP
@@ -231,21 +231,21 @@ uip_over_mesh_send(void)
     receiver.u8[0] = BUF->destipaddr.u8[2];
     receiver.u8[1] = BUF->destipaddr.u8[3];
   } else {
-    if(rimeaddr_cmp(&gateway, &rimeaddr_node_addr)) {
+    if(linkaddr_cmp(&gateway, &linkaddr_node_addr)) {
       PRINTF("uip_over_mesh_send: I am gateway, packet to %d.%d.%d.%d to local interface\n",
 	     uip_ipaddr_to_quad(&BUF->destipaddr));
       if(gw_netif != NULL) {
 	return gw_netif->output();
       }
       return UIP_FW_DROPPED;
-    } else if(rimeaddr_cmp(&gateway, &rimeaddr_null)) {
+    } else if(linkaddr_cmp(&gateway, &linkaddr_null)) {
       PRINTF("uip_over_mesh_send: No gateway setup, dropping packet\n");
       return UIP_FW_OK;
     } else {
       PRINTF("uip_over_mesh_send: forwarding packet to %d.%d.%d.%d towards gateway %d.%d\n",
 	     uip_ipaddr_to_quad(&BUF->destipaddr),
 	     gateway.u8[0], gateway.u8[1]);
-      rimeaddr_copy(&receiver, &gateway);
+      linkaddr_copy(&receiver, &gateway);
     }
   }
 
@@ -270,9 +270,9 @@ uip_over_mesh_send(void)
     PRINTF("uIP over mesh no route to %d.%d\n", receiver.u8[0], receiver.u8[1]);
     if(queued_packet == NULL) {
       queued_packet = queuebuf_new_from_packetbuf();
-      rimeaddr_copy(&queued_receiver, &receiver);
+      linkaddr_copy(&queued_receiver, &receiver);
       route_discovery_discover(&route_discovery, &receiver, ROUTE_TIMEOUT);
-    } else if(!rimeaddr_cmp(&queued_receiver, &receiver)) {
+    } else if(!linkaddr_cmp(&queued_receiver, &receiver)) {
       route_discovery_discover(&route_discovery, &receiver, ROUTE_TIMEOUT);
     }
   } else {
@@ -289,9 +289,9 @@ uip_over_mesh_set_gateway_netif(struct uip_fw_netif *n)
 }
 /*---------------------------------------------------------------------------*/
 void
-uip_over_mesh_set_gateway(rimeaddr_t *gw)
+uip_over_mesh_set_gateway(linkaddr_t *gw)
 {
-  rimeaddr_copy(&gateway, gw);
+  linkaddr_copy(&gateway, gw);
 }
 /*---------------------------------------------------------------------------*/
 void

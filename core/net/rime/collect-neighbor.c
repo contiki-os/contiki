@@ -126,14 +126,14 @@ collect_neighbor_list_new(struct collect_neighbor_list *neighbors_list)
 /*---------------------------------------------------------------------------*/
 struct collect_neighbor *
 collect_neighbor_list_find(struct collect_neighbor_list *neighbors_list,
-                           const rimeaddr_t *addr)
+                           const linkaddr_t *addr)
 {
   struct collect_neighbor *n;
   if(neighbors_list == NULL) {
     return NULL;
   }
   for(n = list_head(neighbors_list->list); n != NULL; n = list_item_next(n)) {
-    if(rimeaddr_cmp(&n->addr, addr)) {
+    if(linkaddr_cmp(&n->addr, addr)) {
       return n;
     }
   }
@@ -142,7 +142,7 @@ collect_neighbor_list_find(struct collect_neighbor_list *neighbors_list,
 /*---------------------------------------------------------------------------*/
 int
 collect_neighbor_list_add(struct collect_neighbor_list *neighbors_list,
-                          const rimeaddr_t *addr, uint16_t nrtmetric)
+                          const linkaddr_t *addr, uint16_t nrtmetric)
 {
   struct collect_neighbor *n;
 
@@ -159,7 +159,7 @@ collect_neighbor_list_add(struct collect_neighbor_list *neighbors_list,
 
   /* Check if the collect_neighbor is already on the list. */
   for(n = list_head(neighbors_list->list); n != NULL; n = list_item_next(n)) {
-    if(rimeaddr_cmp(&n->addr, addr)) {
+    if(linkaddr_cmp(&n->addr, addr)) {
       PRINTF("collect_neighbor_add: already on list %d.%d\n",
              addr->u8[0], addr->u8[1]);
       break;
@@ -214,7 +214,7 @@ collect_neighbor_list_add(struct collect_neighbor_list *neighbors_list,
 
   if(n != NULL) {
     n->age = 0;
-    rimeaddr_copy(&n->addr, addr);
+    linkaddr_copy(&n->addr, addr);
     n->rtmetric = nrtmetric;
     collect_link_estimate_new(&n->le);
     n->le_age = 0;
@@ -235,7 +235,7 @@ collect_neighbor_list(struct collect_neighbor_list *neighbors_list)
 /*---------------------------------------------------------------------------*/
 void
 collect_neighbor_list_remove(struct collect_neighbor_list *neighbors_list,
-                             const rimeaddr_t *addr)
+                             const linkaddr_t *addr)
 {
   struct collect_neighbor *n;
 
@@ -337,7 +337,7 @@ collect_neighbor_update_rtmetric(struct collect_neighbor *n, uint16_t rtmetric)
 {
   if(n != NULL) {
     PRINTF("%d.%d: collect_neighbor_update %d.%d rtmetric %d\n",
-           rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+           linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
            n->addr.u8[0], n->addr.u8[1], rtmetric);
     n->rtmetric = rtmetric;
     n->age = 0;

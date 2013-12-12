@@ -111,7 +111,7 @@
 #if SEND_BATTERY_INFO
 #include "sensors-example.h"
 static void
-bc_rx(struct broadcast_conn *c, const rimeaddr_t *from)
+bc_rx(struct broadcast_conn *c, const linkaddr_t *from)
 {
   return;
 }

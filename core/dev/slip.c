@@ -192,7 +192,7 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
       
       rxbuf_init();
       
-      rimeaddr_t addr = get_mac_addr();
+      linkaddr_t addr = get_mac_addr();
       /* this is just a test so far... just to see if it works */
       slip_arch_writeb('!');
       slip_arch_writeb('M');

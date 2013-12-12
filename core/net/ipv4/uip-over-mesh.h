@@ -48,7 +48,7 @@ void uip_over_mesh_init(uint16_t channels);
 uint8_t uip_over_mesh_send(void);
 
 void uip_over_mesh_set_gateway_netif(struct uip_fw_netif *netif);
-void uip_over_mesh_set_gateway(rimeaddr_t *gw);
+void uip_over_mesh_set_gateway(linkaddr_t *gw);
 void uip_over_mesh_set_net(uip_ipaddr_t *addr, uip_ipaddr_t *mask);
 
 void uip_over_mesh_make_announced_gateway(void);

@@ -163,7 +163,7 @@ uint8_t cc2538_rf_power_set(uint8_t new_power);
  * \param pan The PAN Identifier
  *
  * Values for short and extended addresses are not needed as parameters
- * since they exist in the rimeaddr buffer in the contiki core. They
+ * since they exist in the linkaddr buffer in the contiki core. They
  * are thus simply copied over from there.
  */
 void cc2538_rf_set_addr(uint16_t pan);

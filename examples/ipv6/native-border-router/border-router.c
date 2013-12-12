@@ -245,7 +245,7 @@ void
 border_router_set_mac(const uint8_t *data)
 {
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
-  rimeaddr_set_node_addr((rimeaddr_t *)uip_lladdr.addr);
+  linkaddr_set_node_addr((linkaddr_t *)uip_lladdr.addr);
 
   /* is this ok - should instead remove all addresses and
      add them back again - a bit messy... ?*/

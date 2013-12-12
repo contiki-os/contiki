@@ -65,7 +65,7 @@ PROCESS(shell_rsh_server_process, "rsh server");
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_rsh_process, ev, data)
 {
-  static rimeaddr_t receiver;
+  static linkaddr_t receiver;
   struct shell_input *input;
   const char *nextptr;
   char buf[40];

@@ -66,7 +66,7 @@
 #define BROADCAST_H_
 
 #include "net/rime/abc.h"
-#include "net/rimeaddr.h"
+#include "net/linkaddr.h"
 
 struct broadcast_conn;
 
@@ -79,7 +79,7 @@ struct broadcast_conn;
  */
 struct broadcast_callbacks {
   /** Called when a packet has been received by the broadcast module. */
-  void (* recv)(struct broadcast_conn *ptr, const rimeaddr_t *sender);
+  void (* recv)(struct broadcast_conn *ptr, const linkaddr_t *sender);
   void (* sent)(struct broadcast_conn *ptr, int status, int num_tx);
 };
 

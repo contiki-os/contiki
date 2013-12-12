@@ -115,7 +115,7 @@ print_usage(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_sendtest_process, ev, data)
 {
-  static rimeaddr_t receiver;
+  static linkaddr_t receiver;
   static unsigned long cpu, lpm, rx, tx;
   const char *nextptr;
   const char *args;

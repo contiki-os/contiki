@@ -51,7 +51,7 @@
 #ifndef COLLECT_NEIGHBOR_H_
 #define COLLECT_NEIGHBOR_H_
 
-#include "net/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "net/rime/collect-link-estimate.h"
 #include "lib/list.h"
 
@@ -62,7 +62,7 @@ struct collect_neighbor_list {
 
 struct collect_neighbor {
   struct collect_neighbor *next;
-  rimeaddr_t addr;
+  linkaddr_t addr;
   uint16_t rtmetric;
   uint16_t age;
   uint16_t le_age;
@@ -77,11 +77,11 @@ list_t collect_neighbor_list(struct collect_neighbor_list *neighbor_list);
 void collect_neighbor_list_new(struct collect_neighbor_list *neighbor_list);
 
 int collect_neighbor_list_add(struct collect_neighbor_list *neighbor_list,
-                              const rimeaddr_t *addr, uint16_t rtmetric);
+                              const linkaddr_t *addr, uint16_t rtmetric);
 void collect_neighbor_list_remove(struct collect_neighbor_list *neighbor_list,
-                                  const rimeaddr_t *addr);
+                                  const linkaddr_t *addr);
 struct collect_neighbor *collect_neighbor_list_find(struct collect_neighbor_list *neighbor_list,
-                                               const rimeaddr_t *addr);
+                                               const linkaddr_t *addr);
 struct collect_neighbor *collect_neighbor_list_best(struct collect_neighbor_list *neighbor_list);
 int collect_neighbor_list_num(struct collect_neighbor_list *neighbor_list);
 struct collect_neighbor *collect_neighbor_list_get(struct collect_neighbor_list *neighbor_list, int num);

@@ -114,7 +114,7 @@ struct ipolite_callbacks {
   /**
    * Called when a packet is received on the connection.
    */
-  void (* recv)(struct ipolite_conn *c, const rimeaddr_t *from);
+  void (* recv)(struct ipolite_conn *c, const linkaddr_t *from);
 
   /**
    * Called when a packet is sent on the connection.

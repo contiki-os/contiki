@@ -169,7 +169,7 @@ calculate()
  * with rime address ending in [0 , 15]
  */
 static void
-broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
+broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
   packetbuf_attr_t rssi; /* Careful here, this is uint16_t */
 

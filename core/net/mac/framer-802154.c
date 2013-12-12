@@ -104,7 +104,7 @@ create(void)
   params.fcf.frame_type = FRAME802154_DATAFRAME;
   params.fcf.security_enabled = 0;
   params.fcf.frame_pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
-  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
     params.fcf.ack_required = 0;
   } else {
     params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
@@ -128,8 +128,8 @@ create(void)
      \todo For phase 1 the addresses are all long. We'll need a mechanism
      in the rime attributes to tell the mac to use long or short for phase 2.
   */
-  if(sizeof(rimeaddr_t) == 2) {
-    /* Use short address mode if rimeaddr size is short. */
+  if(sizeof(linkaddr_t) == 2) {
+    /* Use short address mode if linkaddr size is short. */
     params.fcf.src_addr_mode = FRAME802154_SHORTADDRMODE;
   } else {
     params.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
@@ -140,17 +140,17 @@ create(void)
    *  If the output address is NULL in the Rime buf, then it is broadcast
    *  on the 802.15.4 network.
    */
-  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
     /* Broadcast requires short address mode. */
     params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
     params.dest_addr[0] = 0xFF;
     params.dest_addr[1] = 0xFF;
 
   } else {
-    rimeaddr_copy((rimeaddr_t *)&params.dest_addr,
+    linkaddr_copy((linkaddr_t *)&params.dest_addr,
                   packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-    /* Use short address mode if rimeaddr size is small */
-    if(sizeof(rimeaddr_t) == 2) {
+    /* Use short address mode if linkaddr size is small */
+    if(sizeof(linkaddr_t) == 2) {
       params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
     } else {
       params.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
@@ -164,7 +164,7 @@ create(void)
    * Set up the source address using only the long address mode for
    * phase 1.
    */
-  rimeaddr_copy((rimeaddr_t *)&params.src_addr, &rimeaddr_node_addr);
+  linkaddr_copy((linkaddr_t *)&params.src_addr, &linkaddr_node_addr);
 
   params.payload = packetbuf_dataptr();
   params.payload_len = packetbuf_datalen();
@@ -199,10 +199,10 @@ parse(void)
         return FRAMER_FAILED;
       }
       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
-        packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (rimeaddr_t *)&frame.dest_addr);
+        packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&frame.dest_addr);
       }
     }
-    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (rimeaddr_t *)&frame.src_addr);
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&frame.src_addr);
     packetbuf_set_attr(PACKETBUF_ATTR_PENDING, frame.fcf.frame_pending);
     /*    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, frame.fcf.ack_required);*/
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);

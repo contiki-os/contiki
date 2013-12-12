@@ -209,7 +209,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 }
 /*---------------------------------------------------------------------------*/
 void
-rpl_link_neighbor_callback(const rimeaddr_t *addr, int status, int numtx)
+rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
 {
   uip_ipaddr_t ipaddr;
   rpl_parent_t *parent;
