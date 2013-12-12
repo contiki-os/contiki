@@ -1,8 +1,0 @@
-core-net-ipv6_src = \
-sicslowpan.c  uip-ds6.c      uip-ds6-route.c  uip-nd6.c \
-uip6.c	      uip-ds6-nbr.c  uip-icmp6.c
-
-MODULES += core/net core/net/ip core/net/rpl
-include $(CONTIKI)/core/net/Makefile.core-net
-include $(CONTIKI)/core/net/ip/Makefile.core-net-ip
-include $(CONTIKI)/core/net/rpl/Makefile.core-net-rpl

@@ -1,2 +1,0 @@
-core-net-mac_src = csma.c frame802154.c framer-802154.c framer-nullmac.c mac.c phase.c mac-sequence.c \
-nullmac.c nullrdc.c phase.c

@@ -1,3 +1,0 @@
-core-sys_src = \
-arg.c	     compower.c  energest.c  mt.c	procinit.c  stimer.c \
-autostart.c  ctimer.c	 etimer.c    process.c	rtimer.c    timer.c

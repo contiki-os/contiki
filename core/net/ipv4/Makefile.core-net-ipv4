@@ -1,9 +1,0 @@
-core-net-ipv4_src = \
-uaodv-rt.c  uip.c     uip-fw-drv.c    uip-over-mesh.c \
-uaodv.c  uip_arp.c   uip-fw.c  uip-neighbor.c
-
-MODULES += core/net core/net/ip
-include $(CONTIKI)/core/net/Makefile.core-net
-include $(CONTIKI)/core/net/ip/Makefile.core-net-ip
-
-
