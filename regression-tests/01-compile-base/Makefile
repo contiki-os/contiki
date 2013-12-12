@@ -28,7 +28,7 @@ sky-shell-exec/sky \
 sky-shell-webserver/sky \
 telnet-server/minimal-net \
 webserver/minimal-net \
-webserver-ipv6/sky \
+webserver-ipv6/exp5438 \
 wget/minimal-net \
 z1/z1 \
 settings-example/avr-raven \

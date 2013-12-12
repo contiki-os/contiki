@@ -50,6 +50,18 @@
 
 static int (* input_handler)(unsigned char c);
 /*---------------------------------------------------------------------------*/
+#define UART_RX_PORT_BASE        GPIO_PORT_TO_BASE(UART_RX_PORT)
+#define UART_RX_PIN_MASK         GPIO_PIN_MASK(UART_RX_PIN)
+
+#define UART_TX_PORT_BASE        GPIO_PORT_TO_BASE(UART_TX_PORT)
+#define UART_TX_PIN_MASK         GPIO_PIN_MASK(UART_TX_PIN)
+
+#define UART_CTS_PORT_BASE       GPIO_PORT_TO_BASE(UART_CTS_PORT)
+#define UART_CTS_PIN_MASK        GPIO_PIN_MASK(UART_CTS_PIN)
+
+#define UART_RTS_PORT_BASE       GPIO_PORT_TO_BASE(UART_RTS_PORT)
+#define UART_RTS_PIN_MASK        GPIO_PIN_MASK(UART_RTS_PIN)
+/*---------------------------------------------------------------------------*/
 /*
  * Once we know what UART we're on, configure correct values to be written to
  * the correct registers
@@ -138,8 +150,8 @@ uart_init(void)
   ioc_set_over(UART_TX_PORT, UART_TX_PIN, IOC_OVERRIDE_OE);
 
   /* Set RX and TX pins to peripheral mode */
-  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(UART_TX_PORT), GPIO_PIN_MASK(UART_TX_PIN));
-  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(UART_RX_PORT), GPIO_PIN_MASK(UART_RX_PIN));
+  GPIO_PERIPHERAL_CONTROL(UART_TX_PORT_BASE, UART_TX_PIN_MASK);
+  GPIO_PERIPHERAL_CONTROL(UART_RX_PORT_BASE, UART_RX_PIN_MASK);
 
   /*
    * UART Interrupt Masks:

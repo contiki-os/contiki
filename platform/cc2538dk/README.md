@@ -410,7 +410,6 @@ LPM is highly related to the operations of the Radio Duty Cycling (RDC) driver o
 
 * With ContikiMAC, PMs 0/1/2 are supported subject to user configuration.
 * When NullRDC is in use, the radio will be always on. As a result, the algorithm discussed above will always choose PM0 and will never attempt to drop to PM1/2.
-* The LPP driver is also supported but in order to use it, one needs to set `LPM_CONF_MAX_PM` to 0. Setting a higher value will result in "Sleep Forever" situations. This is inefficient and as a result LPP is not recommended for situations requiring low energy consumption. The main reason for this behaviour is a [bug in LPP][lpp-rf-off-bug]. Once this has been resolved, simple modifications to the LPM module will be implemented to support all three PMs under LPP.
 
 Build headless nodes
 --------------------
@@ -458,4 +457,3 @@ More Reading
 [cc2538]: http://www.ti.com/product/cc2538     "CC2538"
 [uniflash]: http://processors.wiki.ti.com/index.php/Category:CCS_UniFlash "UniFlash"
 [pandoc]: http://johnmacfarlane.net/pandoc/ "Pandoc - a universal document converter"
-[lpp-rf-off-bug]: https://github.com/contiki-os/contiki/issues/104 "LPP RF off() bug"

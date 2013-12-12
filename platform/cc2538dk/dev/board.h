@@ -97,9 +97,8 @@
  *
  * The USB pullup is driven by PC0 and is shared with LED1
  */
-#define USB_PULLUP_PORT          GPIO_C_BASE
+#define USB_PULLUP_PORT          GPIO_C_NUM
 #define USB_PULLUP_PIN           0
-#define USB_PULLUP_PIN_MASK      GPIO_PIN_MASK(USB_PULLUP_PIN)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART configuration
@@ -140,38 +139,28 @@
  * @{
  */
 /** BUTTON_SELECT -> PA3 */
-#define BUTTON_SELECT_PORT_NO    GPIO_A_NUM
+#define BUTTON_SELECT_PORT       GPIO_A_NUM
 #define BUTTON_SELECT_PIN        3
-#define BUTTON_SELECT_PORT       GPIO_A_BASE
-#define BUTTON_SELECT_PIN_MASK   GPIO_PIN_MASK(BUTTON_SELECT_PIN)
 #define BUTTON_SELECT_VECTOR     NVIC_INT_GPIO_PORT_A
 
 /** BUTTON_LEFT -> PC4 */
-#define BUTTON_LEFT_PORT_NO      GPIO_C_NUM
+#define BUTTON_LEFT_PORT         GPIO_C_NUM
 #define BUTTON_LEFT_PIN          4
-#define BUTTON_LEFT_PORT         GPIO_C_BASE
-#define BUTTON_LEFT_PIN_MASK     GPIO_PIN_MASK(BUTTON_LEFT_PIN)
 #define BUTTON_LEFT_VECTOR       NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_RIGHT -> PC5 */
-#define BUTTON_RIGHT_PORT_NO     GPIO_C_NUM
+#define BUTTON_RIGHT_PORT        GPIO_C_NUM
 #define BUTTON_RIGHT_PIN         5
-#define BUTTON_RIGHT_PORT        GPIO_C_BASE
-#define BUTTON_RIGHT_PIN_MASK    GPIO_PIN_MASK(BUTTON_RIGHT_PIN)
 #define BUTTON_RIGHT_VECTOR      NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_UP -> PC6 */
-#define BUTTON_UP_PORT_NO        GPIO_C_NUM
+#define BUTTON_UP_PORT           GPIO_C_NUM
 #define BUTTON_UP_PIN            6
-#define BUTTON_UP_PORT           GPIO_C_BASE
-#define BUTTON_UP_PIN_MASK       GPIO_PIN_MASK(BUTTON_UP_PIN)
 #define BUTTON_UP_VECTOR         NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_DOWN -> PC7 */
-#define BUTTON_DOWN_PORT_NO      GPIO_C_NUM
+#define BUTTON_DOWN_PORT        GPIO_C_NUM
 #define BUTTON_DOWN_PIN          7
-#define BUTTON_DOWN_PORT         GPIO_C_BASE
-#define BUTTON_DOWN_PIN_MASK     GPIO_PIN_MASK(BUTTON_DOWN_PIN)
 #define BUTTON_DOWN_VECTOR       NVIC_INT_GPIO_PORT_C
 
 /* Notify various examples that we have Buttons */
@@ -184,14 +173,14 @@
  * These values configure which CC2538 pins to use for the SPI lines.
  * @{
  */
-#define CC2538_SPI_CLK_PORT_NUM  GPIO_A_NUM
-#define CC2538_SPI_CLK_PIN_NUM   2
-#define CC2538_SPI_MOSI_PORT_NUM GPIO_A_NUM
-#define CC2538_SPI_MOSI_PIN_NUM  4
-#define CC2538_SPI_MISO_PORT_NUM GPIO_A_NUM
-#define CC2538_SPI_MISO_PIN_NUM  5
-#define CC2538_SPI_SEL_PORT_NUM  GPIO_B_NUM
-#define CC2538_SPI_SEL_PIN_NUM   5
+#define SPI_CLK_PORT             GPIO_A_NUM
+#define SPI_CLK_PIN              2
+#define SPI_MOSI_PORT            GPIO_A_NUM
+#define SPI_MOSI_PIN             4
+#define SPI_MISO_PORT            GPIO_A_NUM
+#define SPI_MISO_PIN             5
+#define SPI_SEL_PORT             GPIO_B_NUM
+#define SPI_SEL_PIN              5
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
