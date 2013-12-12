@@ -42,7 +42,7 @@
 
 #include "dev/watchdog.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
 #include "cc2420.h"
 #include "dev/leds.h"

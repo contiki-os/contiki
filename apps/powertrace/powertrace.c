@@ -41,7 +41,7 @@
 #include "contiki-lib.h"
 #include "sys/compower.h"
 #include "powertrace.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include <stdio.h>
 #include <string.h>

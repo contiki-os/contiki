@@ -46,7 +46,7 @@
 
 #include "contiki-net.h"
 #include "net/packetbuf.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 struct packetbuf_attr packetbuf_attrs[PACKETBUF_NUM_ATTRS];
 struct packetbuf_addr packetbuf_addrs[PACKETBUF_NUM_ADDRS];

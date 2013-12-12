@@ -47,7 +47,7 @@
 #include "contiki-net.h"
 #include "net/mac/mac-sequence.h"
 #include "net/packetbuf.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 struct seqno {
   rimeaddr_t sender;

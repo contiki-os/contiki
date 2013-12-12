@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "net/netstack.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/collect.h"
 #include "net/rime/collect-neighbor.h"
 #include "net/rime/timesynch.h"

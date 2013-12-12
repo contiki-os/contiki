@@ -43,7 +43,7 @@
  */
 
 #include "net/rime/stunicast.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include <string.h>
 
 #define DEBUG 0

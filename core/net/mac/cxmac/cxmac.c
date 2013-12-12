@@ -45,7 +45,7 @@
 #include "net/netstack.h"
 #include "lib/random.h"
 #include "net/mac/cxmac/cxmac.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/timesynch.h"
 #include "sys/compower.h"
 #include "sys/pt.h"

@@ -81,7 +81,7 @@
 
 #include "contiki.h"
 #include "contiki-conf.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "dev/leds.h"
 #include "dev/watchdog.h"
 #include "lib/random.h"

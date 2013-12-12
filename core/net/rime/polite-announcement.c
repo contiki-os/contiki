@@ -45,7 +45,7 @@
 #include "contiki.h"
 
 #include "lib/list.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/announcement.h"
 #include "net/rime/ipolite.h"
 

@@ -63,7 +63,7 @@
 #include "net/ip/tcpip.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-ds6.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/ipv6/sicslowpan.h"
 #include "net/netstack.h"
 

@@ -47,7 +47,7 @@
 #include "net/mac/mac-sequence.h"
 #include "net/mac/contikimac/contikimac.h"
 #include "net/netstack.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "sys/compower.h"
 #include "sys/pt.h"
 #include "sys/rtimer.h"

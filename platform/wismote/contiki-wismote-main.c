@@ -48,7 +48,7 @@
 #include "net/ipv6/uip-ds6.h"
 #endif /* WITH_UIP6 */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "sys/node-id.h"
 #include "sys/autostart.h"

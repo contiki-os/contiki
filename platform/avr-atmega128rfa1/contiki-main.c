@@ -88,7 +88,7 @@
 #include "net/rime/rime-udp.h"
 #endif
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 /* Track interrupt flow through mac, rdc and radio driver */
 //#define DEBUGFLOWSIZE 32

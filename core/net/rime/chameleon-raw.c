@@ -40,7 +40,7 @@
 #include <string.h>
 
 #include "net/rime/chameleon.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 /* This option enables an optimization where the link addresses are
    left to the MAC RDC and not encoded in the Chameleon header.

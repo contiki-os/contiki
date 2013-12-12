@@ -44,7 +44,7 @@
  */
 
 #include "net/rime/runicast.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include <string.h>
 
 
