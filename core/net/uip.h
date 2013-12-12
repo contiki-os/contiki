@@ -63,9 +63,8 @@
 
 #define UIP_UDPH_LEN    8    /* Size of UDP header */
 #define UIP_TCPH_LEN   20    /* Size of TCP header */
-#ifdef UIP_IPH_LEN
 #define UIP_ICMPH_LEN   4    /* Size of ICMP header */
-#endif
+
 #define UIP_IPUDPH_LEN (UIP_UDPH_LEN + UIP_IPH_LEN)    /* Size of IP +
                         * UDP
 							   * header */
