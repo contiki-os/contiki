@@ -106,7 +106,7 @@ unsigned char debugflowsize,debugflow[DEBUGFLOWSIZE];
 #include "net/rime/rime-udp.h"
 #endif
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "params.h"
 

@@ -42,7 +42,7 @@
 #include "serial-shell.h"
 #include "collect-view.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 /*---------------------------------------------------------------------------*/
 PROCESS(sky_shell_process, "Sky Contiki shell");

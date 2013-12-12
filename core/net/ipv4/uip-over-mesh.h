@@ -42,7 +42,7 @@
 
 #include "net/ip/uip.h"
 #include "net/ipv4/uip-fw.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 void uip_over_mesh_init(uint16_t channels);
 uint8_t uip_over_mesh_send(void);

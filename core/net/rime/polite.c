@@ -42,7 +42,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/polite.h"
 #include "lib/random.h"
 

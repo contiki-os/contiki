@@ -49,7 +49,7 @@
 #include "lib/random.h"
 #include "lib/simEnvChange.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
 
 #include "dev/serial-line.h"

@@ -150,7 +150,7 @@
 
 #include "net/ip/uip.h"
 #include "net/ipv4/uip_arp.h" /* For ethernet header structure */
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/ipv6/sicslowpan.h"
 #include "sicslow_ethernet.h"
 #include "dev/stm32w-radio.h"

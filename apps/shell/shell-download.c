@@ -41,7 +41,7 @@
 #include "contiki.h"
 #include "shell.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "cfs/cfs.h"
 
 #include "dev/leds.h"

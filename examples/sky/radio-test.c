@@ -44,7 +44,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
 #include "cc2420.h"

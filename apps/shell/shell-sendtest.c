@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "shell-ps.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include <stdio.h>
 #include <string.h>

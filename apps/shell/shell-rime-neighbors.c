@@ -39,7 +39,7 @@
 
 #include <string.h>
 #include "shell.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 PROCESS(shell_neighbors_process, "neighbors");
 SHELL_COMMAND(neighbors_command,

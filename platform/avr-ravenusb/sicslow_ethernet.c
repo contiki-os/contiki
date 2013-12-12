@@ -226,7 +226,7 @@
 #include "uip.h"
 #include "uip_arp.h" //For ethernet header structure
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "sicslowpan.h"
 #include "sicslow_ethernet.h"
 #if !RF230BB

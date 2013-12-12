@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "shell-netperf.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "contiki-conf.h"
 
 #include <stdio.h>

@@ -45,7 +45,7 @@
 
 #include "contiki.h"
 #include "contiki-lib.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "dev/leds.h"
 #include "dev/rs232.h"
 #include "dev/watchdog.h"

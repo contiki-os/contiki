@@ -55,7 +55,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "cc2431_loc_eng.h"
 #include "cc2430_sfr.h"
 

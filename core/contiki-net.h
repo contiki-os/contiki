@@ -54,7 +54,7 @@
 
 #include "net/ip/psock.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "net/netstack.h"
 

@@ -46,7 +46,7 @@
 #include "lib/sensors.h"
 #include "net/mac/frame802154.h"
 #include "net/netstack.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "sys/autostart.h"
 
 #include "sys/node-id.h"
