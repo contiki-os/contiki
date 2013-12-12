@@ -1,0 +1,1 @@
+core-ctk_src = ctk.c ctk-conio.c
