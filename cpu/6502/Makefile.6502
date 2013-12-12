@@ -69,4 +69,4 @@ LDFLAGS = $(STARTADDR_FLAG) -t $(TARGET) -m contiki-$(TARGET).map -D __STACKSIZE
 AROPTS  = a
 
 ## Default modules
-MODULES += core/net/ipv4 core/ctk
+MODULES += core/net/ipv4 core/ctk core/net core/net/ip
