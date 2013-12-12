@@ -70,7 +70,6 @@
 #include "net/netstack.h"
 #include "net/rimeaddr.h"
 #include "net/rime/rime.h"
-#include "net/rime/rime-udp.h"
 #include "net/ip/uip.h"
 
 #if WITH_UIP6
