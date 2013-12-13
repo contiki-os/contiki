@@ -86,7 +86,7 @@ SECTIONS
     } > SRAM
 
 #if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
-    .nrdata :
+    .nrdata (NOLOAD) :
     {
         _nrdata = .;
         *(.nrdata*)
