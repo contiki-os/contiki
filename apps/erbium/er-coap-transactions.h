@@ -31,62 +31,50 @@
 
 /**
  * \file
- *      Erbium (Er) example project configuration.
+ *      CoAP module for reliable transport
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+#ifndef COAP_TRANSACTIONS_H_
+#define COAP_TRANSACTIONS_H_
 
-/* Custom channel and PAN ID configuration for your project. */
+#include "er-coap.h"
+
 /*
-#undef RF_CHANNEL
-#define RF_CHANNEL                     26
+ * Modulo mask (thus +1) for a random number to get the tick number for the random
+ * retransmission time between COAP_RESPONSE_TIMEOUT and COAP_RESPONSE_TIMEOUT*COAP_RESPONSE_RANDOM_FACTOR.
+ */
+#define COAP_RESPONSE_TIMEOUT_TICKS         (CLOCK_SECOND * COAP_RESPONSE_TIMEOUT)
+#define COAP_RESPONSE_TIMEOUT_BACKOFF_MASK  (long)((CLOCK_SECOND * COAP_RESPONSE_TIMEOUT * ((float)COAP_RESPONSE_RANDOM_FACTOR - 1.0)) + 0.5) + 1
 
-#undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID          0xABCD
-*/
+/* container for transactions with message buffer and retransmission info */
+typedef struct coap_transaction {
+  struct coap_transaction *next;        /* for LIST */
 
-/* IP buffer size must match all other hops, in particular the border router. */
-/*
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE           256
-*/
+  uint16_t mid;
+  struct etimer retrans_timer;
+  uint8_t retrans_counter;
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC              nullrdc_driver
+  uip_ipaddr_t addr;
+  uint16_t port;
 
-/* Disabling TCP on CoAP nodes. */
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP                   0
+  restful_response_handler callback;
+  void *callback_data;
 
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE            64
+  uint16_t packet_len;
+  uint8_t packet[COAP_MAX_PACKET_SIZE + 1];     /* +1 for the terminating '\0' which will not be sent
+                                                 * Use snprintf(buf, len+1, "", ...) to completely fill payload */
+} coap_transaction_t;
 
-/* Estimate your header size, especially when using Proxy-Uri. */
-/*
-#undef COAP_MAX_HEADER_SIZE
-#define COAP_MAX_HEADER_SIZE           70
-*/
+void coap_register_as_transaction_handler();
 
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS     4
+coap_transaction_t *coap_new_transaction(uint16_t mid, uip_ipaddr_t * addr,
+                                         uint16_t port);
+void coap_send_transaction(coap_transaction_t * t);
+void coap_clear_transaction(coap_transaction_t * t);
+coap_transaction_t *coap_get_transaction_by_mid(uint16_t mid);
 
-/* Must be <= open transactions, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
-/*
-#undef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS             2
-*/
+void coap_check_transactions();
 
-/* Filtering .well-known/core per query can be disabled to save space. */
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING     0
-#undef COAP_PROXY_OPTION_PROCESSING
-#define COAP_PROXY_OPTION_PROCESSING   0
-
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+#endif /* COAP_TRANSACTIONS_H_ */
