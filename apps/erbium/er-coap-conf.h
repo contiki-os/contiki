@@ -31,62 +31,44 @@
 
 /**
  * \file
- *      Erbium (Er) example project configuration.
+ *      Collection of default configuration values.
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+#ifndef ER_COAP_CONF_H_
+#define ER_COAP_CONF_H_
 
-/* Custom channel and PAN ID configuration for your project. */
-/*
-#undef RF_CHANNEL
-#define RF_CHANNEL                     26
-
-#undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID          0xABCD
-*/
-
-/* IP buffer size must match all other hops, in particular the border router. */
-/*
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE           256
-*/
-
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC              nullrdc_driver
-
-/* Disabling TCP on CoAP nodes. */
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP                   0
-
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE            64
-
-/* Estimate your header size, especially when using Proxy-Uri. */
-/*
-#undef COAP_MAX_HEADER_SIZE
-#define COAP_MAX_HEADER_SIZE           70
-*/
-
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS     4
-
-/* Must be <= open transactions, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
-/*
-#undef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS             2
-*/
-
-/* Filtering .well-known/core per query can be disabled to save space. */
-#undef COAP_LINK_FORMAT_FILTERING
+/* Features that can be disabled to achieve smaller memory footprint */
 #define COAP_LINK_FORMAT_FILTERING     0
-#undef COAP_PROXY_OPTION_PROCESSING
 #define COAP_PROXY_OPTION_PROCESSING   0
 
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+/* Listening port for the CoAP REST Engine */
+#ifndef COAP_SERVER_PORT
+#define COAP_SERVER_PORT               COAP_DEFAULT_PORT
+#endif
+
+/* The number of concurrent messages that can be stored for retransmission in the transaction layer. */
+#ifndef COAP_MAX_OPEN_TRANSACTIONS
+#define COAP_MAX_OPEN_TRANSACTIONS     4
+#endif /* COAP_MAX_OPEN_TRANSACTIONS */
+
+/* Maximum number of failed request attempts before action */
+#ifndef COAP_MAX_ATTEMPTS
+#define COAP_MAX_ATTEMPTS              4
+#endif /* COAP_MAX_ATTEMPTS */
+
+/* Conservative size limit, as not all options have to be set at the same time. Check when Proxy-Uri option is used */
+#ifndef COAP_MAX_HEADER_SIZE    /*     Hdr                  CoF  If-Match         Obs Blo strings   */
+#define COAP_MAX_HEADER_SIZE           (4 + COAP_TOKEN_LEN + 3 + 1+COAP_ETAG_LEN + 4 + 4 + 30)  /* 65 */
+#endif /* COAP_MAX_HEADER_SIZE */
+
+/* Number of observer slots (each takes abot xxx bytes) */
+#ifndef COAP_MAX_OBSERVERS
+#define COAP_MAX_OBSERVERS    COAP_MAX_OPEN_TRANSACTIONS-1
+#endif /* COAP_MAX_OBSERVERS */
+
+/* Interval in seconds in which NON notifies are changed to CON notifies to check client. */
+#define COAP_OBSERVE_REFRESH_INTERVAL  60
+
+#endif /* ER_COAP_CONF_H_ */

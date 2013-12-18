@@ -31,62 +31,60 @@
 
 /**
  * \file
- *      Erbium (Er) example project configuration.
+ *      CoAP module for observing resources (draft-ietf-core-observe-11).
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+#ifndef COAP_OBSERVE_H_
+#define COAP_OBSERVE_H_
 
-/* Custom channel and PAN ID configuration for your project. */
-/*
-#undef RF_CHANNEL
-#define RF_CHANNEL                     26
+#include "er-coap.h"
+#include "er-coap-transactions.h"
+#include "stimer.h"
 
-#undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID          0xABCD
-*/
+typedef struct coap_observable {
+  uint32_t observe_clock;
+  struct stimer orphan_timer;
+  list_t observers;
+  coap_packet_t notification;
+  uint8_t buffer[COAP_MAX_PACKET_SIZE + 1];
+} coap_observable_t;
 
-/* IP buffer size must match all other hops, in particular the border router. */
-/*
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE           256
-*/
+typedef struct coap_observer {
+  struct coap_observer *next;   /* for LIST */
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC              nullrdc_driver
+  const char *url;
+  uip_ipaddr_t addr;
+  uint16_t port;
+  uint8_t token_len;
+  uint8_t token[COAP_TOKEN_LEN];
+  uint16_t last_mid;
 
-/* Disabling TCP on CoAP nodes. */
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP                   0
+  int32_t obs_counter;
 
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE            64
+  struct etimer retrans_timer;
+  uint8_t retrans_counter;
+} coap_observer_t;
 
-/* Estimate your header size, especially when using Proxy-Uri. */
-/*
-#undef COAP_MAX_HEADER_SIZE
-#define COAP_MAX_HEADER_SIZE           70
-*/
+list_t coap_get_observers(void);
 
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS     4
+coap_observer_t *coap_add_observer(uip_ipaddr_t * addr, uint16_t port,
+                                   const uint8_t * token, size_t token_len,
+                                   const char *url);
 
-/* Must be <= open transactions, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
-/*
-#undef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS             2
-*/
+void coap_remove_observer(coap_observer_t * o);
+int coap_remove_observer_by_client(uip_ipaddr_t * addr, uint16_t port);
+int coap_remove_observer_by_token(uip_ipaddr_t * addr, uint16_t port,
+                                  uint8_t * token, size_t token_len);
+int coap_remove_observer_by_uri(uip_ipaddr_t * addr, uint16_t port,
+                                const char *uri);
+int coap_remove_observer_by_mid(uip_ipaddr_t * addr, uint16_t port,
+                                uint16_t mid);
 
-/* Filtering .well-known/core per query can be disabled to save space. */
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING     0
-#undef COAP_PROXY_OPTION_PROCESSING
-#define COAP_PROXY_OPTION_PROCESSING   0
+void coap_notify_observers(resource_t * resource);
 
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+void coap_observe_handler(resource_t * resource, void *request,
+                          void *response);
+
+#endif /* COAP_OBSERVE_H_ */
