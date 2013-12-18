@@ -22,7 +22,7 @@ PROJECT_SOURCEFILES += $(REST_RESOURCES_FILES)
 SMALL=1
 
 # REST Engine shall use Erbium CoAP implementation
-APPS += erbium
+APPS += er-coap
 APPS += rest-engine
 
 # optional rules to get assembly
