@@ -82,6 +82,12 @@
 #define LOADNG_RSVD2              0 
 #define LOADNG_DEFAULT_ROUTE_LIFETIME  65534
 
+#ifdef LOADNG_CONF_RANDOM_WAIT
+#define LOADNG_RANDOM_WAIT LOADNG_CONF_RANDOM_WAIT
+#else
+#define LOADNG_RANDOM_WAIT 1
+#endif
+
 /* Generic LOADng message */
 struct loadng_msg {
 	uint8_t type;

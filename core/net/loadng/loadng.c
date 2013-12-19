@@ -600,6 +600,11 @@ handle_incoming_rreq(void)
       rm->route_cost++;
       udpconn->ttl = UIP_IP_BUF->ttl - 1;
       uip_create_linklocal_lln_routers_mcast(&udpconn->ripaddr);
+#if LOADNG_RANDOM_WAIT == 1
+      PRINTF("waiting rand time\n");
+      clock_wait(random_rand()%50 * CLOCK_SECOND / 1000);
+#endif
+
       uip_udp_packet_send(udpconn, rm, sizeof(struct loadng_msg_rreq));
       memset(&udpconn->ripaddr, 0, sizeof(udpconn->ripaddr));
     }
@@ -1084,7 +1089,8 @@ PROCESS_THREAD(loadng_process, ev, data)
     if(ev == PROCESS_EVENT_MSG) {
         if(command == COMMAND_SEND_RREQ) {
             PRINTF("LOADng: Send RREQ\n");
-            ctimer_set(&sendmsg_ctimer, random_rand() / 1000,
+            
+            ctimer_set(&sendmsg_ctimer, random_rand()%50 * CLOCK_SECOND / 1000,
                      (void (*)(void *))send_rreq, NULL);  
 	} else if (command == COMMAND_SEND_RERR) {
 	  send_rerr(&rerr_bad_addr, &rerr_src_addr, &rerr_next_addr);
