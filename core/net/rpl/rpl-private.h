@@ -270,6 +270,7 @@ extern rpl_instance_t *default_instance;
 void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint8_t lifetime);
+void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
 void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t);
 
 /* RPL logic functions. */
@@ -289,8 +290,8 @@ void rpl_free_instance(rpl_instance_t *);
 rpl_parent_t *rpl_add_parent(rpl_dag_t *, rpl_dio_t *dio, uip_ipaddr_t *);
 rpl_parent_t *rpl_find_parent(rpl_dag_t *, uip_ipaddr_t *);
 rpl_parent_t *rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr);
-void rpl_nullify_parent(rpl_dag_t *, rpl_parent_t *);
-void rpl_remove_parent(rpl_dag_t *, rpl_parent_t *);
+void rpl_nullify_parent(rpl_parent_t *);
+void rpl_remove_parent(rpl_parent_t *);
 void rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent);
 rpl_parent_t *rpl_select_parent(rpl_dag_t *dag);
 rpl_dag_t *rpl_select_dag(rpl_instance_t *instance,rpl_parent_t *parent);
@@ -303,11 +304,17 @@ uip_ds6_route_t *rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix,
                                int prefix_len, uip_ipaddr_t *next_hop);
 void rpl_purge_routes(void);
 
+/* Lock a parent in the neighbor cache. */
+void rpl_lock_parent(rpl_parent_t *p);
+
 /* Objective function. */
 rpl_of_t *rpl_find_of(rpl_ocp_t);
 
 /* Timer functions. */
 void rpl_schedule_dao(rpl_instance_t *);
+void rpl_schedule_dao_immediately(rpl_instance_t *);
+void rpl_cancel_dao(rpl_instance_t *instance);
+
 void rpl_reset_dio_timer(rpl_instance_t *);
 void rpl_reset_periodic_timer(void);
 

@@ -14,6 +14,10 @@ ifeq ($(TARGET),)
   endif
 endif
 
+ifeq ($(UIP_CONF_IPV6),1)
+  CFLAGS += -DUIP_CONF_IPV6=1
+endif
+
 ifeq ($(DEFINES),)
   -include Makefile.$(TARGET).defines
   ifneq ($(DEFINES),)
@@ -56,18 +60,17 @@ CFLAGS += -DCONTIKI=1 -DCONTIKI_TARGET_$(TARGET_UPPERCASE)=1
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac
-SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c \
-          timetable.c timetable-aggregate.c compower.c serial-line.c
+SYSTEM  = process.c procinit.c autostart.c elfloader.c \
+          compower.c serial-line.c
 THREADS = mt.c
 LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c trickle-timer.c \
-          print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c settings.c
+          print-stats.c ifft.c crc16.c random.c ringbuf.c settings.c
 DEV     = nullradio.c
 
 include $(CONTIKI)/core/net/Makefile.uip
 include $(CONTIKI)/core/net/rpl/Makefile.rpl
 
 CTK     = ctk.c
-CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c ctk-vncfont.c
 
 ifndef CONTIKI_NO_NET
   CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(THREADS) $(DHCP) $(DEV)
@@ -94,9 +97,9 @@ $(OBJECTDIR):
 
 ifdef APPS
   APPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(APPS)}}} \
-	     ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
-	     ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
-	     $(APPS)}
+             ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
+             ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)} \
+             $(APPS)}
   APPINCLUDES = ${foreach APP, $(APPS), ${wildcard ${foreach DIR, $(APPDS), $(DIR)/Makefile.$(APP)}}}
   -include $(APPINCLUDES)
   APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
@@ -120,9 +123,9 @@ endif
 
 ifdef PLATFORMAPPS
   PLATFORMAPPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(PLATFORMAPPS)}}} \
-	     ${wildcard ${addprefix $(CONTIKI)/apps/, $(PLATFORMAPPS)} \
-	     ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(PLATFORMAPPS)} \
-	     $(PLATFORMAPPS)}
+             ${wildcard ${addprefix $(CONTIKI)/apps/, $(PLATFORMAPPS)} \
+             ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(PLATFORMAPPS)} \
+             $(PLATFORMAPPS)}
   PLATFORMAPPINCLUDES = ${foreach APP, $(PLATFORMAPPS), \
       ${wildcard ${foreach DIR, $(PLATFORMAPPDS), $(DIR)/Makefile.$(APP)}}}
   -include $(PLATFORMAPPINCLUDES)
@@ -131,6 +134,21 @@ ifdef PLATFORMAPPS
   APPDS += $(PLATFORMAPPDS)
 endif
 
+### Verbosity control. Use  make V=1  to get verbose builds.
+
+ifeq ($(V),1)
+  TRACE_CC =
+  TRACE_LD =
+  TRACE_AR =
+  TRACE_AS =
+  Q=
+else
+  TRACE_CC = @echo "  CC       " $<
+  TRACE_LD = @echo "  LD       " $@
+  TRACE_AR = @echo "  AR       " $@
+  TRACE_AS = @echo "  AS       " $<
+  Q=@
+endif
 
 ### Forward comma-separated list of arbitrary defines to the compiler
 
@@ -177,38 +195,47 @@ rm -f $(@:.o=.$$$$)
 endef
 
 clean:
-	rm -f *~ *core core *.srec \
+	-rm -f *~ *core core *.srec \
 	*.lst *.map \
 	*.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
 	*.ce *.co
 	rm -rf $(CLEAN)
 	-rm -rf $(OBJECTDIR)
 
+distclean: clean
+	-rm -rf $(CONTIKI_PROJECT).$(TARGET)
+
 ifndef CUSTOM_RULE_C_TO_CE
 %.ce: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 	$(STRIP) --strip-unneeded -g -x $@
 endif
 
 ifndef CUSTOM_RULE_C_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
-	$(CC) $(CFLAGS) -MMD -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -MMD -c $< -o $@
 	@$(FINALIZE_DEPENDENCY)
 endif
 
 ifndef CUSTOM_RULE_S_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
-	$(AS) $(ASFLAGS) -o $@ $<
+	$(TRACE_AS)
+	$(Q)$(AS) $(ASFLAGS) -o $@ $<
 endif
 
 ifndef CUSTOM_RULE_C_TO_O
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -c $< -o $@
 endif
+
 
 ifndef CUSTOM_RULE_C_TO_CO
 %.co: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 endif
 
 ifndef AROPTS
@@ -217,7 +244,8 @@ endif
 
 ifndef CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
 contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES)
-	$(AR) $(AROPTS) $@ $^
+	$(TRACE_AR)
+	$(Q)$(AR) $(AROPTS) $@ $^
 endif
 
 ifndef LD
@@ -226,7 +254,9 @@ endif
 
 ifndef CUSTOM_RULE_LINK
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
-	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 endif
 
 %.ramprof: %.$(TARGET)

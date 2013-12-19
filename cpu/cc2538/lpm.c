@@ -41,10 +41,11 @@
 #include "dev/sys-ctrl.h"
 #include "dev/scb.h"
 #include "dev/rfcore-xreg.h"
-#include "dev/usb-regs.h"
 #include "rtimer-arch.h"
+#include "lpm.h"
 #include "reg.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 /*---------------------------------------------------------------------------*/
@@ -97,6 +98,30 @@ void clock_adjust(clock_time_t ticks);
 /* Stores the currently specified MAX allowed PM */
 static uint8_t max_pm;
 /*---------------------------------------------------------------------------*/
+/* Buffer to store peripheral PM1+ permission FPs */
+#ifdef LPM_CONF_PERIPH_PERMIT_PM1_FUNCS_MAX
+#define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX LPM_CONF_PERIPH_PERMIT_PM1_FUNCS_MAX
+#else
+#define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX 2
+#endif
+
+static lpm_periph_permit_pm1_func_t
+periph_permit_pm1_funcs[LPM_PERIPH_PERMIT_PM1_FUNCS_MAX];
+/*---------------------------------------------------------------------------*/
+static bool
+periph_permit_pm1(void)
+{
+  int i;
+
+  for(i = 0; i < LPM_PERIPH_PERMIT_PM1_FUNCS_MAX &&
+      periph_permit_pm1_funcs[i] != NULL; i++) {
+    if(!periph_permit_pm1_funcs[i]()) {
+      return false;
+    }
+  }
+  return true;
+}
+/*---------------------------------------------------------------------------*/
 /*
  * Routine to put is in PM0. We also need to do some housekeeping if the stats
  * or the energest module is enabled
@@ -133,16 +158,28 @@ enter_pm0(void)
 static void
 select_32_mhz_xosc(void)
 {
+  /*First, make sure there is no ongoing clock source change */
+  while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SOURCE_CHANGE) != 0);
+
   /* Turn on the 32 MHz XOSC and source the system clock on it. */
   REG(SYS_CTRL_CLOCK_CTRL) &= ~SYS_CTRL_CLOCK_CTRL_OSC;
 
   /* Wait for the switch to take place */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_OSC) != 0);
+
+  /* Power down the unused oscillator. */
+  REG(SYS_CTRL_CLOCK_CTRL) |= SYS_CTRL_CLOCK_CTRL_OSC_PD;
 }
 /*---------------------------------------------------------------------------*/
 static void
 select_16_mhz_rcosc(void)
 {
+  /*
+   * Power up both oscillators in order to speed up the transition to the 32-MHz
+   * XOSC after wake up.
+   */
+  REG(SYS_CTRL_CLOCK_CTRL) &= ~SYS_CTRL_CLOCK_CTRL_OSC_PD;
+
   /*First, make sure there is no ongoing clock source change */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SOURCE_CHANGE) != 0);
 
@@ -161,6 +198,16 @@ lpm_exit()
      * We don't need to do anything clever */
     return;
   }
+
+  /*
+   * When returning from PM1/2, the sleep timer value (used by RTIMER_NOW()) is
+   * not up-to-date until a positive edge on the 32-kHz clock has been detected
+   * after the system clock restarted. To ensure an updated value is read, wait
+   * for a positive transition on the 32-kHz clock by polling the
+   * SYS_CTRL_CLOCK_STA.SYNC_32K bit, before reading the sleep timer value.
+   */
+  while(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K);
+  while(!(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K));
 
   LPM_STATS_ADD(REG(SYS_CTRL_PMCTL) & SYS_CTRL_PMCTL_PM3,
                 RTIMER_NOW() - sleep_enter_time);
@@ -191,15 +238,12 @@ lpm_enter()
   rtimer_clock_t duration;
 
   /*
-   * If either the RF or the USB is on, dropping to PM1/2 would equal pulling
-   * the rug (32MHz XOSC) from under their feet. Thus, we only drop to PM0.
-   * PM0 is also used if max_pm==0
-   *
-   * Note: USB Suspend/Resume/Remote Wake-Up are not supported. Once the PLL is
-   * on, it stays on.
+   * If either the RF or the registered peripherals are on, dropping to PM1/2
+   * would equal pulling the rug (32MHz XOSC) from under their feet. Thus, we
+   * only drop to PM0. PM0 is also used if max_pm==0.
    */
   if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) != 0
-     || REG(USB_CTRL) != 0 || max_pm == 0) {
+     || !periph_permit_pm1() || max_pm == 0) {
     enter_pm0();
 
     /* We reach here when the interrupt context that woke us up has returned */
@@ -207,7 +251,7 @@ lpm_enter()
   }
 
   /*
-   * USB PLL was off. Radio was off: Some Duty Cycling in place.
+   * Registered peripherals were off. Radio was off: Some Duty Cycling in place.
    * rtimers run on the Sleep Timer. Thus, if we have a scheduled rtimer
    * task, a Sleep Timer interrupt will fire and will wake us up.
    * Choose the most suitable PM based on anticipated deep sleep duration
@@ -224,7 +268,8 @@ lpm_enter()
   }
 
   /* If we reach here, we -may- (but may as well not) be dropping to PM1+. We
-   * know the USB and RF are off so we can switch to the 16MHz RCOSC. */
+   * know the registered peripherals and RF are off so we can switch to the
+   * 16MHz RCOSC. */
   select_16_mhz_rcosc();
 
   /*
@@ -278,6 +323,11 @@ lpm_enter()
     select_32_mhz_xosc();
 
     REG(SYS_CTRL_PMCTL) = SYS_CTRL_PMCTL_PM0;
+
+    /* Remember IRQ energest for next pass */
+    ENERGEST_IRQ_SAVE(irq_energest);
+    ENERGEST_ON(ENERGEST_TYPE_CPU);
+    ENERGEST_OFF(ENERGEST_TYPE_LPM);
   } else {
     /* All clear. Assert WFI and drop to PM1/2. This is now un-interruptible */
     assert_wfi();
@@ -296,6 +346,21 @@ void
 lpm_set_max_pm(uint8_t pm)
 {
   max_pm = pm > LPM_CONF_MAX_PM ? LPM_CONF_MAX_PM : pm;
+}
+/*---------------------------------------------------------------------------*/
+void
+lpm_register_peripheral(lpm_periph_permit_pm1_func_t permit_pm1_func)
+{
+  int i;
+
+  for(i = 0; i < LPM_PERIPH_PERMIT_PM1_FUNCS_MAX; i++) {
+    if(periph_permit_pm1_funcs[i] == permit_pm1_func) {
+      break;
+    } else if(periph_permit_pm1_funcs[i] == NULL) {
+      periph_permit_pm1_funcs[i] = permit_pm1_func;
+      break;
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
 void

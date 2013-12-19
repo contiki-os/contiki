@@ -62,8 +62,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __BROADCAST_H__
-#define __BROADCAST_H__
+#ifndef BROADCAST_H_
+#define BROADCAST_H_
 
 #include "net/rime/abc.h"
 #include "net/rime/rimeaddr.h"
@@ -134,6 +134,6 @@ void broadcast_close(struct broadcast_conn *c);
  */
 int broadcast_send(struct broadcast_conn *c);
 
-#endif /* __BROADCAST_H__ */
+#endif /* BROADCAST_H_ */
 /** @} */
 /** @} */

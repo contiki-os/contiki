@@ -112,6 +112,7 @@ typedef uint32_t rtimer_clock_t;
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
 #define SLIP_RADIO_CONF_NO_PUTCHAR  1
 
+#ifndef SLIP_ARCH_CONF_ENABLED
 /*
  * Determine whether we need SLIP
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
@@ -119,6 +120,7 @@ typedef uint32_t rtimer_clock_t;
  */
 #if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED      1
+#endif
 #endif
 
 /*
@@ -207,7 +209,7 @@ typedef uint32_t rtimer_clock_t;
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
-#define WITH_PHASE_OPTIMIZATION                 0
+#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #define WITH_FAST_SLEEP                         1
 
 #ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
@@ -256,7 +258,7 @@ typedef uint32_t rtimer_clock_t;
  * 1 => Use a hardcoded address, configured by IEEE_ADDR_CONF_ADDRESS
  */
 #ifndef IEEE_ADDR_CONF_HARDCODED
-#define IEEE_ADDR_CONF_HARDCODED             1
+#define IEEE_ADDR_CONF_HARDCODED             0
 #endif
 
 /**
@@ -274,7 +276,9 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 /* RF Config */
+#ifndef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID           0x5449 /**< Default PAN ID: TI */
+#endif
 
 #ifndef CC2538_RF_CONF_CHANNEL
 #define CC2538_RF_CONF_CHANNEL              25
@@ -316,7 +320,9 @@ typedef uint32_t rtimer_clock_t;
 #ifndef UIP_CONF_TCP
 #define UIP_CONF_TCP                         1
 #endif
+#ifndef UIP_CONF_TCP_MSS
 #define UIP_CONF_TCP_MSS                    64
+#endif
 #define UIP_CONF_UDP                         1
 #define UIP_CONF_UDP_CHECKSUMS               1
 #define UIP_CONF_ICMP6                       1
@@ -335,14 +341,14 @@ typedef uint32_t rtimer_clock_t;
 #define RPL_CONF_STATS                       0
 #define RPL_CONF_MAX_DAG_ENTRIES             1
 #ifndef RPL_CONF_OF
-#define RPL_CONF_OF rpl_of_etx
+#define RPL_CONF_OF rpl_mrhof
 #endif
 
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
 
-#ifndef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU                20
+#ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS                20
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES                 20
@@ -360,7 +366,9 @@ typedef uint32_t rtimer_clock_t;
 
 /* 6lowpan */
 #define SICSLOWPAN_CONF_COMPRESSION          SICSLOWPAN_COMPRESSION_HC06
+#ifndef SICSLOWPAN_CONF_COMPRESSION_THRESHOLD
 #define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 63
+#endif
 #ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                 1
 #endif
@@ -368,10 +376,12 @@ typedef uint32_t rtimer_clock_t;
 
 /* Define our IPv6 prefixes/contexts here */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
+#ifndef SICSLOWPAN_CONF_ADDR_CONTEXT_0
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
   addr_contexts[0].prefix[0] = 0xaa; \
   addr_contexts[0].prefix[1] = 0xaa; \
 }
+#endif
 
 #define MAC_CONF_CHANNEL_CHECK_RATE          8
 

@@ -1,8 +1,6 @@
 NET =						\
 dhcpc.c						\
-hc.c						\
-neighbor-attr.c					\
-neighbor-info.c					\
+nbr-table.c			\
 netstack.c					\
 packetbuf.c					\
 packetqueue.c					\
@@ -11,12 +9,12 @@ queuebuf.c					\
 resolv.c					\
 sicslowpan.c					\
 simple-udp.c					\
-tcpdump.c					\
 tcpip.c						\
 uaodv-rt.c					\
 uaodv.c						\
 uip-debug.c					\
 uip-ds6-route.c					\
+uip-ds6-nbr.c				\
 uip-ds6.c					\
 uip-fw-drv.c					\
 uip-fw.c					\

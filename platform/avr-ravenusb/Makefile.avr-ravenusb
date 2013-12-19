@@ -22,7 +22,7 @@ USB +=       scsi_decoder.c ctrl_access.c storage_task.c avr_flash.c
 
 #As of September 2010 the following are needed for rpl. They need explicit inclusion if CONTIKI_NO_NET=1
 #If CONTIKI_NO_NET=1 the tcpip_input routine in tcpip.c must be commented out; it expects a tcpip process and conflicts with the one in fakeuip.c
-#RPL      = rpl.c rpl-dag.c rpl-icmp6.c rpl-timers.c rpl-of-etx.c uip-ds6.c uip-icmp6.c uip-nd6.c uip6.c neighbor-info.c neighbor-attr.c tcpip.c uip-split.c psock.c
+#RPL      = rpl.c rpl-dag.c rpl-icmp6.c rpl-timers.c rpl-mrhof.c uip-ds6.c uip-icmp6.c uip-nd6.c uip6.c neighbor-info.c neighbor-attr.c tcpip.c uip-split.c psock.c
 
 CONTIKI_TARGET_SOURCEFILES +=   cfs-eeprom.c eeprom.c random.c \
                                 mmem.c contiki-raven-default-init-lowlevel.c \

@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __RUCB_H__
-#define __RUCB_H__
+#ifndef RUCB_H_
+#define RUCB_H_
 
 #include "net/rime/runicast.h"
 
@@ -76,4 +76,4 @@ void rucb_close(struct rucb_conn *c);
 int rucb_send(struct rucb_conn *c, const rimeaddr_t *receiver);
 
 
-#endif /* __RUCB_H__ */
+#endif /* RUCB_H_ */

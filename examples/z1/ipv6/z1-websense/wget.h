@@ -36,8 +36,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __WGET_H__
-#define __WGET_H__
+#ifndef WGET_H_
+#define WGET_H_
 
 #include "contiki.h"
 
@@ -59,4 +59,4 @@ enum {
   WGET_CLOSED
 };
 
-#endif /* __WGET_H__ */
+#endif /* WGET_H_ */

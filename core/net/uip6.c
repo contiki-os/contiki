@@ -1391,10 +1391,20 @@ uip_process(uint8_t flag)
 
   switch(UIP_ICMP_BUF->type) {
     case ICMP6_NS:
+#if UIP_ND6_SEND_NA
       uip_nd6_ns_input();
+#else /* UIP_ND6_SEND_NA */
+      UIP_STAT(++uip_stat.icmp.drop);
+      uip_len = 0;
+#endif /* UIP_ND6_SEND_NA */
       break;
     case ICMP6_NA:
+#if UIP_ND6_SEND_NA
       uip_nd6_na_input();
+#else /* UIP_ND6_SEND_NA */
+      UIP_STAT(++uip_stat.icmp.drop);
+      uip_len = 0;
+#endif /* UIP_ND6_SEND_NA */
       break;
     case ICMP6_RS:
 #if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
@@ -1450,7 +1460,6 @@ uip_process(uint8_t flag)
   remove_ext_hdr();
 
   PRINTF("Receiving UDP packet\n");
-  UIP_STAT(++uip_stat.udp.recv);
  
   /* UDP processing is really just a hack. We don't do anything to the
      UDP/IP headers, but let the UDP application do all the hard
@@ -1502,10 +1511,10 @@ uip_process(uint8_t flag)
     }
   }
   PRINTF("udp: no matching connection found\n");
+  UIP_STAT(++uip_stat.udp.drop);
 
 #if UIP_UDP_SEND_UNREACH_NOPORT
   uip_icmp6_error_output(ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_NOPORT, 0);
-  UIP_STAT(++uip_stat.ip.drop);
   goto send;
 #else
   goto drop;
@@ -1513,6 +1522,7 @@ uip_process(uint8_t flag)
 
  udp_found:
   PRINTF("In udp_found\n");
+  UIP_STAT(++uip_stat.udp.recv);
  
   uip_conn = NULL;
   uip_flags = UIP_NEWDATA;
@@ -1546,6 +1556,10 @@ uip_process(uint8_t flag)
   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
 
   uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPTCPH_LEN];
+
+#if UIP_CONF_IPV6_RPL
+  rpl_insert_header();
+#endif /* UIP_CONF_IPV6_RPL */
 
 #if UIP_UDP_CHECKSUMS
   /* Calculate UDP checksum. */
@@ -1818,8 +1832,12 @@ uip_process(uint8_t flag)
         UIP_TCP_BUF->seqno[2] != uip_connr->rcv_nxt[2] ||
         UIP_TCP_BUF->seqno[3] != uip_connr->rcv_nxt[3])) {
 
-      if(UIP_TCP_BUF->flags & TCP_SYN) {
-        goto tcp_send_synack;
+      if((UIP_TCP_BUF->flags & TCP_SYN)) {
+        if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) {
+          goto tcp_send_synack;
+        } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
+          goto tcp_send_syn;
+        }
       }
       goto tcp_send_ack;
     }
@@ -2301,12 +2319,23 @@ uip_send(const void *data, int len)
 {
   int copylen;
 #define MIN(a,b) ((a) < (b)? (a): (b))
-  copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -
-                (int)((char *)uip_sappdata - (char *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN]));
+
+  if(uip_sappdata != NULL) {
+    copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -
+                  (int)((char *)uip_sappdata -
+                        (char *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN]));
+  } else {
+    copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN);
+  }
   if(copylen > 0) {
     uip_slen = copylen;
     if(data != uip_sappdata) {
-      memcpy(uip_sappdata, (data), uip_slen);
+      if(uip_sappdata == NULL) {
+        memcpy((char *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN],
+               (data), uip_slen);
+      } else {
+        memcpy(uip_sappdata, (data), uip_slen);
+      }
     }
   }
 }

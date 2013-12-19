@@ -60,7 +60,6 @@ PROCESS_THREAD(example_shell_process, ev, data)
 
   shell_base64_init();
   shell_blink_init();
-  /*shell_checkpoint_init();*/
   /*shell_coffee_init();*/
   shell_download_init();
   /*shell_exec_init();*/

@@ -34,17 +34,22 @@
  * ld script, which is called cc2538.ld and will be in the project directory
  */
 #if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
-#define SRAM_START  0x20004000
-#define SRAM_LEN    0x00004000
+#define NRSRAM_START    0x20000000
+#define NRSRAM_LEN      0x00004000
+#define SRAM_START      0x20004000
+#define SRAM_LEN        0x00004000
 #else
-#define SRAM_START  0x20000000
-#define SRAM_LEN    0x00008000
+#define SRAM_START      0x20000000
+#define SRAM_LEN        0x00008000
 #endif
 
 MEMORY
 {
     FLASH (rx) : ORIGIN = 0x200000, LENGTH = 0x0007FFD4
-    FLASH_CCA (RX) : ORIGIN = 0x0027FFD4, LENGTH = 12
+    FLASH_CCA (RX) : ORIGIN = 0x0027FFD4, LENGTH = 44
+#if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
+    NRSRAM (RWX) : ORIGIN = NRSRAM_START, LENGTH = NRSRAM_LEN
+#endif
     SRAM (RWX) : ORIGIN = SRAM_START, LENGTH = SRAM_LEN
 }
 
@@ -79,6 +84,15 @@ SECTIONS
         *(COMMON)
         _ebss = .;
     } > SRAM
+
+#if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
+    .nrdata :
+    {
+        _nrdata = .;
+        *(.nrdata*)
+        _enrdata = .;
+    } > NRSRAM
+#endif
 
     .flashcca :
     {

@@ -1,3 +1,11 @@
+/**
+ * \defgroup mbxxx-platform The STM32W MBXXX platform.
+ *
+ * The STM32W MBXXX platform.
+ *
+ * @{
+ */
+
 /*
  * Copyright (c) 2010, STMicroelectronics.
  * All rights reserved.
@@ -33,21 +41,20 @@
 /*---------------------------------------------------------------------------*/
 /**
 * \file
-*     platform-conf.h for MBXXX.
+*          Platform-conf.h for MBXXX.
 * \author
-*     Salvatore Pitrulli <salvopitru@users.sourceforge.net>
-*     Chi-Anh La <la@imag.fr>
-*     Simon Duquennoy <simonduq@sics.se>
+*          Stefano Pascali <stefano.pascali@st.com>
+*          Marco Grella    <marco.grella@st.com>
 */
 /*---------------------------------------------------------------------------*/
 
-#ifndef __PLATFORM_CONF_H__
-#define __PLATFORM_CONF_H__
+#ifndef PLATFORM_CONF_H_
+#define PLATFORM_CONF_H_
 
 #include PLATFORM_HEADER
 
 #include <inttypes.h>
-#include <string.h>  // For memcpm().
+#include <string.h>             // For memcpm().
 
 /* Platform-dependent definitions */
 #define CC_CONF_REGISTER_ARGS          0
@@ -77,16 +84,21 @@ typedef unsigned long clock_time_t;
 #define CLOCK_CONF_SECOND 1000
 
 typedef unsigned long rtimer_clock_t;
+
 #define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
 
-/* LEDs ports MB8xxx */
-#define LEDS_CONF_GREEN         LED_D1
-#define LEDS_CONF_YELLOW        LED_D3
-#define LEDS_CONF_RED           LED_D3
+#define LEDS_CONF_RED_PIN     boardDescription->io->leds[1].gpioPin
+#define LEDS_CONF_GREEN_PIN   boardDescription->io->leds[0].gpioPin
+#define LEDS_CONF_PORT        boardDescription->io->leds[1].gpioPort
+
+#define LEDS_CONF_RED     (1<<LEDS_CONF_RED_PIN)
+#define LEDS_CONF_GREEN     (1<<LEDS_CONF_GREEN_PIN)
 
 #define UIP_ARCH_ADD32           1
 #define UIP_ARCH_CHKSUM          0
 
 #define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
+#define EEPROM_CONF_SIZE	8000
 
-#endif /* __PLATFORM_CONF_H__ */
+#endif /* PLATFORM_CONF_H_ */
+/** @} */

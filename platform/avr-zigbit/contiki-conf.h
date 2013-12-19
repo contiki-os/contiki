@@ -39,8 +39,8 @@
  *         Simon Barner <barner@in.tum.de>
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 /* Platform name, type, and MCU clock rate */
 #define PLATFORM_NAME  "Zigbit"
@@ -163,7 +163,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define UIP_CONF_IPV6_REASSEMBLY 0
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
 #define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_NEIGHBORS    4  
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_TCP_SPLIT       1
@@ -180,4 +179,4 @@ typedef unsigned short uip_stats_t;
 typedef unsigned long off_t;
 
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

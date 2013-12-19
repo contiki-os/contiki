@@ -60,6 +60,7 @@ disk: all
 	java -jar $(AC) -p    contiki.dsk contiki.cfg    bin 0 < $(CONTIKI)/tools/$(TARGET)/sample.cfg
 	java -jar $(AC) -p    contiki.dsk cs8900a.eth    rel 0 < cs8900a.eth
 	java -jar $(AC) -p    contiki.dsk lan91c96.eth   rel 0 < lan91c96.eth
+	java -jar $(AC) -p    contiki.dsk w5100.eth      rel 0 < w5100.eth
 ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
 	java -jar $(AC) -p    contiki.dsk a2e.stdmou.mou rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 endif

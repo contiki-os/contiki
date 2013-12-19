@@ -38,8 +38,8 @@
  *         Niclas Finne <nfi@sics.se>
  */
 
-#ifndef __RDC_H__
-#define __RDC_H__
+#ifndef RDC_H_
+#define RDC_H_
 
 #include "contiki-conf.h"
 #include "net/mac/mac.h"
@@ -79,4 +79,4 @@ struct rdc_driver {
   unsigned short (* channel_check_interval)(void);
 };
 
-#endif /* __RDC_H__ */
+#endif /* RDC_H_ */

@@ -20,7 +20,6 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 CLEAN += *.cc2530dk
 
 ifeq ($(UIP_CONF_IPV6),1)
-  CFLAGS += -DUIP_CONF_IPV6=1
   CONTIKI_TARGET_SOURCEFILES += viztool.c
 endif
 
@@ -42,12 +41,6 @@ FORCE:
 	@echo '. bytes (REL,CON,CODE)'
 	@egrep '(^BANK[1-9][^=])' $(<:.hex=.map) | uniq | sort
 	@egrep -A 5 'Other memory' $(<:.hex=.mem)
-
-%.upload: %.hex
-	$(PROG) -P $<
-
-sensinode.serialdump:
-	$(SERIALDUMP)
 
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/cc253x

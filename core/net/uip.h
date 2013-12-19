@@ -50,8 +50,45 @@
  *
  */
 
-#ifndef __UIP_H__
-#define __UIP_H__
+#ifndef UIP_H_
+#define UIP_H_
+
+/* Header sizes. */
+#if UIP_CONF_IPV6
+#define UIP_IPH_LEN    40
+#define UIP_FRAGH_LEN  8
+#else /* UIP_CONF_IPV6 */
+#define UIP_IPH_LEN    20    /* Size of IP header */
+#endif /* UIP_CONF_IPV6 */
+
+#define UIP_UDPH_LEN    8    /* Size of UDP header */
+#define UIP_TCPH_LEN   20    /* Size of TCP header */
+#define UIP_ICMPH_LEN   4    /* Size of ICMP header */
+
+#define UIP_IPUDPH_LEN (UIP_UDPH_LEN + UIP_IPH_LEN)    /* Size of IP +
+                        * UDP
+							   * header */
+#define UIP_IPTCPH_LEN (UIP_TCPH_LEN + UIP_IPH_LEN)    /* Size of IP +
+							   * TCP
+							   * header */
+#define UIP_TCPIP_HLEN UIP_IPTCPH_LEN
+#define UIP_IPICMPH_LEN (UIP_IPH_LEN + UIP_ICMPH_LEN) /* size of ICMP
+                                                         + IP header */
+#define UIP_LLIPH_LEN (UIP_LLH_LEN + UIP_IPH_LEN)    /* size of L2
+                                                        + IP header */
+#if UIP_CONF_IPV6
+/**
+ * The sums below are quite used in ND. When used for uip_buf, we
+ * include link layer length when used for uip_len, we do not, hence
+ * we need values with and without LLH_LEN we do not use capital
+ * letters as these values are variable
+ */
+#define uip_l2_l3_hdr_len (UIP_LLH_LEN + UIP_IPH_LEN + uip_ext_len)
+#define uip_l2_l3_icmp_hdr_len (UIP_LLH_LEN + UIP_IPH_LEN + uip_ext_len + UIP_ICMPH_LEN)
+#define uip_l3_hdr_len (UIP_IPH_LEN + uip_ext_len)
+#define uip_l3_icmp_hdr_len (UIP_IPH_LEN + uip_ext_len + UIP_ICMPH_LEN)
+#endif /*UIP_CONF_IPV6*/
+
 
 #include "net/uipopt.h"
 
@@ -1881,44 +1918,6 @@ struct uip_udp_hdr {
 #endif /* UIP_CONF_IPV6 */
 
 
-/* Header sizes. */
-#if UIP_CONF_IPV6
-#define UIP_IPH_LEN    40
-#define UIP_FRAGH_LEN  8
-#else /* UIP_CONF_IPV6 */
-#define UIP_IPH_LEN    20    /* Size of IP header */
-#endif /* UIP_CONF_IPV6 */
-
-#define UIP_UDPH_LEN    8    /* Size of UDP header */
-#define UIP_TCPH_LEN   20    /* Size of TCP header */
-#ifdef UIP_IPH_LEN
-#define UIP_ICMPH_LEN   4    /* Size of ICMP header */
-#endif
-#define UIP_IPUDPH_LEN (UIP_UDPH_LEN + UIP_IPH_LEN)    /* Size of IP +
-                        * UDP
-							   * header */
-#define UIP_IPTCPH_LEN (UIP_TCPH_LEN + UIP_IPH_LEN)    /* Size of IP +
-							   * TCP
-							   * header */
-#define UIP_TCPIP_HLEN UIP_IPTCPH_LEN
-#define UIP_IPICMPH_LEN (UIP_IPH_LEN + UIP_ICMPH_LEN) /* size of ICMP
-                                                         + IP header */
-#define UIP_LLIPH_LEN (UIP_LLH_LEN + UIP_IPH_LEN)    /* size of L2
-                                                        + IP header */
-#if UIP_CONF_IPV6
-/**
- * The sums below are quite used in ND. When used for uip_buf, we
- * include link layer length when used for uip_len, we do not, hence
- * we need values with and without LLH_LEN we do not use capital
- * letters as these values are variable
- */
-#define uip_l2_l3_hdr_len (UIP_LLH_LEN + UIP_IPH_LEN + uip_ext_len)
-#define uip_l2_l3_icmp_hdr_len (UIP_LLH_LEN + UIP_IPH_LEN + uip_ext_len + UIP_ICMPH_LEN)
-#define uip_l3_hdr_len (UIP_IPH_LEN + uip_ext_len)
-#define uip_l3_icmp_hdr_len (UIP_IPH_LEN + uip_ext_len + UIP_ICMPH_LEN)
-#endif /*UIP_CONF_IPV6*/
-
-
 #if UIP_FIXEDADDR
 CCIF extern const uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 #else /* UIP_FIXEDADDR */
@@ -2193,7 +2192,7 @@ uint16_t uip_udpchksum(void);
 uint16_t uip_icmp6chksum(void);
 
 
-#endif /* __UIP_H__ */
+#endif /* UIP_H_ */
 
 
 /** @} */

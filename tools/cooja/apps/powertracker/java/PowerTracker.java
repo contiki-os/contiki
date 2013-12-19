@@ -54,14 +54,14 @@ import javax.swing.table.DefaultTableCellRenderer;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
-import se.sics.cooja.Mote;
-import se.sics.cooja.PluginType;
-import se.sics.cooja.SimEventCentral.MoteCountListener;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.VisPlugin;
-import se.sics.cooja.interfaces.Radio;
+import org.contikios.cooja.ClassDescription;
+import org.contikios.cooja.Cooja;
+import org.contikios.cooja.Mote;
+import org.contikios.cooja.PluginType;
+import org.contikios.cooja.SimEventCentral.MoteCountListener;
+import org.contikios.cooja.Simulation;
+import org.contikios.cooja.VisPlugin;
+import org.contikios.cooja.interfaces.Radio;
 
 /**
  * Tracks radio events to sum up transmission, reception, and radio on times.
@@ -88,7 +88,7 @@ public class PowerTracker extends VisPlugin {
   private JTable table;
   private int tableMaxRadioOnIndex = -1;
 
-  public PowerTracker(final Simulation simulation, final GUI gui) {
+  public PowerTracker(final Simulation simulation, final Cooja gui) {
     super("PowerTracker", gui, false);
     this.simulation = simulation;
 
@@ -109,7 +109,7 @@ public class PowerTracker extends VisPlugin {
       addMote(m);
     }
 
-    if (!GUI.isVisualized()) {
+    if (!Cooja.isVisualized()) {
       return;
     }
 
@@ -222,6 +222,15 @@ public class PowerTracker extends VisPlugin {
     repaintTimer.start();
   }
 
+  public MoteTracker getMoteTrackerOf(Mote mote) {
+	  for (MoteTracker mt : moteTrackers) {
+		  if (mt.mote == mote) {
+			  return mt;
+		  }
+	  }
+	  return null;
+  }
+  
   private Action resetAction = new AbstractAction("Reset") {
     public void actionPerformed(ActionEvent e) {
       Runnable r = new Runnable() {
@@ -288,7 +297,7 @@ public class PowerTracker extends VisPlugin {
     return sb.toString();
   }
 
-  private static class MoteTracker implements Observer {
+  public static class MoteTracker implements Observer {
     /* last radio state */
     private boolean radioWasOn;
     private RadioState lastRadioState;
@@ -379,19 +388,19 @@ public class PowerTracker extends VisPlugin {
       radioInterfered += t;
     }
 
-    protected double getRadioOnRatio() {
+    public double getRadioOnRatio() {
       return 1.0*radioOn/duration;
     }
 
-    protected double getRadioTxRatio() {
+    public double getRadioTxRatio() {
       return 1.0*radioTx/duration;
     }
 
-    protected double getRadioInterferedRatio() {
+    public double getRadioInterferedRatio() {
       return 1.0*radioInterfered/duration;
     }
 
-    protected double getRadioRxRatio() {
+    public double getRadioRxRatio() {
       return 1.0*radioRx/duration;
     }
 

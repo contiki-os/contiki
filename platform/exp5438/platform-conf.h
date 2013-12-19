@@ -35,14 +35,17 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __PLATFORM_CONF_H__
-#define __PLATFORM_CONF_H__
+#ifndef PLATFORM_CONF_H_
+#define PLATFORM_CONF_H_
 
 /*
  * Definitions below are dictated by the hardware and not really
- * changeable!
+ * changeable
  */
-#define TYNDALL 1
+
+#ifndef WITH_LCD
+#define WITH_LCD 0
+#endif /* 0 */
 
 /* CPU target speed in Hz */
 #define F_CPU 8000000uL // 8MHz by default
@@ -197,4 +200,4 @@ typedef unsigned long off_t;
 #define CC2420_SPI_DISABLE()    (CC2420_CSN_PORT(OUT) |=  BV(CC2420_CSN_PIN))
 #define CC2420_SPI_IS_ENABLED() ((CC2420_CSN_PORT(OUT) & BV(CC2420_CSN_PIN)) != BV(CC2420_CSN_PIN))
 
-#endif /* __PLATFORM_CONF_H__ */
+#endif /* PLATFORM_CONF_H_ */

@@ -39,8 +39,8 @@
  *         Kasun Hewage <kasun.ch@gmail.com>
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #define HAVE_STDINT_H
 #include "avrdef.h"
@@ -84,15 +84,23 @@
 #define CONTIKIMAC_CONF_ANNOUNCEMENTS    0
 #define CONTIKIMAC_CONF_COMPOWER         1
 
-#define COLLECT_NEIGHBOR_CONF_MAX_NEIGHBORS      32
+#define COLLECT_NBR_TABLE_CONF_MAX_NEIGHBORS      32
 
 #endif /* WITH_UIP6 */
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 
-#ifndef RF_CHANNEL
-#define RF_CHANNEL              26
-#endif /* RF_CHANNEL */
+#ifdef RF_CHANNEL
+#define CC2420_CONF_CHANNEL RF_CHANNEL
+#endif
+
+#ifndef CC2420_CONF_CHANNEL
+#define CC2420_CONF_CHANNEL              26
+#endif /* CC2420_CONF_CHANNEL */
+
+#ifndef CC2420_CONF_CCA_THRESH
+#define CC2420_CONF_CCA_THRESH              -45
+#endif /* CC2420_CONF_CCA_THRESH */
 
 #define CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT 0
 
@@ -118,11 +126,11 @@
 #define UIP_CONF_IPV6_RPL               1
 
 /* configure number of neighbors and routes */
-#define UIP_CONF_DS6_NBR_NBU     5
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     5
 #define UIP_CONF_MAX_ROUTES   5
 
 #define RPL_CONF_MAX_PARENTS         4
-#define NEIGHBOR_CONF_MAX_NEIGHBORS  8
+#define NBR_TABLE_CONF_MAX_NEIGHBORS  8
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
@@ -134,7 +142,6 @@
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_ND6_MAX_PREFIXES       3
-#define UIP_CONF_ND6_MAX_NEIGHBORS      4
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
 #define UIP_CONF_BUFFER_SIZE		    240
@@ -196,4 +203,4 @@
 typedef unsigned short uip_stats_t;
 typedef unsigned long off_t;
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

@@ -97,7 +97,7 @@ typedef uint32_t rtimer_clock_t;
 
 /* IPv6 configuration options */
 #define UIP_CONF_IPV6                           1
-#define UIP_CONF_DS6_NBR_NBU                    20 /* number of neighbors */
+#define NBR_TABLE_CONF_MAX_NEIGHBORS                    20 /* number of neighbors */
 #define UIP_CONF_DS6_ROUTE_NBU                  20 /* number of routes */
 #define UIP_CONF_ND6_SEND_RA                    0
 #define UIP_CONF_ND6_REACHABLE_TIME             600000

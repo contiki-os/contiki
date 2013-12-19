@@ -35,7 +35,7 @@ ifndef CC65_HOME
   ${error CC65_HOME not defined! You must specify where cc65 resides}
 endif
 
-all: cs8900a.eth lan91c96.eth
+all: cs8900a.eth lan91c96.eth w5100.eth
 
 CONTIKI_TARGET_DIRS = . lib sys
 CONTIKI_CPU_DIRS    = . lib sys ctk net
@@ -64,7 +64,7 @@ AR = ar65
 # The apps coming with Contiki run even on a 0x100 byte stack.
 
 ASFLAGS = -t $(TARGET)
-CFLAGS += -t $(TARGET) -Or
+CFLAGS += -t $(TARGET) -Or -W -unused-param,-unused-var,-const-comparison
 LDFLAGS = $(STARTADDR_FLAG) -t $(TARGET) -m contiki-$(TARGET).map -D __STACKSIZE__=0x200
 AROPTS  = a
 
@@ -74,18 +74,22 @@ AROPTS  = a
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
-	$(CC) -c -o $@ $(CFLAGS) --create-dep $(@:.o=.d) $<
+	$(TRACE_CC)
+	$(Q)$(CC) -c -o $@ $(CFLAGS) --create-dep $(@:.o=.d) $<
 
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
-	$(CC) -c -o $@ $(CFLAGS) -DAUTOSTART_ENABLE --create-dep $(@:.o=.d) $<
+	$(TRACE_CC)
+	$(Q)$(CC) -c -o $@ $(CFLAGS) -DAUTOSTART_ENABLE --create-dep $(@:.o=.d) $<
 
 CUSTOM_RULE_LINK = 1
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
-	$(LD) -o $@ $(LDFLAGS) -u _main $^ $(TARGET).lib
+	$(TRACE_LD)
+	$(Q)$(LD) -o $@ $(LDFLAGS) -u _main $^ $(TARGET).lib
 
 %.eth: $(OBJECTDIR)/%.o
-	$(LD) -o $@ -t module -m $@.map $<
+	$(TRACE_LD)
+	$(Q)$(LD) -o $@ -t module -m $@.map $<
 
 ifdef ETHERNET
 $(ETHERNET)-eth.S: $(ETHERNET).eth

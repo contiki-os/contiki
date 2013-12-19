@@ -27,8 +27,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef __PROJECT_CONF_H__
-#define __PROJECT_CONF_H__
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
 #include "jsontree.h"
 #define HTTPD_WS_CONF_USER_STATE struct jsontree_context json
@@ -43,8 +43,6 @@
 #define NETSTACK_CONF_RDC     nullrdc_driver
 /* #define NETSTACK_CONF_RDC     contikimac_driver */
 
-#define CONTIKIMAC_CONF_MAX_PHASE_NEIGHBORS 7
-
 #undef NULLRDC_CONF_802154_AUTOACK
 #define NULLRDC_CONF_802154_AUTOACK 1
 
@@ -56,8 +54,8 @@
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          4
 
-#undef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU 7
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS 7
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES 7
 
@@ -76,4 +74,4 @@
 #undef WEBSERVER_CONF_CFS_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 3
 
-#endif /* __PROJECT_CONF_H__ */
+#endif /* PROJECT_CONF_H_ */

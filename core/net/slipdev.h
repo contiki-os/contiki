@@ -42,8 +42,8 @@
  *
  */
 
-#ifndef __SLIPDEV_H__
-#define __SLIPDEV_H__
+#ifndef SLIPDEV_H_
+#define SLIPDEV_H_
 
 #include "uip.h"
 
@@ -82,6 +82,6 @@ void slipdev_init(void);
 uint8_t slipdev_send(void);
 uint16_t slipdev_poll(void);
 
-#endif /* __SLIPDEV_H__ */
+#endif /* SLIPDEV_H_ */
 
 /** @} */

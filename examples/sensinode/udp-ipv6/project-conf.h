@@ -46,5 +46,6 @@
 
 #define BUTTON_SENSOR_CONF_ON 1
 #define RIMESTATS_CONF_ENABLED 1
+#define VIZTOOL_CONF_ON         0
 
 #endif /* PROJECT_CONF_H_ */

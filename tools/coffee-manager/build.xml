@@ -7,7 +7,7 @@
 
   <target name="compile" depends="init">
     <mkdir dir="build"/>
-    <javac srcdir="se/sics/coffee" destdir="build" includeantruntime="false" debug="true" />
+    <javac srcdir="org/contikios/coffee" destdir="build" includeantruntime="false" debug="true" />
   </target>
 
   <target name="clean" depends="init">
@@ -26,7 +26,7 @@
   <target name="jar" depends="init, compile, configs">
     <jar destfile="coffee.jar" basedir="build">
       <manifest>
-        <attribute name="Main-Class" value="se.sics.coffee.CoffeeManager"/>
+        <attribute name="Main-Class" value="org.contikios.coffee.CoffeeManager"/>
         <attribute name="Class-Path" value="."/>
       </manifest>
     </jar>

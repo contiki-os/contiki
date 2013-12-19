@@ -155,7 +155,7 @@ typedef struct {
   uint8_t src_addr[8];      /**< Source address */
   frame802154_aux_hdr_t aux_hdr;    /**< Aux security header */
   uint8_t *payload;     /**< Pointer to 802.15.4 frame payload */
-  uint8_t payload_len;  /**< Length of payload field */
+  int payload_len;  /**< Length of payload field */
 } frame802154_t;
 
 /* Prototypes */

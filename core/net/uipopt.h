@@ -61,8 +61,8 @@
  *
  */
 
-#ifndef __UIPOPT_H__
-#define __UIPOPT_H__
+#ifndef UIPOPT_H_
+#define UIPOPT_H_
 
 #ifndef UIP_LITTLE_ENDIAN
 #define UIP_LITTLE_ENDIAN  3412
@@ -134,6 +134,101 @@
 
 /** @} */
 /*------------------------------------------------------------------------------*/
+
+/**
+ * \defgroup uipoptgeneral General configuration options
+ * @{
+ */
+
+/**
+ * The link level header length.
+ *
+ * This is the offset into the uip_buf where the IP header can be
+ * found. For Ethernet, this should be set to 14. For SLIP, this
+ * should be set to 0.
+ *
+ * \note we probably won't use this constant for other link layers than
+ * ethernet as they have variable header length (this is due to variable
+ * number and type of address fields and to optional security features)
+ * E.g.: 802.15.4 -> 2 + (1/2*4/8) + 0/5/6/10/14
+ *       802.11 -> 4 + (6*3/4) + 2
+ * \hideinitializer
+ */
+#ifdef UIP_CONF_LLH_LEN
+#define UIP_LLH_LEN (UIP_CONF_LLH_LEN)
+#else /* UIP_LLH_LEN */
+#define UIP_LLH_LEN     0
+#endif /* UIP_CONF_LLH_LEN */
+
+/**
+ * The size of the uIP packet buffer.
+ *
+ * The uIP packet buffer should not be smaller than 60 bytes, and does
+ * not need to be larger than 1514 bytes. Lower size results in lower
+ * TCP throughput, larger size results in higher TCP throughput.
+ *
+ * \hideinitializer
+ */
+#ifndef UIP_CONF_BUFFER_SIZE
+#define UIP_BUFSIZE (UIP_LINK_MTU + UIP_LLH_LEN)
+#else /* UIP_CONF_BUFFER_SIZE */
+#define UIP_BUFSIZE (UIP_CONF_BUFFER_SIZE)
+#endif /* UIP_CONF_BUFFER_SIZE */
+
+
+/**
+ * Determines if statistics support should be compiled in.
+ *
+ * The statistics is useful for debugging and to show the user.
+ *
+ * \hideinitializer
+ */
+#ifndef UIP_CONF_STATISTICS
+#define UIP_STATISTICS  0
+#else /* UIP_CONF_STATISTICS */
+#define UIP_STATISTICS (UIP_CONF_STATISTICS)
+#endif /* UIP_CONF_STATISTICS */
+
+/**
+ * Determines if logging of certain events should be compiled in.
+ *
+ * This is useful mostly for debugging. The function uip_log()
+ * must be implemented to suit the architecture of the project, if
+ * logging is turned on.
+ *
+ * \hideinitializer
+ */
+#ifndef UIP_CONF_LOGGING
+#define UIP_LOGGING     0
+#else /* UIP_CONF_LOGGING */
+#define UIP_LOGGING     (UIP_CONF_LOGGING)
+#endif /* UIP_CONF_LOGGING */
+
+/**
+ * Broadcast support.
+ *
+ * This flag configures IP broadcast support. This is useful only
+ * together with UDP.
+ *
+ * \hideinitializer
+ *
+ */
+#ifndef UIP_CONF_BROADCAST
+#define UIP_BROADCAST 0
+#else /* UIP_CONF_BROADCAST */
+#define UIP_BROADCAST (UIP_CONF_BROADCAST)
+#endif /* UIP_CONF_BROADCAST */
+
+/**
+ * Print out a uIP log message.
+ *
+ * This function must be implemented by the module that uses uIP, and
+ * is called by uIP whenever a log message is generated.
+ */
+void uip_log(char *msg);
+
+/** @} */
+/*------------------------------------------------------------------------------*/
 /**
  * \defgroup uipoptip IP configuration options
  * @{
@@ -144,7 +239,11 @@
  *
  * This should normally not be changed.
  */
+#ifdef UIP_CONF_TTL
+#define UIP_TTL         UIP_CONF_TTL
+#else /* UIP_CONF_TTL */
 #define UIP_TTL         64
+#endif /* UIP_CONF_TTL */
 
 /**
  * The maximum time an IP fragment should wait in the reassembly
@@ -211,11 +310,6 @@
 #ifndef UIP_CONF_DS6_PREFIX_NBU
 /** Default number of IPv6 prefixes associated to the node's interface */
 #define UIP_CONF_DS6_PREFIX_NBU     2
-#endif
-
-#ifndef UIP_CONF_DS6_NBR_NBU
-/** Default number of neighbors that can be stored in the %neighbor cache */
-#define UIP_CONF_DS6_NBR_NBU    4
 #endif
 
 #ifndef UIP_CONF_DS6_DEFRT_NBU
@@ -286,15 +380,15 @@
  */
 
 /**
- * Toggles whether UDP support should be compiled in or not.
+ * Toggles whether TCP support should be compiled in or not.
  *
  * \hideinitializer
  */
 #ifdef UIP_CONF_TCP
 #define UIP_TCP (UIP_CONF_TCP)
-#else /* UIP_CONF_UDP */
+#else /* UIP_CONF_TCP */
 #define UIP_TCP           1
-#endif /* UIP_CONF_UDP */
+#endif /* UIP_CONF_TCP */
 
 /**
  * Determines if support for opening connections from uIP should be
@@ -383,7 +477,10 @@
  * UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN.
  */
 #ifdef UIP_CONF_TCP_MSS
-#define UIP_TCP_MSS (UIP_CONF_TCP_MSS)
+#if UIP_CONF_TCP_MSS > (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
+#error UIP_CONF_TCP_MSS is too large for the current UIP_BUFSIZE
+#endif /* UIP_CONF_TCP_MSS < (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN) */
+#define UIP_TCP_MSS     (UIP_CONF_TCP_MSS)
 #else
 #define UIP_TCP_MSS     (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
 #endif
@@ -497,101 +594,6 @@
 /** @} */
 
 /*------------------------------------------------------------------------------*/
-
-/**
- * \defgroup uipoptgeneral General configuration options
- * @{
- */
-
-/**
- * The size of the uIP packet buffer.
- *
- * The uIP packet buffer should not be smaller than 60 bytes, and does
- * not need to be larger than 1514 bytes. Lower size results in lower
- * TCP throughput, larger size results in higher TCP throughput.
- *
- * \hideinitializer
- */
-#ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_BUFSIZE (UIP_LINK_MTU + UIP_LLH_LEN)
-#else /* UIP_CONF_BUFFER_SIZE */
-#define UIP_BUFSIZE (UIP_CONF_BUFFER_SIZE)
-#endif /* UIP_CONF_BUFFER_SIZE */
-
-
-/**
- * Determines if statistics support should be compiled in.
- *
- * The statistics is useful for debugging and to show the user.
- *
- * \hideinitializer
- */
-#ifndef UIP_CONF_STATISTICS
-#define UIP_STATISTICS  0
-#else /* UIP_CONF_STATISTICS */
-#define UIP_STATISTICS (UIP_CONF_STATISTICS)
-#endif /* UIP_CONF_STATISTICS */
-
-/**
- * Determines if logging of certain events should be compiled in.
- *
- * This is useful mostly for debugging. The function uip_log()
- * must be implemented to suit the architecture of the project, if
- * logging is turned on.
- *
- * \hideinitializer
- */
-#ifndef UIP_CONF_LOGGING
-#define UIP_LOGGING     0
-#else /* UIP_CONF_LOGGING */
-#define UIP_LOGGING     (UIP_CONF_LOGGING)
-#endif /* UIP_CONF_LOGGING */
-
-/**
- * Broadcast support.
- *
- * This flag configures IP broadcast support. This is useful only
- * together with UDP.
- *
- * \hideinitializer
- *
- */
-#ifndef UIP_CONF_BROADCAST
-#define UIP_BROADCAST 0
-#else /* UIP_CONF_BROADCAST */
-#define UIP_BROADCAST (UIP_CONF_BROADCAST)
-#endif /* UIP_CONF_BROADCAST */
-
-/**
- * Print out a uIP log message.
- *
- * This function must be implemented by the module that uses uIP, and
- * is called by uIP whenever a log message is generated.
- */
-void uip_log(char *msg);
-
-/**
- * The link level header length.
- *
- * This is the offset into the uip_buf where the IP header can be
- * found. For Ethernet, this should be set to 14. For SLIP, this
- * should be set to 0.
- *
- * \note we probably won't use this constant for other link layers than
- * ethernet as they have variable header length (this is due to variable
- * number and type of address fields and to optional security features)
- * E.g.: 802.15.4 -> 2 + (1/2*4/8) + 0/5/6/10/14
- *       802.11 -> 4 + (6*3/4) + 2
- * \hideinitializer
- */
-#ifdef UIP_CONF_LLH_LEN
-#define UIP_LLH_LEN (UIP_CONF_LLH_LEN)
-#else /* UIP_LLH_LEN */
-#define UIP_LLH_LEN     14
-#endif /* UIP_CONF_LLH_LEN */
-
-/** @} */
-/*------------------------------------------------------------------------------*/
 /**
  * \defgroup uipoptcpu CPU architecture configuration
  * @{
@@ -677,6 +679,6 @@ void uip_log(char *msg);
  */
 /** @} */
 
-#endif /* __UIPOPT_H__ */
+#endif /* UIPOPT_H_ */
 /** @} */
 /** @} */

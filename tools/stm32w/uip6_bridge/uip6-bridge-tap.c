@@ -57,9 +57,9 @@ PROCESS(tcpip_process, "tcpip dummy");
 AUTOSTART_PROCESSES(&uip6_bridge);
 
 /*---------------------------------------------------------------------------*/
-static uint8_t (* outputfunc)(uip_lladdr_t *a);
+static uint8_t (* outputfunc)(const uip_lladdr_t *a);
 uint8_t
-tcpip_output(uip_lladdr_t *a)
+tcpip_output(const uip_lladdr_t *a)
 {
   if(outputfunc != NULL) {
     leds_on(LEDS_GREEN);
@@ -76,7 +76,7 @@ tcpip_ipv6_output(void)
 {
 }
 void
-tcpip_set_outputfunc(uint8_t (*f)(uip_lladdr_t *))
+tcpip_set_outputfunc(uint8_t (*f)(const uip_lladdr_t *))
 {
   outputfunc = f;
 }

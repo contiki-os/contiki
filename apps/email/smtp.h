@@ -30,8 +30,8 @@
  *
  *
  */
-#ifndef __SMTP_H__
-#define __SMTP_H__
+#ifndef SMTP_H_
+#define SMTP_H_
 
 #include "contiki-net.h"
 
@@ -60,4 +60,4 @@ void smtp_appcall(void *state);
 
 void smtp_init(void);
 
-#endif /* __SMTP_H__ */
+#endif /* SMTP_H_ */

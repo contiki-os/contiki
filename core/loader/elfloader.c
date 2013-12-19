@@ -192,6 +192,8 @@ find_local_symbol(int fd, const char *symbol,
 	  sect = &bss;
 	} else if(s.st_shndx == data.number) {
 	  sect = &data;
+  } else if(s.st_shndx == rodata.number) {
+    sect = &rodata;
 	} else if(s.st_shndx == text.number) {
 	  sect = &text;
 	} else {

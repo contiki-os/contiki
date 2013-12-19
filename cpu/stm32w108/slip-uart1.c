@@ -1,5 +1,5 @@
 /**
- * \addtogroup mb851-platform
+ * \addtogroup mbxxx-platform
  *
  * @{
  */

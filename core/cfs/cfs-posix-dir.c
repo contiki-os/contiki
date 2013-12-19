@@ -66,11 +66,11 @@ cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
     return -1;
   }
   strncpy(e->name, res->d_name, sizeof(e->name));
-#if defined(__APPLE2__) || defined(__APPLE2ENH__) || defined(__CBM__)
+#if defined(__APPLE2__) || defined(__CBM__)
   e->size = res->d_blocks;
-#else /* __APPLE2__ || __APPLE2ENH__ || __CBM__ */
+#else /* __APPLE2__ || __CBM__ */
   e->size = 0;
-#endif /* __APPLE2__ || __APPLE2ENH__ || __CBM__ */
+#endif /* __APPLE2__ || __CBM__ */
   return 0;
 }
 /*---------------------------------------------------------------------------*/

@@ -1,5 +1,5 @@
-#ifndef __GPIO_H__LK7NAD1HN8__
-#define __GPIO_H__LK7NAD1HN8__
+#ifndef GPIO_H_LK7NAD1HN8__
+#define GPIO_H_LK7NAD1HN8__
 #include <stm32f10x_map.h>
 
 #define _GPIO_INPUT_ANALOG(h,l) 0
@@ -126,4 +126,4 @@ MODIFY_REG(AFIO->MAPR, AFIO_MAPR_SWJ_CFG | mask, AFIO_MAPR_SWJ_CFG_VALUE | value
 
 
 
-#endif /* __GPIO_H__LK7NAD1HN8__ */
+#endif /* GPIO_H_LK7NAD1HN8__ */

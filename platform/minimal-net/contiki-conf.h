@@ -30,8 +30,8 @@
  *
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include <inttypes.h>
 #include <limits.h>
@@ -160,9 +160,8 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_IPV6_REASSEMBLY      1
 //#define UIP_CONF_NETIF_MAX_ADDRESSES  5
 //#define UIP_CONF_ND6_MAX_PREFIXES     3
-//#define UIP_CONF_ND6_MAX_NEIGHBORS    40 
 //#define UIP_CONF_ND6_MAX_DEFROUTERS   2
-#define UIP_CONF_DS6_NBR_NBU     100
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     100
 #define UIP_CONF_DS6_DEFRT_NBU   2
 #define UIP_CONF_DS6_PREFIX_NBU  5
 #define UIP_CONF_MAX_ROUTES   100
@@ -180,4 +179,4 @@ typedef unsigned long clock_time_t;
 /* Not part of C99 but actually present */
 int strcasecmp(const char*, const char*);
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

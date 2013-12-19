@@ -1,4 +1,4 @@
-se.sics.coffee is a library for the Coffee File System. It is able to generate
+org.contikios.coffee is a library for the Coffee File System. It is able to generate
 file system images and to extract information from existing images.
 
 Building:

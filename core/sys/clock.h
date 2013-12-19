@@ -65,8 +65,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __CLOCK_H__
-#define __CLOCK_H__
+#ifndef CLOCK_H_
+#define CLOCK_H_
 
 #include "contiki-conf.h"
 
@@ -139,7 +139,7 @@ int clock_fine_max(void);
 unsigned short clock_fine(void);
 void clock_delay(unsigned int delay);
 
-#endif /* __CLOCK_H__ */
+#endif /* CLOCK_H_ */
 
 /** @} */
 /** @} */

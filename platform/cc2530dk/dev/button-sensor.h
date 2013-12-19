@@ -37,8 +37,8 @@
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
-#ifndef __BUTTON_SENSOR_H__
-#define __BUTTON_SENSOR_H__
+#ifndef BUTTON_SENSOR_H_
+#define BUTTON_SENSOR_H_
 
 #include "contiki-conf.h"
 #include "lib/sensors.h"
@@ -54,7 +54,7 @@
  * B2: P1_3
  *
  */
-#if MODEL_CC2531
+#if MODELS_CONF_CC2531_USB_STICK
 #define BUTTON1_PORT 1
 #define BUTTON1_PIN  2
 #define BUTTON2_PORT 1
@@ -73,7 +73,7 @@ extern const struct sensors_sensor button_1_sensor;
 extern const struct sensors_sensor button_2_sensor;
 
 #if BUTTON_SENSOR_ON
-#if MODEL_CC2531
+#if MODELS_CONF_CC2531_USB_STICK
 /* USB Dongle */
 /* Buttons: P1_2 & P1_3 - Port 1 ISR needed */
 void port_1_isr(void) __interrupt(P1INT_VECTOR);
@@ -82,12 +82,12 @@ void port_1_isr(void) __interrupt(P1INT_VECTOR);
     button_2_sensor.configure(SENSORS_ACTIVE, 1); \
 } while(0)
 
-#else /* MODEL_CC2531 */
+#else /* MODELS_CONF_CC2531_USB_STICK */
 /* SmartRF */
 /* Button 1: P0_1 - Port 0 ISR needed */
 void port_0_isr(void) __interrupt(P0INT_VECTOR);
 #define   BUTTON_SENSOR_ACTIVATE() button_sensor.configure(SENSORS_ACTIVE, 1)
-#endif /* MODEL_CC2531 */
+#endif /* MODELS_CONF_CC2531_USB_STICK */
 
 #else /* BUTTON_SENSOR_ON */
 #define   BUTTON_SENSOR_ACTIVATE()
@@ -105,4 +105,4 @@ void port_0_isr(void) __interrupt(P0INT_VECTOR);
 #define BUTTON_IRQ_ON_PRESS(b)   PORT_IRQ_EDGE_RISE(BUTTON##b##_PORT, BUTTON##b##_PIN)
 #define BUTTON_IRQ_ON_RELEASE(b) PORT_IRQ_EDGE_FALL(BUTTON##b##_PORT, BUTTON##b##_PIN)
 
-#endif /* __BUTTON_SENSOR_H__ */
+#endif /* BUTTON_SENSOR_H_ */

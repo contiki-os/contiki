@@ -1,8 +1,8 @@
-#ifndef __CMDD_H__
-#define __CMDD_H__
+#ifndef CMDD_H_
+#define CMDD_H_
 
 #include "contiki.h"
 
 PROCESS_NAME(cmdd_process);
 
-#endif /* __CMDD_H__ */
+#endif /* CMDD_H_ */

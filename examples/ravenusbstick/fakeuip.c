@@ -25,14 +25,14 @@ void tcpip_input( void )
   mac_LowpanToEthernet();
 }
 
-uint8_t tcpip_output(uip_lladdr_t * lladdr){
+uint8_t tcpip_output(const uip_lladdr_t * lladdr){
   if(output != NULL) {
     return output(lladdr);
   }
  return 0;
 }
 //Called from  sicslowpan.c
-void tcpip_set_outputfunc(uint8_t (* f)(uip_lladdr_t *)) {
+void tcpip_set_outputfunc(uint8_t (* f)(const uip_lladdr_t *)) {
   output = f;
 }
 
@@ -130,4 +130,10 @@ uint16_t
 uip_icmp6chksum(void)
 {
   return upper_layer_chksum(UIP_PROTO_ICMP6); 
+}
+
+/*---------------------------------------------------------------------------*/
+void
+uip_ds6_link_neighbor_callback(int status, int numtx)
+{
 }

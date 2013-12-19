@@ -90,9 +90,17 @@
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 
-#ifndef RF_CHANNEL
-#define RF_CHANNEL              26
-#endif /* RF_CHANNEL */
+#ifdef RF_CHANNEL
+#define CC2420_CONF_CHANNEL RF_CHANNEL
+#endif
+
+#ifndef CC2420_CONF_CHANNEL
+#define CC2420_CONF_CHANNEL              26
+#endif /* CC2420_CONF_CHANNEL */
+
+#ifndef CC2420_CONF_CCA_THRESH
+#define CC2420_CONF_CCA_THRESH              -45
+#endif /* CC2420_CONF_CCA_THRESH */
 
 #define CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT 0
 
@@ -137,9 +145,9 @@
 #endif /* UIP_CONF_IPV6_RPL */
 
 /* configure number of neighbors and routes */
-#ifndef UIP_CONF_DS6_NBR_NBU
-#define UIP_CONF_DS6_NBR_NBU     30
-#endif /* UIP_CONF_DS6_NBR_NBU */
+#ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS     30
+#endif /* NBR_TABLE_CONF_MAX_NEIGHBORS */
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES   30
 #endif /* UIP_CONF_MAX_ROUTES */
@@ -156,7 +164,6 @@
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_ND6_MAX_PREFIXES       3
-#define UIP_CONF_ND6_MAX_NEIGHBORS      4
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
 #ifndef UIP_CONF_BUFFER_SIZE

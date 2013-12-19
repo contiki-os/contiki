@@ -36,8 +36,8 @@
  *           $Revision: 1.2 $
  */
 
-#ifndef __SHT11_SENSOR_H__
-#define __SHT11_SENSOR_H__
+#ifndef SHT11_SENSOR_H_
+#define SHT11_SENSOR_H_
 
 #include "lib/sensors.h"
 
@@ -48,4 +48,4 @@ extern const struct sensors_sensor sht11_sensor;
 #define SHT11_SENSOR_BATTERY_INDICATOR 2
 
 
-#endif /* __SHT11-SENSOR_H__ */
+#endif /* SHT11-SENSOR_H_ */

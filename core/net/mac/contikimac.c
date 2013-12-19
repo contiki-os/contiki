@@ -44,6 +44,7 @@
 #include "dev/radio.h"
 #include "dev/watchdog.h"
 #include "lib/random.h"
+#include "net/mac/mac-sequence.h"
 #include "net/mac/contikimac.h"
 #include "net/netstack.h"
 #include "net/rime.h"
@@ -255,16 +256,6 @@ static struct compower_activity current_packet;
 
 #include "net/mac/phase.h"
 
-#ifdef CONTIKIMAC_CONF_MAX_PHASE_NEIGHBORS
-#define MAX_PHASE_NEIGHBORS CONTIKIMAC_CONF_MAX_PHASE_NEIGHBORS
-#endif
-
-#ifndef MAX_PHASE_NEIGHBORS
-#define MAX_PHASE_NEIGHBORS 30
-#endif
-
-PHASE_LIST(phase_list, MAX_PHASE_NEIGHBORS);
-
 #endif /* WITH_PHASE_OPTIMIZATION */
 
 #define DEFAULT_STREAM_TIME (4 * CYCLE_TIME)
@@ -272,18 +263,6 @@ PHASE_LIST(phase_list, MAX_PHASE_NEIGHBORS);
 #ifndef MIN
 #define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
-
-struct seqno {
-  rimeaddr_t sender;
-  uint8_t seqno;
-};
-
-#ifdef NETSTACK_CONF_MAC_SEQNO_HISTORY
-#define MAX_SEQNOS NETSTACK_CONF_MAC_SEQNO_HISTORY
-#else /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
-#define MAX_SEQNOS 16
-#endif /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
-static struct seqno received_seqnos[MAX_SEQNOS];
 
 #if CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT
 static struct timer broadcast_rate_timer;
@@ -665,7 +644,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
   if(!is_broadcast && !is_receiver_awake) {
 #if WITH_PHASE_OPTIMIZATION
-    ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+    ret = phase_wait(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                      CYCLE_TIME, GUARD_TIME,
                      mac_callback, mac_callback_ptr, buf_list);
     if(ret == PHASE_DEFERRED) {
@@ -865,7 +844,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
   if(!is_broadcast) {
     if(collisions == 0 && is_receiver_awake == 0) {
-      phase_update(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+      phase_update(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
 		   encounter_time, ret);
     }
   }
@@ -990,27 +969,13 @@ input_packet(void)
         ctimer_stop(&ct);
       }
 
-      /* Check for duplicate packet by comparing the sequence number
-         of the incoming packet with the last few ones we saw. */
-      {
-        int i;
-        for(i = 0; i < MAX_SEQNOS; ++i) {
-          if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno &&
-             rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                          &received_seqnos[i].sender)) {
-            /* Drop the packet. */
-            /*        printf("Drop duplicate ContikiMAC layer packet\n");*/
-            return;
-          }
-        }
-        for(i = MAX_SEQNOS - 1; i > 0; --i) {
-          memcpy(&received_seqnos[i], &received_seqnos[i - 1],
-                 sizeof(struct seqno));
-        }
-        received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
-        rimeaddr_copy(&received_seqnos[0].sender,
-                      packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      /* Check for duplicate packet. */
+      if(mac_sequence_is_duplicate()) {
+        /* Drop the packet. */
+        /*        printf("Drop duplicate ContikiMAC layer packet\n");*/
+        return;
       }
+      mac_sequence_register_seqno();
 
 #if CONTIKIMAC_CONF_COMPOWER
       /* Accumulate the power consumption for the packet reception. */
@@ -1049,7 +1014,7 @@ init(void)
   contikimac_is_on = 1;
 
 #if WITH_PHASE_OPTIMIZATION
-  phase_init(&phase_list);
+  phase_init();
 #endif /* WITH_PHASE_OPTIMIZATION */
 
 }

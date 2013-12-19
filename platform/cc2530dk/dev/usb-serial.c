@@ -68,22 +68,25 @@ static struct {
 static const struct {
   uint8_t size;
   uint8_t type;
-  uint16_t string[10];
+  uint16_t string[17];
 } string_manufacturer = {
   sizeof(string_manufacturer),
   3,
-  { 'E', 'P', 'F', 'L', '-', 'L', 'S', 'R', 'O', '1' }
+  {
+    'T', 'e', 'x', 'a', 's', ' ',
+    'I', 'n', 's', 't', 'r', 'u', 'm', 'e', 'n', 't', 's'
+  }
 };
 
 static const struct {
   uint8_t size;
   uint8_t type;
-  uint16_t string[18];
+  uint16_t string[17];
 } string_product = {
   sizeof(string_product),
   3, {
     'C', 'C', '2', '5', '3', '1', ' ',
-    'D', 'e', 'v', 'e', 'l', '-', 'B', 'o', 'a', 'r', 'd'
+    'U', 'S', 'B', ' ', 'D', 'o', 'n', 'g', 'l', 'e'
   }
 };
 /*---------------------------------------------------------------------------*/

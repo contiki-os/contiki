@@ -47,7 +47,7 @@
 #include PLATFORM_HEADER
 #include "hal/error.h"
 #include "hal/hal.h"
-#include "dev/stm32w_systick.h"
+#include "dev/stm32w-systick.h"
 
 #include "sys/clock.h"
 #include "sys/etimer.h"
@@ -146,7 +146,7 @@ unsigned long clock_seconds(void)
 
 void sleep_seconds(int seconds)
 {
-  int32u quarter_seconds = seconds * 4;
+  uint32_t quarter_seconds = seconds * 4;
   uint8_t radio_on;
 
 
