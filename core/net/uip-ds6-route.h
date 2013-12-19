@@ -83,14 +83,29 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 /** \brief define some additional RPL related route state and
  *  neighbor callback for RPL - if not a DS6_ROUTE_STATE is already set */
 #ifndef UIP_DS6_ROUTE_STATE_TYPE
+#ifdef UIP_CONF_IPV6_LOADNG //fixme: should replace this structure instead of adding to it
+#define UIP_DS6_ROUTE_STATE_TYPE loadng_route_entry_t
+#else
+
 #define UIP_DS6_ROUTE_STATE_TYPE rpl_route_entry_t
 /* Needed for the extended route entry state when using ContikiRPL */
+#endif
+
 typedef struct rpl_route_entry {
   uint32_t lifetime;
   void *dag;
   uint8_t learned_from;
   uint8_t nopath_received;
 } rpl_route_entry_t;
+
+typedef struct loadng_route_entry {
+  uint16_t seqno;
+  uint8_t route_cost;
+  uint32_t valid_time;
+  uint8_t ack_received;
+} loadng_route_entry_t;
+
+
 #endif /* UIP_DS6_ROUTE_STATE_TYPE */
 
 /** \brief The neighbor routes hold a list of routing table entries
