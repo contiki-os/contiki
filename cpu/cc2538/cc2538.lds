@@ -72,7 +72,6 @@ SECTIONS
     .data :
     {
         _data = .;
-        *(vtable)
         *(.data*)
         _edata = .;
     } > SRAM AT > FLASH
