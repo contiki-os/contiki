@@ -140,7 +140,9 @@ next_timer_locked(void)
   while(next_rtimer && !RTIMER_CLOCK_LT(now, next_rtimer->time)) {
     t = next_rtimer;   
     next_rtimer = t->next;
-    if(!t->cancel) {
+    if(t->cancel) {
+      need_sched = 1;
+    } else {
       t->func(t, t->ptr);
       need_sched |= t != next_rtimer;
     }
