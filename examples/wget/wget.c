@@ -161,11 +161,10 @@ PROCESS_THREAD(wget_process, ev, data)
     PROCESS_PAUSE();
   }
 
-  fputs("\nGet url:", stdout);
+  fputs("Get url:", stdout);
   gets(url);
-  fputs("\nSave as:", stdout);
+  fputs("Save as:", stdout);
   gets(name);
-  puts("");
   file = cfs_open(name, CFS_WRITE);
   if(file == -1) {
     printf("Open error with '%s'\n", name);
