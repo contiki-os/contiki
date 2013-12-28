@@ -88,6 +88,13 @@ struct rtimer {
   void *ptr;
   struct rtimer *next;
   bool cancel;
+
+  /* the fields below are for timer updates from interrupts */
+  rtimer_clock_t set_time;
+  rtimer_callback_t set_func;
+  void *set_ptr;
+  bool set_cancel;
+  struct rtimer *more[2];	/* more timers with delayed setting */
 };
 
 enum {

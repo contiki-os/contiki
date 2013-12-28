@@ -45,6 +45,7 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "sys/rtimer.h"
 #include "contiki.h"
@@ -60,6 +61,15 @@
 static struct rtimer *next_rtimer;
 static volatile bool locked = 0;	/* timer list is locked */
 static volatile bool deferred = 0;	/* run a timer after unlocking */
+static struct rtimer *set_queue[2];	/* for delayed setting */
+static volatile bool setting = 0;	/* processing set_queue */
+static volatile bool nesting = 0;	/* nesting depth for set_queue */
+
+/*
+ * Note that read accesses to the generation count must be atomic but neither
+ * writes nor the increment operation have to.
+ */
+static volatile uint8_t generation = 0;
 
 
 /*---------------------------------------------------------------------------*/
@@ -153,14 +163,73 @@ next_timer_locked(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
+lock_and_set(struct rtimer *rtimer, rtimer_clock_t time,
+	     rtimer_callback_t func, void *ptr)
+{
+  locked = 1;
+  if(!rtimer->set_cancel) {
+    set_locked(rtimer, time, func, ptr);
+  }
+  locked = 0;
+}
+/*---------------------------------------------------------------------------*/
+static void
 run_deferred(void)
 {
+  struct rtimer *rtimer;
+
+again:
   while(deferred) {
     locked = 1;
     deferred = 0;
     next_timer_locked();
     locked = 0;
   }
+  if(setting) {
+    return;
+  }
+  setting = 1;
+  rtimer = set_queue[0];
+  if(rtimer) {
+    set_queue[0] = rtimer->more[0];
+  } else {
+    rtimer = set_queue[1];
+    if(rtimer) {
+      set_queue[1] = rtimer->more[1];
+    }
+  }
+  setting = 0;
+  if(rtimer) {
+    /*
+     * This function call copies the new set_* values from rtimer before
+     * locking, thus ensuring they are not changed by another call to
+     * rtimer_set while we are in the middle of processing them.
+     */
+    lock_and_set(rtimer, rtimer->set_time, rtimer->set_func, rtimer->set_ptr);
+    goto again;
+  }
+}
+/*---------------------------------------------------------------------------*/
+/*
+ * We only come here if we're already in an interrupt. Since non-timer
+ * interrupts are enabled when rtimer_run_next is run, we can thus get one
+ * interrupt on top of it all.
+ */
+static void
+maybe_queue_rtimer(struct rtimer *rtimer)
+{
+  const struct rtimer *t;
+  bool level = nesting;
+
+  nesting = 1;
+  for(t = set_queue[level]; t; t = t->more[level]) {
+    if(t == rtimer) {
+      return;
+    }
+  }
+  rtimer->more[level] = set_queue[level];
+  set_queue[level] = rtimer;
+  nesting = level;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -168,14 +237,25 @@ rtimer_set(struct rtimer *rtimer, rtimer_clock_t time,
 	   rtimer_clock_t duration,
 	   rtimer_callback_t func, void *ptr)
 {
+  uint8_t start;
   int res;
 
   PRINTF("rtimer_set time %d\n", time);
 
   if(locked) {
-    res = set_locked(rtimer, time, func, ptr);
+    rtimer->cancel = 1;
+    do {
+      start = generation;
+      rtimer->set_time = time;
+      rtimer->set_func = func;
+      rtimer->set_ptr = ptr;
+    } while(start != generation++);
+    rtimer->set_cancel = 0;
+    maybe_queue_rtimer(rtimer);
+    return RTIMER_OK;
   } else {
     locked = 1;
+    rtimer->set_cancel = 1; /* preserve ordering */
     res = set_locked(rtimer, time, func, ptr);
     locked = 0;
     run_deferred();
@@ -186,6 +266,7 @@ rtimer_set(struct rtimer *rtimer, rtimer_clock_t time,
 void
 rtimer_cancel(struct rtimer *rtimer)
 {
+  rtimer->set_cancel = 1;
   rtimer->cancel = 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -197,7 +278,6 @@ rtimer_run_next(void)
     return;
   }
 
-  /* lock just to make sure ... */
   locked = 1;
   next_timer_locked();
   locked = 0;
