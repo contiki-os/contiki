@@ -52,6 +52,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifdef SHELL_CONF_PROMPT
 extern char shell_prompt_text[];
@@ -517,33 +518,57 @@ shell_init(void)
   front_process = &shell_process;
 }
 /*---------------------------------------------------------------------------*/
+unsigned long shell_strtoul(const char *str, const char **retstr, int base)
+{
+  unsigned long result = 0, value;
+
+  while (isxdigit(*str) && (value = isdigit(*str) ? *str-'0' : (islower(*str)
+          ? toupper(*str) : *str)-'A'+10) < base) {
+    result = result*base + value;
+    str++;
+  }
+
+  if(retstr != NULL) {
+    *retstr = (char *)str;
+  }
+
+  return result;
+}
+
 unsigned long
 shell_strtolong(const char *str, const char **retstr)
 {
-  int i;
-  unsigned long num = 0;
-  const char *strptr = str;
+  unsigned int base = 10;
 
   if(str == NULL) {
     return 0;
   }
   
-  while(*strptr == ' ') {
-    ++strptr;
+  while(*str == ' ') {
+    ++str;
+  }
+
+  if( (str[0] == '0') && (str[1] == 'x') && isxdigit(str[2]) )
+  {
+    return shell_strtoul(str+2, retstr, 16);
   }
   
-  for(i = 0; i < 10 && isdigit(strptr[i]); ++i) {
-    num = num * 10 + strptr[i] - '0';
+  return shell_strtoul(str, retstr, 10);
+
+
+}
+/*---------------------------------------------------------------------------*/
+long
+shell_strtol(const char *str, const char **retstr)
+{
+  if(*str=='-')
+  {
+    return -shell_strtolong(str+1, retstr);
   }
-  if(retstr != NULL) {
-    if(i == 0) {
-      *retstr = str;
-    } else {
-      *retstr = strptr + i;
-    }
+  else
+  {
+    return shell_strtolong(str, retstr);
   }
-  
-  return num;
 }
 /*---------------------------------------------------------------------------*/
 unsigned long

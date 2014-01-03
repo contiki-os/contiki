@@ -321,7 +321,9 @@ int shell_start_command(char *commandline, int commandline_len,
  *             the data that follows the number in the input string.
  *
  */
+unsigned long shell_strtoul(const char *str, const char **retstr, int base);
 unsigned long shell_strtolong(const char *str, const char **retstr);
+long shell_strtol(const char *str, const char **retstr);
 
 unsigned long shell_time(void);
 void shell_set_time(unsigned long seconds);

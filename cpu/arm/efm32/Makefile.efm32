@@ -1,0 +1,237 @@
+####################################################################
+# Makefile                                                         #
+####################################################################
+# Adapted from Makefile.stm32f103
+
+### Code common for all ARM CPUs
+
+CONTIKI_CPU_ARM=$(CONTIKI)/cpu/arm/
+CONTIKI_CPU_ARM_COMMON=$(CONTIKI_CPU_ARM)/common
+
+### Define the CPU family and subtarget type
+CONTIKI_CPU=$(CONTIKI_CPU_ARM)/efm32
+
+ifndef CONTIKI_CPU_FAMILY
+ ifneq (,$(findstring EFM32TG,$(MCU)))
+  CONTIKI_CPU_FAMILY = efm32tg
+ endif
+ ifneq (,$(findstring EFM32G,$(MCU)))
+  CONTIKI_CPU_FAMILY = efm32g
+ endif
+ ifneq (,$(findstring EFM32LG,$(MCU)))
+  CONTIKI_CPU_FAMILY = efm32lg
+  RAM_SIZE = 32*1024
+ endif
+ ifneq (,$(findstring EFM32GG,$(MCU)))
+  CONTIKI_CPU_FAMILY = efm32gg
+  RAM_SIZE = 128*1024
+ endif
+endif
+
+ifndef CONTIKI_CPU_FAMILY
+ ${error Unhandled EFM32 Family: "$(MCU)"}
+endif
+
+# Flash and sram Size are defined in <device>.h
+FLASH_KB_SIZE = $(shell echo $(MCU) | cut -d F -f 3 )
+FLASH_SIZE = $(FLASH_KB_SIZE) * 1024
+
+####################################################################
+# Files                                                            #
+####################################################################
+
+# Startup file is family dependant
+STARTUP = ${addprefix $(OBJECTDIR)/,startup_$(CONTIKI_CPU_FAMILY).o}
+CONTIKI_OBJECTFILES += $(STARTUP)
+
+# Define LINKER SCRIPT if not overloaded by platform makefile
+ifndef LINKERSCRIPT
+#LINKERSCRIPT = $(CONTIKI_CPU)/$(CONTIKI_CPU_FAMILY)/Source/$(CONTIKI_CPU_FAMILY).ld
+LINKERSCRIPT = $(CONTIKI_CPU_FAMILY)$(FLASH_KB_SIZE).ld
+endif
+
+###########
+## EMLIB
+##########
+EMLIB_SOURCEFILES = $(wildcard $(CONTIKI_CPU)/emlib/src/*.c)
+EMLIB_OBJECTDIR =   $(CONTIKI_CPU)/emlib/obj
+EMLIB_SRCDIR    =   $(CONTIKI_CPU)/emlib/src
+EMLIB_OBJECTFILES = $(subst src/,obj/,$(subst .c,.o,$(EMLIB_SOURCEFILES)))
+
+TARGET_LIBFILES =   emlib.a
+
+##########
+### Define the source files we have in the EFM32 port
+##########
+#CONTIKI_CPU_DIRS = . ./dev $(CONTIKI_CPU_ARM_COMMON) $(CONTIKI_CPU)
+CONTIKI_CPU_DIRS = . ./dev ../common ../common/dbg-io $(CONTIKI_CPU) ./$(CONTIKI_CPU_FAMILY)/Source 
+
+# Light implementation of printf functions .. save about 28kB of binary size
+TARGETLIBS = dbg-printf.c dbg-puts.c dbg-putchar.c dbg-sprintf.c dbg-snprintf.c strformat.c
+
+
+# TODO
+# ifdef BOOTLOADER
+# Bootloader doesn't need process or any advanced function
+# EFM32 = retargetio.c debug-uart.c
+EFM32     = clock.c rtimer-arch.c retargetio.c debug-uart.c 
+EFM32_DEVICES  = gpio.c watchdog.c efm32flash.c burtc.c power.c dmactrl.c lesense.c adc.c
+
+ifdef WITH_USART0
+  EFM32_DEVICES  += usart0.c
+  CFLAGS += -DWITH_USART0
+endif
+ifdef WITH_USART1
+  EFM32_DEVICES  += usart1.c
+  CFLAGS += -DWITH_USART1
+endif
+ifdef WITH_USART2
+  EFM32_DEVICES  += usart2.c
+  CFLAGS += -DWITH_USART2
+endif
+
+ifdef WITH_SPI0
+  EFM32_DEVICES  += usart0.c
+  CFLAGS += -DWITH_SPI0
+endif
+ifdef WITH_SPI1
+  EFM32_DEVICES  += usart1.c
+  CFLAGS += -DWITH_SPI1
+endif
+ifdef WITH_SPI2
+  EFM32_DEVICES  += usart2.c
+  CFLAGS += -DWITH_SPI2
+endif
+
+ifdef WITH_I2C0
+  EFM32_DEVICES  += i2c0.c i2c.c
+  CFLAGS += -DWITH_I2C0
+endif
+ifdef WITH_I2C1
+  EFM32_DEVICES  += i2c1.c i2c.c
+  CFLAGS += -DWITH_I2C1
+endif
+
+ifdef WITH_LEUART0
+  EFM32_DEVICES  += leuart0.c
+  CFLAGS += -DWITH_LEUART0
+endif
+ifdef WITH_LEUART1
+  EFM32_DEVICES  += leuart1.c
+  CFLAGS += -DWITH_LEUART1
+endif
+
+ifdef WITH_UART0
+  EFM32_DEVICES  += uart0.c
+  CFLAGS += -DWITH_UART0
+endif
+ifdef WITH_UART1
+  EFM32_DEVICES  += uart1.c
+  CFLAGS += -DWITH_UART1
+endif
+
+CONTIKI_CPU_SOURCEFILES += $(TARGETLIBS) $(EFM32) $(EFM32_DEVICES)
+CONTIKI_CPU_SOURCEFILES += system_$(CONTIKI_CPU_FAMILY).c
+
+CONTIKI_SOURCEFILES        += $(CONTIKI_CPU_SOURCEFILES)
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_SOURCEFILES:.c=.o)}
+
+INCLUDEPATHS += -I$(CONTIKI_CPU_ARM_COMMON)/CMSIS/Include \
+                -I$(CONTIKI_CPU) \
+                -I$(CONTIKI_CPU)/$(CONTIKI_CPU_FAMILY)/Include \
+                -I$(CONTIKI_CPU)/emlib/inc \
+                -I$(CONTIKI_CPU)/dev \
+                ${addprefix -I,$(APPDIRS)} \
+
+
+### Compiler definitions
+CC       = arm-none-eabi-gcc
+LD       = arm-none-eabi-gcc
+AS       = arm-none-eabi-gcc
+AR       = arm-none-eabi-ar
+NM       = arm-none-eabi-nm
+OBJCOPY  = arm-none-eabi-objcopy
+STRIP    = arm-none-eabi-strip
+SIZE     = arm-none-eabi-size
+
+SIZEFLAGS = -A
+
+####################################################################
+# Flags                                                            #
+####################################################################
+
+# -MMD : Don't generate dependencies on system header files.
+# -MP  : Add phony targets, useful when a h-file is removed from a project.
+# -MF  : Specify a file to write the dependencies to.
+DEPFLAGS = -MMD -MP -MF $(@:.o=.d)
+
+WARNINGFLAGS = -Wall -Wextra
+OPTIMFLAGS =   -ffunction-sections -fdata-sections -fomit-frame-pointer
+ARCHFLAGS =    -mcpu=cortex-m3 -mthumb -mfix-cortex-m3-ldrd
+
+CFLAGS += $(WARNINGFLAGS) $(ARCHFLAGS) $(OPTIMFLAGS) $(DEPFLAGS) \
+          -D$(MCU) -DDEBUG_EFM $(INCLUDEPATHS)
+
+ASFLAGS += -x assembler-with-cpp -D$(MCU) $(WARNINGFLAGS) $(ARCHFLAGS) $(INCLUDEPATHS)
+
+#
+# NOTE: The -Wl,--gc-sections flag may interfere with debugging using gdb.
+#
+LIBS_LDFLAGS = -Wl,--start-group -lgcc -lc -lcs3 -lcs3unhosted -Wl,--end-group
+LDFLAGS += -Xlinker -Map=$@.map -L$(CONTIKI_CPU) \
+          -T$(LINKERSCRIPT) $(WARNINGFLAGS) $(ARCHFLAGS) -Wl,--gc-sections
+#LDFLAGS += -L$(CONTIKI_CPU) $(WARNINGFLAGS) $(ARCHFLAGS)
+
+
+####################################################################
+# Rules                                                            #
+####################################################################
+
+OBJECTDIR = obj_$(TARGET)
+
+# EMLIB
+emlib.a : $(CONTIKI_CPU)/emlib.a
+	cp -a $^ $@
+
+$(CONTIKI_CPU)/emlib.a: $(EMLIB_OBJECTFILES)
+	$(AR) $(AROPTS) $@ $(EMLIB_OBJECTFILES)
+
+$(EMLIB_OBJECTDIR)/%.o: $(EMLIB_SRCDIR)/%.c
+	@echo "Building $<"
+	@mkdir -p $(EMLIB_OBJECTDIR)
+	@$(CC) $(CFLAGS) -c -o $@ $<
+	@$(FINALIZE_DEPENDENCY)
+
+$(EMLIB_OBJECTDIR):
+	mkdir -p $@
+
+# Startup rule	
+$(STARTUP): $(CONTIKI_CPU)/$(CONTIKI_CPU_FAMILY)/Source/startup_$(CONTIKI_CPU_FAMILY).s
+	@echo "Assembling $<"
+	$(AS) $(ASMFLAGS) $(INCLUDEPATHS) -c -o $@ $<
+
+# Link
+CUSTOM_RULE_LINK = yes
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(TARGET_LIBFILES)
+	@echo "Linking target: $@"
+	$(LD) $(LDFLAGS) $^ $(LIBS_LDFLAGS) -o $@
+
+# Create binary file
+%.$(TARGET).axf: %.$(TARGET)
+	cp $< $@ 
+
+# Create binary file
+%.bin: %.$(TARGET)
+	$(OBJCOPY) -O binary $< $@ 
+
+# a target that gives a user-friendly memory profile, taking into account the RAM
+%.size: %.$(TARGET)
+	@size -A $< | egrep "data|bss" | awk '{s+=$$2} END {f=$(RAM_SIZE)-s; printf "[RAM]   used %6d, free %6d\n",s,f;}'
+	@size -A $< | egrep "text|ARM.ex" | awk '{s+=$$2} END {f=$(FLASH_SIZE)-s; printf "[Flash] used %6d, free %6d\n",s,f;}'
+
+clean: clean_cpu
+
+clean_cpu:
+	-rm -rf $(BUILTSRCDIR)
+	rm -rf emlib.a $(EMLIB_OBJECTDIR)

@@ -1,10 +1,5 @@
-/**
- * \addtogroup shell
- * @{
- */
-
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, Kerlink
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,83 +30,92 @@
  */
 
 /**
+ * \addtogroup efm32
+ *
+ * @{
+ */
+
+/**
  * \file
- *         A shell back-end for the serial port
+ *         Power related functions / helpers implementation
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Martin Chaplet <m.chaplet@kerlink.fr>
  */
 
 #include "contiki.h"
-#include "shell.h"
-
-#include "dev/serial-line.h"
-#include "net/rime.h"
-
-#include <stdio.h>
-#include <string.h>
-
+#include "em_emu.h"
+#include "em_rmu.h"
 
 /*---------------------------------------------------------------------------*/
-PROCESS(serial_shell_process, "Contiki serial shell");
+/*
+ * Initialize Backup Power domain
+ */
+void power_init_backuppd(void)
+{
+  EMU_BUPDInit_TypeDef bupdInit = EMU_BUPDINIT_DEFAULT;
+
+  /* Unlock configuration */
+  EMU_EM4Lock(false);
+
+  /* No additional backup power source :
+   * connect directly main power to backup power */
+  bupdInit.inactivePower = emuPower_MainBU;
+  bupdInit.activePower = emuPower_None;
+
+  /* Disable BUPD Vin Pin backup power domain */
+  bupdInit.enable = true;
+
+  EMU_BUPDInit(&bupdInit);
+
+  /* Wait until backup power functionality is ready */
+  EMU_BUReady();
+
+  // Disable BUPD Vin pin
+  EMU_BUPinEnable(false);
+
+  /* Release reset for backup domain */
+  RMU_ResetControl(rmuResetBU, false);
+}
+
 /*---------------------------------------------------------------------------*/
+/*
+ * Initialize EM4 config
+ */
+static void _init_em4(void)
+{
+  EMU_EM4Init_TypeDef em4Init = EMU_EM4INIT_DEFAULT;
+  /* Enable voltage regulator in backup mode */
+  em4Init.vreg = true;
+
+  /* Configure oscillators in EM4 */
+  em4Init.osc = emuEM4Osc_LFXO;
+
+  /* Lock configuration in case of brown out */
+  em4Init.lockConfig = true;
+
+  EMU_EM4Init(&em4Init);
+}
+
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief      Initialize power module
+ *
+ */
 void
-shell_default_output(const char *text1, int len1, const char *text2, int len2)
+power_init(void)
 {
-  int i;
-  if(text1 == NULL) {
-    text1 = "";
-    len1 = 0;
-  }
-  if(text2 == NULL) {
-    text2 = "";
-    len2 = 0;
-  }
+  power_init_backuppd();
+  _init_em4();
+}
 
-  /* Precision (printf("%.Ns", text1)) not supported on all platforms.
-     putchar(c) not be supported on all platforms. */
-  for(i = 0; i < len1; i++) {
-    printf("%c", text1[i]);
-  }
-  for(i = 0; i < len2; i++) {
-    printf("%c", text2[i]);
-  }
-  printf("\r\n");
-}
 /*---------------------------------------------------------------------------*/
-void
-shell_prompt(char *str)
-{
-#ifdef SERIAL_SHELL_CONF_PROMPT
-	SERIAL_SHELL_CONF_PROMPT(str);
-#else
-  printf("%d.%d: %s\r\n", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 str);
-#endif
-}
-/*---------------------------------------------------------------------------*/
-void
-shell_exit(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(serial_shell_process, ev, data)
-{
-  PROCESS_BEGIN();
 
-  shell_init();
-
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
-    shell_input(data, strlen(data));
-  }
-
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-void
-serial_shell_init(void)
+uint32_t enter_standby(void)
 {
-  process_start(&serial_shell_process, NULL);
+  //  gpio_suspend();
+
+  EMU_EnterEM2(false);
+
+  return 0;
 }
-/*---------------------------------------------------------------------------*/
 /** @} */

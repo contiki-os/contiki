@@ -45,7 +45,7 @@
 #error Change SERIAL_LINE_CONF_BUFSIZE in contiki-conf.h.
 #endif
 
-#define IGNORE_CHAR(c) (c == 0x0d)
+#define IGNORE_CHAR(c) (c == 0x0)
 #define END 0x0a
 
 static struct ringbuf rxbuf;
@@ -64,6 +64,20 @@ serial_line_input_byte(unsigned char c)
   if(IGNORE_CHAR(c)) {
     return 0;
   }
+
+  // Linux minicom compatibility
+  if(c == 0x0d) c=0x0a;
+
+#ifdef SERIAL_LINE_CONF_LOCALECHO
+  if(c == END) putchar ('\r');
+  putchar(c);
+
+  if(c == 0x08)
+  {
+	  putchar(' ');
+	  putchar(c);
+  }
+#endif
 
   if(!overflow) {
     /* Add character */
@@ -104,7 +118,14 @@ PROCESS_THREAD(serial_line_process, ev, data)
     } else {
       if(c != END) {
         if(ptr < BUFSIZE-1) {
-          buf[ptr++] = (uint8_t)c;
+          if(c == 0x08) /* ^H  - backspace	*/
+          {
+        	  ptr--;
+          }
+          else
+          {
+        	  buf[ptr++] = (uint8_t)c;
+          }
         } else {
           /* Ignore character (wait for EOL) */
         }
