@@ -1,0 +1,27 @@
+
+CONTIKI_TARGET_DIRS = . apps
+
+CFLAGS+=-DAUTOSTART_ENABLE
+
+WITH_UART0=1
+WITH_SPI1=1
+WITH_PM=1
+
+ARCH += leds.c leds-arch.c ymodem.c shell-efm32hw.c
+
+ifndef CONTIKI_TARGET_MAIN
+CONTIKI_TARGET_MAIN = contiki-main.c
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(CONTIKI_TARGET_MAIN)
+
+MCU=EFM32GG990F1024
+
+ifdef COFFEE
+CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c
+CFLAGS+= -DCOFFEE 
+endif
+
+
+include $(CONTIKI)/cpu/arm/efm32/Makefile.efm32
+
