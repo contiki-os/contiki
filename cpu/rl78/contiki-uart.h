@@ -29,17 +29,12 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \author Maxim Salov <max.salov@gmail.com>
+ * \author Ian Martin <martini@redwirellc.com>
  */
 
-#ifndef UART0_H__
-#define UART0_H__
+#ifndef CONTIKI_UART_H
+#define CONTIKI_UART_H
 
-void uart0_init(void);
-void uart0_putchar(int c);
-#define uart0_can_getchar() (SRIF0)
-char uart0_getchar(void);
+extern int (*uart0_input_handler)(unsigned char c);
 
-int uart0_puts(const char *s);
-
-#endif /* UART0_H__ */
+#endif

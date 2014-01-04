@@ -197,7 +197,7 @@ _start:
 
 
 
-	call	!!__rl78_init
+;	call	!!__rl78_init
 
 #ifdef PROFILE_SUPPORT	/* Defined in gcrt0.S.  */
 	movw	ax, # _start

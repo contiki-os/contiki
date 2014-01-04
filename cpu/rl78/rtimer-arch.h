@@ -29,17 +29,20 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \author Maxim Salov <max.salov@gmail.com>
+ * \author Ian Martin <martini@redwirellc.com>
  */
 
-#ifndef UART0_H__
-#define UART0_H__
+#ifndef __RTIMER_ARCH_H__
+#define __RTIMER_ARCH_H__
 
-void uart0_init(void);
-void uart0_putchar(int c);
-#define uart0_can_getchar() (SRIF0)
-char uart0_getchar(void);
+#include "contiki-conf.h"
+#include "rl78.h"
 
-int uart0_puts(const char *s);
+#define RTIMER_ARCH_SECOND (15625U)
 
-#endif /* UART0_H__ */
+/* #define rtimer_arch_now() (TCR00) */
+#define rtimer_arch_now() (0)
+
+/* void rtimer_isr(void) __interrupt(T1_VECTOR); */
+
+#endif /* __RTIMER_ARCH_H__ */

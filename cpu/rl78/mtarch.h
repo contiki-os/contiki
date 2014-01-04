@@ -29,17 +29,24 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \author Maxim Salov <max.salov@gmail.com>
+ * \author Ian Martin <martini@redwirellc.com>
  */
 
-#ifndef UART0_H__
-#define UART0_H__
+#ifndef __MTARCH_H__
+#define __MTARCH_H__
 
-void uart0_init(void);
-void uart0_putchar(int c);
-#define uart0_can_getchar() (SRIF0)
-char uart0_getchar(void);
+#include "contiki-conf.h"
 
-int uart0_puts(const char *s);
+#ifdef MTARCH_CONF_STACKSIZE
+#define MTARCH_STACKSIZE MTARCH_CONF_STACKSIZE
+#else
+#define MTARCH_STACKSIZE 128
+#endif
 
-#endif /* UART0_H__ */
+struct mtarch_thread {
+  unsigned char stack[MTARCH_STACKSIZE];
+  unsigned char *sp;
+};
+
+#endif /* __MTARCH_H__ */
+

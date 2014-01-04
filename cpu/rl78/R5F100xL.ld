@@ -29,6 +29,9 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
 */
+/**
+ * \author DJ Delorie <dj@redhat.com>, Ian Martin <martini@redwirellc.com>
+ */
 
 /* Default linker script, for normal executables */
 OUTPUT_ARCH(rl78)
@@ -37,13 +40,14 @@ ENTRY(_start)
 /* Do we need any of these for elf?
    __DYNAMIC = 0;    */
 
-/* This is for an RL78/G13, 64k flash, 4k ram */
+/* This is for an R5F100xL, 512k flash, 32k ram, 8k data flash */
 MEMORY {
 	VEC (r)   : ORIGIN = 0x00000, LENGTH = 0x00002
 	IVEC (r)  : ORIGIN = 0x00004, LENGTH = 0x0007c
 	OPT (r)   : ORIGIN = 0x000c0, LENGTH = 0x00004
-	ROM (r)   : ORIGIN = 0x000d8, LENGTH = 0x0ff28
-	RAM (w)   : ORIGIN = 0xfef00, LENGTH = 0x00fe0
+	MIRROR (r): ORIGIN = 0x03000, LENGTH = 0x04f00
+	ROM (r)   : ORIGIN = 0x07F00, LENGTH = 0x78100
+	RAM (w)   : ORIGIN = 0xf8000, LENGTH = 0x07ee0
 	STACK (w) : ORIGIN = 0xffee0, LENGTH = 0x00002
 }
 
@@ -51,15 +55,15 @@ SECTIONS
 {
   .vec :
   {
-    *(.vec)
+    KEEP(*(.vec))
   } > VEC
   .ivec :
   {
-    *(.ivec)
+    KEEP(*(.ivec))
   } > IVEC
   .opt :
   {
-    *(.opt)
+    KEEP(*(.opt))
   } > OPT
 
   /* CubeSuite always starts at 0xd8.  */
@@ -98,7 +102,7 @@ SECTIONS
     _edata = .;
     PROVIDE (edata = .);
     PROVIDE (__dataend = .);
-  } > RAM AT> ROM
+  } > RAM AT> MIRROR
 
   /* Note that crt0 assumes this is a multiple of two; all the
      start/stop symbols are also assumed word-aligned.  */
@@ -167,7 +171,7 @@ SECTIONS
     KEEP (*(EXCLUDE_FILE (*crtend*.o ) .dtors))
     KEEP (*(SORT(.dtors.*)))
     KEEP (*(.dtors))
-  } > ROM
+  } > MIRROR
 
   .text           :
   {

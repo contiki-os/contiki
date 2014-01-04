@@ -29,17 +29,22 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \author Maxim Salov <max.salov@gmail.com>
+ * \author Ian Martin <martini@redwirellc.com>
  */
 
-#ifndef UART0_H__
-#define UART0_H__
+#ifndef RL78_H
+#define RL78_H
 
-void uart0_init(void);
-void uart0_putchar(int c);
-#define uart0_can_getchar() (SRIF0)
-char uart0_getchar(void);
+#include <stdint.h>
 
-int uart0_puts(const char *s);
+#include "sfrs.h"
+#include "sfrs-ext.h"
 
-#endif /* UART0_H__ */
+#define f_CLK         32000000 // 32 MHz.
+#define CLOCK_CHANNEL 0
+#define CLOCK_SCALER  15       // Use f_CLK / 2^15.
+
+typedef uint32_t clock_time_t;
+typedef unsigned short uip_stats_t;
+
+#endif // RL78_H

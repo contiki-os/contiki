@@ -29,17 +29,30 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \author Maxim Salov <max.salov@gmail.com>
+ * \author Ian Martin <martini@redwirellc.com>
  */
 
-#ifndef UART0_H__
-#define UART0_H__
+#ifndef NEWLINE
+#define NEWLINE "\r\n"
+#endif
 
-void uart0_init(void);
-void uart0_putchar(int c);
-#define uart0_can_getchar() (SRIF0)
-char uart0_getchar(void);
+#ifndef BIT
+#define BIT(n) (1 << (n))
+#endif
 
-int uart0_puts(const char *s);
+#define BAUD2UBR(x) (x)
 
-#endif /* UART0_H__ */
+#define LED1 P120
+#define LED2 P43
+#define LED3 P16
+#define LED4 P15
+#define LED5 P06
+#define LED6 P05
+#define LED7 P30
+#define LED8 P50
+
+#define HEARTBEAT_LED1 LED2
+#define HEARTBEAT_LED2 LED3
+#define RADIO_TX_LED   LED5
+#define RADIO_RX_LED   LED6
+#define UART_RX_LED    LED8

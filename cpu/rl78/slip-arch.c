@@ -29,17 +29,31 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \author Maxim Salov <max.salov@gmail.com>
+ * \author Ian Martin <martini@redwirellc.com>
  */
 
-#ifndef UART0_H__
-#define UART0_H__
+#include <stdio.h>    /* for putchar(). */
 
-void uart0_init(void);
-void uart0_putchar(int c);
-#define uart0_can_getchar() (SRIF0)
-char uart0_getchar(void);
+#include "contiki.h"
+#include "dev/slip.h"
 
-int uart0_puts(const char *s);
+#include "uart0.h"
+#include "slip-arch.h"
 
-#endif /* UART0_H__ */
+/*---------------------------------------------------------------------------*/
+void
+slip_arch_writeb(unsigned char c)
+{
+  uart0_putchar(c);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Initalize the RS232 port and the SLIP driver.
+ *
+ */
+void
+slip_arch_init(unsigned long ubr)
+{
+  uart0_set_input(slip_input_byte);
+}
+/*---------------------------------------------------------------------------*/
