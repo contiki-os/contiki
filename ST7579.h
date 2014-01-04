@@ -2,7 +2,7 @@
  *   @file   ST7579.h
  *   @brief  Header file of ST7579 Driver.
  *   @author DBogdan (dragos.bogdan@analog.com)
-********************************************************************************
+ ********************************************************************************
  * Copyright 2012(c) Analog Devices, Inc.
  *
  * All rights reserved.
@@ -36,9 +36,9 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
-********************************************************************************
+ ********************************************************************************
  *   SVN Revision: $WCREV$
-*******************************************************************************/
+ *******************************************************************************/
 #ifndef __ST7579_H__
 #define __ST7579_H__
 
@@ -68,7 +68,7 @@ void ST7579_Char(unsigned char yPosition,
 /*! Sends a string to ST7579 controller. */
 void ST7579_String(unsigned char yPosition,
                    unsigned char xPosition,
-                   unsigned char* string,
+                   unsigned char *string,
                    unsigned char bigFont);
 
 /*! Sends an integer number to ST7579 controller. */
@@ -97,4 +97,4 @@ void ST7579_Image(unsigned char yPosition,
                   unsigned char width,
                   unsigned char height);
 
-#endif // __ST7579_H__
+#endif /* __ST7579_H__ */

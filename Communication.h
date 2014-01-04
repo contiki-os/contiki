@@ -2,7 +2,7 @@
  *   @file   Communication.h
  *   @brief  Header file of the Communication Driver for RL78G14 processor.
  *   @author DBogdan (dragos.bogdan@analog.com)
-********************************************************************************
+ ********************************************************************************
  * Copyright 2012(c) Analog Devices, Inc.
  *
  * All rights reserved.
@@ -36,9 +36,9 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
-********************************************************************************
+ ********************************************************************************
  *   SVN Revision: $WCREV$
-*******************************************************************************/
+ *******************************************************************************/
 #ifndef __COMMUNICATION_H__
 #define __COMMUNICATION_H__
 
@@ -83,12 +83,12 @@ char SPI_Init(char lsbFirst,
 
 /*! Writes data to SPI. */
 char SPI_Write(char slaveDeviceId,
-               unsigned char* data,
+               unsigned char *data,
                char bytesNumber);
 
 /*! Reads data from SPI. */
 char SPI_Read(char slaveDeviceId,
-              unsigned char* data,
+              unsigned char *data,
               char bytesNumber);
 
 /*! Initializes the I2C communication peripheral. */
@@ -96,14 +96,14 @@ char I2C_Init(long clockFreq);
 
 /*! Writes data to a slave device. */
 char I2C_Write(char slaveAddress,
-               unsigned char* dataBuffer,
+               unsigned char *dataBuffer,
                char bytesNumber,
                char stopBit);
 
 /*! Reads data from a slave device. */
 char I2C_Read(char slaveAddress,
-              unsigned char* dataBuffer,
+              unsigned char *dataBuffer,
               char bytesNumber,
               char stopBit);
 
-#endif // __COMMUNICATION_H__
+#endif /* __COMMUNICATION_H__ */

@@ -2,7 +2,7 @@
  *   @file   Communication.c
  *   @brief  Implementation of the Communication Driver for RL78G14 processor.
  *   @author DBogdan (dragos.bogdan@analog.com)
-********************************************************************************
+ ********************************************************************************
  * Copyright 2012(c) Analog Devices, Inc.
  *
  * All rights reserved.
@@ -36,15 +36,15 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
-********************************************************************************
+ ********************************************************************************
  *   SVN Revision: $WCREV$
-*******************************************************************************/
+ *******************************************************************************/
 
 /******************************************************************************/
 /***************************** Include Files **********************************/
 /******************************************************************************/
-#include "Communication.h"	// Communication definitions
-#include "RDKRL78G14.h"		// RDKRL78G14 definitions
+#include "Communication.h"  /* Communication definitions */
+#include "RDKRL78G14.h"   /* RDKRL78G14 definitions */
 
 char IICA0_Flag;
 
@@ -56,13 +56,13 @@ char IICA0_Flag;
  * @brief I2C interrupt service routine.
  *
  * @return None.
-*******************************************************************************/
+ *******************************************************************************/
 #pragma vector = INTIICA0_vect
-__interrupt static void IICA0_Interrupt(void)
+__interrupt static void
+IICA0_Interrupt(void)
 {
-    IICA0_Flag = 1;
+  IICA0_Flag = 1;
 }
-
 /***************************************************************************//**
  * @brief Initializes the SPI communication peripheral.
  *
@@ -85,78 +85,77 @@ __interrupt static void IICA0_Interrupt(void)
  * @return status   - Result of the initialization procedure.
  *                    Example:  0 - if initialization was successful;
  *                             -1 - if initialization was unsuccessful.
-*******************************************************************************/
-char SPI_Init(char lsbFirst,
-              long clockFreq,
-              char clockPol,
-              char clockEdg)
+ *******************************************************************************/
+char
+SPI_Init(char lsbFirst,
+         long clockFreq,
+         char clockPol,
+         char clockEdg)
 {
-    long mckFreq  = 32000000;
-    char sdrValue = 0;
-    char delay    = 0;
+  long mckFreq = 32000000;
+  char sdrValue = 0;
+  char delay = 0;
 
-    /* Configure the CS pins. */
-    PMOD1_CS_OUT;
-    PMOD1_CS_HIGH;
-    PMOD2_CS_OUT;
-    PMOD2_CS_HIGH;
-    ST7579_CS_OUT;
-    ST7579_CS_HIGH;
+  /* Configure the CS pins. */
+  PMOD1_CS_OUT;
+  PMOD1_CS_HIGH;
+  PMOD2_CS_OUT;
+  PMOD2_CS_HIGH;
+  ST7579_CS_OUT;
+  ST7579_CS_HIGH;
 
-    /* Enable input clock supply. */
-    SAU1EN = 1;
+  /* Enable input clock supply. */
+  SAU1EN = 1;
 
-    /* After setting the SAUmEN bit to 1, be sure to set serial clock select
-       register m (SPSm) after 4 or more fCLK clocks have elapsed. */
+  /* After setting the SAUmEN bit to 1, be sure to set serial clock select
+     register m (SPSm) after 4 or more fCLK clocks have elapsed. */
+  NOP;
+  NOP;
+  NOP;
+  NOP;
+
+  /* Select the fCLK as input clock.  */
+  SPS1 = 0x0000;
+
+  /* Select the CSI operation mode. */
+  SMR11 = 0x0020;
+
+  clockPol = 1 - clockPol;
+  SCR11 = (clockEdg << 13) |
+    (clockPol << 12) |
+    0xC000 |                       /* Operation mode: Transmission/reception. */
+    0x0007;                        /* 8-bit data length. */
+
+  /* clockFreq =  mckFreq / (sdrValue * 2 + 2) */
+  sdrValue = mckFreq / (2 * clockFreq) - 1;
+  SDR11 = sdrValue << 9;
+
+  /* Set the clock and data initial level. */
+  clockPol = 1 - clockPol;
+  SO1 &= ~0x0202;
+  SO1 |= (clockPol << 9) |
+    (clockPol << 1);
+
+  /* Enable output for serial communication operation. */
+  SOE1 |= 0x0002;
+
+  /*  Configure the MISO pin as input. */
+  PM7 |= 0x02;
+
+  /*  Configure SCLK and MOSI pins as output. */
+  P7 |= 0x05;
+  PM7 &= ~0x05;
+
+  /* Wait for the changes to take place. */
+  for(delay = 0; delay < 50; delay++) {
     NOP;
-    NOP;
-    NOP;
-    NOP;
+  }
 
-    /* Select the fCLK as input clock.  */
-    SPS1 = 0x0000;
+  /* Set the SEmn bit to 1 and enter the communication wait status */
+  SS1 |= 0x0002;
 
-    /* Select the CSI operation mode. */
-    SMR11 = 0x0020;
-
-    clockPol = 1 - clockPol;
-    SCR11    = (clockEdg << 13) |
-               (clockPol << 12) |
-                0xC000 |           // Operation mode: Transmission/reception.
-                0x0007;            // 8-bit data length.
-
-    /* clockFreq =  mckFreq / (sdrValue * 2 + 2) */
-    sdrValue = mckFreq / (2 * clockFreq) - 1;
-    SDR11    = sdrValue << 9;
-
-    /* Set the clock and data initial level. */
-    clockPol = 1 - clockPol;
-    SO1     &= ~0x0202;
-    SO1     |= (clockPol << 9) |
-           (clockPol << 1);
-
-    /* Enable output for serial communication operation. */
-    SOE1 |= 0x0002;
-
-    /*  Configure the MISO pin as input. */
-    PM7  |= 0x02;
-    
-    /*  Configure SCLK and MOSI pins as output. */
-    P7  |= 0x05;
-    PM7 &= ~0x05;
-    
-    /* Wait for the changes to take place. */
-    for(delay = 0; delay < 50; delay++)
-    {
-        NOP;
-    }
-    
-    /* Set the SEmn bit to 1 and enter the communication wait status */
-    SS1 |= 0x0002;
-    
-    return 0;
+  return 0;
 }
-
 /***************************************************************************//**
  * @brief Writes data to SPI.
  *
@@ -165,124 +164,110 @@ char SPI_Init(char lsbFirst,
  * @param bytesNumber   - Number of bytes to write.
  *
  * @return Number of written bytes.
-*******************************************************************************/
-char SPI_Write(char slaveDeviceId,
-               unsigned char* data,
-               char bytesNumber)
+ *******************************************************************************/
+char
+SPI_Write(char slaveDeviceId,
+          unsigned char *data,
+          char bytesNumber)
 {
-    char           byte        = 0;
-    unsigned char  read        = 0;
-    unsigned short originalSCR = 0;
-    unsigned short originalSO1 = 0;
+  char byte = 0;
+  unsigned char read = 0;
+  unsigned short originalSCR = 0;
+  unsigned short originalSO1 = 0;
 
-    if(slaveDeviceId == 1)
-    {
-        PMOD1_CS_LOW;
-    }
-    if(slaveDeviceId == 2)
-    {
-        PMOD2_CS_LOW;
-    }
-    if(slaveDeviceId == 3)
-    {
-        ST1        |= 0x0002;
-        originalSO1 = SO1;
-        originalSCR = SCR11;
-        SO1        &= ~0x0202;
-        SCR11      &= ~0x3000;
-        SS1        |= 0x0002;
-        ST7579_CS_LOW;
-    }
-    for(byte = 0; byte < bytesNumber; byte++)
-    {
-        SIO21 = data[byte];
-        NOP;
-        while(SSR11 & 0x0040);
-        read = SIO21;
-    }
-    if(slaveDeviceId == 1)
-    {
-        PMOD1_CS_HIGH;
-    }
-    if(slaveDeviceId == 2)
-    {
-        PMOD2_CS_HIGH;
-    }
-    if(slaveDeviceId == 3)
-    {
-        ST7579_CS_HIGH;
-        ST1  |= 0x0002;
-        SO1   = originalSO1;
-        SCR11 = originalSCR;
-        SS1  |= 0x0002;
-    }
+  if(slaveDeviceId == 1) {
+    PMOD1_CS_LOW;
+  }
+  if(slaveDeviceId == 2) {
+    PMOD2_CS_LOW;
+  }
+  if(slaveDeviceId == 3) {
+    ST1 |= 0x0002;
+    originalSO1 = SO1;
+    originalSCR = SCR11;
+    SO1 &= ~0x0202;
+    SCR11 &= ~0x3000;
+    SS1 |= 0x0002;
+    ST7579_CS_LOW;
+  }
+  for(byte = 0; byte < bytesNumber; byte++) {
+    SIO21 = data[byte];
+    NOP;
+    while(SSR11 & 0x0040) ;
+    read = SIO21;
+  }
+  if(slaveDeviceId == 1) {
+    PMOD1_CS_HIGH;
+  }
+  if(slaveDeviceId == 2) {
+    PMOD2_CS_HIGH;
+  }
+  if(slaveDeviceId == 3) {
+    ST7579_CS_HIGH;
+    ST1 |= 0x0002;
+    SO1 = originalSO1;
+    SCR11 = originalSCR;
+    SS1 |= 0x0002;
+  }
 
-    return bytesNumber;
+  return bytesNumber;
 }
-
 /***************************************************************************//**
  * @brief Reads data from SPI.
  *
  * @param slaveDeviceId - The ID of the selected slave device.
- * @param data          - Data represents the write buffer as an input parameter 
+ * @param data          - Data represents the write buffer as an input parameter
  *                        and the read buffer as an output parameter.
  * @param bytesNumber   - Number of bytes to read.
  *
  * @return Number of read bytes.
-*******************************************************************************/
-char SPI_Read(char slaveDeviceId,
-              unsigned char* data,
-              char bytesNumber)
+ *******************************************************************************/
+char
+SPI_Read(char slaveDeviceId,
+         unsigned char *data,
+         char bytesNumber)
 {
-    char           byte        = 0;
-    unsigned short originalSCR = 0;
-    unsigned short originalSO1 = 0;
+  char byte = 0;
+  unsigned short originalSCR = 0;
+  unsigned short originalSO1 = 0;
 
-    if(slaveDeviceId == 1)
-    {
-        PMOD1_CS_LOW;
-    }
-    if(slaveDeviceId == 2)
-    {
-        PMOD2_CS_LOW;
-    }
-    if(slaveDeviceId == 3)
-    {
-        ST1        |= 0x0002;
-        originalSO1 = SO1;
-        originalSCR = SCR11;
-        SO1        &= ~0x0202;
-        SCR11      &= ~0x3000;
-        SS1        |= 0x0002;
-        ST7579_CS_LOW;
-    }
-    for(byte = 0; byte < bytesNumber; byte++)
-    {
-        SIO21 = data[byte];
-        NOP;
-        while(SSR11 & 0x0040);
-        data[byte] = SIO21;
-    }
-    if(slaveDeviceId == 1)
-    {
-        PMOD1_CS_HIGH;
-    }
-    if(slaveDeviceId == 2)
-    {
-        PMOD2_CS_HIGH;
-    }
-    if(slaveDeviceId == 3)
-    {
-        ST7579_CS_HIGH;
-        ST1  |= 0x0002;
-        SO1   = originalSO1;
-        SCR11 = originalSCR;
-        SS1  |= 0x0002;
-    }
+  if(slaveDeviceId == 1) {
+    PMOD1_CS_LOW;
+  }
+  if(slaveDeviceId == 2) {
+    PMOD2_CS_LOW;
+  }
+  if(slaveDeviceId == 3) {
+    ST1 |= 0x0002;
+    originalSO1 = SO1;
+    originalSCR = SCR11;
+    SO1 &= ~0x0202;
+    SCR11 &= ~0x3000;
+    SS1 |= 0x0002;
+    ST7579_CS_LOW;
+  }
+  for(byte = 0; byte < bytesNumber; byte++) {
+    SIO21 = data[byte];
+    NOP;
+    while(SSR11 & 0x0040) ;
+    data[byte] = SIO21;
+  }
+  if(slaveDeviceId == 1) {
+    PMOD1_CS_HIGH;
+  }
+  if(slaveDeviceId == 2) {
+    PMOD2_CS_HIGH;
+  }
+  if(slaveDeviceId == 3) {
+    ST7579_CS_HIGH;
+    ST1 |= 0x0002;
+    SO1 = originalSO1;
+    SCR11 = originalSCR;
+    SS1 |= 0x0002;
+  }
 
-    return bytesNumber;
+  return bytesNumber;
 }
-
 /***************************************************************************//**
  * @brief Initializes the I2C communication peripheral.
  *
@@ -291,43 +276,43 @@ char SPI_Read(char slaveDeviceId,
  * @return status   - Result of the initialization procedure.
  *                    Example:  0 - if initialization was successful;
  *                             -1 - if initialization was unsuccessful.
-*******************************************************************************/
-char I2C_Init(long clockFreq)
+ *******************************************************************************/
+char
+I2C_Init(long clockFreq)
 {
-    long          fckFreq = 32000000;
-    unsigned char wlValue = 0;
-    unsigned char whValue = 0;
+  long fckFreq = 32000000;
+  unsigned char wlValue = 0;
+  unsigned char whValue = 0;
 
-    /* Enable interrupts */
-    EI;
+  /* Enable interrupts */
+  EI;
 
-    /* Enable input clock supply. */
-    IICA0EN = 1;
+  /* Enable input clock supply. */
+  IICA0EN = 1;
 
-    /* Set the fast mode plus operation. */
-    SMC0 = 1;
+  /* Set the fast mode plus operation. */
+  SMC0 = 1;
 
-    /* Set transfer rate. */
-    wlValue = (unsigned char)((0.5 * fckFreq) / clockFreq);
-    whValue = (unsigned char)(wlValue - (fckFreq / (10 * clockFreq)));
-    IICWL0  = wlValue;
-    IICWH0  = whValue;
+  /* Set transfer rate. */
+  wlValue = (unsigned char)((0.5 * fckFreq) / clockFreq);
+  whValue = (unsigned char)(wlValue - (fckFreq / (10 * clockFreq)));
+  IICWL0 = wlValue;
+  IICWH0 = whValue;
 
-    STCEN0  = 1; // After operation is enabled, enable generation of a start
-                 // condition without detecting a stop condition.
-    WTIM0  = 1;  // Interrupt request is generated at the ninth clock’s
-                 // falling edge.
+  STCEN0 = 1;    /* After operation is enabled, enable generation of a start */
+                 /* condition without detecting a stop condition. */
+  WTIM0 = 1;     /* Interrupt request is generated at the ninth clock’s */
+                 /* falling edge. */
 
-    /* Enable I2C operation. */
-    IICE0 = 1;
+  /* Enable I2C operation. */
+  IICE0 = 1;
 
-    /* Configure SCLA0 and SDAA0 pins as digital output. */
-    P6 &= ~0x03;
-    PM6 &= ~0x03;
+  /* Configure SCLA0 and SDAA0 pins as digital output. */
+  P6 &= ~0x03;
+  PM6 &= ~0x03;
 
-    return 0;
+  return 0;
 }
-
 /***************************************************************************//**
  * @brief Writes data to a slave device.
  *
@@ -338,50 +323,45 @@ char I2C_Init(long clockFreq)
  *                       Example: 0 - A stop condition will not be sent;
  *                                1 - A stop condition will be sent.
  *
- * @return status      - Number of read bytes or 0xFF if the slave address was 
+ * @return status      - Number of read bytes or 0xFF if the slave address was
  *                       not acknowledged by the device.
-*******************************************************************************/
-char I2C_Write(char slaveAddress,
-               unsigned char* dataBuffer,
-               char bytesNumber,
-               char stopBit)
+ *******************************************************************************/
+char
+I2C_Write(char slaveAddress,
+          unsigned char *dataBuffer,
+          char bytesNumber,
+          char stopBit)
 {
-    char byte   = 0;
-    char status = 0;
+  char byte = 0;
+  char status = 0;
 
-    IICAMK0 = 1;    // Interrupt servicing disabled.
-    STT0    = 1;    // Generate a start condition.
-    IICAMK0 = 0;    // Interrupt servicing enabled.
+  IICAMK0 = 1;      /* Interrupt servicing disabled. */
+  STT0 = 1;         /* Generate a start condition. */
+  IICAMK0 = 0;      /* Interrupt servicing enabled. */
 
-    /* Send the first byte. */
-    IICA0_Flag = 0;
-    IICA0      = (slaveAddress << 1);
-    while(IICA0_Flag == 0);
+  /* Send the first byte. */
+  IICA0_Flag = 0;
+  IICA0 = (slaveAddress << 1);
+  while(IICA0_Flag == 0) ;
 
-    if(ACKD0)   // Acknowledge was detected.
-    {
-        for(byte = 0; byte < bytesNumber; byte++)
-        {
-            IICA0_Flag = 0;
-            IICA0      = *dataBuffer;
-            while(IICA0_Flag == 0);
-            dataBuffer++;
-        }
-        status = bytesNumber;
+  if(ACKD0) {   /* Acknowledge was detected. */
+    for(byte = 0; byte < bytesNumber; byte++) {
+      IICA0_Flag = 0;
+      IICA0 = *dataBuffer;
+      while(IICA0_Flag == 0) ;
+      dataBuffer++;
     }
-    else        // Acknowledge was not detected.
-    {
-        status = 0xFF;
-    }
-    if(stopBit)
-    {
-        SPT0 = 1;       // Generate a stop condition.
-        while(IICBSY0); // Wait until the I2C bus status flag is cleared.
-    }
+    status = bytesNumber;
+  } else {      /* Acknowledge was not detected. */
+    status = 0xFF;
+  }
+  if(stopBit) {
+    SPT0 = 1;           /* Generate a stop condition. */
+    while(IICBSY0) ;    /* Wait until the I2C bus status flag is cleared. */
+  }
 
-    return status;
+  return status;
 }
-
 /***************************************************************************//**
  * @brief Reads data from a slave device.
  *
@@ -392,52 +372,47 @@ char I2C_Write(char slaveAddress,
  *                       Example: 0 - A stop condition will not be sent;
  *                                1 - A stop condition will be sent.
  *
- * @return status      - Number of read bytes or 0xFF if the slave address was 
+ * @return status      - Number of read bytes or 0xFF if the slave address was
  *                       not acknowledged by the device.
-*******************************************************************************/
-char I2C_Read(char slaveAddress,
-              unsigned char* dataBuffer,
-              char bytesNumber,
-              char stopBit)
+ *******************************************************************************/
+char
+I2C_Read(char slaveAddress,
+         unsigned char *dataBuffer,
+         char bytesNumber,
+         char stopBit)
 {
-    char byte	= 0;
-    char status = 0;
+  char byte = 0;
+  char status = 0;
 
-    IICAMK0 = 1;	// Interrupt servicing disabled.
-    STT0    = 1;	// Generate a start condition.
-    IICAMK0 = 0;        // Interrupt servicing enabled.
+  IICAMK0 = 1;    /* Interrupt servicing disabled. */
+  STT0 = 1;       /* Generate a start condition. */
+  IICAMK0 = 0;          /* Interrupt servicing enabled. */
 
-    /* Send the first byte. */
-    IICA0_Flag = 0;
-    IICA0      = (slaveAddress << 1) + 1;
-    while(IICA0_Flag == 0);
+  /* Send the first byte. */
+  IICA0_Flag = 0;
+  IICA0 = (slaveAddress << 1) + 1;
+  while(IICA0_Flag == 0) ;
 
-    if(ACKD0)           // Acknowledge was detected.
-    {
-        ACKE0 = 1;      // Enable acknowledgment.
-        for(byte = 0; byte < bytesNumber; byte++)
-        {
-            if(byte == (bytesNumber - 1))
-            {
-                ACKE0 = 0U;           // Disable acknowledgment.
-            }
-            WREL0       = 1U;         // Cancel wait.
-            IICA0_Flag  = 0;
-            while(IICA0_Flag == 0);
-            *dataBuffer = IICA0;
-            dataBuffer++;
-        }
-        status = bytesNumber;
+  if(ACKD0) {           /* Acknowledge was detected. */
+    ACKE0 = 1;          /* Enable acknowledgment. */
+    for(byte = 0; byte < bytesNumber; byte++) {
+      if(byte == (bytesNumber - 1)) {
+        ACKE0 = 0U;                   /* Disable acknowledgment. */
+      }
+      WREL0 = 1U;                     /* Cancel wait. */
+      IICA0_Flag = 0;
+      while(IICA0_Flag == 0) ;
+      *dataBuffer = IICA0;
+      dataBuffer++;
     }
-    else                     // Acknowledge was not detected.
-    {
-        status = 0xFF;
-    }
-    if(stopBit)
-    {
-        SPT0 = 1;           // Generate a stop condition.
-        while(IICBSY0);     // Wait until the I2C bus status flag is cleared.
-    }
+    status = bytesNumber;
+  } else {                   /* Acknowledge was not detected. */
+    status = 0xFF;
+  }
+  if(stopBit) {
+    SPT0 = 1;               /* Generate a stop condition. */
+    while(IICBSY0) ;        /* Wait until the I2C bus status flag is cleared. */
+  }
 
-    return status;
+  return status;
 }

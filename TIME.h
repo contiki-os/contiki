@@ -2,7 +2,7 @@
  *   @file   TIME.h
  *   @brief  Header file of TIME Driver for RENESAS RL78G14 Processor.
  *   @author Dan Nechita
-********************************************************************************
+ ********************************************************************************
  * Copyright 2012(c) Analog Devices, Inc.
  *
  * All rights reserved.
@@ -36,9 +36,9 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
-********************************************************************************
+ ********************************************************************************
  *   SVN Revision: $WCREV$
-*******************************************************************************/
+ *******************************************************************************/
 #ifndef __TIME_H__
 #define __TIME_H__
 
@@ -49,7 +49,7 @@
 /*! Initializes the timer used in this driver. */
 char TIME_Init(void);
 
-/*! The timer begins to count in steps of microseconds(us) until the user calls 
+/*! The timer begins to count in steps of microseconds(us) until the user calls
     a stop measurement function. */
 void TIME_StartMeasure(void);
 

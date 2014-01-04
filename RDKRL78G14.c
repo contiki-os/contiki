@@ -2,7 +2,7 @@
  *   @file   RDKRL78G14.c
  *   @brief  Implementation of the RDKRL78G14 Driver.
  *   @author DBogdan (dragos.bogdan@analog.com)
-********************************************************************************
+ ********************************************************************************
  * Copyright 2012(c) Analog Devices, Inc.
  *
  * All rights reserved.
@@ -36,14 +36,14 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
-********************************************************************************
+ ********************************************************************************
  *   SVN Revision: $WCREV$
-*******************************************************************************/
+ *******************************************************************************/
 
 /******************************************************************************/
 /***************************** Include Files **********************************/
 /******************************************************************************/
-#include "RDKRL78G14.h"	// RDKRL78G14 definitions
+#include "RDKRL78G14.h" /* RDKRL78G14 definitions */
 
 /******************************************************************************/
 /************************ Functions Definitions *******************************/
@@ -53,37 +53,36 @@
  * @brief Resets the RDKRL78G14.
  *
  * @return None.
-*******************************************************************************/
-void RDKRL78G14_Reset(void)
+ *******************************************************************************/
+void
+RDKRL78G14_Reset(void)
 {
-    short delay = 0;
+  short delay = 0;
 
-    EXTRST_HIGH;
-    for(delay = 0; delay < 1000; delay++)
-    {
-        NOP;
-    }
-    EXTRST_LOW;
+  EXTRST_HIGH;
+  for(delay = 0; delay < 1000; delay++) {
+    NOP;
+  }
+  EXTRST_LOW;
 }
-
 /***************************************************************************//**
  * @brief Initializes the RDKRL78G14.
  *
  * @return status - Result of the initialization procedure.
  *                  Example: 0 - if initialization was successful;
  *                          -1 - if initialization was unsuccessful.
-*******************************************************************************/
-char RDKRL78G14_Init(void)
+ *******************************************************************************/
+char
+RDKRL78G14_Init(void)
 {
-    long delay  = 0;
-    char status = -1;
+  long delay = 0;
+  char status = -1;
 
-    for(delay = 0; delay < 4000000; delay++)
-    {
-        NOP;
-    }
-    RDKRL78G14_Reset();
-    status = 0;
+  for(delay = 0; delay < 4000000; delay++) {
+    NOP;
+  }
+  RDKRL78G14_Reset();
+  status = 0;
 
-    return status;
+  return status;
 }
