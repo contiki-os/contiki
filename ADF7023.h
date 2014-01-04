@@ -2,7 +2,7 @@
  *   @file   ADF7023.h
  *   @brief  Header file of ADF7023 Driver.
  *   @author DBogdan (Dragos.Bogdan@analog.com)
-********************************************************************************
+ ********************************************************************************
  * Copyright 2013(c) Analog Devices, Inc.
  *
  * All rights reserved.
@@ -36,9 +36,9 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
-********************************************************************************
+ ********************************************************************************
  *   SVN Revision: $WCREV$
-*******************************************************************************/
+ *******************************************************************************/
 #ifndef __ADF7023_H__
 #define __ADF7023_H__
 
@@ -63,32 +63,32 @@
 #define FW_STATE_AES_ENCRYPT      0x0A
 
 /* SPI Memory Access Commands */
-#define SPI_MEM_WR  0x18 // Write data to packet RAM sequentially.
-#define SPI_MEM_RD  0x38 // Read data from packet RAM sequentially.
-#define SPI_MEMR_WR 0x08 // Write data to packet RAM nonsequentially.
-#define SPI_MEMR_RD 0x28 // Read data from packet RAM nonsequentially.
-#define SPI_NOP     0xFF // No operation.
+#define SPI_MEM_WR  0x18 /* Write data to packet RAM sequentially. */
+#define SPI_MEM_RD  0x38 /* Read data from packet RAM sequentially. */
+#define SPI_MEMR_WR 0x08 /* Write data to packet RAM nonsequentially. */
+#define SPI_MEMR_RD 0x28 /* Read data from packet RAM nonsequentially. */
+#define SPI_NOP     0xFF /* No operation. */
 
 /* Radio Controller Commands */
-#define CMD_SYNC             0xA2 // This is an optional command. It is not necessary to use it during device initialization
-#define CMD_PHY_OFF          0xB0 // Performs a transition of the device into the PHY_OFF state.
-#define CMD_PHY_ON           0xB1 // Performs a transition of the device into the PHY_ON state.
-#define CMD_PHY_RX           0xB2 // Performs a transition of the device into the PHY_RX state.
-#define CMD_PHY_TX           0xB5 // Performs a transition of the device into the PHY_TX state.
-#define CMD_PHY_SLEEP        0xBA // Performs a transition of the device into the PHY_SLEEP state.
-#define CMD_CONFIG_DEV       0xBB // Configures the radio parameters based on the BBRAM values.
-#define CMD_GET_RSSI         0xBC // Performs an RSSI measurement.
-#define CMD_BB_CAL           0xBE // Performs a calibration of the IF filter.
-#define CMD_HW_RESET         0xC8 // Performs a full hardware reset. The device enters the PHY_SLEEP state.
-#define CMD_RAM_LOAD_INIT    0xBF // Prepares the program RAM for a firmware module download.
-#define CMD_RAM_LOAD_DONE    0xC7 // Performs a reset of the communications processor after download of a firmware module to program RAM.
-#define CMD_IR_CAL           0xBD // Initiates an image rejection calibration routine.
-#define CMD_AES_ENCRYPT      0xD0 // Performs an AES encryption on the transmit payload data stored in packet RAM.
-#define CMD_AES_DECRYPT      0xD2 // Performs an AES decryption on the received payload data stored in packet RAM.
-#define CMD_AES_DECRYPT_INIT 0xD1 // Initializes the internal variables required for AES decryption.
-#define CMD_RS_ENCODE_INIT   0xD1 // Initializes the internal variables required for the Reed Solomon encoding.
-#define CMD_RS_ENCODE        0xD0 // Calculates and appends the Reed Solomon check bytes to the transmit payload data stored in packet RAM.
-#define CMD_RS_DECODE        0xD2 // Performs a Reed Solomon error correction on the received payload data stored in packet RAM.
+#define CMD_SYNC             0xA2 /* This is an optional command. It is not necessary to use it during device initialization */
+#define CMD_PHY_OFF          0xB0 /* Performs a transition of the device into the PHY_OFF state. */
+#define CMD_PHY_ON           0xB1 /* Performs a transition of the device into the PHY_ON state. */
+#define CMD_PHY_RX           0xB2 /* Performs a transition of the device into the PHY_RX state. */
+#define CMD_PHY_TX           0xB5 /* Performs a transition of the device into the PHY_TX state. */
+#define CMD_PHY_SLEEP        0xBA /* Performs a transition of the device into the PHY_SLEEP state. */
+#define CMD_CONFIG_DEV       0xBB /* Configures the radio parameters based on the BBRAM values. */
+#define CMD_GET_RSSI         0xBC /* Performs an RSSI measurement. */
+#define CMD_BB_CAL           0xBE /* Performs a calibration of the IF filter. */
+#define CMD_HW_RESET         0xC8 /* Performs a full hardware reset. The device enters the PHY_SLEEP state. */
+#define CMD_RAM_LOAD_INIT    0xBF /* Prepares the program RAM for a firmware module download. */
+#define CMD_RAM_LOAD_DONE    0xC7 /* Performs a reset of the communications processor after download of a firmware module to program RAM. */
+#define CMD_IR_CAL           0xBD /* Initiates an image rejection calibration routine. */
+#define CMD_AES_ENCRYPT      0xD0 /* Performs an AES encryption on the transmit payload data stored in packet RAM. */
+#define CMD_AES_DECRYPT      0xD2 /* Performs an AES decryption on the received payload data stored in packet RAM. */
+#define CMD_AES_DECRYPT_INIT 0xD1 /* Initializes the internal variables required for AES decryption. */
+#define CMD_RS_ENCODE_INIT   0xD1 /* Initializes the internal variables required for the Reed Solomon encoding. */
+#define CMD_RS_ENCODE        0xD0 /* Calculates and appends the Reed Solomon check bytes to the transmit payload data stored in packet RAM. */
+#define CMD_RS_DECODE        0xD2 /* Performs a Reed Solomon error correction on the received payload data stored in packet RAM. */
 
 /* Battery Backup Memory (BBRAM) */
 #define BBRAM_REG_INTERRUPT_MASK_0                  0x100
@@ -295,72 +295,71 @@
 #define MCR_REG_GPIO_CONFIGURE                    0x3FA
 #define MCR_REG_TEST_DAC_GAIN                     0x3FD
 
-struct ADF7023_BBRAM
-{
-    unsigned char interruptMask0;               // 0x100
-    unsigned char interruptMask1;               // 0x101
-    unsigned char numberOfWakeups0;             // 0x102
-    unsigned char numberOfWakeups1;             // 0x103
-    unsigned char numberOfWakeupsIrqThreshold0; // 0x104
-    unsigned char numberOfWakeupsIrqThreshold1; // 0x105
-    unsigned char rxDwellTime;                  // 0x106
-    unsigned char parmtimeDivider;              // 0x107
-    unsigned char swmRssiThresh;                // 0x108
-    unsigned char channelFreq0;                 // 0x109
-    unsigned char channelFreq1;                 // 0x10A
-    unsigned char channelFreq2;                 // 0x10B
-    unsigned char radioCfg0;                    // 0x10C
-    unsigned char radioCfg1;                    // 0x10D
-    unsigned char radioCfg2;                    // 0x10E
-    unsigned char radioCfg3;                    // 0x10F
-    unsigned char radioCfg4;                    // 0x110
-    unsigned char radioCfg5;                    // 0x111
-    unsigned char radioCfg6;                    // 0x112
-    unsigned char radioCfg7;                    // 0x113
-    unsigned char radioCfg8;                    // 0x114
-    unsigned char radioCfg9;                    // 0x115
-    unsigned char radioCfg10;                   // 0x116
-    unsigned char radioCfg11;                   // 0x117
-    unsigned char imageRejectCalPhase;          // 0x118
-    unsigned char imageRejectCalAmplitude;      // 0x119
-    unsigned char modeControl;                  // 0x11A
-    unsigned char preambleMatch;                // 0x11B
-    unsigned char symbolMode;                   // 0x11C
-    unsigned char preambleLen;                  // 0x11D
-    unsigned char crcPoly0;                     // 0x11E
-    unsigned char crcPoly1;                     // 0x11F
-    unsigned char syncControl;                  // 0x120
-    unsigned char syncByte0;                    // 0x121
-    unsigned char syncByte1;                    // 0x122
-    unsigned char syncByte2;                    // 0x123
-    unsigned char txBaseAdr;                    // 0x124
-    unsigned char rxBaseAdr;                    // 0x125
-    unsigned char packetLengthControl;          // 0x126
-    unsigned char packetLengthMax;              // 0x127
-    unsigned char staticRegFix;                 // 0x128
-    unsigned char addressMatchOffset;           // 0x129
-    unsigned char addressLength;                // 0x12A
-    unsigned char addressFiltering0;            // 0x12B
-    unsigned char addressFiltering1;            // 0x12C
-    unsigned char addressFiltering2;            // 0x12D
-    unsigned char addressFiltering3;            // 0x12E
-    unsigned char addressFiltering4;            // 0x12F
-    unsigned char addressFiltering5;            // 0x130
-    unsigned char addressFiltering6;            // 0x131
-    unsigned char addressFiltering7;            // 0x132
-    unsigned char addressFiltering8;            // 0x133
-    unsigned char addressFiltering9;            // 0x134
-    unsigned char addressFiltering10;           // 0x135
-    unsigned char addressFiltering11;           // 0x136
-    unsigned char addressFiltering12;           // 0x137
-    unsigned char rssiWaitTime;                 // 0x138
-    unsigned char testmodes;                    // 0x139
-    unsigned char transitionClockDiv;           // 0x13A
-    unsigned char reserved0;                    // 0x13B
-    unsigned char reserved1;                    // 0x13C
-    unsigned char reserved2;                    // 0x13D
-    unsigned char rxSynthLockTime;              // 0x13E
-    unsigned char txSynthLockTime;              // 0x13F
+struct ADF7023_BBRAM {
+  unsigned char interruptMask0;                 /* 0x100 */
+  unsigned char interruptMask1;                 /* 0x101 */
+  unsigned char numberOfWakeups0;               /* 0x102 */
+  unsigned char numberOfWakeups1;               /* 0x103 */
+  unsigned char numberOfWakeupsIrqThreshold0;   /* 0x104 */
+  unsigned char numberOfWakeupsIrqThreshold1;   /* 0x105 */
+  unsigned char rxDwellTime;                    /* 0x106 */
+  unsigned char parmtimeDivider;                /* 0x107 */
+  unsigned char swmRssiThresh;                  /* 0x108 */
+  unsigned char channelFreq0;                   /* 0x109 */
+  unsigned char channelFreq1;                   /* 0x10A */
+  unsigned char channelFreq2;                   /* 0x10B */
+  unsigned char radioCfg0;                      /* 0x10C */
+  unsigned char radioCfg1;                      /* 0x10D */
+  unsigned char radioCfg2;                      /* 0x10E */
+  unsigned char radioCfg3;                      /* 0x10F */
+  unsigned char radioCfg4;                      /* 0x110 */
+  unsigned char radioCfg5;                      /* 0x111 */
+  unsigned char radioCfg6;                      /* 0x112 */
+  unsigned char radioCfg7;                      /* 0x113 */
+  unsigned char radioCfg8;                      /* 0x114 */
+  unsigned char radioCfg9;                      /* 0x115 */
+  unsigned char radioCfg10;                     /* 0x116 */
+  unsigned char radioCfg11;                     /* 0x117 */
+  unsigned char imageRejectCalPhase;            /* 0x118 */
+  unsigned char imageRejectCalAmplitude;        /* 0x119 */
+  unsigned char modeControl;                    /* 0x11A */
+  unsigned char preambleMatch;                  /* 0x11B */
+  unsigned char symbolMode;                     /* 0x11C */
+  unsigned char preambleLen;                    /* 0x11D */
+  unsigned char crcPoly0;                       /* 0x11E */
+  unsigned char crcPoly1;                       /* 0x11F */
+  unsigned char syncControl;                    /* 0x120 */
+  unsigned char syncByte0;                      /* 0x121 */
+  unsigned char syncByte1;                      /* 0x122 */
+  unsigned char syncByte2;                      /* 0x123 */
+  unsigned char txBaseAdr;                      /* 0x124 */
+  unsigned char rxBaseAdr;                      /* 0x125 */
+  unsigned char packetLengthControl;            /* 0x126 */
+  unsigned char packetLengthMax;                /* 0x127 */
+  unsigned char staticRegFix;                   /* 0x128 */
+  unsigned char addressMatchOffset;             /* 0x129 */
+  unsigned char addressLength;                  /* 0x12A */
+  unsigned char addressFiltering0;              /* 0x12B */
+  unsigned char addressFiltering1;              /* 0x12C */
+  unsigned char addressFiltering2;              /* 0x12D */
+  unsigned char addressFiltering3;              /* 0x12E */
+  unsigned char addressFiltering4;              /* 0x12F */
+  unsigned char addressFiltering5;              /* 0x130 */
+  unsigned char addressFiltering6;              /* 0x131 */
+  unsigned char addressFiltering7;              /* 0x132 */
+  unsigned char addressFiltering8;              /* 0x133 */
+  unsigned char addressFiltering9;              /* 0x134 */
+  unsigned char addressFiltering10;             /* 0x135 */
+  unsigned char addressFiltering11;             /* 0x136 */
+  unsigned char addressFiltering12;             /* 0x137 */
+  unsigned char rssiWaitTime;                   /* 0x138 */
+  unsigned char testmodes;                      /* 0x139 */
+  unsigned char transitionClockDiv;             /* 0x13A */
+  unsigned char reserved0;                      /* 0x13B */
+  unsigned char reserved1;                      /* 0x13C */
+  unsigned char reserved2;                      /* 0x13D */
+  unsigned char rxSynthLockTime;                /* 0x13E */
+  unsigned char txSynthLockTime;                /* 0x13F */
 };
 
 #define ADF7023_TX_BASE_ADR 0x10
@@ -374,7 +373,7 @@ struct ADF7023_BBRAM
 char ADF7023_Init(void);
 
 /* Reads the status word of the ADF7023. */
-void ADF7023_GetStatus(unsigned char* status);
+void ADF7023_GetStatus(unsigned char *status);
 
 /* Initiates a command. */
 void ADF7023_SetCommand(unsigned char command);
@@ -385,18 +384,18 @@ void ADF7023_SetFwState(unsigned char fwState);
 /* Reads data from the RAM. */
 void ADF7023_GetRAM(unsigned long address,
                     unsigned long length,
-                    unsigned char* data);
+                    unsigned char *data);
 
 /* Writes data to RAM. */
 void ADF7023_SetRAM(unsigned long address,
                     unsigned long length,
-                    unsigned char* data);
+                    unsigned char *data);
 
 /* Receives one packet. */
-void ADF7023_ReceivePacket(unsigned char* packet, unsigned char* length);
+void ADF7023_ReceivePacket(unsigned char *packet, unsigned char *length);
 
 /* Transmits one packet. */
-void ADF7023_TransmitPacket(unsigned char* packet, unsigned char length);
+void ADF7023_TransmitPacket(unsigned char *packet, unsigned char length);
 
 /* Sets the channel frequency. */
 void ADF7023_SetChannelFrequency(unsigned long chFreq);
@@ -407,4 +406,4 @@ void ADF7023_SetDataRate(unsigned long dataRate);
 /* Sets the frequency deviation. */
 void ADF7023_SetFrequencyDeviation(unsigned long freqDev);
 
-#endif // __ADF7023_H__
+#endif /* __ADF7023_H__ */
