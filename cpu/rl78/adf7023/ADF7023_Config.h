@@ -1,51 +1,63 @@
-/***************************************************************************//**
- *   @file   ADF7023_Config.h
- *   @brief  Configuration file of ADF7023 Driver.
- *   @author DBogdan (Dragos.Bogdan@analog.com)
- ********************************************************************************
- * Copyright 2013(c) Analog Devices, Inc.
- *
+/*
+ * Copyright (c) 2014, Analog Devices, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *  - Redistributions of source code must retain the above copyright
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- *  - Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *  - Neither the name of Analog Devices, Inc. nor the names of its
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- *  - The use of this software may or may not infringe the patent rights
- *    of one or more patent holders.  This license does not release you
- *    from the requirement that you obtain separate licenses from these
- *    patent holders to use this software.
- *  - Use of the software either in source or binary form, must be run
- *    on or directly connected to an Analog Devices Inc. component.
  *
- * THIS SOFTWARE IS PROVIDED BY ANALOG DEVICES "AS IS" AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, NON-INFRINGEMENT,
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL ANALOG DEVICES BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, INTELLECTUAL PROPERTY RIGHTS, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- ********************************************************************************
- *   SVN Revision: $WCREV$
- *******************************************************************************/
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+/**
+ * \author Dragos Bogdan <Dragos.Bogdan@Analog.com>
+ * Contributors: Ian Martin <martini@redwirellc.com>
+ */
+
 #ifndef __ADF7023_CONFIG_H__
 #define __ADF7023_CONFIG_H__
 
 /******************************************************************************/
 /***************************** Include Files **********************************/
 /******************************************************************************/
+
+#include <stdint.h>
+
 #include "ADF7023.h"
+
+#define LENGTH_OFFSET          4
+#define PACKET_LENGTH_MAX    240
+#define ADDRESS_MATCH_OFFSET   0
+#define ADDRESS_LENGTH         0
+
+#define F_PFD 26 /* MHz */
+
+#ifndef CHANNEL_FREQ_MHZ
+/* #define CHANNEL_FREQ_MHZ 433 // Wrong antenna (432993072 Hz) */
+/* #define CHANNEL_FREQ_MHZ 868 // Europe */
+#define CHANNEL_FREQ_MHZ 915   /* ISM band center frequency for the Americas, Greenland and some of the eastern Pacific Islands. */
+#endif
+
+#define CHANNEL_FREQ (((uint32_t)CHANNEL_FREQ_MHZ << 16) / F_PFD)
 
 /******************************************************************************/
 /************************* Variables Declarations *****************************/
@@ -72,11 +84,11 @@ struct ADF7023_BBRAM ADF7023_BBRAMDefault =
   /* swmRssiThresh - 0x108 */
   0x31,
   /* channelFreq0 - 0x109 */
-  0x51,   /* Channel Frequency: 433 MHz */
+  (CHANNEL_FREQ >> 0) & 0xff,
   /* channelFreq1 - 0x10A */
-  0xA7,   /* Channel Frequency: 433 MHz */
+  (CHANNEL_FREQ >> 8) & 0xff,
   /* channelFreq2 - 0x10B */
-  0x10,   /* Channel Frequency: 433 MHz */
+  (CHANNEL_FREQ >> 16) & 0xff,
   /* radioCfg0 - 0x10C */
   BBRAM_RADIO_CFG_0_DATA_RATE_7_0(0xE8),          /* Data rate: 100 kbps */
   /* radioCfg1 - 0x10D */
@@ -134,16 +146,12 @@ struct ADF7023_BBRAM ADF7023_BBRAMDefault =
   ADF7023_TX_BASE_ADR,
   /* rxBaseAdr - 0x125 */
   ADF7023_RX_BASE_ADR,
-  /* packetLengthControl - 0x126 */
-  0x24,
-  /* packetLengthMax - 0x127 */
-  0xF0,
+  /* 0x126 (PACKET_LENGTH_CONTROL) = */ 0x20 | LENGTH_OFFSET,
+  /* 0x127 (PACKET_LENGTH_MAX)     = */ PACKET_LENGTH_MAX,
   /* staticRegFix - 0x128 */
   0x00,
-  /* addressMatchOffset - 0x129 */
-  0x01,
-  /* addressLength - 0x12A */
-  0x02,
+  /* 0x129 (ADDRESS_MATCH_OFFSET)  = */ ADDRESS_MATCH_OFFSET,
+  /* 0x12a (ADDRESS_LENGTH)        = */ ADDRESS_LENGTH,
   /* addressFiltering0 - 0x12B */
   0x01,
   /* addressFiltering1 - 0x12C */

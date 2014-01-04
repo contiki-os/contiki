@@ -1,50 +1,66 @@
-/***************************************************************************//**
- *   @file   Communication.c
- *   @brief  Implementation of the Communication Driver for RL78G14 processor.
- *   @author DBogdan (dragos.bogdan@analog.com)
- ********************************************************************************
- * Copyright 2012(c) Analog Devices, Inc.
- *
+/*
+ * Copyright (c) 2014, Analog Devices, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *  - Redistributions of source code must retain the above copyright
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- *  - Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *  - Neither the name of Analog Devices, Inc. nor the names of its
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
- *  - The use of this software may or may not infringe the patent rights
- *    of one or more patent holders.  This license does not release you
- *    from the requirement that you obtain separate licenses from these
- *    patent holders to use this software.
- *  - Use of the software either in source or binary form, must be run
- *    on or directly connected to an Analog Devices Inc. component.
  *
- * THIS SOFTWARE IS PROVIDED BY ANALOG DEVICES "AS IS" AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, NON-INFRINGEMENT,
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL ANALOG DEVICES BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, INTELLECTUAL PROPERTY RIGHTS, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- ********************************************************************************
- *   SVN Revision: $WCREV$
- *******************************************************************************/
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+/**
+ * \author Dragos Bogdan <Dragos.Bogdan@Analog.com>, Ian Martin <martini@redwirellc.com>
+ */
 
 /******************************************************************************/
 /***************************** Include Files **********************************/
 /******************************************************************************/
+
+#include <stdint.h>
+
+#include "rl78.h"
+
 #include "Communication.h"  /* Communication definitions */
-#include "RDKRL78G14.h"   /* RDKRL78G14 definitions */
+
+#ifndef NOP
+#define NOP asm ("nop")
+#endif
+
+/* Enable interrupts: */
+#ifndef EI
+#ifdef __GNUC__
+#define EI asm ("ei");
+#else
+#define EI __enable_interrupt();
+#endif
+#endif
+
+#undef BIT
+#define BIT(n) (1 << (n))
+
+#define CLK_SCALER (0x4)
+#define SCALED_CLK (f_CLK / (1 << CLK_SCALER))
+#define BITBANG_SPI 1
 
 char IICA0_Flag;
 
@@ -57,8 +73,7 @@ char IICA0_Flag;
  *
  * @return None.
  *******************************************************************************/
-#pragma vector = INTIICA0_vect
-__interrupt static void
+/*__interrupt */ static void
 IICA0_Interrupt(void)
 {
   IICA0_Flag = 1;
@@ -87,25 +102,40 @@ IICA0_Interrupt(void)
  *                             -1 - if initialization was unsuccessful.
  *******************************************************************************/
 char
-SPI_Init(char lsbFirst,
+SPI_Init(enum CSI_Bus bus,
+         char lsbFirst,
          long clockFreq,
          char clockPol,
          char clockEdg)
 {
-  long mckFreq = 32000000;
+#if BITBANG_SPI
+  PIOR5 = 1; /* Move SPI/I2C/UART functions from Port 0 pins 2-4 to Port 8. */
+
+  /* Configure SCLK as an output. */
+  PM0 &= ~BIT(4);
+  POM0 &= ~BIT(4);
+
+  /* Configure MOSI as an output: */
+  PM0 &= ~BIT(2);
+  POM0 &= ~BIT(2);
+  PMC0 &= ~BIT(2);
+
+  /* Configure MISO as an input: */
+  PM0 |= BIT(3);
+  PMC0 &= ~BIT(3);
+#else
   char sdrValue = 0;
   char delay = 0;
+  uint16_t scr;
+  uint8_t shift;
 
-  /* Configure the CS pins. */
-  PMOD1_CS_OUT;
-  PMOD1_CS_HIGH;
-  PMOD2_CS_OUT;
-  PMOD2_CS_HIGH;
-  ST7579_CS_OUT;
-  ST7579_CS_HIGH;
+  PIOR5 = 0; /* Keep SPI functions on Port 0 pins 2-4. */
 
   /* Enable input clock supply. */
-  SAU1EN = 1;
+  if(bus <= CSI11) {
+    SAU0EN = 1;
+  } else { SAU1EN = 1;
+  }
 
   /* After setting the SAUmEN bit to 1, be sure to set serial clock select
      register m (SPSm) after 4 or more fCLK clocks have elapsed. */
@@ -115,36 +145,195 @@ SPI_Init(char lsbFirst,
   NOP;
 
   /* Select the fCLK as input clock.  */
-  SPS1 = 0x0000;
-
+  if(bus <= CSI11) {
+    SPS0 = (CLK_SCALER << 4) | CLK_SCALER;                   /* TODO: kludge */
+  } else { SPS1 = (CLK_SCALER << 4) | CLK_SCALER;            /* TODO: kludge */
+  }
   /* Select the CSI operation mode. */
-  SMR11 = 0x0020;
+  switch(bus) {
+  case CSI00: SMR00 = 0x0020;
+    break;
+  case CSI01: SMR01 = 0x0020;
+    break;
+  case CSI10: SMR02 = 0x0020;
+    break;
+  case CSI11: SMR03 = 0x0020;
+    break;
+  case CSI20: SMR10 = 0x0020;
+    break;
+  case CSI21: SMR11 = 0x0020;
+    break;
+  case CSI30: SMR12 = 0x0020;
+    break;
+  case CSI31: SMR13 = 0x0020;
+    break;
+  }
 
   clockPol = 1 - clockPol;
-  SCR11 = (clockEdg << 13) |
+  scr = (clockEdg << 13) |
     (clockPol << 12) |
     0xC000 |                       /* Operation mode: Transmission/reception. */
     0x0007;                        /* 8-bit data length. */
+  switch(bus) {
+  case CSI00: SCR00 = scr;
+    break;
+  case CSI01: SCR01 = scr;
+    break;
+  case CSI10: SCR02 = scr;
+    break;
+  case CSI11: SCR03 = scr;
+    break;
+  case CSI20: SCR10 = scr;
+    break;
+  case CSI21: SCR11 = scr;
+    break;
+  case CSI30: SCR12 = scr;
+    break;
+  case CSI31: SCR13 = scr;
+    break;
+  }
 
   /* clockFreq =  mckFreq / (sdrValue * 2 + 2) */
-  sdrValue = mckFreq / (2 * clockFreq) - 1;
-  SDR11 = sdrValue << 9;
+  sdrValue = SCALED_CLK / (2 * clockFreq) - 1;
+  sdrValue <<= 9;
+  switch(bus) {
+  case CSI00: SDR00 = sdrValue;
+    break;
+  case CSI01: SDR01 = sdrValue;
+    break;
+  case CSI10: SDR02 = sdrValue;
+    break;
+  case CSI11: SDR03 = sdrValue;
+    break;
+  case CSI20: SDR10 = sdrValue;
+    break;
+  case CSI21: SDR11 = sdrValue;
+    break;
+  case CSI30: SDR12 = sdrValue;
+    break;
+  case CSI31: SDR13 = sdrValue;
+    break;
+  }
 
   /* Set the clock and data initial level. */
   clockPol = 1 - clockPol;
-  SO1 &= ~0x0202;
-  SO1 |= (clockPol << 9) |
-    (clockPol << 1);
+  shift = bus & 0x3;
+  if(bus <= CSI11) {
+    SO0 &= ~(0x0101 << shift);
+    SO0 |= ((clockPol << 8) | clockPol) << shift;
+  } else {
+    SO1 &= ~(0x0101 << shift);
+    SO1 |= ((clockPol << 8) | clockPol) << shift;
+  }
 
   /* Enable output for serial communication operation. */
-  SOE1 |= 0x0002;
+  switch(bus) {
+  case CSI00: SOE0 |= BIT(0);
+    break;
+  case CSI01: SOE0 |= BIT(1);
+    break;
+  case CSI10: SOE0 |= BIT(2);
+    break;
+  case CSI11: SOE0 |= BIT(3);
+    break;
+  case CSI20: SOE1 |= BIT(0);
+    break;
+  case CSI21: SOE1 |= BIT(1);
+    break;
+  case CSI30: SOE1 |= BIT(2);
+    break;
+  case CSI31: SOE1 |= BIT(3);
+    break;
+  }
 
-  /*  Configure the MISO pin as input. */
-  PM7 |= 0x02;
+  switch(bus) {
+  case CSI00:
+    /* SO00 output: */
+    P1 |= BIT(2);
+    PM1 &= ~BIT(2);
 
-  /*  Configure SCLK and MOSI pins as output. */
-  P7 |= 0x05;
-  PM7 &= ~0x05;
+    /* SI00 input: */
+    PM1 |= BIT(1);
+
+    /* SCK00N output: */
+    P1 |= BIT(0);
+    PM1 &= ~BIT(0);
+    break;
+
+  case CSI01:
+    /* SO01 output: */
+    P7 |= BIT(3);
+    PM7 &= ~BIT(3);
+
+    /* SI01 input: */
+    PM7 |= BIT(4);
+
+    /* SCK01 output: */
+    P7 |= BIT(5);
+    PM7 &= ~BIT(5);
+    break;
+
+  case CSI10:
+    PMC0 &= ~BIT(2); /* Disable analog input on SO10. */
+
+    /* SO10 output: */
+    P0 |= BIT(2);
+    PM0 &= ~BIT(2);
+
+    /* SI10 input: */
+    PM0 |= BIT(3);
+
+    /* SCK10N output: */
+    P0 |= BIT(4);
+    PM0 &= ~BIT(4);
+    break;
+
+  case CSI11:
+    /* SO11 output: */
+    P5 |= BIT(1);
+    PM5 &= ~BIT(1);
+
+    /* SI11 input: */
+    PM5 |= BIT(0);
+
+    /* SCK11 output: */
+    P3 |= BIT(0);
+    PM3 &= ~BIT(0);
+    break;
+
+  case CSI20:
+    /* SO20 output: */
+    P1 |= BIT(3);
+    PM1 &= ~BIT(3);
+
+    /* SI20 input: */
+    PM1 |= BIT(4);
+
+    /* SCK20 output: */
+    P1 |= BIT(5);
+    PM1 &= ~BIT(5);
+    break;
+
+  case CSI21:
+    /* SO21 output: */
+    P7 |= BIT(2);
+    PM7 &= ~BIT(2);
+
+    /* SI21 input: */
+    PM7 |= BIT(1);
+
+    /* SCK21 output: */
+    P7 |= BIT(0);
+    PM7 &= ~BIT(0);
+    break;
+
+  case CSI30:
+    /* TODO: not supported */
+    break;
+  case CSI31:
+    /* TODO: not supported */
+    break;
+  }
 
   /* Wait for the changes to take place. */
   for(delay = 0; delay < 50; delay++) {
@@ -152,7 +341,44 @@ SPI_Init(char lsbFirst,
   }
 
   /* Set the SEmn bit to 1 and enter the communication wait status */
-  SS1 |= 0x0002;
+  switch(bus) {
+  case CSI00: SS0 = BIT(0);
+    break;
+  case CSI01: SS0 = BIT(1);
+    break;
+  case CSI10: SS0 = BIT(2);
+    break;
+  case CSI11: SS0 = BIT(3);
+    break;
+  case CSI20: SS1 = BIT(0);
+    break;
+  case CSI21: SS1 = BIT(1);
+    break;
+  case CSI30: SS1 = BIT(2);
+    break;
+  case CSI31: SS1 = BIT(3);
+    break;
+  }
+
+  /* Sanity check: */
+  if(bus == CSI10) {
+    /* MOSI: */
+    PIOR5 = 0;
+    PMC02 = 0;
+    PM02 = 0;
+    P02 = 1;
+
+    /* MISO: */
+    PIOR5 = 0;
+    PMC03 = 0;
+    PM03 = 1;
+
+    /* SCLK: */
+    PIOR5 = 0;
+    PM04 = 0;
+    P04 = 1;
+  }
+#endif
 
   return 0;
 }
@@ -165,8 +391,10 @@ SPI_Init(char lsbFirst,
  *
  * @return Number of written bytes.
  *******************************************************************************/
+#if 0
 char
-SPI_Write(char slaveDeviceId,
+SPI_Write(enum CSI_Bus bus,
+          char slaveDeviceId,
           unsigned char *data,
           char bytesNumber)
 {
@@ -175,43 +403,84 @@ SPI_Write(char slaveDeviceId,
   unsigned short originalSCR = 0;
   unsigned short originalSO1 = 0;
 
-  if(slaveDeviceId == 1) {
-    PMOD1_CS_LOW;
+  volatile uint8_t *sio;
+  volatile uint16_t *ssr;
+
+  switch(bus) {
+  default:
+  case CSI00: sio = &SIO00;
+    ssr = &SSR00;
+    break;
+  case CSI01: sio = &SIO01;
+    ssr = &SSR01;
+    break;
+  case CSI10: sio = &SIO10;
+    ssr = &SSR02;
+    break;
+  case CSI11: sio = &SIO11;
+    ssr = &SSR03;
+    break;
+  case CSI20: sio = &SIO20;
+    ssr = &SSR10;
+    break;
+  case CSI21: sio = &SIO21;
+    ssr = &SSR11;
+    break;
+  case CSI30: sio = &SIO30;
+    ssr = &SSR12;
+    break;
+  case CSI31: sio = &SIO31;
+    ssr = &SSR13;
+    break;
   }
-  if(slaveDeviceId == 2) {
-    PMOD2_CS_LOW;
-  }
-  if(slaveDeviceId == 3) {
-    ST1 |= 0x0002;
-    originalSO1 = SO1;
-    originalSCR = SCR11;
-    SO1 &= ~0x0202;
-    SCR11 &= ~0x3000;
-    SS1 |= 0x0002;
-    ST7579_CS_LOW;
-  }
+
   for(byte = 0; byte < bytesNumber; byte++) {
-    SIO21 = data[byte];
+    *sio = data[byte];
     NOP;
-    while(SSR11 & 0x0040) ;
-    read = SIO21;
-  }
-  if(slaveDeviceId == 1) {
-    PMOD1_CS_HIGH;
-  }
-  if(slaveDeviceId == 2) {
-    PMOD2_CS_HIGH;
-  }
-  if(slaveDeviceId == 3) {
-    ST7579_CS_HIGH;
-    ST1 |= 0x0002;
-    SO1 = originalSO1;
-    SCR11 = originalSCR;
-    SS1 |= 0x0002;
+    while(*ssr & 0x0040) ;
+    read = *sio;
   }
 
   return bytesNumber;
 }
+#endif
+
+#if BITBANG_SPI
+#define sclk_low()  (P0 &= ~BIT(4))
+#define sclk_high() (P0 |= BIT(4))
+#define mosi_low()  (P0 &= ~BIT(2))
+#define mosi_high() (P0 |= BIT(2))
+#define read_miso() (P0bits.bit3)
+
+static unsigned char
+spi_byte_exchange(unsigned char tx)
+{
+  unsigned char rx = 0, n = 0;
+
+  sclk_low();
+
+  for(n = 0; n < 8; n++) {
+    if(tx & 0x80) {
+      mosi_high();
+    } else { mosi_low();
+    }
+
+    /* The slave samples MOSI at the rising-edge of SCLK. */
+    sclk_high();
+
+    rx <<= 1;
+    rx |= read_miso();
+
+    tx <<= 1;
+
+    /* The slave changes the value of MISO at the falling-edge of SCLK. */
+    sclk_low();
+  }
+
+  return rx;
+}
+#endif
+
 /***************************************************************************//**
  * @brief Reads data from SPI.
  *
@@ -223,48 +492,64 @@ SPI_Write(char slaveDeviceId,
  * @return Number of read bytes.
  *******************************************************************************/
 char
-SPI_Read(char slaveDeviceId,
+SPI_Read(enum CSI_Bus bus,
+         char slaveDeviceId,
          unsigned char *data,
          char bytesNumber)
 {
+#if BITBANG_SPI
+  unsigned char n = 0;
+  for(n = 0; n < bytesNumber; n++) {
+    data[n] = spi_byte_exchange(data[n]);
+  }
+#else
   char byte = 0;
   unsigned short originalSCR = 0;
   unsigned short originalSO1 = 0;
 
-  if(slaveDeviceId == 1) {
-    PMOD1_CS_LOW;
+  volatile uint8_t *sio;
+  volatile uint16_t *ssr;
+  char dummy;
+
+  switch(bus) {
+  default:
+  case CSI00: sio = &SIO00;
+    ssr = &SSR00;
+    break;
+  case CSI01: sio = &SIO01;
+    ssr = &SSR01;
+    break;
+  case CSI10: sio = &SIO10;
+    ssr = &SSR02;
+    break;
+  case CSI11: sio = &SIO11;
+    ssr = &SSR03;
+    break;
+  case CSI20: sio = &SIO20;
+    ssr = &SSR10;
+    break;
+  case CSI21: sio = &SIO21;
+    ssr = &SSR11;
+    break;
+  case CSI30: sio = &SIO30;
+    ssr = &SSR12;
+    break;
+  case CSI31: sio = &SIO31;
+    ssr = &SSR13;
+    break;
   }
-  if(slaveDeviceId == 2) {
-    PMOD2_CS_LOW;
-  }
-  if(slaveDeviceId == 3) {
-    ST1 |= 0x0002;
-    originalSO1 = SO1;
-    originalSCR = SCR11;
-    SO1 &= ~0x0202;
-    SCR11 &= ~0x3000;
-    SS1 |= 0x0002;
-    ST7579_CS_LOW;
-  }
+
+  /* Flush the receive buffer: */
+  while(*ssr & 0x0020) dummy = *sio;
+  (void)dummy;
+
   for(byte = 0; byte < bytesNumber; byte++) {
-    SIO21 = data[byte];
+    *sio = data[byte];
     NOP;
-    while(SSR11 & 0x0040) ;
-    data[byte] = SIO21;
+    while(*ssr & 0x0040) ;
+    data[byte] = *sio;
   }
-  if(slaveDeviceId == 1) {
-    PMOD1_CS_HIGH;
-  }
-  if(slaveDeviceId == 2) {
-    PMOD2_CS_HIGH;
-  }
-  if(slaveDeviceId == 3) {
-    ST7579_CS_HIGH;
-    ST1 |= 0x0002;
-    SO1 = originalSO1;
-    SCR11 = originalSCR;
-    SS1 |= 0x0002;
-  }
+#endif
 
   return bytesNumber;
 }
@@ -283,6 +568,8 @@ I2C_Init(long clockFreq)
   long fckFreq = 32000000;
   unsigned char wlValue = 0;
   unsigned char whValue = 0;
+
+  (void)IICA0_Interrupt;   /* Prevent an unused-function warning. */
 
   /* Enable interrupts */
   EI;

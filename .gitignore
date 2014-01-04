@@ -84,3 +84,7 @@ contiki-cc2530dk.lib
 
 #regression tests artifacts
 *.testlog
+
+# rl78 build artifacts
+*.eval-adf7xxxmb4z
+*.eval-adf7xxxmb4z.srec

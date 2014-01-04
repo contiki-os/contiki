@@ -29,17 +29,22 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \author Maxim Salov <max.salov@gmail.com>
+ * \author Ian Martin <martini@redwirellc.com>
  */
 
-#ifndef UART0_H__
-#define UART0_H__
+#include <stddef.h> // for size_t.
 
-void uart0_init(void);
-void uart0_putchar(int c);
-#define uart0_can_getchar() (SRIF0)
-char uart0_getchar(void);
+#include "uart0.h"
+#include "write.h"
 
-int uart0_puts(const char *s);
+int write(int fd, const void *buf, size_t count) {
+	size_t n;
+	for (n=0; n<count; n++) uart0_putchar(((const char*)buf)[n]);
+	return count;
+}
 
-#endif /* UART0_H__ */
+#ifdef __IAR_SYSTEMS_ICC__
+	size_t __write(int fd, const unsigned char *buf, size_t count) {
+		write(fd, buf, count);
+	}
+#endif

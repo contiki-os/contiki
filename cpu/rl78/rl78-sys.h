@@ -29,8 +29,9 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
 */
-
-#include "syscall.h"
+/**
+ * \author DJ Delorie <dj@redhat.com>
+ */
 
 r8	=	0xffef0
 r9	=	0xffef1
