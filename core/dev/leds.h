@@ -80,6 +80,7 @@ void leds_blink(void);
  * Returns the current status of all leds
  */
 unsigned char leds_get(void);
+void leds_set(unsigned char leds);
 void leds_on(unsigned char leds);
 void leds_off(unsigned char leds);
 void leds_toggle(unsigned char leds);
