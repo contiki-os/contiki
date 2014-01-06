@@ -74,10 +74,5 @@ leds_off(unsigned char leds)
 void
 leds_toggle(unsigned char leds)
 {
-  /*
-   * Synonym: void leds_invert(unsigned char leds);
-   */
-  asm(".global leds_invert\nleds_invert:\n");
-
   LEDS_PxOUT ^= l2p[leds & LEDS_ALL];
 }
