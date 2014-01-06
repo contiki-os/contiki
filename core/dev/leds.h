@@ -77,13 +77,12 @@ void leds_blink(void);
 #endif /* LEDS_CONF_ALL */
 
 /**
- * Returns the current status of all leds (respects invert)
+ * Returns the current status of all leds
  */
 unsigned char leds_get(void);
 void leds_on(unsigned char leds);
 void leds_off(unsigned char leds);
 void leds_toggle(unsigned char leds);
-void leds_invert(unsigned char leds);
 
 /**
  * Leds implementation

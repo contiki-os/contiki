@@ -968,7 +968,7 @@ void mac_802154raw(const struct radio_driver *radio)
 #endif
   
   slip_write(uip_buf, len);
-  leds_invert(LEDS_RED);
+  leds_toggle(LEDS_RED);
 
   //rndis_send(raw_buf, sendlen, 1);
   //rndis_stat.rxok++;
