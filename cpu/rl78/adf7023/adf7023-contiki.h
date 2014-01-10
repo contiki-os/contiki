@@ -32,8 +32,8 @@
  * \author Ian Martin <martini@redwirellc.com>
  */
 
-#ifndef __ADF7023-contiki_H__
-#define __ADF7023-conitki_H__
+#ifndef __ADF7023_CONTIKI_H__
+#define __ADF7023_CONTIKI_H__
 
 int adf7023_init(void);
 
@@ -64,4 +64,4 @@ int adf7023_on(void);
 /* Turn the radio off. */
 int adf7023_off(void);
 
-#endif /* __ADF7023-contiki_H__ */
+#endif /* __ADF7023_CONTIKI_H__ */
