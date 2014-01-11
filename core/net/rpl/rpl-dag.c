@@ -741,6 +741,9 @@ rpl_select_parent(rpl_dag_t *dag)
 
   if(best != NULL) {
     rpl_set_preferred_parent(dag, best);
+    dag->rank = dag->instance->of->calculate_rank(dag->preferred_parent, 0);
+  } else {
+    dag->rank = INFINITE_RANK;
   }
 
   return best;
