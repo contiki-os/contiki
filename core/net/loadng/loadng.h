@@ -53,7 +53,8 @@ void
 loadng_no_route(uip_ipaddr_t *dest, uip_ipaddr_t *src);
 void
 loadng_set_local_prefix(uip_ipaddr_t *prefix, uint8_t len);
+uint8_t loadng_addr_matches_local_prefix(uip_ipaddr_t *host);
+uint8_t loadng_is_my_global_address(uip_ipaddr_t *addr);
 PROCESS_NAME(loadng_process);
-
 #endif /* __LOADNG_H__ */
 

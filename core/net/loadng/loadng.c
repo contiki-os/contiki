@@ -490,18 +490,18 @@ send_rerr(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *nexthop)
 { 
   char buf[MAX_PAYLOAD_LEN];
   struct loadng_msg_rerr *rm = (struct loadng_msg_rerr *)buf;
-  PRINTF("LOADng: Send RERR for src ");
+  PRINTF("LOADng: Send RERR towards src: ");
   PRINT6ADDR(src);
-  PRINTF(" dest ");
+  PRINTF(" for address in error: ");
   PRINT6ADDR(dest);
-  PRINTF(" nexthop ");
+  PRINTF(" nexthop: ");
   PRINT6ADDR(nexthop);
   PRINTF("\n");
   rm->type = LOADNG_RERR_TYPE;
   rm->type = (rm->type << 4) | LOADNG_RSVD1;
   rm->addr_len = LOADNG_RSVD2; 
   rm->addr_len = (rm->type << 4) | LOADNG_ADDR_LEN_IPV6;
-  uip_ipaddr_copy(&rm->dest_addr, dest);
+  uip_ipaddr_copy(&rm->addr_in_error, dest);
   uip_ipaddr_copy(&rm->src_addr, src);
   udpconn->ttl = LOADNG_MAX_DIST;
   uip_ipaddr_copy(&udpconn->ripaddr, nexthop);
@@ -552,7 +552,7 @@ handle_incoming_rreq(void)
   PRINT6ADDR(&rm->dest_addr);
   PRINTF("\r\n");
 
-  if(uip_ipaddr_cmp(&rm->orig_addr, &myipaddr)) {
+  if(loadng_is_my_global_address(&rm->orig_addr)) {
     PRINTF("LOADng: RREQ loops back, not processing\n");
     return;			
   }
@@ -578,7 +578,7 @@ handle_incoming_rreq(void)
     
   */
 
-  if(uip_ipaddr_cmp(&rm->dest_addr, &myipaddr)) { /* RREQ for our address */
+  if(loadng_is_my_global_address(&rm->dest_addr)) { /* RREQ for our address */
     PRINTF("LOADng: RREQ for our address\n");
     uip_ipaddr_copy(&dest_addr, &rm->orig_addr);
     uip_ipaddr_copy(&orig_addr, &rm->dest_addr);
@@ -724,29 +724,43 @@ handle_incoming_rerr(void)
   struct loadng_msg_rerr *rm = (struct loadng_msg_rerr *)uip_appdata;
   struct uip_ds6_route *rt_in_err;
   struct uip_ds6_route *rt;
-
+  uip_ds6_defrt_t *defrt;
+  
   PRINTF("LOADng: RERR ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF(" -> ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   PRINTF(" ttl=%u ", UIP_IP_BUF->ttl);
-  PRINTF(" src ");
+  PRINTF(" towards ");
   PRINT6ADDR(&rm->src_addr);
-  PRINTF(" dest ");
-  PRINT6ADDR(&rm->dest_addr);
+  PRINTF(" addr in error : ");
+  PRINT6ADDR(&rm->addr_in_error);
   PRINTF("\r\n");
 
-  rt_in_err = loadng_route_lookup(&rm->dest_addr);
+  rt_in_err = loadng_route_lookup(&rm->addr_in_error);
   rt = loadng_route_lookup(&rm->src_addr);
 
   /* No route? */
   if(rt_in_err == NULL){
-    PRINTF("LOADng: Receved RERR for non-existing route\n");
-  } else {
-    if(rt != NULL)
-      send_rerr(&rm->src_addr, &rm->dest_addr, uip_ds6_route_nexthop(rt)); /* Forward RERR to nexthop */
-    uip_ds6_route_rm(rt); /* Remove route */
+    PRINTF("LOADng: Received RERR for non-existing route\n");
   }
+  else{
+    uip_ds6_route_rm(rt_in_err); /* Remove route */
+  }
+
+  #if USE_OPT
+  // if the RERR comes from a default router and it's for me, send spontaneous RREP
+  defrt=uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
+  if(defrt!=NULL && loadng_is_my_global_address(&rm->src_addr)){
+  PRINTF("send RREP\n");
+    send_rrep(&my_sink_id, &defrt->ipaddr, &myipaddr, &my_hseqno, 0);
+  }
+  // otherwise, if there is a matching tupple, send along default route
+  
+  #endif //USE_OPT
+  // Draft draft-clausen-lln-loadng-10#section-14.3 : still forward even if no matching routing tupple found
+  if(rt != NULL)
+    send_rerr(&rm->src_addr, &rm->addr_in_error, uip_ds6_route_nexthop(rt)); /* Forward RERR to nexthop */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -819,7 +833,7 @@ handle_incoming_opt(void)
       return;			
     } 
 
-    if(my_seq_id==0  || (uip_ipaddr_cmp(&UIP_IP_BUF->srcipaddr, &def_rt_addr) && rm->seqno > my_seq_id)) {
+    if(rm->seqno > my_seq_id  ) {
       /* First OPT */
       PRINTF("LOADng: New OPT sequence number received\n");
       my_seq_id = rm->seqno;
@@ -921,6 +935,12 @@ tcpip_handler(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+uint8_t loadng_addr_matches_local_prefix(uip_ipaddr_t *host){
+  return uip_ipaddr_prefixcmp(&local_prefix, host, local_prefix_len);
+}
+
+
+/*---------------------------------------------------------------------------*/
 void
 loadng_request_route_to(uip_ipaddr_t *host)
 {
@@ -928,10 +948,12 @@ loadng_request_route_to(uip_ipaddr_t *host)
   if(in_loadng_call){
     return;
   }
-#if !LOADNG_IS_SINK
-    return ; //only sink send RREQ
+#if !LOADNG_IS_SINK && USE_OPT
+    PRINTF("Only sink sends RREQ\n");
+    return ; //only sink sends RREQ
 #endif
-  if(!uip_ipaddr_prefixcmp(&local_prefix, host, local_prefix_len)) {
+  if(!loadng_addr_matches_local_prefix(host)) {
+    PRINTF("no RREQ for non-local address\n");
     //no local prefix matches this addr, no RREQ for non-local address
     return ;
   } 
@@ -969,16 +991,27 @@ void
 loadng_no_route(uip_ipaddr_t *dest, uip_ipaddr_t *src)
 {
   struct uip_ds6_route *rt = NULL;
-
+  uip_ipaddr_t nexthop;
+  uip_ipaddr_t *nexthptr=&nexthop;
   rt = loadng_route_lookup(src);
-
+  PRINTF("loadng_no_route(): dest:"); PRINT6ADDR(dest); PRINTF(" src:");PRINT6ADDR(src);PRINTF("\n");
   if(rt == NULL){
+    PRINTF("rt is NULL\n");
+    #if USE_OPT
+    // multicast RERR so the neighbors are notified -- this is helpful if a node has lost memory
+    uip_create_linklocal_lln_routers_mcast(nexthptr);
+    PRINTF("send to: "); PRINT6ADDR(nexthptr);PRINTF("\n");
+    #else
     PRINTF("LOADng: Send a RERR with no route source address\n"); 
     return;
+    #endif //USE_OPT
+  }
+  else{
+    nexthptr=uip_ds6_route_nexthop(rt);
   }
   uip_ipaddr_copy(&rerr_bad_addr, dest);
   uip_ipaddr_copy(&rerr_src_addr, src);
-  uip_ipaddr_copy(&rerr_next_addr, uip_ds6_route_nexthop(rt));
+  uip_ipaddr_copy(&rerr_next_addr, nexthptr);
   command = COMMAND_SEND_RERR;
   process_post(&loadng_process, PROCESS_EVENT_MSG, NULL);
 }
@@ -1005,6 +1038,11 @@ get_prefix_from_addr(uip_ipaddr_t *addr, uip_ipaddr_t *prefix, uint8_t len)
     }
   } 
 }
+/*---------------------------------------------------------------------------*/
+uint8_t loadng_is_my_global_address(uip_ipaddr_t *addr){
+  return uip_ipaddr_cmp(addr, &myipaddr);
+}
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(loadng_process, ev, data)
 {
@@ -1093,7 +1131,7 @@ PROCESS_THREAD(loadng_process, ev, data)
             ctimer_set(&sendmsg_ctimer, random_rand()%50 * CLOCK_SECOND / 1000,
                      (void (*)(void *))send_rreq, NULL);  
 	} else if (command == COMMAND_SEND_RERR) {
-	  send_rerr(&rerr_bad_addr, &rerr_src_addr, &rerr_next_addr);
+	  send_rerr(&rerr_src_addr, &rerr_bad_addr, &rerr_next_addr);
 	}
 	command = COMMAND_NONE;
 	

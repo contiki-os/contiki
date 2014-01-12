@@ -138,7 +138,7 @@ struct loadng_msg_rerr {
 	uint8_t type;
 	uint8_t addr_len;
 	uip_ipaddr_t src_addr;
-	uip_ipaddr_t dest_addr;
+	uip_ipaddr_t addr_in_error;
 
 };
 
