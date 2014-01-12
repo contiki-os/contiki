@@ -298,6 +298,7 @@ packet_input(void)
     int duplicate = 0;
 
 #if NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW
+#if RDC_WITH_DUPLICATE_DETECTION
     /* Check for duplicate packet. */
     duplicate = mac_sequence_is_duplicate();
     if(duplicate) {
@@ -307,8 +308,10 @@ packet_input(void)
     } else {
       mac_sequence_register_seqno();
     }
+#endif /* RDC_WITH_DUPLICATE_DETECTION */
 #endif /* NULLRDC_802154_AUTOACK */
 
+/* TODO We may want to acknowledge only authentic frames */ 
 #if NULLRDC_SEND_802154_ACK
     {
       frame802154_t info154;

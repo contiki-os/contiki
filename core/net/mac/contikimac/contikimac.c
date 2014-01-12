@@ -971,6 +971,7 @@ input_packet(void)
         ctimer_stop(&ct);
       }
 
+#if RDC_WITH_DUPLICATE_DETECTION
       /* Check for duplicate packet. */
       if(mac_sequence_is_duplicate()) {
         /* Drop the packet. */
@@ -978,6 +979,7 @@ input_packet(void)
         return;
       }
       mac_sequence_register_seqno();
+#endif /* RDC_WITH_DUPLICATE_DETECTION */
 
 #if CONTIKIMAC_CONF_COMPOWER
       /* Accumulate the power consumption for the packet reception. */
