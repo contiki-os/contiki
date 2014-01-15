@@ -63,6 +63,26 @@ off(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+#if RADIO_CONF_EXTENDED_API
+static radio_conf_result_t
+get_config_const(radio_const_t cst_id, void *value)
+{
+  return RADIO_CONF_UNAVAILABLE_CONST;
+}
+/*---------------------------------------------------------------------------*/
+static radio_conf_result_t
+set_param(radio_param_t param_id, void *value)
+{
+  return RADIO_CONF_UNAVAILABLE_PARAM;
+}
+/*---------------------------------------------------------------------------*/
+static radio_conf_result_t
+get_param(radio_param_t param_id, void *value)
+{
+  return RADIO_CONF_UNAVAILABLE_PARAM;
+}
+#endif /* RADIO_CONF_EXTENDED_API */
+/*---------------------------------------------------------------------------*/
 const struct radio_driver nullradio_driver =
   {
     init,
@@ -75,5 +95,10 @@ const struct radio_driver nullradio_driver =
     pending_packet,
     on,
     off,
+#if RADIO_CONF_EXTENDED_API
+    get_config_const,
+    set_param,
+    get_param,
+#endif /* RADIO_CONF_EXTENDED_API */
   };
 /*---------------------------------------------------------------------------*/
