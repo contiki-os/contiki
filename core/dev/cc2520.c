@@ -110,7 +110,6 @@ static int cc2520_send(const void *data, unsigned short len);
 static int cc2520_receiving_packet(void);
 static int pending_packet(void);
 static int cc2520_cca(void);
-/* static int detected_energy(void); */
 
 signed char cc2520_last_rssi;
 uint8_t cc2520_last_correlation;
@@ -122,8 +121,6 @@ const struct radio_driver cc2520_driver =
     cc2520_transmit,
     cc2520_send,
     cc2520_read,
-    /* cc2520_set_channel, */
-    /* detected_energy, */
     cc2520_cca,
     cc2520_receiving_packet,
     pending_packet,
@@ -555,32 +552,106 @@ cc2520_set_channel(int c)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+
 void
-cc2520_set_pan_addr(unsigned pan,
-                    unsigned addr,
-                    const uint8_t *ieee_addr)
+cc2520_wait_for_stable_osc(void)
+{
+  /* Accessing RAM requires crystal oscillator to be stable. */
+  BUSYWAIT_UNTIL(status() & (BV(CC2520_XOSC16M_STABLE)), RTIMER_SECOND / 10);
+}
+/*---------------------------------------------------------------------------*/
+uint16_t
+cc2520_get_short_addr(void)
+{
+  uint8_t tmp[2];
+  uint16_t addr;
+
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
+
+  CC2520_READ_RAM(&tmp, CC2520RAM_SHORTADDR, 2);
+  addr = ((uint16_t)tmp[1]) << 8;
+  addr |= tmp[0];
+
+  RELEASE_LOCK();
+  return addr;
+}
+/*---------------------------------------------------------------------------*/
+uint16_t
+cc2520_get_pan_id(void)
+{
+  uint8_t tmp[2];
+  uint16_t pan;
+
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
+
+  CC2520_READ_RAM(&tmp, CC2520RAM_PANID, 2);
+  pan = ((uint16_t)tmp[1]) << 8;
+  pan |= tmp[0];
+
+  RELEASE_LOCK();
+  return pan;
+}
+/*---------------------------------------------------------------------------*/
+static void
+cc2520_get_ieee_addr(uint8_t *ieee_addr)
+{
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
+
+  if(ieee_addr != NULL) {
+    uint8_t tmp_addr[8];
+    int f;
+    CC2520_READ_RAM(tmp_addr, CC2520RAM_IEEEADDR, 8);
+    /* LSB first, MSB last for 802.15.4 addresses in CC2420 */
+    for (f = 0; f < 8; f++) {
+      ieee_addr[f] = tmp_addr[7 - f];
+    }
+  }
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+void
+cc2520_set_short_addr(uint16_t addr)
 {
   uint8_t tmp[2];
 
   GET_LOCK();
+  cc2520_wait_for_stable_osc();
 
-  /*
-   * Writing RAM requires crystal oscillator to be stable.
-   */
-  BUSYWAIT_UNTIL(status() & (BV(CC2520_XOSC16M_STABLE)), RTIMER_SECOND / 10);
+  tmp[0] = addr & 0xff;
+  tmp[1] = addr >> 8;
+  CC2520_WRITE_RAM(&tmp, CC2520RAM_SHORTADDR, 2);
+
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+void
+cc2520_set_pan_id(uint16_t pan)
+{
+  uint8_t tmp[2];
+
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
 
   tmp[0] = pan & 0xff;
   tmp[1] = pan >> 8;
   CC2520_WRITE_RAM(&tmp, CC2520RAM_PANID, 2);
 
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+void
+cc2520_set_ieee_addr(const uint8_t *ieee_addr)
+{
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
 
-  tmp[0] = addr & 0xff;
-  tmp[1] = addr >> 8;
-  CC2520_WRITE_RAM(&tmp, CC2520RAM_SHORTADDR, 2);
   if(ieee_addr != NULL) {
-    int f;
     uint8_t tmp_addr[8];
-    // LSB first, MSB last for 802.15.4 addresses in CC2520
+    int f;
+    /* LSB first, MSB last for 802.15.4 addresses in CC2520 */
     for (f = 0; f < 8; f++) {
       tmp_addr[7 - f] = ieee_addr[f];
     }
@@ -588,6 +659,17 @@ cc2520_set_pan_addr(unsigned pan,
   }
   RELEASE_LOCK();
 }
+/*---------------------------------------------------------------------------*/
+void
+cc2520_set_pan_addr(unsigned pan,
+                    unsigned addr,
+                    const uint8_t *ieee_addr)
+{
+  cc2520_set_short_addr(addr);
+  cc2520_set_pan_id(pan);
+  cc2520_set_ieee_addr(ieee_addr);
+}
+
 /*---------------------------------------------------------------------------*/
 /*
  * Interrupt leaves frame intact in FIFO.
@@ -748,14 +830,6 @@ cc2520_rssi(void)
   RELEASE_LOCK();
   return rssi;
 }
-/*---------------------------------------------------------------------------*/
-/*
-static int
-detected_energy(void)
-{
-  return cc2520_rssi();
-}
-*/
 /*---------------------------------------------------------------------------*/
 int
 cc2520_cca_valid(void)
