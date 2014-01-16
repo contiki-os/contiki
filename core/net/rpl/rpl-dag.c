@@ -332,6 +332,7 @@ rpl_repair_root(uint8_t instance_id)
     PRINTF("RPL: rpl_repair_root triggered but not root\n");
     return 0;
   }
+  RPL_STAT(rpl_stats.root_repairs++);
 
   RPL_LOLLIPOP_INCREMENT(instance->current_dag->version);
   RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
