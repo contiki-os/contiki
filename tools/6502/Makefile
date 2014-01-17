@@ -86,7 +86,7 @@ contiki-apple2-1.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
 	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
-	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+	java -jar $(AC) -p    $@ contiki.mou     rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 
 contiki-apple2-2.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
@@ -103,7 +103,7 @@ contiki-apple2-2.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
 	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
-	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+	java -jar $(AC) -p    $@ contiki.mou     rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 
 contiki-apple2-3.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
@@ -120,7 +120,7 @@ contiki-apple2-3.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
 	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
-	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+	java -jar $(AC) -p    $@ contiki.mou     rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 
 contiki-apple2-4.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
@@ -137,7 +137,7 @@ contiki-apple2-4.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
 	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
-	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+	java -jar $(AC) -p    $@ contiki.mou     rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 	java -jar $(AC) -p    $@ index.htm       bin 0 < ../../examples/webserver/httpd-cfs/index.htm
 	java -jar $(AC) -p    $@ backgrnd.gif    bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
 	java -jar $(AC) -p    $@ contiki.gif     bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
@@ -170,7 +170,7 @@ contiki-apple2.2mg: apple2enh-makes
 	java -jar $(AC) -p    $@ cs8900a.eth     rel 0 < ../../cpu/6502/ethconfig/cs8900a.eth
 	java -jar $(AC) -p    $@ lan91c96.eth    rel 0 < ../../cpu/6502/ethconfig/lan91c96.eth
 	java -jar $(AC) -p    $@ w5100.eth       rel 0 < ../../cpu/6502/ethconfig/w5100.eth
-	java -jar $(AC) -p    $@ a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+	java -jar $(AC) -p    $@ contiki.mou     rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 	java -jar $(AC) -p    $@ index.htm       bin 0 < ../../examples/webserver/httpd-cfs/index.htm
 	java -jar $(AC) -p    $@ backgrnd.gif    bin 0 < ../../examples/webserver/httpd-cfs/backgrnd.gif
 	java -jar $(AC) -p    $@ contiki.gif     bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
@@ -268,7 +268,10 @@ contiki-c64-1.d64: c64-makes
 	$(C1541) -attach $@ -write ../c64/default.cfg                       contiki.cfg,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth     cs8900a.eth,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth    lan91c96.eth,s
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou            c64-1351.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou            contiki.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-inkwell.mou         inkwell.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-joy.mou             joy.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-pot.mou             pot.mou,s
 
 contiki-c64-2.d64: c64-makes
 	$(C1541) -format contiki-2,00 d64 $@
@@ -280,7 +283,10 @@ contiki-c64-2.d64: c64-makes
 	$(C1541) -attach $@ -write ../c64/default.cfg                                                            contiki.cfg,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth                                          cs8900a.eth,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth                                         lan91c96.eth,s
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 c64-1351.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 contiki.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-inkwell.mou                                              inkwell.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-joy.mou                                                  joy.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-pot.mou                                                  pot.mou,s
 
 contiki-c64-3.d64: c64-makes
 	$(C1541) -format contiki-3,00 d64 $@
@@ -291,7 +297,10 @@ contiki-c64-3.d64: c64-makes
 	$(C1541) -attach $@ -write ../c64/default.cfg                              contiki.cfg,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth            cs8900a.eth,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth           lan91c96.eth,s
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                   c64-1351.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                   contiki.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-inkwell.mou                inkwell.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-joy.mou                    joy.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-pot.mou                    pot.mou,s
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/index.htm    index.htm,s
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/backgrnd.gif backgrnd.gif,s
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/contiki.gif  contiki.gif,s
@@ -312,7 +321,10 @@ contiki-c64.d71: c64-makes
 	$(C1541) -attach $@ -write ../c64/default.cfg                                                            contiki.cfg,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth                                          cs8900a.eth,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth                                         lan91c96.eth,s
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 c64-1351.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 contiki.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-inkwell.mou                                              inkwell.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-joy.mou                                                  joy.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-pot.mou                                                  pot.mou,s
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/index.htm                                  index.htm,s
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/backgrnd.gif                               backgrnd.gif,s
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/contiki.gif                                contiki.gif,s
@@ -333,7 +345,10 @@ contiki-c64.d81: c64-makes
 	$(C1541) -attach $@ -write ../c64/default.cfg                                                            contiki.cfg,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth                                          cs8900a.eth,s
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth                                         lan91c96.eth,s
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 c64-1351.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                                                 contiki.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-inkwell.mou                                              inkwell.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-joy.mou                                                  joy.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-pot.mou                                                  pot.mou,s
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/index.htm                                  index.htm,s
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/backgrnd.gif                               backgrnd.gif,s
 	$(C1541) -attach $@ -write ../../examples/webserver/httpd-cfs/contiki.gif                                contiki.gif,s
