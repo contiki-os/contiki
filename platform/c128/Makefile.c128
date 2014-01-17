@@ -51,7 +51,7 @@ disk: all
 	$(C1541) -attach contiki.d71 -write cs8900a.eth                           cs8900a.eth,s
 	$(C1541) -attach contiki.d71 -write lan91c96.eth                          lan91c96.eth,s
 ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
-	$(C1541) -attach contiki.d71 -write $(CC65_HOME)/mou/c128-1351.mou        c128-1351.mou,s
+	$(C1541) -attach contiki.d71 -write $(CC65_HOME)/mou/c128-1351.mou        contiki.mou,s
 endif
 ifeq ($(HTTPD-CFS),1)
 	$(C1541) -attach contiki.d71 -write httpd-cfs/index.htm                   index.htm,s
