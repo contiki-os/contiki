@@ -189,6 +189,11 @@ contiki-atari-1.atr: atarixl-makes
 	cp ../../examples/wget/wget.atarixl             atr/wget.com
 	cp ../atarixl/default.cfg                       atr/contiki.cfg
 	cp ../../cpu/6502/ethconfig/cs8900a.eth         atr/cs8900a.eth
+	cp $(CC65_HOME)/mou/atrxst.mou                  atr/contiki.mou
+	cp $(CC65_HOME)/mou/atrxami.mou                 atr/ami.mou
+	cp $(CC65_HOME)/mou/atrxjoy.mou                 atr/joy.mou
+	cp $(CC65_HOME)/mou/atrxtrk.mou                 atr/trk.mou
+	cp $(CC65_HOME)/mou/atrxtt.mou                  atr/tt.mou
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
@@ -201,6 +206,11 @@ contiki-atari-2.atr: atarixl-makes
 	cp ../../../contikiprojects/vandenbrande.com/twitter/platform/atarixl/breadbox64.atarixl atr/breadbox.com
 	cp ../atarixl/default.cfg                                                                atr/contiki.cfg
 	cp ../../cpu/6502/ethconfig/cs8900a.eth                                                  atr/cs8900a.eth
+	cp $(CC65_HOME)/mou/atrxst.mou                                                           atr/contiki.mou
+	cp $(CC65_HOME)/mou/atrxami.mou                                                          atr/ami.mou
+	cp $(CC65_HOME)/mou/atrxjoy.mou                                                          atr/joy.mou
+	cp $(CC65_HOME)/mou/atrxtrk.mou                                                          atr/trk.mou
+	cp $(CC65_HOME)/mou/atrxtt.mou                                                           atr/tt.mou
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
@@ -213,6 +223,11 @@ contiki-atari-3.atr: atarixl-makes
 	cp ../../examples/ftp/ftp-client.atarixl     atr/ftp.com
 	cp ../atarixl/default.cfg                    atr/contiki.cfg
 	cp ../../cpu/6502/ethconfig/cs8900a.eth      atr/cs8900a.eth
+	cp $(CC65_HOME)/mou/atrxst.mou               atr/contiki.mou
+	cp $(CC65_HOME)/mou/atrxami.mou              atr/ami.mou
+	cp $(CC65_HOME)/mou/atrxjoy.mou              atr/joy.mou
+	cp $(CC65_HOME)/mou/atrxtrk.mou              atr/trk.mou
+	cp $(CC65_HOME)/mou/atrxtt.mou               atr/tt.mou
 	$(DIR2ATR) -b Dos25 1040 $@ atr
 	rm -r atr
 
@@ -225,6 +240,11 @@ contiki-atari-4.atr: atarixl-makes
 	cp ../../examples/telnet-server/telnet-server.atarixl atr/telnetd.com
 	cp ../atarixl/default.cfg                             atr/contiki.cfg
 	cp ../../cpu/6502/ethconfig/cs8900a.eth               atr/cs8900a.eth
+	cp $(CC65_HOME)/mou/atrxst.mou                        atr/contiki.mou
+	cp $(CC65_HOME)/mou/atrxami.mou                       atr/ami.mou
+	cp $(CC65_HOME)/mou/atrxjoy.mou                       atr/joy.mou
+	cp $(CC65_HOME)/mou/atrxtrk.mou                       atr/trk.mou
+	cp $(CC65_HOME)/mou/atrxtt.mou                        atr/tt.mou
 	cp ../../examples/webserver/httpd-cfs/index.htm       atr/index.htm
 	cp ../../examples/webserver/httpd-cfs/backgrnd.gif    atr/backgrnd.gif
 	cp ../../examples/webserver/httpd-cfs/contiki.gif     atr/contiki.gif
@@ -247,6 +267,11 @@ contiki-atari.atr: atarixl-makes
 	cp ../../examples/telnet-server/telnet-server.atarixl                                    atr/telnetd.com
 	cp ../atarixl/default.cfg                                                                atr/contiki.cfg
 	cp ../../cpu/6502/ethconfig/cs8900a.eth                                                  atr/cs8900a.eth
+	cp $(CC65_HOME)/mou/atrxst.mou                                                           atr/contiki.mou
+	cp $(CC65_HOME)/mou/atrxami.mou                                                          atr/ami.mou
+	cp $(CC65_HOME)/mou/atrxjoy.mou                                                          atr/joy.mou
+	cp $(CC65_HOME)/mou/atrxtrk.mou                                                          atr/trk.mou
+	cp $(CC65_HOME)/mou/atrxtt.mou                                                           atr/tt.mou
 	cp ../../examples/webserver/httpd-cfs/index.htm                                          atr/index.htm
 	cp ../../examples/webserver/httpd-cfs/backgrnd.gif                                       atr/backgrnd.gif
 	cp ../../examples/webserver/httpd-cfs/contiki.gif                                        atr/contiki.gif
