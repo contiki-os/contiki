@@ -42,6 +42,9 @@
 #define CTK_CONF_WIDGETUP_KEY     0x01  /* Ctrl-A */
 #define CTK_CONF_WIDGETDOWN_KEY   '\t'  /* Tab or Ctrl-I */
 
+#define MOUSE_CONF_XTOC(x) ((x) / 8)
+#define MOUSE_CONF_YTOC(y) ((y) / 8)
+
 #define textcolor(color) COLOR_WHITE
 
 #define BORDERCOLOR COLOR_BLACK
