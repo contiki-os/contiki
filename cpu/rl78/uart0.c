@@ -38,7 +38,7 @@
 
 #include "uart0.h"
 
-#define DESIRED_BAUDRATE 9600
+#define DESIRED_BAUDRATE 38400
 
 /* Note that only 9600, 38400, and 115200 bps were tested. */
 #define PRESCALE_THRESH  ((38400 + 115200) / 2)
