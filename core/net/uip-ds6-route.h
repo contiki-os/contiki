@@ -83,7 +83,7 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 /** \brief define some additional RPL related route state and
  *  neighbor callback for RPL - if not a DS6_ROUTE_STATE is already set */
 #ifndef UIP_DS6_ROUTE_STATE_TYPE
-#ifdef UIP_CONF_IPV6_LOADNG //fixme: should replace this structure instead of adding to it
+#ifdef WITH_IPV6_LOADNG //fixme: should replace this structure instead of adding to it
 #define UIP_DS6_ROUTE_STATE_TYPE loadng_route_entry_t
 #else
 
