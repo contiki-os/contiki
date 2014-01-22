@@ -68,6 +68,7 @@ rpl_verify_header(int uip_ext_opt_offset)
 {
   rpl_instance_t *instance;
   int down;
+  uint16_t sender_rank;
   uint8_t sender_closer;
   uip_ds6_route_t *route;
 
@@ -117,17 +118,18 @@ rpl_verify_header(int uip_ext_opt_offset)
     down = 1;
   }
 
-  sender_closer = UIP_EXT_HDR_OPT_RPL_BUF->senderrank < instance->current_dag->rank;
+  sender_rank = UIP_HTONS(UIP_EXT_HDR_OPT_RPL_BUF->senderrank);
+  sender_closer = sender_rank < instance->current_dag->rank;
 
   PRINTF("RPL: Packet going %s, sender closer %d (%d < %d)\n", down == 1 ? "down" : "up",
 	 sender_closer,
-	 UIP_EXT_HDR_OPT_RPL_BUF->senderrank,
+	 sender_rank,
 	 instance->current_dag->rank
 	 );
 
   if((down && !sender_closer) || (!down && sender_closer)) {
     PRINTF("RPL: Loop detected - senderrank: %d my-rank: %d sender_closer: %d\n",
-	   UIP_EXT_HDR_OPT_RPL_BUF->senderrank, instance->current_dag->rank,
+	   sender_rank, instance->current_dag->rank,
 	   sender_closer);
     if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
       PRINTF("RPL: Rank error signalled in RPL option!\n");
@@ -210,7 +212,7 @@ rpl_update_header_empty(void)
   switch(UIP_EXT_HDR_OPT_BUF->type) {
   case UIP_EXT_HDR_OPT_RPL:
     PRINTF("RPL: Updating RPL option\n");
-    UIP_EXT_HDR_OPT_RPL_BUF->senderrank = instance->current_dag->rank;
+    UIP_EXT_HDR_OPT_RPL_BUF->senderrank = UIP_HTONS(instance->current_dag->rank);
 
     /* Check the direction of the down flag, as per Section 11.2.2.3,
        which states that if a packet is going down it should in
@@ -276,7 +278,7 @@ rpl_update_header_final(uip_ipaddr_t *addr)
           UIP_EXT_HDR_OPT_RPL_BUF->flags = RPL_HDR_OPT_DOWN;
         }
         UIP_EXT_HDR_OPT_RPL_BUF->instance = default_instance->instance_id;
-        UIP_EXT_HDR_OPT_RPL_BUF->senderrank = default_instance->current_dag->rank;
+        UIP_EXT_HDR_OPT_RPL_BUF->senderrank = UIP_HTONS(default_instance->current_dag->rank);
         uip_ext_len = last_uip_ext_len;
       }
     }
@@ -334,7 +336,7 @@ rpl_invert_header(void)
     PRINTF("RPL: Updating RPL option (switching direction)\n");
     UIP_EXT_HDR_OPT_RPL_BUF->flags &= RPL_HDR_OPT_DOWN;
     UIP_EXT_HDR_OPT_RPL_BUF->flags ^= RPL_HDR_OPT_DOWN;
-    UIP_EXT_HDR_OPT_RPL_BUF->senderrank = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance)->current_dag->rank;
+    UIP_EXT_HDR_OPT_RPL_BUF->senderrank = UIP_HTONS(rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance)->current_dag->rank);
     uip_ext_len = last_uip_ext_len;
     return RPL_HOP_BY_HOP_LEN;
   default:
