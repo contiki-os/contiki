@@ -105,19 +105,12 @@ rpl_verify_header(int uip_ext_opt_offset)
     route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
     if(route != NULL) {
       uip_ds6_route_rm(route);
-
-      /* If we are the root and just needed to remove a DAO route,
-         chances are that the network needs to be repaired. The
-         rpl_repair_root() function will cause a global repair if we
-         happen to be the root node of the dag. */
-      PRINTF("RPL: initiate global repair\n");
-      rpl_repair_root(instance->instance_id);
     }
-
-    /* Remove the forwarding error flag and return 0 to let the packet
-       be forwarded again. */
-    UIP_EXT_HDR_OPT_RPL_BUF->flags &= ~RPL_HDR_OPT_FWD_ERR;
-    return 0;
+    RPL_STAT(rpl_stats.forward_errors++);
+    /* Trigger DAO retransmission */
+    rpl_reset_dio_timer(instance);
+    /* drop the packet as it is not routable */
+    return 1;
   }
 
   if(!instance->current_dag->joined) {
