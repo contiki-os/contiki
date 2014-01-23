@@ -38,7 +38,7 @@ Flash the example onto the eval board after ensuring that switch #2 of DIP switc
 
 	rl78flash/rl78flash -vv -i -m3 /dev/ttyUSB0 -b500000 -a contiki/examples/rime/example-abc.eval-adf7xxxmb4z.srec
 
-Connect a terminal emulator set to 9600 bps, 8-bits, no-parity to the Secondary UART USB port (J3) to see the program output.
+Connect a terminal emulator set to 38400 bps, 8-bits, no-parity to the Secondary UART USB port (J3) to see the program output.
 
 
 ### IPv6 Web Server ###
@@ -52,7 +52,7 @@ Build and run the SLIP tunnel on the host machine.
 Here it is assumed that the Secondary UART USB port (J3) is attached to /dev/ttyUSB1:
 
 	make -C contiki/tools tunslip6
-	sudo contiki/tools/tunslip6 -B 9600 -s /dev/ttyUSB1 -v3 aaaa::1/64
+	sudo contiki/tools/tunslip6 -B 38400 -s /dev/ttyUSB1 -v3 aaaa::1/64
 
 Open the border router home page at http://[aaaa::302:304:506:708]/
 
@@ -96,7 +96,7 @@ Flash the output file `example-abc.eval-adf7xxxmb4z.srec` using the
 [Renesas Flash Programmer](http://am.renesas.com/products/tools/flash_prom_programming/rfp)
 (registration required).
 
-Connect a terminal emulator (e.g. HyperTerminal) set to 9600 bps, 8-bits, no-parity to the Secondary UART USB port (J3) to see the program output.
+Connect a terminal emulator (e.g. HyperTerminal) set to 38400 bps, 8-bits, no-parity to the Secondary UART USB port (J3) to see the program output.
 
 ### Using IAR Embedded Workbench ###
 
@@ -125,4 +125,4 @@ Flash the output file `example-abc.eval-adf7xxxmb4z.srec` using the
 [Renesas Flash Programmer](http://am.renesas.com/products/tools/flash_prom_programming/rfp)
 (registration required).
 
-Connect a terminal emulator (e.g. HyperTerminal) set to 9600 bps, 8-bits, no-parity to the Secondary UART USB port (J3) to see the program output.
+Connect a terminal emulator (e.g. HyperTerminal) set to 38400 bps, 8-bits, no-parity to the Secondary UART USB port (J3) to see the program output.
