@@ -38,14 +38,13 @@
 
 #include "uart0.h"
 
-#define DESIRED_BAUDRATE 9600
-#define FUDGE_FACTOR     4
+#define DESIRED_BAUDRATE 38400
 
-/* Note that only 9600 and 115200 bps were tested: */
-#define PRESCALE_THRESH  ((9600 + 115200) / 2)
+/* Note that only 9600, 38400, and 115200 bps were tested. */
+#define PRESCALE_THRESH  ((38400 + 115200) / 2)
 #define PRS_VALUE        ((DESIRED_BAUDRATE < PRESCALE_THRESH) ? 4 : 0)
-#define f_MCK            (f_CLK / (1 << PRS_VALUE) / FUDGE_FACTOR)
-#define SDR_VALUE        ((f_MCK / DESIRED_BAUDRATE) >> 1)
+#define f_MCK            (f_CLK / (1 << PRS_VALUE))
+#define SDR_VALUE        (f_MCK / DESIRED_BAUDRATE / 2 - 1)
 
 void
 uart0_init(void)
