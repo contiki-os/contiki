@@ -47,7 +47,15 @@ ifdef IAR
   # Default library configuration (n = normal, f = full):
   LIB_CONFIG ?= n
 
-  IAR_PATH ?= C:\\Program\ Files\\IAR\ Systems\\Embedded\ Workbench\ 6.5\\rl78
+  ifeq ($(IAR_PATH),)
+    IAR_SUBPATH := $(shell ls "C:\Program Files\IAR Systems" | tail -1 )
+
+    ifeq ($(IAR_SUBPATH),)
+      $(error Unable to find the IAR installation path. Please specify IAR_PATH. For example: make IAR_PATH="C:\\Program\ Files\\IAR\ Systems\\Embedded\ Workbench\ 6.5\\rl78" )
+    endif
+
+    IAR_PATH := "C:\Program Files\IAR Systems\$(IAR_SUBPATH)\rl78"
+  endif
 
   CC = $(IAR_PATH)\\bin\\iccrl78
   LD = $(IAR_PATH)\\bin\\xlink
