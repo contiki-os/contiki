@@ -62,7 +62,7 @@ disk: all
 	java -jar $(AC) -p    contiki.dsk lan91c96.eth   rel 0 < lan91c96.eth
 	java -jar $(AC) -p    contiki.dsk w5100.eth      rel 0 < w5100.eth
 ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
-	java -jar $(AC) -p    contiki.dsk a2e.stdmou.mou rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+	java -jar $(AC) -p    contiki.dsk contiki.mou    rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 endif
 ifeq ($(HTTPD-CFS),1)
 	java -jar $(AC) -p    contiki.dsk index.htm      bin 0 < httpd-cfs/index.htm

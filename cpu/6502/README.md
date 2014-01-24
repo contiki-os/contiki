@@ -69,6 +69,10 @@ high-level configuration macros may be set:
     - Default: 0
     - Purpose: Enable CTK mouse support and load a mouse driver.
 
+- WITH_ARGS
+    - Default: 0
+    - Purpose: Enable support for contiki_argc / contiki_argv.
+
 - WITH_PFS
     - Default: 0
     - Purpose: Implement the CFS interface with a Platform-specific File System

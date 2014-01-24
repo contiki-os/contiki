@@ -479,11 +479,11 @@ void uip_log(char *msg);
 #ifdef UIP_CONF_TCP_MSS
 #if UIP_CONF_TCP_MSS > (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
 #error UIP_CONF_TCP_MSS is too large for the current UIP_BUFSIZE
-#endif /* UIP_CONF_TCP_MSS < (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN) */
+#endif /* UIP_CONF_TCP_MSS > (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN) */
 #define UIP_TCP_MSS     (UIP_CONF_TCP_MSS)
-#else
+#else /* UIP_CONF_TCP_MSS */
 #define UIP_TCP_MSS     (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
-#endif
+#endif /* UIP_CONF_TCP_MSS */
 
 /**
  * The size of the advertised receiver's window.

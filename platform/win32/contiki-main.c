@@ -95,9 +95,24 @@ log_message(const char *part1, const char *part2)
   debug_printf("%s%s\n", part1, part2);
 }
 /*-----------------------------------------------------------------------------------*/
+int contiki_argc = 0;
+char **contiki_argv;
+
 int
-main(void)
+main(int argc, char **argv)
 {
+  contiki_argc = argc;
+  contiki_argv = argv;
+
+  /* The first one or two args are used for wpcap configuration */
+  /* so this needs to be "removed" from  contiki_args.          */
+  contiki_argc--;
+  contiki_argv++;
+#ifdef UIP_FALLBACK_INTERFACE
+  contiki_argc--;
+  contiki_argv++;
+#endif
+
   process_init();
 
   procinit_init();
