@@ -183,5 +183,7 @@ typedef unsigned short uip_stats_t;
 #define WWW_CONF_WEBPAGE_WIDTH  76
 #define WWW_CONF_WEBPAGE_HEIGHT 30
 #endif /* PLATFORM_BUILD */
+#define WWW_CONF_WGET_EXEC(url) execlp("wget.win32", "wget.win32", \
+                                       "192.168.0.2", url, (char *)NULL)
 
 #endif /* CONTIKI_CONF_H_ */
