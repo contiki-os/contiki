@@ -42,7 +42,7 @@ ifdef IAR
   DEVICE ?= r5f100ll
 
   # According to "rl78/config/devices/RL78 - G13/r5f100ll.menu", the R5F100LLA has core 1.
-  CORE       ?= 1
+  RL78_CORE  ?= 1
 
   # Default library configuration (n = normal, f = full):
   LIB_CONFIG ?= n
@@ -55,7 +55,7 @@ ifdef IAR
 
   CFLAGS  += --silent
   CFLAGS  += --debug
-  CFLAGS  += --core rl78_$(CORE)
+  CFLAGS  += --core rl78_$(RL78_CORE)
   CFLAGS  += --code_model $(CODE_MODEL)
   CFLAGS  += --data_model $(DATA_MODEL)
   CFLAGS  += -I$(IAR_PATH)\\lib
@@ -73,7 +73,7 @@ ifdef IAR
 
   AROPTS ?= -S
   
-  TARGET_LIBFILES += $(IAR_PATH)\\lib\\dlrl78$(CODE_MODEL)$(DATA_MODEL)$(CORE)$(LIB_CONFIG).r87
+  TARGET_LIBFILES += $(IAR_PATH)\\lib\\dlrl78$(CODE_MODEL)$(DATA_MODEL)$(RL78_CORE)$(LIB_CONFIG).r87
 
 CUSTOM_RULE_C_TO_O = 1
 %.o: %.c
