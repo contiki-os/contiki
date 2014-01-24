@@ -19,11 +19,10 @@ Convert the RPM package to a Debian package and install it:
 
 Obtain the Contiki source code:
 
-	git clone -b rl78-dev https://github.com/hexluthor/contiki.git
+	git clone https://github.com/contiki-os/contiki.git
 
 Build Contiki's example-abc:
 
-	cd contiki/examples/rime
 	make -C contiki/examples/rime TARGET=eval-adf7xxxmb4z example-abc.eval-adf7xxxmb4z.srec
 
 The code can be flashed to the eval board using
@@ -80,10 +79,10 @@ Download and install
 
 Obtain the Contiki source code using [git](http://git-scm.com/download/win):
 
-	git clone -b rl78-dev https://github.com/hexluthor/contiki.git
+	git clone https://github.com/contiki-os/contiki.git
 
 Alternatively, download a
-[zip file](https://github.com/hexluthor/contiki/archive/rl78-dev.zip)
+[zip file](https://github.com/contiki-os/contiki/archive/master.zip)
 of the latest source.
 
 Build Contiki's example-abc using the RL78 Toolchain shell.
@@ -109,10 +108,10 @@ and [make](http://gnuwin32.sourceforge.net/downlinks/make.php).
 
 Obtain the Contiki source code using [git](http://git-scm.com/download/win):
 
-	git clone -b rl78-dev https://github.com/hexluthor/contiki.git
+	git clone https://github.com/contiki-os/contiki.git
 
 Alternatively, download a
-[zip file](https://github.com/hexluthor/contiki/archive/rl78-dev.zip)
+[zip file](https://github.com/contiki-os/contiki/archive/master.zip)
 of the latest source.
 
 Build Contiki's example-abc.
