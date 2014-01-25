@@ -89,6 +89,7 @@ transmit(unsigned short transmit_len)
   sent = send(sockfd, sockbuf, buflen, 0);
   if (sent < 0) {
     perror("linuxradio send()");
+    return RADIO_TX_ERR;
   }
   buflen = 0;
   return RADIO_TX_OK;
