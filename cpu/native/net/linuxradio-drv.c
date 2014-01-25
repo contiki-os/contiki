@@ -67,6 +67,9 @@ static int
 init(void)
 {
   sockbuf = malloc(MAX_PACKET_SIZE);
+  if (sockbuf == 0) {
+    return 1;
+  }
   return 0;
 }
 
@@ -163,8 +166,13 @@ on(void)
     return 0;
   } else {
     struct ifreq ifr;
-    strncpy((char *)ifr.ifr_name, "wpan0", IFNAMSIZ); // TODO: make interface configurable
-    ioctl(sockfd, SIOCGIFINDEX, &ifr);
+    // TODO: interface should not be hard-coded
+    strncpy((char *)ifr.ifr_name, "wpan0", IFNAMSIZ);
+    int err = ioctl(sockfd, SIOCGIFINDEX, &ifr);
+    if (err == -1) {
+      perror ("linuxradio ioctl()");
+      return 0;
+    }
 
     struct sockaddr_ll sll;
     sll.sll_family = AF_PACKET;
