@@ -67,16 +67,15 @@ static int
 init(void)
 {
   sockbuf = malloc(MAX_PACKET_SIZE);
-  if (sockbuf == 0) {
+  if(sockbuf == 0) {
     return 1;
   }
   return 0;
 }
-
 static int
 prepare(const void *payload, unsigned short payload_len)
 {
-  if (payload_len > MAX_PACKET_SIZE) {
+  if(payload_len > MAX_PACKET_SIZE) {
     return 0;
   }
   memcpy(sockbuf, payload, payload_len);
@@ -84,26 +83,24 @@ prepare(const void *payload, unsigned short payload_len)
 
   return 0;
 }
-
 static int
 transmit(unsigned short transmit_len)
 {
-  int sent=0;
+  int sent = 0;
   sent = send(sockfd, sockbuf, buflen, 0);
-  if (sent < 0) {
+  if(sent < 0) {
     perror("linuxradio send()");
     return RADIO_TX_ERR;
   }
   buflen = 0;
   return RADIO_TX_OK;
 }
-
 static int
 my_send(const void *payload, unsigned short payload_len)
 {
   int ret = -1;
 
-  if (prepare(payload, payload_len)) {
+  if(prepare(payload, payload_len)) {
     return ret;
   }
 
@@ -111,42 +108,36 @@ my_send(const void *payload, unsigned short payload_len)
 
   return ret;
 }
-
 static int
 my_read(void *buf, unsigned short buf_len)
 {
   return 0;
 }
-
 static int
 channel_clear(void)
 {
   return 1;
 }
-
 static int
 receiving_packet(void)
 {
   return 0;
 }
-
 static int
 pending_packet(void)
 {
   return 0;
 }
-
 static int
 set_fd(fd_set *rset, fd_set *wset)
 {
   FD_SET(sockfd, rset);
   return 1;
 }
-
 static void
 handle_fd(fd_set *rset, fd_set *wset)
 {
-  if (FD_ISSET(sockfd, rset)) {
+  if(FD_ISSET(sockfd, rset)) {
     int bytes = read(sockfd, sockbuf, MAX_PACKET_SIZE);
     buflen = bytes;
     memcpy(packetbuf_dataptr(), sockbuf, bytes);
@@ -154,32 +145,32 @@ handle_fd(fd_set *rset, fd_set *wset)
     NETSTACK_RDC.input();
   }
 }
-
 static const struct select_callback linuxradio_sock_callback = { set_fd, handle_fd };
 
 static int
 on(void)
 {
+  struct ifreq ifr;
+  int err;
+  struct sockaddr_ll sll;
+
   sockfd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_IEEE802154));
-  if (sockfd < 0) {
-    perror ("linuxradio socket()");
+  if(sockfd < 0) {
+    perror("linuxradio socket()");
     return 0;
   } else {
-    struct ifreq ifr;
-    // TODO: interface should not be hard-coded
+    /* TODO: interface should not be hard-coded */
     strncpy((char *)ifr.ifr_name, "wpan0", IFNAMSIZ);
-    int err = ioctl(sockfd, SIOCGIFINDEX, &ifr);
-    if (err == -1) {
-      perror ("linuxradio ioctl()");
+    err = ioctl(sockfd, SIOCGIFINDEX, &ifr);
+    if(err == -1) {
+      perror("linuxradio ioctl()");
       return 0;
     }
-
-    struct sockaddr_ll sll;
     sll.sll_family = AF_PACKET;
     sll.sll_ifindex = ifr.ifr_ifindex;
     sll.sll_protocol = htons(ETH_P_IEEE802154);
 
-    if (bind(sockfd, (struct sockaddr *)&sll, sizeof(sll)) < 0) {
+    if(bind(sockfd, (struct sockaddr *)&sll, sizeof(sll)) < 0) {
       perror("linuxradio bind()");
       return 0;
     }
@@ -188,7 +179,6 @@ on(void)
     return 1;
   }
 }
-
 static int
 off(void)
 {
@@ -196,17 +186,16 @@ off(void)
   sockfd = -1;
   return 1;
 }
-
 const struct radio_driver linuxradio_driver =
-  {
-    init,
-    prepare,
-    transmit,
-    my_send,
-    my_read,
-    channel_clear,
-    receiving_packet,
-    pending_packet,
-    on,
-    off,
-  };
+{
+  init,
+  prepare,
+  transmit,
+  my_send,
+  my_read,
+  channel_clear,
+  receiving_packet,
+  pending_packet,
+  on,
+  off,
+};
