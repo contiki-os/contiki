@@ -144,7 +144,7 @@ static void
 handle_fd(fd_set *rset, fd_set *wset)
 {
   if (FD_ISSET(sockfd, rset)) {
-    int bytes = read(sockfd, sockbuf, 256);
+    int bytes = read(sockfd, sockbuf, MAX_PACKET_SIZE);
     buflen = bytes;
     memcpy(packetbuf_dataptr(), sockbuf, bytes);
     packetbuf_set_datalen(bytes);
