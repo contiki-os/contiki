@@ -113,6 +113,15 @@ typedef struct uip_icmp6_error{
 void
 uip_icmp6_echo_request_input(void);
 
+/** \
+ * brief Process an echo reply
+ *
+ * Perform a few checks, then call applications to inform that an echo
+ * reply has been received.
+  */
+void
+uip_icmp6_echo_reply_input(void);
+
 /**
  * \brief Send an icmpv6 error message
  * \param type type of the error message
@@ -130,7 +139,55 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param);
  * \param payload_len length of the payload
  */
 void
-uip_icmp6_send(uip_ipaddr_t *dest, int type, int code, int payload_len);
+uip_icmp6_send(const uip_ipaddr_t *dest, int type, int code, int payload_len);
+
+
+
+typedef void (* uip_icmp6_echo_reply_callback_t)(uip_ipaddr_t *source,
+                                                 uint8_t ttl,
+                                                 uint8_t *data,
+                                                 uint16_t datalen);
+struct uip_icmp6_echo_reply_notification {
+  struct uip_icmp6_echo_reply_notification *next;
+  uip_icmp6_echo_reply_callback_t callback;
+};
+
+/**
+ * \brief      Add a callback function for ping replies
+ * \param n    A struct uip_icmp6_echo_reply_notification that must have been allocated by the caller
+ * \param c    A pointer to the callback function to be called
+ *
+ *             This function adds a callback function to the list of
+ *             callback functions that are called when an ICMP echo
+ *             reply (ping reply) is received. This is used when
+ *             implementing a ping protocol: attach a callback
+ *             function to the ping reply, then send out a ping packet
+ *             with uip_icmp6_send().
+ *
+ *             The caller must have statically allocated a struct
+ *             uip_icmp6_echo_reply_notification to hold the internal
+ *             state of the callback function.
+ *
+ *             When a ping reply packet is received, all registered
+ *             callback functions are called. The callback functions
+ *             must not modify the contents of the uIP buffer.
+ */
+void
+uip_icmp6_echo_reply_callback_add(struct uip_icmp6_echo_reply_notification *n,
+                                  uip_icmp6_echo_reply_callback_t c);
+
+/**
+ * \brief      Remove a callback function for ping replies
+ * \param n    A struct uip_icmp6_echo_reply_notification that must have been previously added with uip_icmp6_echo_reply_callback_add()
+ *
+ *             This function removes a callback function from the list of
+ *             callback functions that are called when an ICMP echo
+ *             reply (ping reply) is received.
+ */
+void
+uip_icmp6_echo_reply_callback_rm(struct uip_icmp6_echo_reply_notification *n);
+
+
 
 
 /** @} */
