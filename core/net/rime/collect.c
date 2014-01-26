@@ -123,8 +123,18 @@ struct ack_msg {
    forwarding queue before it is removed. The MAX_SENDING_QUEUE
    specifies the maximum length of the output queue. If the queue is
    full, incoming packets are dropped instead of being forwarded. */
-#define MAX_MAC_REXMITS            2
-#define MAX_ACK_MAC_REXMITS        5
+#ifdef COLLECT_CONF_MAX_MAC_REXMITS
+#define MAX_MAC_REXMITS COLLECT_CONF_MAX_MAC_REXMITS
+#else /* COLLECT_CONF_MAX_MAC_REXMITS */
+#define MAX_MAC_REXMITS 2
+#endif /* COLLECT_CONF_MAX_MAC_REXMITS */
+
+#ifdef COLLECT_CONF_MAX_ACK_MAC_REXMITS
+#define MAX_ACK_MAC_REXMITS COLLECT_CONF_MAX_ACK_MAC_REXMITS
+#else /* COLLECT_CONF_MAX_ACK_MAC_REXMITS */
+#define MAX_ACK_MAC_REXMITS 5
+#endif /* COLLECT_CONF_MAX_ACK_MAC_REXMITS */
+
 #define REXMIT_TIME                (CLOCK_SECOND * 32 / NETSTACK_RDC_CHANNEL_CHECK_RATE)
 #define FORWARD_PACKET_LIFETIME_BASE    REXMIT_TIME * 2
 #define MAX_SENDING_QUEUE          3 * QUEUEBUF_NUM / 4
@@ -150,7 +160,11 @@ MEMB(send_queue_memb, struct packetqueue_item, MAX_SENDING_QUEUE);
 
 /* This defines the maximum hops that a packet can take before it is
    dropped. */
-#define MAX_HOPLIM                 15
+#ifdef COLLECT_CONF_MAX_HOPLIM
+#define MAX_HOPLIM COLLECT_CONF_MAX_HOPLIM
+#else /* COLLECT_CONF_MAX_HOPLIM */
+#define MAX_HOPLIM 15
+#endif /* COLLECT_CONF_MAX_HOPLIM */
 
 
 /* Proactive probing: when there are no packets in the send
