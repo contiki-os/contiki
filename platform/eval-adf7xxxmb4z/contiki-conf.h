@@ -76,7 +76,7 @@
 
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC     csma_driver
-#define NETSTACK_CONF_RDC     sicslowmac_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
 #define NETSTACK_CONF_RADIO   adf7023_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
