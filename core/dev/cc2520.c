@@ -110,10 +110,17 @@ static int cc2520_send(const void *data, unsigned short len);
 static int cc2520_receiving_packet(void);
 static int pending_packet(void);
 static int cc2520_cca(void);
-/* static int detected_energy(void); */
 
 signed char cc2520_last_rssi;
 uint8_t cc2520_last_correlation;
+
+#if RADIO_CONF_EXTENDED_API
+
+static radio_conf_result_t cc2520_get_config_const(radio_const_t cst_id, void *value);
+static radio_conf_result_t cc2520_set_param(radio_param_t param_id, void *value);
+static radio_conf_result_t cc2520_get_param(radio_param_t param_id, void *value);
+
+#endif /* RADIO_CONF_EXTENDED_API */
 
 const struct radio_driver cc2520_driver =
   {
@@ -122,13 +129,16 @@ const struct radio_driver cc2520_driver =
     cc2520_transmit,
     cc2520_send,
     cc2520_read,
-    /* cc2520_set_channel, */
-    /* detected_energy, */
     cc2520_cca,
     cc2520_receiving_packet,
     pending_packet,
     cc2520_on,
     cc2520_off,
+#if RADIO_CONF_EXTENDED_API
+    cc2520_get_config_const,
+    cc2520_set_param,
+    cc2520_get_param,
+#endif /* RADIO_CONF_EXTENDED_API */
   };
 
 static uint8_t receive_on;
@@ -555,32 +565,106 @@ cc2520_set_channel(int c)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+
 void
-cc2520_set_pan_addr(unsigned pan,
-                    unsigned addr,
-                    const uint8_t *ieee_addr)
+cc2520_wait_for_stable_osc(void)
+{
+  /* Accessing RAM requires crystal oscillator to be stable. */
+  BUSYWAIT_UNTIL(status() & (BV(CC2520_XOSC16M_STABLE)), RTIMER_SECOND / 10);
+}
+/*---------------------------------------------------------------------------*/
+uint16_t
+cc2520_get_short_addr(void)
+{
+  uint8_t tmp[2];
+  uint16_t addr;
+
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
+
+  CC2520_READ_RAM(&tmp, CC2520RAM_SHORTADDR, 2);
+  addr = ((uint16_t)tmp[1]) << 8;
+  addr |= tmp[0];
+
+  RELEASE_LOCK();
+  return addr;
+}
+/*---------------------------------------------------------------------------*/
+uint16_t
+cc2520_get_pan_id(void)
+{
+  uint8_t tmp[2];
+  uint16_t pan;
+
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
+
+  CC2520_READ_RAM(&tmp, CC2520RAM_PANID, 2);
+  pan = ((uint16_t)tmp[1]) << 8;
+  pan |= tmp[0];
+
+  RELEASE_LOCK();
+  return pan;
+}
+/*---------------------------------------------------------------------------*/
+static void
+cc2520_get_ieee_addr(uint8_t *ieee_addr)
+{
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
+
+  if(ieee_addr != NULL) {
+    uint8_t tmp_addr[8];
+    int f;
+    CC2520_READ_RAM(tmp_addr, CC2520RAM_IEEEADDR, 8);
+    /* LSB first, MSB last for 802.15.4 addresses in CC2420 */
+    for (f = 0; f < 8; f++) {
+      ieee_addr[f] = tmp_addr[7 - f];
+    }
+  }
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+void
+cc2520_set_short_addr(uint16_t addr)
 {
   uint8_t tmp[2];
 
   GET_LOCK();
+  cc2520_wait_for_stable_osc();
 
-  /*
-   * Writing RAM requires crystal oscillator to be stable.
-   */
-  BUSYWAIT_UNTIL(status() & (BV(CC2520_XOSC16M_STABLE)), RTIMER_SECOND / 10);
+  tmp[0] = addr & 0xff;
+  tmp[1] = addr >> 8;
+  CC2520_WRITE_RAM(&tmp, CC2520RAM_SHORTADDR, 2);
+
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+void
+cc2520_set_pan_id(uint16_t pan)
+{
+  uint8_t tmp[2];
+
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
 
   tmp[0] = pan & 0xff;
   tmp[1] = pan >> 8;
   CC2520_WRITE_RAM(&tmp, CC2520RAM_PANID, 2);
 
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+void
+cc2520_set_ieee_addr(const uint8_t *ieee_addr)
+{
+  GET_LOCK();
+  cc2520_wait_for_stable_osc();
 
-  tmp[0] = addr & 0xff;
-  tmp[1] = addr >> 8;
-  CC2520_WRITE_RAM(&tmp, CC2520RAM_SHORTADDR, 2);
   if(ieee_addr != NULL) {
-    int f;
     uint8_t tmp_addr[8];
-    // LSB first, MSB last for 802.15.4 addresses in CC2520
+    int f;
+    /* LSB first, MSB last for 802.15.4 addresses in CC2520 */
     for (f = 0; f < 8; f++) {
       tmp_addr[7 - f] = ieee_addr[f];
     }
@@ -588,6 +672,17 @@ cc2520_set_pan_addr(unsigned pan,
   }
   RELEASE_LOCK();
 }
+/*---------------------------------------------------------------------------*/
+void
+cc2520_set_pan_addr(unsigned pan,
+                    unsigned addr,
+                    const uint8_t *ieee_addr)
+{
+  cc2520_set_short_addr(addr);
+  cc2520_set_pan_id(pan);
+  cc2520_set_ieee_addr(ieee_addr);
+}
+
 /*---------------------------------------------------------------------------*/
 /*
  * Interrupt leaves frame intact in FIFO.
@@ -749,14 +844,6 @@ cc2520_rssi(void)
   return rssi;
 }
 /*---------------------------------------------------------------------------*/
-/*
-static int
-detected_energy(void)
-{
-  return cc2520_rssi();
-}
-*/
-/*---------------------------------------------------------------------------*/
 int
 cc2520_cca_valid(void)
 {
@@ -830,3 +917,98 @@ cc2520_set_cca_threshold(int value)
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
+#if RADIO_CONF_EXTENDED_API
+/*---------------------------------------------------------------------------*/
+static radio_conf_result_t
+cc2520_get_config_const(radio_const_t cst_id, void *value)
+{
+  /* avoid the use of switch, since we may be in a Contiki protothread */
+  if(cst_id == RADIO_MIN_CHANNEL) {
+    *(int *)(value) = MIN_CHANNEL;
+    return RADIO_CONF_OK;
+
+  } else if(cst_id == RADIO_MAX_CHANNEL) {
+    *(int *)(value) = MAX_CHANNEL;
+    return RADIO_CONF_OK;
+
+  } else if(cst_id == RADIO_MIN_TX_POWER) {
+    *(int *)(value) = CC2520_TXPOWER_MIN;
+    return RADIO_CONF_OK;
+
+  } else if(cst_id == RADIO_MAX_TX_POWER) {
+    *(int *)(value) = CC2520_TXPOWER_MAX;
+    return RADIO_CONF_OK;
+
+  } else {
+    return RADIO_CONF_UNKNOWN_CONST;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static radio_conf_result_t
+cc2520_set_param(radio_param_t param_id, void *value)
+{
+  /* avoid the use of switch, since we may be in a Contiki protothread */
+  if (param_id == RADIO_CHANNEL) {
+    cc2520_set_channel(*(int *)(value));
+
+  } else if(param_id == RADIO_SHORT_ADDRESS) {
+    cc2520_set_short_addr(*(uint16_t *)(value));
+
+  } else if(param_id == RADIO_PAN_ID) {
+    cc2520_set_pan_id(*(uint16_t *)(value));
+
+  } else if(param_id == RADIO_IEEE_ADDRESS) {
+    cc2520_set_ieee_addr((const uint8_t *)value);
+
+  } else if(param_id == RADIO_TX_POWER) {
+    cc2520_set_txpower(*(uint8_t *)(value));
+
+  } else if(param_id == RADIO_CCA_THRESHOLD) {
+    cc2520_set_cca_threshold(*(int *)(value));
+
+  } else if(param_id == RADIO_PROMISCUOUS_MODE) {
+    return RADIO_CONF_UNAVAILABLE_PARAM;
+
+  } else {
+    return RADIO_CONF_UNKNOWN_PARAM;
+  }
+  return RADIO_CONF_OK;
+}
+/*---------------------------------------------------------------------------*/
+static radio_conf_result_t
+cc2520_get_param(radio_param_t param_id, void *value)
+{
+  /* avoid the use of switch, since we may be in a Contiki protothread */
+  if (param_id == RADIO_CHANNEL) {
+    *(int *)(value) = cc2520_get_channel();
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_SHORT_ADDRESS) {
+    *(uint16_t *)(value) = cc2520_get_short_addr();
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_PAN_ID) {
+    *(uint16_t *)(value) = cc2520_get_pan_id();
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_IEEE_ADDRESS) {
+    cc2520_get_ieee_addr((uint8_t *)value);
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_TX_POWER) {
+    *(int *)(value) = cc2520_get_txpower();
+    return RADIO_CONF_OK;
+
+  } else if(param_id == RADIO_CCA_THRESHOLD) {
+    return RADIO_CONF_WRITE_ONLY_PARAM;
+
+  } else if(param_id == RADIO_PROMISCUOUS_MODE) {
+    return RADIO_CONF_UNAVAILABLE_PARAM;
+
+  } else {
+    return RADIO_CONF_UNKNOWN_PARAM;
+  }
+}
+/*---------------------------------------------------------------------------*/
+#endif /* RADIO_CONF_EXTENDED_API */
+
