@@ -212,6 +212,7 @@ void lpm_register_peripheral(lpm_periph_permit_pm1_func_t permit_pm1_func);
 #define lpm_enter()
 #define lpm_exit()
 #define lpm_set_max_pm(...)
+#define lpm_register_peripheral(...)
 #endif
 
 #endif /* LPM_H_ */
