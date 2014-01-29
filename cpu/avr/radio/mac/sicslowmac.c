@@ -256,8 +256,8 @@ sicslowmac_dataIndication(void)
 	byte_reverse((uint8_t *)dest_reversed, UIP_LLADDR_LEN);
 	byte_reverse((uint8_t *)src_reversed, UIP_LLADDR_LEN);
   
-	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const linkaddr_t *)dest_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const linkaddr_t *)src_reversed);
 	
   #elif UIP_CONF_USE_RUM	
     /* Finally, get the stuff into the rime buffer.... */
@@ -297,8 +297,8 @@ sicslowmac_dataIndication(void)
 	src_reversed[4] = MSB(parsed_frame->src_addr->addr16);
 	src_reversed[5] = LSB(parsed_frame->src_addr->addr16);
 
-	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);	
+	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const linkaddr_t *)dest_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const linkaddr_t *)src_reversed);	
   
   #endif
 
@@ -325,8 +325,8 @@ sicslowmac_unknownIndication(void)
 	byte_reverse((uint8_t *)dest_reversed, UIP_LLADDR_LEN);
 	byte_reverse((uint8_t *)src_reversed, UIP_LLADDR_LEN);
   
-	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const linkaddr_t *)dest_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const linkaddr_t *)src_reversed);
 	
   #elif UIP_CONF_USE_RUM	
 	
@@ -360,8 +360,8 @@ sicslowmac_unknownIndication(void)
 	src_reversed[4] = MSB(parsed_frame->src_addr->addr16);
 	src_reversed[5] = LSB(parsed_frame->src_addr->addr16);
 
-	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);	
+	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const linkaddr_t *)dest_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const linkaddr_t *)src_reversed);	
   
   #endif
 
@@ -430,7 +430,7 @@ sicslowmac_dataRequest(void)
    *  If the output address is NULL in the Rime buf, then it is broadcast
    *  on the 802.15.4 network.
    */
-  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null) ) {
+  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null) ) {
     /* Broadcast requires short address mode. */
     params.fcf.destAddrMode = SHORTADDRMODE;
     params.dest_pid = BROADCASTPANDID;

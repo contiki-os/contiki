@@ -472,7 +472,7 @@ queuebuf_datalen(struct queuebuf *b)
   return buframptr->len;
 }
 /*---------------------------------------------------------------------------*/
-rimeaddr_t *
+linkaddr_t *
 queuebuf_addr(struct queuebuf *b, uint8_t type)
 {
   struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);

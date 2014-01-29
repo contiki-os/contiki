@@ -127,14 +127,14 @@ send_packet(mac_callback_t sent, void *ptr)
    *  If the output address is NULL in the Rime buf, then it is broadcast
    *  on the 802.15.4 network.
    */
-  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
     /* Broadcast requires short address mode. */
     params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
     params.dest_addr[0] = 0xFF;
     params.dest_addr[1] = 0xFF;
 
   } else {
-    rimeaddr_copy((rimeaddr_t *)&params.dest_addr,
+    linkaddr_copy((linkaddr_t *)&params.dest_addr,
                   packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     params.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
   }
@@ -147,9 +147,9 @@ send_packet(mac_callback_t sent, void *ptr)
    * phase 1.
    */
 #if NETSTACK_CONF_BRIDGE_MODE
-  rimeaddr_copy((rimeaddr_t *)&params.src_addr,packetbuf_addr(PACKETBUF_ADDR_SENDER));
+  linkaddr_copy((linkaddr_t *)&params.src_addr,packetbuf_addr(PACKETBUF_ADDR_SENDER));
 #else
-  rimeaddr_copy((rimeaddr_t *)&params.src_addr, &rimeaddr_node_addr);
+  linkaddr_copy((linkaddr_t *)&params.src_addr, &linkaddr_node_addr);
 #endif
 
   params.payload = packetbuf_dataptr();
@@ -206,10 +206,10 @@ input_packet(void)
         return;
       }
       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
-        packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (rimeaddr_t *)&frame.dest_addr);
+        packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&frame.dest_addr);
 #if !NETSTACK_CONF_BRIDGE_MODE
-        if(!rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                         &rimeaddr_node_addr)) {
+        if(!linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                         &linkaddr_node_addr)) {
           /* Not for this node */
           PRINTF("6MAC: not for us\n");
           return;
@@ -217,7 +217,7 @@ input_packet(void)
 #endif
       }
     }
-    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (rimeaddr_t *)&frame.src_addr);
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&frame.src_addr);
 
     PRINTF("6MAC-IN: %2X", frame.fcf.frame_type);
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));

@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimeaddr
+ * \addtogroup linkaddr
  * @{
  */
 
@@ -42,36 +42,36 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rimeaddr.h"
+#include "net/linkaddr.h"
 #include <string.h>
 
-rimeaddr_t rimeaddr_node_addr;
-#if RIMEADDR_SIZE == 2
-const rimeaddr_t rimeaddr_null = { { 0, 0 } };
-#else /*RIMEADDR_SIZE == 2*/
-#if RIMEADDR_SIZE == 8
-const rimeaddr_t rimeaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#endif /*RIMEADDR_SIZE == 8*/
-#endif /*RIMEADDR_SIZE == 2*/
+linkaddr_t linkaddr_node_addr;
+#if LINKADDR_SIZE == 2
+const linkaddr_t linkaddr_null = { { 0, 0 } };
+#else /*LINKADDR_SIZE == 2*/
+#if LINKADDR_SIZE == 8
+const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
+#endif /*LINKADDR_SIZE == 8*/
+#endif /*LINKADDR_SIZE == 2*/
 
 
 /*---------------------------------------------------------------------------*/
 void
-rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
+linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
 {
-	memcpy(dest, src, RIMEADDR_SIZE);
+	memcpy(dest, src, LINKADDR_SIZE);
 }
 /*---------------------------------------------------------------------------*/
 int
-rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
+linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
 {
-	return (memcmp(addr1, addr2, RIMEADDR_SIZE) == 0);
+	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
 }
 /*---------------------------------------------------------------------------*/
 void
-rimeaddr_set_node_addr(rimeaddr_t *t)
+linkaddr_set_node_addr(linkaddr_t *t)
 {
-  rimeaddr_copy(&rimeaddr_node_addr, t);
+  linkaddr_copy(&linkaddr_node_addr, t);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

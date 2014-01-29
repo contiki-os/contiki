@@ -66,7 +66,7 @@ struct neighbor_discovery_conn;
 
 struct neighbor_discovery_callbacks {
   void (* recv)(struct neighbor_discovery_conn *c,
-		const rimeaddr_t *from, uint16_t val);
+		const linkaddr_t *from, uint16_t val);
   void (* sent)(struct neighbor_discovery_conn *c);
 };
 

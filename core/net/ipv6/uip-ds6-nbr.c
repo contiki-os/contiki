@@ -47,7 +47,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "lib/list.h"
-#include "net/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "net/packetbuf.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 
@@ -63,7 +63,7 @@ void NEIGHBOR_STATE_CHANGED(uip_ds6_nbr_t *n);
 
 #ifdef UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK
 #define LINK_NEIGHBOR_CALLBACK(addr, status, numtx) UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
-void LINK_NEIGHBOR_CALLBACK(const rimeaddr_t *addr, int status, int numtx);
+void LINK_NEIGHBOR_CALLBACK(const linkaddr_t *addr, int status, int numtx);
 #else
 #define LINK_NEIGHBOR_CALLBACK(addr, status, numtx)
 #endif /* UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK */
@@ -81,7 +81,7 @@ uip_ds6_nbr_t *
 uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
                 uint8_t isrouter, uint8_t state)
 {
-  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (rimeaddr_t*)lladdr);
+  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr);
   if(nbr) {
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
     nbr->isrouter = isrouter;
@@ -171,7 +171,7 @@ uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr)
 uip_ds6_nbr_t *
 uip_ds6_nbr_ll_lookup(const uip_lladdr_t *lladdr)
 {
-  return nbr_table_get_from_lladdr(ds6_neighbors, (rimeaddr_t*)lladdr);
+  return nbr_table_get_from_lladdr(ds6_neighbors, (linkaddr_t*)lladdr);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -193,8 +193,8 @@ uip_ds6_nbr_lladdr_from_ipaddr(const uip_ipaddr_t *ipaddr)
 void
 uip_ds6_link_neighbor_callback(int status, int numtx)
 {
-  const rimeaddr_t *dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
-  if(rimeaddr_cmp(dest, &rimeaddr_null)) {
+  const linkaddr_t *dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+  if(linkaddr_cmp(dest, &linkaddr_null)) {
     return;
   }
 

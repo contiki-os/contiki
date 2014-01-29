@@ -82,7 +82,7 @@ send(void *ptr)
     broadcast_send(&c->c);
   } else {
     PRINTF("%d.%d: trickle send but c->q == NULL\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -132,13 +132,13 @@ run_trickle(struct trickle_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct broadcast_conn *bc, const rimeaddr_t *from)
+recv(struct broadcast_conn *bc, const linkaddr_t *from)
 {
   struct trickle_conn *c = (struct trickle_conn *)bc;
   uint16_t seqno = packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID);
 
   PRINTF("%d.%d: trickle recv seqno %d from %d.%d our %d data len %d channel %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 seqno,
 	 from->u8[0], from->u8[1],
 	 c->seqno,
@@ -201,7 +201,7 @@ trickle_send(struct trickle_conn *c)
   packetbuf_set_attr(PACKETBUF_ATTR_EPACKET_ID, c->seqno);
   c->q = queuebuf_new_from_packetbuf();
   PRINTF("%d.%d: trickle send seqno %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 c->seqno);
   reset_interval(c);
   send(c);

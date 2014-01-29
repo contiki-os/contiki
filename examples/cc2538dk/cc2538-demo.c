@@ -93,7 +93,7 @@ PROCESS(cc2538_demo_process, "cc2538 demo process");
 AUTOSTART_PROCESSES(&cc2538_demo_process);
 /*---------------------------------------------------------------------------*/
 static void
-broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
+broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
   leds_toggle(LEDS_RF_RX);
   printf("Received %u bytes: '0x%04x'\n", packetbuf_datalen(),

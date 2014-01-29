@@ -70,7 +70,7 @@ struct unicast_conn;
                         BROADCAST_ATTRIBUTES
 
 struct unicast_callbacks {
-  void (* recv)(struct unicast_conn *c, const rimeaddr_t *from);
+  void (* recv)(struct unicast_conn *c, const linkaddr_t *from);
   void (* sent)(struct unicast_conn *ptr, int status, int num_tx);
 };
 
@@ -83,7 +83,7 @@ void unicast_open(struct unicast_conn *c, uint16_t channel,
 	      const struct unicast_callbacks *u);
 void unicast_close(struct unicast_conn *c);
 
-int unicast_send(struct unicast_conn *c, const rimeaddr_t *receiver);
+int unicast_send(struct unicast_conn *c, const linkaddr_t *receiver);
 
 #endif /* UNICAST_H_ */
 /** @} */

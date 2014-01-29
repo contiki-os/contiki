@@ -290,7 +290,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
 /*     } */
 /*     p += l; */
     if(fcf.dest_addr_mode == FRAME802154_SHORTADDRMODE) {
-      rimeaddr_copy((rimeaddr_t *)&(pf->dest_addr), &rimeaddr_null);
+      linkaddr_copy((linkaddr_t *)&(pf->dest_addr), &linkaddr_null);
       pf->dest_addr[0] = p[1];
       pf->dest_addr[1] = p[0];
       p += 2;
@@ -301,7 +301,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
       p += 8;
     }
   } else {
-    rimeaddr_copy((rimeaddr_t *)&(pf->dest_addr), &rimeaddr_null);
+    linkaddr_copy((linkaddr_t *)&(pf->dest_addr), &linkaddr_null);
     pf->dest_pid = 0;
   }
 
@@ -322,7 +322,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
 /*     } */
 /*     p += l; */
     if(fcf.src_addr_mode == FRAME802154_SHORTADDRMODE) {
-      rimeaddr_copy((rimeaddr_t *)&(pf->src_addr), &rimeaddr_null);
+      linkaddr_copy((linkaddr_t *)&(pf->src_addr), &linkaddr_null);
       pf->src_addr[0] = p[1];
       pf->src_addr[1] = p[0];
       p += 2;
@@ -333,7 +333,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
       p += 8;
     }
   } else {
-    rimeaddr_copy((rimeaddr_t *)&(pf->src_addr), &rimeaddr_null);
+    linkaddr_copy((linkaddr_t *)&(pf->src_addr), &linkaddr_null);
     pf->src_pid = 0;
   }
 

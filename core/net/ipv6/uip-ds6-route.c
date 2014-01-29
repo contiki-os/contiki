@@ -297,7 +297,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
        list.
     */
     routes = nbr_table_get_from_lladdr(nbr_routes,
-                                       (rimeaddr_t *)nexthop_lladdr);
+                                       (linkaddr_t *)nexthop_lladdr);
 
     if(routes == NULL) {
       /* If the neighbor did not have an entry in our neighbor table,
@@ -306,7 +306,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
          initialize this pointer with the list of routing entries that
          are attached to this neighbor. */
       routes = nbr_table_add_lladdr(nbr_routes,
-                                    (rimeaddr_t *)nexthop_lladdr);
+                                    (linkaddr_t *)nexthop_lladdr);
       if(routes == NULL) {
         /* This should not happen, as we explicitly deallocated one
            route table entry above. */
@@ -478,7 +478,7 @@ uip_ds6_route_rm_by_nexthop(uip_ipaddr_t *nexthop)
 
   nexthop_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(nexthop);
   routes = nbr_table_get_from_lladdr(nbr_routes,
-                                     (rimeaddr_t *)nexthop_lladdr);
+                                     (linkaddr_t *)nexthop_lladdr);
   rm_routelist(routes);
 }
 /*---------------------------------------------------------------------------*/

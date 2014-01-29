@@ -244,7 +244,7 @@ static uint16_t my_tag;
 static uint16_t reass_tag;
 
 /** When reassembling, the source address of the fragments being merged */
-rimeaddr_t frag_sender;
+linkaddr_t frag_sender;
 
 /** Reassembly %process %timer. */
 static struct timer reass_timer;
@@ -488,7 +488,7 @@ uncompress_addr(uip_ipaddr_t *ipaddr, uint8_t const prefix[],
  * dest
  */
 static void
-compress_hdr_hc06(rimeaddr_t *rime_destaddr)
+compress_hdr_hc06(linkaddr_t *rime_destaddr)
 {
   uint8_t tmp, iphc0, iphc1;
 #if DEBUG
@@ -1076,7 +1076,7 @@ uncompress_hdr_hc06(uint16_t ip_len)
  * IP destination field
  */
 static void
-compress_hdr_hc1(rimeaddr_t *rime_destaddr)
+compress_hdr_hc1(linkaddr_t *rime_destaddr)
 {
   /*
    * Check if all the assumptions for full compression
@@ -1286,7 +1286,7 @@ uncompress_hdr_hc1(uint16_t ip_len)
  * \endverbatim
  */
 static void
-compress_hdr_ipv6(rimeaddr_t *rime_destaddr)
+compress_hdr_ipv6(linkaddr_t *rime_destaddr)
 {
   *rime_ptr = SICSLOWPAN_DISPATCH_IPV6;
   rime_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
@@ -1321,7 +1321,7 @@ packet_sent(void *ptr, int status, int transmissions)
  * \param dest the link layer destination address of the packet
  */
 static void
-send_packet(rimeaddr_t *dest)
+send_packet(linkaddr_t *dest)
 {
   /* Set the link layer destination address for the packet as a
    * packetbuf attribute. The MAC layer can access the destination
@@ -1363,7 +1363,7 @@ output(const uip_lladdr_t *localdest)
   int framer_hdrlen;
 
   /* The MAC address of the destination of the packet */
-  rimeaddr_t dest;
+  linkaddr_t dest;
 
   /* Number of bytes processed. */
   uint16_t processed_ip_out_len;
@@ -1406,9 +1406,9 @@ output(const uip_lladdr_t *localdest)
    * broadcast packet.
    */
   if(localdest == NULL) {
-    rimeaddr_copy(&dest, &rimeaddr_null);
+    linkaddr_copy(&dest, &linkaddr_null);
   } else {
-    rimeaddr_copy(&dest, (const rimeaddr_t *)localdest);
+    linkaddr_copy(&dest, (const linkaddr_t *)localdest);
   }
   
   PRINTFO("sicslowpan output: sending packet len %d\n", uip_len);
@@ -1677,7 +1677,7 @@ input(void)
     sicslowpan_len = 0;
     processed_ip_in_len = 0;
   } else if(processed_ip_in_len > 0 && first_fragment
-      && !rimeaddr_cmp(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER))) {
+      && !linkaddr_cmp(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER))) {
     sicslowpan_len = 0;
     processed_ip_in_len = 0;
   }
@@ -1689,7 +1689,7 @@ input(void)
     if((frag_size > 0 &&
         (frag_size != sicslowpan_len ||
          reass_tag  != frag_tag ||
-         !rimeaddr_cmp(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER))))  ||
+         !linkaddr_cmp(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER))))  ||
        frag_size == 0) {
       /*
        * the packet is a fragment that does not belong to the packet
@@ -1715,7 +1715,7 @@ input(void)
       timer_set(&reass_timer, SICSLOWPAN_REASS_MAXAGE * CLOCK_SECOND / 16);
       PRINTFI("sicslowpan input: INIT FRAGMENTATION (len %d, tag %d)\n",
              sicslowpan_len, reass_tag);
-      rimeaddr_copy(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      linkaddr_copy(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER));
     }
   }
 
