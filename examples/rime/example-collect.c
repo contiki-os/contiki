@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "lib/random.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/collect.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"

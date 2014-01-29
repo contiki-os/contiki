@@ -58,3 +58,7 @@ contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 
 %.upload-clean: %.hex
 	msp430flasher -n msp430x5437 -w $< -v -z [VCC]
+
+MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 core/net/mac \
+           core/net/rime core/net/mac/contikimac core/net/rpl \
+           dev/cc2520 dev/sht11

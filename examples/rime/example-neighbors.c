@@ -56,7 +56,7 @@
 #include "lib/list.h"
 #include "lib/memb.h"
 #include "lib/random.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include <stdio.h>
 

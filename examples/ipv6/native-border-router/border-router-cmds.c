@@ -41,11 +41,11 @@
 #include "border-router-cmds.h"
 #include "dev/serial-line.h"
 #include "net/rpl/rpl.h"
-#include "net/uiplib.h"
+#include "net/ip/uiplib.h"
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 
 uint8_t command_context;

@@ -44,7 +44,7 @@
 
 #include "contiki.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/announcement.h"
 #include "net/rime/broadcast.h"
 #include "lib/random.h"

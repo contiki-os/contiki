@@ -44,7 +44,7 @@
 
 #include "contiki.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/neighbor-discovery.h"
 
 #include "dev/radio-sensor.h"

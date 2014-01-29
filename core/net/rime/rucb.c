@@ -38,7 +38,7 @@
  */
 
 #include "net/rime/rucb.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include <string.h>
 
 #define MAX_TRANSMISSIONS 8

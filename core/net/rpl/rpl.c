@@ -40,13 +40,13 @@
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include "net/uip.h"
-#include "net/tcpip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ip/tcpip.h"
+#include "net/ipv6/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #include <limits.h>
 #include <string.h>

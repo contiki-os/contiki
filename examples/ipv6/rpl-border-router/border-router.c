@@ -38,8 +38,8 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/uip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #include "net/rpl/rpl.h"
 
 #include "net/netstack.h"
@@ -52,7 +52,7 @@
 #include <ctype.h>
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 uint16_t dag_id[] = {0x1111, 0x1100, 0, 0, 0, 0, 0, 0x0011};
 

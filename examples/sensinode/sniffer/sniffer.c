@@ -31,7 +31,7 @@
 #include "cc2430_sfr.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
 PROCESS(sniffer_process, "Sniffer process");

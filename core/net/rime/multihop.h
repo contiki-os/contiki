@@ -71,7 +71,7 @@
 #define MULTIHOP_H_
 
 #include "net/rime/unicast.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 
 struct multihop_conn;
 

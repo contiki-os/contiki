@@ -35,7 +35,7 @@
 #include "contiki-net.h"
 #include "ctk/ctk.h"
 #include "cfs/cfs.h"
-#include "net/dhcpc.h"
+#include "net/ip/dhcpc.h"
 
 static struct ctk_window window;
 

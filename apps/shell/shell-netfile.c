@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "shell-netfile.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/rudolph0.h"
 #include "dev/leds.h"
 

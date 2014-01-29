@@ -39,7 +39,7 @@
 #include "lib/crc16.h"
 #include "lib/random.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/unicast.h"
 
 #include "net/rime/timesynch.h"

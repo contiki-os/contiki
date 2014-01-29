@@ -36,7 +36,7 @@
  * Driver for the cc2538 IEEE addresses
  */
 #include "contiki-conf.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "ieee-addr.h"
 
 #include <stdint.h>

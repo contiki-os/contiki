@@ -34,12 +34,12 @@
 
 /* debug */
 #define DEBUG DEBUG_FULL
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /* contiki */
 #include "contiki.h"
 #include "dev/button-sensor.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/netstack.h"
 
 /* mc1322x */

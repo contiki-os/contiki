@@ -37,7 +37,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "lib/random.h"
 #include "net/rime/rimestats.h"
 #include "dev/leds.h"

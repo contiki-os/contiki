@@ -45,7 +45,7 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "shell.h"
 

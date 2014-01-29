@@ -29,7 +29,7 @@
  */
 
 #include <stdlib.h>
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include "dev/button-sensor.h"
 #include "dev/leds.h"
 

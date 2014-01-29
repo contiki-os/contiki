@@ -43,7 +43,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/unicast.h"
 #include <string.h>
 

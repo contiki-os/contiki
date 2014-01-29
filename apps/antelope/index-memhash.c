@@ -42,7 +42,7 @@
 #include "index.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 static db_result_t create(index_t *);
 static db_result_t destroy(index_t *);

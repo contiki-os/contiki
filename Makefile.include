@@ -58,25 +58,7 @@ UPPERCASE = _ABCDEFGHIJKLMNOPQRSTUVWXYZ
 TARGET_UPPERCASE := ${strip ${shell echo $(TARGET) | sed y!$(LOWERCASE)!$(UPPERCASE)!}}
 CFLAGS += -DCONTIKI=1 -DCONTIKI_TARGET_$(TARGET_UPPERCASE)=1
 
-include $(CONTIKI)/core/net/rime/Makefile.rime
-include $(CONTIKI)/core/net/mac/Makefile.mac
-SYSTEM  = process.c procinit.c autostart.c elfloader.c \
-          compower.c serial-line.c
-THREADS = mt.c
-LIBS    = memb.c mmem.c timer.c list.c etimer.c ctimer.c energest.c rtimer.c stimer.c trickle-timer.c \
-          print-stats.c ifft.c crc16.c random.c ringbuf.c settings.c
-DEV     = nullradio.c
-
-include $(CONTIKI)/core/net/Makefile.uip
-include $(CONTIKI)/core/net/rpl/Makefile.rpl
-
-CTK     = ctk.c
-
-ifndef CONTIKI_NO_NET
-  CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(THREADS) $(DHCP) $(DEV)
-else
-  CONTIKIFILES = $(SYSTEM) $(LIBS) $(THREADS) $(DEV) sicslowpan.c fakeuip.c
-endif
+MODULES += core/sys core/dev core/lib
 
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 
@@ -92,6 +74,8 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFI
 # Provide way to create $(OBJECTDIR) if it has been removed by make clean
 $(OBJECTDIR):
 	mkdir $@
+
+uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
 ### Include application makefiles
 
@@ -121,17 +105,13 @@ else
   include $(target_makefile)
 endif
 
-ifdef PLATFORMAPPS
-  PLATFORMAPPDS = ${wildcard ${foreach DIR, $(APPDIRS), ${addprefix $(DIR)/, $(PLATFORMAPPS)}}} \
-             ${wildcard ${addprefix $(CONTIKI)/apps/, $(PLATFORMAPPS)} \
-             ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(PLATFORMAPPS)} \
-             $(PLATFORMAPPS)}
-  PLATFORMAPPINCLUDES = ${foreach APP, $(PLATFORMAPPS), \
-      ${wildcard ${foreach DIR, $(PLATFORMAPPDS), $(DIR)/Makefile.$(APP)}}}
-  -include $(PLATFORMAPPINCLUDES)
-  PLATFORMAPP_SOURCES = ${foreach APP, $(PLATFORMAPPS), $($(APP)_src)}
-  CONTIKI_SOURCEFILES += $(PLATFORMAPP_SOURCES)
-  APPDS += $(PLATFORMAPPDS)
+ifdef MODULES
+  UNIQUEMODULES = $(call uniq,$(MODULES))
+  MODULESSUBST = ${subst /,-,$(UNIQUEMODULES)}
+  MODULEDIRS = ${wildcard ${addprefix $(CONTIKI)/, $(UNIQUEMODULES)}}
+  MODULES_SOURCES = ${foreach d, $(MODULEDIRS), ${subst ${d}/,,${wildcard $(d)/*.c}}}
+  CONTIKI_SOURCEFILES += $(MODULES_SOURCES)
+  APPDS += $(MODULEDIRS)
 endif
 
 ### Verbosity control. Use  make V=1  to get verbose builds.
@@ -168,7 +148,7 @@ SOURCEDIRS = . $(PROJECTDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
 vpath %.c $(SOURCEDIRS)
 vpath %.S $(SOURCEDIRS)
 
-CFLAGS += ${addprefix -I,$(SOURCEDIRS)}
+CFLAGS += ${addprefix -I,$(SOURCEDIRS) $(CONTIKI)}
 
 ### Check for a git repo and pass version if found
 ### git.exe in Windows cmd shells may require no stderr redirection
@@ -204,6 +184,8 @@ clean:
 
 distclean: clean
 	-rm -rf $(CONTIKI_PROJECT).$(TARGET)
+
+-include $(CONTIKI)/platform/$(TARGET)/Makefile.customrules-$(TARGET)
 
 ifndef CUSTOM_RULE_C_TO_CE
 %.ce: %.c

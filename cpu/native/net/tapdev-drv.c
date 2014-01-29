@@ -31,8 +31,8 @@
  */
 
 #include "contiki-net.h"
-#include "net/uip.h"
-#include "net/uipopt.h"
+#include "net/ip/uip.h"
+#include "net/ip/uipopt.h"
 
 #if UIP_CONF_IPV6
 #include "tapdev6.h"

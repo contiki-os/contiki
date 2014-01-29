@@ -39,12 +39,12 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
 
 #include "dev/leds.h"
-#include "dev/cc2420.h"
-#include "dev/cc2420_const.h"
+#include "cc2420.h"
+#include "cc2420_const.h"
 #include "dev/spi.h"
 #include <stdio.h>
 

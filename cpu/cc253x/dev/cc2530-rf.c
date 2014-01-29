@@ -46,7 +46,7 @@
 
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "net/netstack.h"
 
 #include <string.h>
