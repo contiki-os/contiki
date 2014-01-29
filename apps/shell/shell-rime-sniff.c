@@ -38,7 +38,7 @@
  */
 
 #include "shell.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 static uint8_t sniff_for_attributes;
 

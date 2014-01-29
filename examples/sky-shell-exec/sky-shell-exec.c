@@ -36,11 +36,11 @@
 
 #include "dev/watchdog.h"
 
-#include "net/rime.h"
-#include "dev/cc2420.h"
+#include "net/rime/rime.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include "dev/light.h"
-#include "dev/sht11.h"
+#include "dev/sht11/sht11.h"
 #include "dev/battery-sensor.h"
 
 #include "net/rime/timesynch.h"

@@ -43,7 +43,7 @@
 #include <avr/pgmspace.h>
 
 #include "contiki.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/rs232.h"
 #include "dev/slip.h"
 #include "dev/leds.h"
@@ -54,14 +54,14 @@
 #include "sys/node-id.h"
 
 #if WITH_UIP6
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 #endif /* WITH_UIP6 */
 
 #if WITH_UIP
-#include "net/uip.h"
-#include "net/uip-fw.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip-fw.h"
 #include "net/uip-fw-drv.h"
-#include "net/uip-over-mesh.h"
+#include "net/ipv4/uip-over-mesh.h"
 static struct uip_fw_netif slipif =
   {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
 static struct uip_fw_netif meshif =

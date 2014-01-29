@@ -38,7 +38,7 @@
 
 #include "net/rime/chameleon.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include <string.h>
 

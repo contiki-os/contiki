@@ -43,7 +43,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/rmh.h"
 
 struct data_hdr {

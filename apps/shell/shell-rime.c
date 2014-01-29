@@ -46,7 +46,7 @@
 #include "lib/crc16.h"
 #include "lib/random.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
 #include "net/rime/route.h"
 

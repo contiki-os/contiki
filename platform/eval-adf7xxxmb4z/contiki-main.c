@@ -41,15 +41,15 @@
 
 #include "dev/serial-line.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 #include "dev/button-sensor.h"
 
 #if WITH_UIP6
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 #endif /* WITH_UIP6 */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "uart0.h"
 #include "contiki-uart.h"
 #include "watchdog.h"

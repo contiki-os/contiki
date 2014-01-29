@@ -36,11 +36,11 @@
 #include <string.h>
 #include "contiki.h"
 
-#include "net/rime/rimeaddr.h"
+#include "net/rimeaddr.h"
 #include "sys/ctimer.h"
 
-#include "net/uip.h"
-#include "net/uip-fw.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip-fw.h"
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 #include "dev/slip.h"

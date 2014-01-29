@@ -29,7 +29,7 @@
 
 #include "contiki.h"
 #include "dev/spi.h"
-#include "dev/cc2520.h"
+#include "dev/cc2520/cc2520.h"
 #include "isr_compat.h"
 
 extern volatile uint8_t cc2520_sfd_counter;

@@ -16,7 +16,7 @@
 #include "dev/button-sensor.h"
 #include "dev/adc-sensor.h"
 #include "dev/leds-arch.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
 #include "debug.h"

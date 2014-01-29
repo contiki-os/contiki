@@ -41,7 +41,7 @@
 #include "shell.h"
 #include "serial-shell.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "dev/leds.h"
 #include "net/rime/timesynch.h"
 

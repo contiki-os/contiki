@@ -33,7 +33,7 @@
 #include <stdarg.h> 
 
 #include "contiki.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
@@ -48,10 +48,10 @@
 #include "sys/clock.h"
 
 #if WITH_UIP6
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 #endif /* WITH_UIP6 */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "sys/node-id.h"
 #include "cfs-coffee-arch.h"
@@ -60,7 +60,7 @@
 
 #include "dev/battery-sensor.h"
 #include "dev/button-sensor.h"
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 
 SENSORS(&button_sensor);
 
@@ -75,10 +75,10 @@ static struct timer mgt_timer;
 #endif
 
 #if WITH_UIP
-#include "net/uip.h"
-#include "net/uip-fw.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip-fw.h"
 #include "net/uip-fw-drv.h"
-#include "net/uip-over-mesh.h"
+#include "net/ipv4/uip-over-mesh.h"
 static struct uip_fw_netif slipif =
   {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
 static struct uip_fw_netif meshif =

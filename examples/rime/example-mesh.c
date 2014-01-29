@@ -38,7 +38,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/mesh.h"
 
 #include "dev/button-sensor.h"

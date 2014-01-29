@@ -46,7 +46,7 @@
  */
 
 #include "contiki-net.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 
 #define DEBUG 0

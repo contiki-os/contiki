@@ -69,7 +69,7 @@ unsigned char debugflowsize,debugflow[DEBUGFLOWSIZE];
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
-#include "net/sicslowpan.h"
+#include "net/ipv6/sicslowpan.h"
 
 #else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
@@ -106,7 +106,7 @@ unsigned char debugflowsize,debugflow[DEBUGFLOWSIZE];
 #include "net/rime/rime-udp.h"
 #endif
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "params.h"
 

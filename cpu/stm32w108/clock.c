@@ -56,7 +56,7 @@
 #include "dev/stm32w-radio.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /*--------------------------------------------------------------------------*/
 /* The value that will be load in the SysTick value register. */

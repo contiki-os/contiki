@@ -1,5 +1,5 @@
 #include "collect-view.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include "dev/i2cmaster.h"
 #include "dev/tmp102.h"

@@ -12,7 +12,7 @@
 #include "dev/cc2430_rf.h"
 #include "dev/watchdog.h"
 #include "dev/lpm.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
 #include "debug.h"

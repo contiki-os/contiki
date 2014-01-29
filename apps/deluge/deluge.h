@@ -40,7 +40,7 @@
 #ifndef DELUGE_H
 #define DELUGE_H
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 PROCESS_NAME(deluge_process);
 

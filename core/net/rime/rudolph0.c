@@ -44,7 +44,7 @@
 
 #include <stddef.h> /* for offsetof */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/rudolph0.h"
 
 #define STEADY_TIME CLOCK_SECOND * 2

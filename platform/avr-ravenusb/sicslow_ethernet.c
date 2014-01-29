@@ -226,7 +226,7 @@
 #include "uip.h"
 #include "uip_arp.h" //For ethernet header structure
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "sicslowpan.h"
 #include "sicslow_ethernet.h"
 #if !RF230BB
@@ -575,8 +575,8 @@ int8_t mac_translateIPLinkLayer(lltype_t target)
 
 }
 
-#include "net/uip-icmp6.h"
-#include "net/uip-nd6.h"
+#include "net/ipv6/uip-icmp6.h"
+#include "net/ipv6/uip-nd6.h"
 
 typedef struct {
   uint8_t type;

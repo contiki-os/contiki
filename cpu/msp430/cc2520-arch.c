@@ -31,7 +31,7 @@
 #include "contiki-net.h"
 
 #include "dev/spi.h"
-#include "dev/cc2520.h"
+#include "dev/cc2520/cc2520.h"
 #include "isr_compat.h"
 
 #ifdef CC2520_CONF_SFD_TIMESTAMPS
