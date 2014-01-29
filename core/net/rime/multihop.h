@@ -71,7 +71,7 @@
 #define MULTIHOP_H_
 
 #include "net/rime/unicast.h"
-#include "net/rimeaddr.h"
+#include "net/linkaddr.h"
 
 struct multihop_conn;
 
@@ -84,13 +84,13 @@ struct multihop_conn;
 
 struct multihop_callbacks {
   void (* recv)(struct multihop_conn *ptr,
-		const rimeaddr_t *sender,
-		const rimeaddr_t *prevhop,
+		const linkaddr_t *sender,
+		const linkaddr_t *prevhop,
 		uint8_t hops);
-  rimeaddr_t *(* forward)(struct multihop_conn *ptr,
-			  const rimeaddr_t *originator,
-			  const rimeaddr_t *dest,
-			  const rimeaddr_t *prevhop,
+  linkaddr_t *(* forward)(struct multihop_conn *ptr,
+			  const linkaddr_t *originator,
+			  const linkaddr_t *dest,
+			  const linkaddr_t *prevhop,
 			  uint8_t hops);
 };
 
@@ -102,8 +102,8 @@ struct multihop_conn {
 void multihop_open(struct multihop_conn *c, uint16_t channel,
 	     const struct multihop_callbacks *u);
 void multihop_close(struct multihop_conn *c);
-int multihop_send(struct multihop_conn *c, const rimeaddr_t *to);
-void multihop_resend(struct multihop_conn *c, const rimeaddr_t *nexthop);
+int multihop_send(struct multihop_conn *c, const linkaddr_t *to);
+void multihop_resend(struct multihop_conn *c, const linkaddr_t *nexthop);
 
 #endif /* MULTIHOP_H_ */
 /** @} */

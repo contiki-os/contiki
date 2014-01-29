@@ -218,7 +218,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #endif /*RF230BB */
 
 #if UIP_CONF_IPV6
-#define RIMEADDR_CONF_SIZE       8
+#define LINKADDR_CONF_SIZE       8
 #define UIP_CONF_ICMP6           1
 #define UIP_CONF_UDP             1
 #define UIP_CONF_TCP             0
@@ -227,7 +227,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
 /* ip4 should build but is thoroughly untested */
-#define RIMEADDR_CONF_SIZE       2
+#define LINKADDR_CONF_SIZE       2
 #define NETSTACK_CONF_NETWORK    rime_driver
 #endif /* UIP_CONF_IPV6 */
 

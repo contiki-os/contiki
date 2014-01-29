@@ -41,7 +41,7 @@
 #include "sys/rtimer.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
-#include "net/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "net/netstack.h"
 #include "sys/energest.h"
 #include "dev/cc2538-rf.h"
@@ -169,21 +169,21 @@ cc2538_rf_power_set(uint8_t new_power)
 void
 cc2538_rf_set_addr(uint16_t pan)
 {
-#if RIMEADDR_SIZE==8
+#if LINKADDR_SIZE==8
   /* EXT_ADDR[7:0] is ignored when using short addresses */
   int i;
 
-  for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
+  for(i = (LINKADDR_SIZE - 1); i >= 0; --i) {
     ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[i] =
-        rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1 - i];
+        linkaddr_node_addr.u8[LINKADDR_SIZE - 1 - i];
   }
 #endif
 
   REG(RFCORE_FFSM_PAN_ID0) = pan & 0xFF;
   REG(RFCORE_FFSM_PAN_ID1) = pan >> 8;
 
-  REG(RFCORE_FFSM_SHORT_ADDR0) = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1];
-  REG(RFCORE_FFSM_SHORT_ADDR1) = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 2];
+  REG(RFCORE_FFSM_SHORT_ADDR0) = linkaddr_node_addr.u8[LINKADDR_SIZE - 1];
+  REG(RFCORE_FFSM_SHORT_ADDR1) = linkaddr_node_addr.u8[LINKADDR_SIZE - 2];
 }
 /*---------------------------------------------------------------------------*/
 int

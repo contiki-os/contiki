@@ -93,7 +93,7 @@ rpl_dag_init(void)
 rpl_rank_t
 rpl_get_parent_rank(uip_lladdr_t *addr)
 {
-  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (rimeaddr_t *)addr);
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (linkaddr_t *)addr);
   if(p != NULL) {
     return p->rank;
   } else {
@@ -104,7 +104,7 @@ rpl_get_parent_rank(uip_lladdr_t *addr)
 uint16_t
 rpl_get_parent_link_metric(const uip_lladdr_t *addr)
 {
-  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (const rimeaddr_t *)addr);
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (const linkaddr_t *)addr);
   if(p != NULL) {
     return p->link_metric;
   } else {
@@ -115,7 +115,7 @@ rpl_get_parent_link_metric(const uip_lladdr_t *addr)
 uip_ipaddr_t *
 rpl_get_parent_ipaddr(rpl_parent_t *p)
 {
-  rimeaddr_t *lladdr = nbr_table_get_lladdr(rpl_parents, p);
+  linkaddr_t *lladdr = nbr_table_get_lladdr(rpl_parents, p);
   return uip_ds6_nbr_ipaddr_from_lladdr((uip_lladdr_t *)lladdr);
 }
 /*---------------------------------------------------------------------------*/
@@ -552,7 +552,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   PRINTF("\n");
   if(lladdr != NULL) {
     /* Add parent in rpl_parents */
-    p = nbr_table_add_lladdr(rpl_parents, (rimeaddr_t *)lladdr);
+    p = nbr_table_add_lladdr(rpl_parents, (linkaddr_t *)lladdr);
     if(p == NULL) {
       PRINTF("RPL: rpl_add_parent p NULL\n");
     } else {
@@ -574,7 +574,7 @@ find_parent_any_dag_any_instance(uip_ipaddr_t *addr)
 {
   uip_ds6_nbr_t *ds6_nbr = uip_ds6_nbr_lookup(addr);
   const uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(ds6_nbr);
-  return nbr_table_get_from_lladdr(rpl_parents, (rimeaddr_t *)lladdr);
+  return nbr_table_get_from_lladdr(rpl_parents, (linkaddr_t *)lladdr);
 }
 /*---------------------------------------------------------------------------*/
 rpl_parent_t *

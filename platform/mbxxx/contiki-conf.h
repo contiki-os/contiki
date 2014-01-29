@@ -63,7 +63,7 @@
 /* 802.15.4 PAN ID */
 #define IEEE802154_CONF_PANID					0x1234
 /* Use EID 64, enable hardware autoack and address filtering */
-#define RIMEADDR_CONF_SIZE					8
+#define LINKADDR_CONF_SIZE					8
 #define UIP_CONF_LL_802154					1
 #define ST_CONF_RADIO_AUTOACK					1
 /* Number of buffers for incoming frames */

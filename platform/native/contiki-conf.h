@@ -81,7 +81,7 @@ typedef unsigned short uip_stats_t;
 
 #if UIP_CONF_IPV6
 
-#define RIMEADDR_CONF_SIZE              8
+#define LINKADDR_CONF_SIZE              8
 
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     nullmac_driver

@@ -127,10 +127,10 @@ force_inclusion(int d1, int d2)
 static void
 set_rime_addr(void)
 {
-  rimeaddr_t n_addr;
+  linkaddr_t n_addr;
   int i;
 
-  memset(&n_addr, 0, sizeof(rimeaddr_t));
+  memset(&n_addr, 0, sizeof(linkaddr_t));
 
   //	Set node address
 #if UIP_CONF_IPV6
@@ -139,7 +139,7 @@ set_rime_addr(void)
   n_addr.u8[6] = node_id >> 8;
 #else
  /* if(node_id == 0) {
-    for(i = 0; i < sizeof(rimeaddr_t); ++i) {
+    for(i = 0; i < sizeof(linkaddr_t); ++i) {
       addr.u8[i] = ds2411_id[7 - i];
     }
   } else {
@@ -150,7 +150,7 @@ set_rime_addr(void)
   n_addr.u8[1] = node_id >> 8;
 #endif
 
-  rimeaddr_set_node_addr(&n_addr);
+  linkaddr_set_node_addr(&n_addr);
   printf("Rime started with address ");
   for(i = 0; i < sizeof(n_addr.u8) - 1; i++) {
     printf("%d.", n_addr.u8[i]);
@@ -179,10 +179,10 @@ set_gateway(void)
   if(!is_gateway) {
     leds_on(LEDS_RED);
     //printf("%d.%d: making myself the IP network gateway.\n\n",
-	//   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	//   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
     //printf("IPv4 address of the gateway: %d.%d.%d.%d\n\n",
 	 //  uip_ipaddr_to_quad(&uip_hostaddr));
-    uip_over_mesh_set_gateway(&rimeaddr_node_addr);
+    uip_over_mesh_set_gateway(&linkaddr_node_addr);
     uip_over_mesh_make_announced_gateway();
     is_gateway = 1;
   }
@@ -263,10 +263,10 @@ main(int argc, char **argv)
     uint8_t longaddr[8];
     uint16_t shortaddr;
 
-    shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
-      rimeaddr_node_addr.u8[1];
+    shortaddr = (linkaddr_node_addr.u8[0] << 8) +
+      linkaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
-    rimeaddr_copy((rimeaddr_t *)&longaddr, &rimeaddr_node_addr);
+    linkaddr_copy((linkaddr_t *)&longaddr, &linkaddr_node_addr);
 
     printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
            longaddr[0], longaddr[1], longaddr[2], longaddr[3],
@@ -285,8 +285,8 @@ main(int argc, char **argv)
 
 #if WITH_UIP6
   /* memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr)); */
-  memcpy(&uip_lladdr.addr, rimeaddr_node_addr.u8,
-         UIP_LLADDR_LEN > RIMEADDR_SIZE ? RIMEADDR_SIZE : UIP_LLADDR_LEN);
+  memcpy(&uip_lladdr.addr, linkaddr_node_addr.u8,
+         UIP_LLADDR_LEN > LINKADDR_SIZE ? LINKADDR_SIZE : UIP_LLADDR_LEN);
 
   /* Setup nullmac-like MAC for 802.15.4 */
 /*   sicslowpan_init(sicslowmac_init(&cc2520_driver)); */
@@ -355,7 +355,7 @@ main(int argc, char **argv)
 
 #if TIMESYNCH_CONF_ENABLED
   timesynch_init();
-  timesynch_set_authority_level((rimeaddr_node_addr.u8[0] << 4) + 16);
+  timesynch_set_authority_level((linkaddr_node_addr.u8[0] << 4) + 16);
 #endif /* TIMESYNCH_CONF_ENABLED */
 
 #if WITH_UIP
@@ -371,7 +371,7 @@ main(int argc, char **argv)
     uip_init();
 
     uip_ipaddr(&hostaddr, 172,16,
-	       rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+	       linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
     uip_ipaddr(&netmask, 255,255,0,0);
     uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
 

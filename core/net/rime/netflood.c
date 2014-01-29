@@ -50,7 +50,7 @@
 
 struct netflood_hdr {
   uint16_t originator_seqno;
-  rimeaddr_t originator;
+  linkaddr_t originator;
   uint16_t hops;
 };
 
@@ -67,12 +67,12 @@ static int
 send(struct netflood_conn *c)
 {
   PRINTF("%d.%d: netflood send to ipolite\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
   return ipolite_send(&c->c, c->queue_time, 4);
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_ipolite(struct ipolite_conn *ipolite, const rimeaddr_t *from)
+recv_from_ipolite(struct ipolite_conn *ipolite, const linkaddr_t *from)
 {
   struct netflood_conn *c = (struct netflood_conn *)ipolite;
   struct netflood_hdr hdr;
@@ -87,7 +87,7 @@ recv_from_ipolite(struct ipolite_conn *ipolite, const rimeaddr_t *from)
 
   packetbuf_hdrreduce(sizeof(struct netflood_hdr));
   if(c->u->recv != NULL) {
-    if(!(rimeaddr_cmp(&hdr.originator, &c->last_originator) &&
+    if(!(linkaddr_cmp(&hdr.originator, &c->last_originator) &&
 	 hdr.originator_seqno <= c->last_originator_seqno)) {
 
       if(c->u->recv(c, from, &hdr.originator, hdr.originator_seqno,
@@ -102,7 +102,7 @@ recv_from_ipolite(struct ipolite_conn *ipolite, const rimeaddr_t *from)
 	  /* Rebroadcast received packet. */
 	  if(hops < HOPS_MAX) {
 	    PRINTF("%d.%d: netflood rebroadcasting %d.%d/%d (%d.%d/%d) hops %d\n",
-		   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+		   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 		   hdr.originator.u8[0], hdr.originator.u8[1],
 		   hdr.originator_seqno,
 		   c->last_originator.u8[0], c->last_originator.u8[1],
@@ -111,7 +111,7 @@ recv_from_ipolite(struct ipolite_conn *ipolite, const rimeaddr_t *from)
 	    hdr.hops++;
 	    memcpy(packetbuf_dataptr(), &hdr, sizeof(struct netflood_hdr));
 	    send(c);
-	    rimeaddr_copy(&c->last_originator, &hdr.originator);
+	    linkaddr_copy(&c->last_originator, &hdr.originator);
 	    c->last_originator_seqno = hdr.originator_seqno;
 	  }
 	}
@@ -163,12 +163,12 @@ netflood_send(struct netflood_conn *c, uint8_t seqno)
 {
   if(packetbuf_hdralloc(sizeof(struct netflood_hdr))) {
     struct netflood_hdr *hdr = packetbuf_hdrptr();
-    rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
-    rimeaddr_copy(&c->last_originator, &hdr->originator);
+    linkaddr_copy(&hdr->originator, &linkaddr_node_addr);
+    linkaddr_copy(&c->last_originator, &hdr->originator);
     c->last_originator_seqno = hdr->originator_seqno = seqno;
     hdr->hops = 0;
     PRINTF("%d.%d: netflood sending '%s'\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	   (char *)packetbuf_dataptr());
     return ipolite_send(&c->c, 0, 4);
   }

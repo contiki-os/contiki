@@ -51,12 +51,12 @@
 #ifndef ROUTE_H_
 #define ROUTE_H_
 
-#include "net/rimeaddr.h"
+#include "net/linkaddr.h"
 
 struct route_entry {
   struct route_entry *next;
-  rimeaddr_t dest;
-  rimeaddr_t nexthop;
+  linkaddr_t dest;
+  linkaddr_t nexthop;
   uint8_t seqno;
   uint8_t cost;
   uint8_t time;
@@ -66,9 +66,9 @@ struct route_entry {
 };
 
 void route_init(void);
-int route_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
+int route_add(const linkaddr_t *dest, const linkaddr_t *nexthop,
 	      uint8_t cost, uint8_t seqno);
-struct route_entry *route_lookup(const rimeaddr_t *dest);
+struct route_entry *route_lookup(const linkaddr_t *dest);
 void route_refresh(struct route_entry *e);
 void route_decay(struct route_entry *e);
 void route_remove(struct route_entry *e);

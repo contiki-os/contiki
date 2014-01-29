@@ -50,7 +50,7 @@
 #include "net/rime/rime.h"
 
 struct seqno {
-  rimeaddr_t sender;
+  linkaddr_t sender;
   uint8_t seqno;
 };
 
@@ -72,7 +72,7 @@ mac_sequence_is_duplicate(void)
    * packet with the last few ones we saw.
    */
   for(i = 0; i < MAX_SEQNOS; ++i) {
-    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+    if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
                     &received_seqnos[i].sender)) {
       if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno) {
         /* Duplicate packet. */
@@ -91,7 +91,7 @@ mac_sequence_register_seqno(void)
 
   /* Locate possible previous sequence number for this address. */
   for(i = 0; i < MAX_SEQNOS; ++i) {
-    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+    if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
                     &received_seqnos[i].sender)) {
       i++;
       break;
@@ -103,7 +103,7 @@ mac_sequence_register_seqno(void)
     memcpy(&received_seqnos[j], &received_seqnos[j - 1], sizeof(struct seqno));
   }
   received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
-  rimeaddr_copy(&received_seqnos[0].sender,
+  linkaddr_copy(&received_seqnos[0].sender,
                 packetbuf_addr(PACKETBUF_ADDR_SENDER));
 }
 /*---------------------------------------------------------------------------*/

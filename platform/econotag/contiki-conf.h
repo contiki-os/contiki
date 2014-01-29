@@ -106,7 +106,7 @@
 #define PLATFORM_HAS_LEDS 1
 #define PLATFORM_HAS_BUTTON 1
 
-#define RIMEADDR_CONF_SIZE              8
+#define LINKADDR_CONF_SIZE              8
 
 #if WITH_UIP6
 /* Network setup for IPv6 */
@@ -171,7 +171,7 @@
 
 #ifdef WITH_UIP6
 
-#define RIMEADDR_CONF_SIZE              8
+#define LINKADDR_CONF_SIZE              8
 
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0

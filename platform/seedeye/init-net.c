@@ -72,7 +72,7 @@ init_net(uint8_t node_id)
 {
   uint16_t shortaddr;
   uint64_t longaddr;
-  rimeaddr_t addr;
+  linkaddr_t addr;
 #if WITH_UIP6
   uip_ds6_addr_t *lladdr;
   uip_ipaddr_t ipaddr;
@@ -103,13 +103,13 @@ init_net(uint8_t node_id)
          *((uint8_t *)&longaddr + 6),
          *((uint8_t *)&longaddr + 7));
 
-  memset(&addr, 0, sizeof(rimeaddr_t));
+  memset(&addr, 0, sizeof(linkaddr_t));
 
   for(i = 0; i < sizeof(addr.u8); ++i) {
     addr.u8[i] = ((uint8_t *)&longaddr)[i];
   }
 
-  rimeaddr_set_node_addr(&addr);
+  linkaddr_set_node_addr(&addr);
   
   PRINTF("Rime started with address: ");
   for(i = 0; i < sizeof(addr.u8) - 1; ++i) {
@@ -137,7 +137,7 @@ init_net(uint8_t node_id)
 
 #if WITH_UIP6
 
-#if RIMEADDR_CONF_SIZE == 2
+#if LINKADDR_CONF_SIZE == 2
   memset(&uip_lladdr.addr, 0, sizeof(uip_lladdr.addr));
   uip_lladdr.addr[3] = 0xff;
   uip_lladdr.addr[4]= 0xfe;

@@ -108,7 +108,7 @@ collect_common_send(void)
   uint16_t num_neighbors;
   uint16_t beacon_interval;
   rpl_parent_t *preferred_parent;
-  rimeaddr_t parent;
+  linkaddr_t parent;
   rpl_dag_t *dag;
 
   if(client_conn == NULL) {
@@ -123,7 +123,7 @@ collect_common_send(void)
   }
   msg.seqno = seqno;
 
-  rimeaddr_copy(&parent, &rimeaddr_null);
+  linkaddr_copy(&parent, &linkaddr_null);
   parent_etx = 0;
 
   /* Let's suppose we have only one instance */
@@ -135,9 +135,9 @@ collect_common_send(void)
       nbr = uip_ds6_nbr_lookup(rpl_get_parent_ipaddr(preferred_parent));
       if(nbr != NULL) {
         /* Use parts of the IPv6 address as the parent address, in reversed byte order. */
-        parent.u8[RIMEADDR_SIZE - 1] = nbr->ipaddr.u8[sizeof(uip_ipaddr_t) - 2];
-        parent.u8[RIMEADDR_SIZE - 2] = nbr->ipaddr.u8[sizeof(uip_ipaddr_t) - 1];
-        parent_etx = rpl_get_parent_rank((rimeaddr_t *) uip_ds6_nbr_get_ll(nbr)) / 2;
+        parent.u8[LINKADDR_SIZE - 1] = nbr->ipaddr.u8[sizeof(uip_ipaddr_t) - 2];
+        parent.u8[LINKADDR_SIZE - 2] = nbr->ipaddr.u8[sizeof(uip_ipaddr_t) - 1];
+        parent_etx = rpl_get_parent_rank((linkaddr_t *) uip_ds6_nbr_get_ll(nbr)) / 2;
       }
     }
     rtmetric = dag->rank;
