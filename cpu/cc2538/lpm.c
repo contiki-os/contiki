@@ -48,6 +48,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+
+#if LPM_CONF_ENABLE != 0
 /*---------------------------------------------------------------------------*/
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
@@ -378,4 +380,5 @@ lpm_init()
   LPM_STATS_INIT();
 }
 /*---------------------------------------------------------------------------*/
+#endif /* LPM_CONF_ENABLE != 0 */
 /** @} */
