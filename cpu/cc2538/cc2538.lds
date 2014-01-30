@@ -64,10 +64,14 @@ SECTIONS
         _etext = .;
     } > FLASH= 0
 
+    .socdata (NOLOAD) :
+    {
+        *(.udma_channel_control_table)
+    } > SRAM
+
     .data :
     {
         _data = .;
-        *(vtable)
         *(.data*)
         _edata = .;
     } > SRAM AT > FLASH
@@ -86,7 +90,7 @@ SECTIONS
     } > SRAM
 
 #if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
-    .nrdata :
+    .nrdata (NOLOAD) :
     {
         _nrdata = .;
         *(.nrdata*)
