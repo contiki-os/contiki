@@ -72,13 +72,10 @@ The toolchain used to build contiki is arm-gcc, also used by other arm-based Con
     Thread model: single
     gcc version 4.3.2 (Sourcery G++ Lite 2008q3-66)
 
-If the toolchain is not installed, download and install one of the following versions:
+The platform is currently being used/tested with the following toolchains:
 
-* GNU Tools for ARM Embedded Processors. Works nicely on OS X. <https://launchpad.net/gcc-arm-embedded>
+* GNU Tools for ARM Embedded Processors. This is the recommended version. Works nicely on OS X. <https://launchpad.net/gcc-arm-embedded>
 * Alternatively, you can use this older version for Linux. At the time of writing, this is the version used by Contiki's regression tests. <https://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2>
-* Lastly: Sourcery Codebench Lite for ARM processors from the URL below. Make sure to select the EABI Release. <http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/>
-
-The first one is newer. The second has been in use for a longer period of time and the Contiki code has been tested with it more extensively.
 
 Drivers
 -------
@@ -423,11 +420,11 @@ Setting this define to 1 will automatically set the following to 0:
 * `UART_CONF_ENABLE`
 * `STARTUP_CONF_VERBOSE`
 
-Further Code Size Reduction
----------------------------
-The build system currently uses optimization level `-O2`. Further code size reduction can be achieved by replacing `-O2` with `-Os` in `cpu/cc2538/Makefile.cc2538`. However, this is not selected as default because images generated with gcc version 4.7.2 (Sourcery CodeBench Lite) are broken for unknown reasons.
+Code Size Optimisations
+-----------------------
+The build system currently uses optimization level `-Os`, which is controlled indirectly through the value of the `SMALL` make variable. This value can be overridden by example makefiles, or it can be changed directly in `platform/cc2538dk/Makefile.cc2538dk`.
 
-If you are using gcc version 4.3.2 (Sourcery G++ Lite), you should be able to switch to `-Os` without problems.
+Historically, the `-Os` flag has caused problems with some toolchains. If you are using one of the toolchains documented in this README, you should be able to use it without issues. If for whatever reason you do come across problems, try setting `SMALL=0` or replacing `-Os` with `-O2` in `cpu/cc2538/Makefile.cc2538`.
 
 Doxygen Documentation
 =====================
