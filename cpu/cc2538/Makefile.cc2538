@@ -21,7 +21,7 @@ OBJCOPY_FLAGS += -O binary --gap-fill 0xff
 ### Are we building with code size optimisations?
 ifeq ($(SMALL),1)
   CFLAGS += -ffunction-sections -fdata-sections
-  LDFLAGS += -Wl,--gc-sections
+  LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
 endif
 
 ### If the user-specified a Node ID, pass a define

@@ -51,7 +51,7 @@ struct channel_ctrl {
 };
 
 static volatile struct channel_ctrl channel_config[UDMA_CONF_MAX_CHANNEL + 1]
-  __attribute__ ((aligned(1024)));
+  __attribute__ ((section(".udma_channel_control_table")));
 /*---------------------------------------------------------------------------*/
 void
 udma_init()
