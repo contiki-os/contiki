@@ -42,9 +42,9 @@
 
 #include "contiki.h"
 #include "contiki-lib.h"
-#include "contiki-net.h"
 #include "net/loadng/loadng-def.h"
 #include "net/loadng/loadng.h"
+#include "contiki-net.h"
 
 
 #include <string.h>

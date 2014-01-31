@@ -42,7 +42,22 @@
 #define __LOADNG_H__
 
 #include "contiki.h"
+#ifdef UIP_DS6_ROUTE_STATE_TYPE
+#undef UIP_DS6_ROUTE_STATE_TYPE
+#endif
+// This is used in uip-ds6-route included further down
+#define UIP_DS6_ROUTE_STATE_TYPE loadng_route_entry_t
+typedef struct loadng_route_entry {
+  uint16_t seqno;
+  uint8_t route_cost;
+  uint32_t valid_time;
+  uint8_t ack_received;
+} loadng_route_entry_t;
+
 #include "net/uip-ds6.h"
+
+
+
 void send_opt(void);
 
 void
