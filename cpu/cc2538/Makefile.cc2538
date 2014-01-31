@@ -11,17 +11,18 @@ endif
 LDSCRIPT = $(OBJECTDIR)/cc2538.ld
 
 CFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian
+CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
 CFLAGS += -Wall
 LDFLAGS += -mcpu=cortex-m3 -mthumb -nostartfiles
 LDFLAGS += -T $(LDSCRIPT)
+LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
 LDFLAGS += -Wl,-Map=$(@:.elf=-$(TARGET).map),--cref,--no-warn-mismatch
 OBJCOPY_FLAGS += -O binary --gap-fill 0xff
 
 ### Are we building with code size optimisations?
 ifeq ($(SMALL),1)
-  CFLAGS += -Os -ffunction-sections -fdata-sections
-  LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
+  CFLAGS += -Os
 else
   CFLAGS += -O2
 endif
