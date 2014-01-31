@@ -279,7 +279,6 @@ rpl_update_header_final(uip_ipaddr_t *addr)
         }
         UIP_EXT_HDR_OPT_RPL_BUF->instance = default_instance->instance_id;
         UIP_EXT_HDR_OPT_RPL_BUF->senderrank = UIP_HTONS(default_instance->current_dag->rank);
-        uip_ext_len = last_uip_ext_len;
       }
     }
   }
