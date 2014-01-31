@@ -93,6 +93,13 @@ rpl_dag_init(void)
   nbr_table_register(rpl_parents, (nbr_table_callback *)nbr_callback);
 }
 /*---------------------------------------------------------------------------*/
+rpl_parent_t *
+rpl_get_parent(uip_lladdr_t *addr)
+{
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (linkaddr_t *)addr);
+  return p;
+}
+/*---------------------------------------------------------------------------*/
 rpl_rank_t
 rpl_get_parent_rank(uip_lladdr_t *addr)
 {
