@@ -41,6 +41,16 @@ typedef uint32_t rtimer_clock_t;
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name Serial Boot Loader Backdoor configuration
+ *
+ * @{
+ */
+#ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR	1 /**<Enable the boot loader backdoor */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name USB 'core' configuration
  *
  * Those values are not meant to be modified by the user, except where stated

@@ -63,6 +63,15 @@ void cc2538_rf_err_isr(void);
 void udma_isr(void);
 void udma_err_isr(void);
 
+/* Boot Loader Backdoor selection */
+#if FLASH_CCA_CONF_BOOTLDR_BACKDOOR
+/* Backdoor enabled, on PA_3 (Select button) */
+#define FLASH_CCA_BOOTLDR_CFG (FLASH_CCA_BOOTLDR_CFG_ENABLE \
+  | ((3 << FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S) & FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_M))
+#else
+#define FLASH_CCA_BOOTLDR_CFG FLASH_CCA_BOOTLDR_CFG_DISABLE
+#endif
+
 /* Link in the USB ISR only if USB is enabled */
 #if USB_SERIAL_CONF_ENABLE
 void usb_isr(void);
@@ -95,7 +104,7 @@ extern uint8_t _text[0];
 /*---------------------------------------------------------------------------*/
 __attribute__ ((section(".flashcca"), used))
 const flash_cca_lock_page_t __cca = {
-  FLASH_CCA_BOOTLDR_CFG_DISABLE, /* Bootloader backdoor disabled */
+  FLASH_CCA_BOOTLDR_CFG,          /* Boot loader backdoor configuration */
   FLASH_CCA_IMAGE_VALID,         /* Image valid */
   &_text,                        /* Vector table located at the start of .text */
   /* Unlock all pages and debug */

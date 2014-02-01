@@ -28,3 +28,12 @@ include $(CONTIKI_CPU)/Makefile.cc2538
 
 MODULES += core/net core/net/ipv6 core/net/mac core/net/ip \
            core/net/rpl core/net/rime core/net/mac/contikimac
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
+%.upload: %.bin
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	python $(BSL) -e -w -v $<
+endif
