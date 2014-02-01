@@ -456,7 +456,6 @@ quit(void)
 PROCESS_THREAD(www_process, ev, data)
 {
   static struct ctk_widget *w;
-  static unsigned char i;
 #if WWW_CONF_WITH_WGET
   static char *argptr;
 #endif /* WWW_CONF_WITH_WGET */
