@@ -1,7 +1,3 @@
-### Compilation rules
-
-.SUFFIXES:
-
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(TRACE_CC)
