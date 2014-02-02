@@ -37,6 +37,8 @@ endif
 
 all: cs8900a.eth lan91c96.eth w5100.eth
 
+.SUFFIXES:
+
 CONTIKI_TARGET_DIRS = . lib sys
 CONTIKI_CPU_DIRS    = . lib sys ctk net
 
