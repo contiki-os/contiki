@@ -1,3 +1,6 @@
 [submodule "tools/mspsim"]
 	path = tools/mspsim
 	url = https://github.com/contiki-os/mspsim.git
+[submodule "tools/cc2538-bsl"]
+	path = tools/cc2538-bsl
+	url = https://github.com/JelmerT/cc2538-bsl.git
