@@ -77,18 +77,18 @@ static enum {
 // extern int8_t last_rssi; // for stm32w
 extern signed char cc2420_last_rssi ;
 static struct ctimer sendmsg_ctimer;
-static u16_t my_hseqno, my_seq_id;
+static uint16_t my_hseqno, my_seq_id;
 static int8_t my_rank;
 static uint8_t my_weaklink;
 static int8_t my_parent_rssi;
-static u16_t local_prefix_len;
-static u8_t opt_seq_skip_counter;
+static uint16_t local_prefix_len;
+static uint8_t opt_seq_skip_counter;
 uip_ipaddr_t local_prefix;
 uip_ipaddr_t ipaddr, myipaddr, mcastipaddr;
 uip_ipaddr_t orig_addr, dest_addr, rreq_addr, def_rt_addr, my_sink_id;
 static struct uip_udp_conn *udpconn;
 static uip_ipaddr_t rerr_bad_addr, rerr_src_addr, rerr_next_addr;
-static u8_t in_loadng_call=0 ; // make sure we don't trigger a rreq from within loadng
+static uint8_t in_loadng_call=0 ; // make sure we don't trigger a rreq from within loadng
 /*---------------------------------------------------------------------------*/
 PROCESS(loadng_process, "LOADng process");
 /*---------------------------------------------------------------------------*/
@@ -139,7 +139,7 @@ loadng_route_lookup(uip_ipaddr_t *addr)
 /* Implementation of route validity time check and purge */
 
 static void
-loadng_check_expired_route(u16_t interval)
+loadng_check_expired_route(uint16_t interval)
 { 
   uip_ds6_route_t *r; 
     
@@ -162,20 +162,20 @@ loadng_check_expired_route(u16_t interval)
 
 static struct {
   uip_ipaddr_t orig;
-  u16_t seqno;
+  uint16_t seqno;
 } fwcache[FWCACHE];
 
 static int
-fwc_lookup(const uip_ipaddr_t *orig, const u16_t *seqno)
+fwc_lookup(const uip_ipaddr_t *orig, const uint16_t *seqno)
 {
-  unsigned n = (((u8_t *)orig)[0] + ((u8_t *)orig)[15]) % FWCACHE;
+  unsigned n = (((uint8_t *)orig)[0] + ((uint8_t *)orig)[15]) % FWCACHE;
   return fwcache[n].seqno == *seqno && uip_ipaddr_cmp(&fwcache[n].orig, orig);
 }
 
 static void
-fwc_add(const uip_ipaddr_t *orig, const u16_t *seqno)
+fwc_add(const uip_ipaddr_t *orig, const uint16_t *seqno)
 {
-  unsigned n = (((u8_t *)orig)[0] + ((u8_t *)orig)[15]) % FWCACHE;
+  unsigned n = (((uint8_t *)orig)[0] + ((uint8_t *)orig)[15]) % FWCACHE;
   fwcache[n].seqno = *seqno;
   uip_ipaddr_copy(&fwcache[n].orig, orig);
 }
@@ -187,21 +187,21 @@ fwc_add(const uip_ipaddr_t *orig, const u16_t *seqno)
 
 static struct {
   uip_ipaddr_t dest;
-  u16_t expire_time;
-  u8_t request_time;
+  uint16_t expire_time;
+  uint8_t request_time;
 } rrcache[RRCACHE];
 
 static int
 rrc_lookup(const uip_ipaddr_t *dest)
 {
-  unsigned n = (((u8_t *)dest)[0] + ((u8_t *)dest)[15]) % RRCACHE;
+  unsigned n = (((uint8_t *)dest)[0] + ((uint8_t *)dest)[15]) % RRCACHE;
   return uip_ipaddr_cmp(&rrcache[n].dest, dest);
 }
 
 static void
 rrc_remove(const uip_ipaddr_t *dest)
 {
-  unsigned n = (((u8_t *)dest)[0] + ((u8_t *)dest)[15]) % RRCACHE;
+  unsigned n = (((uint8_t *)dest)[0] + ((uint8_t *)dest)[15]) % RRCACHE;
   if(uip_ipaddr_cmp(&rrcache[n].dest, dest))
   {
      memset(&rrcache[n].dest, 0, sizeof(&rrcache[n].dest));
@@ -213,14 +213,14 @@ rrc_remove(const uip_ipaddr_t *dest)
 static void
 rrc_add(const uip_ipaddr_t *dest)
 {
-  unsigned n = (((u8_t *)dest)[0] + ((u8_t *)dest)[15]) % RRCACHE;
+  unsigned n = (((uint8_t *)dest)[0] + ((uint8_t *)dest)[15]) % RRCACHE;
   rrcache[n].expire_time = LOADNG_NET_TRAVERSAL_TIME;
   rrcache[n].request_time = 1;
   uip_ipaddr_copy(&rrcache[n].dest, dest);
 }
 
 static void
-rrc_check_expired_rreq(u16_t interval)
+rrc_check_expired_rreq(uint16_t interval)
 { 
   int i;
   for(i = 0; i < RRCACHE; ++i){  
@@ -454,7 +454,7 @@ send_rreq()
 /*---------------------------------------------------------------------------*/
 static void
 send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig,
-	  u16_t *seqno, unsigned hop_count)
+	  uint16_t *seqno, unsigned hop_count)
 { 
   char buf[MAX_PAYLOAD_LEN];
   struct loadng_msg_rrep *rm = (struct loadng_msg_rrep *)buf;
@@ -511,7 +511,7 @@ send_rerr(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *nexthop)
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_rack(uip_ipaddr_t *src, uip_ipaddr_t *nexthop, u16_t seqno)
+send_rack(uip_ipaddr_t *src, uip_ipaddr_t *nexthop, uint16_t seqno)
 { 
   char buf[MAX_PAYLOAD_LEN];
   struct loadng_msg_rack *rm = (struct loadng_msg_rack *)buf;
@@ -901,7 +901,7 @@ static void
 tcpip_handler(void)
 {
   
-  u8_t type;
+  uint8_t type;
   if(uip_newdata()) {
 
   
