@@ -64,8 +64,15 @@
 
 typedef union {
   unsigned char u8[LINKADDR_SIZE];
+#if LINKADDR_SIZE == 2
+  uint16_t u16;
+#endif /* LINKADDR_SIZE == 2 */
 } linkaddr_t;
 
+typedef union {
+  uint8_t u8[8];
+  uint16_t u16[4];
+} linkaddr_extended_t;
 
 /**
  * \brief      Copy a Rime address

@@ -13,5 +13,5 @@ include $(CONTIKI)/platform/sky/Makefile.common
 MODULES += core/net/ipv6 core/net/ipv4 core/net/rime core/net/mac \
            core/net core/net/ip core/net/rpl \
            core/net/mac/contikimac core/net/mac/cxmac \
-           core/net/llsec \
+           core/net/llsec core/net/llsec/noncoresec \
            dev/cc2420 dev/sht11 dev/ds2411
