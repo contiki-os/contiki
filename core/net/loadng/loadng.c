@@ -389,7 +389,7 @@ send_opt()
   rm->seqno = my_seq_id;
   rm->rank = my_rank;
   rm->metric = LOADNG_METRIC_HC;
-  rm->metric = (rm->metric << 4) | my_weaklink + parent_weaklink(my_parent_rssi);
+  rm->metric = (rm->metric << 4) | (my_weaklink + parent_weaklink(my_parent_rssi));
   if(LOADNG_IS_SINK){
      uip_ipaddr_copy(&rm->sink_addr, &myipaddr);
   } else {
@@ -1046,7 +1046,7 @@ uint8_t loadng_is_my_global_address(uip_ipaddr_t *addr){
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(loadng_process, ev, data)
 {
-  static struct etimer et, dfet, rv;
+  static struct etimer et;
   
 
   PROCESS_BEGIN();
@@ -1081,7 +1081,7 @@ PROCESS_THREAD(loadng_process, ev, data)
 	UIP_HTONS(udpconn->lport), UIP_HTONS(udpconn->rport));
 
   if (LOADNG_IS_COORDINATOR()) {
-    PRINTF("LOADng: Set timer for OPT multicast %u\n", SEND_INTERVAL);
+    PRINTF("LOADng: Set timer for OPT multicast %lu\n", SEND_INTERVAL);
     etimer_set(&et, SEND_INTERVAL);
     memset(&ipaddr, 0, sizeof(ipaddr));
   }
