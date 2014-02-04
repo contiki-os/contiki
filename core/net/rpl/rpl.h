@@ -45,6 +45,10 @@
 #include "net/uip-ds6.h"
 #include "sys/ctimer.h"
 
+#if WITH_ORPL
+/* Make the rpl_parents table public for ORPL */
+NBR_TABLE_DECLARE(rpl_parents);
+#endif /* WITH_ORPL */
 /*---------------------------------------------------------------------------*/
 /* The amount of parents that this node has in a particular DAG. */
 #define RPL_PARENT_COUNT(dag)   list_length((dag)->parents)
@@ -114,6 +118,9 @@ struct rpl_parent {
   rpl_metric_container_t mc;
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   rpl_rank_t rank;
+#if WITH_ORPL
+  uint16_t bc_ackcount; /* Broadcast ack count used by ORPL for link estimation */
+#endif /* WITH_ORPL */
   uint16_t link_metric;
   uint8_t dtsn;
   uint8_t updated;
@@ -247,5 +254,11 @@ uip_ipaddr_t *rpl_get_parent_ipaddr(rpl_parent_t *nbr);
 rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
 uint16_t rpl_get_parent_link_metric(uip_lladdr_t *addr);
 void rpl_dag_init(void);
+#if WITH_ORPL
+rpl_rank_t rpl_get_parent_rank_default(uip_lladdr_t *addr, rpl_rank_t default_value);
+void rpl_set_parent_rank(uip_lladdr_t *addr, rpl_rank_t rank);
+uint16_t rpl_get_parent_bc_ackcount_default(uip_lladdr_t *addr, uint16_t default_value);
+void rpl_set_parent_bc_ackcount(uip_lladdr_t *addr, uint16_t bc_ackcount);
+#endif /* WITH_ORPL */
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */

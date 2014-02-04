@@ -66,6 +66,11 @@
 int
 rpl_verify_header(int uip_ext_opt_offset)
 {
+#if WITH_ORPL /* The current ORPL implementation
+does not rely on RPL extension headers */
+  return 0;
+#endif /* WITH_ORPL */
+
   rpl_instance_t *instance;
   int down;
   uint8_t sender_closer;

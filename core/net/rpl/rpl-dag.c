@@ -61,6 +61,11 @@
 extern rpl_of_t RPL_OF;
 static rpl_of_t * const objective_functions[] = {&RPL_OF};
 
+#if WITH_ORPL
+#include "orpl.h"
+#include "net/packetbuf.h"
+#endif /* WITH_ORPL */
+
 /*---------------------------------------------------------------------------*/
 /* RPL definitions. */
 
@@ -72,7 +77,11 @@ static rpl_of_t * const objective_functions[] = {&RPL_OF};
 
 /*---------------------------------------------------------------------------*/
 /* Per-parent RPL information */
+#if WITH_ORPL /* We need the table to be global as ORPL also uses it */
+NBR_TABLE_GLOBAL(rpl_parent_t, rpl_parents);
+#else /* WITH_ORPL */
 NBR_TABLE(rpl_parent_t, rpl_parents);
+#endif /* WITH_ORPL */
 /*---------------------------------------------------------------------------*/
 /* Allocate instance table. */
 rpl_instance_t instance_table[RPL_MAX_INSTANCES];
@@ -94,6 +103,48 @@ rpl_get_parent_rank(uip_lladdr_t *addr)
     return 0;
   }
 }
+#if WITH_ORPL
+/*---------------------------------------------------------------------------*/
+rpl_rank_t
+rpl_get_parent_rank_default(uip_lladdr_t *addr, rpl_rank_t default_value)
+{
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (rimeaddr_t *)addr);
+  if(p != NULL) {
+    return p->rank;
+  } else {
+    return default_value;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_set_parent_rank(uip_lladdr_t *addr, rpl_rank_t rank)
+{
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (rimeaddr_t *)addr);
+  if(p != NULL) {
+    p->rank = rank;
+  }
+}
+/*---------------------------------------------------------------------------*/
+uint16_t
+rpl_get_parent_bc_ackcount_default(uip_lladdr_t *addr, uint16_t default_value)
+{
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (rimeaddr_t *)addr);
+  if(p != NULL) {
+    return p->bc_ackcount;
+  } else {
+    return default_value;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_set_parent_bc_ackcount(uip_lladdr_t *addr, uint16_t bc_ackcount)
+{
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (rimeaddr_t *)addr);
+  if(p != NULL) {
+    p->bc_ackcount = bc_ackcount;
+  }
+}
+#endif /* WITH_ORPL */
 /*---------------------------------------------------------------------------*/
 uint16_t
 rpl_get_parent_link_metric(uip_lladdr_t *addr)
@@ -549,6 +600,9 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
     p->rank = dio->rank;
     p->dtsn = dio->dtsn;
     p->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
+#if WITH_ORPL
+    p->bc_ackcount = 0;
+#endif /* WITH_ORPL */
 #if RPL_DAG_MC != RPL_DAG_MC_NONE
     memcpy(&p->mc, &dio->mc, sizeof(p->mc));
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
@@ -604,6 +658,13 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   rpl_parent_t *last_parent;
   rpl_dag_t *dag, *end, *best_dag;
   rpl_rank_t old_rank;
+
+#if WITH_ORPL /* This ORPL implementation supports only one DAG,
+and as ORPL doesn't have the concept of preferred parent.
+We just update the rank and return the DAG. */
+  instance->of->calculate_rank(p, 0);
+  return instance->current_dag;
+#endif /* WITH_ORPL */
 
   old_rank = instance->current_dag->rank;
   last_parent = instance->current_dag->preferred_parent;
@@ -731,6 +792,14 @@ void
 rpl_nullify_parent(rpl_parent_t *parent)
 {
   rpl_dag_t *dag = parent->dag;
+
+#if WITH_ORPL
+  /* We don't have a preferred parent in ORPL.
+   * We simply recalculate our EDC. */
+  dag->instance->of->calculate_rank(parent, 0);
+  return;
+#endif /* WITH_ORPL */
+
   /* This function can be called when the preferred parent is NULL, so we
      need to handle this condition in order to trigger uip_ds6_defrt_rm. */
   if(parent == dag->preferred_parent || dag->preferred_parent == NULL) {
@@ -1062,6 +1131,14 @@ rpl_recalculate_ranks(void)
    */
   p = nbr_table_head(rpl_parents);
   while(p != NULL) {
+#if WITH_ORPL
+    /* In ORPL the rank is not bound to a particular parent.
+     * We just want to calculate it once. */
+    if(p->dag != NULL && p->dag->instance) {
+      p->dag->instance->of->calculate_rank(p, 0);
+      break;
+    }
+#else /* WITH_ORPL */
     if(p->dag != NULL && p->dag->instance && p->updated) {
       p->updated = 0;
       PRINTF("RPL: rpl_process_parent_event recalculate_ranks\n");
@@ -1069,6 +1146,7 @@ rpl_recalculate_ranks(void)
         PRINTF("RPL: A parent was dropped\n");
       }
     }
+#endif /* WITH_ORPL */
     p = nbr_table_next(rpl_parents, p);
   }
 }
@@ -1200,7 +1278,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     if(dio->rank != INFINITE_RANK) {
       instance->dio_counter++;
     }
-    return;
+#if !WITH_ORPL
+    return; /* With ORPL we want to have neighbors in the "rpl_parents"
+    table as we need their rank and ackcount for routing set. */
+#endif
   }
 
   /*
@@ -1241,6 +1322,13 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       p->rank=dio->rank;
     }
   }
+
+#if WITH_ORPL
+  if(dag->rank == ROOT_RANK(instance)) {
+    /* We have added the parent, now return if we are root */
+    return;
+  }
+#endif
 
   PRINTF("RPL: preferred DAG ");
   PRINT6ADDR(&instance->current_dag->dag_id);

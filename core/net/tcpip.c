@@ -51,6 +51,12 @@
 #endif //WITH_IPV6_LOADNG
 #endif
 
+#if WITH_ORPL
+#include "orpl.h"
+#include "orpl-anycast.h"
+#include "orpl-routing-set.h"
+#endif /* WITH_ORPL */
+
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
@@ -544,7 +550,10 @@ void
 tcpip_ipv6_output(void)
 {
   uip_ds6_nbr_t *nbr = NULL;
-  uip_ipaddr_t *nexthop;
+  uip_ipaddr_t *nexthop = NULL;
+#if WITH_ORPL
+  rimeaddr_t *anycast_addr = NULL;
+#endif /* WITH_ORPL */
 
   if(uip_len == 0) {
     return;
@@ -572,6 +581,7 @@ tcpip_ipv6_output(void)
     if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
       nexthop = &UIP_IP_BUF->destipaddr;
     } else {
+#if !WITH_ORPL
       uip_ds6_route_t *route;
       /* Check if we have a route to the destination address. */
       route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
@@ -655,6 +665,50 @@ tcpip_ipv6_output(void)
           return;
         }
       }
+#else /* !WITH_ORPL */
+      /* Set anycast MAC address instead of routing */
+
+      /* Get ORPL seqno as set by application */
+      uint32_t seqno = orpl_get_curr_seqno();
+      if(seqno == 0) { /* We are not originator of the data, set
+      seqno of packet being forwarded */
+        seqno = orpl_packetbuf_seqno();
+      }
+      orpl_set_curr_seqno(seqno);
+
+      if(orpl_is_reachable_neighbor(&UIP_IP_BUF->destipaddr)) {
+        ORPL_LOG_FROM_UIP("Tcpip: fw to nbr");
+        anycast_addr = &anycast_addr_nbr;
+      } else if(orpl_routing_set_contains(&UIP_IP_BUF->destipaddr) && !orpl_blacklist_contains(seqno)) {
+        ORPL_LOG_FROM_UIP("Tcpip: fw down");
+        anycast_addr = &anycast_addr_down;
+      } else if(orpl_is_root() == 0){
+        ORPL_LOG_FROM_UIP("Tcpip: fw up");
+        anycast_addr = &anycast_addr_up;
+      } else { /* We are the root and need to route upwards =>
+      use fallback interface. */
+#ifdef UIP_FALLBACK_INTERFACE
+    	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n",
+    			  uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
+    	  if(uip_ext_len > 0) {
+    		  uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
+    		  remove_ext_hdr();
+    		  /* This should be copied from the ext header... */
+    		  UIP_IP_BUF->proto = proto;
+    	  }
+    	  UIP_FALLBACK_INTERFACE.output();
+#else
+    	  PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
+#endif /* !UIP_FALLBACK_INTERFACE */
+    	  uip_len = 0;
+    	  return;
+      }
+      if(anycast_addr == &anycast_addr_up || anycast_addr == &anycast_addr_down || anycast_addr == &anycast_addr_nbr) {
+    	  tcpip_output((uip_lladdr_t *)anycast_addr);
+    	  uip_len = 0;
+    	  return;
+      }
+#endif /* !WITH_ORPL */
 #if TCPIP_CONF_ANNOTATE_TRANSMISSIONS
       if(nexthop != NULL) {
         static uint8_t annotate_last;

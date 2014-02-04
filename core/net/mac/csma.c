@@ -51,6 +51,13 @@
 #include "lib/list.h"
 #include "lib/memb.h"
 
+#if WITH_ORPL
+#include "net/uip.h"
+#include "orpl.h"
+#include "orpl-anycast.h"
+#define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#endif /* WITH_ORPL */
+
 #include <string.h>
 
 #include <stdio.h>
@@ -271,15 +278,49 @@ packet_sent(void *ptr, int status, int num_transmissions)
              transmitting this packet. */
           queuebuf_update_attr_from_packetbuf(q->buf);
         } else {
+#if WITH_ORPL
+          /* Failed downwards transmission. Trigger false positive recovery. */
+        	if(ORPL_WITH_FP_RECOVERY && !orpl_is_root() && packetbuf_attr(PACKETBUF_ATTR_ORPL_DIRECTION) == direction_down) {
+        		ORPL_LOG_FROM_PACKETBUF("Csma:! triggering false positive recovery %u after %d tx, %d c.",
+        		    ORPL_LOG_NODEID_FROM_RIMEADDR(&n->addr) , n->transmissions, n->collisions);
+        		free_packet(n, q);
+        		/* GIve another try, upwards this time, after inserting in blacklist. */
+        		orpl_blacklist_insert(orpl_packetbuf_seqno());
+        		ORPL_LOG_FROM_PACKETBUF("Tcpip: false positive recovery");
+        		packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 0);
+        		packetbuf_set_attr(PACKETBUF_ATTR_ORPL_DIRECTION, direction_recover);
+        		packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS);
+        		packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &anycast_addr_recover);
+        		NETSTACK_MAC.send(sent, cptr);
+        	} else {
+        	  ORPL_LOG_FROM_PACKETBUF("Csma:! dropping %u after %d tx, %d collisions",
+        	      ORPL_LOG_NODEID_FROM_RIMEADDR(&n->addr) , n->transmissions, n->collisions);
+        	  PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
+        	      status, n->transmissions, n->collisions);
+        	  free_packet(n, q);
+        	  mac_call_sent_callback(sent, cptr, status, num_tx);
+        	}
+#else /* WITH_ORPL */
           PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
                  status, n->transmissions, n->collisions);
           free_packet(n, q);
           mac_call_sent_callback(sent, cptr, status, num_tx);
+#endif /* WITH_ORPL */
         }
       } else {
         if(status == MAC_TX_OK) {
+#if WITH_ORPL
+          if(!rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                                 &rimeaddr_null)) {
+            ORPL_LOG_FROM_PACKETBUF("Csma: success %u after %d tx, %d collisions",
+                ORPL_LOG_NODEID_FROM_RIMEADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER)), n->transmissions, n->collisions);
+          }
+#endif /* WITH_ORPL */
           PRINTF("csma: rexmit ok %d\n", n->transmissions);
         } else {
+#if WITH_ORPL
+          ORPL_LOG_FROM_PACKETBUF("Csma:! dropping due to rexmit failed");
+#endif /* WITH_ORPL */
           PRINTF("csma: rexmit failed %d: %d\n", n->transmissions, status);
         }
         free_packet(n, q);
@@ -295,13 +336,39 @@ send_packet(mac_callback_t sent, void *ptr)
   struct rdc_buf_list *q;
   struct neighbor_queue *n;
   static uint16_t seqno;
-  const rimeaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
-  if(seqno == 0) {
-    /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
-       in framer-802154.c. */
-    seqno++;
-  }
+#if WITH_ORPL
+    /* Using packetbuf address would lead to a single queue for all anycasts.
+       * We use the IPv6 UUID to have one queue per destination instead. */
+    const rimeaddr_t *addr = (const rimeaddr_t *)(((uint8_t*)&UIP_IP_BUF->destipaddr)+8);
+
+    /* Set PACKETBUF_ATTR_ROUTING_SET for outgoing routing set broadcast,
+     * so that the proper ORPL callback function can be called after transmission. */
+    if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+    		&rimeaddr_null)) {
+    	ORPL_LOG("Csma: send broadcast (%u bytes)\n", packetbuf_datalen());
+    	if(sending_routing_set) {
+    		packetbuf_set_attr(PACKETBUF_ATTR_ROUTING_SET, 1);
+    	}
+    }
+
+    /* ORPL requires randomized initial seqnos for acked broadcats and its
+     * duplicate detection mechanism */
+    while(seqno == 0) {
+      /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
+             in framer-802154.c. */
+      seqno = random_rand();
+    }
+#else /* WITH_ORPL */
+    const rimeaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+
+    if(seqno == 0) {
+      /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
+         in framer-802154.c. */
+      seqno++;
+    }
+#endif /* WITH_ORPL */
+
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, seqno++);
 
   /* Look for the neighbor entry */
@@ -367,8 +434,14 @@ send_packet(mac_callback_t sent, void *ptr)
       memb_free(&neighbor_memb, n);
     }
     PRINTF("csma: could not allocate packet, dropping packet\n");
+#if WITH_ORPL
+    ORPL_LOG_FROM_PACKETBUF("Csma:! couldn't allocate packet");
+#endif /* WITH_ORPL */
   } else {
     PRINTF("csma: could not allocate neighbor, dropping packet\n");
+#if WITH_ORPL
+    ORPL_LOG_FROM_PACKETBUF("Csma:! couldn't allocate neighbor");
+#endif /* WITH_ORPL */
   }
   mac_call_sent_callback(sent, ptr, MAC_TX_ERR, 1);
 }
