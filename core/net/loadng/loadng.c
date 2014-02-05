@@ -49,6 +49,8 @@
 
 #include <string.h>
 
+#if WITH_IPV6_LOADNG
+
 #define DEBUG 1
 #include "net/uip-debug.h"
 
@@ -1142,4 +1144,7 @@ PROCESS_THREAD(loadng_process, ev, data)
 
   PROCESS_END();
 }
+
+#endif /*WITH_IPV6_LOADNG*/
+
 /*---------------------------------------------------------------------------*/
