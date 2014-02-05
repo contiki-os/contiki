@@ -390,7 +390,7 @@ print_stats()
 	  " ms \n");
 }
 
-TIMEOUT(700000);
+TIMEOUT(400000);
 
 
 /* Conf. */
@@ -398,7 +398,7 @@ booted = new Array();
 received = new Array();
 hops = new Array();
 nrNodes = 20;
-toReceive = 8;
+toReceive = 4;
 total_received = 0;
 total_lost = 0;
 total_hops = 0;
