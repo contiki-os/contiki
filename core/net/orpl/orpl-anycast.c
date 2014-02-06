@@ -220,7 +220,7 @@ orpl_anycast_parse_802154_frame(uint8_t *data, uint8_t len, int set_dest_addr)
       /* TODO ORPL: better document this addressing */
       uip_ipaddr_t dest_ipv6;
       memcpy(&dest_ipv6, &global_ipv6, 8); /* override prefix */
-      memcpy(((char*)&dest_ipv6)+8, data + 22 + 12, 8);
+      memcpy(((char*)&dest_ipv6)+8, data + 33, 8);
 
       if(uip_ip6addr_cmp(&dest_ipv6, &global_ipv6)) {
         /* Take the data if it is for us */

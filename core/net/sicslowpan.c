@@ -586,8 +586,6 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
   /* Note that the payload length is always compressed */
 
   /* Next header. We compress it if UDP */
-#if !WITH_ORPL /* Don't compress next header field for quicker
-parsing from interrupts */
 #if UIP_CONF_UDP || UIP_CONF_ROUTER
   if(UIP_IP_BUF->proto == UIP_PROTO_UDP) {
     iphc0 |= SICSLOWPAN_IPHC_NH_C;
@@ -602,10 +600,6 @@ parsing from interrupts */
     *hc06_ptr = UIP_IP_BUF->proto;
     hc06_ptr += 1;
   }
-#else /* WITH_ORPL */
-    *hc06_ptr = UIP_IP_BUF->proto;
-    hc06_ptr += 1;
-#endif /* WITH_ORPL */
 
   /*
    * Hop limit
@@ -947,21 +941,12 @@ uncompress_hdr_hc06(uint16_t ip_len)
   }
   uncomp_hdr_len += UIP_IPH_LEN;
 
-  /* ORPL note: Fix from original code that makes it possible to have compressed
-   * UDP headers even though the next header field itself isn't compressed.
-   * Needed by ORPL, doesn't hurt in other cases. */
-  if((iphc0 & SICSLOWPAN_IPHC_NH_C)) {
-      /* The next header is compressed, NHC is following */
-      if((*hc06_ptr & SICSLOWPAN_NHC_UDP_MASK) == SICSLOWPAN_NHC_UDP_ID) {
-        SICSLOWPAN_IP_BUF->proto = UIP_PROTO_UDP;
-      }
-  }
-
   /* Next header processing - continued */
-  if(SICSLOWPAN_IP_BUF->proto == UIP_PROTO_UDP) {
+  if((iphc0 & SICSLOWPAN_IPHC_NH_C)) {
     /* The next header is compressed, NHC is following */
     if((*hc06_ptr & SICSLOWPAN_NHC_UDP_MASK) == SICSLOWPAN_NHC_UDP_ID) {
       uint8_t checksum_compressed;
+      SICSLOWPAN_IP_BUF->proto = UIP_PROTO_UDP;
       checksum_compressed = *hc06_ptr & SICSLOWPAN_NHC_UDP_CHECKSUMC;
       PRINTF("IPHC: Incoming header value: %i\n", *hc06_ptr);
       switch(*hc06_ptr & SICSLOWPAN_NHC_UDP_CS_P_11) {
