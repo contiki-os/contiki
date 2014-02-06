@@ -66,6 +66,11 @@
 #include "net/rime.h"
 #include "net/sicslowpan.h"
 #include "net/netstack.h"
+#if WITH_ORPL
+#include "orpl.h"
+#include "orpl-routing-set.h"
+#include "orpl-anycast.h"
+#endif /* WITH_ORPL */
 
 #if UIP_CONF_IPV6
 
@@ -393,6 +398,9 @@ addr_context_lookup_by_number(uint8_t number)
 static uint8_t
 compress_addr_64(uint8_t bitpos, uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
 {
+#if !WITH_ORPL /* The current implementation of ORPL disables
+IID compression for quicker lookup from radio interrupts
+when implementing extended software acks */
   if(uip_is_addr_mac_addr_based(ipaddr, lladdr)) {
     return 3 << bitpos; /* 0-bits */
   } else if(sicslowpan_is_iid_16_bit_compressable(ipaddr)) {
@@ -400,7 +408,9 @@ compress_addr_64(uint8_t bitpos, uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
     memcpy(hc06_ptr, &ipaddr->u16[7], 2);
     hc06_ptr += 2;
     return 2 << bitpos; /* 16-bits */
-  } else {
+  } else
+#endif /* !WITH_ORPL */
+  {
     /* do not compress IID => xxxx::IID */
     memcpy(hc06_ptr, &ipaddr->u16[4], 8);
     hc06_ptr += 8;
@@ -598,6 +608,8 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
    * if 255: compress, encoding is 11
    * else do not compress
    */
+#if !WITH_ORPL /* Don't compress hop limit for quicker
+parsing from interrupts */
   switch(UIP_IP_BUF->ttl) {
     case 1:
       iphc0 |= SICSLOWPAN_IPHC_TTL_1;
@@ -613,6 +625,10 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
       hc06_ptr += 1;
       break;
   }
+#else /* WITH_ORPL */
+    *hc06_ptr = UIP_IP_BUF->ttl;
+    hc06_ptr += 1;
+#endif /* WITH_ORPL */
 
   /* source address - cannot be multicast */
   if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
@@ -1305,6 +1321,12 @@ packet_sent(void *ptr, int status, int transmissions)
 {
   uip_ds6_link_neighbor_callback(status, transmissions);
 
+#if WITH_ORPL
+  if(packetbuf_attr(PACKETBUF_ATTR_ROUTING_SET) == 1) {
+    orpl_routing_set_sent(ptr, status, transmissions);
+  }
+#endif /* WITH_ORPL */
+
   if(callback != NULL) {
     callback->output_callback(status);
   }
@@ -1447,7 +1469,31 @@ output(uip_lladdr_t *localdest)
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
 
+#if WITH_ORPL
+  uint32_t seqno = orpl_get_curr_seqno();
+  if(seqno) {
+    orpl_packetbuf_set_seqno(seqno);
+  }
+
+  if(localdest == (uip_lladdr_t *)&anycast_addr_up) {
+    packetbuf_set_attr(PACKETBUF_ATTR_ORPL_DIRECTION, direction_up);
+  } else if(localdest == (uip_lladdr_t *)&anycast_addr_down) {
+    packetbuf_set_attr(PACKETBUF_ATTR_ORPL_DIRECTION, direction_down);
+  } else if(localdest == (uip_lladdr_t *)&anycast_addr_nbr) {
+    packetbuf_set_attr(PACKETBUF_ATTR_ORPL_DIRECTION, direction_nbr);
+  } else if(localdest == (uip_lladdr_t *)&anycast_addr_recover) {
+    packetbuf_set_attr(PACKETBUF_ATTR_ORPL_DIRECTION, direction_recover);
+  } else {
+    packetbuf_set_attr(PACKETBUF_ATTR_ORPL_DIRECTION, direction_none);
+  }
+#endif /* WITH_ORPL */
+
+#if WITH_ORPL /* Workaround to avoid fragmented DIOs */
+  if(uip_len - uncomp_hdr_len > MAC_MAX_PAYLOAD - rime_hdr_len) {
+#else /* WITH_ORPL */
   if((int)uip_len - (int)uncomp_hdr_len > (int)MAC_MAX_PAYLOAD - framer_hdrlen - (int)rime_hdr_len) {
+#endif /* WITH_ORPL */
+
 #if SICSLOWPAN_CONF_FRAG
     struct queuebuf *q;
     /*

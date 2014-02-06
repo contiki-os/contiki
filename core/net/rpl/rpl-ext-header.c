@@ -66,6 +66,11 @@
 int
 rpl_verify_header(int uip_ext_opt_offset)
 {
+#if WITH_ORPL /* The current ORPL implementation
+does not rely on RPL extension headers */
+  return 0;
+#endif /* WITH_ORPL */
+
   rpl_instance_t *instance;
   int down;
   uint8_t sender_closer;
@@ -148,6 +153,11 @@ rpl_verify_header(int uip_ext_opt_offset)
 static void
 set_rpl_opt(unsigned uip_ext_opt_offset)
 {
+#if WITH_ORPL /* The current ORPL implementation
+does not rely on RPL extension headers */
+  return;
+#endif /* WITH_ORPL */
+
   uint8_t temp_len;
 
   memmove(UIP_HBHO_NEXT_BUF, UIP_EXT_BUF, uip_len - UIP_IPH_LEN);
@@ -171,6 +181,11 @@ set_rpl_opt(unsigned uip_ext_opt_offset)
 void
 rpl_update_header_empty(void)
 {
+#if WITH_ORPL /* The current ORPL implementation
+does not rely on RPL extension headers */
+  return;
+#endif /* WITH_ORPL */
+
   rpl_instance_t *instance;
   int uip_ext_opt_offset;
   int last_uip_ext_len;
@@ -248,6 +263,11 @@ rpl_update_header_empty(void)
 int
 rpl_update_header_final(uip_ipaddr_t *addr)
 {
+#if WITH_ORPL /* The current ORPL implementation
+does not rely on RPL extension headers */
+  return 0;
+#endif /* WITH_ORPL */
+
   rpl_parent_t *parent;
   int uip_ext_opt_offset;
   int last_uip_ext_len;
@@ -286,6 +306,11 @@ rpl_update_header_final(uip_ipaddr_t *addr)
 void
 rpl_remove_header(void)
 {
+#if WITH_ORPL /* The current ORPL implementation
+does not rely on RPL extension headers */
+  return;
+#endif /* WITH_ORPL */
+
   uint8_t temp_len;
 
   uip_ext_len = 0;
@@ -311,6 +336,11 @@ rpl_remove_header(void)
 uint8_t
 rpl_invert_header(void)
 {
+#if WITH_ORPL /* The current ORPL implementation
+does not rely on RPL extension headers */
+  return 0;
+#endif /* WITH_ORPL */
+
   uint8_t uip_ext_opt_offset;
   uint8_t last_uip_ext_len;
 
@@ -346,6 +376,11 @@ rpl_invert_header(void)
 void
 rpl_insert_header(void)
 {
+#if WITH_ORPL /* The current ORPL implementation
+does not rely on RPL extension headers */
+  return;
+#endif /* WITH_ORPL */
+
   uint8_t uip_ext_opt_offset;
   if(default_instance != NULL) {
     uip_ext_opt_offset = 2;
