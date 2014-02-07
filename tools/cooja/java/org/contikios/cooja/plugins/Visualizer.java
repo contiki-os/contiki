@@ -56,6 +56,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
@@ -410,6 +412,20 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
         handleMouseMove(e, true);
         repaint();
+      }
+    });
+    canvas.addMouseWheelListener(new MouseWheelListener() {
+      public void mouseWheelMoved(MouseWheelEvent mwe) {
+        int x = mwe.getX();
+        int y = mwe.getY();
+        int rot = mwe.getWheelRotation();
+        
+        if (rot > 0) {  
+          zoomToFactor(zoomFactor() / 1.2, new Point(x, y));
+        } else {
+          zoomToFactor(zoomFactor() * 1.2, new Point(x, y));
+        }
+
       }
     });
 
@@ -855,16 +871,16 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   }
 
   private void zoomToFactor(double newZoom) {
-    Position center = transformPixelToPosition(
-        new Point(canvas.getWidth()/2, canvas.getHeight()/2)
-    );
+    zoomToFactor(newZoom, new Point(canvas.getWidth()/2, canvas.getHeight()/2));
+  }
+  
+  private void zoomToFactor(double newZoom, Point zoomCenter) {
+    Position center = transformPixelToPosition(zoomCenter);
     viewportTransform.setToScale(
         newZoom,
         newZoom
     );
-    Position newCenter = transformPixelToPosition(
-        new Point(canvas.getWidth()/2, canvas.getHeight()/2)
-    );
+    Position newCenter = transformPixelToPosition(zoomCenter);
     viewportTransform.translate(
         newCenter.getXCoordinate() - center.getXCoordinate(),
         newCenter.getYCoordinate() - center.getYCoordinate()
