@@ -63,6 +63,7 @@
 
 #include "sys/cc.h"
 #include "net/mac/frame802154.h"
+#include "net/llsec/llsec802154.h"
 #include <string.h>
 
 /**
@@ -120,6 +121,7 @@ field_len(frame802154_t *p, field_length_t *flen)
   flen->dest_addr_len = addr_len(p->fcf.dest_addr_mode & 3);
   flen->src_addr_len = addr_len(p->fcf.src_addr_mode & 3);
 
+#if LLSEC802154_SECURITY_LEVEL
   /* Aux security header */
   if(p->fcf.security_enabled & 1) {
     flen->aux_sec_len = 5;
@@ -143,6 +145,7 @@ field_len(frame802154_t *p, field_length_t *flen)
     }
 #endif
   }
+#endif /* LLSEC802154_SECURITY_LEVEL */
 }
 /*----------------------------------------------------------------------------*/
 /**
@@ -220,6 +223,7 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
     buf[pos++] = p->src_addr[c - 1];
   }
 
+#if LLSEC802154_SECURITY_LEVEL
   /* Aux header */
   if(flen.aux_sec_len) {
     /* TODO Support key identifier mode !=0 */
@@ -227,6 +231,7 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
     memcpy(buf + pos, p->aux_hdr.frame_counter.u8, 4);
     pos += 4;
   }
+#endif /* LLSEC802154_SECURITY_LEVEL */
 
   return (int)pos;
 }
@@ -329,6 +334,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
     pf->src_pid = 0;
   }
 
+#if LLSEC802154_SECURITY_LEVEL
   if(fcf.security_enabled) {
     pf->aux_hdr.security_control.security_level = p[0] & 7;
     pf->aux_hdr.security_control.key_id_mode = (p[0] >> 3) & 3;
@@ -342,6 +348,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
       return 0;
     }
   }
+#endif /* LLSEC802154_SECURITY_LEVEL */
 
   /* header length */
   c = p - data;
