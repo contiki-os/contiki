@@ -65,10 +65,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.DocumentFilter;
+import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Cooja;
@@ -234,18 +238,26 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       varNameCombo.addItem(aVarName);
     }
 
-    varNameCombo.addKeyListener(new KeyListener() {
+    /* Reset variable read feedbacks if variable name was changed */
+    final JTextComponent tc = (JTextComponent) varNameCombo.getEditor().getEditorComponent();
+    tc.getDocument().addDocumentListener(new DocumentListener() {
+
       @Override
-      public void keyPressed(KeyEvent e) {
+      public void insertUpdate(DocumentEvent e) {
         writeButton.setEnabled(false);
+        ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(UIManager.getColor("TextField.foreground"));
       }
+
       @Override
-      public void keyTyped(KeyEvent e) {
+      public void removeUpdate(DocumentEvent e) {
         writeButton.setEnabled(false);
+        ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(UIManager.getColor("TextField.foreground"));
       }
+
       @Override
-      public void keyReleased(KeyEvent e) {
+      public void changedUpdate(DocumentEvent e) {
         writeButton.setEnabled(false);
+        ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(UIManager.getColor("TextField.foreground"));
       }
     });
 
@@ -498,7 +510,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
             varNameCombo.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
           } catch (UnknownVariableException ex) {
-            varNameCombo.setBackground(Color.RED);
+            ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(Color.RED);
             writeButton.setEnabled(false);
           }
         } else if (varTypeCombo.getSelectedIndex() == INT_INDEX) {
@@ -508,7 +520,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
             varNameCombo.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
           } catch (UnknownVariableException ex) {
-            varNameCombo.setBackground(Color.RED);
+            ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(Color.RED);
             writeButton.setEnabled(false);
           }
         } else if (varTypeCombo.getSelectedIndex() == ARRAY_INDEX || 
@@ -529,7 +541,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
             varNameCombo.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
           } catch (UnknownVariableException ex) {
-            varNameCombo.setBackground(Color.RED);
+            ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(Color.RED);
             writeButton.setEnabled(false);
           }
         }
