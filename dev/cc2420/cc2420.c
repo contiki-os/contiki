@@ -434,41 +434,6 @@ wait_for_transmission(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-init_security(void)
-{
-  /* only use key 0 */
-  setreg(CC2420_SECCTRL0, 0);
-  setreg(CC2420_SECCTRL1, 0);
-}
-/*---------------------------------------------------------------------------*/
-static void
-set_key(uint8_t *key)
-{
-  write_ram(key, CC2420RAM_KEY0, 16, WRITE_RAM_REVERSE);
-}
-/*---------------------------------------------------------------------------*/
-static void
-encrypt(uint8_t *plaintext_and_result)
-{
-  write_ram(plaintext_and_result,
-      CC2420RAM_SABUF,
-      16,
-      WRITE_RAM_IN_ORDER);
-  
-  strobe(CC2420_SAES);
-  while(get_status() & BV(CC2420_ENC_BUSY));
-  
-  read_ram(plaintext_and_result, CC2420RAM_SABUF, 16);
-}
-/*---------------------------------------------------------------------------*/
-const struct aes_128_driver cc2420_aes_128_driver = {
-  set_key,
-  encrypt
-};
-/*---------------------------------------------------------------------------*/
-static uint8_t locked, lock_on, lock_off;
-
-static void
 on(void)
 {
   CC2420_ENABLE_FIFOP_INT();
@@ -477,6 +442,7 @@ on(void)
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   receive_on = 1;
 }
+/*---------------------------------------------------------------------------*/
 static void
 off(void)
 {
@@ -495,6 +461,7 @@ off(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t locked, lock_on, lock_off;
 #define GET_LOCK() locked++
 static void RELEASE_LOCK(void) {
   if(locked == 1) {
@@ -509,6 +476,47 @@ static void RELEASE_LOCK(void) {
   }
   locked--;
 }
+/*---------------------------------------------------------------------------*/
+static void
+init_security(void)
+{
+  /* only use key 0 */
+  setreg(CC2420_SECCTRL0, 0);
+  setreg(CC2420_SECCTRL1, 0);
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_key(uint8_t *key)
+{
+  GET_LOCK();
+  
+  write_ram(key, CC2420RAM_KEY0, 16, WRITE_RAM_REVERSE);
+  
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+static void
+encrypt(uint8_t *plaintext_and_result)
+{
+  GET_LOCK();
+  
+  write_ram(plaintext_and_result,
+      CC2420RAM_SABUF,
+      16,
+      WRITE_RAM_IN_ORDER);
+  
+  strobe(CC2420_SAES);
+  while(get_status() & BV(CC2420_ENC_BUSY));
+  
+  read_ram(plaintext_and_result, CC2420RAM_SABUF, 16);
+  
+  RELEASE_LOCK();
+}
+/*---------------------------------------------------------------------------*/
+const struct aes_128_driver cc2420_aes_128_driver = {
+  set_key,
+  encrypt
+};
 /*---------------------------------------------------------------------------*/
 static void
 set_txpower(uint8_t power)
