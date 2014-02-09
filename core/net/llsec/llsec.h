@@ -85,6 +85,9 @@ struct llsec_driver {
    * filters out injected or replayed frames.
    */
   void (* input)(void);
+  
+  /** Returns the security-related overhead per frame in bytes */
+  uint8_t (* get_overhead)(void);
 };
 
 #endif /* LLSEC_H_ */
