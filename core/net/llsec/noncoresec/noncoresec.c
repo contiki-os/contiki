@@ -65,6 +65,8 @@
                          0x0C , 0x0D , 0x0E , 0x0F }
 #endif /* NONCORESEC_CONF_KEY */
 
+#define SECURITY_HEADER_LENGTH 5
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -192,6 +194,12 @@ input(void)
   NETSTACK_NETWORK.input();
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t
+get_overhead(void)
+{
+  return SECURITY_HEADER_LENGTH + LLSEC802154_MIC_LENGTH;
+}
+/*---------------------------------------------------------------------------*/
 static void
 bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
 {
@@ -205,7 +213,8 @@ const struct llsec_driver noncoresec_driver = {
   bootstrap,
   send,
   on_frame_created,
-  input
+  input,
+  get_overhead
 };
 /*---------------------------------------------------------------------------*/
 

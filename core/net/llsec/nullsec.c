@@ -73,12 +73,19 @@ input(void)
   NETSTACK_NETWORK.input();
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t
+get_overhead(void)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 const struct llsec_driver nullsec_driver = {
   "nullsec",
   bootstrap,
   send,
   on_frame_created,
-  input
+  input,
+  get_overhead
 };
 /*---------------------------------------------------------------------------*/
 
