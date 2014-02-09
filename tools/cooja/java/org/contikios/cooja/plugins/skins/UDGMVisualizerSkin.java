@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2009-2013, Swedish Institute of Computer Science, TU Braunscheig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,28 @@
 
 package org.contikios.cooja.plugins.skins;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.beans.PropertyVetoException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import static javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.InternalFrameAdapter;
+import javax.swing.event.InternalFrameEvent;
 
 import org.apache.log4j.Logger;
 
@@ -68,21 +78,24 @@ import org.contikios.cooja.radiomediums.UDGM;
  * @see TrafficVisualizerSkin
  * @see UDGM
  * @author Fredrik Osterlind
+ * @author Enrico Joerns
  */
 @ClassDescription("Radio environment (UDGM)")
 @SupportedArguments(radioMediums = {UDGM.class})
 public class UDGMVisualizerSkin implements VisualizerSkin {
-  private static Logger logger = Logger.getLogger(UDGMVisualizerSkin.class);
+  private static final Logger logger = Logger.getLogger(UDGMVisualizerSkin.class);
 
-  private static Color COLOR_TX = new Color(0, 255, 0, 100);
-  private static Color COLOR_INT = new Color(50, 50, 50, 100);
+  private static final Color COLOR_TX = new Color(0, 255, 0, 100);
+  private static final Color COLOR_INT = new Color(50, 50, 50, 100);
 
   private Simulation simulation = null;
   private Visualizer visualizer = null;
   private UDGM radioMedium = null;
 
-  private Box top, ratioRX, ratioTX, rangeTX, rangeINT;
+  private JInternalFrame rrFrame;
+  private Box ratioRX, ratioTX, rangeTX, rangeINT;
 
+  @Override
   public void setActive(Simulation simulation, Visualizer vis) {
     if (!(simulation.getRadioMedium() instanceof UDGM)) {
       logger.fatal("Cannot activate UDGM skin for unknown radio medium: " + simulation.getRadioMedium());
@@ -139,6 +152,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     successRatioRxSpinner.setToolTipText("Reception success ratio (%)");
 
     txRangeSpinner.addChangeListener(new ChangeListener() {
+      @Override
       public void stateChanged(ChangeEvent e) {
         radioMedium.setTxRange(((SpinnerNumberModel)
             txRangeSpinner.getModel()).getNumber().doubleValue());
@@ -147,6 +161,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     });
 
     interferenceRangeSpinner.addChangeListener(new ChangeListener() {
+      @Override
       public void stateChanged(ChangeEvent e) {
         radioMedium.setInterferenceRange(((SpinnerNumberModel)
             interferenceRangeSpinner.getModel()).getNumber().doubleValue());
@@ -155,6 +170,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     });
 
     successRatioTxSpinner.addChangeListener(new ChangeListener() {
+      @Override
       public void stateChanged(ChangeEvent e) {
         radioMedium.SUCCESS_RATIO_TX = ((SpinnerNumberModel)
             successRatioTxSpinner.getModel()).getNumber().doubleValue();
@@ -163,6 +179,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     });
 
     successRatioRxSpinner.addChangeListener(new ChangeListener() {
+      @Override
       public void stateChanged(ChangeEvent e) {
         radioMedium.SUCCESS_RATIO_RX = ((SpinnerNumberModel)
             successRatioRxSpinner.getModel()).getNumber().doubleValue();
@@ -175,13 +192,10 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     visualizer.registerSimulationMenuAction(SuccessRatioMenuAction.class);
 
     /* UI components */
-    top = Box.createVerticalBox();
-    top.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(Color.BLACK),
-        BorderFactory.createEmptyBorder(0, 3, 0, 3)));
-    top.setOpaque(true);
-    top.setBackground(Color.LIGHT_GRAY);
-
+    JPanel main = new JPanel();
+    main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
+    main.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    
     rangeTX = Box.createHorizontalBox();
     rangeTX.add(new JLabel("TX range:"));
     rangeTX.add(Box.createHorizontalStrut(5));
@@ -203,16 +217,32 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     rangeINT.setVisible(false);
     ratioTX.setVisible(false);
     ratioRX.setVisible(false);
-    top.setVisible(false);
+    
+    main.add(rangeTX);
+    main.add(rangeINT);
+    main.add(ratioTX);
+    main.add(ratioRX);
+    
+    rrFrame = new JInternalFrame("UDGM", false, true);
+    rrFrame.setVisible(false);
+    rrFrame.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    rrFrame.addInternalFrameListener(new InternalFrameAdapter() {
+      @Override
+      public void internalFrameClosing(InternalFrameEvent ife) {
+        super.internalFrameClosed(ife);
+        rangeTX.setVisible(false);
+        rangeINT.setVisible(false);
+        ratioTX.setVisible(false);
+        ratioRX.setVisible(false);
+        rrFrame.setVisible(false);
+      }
+    });
 
-    top.add(rangeTX);
-    top.add(rangeINT);
-    top.add(ratioTX);
-    top.add(ratioRX);
-
-    visualizer.getCurrentCanvas().add(top);
+    rrFrame.getContentPane().add(BorderLayout.CENTER, main);
+    rrFrame.pack();
   }
 
+  @Override
   public void setInactive() {
     if (simulation == null) {
       /* Skin was never activated */
@@ -220,13 +250,14 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     }
 
     /* Remove spinners etc */
-    visualizer.getCurrentCanvas().remove(top);
+    visualizer.getCurrentCanvas().remove(rrFrame);
 
     /* Unregister menu actions */
     visualizer.unregisterSimulationMenuAction(RangeMenuAction.class);
     visualizer.unregisterSimulationMenuAction(SuccessRatioMenuAction.class);
   }
 
+  @Override
   public Color[] getColorOf(Mote mote) {
     Mote selectedMote = visualizer.getSelectedMote();
     if (mote == selectedMote) {
@@ -235,6 +266,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     return null;
   }
 
+  @Override
   public void paintBeforeMotes(Graphics g) {
     Mote selectedMote = visualizer.getSelectedMote();
     if (simulation == null
@@ -334,53 +366,86 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
 
   }
 
+  @Override
   public void paintAfterMotes(Graphics g) {
   }
 
   public static class RangeMenuAction implements SimulationMenuAction {
+    @Override
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
       return true;
     }
 
+    @Override
     public String getDescription(Visualizer visualizer, Simulation simulation) {
       return "Change transmission ranges";
     }
 
+    @Override
     public void doAction(Visualizer visualizer, Simulation simulation) {
       VisualizerSkin[] skins = visualizer.getCurrentSkins();
-      for (VisualizerSkin skin: skins) {
+      for (VisualizerSkin skin : skins) {
         if (skin instanceof UDGMVisualizerSkin) {
-          ((UDGMVisualizerSkin)skin).rangeTX.setVisible(true);
-          ((UDGMVisualizerSkin)skin).rangeINT.setVisible(true);
-          ((UDGMVisualizerSkin)skin).top.setVisible(true);
-          visualizer.repaint();
+          UDGMVisualizerSkin vskin = ((UDGMVisualizerSkin) skin);
+          vskin.rangeTX.setVisible(true);
+          vskin.rangeINT.setVisible(true);
+          vskin.updateRatioRangeFrame();
         }
       }
     }
   };
 
   public static class SuccessRatioMenuAction implements SimulationMenuAction {
+    @Override
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
       return true;
     }
 
+    @Override
     public String getDescription(Visualizer visualizer, Simulation simulation) {
       return "Change TX/RX success ratio";
     }
 
+    @Override
     public void doAction(Visualizer visualizer, Simulation simulation) {
       VisualizerSkin[] skins = visualizer.getCurrentSkins();
       for (VisualizerSkin skin: skins) {
         if (skin instanceof UDGMVisualizerSkin) {
-          ((UDGMVisualizerSkin)skin).ratioTX.setVisible(true);
-          ((UDGMVisualizerSkin)skin).ratioRX.setVisible(true);
-          ((UDGMVisualizerSkin)skin).top.setVisible(true);
-          visualizer.repaint();
+          UDGMVisualizerSkin vskin = ((UDGMVisualizerSkin) skin);
+          vskin.ratioTX.setVisible(true);
+          vskin.ratioRX.setVisible(true);
+          vskin.updateRatioRangeFrame();
         }
       }
     }
   };
 
+  private void updateRatioRangeFrame() {
+    if (rrFrame.getDesktopPane() == null) {
+      visualizer.getDesktopPane().add(rrFrame);
+    }
+    rrFrame.pack();
+    /* Place frame at the upper right corner of the visualizer canvas */
+    Point visCanvasPos = SwingUtilities.convertPoint(
+            visualizer.getCurrentCanvas(),
+            visualizer.getCurrentCanvas().getLocation(),
+            visualizer.getDesktopPane());
+    rrFrame.setLocation(
+            visCanvasPos.x + visualizer.getCurrentCanvas().getWidth() - rrFrame.getWidth(),
+            visCanvasPos.y);
+    /* Try to place on top with focus */
+    rrFrame.setLayer(JLayeredPane.MODAL_LAYER);
+    rrFrame.setVisible(true);
+    rrFrame.moveToFront();
+    try {
+      rrFrame.setSelected(true);
+    }
+    catch (PropertyVetoException ex) {
+      logger.warn("Failed getting focus");
+    }
+  }
+
+  @Override
   public Visualizer getVisualizer() {
     return visualizer;
   }
