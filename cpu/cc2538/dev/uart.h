@@ -69,6 +69,12 @@
  * clocked at 16MHz and that Clock Div is 16 (UART_CTL:HSE clear)
  * @{
  */
+#define UART_IBRD_9600              104 /**< IBRD value for baud rate 9600 */
+#define UART_FBRD_9600               11 /**< FBRD value for baud rate 9600 */
+#define UART_IBRD_38400              26 /**< IBRD value for baud rate 38400 */
+#define UART_FBRD_38400               3 /**< FBRD value for baud rate 38400 */
+#define UART_IBRD_57600              17 /**< IBRD value for baud rate 57600 */
+#define UART_FBRD_57600              24 /**< FBRD value for baud rate 57600 */
 #define UART_IBRD_115200              8 /**< IBRD value for baud rate 115200 */
 #define UART_FBRD_115200             44 /**< FBRD value for baud rate 115200 */
 #define UART_IBRD_230400              4 /**< IBRD value for baud rate 230400 */
@@ -76,7 +82,16 @@
 #define UART_IBRD_460800              2 /**< IBRD value for baud rate 460800 */
 #define UART_FBRD_460800             11 /**< FBRD value for baud rate 460800 */
 
-#if UART_CONF_BAUD_RATE==115200
+#if UART_CONF_BAUD_RATE==9600
+#define UART_CONF_IBRD UART_IBRD_9600
+#define UART_CONF_FBRD UART_FBRD_9600
+#elif UART_CONF_BAUD_RATE==38400
+#define UART_CONF_IBRD UART_IBRD_38400
+#define UART_CONF_FBRD UART_FBRD_38400
+#elif UART_CONF_BAUD_RATE==57600
+#define UART_CONF_IBRD UART_IBRD_57600
+#define UART_CONF_FBRD UART_FBRD_57600
+#elif UART_CONF_BAUD_RATE==115200
 #define UART_CONF_IBRD UART_IBRD_115200
 #define UART_CONF_FBRD UART_FBRD_115200
 #elif UART_CONF_BAUD_RATE==230400
@@ -89,8 +104,9 @@
 #if !(defined UART_CONF_IBRD && defined UART_CONF_FBRD)
 #error "UART baud rate misconfigured and custom IBRD/FBRD values not provided"
 #error "Check the value of UART_CONF_BAUD_RATE in contiki-conf.h or project-conf.h"
-#error "Supported values are 115200, 230400 and 460800. Alternatively, you can"
-#error "provide custom values for UART_CONF_IBRD and UART_CONF_FBRD"
+#error "Supported values are 9600, 38400, 57600, 115200, 230400 and 460800."
+#error "Alternatively, you can provide custom values for "
+#error "UART_CONF_IBRD and UART_CONF_FBRD"
 #endif
 #endif
 /** @} */
