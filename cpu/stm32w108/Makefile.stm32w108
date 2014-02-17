@@ -207,8 +207,6 @@ endif
 
 ### Custom rules
 
-OBJECTDIR = obj_$(TARGET)
-
 ssubst = ${patsubst %.s,%.o,${patsubst %.s79,%.o,$(1)}}
 
 CONTIKI_OBJECTFILES += ${addprefix $(OBJECTDIR)/,${call ssubst, $(STM32W_S)}}
