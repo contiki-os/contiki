@@ -1,0 +1,93 @@
+.SUFFIXES:
+
+### Optimization setting
+ifndef OPTI
+OPTI=0
+endif
+
+#### Debug settings
+DEBUG=-g #-gdwarf-2 -gstrict-dwarf
+ifndef GDB_PORT
+GDB_PORT=3333
+endif
+
+### Define the CPU directory
+CONTIKI_CPU=$(PLATFORM_DIR)/mk60
+
+
+### Define the source files
+
+CONTIKI_CPU_DIRS = . $(CONTIKI)/../minimal common drivers cpu
+
+CONTIKI_TARGET_SOURCEFILES += startcode.S uart.c uprintf.c clock.c interrupt.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+GCCBIN = $(CONTIKI)/../tools/gcc-arm/bin
+### Compiler definitions
+CC       = $(GCCBIN)/arm-none-eabi-gcc
+LD       = $(GCCBIN)/arm-none-eabi-gcc
+AS       = $(GCCBIN)/arm-none-eabi-as
+AR       = $(GCCBIN)/arm-none-eabi-ar
+NM       = $(GCCBIN)/arm-none-eabi-nm
+LINKER   = $(GCCBIN)/arm-none-eabi-ld
+OBJCOPY  = $(GCCBIN)/arm-none-eabi-objcopy
+OBJDUMP  = $(GCCBIN)/arm-none-eabi-objdump
+STRIP    = $(GCCBIN)/arm-none-eabi-strip
+CFLAGSNO = -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+           -I. -I$(CONTIKI)/core \
+           -Wall -mcpu=cortex-m4
+#AROPTS   = rv
+CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles 
+LDFLAGS  += $(CFLAGS) -T $(CONTIKI)/../ldscripts/mulle.ld 
+
+### Setup directory search path for source files
+
+#CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+#                               $(CONTIKI_TARGET_DIRS)}
+#
+#vpath %.c $(PROJECTDIRS) $(CONTIKI_CPU) \
+#	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT)
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
+ifeq ($(PORT),)
+  PORT=/dev/ttyUSB0
+endif
+
+### Compilation rules
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c $(OBJECTDIR)
+	$(CC) $(CFLAGS) -MMD -c $< -o $@
+
+$(OBJECTDIR)/startcode.o: $(CONTIKI)/../minimal/startcode.S
+	$(AS) -g -mcpu=cortex-m4 -mthumb -o $@ $<
+
+all: bytes
+bytes: 
+	@$(OBJDUMP) -h $(CONTIKI_PROJECT).$(TARGET) | perl -ne '$$b{$$1}=hex $$2 if /^\s*\d+\s*\.(text|data|bss)\s+(\S+)/; END { printf("%16d bytes in ROM\n%16d bytes in RAM\n",$$b{text}+$$b{data},$$b{data}+$$b{bss}); }'
+
+%-stripped.o: %.c 
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+%.co: %.c
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(OBJECTDIR)/startcode.o
+	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+
+#.SECONDARY:
+
+### Upload image
+%.u: %.$(TARGET)
+	cp $(CONTIKI)/../gdb/mulle-arch.gdb /tmp/mulle-arch.gdb
+	sed -i 's/target remote :3333/target remote :$(GDB_PORT)/' /tmp/mulle-arch.gdb
+	$(GCCBIN)/arm-none-eabi-gdb -x /tmp/mulle-arch.gdb $<
+	
+symbols.c:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h

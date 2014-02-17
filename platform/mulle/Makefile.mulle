@@ -1,0 +1,37 @@
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+PLATFORM_DIR = $(CONTIKI)/platform/mulle
+CONTIKI_TARGET_DIRS = .
+CONTIKI_CORE=contiki-main
+CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
+
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c udelay.c init-net.c watchdog.c \
+                              slip_arch_uart.c slip.c stdio.c
+
+ifdef MULLEAPPS
+  APPDS += ${wildcard ${addprefix $(CONTIKI)/../apps/, $(MULLEAPPS)} \
+       ${addprefix $(CONTIKI)/platform/$(TARGET)/../apps/, $(MULLEAPPS)} \
+       $(MULLEAPPS)}
+  APPINCLUDES += ${foreach APP, $(MULLEAPPS), ${wildcard ${foreach DIR, $(APPDS), $(DIR)/Makefile.$(APP)}}}
+  -include $(APPINCLUDES)
+  APP_SOURCES = ${foreach APP, $(MULLEAPPS), $($(APP)_src)}
+  DSC_SOURCES = ${foreach APP, $(MULLEAPPS), $($(APP)_dsc)}
+  CONTIKI_SOURCEFILES += $(APP_SOURCES) $(DSC_SOURCES)
+endif
+
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
+endif
+
+include $(PLATFORM_DIR)/radio/rf230bb/Makefile.rf230bb
+CFLAGS += -DRF230BB
+
+include $(PLATFORM_DIR)/mk60/Makefile.mk60
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+
+
+SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+
+login:
+	$(SERIALDUMP) -b115200 $(PORT)
