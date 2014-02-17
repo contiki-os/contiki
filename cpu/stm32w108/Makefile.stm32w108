@@ -100,9 +100,13 @@ endif
 
 ifeq ($(STM32W_CPUREV), CC)
   LD-EXT=-stm32w108CC
+  RAM_SIZE = 2*8192
+  FLASH_SIZE = 2*128*1024
  ${warning "using stm32w108CC specific ld file"}
 else ifeq ($(STM32W_CPUREV), xB)
   LD-EXT=-stm32w108xB
+  RAM_SIZE = 8192
+  FLASH_SIZE = 128*1024
  ${warning "using stm32w108xB specific ld file"}
 else
  ${error "Bad STM32W_CPUREV value or no STM32W_CPUREV value specified. Cpu revision should be specified. Please read cpu/stm32w108/README.txt for more details."}
@@ -319,9 +323,13 @@ endif
 
 # a target that gives a user-friendly memory profile, taking into account the RAM
 # that is statically occupied by the stack as defined in cpu/stm32w108/gnu.ld
-RAM_SIZE = 2*8192
-FLASH_SIZE = 2*128*1024
 STACK_SIZE = 1280
+ifndef RAM_SIZE
+ ${error no ram size configured}
+endif
+ifndef FLASH_SIZE
+ ${error no flash size configured}
+endif
 %.size: %.$(TARGET)
 	@size -A $< | egrep "data|bss" | awk '{s+=$$2} END {s=s+$(STACK_SIZE); f=$(RAM_SIZE)-s; printf "[RAM]   used %6d, free %6d\n",s,f;}'
 	@size -A $< | egrep "text|isr_vector" | awk '{s+=$$2} END {f=$(FLASH_SIZE)-s; printf "[Flash] used %6d, free %6d\n",s,f;}'
