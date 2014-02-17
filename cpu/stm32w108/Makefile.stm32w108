@@ -229,18 +229,21 @@ endif
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
-	$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
 	@$(SEDCOMMAND); rm -f $(@:.o=.P)
 	@$(FINALIZE_DEPENDENCY)
 
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
 else #IAR
 
 CUSTOM_RULE_C_TO_CE = 1
 %.ce: %.c
-	$(CC) $(CFLAGS) -fno-merge-constants -fno-function-sections -DAUTOSTART_ENABLE -c $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -fno-merge-constants -fno-function-sections -DAUTOSTART_ENABLE -c $< -o $@
 	$(STRIP) --strip-unneeded -g -x $@
 
 CUSTOM_RULE_LINK = 1
@@ -259,12 +262,14 @@ symbols.c symbols.h:
 endif
 
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(OBJECTDIR)/symbols.o
-	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} -Wl,-\( ${filter %.a,$^} $(TARGET_LIBFILES) -Wl,-\) -o $@
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} -Wl,-\( ${filter %.a,$^} $(TARGET_LIBFILES) -Wl,-\) -o $@
 	@echo >> contiki-$(TARGET).map
 	@$(SIZE) $(SIZEFLAGS) $@ >> contiki-$(TARGET).map
 
 #%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) $(CONTIKI_OBJECTFILES)
-#	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+#	$(TRACE_LD)
+#	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 #	@echo "\n" >> contiki-$(TARGET).map
 #	@$(SIZE) $(SIZEFLAGS) $@ >> contiki-$(TARGET).map
 
@@ -283,10 +288,12 @@ stm-motes:
 	@echo $(MOTES)
 
 $(OBJECTDIR)/%.o: %.s79 | $(OBJECTDIR)
-	$(AS) $(ASFLAGS) -o $@ $<
+	$(TRACE_AS)
+	$(Q)$(AS) $(ASFLAGS) -o $@ $<
 
 $(OBJECTDIR)/%.o: %.s | $(OBJECTDIR)
-	$(AS) $(ASFLAGS) -o $@ $<
+	$(TRACE_AS)
+	$(Q)$(AS) $(ASFLAGS) -o $@ $<
 
 %.bin: %.$(TARGET)
 	$(OBJCOPY) $(OBJOPTS) $< $@
