@@ -35,11 +35,15 @@
 
 #include "contiki.h"
 
+#ifdef linux
+
 #include "linuxradio-drv.h"
 
 #include "net/packetbuf.h"
 #include "net/netstack.h"
 
+#include <sys/ioctl.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -145,6 +149,7 @@ handle_fd(fd_set *rset, fd_set *wset)
     NETSTACK_RDC.input();
   }
 }
+
 static const struct select_callback linuxradio_sock_callback = { set_fd, handle_fd };
 
 static int
@@ -199,3 +204,5 @@ const struct radio_driver linuxradio_driver =
   on,
   off,
 };
+
+#endif
