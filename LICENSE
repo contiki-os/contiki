@@ -1,7 +1,7 @@
-Contiki is licensed under the 3-clause BSD license. This license gives
-everyone the right to use and distribute the code, either in binary or
-source code format, as long as the copyright license is retained in
-the source code.
+Contiki is licensed under the 3-clause BSD license (with some exceptions
+ - see the NOTE below). This license gives everyone the right to use and 
+distribute the code, either in binary or source code format, as long as 
+the copyright license is retained in the source code.
 
 The copyright for different parts of the code is held by different
 people and organizations, but the code is licensed under the same type
