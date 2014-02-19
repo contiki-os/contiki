@@ -29,6 +29,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+ 
+#if WITH_IPV6_LOADNG 
+#include "net/loadng/loadng.h"
+#endif
 #include "net/uip-ds6.h"
 #include "net/uip.h"
 
