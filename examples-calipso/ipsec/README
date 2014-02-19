@@ -1,0 +1,58 @@
+An IPsec implementation for Contiki, including extended 6lowpan header compression.
+For more details, see "Securing Communication in 6LoWPAN with Compressed IPsec", in
+proceedings of IEEE DCOSS'11.
+
+This implementation includes:
+- Extended 6lowpan compression as defined in "Securing Communication in 6LoWPAN with
+Compressed IPsec", in proceedings of IEEE DCOSS'11.
+- ESP and AH in transport mode for uIP
+- Generic interfaces for implementing AES cryptography and modes of operation
+- cc2420-based AES operations
+- The AES-CTR cipher block mode of operation (encryption/decryption)
+- The AES-XCBC-MAC cipher block MAC mode of operation (authentication)
+
+------------------------------------------------------------------------------------
+Usage with Tmote Sky from Linux:
+1) Set your Contiki path in Makefile by replacing the line "CONTIKI = ../.."
+2) Compile and program border router:
+$make border-router.upload MOTE=1
+3) Compile and program application example on another mote:
+$make ipsec-example.upload MOTE=2
+4) Connect Linux to border router with:
+$make connect-router
+5) Send a request and get a reply to a mote with address [addr]:
+$scripts/client.py [addr]
+
+------------------------------------------------------------------------------------
+Configuring IPsec in Ubuntu:
+1) Read howto IPsec howto for Ubuntu: https://help.ubuntu.com/community/IPSecHowTo
+2) Use provided files scripts/ipsec-tools-ah.conf or scripts/ipsec-tools-esp.conf
+(after setting your own mote IPv6 addresses)
+
+------------------------------------------------------------------------------------
+Configuring IPsec in Contiki:
+In project-conf, set the modes of operation you want to use. Our implementation does
+not support a key exchange mechanism like IKE, it rather uses pre-shared keys. The
+keys are statically written in the c files implementing the modes of operation
+(e.g. ipsec/aes-ctr.c, ipsec/aes-xcbc-mac.c). use the same key in Contiki and in
+your computer.
+
+------------------------------------------------------------------------------------
+Implementing other modes of operation and AES implementation:
+1) New modes of operation can be easily integrated by using the generic interfaces
+defined in ipsec/aes-moo.h: ipsec_encrypt_implem and ipsec_mac_implem.
+2) The AES implementation we provide is based on the cryptographic capabilities of
+the cc2420 radio chip. You might need a software-based implementation in case your
+motes do not use the cc2420, or in case you want to run IPsec in cooja/MSPsim, since
+MSPsim does not emulate the crypto functionalities of the cc2420. You can for
+instance use the miracl library (free for non-profit use), by downloading and linking
+this file:
+http://www.shahidraza.info/resources/miracl-aes.c
+
+------------------------------------------------------------------------------------
+Running in Cooja:
+If you wish to run IPsec in cooja, you first need a non-cc2420-based AES
+implementation, as described in the previous section. You also have to disable
+the DMA in UART (project-conf.h, UART1_CONF_RX_WITH_DMA), which isn't emulated by
+MSPsim.
+

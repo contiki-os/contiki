@@ -580,7 +580,18 @@ tcpip_ipv6_output(void)
 #ifdef UIP_FALLBACK_INTERFACE
 	  PRINTF("FALLBACK: removing ext hdrs & setting proto %d %d\n", 
 		 uip_ext_len, *((uint8_t *)UIP_IP_BUF + 40));
+#if WITH_IPSEC
+	  /* Remove only hop-by-hop extension headers, not IPsec */
+	  if(uip_ext_len > 0 &&
+	      (
+	          UIP_IP_BUF->proto == UIP_PROTO_HBHO ||
+	          UIP_IP_BUF->proto == UIP_PROTO_DESTO ||
+	          UIP_IP_BUF->proto == UIP_PROTO_ROUTING ||
+	          UIP_IP_BUF->proto == UIP_PROTO_FRAG
+	      )) {
+#else
 	  if(uip_ext_len > 0) {
+#endif /* WITH_IPSEC */
 	    extern void remove_ext_hdr(void);
 	    uint8_t proto = *((uint8_t *)UIP_IP_BUF + 40);
 	    remove_ext_hdr();

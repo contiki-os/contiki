@@ -66,6 +66,10 @@
 #include "net/rime.h"
 #include "net/sicslowpan.h"
 #include "net/netstack.h"
+#if WITH_IPSEC
+#include "ipsec.h"
+#include "sicslowpan-ipsec.h"
+#endif /* WITH_IPSEC */
 
 #if UIP_CONF_IPV6
 
@@ -581,6 +585,12 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
     iphc0 |= SICSLOWPAN_IPHC_NH_C;
   }
 #endif /*UIP_CONF_UDP*/
+#if WITH_IPSEC
+  if(UIP_IP_BUF->proto == UIP_PROTO_ESP
+      || UIP_IP_BUF->proto == UIP_PROTO_AH) {
+    iphc0 |= SICSLOWPAN_IPHC_NH_C;
+  }
+#endif /* WITH_IPSEC */
 #ifdef SICSLOWPAN_NH_COMPRESSOR 
   if(SICSLOWPAN_NH_COMPRESSOR.is_compressable(UIP_IP_BUF->proto)) {
     iphc0 |= SICSLOWPAN_IPHC_NH_C;
@@ -697,6 +707,94 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
   }
 
   uncomp_hdr_len = UIP_IPH_LEN;
+
+#if WITH_IPSEC_ESP
+  /* ESP header compression */
+  if(UIP_IP_BUF->proto == UIP_PROTO_ESP) {
+      struct uip_esp_header *esp_header;
+      unsigned char *esp_nhc;
+
+      /* Set IPsec NHC */
+      *hc06_ptr++ = SICSLOWPAN_NHC_IPSEC_BASE;
+      /* Save pointer to ESP NHC */
+      esp_nhc = hc06_ptr++;
+      /* Start setting ESP NHC: 4 first bits are ID */
+      *esp_nhc = SICSLOWPAN_NHC_ESP_ID;
+
+      esp_header = (struct uip_esp_header *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len];
+      if(esp_header->spi != uip_htonl(SICSLOWPAN_NHC_DEFAULT_SPI)) {
+        /* SPI is not compressed, but carried inline */
+        *esp_nhc |= SICSLOWPAN_NHC_IPSEC_SPI;
+        memcpy(hc06_ptr, &esp_header->spi, 4);
+        hc06_ptr += 4;
+      }
+
+      if(uip_htonl(esp_header->seq) & 0xffff0000) {
+        /* The 2 most significant bytes of seqno aren't 0, so we do not compress it */
+        *esp_nhc |= SICSLOWPAN_NHC_IPSEC_SN;
+        memcpy(hc06_ptr, &esp_header->seq, 4);
+        hc06_ptr += 4;
+      } else {
+        /* We compress seqno from 4 to 2 bytes */
+        memcpy(hc06_ptr, (((unsigned char*)&esp_header->seq)+2), 2); /* this direct access
+            to least significant bytes is ok because network to network endianness */
+        hc06_ptr += 2;
+      }
+
+      /* Note that we leave NH unset, because we cannot compress headers following ESP */
+
+      uncomp_hdr_len += sizeof(struct uip_esp_header) - IPSEC_IVSIZE;
+  }
+#endif /* WITH_IPSEC_ESP */
+
+#if WITH_IPSEC_AH
+  /* AH header compression */
+  if(UIP_IP_BUF->proto == UIP_PROTO_AH) {
+      struct uip_ah_header *ah_header;
+      unsigned char *ah_nhc;
+
+      /* Set IPsec NHC */
+      *hc06_ptr++ = SICSLOWPAN_NHC_IPSEC_BASE;
+      /* Save pointer to AH NHC */
+      ah_nhc = hc06_ptr++;
+      /* Start setting AH NHC: 4 first bits are ID */
+      *ah_nhc = SICSLOWPAN_NHC_AH_ID;
+
+      ah_header = (struct uip_ah_header *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len];
+
+      /* Field next is carried inline */
+      *hc06_ptr++ = ah_header->next;
+
+      if((ah_header->len + 2) * 4 != sizeof(struct uip_ah_header)) {
+        /* Payload len isn't compressed but carried inline */
+        *ah_nhc |= SICSLOWPAN_NHC_AH_PL;
+        *hc06_ptr++ = ah_header->len;
+      }
+
+      if(ah_header->spi != uip_htonl(SICSLOWPAN_NHC_DEFAULT_SPI)) {
+        /* SPI is not compressed, but carried inline */
+        *ah_nhc |= SICSLOWPAN_NHC_IPSEC_SPI;
+        memcpy(hc06_ptr, &ah_header->spi, 4);
+        hc06_ptr += 4;
+      }
+
+      if(uip_htonl(ah_header->seq) & 0xffff0000) {
+        /* The 2 most significant bytes of seqno aren't 0, so we do not compress it */
+        *ah_nhc |= SICSLOWPAN_NHC_IPSEC_SN;
+        memcpy(hc06_ptr, &ah_header->seq, 4);
+        hc06_ptr += 4;
+      } else {
+        /* We compress seqno from 4 to 2 bytes */
+        memcpy(hc06_ptr, (((unsigned char*)&ah_header->seq)+2), 2); /* this direct access
+            to least significant bytes is ok because network to network endianness */
+        hc06_ptr += 2;
+      }
+
+      /* Note that we leave NH unset, because we cannot compress headers following AH */
+
+      uncomp_hdr_len += sizeof(struct uip_ah_header) - IPSEC_MACSIZE;
+  }
+#endif /* WITH_IPSEC_AH */
 
 #if UIP_CONF_UDP || UIP_CONF_ROUTER
   /* UDP header compression */
@@ -927,6 +1025,97 @@ uncompress_hdr_hc06(uint16_t ip_len)
 
   /* Next header processing - continued */
   if((iphc0 & SICSLOWPAN_IPHC_NH_C)) {
+#if WITH_IPSEC
+    /* There is an extension header */
+    if((*hc06_ptr & SICSLOWPAN_NHC_MASK) == SICSLOWPAN_NHC_EXT_HDR) {
+      hc06_ptr++;
+#if WITH_IPSEC_ESP
+      /* This is IPsec ESP */
+      if((*hc06_ptr & SICSLOWPAN_NHC_MASK) == SICSLOWPAN_NHC_ESP_ID) {
+        unsigned char *esp_nhc;
+
+        /* Get ESP NHC */
+        esp_nhc = hc06_ptr++;
+
+        /* Set ip proto */
+        SICSLOWPAN_IP_BUF->proto = UIP_PROTO_ESP;
+
+        if(*esp_nhc & SICSLOWPAN_NHC_IPSEC_SPI) {
+          /* SPI isn't compressed, it's carried inline */
+          memcpy(&SICSLOWPAN_ESP_BUF->spi, hc06_ptr, 4);
+          hc06_ptr += 4;
+        } else {
+          /* SPI is compressed, it spans 2 bytes */
+          uint32_t spi = uip_htonl(SICSLOWPAN_NHC_DEFAULT_SPI);
+          memcpy(&SICSLOWPAN_ESP_BUF->spi, &spi, 4);
+        }
+
+        if(*esp_nhc & SICSLOWPAN_NHC_IPSEC_SN) {
+          /* Seqno is not compressed, it spans 4 bytes */
+          memcpy(&SICSLOWPAN_ESP_BUF->seq, hc06_ptr, 4);
+          hc06_ptr += 4;
+        } else {
+          /* Seqno is compressed, it spans only 2 bytes */
+          SICSLOWPAN_ESP_BUF->seq = 0;
+          memcpy((((unsigned char*)&SICSLOWPAN_ESP_BUF->seq)+2), hc06_ptr, 2); /* this direct access
+            to least significant bytes is ok because network to network endianness */
+          hc06_ptr += 2;
+        }
+
+        uncomp_hdr_len += sizeof(struct uip_esp_header) - IPSEC_IVSIZE;
+      }
+#endif /* WITH_IPSEC_ESP */
+#if WITH_IPSEC_AH
+      /* This is IPsec AH */
+      if((*hc06_ptr & SICSLOWPAN_NHC_MASK) == SICSLOWPAN_NHC_AH_ID) {
+        unsigned char *ah_nhc;
+
+        /* Get AH NHC */
+        ah_nhc = hc06_ptr++;
+
+        /* Set ip proto */
+        SICSLOWPAN_IP_BUF->proto = UIP_PROTO_AH;
+
+        /* Field next is carried inline */
+        SICSLOWPAN_AH_BUF->next = *hc06_ptr++;
+
+        /* Field reserved is 0 */
+        SICSLOWPAN_AH_BUF->reserved = 0;
+
+        if(*ah_nhc & SICSLOWPAN_NHC_AH_PL) {
+          /* Payload len isn't compressed but carried inline */
+          SICSLOWPAN_AH_BUF->len = *hc06_ptr++;
+        } else {
+          SICSLOWPAN_AH_BUF->len = (sizeof(struct uip_ah_header) / 4) - 2;
+        }
+
+        if(*ah_nhc & SICSLOWPAN_NHC_IPSEC_SPI) {
+          /* SPI isn't compressed, it's carried inline */
+          memcpy(&SICSLOWPAN_AH_BUF->spi, hc06_ptr, 4);
+          hc06_ptr += 4;
+        } else {
+          /* SPI is compressed, it spans 2 bytes */
+          uint32_t spi = uip_htonl(SICSLOWPAN_NHC_DEFAULT_SPI);
+          memcpy(&SICSLOWPAN_AH_BUF->spi, &spi, 4);
+        }
+
+        if(*ah_nhc & SICSLOWPAN_NHC_IPSEC_SN) {
+          /* Seqno is not compressed, it spans 4 bytes */
+          memcpy(&SICSLOWPAN_AH_BUF->seq, hc06_ptr, 4);
+          hc06_ptr += 4;
+        } else {
+          /* Seqno is compressed, it spans only 2 bytes */
+          SICSLOWPAN_AH_BUF->seq = 0;
+          memcpy((((unsigned char*)&SICSLOWPAN_AH_BUF->seq)+2), hc06_ptr, 2); /* this direct access
+            to least significant bytes is ok because network to network endianness */
+          hc06_ptr += 2;
+        }
+
+        uncomp_hdr_len += sizeof(struct uip_ah_header) - IPSEC_MACSIZE;
+      }
+#endif /* WITH_IPSEC_AH */
+    }
+#endif /* WITH_IPSEC */
     /* The next header is compressed, NHC is following */
     if((*hc06_ptr & SICSLOWPAN_NHC_UDP_MASK) == SICSLOWPAN_NHC_UDP_ID) {
       uint8_t checksum_compressed;

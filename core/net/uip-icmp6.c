@@ -46,6 +46,9 @@
 #include "net/uip-ds6.h"
 #include "net/uip-icmp6.h"
 #include "contiki-default-conf.h"
+#if WITH_IPSEC
+#include "ipsec.h"
+#endif /* WITH_IPSEC */
 
 #define DEBUG 0
 #if DEBUG
@@ -109,6 +112,9 @@ uip_icmp6_echo_request_input(void)
       UIP_FIRST_EXT_BUF->next = UIP_PROTO_ICMP6;
       if (uip_ext_len != temp_ext_len) {
         uip_len -= (uip_ext_len - temp_ext_len);
+#if WITH_IPSEC
+        uip_len -= uip_ext_end_len;
+#endif /* WITH_IPSEC */
         UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
         UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
         /* move the echo request payload (starting after the icmp header)
@@ -126,6 +132,9 @@ uip_icmp6_echo_request_input(void)
       /* If there were extension headers*/
       UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
       uip_len -= uip_ext_len;
+#if WITH_IPSEC
+      uip_len -= uip_ext_end_len;
+#endif /* WITH_IPSEC */
       UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
       UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
       /* move the echo request payload (starting after the icmp header)
@@ -140,6 +149,9 @@ uip_icmp6_echo_request_input(void)
 #if UIP_CONF_IPV6_RPL
     }
 #endif /* UIP_CONF_IPV6_RPL */
+#if WITH_IPSEC
+    uip_ext_end_len = 0;
+#endif /* WITH_IPSEC */
   }
   /* Below is important for the correctness of UIP_ICMP_BUF and the
    * checksum

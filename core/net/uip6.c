@@ -75,6 +75,9 @@
 #include "net/uip-icmp6.h"
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
+#if WITH_IPSEC
+#include "ipsec.h"
+#endif /* WITH_IPSEC */
 
 #include <string.h>
 
@@ -133,6 +136,13 @@ uint8_t uip_ext_bitmap = 0;
  * a header
  */
 uint8_t uip_ext_len = 0;
+#if WITH_IPSEC
+/**
+ * \brief length of extension headers data coming after the payload
+ */
+uint8_t uip_ext_end_len;
+struct ipsec_host_metadata *ipsec_host_md;
+#endif /* WITH_IPSEC */
 /** \brief length of the header options read */
 uint8_t uip_ext_opt_offset = 0;
 /** @} */
@@ -362,8 +372,12 @@ upper_layer_chksum(uint8_t proto)
  */
   volatile uint16_t upper_layer_len;
   uint16_t sum;
-  
+
+#if WITH_IPSEC
+  upper_layer_len = (((uint16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1] - uip_ext_len - uip_ext_end_len);
+#else
   upper_layer_len = (((uint16_t)(UIP_IP_BUF->len[0]) << 8) + UIP_IP_BUF->len[1] - uip_ext_len);
+#endif /* WITH_IPSEC */
   
   PRINTF("Upper layer checksum len: %d from: %d\n", upper_layer_len,
 	 UIP_IPH_LEN + UIP_LLH_LEN + uip_ext_len);
@@ -506,7 +520,18 @@ void
 remove_ext_hdr(void)
 {
   /* Remove ext header before TCP/UDP processing. */
+#if WITH_IPSEC
+	  /* Remove only hop-by-hop extension headers, not IPsec */
+	  if(uip_ext_len > 0 &&
+	      (
+	          UIP_IP_BUF->proto == UIP_PROTO_HBHO ||
+	          UIP_IP_BUF->proto == UIP_PROTO_DESTO ||
+	          UIP_IP_BUF->proto == UIP_PROTO_ROUTING ||
+	          UIP_IP_BUF->proto == UIP_PROTO_FRAG
+	      )) {
+#else
   if(uip_ext_len > 0) {
+#endif /* WITH_IPSEC */
     PRINTF("Cutting ext-header before processing (extlen: %d, uiplen: %d)\n",
 	   uip_ext_len, uip_len);
     if(uip_len < UIP_IPH_LEN + uip_ext_len) {
@@ -912,6 +937,11 @@ ext_hdr_options_process(void)
 void
 uip_process(uint8_t flag)
 {
+#if WITH_IPSEC
+  uip_ext_len = 0;
+  uip_ext_end_len = 0;
+#endif /* WITH_IPSEC */
+
 #if UIP_TCP
   register struct uip_conn *uip_connr = uip_conn;
 #endif /* UIP_TCP */
@@ -1220,6 +1250,11 @@ uip_process(uint8_t flag)
   uip_ext_bitmap = 0;
 #endif /* UIP_CONF_ROUTER */
 
+#if WITH_IPSEC
+  ipsec_host_clear(&UIP_IP_BUF->srcipaddr);
+  ipsec_host_md = NULL;
+#endif
+
   while(1) {
     switch(*uip_next_hdr){
 #if UIP_TCP
@@ -1342,6 +1377,130 @@ uip_process(uint8_t flag)
         UIP_LOG("ip: fragment dropped.");
         goto drop;
 #endif /* UIP_CONF_IPV6_REASSEMBLY */
+#if WITH_IPSEC_ESP
+    /* IPsec ESP incoming data */
+      case UIP_PROTO_ESP: {
+        struct uip_esp_header *esp_header;
+        unsigned char mac[IPSEC_MACSIZE];
+        int encrypted_data_len;
+        int authenticated_data_len;
+        int pad_len;
+
+        esp_header = (struct uip_esp_header *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len];
+        /* Insert host metadata */
+        ipsec_host_md = ipsec_host_insert(&UIP_IP_BUF->srcipaddr,
+            uip_htonl(esp_header->spi), mode_esp);
+
+        authenticated_data_len = uip_len - UIP_LLIPH_LEN - IPSEC_MACSIZE - uip_ext_len - uip_ext_end_len;
+        encrypted_data_len = authenticated_data_len - sizeof(struct uip_esp_header);
+
+        PRINTF("IPsec-ESP: uiplen %d, padlen %d, encrlen %d, authlen %d\n",
+               uip_len, pad_len, encrypted_data_len, authenticated_data_len);
+
+        PRINTF("IPsec-ESP: spi %lu seq %lu\n", uip_htonl(esp_header->spi), uip_htonl(esp_header->seq));
+        /* First, calculate Message Authentication Code (MAC) */
+        IPSEC_CONF_MAC.auth(mac, (unsigned char*)esp_header, authenticated_data_len);
+
+        /* Authenticate by checking MAC */
+        if(memcmp(esp_header->data+encrypted_data_len, mac, IPSEC_MACSIZE) != 0) {
+          PRINTF("IPsec-ESP: MAC is wrong, will drop current packet\n");
+          goto drop;
+        } else {
+          PRINTF("IPsec-ESP: MAC is correct\n");
+        }
+
+        /* Second, decrypt payload */
+        IPSEC_CONF_BLOCK.decrypt(esp_header->data, encrypted_data_len, esp_header->iv);
+
+        /* Get ESP encrypted fields (pad length, next header) */
+        pad_len = esp_header->data[encrypted_data_len - 2];
+        uip_next_hdr = &esp_header->data[encrypted_data_len - 1];
+        PRINTF("IPsec-ESP: padlen %d nextheader %d\n", pad_len, *uip_next_hdr);
+
+        /* Update ext len variables */
+        uip_ext_len += sizeof(struct uip_esp_header);
+        uip_ext_end_len += pad_len + 2 + IPSEC_MACSIZE; /* padding, padlen, nextheader, mac */
+        break;
+      }
+#endif /* WITH_IPSEC_ESP */
+#if WITH_IPSEC_AH
+    /* IPsec AH incoming data */
+      case UIP_PROTO_AH: {
+        struct uip_ah_header *ah_header;
+        unsigned char prev_mac[IPSEC_MACSIZE];
+        unsigned char mac[IPSEC_MACSIZE];
+        unsigned char prev_next_header;
+        unsigned char prev_ttl;
+        unsigned char prev_ext_header[32];
+        uint16_t prev_len;
+
+        ah_header = (struct uip_ah_header *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len];
+        /* Insert host metadata */
+        ipsec_host_md = ipsec_host_insert(&UIP_IP_BUF->srcipaddr,
+                uip_htonl(ah_header->spi), mode_ah);
+
+        /* Point to next header */
+        uip_next_hdr = &ah_header->next;
+
+        PRINTF("IPsec-AH: spi %lu seq %lu\n", uip_htonl(ah_header->spi), uip_htonl(ah_header->seq));
+        PRINTF("IPsec-AH: nextheader %d\n", *uip_next_hdr);
+
+        /* TTL and MAC must not be be reset before checking MAC. We first backup their value */
+        prev_ttl = UIP_IP_BUF->ttl;
+        UIP_IP_BUF->ttl = 0;
+        /* Save the mac so we can zero it */
+        memcpy(prev_mac, ah_header->mac, IPSEC_MACSIZE);
+        memset(ah_header->mac, 0, IPSEC_MACSIZE);
+
+        /* If there were extension header before AH, just elide them */
+        if(uip_ext_len > 0) {
+          /* Save the next header because we need to overwrite it with that of AH */
+          prev_next_header = UIP_IP_BUF->proto;
+          UIP_IP_BUF->proto = UIP_PROTO_AH;
+          /* Adjust the IPv6 length field so it doesn't include extension headers before AH. We assume
+           * that these extension headers were hop-by-hop headers. */
+          prev_len = *((uint16_t*)UIP_IP_BUF->len);
+          *((uint16_t*)UIP_IP_BUF->len) = uip_htons(uip_htons(prev_len) - uip_ext_len);
+          /* Save extension headers, which do not have to be part of the MAC calculation */
+          if(uip_ext_len > sizeof(prev_ext_header)) {
+            PRINTF("IPsec-AH: extension header too big! (%d > %d)\n", uip_ext_len, sizeof(prev_ext_header));
+            goto drop;
+          }
+          memcpy(prev_ext_header, &uip_buf[UIP_LLIPH_LEN], uip_ext_len);
+          memmove(&uip_buf[UIP_LLIPH_LEN], &uip_buf[UIP_LLIPH_LEN + uip_ext_len], uip_len - UIP_LLIPH_LEN - uip_ext_len);
+        }
+
+        /* Calculate Message Authentication Code (MAC) */
+        IPSEC_CONF_MAC.auth(mac, (unsigned char*)UIP_IP_BUF, uip_len - UIP_LLH_LEN - uip_ext_len);
+
+        /* If there were extension header before AH, restore them */
+        if(uip_ext_len > 0) {
+          /* Restore extension headers */
+          memmove(&uip_buf[UIP_LLIPH_LEN + uip_ext_len], &uip_buf[UIP_LLIPH_LEN], uip_len - UIP_LLIPH_LEN - uip_ext_len);
+          memcpy(&uip_buf[UIP_LLIPH_LEN], prev_ext_header, uip_ext_len);
+          /* Restore next header */
+          UIP_IP_BUF->proto = prev_next_header;
+          /* Restore the IPv6 length */
+          *((uint16_t*)UIP_IP_BUF->len) = prev_len;
+        }
+
+        /* Restore TTL and MAC */
+        UIP_IP_BUF->ttl = prev_ttl;
+        memcpy(ah_header->mac, prev_mac, IPSEC_MACSIZE);
+
+        /* Update uip_ext_len */
+        uip_ext_len += (ah_header->len + 2) * 4;
+
+        /* Authenticate by checking MAC */
+        if(memcmp(ah_header->mac, mac, IPSEC_MACSIZE) != 0) {
+          PRINTF("IPsec-AH: MAC is wrong, will drop current packet\n");
+          goto drop;
+        } else {
+          PRINTF("IPsec-AH: MAC is correct\n");
+        }
+        break;
+    }
+#endif /* WITH_IPSEC_AH */
       case UIP_PROTO_NONE:
         goto drop;
       default:
@@ -2282,6 +2441,169 @@ uip_process(uint8_t flag)
   UIP_IP_BUF->tcflow = 0x00;
   UIP_IP_BUF->flow = 0x00;
  send:
+#if WITH_IPSEC
+ /* Should we apply IPsec ESP/AH on this output? */
+ if(uip_ds6_is_my_addr(&UIP_IP_BUF->srcipaddr)) {
+   ipsec_host_md = ipsec_host_lookup(&UIP_IP_BUF->destipaddr);
+   if(ipsec_host_md == NULL || ipsec_host_md->used == 0) {
+     ipsec_host_md = NULL;
+   }
+ } else {
+   ipsec_host_md = NULL;
+ }
+
+ /* Update uip_next_hdr */
+ if(UIP_IP_BUF->proto != UIP_PROTO_HBHO) {
+    uip_next_hdr = &UIP_IP_BUF->proto;
+  } else {
+    uip_next_hdr = &((struct uip_ext_hdr *)(((char*)UIP_EXT_BUF) - uip_ext_len))->next;
+  }
+#endif /* WITH_IPSEC */
+
+#if WITH_IPSEC_ESP
+ /* IPsec ESP outgoing data */
+ if(ipsec_host_md && ipsec_host_md->mode == mode_esp) {
+   struct uip_esp_header* esp_header;
+   int authenticated_data_len;
+   int encrypted_data_len;
+   int pad_len;
+   int i;
+   unsigned char next_header;
+
+   esp_header = (struct uip_esp_header *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len];
+   /* Increment sequence number */
+   ipsec_host_md->seqno++;
+   /* Extend IP length */
+   uip_len += sizeof(struct uip_esp_header) + 2 + IPSEC_MACSIZE;
+   pad_len = (4 - (uip_len % 4)) % 4;
+   uip_len += pad_len;
+   UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
+   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+
+   authenticated_data_len = uip_len - UIP_LLIPH_LEN - IPSEC_MACSIZE - uip_ext_len;
+   encrypted_data_len = authenticated_data_len - sizeof(struct uip_esp_header);
+
+   PRINTF("IPsec-ESP: uiplen %d, padlen %d, encrlen %d, authlen %d\n",
+       uip_len, pad_len, encrypted_data_len, authenticated_data_len);
+
+   /* Backup next header before updating to "ESP" */
+   next_header = *uip_next_hdr;
+   *uip_next_hdr = UIP_PROTO_ESP;
+
+   /* Move IP payload, leaving space to ESP header */
+   memmove(((char *)esp_header) + sizeof(struct uip_esp_header), esp_header, encrypted_data_len);
+
+   /* Set ESP header */
+   esp_header->spi = uip_htonl(ipsec_host_md->spi);
+   esp_header->seq = uip_htonl(ipsec_host_md->seqno);
+   memset(esp_header->iv, 0, IPSEC_IVSIZE);
+   /* Non-static IV avoids replay attacks */
+   (*(u16_t*)esp_header->iv) = ipsec_host_md->seqno;
+
+   /* Set the ESP fields that need to be encrypted */
+   for(i=0; i<pad_len; i++) {
+     esp_header->data[encrypted_data_len - 2 - pad_len] = pad_len - i;
+   }
+   esp_header->data[encrypted_data_len - 2] = pad_len;
+   esp_header->data[encrypted_data_len - 1] = next_header;
+
+   /* First, encrypt data */
+   IPSEC_CONF_BLOCK.encrypt(esp_header->data, encrypted_data_len, esp_header->iv);
+
+   /* Second, compute MAC */
+   IPSEC_CONF_MAC.auth(esp_header->data+encrypted_data_len, (unsigned char*)esp_header, authenticated_data_len);
+
+   uip_ext_len += sizeof(struct uip_esp_header);
+   uip_next_hdr = &esp_header->data[encrypted_data_len - 1];
+ }
+#endif /* WITH_IPSEC_ESP */
+
+#if WITH_IPSEC_AH
+  /* IPsec AH outgoing data */
+ if(ipsec_host_md && ipsec_host_md->mode == mode_ah) {
+    unsigned char mac[IPSEC_MACSIZE];
+    struct uip_ah_header *ah_header;
+    unsigned char next_header;
+    unsigned char prev_ttl;
+    unsigned char prev_next_header;
+    uint16_t prev_len;
+    unsigned char prev_ext_header[32];
+
+    ah_header = (struct uip_ah_header *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len];
+    /* Increment sequence number */
+    ipsec_host_md->seqno++;
+
+    /* Extend IP length */
+    uip_len += sizeof(struct uip_ah_header);
+    UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
+    UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+
+    /* Backup next header before updating to "AH" */
+    next_header = *uip_next_hdr;
+    *uip_next_hdr = UIP_PROTO_AH;
+
+    /* Move IP payload, leaving space to AH header */
+    memmove(((char *)ah_header) + sizeof(struct uip_ah_header),
+        ah_header, uip_len - uip_ext_len - sizeof(struct uip_ah_header));
+
+    /* Set AH fields */
+    ah_header->next = next_header;
+    ah_header->len = 4;
+    ah_header->reserved = 0;
+    ah_header->spi = uip_htonl(ipsec_host_md->spi);
+    ah_header->seq = uip_htonl(ipsec_host_md->seqno);
+
+    /* Backup TLL, set TTL and MAC to 0 before calculation */
+    prev_ttl = UIP_IP_BUF->ttl;
+    UIP_IP_BUF->ttl = 0;
+    memset(ah_header->mac, 0, IPSEC_MACSIZE);
+
+    /* If there are extension header before AH, just elide them */
+    if(uip_ext_len > 0) {
+      /* Save the next header because we need to overwrite it with that of AH */
+      prev_next_header = UIP_IP_BUF->proto;
+      UIP_IP_BUF->proto = UIP_PROTO_AH;
+      /* Adjust the IPv6 length field so it doesn't include extension headers before AH. We assume
+       * that these extension headers were hop-by-hop headers. */
+      prev_len = *((uint16_t*)UIP_IP_BUF->len);
+      *((uint16_t*)UIP_IP_BUF->len) = uip_htons(uip_htons(prev_len) - uip_ext_len);
+
+      /* Save extension headers, which do not have to be part of the MAC calculation */
+      if(uip_ext_len > sizeof(prev_ext_header)) {
+        PRINTF("IPsec-AH: extension header too big! (%d > %d)\n", uip_ext_len, sizeof(prev_ext_header));
+        goto drop;
+      }
+      memcpy(prev_ext_header, &uip_buf[UIP_LLIPH_LEN], uip_ext_len);
+      memmove(&uip_buf[UIP_LLIPH_LEN], &uip_buf[UIP_LLIPH_LEN + uip_ext_len], uip_len - UIP_LLIPH_LEN - uip_ext_len);
+    }
+
+    /* MAC calculation */
+    IPSEC_CONF_MAC.auth(mac, (unsigned char*)UIP_IP_BUF, uip_len - UIP_LLH_LEN - uip_ext_len);
+
+    /* If there were extension header before AH, restore them */
+    if(uip_ext_len > 0) {
+      /* Restore extension headers */
+      memmove(&uip_buf[UIP_LLIPH_LEN + uip_ext_len], &uip_buf[UIP_LLIPH_LEN], uip_len - UIP_LLIPH_LEN - uip_ext_len);
+      memcpy(&uip_buf[UIP_LLIPH_LEN], prev_ext_header, uip_ext_len);
+
+      /* Restore next header */
+      UIP_IP_BUF->proto = prev_next_header;
+      /* Restore the IPv6 length */
+      *((uint16_t*)UIP_IP_BUF->len) = prev_len;
+    }
+
+    /* Restore TTL */
+    UIP_IP_BUF->ttl = prev_ttl;
+    memcpy(ah_header->mac, mac, IPSEC_MACSIZE);
+    uip_ext_len += sizeof(struct uip_ah_header);
+
+  }
+#endif /* WITH_IPSEC_AH */
+
+#if WITH_IPSEC
+ ipsec_host_md = NULL;
+#endif
+
   PRINTF("Sending packet with length %d (%d)\n", uip_len,
          (UIP_IP_BUF->len[0] << 8) | UIP_IP_BUF->len[1]);
   
