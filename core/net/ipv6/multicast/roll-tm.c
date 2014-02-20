@@ -826,20 +826,18 @@ icmp_output()
       if(SLIDING_WINDOW_GET_M(iterswptr)) {
         sl->flags |= SEQUENCE_LIST_M_BIT;
       }
-      sl->seq_len = iterswptr->count;
       seed_id_cpy(&sl->seed_id, &iterswptr->seed_id);
 
-      PRINTF("ROLL TM: ICMPv6 Out - Seq. F=0x%02x, L=%u, Seed ID=", sl->flags,
-             sl->seq_len);
+      PRINTF("ROLL TM: ICMPv6 Out - Seq. F=0x%02x, Seed ID=", sl->flags);
       PRINT_SEED(&sl->seed_id);
 
       buffer = (uint8_t *)sl + sizeof(struct sequence_list_header);
 
-      payload_len += sizeof(struct sequence_list_header);
       for(locmpptr = &buffered_msgs[ROLL_TM_BUFF_NUM - 1];
           locmpptr >= buffered_msgs; locmpptr--) {
         if(MCAST_PACKET_IS_USED(locmpptr)) {
           if(locmpptr->sw == iterswptr) {
+            sl->seq_len++;
             PRINTF(", %u", locmpptr->seq_val);
             *buffer = (uint8_t)(locmpptr->seq_val >> 8);
             buffer++;
@@ -848,9 +846,13 @@ icmp_output()
           }
         }
       }
-      PRINTF("\n");
-      payload_len += sl->seq_len * 2;
-      sl = (struct sequence_list_header *)buffer;
+      PRINTF(", Len=%u\n", sl->seq_len);
+
+      /* Scrap the entire window if it has no content */
+      if(sl->seq_len > 0) {
+        payload_len += sizeof(struct sequence_list_header) + sl->seq_len * 2;
+        sl = (struct sequence_list_header *)buffer;
+      }
     }
   }
 
