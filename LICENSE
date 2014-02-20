@@ -1,7 +1,7 @@
-Contiki is licensed under the 3-clause BSD license. This license gives
-everyone the right to use and distribute the code, either in binary or
-source code format, as long as the copyright license is retained in
-the source code.
+Contiki is licensed under the 3-clause BSD license (with some exceptions
+ - see the NOTE below). This license gives everyone the right to use and 
+distribute the code, either in binary or source code format, as long as 
+the copyright license is retained in the source code.
 
 The copyright for different parts of the code is held by different
 people and organizations, but the code is licensed under the same type
@@ -36,3 +36,31 @@ of license. The license text is:
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
 
+The source files listed below are 
+licensed under GNU General Public License.
+If you distribute software linked with 
+some of the listed files, you must observe 
+the terms of the GNU General Public 
+License.
+ 
+cpu/arm/sam3x8e/hw_random.h
+core/net/mac/ieee80211_ibss/cfg80211.h
+core/net/mac/ieee80211_ibss/ieee80211.h
+core/net/mac/ieee80211_ibss/mac80211.h
+core/net/mac/ieee80211_ibss/ieee80211_ibss.c
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170_main.h
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170_main.c
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170_wlan.h
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170eeprom.h
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170_phy.h
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170_phy.c
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170rx.c
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170tx.c
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170_mac.h
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170_mac.c
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170_led.h
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_wifi/ar9170_led.c
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_fw/*
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_include/ath/*
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_include/carl9170/*
+platform/arduino/arduino-due/dev/ar9170_driver/ar9170_include/ar9170.h
