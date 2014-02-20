@@ -618,9 +618,9 @@ handle_timer(void *ptr)
         MCAST_PACKET_FREE(locmpptr);
       } else if(MCAST_PACKET_TTL(locmpptr) > 0) {
         /* Handle multicast transmissions */
-        if((SUPPRESSION_ENABLED(param) && MCAST_PACKET_MUST_SEND(locmpptr)) ||
-           (SUPPRESSION_DISABLED(param) &&
-            locmpptr->active < TRICKLE_ACTIVE(param))) {
+        if(locmpptr->active < TRICKLE_ACTIVE(param) &&
+           ((SUPPRESSION_ENABLED(param) && MCAST_PACKET_MUST_SEND(locmpptr)) ||
+           SUPPRESSION_DISABLED(param))) {
           PRINTF("ROLL TM: M=%u Periodic - Sending packet from Seed ", m);
           PRINT_SEED(&locmpptr->sw->seed_id);
           PRINTF(" seq %u\n", locmpptr->seq_val);
