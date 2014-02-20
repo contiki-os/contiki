@@ -835,7 +835,8 @@ icmp_output()
 
       for(locmpptr = &buffered_msgs[ROLL_TM_BUFF_NUM - 1];
           locmpptr >= buffered_msgs; locmpptr--) {
-        if(MCAST_PACKET_IS_USED(locmpptr)) {
+        if(MCAST_PACKET_IS_USED(locmpptr) &&
+           locmpptr->active < TRICKLE_ACTIVE((&t[SLIDING_WINDOW_GET_M(iterswptr)]))) {
           if(locmpptr->sw == iterswptr) {
             sl->seq_len++;
             PRINTF(", %u", locmpptr->seq_val);
