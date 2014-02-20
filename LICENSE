@@ -36,10 +36,12 @@ of license. The license text is:
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
 
-NOTE:
-The source files listed below are licensed under GNU General Public License.
-If you use and distribute some of the listed files, you must observe the terms of the 
-GNU General Public License.
+The source files listed below are 
+licensed under GNU General Public License.
+If you distribute software linked with 
+some of the listed files, you must observe 
+the terms of the GNU General Public 
+License.
  
 cpu/arm/sam3x8e/hw_random.h
 core/net/mac/ieee80211_ibss/cfg80211.h
