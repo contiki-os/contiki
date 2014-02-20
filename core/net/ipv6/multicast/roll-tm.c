@@ -1270,6 +1270,9 @@ roll_tm_icmp_input()
       PRINTF("Check %u, Seed L: %u, This L: %u Min L: %d\n",
              locmpptr->seq_val, SLIDING_WINDOW_IS_LISTED(locswptr),
              MCAST_PACKET_IS_LISTED(locmpptr), locswptr->min_listed);
+
+      /* Point to the sliding window's trickle param */
+      loctpptr = &t[SLIDING_WINDOW_GET_M(locswptr)];
       if(!SLIDING_WINDOW_IS_LISTED(locswptr)) {
         /* If a buffered packet's Seed ID was not listed */
         PRINTF("ROLL TM: Inconsistency - Seed ID ");
