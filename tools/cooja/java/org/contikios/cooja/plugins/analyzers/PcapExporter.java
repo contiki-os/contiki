@@ -46,7 +46,7 @@ public class PcapExporter {
         }
         try {
             /* pcap packet header */
-            out.writeInt((int) System.currentTimeMillis() / 1000);
+            out.writeInt((int) (System.currentTimeMillis() / 1000));
             out.writeInt((int) ((System.currentTimeMillis() % 1000) * 1000));
             out.writeInt(data.length);
             out.writeInt(data.length);
