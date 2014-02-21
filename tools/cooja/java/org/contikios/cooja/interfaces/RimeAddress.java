@@ -48,7 +48,7 @@ import org.contikios.cooja.MoteMemory.MemoryEventType;
 import org.contikios.cooja.MoteMemory.MemoryMonitor;
 
 /**
- * Read-only interface to Rime address read from Contiki variable: rimeaddr_node_addr.
+ * Read-only interface to Rime address read from Contiki variable: linkaddr_node_addr.
  * XXX Assuming Rime address is 2 bytes.
  *
  * @see #RIME_ADDR_LENGTH
@@ -76,12 +76,12 @@ public class RimeAddress extends MoteInterface {
         }
       };
       /* TODO XXX Timeout? */
-      moteMem.addMemoryMonitor(moteMem.getVariableAddress("rimeaddr_node_addr"), RIME_ADDR_LENGTH, memMonitor);
+      moteMem.addMemoryMonitor(moteMem.getVariableAddress("linkaddr_node_addr"), RIME_ADDR_LENGTH, memMonitor);
     }
   }
 
   public boolean hasRimeAddress() {
-    return moteMem.variableExists("rimeaddr_node_addr");
+    return moteMem.variableExists("linkaddr_node_addr");
   }
 
   public String getAddressString() {
@@ -90,7 +90,7 @@ public class RimeAddress extends MoteInterface {
     }
 
     String addrString = "";
-    byte[] addr = moteMem.getByteArray("rimeaddr_node_addr", RIME_ADDR_LENGTH);
+    byte[] addr = moteMem.getByteArray("linkaddr_node_addr", RIME_ADDR_LENGTH);
     for (int i=0; i < RIME_ADDR_LENGTH-1; i++) {
       addrString += (0xFF & addr[i]) + ".";
     }
@@ -131,7 +131,7 @@ public class RimeAddress extends MoteInterface {
   public void removed() {
     super.removed();
     if (memMonitor != null) {
-      moteMem.removeMemoryMonitor(moteMem.getVariableAddress("rimeaddr_node_addr"), RIME_ADDR_LENGTH, memMonitor);
+      moteMem.removeMemoryMonitor(moteMem.getVariableAddress("linkaddr_node_addr"), RIME_ADDR_LENGTH, memMonitor);
     }
   }
 
