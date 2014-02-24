@@ -45,6 +45,7 @@
 #if UIP_CONF_IPV6
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
+#include "net/uip-mld.h"
 #endif
 
 #include <string.h>
@@ -483,6 +484,12 @@ eventhandler(process_event_t ev, process_data_t data)
           uip_ds6_periodic();
           tcpip_ipv6_output();
         }
+#if UIP_CONF_MLD
+        if(data == &uip_mld_timer_periodic &&
+           etimer_expired(&uip_mld_timer_periodic)){
+          uip_mld_periodic();
+        }
+#endif
 #endif /* UIP_CONF_IPV6 */
       }
       break;

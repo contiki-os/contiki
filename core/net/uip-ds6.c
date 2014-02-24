@@ -47,6 +47,7 @@
 #include "net/uip-nd6.h"
 #include "net/uip-ds6.h"
 #include "net/uip-packetqueue.h"
+#include "net/uip-mld.h"
 
 #if UIP_CONF_IPV6
 
@@ -424,6 +425,9 @@ uip_ds6_maddr_add(const uip_ipaddr_t *ipaddr)
       (uip_ds6_element_t **)&locmaddr) == FREESPACE) {
     locmaddr->isused = 1;
     uip_ipaddr_copy(&locmaddr->ipaddr, ipaddr);
+#if UIP_CONF_MLD
+    uip_icmp6_mldv1_schedule_report(locmaddr);
+#endif
     return locmaddr;
   }
   return NULL;
@@ -435,6 +439,9 @@ uip_ds6_maddr_rm(uip_ds6_maddr_t *maddr)
 {
   if(maddr != NULL) {
     maddr->isused = 0;
+#if UIP_CONF_MLD
+    uip_icmp6_mldv1_done(&maddr->ipaddr);
+#endif
   }
   return;
 }
@@ -498,7 +505,8 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
   uint8_t n = 0;
   uip_ds6_addr_t *matchaddr = NULL;
 
-  if(!uip_is_addr_link_local(dst) && !uip_is_addr_mcast(dst)) {
+  if(!uip_is_addr_link_local(dst) &&
+      (!uip_is_addr_mcast(dst) || uip_is_addr_routable_mcast(dst))) {
     /* find longest match */
     for(locaddr = uip_ds6_if.addr_list;
         locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
