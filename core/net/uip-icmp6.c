@@ -45,6 +45,7 @@
 #include <string.h>
 #include "net/uip-ds6.h"
 #include "net/uip-icmp6.h"
+#include "net/uip-mld.h"
 #include "contiki-default-conf.h"
 
 #define DEBUG 0
@@ -61,6 +62,7 @@
 #define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_ICMP6_ERROR_BUF  ((struct uip_icmp6_error *)&uip_buf[uip_l2_l3_icmp_hdr_len])
+#define UIP_ICMP6_MLD_BUF  ((struct uip_icmp6_mld1 *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 #define UIP_EXT_BUF              ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_FIRST_EXT_BUF        ((struct uip_ext_hdr *)&uip_buf[UIP_LLIPH_LEN])
 

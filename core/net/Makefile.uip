@@ -21,6 +21,7 @@ uip-ds6.c					\
 uip-fw-drv.c					\
 uip-fw.c					\
 uip-icmp6.c					\
+uip-mld.c					\
 uip-nd6.c					\
 uip-neighbor.c					\
 uip-over-mesh.c					\
