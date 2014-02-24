@@ -669,8 +669,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   uip_len = UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_RA_LEN;
   nd6_opt_offset = UIP_ND6_RA_LEN;
 
-
-#if !UIP_CONF_ROUTER
   /* Prefix list */
   for(prefix = uip_ds6_prefix_list;
       prefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; prefix++) {
@@ -687,7 +685,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       uip_len += UIP_ND6_OPT_PREFIX_INFO_LEN;
     }
   }
-#endif /* !UIP_CONF_ROUTER */
 
   /* Source link-layer option */
   create_llao((uint8_t *)UIP_ND6_OPT_HDR_BUF, UIP_ND6_OPT_SLLAO);
