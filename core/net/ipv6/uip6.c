@@ -75,6 +75,7 @@
 #include "net/ipv6/uip-icmp6.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-mld.h"
 
 #include <string.h>
 
@@ -1437,6 +1438,19 @@ uip_process(uint8_t flag)
       UIP_STAT(++uip_stat.icmp.recv);
       uip_len = 0;
       break;
+#if UIP_CONF_MLD
+    case ICMP6_ML_QUERY:
+      uip_icmp6_ml_query_input();
+      uip_len = 0;
+      break;
+    case ICMP6_ML_REPORT:
+      uip_icmp6_ml_report_input();
+      uip_len = 0;
+      break;
+    case ICMP6_ML_DONE:
+      uip_len = 0;
+      break;
+#endif
     default:
       PRINTF("Unknown icmp6 message type %d\n", UIP_ICMP_BUF->type);
       UIP_STAT(++uip_stat.icmp.drop);
@@ -1555,6 +1569,11 @@ uip_process(uint8_t flag)
 
   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &uip_udp_conn->ripaddr);
   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+
+  if (uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
+    PRINTF("Not sending from unspecified source\n");
+    goto drop;
+  }
 
   uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPTCPH_LEN];
 

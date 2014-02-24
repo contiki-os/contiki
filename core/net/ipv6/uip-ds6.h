@@ -184,8 +184,12 @@ typedef struct uip_ds6_aaddr {
 
 /** \brief A multicast address */
 typedef struct uip_ds6_maddr {
-  uint8_t isused;
+  unsigned int isused:1;
+  unsigned int report_count:3;
   uip_ipaddr_t ipaddr;
+#if UIP_CONF_MLD
+  struct stimer report_timeout;
+#endif
 } uip_ds6_maddr_t;
 
 /* only define the callback if RPL is active */
