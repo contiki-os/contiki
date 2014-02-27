@@ -43,9 +43,6 @@
 #ifndef UIP_MCAST6_ENGINES_H_
 #define UIP_MCAST6_ENGINES_H_
 
-#include "net/ipv6/multicast/smrf.h"
-#include "net/ipv6/multicast/roll-tm.h"
-
 #define UIP_MCAST6_ENGINE_NONE        0 /* Selecting this disables mcast */
 #define UIP_MCAST6_ENGINE_SMRF        1
 #define UIP_MCAST6_ENGINE_ROLL_TM     2

@@ -43,6 +43,7 @@
 #include "contiki-net.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "net/ipv6/multicast/uip-mcast6-route.h"
+#include "net/ipv6/multicast/uip-mcast6-stats.h"
 #include "net/ipv6/multicast/smrf.h"
 #include "net/rpl/rpl.h"
 #include "net/netstack.h"
@@ -67,16 +68,6 @@ static uint8_t mcast_len;
 static uip_buf_t mcast_buf;
 static uint8_t fwd_delay;
 static uint8_t fwd_spread;
-
-/* Maintain Stats */
-#if UIP_MCAST6_CONF_STATS
-struct smrf_stats smrf_stats;
-#define STATS_ADD(x) smrf_stats.x++
-#define STATS_RESET() do { memset(&smrf_stats, 0, sizeof(smrf_stats)); } while(0)
-#else
-#define STATS_ADD(x)
-#define STATS_RESET()
-#endif
 /*---------------------------------------------------------------------------*/
 /* uIPv6 Pointers */
 /*---------------------------------------------------------------------------*/
@@ -109,7 +100,7 @@ in()
    */
   d = rpl_get_any_dag();
   if(!d) {
-    STATS_ADD(mcast_dropped);
+    UIP_MCAST6_STATS_ADD(mcast_dropped);
     return UIP_MCAST6_DROP;
   }
 
@@ -118,7 +109,7 @@ in()
   parent_lladdr = uip_ds6_nbr_lladdr_from_ipaddr(parent_ipaddr);
 
   if(parent_lladdr == NULL) {
-    STATS_ADD(mcast_dropped);
+    UIP_MCAST6_STATS_ADD(mcast_dropped);
     return UIP_MCAST6_DROP;
   }
 
@@ -129,23 +120,23 @@ in()
   if(memcmp(parent_lladdr, packetbuf_addr(PACKETBUF_ADDR_SENDER),
             UIP_LLADDR_LEN)) {
     PRINTF("SMRF: Routable in but SMRF ignored it\n");
-    STATS_ADD(mcast_dropped);
+    UIP_MCAST6_STATS_ADD(mcast_dropped);
     return UIP_MCAST6_DROP;
   }
 
   if(UIP_IP_BUF->ttl <= 1) {
-    STATS_ADD(mcast_dropped);
+    UIP_MCAST6_STATS_ADD(mcast_dropped);
     return UIP_MCAST6_DROP;
   }
 
-  STATS_ADD(mcast_in_all);
-  STATS_ADD(mcast_in_unique);
+  UIP_MCAST6_STATS_ADD(mcast_in_all);
+  UIP_MCAST6_STATS_ADD(mcast_in_unique);
 
   /* If we have an entry in the mcast routing table, something with
    * a higher RPL rank (somewhere down the tree) is a group member */
   if(uip_mcast6_route_lookup(&UIP_IP_BUF->destipaddr)) {
     /* If we enter here, we will definitely forward */
-    STATS_ADD(mcast_fwd);
+    UIP_MCAST6_STATS_ADD(mcast_fwd);
 
     /*
      * Add a delay (D) of at least SMRF_FWD_DELAY() to compensate for how
@@ -190,7 +181,7 @@ in()
     return UIP_MCAST6_DROP;
   } else {
     PRINTF("SMRF: Ours. Deliver to upper layers\n");
-    STATS_ADD(mcast_in_ours);
+    UIP_MCAST6_STATS_ADD(mcast_in_ours);
     return UIP_MCAST6_ACCEPT;
   }
 }
@@ -198,7 +189,8 @@ in()
 static void
 init()
 {
-  STATS_RESET();
+  UIP_MCAST6_STATS_INIT(NULL);
+
   uip_mcast6_route_init();
 }
 /*---------------------------------------------------------------------------*/

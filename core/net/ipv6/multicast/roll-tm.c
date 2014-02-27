@@ -433,15 +433,14 @@ struct hbho_mcast {
 #endif
 /*---------------------------------------------------------------------------*/
 /* Maintain Stats */
-#if UIP_MCAST6_CONF_STATS
-struct roll_tm_stats roll_tm_stats;
+#if UIP_MCAST6_STATS
+static struct roll_tm_stats stats;
 
-#define STATS_ADD(x) roll_tm_stats.x++
-#define STATS_RESET() do { \
-  memset(&roll_tm_stats, 0, sizeof(roll_tm_stats)); } while(0)
-#else
-#define STATS_ADD(x)
-#define STATS_RESET()
+#define ROLL_TM_STATS_ADD(x) stats.x++
+#define ROLL_TM_STATS_INIT() do { memset(&stats, 0, sizeof(stats)); } while(0)
+#else /* UIP_MCAST6_STATS */
+#define ROLL_TM_STATS_ADD(x)
+#define ROLL_TM_STATS_INIT()
 #endif
 /*---------------------------------------------------------------------------*/
 /* Internal Data Structures */
@@ -627,7 +626,7 @@ handle_timer(void *ptr)
           uip_len = locmpptr->buff_len;
           memcpy(UIP_IP_BUF, &locmpptr->buff, uip_len);
 
-          STATS_ADD(mcast_fwd);
+          UIP_MCAST6_STATS_ADD(mcast_fwd);
           tcpip_output(NULL);
           MCAST_PACKET_SEND_CLR(locmpptr);
           watchdog_periodic();
@@ -879,7 +878,7 @@ icmp_output()
   VERBOSE_PRINTF("ROLL TM: ICMPv6 Out - %u bytes\n", payload_len);
 
   tcpip_ipv6_output();
-  STATS_ADD(icmp_out);
+  ROLL_TM_STATS_ADD(icmp_out);
   return;
 }
 /*---------------------------------------------------------------------------*/
@@ -912,7 +911,7 @@ accept(uint8_t in)
    */
   if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
     PRINTF("ROLL TM: Mcast I/O, bad source\n");
-    STATS_ADD(mcast_bad);
+    UIP_MCAST6_STATS_ADD(mcast_bad);
     return UIP_MCAST6_DROP;
   }
 #endif
@@ -920,13 +919,13 @@ accept(uint8_t in)
   /* Check the Next Header field: Must be HBHO */
   if(UIP_IP_BUF->proto != UIP_PROTO_HBHO) {
     PRINTF("ROLL TM: Mcast I/O, bad proto\n");
-    STATS_ADD(mcast_bad);
+    UIP_MCAST6_STATS_ADD(mcast_bad);
     return UIP_MCAST6_DROP;
   } else {
     /* Check the Option Type */
     if(UIP_EXT_OPT_FIRST->type != HBHO_OPT_TYPE_TRICKLE) {
       PRINTF("ROLL TM: Mcast I/O, bad HBHO type\n");
-      STATS_ADD(mcast_bad);
+      UIP_MCAST6_STATS_ADD(mcast_bad);
       return UIP_MCAST6_DROP;
     }
   }
@@ -941,21 +940,21 @@ accept(uint8_t in)
   /* Short Seed ID: Len MUST be 4 */
   if(lochbhmptr->len != HBHO_LEN_SHORT_SEED) {
     PRINTF("ROLL TM: Mcast I/O, bad length\n");
-    STATS_ADD(mcast_bad);
+    UIP_MCAST6_STATS_ADD(mcast_bad);
     return UIP_MCAST6_DROP;
   }
 #else
   /* Long Seed ID: Len MUST be 2 (Seed ID is elided) */
   if(lochbhmptr->len != HBHO_LEN_LONG_SEED) {
     PRINTF("ROLL TM: Mcast I/O, bad length\n");
-    STATS_ADD(mcast_bad);
+    UIP_MCAST6_STATS_ADD(mcast_bad);
     return UIP_MCAST6_DROP;
   }
 #endif
 
-#if UIP_MCAST6_CONF_STATS
+#if UIP_MCAST6_STATS
   if(in == ROLL_TM_DGRAM_IN) {
-    STATS_ADD(mcast_in_all);
+    UIP_MCAST6_STATS_ADD(mcast_in_all);
   }
 #endif
 
@@ -976,7 +975,7 @@ accept(uint8_t in)
     if(SEQ_VAL_IS_LT(seq_val, locswptr->lower_bound)) {
       /* Too old, drop */
       PRINTF("ROLL TM: Too old\n");
-      STATS_ADD(mcast_dropped);
+      UIP_MCAST6_STATS_ADD(mcast_dropped);
       return UIP_MCAST6_DROP;
     }
     for(locmpptr = &buffered_msgs[ROLL_TM_BUFF_NUM - 1];
@@ -987,7 +986,7 @@ accept(uint8_t in)
          SEQ_VAL_IS_EQ(seq_val, locmpptr->seq_val)) {
         /* Seen before , drop */
         PRINTF("ROLL TM: Seen before\n");
-        STATS_ADD(mcast_dropped);
+        UIP_MCAST6_STATS_ADD(mcast_dropped);
         return UIP_MCAST6_DROP;
       }
     }
@@ -1004,7 +1003,7 @@ accept(uint8_t in)
   if(!locswptr) {
     /* Couldn't allocate window, drop */
     PRINTF("ROLL TM: Failed to allocate window\n");
-    STATS_ADD(mcast_dropped);
+    UIP_MCAST6_STATS_ADD(mcast_dropped);
     return UIP_MCAST6_DROP;
   }
 
@@ -1021,13 +1020,13 @@ accept(uint8_t in)
     PRINTF("ROLL TM: Buffer reclaim failed\n");
     if(locswptr->count == 0) {
       window_free(locswptr);
-      STATS_ADD(mcast_dropped);
+      UIP_MCAST6_STATS_ADD(mcast_dropped);
       return UIP_MCAST6_DROP;
     }
   }
-#if UIP_MCAST6_CONF_STATS
+#if UIP_MCAST6_STATS
   if(in == ROLL_TM_DGRAM_IN) {
-    STATS_ADD(mcast_in_unique);
+    UIP_MCAST6_STATS_ADD(mcast_in_unique);
   }
 #endif
 
@@ -1106,26 +1105,26 @@ roll_tm_icmp_input()
     PRINTF(" to ");
     PRINT6ADDR(&UIP_IP_BUF->destipaddr);
     PRINTF("\n");
-    STATS_ADD(icmp_bad);
+    ROLL_TM_STATS_ADD(icmp_bad);
     return;
   }
 
   if(!uip_is_addr_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr)
      && !uip_is_addr_linklocal_allrouters_mcast(&UIP_IP_BUF->destipaddr)) {
     PRINTF("ROLL TM: ICMPv6 In, bad destination\n");
-    STATS_ADD(icmp_bad);
+    ROLL_TM_STATS_ADD(icmp_bad);
     return;
   }
 
   if(UIP_ICMP_BUF->icode != ROLL_TM_ICMP_CODE) {
     PRINTF("ROLL TM: ICMPv6 In, bad ICMP code\n");
-    STATS_ADD(icmp_bad);
+    ROLL_TM_STATS_ADD(icmp_bad);
     return;
   }
 
   if(UIP_IP_BUF->ttl != ROLL_TM_IP_HOP_LIMIT) {
     PRINTF("ROLL TM: ICMPv6 In, bad TTL\n");
-    STATS_ADD(icmp_bad);
+    ROLL_TM_STATS_ADD(icmp_bad);
     return;
   }
 #endif
@@ -1134,7 +1133,7 @@ roll_tm_icmp_input()
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF(" len %u, ext %u\n", uip_len, uip_ext_len);
 
-  STATS_ADD(icmp_in);
+  ROLL_TM_STATS_ADD(icmp_in);
 
   /* Reset Is-Listed bit for all windows */
   for(iterswptr = &windows[ROLL_TM_WINS - 1]; iterswptr >= windows;
@@ -1167,12 +1166,12 @@ roll_tm_icmp_input()
     /* Drop unsupported Seed ID Lengths. S bit: 0->short, 1->long */
 #if ROLL_TM_SHORT_SEEDS
     if(!SEQUENCE_LIST_GET_S(locslhptr)) {
-      STATS_ADD(icmp_bad);
+      ROLL_TM_STATS_ADD(icmp_bad);
       goto drop;
     }
 #else
     if(SEQUENCE_LIST_GET_S(locslhptr)) {
-      STATS_ADD(icmp_bad);
+      ROLL_TM_STATS_ADD(icmp_bad);
       goto drop;
     }
 #endif
@@ -1375,7 +1374,7 @@ out()
    */
   if(accept(ROLL_TM_DGRAM_OUT)) {
     tcpip_output(NULL);
-    STATS_ADD(mcast_out);
+    UIP_MCAST6_STATS_ADD(mcast_out);
   }
 
 drop:
@@ -1401,7 +1400,7 @@ in()
     return UIP_MCAST6_DROP;
   } else {
     PRINTF("ROLL TM: Ours. Deliver to upper layers\n");
-    STATS_ADD(mcast_in_ours);
+    UIP_MCAST6_STATS_ADD(mcast_in_ours);
     return UIP_MCAST6_ACCEPT;
   }
 }
@@ -1414,7 +1413,9 @@ init()
   memset(windows, 0, sizeof(windows));
   memset(buffered_msgs, 0, sizeof(buffered_msgs));
   memset(t, 0, sizeof(t));
-  STATS_RESET();
+
+  ROLL_TM_STATS_INIT();
+  UIP_MCAST6_STATS_INIT(&stats);
 
   for(iterswptr = &windows[ROLL_TM_WINS - 1]; iterswptr >= windows;
       iterswptr--) {
