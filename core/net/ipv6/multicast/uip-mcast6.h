@@ -52,6 +52,8 @@
 #include "contiki-conf.h"
 #include "net/ipv6/multicast/uip-mcast6-engines.h"
 #include "net/ipv6/multicast/uip-mcast6-route.h"
+#include "net/ipv6/multicast/smrf.h"
+#include "net/ipv6/multicast/roll-tm.h"
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
@@ -119,12 +121,6 @@ struct uip_mcast6_driver {
    */
   uint8_t (* in)(void);
 };
-/*---------------------------------------------------------------------------
- * Multicast Statistics.
- *---------------------------------------------------------------------------*/
-#ifndef UIP_MCAST6_CONF_STATS
-#define UIP_MCAST6_CONF_STATS 0
-#endif
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Get a multicast address' scope.
@@ -142,27 +138,18 @@ struct uip_mcast6_driver {
 #define RPL_CONF_MULTICAST     0        /* Not used by trickle */
 #define UIP_CONF_IPV6_ROLL_TM  1        /* ROLL Trickle ICMP type support */
 
-typedef struct roll_tm_stats uip_mcast6_stats_t;
-#define UIP_MCAST6_STATS       roll_tm_stats
 #define UIP_MCAST6             roll_tm_driver
 #elif UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_SMRF
 #define RPL_CONF_MULTICAST     1
 
-typedef struct smrf_stats uip_mcast6_stats_t;
-#define UIP_MCAST6_STATS       smrf_stats
 #define UIP_MCAST6             smrf_driver
 #else
 #error "Multicast Enabled with an Unknown Engine."
 #error "Check the value of UIP_MCAST6_CONF_ENGINE in conf files."
 #endif
+#endif /* UIP_MCAST6_ENGINE */
 
 extern const struct uip_mcast6_driver UIP_MCAST6;
-
-#if UIP_MCAST6_CONF_STATS
-extern uip_mcast6_stats_t UIP_MCAST6_STATS;
-#endif
-
-#endif /* UIP_IPV6_MULTICAST */
 /*---------------------------------------------------------------------------*/
 /* Configuration Checks */
 /*---------------------------------------------------------------------------*/

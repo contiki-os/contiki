@@ -54,6 +54,7 @@
 #define ROLL_TM_H_
 
 #include "contiki-conf.h"
+#include "net/ipv6/multicast/uip-mcast6-stats.h"
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -223,16 +224,9 @@ void roll_tm_icmp_input();
 /* Stats datatype */
 /*---------------------------------------------------------------------------*/
 struct roll_tm_stats {
-  uint16_t mcast_in_unique;
-  uint16_t mcast_in_all;        /* At layer 3 */
-  uint16_t mcast_in_ours;       /* Unique and we are a group member */
-  uint16_t mcast_fwd;           /* Forwarded by us but we are not the seed */
-  uint16_t mcast_out;           /* We are the seed */
-  uint16_t mcast_bad;
-  uint16_t mcast_dropped;
-  uint16_t icmp_in;
-  uint16_t icmp_out;
-  uint16_t icmp_bad;
+  UIP_MCAST6_STATS_DATATYPE icmp_in;
+  UIP_MCAST6_STATS_DATATYPE icmp_out;
+  UIP_MCAST6_STATS_DATATYPE icmp_bad;
 };
 
 #endif /* ROLL_TM_H_ */

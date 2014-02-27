@@ -87,10 +87,13 @@ In order to extend multicast with a new engine, perform the following steps:
         `const struct uip_mcast6_driver foo_driver = { ... }`
 
 - If you want to maintain stats:
-  * Declare a `struct foo_stats` in `foo.h`
-  * Define a variable of type `struct foo_stats` called `foo_stats` in `foo.c`
-    The names `foo_stats` for the stats variable and stats datatype are only
-    examples. You can assign different names
+  * Standard multicast stats are maintained in `uip_mcast6_stats`. Don't access
+    this struct directly, use the macros provided in `uip-mcast6-stats.h` instead
+  * You can add your own stats extensions. To do so, declare your own stats
+    struct in your engine's module, e.g `struct foo_stats`
+  * When you initialise the stats module with `UIP_MCAST6_STATS_INIT`, pass
+    a pointer to your stats variable as the macro's argument.
+    An example of how to extend multicast stats, look at the ROLL TM engine
 
 - Open `uip-mcast6.h` and add a section in the `#if` spree. This aims to
   configure the uIPv6 core. More specifically, you need to:
