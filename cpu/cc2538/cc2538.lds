@@ -61,6 +61,7 @@ SECTIONS
         KEEP(*(.vectors))
         *(.text*)
         *(.rodata*)
+        . = ALIGN(8);
         _etext = .;
     } > FLASH= 0
 
