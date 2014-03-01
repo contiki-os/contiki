@@ -34,8 +34,9 @@
  */
 
 #include "contiki.h"
+#include "contiki-conf.h"
 
-#ifdef linux
+#if defined(linux) && UIP_CONF_IPV6
 
 #include "linuxradio-drv.h"
 
