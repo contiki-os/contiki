@@ -164,8 +164,7 @@ on(void)
     perror("linuxradio socket()");
     return 0;
   } else {
-    /* TODO: interface should not be hard-coded */
-    strncpy((char *)ifr.ifr_name, "wpan0", IFNAMSIZ);
+    strncpy((char *)ifr.ifr_name, NETSTACK_CONF_LINUXRADIO_DEV, IFNAMSIZ);
     err = ioctl(sockfd, SIOCGIFINDEX, &ifr);
     if(err == -1) {
       perror("linuxradio ioctl()");
