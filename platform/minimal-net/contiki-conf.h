@@ -35,6 +35,9 @@
 
 #include <inttypes.h>
 #include <limits.h>
+#ifndef WIN32_LEAN_AND_MEAN
+#include <sys/select.h>
+#endif
 
 struct select_callback {
   int  (* set_fd)(fd_set *fdr, fd_set *fdw);
@@ -157,6 +160,8 @@ typedef unsigned short uip_stats_t;
 /* Not used but avoids compile errors while sicslowpan.c is being developed */
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
 
+#define NETSTACK_CONF_LINUXRADIO_DEV "wpan0"
+
 #define UIP_CONF_UDP                  1
 #define UIP_CONF_TCP                  1
 
@@ -173,8 +178,6 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_DS6_MADDR_NBU   0
 #define UIP_CONF_DS6_AADDR_NBU   0
 #endif /* NETSTACK_CONF_WITH_IPV6 */
-
-#define NETSTACK_CONF_LINUXRADIO_DEV "wpan0"
 
 typedef unsigned long clock_time_t;
 #define CLOCK_CONF_SECOND 1000
