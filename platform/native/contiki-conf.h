@@ -101,6 +101,8 @@ typedef unsigned short uip_stats_t;
 
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 
+#define NETSTACK_CONF_LINUXRADIO_DEV "wpan0"
+
 #define UIP_CONF_ROUTER                 1
 
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
