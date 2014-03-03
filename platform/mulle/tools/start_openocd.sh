@@ -1,5 +1,5 @@
 #!/bin/bash
-cp openocd/mulle.cfg /tmp/mulle_ocd.cfg
+cp mulle.cfg /tmp/mulle_ocd.cfg
 if [ $# -gt 2 ]
 then
 	echo "usage: $basename <?fdti serial> <?gdb port>"
@@ -14,4 +14,4 @@ if [ $# -eq 2 ]
 then
 	sed -i 's/#GDB_PORT/gdb_port \"'"$2"'\"/' /tmp/mulle_ocd.cfg
 fi
-sudo ./tools/openocd/src/openocd -s tools/openocd/tcl/ -f /tmp/mulle_ocd.cfg
+sudo ./openocd/src/openocd -s openocd/tcl/ -f /tmp/mulle_ocd.cfg

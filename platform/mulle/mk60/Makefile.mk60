@@ -85,7 +85,7 @@ bytes:
 
 ### Upload image
 %.u: %.$(TARGET)
-	cp $(CONTIKI)/../gdb/mulle-arch.gdb /tmp/mulle-arch.gdb
+	cp $(CONTIKI_CPU)/mulle-arch.gdb /tmp/mulle-arch.gdb
 	sed -i 's/target remote :3333/target remote :$(GDB_PORT)/' /tmp/mulle-arch.gdb
 	$(GCCBIN)/arm-none-eabi-gdb -x /tmp/mulle-arch.gdb $<
 	
