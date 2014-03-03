@@ -7,7 +7,7 @@ CONTIKI_CORE=contiki-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c udelay.c init-net.c watchdog.c \
-                              slip_arch_uart.c slip.c stdio.c
+                              slip_arch_uart.c slip.c stdio.c leds-arch.c leds.c
 
 ifdef MULLEAPPS
   APPDS += ${wildcard ${addprefix $(CONTIKI)/../apps/, $(MULLEAPPS)} \

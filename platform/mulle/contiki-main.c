@@ -2,6 +2,7 @@
 
 #include "contiki.h"
 #include "sys/autostart.h"
+#include "dev/leds.h"
 
 #include "MK60N512VMD100.h"
 #include "uart.h"
@@ -16,6 +17,7 @@ void printf_putc(void* dum, char c)
 /* C entry point (after startup code has executed) */
 int main(void)
 {
+  leds_arch_init();
   uart_init();
   udelay_init();
   udelay(0xFFFF);

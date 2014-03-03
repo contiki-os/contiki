@@ -24,6 +24,10 @@ typedef int32_t  s32_t;
 
 #define BAUD2UBR(b) b
 
+#define LEDS_CONF_RED (1 << 15)
+#define LEDS_CONF_GREEN (1 << 13)
+#define LEDS_CONF_YELLOW (1 << 14)
+
 #if WITH_UIP6
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define NETSTACK_CONF_MAC           csma_driver
@@ -33,7 +37,7 @@ typedef int32_t  s32_t;
 #define NETSTACK_CONF_FRAMER        framer_802154
 #define NETSTACK_CONF_RADIO         rf230_driver
 #define SICSLOWPAN_CONF_MAXAGE      1
-#define RF230_CONF_RX_BUFFERS       3
+#define RF230_CONF_RX_BUFFERS       10
 #define RF230_CONF_AUTOACK          0
 #define RF230_CONF_AUTORETRIES      3
 #define RIMEADDR_CONF_SIZE          8

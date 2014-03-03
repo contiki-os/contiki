@@ -44,6 +44,7 @@
 #define cli() DisableInterrupts
 #define sei() EnableInterrupts
 
+#include "dev/leds.h"
 #if 0
 #define PRINTF(...) 	           printf(__VA_ARGS__)
 #define PRINTSHORT(...)            printf(__VA_ARGS__)
@@ -1119,7 +1120,7 @@ rf230_send(const void *payload, unsigned short payload_len)
 	}
 
 	ret = rf230_transmit(payload_len);
-	
+	leds_toggle(LEDS_GREEN);
 bail:
 #if RADIOSTATS
     if (ret) RF230_sendfail++;
@@ -1306,7 +1307,7 @@ PROCESS_THREAD(rf230_process, ev, data)
 
     /* Turn off interrupts to avoid ISR writing to the same buffers we are reading. */
     HAL_ENTER_CRITICAL_REGION();
-
+    leds_toggle(LEDS_RED);
     len = rf230_read(packetbuf_dataptr(), PACKETBUF_SIZE);        
 
     /* Restore interrupts. */

@@ -75,7 +75,7 @@
 #define hal_set_slptr_low( )  ( GPIOE_PCOR = (1<<6) )          /**< This macro pulls the SLP_TR pin low. */
 #define hal_get_slptr( )      ( ( GPIOE_PDOR & (1<<6) ) >> 6 ) /**< Read current state of the SLP_TR pin (High/Low). */
 /* rst and pwr is the same */
-#define hal_set_rst_high( )   ( GPIOD_PSOR = (1<<7) )          /**< This macro pulls the RST pin high. */
+#define hal_set_rst_high( )   GPIOD_PSOR = (1<<7); udelay(0xFFFF)          /**< This macro pulls the RST pin high. */
 #define hal_set_rst_low( )    ( GPIOD_PCOR = (1<<7) )          /**< This macro pulls the RST pin low. */
 #define hal_get_rst( )        ( ( GPIOD_PDOR & (1<<7) ) >> 7 ) /**< Read current state of the RST pin (High/Low). */
 #define hal_set_pwr_high( )   ( GPIOD_PSOR = (1<<7) )          /**< This macro pulls the RST pin high. */
