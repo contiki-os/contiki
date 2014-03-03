@@ -61,7 +61,7 @@ endif
 ### Compilation rules
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
-$(OBJECTDIR)/%.o: %.c $(OBJECTDIR)
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJECTDIR)/startcode.o: startcode.S
