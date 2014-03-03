@@ -6,4 +6,4 @@ then
 fi
 
 sysctl -w net.ipv6.conf.all.forwarding=1
-./contiki/tools/tunslip6 -t tun1 -B 115200 -s $1 fdfd::ff/64
+./../../../tools/tunslip6 -t tun1 -B 115200 -s $1 fdfd::ff/64
