@@ -41,8 +41,8 @@
 #include "udelay.h"
 
 #define delay_us(us) { udelay(us); }
-#define cli() DisableInterrupts
-#define sei() EnableInterrupts
+#define cli() MK60_DISABLE_INTERRUPT()
+#define sei() MK60_ENABLE_INTERRUPT()
 
 #include "dev/leds.h"
 #if 0

@@ -95,8 +95,8 @@
 #define HAL_ENABLE_OVERFLOW_INTERRUPT( ) (  )
 #define HAL_DISABLE_OVERFLOW_INTERRUPT( ) (  )
 
-#define HAL_ENTER_CRITICAL_REGION( ) DisableInterrupts
-#define HAL_LEAVE_CRITICAL_REGION( ) EnableInterrupts
+#define HAL_ENTER_CRITICAL_REGION( ) MK60_ENTER_CRITICAL_REGION()
+#define HAL_LEAVE_CRITICAL_REGION( ) MK60_LEAVE_CRITICAL_REGION()
 
 
 /** \brief  Enable the interrupt from the radio transceiver.

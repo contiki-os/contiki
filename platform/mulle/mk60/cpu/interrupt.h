@@ -1,15 +1,20 @@
 #ifndef INTERRUPT_H
 #define INTERRUPT_H
 
-/*!< Macro to enable all interrupts. */
-#define EnableInterrupts enable_interrupts() //asm(" CPSIE i");
+#define MK60_ENABLE_INTERRUPT() asm(" CPSIE i")
+#define MK60_DISABLE_INTERRUPT() asm(" CPSID i")
 
-  /*!< Macro to disable all interrupts. */
-#define DisableInterrupts disable_interrupts() //asm(" CPSID i");
+#define MK60_ENTER_CRITICAL_REGION() \
+unsigned int CRITICAL_PRIMASK; \
+asm volatile( \
+  "mrs %[old], primask\n" \
+  "cpsid i" \
+  : [old] "=&r" (CRITICAL_PRIMASK));
 
-/***********************************************************************/
-
-void enable_interrupts(void);
-void disable_interrupts(void);
+#define MK60_LEAVE_CRITICAL_REGION() \
+    asm volatile( \
+       "msr primask, %[old]" \
+       : \
+       : [old] "r" (CRITICAL_PRIMASK));
 
 #endif //INTERRUPT_H
