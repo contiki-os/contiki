@@ -7,9 +7,9 @@ endif
 
 #### Debug settings
 DEBUG=-g #-gdwarf-2 -gstrict-dwarf
-ifndef GDB_PORT
-GDB_PORT=3333
-endif
+
+GDB_PORT ?= 3333
+
 
 ### Define the CPU directory
 CONTIKI_CPU=$(PLATFORM_DIR)/mk60
@@ -23,26 +23,35 @@ CONTIKI_TARGET_SOURCEFILES += startcode.S uart.c uprintf.c clock.c interrupt.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
-# TODO(henrik) Fix this, beacause a CPU should not have any references to a platform.
-GCCBIN = $(CONTIKI)/platform/mulle/tools/gcc-arm/bin
 ### Compiler definitions
-CC       = $(GCCBIN)/arm-none-eabi-gcc
-LD       = $(GCCBIN)/arm-none-eabi-gcc
-AS       = $(GCCBIN)/arm-none-eabi-as
-AR       = $(GCCBIN)/arm-none-eabi-ar
-NM       = $(GCCBIN)/arm-none-eabi-nm
-LINKER   = $(GCCBIN)/arm-none-eabi-ld
-OBJCOPY  = $(GCCBIN)/arm-none-eabi-objcopy
-OBJDUMP  = $(GCCBIN)/arm-none-eabi-objdump
-STRIP    = $(GCCBIN)/arm-none-eabi-strip
+
+# Target triple for the build. Use arm-none-eabi if you are unsure.
+TARGET_TRIPLE ?= arm-none-eabi
+
+# Path to GCC bin directory, this is where the cross compiler toolchain executables are installed.
+# TODO(henrik) Fix this, beacause a CPU should not have any references to a platform.
+GCCBIN ?= $(CONTIKI)/platform/mulle/tools/gcc-arm/bin/
+
+# Toolchain prefix, composed of the path and target triple, you will most likely not need to touch this.
+TCPREFIX ?= $(if $(GCCBIN),$(GCCBIN)/)$(if $(TARGET_TRIPLE),$(TARGET_TRIPLE)-)
+
+CC       = $(TCPREFIX)gcc
+LD       = $(TCPREFIX)gcc
+AS       = $(TCPREFIX)as
+AR       = $(TCPREFIX)ar
+NM       = $(TCPREFIX)nm
+LINKER   = $(TCPREFIX)ld
+OBJCOPY  = $(TCPREFIX)objcopy
+OBJDUMP  = $(TCPREFIX)objdump
+STRIP    = $(TCPREFIX)strip
 CFLAGSNO = -I$(CONTIKI_CPU) \
            -I$(CONTIKI)/platform/$(TARGET) \
            ${addprefix -I,$(APPDIRS)} \
            -I. -I$(CONTIKI)/core \
            -Wall -mcpu=cortex-m4
 #AROPTS   = rv
-CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles 
-LDFLAGS  += $(CFLAGS) -T $(CONTIKI_CPU)/mulle.ld 
+CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles
+LDFLAGS  += $(CFLAGS) -T $(CONTIKI_CPU)/mulle.ld
 
 ### Setup directory search path for source files
 
@@ -68,10 +77,10 @@ $(OBJECTDIR)/startcode.o: startcode.S
 	$(AS) -g -mcpu=cortex-m4 -mthumb -o $@ $<
 
 all: bytes
-bytes: 
+bytes:
 	@$(OBJDUMP) -h $(CONTIKI_PROJECT).$(TARGET) | perl -ne '$$b{$$1}=hex $$2 if /^\s*\d+\s*\.(text|data|bss)\s+(\S+)/; END { printf("%16d bytes in ROM\n%16d bytes in RAM\n",$$b{text}+$$b{data},$$b{data}+$$b{bss}); }'
 
-%-stripped.o: %.c 
+%-stripped.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 	$(STRIP) --strip-unneeded -g -x $@
 
@@ -88,7 +97,7 @@ bytes:
 	cp $(CONTIKI_CPU)/mulle-arch.gdb /tmp/mulle-arch.gdb
 	sed -i 's/target remote :3333/target remote :$(GDB_PORT)/' /tmp/mulle-arch.gdb
 	$(GCCBIN)/arm-none-eabi-gdb -x /tmp/mulle-arch.gdb $<
-	
+
 symbols.c:
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
 	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
