@@ -2,7 +2,7 @@ ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
 PLATFORM_DIR = $(CONTIKI)/platform/mulle
-CONTIKI_TARGET_DIRS = . dev
+CONTIKI_TARGET_DIRS = . dev stdio
 CONTIKI_CORE=contiki-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
