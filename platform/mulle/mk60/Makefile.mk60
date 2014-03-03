@@ -17,13 +17,14 @@ CONTIKI_CPU=$(PLATFORM_DIR)/mk60
 
 ### Define the source files
 
-CONTIKI_CPU_DIRS = . $(CONTIKI)/../minimal common drivers cpu
+CONTIKI_CPU_DIRS = . common drivers cpu
 
 CONTIKI_TARGET_SOURCEFILES += startcode.S uart.c uprintf.c clock.c interrupt.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
-GCCBIN = $(CONTIKI)/../tools/gcc-arm/bin
+# TODO(henrik) Fix this, beacause a CPU should not have any references to a platform.
+GCCBIN = $(CONTIKI)/platform/mulle/tools/gcc-arm/bin
 ### Compiler definitions
 CC       = $(GCCBIN)/arm-none-eabi-gcc
 LD       = $(GCCBIN)/arm-none-eabi-gcc
@@ -41,7 +42,7 @@ CFLAGSNO = -I$(CONTIKI_CPU) \
            -Wall -mcpu=cortex-m4
 #AROPTS   = rv
 CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles 
-LDFLAGS  += $(CFLAGS) -T $(CONTIKI)/../ldscripts/mulle.ld 
+LDFLAGS  += $(CFLAGS) -T $(CONTIKI_CPU)/mulle.ld 
 
 ### Setup directory search path for source files
 
@@ -61,9 +62,9 @@ endif
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c $(OBJECTDIR)
-	$(CC) $(CFLAGS) -MMD -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJECTDIR)/startcode.o: $(CONTIKI)/../minimal/startcode.S
+$(OBJECTDIR)/startcode.o: startcode.S
 	$(AS) -g -mcpu=cortex-m4 -mthumb -o $@ $<
 
 all: bytes

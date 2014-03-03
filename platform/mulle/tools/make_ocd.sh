@@ -1,6 +1,4 @@
 #!/bin/bash
-mkdir tools
-cd tools
 sudo apt-get install libusb-1.0-0-dev
 wget -O openocd.tar.bz2 http://downloads.sourceforge.net/project/openocd/openocd/0.7.0/openocd-0.7.0.tar.bz2
 tar -xf openocd.tar.bz2
