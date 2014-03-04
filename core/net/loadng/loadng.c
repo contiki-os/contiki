@@ -327,21 +327,29 @@ static uip_ds6_route_t* uip_loadng_route_add(uip_ipaddr_t* orig_addr, uint8_t le
   
   in_loadng_call=1;
 
-  PRINTF(" nexthop ");
+  PRINTF("uip_loadng_route_add() --- nexthop :");
   PRINT6ADDR(next_hop);
+  PRINTF(" to: ");
+  PRINT6ADDR(orig_addr);
   PRINTF(" \n ");
   uip_loadng_nbr_add(next_hop);
-  
+ 
   rt = uip_ds6_route_add(orig_addr, length, next_hop);
   PRINTF("passed add route\n");
+  
+  if(rt){
+    rt->state.route_cost=route_cost ;
+    rt->state.seqno=seqno ;
+    rt->state.valid_time = LOADNG_R_HOLD_TIME ;
 
-  rt->state.route_cost=route_cost ;
-  rt->state.seqno=seqno ;
-  rt->state.valid_time = LOADNG_R_HOLD_TIME ;
+    in_loadng_call=0;
 
-  in_loadng_call=0;
-
-  return rt ;
+    return rt ;
+  }
+  else{ 
+    in_loadng_call=0;
+    return NULL ;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -643,11 +651,13 @@ handle_incoming_rrep(void)
     PRINTF("LOADng: Inserting route from RREP\n");
     rt=uip_loadng_route_add(&rm->orig_addr, DEFAULT_PREFIX_LEN,
             &UIP_IP_BUF->srcipaddr,rm->route_cost,rm->seqno);
+    if(rt){            
 #if LOADNG_RREP_ACK
-    rt->state.ack_received = 0; /* Pending route for ACK */
+      rt->state.ack_received = 0; /* Pending route for ACK */
 #else
-    rt->state.ack_received = 1; 
+      rt->state.ack_received = 1; 
 #endif
+    }
   }
   else if(SEQNO_GREATER_THAN(rm->seqno,rt->state.seqno) 
           || (rm->seqno==rt->state.seqno && rm->route_cost < rt->state.route_cost)){
