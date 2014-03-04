@@ -284,10 +284,10 @@ get_global_addr(uip_ipaddr_t *addr)
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      //if(!uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
+      if(!uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
         memcpy(addr, &uip_ds6_if.addr_list[i].ipaddr, sizeof(uip_ipaddr_t));
         return 1;
-      //}
+      }
     }
   }
   return 0;
@@ -333,7 +333,7 @@ static uip_ds6_route_t* uip_loadng_route_add(uip_ipaddr_t* orig_addr, uint8_t le
   uip_loadng_nbr_add(next_hop);
   
   rt = uip_ds6_route_add(orig_addr, length, next_hop);
-        PRINTF("passed add route\n");
+  PRINTF("passed add route\n");
 
   rt->state.route_cost=route_cost ;
   rt->state.seqno=seqno ;
@@ -728,6 +728,13 @@ handle_incoming_rerr(void)
   struct uip_ds6_route *rt;
   uip_ds6_defrt_t *defrt;
   
+  #if USE_OPT
+  uip_ipaddr_t mcastLoadAddr;
+  uip_create_linklocal_lln_routers_mcast(&mcastLoadAddr);
+  #endif //USE_OPT
+
+
+  
   PRINTF("LOADng: RERR ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF(" -> ");
@@ -754,15 +761,26 @@ handle_incoming_rerr(void)
   // if the RERR comes from a default router and it's for me, send spontaneous RREP
   defrt=uip_ds6_defrt_lookup(&UIP_IP_BUF->srcipaddr);
   if(defrt!=NULL && loadng_is_my_global_address(&rm->src_addr)){
-  PRINTF("send RREP\n");
+    PRINTF("send RREP\n");
     send_rrep(&my_sink_id, &defrt->ipaddr, &myipaddr, &my_hseqno, 0);
+    return;
   }
   // otherwise, if there is a matching tupple, send along default route
   
   #endif //USE_OPT
   // Draft draft-clausen-lln-loadng-10#section-14.3 : still forward even if no matching routing tupple found
-  if(rt != NULL)
-    send_rerr(&rm->src_addr, &rm->addr_in_error, uip_ds6_route_nexthop(rt)); /* Forward RERR to nexthop */
+  if(rt != NULL){
+    send_rerr(&rm->src_addr, &rm->addr_in_error, uip_ds6_route_nexthop(rt));
+  } /* Forward RERR to nexthop */
+  #if USE_OPT 
+  // If the RERR was multicast and I had a route, send along default route
+  // If not multicast, send along default route
+  else if(!uip_ipaddr_cmp(&UIP_IP_BUF->destipaddr,&mcastLoadAddr) || rt_in_err != NULL){
+    if(!loadng_is_my_global_address(&rm->src_addr))
+      send_rerr(&rm->src_addr, &rm->addr_in_error, uip_ds6_defrt_choose());
+  }
+  #endif //USE_OPT
+     
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -887,11 +905,12 @@ print_local_addresses(void)
   int i;
   uint8_t state;
 
-  PRINTF("LOADng IPv6 addresses: ");
+  PRINTF("LOADng IPv6 addresses: \n");
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
+      PRINTF("- ");
       PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
       PRINTF("\n");
     }
@@ -1042,7 +1061,19 @@ get_prefix_from_addr(uip_ipaddr_t *addr, uip_ipaddr_t *prefix, uint8_t len)
 }
 /*---------------------------------------------------------------------------*/
 uint8_t loadng_is_my_global_address(uip_ipaddr_t *addr){
-  return uip_ipaddr_cmp(addr, &myipaddr);
+  int i;
+  int state;
+
+  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
+    state = uip_ds6_if.addr_list[i].state;
+    if(uip_ds6_if.addr_list[i].isused &&
+       (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
+       if (uip_ipaddr_cmp(addr, &uip_ds6_if.addr_list[i].ipaddr)){
+          return 1 ;
+       }
+    }  
+  }
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*/
