@@ -759,6 +759,11 @@ handle_incoming_rerr(void)
   rt_in_err = loadng_route_lookup(&rm->addr_in_error);
   rt = loadng_route_lookup(&rm->src_addr);
 
+  // It may happen that the address in error is mine... Stop here !
+  if(loadng_is_my_global_address(&rm->addr_in_error)){
+    return ;
+  }
+
   /* No route? */
   if(rt_in_err == NULL){
     PRINTF("LOADng: Received RERR for non-existing route\n");
