@@ -53,6 +53,18 @@
  * @{
  */
 #define IEEE_ADDR_LOCATION_PRIMARY   0x00280028 /**< IEEE address location */
+#define IEEE_ADDR_LOCATION_SECONDARY 0x0027FFCC /**< IEEE address location */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Select which address location to use
+ * @{
+ */
+#if IEEE_ADDR_CONF_USE_SECONDARY_LOCATION
+#define IEEE_ADDR_LOCATION IEEE_ADDR_LOCATION_SECONDARY
+#else
+#define IEEE_ADDR_LOCATION IEEE_ADDR_LOCATION_PRIMARY
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /*
