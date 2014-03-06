@@ -254,7 +254,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         String currentItem = (String)varNameCombo.getSelectedItem();
         
         /* If item did not changed, skip! */
-        if (currentItem.equals(lastItem)) {
+        if (currentItem == null || currentItem.equals(lastItem)) {
           return;
         }
         lastItem = currentItem;
@@ -265,7 +265,19 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
           /* calculate number of elements required to show the value in the given size */
           updateNumberOfValues();
           varAddressField.setText(String.format("0x%04x", moteMemory.getVariableAddress(currentItem)));
-          varSizeField.setText(String.valueOf(moteMemory.getVariableSize(currentItem)));
+          long size = moteMemory.getVariableSize(currentItem);
+          /* Disable buttons if variable reported size < 1, activate otherwise */
+          if (size < 1) {
+            varSizeField.setText("N/A");
+            readButton.setEnabled(false);
+            monitorButton.setEnabled(false);
+            writeButton.setEnabled(false);
+          } else {
+            varSizeField.setText(String.valueOf(size));
+            readButton.setEnabled(true);
+            monitorButton.setEnabled(true);
+            writeButton.setEnabled(true);
+          }
         }
         catch (UnknownVariableException ex) {
           ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(Color.RED);
