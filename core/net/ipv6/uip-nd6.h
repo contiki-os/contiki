@@ -337,34 +337,8 @@ uip_nd6_ns_input(void);
 void
 uip_nd6_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt);
 
-/**
- * \brief Process a Neighbor Advertisement
- *
- * we might have to send a pkt that had been buffered while address
- * resolution was performed (if we support buffering, see UIP_CONF_QUEUE_PKT)
- *
- * As per RFC 4861, on link layer that have addresses, TLLAO options MUST be
- * included when responding to multicast solicitations, SHOULD be included in
- * response to unicast (here we assume it is for now)
- *
- * NA can be received after sending NS for DAD, Address resolution or NUD. Can
- * be unsolicited as well.
- * It can trigger update of the state of the neighbor in the neighbor cache,
- * router in the router list.
- * If the NS was for DAD, it means DAD failed
- *
- */
-void
-uip_nd6_na_input(void);
-
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
-/**
- * \brief Process a Router Solicitation
- *
- */
-void uip_nd6_rs_input(void);
-
 /**
  * \brief send a Router Advertisement
  *
@@ -388,17 +362,9 @@ void uip_nd6_ra_output(uip_ipaddr_t *dest);
 void uip_nd6_rs_output(void);
 
 /**
- *
- * \brief process a Router Advertisement
- *
- * - Possible actions when receiving a RA: add router to router list,
- *   recalculate reachable time, update link hop limit, update retrans timer.
- * - If MTU option: update MTU.
- * - If SLLAO option: update entry in neighbor cache
- * - If prefix option: start autoconf, add prefix to prefix list
+ * \brief Initialise the uIP ND core
  */
-void
-uip_nd6_ra_input(void);
+void uip_nd6_init(void);
 /** @} */
 
 
