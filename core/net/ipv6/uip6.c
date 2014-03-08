@@ -411,6 +411,7 @@ uip_init(void)
 {
    
   uip_ds6_init();
+  uip_icmp6_init();
 
 #if UIP_TCP
   for(c = 0; c < UIP_LISTENPORTS; ++c) {

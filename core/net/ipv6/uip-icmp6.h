@@ -109,24 +109,6 @@ typedef struct uip_icmp6_error{
 
 /** \name ICMPv6 RFC4443 Message processing and sending */
 /** @{ */
-/** \
- * brief Process an echo request 
- *
- * Perform a few checks, then send an Echo reply. The reply is 
- * built here.
-  */
-void
-uip_icmp6_echo_request_input(void);
-
-/** \
- * brief Process an echo reply
- *
- * Perform a few checks, then call applications to inform that an echo
- * reply has been received.
-  */
-void
-uip_icmp6_echo_reply_input(void);
-
 /**
  * \brief Send an icmpv6 error message
  * \param type type of the error message
@@ -246,6 +228,12 @@ uint8_t uip_icmp6_input(uint8_t type, uint8_t icode);
  * \param handler A pointer to the handler
  */
 void uip_icmp6_register_input_handler(uip_icmp6_input_handler_t *handler);
+
+
+/**
+ * \brief Initialise the uIP ICMPv6 core
+ */
+void uip_icmp6_init(void);
 
 /** @} */
 
