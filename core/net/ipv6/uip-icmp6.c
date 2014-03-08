@@ -74,7 +74,50 @@
 static uip_ipaddr_t tmp_ipaddr;
 
 LIST(echo_reply_callback_list);
+/*---------------------------------------------------------------------------*/
+/* List of input handlers */
+LIST(input_handler_list);
+/*---------------------------------------------------------------------------*/
+static uip_icmp6_input_handler_t *
+input_handler_lookup(uint8_t type, uint8_t icode)
+{
+  uip_icmp6_input_handler_t *handler = NULL;
 
+  for(handler = list_head(input_handler_list);
+      handler != NULL;
+      handler = list_item_next(handler)) {
+    if(handler->type == type &&
+       (handler->icode == icode ||
+        handler->icode == UIP_ICMP6_HANDLER_CODE_ANY)) {
+      return handler;
+    }
+  }
+
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+uip_icmp6_input(uint8_t type, uint8_t icode)
+{
+  uip_icmp6_input_handler_t *handler = input_handler_lookup(type, icode);
+
+  if(handler == NULL) {
+    return UIP_ICMP6_INPUT_ERROR;
+  }
+
+  if(handler->handler == NULL) {
+    return UIP_ICMP6_INPUT_ERROR;
+  }
+
+  handler->handler();
+  return UIP_ICMP6_INPUT_SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_icmp6_register_input_handler(uip_icmp6_input_handler_t *handler)
+{
+  list_add(input_handler_list, handler);
+}
 /*---------------------------------------------------------------------------*/
 void
 uip_icmp6_echo_request_input(void)
