@@ -160,14 +160,14 @@ static struct
 
 static void 	cmd_wrdi(enum flash_id_t);
 static void	cmd_wren(enum flash_id_t);
-static void	cmd_clsr(enum flash_id_t);
+//static void	cmd_clsr(enum flash_id_t);
 static uint32_t	cmd_rdscur(enum flash_id_t);
 static void	cmd_wrsr(enum flash_id_t, uint32_t);
 static uint32_t	cmd_rdsr(enum flash_id_t);
 static uint32_t	cmd_rdid(enum flash_id_t);
 static uint32_t	cmd_pp(enum flash_id_t, flash_addr_t, uint8_t *, uint32_t);
 static void	cmd_se(enum flash_id_t, uint32_t);
-static void	cmd_be(enum flash_id_t, uint32_t);
+//static void	cmd_be(enum flash_id_t, uint32_t);
 static void	cmd_ce(enum flash_id_t);
 
 /* ************************************************************************** */
@@ -248,11 +248,11 @@ static uint32_t cmd_rdscur(enum flash_id_t id)
 
 /* ************************************************************************** */
 
-static void cmd_clsr(enum flash_id_t id)
-{
-  spi_write(id, SPI_TRANSFER_DONE, FLASH_CMD_CLSR);
-  spi_read();
-}
+//static void cmd_clsr(enum flash_id_t id)
+//{
+//  spi_write(id, SPI_TRANSFER_DONE, FLASH_CMD_CLSR);
+//  spi_read();
+//}
 
 /* ************************************************************************** */
 
