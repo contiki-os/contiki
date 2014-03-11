@@ -9,11 +9,13 @@
 #include "flash.h"
 
 #include "udelay.h"
-#define FLASH_DEBUG
-/* ************************************************************************** */
 
+//TODO(henrik) Clean up
+
+/* ************************************************************************** */
+//#define FLASH_DEBUG
 #ifdef FLASH_DEBUG
-#include "stdio.h"
+#include <stdio.h>
 #	define DEBUG(...)	printf(__VA_ARGS__)
 #else
 #	define DEBUG(...)	(void)(0);
@@ -321,9 +323,9 @@ static uint32_t cmd_ppi(enum flash_id_t id, flash_addr_t addr, uint8_t *data, ui
   spi_write(id, SPI_TRANSFER_DONE, ~(*data));
   spi_read();
 
-  if (cmd_rdscur(id) & FLASH_SECURITY_P_FAIL) {
-    return E_FLASH_WRITE_FAILED;
-  }
+//  if (cmd_rdscur(id) & FLASH_SECURITY_P_FAIL) {
+//    return E_FLASH_WRITE_FAILED;
+//  }
 
   return E_FLASH_OK;
 }

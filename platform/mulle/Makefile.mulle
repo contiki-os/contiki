@@ -19,6 +19,8 @@ CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
   leds.c \
   power-control.c \
   flash.c \
+  xmem.c \
+  cfs-coffee.c \
   lis3dh.c \
   lis3dh-arch.c
 
