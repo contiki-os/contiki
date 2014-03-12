@@ -1739,11 +1739,12 @@ struct uip_ip_hdr {
  * IPv6 extension option headers: we are able to process
  * the 4 extension headers defined in RFC2460 (IPv6):
  * - Hop by hop option header, destination option header:
- *   These two are not used by any core IPv6 protocol, hence
- *   we just read them and go to the next. They convey options,
- *   the options defined in RFC2460 are Pad1 and PadN, which do
- *   some padding, and that we do not need to read (the length
- *   field in the header is enough)
+ *   The hop by hop option header is used in MLDv1 and contains
+ *   TLV encoded data. The destination options header is not used
+ *   here, so we just skip it.
+ *   Possible options are defined in RFC2460 (which only defines
+ *   Pad1 and PadN, which we skip) and RFC2711, which defines the
+ *   router alter option used in MLD.
  * - Routing header: this one is most notably used by MIPv6,
  *   which we do not implement, hence we just read it and go
  *   to the next
@@ -1760,6 +1761,20 @@ typedef struct uip_ext_hdr {
   uint8_t next;
   uint8_t len;
 } uip_ext_hdr;
+
+/* Tag-length-value part for router alert option */
+typedef struct uip_ext_hdr_rtr_alert_tlv {
+  uint8_t tag;
+  uint8_t len;
+  uint16_t value;
+} uip_ext_hdr_rtr_alert_tlv;
+
+/* Tag-length-value part for PadN option */
+typedef struct uip_ext_hdr_padn_tlv {
+  uint8_t tag;
+  uint8_t len;
+  /* remaining bytes are implied by length */
+} uip_ext_hdr_padn_tlv;
 
 /* Hop by Hop option header */
 typedef struct uip_hbho_hdr {
@@ -1892,6 +1907,7 @@ struct uip_udp_hdr {
 /** \brief  Destination and Hop By Hop extension headers option types */
 #define UIP_EXT_HDR_OPT_PAD1  0
 #define UIP_EXT_HDR_OPT_PADN  1
+#define UIP_EXT_HDR_OPT_RTR_ALERT 5
 #define UIP_EXT_HDR_OPT_RPL   0x63
 
 /** @} */
@@ -2092,6 +2108,15 @@ CCIF extern uip_lladdr_t uip_lladdr;
  * */
 #define uip_is_addr_mcast(a)                    \
   (((a)->u8[0]) == 0xFF)
+
+/**
+ * \brief is address a multicast address with scope larger than 
+ * link local (which means: routable), see RFC 3513
+ * a is of type uip_ipaddr_t*
+ * */
+#define uip_is_addr_routable_mcast(a)           \
+  ((((a)->u8[0]) == 0xFF) && \
+   ((a)->u8[1] > 0x02))
 
 /**
  * \brief is group-id of multicast address a
