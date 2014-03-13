@@ -1,8 +1,8 @@
-#ifndef __PING6_H__
-#define __PING6_H__
+#ifndef PING6_H_
+#define PING6_H_
 
 #include "contiki.h"
 
 PROCESS_NAME(ping6_process);
 
-#endif /* __PING6_H__ */
+#endif /* PING6_H_ */

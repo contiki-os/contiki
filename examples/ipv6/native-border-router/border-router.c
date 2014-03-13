@@ -41,8 +41,8 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/uip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #include "net/rpl/rpl.h"
 
 #include "net/netstack.h"
@@ -57,7 +57,7 @@
 #include <ctype.h>
 
 #define DEBUG DEBUG_FULL
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #define MAX_SENSORS 4
 
@@ -158,7 +158,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   for(nbr = nbr_table_head(ds6_neighbors);
       nbr != NULL;
       nbr = nbr_table_next(ds6_neighbors, nbr)) {
-    ipaddr_add(&nbr->ipaddr;);
+    ipaddr_add(&nbr->ipaddr);
     ADD("\n");
     if(blen > sizeof(buf) - 45) {
       SEND_STRING(&s->sout, buf);
@@ -245,7 +245,7 @@ void
 border_router_set_mac(const uint8_t *data)
 {
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
-  rimeaddr_set_node_addr((rimeaddr_t *)uip_lladdr.addr);
+  linkaddr_set_node_addr((linkaddr_t *)uip_lladdr.addr);
 
   /* is this ok - should instead remove all addresses and
      add them back again - a bit messy... ?*/

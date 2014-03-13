@@ -34,12 +34,12 @@
 
 /* debug */
 #define DEBUG DEBUG_FULL
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /* contiki */
 #include "contiki.h"
 #include "dev/button-sensor.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "net/netstack.h"
 
 /* mc1322x */
@@ -123,7 +123,7 @@ int main(void) {
 	contiki_maca_set_mac_address(mc1322x_config.eui);
 
 #if WITH_UIP6
-	memcpy(&uip_lladdr.addr, &rimeaddr_node_addr.u8, sizeof(uip_lladdr.addr));
+	memcpy(&uip_lladdr.addr, &linkaddr_node_addr.u8, sizeof(uip_lladdr.addr));
 	queuebuf_init();
 	NETSTACK_RDC.init();
 	NETSTACK_MAC.init();

@@ -10,4 +10,8 @@ CFLAGS=-DUIP_CONF_IPV6=0 -DUIP_CONF_IPV6_RPL=0
 
 CONTIKI = ../..
 
+MODULES+=core/net/mac/sicslowmac core/net/mac
+
+PROJECT_SOURCEFILES += fakeuip.c
+
 include $(CONTIKI)/Makefile.include

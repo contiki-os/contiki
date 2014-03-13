@@ -62,7 +62,7 @@
 #define FRAME_802154_H
 
 #include "contiki-conf.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 
 #ifdef IEEE802154_CONF_PANID
 #define IEEE802154_PANID           IEEE802154_CONF_PANID
@@ -155,7 +155,7 @@ typedef struct {
   uint8_t src_addr[8];      /**< Source address */
   frame802154_aux_hdr_t aux_hdr;    /**< Aux security header */
   uint8_t *payload;     /**< Pointer to 802.15.4 frame payload */
-  uint8_t payload_len;  /**< Length of payload field */
+  int payload_len;  /**< Length of payload field */
 } frame802154_t;
 
 /* Prototypes */

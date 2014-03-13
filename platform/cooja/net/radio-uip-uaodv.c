@@ -31,11 +31,10 @@
  */
 
 #include "radio-uip-uaodv.h"
-#include "net/hc.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include "net/uaodv.h"
-#include "net/uaodv-rt.h"
-#include "net/uaodv-def.h"
+#include "net/ipv4/uaodv-rt.h"
+#include "net/ipv4/uaodv-def.h"
 #include "lib/crc16.h"
 #include "list.h"
 #include <string.h>

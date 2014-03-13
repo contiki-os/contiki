@@ -7,8 +7,6 @@ all: er-example-server er-example-client
 WITH_COAP=13
 
 
-# variable for Makefile.include
-WITH_UIP6=1
 # for some platforms
 UIP_CONF_IPV6=1
 # IPv6 make config disappeared completely

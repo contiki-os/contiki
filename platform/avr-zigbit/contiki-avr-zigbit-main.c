@@ -55,7 +55,7 @@
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
-#include "net/sicslowpan.h"
+#include "net/ipv6/sicslowpan.h"
 #else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
 #include "mac.h"
@@ -120,8 +120,8 @@ init_lowlevel(void)
 
   /* Set addresses BEFORE starting tcpip process */
 
-  rimeaddr_t addr;
-  memset(&addr, 0, sizeof(rimeaddr_t));
+  linkaddr_t addr;
+  memset(&addr, 0, sizeof(linkaddr_t));
   eeprom_read_block ((void *)&addr.u8,  &mac_address, 8);
  
 #if UIP_CONF_IPV6
@@ -134,7 +134,7 @@ init_lowlevel(void)
   rf230_set_channel(26);
 #endif
 
-  rimeaddr_set_node_addr(&addr); 
+  linkaddr_set_node_addr(&addr); 
 
   PRINTF("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 

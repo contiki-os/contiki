@@ -1,0 +1,198 @@
+# Copyright (c) 2014, Analog Devices, Inc.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+# STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+# OF THE POSSIBILITY OF SUCH DAMAGE.
+# 
+# Author: Ian Martin <martini@redwirellc.com>
+
+CONTIKI_CPU=$(CONTIKI)/cpu/rl78
+
+### Compiler definitions
+ifdef IAR
+  # Use IAR compiler.
+  
+  # Default code and data models (n = near, f = far):
+  CODE_MODEL ?= n
+  DATA_MODEL ?= n
+
+  DEVICE ?= r5f100ll
+
+  # According to "rl78/config/devices/RL78 - G13/r5f100ll.menu", the R5F100LLA has core 1.
+  RL78_CORE  ?= 1
+
+  # Default library configuration (n = normal, f = full):
+  LIB_CONFIG ?= n
+
+  ifeq ($(IAR_PATH),)
+    IAR_SUBPATH := $(shell ls "C:\Program Files\IAR Systems" | tail -1 )
+
+    ifeq ($(IAR_SUBPATH),)
+      $(error Unable to find the IAR installation path. Please specify IAR_PATH. For example: make IAR_PATH="C:\\Program\ Files\\IAR\ Systems\\Embedded\ Workbench\ 6.5\\rl78" )
+    endif
+
+    IAR_PATH := "C:\Program Files\IAR Systems\$(IAR_SUBPATH)\rl78"
+  endif
+
+  CC = $(IAR_PATH)\\bin\\iccrl78
+  LD = $(IAR_PATH)\\bin\\xlink
+  AR = $(IAR_PATH)\\bin\\xar
+
+  CFLAGS  += --silent
+  CFLAGS  += --debug
+  CFLAGS  += --core rl78_$(RL78_CORE)
+  CFLAGS  += --code_model $(CODE_MODEL)
+  CFLAGS  += --data_model $(DATA_MODEL)
+  CFLAGS  += -I$(IAR_PATH)\\lib
+
+  LDFLAGS += -S
+  LDFLAGS += -D_NEAR_CONST_LOCATION=0
+  LDFLAGS += -D_NEAR_CONST_LOCATION_START=03000
+  LDFLAGS += -D_NEAR_CONST_LOCATION_END=07EFF
+  LDFLAGS += -D_NEAR_HEAP_SIZE=400
+  LDFLAGS += -D_FAR_HEAP_SIZE=4000
+  LDFLAGS += -D_CSTACK_SIZE=400
+  LDFLAGS += -s __program_start
+  LDFLAGS += -f $(IAR_PATH)\\config\\lnk$(DEVICE).xcl
+  LDFLAGS += -Felf
+
+  AROPTS ?= -S
+  
+  TARGET_LIBFILES += $(IAR_PATH)\\lib\\dlrl78$(CODE_MODEL)$(DATA_MODEL)$(RL78_CORE)$(LIB_CONFIG).r87
+
+CUSTOM_RULE_C_TO_O = 1
+%.o: %.c
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $< -o $@
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
+
+CUSTOM_RULE_C_TO_CO = 1
+%.co: %.c
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
+
+# The only reason we use a custom link rule here is to simultaneously produce an srec file.
+CUSTOM_RULE_LINK = 1
+%.$(TARGET) %.$(TARGET).srec: %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@ -Omotorola=$@.srec
+else
+  # Use the GNU RL78 toolchain.
+  
+  ifndef CROSS_COMPILE
+    ifeq ($(shell which rl78-elf-gcc),)
+      # The RL78 toolchain is not in the path. Try finding it in /usr/share:
+      CROSS_COMPILE := $(shell echo /usr/share/*rl78*/bin | tail -1)/rl78-elf-
+    else
+      # The RL78 toolchain is in the path. Use it directly:
+      CROSS_COMPILE := rl78-elf-
+    endif
+  endif
+  
+  CC       = $(CROSS_COMPILE)gcc
+  LD       = $(CROSS_COMPILE)gcc
+  AS       = $(CROSS_COMPILE)gcc
+  AR       = $(CROSS_COMPILE)ar
+  NM       = $(CROSS_COMPILE)nm
+  OBJCOPY  = $(CROSS_COMPILE)objcopy
+  OBJDUMP  = $(CROSS_COMPILE)objdump
+  STRIP    = $(CROSS_COMPILE)strip
+
+  ifdef WERROR
+    CFLAGSWERROR ?= -Werror -pedantic -std=c99 -Werror
+  endif
+  
+  CFLAGSNO ?= -Wall -g $(CFLAGSWERROR)
+  CFLAGS  += $(CFLAGSNO) -O
+
+  CFLAGS += -mmul=g13
+  CFLAGS  += -Os -ggdb -ffunction-sections -fdata-sections
+  CFLAGS  += -fno-strict-aliasing
+
+  # Enable override of write() function:
+  CFLAGS  += -fno-builtin
+  LDFLAGS += -fno-builtin
+
+  LDFLAGS += -Wl,--gc-sections -T $(CONTIKI_CPU)/R5F100xL.ld -nostartfiles
+
+  ASFLAGS += -c
+  
+  # C runtime assembly:
+  CONTIKI_ASMFILES += crt0.S
+  CONTIKI_OBJECTFILES += $(OBJECTDIR)/crt0.o
+endif
+
+ifdef SERIAL_ID
+  CFLAGS += -DSERIAL_ID='$(SERIAL_ID)'
+endif
+
+### CPU-dependent directories
+CONTIKI_CPU_DIRS += .
+CONTIKI_CPU_DIRS += sys
+CONTIKI_CPU_DIRS += adf7023
+
+### CPU-dependent source files
+CONTIKI_SOURCEFILES += uart0.c
+CONTIKI_SOURCEFILES += clock.c
+CONTIKI_SOURCEFILES += write.c
+
+CONTIKI_SOURCEFILES += Communication.c
+CONTIKI_SOURCEFILES += ADF7023.c
+CONTIKI_SOURCEFILES += assert.c
+CONTIKI_SOURCEFILES += slip-arch.c
+CONTIKI_SOURCEFILES += contiki-uart.c
+CONTIKI_SOURCEFILES += watchdog.c
+
+### Compilation rules
+
+%.so: $(OBJECTDIR)/%.o
+	$(LD) -shared -o $@ $^
+
+ifdef CORE
+.PHONY: symbols.c symbols.h
+symbols.c symbols.h:
+	$(NM) -C $(CORE) | grep -v @ | grep -v dll_crt0 | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
+else
+symbols.c symbols.h:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+endif
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+
+%.srec: %
+	$(OBJCOPY) -O srec $^ $@
+
+%.lst: %.elf
+	$(OBJDUMP) -DS $^ > $@
+
+%.lst: %
+	$(OBJDUMP) -DS $^ > $@

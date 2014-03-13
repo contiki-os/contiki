@@ -45,8 +45,8 @@
  *         Mariano Alvira <mar@devl.org>
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include <stdint.h>
 
@@ -106,7 +106,7 @@
 #define PLATFORM_HAS_LEDS 1
 #define PLATFORM_HAS_BUTTON 1
 
-#define RIMEADDR_CONF_SIZE              8
+#define LINKADDR_CONF_SIZE              8
 
 #if WITH_UIP6
 /* Network setup for IPv6 */
@@ -126,7 +126,7 @@
 
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC     csma_driver
-#define NETSTACK_CONF_RDC     sicslowmac_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
 #define NETSTACK_CONF_RADIO   contiki_maca_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
@@ -171,7 +171,7 @@
 
 #ifdef WITH_UIP6
 
-#define RIMEADDR_CONF_SIZE              8
+#define LINKADDR_CONF_SIZE              8
 
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
@@ -243,4 +243,4 @@
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

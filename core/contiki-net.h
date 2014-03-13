@@ -31,31 +31,31 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __CONTIKI_NET_H__
-#define __CONTIKI_NET_H__
+#ifndef CONTIKI_NET_H_
+#define CONTIKI_NET_H_
 
 #include "contiki.h"
 
-#include "net/tcpip.h"
-#include "net/uip.h"
-#include "net/uip-fw.h"
-#include "net/uip-fw-drv.h"
-#include "net/uip_arp.h"
-#include "net/uiplib.h"
-#include "net/uip-udp-packet.h"
-#include "net/simple-udp.h"
+#include "net/ip/tcpip.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip-fw.h"
+#include "net/ipv4/uip-fw-drv.h"
+#include "net/ipv4/uip_arp.h"
+#include "net/ip/uiplib.h"
+#include "net/ip/uip-udp-packet.h"
+#include "net/ip/simple-udp.h"
 
 #if UIP_CONF_IPV6
-#include "net/uip-icmp6.h"
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-icmp6.h"
+#include "net/ipv6/uip-ds6.h"
 #endif /* UIP_CONF_IPV6 */
 
-#include "net/resolv.h"
+#include "net/ip/resolv.h"
 
-#include "net/psock.h"
+#include "net/ip/psock.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "net/netstack.h"
 
-#endif /* __CONTIKI_NET_H__ */
+#endif /* CONTIKI_NET_H_ */

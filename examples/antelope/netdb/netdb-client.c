@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "dev/serial-line.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/mesh.h"
 
 #include "antelope.h"
@@ -62,7 +62,7 @@ PROCESS(shell_process, "Shell Process");
 
 PROCESS_THREAD(shell_process, ev, data)
 {
-  rimeaddr_t addr;
+  linkaddr_t addr;
 
   PROCESS_BEGIN();
 
@@ -99,7 +99,7 @@ timedout(struct mesh_conn *c)
 }
 
 static void
-received(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops)
+received(struct mesh_conn *c, const linkaddr_t *from, uint8_t hops)
 {
   char *data;
   unsigned len;

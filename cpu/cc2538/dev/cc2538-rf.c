@@ -41,7 +41,7 @@
 #include "sys/rtimer.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "net/netstack.h"
 #include "sys/energest.h"
 #include "dev/cc2538-rf.h"
@@ -169,21 +169,46 @@ cc2538_rf_power_set(uint8_t new_power)
 void
 cc2538_rf_set_addr(uint16_t pan)
 {
-#if RIMEADDR_SIZE==8
+#if LINKADDR_SIZE==8
   /* EXT_ADDR[7:0] is ignored when using short addresses */
   int i;
 
-  for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
+  for(i = (LINKADDR_SIZE - 1); i >= 0; --i) {
     ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[i] =
-        rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1 - i];
+        linkaddr_node_addr.u8[LINKADDR_SIZE - 1 - i];
   }
 #endif
 
   REG(RFCORE_FFSM_PAN_ID0) = pan & 0xFF;
   REG(RFCORE_FFSM_PAN_ID1) = pan >> 8;
 
-  REG(RFCORE_FFSM_SHORT_ADDR0) = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1];
-  REG(RFCORE_FFSM_SHORT_ADDR1) = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 2];
+  REG(RFCORE_FFSM_SHORT_ADDR0) = linkaddr_node_addr.u8[LINKADDR_SIZE - 1];
+  REG(RFCORE_FFSM_SHORT_ADDR1) = linkaddr_node_addr.u8[LINKADDR_SIZE - 2];
+}
+/*---------------------------------------------------------------------------*/
+int
+cc2538_rf_read_rssi(void)
+{
+  int rssi;
+
+  /* If we are off, turn on first */
+  if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
+    rf_flags |= WAS_OFF;
+    on();
+  }
+
+  /* Wait on RSSI_VALID */
+  while((REG(RFCORE_XREG_RSSISTAT) & RFCORE_XREG_RSSISTAT_RSSI_VALID) == 0);
+
+  rssi = ((int8_t)REG(RFCORE_XREG_RSSI)) - RSSI_OFFSET;
+
+  /* If we were off, turn back off */
+  if((rf_flags & WAS_OFF) == WAS_OFF) {
+    rf_flags &= ~WAS_OFF;
+    off();
+  }
+
+  return rssi;
 }
 /*---------------------------------------------------------------------------*/
 /* Netstack API radio driver functions */
@@ -720,5 +745,14 @@ cc2538_rf_err_isr(void)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-
+void
+cc2538_rf_set_promiscous_mode(char p)
+{
+  if(p) {
+    REG(RFCORE_XREG_FRMFILT0) &= ~RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
+  } else {
+    REG(RFCORE_XREG_FRMFILT0) |= RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
+  }
+}
+/*---------------------------------------------------------------------------*/
 /** @} */

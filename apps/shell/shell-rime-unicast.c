@@ -45,7 +45,7 @@
 
 #include "lib/random.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/route.h"
 #include "net/rime/trickle.h"
 
@@ -81,7 +81,7 @@ SHELL_COMMAND(unicast_recv_command,
 PROCESS_THREAD(shell_unicast_send_process, ev, data)
 {
   struct shell_input *input;
-  static rimeaddr_t receiver;
+  static linkaddr_t receiver;
   int len;
   const char *nextptr;
   struct unicast_msg *msg;
@@ -131,7 +131,7 @@ PROCESS_THREAD(shell_unicast_send_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
+recv_uc(struct unicast_conn *c, const linkaddr_t *from)
 {
   struct unicast_msg *msg;
 #define OUTPUT_BLOB_HDRSIZE 6
@@ -153,7 +153,7 @@ recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
 #else
   output_blob.latency = 0;
 #endif
-  rimeaddr_copy((rimeaddr_t *)&output_blob.from, from);
+  linkaddr_copy((linkaddr_t *)&output_blob.from, from);
   memcpy(output_blob.data, msg->data, packetbuf_datalen() - UNICAST_MSG_HDRSIZE);
   output_blob.len = 2 + (packetbuf_datalen() - UNICAST_MSG_HDRSIZE) / 2;
   shell_output(&unicast_recv_command, &output_blob,

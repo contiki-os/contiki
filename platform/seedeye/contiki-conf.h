@@ -75,14 +75,14 @@ typedef uint32_t rtimer_clock_t;
 #define NETSTACK_CONF_MAC                       nullmac_driver
 #define NETSTACK_CONF_RDC                       nullrdc_driver
 #define NETSTACK_CONF_RADIO                     mrf24j40_driver
-#define RIMEADDR_CONF_SIZE                      8
+#define LINKADDR_CONF_SIZE                      8
 #else
 #define NETSTACK_CONF_NETWORK                   rime_driver
 #define NETSTACK_CONF_FRAMER                    framer_802154
 #define NETSTACK_CONF_MAC                       nullmac_driver
 #define NETSTACK_CONF_RDC                       nullrdc_driver
 #define NETSTACK_CONF_RADIO                     mrf24j40_driver
-#define RIMEADDR_CONF_SIZE                      2
+#define LINKADDR_CONF_SIZE                      2
 #endif
 
 #define RDC_CONF_HARDWARE_CSMA                  1

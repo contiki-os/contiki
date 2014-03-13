@@ -42,7 +42,7 @@
 #include "serial-shell.h"
 #include "collect-view.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 /*---------------------------------------------------------------------------*/
 PROCESS(sky_shell_process, "Sky Contiki shell");
@@ -71,8 +71,8 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_blink_init();
   /*  shell_file_init();
       shell_coffee_init();*/
-  /*  shell_download_init();
-      shell_rime_sendcmd_init();*/
+  /*  shell_download_init();*/
+  shell_rime_sendcmd_init();
   /*  shell_ps_init();*/
   shell_reboot_init();
   shell_rime_init();
@@ -87,7 +87,6 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   /*  shell_base64_init();*/
   shell_text_init();
   shell_time_init();
-  /*  shell_checkpoint_init();*/
   /*  shell_sendtest_init();*/
 
   shell_collect_view_init();

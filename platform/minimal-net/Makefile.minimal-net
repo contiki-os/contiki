@@ -28,3 +28,5 @@ endif
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
+
+MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 core/net/rime

@@ -39,8 +39,8 @@
  *         Simon Barner <barner@in.tum.de
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include <stdint.h>
 
@@ -94,7 +94,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 
 //#define UIP_CONF_IPV6            1  //Let makefile determine this so ipv4 hello-world will compile
 
-#define RIMEADDR_CONF_SIZE       8
+#define LINKADDR_CONF_SIZE       8
 #define PACKETBUF_CONF_HDR_SIZE    0
 
 /* 0 for IPv6, or 1 for HC1, 2 for HC01 */
@@ -144,4 +144,4 @@ typedef unsigned long u32_t;
 typedef unsigned short uip_stats_t;
 typedef unsigned long off_t;
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

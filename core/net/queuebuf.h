@@ -50,8 +50,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __QUEUEBUF_H__
-#define __QUEUEBUF_H__
+#ifndef QUEUEBUF_H_
+#define QUEUEBUF_H_
 
 #include "net/packetbuf.h"
 
@@ -103,12 +103,12 @@ void queuebuf_free(struct queuebuf *b);
 void *queuebuf_dataptr(struct queuebuf *b);
 int queuebuf_datalen(struct queuebuf *b);
 
-rimeaddr_t *queuebuf_addr(struct queuebuf *b, uint8_t type);
+linkaddr_t *queuebuf_addr(struct queuebuf *b, uint8_t type);
 packetbuf_attr_t queuebuf_attr(struct queuebuf *b, uint8_t type);
 
 void queuebuf_debug_print(void);
 
-#endif /* __QUEUEBUF_H__ */
+#endif /* QUEUEBUF_H_ */
 
 /** @} */
 /** @} */

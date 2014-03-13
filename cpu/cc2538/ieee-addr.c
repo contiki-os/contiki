@@ -36,7 +36,7 @@
  * Driver for the cc2538 IEEE addresses
  */
 #include "contiki-conf.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "ieee-addr.h"
 
 #include <stdint.h>
@@ -52,7 +52,7 @@ ieee_addr_cpy_to(uint8_t *dst, uint8_t len)
     /* Reading from Info Page, we need to invert byte order */
     int i;
     for(i = 0; i < len; i++) {
-      dst[i] = ((uint8_t *)IEEE_ADDR_LOCATION_PRIMARY)[len - 1 - i];
+      dst[i] = ((uint8_t *)IEEE_ADDR_LOCATION)[len - 1 - i];
     }
   }
 

@@ -39,8 +39,8 @@
  *         Kasun Hewage <kasun.ch@gmail.com>
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #define HAVE_STDINT_H
 #include "avrdef.h"
@@ -104,7 +104,7 @@
 
 #ifdef WITH_UIP6
 
-#define RIMEADDR_CONF_SIZE              8
+#define LINKADDR_CONF_SIZE              8
 
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
@@ -194,4 +194,4 @@ typedef unsigned long off_t;
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

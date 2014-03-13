@@ -46,7 +46,6 @@
 
 #include "cfs/cfs.h"
 #include "lib/print-stats.h"
-#include "sys/profile.h"
 
 #include <stdio.h>
 
@@ -60,7 +59,6 @@
 static unsigned long bytecount;
 static clock_time_t start_time;
 
-extern int profile_max_queuelen;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(example_rucb_process, "Rucb example");
@@ -92,8 +90,6 @@ read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
 
   if(bytecount == FILESIZE) {
     printf("Completion time %lu / %u\n", (unsigned long)clock_time() - start_time, CLOCK_SECOND);
-    /*     profile_aggregates_print(); */
-/*     profile_print_stats(); */
     print_stats();
   }
 
@@ -119,17 +115,17 @@ PROCESS_THREAD(example_rucb_process, ev, data)
 
   PROCESS_PAUSE();
 
-  if(rimeaddr_node_addr.u8[0] == 51 &&
-      rimeaddr_node_addr.u8[1] == 0) {
-    rimeaddr_t recv;
+  if(linkaddr_node_addr.u8[0] == 51 &&
+      linkaddr_node_addr.u8[1] == 0) {
+    linkaddr_t recv;
 
     recv.u8[0] = 52;
     recv.u8[1] = 0;
     start_time = clock_time();
 
     /*printf("%u.%u: sending rucb to address %u.%u at time %u\n",
-        rimeaddr_node_addr.u8[0],
-        rimeaddr_node_addr.u8[1],
+        linkaddr_node_addr.u8[0],
+        linkaddr_node_addr.u8[1],
         recv.u8[0],
         recv.u8[1],
         start_time);*/

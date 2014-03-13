@@ -46,7 +46,7 @@
 
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "net/netstack.h"
 
 #include <string.h>
@@ -146,18 +146,18 @@ cc2530_rf_power_set(uint8_t new_power)
 void
 cc2530_rf_set_addr(uint16_t pan)
 {
-#if RIMEADDR_SIZE==8 /* EXT_ADDR[7:0] is ignored when using short addresses */
+#if LINKADDR_SIZE==8 /* EXT_ADDR[7:0] is ignored when using short addresses */
   int i;
-  for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
-    ((uint8_t *)&EXT_ADDR0)[i] = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1 - i];
+  for(i = (LINKADDR_SIZE - 1); i >= 0; --i) {
+    ((uint8_t *)&EXT_ADDR0)[i] = linkaddr_node_addr.u8[LINKADDR_SIZE - 1 - i];
   }
 #endif
 
   PAN_ID0 = pan & 0xFF;
   PAN_ID1 = pan >> 8;
 
-  SHORT_ADDR0 = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1];
-  SHORT_ADDR1 = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 2];
+  SHORT_ADDR0 = linkaddr_node_addr.u8[LINKADDR_SIZE - 1];
+  SHORT_ADDR1 = linkaddr_node_addr.u8[LINKADDR_SIZE - 2];
 }
 /*---------------------------------------------------------------------------*/
 /* Netstack API radio driver functions */

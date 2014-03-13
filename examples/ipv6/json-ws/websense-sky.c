@@ -40,7 +40,7 @@
 
 #include "contiki.h"
 #include "dev/leds.h"
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 #include "jsontree.h"
 #include "json-ws.h"
 #include <stdio.h>

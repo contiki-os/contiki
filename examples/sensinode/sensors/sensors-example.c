@@ -81,7 +81,7 @@
 
 #include "contiki.h"
 #include "contiki-conf.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "dev/leds.h"
 #include "dev/watchdog.h"
 #include "lib/random.h"
@@ -111,7 +111,7 @@
 #if SEND_BATTERY_INFO
 #include "sensors-example.h"
 static void
-bc_rx(struct broadcast_conn *c, const rimeaddr_t *from)
+bc_rx(struct broadcast_conn *c, const linkaddr_t *from)
 {
   return;
 }

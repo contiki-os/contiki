@@ -42,7 +42,7 @@
 #include "aql.h"
 
 #define DEBUG   DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 static unsigned char char_buf[DB_MAX_CHAR_SIZE_PER_ROW];
 static uint8_t next_free_offset;

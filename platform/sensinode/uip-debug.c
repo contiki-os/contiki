@@ -37,7 +37,7 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 #include "debug.h"
 /*---------------------------------------------------------------------------*/
 void

@@ -40,13 +40,13 @@
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include "net/uip.h"
-#include "net/tcpip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ip/tcpip.h"
+#include "net/ipv6/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #include <limits.h>
 #include <string.h>
@@ -57,6 +57,47 @@
 rpl_stats_t rpl_stats;
 #endif
 
+static enum rpl_mode mode = RPL_MODE_MESH;
+/*---------------------------------------------------------------------------*/
+enum rpl_mode
+rpl_get_mode(void)
+{
+  return mode;
+}
+/*---------------------------------------------------------------------------*/
+enum rpl_mode
+rpl_set_mode(enum rpl_mode m)
+{
+  enum rpl_mode oldmode = mode;
+
+  /* We need to do different things depending on what mode we are
+     switching to. */
+  if(m == RPL_MODE_MESH) {
+
+    /* If we switcht to mesh mode, we should send out a DAO message to
+       inform our parent that we now are reachable. Before we do this,
+       we must set the mode variable, since DAOs will not be send if
+       we are in feather mode. */
+    PRINTF("RPL: switching to mesh mode\n");
+    mode = m;
+
+    if(default_instance != NULL) {
+      rpl_schedule_dao_immediately(default_instance);
+    }
+  } else if(m == RPL_MODE_FEATHER) {
+
+    PRINTF("RPL: switching to feather mode\n");
+    mode = m;
+    if(default_instance != NULL) {
+      rpl_cancel_dao(default_instance);
+    }
+
+  } else {
+    mode = m;
+  }
+
+  return oldmode;
+}
 /*---------------------------------------------------------------------------*/
 void
 rpl_purge_routes(void)
@@ -168,7 +209,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 }
 /*---------------------------------------------------------------------------*/
 void
-rpl_link_neighbor_callback(const rimeaddr_t *addr, int status, int numtx)
+rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
 {
   uip_ipaddr_t ipaddr;
   rpl_parent_t *parent;

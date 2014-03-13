@@ -43,7 +43,7 @@
  */
 
 #include "net/rime/stunicast.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include <string.h>
 
 #define DEBUG 0
@@ -56,11 +56,11 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_uc(struct unicast_conn *uc, const rimeaddr_t *from)
+recv_from_uc(struct unicast_conn *uc, const linkaddr_t *from)
 {
   register struct stunicast_conn *c = (struct stunicast_conn *)uc;
   PRINTF("%d.%d: stunicast: recv_from_uc from %d.%d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	from->u8[0], from->u8[1]);
   if(c->u->recv != NULL) {
     c->u->recv(c, from);
@@ -72,7 +72,7 @@ sent_by_uc(struct unicast_conn *uc, int status, int num_tx)
 {
   register struct stunicast_conn *c = (struct stunicast_conn *)uc;
   PRINTF("%d.%d: stunicast: recv_from_uc from %d.%d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
          packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
          packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1]);
   if(c->u->sent != NULL) {
@@ -98,7 +98,7 @@ stunicast_close(struct stunicast_conn *c)
   stunicast_cancel(c);
 }
 /*---------------------------------------------------------------------------*/
-rimeaddr_t *
+linkaddr_t *
 stunicast_receiver(struct stunicast_conn *c)
 {
   return &c->receiver;
@@ -110,7 +110,7 @@ send(void *ptr)
   struct stunicast_conn *c = ptr;
 
   PRINTF("%d.%d: stunicast: resend to %d.%d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 c->receiver.u8[0], c->receiver.u8[1]);
 	 if(c->buf) {
   	queuebuf_to_packetbuf(c->buf);
@@ -129,7 +129,7 @@ stunicast_set_timer(struct stunicast_conn *c, clock_time_t t)
 }
 /*---------------------------------------------------------------------------*/
 int
-stunicast_send_stubborn(struct stunicast_conn *c, const rimeaddr_t *receiver,
+stunicast_send_stubborn(struct stunicast_conn *c, const linkaddr_t *receiver,
 		  clock_time_t rxmittime)
 {
   if(c->buf != NULL) {
@@ -139,11 +139,11 @@ stunicast_send_stubborn(struct stunicast_conn *c, const rimeaddr_t *receiver,
   if(c->buf == NULL) {
     return 0;
   }
-  rimeaddr_copy(&c->receiver, receiver);
+  linkaddr_copy(&c->receiver, receiver);
   ctimer_set(&c->t, rxmittime, send, c);
 
   PRINTF("%d.%d: stunicast_send_stubborn to %d.%d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 c->receiver.u8[0],c->receiver.u8[1]);
   unicast_send(&c->c, &c->receiver);
   /*  if(c->u->sent != NULL) {
@@ -155,10 +155,10 @@ stunicast_send_stubborn(struct stunicast_conn *c, const rimeaddr_t *receiver,
 }
 /*---------------------------------------------------------------------------*/
 int
-stunicast_send(struct stunicast_conn *c, const rimeaddr_t *receiver)
+stunicast_send(struct stunicast_conn *c, const linkaddr_t *receiver)
 {
   PRINTF("%d.%d: stunicast_send to %d.%d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 receiver->u8[0], receiver->u8[1]);
   return unicast_send(&c->c, receiver);
 }

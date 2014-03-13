@@ -36,11 +36,11 @@
 #include <string.h>
 #include "contiki.h"
 
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "sys/ctimer.h"
 
-#include "net/uip.h"
-#include "net/uip-fw.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip-fw.h"
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 #include "dev/slip.h"
@@ -264,9 +264,9 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
 				/* this is just a test so far... just to see if it works */
 				slip_arch_writeb('!');
 				slip_arch_writeb('M');
-				for(j = 0; j < RIMEADDR_SIZE; j++) {
-					slip_arch_writeb(hexchar[rimeaddr_node_addr.u8[j] >> 4]);
-					slip_arch_writeb(hexchar[rimeaddr_node_addr.u8[j] & 15]);
+				for(j = 0; j < LINKADDR_SIZE; j++) {
+					slip_arch_writeb(hexchar[linkaddr_node_addr.u8[j] >> 4]);
+					slip_arch_writeb(hexchar[linkaddr_node_addr.u8[j] & 15]);
 				}
 				slip_arch_writeb(SLIP_END);
 				return 0;

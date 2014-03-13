@@ -28,8 +28,8 @@
  *
  * This file is part of the Contiki operating system.
  */
-#ifndef __MTARCH_H__
-#define __MTARCH_H__
+#ifndef MTARCH_H_
+#define MTARCH_H_
 
 #include "contiki.h"
 
@@ -48,4 +48,4 @@ struct mt_thread;
 
 int mtarch_stack_usage(struct mt_thread *t);
 
-#endif /* __MTARCH_H__ */
+#endif /* MTARCH_H_ */

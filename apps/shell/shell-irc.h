@@ -37,11 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_IRC_H__
-#define __SHELL_IRC_H__
+#ifndef SHELL_IRC_H_
+#define SHELL_IRC_H_
 
 #include "shell.h"
 
 void shell_irc_init(void);
 
-#endif /* __SHELL_IRC_H__ */
+#endif /* SHELL_IRC_H_ */

@@ -29,11 +29,11 @@
  * This file is part of the Contiki operating system.
  */
 
-#ifndef __SHELL_CRC_H__
-#define __SHELL_CRC_H__
+#ifndef SHELL_CRC_H_
+#define SHELL_CRC_H_
 
 #include "shell.h"
 
 void shell_crc_init(void);
 
-#endif /* __SHELL_CRC_H__ */
+#endif /* SHELL_CRC_H_ */

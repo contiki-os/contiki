@@ -34,11 +34,11 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __BORDER_ROUTER_H__
-#define __BORDER_ROUTER_H__
+#ifndef BORDER_ROUTER_H_
+#define BORDER_ROUTER_H_
 
 #include "contiki.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include <stdio.h>
 
 int border_router_cmd_handler(const uint8_t *data, int len);
@@ -56,4 +56,4 @@ int slip_init(void);
 int slip_set_fd(int maxfd, fd_set *rset, fd_set *wset);
 void slip_handle_fd(fd_set *rset, fd_set *wset);
 
-#endif /* __BORDER_ROUTER_H__ */
+#endif /* BORDER_ROUTER_H_ */

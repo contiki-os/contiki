@@ -3,8 +3,8 @@ TOOLSDIR=../../tools
 
 EXAMPLES = \
 hello-world/avr-raven \
-hello-world/esb \
 hello-world/exp5438 \
+hello-world/eval-adf7xxxmb4z \
 hello-world/micaz \
 hello-world/minimal-net \
 hello-world/native \
@@ -29,7 +29,8 @@ sky-shell-exec/sky \
 sky-shell-webserver/sky \
 telnet-server/minimal-net \
 webserver/minimal-net \
-webserver-ipv6/sky \
+webserver-ipv6/exp5438 \
+webserver-ipv6/eval-adf7xxxmb4z \
 wget/minimal-net \
 z1/z1 \
 settings-example/avr-raven \

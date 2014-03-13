@@ -41,7 +41,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "cfs/cfs.h"
 #include "loader/elfloader.h"
 #include "lib/crc16.h"
@@ -91,8 +91,8 @@ static struct ctimer profile_timer;
 static deluge_object_id_t next_object_id;
 
 /* Rime callbacks. */
-static void broadcast_recv(struct broadcast_conn *, const rimeaddr_t *);
-static void unicast_recv(struct unicast_conn *, const rimeaddr_t *);
+static void broadcast_recv(struct broadcast_conn *, const linkaddr_t *);
+static void unicast_recv(struct unicast_conn *, const linkaddr_t *);
 
 static const struct broadcast_callbacks broadcast_call = {broadcast_recv, NULL};
 static const struct unicast_callbacks unicast_call = {unicast_recv, NULL};
@@ -288,7 +288,7 @@ advertise_summary(struct deluge_object *obj)
 }
 
 static void
-handle_summary(struct deluge_msg_summary *msg, const rimeaddr_t *sender)
+handle_summary(struct deluge_msg_summary *msg, const linkaddr_t *sender)
 {
   int highest_available, i;
   clock_time_t oldest_request, oldest_data, now;
@@ -332,7 +332,7 @@ handle_summary(struct deluge_msg_summary *msg, const rimeaddr_t *sender)
       return;
     }
 
-    rimeaddr_copy(&current_object.summary_from, sender);
+    linkaddr_copy(&current_object.summary_from, sender);
     transition(DELUGE_STATE_RX);
 
     if(ctimer_expired(&rx_timer)) {
@@ -579,7 +579,7 @@ handle_profile(struct deluge_msg_profile *msg)
 }
 
 static void
-command_dispatcher(const rimeaddr_t *sender)
+command_dispatcher(const linkaddr_t *sender)
 {
   char *msg;
   int len;
@@ -615,13 +615,13 @@ command_dispatcher(const rimeaddr_t *sender)
 }
 
 static void
-unicast_recv(struct unicast_conn *c, const rimeaddr_t *sender)
+unicast_recv(struct unicast_conn *c, const linkaddr_t *sender)
 {
   command_dispatcher(sender);
 }
 
 static void
-broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *sender)
+broadcast_recv(struct broadcast_conn *c, const linkaddr_t *sender)
 {
   command_dispatcher(sender);
 }

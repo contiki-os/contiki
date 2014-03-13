@@ -145,8 +145,8 @@
 
 #include "uip.h"
 #include "uip_arp.h" /* For ethernet header structure */
-#include "net/rime.h"
-#include "net/sicslowpan.h"
+#include "net/rime/rime.h"
+#include "net/ipv6/sicslowpan.h"
 #include "sicslow_ethernet.h"
 
 #include <stdint.h>
@@ -312,7 +312,7 @@ void mac_LowpanToEthernet(void)
   ETHBUF(uip_buf)->type = uip_htons(UIP_ETHTYPE_IPV6);
 
   //Check for broadcast message
-  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
 /*   if(  ( parsed_frame->fcf->destAddrMode == SHORTADDRMODE) && */
 /*        ( parsed_frame->dest_addr->addr16 == 0xffff) ) { */
     ETHBUF(uip_buf)->dest.addr[0] = 0x33;
@@ -372,8 +372,8 @@ int8_t mac_translateIPLinkLayer(lltype_t target)
 
 }
 
-#include "net/uip-icmp6.h"
-#include "net/uip-nd6.h"
+#include "net/ipv6/uip-icmp6.h"
+#include "net/ipv6/uip-nd6.h"
 
 typedef struct {
   uint8_t type;
@@ -788,7 +788,7 @@ void mac_logTXtoEthernet(frame_create_params_t *p,frame_result_t *frame_result)
 
 
   //Check for broadcast message
-  //if(rimeaddr_cmp((const rimeaddr_t *)destAddr, &rimeaddr_null)) {
+  //if(linkaddr_cmp((const linkaddr_t *)destAddr, &linkaddr_null)) {
   if(  ( p->fcf.destAddrMode == SHORTADDRMODE) &&
        ( p->dest_addr.addr16 == 0xffff) ) {
     ETHBUF(raw_buf)->dest.addr[0] = 0x33;
@@ -849,7 +849,7 @@ void mac_802154raw(const struct mac_driver *r)
 
 
   //Check for broadcast message
-  //if(rimeaddr_cmp((const rimeaddr_t *)destAddr, &rimeaddr_null)) {
+  //if(linkaddr_cmp((const linkaddr_t *)destAddr, &linkaddr_null)) {
   if(  ( parsed_frame->fcf->destAddrMode == SHORTADDRMODE) &&
        ( parsed_frame->dest_addr->addr16 == 0xffff) ) {
     ETHBUF(raw_buf)->dest.addr[0] = 0x33;

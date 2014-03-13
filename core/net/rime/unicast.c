@@ -43,7 +43,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/unicast.h"
 #include <string.h>
 
@@ -63,15 +63,15 @@ static const struct packetbuf_attrlist attributes[] =
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_broadcast(struct broadcast_conn *broadcast, const rimeaddr_t *from)
+recv_from_broadcast(struct broadcast_conn *broadcast, const linkaddr_t *from)
 {
   struct unicast_conn *c = (struct unicast_conn *)broadcast;
 
   PRINTF("%d.%d: uc: recv_from_broadcast, receiver %d.%d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
 	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
-  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_node_addr)) {
+  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_node_addr)) {
     if(c->u->recv) {
       c->u->recv(c, from);
     }
@@ -84,7 +84,7 @@ sent_by_broadcast(struct broadcast_conn *broadcast, int status, int num_tx)
   struct unicast_conn *c = (struct unicast_conn *)broadcast;
 
   PRINTF("%d.%d: uc: sent_by_broadcast, receiver %d.%d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
 	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
 
@@ -112,10 +112,10 @@ unicast_close(struct unicast_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-unicast_send(struct unicast_conn *c, const rimeaddr_t *receiver)
+unicast_send(struct unicast_conn *c, const linkaddr_t *receiver)
 {
   PRINTF("%d.%d: unicast_send to %d.%d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 receiver->u8[0], receiver->u8[1]);
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, receiver);
   return broadcast_send(&c->c);

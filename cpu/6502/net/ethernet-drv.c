@@ -34,7 +34,7 @@
 
 #include "contiki-net.h"
 #include "net/ethernet.h"
-#include "net/uip-neighbor.h"
+#include "net/ipv4/uip-neighbor.h"
 
 #include "net/ethernet-drv.h"
 

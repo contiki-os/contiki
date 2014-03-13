@@ -1,6 +1,10 @@
 # $Id: Makefile.z1,v 1.4 2010/11/07 08:40:24 enricmcalvo Exp $
 # msp430flasher -n msp430x5437 -w "Firmware.txt" -v -z [VCC]
 
+MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 \
+           core/net/mac core/net/rpl core/net/rime core/net/mac/contikimac \
+           dev/cc2420
+
 ifdef IAR
 CFLAGS+=-e --vla -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X  --data_model small --double=32 -D__MSP430F5438A__=1
 #CFLAGS+=--no_cse --no_unroll --no_inline --no_code_motion --no_tbaa --debug -D__MSP430F5438A__ -e --double=32 --dlib_config 'C:\Program Files (x86)\IAR Systems\Embedded Workbench 6.0 Evaluation\430\LIB\DLIB\dl430xsfn.h' --core=430X --data_model=small -Ol --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40

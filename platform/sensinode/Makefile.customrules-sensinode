@@ -1,0 +1,1 @@
+include $(CONTIKI)/cpu/cc2430/Makefile.customrules-cc2430

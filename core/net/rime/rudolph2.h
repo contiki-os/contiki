@@ -56,8 +56,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __RUDOLPH2_H__
-#define __RUDOLPH2_H__
+#ifndef RUDOLPH2_H_
+#define RUDOLPH2_H_
 
 #include "net/rime/polite.h"
 #include "sys/ctimer.h"
@@ -99,7 +99,7 @@ void rudolph2_stop(struct rudolph2_conn *c);
 void rudolph2_set_version(struct rudolph2_conn *c, int version);
 int rudolph2_version(struct rudolph2_conn *c);
 
-#endif /* __RUDOLPH2_H__ */
+#endif /* RUDOLPH2_H_ */
 /** @} */
 /** @} */
     

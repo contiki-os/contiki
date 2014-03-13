@@ -75,7 +75,7 @@
 #include "dev/battery-sensor.h"
 #endif
 #if defined (PLATFORM_HAS_SHT11)
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 #endif
 #if defined (PLATFORM_HAS_RADIO)
 #include "dev/radio-sensor.h"

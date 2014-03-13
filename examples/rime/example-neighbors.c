@@ -56,7 +56,7 @@
 #include "lib/list.h"
 #include "lib/memb.h"
 #include "lib/random.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include <stdio.h>
 
@@ -83,7 +83,7 @@ struct neighbor {
   struct neighbor *next;
 
   /* The ->addr field holds the Rime address of the neighbor. */
-  rimeaddr_t addr;
+  linkaddr_t addr;
 
   /* The ->last_rssi and ->last_lqi fields hold the Received Signal
      Strength Indicator (RSSI) and CC2420 Link Quality Indicator (LQI)
@@ -133,7 +133,7 @@ AUTOSTART_PROCESSES(&broadcast_process, &unicast_process);
 /*---------------------------------------------------------------------------*/
 /* This function is called whenever a broadcast message is received. */
 static void
-broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
+broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
   struct neighbor *n;
   struct broadcast_message *m;
@@ -149,7 +149,7 @@ broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
     /* We break out of the loop if the address of the neighbor matches
        the address of the neighbor from which we received this
        broadcast message. */
-    if(rimeaddr_cmp(&n->addr, from)) {
+    if(linkaddr_cmp(&n->addr, from)) {
       break;
     }
   }
@@ -168,7 +168,7 @@ broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
     }
 
     /* Initialize the fields. */
-    rimeaddr_copy(&n->addr, from);
+    linkaddr_copy(&n->addr, from);
     n->last_seqno = m->seqno - 1;
     n->avg_seqno_gap = SEQNO_EWMA_UNITY;
 
@@ -207,7 +207,7 @@ static const struct broadcast_callbacks broadcast_call = {broadcast_recv};
 /*---------------------------------------------------------------------------*/
 /* This function is called for every incoming unicast packet. */
 static void
-recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
+recv_uc(struct unicast_conn *c, const linkaddr_t *from)
 {
   struct unicast_message *msg;
 

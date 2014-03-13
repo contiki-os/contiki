@@ -41,7 +41,7 @@
 #include "ircc.h"
 
 #include "ctk/ctk.h"
-#include "lib/ctk-textentry-cmdline.h"
+#include "ctk/ctk-textentry-cmdline.h"
 
 #include "lib/petsciiconv.h"
 

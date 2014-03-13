@@ -41,6 +41,16 @@ typedef uint32_t rtimer_clock_t;
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name Serial Boot Loader Backdoor configuration
+ *
+ * @{
+ */
+#ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR	1 /**<Enable the boot loader backdoor */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name USB 'core' configuration
  *
  * Those values are not meant to be modified by the user, except where stated
@@ -112,6 +122,7 @@ typedef uint32_t rtimer_clock_t;
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
 #define SLIP_RADIO_CONF_NO_PUTCHAR  1
 
+#ifndef SLIP_ARCH_CONF_ENABLED
 /*
  * Determine whether we need SLIP
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
@@ -119,6 +130,7 @@ typedef uint32_t rtimer_clock_t;
  */
 #if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED      1
+#endif
 #endif
 
 /*
@@ -266,6 +278,16 @@ typedef uint32_t rtimer_clock_t;
 #ifndef IEEE_ADDR_CONF_ADDRESS
 #define IEEE_ADDR_CONF_ADDRESS { 0x00, 0x12, 0x4B, 0x00, 0x89, 0xAB, 0xCD, 0xEF }
 #endif
+
+/**
+ * \brief Location of the IEEE address in the InfoPage when
+ * IEEE_ADDR_CONF_HARDCODED is defined as 0
+ * 0 => Use the primary address location
+ * 1 => Use the secondary address location
+ */
+#ifndef IEEE_ADDR_CONF_USE_SECONDARY_LOCATION
+#define IEEE_ADDR_CONF_USE_SECONDARY_LOCATION 0
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -309,7 +331,7 @@ typedef uint32_t rtimer_clock_t;
 #if UIP_CONF_IPV6
 /* Addresses, Sizes and Interfaces */
 /* 8-byte addresses here, 2 otherwise */
-#define RIMEADDR_CONF_SIZE                   8
+#define LINKADDR_CONF_SIZE                   8
 #define UIP_CONF_LL_802154                   1
 #define UIP_CONF_LLH_LEN                     0
 #define UIP_CONF_NETIF_MAX_ADDRESSES         3
@@ -318,7 +340,9 @@ typedef uint32_t rtimer_clock_t;
 #ifndef UIP_CONF_TCP
 #define UIP_CONF_TCP                         1
 #endif
+#ifndef UIP_CONF_TCP_MSS
 #define UIP_CONF_TCP_MSS                    64
+#endif
 #define UIP_CONF_UDP                         1
 #define UIP_CONF_UDP_CHECKSUMS               1
 #define UIP_CONF_ICMP6                       1

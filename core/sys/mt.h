@@ -79,8 +79,8 @@
  * Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __MT_H__
-#define __MT_H__
+#ifndef MT_H_
+#define MT_H_
 
 #include "contiki.h"
 
@@ -267,4 +267,4 @@ void mt_stop(struct mt_thread *thread);
 
 /** @} */
 /** @} */
-#endif /* __MT_H__ */
+#endif /* MT_H_ */

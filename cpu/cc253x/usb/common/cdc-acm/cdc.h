@@ -1,5 +1,5 @@
-#ifndef __CDC_H__K1Q26ESJOC__
-#define __CDC_H__K1Q26ESJOC__
+#ifndef CDC_H_K1Q26ESJOC__
+#define CDC_H_K1Q26ESJOC__
 #include "usb.h"
 /*  Communication Class */
 /* Class code */
@@ -200,4 +200,4 @@ struct usb_cdc_line_coding {
   Uchar bDataBits;
 } BYTE_ALIGNED;
 
-#endif /* __CDC_H__K1Q26ESJOC__ */
+#endif /* CDC_H_K1Q26ESJOC__ */

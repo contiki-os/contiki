@@ -44,7 +44,7 @@
 
 #include "contiki.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/neighbor-discovery.h"
 
 #include "dev/radio-sensor.h"
@@ -87,12 +87,12 @@ send_adv(void *ptr)
     c->u->sent(c);
   }
   PRINTF("%d.%d: sending neighbor advertisement with val %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 c->val);
 }
 /*---------------------------------------------------------------------------*/
 static void
-adv_packet_received(struct broadcast_conn *ibc, const rimeaddr_t *from)
+adv_packet_received(struct broadcast_conn *ibc, const linkaddr_t *from)
 {
   struct neighbor_discovery_conn *c = (struct neighbor_discovery_conn *)ibc;
   struct adv_msg msg;
@@ -100,7 +100,7 @@ adv_packet_received(struct broadcast_conn *ibc, const rimeaddr_t *from)
   memcpy(&msg, packetbuf_dataptr(), sizeof(struct adv_msg));
 
   PRINTF("%d.%d: adv_packet_received from %d.%d with val %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], msg.val);
   
   /* If we receive an announcement with a lower value than ours, we
@@ -162,7 +162,7 @@ neighbor_discovery_open(struct neighbor_discovery_conn *c, uint16_t channel,
 			const struct neighbor_discovery_callbacks *cb)
 {
   PRINTF("%d.%d: neighbor discovery open channel %d\n",
-         rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+         linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 channel);
   broadcast_open(&c->c, channel, &broadcast_callbacks);
   c->u = cb;

@@ -37,7 +37,7 @@
 #include "debug.h"
 
 #define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #define PING6_NB 5
 #define PING6_DATALEN 16

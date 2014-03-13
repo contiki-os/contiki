@@ -1,4 +1,4 @@
-ARCH= irq.c sensors.c acc-sensor.c button-sensor.c temperature-sensor.c mems.c contact-sensor.c
+ARCH= irq.c sensors.c acc-sensor.c button-sensor.c temperature-sensor.c mems.c contact-sensor.c i2c.c eeprom.c
 
 
 CONTIKI_TARGET_DIRS = . dev
@@ -20,3 +20,6 @@ SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-linux
 ifeq ($(HOST_OS),Windows)
   SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-windows
 endif
+
+MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 \
+         core/net/rpl core/net/rime core/net/mac core/net/mac/contikimac

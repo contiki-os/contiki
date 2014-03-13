@@ -39,7 +39,7 @@
 
 #include "lib/print-stats.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "sys/energest.h"
 
 #include <stdio.h>
@@ -57,7 +57,7 @@ print_stats(void)
 {
 #if RIMESTATS_CONF_ENABLED
   PRINTA("S %d.%d clock %lu tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 clock_seconds(),
 	 RIMESTATS_GET(tx), RIMESTATS_GET(rx),
 	 RIMESTATS_GET(reliabletx), RIMESTATS_GET(reliablerx),
@@ -70,7 +70,7 @@ print_stats(void)
 #endif /* RIMESTATS_CONF_ENABLED */
 #if ENERGEST_CONF_ON
   PRINTA("E %d.%d clock %lu cpu %lu lpm %lu irq %lu gled %lu yled %lu rled %lu tx %lu listen %lu sensors %lu serial %lu\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 clock_seconds(),
 	 energest_total_time[ENERGEST_TYPE_CPU].current,
 	 energest_total_time[ENERGEST_TYPE_LPM].current,

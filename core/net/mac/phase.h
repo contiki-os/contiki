@@ -40,7 +40,7 @@
 #ifndef PHASE_H
 #define PHASE_H
 
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "sys/timer.h"
 #include "sys/rtimer.h"
 #include "lib/list.h"
@@ -55,12 +55,12 @@ typedef enum {
 
 
 void phase_init(void);
-phase_status_t phase_wait(const rimeaddr_t *neighbor,
+phase_status_t phase_wait(const linkaddr_t *neighbor,
                           rtimer_clock_t cycle_time, rtimer_clock_t wait_before,
                           mac_callback_t mac_callback, void *mac_callback_ptr,
                           struct rdc_buf_list *buf_list);
-void phase_update(const rimeaddr_t *neighbor,
+void phase_update(const linkaddr_t *neighbor,
                   rtimer_clock_t time, int mac_status);
-void phase_remove(const rimeaddr_t *neighbor);
+void phase_remove(const linkaddr_t *neighbor);
 
 #endif /* PHASE_H */

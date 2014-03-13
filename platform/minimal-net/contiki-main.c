@@ -46,7 +46,7 @@
 
 #include "dev/serial-line.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #ifdef __CYGWIN__
 #include "net/wpcap-drv.h"
 #else /* __CYGWIN__ */
@@ -176,9 +176,27 @@ sprint_ip6(uip_ip6addr_t addr)
 }
 #endif /* UIP_CONF_IPV6 */
 /*---------------------------------------------------------------------------*/
+int contiki_argc = 0;
+char **contiki_argv;
+
 int
-main(void)
+main(int argc, char **argv)
 {
+  /* crappy way of remembering and accessing argc/v */
+  contiki_argc = argc;
+  contiki_argv = argv;
+
+  /* minimal-net under windows is hardcoded to use the first one or two args */
+  /* for wpcap configuration so this needs to be "removed" from contiki_args */
+#ifdef __CYGWIN__
+  contiki_argc--;
+  contiki_argv++;
+#ifdef UIP_FALLBACK_INTERFACE
+  contiki_argc--;
+  contiki_argv++;
+#endif
+#endif
+
   clock_init();
 #if UIP_CONF_IPV6
 /* A hard coded address overrides the stack default MAC address to

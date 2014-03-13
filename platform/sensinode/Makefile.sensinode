@@ -47,7 +47,6 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 CLEAN += *.sensinode
 
 ifeq ($(UIP_CONF_IPV6),1)
-  CFLAGS += -DUIP_CONF_IPV6=1
   ifeq ($(OFFSET_FIRMWARE),1)
     CFLAGS += -DDISCO_ENABLED=1
     CONTIKI_TARGET_SOURCEFILES += disco.c
@@ -88,3 +87,5 @@ CONTIKI_CPU=$(CONTIKI)/cpu/cc2430
 include $(CONTIKI)/cpu/cc2430/Makefile.cc2430
 
 contiki-$(TARGET).a:# $(addprefix $(OBJECTDIR)/,symbols.rel)
+
+MODULES += core/net/ipv6 core/net/ipv4 core/net/rime core/net core/net/mac core/net/rpl

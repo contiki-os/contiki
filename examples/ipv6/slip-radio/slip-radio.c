@@ -35,15 +35,15 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 #include "contiki.h"
-#include "net/uip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #include "dev/slip.h"
 #include <string.h>
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 #include "cmd.h"
 #include "slip-radio.h"
 #include "packetutils.h"
@@ -59,7 +59,15 @@ uint8_t packet_ids[16];
 int packet_pos;
 
 static int slip_radio_cmd_handler(const uint8_t *data, int len);
+
+#if CONTIKI_TARGET_NOOLIBERRY
+int cmd_handler_rf230(const uint8_t *data, int len);
+#elif CONTIKI_TARGET_ECONOTAG
+int cmd_handler_mc1322x(const uint8_t *data, int len);
+#else /* Leave CC2420 as default */
 int cmd_handler_cc2420(const uint8_t *data, int len);
+#endif /* CONTIKI_TARGET */
+
 /*---------------------------------------------------------------------------*/
 #ifdef CMD_CONF_HANDLERS
 CMD_HANDLERS(CMD_CONF_HANDLERS);

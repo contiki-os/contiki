@@ -1,6 +1,6 @@
 #include "contiki-net.h"
 #include "ctk/ctk.h"
-#include "net/dhcpc.h"
+#include "net/ip/dhcpc.h"
 
 
 
