@@ -40,7 +40,7 @@
 
 #include <signal.h>
 
-const struct sensors_sensor button_sensor;
+const struct sensors_sensor button_sensor1;
 
 static struct timer debouncetimer;
 static int status(int type);
@@ -48,7 +48,7 @@ static int status(int type);
 void kbi4_isr(void) {
 	if(timer_expired(&debouncetimer)) {
 		timer_set(&debouncetimer, CLOCK_SECOND / 4);
-		sensors_changed(&button_sensor);
+		sensors_changed(&button_sensor1);
 	}
 	clear_kbi_evnt(4);
 }
@@ -63,11 +63,13 @@ static int
 configure(int type, int c)
 {
 	switch (type) {
-	case SENSORS_ACTIVE:
+	case SENSORS_HW_INIT:
 		if (c) {
 			if(!status(SENSORS_ACTIVE)) {
 				timer_set(&debouncetimer, 0);
 				enable_irq_kbi(4);
+				kbi_edge(4);
+				enable_ext_wu(4);
 			}
 		} else {
 			disable_irq_kbi(4);
@@ -88,5 +90,5 @@ status(int type)
 	return 0;
 }
 
-SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
+SENSORS_SENSOR(button_sensor1, BUTTON_SENSOR,
 	       value, configure, status);
