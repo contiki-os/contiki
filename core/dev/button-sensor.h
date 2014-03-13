@@ -35,6 +35,8 @@
 #include "lib/sensors.h"
 
 extern const struct sensors_sensor button_sensor;
+extern const struct sensors_sensor button_sensor1;
+extern const struct sensors_sensor button_sensor2;
 
 #define BUTTON_SENSOR "Button"
 

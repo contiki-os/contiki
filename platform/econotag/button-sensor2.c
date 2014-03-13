@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2010, Mariano Alvira <mar@devl.org> and other contributors
- * to the MC1322x project (http://mc1322x.devl.org)
+ * to the MC1322x project (http://mc1322x.devl.org) and Contiki.
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +28,67 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of libmc1322x: see http://mc1322x.devl.org
- * for details. 
+ * This file is part of the Contiki OS.
  *
- *
+ * $Id: button-sensor.c,v 1.1 2010/06/09 14:46:30 maralvira Exp $
  */
 
-#include "nvm.h"
+#include "lib/sensors.h"
+#include "dev/button-sensor.h"
 
-nvmErr_t (*nvm_detect) 
-(nvmInterface_t nvmInterface,nvmType_t* pNvmType) 
-= (void *) 0x00006cb9;
+#include "mc1322x.h"
 
-nvmErr_t (*nvm_read) 
-(nvmInterface_t nvmInterface , nvmType_t nvmType , void *pDest, uint32_t address, uint32_t numBytes) 
-= (void *) 0x00006d69;
+#include <signal.h>
 
-nvmErr_t (*nvm_write)
-(nvmInterface_t nvmInterface, nvmType_t nvmType ,void *pSrc, uint32_t address, uint32_t numBytes) 
-= (void *) 0x00006ec5;
+const struct sensors_sensor button_sensor2;
 
-nvmErr_t (*nvm_erase)
-(nvmInterface_t nvmInterface, nvmType_t nvmType ,uint32_t sectorBitfield) 
-= (void*) 0x00006e05;
+static struct timer debouncetimer;
+static int status(int type);
 
-nvmErr_t (*nvm_verify)
-(nvmInterface_t nvmInterface, nvmType_t nvmType, void *pSrc, uint32_t address, uint32_t numBytes)
-= (void*) 0x00006f85;
+void kbi5_isr(void) {
+	if(timer_expired(&debouncetimer)) {
+		timer_set(&debouncetimer, CLOCK_SECOND / 4);
+		sensors_changed(&button_sensor2);
+	}
+	clear_kbi_evnt(5);
+}
 
-void(*nvm_setsvar)
-(uint32_t zero_for_awesome) 
-= (void *)0x00007085;
+static int
+value(int type)
+{
+	return GPIO->DATA.GPIO_27 || !timer_expired(&debouncetimer);
+}
 
+static int
+configure(int type, int c)
+{
+	switch (type) {
+	case SENSORS_HW_INIT:
+		if (c) {
+			if(!status(SENSORS_ACTIVE)) {
+				timer_set(&debouncetimer, 0);
+				enable_irq_kbi(5);
+				kbi_edge(5);
+				enable_ext_wu(5);
+			}
+		} else {
+			disable_irq_kbi(5);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+static int
+status(int type)
+{
+	switch (type) {
+	case SENSORS_ACTIVE:
+	case SENSORS_READY:
+		return bit_is_set(*CRM_WU_CNTL, 21); /* check if kbi5 irq is enabled */
+	}
+	return 0;
+}
+
+SENSORS_SENSOR(button_sensor2, BUTTON_SENSOR,
+	       value, configure, status);

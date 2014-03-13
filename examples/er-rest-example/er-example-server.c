@@ -860,7 +860,7 @@ PROCESS_THREAD(rest_server_example, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT();
 #if defined (PLATFORM_HAS_BUTTON)
-    if (ev == sensors_event && data == &button_sensor) {
+    if (ev == sensors_event && data == &button_sensor1) {
       PRINTF("BUTTON\n");
 #if REST_RES_EVENT
       /* Call the event_handler for this application-specific event. */
