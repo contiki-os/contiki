@@ -582,6 +582,7 @@ dao_input(void)
   uip_ds6_nbr_t *nbr;
 
   prefixlen = 0;
+  p = NULL;
 
   uip_ipaddr_copy(&dao_sender_addr, &UIP_IP_BUF->srcipaddr);
 

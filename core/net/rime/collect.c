@@ -951,14 +951,12 @@ node_packet_received(struct unicast_conn *c, const linkaddr_t *from)
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
      PACKETBUF_ATTR_PACKET_TYPE_DATA) {
     linkaddr_t ack_to;
-    uint8_t packet_seqno;
 
     stats.datarecv++;
 
     /* Remember to whom we should send the ACK, since we reuse the
        packet buffer and its attributes when sending the ACK. */
     linkaddr_copy(&ack_to, packetbuf_addr(PACKETBUF_ADDR_SENDER));
-    packet_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
 
     /* If the queue is more than half filled, we add the CONGESTED
        flag to our outgoing acks. */
@@ -1006,7 +1004,7 @@ node_packet_received(struct unicast_conn *c, const linkaddr_t *from)
         PRINTF("%d.%d: collect: could not send ACK to %d.%d for %d: no queued buffers\n",
                linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
                ack_to.u8[0], ack_to.u8[1],
-               packet_seqno);
+               packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
         stats.ackdrop++;
       }
 
