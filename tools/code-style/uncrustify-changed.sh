@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# This file checks your git index and runs indent on every changed *.c and *.h
+# This file checks your git index and runs uncrustify on every changed *.c and *.h
 # file.
 #
 # Author: Valentin Sawadski <valentin@sawadski.eu>
