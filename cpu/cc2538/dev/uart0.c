@@ -29,7 +29,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538-uart
+ * \addtogroup cc2538-uart0
  * @{
  *
  * \file
@@ -50,86 +50,50 @@
 
 static int (* input_handler)(unsigned char c);
 /*---------------------------------------------------------------------------*/
-#define UART_RX_PORT_BASE        GPIO_PORT_TO_BASE(UART_RX_PORT)
-#define UART_RX_PIN_MASK         GPIO_PIN_MASK(UART_RX_PIN)
-
-#define UART_TX_PORT_BASE        GPIO_PORT_TO_BASE(UART_TX_PORT)
-#define UART_TX_PIN_MASK         GPIO_PIN_MASK(UART_TX_PIN)
-
-#define UART_CTS_PORT_BASE       GPIO_PORT_TO_BASE(UART_CTS_PORT)
-#define UART_CTS_PIN_MASK        GPIO_PIN_MASK(UART_CTS_PIN)
-
-#define UART_RTS_PORT_BASE       GPIO_PORT_TO_BASE(UART_RTS_PORT)
-#define UART_RTS_PIN_MASK        GPIO_PIN_MASK(UART_RTS_PIN)
-/*---------------------------------------------------------------------------*/
-/*
- * Once we know what UART we're on, configure correct values to be written to
- * the correct registers
- */
-#if UART_BASE==UART_1_BASE
-/* Running, in sleep, in deep sleep, enable the clock for the correct UART */
-#define SYS_CTRL_RCGCUART_UART SYS_CTRL_RCGCUART_UART1
-#define SYS_CTRL_SCGCUART_UART SYS_CTRL_SCGCUART_UART1
-#define SYS_CTRL_DCGCUART_UART SYS_CTRL_DCGCUART_UART1
-
-#define NVIC_INT_UART          NVIC_INT_UART1
-#define IOC_PXX_SEL_UART_TXD   IOC_PXX_SEL_UART1_TXD
-#define IOC_UARTRXD_UART       IOC_UARTRXD_UART1
-#else /* Defaults for UART0 */
-#define SYS_CTRL_RCGCUART_UART SYS_CTRL_RCGCUART_UART0
-#define SYS_CTRL_SCGCUART_UART SYS_CTRL_SCGCUART_UART0
-#define SYS_CTRL_DCGCUART_UART SYS_CTRL_DCGCUART_UART0
-
-#define NVIC_INT_UART          NVIC_INT_UART0
-
-#define IOC_PXX_SEL_UART_TXD   IOC_PXX_SEL_UART0_TXD
-#define IOC_UARTRXD_UART       IOC_UARTRXD_UART0
-#endif
-/*---------------------------------------------------------------------------*/
 static void
 reset(void)
 {
   uint32_t lchr;
 
   /* Make sure the UART is disabled before trying to configure it */
-  REG(UART_BASE | UART_CTL) = UART_CTL_TXE | UART_CTL_RXE;
+  REG(UART_0_BASE | UART_CTL) = UART_CTL_TXE | UART_CTL_RXE;
 
   /* Clear error status */
-  REG(UART_BASE | UART_ECR) = 0xFF;
+  REG(UART_0_BASE | UART_ECR) = 0xFF;
 
   /* Store LCHR configuration */
-  lchr = REG(UART_BASE | UART_LCRH);
+  lchr = REG(UART_0_BASE | UART_LCRH);
 
   /* Flush FIFOs by clearing LCHR.FEN */
-  REG(UART_BASE | UART_LCRH) = 0;
+  REG(UART_0_BASE | UART_LCRH) = 0;
 
   /* Restore LCHR configuration */
-  REG(UART_BASE | UART_LCRH) = lchr;
+  REG(UART_0_BASE | UART_LCRH) = lchr;
 
   /* UART Enable */
-  REG(UART_BASE | UART_CTL) |= UART_CTL_UARTEN;
+  REG(UART_0_BASE | UART_CTL) |= UART_CTL_UARTEN;
 }
 /*---------------------------------------------------------------------------*/
 static bool
 permit_pm1(void)
 {
   /* Note: UART_FR.TXFE reads 0 if the UART clock is gated. */
-  return (REG(SYS_CTRL_RCGCUART) & SYS_CTRL_RCGCUART_UART) == 0 ||
-         (REG(UART_BASE | UART_FR) & UART_FR_TXFE) != 0;
+  return (REG(SYS_CTRL_RCGCUART) & SYS_CTRL_RCGCUART_UART0) == 0 ||
+         (REG(UART_0_BASE | UART_FR) & UART_FR_TXFE) != 0;
 }
 /*---------------------------------------------------------------------------*/
 void
-uart_init(void)
+uart0_init(void)
 {
   lpm_register_peripheral(permit_pm1);
 
   /* Enable clock for the UART while Running, in Sleep and Deep Sleep */
-  REG(SYS_CTRL_RCGCUART) |= SYS_CTRL_RCGCUART_UART;
-  REG(SYS_CTRL_SCGCUART) |= SYS_CTRL_SCGCUART_UART;
-  REG(SYS_CTRL_DCGCUART) |= SYS_CTRL_DCGCUART_UART;
+  REG(SYS_CTRL_RCGCUART) |= SYS_CTRL_RCGCUART_UART0;
+  REG(SYS_CTRL_SCGCUART) |= SYS_CTRL_SCGCUART_UART0;
+  REG(SYS_CTRL_DCGCUART) |= SYS_CTRL_DCGCUART_UART0;
 
   /* Run on SYS_DIV */
-  REG(UART_BASE | UART_CC) = 0;
+  REG(UART_0_BASE | UART_CC) = 0;
 
   /*
    * Select the UARTx RX pin by writing to the IOC_UARTRXD_UARTn register
@@ -139,65 +103,65 @@ uart_init(void)
    *
    * (port << 3) + pin
    */
-  REG(IOC_UARTRXD_UART) = (UART_RX_PORT << 3) + UART_RX_PIN;
+  REG(IOC_UARTRXD_UART0) = (UART_0_RX_PORT << 3) + UART_0_RX_PIN;
 
   /*
    * Pad Control for the TX pin:
    * - Set function to UART0 TX
    * - Output Enable
    */
-  ioc_set_sel(UART_TX_PORT, UART_TX_PIN, IOC_PXX_SEL_UART_TXD);
-  ioc_set_over(UART_TX_PORT, UART_TX_PIN, IOC_OVERRIDE_OE);
+  ioc_set_sel(UART_0_TX_PORT, UART_0_TX_PIN, IOC_PXX_SEL_UART0_TXD);
+  ioc_set_over(UART_0_TX_PORT, UART_0_TX_PIN, IOC_OVERRIDE_OE);
 
   /* Set RX and TX pins to peripheral mode */
-  GPIO_PERIPHERAL_CONTROL(UART_TX_PORT_BASE, UART_TX_PIN_MASK);
-  GPIO_PERIPHERAL_CONTROL(UART_RX_PORT_BASE, UART_RX_PIN_MASK);
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(UART_0_TX_PORT), GPIO_PIN_MASK(UART_0_TX_PIN));
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(UART_0_RX_PORT), GPIO_PIN_MASK(UART_0_RX_PIN));
 
   /*
    * UART Interrupt Masks:
    * Acknowledge RX and RX Timeout
    * Acknowledge Framing, Overrun and Break Errors
    */
-  REG(UART_BASE | UART_IM) = UART_IM_RXIM | UART_IM_RTIM;
-  REG(UART_BASE | UART_IM) |= UART_IM_OEIM | UART_IM_BEIM | UART_IM_FEIM;
+  REG(UART_0_BASE | UART_IM) = UART_IM_RXIM | UART_IM_RTIM;
+  REG(UART_0_BASE | UART_IM) |= UART_IM_OEIM | UART_IM_BEIM | UART_IM_FEIM;
 
-  REG(UART_BASE | UART_IFLS) =
+  REG(UART_0_BASE | UART_IFLS) =
     UART_IFLS_RXIFLSEL_1_8 | UART_IFLS_TXIFLSEL_1_2;
 
   /* Make sure the UART is disabled before trying to configure it */
-  REG(UART_BASE | UART_CTL) = UART_CTL_TXE | UART_CTL_RXE;
+  REG(UART_0_BASE | UART_CTL) = UART_CTL_TXE | UART_CTL_RXE;
 
   /* Baud Rate Generation */
-  REG(UART_BASE | UART_IBRD) = UART_CONF_IBRD;
-  REG(UART_BASE | UART_FBRD) = UART_CONF_FBRD;
+  REG(UART_0_BASE | UART_IBRD) = UART_0_CONF_IBRD;
+  REG(UART_0_BASE | UART_FBRD) = UART_0_CONF_FBRD;
 
   /* UART Control: 8N1 with FIFOs */
-  REG(UART_BASE | UART_LCRH) = UART_LCRH_WLEN_8 | UART_LCRH_FEN;
+  REG(UART_0_BASE | UART_LCRH) = UART_LCRH_WLEN_8 | UART_LCRH_FEN;
 
   /* UART Enable */
-  REG(UART_BASE | UART_CTL) |= UART_CTL_UARTEN;
+  REG(UART_0_BASE | UART_CTL) |= UART_CTL_UARTEN;
 
   /* Enable UART0 Interrupts */
-  nvic_interrupt_enable(NVIC_INT_UART);
+  nvic_interrupt_enable(NVIC_INT_UART0);
 }
 /*---------------------------------------------------------------------------*/
 void
-uart_set_input(int (* input)(unsigned char c))
+uart0_set_input(int (* input)(unsigned char c))
 {
   input_handler = input;
 }
 /*---------------------------------------------------------------------------*/
 void
-uart_write_byte(uint8_t b)
+uart0_write_byte(uint8_t b)
 {
   /* Block if the TX FIFO is full */
-  while(REG(UART_BASE | UART_FR) & UART_FR_TXFF);
+  while(REG(UART_0_BASE | UART_FR) & UART_FR_TXFF);
 
-  REG(UART_BASE | UART_DR) = b;
+  REG(UART_0_BASE | UART_DR) = b;
 }
 /*---------------------------------------------------------------------------*/
 void
-uart_isr(void)
+uart0_isr(void)
 {
   uint16_t mis;
 
@@ -205,18 +169,18 @@ uart_isr(void)
 
   /* Store the current MIS and clear all flags early, except the RTM flag.
    * This will clear itself when we read out the entire FIFO contents */
-  mis = REG(UART_BASE | UART_MIS) & 0x0000FFFF;
+  mis = REG(UART_0_BASE | UART_MIS) & 0x0000FFFF;
 
-  REG(UART_BASE | UART_ICR) = 0x0000FFBF;
+  REG(UART_0_BASE | UART_ICR) = 0x0000FFBF;
 
   if(mis & (UART_MIS_RXMIS | UART_MIS_RTMIS)) {
-    while(!(REG(UART_BASE | UART_FR) & UART_FR_RXFE)) {
+    while(!(REG(UART_0_BASE | UART_FR) & UART_FR_RXFE)) {
       if(input_handler != NULL) {
-        input_handler((unsigned char)(REG(UART_BASE | UART_DR) & 0xFF));
+        input_handler((unsigned char)(REG(UART_0_BASE | UART_DR) & 0xFF));
       } else {
         /* To prevent an Overrun Error, we need to flush the FIFO even if we
          * don't have an input_handler. Use mis as a data trash can */
-        mis = REG(UART_BASE | UART_DR);
+        mis = REG(UART_0_BASE | UART_DR);
       }
     }
   } else if(mis & (UART_MIS_OEMIS | UART_MIS_BEMIS | UART_MIS_FEMIS)) {

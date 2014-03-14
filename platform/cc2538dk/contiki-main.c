@@ -152,9 +152,14 @@ main(void)
    * received over the relevant peripheral will be handled by
    * slip_input_byte instead
    */
-#if UART_CONF_ENABLE
-  uart_init();
-  uart_set_input(serial_line_input_byte);
+#if UART_0_CONF_ENABLE
+  uart0_init();
+  uart0_set_input(serial_line_input_byte);
+#endif
+
+#if UART_1_CONF_ENABLE
+  uart1_init();
+  uart1_set_input(serial_line_input_byte);
 #endif
 
 #if USB_SERIAL_CONF_ENABLE
