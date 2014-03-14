@@ -110,7 +110,7 @@ PROCESS_THREAD(sensors_process, ev, data)
 
   for(i = 0; sensors[i] != NULL; ++i) {
     sensors_flags[i] = 0;
-    sensors[i]->configure(SENSORS_HW_INIT, 0);
+    sensors[i]->configure(SENSORS_HW_INIT, 1);
   }
   num_sensors = i;
 
