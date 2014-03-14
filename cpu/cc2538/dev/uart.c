@@ -92,7 +92,7 @@ reset(void)
   uint32_t lchr;
 
   /* Make sure the UART is disabled before trying to configure it */
-  REG(UART_BASE | UART_CTL) = UART_CTL_TXE | UART_CTL_RXE;
+  REG(UART_BASE | UART_CTL) = UART_CTL_VALUE;
 
   /* Clear error status */
   REG(UART_BASE | UART_ECR) = 0xFF;
@@ -165,11 +165,20 @@ uart_init(void)
     UART_IFLS_RXIFLSEL_1_8 | UART_IFLS_TXIFLSEL_1_2;
 
   /* Make sure the UART is disabled before trying to configure it */
-  REG(UART_BASE | UART_CTL) = UART_CTL_TXE | UART_CTL_RXE;
+  REG(UART_BASE | UART_CTL) = UART_CTL_VALUE;
 
   /* Baud Rate Generation */
+#if (defined UART_CONF_BAUD_RATE)
+  uart_set_baudrate(UART_CONF_BAUD_RATE);
+#elif (defined UART_CONF_IBRD && defined UART_CONF_FBRD)
   REG(UART_BASE | UART_IBRD) = UART_CONF_IBRD;
   REG(UART_BASE | UART_FBRD) = UART_CONF_FBRD;
+#else
+  #error "UART baud rate misconfigured and custom IBRD/FBRD values not provided"
+  #error "Check the value of UART_CONF_BAUD_RATE in contiki-conf.h or project-conf.h"
+  #error "Alternatively, you can provide custom values for "
+  #error "UART_CONF_IBRD and UART_CONF_FBRD"
+#endif
 
   /* UART Control: 8N1 with FIFOs */
   REG(UART_BASE | UART_LCRH) = UART_LCRH_WLEN_8 | UART_LCRH_FEN;
