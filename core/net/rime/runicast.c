@@ -44,7 +44,7 @@
  */
 
 #include "net/rime/runicast.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include <string.h>
 
 
@@ -85,7 +85,7 @@ sent_by_stunicast(struct stunicast_conn *stunicast, int status, int num_tx)
     if(c->rxmit != 0) {
       RIMESTATS_ADD(rexmit);
       PRINTF("%d.%d: runicast: sent_by_stunicast packet %u (%u) resent %u\n",
-             rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+             linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
              packetbuf_attr(PACKETBUF_ATTR_PACKET_ID),
              c->sndnxt, c->rxmit);
     }
@@ -98,7 +98,7 @@ sent_by_stunicast(struct stunicast_conn *stunicast, int status, int num_tx)
       }
       c->rxmit = 0;
       PRINTF("%d.%d: runicast: packet %d timed out\n",
-             rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+             linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
              c->sndnxt);
       c->sndnxt = (c->sndnxt + 1) % (1 << RUNICAST_PACKET_ID_BITS);
     } else {
@@ -111,13 +111,13 @@ sent_by_stunicast(struct stunicast_conn *stunicast, int status, int num_tx)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_stunicast(struct stunicast_conn *stunicast, const rimeaddr_t *from)
+recv_from_stunicast(struct stunicast_conn *stunicast, const linkaddr_t *from)
 {
   struct runicast_conn *c = (struct runicast_conn *)stunicast;
   /*  struct runicast_hdr *hdr = packetbuf_dataptr();*/
 
   PRINTF("%d.%d: runicast: recv_from_stunicast from %d.%d type %d seqno %d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1],
 	 packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE),
 	 packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
@@ -125,14 +125,14 @@ recv_from_stunicast(struct stunicast_conn *stunicast, const rimeaddr_t *from)
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
      PACKETBUF_ATTR_PACKET_TYPE_ACK) {
       PRINTF("%d.%d: runicast: got ACK from %d.%d, seqno %d (%d)\n",
-	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	     linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	     from->u8[0], from->u8[1],
 	     packetbuf_attr(PACKETBUF_ATTR_PACKET_ID),
 	     c->sndnxt);
     if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == c->sndnxt) {
       RIMESTATS_ADD(ackrx);
       PRINTF("%d.%d: runicast: ACKed %d\n",
-	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	     linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	     packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
       c->sndnxt = (c->sndnxt + 1) % (1 << RUNICAST_PACKET_ID_BITS);
       c->is_tx = 0;
@@ -142,7 +142,7 @@ recv_from_stunicast(struct stunicast_conn *stunicast, const rimeaddr_t *from)
       }
     } else {
       PRINTF("%d.%d: runicast: received bad ACK %d for %d\n",
-	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	     linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	     packetbuf_attr(PACKETBUF_ATTR_PACKET_ID),
 	     c->sndnxt);
       RIMESTATS_ADD(badackrx);
@@ -156,7 +156,7 @@ recv_from_stunicast(struct stunicast_conn *stunicast, const rimeaddr_t *from)
     RIMESTATS_ADD(reliablerx);
 
     PRINTF("%d.%d: runicast: got packet %d\n",
-	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	   linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	   packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
 
     packet_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
@@ -166,7 +166,7 @@ recv_from_stunicast(struct stunicast_conn *stunicast, const rimeaddr_t *from)
     q = queuebuf_new_from_packetbuf();
     if(q != NULL) {
       PRINTF("%d.%d: runicast: Sending ACK to %d.%d for %d\n",
-	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	     linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	     from->u8[0], from->u8[1],
 	     packet_seqno);
       packetbuf_clear();
@@ -183,7 +183,7 @@ recv_from_stunicast(struct stunicast_conn *stunicast, const rimeaddr_t *from)
       queuebuf_free(q);
     } else {
       PRINTF("%d.%d: runicast: could not send ACK to %d.%d for %d: no queued buffers\n",
-	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	     linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	     from->u8[0], from->u8[1],
 	     packet_seqno);
     }
@@ -221,13 +221,13 @@ runicast_is_transmitting(struct runicast_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-runicast_send(struct runicast_conn *c, const rimeaddr_t *receiver,
+runicast_send(struct runicast_conn *c, const linkaddr_t *receiver,
 	      uint8_t max_retransmissions)
 {
   int ret;
   if(runicast_is_transmitting(c)) {
     PRINTF("%d.%d: runicast: already transmitting\n",
-        rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+        linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
     return 0;
   }
   packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
@@ -239,7 +239,7 @@ runicast_send(struct runicast_conn *c, const rimeaddr_t *receiver,
   c->is_tx = 1;
   RIMESTATS_ADD(reliabletx);
   PRINTF("%d.%d: runicast: sending packet %d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 c->sndnxt);
   ret = stunicast_send_stubborn(&c->c, receiver, REXMIT_TIME);
   if(!ret) {

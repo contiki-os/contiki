@@ -55,8 +55,8 @@
  * the 3xx and 4xx families of the pic32mx.
  */
 
-#ifndef __INCLUDE_PIC32_UART_H__
-#define __INCLUDE_PIC32_UART_H__
+#ifndef INCLUDE_PIC32_UART_H_
+#define INCLUDE_PIC32_UART_H_
 
 #ifdef __USE_UART__
 
@@ -122,6 +122,6 @@ UART_PORT_DEF(3B)
 
 #endif /* __USE_UART__ */
 
-#endif /* __INCLUDE_PIC32_UART_H__ */
+#endif /* INCLUDE_PIC32_UART_H_ */
 
 /** @} */

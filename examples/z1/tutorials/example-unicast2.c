@@ -38,7 +38,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "dev/button-sensor.h"
 
@@ -51,7 +51,7 @@ PROCESS(example_unicast_process, "Example unicast");
 AUTOSTART_PROCESSES(&example_unicast_process);
 /*---------------------------------------------------------------------------*/
 static void
-recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
+recv_uc(struct unicast_conn *c, const linkaddr_t *from)
 {
   printf("unicast message received from %d.%d\n",
 	 from->u8[0], from->u8[1]);
@@ -69,7 +69,7 @@ PROCESS_THREAD(example_unicast_process, ev, data)
 
   while(1) {
     static struct etimer et;
-    rimeaddr_t addr;
+    linkaddr_t addr;
     
     etimer_set(&et, CLOCK_SECOND);
     
@@ -78,7 +78,7 @@ PROCESS_THREAD(example_unicast_process, ev, data)
     //packetbuf_copyfrom("Enric Here!", 12);
     //addr.u8[0] = 200;
     //addr.u8[1] = 0;
-    //if(!rimeaddr_cmp(&addr, &rimeaddr_node_addr)) {
+    //if(!linkaddr_cmp(&addr, &linkaddr_node_addr)) {
       //unicast_send(&uc, &addr);
     //}
 

@@ -46,8 +46,8 @@
  *
  *
  */
-#ifndef __PETSCIICONV_H__
-#define __PETSCIICONV_H__
+#ifndef PETSCIICONV_H_
+#define PETSCIICONV_H_
 
 #ifdef WITH_PETSCII
 
@@ -75,4 +75,4 @@ void petsciiconv_topetscii(char *buf, unsigned int len);
 
 #endif /* WITH_PETSCII */
 
-#endif /* __PETSCIICONV_H__ */
+#endif /* PETSCIICONV_H_ */

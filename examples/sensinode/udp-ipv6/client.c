@@ -44,7 +44,7 @@
 #endif
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #define SEND_INTERVAL		2 * CLOCK_SECOND
 #define MAX_PAYLOAD_LEN		40

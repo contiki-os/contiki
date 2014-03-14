@@ -36,7 +36,7 @@
 #include <stddef.h>
 
 #include "ctk/ctk.h"
-#include "lib/ctk-textentry-cmdline.h"
+#include "ctk/ctk-textentry-cmdline.h"
 #include "contiki-net.h"
 #include "lib/petsciiconv.h"
 #include "sys/arg.h"
@@ -101,7 +101,8 @@ static struct ctk_separator sep2 =
   {CTK_SEPARATOR(0, WWW_CONF_WEBPAGE_HEIGHT + 3,
 		 WWW_CONF_WEBPAGE_WIDTH)};
 
-#if WWW_CONF_WITH_WGET
+#if WWW_CONF_WITH_WGET || defined(WWW_CONF_WGET_EXEC)
+#if CTK_CONF_WINDOWS
 static struct ctk_window wgetdialog;
 static struct ctk_label wgetlabel1 =
   {CTK_LABEL(1, 1, 34, 1, "This web page cannot be displayed.")};
@@ -111,7 +112,15 @@ static struct ctk_button wgetnobutton =
   {CTK_BUTTON(1, 5, 6, "Cancel")};
 static struct ctk_button wgetyesbutton =
   {CTK_BUTTON(11, 5, 24, "Close browser & download")};
-#endif /* WWW_CONF_WITH_WGET */
+#else /* CTK_CONF_WINDOWS */
+static struct ctk_button wgetnobutton =
+  {CTK_BUTTON((WWW_CONF_WEBPAGE_WIDTH - 38) / 2 + 1,
+	      11, 6, "Cancel")};
+static struct ctk_button wgetyesbutton =
+  {CTK_BUTTON((WWW_CONF_WEBPAGE_WIDTH - 38) / 2 + 11,
+	      11, 24, "Close browser & download")};
+#endif /* CTK_CONF_WINDOWS */
+#endif /* WWW_CONF_WITH_WGET || WWW_CONF_WGET_EXEC */
 
 #if WWW_CONF_HISTORY_SIZE > 0
 /* The char arrays that hold the history of visited URLs. */
@@ -249,8 +258,8 @@ clear_page(void)
 {
   ctk_window_clear(&mainwindow);
   make_window();
-  redraw_window();
   memset(webpage, 0, WWW_CONF_WEBPAGE_WIDTH * WWW_CONF_WEBPAGE_HEIGHT);
+  redraw_window();
 }
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -447,7 +456,6 @@ quit(void)
 PROCESS_THREAD(www_process, ev, data)
 {
   static struct ctk_widget *w;
-  static unsigned char i;
 #if WWW_CONF_WITH_WGET
   static char *argptr;
 #endif /* WWW_CONF_WITH_WGET */
@@ -466,14 +474,16 @@ PROCESS_THREAD(www_process, ev, data)
 #endif /* WWW_CONF_HOMEPAGE */
   CTK_WIDGET_FOCUS(&mainwindow, &urlentry);
 
-#if WWW_CONF_WITH_WGET
+#if WWW_CONF_WITH_WGET || defined(WWW_CONF_WGET_EXEC)
+#if CTK_CONF_WINDOWS
   /* Create download dialog.*/
   ctk_dialog_new(&wgetdialog, 38, 7);
   CTK_WIDGET_ADD(&wgetdialog, &wgetlabel1);
   CTK_WIDGET_ADD(&wgetdialog, &wgetlabel2);
   CTK_WIDGET_ADD(&wgetdialog, &wgetnobutton);
   CTK_WIDGET_ADD(&wgetdialog, &wgetyesbutton);
-#endif /* WWW_CONF_WITH_WGET */
+#endif /* CTK_CONF_WINDOWS */
+#endif /* WWW_CONF_WITH_WGET || WWW_CONF_WGET_EXEC */
 
   ctk_window_open(&mainwindow);
 
@@ -515,18 +525,35 @@ PROCESS_THREAD(www_process, ev, data)
       } else if(w == (struct ctk_widget *)&stopbutton) {
 	loading = 0;
 	webclient_close();
-#if WWW_CONF_WITH_WGET
+#if WWW_CONF_WITH_WGET || defined(WWW_CONF_WGET_EXEC)
       } else if(w == (struct ctk_widget *)&wgetnobutton) {
+#if CTK_CONF_WINDOWS
 	ctk_dialog_close();
+#else /* CTK_CONF_WINDOWS */
+	clear_page();
+#endif /* CTK_CONF_WINDOWS */
       } else if(w == (struct ctk_widget *)&wgetyesbutton) {
+#if CTK_CONF_WINDOWS
 	ctk_dialog_close();
+#else /* CTK_CONF_WINDOWS */
+	clear_page();
+#endif /* CTK_CONF_WINDOWS */
+#if WWW_CONF_WITH_WGET
 	quit();
 	argptr = arg_alloc((char)WWW_CONF_MAX_URLLEN);
 	if(argptr != NULL) {
 	  strncpy(argptr, url, WWW_CONF_MAX_URLLEN);
 	}
 	program_handler_load("wget.prg", argptr);
+#else /* WWW_CONF_WITH_WGET */
+	petsciiconv_topetscii(url, sizeof(url));
+	/* Clear screen */
+	ctk_restore();
+	WWW_CONF_WGET_EXEC(url);
+	redraw_window();
+	show_statustext("Cannot exec wget");
 #endif /* WWW_CONF_WITH_WGET */
+#endif /* WWW_CONF_WITH_WGET || WWW_CONF_WGET_EXEC */
 #if WWW_CONF_FORMS
       } else {
 	/* Assume form widget. */
@@ -666,11 +693,22 @@ webclient_datahandler(char *data, uint16_t len)
       htmlparser_parse(data, len);
       redraw_window();
     } else {
-      show_statustext("Cannot display web page");
       uip_abort();
-#if WWW_CONF_WITH_WGET
+#if WWW_CONF_WITH_WGET || defined(WWW_CONF_WGET_EXEC)
+#if CTK_CONF_WINDOWS
       ctk_dialog_open(&wgetdialog);
-#endif /* WWW_CONF_WITH_WGET */
+#else /* CTK_CONF_WINDOWS */
+      strcpy(webpage + WWW_CONF_WEBPAGE_WIDTH * 5,
+	     (80 - WWW_CONF_WEBPAGE_WIDTH) / 2 +
+	     "                       This web page cannot be displayed.");
+      strcpy(webpage + WWW_CONF_WEBPAGE_WIDTH * 6,
+	     (80 - WWW_CONF_WEBPAGE_WIDTH) / 2 +
+	     "                       Would you like to download instead?");
+      CTK_WIDGET_ADD(&mainwindow, &wgetnobutton);
+      CTK_WIDGET_ADD(&mainwindow, &wgetyesbutton);
+      redraw_window();
+#endif /* CTK_CONF_WINDOWS */
+#endif /* WWW_CONF_WITH_WGET || WWW_CONF_WGET_EXEC */
     }
   } else {
     /* Clear remaining parts of page. */

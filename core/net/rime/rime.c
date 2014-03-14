@@ -51,7 +51,7 @@
 #endif
 
 #include "net/netstack.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/chameleon.h"
 #include "net/rime/route.h"
 #include "net/rime/announcement.h"

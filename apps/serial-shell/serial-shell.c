@@ -45,7 +45,7 @@
 #include "shell.h"
 
 #include "dev/serial-line.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -81,7 +81,7 @@ shell_default_output(const char *text1, int len1, const char *text2, int len2)
 void
 shell_prompt(char *str)
 {
-  printf("%d.%d: %s\r\n", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+  printf("%d.%d: %s\r\n", linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 str);
 }
 /*---------------------------------------------------------------------------*/

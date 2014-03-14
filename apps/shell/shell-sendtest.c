@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "shell-ps.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -115,7 +115,7 @@ print_usage(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_sendtest_process, ev, data)
 {
-  static rimeaddr_t receiver;
+  static linkaddr_t receiver;
   static unsigned long cpu, lpm, rx, tx;
   const char *nextptr;
   const char *args;

@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include "6502def.h"
 
@@ -41,6 +41,9 @@
 #define CTK_CONF_WINDOWSWITCH_KEY 0x17  /* Ctrl-W */
 #define CTK_CONF_WIDGETUP_KEY     0x01  /* Ctrl-A */
 #define CTK_CONF_WIDGETDOWN_KEY   '\t'  /* Tab or Ctrl-I */
+
+#define MOUSE_CONF_XTOC(x) ((x) / 8)
+#define MOUSE_CONF_YTOC(y) ((y) / 8)
 
 #define textcolor(color) COLOR_WHITE
 
@@ -67,4 +70,4 @@
 #define WWW_CONF_MAX_INPUTNAMELEN   20
 #define WWW_CONF_MAX_INPUTVALUELEN  20
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

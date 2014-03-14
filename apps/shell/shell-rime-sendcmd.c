@@ -39,7 +39,7 @@
 #include "lib/crc16.h"
 #include "lib/random.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/unicast.h"
 
 #include "net/rime/timesynch.h"
@@ -95,7 +95,7 @@ PROCESS_THREAD(shell_sendcmd_process, ev, data)
 {
   struct cmd_msg  *msg;
   int len;
-  rimeaddr_t addr;
+  linkaddr_t addr;
   const char *nextptr;
   char buf[32];
 
@@ -141,7 +141,7 @@ PROCESS_THREAD(shell_sendcmd_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
+recv_uc(struct unicast_conn *c, const linkaddr_t *from)
 {
   struct cmd_msg *msg;
   uint16_t crc;

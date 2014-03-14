@@ -29,8 +29,8 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __BUTTON_SENSOR_H__
-#define __BUTTON_SENSOR_H__
+#ifndef BUTTON_SENSOR_H_
+#define BUTTON_SENSOR_H_
 
 #include "lib/sensors.h"
 
@@ -38,4 +38,4 @@ extern const struct sensors_sensor button_sensor;
 
 #define BUTTON_SENSOR "Button"
 
-#endif /* __BUTTON_SENSOR_H__ */
+#endif /* BUTTON_SENSOR_H_ */

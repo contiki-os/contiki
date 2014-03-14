@@ -43,7 +43,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/route.h"
 #include "net/rime/route-discovery.h"
 
@@ -51,7 +51,7 @@
 #include <stdio.h>
 
 struct route_msg {
-  rimeaddr_t dest;
+  linkaddr_t dest;
   uint8_t rreq_id;
   uint8_t pad;
 };
@@ -59,8 +59,8 @@ struct route_msg {
 struct rrep_hdr {
   uint8_t rreq_id;
   uint8_t hops;
-  rimeaddr_t dest;
-  rimeaddr_t originator;
+  linkaddr_t dest;
+  linkaddr_t originator;
 };
 
 #if CONTIKI_TARGET_NETSIM
@@ -80,12 +80,12 @@ struct rrep_hdr {
 static char rrep_pending;		/* A reply for a request is pending. */
 /*---------------------------------------------------------------------------*/
 static void
-send_rreq(struct route_discovery_conn *c, const rimeaddr_t *dest)
+send_rreq(struct route_discovery_conn *c, const linkaddr_t *dest)
 {
-  rimeaddr_t dest_copy;
+  linkaddr_t dest_copy;
   struct route_msg *msg;
 
-  rimeaddr_copy(&dest_copy, dest);
+  linkaddr_copy(&dest_copy, dest);
   dest = &dest_copy;
 
   packetbuf_clear();
@@ -94,48 +94,48 @@ send_rreq(struct route_discovery_conn *c, const rimeaddr_t *dest)
 
   msg->pad = 0;
   msg->rreq_id = c->rreq_id;
-  rimeaddr_copy(&msg->dest, dest);
+  linkaddr_copy(&msg->dest, dest);
 
   netflood_send(&c->rreqconn, c->rreq_id);
   c->rreq_id++;
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_rrep(struct route_discovery_conn *c, const rimeaddr_t *dest)
+send_rrep(struct route_discovery_conn *c, const linkaddr_t *dest)
 {
   struct rrep_hdr *rrepmsg;
   struct route_entry *rt;
-  rimeaddr_t saved_dest;
+  linkaddr_t saved_dest;
   
-  rimeaddr_copy(&saved_dest, dest);
+  linkaddr_copy(&saved_dest, dest);
 
   packetbuf_clear();
   dest = &saved_dest;
   rrepmsg = packetbuf_dataptr();
   packetbuf_set_datalen(sizeof(struct rrep_hdr));
   rrepmsg->hops = 0;
-  rimeaddr_copy(&rrepmsg->dest, dest);
-  rimeaddr_copy(&rrepmsg->originator, &rimeaddr_node_addr);
+  linkaddr_copy(&rrepmsg->dest, dest);
+  linkaddr_copy(&rrepmsg->originator, &linkaddr_node_addr);
   rt = route_lookup(dest);
   if(rt != NULL) {
     PRINTF("%d.%d: send_rrep to %d.%d via %d.%d\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	   dest->u8[0],dest->u8[1],
 	   rt->nexthop.u8[0],rt->nexthop.u8[1]);
     unicast_send(&c->rrepconn, &rt->nexthop);
   } else {
     PRINTF("%d.%d: no route for rrep to %d.%d\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	   dest->u8[0],dest->u8[1]);
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
-insert_route(const rimeaddr_t *originator, const rimeaddr_t *last_hop,
+insert_route(const linkaddr_t *originator, const linkaddr_t *last_hop,
 	     uint8_t hops)
 {
   PRINTF("%d.%d: Inserting %d.%d into routing table, next hop %d.%d, hop count %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 originator->u8[0], originator->u8[1],
 	 last_hop->u8[0], last_hop->u8[1],
 	 hops);
@@ -147,7 +147,7 @@ insert_route(const rimeaddr_t *originator, const rimeaddr_t *last_hop,
   rt = route_lookup(originator);
   if(rt == NULL || hops < rt->hop_count) {
     PRINTF("%d.%d: Inserting %d.%d into routing table, next hop %d.%d, hop count %d\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	   originator->u8[0], originator->u8[1],
 	   last_hop->u8[0], last_hop->u8[1],
 	   hops);
@@ -160,16 +160,16 @@ insert_route(const rimeaddr_t *originator, const rimeaddr_t *last_hop,
 }
 /*---------------------------------------------------------------------------*/
 static void
-rrep_packet_received(struct unicast_conn *uc, const rimeaddr_t *from)
+rrep_packet_received(struct unicast_conn *uc, const linkaddr_t *from)
 {
   struct rrep_hdr *msg = packetbuf_dataptr();
   struct route_entry *rt;
-  rimeaddr_t dest;
+  linkaddr_t dest;
   struct route_discovery_conn *c = (struct route_discovery_conn *)
     ((char *)uc - offsetof(struct route_discovery_conn, rrepconn));
 
   PRINTF("%d.%d: rrep_packet_received from %d.%d towards %d.%d len %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 from->u8[0],from->u8[1],
 	 msg->dest.u8[0],msg->dest.u8[1],
 	 packetbuf_datalen());
@@ -182,22 +182,22 @@ rrep_packet_received(struct unicast_conn *uc, const rimeaddr_t *from)
 
   insert_route(&msg->originator, from, msg->hops);
 
-  if(rimeaddr_cmp(&msg->dest, &rimeaddr_node_addr)) {
+  if(linkaddr_cmp(&msg->dest, &linkaddr_node_addr)) {
     PRINTF("rrep for us!\n");
     rrep_pending = 0;
     ctimer_stop(&c->t);
     if(c->cb->new_route) {
-      rimeaddr_t originator;
+      linkaddr_t originator;
 
       /* If the callback modifies the packet, the originator address
          will be lost. Therefore, we need to copy it into a local
          variable before calling the callback. */
-      rimeaddr_copy(&originator, &msg->originator);
+      linkaddr_copy(&originator, &msg->originator);
       c->cb->new_route(c, &originator);
     }
 
   } else {
-    rimeaddr_copy(&dest, &msg->dest);
+    linkaddr_copy(&dest, &msg->dest);
 
     rt = route_lookup(&msg->dest);
     if(rt != NULL) {
@@ -205,42 +205,42 @@ rrep_packet_received(struct unicast_conn *uc, const rimeaddr_t *from)
       msg->hops++;
       unicast_send(&c->rrepconn, &rt->nexthop);
     } else {
-      PRINTF("%d.%d: no route to %d.%d\n", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], msg->dest.u8[0], msg->dest.u8[1]);
+      PRINTF("%d.%d: no route to %d.%d\n", linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], msg->dest.u8[0], msg->dest.u8[1]);
     }
   }
 }
 /*---------------------------------------------------------------------------*/
 static int
-rreq_packet_received(struct netflood_conn *nf, const rimeaddr_t *from,
-		     const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
+rreq_packet_received(struct netflood_conn *nf, const linkaddr_t *from,
+		     const linkaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct route_msg *msg = packetbuf_dataptr();
   struct route_discovery_conn *c = (struct route_discovery_conn *)
     ((char *)nf - offsetof(struct route_discovery_conn, rreqconn));
 
   PRINTF("%d.%d: rreq_packet_received from %d.%d hops %d rreq_id %d last %d.%d/%d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1],
 	 hops, msg->rreq_id,
      c->last_rreq_originator.u8[0],
      c->last_rreq_originator.u8[1],
 	 c->last_rreq_id);
 
-  if(!(rimeaddr_cmp(&c->last_rreq_originator, originator) &&
+  if(!(linkaddr_cmp(&c->last_rreq_originator, originator) &&
        c->last_rreq_id == msg->rreq_id)) {
 
     PRINTF("%d.%d: rreq_packet_received: request for %d.%d originator %d.%d / %d\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	   msg->dest.u8[0], msg->dest.u8[1],
 	   originator->u8[0], originator->u8[1],
 	   msg->rreq_id);
 
-    rimeaddr_copy(&c->last_rreq_originator, originator);
+    linkaddr_copy(&c->last_rreq_originator, originator);
     c->last_rreq_id = msg->rreq_id;
 
-    if(rimeaddr_cmp(&msg->dest, &rimeaddr_node_addr)) {
+    if(linkaddr_cmp(&msg->dest, &linkaddr_node_addr)) {
       PRINTF("%d.%d: route_packet_received: route request for our address\n",
-	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	     linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
       PRINTF("from %d.%d hops %d rssi %d lqi %d\n",
 	     from->u8[0], from->u8[1],
 	     hops,
@@ -301,7 +301,7 @@ timeout_handler(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 int
-route_discovery_discover(struct route_discovery_conn *c, const rimeaddr_t *addr,
+route_discovery_discover(struct route_discovery_conn *c, const linkaddr_t *addr,
 			 clock_time_t timeout)
 {
   if(rrep_pending) {

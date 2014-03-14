@@ -148,10 +148,10 @@
  * Modified! 0xff and 0xfe are sobstituted by 0x02 and 0x00.
 */
 
-#include "net/uip.h"
-#include "net/uip_arp.h" /* For ethernet header structure */
-#include "net/rime.h"
-#include "net/sicslowpan.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip_arp.h" /* For ethernet header structure */
+#include "net/rime/rime.h"
+#include "net/ipv6/sicslowpan.h"
 #include "sicslow_ethernet.h"
 #include "dev/stm32w-radio.h"
 #include "net/mac/frame802154.h"
@@ -339,7 +339,7 @@ void mac_LowpanToEthernet(void)
   ETHBUF(uip_buf)->type = htons(UIP_ETHTYPE_IPV6);
 
   //Check for broadcast message
-  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
 /*   if(  ( parsed_frame->fcf->destAddrMode == SHORTADDRMODE) && */
 /*        ( parsed_frame->dest_addr->addr16 == 0xffff) ) { */
     ETHBUF(uip_buf)->dest.addr[0] = 0x33;
@@ -399,8 +399,8 @@ int8_t mac_translateIPLinkLayer(lltype_t target)
 
 }
 
-#include "net/uip-icmp6.h"
-#include "net/uip-nd6.h"
+#include "net/ipv6/uip-icmp6.h"
+#include "net/ipv6/uip-nd6.h"
 
 typedef struct {
   uint8_t type;
@@ -825,7 +825,7 @@ void mac_logTXtoEthernet(frame_create_params_t *p,frame_result_t *frame_result)
 
 
   //Check for broadcast message
-  //if(rimeaddr_cmp((const rimeaddr_t *)destAddr, &rimeaddr_null)) {
+  //if(linkaddr_cmp((const linkaddr_t *)destAddr, &linkaddr_null)) {
   if(  ( p->fcf.destAddrMode == SHORTADDRMODE) &&
        ( p->dest_addr.addr16 == 0xffff) ) {
     ETHBUF(raw_buf)->dest.addr[0] = 0x33;
@@ -940,7 +940,7 @@ void mac_802154raw(const struct radio_driver *radio)
 
 #if 0
   //Check for broadcast message
-  //if(rimeaddr_cmp((const rimeaddr_t *)destAddr, &rimeaddr_null)) {
+  //if(linkaddr_cmp((const linkaddr_t *)destAddr, &linkaddr_null)) {
   if(  ( parsed_frame->fcf->destAddrMode == SHORTADDRMODE) &&
        ( parsed_frame->dest_addr->addr16 == 0xffff) ) {
     ETHBUF(raw_buf)->dest.addr[0] = 0x33;

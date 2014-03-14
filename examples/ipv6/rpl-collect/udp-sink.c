@@ -30,9 +30,9 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include "net/rpl/rpl.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 
 #include "net/netstack.h"
 #include "dev/button-sensor.h"
@@ -50,7 +50,7 @@
 #include "collect-view.h"
 
 #define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
@@ -96,7 +96,7 @@ static void
 tcpip_handler(void)
 {
   uint8_t *appdata;
-  rimeaddr_t sender;
+  linkaddr_t sender;
   uint8_t seqno;
   uint8_t hops;
 

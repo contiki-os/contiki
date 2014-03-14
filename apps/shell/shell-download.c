@@ -41,7 +41,7 @@
 #include "contiki.h"
 #include "shell.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "cfs/cfs.h"
 
 #include "dev/leds.h"
@@ -130,7 +130,7 @@ static const struct rucb_callbacks rucb_call = { write_chunk, read_chunk, timedo
 PROCESS_THREAD(shell_download_process, ev, data)
 {
   const char *nextptr;
-  static rimeaddr_t addr;
+  static linkaddr_t addr;
   int len;
   char buf[32];
 
@@ -185,7 +185,7 @@ PROCESS_THREAD(shell_download_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-request_recv(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
+request_recv(struct runicast_conn *c, const linkaddr_t *from, uint8_t seqno)
 {
   const char *filename;
   uint8_t seq;
@@ -224,14 +224,14 @@ request_recv(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 static void
-request_sent(struct runicast_conn *c, const rimeaddr_t *to,
+request_sent(struct runicast_conn *c, const linkaddr_t *to,
 	     uint8_t retransmissions)
 {
   process_poll(&shell_download_process);
 }
 /*---------------------------------------------------------------------------*/
 static void
-request_timedout(struct runicast_conn *c, const rimeaddr_t *to,
+request_timedout(struct runicast_conn *c, const linkaddr_t *to,
 		 uint8_t retransmissions)
 {
   shell_output_str(&download_command, "download: request timed out", "");

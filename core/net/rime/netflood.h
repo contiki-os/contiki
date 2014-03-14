@@ -71,8 +71,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __NETFLOOD_H__
-#define __NETFLOOD_H__
+#ifndef NETFLOOD_H_
+#define NETFLOOD_H_
 
 #include "net/queuebuf.h"
 #include "net/rime/ipolite.h"
@@ -85,8 +85,8 @@ struct netflood_conn;
                                 IPOLITE_ATTRIBUTES
 
 struct netflood_callbacks {
-  int (* recv)(struct netflood_conn *c, const rimeaddr_t *from,
-	       const rimeaddr_t *originator, uint8_t seqno, uint8_t hops);
+  int (* recv)(struct netflood_conn *c, const linkaddr_t *from,
+	       const linkaddr_t *originator, uint8_t seqno, uint8_t hops);
   void (* sent)(struct netflood_conn *c);
   void (* dropped)(struct netflood_conn *c);
 };
@@ -95,7 +95,7 @@ struct netflood_conn {
   struct ipolite_conn c;
   const struct netflood_callbacks *u;
   clock_time_t queue_time;
-  rimeaddr_t last_originator;
+  linkaddr_t last_originator;
   uint8_t last_originator_seqno;
 };
 
@@ -105,6 +105,6 @@ void netflood_close(struct netflood_conn *c);
 
 int netflood_send(struct netflood_conn *c, uint8_t seqno);
 
-#endif /* __SIBC_H__ */
+#endif /* SIBC_H_ */
 /** @} */
 /** @} */

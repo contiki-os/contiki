@@ -29,8 +29,8 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __CODEPROP_H__
-#define __CODEPROP_H__
+#ifndef CODEPROP_H_
+#define CODEPROP_H_
 
 #include "contiki.h"
 
@@ -43,4 +43,4 @@ void codeprop_start_broadcast(unsigned int len);
 void codeprop_exit_program(void);
 int codeprop_start_program(void);
 
-#endif /* __CODEPROP_H__ */
+#endif /* CODEPROP_H_ */

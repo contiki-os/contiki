@@ -44,12 +44,12 @@
  */
 
 #include "net/rime/stbroadcast.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include <string.h>
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_broadcast(struct broadcast_conn *broadcast, const rimeaddr_t *sender)
+recv_from_broadcast(struct broadcast_conn *broadcast, const linkaddr_t *sender)
 {
   register struct stbroadcast_conn *c = (struct stbroadcast_conn *)broadcast;
   /*  DEBUGF(3, "stbroadcast: recv_from_broadcast from %d\n", from_id);*/

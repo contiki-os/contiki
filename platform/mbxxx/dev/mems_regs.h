@@ -18,8 +18,8 @@
 * INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
 *******************************************************************************/
 
-#ifndef _MEMS_REGS_H_
-#define _MEMS_REGS_H_
+#ifndef MEMS_REGS_H_
+#define MEMS_REGS_H_
 
 /* Private include ------------------------------------------------------------*/
 
@@ -139,7 +139,7 @@ uint8_t i2c_read_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t *pBuffer, ui
 //-reg_value is the value of the register to be written---//
 uint8_t i2c_write_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t reg_value);
 
-#endif /* _MEMS_REGS_H_ */
+#endif /*MEMS_REGS_H_ */
 
 /******************* (C) COPYRIGHT 2009 STMicroelectronics *****END OF FILE****/
 /** @} */

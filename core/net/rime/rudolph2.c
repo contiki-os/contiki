@@ -51,7 +51,7 @@
 #include <stdio.h>
 #include <stddef.h> /* for offsetof */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/polite.h"
 #include "net/rime/rudolph2.h"
 #include "cfs/cfs.h"
@@ -135,13 +135,13 @@ write_data(struct rudolph2_conn *c, int chunk, uint8_t *data, int datalen)
   }
   
   PRINTF("%d.%d: get %d bytes\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 datalen);
 
   
   if(datalen < RUDOLPH2_DATASIZE) {
     PRINTF("%d.%d: get %d bytes, file complete\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	   datalen);
     c->cb->write_chunk(c, chunk * RUDOLPH2_DATASIZE,
 		       RUDOLPH2_FLAG_LASTCHUNK, data, datalen);
@@ -159,7 +159,7 @@ send_data(struct rudolph2_conn *c, clock_time_t interval)
   len = format_data(c, c->snd_nxt);
   polite_send(&c->c, interval, POLITE_HEADER);
   PRINTF("%d.%d: send_data chunk %d, rcv_nxt %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 c->snd_nxt, c->rcv_nxt);
 
   return len;
@@ -179,7 +179,7 @@ send_nack(struct rudolph2_conn *c)
   hdr->chunk = c->rcv_nxt;
 
   PRINTF("%d.%d: Sending nack for %d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 hdr->chunk);
   polite_send(&c->c, NACK_TIMEOUT, POLITE_HEADER);
 }
@@ -297,7 +297,7 @@ recv(struct polite_conn *polite)
   if(hdr->type == TYPE_NACK && hdr->hops_from_base > c->hops_from_base) {
     c->nacks++;
     PRINTF("%d.%d: Got NACK for %d:%d (%d:%d)\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	   hdr->version, hdr->chunk,
 	   c->version, c->rcv_nxt);
     if(hdr->version == c->version) {
@@ -316,7 +316,7 @@ recv(struct polite_conn *polite)
       c->hops_from_base = hdr->hops_from_base + 1;
       if(LT(c->version, hdr->version)) {
 	PRINTF("%d.%d: rudolph2 new version %d, chunk %d\n",
-	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	       linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	       hdr->version, hdr->chunk);
 	c->version = hdr->version;
 	c->snd_nxt = c->rcv_nxt = 0;
@@ -330,14 +330,14 @@ recv(struct polite_conn *polite)
 	}
       } else if(hdr->version == c->version) {
 	PRINTF("%d.%d: got chunk %d snd_nxt %d rcv_nxt %d\n",
-	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	       linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	       hdr->chunk, c->snd_nxt, c->rcv_nxt);
 	
 	if(hdr->chunk == c->rcv_nxt) {
 	  int len;
 	  packetbuf_hdrreduce(sizeof(struct rudolph2_hdr));
 	  PRINTF("%d.%d: received chunk %d len %d\n",
-		 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+		 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 		 hdr->chunk, packetbuf_totlen());
 	  len = packetbuf_totlen();
 	  write_data(c, hdr->chunk, packetbuf_dataptr(), packetbuf_totlen());
@@ -349,7 +349,7 @@ recv(struct polite_conn *polite)
 	  }
 	} else if(hdr->chunk > c->rcv_nxt) {
 	  PRINTF("%d.%d: received chunk %d > %d, sending NACK\n",
-		 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+		 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 		 hdr->chunk, c->rcv_nxt);
 	  send_nack(c);
 	} else if(hdr->chunk < c->rcv_nxt) {

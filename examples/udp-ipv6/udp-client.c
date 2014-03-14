@@ -30,13 +30,13 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "net/resolv.h"
+#include "net/ip/resolv.h"
 
 #include <string.h>
 #include <stdbool.h>
 
 #define DEBUG DEBUG_PRINT
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #define SEND_INTERVAL		15 * CLOCK_SECOND
 #define MAX_PAYLOAD_LEN		40

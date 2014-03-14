@@ -71,7 +71,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "lib/list.h"
 #include "lib/memb.h"
 #include "lib/random.h"
@@ -85,7 +85,7 @@
 
 struct example_neighbor {
   struct example_neighbor *next;
-  rimeaddr_t addr;
+  linkaddr_t addr;
   struct ctimer ctimer;
 };
 
@@ -120,7 +120,7 @@ remove_neighbor(void *n)
  */
 static void
 received_announcement(struct announcement *a,
-                      const rimeaddr_t *from,
+                      const linkaddr_t *from,
 		      uint16_t id, uint16_t value)
 {
   struct example_neighbor *e;
@@ -131,7 +131,7 @@ received_announcement(struct announcement *a,
   /* We received an announcement from a neighbor so we need to update
      the neighbor list, or add a new entry to the table. */
   for(e = list_head(neighbor_table); e != NULL; e = e->next) {
-    if(rimeaddr_cmp(from, &e->addr)) {
+    if(linkaddr_cmp(from, &e->addr)) {
       /* Our neighbor was found, so we update the timeout. */
       ctimer_set(&e->ctimer, NEIGHBOR_TIMEOUT, remove_neighbor, e);
       return;
@@ -143,7 +143,7 @@ received_announcement(struct announcement *a,
      necessary fields, and add it to the list. */
   e = memb_alloc(&neighbor_mem);
   if(e != NULL) {
-    rimeaddr_copy(&e->addr, from);
+    linkaddr_copy(&e->addr, from);
     list_add(neighbor_table, e);
     ctimer_set(&e->ctimer, NEIGHBOR_TIMEOUT, remove_neighbor, e);
   }
@@ -154,8 +154,8 @@ static struct announcement example_announcement;
  * This function is called at the final recepient of the message.
  */
 static void
-recv(struct multihop_conn *c, const rimeaddr_t *sender,
-     const rimeaddr_t *prevhop,
+recv(struct multihop_conn *c, const linkaddr_t *sender,
+     const linkaddr_t *prevhop,
      uint8_t hops)
 {
   printf("multihop message received '%s'\n", (char *)packetbuf_dataptr());
@@ -167,10 +167,10 @@ recv(struct multihop_conn *c, const rimeaddr_t *sender,
  * found, the function returns NULL to signal to the multihop layer
  * that the packet should be dropped.
  */
-static rimeaddr_t *
+static linkaddr_t *
 forward(struct multihop_conn *c,
-	const rimeaddr_t *originator, const rimeaddr_t *dest,
-	const rimeaddr_t *prevhop, uint8_t hops)
+	const linkaddr_t *originator, const linkaddr_t *dest,
+	const linkaddr_t *prevhop, uint8_t hops)
 {
   /* Find a random neighbor to send to. */
   int num, i;
@@ -184,14 +184,14 @@ forward(struct multihop_conn *c,
     }
     if(n != NULL) {
       printf("%d.%d: Forwarding packet to %d.%d (%d in list), hops %d\n",
-	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	     linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	     n->addr.u8[0], n->addr.u8[1], num,
 	     packetbuf_attr(PACKETBUF_ATTR_HOPS));
       return &n->addr;
     }
   }
   printf("%d.%d: did not find a neighbor to foward to\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
   return NULL;
 }
 static const struct multihop_callbacks multihop_call = {recv, forward};
@@ -227,7 +227,7 @@ PROCESS_THREAD(example_multihop_process, ev, data)
 
   /* Loop forever, send a packet when the button is pressed. */
   while(1) {
-    rimeaddr_t to;
+    linkaddr_t to;
 
     /* Wait until we get a sensor event with the button sensor as data. */
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&

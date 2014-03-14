@@ -46,7 +46,7 @@
 
 #include "contiki-net.h"
 #include "net/packetbuf.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 struct packetbuf_attr packetbuf_attrs[PACKETBUF_NUM_ATTRS];
 struct packetbuf_addr packetbuf_addrs[PACKETBUF_NUM_ADDRS];
@@ -261,7 +261,7 @@ packetbuf_attr_clear(void)
     packetbuf_attrs[i].val = 0;
   }
   for(i = 0; i < PACKETBUF_NUM_ADDRS; ++i) {
-    rimeaddr_copy(&packetbuf_addrs[i].addr, &rimeaddr_null);
+    linkaddr_copy(&packetbuf_addrs[i].addr, &linkaddr_null);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -297,14 +297,14 @@ packetbuf_attr(uint8_t type)
 }
 /*---------------------------------------------------------------------------*/
 int
-packetbuf_set_addr(uint8_t type, const rimeaddr_t *addr)
+packetbuf_set_addr(uint8_t type, const linkaddr_t *addr)
 {
 /*   packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].type = type; */
-  rimeaddr_copy(&packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
+  linkaddr_copy(&packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-const rimeaddr_t *
+const linkaddr_t *
 packetbuf_addr(uint8_t type)
 {
   return &packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr;

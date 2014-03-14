@@ -64,7 +64,7 @@
 #define SERVREG_HACK_H
 
 #include "contiki-conf.h"
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 typedef uint8_t servreg_hack_id_t;
 typedef void servreg_hack_item_t;

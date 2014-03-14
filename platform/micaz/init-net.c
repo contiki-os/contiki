@@ -43,7 +43,7 @@
 #include <avr/pgmspace.h>
 
 #include "contiki.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/rs232.h"
 #include "dev/slip.h"
 #include "dev/leds.h"
@@ -54,14 +54,14 @@
 #include "sys/node-id.h"
 
 #if WITH_UIP6
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 #endif /* WITH_UIP6 */
 
 #if WITH_UIP
-#include "net/uip.h"
-#include "net/uip-fw.h"
+#include "net/ip/uip.h"
+#include "net/ipv4/uip-fw.h"
 #include "net/uip-fw-drv.h"
-#include "net/uip-over-mesh.h"
+#include "net/ipv4/uip-over-mesh.h"
 static struct uip_fw_netif slipif =
   {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
 static struct uip_fw_netif meshif =
@@ -77,15 +77,15 @@ static uint8_t is_gateway;
 static void
 set_rime_addr(void)
 {
-  rimeaddr_t addr;
+  linkaddr_t addr;
   int i;
 
-  memset(&addr, 0, sizeof(rimeaddr_t));
+  memset(&addr, 0, sizeof(linkaddr_t));
 #if UIP_CONF_IPV6
   memcpy(addr.u8, ds2401_id, sizeof(addr.u8));
 #else
   if(node_id == 0) {
-    for(i = 0; i < sizeof(rimeaddr_t); ++i) {
+    for(i = 0; i < sizeof(linkaddr_t); ++i) {
       addr.u8[i] = ds2401_id[7 - i];
     }
   } else {
@@ -93,7 +93,7 @@ set_rime_addr(void)
     addr.u8[1] = node_id >> 8;
   }
 #endif
-  rimeaddr_set_node_addr(&addr);
+  linkaddr_set_node_addr(&addr);
   printf_P(PSTR("Rime started with address "));
   for(i = 0; i < sizeof(addr.u8) - 1; i++) {
     printf_P(PSTR("%d."), addr.u8[i]);
@@ -109,10 +109,10 @@ set_gateway(void)
   if(!is_gateway) {
     leds_on(LEDS_RED);
     printf_P(PSTR("%d.%d: making myself the IP network gateway.\n\n"),
-	              rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	              linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
     printf_P(PSTR("IPv4 address of the gateway: %d.%d.%d.%d\n\n"),
 	              uip_ipaddr_to_quad(&uip_hostaddr));
-    uip_over_mesh_set_gateway(&rimeaddr_node_addr);
+    uip_over_mesh_set_gateway(&linkaddr_node_addr);
     uip_over_mesh_make_announced_gateway();
     is_gateway = 1;
   }
@@ -129,24 +129,22 @@ init_net(void)
     uint8_t longaddr[8];
     uint16_t shortaddr;
     
-    shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
-                 rimeaddr_node_addr.u8[1];
+    shortaddr = (linkaddr_node_addr.u8[0] << 8) +
+                 linkaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
-    rimeaddr_copy((rimeaddr_t *)&longaddr, &rimeaddr_node_addr);
+    linkaddr_copy((linkaddr_t *)&longaddr, &linkaddr_node_addr);
     printf_P(PSTR("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"),
              longaddr[0], longaddr[1], longaddr[2], longaddr[3],
              longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
     
     cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
   }
-  cc2420_set_channel(RF_CHANNEL);
-
 
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, ds2401_id, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
   /* sicslowpan_init(sicslowmac_init(&cc2420_driver)); */
-  /* printf(" %s channel %u\n", sicslowmac_driver.name, RF_CHANNEL); */
+  /* printf(" %s channel %u\n", sicslowmac_driver.name, CC2420_CONF_CHANNEL); */
 
   /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
@@ -158,7 +156,7 @@ init_net(void)
          NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
                          NETSTACK_RDC.channel_check_interval()),
-         RF_CHANNEL);
+         CC2420_CONF_CHANNEL);
 
   process_start(&tcpip_process, NULL);
 
@@ -199,7 +197,7 @@ init_net(void)
          NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0? 1:
                          NETSTACK_RDC.channel_check_interval()),
-         RF_CHANNEL);
+         CC2420_CONF_CHANNEL);
 #endif /* WITH_UIP6 */
 
 
@@ -216,8 +214,8 @@ init_net(void)
   slip_set_input_callback(set_gateway);
 
   /* Construct ip address from four bytes. */
-  uip_ipaddr(&hostaddr, 172, 16, rimeaddr_node_addr.u8[0],
-                                  rimeaddr_node_addr.u8[1]);
+  uip_ipaddr(&hostaddr, 172, 16, linkaddr_node_addr.u8[0],
+                                  linkaddr_node_addr.u8[1]);
   /* Construct netmask from four bytes. */
   uip_ipaddr(&netmask, 255,255,0,0);
 

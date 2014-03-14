@@ -62,11 +62,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __RMH_H__
-#define __RMH_H__
+#ifndef RMH_H_
+#define RMH_H_
 
 #include "net/rime/runicast.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 
 struct rmh_conn;
 
@@ -77,11 +77,11 @@ struct rmh_conn;
                         RUC_ATTRIBUTES
 
 struct rmh_callbacks {
-  void (* recv)(struct rmh_conn *ptr, rimeaddr_t *sender, uint8_t hops);
-  rimeaddr_t *(* forward)(struct rmh_conn *ptr,
-			  const rimeaddr_t *originator,
-			  const rimeaddr_t *dest,
-			  const rimeaddr_t *prevhop,
+  void (* recv)(struct rmh_conn *ptr, linkaddr_t *sender, uint8_t hops);
+  linkaddr_t *(* forward)(struct rmh_conn *ptr,
+			  const linkaddr_t *originator,
+			  const linkaddr_t *dest,
+			  const linkaddr_t *prevhop,
 			  uint8_t hops);
 };
 
@@ -94,9 +94,9 @@ struct rmh_conn {
 void rmh_open(struct rmh_conn *c, uint16_t channel,
 	      const struct rmh_callbacks *u);
 void rmh_close(struct rmh_conn *c);
-int rmh_send(struct rmh_conn *c, rimeaddr_t *to, uint8_t num_rexmit,
+int rmh_send(struct rmh_conn *c, linkaddr_t *to, uint8_t num_rexmit,
 	     uint8_t max_hops);
 
-#endif /* __RMH_H__ */
+#endif /* RMH_H_ */
 /** @} */
 /** @} */

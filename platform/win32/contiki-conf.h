@@ -1,5 +1,5 @@
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #ifdef __CYGWIN__
 #include <sys/types.h>
@@ -56,25 +56,26 @@ typedef          long  s32_t;
 
 typedef unsigned short uip_stats_t;
 
-#define UIP_CONF_MAX_CONNECTIONS 40
-#define UIP_CONF_MAX_LISTENPORTS 40
-#define UIP_CONF_BUFFER_SIZE     1514
-#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
-#define UIP_CONF_TCP_SPLIT       1
+#define UIP_CONF_MAX_CONNECTIONS     40
+#define UIP_CONF_MAX_LISTENPORTS     40
+#define UIP_CONF_LLH_LEN             14
+#define UIP_CONF_BUFFER_SIZE         1514
+#define UIP_CONF_BYTE_ORDER          UIP_LITTLE_ENDIAN
+#define UIP_CONF_TCP_SPLIT           1
+#define UIP_CONF_LOGGING             1
+#define UIP_CONF_UDP_CHECKSUMS       1
 #if UIP_CONF_IPV6
-#define UIP_CONF_IP_FORWARD      0
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     100
-#define UIP_CONF_DS6_DEFRT_NBU   2
-#define UIP_CONF_DS6_PREFIX_NBU  5
-#define UIP_CONF_MAX_ROUTES   100
-#define UIP_CONF_DS6_ADDR_NBU    10
-#define UIP_CONF_DS6_MADDR_NBU   0  //VC++ does not allow zero length arrays
-#define UIP_CONF_DS6_AADDR_NBU   0  //inside a struct
+#define UIP_CONF_IP_FORWARD          0
+#define NBR_TABLE_CONF_MAX_NEIGHBORS 100
+#define UIP_CONF_DS6_DEFRT_NBU       2
+#define UIP_CONF_DS6_PREFIX_NBU      5
+#define UIP_CONF_MAX_ROUTES          100
+#define UIP_CONF_DS6_ADDR_NBU        10
+#define UIP_CONF_DS6_MADDR_NBU       0  //VC++ does not allow zero length arrays
+#define UIP_CONF_DS6_AADDR_NBU       0  //inside a struct
 #else
-#define UIP_CONF_IP_FORWARD      1
+#define UIP_CONF_IP_FORWARD          1
 #endif
-#define UIP_CONF_LOGGING         1
-#define UIP_CONF_UDP_CHECKSUMS   1
 
 
 #include <ctype.h>
@@ -181,6 +182,9 @@ typedef unsigned short uip_stats_t;
 #ifdef PLATFORM_BUILD
 #define WWW_CONF_WEBPAGE_WIDTH  76
 #define WWW_CONF_WEBPAGE_HEIGHT 30
+#else /* PLATFORM_BUILD */
+#define WWW_CONF_WGET_EXEC(url) execlp("wget.win32", "wget.win32", \
+                                       "192.168.0.2", url, (char *)NULL)
 #endif /* PLATFORM_BUILD */
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

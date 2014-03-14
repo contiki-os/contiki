@@ -43,7 +43,7 @@
 
 #include "contiki.h"
 #include "contiki-net.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
@@ -63,7 +63,7 @@ PROCESS_THREAD(shell_id_process, ev, data)
   snprintf(buf, sizeof(buf), "%d.%d.%d.%d", uip_ipaddr_to_quad(&uip_hostaddr));
   shell_output_str(&id_command, "IP address: ", buf);
   snprintf(buf, sizeof(buf), "%d.%d",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
   shell_output_str(&id_command, "Rime address: ", buf);
   PROCESS_END();
 }

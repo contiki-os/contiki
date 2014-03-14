@@ -41,7 +41,7 @@
 #include "contiki-lib.h"
 #include "sys/compower.h"
 #include "powertrace.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -117,7 +117,7 @@ powertrace_print(char *str)
 
   printf("%s %lu P %d.%d %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu (radio %d.%02d%% / %d.%02d%% tx %d.%02d%% / %d.%02d%% listen %d.%02d%% / %d.%02d%%)\n",
          str,
-         clock_time(), rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], seqno,
+         clock_time(), linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], seqno,
          all_cpu, all_lpm, all_transmit, all_listen, all_idle_transmit, all_idle_listen,
          cpu, lpm, transmit, listen, idle_transmit, idle_listen,
          (int)((100L * (all_transmit + all_listen)) / all_time),
@@ -137,7 +137,7 @@ powertrace_print(char *str)
 
 #if ! UIP_CONF_IPV6
     printf("%s %lu SP %d.%d %lu %u %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu (channel %d radio %d.%02d%% / %d.%02d%%)\n",
-           str, clock_time(), rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], seqno,
+           str, clock_time(), linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], seqno,
            s->channel,
            s->num_input, s->input_txtime, s->input_rxtime,
            s->input_txtime - s->last_input_txtime,
@@ -160,7 +160,7 @@ powertrace_print(char *str)
                  radio));
 #else
     printf("%s %lu SP %d.%d %lu %u %u %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu (proto %u(%u) radio %d.%02d%% / %d.%02d%%)\n",
-           str, clock_time(), rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], seqno,
+           str, clock_time(), linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], seqno,
            s->proto, s->channel,
            s->num_input, s->input_txtime, s->input_rxtime,
            s->input_txtime - s->last_input_txtime,
@@ -287,7 +287,7 @@ output_sniffer(int mac_status)
 static void
 sniffprint(char *prefix, int seqno)
 {
-  const rimeaddr_t *sender, *receiver, *esender, *ereceiver;
+  const linkaddr_t *sender, *receiver, *esender, *ereceiver;
 
   sender = packetbuf_addr(PACKETBUF_ADDR_SENDER);
   receiver = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
@@ -298,7 +298,7 @@ sniffprint(char *prefix, int seqno)
   printf("%lu %s %d %u %d %d %d.%d %u %u\n",
          clock_time(),
          prefix,
-         rimeaddr_node_addr.u8[0], seqno,
+         linkaddr_node_addr.u8[0], seqno,
          packetbuf_attr(PACKETBUF_ATTR_CHANNEL),
          packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE),
          esender->u8[0], esender->u8[1],

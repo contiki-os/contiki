@@ -39,8 +39,8 @@
  *         Simon Barner <barner@in.tum.de>
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 /* Platform name, type, and MCU clock rate */
 #define PLATFORM_NAME  "Zigbit"
@@ -95,7 +95,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define CC_CONF_INLINE inline
 #endif
 
-#define RIMEADDR_CONF_SIZE       8
+#define LINKADDR_CONF_SIZE       8
 #define PACKETBUF_CONF_HDR_SIZE    0
 
 //define UIP_CONF_IPV6            1 //Let the makefile do this, allows hello-world to compile
@@ -179,4 +179,4 @@ typedef unsigned short uip_stats_t;
 typedef unsigned long off_t;
 
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

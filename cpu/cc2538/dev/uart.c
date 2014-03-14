@@ -41,12 +41,26 @@
 #include "dev/ioc.h"
 #include "dev/gpio.h"
 #include "dev/uart.h"
+#include "lpm.h"
 #include "reg.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
 static int (* input_handler)(unsigned char c);
+/*---------------------------------------------------------------------------*/
+#define UART_RX_PORT_BASE        GPIO_PORT_TO_BASE(UART_RX_PORT)
+#define UART_RX_PIN_MASK         GPIO_PIN_MASK(UART_RX_PIN)
+
+#define UART_TX_PORT_BASE        GPIO_PORT_TO_BASE(UART_TX_PORT)
+#define UART_TX_PIN_MASK         GPIO_PIN_MASK(UART_TX_PIN)
+
+#define UART_CTS_PORT_BASE       GPIO_PORT_TO_BASE(UART_CTS_PORT)
+#define UART_CTS_PIN_MASK        GPIO_PIN_MASK(UART_CTS_PIN)
+
+#define UART_RTS_PORT_BASE       GPIO_PORT_TO_BASE(UART_RTS_PORT)
+#define UART_RTS_PIN_MASK        GPIO_PIN_MASK(UART_RTS_PIN)
 /*---------------------------------------------------------------------------*/
 /*
  * Once we know what UART we're on, configure correct values to be written to
@@ -96,9 +110,19 @@ reset(void)
   REG(UART_BASE | UART_CTL) |= UART_CTL_UARTEN;
 }
 /*---------------------------------------------------------------------------*/
+static bool
+permit_pm1(void)
+{
+  /* Note: UART_FR.TXFE reads 0 if the UART clock is gated. */
+  return (REG(SYS_CTRL_RCGCUART) & SYS_CTRL_RCGCUART_UART) == 0 ||
+         (REG(UART_BASE | UART_FR) & UART_FR_TXFE) != 0;
+}
+/*---------------------------------------------------------------------------*/
 void
 uart_init(void)
 {
+  lpm_register_peripheral(permit_pm1);
+
   /* Enable clock for the UART while Running, in Sleep and Deep Sleep */
   REG(SYS_CTRL_RCGCUART) |= SYS_CTRL_RCGCUART_UART;
   REG(SYS_CTRL_SCGCUART) |= SYS_CTRL_SCGCUART_UART;
@@ -125,8 +149,9 @@ uart_init(void)
   ioc_set_sel(UART_TX_PORT, UART_TX_PIN, IOC_PXX_SEL_UART_TXD);
   ioc_set_over(UART_TX_PORT, UART_TX_PIN, IOC_OVERRIDE_OE);
 
-  /* Set PA[1:0] to peripheral mode */
-  REG(GPIO_A_BASE | GPIO_AFSEL) |= (0x00000002 | 0x00000001);
+  /* Set RX and TX pins to peripheral mode */
+  GPIO_PERIPHERAL_CONTROL(UART_TX_PORT_BASE, UART_TX_PIN_MASK);
+  GPIO_PERIPHERAL_CONTROL(UART_RX_PORT_BASE, UART_RX_PIN_MASK);
 
   /*
    * UART Interrupt Masks:

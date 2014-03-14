@@ -1,5 +1,5 @@
-#ifndef __SDCARD_H__KJBBKS6O57__
-#define __SDCARD_H__KJBBKS6O57__
+#ifndef SDCARD_H_KJBBKS6O57__
+#define SDCARD_H_KJBBKS6O57__
 
 #include <sys/process.h>
 
@@ -19,4 +19,4 @@ extern process_event_t sdcard_removed_event;
 void
 sdcard_event_process(struct process *p);
 
-#endif /* __SDCARD_H__KJBBKS6O57__ */
+#endif /* SDCARD_H_KJBBKS6O57__ */

@@ -118,14 +118,14 @@ route_init(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-route_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
+route_add(const linkaddr_t *dest, const linkaddr_t *nexthop,
 	  uint8_t cost, uint8_t seqno)
 {
   struct route_entry *e;
 
   /* Avoid inserting duplicate entries. */
   e = route_lookup(dest);
-  if(e != NULL && rimeaddr_cmp(&e->nexthop, nexthop)) {
+  if(e != NULL && linkaddr_cmp(&e->nexthop, nexthop)) {
     list_remove(route_table, e);
   } else {
     /* Allocate a new entry or reuse the oldest entry with highest cost. */
@@ -140,8 +140,8 @@ route_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
     }
   }
 
-  rimeaddr_copy(&e->dest, dest);
-  rimeaddr_copy(&e->nexthop, nexthop);
+  linkaddr_copy(&e->dest, dest);
+  linkaddr_copy(&e->nexthop, nexthop);
   e->cost = cost;
   e->seqno = seqno;
   e->time = 0;
@@ -159,7 +159,7 @@ route_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
 }
 /*---------------------------------------------------------------------------*/
 struct route_entry *
-route_lookup(const rimeaddr_t *dest)
+route_lookup(const linkaddr_t *dest)
 {
   struct route_entry *e;
   uint8_t lowest_cost;
@@ -173,7 +173,7 @@ route_lookup(const rimeaddr_t *dest)
     /*    printf("route_lookup: comparing %d.%d.%d.%d with %d.%d.%d.%d\n",
 	   uip_ipaddr_to_quad(dest), uip_ipaddr_to_quad(&e->dest));*/
 
-    if(rimeaddr_cmp(dest, &e->dest)) {
+    if(linkaddr_cmp(dest, &e->dest)) {
       if(e->cost < lowest_cost) {
 	best_entry = e;
 	lowest_cost = e->cost;

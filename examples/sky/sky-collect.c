@@ -39,16 +39,16 @@
 
 #include "contiki.h"
 #include "net/netstack.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/collect.h"
 #include "net/rime/collect-neighbor.h"
 #include "net/rime/timesynch.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
 #include "dev/light-sensor.h"
-#include "dev/sht11-sensor.h"
+#include "dev/sht11/sht11-sensor.h"
 
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include <stdio.h>
 #include <string.h>
 #include "contiki-net.h"
@@ -61,7 +61,7 @@ struct sky_collect_msg {
   uint16_t temperature;
   uint16_t humidity;
   uint16_t rssi;
-  rimeaddr_t best_neighbor;
+  linkaddr_t best_neighbor;
   uint16_t best_neighbor_etx;
   uint16_t best_neighbor_rtmetric;
   uint32_t energy_lpm;
@@ -161,7 +161,7 @@ do_rssi(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
+recv(const linkaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct sky_collect_msg *msg;
   
@@ -236,12 +236,12 @@ PROCESS_THREAD(test_collect_process, ev, data)
       msg->energy_rx = energest_type_time(ENERGEST_TYPE_LISTEN);
       msg->energy_tx = energest_type_time(ENERGEST_TYPE_TRANSMIT);
       msg->energy_rled = energest_type_time(ENERGEST_TYPE_LED_RED);
-      rimeaddr_copy(&msg->best_neighbor, &rimeaddr_null);
+      linkaddr_copy(&msg->best_neighbor, &linkaddr_null);
       msg->best_neighbor_etx =
 	msg->best_neighbor_rtmetric = 0;
       n = collect_neighbor_list_best(&tc.neighbor_list);
       if(n != NULL) {
-	rimeaddr_copy(&msg->best_neighbor, &n->addr);
+	linkaddr_copy(&msg->best_neighbor, &n->addr);
 	msg->best_neighbor_etx = collect_neighbor_link_estimate(n);
 	msg->best_neighbor_rtmetric = n->rtmetric;
       }

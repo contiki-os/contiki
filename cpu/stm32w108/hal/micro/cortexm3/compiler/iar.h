@@ -16,8 +16,8 @@
  *@{
  */
 
-#ifndef __IAR_H__
-#define __IAR_H__
+#ifndef IAR_H_
+#define IAR_H_
 
 #ifndef __ICCARM__
   #error Improper PLATFORM_HEADER
@@ -529,7 +529,7 @@ int abs(int I);
   #include "hal/micro/generic/compiler/platform-common.h"
 #undef PLATCOMMONOKTOINCLUDE
 
-#endif // __IAR_H__
+#endif // IAR_H_
 
 /** @}  END addtogroup */
 

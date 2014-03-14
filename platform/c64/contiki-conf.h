@@ -32,8 +32,8 @@
  *
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include "6502def.h"
 
@@ -74,5 +74,6 @@
 #define WWW_CONF_MAX_FORMACTIONLEN  20
 #define WWW_CONF_MAX_INPUTNAMELEN   20
 #define WWW_CONF_MAX_INPUTVALUELEN  20
+#define WWW_CONF_WGET_EXEC(url)     exec("wget", url)
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

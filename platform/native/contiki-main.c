@@ -48,17 +48,17 @@
 
 #include "dev/serial-line.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 #include "dev/button-sensor.h"
 #include "dev/pir-sensor.h"
 #include "dev/vib-sensor.h"
 
 #if WITH_UIP6
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 #endif /* WITH_UIP6 */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #ifdef SELECT_CONF_MAX
 #define SELECT_MAX SELECT_CONF_MAX
@@ -129,15 +129,15 @@ const static struct select_callback stdin_fd = {
 static void
 set_rime_addr(void)
 {
-  rimeaddr_t addr;
+  linkaddr_t addr;
   int i;
 
-  memset(&addr, 0, sizeof(rimeaddr_t));
+  memset(&addr, 0, sizeof(linkaddr_t));
 #if UIP_CONF_IPV6
   memcpy(addr.u8, serial_id, sizeof(addr.u8));
 #else
   if(node_id == 0) {
-    for(i = 0; i < sizeof(rimeaddr_t); ++i) {
+    for(i = 0; i < sizeof(linkaddr_t); ++i) {
       addr.u8[i] = serial_id[7 - i];
     }
   } else {
@@ -145,7 +145,7 @@ set_rime_addr(void)
     addr.u8[1] = node_id >> 8;
   }
 #endif
-  rimeaddr_set_node_addr(&addr);
+  linkaddr_set_node_addr(&addr);
   printf("Rime started with address ");
   for(i = 0; i < sizeof(addr.u8) - 1; i++) {
     printf("%d.", addr.u8[i]);

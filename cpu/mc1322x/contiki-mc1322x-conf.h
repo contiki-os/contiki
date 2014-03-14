@@ -33,8 +33,8 @@
  *
  */
 
-#ifndef __CONTIKI_MC1322X_CONF_H__
-#define __CONTIKI_MC1322X_CONF_H__
+#ifndef CONTIKI_MC1322X_CONF_H_
+#define CONTIKI_MC1322X_CONF_H_
 
 typedef int32_t s32_t;
 

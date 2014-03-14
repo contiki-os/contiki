@@ -41,7 +41,7 @@
 #include "dev/leds.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #define DEBUG_LEDS 0
 #undef LEDS_ON

@@ -31,7 +31,7 @@
 #include "dev/ip.h"
 #include "lib/simEnvChange.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 const struct simInterface ip_interface;
 

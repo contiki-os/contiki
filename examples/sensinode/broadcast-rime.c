@@ -37,7 +37,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "lib/random.h"
 #include "net/rime/rimestats.h"
 #include "dev/leds.h"
@@ -58,7 +58,7 @@ PROCESS(example_broadcast_process, "BROADCAST example");
 AUTOSTART_PROCESSES(&example_broadcast_process);
 /*---------------------------------------------------------------------------*/
 static void
-broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
+broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
   leds_toggle(LEDS_RED);
   PRINTF("broadcast message received from %02x.%02x\n", from->u8[0],

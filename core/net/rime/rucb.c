@@ -38,7 +38,7 @@
  */
 
 #include "net/rime/rucb.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include <string.h>
 
 #define MAX_TRANSMISSIONS 8
@@ -50,8 +50,6 @@
 #else
 #define PRINTF(...)
 #endif
-
-#include "sys/timetable.h"
 /*---------------------------------------------------------------------------*/
 static int
 read_data(struct rucb_conn *c)
@@ -67,12 +65,12 @@ read_data(struct rucb_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-acked(struct runicast_conn *ruc, const rimeaddr_t *to, uint8_t retransmissions)
+acked(struct runicast_conn *ruc, const linkaddr_t *to, uint8_t retransmissions)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
   int len;
   PRINTF("%d.%d: rucb acked\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
   c->chunk++;
   len = read_data(c);
   if(len == 0 && c->last_size == 0) {
@@ -84,31 +82,27 @@ acked(struct runicast_conn *ruc, const rimeaddr_t *to, uint8_t retransmissions)
     runicast_send(&c->c, &c->receiver, MAX_TRANSMISSIONS);
     c->last_size = len;
 
-    /*    {
-      extern struct timetable cc2420_timetable;
-      timetable_print(&cc2420_timetable);
-      }*/
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
-timedout(struct runicast_conn *ruc, const rimeaddr_t *to, uint8_t retransmissions)
+timedout(struct runicast_conn *ruc, const linkaddr_t *to, uint8_t retransmissions)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
   PRINTF("%d.%d: rucb timedout\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
   if(c->u->timedout) {
     c->u->timedout(c);
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct runicast_conn *ruc, const rimeaddr_t *from, uint8_t seqno)
+recv(struct runicast_conn *ruc, const linkaddr_t *from, uint8_t seqno)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
 
   PRINTF("%d.%d: rucb: recv from %d.%d len %d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], packetbuf_totlen());
 
   if(seqno == c->last_seqno) {
@@ -116,19 +110,19 @@ recv(struct runicast_conn *ruc, const rimeaddr_t *from, uint8_t seqno)
   }
   c->last_seqno = seqno;
 
-  if(rimeaddr_cmp(&c->sender, &rimeaddr_null)) {
-    rimeaddr_copy(&c->sender, from);
+  if(linkaddr_cmp(&c->sender, &linkaddr_null)) {
+    linkaddr_copy(&c->sender, from);
     c->u->write_chunk(c, 0, RUCB_FLAG_NEWFILE, packetbuf_dataptr(), 0);
     c->chunk = 0;
   }
 
 
-  if(rimeaddr_cmp(&c->sender, from)) {
+  if(linkaddr_cmp(&c->sender, from)) {
     int datalen = packetbuf_datalen();
 
     if(datalen < RUCB_DATASIZE) {
       PRINTF("%d.%d: get %d bytes, file complete\n",
-	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	     linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	     datalen);
       c->u->write_chunk(c, c->chunk * RUCB_DATASIZE,
 			 RUCB_FLAG_LASTCHUNK, packetbuf_dataptr(), datalen);
@@ -140,7 +134,7 @@ recv(struct runicast_conn *ruc, const rimeaddr_t *from, uint8_t seqno)
   }
 
   if(packetbuf_datalen() < RUCB_DATASIZE) {
-    rimeaddr_copy(&c->sender, &rimeaddr_null);
+    linkaddr_copy(&c->sender, &linkaddr_null);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -150,7 +144,7 @@ void
 rucb_open(struct rucb_conn *c, uint16_t channel,
 	  const struct rucb_callbacks *u)
 {
-  rimeaddr_copy(&c->sender, &rimeaddr_null);
+  linkaddr_copy(&c->sender, &linkaddr_null);
   runicast_open(&c->c, channel, &ruc);
   c->u = u;
   c->last_seqno = -1;
@@ -164,12 +158,12 @@ rucb_close(struct rucb_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-rucb_send(struct rucb_conn *c, const rimeaddr_t *receiver)
+rucb_send(struct rucb_conn *c, const linkaddr_t *receiver)
 {
   c->chunk = 0;
   read_data(c);
-  rimeaddr_copy(&c->receiver, receiver);
-  rimeaddr_copy(&c->sender, &rimeaddr_node_addr);
+  linkaddr_copy(&c->receiver, receiver);
+  linkaddr_copy(&c->sender, &linkaddr_node_addr);
   runicast_send(&c->c, receiver, MAX_TRANSMISSIONS);
   return 0;
 }

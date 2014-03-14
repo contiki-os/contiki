@@ -3,7 +3,7 @@
 
 #include "contiki.h"
 #include "net/netstack.h"
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 
 void
 print_processes(struct process * const processes[])

@@ -31,6 +31,8 @@
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
 
+.SUFFIXES:
+
 TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 
 CONTIKI_TARGET_DIRS = . cfs ctk loader
@@ -39,9 +41,10 @@ CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32-dir.c ctk-console.
 CONTIKI_SOURCEFILES += $(CTK) cfs-posix.c ctk-conio.c wpcap.c wpcap-drv.c \
                        $(CONTIKI_TARGET_SOURCEFILES)
 
-.SUFFIXES:
+MODULES += core/ctk core/net/ip core/net/ipv4 core/net/ipv6
 
-### Define the CPU directory
+# Define the CPU directory
+
 CONTIKI_CPU = $(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
 
@@ -56,11 +59,13 @@ else
   CONTIKI_TARGET_SOURCEFILES += unload.c
 endif
 
-### Set a target-specific variable value
+# Set a target-specific variable value
+
 ${foreach PRG,$(PRGS),${addprefix $(OBJECTDIR)/, \
                       $(${call appname,$(PRG)_src:.c=.o})}}: CFLAGS += -D_USRDLL
 
-### Generate the module-link prerequisites
+# Generate the module-link prerequisites
+
 define prg_template
 $(1).prg: $${addprefix $$(OBJECTDIR)/,$$($(2)_src:.c=.o)}
 endef
@@ -70,7 +75,8 @@ endef
 ${foreach PRG,$(PRGS),${eval ${call prg_template,$(PRG),${call appname,$(PRG)}}}}
 ${foreach DSC,$(DSCS),${eval ${call dsc_template,$(DSC),${call appname,$(DSC)}}}}
 
-### Generic module-link rules, no prerequisites here
+# Generic module-link rules, no prerequisites here
+
 $(PRGS:=.prg) $(DSCS:=.dsc):
 	$(TRACE_LD)
 ifdef VCINSTALLDIR
@@ -78,30 +84,3 @@ ifdef VCINSTALLDIR
 else
 	$(Q)$(LD) -shared $^ contiki-main.$(TARGET).a -o $@
 endif
-
-ifdef VCINSTALLDIR
-
-VCFLAGS = -Od -Z7 $(filter-out -Wall -g -O,$(CFLAGS))
-
-CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
-$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
-	$(TRACE_CC)
-	$(Q)cl -nologo $(VCFLAGS) -c $< -Fo$@
-	$(Q)makedepend $(CFLAGS) -o.o -f- $< 2> nul: | sed -e s!$(<:.c=.o)!$@! -e s!\\!/!g > $(@:.o=.d)
-
-CUSTOM_RULE_C_TO_CO = 1
-%.co: %.c
-	$(TRACE_CC)
-	$(Q)cl -nologo $(VCFLAGS) -DAUTOSTART_ENABLE -c $< -Fo$@
-
-CUSTOM_RULE_ALLOBJS_TO_TARGETLIB = 1
-contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES)
-	$(TRACE_AR)
-	$(Q)lib -nologo $^ -out:$@
-
-CUSTOM_RULE_LINK = 1
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
-	$(TRACE_LD)
-	$(Q)link -nologo $(LINKFLAGS) -debug -map:contiki-$(TARGET).map $^ user32.lib ws2_32.lib iphlpapi.lib -out:$@
-
-endif # VCINSTALLDIR

@@ -56,8 +56,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __COLLECT_H__
-#define __COLLECT_H__
+#ifndef COLLECT_H_
+#define COLLECT_H_
 
 #include "net/rime/announcement.h"
 #include "net/rime/runicast.h"
@@ -67,19 +67,41 @@
 #include "sys/ctimer.h"
 #include "lib/list.h"
 
+#ifdef COLLECT_CONF_PACKET_ID_BITS
+#define COLLECT_PACKET_ID_BITS COLLECT_CONF_PACKET_ID_BITS
+#else /* COLLECT_CONF_PACKET_ID_BITS */
 #define COLLECT_PACKET_ID_BITS 8
+#endif /* COLLECT_CONF_PACKET_ID_BITS */
+
+#ifdef COLLECT_CONF_TTL_BITS
+#define COLLECT_TTL_BITS COLLECT_CONF_TTL_BITS
+#else /* COLLECT_CONF_TTL_BITS */
+#define COLLECT_TTL_BITS 4
+#endif /* COLLECT_CONF_TTL_BITS */
+
+#ifdef COLLECT_CONF_HOPS_BITS
+#define COLLECT_HOPS_BITS COLLECT_CONF_HOPS_BITS
+#else /* COLLECT_CONF_HOPS_BITS */
+#define COLLECT_HOPS_BITS 4
+#endif /* COLLECT_CONF_HOPS_BITS */
+
+#ifdef COLLECT_CONF_MAX_REXMIT_BITS
+#define COLLECT_MAX_REXMIT_BITS COLLECT_CONF_MAX_REXMIT_BITS
+#else /* COLLECT_CONF_REXMIT_BITS */
+#define COLLECT_MAX_REXMIT_BITS 5
+#endif /* COLLECT_CONF_REXMIT_BITS */
 
 #define COLLECT_ATTRIBUTES  { PACKETBUF_ADDR_ESENDER,     PACKETBUF_ADDRSIZE }, \
                             { PACKETBUF_ATTR_EPACKET_ID,  PACKETBUF_ATTR_BIT * COLLECT_PACKET_ID_BITS }, \
                             { PACKETBUF_ATTR_PACKET_ID,   PACKETBUF_ATTR_BIT * COLLECT_PACKET_ID_BITS }, \
-                            { PACKETBUF_ATTR_TTL,         PACKETBUF_ATTR_BIT * 4 }, \
-                            { PACKETBUF_ATTR_HOPS,        PACKETBUF_ATTR_BIT * 4 }, \
-                            { PACKETBUF_ATTR_MAX_REXMIT,  PACKETBUF_ATTR_BIT * 5 }, \
+                            { PACKETBUF_ATTR_TTL,         PACKETBUF_ATTR_BIT * COLLECT_TTL_BITS }, \
+                            { PACKETBUF_ATTR_HOPS,        PACKETBUF_ATTR_BIT * COLLECT_HOPS_BITS }, \
+                            { PACKETBUF_ATTR_MAX_REXMIT,  PACKETBUF_ATTR_BIT * COLLECT_MAX_REXMIT_BITS }, \
                             { PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_BIT }, \
                             UNICAST_ATTRIBUTES
 
 struct collect_callbacks {
-  void (* recv)(const rimeaddr_t *originator, uint8_t seqno,
+  void (* recv)(const linkaddr_t *originator, uint8_t seqno,
 		uint8_t hops);
 };
 
@@ -111,7 +133,7 @@ struct collect_conn {
 
   struct ctimer proactive_probing_timer;
 
-  rimeaddr_t parent, current_parent;
+  linkaddr_t parent, current_parent;
   uint16_t rtmetric;
   uint8_t seqno;
   uint8_t sending, transmissions, max_rexmits;
@@ -136,7 +158,7 @@ int collect_send(struct collect_conn *c, int rexmits);
 void collect_set_sink(struct collect_conn *c, int should_be_sink);
 
 int collect_depth(struct collect_conn *c);
-const rimeaddr_t *collect_parent(struct collect_conn *c);
+const linkaddr_t *collect_parent(struct collect_conn *c);
 
 void collect_set_keepalive(struct collect_conn *c, clock_time_t period);
 
@@ -144,6 +166,6 @@ void collect_print_stats(void);
 
 #define COLLECT_MAX_DEPTH (COLLECT_LINK_ESTIMATE_UNIT * 64 - 1)
 
-#endif /* __COLLECT_H__ */
+#endif /* COLLECT_H_ */
 /** @} */
 /** @} */

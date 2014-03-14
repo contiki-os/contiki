@@ -6,7 +6,7 @@
     <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
-      se.sics.cooja.radiomediums.UDGM
+      org.contikios.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
       <interference_range>100.0</interference_range>
       <success_ratio_tx>1.0</success_ratio_tx>
@@ -16,7 +16,7 @@
       <logoutput>40000</logoutput>
     </events>
     <motetype>
-      se.sics.cooja.mspmote.SkyMoteType
+      org.contikios.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #sky1</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.c</source>
@@ -33,43 +33,43 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky SMALL=0
 echo COMPILING CONTIKI EXECUTABLE
 make hello-world.ce TARGET=sky SMALL=0</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.sky</firmware>
-      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspSerial</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.SkyTemperature</moteinterface>
     </motetype>
     <mote>
       <breakpoints />
       <interface_config>
-        se.sics.cooja.interfaces.Position
+        org.contikios.cooja.interfaces.Position
         <x>56.18151486126417</x>
         <y>93.20004013966208</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspMoteID
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
       <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspSerial
+        org.contikios.cooja.mspmote.interfaces.MspSerial
         <history>ls~;~K~;ls~;read hello-world.b64~;ls~;~K~;ls~;</history>
       </interface_config>
       <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
-    se.sics.cooja.plugins.SimControl
+    org.contikios.cooja.plugins.SimControl
     <width>255</width>
     <z>5</z>
     <height>200</height>
@@ -77,7 +77,7 @@ make hello-world.ce TARGET=sky SMALL=0</commands>
     <location_y>0</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.MoteInterfaceViewer
+    org.contikios.cooja.plugins.MoteInterfaceViewer
     <mote_arg>0</mote_arg>
     <plugin_config>
       <interface>Serial port</interface>
@@ -90,7 +90,7 @@ make hello-world.ce TARGET=sky SMALL=0</commands>
     <location_y>674</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.ScriptRunner
+    org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
       <script>TIMEOUT(50000, log.log("last msg: " + msg + "\n")); /* print last msg at timeout */
 
@@ -192,7 +192,7 @@ while (true) {
     <location_y>8</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.LogListener
+    org.contikios.cooja.plugins.LogListener
     <plugin_config>
       <filter />
       <coloring />
@@ -204,10 +204,10 @@ while (true) {
     <location_y>419</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.Visualizer
+    org.contikios.cooja.plugins.Visualizer
     <plugin_config>
-      <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
-      <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
+      <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>org.contikios.cooja.plugins.skins.GridVisualizerSkin</skin>
       <viewport>0.9090909090909091 0.0 0.0 0.9090909090909091 52.925895580668964 -30.727309217874634</viewport>
     </plugin_config>
     <width>211</width>
@@ -217,7 +217,7 @@ while (true) {
     <location_y>239</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.MoteInterfaceViewer
+    org.contikios.cooja.plugins.MoteInterfaceViewer
     <mote_arg>0</mote_arg>
     <plugin_config>
       <interface>Coffee Filesystem</interface>

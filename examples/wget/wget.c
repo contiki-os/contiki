@@ -44,6 +44,9 @@ PROCESS(wget_process, "Wget");
 
 AUTOSTART_PROCESSES(&wget_process);
 
+extern int contiki_argc;
+extern char **contiki_argv;
+
 static int file = -1;
 static char url[128];
 
@@ -161,11 +164,20 @@ PROCESS_THREAD(wget_process, ev, data)
     PROCESS_PAUSE();
   }
 
-  fputs("\nGet url:", stdout);
-  gets(url);
-  fputs("\nSave as:", stdout);
-  gets(name);
-  puts("");
+  fputs("Get url:", stdout);
+  if(contiki_argc > 1) {
+    strcpy(url, contiki_argv[1]);
+    puts(url);
+  } else {
+    gets(url);
+  }
+  fputs("Save as:", stdout);
+  if(contiki_argc > 2) {
+    strcpy(name, contiki_argv[2]);
+    puts(name);
+  } else {
+    gets(name);
+  }
   file = cfs_open(name, CFS_WRITE);
   if(file == -1) {
     printf("Open error with '%s'\n", name);

@@ -12,7 +12,7 @@
 #include "dev/cc2430_rf.h"
 #include "dev/watchdog.h"
 #include "dev/lpm.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
 #include "debug.h"
@@ -59,7 +59,7 @@ static CC_AT_DATA uint16_t len;
 extern volatile uint8_t sleep_flag;
 #endif
 
-extern rimeaddr_t rimeaddr_node_addr;
+extern linkaddr_t linkaddr_node_addr;
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
 #define ENERGEST_IRQ_SAVE(a) do { \
@@ -99,7 +99,7 @@ set_rime_addr(void) CC_NON_BANKED
   __code unsigned char *macp;
 
   PUTSTRING("Rime is 0x");
-  PUTHEX(sizeof(rimeaddr_t));
+  PUTHEX(sizeof(linkaddr_t));
   PUTSTRING(" bytes long\n");
 
   if(node_id == 0) {
@@ -121,8 +121,8 @@ set_rime_addr(void) CC_NON_BANKED
     /* Set our pointer to the correct address and fetch 8 bytes of MAC */
     macp = (__code unsigned char *)0xFFF8;
 
-    for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
-      rimeaddr_node_addr.u8[i] = *macp;
+    for(i = (LINKADDR_SIZE - 1); i >= 0; --i) {
+      linkaddr_node_addr.u8[i] = *macp;
       macp++;
     }
 
@@ -132,27 +132,27 @@ set_rime_addr(void) CC_NON_BANKED
 
   } else {
     PUTSTRING("Setting manual address from node_id\n");
-    rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1] = node_id >> 8;
-    rimeaddr_node_addr.u8[RIMEADDR_SIZE - 2] = node_id & 0xff;
+    linkaddr_node_addr.u8[LINKADDR_SIZE - 1] = node_id >> 8;
+    linkaddr_node_addr.u8[LINKADDR_SIZE - 2] = node_id & 0xff;
   }
 
   /* Now the address is stored MSB first */
 #if STARTUP_VERBOSE
   PUTSTRING("Rime configured with address ");
-  for(i = 0; i < RIMEADDR_SIZE - 1; i++) {
-    PUTHEX(rimeaddr_node_addr.u8[i]);
+  for(i = 0; i < LINKADDR_SIZE - 1; i++) {
+    PUTHEX(linkaddr_node_addr.u8[i]);
     PUTCHAR(':');
   }
-  PUTHEX(rimeaddr_node_addr.u8[i]);
+  PUTHEX(linkaddr_node_addr.u8[i]);
   PUTCHAR('\n');
 #endif
 
   /* Set the cc2430 RF addresses */
-#if (RIMEADDR_SIZE==8)
-  addr_short = (rimeaddr_node_addr.u8[6] * 256) + rimeaddr_node_addr.u8[7];
-  addr_long = (uint8_t *) &rimeaddr_node_addr;
+#if (LINKADDR_SIZE==8)
+  addr_short = (linkaddr_node_addr.u8[6] * 256) + linkaddr_node_addr.u8[7];
+  addr_long = (uint8_t *) &linkaddr_node_addr;
 #else
-  addr_short = (rimeaddr_node_addr.u8[0] * 256) + rimeaddr_node_addr.u8[1];
+  addr_short = (linkaddr_node_addr.u8[0] * 256) + linkaddr_node_addr.u8[1];
 #endif
   cc2430_rf_set_addr(IEEE802154_PANID, addr_short, addr_long);
 }
@@ -246,7 +246,7 @@ main(void)
 #endif
 
 #if UIP_CONF_IPV6
-  memcpy(&uip_lladdr.addr, &rimeaddr_node_addr, sizeof(uip_lladdr.addr));
+  memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
   process_start(&tcpip_process, NULL);
 

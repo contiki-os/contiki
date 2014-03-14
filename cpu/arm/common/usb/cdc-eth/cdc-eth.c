@@ -3,7 +3,7 @@
 #include <uip_arp.h>
 #include <stdio.h>
 #include <string.h>
-#include <net/uip-fw.h>
+#include <net/ipv4/uip-fw.h>
 
 #define DATA_IN 0x81
 #define DATA_OUT 0x02

@@ -37,11 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_HTTPD_H__
-#define __SHELL_HTTPD_H__
+#ifndef SHELL_HTTPD_H_
+#define SHELL_HTTPD_H_
 
 #include "shell.h"
 
 void shell_httpd_init(void);
 
-#endif /* __SHELL_HTTPD_H__ */
+#endif /* SHELL_HTTPD_H_ */

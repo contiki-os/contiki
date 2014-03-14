@@ -31,7 +31,7 @@
  */
 
 #include "contiki-net.h"
-#include "net/uip-neighbor.h"
+#include "net/ipv4/uip-neighbor.h"
 #include "net/wpcap.h"
 
 #include "net/wpcap-drv.h"

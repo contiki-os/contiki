@@ -30,8 +30,8 @@
  *
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include <inttypes.h>
 #ifndef WIN32_LEAN_AND_MEAN
@@ -81,7 +81,7 @@ typedef unsigned short uip_stats_t;
 
 #if UIP_CONF_IPV6
 
-#define RIMEADDR_CONF_SIZE              8
+#define LINKADDR_CONF_SIZE              8
 
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     nullmac_driver
@@ -281,4 +281,4 @@ int strcasecmp(const char*, const char*);
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

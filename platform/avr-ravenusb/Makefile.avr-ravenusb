@@ -1,3 +1,4 @@
+
 CONTIKI_TARGET_DIRS = . apps net loader dev/usb dev/serial
 CONTIKI_CORE=contiki-raven-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
@@ -39,7 +40,8 @@ CONTIKIBOARD=.
 CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAVRGCC -DAUTO_CRC_PADDING=2 -DJACKDAW=1
 
 #The no-net build using fakeuip.c is always ipv6
-ifdef CONTIKI_NO_NET
+CFLAGS += -I$(CONTIKI)/core/net/ipv6 -I$(CONTIKI)/core/net/ip -I$(CONTIKI)/core/net/ipv4
+ifdef CONTIKI_NO_NET 
 CONTIKI_PLAT_DEFS+= -DUIP_CONF_IPV6=1
 endif
 
@@ -64,3 +66,10 @@ AVRDUDE_OPTIONS=-V
 include $(CONTIKIAVR)/Makefile.avr
 include $(CONTIKIAVR)/radio/Makefile.radio
 
+ifndef CONTIKI_NO_NET
+MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 \
+         core/net/rime core/net/mac core/net/mac/sicslowmac
+else
+vpath %.c $(CONTIKI)/core/net/ipv6
+CONTIKI_SOURCEFILES += sicslowpan.c linkaddr.c
+endif

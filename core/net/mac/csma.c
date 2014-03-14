@@ -63,6 +63,14 @@
 #define PRINTF(...)
 #endif /* DEBUG */
 
+#ifndef CSMA_MAX_BACKOFF_EXPONENT
+#ifdef CSMA_CONF_MAX_BACKOFF_EXPONENT
+#define CSMA_MAX_BACKOFF_EXPONENT CSMA_CONF_MAX_BACKOFF_EXPONENT
+#else
+#define CSMA_MAX_BACKOFF_EXPONENT 3
+#endif /* CSMA_CONF_MAX_BACKOFF_EXPONENT */
+#endif /* CSMA_MAX_BACKOFF_EXPONENT */
+
 #ifndef CSMA_MAX_MAC_TRANSMISSIONS
 #ifdef CSMA_CONF_MAX_MAC_TRANSMISSIONS
 #define CSMA_MAX_MAC_TRANSMISSIONS CSMA_CONF_MAX_MAC_TRANSMISSIONS
@@ -86,7 +94,7 @@ struct qbuf_metadata {
 /* Every neighbor has its own packet queue */
 struct neighbor_queue {
   struct neighbor_queue *next;
-  rimeaddr_t addr;
+  linkaddr_t addr;
   struct ctimer transmit_timer;
   uint8_t transmissions;
   uint8_t collisions, deferrals;
@@ -111,11 +119,11 @@ static void transmit_packet_list(void *ptr);
 
 /*---------------------------------------------------------------------------*/
 static struct neighbor_queue *
-neighbor_queue_from_addr(const rimeaddr_t *addr)
+neighbor_queue_from_addr(const linkaddr_t *addr)
 {
   struct neighbor_queue *n = list_head(neighbor_list);
   while(n != NULL) {
-    if(rimeaddr_cmp(&n->addr, addr)) {
+    if(linkaddr_cmp(&n->addr, addr)) {
       return n;
     }
     n = list_item_next(n);
@@ -194,6 +202,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
   mac_callback_t sent;
   void *cptr;
   int num_tx;
+  int backoff_exponent;
   int backoff_transmissions;
 
   n = ptr;
@@ -249,18 +258,21 @@ packet_sent(void *ptr, int status, int num_transmissions)
            check interval of the underlying radio duty cycling layer. */
         time = default_timebase();
 
-        /* The retransmission time uses a linear backoff so that the
-           interval between the transmissions increase with each
-           retransmit. */
-        backoff_transmissions = n->transmissions + 1;
+        /* The retransmission time uses a truncated exponential backoff
+         * so that the interval between the transmissions increase with
+         * each retransmit. */
+        backoff_exponent = num_tx;
 
-        /* Clamp the number of backoffs so that we don't get a too long
-           timeout here, since that will delay all packets in the
-           queue. */
-        if(backoff_transmissions > 3) {
-          backoff_transmissions = 3;
+        /* Truncate the exponent if needed. */
+        if(backoff_exponent > CSMA_MAX_BACKOFF_EXPONENT) {
+          backoff_exponent = CSMA_MAX_BACKOFF_EXPONENT;
         }
 
+        /* Proceed to exponentiation. */
+        backoff_transmissions = 1 << backoff_exponent;
+
+        /* Pick a time for next transmission, within the interval:
+         * [time, time + 2^backoff_exponent * time[ */
         time = time + (random_rand() % (backoff_transmissions * time));
 
         if(n->transmissions < metadata->max_transmissions) {
@@ -294,8 +306,15 @@ send_packet(mac_callback_t sent, void *ptr)
 {
   struct rdc_buf_list *q;
   struct neighbor_queue *n;
+  static uint8_t initialized = 0;
   static uint16_t seqno;
-  const rimeaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+  const linkaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+
+  if(!initialized) {
+    initialized = 1;
+    /* Initialize the sequence number to a random value as per 802.15.4. */
+    seqno = random_rand();
+  }
 
   if(seqno == 0) {
     /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
@@ -311,7 +330,7 @@ send_packet(mac_callback_t sent, void *ptr)
     n = memb_alloc(&neighbor_memb);
     if(n != NULL) {
       /* Init neighbor entry */
-      rimeaddr_copy(&n->addr, addr);
+      linkaddr_copy(&n->addr, addr);
       n->transmissions = 0;
       n->collisions = 0;
       n->deferrals = 0;
