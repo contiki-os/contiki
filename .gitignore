@@ -25,6 +25,7 @@
 *.c64
 *.cc2538dk
 *.ev-aducrf101mkxz
+*.mulle
 *.report
 summary
 *.summary
