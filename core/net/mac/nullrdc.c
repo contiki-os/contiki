@@ -125,11 +125,6 @@ send_one_packet(mac_callback_t sent, void *ptr)
     PRINTF("nullrdc: send failed, too large header\n");
     ret = MAC_TX_ERR_FATAL;
   } else {
-
-#ifdef NETSTACK_ENCRYPT
-    NETSTACK_ENCRYPT();
-#endif /* NETSTACK_ENCRYPT */
-
 #if NULLRDC_802154_AUTOACK
     int is_broadcast;
     uint8_t dsn;
@@ -275,9 +270,6 @@ packet_input(void)
 
   original_datalen = packetbuf_datalen();
   original_dataptr = packetbuf_dataptr();
-#ifdef NETSTACK_DECRYPT
-    NETSTACK_DECRYPT();
-#endif /* NETSTACK_DECRYPT */
 
 #if NULLRDC_802154_AUTOACK
   if(packetbuf_datalen() == ACK_LEN) {
