@@ -132,7 +132,7 @@ void *packetbuf_dataptr(void);
 void *packetbuf_hdrptr(void);
 
 /**
- * \brief      Get the length of the header in the packetbuf, for outbound packets
+ * \brief      Get the length of the header in the packetbuf
  * \return     Length of the header in the packetbuf
  *
  *             For outbound packets, the packetbuf consists of two
