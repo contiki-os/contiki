@@ -244,7 +244,16 @@ packetbuf_datalen(void)
 uint8_t
 packetbuf_hdrlen(void)
 {
-  return PACKETBUF_HDR_SIZE - hdrptr;
+  uint8_t hdrlen;
+  
+  hdrlen = PACKETBUF_HDR_SIZE - hdrptr;
+  if(hdrlen) {
+    /* outbound packet */
+    return hdrlen;
+  } else {
+    /* inbound packet */
+    return bufptr;
+  }
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
