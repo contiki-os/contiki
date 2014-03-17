@@ -88,6 +88,9 @@
 #error "UART_1_CONF_IBRD and UART_1_CONF_FBRD"
 #endif
 #endif
+
+#define BAUD2UBR(x) (x) /* This macro exists only because some examples require it. */
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART functions
