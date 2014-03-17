@@ -36,10 +36,10 @@ endif
 CLEAN += symbols.c symbols.h *.d *.elf *.hex
 
 ### CPU-dependent directories
-CONTIKI_CPU_DIRS = .
+CONTIKI_CPU_DIRS = . ..
 
 ### Use the existing debug I/O in cpu/arm/common
-CONTIKI_CPU_DIRS += ../arm/common/dbg-io
+CONTIKI_CPU_DIRS += ../../arm/common/dbg-io
 
 ### Use usb core from cpu/cc253x/usb/common
 #CONTIKI_CPU_DIRS += ../cc253x/usb/common ../cc253x/usb/common/cdc-acm
@@ -59,6 +59,9 @@ DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 #CONTIKI_SOURCEFILES += $(USB_CORE_SOURCEFILES) $(USB_ARCH_SOURCEFILES)
+
+TARGET_START_SOURCEFILES += startup-samg53.c
+TARGET_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(TARGET_START_SOURCEFILES)}}
 
 ### Don't treat the .elf as intermediate
 .PRECIOUS: %.elf %.hex %.bin

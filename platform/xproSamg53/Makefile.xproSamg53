@@ -1,0 +1,41 @@
+# derived from cc2538dk platform makefile
+# xpro G53 platform makefile
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+CONTIKI_TARGET_DIRS = . dev
+
+#CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c
+CONTIKI_TARGET_SOURCEFILES += contiki-main-new.c
+#CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c button-sensor.c
+
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.xplainPro
+
+### Unless the example dictates otherwise, build with code size optimisations
+ifndef SMALL
+  SMALL = 1
+endif
+
+### Define the CPU directory
+CONTIKI_CPU_ARM=$(CONTIKI)/cpu/arm
+CONTIKI_CPU_ARM_COMMON=$(CONTIKI_CPU_ARM)/common
+CONTIKI_CPU=$(CONTIKI_CPU_ARM)/sam4/samg53
+include $(CONTIKI_CPU)/Makefile.samg53
+
+MODULES += core/net core/net/ipv6 core/net/mac core/net/ip \
+           core/net/rpl core/net/rime core/net/mac/contikimac
+
+# JTAG program upload
+OPENOCD	 = openocd
+OPENOCD_DIR = $(CONTIKI_CPU_ARM)/openocd/ 
+OPENOCD_CFG = xpro.cfg
+
+%.upload: %.bin
+	$(OPENOCD) -s $(OPENOCD_DIR) -f $(OPENOCD_CFG) -c init -c "reset halt;sleep 250;flash probe 0;stm32x mass_erase 0; sleep 500;flash write_bank 0 $< 0;reset halt;resume;sleep 500;exit"
+
+ocd_reset:
+	$(OPENOCD) -s $(OPENOCD_DIR) -f $(OPENOCD_CFG) -c init -c "reset halt;resume" -c exit

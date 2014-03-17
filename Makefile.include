@@ -40,7 +40,8 @@ usage:
 
 targets:
 	@ls -1 $(CONTIKI)/platform $(TARGETDIRS) | grep -v CVS
-
+	@echo $(TARGETDIRS)
+	
 savetarget:
 	-@rm -f Makefile.target
 	@echo "saving Makefile.target"
