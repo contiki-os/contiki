@@ -89,3 +89,4 @@ contiki-cc2530dk.lib
 *.eval-adf7xxxmb4z
 *.eval-adf7xxxmb4z.srec
 /.project
+/.cproject
