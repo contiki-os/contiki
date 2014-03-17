@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = bootloader
+CONTIKI_PROJECT = pic24loader
 all: $(CONTIKI_PROJECT)
 
 APPS += pic24loader 
