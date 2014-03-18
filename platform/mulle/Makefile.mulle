@@ -2,6 +2,8 @@ ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
 PLATFORM_DIR = $(CONTIKI)/platform/mulle
+CPU_NAME = k60
+CPU_DIR = $(CONTIKI)/cpu/arm/$(CPU_NAME)
 CONTIKI_TARGET_DIRS = . dev stdio
 CONTIKI_CORE=contiki-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
@@ -18,7 +20,7 @@ CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
   power-control.c \
   lis3dh.c \
   lis3dh-arch.c
-  
+
 
 ifdef MULLEAPPS
   APPDS += ${wildcard ${addprefix $(CONTIKI)/../apps/, $(MULLEAPPS)} \
@@ -38,7 +40,7 @@ endif
 include $(PLATFORM_DIR)/radio/rf230bb/Makefile.rf230bb
 CFLAGS += -DRF230BB
 
-include $(PLATFORM_DIR)/mk60/Makefile.mk60
+include $(CPU_DIR)/Makefile.$(CPU_NAME)
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 
 

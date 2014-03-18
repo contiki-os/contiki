@@ -11,8 +11,13 @@ DEBUG=-g #-gdwarf-2 -gstrict-dwarf
 GDB_PORT ?= 3333
 
 
+### Code common for all ARM CPUs
+
+CONTIKI_CPU_ARM=$(CONTIKI)/cpu/arm
+CONTIKI_CPU_ARM_COMMON=$(CONTIKI_CPU_ARM)/common
+
 ### Define the CPU directory
-CONTIKI_CPU=$(PLATFORM_DIR)/mk60
+CONTIKI_CPU=$(CONTIKI_CPU_ARM)/k60
 
 
 ### Define the source files
