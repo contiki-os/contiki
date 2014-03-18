@@ -60,7 +60,7 @@
  * \param blocking If set, wait until all bits have been transferred before returning.
  * \return The byte received from the slave during the same transfer.
  *
- * \note SPI transfers work like a shift register (one bit out, one bit in.)
+ * \note There is no need for separate read and write functions, since SPI transfers work like a shift register (one bit out, one bit in.)
  *
  * \todo Make SPI abstraction standalone.
  */
