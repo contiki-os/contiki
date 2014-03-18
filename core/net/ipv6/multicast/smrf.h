@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2011, Loughborough University - Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,78 +27,49 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
  */
 
 /**
  * \file
- *         Module for sending UDP packets through uIP.
+ *         Header file for 'Stateless Multicast RPL Forwarding' (SMRF)
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
+
+#ifndef SMRF_H_
+#define SMRF_H_
 
 #include "contiki-conf.h"
 
-extern uint16_t uip_slen;
-
-#include "net/ip/uip-udp-packet.h"
-#include "net/ipv6/multicast/uip-mcast6.h"
-
-#include <string.h>
-
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
-void
-uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
-{
-#if UIP_UDP
-  if(data != NULL) {
-    uip_udp_conn = c;
-    uip_slen = len;
-    memcpy(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data,
-           len > UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN?
-           UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN: len);
-    uip_process(UIP_UDP_SEND_CONN);
-
-#if UIP_CONF_IPV6_MULTICAST
-  /* Let the multicast engine process the datagram before we send it */
-  if(uip_is_addr_mcast_routable(&uip_udp_conn->ripaddr)) {
-    UIP_MCAST6.out();
-  }
-#endif /* UIP_IPV6_MULTICAST */
-
-#if UIP_CONF_IPV6
-    tcpip_ipv6_output();
+/* Configuration */
+/*---------------------------------------------------------------------------*/
+/* Fmin */
+#ifdef SMRF_CONF_MIN_FWD_DELAY
+#define SMRF_MIN_FWD_DELAY SMRF_CONF_MIN_FWD_DELAY
 #else
-    if(uip_len > 0) {
-      tcpip_output();
-    }
+#define SMRF_MIN_FWD_DELAY 4
 #endif
-  }
-  uip_slen = 0;
-#endif /* UIP_UDP */
-}
+
+/* Max Spread */
+#ifdef SMRF_CONF_MAX_SPREAD
+#define SMRF_MAX_SPREAD SMRF_CONF_MAX_SPREAD
+#else
+#define SMRF_MAX_SPREAD 4
+#endif
 /*---------------------------------------------------------------------------*/
-void
-uip_udp_packet_sendto(struct uip_udp_conn *c, const void *data, int len,
-		      const uip_ipaddr_t *toaddr, uint16_t toport)
-{
-  uip_ipaddr_t curaddr;
-  uint16_t curport;
-
-  if(toaddr != NULL) {
-    /* Save current IP addr/port. */
-    uip_ipaddr_copy(&curaddr, &c->ripaddr);
-    curport = c->rport;
-
-    /* Load new IP addr/port */
-    uip_ipaddr_copy(&c->ripaddr, toaddr);
-    c->rport = toport;
-
-    uip_udp_packet_send(c, data, len);
-
-    /* Restore old IP addr/port */
-    uip_ipaddr_copy(&c->ripaddr, &curaddr);
-    c->rport = curport;
-  }
-}
+/* Stats datatype */
 /*---------------------------------------------------------------------------*/
+struct smrf_stats {
+  uint16_t mcast_in_unique;
+  uint16_t mcast_in_all;        /* At layer 3 */
+  uint16_t mcast_in_ours;       /* Unique and we are a group member */
+  uint16_t mcast_fwd;           /* Forwarded by us but we are not the seed */
+  uint16_t mcast_out;           /* We are the seed */
+  uint16_t mcast_bad;
+  uint16_t mcast_dropped;
+};
+
+#endif /* SMRF_H_ */

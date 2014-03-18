@@ -41,6 +41,7 @@
 
 #include "contiki-conf.h"
 #include "net/rpl/rpl-private.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 #include "lib/random.h"
 #include "sys/ctimer.h"
 
@@ -220,6 +221,10 @@ static void
 handle_dao_timer(void *ptr)
 {
   rpl_instance_t *instance;
+#if RPL_CONF_MULTICAST
+  uip_mcast6_route_t *mcast_route;
+  uint8_t i;
+#endif
 
   instance = (rpl_instance_t *)ptr;
 
@@ -234,6 +239,31 @@ handle_dao_timer(void *ptr)
     PRINTF("RPL: handle_dao_timer - sending DAO\n");
     /* Set the route lifetime to the default value. */
     dao_output(instance->current_dag->preferred_parent, instance->default_lifetime);
+
+#if RPL_CONF_MULTICAST
+    /* Send DAOs for multicast prefixes only if the instance is in MOP 3 */
+    if(instance->mop == RPL_MOP_STORING_MULTICAST) {
+      /* Send a DAO for own multicast addresses */
+      for(i = 0; i < UIP_DS6_MADDR_NB; i++) {
+        if(uip_ds6_if.maddr_list[i].isused
+            && uip_is_addr_mcast_global(&uip_ds6_if.maddr_list[i].ipaddr)) {
+          dao_output_target(instance->current_dag->preferred_parent,
+              &uip_ds6_if.maddr_list[i].ipaddr, RPL_MCAST_LIFETIME);
+        }
+      }
+
+      /* Iterate over multicast routes and send DAOs */
+      mcast_route = uip_mcast6_route_list_head();
+      while(mcast_route != NULL) {
+        /* Don't send if it's also our own address, done that already */
+        if(uip_ds6_maddr_lookup(&mcast_route->group) == NULL) {
+          dao_output_target(instance->current_dag->preferred_parent,
+                     &mcast_route->group, RPL_MCAST_LIFETIME);
+        }
+        mcast_route = list_item_next(mcast_route);
+      }
+    }
+#endif
   } else {
     PRINTF("RPL: No suitable DAO parent\n");
   }

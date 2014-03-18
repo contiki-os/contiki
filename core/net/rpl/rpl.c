@@ -44,6 +44,7 @@
 #include "net/ip/tcpip.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
@@ -105,6 +106,9 @@ rpl_purge_routes(void)
   uip_ds6_route_t *r;
   uip_ipaddr_t prefix;
   rpl_dag_t *dag;
+#if RPL_CONF_MULTICAST
+  uip_mcast6_route_t *mcast_route;
+#endif
 
   /* First pass, decrement lifetime */
   r = uip_ds6_route_head();
@@ -146,12 +150,29 @@ rpl_purge_routes(void)
       r = uip_ds6_route_next(r);
     }
   }
+
+#if RPL_CONF_MULTICAST
+  mcast_route = uip_mcast6_route_list_head();
+
+  while(mcast_route != NULL) {
+    if(mcast_route->lifetime <= 1) {
+      uip_mcast6_route_rm(mcast_route);
+      mcast_route = uip_mcast6_route_list_head();
+    } else {
+      mcast_route->lifetime--;
+      mcast_route = list_item_next(mcast_route);
+    }
+  }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
 rpl_remove_routes(rpl_dag_t *dag)
 {
   uip_ds6_route_t *r;
+#if RPL_CONF_MULTICAST
+  uip_mcast6_route_t *mcast_route;
+#endif
 
   r = uip_ds6_route_head();
 
@@ -163,6 +184,19 @@ rpl_remove_routes(rpl_dag_t *dag)
       r = uip_ds6_route_next(r);
     }
   }
+
+#if RPL_CONF_MULTICAST
+  mcast_route = uip_mcast6_route_list_head();
+
+  while(mcast_route != NULL) {
+    if(mcast_route->dag == dag) {
+      uip_mcast6_route_rm(mcast_route);
+      mcast_route = uip_mcast6_route_list_head();
+    } else {
+      mcast_route = list_item_next(mcast_route);
+    }
+  }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
