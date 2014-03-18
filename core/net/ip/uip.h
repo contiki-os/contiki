@@ -2094,6 +2094,35 @@ CCIF extern uip_lladdr_t uip_lladdr;
   (((a)->u8[0]) == 0xFF)
 
 /**
+ * \brief is address a global multicast address (FFxE::/16),
+ * a is of type uip_ip6addr_t*
+ * */
+#define uip_is_addr_mcast_global(a) \
+  ((((a)->u8[0]) == 0xFF) && \
+   (((a)->u8[1] & 0x0F) == 0x0E))
+
+/**
+ * \brief is address a non-routable multicast address.
+ * Scopes 1 (interface-local) and 2 (link-local) are non-routable
+ * See RFC4291 and draft-ietf-6man-multicast-scopes
+ * a is of type uip_ip6addr_t*
+ * */
+#define uip_is_addr_mcast_non_routable(a) \
+  ((((a)->u8[0]) == 0xFF) && \
+   (((a)->u8[1] & 0x0F) <= 0x02))
+
+/**
+ * \brief is address a routable multicast address.
+ * Scope 3 (Realm-Local) or higher are routable
+ * Realm-Local scope is defined in draft-ietf-6man-multicast-scopes
+ * See RFC4291 and draft-ietf-6man-multicast-scopes
+ * a is of type uip_ip6addr_t*
+ * */
+#define uip_is_addr_mcast_routable(a) \
+  ((((a)->u8[0]) == 0xFF) && \
+   (((a)->u8[1] & 0x0F) > 0x02))
+
+/**
  * \brief is group-id of multicast address a
  * the all nodes group-id
  */
