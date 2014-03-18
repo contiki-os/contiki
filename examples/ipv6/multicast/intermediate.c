@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Loughborough University - Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,78 +27,38 @@
  * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- *
  */
 
 /**
  * \file
- *         Module for sending UDP packets through uIP.
+ *         This node is part of the RPL multicast example. It basically
+ *         represents a node that does not join the multicast group
+ *         but still knows how to forward multicast packets
+ *         The example will work with or without any number of these nodes
+ *
+ *         Also, performs some sanity checks for the contiki configuration
+ *         and generates an error if the conf is bad
+ *
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
-#include "contiki-conf.h"
-
-extern uint16_t uip_slen;
-
-#include "net/ip/uip-udp-packet.h"
+#include "contiki.h"
+#include "contiki-net.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 
-#include <string.h>
-
-/*---------------------------------------------------------------------------*/
-void
-uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
-{
-#if UIP_UDP
-  if(data != NULL) {
-    uip_udp_conn = c;
-    uip_slen = len;
-    memcpy(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data,
-           len > UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN?
-           UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN: len);
-    uip_process(UIP_UDP_SEND_CONN);
-
-#if UIP_CONF_IPV6_MULTICAST
-  /* Let the multicast engine process the datagram before we send it */
-  if(uip_is_addr_mcast_routable(&uip_udp_conn->ripaddr)) {
-    UIP_MCAST6.out();
-  }
-#endif /* UIP_IPV6_MULTICAST */
-
-#if UIP_CONF_IPV6
-    tcpip_ipv6_output();
-#else
-    if(uip_len > 0) {
-      tcpip_output();
-    }
+#if !UIP_CONF_IPV6 || !UIP_CONF_ROUTER || !UIP_CONF_IPV6_MULTICAST || !UIP_CONF_IPV6_RPL
+#error "This example can not work with the current contiki configuration"
+#error "Check the values of: UIP_CONF_IPV6, UIP_CONF_ROUTER, UIP_CONF_IPV6_RPL"
 #endif
-  }
-  uip_slen = 0;
-#endif /* UIP_UDP */
-}
 /*---------------------------------------------------------------------------*/
-void
-uip_udp_packet_sendto(struct uip_udp_conn *c, const void *data, int len,
-		      const uip_ipaddr_t *toaddr, uint16_t toport)
+PROCESS(mcast_intermediate_process, "Intermediate Process");
+AUTOSTART_PROCESSES(&mcast_intermediate_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(mcast_intermediate_process, ev, data)
 {
-  uip_ipaddr_t curaddr;
-  uint16_t curport;
+  PROCESS_BEGIN();
 
-  if(toaddr != NULL) {
-    /* Save current IP addr/port. */
-    uip_ipaddr_copy(&curaddr, &c->ripaddr);
-    curport = c->rport;
-
-    /* Load new IP addr/port */
-    uip_ipaddr_copy(&c->ripaddr, toaddr);
-    c->rport = toport;
-
-    uip_udp_packet_send(c, data, len);
-
-    /* Restore old IP addr/port */
-    uip_ipaddr_copy(&c->ripaddr, &curaddr);
-    c->rport = curport;
-  }
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

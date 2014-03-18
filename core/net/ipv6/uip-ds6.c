@@ -512,6 +512,10 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
         }
       }
     }
+#if UIP_IPV6_MULTICAST
+  } else if(uip_is_addr_mcast_routable(dst)) {
+    matchaddr = uip_ds6_get_global(ADDR_PREFERRED);
+#endif
   } else {
     matchaddr = uip_ds6_get_link_local(ADDR_PREFERRED);
   }

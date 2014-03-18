@@ -75,6 +75,7 @@
 #include "net/ipv6/uip-icmp6.h"
 #include "net/ipv6/uip-nd6.h"
 #include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 
 #include <string.h>
 
@@ -429,6 +430,10 @@ uip_init(void)
     uip_udp_conns[c].lport = 0;
   }
 #endif /* UIP_UDP */
+
+#if UIP_CONF_IPV6_MULTICAST
+  UIP_MCAST6.init();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP && UIP_ACTIVE_OPEN
@@ -1151,6 +1156,28 @@ uip_process(uint8_t flag)
     }
   }
 
+  /*
+   * Process Packets with a routable multicast destination:
+   * - We invoke the multicast engine and let it do its thing
+   *   (cache, forward etc).
+   * - We never execute the datagram forwarding logic in this file here. When
+   *   the engine returns, forwarding has been handled if and as required.
+   * - Depending on the return value, we either discard or deliver up the stack
+   *
+   * All multicast engines must hook in here. After this function returns, we
+   * expect UIP_BUF to be unmodified
+   */
+#if UIP_CONF_IPV6_MULTICAST
+  if(uip_is_addr_mcast_routable(&UIP_IP_BUF->destipaddr)) {
+    if(UIP_MCAST6.in() == UIP_MCAST6_ACCEPT) {
+      /* Deliver up the stack */
+      goto process;
+    } else {
+      /* Don't deliver up the stack */
+      goto drop;
+    }
+  }
+#endif /* UIP_IPV6_CONF_MULTICAST */
 
   /* TBD Some Parameter problem messages */
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
@@ -1219,6 +1246,10 @@ uip_process(uint8_t flag)
   uip_ext_len = 0;
   uip_ext_bitmap = 0;
 #endif /* UIP_CONF_ROUTER */
+
+#if UIP_CONF_IPV6_MULTICAST
+  process:
+#endif
 
   while(1) {
     switch(*uip_next_hdr){
@@ -1437,6 +1468,12 @@ uip_process(uint8_t flag)
       UIP_STAT(++uip_stat.icmp.recv);
       uip_len = 0;
       break;
+#if UIP_CONF_IPV6_ROLL_TM
+    case ICMP6_ROLL_TM:
+      roll_tm_icmp_input();
+      uip_len = 0;
+      break;
+#endif
     default:
       PRINTF("Unknown icmp6 message type %d\n", UIP_ICMP_BUF->type);
       UIP_STAT(++uip_stat.icmp.drop);
