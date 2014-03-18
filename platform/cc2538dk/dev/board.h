@@ -193,8 +193,6 @@
 #define SPI_MOSI_PIN             4
 #define SPI_MISO_PORT            GPIO_A_NUM
 #define SPI_MISO_PIN             5
-#define SPI_SEL_PORT             GPIO_B_NUM
-#define SPI_SEL_PIN              5
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
