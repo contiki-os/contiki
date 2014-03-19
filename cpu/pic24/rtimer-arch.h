@@ -1,8 +1,3 @@
-/**
- * \addtogroup linkaddr
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,49 +28,23 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * $Id: rtimer-arch.h,v 1.4 2010/04/05 15:10:06 oliverschmidt Exp $
  */
 
 /**
  * \file
- *         Functions for manipulating Rime addresses
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/linkaddr.h"
-#include <string.h>
+#ifndef __RTIMER_ARCH_H__
+#define __RTIMER_ARCH_H__
 
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#endif /*LINKADDR_SIZE == 2*/
+#include "contiki-conf.h"
 
+#define RTIMER_ARCH_SECOND CLOCK_CONF_SECOND
 
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
-{
-	memcpy(dest, src, LINKADDR_SIZE);
-}
-/*---------------------------------------------------------------------------*/
-int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
-{
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
-}
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_set_node_addr(linkaddr_t *t)
-{
-  linkaddr_copy(&linkaddr_node_addr, t);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */
+#define rtimer_arch_now() clock_time()
+
+#endif /* __RTIMER_ARCH_H__ */

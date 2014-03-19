@@ -1,10 +1,5 @@
-/**
- * \addtogroup linkaddr
- * @{
- */
-
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2012, Alex Barclay.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,51 +26,34 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ *
+ *
+ * Author: Alex Barclay <alex@planet-barclay.com>
  *
  */
 
-/**
- * \file
- *         Functions for manipulating Rime addresses
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
 
-#include "net/linkaddr.h"
-#include <string.h>
+#include <p33Fxxxx.h>
+#include "contiki-conf.h"
+#include "sys/clock.h"
+#include "dev/dspictimer.h"
+#include "intsafe.h"
 
-linkaddr_t linkaddr_node_addr;
-#if LINKADDR_SIZE == 2
-const linkaddr_t linkaddr_null = { { 0, 0 } };
-#else /*LINKADDR_SIZE == 2*/
-#if LINKADDR_SIZE == 8
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-#else /*LINKADDR_SIZE == 8*/
-#if LINKADDR_SIZE == 6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#endif /*LINKADDR_SIZE == 6*/
-#endif /*LINKADDR_SIZE == 8*/
-#endif /*LINKADDR_SIZE == 2*/
-
-
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)
+clock_time_t clock_time(void)
 {
-	memcpy(dest, src, LINKADDR_SIZE);
+	clock_time_t t;
+	uint16_t osr = disable_int();
+	t = dspic_tickCounter;
+	enable_int(osr);
+	return t;
 }
-/*---------------------------------------------------------------------------*/
-int
-linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)
+
+unsigned long clock_seconds(void)
 {
-	return (memcmp(addr1, addr2, LINKADDR_SIZE) == 0);
+  return clock_time()/CLOCK_CONF_SECOND;
 }
-/*---------------------------------------------------------------------------*/
-void
-linkaddr_set_node_addr(linkaddr_t *t)
+
+void clock_delay(unsigned int d)
 {
-  linkaddr_copy(&linkaddr_node_addr, t);
+  /* Does not do anything. */
 }
-/*---------------------------------------------------------------------------*/
-/** @} */
