@@ -32,7 +32,6 @@
  *
  */
 
-
 #ifndef FREEBUF_H_
 #define FREEBUF_H_
 
@@ -44,10 +43,10 @@
 #include "contiki.h"
 #endif
 
-void freebuf_init(void** freelist, void* memAddr, size_t elemSize, int numElem);
+void freebuf_init(void **freelist, void *memAddr, size_t elemSize, int numElem);
 
-void* freebuf_pop(void** freelist);
+void *freebuf_pop(void **freelist);
 
-void freebuf_push(void** freelist, void* e);
+void freebuf_push(void **freelist, void *e);
 
 #endif /* FREEBUF_H_ */

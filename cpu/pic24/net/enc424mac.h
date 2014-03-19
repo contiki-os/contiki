@@ -37,51 +37,51 @@
 
 PROCESS_NAME(enc424mac_process);
 
-// Short on memory so reuse, reuse, reuse!
+/* Short on memory so reuse, reuse, reuse! */
 struct EtherCmdState {
-  //volatile unsigned int cmdState; // Shared state counter for multi-stage commands
+  /* volatile unsigned int cmdState; // Shared state counter for multi-stage commands */
 
   union CmdState {
     struct RdRegBlock {
       volatile uint8_t regAddr;
-      volatile uint8_t* data;
+      volatile uint8_t *data;
       volatile uint8_t count;
     } rdRegBlock;
-    
-    struct RdRegStatus { // Used to read
-      volatile uint8_t regAddr; // May be used if different addr for use
-      volatile uint16_t* regVal; // Where to put the reg value
+
+    struct RdRegStatus { /* Used to read */
+      volatile uint8_t regAddr; /* May be used if different addr for use */
+      volatile uint16_t *regVal; /* Where to put the reg value */
     } rdRegStat;
     struct WrPtrRegStatus {
       volatile uint8_t regAddr;
-      volatile uint16_t* regVal;
+      volatile uint16_t *regVal;
     } wrPtrRegStat;
     struct WrRegStatus {
       volatile uint8_t regAddr;
       volatile uint16_t regVal;
     } wrRegStat;
     struct RwSRAMState {
-      struct DMABufDescr* head;
-      struct DMABufDescr* tail; // For quickly adding additional buffers
-      volatile int16_t count; // -1 means reading packet descriptor
+      struct DMABufDescr *head;
+      struct DMABufDescr *tail; /* For quickly adding additional buffers */
+      volatile int16_t count; /* -1 means reading packet descriptor */
     } rwSRAM;
   } cs;
 };
 
 union EtherDevDrvState {
   struct Bits {
-    volatile uint16_t		ethIntReceived:1;
-    volatile uint16_t		ethIntPending:1;
-    volatile uint16_t		linkIntPending:1;
-    volatile uint16_t		linkPending:1;
-    volatile uint16_t		txIntPending:1;
-    volatile uint16_t		rxIntPending:1;
-    volatile uint16_t		isInitializing:1;
-    volatile uint16_t		linkUp:1;
-    volatile uint16_t		txStatPending:1;
-    volatile uint16_t		tcp_start:1;
-    volatile uint16_t		rxPktPending:1;
+    volatile uint16_t ethIntReceived : 1;
+    volatile uint16_t ethIntPending : 1;
+    volatile uint16_t linkIntPending : 1;
+    volatile uint16_t linkPending : 1;
+    volatile uint16_t txIntPending : 1;
+    volatile uint16_t rxIntPending : 1;
+    volatile uint16_t isInitializing : 1;
+    volatile uint16_t linkUp : 1;
+    volatile uint16_t txStatPending : 1;
+    volatile uint16_t tcp_start : 1;
+    volatile uint16_t rxPktPending : 1;
   } bits;
-  volatile uint16_t	val;
+  volatile uint16_t val;
 };
 #endif /* ENC424MAC_H_ */

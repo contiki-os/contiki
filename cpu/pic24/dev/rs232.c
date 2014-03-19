@@ -32,7 +32,6 @@
  *
  */
 
-
 #include <p33Fxxxx.h>
 
 #define STDIN   0
@@ -41,62 +40,60 @@
 
 #include "rs232.h"
 
-
-void rs232_init(int baud)
+void
+rs232_init(int baud)
 {
   int i;
   _DOZE = 0b000;
   _RP0R = 0b00011; /* Map U1TX to RP1 */
 
-  U1STAbits.UTXEN = 0; // Enable UART Tx
-  U1MODEbits.UARTEN = 0; // Enable UART
+  U1STAbits.UTXEN = 0; /* Enable UART Tx */
+  U1MODEbits.UARTEN = 0; /* Enable UART */
 
 #ifdef NOBOOTLOADER
-  U1MODEbits.STSEL = 0; // 1-stop bit
-  U1MODEbits.PDSEL = 0; // No Parity, 8-data bits
-  U1MODEbits.ABAUD = 0; // Auto-Baud Disabled
-  U1MODEbits.BRGH = 0; // Low Speed mode
-  U1BRG = 64; // BAUD Rate Setting for 9600=259, 38400=64
+  U1MODEbits.STSEL = 0; /* 1-stop bit */
+  U1MODEbits.PDSEL = 0; /* No Parity, 8-data bits */
+  U1MODEbits.ABAUD = 0; /* Auto-Baud Disabled */
+  U1MODEbits.BRGH = 0; /* Low Speed mode */
+  U1BRG = 64; /* BAUD Rate Setting for 9600=259, 38400=64 */
 #endif
 
-  U1STAbits.UTXISEL0 = 0; // Interrupt after one Tx character is transmitted
+  U1STAbits.UTXISEL0 = 0; /* Interrupt after one Tx character is transmitted */
   U1STAbits.UTXISEL1 = 0;
 
-  U1MODEbits.UARTEN = 1; // Enable UART
-  U1STAbits.UTXEN = 1; // Enable UART Tx
-  
+  U1MODEbits.UARTEN = 1; /* Enable UART */
+  U1STAbits.UTXEN = 1; /* Enable UART Tx */
+
   /* wait at least 104 usec (1/9600) before sending first char */
   for(i = 0; i < 16384; i++) {
     Nop();
   }
 }
-
-
 int __attribute__((__weak__, __section__(".libc")))
-write(int handle, void * buffer, unsigned int len)
+write(int handle, void *buffer, unsigned int len)
 {
   int i = 0;
-  switch (handle) {
+  switch(handle) {
   case STDOUT:
   case STDERR:
-    while (i < len) putchar(((char*)buffer)[i++]);
+    while(i < len) putchar(((char *)buffer)[i++]);
     break;
   }
-  return (len);  // number of characters written
+  return len;    /* number of characters written */
 }
-
-int putchar(int c)
+int
+putchar(int c)
 {
-  while (U1STAbits.UTXBF);
+  while(U1STAbits.UTXBF) ;
   U1TXREG = (char)c;
 
   return c;
 }
-
-int puts(const char* s)
+int
+puts(const char *s)
 {
   while(*s != '\0') {
-    putchar(*s++); // Transmit one character
+    putchar(*s++); /* Transmit one character */
   }
   putchar('\n');
 

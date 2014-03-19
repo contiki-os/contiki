@@ -32,26 +32,26 @@
  *
  */
 
-
 #ifndef INTSAFE_H_
 #define INTSAFE_H_
 
-//#define DISABLE_INT() asm("disi #0x3fff")
-//#define ENABLE_INT() DISICNT = 0x0000
+/* #define DISABLE_INT() asm("disi #0x3fff") */
+/* #define ENABLE_INT() DISICNT = 0x0000 */
 
-inline static uint16_t disable_int() {
-	uint16_t osr;
-	__asm__ volatile (	"mov 0x42, %0\n"
-						"mov #0x00e0, w0\n"
-						"ior 0x42" // SR
-						: "=&r" (osr) : : "w0");
-	return osr;
-}
-
-inline static void enable_int(uint16_t sr)
+inline static uint16_t
+disable_int()
 {
-	__asm__ volatile (	"mov %0, 0x42"
-						: : "r" (sr));
+  uint16_t osr;
+  __asm__ volatile ("mov 0x42, %0\n"
+                    "mov #0x00e0, w0\n"
+                    "ior 0x42" /* SR */
+                    : "=&r" (osr) : : "w0");
+  return osr;
 }
-
+inline static void
+enable_int(uint16_t sr)
+{
+  __asm__ volatile ("mov %0, 0x42"
+                    : : "r" (sr));
+}
 #endif /* INTSAFE_H_ */

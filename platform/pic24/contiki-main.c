@@ -32,7 +32,6 @@
  *
  */
 
-
 #include <p33Fxxxx.h>
 #include <stdio.h>
 
@@ -46,7 +45,7 @@
 #include "net/enc424mac.h"
 #include "dev/spidrv.h"
 
-uint32_t getErrLoc();  // Get Address Error Loc
+uint32_t getErrLoc();  /* Get Address Error Loc */
 
 #ifdef NOBOOTLOADER
 _FOSCSEL(FNOSC_FRC);
@@ -57,26 +56,24 @@ _FWDT(FWDTEN_OFF);
 void __attribute__((interrupt, no_auto_psv))
 _U1ErrInterrupt()
 {
-	puts("UART 0 Error");
-	IFS4bits.U1EIF = 0; 
+  puts("UART 0 Error");
+  IFS4bits.U1EIF = 0;
 }
-
 #if 0
 void __attribute__((interrupt, no_auto_psv))
 _DefaultInterrupt()
 {
-	printf("BOOM: %08lx\n", getErrLoc());
-	
-	
-	uint16_t* addr = 0;
-	addr = (uint16_t*)&addr-32;
-	while (addr != (uint16_t*)&addr) {
-		printf("%04x ", *addr++);
-	}
-	putchar('\n');
-	puts("INTCON1 INTCON2 IFS1 IFS2 IFS3 IFS4");
-	printf("%04x %04x %04x %04x %04x %04x\r\n", INTCON1, INTCON2, IFS1, IFS2, IFS3, IFS4);
-	while(1); // Let the watchdog clean this mess up if enabled
+  printf("BOOM: %08lx\n", getErrLoc());
+
+  uint16_t *addr = 0;
+  addr = (uint16_t *)&addr - 32;
+  while(addr != (uint16_t *)&addr) {
+    printf("%04x ", *addr++);
+  }
+  putchar('\n');
+  puts("INTCON1 INTCON2 IFS1 IFS2 IFS3 IFS4");
+  printf("%04x %04x %04x %04x %04x %04x\r\n", INTCON1, INTCON2, IFS1, IFS2, IFS3, IFS4);
+  while(1) ;  /* Let the watchdog clean this mess up if enabled */
 }
 #endif
 
@@ -84,12 +81,12 @@ void __attribute__((__interrupt__, auto_psv))
 _StackError()
 {
   puts("Stack overflow!");
-  while(1);
+  while(1) ;
 }
-
-void lowlevel_init()
+void
+lowlevel_init()
 {
-  // Allow nested interrupts
+  /* Allow nested interrupts */
   INTCON1bits.NSTDIS = 0;
 
 #ifdef NOBOOTLOADER
@@ -99,12 +96,12 @@ void lowlevel_init()
   rs232_init(9600);
   spi_init();
 }
-
-// Note - don't start tcpip_process here. We need to start the enc424mac first. It will then start
-// the tcpip_process once it's read it's MAC address.
+/* Note - don't start tcpip_process here. We need to start the enc424mac first. It will then start */
+/* the tcpip_process once it's read it's MAC address. */
 PROCINIT(&etimer_process, &enc424mac_process);
 
-int main(void)
+int
+main(void)
 {
   lowlevel_init();
   printf("Starting Contiki\n");
@@ -119,14 +116,15 @@ int main(void)
     n = process_run();
     etimer_request_poll();
   }
-  
+
   return 0;
 }
-void log_message(char *m1, char *m2)
+void
+log_message(char *m1, char *m2)
 {
 }
-
-void uip_log(char *m)
+void
+uip_log(char *m)
 {
   puts(m);
 }

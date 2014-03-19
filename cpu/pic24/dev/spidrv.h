@@ -32,43 +32,39 @@
  *
  */
 
-
 #ifndef SPIDRV_H_
 #define SPIDRV_H_
 
 #include <string.h>
 
-
 #include "pt-sem.h"
 
 void spi_init();
 
-// Return is 1 meaning work needed to be done, else 0
+/* Return is 1 meaning work needed to be done, else 0 */
 #define NOWORK 0
 #define WORKPEND 1
-typedef int (*CmdSetup)(void* state);
-typedef int (*CmdCallback)(void* state);
+typedef int (*CmdSetup)(void *state);
+typedef int (*CmdCallback)(void *state);
 
 typedef struct DMACmdS {
-        CmdSetup setupCmd;
-        CmdCallback completeCB;
-        void* state;			// To be cast to the correct type in the action commands
+  CmdSetup setupCmd;
+  CmdCallback completeCB;
+  void *state;            /* To be cast to the correct type in the action commands */
 
-        struct DMACmdS* next;
+  struct DMACmdS *next;
 } DMACmd;
 
-extern volatile unsigned char* crntDMABuf;
-extern volatile unsigned char* altDMABuf;
+extern volatile unsigned char *crntDMABuf;
+extern volatile unsigned char *altDMABuf;
 
 extern volatile unsigned char spiCmdPend;
 
-
 extern struct pt_sem spiBusSem;
 
+extern struct process *spiOwningProcess;
 
-extern struct process* spiOwningProcess;
-
-// Hi = 10Mbit/s, Lo = 400Kbit/s (only used for SD card init sequence)
+/* Hi = 10Mbit/s, Lo = 400Kbit/s (only used for SD card init sequence) */
 #define SPI_HISPD 0
 #define SPI_LOSPD 1
 #define SPI_NOCONTCLK 0
@@ -77,13 +73,13 @@ void setup_spi(int lowSpd, int continuousClock);
 
 void send_spi_cmd(uint16_t count);
 
-void push_spi_cmd(CmdSetup sc, CmdCallback ec, void* st);
-void raw_push_spi_cmd(CmdSetup sc, CmdCallback ec, void* st); // No interrupt protection - for call from ISR
+void push_spi_cmd(CmdSetup sc, CmdCallback ec, void *st);
+void raw_push_spi_cmd(CmdSetup sc, CmdCallback ec, void *st); /* No interrupt protection - for call from ISR */
 void invoke_spi_cmd();
 
 void init_dma_mem();
 
-void set_alt_dma_buf(volatile uint8_t* addr);
+void set_alt_dma_buf(volatile uint8_t *addr);
 
 #define NUM_DMA_CMD_BUFS 4
 #define DMA_CMD_BUF_SZ 32
@@ -91,36 +87,36 @@ void set_alt_dma_buf(volatile uint8_t* addr);
 #define DMA_PKT_BUF_SZ 256
 
 struct DMABufDescr {
-  volatile uint8_t* buf;
-  struct DMABufDescr* next;
+  volatile uint8_t *buf;
+  struct DMABufDescr *next;
   uint16_t inUse;
 };
-struct DMABufDescr* allocDMAPktBuf();
-struct DMABufDescr* allocDMAPktBuf_unsafe();
-void freeDMABuf_unsafe(struct DMABufDescr* d);
+struct DMABufDescr *allocDMAPktBuf();
+struct DMABufDescr *allocDMAPktBuf_unsafe();
+void freeDMABuf_unsafe(struct DMABufDescr *d);
 
-// Return the total length of the chain
-static inline int getBufDescrLen(const struct DMABufDescr* d)
+/* Return the total length of the chain */
+static inline int
+getBufDescrLen(const struct DMABufDescr *d)
 {
   int l = 0;
-  while (d != 0) {
+  while(d != 0) {
     l += d->inUse;
     d = d->next;
   }
   return l;
 }
-
-// Copy the chain into a single uint8_t array, upto the max len
-static inline int copyPktBuf(uint8_t* dst, int maxLen, const struct DMABufDescr* d)
+/* Copy the chain into a single uint8_t array, upto the max len */
+static inline int
+copyPktBuf(uint8_t *dst, int maxLen, const struct DMABufDescr *d)
 {
-  uint8_t* st = dst;
-  while (maxLen > 0 && d != 0) {
-    memcpy(dst, (const void*)d->buf, d->inUse);
+  uint8_t *st = dst;
+  while(maxLen > 0 && d != 0) {
+    memcpy(dst, (const void *)d->buf, d->inUse);
     maxLen -= d->inUse;
     dst += d->inUse;
     d = d->next;
   }
   return dst - st;
 }
-
 #endif /* SPIDRV_H_ */

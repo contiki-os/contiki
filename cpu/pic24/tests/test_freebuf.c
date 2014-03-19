@@ -40,53 +40,54 @@
 
 #include "../freebuf.h"
 
-void dump_buf(void* base, size_t len)
+void
+dump_buf(void *base, size_t len)
 {
-	uint8_t* t = (uint8_t*)base;
+  uint8_t *t = (uint8_t *)base;
 
-	while (len > 0) {
-		printf("%016llx    ", (unsigned long long) t);
-		int i;
-		for (i = 0; i < 16 && len > 0; ++i, --len) {
-			printf("%02x ", *t++);
-		}
-		printf("\n");
-	}	
+  while(len > 0) {
+    printf("%016llx    ", (unsigned long long)t);
+    int i;
+    for(i = 0; i < 16 && len > 0; ++i, --len) {
+      printf("%02x ", *t++);
+    }
+    printf("\n");
+  }
 }
+static void *freebuf_head;
 
-static void* freebuf_head;
-
-int main(int argc, char** argv)
+int
+main(int argc, char **argv)
 {
-	void* test_storage[51];
-	
-	void* buf = malloc(510);
+  void *test_storage[51];
 
-	dump_buf(buf, 510);
+  void *buf = malloc(510);
 
-	freebuf_init(&freebuf_head, buf, 10, 51);
+  dump_buf(buf, 510);
 
-	dump_buf(buf, 510);
+  freebuf_init(&freebuf_head, buf, 10, 51);
 
-	{
-		int i;
-		for (i = 0; i < 51; ++i) {
-			test_storage[i] = freebuf_pop(&freebuf_head);
-			assert(test_storage[i] != 0);
-		}
+  dump_buf(buf, 510);
 
-		dump_buf(buf, 510);
+  {
+    int i;
+    for(i = 0; i < 51; ++i) {
+      test_storage[i] = freebuf_pop(&freebuf_head);
+      assert(test_storage[i] != 0);
+    }
 
-		assert(freebuf_head == 0);
-		assert(freebuf_pop(&freebuf_head) == 0);
+    dump_buf(buf, 510);
 
-		for (i = 0; i < 51; ++i) {
-			freebuf_push(&freebuf_head, test_storage[i]);
-			assert(freebuf_head != 0);
-		}
-	}
+    assert(freebuf_head == 0);
+    assert(freebuf_pop(&freebuf_head) == 0);
 
-	dump_buf(buf, 510);
+    for(i = 0; i < 51; ++i) {
+      freebuf_push(&freebuf_head, test_storage[i]);
+      assert(freebuf_head != 0);
+    }
+  }
 
-	return 0;
+  dump_buf(buf, 510);
+
+  return 0;
 }

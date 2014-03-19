@@ -32,7 +32,6 @@
  *
  */
 
-
 #ifndef DSPIC_TIMER_H_
 #define DSPIC_TIMER_H_
 

@@ -32,7 +32,6 @@
  *
  */
 
-
 #ifndef SYSCLOCK_H_
 #define SYSCLOCK_H_
 

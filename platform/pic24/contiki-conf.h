@@ -32,7 +32,6 @@
  *
  */
 
-
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
@@ -54,7 +53,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_MAX_LISTENPORTS 3
 #define UIP_CONF_BUFFER_SIZE     1522
 #define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
-#define UIP_CONF_TCP       	 1
+#define UIP_CONF_TCP         1
 #define UIP_CONF_TCP_SPLIT       0
 #define UIP_CONF_LOGGING         0
 #define UIP_CONF_UDP_CHECKSUMS   1
@@ -74,7 +73,7 @@ typedef unsigned short uip_stats_t;
 #endif /* UIP_CONF_ICMP6 */
 
 #define LINKADDR_CONF_SIZE      6
-//#define UIP_CONF_LL_802154	1
+/* #define UIP_CONF_LL_802154	1 */
 
 typedef unsigned long clock_time_t;
 
@@ -88,6 +87,6 @@ typedef unsigned long clock_time_t;
 #define MAXVAL(x, y) (x > y ? x : y)
 
 /* Not part of C99 but actually present */
-int strcasecmp(const char*, const char*);
+int strcasecmp(const char *, const char *);
 
 #endif /* __CONTIKI_CONF_H__ */

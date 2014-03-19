@@ -32,28 +32,28 @@
  *
  */
 
-
 #include <p33Fxxxx.h>
 #include "contiki-conf.h"
 #include "sys/clock.h"
 #include "dev/dspictimer.h"
 #include "intsafe.h"
 
-clock_time_t clock_time(void)
+clock_time_t
+clock_time(void)
 {
-	clock_time_t t;
-	uint16_t osr = disable_int();
-	t = dspic_tickCounter;
-	enable_int(osr);
-	return t;
+  clock_time_t t;
+  uint16_t osr = disable_int();
+  t = dspic_tickCounter;
+  enable_int(osr);
+  return t;
 }
-
-unsigned long clock_seconds(void)
+unsigned long
+clock_seconds(void)
 {
-  return clock_time()/CLOCK_CONF_SECOND;
+  return clock_time() / CLOCK_CONF_SECOND;
 }
-
-void clock_delay(unsigned int d)
+void
+clock_delay(unsigned int d)
 {
   /* Does not do anything. */
 }

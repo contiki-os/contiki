@@ -32,7 +32,6 @@
  *
  */
 
-
 #include "freebuf.h"
 
 /* Freebuf library
@@ -40,30 +39,32 @@
  * When an element is on the freelist it will have a void* stored at the beginning of the buffer that points to the next buffer
  * There is no overhead
  */
-void freebuf_init(void** freelist, void* memAddr, size_t elemSize, int numElem)
+void
+freebuf_init(void **freelist, void *memAddr, size_t elemSize, int numElem)
 {
-	*freelist = memAddr;
-	void** t = (void**)memAddr;
-	while (--numElem) {
-		*t = (uint8_t*)t + elemSize; // Will be where the next element starts
-		t = *t;
-	}
-	// Last element, zero the pointer to indicate the end of the list
-	*t = 0;
+  *freelist = memAddr;
+  void **t = (void **)memAddr;
+  while(--numElem) {
+    *t = (uint8_t *)t + elemSize; /* Will be where the next element starts */
+    t = *t;
+  }
+  /* Last element, zero the pointer to indicate the end of the list */
+  *t = 0;
 }
-
-void* freebuf_pop(void** freelist) {
-	void* r = *freelist;
-	if (!r) {
-		return 0; // Shortcut a null return if the list is empty
-	}
-	*freelist = *(void**)r;
-	return r;
-}
-
-void freebuf_push(void** freelist, void* e)
+void *
+freebuf_pop(void **freelist)
 {
-	void** t = (void**) e;
-	*t = *freelist;
-	*freelist = e;
+  void *r = *freelist;
+  if(!r) {
+    return 0; /* Shortcut a null return if the list is empty */
+  }
+  *freelist = *(void **)r;
+  return r;
+}
+void
+freebuf_push(void **freelist, void *e)
+{
+  void **t = (void **)e;
+  *t = *freelist;
+  *freelist = e;
 }

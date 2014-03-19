@@ -32,12 +32,11 @@
  *
  */
 
-
 #ifndef _RS232_H_
 #define _RS232_H_ 1
 
 void rs232_init(int baud);
-int puts(const char* s);
+int puts(const char *s);
 
 #undef putchar
 int putchar(int c);
