@@ -420,17 +420,19 @@ PROCESS_THREAD(sockserver_process, ev, data)
 PROCESS(bootloader_process, "Bootloader");
 AUTOSTART_PROCESSES(&bootloader_process, &sockserver_process);
 /*---------------------------------------------------------------------------*/
+uint32_t timecnt;
 PROCESS_THREAD(bootloader_process, ev, data)
 {
   PROCESS_BEGIN();
-
+  timecnt = 0;
   while (!process_is_running(&tcpip_process)) {
     PROCESS_PAUSE();
   }
-
+  
   etimer_set(&timer, CLOCK_SECOND*5);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+    printf("tick %ld - ", timecnt++);
     print_local_addresses();
     etimer_restart(&timer);
   }
