@@ -70,7 +70,9 @@ typedef int32_t  s32_t;
 #define UIP_CONF_DS6_ROUTE_NBU      15
 #define NEIGHBOR_CONF_MAX_NEIGHBORS 15
 
+#ifndef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA            0
+#endif
 #define UIP_CONF_ND6_REACHABLE_TIME 600000
 #define UIP_CONF_ND6_RETRANS_TIMER  10000
 
