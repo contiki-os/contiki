@@ -82,7 +82,7 @@ read_flash_page(uint32_t wordAddr, uint8_t* buf, uint16_t len, int pack)
 void
 check_AIVT(uint32_t mivt_base, uint32_t aivt_base, uint16_t aivt_len)
 {
-  if (do_crc(aivt_base<<1, aivt_len<<1) != do_crc(mivt_base<<1, aivt_len<<1)) {
+  if (do_crc(aivt_base, aivt_len) != do_crc(mivt_base, aivt_len)) {
     psv_puts("CRCs differ, installing new AIVT");
     reprogram_MIVT(mivt_base, aivt_base, aivt_len);
   } else {
@@ -159,6 +159,7 @@ dump_buf(uint32_t far_addr, uint16_t len, uint8_t* mem)
 uint16_t
 do_crc(uint32_t saddr, uint16_t len)
 {
+  printf("saddr=%08lx, len=%04x\n", saddr, len);
   uint16_t crc = 0;
   uint32_t addr;
   uint16_t x;

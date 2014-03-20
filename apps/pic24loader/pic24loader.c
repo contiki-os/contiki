@@ -160,7 +160,7 @@ void check_load(int load)
   if (psv_read_uint16((uint16_t __psv__ *)0x10000UL) == 0xffff) {
     printf("No module loaded %d\n", load);
   } else {
-    printf("Module loaded\n");
+    printf("Module loaded %d\n", load);
     if (load) {
       module_entry();
     } else {
