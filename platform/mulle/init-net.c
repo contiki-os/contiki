@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "queuebuf.h"
+#include "K60.h"
 
 #include "contiki.h"
 #include "rf230bb.h"
@@ -66,13 +67,7 @@
 #warning Using user defined node id
 #endif
 
-//#if !WITH_SLIP1 && !WITH_SLIP2
-//static unsigned char id[8] = {0xe1, 0x51, 0xab, 0xff, 0xfe, 0x00, 0x00, NODE_ID};
 static unsigned char id[8] = {0x02, 0x0, 0x0, 0x00, 0x00, 0x00, 0x00, NODE_ID};
-//#else
-//#warning Using Slip address
-//static unsigned char id[8] = {0x0, 0x0, 0x0, 0x00, 0x00, 0x00, 0x00, 0x1}; //NODE_ID};
-//#endif
 
 
 /*---------------------------------------------------------------------------*/
@@ -97,13 +92,27 @@ set_rime_addr(void)
 void
 init_net(void)
 {
+#ifndef WITH_SLIP
+  id[0] =(((SIM_UIDL) >> (8*0)) & 0xFF) | 0x02;
+  id[1] = ((SIM_UIDL) >> (8*1)) & 0xFF;
+  id[2] = ((SIM_UIDL) >> (8*2)) & 0xFF;
+  id[3] = ((SIM_UIDL) >> (8*3)) & 0xFF;
+  id[4] = ((SIM_UIDML) >> (8*0)) & 0xFF;
+  id[5] = ((SIM_UIDML) >> (8*1)) & 0xFF;
+  id[6] = ((SIM_UIDML) >> (8*2)) & 0xFF;
+  id[7] = ((SIM_UIDML) >> (8*3)) & 0xFF;
+#else
+  // Use fixt address for border router.
+  id[0] = 0x02;
+  id[7] = 0x01;
+#endif
 #if WITH_UIP6
   set_rime_addr();
   NETSTACK_RADIO.init();
   {
     uint8_t longaddr[8];
     uint16_t shortaddr;
-    
+
     shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
                  rimeaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
@@ -112,10 +121,10 @@ init_net(void)
   }
   rf230_set_channel(RF_CHANNEL);
 
-    
+
 
   memcpy(&uip_lladdr.addr, id, sizeof(uip_lladdr.addr));
-    
+
   queuebuf_init();
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
