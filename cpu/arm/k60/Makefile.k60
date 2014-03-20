@@ -10,6 +10,8 @@ DEBUG=-g #-gdwarf-2 -gstrict-dwarf
 
 GDB_PORT ?= 3333
 
+### CPU part number (must have a specific linker script for each part)
+CPU_PART ?= K60DN256VLL10
 
 ### Code common for all ARM CPUs
 
@@ -54,7 +56,7 @@ CFLAGSNO = -I$(CONTIKI_CPU) \
            ${addprefix -I,$(APPDIRS)} \
            -I. -I$(CONTIKI)/core \
            -Wall -mcpu=cortex-m4
-LINKERSCRIPT = $(CONTIKI_CPU)/mulle.ld
+LINKERSCRIPT = $(CONTIKI_CPU)/$(CPU_PART).ld
 #AROPTS   = rv
 CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles
 LDFLAGS  += $(CFLAGS) -T $(LINKERSCRIPT) -Wl,-Map=$@.map
