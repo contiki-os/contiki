@@ -11,12 +11,18 @@
 #include "sys/etimer.h"
 #include "K60.h"
 
+#define DEBUG 0
+#if DEBUG
+#include "stdio.h"
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 static volatile clock_time_t current_tick;
 static volatile unsigned long current_seconds = 0;
 static volatile unsigned long second_countdown = CLOCK_SECOND;
 
-extern volatile uint8_t do_sleep;
-extern volatile uint32_t ds;
 /*
  * Get the system time.
  */
@@ -60,16 +66,23 @@ void clock_wait(clock_time_t delay)
 /*
  * Initialize the clock module.
  *
- * Generates interrupt at 1kHz.
+ * Generates interrupt from external 32kHz crystal.
  */
+// TODO(Henrik) move to platform, init may differ between platforms.
 void clock_init(void)
 {
   /* Setup Low Power Timer (LPT) */
 
+  /* Setup 32768 Hz clock source */
+  /** \todo clean up RTC initialization procedure on Mulle */
+  SIM_SCGC6 |= SIM_SCGC6_RTC_MASK;    // Enable RTC clock gate
+  RTC_CR    |= 0x00000100;      // Enable RTC oscillator
+  SIM_SOPT1 |= 0x00080000;      // Select RTC oscillator as ERCLK32K
+
   SIM_SCGC5 |= SIM_SCGC5_LPTIMER_MASK;    /* Enable LPT clock gate */
   LPTMR0_CNR = 0;
-  LPTMR0_CMR = 16-1;                       /* Underflow every x+1 milliseconds */
-  LPTMR0_PSR = 0x05;                      /* PBYP, LPO 1 KHz selected */
+  LPTMR0_CMR = 32768-1;                       /* Underflow every x+1 ticks */
+  LPTMR0_PSR = 0x06;            // PBYP, ERCLK32K
   LPTMR0_CSR = 0x40;                      /* TIE */
   LPTMR0_CSR = 0x41;                      /* TIE | TEN */
 
@@ -81,9 +94,10 @@ void clock_init(void)
  * LPTMR ISR
  */
 void __attribute__((interrupt)) _isr_lpt(void)
-    {
+{
 
   LPTMR0_CSR |= 0x80;
+  PRINTF("LPT: Interrupt\n");
 
   /* Contiki event polling */
   current_tick++;
@@ -97,4 +111,4 @@ void __attribute__((interrupt)) _isr_lpt(void)
   {
     etimer_request_poll();
   }
-    }
+}

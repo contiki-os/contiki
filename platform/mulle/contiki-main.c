@@ -12,6 +12,7 @@
 #include "core-clocks.h"
 #include "uart.h"
 #include "udelay.h"
+#include "llwu.h"
 #include "init-net.h"
 #include "power-control.h"
 
@@ -60,6 +61,8 @@ init_cfs()
   PRINTF("Coffee initialized.\r\n");
 }
 /*---------------------------------------------------------------------------*/
+LLWU_CONTROL(deep_sleep);
+
 /* C entry point (after startup code has executed) */
 int main(void)
 {
@@ -67,6 +70,14 @@ int main(void)
   /* Set up core clocks so that timings will be correct in all modules */
   core_clocks_init();
   uart_init();
+
+  llwu_init();
+  llwu_enable_wakeup_source(LLWU_WAKEUP_SOURCE_LPT);
+  llwu_register(deep_sleep);
+  // Dont allow deep sleep for now because radio cant wake up the mcu from it.
+  // TODO(Henrik) Fix this when a new revision is made of the hardware.
+  llwu_set_allow(deep_sleep, 0);
+
   power_control_init();
 
   /* Turn on power to the on board peripherals */
@@ -95,6 +106,7 @@ int main(void)
 
   while (1)
   {
-    process_run();
+    while (process_run() > 0);
+    llwu_sleep();
   }
 }
