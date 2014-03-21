@@ -40,11 +40,14 @@
 #include "lis3dh.h"
 #include "MK60N512VMD100.h"
 #include "interrupt.h"
+#include "power-control.h"
 #include <stdint.h>
 #include <stdbool.h>
 
 #define LIS3DH_CHIP_SELECT_PIN 0
 #define LIS3DH_CTAR_NUMBER 1
+
+/* Glueing the CTAR number together with a prefix to form register names */
 #define LIS3DH_PREPROCESSOR_PASTE(a, b) a##b
 #define LIS3DH_CTAR_APPEND_NUMBER(b) LIS3DH_PREPROCESSOR_PASTE(SPI0_CTAR, b)
 #define LIS3DH_CTAR_REG LIS3DH_CTAR_APPEND_NUMBER(LIS3DH_CTAR_NUMBER)
@@ -242,9 +245,8 @@ lis3dh_arch_init()
   SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
   /* Note: Interrupts will need to enable clock gate on PTC as well */
 
-  /* Power control pins */
-  PORTD_PCR7 = PORT_PCR_MUX(1); /* PTD7 Vperiph control pin */
-  GPIOD_PDDR |= GPIO_PDDR_PDD(1 << 7);  /* Set PTD7 (Vperiph) as output */
+  /* Turn on power to the chip */
+  power_control_vperiph_set(1);
 
   /* Enable clock gate for SPI0 module */
   SIM_SCGC6 |= SIM_SCGC6_DSPI0_MASK;
