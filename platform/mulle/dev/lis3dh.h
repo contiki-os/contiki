@@ -479,12 +479,14 @@ typedef enum {
 /* Platform-independent functions, implemented in lis3dh.c */
 void lis3dh_set_bits(const lis3dh_reg_addr_t addr, const uint8_t bitmask);
 void lis3dh_clear_bits(const lis3dh_reg_addr_t addr, const uint8_t bitmask);
-void lis3dh_enable_adc();
-void lis3dh_disable_adc();
 int16_t lis3dh_read_xaxis();
 int16_t lis3dh_read_yaxis();
 int16_t lis3dh_read_zaxis();
 void lis3dh_read_xyz(int16_t * buffer);
+int16_t lis3dh_read_aux_adc1();
+int16_t lis3dh_read_aux_adc2();
+int16_t lis3dh_read_aux_adc3();
+void lis3dh_set_aux_adc(const uint8_t enable, const uint8_t temperature);
 void lis3dh_set_axes(const uint8_t axes);
 void lis3dh_set_fifo_mode(const lis3dh_fifo_mode_t mode);
 void lis3dh_set_fifo(const uint8_t enable);
