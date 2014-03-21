@@ -10,11 +10,11 @@ static int (*rx_callback)(unsigned char) = NULL;
 void uart_init(void)
 {
   SIM_SCGC5  |= SIM_SCGC5_PORTC_MASK;
-  /* PORTE_PCR25: ISF=0,MUX=3 */
-  PORTC_PCR3 = ((PORTC_PCR25 & ~0x01000400) | 0x00000300);
+  /* Choose UART1 RX for the pin mux and disable PORT interrupts on the pin */
+  PORTC_PCR3 = PORT_PCR_MUX(3);
 
-  /* PORTE_PCR24: ISF=0,MUX=3 */
-  PORTC_PCR4 = ((PORTC_PCR24 & ~0x01000400) | 0x00000300);
+  /* Choose UART1 TX for the pin mux and disable PORT interrupts on the pin */
+  PORTC_PCR4 = PORT_PCR_MUX(3);
 
   /* SIM_SCGC4 */
   SIM_SCGC4 |= SIM_SCGC4_UART1_MASK;
