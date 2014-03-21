@@ -39,14 +39,52 @@
  *
  */
 
-#ifndef POWER_CONTROL_H_
-#define POWER_CONTROL_H_
+#ifndef POWER_CONTROL_BOARD_H_
+#define POWER_CONTROL_BOARD_H_
 
-#include <stdbool.h>
+#include "MK60N512VMD100.h"
 
-void power_control_init();
-void power_control_vperiph_set(bool state);
-void power_control_vsec_set(bool state);
-void power_control_avdd_set(bool state);
+/*
+ * Hardware dependent defines below.
+ */
+/* Update these if the hardware pins are swapped or moved */
+
+/* The number of the GPIO function on the pins in the IO mux */
+/* See Pin multiplexing in K60 reference manual */
+#define POWER_CONTROL_GPIO_MUX_NUMBER 1
+
+/* Pin numbers within the port */
+#define POWER_CONTROL_VPERIPH_PIN_NUMBER 7
+#define POWER_CONTROL_VSEC_PIN_NUMBER 16
+#define POWER_CONTROL_AVDD_PIN_NUMBER 17
+
+/* Port Control Registers (PCR in the K60 reference manual) */
+#define POWER_CONTROL_VPERIPH_PCR PORTD_PCR7
+#define POWER_CONTROL_VSEC_PCR PORTB_PCR16
+#define POWER_CONTROL_AVDD_PCR PORTD_PCR17
+
+/* Clock gating bit masks (SIM_SCGC5 in the K60 reference manual) */
+#define POWER_CONTROL_VPERIPH_SIM_SCGC5_MASK SIM_SCGC5_PORTD_MASK
+#define POWER_CONTROL_VSEC_SIM_SCGC5_MASK SIM_SCGC5_PORTB_MASK
+#define POWER_CONTROL_AVDD_SIM_SCGC5_MASK SIM_SCGC5_PORTB_MASK
+
+/* GPIO data direction registers */
+#define POWER_CONTROL_VPERIPH_GPIO_PDDR GPIOD_PDDR
+#define POWER_CONTROL_VSEC_GPIO_PDDR GPIOB_PDDR
+#define POWER_CONTROL_AVDD_GPIO_PDDR GPIOB_PDDR
+
+/* GPIO Data, Set and Clear registers */
+#define POWER_CONTROL_VPERIPH_GPIO_PDOR GPIOC_PDOR
+#define POWER_CONTROL_VPERIPH_GPIO_PSOR GPIOC_PSOR
+#define POWER_CONTROL_VPERIPH_GPIO_PCOR GPIOC_PCOR
+#define POWER_CONTROL_VPERIPH_GPIO_PTOR GPIOC_PTOR
+#define POWER_CONTROL_VSEC_GPIO_PDOR GPIOB_PDOR
+#define POWER_CONTROL_VSEC_GPIO_PSOR GPIOB_PSOR
+#define POWER_CONTROL_VSEC_GPIO_PCOR GPIOB_PCOR
+#define POWER_CONTROL_VSEC_GPIO_PTOR GPIOB_PTOR
+#define POWER_CONTROL_AVDD_GPIO_PDOR GPIOB_PDOR
+#define POWER_CONTROL_AVDD_GPIO_PSOR GPIOB_PSOR
+#define POWER_CONTROL_AVDD_GPIO_PCOR GPIOB_PCOR
+#define POWER_CONTROL_AVDD_GPIO_PTOR GPIOB_PTOR
 
 #endif

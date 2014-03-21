@@ -40,6 +40,7 @@
  */
 
 #include "power-control.h"
+#include "power-control-board.h"
 
 void power_control_init()
 {
