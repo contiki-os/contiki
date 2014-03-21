@@ -8,6 +8,7 @@
 #include "uart.h"
 #include "udelay.h"
 #include "init-net.h"
+#include "power-control.h"
 
 void printf_putc(void* dum, char c)
 {
@@ -19,6 +20,7 @@ int main(void)
 {
   leds_arch_init();
   uart_init();
+  power_control_init();
   udelay_init();
   udelay(0xFFFF);
   udelay(0xFFFF);

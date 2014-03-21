@@ -15,6 +15,7 @@ CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
   stdio.c \
   leds-arch.c \
   leds.c \
+  power-control.c \
   lis3dh.c \
   lis3dh-arch.c
   
