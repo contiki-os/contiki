@@ -367,14 +367,6 @@ By default, the CC2538 UART is configured with a baud rate of 115200. It is easy
 
     #define UART_CONF_BAUD_RATE 230400
 
-Currently, this configuration directive only supports values 115200, 230400 and 460800. Custom baud rates can also be achieved by following the steps below:
-
-* Configure `UART_CONF_BAUD_RATE` with an unsupported value to prevent it from auto-choosing values for IBRD and FBRD. For instance, in your project-conf.h you can do:
-
-        #define UART_CONF_BAUD_RATE 0
-
-* Provide custom values for `UART_CONF_IBRD` and `UART_CONF_FBRD` according to the guidelines in the CC2538 User Guide.
-
 RF and USB DMA
 --------------
 Transfers between RAM and the RF and USB will be conducted with DMA. If for whatever reason you wish to disable this, here are the relevant configuration lines.
