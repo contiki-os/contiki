@@ -176,6 +176,7 @@ simple_udp_register(struct simple_udp_connection *c,
     uip_ipaddr_copy(&c->remote_addr, remote_addr);
   }
   c->receive_callback = receive_callback;
+  c->client_process=PROCESS_CURRENT();
 
   PROCESS_CONTEXT_BEGIN(&simple_udp_process);
   c->udp_conn = udp_new(remote_addr, UIP_HTONS(remote_port), c);

@@ -71,7 +71,7 @@
 #define UIP_BIG_ENDIAN     1234
 #endif /* UIP_BIG_ENDIAN */
 
-#include "contiki-conf.h"
+#include "contiki.h"
 
 /*------------------------------------------------------------------------------*/
 
