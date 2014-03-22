@@ -77,10 +77,11 @@
 
 #define BAUD2BRD(baud)        DIV_ROUND(UART_CLOCK_RATE << (UART_CTL_HSE_VALUE + 2), (baud))
 
-#define uart_set_baudrate(baud) ( \
-  REG(UART_BASE | UART_IBRD) = BAUD2BRD(baud) >> 6, \
-  REG(UART_BASE | UART_FBRD) = BAUD2BRD(baud) & 0x3f, \
-  REG(UART_BASE | UART_LCRH) = REG(UART_BASE | UART_LCRH) )
+#define uart_set_baudrate(baud) do {                       \
+  REG(UART_BASE | UART_IBRD) = BAUD2BRD(baud) >> 6;        \
+  REG(UART_BASE | UART_FBRD) = BAUD2BRD(baud) & 0x3f;      \
+  REG(UART_BASE | UART_LCRH) = REG(UART_BASE | UART_LCRH); \
+} while(0)
 
 /** @} */
 /*---------------------------------------------------------------------------*/
