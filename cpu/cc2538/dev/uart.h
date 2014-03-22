@@ -71,7 +71,11 @@
 #define UART_CLOCK_RATE       16000000 /* 16 MHz */
 #define UART_CTL_HSE_VALUE    0
 #define UART_CTL_VALUE        ( UART_CTL_RXE | UART_CTL_TXE | (UART_CTL_HSE_VALUE << 5) )
-#define BAUD2BRD(baud)        ( (UART_CLOCK_RATE << (UART_CTL_HSE_VALUE + 2)) / (baud) )
+
+/* DIV_ROUND() divides integers while avoiding a rounding error: */
+#define DIV_ROUND(num, denom) ( ((num) + (denom) / 2) / (denom) )
+
+#define BAUD2BRD(baud)        DIV_ROUND(UART_CLOCK_RATE << (UART_CTL_HSE_VALUE + 2), (baud))
 
 #define uart_set_baudrate(baud) ( \
   REG(UART_BASE | UART_IBRD) = BAUD2BRD(baud) >> 6, \
