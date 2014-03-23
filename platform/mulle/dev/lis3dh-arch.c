@@ -245,9 +245,6 @@ lis3dh_arch_init()
   SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
   /* Note: Interrupts will need to enable clock gate on PTC as well */
 
-  /* Turn on power to the chip */
-  power_control_vperiph_set(1);
-
   /* Enable clock gate for SPI0 module */
   SIM_SCGC6 |= SIM_SCGC6_DSPI0_MASK;
 

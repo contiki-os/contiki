@@ -21,6 +21,10 @@ int main(void)
   leds_arch_init();
   uart_init();
   power_control_init();
+
+  /* Turn on power to the on board peripherals */
+  power_control_vperiph_set(1);
+
   udelay_init();
   udelay(0xFFFF);
   udelay(0xFFFF);
