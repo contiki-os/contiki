@@ -176,12 +176,14 @@ dis_output(uip_ipaddr_t *addr)
   unsigned char *buffer;
   uip_ipaddr_t tmpaddr;
 
-  /* DAG Information Solicitation  - 2 bytes reserved      */
-  /*      0                   1                   2        */
-  /*      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3  */
-  /*     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
-  /*     |     Flags     |   Reserved    |   Option(s)...  */
-  /*     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ */
+  /*
+   * DAG Information Solicitation  - 2 bytes reserved
+   *      0                   1                   2
+   *      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
+   *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   *     |     Flags     |   Reserved    |   Option(s)...
+   *     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   */
 
   buffer = UIP_ICMP_PAYLOAD;
   buffer[0] = buffer[1] = 0;
@@ -241,7 +243,7 @@ dio_input(void)
       PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
       PRINTF("\n");
     } else {
-      PRINTF("RPL: Out of Memory, dropping DIO from ");
+      PRINTF("RPL: Out of memory, dropping DIO from ");
       PRINT6ADDR(&from);
       PRINTF(", ");
       PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
@@ -383,7 +385,7 @@ dio_input(void)
       break;
     case RPL_OPTION_PREFIX_INFO:
       if(len != 32) {
-        PRINTF("RPL: DAG prefix info not ok, len != 32\n");
+        PRINTF("RPL: Invalid DAG prefix info, len != 32\n");
 	RPL_STAT(rpl_stats.malformed_msgs++);
         return;
       }
@@ -420,7 +422,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 #endif /* !RPL_LEAF_ONLY */
 
 #if RPL_LEAF_ONLY
-  /* In leaf mode, we send DIO message only as unicasts in response to 
+  /* In leaf mode, we only send DIO messages as unicasts in response to 
      unicast DIS messages. */
   if(uc_addr == NULL) {
     PRINTF("RPL: LEAF ONLY have multicast addr: skip dio_output\n");
@@ -617,15 +619,13 @@ dao_input(void)
   sequence = buffer[pos++];
 
   dag = instance->current_dag;
-  /* Is the DAGID present? */
+  /* Is the DAG ID present? */
   if(flags & RPL_DAO_D_FLAG) {
     if(memcmp(&dag->dag_id, &buffer[pos], sizeof(dag->dag_id))) {
       PRINTF("RPL: Ignoring a DAO for a DAG different from ours\n");
       return;
     }
     pos += 16;
-  } else {
-    /* Perhaps, there are verification to do but ... */
   }
 
   learned_from = uip_is_addr_mcast(&dao_sender_addr) ?
