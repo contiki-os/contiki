@@ -54,13 +54,58 @@
 #ifndef RADIO_H_
 #define RADIO_H_
 
+#include <stddef.h>
+
+typedef int radio_value_t;
+typedef unsigned radio_param_t;
+
+enum {
+  RADIO_PARAM_POWER_MODE,
+  RADIO_PARAM_CHANNEL,
+  RADIO_PARAM_PAN_ID,
+  RADIO_PARAM_16BIT_ADDR,
+  /** Address handler take care of address filtering and sending autoack */
+  RADIO_PARAM_ADDRESS_HANDLER,
+  /** Transmission power in dBm */
+  RADIO_PARAM_TXPOWER,
+  /** Received signal strength in dBm */
+  RADIO_PARAM_RSSI,
+
+  /** 64 bit addresses need to be used with radio.get_object()/set_object() */
+  RADIO_PARAM_64BIT_ADDR,
+
+  /** Constants (read only) */
+  RADIO_CONST_CHANNEL_MIN,
+  RADIO_CONST_CHANNEL_MAX,
+  RADIO_CONST_TXPOWER_MIN,
+  RADIO_CONST_TXPOWER_MAX
+};
+
+/* Radio power modes */
+enum {
+  RADIO_POWER_MODE_OFF,
+  RADIO_POWER_MODE_ON
+};
+
+/* Bit flags for the address handler */
+#define RADIO_ADDRESS_HANDLER_FILTER  1
+#define RADIO_ADDRESS_HANDLER_AUTOACK 2
+
+/* Radio return values when setting or getting radio parameters. */
+typedef enum {
+  RADIO_RESULT_OK,
+  RADIO_RESULT_NOT_SUPPORTED,
+  RADIO_RESULT_INVALID_VALUE,
+  RADIO_RESULT_ERROR
+} radio_result_t;
+
 /**
  * The structure of a device driver for a radio in Contiki.
  */
 struct radio_driver {
 
   int (* init)(void);
-  
+
   /** Prepare the radio with a packet to be sent. */
   int (* prepare)(const void *payload, unsigned short payload_len);
 
@@ -88,6 +133,22 @@ struct radio_driver {
 
   /** Turn the radio off. */
   int (* off)(void);
+
+  /** Get a radio parameter */
+  radio_result_t (* get_value)(radio_param_t param, radio_value_t *value);
+
+  /** Set a radio parameter */
+  radio_result_t (* set_value)(radio_param_t param, radio_value_t value);
+
+  /** Get a radio object (for example a 64 bit address) */
+  radio_result_t (* get_object)(radio_param_t param, void *dest, size_t size);
+
+  /** Set a radio object (for example a 64 bit address). The data
+      is copied and the object memory will not be accessed after the call.
+  */
+  radio_result_t (* set_object)(radio_param_t param, const void *src,
+                                size_t size);
+
 };
 
 /* Generic radio return values. */
