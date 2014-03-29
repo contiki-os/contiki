@@ -31,8 +31,8 @@ write_flash_page(uint32_t wordAddr, uint8_t *buf, uint16_t len, int pack)
   uint16_t loc;
   uint16_t v;
 
-  //  dump_buf(wordAddr, len<<1, buf);
-  
+  /*  dump_buf(wordAddr, len<<1, buf); */
+
   osr = disable_int();
   NVMCON = 0x4001; /* Single row program */
   TBLPAG = (wordAddr >> 16) & 0xff;
@@ -88,10 +88,9 @@ int
 check_AIVT(uint32_t mivt_base, uint32_t aivt_base, uint16_t aivt_len)
 {
   psv_puts("Checking AIVT");
-  if (do_crc(aivt_base, aivt_len) != do_crc(mivt_base, aivt_len)) {
+  if(do_crc(aivt_base, aivt_len) != do_crc(mivt_base, aivt_len)) {
     return reprogram_MIVT(mivt_base, aivt_base, aivt_len);
-  } 
-    
+  }
   psv_puts("CRCs same, not installing");
 
   return 0;
@@ -104,22 +103,22 @@ check_AIVT(uint32_t mivt_base, uint32_t aivt_base, uint16_t aivt_len)
 int
 reprogram_MIVT(uint32_t mivt_base, uint32_t aivt_base, uint16_t aivt_len)
 {
-  uint32_t erasePage = aivt_base & ~(ERASEPAGESZ-1);
-  uint8_t* mem = (uint8_t*)malloc(0x600);
-  if (!mem) {
+  uint32_t erasePage = aivt_base & ~(ERASEPAGESZ - 1);
+  uint8_t *mem = (uint8_t *)malloc(0x600);
+  if(!mem) {
     psv_puts("no memory");
     return -1;
   }
-  
+
   psv_puts("Reprogramming AIVT");
   memset(mem, 0xff, 0x600);
- 
-  /* Read in the entire base page before we modify it */ 
+
+  /* Read in the entire base page before we modify it */
   read_flash_page(erasePage, mem, ERASEPAGESZ, PAGE_PACK);
 
-  // odd shift is because this is a packed struct 4 bytes flash -> 3 bytes in RAM
-  read_flash_page(mivt_base, ((aivt_base-erasePage)>>1)*3+mem, aivt_len, PAGE_PACK);
-  
+  /* odd shift is because this is a packed struct 4 bytes flash -> 3 bytes in RAM */
+  read_flash_page(mivt_base, ((aivt_base - erasePage) >> 1) * 3 + mem, aivt_len, PAGE_PACK);
+
   uint16_t osr = disable_int();
   erase_flash_page(erasePage);
   write_flash_page(erasePage, mem, ERASEPAGESZ, PAGE_PACK);
@@ -128,7 +127,6 @@ reprogram_MIVT(uint32_t mivt_base, uint32_t aivt_base, uint16_t aivt_len)
   free(mem);
   return 0;
 }
-
 static const char addr_fmt[] = "%08lx : ";
 static const char word_fmt[] = "%04x ";
 
@@ -138,18 +136,18 @@ dump_prog_mem(uint32_t far_addr, uint16_t len)
   uint16_t addr;
   uint16_t l, h;
   int cnt = 8;
-  while (len) {
+  while(len) {
     TBLPAG = far_addr >> 16;
     addr = far_addr & 0xffff;
     l = __builtin_tblrdl(addr);
     h = __builtin_tblrdh(addr);
-    if (cnt == 8) {
+    if(cnt == 8) {
       printf(addr_fmt, far_addr);
     }
     printf(word_fmt, l);
     printf(word_fmt, h);
     cnt -= 2;
-    if (cnt <= 0) {
+    if(cnt <= 0) {
       putchar('\n');
       cnt = 8;
     }
@@ -157,33 +155,31 @@ dump_prog_mem(uint32_t far_addr, uint16_t len)
     far_addr += 2;
   }
 }
-
 /*
-  far_addr is a word based location - printing only
-  len is number of bytes
-  mem is byte location
-*/
+   far_addr is a word based location - printing only
+   len is number of bytes
+   mem is byte location
+ */
 void
 dump_buf(uint32_t far_addr, uint16_t len, uint8_t *mem)
 {
   uint16_t v;
   int cnt = 8;
-  while (len) {
-    if (cnt == 8) {
+  while(len) {
+    if(cnt == 8) {
       printf(addr_fmt, far_addr);
     }
     v = *mem++;
     v |= (uint16_t)*mem++ << 8;
     printf(word_fmt, v);
     far_addr++;
-    len-=2;
-    if (!--cnt) {
+    len -= 2;
+    if(!--cnt) {
       putchar('\n');
       cnt = 8;
     }
   }
 }
-
 uint16_t
 do_crc(uint32_t saddr, uint16_t len)
 {
@@ -203,7 +199,6 @@ do_crc(uint32_t saddr, uint16_t len)
   }
   return crc;
 }
-
 void
 psv_puts(const char __psv__ *msg)
 {
