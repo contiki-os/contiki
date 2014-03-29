@@ -16,7 +16,7 @@ endif
 CFLAGSNO = -Wall $(CFLAGSWERROR)
 CFLAGS  += $(CFLAGSNO) -g -O1 -mcpu=33FJ128MC804 -mlarge-code -mlarge-data -ffunction-sections -fno-omit-frame-pointer
 ifndef LDFLAGS
-LDFLAGS  = -L/opt/microchip/xc16/v1.20/lib/ -T$(CONTIKI)/cpu/pic24/p33FJ128MC804-slc.gld -p33FJ128MC804 --stack=768 --heap=1024 -u_main -u__DefaultInterrupt -u_printf -u_malloc -u_free -u_tcp_listen -u_uip_udp_packet_send
+LDFLAGS  = -L/opt/microchip/xc16/v1.20/lib/ -T$(CONTIKI)/cpu/pic24/p33FJ128MC804-slc.gld -p33FJ128MC804 --stack=512 --heap=2048 -u_main -u__DefaultInterrupt -u_printf -u_malloc -u_free -u_tcp_listen -u_uip_udp_packet_send
 TARGET_LIBFILES =  -lc -lpic30 -lm
 endif
 
