@@ -1,31 +1,31 @@
 /*
-   Copyright (c) 2010-2014 Alex Barclay.
-   All rights reserved.
+  Copyright (c) 2010-2014 Alex Barclay.
+  All rights reserved.
 
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions
-   are met:
-   1. Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-   2. Redistributions in binary form must reproduce the above copyright
-   notice, this list of conditions and the following disclaimer in the
-   documentation and/or other materials provided with the distribution.
-   3. The name of the author may not be used to endorse or promote
-   products derived from this software without specific prior
-   written permission.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+  3. The name of the author may not be used to endorse or promote
+  products derived from this software without specific prior
+  written permission.
 
-   THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
-   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-   ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
-   DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-   DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
-   GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+  GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -44,10 +44,10 @@
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 
-/* Alloc memory from 0x3000 to 0x4000 for the loaded module */
-/* This is just to reserve memory, we don't actually use it outside of the module */
-uint8_t dummy[0x1000] __attribute__((address(0x3000)));
-uint8_t dummy2[0x80] __attribute__((address(0x4780))); /* This is some DMA memory */
+// Alloc memory from 0x3800 to 0x4000 for the loaded module
+// This is just to reserve memory, we don't actually use it outside of the module
+uint8_t dummy[0x800] __attribute__((address(0x3800)));
+uint8_t dummy2[0x80] __attribute__((address(0x4780))); // This is some DMA memory
 
 void module_entry();
 void module_exit();
@@ -66,20 +66,18 @@ void
 read_page()
 {
   uint32_t i = 0;
-
-  while(i < 0x1000) {
-    if(i % 8 == 0) {
+  while (i < 0x1000) {
+    if (i % 8 == 0)
       printf("%08lx  ", i);
-    }
-
+    
     uint32_t val = read_prog_mem(i);
     printf("%08lx  ", val);
     ++i;
-    if(i % 8 == 0) {
+    if (i % 8 == 0)
       printf("\n");
-    }
   }
 }
+
 uint16_t
 read_prog_line(char *buf, uint32_t addr, uint16_t len)
 {
@@ -155,17 +153,22 @@ psv_read_uint16(uint16_t __psv__ *val)
 {
   return *val;
 }
+
+static char module_executing = 0;
+
 void
 check_load(int load)
 {
   if(psv_read_uint16((uint16_t __psv__ *)0x10000UL) == 0xffff) {
     printf("No module loaded %d\n", load);
   } else {
-    printf("Module loaded\n");
-    if(load) {
+    printf("Module loaded %d\n", load);
+    if (load) {
       module_entry();
-    } else {
+      module_executing = 1;
+    } else if (module_executing) {
       module_exit();
+      module_executing = 0;
     }
   }
 }
@@ -176,11 +179,12 @@ readWord(uint8_t *p)
 {
   return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
 }
+
 uint32_t
-readLong(uint8_t *p)
-{
+readLong(uint8_t* p) {
   return (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
 }
+
 void
 writeLong(uint8_t *p, uint32_t val)
 {
@@ -189,12 +193,14 @@ writeLong(uint8_t *p, uint32_t val)
   p[2] = (val >> 16) & 0xff;
   p[3] = (val >> 24) & 0xff;
 }
+
 void
 writeWord(uint8_t *p, uint16_t val)
 {
   p[0] = val & 0xff;
   p[1] = (val >> 8) & 0xff;
 }
+
 uint16_t
 init_math(float f)
 {
@@ -205,6 +211,7 @@ init_math(float f)
   v += sin(k);
   return (uint16_t)((v * 2000) + 2000);
 }
+
 enum CmdType {
   PKT_READPAGE = 0,
   PKT_WRITEPAGE = 1,
@@ -300,6 +307,7 @@ dumpbuf(uint32_t pageAddr, uint8_t *buf, uint16_t len)
     printf("\n");
   }
 }
+
 static PT_THREAD(handle_connection(struct ProgramContext *progContext))
 {
   PSOCK_BEGIN(&progContext->ps);
