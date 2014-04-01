@@ -148,6 +148,70 @@ static int cc2420_cca(void);
 signed char cc2420_last_rssi;
 uint8_t cc2420_last_correlation;
 
+static uint8_t receive_on;
+static int channel;
+
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  if(!value) {
+    return RADIO_RESULT_INVALID_VALUE;
+  }
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    *value = receive_on ? RADIO_POWER_MODE_ON : RADIO_POWER_MODE_OFF;
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CHANNEL:
+    *value = cc2420_get_channel();
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_CHANNEL_MIN:
+    *value = 11;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_CHANNEL_MAX:
+    *value = 26;
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+}
+
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    if(value == RADIO_POWER_MODE_ON) {
+      cc2420_on();
+      return RADIO_RESULT_OK;
+    }
+    if(value == RADIO_POWER_MODE_OFF) {
+      cc2420_off();
+      return RADIO_RESULT_OK;
+    }
+    return RADIO_RESULT_INVALID_VALUE;
+  case RADIO_PARAM_CHANNEL:
+    if(value < 11 || value > 26) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    cc2420_set_channel(value);
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+}
+
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+
 const struct radio_driver cc2420_driver =
   {
     cc2420_init,
@@ -162,11 +226,11 @@ const struct radio_driver cc2420_driver =
     pending_packet,
     cc2420_on,
     cc2420_off,
+    get_value,
+    set_value,
+    get_object,
+    set_object
   };
-
-static uint8_t receive_on;
-
-static int channel;
 
 /*---------------------------------------------------------------------------*/
 
