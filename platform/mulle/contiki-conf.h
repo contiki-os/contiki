@@ -119,7 +119,7 @@ typedef int32_t  s32_t;
 #define COAP_MAX_OPEN_TRANSACTIONS   11
 
 /* Must be <= open transaction number. */
-#define COAP_MAX_OBSERVERS      COAP_MAX_OPEN_TRANSACTIONS-1
+#define COAP_MAX_OBSERVERS      (COAP_MAX_OPEN_TRANSACTIONS-1)
 
 
 
