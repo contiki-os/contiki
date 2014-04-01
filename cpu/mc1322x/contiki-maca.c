@@ -79,6 +79,31 @@ int contiki_maca_channel_clear(void);
 int contiki_maca_receiving_packet(void);
 int contiki_maca_pending_packet(void);
 
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
 const struct radio_driver contiki_maca_driver =
 {
 	.init = contiki_maca_init,
@@ -91,6 +116,10 @@ const struct radio_driver contiki_maca_driver =
 	.channel_clear = contiki_maca_channel_clear,
 	.on = contiki_maca_on_request,
 	.off = contiki_maca_off_request,
+        .get_value = get_value,
+        .set_value = set_value,
+        .get_object = get_object,
+        .set_object = set_object
 };
 
 static volatile uint8_t contiki_maca_request_on = 0;
