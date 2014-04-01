@@ -264,6 +264,128 @@ static int stm32w_radio_off(void);
 static int add_to_rxbuf(uint8_t * src);
 
 static int read_from_rxbuf(void *dest, unsigned short len);
+
+/*--------------------------------------------------------------------------*/
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  if(!value) {
+    return RADIO_RESULT_INVALID_VALUE;
+  }
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    *value = onoroff == ON ? RADIO_POWER_MODE_ON : RADIO_POWER_MODE_OFF;
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CHANNEL:
+    *value = ST_RadioGetChannel();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_PAN_ID:
+    *value = ST_RadioGetPanId();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_16BIT_ADDR:
+    *value = ST_RadioGetNodeId();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_ADDRESS_HANDLER:
+    *value = 0;
+    if(ST_RadioAddressFilteringEnabled()) {
+      *value |= RADIO_ADDRESS_HANDLER_FILTER;
+    }
+    if(ST_RadioAutoAckEnabled()) {
+      *value |= RADIO_ADDRESS_HANDLER_AUTOACK;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TXPOWER:
+    *value = ST_RadioGetPower();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RSSI:
+    *value = ST_RadioEnergyDetection();
+    return RADIO_RESULT_OK;
+
+  case RADIO_CONST_CHANNEL_MIN:
+    *value = 11;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_CHANNEL_MAX:
+    *value = 26;
+    return RADIO_RESULT_OK;
+
+  case RADIO_CONST_TXPOWER_MIN:
+    *value = MIN_RADIO_POWER;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_TXPOWER_MAX:
+    *value = MAX_RADIO_POWER;
+    return RADIO_RESULT_OK;
+
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+}
+/*--------------------------------------------------------------------------*/
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    if(value == RADIO_POWER_MODE_ON) {
+      stm32w_radio_on();
+      return RADIO_RESULT_OK;
+    }
+    if(value == RADIO_POWER_MODE_OFF) {
+      stm32w_radio_off();
+      return RADIO_RESULT_OK;
+    }
+    return RADIO_RESULT_INVALID_VALUE;
+  case RADIO_PARAM_CHANNEL:
+    if(value < 11 || value > 26) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    if(ST_RadioSetChannel(value) != ST_SUCCESS) {
+      return RADIO_RESULT_ERROR;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_PAN_ID:
+    ST_RadioSetPanId(value & 0xffff);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_16BIT_ADDR:
+    ST_RadioSetNodeId(value & 0xffff);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_ADDRESS_HANDLER:
+    ST_RadioEnableAddressFiltering((value & RADIO_ADDRESS_HANDLER_FILTER) != 0);
+    ST_RadioEnableAutoAck((value & RADIO_ADDRESS_HANDLER_AUTOACK) != 0);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TXPOWER:
+    if(ST_RadioSetPower((int8_t)value) != ST_SUCCESS) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+}
+/*--------------------------------------------------------------------------*/
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  uint8_t *eui64;
+
+  if(param == RADIO_PARAM_64BIT_ADDR) {
+    if(size < 8 || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    eui64 = ST_RadioGetEui64();
+    if(!eui64) {
+      return RADIO_RESULT_ERROR;
+    }
+    memcpy(dest, eui64, 8);
+    return RADIO_RESULT_OK;
+  }
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*--------------------------------------------------------------------------*/
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
 /*--------------------------------------------------------------------------*/
 const struct radio_driver stm32w_radio_driver = {
   stm32w_radio_init,
@@ -276,6 +398,10 @@ const struct radio_driver stm32w_radio_driver = {
   stm32w_radio_pending_packet,
   stm32w_radio_on,
   stm32w_radio_off,
+  get_value,
+  set_value,
+  get_object,
+  set_object
 };
 /*---------------------------------------------------------------------------*/
 static int
