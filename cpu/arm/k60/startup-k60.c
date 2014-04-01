@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "K60.h"
+#include "core-clocks.h"
 
 extern int main(void); /* the reset handler will invoke main() after hardware startup. */
 
@@ -78,8 +79,13 @@ reset_handler(void)
    * The line below is the earliest possible location for a breakpoint when
    * debugging the startup code.
    */
+
+  core_clocks_init_early();
+
   copy_initialized();
+
   clear_bss();
+
   main();
   /* main should never return, but just in case... */
   while(1);

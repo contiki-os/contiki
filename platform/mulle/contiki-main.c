@@ -4,7 +4,7 @@
 #include "sys/autostart.h"
 #include "dev/leds.h"
 
-#include "K60.h"
+#include "core-clocks.h"
 #include "uart.h"
 #include "udelay.h"
 #include "init-net.h"
@@ -19,6 +19,8 @@ void printf_putc(void* dum, char c)
 int main(void)
 {
   leds_arch_init();
+  /* Set up core clocks so that timings will be correct in all modules */
+  core_clocks_init();
   uart_init();
   power_control_init();
 
