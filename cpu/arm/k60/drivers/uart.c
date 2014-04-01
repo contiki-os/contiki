@@ -1,6 +1,6 @@
 #include <stddef.h>
 
-#include "MK60N512VMD100.h"
+#include "MK60D10.h"
 #include "uart.h"
 
 static int (*rx_callback)(unsigned char) = NULL;

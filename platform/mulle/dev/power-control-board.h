@@ -42,7 +42,7 @@
 #ifndef POWER_CONTROL_BOARD_H_
 #define POWER_CONTROL_BOARD_H_
 
-#include "MK60N512VMD100.h"
+#include "MK60D10.h"
 
 /*
  * Hardware dependent defines below.

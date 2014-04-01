@@ -4,7 +4,7 @@
 #include "sys/autostart.h"
 #include "dev/leds.h"
 
-#include "MK60N512VMD100.h"
+#include "MK60D10.h"
 #include "uart.h"
 #include "udelay.h"
 #include "init-net.h"

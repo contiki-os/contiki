@@ -38,7 +38,7 @@
  */
 
 #include "lis3dh.h"
-#include "MK60N512VMD100.h"
+#include "MK60D10.h"
 #include "interrupt.h"
 #include "power-control.h"
 #include <stdint.h>
@@ -246,7 +246,7 @@ lis3dh_arch_init()
   /* Note: Interrupts will need to enable clock gate on PTC as well */
 
   /* Enable clock gate for SPI0 module */
-  SIM_SCGC6 |= SIM_SCGC6_DSPI0_MASK;
+  SIM_SCGC6 |= SIM_SCGC6_SPI0_MASK;
 
   /* Configure SPI0 */
   /* Master mode */

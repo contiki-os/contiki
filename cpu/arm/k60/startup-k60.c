@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "MK60N512VMD100.h"
+#include "MK60D10.h"
 
 extern int main(void); /* the reset handler will invoke main() after hardware startup. */
 
