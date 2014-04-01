@@ -1,4 +1,4 @@
-#include "MK60D10.h"
+#include "K60.h"
 
 #include "contiki-conf.h"
 #include "dev/leds.h"

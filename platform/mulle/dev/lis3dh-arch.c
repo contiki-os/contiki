@@ -38,7 +38,7 @@
  */
 
 #include "lis3dh.h"
-#include "MK60D10.h"
+#include "K60.h"
 #include "interrupt.h"
 #include "power-control.h"
 #include <stdint.h>

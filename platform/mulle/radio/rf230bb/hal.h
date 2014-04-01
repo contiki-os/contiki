@@ -58,7 +58,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "MK60D10.h"
+#include "K60.h"
 //#include <util/crc16.h>
 #include "contiki-conf.h"
 #include "interrupt.h"

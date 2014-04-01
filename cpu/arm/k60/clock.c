@@ -9,7 +9,7 @@
 #include "contiki-conf.h"
 #include "sys/clock.h"
 #include "sys/etimer.h"
-#include "MK60D10.h"
+#include "K60.h"
 
 static volatile clock_time_t current_tick;
 static volatile unsigned long current_seconds = 0;

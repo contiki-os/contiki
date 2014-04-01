@@ -5,7 +5,7 @@
 *         Tony Persson <tony.persson@rubico.com>
 */
 
-#include "MK60D10.h"
+#include "K60.h"
 #include "uart.h"
 
 void udelay_init(void)
