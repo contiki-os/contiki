@@ -41,3 +41,8 @@
  * CPU silicon revision (some registers are moved or added between revisions 1 and 2)
  */
 #define K60_CPU_REV 1
+
+/**
+ * Baud rate of the debug console (UART1)
+ */
+#define K60_DEBUG_BAUD 115200

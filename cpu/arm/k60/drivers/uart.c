@@ -1,6 +1,8 @@
 #include <stddef.h>
 
 #include "K60.h"
+#include "config-board.h"
+#include "config-clocks.h"
 #include "uart.h"
 
 static int (*rx_callback)(unsigned char) = NULL;
@@ -34,12 +36,23 @@ void uart_init(void)
    * This yields a baud rate of 115176.9646.
    * Alternatively, we can run at BRFA = 2 yielding a baud rate of 115246.0984
    */
+  UART1_BDH    = UART_BDH_SBR(((F_SYS)/(K60_DEBUG_BAUD * 16)) / 256);
+  UART1_BDL    = UART_BDL_SBR(((F_SYS)/(K60_DEBUG_BAUD * 16)) % 256);
   /**
-   * \todo Make debug UART parameters configurable via config-board.h
+   * \todo Verify the UART1 fine-adjust calculations if F_SYS*32 > 2^32 <=> F_SYS > 2^27 (== 134217728)
    */
-  UART1_BDH    = UART_BDH_SBR(0);
-  UART1_BDL    = UART_BDL_SBR(52);
-  UART1_C4     = UART_C4_BRFA(3);
+  /*
+   * The below calculation will yield a fine adjust value rounded to the nearest
+   * configurable fraction.
+   */
+  /** \todo Verify proper rounding on UART1 fine adjust calculation */
+  /*
+   * The number will be computed compile time by most (all?) compilers.
+   * The suffix ull on 64ull is in order to avoid overflows in the variable in
+   * the compiler when computing the number. Without ull suffix the number will
+   * be truncated to a 32 bit integer before the division yielding the wrong
+   * fine adjust value. */
+  UART1_C4     = UART_C4_BRFA((((64ull * (F_SYS))/((K60_DEBUG_BAUD) * 16)+1)/2) % 32);
   /* Enable transmitter and receiver and enable receive interrupt */
   UART1_C2     = UART_C2_TE_MASK | UART_C2_RE_MASK | UART_C2_RIE_MASK;
 }
