@@ -6,7 +6,7 @@
 */
 
 #include "K60.h"
-#include "uart.h"
+#include "config-clocks.h"
 
 void udelay_init(void)
 {
@@ -16,9 +16,9 @@ void udelay_init(void)
 
 void udelay(uint16_t us)
 {
-	PIT_LDVAL0  = 23 * (uint32_t)us - 1;
-	PIT_TFLG0  |= 0x01;
-	PIT_TCTRL0  = 0x01;
-	while (!PIT_TFLG0);
+	PIT_LDVAL0  = PIT_LDVAL_TSV((F_BUS/1000000) * (uint32_t)us - 1);
+	PIT_TFLG0  |= PIT_TFLG_TIF_MASK;
+	PIT_TCTRL0  = PIT_TCTRL_TEN_MASK;
+	while (!(PIT_TFLG0 & PIT_TFLG_TIF_MASK));
 	PIT_TCTRL0  = 0x00;
 }

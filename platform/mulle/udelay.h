@@ -8,6 +8,7 @@
 #ifndef __UDELAY_H__
 #define __UDELAY_H__
 
+#include <stdint.h>
 void udelay_init(void);
 void udelay(uint16_t us);
 
