@@ -45,6 +45,31 @@
 static unsigned char tx_buf[ADF7023_MAX_PACKET_SIZE];
 static unsigned char rx_buf[ADF7023_MAX_PACKET_SIZE];
 
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
 const struct radio_driver adf7023_driver = {
 
   .init = adf7023_init,
@@ -76,6 +101,11 @@ const struct radio_driver adf7023_driver = {
 
   /** Turn the radio off. */
   .off = adf7023_off,
+
+  .get_value = get_value,
+  .set_value = set_value,
+  .get_object = get_object,
+  .set_object = set_object
 };
 
 int
