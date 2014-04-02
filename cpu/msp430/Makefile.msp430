@@ -188,7 +188,15 @@ else
 	$(OBJCOPY) $^ -O ihex $@
 endif
 
-%.mspsim:	%.${TARGET}
+$(CONTIKI)/tools/mspsim/build.xml:
+	@echo '----------------'
+	@echo 'Could not find the MSPSim build file. Did you run "git submodule update --init"?'
+	@echo '----------------'
+
+$(CONTIKI)/tools/mspsim/mspsim.jar: $(CONTIKI)/tools/mspsim/build.xml
+	(cd $(CONTIKI)/tools/mspsim && ant jar)
+
+%.mspsim:	%.${TARGET} ${CONTIKI}/tools/mspsim/mspsim.jar
 	java -jar ${CONTIKI}/tools/mspsim/mspsim.jar -platform=${TARGET} $<
 
 mspsim-maptable:	contiki-${TARGET}.map
