@@ -213,14 +213,6 @@
 #define ROLL_TM_SET_M_BIT 1
 #endif
 /*---------------------------------------------------------------------------*/
-/* Prototypes of additional Trickle Multicast functions */
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Called by the uIPv6 engine when it receives a Trickle Multicast
- * ICMPv6 datagram
- */
-void roll_tm_icmp_input();
-/*---------------------------------------------------------------------------*/
 /* Stats datatype */
 /*---------------------------------------------------------------------------*/
 struct roll_tm_stats {
