@@ -52,8 +52,8 @@
 #define set_input(f)  usb_serial_set_input(f)
 #define flush()       usb_serial_flush()
 #else
-#define write_byte(b) uart_write_byte(b)
-#define set_input(f)  uart_set_input(f)
+#define write_byte(b) uart_write_byte(SLIP_ARCH_CONF_UART, b)
+#define set_input(f)  uart_set_input(SLIP_ARCH_CONF_UART, f)
 #define flush()
 #endif
 
