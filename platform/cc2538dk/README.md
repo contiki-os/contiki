@@ -363,11 +363,33 @@ By default, everything is configured to use the UART (stdio, border router's SLI
 
 You can multiplex things (for instance, SLIP as well as debugging over USB or SLIP over USB but debugging over UART and other combinations).
 
+Selecting UART0 and/or UART1
+----------------------------
+By default, everything is configured to use the UART0 (stdio, border router's SLIP, sniffer's output stream). If you want to change this, these are the relevant lines in contiki-conf.h (0: UART0, 1: UART1):
+
+    #define SERIAL_LINE_CONF_UART       0
+    #define SLIP_ARCH_CONF_UART         0
+    #define CC2538_RF_CONF_SNIFFER_UART 0
+    #define DBG_CONF_UART               0
+    #define UART1_CONF_UART             0
+
+A single UART is available on CC2538DK, so all the configuration values above should be the same (i.e. either all 0 or all 1), but 0 and 1 could be mixed for other CC2538-based platforms supporting 2 UARTs.
+
+The chosen UARTs must have their ports and pins defined in board.h:
+
+    #define UART0_RX_PORT            GPIO_A_NUM
+    #define UART0_RX_PIN             0
+    #define UART0_TX_PORT            GPIO_A_NUM
+    #define UART0_TX_PIN             1
+
+Only the UART ports and pins implemented on the board can be defined.
+
 UART Baud Rate
 --------------
-By default, the CC2538 UART is configured with a baud rate of 115200. It is easy to increase this to 230400 by changing the value of `UART_CONF_BAUD_RATE` in `contiki-conf.h` or `project-conf.h`.
+By default, the CC2538 UART is configured with a baud rate of 115200. It is easy to increase this to 230400 by changing the value of `UART0_CONF_BAUD_RATE` or `UART1_CONF_BAUD_RATE` in `contiki-conf.h` or `project-conf.h`, according to the UART instance used.
 
-    #define UART_CONF_BAUD_RATE 230400
+    #define UART0_CONF_BAUD_RATE 230400
+    #define UART1_CONF_BAUD_RATE 230400
 
 RF and USB DMA
 --------------
