@@ -1448,6 +1448,7 @@ if (!RF230_receive_on) {
   framep=&(rxframe[rxframe_head].data[0]);
   memcpy(buf,framep,len-AUX_LEN+CHECKSUM_LEN);
   rf230_last_correlation = rxframe[rxframe_head].lqi;
+  rf230_last_rssi = rxframe[rxframe_head].rssi;
 
   /* Clear the length field to allow buffering of the next packet */
   rxframe[rxframe_head].length=0;

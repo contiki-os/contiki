@@ -638,6 +638,7 @@ HAL_RF230_ISR()
         if (rf230_last_rssi >= RF230_MIN_RX_POWER) {
 #endif
          hal_frame_read(&rxframe[rxframe_tail]);
+         rxframe[rxframe_tail].rssi = rf230_last_rssi;
          rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
          rf230_interrupt();
 #ifdef RF230_MIN_RX_POWER
