@@ -602,7 +602,6 @@ HAL_RF230_ISR()
 	/* Clear Interrupt Status Flag */
     PORTB_PCR9 |= 0x01000000;  /* Clear interrupt */
     NVICICPR2 = (1<<24);
-    NVICISER2  |= (1<<24);
 
     INTERRUPTDEBUG(1);
 
