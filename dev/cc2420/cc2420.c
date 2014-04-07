@@ -84,6 +84,9 @@
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
 
+/* The RSSI_OFFSET is approximate -45 (see CC2420 specification) */
+#define RSSI_OFFSET -45
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -102,6 +105,28 @@
 #define LEDS_ON(x)
 #define LEDS_OFF(x)
 #endif
+
+/* Conversion map between PA_LEVEL and output power in dBm
+   (from table 9 in CC2420 specification).
+*/
+struct output_config {
+  int8_t power;
+  uint8_t config;
+};
+
+static const struct output_config output_power[] = {
+  {  0, 31 }, /* 0xff */
+  { -1, 27 }, /* 0xfb */
+  { -3, 23 }, /* 0xf7 */
+  { -5, 19 }, /* 0xf3 */
+  { -7, 15 }, /* 0xef */
+  {-10, 11 }, /* 0xeb */
+  {-15,  7 }, /* 0xe7 */
+  {-25,  3 }, /* 0xe3 */
+};
+#define OUTPUT_NUM (sizeof(output_power) / sizeof(struct output_config))
+#define OUTPUT_POWER_MAX   0
+#define OUTPUT_POWER_MIN -25
 
 void cc2420_arch_init(void);
 
@@ -154,6 +179,8 @@ static int channel;
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
 {
+  int i, v;
+
   if(!value) {
     return RADIO_RESULT_INVALID_VALUE;
   }
@@ -164,11 +191,32 @@ get_value(radio_param_t param, radio_value_t *value)
   case RADIO_PARAM_CHANNEL:
     *value = cc2420_get_channel();
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_TXPOWER:
+    v = cc2420_get_txpower();
+    *value = OUTPUT_POWER_MIN;
+    /* Find the actual estimated output power in conversion table */
+    for(i = 0; i < OUTPUT_NUM; i++) {
+      if(v >= output_power[i].config) {
+        *value = output_power[i].power;
+        break;
+      }
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RSSI:
+    /* Return the RSSI value in dBm */
+    *value = cc2420_rssi() + RSSI_OFFSET;
+    return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = 11;
     return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MAX:
     *value = 26;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_TXPOWER_MIN:
+    *value = OUTPUT_POWER_MIN;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_TXPOWER_MAX:
+    *value = OUTPUT_POWER_MAX;
     return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
@@ -178,6 +226,8 @@ get_value(radio_param_t param, radio_value_t *value)
 static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
+  int i;
+
   switch(param) {
   case RADIO_PARAM_POWER_MODE:
     if(value == RADIO_POWER_MODE_ON) {
@@ -194,6 +244,17 @@ set_value(radio_param_t param, radio_value_t value)
       return RADIO_RESULT_INVALID_VALUE;
     }
     cc2420_set_channel(value);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TXPOWER:
+    /* Find the closest higher PA_LEVEL for the desired output power */
+    for(i = 1; i < OUTPUT_NUM; i++) {
+      if(value > output_power[i].power) {
+        cc2420_set_txpower(output_power[i - 1].config);
+        return RADIO_RESULT_OK;
+      }
+    }
+    /* Set lowest output power */
+    cc2420_set_txpower(output_power[OUTPUT_NUM - 1].config);
     return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
