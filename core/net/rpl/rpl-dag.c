@@ -987,7 +987,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
      instance->dio_redundancy != dio->dag_redund ||
      instance->default_lifetime != dio->default_lifetime ||
      instance->lifetime_unit != dio->lifetime_unit) {
-    PRINTF("RPL: DIO for DAG instance %u uncompatible with previos DIO\n",
+    PRINTF("RPL: DIO for DAG instance %u incompatible with previous DIO\n",
 	   dio->instance_id);
     rpl_remove_parent(p);
     dag->used = 0;
@@ -1171,7 +1171,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 	RPL_LOLLIPOP_INCREMENT(dag->version);
 	rpl_reset_dio_timer(instance);
       } else {
-        PRINTF("RPL: Global Repair\n");
+        PRINTF("RPL: Global repair\n");
         if(dio->prefix_info.length != 0) {
           if(dio->prefix_info.flags & UIP_ND6_RA_FLAG_AUTONOMOUS) {
             PRINTF("RPL : Prefix announced in DIO\n");

@@ -189,6 +189,9 @@ struct rpl_of {
   rpl_ocp_t ocp;
 };
 typedef struct rpl_of rpl_of_t;
+
+/* Declare the selected objective function. */
+extern rpl_of_t RPL_OF;
 /*---------------------------------------------------------------------------*/
 /* Instance */
 struct rpl_instance {

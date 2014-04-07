@@ -308,6 +308,8 @@ rpl_init(void)
 #if RPL_CONF_STATS
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
+
+  RPL_OF.reset(NULL);
 }
 /*---------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */
