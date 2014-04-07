@@ -297,6 +297,9 @@ get_value(radio_param_t param, radio_value_t *value)
   case RADIO_PARAM_TXPOWER:
     *value = ST_RadioGetPower();
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_CCA_THRESHOLD:
+    *value = ST_RadioGetEdCcaThreshold();
+    return RADIO_RESULT_OK;
   case RADIO_PARAM_RSSI:
     *value = ST_RadioEnergyDetection();
     return RADIO_RESULT_OK;
@@ -349,6 +352,10 @@ set_value(radio_param_t param, radio_value_t value)
     ST_RadioSetNodeId(value & 0xffff);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_ADDRESS_HANDLER:
+    if(value & ~(RADIO_ADDRESS_HANDLER_FILTER |
+                 RADIO_ADDRESS_HANDLER_AUTOACK)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
     ST_RadioEnableAddressFiltering((value & RADIO_ADDRESS_HANDLER_FILTER) != 0);
     ST_RadioEnableAutoAck((value & RADIO_ADDRESS_HANDLER_AUTOACK) != 0);
     return RADIO_RESULT_OK;
@@ -356,6 +363,9 @@ set_value(radio_param_t param, radio_value_t value)
     if(ST_RadioSetPower((int8_t)value) != ST_SUCCESS) {
       return RADIO_RESULT_INVALID_VALUE;
     }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CCA_THRESHOLD:
+    ST_RadioSetEdCcaThreshold((int8_t)value);
     return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
