@@ -285,13 +285,13 @@ get_value(radio_param_t param, radio_value_t *value)
   case RADIO_PARAM_16BIT_ADDR:
     *value = ST_RadioGetNodeId();
     return RADIO_RESULT_OK;
-  case RADIO_PARAM_ADDRESS_HANDLER:
+  case RADIO_PARAM_RX_MODE:
     *value = 0;
     if(ST_RadioAddressFilteringEnabled()) {
-      *value |= RADIO_ADDRESS_HANDLER_FILTER;
+      *value |= RADIO_RX_MODE_ADDRESS_FILTER;
     }
     if(ST_RadioAutoAckEnabled()) {
-      *value |= RADIO_ADDRESS_HANDLER_AUTOACK;
+      *value |= RADIO_RX_MODE_AUTOACK;
     }
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
@@ -305,10 +305,10 @@ get_value(radio_param_t param, radio_value_t *value)
     return RADIO_RESULT_OK;
 
   case RADIO_CONST_CHANNEL_MIN:
-    *value = 11;
+    *value = ST_MIN_802_15_4_CHANNEL_NUMBER;
     return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MAX:
-    *value = 26;
+    *value = ST_MAX_802_15_4_CHANNEL_NUMBER;
     return RADIO_RESULT_OK;
 
   case RADIO_CONST_TXPOWER_MIN:
@@ -338,7 +338,8 @@ set_value(radio_param_t param, radio_value_t value)
     }
     return RADIO_RESULT_INVALID_VALUE;
   case RADIO_PARAM_CHANNEL:
-    if(value < 11 || value > 26) {
+    if(value < ST_MIN_802_15_4_CHANNEL_NUMBER ||
+       value > ST_MAX_802_15_4_CHANNEL_NUMBER) {
       return RADIO_RESULT_INVALID_VALUE;
     }
     if(ST_RadioSetChannel(value) != ST_SUCCESS) {
@@ -351,15 +352,20 @@ set_value(radio_param_t param, radio_value_t value)
   case RADIO_PARAM_16BIT_ADDR:
     ST_RadioSetNodeId(value & 0xffff);
     return RADIO_RESULT_OK;
-  case RADIO_PARAM_ADDRESS_HANDLER:
-    if(value & ~(RADIO_ADDRESS_HANDLER_FILTER |
-                 RADIO_ADDRESS_HANDLER_AUTOACK)) {
+  case RADIO_PARAM_RX_MODE:
+    if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
+                 RADIO_RX_MODE_AUTOACK)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    ST_RadioEnableAddressFiltering((value & RADIO_ADDRESS_HANDLER_FILTER) != 0);
-    ST_RadioEnableAutoAck((value & RADIO_ADDRESS_HANDLER_AUTOACK) != 0);
+    ST_RadioEnableAddressFiltering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
+    ST_RadioEnableAutoAck((value & RADIO_RX_MODE_AUTOACK) != 0);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
+    if(value < MIN_RADIO_POWER) {
+      value = MIN_RADIO_POWER;
+    } else if(value > MAX_RADIO_POWER) {
+      value = MAX_RADIO_POWER;
+    }
     if(ST_RadioSetPower((int8_t)value) != ST_SUCCESS) {
       return RADIO_RESULT_INVALID_VALUE;
     }
@@ -375,7 +381,9 @@ set_value(radio_param_t param, radio_value_t value)
 static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
-  uint8_t *eui64;
+  const uint8_t *eui64;
+  uint8_t *target;
+  int i;
 
   if(param == RADIO_PARAM_64BIT_ADDR) {
     if(size < 8 || !dest) {
@@ -385,7 +393,10 @@ get_object(radio_param_t param, void *dest, size_t size)
     if(!eui64) {
       return RADIO_RESULT_ERROR;
     }
-    memcpy(dest, eui64, 8);
+    target = dest;
+    for(i = 0; i < 8; i++) {
+      target[i] = eui64[7 - i];
+    }
     return RADIO_RESULT_OK;
   }
   return RADIO_RESULT_NOT_SUPPORTED;
