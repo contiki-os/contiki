@@ -108,9 +108,19 @@ enum {
      filter. */
   RADIO_PARAM_16BIT_ADDR,
 
-  /* Address handler take care of address filtering and sending auto-ACK.
-    (See below for more information.) */
-  RADIO_PARAM_ADDRESS_HANDLER,
+  /*
+   * Radio receiver mode determines if the radio has address filter
+   * (RADIO_RX_MODE_ADDRESS_FILTER) and auto-ACK (RADIO_RX_MODE_AUTOACK)
+   * enabled. This parameter is set as a bit mask.
+   */
+  RADIO_PARAM_RX_MODE,
+
+  /*
+   * Radio transmission mode determines if the radio has send on CCA
+   * (RADIO_TX_MODE_SEND_ON_CCA) enabled or not. This parameter is set
+   * as a bit mask.
+   */
+  RADIO_PARAM_TX_MODE,
 
   /*
    * Transmission power in dBm. The values can range from
@@ -169,21 +179,29 @@ enum {
 };
 
 /**
- * The address handler is an abstraction responsible for address
- * filtering and automatic transmission of acknowledgements in the
- * radio (if such operations are supported by the radio).
+ * The radio reception mode controls address filtering and automatic
+ * transmission of acknowledgements in the radio (if such operations
+ * are supported by the radio). A single parameter is used to allow
+ * setting these features simultaneously as an atomic operation.
  *
- * There are different options that can be used like address filter
- * on/off, autoack on/off. A single parameter is used to set them
- * simultaneous as an atomic operation.
+ * To enable both address filter and transmissions of automatic
+ * acknowledgments:
  *
- * To enable both address filter and transmissions of autoack:
- *
- * NETSTACK_RADIO.set_value(RADIO_PARAM_ADDRESS_HANDLER,
- *       RADIO_ADDRESS_HANDLER_FILTER | RADIO_ADDRESS_HANDLER_AUTOACK);
+ * NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE,
+ *       RADIO_RX_MODE_ADDRESS_FILTER | RADIO_RX_MODE_AUTOACK);
  */
-#define RADIO_ADDRESS_HANDLER_FILTER  (1 << 0)
-#define RADIO_ADDRESS_HANDLER_AUTOACK (1 << 1)
+#define RADIO_RX_MODE_ADDRESS_FILTER   (1 << 0)
+#define RADIO_RX_MODE_AUTOACK          (1 << 1)
+
+/**
+ * The radio transmission mode controls whether transmissions should
+ * be done using clear channel assessment (if supported by the
+ * radio). If send-on-CCA is enabled, the radio's send function will
+ * wait for a radio-specific time window for the channel to become
+ * clear. If this does not happen, the send function will return
+ * RADIO_TX_COLLISION.
+ */
+#define RADIO_TX_MODE_SEND_ON_CCA      (1 << 0)
 
 /* Radio return values when setting or getting radio parameters. */
 typedef enum {
@@ -259,7 +277,6 @@ struct radio_driver {
 };
 
 #endif /* RADIO_H_ */
-
 
 /** @} */
 /** @} */
