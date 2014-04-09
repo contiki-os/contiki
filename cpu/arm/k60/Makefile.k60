@@ -26,7 +26,7 @@ CONTIKI_CPU=$(CONTIKI_CPU_ARM)/k60
 
 CONTIKI_CPU_DIRS = . drivers
 
-CONTIKI_TARGET_SOURCEFILES += uart.c clock.c core-clocks.c onewire.c
+CONTIKI_TARGET_SOURCEFILES += uart.c clock.c core-clocks.c onewire.c ds18b20.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
