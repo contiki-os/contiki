@@ -54,6 +54,9 @@
 
 #include "net/ip/psock.h"
 
+#include "net/ip/udp-socket.h"
+#include "net/ip/tcp-socket.h"
+
 #include "net/rime/rime.h"
 
 #include "net/netstack.h"
