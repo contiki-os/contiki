@@ -29,7 +29,7 @@
  *
  */
 
-#include "contiki.h"
+#include "contiki-net.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -106,7 +106,7 @@ PROCESS_THREAD(tcp_server_process, ev, data)
         int len, tosend;
 #define MIN(a,b) ((a)<(b)?(a):(b))
         tosend = MIN(bytes_to_send, sizeof(outputbuf));
-        len = tcp_socket_send(&socket, "", tosend);
+        len = tcp_socket_send(&socket, (uint8_t *)"", tosend);
         bytes_to_send -= len;
       }
 
