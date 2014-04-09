@@ -27,6 +27,7 @@ sky-ip/sky \
 sky-shell/sky \
 sky-shell-exec/sky \
 sky-shell-webserver/sky \
+tcp-socket/minimal-net \
 telnet-server/minimal-net \
 webserver/minimal-net \
 webserver-ipv6/exp5438 \
