@@ -56,6 +56,7 @@ public class MRMVisualizerSkin implements VisualizerSkin {
   private Simulation simulation = null;
   private Visualizer visualizer = null;
 
+  @Override
   public void setActive(Simulation simulation, Visualizer vis) {
     if (!(simulation.getRadioMedium() instanceof MRM)) {
       logger.fatal("Cannot activate MRM skin for unknown radio medium: " + simulation.getRadioMedium());
@@ -65,6 +66,7 @@ public class MRMVisualizerSkin implements VisualizerSkin {
     this.visualizer = vis;
   }
 
+  @Override
   public void setInactive() {
     if (simulation == null) {
       /* Skin was never activated */
@@ -72,6 +74,7 @@ public class MRMVisualizerSkin implements VisualizerSkin {
     }
   }
 
+  @Override
   public Color[] getColorOf(Mote mote) {
     if (visualizer.getSelectedMotes().contains(mote)) {
       return new Color[] { Color.CYAN };
@@ -79,6 +82,7 @@ public class MRMVisualizerSkin implements VisualizerSkin {
     return null;
   }
 
+  @Override
   public void paintBeforeMotes(Graphics g) {
     Set<Mote> selectedMotes = visualizer.getSelectedMotes();
     if (simulation == null || selectedMotes == null) {
@@ -120,9 +124,11 @@ public class MRMVisualizerSkin implements VisualizerSkin {
         }
         final Radio dRadio = d.getInterfaces().getRadio();
         TxPair txPair = new RadioPair() {
+          @Override
           public Radio getFromRadio() {
             return selectedMote.getInterfaces().getRadio();
           }
+          @Override
           public Radio getToRadio() {
             return dRadio;
           }
@@ -154,9 +160,11 @@ public class MRMVisualizerSkin implements VisualizerSkin {
     }
   }
 
+  @Override
   public void paintAfterMotes(Graphics g) {
   }
 
+  @Override
   public Visualizer getVisualizer() {
     return visualizer;
   }
