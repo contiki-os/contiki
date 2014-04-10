@@ -81,7 +81,7 @@ void clock_init(void)
 
   SIM_SCGC5 |= SIM_SCGC5_LPTIMER_MASK;    /* Enable LPT clock gate */
   LPTMR0_CNR = 0;
-  LPTMR0_CMR = 32768-1;                       /* Underflow every x+1 ticks */
+  LPTMR0_CMR = (32768 / CLOCK_SECOND)-1;  /* Underflow every x+1 clocks */
   LPTMR0_PSR = 0x06;            // PBYP, ERCLK32K
   LPTMR0_CSR = 0x40;                      /* TIE */
   LPTMR0_CSR = 0x41;                      /* TIE | TEN */
