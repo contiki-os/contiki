@@ -51,7 +51,7 @@ import org.contikios.mrm.ChannelModel.TxPair;
 @ClassDescription("Radio environment (MRM)")
 @SupportedArguments(radioMediums = {MRM.class})
 public class MRMVisualizerSkin implements VisualizerSkin {
-  private static Logger logger = Logger.getLogger(MRMVisualizerSkin.class);
+  private static final Logger logger = Logger.getLogger(MRMVisualizerSkin.class);
 
   private Simulation simulation = null;
   private Visualizer visualizer = null;

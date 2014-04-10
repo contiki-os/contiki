@@ -140,7 +140,7 @@ import org.contikios.cooja.plugins.skins.UDGMVisualizerSkin;
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class Visualizer extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = 1L;
-  private static Logger logger = Logger.getLogger(Visualizer.class);
+  private static final Logger logger = Logger.getLogger(Visualizer.class);
 
   public static final int MOTE_RADIUS = 8;
   private static final Color[] DEFAULT_MOTE_COLORS = { Color.WHITE };
@@ -186,8 +186,8 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   private Selection selection;
 
   /* Visualizers */
-  private static ArrayList<Class<? extends VisualizerSkin>> visualizerSkins =
-    new ArrayList<Class<? extends VisualizerSkin>>();
+  private static final ArrayList<Class<? extends VisualizerSkin>> visualizerSkins =
+    new ArrayList<>();
   static {
     /* Register default visualizer skins */
     registerVisualizerSkin(IDVisualizerSkin.class);
@@ -200,13 +200,13 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     registerVisualizerSkin(MoteTypeVisualizerSkin.class);
     registerVisualizerSkin(AttributeVisualizerSkin.class);
   }
-  private ArrayList<VisualizerSkin> currentSkins = new ArrayList<VisualizerSkin>();
+  private ArrayList<VisualizerSkin> currentSkins = new ArrayList<>();
 
   /* Generic visualization */
   private MoteCountListener newMotesListener;
   private Observer posObserver = null;
   private Observer moteHighligtObserver = null;
-  private ArrayList<Mote> highlightedMotes = new ArrayList<Mote>();
+  private ArrayList<Mote> highlightedMotes = new ArrayList<>();
   private final static Color HIGHLIGHT_COLOR = Color.CYAN;
   private final static Color MOVE_COLOR = Color.WHITE;
   private Observer moteRelationsObserver = null;
@@ -224,9 +224,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   }
 
   private ArrayList<Class<? extends SimulationMenuAction>> simulationMenuActions =
-    new ArrayList<Class<? extends SimulationMenuAction>>();
+    new ArrayList<>();
   private ArrayList<Class<? extends MoteMenuAction>> moteMenuActions =
-    new ArrayList<Class<? extends MoteMenuAction>>();
+    new ArrayList<>();
 
   public Visualizer(Simulation simulation, Cooja gui) {
     super("Network", gui);
@@ -859,10 +859,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         }
       }
     }
-    if (!showMenuItem) {
-      return false;
-    }
-    return true;
+    return showMenuItem;
   }
 
   private void handleMousePress(MouseEvent mouseEvent) {
@@ -1097,7 +1094,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     double xCoord = transformToPositionX(clickedX);
     double yCoord = transformToPositionY(clickedY);
 
-    ArrayList<Mote> motes = new ArrayList<Mote>();
+    ArrayList<Mote> motes = new ArrayList<>();
 
     // Calculate painted mote radius in coordinates
     double paintedMoteWidth = transformToPositionX(MOTE_RADIUS)
@@ -1118,7 +1115,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         motes.add(simulation.getMote(i));
       }
     }
-    if (motes.size() == 0) {
+    if (motes.isEmpty()) {
       return null;
     }
 
@@ -1398,7 +1395,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
   @Override
   public Collection<Element> getConfigXML() {
-    ArrayList<Element> config = new ArrayList<Element>();
+    ArrayList<Element> config = new ArrayList<>();
     Element element;
 
     /* Show mote-to-mote relations */
@@ -1693,10 +1690,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     }
     @Override
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
-      if (!(visualizer.getUI() instanceof BasicInternalFrameUI)) {
-        return false;
-      }
-      return true;
+      return visualizer.getUI() instanceof BasicInternalFrameUI;
     }
   }
 
