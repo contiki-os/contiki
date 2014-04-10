@@ -527,7 +527,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
           }
           file = list.get(0);
         }
-        catch (Exception e) {
+        catch (UnsupportedFlavorException | IOException e) {
           return;
         }
 
@@ -564,9 +564,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
             return false;
           }
           file = list.get(0);
-        } catch (UnsupportedFlavorException e) {
-          return false;
-        } catch (IOException e) {
+        } catch (UnsupportedFlavorException | IOException e) {
           return false;
         }
 
@@ -603,9 +601,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       VisualizerSkin newSkin = skinClass.newInstance();
       newSkin.setActive(Visualizer.this.simulation, Visualizer.this);
       currentSkins.add(0, newSkin);
-    } catch (InstantiationException e1) {
-      e1.printStackTrace();
-    } catch (IllegalAccessException e1) {
+    } catch (InstantiationException | IllegalAccessException e1) {
       e1.printStackTrace();
     }
     repaint();
@@ -707,9 +703,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
               });
               menu.add(menuItem);
             }
-          } catch (InstantiationException e1) {
-            logger.fatal("Error: " + e1.getMessage(), e1);
-          } catch (IllegalAccessException e1) {
+          } catch (InstantiationException | IllegalAccessException e1) {
             logger.fatal("Error: " + e1.getMessage(), e1);
           }
         }
@@ -731,9 +725,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
           });
           menu.add(menuItem);
         }
-      } catch (InstantiationException e1) {
-        logger.fatal("Error: " + e1.getMessage(), e1);
-      } catch (IllegalAccessException e1) {
+      } catch (InstantiationException | IllegalAccessException e1) {
         logger.fatal("Error: " + e1.getMessage(), e1);
       }
     }
@@ -1483,7 +1475,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
               Double.parseDouble(matrix[5])
           );
           resetViewport = 0;
-        } catch (Exception e) {
+        } catch (NumberFormatException e) {
           logger.warn("Bad viewport: " + e.getMessage());
           resetViewport();
         }
