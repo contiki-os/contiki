@@ -36,6 +36,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.beans.PropertyVetoException;
+import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -259,8 +260,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
 
   @Override
   public Color[] getColorOf(Mote mote) {
-    Mote selectedMote = visualizer.getSelectedMote();
-    if (mote == selectedMote) {
+    if (visualizer.getSelectedMotes().contains(mote)) {
       return new Color[] { Color.CYAN };
     }
     return null;
@@ -268,10 +268,15 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
 
   @Override
   public void paintBeforeMotes(Graphics g) {
-    Mote selectedMote = visualizer.getSelectedMote();
+    Set<Mote> selectedMotes = visualizer.getSelectedMotes();
     if (simulation == null
-        || selectedMote == null
-        || selectedMote.getInterfaces().getRadio() == null) {
+        || selectedMotes == null
+        || selectedMotes.isEmpty()) {
+      return;
+    }
+
+    final Mote selectedMote = visualizer.getSelectedMotes().iterator().next();
+    if (selectedMote.getInterfaces().getRadio() == null) {
       return;
     }
 

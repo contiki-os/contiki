@@ -33,6 +33,7 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -72,20 +73,23 @@ public class MRMVisualizerSkin implements VisualizerSkin {
   }
 
   public Color[] getColorOf(Mote mote) {
-    Mote selectedMote = visualizer.getSelectedMote();
-    if (mote == selectedMote) {
+    if (visualizer.getSelectedMotes().contains(mote)) {
       return new Color[] { Color.CYAN };
     }
     return null;
   }
 
   public void paintBeforeMotes(Graphics g) {
-    final Mote selectedMote = visualizer.getSelectedMote();
-    if (simulation == null
-        || selectedMote == null
-        || selectedMote.getInterfaces().getRadio() == null) {
+    Set<Mote> selectedMotes = visualizer.getSelectedMotes();
+    if (simulation == null || selectedMotes == null || selectedMotes.isEmpty()) {
       return;
     }
+    
+    final Mote selectedMote = visualizer.getSelectedMotes().iterator().next();
+    if (selectedMote.getInterfaces().getRadio() == null) {
+      return;
+    }
+    
     final Position sPos = selectedMote.getInterfaces().getPosition();
 
     /* Paint transmission and interference range for selected mote */

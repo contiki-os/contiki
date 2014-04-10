@@ -34,6 +34,7 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -74,21 +75,25 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 	}
 
 	public Color[] getColorOf(Mote mote) {
-	  Mote selectedMote = visualizer.getSelectedMote();
-	  if (mote == selectedMote) {
+	  if (visualizer.getSelectedMotes().contains(mote)) {
 	    return new Color[] { Color.CYAN };
 	  }
 	  return null;
 	}
 
 	public void paintBeforeMotes(Graphics g) {
-          Mote selectedMote = visualizer.getSelectedMote();
+		Set<Mote> selectedMotes = visualizer.getSelectedMotes();
 		if (simulation == null
-				|| selectedMote == null
-				|| selectedMote.getInterfaces().getRadio() == null) {
+				|| selectedMotes == null
+				|| selectedMotes.isEmpty()) {
 			return;
 		}
 
+		final Mote selectedMote = visualizer.getSelectedMotes().iterator().next();
+		if (selectedMote.getInterfaces().getRadio() == null) {
+		return;
+		}
+		
 		/* Paint transmission and interference range for selected mote */
 		Position motePos = selectedMote.getInterfaces().getPosition();
 
