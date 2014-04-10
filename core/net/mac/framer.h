@@ -48,7 +48,6 @@ struct framer {
   int (* length)(void);
   int (* create)(void);
   int (* parse)(void);
-
 };
 
 #endif /* FRAMER_H_ */

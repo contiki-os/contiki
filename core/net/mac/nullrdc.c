@@ -297,6 +297,10 @@ packet_input(void)
   } else {
     int duplicate = 0;
 
+    if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) == PACKETBUF_ATTR_PACKET_TYPE_BEACON) {
+      scan_beacon_received();
+    }
+
 #if NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW
     /* Check for duplicate packet. */
     duplicate = mac_sequence_is_duplicate();

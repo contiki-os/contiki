@@ -101,7 +101,19 @@ create_frame(int type, int do_create)
   }
 
   /* Build the FCF. */
-  params.fcf.frame_type = FRAME802154_DATAFRAME;
+  switch(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE)) {
+  case PACKETBUF_ATTR_PACKET_TYPE_BEACON_REQ:
+    params.fcf.frame_type = FRAME802154_BEACONREQ;
+    break;
+  case PACKETBUF_ATTR_PACKET_TYPE_BEACON:
+    params.fcf.frame_type = FRAME802154_BEACONFRAME;
+    break;
+  default:
+  case PACKETBUF_ATTR_PACKET_TYPE_DATA:
+    params.fcf.frame_type = FRAME802154_DATAFRAME;
+    break;
+  }
+
   params.fcf.security_enabled = 0;
   params.fcf.frame_pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
   if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
@@ -226,6 +238,14 @@ parse(void)
     packetbuf_set_attr(PACKETBUF_ATTR_PENDING, frame.fcf.frame_pending);
     /*    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, frame.fcf.ack_required);*/
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
+
+    if(frame.fcf.frame_type == FRAME802154_BEACONFRAME) {
+      packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_BEACON);
+    }
+
+    if(frame.fcf.frame_type == FRAME802154_BEACONREQ) {
+      packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_BEACON_REQ);
+    }
 
     PRINTF("15.4-IN: %2X", frame.fcf.frame_type);
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));

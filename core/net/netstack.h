@@ -100,6 +100,7 @@
 #include "net/mac/rdc.h"
 #include "net/mac/framer.h"
 #include "dev/radio.h"
+#include "net/scan.h"
 
 /**
  * The structure of a network driver in Contiki.

@@ -937,6 +937,10 @@ input_packet(void)
 
   if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse() >= 0) {
 
+    if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) == PACKETBUF_ATTR_PACKET_TYPE_BEACON) {
+      scan_beacon_received();
+    }
+
 #if WITH_CONTIKIMAC_HEADER
     struct hdr *chdr;
     chdr = packetbuf_dataptr();
