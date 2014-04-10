@@ -39,14 +39,14 @@ llwu_init()
 }
 /*---------------------------------------------------------------------------*/
 void
-llwu_register(llwu_control* c)
+llwu_register(llwu_control_t* c)
 {
   list_add(llwu, c);
   PRINTF("LLWU: new controller\n");
 }
 /*---------------------------------------------------------------------------*/
 void
-llwu_set_allow(llwu_control* c, char allow)
+llwu_set_allow(llwu_control_t* c, char allow)
 {
   c->allow_llwu = allow;
   update_llwu();
@@ -56,7 +56,7 @@ llwu_set_allow(llwu_control* c, char allow)
 static void
 update_llwu()
 {
-  llwu_control* n;
+  llwu_control_t* n;
   allow_deep_sleep = 1;
   for (n = list_head(llwu); n != NULL;)
   {
@@ -88,7 +88,7 @@ llwu_enable_disable_source(enum LLWU_WAKEUP_SOURCE s)
   LLWU_ME = LLWU_ME & (~s & 0xFF);
 }
 
-void __attribute__((interrupt( irq ))) _isr_low_leakage_wakeup(void)
+void __attribute__((interrupt)) _isr_llwu(void)
 {
   LLWU_F1 |= 0x80;
   PRINTF("LLWU: interrupt\n");
