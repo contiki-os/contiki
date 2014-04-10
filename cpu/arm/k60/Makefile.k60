@@ -65,8 +65,8 @@ CFLAGSNO = -I$(CONTIKI_CPU) \
            -Wall -mcpu=cortex-m4
 LINKERSCRIPT = $(CONTIKI_CPU)/$(CPU_PART).ld
 #AROPTS   = rv
-CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles
-LDFLAGS  += $(CFLAGS) -T $(LINKERSCRIPT) -Wl,-Map=$@.map
+CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles -ffunction-sections -fdata-sections
+LDFLAGS  += $(CFLAGS) -T $(LINKERSCRIPT) -Wl,-Map=$@.map -Wl,--gc-sections
 
 ### Setup directory search path for source files
 
