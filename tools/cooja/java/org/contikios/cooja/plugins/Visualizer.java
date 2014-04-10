@@ -1646,16 +1646,20 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   }
 
   public String getQuickHelp() {
-    return
-    "<b>Network</b> " +
-    "<p>The network window shows the positions of simulated motes. " +
-    "It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. Motes can be moved by dragging them. " +
-    "Mouse right-click motes for options. " +
-    "<p>The network window supports different views. " +
-    "Each view provides some specific information, such as the IP addresses of motes. " +
-    "Multiple views can be active at the same time. " +
-    "Use the View menu to select views. ";
-  };
+    return "<b>Network</b> "
+            + "<p>The network window shows the positions of simulated motes. "
+            + "<p>"
+            + "It is possible to zoom <em>(Mouse wheel)</em> and pan <em>(Shift+Mouse drag)</em> the current view. "
+            + "Motes can be moved by dragging them. "
+            + "You can add/remove motes to/from selection <em>(CTRL+Left click)</em> "
+            + "or use the rectangular selection tool <em>(CTRL+Mouse drag)</em>. "
+            + "Mouse right-click motes for options menu. "
+            + "<p>"
+            + "The network window supports different views. "
+            + "Each view provides some specific information, such as the IP addresses of motes. "
+            + "Multiple views can be active at the same time. "
+            + "Use the View menu to select views. ";
+  }
 
   private class Selection {
 
