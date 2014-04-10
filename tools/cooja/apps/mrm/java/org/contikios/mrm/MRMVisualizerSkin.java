@@ -26,7 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
 package org.contikios.mrm;
 
 import java.awt.Color;
@@ -51,6 +50,7 @@ import org.contikios.mrm.ChannelModel.TxPair;
 @ClassDescription("Radio environment (MRM)")
 @SupportedArguments(radioMediums = {MRM.class})
 public class MRMVisualizerSkin implements VisualizerSkin {
+
   private static final Logger logger = Logger.getLogger(MRMVisualizerSkin.class);
 
   private Simulation simulation = null;
@@ -77,7 +77,7 @@ public class MRMVisualizerSkin implements VisualizerSkin {
   @Override
   public Color[] getColorOf(Mote mote) {
     if (visualizer.getSelectedMotes().contains(mote)) {
-      return new Color[] { Color.CYAN };
+      return new Color[]{Color.CYAN};
     }
     return null;
   }
@@ -128,35 +128,36 @@ public class MRMVisualizerSkin implements VisualizerSkin {
           public Radio getFromRadio() {
             return selectedMote.getInterfaces().getRadio();
           }
+
           @Override
           public Radio getToRadio() {
             return dRadio;
           }
         };
         double probArr[] = radioMedium.getChannelModel().getProbability(
-            txPair,
-            Double.NEGATIVE_INFINITY
+                txPair,
+                Double.NEGATIVE_INFINITY
         );
         double prob = probArr[0];
         double ss = probArr[1];
-  
+
         if (prob == 0.0d) {
           continue;
         }
         edges++;
-        String msg = String.format("%1.1f%%, %1.2fdB", 100.0*prob, ss);
+        String msg = String.format("%1.1f%%, %1.2fdB", 100.0 * prob, ss);
         Point pixel = visualizer.transformPositionToPixel(d.getInterfaces().getPosition());
         int msgWidth = fm.stringWidth(msg);
-        g.setColor(new Color(1-(float)prob, (float)prob, 0.0f));
+        g.setColor(new Color(1 - (float) prob, (float) prob, 0.0f));
         g.drawLine(x, y, pixel.x, pixel.y);
         g.setColor(Color.BLACK);
-        g.drawString(msg, pixel.x - msgWidth/2, pixel.y + 2*Visualizer.MOTE_RADIUS + 3);
+        g.drawString(msg, pixel.x - msgWidth / 2, pixel.y + 2 * Visualizer.MOTE_RADIUS + 3);
       }
-  
+
       String msg = dests.length + " edges";
       int msgWidth = fm.stringWidth(msg);
       g.setColor(Color.BLACK);
-      g.drawString(msg, x - msgWidth/2, y + 2*Visualizer.MOTE_RADIUS + 3);
+      g.drawString(msg, x - msgWidth / 2, y + 2 * Visualizer.MOTE_RADIUS + 3);
     }
   }
 
