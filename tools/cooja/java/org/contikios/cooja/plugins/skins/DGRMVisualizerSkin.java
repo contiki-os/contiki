@@ -83,66 +83,70 @@ public class DGRMVisualizerSkin implements VisualizerSkin {
 
 	public void paintBeforeMotes(Graphics g) {
 		Set<Mote> selectedMotes = visualizer.getSelectedMotes();
-		if (simulation == null
-				|| selectedMotes == null
-				|| selectedMotes.isEmpty()) {
+		if (simulation == null || selectedMotes == null) {
 			return;
 		}
 
-		final Mote selectedMote = visualizer.getSelectedMotes().iterator().next();
-		if (selectedMote.getInterfaces().getRadio() == null) {
-		return;
-		}
-		
-		/* Paint transmission and interference range for selected mote */
-		Position motePos = selectedMote.getInterfaces().getPosition();
-
-		Point pixelCoord = visualizer.transformPositionToPixel(motePos);
-		int x = pixelCoord.x;
-		int y = pixelCoord.y;
-		Radio selectedRadio = selectedMote.getInterfaces().getRadio();
-
-		FontMetrics fm = g.getFontMetrics();
-		g.setColor(Color.BLACK);
-
-		DirectedGraphMedium radioMedium = (DirectedGraphMedium) simulation.getRadioMedium();
-
-		/* Print transmission success probabilities */
-		DestinationRadio[] dests = radioMedium.getPotentialDestinations(selectedRadio);
-		if (dests == null || dests.length == 0) {
-			String msg = "No edges";
-			int msgWidth = fm.stringWidth(msg);
-			g.setColor(Color.BLACK);
-			g.drawString(msg, x - msgWidth/2, y + 2*Visualizer.MOTE_RADIUS + 3);
-			return;
-		}
-		String msg = dests.length + " edges";
-		int msgWidth = fm.stringWidth(msg);
-		g.setColor(Color.BLACK);
-		g.drawString(msg, x - msgWidth/2, y + 2*Visualizer.MOTE_RADIUS + 3);
-		for (DestinationRadio r: dests) {
-			double prob = ((DGRMDestinationRadio)r).ratio;
-			double rssi = ((DGRMDestinationRadio)r).signal;
-			double pos_rssi = rssi + 100;
-			int lqi = ((DGRMDestinationRadio)r).lqi;
-			float red = (float)(1 - prob*pos_rssi/90*lqi/100);
-			if(red > 1) red = 1;
-			if(red < 0) red = 0;
-			float green = (float)(prob*pos_rssi/90*lqi/100);
-			if(green > 1) green = 1;
-			if(green < 0) green = 0;
-			if (prob == 0.0d) {
+		for (final Mote selectedMote : selectedMotes) {
+			if (selectedMote.getInterfaces().getRadio() == null) {
 				continue;
 			}
-			msg = String.format("%1.1f%%", 100.0*prob);
-			Position pos = r.radio.getPosition();
-			Point pixel = visualizer.transformPositionToPixel(pos);
-			msgWidth = fm.stringWidth(msg);
-			g.setColor(new Color(red, green, 0.0f));
-			g.drawString("LQI: " + lqi + "  RSSI: " + rssi,(x + pixel.x)/2,(y + pixel.y)/2);
-			g.drawLine(x, y, pixel.x, pixel.y);
+
+			/* Paint transmission and interference range for selected mote */
+			Position motePos = selectedMote.getInterfaces().getPosition();
+
+			Point pixelCoord = visualizer.transformPositionToPixel(motePos);
+			int x = pixelCoord.x;
+			int y = pixelCoord.y;
+			Radio selectedRadio = selectedMote.getInterfaces().getRadio();
+
+			FontMetrics fm = g.getFontMetrics();
 			g.setColor(Color.BLACK);
-			g.drawString(msg, pixel.x - msgWidth/2, pixel.y + 2*Visualizer.MOTE_RADIUS + 3);
+
+			DirectedGraphMedium radioMedium = (DirectedGraphMedium) simulation.getRadioMedium();
+
+			/* Print transmission success probabilities */
+			DestinationRadio[] dests = radioMedium.getPotentialDestinations(selectedRadio);
+			if (dests == null || dests.length == 0) {
+				String msg = "No edges";
+				int msgWidth = fm.stringWidth(msg);
+				g.setColor(Color.BLACK);
+				g.drawString(msg, x - msgWidth / 2, y + 2 * Visualizer.MOTE_RADIUS + 3);
+				continue;
+			}
+			String msg = dests.length + " edges";
+			int msgWidth = fm.stringWidth(msg);
+			g.setColor(Color.BLACK);
+			g.drawString(msg, x - msgWidth / 2, y + 2 * Visualizer.MOTE_RADIUS + 3);
+			/* Draw LQI/RSSI edges */
+			for (DestinationRadio r : dests) {
+				double prob = ((DGRMDestinationRadio)r).ratio;
+				double rssi = ((DGRMDestinationRadio)r).signal;
+				double pos_rssi = rssi + 100;
+				int lqi = ((DGRMDestinationRadio)r).lqi;
+				float red = (float)(1 - prob*pos_rssi/90*lqi/100);
+				if(red > 1) red = 1;
+				if(red < 0) red = 0;
+				float green = (float)(prob*pos_rssi/90*lqi/100);
+				if(green > 1) green = 1;
+				if(green < 0) green = 0;
+				if (prob == 0.0d) {
+					continue;
+				}
+				Position pos = r.radio.getPosition();
+				Point pixel = visualizer.transformPositionToPixel(pos);
+				g.setColor(new Color(red, green, 0.0f));
+				g.drawString("LQI:	" + lqi, (x + pixel.x) / 2, (y + pixel.y) / 2);
+				g.drawString("RSSI: " + rssi, (x + pixel.x) / 2, (y + pixel.y) / 2 + g.getFontMetrics().getHeight());
+				g.drawLine(x, y, pixel.x, pixel.y);
+				/* Draw success ratio only if single mote selected */
+				if (selectedMotes.size() == 1) {
+					g.setColor(Color.BLACK);
+					msg = String.format("%1.1f%%", 100.0 * prob);
+					msgWidth = fm.stringWidth(msg);
+					g.drawString(msg, pixel.x - msgWidth/2, pixel.y + 2*Visualizer.MOTE_RADIUS + 3);
+				}
+			}
 		}
 	}
 
