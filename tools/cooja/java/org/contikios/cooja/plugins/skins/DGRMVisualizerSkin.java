@@ -53,7 +53,7 @@ import org.contikios.cooja.radiomediums.DirectedGraphMedium;
 @ClassDescription("Radio environment (DGRM)")
 @SupportedArguments(radioMediums = {DirectedGraphMedium.class})
 public class DGRMVisualizerSkin implements VisualizerSkin {
-	private static Logger logger = Logger.getLogger(DGRMVisualizerSkin.class);
+	private static final Logger logger = Logger.getLogger(DGRMVisualizerSkin.class);
 
 	private Simulation simulation = null;
 	private Visualizer visualizer = null;
