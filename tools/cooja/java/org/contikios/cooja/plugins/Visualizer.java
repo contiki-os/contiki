@@ -1477,14 +1477,13 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     showMoteToMoteRelations = false;
 
     for (Element element : configXML) {
-      if (element.getName().equals("skin")) {
-        String wanted = element.getText();
-        /* Backwards compatibility: se.sics -> org.contikios */
-        if (wanted.startsWith("se.sics")) {
-          wanted = wanted.replaceFirst("se\\.sics", "org.contikios");
-        }
-
-        for (Class<? extends VisualizerSkin> skinClass : visualizerSkins) {
+      switch (element.getName()) {
+        case "skin":
+          String wanted = element.getText();
+          /* Backwards compatibility: se.sics -> org.contikios */
+          if (wanted.startsWith("se.sics")) {
+            wanted = wanted.replaceFirst("se\\.sics", "org.contikios");
+          } for (Class<? extends VisualizerSkin> skinClass : visualizerSkins) {
           if (wanted.equals(skinClass.getName())
                   /* Backwards compatibility */
                   || wanted.equals(Cooja.getDescriptionOf(skinClass))) {
@@ -1498,35 +1497,33 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
             wanted = null;
             break;
           }
-        }
-        if (wanted != null) {
+        } if (wanted != null) {
           logger.warn("Could not load visualizer: " + element.getText());
-        }
-      }
-      else if (element.getName().equals("moterelations")) {
-        showMoteToMoteRelations = true;
-      }
-      else if (element.getName().equals("viewport")) {
-        try {
-          String[] matrix = element.getText().split(" ");
-          viewportTransform.setTransform(
-                  Double.parseDouble(matrix[0]),
+        } break;
+        case "moterelations":
+          showMoteToMoteRelations = true;
+          break;
+        case "viewport":
+          try {
+            String[] matrix = element.getText().split(" ");
+            viewportTransform.setTransform(
+                    Double.parseDouble(matrix[0]),
                   Double.parseDouble(matrix[1]),
                   Double.parseDouble(matrix[2]),
                   Double.parseDouble(matrix[3]),
                   Double.parseDouble(matrix[4]),
                   Double.parseDouble(matrix[5])
-          );
-          resetViewport = 0;
-        }
-        catch (NumberFormatException e) {
-          logger.warn("Bad viewport: " + e.getMessage());
-          resetViewport();
-        }
-      }
-      else if (element.getName().equals("hidden")) {
-        BasicInternalFrameUI ui = (BasicInternalFrameUI) getUI();
-        ui.getNorthPane().setPreferredSize(new Dimension(0, 0));
+            );
+            resetViewport = 0;
+          }
+          catch (NumberFormatException e) {
+            logger.warn("Bad viewport: " + e.getMessage());
+            resetViewport();
+          } break;
+        case "hidden":
+          BasicInternalFrameUI ui = (BasicInternalFrameUI) getUI();
+          ui.getNorthPane().setPreferredSize(new Dimension(0, 0));
+          break;
       }
     }
     return true;
