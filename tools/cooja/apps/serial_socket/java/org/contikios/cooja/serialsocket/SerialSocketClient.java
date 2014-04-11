@@ -1,3 +1,5 @@
+package org.contikios.cooja.serialsocket;
+
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
