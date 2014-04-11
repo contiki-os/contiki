@@ -80,21 +80,17 @@ void usb_isr(void);
 #endif
 
 /* Likewise for the UART[01] ISRs */
-#if UART_CONF_ENABLE
-void uart_isr(void);
-
-#if UART_BASE==UART_1_BASE
-#define uart0_isr default_handler
-#define uart1_isr uart_isr
+#if UART_0_CONF_ENABLE
+  void uart0_isr(void);
 #else
-#define uart0_isr uart_isr
-#define uart1_isr default_handler
+  #define uart0_isr default_handler
 #endif
 
-#else /* UART_CONF_ENABLE */
-#define uart0_isr default_handler
-#define uart1_isr default_handler
-#endif /* UART_CONF_ENABLE */
+#if UART_1_CONF_ENABLE
+  void uart1_isr(void);
+#else
+  #define uart1_isr default_handler
+#endif
 /*---------------------------------------------------------------------------*/
 /* Allocate stack space */
 static unsigned long stack[512];

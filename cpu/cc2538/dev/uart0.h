@@ -40,8 +40,8 @@
  * \file
  * Header file for the cc2538 UART driver
  */
-#ifndef UART_1_H_
-#define UART_1_H_
+#ifndef UART_0_H_
+#define UART_0_H_
 
 #include "contiki.h"
 
@@ -50,7 +50,7 @@
 /** \name UART base addresses
  * @{
  */
-#define UART_1_BASE           0x4000D000
+#define UART_0_BASE           0x4000C000
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -61,36 +61,33 @@
  * clocked at 16MHz and that Clock Div is 16 (UART_CTL:HSE clear)
  * @{
  */
-#if UART_1_CONF_BAUD_RATE==9600
-#define UART_1_CONF_IBRD UART_IBRD_9600
-#define UART_1_CONF_FBRD UART_FBRD_9600
-#elif UART_1_CONF_BAUD_RATE==38400
-#define UART_1_CONF_IBRD UART_IBRD_38400
-#define UART_1_CONF_FBRD UART_FBRD_38400
-#elif UART_1_CONF_BAUD_RATE==57600
-#define UART_1_CONF_IBRD UART_IBRD_57600
-#define UART_1_CONF_FBRD UART_FBRD_57600
-#elif UART_1_CONF_BAUD_RATE==115200
-#define UART_1_CONF_IBRD UART_IBRD_115200
-#define UART_1_CONF_FBRD UART_FBRD_115200
-#elif UART_1_CONF_BAUD_RATE==230400
-#define UART_1_CONF_IBRD UART_IBRD_230400
-#define UART_1_CONF_FBRD UART_FBRD_230400
-#elif UART_1_CONF_BAUD_RATE==460800
-#define UART_1_CONF_IBRD UART_IBRD_460800
-#define UART_1_CONF_FBRD UART_FBRD_460800
+#if UART_0_CONF_BAUD_RATE==9600
+#define UART_0_CONF_IBRD UART_IBRD_9600
+#define UART_0_CONF_FBRD UART_FBRD_9600
+#elif UART_0_CONF_BAUD_RATE==38400
+#define UART_0_CONF_IBRD UART_IBRD_38400
+#define UART_0_CONF_FBRD UART_FBRD_38400
+#elif UART_0_CONF_BAUD_RATE==57600
+#define UART_0_CONF_IBRD UART_IBRD_57600
+#define UART_0_CONF_FBRD UART_FBRD_57600
+#elif UART_0_CONF_BAUD_RATE==115200
+#define UART_0_CONF_IBRD UART_IBRD_115200
+#define UART_0_CONF_FBRD UART_FBRD_115200
+#elif UART_0_CONF_BAUD_RATE==230400
+#define UART_0_CONF_IBRD UART_IBRD_230400
+#define UART_0_CONF_FBRD UART_FBRD_230400
+#elif UART_0_CONF_BAUD_RATE==460800
+#define UART_0_CONF_IBRD UART_IBRD_460800
+#define UART_0_CONF_FBRD UART_FBRD_460800
 #else /* Bail out with an error unless the user provided custom values */
-#if !(defined UART_1_CONF_IBRD && defined UART_1_CONF_FBRD)
+#if !(defined UART_0_CONF_IBRD && defined UART_0_CONF_FBRD)
 #error "UART baud rate misconfigured and custom IBRD/FBRD values not provided"
-#error "Check the value of UART_1_CONF_BAUD_RATE in contiki-conf.h or project-conf.h"
+#error "Check the value of UART_0_CONF_BAUD_RATE in contiki-conf.h or project-conf.h"
 #error "Supported values are 9600, 38400, 57600, 115200, 230400 and 460800."
 #error "Alternatively, you can provide custom values for "
-#error "UART_1_CONF_IBRD and UART_1_CONF_FBRD"
+#error "UART_0_CONF_IBRD and UART_0_CONF_FBRD"
 #endif
 #endif
-
-#define BAUD2UBR(x) (x) /* This macro exists only because some examples require it. */
-
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART functions
@@ -99,21 +96,21 @@
 
 /** \brief Initialises the UART controller, configures I/O control
  * and interrupts */
-void uart1_init(void);
+void uart0_init(void);
 
 /** \brief Sends a single character down the UART
  * \param b The character to transmit
  */
-void uart1_write_byte(uint8_t b);
+void uart0_write_byte(uint8_t b);
 
 /** \brief Assigns a callback to be called when the UART receives a byte
  * \param input A pointer to the function
  */
-void uart1_set_input(int (* input)(unsigned char c));
+void uart0_set_input(int (* input)(unsigned char c));
 
 /** @} */
 
-#endif /* UART_1_H_ */
+#endif /* UART_0_H_ */
 
 /**
  * @}
