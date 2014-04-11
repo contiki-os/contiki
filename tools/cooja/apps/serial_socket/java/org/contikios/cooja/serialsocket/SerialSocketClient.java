@@ -128,6 +128,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
 
     /* Observe serial port for outgoing data */
     serialPort.addSerialDataObserver(serialDataObserver = new Observer() {
+      @Override
       public void update(Observable obs, Object obj) {
         try {
           if (out == null) {
@@ -149,6 +150,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
   private void startSocketReadThread(final DataInputStream in) {
     /* Forward data: virtual port -> mote */
     Thread incomingDataThread = new Thread(new Runnable() {
+      @Override
       public void run() {
         int numRead = 0;
         byte[] data = new byte[1024];
@@ -193,10 +195,12 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
     return label;
   }
 
+  @Override
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     return true;
   }
 
+  @Override
   public Collection<Element> getConfigXML() {
     return null;
   }
@@ -227,6 +231,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
     }
 
     SwingUtilities.invokeLater(new Runnable() {
+      @Override
       public void run() {
         SerialSocketClient.this.setTitle(SerialSocketClient.this.getTitle() + " *DISCONNECTED*");
         statusLabel.setText("Disconnected from server");
@@ -234,10 +239,12 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
     });
   }
 
+  @Override
   public void closePlugin() {
     cleanup();
   }
 
+  @Override
   public Mote getMote() {
     return mote;
   }
