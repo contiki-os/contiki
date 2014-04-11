@@ -47,6 +47,7 @@ import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.ApplicationRadio;
 import org.contikios.cooja.interfaces.ApplicationSerialPort;
 import org.contikios.cooja.interfaces.Radio;
+import org.contikios.cooja.mote.memory.MemoryLayout;
 
 /**
  * Abstract application mote.
@@ -89,6 +90,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
   public AbstractApplicationMote(MoteType moteType, Simulation sim) {
     setSimulation(sim);
     this.moteType = moteType;
+    MemoryLayout.getNative();
     this.memory = new SectionMoteMemory(new HashMap<String, Integer>(), 0);
     this.moteInterfaces = new MoteInterfaceHandler(this, moteType.getMoteInterfaceClasses());
     this.moteInterfaces.getRadio().addObserver(radioDataObserver);

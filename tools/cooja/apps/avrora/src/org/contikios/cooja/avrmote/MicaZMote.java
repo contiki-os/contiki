@@ -53,6 +53,8 @@ import avrora.sim.mcu.AtmelMicrocontroller;
 import avrora.sim.mcu.EEPROM;
 import avrora.sim.platform.MicaZ;
 import avrora.sim.platform.PlatformFactory;
+import java.nio.ByteOrder;
+import org.contikios.cooja.mote.memory.MemoryLayout;
 
 /**
  * @author Joakim Eriksson, Fredrik Osterlind
@@ -143,6 +145,7 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
     avrProperties = (AVRProperties) myCpu.getProperties();
     Simulator sim = myCpu.getSimulator();
     interpreter = (AtmelInterpreter) sim.getInterpreter();
+    new MemoryLayout(ByteOrder.LITTLE_ENDIAN, MemoryLayout.ARCH_8BIT, 2);
 //     State state = interpreter.getState();
     myMemory = new AvrMoteMemory(program.getProgram().getSourceMapping(), avrProperties, interpreter);
   }
