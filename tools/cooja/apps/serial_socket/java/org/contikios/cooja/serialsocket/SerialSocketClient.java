@@ -1,6 +1,7 @@
 package org.contikios.cooja.serialsocket;
 
 /*
+ * Copyright (c) 2014, TU Braunschweig.
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -31,11 +32,10 @@ package org.contikios.cooja.serialsocket;
  */
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.Dimension;
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
@@ -43,21 +43,22 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EtchedBorder;
 import javax.swing.text.NumberFormatter;
 
 import org.apache.log4j.Logger;
@@ -76,30 +77,36 @@ import org.contikios.cooja.interfaces.SerialPort;
  * Socket to simulated serial port forwarder. Client version.
  * 
  * @author Fredrik Osterlind
+ * @author Enrico Jorns
  */
 @ClassDescription("Serial Socket (CLIENT)")
 @PluginType(PluginType.MOTE_PLUGIN)
 public class SerialSocketClient extends VisPlugin implements MotePlugin {
   private static final long serialVersionUID = 1L;
-  private static Logger logger = Logger.getLogger(SerialSocketClient.class);
+  private static final Logger logger = Logger.getLogger(SerialSocketClient.class);
 
-  private final static int LABEL_WIDTH = 100;
-  private final static int LABEL_HEIGHT = 15;
-
-  public final static String SERVER_HOST = "localhost";
-  public final static int SERVER_PORT = 1234;
-
+  private static final String SERVER_DEFAULT_HOST = "localhost";
+  private static final int SERVER_DEFAULT_PORT = 1234;
+  
+  private static final Color ST_COLOR_UNCONNECTED = Color.DARK_GRAY;
+  private static final Color ST_COLOR_CONNECTED = new Color(0, 161, 83);
+  private static final Color ST_COLOR_FAILED = Color.RED;
+  
   private SerialPort serialPort;
   private Observer serialDataObserver;
 
-  private JLabel statusLabel, inLabel, outLabel;
+  private JLabel socketToMoteLabel;
+  private JLabel moteToSocketLabel;
+  private JLabel socketStatusLabel;
+  private JButton serverSelectButton;
+  
   private int inBytes = 0, outBytes = 0;
 
   private Socket socket;
   private DataInputStream in;
   private DataOutputStream out;
 
-  private Mote mote;
+  private final Mote mote;
 
   public SerialSocketClient(Mote mote, Simulation simulation, final Cooja gui) {
     super("Serial Socket (CLIENT) (" + mote + ")", gui, false);
@@ -110,6 +117,8 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
 
       setResizable(false);
       setLayout(new BorderLayout());
+      
+      // --- Server setup
       
       GridBagConstraints c = new GridBagConstraints();
       JPanel serverSelectPanel = new JPanel(new GridBagLayout());
@@ -122,7 +131,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
       c.gridx++;
       serverSelectPanel.add(label, c);
       
-      final JTextField serverHostField = new JTextField("localhost");
+      final JTextField serverHostField = new JTextField(SERVER_DEFAULT_HOST);
       serverHostField.setColumns(10);
       c.gridx++;
       c.weightx = 1.0;
@@ -132,15 +141,16 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
       c.gridx++;
       c.weightx = 0.0;
       serverSelectPanel.add(label, c);
-      
-      final JFormattedTextField serverPort = new JFormattedTextField(
-              new NumberFormatter(NumberFormat.getIntegerInstance()));
-      serverPort.setColumns(5);
-      serverPort.setText("1234");
+
+      NumberFormat nf = NumberFormat.getIntegerInstance();
+      nf.setGroupingUsed(false);
+      final JFormattedTextField serverPortField = new JFormattedTextField(new NumberFormatter(nf));
+      serverPortField.setColumns(5);
+      serverPortField.setText(String.valueOf(SERVER_DEFAULT_PORT));
       c.gridx++;
-      serverSelectPanel.add(serverPort, c);
-      
-      final JButton serverSelectButton = new JButton("Connect");
+      serverSelectPanel.add(serverPortField, c);
+
+      serverSelectButton = new JButton("Connect");
       c.gridx++;
       serverSelectPanel.add(serverSelectButton, c);
 
@@ -149,67 +159,54 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
       c.gridwidth = GridBagConstraints.REMAINDER;
       c.fill = GridBagConstraints.HORIZONTAL;
       serverSelectPanel.add(new JSeparator(JSeparator.HORIZONTAL), c);
-
+      
       add(BorderLayout.NORTH, serverSelectPanel);
       
-      serverSelectButton.addActionListener(new ActionListener() {
+      // --- Incoming / outgoing info
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          try {
-            logger.info("Connecting: " + SERVER_HOST + ":" + SERVER_PORT);
-            socket = new Socket(SERVER_HOST, SERVER_PORT);
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
-            out.flush();
-            startSocketReadThread(in);
-          } catch (Exception ex) {
-            throw (RuntimeException) new RuntimeException(
-                    "Connection error: " + ex.getMessage()).initCause(ex);
-          }
-        }
-      });
-      
-      
-      JPanel connectionInfoPanel = new JPanel(new GridBagLayout());
-      connectionInfoPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      JPanel connectionInfoPanel = new JPanel(new GridLayout(0, 2));
+      connectionInfoPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
       c = new GridBagConstraints();
 
-      label = new JLabel("Status:");
+      label = new JLabel("socket -> mote: ");
+      label.setHorizontalAlignment(JLabel.RIGHT);
       c.gridx = 0;
       c.gridy = 0;
       c.anchor = GridBagConstraints.EAST;
-      c.ipadx = 5;
-      connectionInfoPanel.add(label, c);
+      connectionInfoPanel.add(label);
 
-      final JLabel socketStatusLabel = new JLabel("disconnected");
+      socketToMoteLabel = new JLabel("0 bytes");
       c.gridx++;
       c.anchor = GridBagConstraints.WEST;
-      connectionInfoPanel.add(socketStatusLabel, c);
+      connectionInfoPanel.add(socketToMoteLabel);
 
-      label = new JLabel("socket -> mote:");
+      label = new JLabel("mote -> socket: ");
+      label.setHorizontalAlignment(JLabel.RIGHT);
       c.gridx = 0;
       c.gridy++;
       c.anchor = GridBagConstraints.EAST;
-      connectionInfoPanel.add(label, c);
+      connectionInfoPanel.add(label);
 
-      final JLabel socketToMoteLabel = new JLabel("0 bytes");
+      moteToSocketLabel = new JLabel("0 bytes");
       c.gridx++;
       c.anchor = GridBagConstraints.WEST;
-      connectionInfoPanel.add(socketToMoteLabel, c);
-
-      label = new JLabel("mote -> socket:");
-      c.gridx = 0;
-      c.gridy++;
-      c.anchor = GridBagConstraints.EAST;
-      connectionInfoPanel.add(label, c);
-
-      final JLabel moteToSocketLabel = new JLabel("0 bytes");
-      c.gridx++;
-      c.anchor = GridBagConstraints.WEST;
-      connectionInfoPanel.add(moteToSocketLabel, c);
+      connectionInfoPanel.add(moteToSocketLabel);
 
       add(BorderLayout.CENTER, connectionInfoPanel);
+      
+      // --- Status bar
+      
+      JPanel statusBarPanel = new JPanel(new BorderLayout());
+      statusBarPanel.setLayout(new BoxLayout(statusBarPanel, BoxLayout.LINE_AXIS));
+      statusBarPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+      label = new JLabel("Status: ");
+      statusBarPanel.add(label);
+      
+      socketStatusLabel = new JLabel("disconnected");
+      socketStatusLabel.setForeground(Color.DARK_GRAY);
+      statusBarPanel.add(socketStatusLabel);
+      
+      add(BorderLayout.SOUTH, statusBarPanel);
 
       /* Mote serial port */
       serialPort = (SerialPort) mote.getInterfaces().getLog();
@@ -217,8 +214,50 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
         throw new RuntimeException("No mote serial port");
       }
 
+      serverSelectButton.addActionListener(new ActionListener() {
 
-      /* Observe serial port for outgoing data */
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            serverPortField.commitEdit();
+          } catch (ParseException ex) {
+            java.util.logging.Logger.getLogger(SerialSocketClient.class.getName()).log(Level.SEVERE, null, ex);
+          }
+          if (socket == null) {
+            // connect to serer
+            try {
+              logger.info("Connecting: " + serverHostField.getText() + ":" + serverPortField.getValue());
+              socket = new Socket(serverHostField.getText(), ((Long) serverPortField.getValue()).intValue());
+              in = new DataInputStream(socket.getInputStream());
+              out = new DataOutputStream(socket.getOutputStream());
+              out.flush();
+              startSocketReadThread(in);
+              socketStatusLabel.setText("connected");
+              socketStatusLabel.setForeground(ST_COLOR_CONNECTED);
+              serverSelectButton.setEnabled(false);
+            } catch (IOException ex) {
+              logger.error(ex.getMessage());
+              socketStatusLabel.setText("failed");
+              socketStatusLabel.setForeground(ST_COLOR_FAILED);
+            }
+          } else {
+            // disconnect from server
+            try {
+              logger.info("Closing connection to serer...");
+              socket.close();
+              socketStatusLabel.setText("disconnected");
+              socketStatusLabel.setForeground(ST_COLOR_UNCONNECTED);
+            } catch (IOException ex) {
+              logger.error(ex);
+              socketStatusLabel.setText("failed");
+              socketStatusLabel.setForeground(ST_COLOR_FAILED);
+            }
+          }
+        }
+      });
+      
+
+      /* Observe serial port for outgoing data and write to socket */
       serialPort.addSerialDataObserver(serialDataObserver = new Observer() {
         @Override
         public void update(Observable obs, Object obj) {
@@ -230,10 +269,12 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
             out.flush();
             outBytes++;
             if (Cooja.isVisualized()) {
-              outLabel.setText(outBytes + " bytes");
+              moteToSocketLabel.setText(outBytes + " bytes");
             }
-          } catch (IOException e) {
-            e.printStackTrace();
+          } catch (IOException ex) {
+            logger.error(ex.getMessage());
+            socketStatusLabel.setText("failed");
+            socketStatusLabel.setForeground(ST_COLOR_FAILED);
           }
         }
       });
@@ -247,13 +288,13 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
       public void run() {
         int numRead = 0;
         byte[] data = new byte[1024];
-        logger.info("Forwarder: socket -> serial port");
+        logger.info("Start forwarding: socket -> serial port");
         while (true) {
           numRead = -1;
           try {
             numRead = in.read(data);
           } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             return;
           }
 
@@ -263,29 +304,24 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
             }
             inBytes += numRead;
             if (Cooja.isVisualized()) {
-              inLabel.setText(inBytes + " bytes");
+              socketToMoteLabel.setText(inBytes + " bytes");
             }
           } else {
             logger.warn("Incoming data thread shut down");
-            cleanup();
+            SwingUtilities.invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                socketStatusLabel.setForeground(ST_COLOR_FAILED);
+                socketStatusLabel.setText("Disconnected from server");
+                serverSelectButton.setEnabled(true);
+              }
+            });
             break;
           }
         }
       }
     });
     incomingDataThread.start();
-  }
-
-  private JLabel configureLabel(JComponent pane, String desc, String value) {
-    JPanel smallPane = new JPanel(new BorderLayout());
-    JLabel label = new JLabel(desc);
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(value);
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    smallPane.add(BorderLayout.CENTER, label);
-    pane.add(smallPane);
-    return label;
   }
 
   @Override
@@ -307,6 +343,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
         socket = null;
       }
     } catch (IOException e1) {
+      logger.warn(e1.getMessage());
     }
     try {
       if (in != null) {
@@ -314,6 +351,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
         in = null;
       }
     } catch (IOException e) {
+      logger.warn(e.getMessage());
     }
     try {
       if (out != null) {
@@ -321,15 +359,8 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
         out = null;
       }
     } catch (IOException e) {
+      logger.warn(e.getMessage());
     }
-
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        SerialSocketClient.this.setTitle(SerialSocketClient.this.getTitle() + " *DISCONNECTED*");
-        statusLabel.setText("Disconnected from server");
-      }
-    });
   }
 
   @Override
