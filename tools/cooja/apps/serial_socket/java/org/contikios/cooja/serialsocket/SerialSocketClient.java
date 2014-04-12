@@ -31,21 +31,34 @@ package org.contikios.cooja.serialsocket;
  */
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.ComponentOrientation;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.text.NumberFormatter;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -94,57 +107,137 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
 
     /* GUI components */
     if (Cooja.isVisualized()) {
-      Box northBox = Box.createHorizontalBox();
-      northBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-      statusLabel = configureLabel(northBox, "", "");
 
-      Box mainBox = Box.createHorizontalBox();
-      mainBox.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
-      inLabel = configureLabel(mainBox, "socket -> mote:", "0 bytes");
-      outLabel = configureLabel(mainBox, "mote -> socket", "0 bytes");
-
-      getContentPane().add(BorderLayout.NORTH, northBox);
-      getContentPane().add(BorderLayout.CENTER, mainBox);
+      setResizable(false);
+      setLayout(new BorderLayout());
+      
+      GridBagConstraints c = new GridBagConstraints();
+      JPanel serverSelectPanel = new JPanel(new GridBagLayout());
       pack();
-    }
+      c.gridx = 0;
+      c.gridy = 0;
+      serverSelectPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+      
+      label = new JLabel("Host:");
+      c.gridx++;
+      serverSelectPanel.add(label, c);
+      
+      final JTextField serverHostField = new JTextField("localhost");
+      serverHostField.setColumns(10);
+      c.gridx++;
+      c.weightx = 1.0;
+      serverSelectPanel.add(serverHostField, c);
+      
+      label = new JLabel("Port:");
+      c.gridx++;
+      c.weightx = 0.0;
+      serverSelectPanel.add(label, c);
+      
+      final JFormattedTextField serverPort = new JFormattedTextField(
+              new NumberFormatter(NumberFormat.getIntegerInstance()));
+      serverPort.setColumns(5);
+      serverPort.setText("1234");
+      c.gridx++;
+      serverSelectPanel.add(serverPort, c);
+      
+      final JButton serverSelectButton = new JButton("Connect");
+      c.gridx++;
+      serverSelectPanel.add(serverSelectButton, c);
 
-    /* Mote serial port */
-    serialPort = (SerialPort) mote.getInterfaces().getLog();
-    if (serialPort == null) {
-      throw new RuntimeException("No mote serial port");
-    }
+      c.gridx = 0;
+      c.gridy++;
+      c.gridwidth = GridBagConstraints.REMAINDER;
+      c.fill = GridBagConstraints.HORIZONTAL;
+      serverSelectPanel.add(new JSeparator(JSeparator.HORIZONTAL), c);
 
-    try {
-      logger.info("Connecting: " + SERVER_HOST + ":" + SERVER_PORT);
-      socket = new Socket(SERVER_HOST, SERVER_PORT);
-      in = new DataInputStream(socket.getInputStream());
-      out = new DataOutputStream(socket.getOutputStream());
-      out.flush();
-      startSocketReadThread(in);
-    } catch (Exception e) {
-      throw (RuntimeException) new RuntimeException(
-          "Connection error: " + e.getMessage()).initCause(e);
-    }
+      add(BorderLayout.NORTH, serverSelectPanel);
+      
+      serverSelectButton.addActionListener(new ActionListener() {
 
-    /* Observe serial port for outgoing data */
-    serialPort.addSerialDataObserver(serialDataObserver = new Observer() {
-      @Override
-      public void update(Observable obs, Object obj) {
-        try {
-          if (out == null) {
-            return;
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          try {
+            logger.info("Connecting: " + SERVER_HOST + ":" + SERVER_PORT);
+            socket = new Socket(SERVER_HOST, SERVER_PORT);
+            in = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
+            out.flush();
+            startSocketReadThread(in);
+          } catch (Exception ex) {
+            throw (RuntimeException) new RuntimeException(
+                    "Connection error: " + ex.getMessage()).initCause(ex);
           }
-          out.write(serialPort.getLastSerialData());
-          out.flush();
-          outBytes++;
-          if (Cooja.isVisualized()) {
-            outLabel.setText(outBytes + " bytes");
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
         }
+      });
+      
+      
+      JPanel connectionInfoPanel = new JPanel(new GridBagLayout());
+      connectionInfoPanel.setBorder(BorderFactory.createEmptyBorder(3, 3, 3, 3));
+      c = new GridBagConstraints();
+
+      label = new JLabel("Status:");
+      c.gridx = 0;
+      c.gridy = 0;
+      c.anchor = GridBagConstraints.EAST;
+      c.ipadx = 5;
+      connectionInfoPanel.add(label, c);
+
+      final JLabel socketStatusLabel = new JLabel("disconnected");
+      c.gridx++;
+      c.anchor = GridBagConstraints.WEST;
+      connectionInfoPanel.add(socketStatusLabel, c);
+
+      label = new JLabel("socket -> mote:");
+      c.gridx = 0;
+      c.gridy++;
+      c.anchor = GridBagConstraints.EAST;
+      connectionInfoPanel.add(label, c);
+
+      final JLabel socketToMoteLabel = new JLabel("0 bytes");
+      c.gridx++;
+      c.anchor = GridBagConstraints.WEST;
+      connectionInfoPanel.add(socketToMoteLabel, c);
+
+      label = new JLabel("mote -> socket:");
+      c.gridx = 0;
+      c.gridy++;
+      c.anchor = GridBagConstraints.EAST;
+      connectionInfoPanel.add(label, c);
+
+      final JLabel moteToSocketLabel = new JLabel("0 bytes");
+      c.gridx++;
+      c.anchor = GridBagConstraints.WEST;
+      connectionInfoPanel.add(moteToSocketLabel, c);
+
+      add(BorderLayout.CENTER, connectionInfoPanel);
+
+      /* Mote serial port */
+      serialPort = (SerialPort) mote.getInterfaces().getLog();
+      if (serialPort == null) {
+        throw new RuntimeException("No mote serial port");
       }
-    });
+
+
+      /* Observe serial port for outgoing data */
+      serialPort.addSerialDataObserver(serialDataObserver = new Observer() {
+        @Override
+        public void update(Observable obs, Object obj) {
+          try {
+            if (out == null) {
+              return;
+            }
+            out.write(serialPort.getLastSerialData());
+            out.flush();
+            outBytes++;
+            if (Cooja.isVisualized()) {
+              outLabel.setText(outBytes + " bytes");
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }
+      });
+    }
   }
 
   private void startSocketReadThread(final DataInputStream in) {
