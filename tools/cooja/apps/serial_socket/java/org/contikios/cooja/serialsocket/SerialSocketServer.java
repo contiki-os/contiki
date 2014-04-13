@@ -31,7 +31,11 @@ package org.contikios.cooja.serialsocket;
  */
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
@@ -39,17 +43,22 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.JComponent;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.border.EtchedBorder;
+import javax.swing.text.NumberFormatter;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -74,8 +83,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(SerialSocketServer.class);
 
-  private final static int LABEL_WIDTH = 100;
-  private final static int LABEL_HEIGHT = 15;
+  private final static int STATUSBAR_WIDTH = 350;
 
   public final int LISTEN_PORT;
 
@@ -83,6 +91,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
   private Observer serialDataObserver;
 
   private JLabel statusLabel, inLabel, outLabel;
+  private JButton serverStartButton;
   private int inBytes = 0, outBytes = 0;
 
   private ServerSocket server;
@@ -102,17 +111,103 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
     /* GUI components */
     if (Cooja.isVisualized()) {
-      Box northBox = Box.createHorizontalBox();
-      northBox.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-      statusLabel = configureLabel(northBox, "", "");
 
-      Box mainBox = Box.createHorizontalBox();
-      mainBox.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
-      inLabel = configureLabel(mainBox, "socket -> mote:", "0 bytes");
-      outLabel = configureLabel(mainBox, "mote -> socket", "0 bytes");
+      setResizable(false);
+      setLayout(new BorderLayout());
 
-      getContentPane().add(BorderLayout.NORTH, northBox);
-      getContentPane().add(BorderLayout.CENTER, mainBox);
+      // --- Server Port setup
+      
+      GridBagConstraints c = new GridBagConstraints();
+      JPanel socketPanel = new JPanel(new GridBagLayout());
+      socketPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+      
+      JLabel label = new JLabel("Listen port: ");
+      c.gridx = 0;
+      c.gridy = 0;
+      socketPanel.add(label, c);
+      
+      NumberFormat nf = NumberFormat.getIntegerInstance();
+      nf.setGroupingUsed(false);
+      final JFormattedTextField serverPortField = new JFormattedTextField(new NumberFormatter(nf));
+      serverPortField.setColumns(5);
+      serverPortField.setText(String.valueOf(LISTEN_PORT));
+      c.gridx++;
+      socketPanel.add(serverPortField, c);
+
+      serverStartButton = new JButton("Start");
+      c.gridx++;
+      c.weightx = 0.1;
+      c.anchor = GridBagConstraints.EAST;
+      socketPanel.add(serverStartButton, c);
+
+      c.gridx = 0;
+      c.gridy++;
+      c.gridwidth = GridBagConstraints.REMAINDER;
+      c.fill = GridBagConstraints.HORIZONTAL;
+      socketPanel.add(new JSeparator(JSeparator.HORIZONTAL), c);
+      
+      add(BorderLayout.NORTH, socketPanel);
+      
+      // --- Incoming / outgoing info
+
+      JPanel connectionInfoPanel = new JPanel(new GridLayout(0, 2));
+      connectionInfoPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+      c = new GridBagConstraints();
+
+      label = new JLabel("socket -> mote: ");
+      label.setHorizontalAlignment(JLabel.RIGHT);
+      c.gridx = 0;
+      c.gridy = 0;
+      c.anchor = GridBagConstraints.EAST;
+      connectionInfoPanel.add(label);
+
+      inLabel = new JLabel("0 bytes");
+      c.gridx++;
+      c.anchor = GridBagConstraints.WEST;
+      connectionInfoPanel.add(inLabel);
+
+      label = new JLabel("mote -> socket: ");
+      label.setHorizontalAlignment(JLabel.RIGHT);
+      c.gridx = 0;
+      c.gridy++;
+      c.anchor = GridBagConstraints.EAST;
+      connectionInfoPanel.add(label);
+
+      outLabel = new JLabel("0 bytes");
+      c.gridx++;
+      c.anchor = GridBagConstraints.WEST;
+      connectionInfoPanel.add(outLabel);
+
+      add(BorderLayout.CENTER, connectionInfoPanel);
+
+      // --- Status bar
+      
+      JPanel statusBarPanel = new JPanel(new BorderLayout()) {
+        @Override
+        public Dimension getPreferredSize() {
+          Dimension d = super.getPreferredSize();
+          return new Dimension(STATUSBAR_WIDTH, d.height);
+        }
+      };
+      statusBarPanel.setLayout(new BoxLayout(statusBarPanel, BoxLayout.LINE_AXIS));
+      statusBarPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+      label = new JLabel("Status: ");
+      statusBarPanel.add(label);
+      
+      statusLabel = new JLabel("Not started");
+      statusLabel.setForeground(Color.DARK_GRAY);
+      statusBarPanel.add(statusLabel);
+      
+      add(BorderLayout.SOUTH, statusBarPanel);
+
+      serverStartButton.addActionListener(new ActionListener() {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          // XXX
+        }
+      });
+      
       pack();
     }
 
@@ -207,18 +302,6 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       }
     });
     incomingDataThread.start();
-  }
-
-  private JLabel configureLabel(JComponent pane, String desc, String value) {
-    JPanel smallPane = new JPanel(new BorderLayout());
-    JLabel label = new JLabel(desc);
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(value);
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    smallPane.add(BorderLayout.CENTER, label);
-    pane.add(smallPane);
-    return label;
   }
 
   @Override
