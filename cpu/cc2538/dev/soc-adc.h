@@ -83,6 +83,34 @@
 #define SOC_ADC_ADCCON3_ECH     0x0000000F /**< Single channel select */
 /** @} */
 /*---------------------------------------------------------------------------*/
+/** \name SOC_ADC_ADCCONx registers field values
+ * @{
+ */
+#define SOC_ADC_ADCCON_REF_INT          (0 << 6) /**< Internal reference */
+#define SOC_ADC_ADCCON_REF_EXT_SINGLE   (1 << 6) /**< External reference on AIN7 pin */
+#define SOC_ADC_ADCCON_REF_AVDD5        (2 << 6) /**< AVDD5 pin */
+#define SOC_ADC_ADCCON_REF_EXT_DIFF     (3 << 6) /**< External reference on AIN6-AIN7 differential input */
+#define SOC_ADC_ADCCON_DIV_64           (0 << 4) /**< 64 decimation rate (7 bits ENOB) */
+#define SOC_ADC_ADCCON_DIV_128          (1 << 4) /**< 128 decimation rate (9 bits ENOB) */
+#define SOC_ADC_ADCCON_DIV_256          (2 << 4) /**< 256 decimation rate (10 bits ENOB) */
+#define SOC_ADC_ADCCON_DIV_512          (3 << 4) /**< 512 decimation rate (12 bits ENOB) */
+#define SOC_ADC_ADCCON_CH_AIN0          0x0 /**< AIN0 */
+#define SOC_ADC_ADCCON_CH_AIN1          0x1 /**< AIN1 */
+#define SOC_ADC_ADCCON_CH_AIN2          0x2 /**< AIN2 */
+#define SOC_ADC_ADCCON_CH_AIN3          0x3 /**< AIN3 */
+#define SOC_ADC_ADCCON_CH_AIN4          0x4 /**< AIN4 */
+#define SOC_ADC_ADCCON_CH_AIN5          0x5 /**< AIN5 */
+#define SOC_ADC_ADCCON_CH_AIN6          0x6 /**< AIN6 */
+#define SOC_ADC_ADCCON_CH_AIN7          0x7 /**< AIN7 */
+#define SOC_ADC_ADCCON_CH_AIN0_AIN1     0x8 /**< AIN0-AIN1 */
+#define SOC_ADC_ADCCON_CH_AIN2_AIN3     0x9 /**< AIN2-AIN3 */
+#define SOC_ADC_ADCCON_CH_AIN4_AIN5     0xA /**< AIN4-AIN5 */
+#define SOC_ADC_ADCCON_CH_AIN6_AIN7     0xB /**< AIN6-AIN7 */
+#define SOC_ADC_ADCCON_CH_GND           0xC /**< GND */
+#define SOC_ADC_ADCCON_CH_TEMP          0xE /**< Temperature sensor */
+#define SOC_ADC_ADCCON_CH_VDD_3         0xF /**< VDD/3 */
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name SOC_ADC_ADC[L:H] register bit masks
  * @{
  */

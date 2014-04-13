@@ -168,6 +168,20 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name ADC configuration
+ *
+ * These values configure which CC2538 pins and ADC channels to use for the ADC
+ * inputs.
+ *
+ * ADC inputs can only be on port A.
+ * @{
+ */
+#define ADC_ALS_PWR_PORT         GPIO_A_NUM /**< ALS power GPIO control port */
+#define ADC_ALS_PWR_PIN          7 /**< ALS power GPIO control pin */
+#define ADC_ALS_OUT_PIN          6 /**< ALS output ADC input pin on port A */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name SPI configuration
  *
  * These values configure which CC2538 pins to use for the SPI lines.
