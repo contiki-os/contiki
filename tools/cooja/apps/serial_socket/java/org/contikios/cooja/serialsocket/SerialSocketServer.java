@@ -1,6 +1,7 @@
 package org.contikios.cooja.serialsocket;
 
 /*
+ * Copyright (c) 2014, TU Braunschweig.
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -80,6 +81,7 @@ import org.contikios.cooja.interfaces.SerialPort;
  * Socket to simulated serial port forwarder. Server version.
  * 
  * @author Fredrik Osterlind
+ * @author Enrico Jorns
  */
 @ClassDescription("Serial Socket (SERVER)")
 @PluginType(PluginType.MOTE_PLUGIN)
@@ -101,11 +103,12 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
   private JLabel socketToMoteLabel;
   private JLabel moteToSocketLabel;
   private JLabel socketStatusLabel;
+  private JFormattedTextField serverPortField;
   private JButton serverStartButton;
 
   private int inBytes = 0, outBytes = 0;
 
-  private ServerSocket server;
+  private ServerSocket serverSocket;
   private Socket clientSocket;
   private DataInputStream in;
   private DataOutputStream out;
@@ -135,14 +138,17 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       JLabel label = new JLabel("Listen port: ");
       c.gridx = 0;
       c.gridy = 0;
+      c.weightx = 0.1;
+      c.anchor = GridBagConstraints.EAST;
       socketPanel.add(label, c);
       
       NumberFormat nf = NumberFormat.getIntegerInstance();
       nf.setGroupingUsed(false);
-      final JFormattedTextField serverPortField = new JFormattedTextField(new NumberFormatter(nf));
+      serverPortField = new JFormattedTextField(new NumberFormatter(nf));
       serverPortField.setColumns(5);
       serverPortField.setText(String.valueOf(SERVER_DEFAULT_PORT));
       c.gridx++;
+      c.weightx = 0.0;
       socketPanel.add(serverPortField, c);
 
       serverStartButton = new JButton("Start");
@@ -205,7 +211,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       label = new JLabel("Status: ");
       statusBarPanel.add(label);
       
-      socketStatusLabel = new JLabel("Not started");
+      socketStatusLabel = new JLabel("Idle");
       socketStatusLabel.setForeground(Color.DARK_GRAY);
       statusBarPanel.add(socketStatusLabel);
       
@@ -246,6 +252,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
               socketStatusLabel.setForeground(COLOR_NEUTRAL);
               socketStatusLabel.setText("Listening on port " + String.valueOf(port));
               serverStartButton.setEnabled(false);
+              serverPortField.setEnabled(false);
             }
           });
         }
@@ -268,8 +275,11 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
             @Override
             public void run() {
-              socketStatusLabel.setForeground(COLOR_NEUTRAL);
-              socketStatusLabel.setText("Listening on port " + String.valueOf(server.getLocalPort()));
+              // XXX check why needed
+              if (serverSocket != null) {
+                socketStatusLabel.setForeground(COLOR_NEUTRAL);
+                socketStatusLabel.setText("Listening on port " + String.valueOf(serverSocket.getLocalPort()));
+              }
             }
           });
         }
@@ -281,6 +291,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
             @Override
             public void run() {
               serverStartButton.setEnabled(true); 
+              serverPortField.setEnabled(true);
               socketStatusLabel.setForeground(COLOR_NEUTRAL);
               socketStatusLabel.setText("Idle");
             }
@@ -300,7 +311,6 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
         }
 
       });
-
     }
 
   }
@@ -355,7 +365,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
    */
   public void startServer(int port) {
     try {
-      server = new ServerSocket(port);
+      serverSocket = new ServerSocket(port);
       logger.info("Listening on port: " + port);
       notifyServerStarted(port);
     } catch (IOException ex) {
@@ -367,10 +377,20 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
     new Thread() {
       @Override
       public void run() {
-        while (!server.isClosed()) {
+        while (!serverSocket.isClosed()) {
           try {
             // wait for next client
-            clientSocket = server.accept();
+            Socket candidateSocket = serverSocket.accept();
+            
+            // reject connection if already one client connected
+            if (clientSocket != null && !clientSocket.isClosed()) {
+              logger.info("Refused connection of client " + candidateSocket.getInetAddress());
+              candidateSocket.close();
+              continue;
+            }
+            
+            clientSocket = candidateSocket;
+            
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
             out.flush();
@@ -405,7 +425,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
           } catch (IOException e) {
             logger.fatal("Listening thread shut down: " + e.getMessage());
             try {
-              server.close();
+              serverSocket.close();
             } catch (IOException ex) {
               logger.error(ex);
             }
@@ -486,13 +506,17 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
   }
 
   private boolean closed = false;
+
   @Override
   public void closePlugin() {
-	  closed = true;
+    closed = true;
     cleanupClient();
     try {
-      server.close();
-    } catch (IOException e) {
+      if (serverSocket != null) {
+        serverSocket.close();
+      }
+    } catch (IOException ex) {
+      logger.error(ex);
     }
   }
 
