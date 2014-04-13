@@ -65,50 +65,24 @@
  * \name Baud rate defines
  *
  * Used in uart_init() to set the values of UART_IBRD and UART_FBRD in order to
- * achieve some standard baud rates. These defines assume that the UART is
- * clocked at 16MHz and that Clock Div is 16 (UART_CTL:HSE clear)
+ * achieve some standard baud rates.
  * @{
  */
-#define UART_IBRD_9600              104 /**< IBRD value for baud rate 9600 */
-#define UART_FBRD_9600               11 /**< FBRD value for baud rate 9600 */
-#define UART_IBRD_38400              26 /**< IBRD value for baud rate 38400 */
-#define UART_FBRD_38400               3 /**< FBRD value for baud rate 38400 */
-#define UART_IBRD_57600              17 /**< IBRD value for baud rate 57600 */
-#define UART_FBRD_57600              24 /**< FBRD value for baud rate 57600 */
-#define UART_IBRD_115200              8 /**< IBRD value for baud rate 115200 */
-#define UART_FBRD_115200             44 /**< FBRD value for baud rate 115200 */
-#define UART_IBRD_230400              4 /**< IBRD value for baud rate 230400 */
-#define UART_FBRD_230400             22 /**< FBRD value for baud rate 230400 */
-#define UART_IBRD_460800              2 /**< IBRD value for baud rate 460800 */
-#define UART_FBRD_460800             11 /**< FBRD value for baud rate 460800 */
+#define UART_CLOCK_RATE       16000000 /* 16 MHz */
+#define UART_CTL_HSE_VALUE    0
+#define UART_CTL_VALUE        ( UART_CTL_RXE | UART_CTL_TXE | (UART_CTL_HSE_VALUE << 5) )
 
-#if UART_CONF_BAUD_RATE==9600
-#define UART_CONF_IBRD UART_IBRD_9600
-#define UART_CONF_FBRD UART_FBRD_9600
-#elif UART_CONF_BAUD_RATE==38400
-#define UART_CONF_IBRD UART_IBRD_38400
-#define UART_CONF_FBRD UART_FBRD_38400
-#elif UART_CONF_BAUD_RATE==57600
-#define UART_CONF_IBRD UART_IBRD_57600
-#define UART_CONF_FBRD UART_FBRD_57600
-#elif UART_CONF_BAUD_RATE==115200
-#define UART_CONF_IBRD UART_IBRD_115200
-#define UART_CONF_FBRD UART_FBRD_115200
-#elif UART_CONF_BAUD_RATE==230400
-#define UART_CONF_IBRD UART_IBRD_230400
-#define UART_CONF_FBRD UART_FBRD_230400
-#elif UART_CONF_BAUD_RATE==460800
-#define UART_CONF_IBRD UART_IBRD_460800
-#define UART_CONF_FBRD UART_FBRD_460800
-#else /* Bail out with an error unless the user provided custom values */
-#if !(defined UART_CONF_IBRD && defined UART_CONF_FBRD)
-#error "UART baud rate misconfigured and custom IBRD/FBRD values not provided"
-#error "Check the value of UART_CONF_BAUD_RATE in contiki-conf.h or project-conf.h"
-#error "Supported values are 9600, 38400, 57600, 115200, 230400 and 460800."
-#error "Alternatively, you can provide custom values for "
-#error "UART_CONF_IBRD and UART_CONF_FBRD"
-#endif
-#endif
+/* DIV_ROUND() divides integers while avoiding a rounding error: */
+#define DIV_ROUND(num, denom) ( ((num) + (denom) / 2) / (denom) )
+
+#define BAUD2BRD(baud)        DIV_ROUND(UART_CLOCK_RATE << (UART_CTL_HSE_VALUE + 2), (baud))
+
+#define uart_set_baudrate(baud) do {                       \
+  REG(UART_BASE | UART_IBRD) = BAUD2BRD(baud) >> 6;        \
+  REG(UART_BASE | UART_FBRD) = BAUD2BRD(baud) & 0x3f;      \
+  REG(UART_BASE | UART_LCRH) = REG(UART_BASE | UART_LCRH); \
+} while(0)
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART Register Offsets

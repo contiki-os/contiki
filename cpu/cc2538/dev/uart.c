@@ -92,7 +92,7 @@ reset(void)
   uint32_t lchr;
 
   /* Make sure the UART is disabled before trying to configure it */
-  REG(UART_BASE | UART_CTL) = UART_CTL_TXE | UART_CTL_RXE;
+  REG(UART_BASE | UART_CTL) = UART_CTL_VALUE;
 
   /* Clear error status */
   REG(UART_BASE | UART_ECR) = 0xFF;
@@ -165,11 +165,10 @@ uart_init(void)
     UART_IFLS_RXIFLSEL_1_8 | UART_IFLS_TXIFLSEL_1_2;
 
   /* Make sure the UART is disabled before trying to configure it */
-  REG(UART_BASE | UART_CTL) = UART_CTL_TXE | UART_CTL_RXE;
+  REG(UART_BASE | UART_CTL) = UART_CTL_VALUE;
 
   /* Baud Rate Generation */
-  REG(UART_BASE | UART_IBRD) = UART_CONF_IBRD;
-  REG(UART_BASE | UART_FBRD) = UART_CONF_FBRD;
+  uart_set_baudrate(UART_CONF_BAUD_RATE);
 
   /* UART Control: 8N1 with FIFOs */
   REG(UART_BASE | UART_LCRH) = UART_LCRH_WLEN_8 | UART_LCRH_FEN;
