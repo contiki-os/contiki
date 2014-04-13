@@ -246,15 +246,16 @@ set_value(radio_param_t param, radio_value_t value)
     cc2420_set_channel(value);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
+    if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
     /* Find the closest higher PA_LEVEL for the desired output power */
     for(i = 1; i < OUTPUT_NUM; i++) {
       if(value > output_power[i].power) {
-        cc2420_set_txpower(output_power[i - 1].config);
-        return RADIO_RESULT_OK;
+        break;
       }
     }
-    /* Set lowest output power */
-    cc2420_set_txpower(output_power[OUTPUT_NUM - 1].config);
+    cc2420_set_txpower(output_power[i - 1].config);
     return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
