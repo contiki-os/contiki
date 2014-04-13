@@ -361,10 +361,8 @@ set_value(radio_param_t param, radio_value_t value)
     ST_RadioEnableAutoAck((value & RADIO_RX_MODE_AUTOACK) != 0);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
-    if(value < MIN_RADIO_POWER) {
-      value = MIN_RADIO_POWER;
-    } else if(value > MAX_RADIO_POWER) {
-      value = MAX_RADIO_POWER;
+    if(value < MIN_RADIO_POWER || value > MAX_RADIO_POWER) {
+      return RADIO_RESULT_INVALID_VALUE;
     }
     if(ST_RadioSetPower((int8_t)value) != ST_SUCCESS) {
       return RADIO_RESULT_INVALID_VALUE;
