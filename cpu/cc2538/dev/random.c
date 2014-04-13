@@ -92,6 +92,9 @@ random_init(unsigned short seed)
   /* Enable clock for the RF Core */
   REG(SYS_CTRL_RCGCRFC) = 1;
 
+  /* Wait for the clock ungating to take effect */
+  while(REG(SYS_CTRL_RCGCRFC) != 1);
+
   /* Infinite RX - FRMCTRL0[3:2] = 10
    * This will mess with radio operation - see note above */
   REG(RFCORE_XREG_FRMCTRL0) = 0x00000008;
