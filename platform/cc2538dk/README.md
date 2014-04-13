@@ -28,9 +28,11 @@ In terms of hardware support, the following drivers have been implemented:
     * Random number generator
     * Low Power Modes
     * General-Purpose Timers. NB: GPT0 is in use by the platform code, the remaining GPTs are available for application development.
+    * ADC
   * SmartRF06 EB and BB peripherals
     * LEDs
     * Buttons
+    * ADC sensors (on-chip VDD / 3 and temperature, ambient light sensor)
     * UART connectivity over the XDS100v3 backchannel (EB only)
 
 Requirements
