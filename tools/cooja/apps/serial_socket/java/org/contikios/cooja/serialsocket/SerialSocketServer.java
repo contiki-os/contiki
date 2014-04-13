@@ -81,21 +81,22 @@ import org.contikios.cooja.interfaces.SerialPort;
 @PluginType(PluginType.MOTE_PLUGIN)
 public class SerialSocketServer extends VisPlugin implements MotePlugin {
   private static final long serialVersionUID = 1L;
-  private static Logger logger = Logger.getLogger(SerialSocketServer.class);
+  private static final Logger logger = Logger.getLogger(SerialSocketServer.class);
 
   private final static int STATUSBAR_WIDTH = 350;
 
-  public final int LISTEN_PORT;
+  private final int SERVER_DEFAULT_PORT;
 
-  private SerialPort serialPort;
+  private final SerialPort serialPort;
   private Observer serialDataObserver;
 
-  private JLabel statusLabel, inLabel, outLabel;
+  private JLabel socketStatusLabel, socketToMoteLabel, moteToSocketLabel;
   private JButton serverStartButton;
+
   private int inBytes = 0, outBytes = 0;
 
   private ServerSocket server;
-  private Socket client;
+  private Socket clientSocket;
   private DataInputStream in;
   private DataOutputStream out;
 
@@ -107,7 +108,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
     updateTimer.start();
 
-    LISTEN_PORT = 60000 + mote.getID();
+    SERVER_DEFAULT_PORT = 60000 + mote.getID();
 
     /* GUI components */
     if (Cooja.isVisualized()) {
@@ -130,7 +131,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       nf.setGroupingUsed(false);
       final JFormattedTextField serverPortField = new JFormattedTextField(new NumberFormatter(nf));
       serverPortField.setColumns(5);
-      serverPortField.setText(String.valueOf(LISTEN_PORT));
+      serverPortField.setText(String.valueOf(SERVER_DEFAULT_PORT));
       c.gridx++;
       socketPanel.add(serverPortField, c);
 
@@ -161,10 +162,10 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       c.anchor = GridBagConstraints.EAST;
       connectionInfoPanel.add(label);
 
-      inLabel = new JLabel("0 bytes");
+      socketToMoteLabel = new JLabel("0 bytes");
       c.gridx++;
       c.anchor = GridBagConstraints.WEST;
-      connectionInfoPanel.add(inLabel);
+      connectionInfoPanel.add(socketToMoteLabel);
 
       label = new JLabel("mote -> socket: ");
       label.setHorizontalAlignment(JLabel.RIGHT);
@@ -173,10 +174,10 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       c.anchor = GridBagConstraints.EAST;
       connectionInfoPanel.add(label);
 
-      outLabel = new JLabel("0 bytes");
+      moteToSocketLabel = new JLabel("0 bytes");
       c.gridx++;
       c.anchor = GridBagConstraints.WEST;
-      connectionInfoPanel.add(outLabel);
+      connectionInfoPanel.add(moteToSocketLabel);
 
       add(BorderLayout.CENTER, connectionInfoPanel);
 
@@ -194,9 +195,9 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       label = new JLabel("Status: ");
       statusBarPanel.add(label);
       
-      statusLabel = new JLabel("Not started");
-      statusLabel.setForeground(Color.DARK_GRAY);
-      statusBarPanel.add(statusLabel);
+      socketStatusLabel = new JLabel("Not started");
+      socketStatusLabel.setForeground(Color.DARK_GRAY);
+      statusBarPanel.add(socketStatusLabel);
       
       add(BorderLayout.SOUTH, statusBarPanel);
 
@@ -218,24 +219,24 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
     }
 
     try {
-      logger.info("Listening on port: " + LISTEN_PORT);
+      logger.info("Listening on port: " + SERVER_DEFAULT_PORT);
       if (Cooja.isVisualized()) {
-        statusLabel.setText("Listening on port: " + LISTEN_PORT);
+        socketStatusLabel.setText("Listening on port: " + SERVER_DEFAULT_PORT);
       }
-      server = new ServerSocket(LISTEN_PORT);
+      server = new ServerSocket(SERVER_DEFAULT_PORT);
       new Thread() {
         @Override
         public void run() {
           while (server != null) {
             try {
-              client = server.accept();
-              in = new DataInputStream(client.getInputStream());
-              out = new DataOutputStream(client.getOutputStream());
+              clientSocket = server.accept();
+              in = new DataInputStream(clientSocket.getInputStream());
+              out = new DataOutputStream(clientSocket.getOutputStream());
               out.flush();
 
               startSocketReadThread(in);
               if (Cooja.isVisualized()) {
-                statusLabel.setText("Client connected: " + client.getInetAddress());
+                socketStatusLabel.setText("Client connected: " + clientSocket.getInetAddress());
               }
             } catch (IOException e) {
               logger.fatal("Listening thread shut down: " + e.getMessage());
@@ -316,9 +317,9 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
   private void cleanupClient() {
     try {
-      if (client != null) {
-        client.close();
-        client = null;
+      if (clientSocket != null) {
+        clientSocket.close();
+        clientSocket = null;
       }
     } catch (IOException e1) {
     }
@@ -341,7 +342,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
-          statusLabel.setText("Listening on port: " + LISTEN_PORT);
+          socketStatusLabel.setText("Listening on port: " + SERVER_DEFAULT_PORT);
         }
       });
     }
@@ -373,8 +374,8 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 			  return;
 		  }
 		  
-		  inLabel.setText(inBytes + " bytes");
-		  outLabel.setText(outBytes + " bytes");
+		  socketToMoteLabel.setText(inBytes + " bytes");
+		  moteToSocketLabel.setText(outBytes + " bytes");
 	  }
   });
 }
