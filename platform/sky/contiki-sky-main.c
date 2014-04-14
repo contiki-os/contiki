@@ -283,6 +283,10 @@ main(int argc, char **argv)
    * Hardware initialization done!
    */
 
+  /* Initialize energest first (but after rtimer)
+   */
+  energest_init();
+  ENERGEST_ON(ENERGEST_TYPE_CPU);
   
 #if WITH_TINYOS_AUTO_IDS
   node_id = TOS_NODE_ID;
@@ -417,9 +421,6 @@ main(int argc, char **argv)
 	   uip_ipaddr_to_quad(&hostaddr));
   }
 #endif /* WITH_UIP */
-
-  energest_init();
-  ENERGEST_ON(ENERGEST_TYPE_CPU);
 
   watchdog_start();
 
