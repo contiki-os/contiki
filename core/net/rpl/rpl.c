@@ -43,6 +43,7 @@
 #include "net/ip/uip.h"
 #include "net/ip/tcpip.h"
 #include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-icmp6.h"
 #include "net/rpl/rpl-private.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 
@@ -300,6 +301,7 @@ rpl_init(void)
 
   rpl_dag_init();
   rpl_reset_periodic_timer();
+  rpl_icmp6_register_handlers();
 
   /* add rpl multicast address */
   uip_create_linklocal_rplnodes_mcast(&rplmaddr);

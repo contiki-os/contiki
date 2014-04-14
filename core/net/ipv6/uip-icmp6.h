@@ -109,24 +109,6 @@ typedef struct uip_icmp6_error{
 
 /** \name ICMPv6 RFC4443 Message processing and sending */
 /** @{ */
-/** \
- * brief Process an echo request 
- *
- * Perform a few checks, then send an Echo reply. The reply is 
- * built here.
-  */
-void
-uip_icmp6_echo_request_input(void);
-
-/** \
- * brief Process an echo reply
- *
- * Perform a few checks, then call applications to inform that an echo
- * reply has been received.
-  */
-void
-uip_icmp6_echo_reply_input(void);
-
 /**
  * \brief Send an icmpv6 error message
  * \param type type of the error message
@@ -192,8 +174,66 @@ uip_icmp6_echo_reply_callback_add(struct uip_icmp6_echo_reply_notification *n,
 void
 uip_icmp6_echo_reply_callback_rm(struct uip_icmp6_echo_reply_notification *n);
 
+/* Generic ICMPv6 input handers */
+typedef struct uip_icmp6_input_handler {
+  struct uip_icmp6_input_handler *next;
+  uint8_t type;
+  uint8_t icode;
+  void (*handler)(void);
+} uip_icmp6_input_handler_t;
+
+#define UIP_ICMP6_INPUT_SUCCESS     0
+#define UIP_ICMP6_INPUT_ERROR       1
+
+#define UIP_ICMP6_HANDLER_CODE_ANY 0xFF /* Handle all codes for this type */
+
+/*
+ * Initialise a variable of type uip_icmp6_input_handler, to be used later as
+ * the argument to uip_icmp6_register_input_handler
+ *
+ * The function pointer stored in this variable will get called and will be
+ * expected to handle incoming ICMPv6 datagrams of the specified type/code
+ *
+ * If code has a value of UIP_ICMP6_HANDLER_CODE_ANY, the same function
+ * will handle all codes for this type. In other words, the ICMPv6
+ * message's code is "don't care"
+ */
+#define UIP_ICMP6_HANDLER(name, type, code, func) \
+  static uip_icmp6_input_handler_t name = { NULL, type, code, func }
+
+/**
+ * \brief Handle an incoming ICMPv6 message
+ * \param type The ICMPv6 message type
+ * \param icode The ICMPv6 message code
+ * \return Success: UIP_ICMP6_INPUT_SUCCESS, Error: UIP_ICMP6_INPUT_ERROR
+ *
+ * Generic handler for unknown ICMPv6 types. It will lookup for a registered
+ * function capable of handing this message type. The function must have first
+ * been registered with uip_icmp6_register_input_handler. The function is in
+ * charge of setting uip_len to 0, otherwise the uIPv6 core will attempt to
+ * send whatever remains in the UIP_IP_BUF.
+ *
+ * A return value of UIP_ICMP6_INPUT_ERROR means that a handler could not be
+ * invoked. This is most likely because the ICMPv6 type does not have a valid
+ * handler associated with it.
+
+ * UIP_ICMP6_INPUT_SUCCESS signifies that a handler was found for this ICMPv6
+ * type and that it was invoked. It does NOT provide any indication whatsoever
+ * regarding whether the handler itself succeeded.
+ */
+uint8_t uip_icmp6_input(uint8_t type, uint8_t icode);
+
+/**
+ * \brief Register a handler which can handle a specific ICMPv6 message type
+ * \param handler A pointer to the handler
+ */
+void uip_icmp6_register_input_handler(uip_icmp6_input_handler_t *handler);
 
 
+/**
+ * \brief Initialise the uIP ICMPv6 core
+ */
+void uip_icmp6_init(void);
 
 /** @} */
 

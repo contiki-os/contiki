@@ -92,6 +92,12 @@ extern rpl_of_t RPL_OF;
 static uip_mcast6_route_t *mcast_group;
 #endif
 /*---------------------------------------------------------------------------*/
+/* Initialise RPL ICMPv6 message handlers */
+UIP_ICMP6_HANDLER(dis_handler, ICMP6_RPL, RPL_CODE_DIS, dis_input);
+UIP_ICMP6_HANDLER(dio_handler, ICMP6_RPL, RPL_CODE_DIO, dio_input);
+UIP_ICMP6_HANDLER(dao_handler, ICMP6_RPL, RPL_CODE_DAO, dao_input);
+UIP_ICMP6_HANDLER(dao_ack_handler, ICMP6_RPL, RPL_CODE_DAO_ACK, dao_ack_input);
+/*---------------------------------------------------------------------------*/
 static int
 get_global_addr(uip_ipaddr_t *addr)
 {
@@ -168,6 +174,7 @@ dis_input(void)
       }
     }
   }
+  uip_len = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -409,6 +416,8 @@ dio_input(void)
 #endif
 
   rpl_process_dio(&from, &dio);
+
+  uip_len = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -786,6 +795,7 @@ fwd_dao:
       dao_ack_output(instance, &dao_sender_addr, sequence);
     }
   }
+  uip_len = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -915,6 +925,7 @@ dao_ack_input(void)
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
 #endif /* DEBUG */
+  uip_len = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -937,27 +948,12 @@ dao_ack_output(rpl_instance_t *instance, uip_ipaddr_t *dest, uint8_t sequence)
 }
 /*---------------------------------------------------------------------------*/
 void
-uip_rpl_input(void)
+rpl_icmp6_register_handlers()
 {
-  PRINTF("Received an RPL control message\n");
-  switch(UIP_ICMP_BUF->icode) {
-  case RPL_CODE_DIO:
-    dio_input();
-    break;
-  case RPL_CODE_DIS:
-    dis_input();
-    break;
-  case RPL_CODE_DAO:
-    dao_input();
-    break;
-  case RPL_CODE_DAO_ACK:
-    dao_ack_input();
-    break;
-  default:
-    PRINTF("RPL: received an unknown ICMP6 code (%u)\n", UIP_ICMP_BUF->icode);
-    break;
-  }
-
-  uip_len = 0;
+  uip_icmp6_register_input_handler(&dis_handler);
+  uip_icmp6_register_input_handler(&dio_handler);
+  uip_icmp6_register_input_handler(&dao_handler);
+  uip_icmp6_register_input_handler(&dao_ack_handler);
 }
+/*---------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */

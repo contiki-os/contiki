@@ -48,6 +48,7 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
+#include "net/ipv6/uip-icmp6.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "net/ipv6/multicast/roll-tm.h"
 #include "dev/watchdog.h"
@@ -473,10 +474,15 @@ extern uint16_t uip_slen;
 /*---------------------------------------------------------------------------*/
 /* Local function prototypes */
 /*---------------------------------------------------------------------------*/
-static void icmp_output();
-static void window_update_bounds();
+static void icmp_input(void);
+static void icmp_output(void);
+static void window_update_bounds(void);
 static void reset_trickle_timer(uint8_t);
 static void handle_timer(void *);
+/*---------------------------------------------------------------------------*/
+/* ROLL TM ICMPv6 handler declaration */
+UIP_ICMP6_HANDLER(roll_tm_icmp_handler, ICMP6_ROLL_TM,
+                  UIP_ICMP6_HANDLER_CODE_ANY, icmp_input);
 /*---------------------------------------------------------------------------*/
 /* Return a random number in [I/2, I), for a timer with Imin when the timer's
  * current number of doublings is d */
@@ -1090,8 +1096,9 @@ accept(uint8_t in)
   return UIP_MCAST6_ACCEPT;
 }
 /*---------------------------------------------------------------------------*/
-void
-roll_tm_icmp_input()
+/* ROLL TM ICMPv6 Input Handler */
+static void
+icmp_input()
 {
   uint8_t inconsistency;
   uint16_t *seq_ptr;
@@ -1416,6 +1423,9 @@ init()
 
   ROLL_TM_STATS_INIT();
   UIP_MCAST6_STATS_INIT(&stats);
+
+  /* Register the ICMPv6 input handler */
+  uip_icmp6_register_input_handler(&roll_tm_icmp_handler);
 
   for(iterswptr = &windows[ROLL_TM_WINS - 1]; iterswptr >= windows;
       iterswptr--) {
