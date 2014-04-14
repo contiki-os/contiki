@@ -33,6 +33,7 @@ package org.contikios.cooja.serialsocket;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -45,9 +46,10 @@ import java.net.Socket;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -88,6 +90,8 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
   private static final String SERVER_DEFAULT_HOST = "localhost";
   private static final int SERVER_DEFAULT_PORT = 1234;
   
+  private final static int STATUSBAR_WIDTH = 350;
+  
   private static final Color ST_COLOR_UNCONNECTED = Color.DARK_GRAY;
   private static final Color ST_COLOR_CONNECTED = new Color(0, 161, 83);
   private static final Color ST_COLOR_FAILED = Color.RED;
@@ -98,6 +102,8 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
   private JLabel socketToMoteLabel;
   private JLabel moteToSocketLabel;
   private JLabel socketStatusLabel;
+  private JTextField serverHostField;
+  private JFormattedTextField serverPortField;
   private JButton serverSelectButton;
   
   private int inBytes = 0, outBytes = 0;
@@ -123,15 +129,15 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
       GridBagConstraints c = new GridBagConstraints();
       JPanel serverSelectPanel = new JPanel(new GridBagLayout());
       pack();
+      serverSelectPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+
+      JLabel label = new JLabel("Host:");
       c.gridx = 0;
       c.gridy = 0;
-      serverSelectPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-      
-      label = new JLabel("Host:");
       c.gridx++;
       serverSelectPanel.add(label, c);
       
-      final JTextField serverHostField = new JTextField(SERVER_DEFAULT_HOST);
+      serverHostField = new JTextField(SERVER_DEFAULT_HOST);
       serverHostField.setColumns(10);
       c.gridx++;
       c.weightx = 1.0;
@@ -144,7 +150,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
 
       NumberFormat nf = NumberFormat.getIntegerInstance();
       nf.setGroupingUsed(false);
-      final JFormattedTextField serverPortField = new JFormattedTextField(new NumberFormatter(nf));
+      serverPortField = new JFormattedTextField(new NumberFormatter(nf));
       serverPortField.setColumns(5);
       serverPortField.setText(String.valueOf(SERVER_DEFAULT_PORT));
       c.gridx++;
@@ -152,6 +158,8 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
 
       serverSelectButton = new JButton("Connect");
       c.gridx++;
+      c.weightx = 0.1;
+      c.anchor = GridBagConstraints.EAST;
       serverSelectPanel.add(serverSelectButton, c);
 
       c.gridx = 0;
@@ -196,13 +204,19 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
       
       // --- Status bar
       
-      JPanel statusBarPanel = new JPanel(new BorderLayout());
+      JPanel statusBarPanel = new JPanel(new BorderLayout()) {
+        @Override
+        public Dimension getPreferredSize() {
+          Dimension d = super.getPreferredSize();
+          return new Dimension(STATUSBAR_WIDTH, d.height);
+        }
+      };
       statusBarPanel.setLayout(new BoxLayout(statusBarPanel, BoxLayout.LINE_AXIS));
       statusBarPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
       label = new JLabel("Status: ");
       statusBarPanel.add(label);
       
-      socketStatusLabel = new JLabel("disconnected");
+      socketStatusLabel = new JLabel("Disconnected");
       socketStatusLabel.setForeground(Color.DARK_GRAY);
       statusBarPanel.add(socketStatusLabel);
       
@@ -220,38 +234,9 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
         public void actionPerformed(ActionEvent e) {
           try {
             serverPortField.commitEdit();
+            startClient(serverHostField.getText(), ((Long) serverPortField.getValue()).intValue());
           } catch (ParseException ex) {
-            java.util.logging.Logger.getLogger(SerialSocketClient.class.getName()).log(Level.SEVERE, null, ex);
-          }
-          if (socket == null) {
-            // connect to serer
-            try {
-              logger.info("Connecting: " + serverHostField.getText() + ":" + serverPortField.getValue());
-              socket = new Socket(serverHostField.getText(), ((Long) serverPortField.getValue()).intValue());
-              in = new DataInputStream(socket.getInputStream());
-              out = new DataOutputStream(socket.getOutputStream());
-              out.flush();
-              startSocketReadThread(in);
-              socketStatusLabel.setText("connected");
-              socketStatusLabel.setForeground(ST_COLOR_CONNECTED);
-              serverSelectButton.setEnabled(false);
-            } catch (IOException ex) {
-              logger.error(ex.getMessage());
-              socketStatusLabel.setText("failed");
-              socketStatusLabel.setForeground(ST_COLOR_FAILED);
-            }
-          } else {
-            // disconnect from server
-            try {
-              logger.info("Closing connection to serer...");
-              socket.close();
-              socketStatusLabel.setText("disconnected");
-              socketStatusLabel.setForeground(ST_COLOR_UNCONNECTED);
-            } catch (IOException ex) {
-              logger.error(ex);
-              socketStatusLabel.setText("failed");
-              socketStatusLabel.setForeground(ST_COLOR_FAILED);
-            }
+            logger.error(ex);
           }
         }
       });
@@ -279,6 +264,114 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
         }
       });
     }
+
+    if (Cooja.isVisualized()) {
+      addClientListener(new ClientListener() {
+
+        @Override
+        public void onError(final String msg) {
+          SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              socketStatusLabel.setForeground(ST_COLOR_FAILED);
+              socketStatusLabel.setText(msg);
+            }
+          });
+        }
+
+        @Override
+        public void onConnected() {
+          SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              socketStatusLabel.setText("Connected");
+              socketStatusLabel.setForeground(ST_COLOR_CONNECTED);
+              serverHostField.setEnabled(false);
+              serverPortField.setEnabled(false);
+              serverSelectButton.setEnabled(false);
+            }
+          });
+        }
+
+        @Override
+        public void onDisconnected() {
+          SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              socketStatusLabel.setForeground(ST_COLOR_UNCONNECTED);
+              socketStatusLabel.setText("Disconnected");
+              serverHostField.setEnabled(true);
+              serverPortField.setEnabled(true);
+              serverSelectButton.setEnabled(true);
+            }
+          });
+        }
+      });
+    }
+  }
+  
+  private List<ClientListener> listeners = new LinkedList<>();
+  
+  public interface ClientListener {
+    void onError(String msg);
+    void onConnected();
+    void onDisconnected();
+  }
+  
+  public void addClientListener(ClientListener listener) {
+    if (!listeners.contains(listener)) {
+      listeners.add(listener);
+    }
+  }
+  
+  private void notifyClientError(String msg) {
+    for (ClientListener l : listeners) {
+      l.onError(msg);
+    }
+  }
+  
+  private void notifyClientConnected() {
+    for (ClientListener l : listeners) {
+      l.onConnected();
+    }
+  }
+  
+  private void notifyClientDisconnected() {
+    for (ClientListener l : listeners) {
+      l.onDisconnected();
+    }
+  }
+  
+  
+  public void startClient(String host, int port) {
+    if (socket == null) {
+      // connect to serer
+      try {
+        logger.info("Connecting: " + host + ":" + port);
+        socket = new Socket(host, port);
+        in = new DataInputStream(socket.getInputStream());
+        out = new DataOutputStream(socket.getOutputStream());
+        out.flush();
+        startSocketReadThread(in);
+        notifyClientConnected();
+      } catch (IOException ex) {
+        logger.error(ex.getMessage());
+        notifyClientError(ex.getMessage());
+      }
+    } else {
+      // disconnect from server
+      try {
+        logger.info("Closing connection to serer...");
+        socket.close();
+        notifyClientDisconnected();
+      } catch (IOException ex) {
+        logger.error(ex);
+        notifyClientError(ex.getMessage());
+      } finally {
+        socket = null;
+      }
+    }
+
   }
 
   private void startSocketReadThread(final DataInputStream in) {
@@ -289,13 +382,13 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
         int numRead = 0;
         byte[] data = new byte[1024];
         logger.info("Start forwarding: socket -> serial port");
-        while (true) {
-          numRead = -1;
+        while (numRead >= 0) {
           try {
             numRead = in.read(data);
           } catch (IOException e) {
             logger.error(e.getMessage());
-            return;
+            numRead = -1;
+            continue;
           }
 
           if (numRead >= 0) {
@@ -306,19 +399,12 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
             if (Cooja.isVisualized()) {
               socketToMoteLabel.setText(inBytes + " bytes");
             }
-          } else {
-            logger.warn("Incoming data thread shut down");
-            SwingUtilities.invokeLater(new Runnable() {
-              @Override
-              public void run() {
-                socketStatusLabel.setForeground(ST_COLOR_FAILED);
-                socketStatusLabel.setText("Disconnected from server");
-                serverSelectButton.setEnabled(true);
-              }
-            });
-            break;
           }
         }
+        
+        logger.warn("Incoming data thread shut down");
+        cleanup();
+        notifyClientDisconnected();
       }
     });
     incomingDataThread.start();
