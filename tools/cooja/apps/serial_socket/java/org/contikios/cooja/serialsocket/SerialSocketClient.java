@@ -45,11 +45,13 @@ import java.io.IOException;
 import java.net.Socket;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -426,16 +428,92 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
     });
     incomingDataThread.start();
   }
+  
+  @Override
+  public Collection<Element> getConfigXML() {
+    List<Element> config = new ArrayList<>();
+    Element element;
+    
+    // XXX isVisualized guards?
+    element = new Element("host");
+    if (socket == null || !socket.isBound()) {
+      element.setText(serverHostField.getText());
+    } else {
+      element.setText(socket.getInetAddress().getHostName());
+    }
+    config.add(element);
+
+    element = new Element("port");
+    if (socket == null || !socket.isBound()) {
+      try {
+        serverPortField.commitEdit();
+        element.setText(String.valueOf((Long) serverPortField.getValue()));
+      } catch (ParseException ex) {
+        logger.error(ex.getMessage());
+        serverPortField.setText("null");
+      }
+    } else {
+      element.setText(String.valueOf(socket.getPort()));
+    }
+    config.add(element);
+
+    element = new Element("bound");
+    if (socket == null) {
+      element.setText(String.valueOf(false));
+    } else {
+      element.setText(String.valueOf(socket.isBound()));
+    }
+    config.add(element);
+
+    return config;
+  }
 
   @Override
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    String host = null;
+    Integer port = null;
+    boolean bound = false;
+    
+    for (Element element : configXML) {
+      switch (element.getName()) {
+        case "host":
+          host = element.getText();
+          break;
+        case "port":
+          port = Integer.parseInt(element.getText());
+          break;
+        case "bound":
+          bound = Boolean.parseBoolean(element.getText());
+          break;
+        default:
+          logger.warn("Unknwon config element: " + element.getName());
+          break;
+      }
+    }
+    
+    // XXX binding might fail if server not configured yet
+    if (Cooja.isVisualized()) {
+      if (host != null) {
+        serverHostField.setText(host);
+      }
+      if (port != null) {
+        serverPortField.setText(String.valueOf(port));
+      }
+      if (bound) {
+        serverSelectButton.doClick();
+      }
+    } else {
+      // if bound and all set up, start client
+      if (host != null && port != null) {
+        startClient(host, port);
+      } else {
+        logger.error("Client not started due to incomplete configuration");
+      }
+    }
+
     return true;
   }
 
-  @Override
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
 
   private void cleanup() {
     serialPort.deleteSerialDataObserver(serialDataObserver);

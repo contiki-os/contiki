@@ -46,6 +46,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -103,7 +104,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
   private JLabel socketToMoteLabel;
   private JLabel moteToSocketLabel;
   private JLabel socketStatusLabel;
-  private JFormattedTextField serverPortField;
+  private JFormattedTextField listenPortField;
   private JButton serverStartButton;
 
   private int inBytes = 0, outBytes = 0;
@@ -144,12 +145,12 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       
       NumberFormat nf = NumberFormat.getIntegerInstance();
       nf.setGroupingUsed(false);
-      serverPortField = new JFormattedTextField(new NumberFormatter(nf));
-      serverPortField.setColumns(5);
-      serverPortField.setText(String.valueOf(SERVER_DEFAULT_PORT));
+      listenPortField = new JFormattedTextField(new NumberFormatter(nf));
+      listenPortField.setColumns(5);
+      listenPortField.setText(String.valueOf(SERVER_DEFAULT_PORT));
       c.gridx++;
       c.weightx = 0.0;
-      socketPanel.add(serverPortField, c);
+      socketPanel.add(listenPortField, c);
 
       serverStartButton = new JButton("Start") { // Button for label toggeling
         private final String altString = "Stop";
@@ -235,11 +236,11 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
         public void actionPerformed(ActionEvent e) {
           if (e.getActionCommand().equals("Start")) {
             try {
-              serverPortField.commitEdit();
+              listenPortField.commitEdit();
             } catch (ParseException ex) {
               java.util.logging.Logger.getLogger(SerialSocketClient.class.getName()).log(Level.SEVERE, null, ex);
             }
-            startServer(((Long) serverPortField.getValue()).intValue());
+            startServer(((Long) listenPortField.getValue()).intValue());
           } else {
             stopServer();
           }
@@ -268,7 +269,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
               System.out.println("onServerStarted");
               socketStatusLabel.setForeground(COLOR_NEUTRAL);
               socketStatusLabel.setText("Listening on port " + String.valueOf(port));
-              serverPortField.setEnabled(false);
+              listenPortField.setEnabled(false);
               serverStartButton.setText("Stop");
             }
           });
@@ -307,7 +308,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
             @Override
             public void run() {
-              serverPortField.setEnabled(true);
+              listenPortField.setEnabled(true);
               serverStartButton.setText("Start");
               socketStatusLabel.setForeground(COLOR_NEUTRAL);
               socketStatusLabel.setText("Idle");
@@ -494,13 +495,72 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
   }
 
   @Override
-  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-    return true;
+  public Collection<Element> getConfigXML() {
+    List<Element> config = new ArrayList<>();
+    Element element;
+    
+    // XXX isVisualized guards?
+
+    element = new Element("port");
+    if (serverSocket == null || !serverSocket.isBound()) {
+      try {
+        listenPortField.commitEdit();
+        element.setText(String.valueOf((Long) listenPortField.getValue()));
+      } catch (ParseException ex) {
+        logger.error(ex.getMessage());
+        listenPortField.setText("null");
+      }
+    } else {
+      element.setText(String.valueOf(serverSocket.getLocalPort()));
+    }
+    config.add(element);
+
+    element = new Element("bound");
+    if (serverSocket == null) {
+      element.setText(String.valueOf(false));
+    } else {
+      element.setText(String.valueOf(!serverSocket.isClosed()));
+    }
+    config.add(element);
+
+    return config;
   }
 
   @Override
-  public Collection<Element> getConfigXML() {
-    return null;
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    Integer port = null;
+    boolean bound = false;
+    
+    for (Element element : configXML) {
+      switch (element.getName()) {
+        case "port":
+          port = Integer.parseInt(element.getText());
+          break;
+        case "bound":
+          bound = Boolean.parseBoolean(element.getText());
+          break;
+        default:
+          logger.warn("Unknwon config element: " + element.getName());
+          break;
+      }
+    }
+    if (Cooja.isVisualized()) {
+      if (port != null) {
+        listenPortField.setText(String.valueOf(port));
+      }
+      if (bound) {
+        serverStartButton.doClick();
+      }
+    } else {
+      // if bound and all set up, start client
+      if (port != null) {
+        startServer(port);
+      } else {
+        logger.error("Server not started due to incomplete configuration");
+      }
+    }
+
+    return true;
   }
 
   private void cleanupClient() {
