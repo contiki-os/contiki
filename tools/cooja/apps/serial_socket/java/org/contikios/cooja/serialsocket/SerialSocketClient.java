@@ -156,7 +156,19 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
       c.gridx++;
       serverSelectPanel.add(serverPortField, c);
 
-      serverSelectButton = new JButton("Connect");
+      serverSelectButton = new JButton("Connect") { // Button for label toggeling
+        private final String altString = "Disconnect";
+        
+        @Override
+        public Dimension getPreferredSize() {
+          String origText = getText();
+          Dimension origDim = super.getPreferredSize();
+          setText(altString);
+          Dimension altDim = super.getPreferredSize();
+          setText(origText);
+          return new Dimension(Math.max(origDim.width, altDim.width), origDim.height);
+        }
+      };
       c.gridx++;
       c.weightx = 0.1;
       c.anchor = GridBagConstraints.EAST;
@@ -232,11 +244,16 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-          try {
-            serverPortField.commitEdit();
-            startClient(serverHostField.getText(), ((Long) serverPortField.getValue()).intValue());
-          } catch (ParseException ex) {
-            logger.error(ex);
+          if (e.getActionCommand().equals("Connect")) {
+            try {
+              serverPortField.commitEdit();
+              startClient(serverHostField.getText(), ((Long) serverPortField.getValue()).intValue());
+            } catch (ParseException ex) {
+              logger.error(ex);
+            }
+          } else {
+            // close socket
+            cleanup();
           }
         }
       });
@@ -288,7 +305,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
               socketStatusLabel.setForeground(ST_COLOR_CONNECTED);
               serverHostField.setEnabled(false);
               serverPortField.setEnabled(false);
-              serverSelectButton.setEnabled(false);
+              serverSelectButton.setText("Disconnect");
             }
           });
         }
@@ -302,7 +319,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
               socketStatusLabel.setText("Disconnected");
               serverHostField.setEnabled(true);
               serverPortField.setEnabled(true);
-              serverSelectButton.setEnabled(true);
+              serverSelectButton.setText("Connect");
             }
           });
         }
@@ -386,13 +403,13 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
           try {
             numRead = in.read(data);
           } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.info(e.getMessage());
             numRead = -1;
             continue;
           }
 
           if (numRead >= 0) {
-            for (int i=0; i < numRead; i++) {
+            for (int i = 0; i < numRead; i++) {
               serialPort.writeByte(data[i]);
             }
             inBytes += numRead;
@@ -401,8 +418,8 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
             }
           }
         }
-        
-        logger.warn("Incoming data thread shut down");
+
+        logger.info("Incoming data thread shut down");
         cleanup();
         notifyClientDisconnected();
       }

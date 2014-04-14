@@ -151,7 +151,19 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
       c.weightx = 0.0;
       socketPanel.add(serverPortField, c);
 
-      serverStartButton = new JButton("Start");
+      serverStartButton = new JButton("Start") { // Button for label toggeling
+        private final String altString = "Stop";
+        
+        @Override
+        public Dimension getPreferredSize() {
+          String origText = getText();
+          Dimension origDim = super.getPreferredSize();
+          setText(altString);
+          Dimension altDim = super.getPreferredSize();
+          setText(origText);
+          return new Dimension(Math.max(origDim.width, altDim.width), origDim.height);
+        }
+      };
       c.gridx++;
       c.weightx = 0.1;
       c.anchor = GridBagConstraints.EAST;
@@ -221,12 +233,16 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-          try {
-            serverPortField.commitEdit();
-          } catch (ParseException ex) {
-            java.util.logging.Logger.getLogger(SerialSocketClient.class.getName()).log(Level.SEVERE, null, ex);
+          if (e.getActionCommand().equals("Start")) {
+            try {
+              serverPortField.commitEdit();
+            } catch (ParseException ex) {
+              java.util.logging.Logger.getLogger(SerialSocketClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            startServer(((Long) serverPortField.getValue()).intValue());
+          } else {
+            stopServer();
           }
-          startServer(((Long) serverPortField.getValue()).intValue());
         }
       });
       
@@ -249,10 +265,11 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
             @Override
             public void run() {
+              System.out.println("onServerStarted");
               socketStatusLabel.setForeground(COLOR_NEUTRAL);
               socketStatusLabel.setText("Listening on port " + String.valueOf(port));
-              serverStartButton.setEnabled(false);
               serverPortField.setEnabled(false);
+              serverStartButton.setText("Stop");
             }
           });
         }
@@ -290,8 +307,8 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
 
             @Override
             public void run() {
-              serverStartButton.setEnabled(true); 
               serverPortField.setEnabled(true);
+              serverStartButton.setText("Start");
               socketStatusLabel.setForeground(COLOR_NEUTRAL);
               socketStatusLabel.setText("Idle");
             }
@@ -381,16 +398,16 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
           try {
             // wait for next client
             Socket candidateSocket = serverSocket.accept();
-            
+
             // reject connection if already one client connected
             if (clientSocket != null && !clientSocket.isClosed()) {
               logger.info("Refused connection of client " + candidateSocket.getInetAddress());
               candidateSocket.close();
               continue;
             }
-            
+
             clientSocket = candidateSocket;
-            
+
             in = new DataInputStream(clientSocket.getInputStream());
             out = new DataOutputStream(clientSocket.getOutputStream());
             out.flush();
@@ -416,14 +433,14 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
                 }
               }
             });
-            
+
             inBytes = outBytes = 0;
 
             logger.info("Client connected: " + clientSocket.getInetAddress());
             notifyClientConnected(clientSocket);
 
           } catch (IOException e) {
-            logger.fatal("Listening thread shut down: " + e.getMessage());
+            logger.info("Listening thread shut down: " + e.getMessage());
             try {
               serverSocket.close();
             } catch (IOException ex) {
@@ -435,6 +452,17 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
         notifyServerStopped();
       }
     }.start();
+  }
+  
+  /**
+   * Stops server by closing server listen socket.
+   */
+  public void stopServer() {
+    try {
+      serverSocket.close();
+    } catch (IOException ex) {
+      logger.error(ex);
+    }
   }
 
   private void startSocketReadThread(final DataInputStream in) {
@@ -454,7 +482,7 @@ public class SerialSocketServer extends VisPlugin implements MotePlugin {
           try {
             numRead = in.read(data);
           } catch (IOException e) {
-            logger.error(e.getMessage());
+            logger.info(e.getMessage());
             numRead = -1;
           }
         }
