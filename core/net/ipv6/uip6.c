@@ -411,6 +411,8 @@ uip_init(void)
 {
    
   uip_ds6_init();
+  uip_icmp6_init();
+  uip_nd6_init();
 
 #if UIP_TCP
   for(c = 0; c < UIP_LISTENPORTS; ++c) {
@@ -1420,67 +1422,17 @@ uip_process(uint8_t flag)
   UIP_ICMP6_APPCALL(UIP_ICMP_BUF->type);
 #endif /*UIP_CONF_ICMP6*/
 
-  switch(UIP_ICMP_BUF->type) {
-    case ICMP6_NS:
-#if UIP_ND6_SEND_NA
-      uip_nd6_ns_input();
-#else /* UIP_ND6_SEND_NA */
-      UIP_STAT(++uip_stat.icmp.drop);
-      uip_len = 0;
-#endif /* UIP_ND6_SEND_NA */
-      break;
-    case ICMP6_NA:
-#if UIP_ND6_SEND_NA
-      uip_nd6_na_input();
-#else /* UIP_ND6_SEND_NA */
-      UIP_STAT(++uip_stat.icmp.drop);
-      uip_len = 0;
-#endif /* UIP_ND6_SEND_NA */
-      break;
-    case ICMP6_RS:
-#if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
-    uip_nd6_rs_input();
-#else /* UIP_CONF_ROUTER && UIP_ND6_SEND_RA */
+  /*
+   * Search generic input handlers.
+   * The handler is in charge of setting uip_len to 0
+   */
+  if(uip_icmp6_input(UIP_ICMP_BUF->type,
+                     UIP_ICMP_BUF->icode) == UIP_ICMP6_INPUT_ERROR) {
+    PRINTF("Unknown ICMPv6 message type/code %d\n", UIP_ICMP_BUF->type);
     UIP_STAT(++uip_stat.icmp.drop);
+    UIP_STAT(++uip_stat.icmp.typeerr);
+    UIP_LOG("icmp6: unknown ICMPv6 message.");
     uip_len = 0;
-#endif /* UIP_CONF_ROUTER && UIP_ND6_SEND_RA */
-    break;
-  case ICMP6_RA:
-#if UIP_CONF_ROUTER
-    UIP_STAT(++uip_stat.icmp.drop);
-    uip_len = 0;
-#else /* UIP_CONF_ROUTER */
-    uip_nd6_ra_input();
-#endif /* UIP_CONF_ROUTER */
-    break;
-#if UIP_CONF_IPV6_RPL
-  case ICMP6_RPL:
-    uip_rpl_input();
-    break;
-#endif /* UIP_CONF_IPV6_RPL */
-    case ICMP6_ECHO_REQUEST:
-      uip_icmp6_echo_request_input();
-      break;
-    case ICMP6_ECHO_REPLY:
-      /** Call echo reply input function. */
-      uip_icmp6_echo_reply_input();
-      PRINTF("Received an icmp6 echo reply\n");
-      UIP_STAT(++uip_stat.icmp.recv);
-      uip_len = 0;
-      break;
-#if UIP_CONF_IPV6_ROLL_TM
-    case ICMP6_ROLL_TM:
-      roll_tm_icmp_input();
-      uip_len = 0;
-      break;
-#endif
-    default:
-      PRINTF("Unknown icmp6 message type %d\n", UIP_ICMP_BUF->type);
-      UIP_STAT(++uip_stat.icmp.drop);
-      UIP_STAT(++uip_stat.icmp.typeerr);
-      UIP_LOG("icmp6: unknown ICMP message.");
-      uip_len = 0;
-      break;
   }
   
   if(uip_len > 0) {
