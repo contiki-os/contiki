@@ -65,9 +65,19 @@ void udma_err_isr(void);
 
 /* Boot Loader Backdoor selection */
 #if FLASH_CCA_CONF_BOOTLDR_BACKDOOR
-/* Backdoor enabled, on PA_3 (Select button) */
-#define FLASH_CCA_BOOTLDR_CFG (FLASH_CCA_BOOTLDR_CFG_ENABLE \
-  | ((3 << FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S) & FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_M))
+  /* Backdoor enabled */
+
+  #if ( (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_LEVEL < 0) || (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_LEVEL > 1) )
+    #error Invalid boot loader backdoor pin level. Please set FLASH_CCA_CONF_BOOTLDR_BACKDOOR_LEVEL to 0 (logic low) or 1 (logic high).
+  #endif
+
+  #if ( (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PIN < 0) || (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PIN > 7) )
+    #error Invalid boot loader backdoor pin. Please set FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PIN between 0 and 7 (indicating PA0 - PA7).
+  #endif
+
+  #define FLASH_CCA_BOOTLDR_CFG ( FLASH_CCA_BOOTLDR_CFG_ENABLE \
+    | (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_LEVEL << FLASH_CCA_BOOTLDR_CFG_PORT_A_LEVEL_S) \
+    | (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PIN << FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S) )
 #else
 #define FLASH_CCA_BOOTLDR_CFG FLASH_CCA_BOOTLDR_CFG_DISABLE
 #endif
