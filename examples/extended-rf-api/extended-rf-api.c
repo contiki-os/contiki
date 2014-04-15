@@ -334,23 +334,23 @@ test_pan_id(void)
 
   printf("PAN ID is: ");
   if(get_param(RADIO_PARAM_PAN_ID, &value) == RADIO_RESULT_OK) {
-    printf("0x%02x%02x\n", value >> 8, value & 0xFF);
+    printf("0x%02x%02x\n", (value >> 8) & 0xFF, value & 0xFF);
   }
 
-  new_val = value >> 8;
+  new_val = (value >> 8) & 0xFF;
   new_val |= (value & 0xFF) << 8;
-  printf("Switch to: 0x%02x%02x, Now: ", new_val >> 8, new_val & 0xFF);
+  printf("Switch to: 0x%02x%02x, Now: ", (new_val >> 8) & 0xFF, new_val & 0xFF);
   set_param(RADIO_PARAM_PAN_ID, new_val);
   if(get_param(RADIO_PARAM_PAN_ID, &value) == RADIO_RESULT_OK) {
-    printf("0x%02x%02x\n", value >> 8, value & 0xFF);
+    printf("0x%02x%02x\n", (value >> 8) & 0xFF, value & 0xFF);
   }
 
-  new_val = value >> 8;
+  new_val = (value >> 8) & 0xFF;
   new_val |= (value & 0xFF) << 8;
-  printf("Switch to: 0x%02x%02x, Now: ", new_val >> 8, new_val & 0xFF);
+  printf("Switch to: 0x%02x%02x, Now: ", (new_val >> 8) & 0xFF, new_val & 0xFF);
   set_param(RADIO_PARAM_PAN_ID, new_val);
   if(get_param(RADIO_PARAM_PAN_ID, &value) == RADIO_RESULT_OK) {
-    printf("0x%02x%02x\n", value >> 8, value & 0xFF);
+    printf("0x%02x%02x\n", (value >> 8) & 0xFF, value & 0xFF);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -364,23 +364,23 @@ test_16bit_addr(void)
 
   printf("16-bit Address is: ");
   if(get_param(RADIO_PARAM_16BIT_ADDR, &value) == RADIO_RESULT_OK) {
-    printf("0x%02x%02x\n", value >> 8, value & 0xFF);
+    printf("0x%02x%02x\n", (value >> 8) & 0xFF, value & 0xFF);
   }
 
-  new_val = value >> 8;
+  new_val = (value >> 8) & 0xFF;
   new_val |= (value & 0xFF) << 8;
-  printf("Switch to: 0x%02x%02x, Now: ", new_val >> 8, new_val & 0xFF);
+  printf("Switch to: 0x%02x%02x, Now: ", (new_val >> 8) & 0xFF, new_val & 0xFF);
   set_param(RADIO_PARAM_16BIT_ADDR, new_val);
   if(get_param(RADIO_PARAM_16BIT_ADDR, &value) == RADIO_RESULT_OK) {
-    printf("0x%02x%02x\n", value >> 8, value & 0xFF);
+    printf("0x%02x%02x\n", (value >> 8) & 0xFF, value & 0xFF);
   }
 
-  new_val = value >> 8;
+  new_val = (value >> 8) & 0xFF;
   new_val |= (value & 0xFF) << 8;
-  printf("Switch to: 0x%02x%02x, Now: ", new_val >> 8, new_val & 0xFF);
+  printf("Switch to: 0x%02x%02x, Now: ", (new_val >> 8) & 0xFF, new_val & 0xFF);
   set_param(RADIO_PARAM_16BIT_ADDR, new_val);
   if(get_param(RADIO_PARAM_16BIT_ADDR, &value) == RADIO_RESULT_OK) {
-    printf("0x%02x%02x\n", value >> 8, value & 0xFF);
+    printf("0x%02x%02x\n", (value >> 8) & 0xFF, value & 0xFF);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -434,12 +434,12 @@ print_rf_values(void)
 
   printf("PAN ID: ");
   if(get_param(RADIO_PARAM_PAN_ID, &value) == RADIO_RESULT_OK) {
-    printf("0x%02x%02x\n", value >> 8, value & 0xFF);
+    printf("0x%02x%02x\n", (value >> 8) & 0xFF, value & 0xFF);
   }
 
   printf("16-bit Address: ");
   if(get_param(RADIO_PARAM_16BIT_ADDR, &value) == RADIO_RESULT_OK) {
-    printf("0x%02x%02x\n", value >> 8, value & 0xFF);
+    printf("0x%02x%02x\n", (value >> 8) & 0xFF, value & 0xFF);
   }
 
   printf("64-bit Address: ");
