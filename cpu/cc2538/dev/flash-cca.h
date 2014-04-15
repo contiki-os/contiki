@@ -58,6 +58,7 @@
 #define FLASH_CCA_BOOTLDR_CFG_ACTIVE_HIGH       0x08000000 /**< Selected pin on pad A active high */
 #define FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_M      0x07000000 /**< Selected pin on pad A mask */
 #define FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S      24         /**< Selected pin on pad A shift */
+#define FLASH_CCA_BOOTLDR_CFG_PORT_A_LEVEL_S    27         /**< Pin level shift */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name Image valid definitions
