@@ -30,7 +30,6 @@
  *
  */
 
-
 #include "lib/random.h"
 #include "sys/clock.h"
 
