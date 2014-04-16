@@ -185,6 +185,9 @@ check_for_tcp_syn(void)
 static void
 packet_input(void)
 {
+#if UIP_CONF_NETFILTER_ENABLE
+  uip_netfilter_input();
+#endif /* UIP_CONF_NETFILTER_ENABLE */
 #if UIP_CONF_IP_FORWARD
   if(uip_len > 0) {
     tcpip_is_forwarding = 1;
