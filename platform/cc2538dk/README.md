@@ -244,6 +244,8 @@ If you want to upload the compiled firmware to a node via the serial boot loader
 
 For the `cc2538-demo`, the comments at the top of `cc2538-demo.c` describe in detail what the example does.
 
+To generate an assembly listing of the compiled firmware, run `make cc2538-demo.lst`. This may be useful for debugging or optimizing your application code. To intersperse the C source code within the assembly listing, you must instruct the compiler to include debugging information by adding `CFLAGS += -g` to the project Makefile and rebuild by running `make clean cc2538-demo.lst`.
+
 Node IEEE/RIME/IPv6 Addresses
 -----------------------------
 
