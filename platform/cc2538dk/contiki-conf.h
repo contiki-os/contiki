@@ -49,8 +49,8 @@ typedef uint32_t rtimer_clock_t;
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR	1 /**<Enable the boot loader backdoor */
 #endif
 
-#ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PIN
-#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PIN   3 /**< Pin PA_3 (Select button) activates the boot loader */
+#ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 3 /**< Pin PA_3 (Select button) activates the boot loader */
 #endif
 
 #ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_LEVEL
