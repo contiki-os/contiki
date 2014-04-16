@@ -49,12 +49,12 @@
 
 #include <string.h>
 /** \brief Nameserver record */
-typedef struct uip_namserver_record {
-  struct uip_namserver_record *next;
+typedef struct uip_nameserver_record {
+  struct uip_nameserver_record *next;
   uip_ipaddr_t ip;
   uint32_t added;
   uint32_t lifetime;
-} uip_namserver_record;
+} uip_nameserver_record;
 
 /** \brief Initialization flag */
 static uint8_t initialized = 0;
@@ -63,66 +63,68 @@ static uint8_t initialized = 0;
  * @{
  */
 LIST(dns);
-MEMB(dnsmemb, uip_namserver_record, UIP_NAMESERVER_POOL_SIZE);
+MEMB(dnsmemb, uip_nameserver_record, UIP_NAMESERVER_POOL_SIZE);
 /** @} */
 
 /** \brief Expiration time in seconds */
 #define DNS_EXPIRATION(r) \
-	(((UIP_NAMESERVER_INFINITE_LIFETIME - r->added) <= r->lifetime) ? \
-			UIP_NAMESERVER_INFINITE_LIFETIME : r->added + r->lifetime)
+  (((UIP_NAMESERVER_INFINITE_LIFETIME - r->added) <= r->lifetime) ? \
+   UIP_NAMESERVER_INFINITE_LIFETIME : r->added + r->lifetime)
 /*----------------------------------------------------------------------------*/
 /**
  * Initialize the module variables
  */
-static void inline
+static CC_INLINE void
 init(void)
 {
-	list_init(dns);
-	memb_init(&dnsmemb);
-	initialized = 1;
+  list_init(dns);
+  memb_init(&dnsmemb);
+  initialized = 1;
 }
 /*----------------------------------------------------------------------------*/
 void
 uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime)
 {
-	if(initialized == 0) {
-		init();
-	}
+  register uip_nameserver_record *e;
 
-	register uip_namserver_record *e;
-	for(e = list_head(dns); e != NULL; e = list_item_next(e)) {
-		if(uip_ipaddr_cmp(&e->ip, nameserver)) {
-			break;
-		}
-	}
-	/* RFC6106: In case there's no more space, the new servers should replace
-	 *          the the eldest ones */
-	if(e == NULL) {
-		if((e = memb_alloc(&dnsmemb)) != NULL) {
-			list_add(dns, e);
-		} else {
-			uip_namserver_record *p;
-			for(e = list_head(dns), p = list_head(dns); p != NULL;
-					p = list_item_next(p)) {
-				if(DNS_EXPIRATION(p) < DNS_EXPIRATION(e)) {
-					e = p;
-				}
-			}
-		}
-	}
+  if(initialized == 0) {
+    init();
+  }
 
-	/* RFC6106: In case the entry is existing the expiration time must be
-	 *          updated. Otherwise, new entries are added. */
-	if(e != NULL) {
-		if(lifetime == 0) {
-			memb_free(&dnsmemb, e);
-			list_remove(dns, e);
-		} else {
-			e->added = clock_seconds();
-			e->lifetime = lifetime;
-			uip_ipaddr_copy(&e->ip, nameserver);
-		}
-	}
+  for(e = list_head(dns); e != NULL; e = list_item_next(e)) {
+    if(uip_ipaddr_cmp(&e->ip, nameserver)) {
+      break;
+      /* RFC6106: In case there's no more space, the new servers should replace
+       *          the the eldest ones */
+    }
+  }
+  
+  if(e == NULL) {
+    if((e = memb_alloc(&dnsmemb)) != NULL) {
+      list_add(dns, e);
+    } else {
+      uip_nameserver_record *p;
+      for(e = list_head(dns), p = list_head(dns); p != NULL;
+          p = list_item_next(p)) {
+        if(DNS_EXPIRATION(p) < DNS_EXPIRATION(e)) {
+          e = p;
+        }
+      }
+    }
+  }
+
+  /* RFC6106: In case the entry is existing the expiration time must be
+   *          updated. Otherwise, new entries are added. */
+  if(e != NULL) {
+    if(lifetime == 0) {
+      memb_free(&dnsmemb, e);
+      list_remove(dns, e);
+    } else {
+      e->added = clock_seconds();
+      e->lifetime = lifetime;
+      uip_ipaddr_copy(&e->ip, nameserver);
+    }
+  }
 }
 /*----------------------------------------------------------------------------*/
 /**
@@ -131,66 +133,65 @@ uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime)
 static void
 purge(void)
 {
-	register uip_namserver_record *e = NULL;
-	uint32_t time = clock_seconds();
-	for(e = list_head(dns); e != NULL; e = list_item_next(e)) {
-		if(DNS_EXPIRATION(e) < time) {
-			list_remove(dns, e);
-			memb_free(&dnsmemb, e);
-			e = list_head(dns);
-		}
-	}
+  register uip_nameserver_record *e = NULL;
+  uint32_t time = clock_seconds();
+  for(e = list_head(dns); e != NULL; e = list_item_next(e)) {
+    if(DNS_EXPIRATION(e) < time) {
+      list_remove(dns, e);
+      memb_free(&dnsmemb, e);
+      e = list_head(dns);
+    }
+  }
 }
 /*----------------------------------------------------------------------------*/
 uip_ipaddr_t *
 uip_nameserver_get(uint8_t num)
 {
-	uint8_t i;
-	uip_namserver_record *e = NULL;
+  uint8_t i;
+  uip_nameserver_record *e = NULL;
 
-	if(initialized == 0) {
-		return NULL;
-	}
+  if(initialized == 0) {
+    return NULL;
+  }
+  purge();
+  for(i = 1, e = list_head(dns); e != NULL && i <= num;
+      i++, e = list_item_next(e)) {
+  }
 
-	purge();
-	for(i = 1, e = list_head(dns); e != NULL && i <= num;
-			i++, e = list_item_next(e));
-
-	if(e != NULL) {
-		return &e->ip;
-	}
-	return NULL;
+  if(e != NULL) {
+    return &e->ip;
+  }
+  return NULL;
 }
 /*----------------------------------------------------------------------------*/
 uint32_t
 uip_nameserver_next_expiration(void)
 {
-	register uip_namserver_record *e = NULL;
-	uint32_t exp = UIP_NAMESERVER_INFINITE_LIFETIME;
-	uint32_t t;
+  register uip_nameserver_record *e = NULL;
+  uint32_t exp = UIP_NAMESERVER_INFINITE_LIFETIME;
+  uint32_t t;
 
-	if(initialized == 0 || list_length(dns) == 0) {
-		return 0;
-	}
+  if(initialized == 0 || list_length(dns) == 0) {
+    return 0;
+  }
+  purge();
+  for(e = list_head(dns); e != NULL; e = list_item_next(e)) {
+    t = DNS_EXPIRATION(e);
+    if(t < exp) {
+      exp = t;
+    }
+  }
 
-	purge();
-	for(e = list_head(dns); e != NULL; e = list_item_next(e)) {
-		t = DNS_EXPIRATION(e);
-		if(t < exp) {
-			exp = t;
-		}
-	}
-
-	return exp;
+  return exp;
 }
 /*----------------------------------------------------------------------------*/
 uint16_t
 uip_nameserver_count(void)
 {
-	if(initialized == 0) {
-		return 0;
-	}
-	return list_length(dns);
+  if(initialized == 0) {
+    return 0;
+  }
+  return list_length(dns);
 }
 /*----------------------------------------------------------------------------*/
 /** @} */
