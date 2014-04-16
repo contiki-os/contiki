@@ -49,7 +49,11 @@
  * @{
  */
 /** \brief Number of Nameservers to keep */
-#define UIP_NAMESERVER_POOL_SIZE 2
+#ifndef UIP_CONF_NAMESERVER_POOL_SIZE
+#define UIP_NAMESERVER_POOL_SIZE 1
+#else /* UIP_CONF_NAMESERVER_POOL_SIZE */
+#define UIP_NAMESERVER_POOL_SIZE UIP_CONF_NAMESERVER_POOL_SIZE
+#endif /* UIP_CONF_NAMESERVER_POOL_SIZE */
 /** \brief Infinite Lifetime indicator */
 #define UIP_NAMESERVER_INFINITE_LIFETIME 0xFFFFFFFF
 /** @} */
@@ -77,7 +81,7 @@ uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime);
  * \brief Get a Nameserver ip address given in RA
  *
  * \param num   The number of the nameserver to obtain, starting at 0 and going
- *              up to the pool size. (\sa UIP_ND6_RDNSS_POOL_SIZE)
+ *              up to the pool size.
  */
 uip_ipaddr_t *
 uip_nameserver_get(uint8_t num);
