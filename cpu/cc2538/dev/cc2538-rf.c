@@ -106,7 +106,7 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 #define flush()       usb_serial_flush()
 #else
 #include "dev/uart.h"
-#define write_byte(b) uart_write_byte(b)
+#define write_byte(b) uart_write_byte(CC2538_RF_CONF_SNIFFER_UART, b)
 #define flush()
 #endif
 
