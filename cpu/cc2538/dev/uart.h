@@ -47,42 +47,17 @@
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
+/** \name UART instance count
+ * @{
+ */
+#define UART_INSTANCE_COUNT   2
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name UART base addresses
  * @{
  */
 #define UART_0_BASE           0x4000C000
 #define UART_1_BASE           0x4000D000
-
-/* Default to UART 0 unless the configuration tells us otherwise */
-#ifdef UART_CONF_BASE
-#define UART_BASE             UART_CONF_BASE
-#else
-#define UART_BASE             UART_0_BASE
-#endif
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
- * \name Baud rate defines
- *
- * Used in uart_init() to set the values of UART_IBRD and UART_FBRD in order to
- * achieve some standard baud rates.
- * @{
- */
-#define UART_CLOCK_RATE       16000000 /* 16 MHz */
-#define UART_CTL_HSE_VALUE    0
-#define UART_CTL_VALUE        ( UART_CTL_RXE | UART_CTL_TXE | (UART_CTL_HSE_VALUE << 5) )
-
-/* DIV_ROUND() divides integers while avoiding a rounding error: */
-#define DIV_ROUND(num, denom) ( ((num) + (denom) / 2) / (denom) )
-
-#define BAUD2BRD(baud)        DIV_ROUND(UART_CLOCK_RATE << (UART_CTL_HSE_VALUE + 2), (baud))
-
-#define uart_set_baudrate(baud) do {                       \
-  REG(UART_BASE | UART_IBRD) = BAUD2BRD(baud) >> 6;        \
-  REG(UART_BASE | UART_FBRD) = BAUD2BRD(baud) & 0x3f;      \
-  REG(UART_BASE | UART_LCRH) = REG(UART_BASE | UART_LCRH); \
-} while(0)
-
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART Register Offsets
@@ -356,18 +331,22 @@
  */
 
 /** \brief Initialises the UART controller, configures I/O control
- * and interrupts */
-void uart_init(void);
+ * and interrupts
+ * \param uart The UART instance to use (0 to \c UART_INSTANCE_COUNT - 1)
+ */
+void uart_init(uint8_t uart);
 
 /** \brief Sends a single character down the UART
+ * \param uart The UART instance to use (0 to \c UART_INSTANCE_COUNT - 1)
  * \param b The character to transmit
  */
-void uart_write_byte(uint8_t b);
+void uart_write_byte(uint8_t uart, uint8_t b);
 
 /** \brief Assigns a callback to be called when the UART receives a byte
+ * \param uart The UART instance to use (0 to \c UART_INSTANCE_COUNT - 1)
  * \param input A pointer to the function
  */
-void uart_set_input(int (* input)(unsigned char c));
+void uart_set_input(uint8_t uart, int (* input)(unsigned char c));
 
 /** @} */
 
