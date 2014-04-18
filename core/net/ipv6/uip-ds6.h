@@ -132,10 +132,10 @@
 
 /** \brief General DS6 definitions */
 /** Period for uip-ds6 periodic task*/
-#ifndef UIP_CONF_DS6_PERIOD
+#ifndef UIP_DS6_CONF_PERIOD
 #define UIP_DS6_PERIOD   (CLOCK_SECOND/10)
 #else
-#define UIP_DS6_PERIOD UIP_CONF_DS6_PERIOD
+#define UIP_DS6_PERIOD UIP_DS6_CONF_PERIOD
 #endif
 
 #define FOUND 0
