@@ -1,12 +1,17 @@
-all:  node sink 
-APPS=servreg-hack
-CONTIKI=../../..
+all: sink node
+
+ifndef TARGET
+TARGET=sky
+endif
+
+CONTIKI = ../..
 
 WITH_UIP6=1
+WITH_FEATURECAST=1
 UIP_CONF_IPV6=1
-PROJECT_SOURCEFILES += labels.c
-CFLAGS+= -DUIP_CONF_IPV6_RPL
-#CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+##PROJECT_SOURCEFILES += labels.c
+CFLAGS+= -DUIP_CONF_IPV6_RPL -DWITH_FEATURECAST
 
 
 include $(CONTIKI)/Makefile.include
+

@@ -1,4 +1,3 @@
-
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
@@ -12,7 +11,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "net/rpl/labels.h" 
+#include "net/featurecast/featurecast.h" 
 #define DEBUG DEBUG_PRINT
 #include "net/uip-debug.h"
 
@@ -24,15 +23,6 @@ uip_ipaddr_t ipaddr;
 struct uip_udp_conn* udp_conn;
 PROCESS(rpl_sink_process, "RPL sink process");
 AUTOSTART_PROCESSES(&rpl_sink_process);
-
-/*static void udp_handler(void){
-  routing_entry_t* entry;
-
-  if(uip_newdata()) {
-    entry = (routing_entry_t*) uip_appdata;
-    printf("Labels received '%u'\n", (unsigned int) entry->labels);
-  }
-}*/
 
 
 /*---------------------------------------------------------------------------*/

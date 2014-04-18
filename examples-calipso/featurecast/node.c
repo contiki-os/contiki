@@ -11,7 +11,7 @@
 #define DEBUG DEBUG_PRINT
 #include "net/uip-debug.h"
 
-#include "net/rpl/labels.h"
+#include "net/featurecast/featurecast.h"
 #include "node-id.h"
 
 

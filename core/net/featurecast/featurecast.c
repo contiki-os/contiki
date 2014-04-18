@@ -1,11 +1,11 @@
 #include "featurecast.h"
 #define DEBUG DEBUG_NONE
-#include "net/ip/uip-debug.h"
-#include "net/ipv6/uip-ds6.h"
-#include "net/ip/uip.h"
-#include "net/ipv6/uip-nd6.h"
-#include "net/ipv6/uip-ds6.h"
-#include "net/ipv6/uip-icmp6.h"
+#include "net/uip-debug.h"
+#include "net/uip-ds6.h"
+#include "net/uip.h"
+#include "net/uip-nd6.h"
+#include "net/uip-ds6.h"
+#include "net/uip-icmp6.h"
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_PAYLOAD ((label_packet_t *)&uip_buf[uip_l2_l3_icmp_hdr_len]) 

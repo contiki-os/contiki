@@ -78,6 +78,10 @@
 #if WITH_IPSEC
 #include "ipsec.h"
 #endif /* WITH_IPSEC */
+#if WITH_FEATURECAST
+#include "net/featurecast/featurecast.h"
+#endif /* WITH_FEATURECAST */
+
 
 #include <string.h>
 
@@ -949,6 +953,12 @@ uip_process(uint8_t flag)
   if(flag == UIP_UDP_SEND_CONN) {
     goto udp_send;
   }
+#if WITH_FEATURECAST
+  if(flag == FEATURECAST_SEND) {
+    goto featurecast_send;
+  }
+#endif /* WITH_FEATURECAST */
+
 #endif /* UIP_UDP */
   uip_sappdata = uip_appdata = &uip_buf[UIP_IPTCPH_LEN + UIP_LLH_LEN];
    
@@ -1186,6 +1196,9 @@ uip_process(uint8_t flag)
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
      !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr)) {
     if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) &&
+#if WITH_FEATURECAST
+       !is_featurecast_addr(&UIP_IP_BUF->destipaddr) &&
+#endif /* WITH_FEATURECAST */
        !uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) &&
        !uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) &&
        !uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr) &&
@@ -1227,6 +1240,14 @@ uip_process(uint8_t flag)
                                ICMP6_DST_UNREACH_NOTNEIGHBOR, 0);
         goto send;
       }
+#if WITH_FEATURECAST
+      if(is_featurecast_addr(&UIP_IP_BUF->destipaddr)){
+        printf("Found featurecast data packet!\n");
+        forward_label_packet();
+      } //maybe need else{ ?
+#endif /* WITH_FEATURECAST */
+
+
       PRINTF("Dropping packet, not for me and link local or multicast\n");
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
@@ -1595,6 +1616,11 @@ uip_process(uint8_t flag)
       UIP_STAT(++uip_stat.icmp.recv);
       uip_len = 0;
       break;
+#if WITH_FEATURECAST
+    case ICMP6_FEATURECAST:
+        featurecast_icmp_input();
+      break;
+#endif /* WITH_FEATURECAST */
     default:
       PRINTF("Unknown icmp6 message type %d\n", UIP_ICMP_BUF->type);
       UIP_STAT(++uip_stat.icmp.drop);
@@ -1730,6 +1756,58 @@ uip_process(uint8_t flag)
   UIP_STAT(++uip_stat.udp.sent);
   goto ip_send_nolen;
 #endif /* UIP_UDP */
+
+
+
+#if WITH_FEATURECAST
+featurecast_send:
+
+  printf("In featurecast_send\n");
+
+  if(uip_slen == 0) {
+    printf("featurecast_send: 0 len -> droping\n");
+    goto drop;
+  }
+  uip_len = uip_slen + UIP_IPUDPH_LEN;
+
+  /* For IPv6, the IP length field does not include the IPv6 IP header
+     length. */
+  UIP_IP_BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
+  UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
+
+  UIP_IP_BUF->ttl = 255;
+  UIP_IP_BUF->proto = UIP_PROTO_UDP;
+
+  UIP_UDP_BUF->udplen = UIP_HTONS(uip_slen + UIP_UDPH_LEN);
+  UIP_UDP_BUF->udpchksum = 0;
+
+  UIP_UDP_BUF->srcport  = featurecast_conn.rport;
+  UIP_UDP_BUF->destport = featurecast_conn.lport;
+
+  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &featurecast_conn.src);
+  uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
+
+  uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPTCPH_LEN];
+
+#if UIP_CONF_IPV6_RPL
+  rpl_insert_header();
+#endif /* UIP_CONF_IPV6_RPL */
+
+#if UIP_UDP_CHECKSUMS
+  /* Calculate UDP checksum. */
+  UIP_UDP_BUF->udpchksum = ~(uip_udpchksum());
+  if(UIP_UDP_BUF->udpchksum == 0) {
+    UIP_UDP_BUF->udpchksum = 0xffff;
+  }
+#endif /* UIP_UDP_CHECKSUMS */
+  UIP_STAT(++uip_stat.udp.sent);
+  printf("featurecast_send:sending nolen\n");
+  goto ip_send_nolen;
+
+#endif /* WITH_FEATURECAST */
+
+
+
 
 #if UIP_TCP
   /* TCP input processing. */
