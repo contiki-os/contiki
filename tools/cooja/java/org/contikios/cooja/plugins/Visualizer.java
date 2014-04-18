@@ -87,6 +87,7 @@ import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.ToolTipManager;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
@@ -319,6 +320,10 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     canvas = new JPanel() {
       private static final long serialVersionUID = 1L;
 
+      {
+        ToolTipManager.sharedInstance().registerComponent(this);
+      }
+
       @Override
       public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -338,6 +343,35 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         }
         selection.drawSelection(g);
       }
+
+      @Override
+      public String getToolTipText(MouseEvent event) {
+        Mote[] motes = findMotesAtPosition(event.getX(), event.getY());
+        if (motes == null) {
+          return null;
+        }
+        File file = motes[0].getType().getContikiSourceFile();
+        if (file == null) {
+          file = motes[0].getType().getContikiFirmwareFile();
+        }
+        String fileName;
+        if (file == null) {
+          fileName = "<none>";
+        } else {
+          fileName = file.getName();
+        }
+        StringBuilder sb = new StringBuilder()
+                .append("<html><table cellspacing=\"0\" cellpadding=\"1\">")
+                .append("<tr><td>Type:</td><td>")
+                .append(motes[0].getType().getIdentifier())
+                .append("</td></tr>")
+                .append("<tr><td>Runs:</td><td>")
+                .append(fileName)
+                .append("</td></tr>")
+                .append("</table></html>");
+        return sb.toString();
+      }
+
     };
     canvas.setBackground(Color.WHITE);
     viewportTransform = new AffineTransform();
