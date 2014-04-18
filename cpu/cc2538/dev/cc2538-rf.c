@@ -150,6 +150,10 @@ static const output_config_t output_power[] = {
 };
 
 #define OUTPUT_CONFIG_COUNT (sizeof(output_power) / sizeof(output_config_t))
+
+/* Max and Min Output Power in dBm */
+#define OUTPUT_POWER_MIN    (output_power[OUTPUT_CONFIG_COUNT - 1].power)
+#define OUTPUT_POWER_MAX    (output_power[0].power)
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2538_rf_process, "cc2538 RF driver");
 /*---------------------------------------------------------------------------*/
@@ -280,7 +284,7 @@ get_tx_power(void)
       return output_power[i].power;
     }
   }
-  return CC2538_RF_TX_POWER_MIN;
+  return OUTPUT_POWER_MIN;
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -797,10 +801,10 @@ get_value(radio_param_t param, radio_value_t *value)
     *value = CC2538_RF_CHANNEL_MAX;
     return RADIO_RESULT_OK;
   case RADIO_CONST_TXPOWER_MIN:
-    *value = CC2538_RF_TX_POWER_MIN;
+    *value = OUTPUT_POWER_MIN;
     return RADIO_RESULT_OK;
   case RADIO_CONST_TXPOWER_MAX:
-    *value = CC2538_RF_TX_POWER_MAX;
+    *value = OUTPUT_POWER_MAX;
     return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
@@ -847,7 +851,7 @@ set_value(radio_param_t param, radio_value_t value)
 
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
-    if(value < CC2538_RF_TX_POWER_MIN || value > CC2538_RF_TX_POWER_MAX) {
+    if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
