@@ -67,5 +67,5 @@ AR = ar65
 
 ASFLAGS = -t $(TARGET)
 CFLAGS += -t $(TARGET) -Or -W -unused-param
-LDFLAGS = $(STARTADDR_FLAG) -t $(TARGET) -m contiki-$(TARGET).map -D __STACKSIZE__=0x200
+LDFLAGS = -t $(TARGET) -m contiki-$(TARGET).map -D __STACKSIZE__=0x200
 AROPTS  = a

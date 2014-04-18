@@ -74,10 +74,53 @@
 static uip_ipaddr_t tmp_ipaddr;
 
 LIST(echo_reply_callback_list);
+/*---------------------------------------------------------------------------*/
+/* List of input handlers */
+LIST(input_handler_list);
+/*---------------------------------------------------------------------------*/
+static uip_icmp6_input_handler_t *
+input_handler_lookup(uint8_t type, uint8_t icode)
+{
+  uip_icmp6_input_handler_t *handler = NULL;
 
+  for(handler = list_head(input_handler_list);
+      handler != NULL;
+      handler = list_item_next(handler)) {
+    if(handler->type == type &&
+       (handler->icode == icode ||
+        handler->icode == UIP_ICMP6_HANDLER_CODE_ANY)) {
+      return handler;
+    }
+  }
+
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+uip_icmp6_input(uint8_t type, uint8_t icode)
+{
+  uip_icmp6_input_handler_t *handler = input_handler_lookup(type, icode);
+
+  if(handler == NULL) {
+    return UIP_ICMP6_INPUT_ERROR;
+  }
+
+  if(handler->handler == NULL) {
+    return UIP_ICMP6_INPUT_ERROR;
+  }
+
+  handler->handler();
+  return UIP_ICMP6_INPUT_SUCCESS;
+}
 /*---------------------------------------------------------------------------*/
 void
-uip_icmp6_echo_request_input(void)
+uip_icmp6_register_input_handler(uip_icmp6_input_handler_t *handler)
+{
+  list_add(input_handler_list, handler);
+}
+/*---------------------------------------------------------------------------*/
+static void
+echo_request_input(void)
 {
 #if UIP_CONF_IPV6_RPL
   uint8_t temp_ext_len;
@@ -275,8 +318,8 @@ uip_icmp6_send(const uip_ipaddr_t *dest, int type, int code, int payload_len)
   tcpip_ipv6_output();
 }
 /*---------------------------------------------------------------------------*/
-void
-uip_icmp6_echo_reply_input(void)
+static void
+echo_reply_input(void)
 {
   int ttl;
   uip_ipaddr_t sender;
@@ -343,6 +386,8 @@ uip_icmp6_echo_reply_input(void)
       }
     }
   }
+
+  uip_len = 0;
   return;
 }
 /*---------------------------------------------------------------------------*/
@@ -360,6 +405,19 @@ void
 uip_icmp6_echo_reply_callback_rm(struct uip_icmp6_echo_reply_notification *n)
 {
   list_remove(echo_reply_callback_list, n);
+}
+/*---------------------------------------------------------------------------*/
+UIP_ICMP6_HANDLER(echo_request_handler, ICMP6_ECHO_REQUEST,
+                  UIP_ICMP6_HANDLER_CODE_ANY, echo_request_input);
+UIP_ICMP6_HANDLER(echo_reply_handler, ICMP6_ECHO_REPLY,
+                  UIP_ICMP6_HANDLER_CODE_ANY, echo_reply_input);
+/*---------------------------------------------------------------------------*/
+void
+uip_icmp6_init()
+{
+  /* Register Echo Request and Reply handlers */
+  uip_icmp6_register_input_handler(&echo_request_handler);
+  uip_icmp6_register_input_handler(&echo_reply_handler);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

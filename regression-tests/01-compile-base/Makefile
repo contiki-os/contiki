@@ -27,6 +27,7 @@ sky-ip/sky \
 sky-shell/sky \
 sky-shell-exec/sky \
 sky-shell-webserver/sky \
+tcp-socket/minimal-net \
 telnet-server/minimal-net \
 webserver/minimal-net \
 webserver-ipv6/exp5438 \
@@ -34,6 +35,7 @@ webserver-ipv6/eval-adf7xxxmb4z \
 wget/minimal-net \
 z1/z1 \
 settings-example/avr-raven \
+ipv6/multicast/sky \
 
 TOOLS=
 

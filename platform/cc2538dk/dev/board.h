@@ -110,22 +110,21 @@
  * - CTS: PB0 (Can only be used with UART1)
  * - RTS: PD3 (Can only be used with UART1)
  *
- * We configure the port to use UART0. To use UART1, change UART_CONF_BASE
+ * We configure the port to use UART0. To use UART1, replace UART0_* with
+ * UART1_* below.
  * @{
  */
-#define UART_CONF_BASE           UART_0_BASE
+#define UART0_RX_PORT            GPIO_A_NUM
+#define UART0_RX_PIN             0
 
-#define UART_RX_PORT             GPIO_A_NUM
-#define UART_RX_PIN              0
+#define UART0_TX_PORT            GPIO_A_NUM
+#define UART0_TX_PIN             1
 
-#define UART_TX_PORT             GPIO_A_NUM
-#define UART_TX_PIN              1
+#define UART1_CTS_PORT           GPIO_B_NUM
+#define UART1_CTS_PIN            0
 
-#define UART_CTS_PORT            GPIO_B_NUM
-#define UART_CTS_PIN             0
-
-#define UART_RTS_PORT            GPIO_D_NUM
-#define UART_RTS_PIN             3
+#define UART1_RTS_PORT           GPIO_D_NUM
+#define UART1_RTS_PIN            3
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name SmartRF Button configuration
@@ -168,6 +167,20 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name ADC configuration
+ *
+ * These values configure which CC2538 pins and ADC channels to use for the ADC
+ * inputs.
+ *
+ * ADC inputs can only be on port A.
+ * @{
+ */
+#define ADC_ALS_PWR_PORT         GPIO_A_NUM /**< ALS power GPIO control port */
+#define ADC_ALS_PWR_PIN          7 /**< ALS power GPIO control pin */
+#define ADC_ALS_OUT_PIN          6 /**< ALS output ADC input pin on port A */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name SPI configuration
  *
  * These values configure which CC2538 pins to use for the SPI lines.
@@ -179,8 +192,6 @@
 #define SPI_MOSI_PIN             4
 #define SPI_MISO_PORT            GPIO_A_NUM
 #define SPI_MISO_PIN             5
-#define SPI_SEL_PORT             GPIO_B_NUM
-#define SPI_SEL_PIN              5
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

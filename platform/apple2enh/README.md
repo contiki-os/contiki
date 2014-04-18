@@ -7,8 +7,9 @@ so please consult cpu/6502/README.md for further details.
 
 The following Apple II Ethernet cards are supported:
 
-- Uthernet: Use driver cs8900a.eth  with address $C0x0 (x = 8 + slot number).
-- LANceGS:  Use driver lan91c96.eth with address $C0x0 (x = 8 + slot number).
+- Uthernet:    Use driver cs8900a.eth  with address $C0x0 (x = 8 + slot number).
+- Uthernet II: Use driver w5100.eth    with address $C0x4 (x = 8 + slot number).
+- LANceGS:     Use driver lan91c96.eth with address $C0x0 (x = 8 + slot number).
 
 In most cases it is desirable to use an emulator for the development and testing
 of a Contiki application. AppleWin is especially well suited as it emulates the

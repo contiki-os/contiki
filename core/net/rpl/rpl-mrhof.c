@@ -104,7 +104,7 @@ calculate_path_metric(rpl_parent_t *p)
 }
 
 static void
-reset(rpl_dag_t *sag)
+reset(rpl_dag_t *dag)
 {
   PRINTF("RPL: Reset MRHOF\n");
 }

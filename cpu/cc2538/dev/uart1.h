@@ -44,7 +44,7 @@
 #include "dev/uart.h"
 
 #define BAUD2UBR(x) x
-#define uart1_set_input(f) uart_set_input(f)
+#define uart1_set_input(f) uart_set_input(UART1_CONF_UART, f)
 
 #endif /* UART1_H_ */
 

@@ -44,6 +44,7 @@
 #include "sys/clock.h"
 #include "sys/ctimer.h"
 #include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 
 /*---------------------------------------------------------------------------*/
 /** \brief Is IPv6 address addr the link-local, all-RPL-nodes
@@ -177,8 +178,24 @@
 
 #ifdef  RPL_CONF_MOP
 #define RPL_MOP_DEFAULT                 RPL_CONF_MOP
+#else /* RPL_CONF_MOP */
+#if RPL_CONF_MULTICAST
+#define RPL_MOP_DEFAULT                 RPL_MOP_STORING_MULTICAST
 #else
 #define RPL_MOP_DEFAULT                 RPL_MOP_STORING_NO_MULTICAST
+#endif /* UIP_IPV6_MULTICAST_RPL */
+#endif /* RPL_CONF_MOP */
+
+/* Emit a pre-processor error if the user configured multicast with bad MOP */
+#if RPL_CONF_MULTICAST && (RPL_MOP_DEFAULT != RPL_MOP_STORING_MULTICAST)
+#error "RPL Multicast requires RPL_MOP_DEFAULT==3. Check contiki-conf.h"
+#endif
+
+/* Multicast Route Lifetime as a multiple of the lifetime unit */
+#ifdef RPL_CONF_MCAST_LIFETIME
+#define RPL_MCAST_LIFETIME RPL_CONF_MCAST_LIFETIME
+#else
+#define RPL_MCAST_LIFETIME 3
 #endif
 
 /*
@@ -186,7 +203,7 @@
  * whose integer part can be obtained by dividing the value by 
  * RPL_DAG_MC_ETX_DIVISOR.
  */
-#define RPL_DAG_MC_ETX_DIVISOR		128
+#define RPL_DAG_MC_ETX_DIVISOR		256
 
 /* DIS related */
 #define RPL_DIS_SEND                    1
@@ -272,6 +289,7 @@ void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint8_t lifetime);
 void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
 void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t);
+void rpl_icmp6_register_handlers(void);
 
 /* RPL logic functions. */
 void rpl_join_dag(uip_ipaddr_t *from, rpl_dio_t *dio);
