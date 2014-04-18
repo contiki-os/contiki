@@ -202,8 +202,8 @@ fixup11:ora data		; Lobyte
 	; Calculate and set physical address
 	jsr set_addrphysical
 
-	; Move physical address shadow to $F000-$FFFF
-	ora #>$F000
+	; Move physical address shadow to $E000-$FFFF
+	ora #>$8000
 	tax
 
 	; Read MAC raw 2byte packet size header

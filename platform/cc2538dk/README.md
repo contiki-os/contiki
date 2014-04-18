@@ -28,9 +28,11 @@ In terms of hardware support, the following drivers have been implemented:
     * Random number generator
     * Low Power Modes
     * General-Purpose Timers. NB: GPT0 is in use by the platform code, the remaining GPTs are available for application development.
+    * ADC
   * SmartRF06 EB and BB peripherals
     * LEDs
     * Buttons
+    * ADC sensors (on-chip VDD / 3 and temperature, ambient light sensor)
     * UART connectivity over the XDS100v3 backchannel (EB only)
 
 Requirements
@@ -44,8 +46,8 @@ To start using Contiki, you will need the following:
 Different tasks can be performed under different operating systems. The table below summarises what task can be performed on which OS:
 
                        Windows     Linux     OS-X
-    Building Contiki      Y          Y         N
-    Node Programming      Y          Y         N
+    Building Contiki      Y          Y         Y
+    Node Programming      Y          Y         Y
     Console output
       (UART)              Y          Y         Y
       (USB CDC-ACM)       Y          Y         Y
@@ -56,7 +58,7 @@ Different tasks can be performed under different operating systems. The table be
       (UART)              N          Y         Y
       (USB CDC-ACM)       N          Y         Y
 
-The platform has been developed and tested under Windows XP, Mac OS X 10.7 and Ubuntu 12.04 and 12.10. The matrix above has been populated based on information for those OSs.
+The platform has been developed and tested under Windows XP, Mac OS X 10.9.1 and Ubuntu 12.04 and 12.10. The matrix above has been populated based on information for those OSs.
 
 Install a Toolchain
 -------------------
@@ -193,9 +195,18 @@ On Linux:
 
 Software to Program the Nodes
 -----------------------------
-On Windows, nodes can be programmed with TI's ArmProgConsole or the [SmartRF Flash Programmer][smart-rf-flashprog]. The README should be self-explanatory. With ArmProgConsole, upload the file with a `.bin` extension.
+The CC2538 can be programmed via the jtag interface or via the serial boot loader on the chip.
 
-On Linux, nodes can be programmed with TI's [UniFlash] tool. With UniFlash, use the file with `.elf` extension.
+* On Windows:
+    * Nodes can be programmed with TI's ArmProgConsole or the [SmartRF Flash Programmer 2][smart-rf-flashprog]. The README should be self-explanatory. With ArmProgConsole, upload the file with a `.bin` extension. (jtag + serial)
+    * Nodes can also be programmed via the serial boot loader in the cc2538. In `tools/cc2538-bsl/` you can find `cc2538-bsl.py` this is a python script that can download firmware to your node via a serial connection. If you use this option you just need to make sure you have a working version of python installed. You can read the README in the same directory for more info. (serial)
+
+* On Linux:
+    * Nodes can be programmed with TI's [UniFlash] tool. With UniFlash, use the file with `.elf` extension. (jtag + serial)
+    * Nodes can also be programmed via the serial boot loader in the cc2538. No extra software needs to be installed. (serial)
+
+* On OSX:
+    * The `cc2538-bsl.py` script in `tools/cc2538-bsl/` is the only option. No extra software needs to be installed. (serial)
 
 The file with a `.cc2538dk` extension is a copy of the `.elf` file.
 
@@ -231,7 +242,11 @@ It is recommended to start with the `cc2538-demo` and `timer-test` examples unde
 
 Strictly speaking, to build them you need to run `make TARGET=cc2538dk`. However, the example directories contain a `Makefile.target` which is automatically included and specifies the correct `TARGET=` argument. Thus, for examples under the `cc2538dk` directory, you can simply run `make`.
 
+If you want to upload the compiled firmware to a node via the serial boot loader you need to manually enable the boot loader and then use `make cc2538-demo.upload`. On the SmartRF06 board you enable the boot loader by resetting the board (EM RESET button) while holding the `select` button. (The boot loader backdoor needs to be enabled on the chip for this to work, see README in the `tools/cc2538-bsl` directory for more info)
+
 For the `cc2538-demo`, the comments at the top of `cc2538-demo.c` describe in detail what the example does.
+
+To generate an assembly listing of the compiled firmware, run `make cc2538-demo.lst`. This may be useful for debugging or optimizing your application code. To intersperse the C source code within the assembly listing, you must instruct the compiler to include debugging information by adding `CFLAGS += -g` to the project Makefile and rebuild by running `make clean cc2538-demo.lst`.
 
 Node IEEE/RIME/IPv6 Addresses
 -----------------------------
@@ -243,7 +258,7 @@ To configure the IEEE address source location (Info Page or hard-coded), use the
 * 0: Info Page
 * 1: Hard-coded
 
-If `IEEE_ADDR_CONF_HARDCODED` is defined as 1, the IEEE address will take its value from the `IEEE_ADDR_CONF_ADDRESS` define.
+If `IEEE_ADDR_CONF_HARDCODED` is defined as 1, the IEEE address will take its value from the `IEEE_ADDR_CONF_ADDRESS` define. If `IEEE_ADDR_CONF_HARDCODED` is defined as 0, the IEEE address can come from either the primary or secondary location in the Info Page. To use the secondary address, define `IEEE_ADDR_CONF_USE_SECONDARY_LOCATION` as 1.
 
 Additionally, you can override the IEEE's 2 LSBs, by using the `NODEID` make variable. The value of `NODEID` will become the value of the `IEEE_ADDR_NODE_ID` pre-processor define. If `NODEID` is not defined, `IEEE_ADDR_NODE_ID` will not get defined either. For example:
 
@@ -350,19 +365,33 @@ By default, everything is configured to use the UART (stdio, border router's SLI
 
 You can multiplex things (for instance, SLIP as well as debugging over USB or SLIP over USB but debugging over UART and other combinations).
 
+Selecting UART0 and/or UART1
+----------------------------
+By default, everything is configured to use the UART0 (stdio, border router's SLIP, sniffer's output stream). If you want to change this, these are the relevant lines in contiki-conf.h (0: UART0, 1: UART1):
+
+    #define SERIAL_LINE_CONF_UART       0
+    #define SLIP_ARCH_CONF_UART         0
+    #define CC2538_RF_CONF_SNIFFER_UART 0
+    #define DBG_CONF_UART               0
+    #define UART1_CONF_UART             0
+
+A single UART is available on CC2538DK, so all the configuration values above should be the same (i.e. either all 0 or all 1), but 0 and 1 could be mixed for other CC2538-based platforms supporting 2 UARTs.
+
+The chosen UARTs must have their ports and pins defined in board.h:
+
+    #define UART0_RX_PORT            GPIO_A_NUM
+    #define UART0_RX_PIN             0
+    #define UART0_TX_PORT            GPIO_A_NUM
+    #define UART0_TX_PIN             1
+
+Only the UART ports and pins implemented on the board can be defined.
+
 UART Baud Rate
 --------------
-By default, the CC2538 UART is configured with a baud rate of 115200. It is easy to increase this to 230400 by changing the value of `UART_CONF_BAUD_RATE` in `contiki-conf.h` or `project-conf.h`.
+By default, the CC2538 UART is configured with a baud rate of 115200. It is easy to increase this to 230400 by changing the value of `UART0_CONF_BAUD_RATE` or `UART1_CONF_BAUD_RATE` in `contiki-conf.h` or `project-conf.h`, according to the UART instance used.
 
-    #define UART_CONF_BAUD_RATE 230400
-
-Currently, this configuration directive only supports values 115200, 230400 and 460800. Custom baud rates can also be achieved by following the steps below:
-
-* Configure `UART_CONF_BAUD_RATE` with an unsupported value to prevent it from auto-choosing values for IBRD and FBRD. For instance, in your project-conf.h you can do:
-
-        #define UART_CONF_BAUD_RATE 0
-
-* Provide custom values for `UART_CONF_IBRD` and `UART_CONF_FBRD` according to the guidelines in the CC2538 User Guide.
+    #define UART0_CONF_BAUD_RATE 230400
+    #define UART1_CONF_BAUD_RATE 230400
 
 RF and USB DMA
 --------------
