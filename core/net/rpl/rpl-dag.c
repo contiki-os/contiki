@@ -56,6 +56,12 @@
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
+#if WITH_FEATURECAST
+#include "net/featurecast/featurecast.h"
+#include "net/uip-icmp6.h"
+#define UIP_ICMP_PAYLOAD ((label_packet_t *)&uip_buf[uip_l2_l3_icmp_hdr_len])
+#endif /* WITH_FEATURECAST */
+
 #if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 extern rpl_of_t RPL_OF;
@@ -171,12 +177,40 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
     PRINTF("RPL: rpl_set_preferred_parent ");
     if(p != NULL) {
       PRINT6ADDR(rpl_get_parent_ipaddr(p));
+#if WITH_FEATURECAST
+      label_packet_t* packet;
+      packet = UIP_ICMP_PAYLOAD;
+      packet->type = LABEL_ADV;
+      packet->labels = ipaddr.u16[6];
+      memcpy(&packet->src, &ipaddr, sizeof(packet->src)); 
+      PRINTF("FEATURECAST: sending an advertisement to "); 
+      uip_debug_ipaddr_print(rpl_get_parent_ipaddr(p));
+      PRINTF("\n");
+
+      uip_icmp6_send(rpl_get_parent_ipaddr(p), ICMP6_FEATURECAST, LABEL_ADV, sizeof(*packet));
+#endif /* WITH_FEATURECAST */
+
     } else {
       PRINTF("NULL");
     }
     PRINTF(" used to be ");
     if(dag->preferred_parent != NULL) {
       PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
+#if WITH_FEATURECAST 
+      label_packet_t* packet;
+      packet = UIP_ICMP_PAYLOAD;
+      packet->type = LABEL_DISC;
+      packet->labels = ipaddr.u16[6];
+      memcpy(&packet->src, &ipaddr, sizeof(packet->src));
+      PRINTF("sending disc to ");
+      uip_debug_ipaddr_print(rpl_get_parent_ipaddr(dag->preferred_parent));
+      PRINTF("\n");
+
+      uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent), ICMP6_FEATURECAST, LABEL_DISC, sizeof(*packet));
+#endif /* WITH_FEATURECAST */ 
+
+
+
     } else {
       PRINTF("NULL");
     }

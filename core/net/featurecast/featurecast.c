@@ -285,6 +285,8 @@ int forward_label_packet(){
 				sent = 0;
 				memcpy(&backup, UIP_IP_BUF, sizeof(backup) - UIP_LLH_LEN);
 				ctimer_set(&backoff_timer, CLOCK_SECOND, (void(*)(void *))forward_label_packet, NULL);
+				//need to empty the buffer, or packet is send automatically without consulting routing tables
+				memset(UIP_IP_BUF, '0', sizeof(backup) - UIP_LLH_LEN);
 				return 0;
 			}
 			uip_debug_ipaddr_print(&cur_entry->addr);
@@ -303,6 +305,8 @@ int forward_label_packet(){
 	routing_pos = 0;
 //	if(!forwarded && packet_for_me(packet))
 //		printf("leaf cost %d\n", packet->data);
+	memset(UIP_IP_BUF, '0', sizeof(backup) - UIP_LLH_LEN);
+	printf("zeroing buffer \n");
 	return 0;
 }
 
