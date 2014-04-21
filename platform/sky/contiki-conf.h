@@ -212,7 +212,9 @@
 
 #define UIP_CONF_TCP_SPLIT       0
 
-
+#ifndef AES_128_CONF
+#define AES_128_CONF cc2420_aes_128_driver
+#endif /* AES_128_CONF */
 
 /* include the project config */
 /* PROJECT_CONF_H might be defined in the project Makefile */
