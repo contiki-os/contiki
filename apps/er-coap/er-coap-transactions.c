@@ -41,8 +41,17 @@
 #include "er-coap-transactions.h"
 #include "er-coap-observe.h"
 
-#define DEBUG   DEBUG_NONE
-#include "net/uip-debug.h"
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#define PRINTLLADDR(addr)
+#endif
 
 /*---------------------------------------------------------------------------*/
 MEMB(transactions_memb, coap_transaction_t, COAP_MAX_OPEN_TRANSACTIONS);
@@ -58,9 +67,8 @@ coap_register_as_transaction_handler()
 {
   transaction_handler_process = PROCESS_CURRENT();
 }
-
 coap_transaction_t *
-coap_new_transaction(uint16_t mid, uip_ipaddr_t * addr, uint16_t port)
+coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
 {
   coap_transaction_t *t = memb_alloc(&transactions_memb);
 
@@ -79,7 +87,7 @@ coap_new_transaction(uint16_t mid, uip_ipaddr_t * addr, uint16_t port)
 }
 /*---------------------------------------------------------------------------*/
 void
-coap_send_transaction(coap_transaction_t * t)
+coap_send_transaction(coap_transaction_t *t)
 {
   PRINTF("Sending transaction %u\n", t->mid);
 
@@ -137,7 +145,7 @@ coap_send_transaction(coap_transaction_t * t)
 }
 /*---------------------------------------------------------------------------*/
 void
-coap_clear_transaction(coap_transaction_t * t)
+coap_clear_transaction(coap_transaction_t *t)
 {
   if(t) {
     PRINTF("Freeing transaction %u: %p\n", t->mid, t);
@@ -147,13 +155,12 @@ coap_clear_transaction(coap_transaction_t * t)
     memb_free(&transactions_memb, t);
   }
 }
-
 coap_transaction_t *
 coap_get_transaction_by_mid(uint16_t mid)
 {
   coap_transaction_t *t = NULL;
 
-  for(t = (coap_transaction_t *) list_head(transactions_list); t; t = t->next) {
+  for(t = (coap_transaction_t *)list_head(transactions_list); t; t = t->next) {
     if(t->mid == mid) {
       PRINTF("Found transaction for MID %u: %p\n", t->mid, t);
       return t;
@@ -167,7 +174,7 @@ coap_check_transactions()
 {
   coap_transaction_t *t = NULL;
 
-  for(t = (coap_transaction_t *) list_head(transactions_list); t; t = t->next) {
+  for(t = (coap_transaction_t *)list_head(transactions_list); t; t = t->next) {
     if(etimer_expired(&t->retrans_timer)) {
       ++(t->retrans_counter);
       PRINTF("Retransmitting %u (%u)\n", t->mid, t->retrans_counter);

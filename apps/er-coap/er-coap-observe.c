@@ -40,8 +40,17 @@
 #include <string.h>
 #include "er-coap-observe.h"
 
-#define DEBUG   DEBUG_NONE
-#include "net/uip-debug.h"
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#define PRINTLLADDR(addr)
+#endif
 
 /*---------------------------------------------------------------------------*/
 MEMB(observers_memb, coap_observer_t, COAP_MAX_OBSERVERS);
@@ -50,7 +59,7 @@ LIST(observers_list);
 /*- Internal API ------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 coap_observer_t *
-coap_add_observer(uip_ipaddr_t * addr, uint16_t port, const uint8_t * token,
+coap_add_observer(uip_ipaddr_t *addr, uint16_t port, const uint8_t *token,
                   size_t token_len, const char *uri)
 {
   /* Remove existing observe relationship, if any. */
@@ -77,7 +86,7 @@ coap_add_observer(uip_ipaddr_t * addr, uint16_t port, const uint8_t * token,
 /*- Removal -----------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 void
-coap_remove_observer(coap_observer_t * o)
+coap_remove_observer(coap_observer_t *o)
 {
   PRINTF("Removing observer for /%s [0x%02X%02X]\n", o->url, o->token[0],
          o->token[1]);
@@ -87,12 +96,12 @@ coap_remove_observer(coap_observer_t * o)
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_remove_observer_by_client(uip_ipaddr_t * addr, uint16_t port)
+coap_remove_observer_by_client(uip_ipaddr_t *addr, uint16_t port)
 {
   int removed = 0;
   coap_observer_t *obs = NULL;
 
-  for(obs = (coap_observer_t *) list_head(observers_list); obs;
+  for(obs = (coap_observer_t *)list_head(observers_list); obs;
       obs = obs->next) {
     PRINTF("Remove check client ");
     PRINT6ADDR(addr);
@@ -106,13 +115,13 @@ coap_remove_observer_by_client(uip_ipaddr_t * addr, uint16_t port)
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_remove_observer_by_token(uip_ipaddr_t * addr, uint16_t port,
-                              uint8_t * token, size_t token_len)
+coap_remove_observer_by_token(uip_ipaddr_t *addr, uint16_t port,
+                              uint8_t *token, size_t token_len)
 {
   int removed = 0;
   coap_observer_t *obs = NULL;
 
-  for(obs = (coap_observer_t *) list_head(observers_list); obs;
+  for(obs = (coap_observer_t *)list_head(observers_list); obs;
       obs = obs->next) {
     PRINTF("Remove check Token 0x%02X%02X\n", token[0], token[1]);
     if(uip_ipaddr_cmp(&obs->addr, addr) && obs->port == port
@@ -126,13 +135,13 @@ coap_remove_observer_by_token(uip_ipaddr_t * addr, uint16_t port,
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_remove_observer_by_uri(uip_ipaddr_t * addr, uint16_t port,
+coap_remove_observer_by_uri(uip_ipaddr_t *addr, uint16_t port,
                             const char *uri)
 {
   int removed = 0;
   coap_observer_t *obs = NULL;
 
-  for(obs = (coap_observer_t *) list_head(observers_list); obs;
+  for(obs = (coap_observer_t *)list_head(observers_list); obs;
       obs = obs->next) {
     PRINTF("Remove check URL %p\n", uri);
     if((addr == NULL
@@ -146,12 +155,12 @@ coap_remove_observer_by_uri(uip_ipaddr_t * addr, uint16_t port,
 }
 /*---------------------------------------------------------------------------*/
 int
-coap_remove_observer_by_mid(uip_ipaddr_t * addr, uint16_t port, uint16_t mid)
+coap_remove_observer_by_mid(uip_ipaddr_t *addr, uint16_t port, uint16_t mid)
 {
   int removed = 0;
   coap_observer_t *obs = NULL;
 
-  for(obs = (coap_observer_t *) list_head(observers_list); obs;
+  for(obs = (coap_observer_t *)list_head(observers_list); obs;
       obs = obs->next) {
     PRINTF("Remove check MID %u\n", mid);
     if(uip_ipaddr_cmp(&obs->addr, addr) && obs->port == port
@@ -166,7 +175,7 @@ coap_remove_observer_by_mid(uip_ipaddr_t * addr, uint16_t port, uint16_t mid)
 /*- Notification ------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 void
-coap_notify_observers(resource_t * resource)
+coap_notify_observers(resource_t *resource)
 {
   /* build notification */
   coap_packet_t notification[1]; /* this way the packet can be treated as pointer as usual */
@@ -176,7 +185,7 @@ coap_notify_observers(resource_t * resource)
   PRINTF("Observe: Notification from %s\n", resource->url);
 
   /* iterate over observers */
-  for(obs = (coap_observer_t *) list_head(observers_list); obs;
+  for(obs = (coap_observer_t *)list_head(observers_list); obs;
       obs = obs->next) {
     if(obs->url == resource->url) {     /* using RESOURCE url pointer as handle */
       coap_transaction_t *transaction = NULL;
@@ -184,7 +193,7 @@ coap_notify_observers(resource_t * resource)
       /*TODO implement special transaction for CON, sharing the same buffer to allow for more observers */
 
       if((transaction =
-          coap_new_transaction(coap_get_mid(), &obs->addr, obs->port))) {
+            coap_new_transaction(coap_get_mid(), &obs->addr, obs->port))) {
         PRINTF("           Observer ");
         PRINT6ADDR(&obs->addr);
         PRINTF(":%u\n", obs->port);
@@ -199,8 +208,9 @@ coap_notify_observers(resource_t * resource)
                               transaction->packet + COAP_MAX_HEADER_SIZE,
                               REST_MAX_CHUNK_SIZE, NULL);
 
-        if(notification->code < BAD_REQUEST_4_00)
+        if(notification->code < BAD_REQUEST_4_00) {
           coap_set_header_observe(notification, (obs->obs_counter)++);
+        }
         coap_set_token(notification, obs->token, obs->token_len);
 
         /* TODO use resource-specific COAP_OBSERVE_REFRESH_INTERVAL for CON to check client interest */
@@ -215,10 +225,10 @@ coap_notify_observers(resource_t * resource)
 }
 /*---------------------------------------------------------------------------*/
 void
-coap_observe_handler(resource_t * resource, void *request, void *response)
+coap_observe_handler(resource_t *resource, void *request, void *response)
 {
-  coap_packet_t *const coap_req = (coap_packet_t *) request;
-  coap_packet_t *const coap_res = (coap_packet_t *) response;
+  coap_packet_t *const coap_req = (coap_packet_t *)request;
+  coap_packet_t *const coap_res = (coap_packet_t *)response;
 
   static char content[16];
 
@@ -248,7 +258,8 @@ coap_observe_handler(resource_t * resource, void *request, void *response)
       coap_remove_observer_by_token(&UIP_IP_BUF->srcipaddr,
                                     UIP_UDP_BUF->srcport, coap_req->token,
                                     coap_req->token_len);
-    } /* if(observe) */
+      /* if(observe) */
+    }
   }
 }
 /*---------------------------------------------------------------------------*/

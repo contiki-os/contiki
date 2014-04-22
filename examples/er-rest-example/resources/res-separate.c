@@ -41,16 +41,16 @@
 #include "er-coap-separate.h"
 #include "er-coap-transactions.h"
 
-static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void res_resume_handler(void);
 
 SEPARATE_RESOURCE(res_separate,
-    "title=\"Separate demo\"",
-    res_get_handler,
-    NULL,
-    NULL,
-    NULL,
-    res_resume_handler);
+                  "title=\"Separate demo\"",
+                  res_get_handler,
+                  NULL,
+                  NULL,
+                  NULL,
+                  res_resume_handler);
 
 /* A structure to store the information required for the separate handler */
 typedef struct application_separate_store {
@@ -60,7 +60,6 @@ typedef struct application_separate_store {
 
   /* Add fields for addition information to be stored for finalizing, e.g.: */
   char buffer[16];
-
 } application_separate_store_t;
 
 #define COAP_MAX_OPEN_SEPARATE   2
@@ -69,13 +68,13 @@ static uint8_t separate_active = 0;
 static application_separate_store_t separate_store[COAP_MAX_OPEN_SEPARATE];
 
 static void
-res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   /*
    * Example allows only one open separate response.
    * For multiple, the application must manage the list of stores.
    */
-  if (separate_active>=COAP_MAX_OPEN_SEPARATE) {
+  if(separate_active >= COAP_MAX_OPEN_SEPARATE) {
     coap_separate_reject();
   } else {
     ++separate_active;
@@ -92,13 +91,12 @@ res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
     snprintf(separate_store->buffer, sizeof(separate_store->buffer), "StoredInfo");
   }
 }
-
 static void
 res_resume_handler()
 {
   if(separate_active) {
     coap_transaction_t *transaction = NULL;
-    if( (transaction = coap_new_transaction(separate_store->request_metadata.mid, &separate_store->request_metadata.addr, separate_store->request_metadata.port)) ) {
+    if((transaction = coap_new_transaction(separate_store->request_metadata.mid, &separate_store->request_metadata.addr, separate_store->request_metadata.port))) {
       coap_packet_t response[1]; /* This way the packet can be treated as pointer as usual. */
 
       /* Restore the request information for the response. */
@@ -117,7 +115,7 @@ res_resume_handler()
       coap_send_transaction(transaction);
       /* The engine will clear the transaction (right after send for NON, after acked for CON). */
 
-      //FIXME there could me more!
+      /* FIXME there could me more! */
       separate_active = 0;
     } else {
       /*

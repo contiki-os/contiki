@@ -41,28 +41,28 @@
 #include "er-coap.h"
 #include "er-plugtest.h"
 
-static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 RESOURCE(res_plugtest_longpath,
-    "title=\"Long path resource\"",
-    res_get_handler,
-    NULL,
-    NULL,
-    NULL);
+         "title=\"Long path resource\"",
+         res_get_handler,
+         NULL,
+         NULL,
+         NULL);
 
 static void
-res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  coap_packet_t * const coap_req = (coap_packet_t *) request;
+  coap_packet_t *const coap_req = (coap_packet_t *)request;
 
   PRINTF("/seg1/seg2/seg3 GET ");
   /* Code 2.05 CONTENT is default. */
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
   REST.set_response_payload(
-        response,
-        buffer,
-        snprintf((char *) buffer, MAX_PLUGFEST_PAYLOAD,
-            "Type: %u\nCode: %u\nMID: %u", coap_req->type, coap_req->code, coap_req->mid));
+    response,
+    buffer,
+    snprintf((char *)buffer, MAX_PLUGFEST_PAYLOAD,
+             "Type: %u\nCode: %u\nMID: %u", coap_req->type, coap_req->code, coap_req->mid));
 
-  PRINTF("(%s %u)\n", coap_req->type==COAP_TYPE_CON?"CON":"NON", coap_req->mid);
+  PRINTF("(%s %u)\n", coap_req->type == COAP_TYPE_CON ? "CON" : "NON", coap_req->mid);
 }

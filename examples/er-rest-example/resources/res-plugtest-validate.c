@@ -41,20 +41,19 @@
 #include "er-coap.h"
 #include "er-plugtest.h"
 
-static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void res_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 RESOURCE(res_plugtest_validate,
-    "title=\"Validation test resource\"",
-    res_get_handler,
-    NULL,
-    res_put_handler,
-    NULL);
+         "title=\"Validation test resource\"",
+         res_get_handler,
+         NULL,
+         res_put_handler,
+         NULL);
 
 static uint8_t validate_etag[8] = { 0 };
 static uint8_t validate_etag_len = 1;
 static uint8_t validate_change = 1;
-
 
 static const uint8_t *bytes = NULL;
 static size_t len = 0;
@@ -70,23 +69,21 @@ validate_update_etag()
   validate_change = 0;
 
   PRINTF("### SERVER ACTION ### Changed ETag %u [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n",
-      validate_etag_len, validate_etag[0], validate_etag[1], validate_etag[2], validate_etag[3], validate_etag[4], validate_etag[5], validate_etag[6], validate_etag[7]);
+         validate_etag_len, validate_etag[0], validate_etag[1], validate_etag[2], validate_etag[3], validate_etag[4], validate_etag[5], validate_etag[6], validate_etag[7]);
 }
-
 static void
-res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  coap_packet_t * const coap_req = (coap_packet_t *) request;
+  coap_packet_t *const coap_req = (coap_packet_t *)request;
 
   if(validate_change) {
     validate_update_etag();
   }
-
   PRINTF("/validate       GET");
-  PRINTF("(%s %u)\n", coap_req->type==COAP_TYPE_CON?"CON":"NON", coap_req->mid);
+  PRINTF("(%s %u)\n", coap_req->type == COAP_TYPE_CON ? "CON" : "NON", coap_req->mid);
 
   if((len = coap_get_header_etag(request, &bytes)) > 0
-      && len == validate_etag_len && memcmp(validate_etag, bytes, len) == 0) {
+     && len == validate_etag_len && memcmp(validate_etag, bytes, len) == 0) {
     PRINTF("validate ");
     REST.set_response_status(response, REST.status.NOT_MODIFIED);
     REST.set_header_etag(response, validate_etag, validate_etag_len);
@@ -99,26 +96,25 @@ res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
     REST.set_header_etag(response, validate_etag, validate_etag_len);
     REST.set_header_max_age(response, 30);
     REST.set_response_payload(
-        response,
-        buffer,
-        snprintf((char *) buffer, MAX_PLUGFEST_PAYLOAD,
-            "Type: %u\nCode: %u\nMID: %u", coap_req->type, coap_req->code,
-            coap_req->mid));
+      response,
+      buffer,
+      snprintf((char *)buffer, MAX_PLUGFEST_PAYLOAD,
+               "Type: %u\nCode: %u\nMID: %u", coap_req->type, coap_req->code,
+               coap_req->mid));
   }
 }
-
 static void
-res_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  coap_packet_t * const coap_req = (coap_packet_t *) request;
+  coap_packet_t *const coap_req = (coap_packet_t *)request;
 
   PRINTF("/validate       PUT ");
-  PRINTF("(%s %u)\n", coap_req->type==COAP_TYPE_CON?"CON":"NON", coap_req->mid);
+  PRINTF("(%s %u)\n", coap_req->type == COAP_TYPE_CON ? "CON" : "NON", coap_req->mid);
 
   if(((len = coap_get_header_if_match(request, &bytes)) > 0
       && (len == validate_etag_len
-      && memcmp(validate_etag, bytes, len) == 0))
-      || len == 0) {
+          && memcmp(validate_etag, bytes, len) == 0))
+     || len == 0) {
     validate_update_etag();
     REST.set_header_etag(response, validate_etag, validate_etag_len);
 
@@ -130,11 +126,11 @@ res_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
     }
   } else {
     PRINTF(
-        "Check %u/%u\n  [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n  [0x%02X%02X%02X%02X%02X%02X%02X%02X] ",
-        len,
-        validate_etag_len,
-        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
-        validate_etag[0], validate_etag[1], validate_etag[2], validate_etag[3], validate_etag[4], validate_etag[5], validate_etag[6], validate_etag[7]);
+      "Check %u/%u\n  [0x%02X%02X%02X%02X%02X%02X%02X%02X]\n  [0x%02X%02X%02X%02X%02X%02X%02X%02X] ",
+      len,
+      validate_etag_len,
+      bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+      validate_etag[0], validate_etag[1], validate_etag[2], validate_etag[3], validate_etag[4], validate_etag[5], validate_etag[6], validate_etag[7]);
 
     REST.set_response_status(response, PRECONDITION_FAILED_4_12);
   }
