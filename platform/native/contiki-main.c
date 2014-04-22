@@ -35,6 +35,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/select.h>
+#include <errno.h>
 
 #ifdef __CYGWIN__
 #include "net/wpcap-drv.h"
@@ -260,7 +261,9 @@ main(int argc, char **argv)
 
     retval = select(maxfd + 1, &fdr, &fdw, NULL, &tv);
     if(retval < 0) {
-      perror("select");
+      if(errno != EINTR) {
+        perror("select");
+      }
     } else if(retval > 0) {
       /* timeout => retval == 0 */
       for(i = 0; i <= maxfd; i++) {
