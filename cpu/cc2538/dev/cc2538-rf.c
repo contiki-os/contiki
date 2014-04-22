@@ -872,13 +872,13 @@ get_object(radio_param_t param, void *dest, size_t size)
   int i;
 
   if(param == RADIO_PARAM_64BIT_ADDR) {
-    if(size < 8 || !dest || LINKADDR_SIZE != 8) {
+    if(size != 8 || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
     target = dest;
-    for(i = 0; i < size; i++) {
-      target[size - 1 - i] = ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[i] & 0xFF;
+    for(i = 0; i < 8; i++) {
+      target[i] = ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[7 - i] & 0xFF;
     }
 
     return RADIO_RESULT_OK;
@@ -892,12 +892,12 @@ set_object(radio_param_t param, const void *src, size_t size)
   int i;
 
   if(param == RADIO_PARAM_64BIT_ADDR) {
-    if(size < 8 || !src || LINKADDR_SIZE != 8) {
+    if(size != 8 || !src) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
-    for(i = 0; i < size; i++) {
-      ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[i] = ((uint8_t *)src)[size - 1 - i];
+    for(i = 0; i < 8; i++) {
+      ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[i] = ((uint8_t *)src)[7 - i];
     }
 
     return RADIO_RESULT_OK;
@@ -1020,25 +1020,6 @@ void
 cc2538_rf_set_promiscous_mode(char p)
 {
   set_frame_filtering(p);
-}
-/*---------------------------------------------------------------------------*/
-void
-cc2538_rf_set_addr(uint16_t pan)
-{
-#if LINKADDR_SIZE == 8
-  /* EXT_ADDR[7:0] is ignored when using short addresses */
-  int i;
-
-  for(i = (LINKADDR_SIZE - 1); i >= 0; --i) {
-    ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[i] =
-      linkaddr_node_addr.u8[LINKADDR_SIZE - 1 - i];
-  }
-#endif
-
-  set_pan_id(pan);
-
-  REG(RFCORE_FFSM_SHORT_ADDR0) = linkaddr_node_addr.u8[LINKADDR_SIZE - 1];
-  REG(RFCORE_FFSM_SHORT_ADDR1) = linkaddr_node_addr.u8[LINKADDR_SIZE - 2];
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
