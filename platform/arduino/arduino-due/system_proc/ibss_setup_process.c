@@ -171,6 +171,15 @@ PROCESS_THREAD(ibss_setup_process, ev, data)
 	
 	}
 	
+	if(ieee80211_is_ibss_joined()) {
+		int i;
+		// when network is joined unlock autostart processes	
+		for(i = 0; autostart_processes[i] != NULL; ++i) {
+			process_post(autostart_processes[i], PROCESS_EVENT_CONTINUE, NULL);
+			PRINTF("autostart_start: starting process '%s'\n", autostart_processes[i]->name);
+		}
+	}	
+	
 	/* If in advanced power-save mode, initialized the respecting MAC resolve mapping list. */
 	#ifdef WITH_MULTI_HOP_PSM
 	ieee80211_mh_psm_init_address_map();
