@@ -199,12 +199,12 @@ main(int argc, char **argv)
 
   set_rime_addr();
 
-  queuebuf_init();
-
   netstack_init();
   printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
 #if WITH_UIP6
+  queuebuf_init();
+
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
 
   process_start(&tcpip_process, NULL);
