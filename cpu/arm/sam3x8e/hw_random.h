@@ -9,7 +9,7 @@
   
 */
 #include <stddef.h>
-#include "list.h"
+#include "ar9170_list.h"
 
 
 

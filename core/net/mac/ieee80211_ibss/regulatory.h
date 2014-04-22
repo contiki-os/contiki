@@ -21,7 +21,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "list.h"
+#include "ar9170_list.h"
 /**
  * enum environment_cap - Environment parsed from country IE
  * @ENVIRON_ANY: indicates country IE applies to both indoor and
