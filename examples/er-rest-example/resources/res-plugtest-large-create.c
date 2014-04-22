@@ -41,22 +41,22 @@
 #include "er-coap.h"
 #include "er-plugtest.h"
 
-static void res_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 /*
  * Large resource that can be created using POST method
  */
 RESOURCE(res_plugtest_large_create,
-    "title=\"Large resource that can be created using POST method\";rt=\"block\"",
-    NULL,
-    res_post_handler,
-    NULL,
-    NULL);
+         "title=\"Large resource that can be created using POST method\";rt=\"block\"",
+         NULL,
+         res_post_handler,
+         NULL,
+         NULL);
 
 static void
-res_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  coap_packet_t * const coap_req = (coap_packet_t *) request;
+  coap_packet_t *const coap_req = (coap_packet_t *)request;
 
   uint8_t *incoming = NULL;
   size_t len = 0;
@@ -70,12 +70,12 @@ res_post_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
     return;
   }
 
-  if((len = REST.get_request_payload(request, (const uint8_t **) &incoming))) {
+  if((len = REST.get_request_payload(request, (const uint8_t **)&incoming))) {
     if(coap_req->block1_num * coap_req->block1_size + len <= 2048) {
       REST.set_response_status(response, REST.status.CREATED);
       REST.set_header_location(response, "/nirvana");
       coap_set_header_block1(response, coap_req->block1_num, 0,
-          coap_req->block1_size);
+                             coap_req->block1_size);
     } else {
       REST.set_response_status(response, REST.status.REQUEST_ENTITY_TOO_LARGE);
       const char *error_msg = "2048B max.";

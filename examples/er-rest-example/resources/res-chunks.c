@@ -39,7 +39,7 @@
 #include <string.h>
 #include "rest-engine.h"
 
-static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 /*
  * For data larger than REST_MAX_CHUNK_SIZE (e.g., when stored in flash) resources must be aware of the buffer limitation
@@ -49,21 +49,21 @@ static void res_get_handler(void* request, void* response, uint8_t *buffer, uint
  * (The offset for CoAP's blockwise transfer can go up to 2'147'481'600 = ~2047 M for block size 2048 (reduced to 1024 in observe-03.)
  */
 RESOURCE(res_chunks,
-    "title=\"Blockwise demo\";rt=\"Data\"",
-    res_get_handler,
-    NULL,
-    NULL,
-    NULL);
+         "title=\"Blockwise demo\";rt=\"Data\"",
+         res_get_handler,
+         NULL,
+         NULL,
+         NULL);
 
 #define CHUNKS_TOTAL    2050
 
 static void
-res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   int32_t strpos = 0;
 
   /* Check the offset for boundaries of the resource data. */
-  if(*offset>=CHUNKS_TOTAL) {
+  if(*offset >= CHUNKS_TOTAL) {
     REST.set_response_status(response, REST.status.BAD_OPTION);
     /* A block error message should not exceed the minimum block size (16). */
 
@@ -73,27 +73,25 @@ res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
   }
 
   /* Generate data until reaching CHUNKS_TOTAL. */
-  while (strpos<preferred_size) {
-    strpos += snprintf((char *)buffer+strpos, preferred_size-strpos+1, "|%ld|", *offset);
+  while(strpos < preferred_size) {
+    strpos += snprintf((char *)buffer + strpos, preferred_size - strpos + 1, "|%ld|", *offset);
   }
 
   /* snprintf() does not adjust return value if truncated by size. */
   if(strpos > preferred_size) {
     strpos = preferred_size;
+    /* Truncate if above CHUNKS_TOTAL bytes. */
   }
-
-  /* Truncate if above CHUNKS_TOTAL bytes. */
-  if(*offset+(int32_t)strpos > CHUNKS_TOTAL) {
+  if(*offset + (int32_t)strpos > CHUNKS_TOTAL) {
     strpos = CHUNKS_TOTAL - *offset;
   }
-
   REST.set_response_payload(response, buffer, strpos);
 
   /* IMPORTANT for chunk-wise resources: Signal chunk awareness to REST engine. */
   *offset += strpos;
 
   /* Signal end of resource representation. */
-  if(*offset>=CHUNKS_TOTAL) {
+  if(*offset >= CHUNKS_TOTAL) {
     *offset = -1;
   }
 }

@@ -41,17 +41,17 @@
 #include "er-coap.h"
 #include "er-plugtest.h"
 
-static void res_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 RESOURCE(res_plugtest_create2,
-    "title=\"Creates on POST\"",
-    NULL,
-    res_post_handler,
-    NULL,
-    NULL);
+         "title=\"Creates on POST\"",
+         NULL,
+         res_post_handler,
+         NULL,
+         NULL);
 
 static void
-res_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   PRINTF("/create2       ");
 

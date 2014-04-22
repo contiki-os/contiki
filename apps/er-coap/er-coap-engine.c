@@ -41,8 +41,17 @@
 #include <string.h>
 #include "er-coap-engine.h"
 
-#define DEBUG   DEBUG_NONE
-#include "net/uip-debug.h"
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#define PRINTLLADDR(addr)
+#endif
 
 PROCESS(coap_engine, "CoAP Engine");
 
@@ -60,7 +69,7 @@ coap_receive(void)
   erbium_status_code = NO_ERROR;
 
   PRINTF("handle_incoming_data(): received uip_datalen=%u \n",
-         (uint16_t) uip_datalen());
+         (uint16_t)uip_datalen());
 
   /* static declaration reduces stack peaks and program code size */
   static coap_packet_t message[1]; /* this way the packet can be treated as pointer as usual */
@@ -91,8 +100,8 @@ coap_receive(void)
 
         /* use transaction buffer for response to confirmable request */
         if((transaction =
-            coap_new_transaction(message->mid, &UIP_IP_BUF->srcipaddr,
-                                 UIP_UDP_BUF->srcport))) {
+              coap_new_transaction(message->mid, &UIP_IP_BUF->srcipaddr,
+                                   UIP_UDP_BUF->srcport))) {
           uint32_t block_num = 0;
           uint16_t block_size = REST_MAX_CHUNK_SIZE;
           uint32_t block_offset = 0;
@@ -107,16 +116,14 @@ coap_receive(void)
             /* unreliable NON requests are answered with a NON as well */
             coap_init_message(response, COAP_TYPE_NON, CONTENT_2_05,
                               coap_get_mid());
+            /* mirror token */
           }
-
-          /* mirror token */
           if(message->token_len) {
             coap_set_token(response, message->token, message->token_len);
+            /* get offset for blockwise transfers */
           }
-
-          /* get offset for blockwise transfers */
           if(coap_get_header_block2
-             (message, &block_num, NULL, &block_size, &block_offset)) {
+               (message, &block_num, NULL, &block_size, &block_offset)) {
             PRINTF("Blockwise: block request %lu (%u/%u) @ %lu bytes\n",
                    block_num, block_size, REST_MAX_CHUNK_SIZE, block_offset);
             block_size = MIN(block_size, REST_MAX_CHUNK_SIZE);
@@ -128,12 +135,12 @@ coap_receive(void)
 
             /* call REST framework and check if found and allowed */
             if(service_cbk
-               (message, response, transaction->packet + COAP_MAX_HEADER_SIZE,
-                block_size, &new_offset)) {
+                 (message, response, transaction->packet + COAP_MAX_HEADER_SIZE,
+                 block_size, &new_offset)) {
 
               if(erbium_status_code == NO_ERROR) {
 
-                //TODO coap_handle_blockwise(request, response, start_offset, end_offset);
+                /* TODO coap_handle_blockwise(request, response, start_offset, end_offset); */
 
                 /* resource is unaware of Block1 */
                 if(IS_OPTION(message, COAP_OPTION_BLOCK1)
@@ -144,14 +151,14 @@ coap_receive(void)
                   erbium_status_code = NOT_IMPLEMENTED_5_01;
                   coap_error_message = "NoBlock1Support";
 
-                /* client requested Block2 transfer */
+                  /* client requested Block2 transfer */
                 } else if(IS_OPTION(message, COAP_OPTION_BLOCK2)) {
 
                   /* unchanged new_offset indicates that resource is unaware of blockwise transfer */
                   if(new_offset == block_offset) {
                     PRINTF
                       ("Blockwise: unaware resource with payload length %u/%u\n",
-                       response->payload_len, block_size);
+                      response->payload_len, block_size);
                     if(block_offset >= response->payload_len) {
                       PRINTF
                         ("handle_incoming_data(): block_offset >= response->payload_len\n");
@@ -169,7 +176,7 @@ coap_receive(void)
                                            block_offset, block_size));
                     } /* if(valid offset) */
 
-                  /* resource provides chunk-wise data */
+                    /* resource provides chunk-wise data */
                   } else {
                     PRINTF("Blockwise: blockwise resource, new offset %ld\n",
                            new_offset);
@@ -184,11 +191,11 @@ coap_receive(void)
                     }
                   } /* if(resource aware of blockwise) */
 
-                /* Resource requested Block2 transfer */
+                  /* Resource requested Block2 transfer */
                 } else if(new_offset != 0) {
                   PRINTF
                     ("Blockwise: no block option for blockwise resource, using block size %u\n",
-                     REST_MAX_CHUNK_SIZE);
+                    REST_MAX_CHUNK_SIZE);
 
                   coap_set_header_block2(response, 0, new_offset != -1,
                                          REST_MAX_CHUNK_SIZE);
@@ -197,9 +204,9 @@ coap_receive(void)
                                        REST_MAX_CHUNK_SIZE));
                 } /* blockwise transfer handling */
               } /* no errors/hooks */
-            } /* successful service callback */
-
-            /* serialize response */
+                /* successful service callback */
+              /* serialize response */
+            }
             if(erbium_status_code == NO_ERROR) {
               if((transaction->packet_len = coap_serialize_message(response,
                                                                    transaction->
@@ -208,18 +215,16 @@ coap_receive(void)
                 erbium_status_code = PACKET_SERIALIZATION_ERROR;
               }
             }
-
           } else {
             erbium_status_code = NOT_IMPLEMENTED_5_01;
             coap_error_message = "NoServiceCallbck"; /* no 'a' to fit into 16 bytes */
           } /* if(service callback) */
-
         } else {
           erbium_status_code = SERVICE_UNAVAILABLE_5_03;
           coap_error_message = "NoFreeTraBuffer";
         } /* if(transaction buffer) */
 
-      /* handle responses */
+        /* handle responses */
       } else {
 
         if(message->type == COAP_TYPE_CON && message->code == 0) {
@@ -249,14 +254,14 @@ coap_receive(void)
         }
         /* if(ACKed transaction) */
         transaction = NULL;
-
       } /* request or response */
     } /* parsed correctly */
 
     /* if(parsed correctly) */
     if(erbium_status_code == NO_ERROR) {
-      if(transaction)
+      if(transaction) {
         coap_send_transaction(transaction);
+      }
     } else if(erbium_status_code == MANUAL_RESPONSE) {
       PRINTF("Clearing transaction for manual response");
       coap_clear_transaction(transaction);
@@ -272,9 +277,8 @@ coap_receive(void)
       } else if(erbium_status_code >= 192) {
         /* set to sendable error code */
         erbium_status_code = INTERNAL_SERVER_ERROR_5_00;
+        /* reuse input buffer for error message */
       }
-
-      /* reuse input buffer for error message */
       coap_init_message(message, reply_type, erbium_status_code,
                         message->mid);
       coap_set_payload(message, coap_error_message,
@@ -304,8 +308,8 @@ coap_set_service_callback(service_callback_t callback)
 rest_resource_flags_t
 coap_get_rest_method(void *packet)
 {
-  return (rest_resource_flags_t) (1 <<
-                                  (((coap_packet_t *) packet)->code - 1));
+  return (rest_resource_flags_t)(1 <<
+                                 (((coap_packet_t *)packet)->code - 1));
 }
 /*---------------------------------------------------------------------------*/
 /*- Server Part -------------------------------------------------------------*/
@@ -346,15 +350,15 @@ coap_blocking_request_callback(void *callback_data, void *response)
 {
   struct request_state_t *state = (struct request_state_t *)callback_data;
 
-  state->response = (coap_packet_t *) response;
+  state->response = (coap_packet_t *)response;
   process_poll(state->process);
 }
 /*---------------------------------------------------------------------------*/
 PT_THREAD(coap_blocking_request
-          (struct request_state_t *state, process_event_t ev,
-           uip_ipaddr_t * remote_ipaddr, uint16_t remote_port,
-           coap_packet_t * request,
-           blocking_response_handler request_callback))
+            (struct request_state_t *state, process_event_t ev,
+            uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
+            coap_packet_t *request,
+            blocking_response_handler request_callback))
 {
   PT_BEGIN(&state->pt);
 
@@ -381,7 +385,6 @@ PT_THREAD(coap_blocking_request
         coap_set_header_block2(request, state->block_num, 0,
                                REST_MAX_CHUNK_SIZE);
       }
-
       state->transaction->packet_len = coap_serialize_message(request,
                                                               state->
                                                               transaction->
@@ -454,49 +457,51 @@ const struct rest_implementation coap_rest_implementation = {
   coap_observe_handler,
 
   {
-   CONTENT_2_05,
-   CREATED_2_01,
-   CHANGED_2_04,
-   DELETED_2_02,
-   VALID_2_03,
-   BAD_REQUEST_4_00,
-   UNAUTHORIZED_4_01,
-   BAD_OPTION_4_02,
-   FORBIDDEN_4_03,
-   NOT_FOUND_4_04,
-   METHOD_NOT_ALLOWED_4_05,
-   NOT_ACCEPTABLE_4_06,
-   REQUEST_ENTITY_TOO_LARGE_4_13,
-   UNSUPPORTED_MEDIA_TYPE_4_15,
-   INTERNAL_SERVER_ERROR_5_00,
-   NOT_IMPLEMENTED_5_01,
-   BAD_GATEWAY_5_02,
-   SERVICE_UNAVAILABLE_5_03,
-   GATEWAY_TIMEOUT_5_04,
-   PROXYING_NOT_SUPPORTED_5_05},
+    CONTENT_2_05,
+    CREATED_2_01,
+    CHANGED_2_04,
+    DELETED_2_02,
+    VALID_2_03,
+    BAD_REQUEST_4_00,
+    UNAUTHORIZED_4_01,
+    BAD_OPTION_4_02,
+    FORBIDDEN_4_03,
+    NOT_FOUND_4_04,
+    METHOD_NOT_ALLOWED_4_05,
+    NOT_ACCEPTABLE_4_06,
+    REQUEST_ENTITY_TOO_LARGE_4_13,
+    UNSUPPORTED_MEDIA_TYPE_4_15,
+    INTERNAL_SERVER_ERROR_5_00,
+    NOT_IMPLEMENTED_5_01,
+    BAD_GATEWAY_5_02,
+    SERVICE_UNAVAILABLE_5_03,
+    GATEWAY_TIMEOUT_5_04,
+    PROXYING_NOT_SUPPORTED_5_05
+  },
 
   {
-   TEXT_PLAIN,
-   TEXT_XML,
-   TEXT_CSV,
-   TEXT_HTML,
-   IMAGE_GIF,
-   IMAGE_JPEG,
-   IMAGE_PNG,
-   IMAGE_TIFF,
-   AUDIO_RAW,
-   VIDEO_RAW,
-   APPLICATION_LINK_FORMAT,
-   APPLICATION_XML,
-   APPLICATION_OCTET_STREAM,
-   APPLICATION_RDF_XML,
-   APPLICATION_SOAP_XML,
-   APPLICATION_ATOM_XML,
-   APPLICATION_XMPP_XML,
-   APPLICATION_EXI,
-   APPLICATION_FASTINFOSET,
-   APPLICATION_SOAP_FASTINFOSET,
-   APPLICATION_JSON,
-   APPLICATION_X_OBIX_BINARY}
+    TEXT_PLAIN,
+    TEXT_XML,
+    TEXT_CSV,
+    TEXT_HTML,
+    IMAGE_GIF,
+    IMAGE_JPEG,
+    IMAGE_PNG,
+    IMAGE_TIFF,
+    AUDIO_RAW,
+    VIDEO_RAW,
+    APPLICATION_LINK_FORMAT,
+    APPLICATION_XML,
+    APPLICATION_OCTET_STREAM,
+    APPLICATION_RDF_XML,
+    APPLICATION_SOAP_XML,
+    APPLICATION_ATOM_XML,
+    APPLICATION_XMPP_XML,
+    APPLICATION_EXI,
+    APPLICATION_FASTINFOSET,
+    APPLICATION_SOAP_FASTINFOSET,
+    APPLICATION_JSON,
+    APPLICATION_X_OBIX_BINARY
+  }
 };
 /*---------------------------------------------------------------------------*/

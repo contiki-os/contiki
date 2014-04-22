@@ -42,19 +42,19 @@
 #include "er-coap-observe.h"
 #include "er-plugtest.h"
 
-static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void res_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void res_delete_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_delete_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void res_periodic_handler(void);
 
 PERIODIC_RESOURCE(res_plugtest_obs,
-    "title=\"Observable resource which changes every 5 seconds\";obs",
-    res_get_handler,
-    NULL,
-    res_put_handler,
-    res_delete_handler,
-    5*CLOCK_SECOND,
-    res_periodic_handler);
+                  "title=\"Observable resource which changes every 5 seconds\";obs",
+                  res_get_handler,
+                  NULL,
+                  res_put_handler,
+                  res_delete_handler,
+                  5 * CLOCK_SECOND,
+                  res_periodic_handler);
 
 static int32_t obs_counter = 0;
 static char obs_content[MAX_PLUGFEST_BODY];
@@ -69,15 +69,13 @@ obs_purge_list()
   PRINTF("### SERVER ACTION ### Purging obs list");
   coap_remove_observer_by_uri(NULL, 0, res_plugtest_obs.url);
 }
-
 static void
-res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   /* Keep server log clean from ticking events */
   if(request != NULL) {
     PRINTF("/obs            GET\n");
   }
-
   REST.set_header_content_type(response, obs_format);
   REST.set_header_max_age(response, 5);
 
@@ -87,13 +85,12 @@ res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
   } else {
     REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
     REST.set_response_payload(response, obs_content,
-        snprintf(obs_content, MAX_PLUGFEST_PAYLOAD, "TICK %lu", obs_counter));
+                              snprintf(obs_content, MAX_PLUGFEST_PAYLOAD, "TICK %lu", obs_counter));
   }
   /* A post_handler that handles subscriptions will be called for periodic resources by the REST framework. */
 }
-
 static void
-res_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   uint8_t *incoming = NULL;
   unsigned int ct = -1;
@@ -107,16 +104,15 @@ res_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
     obs_format = ct;
   } else {
     obs_content_len = REST.get_request_payload(request,
-        (const uint8_t **) &incoming);
+                                               (const uint8_t **)&incoming);
     memcpy(obs_content, incoming, obs_content_len);
     res_periodic_handler();
   }
 
   REST.set_response_status(response, REST.status.CHANGED);
 }
-
 static void
-res_delete_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_delete_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   PRINTF("/obs            DELETE\n");
 
@@ -124,7 +120,6 @@ res_delete_handler(void* request, void* response, uint8_t *buffer, uint16_t pref
 
   REST.set_response_status(response, REST.status.DELETED);
 }
-
 /*
  * Additionally, a handler function named [resource name]_handler must be implemented for each PERIODIC_RESOURCE.
  * It will be called by the REST manager process with the defined period.
@@ -134,7 +129,7 @@ res_periodic_handler()
 {
   ++obs_counter;
 
-  //PRINTF("TICK %u for /%s\n", obs_counter, r->url);
+  /* PRINTF("TICK %u for /%s\n", obs_counter, r->url); */
 
   if(obs_status == 1) {
 
@@ -156,6 +151,5 @@ res_periodic_handler()
   } else {
     /* Notify the registered observers with the given message type, observe option, and payload. */
     REST.notify_subscribers(&res_plugtest_obs);
-  }
-  obs_status = 0;
+  } obs_status = 0;
 }

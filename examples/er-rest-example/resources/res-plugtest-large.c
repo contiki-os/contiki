@@ -41,17 +41,17 @@
 #include "er-coap.h"
 #include "er-plugtest.h"
 
-static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 RESOURCE(res_plugtest_large,
-    "title=\"Large resource\";rt=\"block\";sz=\"" TO_STRING(CHUNKS_TOTAL) "\"",
-    res_get_handler,
-    NULL,
-    NULL,
-    NULL);
+         "title=\"Large resource\";rt=\"block\";sz=\"" TO_STRING(CHUNKS_TOTAL) "\"",
+         res_get_handler,
+         NULL,
+         NULL,
+         NULL);
 
 static void
-res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   int32_t strpos = 0;
 
@@ -67,20 +67,18 @@ res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
 
   /* Generate data until reaching CHUNKS_TOTAL. */
   while(strpos < preferred_size) {
-    strpos += snprintf((char *) buffer + strpos, preferred_size - strpos + 1,
-        "|%ld|", *offset);
+    strpos += snprintf((char *)buffer + strpos, preferred_size - strpos + 1,
+                       "|%ld|", *offset);
   }
 
   /* snprintf() does not adjust return value if truncated by size. */
   if(strpos > preferred_size) {
     strpos = preferred_size;
+    /* Truncate if above CHUNKS_TOTAL bytes. */
   }
-
-  /* Truncate if above CHUNKS_TOTAL bytes. */
-  if(*offset + (int32_t) strpos > CHUNKS_TOTAL) {
+  if(*offset + (int32_t)strpos > CHUNKS_TOTAL) {
     strpos = CHUNKS_TOTAL - *offset;
   }
-
   REST.set_response_payload(response, buffer, strpos);
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
 

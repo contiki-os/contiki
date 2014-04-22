@@ -42,8 +42,17 @@
 #include "contiki.h"
 #include "rest-engine.h"
 
-#define DEBUG   DEBUG_NONE
-#include "net/uip-debug.h"
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#define PRINTLLADDR(addr)
+#endif
 
 PROCESS(rest_engine_process, "REST Engine");
 /*---------------------------------------------------------------------------*/
@@ -82,7 +91,7 @@ rest_init_engine(void)
  * *.c file in the ./resources/ sub-directory (see example Makefile).
  */
 void
-rest_activate_resource(resource_t * resource, char *path)
+rest_activate_resource(resource_t *resource, char *path)
 {
   resource->url = path;
   list_add(restful_services, resource);
@@ -107,8 +116,8 @@ rest_get_resources(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-rest_invoke_restful_service(void *request, void *response, uint8_t * buffer,
-                            uint16_t buffer_size, int32_t * offset)
+rest_invoke_restful_service(void *request, void *response, uint8_t *buffer,
+                            uint16_t buffer_size, int32_t *offset)
 {
   uint8_t found = 0;
   uint8_t allowed = 1;
@@ -116,7 +125,7 @@ rest_invoke_restful_service(void *request, void *response, uint8_t * buffer,
   resource_t *resource = NULL;
   const char *url = NULL;
 
-  for(resource = (resource_t *) list_head(restful_services);
+  for(resource = (resource_t *)list_head(restful_services);
       resource; resource = resource->next) {
 
     /* if the web service handles that kind of requests and urls matches */
@@ -128,7 +137,7 @@ rest_invoke_restful_service(void *request, void *response, uint8_t * buffer,
       rest_resource_flags_t method = REST.get_method_type(request);
 
       PRINTF("/%s, method %u, resource->flags %u\n", resource->url,
-             (uint16_t) method, resource->flags);
+             (uint16_t)method, resource->flags);
 
       if((method & METHOD_GET) && resource->get_handler != NULL) {
         /* call handler function */
@@ -151,7 +160,6 @@ rest_invoke_restful_service(void *request, void *response, uint8_t * buffer,
       break;
     }
   }
-
   if(!found) {
     REST.set_response_status(response, REST.status.NOT_FOUND);
   } else if(allowed) {
@@ -160,7 +168,6 @@ rest_invoke_restful_service(void *request, void *response, uint8_t * buffer,
       REST.subscription_handler(resource, request, response);
     }
   }
-
   return found & allowed;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -175,7 +182,7 @@ PROCESS_THREAD(rest_engine_process, ev, data)
   periodic_resource_t *periodic_resource = NULL;
 
   for(periodic_resource =
-      (periodic_resource_t *) list_head(restful_periodic_services);
+        (periodic_resource_t *)list_head(restful_periodic_services);
       periodic_resource; periodic_resource = periodic_resource->next) {
     if(periodic_resource->periodic_handler && periodic_resource->period) {
       PRINTF("Periodic: Set timer for /%s to %lu\n",
@@ -184,13 +191,12 @@ PROCESS_THREAD(rest_engine_process, ev, data)
                  periodic_resource->period);
     }
   }
-
   while(1) {
     PROCESS_WAIT_EVENT();
 
     if(ev == PROCESS_EVENT_TIMER) {
       for(periodic_resource =
-          (periodic_resource_t *) list_head(restful_periodic_services);
+            (periodic_resource_t *)list_head(restful_periodic_services);
           periodic_resource; periodic_resource = periodic_resource->next) {
         if(periodic_resource->period
            && etimer_expired(&periodic_resource->periodic_timer)) {
@@ -199,7 +205,7 @@ PROCESS_THREAD(rest_engine_process, ev, data)
                  periodic_resource->resource->url, periodic_resource->period);
 
           /* Call the periodic_handler function, which was checked during adding to list. */
-          (periodic_resource->periodic_handler) ();
+          (periodic_resource->periodic_handler)();
 
           etimer_reset(&periodic_resource->periodic_timer);
         }

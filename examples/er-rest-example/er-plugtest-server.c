@@ -122,7 +122,6 @@ PROCESS_THREAD(plugtest_server, ev, data)
   /* Define application-specific events here. */
   while(1) {
     PROCESS_WAIT_EVENT();
-
   }                             /* while (1) */
 
   PROCESS_END();

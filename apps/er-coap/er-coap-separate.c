@@ -41,8 +41,17 @@
 #include "er-coap-separate.h"
 #include "er-coap-transactions.h"
 
-#define DEBUG   DEBUG_NONE
-#include "net/uip-debug.h"
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#define PRINTLLADDR(addr)
+#endif
 
 /*---------------------------------------------------------------------------*/
 /*- Separate Response API ---------------------------------------------------*/
@@ -58,7 +67,7 @@
 void
 coap_separate_reject()
 {
-  // TODO: Accept string pointer for custom error message
+  /* TODO: Accept string pointer for custom error message */
   erbium_status_code = SERVICE_UNAVAILABLE_5_03;
   coap_error_message = "AlreadyInUse";
 }
@@ -75,9 +84,9 @@ coap_separate_reject()
  * then retry later.
  */
 void
-coap_separate_accept(void *request, coap_separate_t * separate_store)
+coap_separate_accept(void *request, coap_separate_t *separate_store)
 {
-  coap_packet_t *const coap_req = (coap_packet_t *) request;
+  coap_packet_t *const coap_req = (coap_packet_t *)request;
   coap_transaction_t *const t = coap_get_transaction_by_mid(coap_req->mid);
 
   PRINTF("Separate ACCEPT: /%.*s MID %u\n", coap_req->uri_path_len,
@@ -112,7 +121,6 @@ coap_separate_accept(void *request, coap_separate_t * separate_store)
 
     /* signal the engine to skip automatic response and clear transaction by engine */
     erbium_status_code = MANUAL_RESPONSE;
-
   } else {
     PRINTF("ERROR: Response transaction for separate request not found!\n");
     erbium_status_code = INTERNAL_SERVER_ERROR_5_00;
@@ -120,7 +128,7 @@ coap_separate_accept(void *request, coap_separate_t * separate_store)
 }
 /*----------------------------------------------------------------------------*/
 void
-coap_separate_resume(void *response, coap_separate_t * separate_store,
+coap_separate_resume(void *response, coap_separate_t *separate_store,
                      uint8_t code)
 {
   coap_init_message(response, separate_store->type, code,
