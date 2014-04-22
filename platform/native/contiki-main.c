@@ -190,6 +190,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   ctimer_init();
+  rtimer_init();
 
 #if WITH_GUI
   process_start(&ctk_process, NULL);
