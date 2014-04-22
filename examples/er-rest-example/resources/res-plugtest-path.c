@@ -41,18 +41,18 @@
 #include "er-coap.h"
 #include "er-plugtest.h"
 
-static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 PARENT_RESOURCE(res_plugtest_path,
-    "title=\"Path test resource\";ct=\"40\"",
-    res_get_handler,
-    NULL,
-    NULL,
-    NULL);
+                "title=\"Path test resource\";ct=\"40\"",
+                res_get_handler,
+                NULL,
+                NULL,
+                NULL);
 
 static void
-res_get_handler(void* request, void* response, uint8_t *buffer,
-    uint16_t preferred_size, int32_t *offset)
+res_get_handler(void *request, void *response, uint8_t *buffer,
+                uint16_t preferred_size, int32_t *offset)
 {
 
   const char *uri_path = NULL;
@@ -61,12 +61,12 @@ res_get_handler(void* request, void* response, uint8_t *buffer,
 
   if(len == base_len) {
     REST.set_header_content_type(response, REST.type.APPLICATION_LINK_FORMAT);
-    snprintf((char *) buffer, MAX_PLUGFEST_PAYLOAD,
-        "</path/sub1>,</path/sub2>,</path/sub3>");
+    snprintf((char *)buffer, MAX_PLUGFEST_PAYLOAD,
+             "</path/sub1>,</path/sub2>,</path/sub3>");
   } else {
     REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
-    snprintf((char *) buffer, MAX_PLUGFEST_PAYLOAD, "/%.*s", len, uri_path);
+    snprintf((char *)buffer, MAX_PLUGFEST_PAYLOAD, "/%.*s", len, uri_path);
   }
 
-  REST.set_response_payload(response, buffer, strlen((char *) buffer));
+  REST.set_response_payload(response, buffer, strlen((char *)buffer));
 }

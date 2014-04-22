@@ -41,22 +41,22 @@
 #include "er-coap.h"
 #include "er-plugtest.h"
 
-static void res_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 RESOURCE(res_plugtest_locquery,
-    "title=\"Resource accepting query parameters\"",
-    NULL,
-    res_post_handler,
-    NULL,
-    NULL);
+         "title=\"Resource accepting query parameters\"",
+         NULL,
+         res_post_handler,
+         NULL,
+         NULL);
 
 static void
-res_post_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  coap_packet_t * const coap_req = (coap_packet_t *) request;
+  coap_packet_t *const coap_req = (coap_packet_t *)request;
 
   PRINTF(
-      "/location-query POST (%s %u)\n", coap_req->type==COAP_TYPE_CON?"CON":"NON", coap_req->mid);
+    "/location-query POST (%s %u)\n", coap_req->type == COAP_TYPE_CON ? "CON" : "NON", coap_req->mid);
 
   REST.set_response_status(response, REST.status.CREATED);
   REST.set_header_location(response, "?first=1&second=2");

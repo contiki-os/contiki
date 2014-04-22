@@ -69,10 +69,10 @@ typedef struct coap_transaction {
 
 void coap_register_as_transaction_handler();
 
-coap_transaction_t *coap_new_transaction(uint16_t mid, uip_ipaddr_t * addr,
+coap_transaction_t *coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr,
                                          uint16_t port);
-void coap_send_transaction(coap_transaction_t * t);
-void coap_clear_transaction(coap_transaction_t * t);
+void coap_send_transaction(coap_transaction_t *t);
+void coap_clear_transaction(coap_transaction_t *t);
 coap_transaction_t *coap_get_transaction_by_mid(uint16_t mid);
 
 void coap_check_transactions();

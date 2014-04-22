@@ -47,8 +47,17 @@
 #include "dev/button-sensor.h"
 #endif
 
-#include "net/uip-debug.h"
-#define DEBUG   DEBUG_NONE
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#define PRINTLLADDR(addr)
+#endif
 
 /*
  * Resources to be activated need to be imported through the extern keyword.
@@ -101,18 +110,18 @@ PROCESS_THREAD(er_example_server, ev, data)
    * All static variables are the same for each URI path.
    */
   rest_activate_resource(&res_hello, "test/hello");
-//  rest_activate_resource(&res_mirror, "debug/mirror");
-//  rest_activate_resource(&res_chunks, "test/chunks");
-//  rest_activate_resource(&res_separate, "test/separate");
+/*  rest_activate_resource(&res_mirror, "debug/mirror"); */
+/*  rest_activate_resource(&res_chunks, "test/chunks"); */
+/*  rest_activate_resource(&res_separate, "test/separate"); */
   rest_activate_resource(&res_push, "test/push");
-//  rest_activate_resource(&res_event, "sensors/button");
-//  rest_activate_resource(&res_sub, "test/sub");
+/*  rest_activate_resource(&res_event, "sensors/button"); */
+/*  rest_activate_resource(&res_sub, "test/sub"); */
 #if PLATFORM_HAS_LEDS
-//  rest_activate_resource(&res_leds, "actuators/leds");
+/*  rest_activate_resource(&res_leds, "actuators/leds"); */
   rest_activate_resource(&res_toggle, "actuators/toggle");
 #endif
 #if PLATFORM_HAS_LIGHT
-//  rest_activate_resource(&res_light, "sensors/light");
+/*  rest_activate_resource(&res_light, "sensors/light"); */
 #endif
 
   /* Define application-specific events here. */

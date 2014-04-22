@@ -41,20 +41,20 @@
 #include "er-coap.h"
 #include "er-plugtest.h"
 
-static void res_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void res_delete_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_delete_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 RESOURCE(res_plugtest_create1,
-    "title=\"Creates on PUT\"",
-    NULL,
-    NULL,
-    res_put_handler,
-    res_delete_handler);
+         "title=\"Creates on PUT\"",
+         NULL,
+         NULL,
+         res_put_handler,
+         res_delete_handler);
 
 static uint8_t create1_exists = 0;
 
 static void
-res_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   PRINTF("/create1       PUT");
 
@@ -70,9 +70,8 @@ res_put_handler(void* request, void* response, uint8_t *buffer, uint16_t preferr
     REST.set_response_status(response, REST.status.CHANGED);
   }
 }
-
 static void
-res_delete_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_delete_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   PRINTF("/create1       DELETE ");
   REST.set_response_status(response, REST.status.DELETED);

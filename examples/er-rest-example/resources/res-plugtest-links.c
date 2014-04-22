@@ -41,29 +41,29 @@
 #include "er-coap.h"
 #include "er-plugtest.h"
 
-static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 RESOURCE(res_plugtest_link1,
-    "rt=\"Type1 Type2\";if=\"If1\"",
-    res_get_handler,
-    NULL,
-    NULL,
-    NULL);
+         "rt=\"Type1 Type2\";if=\"If1\"",
+         res_get_handler,
+         NULL,
+         NULL,
+         NULL);
 RESOURCE(res_plugtest_link2,
-    "rt=\"Type2 Type3\";if=\"If2\"",
-    res_get_handler,
-    NULL,
-    NULL,
-    NULL);
+         "rt=\"Type2 Type3\";if=\"If2\"",
+         res_get_handler,
+         NULL,
+         NULL,
+         NULL);
 RESOURCE(res_plugtest_link3,
-    "rt=\"Type1 Type3\";if=\"foo\"",
-    res_get_handler,
-    NULL,
-    NULL,
-    NULL);
+         "rt=\"Type1 Type3\";if=\"foo\"",
+         res_get_handler,
+         NULL,
+         NULL,
+         NULL);
 
 static void
-res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const char *msg = "Dummy link";
   REST.set_header_content_type(response, REST.type.TEXT_PLAIN);

@@ -55,14 +55,13 @@ typedef struct coap_separate {
   /* separate + blockwise is untested! */
   uint32_t block2_num;
   uint16_t block2_size;
-
 } coap_separate_t;
 
-int coap_separate_handler(resource_t * resource, void *request,
+int coap_separate_handler(resource_t *resource, void *request,
                           void *response);
 void coap_separate_reject();
-void coap_separate_accept(void *request, coap_separate_t * separate_store);
-void coap_separate_resume(void *response, coap_separate_t * separate_store,
+void coap_separate_accept(void *request, coap_separate_t *separate_store);
+void coap_separate_resume(void *response, coap_separate_t *separate_store,
                           uint8_t code);
 
 #endif /* COAP_SEPARATE_H_ */
