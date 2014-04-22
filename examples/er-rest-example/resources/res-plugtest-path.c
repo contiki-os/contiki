@@ -31,62 +31,42 @@
 
 /**
  * \file
- *      Erbium (Er) example project configuration.
+ *      ETSI Plugtest resource
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+#include <string.h>
+#include "rest-engine.h"
+#include "er-coap.h"
+#include "er-plugtest.h"
 
-/* Custom channel and PAN ID configuration for your project. */
-/*
-#undef RF_CHANNEL
-#define RF_CHANNEL                     26
+static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
-#undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID          0xABCD
-*/
+PARENT_RESOURCE(res_plugtest_path,
+    "title=\"Path test resource\";ct=\"40\"",
+    res_get_handler,
+    NULL,
+    NULL,
+    NULL);
 
-/* IP buffer size must match all other hops, in particular the border router. */
-/*
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE           256
-*/
+static void
+res_get_handler(void* request, void* response, uint8_t *buffer,
+    uint16_t preferred_size, int32_t *offset)
+{
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC              nullrdc_driver
+  const char *uri_path = NULL;
+  int len = REST.get_url(request, &uri_path);
+  int base_len = strlen(res_plugtest_path.url);
 
-/* Disabling TCP on CoAP nodes. */
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP                   0
+  if(len == base_len) {
+    REST.set_header_content_type(response, REST.type.APPLICATION_LINK_FORMAT);
+    snprintf((char *) buffer, MAX_PLUGFEST_PAYLOAD,
+        "</path/sub1>,</path/sub2>,</path/sub3>");
+  } else {
+    REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
+    snprintf((char *) buffer, MAX_PLUGFEST_PAYLOAD, "/%.*s", len, uri_path);
+  }
 
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE            64
-
-/* Estimate your header size, especially when using Proxy-Uri. */
-/*
-#undef COAP_MAX_HEADER_SIZE
-#define COAP_MAX_HEADER_SIZE           70
-*/
-
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS     4
-
-/* Must be <= open transactions, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
-/*
-#undef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS             2
-*/
-
-/* Filtering .well-known/core per query can be disabled to save space. */
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING     0
-#undef COAP_PROXY_OPTION_PROCESSING
-#define COAP_PROXY_OPTION_PROCESSING   0
-
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+  REST.set_response_payload(response, buffer, strlen((char *) buffer));
+}

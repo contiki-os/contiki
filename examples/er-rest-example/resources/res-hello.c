@@ -31,62 +31,49 @@
 
 /**
  * \file
- *      Erbium (Er) example project configuration.
+ *      Example resource
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+#include <stdlib.h>
+#include <string.h>
+#include "rest-engine.h"
 
-/* Custom channel and PAN ID configuration for your project. */
+static void res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+
 /*
-#undef RF_CHANNEL
-#define RF_CHANNEL                     26
+ * A handler function named [resource name]_handler must be implemented for each RESOURCE.
+ * A buffer for the response payload is provided through the buffer pointer. Simple resources can ignore
+ * preferred_size and offset, but must respect the REST_MAX_CHUNK_SIZE limit for the buffer.
+ * If a smaller block size is requested for CoAP, the REST framework automatically splits the data.
+ */
+RESOURCE(res_hello,
+    "title=\"Hello world: ?len=0..\";rt=\"Text\"",
+    res_get_handler,
+    NULL,
+    NULL,
+    NULL);
 
-#undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID          0xABCD
-*/
+static void
+res_get_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  const char *len = NULL;
+  /* Some data that has the length up to REST_MAX_CHUNK_SIZE. For more, see the chunk resource. */
+  char const * const message = "Hello World! ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxy";
+  int length = 12; /*           |<-------->| */
 
-/* IP buffer size must match all other hops, in particular the border router. */
-/*
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE           256
-*/
+  /* The query string can be retrieved by rest_get_query() or parsed for its key-value pairs. */
+  if(REST.get_query_variable(request, "len", &len)) {
+    length = atoi(len);
+    if(length<0) length = 0;
+    if(length>REST_MAX_CHUNK_SIZE) length = REST_MAX_CHUNK_SIZE;
+    memcpy(buffer, message, length);
+  } else {
+    memcpy(buffer, message, length);
+  }
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC              nullrdc_driver
-
-/* Disabling TCP on CoAP nodes. */
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP                   0
-
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE            64
-
-/* Estimate your header size, especially when using Proxy-Uri. */
-/*
-#undef COAP_MAX_HEADER_SIZE
-#define COAP_MAX_HEADER_SIZE           70
-*/
-
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS     4
-
-/* Must be <= open transactions, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
-/*
-#undef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS             2
-*/
-
-/* Filtering .well-known/core per query can be disabled to save space. */
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING     0
-#undef COAP_PROXY_OPTION_PROCESSING
-#define COAP_PROXY_OPTION_PROCESSING   0
-
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+  REST.set_header_content_type(response, REST.type.TEXT_PLAIN); /* text/plain is the default, hence this option could be omitted. */
+  REST.set_header_etag(response, (uint8_t *) &length, 1);
+  REST.set_response_payload(response, buffer, length);
+}
