@@ -39,7 +39,11 @@
 #ifndef ER_COAP_CONSTANTS_H_
 #define ER_COAP_CONSTANTS_H_
 
+#ifdef WITH_DTLS
+#define COAP_DEFAULT_PORT                    5684
+#else
 #define COAP_DEFAULT_PORT                    5683
+#endif
 
 #define COAP_DEFAULT_MAX_AGE                 60
 #define COAP_RESPONSE_TIMEOUT                3
@@ -85,6 +89,7 @@ typedef enum {
   VALID_2_03 = 67,              /* NOT_MODIFIED */
   CHANGED_2_04 = 68,            /* CHANGED */
   CONTENT_2_05 = 69,            /* OK */
+  CONTINUE_2_31 = 95,           /* CONTINUE */
 
   BAD_REQUEST_4_00 = 128,       /* BAD_REQUEST */
   UNAUTHORIZED_4_01 = 129,      /* UNAUTHORIZED */

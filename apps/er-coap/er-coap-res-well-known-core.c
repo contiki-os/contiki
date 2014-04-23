@@ -51,6 +51,28 @@
 #define PRINTLLADDR(addr)
 #endif
 
+#define ADD_CHAR_IF_POSSIBLE(char) \
+  if(strpos >= *offset && bufpos < preferred_size) { \
+    buffer[bufpos++] = char; \
+  } \
+  ++strpos
+
+#define ADD_STRING_IF_POSSIBLE(string, op) \
+  tmplen = strlen(string); \
+  if(strpos + tmplen > *offset) { \
+    bufpos += snprintf((char *)buffer + bufpos, \
+                       preferred_size - bufpos + 1, \
+                       "%s", \
+                       string \
+                       + (*offset - (int32_t)strpos > 0 ? \
+                          *offset - (int32_t)strpos : 0)); \
+    if(bufpos op preferred_size) { \
+      PRINTF("res: BREAK at %s (%p)\n", string, resource); \
+      break; \
+    } \
+  } \
+  strpos += tmplen
+
 /*---------------------------------------------------------------------------*/
 /*- Resource Handlers -------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
@@ -141,62 +163,16 @@ well_known_core_get_handler(void *request, void *response, uint8_t *buffer,
            strpos, *offset, bufpos);
 
     if(strpos > 0) {
-      if(strpos >= *offset && bufpos < preferred_size) {
-        buffer[bufpos++] = ',';
-      }
-      ++strpos;
+      ADD_CHAR_IF_POSSIBLE(',');
     }
-
-    if(strpos >= *offset && bufpos < preferred_size) {
-      buffer[bufpos++] = '<';
-    }
-    ++strpos;
-
-    if(strpos >= *offset && bufpos < preferred_size) {
-      buffer[bufpos++] = '/';
-    }
-    ++strpos;
-
-    tmplen = strlen(resource->url);
-    if(strpos + tmplen > *offset) {
-      bufpos += snprintf((char *)buffer + bufpos,
-                         preferred_size - bufpos + 1,
-                         "%s",
-                         resource->url +
-                         ((*offset - (int32_t)strpos >
-                           0) ? (*offset - (int32_t)strpos) : 0));
-      /* native requires these casts */
-      if(bufpos >= preferred_size) {
-        PRINTF("res: BREAK at %s (%p)\n", resource->url, resource);
-        break;
-      }
-    }
-    strpos += tmplen;
-
-    if(strpos >= *offset && bufpos < preferred_size) {
-      buffer[bufpos++] = '>';
-    }
-    ++strpos;
+    ADD_CHAR_IF_POSSIBLE('<');
+    ADD_CHAR_IF_POSSIBLE('/');
+    ADD_STRING_IF_POSSIBLE(resource->url, >=);
+    ADD_CHAR_IF_POSSIBLE('>');
 
     if(resource->attributes[0]) {
-      if(strpos >= *offset && bufpos < preferred_size) {
-        buffer[bufpos++] = ';';
-      }
-      ++strpos;
-
-      tmplen = strlen(resource->attributes);
-      if(strpos + tmplen > *offset) {
-        bufpos += snprintf((char *)buffer + bufpos,
-                           preferred_size - bufpos + 1,
-                           resource->attributes
-                           + (*offset - (int32_t)strpos > 0 ?
-                              *offset - (int32_t)strpos : 0));
-        if(bufpos > preferred_size) {
-          PRINTF("res: BREAK at %s (%p)\n", resource->url, resource);
-          break;
-        }
-      }
-      strpos += tmplen;
+      ADD_CHAR_IF_POSSIBLE(';');
+      ADD_STRING_IF_POSSIBLE(resource->attributes, >);
     }
 
     /* buffer full, but resource not completed yet; or: do not break if resource exactly fills buffer. */

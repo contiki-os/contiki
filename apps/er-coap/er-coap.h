@@ -54,6 +54,17 @@
 #define REST coap_rest_implementation
 #include "rest-engine.h"
 
+/* REST_MAX_CHUNK_SIZE can be different from 2^x so we need to get next lower 2^x for COAP_MAX_BLOCK_SIZE */
+#ifndef COAP_MAX_BLOCK_SIZE
+#define COAP_MAX_BLOCK_SIZE           (REST_MAX_CHUNK_SIZE < 32 ? 16 : \
+                                       (REST_MAX_CHUNK_SIZE < 64 ? 32 : \
+                                        (REST_MAX_CHUNK_SIZE < 128 ? 64 : \
+                                        (REST_MAX_CHUNK_SIZE < 256 ? 128 : \
+                                        (REST_MAX_CHUNK_SIZE < 512 ? 256 : \
+                                        (REST_MAX_CHUNK_SIZE < 1024 ? 512 : \
+                                        (REST_MAX_CHUNK_SIZE < 2048 ? 1024 : 2048)))))))
+#endif /* COAP_MAX_BLOCK_SIZE */
+
 /* direct access into the buffer */
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #if UIP_CONF_IPV6

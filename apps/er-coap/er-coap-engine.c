@@ -40,6 +40,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "er-coap-engine.h"
+#ifdef WITH_DTLS
+#include "er-dtls.h"
+#endif
 
 #define DEBUG 0
 #if DEBUG
@@ -83,8 +86,18 @@ coap_receive(void)
     PRINTF(":%u\n  Length: %u\n", uip_ntohs(UIP_UDP_BUF->srcport),
            uip_datalen());
 
+#ifdef WITH_DTLS
+    CoapData_t coapdata = { 0, NULL, 0 };
+    dtls_parse_message(uip_appdata, uip_datalen(), &coapdata);
+    if(!coapdata.valid) {
+      return NO_ERROR;
+    }
+    erbium_status_code =
+      coap_parse_message(message, coapdata.data, coapdata.data_len);
+#else
     erbium_status_code =
       coap_parse_message(message, uip_appdata, uip_datalen());
+#endif
 
     if(erbium_status_code == NO_ERROR) {
 
@@ -117,8 +130,7 @@ coap_receive(void)
             coap_init_message(response, COAP_TYPE_NON, CONTENT_2_05,
                               coap_get_mid());
             /* mirror token */
-          }
-          if(message->token_len) {
+          } if(message->token_len) {
             coap_set_token(response, message->token, message->token_len);
             /* get offset for blockwise transfers */
           }
@@ -195,17 +207,17 @@ coap_receive(void)
                 } else if(new_offset != 0) {
                   PRINTF
                     ("Blockwise: no block option for blockwise resource, using block size %u\n",
-                    REST_MAX_CHUNK_SIZE);
+                    COAP_MAX_BLOCK_SIZE);
 
                   coap_set_header_block2(response, 0, new_offset != -1,
-                                         REST_MAX_CHUNK_SIZE);
+                                         COAP_MAX_BLOCK_SIZE);
                   coap_set_payload(response, response->payload,
                                    MIN(response->payload_len,
-                                       REST_MAX_CHUNK_SIZE));
+                                       COAP_MAX_BLOCK_SIZE));
                 } /* blockwise transfer handling */
               } /* no errors/hooks */
                 /* successful service callback */
-              /* serialize response */
+                /* serialize response */
             }
             if(erbium_status_code == NO_ERROR) {
               if((transaction->packet_len = coap_serialize_message(response,
@@ -317,14 +329,23 @@ coap_get_rest_method(void *packet)
 
 /* the discover resource is automatically included for CoAP */
 extern resource_t res_well_known_core;
+#ifdef WITH_DTLS
+extern resource_t res_dtls;
+#endif
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(coap_engine, ev, data)
 {
   PROCESS_BEGIN();
+#ifdef WITH_DTLS
+  aes_init();
+#endif
   PRINTF("Starting %s receiver...\n", coap_rest_implementation.name);
 
   rest_activate_resource(&res_well_known_core, ".well-known/core");
+#ifdef WITH_DTLS
+  rest_activate_resource(&res_dtls, "dtls");
+#endif
 
   coap_register_as_transaction_handler();
   coap_init_connection(SERVER_LISTEN_PORT);
