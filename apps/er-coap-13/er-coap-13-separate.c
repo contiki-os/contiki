@@ -62,7 +62,11 @@ coap_separate_reject()
 }
 /*----------------------------------------------------------------------------*/
 int
+#if WITH_DTLS
+coap_separate_accept(void *request, coap_separate_t *separate_store, struct dtls_context_t *ctx, session_t *dst)
+#else /* WITH DTLS */
 coap_separate_accept(void *request, coap_separate_t *separate_store)
+#endif /* WITH_DTLS */
 {
   coap_packet_t *const coap_req = (coap_packet_t *) request;
   coap_transaction_t *const t = coap_get_transaction_by_mid(coap_req->mid);
@@ -77,7 +81,11 @@ coap_separate_accept(void *request, coap_separate_t *separate_store)
       /* ACK with empty code (0) */
       coap_init_message(ack, COAP_TYPE_ACK, 0, coap_req->mid);
       /* Serializing into IPBUF: Only overwrites header parts that are already parsed into the request struct. */
+#if WITH_DTLS
+      coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, (uip_appdata), coap_serialize_message(ack, uip_appdata), ctx, dst);
+#else /* WITH_DTLS */
       coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, (uip_appdata), coap_serialize_message(ack, uip_appdata));
+#endif /* WITH_DTLS*/
     }
 
     /* Store remote address. */
