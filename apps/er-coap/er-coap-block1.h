@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2014, Lars Schmertmann <SmallLars@t-online.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,45 +31,17 @@
 
 /**
  * \file
- *      ETSI Plugtest resource
+ *      CoAP module for block 1 handling
  * \author
- *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ *      Lars Schmertmann <SmallLars@t-online.de>
  */
 
-#include <string.h>
-#include "rest-engine.h"
-#include "er-coap.h"
-#include "er-plugtest.h"
+#ifndef COAP_BLOCK1_H_
+#define COAP_BLOCK1_H_
 
-static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+#include <stddef.h>
+#include <stdint.h>
 
-RESOURCE(res_plugtest_query,
-         "title=\"Resource accepting query parameters\"",
-         res_get_handler,
-         NULL,
-         NULL,
-         NULL);
+int coap_block1_handler(void *request, void *response, uint8_t *target, size_t *len, size_t max_len);
 
-static void
-res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
-{
-  coap_packet_t *const coap_req = (coap_packet_t *)request;
-  int len = 0;
-  const char *query = NULL;
-
-  PRINTF(
-    "/query          GET (%s %u)\n", coap_req->type == COAP_TYPE_CON ? "CON" : "NON", coap_req->mid);
-
-  if((len = REST.get_query(request, &query))) {
-    PRINTF("Query: %.*s\n", len, query);
-    /* Code 2.05 CONTENT is default. */
-  }
-  REST.set_header_content_type(response,
-                               REST.type.TEXT_PLAIN);
-  REST.set_response_payload(
-    response,
-    buffer,
-    snprintf((char *)buffer, MAX_PLUGFEST_PAYLOAD,
-             "Type: %u\nCode: %u\nMID: %u\nQuery: %.*s", coap_req->type,
-             coap_req->code, coap_req->mid, len, query));
-}
+#endif /* COAP_BLOCK1_H_ */

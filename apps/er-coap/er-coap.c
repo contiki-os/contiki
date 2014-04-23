@@ -329,6 +329,10 @@ coap_serialize_message(void *packet, uint8_t *buffer)
   coap_pkt->buffer[2] = (uint8_t)((coap_pkt->mid) >> 8);
   coap_pkt->buffer[3] = (uint8_t)(coap_pkt->mid);
 
+  /* empty packet, dont need to do more stuff */
+  if(!coap_pkt->code) {
+    return 4;
+  }
   /* set Token */
   PRINTF("Token (len %u)", coap_pkt->token_len);
   option = coap_pkt->buffer + COAP_HEADER_LEN;
@@ -419,7 +423,11 @@ coap_send_message(uip_ipaddr_t *addr, uint16_t port, uint8_t *data,
   uip_ipaddr_copy(&udp_conn->ripaddr, addr);
   udp_conn->rport = port;
 
+#ifdef WITH_DTLS
+  dtls_send_message(udp_conn, data, length);
+#else
   uip_udp_packet_send(udp_conn, data, length);
+#endif
   PRINTF("-sent UDP datagram (%u)-\n", length);
 
   /* restore server socket to allow data from any node */
@@ -1032,8 +1040,8 @@ coap_get_header_block2(void *packet, uint32_t *num, uint8_t *more,
 
   if(!IS_OPTION(coap_pkt, COAP_OPTION_BLOCK2)) {
     return 0;
+    /* pointers may be NULL to get only specific block parameters */
   }
-  /* pointers may be NULL to get only specific block parameters */
   if(num != NULL) {
     *num = coap_pkt->block2_num;
   }
@@ -1079,8 +1087,8 @@ coap_get_header_block1(void *packet, uint32_t *num, uint8_t *more,
 
   if(!IS_OPTION(coap_pkt, COAP_OPTION_BLOCK1)) {
     return 0;
+    /* pointers may be NULL to get only specific block parameters */
   }
-  /* pointers may be NULL to get only specific block parameters */
   if(num != NULL) {
     *num = coap_pkt->block1_num;
   }

@@ -52,7 +52,9 @@ typedef struct coap_separate {
   uint8_t token_len;
   uint8_t token[COAP_TOKEN_LEN];
 
-  /* separate + blockwise is untested! */
+  uint32_t block1_num;
+  uint16_t block1_size;
+
   uint32_t block2_num;
   uint16_t block2_size;
 } coap_separate_t;
