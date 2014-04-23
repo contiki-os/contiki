@@ -70,7 +70,8 @@ extern resource_t
   res_separate,
   res_push,
   res_event,
-  res_sub;
+  res_sub,
+  res_b1_sep_b2;
 #if PLATFORM_HAS_LEDS
 extern resource_t res_leds, res_toggle;
 #endif
@@ -116,6 +117,7 @@ PROCESS_THREAD(er_example_server, ev, data)
   rest_activate_resource(&res_push, "test/push");
 /*  rest_activate_resource(&res_event, "sensors/button"); */
 /*  rest_activate_resource(&res_sub, "test/sub"); */
+/*  rest_activate_resource(&res_b1_sep_b2, "test/b1sepb2"); */
 #if PLATFORM_HAS_LEDS
 /*  rest_activate_resource(&res_leds, "actuators/leds"); */
   rest_activate_resource(&res_toggle, "actuators/toggle");

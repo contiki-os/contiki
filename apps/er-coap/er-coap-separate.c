@@ -116,8 +116,11 @@ coap_separate_accept(void *request, coap_separate_t *separate_store)
     memcpy(separate_store->token, coap_req->token, coap_req->token_len);
     separate_store->token_len = coap_req->token_len;
 
+    separate_store->block1_num = coap_req->block1_num;
+    separate_store->block1_size = coap_req->block1_size;
+
     separate_store->block2_num = coap_req->block2_num;
-    separate_store->block2_size = coap_req->block2_size;
+    separate_store->block2_size = coap_req->block2_size > 0 ? MIN(COAP_MAX_BLOCK_SIZE, coap_req->block2_size) : COAP_MAX_BLOCK_SIZE;
 
     /* signal the engine to skip automatic response and clear transaction by engine */
     erbium_status_code = MANUAL_RESPONSE;
@@ -136,6 +139,10 @@ coap_separate_resume(void *response, coap_separate_t *separate_store,
   if(separate_store->token_len) {
     coap_set_token(response, separate_store->token,
                    separate_store->token_len);
+  }
+  if(separate_store->block1_size) {
+    coap_set_header_block1(response, separate_store->block1_num,
+                           0, separate_store->block1_size);
   }
 }
 /*---------------------------------------------------------------------------*/
