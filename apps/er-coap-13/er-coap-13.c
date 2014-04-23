@@ -284,6 +284,15 @@ coap_init_connection(uint16_t port)
   current_mid = random_rand();
 }
 /*-----------------------------------------------------------------------------------*/
+#if WITH_DTLS
+void
+coap_init_connection_dtls()
+{
+  /* Initialize transaction ID. */
+  current_mid = random_rand();
+}
+#endif /* WITH_DTLS */
+/*-----------------------------------------------------------------------------------*/
 uint16_t
 coap_get_mid()
 {
@@ -401,6 +410,16 @@ coap_serialize_message(void *packet, uint8_t *buffer)
 }
 /*-----------------------------------------------------------------------------------*/
 void
+#if WITH_DTLS
+coap_send_message(uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length, struct dtls_context_t *ctx, session_t *dst)
+{
+
+  int res;
+  res = dtls_write(ctx, dst, data, length);
+  if (res > 0) {
+    printf("DTLS sent %d bytes payload \n", res);
+  }
+#else /* WITH_DTLS */
 coap_send_message(uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length)
 {
   /* Configure connection to reply to client */
@@ -413,6 +432,7 @@ coap_send_message(uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t len
   /* Restore server connection to allow data from any node */
   memset(&udp_conn->ripaddr, 0, sizeof(udp_conn->ripaddr));
   udp_conn->rport = 0;
+#endif /* WITH_DTLS */
 }
 /*-----------------------------------------------------------------------------------*/
 coap_status_t

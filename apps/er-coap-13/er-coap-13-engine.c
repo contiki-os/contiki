@@ -74,9 +74,14 @@ static service_callback_t service_cbk = NULL;
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
 /*----------------------------------------------------------------------------*/
+#if WITH_DTLS
+int
+coap_receive(struct dtls_context_t *ctx, session_t *dst)
+#else /* WITH_DTLS */
 static
 int
 coap_receive(void)
+#endif /* WITH_DTLS */
 {
   coap_error_code = NO_ERROR;
 
@@ -86,15 +91,27 @@ coap_receive(void)
   static coap_packet_t message[1]; /* This way the packet can be treated as pointer as usual. */
   static coap_packet_t response[1];
   static coap_transaction_t *transaction = NULL;
+#if WITH_DTLS
+    if (1) {
+      PRINTF("receiving UDP datagram from: ");
+      PRINT6ADDR(&dst->addr);
+      PRINTF(":%u\n  Length: %u\n  Data: ", uip_ntohs(dst->port), uip_datalen() );
+      PRINTBITS(uip_appdata, uip_datalen());
+      PRINTF("\n");
+#else
+    if (uip_newdata()) {  
+      PRINTF("receiving UDP datagram from: ");
+      PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+      PRINTF(":%u\n  Length: %u\n  Data: ", uip_ntohs(UIP_UDP_BUF->srcport), uip_datalen() );
+      PRINTBITS(uip_appdata, uip_datalen());
+      PRINTF("\n");
+#endif
 
-  if (uip_newdata()) {
-
-    PRINTF("receiving UDP datagram from: ");
-    PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-    PRINTF(":%u\n  Length: %u\n  Data: ", uip_ntohs(UIP_UDP_BUF->srcport), uip_datalen() );
-    PRINTBITS(uip_appdata, uip_datalen());
-    PRINTF("\n");
-
+    #if WITH_DTLS
+      transaction->ctx = ctx;
+      transaction->dst = dst;
+    #endif /* WITH_DTLS */
+	  
     coap_error_code = coap_parse_message(message, uip_appdata, uip_datalen());
 
     if (coap_error_code==NO_ERROR)
@@ -110,12 +127,20 @@ coap_receive(void)
       if (message->code >= COAP_GET && message->code <= COAP_DELETE)
       {
         /* Use transaction buffer for response to confirmable request. */
-        if ( (transaction = coap_new_transaction(message->mid, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport)) )
+#ifdef WITH_DTLS
+        if ( (transaction = coap_new_transaction(message->mid, &dst->addr, dst->port)) )
+#else
+	if ( (transaction = coap_new_transaction(message->mid, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport)) )
+#endif
         {
           uint32_t block_num = 0;
           uint16_t block_size = REST_MAX_CHUNK_SIZE;
           uint32_t block_offset = 0;
           int32_t new_offset = 0;
+	  #if WITH_DTLS
+	    transaction->ctx = ctx;
+	    transaction->dst = dst;
+	  #endif /* WITH_DTLS */
 
           /* prepare response */
           if (message->type==COAP_TYPE_CON)
@@ -234,7 +259,11 @@ coap_receive(void)
         {
           PRINTF("Received RST\n");
           /* Cancel possible subscriptions. */
-          coap_remove_observer_by_mid(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, message->mid);
+#ifdef WITH_DTLS
+          coap_remove_observer_by_mid(&dst->addr, dst->port, message->mid);
+#else
+	  coap_remove_observer_by_mid(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, message->mid);
+#endif
         }
 
         if ( (transaction = coap_get_transaction_by_mid(message->mid)) )
@@ -284,7 +313,11 @@ coap_receive(void)
       /* Reuse input buffer for error message. */
       coap_init_message(message, reply_type, coap_error_code, message->mid);
       coap_set_payload(message, coap_error_message, strlen(coap_error_message));
+      #if WITH_DTLS
+      coap_send_message(&dst->addr, dst->port, uip_appdata, coap_serialize_message(message, uip_appdata), ctx, dst);
+      #else /* WITH_DTLS */
       coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport, uip_appdata, coap_serialize_message(message, uip_appdata));
+      #endif /* WITH_DTLS */
     }
   } /* if (new data) */
 
@@ -499,8 +532,10 @@ PROCESS_THREAD(coap_receiver, ev, data)
 
   rest_activate_resource(&resource_well_known_core);
 
+  #if !WITH_DTLS
   coap_register_as_transaction_handler();
   coap_init_connection(SERVER_LISTEN_PORT);
+  PRINTF("Listening on port %u\n", UIP_HTONS(SERVER_LISTEN_PORT));
 
   while(1) {
     PROCESS_YIELD();
@@ -512,6 +547,10 @@ PROCESS_THREAD(coap_receiver, ev, data)
       coap_check_transactions();
     }
   } /* while (1) */
+  #else /* !WITH_DTLS */
+    coap_init_connection_dtls();
+    /* COAP packets are received as DTLS payload and will be trigger an event in the DTLS receiver! */
+  #endif /* !WITH_DTLS */
 
   PROCESS_END();
 }
@@ -527,7 +566,13 @@ void coap_blocking_request_callback(void *callback_data, void *response) {
 PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t ev,
                                 uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
                                 coap_packet_t *request,
+				#if WITH_DTLS
+                                blocking_response_handler request_callback,
+                                struct dtls_context_t *ctx, session_t *dst)) {
+#else /* WITH_DTLS */
                                 blocking_response_handler request_callback)) {
+#endif /* WITH_DTLS */
+
   PT_BEGIN(&state->pt);
 
   static uint8_t more;
@@ -555,7 +600,10 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
       }
 
       state->transaction->packet_len = coap_serialize_message(request, state->transaction->packet);
-
+#if WITH_DTLS
+      state->transaction->dst = dst;
+      state->transaction->ctx = ctx;
+#endif /* WITH_DTLS */
       coap_send_transaction(state->transaction);
       PRINTF("Requested #%lu (MID %u)\n", state->block_num, request->mid);
 

@@ -42,6 +42,9 @@
 #include <stddef.h> /* for size_t */
 #include "contiki-net.h"
 #include "erbium.h"
+#if WITH_DTLS
+#include "dtls.h"
+#endif /* WITH_DTLS */
 
 #define COAP_LINK_FORMAT_FILTERING           1
 
@@ -311,11 +314,18 @@ extern coap_status_t coap_error_code;
 extern char *coap_error_message;
 
 void coap_init_connection(uint16_t port);
+#if WITH_DTLS
+void coap_init_connection_dtls();
+#endif /* WITH_DTLS */
 uint16_t coap_get_mid(void);
 
 void coap_init_message(void *packet, coap_message_type_t type, uint8_t code, uint16_t mid);
 size_t coap_serialize_message(void *packet, uint8_t *buffer);
+#if WITH_DTLS
+void coap_send_message(uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length, struct dtls_context_t *ctx, session_t *dst);
+#else /* WITH_DTLS*/
 void coap_send_message(uip_ipaddr_t *addr, uint16_t port, uint8_t *data, uint16_t length);
+#endif /* WITH_DTLS*/
 coap_status_t coap_parse_message(void *request, uint8_t *data, uint16_t data_len);
 
 int coap_get_query_variable(void *packet, const char *name, const char **output);
