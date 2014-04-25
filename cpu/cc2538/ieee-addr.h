@@ -45,8 +45,14 @@
 #define IEEE_ADDR_H_
 
 #include "contiki-conf.h"
-
 #include <stdint.h>
+/*---------------------------------------------------------------------------*/
+/**
+ * \name TI OUI
+ * @{
+ */
+#define IEEE_ADDR_OUI_TI   { 0x00, 0x12, 0x4B } /**< TI OUI */
+/** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name IEEE address locations
@@ -55,6 +61,7 @@
 #define IEEE_ADDR_LOCATION_PRIMARY   0x00280028 /**< IEEE address location */
 #define IEEE_ADDR_LOCATION_SECONDARY 0x0027FFCC /**< IEEE address location */
 /** @} */
+
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Select which address location to use
