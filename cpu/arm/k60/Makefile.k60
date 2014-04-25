@@ -11,6 +11,10 @@ DEBUG=-g #-gdwarf-2 -gstrict-dwarf
 GDB_PORT ?= 3333
 
 ### CPU part number (must have a specific linker script for each part)
+# Note that MK60DN256ZVLL10 (version 1.x) and MK60DN256VLL10 (version 2.x, no Z)
+# only differ in some register locations etc, not in the actual memory layout,
+# so it is safe to use the same linker script for both version 1.x and version
+# 2.x silicon.
 CPU_PART ?= K60DN256VLL10
 
 ### Code common for all ARM CPUs
@@ -63,10 +67,11 @@ CFLAGSNO = -I$(CONTIKI_CPU) \
            ${addprefix -I,$(APPDIRS)} \
            -I. -I$(CONTIKI)/core \
            -Wall -mcpu=cortex-m4
-LINKERSCRIPT = $(CONTIKI_CPU)/$(CPU_PART).ld
+LINKERSCRIPTPATH = $(CONTIKI_CPU)/ldscripts
+LINKERSCRIPT = $(CPU_PART).ld
 #AROPTS   = rv
 CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles -ffunction-sections -fdata-sections
-LDFLAGS  += $(CFLAGS) -T $(LINKERSCRIPT) -Wl,-Map=$@.map -Wl,--gc-sections
+LDFLAGS  += $(CFLAGS) -Wl,-L$(LINKERSCRIPTPATH) -T $(LINKERSCRIPT) -Wl,-Map=$@.map -Wl,--gc-sections
 
 ### Setup directory search path for source files
 
