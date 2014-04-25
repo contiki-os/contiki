@@ -49,10 +49,22 @@ ieee_addr_cpy_to(uint8_t *dst, uint8_t len)
 
     memcpy(dst, &ieee_addr_hc[8 - len], len);
   } else {
-    /* Reading from Info Page, we need to invert byte order */
+    /* Verify if we detect TI OUI in fourth position. TI store the MAC @ on
+       two parts (4 bytes LSB first and 4 bytes MSB) in this case, we need
+       to flip the 2 parts */
     int i;
-    for(i = 0; i < len; i++) {
-      dst[i] = ((uint8_t *)IEEE_ADDR_LOCATION)[len - 1 - i];
+    uint8_t oui_ti[3] = IEEE_ADDR_OUI_TI;
+    if(((uint8_t *)IEEE_ADDR_LOCATION)[3] == oui_ti[0] && ((uint8_t *)IEEE_ADDR_LOCATION)[2] == oui_ti[1] && ((uint8_t *)IEEE_ADDR_LOCATION)[1] == oui_ti[2]) {
+      for(i = 0; i < len / 2; i++) {
+        dst[i] = ((uint8_t *)IEEE_ADDR_LOCATION)[len / 2 - 1 - i];
+      }
+      for(i = 0; i < len / 2; i++) {
+        dst[i + len / 2] = ((uint8_t *)IEEE_ADDR_LOCATION)[len - 1 - i];
+      }
+    } else {
+      for(i = 0; i < len; i++) {
+        dst[i] = ((uint8_t *)IEEE_ADDR_LOCATION)[len - 1 - i];
+      }
     }
   }
 
