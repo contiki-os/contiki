@@ -61,13 +61,6 @@
 #else /* CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION */
 #define WITH_PHASE_OPTIMIZATION      1
 #endif /* CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION */
-/* Two byte header added to allow recovery of padded short packets */
-/* Wireshark will not understand such packets at present */
-#ifdef CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
-#define WITH_CONTIKIMAC_HEADER       CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
-#else
-#define WITH_CONTIKIMAC_HEADER       1
-#endif
 /* More aggressive radio sleeping when channel is busy with other traffic */
 #ifndef WITH_FAST_SLEEP
 #define WITH_FAST_SLEEP              1
@@ -89,15 +82,6 @@
 #undef WITH_PHASE_OPTIMIZATION
 #define WITH_PHASE_OPTIMIZATION 0
 #endif
-
-#if WITH_CONTIKIMAC_HEADER
-#define CONTIKIMAC_ID 0x00
-
-struct hdr {
-  uint8_t id;
-  uint8_t len;
-};
-#endif /* WITH_CONTIKIMAC_HEADER */
 
 /* CYCLE_TIME for channel cca checks, in rtimer ticks. */
 #ifdef CONTIKIMAC_CONF_CYCLE_TIME
@@ -210,21 +194,6 @@ static int we_are_receiving_burst = 0;
 /* MAX_PHASE_STROBE_TIME is the time that we transmit repeated packets
    to a neighbor for which we have a phase lock. */
 #define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 60
-
-
-/* SHORTEST_PACKET_SIZE is the shortest packet that ContikiMAC
-   allows. Packets have to be a certain size to be able to be detected
-   by two consecutive CCA checks, and here is where we define this
-   shortest size.
-   Padded packets will have the wrong ipv6 checksum unless CONTIKIMAC_HEADER
-   is used (on both sides) and the receiver will ignore them.
-   With no header, reduce to transmit a proper multicast RPL DIS. */
-#ifdef CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE
-#define SHORTEST_PACKET_SIZE  CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE
-#else
-#define SHORTEST_PACKET_SIZE               43
-#endif
-
 
 #define ACK_LEN 3
 
@@ -528,7 +497,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
   rtimer_clock_t encounter_time = 0;
   int strobes;
   uint8_t got_strobe_ack = 0;
-  int hdrlen, len;
+  int len;
   uint8_t is_broadcast = 0;
   uint8_t is_reliable = 0;
   uint8_t is_known_receiver = 0;
@@ -537,10 +506,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
   int ret;
   uint8_t contikimac_was_on;
   uint8_t seqno;
-#if WITH_CONTIKIMAC_HEADER
-  struct hdr *chdr;
-#endif /* WITH_CONTIKIMAC_HEADER */
-
+  
   /* Exit if RDC and radio were explicitly turned off */
    if(!contikimac_is_on && !contikimac_keep_radio_on) {
     PRINTF("contikimac: radio is turned off\n");
@@ -583,63 +549,17 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
   is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
     packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
 
-  packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
-
-#if WITH_CONTIKIMAC_HEADER
-  hdrlen = packetbuf_totlen();
-  if(packetbuf_hdralloc(sizeof(struct hdr)) == 0) {
-    /* Failed to allocate space for contikimac header */
-    PRINTF("contikimac: send failed, too large header\n");
-    return MAC_TX_ERR_FATAL;
-  }
-  chdr = packetbuf_hdrptr();
-  chdr->id = CONTIKIMAC_ID;
-  chdr->len = hdrlen;
-  
-  /* Create the MAC header for the data packet. */
-  hdrlen = NETSTACK_FRAMER.create();
-  if(hdrlen < 0) {
-    /* Failed to send */
-    PRINTF("contikimac: send failed, too large header\n");
-    packetbuf_hdr_remove(sizeof(struct hdr));
-    return MAC_TX_ERR_FATAL;
-  }
-  hdrlen += sizeof(struct hdr);
-#else
-  /* Create the MAC header for the data packet. */
-  hdrlen = NETSTACK_FRAMER.create();
-  if(hdrlen < 0) {
-    /* Failed to send */
-    PRINTF("contikimac: send failed, too large header\n");
-    return MAC_TX_ERR_FATAL;
-  }
-#endif
-  packetbuf_compact();
-  
-  if(!NETSTACK_LLSEC.on_frame_created()) {
-    return MAC_TX_ERR_FATAL;
-  }
-  
-  /* Make sure that the packet is longer or equal to the shortest
-     packet length. */
-  transmit_len = packetbuf_totlen();
-  if(transmit_len < SHORTEST_PACKET_SIZE) {
-    /* Pad with zeroes */
-    uint8_t *ptr;
-    ptr = packetbuf_dataptr();
-    memset(ptr + packetbuf_datalen(), 0, SHORTEST_PACKET_SIZE - packetbuf_totlen());
-
-    PRINTF("contikimac: shorter than shortest (%d)\n", packetbuf_totlen());
-    transmit_len = SHORTEST_PACKET_SIZE;
+  if(!packetbuf_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED)) {
+    packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
+    if(NETSTACK_FRAMER.create_and_secure() < 0) {
+      PRINTF("contikimac: framer failed\n");
+      return MAC_TX_ERR_FATAL;
+    }
   }
   
   transmit_len = packetbuf_totlen();
-
   NETSTACK_RADIO.prepare(packetbuf_hdrptr(), transmit_len);
-
-  /* Remove the MAC-layer header since it will be recreated next time around. */
-  packetbuf_hdr_remove(hdrlen);
-
+  
   if(!is_broadcast && !is_receiver_awake) {
 #if WITH_PHASE_OPTIMIZATION
     ret = phase_wait(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
@@ -863,33 +783,55 @@ qsend_packet(mac_callback_t sent, void *ptr)
 static void
 qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 {
-  struct rdc_buf_list *curr = buf_list;
+  struct rdc_buf_list *curr;
   struct rdc_buf_list *next;
   int ret;
   int is_receiver_awake;
   
-  if(curr == NULL) {
+  if(buf_list == NULL) {
     return;
   }
   /* Do not send during reception of a burst */
   if(we_are_receiving_burst) {
     /* Prepare the packetbuf for callback */
-    queuebuf_to_packetbuf(curr->buf);
+    queuebuf_to_packetbuf(buf_list->buf);
     /* Return COLLISION so the MAC may try again later */
     mac_call_sent_callback(sent, ptr, MAC_TX_COLLISION, 1);
     return;
   }
+  
+  /* Create and secure frames in advance */
+  curr = buf_list;
+  do {
+    next = list_item_next(curr);
+    queuebuf_to_packetbuf(curr->buf);
+    if(!packetbuf_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED)) {
+      /* create and secure this frame */
+      if(next != NULL) {
+        packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 1);
+      }
+      packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
+      if(NETSTACK_FRAMER.create_and_secure() < 0) {
+        PRINTF("contikimac: framer failed\n");
+        mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
+        return;
+      }
+      
+      packetbuf_set_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED, 1);
+      queuebuf_update_from_packetbuf(curr->buf);
+    }
+    curr = next;
+  } while(next != NULL);
+  
   /* The receiver needs to be awoken before we send */
   is_receiver_awake = 0;
+  curr = buf_list;
   do { /* A loop sending a burst of packets from buf_list */
     next = list_item_next(curr);
 
     /* Prepare the packetbuf */
     queuebuf_to_packetbuf(curr->buf);
-    if(next != NULL) {
-      packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 1);
-    }
-
+    
     /* Send the current packet */
     ret = send_packet(sent, ptr, curr, is_receiver_awake);
     if(ret != MAC_TX_DEFERRED) {
@@ -906,7 +848,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
       /* The transmission failed, we stop the burst */
       next = NULL;
     }
-  } while(next != NULL);
+  } while((next != NULL) && packetbuf_attr(PACKETBUF_ATTR_PENDING));
 }
 /*---------------------------------------------------------------------------*/
 /* Timer callback triggered when receiving a burst, after having
@@ -930,18 +872,6 @@ input_packet(void)
   /*  printf("cycle_start 0x%02x 0x%02x\n", cycle_start, cycle_start % CYCLE_TIME);*/
 
   if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse() >= 0) {
-
-#if WITH_CONTIKIMAC_HEADER
-    struct hdr *chdr;
-    chdr = packetbuf_dataptr();
-    if(chdr->id != CONTIKIMAC_ID) {
-      PRINTF("contikimac: failed to parse hdr (%u)\n", packetbuf_totlen());
-      return;
-    }
-    packetbuf_hdrreduce(sizeof(struct hdr));
-    packetbuf_set_datalen(chdr->len);
-#endif /* WITH_CONTIKIMAC_HEADER */
-
     if(packetbuf_datalen() > 0 &&
        packetbuf_totlen() > 0 &&
        (linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
@@ -952,6 +882,8 @@ input_packet(void)
          broadcast address. */
 
       /* If FRAME_PENDING is set, we are receiving a packets in a burst */
+      /* TODO To prevent denial-of-sleep attacks, the transceiver should
+         be disabled upon receipt of an unauthentic frame. */
       we_are_receiving_burst = packetbuf_attr(PACKETBUF_ATTR_PENDING);
       if(we_are_receiving_burst) {
         on();

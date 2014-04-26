@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2014, Fraunhofer Heinrich-Hertz-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,16 @@
 
 /**
  * \file
- *         A MAC framer is responsible for constructing and parsing
- *         the header in MAC frames. At least the sender and receiver
- *         are required to be encoded in the MAC frame headers.
+ *         Creates and parses the ContikiMAC header.
  * \author
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef FRAMER_H_
-#define FRAMER_H_
+#ifndef CONTIKIMAC_FRAMER_H_
+#define CONTIKIMAC_FRAMER_H_
 
-#define FRAMER_FAILED -1
+#include "net/mac/framer.h"
 
-struct framer {
+extern const struct framer contikimac_framer;
 
-  int (* length)(void);
-  int (* create)(void);
-  
-  /** Creates the frame and calls LLSEC.on_frame_created() */
-  int (* create_and_secure)(void);
-  int (* parse)(void);
-
-};
-
-int framer_canonical_create_and_secure(void);
-
-#endif /* FRAMER_H_ */
+#endif /* CONTIKIMAC_FRAMER_H_ */

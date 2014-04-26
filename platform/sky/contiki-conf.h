@@ -48,7 +48,6 @@
    larger than a specified size, if no ContikiMAC header should be
    used. */
 #define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 63
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
 
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
