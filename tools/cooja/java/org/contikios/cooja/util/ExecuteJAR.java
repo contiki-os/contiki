@@ -187,7 +187,15 @@ public class ExecuteJAR {
 
     logger.info("Starting simulation");
     Cooja.setLookAndFeel();
-    Cooja.quickStartSimulationConfig(new File(executeDir, SIMCONFIG_FILENAME), false, null);
+    Simulation sim = Cooja.quickStartSimulationConfig(new File(executeDir, SIMCONFIG_FILENAME), false, null);
+    if (sim != null){
+        /* Set simulation speed to maximum and start simulation */
+        sim.setSpeedLimit(null);
+        sim.startSimulation();
+    } else {
+        logger.fatal("Cannot load simulation, aborting");
+        System.exit(1);
+    }
   }
 
   /**
@@ -284,7 +292,8 @@ public class ExecuteJAR {
 
     /* Unpacking COOJA core JARs */
     String[] coreJARs = new String[] {
-        "tools/cooja/lib/jdom.jar", "tools/cooja/lib/log4j.jar", "tools/cooja/dist/cooja.jar"
+        "tools/cooja/lib/jdom.jar", "tools/cooja/lib/log4j.jar",
+            "tools/cooja/dist/cooja.jar", "tools/cooja/lib/jsyntaxpane.jar"
     };
     for (String jar: coreJARs) {
       File jarFile = new File(Cooja.getExternalToolsSetting("PATH_CONTIKI"), jar);
