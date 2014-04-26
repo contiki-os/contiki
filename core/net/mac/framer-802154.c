@@ -273,5 +273,9 @@ parse(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct framer framer_802154 = {
-  hdr_length, create, parse
+  hdr_length,
+  create,
+  framer_canonical_create_and_secure,
+  parse
 };
+/*---------------------------------------------------------------------------*/
