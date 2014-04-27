@@ -144,21 +144,23 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     }
   }
 
+
+  
   public void updateSignalStrengths() {
 
-    /* Reset signal strengths */
+    /* Reset signal strengths (Default: SS_NOTHING) */
     for (Radio radio : getRegisteredRadios()) {
-      radio.setCurrentSignalStrength(SS_NOTHING);
+      radio.setCurrentSignalStrength(getBaseRssi(radio));
     }
 
     /* Set signal strengths */
     RadioConnection[] conns = getActiveConnections();
     for (RadioConnection conn : conns) {
-      /* When sending RSSI is Strong!
-       * TODO: is this reasonable
+      /*
+       * Set sending RSSI. (Default: SS_STRONG)
        */
-      if (conn.getSource().getCurrentSignalStrength() < SS_STRONG) {
-        conn.getSource().setCurrentSignalStrength(SS_STRONG);
+      if (conn.getSource().getCurrentSignalStrength() < getSendRssi(conn.getSource())) {
+        conn.getSource().setCurrentSignalStrength(getSendRssi(conn.getSource()));
       }
       //Maximum reception signal of all possible radios received
       DGRMDestinationRadio dstRadios[] =  getPotentialDestinations(conn.getSource());
@@ -311,10 +313,10 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
   }
 
   public Collection<Element> getConfigXML() {
-    ArrayList<Element> config = new ArrayList<Element>();
-    Element element;
+    Collection<Element> config = super.getConfigXML();
 
     for (Edge edge: getEdges()) {
+      Element element;
       element = new Element("edge");
       element.addContent(edge.getConfigXML());
       config.add(element);
@@ -325,6 +327,8 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
 
   private Collection<Element> delayedConfiguration = null;
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    super.setConfigXML(configXML, visAvailable);
+
     random = simulation.getRandomGenerator();
 
     /* Wait until simulation has been loaded */
@@ -336,6 +340,8 @@ public void simulationFinishedLoading() {
     if (delayedConfiguration == null) {
       return;
     }
+
+    super.simulationFinishedLoading();
 
     boolean oldConfig = false;
     for (Element element : delayedConfiguration) {

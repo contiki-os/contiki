@@ -31,8 +31,13 @@
 package org.contikios.cooja.radiomediums;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.WeakHashMap;
 
 import org.apache.log4j.Logger;
 
@@ -44,6 +49,7 @@ import org.contikios.cooja.Simulation;
 import org.contikios.cooja.TimeEvent;
 import org.contikios.cooja.interfaces.CustomDataRadio;
 import org.contikios.cooja.interfaces.Radio;
+import org.jdom.Element;
 
 /**
  * Abstract radio medium provides basic functionality for implementing radio
@@ -68,6 +74,8 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 	public static final double SS_NOTHING = -100;
 	public static final double SS_STRONG = -10;
 	public static final double SS_WEAK = -95;
+	protected Map<Radio, Double> baseRssi = java.util.Collections.synchronizedMap(new HashMap<Radio, Double>());
+	protected Map<Radio, Double> sendRssi = java.util.Collections.synchronizedMap(new HashMap<Radio, Double>());
 	
 	private ArrayList<Radio> registeredRadios = new ArrayList<Radio>();
 	
@@ -136,7 +144,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 		
 		/* Reset signal strengths */
 		for (Radio radio : getRegisteredRadios()) {
-			radio.setCurrentSignalStrength(SS_NOTHING);
+			radio.setCurrentSignalStrength(getBaseRssi(radio));
 		}
 		
 		/* Set signal strength to strong on destinations */
@@ -454,6 +462,68 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 		updateSignalStrengths();
 	}
 	
+	/**
+	* Get the RSSI value that is set when there is "silence"
+	* 
+	* @param radio
+	*          The radio to get the base RSSI for
+	* @return The base RSSI value; Default: SS_NOTHING
+	*/
+	public double getBaseRssi(Radio radio) {
+		Double rssi = baseRssi.get(radio);
+		if (rssi == null) {
+			rssi = SS_NOTHING;
+		}
+		return rssi;
+	}
+
+	/**
+	* Set the base RSSI for a radio. This value is set when there is "silence"
+	* 
+	* @param radio
+	*          The radio to set the RSSI value for
+	* @param rssi
+	*          The RSSI value to set during silence
+	*/
+	public void setBaseRssi(Radio radio, double rssi) {
+		baseRssi.put(radio, rssi);
+		simulation.invokeSimulationThread(new Runnable() {				
+			@Override
+			public void run() {
+				updateSignalStrengths();
+			}
+		});
+	}
+
+	
+	/**
+	* Get the minimum RSSI value that is set when the radio is sending
+	* 
+	* @param radio
+	*          The radio to get the send RSSI for
+	* @return The send RSSI value; Default: SS_STRONG
+	*/
+	public double getSendRssi(Radio radio) {
+		Double rssi = sendRssi.get(radio);
+		if (rssi == null) {
+			rssi = SS_STRONG;
+		}
+		return rssi;
+	}
+
+	/**
+	* Set the send RSSI for a radio. This is the minimum value when the radio is
+	* sending
+	* 
+	* @param radio
+	*          The radio to set the RSSI value for
+	* @param rssi
+	*          The minimum RSSI value to set when sending
+	*/
+	public void setSendRssi(Radio radio, double rssi) {
+		sendRssi.put(radio, rssi);
+	}
+	
 	public void addRadioMediumObserver(Observer observer) {
 		radioMediumObservable.addObserver(observer);
 	}
@@ -468,6 +538,47 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 	
 	public RadioConnection getLastConnection() {
 		return lastConnection;
+	}
+	public Collection<Element> getConfigXML() {
+		Collection<Element> config = new ArrayList<Element>();
+		for(Entry<Radio, Double> ent: baseRssi.entrySet()){
+			Element element = new Element("BaseRSSIConfig");
+			element.setAttribute("Mote", "" + ent.getKey().getMote().getID());
+			element.addContent("" + ent.getValue());
+			config.add(element);
+		}
+
+		for(Entry<Radio, Double> ent: sendRssi.entrySet()){
+			Element element = new Element("SendRSSIConfig");
+			element.setAttribute("Mote", "" + ent.getKey().getMote().getID());
+			element.addContent("" + ent.getValue());
+			config.add(element);
+		}
+
+		return config;
+	}
+	
+	private Collection<Element> delayedConfiguration = null;
+	
+	public boolean setConfigXML(final Collection<Element> configXML, boolean visAvailable) {
+		delayedConfiguration = configXML;
+		return true;
+	}
+	
+	public void simulationFinishedLoading() {
+		if (delayedConfiguration == null) {
+			return;
+		}
+
+		for (Element element : delayedConfiguration) {
+			if (element.getName().equals("BaseRSSIConfig")) {
+				Radio r = simulation.getMoteWithID(Integer.parseInt(element.getAttribute("Mote").getValue())).getInterfaces().getRadio();				
+				setBaseRssi(r, Double.parseDouble(element.getText()));
+			} else 	if (element.getName().equals("SendRSSIConfig")) {
+				Radio r = simulation.getMoteWithID(Integer.parseInt(element.getAttribute("Mote").getValue())).getInterfaces().getRadio();				
+				setSendRssi(r, Double.parseDouble(element.getText()));
+			} 
+		}
 	}
 
 }
