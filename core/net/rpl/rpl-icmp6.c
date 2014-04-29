@@ -652,7 +652,7 @@ dao_input(void)
       PRINTF("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
           DAG_RANK(parent->rank, instance), DAG_RANK(dag->rank, instance));
       parent->rank = INFINITE_RANK;
-      parent->updated = 1;
+      parent->flags |= RPL_PARENT_FLAG_UPDATED;
       return;
     }
 
@@ -660,7 +660,7 @@ dao_input(void)
     if(parent != NULL && parent == dag->preferred_parent) {
       PRINTF("RPL: Loop detected when receiving a unicast DAO from our parent\n");
       parent->rank = INFINITE_RANK;
-      parent->updated = 1;
+      parent->flags |= RPL_PARENT_FLAG_UPDATED;
       return;
     }
   }
