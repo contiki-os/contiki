@@ -13,7 +13,7 @@ before_script:
 
   ## Install toolchain for mc1233x, cc2538 and mbxxx in care-free way
   - "[ ${BUILD_ARCH:-0} = arm ] && curl -s \
-       https://raw.github.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
+       https://raw.githubusercontent.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
          | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version || true"
 
   ## Install RL78 GCC chain (following the instructions in platform/eval-adf7xxxmb4z/README.md)
@@ -23,13 +23,13 @@ before_script:
 
   ## Install SDCC from a purpose-built bundle
   - "[ ${BUILD_ARCH:-0} = 8051 ] && curl -s \
-       https://raw.github.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc.tar.gz \
+       https://raw.githubusercontent.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc.tar.gz \
          | tar xzf - -C /tmp/ && sudo cp -f -r /tmp/sdcc/* /usr/local/ && rm -rf /tmp/sdcc && sdcc --version || true"
   - "[ ${BUILD_ARCH:-0} = 8051 ] && sudo apt-get -qq install srecord || true"
 
   ## Clone and build cc65 when testing 6502 ports
   - "[ ${BUILD_ARCH:-0} = 6502 ] && git clone \
-       https://github.com/oliverschmidt/cc65 /tmp/cc65 && \
+       https://github.com/cc65/cc65 /tmp/cc65 && \
        make -C /tmp/cc65 bin apple2enh atarixl c64 c128 && sudo make -C /tmp/cc65 avail && \
        export CC65_HOME=/tmp/cc65/ && cc65 --version || true"
 

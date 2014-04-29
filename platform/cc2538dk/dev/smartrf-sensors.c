@@ -42,12 +42,13 @@
  */
 #include "contiki.h"
 #include "dev/button-sensor.h"
+#include "dev/adc-sensor.h"
 
 #include <string.h>
 
 /** \brief Exports a global symbol to be used by the sensor API */
 SENSORS(&button_select_sensor, &button_left_sensor, &button_right_sensor,
-        &button_up_sensor, &button_down_sensor);
+        &button_up_sensor, &button_down_sensor, &adc_sensor);
 
 /**
  * @}

@@ -8,7 +8,8 @@ CONTIKI_TARGET_DIRS = . dev
 
 CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
-CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c button-sensor.c
+CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c
+CONTIKI_TARGET_SOURCEFILES += button-sensor.c adc-sensor.c
 
 TARGET_START_SOURCEFILES += startup-gcc.c
 TARGET_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(TARGET_START_SOURCEFILES)}}
@@ -28,3 +29,12 @@ include $(CONTIKI_CPU)/Makefile.cc2538
 
 MODULES += core/net core/net/ipv6 core/net/mac core/net/ip \
            core/net/rpl core/net/rime core/net/mac/contikimac
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
+%.upload: %.bin
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	python $(BSL) -e -w -v $<
+endif

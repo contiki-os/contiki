@@ -82,10 +82,11 @@ void spi_init(void);
   } while(0)
 
 /* Flush the SPI read register */
+#ifndef SPI_FLUSH
 #define SPI_FLUSH() \
   do {              \
     SPI_RXBUF;      \
   } while(0);
-
+#endif
 
 #endif /* SPI_H_ */
