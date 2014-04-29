@@ -260,7 +260,7 @@ rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
       if(parent != NULL) {
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_link_neighbor_callback triggering update\n");
-        parent->updated = 1;
+        parent->flags |= RPL_PARENT_FLAG_UPDATED;
         if(instance->of->neighbor_link_callback != NULL) {
           instance->of->neighbor_link_callback(parent, status, numtx);
         }
@@ -286,7 +286,7 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
         p->rank = INFINITE_RANK;
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_ipv6_neighbor_callback infinite rank\n");
-        p->updated = 1;
+        p->flags |= RPL_PARENT_FLAG_UPDATED;
       }
     }
   }
