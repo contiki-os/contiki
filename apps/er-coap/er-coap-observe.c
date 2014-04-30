@@ -75,8 +75,9 @@ coap_add_observer(uip_ipaddr_t *addr, uint16_t port, const uint8_t *token,
     memcpy(o->token, token, token_len);
     o->last_mid = 0;
 
-    PRINTF("Adding observer for /%s [0x%02X%02X]\n", o->url, o->token[0],
-           o->token[1]);
+    PRINTF("Adding observer (%u/%u) for /%s [0x%02X%02X]\n",
+           list_length(observers_list) + 1, COAP_MAX_OBSERVERS,
+           o->url, o->token[0], o->token[1]);
     list_add(observers_list, o);
   }
 
@@ -192,8 +193,12 @@ coap_notify_observers(resource_t *resource)
 
       /*TODO implement special transaction for CON, sharing the same buffer to allow for more observers */
 
-      if((transaction =
-            coap_new_transaction(coap_get_mid(), &obs->addr, obs->port))) {
+      if((transaction = coap_new_transaction(coap_get_mid(), &obs->addr, obs->port))) {
+        if (obs->obs_counter % COAP_OBSERVE_REFRESH_INTERVAL == 0) {
+          PRINTF("           Force Confirmable for\n");
+          notification->type = COAP_TYPE_CON;
+        }
+
         PRINTF("           Observer ");
         PRINT6ADDR(&obs->addr);
         PRINTF(":%u\n", obs->port);
@@ -212,8 +217,6 @@ coap_notify_observers(resource_t *resource)
           coap_set_header_observe(notification, (obs->obs_counter)++);
         }
         coap_set_token(notification, obs->token, obs->token_len);
-
-        /* TODO use resource-specific COAP_OBSERVE_REFRESH_INTERVAL for CON to check client interest */
 
         transaction->packet_len =
           coap_serialize_message(notification, transaction->packet);
@@ -240,14 +243,17 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
                            resource->url)) {
         coap_set_header_observe(coap_res, 0);
         /*
-         * for demonstration purposes only. A subscription should return the same representation as a normal GET
-         * FIXME comment the following command for any real application
+         * Following payload is for demonstration purposes only.
+         * A subscription should return the same representation as a normal GET.
+         * Uncomment if you want an information about the avaiable observers.
          */
-        coap_set_payload(coap_res,
-                         content,
-                         snprintf(content, sizeof(content), "Added %u/%u",
-                                  list_length(observers_list),
-                                  COAP_MAX_OBSERVERS));
+        /*
+         * coap_set_payload(coap_res,
+         *                  content,
+         *                  snprintf(content, sizeof(content), "Added %u/%u",
+         *                           list_length(observers_list),
+         *                           COAP_MAX_OBSERVERS));
+         */
       } else {
         coap_res->code = SERVICE_UNAVAILABLE_5_03;
         coap_set_payload(coap_res, "TooManyObservers", 16);
