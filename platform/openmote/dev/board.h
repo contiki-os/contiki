@@ -97,22 +97,21 @@
  * - CTS: PB0 (Can only be used with UART1)
  * - RTS: PD3 (Can only be used with UART1)
  *
- * We configure the port to use UART0. To use UART1, change UART_CONF_BASE
+ * We configure the port to use UART0. To use UART1, replace UART0_* with
+ * UART1_* below.
  * @{
  */
-#define UART_CONF_BASE           UART_0_BASE
+#define UART0_RX_PORT            GPIO_A_NUM
+#define UART0_RX_PIN             0
 
-#define UART_RX_PORT             GPIO_A_NUM
-#define UART_RX_PIN              0
+#define UART0_TX_PORT            GPIO_A_NUM
+#define UART0_TX_PIN             1
 
-#define UART_TX_PORT             GPIO_A_NUM
-#define UART_TX_PIN              1
+#define UART1_CTS_PORT           GPIO_B_NUM
+#define UART1_CTS_PIN            0
 
-#define UART_CTS_PORT            GPIO_B_NUM
-#define UART_CTS_PIN             0
-
-#define UART_RTS_PORT            GPIO_D_NUM
-#define UART_RTS_PIN             3
+#define UART1_RTS_PORT           GPIO_D_NUM
+#define UART1_RTS_PIN            3
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name OpenMote Button configuration
