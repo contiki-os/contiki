@@ -33,7 +33,7 @@
 ;
 ;---------------------------------------------------------------------
 
-	.segment	"JUMPTABLE"
+	.segment	"HEADER"
 
 	; Driver signature
 	.byte	$65, $74, $68	; "eth"
