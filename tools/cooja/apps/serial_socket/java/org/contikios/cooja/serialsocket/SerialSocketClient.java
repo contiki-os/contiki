@@ -115,10 +115,12 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
   private DataOutputStream out;
 
   private final Mote mote;
+  private final Simulation simulation;
 
   public SerialSocketClient(Mote mote, Simulation simulation, final Cooja gui) {
     super("Serial Socket (CLIENT) (" + mote + ")", gui, false);
     this.mote = mote;
+    this.simulation = simulation;
 
     /* GUI components */
     if (Cooja.isVisualized()) {
@@ -411,9 +413,19 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
           }
 
           if (numRead >= 0) {
-            for (int i = 0; i < numRead; i++) {
-              serialPort.writeByte(data[i]);
-            }
+            final int finalNumRead = numRead;
+            final byte[] finalData = data;
+            /* We are not on the simulation thread */
+            simulation.invokeSimulationThread(new Runnable() {
+
+              @Override
+              public void run() {
+                for (int i = 0; i < finalNumRead; i++) {
+                  serialPort.writeByte(finalData[i]);
+                }
+              }
+            });
+
             inBytes += numRead;
             if (Cooja.isVisualized()) {
               socketToMoteLabel.setText(inBytes + " bytes");
