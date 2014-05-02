@@ -94,6 +94,7 @@ import org.contikios.cooja.Simulation;
 import org.contikios.cooja.VisPlugin;
 import org.contikios.cooja.dialogs.TableColumnAdjuster;
 import org.contikios.cooja.interfaces.Radio;
+import org.contikios.cooja.plugins.analyzers.FragHeadPacketAnalyzer;
 import org.contikios.cooja.plugins.analyzers.ICMPv6Analyzer;
 import org.contikios.cooja.plugins.analyzers.IEEE802154Analyzer;
 import org.contikios.cooja.plugins.analyzers.IPHCPacketAnalyzer;
@@ -172,6 +173,7 @@ public class RadioLogger extends VisPlugin {
 
     ArrayList<PacketAnalyzer> lowpanAnalyzers = new ArrayList<PacketAnalyzer>();
     lowpanAnalyzers.add(new IEEE802154Analyzer(false));
+    lowpanAnalyzers.add(new FragHeadPacketAnalyzer());
     lowpanAnalyzers.add(new IPHCPacketAnalyzer());
     lowpanAnalyzers.add(new IPv6PacketAnalyzer());
     lowpanAnalyzers.add(new ICMPv6Analyzer());
@@ -179,6 +181,7 @@ public class RadioLogger extends VisPlugin {
     analyzerWithPcap = new IEEE802154Analyzer(true);
     ArrayList<PacketAnalyzer> lowpanAnalyzersPcap = new ArrayList<PacketAnalyzer>();
     lowpanAnalyzersPcap.add(analyzerWithPcap);
+    lowpanAnalyzersPcap.add(new FragHeadPacketAnalyzer());
     lowpanAnalyzersPcap.add(new IPHCPacketAnalyzer());
     lowpanAnalyzersPcap.add(new IPv6PacketAnalyzer());
     lowpanAnalyzersPcap.add(new ICMPv6Analyzer());
