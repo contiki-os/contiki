@@ -31,6 +31,8 @@ llwu_init()
   /* Setup Low Leakage Wake-up Unit (LLWU) */
   SIM_SCGC4 |= SIM_SCGC4_LLWU_MASK;   /* Enable LLWU clock gate */
 
+#if K60_CPU_REV == 1
+
   /* Select low power mode Low Leakage Stop (LLS) */
 
   /* Clear LLS protection */
@@ -38,6 +40,15 @@ llwu_init()
 
   /* Enable Low Power Wake Up Interrupt and LLS */
   MC_PMCTRL = MC_PMCTRL_LPWUI_MASK | MC_PMCTRL_LPLLSM(0b011);
+#else
+  /* Mode Controller changed name to System Mode Controller (SMC) in rev 2 */
+
+  /* Clear LLS protection */
+  SMC_PMPROT |= SMC_PMPROT_ALLS_MASK;
+
+  /* Enable Low Power Wake Up Interrupt and LLS */
+  SMC_PMCTRL = SMC_PMCTRL_LPWUI_MASK | SMC_PMCTRL_STOPM(0b011);
+#endif
 
   update_llwu();
   /** \todo Symbolic names for NVIC IRQ flags */

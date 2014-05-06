@@ -45,6 +45,10 @@
 /* K60 CPU silicon version 2.x */
 #include "MK60D10.h"
 
+/* These definitions are missing from the rev 2.x header, although they are
+ * defined in the reference manual... */
+#define SIM_SCGC4_LLWU_MASK                      0x10000000u
+#define SIM_SCGC4_LLWU_SHIFT                     28
 
 #elif K60_CPU_REV == 1
 
