@@ -32,35 +32,45 @@ enum spi_transfer_flag_t
 
 void spi_init(void)
 {
-//  // Setup PORTC
-//  SIM_SCGC5  |= SIM_SCGC5_PORTC_MASK;
-//
-//  PORTC_PCR5 |= 0x0200; // 5 CLK
-//  PORTC_PCR6 |= 0x0200; // 6 MOSI
-//  PORTC_PCR7 |= 0x0200; // 7 MISO
-//
-//  PORTC_PCR1 |= 0x0200; // Flash CS 1
-//  PORTC_PCR2 |= 0x0200; // Flash CS 2
-//  PORTC_PCR3 |= 0x0200; // Flash CS 3
-//  PORTC_PCR4 |= 0x0200; // Flash CS 4
-//
-//  // Setup SPI0
-//  SIM_SCGC6 |= SIM_SCGC6_DSPI0_MASK;
-//  // TODO(henrik) Check clock speeds
-//  SPI0_CTAR0 = 0xb8000005;
-//  SPI0_MCR   = 0x803F3000;
+#if 0
+  // Setup PORTC
+  SIM_SCGC5  |= SIM_SCGC5_PORTC_MASK;
+
+  PORTC_PCR5 |= 0x0200; // 5 CLK
+  PORTC_PCR6 |= 0x0200; // 6 MOSI
+  PORTC_PCR7 |= 0x0200; // 7 MISO
+
+  PORTC_PCR1 |= 0x0200; // Flash CS 1
+  PORTC_PCR2 |= 0x0200; // Flash CS 2
+  PORTC_PCR3 |= 0x0200; // Flash CS 3
+  PORTC_PCR4 |= 0x0200; // Flash CS 4
+
+  // Setup SPI0
+  SIM_SCGC6 |= SIM_SCGC6_DSPI0_MASK;
+  // TODO(henrik) Check clock speeds
+  SPI0_CTAR0 = 0xb8000005;
+  SPI0_MCR   = 0x803F3000;
+#endif
   SIM_SCGC5  |= SIM_SCGC5_PORTD_MASK;
-  PORTD_PCR5 |= 0x0200; /* SPI0_PCS2 */
-  PORTD_PCR2 |= 0x0200; /* SPI0_MOSI */
-  PORTD_PCR1 |= 0x0200; /* SPI0_SCLK */
-  PORTD_PCR3 |= 0x0200; /* SPI0_MISO */
+  PORTD_PCR5 = PORT_PCR_MUX(2); /* SPI0_PCS2 */
+  PORTD_PCR2 = PORT_PCR_MUX(2); /* SPI0_MOSI */
+  PORTD_PCR1 = PORT_PCR_MUX(2); /* SPI0_SCLK */
+  PORTD_PCR3 = PORT_PCR_MUX(2); /* SPI0_MISO */
 
   /* Enable clock gate for SPI0 module */
-  SIM_SCGC6 |= SIM_SCGC6_DSPI0_MASK;
+  SIM_SCGC6 |= SIM_SCGC6_SPI0_MASK;
 
-  /* Configure SPI1 */
-  SPI0_MCR   = 0x803F3000;
-  SPI0_CTAR0 = 0x38002224; /* TODO: Should be able to speed up */
+  /* Configure SPI0 */
+  /* Master mode */
+  /* all peripheral chip select signals are active low */
+  /* Disable TX,RX FIFO */
+  SPI0_MCR = SPI_MCR_MSTR_MASK | SPI_MCR_PCSIS(0x1F) | SPI_MCR_DIS_RXF_MASK | SPI_MCR_DIS_TXF_MASK;     /* 0x803F3000; */
+  /* 8 bit frame size */
+  /* Set up different delays and clock scalers */
+  /* TODO: These need tuning */
+  /* FIXME: Coordinate SPI0 parameters between different peripheral drivers */
+  /* IMPORTANT: Clock polarity is active low! */
+  SPI0_CTAR0 = SPI_CTAR_FMSZ(7) | SPI_CTAR_CSSCK(2) | SPI_CTAR_ASC(2) | SPI_CTAR_DT(2) | SPI_CTAR_BR(4); /*0x38002224; *//* TODO: Should be able to speed up */
 }
 
 void spi_write(uint32_t cs, enum spi_transfer_flag_t cont, uint32_t data)
