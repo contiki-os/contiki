@@ -28,14 +28,20 @@ void
 llwu_init()
 {
   list_init(llwu);
-  // Setup Low Leakage Wake-up Unit (LLWU)
-  SIM_SCGC4 |= SIM_SCGC4_LLWU_MASK;   // Enable LLWU clock gate
+  /* Setup Low Leakage Wake-up Unit (LLWU) */
+  SIM_SCGC4 |= SIM_SCGC4_LLWU_MASK;   /* Enable LLWU clock gate */
 
-  // Select low power mode Low Leakage Stop (LLS)
-  MC_PMPROT = 0x10;       // Clear LLS protection
-  MC_PMCTRL = 0x83;       // LLS
+  /* Select low power mode Low Leakage Stop (LLS) */
+
+  /* Clear LLS protection */
+  MC_PMPROT |= MC_PMPROT_ALLS_MASK;
+
+  /* Enable Low Power Wake Up Interrupt and LLS */
+  MC_PMCTRL = MC_PMCTRL_LPWUI_MASK | MC_PMCTRL_LPLLSM(0b011);
+
   update_llwu();
-  NVICISER0 |= 0x00200000;        // Enable LLWU interrupt
+  /** \todo Symbolic names for NVIC IRQ flags */
+  NVICISER0 |= NVIC_ISER_SETENA(1 << 21); /* Enable LLWU interrupt */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -72,7 +78,7 @@ update_llwu()
 void
 llwu_sleep(void) {
   PRINTF("LLWU: sleep %u....\n", allow_deep_sleep);
-  SCB_SCR   = (SCB_SCR & ~0x04) | (allow_deep_sleep << 2);
+  SCB_SCR = (SCB_SCR & ~SCB_SCR_SLEEPDEEP_MASK) | (allow_deep_sleep << SCB_SCR_SLEEPDEEP_SHIFT);
   asm("WFI");
 }
 /*---------------------------------------------------------------------------*/
@@ -90,6 +96,6 @@ llwu_enable_disable_source(enum LLWU_WAKEUP_SOURCE s)
 
 void __attribute__((interrupt)) _isr_llwu(void)
 {
-  LLWU_F1 |= 0x80;
+  LLWU_F1 |= LLWU_F1_WUF7_MASK;
   PRINTF("LLWU: interrupt\n");
 }
