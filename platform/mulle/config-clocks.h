@@ -38,47 +38,22 @@
  */
 
 /**
- * CPU core frequency resulting from the chosen divisors and multipliers.
- */
-#define F_CPU 96000000
-
-/**
- * System frequency resulting from the chosen divisors and multipliers.
- */
-#define F_SYS 96000000
-
-/**
- * Bus frequency resulting from the chosen divisors and multipliers.
- */
-#define F_BUS 48000000
-
-/**
- * FlexBus frequency resulting from the chosen divisors and multipliers.
- */
-#define F_FLEXBUS 48000000
-
-/**
- * Flash frequency resulting from the chosen divisors and multipliers.
- */
-#define F_FLASH 24000000
-
-/**
- * System clock divider setting, see reference manual for details
+ * System clock divider setting, the actual hardware register value, see reference manual for details.
  */
 #define CONFIG_CLOCK_K60_SYS_DIV 0x00
 
 /**
- * Bus clock divider setting, see reference manual for details
+ * Bus clock divider setting, the actual hardware register value, see reference manual for details
  */
 #define CONFIG_CLOCK_K60_BUS_DIV 0x01
 
 /**
- * Flexbus clock divider setting, see reference manual for details
+ * Flexbus clock divider setting, the actual hardware register value, see reference manual for details
  */
 #define CONFIG_CLOCK_K60_FB_DIV 0x01
 
 /**
- * Flash clock divider setting, see reference manual for details
+ * Flash clock divider setting, the actual hardware register value, see reference manual for details
  */
 #define CONFIG_CLOCK_K60_FLASH_DIV 0x03
 
@@ -92,4 +67,28 @@
  */
 #define CONFIG_CLOCK_K60_FLL_MCG_C4_DMX32 1
 
+/**
+ * CPU core frequency resulting from the chosen divisors and multipliers.
+ */
+#define F_CPU 96000000
+
+/**
+ * System frequency resulting from the chosen divisors and multipliers.
+ */
+#define F_SYS (F_CPU / (CONFIG_CLOCK_K60_SYS_DIV + 1))
+
+/**
+ * Bus frequency resulting from the chosen divisors and multipliers.
+ */
+#define F_BUS (F_CPU / (CONFIG_CLOCK_K60_BUS_DIV + 1))
+
+/**
+ * FlexBus frequency resulting from the chosen divisors and multipliers.
+ */
+#define F_FLEXBUS (F_CPU / (CONFIG_CLOCK_K60_FB_DIV + 1))
+
+/**
+ * Flash frequency resulting from the chosen divisors and multipliers.
+ */
+#define F_FLASH (F_CPU / (CONFIG_CLOCK_K60_FLASH_DIV + 1))
 
