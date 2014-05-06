@@ -490,10 +490,6 @@ enum flash_error_t flash_init(void)
 
   SIM_SCGC5  |= SIM_SCGC5_PORTD_MASK;
 
-  PORTD_PCR7 |= 0x0100;     // Vp
-  GPIOD_PDDR |= 0x0080; /* Setup PTD7 (Vp) as output */
-  GPIOD_PSOR = (1<<7);
-
   spi_init();
   {
     // Wait a while for memories to start
