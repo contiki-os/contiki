@@ -50,6 +50,10 @@
 #define SIM_SCGC4_LLWU_MASK                      0x10000000u
 #define SIM_SCGC4_LLWU_SHIFT                     28
 
+/** The expected CPUID value, can be used to implement a check that we are
+ * running on the right hardware */
+#define K60_EXPECTED_CPUID 0x410fc241u
+
 #elif K60_CPU_REV == 1
 
 /* K60 CPU silicon version 1.x */
@@ -61,10 +65,15 @@
 #define SIM_SCGC6_SPI0_MASK SIM_SCGC6_DSPI0_MASK
 #define SIM_SCGC6_SPI0_SHIFT SIM_SCGC6_DSPI0_SHIFT
 
+/** The expected CPUID value, can be used to implement a check that we are
+ * running on the right hardware */
+#define K60_EXPECTED_CPUID 0x410fc240u
 
 #else
 #error K60_CPU_REV must be set to the correct CPU revision!
 #endif
+
+#define K60_RUNNING_CPU_REVISION (SCB_CPUID & SCB_CPUID_REVISION_MASK)
 
 /*
  * Baud rate generator is driven by the System clock (UART0, UART1) or bus

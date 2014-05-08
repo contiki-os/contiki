@@ -61,6 +61,20 @@ void core_clocks_init(void)
 {
     /* System clock initialization */
 
+    /* Check that the running CPU revision matches the compiled revision */
+    if (SCB_CPUID != K60_EXPECTED_CPUID)
+    {
+        uint32_t CPUID = SCB_CPUID; /* This is only to ease debugging, type
+                                     * "print /x CPUID" in gdb */
+        (void)CPUID; /* prevents compiler warnings about an unused variable. */
+
+        /* Running on the wrong CPU, the clock initialization is different
+         * between silicon revision 1.x and 2.x (LSB of CPUID) */
+        /* Rebuild the code using the right value for K60_CPU_REV */
+        __asm("bkpt #99\n");
+        while(1);
+    }
+
     /* Set clock prescalers to safe values */
     /*
      * We want to achieve the following clocks:
