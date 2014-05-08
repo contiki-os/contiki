@@ -270,6 +270,7 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   dag->version = version;
   dag->joined = 1;
   dag->grounded = RPL_GROUNDED;
+  dag->preference = RPL_PREFERENCE;
   instance->mop = RPL_MOP_DEFAULT;
   instance->of = &RPL_OF;
   rpl_set_preferred_parent(dag, NULL);
@@ -712,7 +713,7 @@ best_parent(rpl_dag_t *dag)
 
   p = nbr_table_head(rpl_parents);
   while(p != NULL) {
-    if(p->rank == INFINITE_RANK) {
+    if(p->dag != dag || p->rank == INFINITE_RANK) {
       /* ignore this neighbor */
     } else if(best == NULL) {
       best = p;

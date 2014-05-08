@@ -276,7 +276,7 @@ public class UDGM extends AbstractRadioMedium {
     
     /* Reset signal strengths */
     for (Radio radio : getRegisteredRadios()) {
-      radio.setCurrentSignalStrength(SS_NOTHING);
+      radio.setCurrentSignalStrength(getBaseRssi(radio));
     }
 
     /* Set signal strength to below strong on destinations */
@@ -341,7 +341,7 @@ public class UDGM extends AbstractRadioMedium {
   }
 
   public Collection<Element> getConfigXML() {
-    ArrayList<Element> config = new ArrayList<Element>();
+    Collection<Element> config = super.getConfigXML();
     Element element;
 
     /* Transmitting range */
@@ -368,6 +368,7 @@ public class UDGM extends AbstractRadioMedium {
   }
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    super.setConfigXML(configXML, visAvailable);
     for (Element element : configXML) {
       if (element.getName().equals("transmitting_range")) {
         TRANSMITTING_RANGE = Double.parseDouble(element.getText());

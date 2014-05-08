@@ -234,6 +234,7 @@ class LowLevel:
     BSL_ERASE               = 0x16 #Erase one segment
     BSL_MERAS               = 0x18 #Erase complete FLASH memory
     BSL_CHANGEBAUD          = 0x20 #Change baudrate
+    BSL_SETMEMOFFSET        = 0x21 #Set memory offset
     BSL_LOADPC              = 0x1A #Load PC and start execution
     BSL_TXVERSION           = 0x1E #Get BSL version
 
@@ -806,6 +807,7 @@ class Memory:
         segmentdata = []
         currentAddr = 0
         startAddr   = 0
+        offsetAddr  = 0
         lines = file.readlines()
         for l in lines:
             if l[0] != ':': raise BSLException("File Format Error\n")
@@ -815,20 +817,31 @@ class Memory:
             type    = int(l[7:9],16)
             check   = int(l[-2:],16)
             if type == 0x00:
-                if currentAddr != address:
+                if currentAddr != offsetAddr + address:
                     if segmentdata:
                         self.segments.append( Segment(startAddr, string.join(segmentdata,'')) )
-                    startAddr = currentAddr = address
+                    startAddr = currentAddr = offsetAddr + address
                     segmentdata = []
                 for i in range(length):
                     segmentdata.append( chr(int(l[9+2*i:11+2*i],16)) )
                 currentAddr = length + currentAddr
-            elif type in (0x01, 0x02, 0x03, 0x04, 0x05):
+            elif type == 0x02:
+                if segmentdata:
+                    self.segments.append( Segment(startAddr, string.join(segmentdata,'')) )
+                offsetAddr = int(l[9:13],16)*16
+                startAddr = currentAddr = offsetAddr
+                segmentdata = []
+            elif type in (0x01, 0x03, 0x04, 0x05):
                 pass
             else:
                 sys.stderr.write("Ignored unknown field (type 0x%02x) in ihex file.\n" % type)
         if segmentdata:
             self.segments.append( Segment(startAddr, string.join(segmentdata,'')) )
+
+        if DEBUG:
+            sys.stderr.write("loadIHex\n")
+            for segment in self.segments:
+                sys.stderr.write("  Segment(startadress = 0x%04x, len = %i)\n" % (segment.startaddress, len(segment)))
 
     def loadTIText(self, file):
         """load data from a (opened) file in TI-Text format"""
@@ -1012,6 +1025,11 @@ class BootStrapLoader(LowLevel):
         if DEBUG > 1: sys.stderr.write("* programData()\n")
         for seg in segments:
             currentAddr = seg.startaddress
+            offsetAddr = 0
+            if (seg.startaddress > 0xFFFF):
+                offsetAddr = seg.startaddress >> 16
+                self.bslTxRx(self.BSL_SETMEMOFFSET, 0, offsetAddr)
+                currentAddr = currentAddr - (offsetAddr << 16)
             pstart = 0
             while pstart<len(seg.data):
                 length = self.MAXDATA
