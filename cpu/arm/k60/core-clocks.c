@@ -66,11 +66,14 @@ void core_clocks_init(void)
     {
         uint32_t CPUID = SCB_CPUID; /* This is only to ease debugging, type
                                      * "print /x CPUID" in gdb */
+        uint32_t SILICON_REVISION = K60_RUNNING_CPU_REVISION + 1;
         (void)CPUID; /* prevents compiler warnings about an unused variable. */
+        (void)SILICON_REVISION;
 
         /* Running on the wrong CPU, the clock initialization is different
          * between silicon revision 1.x and 2.x (LSB of CPUID) */
-        /* Rebuild the code using the right value for K60_CPU_REV */
+        /* If you unexpectedly end up on this line when debugging:
+         * Rebuild the code using the correct value for K60_CPU_REV */
         __asm("bkpt #99\n");
         while(1);
     }
