@@ -520,6 +520,7 @@ tun_alloc(char *dev, int tap)
   int fd, err;
 
   if( (fd = open("/dev/net/tun", O_RDWR)) < 0 ) {
+    perror("can not open /dev/net/tun");
     return -1;
   }
 
@@ -536,8 +537,12 @@ tun_alloc(char *dev, int tap)
 
   if((err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ) {
     close(fd);
+    fprintf(stderr, "can not tunsetiff to %s (flags=%08x): %s\n", dev, ifr.ifr_flags,
+            strerror(errno));
     return err;
   }
+
+  /* get resulting tunnel name */
   strcpy(dev, ifr.ifr_name);
   return fd;
 }
@@ -932,7 +937,7 @@ exit(1);
   if(inslip == NULL) err(1, "main: fdopen");
 
   tunfd = tun_alloc(tundev, tap);
-  if(tunfd == -1) err(1, "main: open");
+  if(tunfd == -1) err(1, "main: open /dev/tun");
   if (timestamp) stamptime();
   fprintf(stderr, "opened %s device ``/dev/%s''\n",
           tap ? "tap" : "tun", tundev);
