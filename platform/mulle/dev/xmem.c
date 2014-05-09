@@ -20,7 +20,7 @@ void xmem_init(void)
 
 int xmem_pread(void *buf, int nbytes, unsigned long offset)
 {
-  enum flash_error_t r;
+  flash_error_t r;
   MK60_ENTER_CRITICAL_REGION();
   r = flash_readi(FLASH_ID0, offset, buf, nbytes, FLASH_WAIT);
   MK60_LEAVE_CRITICAL_REGION();
@@ -33,7 +33,7 @@ int xmem_pread(void *buf, int nbytes, unsigned long offset)
 
 int xmem_pwrite(const void *buf, int nbytes, unsigned long offset)
 {
-  enum flash_error_t r;
+  flash_error_t r;
   MK60_ENTER_CRITICAL_REGION();
   r = flash_writei(FLASH_ID0, offset, (uint8_t *)buf, nbytes, FLASH_WAIT | FLASH_FINISH);
   MK60_LEAVE_CRITICAL_REGION();
@@ -62,7 +62,7 @@ int xmem_erase(long nbytes, unsigned long offset)
   first = offset/FLASH_SECTOR_SIZE;
   for (i = first; i < (first+nbytes/FLASH_SECTOR_SIZE); ++i)
   {
-    enum flash_error_t r;
+    flash_error_t r;
     MK60_ENTER_CRITICAL_REGION();
     r = flash_erase_sector(FLASH_ID0, i, FLASH_WAIT|FLASH_FINISH);
     MK60_LEAVE_CRITICAL_REGION();

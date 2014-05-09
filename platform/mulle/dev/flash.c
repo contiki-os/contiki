@@ -23,12 +23,21 @@
 
 /* ************************************************************************** */
 
+/** \todo move FLASH_CTAS to spi abstraction consolidation file. */
+#define FLASH_CTAS 0
+
 // Spi functions
-enum spi_transfer_flag_t
+typedef enum spi_transfer_flag
 {
-  SPI_TRANSFER_DONE	= 0,
-  SPI_TRANSFER_CONT	= 1
-};
+  SPI_TRANSFER_DONE = 0,
+  SPI_TRANSFER_CONT = 1
+} spi_transfer_flag_t;
+
+typedef enum spi_transfer_sync
+{
+  SPI_TRANSFER_ASYNC = 0,
+  SPI_TRANSFER_BLOCKING = 1
+} spi_transfer_sync_t;
 
 void spi_init(void)
 {
@@ -73,26 +82,51 @@ void spi_init(void)
   SPI0_CTAR0 = SPI_CTAR_FMSZ(7) | SPI_CTAR_CSSCK(2) | SPI_CTAR_ASC(2) | SPI_CTAR_DT(2) | SPI_CTAR_BR(4); /*0x38002224; *//* TODO: Should be able to speed up */
 }
 
-void spi_write(uint32_t cs, enum spi_transfer_flag_t cont, uint32_t data)
+/**
+ * Perform a one byte transfer over SPI.
+ *
+ * \param ctas The CTAS register to use for timing information (0 or 1)
+ * \param cs The chip select pins to assert. Bitmask, not PCS number.
+ * \param cont Whether to keep asserting the chip select pin after the current transfer ends.
+ * \param data The data to write to the slave.
+ * \param blocking If set to SPI_TRANSFER_BLOCKING, wait until all bits have been transferred before returning.
+ * \return The byte received from the slave during the same transfer.
+ *
+ * \note There is no need for separate read and write functions, since SPI transfers work like a shift register (one bit out, one bit in.)
+ *
+ * \todo Make SPI abstraction standalone.
+ */
+static uint8_t
+spi_transfer(const uint8_t ctas, const uint32_t cs,
+             const spi_transfer_flag_t cont, const uint32_t data,
+             const spi_transfer_sync_t blocking)
 {
-  uint32_t send = SPI_PUSHR_PCS(cs) | SPI_PUSHR_TXDATA(data);
-  if (cont) {
-    send |= SPI_PUSHR_CONT_MASK;
-  }
-  SPI0_PUSHR = send;
-}
+  uint32_t spi_pushr;
 
-uint32_t spi_read(void)
-{
-  uint32_t result;
-  while (!(SPI0_SR & SPI_SR_TCF_MASK));
+  spi_pushr = SPI_PUSHR_TXDATA(data);
+  spi_pushr |= SPI_PUSHR_CTAS(ctas);
+  spi_pushr |= SPI_PUSHR_PCS(cs);
+  if(cont == SPI_TRANSFER_CONT) {
+    spi_pushr |= SPI_PUSHR_CONT_MASK;
+  }
+
+  /* Clear transfer complete flag */
   SPI0_SR |= SPI_SR_TCF_MASK;
-  result = SPI0_POPR;
-  return result & 0xffff;
+
+  /* Shift a frame out/in */
+  SPI0_PUSHR = spi_pushr;
+
+  if(blocking) {
+    /* Wait for transfer complete */
+    while(!(SPI0_SR & SPI_SR_TCF_MASK));
+  }
+
+  /* Pop the buffer */
+  return (SPI0_POPR);
 }
 
 /* ************************************************************************** */
-enum flash_cmd_t
+typedef enum flash_cmd
 {
   FLASH_CMD_WREN		= 0x06,
   FLASH_CMD_WRDI		= 0x04,
@@ -135,21 +169,21 @@ enum flash_cmd_t
   FLASH_CMD_RDBLOCK	= 0x3c,
   FLASH_CMD_GBLK		= 0x7e,
   FLASH_CMD_GBULK		= 0x98
-};
+} flash_cmd_t;
 
-enum flash_status_t
+typedef enum flash_status
 {
   FLASH_STATUS_WIP	= 1 << 0,
   FLASH_STATUS_WEL	= 1 << 1,
   FLASH_STATUS_SRWD	= 1 << 7
-};
+} flash_status_t;
 
-enum flash_security_t
+typedef enum flash_security
 {
   FLASH_SECURITY_CP	= 1 << 4,
   FLASH_SECURITY_P_FAIL	= 1 << 5,
   FLASH_SECURITY_E_FAIL	= 1 << 6
-};
+} flash_security_t;
 
 /* ************************************************************************** */
 
@@ -160,7 +194,7 @@ static const int FLASH_PAGE_WRITE_SIZE = 32;
 static struct
 {
   uint32_t	active;
-  enum flash_id_t	id;
+  flash_id_t	id;
   uint32_t	addr;
   uint8_t		*data;
   uint32_t	size;
@@ -168,123 +202,108 @@ static struct
 
 /* ************************************************************************** */
 
-static void 	cmd_wrdi(enum flash_id_t);
-static void	cmd_wren(enum flash_id_t);
-//static void	cmd_clsr(enum flash_id_t);
-static uint32_t	cmd_rdscur(enum flash_id_t);
-static void	cmd_wrsr(enum flash_id_t, uint32_t);
-static uint32_t	cmd_rdsr(enum flash_id_t);
-static uint32_t	cmd_rdid(enum flash_id_t);
-static uint32_t	cmd_pp(enum flash_id_t, flash_addr_t, uint8_t *, uint32_t);
-static void	cmd_se(enum flash_id_t, uint32_t);
-//static void	cmd_be(enum flash_id_t, uint32_t);
-static void	cmd_ce(enum flash_id_t);
+static void 	cmd_wrdi(const flash_id_t);
+static void	cmd_wren(const flash_id_t);
+//static void	cmd_clsr(const flash_id_t);
+static uint32_t	cmd_rdscur(const flash_id_t);
+static void	cmd_wrsr(const flash_id_t, const uint32_t);
+static uint32_t	cmd_rdsr(const flash_id_t);
+static uint32_t	cmd_rdid(const flash_id_t);
+static uint32_t	cmd_pp(const flash_id_t, const flash_addr_t, const uint8_t *, const uint32_t);
+static void	cmd_se(const flash_id_t, const uint32_t);
+//static void	cmd_be(const flash_id_t, const uint32_t);
+static void	cmd_ce(const flash_id_t);
 
 /* ************************************************************************** */
 
-static void spi_write_addr(enum flash_id_t id, enum spi_transfer_flag_t flag, flash_addr_t addr)
+static void spi_write_addr(const flash_id_t id, const spi_transfer_flag_t flag, const flash_addr_t addr)
 {
-  spi_write(id, SPI_TRANSFER_CONT, (addr >> 16) & 0xff);
-  spi_read();
-  spi_write(id, SPI_TRANSFER_CONT, (addr >> 8) & 0xff);
-  spi_read();
-  spi_write(id, flag, addr & 0xff);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, (addr >> 16) & 0xff, SPI_TRANSFER_BLOCKING);
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, (addr >> 8) & 0xff, SPI_TRANSFER_BLOCKING);
+  spi_transfer(FLASH_CTAS, id, flag, addr & 0xff, SPI_TRANSFER_BLOCKING);
 }
 
 /* ************************************************************************** */
 
-static uint32_t cmd_rdid(enum flash_id_t id)
+/** Read ID */
+static uint32_t cmd_rdid(const flash_id_t id)
 {
   uint32_t result;
 
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_RDID);
-  spi_read();
-
-  spi_write(id, SPI_TRANSFER_CONT, 0);
-  result = spi_read();
-
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_RDID, SPI_TRANSFER_BLOCKING);
+  result = spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, 0, SPI_TRANSFER_BLOCKING);
   result <<= 8;
-  spi_write(id, SPI_TRANSFER_CONT, 0);
-  result |= spi_read();
-
+  result |= spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, 0, SPI_TRANSFER_BLOCKING);
   result <<= 8;
-  spi_write(id, SPI_TRANSFER_DONE, 0);
-  result |= spi_read();
+  result |= spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, 0, SPI_TRANSFER_BLOCKING);
 
   return result;
 }
 
 /* ************************************************************************** */
 
-static uint32_t cmd_rdsr(enum flash_id_t id)
+/** Read status register */
+static uint32_t cmd_rdsr(const flash_id_t id)
 {
   uint32_t result;
 
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_RDSR);
-  spi_read();
-
-  spi_write(id, SPI_TRANSFER_DONE, 0);
-  result = spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_RDSR, SPI_TRANSFER_BLOCKING);
+  result = spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, 0, SPI_TRANSFER_BLOCKING);
 
   return result;
 }
 
 /* ************************************************************************** */
 
-static void cmd_wrsr(enum flash_id_t id, uint32_t status) __attribute__((unused));
-static void cmd_wrsr(enum flash_id_t id, uint32_t status)
+static void cmd_wrsr(const flash_id_t id, const uint32_t status) __attribute__((unused));
+
+/** Write status register */
+static void cmd_wrsr(const flash_id_t id, const uint32_t status)
 {
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_WRSR);
-  spi_read();
-  spi_write(id, SPI_TRANSFER_DONE, status);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_WRSR, SPI_TRANSFER_BLOCKING);
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, status, SPI_TRANSFER_BLOCKING);
 }
 
 /* ************************************************************************** */
 
-static uint32_t cmd_rdscur(enum flash_id_t id)
+static uint32_t cmd_rdscur(const flash_id_t id)
 {
   uint32_t result;
 
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_RDSCUR);
-  spi_read();
-
-  spi_write(id, SPI_TRANSFER_DONE, 0);
-  result = spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_RDSCUR, SPI_TRANSFER_BLOCKING);
+  result = spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, 0, SPI_TRANSFER_BLOCKING);
 
   return result;
 }
 
 /* ************************************************************************** */
 
-//static void cmd_clsr(enum flash_id_t id)
-//{
-//  spi_write(id, SPI_TRANSFER_DONE, FLASH_CMD_CLSR);
-//  spi_read();
-//}
+/*
+static void cmd_clsr(const flash_id_t id)
+{
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, FLASH_CMD_CLSR, SPI_TRANSFER_BLOCKING);
+}
+*/
 
 /* ************************************************************************** */
 
-static void cmd_wren(enum flash_id_t id)
+static void cmd_wren(const flash_id_t id)
 {
   while (!(cmd_rdsr(id) & FLASH_STATUS_WEL)) {
-    spi_write(id, SPI_TRANSFER_DONE, FLASH_CMD_WREN);
-    spi_read();
+    spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, FLASH_CMD_WREN, SPI_TRANSFER_BLOCKING);
   }
 }
 
 /* ************************************************************************** */
 
-static void cmd_wrdi(enum flash_id_t id)
+static void cmd_wrdi(const flash_id_t id)
 {
-  spi_write(id, SPI_TRANSFER_DONE, FLASH_CMD_WRDI);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, FLASH_CMD_WRDI, SPI_TRANSFER_BLOCKING);
 }
 
 /* ************************************************************************** */
 
-static uint32_t cmd_pp(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uint32_t size)
+static uint32_t cmd_pp(const flash_id_t id, const flash_addr_t addr, const uint8_t *data, const uint32_t size)
 {
   uint32_t i;
 
@@ -292,17 +311,42 @@ static uint32_t cmd_pp(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uin
     return E_FLASH_OK;
   }
 
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_PP);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_PP, SPI_TRANSFER_BLOCKING);
 
   spi_write_addr(id, SPI_TRANSFER_CONT, addr);
 
-  for (i=0;i<size-1;i++) {
-    spi_write(id, SPI_TRANSFER_CONT, *data++);
-    spi_read();
+  for (i = 0; i < size - 1; ++i) {
+    spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, *(data++), SPI_TRANSFER_BLOCKING);
   }
-  spi_write(id, SPI_TRANSFER_DONE, *data);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, *data, SPI_TRANSFER_BLOCKING);
+
+/*
+  if (cmd_rdscur(id) & FLASH_SECURITY_P_FAIL) {
+    return E_FLASH_WRITE_FAILED;
+  }
+*/
+
+  return E_FLASH_OK;
+}
+
+/* ************************************************************************** */
+
+static uint32_t cmd_ppi(const flash_id_t id, const flash_addr_t addr, const uint8_t *data, const uint32_t size)
+{
+  uint32_t i;
+
+  if (size == 0) {
+    return E_FLASH_OK;
+  }
+
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_PP, SPI_TRANSFER_BLOCKING);
+
+  spi_write_addr(id, SPI_TRANSFER_CONT, addr);
+
+  for (i = 0; i < size - 1; ++i) {
+    spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, ~(*(data++)), SPI_TRANSFER_BLOCKING);
+  }
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, ~(*data), SPI_TRANSFER_BLOCKING);
 
 //  if (cmd_rdscur(id) & FLASH_SECURITY_P_FAIL) {
 //    return E_FLASH_WRITE_FAILED;
@@ -313,37 +357,8 @@ static uint32_t cmd_pp(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uin
 
 /* ************************************************************************** */
 
-static uint32_t cmd_ppi(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uint32_t size)
-{
-  uint32_t i;
-
-  if (size == 0) {
-    return E_FLASH_OK;
-  }
-
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_PP);
-  spi_read();
-
-  spi_write_addr(id, SPI_TRANSFER_CONT, addr);
-
-  for (i=0;i<size-1;i++) {
-    spi_write(id, SPI_TRANSFER_CONT, ~(*data++));
-    spi_read();
-  }
-  spi_write(id, SPI_TRANSFER_DONE, ~(*data));
-  spi_read();
-
-//  if (cmd_rdscur(id) & FLASH_SECURITY_P_FAIL) {
-//    return E_FLASH_WRITE_FAILED;
-//  }
-
-  return E_FLASH_OK;
-}
-
-/* ************************************************************************** */
-
-static uint32_t cmd_cp(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uint32_t size) __attribute__((unused));
-static uint32_t cmd_cp(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uint32_t size)
+static uint32_t cmd_cp(const flash_id_t id, const flash_addr_t addr, const uint8_t *data, const uint32_t size) __attribute__((unused));
+static uint32_t cmd_cp(const flash_id_t id, const flash_addr_t addr, const uint8_t *data, uint32_t size)
 {
   if (size == 0) {
     return 0;
@@ -354,36 +369,30 @@ static uint32_t cmd_cp(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uin
     return 1;
   }
 
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_CP);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_CP, SPI_TRANSFER_BLOCKING);
 
   spi_write_addr(id, SPI_TRANSFER_CONT, addr);
 
   while (size > 2) {
     size -= 2;
 
-    spi_write(id, SPI_TRANSFER_CONT, *data++);
-    spi_read();
-    spi_write(id, SPI_TRANSFER_DONE, *data++);
-    spi_read();
+    spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, *(data++), SPI_TRANSFER_BLOCKING);
+    spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, *(data++), SPI_TRANSFER_BLOCKING);
 
     if (!(cmd_rdscur(id) & FLASH_SECURITY_CP)) {
       DEBUG("Flash unexcpectedly left continous programming mode.\n");
       return 1;
     }
 
-    spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_CP);
-    spi_read();
+    spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_CP, SPI_TRANSFER_BLOCKING);
   }
 
-  spi_write(id, SPI_TRANSFER_CONT, *data++);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, *(data++), SPI_TRANSFER_BLOCKING);
   if (size == 2) {
-    spi_write(id, SPI_TRANSFER_DONE, *data++);
+    spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, *(data++), SPI_TRANSFER_BLOCKING);
   } else {
-    spi_write(id, SPI_TRANSFER_DONE, 0xff);
+    spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, 0xff, SPI_TRANSFER_BLOCKING);
   }
-  spi_read();
 
   cmd_wrdi(id);
 
@@ -392,88 +401,82 @@ static uint32_t cmd_cp(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uin
 
 /* ************************************************************************** */
 
-static void cmd_se(enum flash_id_t id, uint32_t sector)
+static void cmd_se(const flash_id_t id, const uint32_t sector)
 {
   uint32_t addr = sector * FLASH_SECTOR_SIZE;
 
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_SE);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_SE, SPI_TRANSFER_BLOCKING);
   spi_write_addr(id, SPI_TRANSFER_DONE, addr);
 }
 
 /* ************************************************************************** */
 
-static void cmd_ce(enum flash_id_t id)
+static void cmd_ce(const flash_id_t id)
 {
-  spi_write(id, SPI_TRANSFER_DONE, FLASH_CMD_CE);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, FLASH_CMD_CE, SPI_TRANSFER_BLOCKING);
 }
 
 /* ************************************************************************** */
 
-static void cmd_dp(enum flash_id_t id)
+static void cmd_dp(const flash_id_t id)
 {
-  spi_write(id, SPI_TRANSFER_DONE, FLASH_CMD_DP);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, FLASH_CMD_DP, SPI_TRANSFER_BLOCKING);
 }
 
 /* ************************************************************************** */
 
 
-static void cmd_rdp(enum flash_id_t id)
+static void cmd_rdp(const flash_id_t id)
 {
-  spi_write(id, SPI_TRANSFER_DONE, FLASH_CMD_RDP);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, FLASH_CMD_RDP, SPI_TRANSFER_BLOCKING);
 }
 
 /* ************************************************************************** */
 
-static void cmd_read(enum flash_id_t id, flash_addr_t addr, uint8_t *dest, uint32_t size)
+static void cmd_read(const flash_id_t id, const flash_addr_t addr, uint8_t *dest, const uint32_t size)
 {
   uint32_t i;
 
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_READ);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_READ, SPI_TRANSFER_BLOCKING);
 
   spi_write_addr(id, SPI_TRANSFER_CONT, addr);
 
-  for (i=0;i<size-1;i++) {
-    spi_write(id, SPI_TRANSFER_CONT, 0);
-    *dest++ = spi_read();
+  for (i = 0; i < size - 1; ++i) {
+    *(dest++) = spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, 0, SPI_TRANSFER_BLOCKING);
   }
-  spi_write(id, SPI_TRANSFER_DONE, 0);
-  *dest = spi_read();
+  *dest = spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, 0, SPI_TRANSFER_BLOCKING);
 }
 
 /* ************************************************************************** */
 
-static void cmd_readi(enum flash_id_t id, flash_addr_t addr, uint8_t *dest, uint32_t size)
+static void cmd_readi(const flash_id_t id, const flash_addr_t addr, uint8_t *dest, const uint32_t size)
 {
   uint32_t i;
 
-  spi_write(id, SPI_TRANSFER_CONT, FLASH_CMD_READ);
-  spi_read();
+  spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, FLASH_CMD_READ, SPI_TRANSFER_BLOCKING);
 
   spi_write_addr(id, SPI_TRANSFER_CONT, addr);
 
-  for (i=0;i<size-1;i++) {
-    spi_write(id, SPI_TRANSFER_CONT, 0);
-    *dest++ = ~spi_read();
+  for (i = 0; i < size - 1; ++i) {
+    *(dest++) = ~spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_CONT, 0, SPI_TRANSFER_BLOCKING);
   }
-  spi_write(id, SPI_TRANSFER_DONE, 0);
-  *dest = ~spi_read();
+  *dest = ~spi_transfer(FLASH_CTAS, id, SPI_TRANSFER_DONE, 0, SPI_TRANSFER_BLOCKING);
 }
 
 /* ************************************************************************** */
 
-static void flash_busy_wait(enum flash_id_t id)
+static void flash_busy_wait(const flash_id_t id)
 {
-  while (cmd_rdsr(id) & FLASH_STATUS_WIP);
+  while (cmd_rdsr(id) & FLASH_STATUS_WIP)
+  {
+    /* XXX: Attempt to fix slow erase times on some chips by not flooding the device with status requests */
+    udelay(1000);
+  }
 }
 
 /* ************************************************************************** */
 
-static void flash_write_prepare(enum flash_id_t id)
+static void flash_write_prepare(const flash_id_t id)
 {
   flash_busy_wait(id);
   //cmd_clsr(id);
@@ -482,7 +485,7 @@ static void flash_write_prepare(enum flash_id_t id)
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_init(void)
+flash_error_t flash_init(void)
 {
   uint32_t status;
   uint32_t jedec_id;
@@ -518,7 +521,7 @@ enum flash_error_t flash_init(void)
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_erase_chip(enum flash_id_t id, enum flash_flags_t flags)
+flash_error_t flash_erase_chip(const flash_id_t id, const flash_flags_t flags)
 {
   DEBUG("Starting chip erase...");
 
@@ -547,7 +550,7 @@ enum flash_error_t flash_erase_chip(enum flash_id_t id, enum flash_flags_t flags
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_erase_sector(enum flash_id_t id, uint32_t sector, enum flash_flags_t flags)
+flash_error_t flash_erase_sector(const flash_id_t id, const uint32_t sector, const flash_flags_t flags)
 {
   if ((flags & FLASH_WAIT) == 0) {
     if (cmd_rdsr(id) & FLASH_STATUS_WIP) {
@@ -577,7 +580,7 @@ enum flash_error_t flash_erase_sector(enum flash_id_t id, uint32_t sector, enum 
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_write_queue(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uint32_t size, enum flash_flags_t flags)
+flash_error_t flash_write_queue(const flash_id_t id, const flash_addr_t addr, const uint8_t *data, const uint32_t size, const flash_flags_t flags)
 {
   if (scheduled_write.active) {
     DEBUG("We already have a scheduled write.\n");
@@ -599,7 +602,7 @@ enum flash_error_t flash_write_queue(enum flash_id_t id, flash_addr_t addr, uint
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_write_process(enum flash_flags_t flags)
+flash_error_t flash_write_process(const flash_flags_t flags)
 {
   uint32_t count;
 
@@ -655,7 +658,7 @@ enum flash_error_t flash_write_process(enum flash_flags_t flags)
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_write(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uint32_t size, enum flash_flags_t flags)
+flash_error_t flash_write(const flash_id_t id, const flash_addr_t addr, const uint8_t *data, const uint32_t size, const flash_flags_t flags)
 {
   uint32_t count;
   uint32_t offset = 0;
@@ -709,7 +712,7 @@ enum flash_error_t flash_write(enum flash_id_t id, flash_addr_t addr, uint8_t *d
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_writei(enum flash_id_t id, flash_addr_t addr, uint8_t *data, uint32_t size, enum flash_flags_t flags)
+flash_error_t flash_writei(const flash_id_t id, const flash_addr_t addr, const uint8_t *data, const uint32_t size, const flash_flags_t flags)
 {
   uint32_t count;
   uint32_t offset = 0;
@@ -763,7 +766,7 @@ enum flash_error_t flash_writei(enum flash_id_t id, flash_addr_t addr, uint8_t *
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_read(enum flash_id_t id, flash_addr_t addr, uint8_t *dest, uint32_t size, enum flash_flags_t flags)
+flash_error_t flash_read(const flash_id_t id, const flash_addr_t addr, uint8_t *dest, const uint32_t size, const flash_flags_t flags)
 {
   if (flags & FLASH_WAIT) {
     flash_busy_wait(id);
@@ -786,7 +789,7 @@ enum flash_error_t flash_read(enum flash_id_t id, flash_addr_t addr, uint8_t *de
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_readi(enum flash_id_t id, flash_addr_t addr, uint8_t *dest, uint32_t size, enum flash_flags_t flags)
+flash_error_t flash_readi(const flash_id_t id, const flash_addr_t addr, uint8_t *dest, const uint32_t size, const flash_flags_t flags)
 {
   if (flags & FLASH_WAIT) {
     flash_busy_wait(id);
@@ -809,7 +812,7 @@ enum flash_error_t flash_readi(enum flash_id_t id, flash_addr_t addr, uint8_t *d
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_status(enum flash_id_t id)
+flash_error_t flash_status(const flash_id_t id)
 {
   if (cmd_rdsr(id) & FLASH_STATUS_WIP) {
     return E_FLASH_BUSY;
@@ -822,7 +825,7 @@ enum flash_error_t flash_status(enum flash_id_t id)
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_sleep(enum flash_id_t id, enum flash_flags_t flags)
+flash_error_t flash_sleep(const flash_id_t id, const flash_flags_t flags)
 {
   cmd_dp(id);
   return E_FLASH_OK;
@@ -830,7 +833,7 @@ enum flash_error_t flash_sleep(enum flash_id_t id, enum flash_flags_t flags)
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_wakeup(enum flash_id_t id, enum flash_flags_t flags)
+flash_error_t flash_wakeup(const flash_id_t id, const flash_flags_t flags)
 {
   cmd_rdp(id);
   return E_FLASH_OK;
@@ -838,14 +841,14 @@ enum flash_error_t flash_wakeup(enum flash_id_t id, enum flash_flags_t flags)
 
 /* ************************************************************************** */
 
-enum flash_error_t flash_dump(enum flash_id_t id, void (*dump)(uint8_t))
+flash_error_t flash_dump(const flash_id_t id, void (*dump)(const uint8_t))
 {
   flash_addr_t offset = 0;
   uint8_t buf[FLASH_PAGE_SIZE];
 
   while (offset < FLASH_SIZE) {
     int i;
-    enum flash_error_t err;
+    flash_error_t err;
 
     err = flash_read(id, offset, buf, sizeof(buf), FLASH_BLOCKING);
     if (err != E_FLASH_OK) {
