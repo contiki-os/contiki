@@ -15,6 +15,7 @@
 #include "llwu.h"
 #include "init-net.h"
 #include "power-control.h"
+#include "K60.h"
 
 #define DEBUG 1
 #if DEBUG
@@ -89,6 +90,7 @@ int main(void)
 #ifndef WITH_SLIP
   init_printf(0, &printf_putc);
   printf("Booted\n");
+  printf("CPUID: %x\n", SCB_CPUID);
 #endif
   /*
    * Initialize Contiki and our processes.
