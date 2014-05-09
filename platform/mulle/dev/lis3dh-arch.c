@@ -64,7 +64,7 @@
  *
  * \todo Make SPI abstraction standalone.
  */
-uint8_t
+static uint8_t
 spi_transfer(const uint8_t data, const bool cont, const bool blocking)
 {
   uint32_t spi_pushr;
