@@ -72,6 +72,16 @@ rpl_verify_header(int uip_ext_opt_offset)
   uint8_t sender_closer;
   uip_ds6_route_t *route;
 
+  if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
+    PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
+    return 1;
+  }
+
+  if(UIP_EXT_HDR_OPT_RPL_BUF->opt_type != UIP_EXT_HDR_OPT_RPL) {
+    PRINTF("RPL: Non RPL Hop-by-hop option\n");
+    return 1;
+  }
+
   if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
     PRINTF("RPL: Bad header option! (wrong length)\n");
     return 1;
@@ -187,7 +197,17 @@ rpl_update_header_empty(void)
   switch(UIP_IP_BUF->proto) {
   case UIP_PROTO_HBHO:
     if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
-      PRINTF("RPL: Non RPL Hop-by-hop options support not implemented\n");
+      PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
+      uip_ext_len = last_uip_ext_len;
+      return;
+    }
+    if(UIP_EXT_HDR_OPT_RPL_BUF->opt_type != UIP_EXT_HDR_OPT_RPL) {
+      PRINTF("RPL: Non RPL Hop-by-hop option support not implemented\n");
+      uip_ext_len = last_uip_ext_len;
+      return;
+    }
+    if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
+      PRINTF("RPL: RPL Hop-by-hop option has wrong length\n");
       uip_ext_len = last_uip_ext_len;
       return;
     }
