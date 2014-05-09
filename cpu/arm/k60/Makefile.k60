@@ -46,9 +46,6 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 # Target triple for the build. Use arm-none-eabi if you are unsure.
 TARGET_TRIPLE ?= arm-none-eabi
 
-# Path to GCC bin directory, this is where the cross compiler toolchain executables are installed.
-# TODO(henrik) Fix this, beacause a CPU should not have any references to a platform.
-GCCBIN ?= $(CONTIKI)/platform/mulle/tools/gcc-arm/bin/
 
 # Toolchain prefix, composed of the path and target triple, you will most likely not need to touch this.
 TCPREFIX ?= $(if $(GCCBIN),$(GCCBIN)/)$(if $(TARGET_TRIPLE),$(TARGET_TRIPLE)-)
