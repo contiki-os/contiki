@@ -224,7 +224,6 @@ serial_to_tun(FILE *inslip, int outfd)
           inet_pton(AF_INET6, ipaddr, &addr);
           if(timestamp) stamptime();
           fprintf(stderr,"*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
- //         printf("*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
 		 ipaddr,
 		 addr.s6_addr[0], addr.s6_addr[1],
 		 addr.s6_addr[2], addr.s6_addr[3],
