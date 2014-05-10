@@ -704,13 +704,14 @@ main(int argc, char **argv)
   const char *port = NULL;
   const char *prog;
   int baudrate = -2;
+  int ipa_enable = 1;
   int tap = 0;
   slipfd = 0;
 
   prog = argv[0];
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:HLPhs:t:v::d::a:p:T")) != -1) {
+  while((c = getopt(argc, argv, "B:HILPhs:t:v::d::a:p:T")) != -1) {
     switch(c) {
     case 'B':
       baudrate = atoi(optarg);
@@ -734,6 +735,11 @@ main(int argc, char **argv)
       } else {
 	siodev = optarg;
       }
+      break;
+
+    case 'I':
+      ipa_enable = 0;
+      fprintf(stderr, "Will not inquire about IP address using IPA=\n");
       break;
 
     case 't':
@@ -943,16 +949,15 @@ exit(1);
     FD_ZERO(&rset);
     FD_ZERO(&wset);
 
-/* do not send IPA all the time... - add get MAC later... */
-/*     if(got_sigalarm) { */
-/*       /\* Send "?IPA". *\/ */
-/*       slip_send(slipfd, '?'); */
-/*       slip_send(slipfd, 'I'); */
-/*       slip_send(slipfd, 'P'); */
-/*       slip_send(slipfd, 'A'); */
-/*       slip_send(slipfd, SLIP_END); */
-/*       got_sigalarm = 0; */
-/*     } */
+    if(got_sigalarm && ipa_enable) {
+      /* Send "?IPA". */
+      slip_send(slipfd, '?');
+      slip_send(slipfd, 'I');
+      slip_send(slipfd, 'P');
+      slip_send(slipfd, 'A');
+      slip_send(slipfd, SLIP_END);
+      got_sigalarm = 0;
+    }
 
     if(!slip_empty()) {		/* Anything to flush? */
       FD_SET(slipfd, &wset);
@@ -977,7 +982,7 @@ exit(1);
 
       if(FD_ISSET(slipfd, &wset)) {
 	slip_flushbuf(slipfd);
-	sigalarm_reset();
+	if(ipa_enable) sigalarm_reset();
       }
 
       /* Optional delay between outgoing packets */
@@ -995,7 +1000,7 @@ exit(1);
         if(slip_empty() && FD_ISSET(tunfd, &rset)) {
           size=tun_to_serial(tunfd, slipfd);
           slip_flushbuf(slipfd);
-          sigalarm_reset();
+          if(ipa_enable) sigalarm_reset();
           if(basedelay) {
             struct timeval tv;
             gettimeofday(&tv, NULL) ;
