@@ -62,7 +62,7 @@ const char *netmask;
 int slipfd = 0;
 uint16_t basedelay=0,delaymsec=0;
 uint32_t startsec,startmsec,delaystartsec,delaystartmsec;
-int timestamp = 0, flowcontrol=0;
+int timestamp = 0, flowcontrol=0, showprogress=0;
 
 int ssystem(const char *fmt, ...)
      __attribute__((__format__ (__printf__, 1, 2)));
@@ -71,8 +71,7 @@ void write_to_serial(int outfd, void *inbuf, int len);
 void slip_send(int fd, unsigned char c);
 void slip_send_char(int fd, unsigned char c);
 
-//#define PROGRESS(s) fprintf(stderr, s)
-#define PROGRESS(s) do { } while (0)
+#define PROGRESS(s) if(showprogress) fprintf(stderr, s)
 
 char tundev[1024] = { "" };
 
@@ -187,7 +186,7 @@ serial_to_tun(FILE *inslip, int outfd)
     clearerr(inslip);
     return;
   }
-  /*  fprintf(stderr, ".");*/
+  PROGRESS(".");
   switch(c) {
   case SLIP_END:
     if(inbufptr > 0) {
@@ -704,7 +703,7 @@ main(int argc, char **argv)
   prog = argv[0];
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:HLhs:t:v::d::a:p:T")) != -1) {
+  while((c = getopt(argc, argv, "B:HLPhs:t:v::d::a:p:T")) != -1) {
     switch(c) {
     case 'B':
       baudrate = atoi(optarg);
@@ -716,6 +715,10 @@ main(int argc, char **argv)
 
     case 'L':
       timestamp=1;
+      break;
+
+    case 'P':
+      showprogress=1;
       break;
 
     case 's':
