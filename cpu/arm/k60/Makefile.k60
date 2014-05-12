@@ -73,6 +73,9 @@ LINKERSCRIPT = $(CPU_PART).ld
 CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -nostartfiles -ffunction-sections -fdata-sections
 LDFLAGS  += $(CFLAGS) -Wl,-L$(LINKERSCRIPTPATH) -T $(LINKERSCRIPT) -Wl,-Map=$@.map -Wl,--gc-sections
 
+LD_START_GROUP ?= -Wl,--start-group
+LD_END_GROUP ?= -Wl,--end-group
+
 ### Setup directory search path for source files
 
 #CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
@@ -111,7 +114,7 @@ bytes:
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 
 %.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(CPU_STARTOBJ)
-	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) $(LD_START_GROUP) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) $(LD_END_GROUP) -o $@
 
 #.SECONDARY:
 
