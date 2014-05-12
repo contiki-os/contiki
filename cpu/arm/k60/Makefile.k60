@@ -48,7 +48,8 @@ TARGET_TRIPLE ?= arm-none-eabi
 
 
 # Toolchain prefix, composed of the path and target triple, you will most likely not need to touch this.
-TCPREFIX ?= $(if $(GCCBIN),$(GCCBIN)/)$(if $(TARGET_TRIPLE),$(TARGET_TRIPLE)-)
+TCPREFIX  ?= $(if $(GCCBIN),$(GCCBIN)/)$(if $(TARGET_TRIPLE),$(TARGET_TRIPLE)-)
+GDBPREFIX ?= $(TCPREFIX)
 
 CC       = $(TCPREFIX)gcc
 LD       = $(TCPREFIX)gcc
@@ -59,6 +60,7 @@ LINKER   = $(TCPREFIX)ld
 OBJCOPY  = $(TCPREFIX)objcopy
 OBJDUMP  = $(TCPREFIX)objdump
 STRIP    = $(TCPREFIX)strip
+GDB      = $(GDBPREFIX)gdb
 CFLAGSNO = -I$(CONTIKI_CPU) \
            -I$(CONTIKI)/platform/$(TARGET) \
            ${addprefix -I,$(APPDIRS)} \
@@ -113,10 +115,14 @@ bytes:
 #.SECONDARY:
 
 ### Upload image
+%.upload: %.u
+
 %.u: %.$(TARGET)
-	cp $(CONTIKI_CPU)/mulle-arch.gdb /tmp/mulle-arch.gdb
-	sed -i 's/target remote :3333/target remote :$(GDB_PORT)/' /tmp/mulle-arch.gdb
-	$(GCCBIN)/arm-none-eabi-gdb -x /tmp/mulle-arch.gdb $<
+	TMPFILE=$$(mktemp -t mulle-XXXXXXXX.gdb); \
+	  trap '$(RM) -f "$$TMPFILE"' EXIT; \
+	  cat $(CONTIKI_CPU)/mulle-arch.gdb | \
+	  sed 's/target remote :3333/target remote :$(GDB_PORT)/' > "$$TMPFILE"; \
+	  $(GDB) -x "$$TMPFILE" $<
 
 symbols.c:
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
