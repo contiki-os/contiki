@@ -18,13 +18,18 @@ void _isr_usagefault(void) __attribute__((interrupt));
 
 
 /* Default handler for interrupts, infinite loop */
-static void unhandled_interrupt(void) __attribute__((interrupt));
+static void unhandled_interrupt(void) __attribute__((interrupt, unused));
 
 #define UNHANDLED_ALIAS __attribute__((weak, alias("unhandled_interrupt")));
 
 /* __attribute__((naked)) in order to not add any function prologue to the
  * default hardfault handler written in asm */
-static void dHardFault_handler(void) __attribute__((naked));
+/* __attribute__((unused)) in order to avoid (incorrect) compiler warnings about
+ * the functions being unused when only referenced from the weak alias. */
+static void dHardFault_handler(void) __attribute__((naked, unused));
+static void dMemManage_handler(void) __attribute__((unused));
+static void dUsageFault_handler(void) __attribute__((unused));
+static void dBusFault_handler(void) __attribute__((unused));
 
 /* ARM Cortex defined interrupt vectors */
 void reset_handler(void) __attribute__((naked));
