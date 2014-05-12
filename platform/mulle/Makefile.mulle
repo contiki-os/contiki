@@ -57,3 +57,6 @@ SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
 
 login:
 	$(SERIALDUMP) -b115200 $(PORT)
+
+upload: $(CONTIKI_PROJECT).u
+
