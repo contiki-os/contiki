@@ -15,6 +15,7 @@ CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
   slip_arch_uart.c \
   slip.c \
   stdio.c \
+  sensors.c \
   leds-arch.c \
   leds.c \
   power-control.c \
@@ -22,7 +23,8 @@ CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
   xmem.c \
   cfs-coffee.c \
   lis3dh.c \
-  lis3dh-arch.c
+  lis3dh-arch.c \
+  button-sensor.c
 
 
 ifdef MULLEAPPS
