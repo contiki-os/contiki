@@ -37,6 +37,9 @@
  *         Joakim Gebart <joakim.gebart@eistec.se>
  */
 
+#ifndef K60_H_
+#define K60_H_
+
 #include "config-board.h"
 
 
@@ -118,3 +121,4 @@
 #define UART_BRFA(f, b) ((((64ull * (f))/((b) * 16)+1)/2) % 32)
 
 
+#endif /* K60_H_ */
