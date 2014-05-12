@@ -108,7 +108,9 @@ typedef int32_t  s32_t;
 #define UIP_CONF_LOGGING            0
 
 #define UIP_CONF_TCP_SPLIT          1
+#ifndef UIP_CONF_TCP
 #define UIP_CONF_TCP                0
+#endif
 
 #endif /* WITH_UIP6 */
 
