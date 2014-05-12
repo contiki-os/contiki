@@ -226,7 +226,7 @@ inline uint8_t spiWrite(uint8_t byte)
 //#define HAL_SPI_TRANSFER_READ()
 #define HAL_SPI_TRANSFER_CLOSE() HAL_LEAVE_CRITICAL_REGION();
 #include "K60.h"
-inline void hal_spi_send(uint8_t data, int cont)
+static inline void hal_spi_send(uint8_t data, int cont)
 {
 	/* Send data */
 	if(cont)
@@ -241,7 +241,7 @@ inline void hal_spi_send(uint8_t data, int cont)
 	data = (0xFF & SPI0_POPR);
 }
 
-inline uint8_t hal_spi_receive(int cont)
+static inline uint8_t hal_spi_receive(int cont)
 {
 	/* Dummy write */
 	if(cont)
