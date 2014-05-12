@@ -52,7 +52,9 @@ void uart_putstring(char *str)
 
 void uart_enable_rx_interrupt()
 {
-  int tmp = UART1_S1; // Clr status 1 register
+  int tmp;
+  tmp = UART1_S1; // Clr status 1 register
+  (void)tmp; /* Avoid compiler warnings [-Wunused-variable] */
   NVICISER1  |= (1<<15); // Enable Uart1 status interrupt
 }
 
@@ -63,7 +65,9 @@ void uart_set_rx_callback(int (*callback)(unsigned char))
 
 void _isr_uart1_status_sources()
 {
-  int tmp = UART1_S1; // Clr S1
+  int tmp;
+  tmp = UART1_S1; // Clr status 1 register
+  (void)tmp; /* Avoid compiler warnings [-Wunused-variable] */
   if (rx_callback != NULL)
   {
     rx_callback(UART1_D);
