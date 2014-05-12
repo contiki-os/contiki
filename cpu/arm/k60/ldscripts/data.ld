@@ -38,7 +38,7 @@
         _bss_start = .;
         __bss_start = .;
         *(.bss*)
-        *(.COMMON)
+        *(COMMON)
         . = ALIGN(4);
         _bss_end = .;
         __bss_end = .;
