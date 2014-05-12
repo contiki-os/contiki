@@ -36,6 +36,7 @@ CONTIKI_TARGET_SOURCEFILES += \
   core-clocks.c \
   llwu.c \
   onewire.c \
+  fault-handlers.c \
   ds18b20.c
 
 

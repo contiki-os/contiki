@@ -7,7 +7,6 @@
  * interrupt handlers.
  */
 
-
 #define SECTION(x) __attribute__ ((section(#x)))
 #define ISR_VECTOR_SECTION SECTION(.vector_table)
 void reset_handler(void) __attribute__((naked));
@@ -22,6 +21,10 @@ void _isr_usagefault(void) __attribute__((interrupt));
 static void unhandled_interrupt(void) __attribute__((interrupt));
 
 #define UNHANDLED_ALIAS __attribute__((weak, alias("unhandled_interrupt")));
+
+/* __attribute__((naked)) in order to not add any function prologue to the
+ * default hardfault handler written in asm */
+static void dHardFault_handler(void) __attribute__((naked));
 
 /* ARM Cortex defined interrupt vectors */
 void reset_handler(void) __attribute__((naked));
@@ -273,24 +276,47 @@ unhandled_interrupt(void)
   while(1);
 }
 
+/**
+ * Default handler of Hard Faults
+ *
+ * This function is only an assembly language wrapper for the function
+ * hard_fault_handler_c, defined in fault-handlers.c
+ */
 static void
 dHardFault_handler(void)
 {
+  __asm volatile
+  (
+    "tst lr, #4\n"
+    "ite eq\n"
+    "mrseq r0, msp\n"
+    "mrsne r0, psp\n"
+    "b hard_fault_handler_c\n"
+  );
   while(1);
 }
 
+/**
+ * Default handler of Usage Fault
+ */
 static void
 dUsageFault_handler(void)
 {
   while(1);
 }
 
+/**
+ * Default handler of MemManage Fault
+ */
 static void
 dMemManage_handler(void)
 {
   while(1);
 }
 
+/**
+ * Default handler of Bus Fault
+ */
 static void
 dBusFault_handler(void)
 {
