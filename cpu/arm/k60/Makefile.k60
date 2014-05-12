@@ -67,6 +67,26 @@ CFLAGSNO = -I$(CONTIKI_CPU) \
            ${addprefix -I,$(APPDIRS)} \
            -I. -I$(CONTIKI)/core \
            -Wall -mcpu=cortex-m4
+
+ifdef BUILD_WITH_CLANG
+ifneq ($(BUILD_WITH_CLANG),0)
+CFLAGSNO += -target $(TARGET_TRIPLE) -ffreestanding
+CC       = clang
+LD       = clang
+LLVMPREFIX ?= llvm-
+AS       = $(LLVMPREFIX)as
+AR       = $(LLVMPREFIX)ar
+NM       = $(LLVMPREFIX)nm
+# There is no LLVM linker yet, use binutils.
+#LINKER   = $(LLVMPREFIX)ld
+# objcopy does not have a clear substitute in LLVM
+#OBJCOPY  = $(LLVMPREFIX)objcopy
+OBJDUMP  = $(LLVMPREFIX)objdump
+# LLVM lacks a binutils strip tool as well...
+#STRIP    = $(LLVMPREFIX)strip
+endif
+endif
+
 LINKERSCRIPTPATH = $(CONTIKI_CPU)/ldscripts
 LINKERSCRIPT = $(CPU_PART).ld
 #AROPTS   = rv
