@@ -114,7 +114,8 @@ SIM_INTERFACE_NAME(pir_interface);
 SIM_INTERFACE_NAME(clock_interface);
 SIM_INTERFACE_NAME(leds_interface);
 SIM_INTERFACE_NAME(cfs_interface);
-SIM_INTERFACES(&vib_interface, &moteid_interface, &rs232_interface, &simlog_interface, &beep_interface, &radio_interface, &button_interface, &pir_interface, &clock_interface, &leds_interface, &cfs_interface);
+SIM_INTERFACE_NAME(eeprom_interface);
+SIM_INTERFACES(&vib_interface, &moteid_interface, &rs232_interface, &simlog_interface, &beep_interface, &radio_interface, &button_interface, &pir_interface, &clock_interface, &leds_interface, &cfs_interface, &eeprom_interface);
 /* Example: manually add mote interfaces */
 //SIM_INTERFACE_NAME(dummy_interface);
 //SIM_INTERFACES(..., &dummy_interface);
@@ -320,6 +321,9 @@ contiki_init()
   }
 #endif /* WITH_UIP6 */
 
+  /* Initialize eeprom */
+  eeprom_init();
+  
   /* Start serial process */
   serial_line_init();
 
