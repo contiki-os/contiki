@@ -84,6 +84,9 @@ NM       = $(LLVMPREFIX)nm
 OBJDUMP  = $(LLVMPREFIX)objdump
 # LLVM lacks a binutils strip tool as well...
 #STRIP    = $(LLVMPREFIX)strip
+# llvm-ar does not support the f modifier (anymore, since r186078) set in the
+# default Contiki Makefile.include
+AROPTS   = rcv
 endif
 endif
 
