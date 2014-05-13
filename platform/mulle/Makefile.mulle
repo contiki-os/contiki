@@ -19,6 +19,7 @@ CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
   leds-arch.c \
   leds.c \
   power-control.c \
+  voltage.c \
   flash.c \
   xmem.c \
   cfs-coffee.c \

@@ -32,57 +32,19 @@
 
 /**
  * \file
- *         Board configuration defines for Mulle platform.
+ *         Helper functions for reading Mulle platform board voltages.
  * \author
  *         Joakim Gebart <joakim.gebart@eistec.se>
  */
 
-#include "adc.h"
+#ifndef MULLE_DEV_VOLTAGE_H_
+#define MULLE_DEV_VOLTAGE_H_
 
-/**
- * CPU silicon revision (some registers are moved or added between revisions 1 and 2)
- */
-#if !defined(MULLE_BOARD_SERIAL_NUMBER)
-/* Default to revision 1 unless the serial number is specified in the build. */
-#define K60_CPU_REV 1
-#elif defined(MULLE_BOARD_SERIAL_NUMBER) && \
-    (MULLE_BOARD_SERIAL_NUMBER >= 200) && \
-    (MULLE_BOARD_SERIAL_NUMBER <= 219)
-/* Only Mulles with serial numbers 200 through 219 have revision 1.x silicon
- * (revision 1.4, 4N30D mask set), see the sticker on the CPU top on the Mulle */
-#define K60_CPU_REV 1
-#else
-/* Newer boards have the revision 2 silicon */
-#define K60_CPU_REV 2
-#endif
+#include <stdint.h>
 
-/**
- * Baud rate of the debug console (UART1)
- */
-#define K60_DEBUG_BAUD 115200
+void voltage_init();
+uint16_t voltage_from_raw_adc(uint16_t adc_raw);
+uint16_t voltage_read_vbat();
+uint16_t voltage_read_vchr();
 
-/**
- * Voltage reference high for ADC computations (millivolts).
- */
-#define MULLE_ADC_VREFH_MILLIVOLTS 3300u
-
-/**
- * Voltage reference low for ADC computations (millivolts).
- */
-#define MULLE_ADC_VREFL_MILLIVOLTS 0u
-
-/**
- * Total span of ADC measurement (millivolts).
- */
-#define MULLE_ADC_VREFHL_SCALE_MILLIVOLTS ((MULLE_ADC_VREFH_MILLIVOLTS) - (MULLE_ADC_VREFL_MILLIVOLTS))
-
-/**
- * Which channel should perform Vbat measurements
- */
-#define MULLE_ADC_VBAT_ADC_NUM 1
-
-#define MULLE_ADC_VBAT_CHANNEL ADC_CH_DAD0
-
-#define MULLE_ADC_VCHR_ADC_NUM 1
-
-#define MULLE_ADC_VCHR_CHANNEL ADC_CH_AD19
+#endif /* MULLE_DEV_VOLTAGE_H_ */
