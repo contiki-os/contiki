@@ -37,7 +37,8 @@
 #if SHT21_ENABLE == 1
 	#define SHT21_SLAVE_ADDRESS		0x40
 	#define SHT21_TEMP_REGISTER		0xF3
-	#define SHT21_CRC_POLYNOMIAL	0x131
+	#define SHT21_CRC_POLYNOMIAL		0x131
+	#define SHT21_DECIMAL_PRECISION		2
 #endif //SHT21_ENABLE
 /** @} */
 
@@ -46,6 +47,19 @@
 /*---------------------------------------------------------------------------*/
 static struct etimer timer;
 static uint16_t temp;
+/*---------------------------------------------------------------------------*/
+void
+print_float(float num, uint8_t preci)
+{
+	printf("%d.", (int)num);
+	num -= (int)num;
+	while(num != 0 && preci> 0) {
+		num -= (int)num;
+		num *= 10;
+		printf("%c", '0'+(int)num);
+		--preci;
+	}
+}
 /*---------------------------------------------------------------------------*/
 #if TCN75_ENABLE == 1
 uint8_t
@@ -174,7 +188,8 @@ PROCESS_THREAD(i2c_example, ev, data)
 		#if SHT21_ENABLE == 1
 			if(read_temp_SHT21(&temp) == I2C_MASTER_ERR_NONE) {
 				temp = temp>>7;
-				printf("\n%d", (int)((((float)temp)/65536)*175.72-46.85));
+				printf("\n");
+				print_float(((((float)temp)/65536)*175.72-46.85)), SHT21_DECIMAL_PRECISION);
 			} else {
 				printf("\nError");
 			}
