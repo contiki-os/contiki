@@ -41,6 +41,8 @@
 #endif //SHT21_ENABLE
 /** @} */
 
+#define MEASURE_INTERVAL_TIME_SECOND	5
+
 /*---------------------------------------------------------------------------*/
 static struct etimer timer;
 static uint16_t temp;
@@ -157,7 +159,7 @@ PROCESS_THREAD(i2c_example, ev, data)
 	PROCESS_BEGIN();
 	
 	while(1) {
-		etimer_set(&timer, CLOCK_CONF_SECOND * 3);
+		etimer_set(&timer, CLOCK_CONF_SECOND * MEASURE_INTERVAL_TIME_SECOND);
 		PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
 		/* We must init I2C each time, because the module lose his state when enter PM2 */
 		i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN, I2C_SCL_NORMAL_BUS_SPEED);
