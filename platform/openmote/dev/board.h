@@ -28,12 +28,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** \addtogroup openmote
+/** \addtogroup openmote-cc2538
  * @{
  *
- * \defgroup openmote Peripherals
+ * \defgroup openmote-cc2538 Peripherals
  *
- * Defines related to the OpenMote
+ * Defines related to the OpenMote-CC2538
  *
  * This file provides connectivity information on LEDs, Buttons, UART and
  * other peripherals
@@ -52,9 +52,9 @@
 #include "dev/gpio.h"
 #include "dev/nvic.h"
 /*---------------------------------------------------------------------------*/
-/** \name OpenMote LED configuration
+/** \name OpenMote-CC2538 LED configuration
  *
- * LEDs on the OpenMote are connected as follows:
+ * LEDs on the OpenMote-CC2538 are connected as follows:
  * - LED1 (Red)    -> PC4
  * - LED2 (Yellow) -> PC6
  * - LED3 (Green)  -> PC7
@@ -70,11 +70,11 @@
 #undef LEDS_RED
 #undef LEDS_CONF_ALL
 
-#define LEDS_RED       16 /**< LED1 (Red) -> PC4 */
-#define LEDS_YELLOW    64 /**< LED2 (Yellow) -> PC6 */
+#define LEDS_RED       16  /**< LED1 (Red) -> PC4 */
+#define LEDS_YELLOW    64  /**< LED2 (Yellow) -> PC6 */
 #define LEDS_GREEN     128 /**< LED3 (Green)  -> PC7 */
-#define LEDS_ORANGE    32 /**< LED4 (Orange) -> PC5 */
-#define LEDS_CONF_ALL 240
+#define LEDS_ORANGE    32  /**< LED4 (Orange) -> PC5 */
+#define LEDS_CONF_ALL  240
 
 /* Notify various examples that we have LEDs */
 #define PLATFORM_HAS_LEDS        1
@@ -115,9 +115,9 @@
 #define UART_RTS_PIN             3
 /** @} */
 /*---------------------------------------------------------------------------*/
-/** \name OpenMote Button configuration
+/** \name OpenMote-CC2538 Button configuration
  *
- * Buttons on the OpenMote are connected as follows:
+ * Buttons on the OpenMote-CC2538 are connected as follows:
  * - BUTTON_USER -> PA3
  * @{
  */
@@ -126,7 +126,7 @@
 #define BUTTON_USER_PIN        3
 #define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_A
 /* Notify various examples that we have Buttons */
-#define PLATFORM_HAS_BUTTON      0
+#define PLATFORM_HAS_BUTTON    0
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -143,6 +143,19 @@
 #define SPI_MISO_PIN             5
 #define SPI_SEL_PORT             GPIO_B_NUM
 #define SPI_SEL_PIN              5
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name Antenna configuration
+ *
+ * These values configure which CC2538 pins to use for the proper antenna.
+ * @{
+ */
+#define ANTENNA_EXTERNAL_PORT     
+#define ANTENNA_EXTERNAL_PIN      
+#define ANTENNA_INTERNAL_PORT     
+#define ANTENNA_INTERNAL_PIN      
+#define ANTENNA_ALL               
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

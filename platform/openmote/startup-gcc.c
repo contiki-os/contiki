@@ -30,11 +30,11 @@
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538
+ * \addtogroup openmote-cc2538
  * @{
  *
  * \file
- * Startup code for the cc2538dk platform, to be used when building with gcc
+ * Startup code for the OpenMote-CC2538 platform, to be used when building with gcc
  */
 #include "contiki.h"
 #include "reg.h"

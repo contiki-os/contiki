@@ -32,14 +32,14 @@
  * \addtogroup platform
  * @{
  *
- * \defgroup cc2538 The cc2538 Development Kit platform
+ * \defgroup cc2538 The OpenMote-CC2538 platform
  *
- * The cc2538DK is the new platform by Texas Instruments, based on the
- * cc2530 SoC with an ARM Cortex-M3 core.
+ * The OpenMote-CC2538 is based on the CC2538, the new platform by Texas Instruments
+ *  based on the cc2530 SoC with an ARM Cortex-M3 core.
  * @{
  *
  * \file
- *   Main module for the cc2538dk platform
+ *   Main module for the OpenMote-CC2538 platform
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -121,7 +121,7 @@ set_rime_addr()
 }
 /*---------------------------------------------------------------------------*/
 /**
- * \brief Main routine for the cc2538dk platform
+ * \brief Main routine for the OpenMote-CC2538 platform
  */
 int
 main(void)

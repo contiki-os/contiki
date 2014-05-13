@@ -32,38 +32,41 @@
  * \addtogroup openmote-cc2538
  * @{
  *
- * \defgroup openmote-cc2538-leds OpenMote-CC2538 LED driver
+ * \defgroup openmote-cc2538-antenna OpenMote-CC2538 antenna driver
  *
- * LED driver implementation for the OpenMote-CC2538
+ * Antenna driver implementation for the OpenMote-CC2538
  * @{
  *
  * \file
- * LED driver implementation for the OpenMote-CC2538
+ * Antenna driver implementation for the OpenMote-CC2538
  */
 #include "contiki.h"
 #include "reg.h"
-#include "dev/leds.h"
+#include "dev/antenna.h"
 #include "dev/gpio.h"
 
-#define LEDS_GPIO_PIN_MASK   LEDS_ALL
+#define ANTENNA_GPIO_PIN_MASK   ANTENNA_ALL
 
 /*---------------------------------------------------------------------------*/
 void
-leds_arch_init(void)
+antenna_arch_init(void)
 {
-  GPIO_SET_OUTPUT(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
-}
-/*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  return GPIO_READ_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
+  GPIO_SET_OUTPUT(GPIO_C_BASE, ANTENNA_GPIO_PIN_MASK);
+  GPIO_SET_OUTPUT(GPIO_C_BASE, ANTENNA_GPIO_PIN_MASK);
 }
 /*---------------------------------------------------------------------------*/
 void
-leds_arch_set(unsigned char leds)
+antenna_arch_external(void)
 {
-  GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, leds);
+  GPIO_WRITE_PIN(GPIO_C_BASE, ANTENNA_GPIO_PIN_MASK, ~ANTENNA_GPIO_PIN_INTERNAL);
+  GPIO_WRITE_PIN(GPIO_C_BASE, ANTENNA_GPIO_PIN_MASK, ANTENNA_GPIO_PIN_EXTERNAL);
+}
+/*---------------------------------------------------------------------------*/
+void
+antenna_arch_internal(unsigned char leds)
+{
+  GPIO_WRITE_PIN(GPIO_C_BASE, ANTENNA_GPIO_PIN_MASK, ANTENNA_GPIO_PIN_INTERNAL);
+  GPIO_WRITE_PIN(GPIO_C_BASE, ANTENNA_GPIO_PIN_MASK, ~ANTENNA_GPIO_PIN_EXTERNAL);
 }
 /*---------------------------------------------------------------------------*/
 

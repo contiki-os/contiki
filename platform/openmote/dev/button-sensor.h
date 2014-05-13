@@ -29,16 +29,16 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538-smartrf-sensors
+ * \addtogroup openmote-cc2538
  * @{
  *
- * \defgroup cc2538dk-button-sensor cc2538dk Button Driver
+ * \defgroup openmote-cc2538-button-sensor OpenMote-CC2538 Button Driver
  *
- * Driver for the SmartRF06EB buttons
+ * Driver for the OpenMote-CC2538 buttons
  * @{
  *
  * \file
- * Header file for the cc2538dk Button Driver
+ * Header file for the OpenMote-CC2538 Button Driver
  */
 #ifndef BUTTON_SENSOR_H_
 #define BUTTON_SENSOR_H_

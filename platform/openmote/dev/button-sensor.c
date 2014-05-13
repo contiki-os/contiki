@@ -29,11 +29,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538dk-button-sensor
+ * \addtogroup openmote-cc2538
  * @{
  *
+ * \defgroup openmote-cc2538-button-sensor OpenMote-CC2538 Button Driver
+ *
  * \file
- *  Driver for the SmartRF06EB buttons
+ * Driver for the OpenMote-CC2538 buttons
  */
 #include "contiki.h"
 #include "dev/nvic.h"
