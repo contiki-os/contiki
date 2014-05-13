@@ -192,8 +192,8 @@ typedef enum{
 typedef void (*radio_rx_callback) (uint16_t data);
 
 
-/*	Hook Documentation 
-**	
+/*	Hook Documentation
+**
 **	Sniffing Hooks:
 **		RF230BB_HOOK_TX_PACKET(buffer,total_len)
 **		RF230BB_HOOK_RX_PACKET(buf,len)
@@ -201,13 +201,13 @@ typedef void (*radio_rx_callback) (uint16_t data);
 **	RF230BB_HOOK_IS_SEND_ENABLED()
 **	RF230BB_HOOK_RADIO_ON()
 **	RF230BB_HOOK_RADIO_OFF()
-**	
+**
 */
 
 
 /*============================ PROTOTYPES ====================================*/
 
-const struct radio_driver rf230_driver;
+extern const struct radio_driver rf230_driver;
 
 int rf230_init(void);
 void rf230_warm_reset(void);
