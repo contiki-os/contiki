@@ -193,11 +193,11 @@ static const int FLASH_PAGE_WRITE_SIZE = 32;
 
 static struct
 {
-  uint32_t	active;
-  flash_id_t	id;
-  uint32_t	addr;
-  uint8_t		*data;
-  uint32_t	size;
+  uint32_t      active;
+  flash_id_t    id;
+  uint32_t      addr;
+  const uint8_t *data;
+  uint32_t      size;
 } scheduled_write;
 
 /* ************************************************************************** */
