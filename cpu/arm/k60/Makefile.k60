@@ -72,7 +72,8 @@ CFLAGSNO = -I$(CONTIKI_CPU) \
            -I$(CONTIKI)/platform/$(TARGET) \
            ${addprefix -I,$(APPDIRS)} \
            -I. -I$(CONTIKI)/core \
-           -Wall -mcpu=cortex-m4
+           -Wall -mcpu=cortex-m4 \
+           -fno-common
 
 ifdef BUILD_WITH_CLANG
 ifneq ($(BUILD_WITH_CLANG),0)
