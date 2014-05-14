@@ -226,6 +226,7 @@ inline uint8_t spiWrite(uint8_t byte)
 //#define HAL_SPI_TRANSFER_READ()
 #define HAL_SPI_TRANSFER_CLOSE() HAL_LEAVE_CRITICAL_REGION();
 #include "K60.h"
+#include "llwu.h"
 static inline void hal_spi_send(uint8_t data, int cont)
 {
 	/* Send data */
@@ -257,7 +258,11 @@ static inline uint8_t hal_spi_receive(int cont)
 }
 
 
+#ifdef MULLE_IRQ_PATCH
+#define HAL_RF230_ISR() void __attribute__((interrupt))  _isr_portc_pin_detect(void)
+#else
 #define HAL_RF230_ISR() void __attribute__((interrupt))  _isr_portb_pin_detect(void)
+#endif
 
 /** \brief  This function initializes the Hardware Abstraction Layer.
  */
@@ -269,15 +274,21 @@ hal_init(void)
 	/* Enable PORTC clock gate */
 	SIM_SCGC5  |= SIM_SCGC5_PORTD_MASK;
 	SIM_SCGC5  |= SIM_SCGC5_PORTE_MASK;
-	SIM_SCGC5  |= SIM_SCGC5_PORTB_MASK;
 
 	PORTE_PCR6 |= 0x0100;     // Sleep
-        PORTB_PCR9 |= 0x00090100; // Set PTB9 (IRQ)    as GPIO with active high interrupt
         PORTD_PCR7 |= 0x0100;     // Vp
 
 	GPIOE_PDDR |= 0x0040; /* Setup PTE6 (Sleep) as output */
 	GPIOD_PDDR |= 0x0080; /* Setup PTD7 (Vp) as output */
 
+#ifdef MULLE_IRQ_PATCH
+	SIM_SCGC5  |= SIM_SCGC5_PORTC_MASK;
+	PORTC_PCR1 |= 0x00090100;
+	llwu_enable_wakeup_source(LLWU_WAKEUP_SOURCE_P6_RISING);
+#else
+        SIM_SCGC5  |= SIM_SCGC5_PORTB_MASK;
+        PORTB_PCR9 |= 0x00090100; // Set PTB9 (IRQ)    as GPIO with active high interrupt
+#endif
 	/* Enable power switch to radio */
 	hal_set_pwr_high();
 
@@ -600,8 +611,13 @@ HAL_RF230_ISR()
     uint8_t interrupt_source; /* used after HAL_SPI_TRANSFER_OPEN/CLOSE block */
 
 	/* Clear Interrupt Status Flag */
+#ifdef MULLE_IRQ_PATCH
+    PORTC_PCR1 |= 0x01000000;  /* Clear interrupt */
+    NVICICPR2 = (1<<25);
+#else
     PORTB_PCR9 |= 0x01000000;  /* Clear interrupt */
     NVICICPR2 = (1<<24);
+#endif
 
     INTERRUPTDEBUG(1);
 

@@ -77,7 +77,11 @@ int main(void)
   llwu_register(deep_sleep);
   // Dont allow deep sleep for now because radio cant wake up the mcu from it.
   // TODO(Henrik) Fix this when a new revision is made of the hardware.
+#ifndef WITH_SLIP
+  llwu_set_allow(deep_sleep, 1);
+#else
   llwu_set_allow(deep_sleep, 0);
+#endif
 
   power_control_init();
 
@@ -109,6 +113,6 @@ int main(void)
   while (1)
   {
     while (process_run() > 0);
-    //llwu_sleep();
+    llwu_sleep();
   }
 }

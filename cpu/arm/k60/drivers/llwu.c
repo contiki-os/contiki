@@ -96,7 +96,18 @@ llwu_sleep(void) {
 void
 llwu_enable_wakeup_source(enum LLWU_WAKEUP_SOURCE s)
 {
-  LLWU_ME |= s;
+  if (s < 49)
+  {
+    *(&LLWU_PE1 + ((s-1)/12)) |= ((s-1)%3+1) << ((int)(((s%12)-1)/3)*2);
+  }
+  else if (s == 49)
+  {
+    LLWU_ME |= 1; // LPT
+  }
+  PRINTF("LLTU 1 %X\n", LLWU_PE1);
+  PRINTF("LLTU 2 %X\n", LLWU_PE2);
+  PRINTF("LLTU 3 %X\n", LLWU_PE3);
+  PRINTF("LLTU 4 %X\n", LLWU_PE4);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -107,6 +118,10 @@ llwu_enable_disable_source(enum LLWU_WAKEUP_SOURCE s)
 
 void __attribute__((interrupt)) _isr_llwu(void)
 {
-  LLWU_F1 |= LLWU_F1_WUF7_MASK;
-  PRINTF("LLWU: interrupt\n");
+  LPTMR0_CSR |= 0x80;
+  // TODO(henrik) Dont know if this is really the correct way to handle the flags.
+  LLWU_F1 = 0xFF;
+  LLWU_F2 = 0xFF;
+  LLWU_F3 = 0xFF;
 }
+
