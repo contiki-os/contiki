@@ -1083,8 +1083,8 @@ rpl_recalculate_ranks(void)
    */
   p = nbr_table_head(rpl_parents);
   while(p != NULL) {
-    if(p->dag != NULL && p->dag->instance && p->updated) {
-      p->updated = 0;
+    if(p->dag != NULL && p->dag->instance && (p->flags & RPL_PARENT_FLAG_UPDATED)) {
+      p->flags &= ~RPL_PARENT_FLAG_UPDATED;
       PRINTF("RPL: rpl_process_parent_event recalculate_ranks\n");
       if(!rpl_process_parent_event(p->dag->instance, p)) {
         PRINTF("RPL: A parent was dropped\n");
