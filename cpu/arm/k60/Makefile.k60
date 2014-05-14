@@ -6,7 +6,12 @@ OPTI=0
 endif
 
 #### Debug settings
-DEBUG=-g #-gdwarf-2 -gstrict-dwarf
+# Light debugging info
+#DEBUG=-g
+# Include macro definitions etc in debugging info
+DEBUG=-g3 -gdwarf-4
+# Other interesting settings:
+# For using an ancient GDB version: -gdwarf-2 -gstrict-dwarf
 
 GDB_PORT ?= 3333
 
