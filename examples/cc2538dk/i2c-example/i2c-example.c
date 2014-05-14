@@ -51,14 +51,18 @@ static uint16_t temp;
 void
 print_float(float num, uint8_t preci)
 {
-	printf("%d.", (int)num);
-	num -= (int)num;
-	while(num != 0 && preci> 0) {
-		num -= (int)num;
+	int integer=(int)num, decimal=0;
+	char buf[20];
+	preci = preci > 10 ? 10 : preci;
+	num -= integer;
+	while((num != 0) && (preci-- > 0)) {
+		decimal *= 10;
 		num *= 10;
-		printf("%c", '0'+(int)num);
-		--preci;
+		decimal += (int)num;
+		num -= (int)num;
 	}
+	sprintf(buf, "%d.%d", integer, decimal);
+	printf("%s", buf);
 }
 /*---------------------------------------------------------------------------*/
 #if TCN75_ENABLE == 1
