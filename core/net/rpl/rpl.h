@@ -104,6 +104,9 @@ typedef struct rpl_metric_container rpl_metric_container_t;
 struct rpl_instance;
 struct rpl_dag;
 /*---------------------------------------------------------------------------*/
+#define RPL_PARENT_FLAG_UPDATED           0x1
+#define RPL_PARENT_FLAG_LINK_METRIC_VALID 0x2
+
 struct rpl_parent {
   struct rpl_parent *next;
   struct rpl_dag *dag;
@@ -113,7 +116,7 @@ struct rpl_parent {
   rpl_rank_t rank;
   uint16_t link_metric;
   uint8_t dtsn;
-  uint8_t updated;
+  uint8_t flags;
 };
 typedef struct rpl_parent rpl_parent_t;
 /*---------------------------------------------------------------------------*/

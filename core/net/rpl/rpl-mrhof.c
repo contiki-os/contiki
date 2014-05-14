@@ -122,8 +122,16 @@ neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
       packet_etx = MAX_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
     }
 
-    new_etx = ((uint32_t)recorded_etx * ETX_ALPHA +
-               (uint32_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+    if(p->flags & RPL_PARENT_FLAG_LINK_METRIC_VALID) {
+      /* We already have a valid link metric, use weighted moving average to update it */
+      new_etx = ((uint32_t)recorded_etx * ETX_ALPHA +
+                 (uint32_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+    } else {
+      /* We don't have a valid link metric, set it to the current packet's ETX */
+      new_etx = packet_etx;
+      /* Set link metric as valid */
+      p->flags |= RPL_PARENT_FLAG_LINK_METRIC_VALID;
+    }
 
     PRINTF("RPL: ETX changed from %u to %u (packet ETX = %u)\n",
         (unsigned)(recorded_etx / RPL_DAG_MC_ETX_DIVISOR),
