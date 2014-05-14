@@ -276,6 +276,11 @@ coap_init_connection(uint16_t port)
   /* Initialize transaction ID. */
   current_mid = random_rand();
 }
+void
+coap_poll_connection(void)
+{
+	tcpip_poll_udp(udp_conn);
+}
 /*-----------------------------------------------------------------------------------*/
 uint16_t
 coap_get_mid()

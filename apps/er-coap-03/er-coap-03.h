@@ -235,6 +235,7 @@ typedef enum
 } error_t;
 
 void coap_init_connection(uint16_t port);
+void coap_poll_connection(void);
 uint16_t coap_get_tid(void);
 void coap_send_message(uip_ipaddr_t *addr, uint16_t port, const uint8_t *data, uint16_t length);
 
