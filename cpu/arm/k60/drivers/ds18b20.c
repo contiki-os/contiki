@@ -65,7 +65,7 @@ void ds18b20_convert_temperature(const ow_rom_code_t id)
     static const ds18b20_cmd_t cmd = DS18B20_CONVERT_TEMPERATURE;
 
     ow_skip_or_match_rom(id);
-    ow_write_bytes(&cmd, 1);
+    ow_write_bytes((const uint8_t*)&cmd, 1);
     /* Keep reading to see status of the conversion, the response will be 1 for as
      * long as the conversion is in progress, then change to 0. */
     /*uint8_t status = 0;*/
@@ -88,7 +88,7 @@ uint8_t ds18b20_read_scratchpad(const ow_rom_code_t id, uint8_t* dest)
     int i;
 
     ow_skip_or_match_rom(id);
-    ow_write_bytes(&cmd, 1);
+    ow_write_bytes((const uint8_t*)&cmd, 1);
     ow_read_bytes(&dest[0], DS18B20_SCRATCHPAD_SIZE);
     printf("Scratchpad: ");
     for (i = 0; i < DS18B20_SCRATCHPAD_SIZE/2; ++i)

@@ -106,7 +106,6 @@ static volatile uint8_t ow_write_bytes_count;
 static volatile uint8_t* ow_read_bytes_buf;
 static volatile uint8_t ow_read_bytes_count;
 static volatile uint8_t ow_write_bits;
-static volatile uint8_t ow_write_bits_read_back;
 static volatile uint8_t ow_read_bits;
 static volatile uint8_t ow_isr_scratch;
 
@@ -472,7 +471,7 @@ ow_rom_code_t ow_read_rom(void)
   static const ow_rom_cmd_t cmd = ONEWIRE_CMD_READ_ROM;
   printf("READ ROM: ");
   ow_reset();
-  ow_write_bytes(&cmd, 1);
+  ow_write_bytes((const uint8_t *)(&cmd), 1);
   ow_read_bytes(rom, ONEWIRE_ROM_CODE_LENGTH);
   /* Little endian */
   rom_code = *((uint64_t*)rom);

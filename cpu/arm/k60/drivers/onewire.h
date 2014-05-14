@@ -75,6 +75,7 @@ uint8_t ow_compute_crc(const uint8_t* data, const uint8_t count);
 ow_rom_code_t ow_read_rom(void);
 void ow_skip_rom(void);
 void ow_match_rom(const ow_rom_code_t id);
+void ow_skip_or_match_rom(const ow_rom_code_t id);
 
 
 #endif
