@@ -257,7 +257,7 @@ static inline uint8_t hal_spi_receive(int cont)
 }
 
 
-#define HAL_RF230_ISR() void __attribute__((interrupt))  _isr_gpio_b(void)
+#define HAL_RF230_ISR() void __attribute__((interrupt))  _isr_portb_pin_detect(void)
 
 /** \brief  This function initializes the Hardware Abstraction Layer.
  */
