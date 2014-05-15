@@ -40,9 +40,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "er-coap-engine.h"
-#ifdef WITH_DTLS
-#include "er-dtls.h"
-#endif
 
 #define DEBUG 0
 #if DEBUG
@@ -86,18 +83,8 @@ coap_receive(void)
     PRINTF(":%u\n  Length: %u\n", uip_ntohs(UIP_UDP_BUF->srcport),
            uip_datalen());
 
-#ifdef WITH_DTLS
-    CoapData_t coapdata = { 0, NULL, 0 };
-    dtls_parse_message(uip_appdata, uip_datalen(), &coapdata);
-    if(!coapdata.valid) {
-      return NO_ERROR;
-    }
-    erbium_status_code =
-      coap_parse_message(message, coapdata.data, coapdata.data_len);
-#else
     erbium_status_code =
       coap_parse_message(message, uip_appdata, uip_datalen());
-#endif
 
     if(erbium_status_code == NO_ERROR) {
 
@@ -337,15 +324,9 @@ extern resource_t res_dtls;
 PROCESS_THREAD(coap_engine, ev, data)
 {
   PROCESS_BEGIN();
-#ifdef WITH_DTLS
-  aes_init();
-#endif
   PRINTF("Starting %s receiver...\n", coap_rest_implementation.name);
 
   rest_activate_resource(&res_well_known_core, ".well-known/core");
-#ifdef WITH_DTLS
-  rest_activate_resource(&res_dtls, "dtls");
-#endif
 
   coap_register_as_transaction_handler();
   coap_init_connection(SERVER_LISTEN_PORT);

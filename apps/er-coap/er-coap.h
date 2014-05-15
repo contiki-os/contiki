@@ -59,10 +59,10 @@
 #define COAP_MAX_BLOCK_SIZE           (REST_MAX_CHUNK_SIZE < 32 ? 16 : \
                                        (REST_MAX_CHUNK_SIZE < 64 ? 32 : \
                                         (REST_MAX_CHUNK_SIZE < 128 ? 64 : \
-                                        (REST_MAX_CHUNK_SIZE < 256 ? 128 : \
-                                        (REST_MAX_CHUNK_SIZE < 512 ? 256 : \
-                                        (REST_MAX_CHUNK_SIZE < 1024 ? 512 : \
-                                        (REST_MAX_CHUNK_SIZE < 2048 ? 1024 : 2048)))))))
+                                         (REST_MAX_CHUNK_SIZE < 256 ? 128 : \
+                                          (REST_MAX_CHUNK_SIZE < 512 ? 256 : \
+                                          (REST_MAX_CHUNK_SIZE < 1024 ? 512 : \
+                                          (REST_MAX_CHUNK_SIZE < 2048 ? 1024 : 2048)))))))
 #endif /* COAP_MAX_BLOCK_SIZE */
 
 /* direct access into the buffer */
