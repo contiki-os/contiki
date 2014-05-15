@@ -30,11 +30,11 @@
 /** \name Sensor's specific
  * @{
  */
-#if TCN75_ENABLE == 1
+#if TCN75_ENABLE
 	#define TCN75_SLAVE_ADDRESS		0x48
 	#define TCN75_TEMP_REGISTER		0x00
 #endif //TCN75_ENABLE
-#if SHT21_ENABLE == 1
+#if SHT21_ENABLE
 	#define SHT21_SLAVE_ADDRESS		0x40
 	#define SHT21_TEMP_REGISTER		0xF3
 	#define SHT21_CRC_POLYNOMIAL		0x131
@@ -65,7 +65,7 @@ print_float(float num, uint8_t preci)
 	printf("%s", buf);
 }
 /*---------------------------------------------------------------------------*/
-#if TCN75_ENABLE == 1
+#if TCN75_ENABLE
 uint8_t
 read_temp_TCN75(uint16_t * data)
 {
@@ -93,7 +93,7 @@ read_temp_TCN75(uint16_t * data)
 }
 #endif //TCN75_ENABLE
 /*---------------------------------------------------------------------------*/
-#if SHT21_ENABLE == 1
+#if SHT21_ENABLE
 uint8_t
 check_crc_SHT21(uint8_t data[], uint8_t dataSize, uint8_t chksm)
 {
@@ -181,7 +181,7 @@ PROCESS_THREAD(i2c_example, ev, data)
 		PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
 		/* We must init I2C each time, because the module lose his state when enter PM2 */
 		i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN, I2C_SCL_NORMAL_BUS_SPEED);
-		#if TCN75_ENABLE == 1
+		#if TCN75_ENABLE
 			if(read_temp_TCN75(&temp) == I2C_MASTER_ERR_NONE) {
 				temp = temp>>7;
 				printf("\n%d.%d", temp/2, (temp%2)*5);
@@ -189,7 +189,7 @@ PROCESS_THREAD(i2c_example, ev, data)
 				printf("\nError");
 			}
 		#endif //TCN75_ENABLE
-		#if SHT21_ENABLE == 1
+		#if SHT21_ENABLE
 			if(read_temp_SHT21(&temp) == I2C_MASTER_ERR_NONE) {
 				temp = temp>>7;
 				printf("\n");
