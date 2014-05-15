@@ -194,7 +194,7 @@ coap_notify_observers(resource_t *resource)
       /*TODO implement special transaction for CON, sharing the same buffer to allow for more observers */
 
       if((transaction = coap_new_transaction(coap_get_mid(), &obs->addr, obs->port))) {
-        if (obs->obs_counter % COAP_OBSERVE_REFRESH_INTERVAL == 0) {
+        if(obs->obs_counter % COAP_OBSERVE_REFRESH_INTERVAL == 0) {
           PRINTF("           Force Confirmable for\n");
           notification->type = COAP_TYPE_CON;
         }
@@ -237,34 +237,35 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
 
   if(coap_req->code == COAP_GET && coap_res->code < 128) { /* GET request and response without error code */
     if(IS_OPTION(coap_req, COAP_OPTION_OBSERVE)) {
+      if(coap_req->observe == 0) {
 
-      if(coap_add_observer(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
-                           coap_req->token, coap_req->token_len,
-                           resource->url)) {
-        coap_set_header_observe(coap_res, 0);
-        /*
-         * Following payload is for demonstration purposes only.
-         * A subscription should return the same representation as a normal GET.
-         * Uncomment if you want an information about the avaiable observers.
-         */
-        /*
-         * coap_set_payload(coap_res,
-         *                  content,
-         *                  snprintf(content, sizeof(content), "Added %u/%u",
-         *                           list_length(observers_list),
-         *                           COAP_MAX_OBSERVERS));
-         */
-      } else {
-        coap_res->code = SERVICE_UNAVAILABLE_5_03;
-        coap_set_payload(coap_res, "TooManyObservers", 16);
-      } /* if(added observer) */
-    } else { /* if (observe) */
+        if(coap_add_observer(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
+                             coap_req->token, coap_req->token_len,
+                             resource->url)) {
+          coap_set_header_observe(coap_res, 0);
+          /*
+           * Following payload is for demonstration purposes only.
+           * A subscription should return the same representation as a normal GET.
+           * Uncomment if you want an information about the avaiable observers.
+           */
+          /*
+           * coap_set_payload(coap_res,
+           *                  content,
+           *                  snprintf(content, sizeof(content), "Added %u/%u",
+           *                           list_length(observers_list),
+           *                           COAP_MAX_OBSERVERS));
+           */
+        } else {
+          coap_res->code = SERVICE_UNAVAILABLE_5_03;
+          coap_set_payload(coap_res, "TooManyObservers", 16);
+        }
+      } else if(coap_req->observe == 1) {
 
-      /* remove client if it is currently observe */
-      coap_remove_observer_by_token(&UIP_IP_BUF->srcipaddr,
-                                    UIP_UDP_BUF->srcport, coap_req->token,
-                                    coap_req->token_len);
-      /* if(observe) */
+        /* remove client if it is currently observe */
+        coap_remove_observer_by_token(&UIP_IP_BUF->srcipaddr,
+                                      UIP_UDP_BUF->srcport, coap_req->token,
+                                      coap_req->token_len);
+      }
     }
   }
 }
