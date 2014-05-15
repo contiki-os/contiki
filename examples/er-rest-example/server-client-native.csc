@@ -23,11 +23,11 @@
     </events>
     <motetype>
       org.contikios.cooja.mspmote.SkyMoteType
-      <identifier>rplroot</identifier>
-      <description>Sky RPL Root</description>
-      <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/rpl-border-router/border-router.c</source>
-      <commands EXPORT="discard">make border-router.sky TARGET=sky</commands>
-      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/rpl-border-router/border-router.sky</firmware>
+      <identifier>slipradio</identifier>
+      <description>Sky SLIP radio</description>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/slip-radio/slip-radio.c</source>
+      <commands EXPORT="discard">make slip-radio.sky TARGET=sky</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/slip-radio/slip-radio.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
@@ -94,22 +94,22 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>33.260163187353555</x>
-        <y>30.643217359962595</y>
+        <x>30.303994886410642</x>
+        <y>17.22128424003353</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
-      <motetype_identifier>rplroot</motetype_identifier>
+      <motetype_identifier>slipradio</motetype_identifier>
     </mote>
     <mote>
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
         <x>46.57186415376375</x>
-        <y>40.35946215910942</y>
+        <y>37.25589203828498</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -122,8 +122,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>18.638049428485125</x>
-        <y>47.55034515769599</y>
+        <x>18.194682268367348</x>
+        <y>50.210548118402656</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -138,8 +138,8 @@
     <width>259</width>
     <z>0</z>
     <height>179</height>
-    <location_x>2</location_x>
-    <location_y>1</location_y>
+    <location_x>1</location_x>
+    <location_y>2</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Visualizer
@@ -150,12 +150,12 @@
       <skin>org.contikios.cooja.plugins.skins.AttributeVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.LEDVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.AddressVisualizerSkin</skin>
-      <viewport>3.61568947862321 0.0 0.0 3.61568947862321 15.610600779367 -85.92728269158351</viewport>
+      <viewport>2.255467003316979 0.0 0.0 2.255467003316979 59.30641698643764 -13.478401994502008</viewport>
     </plugin_config>
     <width>300</width>
     <z>2</z>
     <height>178</height>
-    <location_x>261</location_x>
+    <location_x>262</location_x>
     <location_y>1</location_y>
   </plugin>
   <plugin>
@@ -166,7 +166,7 @@
       <coloring />
     </plugin_config>
     <width>762</width>
-    <z>3</z>
+    <z>4</z>
     <height>491</height>
     <location_x>2</location_x>
     <location_y>182</location_y>
@@ -188,15 +188,6 @@
     <minimized>true</minimized>
   </plugin>
   <plugin>
-    SerialSocketServer
-    <mote_arg>0</mote_arg>
-    <width>422</width>
-    <z>4</z>
-    <height>74</height>
-    <location_x>578</location_x>
-    <location_y>18</location_y>
-  </plugin>
-  <plugin>
     org.contikios.cooja.plugins.TimeLine
     <plugin_config>
       <mote>0</mote>
@@ -216,16 +207,25 @@
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>2</mote_arg>
+    <mote_arg>1</mote_arg>
     <plugin_config>
       <interface>Serial port</interface>
       <scrollpos>0,0</scrollpos>
     </plugin_config>
     <width>853</width>
-    <z>1</z>
+    <z>3</z>
     <height>491</height>
     <location_x>765</location_x>
     <location_y>182</location_y>
+  </plugin>
+  <plugin>
+    SerialSocketServer
+    <mote_arg>0</mote_arg>
+    <width>422</width>
+    <z>1</z>
+    <height>82</height>
+    <location_x>606</location_x>
+    <location_y>51</location_y>
   </plugin>
 </simconf>
 
