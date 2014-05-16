@@ -48,6 +48,25 @@ clear_bss(void)
   }
 }
 
+/* Start of .ramcode section in RAM */
+extern uint32_t _ramcode_start[];
+/* End of .ramcode section in RAM */
+extern uint32_t _ramcode_end[];
+/* Start of .ramcode section in flash */
+extern uint32_t _ramcode_load[];
+/*
+ * Copy the ramcode section to RAM.
+ */
+static void
+copy_ramcode(void)
+{
+  uint32_t * ram = _ramcode_start;
+  uint32_t * rom = _ramcode_load;
+  while(ram < _ramcode_end) {
+    *(ram++) = *(rom++);
+  }
+}
+
 /* Stack pointer will be set to _stack_start by the hardware at reset/power on */
 void
 reset_handler(void)
@@ -76,8 +95,8 @@ reset_handler(void)
   WDOG_STCTRLH &= ~WDOG_STCTRLH_WDOGEN_MASK;
 
   /*
-   * The line below is the earliest possible location for a breakpoint when
-   * debugging the startup code.
+   * The line below this comment is the earliest possible location for a
+   * breakpoint when debugging the startup code.
    */
 
   core_clocks_init_early();
@@ -85,6 +104,8 @@ reset_handler(void)
   copy_initialized();
 
   clear_bss();
+
+  copy_ramcode();
 
   main();
   /* main should never return, but just in case... */
