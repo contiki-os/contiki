@@ -149,7 +149,7 @@ read_temp_SHT21(uint16_t * data)
 			while(i2c_master_busy()) {
 			}
 			if(i2c_master_error() == I2C_MASTER_ERR_NONE) {
-				*data |= i2c_master_data_get() << 0;
+				*data |= i2c_master_data_get();
 				
 				/* Checksum */
 				i2c_master_command(I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
