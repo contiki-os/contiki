@@ -192,7 +192,7 @@ PROCESS_THREAD(i2c_example, ev, data)
 		#if SHT21_ENABLE
 			if(read_temp_SHT21(&temp) == I2C_MASTER_ERR_NONE) {
 				printf("\n");
-				print_float(((((float)temp)/65536)*175.72-46.85)), SHT21_DECIMAL_PRECISION);
+				print_float(((((float)temp)/65536)*175.72-46.85), SHT21_DECIMAL_PRECISION);
 			} else {
 				printf("\nError");
 			}
