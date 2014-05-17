@@ -24,13 +24,25 @@ MCU=atmega1284p
 AVRDUDE_PORT=usb
 
 # Assume that the user has already configured AVRDUDE to use a specific programmer.
-#AVRDUDE_PROGRAMMER?=jtag2
+AVRDUDE_PROGRAMMER=jtag3
 
 # Additional avrdude options
 # Verify off
 #AVRDUDE_OPTIONS=-V
 
 AVRDUDE_MCU=m1284p
+
+ifeq ($(UIP_CONF_IPV6),1)
+CFLAGS += -DWITH_UIP6=1
+CFLAGS += -DUIP_CONF_IPV6=1
+endif
+
+ifeq ($(UIP_CONF_RPL),0)
+CFLAGS += -DUIP_CONF_IPV6_RPL=0
+CFLAGS += -DUIP_CONF_ROUTER=0
+endif
+
+#CFLAGS += -DUIP_CONF_BUFFER_SIZE=1280
 
 include $(CONTIKIAVR)/Makefile.avr
 include $(CONTIKIAVR)/radio/Makefile.radio

@@ -38,7 +38,7 @@
 #define PRINTA(...)
 #endif
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTD(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
 #else
@@ -68,10 +68,8 @@
 #include "dev/rs232.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
+#include <util/delay.h>
 
-#ifdef RAVEN_LCD_INTERFACE
-#include "raven-lcd.h"
-#endif
 
 #if AVR_WEBSERVER
 #include "httpd-fs.h"
@@ -146,6 +144,17 @@ FUSES ={.low = 0xC2, .high = 0x99, .extended = 0xfe,};
 uint8_t
 rng_get_uint8(void) {
 #if 1
+  //delay pre and post call to ensure full randomness before and after
+  uint8_t i = 0;
+  uint8_t j = 0;
+  _delay_us(1);
+  for(; i < 4; i ++){
+    j = j * 4;
+    j += ((PHY_RSSI&0x60)>>5);
+    //wait 2 microseconds to allow PHY_RSSI register to get next random value, only resets every 1 us
+    _delay_us(2);
+  }
+#elif 1
   /* Upper two RSSI reg bits (RND_VALUE) are random in rf231 */
   uint8_t j;
   j = (PHY_RSSI&0xc0) + ((PHY_RSSI>>2)&0x30) + ((PHY_RSSI>>4)&0x0c) + ((PHY_RSSI>>6)&0x03);
@@ -170,37 +179,35 @@ rng_get_uint8(void) {
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
+  uint8_t resetSrc = MCUSR;
+  MCUSR = 0;
   watchdog_init();
   watchdog_start();
 
-/* The Raven implements a serial command and data interface via uart0 to a 3290p,
- * which could be duplicated using another host computer.
- */
-#if !RF230BB_CONF_LEDONPORTE1   //Conflicts with USART0
-#ifdef RAVEN_LCD_INTERFACE
+  /* The atmega128rfa1 does not implements a serial command and data interface via uart0 to a 3290p, contrary to raven
+   * Use port either for slip or serial debugging.
+   */
+  #if WITH_SLIP
+  //Slip border router on uart0
   rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
-  rs232_set_input(0,raven_lcd_serial_input);
-#else
-  /* Generic or slip connection on uart0 */
-  rs232_init(RS232_PORT_0, USART_BAUD_38400,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
-#endif
-#endif
+  #else
+  /* First rs232 port for debugging */
+  rs232_init(RS232_PORT_0, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 
-  /* Second rs232 port for debugging or slip alternative */
-  rs232_init(RS232_PORT_1, USART_BAUD_57600,USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
-  /* Redirect stdout */
-#if RF230BB_CONF_LEDONPORTE1 || defined(RAVEN_LCD_INTERFACE)
-  rs232_redirect_stdout(RS232_PORT_1);
-#else
+  /* Redirect stdout to first port */
   rs232_redirect_stdout(RS232_PORT_0);
-#endif
+
+  /* Get input from first port */
+  rs232_set_input(RS232_PORT_0, serial_line_input_byte);
+  #endif
+
   clock_init();
 
-  if(MCUSR & (1<<PORF )) PRINTD("Power-on reset.\n");
-  if(MCUSR & (1<<EXTRF)) PRINTD("External reset!\n");
-  if(MCUSR & (1<<BORF )) PRINTD("Brownout reset!\n");
-  if(MCUSR & (1<<WDRF )) PRINTD("Watchdog reset!\n");
-  if(MCUSR & (1<<JTRF )) PRINTD("JTAG reset!\n");
+  if(resetSrc & (1<<PORF )) PRINTD("Power-on reset.\n");
+  if(resetSrc & (1<<EXTRF)) PRINTD("External reset!\n");
+  if(resetSrc & (1<<BORF )) PRINTD("Brownout reset!\n");
+  if(resetSrc & (1<<WDRF )) PRINTD("Watchdog reset!\n");
+  if(resetSrc & (1<<JTRF )) PRINTD("JTAG reset!\n");
 
 #if STACKMONITOR
   /* Simple stack pointer highwater monitor. Checks for magic numbers in the main

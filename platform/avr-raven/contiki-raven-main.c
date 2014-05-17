@@ -39,7 +39,7 @@
 #define PRINTA(...)
 #endif
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTD(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
 #else
@@ -170,6 +170,8 @@ uint8_t i,j;
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
+  uint8_t resetSrc = MCUSR;
+  MCUSR = 0;
   watchdog_init();
   watchdog_start();
 
@@ -190,12 +192,12 @@ void initialize(void)
   clock_init();
 
   PRINTD("\n\nChecking MCUSR...\n");
-  if(MCUSR & (1<<PORF )) PRINTD("Power-on reset.\n");
-  if(MCUSR & (1<<EXTRF)) PRINTD("External reset!\n");
-  if(MCUSR & (1<<BORF )) PRINTD("Brownout reset!\n");
-  if(MCUSR & (1<<WDRF )) PRINTD("Watchdog reset!\n");
-  if(MCUSR & (1<<JTRF )) PRINTD("JTAG reset!\n");
-  MCUSR = 0;
+  if(resetSrc & (1<<PORF )) PRINTD("Power-on reset.\n");
+  if(resetSrc & (1<<EXTRF)) PRINTD("External reset!\n");
+  if(resetSrc & (1<<BORF )) PRINTD("Brownout reset!\n");
+  if(resetSrc & (1<<WDRF )) PRINTD("Watchdog reset!\n");
+  if(resetSrc & (1<<JTRF )) PRINTD("JTAG reset!\n");
+
   
   PRINTD("CLOCK_SECOND %d\n",CLOCK_SECOND);
   PRINTD("RTIMER_ARCH_SECOND %lu\n",RTIMER_ARCH_SECOND);

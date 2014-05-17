@@ -1,11 +1,12 @@
 
 all: webserver6
 
-APPS=raven-webserver raven-lcd-interface
-TARGET=avr-raven
+APPS=raven-webserver
+ifndef TARGET
+TARGET=avr-atmega128rfa1
+endif
 UIP_CONF_IPV6=1
-
-#UIP_CONF_RPL=0        //RPL is now the default.
+UIP_CONF_RPL=0
 #RF230BB=1             //Use radio driver that communicates with the core MAC layer. Now the default.
 #COFFEE_FILES=1        //Static coffee file system in EEPROM
 #COFFEE_FILES=2        //Dynamic coffee file system in EEPROM

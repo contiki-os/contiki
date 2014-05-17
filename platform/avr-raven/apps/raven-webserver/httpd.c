@@ -409,7 +409,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
     uint8_t i;
     for (i=0;i<sizeof(s->inputbuf);i++) {
       if (s->inputbuf[i]=='?') {
-        raven_lcd_show_text(&s->inputbuf[i]);
+        //raven_lcd_show_text(&s->inputbuf[i]);
         if (i<sizeof(s->filename)) s->filename[i]=0;
  //     s->inputbuf[i]=0; //allow multiple beeps with multiple ?'s
       }

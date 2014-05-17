@@ -40,7 +40,6 @@
 #include "httpd-fs.h"
 #include "httpd-cgi.h"
 #include "httpd.h"
-#include "raven-lcd.h"
 
 //#include "http-strings.h"
 #if COFFEE_FILES
@@ -306,8 +305,6 @@ generate_header(void *hstr)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-char http_htm[10]   PROGMEM ="text/html";
-char http_css[ 9]   PROGMEM ="text/css";
 const char httpd_mime_htm[] HTTPD_STRING_ATTR = "text/html";
 const char httpd_mime_css[] HTTPD_STRING_ATTR = "text/css";
 const char httpd_mime_png[] HTTPD_STRING_ATTR = "image/png";
@@ -406,18 +403,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
   } else {
     s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
     strncpy(s->filename, &s->inputbuf[0], sizeof(s->filename));
-{
-    /* Look for ?, if found strip file name and send any following text to the LCD */
-    uint8_t i;
-    for (i=0;i<sizeof(s->inputbuf);i++) {
-      if (s->inputbuf[i]=='?') {
-        raven_lcd_show_text(&s->inputbuf[i]);
-        if (i<sizeof(s->filename)) s->filename[i]=0;
- //     s->inputbuf[i]=0; //allow multiple beeps with multiple ?'s
-      }
-      if (s->inputbuf[i]==0) break;
-    }
-}
+
   }
 
   webserver_log_file(&uip_conn->ripaddr, s->filename);
@@ -458,10 +444,6 @@ httpd_appcall(void *state)
   if (1) {
 #else
   struct httpd_state *s = (struct httpd_state *)state;
-#if RF230BB_CONF_LEDONPORTE1
-  extern uint16_t ledtimer;
-  PORTE|=(1<<PE1);ledtimer=1000; //turn on led, set counter for turnoff
-#endif
   if(uip_closed() || uip_aborted() || uip_timedout()) {
     if(s != NULL) {
       memb_free(&conns, s);
