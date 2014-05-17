@@ -43,6 +43,7 @@
 #include "net/netstack.h"
 
 #include <string.h>
+#include <limits.h>
 
 #ifndef CC2520_CONF_AUTOACK
 #define CC2520_CONF_AUTOACK 0
@@ -727,6 +728,7 @@ cc2520_rssi(void)
 {
   int rssi;
   int radio_was_off = 0;
+  int stat;
 
   if(locked) {
     return 0;
@@ -738,9 +740,14 @@ cc2520_rssi(void)
     radio_was_off = 1;
     cc2520_on();
   }
-  BUSYWAIT_UNTIL(status() & BV(CC2520_RSSI_VALID), RTIMER_SECOND / 100);
+  BUSYWAIT_UNTIL((stat = status()) & BV(CC2520_RSSI_VALID), RTIMER_SECOND / 100);
 
-  rssi = (int)((signed char)getreg(CC2520_RSSI));
+  if(stat & BV(CC2520_RSSI_VALID)) {
+    rssi = (signed char)getreg(CC2520_RSSI);
+  } else {
+    rssi = INT_MAX;
+  }
+
 
   if(radio_was_off) {
     cc2520_off();
