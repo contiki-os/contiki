@@ -74,6 +74,16 @@ typedef uint32_t rtimer_clock_t;
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name Watchdog Timer configuration
+ *
+ * @{
+ */
+#ifndef WATCHDOG_CONF_ENABLE
+#define WATCHDOG_CONF_ENABLE	1 /**<Enable the watchdog timer */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name USB 'core' configuration
  *
  * Those values are not meant to be modified by the user, except where stated

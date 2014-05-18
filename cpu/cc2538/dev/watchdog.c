@@ -87,6 +87,7 @@ void
 watchdog_reboot(void)
 {
   INTERRUPTS_DISABLE();
+  watchdog_start(); /* just in case the WDT hasn't been started yet */
   while(1);
 }
 /**

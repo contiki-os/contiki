@@ -203,7 +203,9 @@ main(void)
 
   autostart_start(autostart_processes);
 
+#if WATCHDOG_CONF_ENABLE
   watchdog_start();
+#endif
   fade(LEDS_ORANGE);
 
   while(1) {
