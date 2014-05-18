@@ -51,6 +51,20 @@ typedef uint32_t rtimer_clock_t;
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name Flash Memory configuration
+ *
+ * @{
+ */
+#ifndef FLASH_CONF_ORIGIN
+#define FLASH_CONF_ORIGIN  0x00200000
+#endif
+
+#ifndef FLASH_CONF_SIZE
+#define FLASH_CONF_SIZE    0x00080000 /* 512 KiB */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name USB 'core' configuration
  *
  * Those values are not meant to be modified by the user, except where stated

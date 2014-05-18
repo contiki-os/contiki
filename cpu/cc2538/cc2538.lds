@@ -43,10 +43,26 @@
 #define SRAM_LEN        0x00008000
 #endif
 
+#ifdef FLASH_CONF_ORIGIN
+#define FLASH_ORIGIN    FLASH_CONF_ORIGIN
+#else
+#error FLASH_CONF_ORIGIN is not specified. Please define FLASH_CONF_ORIGIN in contiki-conf.h.
+#endif
+
+#ifdef FLASH_CONF_SIZE
+#define FLASH_SIZE      FLASH_CONF_SIZE
+#else
+#error FLASH_CONF_SIZE is not specified. Please define FLASH_CONF_SIZE in contiki-conf.h.
+#endif
+
+#define FLASH_CCA_LENGTH 44
+#define FLASH_LENGTH     (FLASH_SIZE - FLASH_CCA_LENGTH)
+#define FLASH_CCA_ORIGIN (FLASH_ORIGIN + FLASH_LENGTH)
+
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x200000, LENGTH = 0x0007FFD4
-    FLASH_CCA (RX) : ORIGIN = 0x0027FFD4, LENGTH = 44
+    FLASH (rx) : ORIGIN = FLASH_ORIGIN, LENGTH = FLASH_LENGTH
+    FLASH_CCA (RX) : ORIGIN = FLASH_CCA_ORIGIN, LENGTH = FLASH_CCA_LENGTH
 #if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
     NRSRAM (RWX) : ORIGIN = NRSRAM_START, LENGTH = NRSRAM_LEN
 #endif
