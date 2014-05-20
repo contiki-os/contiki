@@ -107,4 +107,12 @@
 #undef NETSTACK_CONF_FRAMER
 #define NETSTACK_CONF_FRAMER  framer_802154
 
+/* Disable compression threshold for consistent and predictable compression */
+#undef SICSLOWPAN_CONF_COMPRESSION_THRESHOLD
+#define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 0
+
+/* Enable ContikiMAC header for MAC padding */
+#undef CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER
+#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 1
+
 #endif /* __ORPL_CONTIKI_CONF_H__ */

@@ -52,7 +52,6 @@
 #define SEND_INTERVAL   (60 * CLOCK_SECOND)
 #define UDP_PORT 1234
 
-static char buf[APP_PAYLOAD_LEN];
 static struct simple_udp_connection unicast_connection;
 static uint16_t current_cnt = 0;
 
@@ -79,7 +78,7 @@ is_id_in_any_to_any(uint16_t id)
 }
 
 /*---------------------------------------------------------------------------*/
-PROCESS(unicast_sender_process, "ORPL -- Collect-only Application");
+PROCESS(unicast_sender_process, "ORPL -- Any-to-any Application");
 AUTOSTART_PROCESSES(&unicast_sender_process);
 /*---------------------------------------------------------------------------*/
 void app_send_to(uint16_t id, int ping, uint32_t seqno);
@@ -126,8 +125,7 @@ app_send_to(uint16_t id, int ping, uint32_t seqno)
   orpl_set_curr_seqno(data.seqno);
   set_ipaddr_from_id(&dest_ipaddr, id);
 
-  *((struct app_data*)buf) = data;
-  simple_udp_sendto(&unicast_connection, buf, sizeof(buf) + 1, &dest_ipaddr);
+  simple_udp_sendto(&unicast_connection, &data, sizeof(data), &dest_ipaddr);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(unicast_sender_process, ev, data)
@@ -140,8 +138,9 @@ PROCESS_THREAD(unicast_sender_process, ev, data)
 
   if(node_id == 0) {
     NETSTACK_RDC.off(0);
-    uint16_t mymac = rimeaddr_node_addr.u8[7] << 8 | rimeaddr_node_addr.u8[6];
-    printf("Node id unset, my mac is 0x%04x\n", mymac);
+    printf("Node id unset, my mac is ");
+    uip_debug_lladdr_print(&rimeaddr_node_addr);
+    printf("\n");
     PROCESS_EXIT();
   }
 
@@ -165,17 +164,14 @@ PROCESS_THREAD(unicast_sender_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&periodic_timer));
     etimer_set(&periodic_timer, SEND_INTERVAL);
 
-    static uint16_t index;
-    index = random_rand();
-
     while(1) {
+      uint16_t target_id;
+
       etimer_set(&send_timer, random_rand() % (SEND_INTERVAL));
       PROCESS_WAIT_UNTIL(etimer_expired(&send_timer));
 
-      static uint16_t target_id;
       do {
-        get_node_id_from_index(target_id++);
-        target_id %= get_n_nodes();
+        target_id = get_node_id_from_index((random_rand()>>8)%get_n_nodes());
       } while (target_id == node_id || !is_id_in_any_to_any(target_id));
 
       if(target_id < node_id || target_id == ROOT_ID) {

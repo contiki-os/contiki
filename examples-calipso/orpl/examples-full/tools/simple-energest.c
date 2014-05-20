@@ -73,7 +73,7 @@ void simple_energest_start() {
 
 /*---------------------------------------------------------------------------*/
 void simple_energest_step() {
-  static uint16_t cpt;
+  static uint16_t cnt;
   energest_flush();
 
   curr_tx = energest_type_time(ENERGEST_TYPE_TRANSMIT);
@@ -91,12 +91,14 @@ void simple_energest_step() {
   uint32_t fraction = (100ul*(delta_tx+delta_rx))/delta_time;
   ORPL_LOG_NULL("Duty Cycle: [%u %u] %8lu +%8lu /%8lu (%lu %%)",
       node_id,
-      cpt++,
+      cnt++,
       delta_tx, delta_rx, delta_time,
       fraction
   );
 
-  if(cpt % 8 == 0) {
-    orpl_routing_set_print();
+  orpl_calculate_edc(1);
+
+  if(cnt % 8 == 0) {
+    orpl_log_print_routing_set();
   }
 }
