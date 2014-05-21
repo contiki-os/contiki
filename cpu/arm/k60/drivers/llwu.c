@@ -4,6 +4,7 @@
  */
 
 #include "K60.h"
+#include "power-modes.h"
 #include "llwu.h"
 #include "lib/list.h"
 
@@ -31,24 +32,7 @@ llwu_init()
   /* Setup Low Leakage Wake-up Unit (LLWU) */
   SIM_SCGC4 |= SIM_SCGC4_LLWU_MASK;   /* Enable LLWU clock gate */
 
-#if K60_CPU_REV == 1
-
-  /* Select low power mode Low Leakage Stop (LLS) */
-
-  /* Clear LLS protection */
-  MC_PMPROT |= MC_PMPROT_ALLS_MASK;
-
-  /* Enable Low Power Wake Up Interrupt and LLS */
-  MC_PMCTRL = MC_PMCTRL_LPWUI_MASK | MC_PMCTRL_LPLLSM(0b011);
-#else
-  /* Mode Controller changed name to System Mode Controller (SMC) in rev 2 */
-
-  /* Clear LLS protection */
-  SMC_PMPROT |= SMC_PMPROT_ALLS_MASK;
-
-  /* Enable Low Power Wake Up Interrupt and LLS */
-  SMC_PMCTRL = SMC_PMCTRL_LPWUI_MASK | SMC_PMCTRL_STOPM(0b011);
-#endif
+  power_modes_init();
 
   update_llwu();
   /** \todo Symbolic names for NVIC IRQ flags */
@@ -89,8 +73,14 @@ update_llwu()
 void
 llwu_sleep(void) {
   PRINTF("LLWU: sleep %u....\n", allow_deep_sleep);
-  SCB_SCR = (SCB_SCR & ~SCB_SCR_SLEEPDEEP_MASK) | (allow_deep_sleep << SCB_SCR_SLEEPDEEP_SHIFT);
-  asm("WFI");
+  if (allow_deep_sleep)
+  {
+    power_mode_lls();
+  }
+  else
+  {
+    power_mode_vlps();
+  }
 }
 /*---------------------------------------------------------------------------*/
 void

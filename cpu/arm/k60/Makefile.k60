@@ -42,6 +42,7 @@ CONTIKI_TARGET_SOURCEFILES += \
   clock.c \
   core-clocks.c \
   llwu.c \
+  power-modes.c \
   onewire.c \
   fault-handlers.c \
   adc.c \
