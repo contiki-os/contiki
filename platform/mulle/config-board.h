@@ -57,11 +57,6 @@
 #endif
 
 /**
- * Baud rate of the debug console (UART1)
- */
-#define K60_DEBUG_BAUD 115200
-
-/**
  * Voltage reference high for ADC computations (millivolts).
  */
 #define MULLE_ADC_VREFH_MILLIVOLTS 3300u
@@ -86,3 +81,44 @@
 #define MULLE_ADC_VCHR_ADC_NUM 1
 
 #define MULLE_ADC_VCHR_CHANNEL ADC_CH_AD19
+
+/**
+ * UART module used for debug printf.
+ */
+#define BOARD_DEBUG_UART_BASE_PTR UART1_BASE_PTR
+
+/**
+ * Baud rate of debug UART.
+ */
+#define BOARD_DEBUG_UART_BAUD 115200
+
+/**
+ * PORT module containing the TX pin of the debug UART.
+ */
+#define BOARD_DEBUG_UART_TX_PIN_PORT PORTC_BASE_PTR
+
+/**
+ * PORT module containing the RX pin of the debug UART.
+ */
+#define BOARD_DEBUG_UART_RX_PIN_PORT PORTC_BASE_PTR
+
+/**
+ * Pin number within the PORT module of the TX pin of the debug UART.
+ */
+#define BOARD_DEBUG_UART_TX_PIN_NUMBER 4
+
+/**
+ * Pin number within the PORT module of the RX pin of the debug UART.
+ */
+#define BOARD_DEBUG_UART_RX_PIN_NUMBER 3
+
+/**
+ * Function number in the PORT mux for the TX pin of the debug UART.
+ */
+#define BOARD_DEBUG_UART_TX_PIN_MUX 3
+
+/**
+ * Function number in the PORT mux for the RX pin of the debug UART.
+ */
+#define BOARD_DEBUG_UART_RX_PIN_MUX 3
+

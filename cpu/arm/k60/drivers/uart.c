@@ -6,11 +6,63 @@
 #include "uart.h"
 
 static int (*rx_callback)(unsigned char) = NULL;
-/*
- * Initialize UART1 to baud 115200
+
+/**
+ * Enable the clock gate to an UART module
+ *
+ * This is a convenience function mapping UART module number to SIM_SCG register.
+ *
+ * \param uartch UART module base pointer
  */
-void uart_init(void)
+void uart_module_enable(UART_MemMapPtr uartch)
 {
+  if (uartch == UART0_BASE_PTR)
+  {
+    SIM_SCGC4 |= SIM_SCGC4_UART0_MASK;
+  }
+  else if (uartch == UART1_BASE_PTR)
+  {
+    SIM_SCGC4 |= SIM_SCGC4_UART1_MASK;
+  }
+  else if (uartch == UART2_BASE_PTR)
+  {
+    SIM_SCGC4 |= SIM_SCGC4_UART2_MASK;
+  }
+  else if (uartch == UART3_BASE_PTR)
+  {
+    SIM_SCGC4 |= SIM_SCGC4_UART3_MASK;
+  }
+  else if (uartch == UART4_BASE_PTR)
+  {
+    SIM_SCGC1 |= SIM_SCGC1_UART4_MASK;
+  }
+  else if (uartch == UART5_BASE_PTR)
+  {
+    SIM_SCGC1 |= SIM_SCGC1_UART5_MASK;
+  }
+  else
+  {
+    /* Unknown UART module!! */
+    asm("bkpt #66\n");
+    return;
+  }
+}
+
+/**
+ * Initialize UART.
+ *
+ * This is based on the example found in the CodeWarrior samples provided by
+ * Freescale.
+ *
+ * \param uartch UART channel to initialize (pointer to UART base register)
+ * \param module_clk_hz Module clock (in Hz) of the given UART.
+ * \param baud Desired target baud rate of the UART.
+ */
+void uart_init(UART_MemMapPtr uartch, uint32_t module_clk_hz, uint32_t baud)
+{
+  uint16_t sbr;
+  uint16_t brfa;
+
   SIM_SCGC5  |= SIM_SCGC5_PORTC_MASK;
   /* Choose UART1 RX for the pin mux and disable PORT interrupts on the pin */
   PORTC_PCR3 = PORT_PCR_MUX(3);
@@ -18,36 +70,57 @@ void uart_init(void)
   /* Choose UART1 TX for the pin mux and disable PORT interrupts on the pin */
   PORTC_PCR4 = PORT_PCR_MUX(3);
 
-  /* SIM_SCGC4 */
-  SIM_SCGC4 |= SIM_SCGC4_UART1_MASK;
+  /* Enable the clock to the selected UART */
+  uart_module_enable(uartch);
 
-  UART1_BDH    = UART_BDH_SBR(UART_SBR(F_SYS, K60_DEBUG_BAUD) / 256);
-  UART1_BDL    = UART_BDL_SBR(UART_SBR(F_SYS, K60_DEBUG_BAUD) % 256);
-  UART1_C4     = UART_C4_BRFA(UART_BRFA(F_SYS, K60_DEBUG_BAUD));
+  /* Compute new SBR value */
+  sbr = UART_SBR(module_clk_hz, baud);
+  /* Compute new fine-adjust value */
+  brfa = UART_BRFA(module_clk_hz, baud);
+
+  /* Make sure that the transmitter and receiver are disabled while we
+   * change settings.
+   */
+  UART_C2_REG(uartch) &= ~(UART_C2_TE_MASK | UART_C2_RE_MASK );
+
+  /* Configure the UART for 8-bit mode, no parity */
+  UART_C1_REG(uartch) = 0;	/* We need all default settings, so entire register is cleared */
+
+  /* Replace SBR bits in BDH, BDL registers */
+  /* High bits */
+  UART_BDH_REG(uartch) = (UART_BDH_REG(uartch) & ~(UART_BDH_SBR(0xFF))) |
+                         UART_BDH_SBR(sbr >> 8);
+  /* Low bits */
+  UART_BDL_REG(uartch) = (UART_BDL_REG(uartch) & ~(UART_BDL_SBR(0xFF))) |
+                         UART_BDL_SBR(sbr);
+  /* Fine adjust */
+  UART_C4_REG(uartch) = (UART_C4_REG(uartch) & ~(UART_C4_BRFA(0xFF))) |
+                        UART_C4_BRFA(brfa);
+
   /* Enable transmitter and receiver and enable receive interrupt */
-  UART1_C2     = UART_C2_TE_MASK | UART_C2_RE_MASK | UART_C2_RIE_MASK;
+  UART_C2_REG(uartch) |= UART_C2_TE_MASK | UART_C2_RE_MASK | UART_C2_RIE_MASK;
 }
 
 /*
  * Send char on UART1.
  */
-void uart_putchar(char ch)
+void uart_putchar(UART_MemMapPtr uartch, char ch)
 {
   /* Wait until space is available in the FIFO */
-  while (!(UART1_S1 & UART_S1_TDRE_MASK));
+  while (!(UART_S1_REG(uartch) & UART_S1_TDRE_MASK));
 
   /* Send the character */
-  UART1_D = ch;
+  UART_D_REG(uartch) = ch;
 }
 
 /*
  * Send string to UART1.
  */
-void uart_putstring(char *str)
+void uart_putstring(UART_MemMapPtr uartch, char *str)
 {
   char *p = str;
   while(*p)
-    uart_putchar(*p++);
+    uart_putchar(uartch, *p++);
 }
 
 void uart_enable_rx_interrupt()

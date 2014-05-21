@@ -26,7 +26,7 @@
 
 void printf_putc(void* dum, char c)
 {
-        uart_putchar(c);
+  uart_putchar(BOARD_DEBUG_UART_BASE_PTR, c);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -70,7 +70,7 @@ int main(void)
   leds_arch_init();
   /* Set up core clocks so that timings will be correct in all modules */
   core_clocks_init();
-  uart_init();
+  dbg_uart_init();
 
   llwu_init();
   llwu_enable_wakeup_source(LLWU_WAKEUP_SOURCE_LPT);

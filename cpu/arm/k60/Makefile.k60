@@ -36,7 +36,9 @@ CONTIKI_CPU=$(CONTIKI_CPU_ARM)/k60
 CONTIKI_CPU_DIRS = . drivers
 
 CONTIKI_TARGET_SOURCEFILES += \
+  port.c \
   uart.c \
+  dbg-uart.c \
   clock.c \
   core-clocks.c \
   llwu.c \
