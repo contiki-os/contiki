@@ -63,13 +63,6 @@ void uart_init(UART_MemMapPtr uartch, uint32_t module_clk_hz, uint32_t baud)
   uint16_t sbr;
   uint16_t brfa;
 
-  SIM_SCGC5  |= SIM_SCGC5_PORTC_MASK;
-  /* Choose UART1 RX for the pin mux and disable PORT interrupts on the pin */
-  PORTC_PCR3 = PORT_PCR_MUX(3);
-
-  /* Choose UART1 TX for the pin mux and disable PORT interrupts on the pin */
-  PORTC_PCR4 = PORT_PCR_MUX(3);
-
   /* Enable the clock to the selected UART */
   uart_module_enable(uartch);
 
