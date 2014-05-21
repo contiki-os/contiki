@@ -44,6 +44,7 @@
 #include "net/packetbuf.h"
 #include "cc2420-softack.h"
 #include "net/mac/frame802154.h"
+#include "dev/leds.h"
 #include <string.h>
 
 #if WITH_ORPL
@@ -108,7 +109,7 @@ orpl_softack_input_callback(const uint8_t *frame, uint8_t framelen, uint8_t **ac
 
 	if(is_data) {
 		if(ack_required) { /* This is unicast or unicast, parse it */
-			do_ack = orpl_anycast_parse_802154_frame((uint8_t *)frame, framelen, 0).do_ack;
+			do_ack = orpl_anycast_802154_frame_must_ack((uint8_t *)frame, framelen);
 		} else { /* We also ack broadcast, even if we didn't modify the framer
 		and still send them with ack_required unset */
 			if(seqno != last_acked_seqno) {
@@ -178,21 +179,56 @@ anycast_parse_addr(rimeaddr_t *addr, enum anycast_direction_e *anycast_direction
   }
 }
 
-/* Parse a modified 802.15.4 frame and return information regarding routing and software acks.
- * When set_dest_addr, set the destination address as ours if we have acked the frame. */
+/* Parse a modified 802.15.4 frame and return information regarding anycast */
 struct anycast_parsing_info
-orpl_anycast_parse_802154_frame(uint8_t *data, uint8_t len, int set_dest_addr)
+orpl_anycast_802154_frame_parse(uint8_t *data, uint8_t len)
+{
+  frame802154_fcf_t fcf;
+  uint8_t *dest_addr = NULL;
+  struct anycast_parsing_info info;
+  int i;
+
+  memset(&info, 0, sizeof(info));
+
+  if(len < 3) {
+    return info;
+  }
+
+  /* Decode the FCF */
+  fcf.frame_type = data[0] & 7;
+  fcf.ack_required = (data[0] >> 5) & 1;
+  dest_addr = data + 3 + 2;
+
+  /* This is a unciast or anycast data frame */
+  if(fcf.frame_type == FRAME802154_DATAFRAME && fcf.ack_required == 1) {
+    /* Parse the destination address */
+    if(anycast_parse_addr((rimeaddr_t*)dest_addr, &info.direction, &info.neighbor_edc, &info.seqno)) {
+      /* Set destination address to ours so it doesn't get dropped by upper layers */
+      for(i=0; i<8; i++) {
+        dest_addr[i] = rimeaddr_node_addr.u8[7-i];
+      }
+    }
+  }
+
+  /* Return anycast information */
+  return info;
+}
+
+/* Parse a modified 802.15.4 frame and decides whether to ack it or not */
+int
+orpl_anycast_802154_frame_must_ack(uint8_t *data, uint8_t len)
 {
   frame802154_fcf_t fcf;
   uint8_t *dest_addr = NULL;
   uint8_t *src_addr = NULL;
-  struct anycast_parsing_info ret;
+  struct anycast_parsing_info info;
   int i;
+  int do_ack = 0;
 
-  memset(&ret, 0, sizeof(ret));
+  memset(&info, 0, sizeof(info));
 
   if(len < 3) {
-    return ret;
+    return 0;
   }
 
   /* Decode the FCF */
@@ -213,65 +249,55 @@ orpl_anycast_parse_802154_frame(uint8_t *data, uint8_t len, int set_dest_addr)
     }
 
     /* Parse the destination address */
-    if(anycast_parse_addr((rimeaddr_t*)dest_addr, &ret.direction, &ret.neighbor_edc, &ret.seqno)) {
+    if(anycast_parse_addr((rimeaddr_t*)dest_addr, &info.direction, &info.neighbor_edc, &info.seqno)) {
       rpl_rank_t curr_edc = orpl_current_edc();
 
       /* Calculate destination IPv6 address */
       /* TODO ORPL: better document this addressing */
       uip_ipaddr_t dest_ipv6;
       memcpy(&dest_ipv6, &global_ipv6, 8); /* override prefix */
-      memcpy(((char*)&dest_ipv6)+8, data + 33, 8);
+      memcpy(((char*)&dest_ipv6)+8, data + (CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER ? 2 : 0) + 33, 8);
 
       if(uip_ip6addr_cmp(&dest_ipv6, &global_ipv6)) {
         /* Take the data if it is for us */
-        ret.do_ack = 1;
+        do_ack = 1;
       } else if(rimeaddr_cmp((rimeaddr_t*)dest_addr_host_order, &rimeaddr_node_addr)) {
         /* Unicast, for us */
-        ret.do_ack = 1;
-      } else if(ret.direction == direction_up) {
+        do_ack = 1;
+      } else if(info.direction == direction_up) {
         /* Routing upwards. ACK if our rank is better. */
-        if(ret.neighbor_edc > ORPL_EDC_W && curr_edc < ret.neighbor_edc - ORPL_EDC_W) {
-          ret.do_ack = 1;
+        if(info.neighbor_edc > ORPL_EDC_W && curr_edc < info.neighbor_edc - ORPL_EDC_W) {
+          do_ack = 1;
         } else {
           /* We don't route upwards, now check if we are a common ancester of the source
            * and destination. We do this by checking our routing set against the destination. */
-          if(!orpl_blacklist_contains(ret.seqno) && orpl_routing_set_contains(&dest_ipv6)) {
+          if(!orpl_blacklist_contains(info.seqno) && orpl_routing_set_contains(&dest_ipv6)) {
             /* Traffic is going up but we have destination in our routing set.
              * Ack it and start routing downwards (towards the destination) */
-            ret.do_ack = 1;
+            do_ack = 1;
           }
         }
-      } else if(ret.direction == direction_down) {
+      } else if(info.direction == direction_down) {
         /* Routing downwards. ACK if destination is reachable neighbor or
          * we it is in subdodag and we have a worse rank */
-        if(!orpl_blacklist_contains(ret.seqno)
+        if(!orpl_blacklist_contains(info.seqno)
             && (orpl_is_reachable_neighbor(&dest_ipv6)
-                || (curr_edc > ORPL_EDC_W && curr_edc - ORPL_EDC_W > ret.neighbor_edc
+                || (curr_edc > ORPL_EDC_W && curr_edc - ORPL_EDC_W > info.neighbor_edc
                 && orpl_routing_set_contains(&dest_ipv6)))) {
-          ret.do_ack = 1;
+          do_ack = 1;
         }
-
-      } else if(ret.direction == direction_recover) {
+      } else if(info.direction == direction_recover) {
         /* This packet is sent back from a child that experiences false positive. Only
          * the nodes that did forward this same packet downwards before are allowed to
          * take the packet back during a recovery, before sending down again. This is
          * to avoid duplicates during the recovery process. */
-        ret.do_ack = orpl_acked_down_contains(ret.seqno, (const rimeaddr_t *)src_addr_host_order);
-      }
-    }
-
-    /* Set destination address to ours in case we acked the packet to it doesn't
-     * get dropped next */
-    if(ret.do_ack && set_dest_addr) {
-      int i;
-      for(i=0; i<8; i++) {
-        dest_addr[i] = rimeaddr_node_addr.u8[7-i];
+        do_ack = orpl_acked_down_contains(info.seqno, (const rimeaddr_t *)src_addr_host_order);
       }
     }
   }
 
-  /* Return routing/acknowledging information */
-  return ret;
+  /* Return do_ack flag */
+  return do_ack;
 }
 
 /* Anycast-specific inits */

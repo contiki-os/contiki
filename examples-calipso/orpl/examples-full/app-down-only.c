@@ -51,7 +51,6 @@
 #define UDP_PORT 1234
 #define TARGET_REACHABLE_RATIO 80
 
-static char buf[APP_PAYLOAD_LEN];
 static struct simple_udp_connection unicast_connection;
 
 /*---------------------------------------------------------------------------*/
@@ -87,8 +86,7 @@ void app_send_to(uint16_t id) {
   orpl_set_curr_seqno(data.seqno);
   set_ipaddr_from_id(&dest_ipaddr, id);
 
-  *((struct app_data*)buf) = data;
-  simple_udp_sendto(&unicast_connection, buf, sizeof(buf) + 1, &dest_ipaddr);
+  simple_udp_sendto(&unicast_connection, &data, sizeof(data), &dest_ipaddr);
 
   cnt++;
 }
@@ -125,8 +123,9 @@ PROCESS_THREAD(unicast_sender_process, ev, data)
 
   if(node_id == 0) {
     NETSTACK_RDC.off(0);
-    uint16_t mymac = rimeaddr_node_addr.u8[7] << 8 | rimeaddr_node_addr.u8[6];
-    printf("Node id unset, my mac is 0x%04x\n", mymac);
+    printf("Node id unset, my mac is ");
+    uip_debug_lladdr_print(&rimeaddr_node_addr);
+    printf("\n");
     PROCESS_EXIT();
   }
 
@@ -151,12 +150,13 @@ PROCESS_THREAD(unicast_sender_process, ev, data)
       PROCESS_WAIT_UNTIL(etimer_expired(&send_timer));
 
       if(check_reachable_count()) {
+        uip_ipaddr_t dest_ipaddr;
         static uint16_t target_id;
         static uint16_t i;
         do {
-          target_id = get_node_id_from_index(i++);
-          i %= get_n_nodes();
-        } while (target_id == ROOT_ID);
+          target_id = get_node_id_from_index((random_rand()>>8)%get_n_nodes());
+          set_ipaddr_from_id(&dest_ipaddr, target_id);
+        } while (target_id == ROOT_ID || !orpl_routing_set_contains(&dest_ipaddr));
         app_send_to(target_id);
       }
 

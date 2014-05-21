@@ -232,7 +232,7 @@ static int we_are_receiving_burst = 0;
 #ifdef CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE
 #define SHORTEST_PACKET_SIZE  CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE
 #else
-#define SHORTEST_PACKET_SIZE               43
+#define SHORTEST_PACKET_SIZE               125
 #endif
 
 
@@ -671,7 +671,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
   NETSTACK_ENCRYPT();
 #endif /* NETSTACK_ENCRYPT */
 
+#if !WITH_CONTIKIMAC_HEADER
   transmit_len = packetbuf_totlen();
+#endif /* !WITH_CONTIKIMAC_HEADER */
 
   NETSTACK_RADIO.prepare(packetbuf_hdrptr(), transmit_len);
 
@@ -775,7 +777,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 #endif
 
   uint8_t ackbuf[ACK_LEN];
-  rimeaddr_t *dest = NULL;
+  rimeaddr_t dest;
 
   watchdog_periodic();
   t0 = RTIMER_NOW();
@@ -833,18 +835,20 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
           if(is_broadcast) {
             got_strobe_ack++;
             encounter_time = previous_txtime;
-            dest = (rimeaddr_t *)(ackbuf+3);
+            memcpy(&dest, ackbuf+3, 8);
             uint16_t neighbor_rank = (ackbuf[3+8+1]<<8) + ackbuf[3+8];
-            rpl_set_parent_rank((uip_lladdr_t *)dest, neighbor_rank);
-            orpl_broadcast_acked(dest);
+            rpl_set_parent_rank((uip_lladdr_t *)&dest, neighbor_rank);
+            orpl_broadcast_acked(&dest);
           } else {
           /* Received ack for anycast, stop strobing */
             got_strobe_ack++;
             encounter_time = previous_txtime;
-            dest = (rimeaddr_t *)(ackbuf+3);
+            memcpy(&dest, ackbuf+3, 8);
             uint16_t neighbor_rank = (ackbuf[3+8+1]<<8) + ackbuf[3+8];
-            rpl_set_parent_rank((uip_lladdr_t *)dest, neighbor_rank);
-            if(got_strobe_ack >= 1) break;
+            rpl_set_parent_rank((uip_lladdr_t *)&dest, neighbor_rank);
+            if(got_strobe_ack >= 1) {
+              break;
+            }
           }
         }
       }
@@ -922,13 +926,13 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
   if(!is_broadcast) {
 	  if(got_strobe_ack) {
 		  ORPL_LOG_FROM_PACKETBUF("Cmac: acked by %u s %u c %d seq %u",
-				  				  ORPL_LOG_NODEID_FROM_RIMEADDR(dest),
+				  				  ORPL_LOG_NODEID_FROM_RIMEADDR(&dest),
 				  				  strobe_duration,
 				  				  collision_count, seqno);
 		  /* Set link-layer address of the node that acked the packet */
-		  packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest);
+		  packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &dest);
 		  if(packetbuf_attr(PACKETBUF_ATTR_ORPL_DIRECTION) == direction_down) {
-			  orpl_acked_down_insert(orpl_packetbuf_seqno(), dest);
+			  orpl_acked_down_insert(orpl_packetbuf_seqno(), &dest);
 		  }
 	  } else {
 		  ORPL_LOG_FROM_PACKETBUF("Cmac:! noack s %u c %d seq %u", strobe_duration, collisions, seqno);
@@ -1022,7 +1026,7 @@ input_packet(void)
   }
 
   if(packetbuf_datalen() > 0) {
-    struct anycast_parsing_info ret = orpl_anycast_parse_802154_frame(packetbuf_dataptr(), packetbuf_datalen(), 1);
+    struct anycast_parsing_info ret = orpl_anycast_802154_frame_parse(packetbuf_dataptr(), packetbuf_datalen());
 
     packetbuf_set_attr(PACKETBUF_ATTR_ORPL_DIRECTION, ret.direction);
 
@@ -1149,6 +1153,7 @@ input_packet(void)
           received_app_seqnos[0].seqno = seqno;
         }
 
+        ORPL_LOG_INC_HOPCOUNT_FROM_PACKETBUF();
         ORPL_LOG_FROM_PACKETBUF("Cmac: input from %d",
             ORPL_LOG_NODEID_FROM_RIMEADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER))
         );

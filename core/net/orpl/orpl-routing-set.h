@@ -81,24 +81,24 @@
 #endif
 
 /* A routing set is a bitmap/Bloom filter of size ROUTING_SET_M bits */
-typedef unsigned char routing_set[ROUTING_SET_M / 8];
+struct routing_set_s {
+  unsigned char u8[ROUTING_SET_M / 8];
+};
 
 /* Initializes the global double routing set */
 void orpl_routing_set_init();
 /* Returns a pointer to the currently active routing set */
-routing_set * orpl_routing_set_get_active();
+struct routing_set_s *orpl_routing_set_get_active();
 /* Inserts a global IPv6 in the global double routing set */
 void orpl_routing_set_insert(const uip_ipaddr_t *ipv6);
 /* Merges a routing set into our global double routing set */
-void orpl_routing_set_merge(routing_set rs);
+void orpl_routing_set_merge(const struct routing_set_s *rs);
 /* Checks if our global double bloom filter contains an given IPv6 */
 int orpl_routing_set_contains(const uip_ipaddr_t *ipv6);
 /* Swap active and warmup routing sets for ageing */
 void orpl_routing_set_swap();
 /* Returns the number of bits set in the active routing set */
 int orpl_routing_set_count_bits();
-/* Prints out the content of the active routing set */
-void orpl_routing_set_print();
 
 #endif /* __orpl_routing_set_H__ */
 

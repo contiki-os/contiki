@@ -60,7 +60,7 @@
 #if WITH_ORPL
 
 volatile int need_flush;
-extern int contikimac_keep_radio_on;
+extern volatile uint8_t contikimac_keep_radio_on;
 
 #define WITH_SEND_CCA 1
 
@@ -143,7 +143,7 @@ PROCESS(cc2420_process, "CC2420-softack driver");
     CC2420_SPI_DISABLE();                                    \
   } while(0)
 
-#define FIFOP_THRESHOLD 42
+#define FIFOP_THRESHOLD 43
 
 int cc2420_on(void);
 int cc2420_off(void);
@@ -658,7 +658,6 @@ cc2420_interrupt(void)
   int do_ack;
   int frame_valid = 0;
   struct received_frame_s *rf;
-  struct received_frame_s *last_rf;
 
   process_poll(&cc2420_process);
 
@@ -769,9 +768,6 @@ cc2420_interrupt(void)
     if(softack_acked_callback) {
       softack_acked_callback(rf->buf, len_a);
     }
-    last_rf = rf;
-  } else {
-    last_rf = NULL;
   }
 
   if(rf && frame_valid && len_b>0) { /* Get rest of the data.

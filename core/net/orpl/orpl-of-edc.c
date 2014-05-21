@@ -39,7 +39,7 @@
 
 #include "net/rpl/rpl-private.h"
 
-#define DEBUG DEBUG_ANNOTATE
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 #include "orpl.h"
 #include "orpl-anycast.h"
@@ -81,7 +81,7 @@ int neighbor_set_size = 0;
  * resulting EDC */
 static int
 add_to_forwarder_set(rpl_parent_t *curr_p, rpl_rank_t curr_p_rank, uint16_t ackcount,
-    uint32_t *curr_ackcount_sum, uint32_t *curr_ackcount_edc_sum)
+    uint32_t *curr_ackcount_sum, uint32_t *curr_ackcount_edc_sum, int verbose)
 {
   uint16_t tentative_edc;
   uint32_t total_tx_count;
@@ -92,7 +92,9 @@ add_to_forwarder_set(rpl_parent_t *curr_p, rpl_rank_t curr_p_rank, uint16_t ackc
 
   total_tx_count = orpl_broadcast_count;
   if(total_tx_count == 0) {
-    total_tx_count = 1;
+    /* No broadcast sent yet: assume a reception rate of 50% */
+    ackcount = 1;
+    total_tx_count = 2;
   }
 
   *curr_ackcount_sum += ackcount;
@@ -102,19 +104,130 @@ add_to_forwarder_set(rpl_parent_t *curr_p, rpl_rank_t curr_p_rank, uint16_t ackc
    * parent, B the weighted mean EDC of the forwarder set */
   uint32_t A = hbh_edc * total_tx_count / *curr_ackcount_sum;
   uint32_t B = *curr_ackcount_edc_sum / *curr_ackcount_sum;
-  PRINTF("-- A: %5lu, B: %5lu (%u/%lu) ",
-      A,
-      B,
-      ackcount,
-      total_tx_count
-  );
+  if(verbose) {
+    printf("-- A: %5lu, B: %5lu (%u/%lu) ",
+        A,
+        B,
+        ackcount,
+        total_tx_count
+    );
+  }
 
   /* Finally add W to EDC (cost of forwarding) */
   tentative_edc = A + B + ORPL_EDC_W;
 
-  PRINTF("EDC %5u ", tentative_edc);
+  if(verbose) {
+    printf("EDC %5u ", tentative_edc);
+  }
 
   return tentative_edc;
+}
+
+/* Function that computes the metric EDC */
+rpl_rank_t
+orpl_calculate_edc(int verbose)
+{
+  rpl_rank_t edc = 0xffff;
+  rpl_rank_t prev_edc = orpl_current_edc();
+  /* Counts the total number of ACKs received from nodes in the current set */
+  uint32_t curr_ackcount_sum = 0;
+  /* Counts the total number of EDC*ACKs received from nodes in the current set */
+  uint32_t curr_ackcount_edc_sum = 0;
+  /* Variables used for looping over parents and building the forwarder set */
+  rpl_parent_t *p, *curr_p;
+  int index = 0, curr_index = 0;
+  uint16_t curr_p_rank = 0xffff;
+  uint16_t curr_p_ackcount = 0xffff;
+
+  int prev_index = -1;
+  uint16_t prev_min_rank = 0;
+
+  if(orpl_is_edc_frozen()) {
+    return prev_edc;
+  }
+
+  if(orpl_is_root()) {
+    return 0;
+  }
+
+  forwarder_set_size = 0;
+  neighbor_set_size = 0;
+
+  if(verbose) {
+    printf("ORPL: starting EDC calculation. hbh_edc: %u, e2e_edc %u\n", hbh_edc, orpl_current_edc());
+  }
+
+  /* Loop over the parents ordered by increasing rank, try to insert
+   * them in the routing set until EDC does not improve. This is as
+   * described in the IPSN'12 paper on ORW (upon which ORPL is built) */
+  do {
+    curr_p = NULL;
+
+    /* This nested for loop finds the next parent for the do loop,
+     * such as we get the parents by increasing rank */
+    for(p = nbr_table_head(rpl_parents), index = 0;
+        p != NULL;
+        p = nbr_table_next(rpl_parents, p), index++) {
+      uint16_t rank = p->rank;
+      uint16_t ackcount = p->bc_ackcount;
+
+      if(rank != 0xffff
+          && !(orpl_broadcast_count > 0 && ackcount == 0)
+          && (curr_p == NULL || rank < curr_p_rank)
+          && (rank > prev_min_rank || (rank == prev_min_rank && index > prev_index))
+      ) {
+        curr_index = index;
+        curr_p = p;
+        curr_p_rank = rank;
+        curr_p_ackcount = ackcount;
+      }
+    }
+
+    /* Here, curr_p contains the current parent in our ordered lookup */
+    if(curr_p) {
+      uint16_t curr_id = rpl_get_parent_ipaddr(curr_p)->u8[sizeof(uip_ipaddr_t) - 1];
+      rpl_rank_t tentative_edc;
+
+      if(verbose) {
+        printf("ORPL: EDC -> node %3u rank: %5u ack %u/%u ", curr_id, curr_p_rank, curr_p_ackcount, orpl_broadcast_count);
+      }
+
+      tentative_edc = add_to_forwarder_set(curr_p, curr_p_rank, curr_p_ackcount,
+                &curr_ackcount_sum, &curr_ackcount_edc_sum, verbose);
+
+      neighbor_set_size++;
+
+      if(tentative_edc < edc) {
+        /* The parent is now part of the forwarder set */
+        edc = tentative_edc;
+        forwarder_set_size++;
+        if(verbose) {
+          printf("*\n");
+        }
+        ANNOTATE("#L %u 1\n", curr_id);
+      } else {
+        /* The parent is not part of the forwarder set. This means next parents won't be
+         * part of the set either. */
+        if(verbose) {
+          printf("\n");
+        }
+        ANNOTATE("#L %u 0\n", curr_id);
+      }
+      prev_index = curr_index;
+      prev_min_rank = curr_p_rank;
+    }
+  } while(curr_p != NULL);
+
+  if(verbose) {
+    printf("ORPL: final edc %u\n", edc);
+  }
+
+  if(edc != prev_edc) {
+    ANNOTATE("#A edc=%u.%u\n", edc/EDC_DIVISOR,
+        (10 * (edc % EDC_DIVISOR)) / EDC_DIVISOR);
+  }
+
+  return edc;
 }
 
 static void
@@ -151,7 +264,7 @@ neighbor_link_callback(rpl_parent_t *parent, int known, int edc)
 
     PRINTF("ORPL: updated hbh_edc %u -> %u (%u %u)\n", hbh_edc_prev, hbh_edc, curr_hbh_edc, weighted_curr_hbh_edc);
 
-    /* Calculate EDC and update rank*/
+    /* Calculate EDC and update rank */
     if(parent && parent->dag) {
       parent->dag->rank = calculate_rank(parent, 0);
     }
@@ -161,104 +274,11 @@ neighbor_link_callback(rpl_parent_t *parent, int known, int edc)
 static rpl_rank_t
 calculate_rank(rpl_parent_t *parent, rpl_rank_t base_rank)
 {
-  rpl_rank_t edc = 0xffff;
-  rpl_rank_t prev_edc = orpl_current_edc();
-  /* Counts the total number of ACKs received from nodes in the current set */
-  uint32_t curr_ackcount_sum = 0;
-  /* Counts the total number of EDC*ACKs received from nodes in the current set */
-  uint32_t curr_ackcount_edc_sum = 0;
-  /* Variables used for looping over parents and building the forwarder set*/
-  rpl_parent_t *p, *curr_p;
-  int index = 0, curr_index = 0;
-  uint16_t curr_p_rank = 0xffff;
-  uint16_t curr_p_ackcount = 0xffff;
-
-  int prev_index = -1;
-  rpl_parent_t *prev_min = NULL;
-  uint16_t prev_min_rank = 0;
-
-  if(orpl_is_edc_frozen()) {
-    return prev_edc;
-  }
-
-  if(orpl_is_root()) {
-    return 0;
-  }
-
-  forwarder_set_size = 0;
-  neighbor_set_size = 0;
-
-  PRINTF("ORPL: starting EDC calculation. hbh_edc: %u, e2e_edc %u\n", hbh_edc, orpl_current_edc());
-
-  /* Loop over the parents ordered by increasing rank, try to insert
-   * them in the routing set until EDC does not improve. This is as
-   * described in the IPSN'12 paper on ORW (upon which ORPL is built) */
-  do {
-    curr_p = NULL;
-
-    /* This nested for loop finds the next parent for the do loop,
-     * such as we get the parents by increasing rank */
-    for(p = nbr_table_head(rpl_parents), index = 0;
-        p != NULL;
-        p = nbr_table_next(rpl_parents, p), index++) {
-      uint16_t rank = p->rank;
-      uint16_t ackcount = p->bc_ackcount;
-
-      if(rank != 0xffff
-          && ackcount != 0
-          && (curr_p == NULL || rank < curr_p_rank)
-          && (rank > prev_min_rank || (rank == prev_min_rank && index > prev_index))
-      ) {
-        curr_index = index;
-        curr_p = p;
-        curr_p_rank = rank;
-        curr_p_ackcount = ackcount;
-      }
-    }
-
-    /* Here, curr_p contains the current parent in our ordered lookup */
-    if(curr_p) {
-      uint16_t curr_id = rpl_get_parent_ipaddr(curr_p)->u8[sizeof(uip_ipaddr_t) - 1];
-      rpl_rank_t tentative_edc;
-
-      PRINTF("ORPL: EDC -> node %3u rank: %5u ", curr_id, curr_p_rank);
-
-      tentative_edc = add_to_forwarder_set(curr_p, curr_p_rank, curr_p_ackcount,
-                &curr_ackcount_sum, &curr_ackcount_edc_sum);
-
-      neighbor_set_size++;
-
-      if(tentative_edc < edc) {
-        /* The parent is now part of the forwarder set */
-        edc = tentative_edc;
-        forwarder_set_size++;
-        PRINTF("*\n");
-        ANNOTATE("#L %u 1\n", curr_id);
-      } else {
-        /* The parent is not part of the forwarder set. This means next parents won't be
-         * part of the set either. */
-        PRINTF("\n");
-        ANNOTATE("#L %u 0\n", curr_id);
-      }
-      prev_index = curr_index;
-      prev_min = curr_p;
-      prev_min_rank = curr_p_rank;
-    }
-  } while(curr_p != NULL);
-
-  PRINTF("ORPL: final edc %u\n", edc);
-
-  if(edc != prev_edc) {
-    ANNOTATE("#A edc=%u.%u\n", edc/EDC_DIVISOR,
-        (10 * (edc % EDC_DIVISOR)) / EDC_DIVISOR);
-  }
-
-  /* The EDC does not depend on the (unused) parent parameter.
-   * It is an estimate of the number of cycles to reach the root with
+  /* EDC is an estimate of the number of cycles to reach the root with
    * multi-path routing, using all potential forwarders. We therefore
    * update the ORPL EDC every time we calculate it. */
+  rpl_rank_t edc = orpl_calculate_edc(0);
   orpl_update_edc(edc);
-
   return edc;
 }
 

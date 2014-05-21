@@ -48,7 +48,7 @@
 #if WITH_ORPL
 
 /* We maintain two routing sets, one "active" and one "warmup" to implement ageing. */
-static routing_set routing_sets[2];
+static struct routing_set_s routing_sets[2];
 /* Index of the currently active set. 1-current is the warmup one. */
 static int active_index;
 
@@ -63,7 +63,7 @@ static int active_index;
 static uint64_t
 get_hash(const uip_ipaddr_t *ipv6)
 {
-  return node_id_from_ipaddr(ipv6);
+  return ORPL_LOG_NODEID_FROM_IPADDR(ipv6);
 }
 
 #elif ORPL_RS_TYPE == ORPL_RS_TYPE_BLOOM_SAX
@@ -76,11 +76,16 @@ get_hash(const uip_ipaddr_t *ipv6)
 {
   int i;
   uint64_t hash;
-  memcpy(&hash, ipv6->u8+8, 8); /* Initialize our hash with the IPv6 IID
+  /* Initialize our hash using (the last bytes) of the IID
   rather than 0 for increased entropy (when initialized with 0 and hashing
   entries of only 16 bytes, SAX produces comparatively many collisions) */
+  for(i=0; i<8; i++) {
+    ((unsigned char*)&hash)[i] = ipv6->u8[14+i%2];
+  }
   for(i=0; i<16; i++) {
-    hash ^= ( hash << 5 ) + ( hash >> 2 ) + ipv6->u8[i];
+    /* Use only the IID, not the prefix, and loop twice over it as
+     * only 8 iterations result in too little entropy with SAX */
+    hash ^= ( hash << 5 ) + ( hash >> 2 ) + ipv6->u8[8+i%8];
   }
   return hash;
 }
@@ -93,14 +98,14 @@ get_hash(const uip_ipaddr_t *ipv6)
 
 /* Set a bit in a routing set */
 static void
-rs_set_bit(routing_set rs, int i) {
-  rs[i/8] |= 1 << (i%8);
+rs_set_bit(struct routing_set_s *rs, int i) {
+  rs->u8[i/8] |= 1 << (i%8);
 }
 
 /* Get a bit in a routing set */
 static int
-rs_get_bit(routing_set rs, int i) {
-  return (rs[i/8] & (1 << (i%8))) != 0;
+rs_get_bit(struct routing_set_s *rs, int i) {
+  return (rs->u8[i/8] & (1 << (i%8))) != 0;
 }
 
 /* Initializes the global double routing set */
@@ -111,7 +116,7 @@ orpl_routing_set_init()
 }
 
 /* Returns a pointer to the currently active routing set */
-routing_set *
+struct routing_set_s *
 orpl_routing_set_get_active() {
   return &routing_sets[active_index];
 }
@@ -124,22 +129,22 @@ orpl_routing_set_insert(const uip_ipaddr_t *ipv6)
   uint64_t hash = get_hash(ipv6);
   /* For each hash, set a bit in both routing sets */
   for(k=0; k<ROUTING_SET_K; k++) {
-    rs_set_bit(routing_sets[0], hash % ROUTING_SET_M);
-    rs_set_bit(routing_sets[1], hash % ROUTING_SET_M);
+    rs_set_bit(&routing_sets[0], hash % ROUTING_SET_M);
+    rs_set_bit(&routing_sets[1], hash % ROUTING_SET_M);
     hash /= ROUTING_SET_M;
   }
 }
 
 /* Merges a routing set into our global double routing set */
 void
-orpl_routing_set_merge(routing_set rs)
+orpl_routing_set_merge(const struct routing_set_s *rs)
 {
   int i;
-  for(i=0; i<sizeof(routing_set); i++) {
+  for(i=0; i<sizeof(struct routing_set_s); i++) {
     /* We merge into both active and warmup routing sets.
      * Merging is ORing */
-    routing_sets[0][i] |= rs[i];
-    routing_sets[1][i] |= rs[i];
+    routing_sets[0].u8[i] |= rs->u8[i];
+    routing_sets[1].u8[i] |= rs->u8[i];
   }
 }
 
@@ -153,12 +158,12 @@ orpl_routing_set_contains(const uip_ipaddr_t *ipv6)
   /* For each hash, check a bit in the bloom filter */
   for(k=0; k<ROUTING_SET_K; k++) {
     /* Check against the active routing set */
-    if(rs_get_bit(*orpl_routing_set_get_active(), hash % ROUTING_SET_M) == 0) {
+    if(rs_get_bit(orpl_routing_set_get_active(), hash % ROUTING_SET_M) == 0) {
       /* If one bucket is empty, then the element isn't included in the filter */
       contains = 0;
       break;
-    hash /= ROUTING_SET_M;
     }
+    hash /= ROUTING_SET_M;
   }
   return contains;
 }
@@ -170,7 +175,7 @@ orpl_routing_set_swap()
   /* Swap active flag */
   active_index = 1 - active_index;
   /* Reset the newly inactive routing set */
-  memset(routing_sets[1 - active_index], 0, sizeof(routing_set));
+  memset(routing_sets[1 - active_index].u8, 0, sizeof(struct routing_set_s));
 }
 
 /* Returns the number of bits set in the active routing set */
@@ -180,30 +185,11 @@ orpl_routing_set_count_bits()
   int i;
     int cnt = 0;
     for(i=0; i<ROUTING_SET_M; i++) {
-      if(rs_get_bit(*orpl_routing_set_get_active(), i)) {
+      if(rs_get_bit(orpl_routing_set_get_active(), i)) {
         cnt++;
       }
     }
   return cnt;
-}
-
-/* Prints out the content of the active routing set */
-void
-orpl_routing_set_print()
-{
-  printf("Routing set: bits set %d/%d\n", orpl_routing_set_count_bits(), ROUTING_SET_M);
-  printf("Routing set: start\n");
-  int i;
-  for(i=0; i<ROUTING_SET_M/8; i++) {
-    if(i%16 == 0) {
-      printf("Routing set: [%2u] ", i/16);
-    }
-    printf("%02x ", *orpl_routing_set_get_active()[i]);
-    if(i%16 == 15) {
-      printf("\n");
-    }
-  }
-  printf("\nRouting set: end\n");
 }
 
 #endif /* WITH_ORPL */
