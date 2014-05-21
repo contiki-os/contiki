@@ -95,8 +95,8 @@ void clock_init(void)
  */
 void __attribute__((interrupt)) _isr_lpt(void)
 {
-
-  LPTMR0_CSR |= 0x80;
+  /* Clear timer compare flag by writing a 1 to it */
+  LPTMR0_CSR |= LPTMR_CSR_TCF_MASK;
   PRINTF("LPT: Interrupt\n");
 
   /* Contiki event polling */

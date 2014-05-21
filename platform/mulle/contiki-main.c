@@ -73,7 +73,7 @@ int main(void)
   dbg_uart_init();
 
   llwu_init();
-  llwu_enable_wakeup_source(LLWU_WAKEUP_SOURCE_LPT);
+  llwu_enable_wakeup_module(LLWU_WAKEUP_MODULE_LPTMR);
   llwu_register(deep_sleep);
   // Dont allow deep sleep for now because radio cant wake up the mcu from it.
   // TODO(Henrik) Fix this when a new revision is made of the hardware.

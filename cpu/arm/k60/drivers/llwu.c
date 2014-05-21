@@ -94,32 +94,55 @@ llwu_sleep(void) {
 }
 /*---------------------------------------------------------------------------*/
 void
-llwu_enable_wakeup_source(enum LLWU_WAKEUP_SOURCE s)
+llwu_enable_wakeup_module(const llwu_wakeup_module_t module)
 {
-  if (s < 49)
+  if (module < LLWU_WAKEUP_MODULE_END)
   {
-    *(&LLWU_PE1 + ((s-1)/12)) |= ((s-1)%3+1) << ((int)(((s%12)-1)/3)*2);
+    LLWU_ME |= (1 << (const uint8_t)module);
+    PRINTF("LLWU_ME 0x%02x\n", LLWU_ME);
   }
-  else if (s == 49)
-  {
-    LLWU_ME |= 1; // LPT
-  }
-  PRINTF("LLTU 1 %X\n", LLWU_PE1);
-  PRINTF("LLTU 2 %X\n", LLWU_PE2);
-  PRINTF("LLTU 3 %X\n", LLWU_PE3);
-  PRINTF("LLTU 4 %X\n", LLWU_PE4);
 }
-/*---------------------------------------------------------------------------*/
+
 void
-llwu_enable_disable_source(enum LLWU_WAKEUP_SOURCE s)
+llwu_disable_wakeup_module(const llwu_wakeup_module_t module)
 {
-  LLWU_ME = LLWU_ME & (~s & 0xFF);
+  if (module < LLWU_WAKEUP_MODULE_END)
+  {
+    LLWU_ME = (LLWU_ME & ~(1 << (const uint8_t)module));
+    PRINTF("LLWU_ME 0x%02x\n", LLWU_ME);
+  }
+}
+
+void
+llwu_set_wakeup_pin(const llwu_wakeup_pin_t pin, const llwu_wakeup_edge_t edge)
+{
+  uint8_t tmp;
+  if (pin >= LLWU_WAKEUP_PIN_END)
+  {
+    /* invalid pin number */
+    asm("bkpt #1\n");
+    return;
+  }
+  /* LLWU pin enable registers are sequential in the address space */
+
+  tmp = *(&LLWU_PE1 + (((const uint8_t)pin)/LLWU_WAKEUP_PIN_REG_SIZE));
+  /* Clear the bits in the field we want to modify */
+  tmp = (tmp & ~(LLWU_WAKEUP_EDGE_MASK << ((pin % LLWU_WAKEUP_PIN_REG_SIZE) *
+        LLWU_WAKEUP_EDGE_WIDTH)));
+  /* Set the new value */
+  tmp |= ((edge & LLWU_WAKEUP_EDGE_MASK) << ((pin % LLWU_WAKEUP_PIN_REG_SIZE) *
+        LLWU_WAKEUP_EDGE_WIDTH));
+  *(&LLWU_PE1 + (((const uint8_t)pin)/LLWU_WAKEUP_PIN_REG_SIZE)) = tmp;
+  PRINTF("LLTU 1 0x%02x\n", LLWU_PE1);
+  PRINTF("LLTU 2 0x%02x\n", LLWU_PE2);
+  PRINTF("LLTU 3 0x%02x\n", LLWU_PE3);
+  PRINTF("LLTU 4 0x%02x\n", LLWU_PE4);
 }
 
 void __attribute__((interrupt)) _isr_llwu(void)
 {
-  LPTMR0_CSR |= 0x80;
   // TODO(henrik) Dont know if this is really the correct way to handle the flags.
+  /* Clear LLWU flags */
   LLWU_F1 = 0xFF;
   LLWU_F2 = 0xFF;
   LLWU_F3 = 0xFF;
