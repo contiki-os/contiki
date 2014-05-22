@@ -4,6 +4,8 @@
 #include "config-board.h"
 #include "config-clocks.h"
 #include "uart.h"
+#include "interrupt.h"
+#include "llwu.h"
 
 static int (*rx_callback)(unsigned char) = NULL;
 
@@ -91,7 +93,8 @@ void uart_init(UART_MemMapPtr uartch, uint32_t module_clk_hz, uint32_t baud)
                         UART_C4_BRFA(brfa);
 
   /* Enable transmitter and receiver and enable receive interrupt */
-  UART_C2_REG(uartch) |= UART_C2_TE_MASK | UART_C2_RE_MASK | UART_C2_RIE_MASK;
+  UART_C2_REG(uartch) |= UART_C2_TE_MASK | UART_C2_RE_MASK;
+  NVICISER1  |= (1<<15); // Enable Uart1 status interrupt
 }
 
 /*
@@ -102,8 +105,20 @@ void uart_putchar(UART_MemMapPtr uartch, char ch)
   /* Wait until space is available in the FIFO */
   while (!(UART_S1_REG(uartch) & UART_S1_TDRE_MASK));
 
+  MK60_ENTER_CRITICAL_REGION();
+  if (UART_S1_REG(uartch) & UART_S1_TC_MASK)
+  {
+    /* inhibit STOP mode so that we may send the entire byte before we stop the
+     * peripheral clocks */
+    LLWU_INHIBIT_STOP();
+  }
+
+  /* Enable transmission complete interrupt */
+  UART_C2_REG(uartch) |= UART_C2_TCIE_MASK;
+
   /* Send the character */
   UART_D_REG(uartch) = ch;
+  MK60_LEAVE_CRITICAL_REGION();
 }
 
 /*
@@ -121,7 +136,7 @@ void uart_enable_rx_interrupt()
   int tmp;
   tmp = UART1_S1; // Clr status 1 register
   (void)tmp; /* Avoid compiler warnings [-Wunused-variable] */
-  NVICISER1  |= (1<<15); // Enable Uart1 status interrupt
+  UART1_C2 |= UART_C2_RIE_MASK;
 }
 
 void uart_set_rx_callback(int (*callback)(unsigned char))
@@ -129,12 +144,21 @@ void uart_set_rx_callback(int (*callback)(unsigned char))
   rx_callback = callback;
 }
 
-void _isr_uart1_status_sources()
+void _isr_uart1_status()
 {
   int tmp;
   tmp = UART1_S1; // Clr status 1 register
-  (void)tmp; /* Avoid compiler warnings [-Wunused-variable] */
-  if (rx_callback != NULL)
+  if ((tmp & UART_S1_TC_MASK) && (UART1_C2 & UART_C2_TCIE_MASK))
+  {
+    /* transmission complete, allow STOP modes again */
+    MK60_ENTER_CRITICAL_REGION();
+    LLWU_UNINHIBIT_STOP();
+    MK60_LEAVE_CRITICAL_REGION();
+    /* Disable transmission complete interrupt */
+    UART1_C2 &= ~(UART_C2_TCIE_MASK);
+  }
+
+  if ((tmp & UART_S1_RDRF_MASK) && (rx_callback != NULL))
   {
     rx_callback(UART1_D);
   }
