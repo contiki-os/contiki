@@ -40,37 +40,39 @@
 
 #include <signal.h>
 
-const struct sensors_sensor button_sensor;
+const struct sensors_sensor button_sensor2;
 
 static struct timer debouncetimer;
 static int status(int type);
 
-void kbi4_isr(void) {
+void kbi5_isr(void) {
 	if(timer_expired(&debouncetimer)) {
 		timer_set(&debouncetimer, CLOCK_SECOND / 4);
-		sensors_changed(&button_sensor);
+		sensors_changed(&button_sensor2);
 	}
-	clear_kbi_evnt(4);
+	clear_kbi_evnt(5);
 }
 
 static int
 value(int type)
 {
-	return GPIO->DATA.GPIO_26 || !timer_expired(&debouncetimer);
+	return GPIO->DATA.GPIO_27 || !timer_expired(&debouncetimer);
 }
 
 static int
 configure(int type, int c)
 {
 	switch (type) {
-	case SENSORS_ACTIVE:
+	case SENSORS_HW_INIT:
 		if (c) {
+			disable_irq_kbi(5);
+		} else {
 			if(!status(SENSORS_ACTIVE)) {
 				timer_set(&debouncetimer, 0);
-				enable_irq_kbi(4);
+				enable_irq_kbi(5);
+				kbi_edge(5);
+				enable_ext_wu(5);
 			}
-		} else {
-			disable_irq_kbi(4);
 		}
 		return 1;
 	}
@@ -83,10 +85,10 @@ status(int type)
 	switch (type) {
 	case SENSORS_ACTIVE:
 	case SENSORS_READY:
-		return bit_is_set(*CRM_WU_CNTL, 20); /* check if kbi4 irq is enabled */
+		return bit_is_set(*CRM_WU_CNTL, 21); /* check if kbi5 irq is enabled */
 	}
 	return 0;
 }
 
-SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
+SENSORS_SENSOR(button_sensor2, BUTTON_SENSOR,
 	       value, configure, status);

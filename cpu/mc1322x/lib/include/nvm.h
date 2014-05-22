@@ -78,5 +78,6 @@ extern nvmErr_t (*nvm_write)(nvmInterface_t nvmInterface, nvmType_t nvmType ,voi
 /* SST flash has 32 sectors 4096 bytes each */
 /* bit 0 is the first sector, bit 31 is the last */
 extern nvmErr_t (*nvm_erase)(nvmInterface_t nvmInterface, nvmType_t nvmType ,uint32_t sectorBitfield);
+extern nvmErr_t (*nvm_verify)(nvmInterface_t nvmInterface, nvmType_t nvmType, void *pSrc, uint32_t address, uint32_t numBytes);
 extern void(*nvm_setsvar)(uint32_t zero_for_awesome);
 #endif //NVM_H
