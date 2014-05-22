@@ -41,33 +41,38 @@
 
 #include "power-control.h"
 #include "power-control-board.h"
+#include "port.h"
 
 void power_control_init()
 {
     /* Enable clock gate on the hardware ports controlling the power switches */
-    SIM_SCGC5 |= POWER_CONTROL_VPERIPH_SIM_SCGC5_MASK |
-        POWER_CONTROL_VSEC_SIM_SCGC5_MASK | POWER_CONTROL_AVDD_SIM_SCGC5_MASK;
+    port_module_enable(POWER_CONTROL_VPERIPH_PORT);
+    port_module_enable(POWER_CONTROL_VSEC_PORT);
+    port_module_enable(POWER_CONTROL_AVDD_PORT);
 
     /* Power control pins */
 
     /* PTD7 Vperiph control pin */
 
     /* Select GPIO function in pin multiplexing */
-    POWER_CONTROL_VPERIPH_PCR = PORT_PCR_MUX(POWER_CONTROL_GPIO_MUX_NUMBER);
+    PORT_PCR_REG(POWER_CONTROL_VPERIPH_PORT, POWER_CONTROL_VPERIPH_PIN_NUMBER) =
+        PORT_PCR_MUX(POWER_CONTROL_GPIO_MUX_NUMBER);
     /* Set as output */
     POWER_CONTROL_VPERIPH_GPIO_PDDR |= GPIO_PDDR_PDD(1 << POWER_CONTROL_VPERIPH_PIN_NUMBER);
 
     /* PTB16 Vsec control pin */
 
     /* Select GPIO function in pin multiplexing */
-    POWER_CONTROL_VSEC_PCR = PORT_PCR_MUX(POWER_CONTROL_GPIO_MUX_NUMBER);
+    PORT_PCR_REG(POWER_CONTROL_VSEC_PORT, POWER_CONTROL_VSEC_PIN_NUMBER) =
+        PORT_PCR_MUX(POWER_CONTROL_GPIO_MUX_NUMBER);
     /* Set as output */
     POWER_CONTROL_VSEC_GPIO_PDDR |= GPIO_PDDR_PDD(1 << POWER_CONTROL_VSEC_PIN_NUMBER);
 
     /* PTB17 AVDD control pin */
 
     /* Select GPIO function in pin multiplexing */
-    POWER_CONTROL_AVDD_PCR = PORT_PCR_MUX(POWER_CONTROL_GPIO_MUX_NUMBER);
+    PORT_PCR_REG(POWER_CONTROL_AVDD_PORT, POWER_CONTROL_AVDD_PIN_NUMBER) =
+        PORT_PCR_MUX(POWER_CONTROL_GPIO_MUX_NUMBER);
     /* Set as output */
     POWER_CONTROL_AVDD_GPIO_PDDR |= GPIO_PDDR_PDD(1 << POWER_CONTROL_AVDD_PIN_NUMBER);
 
