@@ -31,62 +31,36 @@
 
 /**
  * \file
- *      Erbium (Er) example project configuration.
+ *      Erbium (Er) CoAP client example
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+#ifndef __ER_PLUGTEST_H__
+#define __ER_PLUGTEST_H__
 
-/* Custom channel and PAN ID configuration for your project. */
-/*
-   #undef RF_CHANNEL
-   #define RF_CHANNEL                     26
+#if !defined(CONTIKI_TARGET_NATIVE)
+#warning "Should only be compiled for native!"
+#endif
 
-   #undef IEEE802154_CONF_PANID
-   #define IEEE802154_CONF_PANID          0xABCD
- */
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#define PRINTLLADDR(addr)
+#endif
 
-/* IP buffer size must match all other hops, in particular the border router. */
-/*
-   #undef UIP_CONF_BUFFER_SIZE
-   #define UIP_CONF_BUFFER_SIZE           256
- */
+/* double expansion */
+#define TO_STRING2(x)  # x
+#define TO_STRING(x)  TO_STRING2(x)
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC              nullrdc_driver
+#define MAX_PLUGFEST_PAYLOAD 64 + 1       /* +1 for the terminating zero, which is not transmitted */
+#define MAX_PLUGFEST_BODY    2048
+#define CHUNKS_TOTAL         2012
 
-/* Disabling TCP on CoAP nodes. */
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP                   0
-
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE            48
-
-/* Estimate your header size, especially when using Proxy-Uri. */
-/*
-   #undef COAP_MAX_HEADER_SIZE
-   #define COAP_MAX_HEADER_SIZE           70
- */
-
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS     4
-
-/* Must be <= open transactions, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
-/*
-   #undef COAP_MAX_OBSERVERS
-   #define COAP_MAX_OBSERVERS             2
- */
-
-/* Filtering .well-known/core per query can be disabled to save space. */
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING     0
-#undef COAP_PROXY_OPTION_PROCESSING
-#define COAP_PROXY_OPTION_PROCESSING   0
-
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+#endif /* __ER_PLUGTEST_H__ */

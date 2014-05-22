@@ -31,62 +31,39 @@
 
 /**
  * \file
- *      Erbium (Er) example project configuration.
+ *      CoAP module for separate responses.
  * \author
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
-#ifndef __PROJECT_ERBIUM_CONF_H__
-#define __PROJECT_ERBIUM_CONF_H__
+#ifndef COAP_SEPARATE_H_
+#define COAP_SEPARATE_H_
 
-/* Custom channel and PAN ID configuration for your project. */
-/*
-   #undef RF_CHANNEL
-   #define RF_CHANNEL                     26
+#include "er-coap.h"
 
-   #undef IEEE802154_CONF_PANID
-   #define IEEE802154_CONF_PANID          0xABCD
- */
+typedef struct coap_separate {
 
-/* IP buffer size must match all other hops, in particular the border router. */
-/*
-   #undef UIP_CONF_BUFFER_SIZE
-   #define UIP_CONF_BUFFER_SIZE           256
- */
+  uip_ipaddr_t addr;
+  uint16_t port;
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC              nullrdc_driver
+  coap_message_type_t type;
+  uint16_t mid;
 
-/* Disabling TCP on CoAP nodes. */
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP                   0
+  uint8_t token_len;
+  uint8_t token[COAP_TOKEN_LEN];
 
-/* Increase rpl-border-router IP-buffer when using more than 64. */
-#undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE            48
+  uint32_t block1_num;
+  uint16_t block1_size;
 
-/* Estimate your header size, especially when using Proxy-Uri. */
-/*
-   #undef COAP_MAX_HEADER_SIZE
-   #define COAP_MAX_HEADER_SIZE           70
- */
+  uint32_t block2_num;
+  uint16_t block2_size;
+} coap_separate_t;
 
-/* Multiplies with chunk size, be aware of memory constraints. */
-#undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS     4
+int coap_separate_handler(resource_t *resource, void *request,
+                          void *response);
+void coap_separate_reject();
+void coap_separate_accept(void *request, coap_separate_t *separate_store);
+void coap_separate_resume(void *response, coap_separate_t *separate_store,
+                          uint8_t code);
 
-/* Must be <= open transactions, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
-/*
-   #undef COAP_MAX_OBSERVERS
-   #define COAP_MAX_OBSERVERS             2
- */
-
-/* Filtering .well-known/core per query can be disabled to save space. */
-#undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING     0
-#undef COAP_PROXY_OPTION_PROCESSING
-#define COAP_PROXY_OPTION_PROCESSING   0
-
-#endif /* __PROJECT_ERBIUM_CONF_H__ */
+#endif /* COAP_SEPARATE_H_ */
