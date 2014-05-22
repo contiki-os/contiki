@@ -23,6 +23,11 @@ static char allow_deep_sleep = 1;
 
 static void update_llwu();
 
+volatile uint8_t llwu_inhibit_lls_sema = 0;
+volatile uint8_t llwu_inhibit_vlps_sema = 0;
+volatile uint8_t llwu_inhibit_stop_sema = 0;
+
+
 // TODO(henrik) Add callbacks before entering deep sleep.
 /*---------------------------------------------------------------------------*/
 void
@@ -73,13 +78,27 @@ update_llwu()
 void
 llwu_sleep(void) {
   PRINTF("LLWU: sleep %u....\n", allow_deep_sleep);
-  if (allow_deep_sleep)
+  /* FIXME: Do we need to disable interrupts here? */
+  if (llwu_inhibit_stop_sema != 0)
   {
-    power_mode_lls();
+    /* STOP inhibited, use WAIT instead */
+    PRINTF("LLWU: STOP inhibited\n");
+    power_mode_wait();
+  }
+  else if (llwu_inhibit_vlps_sema != 0)
+  {
+    /* VLPS inhibited, use STOP */
+    power_mode_stop();
+  }
+  else if (llwu_inhibit_lls_sema != 0)
+  {
+    /* LLS inhibited, use VLPS */
+    power_mode_vlps();
   }
   else
   {
-    power_mode_vlps();
+    /* free to stop everything */
+    power_mode_lls();
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -137,4 +156,3 @@ void __attribute__((interrupt)) _isr_llwu(void)
   LLWU_F2 = 0xFF;
   LLWU_F3 = 0xFF;
 }
-

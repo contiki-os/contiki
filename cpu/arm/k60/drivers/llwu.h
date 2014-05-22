@@ -8,6 +8,12 @@
 #ifndef LLWU_H_
 #define LLWU_H_
 
+#include <stdint.h>
+
+extern volatile uint8_t llwu_inhibit_lls_sema;
+extern volatile uint8_t llwu_inhibit_vlps_sema;
+extern volatile uint8_t llwu_inhibit_stop_sema;
+
 /** Internal modules whose interrupts are mapped to LLWU wake up sources.
  *
  * Wake up source module number: Kinetis Module
@@ -98,5 +104,12 @@ void llwu_register(llwu_control_t* c);
  * @param allow 0 to disable deep sleep, other than 0 to allow.
  */
 void llwu_set_allow(llwu_control_t* c, char allow);
+
+#define LLWU_INHIBIT_STOP() (++llwu_inhibit_stop_sema)
+#define LLWU_INHIBIT_VLPS() (++llwu_inhibit_vlps_sema)
+#define LLWU_INHIBIT_LLS() (++llwu_inhibit_lls_sema)
+#define LLWU_UNINHIBIT_STOP() (--llwu_inhibit_stop_sema)
+#define LLWU_UNINHIBIT_VLPS() (--llwu_inhibit_vlps_sema)
+#define LLWU_UNINHIBIT_LLS() (--llwu_inhibit_lls_sema)
 
 #endif /* LLWU_H_ */
