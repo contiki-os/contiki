@@ -50,7 +50,9 @@
 /* econotag */
 #include "platform_prints.h"
 
-SENSORS(&button_sensor);
+#ifndef OWN_SENSORS_DEFINITION
+SENSORS(&button_sensor, &button_sensor2);
+#endif
 
 #ifndef M12_CONF_SERIAL
 #define M12_SERIAL 0x000000
