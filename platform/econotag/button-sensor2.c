@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Mariano Alvira <mar@devl.org> and other contributors
+ * to the MC1322x project (http://mc1322x.devl.org) and Contiki.
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,17 +28,67 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ * This file is part of the Contiki OS.
  *
+ * $Id: button-sensor.c,v 1.1 2010/06/09 14:46:30 maralvira Exp $
  */
-#ifndef BUTTON_SENSOR_H_
-#define BUTTON_SENSOR_H_
 
 #include "lib/sensors.h"
+#include "dev/button-sensor.h"
 
-extern const struct sensors_sensor button_sensor;
-extern const struct sensors_sensor button_sensor2;
+#include "mc1322x.h"
 
-#define BUTTON_SENSOR "Button"
+#include <signal.h>
 
-#endif /* BUTTON_SENSOR_H_ */
+const struct sensors_sensor button_sensor2;
+
+static struct timer debouncetimer;
+static int status(int type);
+
+void kbi5_isr(void) {
+	if(timer_expired(&debouncetimer)) {
+		timer_set(&debouncetimer, CLOCK_SECOND / 4);
+		sensors_changed(&button_sensor2);
+	}
+	clear_kbi_evnt(5);
+}
+
+static int
+value(int type)
+{
+	return GPIO->DATA.GPIO_27 || !timer_expired(&debouncetimer);
+}
+
+static int
+configure(int type, int c)
+{
+	switch (type) {
+	case SENSORS_ACTIVE:
+		if (c) {
+			if(!status(SENSORS_ACTIVE)) {
+				timer_set(&debouncetimer, 0);
+				enable_irq_kbi(5);
+				kbi_edge(5);
+				enable_ext_wu(5);
+			}
+		} else {
+			disable_irq_kbi(5);
+		}
+		return 1;
+	}
+	return 0;
+}
+
+static int
+status(int type)
+{
+	switch (type) {
+	case SENSORS_ACTIVE:
+	case SENSORS_READY:
+		return bit_is_set(*CRM_WU_CNTL, 21); /* check if kbi5 irq is enabled */
+	}
+	return 0;
+}
+
+SENSORS_SENSOR(button_sensor2, BUTTON_SENSOR,
+	       value, configure, status);
