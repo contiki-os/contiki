@@ -137,6 +137,7 @@ void uart_enable_rx_interrupt()
   tmp = UART1_S1; // Clr status 1 register
   (void)tmp; /* Avoid compiler warnings [-Wunused-variable] */
   UART1_C2 |= UART_C2_RIE_MASK;
+  UART1_BDH |= UART_BDH_RXEDGIE_MASK; /* Enable wake interrupt */
 }
 
 void uart_set_rx_callback(int (*callback)(unsigned char))
@@ -146,9 +147,10 @@ void uart_set_rx_callback(int (*callback)(unsigned char))
 
 void _isr_uart1_status()
 {
-  int tmp;
-  tmp = UART1_S1; // Clr status 1 register
-  if ((tmp & UART_S1_TC_MASK) && (UART1_C2 & UART_C2_TCIE_MASK))
+  int s1;
+  s1 = UART1_S1; /* Clear status 1 register */
+
+  if ((s1 & UART_S1_TC_MASK) && (UART1_C2 & UART_C2_TCIE_MASK))
   {
     /* transmission complete, allow STOP modes again */
     MK60_ENTER_CRITICAL_REGION();
@@ -158,8 +160,14 @@ void _isr_uart1_status()
     UART1_C2 &= ~(UART_C2_TCIE_MASK);
   }
 
-  if ((tmp & UART_S1_RDRF_MASK) && (rx_callback != NULL))
+  if ((s1 & UART_S1_RDRF_MASK) && (rx_callback != NULL))
   {
     rx_callback(UART1_D);
+  }
+
+  if ((UART1_S2 & UART_S2_RXEDGIF_MASK))
+  {
+    /* Clear RX wake-up flag by writing a 1 to it */
+    UART1_S2 |= UART_S2_RXEDGIF_MASK;
   }
 }
