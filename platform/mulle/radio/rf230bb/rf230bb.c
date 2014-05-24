@@ -741,6 +741,9 @@ rf230_init(void)
 
   /* Do full rf230 Reset */
   hal_set_rst_low();
+  HAL_ENTER_CRITICAL_REGION();
+  LLWU_INHIBIT_LLS();
+  HAL_LEAVE_CRITICAL_REGION();
   hal_set_slptr_low();
 #if 1
   /* On powerup a TIME_RESET delay is needed here, however on some other MCU reset
@@ -883,6 +886,9 @@ rf230_transmit(unsigned short payload_len)
       }
     }
 #else
+    HAL_ENTER_CRITICAL_REGION();
+    LLWU_INHIBIT_LLS();
+    HAL_LEAVE_CRITICAL_REGION();
     hal_set_slptr_low();
     DEBUGFLOW('j');
     delay_us(2*TIME_SLEEP_TO_TRX_OFF); //extra delay depends on board capacitance
