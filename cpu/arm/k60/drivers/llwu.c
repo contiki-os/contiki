@@ -78,8 +78,22 @@ update_llwu()
 void
 llwu_sleep(void) {
   PRINTF("LLWU: sleep %u....\n", allow_deep_sleep);
+  /* Check if any UARTs are currently receiving data, if we go to STOP mode we
+   * will lose the byte in progress. */
+  /* It is necessary to check the SIM_SCGCx registers to avoid hardfaulting when
+   * we try to read a disabled peripheral */
+  if (!allow_deep_sleep ||
+      ((SIM_SCGC4 & SIM_SCGC4_UART0_MASK) && (UART0_S2 & UART_S2_RAF_MASK)) ||
+      ((SIM_SCGC4 & SIM_SCGC4_UART1_MASK) && (UART1_S2 & UART_S2_RAF_MASK)) ||
+      ((SIM_SCGC4 & SIM_SCGC4_UART2_MASK) && (UART2_S2 & UART_S2_RAF_MASK)) ||
+      ((SIM_SCGC4 & SIM_SCGC4_UART3_MASK) && (UART3_S2 & UART_S2_RAF_MASK)) ||
+      ((SIM_SCGC1 & SIM_SCGC1_UART4_MASK) && (UART4_S2 & UART_S2_RAF_MASK)) ||
+      ((SIM_SCGC1 & SIM_SCGC1_UART5_MASK) && (UART5_S2 & UART_S2_RAF_MASK)))
+  {
+    power_mode_wait();
+  }
   /* FIXME: Do we need to disable interrupts here? */
-  if (llwu_inhibit_stop_sema != 0)
+  else if (llwu_inhibit_stop_sema != 0)
   {
     /* STOP inhibited, use WAIT instead */
     PRINTF("LLWU: STOP inhibited\n");
