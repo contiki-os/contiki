@@ -1,6 +1,7 @@
 #include "contiki.h"
 
 #include <stdio.h>
+#include <string.h>
 
 #include "sys/autostart.h"
 #include "dev/leds.h"
