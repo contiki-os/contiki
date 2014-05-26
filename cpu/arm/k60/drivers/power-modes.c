@@ -102,6 +102,7 @@ void power_mode_stop(void)
   SET_PMCTRL(POWER_MODE_NORMAL);
   /* Wait for the write to complete before stopping core */
   dummy = PMCTRL;
+  (void)dummy; /* Avoid warnings about set but not used variable [-Wunused-but-set-variable] */
   stop();
 }
 
@@ -111,6 +112,7 @@ void power_mode_vlps(void)
   SET_PMCTRL(POWER_MODE_VLPS);
   /* Wait for the write to complete before stopping core */
   dummy = PMCTRL;
+  (void)dummy; /* Avoid warnings about set but not used variable [-Wunused-but-set-variable] */
   stop();
 }
 
@@ -120,6 +122,7 @@ void power_mode_lls(void)
   SET_PMCTRL(POWER_MODE_LLS);
   /* Wait for the write to complete before stopping core */
   dummy = PMCTRL;
+  (void)dummy; /* Avoid warnings about set but not used variable [-Wunused-but-set-variable] */
   stop();
 }
 
