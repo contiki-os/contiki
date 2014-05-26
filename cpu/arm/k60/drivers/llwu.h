@@ -105,6 +105,10 @@ void llwu_register(llwu_control_t* c);
  */
 void llwu_set_allow(llwu_control_t* c, char allow);
 
+void llwu_enable_wakeup_module(const llwu_wakeup_module_t module);
+void llwu_disable_wakeup_module(const llwu_wakeup_module_t module);
+void llwu_set_wakeup_pin(const llwu_wakeup_pin_t pin, const llwu_wakeup_edge_t edge);
+
 #define LLWU_INHIBIT_STOP() (++llwu_inhibit_stop_sema)
 #define LLWU_INHIBIT_VLPS() (++llwu_inhibit_vlps_sema)
 #define LLWU_INHIBIT_LLS() (++llwu_inhibit_lls_sema)

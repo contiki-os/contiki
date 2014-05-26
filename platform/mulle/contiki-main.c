@@ -16,6 +16,7 @@
 #include "init-net.h"
 #include "power-control.h"
 #include "K60.h"
+#include "dbg-uart.h"
 
 #define DEBUG 1
 #if DEBUG
