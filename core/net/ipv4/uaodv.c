@@ -39,6 +39,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include "contiki.h"
 #include "net/ipv4/uaodv-def.h"
