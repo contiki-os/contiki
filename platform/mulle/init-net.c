@@ -56,7 +56,7 @@
 #endif
 
 #if WITH_UIP6
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 #endif /* WITH_UIP6 */
 
 #define UIP_OVER_MESH_CHANNEL 8
@@ -74,13 +74,13 @@ static unsigned char id[8] = {0x02, 0x0, 0x0, 0x00, 0x00, 0x00, 0x00, NODE_ID};
 static void
 set_rime_addr(void)
 {
-  rimeaddr_t addr;
+  linkaddr_t addr;
   int i;
 
-  //memset(&addr, 0x65, sizeof(rimeaddr_t));
+  //memset(&addr, 0x65, sizeof(linkaddr_t));
   memcpy(addr.u8, id, sizeof(addr.u8));
 
-  rimeaddr_set_node_addr(&addr);
+  linkaddr_set_node_addr(&addr);
   PRINTF("Rime started with address ");
   for(i = 0; i < sizeof(addr.u8) - 1; i++) {
     PRINTF("%d.", addr.u8[i]);
@@ -113,10 +113,10 @@ init_net(void)
     uint8_t longaddr[8];
     uint16_t shortaddr;
 
-    shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
-                 rimeaddr_node_addr.u8[1];
+    shortaddr = (linkaddr_node_addr.u8[0] << 8) +
+                 linkaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
-    rimeaddr_copy((rimeaddr_t *)&longaddr, &rimeaddr_node_addr);
+    linkaddr_copy((linkaddr_t *)&longaddr, &linkaddr_node_addr);
     rf230_set_pan_addr(IEEE802154_CONF_PANID, shortaddr, longaddr);
   }
   rf230_set_channel(RF_CHANNEL);

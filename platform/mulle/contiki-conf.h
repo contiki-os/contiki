@@ -40,7 +40,7 @@ typedef int32_t  s32_t;
 #define RF230_CONF_RX_BUFFERS       10
 #define RF230_CONF_AUTOACK          0
 #define RF230_CONF_AUTORETRIES      3
-#define RIMEADDR_CONF_SIZE          8
+#define LINKADDR_CONF_SIZE          8
 #ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE        1514
 #endif
@@ -113,6 +113,8 @@ typedef int32_t  s32_t;
 #endif
 
 #endif /* WITH_UIP6 */
+
+#define PACKETBUF_CONF_ATTRS_INLINE 1
 
 #ifndef RF_CHANNEL
 #define RF_CHANNEL                  0
