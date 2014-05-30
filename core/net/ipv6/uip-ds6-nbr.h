@@ -108,3 +108,4 @@ int uip_ds6_nbr_num(void);
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
 
 #endif /* UIP_DS6_NEIGHBOR_H_ */
+/** @} */

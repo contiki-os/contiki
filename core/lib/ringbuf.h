@@ -67,7 +67,7 @@
 struct ringbuf {
   uint8_t *data;
   uint8_t mask;
-  
+
   /* XXX these must be 8-bit quantities to avoid race conditions. */
   uint8_t put_ptr, get_ptr;
 };
@@ -129,3 +129,6 @@ int     ringbuf_size(struct ringbuf *r);
 int     ringbuf_elements(struct ringbuf *r);
 
 #endif /* RINGBUF_H_ */
+
+/** @}*/
+/** @}*/
