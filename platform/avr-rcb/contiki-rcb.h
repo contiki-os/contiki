@@ -54,5 +54,4 @@
 void init_lowlevel(void);
 void init_net(void);
 
-
 #endif /* #ifndef CONTIKI_RAVEN_H_ */
