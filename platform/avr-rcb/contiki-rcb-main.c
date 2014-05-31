@@ -154,8 +154,8 @@ main(void)
   /* Register initial processes */
   procinit_init();
   
-  /* It is very important to do the NETSTACK_* initializations after the 
-   * procinit_init() to enable the PROCESS_YIELD** functionality.
+  /* It is very important to do the NETSTACK_* initializations right here
+   * to enable the PROCESS_YIELD** functionality.
    * The receive process is an single protothread which handles the 
    * received packets. This process needs PROCESS_YIELD_UNTIL().
    **/

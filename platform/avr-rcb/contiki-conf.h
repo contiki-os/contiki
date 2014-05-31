@@ -99,7 +99,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 
 //#define NETSTACK_CONF_NETWORK     rime_driver
 //#define NETSTACK_CONF_MAC         nullmac_driver
-//#define NETSTACK_CONF_RDC         sicslowmac_driver	/*  */
+//#define NETSTACK_CONF_RDC         sicslowmac_driver	
 //#define NETSTACK_CONF_FRAMER      framer_802154	/* Framer for 802.15.4 Medium Access Control */
 #define NETSTACK_CONF_RADIO       rf230_driver		/* Select the wireless driver, otherwise contiki would operate with the "nulldriver" which does nothing */
 
@@ -145,7 +145,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 
-#define UIP_CONF_TCP             1	//This avoids the 'bad practice' appsend error on /net/ipv4/uip.c on line 695
+#define UIP_CONF_TCP             1	//Enable TCP,this avoids the 'bad practice' appsend error on /net/ipv4/uip.c on line 695
 #define UIP_CONF_TCP_SPLIT       0
 
 /* These names are deprecated, use C99 names. */
