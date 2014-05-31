@@ -53,6 +53,9 @@ CFLAGS += -DRF230BB
 include $(CPU_DIR)/Makefile.$(CPU_NAME)
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 
+# The CPU on the Mulle board does not have a floating point unit
+CFLAGS += -msoft-float -mfloat-abi=soft
+
 
 SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
 
