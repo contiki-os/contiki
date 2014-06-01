@@ -3,13 +3,6 @@ notifications:
 language: c #NOTE: this will set CC=gcc which might cause trouble
 before_script:
   - "sudo apt-get -qq update"
-  ## Install these mainline toolchains for all build types
-  - "sudo apt-get -qq install lib32z1 || true"
-  - "curl -s \
-       http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 \
-         | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/msp430/* /usr/local/ && rm -rf /tmp/msp430 && msp430-gcc --version || true"
-  - "sudo apt-get -qq install gcc-avr avr-libc || true"
-  - "sudo apt-get -qq install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386 || true"
 
   ## Install uncrustify and jq for code-style tests
   - "[ ${BUILD_CATEGORY:-sim} = code-style ] && sudo apt-get -qq install uncrustify jq || true"
@@ -18,11 +11,6 @@ before_script:
   - "[ ${BUILD_ARCH:-0} = arm ] && curl -s \
        https://raw.githubusercontent.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
          | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version || true"
-
-  ## Install RL78 GCC chain (following the instructions in platform/eval-adf7xxxmb4z/README.md)
-  - "sudo apt-get install git make gcc libc-dev multiarch-support libncurses5:i386 zlib1g:i386"
-  - "wget https://dl.dropboxusercontent.com/u/60522916/gnurl78-v13.02-elf_1-2_i386.deb"
-  - "sudo dpkg -i gnurl78*.deb"
 
   ## Install SDCC from a purpose-built bundle
   - "[ ${BUILD_ARCH:-0} = 8051 ] && curl -s \
@@ -59,23 +47,4 @@ after_script:
 env:
   ## This magically kick-off parallel jobs for each of the for the sets
   ## of environment variable defined below
-  - BUILD_TYPE='compile-base' BUILD_CATEGORY='compile'
-  - BUILD_TYPE='collect'
-  - BUILD_TYPE='collect-lossy'
-  - BUILD_TYPE='rpl'
-  - BUILD_TYPE='rime'
-  - BUILD_TYPE='ipv6'
-  - BUILD_TYPE='hello-world'
-  - BUILD_TYPE='base'
-# XXX: netperf disabled b/c it's flaky
-#  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='shell'
-  - BUILD_TYPE='elfloader'
-# Tests under the ipv4 dir are individually disabled. Thus the entire job can be off
-#  - BUILD_TYPE='ipv4'
-  - BUILD_TYPE='ipv6-apps'
-  - BUILD_TYPE='compile-8051-ports' BUILD_CATEGORY='compile' BUILD_ARCH='8051'
-  - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm'
-  - BUILD_TYPE='compile-6502-ports' BUILD_CATEGORY='compile' BUILD_ARCH='6502'
-  - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
   - BUILD_TYPE='code-style' BUILD_CATEGORY='code-style'
