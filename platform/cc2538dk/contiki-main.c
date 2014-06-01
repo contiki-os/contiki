@@ -84,8 +84,7 @@
 #endif
 /*---------------------------------------------------------------------------*/
 static void
-fade(unsigned char l)
-{
+fade ( unsigned char l){
   volatile int i;
   int k, j;
   for(k = 0; k < 800; ++k) {
