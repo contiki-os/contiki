@@ -702,5 +702,6 @@ uip_ds6_compute_reachable_time(void)
                 UIP_ND6_MIN_RANDOM_FACTOR(uip_ds6_if.base_reachable_time));
 }
 /*---------------------------------------------------------------------------*/
-/** @} */
 #endif /* UIP_CONF_IPV6 */
+
+/** @}*/

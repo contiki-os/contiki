@@ -93,3 +93,6 @@ unsigned char leds_arch_get(void);
 void leds_arch_set(unsigned char leds);
 
 #endif /* LEDS_H_ */
+
+/** @} */
+/** @} */

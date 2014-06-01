@@ -171,13 +171,13 @@
  */
 /*@{*/
 
-/*! 
- * \brief Bank select register. 
+/*!
+ * \brief Bank select register.
  */
 #define NIC_BSR         (LANC111_BASE_ADDR + 0x0E)
 
-/*! 
- * \brief Bank 0 - Transmit control register. 
+/*!
+ * \brief Bank 0 - Transmit control register.
  */
 #define NIC_TCR         (LANC111_BASE_ADDR + 0x00)
 
@@ -193,13 +193,13 @@
 #define TCR_TXENA       0x0001  /*!< \ref NIC_TCR bit mask, enables transmitter. */
 
 
-/*! 
- * \brief Bank 0 - EPH status register. 
+/*!
+ * \brief Bank 0 - EPH status register.
  */
 #define NIC_EPHSR       (LANC111_BASE_ADDR + 0x02)
 
-/*! 
- * \brief Bank 0 - Receive control register. 
+/*!
+ * \brief Bank 0 - Receive control register.
  */
 #define NIC_RCR         (LANC111_BASE_ADDR + 0x04)
 
@@ -212,17 +212,17 @@
 #define RCR_PRMS        0x0002  /*!< \ref NIC_RCR bit mask, enables promiscuous mode. */
 #define RCR_RX_ABORT    0x0001  /*!< \ref NIC_RCR bit mask, set when receive was aborted. */
 
-/*! 
+/*!
  * \brief Bank 0 - Counter register.
  */
 #define NIC_ECR         (LANC111_BASE_ADDR + 0x06)
 
-/*! 
+/*!
  * \brief Bank 0 - Memory information register.
  */
 #define NIC_MIR         (LANC111_BASE_ADDR + 0x08)
 
-/*! 
+/*!
  * \brief Bank 0 - Receive / PHY control register.
  */
 #define NIC_RPCR        (LANC111_BASE_ADDR + 0x0A)
@@ -233,29 +233,29 @@
 #define RPCR_LEDA_PAT   0x0000  /*!< \ref NIC_RPCR bit mask for LEDA mode. */
 #define RPCR_LEDB_PAT   0x0010  /*!< \ref NIC_RPCR bit mask for LEDB mode. */
 
-/*! 
+/*!
  * \brief Bank 1 - Configuration register.
  */
 #define NIC_CR          (LANC111_BASE_ADDR + 0x00)
 
 #define CR_EPH_EN       0x8000  /*!< \ref NIC_CR bit mask, . */
 
-/*! 
+/*!
  * \brief Bank 1 - Base address register.
  */
 #define NIC_BAR         (LANC111_BASE_ADDR + 0x02)
 
-/*! 
+/*!
  * \brief Bank 1 - Individual address register.
  */
 #define NIC_IAR         (LANC111_BASE_ADDR + 0x04)
 
-/*! 
+/*!
  * \brief Bank 1 - General purpose register.
  */
 #define NIC_GPR         (LANC111_BASE_ADDR + 0x0A)
 
-/*! 
+/*!
  * \brief Bank 1 - Control register.
  */
 #define NIC_CTR         (LANC111_BASE_ADDR + 0x0C)
@@ -654,10 +654,10 @@ static int NicPhyConfig(void)
     uint16_t phy_to;
     uint16_t mode;
 
-    /* 
+    /*
      * Reset the PHY and wait until this self clearing bit
      * becomes zero. We sleep 63 ms before each poll and
-     * give up after 3 retries. 
+     * give up after 3 retries.
      */
     //printf("Reset PHY..");
     NicPhyWrite(NIC_PHYCR, PHYCR_RST);
@@ -860,8 +860,8 @@ static void NicInterrupt(void *arg)
     isr &= imr;
 
     /*
-     * If this is a transmit interrupt, then a packet has been sent. 
-     * So we can clear the transmitter busy flag and wake up the 
+     * If this is a transmit interrupt, then a packet has been sent.
+     * So we can clear the transmitter busy flag and wake up the
      * transmitter thread.
      */
     if (isr & INT_TX_EMPTY) {
@@ -884,7 +884,7 @@ static void NicInterrupt(void *arg)
 
 
     /*
-     * If this is a receive interrupt, then wake up the receiver 
+     * If this is a receive interrupt, then wake up the receiver
      * thread.
      */
     if (isr & INT_RX_OVRN) {
@@ -964,7 +964,7 @@ static NETBUF *NicGetPacket(void)
     uint16_t fsw;
     uint16_t fbc;
 
-    /* Check the fifo empty bit. If it is set, then there is 
+    /* Check the fifo empty bit. If it is set, then there is
        nothing in the receiver fifo. */
     nic_bs(2);
     if (nic_inw(NIC_FIFO) & 0x8000) {
@@ -993,8 +993,8 @@ static NETBUF *NicGetPacket(void)
     }
 
     else {
-        /* 
-         * Allocate a NETBUF. 
+        /*
+         * Allocate a NETBUF.
          * Hack alert: Rev A chips never set the odd frame indicator.
          */
         fbc -= 3;
@@ -1022,7 +1022,7 @@ static NETBUF *NicGetPacket(void)
  *           release the buffer in case of an error.
  *
  * \return 0 on success, -1 in case of any errors. Errors
- *         will automatically release the network buffer 
+ *         will automatically release the network buffer
  *         structure.
  */
 #if 0
@@ -1034,7 +1034,7 @@ static int NicPutPacket(NETBUF * nb)
 
     //printf("[P]");
     /*
-     * Calculate the number of bytes to be send. Do not send packets 
+     * Calculate the number of bytes to be send. Do not send packets
      * larger than the Ethernet maximum transfer unit. The MTU
      * consist of 1500 data bytes plus the 14 byte Ethernet header
      * plus 4 bytes CRC. We check the data bytes only.
@@ -1132,7 +1132,7 @@ PROCESS_THREAD(lanc111_process, ev, data)
     NETBUF *nb;*/
   uint8_t imsk;
   static struct etimer et;
-  
+
     /*    dev = arg;
     ifn = (IFNET *) dev->dev_icb;
     ni = (NICINFO *) dev->dev_dcb;*/
@@ -1144,7 +1144,7 @@ PROCESS_THREAD(lanc111_process, ev, data)
      */
 
   PROCESS_BEGIN();
-  
+
   /*    while(*((u_long *) (ifn->if_mac)) &&
    *((u_long *) (ifn->if_mac)) != 0xFFFFFFFFUL) {*/
   while(0) {
@@ -1191,7 +1191,7 @@ PROCESS_THREAD(lanc111_process, ev, data)
 	/*	while ((nb = NicGetPacket()) != 0) {
             if (nb != (NETBUF *) 0xFFFF) {
 	      ni->ni_rx_packets++;
-	      (*ifn->if_recv) (dev, nb);	      
+	      (*ifn->if_recv) (dev, nb);
             }
 	    }*/
         nic_outlb(NIC_MSK, imsk | INT_RCV | INT_ERCV);
@@ -1247,12 +1247,12 @@ int LancOutput(NUTDEVICE * dev, NETBUF * nb)
 /*!
  * \brief Initialize Ethernet hardware.
  *
- * Resets the LAN91C111 Ethernet controller, initializes all required 
- * hardware registers and starts a background thread for incoming 
+ * Resets the LAN91C111 Ethernet controller, initializes all required
+ * hardware registers and starts a background thread for incoming
  * Ethernet traffic.
  *
- * Applications should do not directly call this function. It is 
- * automatically executed during during device registration by 
+ * Applications should do not directly call this function. It is
+ * automatically executed during during device registration by
  * NutRegisterDevice().
  *
  * If the network configuration hasn't been set by the application
@@ -1312,11 +1312,11 @@ static IFNET ifn_eth0 = {
 /*!
  * \brief Device information structure.
  *
- * A pointer to this structure must be passed to NutRegisterDevice() 
+ * A pointer to this structure must be passed to NutRegisterDevice()
  * to bind this Ethernet device driver to the Nut/OS kernel.
- * An application may then call NutNetIfConfig() with the name \em eth0 
+ * An application may then call NutNetIfConfig() with the name \em eth0
  * of this driver to initialize the network interface.
- * 
+ *
  */
 NUTDEVICE devSmsc111 = {
     0,                          /* Pointer to next device. */
@@ -1360,3 +1360,4 @@ lanc111_init(void)
     return 0;
 }
 
+/** @} */
