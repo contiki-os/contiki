@@ -37,7 +37,7 @@
  * \file
  *         The Minimum Rank with Hysteresis Objective Function (MRHOF)
  *
- *         This implementation uses the estimated number of 
+ *         This implementation uses the estimated number of
  *         transmissions (ETX) as the additive routing metric,
  *         and also provides stubs for the energy metric.
  *
@@ -272,3 +272,5 @@ update_metric_container(rpl_instance_t *instance)
 #endif /* RPL_DAG_MC == RPL_DAG_MC_ETX */
 }
 #endif /* RPL_DAG_MC == RPL_DAG_MC_NONE */
+
+/** @}*/
