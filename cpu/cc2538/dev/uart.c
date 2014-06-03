@@ -287,10 +287,6 @@ uart_init(uint8_t uart)
   GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->rx.port),
                           GPIO_PIN_MASK(regs->rx.pin));
 
-  if(regs->cts.port >= 0 || regs->rts.port >= 0) {
-    /* TODO Hardware flow control */
-  }
-
   /*
    * UART Interrupt Masks:
    * Acknowledge RX and RX Timeout
@@ -311,6 +307,24 @@ uart_init(uint8_t uart)
 
   /* UART Control: 8N1 with FIFOs */
   REG(regs->base | UART_LCRH) = UART_LCRH_WLEN_8 | UART_LCRH_FEN;
+
+  /*
+   * Enable hardware flow control (RTS/CTS) if requested.
+   * Note that hardware flow control is available only on UART1.
+   */
+  if(regs->cts.port >= 0) {
+    REG(IOC_UARTCTS_UART1) = ioc_input_sel(regs->cts.port, regs->cts.pin);
+    GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->cts.port), GPIO_PIN_MASK(regs->cts.pin));
+    ioc_set_over(regs->cts.port, regs->cts.pin, IOC_OVERRIDE_DIS);
+    REG(UART_1_BASE | UART_CTL) |= UART_CTL_CTSEN;
+  }
+
+  if(regs->rts.port >= 0) {
+    ioc_set_sel(regs->rts.port, regs->rts.pin, IOC_PXX_SEL_UART1_RTS);
+    GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->rts.port), GPIO_PIN_MASK(regs->rts.pin));
+    ioc_set_over(regs->rts.port, regs->rts.pin, IOC_OVERRIDE_OE);
+    REG(UART_1_BASE | UART_CTL) |= UART_CTL_RTSEN;
+  }
 
   /* UART Enable */
   REG(regs->base | UART_CTL) |= UART_CTL_UARTEN;
