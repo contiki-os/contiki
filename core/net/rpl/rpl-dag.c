@@ -181,10 +181,12 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
       label_packet_t* packet;
       packet = UIP_ICMP_PAYLOAD;
       packet->type = LABEL_ADV;
-      packet->labels = ipaddr.u16[6];
-      memcpy(&packet->src, &ipaddr, sizeof(packet->src)); 
+      int byte;
+      for(byte = 0; byte < 6; byte++)
+	packet->labels[byte] = featurecast_addr.u16[byte+1];
+      memcpy(&packet->src, &featurecast_addr, sizeof(packet->src)); 
       PRINTF("FEATURECAST: sending an advertisement to "); 
-      uip_debug_ipaddr_print(rpl_get_parent_ipaddr(p));
+      PRINT6ADDR(rpl_get_parent_ipaddr(p));
       PRINTF("\n");
 
       uip_icmp6_send(rpl_get_parent_ipaddr(p), ICMP6_FEATURECAST, LABEL_ADV, sizeof(*packet));
@@ -200,10 +202,12 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
       label_packet_t* packet;
       packet = UIP_ICMP_PAYLOAD;
       packet->type = LABEL_DISC;
-      packet->labels = ipaddr.u16[6];
-      memcpy(&packet->src, &ipaddr, sizeof(packet->src));
+      int byte;
+      for(byte = 0; byte < 6; byte++)
+	packet->labels[byte] = featurecast_addr.u16[byte + 1];
+      memcpy(&packet->src, &featurecast_addr, sizeof(packet->src));
       PRINTF("sending disc to ");
-      uip_debug_ipaddr_print(rpl_get_parent_ipaddr(dag->preferred_parent));
+      PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
       PRINTF("\n");
 
       uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent), ICMP6_FEATURECAST, LABEL_DISC, sizeof(*packet));

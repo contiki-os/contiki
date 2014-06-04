@@ -1619,7 +1619,6 @@ output(uip_lladdr_t *localdest)
   }
   
   PRINTFO("sicslowpan output: sending packet len %d\n", uip_len);
-
   if(uip_len >= COMPRESSION_THRESHOLD) {
     /* Try to compress the headers */
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1
@@ -1635,7 +1634,6 @@ output(uip_lladdr_t *localdest)
     compress_hdr_ipv6(&dest);
   }
   PRINTFO("sicslowpan output: header of len %d\n", rime_hdr_len);
-
   /* Calculate NETSTACK_FRAMER's header length, that will be added in the NETSTACK_RDC.
    * We calculate it here only to make a better decision of whether the outgoing packet
    * needs to be fragmented or not. */
@@ -1663,7 +1661,6 @@ output(uip_lladdr_t *localdest)
   if(seqno) {
     orpl_packetbuf_set_seqno(seqno);
   }
-
   if(localdest == (uip_lladdr_t *)&anycast_addr_up) {
     packetbuf_set_attr(PACKETBUF_ATTR_ORPL_DIRECTION, direction_up);
   } else if(localdest == (uip_lladdr_t *)&anycast_addr_down) {
@@ -1682,7 +1679,6 @@ output(uip_lladdr_t *localdest)
 #else /* WITH_ORPL */
   if((int)uip_len - (int)uncomp_hdr_len > (int)MAC_MAX_PAYLOAD - framer_hdrlen - (int)rime_hdr_len) {
 #endif /* WITH_ORPL */
-
 #if SICSLOWPAN_CONF_FRAG
     struct queuebuf *q;
     /*
@@ -1712,7 +1708,6 @@ output(uip_lladdr_t *localdest)
 /*     RIME_FRAG_BUF->tag = uip_htons(my_tag); */
     SET16(RIME_FRAG_PTR, RIME_FRAG_TAG, my_tag);
     my_tag++;
-
     /* Copy payload and send */
     rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
     rime_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - rime_hdr_len) & 0xf8;
@@ -1729,7 +1724,6 @@ output(uip_lladdr_t *localdest)
     queuebuf_to_packetbuf(q);
     queuebuf_free(q);
     q = NULL;
-
     /* Check tx result. */
     if((last_tx_status == MAC_TX_COLLISION) ||
        (last_tx_status == MAC_TX_ERR) ||
@@ -1776,7 +1770,6 @@ output(uip_lladdr_t *localdest)
       queuebuf_free(q);
       q = NULL;
       processed_ip_out_len += rime_payload_len;
-
       /* Check tx result. */
       if((last_tx_status == MAC_TX_COLLISION) ||
          (last_tx_status == MAC_TX_ERR) ||
@@ -1790,7 +1783,6 @@ output(uip_lladdr_t *localdest)
     return 0;
 #endif /* SICSLOWPAN_CONF_FRAG */
   } else {
-
     /*
      * The packet does not need to be fragmented
      * copy "payload" and send

@@ -19,7 +19,7 @@
 int pos_x;
 int pos_y;
 
-uip_ipaddr_t ipaddr;
+//uip_ipaddr_t ipaddr;
 struct uip_udp_conn* udp_conn;
 PROCESS(rpl_sink_process, "RPL sink process");
 AUTOSTART_PROCESSES(&rpl_sink_process);
@@ -45,6 +45,9 @@ print_local_addresses(void)
     }
   }
 }
+
+
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(rpl_sink_process, ev, data)
 {
@@ -111,9 +114,10 @@ PROCESS_THREAD(rpl_sink_process, ev, data)
 	
 	packet.data = 0;
 	memcpy(&packet.src, &ipaddr, sizeof(packet.src));
-	packet.labels = LABEL_TYPE_LIGHT;
+	put_label_in_packet(LABEL_TYPE_LIGHT, &packet);
 	//put_label_in_addr(LABEL_TYPE_LIGHT, uip_ip6addr_t* addr)
 	send_featurecast(&packet, sizeof(packet), 1, LABEL_TYPE_LIGHT);
+	printf("after send\n");
 	//forward_label_packet(&packet);
 	//test_children();
     }else if( ev == tcpip_event){

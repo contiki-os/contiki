@@ -65,11 +65,10 @@
 #if UIP_LOGGING
 #include <stdio.h>
 void uip_log(char *msg);
-#define UIP_LOG(m) uip_log(m)
+#define UIP_LOG(m) printf(m)
 #else
 #define UIP_LOG(m)
 #endif
-
 #define UIP_ICMP_BUF ((struct uip_icmp_hdr *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len])
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_TCP_BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])

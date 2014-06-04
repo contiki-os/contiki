@@ -80,6 +80,7 @@
 #endif /* WITH_IPSEC */
 #if WITH_FEATURECAST
 #include "net/featurecast/featurecast.h"
+#define UIP_UDP_CHECKSUMS 0
 #endif /* WITH_FEATURECAST */
 
 
@@ -1242,16 +1243,33 @@ uip_process(uint8_t flag)
       }
 #if WITH_FEATURECAST
       if(is_featurecast_addr(&UIP_IP_BUF->destipaddr)){
-        printf("Found featurecast data packet!\n");
-        forward_label_packet();
-      } //maybe need else{ ?
+	PRINTF("Found featurecast data packet!\n");
+        PRINTF("ports %u.%u\n", uip_htons(UIP_UDP_BUF->srcport), uip_htons(UIP_UDP_BUF->destport));
+	int for_me = 1; 
+	int byte;
+        for(byte = 1; byte < 7; byte++){ 
+        	if((featurecast_addr.u16[byte] & UIP_IP_BUF->destipaddr.u16[byte]) != UIP_IP_BUF->destipaddr.u16[byte]){ 
+                	for_me = 0; 
+		}
+        }
+	 
+        PRINTF("ports after forward %u.%u\n", uip_htons(UIP_UDP_BUF->srcport), uip_htons(UIP_UDP_BUF->destport));
+        if(for_me){ 
+        	PRINTF("Packet for me!\n"); 
+		goto featurecast_input;
+        }else{ 
+        	PRINTF("Packet not for me!\n"); 
+        	forward_label_packet();
+		goto drop;
+        } 
+      }
 #endif /* WITH_FEATURECAST */
 
 
       PRINTF("Dropping packet, not for me and link local or multicast\n");
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
-    }
+   }
   }
 #else /* UIP_CONF_ROUTER */
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
@@ -1276,6 +1294,10 @@ uip_process(uint8_t flag)
   ipsec_host_md = NULL;
 #endif
 
+#if WITH_FEATURECAST
+featurecast_input:
+#endif /* WITH_FEATURECAST */
+
   while(1) {
     switch(*uip_next_hdr){
 #if UIP_TCP
@@ -1285,6 +1307,7 @@ uip_process(uint8_t flag)
 #endif /* UIP_TCP */
 #if UIP_UDP
       case UIP_PROTO_UDP:
+	PRINTF("found udp\n");
         /* UDP, for both IPv4 and IPv6 */
         goto udp_input;
 #endif /* UIP_UDP */
@@ -1687,13 +1710,14 @@ uip_process(uint8_t flag)
        connection is bound to a remote port. Finally, if the
        connection is bound to a remote IP address, the source IP
        address of the packet is checked. */
+	PRINTF("conn->lport %u, conn->rport %u, packet->lport %u, packet->rport %u\n", uip_htons(uip_udp_conn->lport), uip_htons(uip_udp_conn->rport), uip_htons(UIP_UDP_BUF->destport), uip_htons(UIP_UDP_BUF->srcport));
     if(uip_udp_conn->lport != 0 &&
        UIP_UDP_BUF->destport == uip_udp_conn->lport &&
        (uip_udp_conn->rport == 0 ||
         UIP_UDP_BUF->srcport == uip_udp_conn->rport) &&
        (uip_is_addr_unspecified(&uip_udp_conn->ripaddr) ||
         uip_ipaddr_cmp(&UIP_IP_BUF->srcipaddr, &uip_udp_conn->ripaddr))) {
-      goto udp_found;
+       goto udp_found;
     }
   }
   PRINTF("udp: no matching connection found\n");
@@ -1714,7 +1738,11 @@ uip_process(uint8_t flag)
   uip_sappdata = uip_appdata = &uip_buf[UIP_IPUDPH_LEN + UIP_LLH_LEN];
   uip_slen = 0;
   UIP_UDP_APPCALL();
-
+#if WITH_FEATURECAST
+  //set uip_len to proper value
+  uip_len = (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + UIP_IPH_LEN;
+  forward_label_packet();
+#endif /* WITH_FEATURECAST */
  udp_send:
   PRINTF("In udp_send\n");
 
@@ -1762,10 +1790,10 @@ uip_process(uint8_t flag)
 #if WITH_FEATURECAST
 featurecast_send:
 
-  printf("In featurecast_send\n");
+  PRINTF("In featurecast_send\n");
 
   if(uip_slen == 0) {
-    printf("featurecast_send: 0 len -> droping\n");
+    PRINTF("featurecast_send: 0 len -> droping\n");
     goto drop;
   }
   uip_len = uip_slen + UIP_IPUDPH_LEN;
@@ -1784,12 +1812,13 @@ featurecast_send:
   UIP_UDP_BUF->srcport  = featurecast_conn.rport;
   UIP_UDP_BUF->destport = featurecast_conn.lport;
 
-  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &featurecast_conn.src);
+  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &featurecast_conn.dst);
+  PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
 
   uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPTCPH_LEN];
 
-#if UIP_CONF_IPV6_RPL
+#if UIP_COnNF_IPV6_RPL
   rpl_insert_header();
 #endif /* UIP_CONF_IPV6_RPL */
 
@@ -1801,7 +1830,7 @@ featurecast_send:
   }
 #endif /* UIP_UDP_CHECKSUMS */
   UIP_STAT(++uip_stat.udp.sent);
-  printf("featurecast_send:sending nolen\n");
+  PRINTF("featurecast_send:sending nolen\n");
   goto ip_send_nolen;
 
 #endif /* WITH_FEATURECAST */

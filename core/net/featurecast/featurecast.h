@@ -1,16 +1,16 @@
 #ifndef FEATURECAST_H
 #define FEATURECAST_H
 
-#define LABEL_ROOM_1 1
-#define LABEL_ROOM_2 2
-#define LABEL_ROOM_3 4
-#define LABEL_ROOM_4 8
+#define LABEL_ROOM_1 0
+#define LABEL_ROOM_2 1
+#define LABEL_ROOM_3 2
+#define LABEL_ROOM_4 3
 
-#define LABEL_TYPE_TEMP 16
-#define LABEL_TYPE_LIGHT 32
+#define LABEL_TYPE_TEMP 4
+#define LABEL_TYPE_LIGHT 5
 
-#define LABEL_FLOOR_1 64
-#define LABEL_FLOOR_2 128
+#define LABEL_FLOOR_1 6
+#define LABEL_FLOOR_2 7
 
 #define LABEL_ADV 0
 #define LABEL_DISC 1
@@ -24,20 +24,22 @@
 #include <string.h>
 #include "net/rpl/rpl.h"
 
+
+
 struct {
 	uip_ip6addr_t addr;
-	uint16_t labels;
+	uint16_t labels[6];
 } typedef routing_entry_t;
 
 struct label_packet{
 	int type;
 	uip_ip6addr_t src;
-	uint16_t labels;
+	uint16_t labels[6];
 	int data;
 } typedef label_packet_t;
 
 struct featurecast_conn{
-	uip_ip6addr_t src;
+	uip_ip6addr_t dst;
 	uint16_t lport;        /**< The local port number in network byte order. */
  	uint16_t rport;        /**< The remote port number in network byte order. */
   	uint8_t  ttl;
@@ -49,7 +51,7 @@ struct {
 
 extern  struct ctimer backoff_timer;
 extern struct featurecast_conn featurecast_conn;
-extern uip_ipaddr_t ipaddr;
+extern uip_ipaddr_t featurecast_addr;
 void init_featurecast();
 
 void init_addr_for_labels(uip_ip6addr_t* addr);
@@ -67,6 +69,8 @@ void print_table(routing_table_t* table);
 void init_routing_table(routing_table_t* table);
 
 void put_label_in_addr(int label, uip_ip6addr_t* addr);
+
+void put_label_in_packet(int label, label_packet_t* packet);
 
 int addr_contains_label(int label, uip_ip6addr_t* addr);
 

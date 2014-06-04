@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 #include "net/featurecast/featurecast.h"
@@ -20,7 +20,6 @@ int pos_y;
 uip_ipaddr_t server_ipaddr;
 
 uip_ipaddr_t ipaddr;
-struct uip_udp_conn* udp_conn;
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "Node  process");
 AUTOSTART_PROCESSES(&node_process);
@@ -31,7 +30,7 @@ print_local_addresses(void)
   int i;
   uint8_t state;
 
-  PRINTF("IPv6 ");
+  PRINTF("Local IPv6 adresses: ");
   for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
@@ -49,12 +48,8 @@ print_local_addresses(void)
 
 
 static void udp_handler(void){
-  routing_entry_t* entry;
-
   if(uip_newdata()) {
 	printf("featurecast data received!\n");
- /*   entry = (routing_entry_t*) uip_appdata;
-    printf("Labels received '%u'\n", (unsigned int) entry->labels);*/
   }
 }
 
@@ -65,20 +60,16 @@ set_global_address(void)
 
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  //uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 
   uip_ip6addr(&server_ipaddr, 0xaaaa, 0, 0, 0, 0, 0x00ff, 0xfe00, 1);
 
-  printf("my old ipv6 addr:");
-  PRINT6ADDR(&ipaddr);
-  PRINTF("\n");
-  
-  init_addr_for_labels(&ipaddr);
-  printf("my  ipv6 addr after init:");
+  init_addr_for_labels(&featurecast_addr);
+  PRINTF("my  ipv6 addr after init:");
   PRINT6ADDR(&ipaddr);
   PRINTF("\n");
 
-  if(node_id <= 9){
+ /* if(node_id <= 9){
   	printf("add ROOM_1\n");
   	put_label_in_addr(LABEL_ROOM_1, &ipaddr);
 	printf("add FLOOR1\n");
@@ -98,24 +89,19 @@ set_global_address(void)
         put_label_in_addr(LABEL_ROOM_4, &ipaddr);
 	printf("add FLOOR2\n");
 	put_label_in_addr(LABEL_FLOOR_2, &ipaddr);
-  }  
+  } */ 
 
   if(node_id % 2){
 	printf("add TEMP\n");
-  	put_label_in_addr(LABEL_TYPE_TEMP, &ipaddr);
+  	put_label_in_addr(LABEL_TYPE_TEMP, &featurecast_addr);
   }else{
 	printf("add LIGHT\n");
-	put_label_in_addr(LABEL_TYPE_LIGHT, &ipaddr);
+	put_label_in_addr(LABEL_TYPE_LIGHT, &featurecast_addr);
   }
 
   printf("my  ipv6 addr after adding a label:");
-  PRINT6ADDR(&ipaddr);
+  PRINT6ADDR(&featurecast_addr);
   PRINTF("\n");
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);
- /* uip_ds6_if.addr_list[1].ipaddr.u16[6] = ipaddr.u16[6];
-  uip_ds6_if.addr_list[1].ipaddr.u16[7] = ipaddr.u16[7];
-  uip_ds6_if.addr_list[0].ipaddr.u16[6] = ipaddr.u16[6];
-  uip_ds6_if.addr_list[0].ipaddr.u16[7] = ipaddr.u16[7];*/
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(node_process, ev, data)
@@ -128,13 +114,8 @@ PROCESS_THREAD(node_process, ev, data)
   set_global_address();
 
   init_featurecast();
- // static struct etimer periodic;
 
-  //check_against_all_labels(&ipaddr);
   printf("Bits set in addr %d\n", bits_in_addr(&ipaddr));
-//  printf("Checking LIGHT %d\nChecking TEMP: %d\n", addr_contains_label(LABEL_TYPE_LIGHT, &ipaddr), addr_contains_label(LABEL_TYPE_TEMP,  &ipaddr));
- // PRINTF("Node process started\n");
- // printf("POS:[%d,%d]\n", pos_x, pos_y); 
   print_local_addresses();
 
   init_routing_table(&routing_table);
@@ -142,16 +123,12 @@ PROCESS_THREAD(node_process, ev, data)
   struct uip_udp_conn* udp_conn = udp_new(NULL, UIP_HTONS(0), NULL);
   udp_bind(udp_conn, UIP_HTONS(8888));
 
-//etimer_set(&periodic, 10 * CLOCK_SECOND);
   while(1) {
     printf("tick\n");
     PROCESS_YIELD();
     if(ev == tcpip_event) {
       udp_handler();
     }
-  //  if(etimer_expired(&periodic)) {
-   //   etimer_reset(&periodic);
-   // }
   }
 
   PROCESS_END();
