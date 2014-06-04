@@ -165,6 +165,8 @@
 /** \name UART_CTL Register Bit-Masks
  * @{
  */
+#define UART_CTL_CTSEN          0x00008000  /**< UART CTS flow-control enable (UART1 only) */
+#define UART_CTL_RTSEN          0x00004000  /**< UART RTS flow-control enable (UART1 only) */
 #define UART_CTL_RXE            0x00000200  /**< UART receive enable */
 #define UART_CTL_TXE            0x00000100  /**< UART transmit enable */
 #define UART_CTL_LBE            0x00000080  /**< UART loop back enable */
