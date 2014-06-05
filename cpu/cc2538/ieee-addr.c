@@ -49,11 +49,18 @@ ieee_addr_cpy_to(uint8_t *dst, uint8_t len)
 
     memcpy(dst, &ieee_addr_hc[8 - len], len);
   } else {
-    /* Reading from Info Page, we need to invert byte order */
+    /* Reading from Info Page */
+    uint8_t ieee_addr_inf[8];
     int i;
-    for(i = 0; i < len; i++) {
-      dst[i] = ((uint8_t *)IEEE_ADDR_LOCATION)[len - 1 - i];
+    for(i = 0; i < 8; i++) {
+      if (i<4){
+        ieee_addr_inf[i] = ((uint8_t *)IEEE_ADDR_LOCATION)[3-i];
+        }
+      else{
+        ieee_addr_inf[i] = ((uint8_t *)IEEE_ADDR_LOCATION)[11-i];
+        } 
     }
+    memcpy(dst, &ieee_addr_inf[8 - len], len);
   }
 
 #if IEEE_ADDR_NODE_ID
