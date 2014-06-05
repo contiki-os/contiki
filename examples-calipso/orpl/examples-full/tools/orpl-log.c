@@ -36,6 +36,7 @@
 
 #include "contiki.h"
 #include "orpl.h"
+#include "orpl-routing-set.h"
 #include "deployment.h"
 #include "net/rpl/rpl.h"
 #include "net/rpl/rpl-private.h"
@@ -61,15 +62,15 @@ appdata_copy(struct app_data *dst, struct app_data *src)
 struct app_data *
 appdataptr_from_uip()
 {
-  return (struct app_data *)((char*)uip_buf + ((uip_len - APP_PAYLOAD_LEN - 1)));
+  return (struct app_data *)((char*)uip_buf + ((uip_len - sizeof(struct app_data))));
 }
 
 /* Get dataptr from the current packetbuf */
 struct app_data *
 appdataptr_from_packetbuf()
 {
-  if(packetbuf_datalen() < 64) return 0;
-  return (struct app_data *)((char*)packetbuf_dataptr() + ((packetbuf_datalen() - APP_PAYLOAD_LEN - 1)));
+  if(packetbuf_datalen() < sizeof(struct app_data)) return 0;
+  return (struct app_data *)((char*)packetbuf_dataptr() + ((packetbuf_datalen() - sizeof(struct app_data))));
 }
 
 /* Log information about a data packet along with ORPL routing information */
@@ -77,7 +78,7 @@ void
 log_appdataptr(struct app_data *dataptr)
 {
   struct app_data data;
-  int curr_dio_interval = default_instance->dio_intcurrent;
+  int curr_dio_interval = default_instance != NULL ? default_instance->dio_intcurrent : 0;
 
   if(dataptr) {
     appdata_copy(&data, dataptr);
@@ -104,4 +105,53 @@ uint16_t
 log_node_id_from_rimeaddr(const void *rimeaddr)
 {
   return node_id_from_rimeaddr((const rimeaddr_t *)rimeaddr);
+}
+
+/* Return node id from its IP address */
+uint16_t
+log_node_id_from_ipaddr(const void *ipaddr)
+{
+  return node_id_from_ipaddr((const uip_ipaddr_t *)ipaddr);
+}
+
+/* Prints out the content of the active routing set */
+void
+orpl_log_print_routing_set()
+{
+  printf("Routing set dump: bits set %d/%d\n", orpl_routing_set_count_bits(), ROUTING_SET_M);
+  printf("Routing set dump: start\n");
+  int i;
+  for(i=0; i<ROUTING_SET_M/8; i++) {
+    if(i%16 == 0) {
+      printf("Routing set dump: [%2u] ", i/16);
+    }
+    printf("%02x ", orpl_routing_set_get_active()->u8[i]);
+    if(i%16 == 15) {
+      printf("\n");
+    }
+  }
+  printf("\nRouting set dump: end\n");
+
+  int count = 0;
+  int print_header = 1;
+  printf("Routing set list: start\n");
+  for(i=0; i<get_n_nodes(); i++) {
+    if(print_header) {
+      printf("Routing set list: [%2u]", count/8);
+      print_header = 0;
+    }
+    uip_ipaddr_t dest_ipaddr;
+    uint16_t id = get_node_id_from_index(i);
+    set_ipaddr_from_id(&dest_ipaddr, id);
+    int contained = orpl_routing_set_contains(&dest_ipaddr);
+    if(contained) {
+      count+=1;
+      printf("%3u, ", id);
+      if(count%8 == 0) {
+        printf("\n");
+        print_header = 1;
+      }
+    }
+  }
+  printf("\nRouting set list: end (%u nodes)\n",count);
 }

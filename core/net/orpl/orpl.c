@@ -45,11 +45,12 @@
 #include "net/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
 #include "lib/random.h"
+#include "dev/leds.h"
 #include <string.h>
 
 #if WITH_ORPL
 
-#define DEBUG DEBUG_ANNOTATE
+#define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
 
 /* The global IPv6 address in use */
@@ -76,15 +77,15 @@ uint32_t orpl_broadcast_count = 0;
 #endif
 
 #if FREEZE_TOPOLOGY
-#define UPDATE_EDC_MAX_TIME 1*60
-#define UPDATE_ROUTING_SET_MIN_TIME 2*60
+#define UPDATE_EDC_MAX_TIME 4*60
+#define UPDATE_ROUTING_SET_MIN_TIME 5*60
 #else
 #define UPDATE_EDC_MAX_TIME 0
 #define UPDATE_ROUTING_SET_MIN_TIME 0
 #endif
 
 /* PRR threshold for considering a neighbor as usable */
-#define NEIGHBOR_PRR_THRESHOLD 35
+#define NEIGHBOR_PRR_THRESHOLD 50
 
 /* Rank changes of more than RANK_MAX_CHANGE trigger a trickle timer reset */
 #define RANK_MAX_CHANGE (2*EDC_DIVISOR)
@@ -107,7 +108,7 @@ static uip_ipaddr_t routing_set_addr;
 struct routing_set_broadcast_s {
   uint16_t edc;
   union {
-    routing_set rs;
+    struct routing_set_s rs;
     uint8_t padding[64];
   };
 };
@@ -171,6 +172,18 @@ void orpl_set_curr_seqno(uint32_t seqno)
   current_seqno = seqno;
 }
 
+/* Build a global link-layer address from an IPv6 based on its UUID64 */
+void
+lladdr_from_ipaddr_uuid(uip_lladdr_t *lladdr, const uip_ipaddr_t *ipaddr)
+{
+#if (UIP_LLADDR_LEN == 8)
+  memcpy(lladdr, ipaddr->u8 + 8, UIP_LLADDR_LEN);
+  lladdr->addr[0] ^= 0x02;
+#else
+#error orpl.c supports only EUI-64 identifiers
+#endif
+}
+
 /* Build a global IPv6 address from a link-local IPv6 address */
 static void
 global_ipaddr_from_llipaddr(uip_ipaddr_t *gipaddr, const uip_ipaddr_t *llipaddr)
@@ -178,14 +191,6 @@ global_ipaddr_from_llipaddr(uip_ipaddr_t *gipaddr, const uip_ipaddr_t *llipaddr)
   uip_ip6addr(gipaddr, 0, 0, 0, 0, 0, 0, 0, 0);
   memcpy(gipaddr, &global_ipv6, 8);
   memcpy(gipaddr->u8+8, llipaddr->u8+8, 8);
-}
-
-/* Build a local IPv6 address from a link-local IPv6 address */
-static void
-llipaddr_from_global_ipaddr(uip_ipaddr_t *llipaddr, const uip_ipaddr_t *gipaddr)
-{
-  uip_ip6addr(llipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
-  memcpy(llipaddr->u8+8, gipaddr->u8+8, 8);
 }
 
 /* Returns 1 if EDC is frozen, i.e. we are not allowed to change edc */
@@ -217,33 +222,44 @@ orpl_current_edc()
   return dag == NULL ? 0xffff : dag->rank;
 }
 
-/* Returns 1 if addr is the global ip of a reachable neighbor */
-int
-orpl_is_reachable_neighbor(const uip_ipaddr_t *ipaddr)
+/* Returns 1 if addr is link-layer address of a reachable neighbor */
+static int
+orpl_is_reachable_neighbor_from_lladdr(const uip_lladdr_t *lladdr)
 {
-  uip_ipaddr_t llipaddr;
-  llipaddr_from_global_ipaddr(&llipaddr, ipaddr);
   /* We don't consider neighbors as reachable before we have send
    * at least 4 broadcasts to estimate link quality */
-  if(ipaddr != NULL && orpl_broadcast_count >= 4) {
-    uint16_t bc_count = rpl_get_parent_bc_ackcount_default(
-        uip_ds6_nbr_lladdr_from_ipaddr((uip_ipaddr_t *)&llipaddr), 0);
+  if(lladdr != NULL && orpl_broadcast_count >= 4) {
+    rpl_parent_t *p = rpl_get_parent(lladdr);
+    uint16_t bc_count = p == NULL ? 0 : p->bc_ackcount;
     return 100*bc_count/orpl_broadcast_count >= NEIGHBOR_PRR_THRESHOLD;
   } else {
     return 0;
   }
 }
 
-/* Returns 1 if addr is the global ip of a reachable child */
+/* Returns 1 if addr is the global ip of a reachable neighbor */
 int
+orpl_is_reachable_neighbor(const uip_ipaddr_t *ipaddr)
+{
+  uip_lladdr_t lladdr;
+  lladdr_from_ipaddr_uuid(&lladdr, ipaddr);
+  return orpl_is_reachable_neighbor_from_lladdr(&lladdr);
+}
+
+/* Returns 1 if addr is the global ip of a reachable child */
+static int
 orpl_is_reachable_child(const uip_ipaddr_t *ipaddr)
 {
-  rpl_rank_t curr_edc = orpl_current_edc();
-  uip_ipaddr_t llipaddr;
-  llipaddr_from_global_ipaddr(&llipaddr, ipaddr);
-  rpl_rank_t neighbor_edc = rpl_get_parent_rank(uip_ds6_nbr_lladdr_from_ipaddr((uip_ipaddr_t *)&llipaddr));
-  return ipaddr && orpl_is_reachable_neighbor(ipaddr) &&
-      neighbor_edc > ORPL_EDC_W && (neighbor_edc - ORPL_EDC_W) > curr_edc;
+  if(ipaddr) {
+    uip_lladdr_t lladdr;
+    lladdr_from_ipaddr_uuid(&lladdr, ipaddr);
+    if(orpl_is_reachable_neighbor_from_lladdr(&lladdr)) {
+      rpl_rank_t curr_edc = orpl_current_edc();
+      rpl_rank_t neighbor_edc = rpl_get_parent_rank(&lladdr);
+      return neighbor_edc > ORPL_EDC_W && (neighbor_edc - ORPL_EDC_W) > curr_edc;
+    }
+  }
+  return 0;
 }
 
 /* Insert a packet sequence number to the blacklist
@@ -277,7 +293,8 @@ orpl_blacklist_contains(uint32_t seqno)
 void
 orpl_acked_down_insert(uint32_t seqno, const rimeaddr_t *child)
 {
-  ORPL_LOG("ORPL: inserted ack down %lx\n", seqno);
+  ORPL_LOG("ORPL: inserted ack down %lx %u\n", seqno,
+      ORPL_LOG_NODEID_FROM_RIMEADDR(child));
   int i;
   for(i = ACKED_DOWN_SIZE - 1; i > 0; --i) {
     acked_down[i] = acked_down[i - 1];
@@ -322,7 +339,7 @@ broadcast_routing_set(void *ptr)
     /* Build data structure to be broadcasted */
     last_broadcasted_edc = curr_edc;
     routing_set_broadcast.edc = curr_edc;
-    memcpy(routing_set_broadcast.rs, *orpl_routing_set_get_active(), sizeof(routing_set));
+    memcpy(&routing_set_broadcast.rs, orpl_routing_set_get_active(), sizeof(struct routing_set_s));
 
     /* Proceed to UDP transmission */
     sending_routing_set = 1;
@@ -369,15 +386,18 @@ udp_received_routing_set(struct simple_udp_connection *c,
     if(is_reachable_child || ORPL_ALL_NEIGHBORS_IN_ROUTING_SET) {
       /* Insert the neighbor in our routing set */
       orpl_routing_set_insert(&sender_global_ipaddr);
-      ORPL_LOG("ORPL: inserting neighbor into routing set: ");
+      ORPL_LOG("ORPL: inserting neighbor into routing set: %u ",
+          ORPL_LOG_NODEID_FROM_IPADDR(&sender_global_ipaddr));
       ORPL_LOG_IPADDR(&sender_global_ipaddr);
       ORPL_LOG("\n");
     }
 
     if(is_reachable_child) {
       /* The neighbor is a child, merge its routing set in ours */
-      orpl_routing_set_merge(((struct routing_set_broadcast_s*)data)->rs);
-      ORPL_LOG("ORPL: merging routing set from: ");
+      orpl_routing_set_merge((const struct routing_set_s *)
+          &((struct routing_set_broadcast_s*)data)->rs);
+      ORPL_LOG("ORPL: merging routing set from: %u ",
+          ORPL_LOG_NODEID_FROM_IPADDR(&sender_global_ipaddr));
       ORPL_LOG_IPADDR(&sender_global_ipaddr);
       ORPL_LOG("\n");
     }
@@ -385,7 +405,6 @@ udp_received_routing_set(struct simple_udp_connection *c,
     /* Broadcast our routing set again if it has changed */
     bit_count_after = orpl_routing_set_count_bits();
     if(curr_instance && bit_count_after != bit_count_before) {
-      ORPL_LOG("ORPL: reset DIO timer (routing set received)\n");
       request_routing_set_broadcast();
     }
   }
@@ -398,9 +417,11 @@ orpl_trickle_callback(rpl_instance_t *instance)
   curr_instance = instance;
 
   if(orpl_are_routing_set_active()) {
+#if !FREEZE_TOPOLOGY
     /* Swap routing sets to implement ageing */
     ORPL_LOG("ORPL: swapping routing sets\n");
     orpl_routing_set_swap();
+#endif /* FREEZE_TOPOLOGY */
 
     /* Request transmission of routing set */
     request_routing_set_broadcast();
@@ -415,11 +436,13 @@ orpl_trickle_callback(rpl_instance_t *instance)
 void
 orpl_broadcast_acked(const rimeaddr_t *receiver)
 {
-  uint16_t count = rpl_get_parent_bc_ackcount_default((uip_lladdr_t *)receiver, 0) + 1;
-  if(count > orpl_broadcast_count+1) {
-    count = orpl_broadcast_count+1;
+  rpl_parent_t *p = rpl_get_parent((uip_lladdr_t *)receiver);
+  if(p != NULL) {
+    p->bc_ackcount++;
+    if(p->bc_ackcount > orpl_broadcast_count+1) {
+      p->bc_ackcount = orpl_broadcast_count+1;
+    }
   }
-  rpl_set_parent_bc_ackcount((uip_lladdr_t *)receiver, count);
 }
 
 /* Callback function at the end of a every broadcast
@@ -443,7 +466,8 @@ orpl_broadcast_done()
 
       if(orpl_is_reachable_child(&nbr_global_ipaddr)) {
         orpl_routing_set_insert(&nbr_global_ipaddr);
-        ORPL_LOG("ORPL: inserting neighbor into routing set: ");
+        ORPL_LOG("ORPL: inserting neighbor into routing set: %u ",
+            ORPL_LOG_NODEID_FROM_IPADDR(&nbr_global_ipaddr));
         ORPL_LOG_IPADDR(&nbr_global_ipaddr);
         ORPL_LOG("\n");
       }

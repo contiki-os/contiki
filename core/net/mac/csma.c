@@ -286,6 +286,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
         		free_packet(n, q);
         		/* GIve another try, upwards this time, after inserting in blacklist. */
         		orpl_blacklist_insert(orpl_packetbuf_seqno());
+        		ORPL_LOG_INC_FPCOUNT_FROM_PACKETBUF();
         		ORPL_LOG_FROM_PACKETBUF("Tcpip: false positive recovery");
         		packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 0);
         		packetbuf_set_attr(PACKETBUF_ATTR_ORPL_DIRECTION, direction_recover);

@@ -60,7 +60,11 @@ typedef struct coap_separate {
 
 int coap_separate_handler(resource_t *resource, void *request, void *response);
 void coap_separate_reject();
+#if WITH_DTLS
+int coap_separate_accept(void *request, coap_separate_t *separate_store, struct dtls_context_t *ctx, session_t *dst);
+#else  /* WITH_DTLS */
 int coap_separate_accept(void *request, coap_separate_t *separate_store);
+#endif /* WITH_DTLS */
 void coap_separate_resume(void *response, coap_separate_t *separate_store, uint8_t code);
 
 #endif /* COAP_SEPARATE_H_ */

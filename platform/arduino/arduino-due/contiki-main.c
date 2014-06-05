@@ -287,7 +287,9 @@ int main(void)
 	#endif /* UIP_CONF_IPV6 */
 
 	PRINTF("Starting Contiki OS main loop...\n");	
-
+	
+	autostart_start(autostart_processes);	
+	
 	while(true) {
 		
 		/* Contiki Polling System */

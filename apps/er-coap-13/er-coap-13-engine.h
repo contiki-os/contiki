@@ -39,9 +39,9 @@
 #ifndef COAP_SERVER_H_
 #define COAP_SERVER_H_
 
-#if !defined(REST)
+/*#if !defineud(REST)
 #error "Define REST to \"coap_rest_implementation\""
-#endif
+#endif*/
 
 #include "er-coap-13.h"
 #include "er-coap-13-transactions.h"
@@ -78,10 +78,27 @@ typedef void (*blocking_response_handler) (void* response);
 PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t ev,
                                 uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
                                 coap_packet_t *request,
+#if WITH_DTLS
+                                blocking_response_handler request_callback,
+                                struct dtls_context_t *ctx, session_t *dst));
+#else /* WITH_DTLS */
                                 blocking_response_handler request_callback));
+#endif /* WITH_DTLS */
 
-#define COAP_BLOCKING_REQUEST(server_addr, server_port, request, chunk_handler) \
+#if WITH_DTLS
+#define COAP_BLOCKING_REQUEST(server_addr, server_port, request, chunk_handler, dtls_ctx, dtls_session) \
 { \
+  static struct request_state_t request_state; \
+  PT_SPAWN(process_pt, &request_state.pt, \
+           coap_blocking_request(&request_state, ev, \
+                                 server_addr, server_port, \
+                                 request, chunk_handler, dtls_ctx, dtls_session) \
+  ); \
+}
+int coap_receive(struct dtls_context_t *ctx, session_t *dst);
+#else /* WITH_DTLS */
+#define COAP_BLOCKING_REQUEST(server_addr, server_port, request, chunk_handler) \
+  { \
   static struct request_state_t request_state; \
   PT_SPAWN(process_pt, &request_state.pt, \
            coap_blocking_request(&request_state, ev, \
@@ -89,6 +106,7 @@ PT_THREAD(coap_blocking_request(struct request_state_t *state, process_event_t e
                                  request, chunk_handler) \
   ); \
 }
+#endif /* WITH_DTLS */
 /*-----------------------------------------------------------------------------------*/
 
 #endif /* COAP_SERVER_H_ */

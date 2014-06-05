@@ -58,6 +58,11 @@ typedef struct coap_transaction {
 
   uip_ipaddr_t addr;
   uint16_t port;
+  
+#if WITH_DTLS
+  dtls_context_t *ctx;
+  session_t *dst;
+#endif /* WITH_DTLS */
 
   restful_response_handler callback;
   void *callback_data;

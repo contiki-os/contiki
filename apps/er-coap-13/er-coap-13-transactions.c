@@ -98,8 +98,11 @@ void
 coap_send_transaction(coap_transaction_t *t)
 {
   PRINTF("Sending transaction %u\n", t->mid);
-
+#if WITH_DTLS
+  coap_send_message(&t->addr, t->port, t->packet, t->packet_len, t->ctx, t->dst);
+#else /* WITH_DTLS */
   coap_send_message(&t->addr, t->port, t->packet, t->packet_len);
+#endif /* WITH_DTLS */
 
   if (COAP_TYPE_CON==((COAP_HEADER_TYPE_MASK & t->packet[0])>>COAP_HEADER_TYPE_POSITION))
   {
