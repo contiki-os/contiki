@@ -153,8 +153,9 @@ main(void)
    * slip_input_byte instead
    */
 #if UART_CONF_ENABLE
-  uart_init();
-  uart_set_input(serial_line_input_byte);
+  uart_init(0);
+  uart_init(1);
+  uart_set_input(SERIAL_LINE_CONF_UART, serial_line_input_byte);
 #endif
 
 #if USB_SERIAL_CONF_ENABLE
