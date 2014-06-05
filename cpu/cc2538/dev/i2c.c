@@ -141,7 +141,7 @@ i2c_single_receive(uint8_t slave_addr, uint8_t * data)
 	i2c_master_command(I2C_MASTER_CMD_SINGLE_RECEIVE);
 	while(i2c_master_busy()) {
 	}
-	if(temp = i2c_master_error()) {
+	if((temp = i2c_master_error())) {
 		return temp;
 	} else {
 		*data = i2c_master_data_get();
