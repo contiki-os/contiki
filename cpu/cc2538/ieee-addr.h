@@ -57,10 +57,19 @@
 /*---------------------------------------------------------------------------*/
 /**
  * \name IEEE address locations
+ *
+ * The address of the secondary location can be configured by the platform
+ * or example
+ *
  * @{
  */
-#define IEEE_ADDR_LOCATION_PRIMARY   0x00280028 /**< IEEE address location */
-#define IEEE_ADDR_LOCATION_SECONDARY 0x0027FFCC /**< IEEE address location */
+#define IEEE_ADDR_LOCATION_PRIMARY   0x00280028 /**< Primary IEEE address location */
+
+#ifdef IEEE_ADDR_CONF_LOCATION_SECONDARY
+#define IEEE_ADDR_LOCATION_SECONDARY IEEE_ADDR_CONF_LOCATION_SECONDARY
+#else
+#define IEEE_ADDR_LOCATION_SECONDARY 0x0027FFCC /**< Secondary IEEE address location */
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
