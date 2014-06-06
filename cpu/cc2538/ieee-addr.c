@@ -54,7 +54,9 @@ ieee_addr_cpy_to(uint8_t *dst, uint8_t len)
        to flip the 2 parts */
     int i;
     uint8_t oui_ti[3] = IEEE_ADDR_OUI_TI;
-    if(((uint8_t *)IEEE_ADDR_LOCATION)[3] == oui_ti[0] && ((uint8_t *)IEEE_ADDR_LOCATION)[2] == oui_ti[1] && ((uint8_t *)IEEE_ADDR_LOCATION)[1] == oui_ti[2]) {
+    if(((uint8_t *)IEEE_ADDR_LOCATION)[3] == oui_ti[0]
+       && ((uint8_t *)IEEE_ADDR_LOCATION)[2] == oui_ti[1]
+       && ((uint8_t *)IEEE_ADDR_LOCATION)[1] == oui_ti[2]) {
       for(i = 0; i < len / 2; i++) {
         dst[i] = ((uint8_t *)IEEE_ADDR_LOCATION)[len / 2 - 1 - i];
       }
