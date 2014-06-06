@@ -477,10 +477,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     });
 
     /* Register mote menu actions */
-    registerMoteMenuAction(MoveMoteMenuAction.class);
     registerMoteMenuAction(ButtonClickMoteMenuAction.class);
     registerMoteMenuAction(ShowLEDMoteMenuAction.class);
     registerMoteMenuAction(ShowSerialMoteMenuAction.class);
+
+    registerMoteMenuAction(MoveMoteMenuAction.class);
     registerMoteMenuAction(DeleteMoteMenuAction.class);
 
     /* Register simulation menu actions */
