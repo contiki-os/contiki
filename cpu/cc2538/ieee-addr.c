@@ -49,9 +49,21 @@ ieee_addr_cpy_to(uint8_t *dst, uint8_t len)
 
     memcpy(dst, &ieee_addr_hc[8 - len], len);
   } else {
-    /* Verify if we detect TI OUI in fourth position. TI store the MAC @ on
-       two parts (4 bytes LSB first and 4 bytes MSB) in this case, we need
-       to flip the 2 parts */
+    /*
+     * By default, we assume that the IEEE address is stored on flash using
+     * little-endian byte order.
+     *
+     * However, some SoCs ship with a different byte order, whereby the first
+     * four bytes are flipped with the four last ones.
+     *
+     *     Using this address as an example: 00 12 4B 00 01 02 03 04
+     *               We expect it stored as: 04 03 02 01 00 4B 12 00
+     * But it is also possible to encounter: 00 4B 12 00 04 03 02 01
+     *
+     * Thus: read locations [3, 2, 1] and if we encounter the TI OUI, flip the
+     * order of the two 4-byte sequences. Each of the 4-byte sequences is still
+     * little-endian.
+     */
     int i;
     uint8_t oui_ti[3] = IEEE_ADDR_OUI_TI;
     if(((uint8_t *)IEEE_ADDR_LOCATION)[3] == oui_ti[0]
