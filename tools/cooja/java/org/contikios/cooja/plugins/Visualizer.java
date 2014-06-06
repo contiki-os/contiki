@@ -437,6 +437,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       public void mouseDragged(MouseEvent e) {
         handleMouseDrag(e, false);
       }
+
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        handleMouseDrag(e, false);
+      }
     });
     canvas.addMouseListener(new MouseAdapter() {
       @Override
@@ -894,6 +899,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     pressedPos = transformPixelToPosition(mouseEvent.getPoint());
 
+    // if we are in moving, we ignore the press (rest is handled by release)
+    if (mouseActionState == MotesActionState.MOVING) {
+      return;
+    }
+
     // this is the state we have from pressing button
     final Mote[] foundMotes = findMotesAtPosition(x, y);
     if (foundMotes == null) {
@@ -942,6 +952,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
           mouseActionState = MotesActionState.PANNING;
         }
         else {
+          /* If we start moving with on a cursor mote, switch to MOVING */
           mouseActionState = MotesActionState.MOVING;
           // save start position
           for (Mote m : selectedMotes) {
@@ -1048,17 +1059,27 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     repaint();
   }
 
-  private void beginMoveRequest(Mote motesToMove, boolean withTiming, boolean confirm) {
+  private void beginMoveRequest(Mote selectedMote, boolean withTiming, boolean confirm) {
     if (withTiming) {
       moveStartTime = System.currentTimeMillis();
     }
     else {
       moveStartTime = -1;
     }
-    mouseActionState = MotesActionState.DEFAULT_PRESS;
-    selectedMotes.clear();
-    selectedMotes.add(motesToMove);
-    repaint();
+    /* Save start positions and set move-start position to clicked mote */
+    for (Mote m : selectedMotes) {
+      Position pos = m.getInterfaces().getPosition();
+      moveStartPositions.put(m, new double[]{
+        pos.getXCoordinate(),
+        pos.getYCoordinate(),
+        pos.getZCoordinate()});
+    }
+    pressedPos.setCoordinates(
+            selectedMote.getInterfaces().getPosition().getXCoordinate(),
+            selectedMote.getInterfaces().getPosition().getYCoordinate(),
+            selectedMote.getInterfaces().getPosition().getZCoordinate());
+
+    mouseActionState = MotesActionState.MOVING;
   }
 
   private double zoomFactor() {
