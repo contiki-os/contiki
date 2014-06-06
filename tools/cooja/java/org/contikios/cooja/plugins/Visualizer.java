@@ -1584,21 +1584,25 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     @Override
     public String getDescription(Visualizer visualizer, Mote mote) {
-      if (visualizer.getSelectedMotes().size() == 1) {
-        return "Delete " + mote;
-      } else {
+      if (visualizer.getSelectedMotes().contains(mote) && visualizer.getSelectedMotes().size() > 1) {
         return "Delete selected Motes";
+      } else {
+        return "Delete " + mote;
       }
     }
 
     @Override
     public void doAction(Visualizer visualizer, Mote mote) {
-      if (visualizer.getSelectedMotes().size() == 1) {
-        mote.getSimulation().removeMote(mote);
-      } else {
-        for (Mote m: visualizer.getSelectedMotes()) {
-          mote.getSimulation().removeMote(m);
-        }
+
+      /* If the currently clicked mote is note in the current mote selection,
+       * select it exclusively */
+      if (!visualizer.getSelectedMotes().contains(mote)) {
+        visualizer.getSelectedMotes().clear();
+        visualizer.getSelectedMotes().add(mote);
+      }
+
+      for (Mote m : visualizer.getSelectedMotes()) {
+        mote.getSimulation().removeMote(m);
       }
     }
   };
