@@ -78,7 +78,7 @@ i2c_set_frequency(uint32_t freq)
 void
 i2c_master_set_slave_address(uint8_t slave_addr, uint8_t access_mode)
 {
-	/* access_mode = (access_mode ? 1 : 0);	//Convert to bool in case of incorrect value for access_mode */
+	access_mode = (access_mode ? 1 : 0);	//Convert to bool in case of incorrect value for access_mode
 	REG(I2CM_SA) = ((slave_addr << 1) | access_mode);
 }
 /*---------------------------------------------------------------------------*/
