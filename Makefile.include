@@ -74,7 +74,7 @@ endif
 
 ifeq ($(CONTIKI_WITH_RIME),1)
   HAS_STACK = 1
-  CFLAGS += -DNETSTACK_CONF_WITH_RIME=1 
+  CFLAGS += -DNETSTACK_CONF_WITH_RIME=1
   MODULES += core/net/rime
 endif
 
@@ -177,8 +177,8 @@ CFLAGS += ${addprefix -D,${subst $(COMMA), ,$(DEFINES)}}
 
 ### Setup directory search path for source and header files
 
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix ${dir $(target_makefile)}, \
-                               $(CONTIKI_TARGET_DIRS)}
+CONTIKI_TARGET_DIRS_CONCAT ?= ${addprefix ${dir $(target_makefile)}, \
+                              $(CONTIKI_TARGET_DIRS)}
 CONTIKI_CPU_DIRS_CONCAT    = ${addprefix $(CONTIKI_CPU)/, \
                                $(CONTIKI_CPU_DIRS)}
 

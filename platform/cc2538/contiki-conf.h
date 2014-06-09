@@ -1,9 +1,9 @@
 /**
- * \addtogroup cc2538dk
+ * \addtogroup cc2538
  * @{
  *
  * \file
- *  Configuration for the cc2538dk platform
+ *  Configuration for the base cc2538 platform
  */
 #ifndef CONTIKI_CONF_H_
 #define CONTIKI_CONF_H_
@@ -15,6 +15,8 @@
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
+/* Include target/platform specific conf */
+#include "platform-conf.h"
 /*---------------------------------------------------------------------------*/
 /**
  * \name Compiler configuration and platform-specific type definitions
@@ -113,6 +115,10 @@ typedef uint32_t rtimer_clock_t;
 
 #ifndef STARTUP_CONF_VERBOSE
 #define STARTUP_CONF_VERBOSE        1 /**< Set to 0 to decrease startup verbosity */
+#endif
+
+#ifndef STARTUP_CONF_LEDS
+#define STARTUP_CONF_LEDS           1 /**< Set to 0 to not fade LEDs at startup */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
