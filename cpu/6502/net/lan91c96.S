@@ -33,7 +33,8 @@
 ;
 ;---------------------------------------------------------------------
 
-	.segment	"HEADER"
+	.macpack	module
+	module_header	_lan91c96
 
 	; Driver signature
 	.byte	$65, $74, $68	; "eth"
@@ -55,12 +56,22 @@ bufsize:.res	2		; Size
 
 ;---------------------------------------------------------------------
 
-	.zeropage
+	.if DYN_DRV
 
-sp:	.res   	2		; Stack pointer (Do not trash !)
+	.zeropage
+sp:	.res	2		; Stack pointer (Do not trash !)
 reg:	.res	2		; Address of register base
 ptr:	.res	2		; Indirect addressing pointer
 len:	.res	2		; Frame length
+
+	.else
+
+	.include "zeropage.inc"
+reg	:=	ptr1		;  Address of register base
+ptr	:=	ptr2		; Indirect addressing pointer
+len	:=	ptr3		; Frame length
+
+	.endif
 
 ;---------------------------------------------------------------------
 

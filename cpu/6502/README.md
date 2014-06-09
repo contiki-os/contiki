@@ -40,6 +40,11 @@ high-level configuration macros may be set:
     - Default: 10
     - Purpose: Set the maximum number of concurrent TCP connections.
 
+- ETHERNET
+    - Default: N/A
+    - Purpose: Link Ethernet driver statically instead of loading it dynamically
+      using the network configuration file.
+
 - WITH_LOGGING
     - Default: 0
     - Purpose: Have log_message() and UIP_LOG() write messages to the screen.
