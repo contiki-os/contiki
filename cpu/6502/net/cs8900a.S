@@ -32,7 +32,8 @@
 ;
 ;---------------------------------------------------------------------
 
-	.segment	"HEADER"
+	.macpack	module
+	module_header	_cs8900a
 
 	; Driver signature
 	.byte	$65, $74, $68	; "eth"
@@ -54,13 +55,24 @@ bufsize:.res	2		; Size
 
 ;---------------------------------------------------------------------
 
-	.zeropage
+	.if DYN_DRV
 
+	.zeropage
 sp:	.res	2		; Stack pointer (Do not trash !)
 reg:	.res	2		; Address of rxtxreg
 ptr:	.res	2		; Indirect addressing pointer
 len:	.res	2		; Frame length
 cnt:	.res	2		; Frame length counter
+
+	.else
+
+	.include "zeropage.inc"
+reg	:=	ptr1		; Address of rxtxreg
+ptr	:=	ptr2		; Indirect addressing pointer
+len	:=	ptr3		; Frame length
+cnt	:=	ptr4		; Frame length counter
+
+	.endif
 
 ;---------------------------------------------------------------------
 

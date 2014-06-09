@@ -32,7 +32,8 @@
 ;
 ;---------------------------------------------------------------------
 
-	.segment	"HEADER"
+	.macpack	module
+	module_header	_w5100
 
 	; Driver signature
 	.byte	$65, $74, $68	; "eth"
@@ -54,8 +55,9 @@ bufsize:.res	2		; Size
 
 ;---------------------------------------------------------------------
 
-	.zeropage
+	.if DYN_DRV
 
+	.zeropage
 sp:	.res	2		; Stack pointer (Do not trash !)
 reg:	.res	2		; Pointer Register content
 ptr:	.res	2		; Indirect addressing pointer
@@ -66,6 +68,21 @@ dir:	.res	1		; Transfer direction
 bas:	.res	1		; Socket 0 Base Address (hibyte)
 lim:	.res	1		; Socket 0 memory limit (hibyte)
 tmp:	.res	1		; Temporary value
+
+	.else
+
+	.include "zeropage.inc"
+reg	:=	ptr1		; Pointer Register content
+ptr	:=	ptr2		; Indirect addressing pointer
+len	:=	ptr3		; Data length
+cnt	:=	ptr4		; Data length counter
+adv	:=	sreg		; Data pointer advancement
+dir	:=	tmp1		; Transfer direction
+bas	:=	tmp2		; Socket 0 Base Address (hibyte)
+lim	:=	tmp3		; Socket 0 memory limit (hibyte)
+tmp	:=	tmp4		; Temporary value
+
+	.endif
 
 ;---------------------------------------------------------------------
 
