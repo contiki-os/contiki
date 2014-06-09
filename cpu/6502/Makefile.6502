@@ -35,8 +35,6 @@ ifndef CC65_HOME
   ${error CC65_HOME not defined! You must specify where cc65 resides}
 endif
 
-all: cs8900a.eth lan91c96.eth w5100.eth
-
 .SUFFIXES:
 
 CONTIKI_TARGET_DIRS = . lib sys
@@ -57,6 +55,8 @@ MODULES += core/ctk core/net/ip core/net/ipv4 core/net/ipv6
 
 # Set target-specific variable values
 ${addprefix $(OBJECTDIR)/,${call oname, $(ETHERNET_SOURCEFILES)}}: ASFLAGS += -D DYN_DRV=0
+
+all: $(ETHERNET_SOURCEFILES:.S=.eth)
 
 AS = ca65
 CC = cl65
