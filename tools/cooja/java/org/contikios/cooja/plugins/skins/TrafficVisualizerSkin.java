@@ -33,7 +33,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Polygon;
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -69,7 +70,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   private Visualizer visualizer = null;
   private AbstractRadioMedium radioMedium = null;
 
-  private ArrayList<RadioConnectionArrow> historyList = new ArrayList<RadioConnectionArrow>();
+  private List<RadioConnectionArrow> historyList = new LinkedList<>();
   private RadioConnectionArrow[] history = null;
 
   private Observer radioMediumObserver = new Observer() {
