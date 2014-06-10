@@ -60,7 +60,7 @@ import org.contikios.cooja.radiomediums.AbstractRadioMedium;
 @ClassDescription("Radio traffic")
 @SupportedArguments(radioMediums = {AbstractRadioMedium.class})
 public class TrafficVisualizerSkin implements VisualizerSkin {
-  private static Logger logger = Logger.getLogger(TrafficVisualizerSkin.class);
+  private static final Logger logger = Logger.getLogger(TrafficVisualizerSkin.class);
 
   private final int MAX_HISTORY_SIZE = 200;
 
@@ -73,6 +73,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   private RadioConnectionArrow[] history = null;
 
   private Observer radioMediumObserver = new Observer() {
+    @Override
     public void update(Observable obs, Object obj) {
       RadioConnection last = radioMedium.getLastConnection();
       if (last != null && historyList.size() < MAX_HISTORY_SIZE) {
@@ -82,7 +83,8 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
       }
     }
   };
-  private TimeEvent ageArrowsTimeEvent = new TimeEvent(0) {
+  private final TimeEvent ageArrowsTimeEvent = new TimeEvent(0) {
+    @Override
     public void execute(long t) {
       if (!active) {
         return;
@@ -118,6 +120,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     }
   };
 
+  @Override
   public void setActive(final Simulation simulation, Visualizer vis) {
     this.radioMedium = (AbstractRadioMedium) simulation.getRadioMedium();
     this.simulation = simulation;
@@ -125,6 +128,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     this.active = true;
 
     simulation.invokeSimulationThread(new Runnable() {
+      @Override
       public void run() {
         historyList.clear();
         history = null;
@@ -138,6 +142,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     });
   }
 
+  @Override
   public void setInactive() {
     this.active = false;
     if (simulation == null) {
@@ -149,11 +154,12 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     radioMedium.deleteRadioMediumObserver(radioMediumObserver);
   }
 
+  @Override
   public Color[] getColorOf(Mote mote) {
     return null;
   }
 
-  private Polygon arrowPoly = new Polygon();
+  private final Polygon arrowPoly = new Polygon();
   private void drawArrow(Graphics g, int xSource, int ySource, int xDest, int yDest, int delta) {
     double dx = xSource - xDest;
     double dy = ySource - yDest;
@@ -183,6 +189,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     return (int)(0.5 + len * Math.sin(dir));
   }
 
+  @Override
   public void paintBeforeMotes(Graphics g) {
     RadioConnectionArrow[] historyCopy = history;
     if (historyCopy == null) {
@@ -201,15 +208,17 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     }
   }
 
+  @Override
   public void paintAfterMotes(Graphics g) {
   }
 
+  @Override
   public Visualizer getVisualizer() {
     return visualizer;
   }
 
   private static class RadioConnectionArrow {
-    private RadioConnection conn;
+    private final RadioConnection conn;
     private int age;
     private static final int MAX_AGE = 10;
     RadioConnectionArrow(RadioConnection conn) {
