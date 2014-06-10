@@ -192,11 +192,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
   @Override
   public void paintBeforeMotes(Graphics g) {
-    RadioConnectionArrow[] historyCopy = history;
-    if (historyCopy == null) {
-      return;
-    }
-    for (RadioConnectionArrow connArrow : historyCopy) {
+    for (RadioConnectionArrow connArrow : historyList) {
       float colorHistoryIndex = (float)connArrow.getAge() / (float)connArrow.getMaxAge();
       g.setColor(new Color(colorHistoryIndex, colorHistoryIndex, 1.0f));
       Radio source = connArrow.getConnection().getSource();
