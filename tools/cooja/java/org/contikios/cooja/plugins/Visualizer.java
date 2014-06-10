@@ -431,6 +431,37 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       }
     });
 
+    canvas.getInputMap().put(KeyStroke.getKeyStroke("ESCAPE"), "abort_action");
+    canvas.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "delete_motes");
+
+    canvas.getActionMap().put("abort_action", new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mouseActionState == MotesActionState.MOVING) {
+          /* Reset positions to those of move start */
+          for (Mote m : Visualizer.this.getSelectedMotes()) {
+            double rstPos[] = Visualizer.this.moveStartPositions.get(m);
+            m.getInterfaces().getPosition().setCoordinates(rstPos[0], rstPos[1], rstPos[2]);
+          }
+          mouseActionState = MotesActionState.NONE;
+        }
+        /* Always deselect all */
+        Visualizer.this.getSelectedMotes().clear();
+        repaint();
+      }
+    });
+
+    canvas.getActionMap().put("delete_motes", new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        for (Mote m : Visualizer.this.getSelectedMotes()) {
+          m.getSimulation().removeMote(m);
+        }
+      }
+    });
+
     /* Popup menu */
     canvas.addMouseMotionListener(new MouseMotionAdapter() {
       @Override
