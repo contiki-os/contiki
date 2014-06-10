@@ -33,6 +33,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
@@ -71,7 +72,6 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   private AbstractRadioMedium radioMedium = null;
 
   private List<RadioConnectionArrow> historyList = new LinkedList<>();
-  private RadioConnectionArrow[] history = null;
 
   private Observer radioMediumObserver = new Observer() {
     @Override
@@ -79,7 +79,6 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
       RadioConnection last = radioMedium.getLastConnection();
       if (last != null && historyList.size() < MAX_HISTORY_SIZE) {
         historyList.add(new RadioConnectionArrow(last));
-        history = historyList.toArray(new RadioConnectionArrow[0]);
         visualizer.repaint(500);
       }
     }
@@ -92,25 +91,15 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
       }
 
       if (historyList.size() > 0) {
-        boolean hasOld = false;
 
-        /* Increase age */
-        for (RadioConnectionArrow connArrow : historyList) {
-          connArrow.increaseAge();
-          if(connArrow.getAge() >= connArrow.getMaxAge()) {
-            hasOld = true;
+        /* Increase age and remove too old arrows */
+        Iterator<RadioConnectionArrow> iter = historyList.iterator();
+        while (iter.hasNext()) {
+          RadioConnectionArrow rca = iter.next();
+          rca.increaseAge();
+          if(rca.getAge() >= rca.getMaxAge()) {
+            iter.remove();
           }
-        }
-
-        /* Remove too old arrows */
-        if (hasOld) {
-          RadioConnectionArrow[] historyArr = historyList.toArray(new RadioConnectionArrow[0]);
-          for (RadioConnectionArrow connArrow : historyArr) {
-            if(connArrow.getAge() >= connArrow.getMaxAge()) {
-              historyList.remove(connArrow);
-            }
-          }
-          historyArr = historyList.toArray(new RadioConnectionArrow[0]);
         }
 
         visualizer.repaint(500);
@@ -132,7 +121,6 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
       @Override
       public void run() {
         historyList.clear();
-        history = null;
 
         /* Start observing radio medium for transmissions */
         radioMedium.addRadioMediumObserver(radioMediumObserver);
