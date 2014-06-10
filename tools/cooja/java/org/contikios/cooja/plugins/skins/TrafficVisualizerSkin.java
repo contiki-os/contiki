@@ -200,6 +200,13 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
       g.setColor(new Color(colorHistoryIndex, colorHistoryIndex, 1.0f));
       Radio source = connArrow.getConnection().getSource();
       Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
+      /* If there is no destination, paint red circles to indicate untransmitted message */
+      if (connArrow.getConnection().getDestinations().length == 0) {
+        g.setColor(new Color(1.0f, colorHistoryIndex, colorHistoryIndex));
+        g.drawOval(sourcePoint.x - 20, sourcePoint.y - 20, 40, 40);
+        g.drawOval(sourcePoint.x - 30, sourcePoint.y - 30, 60, 60);
+        continue;
+      }
       for (Radio destRadio : connArrow.getConnection().getDestinations()) {
         Position destPos = destRadio.getPosition();
         Point destPoint = visualizer.transformPositionToPixel(destPos);
