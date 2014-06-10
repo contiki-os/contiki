@@ -67,6 +67,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -456,8 +457,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
       @Override
       public void actionPerformed(ActionEvent e) {
-        for (Mote m : Visualizer.this.getSelectedMotes()) {
+        Iterator<Mote> iter = Visualizer.this.getSelectedMotes().iterator();
+        while (iter.hasNext()) {
+          Mote m = iter.next();
           m.getSimulation().removeMote(m);
+          iter.remove();
         }
       }
     });
@@ -1654,16 +1658,15 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     @Override
     public void doAction(Visualizer visualizer, Mote mote) {
 
-      /* If the currently clicked mote is note in the current mote selection,
+      /* If the currently clicked mote is not in the current mote selection,
        * select it exclusively */
       if (!visualizer.getSelectedMotes().contains(mote)) {
         visualizer.getSelectedMotes().clear();
         visualizer.getSelectedMotes().add(mote);
       }
 
-      for (Mote m : visualizer.getSelectedMotes()) {
-        mote.getSimulation().removeMote(m);
-      }
+      /* Invoke 'delete_motes' action */
+      visualizer.canvas.getActionMap().get("delete_motes").actionPerformed(null);
     }
   };
 
