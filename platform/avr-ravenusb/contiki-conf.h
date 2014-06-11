@@ -245,7 +245,7 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_BUFSIZE		 UIP_LINK_MTU + UIP_LLH_LEN + 4   /* +4 for vlan on macosx */
 
 /* 10 bytes per stateful address context - see sicslowpan.c */
-/* Default is 1 context with prefix aaaa::/64 */
+/* Default is 1 context with prefix fc00::/64 */
 /* These must agree with all the other nodes or there will be a failure to communicate! */
 #//define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 {addr_contexts[0].prefix[0]=0xaa;addr_contexts[0].prefix[1]=0xaa;}

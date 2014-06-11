@@ -175,7 +175,7 @@ init_net(void)
   if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, 0xfc00, 0, 0, 0, 0, 0, 0, 0);
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
     printf_P(PSTR("Tentative global IPv6 address "));
