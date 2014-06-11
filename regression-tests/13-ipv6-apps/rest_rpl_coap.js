@@ -1,8 +1,8 @@
 TIMEOUT(300000);
 
 /* conf */
-ADDRESS_ROUTER = "aaaa::212:7401:1:101";
-ADDRESS_SERVER = "aaaa::212:7402:2:202";
+ADDRESS_ROUTER = "fc00::212:7401:1:101";
+ADDRESS_SERVER = "fc00::212:7402:2:202";
 NR_PINGS = 10;
 CMD_PING_PREFIX = "ping6 -c " + NR_PINGS + " -I tun0 ";
 CMD_TUNNEL = "make connect-router-cooja";

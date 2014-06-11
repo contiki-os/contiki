@@ -486,12 +486,6 @@ typedef uint32_t rtimer_clock_t;
 
 /* Define our IPv6 prefixes/contexts here */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
-#ifndef SICSLOWPAN_CONF_ADDR_CONTEXT_0
-#define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
-  addr_contexts[0].prefix[0] = 0xaa; \
-  addr_contexts[0].prefix[1] = 0xaa; \
-}
-#endif
 
 #define MAC_CONF_CHANNEL_CHECK_RATE          8
 

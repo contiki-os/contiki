@@ -1869,8 +1869,8 @@ sicslowpan_init(void)
 #ifdef SICSLOWPAN_CONF_ADDR_CONTEXT_0
 	SICSLOWPAN_CONF_ADDR_CONTEXT_0;
 #else
-  addr_contexts[0].prefix[0] = 0xaa; 
-  addr_contexts[0].prefix[1] = 0xaa;
+  addr_contexts[0].prefix[0] = 0xfc; 
+  addr_contexts[0].prefix[1] = 0x00;
 #endif
 #endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 */
 
