@@ -45,6 +45,7 @@
 
 struct framer {
 
+  int (* length)(void);
   int (* create)(void);
   int (* parse)(void);
 
