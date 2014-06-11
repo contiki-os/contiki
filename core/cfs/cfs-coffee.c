@@ -651,7 +651,7 @@ reserve(const char *name, coffee_page_t pages,
   }
 
   memset(&hdr, 0, sizeof(hdr));
-  memcpy(hdr.name, name, sizeof(hdr.name) - 1);
+  strncpy(hdr.name, name, sizeof(hdr.name) - 1);
   hdr.max_pages = pages;
   hdr.flags = HDR_FLAG_ALLOCATED | flags;
   write_header(&hdr, page);
