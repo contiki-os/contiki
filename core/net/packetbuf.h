@@ -434,7 +434,7 @@ void              packetbuf_attr_copyfrom(struct packetbuf_attr *attrs,
 
 #define PACKETBUF_ATTR_BIT  1
 #define PACKETBUF_ATTR_BYTE 8
-#define PACKETBUF_ADDRSIZE (sizeof(linkaddr_t) * PACKETBUF_ATTR_BYTE)
+#define PACKETBUF_ADDRSIZE (LINKADDR_SIZE * PACKETBUF_ATTR_BYTE)
 
 struct packetbuf_attrlist {
   uint8_t type;
