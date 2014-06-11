@@ -65,6 +65,8 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   private static final Logger logger = Logger.getLogger(TrafficVisualizerSkin.class);
 
   private final int MAX_HISTORY_SIZE = 200;
+  private final float TRANSMITTED_COLOR_RGB[] = Color.BLUE.getRGBColorComponents(null);
+  private final float UNTRANSMITTED_COLOR_RGB[] = Color.RED.getRGBColorComponents(null);
 
   private boolean active = false;
   private Simulation simulation = null;
@@ -181,17 +183,17 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   @Override
   public void paintBeforeMotes(Graphics g) {
     for (RadioConnectionArrow connArrow : historyList) {
-      float colorHistoryIndex = connArrow.getAge();
-      g.setColor(new Color(colorHistoryIndex, colorHistoryIndex, 1.0f));
+      float colorHistoryIndex = 1.0f - connArrow.getAge();
       Radio source = connArrow.getConnection().getSource();
       Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
       /* If there is no destination, paint red circles to indicate untransmitted message */
       if (connArrow.getConnection().getDestinations().length == 0) {
-        g.setColor(new Color(1.0f, colorHistoryIndex, colorHistoryIndex));
+        g.setColor(new Color(UNTRANSMITTED_COLOR_RGB[0], UNTRANSMITTED_COLOR_RGB[1], UNTRANSMITTED_COLOR_RGB[2], colorHistoryIndex));
         g.drawOval(sourcePoint.x - 20, sourcePoint.y - 20, 40, 40);
         g.drawOval(sourcePoint.x - 30, sourcePoint.y - 30, 60, 60);
         continue;
       }
+      g.setColor(new Color(TRANSMITTED_COLOR_RGB[0], TRANSMITTED_COLOR_RGB[1], TRANSMITTED_COLOR_RGB[2], colorHistoryIndex));
       for (Radio destRadio : connArrow.getConnection().getDestinations()) {
         Position destPos = destRadio.getPosition();
         Point destPoint = visualizer.transformPositionToPixel(destPos);
