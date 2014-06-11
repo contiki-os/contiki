@@ -40,7 +40,6 @@
 
 #include "net/ipv4/uaodv-rt.h"
 #include "contiki-net.h"
-#include "string.h"
 
 #ifndef UAODV_NUM_RT_ENTRIES
 #define UAODV_NUM_RT_ENTRIES 8
