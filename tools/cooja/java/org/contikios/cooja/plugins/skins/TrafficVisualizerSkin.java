@@ -96,8 +96,8 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
         Iterator<RadioConnectionArrow> iter = historyList.iterator();
         while (iter.hasNext()) {
           RadioConnectionArrow rca = iter.next();
-          rca.increaseAge();
-          if(rca.getAge() >= rca.getMaxAge()) {
+          /* Try to increase age and remove if max age was reached */
+          if (!rca.increaseAge()) {
             iter.remove();
           }
         }
@@ -181,7 +181,7 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   @Override
   public void paintBeforeMotes(Graphics g) {
     for (RadioConnectionArrow connArrow : historyList) {
-      float colorHistoryIndex = (float)connArrow.getAge() / (float)connArrow.getMaxAge();
+      float colorHistoryIndex = connArrow.getAge();
       g.setColor(new Color(colorHistoryIndex, colorHistoryIndex, 1.0f));
       Radio source = connArrow.getConnection().getSource();
       Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
@@ -210,26 +210,47 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   }
 
   private static class RadioConnectionArrow {
+
+    private static final int MAX_AGE = 10;
     private final RadioConnection conn;
     private int age;
-    private static final int MAX_AGE = 10;
+
     RadioConnectionArrow(RadioConnection conn) {
       this.conn = conn;
       this.age = 0;
     }
-    public void increaseAge() {
+
+    /**
+     * Increases age of radio connection if possible or indicates max age.
+     *
+     * @return true if max age was not reached yet, false, if max age was
+     * reached
+     */
+    public boolean increaseAge() {
       if (age < MAX_AGE) {
         age++;
+        return true;
+      } else {
+        return false;
       }
     }
-    public int getAge() {
-      return age;
+
+    /**
+     * Returns relative age of radio connection
+     *
+     * @return Relative age (0.0 - 1.0)
+     */
+    public float getAge() {
+      return (float) age / (float) MAX_AGE;
     }
+
+    /**
+     * Returns radio connection
+     *
+     * @return radio connection
+     */
     public RadioConnection getConnection() {
       return conn;
-    }
-    public int getMaxAge() {
-      return MAX_AGE;
     }
   }
 }
