@@ -92,6 +92,9 @@
 
 #include "net/ip/uipopt.h"
 
+/* For memcmp */
+#include <string.h>
+
 /**
  * Representation of an IP address.
  *
