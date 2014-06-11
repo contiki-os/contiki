@@ -183,7 +183,7 @@ clean:
 	-rm -rf $(OBJECTDIR)
 
 distclean: clean
-	-rm -rf $(CONTIKI_PROJECT).$(TARGET)
+	-rm -f ${addsuffix .$(TARGET),$(CONTIKI_PROJECT)}
 
 -include $(CONTIKI)/platform/$(TARGET)/Makefile.customrules-$(TARGET)
 
