@@ -234,7 +234,7 @@ struct rpl_instance {
 /* Public RPL functions. */
 void rpl_init(void);
 void uip_rpl_input(void);
-rpl_dag_t *rpl_set_root(uint8_t instance_id, uip_ipaddr_t * dag_id);
+rpl_dag_t *rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id);
 int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len);
 int rpl_repair_root(uint8_t instance_id);
 int rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from);
