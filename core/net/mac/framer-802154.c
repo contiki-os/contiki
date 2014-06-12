@@ -87,7 +87,7 @@ is_broadcast_addr(uint8_t mode, uint8_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 static int
-create(void)
+create_frame(int type, int do_create)
 {
   frame802154_t params;
   int len;
@@ -115,20 +115,24 @@ create(void)
   params.fcf.frame_version = FRAME802154_IEEE802154_2003;
 
   /* Increment and set the data sequence number. */
-  if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO)) {
+  if(!do_create) {
+    /* Only length calculation - no sequence number is needed and
+       should not be consumed. */
+
+  } else if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO)) {
     params.seq = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
+
   } else {
     params.seq = mac_dsn++;
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, params.seq);
   }
-/*   params.seq = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID); */
 
   /* Complete the addressing fields. */
   /**
      \todo For phase 1 the addresses are all long. We'll need a mechanism
      in the rime attributes to tell the mac to use long or short for phase 2.
   */
-  if(sizeof(linkaddr_t) == 2) {
+  if(LINKADDR_SIZE == 2) {
     /* Use short address mode if linkaddr size is short. */
     params.fcf.src_addr_mode = FRAME802154_SHORTADDRMODE;
   } else {
@@ -150,7 +154,7 @@ create(void)
     linkaddr_copy((linkaddr_t *)&params.dest_addr,
                   packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     /* Use short address mode if linkaddr size is small */
-    if(sizeof(linkaddr_t) == 2) {
+    if(LINKADDR_SIZE == 2) {
       params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
     } else {
       params.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
@@ -169,7 +173,11 @@ create(void)
   params.payload = packetbuf_dataptr();
   params.payload_len = packetbuf_datalen();
   len = frame802154_hdrlen(&params);
-  if(packetbuf_hdralloc(len)) {
+  if(!do_create) {
+    /* Only calculate header length */
+    return len;
+
+  } else if(packetbuf_hdralloc(len)) {
     frame802154_create(&params, packetbuf_hdrptr(), len);
 
     PRINTF("15.4-OUT: %2X", params.fcf.frame_type);
@@ -181,6 +189,18 @@ create(void)
     PRINTF("15.4-OUT: too large header: %u\n", len);
     return FRAMER_FAILED;
   }
+}
+/*---------------------------------------------------------------------------*/
+static int
+hdr_length(void)
+{
+  return create_frame(FRAME802154_DATAFRAME, 0);
+}
+/*---------------------------------------------------------------------------*/
+static int
+create(void)
+{
+  return create_frame(FRAME802154_DATAFRAME, 1);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -218,5 +238,5 @@ parse(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct framer framer_802154 = {
-  create, parse
+  hdr_length, create, parse
 };

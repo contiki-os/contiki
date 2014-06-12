@@ -64,7 +64,7 @@ tcpip_output(const uip_lladdr_t *a)
     /*    printf("pppp o %u tx %u rx %u\n", UIP_IP_BUF->proto,
 	   packetbuf_attr(PACKETBUF_ATTR_TRANSMIT_TIME),
 	   packetbuf_attr(PACKETBUF_ATTR_LISTEN_TIME));*/
-    leds_invert(LEDS_GREEN);
+    leds_toggle(LEDS_GREEN);
   }
   return 0;
 }
@@ -94,7 +94,7 @@ tcpip_input(void)
 	     packetbuf_attr(PACKETBUF_ATTR_TRANSMIT_TIME),
 	     packetbuf_attr(PACKETBUF_ATTR_LISTEN_TIME));*/
       slip_write(uip_buf, uip_len);
-      leds_invert(LEDS_RED);
+      leds_toggle(LEDS_RED);
       uip_len = 0;
     }
   }
@@ -112,7 +112,7 @@ slip_tcpip_input(void)
 static void
 slip_activity(void)
 {
-  leds_invert(LEDS_BLUE);
+  leds_toggle(LEDS_BLUE);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(uip6_bridge, ev, data)
