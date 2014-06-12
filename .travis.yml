@@ -18,7 +18,7 @@ before_script:
 
   ## Install RL78 GCC chain (following the instructions in platform/eval-adf7xxxmb4z/README.md)
   - "sudo apt-get install libncurses5:i386 zlib1g:i386 || true"
-  - "wget https://dl.dropboxusercontent.com/u/60522916/gnurl78-v13.02-elf_1-2_i386.deb && sudo dpkg -i gnurl78*.deb || true"
+  - "wget http://adamdunkels.github.io/contiki-fork/gnurl78-v13.02-elf_1-2_i386.deb && sudo dpkg -i gnurl78*.deb || true"
 
   ## Install SDCC from a purpose-built bundle
   - "[ ${BUILD_ARCH:-0} = 8051 ] && curl -s \
