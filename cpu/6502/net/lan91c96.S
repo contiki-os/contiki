@@ -49,10 +49,10 @@ bufaddr:.res	2		; Address
 bufsize:.res	2		; Size
 
 	; Jump table.
-	.addr	init
-	.addr	poll
-	.addr	send
-	.addr	exit
+	jmp init
+	jmp poll
+	jmp send
+	jmp exit
 
 ;---------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup29-fixup28, fixup30-fixup29, fixup31-fixup30
 	.byte	fixup32-fixup31, fixup33-fixup32, fixup34-fixup33
 	.byte	fixup35-fixup34, fixup36-fixup35, fixup37-fixup36
-	.byte	fixup38-fixup37
+	.byte	fixup38-fixup37, fixup39-fixup38, fixup40-fixup39
 
 fixups	= * - fixup
 
@@ -195,51 +195,58 @@ fixup06:stx ethrcr+1
 	lda #$01		; Bank 1
 fixup07:sta ethbsr
 
-fixup08:lda ethcr+1
+	; Check ISA mode base address register for reset values
+	lda #$18^67		; I/O base $300 + ROM $CC000
+fixup08:eor ethbar
+fixup09:eor ethbar+1
+	beq :+
+	sec
+	rts
+
+:
+fixup10:lda ethcr+1
 	ora #%00010000		; No wait (IOCHRDY)
-fixup09:sta ethcr+1
+fixup11:sta ethcr+1
 
 	lda #%00001001		; Auto release
-fixup10:sta ethctr+1
+fixup12:sta ethctr+1
 
 	; Set MAC address
 	ldy #$00
 :	lda mac,y
-fixup11:sta ethiar,y
+fixup13:sta ethiar,y
 	iny
 	cpy #$06
 	bcc :-
 
 	; Set interrupt mask
 	lda #$02		; Bank 2
-fixup12:sta ethbsr
+fixup14:sta ethbsr
 
 	lda #%00000000		; No interrupts
-fixup13:sta ethmsk
+fixup15:sta ethmsk
+	tax
+	clc
 	rts
 
 ;---------------------------------------------------------------------
 
 poll:
-fixup14:lda ethist
+fixup16:lda ethist
 	and #%00000001		; RCV INT
-	bne :+
-
-	; No packet available
-	tax
-	rts
+	beq :+
 
 	; Process the incoming packet
 	; ---------------------------
 	
-:	lda #$00
+	lda #$00
 	ldx #%11100000		; RCV, AUTO INCR., READ
-fixup15:sta ethptr
-fixup16:stx ethptr+1
+fixup17:sta ethptr
+fixup18:stx ethptr+1
 
 	; Last word contains 'last data byte' and $60 or 'fill byte' and $40
-fixup17:lda ethdata		; Status word
-fixup18:lda ethdata		; Need high byte only
+fixup19:lda ethdata		; Status word
+fixup20:lda ethdata		; Need high byte only
 
 	; Move ODDFRM bit into carry:
 	; - Even packet length -> carry clear -> subtract 6 bytes
@@ -251,10 +258,10 @@ fixup18:lda ethdata		; Need high byte only
 	lsr
 
 	; The packet contains 3 extra words
-fixup19:lda ethdata		; Total number of bytes
+fixup21:lda ethdata		; Total number of bytes
 	sbc #$05		; Actually 5 or 6 depending on carry
 	sta len
-fixup20:lda ethdata
+fixup22:lda ethdata
 	sbc #$00
 	sta len+1
 
@@ -263,22 +270,23 @@ fixup20:lda ethdata
 	cmp len
 	lda bufsize+1
 	sbc len+1
-	bcs :+
+	bcs :++
 
 	; Yes, skip packet
 	; Remove and release RX packet from the FIFO
 	lda #%10000000
-fixup21:sta ethmmucr
+fixup23:sta ethmmucr
 
 	; No packet available
 	lda #$00
-	tax
+:	tax
+	sec
 	rts
 
 	; Read bytes into buffer
 :	jsr adjustptr
 :
-fixup22:lda ethdata
+fixup24:lda ethdata
 	sta (ptr),y
 	iny
 	bne :-
@@ -288,11 +296,12 @@ fixup22:lda ethdata
 
 	; Remove and release RX packet from the FIFO
 	lda #%10000000
-fixup23:sta ethmmucr
+fixup25:sta ethmmucr
 
 	; Return packet length
 	lda len
 	ldx len+1
+	clc
 	rts
 
 ;---------------------------------------------------------------------
@@ -305,14 +314,14 @@ send:
 	; Allocate memory for TX
 	txa
 	ora #%00100000
-fixup24:sta ethmmucr
+fixup26:sta ethmmucr
 
 	; 8 retries
 	ldy #$08
 
 	; Wait for allocation ready
 :
-fixup25:lda ethist
+fixup27:lda ethist
 	and #%00001000		; ALLOC INT
 	bne :+
 
@@ -322,25 +331,26 @@ fixup25:lda ethist
 	; And try again
 	dey
 	bne :-
+	sec
 	rts
 
 	; Acknowledge interrupt, is it necessary ???
 :	lda #%00001000
-fixup26:sta ethack
+fixup28:sta ethack
 
 	; Set packet address
-fixup27:lda etharr
-fixup28:sta ethpnr
+fixup29:lda etharr
+fixup30:sta ethpnr
 
 	lda #$00
 	ldx #%01000000		; AUTO INCR.
-fixup29:sta ethptr
-fixup30:stx ethptr+1
+fixup31:sta ethptr
+fixup32:stx ethptr+1
 
 	; Status written by CSMA
 	lda #$00
-fixup31:sta ethdata
-fixup32:sta ethdata
+fixup33:sta ethdata
+fixup34:sta ethdata
 
 	; Check packet length parity:
 	; - Even packet length -> carry set   -> add 6 bytes
@@ -352,10 +362,10 @@ fixup32:sta ethdata
 	; The packet contains 3 extra words
 	lda len
 	adc #$05		; Actually 5 or 6 depending on carry
-fixup33:sta ethdata
+fixup35:sta ethdata
 	lda len+1
 	adc #$00
-fixup34:sta ethdata
+fixup36:sta ethdata
 
 	; Send the packet
 	; ---------------
@@ -363,7 +373,7 @@ fixup34:sta ethdata
 	; Write bytes from buffer
 	jsr adjustptr
 :	lda (ptr),y
-fixup35:sta ethdata
+fixup37:sta ethdata
 	iny
 	bne :-
 	inc ptr+1
@@ -381,13 +391,14 @@ fixup35:sta ethdata
 
 	; No
 :	lda #$00
-fixup36:sta ethdata		; Fill byte
+fixup38:sta ethdata		; Fill byte
 :	
-fixup37:sta ethdata		; Control byte
+fixup39:sta ethdata		; Control byte
 
 	; Add packet to FIFO
 	lda #%11000000		; ENQUEUE PACKET - transmit packet
-fixup38:sta ethmmucr
+fixup40:sta ethmmucr
+	clc
 	rts
 
 ;---------------------------------------------------------------------
