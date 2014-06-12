@@ -35,6 +35,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/select.h>
+#include <errno.h>
 
 #ifdef __CYGWIN__
 #include "net/wpcap-drv.h"
@@ -190,6 +191,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   ctimer_init();
+  rtimer_init();
 
 #if WITH_GUI
   process_start(&ctk_process, NULL);
@@ -197,12 +199,12 @@ main(int argc, char **argv)
 
   set_rime_addr();
 
-  queuebuf_init();
-
   netstack_init();
   printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
 #if WITH_UIP6
+  queuebuf_init();
+
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
 
   process_start(&tcpip_process, NULL);
@@ -259,7 +261,9 @@ main(int argc, char **argv)
 
     retval = select(maxfd + 1, &fdr, &fdw, NULL, &tv);
     if(retval < 0) {
-      perror("select");
+      if(errno != EINTR) {
+        perror("select");
+      }
     } else if(retval > 0) {
       /* timeout => retval == 0 */
       for(i = 0; i <= maxfd; i++) {

@@ -28,9 +28,10 @@
  *
  */
 
-#ifndef ASSERT_H
-#define ASSERT_H
+#ifndef ASSERT_H_
+#define ASSERT_H_
 
+#undef assert
 #ifdef NDEBUG
 #define assert(e) ((void)0)
 #else
@@ -44,4 +45,4 @@ void _xassert(const char *, int);
 #define __CTASSERT(x, y)        typedef char __assert ## y[(x) ? 1 : -1]
 #endif
 
-#endif /* ASSERT_H */
+#endif /* ASSERT_H_ */
