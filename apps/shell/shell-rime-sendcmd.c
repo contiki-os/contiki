@@ -162,7 +162,7 @@ recv_uc(struct unicast_conn *c, const linkaddr_t *from)
 
     if(crc == crc16_data(msg->sendcmd, len, 0)) {
       /* Start the server process with the incoming command. */
-      process_start(&shell_sendcmd_server_process, msg->sendcmd);
+      process_start(&shell_sendcmd_server_process, (void *)msg->sendcmd);
     }
   }
 }
