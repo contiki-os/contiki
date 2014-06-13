@@ -164,7 +164,7 @@ transmit_packet_list(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-free_packet(struct neighbor_queue *n, struct rdc_buf_list *p)
+csma_free_packet(struct neighbor_queue *n, struct rdc_buf_list *p)
 {
   if(p != NULL) {
     /* Remove packet from list and deallocate */
@@ -286,7 +286,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
         } else {
           PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
                  status, n->transmissions, n->collisions);
-          free_packet(n, q);
+          csma_free_packet(n, q);
           mac_call_sent_callback(sent, cptr, status, num_tx);
         }
       } else {
@@ -295,7 +295,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
         } else {
           PRINTF("csma: rexmit failed %d: %d\n", n->transmissions, status);
         }
-        free_packet(n, q);
+        csma_free_packet(n, q);
         mac_call_sent_callback(sent, cptr, status, num_tx);
       }
     }
