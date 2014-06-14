@@ -16,7 +16,7 @@
 void
 i2c_init(uint8_t port_sda, uint8_t pin_sda, uint8_t port_scl, uint8_t pin_scl, uint32_t bus_speed)
 {
-	uint32_t ui32Delay;
+	volatile uint32_t ui32Delay;
 	
 	/* Enable I2C clock in different modes */
 	REG(SYS_CTRL_RCGCI2C) |= 1;	//Run mode
