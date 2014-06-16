@@ -346,6 +346,16 @@ rpl_schedule_dao_immediately(rpl_instance_t *instance)
   schedule_dao(instance, 0);
 }
 /*---------------------------------------------------------------------------*/
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+void
+rpl_schedule_dao_immediately_default_instance(void)
+{
+  if(default_instance != NULL) {
+    rpl_schedule_dao_immediately(default_instance);
+  }
+}
+#endif /* UIP_MCAST6_ENGINE */
+/*---------------------------------------------------------------------------*/
 void
 rpl_cancel_dao(rpl_instance_t *instance)
 {
