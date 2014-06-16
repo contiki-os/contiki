@@ -49,12 +49,19 @@ typedef struct uip_mcast6_route {
   uip_ipaddr_t group;
   uint32_t lifetime; /* seconds */
   void *dag; /* Pointer to an rpl_dag_t struct */
+#if UIP_MCAST6_CONF_ENGINE == UIP_MCAST6_ENGINE_BMRF
+  uip_lladdr_t subscribed_child;
+#endif
 } uip_mcast6_route_t;
 /*---------------------------------------------------------------------------*/
 /** \name Multicast Routing Table Manipulation */
 /** @{ */
 uip_mcast6_route_t *uip_mcast6_route_lookup(uip_ipaddr_t *group);
+#if UIP_MCAST6_CONF_ENGINE == UIP_MCAST6_ENGINE_BMRF
+uip_mcast6_route_t *uip_mcast6_route_add(uip_ipaddr_t *group, uip_lladdr_t *subscriber);
+#else
 uip_mcast6_route_t *uip_mcast6_route_add(uip_ipaddr_t *group);
+#endif /* UIP_MCAST6_ENGINE */
 void uip_mcast6_route_rm(uip_mcast6_route_t *defrt);
 int uip_mcast6_route_count(void);
 uip_mcast6_route_t *uip_mcast6_route_list_head(void);
