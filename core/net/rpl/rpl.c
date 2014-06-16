@@ -154,7 +154,30 @@ rpl_purge_routes(void)
 
 #if RPL_CONF_MULTICAST
   mcast_route = uip_mcast6_route_list_head();
-
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+  /* First pass, decrement lifetime */
+  while(mcast_route != NULL) {
+    if(mcast_route->lifetime >= 1) {
+      mcast_route->lifetime--;
+    }
+    mcast_route = list_item_next(mcast_route);
+  }
+  /* Second pass, remove dead routes */
+  mcast_route = uip_mcast6_route_list_head();
+  while(mcast_route != NULL) {
+    if(mcast_route->lifetime < 1) {
+      uip_ipaddr_copy(&prefix, &mcast_route->group);
+      dag = mcast_route->dag;
+      uip_mcast6_route_rm(mcast_route);
+      if(!uip_mcast6_route_lookup(&prefix) && !uip_ds6_is_my_maddr(&prefix) && dag->rank != ROOT_RANK(default_instance)) {
+        dao_output_target(dag->preferred_parent, &prefix, RPL_ZERO_LIFETIME);
+        /* Don't schedule more than 1 No-Path DAO, let next iteration handle that */
+        return;
+      }
+    }
+    mcast_route = list_item_next(mcast_route);
+  }
+#else
   while(mcast_route != NULL) {
     if(mcast_route->lifetime <= 1) {
       uip_mcast6_route_rm(mcast_route);
@@ -164,6 +187,7 @@ rpl_purge_routes(void)
       mcast_route = list_item_next(mcast_route);
     }
   }
+#endif /* UIP_MCAST6_ENGINE */
 #endif
 }
 /*---------------------------------------------------------------------------*/

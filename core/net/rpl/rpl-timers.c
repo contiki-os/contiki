@@ -253,6 +253,14 @@ handle_dao_timer(void *ptr)
           dao_output_target(instance->current_dag->preferred_parent,
               &uip_ds6_if.maddr_list[i].ipaddr, RPL_MCAST_LIFETIME);
         }
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+        else if(!uip_ds6_if.maddr_list[i].isused
+                && uip_is_addr_mcast_global(&uip_ds6_if.maddr_list[i].ipaddr)
+                && !uip_mcast6_route_lookup(&uip_ds6_if.maddr_list[i].ipaddr)) {
+          dao_output_target(instance->current_dag->preferred_parent,
+                            &uip_ds6_if.maddr_list[i].ipaddr, RPL_ZERO_LIFETIME);
+        }
+#endif
       }
 
       /* Iterate over multicast routes and send DAOs */
