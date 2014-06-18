@@ -74,6 +74,7 @@ extern rtimer_clock_t lpm_stats[3];
  * \name Constants to be used as arguments to lpm_set_max_pm()
  * @{
  */
+#define LPM_NONE         -1
 #define LPM_PM0           0
 #define LPM_PM1           1
 #define LPM_PM2           2
@@ -163,9 +164,9 @@ void lpm_exit(void);
 /**
  * \brief Prevent the SoC from dropping to a PM higher than \e max_pm
  * \param pm The highest PM we are allowed to enter, specified as a
- *        number in [0, 2]
+ *        number in [-1, 2], where -1 disables LPM.
  *
- * Defines for the \e pm argument are LPM_PMx.
+ * Defines for the \e pm argument are LPM_PMx or LPM_NONE.
  *
  * This function can be used by software in situations where some power
  * modes are undesirable. If, for example, an application needs to avoid PM2,
@@ -173,8 +174,7 @@ void lpm_exit(void);
  * If an application wants to avoid PM1 as well, it would call
  * lpm_set_max_pm(LPM_PM0)
  *
- * PM0 can not be disabled at runtime. Use LPM_CONF_ENABLE to disable LPM
- * support altogether
+ * Use LPM_CONF_ENABLE to disable LPM support altogether.
  *
  * \note If the value of argument \e pm is greater than the value of the
  *       LPM_CONF_MAX_PM configuration directive, LPM_CONF_MAX_PM is used. Thus
@@ -184,7 +184,7 @@ void lpm_exit(void);
  *
  * \sa lpm_enter()
  */
-void lpm_set_max_pm(uint8_t pm);
+void lpm_set_max_pm(int8_t pm);
 /*---------------------------------------------------------------------------*/
 typedef bool (*lpm_periph_permit_pm1_func_t)(void);
 
