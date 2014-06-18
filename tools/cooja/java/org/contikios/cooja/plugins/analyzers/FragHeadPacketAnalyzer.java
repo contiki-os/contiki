@@ -49,18 +49,21 @@ public class FragHeadPacketAnalyzer extends PacketAnalyzer {
   public int analyzePacket(Packet packet, StringBuilder brief, StringBuilder verbose) {
     int hdr_size = 0;
     
+    verbose.append("<b>Frag Header</b> ");
+
     if ((packet.get(0) & 0xF8) == SICSLOWPAN_DISPATCH_FRAG1) {
       hdr_size = 4;
       brief.append("FRAG1");
+      verbose.append("first<br/>");
     } else if ((packet.get(0) & 0xF8) == SICSLOWPAN_DISPATCH_FRAGN) {
       hdr_size = 5;
       brief.append("FRAGN");
+      verbose.append("nth<br/>");
     }
     
     int datagram_size = ((packet.get(0) & 0x07) << 8) + packet.get(1);
     int datagram_tag = packet.getInt(2, 2);
     
-    verbose.append("<b>Frag Header</b><br>");
     verbose.append("size = ").append(datagram_size)
             .append(", tag = ").append(String.format("0x%04x", datagram_tag));
     
