@@ -7,20 +7,22 @@ import org.contikios.cooja.util.StringUtils;
 
 public class IEEE802154Analyzer extends PacketAnalyzer {
 
-  /* TODO: fix this to be correct */
+  // Addressing modes
   public static final int NO_ADDRESS = 0;
   public static final int RSV_ADDRESS = 1;
   public static final int SHORT_ADDRESS = 2;
   public static final int LONG_ADDRESS = 3;
 
+  // Frame types
   public static final int BEACONFRAME = 0x00;
   public static final int DATAFRAME = 0x01;
   public static final int ACKFRAME = 0x02;
   public static final int CMDFRAME = 0x03;
 
 //    private static final byte[] BROADCAST_ADDR = {(byte)0xff, (byte)0xff};
-  private static final String[] typeS = {"-", "D", "A"};
-  private static final String[] typeVerbose = {"BEACON", "DATA", "ACK"};
+  private static final String[] typeS = {"-", "D", "A", "C"};
+  private static final String[] typeVerbose = {"BEACON", "DATA", "ACK", "CMD"};
+  private static final String[] addrModeNames = {"None", "Reserved", "Short", "Long"};
   private PcapExporter pcapExporter;
 
 //    private int defaultAddressMode = LONG_ADDRESS;
@@ -73,15 +75,18 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
     }
 
     int pos = packet.pos;
-    int type = packet.data[pos + 0] & 7;
-//        int security = (packet.data[pos + 0] >> 3) & 1;
-//        int pending = (packet.data[pos + 0] >> 4) & 1;
-//        int ackRequired = (packet.data[pos + 0] >> 5) & 1;
-    int panCompression = (packet.data[pos + 0] >> 6) & 1;
-    int destAddrMode = (packet.data[pos + 1] >> 2) & 3;
-//        int frameVersion = (packet.data[pos + 1] >> 4) & 3;
-    int srcAddrMode = (packet.data[pos + 1] >> 6) & 3;
+    // FCF field
+    int fcfType = packet.data[pos + 0] & 0x07;
+    boolean fcfSecurity = ((packet.data[pos + 0] >> 3) & 0x01) != 0;
+    boolean fcfPending = ((packet.data[pos + 0] >> 4) & 0x01) != 0;
+    boolean fcfAckRequested = ((packet.data[pos + 0] >> 5) & 0x01) != 0;
+    boolean fcfIntraPAN = ((packet.data[pos + 0] >> 6) & 0x01) != 0;
+    int fcfDestAddrMode = (packet.data[pos + 1] >> 2) & 0x03;
+    int fcfFrameVersion = (packet.data[pos + 1] >> 4) & 0x03;
+    int fcfSrcAddrMode = (packet.data[pos + 1] >> 6) & 0x03;
+    // Sequence number
     int seqNumber = packet.data[pos + 2] & 0xff;
+    // Addressing Fields
     int destPanID = 0;
     int srcPanID = 0;
     byte[] sourceAddress = null;
@@ -89,15 +94,15 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
 
     pos += 3;
 
-    if (destAddrMode > 0) {
+    if (fcfDestAddrMode > 0) {
       destPanID = (packet.data[pos] & 0xff) + ((packet.data[pos + 1] & 0xff) << 8);
       pos += 2;
-      if (destAddrMode == SHORT_ADDRESS) {
+      if (fcfDestAddrMode == SHORT_ADDRESS) {
         destAddress = new byte[2];
         destAddress[1] = packet.data[pos];
         destAddress[0] = packet.data[pos + 1];
         pos += 2;
-      } else if (destAddrMode == LONG_ADDRESS) {
+      } else if (fcfDestAddrMode == LONG_ADDRESS) {
         destAddress = new byte[8];
         for (int i = 0; i < 8; i++) {
           destAddress[i] = packet.data[pos + 7 - i];
@@ -106,19 +111,19 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
       }
     }
 
-    if (srcAddrMode > 0) {
-      if (panCompression == 0) {
+    if (fcfSrcAddrMode > 0) {
+      if (fcfIntraPAN) {
+        srcPanID = destPanID;
+      } else {
         srcPanID = (packet.data[pos] & 0xff) + ((packet.data[pos + 1] & 0xff) << 8);
         pos += 2;
-      } else {
-        srcPanID = destPanID;
       }
-      if (srcAddrMode == SHORT_ADDRESS) {
+      if (fcfSrcAddrMode == SHORT_ADDRESS) {
         sourceAddress = new byte[2];
         sourceAddress[1] = packet.data[pos];
         sourceAddress[0] = packet.data[pos + 1];
         pos += 2;
-      } else if (srcAddrMode == LONG_ADDRESS) {
+      } else if (fcfSrcAddrMode == LONG_ADDRESS) {
         sourceAddress = new byte[8];
         for (int i = 0; i < 8; i++) {
           sourceAddress[i] = packet.data[pos + 7 - i];
@@ -129,24 +134,25 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
 
 //        int payloadLen = packet.data.length - pos;
     brief.append("15.4 ");
-    brief.append(type < typeS.length ? typeS[type] : "?").append(' ');
+    brief.append(fcfType < typeS.length ? typeS[fcfType] : "?").append(' ');
 
     verbose.append("<html><b>IEEE 802.15.4 ")
-            .append(type < typeVerbose.length ? typeVerbose[type] : "?")
-            .append(' ').append(seqNumber);
-    if (type != ACKFRAME) {
-      printAddress(brief, srcAddrMode, sourceAddress);
-      brief.append(' ');
-      printAddress(brief, destAddrMode, destAddress);
+            .append(fcfType < typeVerbose.length ? typeVerbose[fcfType] : "?")
+            .append("</b> #").append(seqNumber);
 
-      verbose.append("</b><br>From ");
+    if (fcfType != ACKFRAME) {
+      printAddress(brief, fcfSrcAddrMode, sourceAddress);
+      brief.append(' ');
+      printAddress(brief, fcfDestAddrMode, destAddress);
+
+      verbose.append("<br>From ");
       if (srcPanID != 0) {
         verbose.append("0x")
                 .append(StringUtils.toHex((byte) (srcPanID >> 8)))
                 .append(StringUtils.toHex((byte) (srcPanID & 0xff)))
                 .append('/');
       }
-      printAddress(verbose, srcAddrMode, sourceAddress);
+      printAddress(verbose, fcfSrcAddrMode, sourceAddress);
       verbose.append(" to ");
       if (destPanID != 0) {
         verbose.append("0x")
@@ -154,18 +160,28 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
                 .append(StringUtils.toHex((byte) (destPanID & 0xff)))
                 .append('/');
       }
-      printAddress(verbose, destAddrMode, destAddress);
-    } else {
+      printAddress(verbose, fcfDestAddrMode, destAddress);
+    }
+
+    verbose.append("<br/>Sec = ").append(fcfSecurity)
+            .append(", Pend = ").append(fcfPending)
+            .append(", ACK = ").append(fcfAckRequested)
+            .append(", iPAN = ").append(fcfIntraPAN)
+            .append(", DestAddr = ").append(addrModeNames[fcfDestAddrMode])
+            .append(", Vers. = ").append(fcfFrameVersion)
+            .append(", SrcAddr = ").append(addrModeNames[fcfSrcAddrMode]);
+
+    /* update packet */
+    packet.pos = pos;
+    /* remove CRC from the packet */
+    packet.consumeBytesEnd(2);
+
+    if (fcfType == ACKFRAME) {
       /* got ack - no more to do ... */
       return ANALYSIS_OK_FINAL;
     }
 
-    /* update packet */
-    packet.pos = pos;
     packet.level = NETWORK_LEVEL;
-    /* remove CRC from the packet */
-    packet.consumeBytesEnd(2);
-
     packet.llsender = sourceAddress;
     packet.llreceiver = destAddress;
     return ANALYSIS_OK_CONTINUE;
