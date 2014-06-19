@@ -32,7 +32,7 @@
  */
 
 /**
- * \file  i2c.c
+ * \file  platform/mbxxx/dev/i2c.c
  * \brief I2C bus master driver for mbxxx platform.
  * \author Maria Laura Stefanizzi <laura28582@gmail.com>
  * \date   2013-11-20

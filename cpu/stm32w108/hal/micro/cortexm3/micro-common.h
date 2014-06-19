@@ -203,8 +203,6 @@ void halSleepWithOptions(SleepModes sleepMode, uint32_t gpioWakeBitMask);
  * to 48.5 days.  Any sleep duration greater than this limit will wake up
  * briefly (e.g. 16 microseconds) to reenable another sleep cycle.
  *
- * @nostackusage
- *
  * @param duration The amount of time, expressed in quarter seconds, that the
  * micro should be placed into ::SLEEPMODE_WAKETIMER.  When the function returns,
  * this parameter provides the amount of time remaining out of the original

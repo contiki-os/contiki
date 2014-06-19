@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   button-sensor.c
+ * \file   platform/seedeye/dev/button-sensor.c
  * \brief  Button Sensor
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-04-24

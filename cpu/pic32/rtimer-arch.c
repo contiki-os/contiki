@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   rtimer-arch.c
+ * \file   cpu/pic32/rtimer-arch.c
  * \brief  PIC32MX RTIMER routines
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-04-11

@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   debug-uart.h
+ * \file   cpu/pic32/debug-uart.h
  * \brief  Debug output redirection to uart.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-03-21

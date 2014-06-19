@@ -1,5 +1,5 @@
-/**@file temperature-sensor.c
- * @brief MB851 temperature sensor APIS 
+/**@file cpu/stm32w108/hal/micro/cortexm3/temperature-sensor.c
+ * @brief MB851 temperature sensor APIS
  *
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->

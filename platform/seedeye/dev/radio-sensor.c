@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   radio-sensor.c
+ * \file   platform/seedeye/dev/radio-sensor.c
  * \brief  RADIO Sensor
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-04-24

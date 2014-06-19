@@ -54,7 +54,7 @@ uint16_t halCommonGetInt16uMillisecondTick(void);
  * @brief Returns the current system time in system ticks, as a 32-bit
  * value.
  *
- * @nostackusage
+ * nostackusage
  *
  * @return The least significant 32 bits of the current system time, in
  * system ticks.
@@ -65,7 +65,7 @@ uint32_t halCommonGetInt32uMillisecondTick(void);
  * @brief Returns the current system time in quarter second ticks, as a
  * 16-bit value.
  *
- * @nostackusage
+ * nostackusage
  *
  * @return The least significant 16 bits of the current system time, in system
  * ticks multiplied by 256.

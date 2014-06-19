@@ -40,8 +40,8 @@
  * @{
  */
 
-/** 
- * \file   mtarch.h
+/**
+ * \file   cpu/pic32/mtarch.h
  * \brief  PIC32MX initialization routines
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \author Daniele Alessandrelli <d.alessandrelli@sssup.it>

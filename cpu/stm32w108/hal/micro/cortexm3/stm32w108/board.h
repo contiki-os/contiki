@@ -1,4 +1,4 @@
-/** @file board.h
+/** @file cpu/stm32w108/hal/micro/cortexm3/stm32w108/board.h
  * @brief Header file x STM32W108 Kits boards abstraction.
  * See @ref board for documentation.
  *

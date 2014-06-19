@@ -40,8 +40,8 @@
  * @{
  */
 
-/** 
- * \file   watchdog.c
+/**
+ * \file   cpu/pic32/watchdog.c
  * \brief  PIC32MX Watchdog routines
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-03-23

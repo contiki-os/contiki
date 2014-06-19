@@ -34,8 +34,8 @@
  *
  */
 
-/** 
- * @file uart1.h
+/**
+ * @file cpu/pic32/dev/uart1.h
  * @brief UART1 routines
  * @author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  *

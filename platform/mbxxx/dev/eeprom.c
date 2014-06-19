@@ -32,7 +32,7 @@
  */
 
 /**
- * \file  eeprom.c
+ * \file  platform/mbxxx/dev/eeprom.c
  * \brief ST M24C64W EEPROM driver.
  * \author Maria Laura Stefanizzi <laura28582@gmail.com>
  * \date   2013-11-20

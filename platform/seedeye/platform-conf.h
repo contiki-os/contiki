@@ -34,7 +34,7 @@
  *
  */
 /**
- * \file  platform-conf.h
+ * \file  platform/seedeye/platform-conf.h
  * \brief Platform configuration file for the SEEDEYE port.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-06-06

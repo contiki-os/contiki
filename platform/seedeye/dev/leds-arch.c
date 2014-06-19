@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   leds-arch.c
+ * \file   platform/seedeye/dev/leds-arch.c
  * \brief  LEDs Specific Arch Conf
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-03-21

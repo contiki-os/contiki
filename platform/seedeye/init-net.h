@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   init-net.h
+ * \file   platform/seedeye/init-net.h
  * \brief  Network initialization for the SEEDEYE port.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-03-25

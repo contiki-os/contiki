@@ -2032,7 +2032,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u8[12]) == 0xFF))
 
 /**
- * \briefput in b the solicited node address corresponding to address a
+ * \brief put in b the solicited node address corresponding to address a
  * both a and b are of type uip_ipaddr_t*
  * */
 #define uip_create_solicited_node(a, b)    \
