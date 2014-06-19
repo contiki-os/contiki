@@ -55,7 +55,7 @@ public abstract class PacketAnalyzer {
     public int getInt(int index, int size) {
       int value = 0;
       for (int i = 0; i < size; i++) {
-        value = (value << 8) + get(index + i);
+        value = (value << 8) + (get(index + i) & 0xFF);
       }
       return value;
     }
