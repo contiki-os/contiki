@@ -40,8 +40,8 @@
  * @{
  */
 
-/** 
- * \file   mtarch.h
+/**
+ * \file   cpu/pic32/mtarch.h
  * \brief  Implementation of multithreading in PIC32. To be done.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-03-23

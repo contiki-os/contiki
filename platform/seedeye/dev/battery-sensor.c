@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   battery-sensor.c
+ * \file   platform/seedeye/dev/battery-sensor.c
  * \brief  Battery Sensor
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-07-04

@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   clock.c
+ * \file   cpu/pic32/clock.c
  * \brief  Clock routines.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \author Daniele Alessandrelli <d.alessandrelli@sssup.it>

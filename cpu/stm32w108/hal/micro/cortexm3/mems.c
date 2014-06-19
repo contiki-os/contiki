@@ -1,4 +1,4 @@
-/** @file mems.c
+/** @file cpu/stm32w108/hal/micro/cortexm3/mems.c
  * @brief MB851 MEMS drivers
  *
  *

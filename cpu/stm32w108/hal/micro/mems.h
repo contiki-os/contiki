@@ -1,5 +1,5 @@
-/** @file mems.h
- * @brief Header for MB851 mems APIS 
+/** @file cpu/stm32w108/hal/micro/mems.h
+ * @brief Header for MB851 mems APIS
  *
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->

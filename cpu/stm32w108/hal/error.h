@@ -1,5 +1,5 @@
 /**
- * @file error.h
+ * @file cpu/stm32w108/hal/error.h
  * @brief Return codes for API functions and module definitions.
  *
  * See @ref status_codes for documentation.

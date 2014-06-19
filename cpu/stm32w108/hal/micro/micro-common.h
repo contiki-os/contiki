@@ -1,10 +1,10 @@
-/** @file micro-common.h
+/** @file cpu/stm32w108/hal/micro/micro-common.h
  * @brief Minimal Hal functions common across all microcontroller-specific files.
  * See @ref micro for documentation.
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
- 
+
 /** @addtogroup micro
  * Many of the supplied example applications use these microcontroller functions.
  * See hal/micro/micro-common.h for source code.

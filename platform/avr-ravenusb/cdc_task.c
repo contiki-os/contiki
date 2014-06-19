@@ -1,5 +1,5 @@
 /* This file has been prepared for Doxygen automatic documentation generation.*/
-/*! \file cdc_task.c **********************************************************
+/*! \file platform/avr-ravenusb/cdc_task.c **********************************************************
  *
  * \brief
  *      Manages the CDC-ACM Virtual Serial Port Dataclass for the USB Device

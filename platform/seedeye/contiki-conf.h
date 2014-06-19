@@ -35,7 +35,7 @@
  */
 
 /**
- * \file  contiki-conf.h
+ * \file  platform/seedeye/contiki-conf.h
  * \brief Contiki configuration file for the SEEDEYE port.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-03-21
