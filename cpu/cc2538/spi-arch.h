@@ -63,11 +63,11 @@
 #error "You must include spi-arch.h before spi.h for the CC2538."
 #endif
 #define SPI_FLUSH() do { \
-  SPI_WAITFOREORx(); \
   while (REG(SSI0_BASE + SSI_SR) & SSI_SR_RNE) { \
     SPI_RXBUF; \
   } \
 } while(0)
+
 
 #define SPI_CS_CLR(port, pin) do { \
   GPIO_CLR_PIN(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin)); \
@@ -84,7 +84,7 @@
 /**
  * \brief Configure a GPIO to be the chip select pin
  */
-void spi_cs_init(uint8_t port, uint8_t pin);
+void spi_cs_init(uint8_t port, uint8_t pin, uint8_t soft_control);
 
 /** \brief Enables the SPI peripheral
  */
@@ -115,6 +115,13 @@ void spi_disable(void);
  */
 void spi_set_mode(uint32_t frame_format, uint32_t clock_polarity,
                   uint32_t clock_phase, uint32_t data_size);
+
+/** \interrupt called functions
+ * \note input is called when buffer is receiving and reset when transmission is terminated.
+ */
+#if SSI_MODE_SLAVE
+void ssi_set_input(int(* input)(void));
+#endif
 
 /** @} */
 
