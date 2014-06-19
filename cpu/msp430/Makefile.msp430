@@ -145,6 +145,18 @@ ifndef CC_MCU
  CC_MCU := $(MCU)
 endif
 
+### Checks for compiler version to enable 20-bit support
+ifndef IAR
+ifneq (,$(findstring 4.7.,$(shell msp430-gcc -dumpversion)))
+ifdef CPU_HAS_MSP430X
+  TARGET_MEMORY_MODEL ?= medium
+  CFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL)
+  CFLAGS += -ffunction-sections -fdata-sections -mcode-region=far
+  LDFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL) -Wl,-gc-sections
+endif
+endif
+endif
+
 ifndef CFLAGSNO
 CFLAGSNO = -Wall -mmcu=$(CC_MCU) $(CFLAGSWERROR)
 endif
