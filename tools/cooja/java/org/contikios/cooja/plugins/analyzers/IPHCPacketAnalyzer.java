@@ -4,8 +4,10 @@ import org.contikios.cooja.util.StringUtils;
 
 public class IPHCPacketAnalyzer extends PacketAnalyzer {
 
-  public final static int SICSLOWPAN_UDP_PORT_MIN                     = 0xF0B0;
-  public final static int SICSLOWPAN_UDP_PORT_MAX                     = 0xF0BF;   /* F0B0 + 15 */
+  public final static int SICSLOWPAN_UDP_4_BIT_PORT_MIN = 0xF0B0;
+  public final static int SICSLOWPAN_UDP_4_BIT_PORT_MAX = 0xF0BF;   /* F0B0 + 15 */
+  public final static int SICSLOWPAN_UDP_8_BIT_PORT_MIN = 0xF000;
+  public final static int SICSLOWPAN_UDP_8_BIT_PORT_MAX = 0xF0FF;   /* F000 + 255 */
 
   public final static int SICSLOWPAN_DISPATCH_IPV6                    = 0x41; /* 01000001 = 65 */
   public final static int SICSLOWPAN_DISPATCH_HC1                     = 0x42; /* 01000010 = 66 */
@@ -44,8 +46,10 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
 
   private static final int SICSLOWPAN_NDC_UDP_MASK                     = 0xf8;
   private static final int SICSLOWPAN_NHC_UDP_ID =                       0xf0;
-  private static final int SICSLOWPAN_NHC_UDP_C  =                       0xf3;
-  private static final int SICSLOWPAN_NHC_UDP_I =                        0xf0;
+  private static final int SICSLOWPAN_NHC_UDP_00 = 0xf0;
+  private static final int SICSLOWPAN_NHC_UDP_01 = 0xf1;
+  private static final int SICSLOWPAN_NHC_UDP_10 = 0xf2;
+  private static final int SICSLOWPAN_NHC_UDP_11 = 0xf3;
 
   public final static int PROTO_UDP = 17;
   public final static int PROTO_TCP = 6;
@@ -373,29 +377,31 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
         /* The next header is compressed, NHC is following */
         if ((packet.get(hc06_ptr) & SICSLOWPAN_NDC_UDP_MASK) == SICSLOWPAN_NHC_UDP_ID) {
           proto = PROTO_UDP;
-          switch (packet.get(hc06_ptr)) {
-            case (byte) SICSLOWPAN_NHC_UDP_C:
-              /* 1 byte for NHC, 1 byte for ports, 2 bytes chksum */
-              srcPort = SICSLOWPAN_UDP_PORT_MIN + (packet.get(hc06_ptr + 1) >> 4);
-              destPort = SICSLOWPAN_UDP_PORT_MIN + (packet.get(hc06_ptr + 1) & 0x0F);
-//                    memcpy(&SICSLOWPAN_UDP_BUF->udpchksum, hc06_ptr + 2, 2);
-//                    PRINTF("IPHC: Uncompressed UDP ports (4): %x, %x\n",
-//                            SICSLOWPAN_UDP_BUF->srcport, SICSLOWPAN_UDP_BUF->destport);
-              hc06_ptr += 4;
-              break;
-            case (byte) SICSLOWPAN_NHC_UDP_I:
+          switch (packet.get(hc06_ptr) & (byte) SICSLOWPAN_NHC_UDP_11) {
+            case (byte) SICSLOWPAN_NHC_UDP_00:
               /* 1 byte for NHC, 4 byte for ports, 2 bytes chksum */
-              srcPort = packet.getInt(hc06_ptr + 1, 2);
-              destPort = packet.getInt(hc06_ptr + 3, 2);
-//                    memcpy(&SICSLOWPAN_UDP_BUF->udpchksum, hc06_ptr + 5, 2);
-//                    PRINTF("IPHC: Uncompressed UDP ports (7): %x, %x\n",
-//                            SICSLOWPAN_UDP_BUF->srcport, SICSLOWPAN_UDP_BUF->destport);
-
+              srcPort = packet.getInt(hc06_ptr + 1, 2) & 0xFFFF;
+              destPort = packet.getInt(hc06_ptr + 3, 2) & 0xFFFF;
               hc06_ptr += 7;
               break;
-            default:
-//                    PRINTF("sicslowpan uncompress_hdr: error unsupported UDP compression\n");
-              return ANALYSIS_FAILED;
+            case (byte) SICSLOWPAN_NHC_UDP_01:
+              /* 1 byte for NHC, 3 byte for ports, 2 bytes chksum */
+              srcPort = packet.getInt(hc06_ptr + 1, 2);
+              destPort = SICSLOWPAN_UDP_8_BIT_PORT_MIN + (packet.get(hc06_ptr + 3) & 0xFF);
+              hc06_ptr += 6;
+              break;
+            case (byte) SICSLOWPAN_NHC_UDP_10:
+              /* 1 byte for NHC, 3 byte for ports, 2 bytes chksum */
+              srcPort = SICSLOWPAN_UDP_8_BIT_PORT_MIN + (packet.get(hc06_ptr + 1) & 0xFF);
+              destPort = packet.getInt(hc06_ptr + 2, 2);
+              hc06_ptr += 6;
+              break;
+            case (byte) SICSLOWPAN_NHC_UDP_11:
+              /* 1 byte for NHC, 1 byte for ports, 2 bytes chksum */
+              srcPort = SICSLOWPAN_UDP_4_BIT_PORT_MIN + (packet.get(hc06_ptr + 1) >> 4);
+              destPort = SICSLOWPAN_UDP_4_BIT_PORT_MIN + (packet.get(hc06_ptr + 1) & 0x0F);
+              hc06_ptr += 4;
+              break;
           }
         }
       }
