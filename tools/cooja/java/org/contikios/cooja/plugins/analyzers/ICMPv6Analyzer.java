@@ -32,11 +32,18 @@ public class ICMPv6Analyzer extends PacketAnalyzer {
   public static final int MTU_INFO = 5;
 
   public static final String[] TYPE_NAME = new String[]{
-    "ECHO_REQUEST", "ECHO_REPLY",
-    "GROUP_QUERY", "GROUP_REPORT", "GROUP_REDUCTION",
-    "ROUTER_SOLICITATION", "ROUTER_ADVERTISEMENT",
-    "NEIGHBOR_SOLICITATION", "NEIGHBOR_ADVERTISEMENT", "REDIRECT",
-    "ROUTER RENUMBER", "NODE INFORMATION QUERY", "NODE INFORMATION RESPONSE"};
+    "Echo Request", "Echo Reply",
+    "Group Query", "Group Report", "Group Reduction",
+    "Router Solicitation", "Router Advertisement",
+    "Neighbor Solicitation", "Neighbor Advertisement", "Redirect",
+    "Router Renumber", "Node Information Query", "Node Information Response"};
+
+  public static final String[] BRIEF_TYPE_NAME = new String[]{
+    "ECHO REQ", "ECHO RPLY",
+    "GRP QUERY", "GRP REPORT", "GRP REDUCTION",
+    "RS", "RA",
+    "NS", "NA", "REDIRECT",
+    "ROUTER RENUMBER", "NODE INFO QUERY", "NODE INFO RESP"};
 
   @Override
   public int analyzePacket(Packet packet, StringBuilder brief,
@@ -47,13 +54,13 @@ public class ICMPv6Analyzer extends PacketAnalyzer {
 
     brief.append("ICMPv6 ");
     if (type >= 128 && (type - 128) < TYPE_NAME.length) {
-      brief.append(TYPE_NAME[type - 128]).append(' ').append(code);
-      verbose.append("Type: ").append(TYPE_NAME[type - 128]);
-      verbose.append(" Code:").append(code);
+      brief.append(BRIEF_TYPE_NAME[type - 128]).append(' ').append(code);
+      verbose.append("<br/>Type: ").append(TYPE_NAME[type - 128]);
+      verbose.append(", Code:").append(code);
     } else if (type == 155) {
       /* RPL */
       brief.append("RPL ");
-      verbose.append("Type: RPL Code: ");
+      verbose.append("<br/>Type: RPL Code: ");
       switch (code) {
         case RPL_CODE_DIS:
           brief.append("DIS");
