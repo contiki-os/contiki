@@ -99,7 +99,7 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
     int cid = (packet.get(1) >> 7) & 0x01;
     int sac = (packet.get(1) >> 6) & 0x01;
     int sam = (packet.get(1) >> 4) & 0x03;
-    int m = (packet.get(1) >> 3) & 0x01;
+    boolean m = ((packet.get(1) >> 3) & 0x01) != 0;
     int dac = (packet.get(1) >> 2) & 0x01;
     int dam = packet.get(1) & 0x03;
     int sci = 0;
@@ -112,13 +112,13 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
     /* need to decompress while analyzing - add that later... */
     verbose.append("<b>IPHC HC-06</b><br>");
     verbose.append("TF = ").append(tf)
-            .append(", NH = ").append(nhc)
-            .append(", HLIM = ").append(hlim)
+            .append(", NH = ").append(nhc ? "compressed" : "inline")
+            .append(", HLIM = ").append(hlim == 0 ? "inline" : hlim)
             .append(", CID = ").append(cid)
-            .append(", SAC = ").append(sac)
+            .append(", SAC = ").append(sac == 1 ? "stateless" : "stateful")
             .append(", SAM = ").append(sam)
             .append(", MCast = ").append(m)
-            .append(", DAC = ").append(dac)
+            .append(", DAC = ").append(dac == 1 ? "stateless" : "stateful")
             .append(", DAM = ").append(dam);
     if (cid == 1) {
       verbose.append("<br>Contexts: sci=").append(packet.get(2) >> 4).
