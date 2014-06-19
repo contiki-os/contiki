@@ -11,7 +11,7 @@
 #include "hal/micro/mems-regs.h"
 
 /** @brief Mems data type: three acceleration values each related to a specific direction
-   Watch out: only lower data values (e.g. those terminated by the _l) are 
+   Watch out: only lower data values (e.g. those terminated by the _l) are
    currently used by the device */
 
 typedef struct {
