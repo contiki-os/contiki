@@ -454,17 +454,36 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
       protoStr = "UDP";
     } else if (proto == PROTO_TCP) {
       protoStr = "TCP";
+    } else {
+      protoStr = String.valueOf(proto);
     }
 
-    verbose.append("<br><b>IPv6 ").append(protoStr)
-            .append("</b> TC = ").append(trafficClass)
-            .append(" FL: ").append(flowLabel)
+    // IPv6 Information
+
+    brief.append("|IPv6");
+    verbose.append("<br/><b>IPv6</b>")
+            .append(" TC = ").append(trafficClass)
+            .append(", FL = ").append(flowLabel)
             .append("<br>");
     verbose.append("From ");
     printAddress(verbose, srcAddress);
     verbose.append("  to ");
     printAddress(verbose, destAddress);
-    if (error != null) verbose.append(" " + error);
+    if (error != null) {
+      verbose.append(" ").append(error);
+    }
+
+    // Application Layer Information
+
+    if (proto != PROTO_ICMP) {
+      brief.append('|').append(protoStr);
+      verbose.append("<br/><b>").append(protoStr).append("</b>");
+    }
+    if (proto == PROTO_UDP) {
+      brief.append(' ').append(srcPort).append(' ').append(destPort);
+      verbose.append("<br/>Src Port: ").append(srcPort);
+      verbose.append(", Dst Port: ").append(destPort);
+    }
 
     packet.lastDispatch = (byte) (proto & 0xff);
     if (proto == PROTO_UDP || proto == PROTO_ICMP

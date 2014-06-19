@@ -53,6 +53,7 @@ public class ICMPv6Analyzer extends PacketAnalyzer {
 //        int checksum = ((packet.get(2) & 0xff) << 8) | packet.get(3) & 0xff;
 
     brief.append("ICMPv6 ");
+        verbose.append("<b>ICMPv6</b>");
     if (type >= 128 && (type - 128) < TYPE_NAME.length) {
       brief.append(BRIEF_TYPE_NAME[type - 128]).append(' ').append(code);
       verbose.append("<br/>Type: ").append(TYPE_NAME[type - 128]);
