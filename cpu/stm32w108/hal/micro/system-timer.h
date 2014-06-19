@@ -1,6 +1,6 @@
 /** @file hal/micro/system-timer.h
  *  @brief Header file for system_timer APIs
- * 
+ *
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
 
@@ -35,7 +35,7 @@
 /**
  * @brief Initializes the system tick.
  *
- * @return Time to update the async registers after RTC is started (units of 100 
+ * @return Time to update the async registers after RTC is started (units of 100
  * microseconds).
  */
 uint16_t halInternalStartSystemTimer(void);
@@ -56,7 +56,7 @@ uint16_t halCommonGetInt16uMillisecondTick(void);
  *
  * @nostackusage
  *
- * @return The least significant 32 bits of the current system time, in 
+ * @return The least significant 32 bits of the current system time, in
  * system ticks.
  */
 uint32_t halCommonGetInt32uMillisecondTick(void);
@@ -74,7 +74,7 @@ uint16_t halCommonGetInt16uQuarterSecondTick(void);
 
 #endif //SYSTEM_TIMER_H_
 
-/**@} //END addtogroup 
+/**@} //END addtogroup
  */
 
 

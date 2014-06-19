@@ -3,10 +3,10 @@
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
- 
+
 #ifndef MFG_TOKEN_H_
 #define MFG_TOKEN_H_
- 
+
 
 // The manufacturing tokens live in the Info Blocks, while all other tokens
 // live in the Simulated EEPROM.  This requires the token names to be defined
