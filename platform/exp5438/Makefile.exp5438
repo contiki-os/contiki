@@ -48,15 +48,6 @@ ifeq ($(UIP_CONF_IPV6),1)
 CFLAGS += -DWITH_UIP6=1
 endif
 
-ifndef IAR
-ifneq (,$(findstring 4.7.,$(shell msp430-gcc -dumpversion)))
-TARGET_MEMORY_MODEL ?= medium
-CFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL)
-CFLAGS += -ffunction-sections -fdata-sections -mcode-region=far
-LDFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL) -Wl,-gc-sections
-endif
-endif
-
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
 
 ifdef IAR
@@ -64,6 +55,10 @@ MCU=msp430f5438a
 else
 MCU=msp430f5438
 endif
+
+# Platform has a MSP430X MCU with 20-bit support
+CPU_HAS_MSP430X=1
+
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
