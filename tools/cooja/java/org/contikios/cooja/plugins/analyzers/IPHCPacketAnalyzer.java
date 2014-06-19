@@ -76,6 +76,20 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
     int tf = (packet.get(0) >> 3) & 0x03;
     boolean nhc = (packet.get(0) & SICSLOWPAN_IPHC_NH_C) > 0;
     int hlim = (packet.get(0) & 0x03);
+    switch (hlim) {
+      case 0x00:
+        hlim = 0;
+        break;
+      case 0x01:
+        hlim = 1;
+        break;
+      case 0x02:
+        hlim = 64;
+        break;
+      case 0x03:
+        hlim = 255;
+        break;
+    }
     int cid = (packet.get(1) >> 7) & 0x01;
     int sac = (packet.get(1) >> 6) & 0x01;
     int sam = (packet.get(1) >> 4) & 0x03;
@@ -164,7 +178,7 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
           ttl = 1;
           break;
         case SICSLOWPAN_IPHC_TTL_64:
-          ttl = 2;
+          ttl = 64;
           break;
         case SICSLOWPAN_IPHC_TTL_255:
           ttl = 255;
