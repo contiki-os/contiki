@@ -67,7 +67,7 @@ public class ICMPv6Analyzer extends PacketAnalyzer {
           int version = packet.get(5) & 0xff;
           int rank = ((packet.get(6) & 0xff) << 8) + (packet.get(7) & 0xff);
           int mop = (packet.get(8) >> 3) & 0x07;
-          int dtsn = packet.get(9);
+          int dtsn = packet.get(9) & 0xFF;
 
           verbose.append(" InstanceID: ").append(instanceID)
                   .append(", Version: ").append(version)
