@@ -101,6 +101,11 @@ You will need to install XDS drivers if you want to do anything useful with the 
     * As root or with `sudo`, run the command below (if necessary, replace the `vendor` and `product` arguments with the values you got from `lsusb`):
 
             modprobe ftdi_sio vendor=0x403 product=0xa6d1
+            
+    * From Kernel 3.12 run the command below:
+            
+            modprobe ftdi_sio
+            echo 0403 a6d1 > /sys/bus/usb-serial/drivers/ftdi_sio/new_id
 
     * You may have have to remove package `brltty`, if it's installed.
     * The board should have enumerated as `/dev/ttyUSB{0,1}`. `ttyUSB1` will be the UART backchannel.
