@@ -1,0 +1,196 @@
+/**
+ * Copyright (c) 2014, Analog Devices, Inc.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted (subject to the limitations in the
+ * disclaimer below) provided that the following conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in the
+ *   documentation and/or other materials provided with the
+ *   distribution.
+ *
+ * - Neither the name of Analog Devices, Inc. nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+ * GRANTED BY THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+ * HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+/**
+ * \author Jim Paris <jim.paris@rigado.com>
+ */
+
+#include <stdbool.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+
+#include "contiki.h"
+#include "net/netstack.h"
+
+#include "dev/serial-line.h"
+
+#include "net/ip/uip.h"
+
+#include "dev/button-sensor.h"
+
+#if WITH_UIP6
+#include "net/ipv6/uip-ds6.h"
+#endif /* WITH_UIP6 */
+
+#include "net/rime/rime.h"
+
+#include "uart.h"
+#include "watchdog.h"
+
+SENSORS(&button_sensor);
+
+#ifndef SERIAL_ID
+#define SERIAL_ID { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 }
+#endif
+
+static uint8_t serial_id[] = SERIAL_ID;
+static uint16_t node_id = 0x1122;
+
+/*---------------------------------------------------------------------------*/
+static void
+set_rime_addr(void)
+{
+  linkaddr_t addr;
+  int i;
+
+  memset(&addr, 0, sizeof(linkaddr_t));
+#if UIP_CONF_IPV6
+  memcpy(addr.u8, serial_id, sizeof(addr.u8));
+#else
+  if(node_id == 0) {
+    for(i = 0; i < sizeof(linkaddr_t); ++i) {
+      addr.u8[i] = serial_id[7 - i];
+    }
+  } else {
+    addr.u8[0] = node_id & 0xff;
+    addr.u8[1] = node_id >> 8;
+  }
+#endif
+  linkaddr_set_node_addr(&addr);
+  printf("Rime started with address ");
+  for(i = 0; i < sizeof(addr.u8) - 1; i++) {
+    printf("%d.", addr.u8[i]);
+  }
+  printf("%d\n", addr.u8[i]);
+}
+/*---------------------------------------------------------------------------*/
+int contiki_argc = 0;
+char **contiki_argv;
+
+int
+main(int argc, char **argv)
+{
+  watchdog_init();
+  uart_init(115200);
+  clock_init();
+
+#if UIP_CONF_IPV6
+#if UIP_CONF_IPV6_RPL
+  printf(CONTIKI_VERSION_STRING " started with IPV6, RPL\n");
+#else
+  printf(CONTIKI_VERSION_STRING " started with IPV6\n");
+#endif
+#else
+  printf(CONTIKI_VERSION_STRING " started\n");
+#endif
+
+  contiki_argc = argc;
+  contiki_argv = argv;
+
+  process_init();
+  process_start(&etimer_process, NULL);
+  ctimer_init();
+
+  set_rime_addr();
+
+  queuebuf_init();
+
+  netstack_init();
+  printf("MAC %s RDC %s NETWORK %s\n",
+         NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
+
+#if WITH_UIP6
+  memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
+
+  process_start(&tcpip_process, NULL);
+  printf("Tentative link-local IPv6 address ");
+  {
+    uip_ds6_addr_t *lladdr;
+    int i;
+    lladdr = uip_ds6_get_link_local(-1);
+    for(i = 0; i < 8; i++) {
+      printf("%02x%02x%c", lladdr->ipaddr.u8[i * 2],
+             lladdr->ipaddr.u8[i * 2 + 1],
+             i == 7 ? '\n' : ':');
+    }
+    /* make it hardcoded... */
+    lladdr->state = ADDR_AUTOCONF;
+  }
+#else
+  process_start(&tcpip_process, NULL);
+#endif
+
+  serial_line_init();
+
+  autostart_start(autostart_processes);
+
+  while(1) {
+    watchdog_periodic();
+
+    if(NETSTACK_RADIO.pending_packet()) {
+      int len;
+      packetbuf_clear();
+      len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
+      if(len > 0) {
+        packetbuf_set_datalen(len);
+        NETSTACK_RDC.input();
+      }
+    }
+
+    process_run();
+  }
+
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+void
+log_message(char *m1, char *m2)
+{
+  printf("%s%s\n", m1, m2);
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_log(char *m)
+{
+  printf("%s\n", m);
+}
+/*---------------------------------------------------------------------------*/
+void
+_xassert(const char *file, int line)
+{
+  printf("%s:%u: failed assertion\n", file, line);
+  for(;;) {
+    continue;
+  }
+}
