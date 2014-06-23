@@ -64,8 +64,8 @@ SENSORS(&button_sensor);
 #define SERIAL_ID { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 }
 #endif
 
-static uint8_t serial_id[] = SERIAL_ID;
-static uint16_t node_id = 0x1122;
+uint8_t serial_id[] = SERIAL_ID;
+uint16_t node_id = 0x0102;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -93,6 +93,15 @@ set_rime_addr(void)
     printf("%d.", addr.u8[i]);
   }
   printf("%d\n", addr.u8[i]);
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_rf_params(void)
+{
+  int chan;
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, RF_CHANNEL);
+  NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &chan);
+  printf("RF channel set to %d Hz\n", chan);
 }
 /*---------------------------------------------------------------------------*/
 int contiki_argc = 0;
@@ -126,6 +135,7 @@ main(int argc, char **argv)
 
   queuebuf_init();
 
+  set_rf_params();
   netstack_init();
   printf("MAC %s RDC %s NETWORK %s\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
