@@ -89,6 +89,10 @@ ifdef __STACK_SIZE
   CFLAGS += -D__STACK_SIZE=$(__STACK_SIZE)
 endif
 
+ifdef RF_CHANNEL
+  CFLAGS += -DRF_CHANNEL=$(RF_CHANNEL)
+endif
+
 # HSI internal oscillator by default
 CFLAGS += -DF_CPU=16000000
 
@@ -102,9 +106,11 @@ CONTIKI_CPU_DIRS += dev
 CONTIKI_SOURCEFILES += uart.c
 CONTIKI_SOURCEFILES += clock.c
 CONTIKI_SOURCEFILES += watchdog.c
+CONTIKI_SOURCEFILES += radio.c
 
 CONTIKI_CPU_DIRS += Common
 CONTIKI_SOURCEFILES += system_ADuCRF101.c
+CONTIKI_SOURCEFILES += radioeng.c
 
 ASFLAGS += -c $(CFLAGS)
 

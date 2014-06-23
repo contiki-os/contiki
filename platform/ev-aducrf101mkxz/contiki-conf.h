@@ -60,7 +60,7 @@
 #define NETSTACK_CONF_NETWORK           sicslowpan_driver
 #define NETSTACK_CONF_MAC               nullmac_driver
 #define NETSTACK_CONF_RDC               nullrdc_driver
-#define NETSTACK_CONF_RADIO             NEW_ADI_driver
+#define NETSTACK_CONF_RADIO             aducrf101_radio_driver
 #define NETSTACK_CONF_FRAMER            framer_802154
 
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
@@ -74,7 +74,7 @@
 #define NETSTACK_CONF_NETWORK           rime_driver
 #define NETSTACK_CONF_MAC               csma_driver
 #define NETSTACK_CONF_RDC               nullrdc_driver
-#define NETSTACK_CONF_RADIO             NEW_AD_driver
+#define NETSTACK_CONF_RADIO             aducrf101_radio_driver
 #define NETSTACK_CONF_FRAMER            framer_802154
 
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
@@ -98,7 +98,7 @@
 #define PACKETBUF_CONF_ATTRS_INLINE     1
 
 #ifndef RF_CHANNEL
-#define RF_CHANNEL                      26
+#define RF_CHANNEL                      868000000
 #endif /* RF_CHANNEL */
 
 #define CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT    0
