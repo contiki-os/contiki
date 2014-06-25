@@ -168,16 +168,6 @@ main(int argc, char **argv)
   while(1) {
     watchdog_periodic();
 
-    if(NETSTACK_RADIO.pending_packet()) {
-      int len;
-      packetbuf_clear();
-      len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
-      if(len > 0) {
-        packetbuf_set_datalen(len);
-        NETSTACK_RDC.input();
-      }
-    }
-
     process_run();
   }
 

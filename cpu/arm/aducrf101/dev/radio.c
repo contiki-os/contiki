@@ -39,6 +39,10 @@
 #include <stdint.h>
 
 #include <aducrf101-contiki.h>
+
+#include "contiki.h"
+#include "contiki-net.h"
+#include "net/netstack.h"
 #include "radio.h"
 
 #define MAX_PACKET_LEN 240
@@ -107,6 +111,8 @@ _set_power(int power)
   return RADIO_RESULT_OK;
 }
 /*---------------------------------------------------------------------------*/
+PROCESS(aducrf101_rf_process, "ADuCRF101 RF driver");
+/*---------------------------------------------------------------------------*/
 /** Turn the radio on. */
 static int
 on(void)
@@ -154,6 +160,7 @@ init(void)
 {
   off();
   on();
+  process_start(&aducrf101_rf_process, NULL);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -196,6 +203,7 @@ send(const void *payload, unsigned short payload_len)
   prepare(payload, payload_len);
   return transmit(payload_len);
 }
+/*---------------------------------------------------------------------------*/
 /** Read a received packet into a buffer. */
 static int
 read(void *buf, unsigned short buf_len)
@@ -327,6 +335,42 @@ static radio_result_t
 set_object(radio_param_t param, const void *src, size_t size)
 {
   return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Implementation of the ADuCRF101 RF driver process
+ *
+ *        This process is started by init().  It waits for events triggered
+ *        by packet reception.
+ */
+PROCESS_THREAD(aducrf101_rf_process, ev, data)
+{
+  int len;
+  PROCESS_BEGIN();
+
+  while(1) {
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+
+    packetbuf_clear();
+    len = read(packetbuf_dataptr(), PACKETBUF_SIZE);
+
+    if(len > 0) {
+      packetbuf_set_datalen(len);
+
+      NETSTACK_RDC.input();
+    }
+  }
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Trigger function called by ADI radio engine upon packet RX.
+ */
+void
+aducrf101_rx_packet_hook(void)
+{
+  process_poll(&aducrf101_rf_process);
 }
 /*---------------------------------------------------------------------------*/
 const struct radio_driver aducrf101_radio_driver = {
