@@ -73,18 +73,21 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
   private Visualizer visualizer = null;
   private AbstractRadioMedium radioMedium = null;
 
-  private List<RadioConnectionArrow> historyList = new LinkedList<>();
+  private final List<RadioConnectionArrow> historyList = new LinkedList<>();
 
   private Observer radioMediumObserver = new Observer() {
     @Override
     public void update(Observable obs, Object obj) {
       RadioConnection last = radioMedium.getLastConnection();
       if (last != null && historyList.size() < MAX_HISTORY_SIZE) {
-        historyList.add(new RadioConnectionArrow(last));
-        visualizer.repaint(500);
+        synchronized(historyList) {
+          historyList.add(new RadioConnectionArrow(last));
+          visualizer.repaint(500);
+        }
       }
     }
   };
+
   private final TimeEvent ageArrowsTimeEvent = new TimeEvent(0) {
     @Override
     public void execute(long t) {
@@ -94,13 +97,15 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
       if (historyList.size() > 0) {
 
-        /* Increase age and remove too old arrows */
-        Iterator<RadioConnectionArrow> iter = historyList.iterator();
-        while (iter.hasNext()) {
-          RadioConnectionArrow rca = iter.next();
-          /* Try to increase age and remove if max age was reached */
-          if (!rca.increaseAge()) {
-            iter.remove();
+        synchronized (historyList) {
+          /* Increase age and remove too old arrows */
+          Iterator<RadioConnectionArrow> iter = historyList.iterator();
+          while (iter.hasNext()) {
+            RadioConnectionArrow rca = iter.next();
+            /* Try to increase age and remove if max age was reached */
+            if (!rca.increaseAge()) {
+              iter.remove();
+            }
           }
         }
 
@@ -182,22 +187,24 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
   @Override
   public void paintBeforeMotes(Graphics g) {
-    for (RadioConnectionArrow connArrow : historyList) {
-      float colorHistoryIndex = 1.0f - connArrow.getAge();
-      Radio source = connArrow.getConnection().getSource();
-      Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
-      /* If there is no destination, paint red circles to indicate untransmitted message */
-      if (connArrow.getConnection().getDestinations().length == 0) {
-        g.setColor(new Color(UNTRANSMITTED_COLOR_RGB[0], UNTRANSMITTED_COLOR_RGB[1], UNTRANSMITTED_COLOR_RGB[2], colorHistoryIndex));
-        g.drawOval(sourcePoint.x - 20, sourcePoint.y - 20, 40, 40);
-        g.drawOval(sourcePoint.x - 30, sourcePoint.y - 30, 60, 60);
-        continue;
-      }
-      g.setColor(new Color(TRANSMITTED_COLOR_RGB[0], TRANSMITTED_COLOR_RGB[1], TRANSMITTED_COLOR_RGB[2], colorHistoryIndex));
-      for (Radio destRadio : connArrow.getConnection().getDestinations()) {
-        Position destPos = destRadio.getPosition();
-        Point destPoint = visualizer.transformPositionToPixel(destPos);
-        drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, 8);
+    synchronized (historyList) {
+      for (RadioConnectionArrow connArrow : historyList) {
+        float colorHistoryIndex = 1.0f - connArrow.getAge();
+        Radio source = connArrow.getConnection().getSource();
+        Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
+        /* If there is no destination, paint red circles to indicate untransmitted message */
+        if (connArrow.getConnection().getDestinations().length == 0) {
+          g.setColor(new Color(UNTRANSMITTED_COLOR_RGB[0], UNTRANSMITTED_COLOR_RGB[1], UNTRANSMITTED_COLOR_RGB[2], colorHistoryIndex));
+          g.drawOval(sourcePoint.x - 20, sourcePoint.y - 20, 40, 40);
+          g.drawOval(sourcePoint.x - 30, sourcePoint.y - 30, 60, 60);
+          continue;
+        }
+        g.setColor(new Color(TRANSMITTED_COLOR_RGB[0], TRANSMITTED_COLOR_RGB[1], TRANSMITTED_COLOR_RGB[2], colorHistoryIndex));
+        for (Radio destRadio : connArrow.getConnection().getDestinations()) {
+          Position destPos = destRadio.getPosition();
+          Point destPoint = visualizer.transformPositionToPixel(destPos);
+          drawArrow(g, sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y, 8);
+        }
       }
     }
   }
