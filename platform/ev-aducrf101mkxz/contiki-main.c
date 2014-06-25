@@ -162,6 +162,7 @@ main(int argc, char **argv)
 #endif
 
   serial_line_init();
+  process_start(&sensors_process, NULL);
 
   autostart_start(autostart_processes);
 
