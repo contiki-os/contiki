@@ -35,8 +35,70 @@
  * \author Jim Paris <jim.paris@rigado.com>
  */
 
-#define LED1    pADI_GP4, BIT2
+#include "lib/sensors.h"
+#include "dev/button-sensor.h"
+#include "platform-conf.h"
 
-#define BUTTON_GPIO 0
-#define BUTTON_PIN  6
-#define BUTTON_INT  2
+#include <signal.h>
+
+const struct sensors_sensor button_sensor;
+static struct timer debouncetimer;
+
+/* e.g. pADI_GP0 */
+#define GPIO CC_CONCAT(pADI_GP, BUTTON_GPIO)
+
+/* e.g. Ext_Int2_Handler */
+#define HANDLER CC_CONCAT(CC_CONCAT(Ext_Int, BUTTON_INT), _Handler)
+
+/* e.g. EINT2_IRQn */
+#define IRQN CC_CONCAT(CC_CONCAT(EINT, BUTTON_INT), _IRQn)
+
+void
+HANDLER(void)
+{
+  pADI_INTERRUPT->EICLR = (1 << BUTTON_INT);
+  if(!timer_expired(&debouncetimer)) {
+    return;
+  }
+  timer_set(&debouncetimer, CLOCK_SECOND / 8);
+  sensors_changed(&button_sensor);
+}
+static int
+config(int type, int c)
+{
+  switch(type) {
+  case SENSORS_HW_INIT:
+    timer_set(&debouncetimer, 0);
+    return 1;
+  case SENSORS_ACTIVE:
+    /* Set button as a GPIO input with pullup */
+    GPIO->GPCON &= ~(3UL << (BUTTON_PIN * 2));
+    GPIO->GPOEN &= ~(1UL << BUTTON_PIN);
+    GPIO->GPPUL |= (1UL << BUTTON_PIN);
+
+    /* Enable interrupt for the button (rise and fall) */
+#if BUTTON_INT <= 3
+    pADI_INTERRUPT->EI0CFG |= (0xaUL << (4 * (BUTTON_INT - 0)));
+#elif BUTTON_INT <= 7
+    pADI_INTERRUPT->EI1CFG |= (0xaUL << (4 * (BUTTON_INT - 4)));
+#endif
+    pADI_INTERRUPT->EICLR = (1 << BUTTON_INT);
+    NVIC_EnableIRQ(IRQN);
+    return 1;
+  }
+  return 0;
+}
+static int
+status(int type)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    if(GPIO->GPIN & (1UL << BUTTON_PIN)) {
+      return 1;
+    }
+    return 0;
+  }
+  return 0;
+}
+SENSORS_SENSOR(button_sensor, BUTTON_SENSOR, NULL, config, status);
