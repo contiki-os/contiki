@@ -259,8 +259,8 @@ static TyRadioConfiguration RadioConfiguration;
 static RIE_BOOL             bRadioConfigurationChanged    = RIE_FALSE; 
 static RIE_BOOL             bTestModeEnabled              = RIE_FALSE; 
 static RIE_U32              DataRate                      = 38400; 
-static RIE_BOOL             bPacketTx                     = RIE_FALSE; 
-static RIE_BOOL             bPacketRx                     = RIE_FALSE; 
+static volatile RIE_BOOL    bPacketTx                     = RIE_FALSE;
+static volatile RIE_BOOL    bPacketRx                     = RIE_FALSE;
 
 const RIE_U8 DR_38_4kbps_Dev20kHz_Configuration[] = 
 {
@@ -1457,6 +1457,7 @@ static RIE_Responses  RadioWaitForPowerUp(void)
     \fn      void Ext_Int8_Handler(void)
     \brief   Radio Interrupt Handler
 **/
+extern void aducrf101_rx_packet_hook(void);
 void Ext_Int8_Handler (void)
 {
    RIE_Responses  Response = RIE_Success;
@@ -1469,8 +1470,10 @@ void Ext_Int8_Handler (void)
       Response = RadioMMapRead(MCR_interrupt_source_1_Adr,0x1,&ucInt1);
    if (ucInt0 & interrupt_mask_0_interrupt_tx_eof)
       bPacketTx = RIE_TRUE;
-   if (ucInt0 & interrupt_mask_0_interrupt_crc_correct)
+   if (ucInt0 & interrupt_mask_0_interrupt_crc_correct) {
       bPacketRx = RIE_TRUE;
+      aducrf101_rx_packet_hook();
+   }
    // Clear all the interrupts that we have just handleed
    if (Response == RIE_Success)
       Response = RadioMMapWrite(MCR_interrupt_source_0_Adr,0x1, &ucInt0);
