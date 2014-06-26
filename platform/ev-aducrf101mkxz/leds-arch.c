@@ -35,14 +35,45 @@
  * \author Jim Paris <jim.paris@rigado.com>
  */
 
-#ifndef __ADUCRF101_PLATFORM_CONF_H__
-#define __ADUCRF101_PLATFORM_CONF_H__
+#include "contiki.h"
+#include "dev/leds.h"
+#include "platform-conf.h"
+#include "aducrf101-contiki.h"
 
-#define LED_GPIO    4
-#define LED_PIN     2
+/* e.g. pADI_GP4 */
+#define GPIO CC_CONCAT(pADI_GP, LED_GPIO)
 
-#define BUTTON_GPIO 0
-#define BUTTON_PIN  6
-#define BUTTON_INT  2
+/*---------------------------------------------------------------------------*/
+void
+leds_arch_init(void)
+{
+  /* Set LED pin as a GPIO output */
+  GPIO->GPOEN |= (1UL << LED_PIN);
+  leds_arch_set(0);
+}
+/*---------------------------------------------------------------------------*/
+unsigned char
+leds_arch_get(void)
+{
+  if(GPIO->GPOUT & (1UL << LED_PIN)) {
+    return 0;
+  } else {
+    return 1;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+leds_arch_set(unsigned char leds)
+{
+  if(leds & 1) {
+    GPIO->GPCLR = (1UL << LED_PIN);
+  } else {
+    GPIO->GPSET = (1UL << LED_PIN);
+  }
+}
+/*---------------------------------------------------------------------------*/
 
-#endif
+/**
+ * @}
+ * @}
+ */
