@@ -48,6 +48,7 @@
 #include "net/ip/uip.h"
 
 #include "dev/button-sensor.h"
+#include "dev/leds.h"
 
 #if WITH_UIP6
 #include "net/ipv6/uip-ds6.h"
@@ -111,6 +112,7 @@ int
 main(int argc, char **argv)
 {
   watchdog_init();
+  leds_init();
   uart_init(115200);
   clock_init();
 
