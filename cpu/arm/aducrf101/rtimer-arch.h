@@ -40,7 +40,7 @@
 
 #include <stdint.h>
 
-#define RTIMER_ARCH_SECOND (1000)
+#define RTIMER_ARCH_SECOND (32768)
 
 #include "sys/rtimer.h"
 

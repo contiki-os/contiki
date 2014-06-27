@@ -132,6 +132,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   ctimer_init();
+  rtimer_init();
 
   set_rime_addr();
 
