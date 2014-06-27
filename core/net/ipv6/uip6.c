@@ -1547,10 +1547,6 @@ uip_process(uint8_t flag)
 
   uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPTCPH_LEN];
 
-#if UIP_CONF_IPV6_RPL
-  rpl_insert_header();
-#endif /* UIP_CONF_IPV6_RPL */
-
 #if UIP_UDP_CHECKSUMS
   /* Calculate UDP checksum. */
   UIP_UDP_BUF->udpchksum = ~(uip_udpchksum());
@@ -1558,6 +1554,11 @@ uip_process(uint8_t flag)
     UIP_UDP_BUF->udpchksum = 0xffff;
   }
 #endif /* UIP_UDP_CHECKSUMS */
+
+#if UIP_CONF_IPV6_RPL
+  rpl_insert_header();
+#endif /* UIP_CONF_IPV6_RPL */
+
   UIP_STAT(++uip_stat.udp.sent);
   goto ip_send_nolen;
 #endif /* UIP_UDP */
