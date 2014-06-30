@@ -34,55 +34,53 @@
 
 # Author: Jim Paris <jim.paris@rigado.com>
 
-CONTIKI_CPU = $(CONTIKI)/cpu/arm/aducrf101
+CROSS_COMPILE = arm-none-eabi-
 
-ifdef IAR
-include $(CONTIKI_CPU)/Makefile.aducrf101.iar
-else
-include $(CONTIKI_CPU)/Makefile.aducrf101.gnu
+CC      = $(CROSS_COMPILE)gcc
+LD      = $(CROSS_COMPILE)gcc
+AS      = $(CROSS_COMPILE)gcc
+AR      = $(CROSS_COMPILE)ar
+NM      = $(CROSS_COMPILE)nm
+OBJCOPY = $(CROSS_COMPILE)objcopy
+OBJDUMP = $(CROSS_COMPILE)objdump
+STRIP   = $(CROSS_COMPILE)strip
+
+CFLAGS_OPT ?= -Os
+CFLAGS_DEBUG ?= -ggdb3 -fomit-frame-pointer
+CFLAGS += $(CFLAGS_OPT) $(CFLAGS_DEBUG)
+CFLAGS += -std=gnu99
+CFLAGS += -ffreestanding -mcpu=cortex-m3 -mthumb -mno-thumb-interwork
+CFLAGS += -ffunction-sections -fdata-sections -fno-common -fno-builtin
+CFLAGS += -flto
+
+ifdef WERROR
+  CFLAGS += -Wall -Werror
+  # These warnings are triggered by existing Contiki code
+  CFLAGS += -Wno-error=pointer-sign
+  CFLAGS += -Wno-error=char-subscripts
+  CFLAGS += -Wno-error=unused-variable
+  CFLAGS += -Wno-error=unused-but-set-variable
 endif
 
-ifdef SERIAL_ID
-  CFLAGS += -DSERIAL_ID='$(SERIAL_ID)'
-endif
+# UIP code does not follow C aliasing rules
+CFLAGS += -fno-strict-aliasing
 
-ifdef __STACK_SIZE
-  CFLAGS += -D__STACK_SIZE=$(__STACK_SIZE)
-endif
+LDFLAGS  = $(CFLAGS)
+LDFLAGS += -specs=nosys.specs -nostartfiles
 
-ifdef RF_CHANNEL
-  CFLAGS += -DRF_CHANNEL=$(RF_CHANNEL)
-endif
+# TODO: When it becomes more commonly available, switch to newlib-nano
+# for significant size reduction, by uncommenting this:
+# LDFLAGS += -specs=nano.specs
 
-# HSI internal oscillator by default
-CFLAGS += -DF_CPU=16000000
+LDFLAGS += -Wl,--gc-sections
+LDFLAGS += -Wl,-T$(CONTIKI_CPU)/Common/GCC/ADuCRF101.ld
 
-### CPU-dependent directories and source files
-CONTIKI_CPU_DIRS += ../common/CMSIS
+ASFLAGS += -c $(CFLAGS)
 
-CONTIKI_CPU_DIRS += .
-CONTIKI_SOURCEFILES += slip-arch.c
-CONTIKI_SOURCEFILES += rtimer-arch.c
+# Compiler-specific startup code
+CONTIKI_CPU_DIRS += Common/GCC
+CONTIKI_SOURCEFILES += crt0.S
 
-CONTIKI_CPU_DIRS += dev
-CONTIKI_SOURCEFILES += uart.c
-CONTIKI_SOURCEFILES += clock.c
-CONTIKI_SOURCEFILES += watchdog.c
-CONTIKI_SOURCEFILES += radio.c
-
-CONTIKI_CPU_DIRS += Common
-CONTIKI_SOURCEFILES += system_ADuCRF101.c
-CONTIKI_SOURCEFILES += radioeng.c
-
-ifdef CORE
-.PHONY: symbols.c symbols.h
-symbols.c symbols.h:
-	$(NM) -C $(CORE) | grep -v @ | grep -v dll_crt0 | \
-		awk -f $(CONTIKI)/tools/mknmlist > symbols.c || rm -f symbols.c
-else
-symbols.c symbols.h:
-	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
-	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
-endif
-
-contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+# Rules
+%.hex: %
+	$(OBJCOPY) -O ihex $^ $@

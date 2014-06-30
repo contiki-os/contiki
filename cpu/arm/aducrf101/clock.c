@@ -44,9 +44,6 @@ static volatile unsigned long current_seconds = 0;
 static unsigned int second_countdown = CLOCK_SECOND;
 
 void
-SysTick_handler(void) __attribute__ ((interrupt));
-
-void
 SysTick_Handler(void)
 {
   current_clock++;

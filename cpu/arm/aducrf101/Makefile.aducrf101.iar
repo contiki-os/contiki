@@ -34,55 +34,61 @@
 
 # Author: Jim Paris <jim.paris@rigado.com>
 
-CONTIKI_CPU = $(CONTIKI)/cpu/arm/aducrf101
+# Filename quoting here is very tricky, and probably depends on which Windows
+# build of "make" is being used.  This works for mingw32-make.
 
-ifdef IAR
-include $(CONTIKI_CPU)/Makefile.aducrf101.iar
-else
-include $(CONTIKI_CPU)/Makefile.aducrf101.gnu
+ifeq ($(IAR_PATH),)
+  IAR_SUBPATH := $(shell ls "${PROGRAMFILES}\IAR Systems" 2>/dev/null | tail -1)
+  ifeq ($(IAR_SUBPATH),)
+    define iar_error
+
+Unable to find the IAR installation path.  Please specify IAR_PATH.
+For example: $(MAKE) IAR_PATH="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\arm"
+    endef
+    $(error $(iar_error))
+  endif
+  IAR_PATH := ${PROGRAMFILES}\IAR Systems\${IAR_SUBPATH}\arm
 endif
 
-ifdef SERIAL_ID
-  CFLAGS += -DSERIAL_ID='$(SERIAL_ID)'
-endif
+CC      := "$(IAR_PATH)""\\bin\iccarm"
+LD      := "$(IAR_PATH)""\\bin\ilinkarm"
+AS      := "$(IAR_PATH)""\\bin\iasmarm"
+AR      := "$(IAR_PATH)""\\bin\iarchive"
+OBJCOPY := "$(IAR_PATH)""\\bin\ielftool"
 
-ifdef __STACK_SIZE
-  CFLAGS += -D__STACK_SIZE=$(__STACK_SIZE)
-endif
+CFLAGS  += -Ohz
+CFLAGS  += --silent
+CFLAGS  += --debug
+CFLAGS  += --endian=little
+CFLAGS  += --cpu=Cortex-M3
+CFLAGS  += -I"$(IAR_PATH)""\\inc"
+CFLAGS  += -D__ICCARM__
 
-ifdef RF_CHANNEL
-  CFLAGS += -DRF_CHANNEL=$(RF_CHANNEL)
-endif
+AROPTS   = --create
+ASFLAGS  = -S -s+ -w+ --cpu Cortex-M3
 
-# HSI internal oscillator by default
-CFLAGS += -DF_CPU=16000000
+LDFLAGS += --config $(CONTIKI_CPU)/Common/IAR/ADUCRF101.icf
 
-### CPU-dependent directories and source files
-CONTIKI_CPU_DIRS += ../common/CMSIS
+# Compiler-specific startup code
+CONTIKI_CPU_DIRS += Common/IAR
+CONTIKI_SOURCEFILES += startup_ADuCRF101.S
 
-CONTIKI_CPU_DIRS += .
-CONTIKI_SOURCEFILES += slip-arch.c
-CONTIKI_SOURCEFILES += rtimer-arch.c
+# Rules
 
-CONTIKI_CPU_DIRS += dev
-CONTIKI_SOURCEFILES += uart.c
-CONTIKI_SOURCEFILES += clock.c
-CONTIKI_SOURCEFILES += watchdog.c
-CONTIKI_SOURCEFILES += radio.c
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.d) -o $@
 
-CONTIKI_CPU_DIRS += Common
-CONTIKI_SOURCEFILES += system_ADuCRF101.c
-CONTIKI_SOURCEFILES += radioeng.c
+CUSTOM_RULE_C_TO_O = 1
+%.co: %.c
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $< -o $@
 
-ifdef CORE
-.PHONY: symbols.c symbols.h
-symbols.c symbols.h:
-	$(NM) -C $(CORE) | grep -v @ | grep -v dll_crt0 | \
-		awk -f $(CONTIKI)/tools/mknmlist > symbols.c || rm -f symbols.c
-else
-symbols.c symbols.h:
-	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
-	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
-endif
+CUSTOM_RULE_C_TO_CO = 1
+%.co: %.c
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
 
-contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+%.hex: %
+	$(OBJCOPY) --silent --ihex $^ $@
