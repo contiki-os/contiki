@@ -1737,6 +1737,7 @@ featurecast_input:
   uip_sappdata = uip_appdata = &uip_buf[UIP_IPUDPH_LEN + UIP_LLH_LEN];
   uip_slen = 0;
   UIP_UDP_APPCALL();
+  
 #if WITH_FEATURECAST
   //set uip_len to proper value
   uip_len = (UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] + UIP_IPH_LEN;
