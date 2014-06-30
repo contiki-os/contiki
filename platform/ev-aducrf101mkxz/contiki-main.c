@@ -37,7 +37,6 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
 
 #include "contiki.h"

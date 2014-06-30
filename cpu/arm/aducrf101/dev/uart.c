@@ -35,7 +35,6 @@
  * \author Jim Paris <jim.paris@rigado.com>
  */
 
-#include <unistd.h>
 #include <aducrf101-include.h>
 
 static int (*uart_input_handler)(unsigned char c);
@@ -105,7 +104,7 @@ _write(int fd, const void *buf, size_t len)
     return -1;
   }
 
-  if(fd == STDOUT_FILENO || fd == STDERR_FILENO) {
+  if(fd == 1 || fd == 2) {
     int n = len;
     const unsigned char *p = buf;
     while(n--)
@@ -114,3 +113,12 @@ _write(int fd, const void *buf, size_t len)
   }
   return -1;
 }
+/*---------------------------------------------------------------------------*/
+#ifdef __ICCARM__
+/* Connect IAR's __write function to the UART. */
+size_t
+__write(int fd, const unsigned char *buf, size_t count)
+{
+  return _write(fd, buf, count);
+}
+#endif

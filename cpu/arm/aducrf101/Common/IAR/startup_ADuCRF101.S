@@ -171,7 +171,7 @@ __vector_table
 
 
         THUMB
-        SECTION .text:CODE:REORDER(1)
+        SECTION .text:CODE:REORDER:NOROOT(1)
 Nmi_Handler
 Fault_Handler
 MemManage_Handler
