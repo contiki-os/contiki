@@ -130,7 +130,7 @@ endif
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -MD -c $< -o $@
 
 all: bytes
 bytes:
@@ -161,3 +161,5 @@ bytes:
 symbols.c:
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
 	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+
+-include $(PROJECT_OBJECTFILES:%.o=%.d)
