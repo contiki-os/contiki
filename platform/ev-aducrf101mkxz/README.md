@@ -92,3 +92,69 @@ router:
         /dev/serial/by-id/usb-SEGGER_J-Link_000541022222-if00
 
 Open the web server's home page at: http://[aaaa::3230:3030:3536:3738]/
+
+On Windows:
+-----------
+
+### Install prerequisites ###
+
+Install [git](http://git-scm.com/download/win/) with default options.
+
+Install MinGW as follows:
+
+* Download and run [mingw-get-setup.exe](https://sourceforge.net/projects/mingw/files/latest/download).
+* Select `Install`, `Continue`, and `Continue` again.
+* Click `Basic Setup` on the left panel.
+* Click the checkbox next to `mingw32-base`, then click `Mark for Installation`.
+* Select 'Installation -> Apply Changes' from the menu bar.
+* Click 'Apply', then close and quit the MinGW installer.
+
+### Install toolchain ###
+
+Contiki can be built with either GCC or IAR:
+
+* **GCC**: Install
+  [GNU Tools for ARM Embedded Processors](https://launchpad.net/gcc-arm-embedded/+download).
+  Use the "Windows installer" version.  Ensure that "Add path to
+  environment variable" is selected in the installer.
+
+* **IAR**: Install
+  [IAR Embedded Workbench](http://www.iar.com/ewarm/).
+
+### Building `example-abc` ###
+
+Open a shell by right-clicking the desktop or any folder and
+selecting `Git Bash`.
+
+Obtain the Contiki source code:
+
+	git clone https://github.com/contiki-os/contiki.git
+
+Build Contiki's `example-abc`:
+
+* **GCC**
+
+        /c/mingw/bin/mingw32-make -C contiki/examples/rime \
+                                  TARGET=ev-aducrf101mkxz \
+                                  example-abc.ev-aducrf101mkxz.hex
+
+* **IAR**
+
+        /c/mingw/bin/mingw32-make -C contiki/examples/rime \
+                                  IAR=1 \
+                                  TARGET=ev-aducrf101mkxz \
+                                  example-abc.ev-aducrf101mkxz.hex
+
+Other build options like `RF_CHANNEL` and `SERIAL_ID` can be specified
+as in the Linux instructions above.
+
+### Flashing and running ###
+
+The resulting file
+`contiki/examples/rime/example-abc.ev-aducrf101mkxz.hex` can be
+flashed to the evaluation board using ADI's
+[CM3WSD](http://www.analog.com/static/imported-files/eval_boards/CM3WSD.zip)
+utility.
+
+Use a terminal emulator (e.g. HyperTerminal) at 115200 baud to see the
+program output.
