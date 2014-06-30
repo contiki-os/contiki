@@ -1307,7 +1307,6 @@ featurecast_input:
 #endif /* UIP_TCP */
 #if UIP_UDP
       case UIP_PROTO_UDP:
-	PRINTF("found udp\n");
         /* UDP, for both IPv4 and IPv6 */
         goto udp_input;
 #endif /* UIP_UDP */
@@ -1710,7 +1709,6 @@ featurecast_input:
        connection is bound to a remote port. Finally, if the
        connection is bound to a remote IP address, the source IP
        address of the packet is checked. */
-	PRINTF("conn->lport %u, conn->rport %u, packet->lport %u, packet->rport %u\n", uip_htons(uip_udp_conn->lport), uip_htons(uip_udp_conn->rport), uip_htons(UIP_UDP_BUF->destport), uip_htons(UIP_UDP_BUF->srcport));
     if(uip_udp_conn->lport != 0 &&
        UIP_UDP_BUF->destport == uip_udp_conn->lport &&
        (uip_udp_conn->rport == 0 ||
