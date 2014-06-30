@@ -1269,7 +1269,7 @@ uip_process(uint8_t flag)
       PRINTF("Dropping packet, not for me and link local or multicast\n");
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
-   }
+    }
   }
 #else /* UIP_CONF_ROUTER */
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
@@ -1688,6 +1688,7 @@ featurecast_input:
            uip_udpchksum());
     goto drop;
   }
+
 #else /* UIP_UDP_CHECKSUMS */
   uip_len = uip_len - UIP_IPUDPH_LEN;
 #endif /* UIP_UDP_CHECKSUMS */
@@ -1715,7 +1716,7 @@ featurecast_input:
         UIP_UDP_BUF->srcport == uip_udp_conn->rport) &&
        (uip_is_addr_unspecified(&uip_udp_conn->ripaddr) ||
         uip_ipaddr_cmp(&UIP_IP_BUF->srcipaddr, &uip_udp_conn->ripaddr))) {
-       goto udp_found;
+      goto udp_found;
     }
   }
   PRINTF("udp: no matching connection found\n");
