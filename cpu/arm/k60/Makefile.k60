@@ -132,9 +132,6 @@ CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(OBJECTDIR)/startcode.o: startcode.S
-	$(AS) -g -mcpu=cortex-m4 -mthumb -o $@ $<
-
 all: bytes
 bytes:
 	@$(OBJDUMP) -h $(CONTIKI_PROJECT).$(TARGET) | perl -ne '$$b{$$1}=hex $$2 if /^\s*\d+\s*\.(text|data|bss)\s+(\S+)/; END { printf("%16d bytes in ROM\n%16d bytes in RAM\n",$$b{text}+$$b{data},$$b{data}+$$b{bss}); }'
