@@ -1688,7 +1688,6 @@ featurecast_input:
            uip_udpchksum());
     goto drop;
   }
-
 #else /* UIP_UDP_CHECKSUMS */
   uip_len = uip_len - UIP_IPUDPH_LEN;
 #endif /* UIP_UDP_CHECKSUMS */
