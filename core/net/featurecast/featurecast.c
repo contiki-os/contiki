@@ -1,3 +1,5 @@
+#if WITH_FEATURECAST
+
 #include "featurecast.h"
 #define DEBUG DEBUG_NONE
 #include "net/uip-debug.h"
@@ -8,6 +10,7 @@
 #include "net/uip-icmp6.h"
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_PAYLOAD ((label_packet_t *)&uip_buf[uip_l2_l3_icmp_hdr_len]) 
+
 
 routing_table_t routing_table;
 //uip_ipaddr_t ipaddr;
@@ -404,3 +407,5 @@ void featurecast_icmp_input(){
 		PRINTF("got unknown ICMP6 packet - discard \n");	
 	}
 }
+
+#endif /* WITH_FEATURECAST */

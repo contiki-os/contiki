@@ -19,6 +19,7 @@
 #define LABEL_ADV 0
 #define LABEL_DISC 1
 
+#define FEATURECAST_SEND 6
 
 #define MAX_NEIGHBORS 3
 #include "net/uip.h"

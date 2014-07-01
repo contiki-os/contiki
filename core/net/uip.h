@@ -1555,10 +1555,6 @@ void uip_process(uint8_t flag);
 #define UIP_UDP_TIMER     5
 #endif /* UIP_UDP */
 
-#if WITH_FEATURECAST
-#define FEATURECAST_SEND 6
-#endif /* WITH_FEATURECAST */
-
 /* The TCP states used in the uip_conn->tcpstateflags. */
 #define UIP_CLOSED      0
 #define UIP_SYN_RCVD    1
