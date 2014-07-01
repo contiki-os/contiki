@@ -165,6 +165,7 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
       PRINTF("\n");
 
       uip_icmp6_send(rpl_get_parent_ipaddr(p), ICMP6_FEATURECAST, LABEL_ADV, sizeof(*packet));
+      adv_sent++;
 #endif /* WITH_FEATURECAST */
 
     } else {
@@ -186,6 +187,7 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
       PRINTF("\n");
 
       uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent), ICMP6_FEATURECAST, LABEL_DISC, sizeof(*packet));
+      disc_sent++;
 #endif /* WITH_FEATURECAST */ 
 
 

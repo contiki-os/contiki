@@ -18,6 +18,12 @@ struct featurecast_conn featurecast_conn;
 struct ctimer backoff_timer;
 int routing_pos = 0;
 
+static unsigned int adv_received = 0;
+static unsigned int disc_received = 0;
+
+unsigned int adv_sent = 0;
+unsigned int disc_sent = 0;
+
 uip_buf_t backup;
 uip_ipaddr_t featurecast_addr;
 
@@ -93,6 +99,18 @@ void print_table(routing_table_t* table){
 		((LABEL_TYPE_LIGHT  &  table->entries[i].labels) == LABEL_TYPE_LIGHT) ? PRINTF("LABEL_TYPE_LIGHT, ") : PRINTF("!LABEL_TYPE_LIGHT, ");*/
 		PRINTF(")\n");
 	}
+}
+
+void print_stats(){
+	int i;
+	unsigned int table_size = 0;
+        for(i = 0; i < MAX_NEIGHBORS; i ++){
+        	if(routing_table.entries[i].addr.u16[0] != 0){
+			table_size += sizeof(routing_table.entries[i]);
+		}
+	}
+
+	printf("Routing table size: %u\n Advertisement received/sent: %u/%u\n Disconnect received/sent: %u/%u\n", table_size, adv_received, adv_sent, disc_received, disc_sent);
 }
 
 void init_routing_table(routing_table_t* table){
@@ -361,6 +379,7 @@ void featurecast_icmp_input(){
 	
 	PRINTF("Got Featurecast ICMP6!\n");
     	if(packet->type == LABEL_ADV){
+		adv_received++;
 		PRINTF("adv (labels: %d)", packet->labels);
 		entry = (routing_entry_t*) &packet->src;
 //		packet->src.u16[0] = 0x80fe;
@@ -377,6 +396,7 @@ void featurecast_icmp_input(){
 			uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent), ICMP6_FEATURECAST, LABEL_ADV, sizeof(*packet));
 		}
 	}else if(packet->type == LABEL_DISC){
+		disc_received++;
 		PRINTF("Got disconnect msg\n");
 		packet->src.u16[0] = 0x80fe;
 		delete_from_table(&routing_table, &packet->src);

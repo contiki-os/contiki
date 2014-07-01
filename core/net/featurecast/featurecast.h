@@ -56,6 +56,9 @@ struct {
 extern  struct ctimer backoff_timer;
 extern struct featurecast_conn featurecast_conn;
 extern uip_ipaddr_t featurecast_addr;
+extern unsigned int adv_sent;
+extern unsigned int disc_sent;
+
 void init_featurecast();
 
 void init_addr_for_labels(uip_ip6addr_t* addr);
