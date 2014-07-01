@@ -1,3 +1,5 @@
+# Common Makefile between the Z1 and Z1SP
+
 ifdef GCC
 CFLAGS+=-Os -g
 endif
