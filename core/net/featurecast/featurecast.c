@@ -336,7 +336,7 @@ int forward_label_packet(){
 			}
 			PRINT6ADDR(&cur_entry->addr);
 			PRINTF(" - OK -> sending\n");
-                        int result = tcpip_output(uip_ds6_nbr_get_ll(uip_ds6_nbr_lookup(&cur_entry->addr)))
+                        int result = tcpip_output(uip_ds6_nbr_get_ll(uip_ds6_nbr_lookup(&cur_entry->addr)));
 			PRINTF("sent result: %d\n", result);
 			uip_len = 0;
 			uip_ext_len = 0;

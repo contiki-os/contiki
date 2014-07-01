@@ -1,6 +1,8 @@
 #ifndef FEATURECAST_H
 #define FEATURECAST_H
 
+
+/* define the labels here */
 #define LABEL_ROOM_1 0
 #define LABEL_ROOM_2 1
 #define LABEL_ROOM_3 2
@@ -11,6 +13,8 @@
 
 #define LABEL_FLOOR_1 6
 #define LABEL_FLOOR_2 7
+/* finished labels definitions */
+
 
 #define LABEL_ADV 0
 #define LABEL_DISC 1
