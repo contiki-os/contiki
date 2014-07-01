@@ -43,7 +43,12 @@
 #include "contiki-net.h"
 #include "contiki-lib.h"
 
-// LED's for Raven USB
+/* LED's for Raven USB
+ * Led0 = Blue
+ * Led1 = Red
+ * Led2 = Green
+ * Led3 = Orange
+ */
 #define Leds_init()                 (DDRD  |=  0xA0, DDRE  |=  0xC0)
 #define Led0_on()                   (PORTD |=  0x80)
 #define Led1_on()                   (PORTD &= ~0x20)
@@ -60,6 +65,67 @@
 #define Leds_on()                   (Led0_on(),Led1_on(),Led2_on(),Led3_on())
 #define Leds_off()                  (Led0_off(),Led1_off(),Led2_off(),Led3_off())
 
+#if I_HATE_BLUE_LEDS || JACKDAW_CONF_ALT_LED_SCHEME
+/*	The original LED scheme of this platform
+ *	used the blue LED pretty much as a power light,
+ *	leaving it on continuously after USB enumeration.
+ *	This was driving me CRAZY, so I changed the scheme
+ *	around a bit so that the orange LED is now used
+ *	for status. I think this is much better, and
+ *	here is why:
+ *
+ *	* Blue LEDs are annoyingly blury to look at,
+ *	  causing eye strain in the long term.
+ *	* The Rods (the non-color sensitive cells) on your
+ *	  retina are more sensitive to blue wavelengths than
+ *	  any other wavelength. This is what makes blue
+ *	  LEDs seem so blindingly bright in a dark room. This
+ *	  is called the Purkinje effect.
+ *
+ *	Thus, I think it is best to reserve the blue LED
+ *	for the *least* used function: the VCP activity LED.
+ *
+ *	My scheme also reverses the red and green LEDs, so that
+ *	(R)ed is (R)eceive (from the radio's perspective).
+ *
+ *	References:
+ *	 * <http://van.physics.illinois.edu/qa/listing.php?id=1871>
+ *	 * <http://texyt.com/bright+blue+leds+annoyance+health+risks>
+ *	 * <http://en.wikipedia.org/wiki/Purkinje_effect>
+ *
+ *	- darco (11-15-2010)
+ */
+#define jackdaw_led_RX_on()          Led1_on()
+#define jackdaw_led_RX_off()         Led1_off()
+
+#define jackdaw_led_TX_on()          Led2_on()
+#define jackdaw_led_TX_off()         Led2_off()
+
+#define jackdaw_led_STAT_on()        Led3_on()
+#define jackdaw_led_STAT_off()       Led3_off()
+#define jackdaw_led_STAT_toggle()    Led3_toggle()
+
+#define jackdaw_led_VCP_on()         Led0_on()
+#define jackdaw_led_VCP_off()        Led0_off()
+#define jackdaw_led_VCP_toggle()     Led0_toggle()
+
+#else /* !(I_HATE_BLUE_LEDS || JACKDAW_CONF_ALT_LED_SCHEME) */
+
+#define jackdaw_led_RX_on()          Led1_on()
+#define jackdaw_led_RX_off()         Led1_off()
+
+#define jackdaw_led_TX_on()          Led2_on()
+#define jackdaw_led_TX_off()         Led2_off()
+
+#define jackdaw_led_STAT_on()        Led0_on()
+#define jackdaw_led_STAT_off()       Led0_off()
+#define jackdaw_led_STAT_toggle()    Led0_toggle()
+
+#define jackdaw_led_VCP_on()         Led3_on()
+#define jackdaw_led_VCP_off()        Led3_off()
+#define jackdaw_led_VCP_toggle()     Led3_toggle()
+
+#endif /* !(I_HATE_BLUE_LEDS || JACKDAW_CONF_ALT_LED_SCHEME) */
 
 void init_lowlevel(void);
 void init_net(void);

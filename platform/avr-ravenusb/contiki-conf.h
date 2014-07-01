@@ -94,6 +94,11 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define RNG_CONF_USE_RADIO_CLOCK	    1
 //#define RNG_CONF_USE_ADC	1
 
+/* Enable the alternate LED scheme, which avoids burning out your retina with the blue LED. */
+#ifndef JACKDAW_CONF_ALT_LED_SCHEME
+#define JACKDAW_CONF_ALT_LED_SCHEME		1
+#endif
+
 /* COM port to be used for SLIP connection. Not tested on Jackdaw. */
 #define SLIP_PORT RS232_PORT_0
 
@@ -137,6 +142,9 @@ static inline uint8_t radio_is_ready_to_send_() {
 #define	USB_ETH_HOOK_IS_READY_FOR_INBOUND_PACKET()		radio_is_ready_to_send_()
 #endif
 #endif
+#define USB_HOOK_UNENUMERATED()		status_leds_unenumerated()
+#define USB_ETH_HOOK_READY()		status_leds_ready()
+#define USB_ETH_HOOK_INACTIVE()		status_leds_inactive()
 
 #ifndef USB_ETH_HOOK_HANDLE_INBOUND_PACKET
 #define USB_ETH_HOOK_HANDLE_INBOUND_PACKET(buffer,len)	do { uip_len = len ; mac_ethernetToLowpan(buffer); } while(0)
@@ -158,8 +166,8 @@ static inline uint8_t radio_is_ready_to_send_() {
 //#pragma mark RF230BB Hooks
 /* ************************************************************************** */
 
-//#define RF230BB_HOOK_RADIO_OFF()	Led1_off()
-//#define RF230BB_HOOK_RADIO_ON()		Led1_on()
+#define RF230BB_HOOK_RADIO_OFF()                 status_leds_radio_off()
+#define RF230BB_HOOK_RADIO_ON()                  status_leds_radio_on()
 #define RF230BB_HOOK_TX_PACKET(buffer,total_len) mac_log_802_15_4_tx(buffer,total_len)
 #define RF230BB_HOOK_RX_PACKET(buffer,total_len) mac_log_802_15_4_rx(buffer,total_len)
 #define	RF230BB_HOOK_IS_SEND_ENABLED()	mac_is_send_enabled()
@@ -172,9 +180,10 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 //#pragma mark USB CDC-ACM (UART) Hooks
 /* ************************************************************************** */
 
-#define USB_CDC_ACM_HOOK_TX_END(char)			vcptx_end_led()
-#define USB_CDC_ACM_HOOK_CLS_CHANGED(state)		vcptx_end_led()
-#define USB_CDC_ACM_HOOK_CONFIGURED()			vcptx_end_led()
+#define USB_CDC_ACM_HOOK_RX(char)				status_leds_serial_rx()
+#define USB_CDC_ACM_HOOK_TX_END(char)			status_leds_serial_tx()
+#define USB_CDC_ACM_HOOK_CLS_CHANGED(state)		status_leds_serial_rx()
+#define USB_CDC_ACM_HOOK_CONFIGURED()			status_leds_serial_rx()
 
 /* ************************************************************************** */
 //#pragma mark Serial Port Settings
