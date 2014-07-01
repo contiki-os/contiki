@@ -73,8 +73,7 @@ the SLIP tunnel on the host machine:
         -s /dev/serial/by-id/usb-SEGGER_J-Link_000541011111-if00 \
         -B 115200 -v3 aaaa::1/64
 
-Press the RESET button on the eval board, then open the border router
-home page at: http://[aaaa::3230:3030:3132:3334]/
+Open the border router's home page at: http://[aaaa::3230:3030:3132:3334]/
 
 #### Web Server ####
 

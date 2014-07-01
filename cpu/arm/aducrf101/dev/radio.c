@@ -193,6 +193,9 @@ prepare(const void *payload, unsigned short payload_len)
 static int
 transmit(unsigned short transmit_len)
 {
+  if(!radio_is_on)
+    return RADIO_TX_ERR;
+
   /* Transmit the packet */
   if(transmit_len > MAX_PACKET_LEN) {
     transmit_len = MAX_PACKET_LEN;
@@ -223,6 +226,9 @@ read(void *buf, unsigned short buf_len)
 {
   uint8_t packet_len;
   int8_t rssi;
+
+  if(!radio_is_on)
+    return 0;
 
   if(buf_len > MAX_PACKET_LEN) {
     buf_len = MAX_PACKET_LEN;
@@ -296,7 +302,7 @@ get_value(radio_param_t param, radio_value_t *value)
   case RADIO_PARAM_RSSI:
   {
     int8_t dbm;
-    if(RadioRadioGetRSSI(&dbm) != RIE_Success) {
+    if(!radio_is_on || RadioRadioGetRSSI(&dbm) != RIE_Success) {
       return RADIO_RESULT_ERROR;
     }
     *value = dbm;
