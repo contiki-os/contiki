@@ -1,0 +1,17 @@
+/**
+
+\mainpage ECC Library for Contiki
+
+This package provides the Contiki port of TinyECC software package.All elliptic 
+curve operations, including point addition, point doubling and scalar point 
+multiplication are ported. Currently, in addition to the basic elliptic curve 
+operations, ECDSA operations (signature generation and verification) are also 
+ported. For the testing purpose, only SECP160R1 is used as the Elliptic Curve 
+Domain Parameters. This has been tested on Cooja for ECDSA operations. 
+A key agreement mechanism like Diffie–Hellman has to be implemented. 
+Currently, all natural number operations are performed in a generic way. 
+But most of these natural number operations can be optimized by using 
+microprocessor specific assembly instructions. 
+
+
+*/

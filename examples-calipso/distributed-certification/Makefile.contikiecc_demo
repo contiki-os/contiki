@@ -1,0 +1,11 @@
+CONTIKI = ../../..
+
+ifndef TARGET
+TARGET=cooja
+endif
+
+CONTIKI_ECC_DIR = ../../../core/lib/contikiecc
+
+include $(CONTIKI_ECC_DIR)/Makefile.contikiecc
+
+include $(CONTIKI)/Makefile.include

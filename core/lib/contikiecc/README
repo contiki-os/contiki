@@ -1,0 +1,66 @@
+README for Contiki port of TinyECC by Kasun Hewage
+
+Introduction
+--------------
+This package provides the Contiki port of TinyECC software package.
+All elliptic curve operations, including point addition, point doubling and 
+scalar point multiplication are ported. Currently, in addition to the basic 
+elliptic curve operations, ECDSA operations (signature generation and
+verification) are also ported.
+For the testing purpose, only SECP160R1 is used as the Elliptic Curve Domain 
+Parameters. This has been tested on Cooja for ECDSA operations. A key agreement 
+mechanism like Diffie–Hellman has to be implemented. Currently, all natural 
+number operations are performed in a generic way. But most of these natural
+number operations can be optimized by using microprocessor specific assembly
+instructions.
+
+How to install
+--------------
+
+Installing and testing of the TinyECC port is pretty easy. All of the test 
+applications reside in the directory "<Contiki ECC Dir>/contiki-apps". 
+
+The test applications show how to use ECC when public key is predistributed.
+We use two sensor nodes in this example. One sensor node is Alice
+(see the source file "<Contiki ECC Dir>/contiki-apps/alice.c"), another is Bob
+(see the source file "<Contiki ECC Dir>/contiki-apps/bob.c"). Suppose Alice's 
+public key is predeployed in Bob. Alice broadcasts packets with signature. 
+Bob verifies all packets from Alice. If signature is correct, Bob will toggle 
+the green LED. Otherwise Bob will toggle red LED.
+
+For the following instructions, it is assumed that the development environment 
+for Contiki(including Cooja) is already established.
+
+1. Set the Contiki installed directory in the Makefile of the test applications.
+   (set the variable "CONTIKI" in the Makefile "<Contiki ECC Dir>/contiki-apps/Makefile")
+
+2. For the convenience, there is a saved Cooja simulation file("ecdsa-test-cooja.csc").
+   The simulation can be run as follows.
+
+   * In the terminal type:
+     # make ecdsa-test-cooja.csc
+
+   * The applications for Alice and Bob can be loaded in to two nodes as follows
+     - Run Cooja as follows
+       # cd <Contiki Dir>/tools/cooja
+       # ant run
+
+     - Create a new Simulation. 
+       File -> New Simulation
+    
+     - Create a node with Alice's application
+       Mote Types -> Create Mote Type -> Contiki Mote Type
+
+     - Select the source for alice, compile and create a node.
+ 
+     - Follow the above two steps for bob.
+     
+3. Node 1 is Alice while node 2 is Bob. To test the functionality, click on the button
+   of Alice.(Right click on the node and select "click button on Contiki 1").
+   When the button of the Alice is clicked, a random message is generated and signed
+   using Alice's private key. Then the signature and the message is broadcasted.    
+   When Bob receives this message, it verifies the message using Alice's public key.
+   
+
+
+     
