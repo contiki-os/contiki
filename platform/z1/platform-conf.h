@@ -98,11 +98,19 @@ typedef unsigned long off_t;
  */
 
 /* LED ports */
+#ifdef Z1_IS_Z1SP
+#define LEDS_PxDIR P4DIR
+#define LEDS_PxOUT P4OUT
+#define LEDS_CONF_RED    0x04
+#define LEDS_CONF_GREEN  0x01
+#define LEDS_CONF_YELLOW 0x80
+#else
 #define LEDS_PxDIR P5DIR
 #define LEDS_PxOUT P5OUT
 #define LEDS_CONF_RED    0x10
 #define LEDS_CONF_GREEN  0x40
 #define LEDS_CONF_YELLOW 0x20
+#endif // Z1_IS_Z1SP
 
 /* DCO speed resynchronization for more robust UART, etc. */
 #define DCOSYNCH_CONF_ENABLED 0
