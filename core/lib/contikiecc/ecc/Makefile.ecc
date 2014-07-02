@@ -1,0 +1,1 @@
+CONTIKI_ECC_SOURCEFILES +=  ecc.c ecdsa.c ecdh.c ecc_sha1.c owaecc.c

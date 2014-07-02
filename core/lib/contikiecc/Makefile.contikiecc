@@ -1,0 +1,85 @@
+### Checking for the CPU architecture and the CPU.
+
+### WARNING! The 32 -bit target appears to broken in this port. Use 8 or 16 -bit.
+### Vilhelm Jutvik, 120917
+
+
+# Default settings
+CPU_ARCH = EIGHT_BIT_PROCESSOR
+CPU = universal
+
+ifeq ($(TARGET),mbxxx)
+  CPU_ARCH = THIRTYTWO_BIT_PROCESSOR
+  CPU = universal
+endif
+
+ifeq ($(TARGET),mb851)
+  CPU_ARCH = THIRTYTWO_BIT_PROCESSOR
+  CPU = universal
+endif
+
+ifeq ($(TARGET),cooja)
+  CPU_ARCH = THIRTYTWO_BIT_PROCESSOR
+  CPU = x86
+endif
+
+ifeq ($(TARGET),micaz)
+  CPU_ARCH = EIGHT_BIT_PROCESSOR
+  CPU = avr
+endif
+
+ifeq ($(TARGET),sky)
+  CPU_ARCH = SIXTEEN_BIT_PROCESSOR
+  CPU = msp430
+endif
+
+ifeq ($(TARGET),wismote)
+# All word lengths except eight appears to be broken in this port
+#  CPU_ARCH = THIRTYTWO_BIT_PROCESSOR
+   CPU_ARCH = SIXTEEN_BIT_PROCESSOR
+   CPU = msp430
+#  CPU_ARCH = SIXTEEN_BIT_PROCESSOR
+endif
+
+
+
+# We assume that native implies x86 (FIX: Don't make this naive assumption)
+ifeq ($(TARGET),native)
+# All word lengths except eight appears to be broken in this port
+   CPU_ARCH = THIRTYTWO_BIT_PROCESSOR
+#  CPU_ARCH = EIGHT_BIT_PROCESSOR
+#  CPU_ARCH = SIXTEEN_BIT_PROCESSOR
+   CPU = x86
+endif
+
+ifeq ($(CPU_ARCH),)
+  ${error The cpu architecture is not defined.}
+endif
+
+ifeq ($(CPU),)
+  ${error The cpu specific does not exist.}
+endif
+
+### Include main files
+include $(CONTIKI_ECC_DIR)/ecc/Makefile.ecc
+
+include $(CONTIKI_ECC_DIR)/curve-params/Makefile.curve_params
+
+### Set preprocessor directives
+DEFINES += $(CPU_ARCH) $(DOMAIN_PARAMS) ${addprefix CPU_, ${shell echo $(CPU) | tr a-z A-Z}}
+#CFLAGS += ${addprefix -D, $(DEFINES)}
+
+### Include target cpu architecture makefile
+target_cpu_makefile := $(wildcard $(CONTIKI_ECC_DIR)/cpu/$(CPU)/Makefile.$(CPU))
+
+### Check if the target makefile exists
+ifeq ($(strip $(target_cpu_makefile)),)
+  ${error ContikiECC: The cpu specific makefile does not exist.}
+else
+  include $(CONTIKI_ECC_DIR)/cpu/$(CPU)/Makefile.$(CPU)
+endif
+
+PROJECT_SOURCEFILES += $(CONTIKI_ECC_SOURCEFILES)
+PROJECTDIRS += $(CONTIKI_ECC_DIR) $(CONTIKI_ECC_DIR)/ecc \
+               $(CONTIKI_ECC_DIR)/curve-params           \
+               $(CONTIKI_ECC_DIR)/cpu/$(CPU)

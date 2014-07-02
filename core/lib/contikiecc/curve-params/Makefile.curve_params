@@ -1,0 +1,12 @@
+# Changed the default key size to 192 bits  -Ville 111007
+ifeq ($(DOMAIN_PARAMS),)
+  DOMAIN_PARAMS = SECP192R1
+  # DOMAIN_PARAMS = SECP160R1
+  # DOMAIN_PARAMS = SECP128R1
+endif
+
+CURVE_PARAMS_SOURCEFILES = ${addsuffix .c, $(shell echo $(DOMAIN_PARAMS) | tr A-Z a-z)}
+
+CONTIKI_ECC_SOURCEFILES += $(CURVE_PARAMS_SOURCEFILES)
+
+
