@@ -2141,3 +2141,4 @@ const struct network_driver sicslowpan_driver = {
 /*--------------------------------------------------------------------*/
 /** @} */
 #endif /* UIP_CONF_IPV6 */
+

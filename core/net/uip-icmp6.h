@@ -65,6 +65,10 @@
 #define ICMP6_REDIRECT                  137  /**< Redirect */
 
 #define ICMP6_RPL                       155  /**< RPL */
+
+#if WITH_FEATURECAST
+#define ICMP6_FEATURECAST		160  /**< FEATURECAST */
+#endif /* WITH_FEATURECAST */
 /** @} */
 
 
