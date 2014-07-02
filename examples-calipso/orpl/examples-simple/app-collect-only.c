@@ -75,8 +75,6 @@ void app_send_to(uint16_t id) {
 
   printf("App: sending 0x%lx\n", seqno);
 
-  orpl_set_curr_seqno(seqno);
-
   simple_udp_sendto(&unicast_connection, &seqno, sizeof(seqno), &root_ipaddr);
 
   cnt++;

@@ -166,6 +166,16 @@ orpl_get_curr_seqno()
   return ret;
 }
 
+/* Get a new ORPL sequence number */
+uint32_t
+orpl_get_new_seqno()
+{
+  if(current_seqno == 0) {
+    current_seqno = random_rand();
+  }
+  return ++current_seqno;
+}
+
 /* Set the current ORPL sequence number before sending */
 void orpl_set_curr_seqno(uint32_t seqno)
 {
