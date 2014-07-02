@@ -1,1 +1,0 @@
-CONTIKI_SOURCEFILES += hmac-sha1.c
