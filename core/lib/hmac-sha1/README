@@ -1,3 +1,0 @@
-HMAC implementation using the SHA1 hash algorithm. May use the SHA1 implementation found in the ContikiECC library or that of MIRACL.
-
-- Ville

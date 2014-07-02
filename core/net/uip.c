@@ -500,7 +500,7 @@ uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport)
     uip_ipaddr_copy(&conn->ripaddr, ripaddr);
   }
   conn->ttl = UIP_TTL;
-
+  
   return conn;
 }
 #endif /* UIP_UDP */
@@ -688,8 +688,8 @@ uip_process(uint8_t flag)
     if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED &&
        !uip_outstanding(uip_connr)) {
 	uip_flags = UIP_POLL;
-	UIP_APPCALL();   
-	//goto appsend; /* Commented undefined goto */
+	UIP_APPCALL();
+	goto appsend;
 #if UIP_ACTIVE_OPEN && UIP_TCP
     } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
       /* In the SYN_SENT state, we retransmit out SYN. */
@@ -1136,7 +1136,6 @@ uip_process(uint8_t flag)
     }
   }
   UIP_LOG("udp: no matching connection found");
-  UIP_STAT(++uip_stat.udp.drop);
 #if UIP_CONF_ICMP_DEST_UNREACH && !UIP_CONF_IPV6
   /* Copy fields from packet header into payload of this ICMP packet. */
   memcpy(&(ICMPBUF->payload[0]), ICMPBUF, UIP_IPH_LEN + 8);
@@ -1170,7 +1169,6 @@ uip_process(uint8_t flag)
 #endif /* UIP_CONF_ICMP_DEST_UNREACH */
   
  udp_found:
-  UIP_STAT(++uip_stat.udp.recv);
   uip_conn = NULL;
   uip_flags = UIP_NEWDATA;
   uip_sappdata = uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN];
@@ -1215,7 +1213,6 @@ uip_process(uint8_t flag)
   }
 #endif /* UIP_UDP_CHECKSUMS */
   
-  UIP_STAT(++uip_stat.udp.sent);
   goto ip_send_nolen;
 #endif /* UIP_UDP */
   
