@@ -11,6 +11,7 @@
 *.econotag 
 *.native
 *.z1
+*.z1sp
 *.minimal-net
 *.sky
 *.wismote
