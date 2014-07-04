@@ -1,0 +1,9 @@
+Using the Z1 starter platform (Z1SP)
+============================================
+
+To enable the Z1SP components, you should include in your application Makefile
+the ZOLERTIA_Z1SP flag set to 1, see "examples/z1/Makefile".
+
+For Z1SP specific information please go to:
+
+http://zolertia.sourceforge.net/wiki/index.php/Mainpage:z1sp
