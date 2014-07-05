@@ -2,16 +2,16 @@ notifications:
   email: false
 language: c #NOTE: this will set CC=gcc which might cause trouble
 before_script:
+  - WGET="travis_retry wget --continue --tries=20 --waitretry=10 --retry-connrefused --no-dns-cache --timeout 300"
   - sudo apt-get -qq update
 
   ## Install msp430 toolchain
   - sudo apt-get -qq install lib32z1
-  - curl -s
-      http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2
-      | tar xjf - -C /tmp/ &&
-      sudo cp -f -r /tmp/msp430/* /usr/local/ &&
-      rm -rf /tmp/msp430 &&
-      msp430-gcc --version
+  - $WGET http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 &&
+    tar xjf mspgcc*.tar.bz2 -C /tmp/ &&
+    sudo cp -f -r /tmp/msp430/* /usr/local/ &&
+    rm -rf /tmp/msp430 mspgcc*.tar.bz2 &&
+    msp430-gcc --version
 
   ## Install avr toolchain
   - sudo apt-get -qq install gcc-avr avr-libc
@@ -22,26 +22,24 @@ before_script:
 
   ## Install toolchain for mc1233x, cc2538 and mbxxx in care-free way
   - if [ ${BUILD_ARCH:-0} = arm ] ; then
-      curl -s
-        https://raw.githubusercontent.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2
-        | tar xjf - -C /tmp/ &&
+      $WGET https://raw.githubusercontent.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 &&
+      tar xjf arm-2008q3*.tar.bz2 -C /tmp/ &&
       sudo cp -f -r /tmp/arm-2008q3/* /usr/ &&
-      rm -rf /tmp/arm-2008q3 &&
+      rm -rf /tmp/arm-2008q3 arm-2008q3*.tar.bz2 &&
       arm-none-eabi-gcc --version ;
     fi
 
   ## Install RL78 GCC toolchain
   - sudo apt-get install libncurses5:i386 zlib1g:i386
-  - wget http://adamdunkels.github.io/contiki-fork/gnurl78-v13.02-elf_1-2_i386.deb &&
-      sudo dpkg -i gnurl78*.deb
+  - $WGET http://adamdunkels.github.io/contiki-fork/gnurl78-v13.02-elf_1-2_i386.deb &&
+    sudo dpkg -i gnurl78*.deb
 
   ## Install SDCC from a purpose-built bundle
   - if [ ${BUILD_ARCH:-0} = 8051 ] ; then
-      curl -s
-        https://raw.githubusercontent.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc.tar.gz
-        | tar xzf - -C /tmp/ &&
+      $WGET https://raw.githubusercontent.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc.tar.gz &&
+      tar xzf sdcc.tar.gz -C /tmp/ &&
       sudo cp -f -r /tmp/sdcc/* /usr/local/ &&
-      rm -rf /tmp/sdcc &&
+      rm -rf /tmp/sdcc sdcc.tar.gz &&
       sdcc --version &&
       sudo apt-get -qq install srecord ;
     fi
