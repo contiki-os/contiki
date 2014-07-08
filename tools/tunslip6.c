@@ -74,7 +74,7 @@ void slip_send_char(int fd, unsigned char c);
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while (0)
 
-char tundev[32] = { "" };
+char tundev[1024] = { "" };
 
 int
 ssystem(const char *fmt, ...) __attribute__((__format__ (__printf__, 1, 2)));
@@ -497,7 +497,7 @@ stty_telos(int fd)
 int
 devopen(const char *dev, int flags)
 {
-  char t[32];
+  char t[1024];
   strcpy(t, "/dev/");
   strncat(t, dev, sizeof(t) - 5);
   return open(t, flags);
