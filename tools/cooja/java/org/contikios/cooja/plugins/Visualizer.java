@@ -1209,9 +1209,22 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
                    2 * MOTE_RADIUS);
       }
 
-      g.setColor(Color.BLACK);
-      g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
-                 2 * MOTE_RADIUS);
+      if (getSelectedMotes().contains(mote)) {
+        /* If mote is selected, highlight with red circle
+         and semitransparent gray overlay */
+        g.setColor(new Color(51, 102, 255));
+        g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+                   2 * MOTE_RADIUS);
+        g.drawOval(x - MOTE_RADIUS - 1, y - MOTE_RADIUS - 1, 2 * MOTE_RADIUS + 2,
+                   2 * MOTE_RADIUS + 2);
+        g.setColor(new Color(128, 128, 128, 128));
+        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+                   2 * MOTE_RADIUS);
+      } else {
+        g.setColor(Color.BLACK);
+        g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+                   2 * MOTE_RADIUS);
+      }
     }
   }
 
