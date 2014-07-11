@@ -19,8 +19,8 @@ public class IPv6PacketAnalyzer extends PacketAnalyzer {
   }
 
   @Override
-  public int analyzePacket(Packet packet, StringBuffer brief,
-                           StringBuffer verbose) {
+  public int analyzePacket(Packet packet, StringBuilder brief,
+                           StringBuilder verbose) {
 
     /* if packet has less than 40 bytes it is not interesting ... */
     if (packet.size() < 40) return ANALYSIS_FAILED;
@@ -57,8 +57,8 @@ public class IPv6PacketAnalyzer extends PacketAnalyzer {
     packet.pos += 41;
 
     verbose.append("<br><b>IPv6 ").append(protoStr)
-            .append("</b> TC = " + trafficClass
-            + " FL: " + flowLabel + "<br>");
+            .append("</b> TC = ").append(trafficClass)
+            .append(" FL: ").append(flowLabel).append("<br>");
     verbose.append("From ");
     printAddress(verbose, srcAddress);
     verbose.append("  to ");
@@ -69,7 +69,7 @@ public class IPv6PacketAnalyzer extends PacketAnalyzer {
     return ANALYSIS_OK_CONTINUE;
   }
 
-  public static void printAddress(StringBuffer out, byte[] address) {
+  public static void printAddress(StringBuilder out, byte[] address) {
     for (int i = 0; i < 16; i += 2) {
       out.append(StringUtils.toHex((byte) (address[i] & 0xff))
               + StringUtils.toHex((byte) (address[i + 1] & 0xff)));

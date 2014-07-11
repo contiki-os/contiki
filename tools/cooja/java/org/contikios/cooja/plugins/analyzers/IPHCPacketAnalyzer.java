@@ -67,8 +67,8 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
   }
 
   @Override
-  public int analyzePacket(Packet packet, StringBuffer brief,
-                           StringBuffer verbose) {
+  public int analyzePacket(Packet packet, StringBuilder brief,
+                           StringBuilder verbose) {
 
     /* if packet has less than 3 bytes it is not interesting ... */
     if (packet.size() < 3) return ANALYSIS_FAILED;
@@ -91,12 +91,18 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
 
     /* need to decompress while analyzing - add that later... */
     verbose.append("<b>IPHC HC-06</b><br>");
-    verbose.append("tf = " + tf + " nhc = " + nhc + " hlim = " + hlim
-            + " cid = " + cid + " sac = " + sac + " sam = " + sam
-            + " MCast = " + m + " dac = " + dac + " dam = " + dam);
+    verbose.append("TF = ").append(tf)
+            .append(", NH = ").append(nhc)
+            .append(", HLIM = ").append(hlim)
+            .append(", CID = ").append(cid)
+            .append(", SAC = ").append(sac)
+            .append(", SAM = ").append(sam)
+            .append(", MCast = ").append(m)
+            .append(", DAC = ").append(dac)
+            .append(", DAM = ").append(dam);
     if (cid == 1) {
-      verbose.append("<br>Contexts: sci=" + (packet.get(2) >> 4) + " dci="
-              + (packet.get(2) & 0x0f));
+      verbose.append("<br>Contexts: sci=").append(packet.get(2) >> 4).
+              append(" dci=").append(packet.get(2) & 0x0f);
       sci = packet.get(2) >> 4;
       dci = packet.get(2) & 0x0f;
     }
@@ -412,8 +418,9 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
     }
 
     verbose.append("<br><b>IPv6 ").append(protoStr)
-            .append("</b> TC = " + trafficClass
-            + " FL: " + flowLabel + "<br>");
+            .append("</b> TC = ").append(trafficClass)
+            .append(" FL: ").append(flowLabel)
+            .append("<br>");
     verbose.append("From ");
     printAddress(verbose, srcAddress);
     verbose.append("  to ");
@@ -431,7 +438,7 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
     }
   }
 
-  public static void printAddress(StringBuffer out, byte[] address) {
+  public static void printAddress(StringBuilder out, byte[] address) {
     for (int i = 0; i < 16; i += 2) {
       out.append(StringUtils.toHex((byte) (address[i] & 0xff))
               + StringUtils.toHex((byte) (address[i + 1] & 0xff)));

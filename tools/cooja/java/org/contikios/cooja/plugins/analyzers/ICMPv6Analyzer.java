@@ -39,8 +39,8 @@ public class ICMPv6Analyzer extends PacketAnalyzer {
     "ROUTER RENUMBER", "NODE INFORMATION QUERY", "NODE INFORMATION RESPONSE"};
 
   @Override
-  public int analyzePacket(Packet packet, StringBuffer brief,
-                           StringBuffer verbose) {
+  public int analyzePacket(Packet packet, StringBuilder brief,
+                           StringBuilder verbose) {
     int type = packet.get(0) & 0xff;
     int code = packet.get(1) & 0xff;
 //        int checksum = ((packet.get(2) & 0xff) << 8) | packet.get(3) & 0xff;
@@ -69,11 +69,11 @@ public class ICMPv6Analyzer extends PacketAnalyzer {
           int mop = (packet.get(8) >> 3) & 0x07;
           int dtsn = packet.get(9);
 
-          verbose.append(" InstanceID: " + instanceID
-                  + " Version: " + version
-                  + " Rank:" + rank
-                  + " MOP: " + mop
-                  + " DTSN: " + dtsn);
+          verbose.append(" InstanceID: ").append(instanceID)
+                  .append(", Version: ").append(version)
+                  .append(", Rank: ").append(rank)
+                  .append(", MOP: ").append(mop)
+                  .append(", DTSN: ").append(dtsn);
           packet.consumeBytesStart(8);
 
           break;

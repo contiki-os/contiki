@@ -61,7 +61,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
    */
 
   @Override
-  public int analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose) {
+  public int analyzePacket(Packet packet, StringBuilder brief, StringBuilder verbose) {
 
     if (pcapExporter != null) {
       try {
@@ -141,14 +141,16 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
 
       verbose.append("</b><br>From ");
       if (srcPanID != 0) {
-        verbose.append(StringUtils.toHex((byte) (srcPanID >> 8)))
+        verbose.append("0x")
+                .append(StringUtils.toHex((byte) (srcPanID >> 8)))
                 .append(StringUtils.toHex((byte) (srcPanID & 0xff)))
                 .append('/');
       }
       printAddress(verbose, srcAddrMode, sourceAddress);
       verbose.append(" to ");
       if (destPanID != 0) {
-        verbose.append(StringUtils.toHex((byte) (destPanID >> 8)))
+        verbose.append("0x")
+                .append(StringUtils.toHex((byte) (destPanID >> 8)))
                 .append(StringUtils.toHex((byte) (destPanID & 0xff)))
                 .append('/');
       }
@@ -169,14 +171,26 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
     return ANALYSIS_OK_CONTINUE;
   }
 
-  private void printAddress(StringBuffer sb, int type, byte[] addr) {
+  private void printAddress(StringBuilder sb, int type, byte[] addr) {
     if (type == SHORT_ADDRESS) {
-      sb.append(StringUtils.toHex(addr));
+      sb.append("0x").append(StringUtils.toHex(addr));
     } else if (type == LONG_ADDRESS) {
-      sb.append(StringUtils.toHex(addr[0]) + StringUtils.toHex(addr[1]) + ":"
-              + StringUtils.toHex(addr[2]) + StringUtils.toHex(addr[3]) + ":"
-              + StringUtils.toHex(addr[4]) + StringUtils.toHex(addr[5]) + ":"
-              + StringUtils.toHex(addr[6]) + StringUtils.toHex(addr[7]));
+      sb.append(StringUtils.toHex(addr[0]))
+              .append(':')
+              .append(StringUtils.toHex(addr[1]))
+              .append(':')
+              .append(StringUtils.toHex(addr[2]))
+              .append(':')
+              .append(StringUtils.toHex(addr[3]))
+              .append(':')
+              .append(StringUtils.toHex(addr[4]))
+              .append(':')
+              .append(StringUtils.toHex(addr[5]))
+              .append(':')
+              .append(StringUtils.toHex(addr[6]))
+              .append(':')
+              .append(StringUtils.toHex(addr[7]));
+
     }
   }
 }
