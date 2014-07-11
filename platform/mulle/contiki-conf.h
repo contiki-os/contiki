@@ -33,7 +33,9 @@ typedef int32_t  s32_t;
 
 #if WITH_UIP6
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
+#ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC           csma_driver
+#endif
 #ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC           nullrdc_driver
 #endif
@@ -124,8 +126,10 @@ typedef int32_t  s32_t;
 #endif
 #define IEEE802154_CONF_PANID       0x777
 
+#ifndef COAP_MAX_OPEN_TRANSACTIONS
 /* Multiplies with chunk size, be aware of memory constraints. */
 #define COAP_MAX_OPEN_TRANSACTIONS   11
+#endif
 
 /* Must be <= open transaction number. */
 #define COAP_MAX_OBSERVERS      (COAP_MAX_OPEN_TRANSACTIONS-1)
