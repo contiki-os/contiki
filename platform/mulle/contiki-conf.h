@@ -20,7 +20,7 @@ typedef int32_t  s32_t;
 
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H
-#endif
+#endif /* PROJECT_CONF_H */
 
 /* Tell example applications that there are leds on board that can be controlled from software. */
 #define PLATFORM_HAS_LEDS    1
@@ -32,30 +32,40 @@ typedef int32_t  s32_t;
 #define LEDS_CONF_YELLOW (1 << 14)
 
 #if WITH_UIP6
+#ifndef NETSTACK_CONF_NETWORK
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
+#endif /* NETSTACK_CONF_NETWORK */
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC           csma_driver
-#endif
+#endif /* NETSTACK_CONF_MAC */
 #ifndef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC           nullrdc_driver
-#endif
+#endif /* NETSTACK_CONF_RDC */
+#ifndef NETSTACK_CONF_FRAMER
 #define NETSTACK_CONF_FRAMER        framer_802154
+#endif /* NETSTACK_CONF_FRAMER */
+#ifndef NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO         rf230_driver
+#endif /* NETSTACK_CONF_RADIO */
+
 #define SICSLOWPAN_CONF_MAXAGE      1
 #define RF230_CONF_RX_BUFFERS       10
 #define RF230_CONF_AUTOACK          0
 #define RF230_CONF_AUTORETRIES      3
 #define LINKADDR_CONF_SIZE          8
+
 #ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE        1514
-#endif
+#endif /* UIP_CONF_BUFFER_SIZE */
+
 #ifndef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM           16
-#endif
+#endif /* QUEUEBUF_CONF_NUM */
 
 #ifndef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 1
-#endif
+#endif /* UIP_CONF_ROUTER */
+
 #ifndef UIP_CONF_IPV6_RPL
 #define UIP_CONF_IPV6_RPL               1
 #endif /* UIP_CONF_IPV6_RPL */
@@ -94,12 +104,14 @@ typedef int32_t  s32_t;
 #define UIP_CONF_ICMP_DEST_UNREACH  1
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LL_802154          1
+
 #ifndef UIP_CONF_LLH_LEN
 #define UIP_CONF_LLH_LEN            0
-#endif
+#endif /* UIP_CONF_LLH_LEN */
+
 #ifndef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW     60
-#endif
+#endif /* UIP_CONF_RECEIVE_WINDOW */
 
 #define UIP_CONF_TCP_MSS            48
 #define UIP_CONF_MAX_CONNECTIONS    4
@@ -123,17 +135,18 @@ typedef int32_t  s32_t;
 
 #ifndef RF_CHANNEL
 #define RF_CHANNEL                  0
-#endif
+#endif /* RF_CHANNEL */
+
+#ifndef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID       0x777
+#endif /* IEEE802154_CONF_PANID */
 
 #ifndef COAP_MAX_OPEN_TRANSACTIONS
 /* Multiplies with chunk size, be aware of memory constraints. */
 #define COAP_MAX_OPEN_TRANSACTIONS   11
-#endif
+#endif /* COAP_MAX_OPEN_TRANSACTIONS */
 
 /* Must be <= open transaction number. */
 #define COAP_MAX_OBSERVERS      (COAP_MAX_OPEN_TRANSACTIONS-1)
-
-
 
 #endif /* __CONTIKI_CONF_H__ */
