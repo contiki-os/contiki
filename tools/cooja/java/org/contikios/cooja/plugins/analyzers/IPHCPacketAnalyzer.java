@@ -61,10 +61,12 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
   private static final int IPHC_DISPATCH = 0x60;
 
   /* packet must be on network level && have a IPHC dispatch */
+  @Override
   public boolean matchPacket(Packet packet) {
     return packet.level == NETWORK_LEVEL && (packet.get(0) & 0xe0) == IPHC_DISPATCH;
   }
 
+  @Override
   public int analyzePacket(Packet packet, StringBuffer brief,
                            StringBuffer verbose) {
 

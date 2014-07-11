@@ -13,10 +13,12 @@ public class IPv6PacketAnalyzer extends PacketAnalyzer {
 
   private static final int IPV6_DISPATCH = 0x41;
 
+  @Override
   public boolean matchPacket(Packet packet) {
     return packet.level == NETWORK_LEVEL && packet.get(0) == IPV6_DISPATCH;
   }
 
+  @Override
   public int analyzePacket(Packet packet, StringBuffer brief,
                            StringBuffer verbose) {
 
