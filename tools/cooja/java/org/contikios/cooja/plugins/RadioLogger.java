@@ -187,6 +187,7 @@ public class RadioLogger extends VisPlugin {
 
       private static final long serialVersionUID = 1692207305977527004L;
 
+      @Override
       public String getColumnName(int col) {
         if (col == COLUMN_TIME && formatTimeString) {
           return "Time";
@@ -194,14 +195,17 @@ public class RadioLogger extends VisPlugin {
         return COLUMN_NAMES[col];
       }
 
+      @Override
       public int getRowCount() {
         return connections.size();
       }
 
+      @Override
       public int getColumnCount() {
         return COLUMN_NAMES.length;
       }
 
+      @Override
       public Object getValueAt(int row, int col) {
         if (row < 0 || row >= connections.size()) {
           return "";
@@ -247,6 +251,7 @@ public class RadioLogger extends VisPlugin {
         return null;
       }
 
+      @Override
       public boolean isCellEditable(int row, int col) {
         if (col == COLUMN_FROM) {
           /* Highlight source */
@@ -265,6 +270,7 @@ public class RadioLogger extends VisPlugin {
         return false;
       }
 
+      @Override
       public Class<?> getColumnClass(int c) {
         return getValueAt(0, c).getClass();
       }
@@ -274,6 +280,7 @@ public class RadioLogger extends VisPlugin {
 
       private static final long serialVersionUID = -2199726885069809686L;
 
+      @Override
       public String getToolTipText(MouseEvent e) {
         java.awt.Point p = e.getPoint();
         int rowIndex = rowAtPoint(p);
@@ -328,6 +335,7 @@ public class RadioLogger extends VisPlugin {
 
     /* Toggle time format */
     dataTable.getTableHeader().addMouseListener(new MouseAdapter() {
+      @Override
       public void mouseClicked(MouseEvent e) {
         int colIndex = dataTable.columnAtPoint(e.getPoint());
         int columnIndex = dataTable.convertColumnIndexToModel(colIndex);
@@ -342,6 +350,7 @@ public class RadioLogger extends VisPlugin {
     });
 
     dataTable.addKeyListener(new KeyAdapter() {
+      @Override
       public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
           showInAllAction.actionPerformed(null);
@@ -366,6 +375,7 @@ public class RadioLogger extends VisPlugin {
     dataTable.setRowSorter(logFilter);
 
     dataTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+      @Override
       public void valueChanged(ListSelectionEvent e) {
         int row = dataTable.getSelectedRow();
         if (row < 0) {
@@ -394,11 +404,13 @@ public class RadioLogger extends VisPlugin {
 
     payloadMenu.add(new JMenuItem(aliasAction));
     payloadMenu.add(new JCheckBoxMenuItem(showDuplicatesAction) {
+      @Override
       public boolean isSelected() {
         return showDuplicates;
       }
     });
     payloadMenu.add(new JCheckBoxMenuItem(hideNoDestinationAction) {
+      @Override
       public boolean isSelected() {
         return hideNoDestinationPackets;
       }
@@ -469,6 +481,7 @@ public class RadioLogger extends VisPlugin {
     /* Search text field */
     searchField.setVisible(false);
     searchField.addKeyListener(new KeyAdapter() {
+      @Override
       public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
           searchSelectNext(
@@ -494,6 +507,7 @@ public class RadioLogger extends VisPlugin {
     adjuster.packColumns();
 
     radioMedium.addRadioMediumObserver(radioMediumObserver = new Observer() {
+      @Override
       public void update(Observable obs, Object obj) {
         RadioConnection conn = radioMedium.getLastConnection();
         if (conn == null) {
@@ -505,6 +519,7 @@ public class RadioLogger extends VisPlugin {
         loggedConn.connection = conn;
         loggedConn.packet = conn.getSource().getLastPacketTransmitted();
         java.awt.EventQueue.invokeLater(new Runnable() {
+          @Override
           public void run() {
             int lastSize = connections.size();
             // Check if the last row is visible
@@ -536,6 +551,7 @@ public class RadioLogger extends VisPlugin {
     }
   }
 
+  @Override
   public void startPlugin() {
     super.startPlugin();
     rebuildAllEntries();
@@ -583,6 +599,7 @@ public class RadioLogger extends VisPlugin {
    */
   public void trySelectTime(final long time) {
     java.awt.EventQueue.invokeLater(new Runnable() {
+      @Override
       public void run() {
         if (dataTable.getRowCount() == 0) {
           return;
@@ -614,6 +631,7 @@ public class RadioLogger extends VisPlugin {
     try {
       logFilter.setRowFilter(null);
       RowFilter<Object, Object> filter = new RowFilter<Object, Object>() {
+        @Override
         public boolean include(RowFilter.Entry<? extends Object, ? extends Object> entry) {
           int row = (Integer) entry.getIdentifier();
           RadioConnectionLog current = connections.get(row);
@@ -760,12 +778,14 @@ public class RadioLogger extends VisPlugin {
     }
   }
 
+  @Override
   public void closePlugin() {
     if (radioMediumObserver != null) {
       radioMedium.deleteRadioMediumObserver(radioMediumObserver);
     }
   }
 
+  @Override
   public Collection<Element> getConfigXML() {
     ArrayList<Element> config = new ArrayList<Element>();
 
@@ -812,6 +832,7 @@ public class RadioLogger extends VisPlugin {
     return config;
   }
 
+  @Override
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       String name = element.getName();
@@ -835,6 +856,7 @@ public class RadioLogger extends VisPlugin {
         final Action action;
         if (analyzerName != null && ((action = analyzerMap.get(analyzerName)) != null)) {
           java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
               action.putValue(Action.SELECTED_KEY, Boolean.TRUE);
               action.actionPerformed(null);
@@ -862,6 +884,7 @@ public class RadioLogger extends VisPlugin {
     String data = null;
     String tooltip = null;
 
+    @Override
     public String toString() {
       if (data == null) {
         RadioLogger.this.prepareDataString(this);
@@ -906,6 +929,7 @@ public class RadioLogger extends VisPlugin {
     Action action = new AbstractAction(name) {
       private static final long serialVersionUID = -608913700422638454L;
 
+      @Override
       public void actionPerformed(ActionEvent event) {
         if (analyzers != analyzerList) {
           analyzers = analyzerList;
@@ -922,6 +946,7 @@ public class RadioLogger extends VisPlugin {
   private Action clearAction = new AbstractAction("Clear") {
     private static final long serialVersionUID = -6135583266684643117L;
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       int size = connections.size();
       if (size > 0) {
@@ -935,6 +960,7 @@ public class RadioLogger extends VisPlugin {
   private Action copyAction = new AbstractAction("Copy selected") {
     private static final long serialVersionUID = 8412062977916108054L;
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
@@ -954,6 +980,7 @@ public class RadioLogger extends VisPlugin {
   private Action copyAllAction = new AbstractAction("Copy all") {
     private static final long serialVersionUID = 1905586689441157304L;
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
@@ -970,6 +997,7 @@ public class RadioLogger extends VisPlugin {
   private Action saveAction = new AbstractAction("Save to file...") {
     private static final long serialVersionUID = -3942984643211482179L;
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       JFileChooser fc = new JFileChooser();
       int returnVal = fc.showSaveDialog(Cooja.getTopParentContainer());
@@ -1014,6 +1042,7 @@ public class RadioLogger extends VisPlugin {
   private Action timeLineAction = new AbstractAction("Timeline") {
     private static final long serialVersionUID = -4035633464748224192L;
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       int selectedRow = dataTable.getSelectedRow();
       if (selectedRow < 0) return;
@@ -1038,6 +1067,7 @@ public class RadioLogger extends VisPlugin {
   private Action logListenerAction = new AbstractAction("Mote output") {
     private static final long serialVersionUID = 1985006491187878651L;
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       int selectedRow = dataTable.getSelectedRow();
       if (selectedRow < 0) return;
@@ -1066,6 +1096,7 @@ public class RadioLogger extends VisPlugin {
       putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0, true));
     }
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       timeLineAction.actionPerformed(null);
       logListenerAction.actionPerformed(null);
@@ -1076,6 +1107,7 @@ public class RadioLogger extends VisPlugin {
   private Action aliasAction = new AbstractAction("Payload alias...") {
     private static final long serialVersionUID = -1678771087456128721L;
 
+    @Override
     public void actionPerformed(ActionEvent e) {
       int selectedRow = dataTable.getSelectedRow();
       if (selectedRow < 0) return;
@@ -1127,6 +1159,7 @@ public class RadioLogger extends VisPlugin {
 
   private boolean showDuplicates = false;
   private AbstractAction showDuplicatesAction = new AbstractAction("Show duplicates") {
+    @Override
     public void actionPerformed(ActionEvent e) {
       showDuplicates = !showDuplicates;
       rebuildAllEntries();
@@ -1135,6 +1168,7 @@ public class RadioLogger extends VisPlugin {
 
   private boolean hideNoDestinationPackets = false;
   private AbstractAction hideNoDestinationAction = new AbstractAction("Hide airshots") {
+    @Override
     public void actionPerformed(ActionEvent e) {
       hideNoDestinationPackets = !hideNoDestinationPackets;
       rebuildAllEntries();

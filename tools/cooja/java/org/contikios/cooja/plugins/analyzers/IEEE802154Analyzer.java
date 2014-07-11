@@ -47,6 +47,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
     }
   }
 
+  @Override
   public boolean matchPacket(Packet packet) {
     return packet.level == MAC_LEVEL;
   }
@@ -59,6 +60,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
    * next handler
    */
 
+  @Override
   public int analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose) {
 
     if (pcapExporter != null) {

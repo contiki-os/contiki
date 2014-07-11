@@ -38,6 +38,7 @@ public class ICMPv6Analyzer extends PacketAnalyzer {
     "NEIGHBOR_SOLICITATION", "NEIGHBOR_ADVERTISEMENT", "REDIRECT",
     "ROUTER RENUMBER", "NODE INFORMATION QUERY", "NODE INFORMATION RESPONSE"};
 
+  @Override
   public int analyzePacket(Packet packet, StringBuffer brief,
                            StringBuffer verbose) {
     int type = packet.get(0) & 0xff;
