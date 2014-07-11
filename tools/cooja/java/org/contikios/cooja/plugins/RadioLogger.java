@@ -685,8 +685,8 @@ public class RadioLogger extends VisPlugin {
       return;
     }
 
-    StringBuffer brief = new StringBuffer();
-    StringBuffer verbose = new StringBuffer();
+    StringBuilder brief = new StringBuilder();
+    StringBuilder verbose = new StringBuilder();
 
     /* default analyzer */
     PacketAnalyzer.Packet packet = new PacketAnalyzer.Packet(data, PacketAnalyzer.MAC_LEVEL);
@@ -713,7 +713,7 @@ public class RadioLogger extends VisPlugin {
     }
   }
 
-  private boolean analyzePacket(PacketAnalyzer.Packet packet, StringBuffer brief, StringBuffer verbose) {
+  private boolean analyzePacket(PacketAnalyzer.Packet packet, StringBuilder brief, StringBuilder verbose) {
     if (analyzers == null) return false;
     try {
       boolean analyze = true;
