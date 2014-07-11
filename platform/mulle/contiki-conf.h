@@ -22,6 +22,9 @@ typedef int32_t  s32_t;
 #include PROJECT_CONF_H
 #endif
 
+/* Tell example applications that there are leds on board that can be controlled from software. */
+#define PLATFORM_HAS_LEDS    1
+
 #define BAUD2UBR(b) b
 
 #define LEDS_CONF_RED (1 << 15)
