@@ -67,7 +67,7 @@ len:	.res	2		; Frame length
 	.else
 
 	.include "zeropage.inc"
-reg	:=	ptr1		;  Address of register base
+reg	:=	ptr1		; Address of register base
 ptr	:=	ptr2		; Indirect addressing pointer
 len	:=	ptr3		; Frame length
 
@@ -168,16 +168,24 @@ init:
 	inc ptr+1
 	bcs :-			; Always
 
+	; Check bank select register upper byte to always read as $33
+:	ldy #$00
+fixup01:sty ethbsr+1
+fixup02:lda ethbsr+1
+	cmp #$33
+	beq :+
+	sec
+	rts
+
 	; Reset ETH card
-:	lda #$00		; Bank 0
-fixup01:sta ethbsr
+:				; Bank 0
+fixup03:sty ethbsr
 
 	lda #%10000000		; Software reset
-fixup02:sta ethrcr+1
+fixup04:sta ethrcr+1
 
-	ldy #$00
-fixup03:sty ethrcr
-fixup04:sty ethrcr+1
+fixup05:sty ethrcr
+fixup06:sty ethrcr+1
 
 	; Delay
 :	cmp ($FF,x)		; 6 cycles
@@ -189,21 +197,12 @@ fixup04:sty ethrcr+1
 	; Enable transmit and receive
 	lda #%10000001		; Enable transmit TXENA, PAD_EN
 	ldx #%00000011		; Enable receive, strip CRC ???
-fixup05:sta ethtcr
-fixup06:stx ethrcr+1
+fixup07:sta ethtcr
+fixup08:stx ethrcr+1
 
 	lda #$01		; Bank 1
-fixup07:sta ethbsr
+fixup09:sta ethbsr
 
-	; Check ISA mode base address register for reset values
-	lda #$18^67		; I/O base $300 + ROM $CC000
-fixup08:eor ethbar
-fixup09:eor ethbar+1
-	beq :+
-	sec
-	rts
-
-:
 fixup10:lda ethcr+1
 	ora #%00010000		; No wait (IOCHRDY)
 fixup11:sta ethcr+1
