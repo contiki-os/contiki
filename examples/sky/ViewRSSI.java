@@ -22,7 +22,7 @@ public class ViewRSSI extends JPanel {
 	private int[] rssi = new int[80];
 	private int[] rssiMax = new int[80];
 	/* 55 is added by the scanner. 45 is the offset of the CC2420 */
-	private final int DELTA = -55 -45 
+	private final int DELTA = -55 -45; 
 	
 	/* this is the max value of the RSSI from the cc2420 */
 	private static final int RSSI_MAX_VALUE = 200;
