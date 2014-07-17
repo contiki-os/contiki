@@ -43,6 +43,13 @@ simulation log can be processed using regular expressions:
         if l:
             print "timestamp:", l.group('timestamp')
 
+CHANGELOG
+=========
+0.1     Initial check-in
+0.2     - Keep individual jar files just while the thread is working to avoid
+            overusing disk space.
+        - Small fix: Handle an absolute path to the .jar file correctly
+
 Author
 ======
 

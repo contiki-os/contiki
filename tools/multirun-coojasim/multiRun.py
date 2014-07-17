@@ -97,6 +97,9 @@ class executeThread(threading.Thread):
             self.log("Starting execution of \"" + cmd['cmd'] + \
                     "\" in path \"" + cmd['path'] + "\"")
 
+            # Copy file from upper path to working directory
+            shutil.copy(cmd["absPath"], cmd["path"])
+
             # Start process
             proc = subprocess.Popen(['java','-Djava.awt.headless=true', '-jar', cmd['cmd']],
                     stdout=stdoutFile, stderr=stderrFile, cwd=cmd['path'])
@@ -199,16 +202,21 @@ cmds = []
 
 # Copy one version of the app to the base directory. The other copies can be
 # removed later
-shutil.copy(args.progname, os.path.join(os.path.abspath("."), simulationFolderName))
+simfolder = os.path.join(os.path.abspath("."), simulationFolderName)
+print "Copying jar file to", simfolder, "..."
+shutil.copy(args.progname, simfolder)
+
+# Absolute path to jar file. Keep copy just while simulation is running
+absProgFile = os.path.join(simfolder, args.progname)
 
 # Generate a separate command for each simulation run. Create corresponding
 # folder, execute output inside this folder
 for i in range(args.runs):
     progpath = os.path.join(os.path.abspath("."), simulationFolderName, "run_" + str(i+1))
     os.makedirs(progpath)
-    shutil.copy(args.progname, progpath)
     metainfo = {}
-    metainfo["cmd"] = args.progname
+    metainfo["cmd"] = os.path.basename(args.progname)
+    metainfo["absPath"] = absProgFile
     metainfo["path"] = progpath
     metainfo["break"] = args.break_runs
     cmds.append(metainfo)
