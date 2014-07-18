@@ -123,6 +123,7 @@ public class ContikiMoteType implements MoteType {
     DEFAULT, MANUAL;
     public String manualHeader = "netstack-conf-example.h";
 
+    @Override
     public String toString() {
       if (this == DEFAULT) {
         return "Default (from contiki-conf.h)";
@@ -204,10 +205,12 @@ public class ContikiMoteType implements MoteType {
   public ContikiMoteType() {
   }
 
+  @Override
   public Mote generateMote(Simulation simulation) {
     return new ContikiMote(this, simulation);
   }
 
+  @Override
   public boolean configureAndInit(Container parentContainer, Simulation simulation,
       boolean visAvailable) throws MoteTypeCreationException {
     myConfig = simulation.getCooja().getProjectConfig().clone();
@@ -665,34 +668,42 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
+  @Override
   public String getIdentifier() {
     return identifier;
   }
 
+  @Override
   public void setIdentifier(String identifier) {
     this.identifier = identifier;
   }
 
+  @Override
   public File getContikiSourceFile() {
     return fileSource;
   }
 
+  @Override
   public void setContikiSourceFile(File file) {
     fileSource = file;
   }
 
+  @Override
   public File getContikiFirmwareFile() {
     return fileFirmware;
   }
 
+  @Override
   public void setContikiFirmwareFile(File file) {
     fileFirmware = file;
   }
 
+  @Override
   public String getCompileCommands() {
     return compileCommands;
   }
 
+  @Override
   public void setCompileCommands(String commands) {
     this.compileCommands = commands;
   }
@@ -1037,14 +1048,17 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
 
+  @Override
   public void setDescription(String newDescription) {
     description = newDescription;
   }
 
+  @Override
   public ProjectConfig getConfig() {
     return myConfig;
   }
@@ -1088,6 +1102,7 @@ public class ContikiMoteType implements MoteType {
     this.coreInterfaces = coreInterfaces;
   }
 
+  @Override
   public Class<? extends MoteInterface>[] getMoteInterfaceClasses() {
     if (moteInterfacesClasses == null) {
       return null;
@@ -1097,6 +1112,7 @@ public class ContikiMoteType implements MoteType {
     return arr;
   }
 
+  @Override
   public void setMoteInterfaceClasses(Class<? extends MoteInterface>[] moteInterfaces) {
     this.moteInterfacesClasses = new ArrayList<Class<? extends MoteInterface>>();
     for (Class<? extends MoteInterface> intf: moteInterfaces) {
@@ -1192,6 +1208,7 @@ public class ContikiMoteType implements MoteType {
    *
    * @return Mote type visualizer
    */
+  @Override
   public JComponent getTypeVisualizer() {
     StringBuilder sb = new StringBuilder();
     // Identifier
@@ -1240,6 +1257,7 @@ public class ContikiMoteType implements MoteType {
     return label;
   }
 
+  @Override
   public Collection<Element> getConfigXML(Simulation simulation) {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;
@@ -1280,6 +1298,7 @@ public class ContikiMoteType implements MoteType {
     return config;
   }
 
+  @Override
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable)
   throws MoteTypeCreationException {

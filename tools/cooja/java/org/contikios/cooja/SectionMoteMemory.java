@@ -66,10 +66,12 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     this.offset = offset;
   }
 
+  @Override
   public String[] getVariableNames() {
     return addresses.keySet().toArray(new String[0]);
   }
 
+  @Override
   public int getVariableAddress(String varName) throws UnknownVariableException {
     /* Cooja address space */
     if (!addresses.containsKey(varName)) {
@@ -79,14 +81,17 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     return addresses.get(varName).intValue() + offset;
   }
 
+  @Override
   public int getIntegerLength() {
     return 4;
   }
 
+  @Override
   public void clearMemory() {
     sections.clear();
   }
 
+  @Override
   public byte[] getMemorySegment(int address, int size) {
     /* Cooja address space */
     address -= offset;
@@ -113,6 +118,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     setMemorySegment(address+offset, data);
   }
 
+  @Override
   public void setMemorySegment(int address, byte[] data) {
     /* Cooja address space */
     address -= offset;
@@ -193,10 +199,12 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     return sections.get(sectionNr).getData();
   }
 
+  @Override
   public boolean variableExists(String varName) {
     return addresses.containsKey(varName);
   }
 
+  @Override
   public int getIntValueOf(String varName) throws UnknownVariableException {
     int varAddr = getVariableAddress(varName);
     byte[] varData = getMemorySegment(varAddr, 4);
@@ -208,6 +216,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     return parseInt(varData);
   }
 
+  @Override
   public void setIntValueOf(String varName, int newVal) throws UnknownVariableException {
     int varAddr = getVariableAddress(varName);
 
@@ -225,6 +234,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     setMemorySegment(varAddr, varData);
   }
 
+  @Override
   public byte getByteValueOf(String varName) throws UnknownVariableException {
     int varAddr = getVariableAddress(varName);
     byte[] varData = getMemorySegment(varAddr, 1);
@@ -236,6 +246,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     return varData[0];
   }
 
+  @Override
   public void setByteValueOf(String varName, byte newVal) throws UnknownVariableException {
     int varAddr = getVariableAddress(varName);
     byte[] varData = new byte[1];
@@ -245,11 +256,13 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     setMemorySegment(varAddr, varData);
   }
 
+  @Override
   public byte[] getByteArray(String varName, int length) throws UnknownVariableException {
     int varAddr = getVariableAddress(varName);
     return getMemorySegment(varAddr, length);
   }
 
+  @Override
   public void setByteArray(String varName, byte[] data) throws UnknownVariableException {
     int varAddr = getVariableAddress(varName);
     setMemorySegment(varAddr, data);
@@ -347,6 +360,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
       System.arraycopy(data, 0, this.data, addr - startAddr, data.length);
     }
 
+    @Override
     public MoteMemorySection clone() {
       byte[] dataClone = new byte[data.length];
       System.arraycopy(data, 0, dataClone, 0, data.length);
@@ -356,6 +370,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     }
   }
 
+  @Override
   public SectionMoteMemory clone() {
     ArrayList<MoteMemorySection> sectionsClone = new ArrayList<MoteMemorySection>();
     for (MoteMemorySection section : sections) {
@@ -401,12 +416,14 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     }
   }
   
+  @Override
   public boolean addMemoryMonitor(int address, int size, MemoryMonitor mm) {
     PolledMemorySegments t = new PolledMemorySegments(mm, address, size);
     polledMemories.add(t);
     return true;
   }
 
+  @Override
   public void removeMemoryMonitor(int address, int size, MemoryMonitor mm) {
     for (PolledMemorySegments mcm: polledMemories) {
       if (mcm.mm != mm || mcm.address != address || mcm.size != size) {
@@ -417,6 +434,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     }
   }
 
+  @Override
   public int parseInt(byte[] memorySegment) {
     int retVal = 0;
     int pos = 0;

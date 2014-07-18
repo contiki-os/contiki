@@ -60,28 +60,34 @@ public class AvrMoteMemory implements MoteMemory, AddressMemory {
         interpreter.getSimulator().insertWatch(w, address);
     }
     
+    @Override
     public void clearMemory() {
         logger.fatal("not implemented");
     }
 
+    @Override
     public byte[] getMemorySegment(int address, int size) {
         logger.fatal("getMemorySegment is not implemented");
         return null;
     }
 
+    @Override
     public int getTotalSize() {
         return 0;
     }
 
+    @Override
     public void setMemorySegment(int address, byte[] data) {
         logger.fatal("setMemorySegment is not implemented");
     }
 
+    @Override
     public byte[] getByteArray(String varName, int length)
             throws UnknownVariableException {
         return null;
     }
 
+    @Override
     public byte getByteValueOf(String varName) throws UnknownVariableException {
         return (byte) getValueOf(varName, 1);
     }
@@ -131,19 +137,23 @@ public class AvrMoteMemory implements MoteMemory, AddressMemory {
         }
     }
     
+    @Override
     public int getIntValueOf(String varName) throws UnknownVariableException {
         return getValueOf(varName, 2);
     }
 
+    @Override
     public int getIntegerLength() {
         return 2;
     }
 
+    @Override
     public int getVariableAddress(String varName)
             throws UnknownVariableException {
         return 0;
     }
 
+    @Override
     public String[] getVariableNames() {
         ArrayList<String> symbols = new ArrayList<String>();
         for (Iterator i = memoryMap.getIterator(); i.hasNext();) {
@@ -152,32 +162,39 @@ public class AvrMoteMemory implements MoteMemory, AddressMemory {
         return symbols.toArray(new String[0]);
     }
 
+    @Override
     public void setByteArray(String varName, byte[] data)
             throws UnknownVariableException {
     }
 
+    @Override
     public void setByteValueOf(String varName, byte newVal)
             throws UnknownVariableException {
         setValue(varName, newVal, 1);
     }
 
+    @Override
     public void setIntValueOf(String varName, int newVal)
             throws UnknownVariableException {
         setValue(varName, newVal, 2);
     }
 
+    @Override
     public boolean variableExists(String varName) {
         return memoryMap.getLocation(varName) != null;
     }
 
+    @Override
     public boolean addMemoryMonitor(int address, int size, MemoryMonitor mm) {
       logger.warn("Not implemented");
       return false;
     }
 
+    @Override
     public void removeMemoryMonitor(int address, int size, MemoryMonitor mm) {
     }
 
+    @Override
     public int parseInt(byte[] memorySegment) {
       logger.warn("Not implemented");
       return 0;

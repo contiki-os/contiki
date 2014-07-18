@@ -58,6 +58,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     this.cpu = cpu;
   }
 
+  @Override
   public String[] getVariableNames() {
     String[] names = new String[mapEntries.size()];
     for (int i = 0; i < mapEntries.size(); i++) {
@@ -75,19 +76,23 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     throw new UnknownVariableException(varName);
   }
 
+  @Override
   public int getVariableAddress(String varName) throws UnknownVariableException {
     MapEntry entry = getMapEntry(varName);
     return entry.getAddress();
   }
 
+  @Override
   public int getIntegerLength() {
     return 2;
   }
 
+  @Override
   public void clearMemory() {
     logger.fatal("clearMemory() not implemented");
   }
 
+  @Override
   public byte[] getMemorySegment(int address, int size) {
     int[] memInts = new int[size];
 
@@ -102,6 +107,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     return memBytes;
   }
 
+  @Override
   public void setMemorySegment(int address, byte[] data) {
     /* Convert to int array */
     int[] memInts = new int[data.length];
@@ -112,10 +118,12 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     System.arraycopy(memInts, 0, cpu.memory, address, data.length);
   }
 
+  @Override
   public int getTotalSize() {
     return cpu.memory.length;
   }
 
+  @Override
   public boolean variableExists(String varName) {
     for (MapEntry entry: mapEntries) {
       if (entry.getName().equals(varName)) {
@@ -128,6 +136,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
 
   /* TODO Check correct variable size in below methods */
 
+  @Override
   public int getIntValueOf(String varName) throws UnknownVariableException {
     MapEntry entry = getMapEntry(varName);
 
@@ -136,6 +145,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     return parseInt(varData);
   }
 
+  @Override
   public void setIntValueOf(String varName, int newVal) throws UnknownVariableException {
     MapEntry entry = getMapEntry(varName);
     int varAddr = entry.getAddress();
@@ -152,6 +162,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     setMemorySegment(varAddr, varData);
   }
 
+  @Override
   public byte getByteValueOf(String varName) throws UnknownVariableException {
     MapEntry entry = getMapEntry(varName);
     int varAddr = entry.getAddress();
@@ -161,6 +172,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     return varData[0];
   }
 
+  @Override
   public void setByteValueOf(String varName, byte newVal) throws UnknownVariableException {
     MapEntry entry = getMapEntry(varName);
     int varAddr = entry.getAddress();
@@ -172,6 +184,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     setMemorySegment(varAddr, varData);
   }
 
+  @Override
   public byte[] getByteArray(String varName, int length) throws UnknownVariableException {
     MapEntry entry = getMapEntry(varName);
     int varAddr = entry.getAddress();
@@ -179,6 +192,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     return getMemorySegment(varAddr, length);
   }
 
+  @Override
   public void setByteArray(String varName, byte[] data) throws UnknownVariableException {
     MapEntry entry = getMapEntry(varName);
     int varAddr = entry.getAddress();
@@ -209,6 +223,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     }
   }
 
+  @Override
   public boolean addMemoryMonitor(int address, int size, MemoryMonitor mm) {
     MemoryCPUMonitor t = new MemoryCPUMonitor(mm, address, size);
     cpuMonitorArray.add(t);
@@ -220,6 +235,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     return true;
   }
 
+  @Override
   public void removeMemoryMonitor(int address, int size, MemoryMonitor mm) {
     for (MemoryCPUMonitor mcm: cpuMonitorArray) {
       if (mcm.mm != mm || mcm.address != address || mcm.size != size) {
@@ -233,6 +249,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
     }
   }
 
+  @Override
   public int parseInt(byte[] memorySegment) {
     if (memorySegment.length < 2) {
       return -1;
