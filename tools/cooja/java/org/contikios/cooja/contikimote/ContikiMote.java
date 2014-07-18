@@ -83,10 +83,12 @@ public class ContikiMote extends AbstractWakeupMote implements Mote {
     requestImmediateWakeup();
   }
 
+  @Override
   public int getID() {
     return myInterfaceHandler.getMoteID().getMoteID();
   }
 
+  @Override
   public MoteInterfaceHandler getInterfaces() {
     return myInterfaceHandler;
   }
@@ -95,6 +97,7 @@ public class ContikiMote extends AbstractWakeupMote implements Mote {
     myInterfaceHandler = newInterfaces;
   }
 
+  @Override
   public MoteMemory getMemory() {
     return myMemory;
   }
@@ -103,6 +106,7 @@ public class ContikiMote extends AbstractWakeupMote implements Mote {
     myMemory = (SectionMoteMemory) memory;
   }
 
+  @Override
   public MoteType getType() {
     return myType;
   }
@@ -121,6 +125,7 @@ public class ContikiMote extends AbstractWakeupMote implements Mote {
    *
    * @param simTime Current simulation time
    */
+  @Override
   public void execute(long simTime) {
 
     /* Poll mote interfaces */
@@ -154,6 +159,7 @@ public class ContikiMote extends AbstractWakeupMote implements Mote {
    *
    * @return Current simulation config
    */
+  @Override
   public Collection<Element> getConfigXML() {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;
@@ -173,6 +179,7 @@ public class ContikiMote extends AbstractWakeupMote implements Mote {
     return config;
   }
 
+  @Override
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
     setSimulation(simulation);
     myMemory = myType.createInitialMemory();
@@ -212,6 +219,7 @@ public class ContikiMote extends AbstractWakeupMote implements Mote {
     return true;
   }
 
+  @Override
   public String toString() {
     return "Contiki " + getID();
   }

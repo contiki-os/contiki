@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -67,6 +66,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
 
   /* Observe our own radio for incoming radio packets */
   private Observer radioDataObserver = new Observer() {
+    @Override
     public void update(Observable obs, Object obj) {
       ApplicationRadio radio = (ApplicationRadio) obs;
       if (radio.getLastEvent() == Radio.RadioEvent.RECEPTION_FINISHED) {
@@ -99,6 +99,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     ((ApplicationSerialPort)moteInterfaces.getLog()).triggerLog(msg);
   }
   
+  @Override
   public MoteInterfaceHandler getInterfaces() {
     return moteInterfaces;
   }
@@ -107,6 +108,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     moteInterfaces = moteInterfaceHandler;
   }
 
+  @Override
   public MoteMemory getMemory() {
     return memory;
   }
@@ -115,6 +117,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     this.memory = (SectionMoteMemory) memory;
   }
 
+  @Override
   public MoteType getType() {
     return moteType;
   }
@@ -123,6 +126,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     moteType = type;
   }
 
+  @Override
   public Collection<Element> getConfigXML() {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;
@@ -141,6 +145,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     return config;
   }
 
+  @Override
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable) {
     setSimulation(simulation);
@@ -176,10 +181,12 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     return true;
   }
 
+  @Override
   public int getID() {
     return moteInterfaces.getMoteID().getMoteID();
   }
   
+  @Override
   public String toString() {
     return "AppMote " + getID();
   }
