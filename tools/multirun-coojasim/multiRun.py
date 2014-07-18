@@ -182,11 +182,15 @@ if not os.path.isfile(args.progname):
     sys.exit(1)
 
 # Place each run in separate folder including date
-simulationFolderName=datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+simulationFolderPrefix=datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-if os.path.exists(simulationFolderName):
-    print "Simulation folder exists! Aborting"
-    sys.exit(1)
+simulationFolderName=simulationFolderPrefix
+counter = 0
+
+#Allow for simulations being ran at the exact same time, e.g., clusters
+while os.path.exists(simulationFolderName):
+    counter+=1
+    simulationFolderName = simulationFolderPrefix +"_"+str(counter)
 
 os.makedirs(simulationFolderName)
 
