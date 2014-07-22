@@ -52,6 +52,7 @@ import org.contikios.cooja.Simulation;
 import org.contikios.cooja.Watchpoint;
 import org.contikios.cooja.WatchpointMote;
 import org.contikios.cooja.interfaces.IPAddress;
+import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.mote.memory.MemoryLayout;
 import org.contikios.cooja.motes.AbstractEmulatedMote;
 import org.contikios.cooja.mspmote.interfaces.Msp802154Radio;
@@ -188,7 +189,8 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     myCpu = cpu;
   }
 
-  public MoteMemory getMemory() {
+  @Override
+  public MemoryInterface getMemory() {
     return myMemory;
   }
 

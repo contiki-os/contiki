@@ -43,6 +43,8 @@ import org.contikios.cooja.MoteInterfaceHandler;
 import org.contikios.cooja.MoteMemory;
 import org.contikios.cooja.MoteType;
 import org.contikios.cooja.Simulation;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryLayout;
 import org.contikios.cooja.motes.AbstractEmulatedMote;
 import avrora.arch.avr.AVRProperties;
 import avrora.core.LoadableProgram;
@@ -54,7 +56,6 @@ import avrora.sim.mcu.EEPROM;
 import avrora.sim.platform.MicaZ;
 import avrora.sim.platform.PlatformFactory;
 import java.nio.ByteOrder;
-import org.contikios.cooja.mote.memory.MemoryLayout;
 
 /**
  * @author Joakim Eriksson, Fredrik Osterlind
@@ -267,7 +268,8 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
     return config;
   }
 
-  public MoteMemory getMemory() {
+  @Override
+  public MemoryInterface getMemory() {
     return myMemory;
   }
 
