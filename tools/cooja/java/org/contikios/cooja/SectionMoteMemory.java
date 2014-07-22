@@ -30,8 +30,11 @@ package org.contikios.cooja;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryLayout;
 
 /**
  * Represents a mote memory consisting of non-overlapping memory sections with
@@ -43,7 +46,7 @@ import org.apache.log4j.Logger;
  *
  * @author Fredrik Osterlind
  */
-public class SectionMoteMemory implements MoteMemory, AddressMemory {
+public class SectionMoteMemory implements MemoryInterface, MoteMemory, AddressMemory {
   private static Logger logger = Logger.getLogger(SectionMoteMemory.class);
 
   private ArrayList<MoteMemorySection> sections = new ArrayList<MoteMemorySection>();
@@ -266,6 +269,41 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
   public void setByteArray(String varName, byte[] data) throws UnknownVariableException {
     int varAddr = getVariableAddress(varName);
     setMemorySegment(varAddr, data);
+  }
+
+  @Override
+  public byte[] getMemorySegment(long addr, int size) throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void setMemorySegment(long addr, byte[] data) throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public long getStartAddr() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public Map<String, Symbol> getSymbolMap() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public MemoryLayout getLayout() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public boolean addSegmentMonitor(SegmentMonitor.EventType flag, long address, int size, SegmentMonitor monitor) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public boolean removeSegmentMonitor(long address, int size, SegmentMonitor monitor) {
+    throw new UnsupportedOperationException("Not supported yet.");
   }
 
   /**
