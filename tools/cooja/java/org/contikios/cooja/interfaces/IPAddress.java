@@ -42,9 +42,9 @@ import org.jdom.Element;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteInterface;
-import org.contikios.cooja.MoteMemory;
-import org.contikios.cooja.MoteMemory.MemoryEventType;
-import org.contikios.cooja.MoteMemory.MemoryMonitor;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /**
  * Read-only interface to IPv4 or IPv6 address.
@@ -54,21 +54,22 @@ import org.contikios.cooja.MoteMemory.MemoryMonitor;
 @ClassDescription("IP Address")
 public class IPAddress extends MoteInterface {
   private static Logger logger = Logger.getLogger(IPAddress.class);
-  private final MoteMemory moteMem;
+  private final VarMemory moteMem;
 
   private static final int IPv6_MAX_ADDRESSES = 4;
   private boolean ipv6IsGlobal = false;
   private int ipv6AddressIndex = -1;
 
   private static final int MONITORED_SIZE = 150;
-  private MemoryMonitor memMonitor;
+  private SegmentMonitor memMonitor;
 
   public IPAddress(final Mote mote) {
-    moteMem = mote.getMemory();
+    moteMem = new VarMemory(mote.getMemory());
 
-    memMonitor = new MemoryMonitor() {
-      public void memoryChanged(MoteMemory memory, MemoryEventType type, int address) {
-        if (type != MemoryEventType.WRITE) {
+    memMonitor = new MemoryInterface.SegmentMonitor() {
+      @Override
+      public void memoryChanged(MemoryInterface memory, SegmentMonitor.EventType type, long address) {
+        if (type != SegmentMonitor.EventType.WRITE) {
           return;
         }
         setChanged();
@@ -76,11 +77,11 @@ public class IPAddress extends MoteInterface {
       }
     };
     if (isVersion4()) {
-      moteMem.addMemoryMonitor(moteMem.getVariableAddress("uip_hostaddr"), 4, memMonitor);
+      moteMem.addVarMonitor(SegmentMonitor.EventType.WRITE, "uip_hostaddr", memMonitor);
     } else if (isVersion6()) {
-      moteMem.addMemoryMonitor(moteMem.getVariableAddress("uip_ds6_netif_addr_list_offset"), 1, memMonitor);
-      moteMem.addMemoryMonitor(moteMem.getVariableAddress("uip_ds6_addr_size"), 1, memMonitor);
-      moteMem.addMemoryMonitor(moteMem.getVariableAddress("uip_ds6_if"), MONITORED_SIZE, memMonitor);
+      moteMem.addVarMonitor(SegmentMonitor.EventType.WRITE, "uip_ds6_netif_addr_list_offset", memMonitor);
+      moteMem.addVarMonitor(SegmentMonitor.EventType.WRITE, "uip_ds6_addr_size", memMonitor);
+      moteMem.addVarMonitor(SegmentMonitor.EventType.WRITE, "uip_ds6_if", memMonitor);
     }
   }
 
@@ -205,11 +206,11 @@ public class IPAddress extends MoteInterface {
     super.removed();
     if (memMonitor != null) {
       if (isVersion4()) {
-        moteMem.removeMemoryMonitor(moteMem.getVariableAddress("rimeaddr_node_addr"), 4, memMonitor);
+        moteMem.removeVarMonitor("rimeaddr_node_addr", memMonitor);
       } else if (isVersion6()) {
-        moteMem.removeMemoryMonitor(moteMem.getVariableAddress("uip_ds6_netif_addr_list_offset"), 1, memMonitor);
-        moteMem.removeMemoryMonitor(moteMem.getVariableAddress("uip_ds6_addr_size"), 1, memMonitor);
-        moteMem.removeMemoryMonitor(moteMem.getVariableAddress("uip_ds6_if"), MONITORED_SIZE, memMonitor);
+        moteMem.removeVarMonitor("uip_ds6_netif_addr_list_offset", memMonitor);
+        moteMem.removeVarMonitor("uip_ds6_addr_size", memMonitor);
+        moteMem.removeVarMonitor("uip_ds6_if", memMonitor);
       }
     }
   }

@@ -47,6 +47,7 @@ import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.ApplicationRadio;
 import org.contikios.cooja.interfaces.ApplicationSerialPort;
 import org.contikios.cooja.interfaces.Radio;
+import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.mote.memory.MemoryLayout;
 
 /**
@@ -111,7 +112,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
   }
 
   @Override
-  public MoteMemory getMemory() {
+  public MemoryInterface getMemory() {
     return memory;
   }
 
