@@ -46,7 +46,7 @@ import org.contikios.cooja.mote.memory.MemoryLayout;
  *
  * @author Fredrik Osterlind
  */
-public class SectionMoteMemory implements MemoryInterface, MoteMemory, AddressMemory {
+public class SectionMoteMemory implements MemoryInterface, AddressMemory {
   private static Logger logger = Logger.getLogger(SectionMoteMemory.class);
 
   private ArrayList<MoteMemorySection> sections = new ArrayList<MoteMemorySection>();
@@ -94,48 +94,48 @@ public class SectionMoteMemory implements MemoryInterface, MoteMemory, AddressMe
     sections.clear();
   }
 
-  @Override
-  public byte[] getMemorySegment(int address, int size) {
-    /* Cooja address space */
-    address -= offset;
-   
-    for (MoteMemorySection section : sections) {
-      if (section.includesAddr(address)
-          && section.includesAddr(address + size - 1)) {
-        return section.getMemorySegment(address, size);
-      }
-    }
-    
-    /* Check if in readonly section */
-    for (MoteMemorySection section : readonlySections) {
-      if (section.includesAddr(address)
-          && section.includesAddr(address + size - 1)) {
-        return section.getMemorySegment(address, size);
-      }
-    }
-    
-    return null;
-  }
+//  @Override
+//  public byte[] getMemorySegment(int address, int size) {
+//    /* Cooja address space */
+//    address -= offset;
+//   
+//    for (MoteMemorySection section : sections) {
+//      if (section.includesAddr(address)
+//          && section.includesAddr(address + size - 1)) {
+//        return section.getMemorySegment(address, size);
+//      }
+//    }
+//    
+//    /* Check if in readonly section */
+//    for (MoteMemorySection section : readonlySections) {
+//      if (section.includesAddr(address)
+//          && section.includesAddr(address + size - 1)) {
+//        return section.getMemorySegment(address, size);
+//      }
+//    }
+//    
+//    return null;
+//  }
 
   public void setMemorySegmentNative(int address, byte[] data) {
     setMemorySegment(address+offset, data);
   }
 
-  @Override
-  public void setMemorySegment(int address, byte[] data) {
-    /* Cooja address space */
-    address -= offset;
-
-    /* TODO XXX Sections may overlap */
-    for (MoteMemorySection section : sections) {
-      if (section.includesAddr(address)
-          && section.includesAddr(address + data.length - 1)) {
-        section.setMemorySegment(address, data);
-        return;
-      }
-    }
-    sections.add(new MoteMemorySection(address, data));
-  }
+//  @Override
+//  public void setMemorySegment(int address, byte[] data) {
+//    /* Cooja address space */
+//    address -= offset;
+//
+//    /* TODO XXX Sections may overlap */
+//    for (MoteMemorySection section : sections) {
+//      if (section.includesAddr(address)
+//          && section.includesAddr(address + data.length - 1)) {
+//        section.setMemorySegment(address, data);
+//        return;
+//      }
+//    }
+//    sections.add(new MoteMemorySection(address, data));
+//  }
 
   public void setReadonlyMemorySegment(int address, byte[] data) {
     /* Cooja address space */
@@ -269,6 +269,11 @@ public class SectionMoteMemory implements MemoryInterface, MoteMemory, AddressMe
   public void setByteArray(String varName, byte[] data) throws UnknownVariableException {
     int varAddr = getVariableAddress(varName);
     setMemorySegment(varAddr, data);
+  }
+
+  @Override
+  public byte[] getMemory() throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
   @Override
@@ -430,12 +435,12 @@ public class SectionMoteMemory implements MemoryInterface, MoteMemory, AddressMe
   }
 
   private class PolledMemorySegments {
-    public final MemoryMonitor mm;
+    public final SegmentMonitor mm;
     public final int address;
     public final int size;
     private byte[] oldMem;
 
-    public PolledMemorySegments(MemoryMonitor mm, int address, int size) {
+    public PolledMemorySegments(SegmentMonitor mm, int address, int size) {
       this.mm = mm;
       this.address = address;
       this.size = size;
@@ -449,20 +454,20 @@ public class SectionMoteMemory implements MemoryInterface, MoteMemory, AddressMe
         return;
       }
       
-      mm.memoryChanged(SectionMoteMemory.this, MemoryEventType.WRITE, address);
+      mm.memoryChanged(SectionMoteMemory.this, SegmentMonitor.EventType.WRITE, address);
       oldMem = newMem;
     }
   }
-  
-  @Override
-  public boolean addMemoryMonitor(int address, int size, MemoryMonitor mm) {
+
+//  @Override
+  public boolean addMemoryMonitor(int address, int size, SegmentMonitor mm) {
     PolledMemorySegments t = new PolledMemorySegments(mm, address, size);
     polledMemories.add(t);
     return true;
   }
 
-  @Override
-  public void removeMemoryMonitor(int address, int size, MemoryMonitor mm) {
+//  @Override
+  public void removeMemoryMonitor(int address, int size, SegmentMonitor mm) {
     for (PolledMemorySegments mcm: polledMemories) {
       if (mcm.mm != mm || mcm.address != address || mcm.size != size) {
         continue;
@@ -472,7 +477,7 @@ public class SectionMoteMemory implements MemoryInterface, MoteMemory, AddressMe
     }
   }
 
-  @Override
+//  @Override
   public int parseInt(byte[] memorySegment) {
     int retVal = 0;
     int pos = 0;

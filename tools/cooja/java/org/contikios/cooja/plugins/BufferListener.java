@@ -89,8 +89,6 @@ import org.jdom.Element;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Cooja;
 import org.contikios.cooja.Mote;
-import org.contikios.cooja.MoteMemory;
-import org.contikios.cooja.MoteMemory.MemoryEventType;
 import org.contikios.cooja.Plugin;
 import org.contikios.cooja.PluginType;
 import org.contikios.cooja.SimEventCentral.MoteCountListener;

@@ -46,7 +46,6 @@ import org.contikios.cooja.Cooja;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteInterface;
 import org.contikios.cooja.MoteInterfaceHandler;
-import org.contikios.cooja.MoteMemory;
 import org.contikios.cooja.MoteType;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.Watchpoint;
@@ -194,8 +193,8 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     return myMemory;
   }
 
-  public void setMemory(MoteMemory memory) {
-    myMemory = (MspMoteMemory) memory;
+  public void setMemory(MspMoteMemory memory) {
+    myMemory = memory;
   }
 
   /**

@@ -34,7 +34,6 @@ import java.util.Iterator;
 import org.apache.log4j.Logger;
 
 import org.contikios.cooja.AddressMemory;
-import org.contikios.cooja.MoteMemory;
 import avrora.arch.avr.AVRProperties;
 import avrora.core.SourceMapping;
 import avrora.core.SourceMapping.Location;
@@ -46,7 +45,7 @@ import org.contikios.cooja.mote.memory.MemoryLayout;
 /**
  * @author Joakim Eriksson
  */
-public class AvrMoteMemory implements MemoryInterface, MoteMemory, AddressMemory {
+public class AvrMoteMemory implements MemoryInterface, AddressMemory {
     private static Logger logger = Logger.getLogger(AvrMoteMemory.class);
 
     private SourceMapping memoryMap;
@@ -64,19 +63,8 @@ public class AvrMoteMemory implements MemoryInterface, MoteMemory, AddressMemory
     }
 
     @Override
-    public byte[] getMemorySegment(int address, int size) {
-        logger.fatal("getMemorySegment is not implemented");
-        return null;
-    }
-
-    @Override
     public int getTotalSize() {
         return 0;
-    }
-
-    @Override
-    public void setMemorySegment(int address, byte[] data) {
-        logger.fatal("setMemorySegment is not implemented");
     }
 
     @Override
@@ -180,22 +168,6 @@ public class AvrMoteMemory implements MemoryInterface, MoteMemory, AddressMemory
     @Override
     public boolean variableExists(String varName) {
         return memoryMap.getLocation(varName) != null;
-    }
-
-    @Override
-    public boolean addMemoryMonitor(int address, int size, MemoryMonitor mm) {
-      logger.warn("Not implemented");
-      return false;
-    }
-
-    @Override
-    public void removeMemoryMonitor(int address, int size, MemoryMonitor mm) {
-    }
-
-    @Override
-    public int parseInt(byte[] memorySegment) {
-      logger.warn("Not implemented");
-      return 0;
     }
 
   @Override
