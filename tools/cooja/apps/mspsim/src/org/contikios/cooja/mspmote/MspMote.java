@@ -34,7 +34,6 @@ import java.awt.Component;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -52,7 +51,6 @@ import org.contikios.cooja.Watchpoint;
 import org.contikios.cooja.WatchpointMote;
 import org.contikios.cooja.interfaces.IPAddress;
 import org.contikios.cooja.mote.memory.MemoryInterface;
-import org.contikios.cooja.mote.memory.MemoryLayout;
 import org.contikios.cooja.motes.AbstractEmulatedMote;
 import org.contikios.cooja.mspmote.interfaces.Msp802154Radio;
 import org.contikios.cooja.mspmote.interfaces.MspSerial;
@@ -107,7 +105,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   public MspMote(MspMoteType moteType, Simulation simulation) {
     this.simulation = simulation;
     myMoteType = moteType;
-    new MemoryLayout(ByteOrder.LITTLE_ENDIAN, MemoryLayout.ARCH_16BIT, 2);
 
     /* Schedule us immediately */
     requestImmediateWakeup();
