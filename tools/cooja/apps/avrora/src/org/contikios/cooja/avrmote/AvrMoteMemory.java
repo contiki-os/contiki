@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, TU Braunschweig. All rights reserved.
  * Copyright (c) 2009, Swedish Institute of Computer Science. All rights
  * reserved.
  *
@@ -33,35 +34,43 @@ import org.apache.log4j.Logger;
 
 import avrora.arch.avr.AVRProperties;
 import avrora.core.SourceMapping;
+import avrora.core.SourceMapping.Location;
 import avrora.sim.AtmelInterpreter;
 import avrora.sim.Simulator.Watch;
+import avrora.sim.State;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor.EventType;
 import org.contikios.cooja.mote.memory.MemoryLayout;
 /**
- * @author Joakim Eriksson
+ * @author Joakim Eriksson, Fredrik Osterlind, David Kopf, Enrico Jorns
  */
 public class AvrMoteMemory implements MemoryInterface {
-    private static Logger logger = Logger.getLogger(AvrMoteMemory.class);
+  private static Logger logger = Logger.getLogger(AvrMoteMemory.class);
+  private static final boolean DEBUG = logger.isDebugEnabled();
 
-    private SourceMapping memoryMap;
-    private AtmelInterpreter interpreter;
-    private AVRProperties avrProperties;
-    
+  private final SourceMapping memoryMap;
+  private final AVRProperties avrProperties;
+  private final AtmelInterpreter interpreter;
+  private final ArrayList<AvrByteMonitor> memoryMonitors = new ArrayList<>();
+  private final MemoryLayout memLayout = new MemoryLayout(ByteOrder.LITTLE_ENDIAN, MemoryLayout.ARCH_8BIT, 2);
+
+  private boolean coojaIsAccessingMemory;
+
     public AvrMoteMemory(SourceMapping map, AVRProperties avrProperties, AtmelInterpreter interpreter) {
         memoryMap = map;
         this.interpreter = interpreter;
         this.avrProperties = avrProperties;
     }
 
-    public void insertWatch(Watch w, int address) {
-        interpreter.getSimulator().insertWatch(w, address);
-    }
-
-    @Override
-    public int getTotalSize() {
-        return 0;
-    }
+  @Override
+  public int getTotalSize() {
+    return avrProperties.sram_size;
+  }
 
   @Override
   public byte[] getMemory() throws MoteMemoryException {
@@ -69,43 +78,147 @@ public class AvrMoteMemory implements MemoryInterface {
   }
 
   @Override
-  public byte[] getMemorySegment(long addr, int size) throws MoteMemoryException {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public byte[] getMemorySegment(long address, int size) throws MoteMemoryException {
+    /*logger.info("getMemorySegment(" + String.format("0x%04x", address) +
+     ", " + size + ")");*/
+    if (!accessInRange(address, size)) {
+      throw new MoteMemoryException(
+              "Getting memory segment [0x%x,0x%x] failed: Out of range",
+              address, address + size - 1);
+    }
+
+    /* XXX Unsure whether this is the appropriate method to use, as it
+     * triggers memoryRead monitor. Right now I'm using a flag to indicate
+     * that Cooja (as opposed to Contiki) read the memory, to avoid infinite
+     * recursion. */
+    coojaIsAccessingMemory = true;
+    byte[] data = new byte[(int) size];
+    for (int i = 0; i < size; i++) {
+      data[i] = (byte) (interpreter.getDataByte((int) address + i) & 0xff);
+    }
+    coojaIsAccessingMemory = false;
+    return data;
   }
 
   @Override
-  public void setMemorySegment(long addr, byte[] data) throws MoteMemoryException {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public void setMemorySegment(long address, byte[] data) throws MoteMemoryException {
+    if (!accessInRange(address, data.length)) {
+      throw new MoteMemoryException(
+              "Writing memory segment [0x%x,0x%x] failed: Out of range",
+              address, address + data.length - 1);
+    }
+
+    /* XXX See comment in getMemorySegment. */
+    coojaIsAccessingMemory = true;
+    for (int i = 0; i < data.length; i++) {
+      interpreter.writeDataByte((int) address + i, data[i]);
+    }
+    coojaIsAccessingMemory = false;
+    if (DEBUG) {
+      logger.debug(String.format(
+              "Wrote memory segment [0x%x,0x%x]",
+              address, address + data.length - 1));
+    }
   }
 
   @Override
   public void clearMemory() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    setMemorySegment(0L, new byte[avrProperties.sram_size]);
+  }
+  
+  private boolean accessInRange(long address, int size) {
+    return (address >= 0) && (address + size <= avrProperties.sram_size);
   }
 
   @Override
   public long getStartAddr() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return 0;// XXX
   }
 
   @Override
   public Map<String, Symbol> getSymbolMap() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    // XXX do not fetch in function!
+    Map<String, Symbol> symbols = new HashMap<>();
+    for (Iterator<Location> iter = memoryMap.getIterator(); iter.hasNext();) {
+      Location loc = iter.next();
+      if (loc == null || (loc.section.equals(".text"))) {
+        continue;
+      }
+      symbols.put(loc.name, new Symbol(Symbol.Type.VARIABLE, loc.name, loc.section, loc.vma_addr & 0x7fffff, -1));
+    }
+    return symbols;
   }
+
 
   @Override
   public MemoryLayout getLayout() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return memLayout;
+  }
+
+  class AvrByteMonitor extends Watch.Empty {
+
+    /** start address to monitor */
+    final long address;
+    /** size to monitor */
+    final int size;
+    /** Segment monitor to notify */
+    final SegmentMonitor mm;
+    /** MonitorType we are listening to */
+    final EventType flag;
+
+    public AvrByteMonitor(long address, int size, SegmentMonitor mm, EventType flag) {
+      this.address = address;
+      this.size = size;
+      this.mm = mm;
+      this.flag = flag;
+    }
+
+    @Override
+    public void fireAfterRead(State state, int data_addr, byte value) {
+      if (flag == EventType.WRITE || coojaIsAccessingMemory) {
+        return;
+      }
+      mm.memoryChanged(AvrMoteMemory.this, EventType.READ, data_addr);
+    }
+
+    @Override
+    public void fireAfterWrite(State state, int data_addr, byte value) {
+      if (flag == EventType.READ || coojaIsAccessingMemory) {
+        return;
+      }
+      mm.memoryChanged(AvrMoteMemory.this, EventType.WRITE, data_addr);
+    }
   }
 
   @Override
-  public boolean addSegmentMonitor(SegmentMonitor.EventType flag, long address, int size, SegmentMonitor monitor) {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public boolean addSegmentMonitor(EventType flag, long address, int size, SegmentMonitor mm) {
+    AvrByteMonitor mon = new AvrByteMonitor(address, size, mm, flag);
+
+    memoryMonitors.add(mon);
+    /* logger.debug("Added AvrByteMonitor " + Integer.toString(mon.hashCode()) + " for addr " + mon.address + " size " + mon.size + " with watch" + mon.watch); */
+
+    /* Add byte monitor (watch) for every byte in range */
+    for (int idx = 0; idx < mon.size; idx++) {
+      interpreter.getSimulator().insertWatch(mon, (int) mon.address + idx);
+      /* logger.debug("Inserted watch " + Integer.toString(mon.watch.hashCode()) + " for " + (mon.address + idx)); */
+    }
+    return true;
   }
 
   @Override
-  public boolean removeSegmentMonitor(long address, int size, SegmentMonitor monitor) {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public boolean removeSegmentMonitor(long address, int size, SegmentMonitor mm) {
+    for (AvrByteMonitor mcm : memoryMonitors) {
+      if (mcm.mm != mm || mcm.address != address || mcm.size != size) {
+        continue;
+      }
+      for (int idx = 0; idx < mcm.size; idx++) {
+        interpreter.getSimulator().removeWatch(mcm, (int) mcm.address + idx);
+        /* logger.debug("Removed watch " + Integer.toString(mcm.watch.hashCode()) + " for " + (mcm.address + idx)); */
+      }
+      memoryMonitors.remove(mcm);
+      return true;
+    }
+    return false;
   }
 
 }
