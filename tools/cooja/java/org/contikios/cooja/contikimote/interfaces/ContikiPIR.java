@@ -37,7 +37,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.jdom.Element;
 import org.contikios.cooja.Mote;
-import org.contikios.cooja.SectionMoteMemory;
+import org.contikios.cooja.mote.memory.SectionMoteMemory;
 import org.contikios.cooja.contikimote.ContikiMote;
 import org.contikios.cooja.contikimote.ContikiMoteInterface;
 import org.contikios.cooja.interfaces.PIR;

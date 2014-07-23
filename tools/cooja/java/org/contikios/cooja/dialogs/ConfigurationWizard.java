@@ -66,7 +66,7 @@ import javax.swing.JScrollPane;
 import org.contikios.cooja.CoreComm;
 import org.contikios.cooja.Cooja;
 import org.contikios.cooja.MoteType.MoteTypeCreationException;
-import org.contikios.cooja.SectionMoteMemory;
+import org.contikios.cooja.mote.memory.SectionMoteMemory;
 import org.contikios.cooja.contikimote.ContikiMoteType;
 import org.contikios.cooja.mote.memory.VarMemory;
 

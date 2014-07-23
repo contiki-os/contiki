@@ -25,7 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.contikios.cooja;
+package org.contikios.cooja.mote.memory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
