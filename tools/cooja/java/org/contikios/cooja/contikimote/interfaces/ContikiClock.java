@@ -44,6 +44,7 @@ import org.contikios.cooja.contikimote.ContikiMoteInterface;
 import org.contikios.cooja.interfaces.Clock;
 import org.contikios.cooja.interfaces.PolledAfterAllTicks;
 import org.contikios.cooja.interfaces.PolledBeforeActiveTicks;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /**
  * Clock mote interface. Controls Contiki time.
@@ -71,7 +72,7 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
 
   private Simulation simulation;
   private ContikiMote mote;
-  private SectionMoteMemory moteMem;
+  private VarMemory moteMem;
 
   private long moteTime; /* Microseconds */
   private long timeDrift; /* Microseconds */
@@ -85,7 +86,7 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
   public ContikiClock(Mote mote) {
     this.simulation = mote.getSimulation();
     this.mote = (ContikiMote) mote;
-    this.moteMem = (SectionMoteMemory) mote.getMemory();
+    this.moteMem = new VarMemory(mote.getMemory());
     timeDrift = 0;
     moteTime = 0;
   }

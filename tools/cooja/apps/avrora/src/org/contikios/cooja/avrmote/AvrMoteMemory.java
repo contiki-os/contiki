@@ -28,15 +28,11 @@
 
 package org.contikios.cooja.avrmote;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
-import org.contikios.cooja.AddressMemory;
 import avrora.arch.avr.AVRProperties;
 import avrora.core.SourceMapping;
-import avrora.core.SourceMapping.Location;
 import avrora.sim.AtmelInterpreter;
 import avrora.sim.Simulator.Watch;
 import java.util.Map;
@@ -45,7 +41,7 @@ import org.contikios.cooja.mote.memory.MemoryLayout;
 /**
  * @author Joakim Eriksson
  */
-public class AvrMoteMemory implements MemoryInterface, AddressMemory {
+public class AvrMoteMemory implements MemoryInterface {
     private static Logger logger = Logger.getLogger(AvrMoteMemory.class);
 
     private SourceMapping memoryMap;
@@ -65,109 +61,6 @@ public class AvrMoteMemory implements MemoryInterface, AddressMemory {
     @Override
     public int getTotalSize() {
         return 0;
-    }
-
-    @Override
-    public byte[] getByteArray(String varName, int length)
-            throws UnknownVariableException {
-        return null;
-    }
-
-    @Override
-    public byte getByteValueOf(String varName) throws UnknownVariableException {
-        return (byte) getValueOf(varName, 1);
-    }
-    
-    private int getValueOf(String varName, int len) throws UnknownVariableException {
-        Location mem = memoryMap.getLocation(varName);
-        if (mem == null) throw new UnknownVariableException("Variable does not exist: " + varName);
-
-        System.out.println("Variable:" + varName + " in section: " + mem.section);
-        System.out.println("LMA: " + Integer.toHexString(mem.lma_addr));
-        System.out.println("VMA: " + Integer.toHexString(mem.vma_addr));
-
-        System.out.println("Data: " + interpreter.getDataByte(mem.lma_addr & 0xfffff));
-        System.out.println("Flash: " + interpreter.getFlashByte(mem.lma_addr & 0xfffff));
-        int data = 0;
-        if (mem.vma_addr > 0xfffff) {
-            for (int i = 0; i < len; i++) {
-                data = (data << 8) + (interpreter.getDataByte((mem.vma_addr & 0xfffff) + len - i - 1) & 0xff);
-                System.out.println("Read byte: " + interpreter.getDataByte((mem.vma_addr & 0xfffff) + i) +
-                        " => " + data);
-            }
-        } else {
-            for (int i = 0; i < len; i++) {
-                data = (data << 8) + interpreter.getFlashByte(mem.vma_addr + len - i - 1) & 0xff;
-            }
-        }
-        return data;
-    }
-
-    private void setValue(String varName, int val, int len) throws UnknownVariableException {
-        Location mem = memoryMap.getLocation(varName);
-        if (mem == null) throw new UnknownVariableException("Variable does not exist: " + varName);
-
-        int data = val;
-        if (mem.vma_addr > 0xfffff) {       
-            // write LSB first.
-            for (int i = 0; i < len; i++) {
-                interpreter.writeDataByte((mem.vma_addr & 0xfffff) + i, (byte) (data & 0xff));
-                System.out.println("Wrote byte: " + (data & 0xff));
-                data = data >> 8;
-            }
-        } else {
-            for (int i = 0; i < len; i++) {
-                interpreter.writeFlashByte(mem.vma_addr + i, (byte) (data & 0xff));
-                data = data >> 8;
-            }
-        }
-    }
-    
-    @Override
-    public int getIntValueOf(String varName) throws UnknownVariableException {
-        return getValueOf(varName, 2);
-    }
-
-    @Override
-    public int getIntegerLength() {
-        return 2;
-    }
-
-    @Override
-    public int getVariableAddress(String varName)
-            throws UnknownVariableException {
-        return 0;
-    }
-
-    @Override
-    public String[] getVariableNames() {
-        ArrayList<String> symbols = new ArrayList<String>();
-        for (Iterator i = memoryMap.getIterator(); i.hasNext();) {
-            symbols.add(((Location) i.next()).name);
-        }
-        return symbols.toArray(new String[0]);
-    }
-
-    @Override
-    public void setByteArray(String varName, byte[] data)
-            throws UnknownVariableException {
-    }
-
-    @Override
-    public void setByteValueOf(String varName, byte newVal)
-            throws UnknownVariableException {
-        setValue(varName, newVal, 1);
-    }
-
-    @Override
-    public void setIntValueOf(String varName, int newVal)
-            throws UnknownVariableException {
-        setValue(varName, newVal, 2);
-    }
-
-    @Override
-    public boolean variableExists(String varName) {
-        return memoryMap.getLocation(varName) != null;
     }
 
   @Override

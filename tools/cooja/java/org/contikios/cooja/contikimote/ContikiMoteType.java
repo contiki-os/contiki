@@ -68,6 +68,7 @@ import org.contikios.cooja.dialogs.CompileContiki;
 import org.contikios.cooja.dialogs.ContikiMoteCompileDialog;
 import org.contikios.cooja.dialogs.MessageList;
 import org.contikios.cooja.dialogs.MessageList.MessageContainer;
+import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.util.StringUtils;
 
 /**
@@ -505,6 +506,7 @@ public class ContikiMoteType implements MoteType {
     int offset;
     {
       SectionMoteMemory tmp = new SectionMoteMemory(addresses, 0);
+      VarMemory varMem = new VarMemory(tmp);
       byte[] data = new byte[dataSectionSize];
       getCoreMemory(dataSectionAddr, dataSectionSize, data);
       tmp.setMemorySegment(dataSectionAddr, data);
@@ -512,7 +514,7 @@ public class ContikiMoteType implements MoteType {
       getCoreMemory(bssSectionAddr, bssSectionSize, bss);
       tmp.setMemorySegment(bssSectionAddr, bss);
 
-      offset = tmp.getIntValueOf("referenceVar");
+      offset = varMem.getIntValueOf("referenceVar");
       logger.info(getContikiFirmwareFile().getName() +
           ": offsetting Cooja mote address space: " + offset);
     }

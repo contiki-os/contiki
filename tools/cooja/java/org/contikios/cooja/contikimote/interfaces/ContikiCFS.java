@@ -43,6 +43,7 @@ import org.jdom.Element;
 import org.contikios.cooja.*;
 import org.contikios.cooja.contikimote.ContikiMoteInterface;
 import org.contikios.cooja.interfaces.PolledAfterActiveTicks;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /**
  * Contiki FileSystem (CFS) interface (such as external flash).
@@ -71,7 +72,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
 
   public int FILESYSTEM_SIZE = 4000; /* Configure CFS size here and in cfs-cooja.c */
   private Mote mote = null;
-  private SectionMoteMemory moteMem = null;
+  private VarMemory moteMem = null;
 
   private int lastRead = 0;
   private int lastWritten = 0;
@@ -85,7 +86,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
    */
   public ContikiCFS(Mote mote) {
     this.mote = mote;
-    this.moteMem = (SectionMoteMemory) mote.getMemory();
+    this.moteMem = new VarMemory(mote.getMemory());
   }
 
   public static String[] getCoreInterfaceDependencies() {

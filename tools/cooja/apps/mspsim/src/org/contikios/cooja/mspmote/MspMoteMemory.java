@@ -33,14 +33,13 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import org.contikios.cooja.AddressMemory;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.mote.memory.MemoryLayout;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.util.MapEntry;
 
-public class MspMoteMemory implements MemoryInterface, AddressMemory {
+public class MspMoteMemory implements MemoryInterface {
   private static Logger logger = Logger.getLogger(MspMoteMemory.class);
   private final ArrayList<MapEntry> mapEntries;
 
@@ -59,143 +58,9 @@ public class MspMoteMemory implements MemoryInterface, AddressMemory {
   }
 
   @Override
-  public String[] getVariableNames() {
-    String[] names = new String[mapEntries.size()];
-    for (int i = 0; i < mapEntries.size(); i++) {
-      names[i] = mapEntries.get(i).getName();
-    }
-    return names;
-  }
-
-  private MapEntry getMapEntry(String varName) throws UnknownVariableException {
-    for (MapEntry entry: mapEntries) {
-      if (entry.getName().equals(varName)) {
-        return entry;
-      }
-    }
-    throw new UnknownVariableException(varName);
-  }
-
-  @Override
-  public int getVariableAddress(String varName) throws UnknownVariableException {
-    MapEntry entry = getMapEntry(varName);
-    return entry.getAddress();
-  }
-
-  @Override
-  public int getIntegerLength() {
-    return 2;
-  }
-
-//  @Override
-//  public byte[] getMemorySegment(int address, int size) {
-//    int[] memInts = new int[size];
-//
-//    System.arraycopy(cpu.memory, address, memInts, 0, size);
-//
-//    /* Convert to byte array */
-//    byte[] memBytes = new byte[size];
-//    for (int i=0; i < size; i++) {
-//      memBytes[i] = (byte) memInts[i];
-//    }
-//
-//    return memBytes;
-//  }
-//
-//  @Override
-//  public void setMemorySegment(int address, byte[] data) {
-//    /* Convert to int array */
-//    int[] memInts = new int[data.length];
-//    for (int i=0; i < data.length; i++) {
-//      memInts[i] = data[i];
-//    }
-//
-//    System.arraycopy(memInts, 0, cpu.memory, address, data.length);
-//  }
-
-  @Override
   public int getTotalSize() {
     return cpu.memory.length;
   }
-
-  @Override
-  public boolean variableExists(String varName) {
-    for (MapEntry entry: mapEntries) {
-      if (entry.getName().equals(varName)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /* TODO Check correct variable size in below methods */
-
-  @Override
-  public int getIntValueOf(String varName) throws UnknownVariableException {
-    MapEntry entry = getMapEntry(varName);
-
-    int varAddr = entry.getAddress();
-    byte[] varData = getMemorySegment(varAddr, 2);
-    return parseInt(varData);
-  }
-
-  @Override
-  public void setIntValueOf(String varName, int newVal) throws UnknownVariableException {
-    MapEntry entry = getMapEntry(varName);
-    int varAddr = entry.getAddress();
-
-    int newValToSet = Integer.reverseBytes(newVal);
-
-    // Create byte array
-    int pos = 0;
-
-    byte[] varData = new byte[2];
-    varData[pos++] = (byte) ((newValToSet & 0xFF000000) >> 24);
-    varData[pos++] = (byte) ((newValToSet & 0xFF0000) >> 16);
-
-    setMemorySegment(varAddr, varData);
-  }
-
-  @Override
-  public byte getByteValueOf(String varName) throws UnknownVariableException {
-    MapEntry entry = getMapEntry(varName);
-    int varAddr = entry.getAddress();
-
-    byte[] varData = getMemorySegment(varAddr, 1);
-
-    return varData[0];
-  }
-
-  @Override
-  public void setByteValueOf(String varName, byte newVal) throws UnknownVariableException {
-    MapEntry entry = getMapEntry(varName);
-    int varAddr = entry.getAddress();
-
-    byte[] varData = new byte[1];
-
-    varData[0] = newVal;
-
-    setMemorySegment(varAddr, varData);
-  }
-
-  @Override
-  public byte[] getByteArray(String varName, int length) throws UnknownVariableException {
-    MapEntry entry = getMapEntry(varName);
-    int varAddr = entry.getAddress();
-
-    return getMemorySegment(varAddr, length);
-  }
-
-  @Override
-  public void setByteArray(String varName, byte[] data) throws UnknownVariableException {
-    MapEntry entry = getMapEntry(varName);
-    int varAddr = entry.getAddress();
-
-    setMemorySegment(varAddr, data);
-  }
-
-//  private ArrayList<MemoryCPUMonitor> cpuMonitorArray = new ArrayList<MemoryCPUMonitor>();
 
   @Override
   public byte[] getMemory() throws MoteMemoryException {
