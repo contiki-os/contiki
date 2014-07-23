@@ -35,15 +35,12 @@ import org.apache.log4j.Logger;
 
 import org.contikios.cooja.AddressMemory;
 import org.contikios.cooja.Mote;
-import org.contikios.cooja.MoteMemory;
 import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.mote.memory.MemoryLayout;
 import se.sics.mspsim.core.MSP430;
-import se.sics.mspsim.core.Memory.AccessMode;
-import se.sics.mspsim.core.Memory.AccessType;
 import se.sics.mspsim.util.MapEntry;
 
-public class MspMoteMemory implements MemoryInterface, MoteMemory, AddressMemory {
+public class MspMoteMemory implements MemoryInterface, AddressMemory {
   private static Logger logger = Logger.getLogger(MspMoteMemory.class);
   private final ArrayList<MapEntry> mapEntries;
 
@@ -90,31 +87,31 @@ public class MspMoteMemory implements MemoryInterface, MoteMemory, AddressMemory
     return 2;
   }
 
-  @Override
-  public byte[] getMemorySegment(int address, int size) {
-    int[] memInts = new int[size];
-
-    System.arraycopy(cpu.memory, address, memInts, 0, size);
-
-    /* Convert to byte array */
-    byte[] memBytes = new byte[size];
-    for (int i=0; i < size; i++) {
-      memBytes[i] = (byte) memInts[i];
-    }
-
-    return memBytes;
-  }
-
-  @Override
-  public void setMemorySegment(int address, byte[] data) {
-    /* Convert to int array */
-    int[] memInts = new int[data.length];
-    for (int i=0; i < data.length; i++) {
-      memInts[i] = data[i];
-    }
-
-    System.arraycopy(memInts, 0, cpu.memory, address, data.length);
-  }
+//  @Override
+//  public byte[] getMemorySegment(int address, int size) {
+//    int[] memInts = new int[size];
+//
+//    System.arraycopy(cpu.memory, address, memInts, 0, size);
+//
+//    /* Convert to byte array */
+//    byte[] memBytes = new byte[size];
+//    for (int i=0; i < size; i++) {
+//      memBytes[i] = (byte) memInts[i];
+//    }
+//
+//    return memBytes;
+//  }
+//
+//  @Override
+//  public void setMemorySegment(int address, byte[] data) {
+//    /* Convert to int array */
+//    int[] memInts = new int[data.length];
+//    for (int i=0; i < data.length; i++) {
+//      memInts[i] = data[i];
+//    }
+//
+//    System.arraycopy(memInts, 0, cpu.memory, address, data.length);
+//  }
 
   @Override
   public int getTotalSize() {
@@ -198,7 +195,7 @@ public class MspMoteMemory implements MemoryInterface, MoteMemory, AddressMemory
     setMemorySegment(varAddr, data);
   }
 
-  private ArrayList<MemoryCPUMonitor> cpuMonitorArray = new ArrayList<MemoryCPUMonitor>();
+//  private ArrayList<MemoryCPUMonitor> cpuMonitorArray = new ArrayList<MemoryCPUMonitor>();
 
   @Override
   public byte[] getMemory() throws MoteMemoryException {
@@ -245,55 +242,6 @@ public class MspMoteMemory implements MemoryInterface, MoteMemory, AddressMemory
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
-  class MemoryCPUMonitor extends se.sics.mspsim.core.MemoryMonitor.Adapter {
-    public final MemoryMonitor mm;
-    public final int address;
-    public final int size;
-
-    public MemoryCPUMonitor(MemoryMonitor mm, int address, int size) {
-      this.mm = mm;
-      this.address = address;
-      this.size = size;
-    }
-
-    @Override
-    public void notifyReadAfter(int address, AccessMode mode, AccessType type) {
-        mm.memoryChanged(MspMoteMemory.this, MemoryEventType.READ, address);
-    }
-
-    @Override
-    public void notifyWriteAfter(int dstAddress, int data, AccessMode mode) {
-        mm.memoryChanged(MspMoteMemory.this, MemoryEventType.WRITE, dstAddress);
-    }
-  }
-
-  @Override
-  public boolean addMemoryMonitor(int address, int size, MemoryMonitor mm) {
-    MemoryCPUMonitor t = new MemoryCPUMonitor(mm, address, size);
-    cpuMonitorArray.add(t);
-
-    for (int a = address; a < address+size; a++) {
-      cpu.addWatchPoint(a, t);
-    }
-
-    return true;
-  }
-
-  @Override
-  public void removeMemoryMonitor(int address, int size, MemoryMonitor mm) {
-    for (MemoryCPUMonitor mcm: cpuMonitorArray) {
-      if (mcm.mm != mm || mcm.address != address || mcm.size != size) {
-        continue;
-      }
-      for (int a = address; a < address+size; a++) {
-        cpu.removeWatchPoint(a, mcm);
-      }
-      cpuMonitorArray.remove(mcm);
-      break;
-    }
-  }
-
-  @Override
   public int parseInt(byte[] memorySegment) {
     if (memorySegment.length < 2) {
       return -1;

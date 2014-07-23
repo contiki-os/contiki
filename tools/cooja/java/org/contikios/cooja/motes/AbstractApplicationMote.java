@@ -39,7 +39,6 @@ import org.jdom.Element;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteInterface;
 import org.contikios.cooja.MoteInterfaceHandler;
-import org.contikios.cooja.MoteMemory;
 import org.contikios.cooja.MoteType;
 import org.contikios.cooja.RadioPacket;
 import org.contikios.cooja.SectionMoteMemory;
@@ -116,7 +115,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     return memory;
   }
 
-  public void setMemory(MoteMemory memory) {
+  public void setMemory(SectionMoteMemory memory) {
     this.memory = (SectionMoteMemory) memory;
   }
 
