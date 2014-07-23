@@ -46,7 +46,7 @@ import org.contikios.cooja.mote.memory.MemoryLayout;
  *
  * @author Fredrik Osterlind
  */
-public class SectionMoteMemory implements MemoryInterface, AddressMemory {
+public class SectionMoteMemory implements MemoryInterface {
   private static Logger logger = Logger.getLogger(SectionMoteMemory.class);
 
   private ArrayList<MoteMemorySection> sections = new ArrayList<MoteMemorySection>();
@@ -69,73 +69,16 @@ public class SectionMoteMemory implements MemoryInterface, AddressMemory {
     this.offset = offset;
   }
 
-  @Override
-  public String[] getVariableNames() {
-    return addresses.keySet().toArray(new String[0]);
-  }
-
-  @Override
-  public int getVariableAddress(String varName) throws UnknownVariableException {
-    /* Cooja address space */
-    if (!addresses.containsKey(varName)) {
-      throw new UnknownVariableException(varName);
-    }
-    
-    return addresses.get(varName).intValue() + offset;
-  }
-
-  @Override
-  public int getIntegerLength() {
-    return 4;
-  }
 
   @Override
   public void clearMemory() {
     sections.clear();
   }
 
-//  @Override
-//  public byte[] getMemorySegment(int address, int size) {
-//    /* Cooja address space */
-//    address -= offset;
-//   
-//    for (MoteMemorySection section : sections) {
-//      if (section.includesAddr(address)
-//          && section.includesAddr(address + size - 1)) {
-//        return section.getMemorySegment(address, size);
-//      }
-//    }
-//    
-//    /* Check if in readonly section */
-//    for (MoteMemorySection section : readonlySections) {
-//      if (section.includesAddr(address)
-//          && section.includesAddr(address + size - 1)) {
-//        return section.getMemorySegment(address, size);
-//      }
-//    }
-//    
-//    return null;
-//  }
-
   public void setMemorySegmentNative(int address, byte[] data) {
     setMemorySegment(address+offset, data);
   }
 
-//  @Override
-//  public void setMemorySegment(int address, byte[] data) {
-//    /* Cooja address space */
-//    address -= offset;
-//
-//    /* TODO XXX Sections may overlap */
-//    for (MoteMemorySection section : sections) {
-//      if (section.includesAddr(address)
-//          && section.includesAddr(address + data.length - 1)) {
-//        section.setMemorySegment(address, data);
-//        return;
-//      }
-//    }
-//    sections.add(new MoteMemorySection(address, data));
-//  }
 
   public void setReadonlyMemorySegment(int address, byte[] data) {
     /* Cooja address space */
@@ -200,75 +143,6 @@ public class SectionMoteMemory implements MemoryInterface, AddressMemory {
     }
 
     return sections.get(sectionNr).getData();
-  }
-
-  @Override
-  public boolean variableExists(String varName) {
-    return addresses.containsKey(varName);
-  }
-
-  @Override
-  public int getIntValueOf(String varName) throws UnknownVariableException {
-    int varAddr = getVariableAddress(varName);
-    byte[] varData = getMemorySegment(varAddr, 4);
-
-    if (varData == null) {
-      throw new UnknownVariableException(varName);
-    }
-
-    return parseInt(varData);
-  }
-
-  @Override
-  public void setIntValueOf(String varName, int newVal) throws UnknownVariableException {
-    int varAddr = getVariableAddress(varName);
-
-    /* TODO Correct for all platforms? */
-    int newValToSet = Integer.reverseBytes(newVal);
-
-    int pos = 0;
-
-    byte[] varData = new byte[4];
-    varData[pos++] = (byte) ((newValToSet & 0xFF000000) >> 24);
-    varData[pos++] = (byte) ((newValToSet & 0xFF0000) >> 16);
-    varData[pos++] = (byte) ((newValToSet & 0xFF00) >> 8);
-    varData[pos++] = (byte) ((newValToSet & 0xFF) >> 0);
-
-    setMemorySegment(varAddr, varData);
-  }
-
-  @Override
-  public byte getByteValueOf(String varName) throws UnknownVariableException {
-    int varAddr = getVariableAddress(varName);
-    byte[] varData = getMemorySegment(varAddr, 1);
-
-    if (varData == null) {
-      throw new UnknownVariableException(varName);
-    }
-
-    return varData[0];
-  }
-
-  @Override
-  public void setByteValueOf(String varName, byte newVal) throws UnknownVariableException {
-    int varAddr = getVariableAddress(varName);
-    byte[] varData = new byte[1];
-
-    varData[0] = newVal;
-
-    setMemorySegment(varAddr, varData);
-  }
-
-  @Override
-  public byte[] getByteArray(String varName, int length) throws UnknownVariableException {
-    int varAddr = getVariableAddress(varName);
-    return getMemorySegment(varAddr, length);
-  }
-
-  @Override
-  public void setByteArray(String varName, byte[] data) throws UnknownVariableException {
-    int varAddr = getVariableAddress(varName);
-    setMemorySegment(varAddr, data);
   }
 
   @Override

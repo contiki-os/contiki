@@ -68,6 +68,7 @@ import org.contikios.cooja.Cooja;
 import org.contikios.cooja.MoteType.MoteTypeCreationException;
 import org.contikios.cooja.SectionMoteMemory;
 import org.contikios.cooja.contikimote.ContikiMoteType;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /* TODO Test common section */
 /* TODO Test readonly section */
@@ -944,14 +945,15 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary.getMemory(relDataSectionAddr, dataSectionSize, initialDataSection);
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
     SectionMoteMemory memory = new SectionMoteMemory(addresses, 0);
+    VarMemory varMem = new VarMemory(memory);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
 
     int contikiDataCounter, contikiBSSCounter;
 
     testOutput.addMessage("### Checking initial variable values: 1,0");
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     int javaDataCounter = 1;
     int javaBSSCounter = 0;
     if (contikiDataCounter != javaDataCounter) {
@@ -975,8 +977,8 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     if (contikiDataCounter != javaDataCounter) {
       testOutput.addMessage("### Data section mismatch (" + contikiDataCounter + " != " + javaDataCounter + ")", MessageList.ERROR);
       return false;
@@ -1004,8 +1006,8 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     if (contikiDataCounter != javaDataCounter) {
       testOutput.addMessage("### Data section mismatch (" + contikiDataCounter + " != " + javaDataCounter + ")", MessageList.ERROR);
       return false;
@@ -1029,8 +1031,8 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     if (contikiDataCounter != javaDataCounter) {
       testOutput.addMessage("### Data section mismatch (" + contikiDataCounter + " != " + javaDataCounter + ")", MessageList.ERROR);
       return false;
@@ -1049,8 +1051,8 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     if (contikiDataCounter != javaDataCounter) {
       testOutput.addMessage("### Data section mismatch (" + contikiDataCounter + " != " + javaDataCounter + ")", MessageList.ERROR);
       return false;

@@ -38,6 +38,7 @@ import org.contikios.cooja.contikimote.ContikiMote;
 import org.contikios.cooja.contikimote.ContikiMoteInterface;
 import org.contikios.cooja.dialogs.SerialUI;
 import org.contikios.cooja.interfaces.PolledAfterActiveTicks;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /**
  * Contiki mote serial port and log interfaces.
@@ -68,7 +69,7 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
   private static Logger logger = Logger.getLogger(ContikiRS232.class);
 
   private ContikiMote mote = null;
-  private SectionMoteMemory moteMem = null;
+  private VarMemory moteMem = null;
 
   static final int SERIAL_BUF_SIZE = 1024; /* rs232.c:40 */
   
@@ -82,7 +83,7 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
    */
   public ContikiRS232(Mote mote) {
     this.mote = (ContikiMote) mote;
-    this.moteMem = (SectionMoteMemory) mote.getMemory();
+    this.moteMem = new VarMemory(mote.getMemory());
   }
 
   public static String[] getCoreInterfaceDependencies() {
