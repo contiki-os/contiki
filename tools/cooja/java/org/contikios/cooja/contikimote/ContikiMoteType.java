@@ -396,13 +396,15 @@ public class ContikiMoteType implements MoteType {
     logger.info("Creating core communicator between Java class '" + javaClassName + "' and Contiki library '" + getContikiFirmwareFile().getName() + "'");
     myCoreComm = CoreComm.createCoreComm(this.javaClassName, getContikiFirmwareFile());
 
-    /* Parse addresses using map file or command */
+    /* Parse addresses using map file
+     * or output of command specified in external tools settings (e.g. nm -a )
+     */
     boolean useCommand = Boolean.parseBoolean(Cooja.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
 
-    int dataSectionAddr = -1, dataSectionSize = -1;
-    int bssSectionAddr = -1, bssSectionSize = -1;
-    int commonSectionAddr = -1, commonSectionSize = -1;
-    int readonlySectionAddr = -1, readonlySectionSize = -1;
+    int dataSectionRelAddr = -1, dataSectionSize = -1;
+    int bssSectionRelAddr = -1, bssSectionSize = -1;
+    int commonSectionRelAddr = -1, commonSectionSize = -1;
+    int readonlySectionRelAddr = -1, readonlySectionSize = -1;
 
     HashMap<String, Integer> addresses = new HashMap<String, Integer>();
     if (useCommand) {
@@ -417,23 +419,23 @@ public class ContikiMoteType implements MoteType {
         throw new MoteTypeCreationException("Command output parsing failed");
       }
 
-      dataSectionAddr = parseCommandDataSectionAddr(output);
+      dataSectionRelAddr = parseCommandDataSectionAddr(output);
       dataSectionSize = parseCommandDataSectionSize(output);
-      bssSectionAddr = parseCommandBssSectionAddr(output);
+      bssSectionRelAddr = parseCommandBssSectionAddr(output);
       bssSectionSize = parseCommandBssSectionSize(output);
-      commonSectionAddr = parseCommandCommonSectionAddr(output);
+      commonSectionRelAddr = parseCommandCommonSectionAddr(output);
       commonSectionSize = parseCommandCommonSectionSize(output);
 
       try {
-        readonlySectionAddr = parseCommandReadonlySectionAddr(output);
+        readonlySectionRelAddr = parseCommandReadonlySectionAddr(output);
         readonlySectionSize = parseCommandReadonlySectionSize(output);
       } catch (Exception e) {
-        readonlySectionAddr = -1;
+        readonlySectionRelAddr = -1;
         readonlySectionSize = -1;
       }
 
     } else {
-      /* Parse command output */
+      /* Parse map file */
       if (mapFile == null
               || !mapFile.exists()) {
         throw new MoteTypeCreationException("Map file " + mapFile + " could not be found");
@@ -449,41 +451,41 @@ public class ContikiMoteType implements MoteType {
         throw new MoteTypeCreationException("Map data parsing failed: " + mapFile);
       }
 
-      dataSectionAddr = parseMapDataSectionAddr(mapData);
+      dataSectionRelAddr = parseMapDataSectionAddr(mapData);
       dataSectionSize = parseMapDataSectionSize(mapData);
-      bssSectionAddr = parseMapBssSectionAddr(mapData);
+      bssSectionRelAddr = parseMapBssSectionAddr(mapData);
       bssSectionSize = parseMapBssSectionSize(mapData);
-      commonSectionAddr = parseMapCommonSectionAddr(mapData);
+      commonSectionRelAddr = parseMapCommonSectionAddr(mapData);
       commonSectionSize = parseMapCommonSectionSize(mapData);
-      readonlySectionAddr = -1;
+      readonlySectionRelAddr = -1;
       readonlySectionSize = -1;
 
     }
 
-    if (dataSectionAddr >= 0) {
+    if (dataSectionRelAddr >= 0) {
       logger.info(getContikiFirmwareFile().getName()
-              + ": data section at 0x" + Integer.toHexString(dataSectionAddr)
+              + ": data section at 0x" + Integer.toHexString(dataSectionRelAddr)
               + " (" + dataSectionSize + " == 0x" + Integer.toHexString(dataSectionSize) + " bytes)");
     } else {
       logger.fatal(getContikiFirmwareFile().getName() + ": no data section found");
     }
-    if (bssSectionAddr >= 0) {
+    if (bssSectionRelAddr >= 0) {
       logger.info(getContikiFirmwareFile().getName()
-              + ": BSS section at 0x" + Integer.toHexString(bssSectionAddr)
+              + ": BSS section at 0x" + Integer.toHexString(bssSectionRelAddr)
               + " (" + bssSectionSize + " == 0x" + Integer.toHexString(bssSectionSize) + " bytes)");
     } else {
       logger.fatal(getContikiFirmwareFile().getName() + ": no BSS section found");
     }
-    if (commonSectionAddr >= 0) {
+    if (commonSectionRelAddr >= 0) {
       logger.info(getContikiFirmwareFile().getName()
-              + ": common section at 0x" + Integer.toHexString(commonSectionAddr)
+              + ": common section at 0x" + Integer.toHexString(commonSectionRelAddr)
               + " (" + commonSectionSize + " == 0x" + Integer.toHexString(commonSectionSize) + " bytes)");
     } else {
       logger.info(getContikiFirmwareFile().getName() + ": no common section found");
     }
-    if (readonlySectionAddr >= 0) {
+    if (readonlySectionRelAddr >= 0) {
       logger.info(getContikiFirmwareFile().getName()
-              + ": readonly section at 0x" + Integer.toHexString(readonlySectionAddr)
+              + ": readonly section at 0x" + Integer.toHexString(readonlySectionRelAddr)
               + " (" + readonlySectionSize + " == 0x" + Integer.toHexString(readonlySectionSize) + " bytes)");
     } else {
       logger.warn(getContikiFirmwareFile().getName() + ": no readonly section found");
@@ -491,8 +493,8 @@ public class ContikiMoteType implements MoteType {
     if (addresses.isEmpty()) {
       throw new MoteTypeCreationException("Library variables parsing failed");
     }
-    if (dataSectionAddr <= 0 || dataSectionSize <= 0
-            || bssSectionAddr <= 0 || bssSectionSize <= 0) {
+    if (dataSectionRelAddr <= 0 || dataSectionSize <= 0
+        || bssSectionRelAddr <= 0 || bssSectionSize <= 0) {
       throw new MoteTypeCreationException("Library section addresses parsing failed");
     }
 
@@ -515,11 +517,11 @@ public class ContikiMoteType implements MoteType {
       SectionMoteMemory tmp = new SectionMoteMemory(addresses, 0);
       VarMemory varMem = new VarMemory(tmp);
       byte[] data = new byte[dataSectionSize];
-      getCoreMemory(dataSectionAddr, dataSectionSize, data);
-      tmp.setMemorySegment(dataSectionAddr, data);
+      getCoreMemory(dataSectionRelAddr, dataSectionSize, data);
+      tmp.setMemorySegment(dataSectionRelAddr, data);
       byte[] bss = new byte[bssSectionSize];
-      getCoreMemory(bssSectionAddr, bssSectionSize, bss);
-      tmp.setMemorySegment(bssSectionAddr, bss);
+      getCoreMemory(bssSectionRelAddr, bssSectionSize, bss);
+      tmp.setMemorySegment(bssSectionRelAddr, bss);
 
       offset = varMem.getIntValueOf("referenceVar");
       logger.info(getContikiFirmwareFile().getName()
@@ -530,24 +532,24 @@ public class ContikiMoteType implements MoteType {
     initialMemory = new SectionMoteMemory(addresses, offset);
 
     byte[] initialDataSection = new byte[dataSectionSize];
-    getCoreMemory(dataSectionAddr, dataSectionSize, initialDataSection);
-    initialMemory.setMemorySegmentNative(dataSectionAddr, initialDataSection);
+    getCoreMemory(dataSectionRelAddr, dataSectionSize, initialDataSection);
+    initialMemory.setMemorySegmentNative(dataSectionRelAddr, initialDataSection);
 
     byte[] initialBssSection = new byte[bssSectionSize];
-    getCoreMemory(bssSectionAddr, bssSectionSize, initialBssSection);
-    initialMemory.setMemorySegmentNative(bssSectionAddr, initialBssSection);
+    getCoreMemory(bssSectionRelAddr, bssSectionSize, initialBssSection);
+    initialMemory.setMemorySegmentNative(bssSectionRelAddr, initialBssSection);
 
-    if (commonSectionAddr >= 0 && commonSectionSize > 0) {
+    if (commonSectionRelAddr >= 0 && commonSectionSize > 0) {
       byte[] initialCommonSection = new byte[commonSectionSize];
-      getCoreMemory(commonSectionAddr, commonSectionSize, initialCommonSection);
-      initialMemory.setMemorySegmentNative(commonSectionAddr, initialCommonSection);
+      getCoreMemory(commonSectionRelAddr, commonSectionSize, initialCommonSection);
+      initialMemory.setMemorySegmentNative(commonSectionRelAddr, initialCommonSection);
     }
 
     /* Read "read-only" memory */
-    if (readonlySectionAddr >= 0 && readonlySectionSize > 0) {
+    if (readonlySectionRelAddr >= 0 && readonlySectionSize > 0) {
       byte[] readonlySection = new byte[readonlySectionSize];
-      getCoreMemory(readonlySectionAddr, readonlySectionSize, readonlySection);
-      initialMemory.setReadonlyMemorySegment(readonlySectionAddr + offset, readonlySection);
+      getCoreMemory(readonlySectionRelAddr, readonlySectionSize, readonlySection);
+      initialMemory.setReadonlyMemorySegment(readonlySectionRelAddr+offset, readonlySection);
     }
   }
 
@@ -571,6 +573,26 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
+   * Copy core memory to given memory. This should not be used directly, but
+   * instead via ContikiMote.getMemory().
+   *
+   * @param mem
+   *          Memory to set
+   */
+  public void getCoreMemory(SectionMoteMemory mem) {
+    for (int i = 0; i < mem.getNumberOfSections(); i++) {
+      getCoreMemory(
+              (int) mem.getSectionNativeAddress(i) /* native address space */,
+              mem.getSizeOfSection(i),
+              mem.getDataOfSection(i));
+    }
+  }
+
+  private void getCoreMemory(int relAddr, int length, byte[] data) {
+    myCoreComm.getMemory(relAddr, length, data);
+  }
+
+  /**
    * Copy given memory to the Contiki system. This should not be used directly,
    * but instead via ContikiMote.setMemory().
    *
@@ -580,9 +602,14 @@ public class ContikiMoteType implements MoteType {
   public void setCoreMemory(SectionMoteMemory mem) {
     for (int i = 0; i < mem.getNumberOfSections(); i++) {
       setCoreMemory(
-              mem.getSectionNativeAddress(i) /* native address space */,
-              mem.getSizeOfSection(i), mem.getDataOfSection(i));
+              (int) mem.getSectionNativeAddress(i) /* native address space */,
+              mem.getSizeOfSection(i),
+              mem.getDataOfSection(i));
     }
+  }
+
+  private void setCoreMemory(int relAddr, int length, byte[] mem) {
+    myCoreComm.setMemory(relAddr, length, mem);
   }
 
   /**
@@ -660,23 +687,6 @@ public class ContikiMoteType implements MoteType {
     return (nrNew + nrOld) > 0;
   }
 
-  /**
-   * Copy core memory to given memory. This should not be used directly, but
-   * instead via ContikiMote.getMemory().
-   *
-   * @param mem
-   * Memory to set
-   */
-  public void getCoreMemory(SectionMoteMemory mem) {
-    for (int i = 0; i < mem.getNumberOfSections(); i++) {
-      int startAddr = mem.getSectionNativeAddress(i); /* native address space */
-
-      int size = mem.getSizeOfSection(i);
-      byte[] data = mem.getDataOfSection(i);
-      getCoreMemory(startAddr, size, data);
-    }
-  }
-
   @Override
   public String getIdentifier() {
     return identifier;
@@ -745,41 +755,6 @@ public class ContikiMoteType implements MoteType {
     return netStack;
   }
 
-  /**
-   * Get relative address of variable with given name.
-   *
-   * @param varName Name of variable
-   * @return Relative memory address of variable or -1 if not found
-   */
-  private static int getMapFileVarAddress(String[] mapFileData, String varName, HashMap<String, Integer> varAddresses) {
-    Integer varAddrInteger;
-    if ((varAddrInteger = varAddresses.get(varName)) != null) {
-      return varAddrInteger.intValue();
-    }
-
-    String regExp
-            = Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
-            + varName
-            + Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
-    String retString = getFirstMatchGroup(mapFileData, regExp, 1);
-
-    if (retString != null) {
-      varAddrInteger = Integer.parseInt(retString.trim(), 16);
-      varAddresses.put(varName, varAddrInteger);
-      return varAddrInteger.intValue();
-    } else {
-      return -1;
-    }
-  }
-
-  private void getCoreMemory(int relAddr, int length, byte[] data) {
-    myCoreComm.getMemory(relAddr, length, data);
-  }
-
-  private void setCoreMemory(int relAddr, int length, byte[] mem) {
-    myCoreComm.setMemory(relAddr, length, mem);
-  }
-
   private static String getFirstMatchGroup(String[] lines, String regexp, int groupNr) {
     Pattern pattern = Pattern.compile(regexp);
     for (String line : lines) {
@@ -805,9 +780,7 @@ public class ContikiMoteType implements MoteType {
             mapFileData,
             parseMapDataSectionAddr(mapFileData),
             parseMapDataSectionAddr(mapFileData) + parseMapDataSectionSize(mapFileData));
-    for (String v : dataVariables) {
-      varNames.add(v);
-    }
+    varNames.addAll(Arrays.asList(dataVariables));
 
     String[] bssVariables = getAllVariableNames(
             mapFileData,
@@ -835,13 +808,40 @@ public class ContikiMoteType implements MoteType {
     return varNames.toArray(new String[0]);
   }
 
-  protected int getVariableSize(Vector<String> lines, String varName) {
+  /**
+   * Get relative address of variable with given name.
+   *
+   * @param varName Name of variable
+   * @return Relative memory address of variable or -1 if not found
+   */
+  private static int getMapFileVarAddress(String[] mapFileData, String varName, HashMap<String, Integer> varAddresses) {
+    Integer varAddrInteger;
+    if ((varAddrInteger = varAddresses.get(varName)) != null) {
+      return varAddrInteger.intValue();
+    }
+
+    String regExp = Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
+            + varName
+            + Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
+    String retString = getFirstMatchGroup(mapFileData, regExp, 1);
+
+    if (retString != null) {
+      varAddrInteger = Integer.parseInt(retString.trim(), 16);
+      varAddresses.put(varName, varAddrInteger);
+      return varAddrInteger.intValue();
+    }
+    else {
+      return -1;
+    }
+  }
+
+  protected static int getMapFileVarSize(String[] mapFileData, String varName) {
     Pattern pattern = Pattern.compile(
             Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_1")
             + varName
             + Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
-    for (int i = 0; i < lines.size(); i++) {
-      Matcher matcher = pattern.matcher(lines.get(i));
+    for (String line : mapFileData) {
+      Matcher matcher = pattern.matcher(line);
       if (matcher.find()) {
         return Integer.decode(matcher.group(1));
       }
