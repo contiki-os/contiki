@@ -24,6 +24,8 @@ typedef int32_t  s32_t;
 
 /* Tell example applications that there are leds on board that can be controlled from software. */
 #define PLATFORM_HAS_LEDS    1
+/* Radio RSSI sensor using values from rf230 driver */
+#define PLATFORM_HAS_RADIO   1
 
 #define BAUD2UBR(b) b
 
