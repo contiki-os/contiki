@@ -196,6 +196,9 @@ main(void)
   antenna_external();
   printf("Using external antenna\n");
 
+  printf("PAN ID 0x%04x\n", IEEE802154_PANID);
+  printf("RF channel %d\n", CC2538_RF_CONF_CHANNEL);
+
 #if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
