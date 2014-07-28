@@ -62,7 +62,7 @@ dlloader_load(char *path, char *arg)
   /* Start the process. */
  
   printf("Starting '%s'\n", PROCESS_NAME_STRING(*p));
-  process_start(*p, arg);
+  process_start(*p, (void *)arg);
 
   return LOADER_OK;
 }
