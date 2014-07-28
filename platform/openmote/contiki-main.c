@@ -67,6 +67,8 @@
 #include "ieee-addr.h"
 #include "lpm.h"
 
+#include "antenna.h"
+
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
@@ -189,6 +191,10 @@ main(void)
   set_rime_addr();
   netstack_init();
   cc2538_rf_set_addr(IEEE802154_PANID);
+
+  antenna_init();
+  antenna_external();
+  printf("Using external antenna\n");
 
 #if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
