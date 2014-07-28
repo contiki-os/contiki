@@ -159,7 +159,7 @@ recv_trickle(struct trickle_conn *c)
     
     if(crc == crc16_data(msg->netcmd, len, 0)) {
       /* Start the server process with the incoming command. */
-      process_start(&shell_netcmd_server_process, msg->netcmd);
+      process_start(&shell_netcmd_server_process, (void *)msg->netcmd);
     }
   }
 }
