@@ -7,7 +7,7 @@
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   button-sensor.c
+ * \file   platform/seedeye/dev/button-sensor.c
  * \brief  Button Sensor
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-04-24
@@ -66,15 +66,15 @@ static uint8_t sensor_status = 0;
 ISR(_CHANGE_NOTICE_VECTOR)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  
+
   if(timer_expired(&debouncetimer)) {
     timer_set(&debouncetimer, CLOCK_SECOND / 4);
     sensors_changed(&button_sensor);
   }
-    
+
   IFS1CLR = _IFS1_CNIF_MASK;
 
-  
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 
@@ -99,28 +99,28 @@ configure(int type, int value)
     if(value) {
       if(!status(SENSORS_ACTIVE)) {
         timer_set(&debouncetimer, 0);
-        
+
         TRISDbits.TRISD5 = 1;
 
         CNCON = 0;
         CNCONSET =  1 << _CNCON_ON_POSITION | 1 << _CNCON_SIDL_POSITION;
         CNEN = 1 << _CNEN_CNEN14_POSITION;
         CNPUE = 1 << _CNPUE_CNPUE14_POSITION;
-        
+
         IEC1CLR = _IEC1_CNIE_MASK;
         IFS1CLR = _IFS1_CNIF_MASK;
 
         IPC6CLR = _IPC6_CNIP_MASK;
         IPC6SET = 6 << _IPC6_CNIP_POSITION;
-        
+
         IEC1SET = 1 << _IEC1_CNIE_POSITION;
-        
+
         sensor_status = 1;
       }
     }
     return 1;
   }
-  
+
   sensor_status = 0;
 
   return 0;

@@ -4,7 +4,7 @@
  * Department of Innovation Engineering - University of Salento
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -32,7 +32,7 @@
  */
 
 /**
- * \file  eeprom.c
+ * \file  platform/mbxxx/dev/eeprom.c
  * \brief ST M24C64W EEPROM driver.
  * \author Maria Laura Stefanizzi <laura28582@gmail.com>
  * \date   2013-11-20
@@ -49,7 +49,7 @@
 #define EE_MAX_TRIALS            300
 
 /* Write Cycle polling
- * 
+ *
  * During the internal Write cycle, the device disconnects itself from the bus,
  * and writes a copy of the data from its internal latches to the memory cells.
  */

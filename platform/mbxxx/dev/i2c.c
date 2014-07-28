@@ -4,7 +4,7 @@
  * Department of Innovation Engineering - University of Salento
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -32,7 +32,7 @@
  */
 
 /**
- * \file  i2c.c
+ * \file  platform/mbxxx/dev/i2c.c
  * \brief I2C bus master driver for mbxxx platform.
  * \author Maria Laura Stefanizzi <laura28582@gmail.com>
  * \date   2013-11-20
@@ -54,11 +54,11 @@ i2c_enable(void)
   /* Configure serial controller to I2C mode */
   SC2_MODE = SC2_MODE_I2C;
 
-  /* 
-   * The SCL is produced by dividing down 12MHz according to 
+  /*
+   * The SCL is produced by dividing down 12MHz according to
    * this equation:
    *    Rate = 12 MHz / ( (LIN + 1) * (2^EXP) )
-   * 
+   *
    * Configure rate registers for Fast Mode operation (400 kbps)
    */
   SC2_RATELIN = 14;
