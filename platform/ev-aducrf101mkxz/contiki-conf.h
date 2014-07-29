@@ -89,11 +89,11 @@
 #define XMAC_CONF_COMPOWER                      0
 #define CXMAC_CONF_COMPOWER                     0
 
-#define COLLECT_NBR_TABLE_CONF_MAX_NEIGHBORS    32
+#define COLLECT_NBR_TABLE_CONF_MAX_NEIGHBORS    16
 
 #endif /* WITH_UIP6 */
 
-#define QUEUEBUF_CONF_NUM               16
+#define QUEUEBUF_CONF_NUM               4
 
 #define PACKETBUF_CONF_ATTRS_INLINE     1
 
@@ -109,7 +109,7 @@
 #define ENERGEST_CONF_ON                0
 
 #define AODV_COMPLIANCE
-#define AODV_NUM_RT_ENTRIES             32
+#define AODV_NUM_RT_ENTRIES             16
 
 #define WITH_ASCII                      1
 
@@ -131,8 +131,8 @@
 #define UIP_CONF_IPV6_RPL               1
 #endif
 
-#define NBR_TABLE_CONF_MAX_NEIGHBORS    30
-#define UIP_CONF_MAX_ROUTES             30
+#define NBR_TABLE_CONF_MAX_NEIGHBORS    16
+#define UIP_CONF_MAX_ROUTES             16
 
 #define UIP_CONF_ND6_SEND_RA            0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
@@ -146,7 +146,7 @@
 #define UIP_CONF_ND6_MAX_PREFIXES       3
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
-#define UIP_CONF_BUFFER_SIZE            140
+#define UIP_CONF_BUFFER_SIZE            240
 #define SICSLOWPAN_CONF_FRAG            1
 #define SICSLOWPAN_CONF_MAXAGE          8
 
