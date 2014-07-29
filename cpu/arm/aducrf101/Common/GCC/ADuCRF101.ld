@@ -91,10 +91,8 @@ SECTIONS
         } > ram AT > flash
 
         .bss : {
-                /* Stack is in BSS */
                 . = ALIGN(8);
                 __bss_start = .;
-                *(.bss.stack)
                 *(.bss)
                 *(.bss.*)
                 *(COMMON)
@@ -102,4 +100,9 @@ SECTIONS
                 __bss_end = .;
                 end = .;
         } > ram
+
+        /* Heap grows up from "end" (after bss), and stack grows down from
+           the end of RAM. */
+        . = ORIGIN(ram) + LENGTH(ram);
+        stack_end = .;
 }
