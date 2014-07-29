@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -72,6 +73,7 @@ import org.contikios.cooja.mote.memory.ArrayMemory;
 import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.mote.memory.MemoryInterface.Symbol;
 import org.contikios.cooja.mote.memory.MemoryLayout;
+import org.contikios.cooja.mote.memory.UnknownVariableException;
 import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.util.StringUtils;
 
@@ -405,38 +407,35 @@ public class ContikiMoteType implements MoteType {
      */
     boolean useCommand = Boolean.parseBoolean(Cooja.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
 
-    int dataSectionRelAddr = -1, dataSectionSize = -1;
-    int bssSectionRelAddr = -1, bssSectionSize = -1;
-    int commonSectionRelAddr = -1, commonSectionSize = -1;
-    int readonlySectionRelAddr = -1, readonlySectionSize = -1;
+    SectionParser dataSecParser;
+    SectionParser bssSecParser;
+    SectionParser commonSecParser;
+    SectionParser readonlySecParser = null;
 
-    HashMap<String, Symbol> addresses = new HashMap<String, Symbol>();
+    HashMap<String, Symbol> variables = new HashMap<>();
     if (useCommand) {
       /* Parse command output */
       String[] output = loadCommandData(getContikiFirmwareFile());
       if (output == null) {
         throw new MoteTypeCreationException("No parse command output loaded");
       }
-      boolean parseOK = parseCommandData(output, addresses);
-      if (!parseOK) {
-        logger.fatal("Command output parsing failed");
-        throw new MoteTypeCreationException("Command output parsing failed");
-      }
 
-      dataSectionRelAddr = parseCommandDataSectionAddr(output);
-      dataSectionSize = parseCommandDataSectionSize(output);
-      bssSectionRelAddr = parseCommandBssSectionAddr(output);
-      bssSectionSize = parseCommandBssSectionSize(output);
-      commonSectionRelAddr = parseCommandCommonSectionAddr(output);
-      commonSectionSize = parseCommandCommonSectionSize(output);
-
-      try {
-        readonlySectionRelAddr = parseCommandReadonlySectionAddr(output);
-        readonlySectionSize = parseCommandReadonlySectionSize(output);
-      } catch (Exception e) {
-        readonlySectionRelAddr = -1;
-        readonlySectionSize = -1;
-      }
+      dataSecParser = new CommandSectionParser(
+              output,
+              Cooja.getExternalToolsSetting("COMMAND_DATA_START"),
+              Cooja.getExternalToolsSetting("COMMAND_DATA_SIZE"));
+      bssSecParser = new CommandSectionParser(
+              output,
+              Cooja.getExternalToolsSetting("COMMAND_BSS_START"),
+              Cooja.getExternalToolsSetting("COMMAND_BSS_SIZE"));
+      commonSecParser = new CommandSectionParser(
+              output,
+              Cooja.getExternalToolsSetting("COMMAND_COMMON_START"),
+              Cooja.getExternalToolsSetting("COMMAND_COMMON_SIZE"));
+      readonlySecParser = new CommandSectionParser(
+              output,
+              Cooja.getExternalToolsSetting("^([0-9A-Fa-f]*)[ \t]t[ \t].text$"),
+              Cooja.getExternalToolsSetting("")); // XXX
 
     } else {
       /* Parse map file */
@@ -449,63 +448,32 @@ public class ContikiMoteType implements MoteType {
         logger.fatal("No map data could be loaded");
         throw new MoteTypeCreationException("No map data could be loaded: " + mapFile);
       }
-      boolean parseOK = parseMapFileData(mapData, addresses);
-      if (!parseOK) {
-        logger.fatal("Map data parsing failed");
-        throw new MoteTypeCreationException("Map data parsing failed: " + mapFile);
-      }
 
-      dataSectionRelAddr = parseMapDataSectionAddr(mapData);
-      dataSectionSize = parseMapDataSectionSize(mapData);
-      bssSectionRelAddr = parseMapBssSectionAddr(mapData);
-      bssSectionSize = parseMapBssSectionSize(mapData);
-      commonSectionRelAddr = parseMapCommonSectionAddr(mapData);
-      commonSectionSize = parseMapCommonSectionSize(mapData);
-      readonlySectionRelAddr = -1;
-      readonlySectionSize = -1;
+      dataSecParser = new MapSectionParser(
+              mapData,
+              Cooja.getExternalToolsSetting("MAPFILE_DATA_START"),
+              Cooja.getExternalToolsSetting("MAPFILE_DATA_SIZE"));
+      bssSecParser = new MapSectionParser(
+              mapData,
+              Cooja.getExternalToolsSetting("MAPFILE_BSS_START"),
+              Cooja.getExternalToolsSetting("MAPFILE_BSS_SIZE"));
+      commonSecParser = new MapSectionParser(
+              mapData,
+              Cooja.getExternalToolsSetting("MAPFILE_COMMON_START"),
+              Cooja.getExternalToolsSetting("MAPFILE_COMMON_SIZE"));
+      readonlySecParser = null;
 
-    }
-
-    if (dataSectionRelAddr >= 0) {
-      logger.info(getContikiFirmwareFile().getName()
-              + ": data section at 0x" + Integer.toHexString(dataSectionRelAddr)
-              + " (" + dataSectionSize + " == 0x" + Integer.toHexString(dataSectionSize) + " bytes)");
-    } else {
-      logger.fatal(getContikiFirmwareFile().getName() + ": no data section found");
-    }
-    if (bssSectionRelAddr >= 0) {
-      logger.info(getContikiFirmwareFile().getName()
-              + ": BSS section at 0x" + Integer.toHexString(bssSectionRelAddr)
-              + " (" + bssSectionSize + " == 0x" + Integer.toHexString(bssSectionSize) + " bytes)");
-    } else {
-      logger.fatal(getContikiFirmwareFile().getName() + ": no BSS section found");
-    }
-    if (commonSectionRelAddr >= 0) {
-      logger.info(getContikiFirmwareFile().getName()
-              + ": common section at 0x" + Integer.toHexString(commonSectionRelAddr)
-              + " (" + commonSectionSize + " == 0x" + Integer.toHexString(commonSectionSize) + " bytes)");
-    } else {
-      logger.info(getContikiFirmwareFile().getName() + ": no common section found");
-    }
-    if (readonlySectionRelAddr >= 0) {
-      logger.info(getContikiFirmwareFile().getName()
-              + ": readonly section at 0x" + Integer.toHexString(readonlySectionRelAddr)
-              + " (" + readonlySectionSize + " == 0x" + Integer.toHexString(readonlySectionSize) + " bytes)");
-    } else {
-      logger.warn(getContikiFirmwareFile().getName() + ": no readonly section found");
-    }
-    if (addresses.isEmpty()) {
-      throw new MoteTypeCreationException("Library variables parsing failed");
-    }
-    if (dataSectionRelAddr <= 0 || dataSectionSize <= 0
-        || bssSectionRelAddr <= 0 || bssSectionSize <= 0) {
-      throw new MoteTypeCreationException("Library section addresses parsing failed");
     }
 
     try {
-      /* Relative <-> absolute addresses offset */
-      int referenceVar = (int) addresses.get("referenceVar").addr;
-      myCoreComm.setReferenceAddress(referenceVar);
+      Map<String, Symbol> vars = bssSecParser.getSymbols();
+      for (Symbol s : vars.values()) {
+        if (s.name.equals("referenceVar")) {
+          /* Relative <-> absolute addresses offset */
+          int referenceVar = (int) s.addr;
+          myCoreComm.setReferenceAddress(referenceVar);
+        }
+      }
     } catch (Exception e) {
       throw new MoteTypeCreationException("JNI call error: " + e.getMessage(), e);
     }
@@ -518,42 +486,185 @@ public class ContikiMoteType implements MoteType {
      * Contiki's and Cooja's address spaces */
     int offset;
     {
-      SectionMoteMemory tmp = new SectionMoteMemory(addresses, 0);
+      SectionMoteMemory tmp = new SectionMoteMemory(variables, 0);
       VarMemory varMem = new VarMemory(tmp);
-      byte[] data = new byte[dataSectionSize];
-      getCoreMemory(dataSectionRelAddr, dataSectionSize, data);
-      tmp.addMemorySection("data", new ArrayMemory(dataSectionRelAddr, MemoryLayout.getNative(), data, null));
-      byte[] bss = new byte[bssSectionSize];
-      getCoreMemory(bssSectionRelAddr, bssSectionSize, bss);
-      tmp.addMemorySection("bss", new ArrayMemory(bssSectionRelAddr, MemoryLayout.getNative(), bss, null));
+      tmp.addMemorySection("tmp.data", dataSecParser.parse());
+
+      tmp.addMemorySection("tmp.bss", bssSecParser.parse());
+
+      try {
+        int referenceVar = (int) varMem.getVariable("referenceVar").addr;
+        myCoreComm.setReferenceAddress(referenceVar);
+      } catch (UnknownVariableException e) {
+        throw new MoteTypeCreationException("JNI call error: " + e.getMessage(), e);
+      }
+
+      
+      getCoreMemory(tmp);
 
       offset = varMem.getIntValueOf("referenceVar");
       logger.info(getContikiFirmwareFile().getName()
-              + ": offsetting Cooja mote address space: " + offset);
+              + ": offsetting Cooja mote address space: " + Long.toHexString(offset));
     }
 
     /* Create initial memory: data+bss+optional common */
-    initialMemory = new SectionMoteMemory(addresses, offset);
+    initialMemory = new SectionMoteMemory(variables, offset);
 
-    byte[] initialDataSection = new byte[dataSectionSize];
-    getCoreMemory(dataSectionRelAddr, dataSectionSize, initialDataSection);
-    initialMemory.addMemorySection("data", new ArrayMemory(dataSectionRelAddr, MemoryLayout.getNative(), initialDataSection, null));
+    initialMemory.addMemorySection("data", dataSecParser.parse());
 
-    byte[] initialBssSection = new byte[bssSectionSize];
-    getCoreMemory(bssSectionRelAddr, bssSectionSize, initialBssSection);
-    initialMemory.addMemorySection("bss", new ArrayMemory(bssSectionRelAddr, MemoryLayout.getNative(), initialBssSection, null));
+    initialMemory.addMemorySection("bss", bssSecParser.parse());
 
-    if (commonSectionRelAddr >= 0 && commonSectionSize > 0) {
-      byte[] initialCommonSection = new byte[commonSectionSize];
-      getCoreMemory(commonSectionRelAddr, commonSectionSize, initialCommonSection);
-      initialMemory.addMemorySection("common", new ArrayMemory(commonSectionRelAddr, MemoryLayout.getNative(), initialCommonSection, null));
+    initialMemory.addMemorySection("common", commonSecParser.parse());
+
+    if (readonlySecParser != null) {
+      initialMemory.addMemorySection("readonly", readonlySecParser.parse());
     }
 
-    /* Read "read-only" memory */
-    if (readonlySectionRelAddr >= 0 && readonlySectionSize > 0) {
-      byte[] readonlySection = new byte[readonlySectionSize];
-      getCoreMemory(readonlySectionRelAddr, readonlySectionSize, readonlySection);
-      initialMemory.addMemorySection("readonly", new ArrayMemory(readonlySectionRelAddr, MemoryLayout.getNative(), readonlySection, true, null));
+    getCoreMemory(initialMemory);
+  }
+
+  public static abstract class SectionParser {
+
+    private final String[] mapFileData;
+
+    public SectionParser(String[] mapFileData) {
+      this.mapFileData = mapFileData;
+    }
+
+    public String[] getData() {
+      return mapFileData;
+    }
+
+    public abstract int parseAddr();
+
+    public abstract int parseSize();
+
+    abstract Map<String, Symbol> getSymbols();
+
+    protected int parseFirstHexInt(String regexp, String[] data) {
+      String retString = getFirstMatchGroup(data, regexp, 1);
+
+      if (retString == null || retString.equals("")) {
+        return -1;
+      }
+
+      return Integer.parseInt(retString.trim(), 16);
+    }
+
+    public MemoryInterface parse() {
+
+      int mapSectionAddr = parseAddr();
+      int mapSectionSize = parseSize();
+
+      if (mapSectionAddr < 0 || mapSectionSize <= 0) {
+        return null;
+      }
+
+      Map<String, Symbol> variables = getMapFileVarsInRange(
+              getData(),
+              mapSectionAddr,
+              mapSectionAddr + mapSectionSize);
+      if (variables == null || variables.isEmpty()) {
+        logger.warn("Map data symbol parsing failed");
+      }
+
+      logger.info(String.format("Parsed section at 0x%x ( %d == 0x%x bytes)",
+//                                getContikiFirmwareFile().getName(),
+                                mapSectionAddr,
+                                mapSectionSize,
+                                mapSectionSize));
+
+      return new ArrayMemory(
+              mapSectionAddr,
+              mapSectionSize,
+              MemoryLayout.getNative(),
+              variables);
+    }
+
+  }
+
+  /**
+   * Parses Map file for seciton data.
+   */
+  public static class MapSectionParser extends SectionParser {
+
+    private final String startRegExp;
+    private final String sizeRegExp;
+
+    public MapSectionParser(String[] mapFileData, String startRegExp, String sizeRegExp) {
+      super(mapFileData);
+      this.startRegExp = startRegExp;
+      this.sizeRegExp = sizeRegExp;
+    }
+
+    @Override
+    public int parseAddr() {
+      if (startRegExp == null) {
+        return -1;
+      }
+      return parseFirstHexInt(startRegExp, getData());
+    }
+
+    @Override
+    public int parseSize() {
+      if (sizeRegExp == null) {
+        return -1;
+      }
+      return parseFirstHexInt(sizeRegExp, getData());
+    }
+
+    @Override
+    public Map<String, Symbol> getSymbols() {
+      return getMapFileVarsInRange(
+              getData(),
+              parseAddr(),
+              parseAddr() + parseSize());
+    }
+  }
+
+  /**
+   * Parses command output for section data.
+   */
+  public static class CommandSectionParser extends SectionParser {
+
+    private final String startRegExp;
+    private final String sizeRegExp;
+
+    public CommandSectionParser(String[] mapFileData, String startRegExp, String sizeRegExp) {
+      super(mapFileData);
+      this.startRegExp = startRegExp;
+      this.sizeRegExp = sizeRegExp;
+    }
+
+    @Override
+    public int parseAddr() {
+      if (startRegExp == null) {
+        return -1;
+      }
+      return parseFirstHexInt(startRegExp, getData());
+    }
+
+    @Override
+    public int parseSize() {
+      if (sizeRegExp == null) {
+        return -1;
+      }
+
+      int start = parseAddr();
+      if (start < 0) {
+        return -1;
+      }
+
+      int end = parseFirstHexInt(sizeRegExp, getData());
+      if (end < 0) {
+        return -1;
+      }
+      return end - start;
+    }
+
+    @Override
+    public Map<String, Symbol> getSymbols() {
+      return parseCommandVariables(getData());
     }
   }
 
@@ -611,45 +722,18 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * Parses specified map file data for variable name to addresses mappings. The
-   * mappings are added to the given properties object.
-   *
-   * @param mapFileData
-   * Contents of entire map file
-   * @param varAddresses
-   * Properties that should contain the name to addresses mappings.
-   */
-  public static boolean parseMapFileData(String[] mapFileData, HashMap<String, Symbol> varAddresses) {
-    String[] varNames = getMapFileVarNames(mapFileData);
-    if (varNames == null || varNames.length == 0) {
-      return false;
-    }
-
-    for (String varName : varNames) {
-      int varAddress = getMapFileVarAddress(mapFileData, varName);
-      if (varAddress > 0) {
-        varAddresses.put(varName, new Symbol(Symbol.Type.VARIABLE, varName, varAddress, 1));
-      } else {
-        logger.warn("Parsed Contiki variable '" + varName
-                + "' but could not find address");
-      }
-    }
-
-    return true;
-  }
-
-  /**
    * Parses parse command output for variable name to addresses mappings.
    * The mappings are written to the given properties object.
+   * 
+   * TODO: need InRange version!
    *
    * @param output Command output
-   * @param addresses Variable addresses mappings
+   * @return
    */
-  public static boolean parseCommandData(String[] output, HashMap<String, Symbol> addresses) {
+  public static Map<String, Symbol> parseCommandVariables(String[] output) {
     int nrNew = 0, nrOld = 0, nrMismatch = 0;
-
-    Pattern pattern
-            = Pattern.compile(Cooja.getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS"));
+    HashMap<String, Symbol> addresses = new HashMap<>();
+    Pattern pattern = Pattern.compile(Cooja.getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS"));
 
     for (String line : output) {
       Matcher matcher = pattern.matcher(line);
@@ -659,6 +743,7 @@ public class ContikiMoteType implements MoteType {
         String symbol = matcher.group(2);
         int address = Integer.parseInt(matcher.group(1), 16);
 
+        /* XXX needs to be checked */
         if (!addresses.containsKey(symbol)) {
           nrNew++;
           addresses.put(symbol, new Symbol(Symbol.Type.VARIABLE, symbol, address, 1));
@@ -682,7 +767,7 @@ public class ContikiMoteType implements MoteType {
      logger.debug("Command response parsing summary: Added " + nrNew
      + " variables. Found " + nrOld + " old variables");
      }*/
-    return (nrNew + nrOld) > 0;
+    return addresses;
   }
 
   @Override
@@ -754,6 +839,9 @@ public class ContikiMoteType implements MoteType {
   }
 
   private static String getFirstMatchGroup(String[] lines, String regexp, int groupNr) {
+    if (regexp == null) {
+      return null;
+    }
     Pattern pattern = Pattern.compile(regexp);
     for (String line : lines) {
       Matcher matcher = pattern.matcher(line);
@@ -764,34 +852,11 @@ public class ContikiMoteType implements MoteType {
     return null;
   }
 
-  /**
-   * Returns all variable names in both data and BSS section by parsing the map
-   * file. These values should not be trusted completely as the parsing may
-   * fail.
-   *
-   * @return Variable names found in the data and bss section
-   */
-  public static String[] getMapFileVarNames(String[] mapFileData) {
-    ArrayList<String> varNames = new ArrayList<>();
-
-    String[] dataVariables = getAllVariableNames(
-            mapFileData,
-            parseMapDataSectionAddr(mapFileData),
-            parseMapDataSectionAddr(mapFileData) + parseMapDataSectionSize(mapFileData));
-    varNames.addAll(Arrays.asList(dataVariables));
-
-    String[] bssVariables = getAllVariableNames(
-            mapFileData,
-            parseMapBssSectionAddr(mapFileData),
-            parseMapBssSectionAddr(mapFileData) + parseMapBssSectionSize(mapFileData));
-    varNames.addAll(Arrays.asList(bssVariables));
-
-    return varNames.toArray(new String[0]);
-  }
-
-  private static String[] getAllVariableNames(String[] lines,
-                                              int startAddress, int endAddress) {
-    ArrayList<String> varNames = new ArrayList<>();
+  private static Map<String, Symbol> getMapFileVarsInRange(
+          String[] lines,
+          int startAddress,
+          int endAddress) {
+    Map<String, Symbol> varNames = new HashMap<>();
 
     Pattern pattern = Pattern.compile(Cooja.getExternalToolsSetting("MAPFILE_VAR_NAME"));
     for (String line : lines) {
@@ -799,11 +864,16 @@ public class ContikiMoteType implements MoteType {
       if (matcher.find()) {
         if (Integer.decode(matcher.group(1)).intValue() >= startAddress
                 && Integer.decode(matcher.group(1)).intValue() <= endAddress) {
-          varNames.add(matcher.group(2));
+          String varName = matcher.group(2);
+          varNames.put(varName, new Symbol(
+                  Symbol.Type.VARIABLE,
+                  varName,
+                  getMapFileVarAddress(lines, varName),
+                  getMapFileVarSize(lines, varName)));
         }
       }
     }
-    return varNames.toArray(new String[0]);
+    return varNames;
   }
 
   /**
@@ -839,156 +909,6 @@ public class ContikiMoteType implements MoteType {
       }
     }
     return -1;
-  }
-
-  private static int parseFirstHexInt(String regexp, String[] data) {
-    String retString
-            = getFirstMatchGroup(data, regexp, 1);
-
-    if (retString != null) {
-      return Integer.parseInt(retString.trim(), 16);
-    } else {
-      return -1;
-    }
-  }
-
-  public static int parseMapDataSectionAddr(String[] mapFileData) {
-    String regexp = Cooja.getExternalToolsSetting("MAPFILE_DATA_START", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    return parseFirstHexInt(regexp, mapFileData);
-  }
-
-  public static int parseMapDataSectionSize(String[] mapFileData) {
-    String regexp = Cooja.getExternalToolsSetting("MAPFILE_DATA_SIZE", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    return parseFirstHexInt(regexp, mapFileData);
-  }
-
-  public static int parseMapBssSectionAddr(String[] mapFileData) {
-    String regexp = Cooja.getExternalToolsSetting("MAPFILE_BSS_START", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    return parseFirstHexInt(regexp, mapFileData);
-  }
-
-  public static int parseMapBssSectionSize(String[] mapFileData) {
-    String regexp = Cooja.getExternalToolsSetting("MAPFILE_BSS_SIZE", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    return parseFirstHexInt(regexp, mapFileData);
-  }
-
-  public static int parseMapCommonSectionAddr(String[] mapFileData) {
-    String regexp = Cooja.getExternalToolsSetting("MAPFILE_COMMON_START", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    return parseFirstHexInt(regexp, mapFileData);
-  }
-
-  public static int parseMapCommonSectionSize(String[] mapFileData) {
-    String regexp = Cooja.getExternalToolsSetting("MAPFILE_COMMON_SIZE", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    return parseFirstHexInt(regexp, mapFileData);
-  }
-
-  public static int parseCommandDataSectionAddr(String[] output) {
-    String regexp = Cooja.getExternalToolsSetting("COMMAND_DATA_START", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    return parseFirstHexInt(regexp, output);
-  }
-
-  public static int parseCommandDataSectionSize(String[] output) {
-    String regexp = Cooja.getExternalToolsSetting("COMMAND_DATA_END", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    int start = parseCommandDataSectionAddr(output);
-    if (start < 0) {
-      return -1;
-    }
-
-    int end = parseFirstHexInt(regexp, output);
-    if (end < 0) {
-      return -1;
-    }
-    return end - start;
-  }
-
-  public static int parseCommandBssSectionAddr(String[] output) {
-    String regexp = Cooja.getExternalToolsSetting("COMMAND_BSS_START", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    return parseFirstHexInt(regexp, output);
-  }
-
-  public static int parseCommandBssSectionSize(String[] output) {
-    String regexp = Cooja.getExternalToolsSetting("COMMAND_BSS_END", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    int start = parseCommandBssSectionAddr(output);
-    if (start < 0) {
-      return -1;
-    }
-
-    int end = parseFirstHexInt(regexp, output);
-    if (end < 0) {
-      return -1;
-    }
-    return end - start;
-  }
-
-  public static int parseCommandCommonSectionAddr(String[] output) {
-    String regexp = Cooja.getExternalToolsSetting("COMMAND_COMMON_START", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    return parseFirstHexInt(regexp, output);
-  }
-
-  public static int parseCommandCommonSectionSize(String[] output) {
-    String regexp = Cooja.getExternalToolsSetting("COMMAND_COMMON_END", "");
-    if (regexp.equals("")) {
-      return -1;
-    }
-    int start = parseCommandCommonSectionAddr(output);
-    if (start < 0) {
-      return -1;
-    }
-
-    int end = parseFirstHexInt(regexp, output);
-    if (end < 0) {
-      return -1;
-    }
-    return end - start;
-  }
-
-  private static int parseCommandReadonlySectionAddr(String[] output) {
-    return parseFirstHexInt("^([0-9A-Fa-f]*)[ \t]t[ \t].text$", output);
-  }
-
-  private static int parseCommandReadonlySectionSize(String[] output) {
-    int start = parseCommandReadonlySectionAddr(output);
-    if (start < 0) {
-      return -1;
-    }
-
-    /* Extract the last specified address, assuming that the interval covers all the memory */
-    String last = output[output.length - 1];
-    int lastAddress = Integer.parseInt(last.split("[ \t]")[0], 16);
-    return lastAddress - start;
   }
 
   private static int getRelVarAddr(String mapFileData[], String varName) {
