@@ -469,7 +469,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     try {
-      Map<String, Symbol> vars = bssSecParser.getSymbols();
+      Map<String, Symbol> vars = bssSecParser.parseSymbols();
       for (Symbol s : vars.values()) {
         if (s.name.equals("referenceVar")) {
           /* Relative <-> absolute addresses offset */
@@ -525,6 +525,9 @@ public class ContikiMoteType implements MoteType {
     getCoreMemory(initialMemory);
   }
 
+  /**
+   * 
+   */
   public static abstract class SectionParser {
 
     private final String[] mapFileData;
@@ -537,11 +540,11 @@ public class ContikiMoteType implements MoteType {
       return mapFileData;
     }
 
-    public abstract int parseAddr();
+    public abstract int parseStartAddr();
 
     public abstract int parseSize();
 
-    abstract Map<String, Symbol> getSymbols();
+    abstract Map<String, Symbol> parseSymbols();
 
     protected int parseFirstHexInt(String regexp, String[] data) {
       String retString = getFirstMatchGroup(data, regexp, 1);
@@ -555,20 +558,15 @@ public class ContikiMoteType implements MoteType {
 
     public MemoryInterface parse() {
 
-      int mapSectionAddr = parseAddr();
+      /* Parse start address and size of section */
+      int mapSectionAddr = parseStartAddr();
       int mapSectionSize = parseSize();
 
       if (mapSectionAddr < 0 || mapSectionSize <= 0) {
         return null;
       }
 
-      Map<String, Symbol> variables = getMapFileVarsInRange(
-              getData(),
-              mapSectionAddr,
-              mapSectionAddr + mapSectionSize);
-      if (variables == null || variables.isEmpty()) {
-        logger.warn("Map data symbol parsing failed");
-      }
+      Map<String, Symbol> variables = parseSymbols();
 
       logger.info(String.format("Parsed section at 0x%x ( %d == 0x%x bytes)",
 //                                getContikiFirmwareFile().getName(),
@@ -600,7 +598,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     @Override
-    public int parseAddr() {
+    public int parseStartAddr() {
       if (startRegExp == null) {
         return -1;
       }
@@ -616,11 +614,59 @@ public class ContikiMoteType implements MoteType {
     }
 
     @Override
-    public Map<String, Symbol> getSymbols() {
-      return getMapFileVarsInRange(
-              getData(),
-              parseAddr(),
-              parseAddr() + parseSize());
+    public Map<String, Symbol> parseSymbols() {
+      Map<String, Symbol> varNames = new HashMap<>();
+
+      Pattern pattern = Pattern.compile(Cooja.getExternalToolsSetting("MAPFILE_VAR_NAME"));
+      for (String line : getData()) {
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.find()) {
+          if (Integer.decode(matcher.group(1)).intValue() >= parseStartAddr()
+                  && Integer.decode(matcher.group(1)).intValue() <= parseStartAddr() + parseSize()) {
+            String varName = matcher.group(2);
+            varNames.put(varName, new Symbol(
+                    Symbol.Type.VARIABLE,
+                    varName,
+                    getMapFileVarAddress(getData(), varName),
+                    getMapFileVarSize(getData(), varName)));
+          }
+        }
+      }
+      return varNames;
+    }
+
+    /**
+     * Get relative address of variable with given name.
+     *
+     * @param varName Name of variable
+     * @return Relative memory address of variable or -1 if not found
+     */
+    private int getMapFileVarAddress(String[] mapFileData, String varName) {
+
+      String regExp = Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
+              + varName
+              + Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
+      String retString = getFirstMatchGroup(mapFileData, regExp, 1);
+
+      if (retString != null) {
+        return Integer.parseInt(retString.trim(), 16);
+      } else {
+        return -1;
+      }
+    }
+
+    private int getMapFileVarSize(String[] mapFileData, String varName) {
+      Pattern pattern = Pattern.compile(
+              Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_1")
+              + varName
+              + Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
+      for (String line : mapFileData) {
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.find()) {
+          return Integer.decode(matcher.group(1));
+        }
+      }
+      return -1;
     }
   }
 
@@ -639,7 +685,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     @Override
-    public int parseAddr() {
+    public int parseStartAddr() {
       if (startRegExp == null) {
         return -1;
       }
@@ -652,7 +698,7 @@ public class ContikiMoteType implements MoteType {
         return -1;
       }
 
-      int start = parseAddr();
+      int start = parseStartAddr();
       if (start < 0) {
         return -1;
       }
@@ -665,8 +711,32 @@ public class ContikiMoteType implements MoteType {
     }
 
     @Override
-    public Map<String, Symbol> getSymbols() {
-      return parseCommandVariables(getData());
+    public Map<String, Symbol> parseSymbols() {
+      HashMap<String, Symbol> addresses = new HashMap<>();
+      Pattern pattern = Pattern.compile(Cooja.getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS"));
+
+      for (String line : getData()) {
+        Matcher matcher = pattern.matcher(line);
+
+        if (matcher.find()) {
+          /* Line matched variable address */
+          String symbol = matcher.group(2);
+          int address = Integer.parseInt(matcher.group(1), 16);
+
+          /* XXX needs to be checked */
+          if (!addresses.containsKey(symbol)) {
+            addresses.put(symbol, new Symbol(Symbol.Type.VARIABLE, symbol, address, 1));
+          } else {
+            int oldAddress = (int) addresses.get(symbol).addr;
+            if (oldAddress != address) {
+              /*logger.warn("Warning, command response not matching previous entry of: "
+               + varName);*/
+            }
+          }
+        }
+      }
+
+      return addresses;
     }
   }
 
@@ -721,55 +791,6 @@ public class ContikiMoteType implements MoteType {
 
   private void setCoreMemory(int relAddr, int length, byte[] mem) {
     myCoreComm.setMemory(relAddr, length, mem);
-  }
-
-  /**
-   * Parses parse command output for variable name to addresses mappings.
-   * The mappings are written to the given properties object.
-   * 
-   * TODO: need InRange version!
-   *
-   * @param output Command output
-   * @return
-   */
-  public static Map<String, Symbol> parseCommandVariables(String[] output) {
-    int nrNew = 0, nrOld = 0, nrMismatch = 0;
-    HashMap<String, Symbol> addresses = new HashMap<>();
-    Pattern pattern = Pattern.compile(Cooja.getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS"));
-
-    for (String line : output) {
-      Matcher matcher = pattern.matcher(line);
-
-      if (matcher.find()) {
-        /* Line matched variable address */
-        String symbol = matcher.group(2);
-        int address = Integer.parseInt(matcher.group(1), 16);
-
-        /* XXX needs to be checked */
-        if (!addresses.containsKey(symbol)) {
-          nrNew++;
-          addresses.put(symbol, new Symbol(Symbol.Type.VARIABLE, symbol, address, 1));
-        } else {
-          int oldAddress = (int) addresses.get(symbol).addr;
-          if (oldAddress != address) {
-            /*logger.warn("Warning, command response not matching previous entry of: "
-             + varName);*/
-            nrMismatch++;
-          }
-          nrOld++;
-        }
-      }
-    }
-
-    /*if (nrMismatch > 0) {
-     logger.debug("Command response parsing summary: Added " + nrNew
-     + " variables. Found " + nrOld
-     + " old variables. Mismatching addresses: " + nrMismatch);
-     } else {
-     logger.debug("Command response parsing summary: Added " + nrNew
-     + " variables. Found " + nrOld + " old variables");
-     }*/
-    return addresses;
   }
 
   @Override
@@ -852,79 +873,6 @@ public class ContikiMoteType implements MoteType {
       }
     }
     return null;
-  }
-
-  private static Map<String, Symbol> getMapFileVarsInRange(
-          String[] lines,
-          int startAddress,
-          int endAddress) {
-    Map<String, Symbol> varNames = new HashMap<>();
-
-    Pattern pattern = Pattern.compile(Cooja.getExternalToolsSetting("MAPFILE_VAR_NAME"));
-    for (String line : lines) {
-      Matcher matcher = pattern.matcher(line);
-      if (matcher.find()) {
-        if (Integer.decode(matcher.group(1)).intValue() >= startAddress
-                && Integer.decode(matcher.group(1)).intValue() <= endAddress) {
-          String varName = matcher.group(2);
-          varNames.put(varName, new Symbol(
-                  Symbol.Type.VARIABLE,
-                  varName,
-                  getMapFileVarAddress(lines, varName),
-                  getMapFileVarSize(lines, varName)));
-        }
-      }
-    }
-    return varNames;
-  }
-
-  /**
-   * Get relative address of variable with given name.
-   *
-   * @param varName Name of variable
-   * @return Relative memory address of variable or -1 if not found
-   */
-  private static int getMapFileVarAddress(String[] mapFileData, String varName) {
-
-    String regExp = Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
-            + varName
-            + Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
-    String retString = getFirstMatchGroup(mapFileData, regExp, 1);
-
-    if (retString != null) {
-      return Integer.parseInt(retString.trim(), 16);
-    }
-    else {
-      return -1;
-    }
-  }
-
-  protected static int getMapFileVarSize(String[] mapFileData, String varName) {
-    Pattern pattern = Pattern.compile(
-            Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_1")
-            + varName
-            + Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
-    for (String line : mapFileData) {
-      Matcher matcher = pattern.matcher(line);
-      if (matcher.find()) {
-        return Integer.decode(matcher.group(1));
-      }
-    }
-    return -1;
-  }
-
-  private static int getRelVarAddr(String mapFileData[], String varName) {
-    String regExp
-            = Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
-            + varName
-            + Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
-    String retString = getFirstMatchGroup(mapFileData, regExp, 1);
-
-    if (retString != null) {
-      return Integer.parseInt(retString.trim(), 16);
-    } else {
-      return -1;
-    }
   }
 
   public static String[] loadMapFile(File mapFile) {
