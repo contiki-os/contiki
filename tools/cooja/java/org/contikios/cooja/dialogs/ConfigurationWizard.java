@@ -68,6 +68,7 @@ import org.contikios.cooja.Cooja;
 import org.contikios.cooja.MoteType.MoteTypeCreationException;
 import org.contikios.cooja.mote.memory.SectionMoteMemory;
 import org.contikios.cooja.contikimote.ContikiMoteType;
+import org.contikios.cooja.contikimote.ContikiMoteType.SectionParser;
 import org.contikios.cooja.mote.memory.MemoryInterface.Symbol;
 import org.contikios.cooja.mote.memory.VarMemory;
 
@@ -760,17 +761,25 @@ public class ConfigurationWizard extends JDialog {
 
     testOutput.addMessage("### Parsing map file data for addresses");
     addresses = new HashMap<String, Symbol>();
-    boolean parseOK = ContikiMoteType.parseMapFileData(mapData, addresses);
-    if (!parseOK) {
-      testOutput.addMessage("### Error: Failed parsing map file data", MessageList.ERROR);
-      return false;
-    }
+//    boolean parseOK = ContikiMoteType.parseMapFileData(mapData, addresses);
+//    if (!parseOK) {
+//      testOutput.addMessage("### Error: Failed parsing map file data", MessageList.ERROR);
+//      return false;
+//    }
 
     testOutput.addMessage("### Validating section addresses");
-    relDataSectionAddr = ContikiMoteType.parseMapDataSectionAddr(mapData);
-    dataSectionSize = ContikiMoteType.parseMapDataSectionSize(mapData);
-    relBssSectionAddr = ContikiMoteType.parseMapBssSectionAddr(mapData);
-    bssSectionSize = ContikiMoteType.parseMapBssSectionSize(mapData);
+    SectionParser dataSecParser = new ContikiMoteType.MapSectionParser(
+            mapData,
+            Cooja.getExternalToolsSetting("MAPFILE_DATA_START"),
+            Cooja.getExternalToolsSetting("MAPFILE_DATA_SIZE"));
+    SectionParser bssSecParser = new ContikiMoteType.MapSectionParser(
+            mapData,
+            Cooja.getExternalToolsSetting("MAPFILE_BSS_START"),
+            Cooja.getExternalToolsSetting("MAPFILE_BSS_SIZE"));
+    relDataSectionAddr = dataSecParser.parseAddr();
+    dataSectionSize = dataSecParser.parseSize();
+    relBssSectionAddr = bssSecParser.parseAddr();
+    bssSectionSize = bssSecParser.parseSize();
     testOutput.addMessage("Data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     testOutput.addMessage("Data section size: 0x" + Integer.toHexString(dataSectionSize));
     testOutput.addMessage("BSS section address: 0x" + Integer.toHexString(relBssSectionAddr));
@@ -840,17 +849,26 @@ public class ConfigurationWizard extends JDialog {
 
     testOutput.addMessage("### Parsing command output for addresses");
     addresses = new HashMap<String, Symbol>();
-    boolean parseOK = ContikiMoteType.parseCommandData(commandData, addresses);
-    if (!parseOK) {
-      testOutput.addMessage("### Error: Failed parsing command output", MessageList.ERROR);
-      return false;
-    }
+//    boolean parseOK = ContikiMoteType.parseCommandData(commandData, addresses);
+//    if (!parseOK) {
+//      testOutput.addMessage("### Error: Failed parsing command output", MessageList.ERROR);
+//      return false;
+//    }
 
     testOutput.addMessage("### Validating section addresses");
-    relDataSectionAddr = ContikiMoteType.parseCommandDataSectionAddr(commandData);
-    dataSectionSize = ContikiMoteType.parseCommandDataSectionSize(commandData);
-    relBssSectionAddr = ContikiMoteType.parseCommandBssSectionAddr(commandData);
-    bssSectionSize = ContikiMoteType.parseCommandBssSectionSize(commandData);
+    SectionParser dataSecParser = new ContikiMoteType.CommandSectionParser(
+            commandData,
+            Cooja.getExternalToolsSetting("COMMAND_DATA_START"),
+            Cooja.getExternalToolsSetting("COMMAND_DATA_SIZE"));
+    SectionParser bssSecParser = new ContikiMoteType.CommandSectionParser(
+            commandData,
+            Cooja.getExternalToolsSetting("COMMAND_BSS_START"),
+            Cooja.getExternalToolsSetting("COMMAND_BSS_SIZE"));
+
+    relDataSectionAddr = dataSecParser.parseAddr();
+    dataSectionSize = dataSecParser.parseSize();
+    relBssSectionAddr = bssSecParser.parseAddr();
+    bssSectionSize = bssSecParser.parseSize();
     testOutput.addMessage("Data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     testOutput.addMessage("Data section size: 0x" + Integer.toHexString(dataSectionSize));
     testOutput.addMessage("BSS section address: 0x" + Integer.toHexString(relBssSectionAddr));
