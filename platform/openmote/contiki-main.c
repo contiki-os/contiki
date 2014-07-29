@@ -190,7 +190,7 @@ main(void)
 
   set_rime_addr();
   netstack_init();
-  cc2538_rf_set_addr(IEEE802154_PANID);
+  // cc2538_rf_set_addr(IEEE802154_PANID);
 
   antenna_init();
   antenna_external();
