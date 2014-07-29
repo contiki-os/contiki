@@ -68,6 +68,10 @@ import org.contikios.cooja.dialogs.CompileContiki;
 import org.contikios.cooja.dialogs.ContikiMoteCompileDialog;
 import org.contikios.cooja.dialogs.MessageList;
 import org.contikios.cooja.dialogs.MessageList.MessageContainer;
+import org.contikios.cooja.mote.memory.ArrayMemory;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryInterface.Symbol;
+import org.contikios.cooja.mote.memory.MemoryLayout;
 import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.util.StringUtils;
 
@@ -406,7 +410,7 @@ public class ContikiMoteType implements MoteType {
     int commonSectionRelAddr = -1, commonSectionSize = -1;
     int readonlySectionRelAddr = -1, readonlySectionSize = -1;
 
-    HashMap<String, Integer> addresses = new HashMap<String, Integer>();
+    HashMap<String, Symbol> addresses = new HashMap<String, Symbol>();
     if (useCommand) {
       /* Parse command output */
       String[] output = loadCommandData(getContikiFirmwareFile());
@@ -500,7 +504,7 @@ public class ContikiMoteType implements MoteType {
 
     try {
       /* Relative <-> absolute addresses offset */
-      int referenceVar = addresses.get("referenceVar");
+      int referenceVar = (int) addresses.get("referenceVar").addr;
       myCoreComm.setReferenceAddress(referenceVar);
     } catch (Exception e) {
       throw new MoteTypeCreationException("JNI call error: " + e.getMessage(), e);
@@ -518,10 +522,10 @@ public class ContikiMoteType implements MoteType {
       VarMemory varMem = new VarMemory(tmp);
       byte[] data = new byte[dataSectionSize];
       getCoreMemory(dataSectionRelAddr, dataSectionSize, data);
-      tmp.setMemorySegment(dataSectionRelAddr, data);
+      tmp.addMemorySection("data", new ArrayMemory(dataSectionRelAddr, MemoryLayout.getNative(), data, null));
       byte[] bss = new byte[bssSectionSize];
       getCoreMemory(bssSectionRelAddr, bssSectionSize, bss);
-      tmp.setMemorySegment(bssSectionRelAddr, bss);
+      tmp.addMemorySection("bss", new ArrayMemory(bssSectionRelAddr, MemoryLayout.getNative(), bss, null));
 
       offset = varMem.getIntValueOf("referenceVar");
       logger.info(getContikiFirmwareFile().getName()
@@ -533,23 +537,23 @@ public class ContikiMoteType implements MoteType {
 
     byte[] initialDataSection = new byte[dataSectionSize];
     getCoreMemory(dataSectionRelAddr, dataSectionSize, initialDataSection);
-    initialMemory.setMemorySegmentNative(dataSectionRelAddr, initialDataSection);
+    initialMemory.addMemorySection("data", new ArrayMemory(dataSectionRelAddr, MemoryLayout.getNative(), initialDataSection, null));
 
     byte[] initialBssSection = new byte[bssSectionSize];
     getCoreMemory(bssSectionRelAddr, bssSectionSize, initialBssSection);
-    initialMemory.setMemorySegmentNative(bssSectionRelAddr, initialBssSection);
+    initialMemory.addMemorySection("bss", new ArrayMemory(bssSectionRelAddr, MemoryLayout.getNative(), initialBssSection, null));
 
     if (commonSectionRelAddr >= 0 && commonSectionSize > 0) {
       byte[] initialCommonSection = new byte[commonSectionSize];
       getCoreMemory(commonSectionRelAddr, commonSectionSize, initialCommonSection);
-      initialMemory.setMemorySegmentNative(commonSectionRelAddr, initialCommonSection);
+      initialMemory.addMemorySection("common", new ArrayMemory(commonSectionRelAddr, MemoryLayout.getNative(), initialCommonSection, null));
     }
 
     /* Read "read-only" memory */
     if (readonlySectionRelAddr >= 0 && readonlySectionSize > 0) {
       byte[] readonlySection = new byte[readonlySectionSize];
       getCoreMemory(readonlySectionRelAddr, readonlySectionSize, readonlySection);
-      initialMemory.setReadonlyMemorySegment(readonlySectionRelAddr+offset, readonlySection);
+      initialMemory.addMemorySection("readonly", new ArrayMemory(readonlySectionRelAddr, MemoryLayout.getNative(), readonlySection, true, null));
     }
   }
 
@@ -580,11 +584,8 @@ public class ContikiMoteType implements MoteType {
    *          Memory to set
    */
   public void getCoreMemory(SectionMoteMemory mem) {
-    for (int i = 0; i < mem.getNumberOfSections(); i++) {
-      getCoreMemory(
-              (int) mem.getSectionNativeAddress(i) /* native address space */,
-              mem.getSizeOfSection(i),
-              mem.getDataOfSection(i));
+    for (MemoryInterface section : mem.getSections().values()) {
+      getCoreMemory((int) section.getStartAddr(), section.getTotalSize(), section.getMemory());
     }
   }
 
@@ -600,11 +601,8 @@ public class ContikiMoteType implements MoteType {
    * New memory
    */
   public void setCoreMemory(SectionMoteMemory mem) {
-    for (int i = 0; i < mem.getNumberOfSections(); i++) {
-      setCoreMemory(
-              (int) mem.getSectionNativeAddress(i) /* native address space */,
-              mem.getSizeOfSection(i),
-              mem.getDataOfSection(i));
+    for (MemoryInterface section : mem.getSections().values()) {
+      setCoreMemory((int) section.getStartAddr(), section.getTotalSize(), section.getMemory());
     }
   }
 
@@ -621,16 +619,16 @@ public class ContikiMoteType implements MoteType {
    * @param varAddresses
    * Properties that should contain the name to addresses mappings.
    */
-  public static boolean parseMapFileData(String[] mapFileData, HashMap<String, Integer> varAddresses) {
+  public static boolean parseMapFileData(String[] mapFileData, HashMap<String, Symbol> varAddresses) {
     String[] varNames = getMapFileVarNames(mapFileData);
     if (varNames == null || varNames.length == 0) {
       return false;
     }
 
     for (String varName : varNames) {
-      int varAddress = getMapFileVarAddress(mapFileData, varName, varAddresses);
+      int varAddress = getMapFileVarAddress(mapFileData, varName);
       if (varAddress > 0) {
-        varAddresses.put(varName, new Integer(varAddress));
+        varAddresses.put(varName, new Symbol(Symbol.Type.VARIABLE, varName, varAddress, 1));
       } else {
         logger.warn("Parsed Contiki variable '" + varName
                 + "' but could not find address");
@@ -647,7 +645,7 @@ public class ContikiMoteType implements MoteType {
    * @param output Command output
    * @param addresses Variable addresses mappings
    */
-  public static boolean parseCommandData(String[] output, HashMap<String, Integer> addresses) {
+  public static boolean parseCommandData(String[] output, HashMap<String, Symbol> addresses) {
     int nrNew = 0, nrOld = 0, nrMismatch = 0;
 
     Pattern pattern
@@ -663,9 +661,9 @@ public class ContikiMoteType implements MoteType {
 
         if (!addresses.containsKey(symbol)) {
           nrNew++;
-          addresses.put(symbol, new Integer(address));
+          addresses.put(symbol, new Symbol(Symbol.Type.VARIABLE, symbol, address, 1));
         } else {
-          int oldAddress = addresses.get(symbol);
+          int oldAddress = (int) addresses.get(symbol).addr;
           if (oldAddress != address) {
             /*logger.warn("Warning, command response not matching previous entry of: "
              + varName);*/
@@ -814,11 +812,7 @@ public class ContikiMoteType implements MoteType {
    * @param varName Name of variable
    * @return Relative memory address of variable or -1 if not found
    */
-  private static int getMapFileVarAddress(String[] mapFileData, String varName, HashMap<String, Integer> varAddresses) {
-    Integer varAddrInteger;
-    if ((varAddrInteger = varAddresses.get(varName)) != null) {
-      return varAddrInteger.intValue();
-    }
+  private static int getMapFileVarAddress(String[] mapFileData, String varName) {
 
     String regExp = Cooja.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
             + varName
@@ -826,9 +820,7 @@ public class ContikiMoteType implements MoteType {
     String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
     if (retString != null) {
-      varAddrInteger = Integer.parseInt(retString.trim(), 16);
-      varAddresses.put(varName, varAddrInteger);
-      return varAddrInteger.intValue();
+      return Integer.parseInt(retString.trim(), 16);
     }
     else {
       return -1;

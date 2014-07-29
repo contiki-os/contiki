@@ -47,6 +47,7 @@ import org.contikios.cooja.interfaces.ApplicationRadio;
 import org.contikios.cooja.interfaces.ApplicationSerialPort;
 import org.contikios.cooja.interfaces.Radio;
 import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryInterface.Symbol;
 import org.contikios.cooja.mote.memory.MemoryLayout;
 
 /**
@@ -91,7 +92,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     setSimulation(sim);
     this.moteType = moteType;
     MemoryLayout.getNative();
-    this.memory = new SectionMoteMemory(new HashMap<String, Integer>(), 0);
+    this.memory = new SectionMoteMemory(new HashMap<String, Symbol>(), 0);
     this.moteInterfaces = new MoteInterfaceHandler(this, moteType.getMoteInterfaceClasses());
     this.moteInterfaces.getRadio().addObserver(radioDataObserver);
     requestImmediateWakeup();
@@ -151,7 +152,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable) {
     setSimulation(simulation);
-    this.memory = new SectionMoteMemory(new HashMap<String, Integer>(), 0);
+    this.memory = new SectionMoteMemory(new HashMap<String, Symbol>(), 0);
     moteInterfaces.getRadio().addObserver(radioDataObserver);
 
     for (Element element : configXML) {

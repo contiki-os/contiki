@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, TU Braunschweig. All rights reserved.
  * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
  * reserved.
  *
@@ -33,66 +34,90 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.contikios.cooja.mote.memory.MemoryInterface;
-import org.contikios.cooja.mote.memory.MemoryLayout;
 
 /**
  * Represents a mote memory consisting of non-overlapping memory sections with
  * symbol addresses.
  * <p>
- * When an non-existing memory segment is written, a new section is automatically
- * created for this segment.
+ * Every section must implement MemoyInterface.
  * <p>
+ * Implements MemoryInterface by forwarding calls to available sections or returning
+ * an error if no section is available.
  *
  * @author Fredrik Osterlind
+ * @author Enrico Jorns
  */
 public class SectionMoteMemory implements MemoryInterface {
   private static Logger logger = Logger.getLogger(SectionMoteMemory.class);
+  private static final boolean DEBUG = logger.isDebugEnabled();
 
-  private ArrayList<MoteMemorySection> sections = new ArrayList<MoteMemorySection>();
- 
-  /* readonly memory is never written to Contiki core, and is used to provide 
-   * access to, for instance, strings */
-  private ArrayList<MoteMemorySection> readonlySections = new ArrayList<MoteMemorySection>();
+  private Map<String, MemoryInterface> sections = new HashMap<>();
 
-  private final HashMap<String, Integer> addresses;
+  private final Map<String, Symbol> symbols;
+  private MemoryLayout memLayout;
+  private long startAddr = Long.MAX_VALUE;
 
   /* used to map Cooja's address space to native (Contiki's) addresses */
   private final int offset;
   
   /**
-   * @param addresses Symbol addresses
+   * @param symbols Symbol addresses
    * @param offset Offset for internally used addresses
    */
-  public SectionMoteMemory(HashMap<String, Integer> addresses, int offset) {
-    this.addresses = addresses;
+  public SectionMoteMemory(Map<String, Symbol> symbols, int offset) {
+    this.symbols = symbols;
     this.offset = offset;
   }
 
+  /**
+   * Adds a section to this memory.
+   * 
+   * A new section will be checked for address overlap with existing sections.
+   *
+   * @param name
+   * @param section
+   * @return true if adding succeeded, false otherwise
+   */
+  public boolean addMemorySection(String name ,MemoryInterface section) {
 
-  @Override
-  public void clearMemory() {
-    sections.clear();
-  }
-
-  public void setMemorySegmentNative(int address, byte[] data) {
-    setMemorySegment(address+offset, data);
-  }
-
-
-  public void setReadonlyMemorySegment(int address, byte[] data) {
-    /* Cooja address space */
-    address -= offset;
-
-    readonlySections.add(new MoteMemorySection(address, data));
-  }
-
-  public int getTotalSize() {
-    int totalSize = 0;
-    for (MoteMemorySection section : sections) {
-      totalSize += section.getSize();
+    if (section == null) {
+      return false;
     }
-    return totalSize;
+
+    /* Cooja address space */
+    for (MemoryInterface sec : sections.values()) {
+      /* check for overlap with existing region */
+      if ((section.getStartAddr() <= sec.getStartAddr() + sec.getTotalSize() - 1)
+              && (section.getStartAddr() + section.getTotalSize() - 1 >= sec.getStartAddr())) {
+        logger.error(String.format(
+                "Failed adding section '%s' of size %d @0x%x",
+                name,
+                section.getTotalSize(),
+                section.getStartAddr()));
+        return false;
+      }
+      /* Min start address is main start address */
+      startAddr = sec.getStartAddr() < startAddr ? sec.getStartAddr() : startAddr;
+      /* Layout is last layout. XXX Check layout consistency? */
+      memLayout = section.getLayout();
+    }
+
+    sections.put(name, section);
+    if (section.getSymbolMap() != null) {
+      for (String s : section.getSymbolMap().keySet()) {
+        // XXX how to handle double names here?
+        symbols.put(s, section.getSymbolMap().get(s));
+      }
+    }
+
+    if (DEBUG) {
+      logger.debug(String.format(
+              "Added section '%s' of size %d @0x%x",
+              name,
+              section.getTotalSize(),
+              section.getStartAddr()));
+    }
+    return true;
   }
 
   /**
@@ -105,44 +130,69 @@ public class SectionMoteMemory implements MemoryInterface {
   }
 
   /**
-   * Get start address of given section in native address space.
-   *
-   * @param sectionNr Section position
-   * @return Start address of section
+   * Returns memory section of this memory.
+   * @param name Name of section
+   * @return memory section
    */
-  public int getSectionNativeAddress(int sectionNr) {
-    if (sectionNr >= sections.size()) {
-      return -1;
+  public MemoryInterface getSection(String name) {
+    for (String memsec : sections.keySet()) {
+      if (memsec.equals(name)) {
+        return sections.get(name);
+      }
     }
-    return sections.get(sectionNr).getStartAddr();
+
+    logger.warn("Section '" + name + "' not found");
+    return null;
   }
 
   /**
-   * Get size of section at given position.
-   *
-   * @param sectionNr Section position
-   * @return Size of section
+   * Return all sections of this memory.
+   * @return All memory sections
    */
-  public int getSizeOfSection(int sectionNr) {
-    if (sectionNr >= sections.size()) {
-      return -1;
-    }
-
-    return sections.get(sectionNr).getSize();
+  public Map<String, MemoryInterface> getSections() {
+    return sections;
   }
 
   /**
-   * Get data of section at given position.
+   * True if given address is part of this memory section.
    *
-   * @param sectionNr Section position
-   * @return Data at section
+   * @param intf
+   * @param addr
+   * Address
+   * @return True if given address is part of this memory section, false
+   * otherwise
    */
-  public byte[] getDataOfSection(int sectionNr) {
-    if (sectionNr >= sections.size()) {
-      return null;
-    }
+  public static boolean includesAddr(MemoryInterface intf, long addr) {
+    return addr >= intf.getStartAddr() && addr < (intf.getStartAddr() + intf.getTotalSize());
+  }
 
-    return sections.get(sectionNr).getData();
+  /**
+   * True if the whole address range specified by address and size
+   * lies inside this memory section.
+   *
+   * @param intf
+   * @param addr Start address of segment to check
+   * @param size Size of segment to check
+   *
+   * @return True if given address range lies inside address range of this
+   * section
+   */
+  public static boolean inSection(MemoryInterface intf, long addr, int size) {
+    return addr >= intf.getStartAddr() && addr + size <= intf.getStartAddr() + intf.getTotalSize();
+  }
+
+  @Override
+  public void clearMemory() {
+    sections.clear();
+  }
+
+  @Override
+  public int getTotalSize() {
+    int totalSize = 0;
+    for (MemoryInterface section : sections.values()) {
+      totalSize += section.getTotalSize();
+    }
+    return totalSize;
   }
 
   @Override
@@ -150,153 +200,106 @@ public class SectionMoteMemory implements MemoryInterface {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
+
+  /**
+   * Returns memory segment from section matching segment given by address and size
+   * @param address start address of segment to get
+   * @param size size of segmetn to get
+   * @return Array containing data of segment
+   * @throws MoteMemoryException if no single section containing the given address range was found
+   */
   @Override
-  public byte[] getMemorySegment(long addr, int size) throws MoteMemoryException {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public byte[] getMemorySegment(long address, int size) throws MoteMemoryException {
+
+    for (MemoryInterface section : sections.values()) {
+      if (includesAddr(section, address) && includesAddr(section, address + size - 1)) {
+        return section.getMemorySegment(address, size);
+      }
+    }
+
+    throw new MoteMemoryException(
+            "Getting memory segment [0x%x,0x%x] failed: No section available",
+            address, address + size - 1);
   }
 
+  /**
+   * Sets memory segment of section matching segment given by address and size.
+   * @param address start address of segment to set
+   * @param data data to set
+   * @throws MoteMemoryException if no single section containing the given address range was found
+   * or memory is readonly.
+   */
   @Override
-  public void setMemorySegment(long addr, byte[] data) throws MoteMemoryException {
-    throw new UnsupportedOperationException("Not supported yet.");
+  public void setMemorySegment(long address, byte[] data) throws MoteMemoryException {
+
+    for (MemoryInterface section : sections.values()) {
+      if (inSection(section, address, data.length)) {
+        section.setMemorySegment(address, data);
+        if (DEBUG) {
+          logger.debug(String.format(
+                  "Wrote memory segment [0x%x,0x%x]",
+                  address, address + data.length - 1));
+        }
+        return;
+      }
+    }
+    throw new MoteMemoryException(
+            "Writing memory segment [0x%x,0x%x] failed: No section available",
+            address, address + data.length - 1);
+  }
+
+  public void setMemorySegmentNative(long address, byte[] data) throws MoteMemoryException {
+    setMemorySegment(address + offset, data);
   }
 
   @Override
   public long getStartAddr() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return startAddr;
   }
 
   @Override
   public Map<String, Symbol> getSymbolMap() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return symbols;
   }
 
   @Override
   public MemoryLayout getLayout() {
-    throw new UnsupportedOperationException("Not supported yet.");
+    return memLayout;
   }
 
   @Override
   public boolean addSegmentMonitor(SegmentMonitor.EventType flag, long address, int size, SegmentMonitor monitor) {
-    throw new UnsupportedOperationException("Not supported yet.");
+    PolledMemorySegments t = new PolledMemorySegments(monitor, (int) address, size);
+    polledMemories.add(t);
+    return true;
   }
 
   @Override
   public boolean removeSegmentMonitor(long address, int size, SegmentMonitor monitor) {
-    throw new UnsupportedOperationException("Not supported yet.");
-  }
-
-  /**
-   * A memory section contains a byte array and a start address.
-   *
-   * @author Fredrik Osterlind
-   */
-  private static class MoteMemorySection {
-    private byte[] data = null;
-    private final int startAddr;
-
-    /**
-     * Create a new memory section.
-     *
-     * @param startAddr
-     *          Start address of section
-     * @param data
-     *          Data of section
-     */
-    public MoteMemorySection(int startAddr, byte[] data) {
-      this.startAddr = startAddr;
-      this.data = data;
-    }
-
-    /**
-     * Returns start address of this memory section.
-     *
-     * @return Start address
-     */
-    public int getStartAddr() {
-      return startAddr;
-    }
-
-    /**
-     * Returns size of this memory section.
-     *
-     * @return Size
-     */
-    public int getSize() {
-      return data.length;
-    }
-
-    /**
-     * Returns the entire byte array which defines this section.
-     *
-     * @return Byte array
-     */
-    public byte[] getData() {
-      return data;
-    }
-
-    /**
-     * True if given address is part of this memory section.
-     *
-     * @param addr
-     *          Address
-     * @return True if given address is part of this memory section, false
-     *         otherwise
-     */
-    public boolean includesAddr(int addr) {
-      if (data == null) {
-        return false;
+    for (PolledMemorySegments mcm: polledMemories) {
+      if (mcm.mm != monitor || mcm.address != address || mcm.size != size) {
+        continue;
       }
-
-      return (addr >= startAddr && addr < (startAddr + data.length));
+      polledMemories.remove(mcm);
+      return true;
     }
-
-    /**
-     * Returns memory segment.
-     *
-     * @param addr
-     *          Start address of memory segment
-     * @param size
-     *          Size of memory segment
-     * @return Memory segment
-     */
-    public byte[] getMemorySegment(int addr, int size) {
-      byte[] ret = new byte[size];
-      System.arraycopy(data, addr - startAddr, ret, 0, size);
-      return ret;
-    }
-
-    /**
-     * Sets a memory segment.
-     *
-     * @param addr
-     *          Start of memory segment
-     * @param data
-     *          Data of memory segment
-     */
-    public void setMemorySegment(int addr, byte[] data) {
-      System.arraycopy(data, 0, this.data, addr - startAddr, data.length);
-    }
-
-    @Override
-    public MoteMemorySection clone() {
-      byte[] dataClone = new byte[data.length];
-      System.arraycopy(data, 0, dataClone, 0, data.length);
-
-      MoteMemorySection clone = new MoteMemorySection(startAddr, dataClone);
-      return clone;
-    }
+    return false;
   }
 
+  /** Copies seciton memory to new (array backed) one
+   * @return Cloned memory
+   */
   @Override
   public SectionMoteMemory clone() {
-    ArrayList<MoteMemorySection> sectionsClone = new ArrayList<MoteMemorySection>();
-    for (MoteMemorySection section : sections) {
-      sectionsClone.add(section.clone());
-    }
 
-    SectionMoteMemory clone = new SectionMoteMemory(addresses, offset);
-    clone.sections = sectionsClone;
-    clone.readonlySections = readonlySections;
+    SectionMoteMemory clone = new SectionMoteMemory(symbols, offset);
+
+    for (String secname : sections.keySet()) {
+      // Copy section memory to new ArrayMemory
+      MemoryInterface section = sections.get(secname);
+      MemoryInterface cpmem = new ArrayMemory(section.getStartAddr(), section.getLayout(), section.getMemory().clone(), section.getSymbolMap());
+      clone.addMemorySection(secname, cpmem);
+    }
 
     return clone;
   }
@@ -333,34 +336,4 @@ public class SectionMoteMemory implements MemoryInterface {
     }
   }
 
-//  @Override
-  public boolean addMemoryMonitor(int address, int size, SegmentMonitor mm) {
-    PolledMemorySegments t = new PolledMemorySegments(mm, address, size);
-    polledMemories.add(t);
-    return true;
-  }
-
-//  @Override
-  public void removeMemoryMonitor(int address, int size, SegmentMonitor mm) {
-    for (PolledMemorySegments mcm: polledMemories) {
-      if (mcm.mm != mm || mcm.address != address || mcm.size != size) {
-        continue;
-      }
-      polledMemories.remove(mcm);
-      break;
-    }
-  }
-
-//  @Override
-  public int parseInt(byte[] memorySegment) {
-    int retVal = 0;
-    int pos = 0;
-    retVal += ((memorySegment[pos++] & 0xFF)) << 24;
-    retVal += ((memorySegment[pos++] & 0xFF)) << 16;
-    retVal += ((memorySegment[pos++] & 0xFF)) << 8;
-    retVal += ((memorySegment[pos++] & 0xFF)) << 0;
-
-    retVal = Integer.reverseBytes(retVal);
-    return retVal;
-  }
 }
