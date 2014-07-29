@@ -776,9 +776,9 @@ public class ConfigurationWizard extends JDialog {
             mapData,
             Cooja.getExternalToolsSetting("MAPFILE_BSS_START"),
             Cooja.getExternalToolsSetting("MAPFILE_BSS_SIZE"));
-    relDataSectionAddr = dataSecParser.parseAddr();
+    relDataSectionAddr = dataSecParser.parseStartAddr();
     dataSectionSize = dataSecParser.parseSize();
-    relBssSectionAddr = bssSecParser.parseAddr();
+    relBssSectionAddr = bssSecParser.parseStartAddr();
     bssSectionSize = bssSecParser.parseSize();
     testOutput.addMessage("Data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     testOutput.addMessage("Data section size: 0x" + Integer.toHexString(dataSectionSize));
@@ -865,9 +865,9 @@ public class ConfigurationWizard extends JDialog {
             Cooja.getExternalToolsSetting("COMMAND_BSS_START"),
             Cooja.getExternalToolsSetting("COMMAND_BSS_SIZE"));
 
-    relDataSectionAddr = dataSecParser.parseAddr();
+    relDataSectionAddr = dataSecParser.parseStartAddr();
     dataSectionSize = dataSecParser.parseSize();
-    relBssSectionAddr = bssSecParser.parseAddr();
+    relBssSectionAddr = bssSecParser.parseStartAddr();
     bssSectionSize = bssSecParser.parseSize();
     testOutput.addMessage("Data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     testOutput.addMessage("Data section size: 0x" + Integer.toHexString(dataSectionSize));
