@@ -1,4 +1,4 @@
-/** @file mems.c
+/** @file cpu/stm32w108/hal/micro/cortexm3/mems.c
  * @brief MB851 MEMS drivers
  *
  *
@@ -30,9 +30,9 @@ static uint8_t i2c_MEMS_Read (t_mems_data *mems_data);
 
 /* Functions -----------------------------------------------------------------*/
 uint8_t mems_Init(void)
-{  
+{
   uint8_t ret = 0;
-  
+
   // GPIO assignments
   // PA1: SC2SDA (Serial Data)
   // PA2: SC2SCL (Serial Clock)
@@ -43,27 +43,27 @@ uint8_t mems_Init(void)
   SC2_MODE =  SC2_MODE_I2C;
   GPIO_PACFGL &= 0xFFFFF00F;
   GPIO_PACFGL |= 0x00000DD0;
-  
+
   SC2_RATELIN =  14;   // generates standard 100kbps or 400kbps
   SC2_RATEEXP =  1;    // 3 yields 100kbps; 1 yields 400kbps
   SC2_TWICTRL1 =  0;   // start from a clean state
-  SC2_TWICTRL2 =  0;   // start from a clean state  
-  
+  SC2_TWICTRL2 =  0;   // start from a clean state
+
   ret = i2c_MEMS_Init();
 
-//Add later if really needed  
-#ifdef ST_DBG  
+//Add later if really needed
+#ifdef ST_DBG
   if (!ret)
    i2c_DeInit(MEMS_I2C);
 #endif
-  
+
   return ret;
 }/* end mems_Init */
 
 uint8_t mems_GetValue(t_mems_data *mems_data)
 {
-  uint8_t i; 
-  i = i2c_MEMS_Read(mems_data);   
+  uint8_t i;
+  i = i2c_MEMS_Read(mems_data);
   return i;
 }/* end mems_GetValue() */
 
@@ -72,7 +72,7 @@ uint8_t mems_GetValue(t_mems_data *mems_data)
 
 /*******************************************************************************
 * Function Name  : i2c_Send_Frame
-* Description    : It sends I2C frame 
+* Description    : It sends I2C frame
 * Input          : DeviceAddress is the destination device address
 *                  pBUffer is the buffer data
 *                  NoOfBytes is the number of bytes
@@ -85,24 +85,24 @@ static uint8_t i2c_Send_Frame (uint8_t DeviceAddress, uint8_t *pBuffer, uint8_t 
 
   SC2_TWICTRL1 |= SC_TWISTART;   // send start
   WAIT_CMD_FIN();
-  
+
   SEND_BYTE(DeviceAddress);   // send the address low byte
   WAIT_TX_FIN();
-  
+
    // loop sending the data
   for (i=0; i<NoOfBytes; i++) {
     halInternalResetWatchDog();
-    
+
     data = *(pBuffer+i);
-        
+
     SEND_BYTE(data);
-    
+
     WAIT_TX_FIN();
   }
 
   SC2_TWICTRL1 |= SC_TWISTOP;
   WAIT_CMD_FIN();
-  
+
   return SUCCESS;
 }/* end i2c_Send_Frame() */
 
@@ -118,25 +118,25 @@ static uint8_t i2c_Send_Frame (uint8_t DeviceAddress, uint8_t *pBuffer, uint8_t 
 static uint8_t i2c_Receive_Frame (uint8_t slave_addr, uint8_t reg_addr, uint8_t *pBuffer, uint8_t NoOfBytes)
 {
   uint8_t i, addr = reg_addr;
-  
+
   if (NoOfBytes > 1)
     addr += REPETIR;
-  
+
   SC2_TWICTRL1 |= SC_TWISTART;   // send start
   WAIT_CMD_FIN();
-   
+
   SEND_BYTE(slave_addr | 0x00);      // send the address low byte
   WAIT_TX_FIN();
-  
+
   SEND_BYTE(addr);
   WAIT_TX_FIN();
 
   SC2_TWICTRL1 |= SC_TWISTART;     // send start
   WAIT_CMD_FIN();
-  
+
   SEND_BYTE(slave_addr | 0x01);      // send the address low byte
   WAIT_TX_FIN();
- 
+
   // loop receiving the data
   for (i=0;i<NoOfBytes;i++){
     halInternalResetWatchDog();
@@ -152,7 +152,7 @@ static uint8_t i2c_Receive_Frame (uint8_t slave_addr, uint8_t reg_addr, uint8_t 
   }
 
   SC2_TWICTRL1 |= SC_TWISTOP;      // send STOP
-  WAIT_CMD_FIN();  
+  WAIT_CMD_FIN();
 
   return SUCCESS;
 }/* end i2c_Receive_Frame() */
@@ -171,7 +171,7 @@ static uint8_t i2c_Receive_Frame (uint8_t slave_addr, uint8_t reg_addr, uint8_t 
 uint8_t i2c_write_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t reg_value)
 {
   uint8_t i2c_buffer[2];
-  
+
   i2c_buffer[0] = reg_addr;
   i2c_buffer[1] = reg_value;
 
@@ -195,7 +195,7 @@ uint8_t i2c_read_reg (uint8_t slave_addr, uint8_t reg_addr, uint8_t *pBuffer, ui
 
 /*******************************************************************************
 * Function Name  : i2c_MEMS_Init
-* Description    : It performs basic MEMS register writes for initialization 
+* Description    : It performs basic MEMS register writes for initialization
 *                  purposes
 * Input          : None
 * Output         : None
@@ -234,7 +234,7 @@ static uint8_t i2c_MEMS_Read (t_mems_data *mems_data)
     if (i2c_buffer[0] & (1 << 3))
       break;
   }
-  i = i2c_read_reg (kLIS3L02DQ_SLAVE_ADDR, OUTX_L, i2c_buffer, 8);  
+  i = i2c_read_reg (kLIS3L02DQ_SLAVE_ADDR, OUTX_L, i2c_buffer, 8);
 
   mems_data->outx_h = i2c_buffer[0];
   mems_data->outx_l = i2c_buffer[1];

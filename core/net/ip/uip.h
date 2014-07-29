@@ -92,6 +92,9 @@
 
 #include "net/ip/uipopt.h"
 
+/* For memcmp */
+#include <string.h>
+
 /**
  * Representation of an IP address.
  *
@@ -182,7 +185,7 @@ typedef uip_eth_addr uip_lladdr_t;
 
  uip_ipaddr(&addr, 192,168,1,2);
  uip_sethostaddr(&addr);
- 
+
  \endcode
  * \param addr A pointer to an IP address of type uip_ipaddr_t;
  *
@@ -848,7 +851,7 @@ CCIF void uip_send(const void *data, int len);
  \code
  uip_ipaddr_t addr;
  struct uip_udp_conn *c;
- 
+
  uip_ipaddr(&addr, 192,168,2,1);
  c = uip_udp_new(&addr, UIP_HTONS(12345));
  if(c != NULL) {
@@ -909,7 +912,7 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
  * These functions can be used for converting between different data
  * formats used by uIP.
  */
- 
+
 /**
  * Convert an IP address to four bytes separated by commas.
  *
@@ -935,7 +938,7 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
  \code
  uip_ipaddr_t ipaddr;
  struct uip_conn *c;
- 
+
  uip_ipaddr(&ipaddr, 192,168,1,2);
  c = uip_connect(&ipaddr, UIP_HTONS(80));
  \endcode
@@ -1333,11 +1336,11 @@ extern uint16_t uip_urglen, uip_surglen;
  */
 struct uip_conn {
   uip_ipaddr_t ripaddr;   /**< The IP address of the remote host. */
-  
+
   uint16_t lport;        /**< The local TCP port, in network byte order. */
   uint16_t rport;        /**< The local remote TCP port, in network byte
 			 order. */
-  
+
   uint8_t rcv_nxt[4];    /**< The sequence number that we expect to
 			 receive next. */
   uint8_t snd_nxt[4];    /**< The sequence number that was last sent by
@@ -1440,7 +1443,7 @@ struct uip_stats {
 			     layer. */
     uip_stats_t sent;     /**< Number of sent packets at the IP
 			     layer. */
-    uip_stats_t forwarded;/**< Number of forwarded packets at the IP 
+    uip_stats_t forwarded;/**< Number of forwarded packets at the IP
 			     layer. */
     uip_stats_t drop;     /**< Number of dropped packets at the IP
 			     layer. */
@@ -1569,14 +1572,14 @@ uip_ext_hdr_options_process(); */
  * The actual uIP function which does all the work.
  */
 void uip_process(uint8_t flag);
-  
+
   /* The following flags are passed as an argument to the uip_process()
    function. They are used to distinguish between the two cases where
    uip_process() is called. It can be called either because we have
    incoming data that should be processed, or because the periodic
    timer has fired. These values are never used directly, but only in
    the macros defined in this file. */
- 
+
 #define UIP_DATA          1     /* Tells uIP that there is incoming
 				   data in the uip_buf buffer. The
 				   length of the data is stored in the
@@ -1603,7 +1606,7 @@ void uip_process(uint8_t flag);
 #define UIP_TIME_WAIT   7
 #define UIP_LAST_ACK    8
 #define UIP_TS_MASK     15
-  
+
 #define UIP_STOPPED      16
 
 /* The TCP and IP headers. */
@@ -1628,7 +1631,7 @@ struct uip_tcpip_hdr {
   uint16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
 #endif /* UIP_CONF_IPV6 */
-  
+
   /* TCP header. */
   uint16_t srcport,
     destport;
@@ -1664,7 +1667,7 @@ struct uip_icmpip_hdr {
   uint16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
 #endif /* UIP_CONF_IPV6 */
-  
+
   /* ICMP header. */
   uint8_t type, icode;
   uint16_t icmpchksum;
@@ -1697,7 +1700,7 @@ struct uip_udpip_hdr {
   uint16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
 #endif /* UIP_CONF_IPV6 */
-  
+
   /* UDP header. */
   uint16_t srcport,
     destport;
@@ -2032,7 +2035,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u8[12]) == 0xFF))
 
 /**
- * \briefput in b the solicited node address corresponding to address a
+ * \brief put in b the solicited node address corresponding to address a
  * both a and b are of type uip_ipaddr_t*
  * */
 #define uip_create_solicited_node(a, b)    \
@@ -2083,7 +2086,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u8[13]) == (m)->addr[3]) &&            \
    (((a)->u8[14]) == (m)->addr[4]) &&            \
    (((a)->u8[15]) == (m)->addr[5]))
-   
+
 #endif /*UIP_CONF_LL_802154*/
 
 /**

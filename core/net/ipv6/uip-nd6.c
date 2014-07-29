@@ -835,10 +835,10 @@ ra_input(void)
                               (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 			      1, NBR_STALE);
       } else {
+        uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
         if(nbr->state == NBR_INCOMPLETE) {
           nbr->state = NBR_STALE;
         }
-        uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		  lladdr, UIP_LLADDR_LEN) != 0) {
           memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],

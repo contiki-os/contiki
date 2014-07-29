@@ -32,7 +32,8 @@
 ;
 ;---------------------------------------------------------------------
 
-	.segment	"HEADER"
+	.macpack	module
+	module_header	_cs8900a
 
 	; Driver signature
 	.byte	$65, $74, $68	; "eth"
@@ -47,20 +48,31 @@ bufaddr:.res	2		; Address
 bufsize:.res	2		; Size
 
 	; Jump table.
-	.addr	init
-	.addr	poll
-	.addr	send
-	.addr	exit
+	jmp init
+	jmp poll
+	jmp send
+	jmp exit
 
 ;---------------------------------------------------------------------
 
-	.zeropage
+	.if DYN_DRV
 
+	.zeropage
 sp:	.res	2		; Stack pointer (Do not trash !)
 reg:	.res	2		; Address of rxtxreg
 ptr:	.res	2		; Indirect addressing pointer
 len:	.res	2		; Frame length
 cnt:	.res	2		; Frame length counter
+
+	.else
+
+	.include "zeropage.inc"
+reg	:=	ptr1		; Address of rxtxreg
+ptr	:=	ptr2		; Indirect addressing pointer
+len	:=	ptr3		; Frame length
+cnt	:=	ptr4		; Frame length counter
+
+	.endif
 
 ;---------------------------------------------------------------------
 
@@ -73,6 +85,8 @@ fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup14-fixup13, fixup15-fixup14, fixup16-fixup15
 	.byte	fixup17-fixup16, fixup18-fixup17, fixup19-fixup18
 	.byte	fixup20-fixup19, fixup21-fixup20, fixup22-fixup21
+	.byte	fixup23-fixup22, fixup24-fixup23, fixup25-fixup24
+	.byte	fixup26-fixup25
 
 fixups	= * - fixup
 
@@ -131,6 +145,29 @@ fixup01:lda isq+1
 	ora #$01		; Set clockport bit
 fixup02:sta isq+1
 
+	; Check EISA registration number of Crystal Semiconductor
+	; PACKETPP = $0000, PPDATA == $630E ?
+	lda #$00
+	tax
+	jsr packetpp_ax
+	lda #$63^$0E
+fixup03:eor ppdata
+fixup04:eor ppdata+1
+	beq :+
+	sec
+	rts
+
+	; Initiate a chip-wide reset
+	; PACKETPP = $0114, PPDATA = $0040
+:	lda #$14
+	jsr packetpp_a1
+	ldy #$40
+fixup05:sty ppdata
+:	jsr packetpp_a1
+fixup06:ldy ppdata
+	and #$40
+	bne :-
+
 	; Accept valid unicast + broadcast frames
 	; PACKETPP = $0104, PPDATA = $0D05
 	lda #$04
@@ -161,6 +198,8 @@ fixup02:sta isq+1
 	lda #$D3
 	ldx #$00
 	jsr ppdata_ax
+	txa
+	clc
 	rts
 
 ;---------------------------------------------------------------------
@@ -171,27 +210,22 @@ poll:
 	; PACKETPP = $0124, PPDATA & $0D00 ?
 	lda #$24
 	jsr packetpp_a1
-fixup03:lda ppdata+1
+fixup07:lda ppdata+1
 	and #$0D
-	bne :+
-
-	; No frame ready
-	tax
-	rts
+	beq :+
 
 	; Process the incoming frame
 	; --------------------------
 	
 	; Read receiver event and discard it
 	; RXTXREG
-:
-fixup04:ldx rxtxreg+1
-fixup05:lda rxtxreg
+fixup08:ldx rxtxreg+1
+fixup09:lda rxtxreg
 
 	; Read frame length
 	; cnt = len = RXTXREG
-fixup06:ldx rxtxreg+1
-fixup07:lda rxtxreg
+fixup10:ldx rxtxreg+1
+fixup11:lda rxtxreg
 	sta len
 	stx len+1
 	sta cnt
@@ -205,23 +239,24 @@ fixup07:lda rxtxreg
 	cmp cnt
 	lda bufsize+1
 	sbc cnt+1
-	bcs :+
+	bcs :++
 
 	; Yes, skip frame
 	jsr skipframe
 
 	; No frame ready
 	lda #$00
-	tax
+:	tax
+	sec
 	rts
 
 	; Read bytes into buffer
 :	jsr adjustptr
 :
-fixup08:lda rxtxreg
+fixup12:lda rxtxreg
 	sta (ptr),y
 	iny
-fixup09:lda rxtxreg+1
+fixup13:lda rxtxreg+1
 	sta (ptr),y
 	iny
 	bne :-
@@ -232,6 +267,7 @@ fixup09:lda rxtxreg+1
 	; Return frame length
 	lda len
 	ldx len+1
+	clc
 	rts
 
 ;---------------------------------------------------------------------
@@ -244,12 +280,12 @@ send:
 	; Transmit command
 	lda #$C9
 	ldx #$00
-fixup10:sta txcmd
-fixup11:stx txcmd+1
+fixup14:sta txcmd
+fixup15:stx txcmd+1
 	lda cnt
 	ldx cnt+1
-fixup12:sta txlen
-fixup13:stx txlen+1
+fixup16:sta txlen
+fixup17:stx txlen+1
 
 	; Adjust odd frame length
 	jsr adjustcnt
@@ -261,7 +297,7 @@ fixup13:stx txlen+1
 	; PACKETPP = $0138, PPDATA & $0100 ?
 :	lda #$38
 	jsr packetpp_a1
-fixup14:lda ppdata+1
+fixup18:lda ppdata+1
 	and #$01
 	bne :+
 
@@ -271,6 +307,7 @@ fixup14:lda ppdata+1
 	; And try again
 	dey
 	bne :-
+	sec
 	rts
 
 	; Send the frame
@@ -279,15 +316,16 @@ fixup14:lda ppdata+1
 	; Write bytes from buffer
 :	jsr adjustptr
 :	lda (ptr),y
-fixup15:sta rxtxreg
+fixup19:sta rxtxreg
 	iny
 	lda (ptr),y
-fixup16:sta rxtxreg+1
+fixup20:sta rxtxreg+1
 	iny
 	bne :-
 	inc ptr+1
 	dex
 	bpl :-
+	clc
 	rts
 
 ;---------------------------------------------------------------------
@@ -299,15 +337,16 @@ exit:
 
 packetpp_a1:
 	ldx #$01
-fixup17:sta packetpp
-fixup18:stx packetpp+1
+packetpp_ax:
+fixup21:sta packetpp
+fixup22:stx packetpp+1
 	rts
 
 ;---------------------------------------------------------------------
 
 ppdata_ax:
-fixup19:sta ppdata
-fixup20:stx ppdata+1
+fixup23:sta ppdata
+fixup24:stx ppdata+1
 	rts
 
 ;---------------------------------------------------------------------
@@ -316,9 +355,9 @@ skipframe:
 	; PACKETPP = $0102, PPDATA = PPDATA | $0040
 	lda #$02
 	jsr packetpp_a1
-fixup21:lda ppdata
+fixup25:lda ppdata
 	ora #$40
-fixup22:sta ppdata
+fixup26:sta ppdata
 	rts
 
 ;---------------------------------------------------------------------

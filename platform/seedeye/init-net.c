@@ -7,7 +7,7 @@
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   init-net.c
+ * \file   platform/seedeye/init-net.c
  * \brief  Network initialization for the SEEDEYE port.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-03-25
@@ -77,7 +77,7 @@ init_net(uint8_t node_id)
   uip_ds6_addr_t *lladdr;
   uip_ipaddr_t ipaddr;
 #endif
-  
+
   uint8_t i;
 
   memset(&shortaddr, 0, sizeof(shortaddr));
@@ -89,7 +89,7 @@ init_net(uint8_t node_id)
   for(i = 2; i < sizeof(longaddr); ++i) {
     ((uint8_t *)&longaddr)[i] = random_rand();
   }
-  
+
   PRINTF("SHORT MAC ADDRESS %02x:%02x\n",
          *((uint8_t *) & shortaddr), *((uint8_t *) & shortaddr + 1));
 
@@ -110,7 +110,7 @@ init_net(uint8_t node_id)
   }
 
   linkaddr_set_node_addr(&addr);
-  
+
   PRINTF("Rime started with address: ");
   for(i = 0; i < sizeof(addr.u8) - 1; ++i) {
     PRINTF("%d.", addr.u8[i]);
@@ -120,7 +120,7 @@ init_net(uint8_t node_id)
   queuebuf_init();
 
   NETSTACK_RADIO.init();
-  
+
   mrf24j40_set_channel(RF_CHANNEL);
   mrf24j40_set_panid(IEEE802154_PANID);
   mrf24j40_set_short_mac_addr(shortaddr);

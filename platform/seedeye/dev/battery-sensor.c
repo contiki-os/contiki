@@ -7,7 +7,7 @@
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -33,7 +33,7 @@
  * SUCH DAMAGE.
  *
  */
- 
+
 /**
  * \addtogroup SeedEye Contiki SEEDEYE Platform
  *
@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   battery-sensor.c
+ * \file   platform/seedeye/dev/battery-sensor.c
  * \brief  Battery Sensor
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-07-04
@@ -73,7 +73,7 @@ value(int type)
   for(i = 0; i < BATTERY_SAMPLES; ++i) {
     tmp += battery_samples[i];
   }
-  
+
   return tmp / BATTERY_SAMPLES;
 }
 /*---------------------------------------------------------------------------*/
@@ -82,10 +82,10 @@ configure(int type, int c)
 {
   // all PORTB = Digital; RB10 = analog
   AD1PCFG = 0b1111110111111111;
-  
+
   // SSRC bit = 111 implies internal counter ends sampling and starts converting
   AD1CON1 = 0b0000000011100000;
-                                
+
   AD1CHS = 0b00000000000010100000000000000000;
 
   AD1CSSL = 0;
@@ -116,12 +116,12 @@ SENSORS_SENSOR(battery_sensor, BATTERY_SENSOR, value, configure, status);
 PROCESS_THREAD(battery_process, ev, data)
 {
   PROCESS_BEGIN();
-   
+
   while(1) {
     static struct etimer et;
 
     etimer_set(&et, CLOCK_SECOND);
-    
+
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
     // start converting
@@ -130,10 +130,10 @@ PROCESS_THREAD(battery_process, ev, data)
     while(!(AD1CON1 & 0b0000000000000001)) {
       ; // wait conversion finish
     }
-    
+
     // read the conversion result
     battery_samples[counter] = ADC1BUF0;
-    
+
     counter = (counter + 1) % BATTERY_SAMPLES;
   }
 

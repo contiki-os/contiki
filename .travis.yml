@@ -2,42 +2,72 @@ notifications:
   email: false
 language: c #NOTE: this will set CC=gcc which might cause trouble
 before_script:
-  - "sudo apt-get -qq update"
-  ## Install these mainline toolchains for all build types
-  - "sudo apt-get -qq install lib32z1 || true"
-  - "curl -s \
-       http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 \
-         | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/msp430/* /usr/local/ && rm -rf /tmp/msp430 && msp430-gcc --version || true"
-  - "sudo apt-get -qq install gcc-avr avr-libc || true"
-  - "sudo apt-get -qq install libc6:i386 libgcc1:i386 gcc-4.6-base:i386 libstdc++5:i386 libstdc++6:i386 || true"
+  - WGET="travis_retry wget --continue --tries=20 --waitretry=10 --retry-connrefused --no-dns-cache --timeout 300"
+  - sudo apt-get -qq update
 
-  ## Install toolchain for mc1233x, cc2538 and mbxxx in care-free way
-  - "[ ${BUILD_ARCH:-0} = arm ] && curl -s \
-       https://raw.githubusercontent.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 \
-         | tar xjf - -C /tmp/ && sudo cp -f -r /tmp/arm-2008q3/* /usr/ && rm -rf /tmp/arm-2008q3 && arm-none-eabi-gcc --version || true"
+  ## Install msp430 toolchain
+  - sudo apt-get -qq install lib32z1
+  - $WGET http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 &&
+    tar xjf mspgcc*.tar.bz2 -C /tmp/ &&
+    sudo cp -f -r /tmp/msp430/* /usr/local/ &&
+    rm -rf /tmp/msp430 mspgcc*.tar.bz2 &&
+    msp430-gcc --version
 
-  ## Install RL78 GCC chain (following the instructions in platform/eval-adf7xxxmb4z/README.md)
-  - "sudo apt-get install git make gcc libc-dev multiarch-support libncurses5:i386 zlib1g:i386"
-  - "wget https://dl.dropboxusercontent.com/u/60522916/gnurl78-v13.02-elf_1-2_i386.deb"
-  - "sudo dpkg -i gnurl78*.deb"
+  ## Install avr toolchain
+  - sudo apt-get -qq install gcc-avr avr-libc
+
+  ## Install 32-bit compatibility libraries
+  - sudo apt-get -qq install libc6:i386 libgcc1:i386 gcc-4.6-base:i386
+      libstdc++5:i386 libstdc++6:i386
+
+  ## Install old APCS ARM toolchain for mc1233x, cc2538 and mbxxx
+  - if [ ${BUILD_ARCH:-0} = arm-apcs ] ; then
+      $WGET https://raw.githubusercontent.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 &&
+      tar xjf arm-2008q3*.tar.bz2 -C /tmp/ &&
+      sudo cp -f -r /tmp/arm-2008q3/* /usr/ &&
+      rm -rf /tmp/arm-2008q3 arm-2008q3*.tar.bz2 &&
+      arm-none-eabi-gcc --version ;
+    fi
+
+  ## Install mainline ARM toolchain.  gcc-arm-none-eabi is available
+  ## in Ubuntu >= 14.04, but this external PPA is needed for 12.04.
+  - if [ ${BUILD_ARCH:-0} = arm ] ; then
+      sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded &&
+      sudo apt-get -qq update &&
+      sudo apt-get -qq install gcc-arm-none-eabi &&
+      arm-none-eabi-gcc --version ;
+    fi
+
+  ## Install RL78 GCC toolchain
+  - sudo apt-get install libncurses5:i386 zlib1g:i386
+  - $WGET http://adamdunkels.github.io/contiki-fork/gnurl78-v13.02-elf_1-2_i386.deb &&
+    sudo dpkg -i gnurl78*.deb
 
   ## Install SDCC from a purpose-built bundle
-  - "[ ${BUILD_ARCH:-0} = 8051 ] && curl -s \
-       https://raw.githubusercontent.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc.tar.gz \
-         | tar xzf - -C /tmp/ && sudo cp -f -r /tmp/sdcc/* /usr/local/ && rm -rf /tmp/sdcc && sdcc --version || true"
-  - "[ ${BUILD_ARCH:-0} = 8051 ] && sudo apt-get -qq install srecord || true"
+  - if [ ${BUILD_ARCH:-0} = 8051 ] ; then
+      $WGET https://raw.githubusercontent.com/wiki/g-oikonomou/contiki-sensinode/files/sdcc.tar.gz &&
+      tar xzf sdcc.tar.gz -C /tmp/ &&
+      sudo cp -f -r /tmp/sdcc/* /usr/local/ &&
+      rm -rf /tmp/sdcc sdcc.tar.gz &&
+      sdcc --version &&
+      sudo apt-get -qq install srecord ;
+    fi
 
   ## Clone and build cc65 when testing 6502 ports
-  - "[ ${BUILD_ARCH:-0} = 6502 ] && git clone \
-       https://github.com/cc65/cc65 /tmp/cc65 && \
-       make -C /tmp/cc65 bin apple2enh atarixl c64 c128 && sudo make -C /tmp/cc65 avail && \
-       export CC65_HOME=/tmp/cc65/ && cc65 --version || true"
+  - if [ ${BUILD_ARCH:-0} = 6502 ] ; then
+      git clone https://github.com/cc65/cc65 /tmp/cc65 &&
+      make -C /tmp/cc65 bin apple2enh atarixl c64 c128 &&
+      sudo make -C /tmp/cc65 avail &&
+      export CC65_HOME=/tmp/cc65/ &&
+      cc65 --version ;
+    fi
 
   ## Compile cooja.jar only when it's going to be needed
-  - "[ ${BUILD_CATEGORY:-sim} = sim ] && java -version && ant -q -f tools/cooja/build.xml jar && sudo java -Xshare:dump -version || true"
-
-  ## IMPORTANT: The commands here have to end with `|| true`,
-  ## because it would make the test fail if BUILD_TYPE test fails
+  - if [ ${BUILD_CATEGORY:-sim} = sim ] ; then
+      java -version &&
+      ant -q -f tools/cooja/build.xml jar &&
+      sudo java -Xshare:dump -version ;
+    fi
 
 script:
   ## regression-tests/Makefile handles most of generic logic
@@ -46,7 +76,7 @@ script:
 after_script:
   ## Print cooja test logs
   - "[ ${BUILD_CATEGORY:-sim} = sim ] && tail regression-tests/??-$BUILD_TYPE/*.testlog"
-  ## Print a basic summary 
+  ## Print a basic summary
   - "echo 'Summary:'; cat regression-tests/??-$BUILD_TYPE/summary"
   - "FAILS=`grep -c -i 'fail' regression-tests/??-$BUILD_TYPE/summary`"
   ## This will detect whether the build should pass or fail
@@ -72,6 +102,7 @@ env:
 #  - BUILD_TYPE='ipv4'
   - BUILD_TYPE='ipv6-apps'
   - BUILD_TYPE='compile-8051-ports' BUILD_CATEGORY='compile' BUILD_ARCH='8051'
-  - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm'
+  - BUILD_TYPE='compile-arm-apcs-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-apcs'
   - BUILD_TYPE='compile-6502-ports' BUILD_CATEGORY='compile' BUILD_ARCH='6502'
+  - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm'
   - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'

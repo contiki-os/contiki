@@ -272,6 +272,30 @@ init(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
 const struct radio_driver cooja_radio_driver =
 {
     init,
@@ -284,6 +308,10 @@ const struct radio_driver cooja_radio_driver =
     pending_packet,
     radio_on,
     radio_off,
+    get_value,
+    set_value,
+    get_object,
+    set_object
 };
 /*---------------------------------------------------------------------------*/
 SIM_INTERFACE(radio_interface,

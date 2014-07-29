@@ -35,8 +35,6 @@ ifndef CC65_HOME
   ${error CC65_HOME not defined! You must specify where cc65 resides}
 endif
 
-all: cs8900a.eth lan91c96.eth w5100.eth
-
 .SUFFIXES:
 
 CONTIKI_TARGET_DIRS = . lib sys
@@ -47,15 +45,18 @@ CONTIKI_CPU_SOURCEFILES    += log.c error.c unload.c config.c ctk-mouse.c \
                               clock.c mtarch.c mtarch-asm.S lc-asm.S \
                               uip_arch.c ethernet-drv.c ethernet.c
 
+ETHERNET_SOURCEFILES = cs8900a.S lan91c96.S w5100.S
+
 CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c petsciiconv.c cfs-posix-dir.c \
-                       $(CONTIKI_TARGET_SOURCEFILES) $(CONTIKI_CPU_SOURCEFILES)
+                       $(CONTIKI_TARGET_SOURCEFILES) $(CONTIKI_CPU_SOURCEFILES) \
+                       $(ETHERNET_SOURCEFILES)
 
 MODULES += core/ctk core/net/ip core/net/ipv4 core/net/ipv6
 
-ifdef ETHERNET
-  CONTIKI_SOURCEFILES += $(ETHERNET)-eth.S
-  CFLAGS += -DETHERNET=$(ETHERNET)
-endif
+# Set target-specific variable values
+${addprefix $(OBJECTDIR)/,${call oname, $(ETHERNET_SOURCEFILES)}}: ASFLAGS += -D DYN_DRV=0
+
+all: $(ETHERNET_SOURCEFILES:.S=.eth)
 
 AS = ca65
 CC = cl65

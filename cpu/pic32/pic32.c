@@ -1,13 +1,13 @@
 /*
  * Contiki PIC32 Port project
- * 
+ *
  * Copyright (c) 2012,
  *  Scuola Superiore Sant'Anna (http://www.sssup.it) and
  *  Consorzio Nazionale Interuniversitario per le Telecomunicazioni
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -40,8 +40,8 @@
  * @{
  */
 
-/** 
- * \file   mtarch.h
+/**
+ * \file   cpu/pic32/mtarch.h
  * \brief  PIC32MX initialization routines
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \author Daniele Alessandrelli <d.alessandrelli@sssup.it>
@@ -50,7 +50,7 @@
 
 /*
  * PIC32MX795F512L - Specific Functions
- * 
+ *
  * All the functions in this part of the file are specific for the
  * pic32mx795f512l that is characterized by registers' name that differ from
  * the 3xx and 4xx families of the pic32mx.
@@ -59,7 +59,7 @@
 #include <pic32_irq.h>
 
 #include <p32xxxx.h>
-#include <peripheral/system.h> 
+#include <peripheral/system.h>
 #include <stdint.h>
 
 #include <dev/leds.h>
@@ -106,10 +106,10 @@ pic32_init(void)
   SYSKEY = 0;
   SYSKEY = 0xaa996655;
   SYSKEY = 0x556699aa;
-  
+
   /* Enable Sleep Mode */
   OSCCONCLR = 1 << _OSCCON_SLPEN_POSITION;
-  
+
   SYSKEY = 0;
 
   ASM_EN_INT;
@@ -125,7 +125,7 @@ _general_exception_handler(void)
   asm volatile ("mfc0 %0,$13":"=r" (cp0_exception_cause));
 
   cp0_exception_code = (cp0_exception_cause >> 2) & 0x0000001F;
-  
+
   leds_on(LEDS_ALL);
 
   while(1){

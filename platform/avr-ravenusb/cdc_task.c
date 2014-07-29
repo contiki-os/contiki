@@ -1,12 +1,12 @@
 /* This file has been prepared for Doxygen automatic documentation generation.*/
-/*! \file cdc_task.c **********************************************************
+/*! \file platform/avr-ravenusb/cdc_task.c **********************************************************
  *
  * \brief
  *      Manages the CDC-ACM Virtual Serial Port Dataclass for the USB Device
  *
  * \addtogroup usbstick
  *
- * \author 
+ * \author
  *        Colin O'Flynn <coflynn@newae.com>
  *
  ******************************************************************************/
@@ -151,13 +151,13 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
 	    // turn off LED's if necessary
 		if (led3_timer) led3_timer--;
 		else			Led3_off();
-		
+
  		if(Is_device_enumerated()) {
 			// If the configuration is different than the last time we checked...
 			if((uart_usb_get_control_line_state()&1)!=previous_uart_usb_control_line_state) {
 				previous_uart_usb_control_line_state = uart_usb_get_control_line_state()&1;
 				static FILE* previous_stdout;
-				
+
 				if(previous_uart_usb_control_line_state&1) {
 					previous_stdout = stdout;
 					uart_usb_init();
@@ -202,8 +202,8 @@ PROCESS_THREAD(cdc_process, ev, data_proc)
 			etimer_set(&et, CLOCK_SECOND);
 		}
 
-		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));	
-		
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
 	} // while(1)
 
 	PROCESS_END();
@@ -282,18 +282,18 @@ void menu_process(char c)
 		channel,
         txpower
 	} menustate = normal;
-	
+
 	static char channel_string[3];
 	static uint8_t channel_string_i;// = 0;
-	
+
 	int tempchannel;
 
 	if (menustate == channel) {
 
 		switch(c) {
 			case '\r':
-			case '\n':		
-								
+			case '\n':
+
 				if (channel_string_i)  {
 					channel_string[channel_string_i] = 0;
 					tempchannel = atoi(channel_string);
@@ -309,7 +309,7 @@ void menu_process(char c)
 					} else {
 #endif
 #if JACKDAW_CONF_USE_SETTINGS
-						if(settings_set_uint8(SETTINGS_KEY_CHANNEL, tempchannel)==SETTINGS_STATUS_OK) {                       
+						if(settings_set_uint8(SETTINGS_KEY_CHANNEL, tempchannel)==SETTINGS_STATUS_OK) {
                             PRINTF_P(PSTR("\n\rChannel changed to %d and stored in EEPROM.\n\r"),tempchannel);
 						} else {
                             PRINTF_P(PSTR("\n\rChannel changed to %d, but unable to store in EEPROM!\n\r"),tempchannel);
@@ -324,15 +324,15 @@ void menu_process(char c)
 
 				menustate = normal;
 				break;
-		
+
 			case '\b':
-			
+
 				if (channel_string_i) {
 					channel_string_i--;
 					PRINTF_P(PSTR("\b \b"));
 				}
 				break;
-					
+
 			case '0':
 			case '1':
 			case '2':
@@ -352,7 +352,7 @@ void menu_process(char c)
 				}
 				putc(c, stdout);
 				//uart_usb_putchar(c);
-				
+
 				channel_string[channel_string_i] = c;
 				channel_string_i++;
 				break;
@@ -364,8 +364,8 @@ void menu_process(char c)
 
 		switch(c) {
 			case '\r':
-			case '\n':		
-								
+			case '\n':
+
 				if (channel_string_i)  {
 					channel_string[channel_string_i] = 0;
 					tempchannel = atoi(channel_string);
@@ -396,15 +396,15 @@ void menu_process(char c)
 
 				menustate = normal;
 				break;
-		
+
 			case '\b':
-			
+
 				if (channel_string_i) {
 					channel_string_i--;
 					PRINTF_P(PSTR("\b \b"));
 				}
 				break;
-					
+
 			case '0':
 			case '1':
 			case '2':
@@ -424,7 +424,7 @@ void menu_process(char c)
 				}
 				putc(c, stdout);
 				//uart_usb_putchar(c);
-				
+
 				channel_string[channel_string_i] = c;
 				channel_string_i++;
 				break;
@@ -432,7 +432,7 @@ void menu_process(char c)
 			default:
 				break;
 		}
- 
+
 	} else {
 
 		uint8_t i;
@@ -482,7 +482,7 @@ void menu_process(char c)
 				usbstick_mode.translate = 0;
 #if RF230BB
 				rf230_listen_channel(rf230_get_channel());
-#else		
+#else
 				radio_set_trx_state(RX_ON);
 #endif
 				break;
@@ -518,7 +518,7 @@ void menu_process(char c)
 				usbstick_mode.translate = 1;
 #if RF230BB
 				rf230_set_channel(rf230_get_channel());
-#else		
+#else
 			    radio_set_trx_state(RX_AACK_ON);  //TODO: Use startup state which may be RX_ON
 #endif
 				break;
@@ -530,8 +530,8 @@ void menu_process(char c)
 				} else {
 					PRINTF_P(PSTR("Jackdaw now performs 6lowpan translations\n\r"));
 					usbstick_mode.sicslowpan = 1;
-				}	
-				
+				}
+
 				break;
 
 			case 'r':
@@ -541,7 +541,7 @@ void menu_process(char c)
 				} else {
 					PRINTF_P(PSTR("Jackdaw now captures raw frames\n\r"));
 					usbstick_mode.raw = 1;
-				}	
+				}
 				break;
 #if USB_CONF_RS232
 			case 'd':
@@ -551,7 +551,7 @@ void menu_process(char c)
 				} else {
 					PRINTF_P(PSTR("Jackdaw now outputs debug strings\n\r"));
 					usbstick_mode.debugOn = 1;
-				}	
+				}
 				break;
 #endif
 
@@ -585,7 +585,7 @@ extern uip_ds6_netif_t uip_ds6_if;
 			  uip_ds6_nbr_t *nbr;
 				PRINTF_P(PSTR("\n\rAddresses [%u max]\n\r"),UIP_DS6_ADDR_NB);
 				for (i=0;i<UIP_DS6_ADDR_NB;i++) {
-					if (uip_ds6_if.addr_list[i].isused) {	  
+					if (uip_ds6_if.addr_list[i].isused) {
 						ipaddr_add(&uip_ds6_if.addr_list[i].ipaddr);
 						PRINTF_P(PSTR("\n\r"));
 					}
@@ -619,21 +619,21 @@ extern uip_ds6_netif_t uip_ds6_if;
 				PRINTF_P(PSTR("\n\r---------\n\r"));
 				break;
 			}
-			
+
 			case 'G':
 				PRINTF_P(PSTR("Global repair returns %d\n\r"),rpl_repair_root(RPL_DEFAULT_INSTANCE));
 				break;
-            
+
             case 'L':
                 rpl_local_repair(rpl_get_any_dag());
-                 PRINTF_P(PSTR("Local repair initiated\n\r")); 
+                 PRINTF_P(PSTR("Local repair initiated\n\r"));
                  break;
- 
-            case 'Z':     //zap the routing table           
+
+            case 'Z':     //zap the routing table
                 PRINTF_P(PSTR("Not implemented.\n\r"));
                 break;
-#endif				
-			
+#endif
+
 			case 'm':
 				PRINTF_P(PSTR("Currently Jackdaw:\n\r  * Will "));
 				if (usbstick_mode.sendToRf == 0) { PRINTF_P(PSTR("not "));}
@@ -676,7 +676,7 @@ extern uip_ds6_netif_t uip_ds6_if;
 				PRINTF_P(PSTR("  * Operates on channel %d with TX power "),rf230_get_channel());
 				printtxpower();
 				PRINTF_P(PSTR("\n\r"));
-#else  //just show the raw value          
+#else  //just show the raw value
 				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), rf230_get_channel());
 				PRINTF_P(PSTR("  * TX Power(0=+3dBm, 15=-17.2dBm): %d\n\r"), rf230_get_txpower());
 #endif
@@ -698,7 +698,7 @@ extern uip_ds6_netif_t uip_ds6_if;
 					else
 						PRINTF_P(PSTR("Unknown\n\r"));
 				}
-				
+
 #endif /* RF230BB */
 
 				PRINTF_P(PSTR("  * Configuration: %d, USB<->ETH is "), usb_configuration_nb);
@@ -735,10 +735,10 @@ uint16_t p=(uint16_t)&__bss_end;
 #endif
 					int8_t RSSI, maxRSSI[17];
 					uint16_t accRSSI[17];
-					
+
 					bzero((void*)accRSSI,sizeof(accRSSI));
 					bzero((void*)maxRSSI,sizeof(maxRSSI));
-					
+
 					for(j=0;j<(1<<12);j++) {
 						for(i=11;i<=26;i++) {
 #if RF230BB
@@ -789,7 +789,7 @@ uint16_t p=(uint16_t)&__bss_end;
 				}
 				PRINTF_P(PSTR("Done.\n"));
 				uart_usb_flush();
-				
+
 				break;
 
 
@@ -814,7 +814,7 @@ uint16_t p=(uint16_t)&__bss_end;
 					watchdog_reboot();
 				}
 				break;
-				
+
 #if USB_CONF_STORAGE
 			case 'u':
 
