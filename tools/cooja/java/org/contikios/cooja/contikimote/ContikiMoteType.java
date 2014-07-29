@@ -212,6 +212,9 @@ public class ContikiMoteType implements MoteType {
   // Initial memory for all motes of this type
   private SectionMoteMemory initialMemory = null;
 
+  /** Offset between native (cooja) and contiki address space */
+  long offset;
+
   /**
    * Creates a new uninitialized Cooja mote type. This mote type needs to load
    * a library file and parse a map file before it can be used.
@@ -484,9 +487,8 @@ public class ContikiMoteType implements MoteType {
      *
      * This offset will be used in Cooja in the memory abstraction to match
      * Contiki's and Cooja's address spaces */
-    int offset;
     {
-      SectionMoteMemory tmp = new SectionMoteMemory(variables, 0);
+      SectionMoteMemory tmp = new SectionMoteMemory(variables);
       VarMemory varMem = new VarMemory(tmp);
       tmp.addMemorySection("tmp.data", dataSecParser.parse());
 
@@ -508,7 +510,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     /* Create initial memory: data+bss+optional common */
-    initialMemory = new SectionMoteMemory(variables, offset);
+    initialMemory = new SectionMoteMemory(variables);
 
     initialMemory.addMemorySection("data", dataSecParser.parse());
 

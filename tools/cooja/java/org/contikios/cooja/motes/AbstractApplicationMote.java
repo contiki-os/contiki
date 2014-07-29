@@ -92,7 +92,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     setSimulation(sim);
     this.moteType = moteType;
     MemoryLayout.getNative();
-    this.memory = new SectionMoteMemory(new HashMap<String, Symbol>(), 0);
+    this.memory = new SectionMoteMemory(new HashMap<String, Symbol>());
     this.moteInterfaces = new MoteInterfaceHandler(this, moteType.getMoteInterfaceClasses());
     this.moteInterfaces.getRadio().addObserver(radioDataObserver);
     requestImmediateWakeup();
@@ -152,7 +152,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable) {
     setSimulation(simulation);
-    this.memory = new SectionMoteMemory(new HashMap<String, Symbol>(), 0);
+    this.memory = new SectionMoteMemory(new HashMap<String, Symbol>());
     moteInterfaces.getRadio().addObserver(radioDataObserver);
 
     for (Element element : configXML) {

@@ -963,7 +963,7 @@ public class ConfigurationWizard extends JDialog {
     byte[] initialBssSection = new byte[bssSectionSize];
     javaLibrary.getMemory(relDataSectionAddr, dataSectionSize, initialDataSection);
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
-    SectionMoteMemory memory = new SectionMoteMemory(addresses, 0);
+    SectionMoteMemory memory = new SectionMoteMemory(addresses);
     VarMemory varMem = new VarMemory(memory);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);

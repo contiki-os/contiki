@@ -57,16 +57,11 @@ public class SectionMoteMemory implements MemoryInterface {
   private MemoryLayout memLayout;
   private long startAddr = Long.MAX_VALUE;
 
-  /* used to map Cooja's address space to native (Contiki's) addresses */
-  private final int offset;
-  
   /**
    * @param symbols Symbol addresses
-   * @param offset Offset for internally used addresses
    */
-  public SectionMoteMemory(Map<String, Symbol> symbols, int offset) {
+  public SectionMoteMemory(Map<String, Symbol> symbols) {
     this.symbols = symbols;
-    this.offset = offset;
   }
 
   /**
@@ -248,10 +243,6 @@ public class SectionMoteMemory implements MemoryInterface {
             address, address + data.length - 1);
   }
 
-  public void setMemorySegmentNative(long address, byte[] data) throws MoteMemoryException {
-    setMemorySegment(address + offset, data);
-  }
-
   @Override
   public long getStartAddr() {
     return startAddr;
@@ -292,7 +283,7 @@ public class SectionMoteMemory implements MemoryInterface {
   @Override
   public SectionMoteMemory clone() {
 
-    SectionMoteMemory clone = new SectionMoteMemory(symbols, offset);
+    SectionMoteMemory clone = new SectionMoteMemory(symbols);
 
     for (String secname : sections.keySet()) {
       // Copy section memory to new ArrayMemory
