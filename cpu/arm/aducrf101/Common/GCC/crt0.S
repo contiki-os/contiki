@@ -32,18 +32,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __STACK_SIZE
-#define __STACK_SIZE 1024
-#endif
-
 .equ SCB_VTOR, 0xE000ED08
-
-/* Stack */
-        .section .bss.stack
-stack_start:
-        .space __STACK_SIZE, 0
-stack_end:
-        .global stack_end
 
 /* Vector table */
         .macro handler name
