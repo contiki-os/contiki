@@ -43,9 +43,25 @@ static volatile clock_time_t current_clock = 0;
 static volatile unsigned long current_seconds = 0;
 static unsigned int second_countdown = CLOCK_SECOND;
 
+#define SAMPLE_STACK_POINTER
+#ifdef SAMPLE_STACK_POINTER
+volatile uint32_t *__min_sampled_sp = (uint32_t *)0xFFFFFFFF;
+#endif
+
 void
 SysTick_Handler(void)
 {
+#ifdef SAMPLE_STACK_POINTER
+  /* Take note of the lowest stack pointer we ever saw.
+     When compiling against newlib, the total free bytes of
+     RAM not ever used by heap or stack can be found via GDB:
+       (gdb) p (char *)__min_sampled_sp - (char *)_sbrk(0)
+  */
+  uint32_t *sp = (uint32_t *)&sp;
+  if (sp < __min_sampled_sp)
+    __min_sampled_sp = sp;
+#endif
+
   current_clock++;
   if(etimer_pending()) {
     etimer_request_poll();
