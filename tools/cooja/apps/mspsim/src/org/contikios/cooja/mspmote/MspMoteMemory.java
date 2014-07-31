@@ -29,18 +29,21 @@
 package org.contikios.cooja.mspmote;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import org.contikios.cooja.AddressMemory;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteMemory;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryLayout;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.core.Memory.AccessMode;
 import se.sics.mspsim.core.Memory.AccessType;
 import se.sics.mspsim.util.MapEntry;
 
-public class MspMoteMemory implements MoteMemory, AddressMemory {
+public class MspMoteMemory implements MemoryInterface, MoteMemory, AddressMemory {
   private static Logger logger = Logger.getLogger(MspMoteMemory.class);
   private final ArrayList<MapEntry> mapEntries;
 
@@ -85,11 +88,6 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
   @Override
   public int getIntegerLength() {
     return 2;
-  }
-
-  @Override
-  public void clearMemory() {
-    logger.fatal("clearMemory() not implemented");
   }
 
   @Override
@@ -201,6 +199,52 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
   }
 
   private ArrayList<MemoryCPUMonitor> cpuMonitorArray = new ArrayList<MemoryCPUMonitor>();
+
+  @Override
+  public byte[] getMemory() throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public byte[] getMemorySegment(long addr, int size) throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public void setMemorySegment(long addr, byte[] data) throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public void clearMemory() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public long getStartAddr() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public Map<String, Symbol> getSymbolMap() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public MemoryLayout getLayout() {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public boolean addSegmentMonitor(SegmentMonitor.EventType flag, long address, int size, SegmentMonitor monitor) {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public boolean removeSegmentMonitor(long address, int size, SegmentMonitor monitor) {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
   class MemoryCPUMonitor extends se.sics.mspsim.core.MemoryMonitor.Adapter {
     public final MemoryMonitor mm;
     public final int address;
