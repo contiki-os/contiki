@@ -40,10 +40,13 @@ import avrora.core.SourceMapping;
 import avrora.core.SourceMapping.Location;
 import avrora.sim.AtmelInterpreter;
 import avrora.sim.Simulator.Watch;
+import java.util.Map;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryLayout;
 /**
  * @author Joakim Eriksson
  */
-public class AvrMoteMemory implements MoteMemory, AddressMemory {
+public class AvrMoteMemory implements MemoryInterface, MoteMemory, AddressMemory {
     private static Logger logger = Logger.getLogger(AvrMoteMemory.class);
 
     private SourceMapping memoryMap;
@@ -58,11 +61,6 @@ public class AvrMoteMemory implements MoteMemory, AddressMemory {
 
     public void insertWatch(Watch w, int address) {
         interpreter.getSimulator().insertWatch(w, address);
-    }
-    
-    @Override
-    public void clearMemory() {
-        logger.fatal("not implemented");
     }
 
     @Override
@@ -199,4 +197,50 @@ public class AvrMoteMemory implements MoteMemory, AddressMemory {
       logger.warn("Not implemented");
       return 0;
     }
+
+  @Override
+  public byte[] getMemory() throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public byte[] getMemorySegment(long addr, int size) throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void setMemorySegment(long addr, byte[] data) throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public void clearMemory() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public long getStartAddr() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public Map<String, Symbol> getSymbolMap() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public MemoryLayout getLayout() {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public boolean addSegmentMonitor(SegmentMonitor.EventType flag, long address, int size, SegmentMonitor monitor) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
+  @Override
+  public boolean removeSegmentMonitor(long address, int size, SegmentMonitor monitor) {
+    throw new UnsupportedOperationException("Not supported yet.");
+  }
+
 }
