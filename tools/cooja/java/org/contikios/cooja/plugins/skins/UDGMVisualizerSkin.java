@@ -263,9 +263,6 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
 
   @Override
   public Color[] getColorOf(Mote mote) {
-    if (visualizer.getSelectedMotes().contains(mote)) {
-      return new Color[]{Color.CYAN};
-    }
     return null;
   }
 
