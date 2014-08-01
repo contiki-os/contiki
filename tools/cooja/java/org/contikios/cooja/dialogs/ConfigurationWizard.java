@@ -178,11 +178,8 @@ public class ConfigurationWizard extends JDialog {
     }
 
     /* Test 4 - Memory replacement */
-    if (!doMemoryReplacementTest((JFrame)parentContainer, gui)) {
-      return false;
-    }
+      return doMemoryReplacementTest((JFrame) parentContainer, gui);
 
-    return true;
   }
 
   public static boolean showWizardInfo(Container parent, Cooja gui) {
@@ -199,11 +196,8 @@ public class ConfigurationWizard extends JDialog {
         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE,
         null, options, options[0]);
 
-    if (value != JOptionPane.YES_OPTION) {
-      return false;
-    }
+      return value == JOptionPane.YES_OPTION;
 
-    return true;
   }
 
   public static boolean doCompileCTest(JFrame parent, Cooja gui) {
@@ -546,7 +540,7 @@ public class ConfigurationWizard extends JDialog {
     cLibraryFile = new File(ContikiMoteType.tempOutputDirectory, cLibraryName + ContikiMoteType.librarySuffix);
 
     testOutput.addMessage("### Reading C library template source: " + testTemplate, MessageList.NORMAL);
-    BufferedReader templateReader = null;
+    BufferedReader templateReader;
     try {
       if ((new File(testTemplate)).exists()) {
         templateReader = new BufferedReader(new FileReader(testTemplate));
@@ -577,7 +571,7 @@ public class ConfigurationWizard extends JDialog {
       testOutput.addMessage("### Error: " + e.getMessage(), MessageList.ERROR);
       return false;
     }
-    BufferedWriter cLibraryWriter = null;
+    BufferedWriter cLibraryWriter;
     try {
       cLibraryWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(cLibrarySourceFile)));
       String line;
@@ -666,7 +660,7 @@ public class ConfigurationWizard extends JDialog {
     }
 
     testOutput.addMessage("### Loading Java library class: org/contikios/cooja/corecomm/" + javaLibraryName);
-    Class<? extends CoreComm> javaLibraryClass = null;
+    Class<? extends CoreComm> javaLibraryClass;
     try {
       javaLibraryClass = (Class<? extends CoreComm>) CoreComm.loadClassFile(javaLibraryName);
     } catch (MoteTypeCreationException e) {
@@ -679,7 +673,7 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary = null;
     try {
       Constructor<? extends CoreComm> constr = javaLibraryClass.getConstructor(new Class[] { File.class });
-      javaLibrary = constr.newInstance(new Object[] { cLibraryFile });
+      javaLibrary = constr.newInstance(cLibraryFile);
     } catch (Exception e) {
       e.printStackTrace(errorStream);
       testOutput.addMessage("### Error: " + e.getMessage(), MessageList.ERROR);
@@ -704,8 +698,8 @@ public class ConfigurationWizard extends JDialog {
     }
     dummyStream.close();
 
-    boolean successMap = false;
-    boolean successCommand = false;
+    boolean successMap;
+    boolean successCommand;
 
     successMap = performMapAddressTest(testOutput, normalStream, errorStream);
     testOutput.addMessage("");

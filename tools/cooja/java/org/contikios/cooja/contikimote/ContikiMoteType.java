@@ -40,11 +40,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Vector;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -387,10 +383,10 @@ public class ContikiMoteType implements MoteType {
     /* Parse addresses using map file or command */
     boolean useCommand = Boolean.parseBoolean(Cooja.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
 
-    int dataSectionAddr = -1, dataSectionSize = -1;
-    int bssSectionAddr = -1, bssSectionSize = -1;
-    int commonSectionAddr = -1, commonSectionSize = -1;
-    int readonlySectionAddr = -1, readonlySectionSize = -1;
+    int dataSectionAddr, dataSectionSize;
+    int bssSectionAddr, bssSectionSize;
+    int commonSectionAddr, commonSectionSize;
+    int readonlySectionAddr, readonlySectionSize;
 
     HashMap<String, Integer> addresses = new HashMap<String, Integer>();
     if (useCommand) {
@@ -591,7 +587,7 @@ public class ContikiMoteType implements MoteType {
     for (String varName : varNames) {
       int varAddress = getMapFileVarAddress(mapFileData, varName, varAddresses);
       if (varAddress > 0) {
-        varAddresses.put(varName, new Integer(varAddress));
+        varAddresses.put(varName, varAddress);
       } else {
         logger.warn("Parsed Contiki variable '" + varName
             + "' but could not find address");
@@ -624,7 +620,7 @@ public class ContikiMoteType implements MoteType {
 
         if (!addresses.containsKey(symbol)) {
           nrNew++;
-          addresses.put(symbol, new Integer(address));
+          addresses.put(symbol, address);
         } else {
           int oldAddress = addresses.get(symbol);
           if (oldAddress != address) {
@@ -734,7 +730,7 @@ public class ContikiMoteType implements MoteType {
   private static int getMapFileVarAddress(String[] mapFileData, String varName, HashMap<String, Integer> varAddresses) {
     Integer varAddrInteger;
     if ((varAddrInteger = varAddresses.get(varName)) != null) {
-      return varAddrInteger.intValue();
+      return varAddrInteger;
     }
 
     String regExp =
@@ -746,7 +742,7 @@ public class ContikiMoteType implements MoteType {
     if (retString != null) {
       varAddrInteger = Integer.parseInt(retString.trim(), 16);
       varAddresses.put(varName, varAddrInteger);
-      return varAddrInteger.intValue();
+      return varAddrInteger;
     } else {
       return -1;
     }
@@ -785,17 +781,13 @@ public class ContikiMoteType implements MoteType {
         mapFileData,
         parseMapDataSectionAddr(mapFileData),
         parseMapDataSectionAddr(mapFileData) + parseMapDataSectionSize(mapFileData));
-    for (String v: dataVariables) {
-      varNames.add(v);
-    }
+      Collections.addAll(varNames, dataVariables);
 
     String[] bssVariables = getAllVariableNames(
         mapFileData,
         parseMapBssSectionAddr(mapFileData),
         parseMapBssSectionAddr(mapFileData) + parseMapBssSectionSize(mapFileData));
-    for (String v: bssVariables) {
-      varNames.add(v);
-    }
+      Collections.addAll(varNames, bssVariables);
 
     return varNames.toArray(new String[0]);
   }
@@ -808,8 +800,8 @@ public class ContikiMoteType implements MoteType {
     for (String line : lines) {
       Matcher matcher = pattern.matcher(line);
       if (matcher.find()) {
-        if (Integer.decode(matcher.group(1)).intValue() >= startAddress
-            && Integer.decode(matcher.group(1)).intValue() <= endAddress) {
+        if (Integer.decode(matcher.group(1)) >= startAddress
+            && Integer.decode(matcher.group(1)) <= endAddress) {
           varNames.add(matcher.group(2));
         }
       }
@@ -822,12 +814,12 @@ public class ContikiMoteType implements MoteType {
         Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_1") +
         varName +
         Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
-    for (int i = 0; i < lines.size(); i++) {
-      Matcher matcher = pattern.matcher(lines.get(i));
-      if (matcher.find()) {
-        return Integer.decode(matcher.group(1));
+      for (String line : lines) {
+          Matcher matcher = pattern.matcher(line);
+          if (matcher.find()) {
+              return Integer.decode(matcher.group(1));
+          }
       }
-    }
     return -1;
   }
 
@@ -1099,9 +1091,7 @@ public class ContikiMoteType implements MoteType {
 
   public void setMoteInterfaceClasses(Class<? extends MoteInterface>[] moteInterfaces) {
     this.moteInterfacesClasses = new ArrayList<Class<? extends MoteInterface>>();
-    for (Class<? extends MoteInterface> intf: moteInterfaces) {
-      this.moteInterfacesClasses.add(intf);
-    }
+      Collections.addAll(this.moteInterfacesClasses, moteInterfaces);
   }
 
   /**
@@ -1268,7 +1258,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     element = new Element("symbols");
-    element.setText(new Boolean(hasSystemSymbols()).toString());
+    element.setText(Boolean.toString(hasSystemSymbols()));
     config.add(element);
 
     if (getNetworkStack() != NetworkStack.DEFAULT) {
@@ -1417,9 +1407,7 @@ public class ContikiMoteType implements MoteType {
         continue;
       }
 
-      for (String dep: deps) {
-        coreInterfacesList.add(dep);
-      }
+        Collections.addAll(coreInterfacesList, deps);
     }
 
     String[] coreInterfaces = new String[coreInterfacesList.size()];

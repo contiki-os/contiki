@@ -573,7 +573,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         Transferable transferable = dtde.getTransferable();
 
         /* Only accept single files */
-        File file = null;
+        File file;
         if (!transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
           dtde.rejectDrop();
           return;
@@ -925,7 +925,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         }
       }
     }
-    return showMenuItem;
+      return showMenuItem;
   }
 
   private void handleMousePress(MouseEvent mouseEvent) {
@@ -1637,11 +1637,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     public void doAction(Visualizer visualizer, Mote mote) {
       mote.getInterfaces().getButton().clickButton();
     }
-  };
+  }
 
-  protected static class DeleteMoteMenuAction implements MoteMenuAction {
-
-    @Override
+    protected static class DeleteMoteMenuAction implements MoteMenuAction {
     public boolean isEnabled(Visualizer visualizer, Mote mote) {
       return true;
     }
@@ -1668,11 +1666,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       /* Invoke 'delete_motes' action */
       visualizer.canvas.getActionMap().get("delete_motes").actionPerformed(null);
     }
-  };
+  }
 
-  protected static class ShowLEDMoteMenuAction implements MoteMenuAction {
-
-    @Override
+    protected static class ShowLEDMoteMenuAction implements MoteMenuAction {
     public boolean isEnabled(Visualizer visualizer, Mote mote) {
       return mote.getInterfaces().getLED() != null;
     }
@@ -1705,11 +1701,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       viewer.setSelectedInterface(desc);
       viewer.pack();
     }
-  };
+  }
 
-  protected static class ShowSerialMoteMenuAction implements MoteMenuAction {
-
-    @Override
+    protected static class ShowSerialMoteMenuAction implements MoteMenuAction {
     public boolean isEnabled(Visualizer visualizer, Mote mote) {
       for (MoteInterface intf : mote.getInterfaces().getInterfaces()) {
         if (intf instanceof SerialPort) {
@@ -1754,11 +1748,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       viewer.setSelectedInterface(desc);
       viewer.pack();
     }
-  };
+  }
 
-  protected static class MoveMoteMenuAction implements MoteMenuAction {
-
-    @Override
+    protected static class MoveMoteMenuAction implements MoteMenuAction {
     public boolean isEnabled(Visualizer visualizer, Mote mote) {
       return true;
     }
@@ -1782,11 +1774,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       }
       visualizer.beginMoveRequest(mote, false, false);
     }
-  };
+  }
 
-  protected static class ResetViewportAction implements SimulationMenuAction {
-
-    @Override
+    protected static class ResetViewportAction implements SimulationMenuAction {
     public void doAction(Visualizer visualizer, Simulation simulation) {
       visualizer.resetViewport = 1;
       visualizer.repaint();
@@ -1801,11 +1791,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
       return true;
     }
-  };
+  }
 
-  protected static class ToggleDecorationsMenuAction implements SimulationMenuAction {
-
-    @Override
+    protected static class ToggleDecorationsMenuAction implements SimulationMenuAction {
     public void doAction(final Visualizer visualizer, Simulation simulation) {
       if (!(visualizer.getUI() instanceof BasicInternalFrameUI)) {
         return;
@@ -1846,64 +1834,20 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     @Override
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
-      return visualizer.getUI() instanceof BasicInternalFrameUI;
+        return visualizer.getUI() instanceof BasicInternalFrameUI;
     }
   }
 
   @Override
   public String getQuickHelp() {
-    return "<b>Network</b> "
-            + "<p>The network window shows the positions of simulated motes. "
-            + "<p>"
-            + "It is possible to zoom <em>(Mouse wheel)</em> and pan <em>(Shift+Mouse drag)</em> the current view. "
-            + "Motes can be moved by dragging them. "
-            + "You can add/remove motes to/from selection <em>(CTRL+Left click)</em> "
-            + "or use the rectangular selection tool <em>(CTRL+Mouse drag)</em>. "
-            + "Mouse right-click motes for options menu. "
-            + "<p>"
-            + "The network window supports different views. "
-            + "Each view provides some specific information, such as the IP addresses of motes. "
-            + "Multiple views can be active at the same time. "
-            + "Use the View menu to select views. ";
+    return
+    "<b>Network</b> " +
+    "<p>The network window shows the positions of simulated motes. " +
+    "It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. Motes can be moved by dragging them. " +
+    "Mouse right-click motes for options. " +
+    "<p>The network window supports different views. " +
+    "Each view provides some specific information, such as the IP addresses of motes. " +
+    "Multiple views can be active at the same time. " +
+    "Use the View menu to select views. ";
   }
-
-  private class Selection {
-
-    private int x;
-    private int y;
-    private int width;
-    private int height;
-    private boolean enable;
-
-    public void setSelection(int x, int y, int width, int height) {
-      this.x = x;
-      this.y = y;
-      this.width = width;
-      this.height = height;
-    }
-
-    public void setEnabled(boolean enable) {
-      this.enable = enable;
-    }
-
-    public void drawSelection(Graphics g) {
-      /* only draw if enabled */
-      if (!enable) {
-        return;
-      }
-      Graphics2D g2d = (Graphics2D) g;
-      g2d.setColor(new Color(64, 64, 64, 10));
-      g2d.fillRect(x, y, width, height);
-
-      BasicStroke dashed
-              = new BasicStroke(1.0f,
-                                BasicStroke.CAP_BUTT,
-                                BasicStroke.JOIN_MITER,
-                                10.0f, new float[]{5.0f}, 0.0f);
-      g2d.setColor(Color.BLACK);
-      g2d.setStroke(dashed);
-      g2d.drawRect(x, y, width, height);
-    }
-  }
-
 }

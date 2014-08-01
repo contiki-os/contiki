@@ -99,7 +99,7 @@ public class MoteSerialSocketConnection {
     socketOut.flush();
     Thread socketThread = new Thread(new Runnable() {
       public void run() {
-        int numRead = 0;
+        int numRead;
         byte[] data = new byte[1024];
         while (true) {
           numRead = -1;

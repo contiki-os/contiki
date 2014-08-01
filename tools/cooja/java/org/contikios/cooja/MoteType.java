@@ -203,7 +203,6 @@ public interface MoteType {
    * depending on the given arguments. This may include recompiling and loading
    * libraries.
    *
-   * @see #getConfigXML()
    * @param simulation
    *          Simulation that will hold the mote type
    * @param configXML

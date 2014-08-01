@@ -118,11 +118,7 @@ public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfter
     boolean ledChanged;
 
     byte newLedsValue = moteMem.getByteValueOf("simLedsValue");
-    if (newLedsValue != currentLedValue) {
-      ledChanged = true;
-    } else {
-      ledChanged = false;
-    }
+      ledChanged = newLedsValue != currentLedValue;
 
     currentLedValue = newLedsValue;
     if (ledChanged) {

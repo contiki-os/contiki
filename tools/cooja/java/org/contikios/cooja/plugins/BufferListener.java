@@ -368,7 +368,7 @@ public class BufferListener extends VisPlugin {
               table, value, isSelected, hasFocus, row, column);
         }
 
-        Color bgColor = null;
+        Color bgColor;
         if (backgroundColors) {
           BufferAccess d = logs.get(logTable.getRowSorter().convertRowIndexToModel(row));
           char last = d.getID().charAt(d.getID().length()-1);
@@ -643,9 +643,9 @@ public class BufferListener extends VisPlugin {
     return true;
   }
 
-  public enum MemoryMonitorType { SEGMENT, POINTER, CONSTPOINTER };
+  public enum MemoryMonitorType { SEGMENT, POINTER, CONSTPOINTER }
 
-  static class PointerMemoryMonitor extends SegmentMemoryMonitor {
+    static class PointerMemoryMonitor extends SegmentMemoryMonitor {
     private SegmentMemoryMonitor segmentMonitor = null;
     private int lastSegmentAddress = -1;
     private final int pointerAddress;
@@ -1109,7 +1109,6 @@ public class BufferListener extends VisPlugin {
         outStream.close();
       } catch (Exception ex) {
         logger.fatal("Could not write to file: " + saveFile);
-        return;
       }
     }
   };
@@ -1317,7 +1316,7 @@ public class BufferListener extends VisPlugin {
   }
 
   private void setParser(Class<? extends Parser> bpClass) {
-    Parser bp = null;
+    Parser bp;
     try {
       bp = bpClass.newInstance();
     } catch (InstantiationException e) {
@@ -1412,8 +1411,6 @@ public class BufferListener extends VisPlugin {
 
   public static interface Parser {
     /**
-     * @param mm Memory monitor
-     * @param address Address that changed. May not contain all changes
      * @param ba Buffer Access object
      * @return String or custom graphical object
      */
@@ -1639,15 +1636,7 @@ public class BufferListener extends VisPlugin {
       if (ba.mem.length < 4) {
         return "[must monitor at least 4 bytes]";
       }
-      StringBuilder sb = new StringBuilder();
-      sb.append(0xff&ba.mem[0]);
-      sb.append(".");
-      sb.append(0xff&ba.mem[1]);
-      sb.append(".");
-      sb.append(0xff&ba.mem[2]);
-      sb.append(".");
-      sb.append(0xff&ba.mem[3]);
-      return sb.toString();
+        return String.valueOf(0xff & ba.mem[0]) + "." + (0xff & ba.mem[1]) + "." + (0xff & ba.mem[2]) + "." + (0xff & ba.mem[3]);
     }
   }
 
@@ -1662,7 +1651,7 @@ public class BufferListener extends VisPlugin {
     public void update(BufferAccess ba, GraphicalParser parser) {
       this.parser = parser;
       parser.ba = ba;
-      setPreferredSize(new Dimension(parser.getUnscaledWidth() + 2*XOFFSET, HEIGHT));
+      setPreferredSize(new Dimension(parser.getUnscaledWidth(), HEIGHT));
     }
     public void paintComponent(Graphics g) {
       super.paintComponent(g);
@@ -1676,8 +1665,9 @@ public class BufferListener extends VisPlugin {
 
       parser.paintComponent(g, this);
     }
-  };
-  private GrapicalParserPanel graphicalParserPanel = new GrapicalParserPanel();
+  }
+
+    private GrapicalParserPanel graphicalParserPanel = new GrapicalParserPanel();
 
   @ClassDescription("Graphical: Height")
   public static class GraphicalHeight4BitsParser extends GraphicalParser {

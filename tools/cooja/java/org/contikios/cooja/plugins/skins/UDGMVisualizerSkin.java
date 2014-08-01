@@ -112,25 +112,25 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     /* Spinner GUI components */
     SpinnerNumberModel transmissionModel = new SpinnerNumberModel();
     transmissionModel.setValue(new Double(radioMedium.TRANSMITTING_RANGE));
-    transmissionModel.setStepSize(new Double(1.0)); // 1m
-    transmissionModel.setMinimum(new Double(0.0));
+    transmissionModel.setStepSize(1.0); // 1m
+    transmissionModel.setMinimum(0.0);
 
     SpinnerNumberModel interferenceModel = new SpinnerNumberModel();
     interferenceModel.setValue(new Double(radioMedium.INTERFERENCE_RANGE));
-    interferenceModel.setStepSize(new Double(1.0)); // 1m
-    interferenceModel.setMinimum(new Double(0.0));
+    interferenceModel.setStepSize(1.0); // 1m
+    interferenceModel.setMinimum(0.0);
 
     SpinnerNumberModel successRatioTxModel = new SpinnerNumberModel();
     successRatioTxModel.setValue(new Double(radioMedium.SUCCESS_RATIO_TX));
-    successRatioTxModel.setStepSize(new Double(0.001)); // 0.1%
-    successRatioTxModel.setMinimum(new Double(0.0));
-    successRatioTxModel.setMaximum(new Double(1.0));
+    successRatioTxModel.setStepSize(0.001); // 0.1%
+    successRatioTxModel.setMinimum(0.0);
+    successRatioTxModel.setMaximum(1.0);
 
     SpinnerNumberModel successRatioRxModel = new SpinnerNumberModel();
     successRatioRxModel.setValue(new Double(radioMedium.SUCCESS_RATIO_RX));
-    successRatioRxModel.setStepSize(new Double(0.001)); // 0.1%
-    successRatioRxModel.setMinimum(new Double(0.0));
-    successRatioRxModel.setMaximum(new Double(1.0));
+    successRatioRxModel.setStepSize(0.001); // 0.1%
+    successRatioRxModel.setMinimum(0.0);
+    successRatioRxModel.setMaximum(1.0);
 
     JSpinner.NumberEditor editor;
     final JSpinner txRangeSpinner = new JSpinner(transmissionModel);
@@ -415,11 +415,9 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
         }
       }
     }
-  };
+  }
 
-  public static class SuccessRatioMenuAction implements SimulationMenuAction {
-
-    @Override
+    public static class SuccessRatioMenuAction implements SimulationMenuAction {
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
       return true;
     }
@@ -441,35 +439,9 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
         }
       }
     }
-  };
-
-  private void updateRatioRangeFrame() {
-    if (rrFrame.getDesktopPane() == null) {
-      visualizer.getDesktopPane().add(rrFrame);
-    }
-    rrFrame.pack();
-    /* Place frame at the upper right corner of the visualizer canvas */
-    Point visCanvasPos = SwingUtilities.convertPoint(
-            visualizer.getCurrentCanvas(),
-            visualizer.getCurrentCanvas().getLocation(),
-            visualizer.getDesktopPane());
-    rrFrame.setLocation(
-            visCanvasPos.x + visualizer.getCurrentCanvas().getWidth() - rrFrame.getWidth(),
-            visCanvasPos.y);
-    /* Try to place on top with focus */
-    rrFrame.setLayer(JLayeredPane.MODAL_LAYER);
-    rrFrame.setVisible(true);
-    rrFrame.moveToFront();
-    try {
-      rrFrame.setSelected(true);
-    }
-    catch (PropertyVetoException ex) {
-      logger.warn("Failed getting focus");
-    }
   }
 
-  @Override
-  public Visualizer getVisualizer() {
+    public Visualizer getVisualizer() {
     return visualizer;
   }
 }

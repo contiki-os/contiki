@@ -33,7 +33,7 @@ import org.apache.log4j.Logger;
 
 import org.contikios.cooja.ConvertedRadioPacket;
 import org.contikios.cooja.RadioPacket;
-import org.contikios.cooja.util.StringUtils;
+
 /**
  * Converts radio packets between X-MAC/802.15.4 nodes and COOJA.
  * Handles radio driver specifics such as length header and CRC footer.

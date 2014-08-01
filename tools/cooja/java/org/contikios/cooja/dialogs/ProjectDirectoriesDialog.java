@@ -120,7 +120,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 			return null;
 		}
 
-		ProjectDirectoriesDialog dialog = new ProjectDirectoriesDialog((Window) parent, currentProjects);
+		ProjectDirectoriesDialog dialog = new ProjectDirectoriesDialog(parent, currentProjects);
 		dialog.gui = gui;
 		dialog.setLocationRelativeTo(parent);
 		dialog.setVisible(true);
@@ -218,8 +218,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 						ConfigViewer.showDialog(ProjectDirectoriesDialog.this, config);
 					} catch (Exception ex) {
 						logger.fatal("Error when merging config: " + ex.getMessage(), ex);
-						return;
-					}
+                    }
 				}
 			});
 			buttonPane.add(button);
@@ -254,7 +253,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 
 					String newDefaultProjectDirs = "";
 					for (COOJAProject p: currentProjects) {
-						if (newDefaultProjectDirs != "") {
+						if (!newDefaultProjectDirs.equals("")) {
 							newDefaultProjectDirs += ";";
 						}
 
@@ -891,11 +890,8 @@ class DirectoryTreePanel extends JPanel {
 				if (!file.isDirectory()) {
 					return false;
 				}
-				if (file.getName().startsWith(".")) {
-					return false;
-				}
-				return true;
-			}
+                return !file.getName().startsWith(".");
+            }
 		};
 		private File[] getDirectoryList(File parent) {
 			File[] dirs = parent.listFiles(DIRECTORIES);

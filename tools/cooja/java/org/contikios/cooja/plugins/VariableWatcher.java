@@ -124,7 +124,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   public VariableWatcher(Mote moteToView, Simulation simulation, Cooja gui) {
     super("Variable Watcher (" + moteToView + ")", gui);
     this.mote = moteToView;
-    moteMemory = (AddressMemory) moteToView.getMemory();
+    moteMemory = moteToView.getMemory();
 
     JLabel label;
     integerFormat = NumberFormat.getIntegerInstance();
@@ -224,7 +224,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     lengthPane.add(BorderLayout.WEST, label);
 
     varLength = new JFormattedTextField(integerFormat);
-    varLength.setValue(new Integer(1));
+    varLength.setValue(1);
     varLength.setColumns(4);
     varLength.addPropertyChangeListener("value", new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent e) {
@@ -254,7 +254,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     varValues = new JFormattedTextField[1];
     varValues[0] = new JFormattedTextField(integerFormat);
-    varValues[0].setValue(new Integer(0));
+    varValues[0].setValue(0);
     varValues[0].setColumns(3);
     varValues[0].setText("?");
 
@@ -279,9 +279,9 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         int index = comp.getParent().getComponentZOrder(comp);
         if(jtxt.getText().trim().length() != 0) {
           char ch = jtxt.getText().trim().charAt(0);
-          varValues[index].setValue(new Integer(ch));
+          varValues[index].setValue((int) ch);
         } else {
-          varValues[index].setValue(new Integer(0));  
+          varValues[index].setValue(0);
         }
       }
 
@@ -292,9 +292,9 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         int index = comp.getParent().getComponentZOrder(comp);
         if(jtxt.getText().trim().length() != 0) {
           char ch = jtxt.getText().trim().charAt(0);
-          varValues[index].setValue(new Integer(ch));
+          varValues[index].setValue((int) ch);
         } else {
-          varValues[index].setValue(new Integer(0));
+          varValues[index].setValue(0);
         }
       }
 
@@ -305,9 +305,9 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         int index = comp.getParent().getComponentZOrder(comp);
         if(jtxt.getText().trim().length() != 0) {
           char ch = jtxt.getText().trim().charAt(0);
-          varValues[index].setValue(new Integer(ch));
+          varValues[index].setValue((int) ch);
         } else {
-          varValues[index].setValue(new Integer(0));
+          varValues[index].setValue(0);
         }
       }           
     };
@@ -393,7 +393,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         if (varType.getSelectedIndex() == BYTE_INDEX) {
           try {
             byte val = moteMemory.getByteValueOf((String) varName.getSelectedItem());
-            varValues[0].setValue(new Integer(0xFF & val));
+            varValues[0].setValue(0xFF & val);
             varName.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
           } catch (UnknownVariableException ex) {
@@ -403,7 +403,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         } else if (varType.getSelectedIndex() == INT_INDEX) {
           try {
             int val = moteMemory.getIntValueOf((String) varName.getSelectedItem());
-            varValues[0].setValue(new Integer(val));
+            varValues[0].setValue(val);
             varName.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
           } catch (UnknownVariableException ex) {
@@ -416,7 +416,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
             int length = ((Number) varLength.getValue()).intValue();
             byte[] vals = moteMemory.getByteArray((String) varName.getSelectedItem(), length);
             for (int i=0; i < length; i++) {
-              varValues[i].setValue(new Integer(0xFF & vals[i]));
+              varValues[i].setValue(0xFF & vals[i]);
             }
             if(varType.getSelectedIndex() == CHAR_ARRAY_INDEX) {
               for (int i=0; i < length; i++) {
@@ -490,7 +490,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       varValues = new JFormattedTextField[nr];
       for (int i=0; i < nr; i++) {
         varValues[i] = new JFormattedTextField(integerFormat);
-        varValues[i] .setValue(new Integer(0));
+        varValues[i] .setValue(0);
         varValues[i] .setColumns(3);
         varValues[i] .setText("?");
         varValues[i].addFocusListener(jFormattedTextFocusAdapter);

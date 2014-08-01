@@ -251,8 +251,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
   }
 
   /** Set LQI to a value between 0 and 255.
-   * 
-   * @see org.contikios.cooja.interfaces.Radio#setLQI(int)
+   *
    */
   public void setLQI(int lqi){
     if(lqi<0) {

@@ -99,8 +99,7 @@ public class ProjectConfig {
    * @throws IOException
    *           Stream read error
    */
-  public ProjectConfig(boolean useDefault) throws IOException,
-      FileNotFoundException {
+  public ProjectConfig(boolean useDefault) throws IOException {
     // Create empty configuration
     myConfig = new Properties();
     myProjectDirHistory = new Vector<File>();
@@ -134,7 +133,7 @@ public class ProjectConfig {
    *           Stream read error
    */
   public boolean appendProjectDir(File projectDir)
-      throws FileNotFoundException, IOException {
+      throws IOException {
     if (projectDir == null) {
       throw new FileNotFoundException("No project directory specified");
     }
@@ -235,7 +234,7 @@ public class ProjectConfig {
    *           Stream read error
    */
   public boolean appendConfigFile(File propertyFile)
-      throws FileNotFoundException, IOException {
+      throws IOException {
     if (!propertyFile.exists()) {
       logger.warn("Trying to import non-existant project configuration: " + propertyFile.toString());
       return true;

@@ -428,7 +428,7 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       for (MoteEvents me: allMoteEvents.toArray(new MoteEvents[0])) {
         double d = me.mote.getInterfaces().getPosition().getDistanceTo(m);
 
-        int i=0;
+        int i;
         for (i=0; i < sortedMoteEvents.size(); i++) {
           double d2 = m.getInterfaces().getPosition().getDistanceTo(sortedMoteEvents.get(i).mote);
           if (d < d2) {
@@ -708,7 +708,6 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
         outStream.close();
       } catch (Exception ex) {
         logger.fatal("Could not write to file: " + saveFile);
-        return;
       }
 
     }
@@ -878,7 +877,6 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
           }
           if (rxtxEvent.state == RXTXRadioEvent.RECEIVING) {
             stats.onTimeRX += diff;
-            continue;
           }
         }
       }
@@ -1580,7 +1578,6 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
           final long zct = (long) (e.getX()*currentPixelDivisor);
           final double zc = (double) (e.getX() - timeline.getVisibleRect().x) / timeline.getVisibleRect().width;
           zoomFinishLevel(zoomLevel, zct, zc);
-          return;
         }
       }
     };
@@ -1628,63 +1625,63 @@ public class TimeLine extends VisPlugin implements HasQuickHelp {
       /* Paint mote events */
       int lineHeightOffset = FIRST_MOTE_PIXEL_OFFSET;
       boolean dark = true;
-      for (int mIndex = 0; mIndex < allMoteEvents.size(); mIndex++) {
+        for (MoteEvents allMoteEvent : allMoteEvents) {
 
         /* Mote separators */
-        if (dark) {
-          g.setColor(SEPARATOR_COLOR);
-          g.fillRect(
-              0, lineHeightOffset-2,
-              getWidth(), paintedMoteHeight
-          );
-        }
-        dark = !dark;
+            if (dark) {
+                g.setColor(SEPARATOR_COLOR);
+                g.fillRect(
+                        0, lineHeightOffset - 2,
+                        getWidth(), paintedMoteHeight
+                );
+            }
+            dark = !dark;
 
-        if (showRadioRXTX) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).radioRXTXEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
-        if (showRadioChannels) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).radioChannelEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
-        if (showRadioOnoff) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).radioHWEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
-        if (showLeds) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).ledEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += 3*LED_PIXEL_HEIGHT;
-        }
-        if (showLogOutputs) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).logEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
-        if (showWatchpoints) {
-          MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).watchpointEvents, intervalStart);
-          if (firstEvent != null) {
-            firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
-          }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
-        }
+            if (showRadioRXTX) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.radioRXTXEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
+            if (showRadioChannels) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.radioChannelEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
+            if (showRadioOnoff) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.radioHWEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
+            if (showLeds) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.ledEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += 3 * LED_PIXEL_HEIGHT;
+            }
+            if (showLogOutputs) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.logEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
+            if (showWatchpoints) {
+                MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvent.watchpointEvents, intervalStart);
+                if (firstEvent != null) {
+                    firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
+                }
+                lineHeightOffset += EVENT_PIXEL_HEIGHT;
+            }
 
-        lineHeightOffset += EVENT_PIXEL_HEIGHT;
-      }
+            lineHeightOffset += EVENT_PIXEL_HEIGHT;
+        }
 
       /* Draw vertical time marker (if mouse is dragged) */
       drawMouseTime(g, intervalStart, intervalEnd);

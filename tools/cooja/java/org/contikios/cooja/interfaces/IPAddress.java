@@ -148,11 +148,7 @@ public class IPAddress extends MoteInterface {
 				  structData, offset+2/* ipaddr offset */,
 				  addressData, 0, 16);
 
-		  if (addressData[0] == (byte)0xFE && addressData[1] == (byte)0x80) {
-			  ipv6IsGlobal = false;
-		  } else {
-			  ipv6IsGlobal = true;
-		  }
+          ipv6IsGlobal = !(addressData[0] == (byte) 0xFE && addressData[1] == (byte) 0x80);
 
 		  ip = addressData;
 		  ipv6AddressIndex = addressIndex;
@@ -170,7 +166,7 @@ public class IPAddress extends MoteInterface {
   public static String getUncompressedIPv6AddressString(byte[] ip) {
 	    StringBuilder sb = new StringBuilder();
 	    for (int i=0; i < 14; i+=2) {
-	      sb.append(String.format("%02x%02x:", 0xFF&ip[i+0], 0xFF&ip[i+1]));
+	      sb.append(String.format("%02x%02x:", 0xFF&ip[i], 0xFF&ip[i+1]));
 	    }
 	    sb.append(String.format("%02x%02x", 0xFF&ip[14], 0xFF&ip[15]));
 	    return sb.toString();

@@ -87,7 +87,7 @@ public class MoteAttributes extends MoteInterface {
     public void update(Observable o, Object arg) {
       String msg = ((Log) o).getLastLogMessage();
       handleNewLog(msg);
-    };
+    }
   };
   
   public MoteAttributes(Mote mote) {
@@ -100,7 +100,7 @@ public class MoteAttributes extends MoteInterface {
     /* Observe log interfaces */
     for (MoteInterface mi: mote.getInterfaces().getInterfaces()) {
       if (mi instanceof Log) {
-        ((Log)mi).addObserver(logObserver);
+        mi.addObserver(logObserver);
       }
     }
   }
@@ -111,7 +111,7 @@ public class MoteAttributes extends MoteInterface {
     /* Stop observing log interfaces */
     for (MoteInterface mi: mote.getInterfaces().getInterfaces()) {
       if (mi instanceof Log) {
-        ((Log)mi).deleteObserver(logObserver);
+        mi.deleteObserver(logObserver);
       }
     }
     logObserver = null;
@@ -139,12 +139,12 @@ public class MoteAttributes extends MoteInterface {
   }
 
   private void setAttributes(String att) {
-    if (att.indexOf(",") >= 0) {
+    if (att.contains(",")) {
       /* Handle each attribute separately */
       String[] atts = att.split(",");
-      for (int i = 0; i < atts.length; i++) {
-        setAttributes(atts[i]);
-      }
+        for (String att1 : atts) {
+            setAttributes(att1);
+        }
       return;
     }
 
@@ -160,10 +160,10 @@ public class MoteAttributes extends MoteInterface {
   }
   
   public String getText() {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       Object[] keys = attributes.keySet().toArray();
-      for (int i = 0; i < keys.length; i++) {
-          sb.append(keys[i]).append("=").append(attributes.get(keys[i])).append("\n");
+      for (Object key : keys) {
+          sb.append(key).append("=").append(attributes.get(key)).append("\n");
       }
       return sb.toString();
   }

@@ -30,7 +30,6 @@ package org.contikios.cooja.motes;
 
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.plugins.BufferListener;
-import org.contikios.cooja.plugins.BufferListener.BufferAccess;
 import org.contikios.cooja.plugins.TimeLine;
 
 public abstract class AbstractEmulatedMote extends AbstractWakeupMote implements Mote {

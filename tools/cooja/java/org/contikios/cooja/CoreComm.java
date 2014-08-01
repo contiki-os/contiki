@@ -130,7 +130,7 @@ public abstract class CoreComm {
       throws MoteTypeCreationException {
     BufferedWriter sourceFileWriter = null;
     BufferedReader templateFileReader = null;
-    String destFilename = null;
+    String destFilename;
 
     try {
       Reader reader;
@@ -285,7 +285,7 @@ public abstract class CoreComm {
    */
   public static Class<?> loadClassFile(String className)
       throws MoteTypeCreationException {
-    Class<?> loadedClass = null;
+    Class<?> loadedClass;
     try {
       ClassLoader urlClassLoader = new URLClassLoader(
           new URL[] { new File(".").toURI().toURL() },
@@ -332,7 +332,7 @@ public abstract class CoreComm {
       Constructor constr = newCoreCommClass
           .getConstructor(new Class[] { File.class });
       CoreComm newCoreComm = (CoreComm) constr
-          .newInstance(new Object[] { libFile });
+          .newInstance(libFile);
 
       coreComms.add(newCoreComm);
       coreCommFiles.add(libFile);

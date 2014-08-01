@@ -39,8 +39,7 @@ public interface DirectionalAntennaRadio {
   /**
    * @return Current direction (radians). Typically direction 0 has the maximum
    * relative gain.
-   * 
-   * @see #getRelativeGain(double)
+   *
    */
   public double getDirection();
 

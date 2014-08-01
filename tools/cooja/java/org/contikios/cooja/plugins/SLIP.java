@@ -68,7 +68,7 @@ public class SLIP {
 
     byte[] arr = new byte[bytes.size()];
     for (int i=0; i < bytes.size(); i++) {
-      arr[i] = (bytes.get(i)).byteValue();
+      arr[i] = bytes.get(i);
     }
     return arr;
   }

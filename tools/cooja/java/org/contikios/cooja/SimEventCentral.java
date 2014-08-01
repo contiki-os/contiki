@@ -28,18 +28,15 @@
 
 package org.contikios.cooja;
 
-import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import org.contikios.cooja.MoteType.MoteTypeCreationException;
 import org.contikios.cooja.interfaces.Log;
 import org.contikios.cooja.util.ArrayUtils;
 
@@ -357,8 +354,7 @@ public class SimEventCentral {
   }
 
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML, boolean visAvailable)
-      throws MoteTypeCreationException {
+      Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       String name = element.getName();
       if (name.equals("logoutput")) {

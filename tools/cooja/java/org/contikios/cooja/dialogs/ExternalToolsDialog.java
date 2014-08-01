@@ -68,7 +68,7 @@ public class ExternalToolsDialog extends JDialog {
       return;
     }
 
-    ExternalToolsDialog myDialog = null;
+    ExternalToolsDialog myDialog;
     if (parentContainer instanceof Window) {
       myDialog = new ExternalToolsDialog((Window) parentContainer);
     } else if (parentContainer instanceof Dialog) {

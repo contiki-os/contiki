@@ -140,7 +140,7 @@ public class ExecuteJAR {
     try {
       InputStream inputStream;
       File diskFile = new File(executeDir, SIMCONFIG_FILENAME);
-      if (OVERWRITE || !diskFile.exists()) {
+      if (!diskFile.exists()) {
         logger.info("Unpacking simulation config: " + SIMCONFIG_FILENAME + " -> " + diskFile.getName());
         inputStream = Cooja.class.getResourceAsStream("/" + SIMCONFIG_FILENAME);
         byte[] fileData = ArrayUtils.readFromStream(inputStream);
@@ -158,7 +158,7 @@ public class ExecuteJAR {
       }
 
       diskFile = new File(executeDir, EXTERNALTOOLS_FILENAME);
-      if (OVERWRITE || !diskFile.exists()) {
+      if (!diskFile.exists()) {
         logger.info("Unpacking external tools config: " + EXTERNALTOOLS_FILENAME + " -> " + diskFile.getName());
         inputStream = Cooja.class.getResourceAsStream("/" + EXTERNALTOOLS_FILENAME);
         byte[] fileData = ArrayUtils.readFromStream(inputStream);
@@ -205,7 +205,7 @@ public class ExecuteJAR {
    * @param outputFile Output file
    */
   public static boolean buildExecutableJAR(Cooja gui, File outputFile) {
-    String executeDir = null;
+    String executeDir;
     executeDir = outputFile.getName();
     if (!executeDir.endsWith(".jar")) {
       throw new RuntimeException("Not a proper JAR archive: " + executeDir);
@@ -401,11 +401,7 @@ public class ExecuteJAR {
     if (manifestFile.exists()) {
       manifestFile.delete();
     }
-    StringBuilder sb = new StringBuilder();
-    sb.append("Manifest-Version: 1.0\r\n");
-    sb.append("Main-Class: " + ExecuteJAR.class.getName() + "\r\n");
-    sb.append("Class-path: .\r\n");
-    StringUtils.saveToFile(manifestFile, sb.toString());
+      StringUtils.saveToFile(manifestFile, "Manifest-Version: 1.0\r\n" + "Main-Class: " + ExecuteJAR.class.getName() + "\r\n" + "Class-path: .\r\n");
     logger.info("Wrote manifest file: " + manifestFile.getName());
 
     /* Build executable JAR */
@@ -429,9 +425,9 @@ public class ExecuteJAR {
     } catch (Exception e) {
       logger.warn("Building executable JAR error: " + e.getMessage());
       MessageContainer[] err = errors.getMessages();
-      for (int i=0; i < err.length; i++) {
-        logger.fatal(">> " + err[i]);
-      }
+        for (MessageContainer anErr : err) {
+            logger.fatal(">> " + anErr);
+        }
       
       /* Forward exception */
       throw (RuntimeException) 
@@ -478,7 +474,7 @@ public class ExecuteJAR {
           throw new RuntimeException("Error when copying file: " + file);
         }
         logger.info("Simconfig: Copied file: " + file.getAbsolutePath() + " -> " + ("[CONFIG_DIR]/" + newFilename));
-        ((Element)c).setText("[CONFIG_DIR]/" + newFilename);
+        c.setText("[CONFIG_DIR]/" + newFilename);
       } else if (a != null && a.getValue().equals("discard")) {
         /* Remove config element */
         e.removeChild(c.getName());
@@ -508,7 +504,7 @@ public class ExecuteJAR {
           logger.info("Failed unpacking file");
           throw new RuntimeException("Could not unpack file: " + file);
         }
-        if (OVERWRITE || !file.exists()) {
+        if (!file.exists()) {
           boolean ok = ArrayUtils.writeToFile(file, fileData);
           if (!ok) {
             throw new RuntimeException("Failed unpacking file: " + file);

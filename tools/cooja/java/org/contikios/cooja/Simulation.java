@@ -620,7 +620,7 @@ public class Simulation extends Observable implements Runnable {
         }
 
         // Show configure simulation dialog
-        boolean createdOK = false;
+        boolean createdOK;
         if (visAvailable) {
           createdOK = CreateSimDialog.showDialog(Cooja.getTopParentContainer(), this);
         } else {
@@ -1012,7 +1012,7 @@ public class Simulation extends Observable implements Runnable {
         speedLimitNone = false;
         speedLimitLastRealtime = System.currentTimeMillis();
         speedLimitLastSimtime = getSimulationTime();
-        speedLimit = newSpeedLimit.doubleValue();
+        speedLimit = newSpeedLimit;
 
         if (delayEvent.isScheduled()) {
           delayEvent.remove();
@@ -1038,7 +1038,7 @@ public class Simulation extends Observable implements Runnable {
     if (speedLimitNone) {
       return null;
     }
-    return new Double(speedLimit);
+    return speedLimit;
   }
 
   /**
@@ -1082,9 +1082,9 @@ public class Simulation extends Observable implements Runnable {
   public void setRadioMedium(RadioMedium radioMedium) {
     // Remove current radio medium from observing motes
     if (currentRadioMedium != null) {
-      for (int i = 0; i < motes.size(); i++) {
-        currentRadioMedium.unregisterMote(motes.get(i), this);
-      }
+        for (Mote mote : motes) {
+            currentRadioMedium.unregisterMote(mote, this);
+        }
     }
 
     // Change current radio medium to new one
@@ -1095,9 +1095,9 @@ public class Simulation extends Observable implements Runnable {
     this.currentRadioMedium = radioMedium;
 
     // Add all current motes to the new radio medium
-    for (int i = 0; i < motes.size(); i++) {
-      currentRadioMedium.registerMote(motes.get(i), this);
-    }
+      for (Mote mote : motes) {
+          currentRadioMedium.registerMote(mote, this);
+      }
   }
 
   /**

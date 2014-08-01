@@ -45,7 +45,6 @@ import org.contikios.cooja.Mote;
 import org.contikios.cooja.RadioConnection;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Radio;
-import org.contikios.cooja.plugins.Visualizer;
 
 /**
  * Directed Graph Radio Medium.
@@ -289,8 +288,8 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
          for (RadioConnection conn : getActiveConnections()) {
            for (Radio dstRadio : conn.getDestinations()) {
              if (dstRadio == dest.radio) {
-               conn.addInterfered(dest.radio);;
-               break;
+               conn.addInterfered(dest.radio);
+                 break;
              }
            }
          }        

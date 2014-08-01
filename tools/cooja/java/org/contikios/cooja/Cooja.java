@@ -65,14 +65,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessControlException;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.Properties;
-import java.util.Vector;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -224,11 +217,8 @@ public class Cooja extends Observable {
       if (file.getName().endsWith(".csc")) {
         return true;
       }
-      if (file.getName().endsWith(".csc.gz")) {
-        return true;
-      }
+        return file.getName().endsWith(".csc.gz");
 
-      return false;
     }
     public String getDescription() {
       return "Cooja simulation (.csc, .csc.gz)";
@@ -1261,7 +1251,6 @@ public class Cooja extends Observable {
     /* System */
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-      return;
     } catch (Exception e) {
     }
   }
@@ -2177,7 +2166,7 @@ public class Cooja extends Observable {
     mySimulation.stopSimulation();
 
     // Create mote type
-    MoteType newMoteType = null;
+    MoteType newMoteType;
     try {
       newMoteType = moteTypeClass.newInstance();
       if (!newMoteType.configureAndInit(Cooja.getTopParentContainer(), mySimulation, isVisualized())) {
@@ -2221,10 +2210,7 @@ public class Cooja extends Observable {
               "You have an active simulation.\nDo you want to remove it?",
               "Remove current simulation?", JOptionPane.YES_NO_OPTION,
               JOptionPane.QUESTION_MESSAGE, null, options, s2);
-          if (n != JOptionPane.YES_OPTION) {
-            return false;
-          }
-          return true;
+            return n == JOptionPane.YES_OPTION;
         }
       }.invokeAndWait();
 
@@ -2403,8 +2389,8 @@ public class Cooja extends Observable {
 
     // Load simulation in this thread, while showing progress monitor
     final File fileToLoad = configFile;
-    Simulation newSim = null;
-    boolean shouldRetry = false;
+    Simulation newSim;
+    boolean shouldRetry;
     do {
       try {
         shouldRetry = false;
@@ -2432,7 +2418,6 @@ public class Cooja extends Observable {
     if (progressDialog != null && progressDialog.isDisplayable()) {
       progressDialog.dispose();
     }
-    return;
   }
 
   /**
@@ -2469,13 +2454,13 @@ public class Cooja extends Observable {
         }
 
         /* Remove current simulation, and load config */
-        boolean shouldRetry = false;
+        boolean shouldRetry;
         do {
           try {
             shouldRetry = false;
             cooja.doRemoveSimulation(false);
             PROGRESS_WARNINGS.clear();
-            Simulation newSim = loadSimulationConfig(root, true, new Long(randomSeed));
+            Simulation newSim = loadSimulationConfig(root, true, randomSeed);
             cooja.setSimulation(newSim, false);
 
             if (autoStart) {
@@ -2822,7 +2807,7 @@ public class Cooja extends Observable {
     String osName = System.getProperty("os.name").toLowerCase();
     String osArch = System.getProperty("os.arch").toLowerCase();
 
-    String filename = null;
+    String filename;
     if (osName.startsWith("win")) {
       filename = Cooja.EXTERNAL_TOOLS_WIN32_SETTINGS_FILENAME;
     } else if (osName.startsWith("mac os x")) {
@@ -2955,9 +2940,7 @@ public class Cooja extends Observable {
         );
         if (newProjects != null) {
         	currentProjects.clear();
-        	for (COOJAProject p: newProjects) {
-            currentProjects.add(p);
-        	}
+            Collections.addAll(currentProjects, newProjects);
           try {
             reparseProjectConfig();
           } catch (ParseProjectsException ex) {
@@ -3217,7 +3200,7 @@ public class Cooja extends Observable {
         contikiApp = contikiApp.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
       }
 
-      Simulation sim = null;
+      Simulation sim;
       if (contikiApp.endsWith(".csc")) {
         sim = quickStartSimulationConfig(new File(contikiApp), true, randomSeed);
       } else {
@@ -3466,7 +3449,6 @@ public class Cooja extends Observable {
    * Saves current simulation configuration to given file and notifies
    * observers.
    *
-   * @see #loadSimulationConfig(File, boolean)
    * @param file
    *          File to write
    */
@@ -3739,7 +3721,7 @@ public class Cooja extends Observable {
                         pluginGUI.setIcon(true);
                       } catch (PropertyVetoException e) {
                       }
-                    };
+                    }
                   });
                 }
               }
@@ -3760,7 +3742,7 @@ public class Cooja extends Observable {
           if (plugin.getClientProperty("zorder") == null) {
           	continue;
           }
-          int zOrder = ((Integer) plugin.getClientProperty("zorder")).intValue();
+          int zOrder = (Integer) plugin.getClientProperty("zorder");
           if (zOrder != z) {
           	continue;
           }
@@ -3919,10 +3901,7 @@ public class Cooja extends Observable {
         errorDialog.setLocationRelativeTo(parentComponent);
         errorDialog.setVisible(true); /* BLOCKS */
 
-        if (errorDialog.getTitle().equals("-RETRY-")) {
-          return true;
-        }
-        return false;
+          return errorDialog.getTitle().equals("-RETRY-");
 
       }
     }.invokeAndWait();
@@ -3949,7 +3928,7 @@ public class Cooja extends Observable {
           public void actionPerformed(ActionEvent e) {
             Cooja.setExternalToolsSetting("HIDE_WARNINGS",
                 "" + ((JCheckBox)e.getSource()).isSelected());
-          };
+          }
         });
         buttonBox.add(Box.createHorizontalStrut(10));
         buttonBox.add(hideButton);
@@ -4124,7 +4103,7 @@ public class Cooja extends Observable {
   }
 
   public File createPortablePath(File file, boolean allowConfigRelativePaths) {
-    File portable = null;
+    File portable;
 
     portable = createContikiRelativePath(file);
     if (portable != null) {
@@ -4158,7 +4137,7 @@ public class Cooja extends Observable {
       return file;
     }
 
-    File absolute = null;
+    File absolute;
     absolute = restoreContikiRelativePath(file);
     if (absolute != null) {
       /*logger.info("Restored Contiki relative path '" + file.getPath() + "' to '" + absolute.getPath() + "'");*/
@@ -4232,8 +4211,8 @@ public class Cooja extends Observable {
   
   private File restoreContikiRelativePath(File portable) {
   	int elem = PATH_IDENTIFIER.length;
-  	File path = null;
-	String canonical = null;
+  	File path;
+	String canonical;
 	
     try {
     	    	
@@ -4543,10 +4522,7 @@ public class Cooja extends Observable {
           if (file.isDirectory()) {
             return true;
           }
-          if (file.getName().endsWith(".jar")) {
-            return true;
-          }
-          return false;
+            return file.getName().endsWith(".jar");
         }
         public String getDescription() {
           return "Java archive";
@@ -4600,10 +4576,7 @@ public class Cooja extends Observable {
       cooja.doQuit(true);
     }
     public boolean shouldBeEnabled() {
-      if (isVisualizedInApplet()) {
-        return false;
-      }
-      return true;
+        return !isVisualizedInApplet();
     }
   };
   GUIAction startStopSimulationAction = new GUIAction("Start simulation", KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)) {
@@ -4680,8 +4653,8 @@ public class Cooja extends Observable {
       boolean show = ((JCheckBoxMenuItem) e.getSource()).isSelected();
       quickHelpTextPane.setVisible(show);
       quickHelpScroll.setVisible(show);
-      setExternalToolsSetting("SHOW_QUICKHELP", new Boolean(show).toString());
-      ((JPanel)frame.getContentPane()).revalidate();
+      setExternalToolsSetting("SHOW_QUICKHELP", Boolean.toString(show));
+      frame.getContentPane().revalidate();
       updateDesktopSize(getDesktopPane());
     }
 

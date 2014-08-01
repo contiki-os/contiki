@@ -341,7 +341,7 @@ public class LogScriptEngine {
     engine.put("global", hash);
     engine.put("sim", simulation);
     engine.put("gui", simulation.getCooja());
-    engine.put("msg", new String(""));
+    engine.put("msg", "");
 
     scriptMote = new ScriptMote();
     engine.put("node", scriptMote);
@@ -402,14 +402,14 @@ public class LogScriptEngine {
         public void run() {
           try { Thread.sleep(500); } catch (InterruptedException e) { }
           simulation.getCooja().doQuit(false, exitCode);
-        };
+        }
       }.start();
       new Thread() {
         public void run() {
           try { Thread.sleep(2000); } catch (InterruptedException e) { }
           logger.warn("Killing Cooja");
           System.exit(exitCode);
-        };
+        }
       }.start();
     }
   };

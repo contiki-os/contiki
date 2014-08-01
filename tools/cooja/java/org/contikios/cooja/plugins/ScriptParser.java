@@ -173,14 +173,14 @@ public class ScriptParser {
     return code;
   }
 
-  private String replaceYields(String code) throws ScriptSyntaxErrorException {
+  private String replaceYields(String code) {
     Pattern pattern = Pattern.compile(
         "YIELD\\(\\)"
     );
     return pattern.matcher(code).replaceAll("SCRIPT_SWITCH()");
   }
 
-  private String replaceYieldThenWaitUntils(String code) throws ScriptSyntaxErrorException {
+  private String replaceYieldThenWaitUntils(String code) {
     Pattern pattern = Pattern.compile(
         "YIELD_THEN_WAIT_UNTIL\\(" +
         "(.*)" /* expression */ +
@@ -197,7 +197,7 @@ public class ScriptParser {
     return code;
   }
 
-  private String replaceWaitUntils(String code) throws ScriptSyntaxErrorException {
+  private String replaceWaitUntils(String code) {
     Pattern pattern = Pattern.compile(
         "WAIT_UNTIL\\(" +
         "(.*)" /* expression */ +

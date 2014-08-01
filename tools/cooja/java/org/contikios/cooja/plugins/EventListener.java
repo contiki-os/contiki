@@ -31,10 +31,7 @@ package org.contikios.cooja.plugins;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.Vector;
+import java.util.*;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -117,9 +114,9 @@ public class EventListener extends VisPlugin {
     public Observable getObservable() {
       return myObservation;
     }
-  };
+  }
 
-  protected class InterfaceEventObserver extends EventObserver {
+    protected class InterfaceEventObserver extends EventObserver {
     private Mote myMote = null;
 
     public InterfaceEventObserver(EventListener parent, Mote mote,
@@ -183,10 +180,8 @@ public class EventListener extends VisPlugin {
 
     for (MoteType moteType : simulationToControl.getMoteTypes()) {
       if (moteType instanceof ContikiMoteType) {
-        Class<? extends MoteInterface>[] arr = ((ContikiMoteType) moteType).getMoteInterfaceClasses();
-        for (Class<? extends MoteInterface> intf : arr) {
-          allInterfacesDups.add(intf);
-        }
+        Class<? extends MoteInterface>[] arr = moteType.getMoteInterfaceClasses();
+          Collections.addAll(allInterfacesDups, arr);
       }
     }
     for (Class<? extends MoteInterface> moteTypeClass : allInterfacesDups) {

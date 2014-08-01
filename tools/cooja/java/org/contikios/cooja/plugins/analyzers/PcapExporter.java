@@ -1,17 +1,15 @@
 package org.contikios.cooja.plugins.analyzers;
 
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class PcapExporter {
 
     DataOutputStream out;
     
-    public PcapExporter() throws IOException {
+    public PcapExporter() {
     }
     
     public void openPcap(File pcapFile) throws IOException {

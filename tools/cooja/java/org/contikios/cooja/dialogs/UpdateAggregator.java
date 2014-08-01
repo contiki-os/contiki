@@ -63,7 +63,6 @@ public abstract class UpdateAggregator<A> {
     this(interval, DEFAULT_MAX_PENDING);
   }
   /**
-   * @param delay Max interval (ms)
    * @param maxEvents Max pending events (default 256)
    */
   public UpdateAggregator(int interval, int maxEvents) {
@@ -86,9 +85,9 @@ public abstract class UpdateAggregator<A> {
     public void run() {
       if (pending.isEmpty()) {
         return;
-      };
+      }
 
-      List<A> q = getPending();
+        List<A> q = getPending();
       if (q != null) {
         /* Handle objects */
         handle(q);

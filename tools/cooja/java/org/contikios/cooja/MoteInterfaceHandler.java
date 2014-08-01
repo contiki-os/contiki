@@ -116,7 +116,6 @@ public class MoteInterfaceHandler {
    * Returns the first interface with a class name that ends with the given arguments.
    * Example: mote.getInterfaces().get("Temperature");
    * 
-   * @param <N>
    * @param classname
    * @return
    */
