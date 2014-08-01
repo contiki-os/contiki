@@ -289,8 +289,8 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
          for (RadioConnection conn : getActiveConnections()) {
            for (Radio dstRadio : conn.getDestinations()) {
              if (dstRadio == dest.radio) {
-               conn.addInterfered(dest.radio);;
-               break;
+               conn.addInterfered(dest.radio);
+                 break;
              }
            }
          }        

@@ -415,9 +415,9 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
         }
       }
     }
-  };
+  }
 
-  public static class SuccessRatioMenuAction implements SimulationMenuAction {
+    public static class SuccessRatioMenuAction implements SimulationMenuAction {
 
     @Override
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
@@ -441,9 +441,9 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
         }
       }
     }
-  };
+  }
 
-  private void updateRatioRangeFrame() {
+    private void updateRatioRangeFrame() {
     if (rrFrame.getDesktopPane() == null) {
       visualizer.getDesktopPane().add(rrFrame);
     }
