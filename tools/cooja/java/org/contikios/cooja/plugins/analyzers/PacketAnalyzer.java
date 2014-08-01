@@ -81,8 +81,8 @@ public abstract class PacketAnalyzer {
         public byte[] getLLReceiver() {
             return llreceiver;
         }
-    };
-    
+    }
+
     public abstract boolean matchPacket(Packet packet);
     
     public abstract int analyzePacket(Packet packet, StringBuffer brief, StringBuffer verbose);

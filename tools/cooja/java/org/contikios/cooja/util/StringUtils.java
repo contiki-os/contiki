@@ -157,9 +157,9 @@ public class StringUtils {
       int read;
       while ((read = reader.read(buf)) > 0) {
         sb.append(buf, 0, read);
-      };
+      }
 
-      reader.close();
+        reader.close();
       return sb.toString();
     } catch (IOException e) {
       return null;
@@ -184,9 +184,9 @@ public class StringUtils {
       int read;
       while ((read = reader.read(buf)) > 0) {
         sb.append(buf, 0, read);
-      };
+      }
 
-      reader.close();
+        reader.close();
       return sb.toString();
     } catch (IOException e) {
       e.printStackTrace();

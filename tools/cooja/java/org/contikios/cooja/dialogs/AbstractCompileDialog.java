@@ -381,7 +381,7 @@ public abstract class AbstractCompileDialog extends JDialog {
     new Thread() {
       public void run() {
         tryRestoreMoteType();
-      };
+      }
     }.start();
   }
 

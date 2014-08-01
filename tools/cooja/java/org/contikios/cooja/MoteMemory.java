@@ -79,9 +79,9 @@ public interface MoteMemory extends AddressMemory {
 
   public abstract int parseInt(byte[] memorySegment);
 
-  public enum MemoryEventType { READ, WRITE };
+  public enum MemoryEventType { READ, WRITE }
 
-  public interface MemoryMonitor {
+    public interface MemoryMonitor {
     public void memoryChanged(MoteMemory memory, MemoryEventType type, int address);
   }
 

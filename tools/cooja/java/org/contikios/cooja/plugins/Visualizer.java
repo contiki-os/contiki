@@ -1637,9 +1637,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     public void doAction(Visualizer visualizer, Mote mote) {
       mote.getInterfaces().getButton().clickButton();
     }
-  };
+  }
 
-  protected static class DeleteMoteMenuAction implements MoteMenuAction {
+    protected static class DeleteMoteMenuAction implements MoteMenuAction {
 
     @Override
     public boolean isEnabled(Visualizer visualizer, Mote mote) {
@@ -1668,9 +1668,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       /* Invoke 'delete_motes' action */
       visualizer.canvas.getActionMap().get("delete_motes").actionPerformed(null);
     }
-  };
+  }
 
-  protected static class ShowLEDMoteMenuAction implements MoteMenuAction {
+    protected static class ShowLEDMoteMenuAction implements MoteMenuAction {
 
     @Override
     public boolean isEnabled(Visualizer visualizer, Mote mote) {
@@ -1705,9 +1705,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       viewer.setSelectedInterface(desc);
       viewer.pack();
     }
-  };
+  }
 
-  protected static class ShowSerialMoteMenuAction implements MoteMenuAction {
+    protected static class ShowSerialMoteMenuAction implements MoteMenuAction {
 
     @Override
     public boolean isEnabled(Visualizer visualizer, Mote mote) {
@@ -1754,9 +1754,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       viewer.setSelectedInterface(desc);
       viewer.pack();
     }
-  };
+  }
 
-  protected static class MoveMoteMenuAction implements MoteMenuAction {
+    protected static class MoveMoteMenuAction implements MoteMenuAction {
 
     @Override
     public boolean isEnabled(Visualizer visualizer, Mote mote) {
@@ -1782,9 +1782,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       }
       visualizer.beginMoveRequest(mote, false, false);
     }
-  };
+  }
 
-  protected static class ResetViewportAction implements SimulationMenuAction {
+    protected static class ResetViewportAction implements SimulationMenuAction {
 
     @Override
     public void doAction(Visualizer visualizer, Simulation simulation) {
@@ -1801,9 +1801,9 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
       return true;
     }
-  };
+  }
 
-  protected static class ToggleDecorationsMenuAction implements SimulationMenuAction {
+    protected static class ToggleDecorationsMenuAction implements SimulationMenuAction {
 
     @Override
     public void doAction(final Visualizer visualizer, Simulation simulation) {
