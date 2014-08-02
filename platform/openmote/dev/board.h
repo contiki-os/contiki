@@ -121,11 +121,11 @@
  * @{
  */
 /** BUTTON_USER -> PA3 */
-#define BUTTON_USER_PORT       GPIO_A_NUM
+#define BUTTON_USER_PORT       GPIO_C_NUM
 #define BUTTON_USER_PIN        3
-#define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_A
+#define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_C
 /* Notify various examples that we have Buttons */
-#define PLATFORM_HAS_BUTTON    0
+#define PLATFORM_HAS_BUTTON    1
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -142,19 +142,6 @@
 #define SPI_MISO_PIN             5
 #define SPI_SEL_PORT             GPIO_B_NUM
 #define SPI_SEL_PIN              5
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
- * \name Antenna configuration
- *
- * These values configure which CC2538 pins to use for the proper antenna.
- * @{
- */
-#define ANTENNA_EXTERNAL_PORT     
-#define ANTENNA_EXTERNAL_PIN      
-#define ANTENNA_INTERNAL_PORT     
-#define ANTENNA_INTERNAL_PIN      
-#define ANTENNA_ALL               
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

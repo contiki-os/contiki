@@ -95,7 +95,7 @@ extern uint8_t _text[0];
 /*---------------------------------------------------------------------------*/
 __attribute__ ((section(".flashcca"), used))
 const flash_cca_lock_page_t __cca = {
-  FLASH_CCA_BOOTLDR_CFG_DISABLE, /* Bootloader backdoor disabled */
+  FLASH_CCA_BOOTLDR_CFG_ENABLE,  /* Bootloader backdoor enabled */
   FLASH_CCA_IMAGE_VALID,         /* Image valid */
   &_text,                        /* Vector table located at the start of .text */
   /* Unlock all pages and debug */
