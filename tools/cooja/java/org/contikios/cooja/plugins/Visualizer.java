@@ -67,6 +67,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -160,12 +161,16 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   private static final int MOVE_MASK = Event.SHIFT_MASK;
 
   enum MotesActionState {
-
-    UNKNWON,
+    NONE,
+    // press to select mote
     SELECT_PRESS,
+    // press
     DEFAULT_PRESS,
+    // press to start panning
     PAN_PRESS,
+    // panning the viewport
     PANNING,
+    // moving a mote
     MOVING,
     // rectangular select
     SELECTING
@@ -176,7 +181,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
   /* Mote that was under curser while mouse press */
   Mote cursorMote;
 
-  MotesActionState mouseActionState = MotesActionState.UNKNWON;
+  MotesActionState mouseActionState = MotesActionState.NONE;
   /* Position where mouse button was pressed */
   Position pressedPos;
 
@@ -427,10 +432,49 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
       }
     });
 
+    canvas.getInputMap().put(KeyStroke.getKeyStroke("ESCAPE"), "abort_action");
+    canvas.getInputMap().put(KeyStroke.getKeyStroke("DELETE"), "delete_motes");
+
+    canvas.getActionMap().put("abort_action", new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (mouseActionState == MotesActionState.MOVING) {
+          /* Reset positions to those of move start */
+          for (Mote m : Visualizer.this.getSelectedMotes()) {
+            double rstPos[] = Visualizer.this.moveStartPositions.get(m);
+            m.getInterfaces().getPosition().setCoordinates(rstPos[0], rstPos[1], rstPos[2]);
+          }
+          mouseActionState = MotesActionState.NONE;
+        }
+        /* Always deselect all */
+        Visualizer.this.getSelectedMotes().clear();
+        repaint();
+      }
+    });
+
+    canvas.getActionMap().put("delete_motes", new AbstractAction() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        Iterator<Mote> iter = Visualizer.this.getSelectedMotes().iterator();
+        while (iter.hasNext()) {
+          Mote m = iter.next();
+          m.getSimulation().removeMote(m);
+          iter.remove();
+        }
+      }
+    });
+
     /* Popup menu */
     canvas.addMouseMotionListener(new MouseMotionAdapter() {
       @Override
       public void mouseDragged(MouseEvent e) {
+        handleMouseDrag(e, false);
+      }
+
+      @Override
+      public void mouseMoved(MouseEvent e) {
         handleMouseDrag(e, false);
       }
     });
@@ -477,10 +521,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
     });
 
     /* Register mote menu actions */
-    registerMoteMenuAction(MoveMoteMenuAction.class);
     registerMoteMenuAction(ButtonClickMoteMenuAction.class);
     registerMoteMenuAction(ShowLEDMoteMenuAction.class);
     registerMoteMenuAction(ShowSerialMoteMenuAction.class);
+
+    registerMoteMenuAction(MoveMoteMenuAction.class);
     registerMoteMenuAction(DeleteMoteMenuAction.class);
 
     /* Register simulation menu actions */
@@ -889,6 +934,11 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     pressedPos = transformPixelToPosition(mouseEvent.getPoint());
 
+    // if we are in moving, we ignore the press (rest is handled by release)
+    if (mouseActionState == MotesActionState.MOVING) {
+      return;
+    }
+
     // this is the state we have from pressing button
     final Mote[] foundMotes = findMotesAtPosition(x, y);
     if (foundMotes == null) {
@@ -937,6 +987,7 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
           mouseActionState = MotesActionState.PANNING;
         }
         else {
+          /* If we start moving with on a cursor mote, switch to MOVING */
           mouseActionState = MotesActionState.MOVING;
           // save start position
           for (Mote m : selectedMotes) {
@@ -1037,20 +1088,33 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
         repaint();
         break;
     }
+    /* Release always stops previous actions */
+    mouseActionState = MotesActionState.NONE;
+    canvas.setCursor(Cursor.getDefaultCursor());
     repaint();
   }
 
-  private void beginMoveRequest(Mote motesToMove, boolean withTiming, boolean confirm) {
+  private void beginMoveRequest(Mote selectedMote, boolean withTiming, boolean confirm) {
     if (withTiming) {
       moveStartTime = System.currentTimeMillis();
     }
     else {
       moveStartTime = -1;
     }
-    mouseActionState = MotesActionState.DEFAULT_PRESS;
-    selectedMotes.clear();
-    selectedMotes.add(motesToMove);
-    repaint();
+    /* Save start positions and set move-start position to clicked mote */
+    for (Mote m : selectedMotes) {
+      Position pos = m.getInterfaces().getPosition();
+      moveStartPositions.put(m, new double[]{
+        pos.getXCoordinate(),
+        pos.getYCoordinate(),
+        pos.getZCoordinate()});
+    }
+    pressedPos.setCoordinates(
+            selectedMote.getInterfaces().getPosition().getXCoordinate(),
+            selectedMote.getInterfaces().getPosition().getYCoordinate(),
+            selectedMote.getInterfaces().getPosition().getZCoordinate());
+
+    mouseActionState = MotesActionState.MOVING;
   }
 
   private double zoomFactor() {
@@ -1209,9 +1273,22 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
                    2 * MOTE_RADIUS);
       }
 
-      g.setColor(Color.BLACK);
-      g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
-                 2 * MOTE_RADIUS);
+      if (getSelectedMotes().contains(mote)) {
+        /* If mote is selected, highlight with red circle
+         and semitransparent gray overlay */
+        g.setColor(new Color(51, 102, 255));
+        g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+                   2 * MOTE_RADIUS);
+        g.drawOval(x - MOTE_RADIUS - 1, y - MOTE_RADIUS - 1, 2 * MOTE_RADIUS + 2,
+                   2 * MOTE_RADIUS + 2);
+        g.setColor(new Color(128, 128, 128, 128));
+        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+                   2 * MOTE_RADIUS);
+      } else {
+        g.setColor(Color.BLACK);
+        g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+                   2 * MOTE_RADIUS);
+      }
     }
   }
 
@@ -1571,12 +1648,25 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     @Override
     public String getDescription(Visualizer visualizer, Mote mote) {
-      return "Delete " + mote;
+      if (visualizer.getSelectedMotes().contains(mote) && visualizer.getSelectedMotes().size() > 1) {
+        return "Delete selected Motes";
+      } else {
+        return "Delete " + mote;
+      }
     }
 
     @Override
     public void doAction(Visualizer visualizer, Mote mote) {
-      mote.getSimulation().removeMote(mote);
+
+      /* If the currently clicked mote is not in the current mote selection,
+       * select it exclusively */
+      if (!visualizer.getSelectedMotes().contains(mote)) {
+        visualizer.getSelectedMotes().clear();
+        visualizer.getSelectedMotes().add(mote);
+      }
+
+      /* Invoke 'delete_motes' action */
+      visualizer.canvas.getActionMap().get("delete_motes").actionPerformed(null);
     }
   };
 
@@ -1675,11 +1765,21 @@ public class Visualizer extends VisPlugin implements HasQuickHelp {
 
     @Override
     public String getDescription(Visualizer visualizer, Mote mote) {
-      return "Move " + mote;
+      if (visualizer.getSelectedMotes().contains(mote) && visualizer.getSelectedMotes().size() > 1) {
+        return "Move selected Motes";
+      } else {
+        return "Move " + mote;
+      }
     }
 
     @Override
     public void doAction(Visualizer visualizer, Mote mote) {
+      /* If the currently clicked mote is note in the current mote selection,
+       * select it exclusively */
+      if (!visualizer.getSelectedMotes().contains(mote)) {
+        visualizer.getSelectedMotes().clear();
+        visualizer.getSelectedMotes().add(mote);
+      }
       visualizer.beginMoveRequest(mote, false, false);
     }
   };
