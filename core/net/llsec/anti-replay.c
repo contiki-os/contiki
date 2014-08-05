@@ -87,7 +87,7 @@ anti_replay_was_replayed(struct anti_replay_info *info)
   
   received_counter = anti_replay_get_counter();
   
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+  if(packetbuf_holds_broadcast()) {
     /* broadcast */
     if(received_counter <= info->last_broadcast_counter) {
       return 1;
