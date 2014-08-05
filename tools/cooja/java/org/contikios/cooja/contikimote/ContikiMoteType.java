@@ -660,8 +660,17 @@ public class ContikiMoteType implements MoteType {
               Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_1")
               + varName
               + Cooja.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
-      for (String line : mapFileData) {
-        Matcher matcher = pattern.matcher(line);
+      for (int idx = 0; idx < mapFileData.length; idx++) {
+        String parseString = mapFileData[idx];
+        Matcher matcher = pattern.matcher(parseString);
+        if (matcher.find()) {
+          return Integer.decode(matcher.group(1));
+        }
+        // second approach with lines joined
+        if (idx < mapFileData.length - 1) {
+          parseString += mapFileData[idx + 1];
+        }
+        matcher = pattern.matcher(parseString);
         if (matcher.find()) {
           return Integer.decode(matcher.group(1));
         }
