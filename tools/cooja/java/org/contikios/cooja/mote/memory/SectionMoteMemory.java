@@ -260,7 +260,7 @@ public class SectionMoteMemory implements MemoryInterface {
 
   @Override
   public boolean addSegmentMonitor(SegmentMonitor.EventType flag, long address, int size, SegmentMonitor monitor) {
-    PolledMemorySegments t = new PolledMemorySegments(monitor, (int) address, size);
+    PolledMemorySegments t = new PolledMemorySegments(monitor, address, size);
     polledMemories.add(t);
     return true;
   }
@@ -304,11 +304,11 @@ public class SectionMoteMemory implements MemoryInterface {
 
   private class PolledMemorySegments {
     public final SegmentMonitor mm;
-    public final int address;
+    public final long address;
     public final int size;
     private byte[] oldMem;
 
-    public PolledMemorySegments(SegmentMonitor mm, int address, int size) {
+    public PolledMemorySegments(SegmentMonitor mm, long address, int size) {
       this.mm = mm;
       this.address = address;
       this.size = size;
