@@ -776,8 +776,8 @@ public class ConfigurationWizard extends JDialog {
             mapData,
             Cooja.getExternalToolsSetting("MAPFILE_BSS_START"),
             Cooja.getExternalToolsSetting("MAPFILE_BSS_SIZE"));
-    dataSecParser.parse();
-    bssSecParser.parse();
+    dataSecParser.parse(0);
+    bssSecParser.parse(0);
     relDataSectionAddr = dataSecParser.getStartAddr();
     dataSectionSize = dataSecParser.getSize();
     relBssSectionAddr = bssSecParser.getStartAddr();
@@ -869,8 +869,8 @@ public class ConfigurationWizard extends JDialog {
             Cooja.getExternalToolsSetting("COMMAND_BSS_SIZE"),
             Cooja.getExternalToolsSetting("COMMAND_VAR_SEC_BSS"));
 
-    dataSecParser.parse();
-    bssSecParser.parse();
+    dataSecParser.parse(0);
+    bssSecParser.parse(0);
     relDataSectionAddr = dataSecParser.getStartAddr();
     dataSectionSize = dataSecParser.getSize();
     relBssSectionAddr = bssSecParser.getStartAddr();
