@@ -51,6 +51,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import org.apache.log4j.Level;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -426,19 +427,24 @@ public class ContikiMoteType implements MoteType {
       dataSecParser = new CommandSectionParser(
               output,
               Cooja.getExternalToolsSetting("COMMAND_DATA_START"),
-              Cooja.getExternalToolsSetting("COMMAND_DATA_SIZE"));
+              Cooja.getExternalToolsSetting("COMMAND_DATA_END"),
+              Cooja.getExternalToolsSetting("COMMAND_VAR_SEC_DATA"));
       bssSecParser = new CommandSectionParser(
               output,
               Cooja.getExternalToolsSetting("COMMAND_BSS_START"),
-              Cooja.getExternalToolsSetting("COMMAND_BSS_SIZE"));
+              Cooja.getExternalToolsSetting("COMMAND_BSS_END"),
+              Cooja.getExternalToolsSetting("COMMAND_VAR_SEC_BSS"));
       commonSecParser = new CommandSectionParser(
               output,
               Cooja.getExternalToolsSetting("COMMAND_COMMON_START"),
-              Cooja.getExternalToolsSetting("COMMAND_COMMON_SIZE"));
-      readonlySecParser = new CommandSectionParser(
+              Cooja.getExternalToolsSetting("COMMAND_COMMON_END"),
+              Cooja.getExternalToolsSetting("COMMAND_VAR_SEC_COMMON"));
+      /* XXX Currently Cooja tries to sync readonly memory */
+      readonlySecParser = null;/* new CommandSectionParser(
               output,
-              Cooja.getExternalToolsSetting("^([0-9A-Fa-f]*)[ \t]t[ \t].text$"),
-              Cooja.getExternalToolsSetting("")); // XXX
+              Cooja.getExternalToolsSetting("COMMAND_READONLY_START"),
+              Cooja.getExternalToolsSetting("COMMAND_READONLY_END"),
+              Cooja.getExternalToolsSetting("COMMAND_VAR_SEC_READONLY"));*/
 
     } else {
       /* Parse map file */
@@ -526,11 +532,13 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * 
+   * Abstract base class for concrete section parser class.
    */
   public static abstract class SectionParser {
 
     private final String[] mapFileData;
+    protected int startAddr;
+    protected int size;
 
     public SectionParser(String[] mapFileData) {
       this.mapFileData = mapFileData;
@@ -540,9 +548,17 @@ public class ContikiMoteType implements MoteType {
       return mapFileData;
     }
 
-    public abstract int parseStartAddr();
+    public int getStartAddr() {
+      return startAddr;
+    }
 
-    public abstract int parseSize();
+    public int getSize() {
+      return size;
+    }
+
+    protected abstract void parseStartAddr();
+
+    protected abstract void parseSize();
 
     abstract Map<String, Symbol> parseSymbols();
 
@@ -559,24 +575,33 @@ public class ContikiMoteType implements MoteType {
     public MemoryInterface parse() {
 
       /* Parse start address and size of section */
-      int mapSectionAddr = parseStartAddr();
-      int mapSectionSize = parseSize();
+      parseStartAddr();
+      parseSize();
 
-      if (mapSectionAddr < 0 || mapSectionSize <= 0) {
+      if (getStartAddr() < 0 || getSize() <= 0) {
         return null;
       }
 
       Map<String, Symbol> variables = parseSymbols();
 
       logger.info(String.format("Parsed section at 0x%x ( %d == 0x%x bytes)",
-//                                getContikiFirmwareFile().getName(),
-                                mapSectionAddr,
-                                mapSectionSize,
-                                mapSectionSize));
+                                getStartAddr(),
+                                getSize(),
+                                getSize()));
+
+      if (logger.isDebugEnabled()) {
+        for (String var : variables.keySet()) {
+          logger.debug(String.format("Found Symbol: %s, 0x%x, %d",
+                                     var,
+                                     variables.get(var).addr,
+                                     variables.get(var).size));
+        }
+      }
+
 
       return new ArrayMemory(
-              mapSectionAddr,
-              mapSectionSize,
+              getStartAddr(),
+              getSize(),
               MemoryLayout.getNative(),
               variables);
     }
@@ -598,19 +623,21 @@ public class ContikiMoteType implements MoteType {
     }
 
     @Override
-    public int parseStartAddr() {
-      if (startRegExp == null) {
-        return -1;
+    protected void parseStartAddr() {
+      if (startRegExp == null || startRegExp.equals("")) {
+        startAddr = -1;
+        return;
       }
-      return parseFirstHexInt(startRegExp, getData());
+      startAddr = parseFirstHexInt(startRegExp, getData());
     }
 
     @Override
-    public int parseSize() {
-      if (sizeRegExp == null) {
-        return -1;
+    protected void parseSize() {
+      if (sizeRegExp == null || sizeRegExp.equals("")) {
+        size = -1;
+        return;
       }
-      return parseFirstHexInt(sizeRegExp, getData());
+      size = parseFirstHexInt(sizeRegExp, getData());
     }
 
     @Override
@@ -621,8 +648,8 @@ public class ContikiMoteType implements MoteType {
       for (String line : getData()) {
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
-          if (Integer.decode(matcher.group(1)).intValue() >= parseStartAddr()
-                  && Integer.decode(matcher.group(1)).intValue() <= parseStartAddr() + parseSize()) {
+          if (Integer.decode(matcher.group(1)).intValue() >= getStartAddr()
+                  && Integer.decode(matcher.group(1)).intValue() <= getStartAddr() + getSize()) {
             String varName = matcher.group(2);
             varNames.put(varName, new Symbol(
                     Symbol.Type.VARIABLE,
@@ -685,59 +712,82 @@ public class ContikiMoteType implements MoteType {
   public static class CommandSectionParser extends SectionParser {
 
     private final String startRegExp;
-    private final String sizeRegExp;
+    private final String endRegExp;
+    private final String sectionRegExp;
 
-    public CommandSectionParser(String[] mapFileData, String startRegExp, String sizeRegExp) {
+    /**
+     * Creates SectionParser based on output of configurable command.
+     * 
+     * @param mapFileData Map file lines as array of String
+     * @param startRegExp Regular expression for parsing start of section
+     * @param endRegExp Regular expression for parsing end of section
+     * @param sectionRegExp Reqular expression describing symbol table section identifier (e.g. '[Rr]' for readonly)
+     *        Will be used to replaced '<SECTION>'in 'COMMAND_VAR_NAME_ADDRESS_SIZE'
+     */
+    public CommandSectionParser(String[] mapFileData, String startRegExp, String endRegExp, String sectionRegExp) {
       super(mapFileData);
       this.startRegExp = startRegExp;
-      this.sizeRegExp = sizeRegExp;
+      this.endRegExp = endRegExp;
+      this.sectionRegExp = sectionRegExp;
     }
 
     @Override
-    public int parseStartAddr() {
-      if (startRegExp == null) {
-        return -1;
+    protected void parseStartAddr() {
+      if (startRegExp == null || startRegExp.equals("")) {
+        startAddr = -1;
+        return;
       }
-      return parseFirstHexInt(startRegExp, getData());
+      startAddr = parseFirstHexInt(startRegExp, getData());
     }
 
     @Override
-    public int parseSize() {
-      if (sizeRegExp == null) {
-        return -1;
+    public void parseSize() {
+      if (endRegExp == null || endRegExp.equals("")) {
+        size = -1;
+        return;
       }
 
-      int start = parseStartAddr();
-      if (start < 0) {
-        return -1;
+      if (getStartAddr() < 0) {
+        size = -1;
+        return;
       }
 
-      int end = parseFirstHexInt(sizeRegExp, getData());
+      int end = parseFirstHexInt(endRegExp, getData());
       if (end < 0) {
-        return -1;
+        size = -1;
+        return;
       }
-      return end - start;
+      size = end - getStartAddr();
     }
 
     @Override
     public Map<String, Symbol> parseSymbols() {
       HashMap<String, Symbol> addresses = new HashMap<>();
-      Pattern pattern = Pattern.compile(Cooja.getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS"));
+      /* Replace "<SECTION>" in regexp by section specific regex */
+      Pattern pattern = Pattern.compile(
+              Cooja.getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS_SIZE")
+                      .replace("<SECTION>", sectionRegExp));
 
       for (String line : getData()) {
         Matcher matcher = pattern.matcher(line);
 
         if (matcher.find()) {
           /* Line matched variable address */
-          String symbol = matcher.group(2);
-          int address = Integer.parseInt(matcher.group(1), 16);
+          String symbol = matcher.group(1);
+          int varAddr = Integer.parseInt(matcher.group(2), 16);
+          int varSize;
+          if (matcher.group(3) != null) {
+           varSize = Integer.parseInt(matcher.group(3), 16);
+          } else {
+            varSize = -1;
+          }
 
           /* XXX needs to be checked */
           if (!addresses.containsKey(symbol)) {
-            addresses.put(symbol, new Symbol(Symbol.Type.VARIABLE, symbol, address, 1));
+            addresses.put(symbol, new Symbol(Symbol.Type.VARIABLE, symbol, varAddr, varSize));
           } else {
             int oldAddress = (int) addresses.get(symbol).addr;
-            if (oldAddress != address) {
+            if (oldAddress != varAddr) {
               /*logger.warn("Warning, command response not matching previous entry of: "
                + varName);*/
             }
