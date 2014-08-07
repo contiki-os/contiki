@@ -491,7 +491,9 @@ public class ContikiMoteType implements MoteType {
         int referenceVar = (int) varMem.getVariable("referenceVar").addr;
         myCoreComm.setReferenceAddress(referenceVar);
       } catch (UnknownVariableException e) {
-        throw new MoteTypeCreationException("JNI call error: " + e.getMessage(), e);
+        throw new MoteTypeCreationException("Error setting reference variable: " + e.getMessage(), e);
+      } catch (RuntimeException e) {
+          throw new MoteTypeCreationException("Error setting reference variable: " + e.getMessage(), e);
       }
 
       getCoreMemory(tmp);
