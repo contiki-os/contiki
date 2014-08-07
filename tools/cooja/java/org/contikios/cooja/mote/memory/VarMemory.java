@@ -99,7 +99,11 @@ public class VarMemory extends Memory {
    * @return Variable address
    */
   public Symbol getVariable(String varName) throws UnknownVariableException {
-    return memIntf.getSymbolMap().get(varName);
+    Symbol sym = memIntf.getSymbolMap().get(varName);
+    if (sym == null) {
+      throw new UnknownVariableException(varName);
+    }
+    return sym;
   }
 
   /**
