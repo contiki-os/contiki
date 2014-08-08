@@ -195,4 +195,16 @@
 #define RPL_PREFERENCE              0
 #endif
 
+/*
+ * Hop-by-hop option
+ * This option control the insertion of the RPL Hop-by-Hop extension header
+ * into packets originating from this node. Incoming Hop-by-hop extension
+ * header are still processed and forwarded.
+ */
+#ifdef RPL_CONF_INSERT_HBH_OPTION
+#define RPL_INSERT_HBH_OPTION       RPL_CONF_INSERT_HBH_OPTION
+#else
+#define RPL_INSERT_HBH_OPTION       1
+#endif
+
 #endif /* RPL_CONF_H */
