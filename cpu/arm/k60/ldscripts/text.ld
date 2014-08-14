@@ -4,6 +4,27 @@
         . = ALIGN(4);
         _text_load = LOADADDR(.text);
         _text_start = .;
+        /* preinit data */
+        PROVIDE_HIDDEN (__preinit_array_start = .);
+        KEEP(*(SORT(.preinit_array.*)))
+        KEEP(*(.preinit_array))
+        PROVIDE_HIDDEN (__preinit_array_end = .);
+        . = ALIGN(4);
+
+        /* init data */
+        PROVIDE_HIDDEN (__init_array_start = .);
+        KEEP(*(SORT(.init_array.*)))
+        KEEP(*(.init_array))
+        PROVIDE_HIDDEN (__init_array_end = .);
+        . = ALIGN(4);
+
+        /* fini data */
+        PROVIDE_HIDDEN (__fini_array_start = .);
+        KEEP(*(SORT(.fini_array.*)))
+        KEEP(*(.fini_array))
+        PROVIDE_HIDDEN (__fini_array_end = .);
+        . = ALIGN(4);
+
         KEEP (*(SORT_NONE(.init)))
         KEEP (*(SORT_NONE(.fini)))
         /* Default ISR handlers */
