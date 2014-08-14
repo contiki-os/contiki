@@ -57,6 +57,13 @@ void core_clocks_init_early(void)
         RTC_CR_SC8P_MASK | RTC_CR_SC4P_MASK; /* enable 12pF load capacitance, might need adjusting.. */
 }
 
+/*
+ * Arrange so that the core_clocks_init_early() function is called during
+ * early init.
+ */
+void __attribute__((section(".preinit_array"))) (*preinit_core_clocks_init_early[])(void) = {core_clocks_init_early};
+
+
 void core_clocks_init(void)
 {
     /* System clock initialization */
