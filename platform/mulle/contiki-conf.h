@@ -26,6 +26,8 @@ typedef int32_t  s32_t;
 #define PLATFORM_HAS_LEDS    1
 /* Radio RSSI sensor using values from rf230 driver */
 #define PLATFORM_HAS_RADIO   1
+/* Battery voltage sensor using Mulle voltage API */
+#define PLATFORM_HAS_BATTERY 1
 
 #define BAUD2UBR(b) b
 

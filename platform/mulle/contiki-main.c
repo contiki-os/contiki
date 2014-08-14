@@ -16,6 +16,7 @@
 #include "llwu.h"
 #include "init-net.h"
 #include "power-control.h"
+#include "voltage.h"
 #include "K60.h"
 #include "dbg-uart.h"
 
@@ -109,6 +110,7 @@ int main(void)
   clock_init();
   init_cfs();
   init_net();
+  voltage_init();
 
   autostart_start(autostart_processes);
 
