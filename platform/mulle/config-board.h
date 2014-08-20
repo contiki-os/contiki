@@ -46,8 +46,8 @@
 /* Default to revision 1 unless the serial number is specified in the build. */
 #define K60_CPU_REV 1
 #elif defined(MULLE_BOARD_SERIAL_NUMBER) && \
-    (MULLE_BOARD_SERIAL_NUMBER >= 200) && \
-    (MULLE_BOARD_SERIAL_NUMBER <= 219)
+  (MULLE_BOARD_SERIAL_NUMBER >= 200) && \
+  (MULLE_BOARD_SERIAL_NUMBER <= 219)
 /* Only Mulles with serial numbers 200 through 219 have revision 1.x silicon
  * (revision 1.4, 4N30D mask set), see the sticker on the CPU top on the Mulle */
 #define K60_CPU_REV 1

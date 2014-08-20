@@ -42,6 +42,6 @@
 #define __INIT_NET_H__
 
 void init_net(void);
-unsigned char* init_net_get_addr();
+unsigned char *init_net_get_addr();
 
 #endif /* __INIT_NET_H__ */

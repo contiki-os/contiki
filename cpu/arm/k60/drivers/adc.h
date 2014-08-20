@@ -43,25 +43,23 @@
 
 typedef uint8_t adc_number_t;
 
-typedef enum adc_cal_result
-{
+typedef enum adc_cal_result {
   ADC_SUCCESS = 0,
   ADC_INVALID_PARAM,
   ADC_CAL_FAILED,
 } adc_error_t;
 
-typedef enum adc_channel
-{
+typedef enum adc_channel {
   ADC_CH_DAD0 = 0b00000,
   ADC_CH_DAD1 = 0b00001,
   ADC_CH_DAD2 = 0b00010,
   ADC_CH_DAD3 = 0b00011,
-  ADC_CH_AD4  = 0b00100,
-  ADC_CH_AD5  = 0b00101,
-  ADC_CH_AD6  = 0b00110,
-  ADC_CH_AD7  = 0b00111,
-  ADC_CH_AD8  = 0b01000,
-  ADC_CH_AD9  = 0b01001,
+  ADC_CH_AD4 = 0b00100,
+  ADC_CH_AD5 = 0b00101,
+  ADC_CH_AD6 = 0b00110,
+  ADC_CH_AD7 = 0b00111,
+  ADC_CH_AD8 = 0b01000,
+  ADC_CH_AD9 = 0b01001,
   ADC_CH_AD10 = 0b01010,
   ADC_CH_AD11 = 0b01011,
   ADC_CH_AD12 = 0b01100,

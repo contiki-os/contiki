@@ -23,7 +23,8 @@
  *
  * \note This function should never return.
  */
-void hard_fault_handler_c(uint32_t * hardfault_args)
+void
+hard_fault_handler_c(uint32_t *hardfault_args)
 {
   uint32_t stacked_r0;
   uint32_t stacked_r1;

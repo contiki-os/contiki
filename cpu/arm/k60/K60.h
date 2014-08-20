@@ -42,7 +42,6 @@
 
 #include "config-board.h"
 
-
 #if K60_CPU_REV == 2
 
 /* K60 CPU silicon version 2.x */
@@ -97,7 +96,7 @@
 /**
  * UART module SBR parameter based on module frequency f and desired baud rate b.
  */
-#define UART_SBR(f, b) ((f)/(b * 16))
+#define UART_SBR(f, b) ((f) / (b * 16))
 
 /*
  * The constant numbers will be computed compile time by most (all?) compilers.
@@ -118,7 +117,6 @@
  *
  * \todo Verify the UART1 fine-adjust calculations if F_SYS*32 > 2^32 <=> F_SYS > 2^27 (== 134217728)
  */
-#define UART_BRFA(f, b) ((((64ull * (f))/((b) * 16)+1)/2) % 32)
-
+#define UART_BRFA(f, b) ((((64ull * (f)) / ((b) * 16) + 1) / 2) % 32)
 
 #endif /* K60_H_ */

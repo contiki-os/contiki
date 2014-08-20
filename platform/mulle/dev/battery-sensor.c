@@ -30,7 +30,6 @@
  *
  */
 
-
 #include "lib/sensors.h"
 #include "dev/battery-sensor.h"
 #include "dev/voltage.h"

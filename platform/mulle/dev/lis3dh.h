@@ -91,7 +91,6 @@ typedef enum {
   TIME_WINDOW = 0x3D,
 } lis3dh_reg_addr_t;
 
-
 /*
  * Bit offsets within the individual registers
  * source: LIS3DH datasheet
@@ -113,15 +112,15 @@ typedef enum {
  * (0000: Power down; Others: Refer to Table 25, “Data rate configuration”)
  */
 #define LIS3DH_CTRL_REG1_ODR_SHIFT (4)
-#define LIS3DH_CTRL_REG1_ODR3_MASK (1 << (LIS3DH_CTRL_REG1_ODR_SHIFT+3))
-#define LIS3DH_CTRL_REG1_ODR2_MASK (1 << (LIS3DH_CTRL_REG1_ODR_SHIFT+2))
-#define LIS3DH_CTRL_REG1_ODR1_MASK (1 << (LIS3DH_CTRL_REG1_ODR_SHIFT+1))
+#define LIS3DH_CTRL_REG1_ODR3_MASK (1 << (LIS3DH_CTRL_REG1_ODR_SHIFT + 3))
+#define LIS3DH_CTRL_REG1_ODR2_MASK (1 << (LIS3DH_CTRL_REG1_ODR_SHIFT + 2))
+#define LIS3DH_CTRL_REG1_ODR1_MASK (1 << (LIS3DH_CTRL_REG1_ODR_SHIFT + 1))
 #define LIS3DH_CTRL_REG1_ODR0_MASK (1 << LIS3DH_CTRL_REG1_ODR_SHIFT)
 
 #define LIS3DH_CTRL_REG1_ODR_MASK  (LIS3DH_CTRL_REG1_ODR3_MASK | \
-		LIS3DH_CTRL_REG1_ODR2_MASK | \
-		LIS3DH_CTRL_REG1_ODR1_MASK | \
-		LIS3DH_CTRL_REG1_ODR0_MASK)
+                                    LIS3DH_CTRL_REG1_ODR2_MASK | \
+                                    LIS3DH_CTRL_REG1_ODR1_MASK | \
+                                    LIS3DH_CTRL_REG1_ODR0_MASK)
 
 /*
  * Convenience macros for power modes
@@ -185,7 +184,7 @@ typedef enum {
 
 #define LIS3DH_CTRL_REG1_XYZEN_SHIFT (0)
 #define LIS3DH_CTRL_REG1_XYZEN_MASK (LIS3DH_CTRL_REG1_XEN_MASK | \
-		LIS3DH_CTRL_REG1_YEN_MASK | LIS3DH_CTRL_REG1_ZEN_MASK)
+                                     LIS3DH_CTRL_REG1_YEN_MASK | LIS3DH_CTRL_REG1_ZEN_MASK)
 
 #define LIS3DH_AXES_X (LIS3DH_CTRL_REG1_XEN_MASK)
 #define LIS3DH_AXES_Y (LIS3DH_CTRL_REG1_YEN_MASK)
@@ -281,7 +280,6 @@ typedef enum {
 
 #define LIS3DH_CTRL_REG4_BLE_LITTLE_ENDIAN (0)
 #define LIS3DH_CTRL_REG4_BLE_BIG_ENDIAN (LIS3DH_CTRL_REG4_BLE_MASK)
-
 
 /**
  * Full scale selection. default value: 00
@@ -403,7 +401,6 @@ typedef enum {
  */
 #define LIS3DH_STATUS_REG_XDA_MASK  (1 << 0)
 
-
 #define LIS3DH_FIFO_CTRL_REG_FM_SHIFT  (6)
 #define LIS3DH_FIFO_CTRL_REG_FM1_MASK  (1 << 7)
 #define LIS3DH_FIFO_CTRL_REG_FM0_MASK  (1 << 6)
@@ -418,11 +415,11 @@ typedef enum {
 #define LIS3DH_FIFO_CTRL_REG_FTH0_MASK (1 << 0)
 #define LIS3DH_FIFO_CTRL_REG_FTH_SHIFT  (0)
 #define LIS3DH_FIFO_CTRL_REG_FTH_MASK \
-	(LIS3DH_FIFO_CTRL_REG_FTH0_MASK | \
-		LIS3DH_FIFO_CTRL_REG_FTH1_MASK | \
-		LIS3DH_FIFO_CTRL_REG_FTH2_MASK | \
-		LIS3DH_FIFO_CTRL_REG_FTH3_MASK | \
-		LIS3DH_FIFO_CTRL_REG_FTH4_MASK)
+  (LIS3DH_FIFO_CTRL_REG_FTH0_MASK | \
+   LIS3DH_FIFO_CTRL_REG_FTH1_MASK | \
+   LIS3DH_FIFO_CTRL_REG_FTH2_MASK | \
+   LIS3DH_FIFO_CTRL_REG_FTH3_MASK | \
+   LIS3DH_FIFO_CTRL_REG_FTH4_MASK)
 
 /**
  * Allowed FIFO modes.
@@ -445,26 +442,25 @@ typedef enum {
 #define LIS3DH_FIFO_SRC_REG_FSS0_MASK (1 << 0)
 #define LIS3DH_FIFO_SRC_REG_FSS_SHIFT  (0)
 #define LIS3DH_FIFO_SRC_REG_FSS_MASK \
-	(LIS3DH_FIFO_SRC_REG_FSS0_MASK | \
-		LIS3DH_FIFO_SRC_REG_FSS1_MASK | \
-		LIS3DH_FIFO_SRC_REG_FSS2_MASK | \
-		LIS3DH_FIFO_SRC_REG_FSS3_MASK | \
-		LIS3DH_FIFO_SRC_REG_FSS4_MASK)
+  (LIS3DH_FIFO_SRC_REG_FSS0_MASK | \
+   LIS3DH_FIFO_SRC_REG_FSS1_MASK | \
+   LIS3DH_FIFO_SRC_REG_FSS2_MASK | \
+   LIS3DH_FIFO_SRC_REG_FSS3_MASK | \
+   LIS3DH_FIFO_SRC_REG_FSS4_MASK)
 
-
-#define LIS3DH_SPI_WRITE_MASK (0<<7)
+#define LIS3DH_SPI_WRITE_MASK (0 << 7)
 /**
  * The READ bit must be set when reading
  */
-#define LIS3DH_SPI_READ_MASK (1<<7)
+#define LIS3DH_SPI_READ_MASK (1 << 7)
 /**
  * Multi byte transfers must assert this bit when writing the address.
  */
-#define LIS3DH_SPI_MULTI_MASK (1<<6)
+#define LIS3DH_SPI_MULTI_MASK (1 << 6)
 /**
  * Opposite of LIS3DH_SPI_MULTI_MASK.
  */
-#define LIS3DH_SPI_SINGLE_MASK (0<<6)
+#define LIS3DH_SPI_SINGLE_MASK (0 << 6)
 /**
  * Mask of the address bits in the address byte during transfers.
  */
@@ -475,14 +471,13 @@ typedef enum {
  */
 #define LIS3DH_ACC_DATA_SIZE (2)
 
-
 /* Platform-independent functions, implemented in lis3dh.c */
 void lis3dh_set_bits(const lis3dh_reg_addr_t addr, const uint8_t bitmask);
 void lis3dh_clear_bits(const lis3dh_reg_addr_t addr, const uint8_t bitmask);
 int16_t lis3dh_read_xaxis();
 int16_t lis3dh_read_yaxis();
 int16_t lis3dh_read_zaxis();
-void lis3dh_read_xyz(int16_t * buffer);
+void lis3dh_read_xyz(int16_t *buffer);
 int16_t lis3dh_read_aux_adc1();
 int16_t lis3dh_read_aux_adc2();
 int16_t lis3dh_read_aux_adc3();
@@ -502,11 +497,9 @@ void lis3dh_write_byte(const lis3dh_reg_addr_t addr, const uint8_t value);
 uint8_t lis3dh_read_byte(const lis3dh_reg_addr_t addr);
 int16_t lis3dh_read_int16(const lis3dh_reg_addr_t lsb_addr);
 void lis3dh_memcpy_from_device(const lis3dh_reg_addr_t start_address,
-                               uint8_t * buffer, uint8_t count);
+                               uint8_t *buffer, uint8_t count);
 void lis3dh_memcpy_to_device(const lis3dh_reg_addr_t start_address,
-                             const uint8_t * buffer, uint8_t count);
+                             const uint8_t *buffer, uint8_t count);
 void lis3dh_arch_init();
-
-
 
 #endif /* LIS3DH_H_ */

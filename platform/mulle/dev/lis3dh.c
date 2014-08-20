@@ -54,8 +54,6 @@ lis3dh_set_bits(const lis3dh_reg_addr_t addr, const uint8_t mask)
   reg |= mask;
   lis3dh_write_byte(addr, reg);
 }
-
-
 /**
  * Clear bits of an 8-bit register on the LIS3DH.
  */
@@ -68,7 +66,6 @@ lis3dh_clear_bits(const lis3dh_reg_addr_t addr, const uint8_t mask)
   reg &= ~mask;
   lis3dh_write_byte(addr, reg);
 }
-
 /**
  * Write (both set and clear) bits of an 8-bit register on the LIS3DH.
  *
@@ -87,7 +84,6 @@ lis3dh_write_bits(const lis3dh_reg_addr_t addr, const uint8_t mask,
   reg |= (values & mask);
   lis3dh_write_byte(addr, reg);
 }
-
 /**
  * Get one X-axis reading from the accelerometer.
  *
@@ -98,7 +94,6 @@ lis3dh_read_xaxis()
 {
   return lis3dh_read_int16(OUT_X_L);
 }
-
 /**
  * Get one Y-axis reading from the accelerometer.
  *
@@ -109,7 +104,6 @@ lis3dh_read_yaxis()
 {
   return lis3dh_read_int16(OUT_Y_L);
 }
-
 /**
  * Get one Z-axis reading from the accelerometer.
  *
@@ -120,19 +114,17 @@ lis3dh_read_zaxis()
 {
   return lis3dh_read_int16(OUT_Z_L);
 }
-
 /**
  * Read all three axes in a single transaction.
  *
  * \param buffer Pointer to an int16_t[3] buffer.
  */
 void
-lis3dh_read_xyz(int16_t * buffer)
+lis3dh_read_xyz(int16_t *buffer)
 {
-  lis3dh_memcpy_from_device(OUT_X_L, (uint8_t *) buffer,
+  lis3dh_memcpy_from_device(OUT_X_L, (uint8_t *)buffer,
                             LIS3DH_ACC_DATA_SIZE * 3);
 }
-
 /**
  * Get one reading from the first channel of the auxiliary ADC.
  *
@@ -143,7 +135,6 @@ lis3dh_read_aux_adc1()
 {
   return lis3dh_read_int16(OUT_AUX_ADC1_L);
 }
-
 /**
  * Get one reading from the second channel of the auxiliary ADC.
  *
@@ -154,7 +145,6 @@ lis3dh_read_aux_adc2()
 {
   return lis3dh_read_int16(OUT_AUX_ADC2_L);
 }
-
 /**
  * Get one reading from the third channel of the auxiliary ADC.
  *
@@ -168,7 +158,6 @@ lis3dh_read_aux_adc3()
 {
   return lis3dh_read_int16(OUT_AUX_ADC3_L);
 }
-
 /**
  * Turn on/off power to the auxiliary ADC in LIS3DH.
  *
@@ -186,7 +175,6 @@ lis3dh_set_aux_adc(const uint8_t enable, const uint8_t temperature)
                     (enable ? LIS3DH_TEMP_CFG_REG_ADC_PD_MASK : 0) |
                     (temperature ? LIS3DH_TEMP_CFG_REG_TEMP_EN_MASK : 0));
 }
-
 /**
  * Enable/disable accelerometer axes.
  *
@@ -199,7 +187,6 @@ lis3dh_set_axes(const uint8_t axes)
 {
   lis3dh_write_bits(CTRL_REG1, LIS3DH_CTRL_REG1_XYZEN_MASK, axes);
 }
-
 /**
  * Set the FIFO mode.
  *
@@ -211,7 +198,6 @@ lis3dh_set_fifo_mode(const lis3dh_fifo_mode_t mode)
   lis3dh_write_bits(FIFO_CTRL_REG, LIS3DH_FIFO_CTRL_REG_FM_MASK,
                     (mode << LIS3DH_FIFO_CTRL_REG_FM_SHIFT));
 }
-
 /**
  * Enable/disable the FIFO.
  *
@@ -223,7 +209,6 @@ lis3dh_set_fifo(const uint8_t enable)
   lis3dh_write_bits(CTRL_REG5, LIS3DH_CTRL_REG5_FIFO_EN_MASK,
                     (enable ? LIS3DH_CTRL_REG5_FIFO_EN_MASK : 0));
 }
-
 /**
  * Set the output data rate of the sensor.
  *
@@ -235,7 +220,6 @@ lis3dh_set_odr(const lis3dh_odr_t odr)
   lis3dh_write_bits(CTRL_REG1, LIS3DH_CTRL_REG1_ODR_MASK,
                     (odr << LIS3DH_CTRL_REG1_ODR_SHIFT));
 }
-
 /**
  * Set the full scale range of the sensor.
  *
@@ -246,7 +230,7 @@ lis3dh_set_odr(const lis3dh_odr_t odr)
 void
 lis3dh_set_scale(const lis3dh_scale_t scale)
 {
-  switch (scale) {
+  switch(scale) {
   case SCALE_2G:
     lis3dh_write_bits(CTRL_REG4, LIS3DH_CTRL_REG4_FS_MASK,
                       LIS3DH_CTRL_REG4_FS_2G);
@@ -268,7 +252,6 @@ lis3dh_set_scale(const lis3dh_scale_t scale)
     return;
   }
 }
-
 /**
  * Initialize a LIS3DH accelerometer.
  *

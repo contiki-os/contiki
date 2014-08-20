@@ -43,7 +43,6 @@
 /** \todo Handle VLLSx modes */
 /** \todo Handle VLPR, VLPW modes */
 
-
 void power_modes_init(void);
 
 /* void power_mode_run(void); */

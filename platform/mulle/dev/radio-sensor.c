@@ -72,4 +72,4 @@ status(int type)
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(radio_sensor, RADIO_SENSOR,
-	       value, configure, status);
+               value, configure, status);

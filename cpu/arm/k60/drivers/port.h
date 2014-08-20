@@ -44,5 +44,4 @@
 
 void port_module_enable(PORT_MemMapPtr port);
 
-
 #endif /* CPU_ARM_K60_PORT_H_ */

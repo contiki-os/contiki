@@ -36,7 +36,7 @@ void uart_set_rx_callback(int (*callback)(unsigned char));
 /**
  * UART module SBR parameter based on module frequency f and desired baud rate b.
  */
-#define UART_SBR(f, b) ((f)/(b * 16))
+#define UART_SBR(f, b) ((f) / (b * 16))
 
 /*
  * The constant numbers will be computed compile time by most (all?) compilers.
@@ -57,8 +57,6 @@ void uart_set_rx_callback(int (*callback)(unsigned char));
  *
  * \todo Verify the UART1 fine-adjust calculations if F_SYS*32 > 2^32 <=> F_SYS > 2^27 (== 134217728)
  */
-#define UART_BRFA(f, b) ((((64ull * (f))/((b) * 16)+1)/2) % 32)
-
-
+#define UART_BRFA(f, b) ((((64ull * (f)) / ((b) * 16) + 1) / 2) % 32)
 
 #endif /* CPU_ARM_K60_UART_H_ */

@@ -23,13 +23,12 @@ extern uint32_t _data_load[];
 static void
 copy_initialized(void)
 {
-  uint32_t * ram = _data_start;
-  uint32_t * rom = _data_load;
+  uint32_t *ram = _data_start;
+  uint32_t *rom = _data_load;
   while(ram < _data_end) {
     *(ram++) = *(rom++);
   }
 }
-
 /* Start of .bss section in RAM */
 extern uint32_t __bss_start[];
 /* End of .bss section in RAM */
@@ -48,7 +47,6 @@ clear_bss(void)
     ++p;
   }
 }
-
 /* Start of .ramcode section in RAM */
 extern uint32_t _ramcode_start[];
 /* End of .ramcode section in RAM */
@@ -61,13 +59,12 @@ extern uint32_t _ramcode_load[];
 static void
 copy_ramcode(void)
 {
-  uint32_t * ram = _ramcode_start;
-  uint32_t * rom = _ramcode_load;
+  uint32_t *ram = _ramcode_start;
+  uint32_t *rom = _ramcode_load;
   while(ram < _ramcode_end) {
     *(ram++) = *(rom++);
   }
 }
-
 /* Initialize all data used by the C runtime. */
 static void __attribute__((unused))
 init_data(void)
@@ -78,7 +75,6 @@ init_data(void)
 
   copy_ramcode();
 }
-
 /* newlib's initialization function */
 extern void __libc_init_array(void);
 
@@ -123,7 +119,6 @@ reset_handler(void)
   /* main should never return, but just in case... */
   while(1);
 }
-
 /* Initialize static C++ objects etc. */
 
 /* The implementation of call_constructors is based on newlib's
@@ -143,13 +138,13 @@ reset_handler(void)
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-extern void (*__preinit_array_start []) (void) __attribute__((weak));
-extern void (*__preinit_array_end []) (void) __attribute__((weak));
-extern void (*__init_array_start []) (void) __attribute__((weak));
-extern void (*__init_array_end []) (void) __attribute__((weak));
+extern void(*__preinit_array_start[]) (void) __attribute__((weak));
+extern void(*__preinit_array_end[]) (void) __attribute__((weak));
+extern void(*__init_array_start[]) (void) __attribute__((weak));
+extern void(*__init_array_end[]) (void) __attribute__((weak));
 
 /* By default, initialize all C runtime data after preinit */
-void _init(void) __attribute__((weak,alias("init_data")));
+void _init(void) __attribute__((weak, alias("init_data")));
 
 void
 call_init_array(void)
@@ -158,12 +153,14 @@ call_init_array(void)
   size_t i;
 
   count = __preinit_array_end - __preinit_array_start;
-  for (i = 0; i < count; i++)
+  for(i = 0; i < count; i++) {
     __preinit_array_start[i]();
+  }
 
   _init();
 
   count = __init_array_end - __init_array_start;
-  for (i = 0; i < count; i++)
+  for(i = 0; i < count; i++) {
     __init_array_start[i]();
+  }
 }

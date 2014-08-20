@@ -40,38 +40,36 @@
 #include "adc.h"
 #include "K60.h"
 
-static inline ADC_MemMapPtr adc_num_to_ptr(adc_number_t adc_num)
+static inline ADC_MemMapPtr
+adc_num_to_ptr(adc_number_t adc_num)
 {
-  switch (adc_num)
-  {
-    case 0:
-      return ADC0_BASE_PTR;
-      break;
-    case 1:
-      return ADC1_BASE_PTR;
-      break;
-    default:
-      return 0;
-      break;
+  switch(adc_num) {
+  case 0:
+    return ADC0_BASE_PTR;
+    break;
+  case 1:
+    return ADC1_BASE_PTR;
+    break;
+  default:
+    return 0;
+    break;
   }
 }
-
-adc_error_t adc_calibrate(adc_number_t adc_num)
+adc_error_t
+adc_calibrate(adc_number_t adc_num)
 {
   uint16_t cal;
   ADC_MemMapPtr ADC_ptr;
 
   ADC_ptr = adc_num_to_ptr(adc_num);
-  if (!ADC_ptr)
-  {
+  if(!ADC_ptr) {
     return ADC_INVALID_PARAM;
   }
 
   ADC_ptr->SC3 |= ADC_SC3_CAL_MASK;
-  while (ADC_ptr->SC3 & ADC_SC3_CAL_MASK); /* wait for calibration to finish */
-  while (!(ADC_ptr->SC1[0] & ADC_SC1_COCO_MASK));
-  if (ADC_ptr->SC3 & ADC_SC3_CALF_MASK)
-  {
+  while(ADC_ptr->SC3 & ADC_SC3_CAL_MASK); /* wait for calibration to finish */
+  while(!(ADC_ptr->SC1[0] & ADC_SC1_COCO_MASK));
+  if(ADC_ptr->SC3 & ADC_SC3_CALF_MASK) {
     /* calibration failed for some reason, possibly SC2[ADTRG] is 1 ? */
     return ADC_CAL_FAILED;
   }
@@ -83,7 +81,7 @@ adc_error_t adc_calibrate(adc_number_t adc_num)
   /* 2. Add the plus-side calibration results CLP0, CLP1, CLP2, CLP3, CLP4, and
    * CLPS to the variable. */
   cal = ADC_ptr->CLP0 + ADC_ptr->CLP1 + ADC_ptr->CLP2 + ADC_ptr->CLP3 +
-        ADC_ptr->CLP4 + ADC_ptr->CLPS;
+    ADC_ptr->CLP4 + ADC_ptr->CLPS;
   /* 3. Divide the variable by two. */
   cal /= 2;
   /* 4. Set the MSB of the variable. */
@@ -98,27 +96,26 @@ adc_error_t adc_calibrate(adc_number_t adc_num)
 
   /* 7. Repeat the procedure for the minus-side gain calibration value. */
   cal = ADC_ptr->CLM0 + ADC_ptr->CLM1 + ADC_ptr->CLM2 + ADC_ptr->CLM3 +
-        ADC_ptr->CLM4 + ADC_ptr->CLMS;
+    ADC_ptr->CLM4 + ADC_ptr->CLMS;
   cal /= 2;
   cal |= (1 << 15);
   ADC_ptr->MG = cal;
 
   return ADC_SUCCESS;
 }
-
-uint16_t adc_read_raw(adc_number_t adc_num, adc_channel_t adc_channel) {
+uint16_t
+adc_read_raw(adc_number_t adc_num, adc_channel_t adc_channel)
+{
   ADC_MemMapPtr ADC_ptr;
 
   ADC_ptr = adc_num_to_ptr(adc_num);
-  if (!ADC_ptr)
-  {
+  if(!ADC_ptr) {
     return ADC_INVALID_PARAM;
   }
   ADC_ptr->SC1[0] = ADC_SC1_ADCH((uint8_t)adc_channel); /* Select the correct channel and initiate a conversion */
 
   /* Wait for the conversion to finish */
-  while (!((ADC_ptr->SC1[0]) & ADC_SC1_COCO_MASK))
-  ;
+  while(!((ADC_ptr->SC1[0]) & ADC_SC1_COCO_MASK));
 
   return ADC_ptr->R[0];
 }

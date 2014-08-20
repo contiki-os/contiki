@@ -41,8 +41,8 @@
 #include "statistics.h"
 
 void
-compute_stats_3d_int16(const int16_t * buffer, const size_t count,
-                       stats_3d_t * stats)
+compute_stats_3d_int16(const int16_t *buffer, const size_t count,
+                       stats_3d_t *stats)
 {
   static const uint8_t dimension = 3;
   unsigned int i, j, v, u;
@@ -59,15 +59,15 @@ compute_stats_3d_int16(const int16_t * buffer, const size_t count,
   }
   stats->count = count;
   for(v = 0; v < dimension; ++v) {
-    // Find min, max and compute sum
+    /* Find min, max and compute sum */
     for(i = 0; i < count; ++i) {
       stats->max[v] = MAX(buffer[i * dimension + v], stats->max[v]);
       stats->min[v] = MIN(buffer[i * dimension + v], stats->min[v]);
       stats->sum[v] += (double)buffer[i * dimension + v];
     }
-    // Compute mean
+    /* Compute mean */
     stats->mean[v] = stats->sum[v] / ((double)count);
-    // Compute covariance
+    /* Compute covariance */
     for(u = 0; u <= v; ++u) {
       for(i = 0; i < count; ++i) {
         stats->cov[v][u] +=
@@ -75,20 +75,19 @@ compute_stats_3d_int16(const int16_t * buffer, const size_t count,
            stats->mean[v]) * ((double)buffer[i * dimension + u] -
                               stats->mean[u]);
       }
-      // Divide by sample count, minus one.
+      /* Divide by sample count, minus one. */
       stats->cov[v][u] /= ((double)count - 1.0);
-      // Symmetry
+      /* Symmetry */
       stats->cov[u][v] = stats->cov[v][u];
     }
     stats->stddev[v] = sqrt(stats->cov[v][v]);
   }
 }
-
 void
-print_stats_3d(const stats_3d_t * stats)
+print_stats_3d(const stats_3d_t *stats)
 {
   printf("Stats, %d samples:\r\n", stats->count);
-  // Poor man's floating point printf...
+  /* Poor man's floating point printf... */
   printf("Xlim: [%d,\t%d]\r\n", stats->min[0], stats->max[0]);
   printf("Ylim: [%d,\t%d]\r\n", stats->min[1], stats->max[1]);
   printf("Zlim: [%d,\t%d]\r\n", stats->min[2], stats->max[2]);
@@ -124,7 +123,7 @@ print_stats_3d(const stats_3d_t * stats)
          ((int)(fmod(fabs(stats->cov[2][1] * 1000000.0), 1000000.0))),
          ((int)stats->cov[2][2]),
          ((int)(fmod(fabs(stats->cov[2][2] * 1000000.0), 1000000.0)))
-    );
+         );
   printf("stdd: [%d.%06d,\t%d.%06d,\t%d.%06d]\r\n",
          ((int)stats->stddev[0]),
          ((int)(fmod(fabs(stats->stddev[0] * 1000000.0), 1000000.0))),
@@ -134,5 +133,4 @@ print_stats_3d(const stats_3d_t * stats)
          ((int)(fmod(fabs(stats->stddev[2] * 1000000.0), 1000000.0))));
   printf(" sum: [%d,\t%d,\t%d]\r\n",
          (int)stats->sum[0], (int)stats->sum[1], (int)stats->sum[2]);
-
 }

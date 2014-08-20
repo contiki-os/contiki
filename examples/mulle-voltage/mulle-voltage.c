@@ -44,7 +44,6 @@
 #include "voltage.h"
 #include "power-control.h"
 
-
 #include <stdio.h>              /* For printf() */
 #include <stdint.h>             /* int16_t et al. */
 
@@ -66,7 +65,6 @@ PROCESS_THREAD(mulle_voltage_process, ev, data)
   power_control_avdd_set(1);
   printf("Initialize voltage monitoring\n");
   voltage_init();
-
 
   /* Poll at 8Hz */
   etimer_set(&et, CLOCK_SECOND / EXAMPLE_POLL_FREQUENCY);

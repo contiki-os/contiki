@@ -42,11 +42,11 @@
 
 #include <stdio.h> /* For printf() */
 
-void myidle(void)
+void
+myidle(void)
 {
   while(1);
 }
-
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
 AUTOSTART_PROCESSES(&hello_world_process);
@@ -62,19 +62,19 @@ PROCESS_THREAD(hello_world_process, ev, data)
   SIM_SCGC6 |= SIM_SCGC6_RTC_MASK;
   SIM_SCGC5 |= SIM_SCGC5_PORTE_MASK;
   PORTE_PCR26 = PORT_PCR_MUX(6);
-  #if K60_CPU_REV == 2
-  SIM_SOPT2 |= SIM_SOPT2_RTCCLKOUTSEL_MASK; // 32kHz on RTCCLKOUT
-  #endif
+#if K60_CPU_REV == 2
+  SIM_SOPT2 |= SIM_SOPT2_RTCCLKOUTSEL_MASK; /* 32kHz on RTCCLKOUT */
+#endif
 
   /* Enable CLKOUT, FlexBus Clock */
   printf("Enable CLKOUT on PTC3\n");
-  #if K60_CPU_REV == 2
-  SIM_SOPT2 &= ~(SIM_SOPT2_CLKOUTSEL(0x07)); // Select clock on CLKOUT on Rev2.x silicon
-  SIM_SOPT2 |= SIM_SOPT2_CLKOUTSEL(0b010); // Flash clock output on CLKOUT
-  #endif
-  SIM_SCGC7 |= SIM_SCGC7_FLEXBUS_MASK; // Enable FlexBus clock gate
-  SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK;  // Enable PortC clock gate
-  PORTC_PCR3 = PORT_PCR_MUX(5);       // Set pin for CLKOUT
+#if K60_CPU_REV == 2
+  SIM_SOPT2 &= ~(SIM_SOPT2_CLKOUTSEL(0x07)); /* Select clock on CLKOUT on Rev2.x silicon */
+  SIM_SOPT2 |= SIM_SOPT2_CLKOUTSEL(0b010); /* Flash clock output on CLKOUT */
+#endif
+  SIM_SCGC7 |= SIM_SCGC7_FLEXBUS_MASK; /* Enable FlexBus clock gate */
+  SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK;  /* Enable PortC clock gate */
+  PORTC_PCR3 = PORT_PCR_MUX(5);       /* Set pin for CLKOUT */
 
   myidle();
 

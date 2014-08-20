@@ -29,4 +29,4 @@ status(int type)
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
-	       value, configure, status);
+               value, configure, status);

@@ -84,13 +84,12 @@ spi_transfer(const uint8_t data, const bool cont, const bool blocking)
 
   if(blocking) {
     /* Wait for transfer complete */
-    while(!(SPI0_SR & SPI_SR_TCF_MASK));
+    while(!(SPI0_SR & SPI_SR_TCF_MASK)) ;
   }
 
   /* Pop the buffer */
-  return (0xFF & SPI0_POPR);
+  return 0xFF & SPI0_POPR;
 }
-
 /**
  * Write a single byte to the LIS3DH.
  *
@@ -105,7 +104,6 @@ lis3dh_write_byte(const lis3dh_reg_addr_t addr, const uint8_t value)
   spi_transfer(value, false, true);     /* Write data */
   MK60_LEAVE_CRITICAL_REGION();
 }
-
 /**
  * Read a single byte from the LIS3DH.
  *
@@ -123,7 +121,6 @@ lis3dh_read_byte(const lis3dh_reg_addr_t addr)
   MK60_LEAVE_CRITICAL_REGION();
   return data;
 }
-
 /**
  * Read a 16-bit integer from the LIS3DH.
  *
@@ -155,9 +152,8 @@ lis3dh_read_int16(const lis3dh_reg_addr_t lsb_addr)
   data |= (spi_transfer(0xFF, false, true) << 8);       /* Read MSB, release chip select. */
 
   MK60_LEAVE_CRITICAL_REGION();
-  return (int16_t) data;
+  return (int16_t)data;
 }
-
 /**
  * Read multiple bytes from the LIS3DH.
  *
@@ -167,7 +163,7 @@ lis3dh_read_int16(const lis3dh_reg_addr_t lsb_addr)
  */
 void
 lis3dh_memcpy_from_device(const lis3dh_reg_addr_t start_address,
-                          uint8_t * buffer, uint8_t count)
+                          uint8_t *buffer, uint8_t count)
 {
   /*
    * This function must not be interrupted by anything using the SPI bus or
@@ -195,7 +191,6 @@ lis3dh_memcpy_from_device(const lis3dh_reg_addr_t start_address,
 
   MK60_LEAVE_CRITICAL_REGION();
 }
-
 /**
  * Write multiple bytes to the LIS3DH.
  *
@@ -205,7 +200,7 @@ lis3dh_memcpy_from_device(const lis3dh_reg_addr_t start_address,
  */
 void
 lis3dh_memcpy_to_device(const lis3dh_reg_addr_t start_address,
-                        const uint8_t * buffer, uint8_t count)
+                        const uint8_t *buffer, uint8_t count)
 {
   /*
    * This function must not be interrupted by anything using the SPI bus or
@@ -233,7 +228,6 @@ lis3dh_memcpy_to_device(const lis3dh_reg_addr_t start_address,
 
   MK60_LEAVE_CRITICAL_REGION();
 }
-
 /**
  * Perform the platform specific part of the initialization process of the LIS3DH.
  * This function is expected to set up the SPI module for the LIS3DH.

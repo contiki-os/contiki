@@ -57,7 +57,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-
 #define ONEWIRE_BASE_PTR UART4_BASE_PTR
 #define ONEWIRE_ISR_FUNC _isr_uart4_status
 #define ONEWIRE_UART_MODULE_FREQUENCY F_BUS
@@ -101,52 +100,52 @@
 /* Length in bytes of the 1-wire ROM code */
 #define OW_ROM_ID_LENGTH (8)
 
-static volatile const uint8_t* ow_write_bytes_buf;
+static volatile const uint8_t *ow_write_bytes_buf;
 static volatile uint8_t ow_write_bytes_count;
-static volatile uint8_t* ow_read_bytes_buf;
+static volatile uint8_t *ow_read_bytes_buf;
 static volatile uint8_t ow_read_bytes_count;
 static volatile uint8_t ow_write_bits;
 static volatile uint8_t ow_read_bits;
 static volatile uint8_t ow_isr_scratch;
 
 #define OW_TIMING_FAST() \
-  ONEWIRE_BDH    = UART_BDH_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST) / 256); \
-  ONEWIRE_BDL    = UART_BDL_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST) % 256); \
-  ONEWIRE_C4     = UART_C4_BRFA(UART_BRFA(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST))
+  ONEWIRE_BDH = UART_BDH_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST) / 256); \
+  ONEWIRE_BDL = UART_BDL_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST) % 256); \
+  ONEWIRE_C4 = UART_C4_BRFA(UART_BRFA(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST))
 
 #define OW_TIMING_SLOW() \
-  ONEWIRE_BDH    = UART_BDH_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW) / 256); \
-  ONEWIRE_BDL    = UART_BDL_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW) % 256); \
-  ONEWIRE_C4     = UART_C4_BRFA(UART_BRFA(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW))
+  ONEWIRE_BDH = UART_BDH_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW) / 256); \
+  ONEWIRE_BDL = UART_BDL_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW) % 256); \
+  ONEWIRE_C4 = UART_C4_BRFA(UART_BRFA(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW))
 
 #define OW_WAIT_WRITE() \
   /* Wait until the 1-wire bus is idle */ \
-  while (ow_write_bytes_count > 0 || ow_read_bytes_count > 0 || ow_write_bits > 0 || ow_read_bits > 0)
+  while(ow_write_bytes_count > 0 || ow_read_bytes_count > 0 || ow_write_bits > 0 || ow_read_bits > 0)
 
 #define OW_WAIT_READ() \
   /* Wait until there are no reads queued */ \
-  while (ow_read_bytes_count > 0 || ow_read_bits > 0 /*|| ow_write_bytes_count > 0 || ow_write_bits > 0*/)
+  while(ow_read_bytes_count > 0 || ow_read_bits > 0 /*|| ow_write_bytes_count > 0 || ow_write_bits > 0*/)
 
 #define OW_BUSY_WAIT() \
   /* Wait until the last bit of the previous transmission has been transferred */ \
-  while (ow_write_bytes_count > 0 || ow_read_bytes_count > 0 || ow_write_bits > 0 || ow_read_bits > 0 || !(ONEWIRE_S1 & UART_S1_TC_MASK) || (ONEWIRE_S2 & UART_S2_RAF_MASK))
+  while(ow_write_bytes_count > 0 || ow_read_bytes_count > 0 || ow_write_bits > 0 || ow_read_bits > 0 || !(ONEWIRE_S1 & UART_S1_TC_MASK) || (ONEWIRE_S2 & UART_S2_RAF_MASK))
 
 /**
  * Used by the ISR handler to queue the next byte for transmission on the bus.
  */
-void ow_begin_next_byte(void)
+void
+ow_begin_next_byte(void)
 {
   static volatile uint8_t dummy;
   /* Shut up GCC warnings about set but not used variable [-Wunused-but-set-variable] */
   (void)dummy;
-  if (ow_write_bytes_count > 0)
-  {
+  if(ow_write_bytes_count > 0) {
     /* Queue next byte */
     OW_TIMING_FAST();
     /* Enable transmitter */
-    ONEWIRE_C2     |= UART_C2_TE_MASK;
+    ONEWIRE_C2 |= UART_C2_TE_MASK;
     /* Disable receiver */
-    ONEWIRE_C2     &= ~UART_C2_RE_MASK;
+    ONEWIRE_C2 &= ~UART_C2_RE_MASK;
     ow_isr_scratch = (*ow_write_bytes_buf);
     ow_write_bits = 8;
     /* Move source buffer location forward */
@@ -156,13 +155,11 @@ void ow_begin_next_byte(void)
     ONEWIRE_C2 &= ~(UART_C2_RIE_MASK);
     /* Enable TX interrupts */
     ONEWIRE_C2 |= UART_C2_TCIE_MASK;
-  }
-  else if (ow_read_bytes_count > 0)
-  {
+  } else if(ow_read_bytes_count > 0) {
     /* Set up reading */
     OW_TIMING_FAST();
     /* Enable transmitter and receiver */
-    ONEWIRE_C2     |= UART_C2_TE_MASK | UART_C2_RE_MASK;
+    ONEWIRE_C2 |= UART_C2_TE_MASK | UART_C2_RE_MASK;
     ow_read_bits = 8;
     --ow_read_bytes_count;
     ow_isr_scratch = 0x00;
@@ -178,9 +175,7 @@ void ow_begin_next_byte(void)
     ONEWIRE_D = ONEWIRE_D_READ;
     /* Enable RX interrupts */
     ONEWIRE_C2 |= UART_C2_RIE_MASK;
-  }
-  else
-  {
+  } else {
     /* All done! */
     /* disable interrupts */
     ONEWIRE_C2 &= ~(UART_C2_TIE_MASK | UART_C2_TCIE_MASK | UART_C2_RIE_MASK);
@@ -190,7 +185,6 @@ void ow_begin_next_byte(void)
     /** \todo Trigger an event after reading 1-wire stuff */
   }
 }
-
 /**
  * This ISR handles most of the business interacting with the 1-wire bus.
  *
@@ -198,67 +192,57 @@ void ow_begin_next_byte(void)
  *       any preceding reads have completed.
  */
 
-void __attribute__((interrupt)) ONEWIRE_ISR_FUNC(void)
+void __attribute__((interrupt))
+ONEWIRE_ISR_FUNC(void)
 {
   static volatile uint8_t data;
   static volatile uint8_t status;
   status = ONEWIRE_S1;
 
-  if (ow_write_bits > 0)
-  {
-    if (status & (UART_S1_TDRE_MASK | UART_S1_TC_MASK))
-    {
+  if(ow_write_bits > 0) {
+    if(status & (UART_S1_TDRE_MASK | UART_S1_TC_MASK)) {
       ONEWIRE_D = ((ow_isr_scratch & 0x01) ? ONEWIRE_D_WRITE_1 : ONEWIRE_D_WRITE_0);
       ow_isr_scratch >>= 1;
       --ow_write_bits;
     }
-  }
-  else if (ow_read_bits > 0)
-  {
+  } else if(ow_read_bits > 0) {
     /* Check if we got something yet */
     /* We can end up here without anything received when being called from a TX
      * interrupt in the transition from a 1-wire write to a 1-wire read */
-    if (ONEWIRE_RCFIFO > 0 || (status & UART_S1_RDRF_MASK))
-    {
+    if(ONEWIRE_RCFIFO > 0 || (status & UART_S1_RDRF_MASK)) {
       --ow_read_bits;
       ow_isr_scratch >>= 1;
       data = ONEWIRE_D;
-      if (data == ONEWIRE_D_READ)
-      {
+      if(data == ONEWIRE_D_READ) {
         /* We read a 1 */
         ow_isr_scratch |= (1 << 7);
       }
 
-      if (ow_read_bits == 0)
-      {
+      if(ow_read_bits == 0) {
         /* Place output in destination buffer */
         (*ow_read_bytes_buf) = ow_isr_scratch;
         ++ow_read_bytes_buf;
         ow_begin_next_byte();
-      }
-      else
-      {
+      } else {
         /* Trigger next read slot */
         ONEWIRE_D = ONEWIRE_D_READ;
       }
     }
-  }
-  else
-  {
+  } else {
     ow_begin_next_byte();
   }
 }
-
 /**
  * Initialize the 1-wire driver.
  *
  * This will set up the clocks, interrupts and I/O pins.
  */
-void ow_init(void)
+void
+ow_init(void)
 {
   /* Set up interrupt controller */
   /** \todo User configurability on 1-wire UART interrupt in NVIC (NVICISER1 |= NVIC_ISER_SETENA(1<<21)) */
-  NVICISER1 |= NVIC_ISER_SETENA(1<<21);
+  NVICISER1 |= NVIC_ISER_SETENA(1 << 21);
   /* initialize counters */
   ow_read_bytes_buf = 0;
   ow_read_bytes_count = 0;
@@ -269,7 +253,7 @@ void ow_init(void)
   ow_read_bits = 0;
 
   /* Enable clock gate on I/O pins */
-  SIM_SCGC5  |= ONEWIRE_TXPIN_PORT_CG | ONEWIRE_RXPIN_PORT_CG;
+  SIM_SCGC5 |= ONEWIRE_TXPIN_PORT_CG | ONEWIRE_RXPIN_PORT_CG;
   /* Choose UART in pin mux */
   ONEWIRE_RXPIN_PCR = PORT_PCR_MUX(3);
 
@@ -296,13 +280,13 @@ void ow_init(void)
   /* Disable FIFO (set buffer depth to 1) */
   ONEWIRE_PFIFO = 0;
 }
-
 /**
  * Reset the 1-wire bus.
  *
  * A reset is always the first step in communicating with the bus slaves.
  */
-void ow_reset(void)
+void
+ow_reset(void)
 {
   uint8_t dummy;
   /* Shut up GCC warnings about set but not used variable [-Wunused-but-set-variable] */
@@ -319,9 +303,9 @@ void ow_reset(void)
    */
   OW_TIMING_SLOW();
   /* Enable transmitter */
-  ONEWIRE_C2     |= UART_C2_TE_MASK;
+  ONEWIRE_C2 |= UART_C2_TE_MASK;
   /* Disable receiver */
-  ONEWIRE_C2     &= ~UART_C2_RE_MASK;
+  ONEWIRE_C2 &= ~UART_C2_RE_MASK;
 
   /* Read whatever crap was left in the data buffer */
   dummy = ONEWIRE_D;
@@ -349,7 +333,6 @@ void ow_reset(void)
 
   /* We don't check for presence pulses */
 }
-
 /**
  * Write a sequence of bytes to the 1-wire bus.
  *
@@ -362,7 +345,8 @@ void ow_reset(void)
  * \param src the source buffer.
  * \param count number of bytes to write to the bus.
  */
-void ow_write_bytes(const uint8_t* src, const uint8_t count)
+void
+ow_write_bytes(const uint8_t *src, const uint8_t count)
 {
   OW_WAIT_WRITE();
 
@@ -375,19 +359,18 @@ void ow_write_bytes(const uint8_t* src, const uint8_t count)
   /* Enable TX interrupts, all bits will be pushed by the ISR */
   ONEWIRE_C2 |= (UART_C2_TCIE_MASK);
 }
-
 /**
  * Shorthand function to write a single byte to the 1-wire bus.
  *
  * \param data the data byte to write.
  */
-void ow_write_byte(const uint8_t data)
+void
+ow_write_byte(const uint8_t data)
 {
   static uint8_t buf;
   buf = data;
   ow_write_bytes(&buf, 1);
 }
-
 /**
  * Read a sequence of bytes from the 1-wire bus.
  *
@@ -398,7 +381,8 @@ void ow_write_byte(const uint8_t data)
  * \param dest the destination buffer.
  * \param count number of bytes to read from the bus.
  */
-void ow_read_bytes(uint8_t* dest, const uint8_t count)
+void
+ow_read_bytes(uint8_t *dest, const uint8_t count)
 {
   OW_WAIT_READ();
 
@@ -409,12 +393,11 @@ void ow_read_bytes(uint8_t* dest, const uint8_t count)
   MK60_LEAVE_CRITICAL_REGION();
 
   /* Enable TX interrupts, all bits will be pushed by the ISR */
-  ONEWIRE_C2     |= (UART_C2_TCIE_MASK);
+  ONEWIRE_C2 |= (UART_C2_TCIE_MASK);
 
   /** \todo sleep while waiting for rx bits on 1-wire bus. */
   while(ow_read_bits > 0 || ow_read_bytes_count > 0);
 }
-
 /**
  * Compute a 1-wire 8-bit CRC.
  *
@@ -434,20 +417,19 @@ void ow_read_bytes(uint8_t* dest, const uint8_t count)
  * \param count Number of bytes in the message.
  * \return The CRC
  */
-uint8_t ow_compute_crc(const uint8_t* data, const uint8_t count)
+uint8_t
+ow_compute_crc(const uint8_t *data, const uint8_t count)
 {
   uint8_t i;
   uint8_t crc = 0;
   uint8_t index;
-  for (i = 0; i < count; ++i)
-  {
+  for(i = 0; i < count; ++i) {
     index = data[i] ^ crc;
     crc = ow_crc_table[index];
   }
 
   return crc;
 }
-
 /**
  * Issue a 1-wire READ ROM command
  *
@@ -462,7 +444,8 @@ uint8_t ow_compute_crc(const uint8_t* data, const uint8_t count)
  *
  * \return 64 bit ROM CODE from the bus, including CRC.
  */
-ow_rom_code_t ow_read_rom(void)
+ow_rom_code_t
+ow_read_rom(void)
 {
   uint16_t buf;
   uint8_t rom[ONEWIRE_ROM_CODE_LENGTH];
@@ -474,42 +457,39 @@ ow_rom_code_t ow_read_rom(void)
   ow_write_bytes((const uint8_t *)(&cmd), 1);
   ow_read_bytes(rom, ONEWIRE_ROM_CODE_LENGTH);
   /* Little endian */
-  rom_code = *((uint64_t*)rom);
+  rom_code = *((uint64_t *)rom);
   /* For non-Little endian machines */
   /*rom_code = (((ow_rom_code_t)rom[0]) |
-    (((ow_rom_code_t)rom[1]) <<  8) |
-    (((ow_rom_code_t)rom[2]) << 16) |
-    (((ow_rom_code_t)rom[3]) << 24) |
-    (((ow_rom_code_t)rom[4]) << 32) |
-    (((ow_rom_code_t)rom[5]) << 40) |
-    (((ow_rom_code_t)rom[6]) << 48) |
-    (((ow_rom_code_t)rom[7]) << 56));
-    */
+     (((ow_rom_code_t)rom[1]) <<  8) |
+     (((ow_rom_code_t)rom[2]) << 16) |
+     (((ow_rom_code_t)rom[3]) << 24) |
+     (((ow_rom_code_t)rom[4]) << 32) |
+     (((ow_rom_code_t)rom[5]) << 40) |
+     (((ow_rom_code_t)rom[6]) << 48) |
+     (((ow_rom_code_t)rom[7]) << 56));
+   */
 
-  for (i = 0; i < sizeof(rom)/2; ++i)
-  {
-    buf = (rom[2*i] << 8) | (rom[2*i+1]);
+  for(i = 0; i < sizeof(rom) / 2; ++i) {
+    buf = (rom[2 * i] << 8) | (rom[2 * i + 1]);
     printf("%x", buf);
   }
   printf("\n");
   printf("CRC: 0x%x\n", ow_compute_crc(rom, ONEWIRE_ROM_CODE_LENGTH));
   return rom_code;
 }
-
-
 /**
  * Issue a 1-wire SKIP ROM command.
  *
  * The SKIP ROM command is used to issue commands to all devices on the bus.
  */
-void ow_skip_rom(void)
+void
+ow_skip_rom(void)
 {
   static const ow_rom_cmd_t cmd = ONEWIRE_CMD_SKIP_ROM;
   printf("SKIP ROM\n");
   ow_reset();
   ow_write_bytes((const uint8_t *)(&cmd), 1);
 }
-
 /**
  * Issue a 1-wire MATCH ROM command.
  *
@@ -518,7 +498,8 @@ void ow_skip_rom(void)
  *
  * \param id The ROM code of the selected device.
  */
-void ow_match_rom(const ow_rom_code_t id)
+void
+ow_match_rom(const ow_rom_code_t id)
 {
   static ow_rom_code_t rom_code;
   static const ow_rom_cmd_t cmd = ONEWIRE_CMD_MATCH_ROM;
@@ -530,26 +511,23 @@ void ow_match_rom(const ow_rom_code_t id)
   rom_code = id;
   ow_write_bytes((const uint8_t *)(&rom_code), ONEWIRE_ROM_CODE_LENGTH);
 }
-
 /**
  * Shorthand function for MATCH ROM or SKIP ROM if id is zero.
  *
  * \param id The ROM code of the selected device, or 0 for all devices.
  */
-void ow_skip_or_match_rom(const ow_rom_code_t id)
+void
+ow_skip_or_match_rom(const ow_rom_code_t id)
 {
-  #if ONEWIRE_ALWAYS_SKIP_ROM
+#if ONEWIRE_ALWAYS_SKIP_ROM
   ow_skip_rom();
-  #else
-  if (id == 0)
-  {
-      /* SKIP ROM */
-      ow_skip_rom();
+#else
+  if(id == 0) {
+    /* SKIP ROM */
+    ow_skip_rom();
+  } else {
+    /* MATCH ROM */
+    ow_match_rom(id);
   }
-  else
-  {
-      /* MATCH ROM */
-      ow_match_rom(id);
-  }
-  #endif /* ONEWIRE_ALWAYS_SKIP_ROM */
+#endif /* ONEWIRE_ALWAYS_SKIP_ROM */
 }

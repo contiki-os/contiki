@@ -28,15 +28,14 @@ extern volatile uint8_t llwu_inhibit_stop_sema;
  *
  * Other modules CAN NOT be used to wake the CPU from LLS or VLLSx power modes.
  */
-typedef enum llwu_wakeup_module
-{
-  LLWU_WAKEUP_MODULE_LPTMR       = 0,
-  LLWU_WAKEUP_MODULE_CMP0        = 1,
-  LLWU_WAKEUP_MODULE_CMP1        = 2,
-  LLWU_WAKEUP_MODULE_CMP2        = 3,
-  LLWU_WAKEUP_MODULE_TSI         = 4,
-  LLWU_WAKEUP_MODULE_RTC_ALARM   = 5,
-  LLWU_WAKEUP_MODULE_RESERVED    = 6,
+typedef enum llwu_wakeup_module {
+  LLWU_WAKEUP_MODULE_LPTMR = 0,
+  LLWU_WAKEUP_MODULE_CMP0 = 1,
+  LLWU_WAKEUP_MODULE_CMP1 = 2,
+  LLWU_WAKEUP_MODULE_CMP2 = 3,
+  LLWU_WAKEUP_MODULE_TSI = 4,
+  LLWU_WAKEUP_MODULE_RTC_ALARM = 5,
+  LLWU_WAKEUP_MODULE_RESERVED = 6,
   LLWU_WAKEUP_MODULE_RTC_SECONDS = 7,
   LLWU_WAKEUP_MODULE_END,
 } llwu_wakeup_module_t;
@@ -44,47 +43,44 @@ typedef enum llwu_wakeup_module
 /** enum that maps physical pins to wakeup pin numbers in LLWU module
  *
  * Other modules CAN NOT be used to wake the CPU from LLS or VLLSx power modes. */
-typedef enum llwu_wakeup_pin
-{
-  LLWU_WAKEUP_PIN_PTE1  = 0,
-  LLWU_WAKEUP_PIN_PTE2  = 1,
-  LLWU_WAKEUP_PIN_PTE4  = 2,
-  LLWU_WAKEUP_PIN_PTA4  = 3,
+typedef enum llwu_wakeup_pin {
+  LLWU_WAKEUP_PIN_PTE1 = 0,
+  LLWU_WAKEUP_PIN_PTE2 = 1,
+  LLWU_WAKEUP_PIN_PTE4 = 2,
+  LLWU_WAKEUP_PIN_PTA4 = 3,
   LLWU_WAKEUP_PIN_PTA13 = 4,
-  LLWU_WAKEUP_PIN_PTB0  = 5,
-  LLWU_WAKEUP_PIN_PTC1  = 6,
-  LLWU_WAKEUP_PIN_PTC3  = 7,
-  LLWU_WAKEUP_PIN_PTC4  = 8,
-  LLWU_WAKEUP_PIN_PTC5  = 9,
-  LLWU_WAKEUP_PIN_PTC6  = 10,
+  LLWU_WAKEUP_PIN_PTB0 = 5,
+  LLWU_WAKEUP_PIN_PTC1 = 6,
+  LLWU_WAKEUP_PIN_PTC3 = 7,
+  LLWU_WAKEUP_PIN_PTC4 = 8,
+  LLWU_WAKEUP_PIN_PTC5 = 9,
+  LLWU_WAKEUP_PIN_PTC6 = 10,
   LLWU_WAKEUP_PIN_PTC11 = 11,
-  LLWU_WAKEUP_PIN_PTD0  = 12,
-  LLWU_WAKEUP_PIN_PTD2  = 13,
-  LLWU_WAKEUP_PIN_PTD4  = 14,
-  LLWU_WAKEUP_PIN_PTD6  = 15,
+  LLWU_WAKEUP_PIN_PTD0 = 12,
+  LLWU_WAKEUP_PIN_PTD2 = 13,
+  LLWU_WAKEUP_PIN_PTD4 = 14,
+  LLWU_WAKEUP_PIN_PTD6 = 15,
   LLWU_WAKEUP_PIN_END
 } llwu_wakeup_pin_t;
 
-typedef enum llwu_wakeup_edge
-{
+typedef enum llwu_wakeup_edge {
   LLWU_WAKEUP_EDGE_DISABLE = 0b00,
-  LLWU_WAKEUP_EDGE_RISING  = 0b01,
+  LLWU_WAKEUP_EDGE_RISING = 0b01,
   LLWU_WAKEUP_EDGE_FALLING = 0b10,
-  LLWU_WAKEUP_EDGE_ANY     = 0b11,
+  LLWU_WAKEUP_EDGE_ANY = 0b11,
 } llwu_wakeup_edge_t;
 
 #define LLWU_WAKEUP_EDGE_MASK (0x03)
 #define LLWU_WAKEUP_EDGE_WIDTH (2)
 #define LLWU_WAKEUP_PIN_REG_SIZE (4)
 
-typedef struct llwu_control
-{
+typedef struct llwu_control {
   struct llwu_control *next;
   char allow_llwu;
 } llwu_control_t;
 
-// Macro to create new llwu control struct for clients.
-#define LLWU_CONTROL(name) static llwu_control_t name[1] = {{NULL, 1}} //default allow deep sleep
+/* Macro to create new llwu control struct for clients. */
+#define LLWU_CONTROL(name) static llwu_control_t name[1] = { { NULL, 1 } } /* default allow deep sleep */
 
 void llwu_init();
 
@@ -96,14 +92,14 @@ void llwu_sleep();
  * Register as a controller for llwu.
  * @param c Controller struct.
  */
-void llwu_register(llwu_control_t* c);
+void llwu_register(llwu_control_t *c);
 
 /**
  * Method for a controller to allow or disallow deep sleep.
  * @param c Control struct
  * @param allow 0 to disable deep sleep, other than 0 to allow.
  */
-void llwu_set_allow(llwu_control_t* c, char allow);
+void llwu_set_allow(llwu_control_t *c, char allow);
 
 void llwu_enable_wakeup_module(const llwu_wakeup_module_t module);
 void llwu_disable_wakeup_module(const llwu_wakeup_module_t module);

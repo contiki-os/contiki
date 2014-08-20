@@ -49,10 +49,10 @@
  *
  * Not much to do here yet.
  */
-void ds18b20_init(void)
+void
+ds18b20_init(void)
 {
 }
-
 /**
  * Tell a DS18B20 sensor to initiate a temperature conversion.
  *
@@ -60,19 +60,19 @@ void ds18b20_init(void)
  *
  * \note Parasite power is not supported yet!
  */
-void ds18b20_convert_temperature(const ow_rom_code_t id)
+void
+ds18b20_convert_temperature(const ow_rom_code_t id)
 {
-    static const ds18b20_cmd_t cmd = DS18B20_CONVERT_TEMPERATURE;
+  static const ds18b20_cmd_t cmd = DS18B20_CONVERT_TEMPERATURE;
 
-    ow_skip_or_match_rom(id);
-    ow_write_bytes((const uint8_t*)&cmd, 1);
-    /* Keep reading to see status of the conversion, the response will be 1 for as
-     * long as the conversion is in progress, then change to 0. */
-    /*uint8_t status = 0;*/
-    /*ow_read_bytes(&status, 1);*/
-    /*printf("status: %x\n");*/
+  ow_skip_or_match_rom(id);
+  ow_write_bytes((const uint8_t *)&cmd, 1);
+  /* Keep reading to see status of the conversion, the response will be 1 for as
+   * long as the conversion is in progress, then change to 0. */
+  /*uint8_t status = 0;*/
+  /*ow_read_bytes(&status, 1);*/
+  /*printf("status: %x\n");*/
 }
-
 /**
  * Read the scratchpad of a DS18B20 sensor.
  *
@@ -81,24 +81,24 @@ void ds18b20_convert_temperature(const ow_rom_code_t id)
  *
  * \return 0 if the CRC is correct, non-zero otherwise.
  */
-uint8_t ds18b20_read_scratchpad(const ow_rom_code_t id, uint8_t* dest)
+uint8_t
+ds18b20_read_scratchpad(const ow_rom_code_t id, uint8_t *dest)
 {
-    static const ds18b20_cmd_t cmd = DS18B20_READ_SCRATCHPAD;
-    uint16_t buf;
-    int i;
+  static const ds18b20_cmd_t cmd = DS18B20_READ_SCRATCHPAD;
+  uint16_t buf;
+  int i;
 
-    ow_skip_or_match_rom(id);
-    ow_write_bytes((const uint8_t*)&cmd, 1);
-    ow_read_bytes(&dest[0], DS18B20_SCRATCHPAD_SIZE);
-    printf("Scratchpad: ");
-    for (i = 0; i < DS18B20_SCRATCHPAD_SIZE/2; ++i)
-    {
-        buf = (dest[2*i] << 8) | (dest[2*i+1]);
-        printf("%x", buf);
-    }
-    printf("\n");
-    printf("CRC: %x (should be %x)\n", dest[8], ow_compute_crc(dest, 8));
-    buf = (dest[1] << 8) | dest[0];
-    printf("Temp (celsius): %d.%d\n", (buf >> 4), (buf & 0x0f)*625);
-    return ow_compute_crc(dest, DS18B20_SCRATCHPAD_SIZE);
+  ow_skip_or_match_rom(id);
+  ow_write_bytes((const uint8_t *)&cmd, 1);
+  ow_read_bytes(&dest[0], DS18B20_SCRATCHPAD_SIZE);
+  printf("Scratchpad: ");
+  for(i = 0; i < DS18B20_SCRATCHPAD_SIZE / 2; ++i) {
+    buf = (dest[2 * i] << 8) | (dest[2 * i + 1]);
+    printf("%x", buf);
+  }
+  printf("\n");
+  printf("CRC: %x (should be %x)\n", dest[8], ow_compute_crc(dest, 8));
+  buf = (dest[1] << 8) | dest[0];
+  printf("Temp (celsius): %d.%d\n", (buf >> 4), (buf & 0x0f) * 625);
+  return ow_compute_crc(dest, DS18B20_SCRATCHPAD_SIZE);
 }

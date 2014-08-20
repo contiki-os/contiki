@@ -46,19 +46,17 @@
 
 #define DS18B20_SCRATCHPAD_SIZE 9
 
-
 typedef enum {
-    DS18B20_CONVERT_TEMPERATURE = 0x44,
-    DS18B20_COPY_SCRATCHPAD = 0x48,
-    DS18B20_WRITE_SCRATCHPAD = 0x4E,
-    DS18B20_READ_POWERSUPPLY = 0xB4,
-    DS18B20_RECALL_E2 = 0xB8,
-    DS18B20_READ_SCRATCHPAD = 0xBE
+  DS18B20_CONVERT_TEMPERATURE = 0x44,
+  DS18B20_COPY_SCRATCHPAD = 0x48,
+  DS18B20_WRITE_SCRATCHPAD = 0x4E,
+  DS18B20_READ_POWERSUPPLY = 0xB4,
+  DS18B20_RECALL_E2 = 0xB8,
+  DS18B20_READ_SCRATCHPAD = 0xBE
 } ds18b20_cmd_t;
 
 void ds18b20_init(void);
 void ds18b20_convert_temperature(const ow_rom_code_t id);
-uint8_t ds18b20_read_scratchpad(const ow_rom_code_t id, uint8_t* dest);
-
+uint8_t ds18b20_read_scratchpad(const ow_rom_code_t id, uint8_t *dest);
 
 #endif /* DS18B20_H_ */

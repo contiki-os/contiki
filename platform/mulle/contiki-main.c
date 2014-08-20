@@ -27,11 +27,11 @@
 #define PRINTF(...)
 #endif
 
-void printf_putc(void* dum, char c)
+void
+printf_putc(void *dum, char c)
 {
   uart_putchar(BOARD_DEBUG_UART_BASE_PTR, c);
 }
-
 /*---------------------------------------------------------------------------*/
 #define COFFEE_AUTO_FORMAT 1
 static void
@@ -42,33 +42,31 @@ init_cfs()
   xmem_init();
   PRINTF("Xmem initialized.\n");
 #ifdef COFFEE_AUTO_FORMAT
-  if ((fd = cfs_open("formated", CFS_READ)) == -1)
-  {
-    // Storage is not formated
+  if((fd = cfs_open("formated", CFS_READ)) == -1) {
+    /* Storage is not formated */
     PRINTF("Coffee not formated\n");
-    if (cfs_coffee_format() == -1)
-    {
-      // Format failed, bail out
+    if(cfs_coffee_format() == -1) {
+      /* Format failed, bail out */
       PRINTF("Failed to format coffee, bail out\n");
       return;
     }
-    if ((fd = cfs_open("formated", CFS_WRITE)) == -1)
-    {
-      // Failed to open file to indicate formated state.
+    if((fd = cfs_open("formated", CFS_WRITE)) == -1) {
+      /* Failed to open file to indicate formated state. */
       PRINTF("Failed to open file to indicate formated state\n");
       return;
     }
     cfs_write(fd, "DO NOT REMOVE!", strlen("DO NOT REMOVE!"));
   }
   cfs_close(fd);
-#endif // COFFEE_AUTO_FORMAT
+#endif /* COFFEE_AUTO_FORMAT */
   PRINTF("Coffee initialized.\r\n");
 }
 /*---------------------------------------------------------------------------*/
 LLWU_CONTROL(deep_sleep);
 
 /* C entry point (after startup code has executed) */
-int main(void)
+int
+main(void)
 {
   leds_arch_init();
   /* Set up core clocks so that timings will be correct in all modules */
@@ -78,8 +76,8 @@ int main(void)
   llwu_init();
   llwu_enable_wakeup_module(LLWU_WAKEUP_MODULE_LPTMR);
   llwu_register(deep_sleep);
-  // Dont allow deep sleep for now because radio cant wake up the mcu from it.
-  // TODO(Henrik) Fix this when a new revision is made of the hardware.
+  /* Dont allow deep sleep for now because radio cant wake up the mcu from it. */
+  /* TODO(Henrik) Fix this when a new revision is made of the hardware. */
 #ifndef WITH_SLIP
   llwu_set_allow(deep_sleep, 1);
 #else
@@ -114,9 +112,8 @@ int main(void)
 
   autostart_start(autostart_processes);
 
-  while (1)
-  {
-    while (process_run() > 0);
+  while(1) {
+    while(process_run() > 0);
     llwu_sleep();
   }
 }

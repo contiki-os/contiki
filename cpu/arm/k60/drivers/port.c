@@ -39,30 +39,20 @@
 
 #include "port.h"
 
-void port_module_enable(PORT_MemMapPtr port)
+void
+port_module_enable(PORT_MemMapPtr port)
 {
-  if (port == PORTA_BASE_PTR)
-  {
+  if(port == PORTA_BASE_PTR) {
     SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
-  }
-  else if (port == PORTB_BASE_PTR)
-  {
+  } else if(port == PORTB_BASE_PTR) {
     SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK;
-  }
-  else if (port == PORTC_BASE_PTR)
-  {
+  } else if(port == PORTC_BASE_PTR) {
     SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK;
-  }
-  else if (port == PORTD_BASE_PTR)
-  {
+  } else if(port == PORTD_BASE_PTR) {
     SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
-  }
-  else if (port == PORTE_BASE_PTR)
-  {
+  } else if(port == PORTE_BASE_PTR) {
     SIM_SCGC5 |= SIM_SCGC5_PORTE_MASK;
-  }
-  else
-  {
+  } else {
     asm("bkpt #66\n");
     return;
   }

@@ -8,12 +8,11 @@
 void
 random_init(unsigned short seed)
 {
-	/* TODO: Implement this, or fix srand */
+  /* TODO: Implement this, or fix srand */
 }
-
 unsigned short
 random_rand(void)
 {
-	/* TODO: Implement this, or fix rand */
-	return 0x1234;
+  /* TODO: Implement this, or fix rand */
+  return 0x1234;
 }

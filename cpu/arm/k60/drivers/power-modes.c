@@ -58,7 +58,8 @@
 #define POWER_MODE_VLPS   (0b010)
 #define POWER_MODE_LLS    (0b011)
 
-void power_modes_init(void)
+void
+power_modes_init(void)
 {
   /* Clear LLS protection */
   /* Clear VLPS, VLPW, VLPR protection */
@@ -70,8 +71,8 @@ void power_modes_init(void)
   SMC_PMPROT |= SMC_PMPROT_ALLS_MASK | SMC_PMPROT_AVLP_MASK;
 #endif /* K60_CPU_REV == 1 */
 }
-
-static void wait(void)
+static void
+wait(void)
 {
   /* Clear the SLEEPDEEP bit to make sure we go into WAIT (sleep) mode instead
    * of deep sleep.
@@ -81,8 +82,8 @@ static void wait(void)
   /* WFI instruction will start entry into WAIT mode */
   asm("WFI");
 }
-
-static void stop(void)
+static void
+stop(void)
 {
   /* Set the SLEEPDEEP bit to enable deep sleep mode (STOP) */
   SCB_SCR |= SCB_SCR_SLEEPDEEP_MASK;
@@ -90,13 +91,13 @@ static void stop(void)
   /* WFI instruction will start entry into STOP mode */
   asm("WFI");
 }
-
-void power_mode_wait(void)
+void
+power_mode_wait(void)
 {
   wait();
 }
-
-void power_mode_stop(void)
+void
+power_mode_stop(void)
 {
   uint8_t dummy;
   SET_PMCTRL(POWER_MODE_NORMAL);
@@ -105,8 +106,8 @@ void power_mode_stop(void)
   (void)dummy; /* Avoid warnings about set but not used variable [-Wunused-but-set-variable] */
   stop();
 }
-
-void power_mode_vlps(void)
+void
+power_mode_vlps(void)
 {
   uint8_t dummy;
   SET_PMCTRL(POWER_MODE_VLPS);
@@ -115,8 +116,8 @@ void power_mode_vlps(void)
   (void)dummy; /* Avoid warnings about set but not used variable [-Wunused-but-set-variable] */
   stop();
 }
-
-void power_mode_lls(void)
+void
+power_mode_lls(void)
 {
   uint8_t dummy;
   SET_PMCTRL(POWER_MODE_LLS);
@@ -125,4 +126,3 @@ void power_mode_lls(void)
   (void)dummy; /* Avoid warnings about set but not used variable [-Wunused-but-set-variable] */
   stop();
 }
-

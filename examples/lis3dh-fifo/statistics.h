@@ -37,7 +37,7 @@
 
 /* C++ templates would have made this struct alot more readable... */
 #define TYPEDEF_STRUCT_STATS_XD_T(dimension) \
-typedef struct { \
+  typedef struct { \
     size_t count; \
     double mean[dimension]; \
     double sum[dimension]; \
@@ -45,10 +45,10 @@ typedef struct { \
     double stddev[dimension]; \
     int16_t max[dimension]; \
     int16_t min[dimension]; \
-} stats_##dimension##d_t
+  } stats_##dimension##d_t
 
 TYPEDEF_STRUCT_STATS_XD_T(3);
 
-void compute_stats_3d_int16(const int16_t * buffer, const size_t count,
-                            stats_3d_t * stats);
-void print_stats_3d(const stats_3d_t * stats);
+void compute_stats_3d_int16(const int16_t *buffer, const size_t count,
+                            stats_3d_t *stats);
+void print_stats_3d(const stats_3d_t *stats);

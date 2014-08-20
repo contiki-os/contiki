@@ -67,8 +67,7 @@
 #warning Using user defined node id
 #endif
 
-static unsigned char id[8] = {0x02, 0x0, 0x0, 0x00, 0x00, 0x00, 0x00, NODE_ID};
-
+static unsigned char id[8] = { 0x02, 0x0, 0x0, 0x00, 0x00, 0x00, 0x00, NODE_ID };
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -77,7 +76,7 @@ set_rime_addr(void)
   linkaddr_t addr;
   int i;
 
-  //memset(&addr, 0x65, sizeof(linkaddr_t));
+  /* memset(&addr, 0x65, sizeof(linkaddr_t)); */
   memcpy(addr.u8, id, sizeof(addr.u8));
 
   linkaddr_set_node_addr(&addr);
@@ -87,22 +86,21 @@ set_rime_addr(void)
   }
   PRINTF("%d\n", addr.u8[i]);
 }
-
 /*---------------------------------------------------------------------------*/
 void
 init_net(void)
 {
 #ifndef WITH_SLIP
-  id[0] =(((SIM_UIDL) >> (8*0)) & 0xFF) | 0x02;
-  id[1] = ((SIM_UIDL) >> (8*1)) & 0xFF;
-  id[2] = ((SIM_UIDL) >> (8*2)) & 0xFF;
-  id[3] = ((SIM_UIDL) >> (8*3)) & 0xFF;
-  id[4] = ((SIM_UIDML) >> (8*0)) & 0xFF;
-  id[5] = ((SIM_UIDML) >> (8*1)) & 0xFF;
-  id[6] = ((SIM_UIDML) >> (8*2)) & 0xFF;
-  id[7] = ((SIM_UIDML) >> (8*3)) & 0xFF;
+  id[0] = (((SIM_UIDL) >> (8 * 0)) & 0xFF) | 0x02;
+  id[1] = ((SIM_UIDL) >> (8 * 1)) & 0xFF;
+  id[2] = ((SIM_UIDL) >> (8 * 2)) & 0xFF;
+  id[3] = ((SIM_UIDL) >> (8 * 3)) & 0xFF;
+  id[4] = ((SIM_UIDML) >> (8 * 0)) & 0xFF;
+  id[5] = ((SIM_UIDML) >> (8 * 1)) & 0xFF;
+  id[6] = ((SIM_UIDML) >> (8 * 2)) & 0xFF;
+  id[7] = ((SIM_UIDML) >> (8 * 3)) & 0xFF;
 #else
-  // Use fixt address for border router.
+  /* Use fixt address for border router. */
   id[0] = 0x02;
   id[7] = 0x01;
 #endif
@@ -114,14 +112,12 @@ init_net(void)
     uint16_t shortaddr;
 
     shortaddr = (linkaddr_node_addr.u8[0] << 8) +
-                 linkaddr_node_addr.u8[1];
+      linkaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
     linkaddr_copy((linkaddr_t *)&longaddr, &linkaddr_node_addr);
     rf230_set_pan_addr(IEEE802154_CONF_PANID, shortaddr, longaddr);
   }
   rf230_set_channel(RF_CHANNEL);
-
-
 
   memcpy(&uip_lladdr.addr, id, sizeof(uip_lladdr.addr));
 
@@ -132,7 +128,7 @@ init_net(void)
 
   PRINTF("%s %s, channel check rate %d Hz, radio channel %d\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
-         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1 :
                          NETSTACK_RDC.channel_check_interval()),
          RF_CHANNEL);
 
@@ -144,10 +140,10 @@ init_net(void)
     int i;
     lladdr = uip_ds6_get_link_local(-1);
     for(i = 0; i < 7; ++i) {
-    	PRINTF("%04x:", lladdr->ipaddr.u8[i * 2]*256 +
+      PRINTF("%04x:", lladdr->ipaddr.u8[i * 2] * 256 +
              lladdr->ipaddr.u8[i * 2 + 1]);
     }
-    PRINTF("%04x\n", lladdr->ipaddr.u8[14]*256 + lladdr->ipaddr.u8[15]);
+    PRINTF("%04x\n", lladdr->ipaddr.u8[14] * 256 + lladdr->ipaddr.u8[15]);
   }
 
   if(!UIP_CONF_IPV6_RPL) {
@@ -158,18 +154,22 @@ init_net(void)
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
     PRINTF("Tentative global IPv6 address ");
     for(i = 0; i < 7; ++i) {
-    	PRINTF("%04x:",
-             ipaddr.u8[i * 2]*256 + ipaddr.u8[i * 2 + 1]);
+      PRINTF("%04x:",
+             ipaddr.u8[i * 2] * 256 + ipaddr.u8[i * 2 + 1]);
     }
     PRINTF("%04x\n",
-           ipaddr.u8[7 * 2]*256 + ipaddr.u8[7 * 2 + 1]);
+           ipaddr.u8[7 * 2] * 256 + ipaddr.u8[7 * 2 + 1]);
   }
 
-#else // If no radio stack should be used only turn on radio and set it to sleep for minimal power consumption
+#else /* If no radio stack should be used only turn on radio and set it to sleep for minimal power consumption */
   rf230_init();
   rf230_driver.off();
 #endif /* WITH_UIP6 */
 }
 /*---------------------------------------------------------------------------*/
 
-unsigned char* init_net_get_addr() { return id;}
+unsigned char *
+init_net_get_addr()
+{
+  return id;
+}

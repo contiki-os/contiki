@@ -42,13 +42,15 @@
 #include "K60.h"
 #include "config-board.h"
 
-void voltage_init(void) {
+void
+voltage_init(void)
+{
   SIM_SCGC3 |= SIM_SCGC3_ADC1_MASK; /* Enable ADC1 clock gate */
 
   /* ADC clock = Bus clock / 16 ( == 3MHz when F_BUS = 48 MHz) */
   /* For the calibration it is important that the ADC clock is <= 4 MHz */
   ADC1_CFG1 = ADC_CFG1_ADICLK(1) | ADC_CFG1_MODE(0b11) | ADC_CFG1_ADIV(0b11) |
-      ADC_CFG1_ADLPC_MASK | ADC_CFG1_ADLSMP_MASK;
+    ADC_CFG1_ADLPC_MASK | ADC_CFG1_ADLSMP_MASK;
 
   ADC1_CFG2 = ADC_CFG2_MUXSEL_MASK | ADC_CFG2_ADLSTS(0); /* Add 20 extra cycles per sample */
   ADC1_SC2 = 0; /* Software trigger */
@@ -57,12 +59,12 @@ void voltage_init(void) {
   /* Run a calibration for the new settings. */
   adc_calibrate(MULLE_ADC_VBAT_ADC_NUM);
 }
-
 /**
  * Scale a raw ADC reading from 0..65535 to millivolts depending on the board's
  * VREFH, VREFL reference voltages.
  */
-uint16_t voltage_from_raw_adc(uint16_t adc_raw)
+uint16_t
+voltage_from_raw_adc(uint16_t adc_raw)
 {
   uint32_t millivolts;
   millivolts = adc_raw;
@@ -73,9 +75,10 @@ uint16_t voltage_from_raw_adc(uint16_t adc_raw)
 
   return millivolts;
 }
-
 /** \todo Use interrupts to handle AD conversions of Vbat/Vchr */
-uint16_t voltage_read_vbat() {
+uint16_t
+voltage_read_vbat()
+{
   uint16_t raw;
   uint16_t millivolts;
 
@@ -87,8 +90,9 @@ uint16_t voltage_read_vbat() {
   millivolts *= 2;
   return millivolts;
 }
-
-uint16_t voltage_read_vchr() {
+uint16_t
+voltage_read_vchr()
+{
   uint16_t raw;
   uint32_t millivolts;
 
@@ -100,4 +104,3 @@ uint16_t voltage_read_vchr() {
   millivolts *= 2;
   return millivolts;
 }
-

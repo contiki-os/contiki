@@ -16,7 +16,6 @@ void _isr_memmanage(void) __attribute__((interrupt));
 void _isr_busfault(void) __attribute__((interrupt));
 void _isr_usagefault(void) __attribute__((interrupt));
 
-
 /* Default handler for interrupts, infinite loop */
 static void unhandled_interrupt(void) __attribute__((interrupt, unused));
 
@@ -151,136 +150,133 @@ void __stack_top(void);
 typedef void (*ISR_func)(void);
 
 const ISR_func isr_vector[111] ISR_VECTOR_SECTION =
-  {
-    /* ARM Cortex defined interrupt vectors */
-    __stack_top,
-    reset_handler,
-    _isr_nmi,
-    _isr_hardfault,
-    _isr_memmanage,
-    _isr_busfault,
-    _isr_usagefault,
-    _isr_reserved,
-    _isr_reserved,
-    _isr_reserved,
-    _isr_reserved,
-    _isr_svcall,
-    _isr_debugmonitor,
-    _isr_reserved,
-    _isr_pendsv,
-    _isr_systick,
+{
+  /* ARM Cortex defined interrupt vectors */
+  __stack_top,
+  reset_handler,
+  _isr_nmi,
+  _isr_hardfault,
+  _isr_memmanage,
+  _isr_busfault,
+  _isr_usagefault,
+  _isr_reserved,
+  _isr_reserved,
+  _isr_reserved,
+  _isr_reserved,
+  _isr_svcall,
+  _isr_debugmonitor,
+  _isr_reserved,
+  _isr_pendsv,
+  _isr_systick,
 
-    /* Device-specific (Freescale defined) interrupt vectors */
-    _isr_dma0_complete,
-    _isr_dma1_complete,
-    _isr_dma2_complete,
-    _isr_dma3_complete,
-    _isr_dma4_complete,
-    _isr_dma5_complete,
-    _isr_dma6_complete,
-    _isr_dma7_complete,
-    _isr_dma8_complete,
-    _isr_dma9_complete,
-    _isr_dma10_complete,
-    _isr_dma11_complete,
-    _isr_dma12_complete,
-    _isr_dma13_complete,
-    _isr_dma14_complete,
-    _isr_dma15_complete,
-    _isr_dma_error,
-    _isr_mcm,
-    _isr_flash_command_complete,
-    _isr_flash_read_collision,
-    _isr_low_voltage,
-    _isr_llwu,
-    _isr_watchdog,
-    _isr_random_number_generator,
-    _isr_i2c0,
-    _isr_i2c1,
-    _isr_spi0,
-    _isr_spi1,
-    _isr_spi2,
-    _isr_can0_ored_msg_buffer,
-    _isr_can0_bus_off,
-    _isr_can0_error,
-    _isr_can0_tx_warn,
-    _isr_can0_rx_warn,
-    _isr_can0_wake_up,
-    _isr_i2s0_tx,
-    _isr_i2s0_rx,
-    _isr_can1_ored_msg_buffer,
-    _isr_can1_bus_off,
-    _isr_can1_error,
-    _isr_can1_tx_warn,
-    _isr_can1_rx_warn,
-    _isr_can1_wake_up,
-    _isr_reserved,
-    _isr_uart0_lon,
-    _isr_uart0_status,
-    _isr_uart0_error,
-    _isr_uart1_status,
-    _isr_uart1_error,
-    _isr_uart2_status,
-    _isr_uart2_error,
-    _isr_uart3_status,
-    _isr_uart3_error,
-    _isr_uart4_status,
-    _isr_uart4_error,
-    _isr_reserved,
-    _isr_reserved,
-    _isr_adc0,
-    _isr_adc1,
-    _isr_cmp0,
-    _isr_cmp1,
-    _isr_cmp2,
-    _isr_ftm0,
-    _isr_ftm1,
-    _isr_ftm2,
-    _isr_cmt,
-    _isr_rtc_alarm,
-    _isr_rtc_seconds,
-    _isr_pit0,
-    _isr_pit1,
-    _isr_pit2,
-    _isr_pit3,
-    _isr_pdb,
-    _isr_usb_otg,
-    _isr_usb_charger_detect,
-    _isr_enet_1588_timer,
-    _isr_enet_tx,
-    _isr_enet_rx,
-    _isr_enet_error_misc,
-    _isr_reserved,
-    _isr_sdhc,
-    _isr_dac0,
-    _isr_reserved,
-    _isr_tsi,
-    _isr_mcg,
-    _isr_lpt,
-    _isr_reserved,
-    _isr_porta_pin_detect,
-    _isr_portb_pin_detect,
-    _isr_portc_pin_detect,
-    _isr_portd_pin_detect,
-    _isr_porte_pin_detect,
-    _isr_reserved,
-    _isr_reserved,
-    _isr_software
-  };
+  /* Device-specific (Freescale defined) interrupt vectors */
+  _isr_dma0_complete,
+  _isr_dma1_complete,
+  _isr_dma2_complete,
+  _isr_dma3_complete,
+  _isr_dma4_complete,
+  _isr_dma5_complete,
+  _isr_dma6_complete,
+  _isr_dma7_complete,
+  _isr_dma8_complete,
+  _isr_dma9_complete,
+  _isr_dma10_complete,
+  _isr_dma11_complete,
+  _isr_dma12_complete,
+  _isr_dma13_complete,
+  _isr_dma14_complete,
+  _isr_dma15_complete,
+  _isr_dma_error,
+  _isr_mcm,
+  _isr_flash_command_complete,
+  _isr_flash_read_collision,
+  _isr_low_voltage,
+  _isr_llwu,
+  _isr_watchdog,
+  _isr_random_number_generator,
+  _isr_i2c0,
+  _isr_i2c1,
+  _isr_spi0,
+  _isr_spi1,
+  _isr_spi2,
+  _isr_can0_ored_msg_buffer,
+  _isr_can0_bus_off,
+  _isr_can0_error,
+  _isr_can0_tx_warn,
+  _isr_can0_rx_warn,
+  _isr_can0_wake_up,
+  _isr_i2s0_tx,
+  _isr_i2s0_rx,
+  _isr_can1_ored_msg_buffer,
+  _isr_can1_bus_off,
+  _isr_can1_error,
+  _isr_can1_tx_warn,
+  _isr_can1_rx_warn,
+  _isr_can1_wake_up,
+  _isr_reserved,
+  _isr_uart0_lon,
+  _isr_uart0_status,
+  _isr_uart0_error,
+  _isr_uart1_status,
+  _isr_uart1_error,
+  _isr_uart2_status,
+  _isr_uart2_error,
+  _isr_uart3_status,
+  _isr_uart3_error,
+  _isr_uart4_status,
+  _isr_uart4_error,
+  _isr_reserved,
+  _isr_reserved,
+  _isr_adc0,
+  _isr_adc1,
+  _isr_cmp0,
+  _isr_cmp1,
+  _isr_cmp2,
+  _isr_ftm0,
+  _isr_ftm1,
+  _isr_ftm2,
+  _isr_cmt,
+  _isr_rtc_alarm,
+  _isr_rtc_seconds,
+  _isr_pit0,
+  _isr_pit1,
+  _isr_pit2,
+  _isr_pit3,
+  _isr_pdb,
+  _isr_usb_otg,
+  _isr_usb_charger_detect,
+  _isr_enet_1588_timer,
+  _isr_enet_tx,
+  _isr_enet_rx,
+  _isr_enet_error_misc,
+  _isr_reserved,
+  _isr_sdhc,
+  _isr_dac0,
+  _isr_reserved,
+  _isr_tsi,
+  _isr_mcg,
+  _isr_lpt,
+  _isr_reserved,
+  _isr_porta_pin_detect,
+  _isr_portb_pin_detect,
+  _isr_portc_pin_detect,
+  _isr_portd_pin_detect,
+  _isr_porte_pin_detect,
+  _isr_reserved,
+  _isr_reserved,
+  _isr_software
+};
 
 void
 _isr_nmi(void)
 {
-  while(1);
+  while(1) ;
 }
-
-
 static void
 unhandled_interrupt(void)
 {
-  while(1);
+  while(1) ;
 }
-
 /**
  * Default handler of Hard Faults
  *
@@ -300,7 +296,6 @@ dHardFault_handler(void)
   );
   while(1);
 }
-
 /**
  * Default handler of Usage Fault
  */
@@ -309,7 +304,6 @@ dUsageFault_handler(void)
 {
   while(1);
 }
-
 /**
  * Default handler of MemManage Fault
  */
@@ -318,7 +312,6 @@ dMemManage_handler(void)
 {
   while(1);
 }
-
 /**
  * Default handler of Bus Fault
  */
@@ -327,4 +320,3 @@ dBusFault_handler(void)
 {
   while(1);
 }
-
