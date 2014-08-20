@@ -11,6 +11,7 @@ hello-world/mulle \
 ipv6/rpl-border-router/mulle \
 webserver-ipv6/mulle \
 ipv6/multicast/mulle \
+er-rest-example/mulle \
 
 TOOLS=
 
