@@ -7,6 +7,7 @@
  */
 #include <stdint.h>
 #include <stdio.h>
+#include "K60.h"
 
 /**
  * Hard fault handler (C part)
@@ -75,6 +76,6 @@ hard_fault_handler_c(uint32_t *hardfault_args)
   printf("MMAR = %x\n", rMMAR);
 
   /* Trigger a debugger to break here */
-  __asm volatile ("bkpt #0\n");
+  DEBUGGER_BREAK(BREAK_FAULT_HANDLER);
   while(1);
 }

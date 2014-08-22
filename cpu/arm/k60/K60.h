@@ -119,4 +119,27 @@
  */
 #define UART_BRFA(f, b) ((((64ull * (f)) / ((b) * 16) + 1) / 2) % 32)
 
+
+/* Helpers for the below macro, used to expand the sig variable to a numeric
+ * string, even if it is defined as a macro constant. */
+#define K60_H_EXPAND_AND_STRINGIFY(s) K60_H_STRINGIFY(s)
+#define K60_H_STRINGIFY(s) #s
+
+/**
+ * Make the CPU signal to the debugger and break execution by issuing a bkpt
+ * instruction.
+ */
+#define DEBUGGER_BREAK(sig) asm volatile ("bkpt #" K60_H_EXPAND_AND_STRINGIFY(sig) "\n")
+
+/*
+ * These are constants that can be used to identify the signal to
+ * DEBUGGER_BREAK(). These can not be converted to an enum because
+ * DEBUGGER_BREAK() is a macro and not a function
+ */
+#define BREAK_FAULT_HANDLER 0
+#define BREAK_INVALID_PARAM 1
+#define BREAK_WRONG_K60_CPU_REV 99
+/* Do not use 0xAB, it is reserved for ARM semihosting environment. */
+#define BREAK_SEMIHOSTING 0xAB
+
 #endif /* K60_H_ */

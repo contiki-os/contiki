@@ -128,7 +128,7 @@ llwu_set_wakeup_pin(const llwu_wakeup_pin_t pin, const llwu_wakeup_edge_t edge)
   uint8_t tmp;
   if(pin >= LLWU_WAKEUP_PIN_END) {
     /* invalid pin number */
-    asm("bkpt #1\n");
+    DEBUGGER_BREAK(BREAK_INVALID_PARAM);
     return;
   }
   /* LLWU pin enable registers are sequential in the address space */

@@ -53,7 +53,7 @@ port_module_enable(PORT_MemMapPtr port)
   } else if(port == PORTE_BASE_PTR) {
     SIM_SCGC5 |= SIM_SCGC5_PORTE_MASK;
   } else {
-    asm("bkpt #66\n");
+    DEBUGGER_BREAK(BREAK_INVALID_PARAM);
     return;
   }
 }

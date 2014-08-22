@@ -33,7 +33,7 @@ uart_module_enable(UART_MemMapPtr uartch)
     SIM_SCGC1 |= SIM_SCGC1_UART5_MASK;
   } else {
     /* Unknown UART module!! */
-    asm("bkpt #66\n");
+    DEBUGGER_BREAK(BREAK_INVALID_PARAM);
     return;
   }
 }
