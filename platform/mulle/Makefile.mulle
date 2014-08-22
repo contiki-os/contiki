@@ -64,6 +64,17 @@ SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
 login:
 	$(SERIALDUMP) -b115200 $(PORT)
 
+### Upload image
+%.upload: %.u
+
+%.u: %.$(TARGET)
+	TMPFILE=$$(mktemp -t mulle-XXXXXXXX.gdb); \
+	  trap '$(RM) -f "$$TMPFILE"' EXIT; \
+	  cat $(CONTIKI_CPU)/mulle-arch.gdb | \
+	  sed 's/target remote :3333/target remote :$(GDB_PORT)/' > "$$TMPFILE"; \
+	  $(GDB) -x "$$TMPFILE" $<
+
+# By default, upload the file with the same name as the project.
 upload: $(CONTIKI_PROJECT).u
 
 MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 core/net/rime \
