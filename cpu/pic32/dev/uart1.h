@@ -1,13 +1,13 @@
 /*
  * Contiki PIC32 Port project
- * 
+ *
  * Copyright (c) 2012,
  *  Scuola Superiore Sant'Anna (http://www.sssup.it) and
  *  Consorzio Nazionale Interuniversitario per le Telecomunicazioni
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -34,8 +34,8 @@
  *
  */
 
-/** 
- * @file uart1.h
+/**
+ * @file cpu/pic32/dev/uart1.h
  * @brief UART1 routines
  * @author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  *

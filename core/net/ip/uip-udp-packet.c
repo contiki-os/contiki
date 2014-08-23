@@ -42,6 +42,7 @@
 extern uint16_t uip_slen;
 
 #include "net/ip/uip-udp-packet.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 
 #include <string.h>
 
@@ -57,6 +58,14 @@ uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
            len > UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN?
            UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN: len);
     uip_process(UIP_UDP_SEND_CONN);
+
+#if UIP_CONF_IPV6_MULTICAST
+  /* Let the multicast engine process the datagram before we send it */
+  if(uip_is_addr_mcast_routable(&uip_udp_conn->ripaddr)) {
+    UIP_MCAST6.out();
+  }
+#endif /* UIP_IPV6_MULTICAST */
+
 #if UIP_CONF_IPV6
     tcpip_ipv6_output();
 #else

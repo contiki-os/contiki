@@ -43,7 +43,9 @@
 #include "net/ip/uip.h"
 #include "net/ip/tcpip.h"
 #include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-icmp6.h"
 #include "net/rpl/rpl-private.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
@@ -105,6 +107,9 @@ rpl_purge_routes(void)
   uip_ds6_route_t *r;
   uip_ipaddr_t prefix;
   rpl_dag_t *dag;
+#if RPL_CONF_MULTICAST
+  uip_mcast6_route_t *mcast_route;
+#endif
 
   /* First pass, decrement lifetime */
   r = uip_ds6_route_head();
@@ -146,12 +151,29 @@ rpl_purge_routes(void)
       r = uip_ds6_route_next(r);
     }
   }
+
+#if RPL_CONF_MULTICAST
+  mcast_route = uip_mcast6_route_list_head();
+
+  while(mcast_route != NULL) {
+    if(mcast_route->lifetime <= 1) {
+      uip_mcast6_route_rm(mcast_route);
+      mcast_route = uip_mcast6_route_list_head();
+    } else {
+      mcast_route->lifetime--;
+      mcast_route = list_item_next(mcast_route);
+    }
+  }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
 rpl_remove_routes(rpl_dag_t *dag)
 {
   uip_ds6_route_t *r;
+#if RPL_CONF_MULTICAST
+  uip_mcast6_route_t *mcast_route;
+#endif
 
   r = uip_ds6_route_head();
 
@@ -163,6 +185,19 @@ rpl_remove_routes(rpl_dag_t *dag)
       r = uip_ds6_route_next(r);
     }
   }
+
+#if RPL_CONF_MULTICAST
+  mcast_route = uip_mcast6_route_list_head();
+
+  while(mcast_route != NULL) {
+    if(mcast_route->dag == dag) {
+      uip_mcast6_route_rm(mcast_route);
+      mcast_route = uip_mcast6_route_list_head();
+    } else {
+      mcast_route = list_item_next(mcast_route);
+    }
+  }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -225,7 +260,7 @@ rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
       if(parent != NULL) {
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_link_neighbor_callback triggering update\n");
-        parent->updated = 1;
+        parent->flags |= RPL_PARENT_FLAG_UPDATED;
         if(instance->of->neighbor_link_callback != NULL) {
           instance->of->neighbor_link_callback(parent, status, numtx);
         }
@@ -251,7 +286,7 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
         p->rank = INFINITE_RANK;
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_ipv6_neighbor_callback infinite rank\n");
-        p->updated = 1;
+        p->flags |= RPL_PARENT_FLAG_UPDATED;
       }
     }
   }
@@ -266,6 +301,7 @@ rpl_init(void)
 
   rpl_dag_init();
   rpl_reset_periodic_timer();
+  rpl_icmp6_register_handlers();
 
   /* add rpl multicast address */
   uip_create_linklocal_rplnodes_mcast(&rplmaddr);
@@ -274,6 +310,10 @@ rpl_init(void)
 #if RPL_CONF_STATS
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
+
+  RPL_OF.reset(NULL);
 }
 /*---------------------------------------------------------------------------*/
 #endif /* UIP_CONF_IPV6 */
+
+/** @}*/

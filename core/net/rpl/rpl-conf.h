@@ -162,7 +162,7 @@
  * Initial metric attributed to a link when the ETX is unknown
  */
 #ifndef RPL_CONF_INIT_LINK_METRIC
-#define RPL_INIT_LINK_METRIC        5
+#define RPL_INIT_LINK_METRIC        2
 #else
 #define RPL_INIT_LINK_METRIC        RPL_CONF_INIT_LINK_METRIC
 #endif
@@ -184,6 +184,15 @@
 #define RPL_DEFAULT_LIFETIME            0xff
 #else
 #define RPL_DEFAULT_LIFETIME            RPL_CONF_DEFAULT_LIFETIME
+#endif
+
+/*
+ * DAG preference field
+ */
+#ifdef RPL_CONF_PREFERENCE
+#define RPL_PREFERENCE              RPL_CONF_PREFERENCE
+#else
+#define RPL_PREFERENCE              0
 #endif
 
 #endif /* RPL_CONF_H */

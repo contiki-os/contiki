@@ -1,3 +1,5 @@
+# Common Makefile between the Z1 and Z1SP
+
 ifdef GCC
 CFLAGS+=-Os -g
 endif
@@ -36,6 +38,10 @@ CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
 CONTIKI_TARGET_SOURCEFILES += i2cmaster.c adxl345.c
 
 MCU=msp430f2617
+
+# Platform has a MSP430X MCU with 20-bit support
+CPU_HAS_MSP430X=1
+
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
 # Add LDFLAGS after IAR_PATH is set

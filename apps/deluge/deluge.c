@@ -633,7 +633,7 @@ deluge_disseminate(char *file, unsigned version)
   if(next_object_id > 0 || init_object(&current_object, file, version) < 0) {
     return -1;
   }
-  process_start(&deluge_process, file);
+  process_start(&deluge_process, (void *)file);
 
   return 0;
 }

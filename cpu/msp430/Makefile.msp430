@@ -88,7 +88,8 @@ LDFLAGSNO += -D_STACK_SIZE=$(IAR_STACK_SIZE) -D_DATA16_HEAP_SIZE=$(IAR_DATA16_HE
 
 CUSTOM_RULE_C_TO_O = 1
 %.o: %.c
-	$(CC) $(CFLAGS) $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $< -o $@
 
 define FINALIZE_CYGWIN_DEPENDENCY
 sed -e 's/ \([A-Z]\):\\/ \/cygdrive\/\L\1\//' -e 's/\\/\//g' \
@@ -98,14 +99,16 @@ endef
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
-	$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
 ifeq ($(HOST_OS),Windows)
 	@$(FINALIZE_CYGWIN_DEPENDENCY)
 endif
 
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
 
 AROPTS = -o
 
@@ -142,6 +145,18 @@ ifndef CC_MCU
  CC_MCU := $(MCU)
 endif
 
+### Checks for compiler version to enable 20-bit support
+ifndef IAR
+ifneq (,$(findstring 4.7.,$(shell msp430-gcc -dumpversion)))
+ifdef CPU_HAS_MSP430X
+  TARGET_MEMORY_MODEL ?= medium
+  CFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL)
+  CFLAGS += -ffunction-sections -fdata-sections -mcode-region=far
+  LDFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL) -Wl,-gc-sections
+endif
+endif
+endif
+
 ifndef CFLAGSNO
 CFLAGSNO = -Wall -mmcu=$(CC_MCU) $(CFLAGSWERROR)
 endif
@@ -175,7 +190,8 @@ PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 	$(STRIP) --strip-unneeded -g -x -o $@ $<
 
 %.o: ${CONTIKI_TARGET}/loader/%.S
-	$(AS) -o $(notdir $(<:.S=.o)) $<
+	$(TRACE_AS)
+	$(Q)$(AS) -o $(notdir $(<:.S=.o)) $<
 
 %.firmware:	%.${TARGET}
 	mv $< $@
@@ -188,7 +204,15 @@ else
 	$(OBJCOPY) $^ -O ihex $@
 endif
 
-%.mspsim:	%.${TARGET}
+$(CONTIKI)/tools/mspsim/build.xml:
+	@echo '----------------'
+	@echo 'Could not find the MSPSim build file. Did you run "git submodule update --init"?'
+	@echo '----------------'
+
+$(CONTIKI)/tools/mspsim/mspsim.jar: $(CONTIKI)/tools/mspsim/build.xml
+	(cd $(CONTIKI)/tools/mspsim && ant jar)
+
+%.mspsim:	%.${TARGET} ${CONTIKI}/tools/mspsim/mspsim.jar
 	java -jar ${CONTIKI}/tools/mspsim/mspsim.jar -platform=${TARGET} $<
 
 mspsim-maptable:	contiki-${TARGET}.map

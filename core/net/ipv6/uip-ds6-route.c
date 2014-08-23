@@ -262,14 +262,16 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
   }
 
   /* First make sure that we don't add a route twice. If we find an
-     existing route for our destination, we'll just update the old
-     one. */
+     existing route for our destination, we'll delete the old
+     one first. */
   r = uip_ds6_route_lookup(ipaddr);
   if(r != NULL) {
-    PRINTF("uip_ds6_route_add: old route already found, updating this one instead: ");
+    PRINTF("uip_ds6_route_add: old route for ");
     PRINT6ADDR(ipaddr);
-    PRINTF("\n");
-  } else {
+    PRINTF(" found, deleting it\n");
+    uip_ds6_route_rm(r);
+  }
+  {
     struct uip_ds6_route_neighbor_routes *routes;
     /* If there is no routing entry, create one. We first need to
        check if we have room for this route. If not, we remove the

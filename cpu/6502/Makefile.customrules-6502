@@ -13,11 +13,10 @@ CUSTOM_RULE_LINK = 1
 	$(TRACE_LD)
 	$(Q)$(LD) -o $@ $(LDFLAGS) -u _main $^ $(TARGET).lib
 
-%.eth: $(OBJECTDIR)/%.o
+%.o: %.S
+	$(TRACE_AS)
+	$(Q)$(AS) $(ASFLAGS) -o $@ $<
+
+%.eth: %.o
 	$(TRACE_LD)
 	$(Q)$(LD) -o $@ -t module -m $@.map $<
-
-ifdef ETHERNET
-$(ETHERNET)-eth.S: $(ETHERNET).eth
-	co65 -o $@ --code-label _$(ETHERNET) $<
-endif

@@ -1434,19 +1434,12 @@ output(const uip_lladdr_t *localdest)
    * needs to be fragmented or not. */
 #define USE_FRAMER_HDRLEN 1
 #if USE_FRAMER_HDRLEN
-  packetbuf_clear();
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &dest);
-  framer_hdrlen = NETSTACK_FRAMER.create();
+  framer_hdrlen = NETSTACK_FRAMER.length();
   if(framer_hdrlen < 0) {
     /* Framing failed, we assume the maximum header length */
     framer_hdrlen = 21;
   }
-  packetbuf_clear();
-
-  /* We must set the max transmissions attribute again after clearing
-     the buffer. */
-  packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
-                     SICSLOWPAN_MAX_MAC_TRANSMISSIONS);
 #else /* USE_FRAMER_HDRLEN */
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */

@@ -11,7 +11,7 @@ static struct {
 } drivers[] = {
 #ifdef __APPLE2__
   {"Uthernet",    0xC080, "cs8900a.eth" },
-  {"Uthernet II", 0xC080, "w5100.eth"   },
+  {"Uthernet II", 0xC084, "w5100.eth"   },
   {"LANceGS",     0xC080, "lan91c96.eth"}
 #endif
 #ifdef __ATARI__

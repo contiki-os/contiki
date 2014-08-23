@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Matthias Kovatsch
+ * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,63 +26,71 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *
+ * This file is part of the Contiki operating system.
  */
 
-#ifndef PROJECT_ERBIUM_CONF_H_
-#define PROJECT_ERBIUM_CONF_H_
+/**
+ * \file
+ *      Erbium (Er) example project configuration.
+ * \author
+ *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ */
 
-/* Some platforms have weird includes. */
-#undef IEEE802154_CONF_PANID
+#ifndef __PROJECT_ERBIUM_CONF_H__
+#define __PROJECT_ERBIUM_CONF_H__
 
-/* Disabling RDC for demo purposes. Core updates often require more memory. */
-/* For projects, optimize memory and enable RDC again. */
+/* Custom channel and PAN ID configuration for your project. */
+/*
+   #undef RF_CHANNEL
+   #define RF_CHANNEL                     26
+
+   #undef IEEE802154_CONF_PANID
+   #define IEEE802154_CONF_PANID          0xABCD
+ */
+
+/* IP buffer size must match all other hops, in particular the border router. */
+/*
+   #undef UIP_CONF_BUFFER_SIZE
+   #define UIP_CONF_BUFFER_SIZE           256
+ */
+
+/* Disabling RDC and CSMA for demo purposes. Core updates often
+   require more memory. */
+/* For projects, optimize memory and enable RDC and CSMA again. */
 #undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
+#define NETSTACK_CONF_RDC              nullrdc_driver
+
+/* Disabling TCP on CoAP nodes. */
+#undef UIP_CONF_TCP
+#define UIP_CONF_TCP                   0
+
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     nullmac_driver
 
 /* Increase rpl-border-router IP-buffer when using more than 64. */
 #undef REST_MAX_CHUNK_SIZE
-#define REST_MAX_CHUNK_SIZE    64
+#define REST_MAX_CHUNK_SIZE            48
 
 /* Estimate your header size, especially when using Proxy-Uri. */
 /*
-#undef COAP_MAX_HEADER_SIZE
-#define COAP_MAX_HEADER_SIZE    70
-*/
-
-/* The IP buffer size must fit all other hops, in particular the border router. */
-/*
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    1280
-*/
+   #undef COAP_MAX_HEADER_SIZE
+   #define COAP_MAX_HEADER_SIZE           70
+ */
 
 /* Multiplies with chunk size, be aware of memory constraints. */
 #undef COAP_MAX_OPEN_TRANSACTIONS
-#define COAP_MAX_OPEN_TRANSACTIONS   4
+#define COAP_MAX_OPEN_TRANSACTIONS     4
 
-/* Must be <= open transaction number, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
+/* Must be <= open transactions, default is COAP_MAX_OPEN_TRANSACTIONS-1. */
 /*
-#undef COAP_MAX_OBSERVERS
-#define COAP_MAX_OBSERVERS      2
-*/
+   #undef COAP_MAX_OBSERVERS
+   #define COAP_MAX_OBSERVERS             2
+ */
 
 /* Filtering .well-known/core per query can be disabled to save space. */
-/*
 #undef COAP_LINK_FORMAT_FILTERING
-#define COAP_LINK_FORMAT_FILTERING      0
-*/
+#define COAP_LINK_FORMAT_FILTERING     0
+#undef COAP_PROXY_OPTION_PROCESSING
+#define COAP_PROXY_OPTION_PROCESSING   0
 
-/* Save some memory for the sky platform. */
-#undef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     10
-#undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   10
-
-/* Reduce 802.15.4 frame queue to save RAM. */
-#undef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM       4
-
-#undef SICSLOWPAN_CONF_FRAG
-#define SICSLOWPAN_CONF_FRAG	1
-
-#endif /* PROJECT_ERBIUM_CONF_H_ */
+#endif /* __PROJECT_ERBIUM_CONF_H__ */

@@ -76,6 +76,13 @@ is_broadcast_addr(uint8_t mode, uint8_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 static int
+hdr_length(void)
+{
+  /* never adds any header */
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
 create(void)
 {
   /* nothing extra... */
@@ -116,5 +123,5 @@ parse(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct framer no_framer = {
-  create, parse
+  hdr_length, create, parse
 };

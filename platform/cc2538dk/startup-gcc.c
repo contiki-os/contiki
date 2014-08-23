@@ -63,6 +63,27 @@ void cc2538_rf_err_isr(void);
 void udma_isr(void);
 void udma_err_isr(void);
 
+/* Boot Loader Backdoor selection */
+#if FLASH_CCA_CONF_BOOTLDR_BACKDOOR
+/* Backdoor enabled */
+
+#if FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH
+#define FLASH_CCA_BOOTLDR_CFG_ACTIVE_LEVEL FLASH_CCA_BOOTLDR_CFG_ACTIVE_HIGH
+#else
+#define FLASH_CCA_BOOTLDR_CFG_ACTIVE_LEVEL 0
+#endif
+
+#if ( (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN < 0) || (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN > 7) )
+#error Invalid boot loader backdoor pin. Please set FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN between 0 and 7 (indicating PA0 - PA7).
+#endif
+
+#define FLASH_CCA_BOOTLDR_CFG ( FLASH_CCA_BOOTLDR_CFG_ENABLE \
+  | FLASH_CCA_BOOTLDR_CFG_ACTIVE_LEVEL \
+  | (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN << FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S) )
+#else
+#define FLASH_CCA_BOOTLDR_CFG FLASH_CCA_BOOTLDR_CFG_DISABLE
+#endif
+
 /* Link in the USB ISR only if USB is enabled */
 #if USB_SERIAL_CONF_ENABLE
 void usb_isr(void);
@@ -72,16 +93,8 @@ void usb_isr(void);
 
 /* Likewise for the UART[01] ISRs */
 #if UART_CONF_ENABLE
-void uart_isr(void);
-
-#if UART_BASE==UART_1_BASE
-#define uart0_isr default_handler
-#define uart1_isr uart_isr
-#else
-#define uart0_isr uart_isr
-#define uart1_isr default_handler
-#endif
-
+void uart0_isr(void);
+void uart1_isr(void);
 #else /* UART_CONF_ENABLE */
 #define uart0_isr default_handler
 #define uart1_isr default_handler
@@ -95,7 +108,7 @@ extern uint8_t _text[0];
 /*---------------------------------------------------------------------------*/
 __attribute__ ((section(".flashcca"), used))
 const flash_cca_lock_page_t __cca = {
-  FLASH_CCA_BOOTLDR_CFG_DISABLE, /* Bootloader backdoor disabled */
+  FLASH_CCA_BOOTLDR_CFG,          /* Boot loader backdoor configuration */
   FLASH_CCA_IMAGE_VALID,         /* Image valid */
   &_text,                        /* Vector table located at the start of .text */
   /* Unlock all pages and debug */

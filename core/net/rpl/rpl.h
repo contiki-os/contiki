@@ -104,6 +104,9 @@ typedef struct rpl_metric_container rpl_metric_container_t;
 struct rpl_instance;
 struct rpl_dag;
 /*---------------------------------------------------------------------------*/
+#define RPL_PARENT_FLAG_UPDATED           0x1
+#define RPL_PARENT_FLAG_LINK_METRIC_VALID 0x2
+
 struct rpl_parent {
   struct rpl_parent *next;
   struct rpl_dag *dag;
@@ -113,7 +116,7 @@ struct rpl_parent {
   rpl_rank_t rank;
   uint16_t link_metric;
   uint8_t dtsn;
-  uint8_t updated;
+  uint8_t flags;
 };
 typedef struct rpl_parent rpl_parent_t;
 /*---------------------------------------------------------------------------*/
@@ -189,6 +192,9 @@ struct rpl_of {
   rpl_ocp_t ocp;
 };
 typedef struct rpl_of rpl_of_t;
+
+/* Declare the selected objective function. */
+extern rpl_of_t RPL_OF;
 /*---------------------------------------------------------------------------*/
 /* Instance */
 struct rpl_instance {
@@ -228,7 +234,7 @@ struct rpl_instance {
 /* Public RPL functions. */
 void rpl_init(void);
 void uip_rpl_input(void);
-rpl_dag_t *rpl_set_root(uint8_t instance_id, uip_ipaddr_t * dag_id);
+rpl_dag_t *rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id);
 int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len);
 int rpl_repair_root(uint8_t instance_id);
 int rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from);

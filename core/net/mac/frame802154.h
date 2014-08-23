@@ -166,3 +166,4 @@ int frame802154_parse(uint8_t *data, int length, frame802154_t *pf);
 
 /** @} */
 #endif /* FRAME_802154_H */
+/** @} */

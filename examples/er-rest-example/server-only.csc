@@ -8,6 +8,7 @@
   <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>REST with RPL router</title>
+    <speedlimit>1.0</speedlimit>
     <randomseed>123456</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -100,8 +101,8 @@
     <width>259</width>
     <z>0</z>
     <height>179</height>
-    <location_x>0</location_x>
-    <location_y>0</location_y>
+    <location_x>2</location_x>
+    <location_y>1</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Visualizer
@@ -115,19 +116,20 @@
       <viewport>7.9849281638410705 0.0 0.0 7.9849281638410705 -133.27812697619663 -225.04752569190535</viewport>
     </plugin_config>
     <width>300</width>
-    <z>5</z>
+    <z>1</z>
     <height>175</height>
-    <location_x>263</location_x>
-    <location_y>3</location_y>
+    <location_x>262</location_x>
+    <location_y>2</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
       <filter />
+      <formatted_time />
       <coloring />
     </plugin_config>
     <width>560</width>
-    <z>2</z>
+    <z>3</z>
     <height>326</height>
     <location_x>1</location_x>
     <location_y>293</location_y>
@@ -136,6 +138,9 @@
     org.contikios.cooja.plugins.RadioLogger
     <plugin_config>
       <split>150</split>
+      <formatted_time />
+      <showdups>false</showdups>
+      <hidenodests>false</hidenodests>
       <analyzers name="6lowpan" />
     </plugin_config>
     <width>451</width>
@@ -149,7 +154,7 @@
     SerialSocketServer
     <mote_arg>0</mote_arg>
     <width>422</width>
-    <z>3</z>
+    <z>4</z>
     <height>74</height>
     <location_x>39</location_x>
     <location_y>199</location_y>
@@ -163,11 +168,10 @@
       <showRadioHW />
       <showLEDs />
       <showWatchpoints />
-      <split>125</split>
       <zoomfactor>25.49079397896416</zoomfactor>
     </plugin_config>
     <width>1624</width>
-    <z>4</z>
+    <z>5</z>
     <height>252</height>
     <location_x>4</location_x>
     <location_y>622</location_y>
@@ -180,7 +184,7 @@
       <scrollpos>0,0</scrollpos>
     </plugin_config>
     <width>702</width>
-    <z>1</z>
+    <z>2</z>
     <height>646</height>
     <location_x>564</location_x>
     <location_y>2</location_y>

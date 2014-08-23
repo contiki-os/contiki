@@ -8,6 +8,7 @@
   <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
     <title>REST with RPL router</title>
+    <speedlimit>1.0</speedlimit>
     <randomseed>123456</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
@@ -137,8 +138,8 @@
     <width>259</width>
     <z>0</z>
     <height>179</height>
-    <location_x>0</location_x>
-    <location_y>0</location_y>
+    <location_x>2</location_x>
+    <location_y>1</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Visualizer
@@ -161,6 +162,7 @@
     org.contikios.cooja.plugins.LogListener
     <plugin_config>
       <filter />
+      <formatted_time />
       <coloring />
     </plugin_config>
     <width>762</width>
@@ -173,6 +175,9 @@
     org.contikios.cooja.plugins.RadioLogger
     <plugin_config>
       <split>150</split>
+      <formatted_time />
+      <showdups>false</showdups>
+      <hidenodests>false</hidenodests>
       <analyzers name="6lowpan" />
     </plugin_config>
     <width>451</width>
@@ -201,7 +206,6 @@
       <showRadioHW />
       <showLEDs />
       <showWatchpoints />
-      <split>125</split>
       <zoomfactor>25.49079397896416</zoomfactor>
     </plugin_config>
     <width>1624</width>

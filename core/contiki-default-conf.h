@@ -180,6 +180,12 @@
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 8
 #endif /* NBR_TABLE_CONF_MAX_NEIGHBORS */
 
+/* UIP_CONF_ND6_SEND_NA enables standard IPv6 Neighbor Discovery Protocol.
+   This is unneeded when RPL is used. Disable to save ROM and a little RAM. */
+#ifndef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA 1
+#endif /* UIP_CONF_ND6_SEND_NA */
+
 /*---------------------------------------------------------------------------*/
 /* 6lowpan configuration options.
  *

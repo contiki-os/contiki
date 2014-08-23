@@ -56,8 +56,8 @@
 
 /**
  * @brief Resets the watchdog timer.  This function is pointed
- * to by the macro ::halResetWatchdog(). 
- * @warning Be very careful when using this as you can easily get into an 
+ * to by the macro ::halResetWatchdog().
+ * @warning Be very careful when using this as you can easily get into an
  * infinite loop.
  */
 void halInternalResetWatchDog( void );
@@ -162,13 +162,13 @@ void halInternalSearchForBiasTrim(void);
  * hardware peripherals.  This function works by simply adding another
  * layer on top of halCommonDelayMicroseconds().
  *
- * @param ms  The specified time, in milliseconds. 
+ * @param ms  The specified time, in milliseconds.
  */
 void halCommonDelayMilliseconds(uint16_t ms);
 
 
 /** @brief Puts the microcontroller to sleep in a specified mode, allows
- * the GPIO wake sources to be determined at runtime.  This function 
+ * the GPIO wake sources to be determined at runtime.  This function
  * requires the GPIO wake sources to be defined at compile time in the board
  * file.
  *
@@ -180,7 +180,7 @@ void halCommonDelayMilliseconds(uint16_t ms);
  * the chip from deep sleep.  A high bit in the mask will enable waking
  * the chip if the corresponding GPIO changes state.  bit0 is PA0, bit1 is
  * PA1, bit8 is PB0, bit16 is PCO, bit23 is PC7, bits[31:24] are ignored.
- * 
+ *
  * @sa ::SleepModes
  */
 void halSleepWithOptions(SleepModes sleepMode, uint32_t gpioWakeBitMask);
@@ -203,18 +203,16 @@ void halSleepWithOptions(SleepModes sleepMode, uint32_t gpioWakeBitMask);
  * to 48.5 days.  Any sleep duration greater than this limit will wake up
  * briefly (e.g. 16 microseconds) to reenable another sleep cycle.
  *
- * @nostackusage
- *
  * @param duration The amount of time, expressed in quarter seconds, that the
  * micro should be placed into ::SLEEPMODE_WAKETIMER.  When the function returns,
  * this parameter provides the amount of time remaining out of the original
  * sleep time request (normally the return value will be 0).
- * 
+ *
  * @param gpioWakeBitMask  A bit mask of the GPIO that are allowed to wake
  * the chip from deep sleep.  A high bit in the mask will enable waking
  * the chip if the corresponding GPIO changes state.  bit0 is PA0, bit1 is
  * PA1, bit8 is PB0, bit16 is PCO, bit23 is PC7, bits[31:24] are ignored.
- * 
+ *
  * @return An StStatus value indicating the success or
  *  failure of the command.
  */
@@ -248,7 +246,7 @@ void halInternalSleep(SleepModes sleepMode);
  * - [25] = PWRUP_SLEEPTMRCOMPB
  * - [24] = PWRUP_SLEEPTMRCOMPA
  * - [23:0] = corresponding GPIO activity
- *  
+ *
  * WakeInfoValid means that ::halSleepWithOptions (::halInternalSleep) has been called
  * at least once.  Since the power on state clears the wake event info,
  * this bit says the sleep code has been called since power on.
@@ -260,7 +258,7 @@ void halInternalSleep(SleepModes sleepMode);
  * signal is set).  The net affect of skipping sleep is the Low Voltage
  * domain never goes through a power/reset cycle.
  *
- * @return The events that caused the last wake from sleep. 
+ * @return The events that caused the last wake from sleep.
  */
 uint32_t halGetWakeInfo(void);
 

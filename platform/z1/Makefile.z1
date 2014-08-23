@@ -1,9 +1,13 @@
-# Common makefile between Z1 and Z1 Starter Platform
+# Common Makefile between Z1 and Z1SP
 
 CONTIKI_TARGET_SOURCEFILES += contiki-z1-platform.c 
 CLEAN += *.z1 
 
 include $(CONTIKI)/platform/z1/Makefile.common
+
+ifeq ($(ZOLERTIA_Z1SP),1)
+include $(CONTIKI)/platform/z1/Makefile.z1sp
+endif
 
 MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 core/net/rpl \
            core/net/rime core/net/mac core/net/mac/contikimac \

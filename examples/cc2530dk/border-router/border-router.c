@@ -39,7 +39,7 @@
 #include "dev/watchdog.h"
 #include "dev/slip.h"
 #include "dev/leds.h"
-#include "dev/cc2530-rf.h"
+#include "dev/radio.h"
 #include "debug.h"
 
 static uint8_t prefix_set;
@@ -114,6 +114,16 @@ set_prefix_64(uip_ipaddr_t *prefix_64)
   }
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t
+get_rf_channel(void)
+{
+  radio_value_t chan;
+
+  NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &chan);
+
+  return (uint8_t)chan;
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(border_router_process, ev, data)
 {
   static struct etimer et;
@@ -135,7 +145,7 @@ PROCESS_THREAD(border_router_process, ev, data)
   }
   /* We have created a new DODAG when we reach here */
   PUTSTRING("On Channel ");
-  PUTDEC(cc2530_rf_channel_get());
+  PUTDEC(get_rf_channel());
   PUTCHAR('\n');
 
   print_local_addresses();

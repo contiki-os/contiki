@@ -88,4 +88,4 @@ include $(CONTIKI)/cpu/cc2430/Makefile.cc2430
 
 contiki-$(TARGET).a:# $(addprefix $(OBJECTDIR)/,symbols.rel)
 
-MODULES += core/net/ipv6 core/net/ipv4 core/net/rime core/net core/net/mac core/net/rpl
+MODULES += core/net/ipv6 core/net/ip core/net/rime core/net core/net/mac core/net/rpl

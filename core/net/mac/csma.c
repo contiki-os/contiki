@@ -212,16 +212,17 @@ packet_sent(void *ptr, int status, int num_transmissions)
   switch(status) {
   case MAC_TX_OK:
   case MAC_TX_NOACK:
-    n->transmissions++;
+    n->transmissions += num_transmissions;
     break;
   case MAC_TX_COLLISION:
-    n->collisions++;
+    n->collisions += num_transmissions;
     break;
   case MAC_TX_DEFERRED:
-    n->deferrals++;
+    n->deferrals += num_transmissions;
     break;
   }
 
+  /* Find out what packet this callback refers to */
   for(q = list_head(n->queued_packet_list);
       q != NULL; q = list_item_next(q)) {
     if(queuebuf_attr(q->buf, PACKETBUF_ATTR_MAC_SEQNO) ==

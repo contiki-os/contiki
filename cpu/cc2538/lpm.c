@@ -88,14 +88,11 @@ rtimer_clock_t lpm_stats[3];
 /*---------------------------------------------------------------------------*/
 /*
  * Remembers what time it was when went to deep sleep
- * This is used when coming out of PM1/2 to adjust the system clock, which
- * stops ticking while in those PMs
+ * This is used when coming out of PM0/1/2 to keep stats
  */
 static rtimer_clock_t sleep_enter_time;
 
-#define RTIMER_CLOCK_TICK_RATIO (RTIMER_SECOND / CLOCK_SECOND)
-
-void clock_adjust(clock_time_t ticks);
+void clock_adjust(void);
 /*---------------------------------------------------------------------------*/
 /* Stores the currently specified MAX allowed PM */
 static uint8_t max_pm;
@@ -137,10 +134,7 @@ enter_pm0(void)
   /* We are only interested in IRQ energest while idle or in LPM */
   ENERGEST_IRQ_RESTORE(irq_energest);
 
-  /*
-   * After PM0 we don't need to adjust the system clock. Thus, saving the time
-   * we enter Deep Sleep is only required if we are keeping stats.
-   */
+  /* Remember the current time so we can keep stats when we wake up */
   if(LPM_CONF_STATS) {
     sleep_enter_time = RTIMER_NOW();
   }
@@ -215,10 +209,8 @@ lpm_exit()
                 RTIMER_NOW() - sleep_enter_time);
 
   /* Adjust the system clock, since it was not counting while we were sleeping
-   * We need to convert sleep duration from rtimer ticks to clock ticks and
-   * this will cost us some accuracy */
-  clock_adjust((clock_time_t)
-               ((RTIMER_NOW() - sleep_enter_time) / RTIMER_CLOCK_TICK_RATIO));
+   * We need to convert sleep duration from rtimer ticks to clock ticks */
+  clock_adjust();
 
   /* Restore system clock to the 32 MHz XOSC */
   select_32_mhz_xosc();
@@ -306,8 +298,10 @@ lpm_enter()
   ENERGEST_OFF(ENERGEST_TYPE_CPU);
   ENERGEST_ON(ENERGEST_TYPE_LPM);
 
-  /* Remember the current time so we can adjust the clock when we wake up */
-  sleep_enter_time = RTIMER_NOW();
+  /* Remember the current time so we can keep stats when we wake up */
+  if(LPM_CONF_STATS) {
+    sleep_enter_time = RTIMER_NOW();
+  }
 
   /*
    * Last chance to abort entering Deep Sleep.

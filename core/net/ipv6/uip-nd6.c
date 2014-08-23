@@ -126,8 +126,6 @@ static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 static uip_ds6_nbr_t *nbr; /**  Pointer to a nbr cache entry*/
 static uip_ds6_defrt_t *defrt; /**  Pointer to a router list entry */
 static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
-
-
 /*------------------------------------------------------------------*/
 /* create a llao */ 
 static void
@@ -143,8 +141,8 @@ create_llao(uint8_t *llao, uint8_t type) {
 /*------------------------------------------------------------------*/
 
 
-void
-uip_nd6_ns_input(void)
+static void
+ns_input(void)
 {
   uint8_t flags;
   PRINTF("Received NS from ");
@@ -388,12 +386,26 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
   PRINTF("\n");
   return;
 }
-
-
-
 /*------------------------------------------------------------------*/
-void
-uip_nd6_na_input(void)
+/**
+ * Neighbor Advertisement Processing
+ *
+ * we might have to send a pkt that had been buffered while address
+ * resolution was performed (if we support buffering, see UIP_CONF_QUEUE_PKT)
+ *
+ * As per RFC 4861, on link layer that have addresses, TLLAO options MUST be
+ * included when responding to multicast solicitations, SHOULD be included in
+ * response to unicast (here we assume it is for now)
+ *
+ * NA can be received after sending NS for DAD, Address resolution or NUD. Can
+ * be unsolicited as well.
+ * It can trigger update of the state of the neighbor in the neighbor cache,
+ * router in the router list.
+ * If the NS was for DAD, it means DAD failed
+ *
+ */
+static void
+na_input(void)
 {
   uint8_t is_llchange;
   uint8_t is_router;
@@ -548,8 +560,8 @@ discard:
 #if UIP_CONF_ROUTER
 #if UIP_ND6_SEND_RA
 /*---------------------------------------------------------------------------*/
-void
-uip_nd6_rs_input(void)
+static void
+rs_input(void)
 {
 
   PRINTF("Received RS from");
@@ -761,11 +773,18 @@ uip_nd6_rs_output(void)
   PRINTF("\n");
   return;
 }
-
-
 /*---------------------------------------------------------------------------*/
+/*
+ * Process a Router Advertisement
+ *
+ * - Possible actions when receiving a RA: add router to router list,
+ *   recalculate reachable time, update link hop limit, update retrans timer.
+ * - If MTU option: update MTU.
+ * - If SLLAO option: update entry in neighbor cache
+ * - If prefix option: start autoconf, add prefix to prefix list
+ */
 void
-uip_nd6_ra_input(void)
+ra_input(void)
 {
   PRINTF("Received RA from");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
@@ -816,10 +835,10 @@ uip_nd6_ra_input(void)
                               (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 			      1, NBR_STALE);
       } else {
+        uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
         if(nbr->state == NBR_INCOMPLETE) {
           nbr->state = NBR_STALE;
         }
-        uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
 		  lladdr, UIP_LLADDR_LEN) != 0) {
           memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
@@ -969,6 +988,52 @@ discard:
   return;
 }
 #endif /* !UIP_CONF_ROUTER */
+/*------------------------------------------------------------------*/
+/* ICMPv6 input handlers */
+#if UIP_ND6_SEND_NA
+UIP_ICMP6_HANDLER(ns_input_handler, ICMP6_NS, UIP_ICMP6_HANDLER_CODE_ANY,
+                  ns_input);
+UIP_ICMP6_HANDLER(na_input_handler, ICMP6_NA, UIP_ICMP6_HANDLER_CODE_ANY,
+                  na_input);
+#endif
 
+#if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
+UIP_ICMP6_HANDLER(rs_input_handler, ICMP6_RS, UIP_ICMP6_HANDLER_CODE_ANY,
+                  rs_input);
+#endif
+
+#if !UIP_CONF_ROUTER
+UIP_ICMP6_HANDLER(ra_input_handler, ICMP6_RA, UIP_ICMP6_HANDLER_CODE_ANY,
+                  ra_input);
+#endif
+/*---------------------------------------------------------------------------*/
+void
+uip_nd6_init()
+{
+
+#if UIP_ND6_SEND_NA
+  /* Only handle NSs if we are prepared to send out NAs */
+  uip_icmp6_register_input_handler(&ns_input_handler);
+
+  /*
+   * Only handle NAs if we are prepared to send out NAs.
+   * This is perhaps logically incorrect, but this condition was present in
+   * uip_process and we keep it until proven wrong
+   */
+  uip_icmp6_register_input_handler(&na_input_handler);
+#endif
+
+
+#if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
+  /* Only accept RS if we are a router and happy to send out RAs */
+  uip_icmp6_register_input_handler(&rs_input_handler);
+#endif
+
+#if !UIP_CONF_ROUTER
+  /* Only process RAs if we are not a router */
+  uip_icmp6_register_input_handler(&ra_input_handler);
+#endif
+}
+/*---------------------------------------------------------------------------*/
  /** @} */
 #endif /* UIP_CONF_IPV6 */
