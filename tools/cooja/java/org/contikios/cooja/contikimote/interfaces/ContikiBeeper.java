@@ -44,10 +44,11 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import org.contikios.cooja.Mote;
-import org.contikios.cooja.SectionMoteMemory;
+import org.contikios.cooja.mote.memory.SectionMoteMemory;
 import org.contikios.cooja.contikimote.ContikiMoteInterface;
 import org.contikios.cooja.interfaces.Beeper;
 import org.contikios.cooja.interfaces.PolledAfterActiveTicks;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /**
  * Beeper mote interface.
@@ -70,7 +71,7 @@ import org.contikios.cooja.interfaces.PolledAfterActiveTicks;
  */
 public class ContikiBeeper extends Beeper implements ContikiMoteInterface, PolledAfterActiveTicks {
   private Mote mote = null;
-  private SectionMoteMemory moteMem = null;
+  private VarMemory moteMem = null;
   private static Logger logger = Logger.getLogger(ContikiBeeper.class);
 
   /**
@@ -83,7 +84,7 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface, Polle
    */
   public ContikiBeeper(Mote mote) {
     this.mote = mote;
-    this.moteMem = (SectionMoteMemory) mote.getMemory();
+    this.moteMem = new VarMemory(mote.getMemory());
   }
 
   public boolean isBeeping() {

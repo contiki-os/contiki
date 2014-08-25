@@ -38,6 +38,7 @@ import org.jdom.Element;
 import org.contikios.cooja.*;
 import org.contikios.cooja.contikimote.ContikiMoteInterface;
 import org.contikios.cooja.interfaces.MoteID;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /**
  * Mote ID interface: 'node_id'.
@@ -60,7 +61,7 @@ import org.contikios.cooja.interfaces.MoteID;
  * @author Fredrik Osterlind
  */
 public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
-  private SectionMoteMemory moteMem = null;
+  private VarMemory moteMem = null;
   private static Logger logger = Logger.getLogger(ContikiMoteID.class);
 
   private int moteID = 0;
@@ -77,7 +78,7 @@ public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
    */
   public ContikiMoteID(Mote mote) {
     this.mote = mote;
-    this.moteMem = (SectionMoteMemory) mote.getMemory();
+    this.moteMem = new VarMemory(mote.getMemory());
   }
 
   public static String[] getCoreInterfaceDependencies() {

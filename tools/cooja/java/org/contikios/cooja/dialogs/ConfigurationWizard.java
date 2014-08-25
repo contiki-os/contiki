@@ -66,8 +66,11 @@ import javax.swing.JScrollPane;
 import org.contikios.cooja.CoreComm;
 import org.contikios.cooja.Cooja;
 import org.contikios.cooja.MoteType.MoteTypeCreationException;
-import org.contikios.cooja.SectionMoteMemory;
+import org.contikios.cooja.mote.memory.SectionMoteMemory;
 import org.contikios.cooja.contikimote.ContikiMoteType;
+import org.contikios.cooja.contikimote.ContikiMoteType.SectionParser;
+import org.contikios.cooja.mote.memory.MemoryInterface.Symbol;
+import org.contikios.cooja.mote.memory.VarMemory;
 
 /* TODO Test common section */
 /* TODO Test readonly section */
@@ -141,7 +144,7 @@ public class ConfigurationWizard extends JDialog {
   private static File cLibraryFile;
   private static String javaLibraryName;
   private static CoreComm javaLibrary;
-  private static HashMap<String, Integer> addresses;
+  private static HashMap<String, Symbol> addresses;
   private static int relDataSectionAddr;
   private static int dataSectionSize;
   private static int relBssSectionAddr;
@@ -757,18 +760,28 @@ public class ConfigurationWizard extends JDialog {
     }
 
     testOutput.addMessage("### Parsing map file data for addresses");
-    addresses = new HashMap<String, Integer>();
-    boolean parseOK = ContikiMoteType.parseMapFileData(mapData, addresses);
-    if (!parseOK) {
-      testOutput.addMessage("### Error: Failed parsing map file data", MessageList.ERROR);
-      return false;
-    }
+    addresses = new HashMap<String, Symbol>();
+//    boolean parseOK = ContikiMoteType.parseMapFileData(mapData, addresses);
+//    if (!parseOK) {
+//      testOutput.addMessage("### Error: Failed parsing map file data", MessageList.ERROR);
+//      return false;
+//    }
 
     testOutput.addMessage("### Validating section addresses");
-    relDataSectionAddr = ContikiMoteType.parseMapDataSectionAddr(mapData);
-    dataSectionSize = ContikiMoteType.parseMapDataSectionSize(mapData);
-    relBssSectionAddr = ContikiMoteType.parseMapBssSectionAddr(mapData);
-    bssSectionSize = ContikiMoteType.parseMapBssSectionSize(mapData);
+    SectionParser dataSecParser = new ContikiMoteType.MapSectionParser(
+            mapData,
+            Cooja.getExternalToolsSetting("MAPFILE_DATA_START"),
+            Cooja.getExternalToolsSetting("MAPFILE_DATA_SIZE"));
+    SectionParser bssSecParser = new ContikiMoteType.MapSectionParser(
+            mapData,
+            Cooja.getExternalToolsSetting("MAPFILE_BSS_START"),
+            Cooja.getExternalToolsSetting("MAPFILE_BSS_SIZE"));
+    dataSecParser.parse(0);
+    bssSecParser.parse(0);
+    relDataSectionAddr = dataSecParser.getStartAddr();
+    dataSectionSize = dataSecParser.getSize();
+    relBssSectionAddr = bssSecParser.getStartAddr();
+    bssSectionSize = bssSecParser.getSize();
     testOutput.addMessage("Data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     testOutput.addMessage("Data section size: 0x" + Integer.toHexString(dataSectionSize));
     testOutput.addMessage("BSS section address: 0x" + Integer.toHexString(relBssSectionAddr));
@@ -837,18 +850,31 @@ public class ConfigurationWizard extends JDialog {
     }
 
     testOutput.addMessage("### Parsing command output for addresses");
-    addresses = new HashMap<String, Integer>();
-    boolean parseOK = ContikiMoteType.parseCommandData(commandData, addresses);
-    if (!parseOK) {
-      testOutput.addMessage("### Error: Failed parsing command output", MessageList.ERROR);
-      return false;
-    }
+    addresses = new HashMap<String, Symbol>();
+//    boolean parseOK = ContikiMoteType.parseCommandData(commandData, addresses);
+//    if (!parseOK) {
+//      testOutput.addMessage("### Error: Failed parsing command output", MessageList.ERROR);
+//      return false;
+//    }
 
     testOutput.addMessage("### Validating section addresses");
-    relDataSectionAddr = ContikiMoteType.parseCommandDataSectionAddr(commandData);
-    dataSectionSize = ContikiMoteType.parseCommandDataSectionSize(commandData);
-    relBssSectionAddr = ContikiMoteType.parseCommandBssSectionAddr(commandData);
-    bssSectionSize = ContikiMoteType.parseCommandBssSectionSize(commandData);
+    SectionParser dataSecParser = new ContikiMoteType.CommandSectionParser(
+            commandData,
+            Cooja.getExternalToolsSetting("COMMAND_DATA_START"),
+            Cooja.getExternalToolsSetting("COMMAND_DATA_SIZE"),
+            Cooja.getExternalToolsSetting("COMMAND_VAR_SEC_DATA"));
+    SectionParser bssSecParser = new ContikiMoteType.CommandSectionParser(
+            commandData,
+            Cooja.getExternalToolsSetting("COMMAND_BSS_START"),
+            Cooja.getExternalToolsSetting("COMMAND_BSS_SIZE"),
+            Cooja.getExternalToolsSetting("COMMAND_VAR_SEC_BSS"));
+
+    dataSecParser.parse(0);
+    bssSecParser.parse(0);
+    relDataSectionAddr = dataSecParser.getStartAddr();
+    dataSectionSize = dataSecParser.getSize();
+    relBssSectionAddr = bssSecParser.getStartAddr();
+    bssSectionSize = bssSecParser.getSize();
     testOutput.addMessage("Data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     testOutput.addMessage("Data section size: 0x" + Integer.toHexString(dataSectionSize));
     testOutput.addMessage("BSS section address: 0x" + Integer.toHexString(relBssSectionAddr));
@@ -935,7 +961,7 @@ public class ConfigurationWizard extends JDialog {
       testOutput.addMessage("Could not find address of referenceVar", MessageList.ERROR);
       return false;
     }
-    int relRefAddress = addresses.get("referenceVar");
+    int relRefAddress = (int) addresses.get("referenceVar").addr;
     javaLibrary.setReferenceAddress(relRefAddress);
 
     testOutput.addMessage("### Creating data and BSS memory sections");
@@ -943,15 +969,16 @@ public class ConfigurationWizard extends JDialog {
     byte[] initialBssSection = new byte[bssSectionSize];
     javaLibrary.getMemory(relDataSectionAddr, dataSectionSize, initialDataSection);
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
-    SectionMoteMemory memory = new SectionMoteMemory(addresses, 0);
+    SectionMoteMemory memory = new SectionMoteMemory(addresses);
+    VarMemory varMem = new VarMemory(memory);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
 
     int contikiDataCounter, contikiBSSCounter;
 
     testOutput.addMessage("### Checking initial variable values: 1,0");
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     int javaDataCounter = 1;
     int javaBSSCounter = 0;
     if (contikiDataCounter != javaDataCounter) {
@@ -975,8 +1002,8 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     if (contikiDataCounter != javaDataCounter) {
       testOutput.addMessage("### Data section mismatch (" + contikiDataCounter + " != " + javaDataCounter + ")", MessageList.ERROR);
       return false;
@@ -1004,8 +1031,8 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     if (contikiDataCounter != javaDataCounter) {
       testOutput.addMessage("### Data section mismatch (" + contikiDataCounter + " != " + javaDataCounter + ")", MessageList.ERROR);
       return false;
@@ -1029,8 +1056,8 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     if (contikiDataCounter != javaDataCounter) {
       testOutput.addMessage("### Data section mismatch (" + contikiDataCounter + " != " + javaDataCounter + ")", MessageList.ERROR);
       return false;
@@ -1049,8 +1076,8 @@ public class ConfigurationWizard extends JDialog {
     javaLibrary.getMemory(relBssSectionAddr, bssSectionSize, initialBssSection);
     memory.setMemorySegment(relDataSectionAddr, initialDataSection);
     memory.setMemorySegment(relBssSectionAddr, initialBssSection);
-    contikiDataCounter = memory.getIntValueOf("var1");
-    contikiBSSCounter = memory.getIntValueOf("uvar1");
+    contikiDataCounter = varMem.getIntValueOf("var1");
+    contikiBSSCounter = varMem.getIntValueOf("uvar1");
     if (contikiDataCounter != javaDataCounter) {
       testOutput.addMessage("### Data section mismatch (" + contikiDataCounter + " != " + javaDataCounter + ")", MessageList.ERROR);
       return false;
