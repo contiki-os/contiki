@@ -35,7 +35,7 @@
  * \defgroup cc2538 The OpenMote-CC2538 platform
  *
  * The OpenMote-CC2538 is based on the CC2538, the new platform by Texas Instruments
- *  based on the cc2530 SoC with an ARM Cortex-M3 core.
+ *  based on an ARM Cortex-M3 core and a IEEE 802.15.4 radio.
  * @{
  *
  * \file
@@ -105,9 +105,18 @@ fade(unsigned char l)
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_rime_addr()
+set_rf_params(void)
 {
-  ieee_addr_cpy_to(&linkaddr_node_addr.u8[0], LINKADDR_SIZE);
+  uint16_t short_addr;
+  uint8_t ext_addr[8];
+
+  ieee_addr_cpy_to(ext_addr, 8);
+
+  short_addr = ext_addr[7];
+  short_addr |= ext_addr[6] << 8;
+
+  /* Populate linkaddr_node_addr. Maintain endianness */
+  memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
 
 #if STARTUP_CONF_VERBOSE
   {
@@ -120,6 +129,10 @@ set_rime_addr()
   }
 #endif
 
+  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC2538_RF_CHANNEL);
+  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -188,16 +201,12 @@ main(void)
   process_start(&etimer_process, NULL);
   ctimer_init();
 
-  set_rime_addr();
+  set_rf_params();
   netstack_init();
-  // cc2538_rf_set_addr(IEEE802154_PANID);
-
+  
   antenna_init();
   antenna_external();
   printf("Using external antenna\n");
-
-  printf("PAN ID 0x%04x\n", IEEE802154_PANID);
-  printf("RF channel %d\n", CC2538_RF_CONF_CHANNEL);
 
 #if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
