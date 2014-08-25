@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, TU Braunschweig. All rights reserved.
  * Copyright (c) 2009, Swedish Institute of Computer Science. All rights
  * reserved.
  *
@@ -28,158 +29,196 @@
 
 package org.contikios.cooja.avrmote;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 
-import org.contikios.cooja.AddressMemory;
-import org.contikios.cooja.MoteMemory;
 import avrora.arch.avr.AVRProperties;
 import avrora.core.SourceMapping;
 import avrora.core.SourceMapping.Location;
 import avrora.sim.AtmelInterpreter;
 import avrora.sim.Simulator.Watch;
+import avrora.sim.State;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor.EventType;
+import org.contikios.cooja.mote.memory.MemoryLayout;
 /**
- * @author Joakim Eriksson
+ * @author Joakim Eriksson, Fredrik Osterlind, David Kopf, Enrico Jorns
  */
-public class AvrMoteMemory implements MoteMemory, AddressMemory {
-    private static Logger logger = Logger.getLogger(AvrMoteMemory.class);
+public class AvrMoteMemory implements MemoryInterface {
+  private static Logger logger = Logger.getLogger(AvrMoteMemory.class);
+  private static final boolean DEBUG = logger.isDebugEnabled();
 
-    private SourceMapping memoryMap;
-    private AtmelInterpreter interpreter;
-    private AVRProperties avrProperties;
-    
+  private final SourceMapping memoryMap;
+  private final AVRProperties avrProperties;
+  private final AtmelInterpreter interpreter;
+  private final ArrayList<AvrByteMonitor> memoryMonitors = new ArrayList<>();
+  private final MemoryLayout memLayout = new MemoryLayout(ByteOrder.LITTLE_ENDIAN, MemoryLayout.ARCH_8BIT, 2);
+
+  private boolean coojaIsAccessingMemory;
+
     public AvrMoteMemory(SourceMapping map, AVRProperties avrProperties, AtmelInterpreter interpreter) {
         memoryMap = map;
         this.interpreter = interpreter;
         this.avrProperties = avrProperties;
     }
 
-    public void insertWatch(Watch w, int address) {
-        interpreter.getSimulator().insertWatch(w, address);
-    }
-    
-    public void clearMemory() {
-        logger.fatal("not implemented");
+  @Override
+  public int getTotalSize() {
+    return avrProperties.sram_size;
+  }
+
+  @Override
+  public byte[] getMemory() throws MoteMemoryException {
+    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+  }
+
+  @Override
+  public byte[] getMemorySegment(long address, int size) throws MoteMemoryException {
+    /*logger.info("getMemorySegment(" + String.format("0x%04x", address) +
+     ", " + size + ")");*/
+    if (!accessInRange(address, size)) {
+      throw new MoteMemoryException(
+              "Getting memory segment [0x%x,0x%x] failed: Out of range",
+              address, address + size - 1);
     }
 
-    public byte[] getMemorySegment(int address, int size) {
-        logger.fatal("getMemorySegment is not implemented");
-        return null;
+    /* XXX Unsure whether this is the appropriate method to use, as it
+     * triggers memoryRead monitor. Right now I'm using a flag to indicate
+     * that Cooja (as opposed to Contiki) read the memory, to avoid infinite
+     * recursion. */
+    coojaIsAccessingMemory = true;
+    byte[] data = new byte[(int) size];
+    for (int i = 0; i < size; i++) {
+      data[i] = (byte) (interpreter.getDataByte((int) address + i) & 0xff);
+    }
+    coojaIsAccessingMemory = false;
+    return data;
+  }
+
+  @Override
+  public void setMemorySegment(long address, byte[] data) throws MoteMemoryException {
+    if (!accessInRange(address, data.length)) {
+      throw new MoteMemoryException(
+              "Writing memory segment [0x%x,0x%x] failed: Out of range",
+              address, address + data.length - 1);
     }
 
-    public int getTotalSize() {
-        return 0;
+    /* XXX See comment in getMemorySegment. */
+    coojaIsAccessingMemory = true;
+    for (int i = 0; i < data.length; i++) {
+      interpreter.writeDataByte((int) address + i, data[i]);
+    }
+    coojaIsAccessingMemory = false;
+    if (DEBUG) {
+      logger.debug(String.format(
+              "Wrote memory segment [0x%x,0x%x]",
+              address, address + data.length - 1));
+    }
+  }
+
+  @Override
+  public void clearMemory() {
+    setMemorySegment(0L, new byte[avrProperties.sram_size]);
+  }
+  
+  private boolean accessInRange(long address, int size) {
+    return (address >= 0) && (address + size <= avrProperties.sram_size);
+  }
+
+  @Override
+  public long getStartAddr() {
+    return 0;// XXX
+  }
+
+  @Override
+  public Map<String, Symbol> getSymbolMap() {
+    // XXX do not fetch in function!
+    Map<String, Symbol> symbols = new HashMap<>();
+    for (Iterator<Location> iter = memoryMap.getIterator(); iter.hasNext();) {
+      Location loc = iter.next();
+      if (loc == null || (loc.section.equals(".text"))) {
+        continue;
+      }
+      symbols.put(loc.name, new Symbol(Symbol.Type.VARIABLE, loc.name, loc.section, loc.vma_addr & 0x7fffff, -1));
+    }
+    return symbols;
+  }
+
+
+  @Override
+  public MemoryLayout getLayout() {
+    return memLayout;
+  }
+
+  class AvrByteMonitor extends Watch.Empty {
+
+    /** start address to monitor */
+    final long address;
+    /** size to monitor */
+    final int size;
+    /** Segment monitor to notify */
+    final SegmentMonitor mm;
+    /** MonitorType we are listening to */
+    final EventType flag;
+
+    public AvrByteMonitor(long address, int size, SegmentMonitor mm, EventType flag) {
+      this.address = address;
+      this.size = size;
+      this.mm = mm;
+      this.flag = flag;
     }
 
-    public void setMemorySegment(int address, byte[] data) {
-        logger.fatal("setMemorySegment is not implemented");
+    @Override
+    public void fireAfterRead(State state, int data_addr, byte value) {
+      if (flag == EventType.WRITE || coojaIsAccessingMemory) {
+        return;
+      }
+      mm.memoryChanged(AvrMoteMemory.this, EventType.READ, data_addr);
     }
 
-    public byte[] getByteArray(String varName, int length)
-            throws UnknownVariableException {
-        return null;
+    @Override
+    public void fireAfterWrite(State state, int data_addr, byte value) {
+      if (flag == EventType.READ || coojaIsAccessingMemory) {
+        return;
+      }
+      mm.memoryChanged(AvrMoteMemory.this, EventType.WRITE, data_addr);
     }
+  }
 
-    public byte getByteValueOf(String varName) throws UnknownVariableException {
-        return (byte) getValueOf(varName, 1);
+  @Override
+  public boolean addSegmentMonitor(EventType flag, long address, int size, SegmentMonitor mm) {
+    AvrByteMonitor mon = new AvrByteMonitor(address, size, mm, flag);
+
+    memoryMonitors.add(mon);
+    /* logger.debug("Added AvrByteMonitor " + Integer.toString(mon.hashCode()) + " for addr " + mon.address + " size " + mon.size + " with watch" + mon.watch); */
+
+    /* Add byte monitor (watch) for every byte in range */
+    for (int idx = 0; idx < mon.size; idx++) {
+      interpreter.getSimulator().insertWatch(mon, (int) mon.address + idx);
+      /* logger.debug("Inserted watch " + Integer.toString(mon.watch.hashCode()) + " for " + (mon.address + idx)); */
     }
-    
-    private int getValueOf(String varName, int len) throws UnknownVariableException {
-        Location mem = memoryMap.getLocation(varName);
-        if (mem == null) throw new UnknownVariableException("Variable does not exist: " + varName);
+    return true;
+  }
 
-        System.out.println("Variable:" + varName + " in section: " + mem.section);
-        System.out.println("LMA: " + Integer.toHexString(mem.lma_addr));
-        System.out.println("VMA: " + Integer.toHexString(mem.vma_addr));
-
-        System.out.println("Data: " + interpreter.getDataByte(mem.lma_addr & 0xfffff));
-        System.out.println("Flash: " + interpreter.getFlashByte(mem.lma_addr & 0xfffff));
-        int data = 0;
-        if (mem.vma_addr > 0xfffff) {
-            for (int i = 0; i < len; i++) {
-                data = (data << 8) + (interpreter.getDataByte((mem.vma_addr & 0xfffff) + len - i - 1) & 0xff);
-                System.out.println("Read byte: " + interpreter.getDataByte((mem.vma_addr & 0xfffff) + i) +
-                        " => " + data);
-            }
-        } else {
-            for (int i = 0; i < len; i++) {
-                data = (data << 8) + interpreter.getFlashByte(mem.vma_addr + len - i - 1) & 0xff;
-            }
-        }
-        return data;
+  @Override
+  public boolean removeSegmentMonitor(long address, int size, SegmentMonitor mm) {
+    for (AvrByteMonitor mcm : memoryMonitors) {
+      if (mcm.mm != mm || mcm.address != address || mcm.size != size) {
+        continue;
+      }
+      for (int idx = 0; idx < mcm.size; idx++) {
+        interpreter.getSimulator().removeWatch(mcm, (int) mcm.address + idx);
+        /* logger.debug("Removed watch " + Integer.toString(mcm.watch.hashCode()) + " for " + (mcm.address + idx)); */
+      }
+      memoryMonitors.remove(mcm);
+      return true;
     }
+    return false;
+  }
 
-    private void setValue(String varName, int val, int len) throws UnknownVariableException {
-        Location mem = memoryMap.getLocation(varName);
-        if (mem == null) throw new UnknownVariableException("Variable does not exist: " + varName);
-
-        int data = val;
-        if (mem.vma_addr > 0xfffff) {       
-            // write LSB first.
-            for (int i = 0; i < len; i++) {
-                interpreter.writeDataByte((mem.vma_addr & 0xfffff) + i, (byte) (data & 0xff));
-                System.out.println("Wrote byte: " + (data & 0xff));
-                data = data >> 8;
-            }
-        } else {
-            for (int i = 0; i < len; i++) {
-                interpreter.writeFlashByte(mem.vma_addr + i, (byte) (data & 0xff));
-                data = data >> 8;
-            }
-        }
-    }
-    
-    public int getIntValueOf(String varName) throws UnknownVariableException {
-        return getValueOf(varName, 2);
-    }
-
-    public int getIntegerLength() {
-        return 2;
-    }
-
-    public int getVariableAddress(String varName)
-            throws UnknownVariableException {
-        return 0;
-    }
-
-    public String[] getVariableNames() {
-        ArrayList<String> symbols = new ArrayList<String>();
-        for (Iterator i = memoryMap.getIterator(); i.hasNext();) {
-            symbols.add(((Location) i.next()).name);
-        }
-        return symbols.toArray(new String[0]);
-    }
-
-    public void setByteArray(String varName, byte[] data)
-            throws UnknownVariableException {
-    }
-
-    public void setByteValueOf(String varName, byte newVal)
-            throws UnknownVariableException {
-        setValue(varName, newVal, 1);
-    }
-
-    public void setIntValueOf(String varName, int newVal)
-            throws UnknownVariableException {
-        setValue(varName, newVal, 2);
-    }
-
-    public boolean variableExists(String varName) {
-        return memoryMap.getLocation(varName) != null;
-    }
-
-    public boolean addMemoryMonitor(int address, int size, MemoryMonitor mm) {
-      logger.warn("Not implemented");
-      return false;
-    }
-
-    public void removeMemoryMonitor(int address, int size, MemoryMonitor mm) {
-    }
-
-    public int parseInt(byte[] memorySegment) {
-      logger.warn("Not implemented");
-      return 0;
-    }
 }
