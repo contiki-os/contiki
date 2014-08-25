@@ -40,9 +40,9 @@ import org.jdom.Element;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteInterface;
 import org.contikios.cooja.MoteInterfaceHandler;
-import org.contikios.cooja.MoteMemory;
 import org.contikios.cooja.MoteType;
 import org.contikios.cooja.Simulation;
+import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.motes.AbstractEmulatedMote;
 import avrora.arch.avr.AVRProperties;
 import avrora.core.LoadableProgram;
@@ -264,11 +264,12 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
     return config;
   }
 
-  public MoteMemory getMemory() {
+  @Override
+  public MemoryInterface getMemory() {
     return myMemory;
   }
 
-  public void setMemory(MoteMemory memory) {
+  public void setMemory(AvrMoteMemory memory) {
     myMemory = (AvrMoteMemory) memory;
   }
 

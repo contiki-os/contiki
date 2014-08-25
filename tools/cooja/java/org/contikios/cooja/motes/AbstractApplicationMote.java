@@ -33,21 +33,22 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MoteInterface;
 import org.contikios.cooja.MoteInterfaceHandler;
-import org.contikios.cooja.MoteMemory;
 import org.contikios.cooja.MoteType;
 import org.contikios.cooja.RadioPacket;
-import org.contikios.cooja.SectionMoteMemory;
+import org.contikios.cooja.mote.memory.SectionMoteMemory;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.ApplicationRadio;
 import org.contikios.cooja.interfaces.ApplicationSerialPort;
 import org.contikios.cooja.interfaces.Radio;
+import org.contikios.cooja.mote.memory.MemoryInterface;
+import org.contikios.cooja.mote.memory.MemoryInterface.Symbol;
+import org.contikios.cooja.mote.memory.MemoryLayout;
 
 /**
  * Abstract application mote.
@@ -67,6 +68,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
 
   /* Observe our own radio for incoming radio packets */
   private Observer radioDataObserver = new Observer() {
+    @Override
     public void update(Observable obs, Object obj) {
       ApplicationRadio radio = (ApplicationRadio) obs;
       if (radio.getLastEvent() == Radio.RadioEvent.RECEPTION_FINISHED) {
@@ -89,7 +91,8 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
   public AbstractApplicationMote(MoteType moteType, Simulation sim) {
     setSimulation(sim);
     this.moteType = moteType;
-    this.memory = new SectionMoteMemory(new HashMap<String, Integer>(), 0);
+    MemoryLayout.getNative();
+    this.memory = new SectionMoteMemory(new HashMap<String, Symbol>());
     this.moteInterfaces = new MoteInterfaceHandler(this, moteType.getMoteInterfaceClasses());
     this.moteInterfaces.getRadio().addObserver(radioDataObserver);
     requestImmediateWakeup();
@@ -99,6 +102,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     ((ApplicationSerialPort)moteInterfaces.getLog()).triggerLog(msg);
   }
   
+  @Override
   public MoteInterfaceHandler getInterfaces() {
     return moteInterfaces;
   }
@@ -107,14 +111,16 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     moteInterfaces = moteInterfaceHandler;
   }
 
-  public MoteMemory getMemory() {
+  @Override
+  public MemoryInterface getMemory() {
     return memory;
   }
 
-  public void setMemory(MoteMemory memory) {
+  public void setMemory(SectionMoteMemory memory) {
     this.memory = (SectionMoteMemory) memory;
   }
 
+  @Override
   public MoteType getType() {
     return moteType;
   }
@@ -123,6 +129,7 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     moteType = type;
   }
 
+  @Override
   public Collection<Element> getConfigXML() {
     ArrayList<Element> config = new ArrayList<Element>();
     Element element;
@@ -141,10 +148,11 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     return config;
   }
 
+  @Override
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable) {
     setSimulation(simulation);
-    this.memory = new SectionMoteMemory(new HashMap<String, Integer>(), 0);
+    this.memory = new SectionMoteMemory(new HashMap<String, Symbol>());
     moteInterfaces.getRadio().addObserver(radioDataObserver);
 
     for (Element element : configXML) {
@@ -176,10 +184,12 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     return true;
   }
 
+  @Override
   public int getID() {
     return moteInterfaces.getMoteID().getMoteID();
   }
   
+  @Override
   public String toString() {
     return "AppMote " + getID();
   }
