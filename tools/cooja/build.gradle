@@ -1,0 +1,80 @@
+allprojects {
+  apply plugin: 'java'
+
+    repositories {
+      jcenter()
+    }
+}
+
+// TODO: Currently disable to avoid having too much logs in travis
+//apply plugin: 'checkstyle'
+apply plugin: 'application'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+dependencies {
+  compile 'log4j:log4j:1.2.16'
+  compile 'de.sciss:jsyntaxpane:1.0.0'
+  compile 'org.jdom:jdom:1.1'
+  compile 'org.swinglabs.swingx:swingx-all:1.6.4'
+}
+
+mainClassName = "org.contikios.cooja.Cooja"
+libsDirName = "../dist"
+
+sourceSets {
+  main {
+    java {
+      srcDir 'java'
+    }
+    resources {
+      srcDir 'config'
+    }
+  }
+}
+
+jar {
+  manifest {
+    attributes 'Main-Class': "org.contikios.cooja.Cooja"
+  }
+
+  from {
+    configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+}
+
+run {
+  maxHeapSize "512m"
+  main = "org.contikios.cooja.Cooja"
+  workingDir = "build"
+}
+
+task help << {
+  println """
+The COOJA Simulator use gradle to build and run
+
+On UNIX; ./gradlew
+On Windows: ./gradlew.bat
+
+  Start COOJA
+  > ./gradlew run
+
+  Build COOJA (dist/cooja.jar) and all default projects (MSPSim et al)
+  > ./gradlew jar
+
+  Create Javadoc
+  > ./gradlew javadoc
+
+  Clean
+  > ./gradlew clean
+
+  Compile Cooja
+  > ./gradlew compileJava
+
+  Start COOJA (with a limit of mem used of 512m) and immediately load simulation in sim.csc
+  > java -mx512m -jar dist/cooja.jar -quickstart=sim.csc
+
+  Start COOJA (with a limit of mem used of 512m) without GUI and run simulation in sim.csc
+  > java -mx512m -jar dist/cooja.jar -nogui=sim.csc
+    """
+}

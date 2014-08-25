@@ -1,0 +1,34 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = "org.contikios.coffee.CoffeeManager"
+
+repositories {
+  jcenter()
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir 'org'
+    }
+  }
+}
+
+jar {
+
+  archiveName = "coffee.jar"
+  libsDirName = ".."
+
+  from {
+    ["esb.properties", "sky.properties"]
+  }
+
+  manifest {
+
+    attributes(
+        "Main-Class": "org.contikios.coffee.CoffeeManager",
+        "Manifest-Version": 1.0
+        )
+  }
+}

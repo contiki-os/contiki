@@ -1,0 +1,24 @@
+apply plugin: "java"
+
+jar.baseName = 'cooja_avrora'
+libsDirName = "../lib"
+
+repositories {
+  jcenter()
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir 'src'
+    }
+  }
+}
+
+
+dependencies {
+    compile project(":")
+    compile files("lib/avrora-small.jar")
+    compile 'log4j:log4j:1.2.16'
+    compile 'org.jdom:jdom:1.1'
+}

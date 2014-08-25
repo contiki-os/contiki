@@ -1,0 +1,7 @@
+include ":apps:avrora"
+include ":apps:collect-view"
+include ":apps:mrm"
+include ":apps:mspsim"
+//include ":apps:native_gateway"
+include ":apps:powertracker"
+include ":apps:serial_socket"
