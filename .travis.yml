@@ -118,7 +118,7 @@ before_script:
       sudo apt-get -qq install gradle &&
       gradle -version &&
       java -version &&
-      gradle -b tools/cooja/build.gradle build &&
+      gradle --no-color -b tools/cooja/build.gradle build &&
       sudo java -Xshare:dump -version ;
     fi
 
