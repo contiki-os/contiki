@@ -152,12 +152,15 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     }
 
     varName.addKeyListener(new KeyListener() {
+      @Override
       public void keyPressed(KeyEvent e) {
         writeButton.setEnabled(false);
       }
+      @Override
       public void keyTyped(KeyEvent e) {
         writeButton.setEnabled(false);
       }
+      @Override
       public void keyReleased(KeyEvent e) {
         writeButton.setEnabled(false);
       }
@@ -179,6 +182,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     varType.addItem("Char array (x bytes)"); // CHAR_ARRAY_INDEX = 3
 
     varType.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         int selectedIndex = varType.getSelectedIndex();  
         if (selectedIndex == ARRAY_INDEX || selectedIndex == CHAR_ARRAY_INDEX) {
@@ -209,8 +213,10 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
      * event doesn't work. 
      */
     jFormattedTextFocusAdapter = new FocusAdapter() {
+      @Override
       public void focusGained(final FocusEvent ev) {
         SwingUtilities.invokeLater(new Runnable() {
+          @Override
           public void run() {
             JTextField jtxt = (JTextField)ev.getSource();
             jtxt.selectAll();
@@ -229,6 +235,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     varLength.setValue(new Integer(1));
     varLength.setColumns(4);
     varLength.addPropertyChangeListener("value", new PropertyChangeListener() {
+      @Override
       public void propertyChange(PropertyChangeEvent e) {
         setNumberOfValues(((Number) varLength.getValue()).intValue());
         if(varType.getSelectedIndex() == CHAR_ARRAY_INDEX) {
@@ -391,6 +398,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     smallPane = new JPanel(new BorderLayout());
     JButton button = new JButton("Read");
     button.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         if (varType.getSelectedIndex() == BYTE_INDEX) {
           try {
@@ -440,6 +448,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     button = new JButton("Write");
     button.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         if (varType.getSelectedIndex() == BYTE_INDEX) {
           try {
@@ -520,9 +529,11 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     pack();
   }
 
+  @Override
   public void closePlugin() {
   }
 
+  @Override
   public Collection<Element> getConfigXML() {
     // Return currently watched variable and type
     Vector<Element> config = new Vector<Element>();
@@ -562,6 +573,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     return config;
   }
 
+  @Override
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     lengthPane.setVisible(false);
     setNumberOfValues(1);
@@ -592,6 +604,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     return true;
   }
 
+  @Override
   public Mote getMote() {
     return mote;
   }
@@ -616,6 +629,7 @@ class JTextFieldLimit extends PlainDocument {
     toUppercase = upper;
   }
 
+  @Override
   public void insertString(int offset, String  str, AttributeSet attr)
   throws BadLocationException {
     if (str == null) {
