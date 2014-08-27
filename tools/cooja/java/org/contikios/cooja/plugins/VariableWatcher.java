@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, TU Braunschweig.
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -83,6 +84,7 @@ import org.contikios.cooja.mote.memory.VarMemory;
  * User can also see which variables seems to be available on the selected node.
  *
  * @author Fredrik Osterlind
+ * @author Enrico Jorns
  */
 @ClassDescription("Variable Watcher")
 @PluginType(PluginType.MOTE_PLUGIN)
@@ -102,8 +104,8 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private JPanel lengthPane;
   private JPanel valuePane;
   private JPanel charValuePane;
-  private JComboBox varName;
-  private JComboBox varType;
+  private JComboBox varNameCombo;
+  private JComboBox varTypeCombo;
   private JFormattedTextField[] varValues;
   private JTextField[] charValues;
   private JFormattedTextField varLength;
@@ -141,17 +143,17 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     smallPane.add(BorderLayout.WEST, label);
 
-    varName = new JComboBox();
-    varName.setEditable(true);
-    varName.setSelectedItem("[enter or pick name]");
+    varNameCombo = new JComboBox();
+    varNameCombo.setEditable(true);
+    varNameCombo.setSelectedItem("[enter or pick name]");
 
     List<String> allPotentialVarNames = new ArrayList<>(moteMemory.getVariableNames());
     Collections.sort(allPotentialVarNames);
     for (String aVarName: allPotentialVarNames) {
-      varName.addItem(aVarName);
+      varNameCombo.addItem(aVarName);
     }
 
-    varName.addKeyListener(new KeyListener() {
+    varNameCombo.addKeyListener(new KeyListener() {
       @Override
       public void keyPressed(KeyEvent e) {
         writeButton.setEnabled(false);
@@ -166,7 +168,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       }
     });
 
-    smallPane.add(BorderLayout.EAST, varName);
+    smallPane.add(BorderLayout.EAST, varNameCombo);
     mainPane.add(smallPane);
 
     // Variable type
@@ -175,16 +177,16 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     smallPane.add(BorderLayout.WEST, label);
 
-    varType = new JComboBox();
-    varType.addItem("Byte (1 byte)"); // BYTE_INDEX = 0
-    varType.addItem("Integer (" + moteToView.getMemory().getLayout().intSize + " bytes)"); // INT_INDEX = 1
-    varType.addItem("Byte array (x bytes)"); // ARRAY_INDEX = 2
-    varType.addItem("Char array (x bytes)"); // CHAR_ARRAY_INDEX = 3
+    varTypeCombo = new JComboBox();
+    varTypeCombo.addItem("Byte (1 byte)"); // BYTE_INDEX = 0
+    varTypeCombo.addItem("Integer (" + moteToView.getMemory().getLayout().intSize + " bytes)"); // INT_INDEX = 1
+    varTypeCombo.addItem("Byte array (x bytes)"); // ARRAY_INDEX = 2
+    varTypeCombo.addItem("Char array (x bytes)"); // CHAR_ARRAY_INDEX = 3
 
-    varType.addActionListener(new ActionListener() {
+    varTypeCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        int selectedIndex = varType.getSelectedIndex();  
+        int selectedIndex = varTypeCombo.getSelectedIndex();  
         if (selectedIndex == ARRAY_INDEX || selectedIndex == CHAR_ARRAY_INDEX) {
           lengthPane.setVisible(true);
           setNumberOfValues(((Number) varLength.getValue()).intValue());
@@ -205,7 +207,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       }
     });
 
-    smallPane.add(BorderLayout.EAST, varType);
+    smallPane.add(BorderLayout.EAST, varTypeCombo);
     mainPane.add(smallPane);
 
     /* The recommended fix for the bug #4740914
@@ -238,7 +240,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       @Override
       public void propertyChange(PropertyChangeEvent e) {
         setNumberOfValues(((Number) varLength.getValue()).intValue());
-        if(varType.getSelectedIndex() == CHAR_ARRAY_INDEX) {
+        if(varTypeCombo.getSelectedIndex() == CHAR_ARRAY_INDEX) {
           setNumberOfCharValues(((Number) varLength.getValue()).intValue());    
         }
       }
@@ -400,45 +402,45 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     button.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (varType.getSelectedIndex() == BYTE_INDEX) {
+        if (varTypeCombo.getSelectedIndex() == BYTE_INDEX) {
           try {
-            byte val = moteMemory.getByteValueOf((String) varName.getSelectedItem());
+            byte val = moteMemory.getByteValueOf((String) varNameCombo.getSelectedItem());
             varValues[0].setValue(new Integer(0xFF & val));
-            varName.setBackground(Color.WHITE);
+            varNameCombo.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
           } catch (UnknownVariableException ex) {
-            varName.setBackground(Color.RED);
+            varNameCombo.setBackground(Color.RED);
             writeButton.setEnabled(false);
           }
-        } else if (varType.getSelectedIndex() == INT_INDEX) {
+        } else if (varTypeCombo.getSelectedIndex() == INT_INDEX) {
           try {
-            int val = moteMemory.getIntValueOf((String) varName.getSelectedItem());
+            int val = moteMemory.getIntValueOf((String) varNameCombo.getSelectedItem());
             varValues[0].setValue(new Integer(val));
-            varName.setBackground(Color.WHITE);
+            varNameCombo.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
           } catch (UnknownVariableException ex) {
-            varName.setBackground(Color.RED);
+            varNameCombo.setBackground(Color.RED);
             writeButton.setEnabled(false);
           }
-        } else if (varType.getSelectedIndex() == ARRAY_INDEX || 
-            varType.getSelectedIndex() == CHAR_ARRAY_INDEX) {
+        } else if (varTypeCombo.getSelectedIndex() == ARRAY_INDEX || 
+            varTypeCombo.getSelectedIndex() == CHAR_ARRAY_INDEX) {
           try {
             int length = ((Number) varLength.getValue()).intValue();
-            byte[] vals = moteMemory.getByteArray((String) varName.getSelectedItem(), length);
+            byte[] vals = moteMemory.getByteArray((String) varNameCombo.getSelectedItem(), length);
             for (int i=0; i < length; i++) {
               varValues[i].setValue(new Integer(0xFF & vals[i]));
             }
-            if(varType.getSelectedIndex() == CHAR_ARRAY_INDEX) {
+            if(varTypeCombo.getSelectedIndex() == CHAR_ARRAY_INDEX) {
               for (int i=0; i < length; i++) {
                 char ch = (char)(0xFF & vals[i]);  
                 charValues[i].setText(Character.toString(ch));  
                 varValues[i].addKeyListener(varValueKeyListener);
               } 
             }
-            varName.setBackground(Color.WHITE);
+            varNameCombo.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
           } catch (UnknownVariableException ex) {
-            varName.setBackground(Color.RED);
+            varNameCombo.setBackground(Color.RED);
             writeButton.setEnabled(false);
           }
         }
@@ -450,24 +452,24 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     button.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        if (varType.getSelectedIndex() == BYTE_INDEX) {
+        if (varTypeCombo.getSelectedIndex() == BYTE_INDEX) {
           try {
             byte val = (byte) ((Number) varValues[0].getValue()).intValue();
-            moteMemory.setByteValueOf((String) varName.getSelectedItem(), val);
-            varName.setBackground(Color.WHITE);
+            moteMemory.setByteValueOf((String) varNameCombo.getSelectedItem(), val);
+            varNameCombo.setBackground(Color.WHITE);
           } catch (UnknownVariableException ex) {
-            varName.setBackground(Color.RED);
+            varNameCombo.setBackground(Color.RED);
           }
-        } else if (varType.getSelectedIndex() == INT_INDEX) {
+        } else if (varTypeCombo.getSelectedIndex() == INT_INDEX) {
           try {
             int val = ((Number) varValues[0].getValue()).intValue();
-            moteMemory.setIntValueOf((String) varName.getSelectedItem(), val);
-            varName.setBackground(Color.WHITE);
+            moteMemory.setIntValueOf((String) varNameCombo.getSelectedItem(), val);
+            varNameCombo.setBackground(Color.WHITE);
           } catch (UnknownVariableException ex) {
-            varName.setBackground(Color.RED);
+            varNameCombo.setBackground(Color.RED);
           }
-        } else if (varType.getSelectedIndex() == ARRAY_INDEX || 
-            varType.getSelectedIndex() == CHAR_ARRAY_INDEX) {
+        } else if (varTypeCombo.getSelectedIndex() == ARRAY_INDEX || 
+            varTypeCombo.getSelectedIndex() == CHAR_ARRAY_INDEX) {
           try {
             int length = ((Number) varLength.getValue()).intValue();
             byte[] vals = new byte[length];
@@ -475,11 +477,11 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
               vals[i] = (byte) ((Number) varValues[i].getValue()).intValue();
             }
 
-            moteMemory.setByteArray((String) varName.getSelectedItem(), vals);
-            varName.setBackground(Color.WHITE);
+            moteMemory.setByteArray((String) varNameCombo.getSelectedItem(), vals);
+            varNameCombo.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
           } catch (UnknownVariableException ex) {
-            varName.setBackground(Color.RED);
+            varNameCombo.setBackground(Color.RED);
             writeButton.setEnabled(false);
           }
         }
@@ -542,26 +544,26 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     // Selected variable name
     element = new Element("varname");
-    element.setText((String) varName.getSelectedItem());
+    element.setText((String) varNameCombo.getSelectedItem());
     config.add(element);
 
     // Selected variable type
-    if (varType.getSelectedIndex() == BYTE_INDEX) {
+    if (varTypeCombo.getSelectedIndex() == BYTE_INDEX) {
       element = new Element("vartype");
       element.setText("byte");
       config.add(element);
-    } else if (varType.getSelectedIndex() == INT_INDEX) {
+    } else if (varTypeCombo.getSelectedIndex() == INT_INDEX) {
       element = new Element("vartype");
       element.setText("int");
       config.add(element);
-    } else if (varType.getSelectedIndex() == ARRAY_INDEX) {
+    } else if (varTypeCombo.getSelectedIndex() == ARRAY_INDEX) {
       element = new Element("vartype");
       element.setText("array");
       config.add(element);
       element = new Element("array_length");
       element.setText(varLength.getValue().toString());
       config.add(element);
-    } else if (varType.getSelectedIndex() == CHAR_ARRAY_INDEX) {
+    } else if (varTypeCombo.getSelectedIndex() == CHAR_ARRAY_INDEX) {
       element = new Element("vartype");
       element.setText("chararray");
       config.add(element);
@@ -581,17 +583,17 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     for (Element element : configXML) {
       if (element.getName().equals("varname")) {
-        varName.setSelectedItem(element.getText());
+        varNameCombo.setSelectedItem(element.getText());
       } else if (element.getName().equals("vartype")) {
         if (element.getText().equals("byte")) {
-          varType.setSelectedIndex(BYTE_INDEX);
+          varTypeCombo.setSelectedIndex(BYTE_INDEX);
         } else if (element.getText().equals("int")) {
-          varType.setSelectedIndex(INT_INDEX);
+          varTypeCombo.setSelectedIndex(INT_INDEX);
         } else if (element.getText().equals("array")) {
-          varType.setSelectedIndex(ARRAY_INDEX);
+          varTypeCombo.setSelectedIndex(ARRAY_INDEX);
           lengthPane.setVisible(true);
         } else if (element.getText().equals("chararray")) {
-          varType.setSelectedIndex(CHAR_ARRAY_INDEX);
+          varTypeCombo.setSelectedIndex(CHAR_ARRAY_INDEX);
           lengthPane.setVisible(true);
         }
       } else if (element.getName().equals("array_length")) {
