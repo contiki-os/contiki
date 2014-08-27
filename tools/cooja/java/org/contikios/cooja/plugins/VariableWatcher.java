@@ -34,6 +34,7 @@ package org.contikios.cooja.plugins;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -663,8 +664,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     valuePane.removeAll();
 
-    JPanel linePane = new JPanel();
-    linePane.setLayout(new BoxLayout(linePane, BoxLayout.X_AXIS));
+    JPanel linePane = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
     DefaultFormatterFactory defac = new DefaultFormatterFactory(hf);
     long address = moteMemory.getVariableAddress((String) varNameCombo.getSelectedItem());
@@ -677,12 +677,12 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       for (int i = 0; i < elements; i++) {
         varValues[i] = new JFormattedTextField(defac);
         varValues[i].setColumns(6);
+        varValues[i].setToolTipText(String.format("0x%04x", address + i * typeSize));
         linePane.add(varValues[i]);
         /* After 8 Elements, break line */
         if ((i + 1) % 8 == 0) {
           valuePane.add(linePane);
-          linePane = new JPanel();
-          linePane.setLayout(new BoxLayout(linePane, BoxLayout.X_AXIS));
+          linePane = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         }
       }
       valuePane.add(linePane);
