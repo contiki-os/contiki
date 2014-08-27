@@ -40,17 +40,21 @@ import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -63,10 +67,9 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
-
-import org.jdom.Element;
-
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Cooja;
 import org.contikios.cooja.Mote;
@@ -76,6 +79,7 @@ import org.contikios.cooja.Simulation;
 import org.contikios.cooja.VisPlugin;
 import org.contikios.cooja.mote.memory.UnknownVariableException;
 import org.contikios.cooja.mote.memory.VarMemory;
+import org.jdom.Element;
 
 /**
  * Variable Watcher enables a user to watch mote variables during a simulation.
@@ -108,6 +112,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private JComboBox varTypeCombo;
   private JComboBox varFormatCombo;
   private JFormattedTextField[] varValues;
+  private byte[] bufferedBytes;
   private JTextField[] charValues;
   private JFormattedTextField varLength;
   private JButton writeButton;
@@ -118,6 +123,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private FocusAdapter jFormattedTextFocusAdapter;
 
   private NumberFormat integerFormat;
+  private ValueFormatter hf;
 
   private Mote mote;
 
@@ -258,33 +264,30 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     JPanel reprPanel = new JPanel(new BorderLayout());
     varTypeCombo = new JComboBox(valueTypes);
+    varTypeCombo.addItemListener(new ItemListener() {
 
-    varTypeCombo.addActionListener(new ActionListener() {
       @Override
-      public void actionPerformed(ActionEvent e) {
-        int selectedIndex = varTypeCombo.getSelectedIndex();  
-        if (selectedIndex == ARRAY_INDEX || selectedIndex == CHAR_ARRAY_INDEX) {
-          lengthPane.setVisible(true);
-          setNumberOfValues(((Number) varLength.getValue()).intValue());
-          if(selectedIndex == CHAR_ARRAY_INDEX) {
-            charValuePane.setVisible(true);
-            setNumberOfCharValues(((Number) varLength.getValue()).intValue());
-          } else {
-            charValuePane.setVisible(false);
-            setNumberOfCharValues(1);  
-          }
-        } else {
-          lengthPane.setVisible(false);
-          charValuePane.setVisible(false);
-          setNumberOfValues(1);
-          setNumberOfCharValues(1);
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+          hf.setType((VarTypes) e.getItem());
+          updateNumberOfValues(); // number of elements should have changed
         }
-        pack();
       }
     });
 
     varFormatCombo = new JComboBox(valueFormats);
     varFormatCombo.setSelectedItem(VarFormats.HEX);
+    varFormatCombo.addItemListener(new ItemListener() {
+
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED) {
+
+          hf.setFormat((VarFormats) e.getItem());
+          refreshValues(); // format of elements should have changed
+        }
+      }
+    });
 
     reprPanel.add(BorderLayout.WEST, varTypeCombo);
     reprPanel.add(BorderLayout.EAST, varFormatCombo);
@@ -344,6 +347,10 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     // Variable value(s)
     valuePane = new JPanel();
     valuePane.setLayout(new BoxLayout(valuePane, BoxLayout.X_AXIS));
+
+    hf = new ValueFormatter(
+            (VarTypes) varTypeCombo.getSelectedItem(),
+            (VarFormats) varFormatCombo.getSelectedItem());
 
     varValues = new JFormattedTextField[1];
     varValues[0] = new JFormattedTextField(integerFormat);
@@ -577,6 +584,170 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     add(BorderLayout.NORTH, mainPane);
     pack();
   }
+
+
+  /**
+   * String to Value to String conversion for JFormattedTextField
+   * based on selected VarTypes and VarFormats.
+   */
+  public class ValueFormatter extends JFormattedTextField.AbstractFormatter {
+
+    final String TEXT_NOT_TO_TOUCH;
+
+    private VarTypes mType;
+    private VarFormats mFormat;
+
+    public ValueFormatter(VarTypes type, VarFormats format) {
+      mType = type;
+      mFormat = format;
+      if (mFormat == VarFormats.HEX) {
+        TEXT_NOT_TO_TOUCH = "0x";
+      }
+      else {
+        TEXT_NOT_TO_TOUCH = "";
+      }
+    }
+
+    public void setType(VarTypes type) {
+      mType = type;
+    }
+
+    public void setFormat(VarFormats format) {
+      mFormat = format;
+    }
+
+    @Override
+    public Object stringToValue(String text) throws ParseException {
+      Object ret;
+      switch (mFormat) {
+        case CHAR:
+          ret = text.charAt(0);
+          break;
+        case DEC:
+        case HEX:
+          try {
+            ret = Integer.decode(text);
+          }
+          catch (NumberFormatException ex) {
+            ret = 0;
+          }
+          break;
+        default:
+          ret = null;
+      }
+      return ret;
+    }
+
+    @Override
+    public String valueToString(Object value) throws ParseException {
+      if (value == null) {
+        return "?";
+      }
+
+      switch (mFormat) {
+        case CHAR:
+          return String.format("%c", value);
+        case DEC:
+          return String.format("%d", value);
+        case HEX:
+          return String.format("0x%x", value);
+        default:
+          return "";
+      }
+    }
+
+    /* Do not override TEXT_NOT_TO_TOUCH */
+    @Override
+    public DocumentFilter getDocumentFilter() {
+      return new DocumentFilter() {
+
+        @Override
+        public void insertString(DocumentFilter.FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+          if (offset < TEXT_NOT_TO_TOUCH.length()) {
+            return;
+          }
+          super.insertString(fb, offset, string, attr);
+        }
+
+        @Override
+        public void replace(DocumentFilter.FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+          if (offset < TEXT_NOT_TO_TOUCH.length()) {
+            length = Math.max(0, length - TEXT_NOT_TO_TOUCH.length());
+            offset = TEXT_NOT_TO_TOUCH.length();
+          }
+          super.replace(fb, offset, length, text, attrs);
+        }
+
+        @Override
+        public void remove(DocumentFilter.FilterBypass fb, int offset, int length) throws BadLocationException {
+          if (offset < TEXT_NOT_TO_TOUCH.length()) {
+            length = Math.max(0, length + offset - TEXT_NOT_TO_TOUCH.length());
+            offset = TEXT_NOT_TO_TOUCH.length();
+          }
+          if (length > 0) {
+            super.remove(fb, offset, length);
+          }
+        }
+      };
+    }
+  }
+
+
+  /**
+   * Updates all value fields based on buffered data.
+   */
+  private void refreshValues() {
+    int bytes = moteMemory.getVariableSize((String) varNameCombo.getSelectedItem());
+    int typeSize = ((VarTypes) varTypeCombo.getSelectedItem()).getBytes();
+    int elements = (int) Math.ceil((double) bytes / typeSize);
+
+    /* Skip if we have no data to set */
+    if ((bufferedBytes == null) || (bufferedBytes.length < bytes)) {
+      return;
+    }
+
+    /* Set values based on buffered data */
+    for (int i = 0; i < elements; i += 1) {
+      int val = 0;
+      for (int j = 0; j < typeSize; j++) {
+        val += ((bufferedBytes[i * typeSize + j] & 0xFF) << (j * 8));
+      }
+      varValues[i].setValue(val);
+      try {
+        varValues[i].commitEdit();
+      }
+      catch (ParseException ex) {
+        Logger.getLogger(VariableWatcher.class.getName()).log(Level.SEVERE, null, ex);
+      }
+    }
+
+  }
+
+  /**
+   * Updates number of value fields.
+   */
+  private void updateNumberOfValues() {
+    valuePane.removeAll();
+
+    DefaultFormatterFactory defac = new DefaultFormatterFactory(hf);
+    long address = moteMemory.getVariableAddress((String) varNameCombo.getSelectedItem());
+    int bytes = moteMemory.getVariableSize((String) varNameCombo.getSelectedItem());
+    int typeSize = ((VarTypes) varTypeCombo.getSelectedItem()).getBytes();
+    int elements = (int) Math.ceil((double) bytes / typeSize);
+
+    if (elements > 0) {
+      varValues = new JFormattedTextField[elements];
+      for (int i = 0; i < elements; i++) {
+        varValues[i] = new JFormattedTextField(defac);
+        valuePane.add(varValues[i]);
+      }
+    }
+
+    refreshValues();
+
+    pack();
+  }
+
 
   private void setNumberOfValues(int nr) {
     valuePane.removeAll();
