@@ -105,6 +105,9 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private JComboBox varNameCombo;
   private JComboBox varTypeCombo;
   private JComboBox varFormatCombo;
+  private JPanel infoPane;
+  private JTextField varAddressField;
+  private JTextField varSizeField;
   private JFormattedTextField[] varValues;
   private byte[] bufferedBytes;
   private JButton readButton;
@@ -265,6 +268,8 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
             bufferedBytes = null;
             /* calculate number of elements required to show the value in the given size */
             updateNumberOfValues();
+            varAddressField.setText(String.format("0x%04x", moteMemory.getVariableAddress((String) e.getItem())));
+            varSizeField.setText(String.valueOf(moteMemory.getVariableSize((String) e.getItem())));
           }
           catch (UnknownVariableException ex) {
             ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(Color.RED);
@@ -321,6 +326,33 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     mainPane.add(smallPane);
 
     mainPane.add(Box.createRigidArea(new Dimension(0,5)));
+
+    infoPane = new JPanel();
+    infoPane.setLayout(new BoxLayout(infoPane, BoxLayout.Y_AXIS));
+
+    JPanel addrInfoPane = new JPanel(new BorderLayout());
+    JPanel sizeInfoPane = new JPanel(new BorderLayout());
+
+    label = new JLabel("Address");
+    addrInfoPane.add(BorderLayout.CENTER, label);
+    varAddressField = new JTextField("?");
+    varAddressField.setEditable(false);
+    varAddressField.setEnabled(false);
+    varAddressField.setColumns(6);
+    addrInfoPane.add(BorderLayout.EAST, varAddressField);
+
+    infoPane.add(addrInfoPane);
+
+    label = new JLabel("Size");
+    sizeInfoPane.add(BorderLayout.WEST, label);
+    varSizeField = new JTextField("?");
+    varSizeField.setEditable(false);
+    varSizeField.setEnabled(false);
+    varSizeField.setColumns(6);
+    sizeInfoPane.add(BorderLayout.EAST, varSizeField);
+
+    infoPane.add(sizeInfoPane);
+    mainPane.add(infoPane);
 
     // Variable value label
     label = new JLabel("Variable value");
