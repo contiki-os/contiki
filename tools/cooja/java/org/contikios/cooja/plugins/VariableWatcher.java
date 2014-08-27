@@ -558,7 +558,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   @Override
   public Collection<Element> getConfigXML() {
     // Return currently watched variable and type
-    Vector<Element> config = new Vector<Element>();
+    Vector<Element> config = new Vector<>();
 
     Element element;
 
@@ -568,56 +568,33 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     config.add(element);
 
     // Selected variable type
-    if (varTypeCombo.getSelectedIndex() == BYTE_INDEX) {
-      element = new Element("vartype");
-      element.setText("byte");
-      config.add(element);
-    } else if (varTypeCombo.getSelectedIndex() == INT_INDEX) {
-      element = new Element("vartype");
-      element.setText("int");
-      config.add(element);
-    } else if (varTypeCombo.getSelectedIndex() == ARRAY_INDEX) {
-      element = new Element("vartype");
-      element.setText("array");
-      config.add(element);
-      element = new Element("array_length");
-      element.setText(varLength.getValue().toString());
-      config.add(element);
-    } else if (varTypeCombo.getSelectedIndex() == CHAR_ARRAY_INDEX) {
-      element = new Element("vartype");
-      element.setText("chararray");
-      config.add(element);
-      element = new Element("array_length");
-      element.setText(varLength.getValue().toString());
-      config.add(element);
-    }
-
+    element = new Element("vartype");
+    element.setText(String.valueOf(varTypeCombo.getSelectedIndex()));
+    config.add(element);
+    
+    // Selected output format
+    element = new Element("varformat");
+    element.setText(String.valueOf(varDispCombo.getSelectedIndex()));
+    config.add(element);
     return config;
   }
 
   @Override
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-    updateNumberOfValues();
-
     for (Element element : configXML) {
-      if (element.getName().equals("varname")) {
-        varNameCombo.setSelectedItem(element.getText());
-      } else if (element.getName().equals("vartype")) {
-        if (element.getText().equals("byte")) {
-          varTypeCombo.setSelectedIndex(BYTE_INDEX);
-        } else if (element.getText().equals("int")) {
-          varTypeCombo.setSelectedIndex(INT_INDEX);
-        } else if (element.getText().equals("array")) {
-          varTypeCombo.setSelectedIndex(ARRAY_INDEX);
-        } else if (element.getText().equals("chararray")) {
-          varTypeCombo.setSelectedIndex(CHAR_ARRAY_INDEX);
-          lengthPane.setVisible(true);
-        }
-      } else if (element.getName().equals("array_length")) {
-        int nrValues = Integer.parseInt(element.getText());
-        updateNumberOfValues();
+      switch (element.getName()) {
+        case "varname":
+          varNameCombo.setSelectedItem(element.getText());
+          break;
+        case "vartype":
+          varTypeCombo.setSelectedIndex(Integer.parseInt(element.getText()));
+          break;
+        case "varformat":
+          varDispCombo.setSelectedIndex(Integer.parseInt(element.getText()));
+          break;
       }
     }
+    updateNumberOfValues();
 
     return true;
   }
