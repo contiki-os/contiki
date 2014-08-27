@@ -36,12 +36,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyListener;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -101,13 +97,13 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private final static int LABEL_HEIGHT = 15;
 
   private JPanel lengthPane;
-  private JPanel valuePane;
   private JComboBox varNameCombo;
   private JComboBox varTypeCombo;
   private JComboBox varFormatCombo;
   private JPanel infoPane;
   private JTextField varAddressField;
   private JTextField varSizeField;
+  private JPanel valuePane;
   private JFormattedTextField[] varValues;
   private byte[] bufferedBytes;
   private JButton readButton;
@@ -115,11 +111,10 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private JFormattedTextField varLength;
   private JButton writeButton;
   private JLabel debuglbl;
-  private FocusListener charValueFocusListener;
   private VarMemory moteMemory;
 
   MemoryInterface.SegmentMonitor memMonitor;
-  int monitorAddr;
+  long monitorAddr;
   int monitorSize;
 
   private NumberFormat integerFormat;
@@ -373,19 +368,6 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     varValues[0].setValue(new Integer(0));
     varValues[0].setColumns(3);
     varValues[0].setText("?");
-
-    charValueFocusListener = new FocusListener() {
-      @Override
-      public void focusGained(FocusEvent arg0) {
-        JTextField jtxt = (JTextField)arg0.getComponent();
-        jtxt.selectAll();
-      }
-
-      @Override
-      public void focusLost(FocusEvent arg0) {
-
-      }
-    };
 
     mainPane.add(valuePane);
     mainPane.add(Box.createRigidArea(new Dimension(0,5)));
@@ -678,6 +660,9 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     valuePane.removeAll();
 
+    JPanel linePane = new JPanel();
+    linePane.setLayout(new BoxLayout(linePane, BoxLayout.X_AXIS));
+
     DefaultFormatterFactory defac = new DefaultFormatterFactory(hf);
     long address = moteMemory.getVariableAddress((String) varNameCombo.getSelectedItem());
     int bytes = moteMemory.getVariableSize((String) varNameCombo.getSelectedItem());
@@ -688,8 +673,16 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       varValues = new JFormattedTextField[elements];
       for (int i = 0; i < elements; i++) {
         varValues[i] = new JFormattedTextField(defac);
-        valuePane.add(varValues[i]);
+        varValues[i].setColumns(6);
+        linePane.add(varValues[i]);
+        /* After 8 Elements, break line */
+        if ((i + 1) % 8 == 0) {
+          valuePane.add(linePane);
+          linePane = new JPanel();
+          linePane.setLayout(new BoxLayout(linePane, BoxLayout.X_AXIS));
+        }
       }
+      valuePane.add(linePane);
     }
 
     refreshValues();
