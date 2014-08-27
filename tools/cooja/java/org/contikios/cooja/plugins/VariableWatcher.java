@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Vector;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -721,7 +720,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   @Override
   public Collection<Element> getConfigXML() {
     // Return currently watched variable and type
-    Vector<Element> config = new Vector<>();
+    List<Element> config = new ArrayList<>();
 
     Element element;
 
