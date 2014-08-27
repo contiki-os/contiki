@@ -106,6 +106,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private JPanel charValuePane;
   private JComboBox varNameCombo;
   private JComboBox varTypeCombo;
+  private JComboBox varFormatCombo;
   private JFormattedTextField[] varValues;
   private JTextField[] charValues;
   private JFormattedTextField varLength;
@@ -119,7 +120,81 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private NumberFormat integerFormat;
 
   private Mote mote;
-  
+
+  /** 
+   * Display types for variables.
+   */
+  public enum VarTypes {
+
+    BYTE("byte", 1),
+    SHORT("short", 2),
+    INT("int", 2),
+    LONG("long", 4),
+    ADDR("address", 4);
+
+    String mRep;
+    int mSize;
+
+    VarTypes(String rep, int size) {
+      mRep = rep;
+      mSize = size;
+    }
+
+    /**
+     * Returns the number of bytes for this data type.
+     *
+     * @return Size in bytes
+     */
+    public int getBytes() {
+      return mSize;
+    }
+
+    protected void setBytes(int size) {
+      mSize = size;
+    }
+
+    /**
+     * Returns String name of this variable type.
+     *
+     * @return Type name
+     */
+    @Override
+    public String toString() {
+      return mRep;
+    }
+  }
+
+  /** 
+   * Display formats for variables.
+   */
+  public enum VarFormats {
+
+    CHAR("Char", 0),
+    DEC("Decimal", 10),
+    HEX("Hex", 16);
+
+    String mRep;
+    int mBase;
+
+    VarFormats(String rep, int base) {
+      mRep = rep;
+      mBase = base;
+    }
+
+    /**
+     * Returns String name of this variable representation.
+     *
+     * @return Type name
+     */
+    @Override
+    public String toString() {
+      return mRep;
+    }
+  }
+
+  VarFormats[] valueFormats = {VarFormats.CHAR, VarFormats.DEC, VarFormats.HEX};
+  VarTypes[] valueTypes = {VarTypes.BYTE, VarTypes.SHORT, VarTypes.INT, VarTypes.LONG, VarTypes.ADDR};
+
   /**
    * @param moteToView Mote
    * @param simulation Simulation
@@ -177,11 +252,12 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     smallPane.add(BorderLayout.WEST, label);
 
-    varTypeCombo = new JComboBox();
-    varTypeCombo.addItem("Byte (1 byte)"); // BYTE_INDEX = 0
-    varTypeCombo.addItem("Integer (" + moteToView.getMemory().getLayout().intSize + " bytes)"); // INT_INDEX = 1
-    varTypeCombo.addItem("Byte array (x bytes)"); // ARRAY_INDEX = 2
-    varTypeCombo.addItem("Char array (x bytes)"); // CHAR_ARRAY_INDEX = 3
+    /* set correct integer and address size */
+    valueTypes[2].setBytes(moteToView.getMemory().getLayout().intSize);
+    valueTypes[4].setBytes(moteToView.getMemory().getLayout().addrSize);
+
+    JPanel reprPanel = new JPanel(new BorderLayout());
+    varTypeCombo = new JComboBox(valueTypes);
 
     varTypeCombo.addActionListener(new ActionListener() {
       @Override
@@ -207,7 +283,13 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       }
     });
 
-    smallPane.add(BorderLayout.EAST, varTypeCombo);
+    varFormatCombo = new JComboBox(valueFormats);
+    varFormatCombo.setSelectedItem(VarFormats.HEX);
+
+    reprPanel.add(BorderLayout.WEST, varTypeCombo);
+    reprPanel.add(BorderLayout.EAST, varFormatCombo);
+
+    smallPane.add(BorderLayout.EAST, reprPanel);
     mainPane.add(smallPane);
 
     /* The recommended fix for the bug #4740914
