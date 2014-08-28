@@ -483,6 +483,8 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
           varAddrCheckBox.setEnabled(true);
           readButton.setEnabled(true);
           writeButton.setEnabled(true);
+          varAddressField.setEnabled(true);
+          varSizeField.setEnabled(true);
           if (!varAddrCheckBox.isSelected()) {
             varNameCombo.setEnabled(true);
           }
@@ -523,6 +525,8 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         varAddrCheckBox.setEnabled(false);
         readButton.setEnabled(false);
         writeButton.setEnabled(false);
+        varAddressField.setEnabled(false);
+        varSizeField.setEnabled(false);
         varNameCombo.setEnabled(false);
       }
     });
