@@ -29,6 +29,8 @@
  */
 package org.contikios.cooja.mote.memory;
 
+import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor;
+import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor.EventType;
 import org.contikios.cooja.mote.memory.MemoryLayout.DataType;
 
 /**
@@ -276,4 +278,27 @@ public abstract class Memory {
     memIntf.setMemorySegment(addr, data);
   }
 
+  /**
+   * Adds monitor to specified memory region.
+   * 
+   * @param flag Select memory operation(s) to listen for (read, write, read/write)
+   * @param addr Start address of monitored region
+   * @param size Size of monitored region
+   * @param mm Monitor to add
+   * @return if monitor could be added, false if not
+   */
+  public boolean addMemoryMonitor(EventType flag, long addr, int size, SegmentMonitor mm) {
+    return memIntf.addSegmentMonitor(flag, addr, size, mm);
+  }
+
+  /**
+   * Removes monitor assigned to the specified region.
+   *
+   * @param addr Start address of monitored region
+   * @param size Size of monitored region
+   * @param mm Monitor to remove
+   */
+  public void removeMemoryMonitor(long addr, int size, SegmentMonitor mm) {
+    memIntf.removeSegmentMonitor(addr, size, mm);
+  }
 }
