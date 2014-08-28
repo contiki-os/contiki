@@ -360,13 +360,12 @@ public class VarMemory extends Memory {
   }
 
   /**
-   * Adds a MemoryMonitor for the specified address region.
+   * Adds a monitor for the specified address region.
    *
-   * @param flag Select memory operation(s) to listen for (read, write,
-   * read/write)
-   * @param varName
-   * @param mm
-   * @return
+   * @param flag Select memory operation(s) to listen for (read, write, read/write)
+   * @param varName Name of variable to monitor
+   * @param mm Monitor to add
+   * @return if monitor could be added, false if not
    */
   public boolean addVarMonitor(EventType flag, final String varName, final SegmentMonitor mm) {
     return memIntf.addSegmentMonitor(
@@ -377,10 +376,10 @@ public class VarMemory extends Memory {
   }
 
   /**
-   * Removes MemoryMonitor assigned to the specified region.
+   * Removes monitor assigned to the specified region.
    *
-   * @param varName
-   * @param mm MemoryMonitor to remove
+   * @param varName Name of monitored variable
+   * @param mm Monitor to remove
    */
   public void removeVarMonitor(String varName, SegmentMonitor mm) {
     memIntf.removeSegmentMonitor(getVariable(varName).addr, getVariable(varName).size, mm);
