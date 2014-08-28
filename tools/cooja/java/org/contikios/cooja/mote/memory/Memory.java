@@ -151,6 +151,18 @@ public abstract class Memory {
     return MemoryBuffer.wrap(memIntf.getLayout(), memIntf.getMemorySegment(addr, memIntf.getLayout().addrSize)).getAddr();
   }
 
+  /**
+   * Read byte array starting at given address.
+   *
+   * @param addr Start address to read from
+   * @param length Numbe of bytes to read
+   * @return byte array read from location assigned to variable name
+   */
+  public byte[] getByteArray(long addr, int length)
+          throws UnknownVariableException {
+    return memIntf.getMemorySegment(addr, length);
+  }
+
   // -- Set fixed size types
   /**
    * Write 8 bit integer to address.
@@ -251,6 +263,17 @@ public abstract class Memory {
    */
   public void setAddrValueOf(long addr, long value) {
     memIntf.setMemorySegment(addr, MemoryBuffer.wrap(memIntf.getLayout(), new byte[memIntf.getLayout().addrSize]).putAddr(value).getBytes());
+  }
+
+  /**
+   * Write byte array starting at given address.
+   *
+   * @param addr Start address to write to
+   * @param data data to write
+   */
+  public void setByteArray(long addr, byte[] data)
+          throws UnknownVariableException {
+    memIntf.setMemorySegment(addr, data);
   }
 
 }

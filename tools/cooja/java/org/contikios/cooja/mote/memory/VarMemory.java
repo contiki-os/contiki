@@ -243,7 +243,7 @@ public class VarMemory extends Memory {
    */
   public byte[] getByteArray(String varName, int length)
           throws UnknownVariableException {
-    return memIntf.getMemorySegment(getVariable(varName).addr, length);
+    return getByteArray(getVariable(varName).addr, length);
   }
 
   /**
@@ -349,13 +349,14 @@ public class VarMemory extends Memory {
   }
 
   /**
+   * Write byte array starting at location associated with this variable name.
    *
-   * @param varName
-   * @param data
+   * @param varName Variable name
+   * @param data data to write
    */
   public void setByteArray(String varName, byte[] data)
           throws UnknownVariableException {
-    memIntf.setMemorySegment(getVariable(varName).addr, data);
+    setByteArray(getVariable(varName).addr, data);
   }
 
   /**
