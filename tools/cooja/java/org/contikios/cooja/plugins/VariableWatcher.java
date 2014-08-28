@@ -625,11 +625,10 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
           try {
             switch (mType) {
               case BYTE:
-                ret = Byte.decode(text);
-                break;
-              case INT:
+              case SHORT:
                 ret = Integer.decode(text);
                 break;
+              case INT:
               case LONG:
               case ADDR:
                 ret = Long.decode(text);
