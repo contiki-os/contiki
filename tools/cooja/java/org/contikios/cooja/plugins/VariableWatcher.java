@@ -417,7 +417,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     // Variable value(s)
     valuePane = new JPanel();
-    valuePane.setLayout(new BoxLayout(valuePane, BoxLayout.X_AXIS));
+    valuePane.setLayout(new BoxLayout(valuePane, BoxLayout.PAGE_AXIS));
 
     hf = new ValueFormatter(
             (VarTypes) varTypeCombo.getSelectedItem(),
@@ -775,7 +775,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     varValues = new JFormattedTextField[elements];
     for (int i = 0; i < elements; i++) {
       varValues[i] = new JFormattedTextField(defac);
-      varValues[i].setColumns(6);
+      varValues[i].setColumns(((VarTypes) varTypeCombo.getSelectedItem()).getBytes() * 2 + 2);
       varValues[i].setToolTipText(String.format("0x%04x", address + i * typeSize));
       linePane.add(varValues[i]);
       /* After 8 Elements, break line */
