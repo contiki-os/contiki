@@ -132,7 +132,6 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
       
       GridBagConstraints c = new GridBagConstraints();
       JPanel serverSelectPanel = new JPanel(new GridBagLayout());
-      pack();
       serverSelectPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
       JLabel label = new JLabel("Host:");
@@ -329,6 +328,7 @@ public class SerialSocketClient extends VisPlugin implements MotePlugin {
         }
       });
     }
+    pack();
   }
   
   private List<ClientListener> listeners = new LinkedList<>();
