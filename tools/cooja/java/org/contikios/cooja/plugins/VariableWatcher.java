@@ -56,6 +56,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
@@ -334,17 +335,15 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         if (varAddrCheckBox.isSelected()) {
           varNameCombo.setEnabled(false);
           varNameCombo.setEditable(false);
-          varAddressField.setEnabled(true);
           varAddressField.setEditable(true);
-          varSizeField.setEnabled(true);
           varSizeField.setEditable(true);
         } else {
           varNameCombo.setEnabled(true);
           varNameCombo.setEditable(true);
-          // switch back to var name control
-          updateBySelectedVarname();
           varAddressField.setEditable(false);
           varSizeField.setEditable(false);
+          // switch back to var name control
+          updateBySelectedVarname();
         }
       }
     });
@@ -451,14 +450,18 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
           return;
         }
 
-        writeButton.setEnabled(true);
-        bufferedBytes = moteMemory.getByteArray(
-                (long) varAddressField.getValue(),
-                Integer.decode(varSizeField.getText()));
-        refreshValues();
+        try {
+          writeButton.setEnabled(true);
+          bufferedBytes = moteMemory.getByteArray(
+                  (long) varAddressField.getValue(),
+                  Integer.decode(varSizeField.getText()));
+          refreshValues();
+        } catch (MemoryInterface.MoteMemoryException ex) {
+          JOptionPane.showMessageDialog(varNameCombo, ex.getMessage(), "MoteMemoryException", JOptionPane.ERROR_MESSAGE);
+        }
       }
     });
-    
+
     readPane.add(BorderLayout.WEST, readButton);
 
     /* MemoryMonitor required for monitor button */
@@ -479,23 +482,28 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
                   memMonitor);
           varAddrCheckBox.setEnabled(true);
           readButton.setEnabled(true);
-          varNameCombo.setEnabled(true);
           writeButton.setEnabled(true);
+          if (!varAddrCheckBox.isSelected()) {
+            varNameCombo.setEnabled(true);
+          }
           return;
         }
 
         /* initial readout so we have a value to display */
-        bufferedBytes = moteMemory.getByteArray(
-                (long) varAddressField.getValue(),
-                Integer.decode(varSizeField.getText()));
-        refreshValues();
+        try {
+          bufferedBytes = moteMemory.getByteArray(
+                  (long) varAddressField.getValue(),
+                  Integer.decode(varSizeField.getText()));
+          refreshValues();
+        } catch (MemoryInterface.MoteMemoryException ex) {
+          JOptionPane.showMessageDialog(varNameCombo, ex.getMessage(), "MoteMemoryException", JOptionPane.ERROR_MESSAGE);
+          monitorButton.setSelected(false);
+          return;
+        }
 
-//        monitorAddr = moteMemory.getVariableAddress(varname);
-//        monitorSize = moteMemory.getVariableSize(varname);
         memMonitor = new MemoryInterface.SegmentMonitor() {
 
           @Override
-//          public void memoryChanged(MoteMemory memory, MoteMemory.MemoryEventType type, int address) {
           public void memoryChanged(MemoryInterface memory, EventType type, long address) {
             bufferedBytes = moteMemory.getByteArray(
                     (long) varAddressField.getValue(),
@@ -756,29 +764,31 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     int typeSize = ((VarTypes) varTypeCombo.getSelectedItem()).getBytes();
     int elements = (int) Math.ceil((double) bytes / typeSize);
 
-    if (elements > 0) {
-      varValues = new JFormattedTextField[elements];
-      for (int i = 0; i < elements; i++) {
-        varValues[i] = new JFormattedTextField(defac);
-        varValues[i].setColumns(6);
-        varValues[i].setToolTipText(String.format("0x%04x", address + i * typeSize));
-        linePane.add(varValues[i]);
-        /* After 8 Elements, break line */
-        if ((i + 1) % 8 == 0) {
-          valuePane.add(linePane);
-          linePane = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        }
-      }
-      valuePane.add(linePane);
-
-      readButton.setEnabled(true);
-      monitorButton.setEnabled(true);
-      writeButton.setEnabled(true);
-    } else {
+    /* If no/unknown size: disable buttons and abort */
+    if (elements == 0) {
       readButton.setEnabled(false);
       monitorButton.setEnabled(false);
       writeButton.setEnabled(false);
+      return;
     }
+
+    varValues = new JFormattedTextField[elements];
+    for (int i = 0; i < elements; i++) {
+      varValues[i] = new JFormattedTextField(defac);
+      varValues[i].setColumns(6);
+      varValues[i].setToolTipText(String.format("0x%04x", address + i * typeSize));
+      linePane.add(varValues[i]);
+      /* After 8 Elements, break line */
+      if ((i + 1) % 8 == 0) {
+        valuePane.add(linePane);
+        linePane = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+      }
+    }
+    valuePane.add(linePane);
+
+    readButton.setEnabled(true);
+    monitorButton.setEnabled(true);
+    writeButton.setEnabled(true);
 
     refreshValues();
 
