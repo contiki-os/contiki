@@ -37,6 +37,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.text.NumberFormat;
@@ -50,13 +52,13 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
-import javax.swing.UIManager;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.text.AttributeSet;
@@ -96,19 +98,17 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private final static int LABEL_WIDTH = 170;
   private final static int LABEL_HEIGHT = 15;
 
-  private JPanel lengthPane;
   private JComboBox varNameCombo;
   private JComboBox varTypeCombo;
   private JComboBox varFormatCombo;
   private JPanel infoPane;
-  private JTextField varAddressField;
+  private JFormattedTextField varAddressField;
   private JTextField varSizeField;
   private JPanel valuePane;
   private JFormattedTextField[] varValues;
   private byte[] bufferedBytes;
   private JButton readButton;
   private AbstractButton monitorButton;
-  private JFormattedTextField varLength;
   private JButton writeButton;
   private JLabel debuglbl;
   private VarMemory moteMemory;
@@ -251,43 +251,21 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       @Override
       public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
         String currentItem = (String)varNameCombo.getSelectedItem();
-        
+
         /* If item did not changed, skip! */
         if (currentItem == null || currentItem.equals(lastItem)) {
           return;
         }
         lastItem = currentItem;
-
-        try {
-          /* invalidate byte field */
-          bufferedBytes = null;
-          /* calculate number of elements required to show the value in the given size */
-          updateNumberOfValues();
-          varAddressField.setText(String.format("0x%04x", moteMemory.getVariableAddress(currentItem)));
-          long size = moteMemory.getVariableSize(currentItem);
-          /* Disable buttons if variable reported size < 1, activate otherwise */
-          if (size < 1) {
-            varSizeField.setText("N/A");
-            readButton.setEnabled(false);
-            monitorButton.setEnabled(false);
-            writeButton.setEnabled(false);
-          } else {
-            varSizeField.setText(String.valueOf(size));
-            readButton.setEnabled(true);
-            monitorButton.setEnabled(true);
-            writeButton.setEnabled(true);
-          }
-        }
-        catch (UnknownVariableException ex) {
-          ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(Color.RED);
-          writeButton.setEnabled(false);
-        }
+        
+        updateBySelectedVarname();
       }
 
       @Override
       public void popupMenuCanceled(PopupMenuEvent e) {
       }
     });
+    
 
     smallPane.add(BorderLayout.EAST, varNameCombo);
     mainPane.add(smallPane);
@@ -340,26 +318,94 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     infoPane = new JPanel();
     infoPane.setLayout(new BoxLayout(infoPane, BoxLayout.Y_AXIS));
 
-    JPanel addrInfoPane = new JPanel(new BorderLayout());
-    JPanel sizeInfoPane = new JPanel(new BorderLayout());
+    JPanel addrInfoPane = new JPanel();
+    addrInfoPane.setLayout(new BoxLayout(addrInfoPane, BoxLayout.LINE_AXIS));
+    JPanel sizeInfoPane = new JPanel();
+    sizeInfoPane.setLayout(new BoxLayout(sizeInfoPane, BoxLayout.LINE_AXIS));
 
     label = new JLabel("Address");
-    addrInfoPane.add(BorderLayout.CENTER, label);
-    varAddressField = new JTextField("?");
+    addrInfoPane.add(label);
+    addrInfoPane.add(Box.createHorizontalGlue());
+    final JCheckBox varAddrCheckBox = new JCheckBox();
+    varAddrCheckBox.addItemListener(new ItemListener() {
+
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        if (varAddrCheckBox.isSelected()) {
+          varNameCombo.setEnabled(false);
+          varNameCombo.setEditable(false);
+          varAddressField.setEnabled(true);
+          varAddressField.setEditable(true);
+          varSizeField.setEnabled(true);
+          varSizeField.setEditable(true);
+        } else {
+          varNameCombo.setEnabled(true);
+          varNameCombo.setEditable(true);
+          // switch back to var name control
+          updateBySelectedVarname();
+          varAddressField.setEditable(false);
+          varSizeField.setEditable(false);
+        }
+      }
+    });
+    addrInfoPane.add(varAddrCheckBox);
+
+    DefaultFormatterFactory defac = new DefaultFormatterFactory(new ValueFormatter(VarTypes.LONG, VarFormats.HEX));
+    varAddressField = new JFormattedTextField(defac);
+    varAddressField.setValue(null);
     varAddressField.setEditable(false);
-    varAddressField.setEnabled(false);
-    varAddressField.setColumns(6);
-    addrInfoPane.add(BorderLayout.EAST, varAddressField);
+    varAddressField.setColumns(8);
+    varAddressField.setMaximumSize(varAddressField.getPreferredSize());
+    /* Select all text when clicking in text field */
+    varAddressField.addFocusListener(new FocusListener() {
+
+      @Override
+      public void focusGained(FocusEvent e) {
+        varAddressField.selectAll();
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+      }
+    });
+    /* Update when content might have changed */
+    varAddressField.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        updateNumberOfValues();
+      }
+    });
+    addrInfoPane.add(varAddressField);
 
     infoPane.add(addrInfoPane);
 
     label = new JLabel("Size");
-    sizeInfoPane.add(BorderLayout.WEST, label);
-    varSizeField = new JTextField("?");
+    sizeInfoPane.add(label);
+    sizeInfoPane.add(Box.createHorizontalGlue());
+    varSizeField = new JTextField("N/A");
     varSizeField.setEditable(false);
-    varSizeField.setEnabled(false);
-    varSizeField.setColumns(6);
-    sizeInfoPane.add(BorderLayout.EAST, varSizeField);
+    varSizeField.setColumns(8);
+    varSizeField.setMaximumSize(varSizeField.getPreferredSize());
+    /* Select all text when clicking in text field */
+    varSizeField.addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(final FocusEvent pE) {
+        varSizeField.selectAll();
+      }
+
+      @Override
+      public void focusLost(final FocusEvent pE) {
+      }
+    });
+    /* Update size information when text box action fired */
+    varSizeField.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        updateNumberOfValues();
+      }
+    });
+    sizeInfoPane.add(varSizeField);
 
     infoPane.add(sizeInfoPane);
     mainPane.add(infoPane);
@@ -380,9 +426,8 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     varValues = new JFormattedTextField[1];
     varValues[0] = new JFormattedTextField(integerFormat);
-    varValues[0].setValue(new Integer(0));
+    varValues[0].setValue(null);
     varValues[0].setColumns(3);
-    varValues[0].setText("?");
 
     mainPane.add(valuePane);
     mainPane.add(Box.createRigidArea(new Dimension(0,5)));
@@ -408,8 +453,8 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
         writeButton.setEnabled(true);
         bufferedBytes = moteMemory.getByteArray(
-                (String) varNameCombo.getSelectedItem(),
-                moteMemory.getVariableSize((String) varNameCombo.getSelectedItem()));
+                (long) varAddressField.getValue(),
+                Integer.decode(varSizeField.getText()));
         refreshValues();
       }
     });
@@ -425,31 +470,24 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
       @Override
       public void actionPerformed(ActionEvent e) {
 
-        String varname = (String) varNameCombo.getSelectedItem();
-        
         // deselect
         if (!((JToggleButton) e.getSource()).isSelected()) {
           //System.out.println("Removing monitor " + memMonitor + " for addr " + monitorAddr + ", size " + monitorSize + "");
-          moteMemory.removeVarMonitor(varname, memMonitor);
+          mote.getMemory().removeSegmentMonitor(
+                  (long) varAddressField.getValue(),
+                  Integer.decode(varSizeField.getText()),
+                  memMonitor);
+          varAddrCheckBox.setEnabled(true);
           readButton.setEnabled(true);
           varNameCombo.setEnabled(true);
           writeButton.setEnabled(true);
           return;
         }
 
-
-        // handle unknown variable
-        if (!moteMemory.variableExists(varname)) {
-          ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(Color.RED);
-          writeButton.setEnabled(false);
-          ((JToggleButton) e.getSource()).setSelected(false);
-          return;
-        }
-
         /* initial readout so we have a value to display */
         bufferedBytes = moteMemory.getByteArray(
-                (String) varNameCombo.getSelectedItem(),
-                moteMemory.getVariableSize((String) varNameCombo.getSelectedItem()));
+                (long) varAddressField.getValue(),
+                Integer.decode(varSizeField.getText()));
         refreshValues();
 
 //        monitorAddr = moteMemory.getVariableAddress(varname);
@@ -460,19 +498,21 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 //          public void memoryChanged(MoteMemory memory, MoteMemory.MemoryEventType type, int address) {
           public void memoryChanged(MemoryInterface memory, EventType type, long address) {
             bufferedBytes = moteMemory.getByteArray(
-                    (String) varNameCombo.getSelectedItem(),
-                    moteMemory.getVariableSize((String) varNameCombo.getSelectedItem()));
+                    (long) varAddressField.getValue(),
+                    Integer.decode(varSizeField.getText()));
 
             refreshValues();
           }
         };
         //System.out.println("Adding monitor " + memMonitor + " for addr " + monitorAddr + ", size " + monitorSize + "");
-        moteMemory.addVarMonitor(
+        mote.getMemory().addSegmentMonitor(
                 MemoryInterface.SegmentMonitor.EventType.WRITE,
-                varname,
+                (long) varAddressField.getValue(),
+                Integer.decode(varSizeField.getText()),
                 memMonitor);
-        
+
         /* During monitoring we neither allow writes nor to change variable */
+        varAddrCheckBox.setEnabled(false);
         readButton.setEnabled(false);
         writeButton.setEnabled(false);
         varNameCombo.setEnabled(false);
@@ -501,7 +541,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
           }
         }
         /* Write to memory */
-        moteMemory.setByteArray((String) varNameCombo.getSelectedItem(), bufferedBytes);
+        moteMemory.setByteArray((long) varAddressField.getValue(), bufferedBytes);
       }
     });
 
@@ -510,6 +550,29 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
 
     add(BorderLayout.NORTH, mainPane);
     pack();
+  }
+
+  private void updateBySelectedVarname() {
+    try {
+      String currentItem = (String) varNameCombo.getSelectedItem();
+      /* invalidate byte field */
+      bufferedBytes = null;
+      /* calculate number of elements required to show the value in the given size */
+      varAddressField.setValue(moteMemory.getVariableAddress(currentItem));
+      int size = moteMemory.getVariableSize(currentItem);
+      /* Disable buttons if variable reported size < 1, activate otherwise */
+      if (size < 1) {
+        varSizeField.setText("N/A");
+        varSizeField.setEditable(true);
+      } else {
+        varSizeField.setText(String.valueOf(size));
+        varSizeField.setEditable(false);
+      }
+      updateNumberOfValues();
+    } catch (UnknownVariableException ex) {
+      ((JTextField) varNameCombo.getEditor().getEditorComponent()).setForeground(Color.RED);
+      writeButton.setEnabled(false);
+    }
   }
 
   /**
@@ -552,7 +615,20 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         case DEC:
         case HEX:
           try {
-            ret = Integer.decode(text);
+            switch (mType) {
+              case BYTE:
+                ret = Byte.decode(text);
+                break;
+              case INT:
+                ret = Integer.decode(text);
+                break;
+              case LONG:
+              case ADDR:
+                ret = Long.decode(text);
+                break;
+              default:
+                ret = null;
+            }
           }
           catch (NumberFormatException ex) {
             ret = 0;
@@ -567,7 +643,7 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
     @Override
     public String valueToString(Object value) throws ParseException {
       if (value == null) {
-        return "?";
+        return "N/A";
       }
 
       switch (mFormat) {
@@ -626,13 +702,8 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
    * @note Does not read memory. Leaves number of fields unchanged.
    */
   private void refreshValues() {
-    String varname = (String) varNameCombo.getSelectedItem();
 
-    if (!moteMemory.variableExists(varname)) {
-      return;
-    }
-
-    int bytes = moteMemory.getVariableSize(varname);
+    int bytes = Integer.decode(varSizeField.getText());
     int typeSize = ((VarTypes) varTypeCombo.getSelectedItem()).getBytes();
     int elements = (int) Math.ceil((double) bytes / typeSize);
 
@@ -667,19 +738,21 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
    * Updates the number of value fields.
    */
   private void updateNumberOfValues() {
-    String varname = (String) varNameCombo.getSelectedItem();
-
-    if (!moteMemory.variableExists(varname)) {
-      return;
-    }
 
     valuePane.removeAll();
 
     JPanel linePane = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
     DefaultFormatterFactory defac = new DefaultFormatterFactory(hf);
-    long address = moteMemory.getVariableAddress((String) varNameCombo.getSelectedItem());
-    int bytes = moteMemory.getVariableSize((String) varNameCombo.getSelectedItem());
+    long address = (varAddressField.getValue() == null) ? 0 : (long) varAddressField.getValue();
+    int bytes;
+    try {
+      //address = Integer.parseInt(varAddressField.getText());
+      bytes = Integer.parseInt(varSizeField.getText());
+    } catch (NumberFormatException ex) {
+      bytes = 0;
+    }
+
     int typeSize = ((VarTypes) varTypeCombo.getSelectedItem()).getBytes();
     int elements = (int) Math.ceil((double) bytes / typeSize);
 
@@ -697,6 +770,14 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
         }
       }
       valuePane.add(linePane);
+
+      readButton.setEnabled(true);
+      monitorButton.setEnabled(true);
+      writeButton.setEnabled(true);
+    } else {
+      readButton.setEnabled(false);
+      monitorButton.setEnabled(false);
+      writeButton.setEnabled(false);
     }
 
     refreshValues();
