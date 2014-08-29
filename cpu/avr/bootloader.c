@@ -9,10 +9,12 @@
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
 
-/* Not all AVR toolchains alias MCUSR to the older MSUSCR name */
-#if !defined (MCUSR) && defined (MCUCSR)
-#warning *** MCUSR not defined, using MCUCSR instead ***
-#define MCUSR MCUCSR
+/* MCUSR is a deprecated name but older avr-libc versions may define it */
+#if !defined (MCUCSR)
+# if defined (MCUSR)
+#  warning *** MCUCSR not defined, using MCUSR instead ***
+#  define MCUCSR MCUSR
+# endif
 #endif
 
 #ifndef EEPROM_MAGIC_BYTE_ADDR
@@ -69,8 +71,8 @@ Bootloader_Jump_Check(void)
   /* If the reset source was the bootloader and the key is correct,
    * clear it and jump to the bootloader
    */
-  if(MCUSR & (1 << WDRF)) {
-    MCUSR = 0;
+  if(MCUCSR & (1 << WDRF)) {
+    MCUCSR = 0;
     if(Boot_Key == MAGIC_BOOT_KEY) {
       Boot_Key = 0;
       wdt_disable();
