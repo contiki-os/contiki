@@ -1,6 +1,6 @@
 package org.contikios.cooja.plugins.analyzers;
 
-import org.contikios.cooja.util.StringUtils;
+import org.contikios.cooja.util.IPUtils;
 
 public class IPHCPacketAnalyzer extends PacketAnalyzer {
 
@@ -466,9 +466,9 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
             .append(", FL = ").append(flowLabel)
             .append("<br>");
     verbose.append("From ");
-    printAddress(verbose, srcAddress);
+    IPUtils.getUncompressedIPv6AddressString(verbose, srcAddress);
     verbose.append("  to ");
-    printAddress(verbose, destAddress);
+    IPUtils.getUncompressedIPv6AddressString(verbose, destAddress);
     if (error != null) {
       verbose.append(" ").append(error);
     }
@@ -496,13 +496,4 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
     }
   }
 
-  public static void printAddress(StringBuilder out, byte[] address) {
-    for (int i = 0; i < 16; i += 2) {
-      out.append(StringUtils.toHex((byte) (address[i] & 0xff))
-              + StringUtils.toHex((byte) (address[i + 1] & 0xff)));
-      if (i < 14) {
-        out.append(":");
-      }
-    }
-  }
 }

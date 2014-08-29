@@ -1,6 +1,6 @@
 package org.contikios.cooja.plugins.analyzers;
 
-import org.contikios.cooja.util.StringUtils;
+import org.contikios.cooja.util.IPUtils;
 
 public class IPv6PacketAnalyzer extends PacketAnalyzer {
 
@@ -60,23 +60,13 @@ public class IPv6PacketAnalyzer extends PacketAnalyzer {
             .append("</b> TC = ").append(trafficClass)
             .append(" FL: ").append(flowLabel).append("<br>");
     verbose.append("From ");
-    printAddress(verbose, srcAddress);
+    IPUtils.getUncompressedIPv6AddressString(verbose, srcAddress);
     verbose.append("  to ");
-    printAddress(verbose, destAddress);
+    IPUtils.getUncompressedIPv6AddressString(verbose, destAddress);
 
     packet.lastDispatch = (byte) (proto & 0xff);
     packet.level = APPLICATION_LEVEL;
     return ANALYSIS_OK_CONTINUE;
-  }
-
-  public static void printAddress(StringBuilder out, byte[] address) {
-    for (int i = 0; i < 16; i += 2) {
-      out.append(StringUtils.toHex((byte) (address[i] & 0xff))
-              + StringUtils.toHex((byte) (address[i + 1] & 0xff)));
-      if (i < 14) {
-        out.append(":");
-      }
-    }
   }
 
 }
