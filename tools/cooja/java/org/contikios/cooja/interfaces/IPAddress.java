@@ -44,6 +44,7 @@ import org.contikios.cooja.MoteInterface;
 import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor;
 import org.contikios.cooja.mote.memory.VarMemory;
+import org.contikios.cooja.util.IPUtils;
 
 /**
  * Read-only interface to IPv4 or IPv6 address.
@@ -93,34 +94,12 @@ public class IPAddress extends MoteInterface {
    */
   public String getIPString() {
     if (isVersion4()) {
-      String ipString = "";
       byte[] ip = moteMem.getByteArray("uip_hostaddr", 4);
-      for (int i = 0; i < 3; i++) {
-        ipString += (0xFF & ip[i]) + ".";
-      }
-      ipString += (0xFF & ip[3]);
-      return ipString;
+      return IPUtils.getIPv4AddressString(ip);
     } else if (isVersion6()) {
-      String ipString = getUncompressedIPv6Address();
-      return compressIPv6Address(ipString);
+      return IPUtils.getCompressedIPv6AddressString(getIPv6Address());
     }
     return null;
-  }
-
-  public static String compressIPv6Address(String ipString) {
-    if (ipString.contains(":0000:0000:0000:0000:")) {
-      ipString = ipString.replace(":0000:0000:0000:0000:", "::");
-    } else if (ipString.contains(":0000:0000:0000:")) {
-      ipString = ipString.replace(":0000:0000:0000:", "::");
-    } else if (ipString.contains(":0000:0000:")) {
-      ipString = ipString.replace(":0000:0000:", "::");
-    } else if (ipString.contains(":0000:")) {
-      ipString = ipString.replace(":0000:", "::");
-    }
-    while (ipString.contains(":0")) {
-      ipString = ipString.replaceAll(":0", ":");
-    }
-    return ipString;
   }
 
   public byte[] getIPv6Address() {
@@ -167,23 +146,6 @@ public class IPAddress extends MoteInterface {
       ipv6AddressIndex = -1;
     }
     return ip;
-  }
-
-  public static String getUncompressedIPv6AddressString(byte[] ip) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < 14; i += 2) {
-      sb.append(String.format("%02x%02x:", 0xFF & ip[i + 0], 0xFF & ip[i + 1]));
-    }
-    sb.append(String.format("%02x%02x", 0xFF & ip[14], 0xFF & ip[15]));
-    return sb.toString();
-  }
-
-  public String getUncompressedIPv6Address() {
-    byte[] ip = getIPv6Address();
-    if (ip == null) {
-      return "";
-    }
-    return getUncompressedIPv6AddressString(ip);
   }
 
   /**
