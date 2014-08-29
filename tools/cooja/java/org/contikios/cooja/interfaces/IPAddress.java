@@ -202,6 +202,7 @@ public class IPAddress extends MoteInterface {
             && moteMem.variableExists("uip_ds6_if");
   }
 
+  @Override
   public void removed() {
     super.removed();
     if (memMonitor != null) {
@@ -215,12 +216,14 @@ public class IPAddress extends MoteInterface {
     }
   }
 
+  @Override
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
     final JLabel ipLabel = new JLabel();
 
     Observer observer;
     this.addObserver(observer = new Observer() {
+      @Override
       public void update(Observable obs, Object obj) {
         if (isVersion4()) {
           ipLabel.setText("IPv4 address: " + getIPString());
@@ -240,6 +243,7 @@ public class IPAddress extends MoteInterface {
     return panel;
   }
 
+  @Override
   public void releaseInterfaceVisualizer(JPanel panel) {
     Observer observer = (Observer) panel.getClientProperty("intf_obs");
     if (observer == null) {
@@ -249,10 +253,12 @@ public class IPAddress extends MoteInterface {
     this.deleteObserver(observer);
   }
 
+  @Override
   public Collection<Element> getConfigXML() {
     return null;
   }
 
+  @Override
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 }
