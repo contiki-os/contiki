@@ -70,6 +70,7 @@ import javax.swing.text.PlainDocument;
 import org.apache.log4j.Logger;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Cooja;
+import org.contikios.cooja.HasQuickHelp;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.MotePlugin;
 import org.contikios.cooja.PluginType;
@@ -92,7 +93,7 @@ import org.jdom.Element;
  */
 @ClassDescription("Variable Watcher")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class VariableWatcher extends VisPlugin implements MotePlugin {
+public class VariableWatcher extends VisPlugin implements MotePlugin, HasQuickHelp {
   private static final long serialVersionUID = 1L;
   private static final Logger logger = Logger.getLogger(VariableWatcher.class.getName());
 
@@ -122,6 +123,16 @@ public class VariableWatcher extends VisPlugin implements MotePlugin {
   private ValueFormatter hf;
 
   private Mote mote;
+
+  @Override
+  public String getQuickHelp() {
+    return "<b>Variable Watcher</b>"
+            + "<p>Read and monitor variables or memory segments."
+            + "<p>Use the dropdown list to select variable to read. "
+            + "If no size information is available size can be set manually."
+            + "<p>To freely select the monitored region, enable address checkbox "
+            + "and set both address and size.";
+  }
 
   /** 
    * Display types for variables.
