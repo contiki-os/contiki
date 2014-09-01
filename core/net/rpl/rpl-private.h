@@ -116,8 +116,13 @@
 #define RPL_LIFETIME(instance, lifetime) \
           ((unsigned long)(instance)->lifetime_unit * (lifetime))
 
+/*
+ * The RPL RFC defines a default value of 256 for MIN HOP RANK INCREASE
+ * but since Contiki use ETX as default and ETX must have 128 as Divisor
+ * the default is 128.
+ */
 #ifndef RPL_CONF_MIN_HOPRANKINC
-#define RPL_MIN_HOPRANKINC          256
+#define RPL_MIN_HOPRANKINC          128
 #else
 #define RPL_MIN_HOPRANKINC          RPL_CONF_MIN_HOPRANKINC
 #endif
@@ -179,8 +184,11 @@
  * The ETX in the metric container is expressed as a fixed-point value 
  * whose integer part can be obtained by dividing the value by 
  * RPL_DAG_MC_ETX_DIVISOR.
+ * ETX Divisor is specified to take a value of 128 according to:
+ * RFC 6551: "The ETX * 128 is encoded using 16 bits in unsigned
+ * integer format"
  */
-#define RPL_DAG_MC_ETX_DIVISOR		256
+#define RPL_DAG_MC_ETX_DIVISOR		128
 
 /* DIS related */
 #define RPL_DIS_SEND                    1
