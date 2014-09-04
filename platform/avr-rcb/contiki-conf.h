@@ -92,12 +92,11 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define CCIF
 #define CLIF
 
-//#define UIP_CONF_IPV6            1  //Let makefile determine this so ipv4 hello-world will compile
-
 #define LINKADDR_CONF_SIZE       8
 #define PACKETBUF_CONF_HDR_SIZE    48	/* Choose a buffersize != 0 for the messages which should be sended over the wireless interface */
 
-//#define NETSTACK_CONF_NETWORK     rime_driver
+/* Uncomment this lines to activate the specific drivers */
+//#define NETSTACK_CONF_NETWORK     rime_driver		
 //#define NETSTACK_CONF_MAC         nullmac_driver
 //#define NETSTACK_CONF_RDC         sicslowmac_driver	
 //#define NETSTACK_CONF_FRAMER      framer_802154	/* Framer for 802.15.4 Medium Access Control */
@@ -145,7 +144,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 
-#define UIP_CONF_TCP             1	//Enable TCP,this avoids the 'bad practice' appsend error on /net/ipv4/uip.c on line 695
+#define UIP_CONF_TCP             1
 #define UIP_CONF_TCP_SPLIT       0
 
 /* These names are deprecated, use C99 names. */
