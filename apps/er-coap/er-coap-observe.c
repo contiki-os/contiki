@@ -232,17 +232,18 @@ coap_observe_handler(resource_t *resource, void *request, void *response)
 {
   coap_packet_t *const coap_req = (coap_packet_t *)request;
   coap_packet_t *const coap_res = (coap_packet_t *)response;
+  coap_observer_t * obs;
 
   static char content[16];
 
   if(coap_req->code == COAP_GET && coap_res->code < 128) { /* GET request and response without error code */
     if(IS_OPTION(coap_req, COAP_OPTION_OBSERVE)) {
       if(coap_req->observe == 0) {
-
-        if(coap_add_observer(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
-                             coap_req->token, coap_req->token_len,
-                             resource->url)) {
-          coap_set_header_observe(coap_res, 0);
+        obs = coap_add_observer(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
+                                coap_req->token, coap_req->token_len,
+                                resource->url);
+       if(obs) {
+          coap_set_header_observe(coap_res, (obs->obs_counter)++);
           /*
            * Following payload is for demonstration purposes only.
            * A subscription should return the same representation as a normal GET.
