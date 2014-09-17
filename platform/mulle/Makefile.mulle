@@ -8,6 +8,7 @@ CONTIKI_TARGET_DIRS = . dev stdio
 CONTIKI_CORE=contiki-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
+
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
   udelay.c \
   init-net.c \
@@ -28,7 +29,6 @@ CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
   radio-sensor.c \
   battery-sensor.c \
   button-sensor.c
-
 
 ifdef MULLEAPPS
   APPDS += ${wildcard ${addprefix $(CONTIKI)/../apps/, $(MULLEAPPS)} \
@@ -55,6 +55,68 @@ CFLAGS += -DRF230BB
 include $(CPU_DIR)/Makefile.$(CPU_NAME)
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 
+# OpenOCD settings for Mulle board.
+
+OOCD_BOARD_FLAGS ?= -f $(PLATFORM_DIR)/tools/openocd.conf
+ifneq ($(PROGRAMMER_SERIAL),)
+  OOCD_BOARD_FLAGS += -c 'ftdi_serial $(PROGRAMMER_SERIAL)'
+endif
+
+FFLAGS ?= $(OOCD_BOARD_FLAGS)
+FFLAGS += \
+    -c 'tcl_port 0' \
+    -c 'gdb_port 0' \
+    -c 'telnet_port 0' \
+    -c 'init' \
+    -c 'targets' \
+    -c 'reset halt' \
+    -c 'flash write_image erase $(CONTIKI_PROJECT).$(TARGET) 0x00000000 elf' \
+    -c 'verify_image $(CONTIKI_PROJECT).$(TARGET)' \
+    -c 'reset run' \
+    -c 'shutdown'
+
+export FFLAGS
+
+DEBUGSERVER_FLAGS ?= $(OOCD_BOARD_FLAGS)
+DEBUGSERVER_FLAGS += \
+    -c 'tcl_port 0' \
+    -c 'gdb_port $(GDB_PORT)' \
+    -c 'telnet_port 0' \
+    -c 'init' \
+    -c 'targets' \
+    -c 'reset halt'
+
+export DEBUGSERVER_FLAGS
+
+RESET_FLAGS ?= $(OOCD_BOARD_FLAGS)
+RESET_FLAGS += \
+    -c 'tcl_port 0' \
+    -c 'gdb_port 0' \
+    -c 'telnet_port 0' \
+    -c 'init' \
+    -c 'reset run' \
+    -c 'shutdown'
+
+export RESET_FLAGS
+
+DEBUGGER_FLAGS ?= -x $(PLATFORM_DIR)/tools/gdb.conf
+DEBUGGER_FLAGS += \
+    -ex 'tar ext :$(GDB_PORT)' \
+    $(CONTIKI_PROJECT).$(TARGET)
+
+export DEBUGGER_FLAGS
+
+export TERMFLAGS += -b115200 "$(PORT)"
+
+
+OPENOCD ?= openocd
+export FLASHER ?= $(OPENOCD)
+export DEBUGGER ?= $(GDB)
+export DEBUGSERVER ?= $(OPENOCD)
+export RESET ?= $(OPENOCD)
+export TERMPROG ?= $(SERIALDUMP)
+
+
 # The CPU on the Mulle board does not have a floating point unit
 CFLAGS += -msoft-float -mfloat-abi=soft
 
@@ -68,14 +130,26 @@ login:
 %.upload: %.u
 
 %.u: %.$(TARGET)
-	TMPFILE=$$(mktemp -t mulle-XXXXXXXX.gdb); \
-	  trap '$(RM) -f "$$TMPFILE"' EXIT; \
-	  cat $(CONTIKI_CPU)/mulle-arch.gdb | \
-	  sed 's/target remote :3333/target remote :$(GDB_PORT)/' > "$$TMPFILE"; \
-	  $(GDB) -x "$$TMPFILE" $<
+	$(GDB) -x '$(PLATFORM_DIR)/tools/gdb.conf' -ex 'tar ext :$(GDB_PORT)' -ex 'load' -ex 'mon reset halt' $<
 
 # By default, upload the file with the same name as the project.
 upload: $(CONTIKI_PROJECT).u
 
-MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 core/net/rime \
-         core/net/mac core/net/rpl
+flash: all
+	$(FLASHER) $(FFLAGS)
+
+term:
+	$(TERMPROG) $(TERMFLAGS)
+
+debug:
+	$(DEBUGGER) $(DEBUGGER_FLAGS)
+
+debug-server:
+	$(DEBUGSERVER) $(DEBUGSERVER_FLAGS)
+
+reset:
+	$(RESET) $(RESET_FLAGS)
+
+
+MODULES+=core/net core/net/ip core/net/ipv4 core/net/ipv6 core/net/rime \
+         core/net/mac core/net/rpl core/net/mac/contikimac core/net/mac/cxmac \
