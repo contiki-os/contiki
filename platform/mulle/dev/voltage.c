@@ -45,16 +45,16 @@
 void
 voltage_init(void)
 {
-  SIM_SCGC3 |= SIM_SCGC3_ADC1_MASK; /* Enable ADC1 clock gate */
+  SIM->SCGC3 |= SIM_SCGC3_ADC1_MASK; /* Enable ADC1 clock gate */
 
   /* ADC clock = Bus clock / 16 ( == 3MHz when F_BUS = 48 MHz) */
   /* For the calibration it is important that the ADC clock is <= 4 MHz */
-  ADC1_CFG1 = ADC_CFG1_ADICLK(1) | ADC_CFG1_MODE(0b11) | ADC_CFG1_ADIV(0b11) |
+  ADC1->CFG1 = ADC_CFG1_ADICLK(1) | ADC_CFG1_MODE(0b11) | ADC_CFG1_ADIV(0b11) |
     ADC_CFG1_ADLPC_MASK | ADC_CFG1_ADLSMP_MASK;
 
-  ADC1_CFG2 = ADC_CFG2_MUXSEL_MASK | ADC_CFG2_ADLSTS(0); /* Add 20 extra cycles per sample */
-  ADC1_SC2 = 0; /* Software trigger */
-  ADC1_SC3 = ADC_SC3_AVGE_MASK | ADC_SC3_AVGS(0b11); /* Hardware average 32 samples */
+  ADC1->CFG2 = ADC_CFG2_MUXSEL_MASK | ADC_CFG2_ADLSTS(0); /* Add 20 extra cycles per sample */
+  ADC1->SC2 = 0; /* Software trigger */
+  ADC1->SC3 = ADC_SC3_AVGE_MASK | ADC_SC3_AVGS(0b11); /* Hardware average 32 samples */
 
   /* Run a calibration for the new settings. */
   adc_calibrate(MULLE_ADC_VBAT_ADC_NUM);

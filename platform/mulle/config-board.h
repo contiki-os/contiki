@@ -39,6 +39,9 @@
 
 #include "adc.h"
 
+/** Disable hardware watchdog, for debugging purposes, don't use this on production builds. */
+#define DISABLE_WDOG    1
+
 /**
  * CPU silicon revision (some registers are moved or added between revisions 1 and 2)
  */
@@ -85,7 +88,7 @@
 /**
  * UART module used for debug printf.
  */
-#define BOARD_DEBUG_UART_BASE_PTR UART1_BASE_PTR
+#define BOARD_DEBUG_UART UART1
 
 /**
  * Baud rate of debug UART.
@@ -95,12 +98,12 @@
 /**
  * PORT module containing the TX pin of the debug UART.
  */
-#define BOARD_DEBUG_UART_TX_PIN_PORT PORTC_BASE_PTR
+#define BOARD_DEBUG_UART_TX_PIN_PORT PORTC
 
 /**
  * PORT module containing the RX pin of the debug UART.
  */
-#define BOARD_DEBUG_UART_RX_PIN_PORT PORTC_BASE_PTR
+#define BOARD_DEBUG_UART_RX_PIN_PORT PORTC
 
 /**
  * Pin number within the PORT module of the TX pin of the debug UART.

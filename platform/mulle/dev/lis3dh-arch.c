@@ -45,12 +45,7 @@
 #include <stdbool.h>
 
 #define LIS3DH_CHIP_SELECT_PIN 0
-#define LIS3DH_CTAR_NUMBER 1
-
-/* Glueing the CTAR number together with a prefix to form register names */
-#define LIS3DH_PREPROCESSOR_PASTE(a, b) a##b
-#define LIS3DH_CTAR_APPEND_NUMBER(b) LIS3DH_PREPROCESSOR_PASTE(SPI0_CTAR, b)
-#define LIS3DH_CTAR_REG LIS3DH_CTAR_APPEND_NUMBER(LIS3DH_CTAR_NUMBER)
+#define LIS3DH_CTAS 1
 
 /**
  * Perform a one byte transfer over SPI.
@@ -70,25 +65,25 @@ spi_transfer(const uint8_t data, const bool cont, const bool blocking)
   uint32_t spi_pushr;
 
   spi_pushr = SPI_PUSHR_TXDATA(data);
-  spi_pushr |= SPI_PUSHR_CTAS(LIS3DH_CTAR_NUMBER);
+  spi_pushr |= SPI_PUSHR_CTAS(LIS3DH_CTAS);
   spi_pushr |= SPI_PUSHR_PCS((1 << LIS3DH_CHIP_SELECT_PIN));
   if(cont) {
     spi_pushr |= SPI_PUSHR_CONT_MASK;
   }
 
   /* Clear transfer complete flag */
-  SPI0_SR |= SPI_SR_TCF_MASK;
+  SPI0->SR |= SPI_SR_TCF_MASK;
 
   /* Shift a frame out/in */
-  SPI0_PUSHR = spi_pushr;
+  SPI0->PUSHR = spi_pushr;
 
   if(blocking) {
     /* Wait for transfer complete */
-    while(!(SPI0_SR & SPI_SR_TCF_MASK)) ;
+    while(!(SPI0->SR & SPI_SR_TCF_MASK)) ;
   }
 
   /* Pop the buffer */
-  return 0xFF & SPI0_POPR;
+  return 0xFF & SPI0->POPR;
 }
 /**
  * Write a single byte to the LIS3DH.
@@ -236,30 +231,30 @@ void
 lis3dh_arch_init()
 {
   /* Enable clock gate on PTD (for SPI0) */
-  SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
+  SIM->SCGC5 |= SIM_SCGC5_PORTD_MASK;
   /* Note: Interrupts will need to enable clock gate on PTC as well */
 
   /* Enable clock gate for SPI0 module */
-  SIM_SCGC6 |= SIM_SCGC6_SPI0_MASK;
+  SIM->SCGC6 |= SIM_SCGC6_SPI0_MASK;
 
   /* Configure SPI0 */
   /* Master mode */
   /* all peripheral chip select signals are active low */
   /* Disable TX,RX FIFO */
-  SPI0_MCR = SPI_MCR_MSTR_MASK | SPI_MCR_PCSIS(0x1F) | SPI_MCR_DIS_RXF_MASK | SPI_MCR_DIS_TXF_MASK;     /* 0x803F3000; */
+  SPI0->MCR = SPI_MCR_MSTR_MASK | SPI_MCR_PCSIS(0x1F) | SPI_MCR_DIS_RXF_MASK | SPI_MCR_DIS_TXF_MASK;     /* 0x803F3000; */
 
   /* 8 bit frame size */
   /* Set up different delays and clock scalers */
   /* TODO: These need tuning */
   /* FIXME: Coordinate SPI0 parameters between different peripheral drivers */
   /* IMPORTANT: Clock polarity is active low! */
-  LIS3DH_CTAR_REG = SPI_CTAR_FMSZ(7) | SPI_CTAR_CSSCK(2) | SPI_CTAR_ASC(2) | SPI_CTAR_DT(2) | SPI_CTAR_BR(4) | SPI_CTAR_CPOL_MASK | SPI_CTAR_CPHA_MASK; /*0x38002224; *//* TODO: Should be able to speed up */
+  SPI0->CTAR[LIS3DH_CTAS] = SPI_CTAR_FMSZ(7) | SPI_CTAR_CSSCK(2) | SPI_CTAR_ASC(2) | SPI_CTAR_DT(2) | SPI_CTAR_BR(4) | SPI_CTAR_CPOL_MASK | SPI_CTAR_CPHA_MASK; /*0x38002224; *//* TODO: Should be able to speed up */
 
   /* Mux SPI0 on port D */
-  PORTD_PCR0 = PORT_PCR_MUX(2); /* SPI0_PCS0 */
-  PORTD_PCR1 = PORT_PCR_MUX(2); /* SPI0_SCK */
-  PORTD_PCR2 = PORT_PCR_MUX(2); /* SPI0_SOUT */
-  PORTD_PCR3 = PORT_PCR_MUX(2); /* SPI0_SIN */
+  PORTD->PCR[0] = PORT_PCR_MUX(2); /* SPI0_PCS0 */
+  PORTD->PCR[1] = PORT_PCR_MUX(2); /* SPI0_SCK */
+  PORTD->PCR[2] = PORT_PCR_MUX(2); /* SPI0_SOUT */
+  PORTD->PCR[3] = PORT_PCR_MUX(2); /* SPI0_SIN */
 
   return;
 }

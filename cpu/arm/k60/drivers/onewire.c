@@ -57,39 +57,17 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#define ONEWIRE_BASE_PTR UART4_BASE_PTR
+#define ONEWIRE_UART UART4
 #define ONEWIRE_ISR_FUNC _isr_uart4_status
+#define ONEWIRE_IRQn UART4_RX_TX_IRQn
 #define ONEWIRE_UART_MODULE_FREQUENCY F_BUS
-#define ONEWIRE_RXPIN_PCR PORTE_PCR25
-#define ONEWIRE_TXPIN_PCR PORTE_PCR24
+#define ONEWIRE_RXPIN_PCR PORTE->PCR[25]
+#define ONEWIRE_TXPIN_PCR PORTE->PCR[24]
+
 /* TX pin port clock gate mask */
 #define ONEWIRE_TXPIN_PORT_CG SIM_SCGC5_PORTE_MASK
 /* RX pin port clock gate mask */
 #define ONEWIRE_RXPIN_PORT_CG SIM_SCGC5_PORTE_MASK
-
-/* Aliases for K60 hardware register addresses */
-#define ONEWIRE_BDH                                UART_BDH_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_BDL                                UART_BDL_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_C1                                 UART_C1_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_C2                                 UART_C2_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_S1                                 UART_S1_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_S2                                 UART_S2_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_C3                                 UART_C3_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_D                                  UART_D_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_MA1                                UART_MA1_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_MA2                                UART_MA2_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_C4                                 UART_C4_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_C5                                 UART_C5_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_ED                                 UART_ED_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_MODEM                              UART_MODEM_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_IR                                 UART_IR_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_PFIFO                              UART_PFIFO_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_CFIFO                              UART_CFIFO_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_SFIFO                              UART_SFIFO_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_TWFIFO                             UART_TWFIFO_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_TCFIFO                             UART_TCFIFO_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_RWFIFO                             UART_RWFIFO_REG(ONEWIRE_BASE_PTR)
-#define ONEWIRE_RCFIFO                             UART_RCFIFO_REG(ONEWIRE_BASE_PTR)
 
 /* Data bytes used in the UART to generate the correct 1-wire waveforms. */
 #define ONEWIRE_D_RESET (0xF0)
@@ -109,14 +87,14 @@ static volatile uint8_t ow_read_bits;
 static volatile uint8_t ow_isr_scratch;
 
 #define OW_TIMING_FAST() \
-  ONEWIRE_BDH = UART_BDH_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST) / 256); \
-  ONEWIRE_BDL = UART_BDL_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST) % 256); \
-  ONEWIRE_C4 = UART_C4_BRFA(UART_BRFA(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST))
+  ONEWIRE_UART->BDH = UART_BDH_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST) / 256); \
+  ONEWIRE_UART->BDL = UART_BDL_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST) % 256); \
+  ONEWIRE_UART->C4 = UART_C4_BRFA(UART_BRFA(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_FAST))
 
 #define OW_TIMING_SLOW() \
-  ONEWIRE_BDH = UART_BDH_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW) / 256); \
-  ONEWIRE_BDL = UART_BDL_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW) % 256); \
-  ONEWIRE_C4 = UART_C4_BRFA(UART_BRFA(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW))
+  ONEWIRE_UART->BDH = UART_BDH_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW) / 256); \
+  ONEWIRE_UART->BDL = UART_BDL_SBR(UART_SBR(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW) % 256); \
+  ONEWIRE_UART->C4 = UART_C4_BRFA(UART_BRFA(ONEWIRE_UART_MODULE_FREQUENCY, ONEWIRE_UART_BAUD_SLOW))
 
 #define OW_WAIT_WRITE() \
   /* Wait until the 1-wire bus is idle */ \
@@ -128,7 +106,7 @@ static volatile uint8_t ow_isr_scratch;
 
 #define OW_BUSY_WAIT() \
   /* Wait until the last bit of the previous transmission has been transferred */ \
-  while(ow_write_bytes_count > 0 || ow_read_bytes_count > 0 || ow_write_bits > 0 || ow_read_bits > 0 || !(ONEWIRE_S1 & UART_S1_TC_MASK) || (ONEWIRE_S2 & UART_S2_RAF_MASK))
+  while(ow_write_bytes_count > 0 || ow_read_bytes_count > 0 || ow_write_bits > 0 || ow_read_bits > 0 || !(ONEWIRE_UART->S1 & UART_S1_TC_MASK) || (ONEWIRE_UART->S2 & UART_S2_RAF_MASK))
 
 /**
  * Used by the ISR handler to queue the next byte for transmission on the bus.
@@ -143,44 +121,44 @@ ow_begin_next_byte(void)
     /* Queue next byte */
     OW_TIMING_FAST();
     /* Enable transmitter */
-    ONEWIRE_C2 |= UART_C2_TE_MASK;
+    ONEWIRE_UART->C2 |= UART_C2_TE_MASK;
     /* Disable receiver */
-    ONEWIRE_C2 &= ~UART_C2_RE_MASK;
+    ONEWIRE_UART->C2 &= ~UART_C2_RE_MASK;
     ow_isr_scratch = (*ow_write_bytes_buf);
     ow_write_bits = 8;
     /* Move source buffer location forward */
     --ow_write_bytes_count;
     ++ow_write_bytes_buf;
     /* Disable RX interrupts */
-    ONEWIRE_C2 &= ~(UART_C2_RIE_MASK);
+    ONEWIRE_UART->C2 &= ~(UART_C2_RIE_MASK);
     /* Enable TX interrupts */
-    ONEWIRE_C2 |= UART_C2_TCIE_MASK;
+    ONEWIRE_UART->C2 |= UART_C2_TCIE_MASK;
   } else if(ow_read_bytes_count > 0) {
     /* Set up reading */
     OW_TIMING_FAST();
     /* Enable transmitter and receiver */
-    ONEWIRE_C2 |= UART_C2_TE_MASK | UART_C2_RE_MASK;
+    ONEWIRE_UART->C2 |= UART_C2_TE_MASK | UART_C2_RE_MASK;
     ow_read_bits = 8;
     --ow_read_bytes_count;
     ow_isr_scratch = 0x00;
 
     /* Dummy read to clear out any crap left in the data buffer */
-    dummy = ONEWIRE_D;
+    dummy = ONEWIRE_UART->D;
     /* Flush the RX buffer before we begin */
-    ONEWIRE_CFIFO |= UART_CFIFO_RXFLUSH_MASK;
+    ONEWIRE_UART->CFIFO |= UART_CFIFO_RXFLUSH_MASK;
 
     /* Disable TX interrupts */
-    ONEWIRE_C2 &= ~(UART_C2_TIE_MASK | UART_C2_TCIE_MASK);
+    ONEWIRE_UART->C2 &= ~(UART_C2_TIE_MASK | UART_C2_TCIE_MASK);
     /* Trigger a read slot */
-    ONEWIRE_D = ONEWIRE_D_READ;
+    ONEWIRE_UART->D = ONEWIRE_D_READ;
     /* Enable RX interrupts */
-    ONEWIRE_C2 |= UART_C2_RIE_MASK;
+    ONEWIRE_UART->C2 |= UART_C2_RIE_MASK;
   } else {
     /* All done! */
     /* disable interrupts */
-    ONEWIRE_C2 &= ~(UART_C2_TIE_MASK | UART_C2_TCIE_MASK | UART_C2_RIE_MASK);
+    ONEWIRE_UART->C2 &= ~(UART_C2_TIE_MASK | UART_C2_TCIE_MASK | UART_C2_RIE_MASK);
     /* Disable transmitter and receiver */
-    ONEWIRE_C2 &= ~(UART_C2_TE_MASK | UART_C2_RE_MASK);
+    ONEWIRE_UART->C2 &= ~(UART_C2_TE_MASK | UART_C2_RE_MASK);
 
     /** \todo Trigger an event after reading 1-wire stuff */
   }
@@ -197,11 +175,11 @@ ONEWIRE_ISR_FUNC(void)
 {
   static volatile uint8_t data;
   static volatile uint8_t status;
-  status = ONEWIRE_S1;
+  status = ONEWIRE_UART->S1;
 
   if(ow_write_bits > 0) {
     if(status & (UART_S1_TDRE_MASK | UART_S1_TC_MASK)) {
-      ONEWIRE_D = ((ow_isr_scratch & 0x01) ? ONEWIRE_D_WRITE_1 : ONEWIRE_D_WRITE_0);
+      ONEWIRE_UART->D = ((ow_isr_scratch & 0x01) ? ONEWIRE_D_WRITE_1 : ONEWIRE_D_WRITE_0);
       ow_isr_scratch >>= 1;
       --ow_write_bits;
     }
@@ -209,10 +187,10 @@ ONEWIRE_ISR_FUNC(void)
     /* Check if we got something yet */
     /* We can end up here without anything received when being called from a TX
      * interrupt in the transition from a 1-wire write to a 1-wire read */
-    if(ONEWIRE_RCFIFO > 0 || (status & UART_S1_RDRF_MASK)) {
+    if(ONEWIRE_UART->RCFIFO > 0 || (status & UART_S1_RDRF_MASK)) {
       --ow_read_bits;
       ow_isr_scratch >>= 1;
-      data = ONEWIRE_D;
+      data = ONEWIRE_UART->D;
       if(data == ONEWIRE_D_READ) {
         /* We read a 1 */
         ow_isr_scratch |= (1 << 7);
@@ -225,7 +203,7 @@ ONEWIRE_ISR_FUNC(void)
         ow_begin_next_byte();
       } else {
         /* Trigger next read slot */
-        ONEWIRE_D = ONEWIRE_D_READ;
+        ONEWIRE_UART->D = ONEWIRE_D_READ;
       }
     }
   } else {
@@ -240,9 +218,7 @@ ONEWIRE_ISR_FUNC(void)
 void
 ow_init(void)
 {
-  /* Set up interrupt controller */
-  /** \todo User configurability on 1-wire UART interrupt in NVIC (NVICISER1 |= NVIC_ISER_SETENA(1<<21)) */
-  NVICISER1 |= NVIC_ISER_SETENA(1 << 21);
+
   /* initialize counters */
   ow_read_bytes_buf = 0;
   ow_read_bytes_count = 0;
@@ -253,7 +229,7 @@ ow_init(void)
   ow_read_bits = 0;
 
   /* Enable clock gate on I/O pins */
-  SIM_SCGC5 |= ONEWIRE_TXPIN_PORT_CG | ONEWIRE_RXPIN_PORT_CG;
+  SIM->SCGC5 |= ONEWIRE_TXPIN_PORT_CG | ONEWIRE_RXPIN_PORT_CG;
   /* Choose UART in pin mux */
   ONEWIRE_RXPIN_PCR = PORT_PCR_MUX(3);
 
@@ -263,22 +239,25 @@ ow_init(void)
   ONEWIRE_TXPIN_PCR = PORT_PCR_MUX(3) | PORT_PCR_ODE_MASK;
 
   /* Enable clock gate on UART module */
-  SIM_SCGC1 |= SIM_SCGC1_UART4_MASK;
+  SIM->SCGC1 |= SIM_SCGC1_UART4_MASK;
 
   /* Make sure MSBF bit is not set */
-  ONEWIRE_S2 = 0;
+  ONEWIRE_UART->S2 = 0;
 
   /* Disable transmitter and receiver */
-  ONEWIRE_C2 = 0;
+  ONEWIRE_UART->C2 = 0;
 
   /* Set up UART for two wire operation. */
   /* The reason we are not using single wire mode (LOOPS=1, RSRC=1) is that
    * because of limitations in the MCU, we are reduced to half duplex and can
    * not see when the slave is pulling the line low after we release it */
-  ONEWIRE_C1 = 0;
+  ONEWIRE_UART->C1 = 0;
 
   /* Disable FIFO (set buffer depth to 1) */
-  ONEWIRE_PFIFO = 0;
+  ONEWIRE_UART->PFIFO = 0;
+
+  /* Set up interrupt controller */
+  NVIC_EnableIRQ(ONEWIRE_IRQn);
 }
 /**
  * Reset the 1-wire bus.
@@ -303,20 +282,20 @@ ow_reset(void)
    */
   OW_TIMING_SLOW();
   /* Enable transmitter */
-  ONEWIRE_C2 |= UART_C2_TE_MASK;
+  ONEWIRE_UART->C2 |= UART_C2_TE_MASK;
   /* Disable receiver */
-  ONEWIRE_C2 &= ~UART_C2_RE_MASK;
+  ONEWIRE_UART->C2 &= ~UART_C2_RE_MASK;
 
   /* Read whatever crap was left in the data buffer */
-  dummy = ONEWIRE_D;
+  dummy = ONEWIRE_UART->D;
   /* Flush the RX buffer before we begin */
-  ONEWIRE_CFIFO |= UART_CFIFO_RXFLUSH_MASK;
+  ONEWIRE_UART->CFIFO |= UART_CFIFO_RXFLUSH_MASK;
   /* Send a reset pulse */
-  ONEWIRE_D = ONEWIRE_D_RESET;
+  ONEWIRE_UART->D = ONEWIRE_D_RESET;
   MK60_LEAVE_CRITICAL_REGION();
 
   /* Wait until the byte has been transferred to the shift register */
-  while(!(ONEWIRE_S1 & UART_S1_TC_MASK));
+  while(!(ONEWIRE_UART->S1 & UART_S1_TC_MASK));
 
   /*
    * Queue up an IDLE character (all 1's, no start bit or stop bit) by disabling
@@ -324,12 +303,12 @@ ow_reset(void)
    * finish before we switch baud rates.
    */
 
-  ONEWIRE_C2 &= ~(UART_C2_TE_MASK);
+  ONEWIRE_UART->C2 &= ~(UART_C2_TE_MASK);
 
-  ONEWIRE_C2 |= UART_C2_TE_MASK;
+  ONEWIRE_UART->C2 |= UART_C2_TE_MASK;
 
   /* Wait until the byte has been transferred to the shift register */
-  while(!(ONEWIRE_S1 & UART_S1_TC_MASK));
+  while(!(ONEWIRE_UART->S1 & UART_S1_TC_MASK));
 
   /* We don't check for presence pulses */
 }
@@ -357,7 +336,7 @@ ow_write_bytes(const uint8_t *src, const uint8_t count)
   MK60_LEAVE_CRITICAL_REGION();
 
   /* Enable TX interrupts, all bits will be pushed by the ISR */
-  ONEWIRE_C2 |= (UART_C2_TCIE_MASK);
+  ONEWIRE_UART->C2 |= (UART_C2_TCIE_MASK);
 }
 /**
  * Shorthand function to write a single byte to the 1-wire bus.
@@ -393,7 +372,7 @@ ow_read_bytes(uint8_t *dest, const uint8_t count)
   MK60_LEAVE_CRITICAL_REGION();
 
   /* Enable TX interrupts, all bits will be pushed by the ISR */
-  ONEWIRE_C2 |= (UART_C2_TCIE_MASK);
+  ONEWIRE_UART->C2 |= (UART_C2_TCIE_MASK);
 
   /** \todo sleep while waiting for rx bits on 1-wire bus. */
   while(ow_read_bits > 0 || ow_read_bytes_count > 0);

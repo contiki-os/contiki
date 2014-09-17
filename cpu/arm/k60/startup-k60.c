@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include "K60.h"
 #include "core-clocks.h"
+#include "config-board.h"
 
 extern int main(void); /* the reset handler will invoke main() after hardware startup. */
 
@@ -85,8 +86,8 @@ void call_init_array(void);
 void
 reset_handler(void)
 {
+#if DISABLE_WDOG
   /* Disable watchdog to allow single stepping through the startup code. */
-  /** \todo Only disable watchdog on debug builds. */
   /*
    * The following unlock sequence must be completed within 256 bus cycles or
    * the watchdog will reset the system. The watchdog is enabled by default at
@@ -104,14 +105,15 @@ reset_handler(void)
    * It is now possible to single step through the code without the watchdog
    * resetting the system.
    */
-  WDOG_UNLOCK = 0xC520;
-  WDOG_UNLOCK = 0xD928;
-  WDOG_STCTRLH &= ~WDOG_STCTRLH_WDOGEN_MASK;
+  WDOG->UNLOCK = 0xC520;
+  WDOG->UNLOCK = 0xD928;
+  WDOG->STCTRLH &= ~WDOG_STCTRLH_WDOGEN_MASK;
 
   /*
    * The line below this comment is the earliest possible location for a
    * breakpoint when debugging the startup code.
    */
+#endif /* DISABLE_WDOG */
 
   call_init_array(); /* or __libc_init_array() as provided by newlib or other libc */
 

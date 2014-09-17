@@ -30,7 +30,7 @@
 void
 printf_putc(void *dum, char c)
 {
-  uart_putchar(BOARD_DEBUG_UART_BASE_PTR, c);
+  uart_putchar(BOARD_DEBUG_UART, c);
 }
 /*---------------------------------------------------------------------------*/
 #define COFFEE_AUTO_FORMAT 1
@@ -69,8 +69,13 @@ int
 main(void)
 {
   leds_arch_init();
+
   /* Set up core clocks so that timings will be correct in all modules */
-  core_clocks_init();
+  SystemInit();
+
+  /* Update SystemCoreClock global var */
+  SystemCoreClockUpdate();
+
   dbg_uart_init();
 
   llwu_init();
@@ -95,7 +100,7 @@ main(void)
 #ifndef WITH_SLIP
   init_printf(0, &printf_putc);
   printf("Booted\n");
-  printf("CPUID: %x\n", SCB_CPUID);
+  printf("CPUID: %x\n", SCB->CPUID);
 #endif
   /*
    * Initialize Contiki and our processes.

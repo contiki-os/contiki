@@ -91,14 +91,14 @@ void
 init_net(void)
 {
 #ifndef WITH_SLIP
-  id[0] = (((SIM_UIDL) >> (8 * 0)) & 0xFF) | 0x02;
-  id[1] = ((SIM_UIDL) >> (8 * 1)) & 0xFF;
-  id[2] = ((SIM_UIDL) >> (8 * 2)) & 0xFF;
-  id[3] = ((SIM_UIDL) >> (8 * 3)) & 0xFF;
-  id[4] = ((SIM_UIDML) >> (8 * 0)) & 0xFF;
-  id[5] = ((SIM_UIDML) >> (8 * 1)) & 0xFF;
-  id[6] = ((SIM_UIDML) >> (8 * 2)) & 0xFF;
-  id[7] = ((SIM_UIDML) >> (8 * 3)) & 0xFF;
+  id[0] = (((SIM->UIDL) >> (8 * 0)) & 0xFF) | 0x02;
+  id[1] = ((SIM->UIDL) >> (8 * 1)) & 0xFF;
+  id[2] = ((SIM->UIDL) >> (8 * 2)) & 0xFF;
+  id[3] = ((SIM->UIDL) >> (8 * 3)) & 0xFF;
+  id[4] = ((SIM->UIDML) >> (8 * 0)) & 0xFF;
+  id[5] = ((SIM->UIDML) >> (8 * 1)) & 0xFF;
+  id[6] = ((SIM->UIDML) >> (8 * 2)) & 0xFF;
+  id[7] = ((SIM->UIDML) >> (8 * 3)) & 0xFF;
 #else
   /* Use fixt address for border router. */
   id[0] = 0x02;

@@ -33,13 +33,13 @@ CONTIKI_TARGET_SOURCEFILES += \
   uart.c \
   dbg-uart.c \
   clock.c \
-  core-clocks.c \
   llwu.c \
   power-modes.c \
   onewire.c \
   fault-handlers.c \
   adc.c \
-  ds18b20.c
+  ds18b20.c \
+  system_MK60D10.c
 
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
@@ -65,7 +65,8 @@ OBJDUMP  = $(TCPREFIX)objdump
 STRIP    = $(TCPREFIX)strip
 SIZE     = $(TCPREFIX)size
 GDB      = $(GDBPREFIX)gdb
-CFLAGSNO = -I$(CONTIKI_CPU) \
+CFLAGSNO = -I$(CONTIKI_CPU)/include \
+           -I$(CONTIKI_CPU_ARM_COMMON)/CMSIS \
            -I$(CONTIKI)/platform/$(TARGET) \
            ${addprefix -I,$(APPDIRS)} \
            -I. -I$(CONTIKI)/core \

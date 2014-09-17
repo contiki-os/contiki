@@ -45,10 +45,10 @@
 #include "K60.h"
 
 #if K60_CPU_REV == 1
-#define PMCTRL MC_PMCTRL
+#define PMCTRL MC->PMCTRL
 #define SET_PMCTRL(x) (PMCTRL = MC_PMCTRL_LPLLSM(x) | MC_PMCTRL_LPWUI_MASK)
 #elif K60_CPU_REV == 2
-#define PMCTRL SMC_PMCTRL
+#define PMCTRL SMC->PMCTRL
 #define SET_PMCTRL(x) (PMCTRL = SMC_PMCTRL_STOPM(x) | SMC_PMCTRL_LPWUI_MASK)
 #else
 #error Unknown K60 CPU revision!
@@ -66,9 +66,9 @@ power_modes_init(void)
   /* Note: This register can only be written once after each reset, so we must
    * enable all power modes that we wish to use. */
 #if K60_CPU_REV == 1
-  MC_PMPROT |= MC_PMPROT_ALLS_MASK | MC_PMPROT_AVLP_MASK;
+  MC->PMPROT |= MC_PMPROT_ALLS_MASK | MC_PMPROT_AVLP_MASK;
 #else /* K60_CPU_REV == 1 */
-  SMC_PMPROT |= SMC_PMPROT_ALLS_MASK | SMC_PMPROT_AVLP_MASK;
+  SMC->PMPROT |= SMC_PMPROT_ALLS_MASK | SMC_PMPROT_AVLP_MASK;
 #endif /* K60_CPU_REV == 1 */
 }
 static void
@@ -77,7 +77,7 @@ wait(void)
   /* Clear the SLEEPDEEP bit to make sure we go into WAIT (sleep) mode instead
    * of deep sleep.
    */
-  SCB_SCR &= ~SCB_SCR_SLEEPDEEP_MASK;
+  SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
 
   /* WFI instruction will start entry into WAIT mode */
   asm("WFI");
@@ -86,7 +86,7 @@ static void
 stop(void)
 {
   /* Set the SLEEPDEEP bit to enable deep sleep mode (STOP) */
-  SCB_SCR |= SCB_SCR_SLEEPDEEP_MASK;
+  SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
   /* WFI instruction will start entry into STOP mode */
   asm("WFI");

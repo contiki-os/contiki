@@ -34,13 +34,13 @@ llwu_init()
 {
   list_init(llwu);
   /* Setup Low Leakage Wake-up Unit (LLWU) */
-  SIM_SCGC4 |= SIM_SCGC4_LLWU_MASK;   /* Enable LLWU clock gate */
+  SIM->SCGC4 |= SIM_SCGC4_LLWU_MASK;   /* Enable LLWU clock gate */
 
   power_modes_init();
 
   update_llwu();
   /** \todo Symbolic names for NVIC IRQ flags */
-  NVICISER0 |= NVIC_ISER_SETENA(1 << 21); /* Enable LLWU interrupt */
+  NVIC_EnableIRQ(LLW_IRQn); /* Enable LLWU interrupt */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -81,12 +81,12 @@ llwu_sleep(void)
   /* It is necessary to check the SIM_SCGCx registers to avoid hardfaulting when
    * we try to read a disabled peripheral */
   if(!allow_deep_sleep ||
-     ((SIM_SCGC4 & SIM_SCGC4_UART0_MASK) && (UART0_S2 & UART_S2_RAF_MASK)) ||
-     ((SIM_SCGC4 & SIM_SCGC4_UART1_MASK) && (UART1_S2 & UART_S2_RAF_MASK)) ||
-     ((SIM_SCGC4 & SIM_SCGC4_UART2_MASK) && (UART2_S2 & UART_S2_RAF_MASK)) ||
-     ((SIM_SCGC4 & SIM_SCGC4_UART3_MASK) && (UART3_S2 & UART_S2_RAF_MASK)) ||
-     ((SIM_SCGC1 & SIM_SCGC1_UART4_MASK) && (UART4_S2 & UART_S2_RAF_MASK)) ||
-     ((SIM_SCGC1 & SIM_SCGC1_UART5_MASK) && (UART5_S2 & UART_S2_RAF_MASK))) {
+     ((SIM->SCGC4 & SIM_SCGC4_UART0_MASK) && (UART0->S2 & UART_S2_RAF_MASK)) ||
+     ((SIM->SCGC4 & SIM_SCGC4_UART1_MASK) && (UART1->S2 & UART_S2_RAF_MASK)) ||
+     ((SIM->SCGC4 & SIM_SCGC4_UART2_MASK) && (UART2->S2 & UART_S2_RAF_MASK)) ||
+     ((SIM->SCGC4 & SIM_SCGC4_UART3_MASK) && (UART3->S2 & UART_S2_RAF_MASK)) ||
+     ((SIM->SCGC1 & SIM_SCGC1_UART4_MASK) && (UART4->S2 & UART_S2_RAF_MASK)) ||
+     ((SIM->SCGC1 & SIM_SCGC1_UART5_MASK) && (UART5->S2 & UART_S2_RAF_MASK))) {
     power_mode_wait();
   }
   /* FIXME: Do we need to disable interrupts here? */
@@ -110,16 +110,16 @@ void
 llwu_enable_wakeup_module(const llwu_wakeup_module_t module)
 {
   if(module < LLWU_WAKEUP_MODULE_END) {
-    LLWU_ME |= (1 << (const uint8_t)module);
-    PRINTF("LLWU_ME 0x%02x\n", LLWU_ME);
+    LLWU->ME |= (1 << (const uint8_t)module);
+    PRINTF("LLWU_ME 0x%02x\n", LLWU->ME);
   }
 }
 void
 llwu_disable_wakeup_module(const llwu_wakeup_module_t module)
 {
   if(module < LLWU_WAKEUP_MODULE_END) {
-    LLWU_ME = (LLWU_ME & ~(1 << (const uint8_t)module));
-    PRINTF("LLWU_ME 0x%02x\n", LLWU_ME);
+    LLWU->ME &= ~(1 << (const uint8_t)module);
+    PRINTF("LLWU_ME 0x%02x\n", LLWU->ME);
   }
 }
 void
@@ -133,25 +133,27 @@ llwu_set_wakeup_pin(const llwu_wakeup_pin_t pin, const llwu_wakeup_edge_t edge)
   }
   /* LLWU pin enable registers are sequential in the address space */
 
-  tmp = *(&LLWU_PE1 + (((const uint8_t)pin) / LLWU_WAKEUP_PIN_REG_SIZE));
+  tmp = *(&LLWU->PE1 + (((const uint8_t)pin) / LLWU_WAKEUP_PIN_REG_SIZE));
   /* Clear the bits in the field we want to modify */
   tmp = (tmp & ~(LLWU_WAKEUP_EDGE_MASK << ((pin % LLWU_WAKEUP_PIN_REG_SIZE) *
                                            LLWU_WAKEUP_EDGE_WIDTH)));
   /* Set the new value */
   tmp |= ((edge & LLWU_WAKEUP_EDGE_MASK) << ((pin % LLWU_WAKEUP_PIN_REG_SIZE) *
                                              LLWU_WAKEUP_EDGE_WIDTH));
-  *(&LLWU_PE1 + (((const uint8_t)pin) / LLWU_WAKEUP_PIN_REG_SIZE)) = tmp;
-  PRINTF("LLTU 1 0x%02x\n", LLWU_PE1);
-  PRINTF("LLTU 2 0x%02x\n", LLWU_PE2);
-  PRINTF("LLTU 3 0x%02x\n", LLWU_PE3);
-  PRINTF("LLTU 4 0x%02x\n", LLWU_PE4);
+  *(&LLWU->PE1 + (((const uint8_t)pin) / LLWU_WAKEUP_PIN_REG_SIZE)) = tmp;
+  PRINTF("LLTU 1 0x%02x\n", LLWU->PE1);
+  PRINTF("LLTU 2 0x%02x\n", LLWU->PE2);
+  PRINTF("LLTU 3 0x%02x\n", LLWU->PE3);
+  PRINTF("LLTU 4 0x%02x\n", LLWU->PE4);
 }
 void __attribute__((interrupt))
 _isr_llwu(void)
 {
   /* TODO(henrik) Dont know if this is really the correct way to handle the flags. */
   /* Clear LLWU flags */
-  LLWU_F1 = 0xFF;
-  LLWU_F2 = 0xFF;
-  LLWU_F3 = 0xFF;
+  LLWU->F1 = 0xFF;
+  LLWU->F2 = 0xFF;
+  /* Read only register F3, the flag will need to be cleared in the peripheral
+   * instead of writing a 1 to the MWUFx bit. */
+  /* LLWU->F3 = 0xFF; */
 }

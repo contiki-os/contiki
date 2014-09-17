@@ -40,26 +40,27 @@
 #include "adc.h"
 #include "K60.h"
 
-static inline ADC_MemMapPtr
+static inline ADC_Type *
 adc_num_to_ptr(adc_number_t adc_num)
 {
   switch(adc_num) {
   case 0:
-    return ADC0_BASE_PTR;
+    return ADC0;
     break;
   case 1:
-    return ADC1_BASE_PTR;
+    return ADC1;
     break;
   default:
     return 0;
     break;
   }
 }
+
 adc_error_t
 adc_calibrate(adc_number_t adc_num)
 {
   uint16_t cal;
-  ADC_MemMapPtr ADC_ptr;
+  ADC_Type *ADC_ptr;
 
   ADC_ptr = adc_num_to_ptr(adc_num);
   if(!ADC_ptr) {
@@ -106,7 +107,7 @@ adc_calibrate(adc_number_t adc_num)
 uint16_t
 adc_read_raw(adc_number_t adc_num, adc_channel_t adc_channel)
 {
-  ADC_MemMapPtr ADC_ptr;
+  ADC_Type *ADC_ptr;
 
   ADC_ptr = adc_num_to_ptr(adc_num);
   if(!ADC_ptr) {

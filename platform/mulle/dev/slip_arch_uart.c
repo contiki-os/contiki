@@ -16,5 +16,5 @@ slip_arch_init(unsigned long ubr)
 void
 slip_arch_writeb(unsigned char c)
 {
-  uart_putchar(BOARD_DEBUG_UART_BASE_PTR, c);
+  uart_putchar(BOARD_DEBUG_UART, c);
 }

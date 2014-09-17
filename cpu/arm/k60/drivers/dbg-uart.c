@@ -55,16 +55,16 @@ dbg_uart_init(void)
   /* Enable the clock gate to the TX pin PORT */
   port_module_enable(BOARD_DEBUG_UART_TX_PIN_PORT);
   /* Choose UART TX for the pin mux and disable PORT interrupts on the pin */
-  PORT_PCR_REG(BOARD_DEBUG_UART_TX_PIN_PORT, BOARD_DEBUG_UART_TX_PIN_NUMBER) =
+  BOARD_DEBUG_UART_TX_PIN_PORT->PCR[BOARD_DEBUG_UART_TX_PIN_NUMBER] =
     PORT_PCR_MUX(BOARD_DEBUG_UART_TX_PIN_MUX);
 #endif
 #ifdef BOARD_DEBUG_UART_RX_PIN_PORT
   port_module_enable(BOARD_DEBUG_UART_RX_PIN_PORT);
 
   /* Choose UART RX for the pin mux and disable PORT interrupts on the pin */
-  PORT_PCR_REG(BOARD_DEBUG_UART_RX_PIN_PORT, BOARD_DEBUG_UART_RX_PIN_NUMBER) =
+  BOARD_DEBUG_UART_RX_PIN_PORT->PCR[BOARD_DEBUG_UART_RX_PIN_NUMBER] =
     PORT_PCR_MUX(BOARD_DEBUG_UART_RX_PIN_MUX);
 #endif
 
-  uart_init(BOARD_DEBUG_UART_BASE_PTR, F_SYS, BOARD_DEBUG_UART_BAUD);
+  uart_init(BOARD_DEBUG_UART, F_SYS, BOARD_DEBUG_UART_BAUD);
 }

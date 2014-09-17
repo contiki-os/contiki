@@ -40,45 +40,26 @@ typedef enum spi_transfer_sync {
 void
 spi_init(void)
 {
-#if 0
-  /* Setup PORTC */
-  SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK;
-
-  PORTC_PCR5 |= 0x0200; /* 5 CLK */
-  PORTC_PCR6 |= 0x0200; /* 6 MOSI */
-  PORTC_PCR7 |= 0x0200; /* 7 MISO */
-
-  PORTC_PCR1 |= 0x0200; /* Flash CS 1 */
-  PORTC_PCR2 |= 0x0200; /* Flash CS 2 */
-  PORTC_PCR3 |= 0x0200; /* Flash CS 3 */
-  PORTC_PCR4 |= 0x0200; /* Flash CS 4 */
-
-  /* Setup SPI0 */
-  SIM_SCGC6 |= SIM_SCGC6_DSPI0_MASK;
-  /* TODO(henrik) Check clock speeds */
-  SPI0_CTAR0 = 0xb8000005;
-  SPI0_MCR = 0x803F3000;
-#endif
-  SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
-  PORTD_PCR5 = PORT_PCR_MUX(2); /* SPI0_PCS2 */
-  PORTD_PCR2 = PORT_PCR_MUX(2); /* SPI0_MOSI */
-  PORTD_PCR1 = PORT_PCR_MUX(2); /* SPI0_SCLK */
-  PORTD_PCR3 = PORT_PCR_MUX(2); /* SPI0_MISO */
+  SIM->SCGC5 |= SIM_SCGC5_PORTD_MASK;
+  PORTD->PCR[5] = PORT_PCR_MUX(2); /* SPI0_PCS2 */
+  PORTD->PCR[2] = PORT_PCR_MUX(2); /* SPI0_MOSI */
+  PORTD->PCR[1] = PORT_PCR_MUX(2); /* SPI0_SCLK */
+  PORTD->PCR[3] = PORT_PCR_MUX(2); /* SPI0_MISO */
 
   /* Enable clock gate for SPI0 module */
-  SIM_SCGC6 |= SIM_SCGC6_SPI0_MASK;
+  SIM->SCGC6 |= SIM_SCGC6_SPI0_MASK;
 
   /* Configure SPI0 */
   /* Master mode */
   /* all peripheral chip select signals are active low */
   /* Disable TX,RX FIFO */
-  SPI0_MCR = SPI_MCR_MSTR_MASK | SPI_MCR_PCSIS(0x1F) | SPI_MCR_DIS_RXF_MASK | SPI_MCR_DIS_TXF_MASK;     /* 0x803F3000; */
+  SPI0->MCR = SPI_MCR_MSTR_MASK | SPI_MCR_PCSIS(0x1F) | SPI_MCR_DIS_RXF_MASK | SPI_MCR_DIS_TXF_MASK;     /* 0x803F3000; */
   /* 8 bit frame size */
   /* Set up different delays and clock scalers */
   /* TODO: These need tuning */
   /* FIXME: Coordinate SPI0 parameters between different peripheral drivers */
   /* IMPORTANT: Clock polarity is active low! */
-  SPI0_CTAR0 = SPI_CTAR_FMSZ(7) | SPI_CTAR_CSSCK(2) | SPI_CTAR_ASC(2) | SPI_CTAR_DT(2) | SPI_CTAR_BR(4); /*0x38002224; *//* TODO: Should be able to speed up */
+  SPI0->CTAR[FLASH_CTAS] = SPI_CTAR_FMSZ(7) | SPI_CTAR_CSSCK(2) | SPI_CTAR_ASC(2) | SPI_CTAR_DT(2) | SPI_CTAR_BR(4); /*0x38002224; *//* TODO: Should be able to speed up */
 }
 /**
  * Perform a one byte transfer over SPI.
@@ -109,18 +90,18 @@ spi_transfer(const uint8_t ctas, const uint32_t cs,
   }
 
   /* Clear transfer complete flag */
-  SPI0_SR |= SPI_SR_TCF_MASK;
+  SPI0->SR |= SPI_SR_TCF_MASK;
 
   /* Shift a frame out/in */
-  SPI0_PUSHR = spi_pushr;
+  SPI0->PUSHR = spi_pushr;
 
   if(blocking) {
     /* Wait for transfer complete */
-    while(!(SPI0_SR & SPI_SR_TCF_MASK));
+    while(!(SPI0->SR & SPI_SR_TCF_MASK));
   }
 
   /* Pop the buffer */
-  return SPI0_POPR;
+  return SPI0->POPR;
 }
 /* ************************************************************************** */
 typedef enum flash_cmd {
@@ -483,7 +464,7 @@ flash_init(void)
   uint32_t jedec_id;
   int i;
 
-  SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
+  SIM->SCGC5 |= SIM_SCGC5_PORTD_MASK;
 
   spi_init();
   {

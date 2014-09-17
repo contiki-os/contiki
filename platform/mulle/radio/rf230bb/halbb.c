@@ -224,37 +224,39 @@ spiWrite(uint8_t byte)
 #define HAL_SPI_TRANSFER_CLOSE() HAL_LEAVE_CRITICAL_REGION();
 #include "K60.h"
 #include "llwu.h"
+
 static inline void
 hal_spi_send(uint8_t data, int cont)
 {
   /* Send data */
   if(cont) {
-    SPI0_PUSHR = SPI_PUSHR_PCS((1 << HAL_SS_PIN)) | SPI_PUSHR_CONT_MASK | data;
+    SPI0->PUSHR = SPI_PUSHR_PCS((1 << HAL_SS_PIN)) | SPI_PUSHR_CONT_MASK | data;
   } else {
-    SPI0_PUSHR = SPI_PUSHR_PCS((1 << HAL_SS_PIN)) | data;
+    SPI0->PUSHR = SPI_PUSHR_PCS((1 << HAL_SS_PIN)) | data;
   }
-  SPI0_SR |= SPI_SR_TCF_MASK;
-  while(!(SPI0_SR & SPI_SR_TCF_MASK)) ;
+  SPI0->SR |= SPI_SR_TCF_MASK;
+  while(!(SPI0->SR & SPI_SR_TCF_MASK)) ;
 
   /* Dummy read */
-  SPI0_SR |= SPI_SR_TCF_MASK;
-  data = (0xFF & SPI0_POPR);
+  SPI0->SR |= SPI_SR_TCF_MASK;
+  data = (0xFF & SPI0->POPR);
 }
+
 static inline uint8_t
 hal_spi_receive(int cont)
 {
   /* Dummy write */
   if(cont) {
-    SPI0_PUSHR = SPI_PUSHR_PCS((1 << HAL_SS_PIN)) | SPI_PUSHR_CONT_MASK;
+    SPI0->PUSHR = SPI_PUSHR_PCS((1 << HAL_SS_PIN)) | SPI_PUSHR_CONT_MASK;
   } else {
-    SPI0_PUSHR = SPI_PUSHR_PCS((1 << HAL_SS_PIN));
+    SPI0->PUSHR = SPI_PUSHR_PCS((1 << HAL_SS_PIN));
   }
-  SPI0_SR |= SPI_SR_TCF_MASK;
-  while(!(SPI0_SR & SPI_SR_TCF_MASK)) ;
+  SPI0->SR |= SPI_SR_TCF_MASK;
+  while(!(SPI0->SR & SPI_SR_TCF_MASK)) ;
 
   /* Read data */
-  SPI0_SR |= SPI_SR_TCF_MASK;
-  return 0xFF & SPI0_POPR;
+  SPI0->SR |= SPI_SR_TCF_MASK;
+  return 0xFF & SPI0->POPR;
 }
 #ifdef MULLE_IRQ_PATCH
 #define HAL_RF230_ISR() void __attribute__((interrupt))  _isr_portc_pin_detect(void)
@@ -270,22 +272,22 @@ hal_init(void)
   /*** IO Specific Initialization.****/
 
   /* Enable PORTC clock gate */
-  SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
-  SIM_SCGC5 |= SIM_SCGC5_PORTE_MASK;
+  SIM->SCGC5 |= SIM_SCGC5_PORTD_MASK;
+  SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
 
-  PORTE_PCR6 |= 0x0100;     /* Sleep */
-  PORTD_PCR7 |= 0x0100;           /* Vp */
+  PORTE->PCR[6] |= 0x0100;     /* Sleep */
+  PORTD->PCR[7] |= 0x0100;           /* Vp */
 
-  GPIOE_PDDR |= 0x0040; /* Setup PTE6 (Sleep) as output */
-  GPIOD_PDDR |= 0x0080; /* Setup PTD7 (Vp) as output */
+  PTE->PDDR |= 0x0040; /* Setup PTE6 (Sleep) as output */
+  PTD->PDDR |= 0x0080; /* Setup PTD7 (Vp) as output */
 
 #ifdef MULLE_IRQ_PATCH
-  SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK;
-  PORTC_PCR1 |= 0x00090100;
+  SIM->SCGC5 |= SIM_SCGC5_PORTC_MASK;
+  PORTC->PCR[1] |= 0x00090100;
   llwu_enable_wakeup_source(LLWU_WAKEUP_SOURCE_P6_RISING);
 #else
-  SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK;
-  PORTB_PCR9 |= 0x00090100;       /* Set PTB9 (IRQ)    as GPIO with active high interrupt */
+  SIM->SCGC5 |= SIM_SCGC5_PORTB_MASK;
+  PORTB->PCR[9] |= 0x00090100;       /* Set PTB9 (IRQ)    as GPIO with active high interrupt */
 #endif
   /* Enable power switch to radio */
   hal_set_pwr_high();
@@ -293,17 +295,17 @@ hal_init(void)
   /*** SPI Specific Initialization.****/
 
   /* Mux SPI0 on port B */
-  PORTD_PCR4 |= 0x0200; /* SPI0_PCS1 */
-  PORTD_PCR2 |= 0x0200; /* SPI0_MOSI */
-  PORTD_PCR1 |= 0x0200; /* SPI0_SCLK */
-  PORTD_PCR3 |= 0x0200; /* SPI0_MISO */
+  PORTD->PCR[4] |= 0x0200; /* SPI0_PCS1 */
+  PORTD->PCR[2] |= 0x0200; /* SPI0_MOSI */
+  PORTD->PCR[1] |= 0x0200; /* SPI0_SCLK */
+  PORTD->PCR[3] |= 0x0200; /* SPI0_MISO */
 
   /* Enable clock gate for SPI0 module */
-  SIM_SCGC6 |= SIM_SCGC6_SPI0_MASK;
+  SIM->SCGC6 |= SIM_SCGC6_SPI0_MASK;
 
   /* Configure SPI1 */
-  SPI0_MCR = 0x803F3000;
-  SPI0_CTAR0 = 0x38002224; /* TODO: Should be able to speed up */
+  SPI0->MCR = 0x803F3000;
+  SPI0->CTAR[0] = 0x38002224; /* TODO: Should be able to speed up */
 
   /*** Enable interrupts from the radio transceiver. ***/
   hal_enable_trx_interrupt();
@@ -595,11 +597,11 @@ HAL_RF230_ISR()
 
   /* Clear Interrupt Status Flag */
 #ifdef MULLE_IRQ_PATCH
-  PORTC_PCR1 |= 0x01000000;    /* Clear interrupt */
-  NVICICPR2 = (1 << 25);
+  PORTC->PCR[1] |= 0x01000000;    /* Clear interrupt */
+  NVIC_ClearPendingIRQ(PORTC_IRQn);
 #else
-  PORTB_PCR9 |= 0x01000000;    /* Clear interrupt */
-  NVICICPR2 = (1 << 24);
+  PORTB->PCR[9] |= 0x01000000;    /* Clear interrupt */
+  NVIC_ClearPendingIRQ(PORTB_IRQn);
 #endif
 
   INTERRUPTDEBUG(1);

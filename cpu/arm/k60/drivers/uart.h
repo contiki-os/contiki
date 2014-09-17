@@ -10,10 +10,10 @@
 
 #include "K60.h"
 
-void uart_module_enable(UART_MemMapPtr uartch);
-void uart_init(UART_MemMapPtr uartch, uint32_t module_clk_hz, uint32_t baud);
-void uart_putchar(UART_MemMapPtr uartch, char ch);
-void uart_putstring(UART_MemMapPtr uartch, char *str);
+void uart_module_enable(UART_Type *uartch);
+void uart_init(UART_Type *uartch, uint32_t module_clk_hz, uint32_t baud);
+void uart_putchar(UART_Type *uartch, char ch);
+void uart_putstring(UART_Type *uartch, char *str);
 void uart_enable_rx_interrupt();
 void uart_set_rx_callback(int (*callback)(unsigned char));
 

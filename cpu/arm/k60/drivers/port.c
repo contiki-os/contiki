@@ -40,18 +40,18 @@
 #include "port.h"
 
 void
-port_module_enable(PORT_MemMapPtr port)
+port_module_enable(PORT_Type *port)
 {
-  if(port == PORTA_BASE_PTR) {
-    SIM_SCGC5 |= SIM_SCGC5_PORTA_MASK;
-  } else if(port == PORTB_BASE_PTR) {
-    SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK;
-  } else if(port == PORTC_BASE_PTR) {
-    SIM_SCGC5 |= SIM_SCGC5_PORTC_MASK;
-  } else if(port == PORTD_BASE_PTR) {
-    SIM_SCGC5 |= SIM_SCGC5_PORTD_MASK;
-  } else if(port == PORTE_BASE_PTR) {
-    SIM_SCGC5 |= SIM_SCGC5_PORTE_MASK;
+  if(port == PORTA) {
+    SIM->SCGC5 |= SIM_SCGC5_PORTA_MASK;
+  } else if(port == PORTB) {
+    SIM->SCGC5 |= SIM_SCGC5_PORTB_MASK;
+  } else if(port == PORTC) {
+    SIM->SCGC5 |= SIM_SCGC5_PORTC_MASK;
+  } else if(port == PORTD) {
+    SIM->SCGC5 |= SIM_SCGC5_PORTD_MASK;
+  } else if(port == PORTE) {
+    SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
   } else {
     DEBUGGER_BREAK(BREAK_INVALID_PARAM);
     return;

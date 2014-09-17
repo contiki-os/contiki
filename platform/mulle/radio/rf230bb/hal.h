@@ -71,16 +71,19 @@
  *       that the source code can directly use.
  * \{
  */
-#define hal_set_slptr_high() (GPIOE_PSOR = (1 << 6))           /**< This macro pulls the SLP_TR pin high. */
-#define hal_set_slptr_low()  (GPIOE_PCOR = (1 << 6))           /**< This macro pulls the SLP_TR pin low. */
-#define hal_get_slptr()      ((GPIOE_PDOR & (1 << 6)) >> 6)    /**< Read current state of the SLP_TR pin (High/Low). */
+#define SLPTR_GPIO PTE
+#define SLPTR_PIN 6
+
+#define hal_set_slptr_high() (BITBAND_REG(SLPTR_GPIO->PSOR, SLPTR_PIN) = 1) /**< This macro pulls the SLP_TR pin high. */
+#define hal_set_slptr_low()  (BITBAND_REG(SLPTR_GPIO->PCOR, SLPTR_PIN) = 1) /**< This macro pulls the SLP_TR pin low. */
+#define hal_get_slptr()      (BITBAND_REG(SLPTR_GPIO->PDOR, SLPTR_PIN))    /**< Read current state of the SLP_TR pin (High/Low). */
 /* rst and pwr is the same */
-#define hal_set_rst_high()   GPIOD_PSOR = (1 << 7); udelay(0xFFFF)          /**< This macro pulls the RST pin high. */
-#define hal_set_rst_low()    (GPIOD_PCOR = (1 << 7))           /**< This macro pulls the RST pin low. */
-#define hal_get_rst()        ((GPIOD_PDOR & (1 << 7)) >> 7)    /**< Read current state of the RST pin (High/Low). */
-#define hal_set_pwr_high()   (GPIOD_PSOR = (1 << 7))           /**< This macro pulls the RST pin high. */
-#define hal_set_pwr_low()    (GPIOD_PCOR = (1 << 7))           /**< This macro pulls the RST pin low. */
-#define hal_get_pwr()        ((GPIOD_PDOR & (1 << 7)) >> 7)    /**< Read current state of the RST pin (High/Low). */
+#define hal_set_rst_high()   PTD->PSOR = (1 << 7); udelay(0xFFFF)          /**< This macro pulls the RST pin high. */
+#define hal_set_rst_low()    (PTD->PCOR = (1 << 7))           /**< This macro pulls the RST pin low. */
+#define hal_get_rst()        ((PTD->PDOR & (1 << 7)) >> 7)    /**< Read current state of the RST pin (High/Low). */
+#define hal_set_pwr_high()   (PTD->PSOR = (1 << 7))           /**< This macro pulls the RST pin high. */
+#define hal_set_pwr_low()    (PTD->PCOR = (1 << 7))           /**< This macro pulls the RST pin low. */
+#define hal_get_pwr()        ((PTD->PDOR & (1 << 7)) >> 7)    /**< Read current state of the RST pin (High/Low). */
 #define HAL_SS_PIN            1                                /**< The slave select pin. */
 
 /** \} */
@@ -88,8 +91,10 @@
 #define HAL_SS_HIGH()  /* Done in HW on K60 */
 #define HAL_SS_LOW()   /* Done in HW on K60 */
 
-#define HAL_ENABLE_RADIO_INTERRUPT() { PORTB_PCR9 |= (1 << 24); NVICICPR2 = (1 << 24); NVICISER2 |= (1 << 24); }
-#define HAL_DISABLE_RADIO_INTERRUPT() (NVICICER2 = (1 << 24); )
+#define HAL_ENABLE_RADIO_INTERRUPT() { PORTB->PCR[9] |= (1 << 24); \
+  NVIC_ClearPendingIRQ(PORTB_IRQn); \
+  NVIC_EnableIRQ(PORTB_IRQn); }
+#define HAL_DISABLE_RADIO_INTERRUPT() (NVIC_DisableIRQ(PORTB_IRQn))
 
 #define HAL_ENABLE_OVERFLOW_INTERRUPT() ()
 #define HAL_DISABLE_OVERFLOW_INTERRUPT() ()
