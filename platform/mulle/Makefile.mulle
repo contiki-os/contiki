@@ -2,7 +2,16 @@ ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
 PLATFORM_DIR = $(CONTIKI)/platform/mulle
+
 CPU_NAME = k60
+
+### CPU part number (must have a specific linker script for each part)
+# Note that MK60DN256ZVLL10 (version 1.x) and MK60DN256VLL10 (version 2.x, no Z)
+# only differ in some register locations etc, not in the actual memory layout,
+# so it is safe to use the same linker script for both version 1.x and version
+# 2.x silicon.
+CPU_PART ?= K60DN256VLL10
+
 CPU_DIR = $(CONTIKI)/cpu/arm/$(CPU_NAME)
 CONTIKI_TARGET_DIRS = . dev stdio
 CONTIKI_CORE=contiki-main

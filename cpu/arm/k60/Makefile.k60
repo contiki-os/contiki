@@ -15,13 +15,6 @@ DEBUG=-g3 -gdwarf-4
 
 GDB_PORT ?= 3333
 
-### CPU part number (must have a specific linker script for each part)
-# Note that MK60DN256ZVLL10 (version 1.x) and MK60DN256VLL10 (version 2.x, no Z)
-# only differ in some register locations etc, not in the actual memory layout,
-# so it is safe to use the same linker script for both version 1.x and version
-# 2.x silicon.
-CPU_PART ?= K60DN256VLL10
-
 ### Code common for all ARM CPUs
 
 CONTIKI_CPU_ARM=$(CONTIKI)/cpu/arm
