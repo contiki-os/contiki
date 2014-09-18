@@ -27,7 +27,6 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *
  */
 
 #ifndef CONTIKI_CONF_H_
@@ -65,12 +64,6 @@
 /* Default network config */
 #if WITH_UIP6
 
-#define NULLRDC_CONF_802154_AUTOACK  1
-#define NULLRDC_CONF_SEND_802154_ACK 1
-#define NULLRDC_CONF_ACK_WAIT_TIME                RTIMER_SECOND / 500
-#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME 0
-
-
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define NETSTACK_CONF_MAC           csma_driver
@@ -78,9 +71,14 @@
 #define NETSTACK_CONF_RADIO         cooja_radio_driver
 #define NETSTACK_CONF_FRAMER        framer_802154
 
-#define UIP_CONF_IPV6               	1
+#define NULLRDC_CONF_802154_AUTOACK     1
+#define NULLRDC_CONF_SEND_802154_ACK    1
+#define NULLRDC_CONF_ACK_WAIT_TIME                RTIMER_SECOND / 500
+#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME 0
 
-#define LINKADDR_CONF_SIZE          	8
+#define UIP_CONF_IPV6                   1
+
+#define LINKADDR_CONF_SIZE              8
 
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
@@ -120,7 +118,7 @@
 #define UIP_CONF_IP_FORWARD             0
 #ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE		240
-#endif
+#endif /* UIP_CONF_BUFFER_SIZE */
 
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
