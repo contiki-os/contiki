@@ -78,16 +78,9 @@
 #define NETSTACK_CONF_RADIO         cooja_radio_driver
 #define NETSTACK_CONF_FRAMER        framer_802154
 
+#define UIP_CONF_IPV6               	1
 
-/* Network setup for IPv6 */
-#define NETSTACK_CONF_NETWORK       sicslowpan_driver
-#define NETSTACK_CONF_MAC           csma_driver
-#define NETSTACK_CONF_RDC           nullrdc_driver
-#define NETSTACK_CONF_RADIO         cooja_radio_driver
-#define NETSTACK_CONF_FRAMER        framer_802154
-#define UIP_CONF_IPV6               1
-
-#define LINKADDR_CONF_SIZE          8
+#define LINKADDR_CONF_SIZE          	8
 
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
