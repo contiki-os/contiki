@@ -59,7 +59,12 @@
 #define NETSTACK_QUOTEME(s) #s
 #include NETSTACK__QUOTEME(NETSTACK_CONF_H)
 
-#else /* NETSTACK_CONF_H */
+#endif /* NETSTACK_CONF_H */
+
+#define NETSTACK_CONF_RDC           nullrdc_driver
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
+
+#define NETSTACK_CONF_RADIO         cooja_radio_driver
 
 /* Default network config */
 #if WITH_UIP6
@@ -67,8 +72,6 @@
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define NETSTACK_CONF_MAC           csma_driver
-#define NETSTACK_CONF_RDC           nullrdc_driver
-#define NETSTACK_CONF_RADIO         cooja_radio_driver
 #define NETSTACK_CONF_FRAMER        framer_802154
 
 #define NULLRDC_CONF_802154_AUTOACK     1
@@ -141,8 +144,6 @@
 /* Network setup for IPv4 */
 #define NETSTACK_CONF_NETWORK rime_driver /* NOTE: uip_over_mesh. else: uip_driver */
 #define NETSTACK_CONF_MAC nullmac_driver
-#define NETSTACK_CONF_RDC nullrdc_driver
-#define NETSTACK_CONF_RADIO cooja_radio_driver
 #define UIP_CONF_IP_FORWARD           1
 
 #else /* WITH_UIP */
@@ -150,16 +151,10 @@
 /* Network setup for Rime */
 #define NETSTACK_CONF_NETWORK rime_driver
 #define NETSTACK_CONF_MAC csma_driver
-#define NETSTACK_CONF_RDC nullrdc_driver
-#define NETSTACK_CONF_RADIO cooja_radio_driver
 /*#define NETSTACK_CONF_FRAMER framer_nullmac*/
 
 #endif /* WITH_UIP */
 #endif /* WITH_UIP6 */
-
-#endif /* NETSTACK_CONF_H */
-
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
