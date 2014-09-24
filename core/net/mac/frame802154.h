@@ -44,7 +44,12 @@
 */
 
 /**
- *    \addtogroup frame802154
+ *    \addtogroup net 802.15.4 frame creation and parsing
+ *    @{
+ */
+
+/**
+ *    \defgroup frame802154 802.15.4 frame creation and parsing
  *    @{
  */
 /**
@@ -188,4 +193,5 @@ int frame802154_parse(uint8_t *data, int length, frame802154_t *pf);
 
 /** @} */
 #endif /* FRAME_802154_H */
+/** @} */
 /** @} */
