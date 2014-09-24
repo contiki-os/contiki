@@ -4,7 +4,7 @@
  */
 
 /**
- * \defgroup rimermh Best-effort multihop forwarding
+ * \defgroup rimermh Reliable multihop forwarding
  * @{
  *
  * The rmh module implements a multihop forwarding mechanism. Routes

@@ -4,7 +4,7 @@
  */
 
 /**
- * \defgroup rudolph2 Single-hop reliable bulk data transfer
+ * \defgroup rudolph2 Single-hop reliable bulk data transfer (rudolph2)
  * @{
  *
  * The rudolph2 module implements a single-hop reliable bulk data
