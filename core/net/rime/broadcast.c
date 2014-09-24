@@ -31,7 +31,7 @@
  */
 
 /**
- * \addtogroup rimebroadcast
+ * \addtogroup rimeibc
  * @{
  */
 
