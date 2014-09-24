@@ -4,7 +4,7 @@
  */
 
 /**
- * \defgroup rudolph1 Multi-hop reliable bulk data transfer
+ * \defgroup rudolph1 Multi-hop reliable bulk data transfer (rudolph1)
  * @{
  *
  * The rudolph1 module implements a multi-hop reliable bulk data

@@ -31,7 +31,7 @@
  */
 
 /**
- * \addtogroup rimeexamples
+ * \addtogroup rimebroadcastannouncement
  * @{
  */
 
