@@ -29,10 +29,6 @@
  * This file is part of the Contiki operating system.
  *
  */
-/**
- * \addtogroup esb
- * @{
- */
 
 /**
  * \defgroup beeper Beeper interface
@@ -156,7 +152,6 @@ void beep_long(clock_time_t len);
 
 void beep_quick(int num);
 
-/** @} */
 /** @} */
 
 #endif /* BEEP_H_ */
