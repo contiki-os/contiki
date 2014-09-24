@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimeexamples
+ * \addtogroup rimepoliteannouncement
  * @{
  */
 

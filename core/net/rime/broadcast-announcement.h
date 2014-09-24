@@ -4,7 +4,7 @@
  */
 
 /**
- * \defgroup rimebroadcastannouncement
+ * \defgroup rimebroadcastannouncement Broadcast announcement
  * @{
  *
  * The broadcast announcement module implements a periodic explicit

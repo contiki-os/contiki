@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimecollect_neighbor
+ * \addtogroup rimeneighbor
  * @{
  */
 

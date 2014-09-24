@@ -4,7 +4,7 @@
  */
 
 /**
- * \defgroup rimepoliteannouncement
+ * \defgroup rimepoliteannouncement Polite announcement
  * @{
  *
  * The polite announcement module implements a periodic explicit
