@@ -7,6 +7,8 @@
  * interrupt handlers.
  */
 
+#include "K60.h"
+
 #define SECTION(x) __attribute__ ((section(#x)))
 #define ISR_VECTOR_SECTION SECTION(.vector_table)
 void reset_handler(void) __attribute__((naked));
@@ -270,13 +272,19 @@ const ISR_func isr_vector[111] ISR_VECTOR_SECTION =
 void
 _isr_nmi(void)
 {
-  while(1) ;
+  while(1);
 }
+
 static void
 unhandled_interrupt(void)
 {
-  while(1) ;
+  /* The IPSR register can be used to identify which interrupt caused the
+   * unhandled interrupt handler to be invoked. See Cortex-M4 Devices Generic User Guide. */
+  volatile uint32_t ipsr = __get_IPSR();
+  (void)ipsr;
+  while(1);
 }
+
 /**
  * Default handler of Hard Faults
  *
@@ -296,6 +304,7 @@ dHardFault_handler(void)
   );
   while(1);
 }
+
 /**
  * Default handler of Usage Fault
  */
@@ -304,6 +313,7 @@ dUsageFault_handler(void)
 {
   while(1);
 }
+
 /**
  * Default handler of MemManage Fault
  */
@@ -312,6 +322,7 @@ dMemManage_handler(void)
 {
   while(1);
 }
+
 /**
  * Default handler of Bus Fault
  */
