@@ -71,6 +71,10 @@ ifneq ($(PROGRAMMER_SERIAL),)
   OOCD_BOARD_FLAGS += -c 'ftdi_serial $(PROGRAMMER_SERIAL)'
 endif
 
+ifeq ($(FILENAME),)
+FILENAME = $(CONTIKI_PROJECT).$(TARGET)
+endif
+
 FFLAGS ?= $(OOCD_BOARD_FLAGS)
 FFLAGS += \
     -c 'tcl_port 0' \
@@ -79,8 +83,8 @@ FFLAGS += \
     -c 'init' \
     -c 'targets' \
     -c 'reset halt' \
-    -c 'flash write_image erase $(CONTIKI_PROJECT).$(TARGET) 0x00000000 elf' \
-    -c 'verify_image $(CONTIKI_PROJECT).$(TARGET)' \
+    -c 'flash write_image erase $(FILENAME) 0x00000000 elf' \
+    -c 'verify_image $(FILENAME)' \
     -c 'reset run' \
     -c 'shutdown'
 
@@ -111,7 +115,7 @@ export RESET_FLAGS
 DEBUGGER_FLAGS ?= -x $(PLATFORM_DIR)/tools/gdb.conf
 DEBUGGER_FLAGS += \
     -ex 'tar ext :$(GDB_PORT)' \
-    $(CONTIKI_PROJECT).$(TARGET)
+    $(FILENAME)
 
 export DEBUGGER_FLAGS
 
@@ -144,13 +148,13 @@ login:
 # By default, upload the file with the same name as the project.
 upload: $(CONTIKI_PROJECT).u
 
-flash: all
+flash: $(FILENAME)
 	$(FLASHER) $(FFLAGS)
 
 term:
 	$(TERMPROG) $(TERMFLAGS)
 
-debug:
+debug: $(FILENAME)
 	$(DEBUGGER) $(DEBUGGER_FLAGS)
 
 debug-server:
