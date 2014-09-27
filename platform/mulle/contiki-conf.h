@@ -92,8 +92,14 @@ typedef int32_t s32_t;
 #ifndef UIP_CONF_ND6_SEND_RA
 #define UIP_CONF_ND6_SEND_RA            0
 #endif
+#ifndef UIP_CONF_ND6_REACHABLE_TIME
+/* RFC 4861 default value (REACHABLE_TIME): 30000 ms */
 #define UIP_CONF_ND6_REACHABLE_TIME 600000
+#endif
+#ifndef UIP_CONF_ND6_RETRANS_TIMER
+/* RFC 4861 default value (RETRANS_TIMER): 1000 ms */
 #define UIP_CONF_ND6_RETRANS_TIMER  10000
+#endif
 
 #define UIP_CONF_IPV6                   1
 #define UIP_CONF_IPV6_QUEUE_PKT         1
