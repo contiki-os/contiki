@@ -74,31 +74,44 @@ clock_wait(clock_time_t delay)
 void
 clock_init(void)
 {
-  /* Setup Low Power Timer (LPT) */
-
   /* Setup 32768 Hz clock source */
   /** \todo clean up RTC initialization procedure on Mulle */
-  SIM->SCGC6 |= SIM_SCGC6_RTC_MASK;    /* Enable RTC clock gate */
-  RTC->CR |= 0x00000100;         /* Enable RTC oscillator */
-  SIM->SOPT1 |= 0x00080000;      /* Select RTC oscillator as ERCLK32K */
+  /* NB: this has probably already been performed during boot up and core clock
+   * setup on Mulle. */
+  /* Enable RTC clock gate */
+  SIM->SCGC6 |= SIM_SCGC6_RTC_MASK;
+  /* Enable RTC oscillator */
+  BITBAND_REG(RTC->CR, RTC_CR_OSCE_SHIFT) = 1;
+  /* Select RTC oscillator as ERCLK32K */
+  SIM->SOPT1 = (SIM->SOPT1 & ~(SIM_SOPT1_OSC32KSEL_MASK)) | SIM_SOPT1_OSC32KSEL(0b10);
 
-  SIM->SCGC5 |= SIM_SCGC5_LPTIMER_MASK;    /* Enable LPT clock gate */
-  LPTMR0->CMR = (32768 / CLOCK_SECOND) - 1;  /* Underflow every x+1 clocks */
-  LPTMR0->PSR = 0x06;            /* PBYP, ERCLK32K */
-  LPTMR0->CSR = 0x40;                      /* TIE */
-  LPTMR0->CSR = 0x41;                      /* TIE | TEN */
+  /* Setup Low Power Timer (LPT) */
+
+  /* Enable LPT clock gate */
+  SIM->SCGC5 |= SIM_SCGC5_LPTIMER_MASK;
+
+  /* Disable timer to change settings. */
+  /* Logic is reset when the timer is disabled, TCF flag is also cleared on disable. */
+  LPTMR0->CSR = 0x00;
+  /* Underflow every x+1 clocks */
+  LPTMR0->CMR = (LPTMR_CMR_COMPARE((32768 / CLOCK_SECOND) - 1));
+  /* Prescaler bypass, LPTMR is clocked directly by ERCLK32K. */
+  LPTMR0->PSR = (LPTMR_PSR_PBYP_MASK | LPTMR_PSR_PCS(0b10));
+  /* Enable timer, enable interrupts. */
+  LPTMR0->CSR |= (LPTMR_CSR_TEN_MASK | LPTMR_CSR_TIE_MASK);
 
   /* Enable LPT interrupt */
   NVIC_EnableIRQ(LPTimer_IRQn);
 }
+
 /*
  * LPTMR ISR
  */
-void __attribute__((interrupt))
+void
 _isr_lpt(void)
 {
   /* Clear timer compare flag by writing a 1 to it */
-  LPTMR0->CSR |= LPTMR_CSR_TCF_MASK;
+  BITBAND_REG(LPTMR0->CSR, LPTMR_CSR_TCF_SHIFT) = 1;
   PRINTF("LPT: Interrupt\n");
 
   /* Contiki event polling */
