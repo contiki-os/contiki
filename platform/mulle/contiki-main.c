@@ -19,6 +19,7 @@
 #include "voltage.h"
 #include "K60.h"
 #include "dbg-uart.h"
+#include "random.h"
 
 #define DEBUG 1
 #if DEBUG
@@ -97,10 +98,12 @@ main(void)
   udelay_init();
   udelay(0xFFFF);
   udelay(0xFFFF);
+  random_init((unsigned short)SIM->UIDL);
 #ifndef WITH_SLIP
   init_printf(0, &printf_putc);
   printf("Booted\n");
   printf("CPUID: %x\n", SCB->CPUID);
+  printf("UUID: %08x %08x %08x %08x\n", SIM->UIDH, SIM->UIDMH, SIM->UIDML, SIM->UIDL);
 #endif
   /*
    * Initialize Contiki and our processes.
