@@ -32,39 +32,20 @@
 
 /**
  * \file
- *         Debug port initialization for the Mulle platform.
+ *         Device I/O helpers for UARTs on K60.
  * \author
  *         Joakim Gebart <joakim.gebart@eistec.se>
  */
+#ifndef DEVIO_UART_H_
+#define DEVIO_UART_H_
 
-#include "dbg-uart.h"
-#include "config-board.h"
-#include "config-clocks.h"
-#include "uart.h"
-#include "port.h"
+#include <reent.h>
 
-/**
- * Initialize debug UART used by printf.
- *
- * \note Undefining BOARD_DEBUG_UART_TX_PIN_PORT will disable printf.
- */
-void
-dbg_uart_init(void)
-{
-#ifdef BOARD_DEBUG_UART_TX_PIN_PORT
-  /* Enable the clock gate to the TX pin PORT */
-  port_module_enable(BOARD_DEBUG_UART_TX_PIN_PORT);
-  /* Choose UART TX for the pin mux and disable PORT interrupts on the pin */
-  BOARD_DEBUG_UART_TX_PIN_PORT->PCR[BOARD_DEBUG_UART_TX_PIN_NUMBER] =
-    PORT_PCR_MUX(BOARD_DEBUG_UART_TX_PIN_MUX);
-#endif
-#ifdef BOARD_DEBUG_UART_RX_PIN_PORT
-  port_module_enable(BOARD_DEBUG_UART_RX_PIN_PORT);
+long uart0_write_r(struct _reent *r, int fd, const char *ptr, int len);
+long uart1_write_r(struct _reent *r, int fd, const char *ptr, int len);
+long uart2_write_r(struct _reent *r, int fd, const char *ptr, int len);
+long uart3_write_r(struct _reent *r, int fd, const char *ptr, int len);
+long uart4_write_r(struct _reent *r, int fd, const char *ptr, int len);
+long uart0_read_r (struct _reent *r, int fd, char *ptr, int len);
 
-  /* Choose UART RX for the pin mux and disable PORT interrupts on the pin */
-  BOARD_DEBUG_UART_RX_PIN_PORT->PCR[BOARD_DEBUG_UART_RX_PIN_NUMBER] =
-    PORT_PCR_MUX(BOARD_DEBUG_UART_RX_PIN_MUX);
-#endif
-
-  uart_init(BOARD_DEBUG_UART, SystemSysClock, BOARD_DEBUG_UART_BAUD);
-}
+#endif /* !defined(DEVIO_UART_H_) */

@@ -30,6 +30,8 @@ CONTIKI_CPU_DIRS = . drivers
 
 CONTIKI_TARGET_SOURCEFILES += \
   synchronization.c \
+  devio-null.c \
+  devio-uart.c \
   port.c \
   uart.c \
   rtc.c \
@@ -76,6 +78,13 @@ CFLAGSNO = -I$(CONTIKI_CPU)/include \
            -Wall -mcpu=cortex-m4 \
            -fno-common
 
+#NEWLIB_INCLUDES = -nostdinc \
+#  -isystem /usr/lib/gcc/arm-none-eabi/4.8.3/include \
+#  -isystem /usr/lib/gcc/arm-none-eabi/4.8.3/include-fixed \
+#  -isystem /usr/arm-none-eabi/include \
+#  -isystem /usr/arm-none-eabi/usr/include \
+  #
+
 ifdef BUILD_WITH_CLANG
 ifneq ($(BUILD_WITH_CLANG),0)
 CFLAGSNO += -target $(TARGET_TRIPLE) -ffreestanding
@@ -96,13 +105,25 @@ SIZE     = $(LLVMPREFIX)size
 # llvm-ar does not support the f modifier (anymore, since r186078) set in the
 # default Contiki Makefile.include
 AROPTS   = rcv
+
+# Since Clang is not installed as a separate instance for each crossdev target
+# we need to tell it where to look for platform specific includes (Newlib
+# headers instead of Linux/Glibc headers.)
+# On GCC this is done when building the cross compiler toolchain so we do not
+# actually need to specify the include paths for system includes.
+NEWLIB_INCLUDES = \
+  -isystem /usr/arm-none-eabi/include \
+  -isystem /usr/arm-none-eabi/usr/include \
+  #
+
 endif
 endif
+
 
 LINKERSCRIPTPATH = $(CONTIKI_CPU)/ldscripts
 LINKERSCRIPT = $(CPU_PART).ld
 #AROPTS   = rv
-CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -Werror=implicit-function-declaration -fno-common -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -ffunction-sections -fdata-sections
+CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -Werror=implicit-function-declaration -fno-common -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -ffunction-sections -fdata-sections $(NEWLIB_INCLUDES)
 LDFLAGS  += $(CFLAGS) -nostartfiles -Wl,-L$(LINKERSCRIPTPATH) -T $(LINKERSCRIPT) -Wl,-Map=$@.map -Wl,--gc-sections
 
 LD_START_GROUP ?= -Wl,--start-group
@@ -126,6 +147,7 @@ LD_END_GROUP ?= -Wl,--end-group
 CPU_STARTC = \
   startup-k60.c \
   interrupt-vector-k60.c \
+  newlib-syscalls.c \
   ssp.c
 
 CPU_STARTOBJ=${addprefix $(OBJECTDIR)/,$(CPU_STARTC:.c=.o)}

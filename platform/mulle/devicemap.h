@@ -32,39 +32,38 @@
 
 /**
  * \file
- *         Debug port initialization for the Mulle platform.
+ *         Device I/O mappings for the Mulle platform.
  * \author
  *         Joakim Gebart <joakim.gebart@eistec.se>
  */
+#ifndef DEVICEMAP_H_
+#define DEVICEMAP_H_
 
-#include "dbg-uart.h"
-#include "config-board.h"
-#include "config-clocks.h"
-#include "uart.h"
-#include "port.h"
+#include "devopttab.h"
 
-/**
- * Initialize debug UART used by printf.
- *
- * \note Undefining BOARD_DEBUG_UART_TX_PIN_PORT will disable printf.
- */
-void
-dbg_uart_init(void)
-{
-#ifdef BOARD_DEBUG_UART_TX_PIN_PORT
-  /* Enable the clock gate to the TX pin PORT */
-  port_module_enable(BOARD_DEBUG_UART_TX_PIN_PORT);
-  /* Choose UART TX for the pin mux and disable PORT interrupts on the pin */
-  BOARD_DEBUG_UART_TX_PIN_PORT->PCR[BOARD_DEBUG_UART_TX_PIN_NUMBER] =
-    PORT_PCR_MUX(BOARD_DEBUG_UART_TX_PIN_MUX);
-#endif
-#ifdef BOARD_DEBUG_UART_RX_PIN_PORT
-  port_module_enable(BOARD_DEBUG_UART_RX_PIN_PORT);
+/** Maximum number of file descriptors allocated to hardware devices. All fd's
+ * above this number will be remapped to CFS accesses. */
+#define MAX_OPEN_DEVICES 16 /* Arbitrarily chosen */
 
-  /* Choose UART RX for the pin mux and disable PORT interrupts on the pin */
-  BOARD_DEBUG_UART_RX_PIN_PORT->PCR[BOARD_DEBUG_UART_RX_PIN_NUMBER] =
-    PORT_PCR_MUX(BOARD_DEBUG_UART_RX_PIN_MUX);
-#endif
+/** Number of IO devices in this platform implementation */
+#define NUM_IO_DEVICES 16 /* Arbitrarily chosen */
 
-  uart_init(BOARD_DEBUG_UART, SystemSysClock, BOARD_DEBUG_UART_BAUD);
-}
+/* This table maps the standard streams to device operations table entries. */
+extern const devoptab_t *devoptab_list[MAX_OPEN_DEVICES];
+
+/* This table maps filenames to devices */
+typedef struct {
+  const char *name;
+  const devoptab_t *devoptab;
+} devoptab_name_t;
+
+typedef struct {
+  unsigned int len;
+  const devoptab_name_t* data;
+} devoptab_name_list_t;
+
+extern const devoptab_name_list_t devoptab_name_list;
+
+void devicemap_init(void);
+
+#endif /* !defined(DEVICEMAP_H_) */

@@ -32,39 +32,52 @@
 
 /**
  * \file
- *         Debug port initialization for the Mulle platform.
+ *         Device I/O helpers for UARTs on K60, implementation.
  * \author
  *         Joakim Gebart <joakim.gebart@eistec.se>
  */
 
-#include "dbg-uart.h"
-#include "config-board.h"
-#include "config-clocks.h"
+#include <string.h>
+#include "devio-uart.h"
 #include "uart.h"
-#include "port.h"
+#include "K60.h"
 
-/**
- * Initialize debug UART used by printf.
- *
- * \note Undefining BOARD_DEBUG_UART_TX_PIN_PORT will disable printf.
- */
-void
-dbg_uart_init(void)
-{
-#ifdef BOARD_DEBUG_UART_TX_PIN_PORT
-  /* Enable the clock gate to the TX pin PORT */
-  port_module_enable(BOARD_DEBUG_UART_TX_PIN_PORT);
-  /* Choose UART TX for the pin mux and disable PORT interrupts on the pin */
-  BOARD_DEBUG_UART_TX_PIN_PORT->PCR[BOARD_DEBUG_UART_TX_PIN_NUMBER] =
-    PORT_PCR_MUX(BOARD_DEBUG_UART_TX_PIN_MUX);
-#endif
-#ifdef BOARD_DEBUG_UART_RX_PIN_PORT
-  port_module_enable(BOARD_DEBUG_UART_RX_PIN_PORT);
-
-  /* Choose UART RX for the pin mux and disable PORT interrupts on the pin */
-  BOARD_DEBUG_UART_RX_PIN_PORT->PCR[BOARD_DEBUG_UART_RX_PIN_NUMBER] =
-    PORT_PCR_MUX(BOARD_DEBUG_UART_RX_PIN_MUX);
-#endif
-
-  uart_init(BOARD_DEBUG_UART, SystemSysClock, BOARD_DEBUG_UART_BAUD);
+static long uart_write_r(UART_Type *uart, struct _reent *r, int fd, const char *ptr, int len) {
+  int i = 0;
+  while (i < len) {
+    uart_putchar(uart, ptr[i]);
+    ++i;
+  }
+  return i;
 }
+
+static long uart_read_r (UART_Type *uart, struct _reent *r, int fd, char *ptr, int len) {
+  /* not yet implemented */
+  return 0;
+}
+
+long uart0_write_r(struct _reent *r, int fd, const char *ptr, int len) {
+  return uart_write_r(UART0, r, fd, ptr, len);
+}
+
+long uart1_write_r(struct _reent *r, int fd, const char *ptr, int len) {
+  return uart_write_r(UART1, r, fd, ptr, len);
+}
+
+long uart2_write_r(struct _reent *r, int fd, const char *ptr, int len) {
+  return uart_write_r(UART2, r, fd, ptr, len);
+}
+
+long uart3_write_r(struct _reent *r, int fd, const char *ptr, int len) {
+  return uart_write_r(UART3, r, fd, ptr, len);
+}
+
+long uart4_write_r(struct _reent *r, int fd, const char *ptr, int len) {
+  return uart_write_r(UART4, r, fd, ptr, len);
+}
+
+long uart0_read_r (struct _reent *r, int fd, char *ptr, int len) {
+  return uart_read_r(UART0, r, fd, ptr, len);
+}
+
+

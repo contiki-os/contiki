@@ -13,18 +13,18 @@ CPU_NAME = k60
 CPU_PART ?= K60DN512VLL10
 
 CPU_DIR = $(CONTIKI)/cpu/arm/$(CPU_NAME)
-CONTIKI_TARGET_DIRS = . dev stdio
+CONTIKI_TARGET_DIRS = . dev
 CONTIKI_CORE=contiki-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
 
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
+  devicemap.c \
   udelay.c \
   init-net.c \
   watchdog.c \
   slip_arch_uart.c \
   slip.c \
-  stdio.c \
   sensors.c \
   leds-arch.c \
   leds.c \

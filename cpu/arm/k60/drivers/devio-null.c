@@ -32,39 +32,43 @@
 
 /**
  * \file
- *         Debug port initialization for the Mulle platform.
+ *         Device I/O helpers for a no-op device, implementations.
  * \author
  *         Joakim Gebart <joakim.gebart@eistec.se>
  */
 
-#include "dbg-uart.h"
-#include "config-board.h"
-#include "config-clocks.h"
-#include "uart.h"
-#include "port.h"
+#include <reent.h>
+#include <errno.h>
+#include <string.h>
+#include "devio-null.h"
 
-/**
- * Initialize debug UART used by printf.
- *
- * \note Undefining BOARD_DEBUG_UART_TX_PIN_PORT will disable printf.
- */
-void
-dbg_uart_init(void)
-{
-#ifdef BOARD_DEBUG_UART_TX_PIN_PORT
-  /* Enable the clock gate to the TX pin PORT */
-  port_module_enable(BOARD_DEBUG_UART_TX_PIN_PORT);
-  /* Choose UART TX for the pin mux and disable PORT interrupts on the pin */
-  BOARD_DEBUG_UART_TX_PIN_PORT->PCR[BOARD_DEBUG_UART_TX_PIN_NUMBER] =
-    PORT_PCR_MUX(BOARD_DEBUG_UART_TX_PIN_MUX);
-#endif
-#ifdef BOARD_DEBUG_UART_RX_PIN_PORT
-  port_module_enable(BOARD_DEBUG_UART_RX_PIN_PORT);
-
-  /* Choose UART RX for the pin mux and disable PORT interrupts on the pin */
-  BOARD_DEBUG_UART_RX_PIN_PORT->PCR[BOARD_DEBUG_UART_RX_PIN_NUMBER] =
-    PORT_PCR_MUX(BOARD_DEBUG_UART_RX_PIN_MUX);
-#endif
-
-  uart_init(BOARD_DEBUG_UART, SystemSysClock, BOARD_DEBUG_UART_BAUD);
+int  devnull_open_r(struct _reent *r, const char *path, int flags, int mode) {
+  return 0;
 }
+
+int  devnull_close_r(struct _reent *r, int fd) {
+  return 0;
+}
+
+long devnull_write_r(struct _reent *r, int fd, const char *ptr, int len) {
+  /* Aaand... it's gone! */
+  return len;
+}
+
+long devnull_read_r(struct _reent *r, int fd, char *ptr, int len) {
+  /* Read null bytes */
+  memset(ptr, '\0', len);
+  return len;
+}
+
+long devnull_lseek_r(struct _reent *r, int fd, int ptr, int dir) {
+  r->_errno = ENOSYS;
+  return -1;
+}
+
+long devnull_fstat_r(struct _reent *r, int fd, char *ptr, int len) {
+  r->_errno = ENOSYS;
+  return -1;
+}
+
+

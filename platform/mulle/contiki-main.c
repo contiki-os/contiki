@@ -19,6 +19,7 @@
 #include "voltage.h"
 #include "K60.h"
 #include "dbg-uart.h"
+#include "devicemap.h"
 #include "random.h"
 #include "rtc.h"
 
@@ -83,6 +84,7 @@ main(void)
   rtc_start();
 
   dbg_uart_init();
+  devicemap_init();
 
   llwu_init();
   llwu_enable_wakeup_module(LLWU_WAKEUP_MODULE_LPTMR);
@@ -105,7 +107,6 @@ main(void)
   udelay(0xFFFF);
   random_init((unsigned short)SIM->UIDL);
 #ifndef WITH_SLIP
-  init_printf(0, &printf_putc);
   PRINTF("Booted\n");
   PRINTF("CPUID: %08x\n", (unsigned int)SCB->CPUID);
   PRINTF("UID: %08x %08x %08x %08x\n", (unsigned int)SIM->UIDH, (unsigned int)SIM->UIDMH, (unsigned int)SIM->UIDML, (unsigned int)SIM->UIDL);
