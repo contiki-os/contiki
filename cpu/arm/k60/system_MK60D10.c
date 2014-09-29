@@ -78,9 +78,10 @@ void core_clocks_init_early(void)
 void __attribute__((section(".preinit_array"))) (*preinit_core_clocks_init_early[])(void) = {core_clocks_init_early};
 
 
+/* System clock initialization */
 void SystemInit(void)
 {
-    /* System clock initialization */
+    int i;
 
     /* Check that the running CPU revision matches the compiled revision */
     if (SCB->CPUID != K60_EXPECTED_CPUID)
@@ -176,7 +177,7 @@ void SystemInit(void)
      * to read the initialization messages written on the UART.
      * (If the clock is not stable all UART output is garbled until it has
      * stabilized) */
-    for(int i = 0; i < 10000; ++i)
+    for(i = 0; i < 10000; ++i)
     {
         asm volatile ("nop\n");
     }
