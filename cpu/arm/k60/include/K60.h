@@ -133,6 +133,7 @@
  */
 #define BREAK_FAULT_HANDLER 0
 #define BREAK_INVALID_PARAM 1
+#define BREAK_MEMORY_CORRUPTION 3
 #define BREAK_WRONG_K60_CPU_REV 99
 /* Do not use 0xAB, it is reserved for ARM semihosting environment. */
 #define BREAK_SEMIHOSTING 0xAB
