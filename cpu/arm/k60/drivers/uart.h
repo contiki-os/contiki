@@ -8,14 +8,15 @@
 #ifndef CPU_ARM_K60_UART_H_
 #define CPU_ARM_K60_UART_H_
 
+#include <stdint.h>
 #include "K60.h"
 
-void uart_module_enable(UART_Type *uartch);
-void uart_init(UART_Type *uartch, uint32_t module_clk_hz, uint32_t baud);
-void uart_putchar(UART_Type *uartch, char ch);
-void uart_putstring(UART_Type *uartch, char *str);
-void uart_enable_rx_interrupt();
-void uart_set_rx_callback(int (*callback)(unsigned char));
+void uart_module_enable(const unsigned int uart_num);
+void uart_init(const unsigned int uart_num, uint32_t module_clk_hz, const uint32_t baud);
+void uart_putchar(const unsigned int uart_num, const char ch);
+void uart_putstring(const unsigned int uart_num, const char *str);
+void uart_enable_rx_interrupt(const unsigned int uart_num);
+void uart_set_rx_callback(const unsigned int uart_num, int (*callback)(unsigned char));
 
 /*
  * Baud rate generator is driven by the System clock (UART0, UART1) or bus

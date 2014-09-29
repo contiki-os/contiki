@@ -32,11 +32,33 @@ typedef uint64_t rtimer_clock_t;
 /* Battery voltage sensor using Mulle voltage API */
 #define PLATFORM_HAS_BATTERY 1
 
+/* Compatibility define for working with ugly msp430 specific parameter in UART API */
 #define BAUD2UBR(b) b
 
 #define LEDS_CONF_RED (1 << 15)
 #define LEDS_CONF_GREEN (1 << 13)
 #define LEDS_CONF_YELLOW (1 << 14)
+
+/* Select UART modules to be claimed by the UART driver (dev/uart.c) below: */
+#define UART0_CONF_ENABLE 0
+#define UART1_CONF_ENABLE 1
+#define UART2_CONF_ENABLE 0
+#define UART3_CONF_ENABLE 0
+#define UART4_CONF_ENABLE 0
+#define UART5_CONF_ENABLE 0
+
+/* TX buffer size for UART1 (must be a power of two <= 128) */
+/* Try keeping this large (>= 64) to allow faster transfers for SLIP etc. */
+#ifndef UART1_CONF_TXBUFSIZE
+#define UART1_CONF_TXBUFSIZE 128
+#endif
+
+/* TX buffer size for not otherwise specified UART modules (must be a power of two <= 128) */
+/* Keep this low to reduce memory consumption as one buffer per UART, even
+ * unused ones, are statically allocated. */
+#ifndef UART_CONF_DEFAULT_TXBUFSIZE
+#define UART_CONF_DEFAULT_TXBUFSIZE 8
+#endif
 
 #if WITH_UIP6
 #ifndef NETSTACK_CONF_NETWORK

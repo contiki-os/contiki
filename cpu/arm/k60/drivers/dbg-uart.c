@@ -66,5 +66,5 @@ dbg_uart_init(void)
     PORT_PCR_MUX(BOARD_DEBUG_UART_RX_PIN_MUX);
 #endif
 
-  uart_init(BOARD_DEBUG_UART, SystemSysClock, BOARD_DEBUG_UART_BAUD);
+  uart_init(BOARD_DEBUG_UART_NUM, 0, BOARD_DEBUG_UART_BAUD);
 }

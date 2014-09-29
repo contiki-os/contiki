@@ -91,7 +91,7 @@
 /**
  * UART module used for debug printf.
  */
-#define BOARD_DEBUG_UART UART1
+#define BOARD_DEBUG_UART_NUM 1
 
 /**
  * Baud rate of debug UART.
@@ -127,6 +127,24 @@
  * Function number in the PORT mux for the RX pin of the debug UART.
  */
 #define BOARD_DEBUG_UART_RX_PIN_MUX 3
+
+/**
+ * Number of UART modules in CPU.
+ */
+#define NUM_UARTS 5
+
+/**
+ * UART module used for SLIP communications.
+ *
+ * This string is passed to open() during slip_init_arch().
+ * This is usually the module name within double-quotes e.g. "UART0"
+ */
+#define BOARD_SLIP_UART_NAME "UART1"
+
+/**
+ * UART module used for SLIP communications.
+ */
+#define BOARD_SLIP_UART_NUM 1
 
 /**
  * RTC crystal load capacitance configuration bits.

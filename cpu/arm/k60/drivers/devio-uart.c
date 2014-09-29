@@ -42,42 +42,42 @@
 #include "uart.h"
 #include "K60.h"
 
-static long uart_write_r(UART_Type *uart, struct _reent *r, int fd, const char *ptr, int len) {
+static long uart_write_r(unsigned int uart_num, struct _reent *r, int fd, const char *ptr, int len) {
   int i = 0;
   while (i < len) {
-    uart_putchar(uart, ptr[i]);
+    uart_putchar(uart_num, ptr[i]);
     ++i;
   }
   return i;
 }
 
-static long uart_read_r (UART_Type *uart, struct _reent *r, int fd, char *ptr, int len) {
+static long uart_read_r (unsigned int uart_num, struct _reent *r, int fd, char *ptr, int len) {
   /* not yet implemented */
   return 0;
 }
 
 long uart0_write_r(struct _reent *r, int fd, const char *ptr, int len) {
-  return uart_write_r(UART0, r, fd, ptr, len);
+  return uart_write_r(0, r, fd, ptr, len);
 }
 
 long uart1_write_r(struct _reent *r, int fd, const char *ptr, int len) {
-  return uart_write_r(UART1, r, fd, ptr, len);
+  return uart_write_r(1, r, fd, ptr, len);
 }
 
 long uart2_write_r(struct _reent *r, int fd, const char *ptr, int len) {
-  return uart_write_r(UART2, r, fd, ptr, len);
+  return uart_write_r(2, r, fd, ptr, len);
 }
 
 long uart3_write_r(struct _reent *r, int fd, const char *ptr, int len) {
-  return uart_write_r(UART3, r, fd, ptr, len);
+  return uart_write_r(3, r, fd, ptr, len);
 }
 
 long uart4_write_r(struct _reent *r, int fd, const char *ptr, int len) {
-  return uart_write_r(UART4, r, fd, ptr, len);
+  return uart_write_r(4, r, fd, ptr, len);
 }
 
 long uart0_read_r (struct _reent *r, int fd, char *ptr, int len) {
-  return uart_read_r(UART0, r, fd, ptr, len);
+  return uart_read_r(0, r, fd, ptr, len);
 }
 
 

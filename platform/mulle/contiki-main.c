@@ -30,11 +30,6 @@
 #define PRINTF(...)
 #endif
 
-void
-printf_putc(void *dum, char c)
-{
-  uart_putchar(BOARD_DEBUG_UART, c);
-}
 /*---------------------------------------------------------------------------*/
 #define COFFEE_AUTO_FORMAT 1
 static void
