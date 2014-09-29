@@ -60,20 +60,20 @@ hard_fault_handler_c(uint32_t *hardfault_args)
   rMMAR = (*((volatile uint32_t *)(0xE000ED34)));
 
   printf("[Hard fault handler]\n");
-  printf("R0 = %x\n", stacked_r0);
-  printf("R1 = %x\n", stacked_r1);
-  printf("R2 = %x\n", stacked_r2);
-  printf("R3 = %x\n", stacked_r3);
-  printf("R12 = %x\n", stacked_r12);
-  printf("LR = %x\n", stacked_lr);
-  printf("PC = %x\n", stacked_pc);
-  printf("PSR = %x\n", stacked_psr);
-  printf("BFAR = %x\n", rBFAR);
-  printf("CFSR = %x\n", rCFSR);
-  printf("HFSR = %x\n", rHFSR);
-  printf("DFSR = %x\n", rDFSR);
-  printf("AFSR = %x\n", rAFSR);
-  printf("MMAR = %x\n", rMMAR);
+  printf("R0 = %x\n", (unsigned int)stacked_r0);
+  printf("R1 = %x\n", (unsigned int)stacked_r1);
+  printf("R2 = %x\n", (unsigned int)stacked_r2);
+  printf("R3 = %x\n", (unsigned int)stacked_r3);
+  printf("R12 = %x\n", (unsigned int)stacked_r12);
+  printf("LR = %x\n", (unsigned int)stacked_lr);
+  printf("PC = %x\n", (unsigned int)stacked_pc);
+  printf("PSR = %x\n", (unsigned int)stacked_psr);
+  printf("BFAR = %x\n", (unsigned int)rBFAR);
+  printf("CFSR = %x\n", (unsigned int)rCFSR);
+  printf("HFSR = %x\n", (unsigned int)rHFSR);
+  printf("DFSR = %x\n", (unsigned int)rDFSR);
+  printf("AFSR = %x\n", (unsigned int)rAFSR);
+  printf("MMAR = %x\n", (unsigned int)rMMAR);
 
   /* Trigger a debugger to break here */
   DEBUGGER_BREAK(BREAK_FAULT_HANDLER);
