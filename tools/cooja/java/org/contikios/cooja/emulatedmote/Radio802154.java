@@ -48,7 +48,7 @@ public abstract class Radio802154 extends Radio implements CustomDataRadio {
 
     private final static boolean DEBUG = false;
     
-    private static Logger logger = Logger.getLogger(Radio802154.class);
+    private static final Logger logger = Logger.getLogger(Radio802154.class);
 
     protected long lastEventTime = 0;
 
@@ -98,10 +98,9 @@ public abstract class Radio802154 extends Radio implements CustomDataRadio {
 
         buffer[len++] = val;
 
-        //System.out.println("## 802.15.4: " + (val&0xff) + " transmitted...");
+        logger.debug("802.15.4: " + (val & 0xff) + " transmitted...");
 
         if (len == 6) {
-            //System.out.println("## CC2420 Packet of length: " + val + " expected...");
             expLen = val + 6;
         }
 
@@ -115,10 +114,8 @@ public abstract class Radio802154 extends Radio implements CustomDataRadio {
             setChanged();
             notifyObservers();
 
-            //          System.out.println("## CC2420 Transmission finished...");
-
             lastEventTime = mote.getSimulation().getSimulationTime();
-            /*logger.debug("----- SKY TRANSMISSION FINISHED -----");*/
+            logger.debug("----- 802.15.4 TRANSMISSION FINISHED -----");
             lastEvent = RadioEvent.TRANSMISSION_FINISHED;
             setChanged();
             notifyObservers();
