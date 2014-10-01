@@ -166,7 +166,6 @@ public class MemoryLayout {
     int nextsize = nextType.getSize();
     /* limit padding to word size */
     nextsize = nextsize > WORD_SIZE ? WORD_SIZE : nextsize;
-    System.out.println("Nextsize: " + nextsize);
     /* calc padding */
     int pad = nextsize - currType.getSize();
     return pad;
