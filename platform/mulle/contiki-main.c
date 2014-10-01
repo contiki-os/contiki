@@ -101,9 +101,10 @@ main(void)
   random_init((unsigned short)SIM->UIDL);
 #ifndef WITH_SLIP
   init_printf(0, &printf_putc);
-  printf("Booted\n");
-  printf("CPUID: %x\n", SCB->CPUID);
-  printf("UUID: %08x %08x %08x %08x\n", SIM->UIDH, SIM->UIDMH, SIM->UIDML, SIM->UIDL);
+  PRINTF("Booted\n");
+  PRINTF("CPUID: %08x\n", (unsigned int)SCB->CPUID);
+  PRINTF("UID: %08x %08x %08x %08x\n", (unsigned int)SIM->UIDH, (unsigned int)SIM->UIDMH, (unsigned int)SIM->UIDML, (unsigned int)SIM->UIDL);
+  PRINTF("Clocks:\n F_CPU: %u\n F_SYS: %u\n F_BUS: %u\n F_FLEXBUS: %u\n F_FLASH: %u\n", (unsigned int)SystemCoreClock, (unsigned int)SystemSysClock, (unsigned int)SystemBusClock, (unsigned int)SystemFlexBusClock, (unsigned int)SystemFlashClock);
 #endif
   /*
    * Initialize Contiki and our processes.
