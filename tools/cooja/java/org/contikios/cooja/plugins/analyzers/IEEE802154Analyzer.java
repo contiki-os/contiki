@@ -2,10 +2,13 @@ package org.contikios.cooja.plugins.analyzers;
 
 import java.io.IOException;
 import java.io.File;
+import org.apache.log4j.Logger;
 
 import org.contikios.cooja.util.StringUtils;
 
 public class IEEE802154Analyzer extends PacketAnalyzer {
+
+  private static final Logger logger = Logger.getLogger(IEEE802154Analyzer.class);
 
   // Addressing modes
   public static final int NO_ADDRESS = 0;
@@ -33,7 +36,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
       try {
         pcapExporter = new PcapExporter();
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.error(e);
       }
     }
   }
@@ -43,8 +46,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
       try {
         pcapExporter.openPcap(pcapFile);
       } catch (IOException e) {
-        System.err.println("Could not open pcap file");
-        e.printStackTrace();
+        logger.error("Could not open pcap file", e);
       }
     }
   }
@@ -69,8 +71,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
       try {
         pcapExporter.exportPacketData(packet.getPayload());
       } catch (IOException e) {
-        System.err.println("Could not export PCap data");
-        e.printStackTrace();
+        logger.error("Could not export PCap data", e);
       }
     }
 
