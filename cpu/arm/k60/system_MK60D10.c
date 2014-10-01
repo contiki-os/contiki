@@ -187,7 +187,7 @@ void SystemInit(void)
    -- SystemCoreClockUpdate()
    ---------------------------------------------------------------------------- */
 
-void SystemCoreClockUpdate (void) {
+void SystemCoreClockUpdate(void) {
     uint32_t MCGOUTClock;                                                        /* Variable to store output clock frequency of the MCG module */
     uint8_t Divider;
 
@@ -212,28 +212,28 @@ void SystemCoreClockUpdate (void) {
             } /* (!((MCG->C1 & MCG_C1_IREFS_MASK) == 0x0u)) */
             /* Select correct multiplier to calculate the MCG output clock  */
             switch (MCG->C4 & (MCG_C4_DMX32_MASK | MCG_C4_DRST_DRS_MASK)) {
-                case 0x0u:
+                case (0x0u):
                     MCGOUTClock *= 640u;
                     break;
-                case 0x20u:
+                case (MCG_C4_DRST_DRS(0b01)): /* 0x20u */
                     MCGOUTClock *= 1280u;
                     break;
-                case 0x40u:
+                case (MCG_C4_DRST_DRS(0b10)): /* 0x40u */
                     MCGOUTClock *= 1920u;
                     break;
-                case 0x60u:
+                case (MCG_C4_DRST_DRS(0b11)): /* 0x60u */
                     MCGOUTClock *= 2560u;
                     break;
-                case 0x80u:
+                case (MCG_C4_DMX32_MASK): /* 0x80u */
                     MCGOUTClock *= 732u;
                     break;
-                case 0xA0u:
+                case (MCG_C4_DMX32_MASK | MCG_C4_DRST_DRS(0b01)): /* 0xA0u */
                     MCGOUTClock *= 1464u;
                     break;
-                case 0xC0u:
+                case (MCG_C4_DMX32_MASK | MCG_C4_DRST_DRS(0b10)): /* 0xC0u */
                     MCGOUTClock *= 2197u;
                     break;
-                case 0xE0u:
+                case (MCG_C4_DMX32_MASK | MCG_C4_DRST_DRS(0b11)): /* 0xE0u */
                     MCGOUTClock *= 2929u;
                     break;
                 default:
@@ -246,14 +246,14 @@ void SystemCoreClockUpdate (void) {
             Divider = ((MCG->C6 & MCG_C6_VDIV0_MASK) + 24u);
             MCGOUTClock *= Divider;                       /* Calculate the MCG output clock */
         } /* (!((MCG->C6 & MCG_C6_PLLS_MASK) == 0x0u)) */
-    } else if ((MCG->C1 & MCG_C1_CLKS_MASK) == 0x40u) {
+    } else if ((MCG->C1 & MCG_C1_CLKS_MASK) == MCG_C1_CLKS(0b01)) { /* 0x40u */
         /* Internal reference clock is selected */
         if ((MCG->C2 & MCG_C2_IRCS_MASK) == 0x0u) {
             MCGOUTClock = CPU_INT_SLOW_CLK_HZ;                                       /* Slow internal reference clock selected */
         } else { /* (!((MCG->C2 & MCG_C2_IRCS_MASK) == 0x0u)) */
             MCGOUTClock = CPU_INT_FAST_CLK_HZ / (1 << ((MCG->SC & MCG_SC_FCRDIV_MASK) >> MCG_SC_FCRDIV_SHIFT));  /* Fast internal reference clock selected */
         } /* (!((MCG->C2 & MCG_C2_IRCS_MASK) == 0x0u)) */
-    } else if ((MCG->C1 & MCG_C1_CLKS_MASK) == 0x80u) {
+    } else if ((MCG->C1 & MCG_C1_CLKS_MASK) == MCG_C1_CLKS(0b10)) { /* 0x80u */
         /* External reference clock is selected */
         if ((MCG->C7 & MCG_C7_OSCSEL_MASK) == 0x0u) {
             MCGOUTClock = CPU_XTAL_CLK_HZ;                                           /* System oscillator drives MCG clock */
