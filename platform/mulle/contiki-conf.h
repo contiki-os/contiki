@@ -153,4 +153,7 @@ typedef int32_t s32_t;
 /* Must be <= open transaction number. */
 #define COAP_MAX_OBSERVERS      (COAP_MAX_OPEN_TRANSACTIONS - 1)
 
+/* Tell Contiki that we are not using PETSCII (retarded default) */
+#define WITH_ASCII 1
+
 #endif /* __CONTIKI_CONF_H__ */
