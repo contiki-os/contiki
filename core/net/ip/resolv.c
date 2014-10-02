@@ -1455,7 +1455,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
         val >>= 4;
         append_str[1] = (((val & 0xF) > 9) ? 'a' : '0') + (val & 0xF);
         strncat(resolv_hostname, append_str,
-                sizeof(resolv_hostname) - strlen(resolv_hostname));
+                sizeof(resolv_hostname) - strlen(resolv_hostname) - 1); /* -1 in order to fit the terminating null byte. */
       }
 
       /* Re-add the .local suffix */
