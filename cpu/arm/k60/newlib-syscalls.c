@@ -200,6 +200,12 @@ int
 _close_r(struct _reent *r, int fd) {
   int ret;
 
+  if (fd < 0) {
+    /* invalid file descriptor */
+    r->_errno = EBADF;
+    return -1;
+  }
+
   if (fd >= MAX_OPEN_DEVICES) {
     /* CFS file */
     fd -= MAX_OPEN_DEVICES; /* Remap to CFS FD number */
@@ -228,6 +234,13 @@ _close_r(struct _reent *r, int fd) {
 
 ssize_t
 _read_r(struct _reent *r, int fd, void *ptr, size_t len) {
+
+  if (fd < 0) {
+    /* invalid file descriptor */
+    r->_errno = EBADF;
+    return -1;
+  }
+
   if (fd >= MAX_OPEN_DEVICES) {
     int ret;
     /* CFS file */
@@ -255,6 +268,13 @@ _read_r(struct _reent *r, int fd, void *ptr, size_t len) {
 
 ssize_t
 _write_r(struct _reent *r, int fd, const void *ptr, size_t len) {
+
+  if (fd < 0) {
+    /* invalid file descriptor */
+    r->_errno = EBADF;
+    return -1;
+  }
+
   if (fd >= MAX_OPEN_DEVICES) {
     int ret;
     /* CFS file */
@@ -282,6 +302,13 @@ _write_r(struct _reent *r, int fd, const void *ptr, size_t len) {
 
 off_t
 _lseek_r(struct _reent *r, int fd, off_t offset, int whence) {
+
+  if (fd < 0) {
+    /* invalid file descriptor */
+    r->_errno = EBADF;
+    return -1;
+  }
+
   if (fd >= MAX_OPEN_DEVICES) {
     int ret;
     /* CFS file */
@@ -311,6 +338,13 @@ _lseek_r(struct _reent *r, int fd, off_t offset, int whence) {
 
 int
 _fstat_r(struct _reent *r, int fd, struct stat *st) {
+
+  if (fd < 0) {
+    /* invalid file descriptor */
+    r->_errno = EBADF;
+    return -1;
+  }
+
   if (fd >= MAX_OPEN_DEVICES) {
     /* CFS file */
     st->st_mode = S_IFREG | S_IRWXU | S_IRWXG | S_IRWXO; /* regular file, 0777 perms (-rwxrwxrwx) */
@@ -333,6 +367,13 @@ _fstat_r(struct _reent *r, int fd, struct stat *st) {
 
 int
 _isatty_r(struct _reent *r, int fd) {
+
+  if (fd < 0) {
+    /* invalid file descriptor */
+    r->_errno = EBADF;
+    return -1;
+  }
+
   if (fd >= MAX_OPEN_DEVICES) {
     /* CFS file, not a TTY */
     r->_errno = ENOTTY;
