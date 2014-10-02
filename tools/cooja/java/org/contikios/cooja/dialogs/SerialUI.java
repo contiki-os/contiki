@@ -165,8 +165,7 @@ public abstract class SerialUI extends Log implements SerialPort {
             writeString(command);
           }
         } catch (Exception ex) {
-          System.err.println("could not send '" + command + "':");
-          ex.printStackTrace();
+          logger.error("could not send '" + command + "':", ex);
           JOptionPane.showMessageDialog(
               logTextPane,
               "Could not send '" + command + "':\n" + ex.getMessage(), "Error sending message",
