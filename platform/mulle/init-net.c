@@ -67,24 +67,25 @@
 #warning Using user defined node id
 #endif
 
-static unsigned char id[8] = { 0x02, 0x0, 0x0, 0x00, 0x00, 0x00, 0x00, NODE_ID };
+static unsigned char id[8] = { 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, NODE_ID };
 
 /*---------------------------------------------------------------------------*/
 static void
 set_rime_addr(void)
 {
   linkaddr_t addr;
-  int i;
+  unsigned int i;
 
   /* memset(&addr, 0x65, sizeof(linkaddr_t)); */
   memcpy(addr.u8, id, sizeof(addr.u8));
 
   linkaddr_set_node_addr(&addr);
   PRINTF("Rime started with address ");
-  for(i = 0; i < sizeof(addr.u8) - 1; i++) {
-    PRINTF("%d.", addr.u8[i]);
+  PRINTF("%d", addr.u8[0]);
+  for(i = 1; i < sizeof(addr.u8); i++) {
+    PRINTF(".%d", addr.u8[i]);
   }
-  PRINTF("%d\n", addr.u8[i]);
+  PRINTF("\n");
 }
 /*---------------------------------------------------------------------------*/
 void
