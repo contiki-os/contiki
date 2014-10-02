@@ -180,10 +180,10 @@ _open_r(struct _reent *r, const char *name, int flags, int mode) {
   if (flags & O_RDWR) {
     cfs_flags |= CFS_READ | CFS_WRITE;
   }
-  else if (flags & O_RDONLY) {
+  if (flags & O_RDONLY) {
     cfs_flags |= CFS_READ;
   }
-  else if (flags & O_WRONLY) {
+  if (flags & O_WRONLY) {
     cfs_flags |= CFS_WRITE;
   }
   fd = cfs_open(name, cfs_flags);
