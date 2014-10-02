@@ -26,13 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
- * Created : 2006-06-14
- * Updated : $Date: 2009/11/13 14:27:46 $
- *           $Revision: 1.15 $
  */
 
 package org.contikios.cooja.dialogs;
@@ -64,10 +57,20 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import org.apache.log4j.Logger;
 
 import org.contikios.cooja.Cooja;
 
+/**
+ *
+ * @author Adam Dunkels
+ * @author Joakim Eriksson
+ * @author Niclas Finne
+ * @author Fredrik Osterlind
+ */
 public class MessageList extends JList {
+
+  private static final Logger logger = Logger.getLogger(MessageList.class);
 
   public static final int NORMAL = 0;
   public static final int WARNING = 1;
@@ -146,8 +149,8 @@ public class MessageList extends JList {
       readThread.start();
 
       return new PrintStream(output);
-    } catch (Exception e) {
-      System.out.println("Exception: "+ e);
+    } catch (IOException e) {
+      logger.error(messages);
       return null;
     }
   }
@@ -250,14 +253,14 @@ public class MessageList extends JList {
           @Override
           public void actionPerformed(ActionEvent e) {
             MessageContainer[] messages = getMessages();
-            System.out.println("\nCOMPILATION OUTPUT:\n");
+            logger.info("\nCOMPILATION OUTPUT:\n");
             for (MessageContainer msg: messages) {
               if (hideNormal && msg.type == NORMAL) {
                 continue;
               }
-              System.out.println(msg);
+              logger.info(msg);
             }
-            System.out.println();
+            logger.info("\n");
           }
         });
         popup.add(consoleOutputMenuItem);
