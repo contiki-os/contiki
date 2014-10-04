@@ -335,10 +335,14 @@ int
 _isatty_r(struct _reent *r, int fd) {
   if (fd >= MAX_OPEN_DEVICES) {
     /* CFS file, not a TTY */
+    r->_errno = ENOTTY;
     return 0;
   }
   if (devoptab_list[fd] != NULL) {
     /* Check device operations table to determine if it is considered a TTY */
+    if (devoptab_list[fd]->isatty == 0) {
+      r->_errno = ENOTTY;
+    }
     return devoptab_list[fd]->isatty;
   } else {
     /* nothing mapped on that FD */
