@@ -29,7 +29,6 @@ CONTIKI_CPU=$(CONTIKI_CPU_ARM)/k60
 CONTIKI_CPU_DIRS = . drivers
 
 CONTIKI_TARGET_SOURCEFILES += \
-  ssp.c \
   port.c \
   uart.c \
   dbg-uart.c \
@@ -114,7 +113,18 @@ LD_END_GROUP ?= -Wl,--end-group
 #vpath %.c $(PROJECTDIRS) $(CONTIKI_CPU) \
 #	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT)
 
-CPU_STARTC = startup-k60.c interrupt-vector-k60.c
+# Some object files need to be included directly in the link (without being
+# placed in a static library) in order to not get garbage collected too soon,
+# or replaced by generic stuff (in e.g. newlib).
+# 2014-10-04: Added ssp.c in order to be able to link with a libc built with
+#             -fstack-protector, but Contiki built without the flag which leads
+#             to link errors about undefined reference to `__stack_chk_guard'
+#             and `__stack_chk_fail'
+CPU_STARTC = \
+  startup-k60.c \
+  interrupt-vector-k60.c \
+  ssp.c
+
 CPU_STARTOBJ=${addprefix $(OBJECTDIR)/,$(CPU_STARTC:.c=.o)}
 
 PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
