@@ -37,6 +37,9 @@
  *         Joakim Gebart <joakim.gebart@eistec.se>
  */
 
+#ifndef MULLE_CONFIG_BOARD_H_
+#define MULLE_CONFIG_BOARD_H_
+
 #include "adc.h"
 
 /** Disable hardware watchdog, for debugging purposes, don't use this on production builds. */
@@ -125,3 +128,4 @@
  */
 #define BOARD_DEBUG_UART_RX_PIN_MUX 3
 
+#endif /* MULLE_CONFIG_BOARD_H_ */
