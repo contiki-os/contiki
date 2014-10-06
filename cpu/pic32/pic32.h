@@ -101,3 +101,4 @@ void pic32_init(void);
 #endif /* INCLUDE_PIC32_PIC32_H_ */
 
 /** @} */
+/** @} */
