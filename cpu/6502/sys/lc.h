@@ -48,7 +48,7 @@ void __fastcall__ lc_resume(lc_t *lc);
 #define LC_SET_YIELD(lc,retval) \
   do { \
     LC_YIELD_FLAG = 1; \
-    lc_set(&(lc)); \
+    LC_SET(lc); \
     if(LC_YIELD_FLAG) return retval; \
   } while(0)
 
