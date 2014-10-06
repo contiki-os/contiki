@@ -1,6 +1,144 @@
 /**
-\defgroup platform Contiki platforms
+ * \defgroup platform Contiki platforms
+ */
 
-@{
-*/
-/** @} */
+/**
+ * \addtogroup apple2enh Enhanced Apple IIe
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup atarixl Atari XL
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup avr-atmega128rfa1 AVR-ATMEGA128RFA1 platform
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup raven Atmel AVR Raven
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup lcdraven RZRAVEN LCD 3290p
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup usbstick RZRAVEN USB Stick (Jackdaw)
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup avr-rcb Atmel Radio Controller Board (RZ200)
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup avr-zigbit ZigBit
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup c128 Commodore 128
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup c64 Commodore 64
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup cc2530dk CC2530 Development Kit
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup cc2538dk CC2538 Development Kit
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup cooja COOJA network simulator node
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup econotag Redbee Econtag
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup ev-aducrf101mkxz EV-ADuCRF101MKxZ Board
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup eval-adf7xxxmb4z EVAL-ADF7xxxMB4Z Board
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup exp5438 MSP430F5438 Experimenter Board
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup mbxxx-platform The STM32W MBXXX platform
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup micaz MICAz
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup minimal-net Minimal-net native platform
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup native_platform Native platform
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup SeedEye Contiki SEEDEYE Platform
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup sensinode Sensinode
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup sky The Tmote Sky Board
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup stm32test Generic STM32F103 platform
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup win32 Win32
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup wismote WiSMote
+ * \ingroup platform
+ */
+
+/**
+ * \addtogroup z1 Zolertia Z1
+ * \ingroup platform
+ */
+

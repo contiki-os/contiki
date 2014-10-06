@@ -2,7 +2,7 @@
  * \addtogroup platform
  * @{ */
 /**
- * \defgroup mbxxx-platform The STM32W MBXXX platform.
+ * \defgroup mbxxx-platform The STM32W MBXXX platform
  *
  * The STM32W MBXXX platform.
  *
