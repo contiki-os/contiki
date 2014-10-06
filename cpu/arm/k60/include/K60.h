@@ -62,6 +62,10 @@
 #define SIM_SCGC6_SPI0_MASK SIM_SCGC6_DSPI0_MASK
 #define SIM_SCGC6_SPI0_SHIFT SIM_SCGC6_DSPI0_SHIFT
 
+#define MCG_C2_RANGE0_MASK MCG_C2_RANGE_MASK
+#define MCG_C5_PRDIV0_MASK MCG_C5_PRDIV_MASK
+#define MCG_C6_VDIV0_MASK MCG_C6_VDIV_MASK
+
 /** The expected CPUID value, can be used to implement a check that we are
  * running on the right hardware */
 #define K60_EXPECTED_CPUID 0x410fc240u

@@ -197,11 +197,21 @@ void SystemCoreClockUpdate(void) {
       /* FLL is selected */
       if ((MCG->C1 & MCG_C1_IREFS_MASK) == 0x0u) {
         /* External reference clock is selected */
+#if K60_CPU_REV == 1
+        /* rev.1 silicon */
+        if ((SIM->SOPT2 & SIM_SOPT2_MCGCLKSEL_MASK) == 0x0u) {
+          MCGOUTClock = CPU_XTAL_CLK_HZ;                                       /* System oscillator drives MCG clock */
+        } else { /* (!((SIM->SOPT2 & SIM_SOPT2_MCGCLKSEL_MASK) == 0x0u)) */
+          MCGOUTClock = CPU_XTAL32k_CLK_HZ;                                    /* RTC 32 kHz oscillator drives MCG clock */
+        } /* (!((SIM->SOPT2 & SIM_SOPT2_MCGCLKSEL_MASK) == 0x0u)) */
+#else /* K60_CPU_REV != 1 */
+        /* rev.2 silicon */
         if ((MCG->C7 & MCG_C7_OSCSEL_MASK) == 0x0u) {
           MCGOUTClock = CPU_XTAL_CLK_HZ;                                       /* System oscillator drives MCG clock */
         } else { /* (!((MCG->C7 & MCG_C7_OSCSEL_MASK) == 0x0u)) */
           MCGOUTClock = CPU_XTAL32k_CLK_HZ;                                    /* RTC 32 kHz oscillator drives MCG clock */
         } /* (!((MCG->C7 & MCG_C7_OSCSEL_MASK) == 0x0u)) */
+#endif /* K60_CPU_REV != 1 */
         Divider = (uint8_t)(1u << ((MCG->C1 & MCG_C1_FRDIV_MASK) >> MCG_C1_FRDIV_SHIFT));
         MCGOUTClock = (MCGOUTClock / Divider);  /* Calculate the divided FLL reference clock */
         if ((MCG->C2 & MCG_C2_RANGE0_MASK) != 0x0u) {
@@ -251,15 +261,31 @@ void SystemCoreClockUpdate(void) {
     if ((MCG->C2 & MCG_C2_IRCS_MASK) == 0x0u) {
       MCGOUTClock = CPU_INT_SLOW_CLK_HZ;                                       /* Slow internal reference clock selected */
     } else { /* (!((MCG->C2 & MCG_C2_IRCS_MASK) == 0x0u)) */
+#if K60_CPU_REV == 1
+      /* rev.1 silicon */
+      MCGOUTClock = CPU_INT_FAST_CLK_HZ;  /* Fast internal reference clock selected */
+#else /* K60_CPU_REV != 1 */
+      /* rev.2 silicon */
       MCGOUTClock = CPU_INT_FAST_CLK_HZ / (1 << ((MCG->SC & MCG_SC_FCRDIV_MASK) >> MCG_SC_FCRDIV_SHIFT));  /* Fast internal reference clock selected */
+#endif /* K60_CPU_REV != 1 */
     } /* (!((MCG->C2 & MCG_C2_IRCS_MASK) == 0x0u)) */
   } else if ((MCG->C1 & MCG_C1_CLKS_MASK) == MCG_C1_CLKS(0b10)) { /* 0x80u */
     /* External reference clock is selected */
+#if K60_CPU_REV == 1
+    /* rev.1 silicon */
+    if ((SIM->SOPT2 & SIM_SOPT2_MCGCLKSEL_MASK) == 0x0u) {
+      MCGOUTClock = CPU_XTAL_CLK_HZ;                                           /* System oscillator drives MCG clock */
+    } else { /* (!((SIM->SOPT2 & SIM_SOPT2_MCGCLKSEL_MASK) == 0x0u)) */
+      MCGOUTClock = CPU_XTAL32k_CLK_HZ;                                        /* RTC 32 kHz oscillator drives MCG clock */
+    } /* (!((SIM->SOPT2 & SIM_SOPT2_MCGCLKSEL_MASK) == 0x0u)) */
+#else /* K60_CPU_REV != 1 */
+    /* rev.2 silicon */
     if ((MCG->C7 & MCG_C7_OSCSEL_MASK) == 0x0u) {
       MCGOUTClock = CPU_XTAL_CLK_HZ;                                           /* System oscillator drives MCG clock */
     } else { /* (!((MCG->C7 & MCG_C7_OSCSEL_MASK) == 0x0u)) */
       MCGOUTClock = CPU_XTAL32k_CLK_HZ;                                        /* RTC 32 kHz oscillator drives MCG clock */
     } /* (!((MCG->C7 & MCG_C7_OSCSEL_MASK) == 0x0u)) */
+#endif /* K60_CPU_REV != 1 */
   } else { /* (!((MCG->C1 & MCG_C1_CLKS_MASK) == 0x80u)) */
     /* Reserved value */
     return;
