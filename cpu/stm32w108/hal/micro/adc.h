@@ -8,8 +8,7 @@
  * @addtogroup stm32w-cpu
  * @{ */
 
-/** @defgroup adc
- * Sample A/D converter driver.
+/** @defgroup adc Sample A/D converter driver.
  *
  * See adc.h for source code.
  *

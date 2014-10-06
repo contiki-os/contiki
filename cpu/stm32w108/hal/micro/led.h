@@ -8,8 +8,7 @@
  * @addtogroup stm32w-cpu
  * @{ */
 
-/** @defgroup led 
- *  @brief  Sample API funtions for controlling LEDs.
+/** @defgroup led Sample API funtions for controlling LEDs.
  *
  * When specifying an LED to use, always use the BOARDLEDx definitions that
  * are defined within the BOARD_HEADER.
