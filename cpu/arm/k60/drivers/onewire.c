@@ -53,6 +53,7 @@
 #include "interrupt.h"
 #include "udelay.h"
 #include "K60.h"
+#include "uart.h"
 #include "config-clocks.h"
 #include <stdio.h>
 #include <stdint.h>
