@@ -106,6 +106,7 @@ main(void)
   PRINTF("UID: %08x %08x %08x %08x\n", (unsigned int)SIM->UIDH, (unsigned int)SIM->UIDMH, (unsigned int)SIM->UIDML, (unsigned int)SIM->UIDL);
   PRINTF("Clocks:\n F_CPU: %u\n F_SYS: %u\n F_BUS: %u\n F_FLEXBUS: %u\n F_FLASH: %u\n", (unsigned int)SystemCoreClock, (unsigned int)SystemSysClock, (unsigned int)SystemBusClock, (unsigned int)SystemFlexBusClock, (unsigned int)SystemFlashClock);
 #endif
+
   /*
    * Initialize Contiki and our processes.
    */
@@ -118,6 +119,7 @@ main(void)
   init_cfs();
   init_net();
   voltage_init();
+  rtimer_init();
 
   autostart_start(autostart_processes);
 

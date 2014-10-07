@@ -6,15 +6,18 @@
 #define CCIF
 #define CLIF
 
-typedef unsigned short uip_stats_t;
-typedef unsigned long clock_time_t;
-typedef unsigned long bool_t;
 typedef uint8_t u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
 typedef int32_t s32_t;
 
+typedef uint32_t clock_time_t;
+typedef uint16_t uip_stats_t;
+
 #define CLOCK_CONF_SECOND 64
+
+typedef uint64_t rtimer_clock_t;
+#define RTIMER_CLOCK_LT(a, b)  ((int64_t)((a) - (b)) < 0)
 
 #define CFS_CONF_OFFSET_TYPE  long
 
