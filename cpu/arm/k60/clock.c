@@ -93,7 +93,7 @@ clock_init(void)
   /* Setup Low Power Timer (LPT) */
 
   /* Enable LPT clock gate */
-  SIM->SCGC5 |= SIM_SCGC5_LPTIMER_MASK;
+  BITBAND_REG(SIM->SCGC5, SIM_SCGC5_LPTIMER_SHIFT) = 1;
 
   /* Disable timer to change settings. */
   /* Logic is reset when the timer is disabled, TCF flag is also cleared on disable. */
