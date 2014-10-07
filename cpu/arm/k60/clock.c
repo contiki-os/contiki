@@ -74,22 +74,6 @@ clock_wait(clock_time_t delay)
 void
 clock_init(void)
 {
-  /* Setup 32768 Hz clock source */
-  /** \todo clean up RTC initialization procedure on Mulle */
-  /* NB: this has probably already been performed during boot up and core clock
-   * setup on Mulle. */
-  /* Enable RTC clock gate */
-  SIM->SCGC6 |= SIM_SCGC6_RTC_MASK;
-  /* Enable RTC oscillator */
-  BITBAND_REG(RTC->CR, RTC_CR_OSCE_SHIFT) = 1;
-  /* Select RTC oscillator as ERCLK32K */
-#if (K60_CPU_REV == 1)
-  SIM->SOPT1 |= SIM_SOPT1_OSC32KSEL_MASK;
-#else
-  /* K60 rev. 2 added some more possible values to this register. */
-  SIM->SOPT1 = (SIM->SOPT1 & ~(SIM_SOPT1_OSC32KSEL_MASK)) | SIM_SOPT1_OSC32KSEL(0b10);
-#endif /* !(K60_CPU_REV == 1) */
-
   /* Setup Low Power Timer (LPT) */
 
   /* Enable LPT clock gate */
