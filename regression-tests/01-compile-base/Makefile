@@ -19,7 +19,6 @@ netperf/sky \
 powertrace/sky \
 rime/sky \
 rime/z1 \
-ravenusbstick/avr-ravenusb \
 rest-example/sky \
 servreg-hack/sky \
 sky/sky \

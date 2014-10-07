@@ -67,6 +67,11 @@ create(void)
 {
   struct nullmac_hdr *hdr;
 
+  /* The nullmac framer only does data packets */
+  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) != PACKETBUF_ATTR_PACKET_TYPE_DATA) {
+	return FRAMER_FAILED;
+  }
+
   if(packetbuf_hdralloc(sizeof(struct nullmac_hdr))) {
     hdr = packetbuf_hdrptr();
     linkaddr_copy(&(hdr->sender), &linkaddr_node_addr);

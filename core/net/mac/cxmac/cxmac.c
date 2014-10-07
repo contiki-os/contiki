@@ -721,6 +721,10 @@ input_packet(void)
   if(NETSTACK_FRAMER.parse() >= 0) {
     hdr = packetbuf_dataptr();
 
+    if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) == PACKETBUF_ATTR_PACKET_TYPE_BEACON) {
+      scan_beacon_received();
+    }
+
     if(hdr->dispatch != DISPATCH) {
       someone_is_sending = 0;
       if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),

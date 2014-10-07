@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2014 Robert Quattlebaum,
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,84 +32,74 @@
 
 /**
  * \file
- *         A MAC protocol that does not do anything.
+ *         Example program showing how network scanning works.
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Robert Quattlebaum <darco@deepdarc.com>
  */
 
-#include "net/mac/nullrdc-noframer.h"
+#include "contiki.h"
+#include "net/scan.h"
 #include "net/packetbuf.h"
-#include "net/queuebuf.h"
+#include "sys/clock.h"
+#include "dev/radio.h"
 #include "net/netstack.h"
-#include <string.h>
 
+#include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
-static void
-send_packet(mac_callback_t sent, void *ptr)
+PROCESS(main_process, "main");
+AUTOSTART_PROCESSES(&main_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(main_process, ev, data)
 {
-  int ret;
-  if(NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen()) == RADIO_TX_OK) {
-    ret = MAC_TX_OK;
-  } else {
-    ret =  MAC_TX_ERR;
+  static int count;
+  PROCESS_BEGIN();
+
+  while (1) {
+    printf("Performing energy scan. . .\n");
+    count = 0;
+    scan_energy_start(CLOCK_SECOND, 0);
+    while (scan_is_scanning() || ev == scan_result_event) {
+
+      if (ev == scan_result_event) {
+        radio_value_t channel = 0;
+
+        NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &channel);
+
+        printf("%02d: %ddBm\n", channel, scan_get_energy());
+
+        count++;
+      }
+      PROCESS_WAIT_EVENT();
+    }
+    printf("Finished scanning %d channel(s).\n\n", count);
+    PROCESS_PAUSE();
+
+    printf("Performing beacon scan. . .\n");
+    count = 0;
+    scan_beacon_start(CLOCK_SECOND, 0);
+    while (scan_is_scanning() || ev == scan_result_event) {
+
+      if (ev == scan_result_event) {
+        uint16_t len = packetbuf_totlen();
+        const uint8_t *beacon_data = packetbuf_hdrptr();
+        radio_value_t channel = 0;
+
+        NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &channel);
+
+        count++;
+
+        printf("BEACON-CH%02d:", channel);
+        for(; len != 0; len--) {
+          printf(" %02X", *beacon_data++);
+        }
+        printf("\n");
+      }
+      PROCESS_WAIT_EVENT();
+    }
+    printf("Found %d beacon(s).\n\n", count);
+    PROCESS_PAUSE();
   }
-  mac_call_sent_callback(sent, ptr, ret, 1);
+
+  PROCESS_END();
 }
-/*---------------------------------------------------------------------------*/
-static void
-send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
-{
-  if(buf_list != NULL) {
-    queuebuf_to_packetbuf(buf_list->buf);
-    send_packet(sent, ptr);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static void
-packet_input(void)
-{
-  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) == PACKETBUF_ATTR_PACKET_TYPE_BEACON) {
-	scan_beacon_received();
-  }
-  NETSTACK_MAC.input();
-}
-/*---------------------------------------------------------------------------*/
-static int
-on(void)
-{
-  return NETSTACK_RADIO.on();
-}
-/*---------------------------------------------------------------------------*/
-static int
-off(int keep_radio_on)
-{
-  if(keep_radio_on) {
-    return NETSTACK_RADIO.on();
-  } else {
-    return NETSTACK_RADIO.off();
-  }
-}
-/*---------------------------------------------------------------------------*/
-static unsigned short
-channel_check_interval(void)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  on();
-}
-/*---------------------------------------------------------------------------*/
-const struct rdc_driver nullrdc_noframer_driver = {
-  "nullrdc-noframer",
-  init,
-  send_packet,
-  send_list,
-  packet_input,
-  on,
-  off,
-  channel_check_interval,
-};
 /*---------------------------------------------------------------------------*/
