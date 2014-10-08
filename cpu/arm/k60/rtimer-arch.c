@@ -50,19 +50,24 @@
 
 /* Convenience macro to access the channel struct directly. */
 #define RTIMER_ARCH_CHANNEL (RTIMER_ARCH_PIT_DEV->CHANNEL[RTIMER_ARCH_PIT_CHANNEL])
-/* Convenience macro to enable and disable the rtimer ticker. */
+/* Convenience macro to enable and disable the rtimer timer hardware. */
 #define RTIMER_ARCH_TIMER_ENABLE() (BITBAND_REG(RTIMER_ARCH_CHANNEL.TCTRL, PIT_TCTRL_TEN_SHIFT) = 1)
 #define RTIMER_ARCH_TIMER_DISABLE() (BITBAND_REG(RTIMER_ARCH_CHANNEL.TCTRL, PIT_TCTRL_TEN_SHIFT) = 0)
 
-static rtimer_clock_t offset = 0;
-static int free_running = 0;
+/** Offset between current counter/timer and t=0 (boot instant) */
+static rtimer_clock_t offset;
+/** set to 0 while a task is scheduled */
+static int free_running;
+/** LDVAL of the free running timer */
 #define RTIMER_ARCH_FREE_RUNNING_LDVAL (PIT_LDVAL_TSV_MASK >> PIT_LDVAL_TSV_SHIFT)
 
 void
 rtimer_arch_init(void) {
   offset = 0;
+
   /* Free running when not waiting for any rtimer tasks. */
   free_running = 1;
+
   /* Enable module clock */
   BITBAND_REG(SIM->SCGC6, SIM_SCGC6_PIT_SHIFT) = 1;
 
@@ -99,11 +104,11 @@ rtimer_arch_schedule(rtimer_clock_t t) {
   if (t > 0xffffffffull) {
     PRINTF("rtimer_arch_schedule: Schedule out of range! This task will run much sooner than expected.\n");
   }
-  /* Set timer value */
-  RTIMER_ARCH_CHANNEL.LDVAL = t;
-
   /* Increase time base */
   offset = rtimer_arch_now();
+
+  /* Set timer value */
+  RTIMER_ARCH_CHANNEL.LDVAL = PIT_LDVAL_TSV(t);
 
   /* No longer free running */
   free_running = 0;
@@ -118,7 +123,9 @@ rtimer_arch_schedule(rtimer_clock_t t) {
 rtimer_clock_t
 rtimer_arch_now(void) {
   /* Timer is down-counting, we flip it here. */
-  return offset + (RTIMER_ARCH_CHANNEL.LDVAL - RTIMER_ARCH_CHANNEL.CVAL);
+  return offset + ((rtimer_clock_t)(
+    ((RTIMER_ARCH_CHANNEL.LDVAL & PIT_LDVAL_TSV_MASK) >> PIT_LDVAL_TSV_SHIFT) -
+    ((RTIMER_ARCH_CHANNEL.CVAL & PIT_CVAL_TVL_MASK) >> PIT_CVAL_TVL_SHIFT)));
 }
 
 /* Interrupt handler for rtimer triggers */
@@ -126,16 +133,37 @@ void
 _isr_pit0(void) {
   /* Save old timeout */
   static uint32_t prev_timeout;
-  prev_timeout = RTIMER_ARCH_CHANNEL.LDVAL;
+  prev_timeout = ((RTIMER_ARCH_CHANNEL.LDVAL & PIT_LDVAL_TSV_MASK) >> PIT_LDVAL_TSV_SHIFT);
+
+  /* Clear interrupt flag */
+  BITBAND_REG(RTIMER_ARCH_CHANNEL.TFLG, PIT_TFLG_TIF_SHIFT) = 1;
+
+  /* Update offset with the time that has passed since the counter reached zero.
+   * This time offset could potentially be significant, for example when
+   * multiple interrupts occur right before the PIT interrupt causing the PIT
+   * interrupt to become pending while the other interrupts are handled, or
+   * interrupts with a higher priority cause this ISR to be */
+  /* After triggering this interrupt we are currently in, the counter will start
+   * over at LDVAL and continue counting down. This new time is added to the
+   * offset by the line below, however, we still have not added the initial
+   * length of the timer that actually triggered the interrupt. */
+  offset = rtimer_arch_now(); /* offset = [old offset] + [ISR processing time] */
+
+  /* rtimer schedulings are one-shot, go back to counting time for RTIMER_NOW */
   /* Load largest possible value */
   RTIMER_ARCH_CHANNEL.LDVAL = RTIMER_ARCH_FREE_RUNNING_LDVAL;
-  /* rtimer schedulings are one-shot, go back to counting time for RTIMER_NOW */
-  /* This clears the interrupt flag as well. */
+
   RTIMER_ARCH_TIMER_DISABLE();
   RTIMER_ARCH_TIMER_ENABLE();
-  /* We do the above few lines as early as possible to avoid losing a lot of ticks. */
-  /* Increase time base for RTIMER_NOW */
-  offset += prev_timeout;
+  /* We do the above few lines as close as possible to the
+   * offset = rtimer_arch_now(); in order to avoid losing a lot of ticks. */
+
+  /* Increase time base for RTIMER_NOW by the initial timer amount. */
+  offset += (rtimer_clock_t)prev_timeout;
+  /* offset is now [offset before ISR] + [ISR processing time] + [timer interval] */
+
+  /** \todo compensate for time between offset = rtimer_arch_now() and RTIMER_ARCH_TIMER_ENABLE in rtimer ISR. */
+
   if (free_running == 0) {
     /* We hit a scheduled task time. */
     free_running = 1;
@@ -143,5 +171,5 @@ _isr_pit0(void) {
     rtimer_run_next();
   }
   /* Else: Timeout while counting time (happens after 89 seconds at 48MHz).
-   *  nothing to do here then. */
+   *  nothing to do here then but to continue counting. */
 }
