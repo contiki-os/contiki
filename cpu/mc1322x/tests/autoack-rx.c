@@ -94,7 +94,7 @@ void main(void) {
 			/* print and free the packet */
 			printf("autoack-rx --- ");
 			print_packet(p);
-			free_packet(p);
+			maca_free_packet(p);
 		}
 
 		if(uart1_can_get()) {

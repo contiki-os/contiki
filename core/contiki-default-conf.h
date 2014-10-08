@@ -73,6 +73,18 @@
 /* #define NETSTACK_CONF_MAC   csma_driver */
 #endif /* NETSTACK_CONF_MAC */
 
+/* NETSTACK_CONF_LLSEC specifies the link layer security driver. */
+#ifndef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC nullsec_driver
+#endif /* NETSTACK_CONF_LLSEC */
+
+/* To avoid unnecessary complexity, we assume the common case of
+   a constant LoWPAN-wide IEEE 802.15.4 security level, which
+   can be specified by defining LLSEC802154_CONF_SECURITY_LEVEL. */
+#ifndef LLSEC802154_CONF_SECURITY_LEVEL
+#define LLSEC802154_CONF_SECURITY_LEVEL 0
+#endif /* LLSEC802154_CONF_SECURITY_LEVEL */
+
 /* NETSTACK_CONF_NETWORK specifies the network layer and can be either
    sicslowpan_driver, for IPv6 networking, or rime_driver, for the
    custom Rime network stack. */
@@ -208,13 +220,12 @@
 #define SICSLOWPAN_CONF_FRAG 1
 #endif /* SICSLOWPAN_CONF_FRAG */
 
-/* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD specifies the maximum size of
-   packets before they get fragmented. The default is 127 bytes (the
-   maximum size of a 802.15.4 frame) - 25 bytes (for the 802.15.4 MAC
-   layer header). This can be increased for systems with larger packet
-   sizes. */
+/* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD is the maximum available size for
+   frame headers, link layer security-related overhead,  as well as
+   6LoWPAN payload. By default, SICSLOWPAN_CONF_MAC_MAX_PAYLOAD is
+   127 bytes (MTU of 802.15.4) - 2 bytes (Footer of 802.15.4). */
 #ifndef SICSLOWPAN_CONF_MAC_MAX_PAYLOAD
-#define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD (127 - 25)
+#define SICSLOWPAN_CONF_MAC_MAX_PAYLOAD (127 - 2)
 #endif /* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD */
 
 /* SICSLOWPAN_CONF_COMPRESSION_THRESHOLD sets a lower threshold for

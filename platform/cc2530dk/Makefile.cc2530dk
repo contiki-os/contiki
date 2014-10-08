@@ -47,4 +47,5 @@ CONTIKI_CPU=$(CONTIKI)/cpu/cc253x
 include $(CONTIKI_CPU)/Makefile.cc253x
 
 # Default modules
-MODULES += core/net/ip core/net/ipv6 core/net/rime core/net core/net/mac core/net/rpl
+MODULES += core/net/ip core/net/ipv6 core/net/rime core/net core/net/mac core/net/rpl \
+           core/net/llsec

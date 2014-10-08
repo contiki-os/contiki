@@ -1,7 +1,7 @@
 # $Id: Makefile.common,v 1.3 2010/08/24 16:24:11 joxe Exp $
 
 ARCH=spi.c ds2411.c xmem.c i2c.c node-id.c sensors.c cfs-coffee.c \
-     cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c \
+     cc2420.c cc2420-arch.c cc2420-arch-sfd.c \
      sky-sensors.c uip-ipchksum.c \
      uart1.c slip_uart1.c uart1-putchar.c
 

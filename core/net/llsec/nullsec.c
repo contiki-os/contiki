@@ -1,5 +1,10 @@
+/**
+ * \addtogroup nullsec
+ * @{
+ */
+
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,44 +37,56 @@
 
 /**
  * \file
- *         Interface to the CC2420 AES encryption/decryption functions
+ *         Insecure link layer security driver.
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef CC2420_AES_H_
-#define CC2420_AES_H_
+#include "net/llsec/nullsec.h"
+#include "net/mac/frame802154.h"
+#include "net/netstack.h"
+#include "net/packetbuf.h"
 
-/**
- * \brief      Setup an AES key
- * \param key  A pointer to a 16-byte AES key
- * \param index The key index: either 0 or 1.
- *
- *             This function sets up an AES key with the CC2420
- *             chip. The AES key can later be used with the
- *             cc2420_aes_cipher() function to encrypt or decrypt
- *             data.
- *
- *             The CC2420 can store two separate keys in its
- *             memory. The keys are indexed as 0 or 1 and the key
- *             index is given by the 'index' parameter.
- *
- */
-void cc2420_aes_set_key(const uint8_t *key, int index);
+/*---------------------------------------------------------------------------*/
+static void
+bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
+{
+  on_bootstrapped();
+}
+/*---------------------------------------------------------------------------*/
+static void
+send(mac_callback_t sent, void *ptr)
+{
+  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
+  NETSTACK_MAC.send(sent, ptr);
+}
+/*---------------------------------------------------------------------------*/
+static int
+on_frame_created(void)
+{
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+static void
+input(void)
+{
+  NETSTACK_NETWORK.input();
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+get_overhead(void)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+const struct llsec_driver nullsec_driver = {
+  "nullsec",
+  bootstrap,
+  send,
+  on_frame_created,
+  input,
+  get_overhead
+};
+/*---------------------------------------------------------------------------*/
 
-
-/**
- * \brief      Encrypt/decrypt data with AES
- * \param data A pointer to the data to be encrypted/decrypted
- * \param len  The length of the data to be encrypted/decrypted
- * \param key_index The key to use. The key must have previously been set up with cc2420_aes_set_key().
- *
- *             This function encrypts/decrypts data with AES. A
- *             pointer to the data is passed as a parameter, and the
- *             function overwrites the data with the encrypted data.
- *
- */
-void cc2420_aes_cipher(uint8_t *data, int len, int key_index);
-
-
-#endif /* CC2420_AES_H_ */
+/** @} */

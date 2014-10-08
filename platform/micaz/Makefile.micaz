@@ -46,4 +46,5 @@ ifneq ($(strip $(HAVE_PRGBOARD_FILE)), )
 endif 
 
 MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 core/net/rime \
-           core/net/mac core/net/rpl core/net/mac/cxmac dev/cc2420
+           core/net/mac core/net/rpl core/net/mac/cxmac \
+           core/net/llsec dev/cc2420
