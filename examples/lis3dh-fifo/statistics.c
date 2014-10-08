@@ -86,25 +86,25 @@ compute_stats_3d_int16(const int16_t *buffer, const size_t count,
 void
 print_stats_3d(const stats_3d_t *stats)
 {
-  printf("Stats, %d samples:\r\n", stats->count);
+  printf("Stats, %d samples:\n", stats->count);
   /* Poor man's floating point printf... */
-  printf("Xlim: [%d,\t%d]\r\n", stats->min[0], stats->max[0]);
-  printf("Ylim: [%d,\t%d]\r\n", stats->min[1], stats->max[1]);
-  printf("Zlim: [%d,\t%d]\r\n", stats->min[2], stats->max[2]);
-  printf(" max: [%d,\t%d,\t%d]\r\n",
+  printf("Xlim: [%d,\t%d]\n", stats->min[0], stats->max[0]);
+  printf("Ylim: [%d,\t%d]\n", stats->min[1], stats->max[1]);
+  printf("Zlim: [%d,\t%d]\n", stats->min[2], stats->max[2]);
+  printf(" max: [%d,\t%d,\t%d]\n",
          stats->max[0], stats->max[1], stats->max[2]);
-  printf(" min: [%d,\t%d,\t%d]\r\n",
+  printf(" min: [%d,\t%d,\t%d]\n",
          stats->min[0], stats->min[1], stats->min[2]);
-  printf("mean: [%d.%06d,\t%d.%06d,\t%d.%06d]\r\n",
+  printf("mean: [%d.%06d,\t%d.%06d,\t%d.%06d]\n",
          ((int)stats->mean[0]),
          ((int)(fmod(fabs(stats->mean[0] * 1000000.0), 1000000.0))),
          ((int)stats->mean[1]),
          ((int)(fmod(fabs(stats->mean[1] * 1000000.0), 1000000.0))),
          ((int)stats->mean[2]),
          ((int)(fmod(fabs(stats->mean[2] * 1000000.0), 1000000.0))));
-  printf(" cov: [%d.%06d,\t%d.%06d,\t%d.%06d]\r\n"
-         "      [%d.%06d,\t%d.%06d,\t%d.%06d]\r\n"
-         "      [%d.%06d,\t%d.%06d,\t%d.%06d]\r\n",
+  printf(" cov: [%d.%06d,\t%d.%06d,\t%d.%06d]\n"
+         "      [%d.%06d,\t%d.%06d,\t%d.%06d]\n"
+         "      [%d.%06d,\t%d.%06d,\t%d.%06d]\n",
          ((int)stats->cov[0][0]),
          ((int)(fmod(fabs(stats->cov[0][0] * 1000000.0), 1000000.0))),
          ((int)stats->cov[0][1]),
@@ -124,13 +124,15 @@ print_stats_3d(const stats_3d_t *stats)
          ((int)stats->cov[2][2]),
          ((int)(fmod(fabs(stats->cov[2][2] * 1000000.0), 1000000.0)))
          );
-  printf("stdd: [%d.%06d,\t%d.%06d,\t%d.%06d]\r\n",
+  printf("stdd: [%d.%06d,\t%d.%06d,\t%d.%06d]\n",
          ((int)stats->stddev[0]),
          ((int)(fmod(fabs(stats->stddev[0] * 1000000.0), 1000000.0))),
          ((int)stats->stddev[1]),
          ((int)(fmod(fabs(stats->stddev[1] * 1000000.0), 1000000.0))),
          ((int)stats->stddev[2]),
          ((int)(fmod(fabs(stats->stddev[2] * 1000000.0), 1000000.0))));
-  printf(" sum: [%d,\t%d,\t%d]\r\n",
+  printf(" float test: [%f,\t%f,\t%f]\n",
+         stats->stddev[0], stats->stddev[1], stats->stddev[2]);
+  printf(" sum: [%d,\t%d,\t%d]\n",
          (int)stats->sum[0], (int)stats->sum[1], (int)stats->sum[2]);
 }
