@@ -180,7 +180,7 @@ rime_output(struct channel *c)
   if(chameleon_create(c)) {
     packetbuf_compact();
 
-    NETSTACK_MAC.send(packet_sent, c);
+    NETSTACK_LLSEC.send(packet_sent, c);
     return 1;
   }
   return 0;

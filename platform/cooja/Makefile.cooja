@@ -90,4 +90,5 @@ ifeq ($(UIP_CONF_IPV6),1)
 endif # UIP_CONF_IPV6
 
 MODULES += core/net core/net/ip core/net/ipv4 \
-           core/net/ipv6 core/net/mac core/net/rime core/net/rpl
+           core/net/ipv6 core/net/mac core/net/rime core/net/rpl \
+           core/net/llsec

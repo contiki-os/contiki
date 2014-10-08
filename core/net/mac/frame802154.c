@@ -63,6 +63,7 @@
 
 #include "sys/cc.h"
 #include "net/mac/frame802154.h"
+#include "net/llsec/llsec802154.h"
 #include <string.h>
 
 /**
@@ -90,6 +91,23 @@ addr_len(uint8_t mode)
     return 0;
   }
 }
+/*----------------------------------------------------------------------------*/
+#if LLSEC802154_USES_EXPLICIT_KEYS
+static uint8_t
+get_key_id_len(uint8_t key_id_mode)
+{
+  switch(key_id_mode) {
+  case FRAME802154_1_BYTE_KEY_ID_MODE:
+    return 1;
+  case FRAME802154_5_BYTE_KEY_ID_MODE:
+    return 5;
+  case FRAME802154_9_BYTE_KEY_ID_MODE:
+    return 9;
+  default:
+    return 0;
+  }
+}
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 /*----------------------------------------------------------------------------*/
 static void
 field_len(frame802154_t *p, field_length_t *flen)
@@ -120,28 +138,16 @@ field_len(frame802154_t *p, field_length_t *flen)
   flen->dest_addr_len = addr_len(p->fcf.dest_addr_mode & 3);
   flen->src_addr_len = addr_len(p->fcf.src_addr_mode & 3);
 
+#if LLSEC802154_SECURITY_LEVEL
   /* Aux security header */
   if(p->fcf.security_enabled & 1) {
-    /* TODO Aux security header not yet implemented */
-#if 0
-    switch(p->aux_hdr.security_control.key_id_mode) {
-    case 0:
-      flen->aux_sec_len = 5; /* minimum value */
-      break;
-    case 1:
-      flen->aux_sec_len = 6;
-      break;
-    case 2:
-      flen->aux_sec_len = 10;
-      break;
-    case 3:
-      flen->aux_sec_len = 14;
-      break;
-    default:
-      break;
-    }
-#endif
+    flen->aux_sec_len = 5
+#if LLSEC802154_USES_EXPLICIT_KEYS
+        + get_key_id_len(p->aux_hdr.security_control.key_id_mode);
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+    ;
   }
+#endif /* LLSEC802154_SECURITY_LEVEL */
 }
 /*----------------------------------------------------------------------------*/
 /**
@@ -171,70 +177,79 @@ frame802154_hdrlen(frame802154_t *p)
  *
  *   \param buf Pointer to the buffer to use for the frame.
  *
- *   \param buf_len The length of the buffer to use for the frame.
- *
- *   \return The length of the frame header or 0 if there was
- *   insufficient space in the buffer for the frame headers.
+ *   \return The length of the frame header
 */
 int
-frame802154_create(frame802154_t *p, uint8_t *buf, int buf_len)
+frame802154_create(frame802154_t *p, uint8_t *buf)
 {
   int c;
   field_length_t flen;
-  uint8_t *tx_frame_buffer;
   uint8_t pos;
+#if LLSEC802154_USES_EXPLICIT_KEYS
+  uint8_t key_id_mode;
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 
   field_len(p, &flen);
-
-  if(3 + flen.dest_pid_len + flen.dest_addr_len +
-     flen.src_pid_len + flen.src_addr_len + flen.aux_sec_len > buf_len) {
-    /* Too little space for headers. */
-    return 0;
-  }
-
+  
   /* OK, now we have field lengths.  Time to actually construct */
-  /* the outgoing frame, and store it in tx_frame_buffer */
-  tx_frame_buffer = buf;
-  tx_frame_buffer[0] = (p->fcf.frame_type & 7) |
+  /* the outgoing frame, and store it in buf */
+  buf[0] = (p->fcf.frame_type & 7) |
     ((p->fcf.security_enabled & 1) << 3) |
     ((p->fcf.frame_pending & 1) << 4) |
     ((p->fcf.ack_required & 1) << 5) |
     ((p->fcf.panid_compression & 1) << 6);
-  tx_frame_buffer[1] = ((p->fcf.dest_addr_mode & 3) << 2) |
+  buf[1] = ((p->fcf.dest_addr_mode & 3) << 2) |
     ((p->fcf.frame_version & 3) << 4) |
     ((p->fcf.src_addr_mode & 3) << 6);
 
   /* sequence number */
-  tx_frame_buffer[2] = p->seq;
+  buf[2] = p->seq;
   pos = 3;
 
   /* Destination PAN ID */
   if(flen.dest_pid_len == 2) {
-    tx_frame_buffer[pos++] = p->dest_pid & 0xff;
-    tx_frame_buffer[pos++] = (p->dest_pid >> 8) & 0xff;
+    buf[pos++] = p->dest_pid & 0xff;
+    buf[pos++] = (p->dest_pid >> 8) & 0xff;
   }
 
   /* Destination address */
   for(c = flen.dest_addr_len; c > 0; c--) {
-    tx_frame_buffer[pos++] = p->dest_addr[c - 1];
+    buf[pos++] = p->dest_addr[c - 1];
   }
 
   /* Source PAN ID */
   if(flen.src_pid_len == 2) {
-    tx_frame_buffer[pos++] = p->src_pid & 0xff;
-    tx_frame_buffer[pos++] = (p->src_pid >> 8) & 0xff;
+    buf[pos++] = p->src_pid & 0xff;
+    buf[pos++] = (p->src_pid >> 8) & 0xff;
   }
 
   /* Source address */
   for(c = flen.src_addr_len; c > 0; c--) {
-    tx_frame_buffer[pos++] = p->src_addr[c - 1];
+    buf[pos++] = p->src_addr[c - 1];
   }
 
+#if LLSEC802154_SECURITY_LEVEL
   /* Aux header */
   if(flen.aux_sec_len) {
-    /* TODO Aux security header not yet implemented */
-/*     pos += flen.aux_sec_len; */
+    buf[pos++] = p->aux_hdr.security_control.security_level
+#if LLSEC802154_USES_EXPLICIT_KEYS
+        | (p->aux_hdr.security_control.key_id_mode << 3)
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+    ;
+    memcpy(buf + pos, p->aux_hdr.frame_counter.u8, 4);
+    pos += 4;
+
+#if LLSEC802154_USES_EXPLICIT_KEYS
+    key_id_mode = p->aux_hdr.security_control.key_id_mode;
+    if(key_id_mode) {
+      c = (key_id_mode - 1) * 4;
+      memcpy(buf + pos, p->aux_hdr.key_source.u8, c);
+      pos += c;
+      buf[pos++] = p->aux_hdr.key_index;
+    }
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
   }
+#endif /* LLSEC802154_SECURITY_LEVEL */
 
   return (int)pos;
 }
@@ -254,6 +269,9 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
   uint8_t *p;
   frame802154_fcf_t fcf;
   int c;
+#if LLSEC802154_USES_EXPLICIT_KEYS
+  uint8_t key_id_mode;
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 
   if(len < 3) {
     return 0;
@@ -336,11 +354,30 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
     linkaddr_copy((linkaddr_t *)&(pf->src_addr), &linkaddr_null);
     pf->src_pid = 0;
   }
-
+  
+#if LLSEC802154_SECURITY_LEVEL
   if(fcf.security_enabled) {
-    /* TODO aux security header, not yet implemented */
-/*     return 0; */
+    pf->aux_hdr.security_control.security_level = p[0] & 7;
+#if LLSEC802154_USES_EXPLICIT_KEYS
+    pf->aux_hdr.security_control.key_id_mode = (p[0] >> 3) & 3;
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+    p += 1;
+    
+    memcpy(pf->aux_hdr.frame_counter.u8, p, 4);
+    p += 4;
+    
+#if LLSEC802154_USES_EXPLICIT_KEYS
+    key_id_mode = pf->aux_hdr.security_control.key_id_mode;
+    if(key_id_mode) {
+      c = (key_id_mode - 1) * 4;
+      memcpy(pf->aux_hdr.key_source.u8, p, c);
+      p += c;
+      pf->aux_hdr.key_index = p[0];
+      p += 1;
+    }
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
   }
+#endif /* LLSEC802154_SECURITY_LEVEL */
 
   /* header length */
   c = p - data;

@@ -87,8 +87,6 @@ typedef uint32_t rtimer_clock_t;
 
 #define RDC_CONF_HARDWARE_CSMA                  1
 
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
-
 #ifdef WITH_UIP6
 #define UIP_CONF_ROUTER                         1
 #ifndef UIP_CONF_IPV6_RPL

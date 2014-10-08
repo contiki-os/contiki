@@ -62,4 +62,5 @@ MODULES += \
         core/net/ipv6 \
 	core/net/rime \
 	core/net/mac \
-	core/net/mac/sicslowmac
+	core/net/mac/sicslowmac \
+	core/net/llsec

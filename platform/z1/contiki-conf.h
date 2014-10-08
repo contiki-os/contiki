@@ -51,7 +51,6 @@
    larger than a specified size, if no ContikiMAC header should be
    used. */
 #define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 63
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
 
 #define CC2420_CONF_AUTOACK              1
 #define NETSTACK_RDC_CHANNEL_CHECK_RATE  8
