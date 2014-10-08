@@ -117,10 +117,10 @@
 /** \name OpenMote-CC2538 Button configuration
  *
  * Buttons on the OpenMote-CC2538 are connected as follows:
- * - BUTTON_USER -> PA3
+ * - BUTTON_USER -> PC3
  * @{
  */
-/** BUTTON_USER -> PA3 */
+/** BUTTON_USER -> PC3 */
 #define BUTTON_USER_PORT       GPIO_C_NUM
 #define BUTTON_USER_PIN        3
 #define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_C

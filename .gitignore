@@ -16,6 +16,7 @@
 *.wismote
 *.esb
 *.avr-raven
+*.openmote
 *.exp5438
 *.mbxxx
 *.win32
