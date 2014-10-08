@@ -34,12 +34,12 @@ llwu_init()
 {
   list_init(llwu);
   /* Setup Low Leakage Wake-up Unit (LLWU) */
-  SIM->SCGC4 |= SIM_SCGC4_LLWU_MASK;   /* Enable LLWU clock gate */
+  BITBAND_REG(SIM->SCGC4, SIM_SCGC4_LLWU_SHIFT) = 1;   /* Enable LLWU clock gate */
 
   power_modes_init();
 
   update_llwu();
-  /** \todo Symbolic names for NVIC IRQ flags */
+
   NVIC_EnableIRQ(LLW_IRQn); /* Enable LLWU interrupt */
 }
 /*---------------------------------------------------------------------------*/
