@@ -205,8 +205,7 @@ main(void)
   netstack_init();
   
   antenna_init();
-  antenna_external();
-  printf("Using external antenna\n");
+  PRINTF(" Antenna: external\n");
 
 #if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
