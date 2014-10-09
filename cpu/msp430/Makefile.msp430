@@ -4,6 +4,8 @@ ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
 endif
 
+CFLAGS += -gstabs+
+
 .SUFFIXES:
 
 ### Define the CPU directory
