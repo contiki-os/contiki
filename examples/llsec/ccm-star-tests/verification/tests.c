@@ -41,7 +41,7 @@
 #include "net/packetbuf.h"
 #include "net/netstack.h"
 #include "net/llsec/llsec802154.h"
-#include "net/llsec/ccm.h"
+#include "net/llsec/ccm-star.h"
 #include "net/mac/frame802154.h"
 #include "lib/aes-128.h"
 #include <stdio.h>
@@ -113,7 +113,7 @@ test_sec_lvl_2()
   packetbuf_hdrreduce(18);
   
   AES_128.set_key(key);
-  CCM.mic(extended_source_address, mic, LLSEC802154_MIC_LENGTH);
+  CCM_STAR.mic(extended_source_address, mic, LLSEC802154_MIC_LENGTH);
   
   if(memcmp(mic, oracle, LLSEC802154_MIC_LENGTH) == 0) {
     printf("Success\n");
@@ -122,10 +122,10 @@ test_sec_lvl_2()
   }
 }
 /*---------------------------------------------------------------------------*/
-PROCESS(ccm_verification_tests_process, "CCM* verification tests process");
-AUTOSTART_PROCESSES(&ccm_verification_tests_process);
+PROCESS(ccm_star_tests_process, "CCM* tests process");
+AUTOSTART_PROCESSES(&ccm_star_tests_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(ccm_verification_tests_process, ev, data)
+PROCESS_THREAD(ccm_star_tests_process, ev, data)
 {
   PROCESS_BEGIN();
   
