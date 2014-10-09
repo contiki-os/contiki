@@ -32,6 +32,7 @@ CONTIKI_TARGET_SOURCEFILES += \
   synchronization.c \
   port.c \
   uart.c \
+  rtc.c \
   rtimer-arch.c \
   dbg-uart.c \
   clock.c \

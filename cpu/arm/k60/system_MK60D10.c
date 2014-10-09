@@ -42,6 +42,7 @@
 
 #include <stdint.h>
 #include "K60.h"
+#include "rtc.h"
 #include "config-clocks.h"
 
 uint32_t SystemCoreClock = DEFAULT_SYSTEM_CLOCK; /* Current core clock frequency*/
@@ -50,32 +51,16 @@ uint32_t SystemBusClock = DEFAULT_SYSTEM_CLOCK; /* Current bus clock frequency *
 uint32_t SystemFlexBusClock = DEFAULT_SYSTEM_CLOCK; /* Current FlexBus clock frequency */
 uint32_t SystemFlashClock = DEFAULT_SYSTEM_CLOCK; /* Current flash clock frequency */
 
-/* Initialize RTC oscillator
+/* Initialize RTC oscillator as early as possible since we are using it as a
+ * base clock for the FLL.
  * It takes a while to stabilize the oscillator, therefore we do this as soon as
  * possible during boot in order to let it stabilize while other stuff is
  * initializing. */
-void core_clocks_init_early(void)
-{
-  /* System clock initialization, early boot */
-
-  /* Enable clock gate for RTC module */
-  /* side note: It is ironic that we need to enable the clock gate for a clock module */
-  SIM->SCGC6 |= SIM_SCGC6_RTC_MASK;
-
-  /* Reset the RTC status */
-  RTC->SR = 0;
-
-  /* Enable RTC clock */
-  RTC->CR |= RTC_CR_OSCE_MASK | /* RTC_CR_CLKO_MASK | */
-    RTC_CR_SC8P_MASK | RTC_CR_SC4P_MASK; /* enable 12pF load capacitance, might need adjusting.. */
-}
-
 /*
- * Arrange so that the core_clocks_init_early() function is called during
- * early init.
+ * Arrange so that the rtc_init() function is called during early init.
  * Start up crystal to let it stabilize while we copy data */
 /* If the clock is not stable then the UART will have the wrong baud rate for debug prints */
-void __attribute__((section(".preinit_array"))) (*preinit_core_clocks_init_early[])(void) = {core_clocks_init_early};
+void __attribute__((section(".preinit_array"))) (*preinit_rtc_init[])(void) = {rtc_init};
 
 
 /* System clock initialization */

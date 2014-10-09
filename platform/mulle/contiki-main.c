@@ -20,6 +20,7 @@
 #include "K60.h"
 #include "dbg-uart.h"
 #include "random.h"
+#include "rtc.h"
 
 #define DEBUG 1
 #if DEBUG
@@ -76,6 +77,10 @@ main(void)
 
   /* Update SystemCoreClock global var */
   SystemCoreClockUpdate();
+
+  /* Set RTC time to 0 in order to start counting seconds. */
+  rtc_time_set(0);
+  rtc_start();
 
   dbg_uart_init();
 

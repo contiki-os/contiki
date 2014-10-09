@@ -128,4 +128,10 @@
  */
 #define BOARD_DEBUG_UART_RX_PIN_MUX 3
 
-#endif /* MULLE_CONFIG_BOARD_H_ */
+/**
+ * RTC crystal load capacitance configuration bits.
+ */
+/* enable 12pF load capacitance, might need adjusting.. */
+#define BOARD_RTC_LOAD_CAP_BITS (RTC_CR_SC8P_MASK | RTC_CR_SC4P_MASK)
+
+#endif /* !defined(MULLE_CONFIG_BOARD_H_) */
