@@ -39,7 +39,7 @@
  *
  */
 
-/**  \addtogroup raven
+/**  \addtogroup avr-atmega128rfa1
  * @{ 
  */
 
