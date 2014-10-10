@@ -80,6 +80,12 @@ struct hdr {
 
 /*---------------------------------------------------------------------------*/
 static int
+hdr_length(void)
+{
+  return DECORATED_FRAMER.length() + sizeof(struct hdr);
+}
+/*---------------------------------------------------------------------------*/
+static int
 create(void)
 {
   struct hdr *chdr;
@@ -172,6 +178,7 @@ parse(void)
 }
 /*---------------------------------------------------------------------------*/
 const struct framer contikimac_framer = {
+  hdr_length,
   create,
   create_and_secure,
   parse
