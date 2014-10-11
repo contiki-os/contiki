@@ -54,10 +54,15 @@
 #include "devopttab.h"
 #include "devicemap.h"
 #include "cfs.h"
+#include "synchronization.h"
 
 /* Empty environment definition */
 char *__env[1] = { 0 };
 char **environ = __env;
+
+/* Lock variable used to protect sbrk_r from clobbering the break variable when
+ * called simultaneously from more than one thread. */
+static volatile uint32_t sbrk_lock = 0;
 
 /* Align all sbrk arguments to this many bytes */
 #define DYNAMIC_MEMORY_ALIGN 4
@@ -440,8 +445,13 @@ static void* current_break = (void *)(&_heap_start);
  * Move the program break.
  *
  * This function can increase the size of the allocated memory.
+ *
+ * NEVER call this from ISRs (or anything that may call this function, e.g. malloc, free).
  */
 void* _sbrk_r(struct _reent *r, ptrdiff_t increment) {
+  void* ret;
+  /* Make sure we have exclusive access to the system break variable. */
+  lock_acquire(&sbrk_lock);
   /* Align memory increment to nearest DYNAMIC_MEMORY_ALIGN bytes upward */
   if (increment % DYNAMIC_MEMORY_ALIGN)
   {
@@ -449,13 +459,14 @@ void* _sbrk_r(struct _reent *r, ptrdiff_t increment) {
   }
   if ((current_break + increment) < ((void *)(&_heap_end)))
   {
-    void* ret = (void*)current_break;
+    ret = current_break;
     current_break += increment;
-    return ret;
   }
   else
   {
     r->_errno = ENOMEM;
-    return (void *)(-1);
+    ret = (void*)-1;
   }
+  lock_release(&sbrk_lock);
+  return ret;
 }
