@@ -54,7 +54,12 @@
 #elif K60_CPU_REV == 1
 
 /* K60 CPU silicon version 1.x */
+
 #include "MK60DZ10.h"
+
+/** The expected CPUID value, can be used to implement a check that we are
+ * running on the right hardware */
+#define K60_EXPECTED_CPUID 0x410fc240u
 
 /* Some compatibility defines to minimize the ifdefs needed for the register
  * name changes */
@@ -66,9 +71,7 @@
 #define MCG_C5_PRDIV0_MASK MCG_C5_PRDIV_MASK
 #define MCG_C6_VDIV0_MASK MCG_C6_VDIV_MASK
 
-/** The expected CPUID value, can be used to implement a check that we are
- * running on the right hardware */
-#define K60_EXPECTED_CPUID 0x410fc240u
+#define UART_BASES                               { UART0, UART1, UART2, UART3, UART4, UART5 }
 
 #else
 #error K60_CPU_REV must be set to the correct CPU revision!
