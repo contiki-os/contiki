@@ -142,8 +142,10 @@ _wait_r(struct _reent *r, int *status)
 /* File descriptor related syscalls */
 /* ******************************** */
 
+static int get_next_dev_fd(void);
+
 /** Internal helper for generating FDs */
-static int get_next_dev_fd() {
+static int get_next_dev_fd(void) {
   int fd;
   for (fd = 0; fd < MAX_OPEN_DEVICES; ++fd) {
     if (devoptab_list[fd] == NULL) {
