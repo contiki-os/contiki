@@ -123,7 +123,7 @@ endif
 LINKERSCRIPTPATH = $(CONTIKI_CPU)/ldscripts
 LINKERSCRIPT = $(CPU_PART).ld
 #AROPTS   = rv
-CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -Werror=implicit-function-declaration -fno-common -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -ffunction-sections -fdata-sections $(NEWLIB_INCLUDES)
+CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -Werror=implicit-function-declaration -fno-common -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -ffunction-sections -fdata-sections -fshort-enums $(NEWLIB_INCLUDES)
 LDFLAGS  += $(CFLAGS) -nostartfiles -Wl,-L$(LINKERSCRIPTPATH) -T $(LINKERSCRIPT) -Wl,-Map=$@.map -Wl,--gc-sections
 
 LD_START_GROUP ?= -Wl,--start-group
