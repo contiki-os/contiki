@@ -23,9 +23,9 @@ static char allow_deep_sleep = 1;
 
 static void update_llwu();
 
-volatile uint8_t llwu_inhibit_lls_sema = 0;
-volatile uint8_t llwu_inhibit_vlps_sema = 0;
-volatile uint8_t llwu_inhibit_stop_sema = 0;
+volatile uint32_t llwu_inhibit_lls_sema = 0;
+volatile uint32_t llwu_inhibit_vlps_sema = 0;
+volatile uint32_t llwu_inhibit_stop_sema = 0;
 
 /* TODO(henrik) Add callbacks before entering deep sleep. */
 /*---------------------------------------------------------------------------*/
@@ -114,6 +114,7 @@ llwu_enable_wakeup_module(const llwu_wakeup_module_t module)
     PRINTF("LLWU_ME 0x%02x\n", LLWU->ME);
   }
 }
+
 void
 llwu_disable_wakeup_module(const llwu_wakeup_module_t module)
 {
@@ -122,6 +123,7 @@ llwu_disable_wakeup_module(const llwu_wakeup_module_t module)
     PRINTF("LLWU_ME 0x%02x\n", LLWU->ME);
   }
 }
+
 void
 llwu_set_wakeup_pin(const llwu_wakeup_pin_t pin, const llwu_wakeup_edge_t edge)
 {
@@ -146,6 +148,7 @@ llwu_set_wakeup_pin(const llwu_wakeup_pin_t pin, const llwu_wakeup_edge_t edge)
   PRINTF("LLTU 3 0x%02x\n", LLWU->PE3);
   PRINTF("LLTU 4 0x%02x\n", LLWU->PE4);
 }
+
 void __attribute__((interrupt))
 _isr_llwu(void)
 {

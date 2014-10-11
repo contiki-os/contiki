@@ -9,10 +9,12 @@
 #define LLWU_H_
 
 #include <stdint.h>
+#include "K60.h"
+#include "synchronization.h"
 
-extern volatile uint8_t llwu_inhibit_lls_sema;
-extern volatile uint8_t llwu_inhibit_vlps_sema;
-extern volatile uint8_t llwu_inhibit_stop_sema;
+extern volatile uint32_t llwu_inhibit_lls_sema;
+extern volatile uint32_t llwu_inhibit_vlps_sema;
+extern volatile uint32_t llwu_inhibit_stop_sema;
 
 /** Internal modules whose interrupts are mapped to LLWU wake up sources.
  *
@@ -105,11 +107,16 @@ void llwu_enable_wakeup_module(const llwu_wakeup_module_t module);
 void llwu_disable_wakeup_module(const llwu_wakeup_module_t module);
 void llwu_set_wakeup_pin(const llwu_wakeup_pin_t pin, const llwu_wakeup_edge_t edge);
 
-#define LLWU_INHIBIT_STOP() (++llwu_inhibit_stop_sema)
-#define LLWU_INHIBIT_VLPS() (++llwu_inhibit_vlps_sema)
-#define LLWU_INHIBIT_LLS() (++llwu_inhibit_lls_sema)
-#define LLWU_UNINHIBIT_STOP() (--llwu_inhibit_stop_sema)
-#define LLWU_UNINHIBIT_VLPS() (--llwu_inhibit_vlps_sema)
-#define LLWU_UNINHIBIT_LLS() (--llwu_inhibit_lls_sema)
+/* We can not use a lock variable for the inhibit counters, because that can
+ * lead to deadlocks in ISRs, but we can use the exclusive load/store
+ * instructions (same as used for implementing thread safe locks) for the
+ * inhibit counters themselves to make sure we never lose an increment or
+ * decrement. */
+#define LLWU_INHIBIT_STOP() (exclusive_increment(&llwu_inhibit_lls_sema))
+#define LLWU_INHIBIT_VLPS() (exclusive_increment(&llwu_inhibit_vlps_sema))
+#define LLWU_INHIBIT_LLS() (exclusive_increment(&llwu_inhibit_lls_sema))
+#define LLWU_UNINHIBIT_STOP() (exclusive_decrement(&llwu_inhibit_stop_sema))
+#define LLWU_UNINHIBIT_VLPS() (exclusive_decrement(&llwu_inhibit_vlps_sema))
+#define LLWU_UNINHIBIT_LLS() (exclusive_decrement(&llwu_inhibit_lls_sema))
 
 #endif /* LLWU_H_ */
