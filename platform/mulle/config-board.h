@@ -49,8 +49,8 @@
  * CPU silicon revision (some registers are moved or added between revisions 1 and 2)
  */
 #if !defined(MULLE_BOARD_SERIAL_NUMBER)
-/* Default to revision 1 unless the serial number is specified in the build. */
-#define K60_CPU_REV 1
+/* Default to revision 2 unless the serial number is specified in the build. */
+#define K60_CPU_REV 2
 #elif defined(MULLE_BOARD_SERIAL_NUMBER) && \
   (MULLE_BOARD_SERIAL_NUMBER >= 200) && \
   (MULLE_BOARD_SERIAL_NUMBER <= 219)
