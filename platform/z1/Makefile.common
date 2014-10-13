@@ -65,8 +65,16 @@ ifeq ($(HOST_OS),Darwin)
       BSL = $(CONTIKI)/tools/z1/z1-bsl-nopic --z1
       BSL_FILETYPE = -I
       MOTES = $(shell $(MOTELIST) -c 2>&- | \
-         cut -f 2 -d ,)
-      CMOTES=$(MOTES) 
+              cut -f 2 -d ,)
+      CMOTES=$(MOTES)
+      REFNUM = $(shell $(MOTELIST) -c 2>&- | \
+               cut -f 1 -d , | tail -c5)
+      ifneq (,$(REFNUM))
+        # No device fo-und
+        ifeq (,$(findstring und, $(REFNUM)))
+          CFLAGS += -DSERIALNUM=$(REFNUM)
+        endif
+      endif
   endif
 else
   # If we are not running under Mac, we assume Linux
@@ -77,9 +85,17 @@ else
       BSL = $(CONTIKI)/tools/z1/z1-bsl-nopic --z1
       BSL_FILETYPE = -I
       MOTES = $(shell $(MOTELIST) -c 2>&- | \
-         cut -f 2 -d , | \
-         perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+              cut -f 2 -d , | \
+              perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
       CMOTES=$(MOTES)
+      REFNUM = $(shell $(MOTELIST) -c 2>&- | \
+               cut -f 1 -d , | tail -c5 )
+      ifneq (,$(REFNUM))
+        # No device fo-und
+        ifeq (,$(findstring und, $(REFNUM)))
+          CFLAGS += -DSERIALNUM=$(REFNUM)
+        endif
+      endif
     endif
 endif
 
