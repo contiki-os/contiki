@@ -68,10 +68,10 @@ static uint8_t uart5_txbuf_data[UART5_TXBUFSIZE];
 
 /* List of all UART devices in the MCU.
  * UART_BASES is an array initializer defined in MK60D10.h */
-static UART_Type * const UART[] = UART_BASES;
+static volatile UART_Type * const UART[] = UART_BASES;
 
-static void tx_irq_handler(const unsigned int uart_num, const uint8_t s1) {
-  UART_Type *uart_dev = UART[uart_num];
+static inline void tx_irq_handler(const unsigned int uart_num, const uint8_t s1) {
+  volatile UART_Type *uart_dev = UART[uart_num];
   if((s1 & UART_S1_TC_MASK) && (uart_dev->C2 & UART_C2_TCIE_MASK) && (transmitting[uart_num] != 0)) {
     /* transmission complete, allow STOP modes again */
     LLWU_UNINHIBIT_STOP();
@@ -96,8 +96,8 @@ static void tx_irq_handler(const unsigned int uart_num, const uint8_t s1) {
   }
 }
 
-static void rx_irq_handler(const unsigned int uart_num, const uint8_t s1) {
-  UART_Type *uart_dev = UART[uart_num];
+static inline void rx_irq_handler(const unsigned int uart_num, const uint8_t s1) {
+  volatile UART_Type *uart_dev = UART[uart_num];
   if((s1 & UART_S1_RDRF_MASK) && (rx_callback[uart_num] != NULL)) {
     (rx_callback[uart_num])(uart_dev->D);
   }
@@ -157,7 +157,7 @@ uart_module_enable(const unsigned int uart_num)
 void
 uart_init(const unsigned int uart_num, uint32_t module_clk_hz, const uint32_t baud)
 {
-  UART_Type *uart_dev = UART[uart_num];
+  volatile UART_Type *uart_dev = UART[uart_num];
   uint16_t sbr;
   uint16_t brfa;
   if (module_clk_hz == 0) {
@@ -253,7 +253,7 @@ uart_init(const unsigned int uart_num, uint32_t module_clk_hz, const uint32_t ba
 void
 uart_putchar(const unsigned int uart_num, const char ch)
 {
-  UART_Type *uart_dev = UART[uart_num];
+  volatile UART_Type *uart_dev = UART[uart_num];
   /* Try to push to ring buffer until it succeeds, ringbuf_put will return 0
    * when there is no space left. */
   while(ringbuf_put(&uart_txbuf[uart_num], ch) == 0);
@@ -290,7 +290,7 @@ void
 uart_enable_rx_interrupt(const unsigned int uart_num)
 {
   int tmp;
-  UART_Type *uart_dev = UART[uart_num];
+  volatile UART_Type *uart_dev = UART[uart_num];
   tmp = uart_dev->S1; /* Clr status 1 register */
   (void)tmp; /* Avoid compiler warnings [-Wunused-variable] */
   uart_dev->C2 |= UART_C2_RIE_MASK;
@@ -301,7 +301,7 @@ void
 uart_disable_rx_interrupt(const unsigned int uart_num)
 {
   int tmp;
-  UART_Type *uart_dev = UART[uart_num];
+  volatile UART_Type *uart_dev = UART[uart_num];
   tmp = uart_dev->S1; /* Clr status 1 register */
   (void)tmp; /* Avoid compiler warnings [-Wunused-variable] */
   uart_dev->C2 &= ~(UART_C2_RIE_MASK);
