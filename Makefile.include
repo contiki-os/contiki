@@ -35,6 +35,13 @@ ifndef HOST_OS
   endif
 endif
 
+#More debug information when running in CI
+ifdef CI
+  ifeq ($(CI),true)
+    V = 1
+  endif
+endif
+
 usage:
 	@echo "make MAKETARGETS... [TARGET=(TARGET)] [savetarget] [targets]"
 
