@@ -48,7 +48,6 @@
    larger than a specified size, if no ContikiMAC header should be
    used. */
 #define SICSLOWPAN_CONF_COMPRESSION_THRESHOLD 63
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
 
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
@@ -212,7 +211,9 @@
 
 #define UIP_CONF_TCP_SPLIT       0
 
-
+#ifndef AES_128_CONF
+#define AES_128_CONF cc2420_aes_128_driver
+#endif /* AES_128_CONF */
 
 /* include the project config */
 /* PROJECT_CONF_H might be defined in the project Makefile */

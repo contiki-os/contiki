@@ -229,7 +229,7 @@ int contiki_maca_read(void *buf, unsigned short bufsize) {
 		}
 #endif
 		PRINTF("\n\r");
-		free_packet(p);
+		maca_free_packet(p);
 		return bufsize;
 	} else {
 		return 0;

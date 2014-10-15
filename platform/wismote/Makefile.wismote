@@ -56,4 +56,5 @@ contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 
 MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 core/net/mac \
            core/net/rime core/net/mac/contikimac core/net/rpl \
+           core/net/llsec \
            dev/cc2520 dev/sht11

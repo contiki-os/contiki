@@ -11,4 +11,5 @@ endif
 
 MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 core/net/rpl \
            core/net/rime core/net/mac core/net/mac/contikimac \
+           core/net/llsec \
            dev/cc2420 dev/sht11
