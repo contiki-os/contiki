@@ -190,3 +190,4 @@ reset:
 
 MODULES+=core/net core/net/ip core/net/ipv4 core/net/ipv6 core/net/rime \
          core/net/mac core/net/rpl core/net/mac/contikimac core/net/mac/cxmac \
+         core/net/llsec
