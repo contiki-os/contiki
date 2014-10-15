@@ -47,6 +47,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define ONEWIRE_UART_BAUD_SLOW 9600
 #define ONEWIRE_UART_BAUD_FAST 115200
 
@@ -76,5 +80,9 @@ ow_rom_code_t ow_read_rom(void);
 void ow_skip_rom(void);
 void ow_match_rom(const ow_rom_code_t id);
 void ow_skip_or_match_rom(const ow_rom_code_t id);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif

@@ -38,5 +38,13 @@
  *         Joakim Gebart <joakim.gebart@eistec.se>
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void core_clocks_init_early(void);
 void core_clocks_init(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif

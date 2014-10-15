@@ -43,6 +43,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Initialize the RTC hardware
  */
@@ -72,5 +76,9 @@ uint32_t rtc_time_get(void);
  * Set alarm time
  */
 void rtc_alarm_set(uint32_t alarm_time);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* !defined(K60_RTC_H_) */

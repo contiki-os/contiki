@@ -39,11 +39,19 @@
 #ifndef DEVIO_NULL_H_
 #define DEVIO_NULL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int  devnull_open_r (struct _reent *r, const char *path, int flags, int mode);
 int  devnull_close_r(struct _reent *r, int fd);
 long devnull_write_r(struct _reent *r, int fd, const char *ptr, int len);
 long devnull_read_r (struct _reent *r, int fd, char *ptr, int len);
 long devnull_lseek_r(struct _reent *r, int fd, int ptr, int dir);
 long devnull_fstat_r(struct _reent *r, int fd, char *ptr, int len);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* !defined(DEVIO_NULL_H_) */

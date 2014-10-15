@@ -45,6 +45,10 @@
 #include "config-clocks.h"
 #include "sys/rtimer.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Use first timer unless told otherwise. */
 #ifdef RTIMER_ARCH_CONF_PIT_DEV
 #define RTIMER_ARCH_PIT_DEV RTIMER_ARCH_CONF_PIT_DEV
@@ -69,5 +73,9 @@
 void rtimer_arch_set(rtimer_clock_t t);
 
 rtimer_clock_t rtimer_arch_now(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* RTIMER_ARCH_H_ */

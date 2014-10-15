@@ -44,6 +44,10 @@
 
 #include "onewire.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define DS18B20_SCRATCHPAD_SIZE 9
 
 typedef enum {
@@ -58,5 +62,9 @@ typedef enum {
 void ds18b20_init(void);
 void ds18b20_convert_temperature(const ow_rom_code_t id);
 uint8_t ds18b20_read_scratchpad(const ow_rom_code_t id, uint8_t *dest);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* DS18B20_H_ */

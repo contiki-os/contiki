@@ -12,11 +12,11 @@
 #ifndef SYSTEM_MK60D10_H_
 #define SYSTEM_MK60D10_H_                        /**< Symbol preventing repeated inclusion */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
 
 /**
  * \brief Current core clock frequency
@@ -76,7 +76,7 @@ void SystemInit(void);
 void SystemCoreClockUpdate(void);
 
 #ifdef __cplusplus
-}
+} /* extern "C" */
 #endif
 
 #endif  /* #if !defined(SYSTEM_MK60D10_H_) */

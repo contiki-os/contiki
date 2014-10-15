@@ -42,6 +42,14 @@
 
 #include "uart.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void dbg_uart_init(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* CPU_ARM_K60_DBG_UART_H_ */

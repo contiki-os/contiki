@@ -7,6 +7,10 @@
 #include <unistd.h>
 #include <reent.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* From http://neptune.billgatliff.com/newlib.html
  * A simple "device operations" table, with function pointers for all the kinds
  * of activities you would expect a stream-like device to support.
@@ -22,5 +26,9 @@ typedef struct {
    long (*lseek_r )(struct _reent *r, int fd, int ptr, int dir);
    long (*fstat_r )(struct _reent *r, int fd, char *ptr, int len);
 } devoptab_t;
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif

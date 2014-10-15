@@ -42,6 +42,14 @@
 
 #include "K60.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void port_module_enable(PORT_Type *port);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* CPU_ARM_K60_PORT_H_ */

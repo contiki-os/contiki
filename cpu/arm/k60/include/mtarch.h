@@ -35,8 +35,16 @@
 #ifndef __MTARCH_H__
 #define __MTARCH_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct mtarch_thread {
   void *mt_thread;
 };
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __MTARCH_H__ */

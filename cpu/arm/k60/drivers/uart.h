@@ -11,6 +11,10 @@
 #include <stdint.h>
 #include "K60.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void uart_module_enable(const unsigned int uart_num);
 void uart_init(const unsigned int uart_num, uint32_t module_clk_hz, const uint32_t baud);
 void uart_putchar(const unsigned int uart_num, const char ch);
@@ -59,5 +63,9 @@ void uart_set_rx_callback(const unsigned int uart_num, int (*callback)(unsigned 
  * \todo Verify the UART1 fine-adjust calculations if F_SYS*32 > 2^32 <=> F_SYS > 2^27 (== 134217728)
  */
 #define UART_BRFA(f, b) ((((4 * (f)) / (b) + 1) / 2) % 32)
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* CPU_ARM_K60_UART_H_ */

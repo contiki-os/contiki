@@ -12,6 +12,10 @@
 #include "K60.h"
 #include "synchronization.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern volatile uint32_t llwu_inhibit_lls_sema;
 extern volatile uint32_t llwu_inhibit_vlps_sema;
 extern volatile uint32_t llwu_inhibit_stop_sema;
@@ -118,5 +122,9 @@ void llwu_set_wakeup_pin(const llwu_wakeup_pin_t pin, const llwu_wakeup_edge_t e
 #define LLWU_UNINHIBIT_STOP() (exclusive_decrement(&llwu_inhibit_stop_sema))
 #define LLWU_UNINHIBIT_VLPS() (exclusive_decrement(&llwu_inhibit_vlps_sema))
 #define LLWU_UNINHIBIT_LLS() (exclusive_decrement(&llwu_inhibit_lls_sema))
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* LLWU_H_ */

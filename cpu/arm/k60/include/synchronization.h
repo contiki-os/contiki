@@ -43,6 +43,10 @@
 #include <stdint.h>
 #include "core_cmInstr.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * See also:
  *  ARM Application Note 321: ARM Cortex-M Programming Guide to Memory Barrier Instructions
@@ -91,5 +95,9 @@ static inline void exclusive_decrement(volatile uint32_t* value) {
     status = __STREXW(tmp, value);
   } while (status != 0); /* retry until load-store cycle was exclusive. */
 }
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* !defined(CORTEX_M_SYNCHRONIZATION_H_) */

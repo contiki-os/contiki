@@ -42,6 +42,11 @@
 
 #include "config-board.h"
 
+#ifdef __cplusplus
+/* MK60D10.h or MK60DZ10.h will be included within extern "C", this is OK. */
+extern "C" {
+#endif
+
 #if K60_CPU_REV == 2
 
 /* K60 CPU silicon version 2.x */
@@ -102,5 +107,9 @@
 #define BREAK_WRONG_K60_CPU_REV 99
 /* Do not use 0xAB, it is reserved for ARM semihosting environment. */
 #define BREAK_SEMIHOSTING 0xAB
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* K60_H_ */

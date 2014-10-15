@@ -40,6 +40,10 @@
 #ifndef CPU_ARM_K60_POWER_MODES_H_
 #define CPU_ARM_K60_POWER_MODES_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** \todo Handle VLLSx modes */
 /** \todo Handle VLPR, VLPW modes */
 
@@ -55,5 +59,9 @@ void power_mode_lls(void);
 /* void power_mode_vlls1(void); */
 /* void power_mode_vlls2(void); */
 /* void power_mode_vlls3(void); */
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* CPU_ARM_K60_POWER_MODES_H_ */
