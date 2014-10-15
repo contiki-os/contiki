@@ -399,6 +399,14 @@ _isatty_r(struct _reent *r, int fd) {
   }
 }
 
+/* Compatibility define for newlib built without REENTRANT_SYSCALLS_PROVIDED */
+int
+_isatty(int fd)
+{
+  /* _REENT is an internal newlib macro, this may cause issues in some situations. */
+  return _isatty_r (_REENT, fd);
+}
+
 /* **************************** */
 /* File system related syscalls */
 /* **************************** */
