@@ -37,6 +37,8 @@
  * \author
  *         Joakim Gebart <joakim.gebart@eistec.se>
  */
+#ifndef K60_CORE_CLOCKS_H_
+#define K60_CORE_CLOCKS_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,3 +50,5 @@ void core_clocks_init(void);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
+
+#endif /* K60_CORE_CLOCKS_H_ */
