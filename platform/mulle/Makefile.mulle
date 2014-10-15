@@ -65,8 +65,32 @@ include $(CPU_DIR)/Makefile.$(CPU_NAME)
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 
 # OpenOCD settings for Mulle board.
+# Try to determine which version of the OpenOCD config file we should use.
+# Specify PROGRAMMER_VERSION or PROGRAMMER_SERIAL to choose a specific programmer board.
+ifeq ($(PROGRAMMER_VERSION),)
+  ifneq ($(PROGRAMMER_SERIAL),)
+    # Makefile-way of comparing numbers, using lexicographical sorting since we don't have any arithmetic comparisons.
+    # Programmers with serial 100 -- 148 are version 0.60
+    # Programmers with serial 301 -- 330 are version 0.70
+    ifeq "100" "$(word 1, $(sort 100 $(PROGRAMMER_SERIAL)))"
+      # >= 100
+      ifneq "149" "$(word 1, $(sort 149 $(PROGRAMMER_SERIAL)))"
+        # < 149
+        PROGRAMMER_VERSION = 0.60
+      else
+        # >= 149
+        PROGRAMMER_VERSION = 0.70
+      endif
+    endif
+  endif
+  # Default to version 0.60 programmer for now.
+  PROGRAMMER_VERSION ?= 0.60
+endif
 
-OOCD_BOARD_FLAGS ?= -f $(PLATFORM_DIR)/tools/openocd.conf
+OOCD_BOARD_FLAGS ?= -f '$(PLATFORM_DIR)/tools/openocd/mulle-programmer-$(PROGRAMMER_VERSION).conf'
+
+
+# Add serial matching command
 ifneq ($(PROGRAMMER_SERIAL),)
   OOCD_BOARD_FLAGS += -c 'ftdi_serial $(PROGRAMMER_SERIAL)'
 endif
