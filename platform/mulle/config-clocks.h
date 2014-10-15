@@ -40,6 +40,10 @@
 #ifndef MULLE_CONFIG_CLOCKS_H_
 #define MULLE_CONFIG_CLOCKS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Base clocks */
 #define CPU_XTAL_CLK_HZ                 8000000u /**< Value of the external crystal or oscillator clock frequency in Hz */
 #define CPU_XTAL32k_CLK_HZ              32768u   /**< Value of the external 32k crystal or oscillator clock frequency in Hz */
@@ -101,5 +105,9 @@
  * Flash frequency resulting from the chosen divisors and multipliers.
  */
 #define F_FLASH (F_CPU / (CONFIG_CLOCK_K60_FLASH_DIV + 1))
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* !defined(MULLE_CONFIG_CLOCKS_H_) */

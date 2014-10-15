@@ -42,9 +42,17 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void voltage_init();
 uint16_t voltage_from_raw_adc(uint16_t adc_raw);
 uint16_t voltage_read_vbat();
 uint16_t voltage_read_vchr();
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* MULLE_DEV_VOLTAGE_H_ */

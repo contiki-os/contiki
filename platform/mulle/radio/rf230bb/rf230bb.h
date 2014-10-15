@@ -61,6 +61,10 @@
 #include "at86rf230_registermap.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*============================ MACROS ========================================*/
 #define SUPPORTED_PART_NUMBER                   (2)
 #define RF230_REVA                              (1)
@@ -222,6 +226,10 @@ extern uint8_t rf230_last_correlation, rf230_last_rssi, rf230_smallest_rssi;
 uint8_t rf230_get_raw_rssi(void);
 
 #define rf230_rssi  rf230_get_raw_rssi
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif
 /** @} */

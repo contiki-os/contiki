@@ -6,6 +6,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum flash_id {
   FLASH_ID0 = 0x4,
 } flash_id_t;
@@ -58,5 +62,9 @@ flash_error_t flash_wakeup(const flash_id_t, const flash_flags_t);
 
 /* Indended for debugging purposes _ONLY_  -- Simon */
 flash_error_t flash_dump(const flash_id_t, void (*)(const uint8_t));
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif

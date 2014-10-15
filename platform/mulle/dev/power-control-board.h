@@ -44,6 +44,10 @@
 
 #include "K60.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Hardware dependent defines below.
  */
@@ -66,5 +70,9 @@
 #define POWER_CONTROL_VPERIPH_GPIO PTD
 #define POWER_CONTROL_VSEC_GPIO PTB
 #define POWER_CONTROL_AVDD_GPIO PTB
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif

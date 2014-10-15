@@ -12,6 +12,10 @@
 #include "dev/xmem.h"
 #include "xmem-arch.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Coffee configuration parameters. */
 #define COFFEE_PAGE_SIZE    XMEM_PAGE_SIZE
 #define COFFEE_SECTOR_SIZE              XMEM_SECTOR_SIZE
@@ -39,5 +43,9 @@
 
 /* Coffee types. */
 typedef int16_t coffee_page_t;
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* !COFFEE_ARCH_H */

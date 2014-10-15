@@ -44,9 +44,17 @@
 
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void power_control_init();
 void power_control_vperiph_set(bool state);
 void power_control_vsec_set(bool state);
 void power_control_avdd_set(bool state);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif

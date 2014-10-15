@@ -43,6 +43,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * The WHO_AM_I register should contain this value in order to correctly
  * identify the chip.
@@ -501,5 +505,9 @@ void lis3dh_memcpy_from_device(const lis3dh_reg_addr_t start_address,
 void lis3dh_memcpy_to_device(const lis3dh_reg_addr_t start_address,
                              const uint8_t *buffer, uint8_t count);
 void lis3dh_arch_init();
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* LIS3DH_H_ */

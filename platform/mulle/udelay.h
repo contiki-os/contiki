@@ -9,7 +9,16 @@
 #define __UDELAY_H__
 
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void udelay_init(void);
 void udelay(uint16_t us);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif

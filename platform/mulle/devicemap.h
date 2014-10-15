@@ -41,6 +41,10 @@
 
 #include "devopttab.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Maximum number of file descriptors allocated to hardware devices. All fd's
  * above this number will be remapped to CFS accesses. */
 #define MAX_OPEN_DEVICES 16 /* Arbitrarily chosen */
@@ -65,5 +69,9 @@ typedef struct {
 extern const devoptab_name_list_t devoptab_name_list;
 
 void devicemap_init(void);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* !defined(DEVICEMAP_H_) */

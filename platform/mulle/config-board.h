@@ -42,6 +42,10 @@
 
 #include "adc.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Disable hardware watchdog, for debugging purposes, don't use this on production builds. */
 #define DISABLE_WDOG    1
 
@@ -151,5 +155,9 @@
  */
 /* enable 12pF load capacitance, might need adjusting.. */
 #define BOARD_RTC_LOAD_CAP_BITS (RTC_CR_SC8P_MASK | RTC_CR_SC4P_MASK)
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* !defined(MULLE_CONFIG_BOARD_H_) */

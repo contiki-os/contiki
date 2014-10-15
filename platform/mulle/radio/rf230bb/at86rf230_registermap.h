@@ -46,6 +46,10 @@
 #ifndef PHY230_REGISTERMAP_EXTERNAL_H
 #define PHY230_REGISTERMAP_EXTERNAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define HAVE_REGISTER_MAP (1)
 /** Offset for register TRX_STATUS */
 #define RG_TRX_STATUS                    (0x01)
@@ -352,4 +356,9 @@
 #define SR_I_AM_COORD                0x2e, 0x08, 3
 /** Access parameters for sub-register CSMA_SEED_1 in register @ref RG_CSMA_SEED_1 */
 #define SR_CSMA_SEED_1               0x2e, 0x07, 0
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
 #endif /* PHY230_REGISTERMAP_EXTERNAL_H */

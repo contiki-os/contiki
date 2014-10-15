@@ -41,7 +41,15 @@
 #ifndef __INIT_NET_H__
 #define __INIT_NET_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void init_net(void);
 unsigned char *init_net_get_addr();
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 #endif /* __INIT_NET_H__ */

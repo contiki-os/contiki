@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define CCIF
 #define CLIF
 
@@ -186,5 +190,9 @@ typedef uint64_t rtimer_clock_t;
 
 /* Tell Contiki that we are not using PETSCII (retarded default) */
 #define WITH_ASCII 1
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __CONTIKI_CONF_H__ */

@@ -63,6 +63,10 @@
 #include "contiki-conf.h"
 #include "interrupt.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*============================ MACROS ========================================*/
 
 /**
@@ -186,6 +190,10 @@ void hal_sram_write(uint8_t address, uint8_t length, uint8_t *data);
 /* Number of receive buffers in RAM. */
 #ifndef RF230_CONF_RX_BUFFERS
 #define RF230_CONF_RX_BUFFERS 1
+#endif
+
+#ifdef __cplusplus
+} /* extern "C" */
 #endif
 
 #endif
