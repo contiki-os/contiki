@@ -30,8 +30,8 @@ TESTS=$(wildcard ??-*.csc)
 TESTLOGS=$(patsubst %.csc,%.testlog,$(TESTS))
 LOGS=$(patsubst %.csc,%.log,$(TESTS))
 FAILLOGS=$(patsubst %.csc,%.faillog,$(TESTS))
-#Set random seed to create reproduceable results.
-RANDOMSEED=1
+#Set random seeds to create reproduceable results.
+RANDOMSEED=1 5
 
 CONTIKI=../..
 
@@ -57,7 +57,7 @@ RUNALL=false
 endif
 
 %.testlog: %.csc cooja	
-	@$(CONTIKI)/regression-tests/simexec.sh "$(RUNALL)" "$<" "$(CONTIKI)" "$(basename $@)" "$(RANDOMSEED)"
+	@$(CONTIKI)/regression-tests/simexec.sh "$(RUNALL)" "$<" "$(CONTIKI)" "$(basename $@)" $(RANDOMSEED)
 
 clean:
 	@rm -f $(TESTLOGS) $(LOGS) $(FAILLOGS) COOJA.log COOJA.testlog \
