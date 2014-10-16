@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, Jelmer Tiete.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -12,8 +12,8 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission. 
- * 
+ *    written permission.
+ *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -25,9 +25,9 @@
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * This file is part of the Contiki operating system.
- * 
+ *
  */
 
 /**
@@ -38,12 +38,10 @@
  *         Jelmer Tiete, VUB <jelmer@tiete.be>
  */
 
-
 #include <stdio.h>
 #include "contiki.h"
 #include "tlc59116.h"
 #include "i2cmaster.h"
-
 
 /*---------------------------------------------------------------------------*/
 /* Write to a register.
@@ -72,21 +70,20 @@ tlc59116_write_reg(uint8_t reg, uint8_t val)
  *    data      pointer to where the data is written from
  *
  * First byte in stream must be the register address to begin writing to.
- * The data is then written from second byte and increasing. 
+ * The data is then written from second byte and increasing.
  */
 
 void
-tlc59116_write_stream(uint8_t len, uint8_t * data)
+tlc59116_write_stream(uint8_t len, uint8_t *data)
 {
   i2c_transmitinit(TLC59116_ADDR);
   while(i2c_busy());
   PRINTFDEBUG("I2C Ready to TX(stream)\n");
 
-  i2c_transmit_n(len, data);    // start tx and send conf reg
+  i2c_transmit_n(len, data);    /* start tx and send conf reg */
   while(i2c_busy());
   PRINTFDEBUG("WRITE_STR %u B to 0x%02X\n", len, data[0]);
 }
-
 /*---------------------------------------------------------------------------*/
 /* Read one register.
  *  args:
@@ -116,7 +113,6 @@ tlc59116_read_reg(uint8_t reg)
 
   return retVal;
 }
-
 /*---------------------------------------------------------------------------*/
 /* Read several registers in a stream.
  *  args:
@@ -126,7 +122,7 @@ tlc59116_read_reg(uint8_t reg)
  */
 
 void
-tlc59116_read_stream(uint8_t reg, uint8_t len, uint8_t * whereto)
+tlc59116_read_stream(uint8_t reg, uint8_t len, uint8_t *whereto)
 {
   uint8_t rtx = reg;
 
@@ -144,7 +140,6 @@ tlc59116_read_stream(uint8_t reg, uint8_t len, uint8_t * whereto)
   i2c_receive_n(len, whereto);
   while(i2c_busy());
 }
-
 /*---------------------------------------------------------------------------*/
 /* Set pwm value for individual led. Make sure PWM mode is enabled.
  *  args:
@@ -155,13 +150,12 @@ tlc59116_read_stream(uint8_t reg, uint8_t len, uint8_t * whereto)
 void
 tlc59116_led(uint8_t led, uint8_t pwm)
 {
-  if(led < 0 | led > 15) {
+  if((led < 0) || (led > 15)) {
     PRINTFDEBUG("TLC59116: wrong led value.");
   } else {
     tlc59116_write_reg(led + TLC59116_PWM0, pwm);
   }
 }
-
 /*---------------------------------------------------------------------------*/
 /* Init the led driver: ports, pins, registers, interrupts (none enabled), I2C,
  * default threshold values etc.
@@ -180,8 +174,8 @@ tlc59116_init(void)
   /*Set all PWM values to 0x00 (off) */
   /*This would maybe be better with a SWRST */
   uint8_t tx_buf[] =
-    { TLC59116_PWM0_AUTOINCR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-  tlc59116_write_stream(17, &tx_buf);
+  { TLC59116_PWM0_AUTOINCR, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+  tlc59116_write_stream(17, tx_buf);
 
   /* set all leds to PWM control */
   tlc59116_write_reg(TLC59116_LEDOUT0, TLC59116_LEDOUT_PWM);
