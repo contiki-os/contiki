@@ -71,7 +71,8 @@ power_modes_init(void)
   SMC->PMPROT |= SMC_PMPROT_ALLS_MASK | SMC_PMPROT_AVLP_MASK;
 #endif /* K60_CPU_REV == 1 */
 }
-static void
+
+static inline void
 wait(void)
 {
   /* Clear the SLEEPDEEP bit to make sure we go into WAIT (sleep) mode instead
@@ -80,17 +81,19 @@ wait(void)
   SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
 
   /* WFI instruction will start entry into WAIT mode */
-  asm("WFI");
+  __WFI();
 }
-static void
+
+static inline void
 stop(void)
 {
   /* Set the SLEEPDEEP bit to enable deep sleep mode (STOP) */
   SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
   /* WFI instruction will start entry into STOP mode */
-  asm("WFI");
+  __WFI();
 }
+
 void
 power_mode_wait(void)
 {
