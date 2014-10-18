@@ -10,6 +10,7 @@
 #include "sys/clock.h"
 #include "sys/etimer.h"
 #include "K60.h"
+#include "power-modes.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -49,21 +50,36 @@ clock_set_seconds(unsigned long sec)
 {
   current_seconds = sec;
 }
+
+#if 0
 /*
- * Delay the CPU.
+ * (Deprecated) Delay the CPU.
  */
 void
 clock_delay(unsigned int delay)
 {
 }
+#endif /* 0 */
 
+/* clock_wait is untested and is not currently needed by any Mulle code.
+ * Remove this #if 0 when a use case arises. */
+#if 0
 /*
  * Delay the CPU for a number of clock ticks.
  */
 void
 clock_wait(clock_time_t delay)
 {
+  clock_time_t target = clock_time() + delay;
+  while (target > clock_time())
+  {
+    /* Wait for event (timer interrupt or anything else) */
+    /* Make sure that we do not enter STOP mode since then any peripherals
+     * currently in use may halt, e.g. UART and SPI buses. */
+    power_mode_wait(); /* power_mode_wait clears the DEEPSLEEP bit before executing WFI/WFE. */
+  }
 }
+#endif /* 0 */
 
 /*
  * Initialize the clock module.
