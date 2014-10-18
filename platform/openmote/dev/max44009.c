@@ -1,15 +1,52 @@
-/**
- * \file
- *         Device drivers for MAX44009 light sensor in OpenMote-CC2538.
- * \author
- *         Pere Tuset, OpenMote <peretuset@openmote.com>
+/*
+ * Copyright (c) 2014, OpenMote Technologies, S.L.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
  */
 
+/**
+ * \addtogroup platform
+ * @{
+ *
+ * \defgroup openmote
+ * 
+ * \file
+ * Driver for the MAX44009 light sensor in OpenMote-CC2538.
+ *
+ * \author
+ * Pere Tuset <peretuset@openmote.com>
+ */
+
+/*---------------------------------------------------------------------------*/
 #include "i2c.h"
 #include "max44009.h"
-
-//=========================== define ==========================================
-
+/*---------------------------------------------------------------------------*/
 /* ADDRESS AND NOT_FOUND VALUE */
 #define MAX44009_ADDRESS                    ( 0x4A )
 #define MAX44009_NOT_FOUND                  ( 0x00 )
@@ -51,15 +88,10 @@
                                               MAX44009_CONFIG_AUTO | \
                                               MAX44009_CONFIG_CDR_NORMAL | \
                                               MAX44009_CONFIG_INTEGRATION_100ms )
-
-//=========================== variables =======================================
-
-
-//=========================== prototypes ======================================
-
-
-//=========================== public ==========================================
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 void max44009_init(void)
 {
     uint8_t max44009_address[5] = {MAX44009_INT_ENABLE_ADDR, MAX44009_CONFIG_ADDR, \
@@ -82,7 +114,10 @@ void max44009_init(void)
         i2c_write_bytes(MAX44009_ADDRESS, max44009_data, 2);
     }
 }
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 void max44009_reset(void)
 {
     uint8_t max44009_address[5] = {MAX44009_INT_ENABLE_ADDR, MAX44009_CONFIG_ADDR, \
@@ -99,7 +134,10 @@ void max44009_reset(void)
         i2c_write_bytes(MAX44009_ADDRESS, max44009_data, 2);
     }
 }
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 uint8_t max44009_is_present(void)
 {
     uint8_t is_present;
@@ -109,7 +147,10 @@ uint8_t max44009_is_present(void)
 
     return (is_present != MAX44009_NOT_FOUND);
 }
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 uint16_t max44009_read_light(void)
 {
     uint8_t exponent, mantissa;
@@ -128,7 +169,10 @@ uint16_t max44009_read_light(void)
     
     return result;
 }
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 float max44009_convert_light(uint16_t lux)
 {
     uint8_t exponent, mantissa;
@@ -141,7 +185,5 @@ float max44009_convert_light(uint16_t lux)
     
     return result;
 }
-
-//=========================== private =========================================
-
-
+/*---------------------------------------------------------------------------*/
+/** @} */

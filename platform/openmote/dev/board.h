@@ -28,27 +28,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** \addtogroup openmote-cc2538
+
+/**
+ * \addtogroup platform
  * @{
  *
- * \defgroup openmote-cc2538 Peripherals
- *
- * Defines related to the OpenMote-CC2538
- *
- * This file provides connectivity information on LEDs, Buttons, UART and
- * other peripherals
- * @{
- *
+ * \defgroup openmote
+ * 
  * \file
  * Header file with definitions related to the I/O connections on the
- * OpenMote
+ * OpenMote-CC2538 platform. This file provides connectivity information on
+ * LEDs, Buttons, UART and other peripherals.
  *
- * \note   Do not include this file directly. It gets included by contiki-conf
- *         after all relevant directives have been set.
+ * \note
+ * Do not include this file directly. It gets included by contiki-conf
+ * after all relevant directives have been set.
  */
+
 #ifndef BOARD_H_
 #define BOARD_H_
-
+/*---------------------------------------------------------------------------*/
 #include "dev/gpio.h"
 #include "dev/nvic.h"
 /*---------------------------------------------------------------------------*/
@@ -150,10 +149,6 @@
  */
 #define BOARD_STRING "OpenMote-CC2538"
 /** @} */
-
+/*---------------------------------------------------------------------------*/
 #endif /* BOARD_H_ */
-
-/**
- * @}
- * @}
- */
+/** @} */

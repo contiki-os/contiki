@@ -1,15 +1,52 @@
-/**
- * \file
- *         Device drivers for ADXL346 acceleration sensor in OpenMote-CC2538.
- * \author
- *         Pere Tuset, OpenMote <peretuset@openmote.com>
+/*
+ * Copyright (c) 2014, OpenMote Technologies, S.L.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
  */
 
+/**
+ * \addtogroup platform
+ * @{
+ *
+ * \defgroup openmote
+ * 
+ * \file
+ * Driver for the ADXL346 acceleration sensor in OpenMote-CC2538.
+ *
+ * \author
+ * Pere Tuset <peretuset@openmote.com>
+ */
+
+/*---------------------------------------------------------------------------*/
 #include "i2c.h"
 #include "adxl346.h"
-
-//=========================== define ==========================================
-
+/*---------------------------------------------------------------------------*/
 /* ADDRESS AND IDENTIFIER */
 #define ADXL346_ADDRESS                     ( 0x53 )
 #define ADXL346_DEVID_VALUE                 ( 0xE6 )
@@ -106,15 +143,10 @@
 #define ADXL346_DATA_FORMAT_RANGE_PM_4g     ( 1 )
 #define ADXL346_DATA_FORMAT_RANGE_PM_8g     ( 2 )
 #define ADXL346_DATA_FORMAT_RANGE_PM_16g    ( 3 )
-
-//=========================== variables =======================================
-
-
-//=========================== prototypes ======================================
-
-
-//=========================== public ==========================================
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 void adx346_init(void)
 {
     uint8_t config[2];
@@ -133,11 +165,17 @@ void adx346_init(void)
     config[1] = (ADXL346_POWER_CTL_MEASURE);
     i2c_write_bytes(ADXL346_ADDRESS, config, sizeof(config));
 }
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 void adx346_reset(void)
 {
 }
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 uint8_t adx346_is_present(void)
 {
     uint8_t is_present;
@@ -147,7 +185,10 @@ uint8_t adx346_is_present(void)
 
     return (is_present == ADXL346_DEVID_VALUE);
 }
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 uint16_t adx346_read_x(void)
 {
     uint8_t acceleration[2];
@@ -162,7 +203,10 @@ uint16_t adx346_read_x(void)
 
     return x;
 }
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 uint16_t adx346_read_y(void)
 {
     uint8_t acceleration[2];
@@ -177,7 +221,10 @@ uint16_t adx346_read_y(void)
     
     return y;
 }
-
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
 uint16_t adx346_read_z(void)
 {
     uint8_t acceleration[2];
@@ -192,6 +239,5 @@ uint16_t adx346_read_z(void)
     
     return z;
 }
-
-//=========================== private =========================================
-
+/*---------------------------------------------------------------------------*/
+/** @} */

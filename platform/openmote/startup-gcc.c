@@ -29,13 +29,18 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /**
- * \addtogroup openmote-cc2538
+ * \addtogroup platform
  * @{
  *
+ * \defgroup openmote
+ * 
  * \file
- * Startup code for the OpenMote-CC2538 platform, to be used when building with gcc
+ * Startup code for the OpenMote-CC2538 platform, to be used when building with gcc.
  */
+
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "reg.h"
 #include "flash-cca.h"
@@ -338,5 +343,4 @@ reset_handler(void)
   while(1);
 }
 /*---------------------------------------------------------------------------*/
-
 /** @} */

@@ -28,27 +28,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /**
- * \addtogroup openmote-cc2538
+ * \addtogroup platform
  * @{
  *
- * \defgroup openmote-cc2538-sensors OpenMote-CC2538 Sensors
- *
- * Generic module controlling sensors on the OpenMote-CC2538
- * @{
+ * \defgroup openmote
  *
  * \file
- * Implementation of a generic module controlling OpenMote-CC2538 sensors
+ * Implementation of a generic module controlling OpenMote-CC2538 sensors.
  */
+
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "dev/button-sensor.h"
 
 #include <string.h>
-
-/** \brief Exports a global symbol to be used by the sensor API */
-SENSORS(&button_user_sensor);
-
+/*---------------------------------------------------------------------------*/
 /**
- * @}
- * @}
+ *\brief Exports a global symbol to be used by the sensor API
  */
+SENSORS(&button_user_sensor);
+/*---------------------------------------------------------------------------*/
+/** @} */

@@ -28,15 +28,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /**
- * \addtogroup openmote-cc2538
+ * \addtogroup platform
  * @{
  *
- * \defgroup openmote-cc2538-button-sensor OpenMote-CC2538 Button Driver
- *
+ * \defgroup openmote
+ * 
  * \file
  * Driver for the OpenMote-CC2538 buttons
+ *
  */
+ 
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "dev/nvic.h"
 #include "dev/ioc.h"
@@ -46,10 +50,9 @@
 
 #include <stdint.h>
 #include <string.h>
-
+/*---------------------------------------------------------------------------*/
 #define BUTTON_USER_PORT_BASE  GPIO_PORT_TO_BASE(BUTTON_USER_PORT)
 #define BUTTON_USER_PIN_MASK   GPIO_PIN_MASK(BUTTON_USER_PIN)
-
 /*---------------------------------------------------------------------------*/
 static struct timer debouncetimer;
 /*---------------------------------------------------------------------------*/
@@ -130,5 +133,5 @@ button_sensor_init()
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(button_user_sensor, BUTTON_SENSOR, NULL, config_user, NULL);
-
+/*---------------------------------------------------------------------------*/
 /** @} */

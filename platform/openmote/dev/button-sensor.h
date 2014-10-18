@@ -28,26 +28,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /**
- * \addtogroup openmote-cc2538
+ * \addtogroup platform
  * @{
  *
- * \defgroup openmote-cc2538-button-sensor OpenMote-CC2538 Button Driver
- *
- * Driver for the OpenMote-CC2538 buttons
- * @{
- *
+ * \defgroup openmote
+ * 
  * \file
- * Header file for the OpenMote-CC2538 Button Driver
+ * Header for the OpenMote-CC2538 buttons
+ *
  */
+
 #ifndef BUTTON_SENSOR_H_
 #define BUTTON_SENSOR_H_
-
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "dev/gpio.h"
-
+/*---------------------------------------------------------------------------*/
 #define BUTTON_SENSOR "Button"
-
+/*---------------------------------------------------------------------------*/
 #define button_sensor button_user_sensor
 extern const struct sensors_sensor button_user_sensor;
 /*---------------------------------------------------------------------------*/
@@ -55,8 +55,5 @@ extern const struct sensors_sensor button_user_sensor;
 
 /** \brief Common initialiser for all SmartRF Buttons */
 void button_sensor_init();
-
-/**
- * @}
- * @}
- */
+/*---------------------------------------------------------------------------*/
+/** @} */

@@ -28,25 +28,25 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+ 
 /**
- * \addtogroup openmote-cc2538
+ * \addtogroup platform
  * @{
  *
- * \defgroup openmote-cc2538-leds OpenMote-CC2538 LED driver
- *
- * LED driver implementation for the OpenMote-CC2538
- * @{
- *
+ * \defgroup openmote
+ * 
  * \file
- * LED driver implementation for the OpenMote-CC2538
+ * Driver for the OpenMote-CC2538 LEDs
+ *
  */
+
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "reg.h"
 #include "dev/leds.h"
 #include "dev/gpio.h"
-
+/*---------------------------------------------------------------------------*/
 #define LEDS_GPIO_PIN_MASK   LEDS_ALL
-
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_init(void)
@@ -66,8 +66,4 @@ leds_arch_set(unsigned char leds)
   GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, leds);
 }
 /*---------------------------------------------------------------------------*/
-
-/**
- * @}
- * @}
- */
+/** @} */

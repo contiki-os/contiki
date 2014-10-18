@@ -1,10 +1,13 @@
 /**
- * \addtogroup openmote
+ * \addtogroup platform
  * @{
  *
+ * \defgroup openmote
+ * 
  * \file
- *  Configuration for the OpenMote-CC2538 platform
+ * Configuration for the OpenMote-CC2538 platform.
  */
+
 #ifndef CONTIKI_CONF_H_
 #define CONTIKI_CONF_H_
 

@@ -29,11 +29,22 @@
  *
  */
 
+/**
+ * \addtogroup platform
+ * @{
+ *
+ * \defgroup openmote
+ * 
+ * \file
+ * Header for the antenna selection on the OpenMote-CC2538 platform.
+ */
+
 #ifndef ANTENNA_H_
 #define ANTENNA_H_
-
+/*---------------------------------------------------------------------------*/
 void antenna_init(void);
 void antenna_internal(void);
 void antenna_external(void);
-
+/*---------------------------------------------------------------------------*/
 #endif /* ANTENNA_H_ */
+/** @} */

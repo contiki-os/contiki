@@ -28,19 +28,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /**
  * \addtogroup platform
  * @{
  *
- * \defgroup cc2538 The OpenMote-CC2538 platform
- *
+ * \defgroup openmote
  * The OpenMote-CC2538 is based on the CC2538, the new platform by Texas Instruments
- *  based on an ARM Cortex-M3 core and a IEEE 802.15.4 radio.
- * @{
+ * based on an ARM Cortex-M3 core and a IEEE 802.15.4 radio.
  *
  * \file
- *   Main module for the OpenMote-CC2538 platform
+ * Main module for the OpenMote-CC2538 platform
  */
+
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "dev/leds.h"
@@ -237,8 +237,4 @@ main(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-
-/**
- * @}
- * @}
- */
+/** @} */
