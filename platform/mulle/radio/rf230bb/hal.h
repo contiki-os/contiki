@@ -82,7 +82,7 @@ extern "C" {
 #define hal_set_slptr_low()  (BITBAND_REG(SLPTR_GPIO->PCOR, SLPTR_PIN) = 1) /**< This macro pulls the SLP_TR pin low. */
 #define hal_get_slptr()      (BITBAND_REG(SLPTR_GPIO->PDOR, SLPTR_PIN))    /**< Read current state of the SLP_TR pin (High/Low). */
 /* rst and pwr is the same */
-#define hal_set_rst_high()   PTD->PSOR = (1 << 7); udelay(0xFFFF)          /**< This macro pulls the RST pin high. */
+#define hal_set_rst_high()   PTD->PSOR = (1 << 7); delay_us(0xFFFF)          /**< This macro pulls the RST pin high. */
 #define hal_set_rst_low()    (PTD->PCOR = (1 << 7))           /**< This macro pulls the RST pin low. */
 #define hal_get_rst()        ((PTD->PDOR & (1 << 7)) >> 7)    /**< Read current state of the RST pin (High/Low). */
 #define hal_set_pwr_high()   (PTD->PSOR = (1 << 7))           /**< This macro pulls the RST pin high. */
