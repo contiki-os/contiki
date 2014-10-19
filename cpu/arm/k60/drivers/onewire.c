@@ -51,7 +51,6 @@
 #include "onewire.h"
 #include "onewire-crc-table.h"
 #include "interrupt.h"
-#include "udelay.h"
 #include "K60.h"
 #include "uart.h"
 #include "config-clocks.h"
