@@ -76,11 +76,79 @@ extern "C" {
 #define MCG_C5_PRDIV0_MASK MCG_C5_PRDIV_MASK
 #define MCG_C6_VDIV0_MASK MCG_C6_VDIV_MASK
 
+/* The base array initializers are missing from the older MK60DZ10.h header. */
+/* Copy and paste from MK60D10.h: */
+#define ADC_BASES                                { ADC0, ADC1 }
+#define AIPS_BASES                               { AIPS0, AIPS1 }
+#define AXBS_BASES                               { AXBS }
+#define CAN_BASES                                { CAN0, CAN1 }
+#define CAU_BASES                                { CAU }
+#define CMP_BASES                                { CMP0, CMP1, CMP2 }
+#define CMT_BASES                                { CMT }
+#define CRC_BASES                                { CRC0 }
+#define DAC_BASES                                { DAC0, DAC1 }
+#define DMA_BASES                                { DMA0 }
+#define DMAMUX_BASES                             { DMAMUX }
+#define ENET_BASES                               { ENET }
+#define EWM_BASES                                { EWM }
+#define FB_BASES                                 { FB }
+#define FMC_BASES                                { FMC }
+#define FTFL_BASES                               { FTFL }
+#define FTM_BASES                                { FTM0, FTM1, FTM2 }
+#define GPIO_BASES                               { PTA, PTB, PTC, PTD, PTE }
+#define I2C_BASES                                { I2C0, I2C1 }
+#define I2S_BASES                                { I2S0 }
+#define LLWU_BASES                               { LLWU }
+#define LPTMR_BASES                              { LPTMR0 }
+#define MCG_BASES                                { MCG }
+#define MCM_BASES                                { MCM }
+#define MPU_BASES                                { MPU }
+#define NV_BASES                                 { FTFL_FlashConfig }
+#define OSC_BASES                                { OSC }
+#define PDB_BASES                                { PDB0 }
+#define PIT_BASES                                { PIT }
+#define PMC_BASES                                { PMC }
+#define PORT_BASES                               { PORTA, PORTB, PORTC, PORTD, PORTE }
+/* No RCM in MK60DZ10.h */
+/* #define RCM_BASES                                { RCM } */
+#define RFSYS_BASES                              { RFSYS }
+#define RFVBAT_BASES                             { RFVBAT }
+#define RNG_BASES                                { RNG }
+#define RTC_BASES                                { RTC }
+#define SDHC_BASES                               { SDHC }
+#define SIM_BASES                                { SIM }
+/* MC->SMC in rev.1 to rev.2 conversion */
+#define MC_BASES                                 { MC }
+#define SPI_BASES                                { SPI0, SPI1, SPI2 }
+#define TSI_BASES                                { TSI0 }
 #define UART_BASES                               { UART0, UART1, UART2, UART3, UART4, UART5 }
+#define USB_BASES                                { USB0 }
+#define USBDCD_BASES                             { USBDCD }
+#define VREF_BASES                               { VREF }
+#define WDOG_BASES                               { WDOG }
 
 #else
 #error K60_CPU_REV must be set to the correct CPU revision!
 #endif
+
+extern ADC_Type * const ADC[];
+extern AIPS_Type * const AIPS[];
+extern CAN_Type * const CAN[];
+extern CMP_Type * const CMP[];
+extern CRC_Type * const CRC[];
+extern DAC_Type * const DAC[];
+extern DMA_Type * const DMA[];
+extern FTM_Type * const FTM[];
+extern GPIO_Type * const GPIO[]; /* 0 = A, 1 = B ... */
+extern I2C_Type * const I2C[];
+extern I2S_Type * const I2S[];
+extern LPTMR_Type * const LPTMR[];
+extern PDB_Type * const PDB[];
+extern PORT_Type * const PORT[]; /* 0 = A, 1 = B ... */
+extern SPI_Type * const SPI[];
+extern TSI_Type * const TSI[];
+extern UART_Type * const UART[];
+extern USB_Type * const USB[];
 
 #define K60_RUNNING_CPU_REVISION (SCB_CPUID & SCB_CPUID_REVISION_MASK)
 

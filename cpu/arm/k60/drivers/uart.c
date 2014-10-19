@@ -66,10 +66,6 @@ static uint8_t uart4_txbuf_data[UART4_TXBUFSIZE];
 static uint8_t uart5_txbuf_data[UART5_TXBUFSIZE];
 #endif
 
-/* List of all UART devices in the MCU.
- * UART_BASES is an array initializer defined in MK60D10.h */
-static volatile UART_Type * const UART[] = UART_BASES;
-
 static inline void tx_irq_handler(const unsigned int uart_num, const uint8_t s1) {
   volatile UART_Type *uart_dev = UART[uart_num];
   if((s1 & UART_S1_TC_MASK) && (uart_dev->C2 & UART_C2_TCIE_MASK) && (transmitting[uart_num] != 0)) {

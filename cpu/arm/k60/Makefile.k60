@@ -30,6 +30,7 @@ CONTIKI_CPU_DIRS = . drivers
 
 CONTIKI_TARGET_SOURCEFILES += \
   synchronization.c \
+  basevectors.c \
   devio-null.c \
   devio-uart.c \
   port.c \

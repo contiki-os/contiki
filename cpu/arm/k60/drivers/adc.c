@@ -40,8 +40,6 @@
 #include "adc.h"
 #include "K60.h"
 
-static ADC_Type * const ADC[] = ADC_BASES;
-
 adc_error_t
 adc_calibrate(adc_number_t adc_num)
 {
