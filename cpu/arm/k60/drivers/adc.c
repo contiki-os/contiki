@@ -40,32 +40,13 @@
 #include "adc.h"
 #include "K60.h"
 
-static inline ADC_Type *
-adc_num_to_ptr(adc_number_t adc_num)
-{
-  switch(adc_num) {
-  case 0:
-    return ADC0;
-    break;
-  case 1:
-    return ADC1;
-    break;
-  default:
-    return 0;
-    break;
-  }
-}
+static ADC_Type * const ADC[] = ADC_BASES;
 
 adc_error_t
 adc_calibrate(adc_number_t adc_num)
 {
   uint16_t cal;
-  ADC_Type *ADC_ptr;
-
-  ADC_ptr = adc_num_to_ptr(adc_num);
-  if(!ADC_ptr) {
-    return ADC_INVALID_PARAM;
-  }
+  ADC_Type *ADC_ptr = ADC[adc_num];
 
   ADC_ptr->SC3 |= ADC_SC3_CAL_MASK;
   while(ADC_ptr->SC3 & ADC_SC3_CAL_MASK); /* wait for calibration to finish */
@@ -107,12 +88,8 @@ adc_calibrate(adc_number_t adc_num)
 uint16_t
 adc_read_raw(adc_number_t adc_num, adc_channel_t adc_channel)
 {
-  ADC_Type *ADC_ptr;
+  ADC_Type *ADC_ptr = ADC[adc_num];
 
-  ADC_ptr = adc_num_to_ptr(adc_num);
-  if(!ADC_ptr) {
-    return ADC_INVALID_PARAM;
-  }
   ADC_ptr->SC1[0] = ADC_SC1_ADCH((uint8_t)adc_channel); /* Select the correct channel and initiate a conversion */
 
   /* Wait for the conversion to finish */
