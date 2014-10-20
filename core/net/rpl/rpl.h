@@ -114,7 +114,6 @@ struct rpl_parent {
   rpl_metric_container_t mc;
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   rpl_rank_t rank;
-  uint16_t link_metric;
   uint8_t dtsn;
   uint8_t flags;
 };
@@ -251,7 +250,7 @@ rpl_parent_t *rpl_get_parent(uip_lladdr_t *addr);
 rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
 uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
-
+uip_ds6_nbr_t *rpl_get_nbr(rpl_parent_t *parent);
 
 /**
  * RPL modes
