@@ -1187,7 +1187,7 @@ public class RadioLogger extends VisPlugin {
     return sb.toString();
   }
 
-  public void saveConnectionsToFile(String fileName) {
+    public void saveConnectionsToFile(String fileName) {
     StringUtils.saveToFile(new File(fileName), getConnectionsString());
   }
 

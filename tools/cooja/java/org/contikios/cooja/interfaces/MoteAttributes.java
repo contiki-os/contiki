@@ -87,7 +87,7 @@ public class MoteAttributes extends MoteInterface {
     public void update(Observable o, Object arg) {
       String msg = ((Log) o).getLastLogMessage();
       handleNewLog(msg);
-    };
+    }
   };
   
   public MoteAttributes(Mote mote) {
