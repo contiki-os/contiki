@@ -43,35 +43,33 @@
 #include <stdio.h>
 #include "i2cmaster.h"
 
-/* -------------------------------------------------------------------------- */
-/* Init the light ziglet sensor: ports, pins, I2C, interrupts (XXX none so far),
-*/
+/* Init the light ziglet sensor: ports, pins, I2C, interrupts */
 void  light_ziglet_init(void);
 
 /* Write to a register.
     args:
       reg       register to write to
       val       value to write
-*/
+ */
 void   tsl2563_write_reg(uint8_t reg, uint16_t val);
 
 /* Read one register.
     args:
       reg       what register to read
     returns the value of the read register
-*/
+ */
 uint16_t tsl2563_read_reg(uint8_t reg);
 
-/* Takes a single light reading 
+/* Takes a single light reading
    args: none
    returns a lux value
-*/
+ */
 uint16_t light_ziglet_read();
 
 /* Calculates the lux values from the calibration table
    args: raw values from sensor
    returns a lux value
-*/
+ */
 uint16_t calculateLux(uint16_t *readRaw);
 
 /* Turns the light ziglet ON and polls the sensor for a light reading */
@@ -85,7 +83,7 @@ uint16_t light_ziglet_on(void);
 
 /* Registers */
 #define TSL2563_READ 0xAC
-#define TSL2563_PWRN 0x03 
+#define TSL2563_PWRN 0x03
 
 /* Calibration settings */
 #define K1T 0X0040
@@ -122,6 +120,4 @@ uint16_t light_ziglet_on(void);
 
 /* -------------------------------------------------------------------------- */
 #endif /* ifndef LIGHT_ZIGLET_H_ */
-
-
 
