@@ -33,6 +33,7 @@
 /**
  * \file
  *         Device drivers for light ziglet sensor in Zolertia Z1.
+ *         It is recommended to use with a 100KHz data rate
  * \author
  *         Antonio Lignan, Zolertia <alinan@zolertia.com>
  *         Marcus Lundén, SICS <mlunden@sics.se>
@@ -48,8 +49,6 @@
 #else
 #define PRINTFDEBUG(...)
 #endif
-
-#warning LIGHT SENSOR ZIGLET IS CURRENTLY BROKEN
 
 /* Bitmasks and bit flag variable for keeping track of tmp102 status. */
 enum TSL2563_STATUSTYPES {
@@ -171,7 +170,7 @@ tsl2563_read_reg(uint8_t reg)
   /* Receive the data */
   i2c_receiveinit(TSL2563_ADDR);
   while(i2c_busy());
-  i2c_receive_n(4, &buf[0]);
+  i2c_receive_n(4, buf);
   while(i2c_busy());
 
   PRINTFDEBUG("\nb0 %u, b1 %u, b2 %u, b3 %u\n", buf[0], buf[1], buf[2], buf[3]);
@@ -179,25 +178,18 @@ tsl2563_read_reg(uint8_t reg)
   readBuf[0] = (buf[1] << 8 | (buf[0]));
   readBuf[1] = (buf[3] << 8 | (buf[2]));
 
-  /* XXX Quick hack, was receiving dups bytes */
-
-  if(readBuf[0] == readBuf[1]) {
-    tsl2563_read_reg(TSL2563_READ);
-    return 0x00;
-  } else {
-    retVal = calculateLux(readBuf);
-    return retVal;
-  }
+  retVal = calculateLux(readBuf);
+  return retVal;
 }
 uint16_t
 light_ziglet_on(void)
 {
   uint16_t data;
-  uint8_t regon[] = { 0x00, TSL2563_PWRN };
+  uint8_t regon = TSL2563_PWRN;
   /* Turn on the sensor */
   i2c_transmitinit(TSL2563_ADDR);
   while(i2c_busy());
-  i2c_transmit_n(2, regon);
+  i2c_transmit_n(1, &regon);
   while(i2c_busy());
   data = (uint16_t)tsl2563_read_reg(TSL2563_READ);
   return data;

@@ -50,12 +50,11 @@
 
 /* CPU target speed in Hz */
 #define F_CPU 8000000uL /* 8MHz by default */
-//Enric #define F_CPU 3900000uL /*2457600uL*/
 
 /* Our clock resolution, this is the same as Unix HZ. */
 #define CLOCK_CONF_SECOND 128UL
 
-#define BAUD2UBR(baud) ((F_CPU/baud))
+#define BAUD2UBR(baud) ((F_CPU / baud))
 
 #define CCIF
 #define CLIF
@@ -67,21 +66,21 @@
 #ifdef __IAR_SYSTEMS_ICC__
 #ifndef P1SEL2_
 #define P1SEL2_              (0x0041u)  /* Port 1 Selection 2*/
-DEFC(   P1SEL2             , P1SEL2_)
+DEFC(P1SEL2, P1SEL2_)
 #endif
 #ifndef P5SEL2_
 #define P5SEL2_              (0x0045u)  /* Port 5 Selection 2*/
-DEFC(   P5SEL2             , P5SEL2_)
+DEFC(P5SEL2, P5SEL2_)
 #endif
 #else /* __IAR_SYSTEMS_ICC__ */
 #ifdef __GNUC__
 #ifndef P1SEL2_
-  #define P1SEL2_             0x0041  /* Port 1 Selection 2*/
-  sfrb(P1SEL2, P1SEL2_);
+#define P1SEL2_             0x0041    /* Port 1 Selection 2*/
+sfrb(P1SEL2, P1SEL2_);
 #endif
 #ifndef P5SEL2_
-  #define P5SEL2_             0x0045  /* Port 5 Selection 2*/
-  sfrb(P5SEL2, P5SEL2_);
+#define P5SEL2_             0x0045    /* Port 5 Selection 2*/
+sfrb(P5SEL2, P5SEL2_);
 #endif
 #endif /* __GNUC__ */
 #endif /* __IAR_SYSTEMS_ICC__ */
@@ -112,15 +111,14 @@ typedef unsigned long off_t;
 #define LEDS_CONF_RED    0x10
 #define LEDS_CONF_GREEN  0x40
 #define LEDS_CONF_YELLOW 0x20
-#endif // Z1_IS_Z1SP
+#endif /* Z1_IS_Z1SP */
 
 /* DCO speed resynchronization for more robust UART, etc. */
 #define DCOSYNCH_CONF_ENABLED 0
 #define DCOSYNCH_CONF_PERIOD 30
 
 #define ROM_ERASE_UNIT_SIZE  512
-#define XMEM_ERASE_UNIT_SIZE (64*1024L)
-
+#define XMEM_ERASE_UNIT_SIZE (64 * 1024L)
 
 #define CFS_CONF_OFFSET_TYPE    long
 
@@ -136,19 +134,19 @@ typedef unsigned long off_t;
 #define CFS_RAM_CONF_SIZE 4096
 
 /*
- * SPI bus configuration for the TMote Sky.
+ * SPI bus configuration for the Z1 mote.
  */
 
 /* SPI input/output registers. */
 #define SPI_TXBUF UCB0TXBUF
 #define SPI_RXBUF UCB0RXBUF
 
-				/* USART0 Tx ready? */
-#define	SPI_WAITFOREOTx() while ((UCB0STAT & UCBUSY) != 0)
-				/* USART0 Rx ready? */
-#define	SPI_WAITFOREORx() while ((IFG2 & UCB0RXIFG) == 0)
-				/* USART0 Tx buffer ready? */
-#define SPI_WAITFORTxREADY() while ((IFG2 & UCB0TXIFG) == 0)
+/* USART0 Tx ready? */
+#define SPI_WAITFOREOTx() while((UCB0STAT & UCBUSY) != 0)
+/* USART0 Rx ready? */
+#define SPI_WAITFOREORx() while((IFG2 & UCB0RXIFG) == 0)
+/* USART0 Tx buffer ready? */
+#define SPI_WAITFORTxREADY() while((IFG2 & UCB0TXIFG) == 0)
 
 #define MOSI           1  /* P3.1 - Output: SPI Master out - slave in (MOSI) */
 #define MISO           2  /* P3.2 - Input:  SPI Master in - slave out (MISO) */
@@ -157,24 +155,23 @@ typedef unsigned long off_t;
 /*
  * SPI bus - M25P80 external flash configuration.
  */
-//#define FLASH_PWR	3	/* P4.3 Output */ ALWAYS POWERED ON Z1
-#define FLASH_CS	4	/* P4.4 Output */
-#define FLASH_HOLD	7	/* P5.7 Output */
+/* FLASH_PWR P4.3 Output ALWAYS POWERED ON Z1 */
+#define FLASH_CS  4 /* P4.4 Output */
+#define FLASH_HOLD  7 /* P5.7 Output */
 
 /* Enable/disable flash access to the SPI bus (active low). */
 
-#define SPI_FLASH_ENABLE()  ( P4OUT &= ~BV(FLASH_CS) )
-#define SPI_FLASH_DISABLE() ( P4OUT |=  BV(FLASH_CS) )
+#define SPI_FLASH_ENABLE()  (P4OUT &= ~BV(FLASH_CS))
+#define SPI_FLASH_DISABLE() (P4OUT |= BV(FLASH_CS))
 
-#define SPI_FLASH_HOLD()		( P5OUT &= ~BV(FLASH_HOLD) )
-#define SPI_FLASH_UNHOLD()		( P5OUT |=  BV(FLASH_HOLD) )
-
+#define SPI_FLASH_HOLD()    (P5OUT &= ~BV(FLASH_HOLD))
+#define SPI_FLASH_UNHOLD()    (P5OUT |= BV(FLASH_HOLD))
 
 /*
  * SPI bus - CC2420 pin configuration.
  */
 
-#define CC2420_CONF_SYMBOL_LOOP_COUNT 1302	/* 326us msp430X @ 8MHz */
+#define CC2420_CONF_SYMBOL_LOOP_COUNT 1302  /* 326us msp430X @ 8MHz */
 
 /* P1.2 - Input: FIFOP from CC2420 */
 #define CC2420_FIFOP_PORT(type)   P1##type
@@ -188,7 +185,7 @@ typedef unsigned long off_t;
 /* P4.1 - Input:  SFD from CC2420 */
 #define CC2420_SFD_PORT(type)      P4##type
 #define CC2420_SFD_PIN             1
- /* P3.0 - Output: SPI Chip Select (CS_N) */
+/* P3.0 - Output: SPI Chip Select (CS_N) */
 #define CC2420_CSN_PORT(type)      P3##type
 #define CC2420_CSN_PIN             0
 /* P4.5 - Output: VREG_EN to CC2420 */
@@ -197,7 +194,6 @@ typedef unsigned long off_t;
 /* P4.6 - Output: RESET_N to CC2420 */
 #define CC2420_RESET_PORT(type)    P4##type
 #define CC2420_RESET_PIN           6
-
 
 #define CC2420_IRQ_VECTOR PORT1_VECTOR
 
@@ -208,33 +204,69 @@ typedef unsigned long off_t;
 #define CC2420_SFD_IS_1   (!!(CC2420_SFD_PORT(IN) & BV(CC2420_SFD_PIN)))
 
 /* The CC2420 reset pin. */
-#define SET_RESET_INACTIVE()   (CC2420_RESET_PORT(OUT) |=  BV(CC2420_RESET_PIN))
+#define SET_RESET_INACTIVE()   (CC2420_RESET_PORT(OUT) |= BV(CC2420_RESET_PIN))
 #define SET_RESET_ACTIVE()     (CC2420_RESET_PORT(OUT) &= ~BV(CC2420_RESET_PIN))
 
 /* CC2420 voltage regulator enable pin. */
-#define SET_VREG_ACTIVE()       (CC2420_VREG_PORT(OUT) |=  BV(CC2420_VREG_PIN))
+#define SET_VREG_ACTIVE()       (CC2420_VREG_PORT(OUT) |= BV(CC2420_VREG_PIN))
 #define SET_VREG_INACTIVE()     (CC2420_VREG_PORT(OUT) &= ~BV(CC2420_VREG_PIN))
 
 /* CC2420 rising edge trigger for external interrupt 0 (FIFOP). */
-#define CC2420_FIFOP_INT_INIT() do {                  \
-    CC2420_FIFOP_PORT(IES) &= ~BV(CC2420_FIFOP_PIN);  \
-    CC2420_CLEAR_FIFOP_INT();                         \
-  } while(0)
+#define CC2420_FIFOP_INT_INIT() do { \
+    CC2420_FIFOP_PORT(IES) &= ~BV(CC2420_FIFOP_PIN); \
+    CC2420_CLEAR_FIFOP_INT(); \
+} while(0)
 
 /* FIFOP on external interrupt 0. */
-#define CC2420_ENABLE_FIFOP_INT()  do {CC2420_FIFOP_PORT(IE) |= BV(CC2420_FIFOP_PIN);} while(0)
-#define CC2420_DISABLE_FIFOP_INT() do {CC2420_FIFOP_PORT(IE) &= ~BV(CC2420_FIFOP_PIN);} while(0)
-#define CC2420_CLEAR_FIFOP_INT()   do {CC2420_FIFOP_PORT(IFG) &= ~BV(CC2420_FIFOP_PIN);} while(0)
+#define CC2420_ENABLE_FIFOP_INT()  do { CC2420_FIFOP_PORT(IE) |= BV(CC2420_FIFOP_PIN); } while(0)
+#define CC2420_DISABLE_FIFOP_INT() do { CC2420_FIFOP_PORT(IE) &= ~BV(CC2420_FIFOP_PIN); } while(0)
+#define CC2420_CLEAR_FIFOP_INT()   do { CC2420_FIFOP_PORT(IFG) &= ~BV(CC2420_FIFOP_PIN); } while(0)
 
 /*
  * Enables/disables CC2420 access to the SPI bus (not the bus).
  * (Chip Select)
  */
 
- /* ENABLE CSn (active low) */
+/* ENABLE CSn (active low) */
 #define CC2420_SPI_ENABLE()     (CC2420_CSN_PORT(OUT) &= ~BV(CC2420_CSN_PIN))
- /* DISABLE CSn (active low) */
-#define CC2420_SPI_DISABLE()    (CC2420_CSN_PORT(OUT) |=  BV(CC2420_CSN_PIN))
+/* DISABLE CSn (active low) */
+#define CC2420_SPI_DISABLE()    (CC2420_CSN_PORT(OUT) |= BV(CC2420_CSN_PIN))
 #define CC2420_SPI_IS_ENABLED() ((CC2420_CSN_PORT(OUT) & BV(CC2420_CSN_PIN)) != BV(CC2420_CSN_PIN))
+
+/*
+ * I2C configuration
+ */
+
+#define I2C_PxDIR   P5DIR
+#define I2C_PxIN    P5IN
+#define I2C_PxOUT   P5OUT
+#define I2C_PxSEL   P5SEL
+#define I2C_PxSEL2  P5SEL2
+#define I2C_PxREN   P5REN
+
+#define I2C_SDA       (1 << 1)    /* SDA == P5.1 */
+#define I2C_SCL       (1 << 2)    /* SCL == P5.2 */
+#define I2C_PRESC_1KHZ_LSB      0x00
+#define I2C_PRESC_1KHZ_MSB      0x20
+#define I2C_PRESC_100KHZ_LSB    0x50
+#define I2C_PRESC_100KHZ_MSB    0x00
+#define I2C_PRESC_400KHZ_LSB    0x14
+#define I2C_PRESC_400KHZ_MSB    0x00
+
+/* Set rate as high as possible by default */
+#ifndef I2C_PRESC_Z1_LSB
+#define I2C_PRESC_Z1_LSB I2C_PRESC_400KHZ_LSB
+#endif
+
+#ifndef I2C_PRESC_Z1_MSB
+#define I2C_PRESC_Z1_MSB I2C_PRESC_400KHZ_MSB
+#endif
+
+/* I2C configuration with RX interrupts */
+#ifdef I2C_CONF_RX_WITH_INTERRUPT
+#define I2C_RX_WITH_INTERRUPT I2C_CONF_RX_WITH_INTERRUPT
+#else /* I2C_CONF_RX_WITH_INTERRUPT */
+#define I2C_RX_WITH_INTERRUPT 1
+#endif /* I2C_CONF_RX_WITH_INTERRUPT */
 
 #endif /* PLATFORM_CONF_H_ */
