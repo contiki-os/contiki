@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h> 
+#include <stdarg.h>
 
 #include "contiki.h"
 #include "cc2420.h"
@@ -80,9 +80,9 @@ static struct timer mgt_timer;
 #include "net/uip-fw-drv.h"
 #include "net/ipv4/uip-over-mesh.h"
 static struct uip_fw_netif slipif =
-  {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+{ UIP_FW_NETIF(192, 168, 1, 2, 255, 255, 255, 255, slip_send) };
 static struct uip_fw_netif meshif =
-  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
+{ UIP_FW_NETIF(172, 16, 0, 0, 255, 255, 0, 0, uip_over_mesh_send) };
 
 #endif /* WITH_UIP */
 
@@ -119,7 +119,11 @@ force_float_inclusion()
 }
 #endif
 /*---------------------------------------------------------------------------*/
-void uip_log(char *msg) { puts(msg); }
+void
+uip_log(char *msg)
+{
+  puts(msg);
+}
 /*---------------------------------------------------------------------------*/
 #if 0
 void
@@ -157,7 +161,7 @@ set_rime_addr(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-print_processes(struct process * const processes[])
+print_processes(struct process *const processes[])
 {
   /*  const struct process * const * p = processes;*/
   printf("Starting");
@@ -175,9 +179,9 @@ set_gateway(void)
   if(!is_gateway) {
     leds_on(LEDS_RED);
     printf("%d.%d: making myself the IP network gateway.\n\n",
-	   linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
+           linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
     printf("IPv4 address of the gateway: %d.%d.%d.%d\n\n",
-	   uip_ipaddr_to_quad(&uip_hostaddr));
+           uip_ipaddr_to_quad(&uip_hostaddr));
     uip_over_mesh_set_gateway(&linkaddr_node_addr);
     uip_over_mesh_make_announced_gateway();
     is_gateway = 1;
@@ -213,9 +217,16 @@ main(int argc, char **argv)
   /* Restore node id if such has been stored in external mem */
   node_id_restore();
 
-  /* If no MAC address was burned, we use the node ID. */
+  /* If no MAC address was burned, we use the node id or the Z1 product ID */
   if(!(node_mac[0] | node_mac[1] | node_mac[2] | node_mac[3] |
        node_mac[4] | node_mac[5] | node_mac[6] | node_mac[7])) {
+
+#ifdef SERIALNUM
+    if(!node_id) {
+      PRINTF("Node id is not set, using Z1 product ID\n");
+      node_id = SERIALNUM;
+    }
+#endif
     node_mac[0] = 0xc1;  /* Hardcoded for Z1 */
     node_mac[1] = 0x0c;  /* Hardcoded for Revision C */
     node_mac[2] = 0x00;  /* Hardcoded to arbitrary even number so that
@@ -231,7 +242,7 @@ main(int argc, char **argv)
 
   /* Overwrite node MAC if desired at compile time */
 #ifdef MACID
-  #warning "***** CHANGING DEFAULT MAC *****"
+#warning "***** CHANGING DEFAULT MAC *****"
   node_mac[0] = 0xc1;  /* Hardcoded for Z1 */
   node_mac[1] = 0x0c;  /* Hardcoded for Revision C */
   node_mac[2] = 0x00;  /* Hardcoded to arbitrary even number so that
@@ -254,7 +265,7 @@ main(int argc, char **argv)
   }
 #endif /* IEEE_802154_MAC_ADDRESS */
 
-   /*
+  /*
    * Initialize Contiki and our processes.
    */
   process_init();
@@ -262,7 +273,7 @@ main(int argc, char **argv)
 
   ctimer_init();
 
-  init_platform(); 
+  init_platform();
 
   set_rime_addr();
 
@@ -272,7 +283,7 @@ main(int argc, char **argv)
   {
     uint8_t longaddr[8];
     uint16_t shortaddr;
-    
+
     shortaddr = (linkaddr_node_addr.u8[0] << 8) +
       linkaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
@@ -280,20 +291,22 @@ main(int argc, char **argv)
     printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
            longaddr[0], longaddr[1], longaddr[2], longaddr[3],
            longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
-    
+
     cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
   }
 
   leds_off(LEDS_ALL);
 
+#ifdef SERIALNUM
+  PRINTF("Ref ID: %u\n", SERIALNUM);
+#endif
   PRINTF(CONTIKI_VERSION_STRING " started. ");
 
-  if(node_id > 0) {
+  if(node_id) {
     PRINTF("Node id is set to %u.\n", node_id);
   } else {
-    PRINTF("Node id is not set.\n");
+    PRINTF("Node id not set\n");
   }
-
 
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
@@ -310,7 +323,7 @@ main(int argc, char **argv)
 
   printf("%s %s, channel check rate %lu Hz, radio channel %u\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
-         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1 :
                          NETSTACK_RDC.channel_check_interval()),
          CC2420_CONF_CHANNEL);
 
@@ -327,7 +340,7 @@ main(int argc, char **argv)
     }
     printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
-  
+
   if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
@@ -351,7 +364,7 @@ main(int argc, char **argv)
 
   printf("%s %s, channel check rate %lu Hz, radio channel %u\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
-         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0? 1:
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1 :
                          NETSTACK_RDC.channel_check_interval()),
          CC2420_CONF_CHANNEL);
 #endif /* WITH_UIP6 */
@@ -370,7 +383,7 @@ main(int argc, char **argv)
 
 #if WITH_UIP
   process_start(&tcpip_process, NULL);
-  process_start(&uip_fw_process, NULL);	/* Start IP output */
+  process_start(&uip_fw_process, NULL); /* Start IP output */
   process_start(&slip_process, NULL);
 
   slip_set_input_callback(set_gateway);
@@ -380,9 +393,9 @@ main(int argc, char **argv)
 
     uip_init();
 
-    uip_ipaddr(&hostaddr, 172,16,
-	       linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
-    uip_ipaddr(&netmask, 255,255,0,0);
+    uip_ipaddr(&hostaddr, 172, 16,
+               linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
+    uip_ipaddr(&netmask, 255, 255, 0, 0);
     uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
 
     uip_sethostaddr(&hostaddr);
@@ -393,7 +406,7 @@ main(int argc, char **argv)
     uip_fw_default(&meshif);
     uip_over_mesh_init(UIP_OVER_MESH_CHANNEL);
     printf("uIP started with IP address %d.%d.%d.%d\n",
-	   uip_ipaddr_to_quad(&hostaddr));
+           uip_ipaddr_to_quad(&hostaddr));
   }
 #endif /* WITH_UIP */
 
@@ -422,18 +435,18 @@ main(int argc, char **argv)
     /*
      * Idle processing.
      */
-    int s = splhigh();		/* Disable interrupts. */
+    int s = splhigh();    /* Disable interrupts. */
     /* uart0_active is for avoiding LPM3 when still sending or receiving */
     if(process_nevents() != 0 || uart0_active()) {
-      splx(s);			/* Re-enable interrupts. */
+      splx(s);      /* Re-enable interrupts. */
     } else {
       static unsigned long irq_energest = 0;
 
 #if DCOSYNCH_CONF_ENABLED
       /* before going down to sleep possibly do some management */
-      if (timer_expired(&mgt_timer)) {
-	timer_reset(&mgt_timer);
-	msp430_sync_dco();
+      if(timer_expired(&mgt_timer)) {
+        timer_reset(&mgt_timer);
+        msp430_sync_dco();
       }
 #endif
 
@@ -441,19 +454,19 @@ main(int argc, char **argv)
       ENERGEST_OFF(ENERGEST_TYPE_CPU);
       ENERGEST_ON(ENERGEST_TYPE_LPM);
       /* We only want to measure the processing done in IRQs when we
-	 are asleep, so we discard the processing time done when we
-	 were awake. */
+         are asleep, so we discard the processing time done when we
+         were awake. */
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
       _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
-					      statement will block
-					      until the CPU is
-					      woken up by an
-					      interrupt that sets
-					      the wake up flag. */
+                                              statement will block
+                                              until the CPU is
+                                              woken up by an
+                                              interrupt that sets
+                                              the wake up flag. */
 
       /* We get the current processing time for interrupts that was
-	 done during the LPM and store it for next time around.  */
+         done during the LPM and store it for next time around.  */
       dint();
       irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
       eint();
