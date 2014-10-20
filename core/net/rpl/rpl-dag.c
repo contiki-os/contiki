@@ -47,6 +47,7 @@
 #include "net/rpl/rpl-private.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-ds6-nbr.h"
 #include "net/nbr-table.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "lib/list.h"
@@ -79,7 +80,22 @@ NBR_TABLE(rpl_parent_t, rpl_parents);
 /* Allocate instance table. */
 rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 rpl_instance_t *default_instance;
+
 /*---------------------------------------------------------------------------*/
+uip_ds6_nbr_t *
+rpl_get_nbr(rpl_parent_t *parent) {
+  linkaddr_t *lladdr = NULL;
+  lladdr = nbr_table_get_lladdr(rpl_parents, parent);
+  if(lladdr != NULL) {
+    return nbr_table_get_from_lladdr(ds6_neighbors, lladdr);
+  } else {
+    /* do nothing... can not update ETX Since there is no nbr struct */
+    return NULL;
+  }
+}
+
+/*---------------------------------------------------------------------------*/
+
 static void
 nbr_callback(void *ptr)
 {
@@ -113,9 +129,11 @@ rpl_get_parent_rank(uip_lladdr_t *addr)
 uint16_t
 rpl_get_parent_link_metric(const uip_lladdr_t *addr)
 {
-  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (const linkaddr_t *)addr);
-  if(p != NULL) {
-    return p->link_metric;
+  uip_ds6_nbr_t *nbr;
+  nbr = nbr_table_get_from_lladdr(ds6_neighbors, (const linkaddr_t *)addr);
+  
+  if(nbr != NULL) {
+    return nbr->link_metric;
   } else {
     return 0;
   }
@@ -567,10 +585,17 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
     if(p == NULL) {
       PRINTF("RPL: rpl_add_parent p NULL\n");
     } else {
+      uip_ds6_nbr_t *nbr;
+      nbr = rpl_get_nbr(p);
+
       p->dag = dag;
       p->rank = dio->rank;
       p->dtsn = dio->dtsn;
-      p->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
+      
+      /* check if we have a nbr and if we have no prev link_metric  value */
+      if(nbr != NULL && nbr->link_metric == 0) {
+	nbr->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
+      }
 #if RPL_DAG_MC != RPL_DAG_MC_NONE
       memcpy(&p->mc, &dio->mc, sizeof(p->mc));
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
