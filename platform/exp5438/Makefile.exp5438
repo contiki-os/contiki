@@ -3,7 +3,7 @@
 
 MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 \
            core/net/mac core/net/rpl core/net/rime core/net/mac/contikimac \
-           dev/cc2420
+           core/net/llsec dev/cc2420
 
 ifdef IAR
 CFLAGS+=-e --vla -Ohz --multiplier=32 --multiplier_location=4C0 --hw_workaround=CPU40 --core=430X  --data_model small --double=32 -D__MSP430F5438A__=1

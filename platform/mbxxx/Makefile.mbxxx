@@ -22,4 +22,5 @@ ifeq ($(HOST_OS),Windows)
 endif
 
 MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 \
-         core/net/rpl core/net/rime core/net/mac core/net/mac/contikimac
+         core/net/rpl core/net/rime core/net/mac core/net/mac/contikimac \
+         core/net/llsec

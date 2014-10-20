@@ -3152,7 +3152,7 @@ public class Cooja extends Observable {
         if (new File(logConfigFile).exists()) {
           DOMConfigurator.configure(logConfigFile);
         } else {
-          System.err.println("Failed to open " + logConfigFile);
+          logger.error("Failed to open " + logConfigFile);
           System.exit(1);
         }
       } else if (new File(LOG_CONFIG_FILE).exists()) {

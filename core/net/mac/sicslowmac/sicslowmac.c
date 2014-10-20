@@ -157,7 +157,7 @@ send_packet(mac_callback_t sent, void *ptr)
   len = frame802154_hdrlen(&params);
   if(packetbuf_hdralloc(len)) {
     int ret;
-    frame802154_create(&params, packetbuf_hdrptr(), len);
+    frame802154_create(&params, packetbuf_hdrptr());
 
     PRINTF("6MAC-UT: %2X", params.fcf.frame_type);
     PRINTADDR(params.dest_addr);

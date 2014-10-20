@@ -54,6 +54,7 @@
 
 #include "contiki-conf.h"
 #include "net/linkaddr.h"
+#include "net/llsec/llsec802154.h"
 
 /**
  * \brief      The size of the packetbuf, in bytes
@@ -132,7 +133,7 @@ void *packetbuf_dataptr(void);
 void *packetbuf_hdrptr(void);
 
 /**
- * \brief      Get the length of the header in the packetbuf, for outbound packets
+ * \brief      Get the length of the header in the packetbuf
  * \return     Length of the header in the packetbuf
  *
  *             For outbound packets, the packetbuf consists of two
@@ -347,7 +348,8 @@ enum {
   PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
   PACKETBUF_ATTR_MAC_SEQNO,
   PACKETBUF_ATTR_MAC_ACK,
-
+  PACKETBUF_ATTR_IS_CREATED_AND_SECURED,
+  
   /* Scope 1 attributes: used between two neighbors only. */
   PACKETBUF_ATTR_RELIABLE,
   PACKETBUF_ATTR_PACKET_ID,
@@ -356,6 +358,17 @@ enum {
   PACKETBUF_ATTR_MAX_REXMIT,
   PACKETBUF_ATTR_NUM_REXMIT,
   PACKETBUF_ATTR_PENDING,
+  PACKETBUF_ATTR_FRAME_TYPE,
+#if LLSEC802154_SECURITY_LEVEL
+  PACKETBUF_ATTR_SECURITY_LEVEL,
+  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1,
+  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3,
+#if LLSEC802154_USES_EXPLICIT_KEYS
+  PACKETBUF_ATTR_KEY_ID_MODE,
+  PACKETBUF_ATTR_KEY_INDEX,
+  PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1,
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+#endif /* LLSEC802154_SECURITY_LEVEL */
   
   /* Scope 2 attributes: used between end-to-end nodes. */
   PACKETBUF_ATTR_HOPS,
@@ -372,6 +385,24 @@ enum {
   
   PACKETBUF_ATTR_MAX
 };
+
+/* Define surrogates when 802.15.4 security is off */
+#if !LLSEC802154_SECURITY_LEVEL
+enum {
+  PACKETBUF_ATTR_SECURITY_LEVEL,
+  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1,
+  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3
+};
+#endif /* LLSEC802154_SECURITY_LEVEL */
+
+/* Define surrogates when not using explicit keys */
+#if !LLSEC802154_USES_EXPLICIT_KEYS
+enum {
+  PACKETBUF_ATTR_KEY_ID_MODE,
+  PACKETBUF_ATTR_KEY_INDEX,
+  PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1
+};
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 
 #define PACKETBUF_NUM_ADDRS 4
 #define PACKETBUF_NUM_ATTRS (PACKETBUF_ATTR_MAX - PACKETBUF_NUM_ADDRS)
