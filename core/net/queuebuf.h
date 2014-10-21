@@ -109,7 +109,9 @@ packetbuf_attr_t queuebuf_attr(struct queuebuf *b, uint8_t type);
 
 void queuebuf_debug_print(void);
 
-#endif /* QUEUEBUF_H_ */
+int queuebuf_numfree(void);
+
+#endif /* __QUEUEBUF_H__ */
 
 /** @} */
 /** @} */
