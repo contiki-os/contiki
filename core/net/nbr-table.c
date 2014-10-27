@@ -348,3 +348,15 @@ nbr_table_get_lladdr(nbr_table_t *table, const void *item)
   nbr_table_key_t *key = key_from_item(table, item);
   return key != NULL ? &key->lladdr : NULL;
 }
+/*---------------------------------------------------------------------------*/
+/* Remove all elements in the table */
+void
+nbr_table_purge(nbr_table_t *table)
+{
+	nbr_table_item_t *nbr = nbr_table_head(table);
+	while(nbr != NULL) {
+		nbr_table_remove(table, nbr);
+		nbr = nbr_table_next(table, nbr);
+	}
+}
+/*---------------------------------------------------------------------------*/
