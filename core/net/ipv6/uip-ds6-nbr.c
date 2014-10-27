@@ -201,12 +201,25 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
   LINK_NEIGHBOR_CALLBACK(dest, status, numtx);
 
 #if UIP_DS6_LL_NUD
+  /* From RFC4861, page 72, last paragraph of section 7.3.3:
+   *
+   * 	"In some cases, link-specific information may indicate that a path to
+   * 	a neighbor has failed (e.g., the resetting of a virtual circuit). In
+   * 	such cases, link-specific information may be used to purge Neighbor
+   * 	Cache entries before the Neighbor Unreachability Detection would do
+   * 	so. However, link-specific information MUST NOT be used to confirm
+   * 	the reachability of a neighbor; such information does not provide
+   * 	end-to-end confirmation between neighboring IP layers."
+   *
+   * However, we assume that receiving a link layer ack ensures the delivery
+   * of the transmitted packed to the IP stack of the neighbour. This is a 
+   * fair assumption and allows battery powered nodes save some battery by 
+   * not re-testing the state of a neighbour periodically if it 
+   * acknowledges link packets. */
   if(status == MAC_TX_OK) {
     uip_ds6_nbr_t *nbr;
     nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)dest);
-    if(nbr != NULL &&
-        (nbr->state == NBR_STALE || nbr->state == NBR_DELAY ||
-         nbr->state == NBR_PROBE)) {
+    if(nbr != NULL && nbr->state != NBR_INCOMPLETE) {
       nbr->state = NBR_REACHABLE;
       stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
       PRINTF("uip-ds6-neighbor : received a link layer ACK : ");
