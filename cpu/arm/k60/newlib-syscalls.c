@@ -62,7 +62,7 @@ char **environ = __env;
 
 /* Lock variable used to protect sbrk_r from clobbering the break variable when
  * called simultaneously from more than one thread. */
-static volatile uint32_t sbrk_lock = 0;
+static lock_t sbrk_lock = 0;
 
 /* Align all sbrk arguments to this many bytes */
 #define DYNAMIC_MEMORY_ALIGN 4

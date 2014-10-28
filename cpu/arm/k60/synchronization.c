@@ -47,15 +47,15 @@
  */
 
 /** Blocking access to lock variable */
-void lock_acquire(volatile uint32_t *Lock_Variable)
+void lock_acquire(lock_t *Lock_Variable)
 {
   int status = 0;
   do {
     /* Wait until Lock_Variable is free */
-    while (__LDREXW(Lock_Variable) != 0);
+    while (__LDREXB(Lock_Variable) != 0);
 
     /* Try to set Lock_Variable */
-    status = __STREXW(1, Lock_Variable);
+    status = __STREXB(1, Lock_Variable);
   } while (status != 0); /* retry until lock successfully */
 
   /* Do not start any other memory access until memory barrier is completed */
@@ -65,14 +65,14 @@ void lock_acquire(volatile uint32_t *Lock_Variable)
 }
 
 /** Non-blocking access to lock variable */
-int lock_try_acquire(volatile uint32_t *Lock_Variable)
+int lock_try_acquire(lock_t *Lock_Variable)
 {
   int status = 0;
-  if (__LDREXW(Lock_Variable) != 0) {
+  if (__LDREXB(Lock_Variable) != 0) {
     /* Lock_Variable is busy */
     return -1;
   }
-  status = __STREXW(1, Lock_Variable); /* Try to set Lock_Variable */
+  status = __STREXB(1, Lock_Variable); /* Try to set Lock_Variable */
   if (status != 0) {
     /* Locking failed, someone else modified the Lock_Variable before we could. */
     return -2;
@@ -86,7 +86,7 @@ int lock_try_acquire(volatile uint32_t *Lock_Variable)
 }
 
 /** Release a lock after having acquired it using lock_acquire or lock_try_acquire. */
-void lock_release(volatile uint32_t *Lock_Variable)
+void lock_release(lock_t *Lock_Variable)
 {
   __DMB(); /* Ensure memory operations completed before releasing lock */
   (*Lock_Variable) = 0;

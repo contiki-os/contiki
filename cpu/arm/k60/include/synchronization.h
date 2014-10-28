@@ -53,14 +53,17 @@ extern "C" {
  *   4.19. Semaphores and Mutual Exclusives (Mutex) - unicore and multicore
  */
 
+/** Lock variable typedef */
+typedef volatile uint8_t lock_t;
+
 /** Blocking access to lock variable */
-void lock_acquire(volatile uint32_t *Lock_Variable);
+void lock_acquire(lock_t *Lock_Variable);
 
 /** Non-blocking access to lock variable */
-int lock_try_acquire(volatile uint32_t *Lock_Variable);
+int lock_try_acquire(lock_t *Lock_Variable);
 
 /** Release a lock after having acquired it using lock_acquire or lock_try_acquire. */
-void lock_release(volatile uint32_t *Lock_Variable);
+void lock_release(lock_t *Lock_Variable);
 
 /** Safely increment a counter variable, without race condition issues regarding
  * the read-modify-write sequence. */
