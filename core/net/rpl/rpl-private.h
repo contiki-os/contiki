@@ -126,6 +126,12 @@
 #else
 #define RPL_MIN_HOPRANKINC          RPL_CONF_MIN_HOPRANKINC
 #endif
+
+#if RPL_MIN_HOPRANKINC != 128
+#warning RPL_MIN_HOPRANKINC needs to be configured to 128 when ETX is used for \
+  good performance and RFC comliance.
+#endif
+
 #define RPL_MAX_RANKINC             (7 * RPL_MIN_HOPRANKINC)
 
 #define DAG_RANK(fixpt_rank, instance) \
