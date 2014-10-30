@@ -30,11 +30,7 @@
 
 package org.contikios.cooja.mspmote.interfaces;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Collection;
-import javax.swing.JButton;
-import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -74,24 +70,6 @@ public class ESBButton extends Button {
 
   public boolean isPressed() {
     return false;
-  }
-
-  public JPanel getInterfaceVisualizer() {
-    JPanel panel = new JPanel();
-    final JButton clickButton = new JButton("Click button");
-
-    panel.add(clickButton);
-
-    clickButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        clickButton();
-      }
-    });
-
-    return panel;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
   }
 
   public Collection<Element> getConfigXML() {
