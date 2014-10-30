@@ -28,8 +28,6 @@
  */
 
 package org.contikios.cooja.mspmote.interfaces;
-import java.util.Collection;
-import org.jdom.Element;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.Simulation;
@@ -81,15 +79,6 @@ public class MspButton extends Button {
     @Override
     public boolean isPressed() {
         return button.isPressed();
-    }
-
-    @Override
-    public Collection<Element> getConfigXML() {
-        return null;
-    }
-
-    @Override
-    public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     }
 
     private class ButtonClick extends TimeEvent implements Runnable {

@@ -30,9 +30,7 @@
 
 package org.contikios.cooja.contikimote.interfaces;
 
-import java.util.Collection;
 import org.apache.log4j.Logger;
-import org.jdom.Element;
 
 import org.contikios.cooja.*;
 import org.contikios.cooja.contikimote.ContikiMote;
@@ -160,13 +158,6 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
 
   public boolean isPressed() {
     return moteMem.getByteValueOf("simButtonIsDown") == 1;
-  }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
 }

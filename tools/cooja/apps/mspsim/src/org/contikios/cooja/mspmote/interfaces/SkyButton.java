@@ -30,7 +30,6 @@
 
 package org.contikios.cooja.mspmote.interfaces;
 
-import java.util.Collection;
 import org.apache.log4j.Logger;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
@@ -38,7 +37,6 @@ import org.contikios.cooja.MoteTimeEvent;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Button;
 import org.contikios.cooja.mspmote.SkyMote;
-import org.jdom.Element;
 
 @ClassDescription("Button")
 public class SkyButton extends Button {
@@ -102,14 +100,6 @@ public class SkyButton extends Button {
   public boolean isPressed() {
   	/* Not implemented */
     return false;
-  }
-
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
 }

@@ -30,9 +30,7 @@
 
 package org.contikios.cooja.mspmote.interfaces;
 
-import java.util.Collection;
 import org.apache.log4j.Logger;
-import org.jdom.Element;
 
 import org.contikios.cooja.*;
 import org.contikios.cooja.interfaces.Button;
@@ -70,13 +68,6 @@ public class ESBButton extends Button {
 
   public boolean isPressed() {
     return false;
-  }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
 }
