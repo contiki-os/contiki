@@ -30,9 +30,7 @@
 
 package org.contikios.cooja.contikimote.interfaces;
 
-import java.awt.event.*;
 import java.util.Collection;
-import javax.swing.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -162,24 +160,6 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
 
   public boolean isPressed() {
     return moteMem.getByteValueOf("simButtonIsDown") == 1;
-  }
-
-  public JPanel getInterfaceVisualizer() {
-    JPanel panel = new JPanel();
-    final JButton clickButton = new JButton("Click button");
-
-    panel.add(clickButton);
-
-    clickButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        clickButton();
-      }
-    });
-
-    return panel;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
   }
 
   public Collection<Element> getConfigXML() {

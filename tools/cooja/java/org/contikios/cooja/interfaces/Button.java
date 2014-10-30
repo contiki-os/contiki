@@ -30,6 +30,10 @@
 
 package org.contikios.cooja.interfaces;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 import org.contikios.cooja.*;
 
 /**
@@ -62,4 +66,23 @@ public abstract class Button extends MoteInterface {
    * @return True if button is pressed
    */
   public abstract boolean isPressed();
+
+  public JPanel getInterfaceVisualizer() {
+    JPanel panel = new JPanel();
+    final JButton clickButton = new JButton("Click button");
+
+    panel.add(clickButton);
+
+    clickButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        clickButton();
+      }
+    });
+
+    return panel;
+  }
+
+  public void releaseInterfaceVisualizer(JPanel panel) {
+  }
+
 }

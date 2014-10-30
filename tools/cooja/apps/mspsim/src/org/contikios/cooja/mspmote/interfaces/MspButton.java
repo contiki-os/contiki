@@ -28,11 +28,7 @@
  */
 
 package org.contikios.cooja.mspmote.interfaces;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Collection;
-import javax.swing.JButton;
-import javax.swing.JPanel;
 import org.jdom.Element;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
@@ -85,26 +81,6 @@ public class MspButton extends Button {
     @Override
     public boolean isPressed() {
         return button.isPressed();
-    }
-
-    @Override
-    public JPanel getInterfaceVisualizer() {
-        final JPanel panel = new JPanel();
-        final JButton clickButton = new JButton("Click button");
-
-        panel.add(clickButton);
-
-        clickButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                clickButton();
-            }
-        });
-
-        return panel;
-    }
-
-    @Override
-    public void releaseInterfaceVisualizer(JPanel panel) {
     }
 
     @Override
