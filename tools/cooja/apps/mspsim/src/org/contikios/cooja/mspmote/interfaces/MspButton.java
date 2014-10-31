@@ -62,18 +62,28 @@ public class MspButton extends Button {
     public void pressButton() {
         sim.invokeSimulationThread(new Runnable() {
             public void run() {
-                button.setPressed(true);
+              doPressButton();
             }
         });
+    }
+
+    @Override
+    protected void doPressButton() {
+        button.setPressed(true);
     }
 
     @Override
     public void releaseButton() {
         sim.invokeSimulationThread(new Runnable() {
             public void run() {
-                button.setPressed(false);
+              doReleaseButton();
             }
         });
+    }
+
+    @Override
+    protected void doReleaseButton() {
+        button.setPressed(false);
     }
 
     @Override

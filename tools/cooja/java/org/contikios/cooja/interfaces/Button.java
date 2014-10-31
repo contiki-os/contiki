@@ -60,9 +60,19 @@ public abstract class Button extends MoteInterface {
   public abstract void releaseButton();
 
   /**
+   * Node-type dependent implementation of pressing a button.
+   */
+  protected abstract void doPressButton();
+
+  /**
    * Presses button (if not already pressed).
    */
   public abstract void pressButton();
+
+  /**
+   * Node-type dependent implementation of releasing a button.
+   */
+  protected abstract void doReleaseButton();
 
   /**
    * @return True if button is pressed

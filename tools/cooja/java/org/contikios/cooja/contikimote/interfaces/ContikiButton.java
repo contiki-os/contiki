@@ -128,7 +128,8 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     });
   }
 
-  private void doReleaseButton() {
+  @Override
+  protected void doReleaseButton() {
     moteMem.setByteValueOf("simButtonIsDown", (byte) 0);
 
     if (moteMem.getByteValueOf("simButtonIsActive") == 1) {
@@ -142,7 +143,8 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     }
   }
 
-  private void doPressButton() {
+  @Override
+  protected void doPressButton() {
     moteMem.setByteValueOf("simButtonIsDown", (byte) 1);
 
     if (moteMem.getByteValueOf("simButtonIsActive") == 1) {
