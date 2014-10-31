@@ -60,6 +60,7 @@ public class ESBButton extends Button {
     mote.esbNode.setButton(true);
   }
 
+  @Override
   public boolean isPressed() {
     return false;
   }
