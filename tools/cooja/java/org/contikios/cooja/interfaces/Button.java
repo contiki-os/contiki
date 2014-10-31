@@ -36,6 +36,7 @@ import java.util.Collection;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.contikios.cooja.*;
+import org.contikios.cooja.mspmote.SkyMote;
 import org.jdom.Element;
 
 /**
@@ -48,16 +49,49 @@ import org.jdom.Element;
 @ClassDescription("Button")
 public abstract class Button extends MoteInterface {
 
+  private final Simulation sim;
+
+  private final MoteTimeEvent pressButtonEvent;
+  private final MoteTimeEvent releaseButtonEvent;
+
+  public Button(Mote mote) {
+    sim = mote.getSimulation();
+
+    pressButtonEvent = new MoteTimeEvent(mote, 0) {
+      public void execute(long t) {
+        doPressButton();
+      }
+    };
+    releaseButtonEvent = new MoteTimeEvent(mote, 0) {
+      public void execute(long t) {
+        doReleaseButton();
+      }
+    };
+  }
+
   /**
    * Clicks button. Button will be pressed for some time and then automatically
    * released.
    */
-  public abstract void clickButton();
+  public void clickButton() {
+    sim.invokeSimulationThread(new Runnable() {
+      public void run() {
+        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
+        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime() + Simulation.MILLISECOND);
+      }      
+    });
+  }
 
   /**
-   * Releases button (if pressed).
+   * Presses button.
    */
-  public abstract void releaseButton();
+  public void pressButton() {
+    sim.invokeSimulationThread(new Runnable() {
+      public void run() {
+        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
+      }      
+    });
+  }
 
   /**
    * Node-type dependent implementation of pressing a button.
@@ -65,9 +99,15 @@ public abstract class Button extends MoteInterface {
   protected abstract void doPressButton();
 
   /**
-   * Presses button (if not already pressed).
+   * Releases button.
    */
-  public abstract void pressButton();
+  public void releaseButton() {
+    sim.invokeSimulationThread(new Runnable() {
+      public void run() {
+        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime());
+      }
+    });
+  }
 
   /**
    * Node-type dependent implementation of releasing a button.

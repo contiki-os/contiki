@@ -33,8 +33,6 @@ package org.contikios.cooja.mspmote.interfaces;
 import org.apache.log4j.Logger;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
-import org.contikios.cooja.MoteTimeEvent;
-import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Button;
 import org.contikios.cooja.mspmote.SkyMote;
 
@@ -43,55 +41,15 @@ public class SkyButton extends Button {
   private static Logger logger = Logger.getLogger(SkyButton.class);
 
   private SkyMote skyMote;
-  private Simulation sim;
-  
-  private MoteTimeEvent pressButtonEvent;
-  private MoteTimeEvent releaseButtonEvent;
-  
+
   public SkyButton(Mote mote) {
+    super(mote);
     skyMote = (SkyMote) mote;
-    sim = mote.getSimulation();
-    
-    pressButtonEvent = new MoteTimeEvent(mote, 0) {
-      public void execute(long t) {
-        doPressButton();
-      }
-    };
-    releaseButtonEvent = new MoteTimeEvent(mote, 0) {
-      public void execute(long t) {
-        doReleaseButton();
-      }
-    };
-  }
-
-  public void clickButton() {
-    sim.invokeSimulationThread(new Runnable() {
-      public void run() {
-        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
-        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime() + Simulation.MILLISECOND);
-      }      
-    });
-  }
-
-  public void pressButton() {
-    sim.invokeSimulationThread(new Runnable() {
-      public void run() {
-        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
-      }      
-    });
   }
 
   @Override
   protected void doPressButton() {
     skyMote.skyNode.setButton(true);
-  }
-
-  public void releaseButton() {
-    sim.invokeSimulationThread(new Runnable() {
-      public void run() {
-        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime());
-      }      
-    });
   }
 
   @Override
