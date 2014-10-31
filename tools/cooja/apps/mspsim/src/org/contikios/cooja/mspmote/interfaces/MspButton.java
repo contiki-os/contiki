@@ -45,6 +45,7 @@ public class MspButton extends Button {
     private final se.sics.mspsim.chip.Button button;
 
     public MspButton(Mote mote) {
+        super(mote);
         final MspMote mspMote = (MspMote) mote;
         sim = mote.getSimulation();
         button = mspMote.getCPU().getChip(se.sics.mspsim.chip.Button.class);
@@ -54,31 +55,8 @@ public class MspButton extends Button {
     }
 
     @Override
-    public void clickButton() {
-        sim.invokeSimulationThread(new ButtonClick());
-    }
-
-    @Override
-    public void pressButton() {
-        sim.invokeSimulationThread(new Runnable() {
-            public void run() {
-              doPressButton();
-            }
-        });
-    }
-
-    @Override
     protected void doPressButton() {
         button.setPressed(true);
-    }
-
-    @Override
-    public void releaseButton() {
-        sim.invokeSimulationThread(new Runnable() {
-            public void run() {
-              doReleaseButton();
-            }
-        });
     }
 
     @Override
@@ -91,21 +69,4 @@ public class MspButton extends Button {
         return button.isPressed();
     }
 
-    private class ButtonClick extends TimeEvent implements Runnable {
-
-        public ButtonClick() {
-            super(0);
-        }
-
-        @Override
-        public void run() {
-            button.setPressed(true);
-            sim.scheduleEvent(this, sim.getSimulationTime() + Simulation.MILLISECOND);
-        }
-
-        @Override
-        public void execute(long t) {
-            button.setPressed(false);
-        }
-    }
 }

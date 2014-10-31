@@ -46,29 +46,13 @@ public class ESBButton extends Button {
   private ESBMote mote;
 
   public ESBButton(Mote mote) {
+    super(mote);
     this.mote = (ESBMote) mote;
-  }
-
-  public void clickButton() {
-    pressButton();
-    releaseButton();
-  }
-
-  public void releaseButton() {
-    doReleaseButton();
-    setChanged();
-    notifyObservers();
   }
 
   @Override
   protected void doReleaseButton() {
     mote.esbNode.setButton(false);
-  }
-
-  public void pressButton() {
-    doPressButton();
-    setChanged();
-    notifyObservers();
   }
 
   @Override

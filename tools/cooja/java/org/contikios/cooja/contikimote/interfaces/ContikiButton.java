@@ -72,60 +72,13 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
    * @see org.contikios.cooja.MoteInterfaceHandler
    */
   public ContikiButton(Mote mote) {
+    super(mote);
     this.mote = (ContikiMote) mote;
     this.moteMem = new VarMemory(mote.getMemory());
   }
 
   public static String[] getCoreInterfaceDependencies() {
     return new String[]{"button_interface"};
-  }
-
-  private TimeEvent pressButtonEvent = new MoteTimeEvent(mote, 0) {
-    public void execute(long t) {
-      doPressButton();
-    }
-  };
-
-  private TimeEvent releaseButtonEvent = new MoteTimeEvent(mote, 0) {
-    public void execute(long t) {
-      /* Wait until button change is handled by Contiki */
-      if (moteMem.getByteValueOf("simButtonChanged") != 0) {
-        /* Postpone button release */
-        mote.getSimulation().scheduleEvent(releaseButtonEvent, t + Simulation.MILLISECOND);
-        return;
-      }
-
-      /*logger.info("Releasing button at: " + t);*/
-      doReleaseButton();
-    }
-  };
-
-  /**
-   * Clicks button: Presses and immediately releases button.
-   */
-  public void clickButton() {
-    mote.getSimulation().invokeSimulationThread(new Runnable() {
-      public void run() {
-        mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
-        mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
-      }      
-    });
-  }
-
-  public void pressButton() {
-    mote.getSimulation().invokeSimulationThread(new Runnable() {
-      public void run() {
-        mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
-      }      
-    });
-  }
-
-  public void releaseButton() {
-    mote.getSimulation().invokeSimulationThread(new Runnable() {
-      public void run() {
-        mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime());
-      }      
-    });
   }
 
   @Override
