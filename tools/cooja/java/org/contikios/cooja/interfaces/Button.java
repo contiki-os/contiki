@@ -58,11 +58,13 @@ public abstract class Button extends MoteInterface {
     sim = mote.getSimulation();
 
     pressButtonEvent = new MoteTimeEvent(mote, 0) {
+      @Override
       public void execute(long t) {
         doPressButton();
       }
     };
     releaseButtonEvent = new MoteTimeEvent(mote, 0) {
+      @Override
       public void execute(long t) {
         doReleaseButton();
       }
@@ -75,6 +77,7 @@ public abstract class Button extends MoteInterface {
    */
   public void clickButton() {
     sim.invokeSimulationThread(new Runnable() {
+      @Override
       public void run() {
         sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
         sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime() + Simulation.MILLISECOND);
@@ -87,6 +90,7 @@ public abstract class Button extends MoteInterface {
    */
   public void pressButton() {
     sim.invokeSimulationThread(new Runnable() {
+      @Override
       public void run() {
         sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
       }      
@@ -103,6 +107,7 @@ public abstract class Button extends MoteInterface {
    */
   public void releaseButton() {
     sim.invokeSimulationThread(new Runnable() {
+      @Override
       public void run() {
         sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime());
       }
@@ -119,6 +124,7 @@ public abstract class Button extends MoteInterface {
    */
   public abstract boolean isPressed();
 
+  @Override
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
     final JButton clickButton = new JButton("Click button");
@@ -126,6 +132,7 @@ public abstract class Button extends MoteInterface {
     panel.add(clickButton);
 
     clickButton.addActionListener(new ActionListener() {
+      @Override
       public void actionPerformed(ActionEvent e) {
         clickButton();
       }
@@ -134,6 +141,7 @@ public abstract class Button extends MoteInterface {
     return panel;
   }
 
+  @Override
   public void releaseInterfaceVisualizer(JPanel panel) {
   }
 

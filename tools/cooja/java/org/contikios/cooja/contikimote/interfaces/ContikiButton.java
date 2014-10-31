@@ -111,6 +111,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     }
   }
 
+  @Override
   public boolean isPressed() {
     return moteMem.getByteValueOf("simButtonIsDown") == 1;
   }

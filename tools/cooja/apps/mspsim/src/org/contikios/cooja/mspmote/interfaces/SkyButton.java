@@ -57,6 +57,7 @@ public class SkyButton extends Button {
     skyMote.skyNode.setButton(false);
   }
 
+  @Override
   public boolean isPressed() {
   	/* Not implemented */
     return false;
