@@ -59,10 +59,10 @@ import org.contikios.cooja.mote.memory.VarMemory;
  * @author Fredrik Osterlind
  */
 public class ContikiButton extends Button implements ContikiMoteInterface {
-  private VarMemory moteMem;
-  private ContikiMote mote;
+  private final VarMemory moteMem;
+  private final ContikiMote mote;
 
-  private static Logger logger = Logger.getLogger(ContikiButton.class);
+  private static final Logger logger = Logger.getLogger(ContikiButton.class);
 
   /**
    * Creates an interface to the button at mote.

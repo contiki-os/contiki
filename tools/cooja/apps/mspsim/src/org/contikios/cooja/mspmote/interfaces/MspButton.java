@@ -31,7 +31,6 @@ package org.contikios.cooja.mspmote.interfaces;
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
 import org.contikios.cooja.Simulation;
-import org.contikios.cooja.TimeEvent;
 import org.contikios.cooja.interfaces.Button;
 import org.contikios.cooja.mspmote.MspMote;
 

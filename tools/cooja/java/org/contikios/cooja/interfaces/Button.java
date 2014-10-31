@@ -36,7 +36,6 @@ import java.util.Collection;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import org.contikios.cooja.*;
-import org.contikios.cooja.mspmote.SkyMote;
 import org.jdom.Element;
 
 /**
