@@ -41,9 +41,9 @@ import org.contikios.cooja.mspmote.ESBMote;
  */
 @ClassDescription("Button")
 public class ESBButton extends Button {
-  private static Logger logger = Logger.getLogger(ESBButton.class);
+  private static final Logger logger = Logger.getLogger(ESBButton.class);
 
-  private ESBMote mote;
+  private final ESBMote mote;
 
   public ESBButton(Mote mote) {
     super(mote);

@@ -38,9 +38,9 @@ import org.contikios.cooja.mspmote.SkyMote;
 
 @ClassDescription("Button")
 public class SkyButton extends Button {
-  private static Logger logger = Logger.getLogger(SkyButton.class);
+  private static final Logger logger = Logger.getLogger(SkyButton.class);
 
-  private SkyMote skyMote;
+  private final SkyMote skyMote;
 
   public SkyButton(Mote mote) {
     super(mote);
