@@ -81,7 +81,8 @@ public class SkyButton extends Button {
     });
   }
 
-  public void doPressButton() {
+  @Override
+  protected void doPressButton() {
     skyMote.skyNode.setButton(true);
   }
 
@@ -93,7 +94,8 @@ public class SkyButton extends Button {
     });
   }
 
-  public void doReleaseButton() {
+  @Override
+  protected void doReleaseButton() {
     skyMote.skyNode.setButton(false);
   }
 

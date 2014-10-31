@@ -55,15 +55,25 @@ public class ESBButton extends Button {
   }
 
   public void releaseButton() {
-    mote.esbNode.setButton(false);
+    doReleaseButton();
     setChanged();
     notifyObservers();
   }
 
+  @Override
+  protected void doReleaseButton() {
+    mote.esbNode.setButton(false);
+  }
+
   public void pressButton() {
-    mote.esbNode.setButton(true);
+    doPressButton();
     setChanged();
     notifyObservers();
+  }
+
+  @Override
+  protected void doPressButton() {
+    mote.esbNode.setButton(true);
   }
 
   public boolean isPressed() {
