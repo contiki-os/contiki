@@ -54,25 +54,33 @@ static void
 set_frq(int c)
 {
   int f;
-  /* fine graied channel - can we even read other channels with CC2420 ? */
-  f = c + 302 + 0x4000;
+  /* We can read even other channels with CC2420! */
+  /* Fc = 2048 + FSCTRL  ;  Fc = 2405 + 5(k-11) MHz, k=11,12, ... , 26 */
+  f = c + 352; /* Start from 2400 MHz to 2485 MHz, */
 
-  CC2420_WRITE_REG(CC2420_FSCTRL, f);
-  CC2420_STROBE(CC2420_SRXON);
+  /* Write the new channel value */
+  CC2420_SPI_ENABLE();
+  SPI_WRITE_FAST(CC2420_FSCTRL);
+  SPI_WRITE_FAST((uint8_t)(f >> 8));
+  SPI_WRITE_FAST((uint8_t)(f & 0xff));
+  SPI_WAITFORTx_ENDED();
+  SPI_WRITE(0);
+
+  /* Send the strobe */
+  SPI_WRITE(CC2420_SRXON);
+  CC2420_SPI_DISABLE();
 }
-
 static void
 do_rssi(void)
 {
   int channel;
   printf("RSSI:");
-  for(channel = 0; channel <= 79; ++channel) {
-    set_frq(channel + 55);
+  for(channel = 0; channel <= 85; ++channel) {
+    set_frq(channel);
     printf("%d ", cc2420_rssi() + 55);
   }
   printf("\n");
 }
-
 /*---------------------------------------------------------------------------*/
 PROCESS(scanner_process, "RSSI Scanner");
 AUTOSTART_PROCESSES(&scanner_process);
