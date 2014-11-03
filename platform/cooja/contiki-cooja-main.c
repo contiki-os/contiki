@@ -229,10 +229,7 @@ contiki_init()
   set_rime_addr();
   {
     uint8_t longaddr[8];
-    uint16_t shortaddr;
     
-    shortaddr = (linkaddr_node_addr.u8[0] << 8) +
-      linkaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
     linkaddr_copy((linkaddr_t *)&longaddr, &linkaddr_node_addr);
     printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
