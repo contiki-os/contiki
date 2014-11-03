@@ -52,6 +52,7 @@
 #include "net/rime/rime.h"
 #include "net/netstack.h"
 
+#include "dev/eeprom.h"
 #include "dev/serial-line.h"
 #include "dev/cooja-radio.h"
 #include "dev/button-sensor.h"
