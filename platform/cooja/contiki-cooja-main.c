@@ -284,7 +284,7 @@ contiki_init()
       addr[i + 1] = node_id & 0xff;
       addr[i + 0] = node_id >> 8;
     }
-    linkaddr_copy(addr, &linkaddr_node_addr);
+    linkaddr_copy((linkaddr_t *)addr, &linkaddr_node_addr);
     memcpy(&uip_lladdr.addr, addr, sizeof(uip_lladdr.addr));
 
     process_start(&tcpip_process, NULL);
