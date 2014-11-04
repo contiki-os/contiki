@@ -49,18 +49,17 @@ public class SkyButton extends Button {
 
   @Override
   protected void doPressButton() {
-    skyMote.skyNode.setButton(true);
+    skyMote.skyNode.getButton().setPressed(true);
   }
 
   @Override
   protected void doReleaseButton() {
-    skyMote.skyNode.setButton(false);
+    skyMote.skyNode.getButton().setPressed(false);
   }
 
   @Override
   public boolean isPressed() {
-  	/* Not implemented */
-    return false;
+    return skyMote.skyNode.getButton().isPressed();
   }
 
 }
