@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014, TU Braunschweig.
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -30,8 +31,10 @@
 
 package org.contikios.cooja.interfaces;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Collection;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -129,11 +132,52 @@ public abstract class Button extends MoteInterface {
     final JButton clickButton = new JButton("Click button");
 
     panel.add(clickButton);
-
-    clickButton.addActionListener(new ActionListener() {
+    
+    clickButton.addMouseListener(new MouseAdapter() {
       @Override
-      public void actionPerformed(ActionEvent e) {
-        clickButton();
+      public void mousePressed(MouseEvent e) {
+        sim.invokeSimulationThread(new Runnable() {
+
+          @Override
+          public void run() {
+            doPressButton();
+          }
+        });
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        sim.invokeSimulationThread(new Runnable() {
+
+          @Override
+          public void run() {
+            doReleaseButton();
+          }
+        });
+      }
+    });
+
+    clickButton.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        sim.invokeSimulationThread(new Runnable() {
+
+          @Override
+          public void run() {
+            doPressButton();
+          }
+        });
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+        sim.invokeSimulationThread(new Runnable() {
+
+          @Override
+          public void run() {
+            doReleaseButton();
+          }
+        });
       }
     });
 
