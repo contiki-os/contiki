@@ -235,6 +235,10 @@ typedef unsigned long rtimer_clock_t;
 #if UIP_CONF_IPV6
 #endif /* UIP_CONF_IPV6 */
 
+/* Turn off example-provided putchars */
+#define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
+
+
 #define CFS_CONF_OFFSET_TYPE	long
 
 /* include the project config */
