@@ -69,12 +69,8 @@
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
 
-#ifdef CC2420_CONF_RSSI_OFFSET
-#define RSSI_OFFSET CC2420_CONF_RSSI_OFFSET
-#else /* CC2420_CONF_RSSI_OFFSET */
 /* The RSSI_OFFSET is approximate -45 (see CC2420 specification) */
 #define RSSI_OFFSET -45
-#endif /* CC2420_CONF_RSSI_OFFSET */
 
 enum write_ram_order {
   /* Begin with writing the first given byte */
@@ -188,7 +184,7 @@ get_value(radio_param_t param, radio_value_t *value)
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RSSI:
     /* Return the RSSI value in dBm */
-    *value = cc2420_rssi();
+    *value = cc2420_rssi() + RSSI_OFFSET;
     return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = 11;
@@ -902,7 +898,7 @@ cc2420_read(void *buf, unsigned short bufsize)
     getrxdata(footer, FOOTER_LEN);
     
     if(footer[1] & FOOTER1_CRC_OK) {
-      cc2420_last_rssi = footer[0] + RSSI_OFFSET;
+      cc2420_last_rssi = footer[0];
       cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
       
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
@@ -971,8 +967,7 @@ cc2420_rssi(void)
   }
   wait_for_status(BV(CC2420_RSSI_VALID));
 
-  rssi = (int)((signed char) getreg(CC2420_RSSI));
-  rssi += RSSI_OFFSET;
+  rssi = (int)((signed char)getreg(CC2420_RSSI));
 
   if(radio_was_off) {
     cc2420_off();
