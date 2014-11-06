@@ -88,7 +88,7 @@ import org.contikios.cooja.dialogs.MessageList;
 import org.contikios.cooja.util.StringUtils;
 
 @ClassDescription("Simulation script editor")
-@PluginType(PluginType.SIM_PLUGIN)
+@PluginType(PluginType.SIM_CONTROL_PLUGIN)
 public class ScriptRunner extends VisPlugin {
   private static final long serialVersionUID = 7614358340336799109L;
   private static Logger logger = Logger.getLogger(ScriptRunner.class);
@@ -274,6 +274,10 @@ public class ScriptRunner extends VisPlugin {
     if (script != null) {
       updateScript(script);
     }
+    
+    /* start simulation */
+    simulation.setSpeedLimit(null);
+    simulation.startSimulation();
   }
 
   public void setLinkFile(File source) {
