@@ -959,7 +959,7 @@ public class Cooja extends Observable {
             menuItem.setEnabled(false);
           }
         } else if (pluginType == PluginType.MOTE_PLUGIN) {
-          tooltip += "Mote plugin: "; 
+          tooltip += "Mote plugin: ";
         }
         tooltip += description + " (" + newPluginClass.getName() + ")";
 
@@ -3279,7 +3279,7 @@ public class Cooja extends Observable {
             System.exit(1);
           }
         } else {
-          logger.fatal("No test editor controlling simulation, aborting");
+          logger.fatal("No plugin controlling simulation, aborting");
           System.exit(1);
         }
       }
