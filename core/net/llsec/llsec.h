@@ -1,4 +1,5 @@
 /**
+ * \ingroup net
  * \defgroup llsec Link Layer Security
  * 
  * Layer for implementing link layer security.
