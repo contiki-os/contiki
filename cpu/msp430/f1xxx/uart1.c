@@ -215,7 +215,7 @@ uart1_init(unsigned long ubr)
 
   IE2 |= URXIE1;                        /* Enable USART1 RX interrupt  */
 #if TX_WITH_INTERRUPT
-  ringbuf_init(&txbuf, txbuf_data, sizeof(txbuf_data));
+  RINGBUF_INIT(&txbuf, txbuf_data);
   IE2 |= UTXIE1;                        /* Enable USART1 TX interrupt  */
 #endif /* TX_WITH_INTERRUPT */
 

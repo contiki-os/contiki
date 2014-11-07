@@ -159,7 +159,7 @@ uart1_init(unsigned long ubr)
   transmitting = 0;
 
 #if TX_WITH_INTERRUPT
-  ringbuf_init(&txbuf, txbuf_data, sizeof(txbuf_data));
+  RINGBUF_INIT(&txbuf, txbuf_data);
 #endif /* TX_WITH_INTERRUPT */
 
   INT_SC1FLAG = 0xFFFF;

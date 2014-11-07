@@ -132,7 +132,7 @@ uart0_init(unsigned long ubr)
   IE2 |= UCA0RXIE;                        /* Enable UCA0 RX interrupt */
   /* Enable USCI_A0 TX interrupts (if TX_WITH_INTERRUPT enabled) */
 #if TX_WITH_INTERRUPT
-  ringbuf_init(&txbuf, txbuf_data, sizeof(txbuf_data));
+  RINGBUF_INIT(&txbuf, txbuf_data);
   IE2 |= UCA0TXIE;                        /* Enable UCA0 TX interrupt */
 #endif /* TX_WITH_INTERRUPT */
 }
