@@ -41,7 +41,7 @@
 #include "net/packetbuf.h"
 #include "net/netstack.h"
 #include "net/llsec/llsec802154.h"
-#include "net/llsec/ccm.h"
+#include "net/llsec/ccm-star.h"
 #include "net/mac/frame802154.h"
 #include "lib/aes-128.h"
 #include <stdio.h>
@@ -87,7 +87,7 @@ test_sec_lvl_6()
   packetbuf_hdrreduce(29);
   
   AES_128.set_key(key);
-  CCM.mic(extended_source_address, mic, LLSEC802154_MIC_LENGTH);
+  CCM_STAR.mic(extended_source_address, mic, LLSEC802154_MIC_LENGTH);
   
   if(memcmp(mic, oracle, LLSEC802154_MIC_LENGTH) == 0) {
     printf("Success\n");
@@ -97,7 +97,7 @@ test_sec_lvl_6()
   
   printf("Testing encryption ... ");
   
-  CCM.ctr(extended_source_address);
+  CCM_STAR.ctr(extended_source_address);
   if(((uint8_t *) packetbuf_hdrptr())[29] == 0xD8) {
     printf("Success\n");
   } else {
@@ -105,7 +105,7 @@ test_sec_lvl_6()
   }
   
   printf("Testing decryption ... ");
-  CCM.ctr(extended_source_address);
+  CCM_STAR.ctr(extended_source_address);
   if(((uint8_t *) packetbuf_hdrptr())[29] == 0xCE) {
     printf("Success\n");
   } else {
@@ -113,10 +113,10 @@ test_sec_lvl_6()
   }
 }
 /*---------------------------------------------------------------------------*/
-PROCESS(ccm_encryption_tests_process, "CCM* encryption tests process");
-AUTOSTART_PROCESSES(&ccm_encryption_tests_process);
+PROCESS(ccm_star_tests_process, "CCM* tests process");
+AUTOSTART_PROCESSES(&ccm_star_tests_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(ccm_encryption_tests_process, ev, data)
+PROCESS_THREAD(ccm_star_tests_process, ev, data)
 {
   PROCESS_BEGIN();
   
