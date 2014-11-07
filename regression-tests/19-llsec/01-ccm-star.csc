@@ -24,7 +24,7 @@
       org.contikios.cooja.contikimote.ContikiMoteType
       <identifier>mtype139</identifier>
       <description>Verification</description>
-      <source>[CONTIKI_DIR]/examples/llsec/ccm-tests/verification/tests.c</source>
+      <source>[CONTIKI_DIR]/examples/llsec/ccm-star-tests/verification/tests.c</source>
       <commands>make tests.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
@@ -49,7 +49,7 @@
       org.contikios.cooja.contikimote.ContikiMoteType
       <identifier>mtype792</identifier>
       <description>Encryption</description>
-      <source>[CONTIKI_DIR]/examples/llsec/ccm-tests/encryption/tests.c</source>
+      <source>[CONTIKI_DIR]/examples/llsec/ccm-star-tests/encryption/tests.c</source>
       <commands>make tests.cooja TARGET=cooja</commands>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.Battery</moteinterface>
@@ -153,7 +153,7 @@
   <plugin>
     org.contikios.cooja.plugins.Notes
     <plugin_config>
-      <notes>A simple test script that runs the tests in examples/llsec/ccm-tests/</notes>
+      <notes>A simple test script that runs the tests in examples/llsec/ccm-star-tests/</notes>
       <decorations>true</decorations>
     </plugin_config>
     <width>1240</width>
