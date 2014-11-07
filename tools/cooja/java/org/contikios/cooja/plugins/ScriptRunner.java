@@ -274,10 +274,14 @@ public class ScriptRunner extends VisPlugin {
     if (script != null) {
       updateScript(script);
     }
-    
-    /* start simulation */
-    simulation.setSpeedLimit(null);
-    simulation.startSimulation();
+  }
+
+  public void startPlugin() {
+	/* start simulation */
+	if (!Cooja.isVisualized()) {
+	  simulation.setSpeedLimit(null);
+	  simulation.startSimulation();
+	}
   }
 
   public void setLinkFile(File source) {
