@@ -57,6 +57,7 @@ import org.contikios.cooja.dialogs.CompileContiki;
 import org.contikios.cooja.dialogs.MessageList;
 import org.contikios.cooja.dialogs.MessageList.MessageContainer;
 import org.contikios.cooja.plugins.ScriptRunner;
+import org.contikios.cooja.PluginType;
 
 public class ExecuteJAR {
   private static Logger logger = Logger.getLogger(ExecuteJAR.class);
@@ -232,11 +233,11 @@ public class ExecuteJAR {
 
     /* Check dependencies: Contiki Control Plugin */
     boolean hasController = false;
-    for (Plugin startedPlugin : gui.startedPlugins) {
-  	int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
-  	if (pluginType == PluginType.SIM_CONTROL_PLUGIN) {
-  	  hasController = true;
-  	}
+    for (Plugin startedPlugin : gui.getStartedPlugins()) {
+      int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
+      if (pluginType == PluginType.SIM_CONTROL_PLUGIN) {
+        hasController = true;
+      }
     }
     logger.info("Checking that Contiki Control Plugin exists: " + hasController);
     if (!hasController) {
