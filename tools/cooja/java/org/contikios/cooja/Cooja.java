@@ -1023,7 +1023,7 @@ public class Cooja extends Observable {
 
           int pluginType = pluginClass.getAnnotation(PluginType.class).value();
           if (pluginType != PluginType.SIM_PLUGIN && pluginType != PluginType.SIM_STANDARD_PLUGIN
-        		  && pluginType == PluginType.SIM_CONTROL_PLUGIN) {
+        		  && pluginType != PluginType.SIM_CONTROL_PLUGIN) {
             continue;
           }
 
