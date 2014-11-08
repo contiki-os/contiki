@@ -1,16 +1,3 @@
-#define DEBUG_PRINTF(...) /*printf(__VA_ARGS__)*/
-
-/**
- * \addtogroup uip
- * @{
- */
-
-/**
- * \file
- * The uIP TCP/IP stack code.
- * \author Adam Dunkels <adam@dunkels.com>
- */
-
 /*
  * Copyright (c) 2001-2003, Adam Dunkels.
  * All rights reserved.
@@ -43,6 +30,19 @@
  *
  *
  */
+
+/**
+ * \file
+ * The uIP TCP/IP stack code.
+ * \author Adam Dunkels <adam@dunkels.com>
+ */
+
+/**
+ * \addtogroup uip
+ * @{
+ */
+
+#define DEBUG_PRINTF(...) /*printf(__VA_ARGS__)*/
 
 /*
  * uIP is a small implementation of the IP, UDP and TCP protocols (as

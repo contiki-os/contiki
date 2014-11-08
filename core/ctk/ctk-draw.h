@@ -1,19 +1,3 @@
-/**
- * \addtogroup ctk
- * @{
- */
-
-/**
- * \file
- * CTK screen drawing module interface, ctk-draw.
- * \author Adam Dunkels <adam@dunkels.com>
- *
- * This file contains the interface for the ctk-draw module.The
- * ctk-draw module takes care of the actual screen drawing for CTK by
- * implementing a handful of functions that are called by CTK.
- *
- */
-
 /*
  * Copyright (c) 2002-2003, Adam Dunkels.
  * All rights reserved. 
@@ -45,6 +29,22 @@
  *
  * This file is part of the Contiki desktop OS.
  *
+ *
+ */
+
+/**
+ * \addtogroup ctk
+ * @{
+ */
+
+/**
+ * \file
+ * CTK screen drawing module interface, ctk-draw.
+ * \author Adam Dunkels <adam@dunkels.com>
+ *
+ * This file contains the interface for the ctk-draw module.The
+ * ctk-draw module takes care of the actual screen drawing for CTK by
+ * implementing a handful of functions that are called by CTK.
  *
  */
 

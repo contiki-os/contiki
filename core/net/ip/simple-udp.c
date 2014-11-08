@@ -1,9 +1,3 @@
-/**
- * \addtogroup simple-udp
- * @{
- */
-
-
 /*
  * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -41,6 +35,11 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  *
+ */
+
+/**
+ * \addtogroup simple-udp
+ * @{
  */
 
 #include "contiki-net.h"

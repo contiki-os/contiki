@@ -1,17 +1,3 @@
-/**
- * \addtogroup ctk
- * @{
- */
-
-/**
- * \file
- * CTK header file.
- * \author Adam Dunkels <adam@dunkels.com>
- *
- * The CTK header file contains functioin declarations and definitions
- * of CTK structures and macros.
- */
-
 /*
  * Copyright (c) 2002-2003, Adam Dunkels.
  * All rights reserved.
@@ -44,6 +30,20 @@
  * This file is part of the Contiki desktop OS.
  *
  *
+ */
+
+/**
+ * \file
+ * CTK header file.
+ * \author Adam Dunkels <adam@dunkels.com>
+ *
+ * The CTK header file contains functioin declarations and definitions
+ * of CTK structures and macros.
+ */
+
+/**
+ * \addtogroup ctk
+ * @{
  */
 
 #ifndef CTK_H_

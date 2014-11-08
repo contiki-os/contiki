@@ -1,8 +1,3 @@
-/**
- * \addtogroup linkaddr
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Functions for manipulating Rime addresses
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup linkaddr
+ * @{
  */
 
 #include "net/linkaddr.h"

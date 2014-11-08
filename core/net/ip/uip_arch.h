@@ -1,29 +1,3 @@
-/**
- * \addtogroup uip
- * {@
- */
-
-/**
- * \defgroup uiparch Architecture specific uIP functions
- * @{
- *
- * The functions in the architecture specific module implement the IP
- * check sum and 32-bit additions.
- *
- * The IP checksum calculation is the most computationally expensive
- * operation in the TCP/IP stack and it therefore pays off to
- * implement this in efficient assembler. The purpose of the uip-arch
- * module is to let the checksum functions to be implemented in
- * architecture specific assembler.
- *
- */
-
-/**
- * \file
- * Declarations of architecture specific functions.
- * \author Adam Dunkels <adam@dunkels.com>
- */
-
 /*
  * Copyright (c) 2001, Adam Dunkels.
  * All rights reserved. 
@@ -54,6 +28,32 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
+ *
+ */
+
+/**
+ * \file
+ * Declarations of architecture specific functions.
+ * \author Adam Dunkels <adam@dunkels.com>
+ */
+
+/**
+ * \addtogroup uip
+ * {@
+ */
+
+/**
+ * \defgroup uiparch Architecture specific uIP functions
+ * @{
+ *
+ * The functions in the architecture specific module implement the IP
+ * check sum and 32-bit additions.
+ *
+ * The IP checksum calculation is the most computationally expensive
+ * operation in the TCP/IP stack and it therefore pays off to
+ * implement this in efficient assembler. The purpose of the uip-arch
+ * module is to let the checksum functions to be implemented in
+ * architecture specific assembler.
  *
  */
 

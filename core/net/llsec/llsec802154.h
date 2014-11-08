@@ -1,16 +1,3 @@
-/**
- * \addtogroup llsec
- * @{
- */
-
-/**
- * \defgroup llsec802154
- * 
- * Common functionality of 802.15.4-compliant llsec_drivers.
- * 
- * @{
- */
-
 /*
  * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -48,6 +35,19 @@
  *         Common functionality of 802.15.4-compliant llsec_drivers.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \addtogroup llsec
+ * @{
+ */
+
+/**
+ * \defgroup llsec802154
+ * 
+ * Common functionality of 802.15.4-compliant llsec_drivers.
+ * 
+ * @{
  */
 
 #ifndef LLSEC802154_H_

@@ -1,20 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup trickle Reliable single-source multi-hop flooding
- * @{
- *
- * The trickle module sends a single packet to all nodes on the network.
- *
- * \section channels Channels
- *
- * The trickle module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -52,6 +35,23 @@
  *         Header file for Trickle (reliable single source flooding) for Rime
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup trickle Reliable single-source multi-hop flooding
+ * @{
+ *
+ * The trickle module sends a single packet to all nodes on the network.
+ *
+ * \section channels Channels
+ *
+ * The trickle module uses 1 channel.
+ *
  */
 
 #ifndef TRICKLE_H_

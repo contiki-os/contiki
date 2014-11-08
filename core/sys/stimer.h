@@ -1,37 +1,3 @@
-/** \addtogroup sys
- * @{ */
-
-/**
- * \defgroup stimer Seconds timer library
- *
- * The stimer library provides functions for setting, resetting and
- * restarting timers, and for checking if a timer has expired. An
- * application must "manually" check if its timers have expired; this
- * is not done automatically.
- *
- * A timer is declared as a \c struct \c stimer and all access to the
- * timer is made by a pointer to the declared timer.
- *
- * \note The stimer library is not able to post events when a timer
- * expires. The \ref etimer "Event timers" should be used for this
- * purpose.
- *
- * \note The stimer library uses the \ref clock "Clock library" to
- * measure time. Intervals should be specified in the seconds.
- *
- * \sa \ref etimer "Event timers"
- *
- * @{
- */
-
-
-/**
- * \file
- * Second timer library header file.
- * \author
- * Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
- */
-
 /*
  * Copyright (c) 2004, 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -65,6 +31,40 @@
  * Author: Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  *
  */
+
+/**
+ * \file
+ * Second timer library header file.
+ * \author
+ * Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ */
+
+/** \addtogroup sys
+ * @{ */
+
+/**
+ * \defgroup stimer Seconds timer library
+ *
+ * The stimer library provides functions for setting, resetting and
+ * restarting timers, and for checking if a timer has expired. An
+ * application must "manually" check if its timers have expired; this
+ * is not done automatically.
+ *
+ * A timer is declared as a \c struct \c stimer and all access to the
+ * timer is made by a pointer to the declared timer.
+ *
+ * \note The stimer library is not able to post events when a timer
+ * expires. The \ref etimer "Event timers" should be used for this
+ * purpose.
+ *
+ * \note The stimer library uses the \ref clock "Clock library" to
+ * measure time. Intervals should be specified in the seconds.
+ *
+ * \sa \ref etimer "Event timers"
+ *
+ * @{
+ */
+
 #ifndef STIMER_H_
 #define STIMER_H_
 

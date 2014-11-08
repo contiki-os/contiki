@@ -1,8 +1,3 @@
-/**
- * \addtogroup compower
- * @{
- */
-
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Communication power accounting module
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup compower
+ * @{
  */
 
 #include "contiki-conf.h"

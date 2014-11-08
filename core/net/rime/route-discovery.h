@@ -1,20 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup routediscovery Rime route discovery protocol
- * @{
- *
- * The route-discovery module does route discovery for Rime.
- *
- * \section channels Channels
- *
- * The ibc module uses 2 channels; one for the flooded route request
- * packets and one for the unicast route replies.
- *
- */
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -54,6 +37,23 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup routediscovery Rime route discovery protocol
+ * @{
+ *
+ * The route-discovery module does route discovery for Rime.
+ *
+ * \section channels Channels
+ *
+ * The ibc module uses 2 channels; one for the flooded route request
+ * packets and one for the unicast route replies.
+ *
+ */
 #ifndef ROUTE_DISCOVERY_H_
 #define ROUTE_DISCOVERY_H_
 

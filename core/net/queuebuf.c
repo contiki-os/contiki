@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimequeuebuf
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Implementation of the Rime queue buffers
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimequeuebuf
+ * @{
  */
 
 #include "contiki-net.h"

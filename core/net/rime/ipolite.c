@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeipolite
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Ipolite Anonymous best effort local area BroadCast (ipolite)
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimeipolite
+ * @{
  */
 
 #include "net/rime/rime.h"

@@ -1,22 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimecollect Tree-based hop-by-hop reliable data collection
- * @{
- *
- * The collect module implements a hop-by-hop reliable data collection
- * mechanism.
- *
- * \section channels Channels
- *
- * The collect module uses 2 channels; one for neighbor discovery and one
- * for data packets.
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -54,6 +35,25 @@
  *         Header file for hop-by-hop reliable data collection
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimecollect Tree-based hop-by-hop reliable data collection
+ * @{
+ *
+ * The collect module implements a hop-by-hop reliable data collection
+ * mechanism.
+ *
+ * \section channels Channels
+ *
+ * The collect module uses 2 channels; one for neighbor discovery and one
+ * for data packets.
+ *
  */
 
 #ifndef COLLECT_H_

@@ -1,22 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimeneighbordiscovery Neighbor discovery
- * @{
- *
- * The neighbor-discovery module implements a periodic neighbor
- * discovery mechanism. A callback is invoked for every incoming
- * neighbor discovery message.
- *
- * \section channels Channels
- *
- * The neighbor-discovery module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -54,6 +35,25 @@
  *         Neighbor discovery header file
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeneighbordiscovery Neighbor discovery
+ * @{
+ *
+ * The neighbor-discovery module implements a periodic neighbor
+ * discovery mechanism. A callback is invoked for every incoming
+ * neighbor discovery message.
+ *
+ * \section channels Channels
+ *
+ * The neighbor-discovery module uses 1 channel.
+ *
  */
 
 #ifndef NEIGHBOR_DISCOVERY_H_

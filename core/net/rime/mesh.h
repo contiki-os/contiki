@@ -1,24 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimemesh Mesh routing
- * @{
- *
- * The mesh module sends packets using multi-hop routing to a specified
- * receiver somewhere in the network.
- *
- *
- * \section channels Channels
- *
- * The mesh module uses 3 channel; one for the multi-hop forwarding
- * (\ref rimemultihop "multihop") and two for the route disovery (\ref
- * routediscovery "route-discovery").
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -56,6 +35,27 @@
  *         Header file for the Rime mesh routing protocol
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimemesh Mesh routing
+ * @{
+ *
+ * The mesh module sends packets using multi-hop routing to a specified
+ * receiver somewhere in the network.
+ *
+ *
+ * \section channels Channels
+ *
+ * The mesh module uses 3 channel; one for the multi-hop forwarding
+ * (\ref rimemultihop "multihop") and two for the route disovery (\ref
+ * routediscovery "route-discovery").
+ *
  */
 
 #ifndef MESH_H_

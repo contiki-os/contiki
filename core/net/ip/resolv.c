@@ -1,34 +1,3 @@
-/**
- * \addtogroup uip
- * @{
- */
-
-/**
- * \defgroup uipdns uIP hostname resolver functions
- * @{
- *
- * The uIP DNS resolver functions are used to lookup a hostname and
- * map it to a numerical IP address. It maintains a list of resolved
- * hostnames that can be queried with the resolv_lookup()
- * function. New hostnames can be resolved using the resolv_query()
- * function.
- *
- * The event resolv_event_found is posted when a hostname has been
- * resolved. It is up to the receiving process to determine if the
- * correct hostname has been found by calling the resolv_lookup()
- * function with the hostname.
- */
-
-/**
- * \file
- *         DNS host name to IP address resolver.
- * \author Adam Dunkels <adam@dunkels.com>
- * \author Robert Quattlebaum <darco@deepdarc.com>
- *
- *         This file implements a DNS host name to IP address resolver,
- *         as well as an MDNS responder and resolver.
- */
-
 /*
  * Copyright (c) 2002-2003, Adam Dunkels.
  * All rights reserved.
@@ -60,6 +29,37 @@
  * This file is part of the uIP TCP/IP stack.
  *
  *
+ */
+
+/**
+ * \file
+ *         DNS host name to IP address resolver.
+ * \author Adam Dunkels <adam@dunkels.com>
+ * \author Robert Quattlebaum <darco@deepdarc.com>
+ *
+ *         This file implements a DNS host name to IP address resolver,
+ *         as well as an MDNS responder and resolver.
+ */
+
+/**
+ * \addtogroup uip
+ * @{
+ */
+
+/**
+ * \defgroup uipdns uIP hostname resolver functions
+ * @{
+ *
+ * The uIP DNS resolver functions are used to lookup a hostname and
+ * map it to a numerical IP address. It maintains a list of resolved
+ * hostnames that can be queried with the resolv_lookup()
+ * function. New hostnames can be resolved using the resolv_query()
+ * function.
+ *
+ * The event resolv_event_found is posted when a hostname has been
+ * resolved. It is up to the receiving process to determine if the
+ * correct hostname has been found by calling the resolv_lookup()
+ * function with the hostname.
  */
 
 #include "net/ip/tcpip.h"

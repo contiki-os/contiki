@@ -1,8 +1,3 @@
-/**
- * \addtogroup packetbuf
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Rime buffer (packetbuf) management
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup packetbuf
+ * @{
  */
 
 #include <string.h>

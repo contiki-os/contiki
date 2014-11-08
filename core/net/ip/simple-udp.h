@@ -1,18 +1,3 @@
-/**
- * \addtogroup uip
- * @{
- */
-
-
-/**
- * \defgroup simple-udp
- *
- * The default Contiki UDP API is difficult to use. The simple-udp
- * module provides a significantly simpler API.
- *
- * @{
- */
-
 /*
  * Copyright (c) 2011, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -50,6 +35,21 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  *
+ */
+
+/**
+ * \addtogroup uip
+ * @{
+ */
+
+
+/**
+ * \defgroup simple-udp
+ *
+ * The default Contiki UDP API is difficult to use. The simple-udp
+ * module provides a significantly simpler API.
+ *
+ * @{
  */
 
 #ifndef SIMPLE_UDP_H

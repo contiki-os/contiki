@@ -1,11 +1,3 @@
-/**
- * \file
- * Various uIP library functions.
- * \author
- * Adam Dunkels <adam@sics.se>
- *
- */
-
 /*
  * Copyright (c) 2002, Adam Dunkels.
  * All rights reserved. 
@@ -39,6 +31,15 @@
  *
  *
  */
+
+/**
+ * \file
+ * Various uIP library functions.
+ * \author
+ * Adam Dunkels <adam@sics.se>
+ *
+ */
+
 #ifndef UIPLIB_H_
 #define UIPLIB_H_
 
