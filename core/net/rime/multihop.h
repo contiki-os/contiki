@@ -1,33 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimemultihop Best-effort multihop forwarding
- * @{
- *
- * The multihop module implements a multihop forwarding mechanism. Routes
- * must have already been setup with the route_add() function. Setting
- * up routes is done with another Rime module such as the \ref
- * routediscovery "route-discovery module".
- *
- * The multihop sends a packet to an identified node in the network by
- * using multi-hop forwarding at each node in the network.  The
- * application or protocol that uses the multihop primitive supplies a
- * routing function for selecting the next-hop neighbor.  If the
- * multihop primitive is requested to send a packet for which no
- * suitable next hop neighbor is found, the caller is immediately
- * notified of this and may choose to initiate a route discovery
- * process.
- *
- *
- * \section channels Channels
- *
- * The multihop module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -65,6 +35,36 @@
  *         Multihop forwarding header file
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimemultihop Best-effort multihop forwarding
+ * @{
+ *
+ * The multihop module implements a multihop forwarding mechanism. Routes
+ * must have already been setup with the route_add() function. Setting
+ * up routes is done with another Rime module such as the \ref
+ * routediscovery "route-discovery module".
+ *
+ * The multihop sends a packet to an identified node in the network by
+ * using multi-hop forwarding at each node in the network.  The
+ * application or protocol that uses the multihop primitive supplies a
+ * routing function for selecting the next-hop neighbor.  If the
+ * multihop primitive is requested to send a packet for which no
+ * suitable next hop neighbor is found, the caller is immediately
+ * notified of this and may choose to initiate a route discovery
+ * process.
+ *
+ *
+ * \section channels Channels
+ *
+ * The multihop module uses 1 channel.
+ *
  */
 
 #ifndef MULTIHOP_H_

@@ -1,42 +1,3 @@
-/** \addtogroup sys
- * @{ */
-
-/**
- * \defgroup timer Timer library
- *
- * The Contiki kernel does not provide support for timed
- * events. Rather, an application that wants to use timers needs to
- * explicitly use the timer library.
- *
- * The timer library provides functions for setting, resetting and
- * restarting timers, and for checking if a timer has expired. An
- * application must "manually" check if its timers have expired; this
- * is not done automatically.
- *
- * A timer is declared as a \c struct \c timer and all access to the
- * timer is made by a pointer to the declared timer.
- *
- * \note The timer library is not able to post events when a timer
- * expires. The \ref etimer "Event timers" should be used for this
- * purpose.
- *
- * \note The timer library uses the \ref clock "Clock library" to
- * measure time. Intervals should be specified in the format used by
- * the clock library.
- *
- * \sa \ref etimer "Event timers"
- *
- * @{
- */
-
-
-/**
- * \file
- * Timer library header file.
- * \author
- * Adam Dunkels <adam@sics.se>
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -70,6 +31,45 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
+
+/**
+ * \file
+ * Timer library header file.
+ * \author
+ * Adam Dunkels <adam@sics.se>
+ */
+
+/** \addtogroup sys
+ * @{ */
+
+/**
+ * \defgroup timer Timer library
+ *
+ * The Contiki kernel does not provide support for timed
+ * events. Rather, an application that wants to use timers needs to
+ * explicitly use the timer library.
+ *
+ * The timer library provides functions for setting, resetting and
+ * restarting timers, and for checking if a timer has expired. An
+ * application must "manually" check if its timers have expired; this
+ * is not done automatically.
+ *
+ * A timer is declared as a \c struct \c timer and all access to the
+ * timer is made by a pointer to the declared timer.
+ *
+ * \note The timer library is not able to post events when a timer
+ * expires. The \ref etimer "Event timers" should be used for this
+ * purpose.
+ *
+ * \note The timer library uses the \ref clock "Clock library" to
+ * measure time. Intervals should be specified in the format used by
+ * the clock library.
+ *
+ * \sa \ref etimer "Event timers"
+ *
+ * @{
+ */
+
 #ifndef TIMER_H_
 #define TIMER_H_
 

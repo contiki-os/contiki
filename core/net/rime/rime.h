@@ -1,8 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Header file for the Rime stack
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
  */
 
 #ifndef RIME_H_

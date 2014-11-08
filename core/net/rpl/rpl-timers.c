@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -32,11 +28,17 @@
  *
  * This file is part of the Contiki operating system.
  */
+
 /**
  * \file
  *         RPL timer management.
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include "contiki-conf.h"

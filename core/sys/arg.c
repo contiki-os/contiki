@@ -1,34 +1,3 @@
-/**
- * \file
- * Argument buffer for passing arguments when starting processes
- * \author Adam Dunkels <adam@dunkels.com>
- */
-
-/**
- * \addtogroup sys
- * @{
- */
-
-/**
- * \defgroup arg Argument buffer
- * @{
- *
- * The argument buffer can be used when passing an argument from an
- * exiting process to a process that has not been created yet. Since
- * the exiting process will have exited when the new process is
- * started, the argument cannot be passed in any of the processes'
- * addres spaces. In such situations, the argument buffer can be used.
- *
- * The argument buffer is statically allocated in memory and is
- * globally accessible to all processes.
- *
- * An argument buffer is allocated with the arg_alloc() function and
- * deallocated with the arg_free() function. The arg_free() function
- * is designed so that it can take any pointer, not just an argument
- * buffer pointer. If the pointer to arg_free() is not an argument
- * buffer, the function does nothing.
- */
-
 /*
  * Copyright (c) 2003, Adam Dunkels.
  * All rights reserved.
@@ -61,6 +30,37 @@
  * This file is part of the Contiki desktop OS
  *
  *
+ */
+
+/**
+ * \file
+ * Argument buffer for passing arguments when starting processes
+ * \author Adam Dunkels <adam@dunkels.com>
+ */
+
+/**
+ * \addtogroup sys
+ * @{
+ */
+
+/**
+ * \defgroup arg Argument buffer
+ * @{
+ *
+ * The argument buffer can be used when passing an argument from an
+ * exiting process to a process that has not been created yet. Since
+ * the exiting process will have exited when the new process is
+ * started, the argument cannot be passed in any of the processes'
+ * addres spaces. In such situations, the argument buffer can be used.
+ *
+ * The argument buffer is statically allocated in memory and is
+ * globally accessible to all processes.
+ *
+ * An argument buffer is allocated with the arg_alloc() function and
+ * deallocated with the arg_free() function. The arg_free() function
+ * is designed so that it can take any pointer, not just an argument
+ * buffer pointer. If the pointer to arg_free() is not an argument
+ * buffer, the function does nothing.
  */
 
 #include "contiki.h"

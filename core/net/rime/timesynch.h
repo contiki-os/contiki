@@ -1,30 +1,3 @@
-/**
- * \addtogroup sys
- * @{
- */
-
-/**
- * \defgroup timesynch Implicit network time synchronization
- * @{
- *
- * This crude and simple network time synchronization module
- * synchronizes clocks of all nodes in a network. The time
- * synchronization is implicit in that no explicit time
- * synchronization messages are sent: the module relies on the
- * underlying network device driver to timestamp all radio messages,
- * both outgoing and incoming. The code currently only works on the
- * Tmote Sky platform and the cc2420 driver.
- *
- * Every node has an authority level, which is included in every
- * outgoing packet. If a message is received from a node with higher
- * authority (lower authority number), the node adjusts its clock
- * towards the clock of the sending node.
- *
- * The timesynch module is implemented as a meta-MAC protocol, so that
- * the module is invoked for every incoming packet.
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -62,6 +35,33 @@
  *         Header file for a simple time synchronization mechanism
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup sys
+ * @{
+ */
+
+/**
+ * \defgroup timesynch Implicit network time synchronization
+ * @{
+ *
+ * This crude and simple network time synchronization module
+ * synchronizes clocks of all nodes in a network. The time
+ * synchronization is implicit in that no explicit time
+ * synchronization messages are sent: the module relies on the
+ * underlying network device driver to timestamp all radio messages,
+ * both outgoing and incoming. The code currently only works on the
+ * Tmote Sky platform and the cc2420 driver.
+ *
+ * Every node has an authority level, which is included in every
+ * outgoing packet. If a message is received from a node with higher
+ * authority (lower authority number), the node adjusts its clock
+ * towards the clock of the sending node.
+ *
+ * The timesynch module is implemented as a meta-MAC protocol, so that
+ * the module is invoked for every incoming packet.
+ *
  */
 
 #ifndef TIMESYNCH_H_

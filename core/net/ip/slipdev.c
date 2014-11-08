@@ -1,28 +1,3 @@
-/**
- * \addtogroup uip
- * @{
- */
-
-/**
- * \defgroup slip Serial Line IP (SLIP) protocol
- * @{
- *
- * The SLIP protocol is a very simple way to transmit IP packets over
- * a serial line. It does not provide any framing or error control,
- * and is therefore not very widely used today.
- *
- * This SLIP implementation requires two functions for accessing the
- * serial device: slipdev_char_poll() and slipdev_char_put(). These
- * must be implemented specifically for the system on which the SLIP
- * protocol is to be run.
- */
-
-/**
- * \file
- * SLIP protocol implementation
- * \author Adam Dunkels <adam@dunkels.com>
- */
-
 /*
  * Copyright (c) 2001, Adam Dunkels.
  * All rights reserved. 
@@ -54,6 +29,31 @@
  * This file is part of the uIP TCP/IP stack.
  *
  *
+ */
+
+/**
+ * \file
+ * SLIP protocol implementation
+ * \author Adam Dunkels <adam@dunkels.com>
+ */
+
+/**
+ * \addtogroup uip
+ * @{
+ */
+
+/**
+ * \defgroup slip Serial Line IP (SLIP) protocol
+ * @{
+ *
+ * The SLIP protocol is a very simple way to transmit IP packets over
+ * a serial line. It does not provide any framing or error control,
+ * and is therefore not very widely used today.
+ *
+ * This SLIP implementation requires two functions for accessing the
+ * serial device: slipdev_char_poll() and slipdev_char_put(). These
+ * must be implemented specifically for the system on which the SLIP
+ * protocol is to be run.
  */
 
 /*

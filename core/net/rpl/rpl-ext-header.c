@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -32,6 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  */
+
 /**
  * \file
  *         Management of extension headers for ContikiRPL.
@@ -40,6 +37,11 @@
  *         Joakim Eriksson <joakime@sics.se>,
  *         Niclas Finne <nfi@sics.se>,
  *         Nicolas Tsiftes <nvt@sics.se>.
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include "net/ip/uip.h"

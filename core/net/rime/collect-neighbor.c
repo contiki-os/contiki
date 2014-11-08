@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeneighbor
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Radio neighborhood management
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimeneighbor
+ * @{
  */
 
 #include <limits.h>

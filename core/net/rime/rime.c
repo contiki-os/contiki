@@ -1,8 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Rime initialization and common code
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
  */
 
 #define DEBUG 0

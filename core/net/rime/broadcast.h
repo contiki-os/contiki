@@ -1,28 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimeibc Best-effort local area broadcast
- * @{
- *
- * The broadcast module sends packets to all local area neighbors with an a
- * header that identifies the sender.
- *
- * The broadcast module sends a packet to all local neighbors.  The
- * module adds the single-hop sender address as a packet attribute to
- * outgoing packets.  All Rime primitives that need the identity of
- * the sender in the outgoing packets use the broadcast primitive,
- * either directly or indirectly through any of the other
- * communication primitives that are based on the broadcast primitive.
- *
- * \section channels Channels
- *
- * The broadcast module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -60,6 +35,31 @@
  *         Header file for identified best-effort local area broadcast
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeibc Best-effort local area broadcast
+ * @{
+ *
+ * The broadcast module sends packets to all local area neighbors with an a
+ * header that identifies the sender.
+ *
+ * The broadcast module sends a packet to all local neighbors.  The
+ * module adds the single-hop sender address as a packet attribute to
+ * outgoing packets.  All Rime primitives that need the identity of
+ * the sender in the outgoing packets use the broadcast primitive,
+ * either directly or indirectly through any of the other
+ * communication primitives that are based on the broadcast primitive.
+ *
+ * \section channels Channels
+ *
+ * The broadcast module uses 1 channel.
+ *
  */
 
 #ifndef BROADCAST_H_

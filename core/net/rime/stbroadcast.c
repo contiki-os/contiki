@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimestbroadcast
- * @{
- */
-    
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -43,6 +38,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rimestbroadcast
+ * @{
+ */
+    
 #include "net/rime/stbroadcast.h"
 #include "net/rime/rime.h"
 #include <string.h>

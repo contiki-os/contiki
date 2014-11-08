@@ -1,15 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         Neighbor discovery (RFC 4861)
- * \author Julien Abeille <jabeille@cisco.com>
- * \author Mathilde Durvy <mdurvy@cisco.com>
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +28,18 @@
  *
  * This file is part of the Contiki operating system.
  *
+ */
+
+/**
+ * \file
+ *         Neighbor discovery (RFC 4861)
+ * \author Julien Abeille <jabeille@cisco.com>
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #ifndef UIP_ND6_H_

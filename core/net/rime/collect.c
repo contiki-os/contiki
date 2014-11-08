@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimecollect
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Tree-based hop-by-hop reliable data collection
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimecollect
+ * @{
  */
 
 #include "contiki.h"

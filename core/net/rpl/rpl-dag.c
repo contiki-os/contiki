@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         Logic for Directed Acyclic Graphs in RPL.
@@ -41,6 +38,10 @@
  * Contributors: George Oikonomou <oikonomou@users.sourceforge.net> (multicast)
  */
 
+/**
+ * \addtogroup uip6
+ * @{
+ */
 
 #include "contiki.h"
 #include "net/rpl/rpl-private.h"
