@@ -390,9 +390,9 @@ queuebuf_new_from_packetbuf(void)
       PRINTF("queuebuf len %d\n", queuebuf_len);
       printf("#A q=%d\n", queuebuf_len);
       if(queuebuf_len == queuebuf_max_len + 1) {
-  memb_free(&bufmem, buf);
-  queuebuf_len--;
-  return NULL;
+        queuebuf_free(buf);
+        queuebuf_len--;
+        return NULL;
       }
 #endif /* QUEUEBUF_STATS */
 
