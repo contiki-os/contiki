@@ -49,6 +49,7 @@
 #include "dev/leds.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
+#include "net/linkaddr.h"
 
 #include "dev/ds2401.h"
 #include "sys/node-id.h"
