@@ -48,8 +48,7 @@
 #include "net/rime/collect.h"
 #include "net/rime/collect-neighbor.h"
 #include "net/rime/collect-link-estimate.h"
-
-#include "net/packetqueue.h"
+#include "net/rime/packetqueue.h"
 
 #include "dev/radio-sensor.h"
 
