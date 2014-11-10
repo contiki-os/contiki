@@ -952,7 +952,8 @@ public class Cooja extends Observable {
         String tooltip = "<html><pre>";
         if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
           tooltip += "Cooja plugin: ";
-        } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+        } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN
+        		|| pluginType == PluginType.SIM_CONTROL_PLUGIN) {
           tooltip += "Simulation plugin: ";
           if (getSimulation() == null) {
             menuItem.setEnabled(false);
@@ -963,7 +964,8 @@ public class Cooja extends Observable {
         tooltip += description + " (" + newPluginClass.getName() + ")";
 
         /* Check if simulation plugin depends on any particular radio medium */
-        if ((pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) && (getSimulation() != null)) {
+        if ((pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN
+        		|| pluginType == PluginType.SIM_CONTROL_PLUGIN) && (getSimulation() != null)) {
           if (newPluginClass.getAnnotation(SupportedArguments.class) != null) {
             boolean active = false;
             Class<? extends RadioMedium>[] radioMediums = newPluginClass.getAnnotation(SupportedArguments.class).radioMediums();
@@ -1020,7 +1022,8 @@ public class Cooja extends Observable {
           }
 
           int pluginType = pluginClass.getAnnotation(PluginType.class).value();
-          if (pluginType != PluginType.SIM_PLUGIN && pluginType != PluginType.SIM_STANDARD_PLUGIN) {
+          if (pluginType != PluginType.SIM_PLUGIN && pluginType != PluginType.SIM_STANDARD_PLUGIN
+        		  && pluginType != PluginType.SIM_CONTROL_PLUGIN) {
             continue;
           }
 
@@ -1848,8 +1851,8 @@ public class Cooja extends Observable {
           pluginClass.getConstructor(new Class[] { Mote.class, Simulation.class, Cooja.class })
           .newInstance(argMote, argSimulation, argGUI);
 
-      } else if (pluginType == PluginType.SIM_PLUGIN
-          || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+      } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN
+    		  || pluginType == PluginType.SIM_CONTROL_PLUGIN) {
         if (argGUI == null) {
           throw new PluginConstructionException("No GUI argument for simulation plugin");
         }
@@ -1931,7 +1934,8 @@ public class Cooja extends Observable {
     try {
       if (pluginType == PluginType.COOJA_PLUGIN || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
         pluginClass.getConstructor(new Class[] { Cooja.class });
-      } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+      } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN 
+    		  || pluginType == PluginType.SIM_CONTROL_PLUGIN) {
         pluginClass.getConstructor(new Class[] { Simulation.class, Cooja.class });
       } else if (pluginType == PluginType.MOTE_PLUGIN) {
         pluginClass.getConstructor(new Class[] { Mote.class, Simulation.class, Cooja.class });
@@ -3247,19 +3251,19 @@ public class Cooja extends Observable {
       }
       Cooja gui = sim.getCooja();
 
-      /* Make sure at least one test editor is controlling the simulation */
-      boolean hasEditor = false;
+      /* Make sure at least one plugin controlling the simulation */
+      boolean hasController = false;
       for (Plugin startedPlugin : gui.startedPlugins) {
-        if (startedPlugin instanceof ScriptRunner) {
-          hasEditor = true;
-          break;
-        }
+    	int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
+    	if (pluginType == PluginType.SIM_CONTROL_PLUGIN) {
+    	  hasController = true;
+    	}
       }
 
       /* Backwards compatibility:
-       * simulation has no test editor, but has external (old style) test script.
+       * simulation has no control plugin, but has external (old style) test script.
        * We will manually start a test editor from here. */
-      if (!hasEditor) {
+      if (!hasController) {
         File scriptFile = new File(config.substring(0, config.length()-4) + ".js");
         if (scriptFile.exists()) {
           logger.info("Detected old simulation test, starting test editor manually from: " + scriptFile);
@@ -3275,13 +3279,12 @@ public class Cooja extends Observable {
             System.exit(1);
           }
         } else {
-          logger.fatal("No test editor controlling simulation, aborting");
+          logger.fatal("No plugin controlling simulation, aborting");
           System.exit(1);
         }
       }
 
-      sim.setSpeedLimit(null);
-      sim.startSimulation();
+
       
     } else if (args.length > 0 && args[0].startsWith("-applet")) {
 
