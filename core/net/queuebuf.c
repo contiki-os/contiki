@@ -366,6 +366,7 @@ queuebuf_new_from_packetbuf(void)
 #else
       if(buf->ram_ptr == NULL) {
         PRINTF("queuebuf_new_from_packetbuf: could not queuebuf data\n");
+        memb_free(&bufmem, buf);
         return NULL;
       }
       buframptr = buf->ram_ptr;
