@@ -29,7 +29,7 @@
 TESTS=$(wildcard ??-*.csc)
 TESTLOGS=$(patsubst %.csc,%.testlog,$(TESTS))
 LOGS=$(patsubst %.csc,%.log,$(TESTS))
-FAILLOGS=$(patsubst %.csc,%.faillog,$(TESTS))
+FAILLOGS=$(patsubst %.csc,%.*.faillog,$(TESTS))
 #Set random seeds to create reproduceable results.
 RANDOMSEED=1 5
 
