@@ -1,30 +1,3 @@
-/**
- * \file
- * Declaration of the DSC program description structure.
- * \author Adam Dunkels <adam@dunkels.com>
- *
- */
-
-/**
- * \addtogroup loader
- * @{
- */
-
-/**
- * \page dsc The program description structure
- *
- * The Contiki DSC structure is used for describing programs. It
- * includes a string describing the program, the name of the program
- * file on disk (or a pointer to the programs initialization function
- * for systems without disk support), a bitmap icon and a text version
- * of the same icon.
- *
- * The DSC is saved into a file which can be loaded by programs such
- * as the "Directory" application which reads all DSC files on disk
- * and presents the icons and descriptions in a window.
- *
- */
-
 /*
  * Copyright (c) 2003, Adam Dunkels.
  * All rights reserved. 
@@ -58,6 +31,34 @@
  *
  *
  */
+
+/**
+ * \file
+ * Declaration of the DSC program description structure.
+ * \author Adam Dunkels <adam@dunkels.com>
+ *
+ */
+
+/**
+ * \addtogroup loader
+ * @{
+ */
+
+/**
+ * \page dsc The program description structure
+ *
+ * The Contiki DSC structure is used for describing programs. It
+ * includes a string describing the program, the name of the program
+ * file on disk (or a pointer to the programs initialization function
+ * for systems without disk support), a bitmap icon and a text version
+ * of the same icon.
+ *
+ * The DSC is saved into a file which can be loaded by programs such
+ * as the "Directory" application which reads all DSC files on disk
+ * and presents the icons and descriptions in a window.
+ *
+ */
+
 #ifndef DSC_H_
 #define DSC_H_
 

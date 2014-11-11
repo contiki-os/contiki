@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         ICMP6 I/O for RPL control messages.
@@ -41,6 +38,11 @@
  * Contributors: Niclas Finne <nfi@sics.se>, Joel Hoglund <joel@sics.se>,
  *               Mathieu Pouillot <m.pouillot@watteco.com>
  *               George Oikonomou <oikonomou@users.sourceforge.net> (multicast)
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include "net/ip/tcpip.h"

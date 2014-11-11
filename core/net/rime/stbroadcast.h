@@ -1,23 +1,3 @@
-/**
- * \addtogroup rime
- * @{
-*/
-
-/**
- * \defgroup rimestbroadcast Stubborn best-effort local area broadcast
- * @{
- *
- * The stbroadcast module provides stubborn anonymous best-effort local area
- * broadcast. A message sent with the stbroadcast module is repeated until
- * either the message is canceled or a new message is sent. Messages
- * sent with the stbroadcast module are not identified with a sender ID.
- *
- * \section channels Channels
- *
- * The stbroadcast module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -55,6 +35,26 @@
  *         Header file for the Rime module Stubborn Anonymous BroadCast (stbroadcast)
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+*/
+
+/**
+ * \defgroup rimestbroadcast Stubborn best-effort local area broadcast
+ * @{
+ *
+ * The stbroadcast module provides stubborn anonymous best-effort local area
+ * broadcast. A message sent with the stbroadcast module is repeated until
+ * either the message is canceled or a new message is sent. Messages
+ * sent with the stbroadcast module are not identified with a sender ID.
+ *
+ * \section channels Channels
+ *
+ * The stbroadcast module uses 1 channel.
+ *
  */
 
 #ifndef STBROADCAST_H_

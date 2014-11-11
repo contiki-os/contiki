@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimestunicast
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Stubborn unicast
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimestunicast
+ * @{
  */
 
 #include "net/rime/stunicast.h"

@@ -1,8 +1,3 @@
-/**
- * \addtogroup trickle
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Trickle (reliable single source flooding) for Rime
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup trickle
+ * @{
  */
 
 #include "net/rime/trickle.h"

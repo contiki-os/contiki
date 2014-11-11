@@ -1,16 +1,3 @@
-/**
- * \addtogroup llsec
- * @{
- */
-
-/**
- * \defgroup nullsec
- * 
- * Insecure link layer security driver.
- * 
- * @{
- */
-
 /*
  * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -48,6 +35,19 @@
  *         Insecure link layer security driver.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \addtogroup llsec
+ * @{
+ */
+
+/**
+ * \defgroup nullsec
+ * 
+ * Insecure link layer security driver.
+ * 
+ * @{
  */
 
 #ifndef NULLSEC_H_

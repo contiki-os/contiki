@@ -1,8 +1,3 @@
-/**
- * \addtogroup shell
- * @{
- */
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         The shell application
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup shell
+ * @{
  */
 
 #include "contiki.h"

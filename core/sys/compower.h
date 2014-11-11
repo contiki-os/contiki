@@ -1,17 +1,3 @@
-/** \addtogroup sys
- * @{ */
-
-/**
- * \defgroup compower Communication power accounting
- * @{
- *
- * The compower module accumulates power consumption information and
- * attributes it to communication activities. Examples of
- * communication activities are packet transmission, packet reception,
- * and idle listening.
- *
- */
-
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -49,6 +35,20 @@
  *         Header file for the communication power accounting module
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/** \addtogroup sys
+ * @{ */
+
+/**
+ * \defgroup compower Communication power accounting
+ * @{
+ *
+ * The compower module accumulates power consumption information and
+ * attributes it to communication activities. Examples of
+ * communication activities are packet transmission, packet reception,
+ * and idle listening.
+ *
  */
 
 #ifndef COMPOWER_H_

@@ -1,8 +1,3 @@
-/**
- * \addtogroup ctimer
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Callback timer implementation
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup ctimer
+ * @{
  */
 
 #include "sys/ctimer.h"

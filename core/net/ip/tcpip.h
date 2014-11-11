@@ -1,35 +1,3 @@
-/**
- * \addtogroup uip
- * @{
- */
-
-/**
- * \defgroup tcpip The Contiki/uIP interface
- * @{
- *
- * TCP/IP support in Contiki is implemented using the uIP TCP/IP
- * stack. For sending and receiving data, Contiki uses the functions
- * provided by the uIP module, but Contiki adds a set of functions for
- * connection management. The connection management functions make
- * sure that the uIP TCP/IP connections are connected to the correct
- * process.
- *
- * Contiki also includes an optional protosocket library that provides
- * an API similar to the BSD socket API.
- *
- * \sa \ref uip "The uIP TCP/IP stack"
- * \sa \ref psock "Protosockets library"
- *
- */
-
-/**
- * \file
- *          Header for the Contiki/uIP interface.
- * \author  Adam Dunkels <adam@sics.se>
- * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
- * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -63,6 +31,39 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
+
+/**
+ * \file
+ *          Header for the Contiki/uIP interface.
+ * \author  Adam Dunkels <adam@sics.se>
+ * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
+ * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
+ */
+
+/**
+ * \addtogroup uip
+ * @{
+ */
+
+/**
+ * \defgroup tcpip The Contiki/uIP interface
+ * @{
+ *
+ * TCP/IP support in Contiki is implemented using the uIP TCP/IP
+ * stack. For sending and receiving data, Contiki uses the functions
+ * provided by the uIP module, but Contiki adds a set of functions for
+ * connection management. The connection management functions make
+ * sure that the uIP TCP/IP connections are connected to the correct
+ * process.
+ *
+ * Contiki also includes an optional protosocket library that provides
+ * an API similar to the BSD socket API.
+ *
+ * \sa \ref uip "The uIP TCP/IP stack"
+ * \sa \ref psock "Protosockets library"
+ *
+ */
+
 #ifndef TCPIP_H_
 #define TCPIP_H_
 

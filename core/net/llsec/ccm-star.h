@@ -1,8 +1,3 @@
-/**
- * \addtogroup llsec802154
- * @{
- */
-
 /*
  * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         CCM* header file.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \addtogroup llsec802154
+ * @{
  */
 
 #ifndef CCM_STAR_H_

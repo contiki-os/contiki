@@ -1,9 +1,3 @@
-/**
- * \file
- * uIP DNS resolver code header file.
- * \author Adam Dunkels <adam@dunkels.com>
- */
-
 /*
  * Copyright (c) 2002-2003, Adam Dunkels.
  * All rights reserved. 
@@ -36,6 +30,13 @@
  *
  *
  */
+
+/**
+ * \file
+ * uIP DNS resolver code header file.
+ * \author Adam Dunkels <adam@dunkels.com>
+ */
+
 #ifndef RESOLV_H_
 #define RESOLV_H_
 

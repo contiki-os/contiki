@@ -1,26 +1,3 @@
-/** \addtogroup apps
- * @{ */
-
-/**
- * \defgroup servreghack A service registration and diseemination hack
- * @{
- *
- * This application is a quick'n'dirty hack for registering,
- * disseminating, and looking up services. A service is identified by
- * an 8-bit integer between 1 and 255. Integers below 128 are reserved
- * for system services.
- *
- * A service is registered with the function
- * servreg_hack_register(). Registered services will be transmitted to
- * all neighbors that run the servreg-hack application. These will in
- * turn resend the registration to their neighbors.
- *
- * Services from neighbors are stored in a local table. Services
- * stored in the table can be looked up using a combination of the
- * servreg_hack_list() and servreg_hack_item_match() functions.
- *
- */
-
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -58,6 +35,29 @@
  *         Header file for the servreg-hack application
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/** \addtogroup apps
+ * @{ */
+
+/**
+ * \defgroup servreghack A service registration and diseemination hack
+ * @{
+ *
+ * This application is a quick'n'dirty hack for registering,
+ * disseminating, and looking up services. A service is identified by
+ * an 8-bit integer between 1 and 255. Integers below 128 are reserved
+ * for system services.
+ *
+ * A service is registered with the function
+ * servreg_hack_register(). Registered services will be transmitted to
+ * all neighbors that run the servreg-hack application. These will in
+ * turn resend the registration to their neighbors.
+ *
+ * Services from neighbors are stored in a local table. Services
+ * stored in the table can be looked up using a combination of the
+ * servreg_hack_list() and servreg_hack_item_match() functions.
+ *
  */
 
 #ifndef SERVREG_HACK_H

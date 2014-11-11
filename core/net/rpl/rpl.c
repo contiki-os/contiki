@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -32,12 +28,18 @@
  *
  * This file is part of the Contiki operating system.
  */
+
 /**
  * \file
  *         ContikiRPL, an implementation of RPL: IPv6 Routing Protocol
  *         for Low-Power and Lossy Networks (IETF RFC 6550)
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include "net/ip/uip.h"

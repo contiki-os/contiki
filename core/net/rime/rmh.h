@@ -1,28 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimermh Best-effort multihop forwarding
- * @{
- *
- * The rmh module implements a multihop forwarding mechanism. Routes
- * must have already been setup with the route_add() function. Setting
- * up routes is done with another Rime module such as the \ref
- * routediscovery "route-discovery module".
- *
- * The hop-by-hop reliable multi-hop unciast primitive is similar to
- * the best-effot multi-hop unicast primitive except that it uses the
- * reliable single-hop primitive for the communication between two
- * single-hop neighbors.
- *
- * \section channels Channels
- *
- * The rmh module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -60,6 +35,31 @@
  *         Multihop forwarding header file
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimermh Reliable multihop forwarding
+ * @{
+ *
+ * The rmh module implements a multihop forwarding mechanism. Routes
+ * must have already been setup with the route_add() function. Setting
+ * up routes is done with another Rime module such as the \ref
+ * routediscovery "route-discovery module".
+ *
+ * The hop-by-hop reliable multi-hop unciast primitive is similar to
+ * the best-effot multi-hop unicast primitive except that it uses the
+ * reliable single-hop primitive for the communication between two
+ * single-hop neighbors.
+ *
+ * \section channels Channels
+ *
+ * The rmh module uses 1 channel.
+ *
  */
 
 #ifndef RMH_H_

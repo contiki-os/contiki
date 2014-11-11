@@ -1,8 +1,3 @@
-/**
- * \addtogroup llsec802154
- * @{
- */
-
 /*
  * Copyright (c) 2014, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -41,6 +36,11 @@
  *         unicast or broadcast frame counter of the sender.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \addtogroup llsec802154
+ * @{
  */
 
 #include "net/llsec/anti-replay.h"
