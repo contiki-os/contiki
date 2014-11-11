@@ -1,8 +1,3 @@
-/**
- * \addtogroup noncoresec
- * @{
- */
-
 /*
  * Copyright (c) 2014, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         802.15.4 security implementation, which uses a network-wide key
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \addtogroup noncoresec
+ * @{
  */
 
 #include "net/llsec/noncoresec/noncoresec.h"

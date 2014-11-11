@@ -1,22 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimebroadcastannouncement
- * @{
- *
- * The broadcast announcement module implements a periodic explicit
- * announcement. THe module announces the announcements that have been
- * registered with the \ref rimeannouncement "announcement module".
- *
- * \section channels Channels
- *
- * The broadcast announcement module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -54,6 +35,25 @@
  *         Neighbor discovery header file
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimebroadcastannouncement Broadcast announcement
+ * @{
+ *
+ * The broadcast announcement module implements a periodic explicit
+ * announcement. THe module announces the announcements that have been
+ * registered with the \ref rimeannouncement "announcement module".
+ *
+ * \section channels Channels
+ *
+ * The broadcast announcement module uses 1 channel.
+ *
  */
 
 #ifndef BROADCAST_ANNOUNCEMENT_H_

@@ -1,9 +1,3 @@
-/**
- * \addtogroup rimeabc
- * @{
- */
-
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -43,6 +37,11 @@
  *         Anonymous best-effort local area Broad Cast (abc)
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimeabc
+ * @{
  */
 
 #include "contiki-net.h"

@@ -1,22 +1,3 @@
-
-/**
- * \addtogroup uip
- * @{
- */
-
-/**
- * \file
- * Header file for the uIP TCP/IP stack.
- * \author  Adam Dunkels <adam@dunkels.com>
- * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
- * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
- *
- * The uIP TCP/IP stack header file contains definitions for a number
- * of C macros that are used by uIP programs as well as internal uIP
- * structures, TCP/IP header structures and function declarations.
- *
- */
-
 /*
  * Copyright (c) 2001-2003, Adam Dunkels.
  * All rights reserved.
@@ -47,6 +28,24 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
+ *
+ */
+
+/**
+ * \addtogroup uip
+ * @{
+ */
+
+/**
+ * \file
+ * Header file for the uIP TCP/IP stack.
+ * \author  Adam Dunkels <adam@dunkels.com>
+ * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
+ * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
+ *
+ * The uIP TCP/IP stack header file contains definitions for a number
+ * of C macros that are used by uIP programs as well as internal uIP
+ * structures, TCP/IP header structures and function declarations.
  *
  */
 
@@ -534,7 +533,7 @@ CCIF extern uip_buf_t uip_aligned_buf;
  * \defgroup uipappfunc uIP application functions
  * @{
  *
- * Functions used by an application running of top of uIP.
+ * Functions used by an application running on top of uIP.
  */
 
 /**

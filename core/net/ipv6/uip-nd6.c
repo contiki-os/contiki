@@ -1,15 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         Neighbor discovery (RFC 4861)
- * \author Mathilde Durvy <mdurvy@cisco.com>
- * \author Julien Abeille <jabeille@cisco.com>
- */
-
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
  * All rights reserved.
@@ -66,6 +54,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ */
+
+/**
+ * \file
+ *         Neighbor discovery (RFC 4861)
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ * \author Julien Abeille <jabeille@cisco.com>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include <string.h>

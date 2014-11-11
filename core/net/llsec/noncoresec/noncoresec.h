@@ -1,16 +1,3 @@
-/**
- * \addtogroup llsec
- * @{
- */
-
-/**
- * \defgroup noncoresec
- * 
- * Noncompromise-resilient 802.15.4 security
- * 
- * @{
- */
-
 /*
  * Copyright (c) 2014, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -48,6 +35,19 @@
  *         802.15.4 security implementation, which uses a network-wide key
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \addtogroup llsec
+ * @{
+ */
+
+/**
+ * \defgroup noncoresec
+ * 
+ * Noncompromise-resilient 802.15.4 security
+ * 
+ * @{
  */
 
 #ifndef NONCORESEC_H_

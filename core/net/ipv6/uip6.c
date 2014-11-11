@@ -1,16 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         The uIP TCP/IPv6 stack code.
- *
- * \author Adam Dunkels <adam@sics.se>
- * \author Julien Abeille <jabeille@cisco.com> (IPv6 related code)
- * \author Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
- */
 /*
  * Copyright (c) 2001-2003, Adam Dunkels.
  * All rights reserved.
@@ -42,6 +29,20 @@
  * This file is part of the uIP TCP/IP stack.
  *
  *
+ */
+
+/**
+ * \file
+ *         The uIP TCP/IPv6 stack code.
+ *
+ * \author Adam Dunkels <adam@sics.se>
+ * \author Julien Abeille <jabeille@cisco.com> (IPv6 related code)
+ * \author Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 /*

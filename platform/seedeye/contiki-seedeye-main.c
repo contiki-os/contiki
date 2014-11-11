@@ -35,7 +35,11 @@
  */
 
 /**
- * \addtogroup SeedEye Contiki SEEDEYE Platform
+ * \addtogroup platform
+ * @{ */
+
+/**
+ * \defgroup SeedEye Contiki SEEDEYE Platform
  *
  * @{
  */
@@ -178,3 +182,5 @@ main(int argc, char **argv)
 /*---------------------------------------------------------------------------*/
 
 /** @} */
+/** @} */
+

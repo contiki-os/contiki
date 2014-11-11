@@ -1,20 +1,3 @@
-/**
- * \defgroup llsec Link Layer Security
- * 
- * Layer for implementing link layer security.
- *         
- * NETSTACK_LLSEC sits in between NETSTACK_MAC and NETSTACK_NETWORK
- * protocols. All NETSTACK_MAC protocols invoke NETSTACK_LLSEC.input()
- * for incoming packets. Likewise, all NETSTACK_NETWORK protocols
- * invoke NETSTACK_LLSEC.send(...) for outgoing packets.
- * 
- * The bootstrap function of llsec_drivers can be used to defer the start
- * of upper layers so as to bootstrap pairwise keys. Only contiki-sky-main.c
- * supports this at the moment.
- * 
- * @{
- */
-
 /*
  * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -52,6 +35,24 @@
  *         Link layer security header file.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \ingroup net
+ * \defgroup llsec Link Layer Security
+ * 
+ * Layer for implementing link layer security.
+ *         
+ * NETSTACK_LLSEC sits in between NETSTACK_MAC and NETSTACK_NETWORK
+ * protocols. All NETSTACK_MAC protocols invoke NETSTACK_LLSEC.input()
+ * for incoming packets. Likewise, all NETSTACK_NETWORK protocols
+ * invoke NETSTACK_LLSEC.send(...) for outgoing packets.
+ * 
+ * The bootstrap function of llsec_drivers can be used to defer the start
+ * of upper layers so as to bootstrap pairwise keys. Only contiki-sky-main.c
+ * supports this at the moment.
+ * 
+ * @{
  */
 
 #ifndef LLSEC_H_

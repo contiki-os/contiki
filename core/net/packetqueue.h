@@ -1,16 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup packetqueue Packet queue
- * @{
- *
- * The packetqueue module handles a list of queued packets.
- *
- */
-
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -48,6 +35,19 @@
  *         Header file for the packetqueue module
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup packetqueue Packet queue
+ * @{
+ *
+ * The packetqueue module handles a list of queued packets.
+ *
  */
 
 #ifndef PACKETQUEUE_H_

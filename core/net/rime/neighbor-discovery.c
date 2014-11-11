@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeneighbordiscovery
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Neighbor discovery
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimeneighbordiscovery
+ * @{
  */
 
 #include "contiki.h"

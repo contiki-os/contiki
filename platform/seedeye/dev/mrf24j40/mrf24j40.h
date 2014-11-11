@@ -35,6 +35,10 @@
  */
 
 /**
+ * \addtogroup SeedEye 
+ * @{ */
+
+/**
  * \defgroup mrf24j40 MRF24J40 Driver
  *
  * @{
@@ -225,4 +229,5 @@ typedef union _INT_status {
 
 #endif /* MRF24J40_H_ */
 
+/** @} */
 /** @} */
