@@ -130,7 +130,6 @@
 #define UIP_CONF_MAX_ROUTES   5
 
 #define RPL_CONF_MAX_PARENTS         4
-#define NBR_TABLE_CONF_MAX_NEIGHBORS  8
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
@@ -166,7 +165,7 @@
 #if !UIP_CONF_IPV4 && !UIP_CONF_IPV6
 #define QUEUEBUF_CONF_NUM          8
 #else
-#define QUEUEBUF_CONF_NUM          4
+#define QUEUEBUF_CONF_NUM          2
 #endif
 
 #define TIMESYNCH_CONF_ENABLED 1
