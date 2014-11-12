@@ -308,7 +308,9 @@ uint8_t i;
 
 #endif /* ANNOUNCE_BOOT */
 
+#if UIP_CONF_IPV6 || UIP_CONF_IPV4
   process_start(&tcpip_process, NULL);
+#endif
 
 #ifdef RAVEN_LCD_INTERFACE
   process_start(&raven_lcd_process, NULL);

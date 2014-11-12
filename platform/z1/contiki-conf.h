@@ -37,7 +37,7 @@
 #define XMAC_CONF_COMPOWER          1
 #define CXMAC_CONF_COMPOWER         1
 
-#if WITH_UIP6
+#if UIP_CONF_IPV6
 
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
@@ -61,7 +61,7 @@
 #define QUEUEBUF_CONF_NUM                4 
 
 
-#else /* WITH_UIP6 */
+#else /* UIP_CONF_IPV6 */
 
 /* Network setup for non-IPv6 (rime). */
 
@@ -87,7 +87,7 @@
 
 #define QUEUEBUF_CONF_NUM          8
 
-#endif /* WITH_UIP6 */
+#endif /* UIP_CONF_IPV6 */
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 
@@ -130,7 +130,7 @@
 
 #define UART0_CONF_TX_WITH_INTERRUPT 0 // So far, printfs without interrupt.
 
-#ifdef WITH_UIP6
+#ifdef UIP_CONF_IPV6
 
 #define LINKADDR_CONF_SIZE              8
 
@@ -169,10 +169,10 @@
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
-#else /* WITH_UIP6 */
+#else /* UIP_CONF_IPV6 */
 #define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_BUFFER_SIZE     108
-#endif /* WITH_UIP6 */
+#endif /* UIP_CONF_IPV6 */
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 

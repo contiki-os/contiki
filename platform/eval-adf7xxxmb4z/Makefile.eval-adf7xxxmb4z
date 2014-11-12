@@ -51,10 +51,6 @@ CONTIKIBOARD = .
 
 CONTIKI_PLAT_DEFS = 
 
-ifeq ($(UIP_CONF_IPV6),1)
-CFLAGS += -DWITH_UIP6=1
-endif
-
 include $(CONTIKIRL78)/Makefile.rl78
 
 PROG_UART ?= /dev/ttyUSB1
@@ -62,6 +58,6 @@ PROG_UART ?= /dev/ttyUSB1
 run: $(CONTIKI_PROJECT).$(TARGET).srec
 	~/adi-contiki/github/rl78flash/rl78flash -vv -i -m3 $(PROG_UART) -b500000 -a $<
 
-MODULES+=core/net/ip core/net/ipv4 core/net core/net/rpl \
-         core/net/ipv6 core/net/rime core/net/mac core/net/mac/sicslowmac \
+MODULES+=core/net \
+         core/net/mac core/net/mac/sicslowmac \
          core/net/llsec

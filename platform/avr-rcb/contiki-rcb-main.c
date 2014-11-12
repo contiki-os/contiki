@@ -74,9 +74,17 @@ FUSES =
 PROCESS(rcb_leds, "RCB leds process");
 
 #if RF230BB
+#if UIP_CONF_IPV6 || UIP_CONF_IPV4
 PROCINIT(&etimer_process, &tcpip_process, &rcb_leds);
 #else
+PROCINIT(&etimer_process, &rcb_leds);
+#endif
+#else
+#if UIP_CONF_IPV6 || UIP_CONF_IPV4
 PROCINIT(&etimer_process, &mac_process, &tcpip_process, &rcb_leds);
+#else
+PROCINIT(&etimer_process, &mac_process, &rcb_leds);
+#endif
 #endif
 
 /* Put default MAC address in EEPROM */

@@ -26,10 +26,6 @@ ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-z1-main.c
 endif
 
-ifeq ($(UIP_CONF_IPV6),1)
-CFLAGS += -DWITH_UIP6=1
-endif
-
 ifdef nodemac
 CFLAGS += -DMACID=$(nodemac)
 endif
