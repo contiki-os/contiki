@@ -54,9 +54,17 @@
 #endif /* __CYGWIN__ */
 
 #ifdef __CYGWIN__
+#if UIP_CONF_IPV6 || UIP_CONF_IPV4
 PROCINIT(&etimer_process, &tcpip_process, &wpcap_process, &serial_line_process);
+#else
+PROCINIT(&etimer_process, &wpcap_process, &serial_line_process);
+#endif
 #else /* __CYGWIN__ */
+#if UIP_CONF_IPV6 || UIP_CONF_IPV4
 PROCINIT(&etimer_process, &tapdev_process, &tcpip_process, &serial_line_process);
+#else
+PROCINIT(&etimer_process, &tapdev_process, &serial_line_process);
+#endif
 #endif /* __CYGWIN__ */
 
 #if RPL_BORDER_ROUTER

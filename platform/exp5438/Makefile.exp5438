@@ -1,8 +1,8 @@
 # $Id: Makefile.z1,v 1.4 2010/11/07 08:40:24 enricmcalvo Exp $
 # msp430flasher -n msp430x5437 -w "Firmware.txt" -v -z [VCC]
 
-MODULES += core/net core/net/ip core/net/ipv6 core/net/ipv4 \
-           core/net/mac core/net/rpl core/net/rime core/net/mac/contikimac \
+MODULES += core/net \
+           core/net/mac core/net/mac/contikimac \
            core/net/llsec dev/cc2420
 
 ifdef IAR
@@ -42,10 +42,6 @@ help:
 CONTIKI_TARGET_DIRS = . dev apps net
 ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-exp5438-main.c
-endif
-
-ifeq ($(UIP_CONF_IPV6),1)
-CFLAGS += -DWITH_UIP6=1
 endif
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)

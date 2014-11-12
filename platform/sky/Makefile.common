@@ -10,10 +10,6 @@ ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-sky-main.c
 endif
 
-ifeq ($(UIP_CONF_IPV6),1)
-CFLAGS += -DWITH_UIP6=1
-endif
-
 ifdef IAR
 CFLAGS += -D__MSP430F1611__=1 -e --vla -Ohz --multiplier=16s --core=430 --double=32
 CFLAGSNO = --dlib_config "$(IAR_PATH)/LIB/DLIB/dl430fn.h" $(CFLAGSWERROR)

@@ -3,7 +3,6 @@ all: $(CONTIKI_PROJECT)
 
 APPS = telnetd program-handler
 
-WITH_UIP=1
-
 CONTIKI = ../..
+CONTIKI_WITH_IPV4 = 1
 include $(CONTIKI)/Makefile.include

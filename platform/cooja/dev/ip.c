@@ -44,12 +44,12 @@ char simIP[16];
 
 #endif /* UIP_CONF_IPV6 */
 
-#if WITH_UIP
+#if UIP_CONF_IPV4
 
 char simIPChanged;
 char simIP[4];
 
-#endif /* WITH_UIP */
+#endif /* UIP_CONF_IPV4 */
 
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -61,7 +61,7 @@ doInterfaceActionsBeforeTick(void)
 
 #endif /* UIP_CONF_IPV6 */
 
-#if WITH_UIP
+#if UIP_CONF_IPV4
 
   /* check if IPv4 address should change */
 /*
@@ -73,7 +73,7 @@ doInterfaceActionsBeforeTick(void)
   }
 */
 
-#endif /* WITH_UIP */
+#endif /* UIP_CONF_IPV4 */
 }
 /*-----------------------------------------------------------------------------------*/
 static void

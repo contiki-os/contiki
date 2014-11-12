@@ -97,8 +97,8 @@ uart1_writeb(unsigned char c)
 #endif /* TX_WITH_INTERRUPT */
 }
 /*---------------------------------------------------------------------------*/
-#if ! WITH_UIP /* If WITH_UIP is defined, putchar() is defined by the SLIP driver */
-#endif /* ! WITH_UIP */
+#if ! UIP_CONF_IPV4 /* If UIP_CONF_IPV4 is defined, putchar() is defined by the SLIP driver */
+#endif /* ! UIP_CONF_IPV4 */
 /*---------------------------------------------------------------------------*/
 /**
  * Initalize the RS232 port.

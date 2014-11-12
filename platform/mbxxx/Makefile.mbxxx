@@ -6,10 +6,6 @@ ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-main.c board.c
 endif
 
-ifdef UIP_CONF_IPV6
-CFLAGS += -DWITH_UIP6=1
-endif
-
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(CONTIKI_TARGET_MAIN)
 
 MCU=STM32W108
@@ -21,6 +17,6 @@ ifeq ($(HOST_OS),Windows)
   SERIALDUMP = $(CONTIKI)/tools/stm32w/serialdump-windows
 endif
 
-MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 \
-         core/net/rpl core/net/rime core/net/mac core/net/mac/contikimac \
+MODULES+=core/net \
+         core/net/mac core/net/mac/contikimac \
          core/net/llsec

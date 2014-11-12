@@ -316,13 +316,17 @@ uint8_t i;
 // rime_init(rime_udp_init(NULL));
 // uip_router_register(&rimeroute);
 
+#if UIP_CONF_IPV6 || UIP_CONF_IPV4
   process_start(&tcpip_process, NULL);
+#endif
 
 #else /* !RF230BB */
 /* Original RF230 combined mac/radio driver */
 /* mac process must be started before tcpip process! */
   process_start(&mac_process, NULL);
+#if UIP_CONF_IPV6 || UIP_CONF_IPV4
   process_start(&tcpip_process, NULL);
+#endif
 #endif /* RF230BB */
 
 #ifdef RAVEN_LCD_INTERFACE

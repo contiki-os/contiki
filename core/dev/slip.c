@@ -96,7 +96,6 @@ slip_set_input_callback(void (*c)(void))
 /* slip_send: forward (IPv4) packets with {UIP_FW_NETIF(..., slip_send)}
  * was used in slip-bridge.c
  */
-//#if WITH_UIP
 uint8_t
 slip_send(void)
 {
@@ -125,7 +124,6 @@ slip_send(void)
 
   return UIP_FW_OK;
 }
-//#endif /* WITH_UIP */
 /*---------------------------------------------------------------------------*/
 uint8_t
 slip_write(const void *_ptr, int len)
