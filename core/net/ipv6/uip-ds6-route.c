@@ -36,8 +36,6 @@
 #include "lib/memb.h"
 #include "net/nbr-table.h"
 
-#if UIP_CONF_IPV6
-
 #include <string.h>
 
 /* The nbr_routes holds a neighbor table to be able to maintain
@@ -631,5 +629,3 @@ uip_ds6_defrt_periodic(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-
-#endif /* UIP_CONF_IPV6 */

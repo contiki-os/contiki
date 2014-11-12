@@ -74,7 +74,6 @@
 #include "net/ipv6/uip-ds6.h"
 #include "lib/random.h"
 
-#if UIP_CONF_IPV6
 /*------------------------------------------------------------------*/
 #define DEBUG 0
 #include "net/ip/uip-debug.h"
@@ -1036,4 +1035,3 @@ uip_nd6_init()
 }
 /*---------------------------------------------------------------------------*/
  /** @} */
-#endif /* UIP_CONF_IPV6 */
