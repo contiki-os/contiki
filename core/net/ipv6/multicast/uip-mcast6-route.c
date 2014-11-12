@@ -45,7 +45,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 /* Size of the multicast routing table */
 #ifdef UIP_MCAST6_ROUTE_CONF_ROUTES
@@ -129,5 +128,3 @@ uip_mcast6_route_init()
   list_init(mcast_route_list);
 }
 /*---------------------------------------------------------------------------*/
-
-#endif /* UIP_CONF_IPV6 */
