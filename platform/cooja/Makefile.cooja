@@ -74,7 +74,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/x86
 CFLAGSNO = $(EXTRA_CC_ARGS) -Wall -g -I/usr/local/include -DCLASSNAME=$(CLASSNAME)
 CFLAGS   += $(CFLAGSNO)
 
-MODULES += core/net core/net/mac core/net/rime \
+MODULES += core/net core/net/mac \
            core/net/llsec
 
 ## Copied from Makefile.include, since Cooja overrides CFLAGS et al
