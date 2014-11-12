@@ -51,7 +51,7 @@ CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c petsciiconv.c cfs-posix-dir.c \
                        $(CONTIKI_TARGET_SOURCEFILES) $(CONTIKI_CPU_SOURCEFILES) \
                        $(ETHERNET_SOURCEFILES)
 
-MODULES += core/ctk core/net/ip core/net/ipv4 core/net/ipv6
+MODULES += core/ctk
 
 # Set target-specific variable values
 ${addprefix $(OBJECTDIR)/,${call oname, $(ETHERNET_SOURCEFILES)}}: ASFLAGS += -D DYN_DRV=0

@@ -72,9 +72,9 @@
 #include "net/rime/rime.h"
 #include "net/ip/uip.h"
 
-#if WITH_UIP6
+#if UIP_CONF_IPV6
 #include "net/ipv6/uip-ds6.h"
-#endif /* WITH_UIP6 */
+#endif /* UIP_CONF_IPV6 */
 
 #define DEBUG 1
 #if DEBUG

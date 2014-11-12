@@ -1,19 +1,35 @@
-shell_src = shell.c shell-reboot.c \
-            shell-vars.c shell-ps.c shell-rime.c shell-sendtest.c \
+shell_src = shell.c shell-reboot.c shell-vars.c shell-ps.c \
             shell-blink.c shell-text.c shell-time.c \
-            shell-file.c shell-netfile.c shell-run.c \
-            shell-rime-ping.c shell-rime-sniff.c shell-rime-netcmd.c \
-            shell-rime-debug.c shell-rime-debug-runicast.c shell-coffee.c \
-            shell-wget.c shell-httpd.c shell-irc.c \
+            shell-file.c shell-run.c \
+            shell-coffee.c \
             shell-power.c \
-            shell-tcpsend.c shell-udpsend.c shell-ping.c shell-netstat.c \
-            shell-rime-sendcmd.c shell-download.c shell-rime-neighbors.c \
-            shell-rime-unicast.c \
             shell-base64.c \
-            shell-netperf.c shell-memdebug.c \
-	    shell-powertrace.c shell-collect-view.c shell-crc.c
+            shell-memdebug.c \
+	    shell-powertrace.c shell-crc.c
 shell_dsc = shell-dsc.c
+	    
+ifeq ($(CONTIKI_WITH_RIME),1)
+shell_src += shell-rime.c shell-sendtest.c shell-netfile.c \
+            shell-rime-ping.c shell-rime-sniff.c shell-rime-netcmd.c \
+            shell-rime-debug.c shell-rime-debug-runicast.c \
+            shell-rime-sendcmd.c shell-download.c shell-rime-neighbors.c \
+			shell-rime-unicast.c shell-netperf.c \
+			shell-collect-view.c 
+			
+APPS += collect-view
+include $(CONTIKI)/apps/collect-view/Makefile.collect-view
+endif
 
+ifeq ($(CONTIKI_WITH_IPV4),1)
+	SHELL_WITH_IP = 1
+endif
+ifeq ($(CONTIKI_WITH_IPV6),1)
+	SHELL_WITH_IP = 1
+endif
+
+ifeq ($(SHELL_WITH_IP),1)
+shell_src += shell-wget.c shell-httpd.c shell-irc.c \
+            shell-tcpsend.c shell-udpsend.c shell-ping.c shell-netstat.c
 APPS += webserver
 include $(CONTIKI)/apps/webserver/Makefile.webserver
 ifndef PLATFORM_BUILD
@@ -38,12 +54,10 @@ ifndef PLATFORM_BUILD
   override telnet_src = telnet.c
 endif
 
+endif
+
 APPS += powertrace
 include $(CONTIKI)/apps/powertrace/Makefile.powertrace
-
-
-APPS += collect-view
-include $(CONTIKI)/apps/collect-view/Makefile.collect-view
 
 ifeq ($(TARGET),sky)
   shell_src += shell-sky.c shell-exec.c

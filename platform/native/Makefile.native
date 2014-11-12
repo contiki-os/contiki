@@ -6,10 +6,6 @@ ifeq ($(HOST_OS),Darwin)
   AROPTS = rc
 endif
 
-ifeq ($(UIP_CONF_IPV6),1)
-CFLAGS += -DWITH_UIP6=1
-endif
-
 CONTIKI_TARGET_DIRS = . dev ctk
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
@@ -23,7 +19,7 @@ TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 else
 CONTIKI_TARGET_SOURCEFILES += tapdev-drv.c
 #math
-ifneq ($(UIP_CONF_IPV6),1)
+ifneq ($(CONTIKI_WITH_IPV6),1)
 CONTIKI_TARGET_SOURCEFILES += tapdev.c
 else
 CONTIKI_TARGET_SOURCEFILES += tapdev6.c
@@ -46,5 +42,4 @@ CURSES_LIBS ?= -lncurses
 
 TARGET_LIBFILES += $(CURSES_LIBS)
 
-MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 core/net/rime \
-         core/net/mac core/net/rpl core/ctk core/net/llsec
+MODULES+=core/net core/net/mac core/ctk core/net/llsec

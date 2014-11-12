@@ -45,9 +45,9 @@
 
 #include "dev/button-sensor.h"
 
-#if WITH_UIP6
+#if UIP_CONF_IPV6
 #include "net/ipv6/uip-ds6.h"
-#endif /* WITH_UIP6 */
+#endif /* UIP_CONF_IPV6 */
 
 #include "net/rime/rime.h"
 #include "uart0.h"
@@ -183,7 +183,7 @@ main(int argc, char **argv)
   netstack_init();
   printf("MAC %s RDC %s NETWORK %s" NEWLINE, NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
-#if WITH_UIP6
+#if UIP_CONF_IPV6
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
 
   process_start(&tcpip_process, NULL);
@@ -201,7 +201,7 @@ main(int argc, char **argv)
 
     printf("%02x%02x" NEWLINE, lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
-#else
+#elif UIP_CONF_IPV4
   process_start(&tcpip_process, NULL);
 #endif
 

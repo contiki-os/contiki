@@ -69,7 +69,7 @@ typedef uint32_t rtimer_clock_t;
 #define ENERGEST_CONF_ON 1
 #endif /* ENERGEST_CONF_ON */
 
-#ifdef WITH_UIP6
+#ifdef UIP_CONF_IPV6
 #define NETSTACK_CONF_NETWORK                   sicslowpan_driver
 #define NETSTACK_CONF_FRAMER                    framer_802154
 #define NETSTACK_CONF_MAC                       nullmac_driver
@@ -87,7 +87,7 @@ typedef uint32_t rtimer_clock_t;
 
 #define RDC_CONF_HARDWARE_CSMA                  1
 
-#ifdef WITH_UIP6
+#ifdef UIP_CONF_IPV6
 #define UIP_CONF_ROUTER                         1
 #ifndef UIP_CONF_IPV6_RPL
 #define UIP_CONF_IPV6_RPL                       1

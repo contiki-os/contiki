@@ -100,7 +100,7 @@ slip_set_tcpip_input_callback(void (*c)(void))
   tcpip_input_callback = c;
 }
 /*---------------------------------------------------------------------------*/
-#if WITH_UIP
+#if UIP_CONF_IPV4
 uint8_t
 slip_send(void)
 {
@@ -129,7 +129,7 @@ slip_send(void)
 
   return UIP_FW_OK;
 }
-#endif /* WITH_UIP */
+#endif /* UIP_CONF_IPV4 */
 /*---------------------------------------------------------------------------*/
 uint8_t
 slip_write(const void *_ptr, int len)
