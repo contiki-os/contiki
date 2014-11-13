@@ -5,6 +5,9 @@ before_script:
   - WGET="travis_retry wget --continue --tries=20 --waitretry=10 --retry-connrefused --no-dns-cache --timeout 300"
   - sudo apt-get -qq update
 
+  ## Support building a binary that is identical to the CI
+  - echo -n "Contiki will be compiled with RELSTR=" ; git --git-dir .git describe --tags --always
+
   ## Install msp430 toolchain
   - sudo apt-get -qq install lib32z1
   - $WGET http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 &&

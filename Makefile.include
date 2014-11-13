@@ -35,6 +35,13 @@ ifndef HOST_OS
   endif
 endif
 
+#More debug information when running in CI
+ifdef CI
+  ifeq ($(CI),true)
+    V = 1
+  endif
+endif
+
 usage:
 	@echo "make MAKETARGETS... [TARGET=(TARGET)] [savetarget] [targets]"
 
@@ -152,8 +159,10 @@ CFLAGS += ${addprefix -I,$(SOURCEDIRS) $(CONTIKI)}
 
 ### Check for a git repo and pass version if found
 ### git.exe in Windows cmd shells may require no stderr redirection
-#RELSTR=${shell git describe --tags}
-RELSTR:=${shell git --git-dir ${CONTIKI}/.git describe --tags 2>/dev/null}
+ifndef RELSTR
+RELSTR:=${shell git --git-dir ${CONTIKI}/.git describe --tags --always}
+endif
+
 ifneq ($(RELSTR),)
 CFLAGS += -DCONTIKI_VERSION_STRING=\"Contiki-$(RELSTR)\"
 endif
