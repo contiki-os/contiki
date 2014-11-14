@@ -1,8 +1,3 @@
-/**
- * \addtogroup routediscovery
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Route discovery protocol
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup routediscovery
+ * @{
  */
 
 #include "contiki.h"

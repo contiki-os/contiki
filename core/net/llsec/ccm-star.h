@@ -1,8 +1,3 @@
-/**
- * \addtogroup llsec802154
- * @{
- */
-
 /*
  * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -42,26 +37,31 @@
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef CCM_H_
-#define CCM_H_
+/**
+ * \addtogroup llsec802154
+ * @{
+ */
+
+#ifndef CCM_STAR_H_
+#define CCM_STAR_H_
 
 #include "contiki.h"
 #include "net/mac/frame802154.h"
 
 /* see RFC 3610 */
-#define CCM_AUTH_FLAGS(Adata, M) ((Adata ? (1 << 6) : 0) | (((M - 2) >> 1) << 3) | 1)
-#define CCM_ENCRYPTION_FLAGS     1
+#define CCM_STAR_AUTH_FLAGS(Adata, M) ((Adata ? (1 << 6) : 0) | (((M - 2) >> 1) << 3) | 1)
+#define CCM_STAR_ENCRYPTION_FLAGS     1
 
-#ifdef CCM_CONF
-#define CCM CCM_CONF
-#else /* CCM_CONF */
-#define CCM ccm_driver
-#endif /* CCM_CONF */
+#ifdef CCM_STAR_CONF
+#define CCM_STAR CCM_STAR_CONF
+#else /* CCM_STAR_CONF */
+#define CCM_STAR ccm_star_driver
+#endif /* CCM_STAR_CONF */
 
 /**
- * Structure of CCM drivers.
+ * Structure of CCM* drivers.
  */
-struct ccm_driver {
+struct ccm_star_driver {
   
    /**
     * \brief         Generates a MIC over the frame in the packetbuf.
@@ -78,8 +78,8 @@ struct ccm_driver {
   void (* ctr)(const uint8_t *extended_source_address);
 };
 
-extern const struct ccm_driver CCM;
+extern const struct ccm_star_driver CCM_STAR;
 
-#endif /* CCM_H_ */
+#endif /* CCM_STAR_H_ */
 
 /** @} */

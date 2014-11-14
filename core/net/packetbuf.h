@@ -1,15 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup packetbuf Rime buffer management
- * @{
- *
- * The packetbuf module does Rime's buffer management.
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -47,6 +35,18 @@
  *         Header file for the Rime buffer (packetbuf) management
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup packetbuf Rime buffer management
+ * @{
+ *
+ * The packetbuf module does Rime's buffer management.
  */
 
 #ifndef PACKETBUF_H_

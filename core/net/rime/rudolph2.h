@@ -1,22 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rudolph2 Single-hop reliable bulk data transfer
- * @{
- *
- * The rudolph2 module implements a single-hop reliable bulk data
- * transfer mechanism.
- *
- * \section channels Channels
- *
- * The rudolph2 module uses 2 channels; one for data packets and one
- * for NACK and repair packets.
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -54,6 +35,25 @@
  *         Header file for the single-hop reliable bulk data transfer module
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rudolph2 Single-hop reliable bulk data transfer (rudolph2)
+ * @{
+ *
+ * The rudolph2 module implements a single-hop reliable bulk data
+ * transfer mechanism.
+ *
+ * \section channels Channels
+ *
+ * The rudolph2 module uses 2 channels; one for data packets and one
+ * for NACK and repair packets.
+ *
  */
 
 #ifndef RUDOLPH2_H_

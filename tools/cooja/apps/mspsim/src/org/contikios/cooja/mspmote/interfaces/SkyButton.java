@@ -30,102 +30,36 @@
 
 package org.contikios.cooja.mspmote.interfaces;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Collection;
-
-import javax.swing.JButton;
-import javax.swing.JPanel;
-
 import org.apache.log4j.Logger;
-import org.jdom.Element;
-
 import org.contikios.cooja.ClassDescription;
 import org.contikios.cooja.Mote;
-import org.contikios.cooja.Simulation;
 import org.contikios.cooja.interfaces.Button;
-import org.contikios.cooja.mspmote.MspMoteTimeEvent;
 import org.contikios.cooja.mspmote.SkyMote;
 
 @ClassDescription("Button")
 public class SkyButton extends Button {
-  private static Logger logger = Logger.getLogger(SkyButton.class);
+  private static final Logger logger = Logger.getLogger(SkyButton.class);
 
-  private SkyMote skyMote;
-  private Simulation sim;
-  
-  private MspMoteTimeEvent pressButtonEvent;
-  private MspMoteTimeEvent releaseButtonEvent;
-  
+  private final SkyMote skyMote;
+
   public SkyButton(Mote mote) {
+    super(mote);
     skyMote = (SkyMote) mote;
-    sim = mote.getSimulation();
-    
-    pressButtonEvent = new MspMoteTimeEvent((SkyMote)mote, 0) {
-      public void execute(long t) {
-        skyMote.skyNode.setButton(true);
-      }
-    };
-    releaseButtonEvent = new MspMoteTimeEvent((SkyMote)mote, 0) {
-      public void execute(long t) {
-        skyMote.skyNode.setButton(false);
-      }
-    };
   }
 
-  public void clickButton() {
-    sim.invokeSimulationThread(new Runnable() {
-      public void run() {
-        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
-        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime() + Simulation.MILLISECOND);
-      }      
-    });
+  @Override
+  protected void doPressButton() {
+    skyMote.skyNode.getButton().setPressed(true);
   }
 
-  public void pressButton() {
-    sim.invokeSimulationThread(new Runnable() {
-      public void run() {
-        sim.scheduleEvent(pressButtonEvent, sim.getSimulationTime());
-      }      
-    });
+  @Override
+  protected void doReleaseButton() {
+    skyMote.skyNode.getButton().setPressed(false);
   }
 
-  public void releaseButton() {
-    sim.invokeSimulationThread(new Runnable() {
-      public void run() {
-        sim.scheduleEvent(releaseButtonEvent, sim.getSimulationTime());
-      }      
-    });
-  }
-
+  @Override
   public boolean isPressed() {
-  	/* Not implemented */
-    return false;
-  }
-
-  public JPanel getInterfaceVisualizer() {
-    JPanel panel = new JPanel();
-    final JButton clickButton = new JButton("Click button");
-
-    panel.add(clickButton);
-
-    clickButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        clickButton();
-      }
-    });
-
-    return panel;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    return skyMote.skyNode.getButton().isPressed();
   }
 
 }

@@ -1,8 +1,3 @@
-/**
- * \addtogroup sicslowpan
- * @{
- */
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -34,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         Header file for the 6lowpan implementation
@@ -43,6 +39,11 @@
  * \author Niclas Finne <nfi@sics.se>
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
+ */
+
+/**
+ * \addtogroup sicslowpan
+ * @{
  */
 
 #ifndef SICSLOWPAN_H_

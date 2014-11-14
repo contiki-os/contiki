@@ -1,8 +1,3 @@
-/**
- * \addtogroup llsec802154
- * @{
- */
-
 /*
  * Copyright (c) 2014, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Interface to anti-replay mechanisms.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \addtogroup llsec802154
+ * @{
  */
 
 #ifndef ANTI_REPLAY_H

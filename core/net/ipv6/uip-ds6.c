@@ -1,16 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         IPv6 data structures handling functions.
- *         Comprises part of the Neighbor discovery (RFC 4861)
- *         and auto configuration (RFC 4862) state machines.
- * \author Mathilde Durvy <mdurvy@cisco.com>
- * \author Julien Abeille <jabeille@cisco.com>
- */
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +27,21 @@
  * SUCH DAMAGE.
  *
  */
+
+/**
+ * \file
+ *         IPv6 data structures handling functions.
+ *         Comprises part of the Neighbor discovery (RFC 4861)
+ *         and auto configuration (RFC 4862) state machines.
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ * \author Julien Abeille <jabeille@cisco.com>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
 #include <string.h>
 #include <stdlib.h>
 #include <stddef.h>

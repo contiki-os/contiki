@@ -31,6 +31,17 @@
  *
  */
 
+/**
+ * \ingroup platform
+ *
+ * \defgroup native_platform Native platform
+ *
+ * Platform running in the host (Windows or Linux) environment.
+ *
+ * Used mainly for development and debugging.
+ * @{
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -297,3 +308,5 @@ uip_log(char *m)
   fprintf(stderr, "%s\n", m);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
+

@@ -1,4 +1,4 @@
-/** \addtogroup platform_common
+/** 
  * \brief Compiler and Platform specific definitions and typedefs common to
  * all platforms.  
  *
@@ -9,6 +9,10 @@
  * See platform-common.h for source code.
  *@{
  */
+
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
 
 /** \file hal/micro/generic/compiler/platform-common.h
  * See \ref platform_common for detailed documentation.
@@ -348,4 +352,5 @@
 #endif //PLATFORMCOMMON_H_
 
 /** @}  END addtogroup */
+/** @} */
 

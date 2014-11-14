@@ -49,10 +49,7 @@
  *  \brief This file is where the main functions that relate to frame
  *  manipulation will reside.
 */
-/**
- *   \addtogroup frame802154
- *   @{
-*/
+
 /**
  *  \file
  *  \brief 802.15.4 frame creation and parsing functions
@@ -60,6 +57,11 @@
  *  This file converts to and from a structure to a packed 802.15.4
  *  frame.
  */
+
+/**
+ *   \addtogroup frame802154
+ *   @{
+*/
 
 #include "sys/cc.h"
 #include "net/mac/frame802154.h"

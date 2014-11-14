@@ -1,0 +1,50 @@
+/**
+ * \defgroup cpu Contiki CPUs
+ *
+ */
+
+/**
+ * \defgroup avr AVR
+ * \ingroup cpu
+ */
+
+/**
+ * \defgroup wireless Wireless 
+ * \ingroup avr 
+ */
+
+/**
+ * \defgroup arm ARM
+ * \ingroup cpu
+ */
+
+/**
+ * \defgroup stm32w-cpu STM32W108
+ * \ingroup cpu
+ */
+
+/**
+ * \defgroup ccxxx CCxxx
+ * \ingroup cpu
+ */
+
+/**
+ * \defgroup pic32 PIC32 Contiki Port
+ * \ingroup cpu
+ */
+
+/**
+ * \defgroup ADUCRF101 ADUCRF101
+ * \ingroup cpu
+ */
+
+/**
+ * \defgroup native Native
+ * \ingroup cpu
+ */
+
+/**
+ * \defgroup x86 x86
+ * \ingroup cpu
+ */
+

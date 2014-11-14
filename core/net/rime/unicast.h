@@ -1,25 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimeuc Single-hop unicast
- * @{
- *
- * The unicast module sends a packet to an identified single-hop
- * neighbor.  The unicast primitive uses the broadcast primitive and
- * adds the single-hop receiver address attribute to the outgoing
- * packets. For incoming packets, the unicast module inspects the
- * single-hop receiver address attribute and discards the packet if
- * the address does not match the address of the node.
- *
- * \section channels Channels
- *
- * The unicast module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -57,6 +35,28 @@
  *         Header file for Rime's single-hop unicast
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeuc Single-hop unicast
+ * @{
+ *
+ * The unicast module sends a packet to an identified single-hop
+ * neighbor.  The unicast primitive uses the broadcast primitive and
+ * adds the single-hop receiver address attribute to the outgoing
+ * packets. For incoming packets, the unicast module inspects the
+ * single-hop receiver address attribute and discards the packet if
+ * the address does not match the address of the node.
+ *
+ * \section channels Channels
+ *
+ * The unicast module uses 1 channel.
+ *
  */
 
 #ifndef UNICAST_H_

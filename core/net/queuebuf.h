@@ -1,16 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimequeuebuf Rime queue buffer management
- * @{
- *
- * The queuebuf module handles buffers that are queued.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -48,6 +35,19 @@
  *         Header file for the Rime queue buffer management
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimequeuebuf Rime queue buffer management
+ * @{
+ *
+ * The queuebuf module handles buffers that are queued.
+ *
  */
 
 #ifndef QUEUEBUF_H_

@@ -5,7 +5,7 @@
 
 /**
  * \defgroup uip6 uIP IPv6 specific features
- * @{
+ *
 The uIP IPv6 stack provides new Internet communication abilities to Contiki. 
 This document describes Ipv6 specific features. For features that
 are common to the IPv4 and IPv6 code please refer to \ref uip "uIP".
@@ -377,7 +377,7 @@ We pass all the tests for phase 2 except:
 
 
 <HR>
-
+@{
 */
 /** @} */
 /** @} */

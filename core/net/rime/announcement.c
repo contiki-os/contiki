@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeannouncement
- * @{
- */
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Implementation of the announcement primitive
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimeannouncement
+ * @{
  */
 
 #include "net/rime/announcement.h"

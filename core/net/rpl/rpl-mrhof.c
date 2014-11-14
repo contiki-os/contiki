@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         The Minimum Rank with Hysteresis Objective Function (MRHOF)
@@ -42,6 +39,11 @@
  *         and also provides stubs for the energy metric.
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include "net/rpl/rpl-private.h"

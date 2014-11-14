@@ -52,6 +52,7 @@
 #include "net/rime/rime.h"
 #include "net/netstack.h"
 
+#include "dev/eeprom.h"
 #include "dev/serial-line.h"
 #include "dev/cooja-radio.h"
 #include "dev/button-sensor.h"
@@ -228,10 +229,7 @@ contiki_init()
   set_rime_addr();
   {
     uint8_t longaddr[8];
-    uint16_t shortaddr;
     
-    shortaddr = (linkaddr_node_addr.u8[0] << 8) +
-      linkaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
     linkaddr_copy((linkaddr_t *)&longaddr, &linkaddr_node_addr);
     printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
@@ -286,7 +284,7 @@ contiki_init()
       addr[i + 1] = node_id & 0xff;
       addr[i + 0] = node_id >> 8;
     }
-    linkaddr_copy(addr, &linkaddr_node_addr);
+    linkaddr_copy((linkaddr_t *)addr, &linkaddr_node_addr);
     memcpy(&uip_lladdr.addr, addr, sizeof(uip_lladdr.addr));
 
     process_start(&tcpip_process, NULL);

@@ -1,15 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         ICMPv6 echo request and error messages (RFC 4443)
- * \author Julien Abeille <jabeille@cisco.com> 
- * \author Mathilde Durvy <mdurvy@cisco.com>
- */
-
 /*
  * Copyright (c) 2001-2003, Adam Dunkels.
  * All rights reserved.
@@ -40,6 +28,18 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
+ */
+
+/**
+ * \file
+ *         ICMPv6 echo request and error messages (RFC 4443)
+ * \author Julien Abeille <jabeille@cisco.com> 
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include <string.h>

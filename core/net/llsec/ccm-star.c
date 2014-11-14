@@ -1,8 +1,3 @@
-/**
- * \addtogroup llsec802154
- * @{
- */
-
 /*
  * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -42,7 +37,12 @@
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#include "net/llsec/ccm.h"
+/**
+ * \addtogroup llsec802154
+ * @{
+ */
+
+#include "net/llsec/ccm-star.h"
 #include "net/llsec/llsec802154.h"
 #include "net/packetbuf.h"
 #include "lib/aes-128.h"
@@ -80,7 +80,7 @@ ctr_step(const uint8_t *extended_source_address,
   uint8_t a[AES_128_BLOCK_SIZE];
   uint8_t i;
   
-  set_nonce(a, CCM_ENCRYPTION_FLAGS, extended_source_address, counter);
+  set_nonce(a, CCM_STAR_ENCRYPTION_FLAGS, extended_source_address, counter);
   AES_128.encrypt(a);
   
   for(i = 0; (pos + i < m_len) && (i < AES_128_BLOCK_SIZE); i++) {
@@ -112,13 +112,13 @@ mic(const uint8_t *extended_source_address,
     m_len = 0;
   }
   set_nonce(x,
-      CCM_AUTH_FLAGS(a_len, mic_len),
+      CCM_STAR_AUTH_FLAGS(a_len, mic_len),
       extended_source_address,
       m_len);
 #else /* LLSEC802154_USES_ENCRYPTION */
   a_len = packetbuf_totlen();
   set_nonce(x,
-      CCM_AUTH_FLAGS(a_len, mic_len),
+      CCM_STAR_AUTH_FLAGS(a_len, mic_len),
       extended_source_address,
       0);
 #endif /* LLSEC802154_USES_ENCRYPTION */
@@ -181,7 +181,7 @@ ctr(const uint8_t *extended_source_address)
   }
 }
 /*---------------------------------------------------------------------------*/
-const struct ccm_driver ccm_driver = {
+const struct ccm_star_driver ccm_star_driver = {
   mic,
   ctr
 };
