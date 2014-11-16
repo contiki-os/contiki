@@ -146,9 +146,9 @@ FUSES ={.low = 0xC2, .high = 0x99, .extended = 0xfe,};
 uint8_t
 rng_get_uint8(void) {
 #if 1
-  /* Upper two RSSI reg bits (RND_VALUE) are random in rf231 */
+  /* Bits 5 and 6 of RSSI reg (RND_VALUE) are random in rf231 */
   uint8_t j;
-  j = (PHY_RSSI&0xc0) + ((PHY_RSSI>>2)&0x30) + ((PHY_RSSI>>4)&0x0c) + ((PHY_RSSI>>6)&0x03);
+  j = ((PHY_RSSI << 1 ) & 0xC0) + ((PHY_RSSI >> 1) & 0x30) + ((PHY_RSSI >> 3) & 0x0c) + ((PHY_RSSI >> 5) & 0x03);
 #else
 /* Get a pseudo random number using the ADC */
   uint8_t i,j;
