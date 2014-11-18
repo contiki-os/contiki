@@ -42,7 +42,13 @@ void _xassert(const char *, int);
 #ifndef CTASSERT                /* Allow lint to override */
 #define CTASSERT(x)             _CTASSERT(x, __LINE__)
 #define _CTASSERT(x, y)         __CTASSERT(x, y)
+
+#ifdef __CC65__
+/* CC65 can't cope with compile time assert -> Fall back to run time */
+#define __CTASSERT(x, y)        assert(x)
+#else
 #define __CTASSERT(x, y)        typedef char __assert ## y[(x) ? 1 : -1]
+#endif
 #endif
 
 #endif /* ASSERT_H_ */
