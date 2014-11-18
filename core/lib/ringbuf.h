@@ -55,7 +55,7 @@
 #define RINGBUF_H_
 
 #include "contiki-conf.h"
-#include "assert.h"
+#include "lib/assert.h"
 
 /**
  * \brief      Structure that holds the state of a ring buffer.
