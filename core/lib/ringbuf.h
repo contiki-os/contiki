@@ -103,7 +103,7 @@ void    ringbuf_init(struct ringbuf *r, uint8_t *a,
  */
 
 #define RINGBUF_INIT(r, b) do {\
-  CTASSERT( (sizeof(b) <= 128) && ((sizeof(b) & (sizeof(b) -1)) == 0)); \
+  _CTASSERT( (sizeof(b) <= 128) && ((sizeof(b) & (sizeof(b) -1)) == 0), BUFFER_SIZE_NOT_VALID_); \
   ringbuf_init(r, b, sizeof(b));\
 } while(0)
 
