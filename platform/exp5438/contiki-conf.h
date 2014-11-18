@@ -26,7 +26,11 @@
 #endif /* NETSTACK_CONF_RADIO */
 
 #ifndef NETSTACK_CONF_FRAMER
+#if WITH_UIP6
 #define NETSTACK_CONF_FRAMER  framer_802154
+#else /* WITH_UIP6 */
+#define NETSTACK_CONF_FRAMER  contikimac_framer
+#endif /* WITH_UIP6 */
 #endif /* NETSTACK_CONF_FRAMER */
 
 #ifndef CC2420_CONF_AUTOACK

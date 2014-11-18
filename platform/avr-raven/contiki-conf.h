@@ -259,7 +259,13 @@ typedef unsigned short uip_stats_t;
 #define WITH_PHASE_OPTIMIZATION                0
 #define CONTIKIMAC_CONF_COMPOWER               1
 #define RIMESTATS_CONF_ENABLED                 1
-#define NETSTACK_CONF_FRAMER      framer_802154
+
+#if UIP_CONF_IPV6
+#define NETSTACK_CONF_FRAMER      framer802154
+#else /* UIP_CONF_IPV6 */
+#define NETSTACK_CONF_FRAMER      contikimac_framer
+#endif /* UIP_CONF_IPV6 */
+
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 /* The radio needs to interrupt during an rtimer interrupt */
