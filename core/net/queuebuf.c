@@ -77,8 +77,8 @@ struct queuebuf {
 
 /* The actual queuebuf data */
 struct queuebuf_data {
-  uint16_t len;
   uint8_t data[PACKETBUF_SIZE];
+  uint16_t len;
   struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
   struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
 };
