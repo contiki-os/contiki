@@ -46,10 +46,6 @@
 #include "sys/mt.h"
 #include "sys/cc.h"
 
-#define MT_STATE_READY   1
-#define MT_STATE_RUNNING 2
-#define MT_STATE_EXITED  5
-
 static struct mt_thread *current;
 
 /*--------------------------------------------------------------------------*/
