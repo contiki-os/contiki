@@ -27,22 +27,21 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- *
  */
 
 #ifndef CONTIKI_CONF_H_
 #define CONTIKI_CONF_H_
 
-#define PROFILE_CONF_ON 0
-#define ENERGEST_CONF_ON 0
-#define LOG_CONF_ENABLED 1
-#define RIMESTATS_CONF_ON 1
-#define RIMESTATS_CONF_ENABLED 1
+#define PROFILE_CONF_ON         0
+#define ENERGEST_CONF_ON        0
+#define LOG_CONF_ENABLED        1
+#define RIMESTATS_CONF_ON       1
+#define RIMESTATS_CONF_ENABLED  1
 
-#define COOJA 1
+#define COOJA                   1
 
 #ifndef EEPROM_CONF_SIZE
-#define EEPROM_CONF_SIZE				1024
+#define EEPROM_CONF_SIZE	1024
 #endif
 
 #define w_memcpy memcpy
@@ -60,80 +59,56 @@
 #define NETSTACK_QUOTEME(s) #s
 #include NETSTACK__QUOTEME(NETSTACK_CONF_H)
 
-#else /* NETSTACK_CONF_H */
+#endif /* NETSTACK_CONF_H */
+
+/* Common network config */
+#ifndef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC           nullrdc_driver
+#endif /* NETSTACK_CONF_RDC */
+
+#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
+#endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
+
+#ifndef NETSTACK_CONF_RADIO
+#define NETSTACK_CONF_RADIO         cooja_radio_driver
+#endif /* NETSTACK_CONF_RADIO */
 
 /* Default network config */
 #if WITH_UIP6
 
-#define NULLRDC_CONF_802154_AUTOACK  1
-#define NULLRDC_CONF_SEND_802154_ACK 1
+/* Network setup for IPv6 */
+#define NETSTACK_CONF_NETWORK       sicslowpan_driver
+#ifndef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC           csma_driver
+#endif /* NETSTACK_CONF_MAC */
+#ifndef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER        framer_802154
+#endif /* NETSTACK_CONF_FRAMER */
+
+#define NULLRDC_CONF_802154_AUTOACK     1
+#define NULLRDC_CONF_SEND_802154_ACK    1
 #define NULLRDC_CONF_ACK_WAIT_TIME                RTIMER_SECOND / 500
 #define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME 0
 
+#define UIP_CONF_IPV6                   1
 
-/* Network setup for IPv6 */
-#define NETSTACK_CONF_NETWORK       sicslowpan_driver
-#define NETSTACK_CONF_MAC           csma_driver
-#define NETSTACK_CONF_RDC           nullrdc_driver
-#define NETSTACK_CONF_RADIO         cooja_radio_driver
-#define NETSTACK_CONF_FRAMER        framer_802154
+#define LINKADDR_CONF_SIZE              8
 
-#else /* WITH_UIP6 */
+#define UIP_CONF_LL_802154              1
+#define UIP_CONF_LLH_LEN                0
 
-#if WITH_UIP
-
-/* Network setup for IPv4 */
-#define NETSTACK_CONF_NETWORK rime_driver /* NOTE: uip_over_mesh. else: uip_driver */
-#define NETSTACK_CONF_MAC nullmac_driver
-#define NETSTACK_CONF_RDC nullrdc_driver
-#define NETSTACK_CONF_RADIO cooja_radio_driver
-#define UIP_CONF_IP_FORWARD           1
-
-#else /* WITH_UIP */
-
-/* Network setup for Rime */
-#define NETSTACK_CONF_NETWORK rime_driver
-#define NETSTACK_CONF_MAC csma_driver
-#define NETSTACK_CONF_RDC nullrdc_driver
-#define NETSTACK_CONF_RADIO cooja_radio_driver
-/*#define NETSTACK_CONF_FRAMER framer_nullmac*/
-
-#endif /* WITH_UIP */
-#endif /* WITH_UIP6 */
-
-#endif /* NETSTACK_CONF_H */
-
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
-
-/* Default network config */
-#if WITH_UIP6
-
-
-
-/* Network setup for IPv6 */
-#define NETSTACK_CONF_NETWORK       sicslowpan_driver
-#define NETSTACK_CONF_MAC           csma_driver
-#define NETSTACK_CONF_RDC           nullrdc_driver
-#define NETSTACK_CONF_RADIO         cooja_radio_driver
-#define NETSTACK_CONF_FRAMER        framer_802154
-#define UIP_CONF_IPV6               1
-
-#define LINKADDR_CONF_SIZE          8
-
-#define UIP_CONF_LL_802154          1
-#define UIP_CONF_LLH_LEN            0
-
-#define UIP_CONF_ROUTER             1
+#define UIP_CONF_ROUTER                 1
 #ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL           1
+#define UIP_CONF_IPV6_RPL               1
 #endif /* UIP_CONF_IPV6_RPL */
 
 /* configure number of neighbors and routes */
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     300
+#define NBR_TABLE_CONF_MAX_NEIGHBORS    300
 #endif /* NBR_TABLE_CONF_MAX_NEIGHBORS */
 #ifndef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES   300
+#define UIP_CONF_MAX_ROUTES             300
 #endif /* UIP_CONF_MAX_ROUTES */
 
 #define TCPIP_CONF_ANNOTATE_TRANSMISSIONS 1
@@ -142,10 +117,10 @@
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
-#define LINKADDR_CONF_SIZE            8
-#define UIP_CONF_NETIF_MAX_ADDRESSES  3
-#define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_DEFROUTERS   2
+#define LINKADDR_CONF_SIZE              8
+#define UIP_CONF_NETIF_MAX_ADDRESSES    3
+#define UIP_CONF_ND6_MAX_PREFIXES       3
+#define UIP_CONF_ND6_MAX_DEFROUTERS     2
 
 #ifndef UIP_CONF_IPV6_QUEUE_PKT
 #define UIP_CONF_IPV6_QUEUE_PKT         1
@@ -158,7 +133,7 @@
 #define UIP_CONF_IP_FORWARD             0
 #ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE		240
-#endif
+#endif /* UIP_CONF_BUFFER_SIZE */
 
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
@@ -174,6 +149,28 @@
 #define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   8
 #endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 
+#else /* WITH_UIP6 */
+
+#if WITH_UIP
+
+/* Network setup for IPv4 */
+#define NETSTACK_CONF_NETWORK       rime_driver /* NOTE: uip_over_mesh. else: uip_driver */
+#ifndef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC           csma_driver
+#endif /* NETSTACK_CONF_MAC */
+
+#define UIP_CONF_IP_FORWARD           1
+
+#else /* WITH_UIP */
+
+/* Network setup for Rime */
+#define NETSTACK_CONF_NETWORK       rime_driver
+#ifndef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC           csma_driver
+#endif /* NETSTACK_CONF_MAC */
+/*#define NETSTACK_CONF_FRAMER framer_nullmac*/
+
+#endif /* WITH_UIP */
 #endif /* WITH_UIP6 */
 
 
@@ -190,13 +187,7 @@
 #define CCIF
 #define CLIF
 
-/* These names are deprecated, use C99 names. */
 #include <inttypes.h>
-typedef uint8_t u8_t;
-typedef uint16_t u16_t;
-typedef uint32_t u32_t;
-typedef int32_t s32_t;
-
 typedef unsigned short uip_stats_t;
 
 #define CLOCK_CONF_SECOND 1000L
@@ -232,8 +223,6 @@ typedef unsigned long rtimer_clock_t;
 
 #define UIP_CONF_TCP_SPLIT       0
 
-#if UIP_CONF_IPV6
-#endif /* UIP_CONF_IPV6 */
 
 /* Turn off example-provided putchars */
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
