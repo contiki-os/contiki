@@ -95,6 +95,7 @@ struct tcp_socket {
   uint16_t output_data_maxlen;
   uint16_t output_data_len;
   uint16_t output_data_send_nxt;
+  uint16_t output_data_max_seg;
 
   uint8_t flags;
   uint16_t listen_port;
