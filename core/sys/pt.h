@@ -289,7 +289,6 @@ struct pt {
 #define PT_YIELD(pt)                        \
   do {                                      \
       LC_SET_YIELD((pt)->lc, PT_YIELDED);   \
-    }                                       \
   } while(0)
 
 /**
