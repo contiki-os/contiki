@@ -83,6 +83,21 @@
 #define LC_SET(lc)
 
 /**
+ * Set a local continuation and yield.
+ *
+ * The set-yield operation saves the state of the function and yields
+ * it at the point where the operation is executed. The function is
+ * continued with the subsequent statement at next invocation. The function
+ * is yielded by returning retval. As far as the set operation is concerned,
+ * the state of the function does <b>not</b> include the call-stack or local
+ * (automatic) variables, but only the program counter and such CPU registers
+ * that needs to be saved.
+ *
+ * \hideinitializer
+ */
+#define LC_SET_YIELD(lc,retval)
+
+/**
  * Resume a local continuation.
  *
  * The resume operation resumes a previously set local continuation, thus

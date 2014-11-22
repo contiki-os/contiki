@@ -44,8 +44,16 @@ void __fastcall__ lc_set(lc_t *lc);
 void __fastcall__ lc_resume(lc_t *lc);
 
 #define LC_SET(lc)    lc_set(&(lc))
-#define LC_RESUME(lc) lc_resume(&(lc))
-#define LC_INIT(lc)   (lc) = NULL
-#define LC_END(lc)
+
+#define LC_SET_YIELD(lc,retval)             \
+    do {                                    \
+        LC_YIELD_FLAG = 1;                  \
+        LC_SET(lc);                         \
+        if(LC_YIELD_FLAG) return retval;    \
+    }while(0)
+
+#define LC_RESUME(lc)   { char LC_YIELD_FLAG = 0; lc_resume(&(lc))
+#define LC_INIT(lc)     (lc) = NULL
+#define LC_END(lc)      }
 
 #endif /* LC_H_ */
