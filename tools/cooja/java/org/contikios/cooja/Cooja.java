@@ -3742,7 +3742,7 @@ public class Cooja extends Observable {
                         pluginGUI.setIcon(true);
                       } catch (PropertyVetoException e) {
                       }
-                    };
+                    }
                   });
                 }
               }
@@ -3952,7 +3952,7 @@ public class Cooja extends Observable {
           public void actionPerformed(ActionEvent e) {
             Cooja.setExternalToolsSetting("HIDE_WARNINGS",
                 "" + ((JCheckBox)e.getSource()).isSelected());
-          };
+          }
         });
         buttonBox.add(Box.createHorizontalStrut(10));
         buttonBox.add(hideButton);

@@ -28,52 +28,63 @@
  *
  */
 
-package org.contikios.cooja.interfaces;
+package org.contikios.cooja;
 
-import org.contikios.cooja.*;
 
 /**
- * Represents a mote's internal clock. Notice that the overall
- * simulation time and the mote's own time may differ.
+ * This interface represents a mote memory.
+ * 
+ * Mote memory is represented by byte arrays and this
+ * interface provides a few of basic operations.
+ * 
+ * Note that this memory internally may consist of several
+ * different memory sections, not covering the entire range
+ * between the start address and the end address of this memory.
  *
- * This observable never notifies.
- *
+ * @see org.contikios.cooja.SectionMoteMemory
  * @author Fredrik Osterlind
  */
-@ClassDescription("Clock")
-public abstract class Clock extends MoteInterface {
+public interface MoteMemory extends AddressMemory {
 
   /**
-   * Set mote's time to given time.
-   *
-   * @param newTime Time
+   * Clears the entire memory.
    */
-  public abstract void setTime(long newTime);
+  public void clearMemory();
 
   /**
-   * @return Current time
-   */
-  public abstract long getTime();
-
-  /**
-   * Set time drift.
-   *
-   * @param timeDrift Time drift
-   */
-  public abstract void setDrift(long timeDrift);
-
-  /**
-   * The clock drift provides information about the mote's internal time,
-   * and can the used to calculate for instance its startup time.
+   * Returns a memory segment.
    * 
-   * The startup time is the negative drift time.
-   * 
-   * The mote internal time can be calculated by:
-   * [current simulation time] + [mote drift].
-   * 
-   * @see Simulation#getSimulationTime()
-   * @return Time drift
+   * @param address Start address of memory segment
+   * @param size Size of memory segment
+   * @return Memory segment or null if segment not available
    */
-  public abstract long getDrift();
+  public byte[] getMemorySegment(int address, int size);
 
+  /**
+   * Sets a memory segment.
+   * 
+   * @param address Start address of memory segment
+   * @param data Data
+   */
+  public void setMemorySegment(int address, byte[] data);
+
+  /**
+   * Returns the sum of all byte array sizes in this memory.
+   * This is not neccessarily the the same as the total memory range,
+   * since the entire memory range may not be handled by this memory.
+   * 
+   * @return Total size
+   */
+  public int getTotalSize();
+
+  public abstract int parseInt(byte[] memorySegment);
+
+  public enum MemoryEventType { READ, WRITE }
+
+    public interface MemoryMonitor {
+    public void memoryChanged(MoteMemory memory, MemoryEventType type, int address);
+  }
+
+  public boolean addMemoryMonitor(int address, int size, MemoryMonitor mm);
+  public void removeMemoryMonitor(int address, int size, MemoryMonitor mm);
 }

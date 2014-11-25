@@ -85,7 +85,7 @@ public class Mote2MoteRelations extends MoteInterface {
     public void update(Observable o, Object arg) {
       String msg = ((Log) o).getLastLogMessage();
       handleNewLog(msg);
-    };
+    }
   };
   
   private MoteCountListener moteCountListener;

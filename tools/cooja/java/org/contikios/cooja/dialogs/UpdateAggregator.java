@@ -86,9 +86,9 @@ public abstract class UpdateAggregator<A> {
     public void run() {
       if (pending.isEmpty()) {
         return;
-      };
+      }
 
-      List<A> q = getPending();
+        List<A> q = getPending();
       if (q != null) {
         /* Handle objects */
         handle(q);

@@ -118,9 +118,9 @@ public class MoteTypeVisualizerSkin implements VisualizerSkin {
         }
       }
     }
-  };
+  }
 
-  public Visualizer getVisualizer() {
+    public Visualizer getVisualizer() {
     return visualizer;
   }
 }
