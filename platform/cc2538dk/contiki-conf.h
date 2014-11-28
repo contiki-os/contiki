@@ -316,8 +316,12 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 #ifndef NETSTACK_CONF_FRAMER
+#if UIP_CONF_IPV6
 #define NETSTACK_CONF_FRAMER  framer_802154
-#endif
+#else /* UIP_CONF_IPV6 */
+#define NETSTACK_CONF_FRAMER  contikimac_framer
+#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_FRAMER */
 
 #define NETSTACK_CONF_RADIO   cc2538_rf_driver
 /** @} */
