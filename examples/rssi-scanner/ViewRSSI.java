@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * Copyright (c) 2010, University of Luebeck, Germany.
  * All rights reserved.
  *
@@ -25,9 +26,14 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * Author: Carlo Alberto Boano <cboano@iti.uni-luebeck.de>, Joakim Eriksson, <joakime@sics.se>
- *
+ */
+
+/**
+ * \file
+ *         ViewRSSI java application
+ * \author
+ *         Joakim Eriksson <joakime@sics.se>
+ *         Carlo Alberto Boano <cboano@iti.uni-luebeck.de>
  */
 
 import javax.swing.*;
