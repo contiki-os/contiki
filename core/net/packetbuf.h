@@ -453,6 +453,12 @@ int               packetbuf_set_addr(uint8_t type, const linkaddr_t *addr);
 const linkaddr_t *packetbuf_addr(uint8_t type);
 #endif /* PACKETBUF_CONF_ATTRS_INLINE */
 
+/**
+ * \brief      Checks whether the current packet is a broadcast.
+ * \retval 0   iff current packet is not a broadcast
+ */
+int               packetbuf_holds_broadcast(void);
+
 void              packetbuf_attr_clear(void);
 
 void              packetbuf_attr_copyto(struct packetbuf_attr *attrs,

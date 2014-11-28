@@ -339,7 +339,7 @@ void mac_LowpanToEthernet(void)
   ETHBUF(uip_buf)->type = htons(UIP_ETHTYPE_IPV6);
 
   //Check for broadcast message
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+  if(packetbuf_holds_broadcast()) {
 /*   if(  ( parsed_frame->fcf->destAddrMode == SHORTADDRMODE) && */
 /*        ( parsed_frame->dest_addr->addr16 == 0xffff) ) { */
     ETHBUF(uip_buf)->dest.addr[0] = 0x33;

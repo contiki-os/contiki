@@ -320,4 +320,11 @@ packetbuf_addr(uint8_t type)
 }
 /*---------------------------------------------------------------------------*/
 #endif /* PACKETBUF_CONF_ATTRS_INLINE */
+int
+packetbuf_holds_broadcast(void)
+{
+  return linkaddr_cmp(&packetbuf_addrs[PACKETBUF_ADDR_RECEIVER - PACKETBUF_ADDR_FIRST].addr, &linkaddr_null);
+}
+/*---------------------------------------------------------------------------*/
+
 /** @} */
