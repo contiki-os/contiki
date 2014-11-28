@@ -72,7 +72,7 @@
 #include <avr/interrupt.h>
 
 /* Two tick counters avoid a software divide when CLOCK_SECOND is not a power of two. */
-#if CLOCK_SECOND && (CLOCK_SECOND - 1)
+#if CLOCK_SECOND & (CLOCK_SECOND - 1)
 #define TWO_COUNTERS 1
 #endif
 
