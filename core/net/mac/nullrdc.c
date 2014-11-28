@@ -132,8 +132,7 @@ send_one_packet(mac_callback_t sent, void *ptr)
 
     NETSTACK_RADIO.prepare(packetbuf_hdrptr(), packetbuf_totlen());
 
-    is_broadcast = linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                                &linkaddr_null);
+    is_broadcast = packetbuf_holds_broadcast();
 
     if(NETSTACK_RADIO.receiving_packet() ||
        (!is_broadcast && NETSTACK_RADIO.pending_packet())) {
@@ -282,8 +281,7 @@ packet_input(void)
 #if NULLRDC_ADDRESS_FILTER
   } else if(!linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                                          &linkaddr_node_addr) &&
-            !linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                          &linkaddr_null)) {
+            !packetbuf_holds_broadcast()) {
     PRINTF("nullrdc: not for us\n");
 #endif /* NULLRDC_ADDRESS_FILTER */
   } else {

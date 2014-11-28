@@ -481,11 +481,8 @@ void mac_LowpanToEthernet(void)
   //Setup generic ethernet stuff
   ETHBUF(uip_buf)->type = uip_htons(UIP_ETHTYPE_IPV6);
 
-  //Check for broadcast message
-  
 #if RF230BB
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
-//  if(linkaddr_cmp((const linkaddr_t *)destAddr, &linkaddr_null)) {
+  if(packetbuf_holds_broadcast()) {
 #else
   if(  ( parsed_frame->fcf->destAddrMode == SHORTADDRMODE) &&
        ( parsed_frame->dest_addr->addr16 == 0xffff) ) {
@@ -977,7 +974,7 @@ mac_log_802_15_4_tx(const uint8_t* buffer, size_t total_len) {
     ETHBUF(raw_buf)->type = uip_htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
  
   /* Check for broadcast message */
-    if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+    if(packetbuf_holds_broadcast()) {
       ETHBUF(raw_buf)->dest.addr[0] = 0x33;
       ETHBUF(raw_buf)->dest.addr[1] = 0x33;
       ETHBUF(raw_buf)->dest.addr[2] = 0x00;
@@ -1018,7 +1015,7 @@ mac_log_802_15_4_rx(const uint8_t* buf, size_t len) {
     ETHBUF(raw_buf)->type = uip_htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
   
   /* Check for broadcast message */
-    if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+    if(packetbuf_holds_broadcast()) {
       ETHBUF(raw_buf)->dest.addr[0] = 0x33;
       ETHBUF(raw_buf)->dest.addr[1] = 0x33;
       ETHBUF(raw_buf)->dest.addr[2] = 0x00;
