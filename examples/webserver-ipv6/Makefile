@@ -35,7 +35,7 @@ all : $(CONTIKI_PROJECT)
 endif
 
 UIP_CONF_IPV6=1
-DEFINES=WITH_UIP6
+DEFINES=WITH_UIP6,UIP_CONF_TCP=1
 
 # Make no RPL the default for minimal-net builds
 ifeq ($(TARGET),minimal-net)
