@@ -513,6 +513,7 @@ rpl_free_instance(rpl_instance_t *instance)
 
   ctimer_stop(&instance->dio_timer);
   ctimer_stop(&instance->dao_timer);
+  ctimer_stop(&instance->dao_lifetime_timer);
 
   if(default_instance == instance) {
     default_instance = NULL;
