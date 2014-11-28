@@ -312,7 +312,13 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_MAC         nullmac_driver
 //#define NETSTACK_CONF_MAC         csma_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
-#define NETSTACK_CONF_FRAMER      framer_802154
+
+#if UIP_CONF_IPV6
+#define NETSTACK_CONF_FRAMER      framer802154
+#else /* UIP_CONF_IPV6 */
+#define NETSTACK_CONF_FRAMER      contikimac_framer
+#endif /* UIP_CONF_IPV6 */
+
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 /* Enable extended mode with autoack, but no csma/autoretry */
