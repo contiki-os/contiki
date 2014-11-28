@@ -63,3 +63,6 @@ CONTIKI_TARGET_SOURCEFILES += $(CONTIKI_CORE_SOURCEFILES)
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
 include $(CONTIKI)/cpu/pic32/Makefile.pic32
+
+MODULES += core/net core/net/mac core/net/rime core/net/llsec \
+           core/net/ipv6 core/net/rpl core/net/ip
