@@ -1,7 +1,7 @@
 /**
  * 3D RSSI Viewer - view RSSI values of 802.15.4 channels
  * ---------------------------------------------------
- * Note: run the rssi-scanner on a Sky or sentilla node connected to USB
+ * Note: run the rssi-scanner on a Sky, Z1 or sentilla node connected to USB
  * then start with
  * make login | java ViewRSSI3D
  *
