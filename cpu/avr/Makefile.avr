@@ -204,6 +204,7 @@ ifdef AVRDUDE_MCU
 else
  AVRDUDE_MCU:=-p $(MCU)
 endif
+
 %.u: %.hex
 	$(AVRDUDE) $(AVRDUDE_MCU) $(AVRDUDE_OPTIONS) $(AVRDUDE_PORT) $(AVRDUDE_PROGRAMMER) -U flash:w:$<
 
