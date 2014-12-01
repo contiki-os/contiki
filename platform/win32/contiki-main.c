@@ -124,7 +124,7 @@ main(int argc, char **argv)
 
   autostart_start(autostart_processes);
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   {
     uip_ipaddr_t addr;
     uip_ipaddr(&addr, 192,168,0,111);
@@ -144,9 +144,9 @@ main(int argc, char **argv)
     log_message("DNS Server:  ", inet_ntoa(*(struct in_addr*)&addr));
   }
 
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
-#if !UIP_CONF_IPV6_RPL
+#if !NETSTACK_CONF_WITH_RPL
 #ifdef HARD_CODED_ADDRESS
   uip_ipaddr_t ipaddr;
   uiplib_ipaddrconv(HARD_CODED_ADDRESS, &ipaddr);
@@ -156,7 +156,7 @@ main(int argc, char **argv)
 #else /* UIP_CONF_ROUTER */
     uip_ds6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0);
 #endif /* UIP_CONF_ROUTER */
-#if !UIP_CONF_IPV6_RPL
+#if !NETSTACK_CONF_WITH_RPL
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 #endif

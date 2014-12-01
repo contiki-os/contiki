@@ -259,7 +259,7 @@
 
 static const uint64_t simple_trans_ethernet_addr = 0x3E3D3C3B3AF2ULL;
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 static uip_ipaddr_t last_sender;
 #endif
 
@@ -381,7 +381,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 
   /* Simple Address Translation */
   if(memcmp((uint8_t *)&simple_trans_ethernet_addr, &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), 6) == 0) {
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
         //Addressed to us: make 802.15.4 address from IPv6 Address
         destAddr.addr[0] = UIP_IP_BUF->destipaddr.u8[8] ^ 0x02;
         destAddr.addr[1] = UIP_IP_BUF->destipaddr.u8[9];
@@ -445,9 +445,9 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 #endif
   }
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* Send the packet to the uip6 stack if it exists, else send to 6lowpan */
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 /* Save the destination address, to trap ponging it back to the interface */
   uip_ipaddr_copy(&last_sender, &UIP_IP_BUF->srcipaddr);
   tcpip_input();
@@ -456,9 +456,9 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 //  PRINTF("Output to %x %x %x %x %x %x %x %x\n",destAddr.addr[0],destAddr.addr[1],destAddr.addr[2],destAddr.addr[3],destAddr.addr[4],destAddr.addr[5],destAddr.addr[6],destAddr.addr[7]);
   tcpip_output(destAddrPtr);
 #endif
-#else  /* UIP_CONF_IPV6 */
+#else  /* NETSTACK_CONF_WITH_IPV6 */
   tcpip_output();    //Allow non-ipv6 builds (Hello World) 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #if !RF230BB
   usb_eth_stat.txok++;
@@ -490,7 +490,7 @@ void mac_LowpanToEthernet(void)
     ETHBUF(uip_buf)->dest.addr[0] = 0x33;
     ETHBUF(uip_buf)->dest.addr[1] = 0x33;
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     ETHBUF(uip_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
     ETHBUF(uip_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
     ETHBUF(uip_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
@@ -526,7 +526,7 @@ void mac_LowpanToEthernet(void)
     mac_translateIPLinkLayer(ll_8023_type);
   }
  
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 /* We won't play ping-pong with the host! */
     if(uip_ipaddr_cmp(&last_sender, &UIP_IP_BUF->srcipaddr)) {
         PRINTF("siclow_ethernet: Destination off-link but no route\n");
@@ -709,7 +709,7 @@ int8_t mac_translateIcmpLinkLayer(lltype_t target)
 
       //We broke ICMP checksum, be sure to fix that
       UIP_ICMP_BUF->icmpchksum = 0;
-#if UIP_CONF_IPV6   //allow non ipv6 builds
+#if NETSTACK_CONF_WITH_IPV6   //allow non ipv6 builds
       UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 #endif
 

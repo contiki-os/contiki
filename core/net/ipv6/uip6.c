@@ -87,9 +87,9 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 #include "rpl/rpl.h"
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
 #if UIP_LOGGING == 1
 #include <stdio.h>
@@ -156,9 +156,9 @@ uint8_t uip_ext_opt_offset = 0;
 #define UIP_DESTO_BUF                    ((struct uip_desto_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_EXT_HDR_OPT_BUF            ((struct uip_ext_hdr_opt *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 #define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 #define UIP_EXT_HDR_OPT_RPL_BUF    ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 #define UIP_ICMP6_ERROR_BUF            ((struct uip_icmp6_error *)&uip_buf[uip_l2_l3_icmp_hdr_len])
 /** @} */
 /** \name Buffer variables
@@ -433,7 +433,7 @@ uip_init(void)
   }
 #endif /* UIP_UDP */
 
-#if UIP_CONF_IPV6_MULTICAST
+#if NETSTACK_CONF_WITH_IPV6_MULTICAST
   UIP_MCAST6.init();
 #endif
 }
@@ -604,7 +604,7 @@ uip_listen(uint16_t port)
 #endif
 /*---------------------------------------------------------------------------*/
 
-#if UIP_CONF_IPV6_REASSEMBLY
+#if NETSTACK_CONF_WITH_IPV6_REASSEMBLY
 #define UIP_REASS_BUFSIZE (UIP_BUFSIZE - UIP_LLH_LEN)
 
 static uint8_t uip_reassbuf[UIP_REASS_BUFSIZE];
@@ -816,7 +816,7 @@ uip_reass_over(void)
   }
 }
 
-#endif /* UIP_CONF_IPV6_REASSEMBLY */
+#endif /* NETSTACK_CONF_WITH_IPV6_REASSEMBLY */
 
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP
@@ -868,13 +868,13 @@ ext_hdr_options_process(void)
 		 * Using this fix, the header is ignored, and the next header (if
 		 * present) is processed.
 		 */
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
         PRINTF("Processing RPL option\n");
         if(rpl_verify_header(uip_ext_opt_offset)) {
           PRINTF("RPL Option Error: Dropping Packet\n");
           return 1;
         }
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
         uip_ext_opt_offset += (UIP_EXT_HDR_OPT_BUF->len) + 2;
         return 0;
       default:
@@ -1137,9 +1137,9 @@ uip_process(uint8_t flag)
   uip_ext_len = 0;
   uip_ext_bitmap = 0;
   if(*uip_next_hdr == UIP_PROTO_HBHO) {
-#if UIP_CONF_IPV6_CHECKS
+#if NETSTACK_CONF_WITH_IPV6_CHECKS
     uip_ext_bitmap |= UIP_EXT_HDR_BITMAP_HBHO;
-#endif /* UIP_CONF_IPV6_CHECKS */
+#endif /* NETSTACK_CONF_WITH_IPV6_CHECKS */
     switch(ext_hdr_options_process()) {
       case 0:
         /* continue */
@@ -1169,7 +1169,7 @@ uip_process(uint8_t flag)
    * All multicast engines must hook in here. After this function returns, we
    * expect UIP_BUF to be unmodified
    */
-#if UIP_CONF_IPV6_MULTICAST
+#if NETSTACK_CONF_WITH_IPV6_MULTICAST
   if(uip_is_addr_mcast_routable(&UIP_IP_BUF->destipaddr)) {
     if(UIP_MCAST6.in() == UIP_MCAST6_ACCEPT) {
       /* Deliver up the stack */
@@ -1205,9 +1205,9 @@ uip_process(uint8_t flag)
         goto send;
       }
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
       rpl_update_header_empty();
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
       UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
       PRINTF("Forwarding packet to ");
@@ -1249,7 +1249,7 @@ uip_process(uint8_t flag)
   uip_ext_bitmap = 0;
 #endif /* UIP_CONF_ROUTER */
 
-#if UIP_CONF_IPV6_MULTICAST
+#if NETSTACK_CONF_WITH_IPV6_MULTICAST
   process:
 #endif
 
@@ -1271,14 +1271,14 @@ uip_process(uint8_t flag)
       case UIP_PROTO_HBHO:
         PRINTF("Processing hbh header\n");
         /* Hop by hop option header */
-#if UIP_CONF_IPV6_CHECKS
+#if NETSTACK_CONF_WITH_IPV6_CHECKS
         /* Hop by hop option header. If we saw one HBH already, drop */
         if(uip_ext_bitmap & UIP_EXT_HDR_BITMAP_HBHO) {
           goto bad_hdr;
         } else {
           uip_ext_bitmap |= UIP_EXT_HDR_BITMAP_HBHO;
         }
-#endif /*UIP_CONF_IPV6_CHECKS*/
+#endif /*NETSTACK_CONF_WITH_IPV6_CHECKS*/
         switch(ext_hdr_options_process()) {
           case 0:
             /*continue*/
@@ -1295,7 +1295,7 @@ uip_process(uint8_t flag)
         }
         break;
       case UIP_PROTO_DESTO:
-#if UIP_CONF_IPV6_CHECKS
+#if NETSTACK_CONF_WITH_IPV6_CHECKS
         /* Destination option header. if we saw two already, drop */
         PRINTF("Processing desto header\n");
         if(uip_ext_bitmap & UIP_EXT_HDR_BITMAP_DESTO1) {
@@ -1307,7 +1307,7 @@ uip_process(uint8_t flag)
         } else {
           uip_ext_bitmap |= UIP_EXT_HDR_BITMAP_DESTO1;
         }
-#endif /*UIP_CONF_IPV6_CHECKS*/
+#endif /*NETSTACK_CONF_WITH_IPV6_CHECKS*/
         switch(ext_hdr_options_process()) {
           case 0:
             /*continue*/
@@ -1324,14 +1324,14 @@ uip_process(uint8_t flag)
         }
         break;
       case UIP_PROTO_ROUTING:
-#if UIP_CONF_IPV6_CHECKS
+#if NETSTACK_CONF_WITH_IPV6_CHECKS
         /* Routing header. If we saw one already, drop */
         if(uip_ext_bitmap & UIP_EXT_HDR_BITMAP_ROUTING) {
           goto bad_hdr;
         } else {
           uip_ext_bitmap |= UIP_EXT_HDR_BITMAP_ROUTING;
         }
-#endif /*UIP_CONF_IPV6_CHECKS*/
+#endif /*NETSTACK_CONF_WITH_IPV6_CHECKS*/
         /*
          * Routing Header  length field is in units of 8 bytes, excluding
          * As per RFC2460 section 4.4, if routing type is unrecognized:
@@ -1352,7 +1352,7 @@ uip_process(uint8_t flag)
         break;
       case UIP_PROTO_FRAG:
         /* Fragmentation header:call the reassembly function, then leave */
-#if UIP_CONF_IPV6_REASSEMBLY
+#if NETSTACK_CONF_WITH_IPV6_REASSEMBLY
         PRINTF("Processing frag header\n");
         uip_len = uip_reass();
         if(uip_len == 0) {
@@ -1369,12 +1369,12 @@ uip_process(uint8_t flag)
         uip_ext_bitmap = 0;
         uip_next_hdr = &UIP_IP_BUF->proto;
         break;
-#else /* UIP_CONF_IPV6_REASSEMBLY */
+#else /* NETSTACK_CONF_WITH_IPV6_REASSEMBLY */
         UIP_STAT(++uip_stat.ip.drop);
         UIP_STAT(++uip_stat.ip.fragerr);
         UIP_LOG("ip: fragment dropped.");
         goto drop;
-#endif /* UIP_CONF_IPV6_REASSEMBLY */
+#endif /* NETSTACK_CONF_WITH_IPV6_REASSEMBLY */
       case UIP_PROTO_NONE:
         goto drop;
       default:
@@ -1397,7 +1397,7 @@ uip_process(uint8_t flag)
   /* This is IPv6 ICMPv6 processing code. */
   PRINTF("icmp6_input: length %d type: %d \n", uip_len, UIP_ICMP_BUF->type);
 
-#if UIP_CONF_IPV6_CHECKS
+#if NETSTACK_CONF_WITH_IPV6_CHECKS
   /* Compute and check the ICMP header checksum */
   if(uip_icmp6chksum() != 0xffff) {
     UIP_STAT(++uip_stat.icmp.drop);
@@ -1406,7 +1406,7 @@ uip_process(uint8_t flag)
     PRINTF("icmpv6: bad checksum.");
     goto drop;
   }
-#endif /*UIP_CONF_IPV6_CHECKS*/
+#endif /*NETSTACK_CONF_WITH_IPV6_CHECKS*/
 
   UIP_STAT(++uip_stat.icmp.recv);
   /*
@@ -1555,9 +1555,9 @@ uip_process(uint8_t flag)
   }
 #endif /* UIP_UDP_CHECKSUMS */
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
   rpl_insert_header();
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
   UIP_STAT(++uip_stat.udp.sent);
   goto ip_send_nolen;

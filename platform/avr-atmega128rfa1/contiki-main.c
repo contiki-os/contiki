@@ -264,7 +264,7 @@ uint8_t i;
       PRINTA("Random EUI64 address generated\n");
   }
  
-#if UIP_CONF_IPV6 
+#if NETSTACK_CONF_WITH_IPV6 
   memcpy(&uip_lladdr.addr, &addr.u8, sizeof(linkaddr_t));
 #elif WITH_NODE_ID
   node_id=get_panaddr_from_eeprom();
@@ -278,7 +278,7 @@ uint8_t i;
   rf230_set_channel(params_get_channel());
   rf230_set_txpower(params_get_txpower());
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   PRINTA("EUI-64 MAC: %x-%x-%x-%x-%x-%x-%x-%x\n",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
 #else
   PRINTA("MAC address ");
@@ -299,7 +299,7 @@ uint8_t i;
   PRINTA("%s %s, channel %u , check rate %u Hz tx power %u\n",NETSTACK_MAC.name, NETSTACK_RDC.name, rf230_get_channel(),
     CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:NETSTACK_RDC.channel_check_interval()),
     rf230_get_txpower());	  
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
   PRINTA("RPL Enabled\n");
 #endif
 #if UIP_CONF_ROUTER
@@ -308,7 +308,7 @@ uint8_t i;
 
 #endif /* ANNOUNCE_BOOT */
 
-#if UIP_CONF_IPV6 || UIP_CONF_IPV4
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
 #endif
 
@@ -393,7 +393,7 @@ uint8_t i;
 #endif
 }
 
-#if ROUTES && UIP_CONF_IPV6
+#if ROUTES && NETSTACK_CONF_WITH_IPV6
 static void
 ipaddr_add(const uip_ipaddr_t *addr)
 {
@@ -421,9 +421,9 @@ ipaddr_add(const uip_ipaddr_t *addr)
 int
 main(void)
 {
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uip_ds6_nbr_t *nbr;
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   initialize();
 
   while(1) {
@@ -508,7 +508,7 @@ extern volatile unsigned long radioontime;
       clocktime+=1;
 #endif
 
-#if PINGS && UIP_CONF_IPV6
+#if PINGS && NETSTACK_CONF_WITH_IPV6
 extern void raven_ping6(void); 
 if ((clocktime%PINGS)==1) {
   PRINTF("**Ping\n");
@@ -516,7 +516,7 @@ if ((clocktime%PINGS)==1) {
 }
 #endif
 
-#if ROUTES && UIP_CONF_IPV6
+#if ROUTES && NETSTACK_CONF_WITH_IPV6
 if ((clocktime%ROUTES)==2) {
       
 extern uip_ds6_netif_t uip_ds6_if;

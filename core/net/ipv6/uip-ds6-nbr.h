@@ -52,7 +52,7 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/nbr-table.h"
 
-#if UIP_CONF_IPV6_QUEUE_PKT
+#if NETSTACK_CONF_WITH_IPV6_QUEUE_PKT
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
 
@@ -74,7 +74,7 @@ typedef struct uip_ds6_nbr {
   uint8_t nscount;
   uint8_t isrouter;
   uint8_t state;
-#if UIP_CONF_IPV6_QUEUE_PKT
+#if NETSTACK_CONF_WITH_IPV6_QUEUE_PKT
   struct uip_packetqueue_handle packethandle;
 #define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
 #endif                          /*UIP_CONF_QUEUE_PKT */

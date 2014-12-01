@@ -64,9 +64,9 @@
 #define UIP_EXT_BUF              ((struct uip_ext_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define UIP_FIRST_EXT_BUF        ((struct uip_ext_hdr *)&uip_buf[UIP_LLIPH_LEN])
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 #include "rpl/rpl.h"
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
 /** \brief temporary IP address */
 static uip_ipaddr_t tmp_ipaddr;
@@ -120,9 +120,9 @@ uip_icmp6_register_input_handler(uip_icmp6_input_handler_t *handler)
 static void
 echo_request_input(void)
 {
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
   uint8_t temp_ext_len;
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
   /*
    * we send an echo reply. It is trivial if there was no extension
    * headers in the request otherwise we need to remove the extension
@@ -147,7 +147,7 @@ echo_request_input(void)
   }
 
   if(uip_ext_len > 0) {
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
     if((temp_ext_len = rpl_invert_header())) {
       /* If there were other extension headers*/
       UIP_FIRST_EXT_BUF->next = UIP_PROTO_ICMP6;
@@ -166,7 +166,7 @@ echo_request_input(void)
       }
       uip_ext_len = temp_ext_len;
     } else {
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
       /* If there were extension headers*/
       UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
       uip_len -= uip_ext_len;
@@ -181,9 +181,9 @@ echo_request_input(void)
               (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
               (uip_len - UIP_IPH_LEN - UIP_ICMPH_LEN));
       uip_ext_len = 0;
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
     }
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
   }
   /* Below is important for the correctness of UIP_ICMP_BUF and the
    * checksum
@@ -220,11 +220,11 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
     }
   }
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
   uip_ext_len = rpl_invert_header();
-#else /* UIP_CONF_IPV6_RPL */
+#else /* NETSTACK_CONF_WITH_RPL */
   uip_ext_len = 0;
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
   /* remember data of original packet before shifting */
   uip_ipaddr_copy(&tmp_ipaddr, &UIP_IP_BUF->destipaddr);
@@ -321,15 +321,15 @@ echo_reply_input(void)
 {
   int ttl;
   uip_ipaddr_t sender;
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
   uint8_t temp_ext_len;
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
   uip_ipaddr_copy(&sender, &UIP_IP_BUF->srcipaddr);
   ttl = UIP_IP_BUF->ttl;
 
   if(uip_ext_len > 0) {
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
     if((temp_ext_len = rpl_invert_header())) {
       /* If there were other extension headers*/
       UIP_FIRST_EXT_BUF->next = UIP_PROTO_ICMP6;
@@ -350,7 +350,7 @@ echo_reply_input(void)
       uip_ext_len = temp_ext_len;
       uip_len -= uip_ext_len;
     } else {
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
       /* If there were extension headers*/
       UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
       uip_len -= uip_ext_len;
@@ -365,9 +365,9 @@ echo_reply_input(void)
               (uint8_t *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
               (uip_len - UIP_IPH_LEN - UIP_ICMPH_LEN));
       uip_ext_len = 0;
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
     }
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
   }
 
   /* Call all registered applications to let them know an echo reply

@@ -245,7 +245,7 @@ main(void)
   sensinode_sensors_activate();
 #endif
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
   process_start(&tcpip_process, NULL);
@@ -258,7 +258,7 @@ main(void)
   process_start(&viztool_process, NULL);
 #endif
 
-#if (!UIP_CONF_IPV6_RPL)
+#if (!NETSTACK_CONF_WITH_RPL)
   {
     uip_ipaddr_t ipaddr;
 
@@ -266,8 +266,8 @@ main(void)
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
   }
-#endif /* UIP_CONF_IPV6_RPL */
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_RPL */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   /*
    * Acknowledge the UART1 RX interrupt

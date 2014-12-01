@@ -34,11 +34,11 @@
 #include "net/ip/uip.h"
 #include "net/ip/uipopt.h"
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #include "tapdev6.h"
 #else
 #include "tapdev.h"
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include "tapdev-drv.h"
 
@@ -48,7 +48,7 @@
 PROCESS(tapdev_process, "TAP driver");
 
 /*---------------------------------------------------------------------------*/
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
 uint8_t
 tapdev_output(void)
 {
@@ -64,16 +64,16 @@ pollhandler(void)
   uip_len = tapdev_poll();
 
   if(uip_len > 0) {
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
       tcpip_input();
     } else
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
       uip_len -= sizeof(struct uip_eth_hdr);
       tcpip_input();
     } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
-#if !UIP_CONF_IPV6 //math
+#if !NETSTACK_CONF_WITH_IPV6 //math
        uip_arp_arpin();
        /* If the above function invocation resulted in data that
 	  should be sent out on the network, the global variable
@@ -95,7 +95,7 @@ PROCESS_THREAD(tapdev_process, ev, data)
   PROCESS_BEGIN();
 
   tapdev_init();
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   tcpip_set_outputfunc(tapdev_output);
 #else
   tcpip_set_outputfunc(tapdev_send);

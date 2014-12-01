@@ -132,11 +132,11 @@ struct uip_mcast6_driver {
 #if UIP_MCAST6_ENGINE
 
 /* Enable Multicast hooks in the uip6 core */
-#define UIP_CONF_IPV6_MULTICAST 1
+#define NETSTACK_CONF_WITH_IPV6_MULTICAST 1
 
 #if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_ROLL_TM
 #define RPL_CONF_MULTICAST     0        /* Not used by trickle */
-#define UIP_CONF_IPV6_ROLL_TM  1        /* ROLL Trickle ICMP type support */
+#define NETSTACK_CONF_WITH_IPV6_ROLL_TM  1        /* ROLL Trickle ICMP type support */
 
 #define UIP_MCAST6             roll_tm_driver
 #elif UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_SMRF
@@ -153,9 +153,9 @@ extern const struct uip_mcast6_driver UIP_MCAST6;
 /*---------------------------------------------------------------------------*/
 /* Configuration Checks */
 /*---------------------------------------------------------------------------*/
-#if RPL_CONF_MULTICAST && (!UIP_CONF_IPV6_RPL)
-#error "The selected Multicast mode requires UIP_CONF_IPV6_RPL != 0"
-#error "Check the value of UIP_CONF_IPV6_RPL in conf files."
+#if RPL_CONF_MULTICAST && (!NETSTACK_CONF_WITH_RPL)
+#error "The selected Multicast mode requires NETSTACK_CONF_WITH_RPL != 0"
+#error "Check the value of NETSTACK_CONF_WITH_RPL in conf files."
 #endif
 /*---------------------------------------------------------------------------*/
 

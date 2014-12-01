@@ -282,24 +282,24 @@ void uip_log(char *msg);
 /** The maximum transmission unit at the IP Layer*/
 #define UIP_LINK_MTU 1280
 
-#ifndef UIP_CONF_IPV6
+#ifndef NETSTACK_CONF_WITH_IPV6
 /** Do we use IPv6 or not (default: no) */
-#define UIP_CONF_IPV6                 0
+#define NETSTACK_CONF_WITH_IPV6                 0
 #endif
 
-#ifndef UIP_CONF_IPV6_QUEUE_PKT
+#ifndef NETSTACK_CONF_WITH_IPV6_QUEUE_PKT
 /** Do we do per %neighbor queuing during address resolution (default: no) */
-#define UIP_CONF_IPV6_QUEUE_PKT       0
+#define NETSTACK_CONF_WITH_IPV6_QUEUE_PKT       0
 #endif
 
-#ifndef UIP_CONF_IPV6_CHECKS
+#ifndef NETSTACK_CONF_WITH_IPV6_CHECKS
 /** Do we do IPv6 consistency checks (highly recommended, default: yes) */
-#define UIP_CONF_IPV6_CHECKS          1
+#define NETSTACK_CONF_WITH_IPV6_CHECKS          1
 #endif
 
-#ifndef UIP_CONF_IPV6_REASSEMBLY
+#ifndef NETSTACK_CONF_WITH_IPV6_REASSEMBLY
 /** Do we do IPv6 fragmentation (default: no) */
-#define UIP_CONF_IPV6_REASSEMBLY      0
+#define NETSTACK_CONF_WITH_IPV6_REASSEMBLY      0
 #endif
 
 #ifndef UIP_CONF_NETIF_MAX_ADDRESSES
@@ -351,7 +351,7 @@ void uip_log(char *msg);
 #ifdef UIP_CONF_UDP_CHECKSUMS
 #define UIP_UDP_CHECKSUMS (UIP_CONF_UDP_CHECKSUMS)
 #else
-#define UIP_UDP_CHECKSUMS (UIP_CONF_IPV6)
+#define UIP_UDP_CHECKSUMS (NETSTACK_CONF_WITH_IPV6)
 #endif
 
 /**

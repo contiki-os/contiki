@@ -185,7 +185,7 @@ strcasecmp(const char *s1, const char *s2)
 #define DNS_TYPE_ANY  255
 #define DNS_TYPE_NSEC  47
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define NATIVE_DNS_TYPE DNS_TYPE_AAAA /* IPv6 */
 #else
 #define NATIVE_DNS_TYPE DNS_TYPE_A    /* IPv4 */
@@ -234,12 +234,12 @@ struct dns_hdr {
  *  <https://developers.google.com/speed/public-dns/docs/using>
  */
 static uip_ipaddr_t resolv_default_dns_server =
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   { { 0x20, 0x01, 0x48, 0x60, 0x48, 0x60, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x88 } };
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   { { 8, 8, 8, 8 } };
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /** \internal The DNS answer message structure. */
 struct dns_answer {
@@ -249,7 +249,7 @@ struct dns_answer {
   uint16_t class;
   uint16_t ttl[2];
   uint16_t len;
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uint8_t ipaddr[16];
 #else
   uint8_t ipaddr[4];
@@ -315,13 +315,13 @@ enum {
 static uint8_t mdns_state;
 
 static const uip_ipaddr_t resolv_mdns_addr =
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   { { 0xff, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xfb } };
 #include "net/ipv6/uip-ds6.h"
-#else  /* UIP_CONF_IPV6 */
+#else  /* NETSTACK_CONF_WITH_IPV6 */
   { { 224, 0, 0, 251 } };
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 static int mdns_needs_host_announce;
 
 PROCESS(mdns_probe_process, "mDNS probe");
@@ -508,7 +508,7 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
 {
   struct dns_answer *ans;
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uint8_t i;
 
   for(i = 0; i < UIP_DS6_ADDR_NB; ++i) {
@@ -545,7 +545,7 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
       ++(*count);
     }
   }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   queryptr = encode_name(queryptr, resolv_hostname);
   ans = (struct dns_answer *)queryptr;
   ans->type = UIP_HTONS(NATIVE_DNS_TYPE);
@@ -556,7 +556,7 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
   uip_gethostaddr((uip_ipaddr_t *) ans->ipaddr);
   queryptr = (unsigned char *)ans + sizeof(*ans);
   ++(*count);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   return queryptr;
 }
 /*---------------------------------------------------------------------------*/
@@ -585,17 +585,17 @@ mdns_prep_host_announce_packet(void)
       0x00,
       0x04,
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
       0x00,
       0x00,
       0x00,
       0x08,
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
       0x40,
       0x00,
       0x00,
       0x00,
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     }
   };
 
@@ -1141,7 +1141,7 @@ PROCESS_THREAD(resolv_process, ev, data)
   PRINTF("resolver: Supports MDNS.\n");
   uip_udp_bind(resolv_conn, UIP_HTONS(MDNS_PORT));
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uip_ds6_maddr_add(&resolv_mdns_addr);
 #else
   /* TODO: Is there anything we need to do here for IPv4 multicast? */
@@ -1316,12 +1316,12 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
 #if UIP_CONF_LOOPBACK_INTERFACE
   if(strcmp(name, "localhost")) {
     static uip_ipaddr_t loopback =
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     { { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 } };
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
     { { 127, 0, 0, 1 } };
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     if(ipaddr) {
       *ipaddr = &loopback;
     }
@@ -1428,7 +1428,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
 #if RESOLV_CONF_SUPPORTS_MDNS
   if(strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0 &&
      ipaddr
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
      && !uip_ds6_is_my_addr(ipaddr)
 #else
      && uip_ipaddr_cmp(&uip_hostaddr, ipaddr) != 0

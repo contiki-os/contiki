@@ -904,7 +904,7 @@ accept(uint8_t in)
 
   PRINTF("ROLL TM: Multicast I/O\n");
 
-#if UIP_CONF_IPV6_CHECKS
+#if NETSTACK_CONF_WITH_IPV6_CHECKS
   if(uip_is_addr_mcast_non_routable(&UIP_IP_BUF->destipaddr)) {
     PRINTF("ROLL TM: Mcast I/O, bad destination\n");
     UIP_MCAST6_STATS_ADD(mcast_bad);
@@ -1104,7 +1104,7 @@ icmp_input()
   uint16_t *end_ptr;
   uint16_t val;
 
-#if UIP_CONF_IPV6_CHECKS
+#if NETSTACK_CONF_WITH_IPV6_CHECKS
   if(!uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) {
     PRINTF("ROLL TM: ICMPv6 In, bad source ");
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);

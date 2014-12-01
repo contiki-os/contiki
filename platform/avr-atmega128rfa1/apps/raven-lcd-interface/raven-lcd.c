@@ -98,7 +98,7 @@ void rs232_send(uint8_t port, unsigned char c);
 void
 raven_ping6(void)
 {
-#if UIP_CONF_IPV6_RPL||1
+#if NETSTACK_CONF_WITH_RPL||1
 /* No default router, so pick on someone else */
 #define PING_GOOGLE 1
 seqno++;

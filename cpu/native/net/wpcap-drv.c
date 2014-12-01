@@ -64,7 +64,7 @@
 PROCESS(wpcap_process, "WinPcap driver");
 
 /*---------------------------------------------------------------------------*/
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
 uint8_t
 wpcap_output(void)
 {
@@ -73,7 +73,7 @@ wpcap_output(void)
 
    return 0;
 }
-#endif /* !UIP_CONF_IPV6 */
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
 static void
 pollhandler(void)
@@ -83,16 +83,16 @@ pollhandler(void)
   uip_len = wpcap_poll();
 
   if(uip_len > 0) {
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
 //     printf("wpcap poll calls tcpip");
       tcpip_input();
     } else
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
       uip_len -= sizeof(struct uip_eth_hdr);
       tcpip_input();
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
     } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
        uip_arp_arpin();      //math
       /* If the above function invocation resulted in data that
@@ -101,7 +101,7 @@ pollhandler(void)
        if(uip_len > 0) {
          wpcap_send();
        }
-#endif /* !UIP_CONF_IPV6 */
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
     } else {
       uip_len = 0;
     }
@@ -125,16 +125,16 @@ pollhandler(void)
       tcpip_input();
     } else
 	 goto bail;
-#elif UIP_CONF_IPV6
+#elif NETSTACK_CONF_WITH_IPV6
     if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
       tcpip_input();
     } else
 	 goto bail;
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
       uip_len -= sizeof(struct uip_eth_hdr);
       tcpip_input();
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
     } else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
        uip_arp_arpin();      //math
       /* If the above function invocation resulted in data that
@@ -143,7 +143,7 @@ pollhandler(void)
        if(uip_len > 0) {
          wfall_send();
        }
-#endif /* !UIP_CONF_IPV6 */
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
     } else {
 bail:
       uip_len = 0;
@@ -161,13 +161,13 @@ PROCESS_THREAD(wpcap_process, ev, data)
 
   wpcap_init();
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   tcpip_set_outputfunc(wpcap_output);
 #else
 #if !FALLBACK_HAS_ETHERNET_HEADERS
   tcpip_set_outputfunc(wpcap_send);
 #endif
-#endif /* !UIP_CONF_IPV6 */
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
 
   process_poll(&wpcap_process);
 

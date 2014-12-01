@@ -22,7 +22,7 @@
 #endif
 
 
-#if !UIP_CONF_IPV6_RPL
+#if !NETSTACK_CONF_WITH_RPL
 #include "contiki-net.h"
 #include "sys/node-id.h"
 
@@ -67,5 +67,5 @@ void configure_routing(void)
     }
   }
 }
-#endif /*!UIP_CONF_IPV6_RPL*/
+#endif /*!NETSTACK_CONF_WITH_RPL*/
 #endif /*CONTIKI_TARGET_MINIMAL_NET*/

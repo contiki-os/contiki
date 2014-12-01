@@ -123,11 +123,11 @@
  * project-specific configuration to save memory.
  */
 
-/* UIP_CONF_IPV6 specifies whether or not IPv6 should be used. If IPv6
+/* NETSTACK_CONF_WITH_IPV6 specifies whether or not IPv6 should be used. If IPv6
    is not used, IPv4 is used instead. */
-#ifndef UIP_CONF_IPV6
-#define UIP_CONF_IPV6 0
-#endif /* UIP_CONF_IPV6 */
+#ifndef NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_WITH_IPV6 0
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* UIP_CONF_BUFFER_SIZE specifies how much memory should be reserved
    for the uIP packet buffer. This sets an upper bound on the largest
@@ -142,11 +142,11 @@
 #define UIP_CONF_ROUTER 1
 #endif /* UIP_CONF_ROUTER */
 
-/* UIP_CONF_IPV6_RPL specifies if RPL is to be used for IPv6
+/* NETSTACK_CONF_WITH_RPL specifies if RPL is to be used for IPv6
    routing. */
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL 1
-#endif /* UIP_CONF_IPV6_RPL */
+#ifndef NETSTACK_CONF_WITH_RPL
+#define NETSTACK_CONF_WITH_RPL 1
+#endif /* NETSTACK_CONF_WITH_RPL */
 
 /* UIP_CONF_MAX_ROUTES specifies the maximum number of routes that each
    node will be able to handle. */

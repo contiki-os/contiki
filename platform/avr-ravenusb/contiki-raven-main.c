@@ -121,7 +121,7 @@ struct rtimer rt;
 void rtimercycle(void) {rtimerflag=1;}
 #endif /* TESTRTIMER */
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 /*---------------------------------------------------------------------------*/
 /*---------------------------------  RPL   ----------------------------------*/
 /*---------------------------------------------------------------------------*/
@@ -199,7 +199,7 @@ PROCESS_THREAD(border_router_process, ev, data)
 }
 #endif /* RPL_BORDER_ROUTER */
 
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
 /*-------------------------------------------------------------------------*/
 /*----------------------Configuration of the .elf file---------------------*/
@@ -500,7 +500,7 @@ uint16_t p=(uint16_t)&__bss_end;
   //Fix MAC address
   init_net();
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &tmp_addr.u8, 8);
 #endif
 
@@ -533,7 +533,7 @@ uint16_t p=(uint16_t)&__bss_end;
   PRINTA("\n");
 #endif
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 #if RPL_BORDER_ROUTER
   process_start(&tcpip_process, NULL);
   process_start(&border_router_process, NULL);
@@ -547,12 +547,12 @@ uint16_t p=(uint16_t)&__bss_end;
   process_start(&httpd_process, NULL);
   PRINTD ("Webserver Started\n");
 #endif
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
 #else  /* RF230BB */
 /* The order of starting these is important! */
   process_start(&mac_process, NULL);
-#if UIP_CONF_IPV6 || UIP_CONF_IPV4
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
 #endif
 #endif /* RF230BB */
@@ -644,7 +644,7 @@ if ((rtime%STAMPS)==0) {
 #endif
       rtime+=1;
 
-#if PINGS && UIP_CONF_IPV6_RPL
+#if PINGS && NETSTACK_CONF_WITH_RPL
 extern void raven_ping6(void);
 if ((rtime%PINGS)==1) {
   PRINTA("**Ping\n");
@@ -652,7 +652,7 @@ if ((rtime%PINGS)==1) {
 }
 #endif
 
-#if ROUTES && UIP_CONF_IPV6_RPL
+#if ROUTES && NETSTACK_CONF_WITH_RPL
 if ((rtime%ROUTES)==2) {
 
 extern uip_ds6_netif_t uip_ds6_if;

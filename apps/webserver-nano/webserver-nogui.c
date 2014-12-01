@@ -64,7 +64,7 @@ webserver_log_file(uip_ipaddr_t *requester, char *file)
 {
   /* Print out IP address of requesting host. */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #if WEBSERVER_CONF_ADDRESSES
   char buf[48];
   uint8_t j;
@@ -78,7 +78,7 @@ webserver_log_file(uip_ipaddr_t *requester, char *file)
   char buf[20];
   sprintf(buf, "%d.%d.%d.%d: ", requester->u8[0], requester->u8[1],
                                 requester->u8[2], requester->u8[3]);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 //log_message(buf, file);
   printf("%s%s\n", buf, file);
 }

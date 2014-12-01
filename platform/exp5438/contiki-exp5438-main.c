@@ -53,9 +53,9 @@
 #include "lcd.h"
 #include "duty-cycle-scroller.h"
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 
 #define DEBUG 1
@@ -77,7 +77,7 @@ set_rime_addr(void)
   int i;
 
   memset(&addr, 0, sizeof(linkaddr_t));
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(addr.u8, node_mac, sizeof(addr.u8));
 #else
   if(node_id == 0) {
@@ -122,9 +122,9 @@ main(int argc, char **argv)
   leds_on(LEDS_RED);
 
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
-#if UIP_CONF_IPV4
+#if NETSTACK_CONF_WITH_IPV4
   slip_arch_init(BAUD2UBR(115200));
-#endif /* UIP_CONF_IPV4 */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 
   leds_on(LEDS_GREEN);
   /* xmem_init(); */
@@ -203,7 +203,7 @@ main(int argc, char **argv)
     PRINTF("Node id not set.\n");
   }
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
 
@@ -233,7 +233,7 @@ main(int argc, char **argv)
     printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
 
-  if(!UIP_CONF_IPV6_RPL) {
+  if(!NETSTACK_CONF_WITH_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
@@ -248,7 +248,7 @@ main(int argc, char **argv)
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
 
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
@@ -259,9 +259,9 @@ main(int argc, char **argv)
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0? 1:
                          NETSTACK_RDC.channel_check_interval()),
          CC2420_CONF_CHANNEL);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif

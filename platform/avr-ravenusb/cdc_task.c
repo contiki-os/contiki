@@ -230,7 +230,7 @@ void menu_print(void)
 #if RF230BB && RF230_CONF_SNEEZER
 		PRINTF_P(PSTR("*  S        Enable sneezer mode   *\n\r"));
 #endif
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 		PRINTF_P(PSTR("*  N        RPL Neighbors         *\n\r"));
 		PRINTF_P(PSTR("*  G        RPL Global Repair     *\n\r"));
 #endif
@@ -248,7 +248,7 @@ void menu_print(void)
 		PRINTF_P(PSTR("***********************************\n\r"));
 }
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 static void
 ipaddr_add(const uip_ipaddr_t *addr)
 {
@@ -577,7 +577,7 @@ void menu_process(char c)
 				break;
 
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 #include "rpl.h"
 extern uip_ds6_netif_t uip_ds6_if;
 			case 'N':

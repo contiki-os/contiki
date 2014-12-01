@@ -73,7 +73,7 @@ init_net(uint8_t node_id)
   uint16_t shortaddr;
   uint64_t longaddr;
   linkaddr_t addr;
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uip_ds6_addr_t *lladdr;
   uip_ipaddr_t ipaddr;
 #endif
@@ -135,7 +135,7 @@ init_net(uint8_t node_id)
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1 :
                          NETSTACK_RDC.channel_check_interval()), RF_CHANNEL);
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 
 #if LINKADDR_CONF_SIZE == 2
   memset(&uip_lladdr.addr, 0, sizeof(uip_lladdr.addr));
@@ -146,7 +146,7 @@ init_net(uint8_t node_id)
   memcpy(&uip_lladdr.addr, &longaddr, sizeof(uip_lladdr.addr));
 #endif
 
-#if UIP_CONF_IPV6 || UIP_CONF_IPV4
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
 #endif
 
@@ -160,7 +160,7 @@ init_net(uint8_t node_id)
 
   PRINTF("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
 
-  if(!UIP_CONF_IPV6_RPL) {
+  if(!NETSTACK_CONF_WITH_RPL) {
     uip_ip6addr(&ipaddr, 0x2001, 0x1418, 0x100, 0x823c, 0, 0, 0, 0);
     uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);

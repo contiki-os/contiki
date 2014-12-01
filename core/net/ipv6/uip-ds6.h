@@ -143,7 +143,7 @@
 #define NOSPACE 2
 /*--------------------------------------------------*/
 
-#if UIP_CONF_IPV6_QUEUE_PKT
+#if NETSTACK_CONF_WITH_IPV6_QUEUE_PKT
 #include "net/ip/uip-packetqueue.h"
 #endif                          /*UIP_CONF_QUEUE_PKT */
 
@@ -195,17 +195,17 @@ typedef struct uip_ds6_maddr {
 } uip_ds6_maddr_t;
 
 /* only define the callback if RPL is active */
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 #ifndef UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED
 #define UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED rpl_ipv6_neighbor_callback
 #endif /* UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED */
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
-#if UIP_CONF_IPV6_RPL
+#if NETSTACK_CONF_WITH_RPL
 #ifndef UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK
 #define UIP_CONF_DS6_LINK_NEIGHBOR_CALLBACK rpl_link_neighbor_callback
 #endif /* UIP_CONF_DS6_NEIGHBOR_STATE_CHANGED */
-#endif /* UIP_CONF_IPV6_RPL */
+#endif /* NETSTACK_CONF_WITH_RPL */
 
 
 /** \brief  Interface structure (contains all the interface variables) */

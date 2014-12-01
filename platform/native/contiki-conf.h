@@ -79,7 +79,7 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 
 #define LINKADDR_CONF_SIZE              8
 
@@ -102,9 +102,9 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 
 #define UIP_CONF_ROUTER                 1
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL               1
-#endif /* UIP_CONF_IPV6_RPL */
+#ifndef NETSTACK_CONF_WITH_RPL
+#define NETSTACK_CONF_WITH_RPL               1
+#endif /* NETSTACK_CONF_WITH_RPL */
 
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
@@ -120,9 +120,9 @@ typedef unsigned short uip_stats_t;
 #define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
 #endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 
-#define UIP_CONF_IPV6_CHECKS     1
-#define UIP_CONF_IPV6_QUEUE_PKT  1
-#define UIP_CONF_IPV6_REASSEMBLY 0
+#define NETSTACK_CONF_WITH_IPV6_CHECKS     1
+#define NETSTACK_CONF_WITH_IPV6_QUEUE_PKT  1
+#define NETSTACK_CONF_WITH_IPV6_REASSEMBLY 0
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
 #define UIP_CONF_ND6_MAX_PREFIXES     3
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
@@ -165,7 +165,7 @@ typedef unsigned short uip_stats_t;
 
 
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include <ctype.h>
 #define ctk_arch_isprint isprint

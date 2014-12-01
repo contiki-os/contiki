@@ -57,9 +57,9 @@ static uint16_t count;
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-#if !UIP_CONF_IPV6 || !UIP_CONF_ROUTER || !UIP_CONF_IPV6_MULTICAST || !UIP_CONF_IPV6_RPL
+#if !NETSTACK_CONF_WITH_IPV6 || !UIP_CONF_ROUTER || !NETSTACK_CONF_WITH_IPV6_MULTICAST || !NETSTACK_CONF_WITH_RPL
 #error "This example can not work with the current contiki configuration"
-#error "Check the values of: UIP_CONF_IPV6, UIP_CONF_ROUTER, UIP_CONF_IPV6_RPL"
+#error "Check the values of: NETSTACK_CONF_WITH_IPV6, UIP_CONF_ROUTER, NETSTACK_CONF_WITH_RPL"
 #endif
 /*---------------------------------------------------------------------------*/
 PROCESS(mcast_sink_process, "Multicast Sink");

@@ -86,9 +86,9 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
     nbr->isrouter = isrouter;
     nbr->state = state;
-  #if UIP_CONF_IPV6_QUEUE_PKT
+  #if NETSTACK_CONF_WITH_IPV6_QUEUE_PKT
     uip_packetqueue_new(&nbr->packethandle);
-  #endif /* UIP_CONF_IPV6_QUEUE_PKT */
+  #endif /* NETSTACK_CONF_WITH_IPV6_QUEUE_PKT */
     /* timers are set separately, for now we put them in expired state */
     stimer_set(&nbr->reachable, 0);
     stimer_set(&nbr->sendns, 0);
@@ -115,9 +115,9 @@ void
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
   if(nbr != NULL) {
-#if UIP_CONF_IPV6_QUEUE_PKT
+#if NETSTACK_CONF_WITH_IPV6_QUEUE_PKT
     uip_packetqueue_free(&nbr->packethandle);
-#endif /* UIP_CONF_IPV6_QUEUE_PKT */
+#endif /* NETSTACK_CONF_WITH_IPV6_QUEUE_PKT */
     NEIGHBOR_STATE_CHANGED(nbr);
     nbr_table_remove(ds6_neighbors, nbr);
   }
