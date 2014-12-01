@@ -47,9 +47,9 @@
 #include "contiki-net.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 
-#if !UIP_CONF_IPV6 || !UIP_CONF_ROUTER || !UIP_CONF_IPV6_MULTICAST || !UIP_CONF_IPV6_RPL
+#if !NETSTACK_CONF_WITH_IPV6 || !UIP_CONF_ROUTER || !UIP_CONF_IPV6_MULTICAST || !UIP_CONF_IPV6_RPL
 #error "This example can not work with the current contiki configuration"
-#error "Check the values of: UIP_CONF_IPV6, UIP_CONF_ROUTER, UIP_CONF_IPV6_RPL"
+#error "Check the values of: NETSTACK_CONF_WITH_IPV6, UIP_CONF_ROUTER, UIP_CONF_IPV6_RPL"
 #endif
 /*---------------------------------------------------------------------------*/
 PROCESS(mcast_intermediate_process, "Intermediate Process");

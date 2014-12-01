@@ -79,7 +79,7 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 
 #define LINKADDR_CONF_SIZE              8
 
@@ -165,7 +165,7 @@ typedef unsigned short uip_stats_t;
 
 
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include <ctype.h>
 #define ctk_arch_isprint isprint

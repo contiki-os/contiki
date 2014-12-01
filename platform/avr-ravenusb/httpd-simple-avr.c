@@ -253,7 +253,7 @@ PT_THREAD(generate_routes(struct httpd_state *s))
   PSOCK_GENERATOR_SEND(&s->sout, generate_string_P, (char *) TOP1);
   PSOCK_GENERATOR_SEND(&s->sout, generate_string_P, (char *) TOP2);
 
-#if UIP_CONF_IPV6     //allow ip4 builds
+#if NETSTACK_CONF_WITH_IPV6     //allow ip4 builds
   blen = 0;
   ADD("<h2>Neighbors [%u max]</h2>",NBR_TABLE_CONF_MAX_NEIGHBORS);
   PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
@@ -296,11 +296,11 @@ PT_THREAD(generate_routes(struct httpd_state *s))
 	PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
     blen = 0;
   }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   blen = 0;i++;
   ADD("<h2>Hey, you got ip4 working!</h2>");
   PSOCK_GENERATOR_SEND(&s->sout, generate_string, buf);  
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   PSOCK_GENERATOR_SEND(&s->sout, generate_string_P, (char *) BOTTOM);  
 
