@@ -260,7 +260,9 @@ uip_over_mesh_send(void)
      an underlying power-saving MAC layer knows that it should be
      waiting for an ACK. */
   if(BUF->proto == UIP_PROTO_TCP) {
+#if NETSTACK_CONF_WITH_RIME
     packetbuf_set_attr(PACKETBUF_ATTR_ERELIABLE, 1);
+#endif /* NETSTACK_CONF_WITH_RIME */
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
     /*    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_STREAM);*/
   }
