@@ -227,10 +227,32 @@ uip_ds6_neighbor_periodic(void)
     switch(nbr->state) {
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
+#if UIP_CONF_IPV6_RPL
+        /* when a neighbor leave it's REACHABLE state and is a default router,
+           instead of going to STALE state it enters DELAY state in order to
+           force a NUD on it. Otherwise, if there is no upward traffic, the
+           node never knows if the default router is still reachable. This
+           mimics the 6LoWPAN-ND behavior.
+         */
+        if(uip_ds6_defrt_lookup(&nbr->ipaddr) != NULL) {
+          PRINTF("REACHABLE: defrt moving to DELAY (");
+          PRINT6ADDR(&nbr->ipaddr);
+          PRINTF(")\n");
+          nbr->state = NBR_DELAY;
+          stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
+          nbr->nscount = 0;
+        } else {
+          PRINTF("REACHABLE: moving to STALE (");
+          PRINT6ADDR(&nbr->ipaddr);
+          PRINTF(")\n");
+          nbr->state = NBR_STALE;
+        }
+#else /* UIP_CONF_IPV6_RPL */
         PRINTF("REACHABLE: moving to STALE (");
         PRINT6ADDR(&nbr->ipaddr);
         PRINTF(")\n");
         nbr->state = NBR_STALE;
+#endif /* UIP_CONF_IPV6_RPL */
       }
       break;
 #if UIP_ND6_SEND_NA
