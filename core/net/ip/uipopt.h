@@ -282,9 +282,9 @@ void uip_log(char *msg);
 /** The maximum transmission unit at the IP Layer*/
 #define UIP_LINK_MTU 1280
 
-#ifndef UIP_CONF_IPV6
+#ifndef NETSTACK_CONF_WITH_IPV6
 /** Do we use IPv6 or not (default: no) */
-#define UIP_CONF_IPV6                 0
+#define NETSTACK_CONF_WITH_IPV6                 0
 #endif
 
 #ifndef UIP_CONF_IPV6_QUEUE_PKT
@@ -351,7 +351,7 @@ void uip_log(char *msg);
 #ifdef UIP_CONF_UDP_CHECKSUMS
 #define UIP_UDP_CHECKSUMS (UIP_CONF_UDP_CHECKSUMS)
 #else
-#define UIP_UDP_CHECKSUMS (UIP_CONF_IPV6)
+#define UIP_UDP_CHECKSUMS (NETSTACK_CONF_WITH_IPV6)
 #endif
 
 /**

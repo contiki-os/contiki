@@ -120,9 +120,9 @@ uart1_writeb(unsigned char c)
 #endif /* TX_WITH_INTERRUPT */
 }
 /*---------------------------------------------------------------------------*/
-#if ! UIP_CONF_IPV4
-/* If UIP_CONF_IPV4 is defined, putchar() is defined by the SLIP driver */
-#endif /* ! UIP_CONF_IPV4 */
+#if ! NETSTACK_CONF_WITH_IPV4
+/* If NETSTACK_CONF_WITH_IPV4 is defined, putchar() is defined by the SLIP driver */
+#endif /* ! NETSTACK_CONF_WITH_IPV4 */
 /*---------------------------------------------------------------------------*/
 /*
  * Initalize the RS232 port.

@@ -57,7 +57,7 @@ typedef  int32_t s32_t;
 typedef unsigned short uip_stats_t;
 
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* The Windows build uses wpcap to connect to a host interface. It finds the interface by scanning for
  * an address, which can be specified here and overridden with the command line.
  * An ip4 or ip6 address can be used; this allows turning off the ip4 protocol on the interface.
@@ -155,7 +155,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_UDP                  1
 #define UIP_CONF_TCP                  1
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define UIP_CONF_IPV6_QUEUE_PKT       1
 #define UIP_CONF_IPV6_CHECKS          1
 #define UIP_CONF_IPV6_REASSEMBLY      1
@@ -169,7 +169,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_DS6_ADDR_NBU    10
 #define UIP_CONF_DS6_MADDR_NBU   0
 #define UIP_CONF_DS6_AADDR_NBU   0
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 typedef unsigned long clock_time_t;
 #define CLOCK_CONF_SECOND 1000

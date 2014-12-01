@@ -108,7 +108,7 @@
 
 #define LINKADDR_CONF_SIZE              8
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #define NETSTACK_CONF_MAC     nullmac_driver 
@@ -121,7 +121,7 @@
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
 
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 /* Network setup for non-IPv6 (rime). */
 
 #define NETSTACK_CONF_NETWORK rime_driver
@@ -144,7 +144,7 @@
 
 #define COLLECT_NBR_TABLE_CONF_MAX_NEIGHBORS      32
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #define QUEUEBUF_CONF_NUM          16
 
@@ -169,7 +169,7 @@
 #define PROCESS_CONF_NUMEVENTS 8
 #define PROCESS_CONF_STATS 1
 
-#ifdef UIP_CONF_IPV6
+#ifdef NETSTACK_CONF_WITH_IPV6
 
 #define LINKADDR_CONF_SIZE              8
 
@@ -191,7 +191,7 @@
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
-#define UIP_CONF_IPV6                   1
+#define NETSTACK_CONF_WITH_IPV6                   1
 #define UIP_CONF_IPV6_QUEUE_PKT         0
 #define UIP_CONF_IPV6_CHECKS            1
 #define UIP_CONF_IPV6_REASSEMBLY        0
@@ -213,10 +213,10 @@
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 #define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_BUFFER_SIZE     1300
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 

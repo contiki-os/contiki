@@ -92,7 +92,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define CCIF
 #define CLIF
 
-//#define UIP_CONF_IPV6            1  //Let makefile determine this so ipv4 hello-world will compile
+//#define NETSTACK_CONF_WITH_IPV6            1  //Let makefile determine this so ipv4 hello-world will compile
 
 #define LINKADDR_CONF_SIZE       8
 #define PACKETBUF_CONF_HDR_SIZE    0
@@ -124,7 +124,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
 #define UIP_CONF_ND6_MAX_PREFIXES     3
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
-#if UIP_CONF_IPV6                       //tcpip.c error on ipv4 build if UIP_CONF_ICMP6 defined
+#if NETSTACK_CONF_WITH_IPV6                       //tcpip.c error on ipv4 build if UIP_CONF_ICMP6 defined
 #define UIP_CONF_ICMP6           1
 #endif
 

@@ -42,7 +42,7 @@ CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAVRGCC -DAUTO_CRC_PADDING=2 -DJACKDAW=1
 #The no-net build using fakeuip.c is always ipv6
 CFLAGS += -I$(CONTIKI)/core/net/ipv6 -I$(CONTIKI)/core/net/ip -I$(CONTIKI)/core/net/ipv4
 ifdef CONTIKI_NO_NET 
-CONTIKI_PLAT_DEFS+= -DUIP_CONF_IPV6=1
+CONTIKI_PLAT_DEFS+= -DNETSTACK_CONF_WITH_IPV6=1
 endif
 
 

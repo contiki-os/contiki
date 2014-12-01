@@ -98,8 +98,8 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define LINKADDR_CONF_SIZE       8
 #define PACKETBUF_CONF_HDR_SIZE    0
 
-//define UIP_CONF_IPV6            1 //Let the makefile do this, allows hello-world to compile
-#if UIP_CONF_IPV6
+//define NETSTACK_CONF_WITH_IPV6            1 //Let the makefile do this, allows hello-world to compile
+#if NETSTACK_CONF_WITH_IPV6
 #define UIP_CONF_ICMP6           1
 #define UIP_CONF_UDP             1
 #define UIP_CONF_TCP             1
@@ -113,7 +113,7 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define UIP_CONF_LLH_LEN         0
 
 /* No radio cycling */
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define NETSTACK_CONF_NETWORK     sicslowpan_driver
 #else
 #define NETSTACK_CONF_NETWORK     rime_driver

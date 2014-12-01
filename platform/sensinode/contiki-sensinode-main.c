@@ -245,7 +245,7 @@ main(void)
   sensinode_sensors_activate();
 #endif
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
   process_start(&tcpip_process, NULL);
@@ -267,7 +267,7 @@ main(void)
     uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
   }
 #endif /* UIP_CONF_IPV6_RPL */
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   /*
    * Acknowledge the UART1 RX interrupt
