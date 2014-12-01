@@ -38,6 +38,7 @@
  */
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "shell-time.h"
 
 #include "sys/clock.h"
@@ -50,11 +51,6 @@
 
 #define MAX_COMMANDLENGTH 64
 #define PERIOD_INTERVAL   60
-
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
-
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_time_process, "time");

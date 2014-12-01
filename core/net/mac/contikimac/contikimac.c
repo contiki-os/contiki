@@ -229,10 +229,6 @@ static struct compower_activity current_packet;
 
 #define DEFAULT_STREAM_TIME (4 * CYCLE_TIME)
 
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
-
 #if CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT
 static struct timer broadcast_rate_timer;
 static int broadcast_rate_counter;

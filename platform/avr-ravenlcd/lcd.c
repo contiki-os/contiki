@@ -411,7 +411,7 @@ lcd_num_putdec(int numb, lcd_padding_t padding)
     }
 
     /* Convert to BCD */
-    bcd = itobcd(abs(numb));
+    bcd = itobcd(ABS(numb));
 
     /* Print */
     return lcd_num_print(bcd, (bool)(numb<0), padding);
