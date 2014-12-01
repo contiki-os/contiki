@@ -57,12 +57,11 @@
 
 #include "lib/assert.h"
 #include "lib/list.h"
+#include "sys/cc.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-/*---------------------------------------------------------------------------*/
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG

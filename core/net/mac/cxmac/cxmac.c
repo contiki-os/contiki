@@ -52,6 +52,7 @@
 #include "sys/rtimer.h"
 
 #include "contiki-conf.h"
+#include "sys/cc.h"
 
 #ifdef EXPERIMENT_SETUP
 #include "experiment-setup.h"
@@ -214,10 +215,6 @@ static uint8_t is_streaming;
 static linkaddr_t is_streaming_to, is_streaming_to_too;
 static rtimer_clock_t stream_until;
 #define DEFAULT_STREAM_TIME (RTIMER_ARCH_SECOND)
-
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
 
 /*---------------------------------------------------------------------------*/
 static void

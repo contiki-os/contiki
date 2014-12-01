@@ -48,6 +48,7 @@
 
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "usb_drv.h"
 #include "usb_descriptors.h"
 #include "usb_specific_request.h"
@@ -753,7 +754,7 @@ uint16_t p=(uint16_t)&__bss_end;
 							radio_get_rssi_value(&RSSI);
 							RSSI*=3;
 #endif
-							maxRSSI[i-11]=Max(maxRSSI[i-11],RSSI);
+							maxRSSI[i-11]=MAX(maxRSSI[i-11],RSSI);
 							accRSSI[i-11]+=RSSI;
 						}
 						if(j&(1<<7)) {
@@ -774,7 +775,7 @@ uint16_t p=(uint16_t)&__bss_end;
 #endif
 					PRINTF_P(PSTR("\n"));
 					for(i=11;i<=26;i++) {
-						uint8_t activity=Min(maxRSSI[i-11],accRSSI[i-11]/(1<<7));
+						uint8_t activity=MIN(maxRSSI[i-11],accRSSI[i-11]/(1<<7));
 						PRINTF_P(PSTR(" %d: %02ddB "),i, -91+(maxRSSI[i-11]-1));
 						for(;activity--;maxRSSI[i-11]--) {
 							PRINTF_P(PSTR("#"));

@@ -33,6 +33,7 @@
 
 #include <string.h>
 
+#include "sys/cc.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
 #include "lib/petsciiconv.h"
@@ -103,7 +104,6 @@ static uint8_t connected;
 
 #define MAX_SILENCE_TIME (CLOCK_SECOND * 30)
 
-#define MIN(a, b) ((a) < (b)? (a): (b))
 /*---------------------------------------------------------------------------*/
 static void
 buf_init(struct telnetd_buf *buf)
