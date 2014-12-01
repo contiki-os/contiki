@@ -1207,7 +1207,11 @@ uip_process(uint8_t flag)
       }
 
 #if UIP_CONF_IPV6_RPL
-      rpl_update_header_empty();
+      if(rpl_update_header_empty()) {
+        /* Packet can not be forwarded */
+        PRINTF("RPL Forward Option Error\n");
+        goto drop;
+      }
 #endif /* UIP_CONF_IPV6_RPL */
 
       UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
