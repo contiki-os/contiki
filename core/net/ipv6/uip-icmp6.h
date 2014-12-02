@@ -112,7 +112,7 @@ typedef struct uip_icmp6_error{
  * \brief Send an icmpv6 error message
  * \param type type of the error message
  * \param code of the error message
- * \param type 32 bit parameter of the error message, semantic depends on error 
+ * \param param 32 bit parameter of the error message, semantic depends on error
  */
 void
 uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param); 

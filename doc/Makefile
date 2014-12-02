@@ -33,7 +33,7 @@ init:
 	@echo "> Scanning files"
 
 # This target requires and graphviz and doxygen
-doxygen.log: docdirs = $(sort ,$(foreach dir,$(basedirs),${shell find ../${dir} -type d -not -path "*/.*" -not -path "*/obj_*"}))
+doxygen.log: docdirs = $(sort $(foreach dir,$(basedirs),${shell find ../${dir} -type d -not -path "*/.*" -not -path "*/obj_*"}))
 doxygen.log: docsrc = $(docdirs) $(foreach dir,$(docdirs),${shell find $(dir) -type f $(filetypes)}) $(manuals)
 doxygen.log:
 	@doxygen Doxyfile
