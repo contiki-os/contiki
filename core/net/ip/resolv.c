@@ -227,9 +227,6 @@ struct dns_hdr {
   uint16_t numextrarr;
 };
 
-#define RESOLV_ENCODE_INDEX(i) (uip_htons(i+1))
-#define RESOLV_DECODE_INDEX(i) (unsigned char)(uip_ntohs(i-1))
-
 /** These default values for the DNS server are Google's public DNS:
  *  <https://developers.google.com/speed/public-dns/docs/using>
  */
@@ -264,6 +261,7 @@ struct namemap {
 #define STATE_DONE   4
   uint8_t state;
   uint8_t tmr;
+  uint16_t id;
   uint8_t retries;
   uint8_t seqno;
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
@@ -703,7 +701,8 @@ check_entries(void)
       }
       hdr = (struct dns_hdr *)uip_appdata;
       memset(hdr, 0, sizeof(struct dns_hdr));
-      hdr->id = RESOLV_ENCODE_INDEX(i);
+      hdr->id = random_rand();
+      namemapptr->id = hdr->id;
 #if RESOLV_CONF_SUPPORTS_MDNS
       if(!namemapptr->is_mdns || namemapptr->is_probe) {
         hdr->flags1 = DNS_FLAG1_RD;
@@ -903,10 +902,13 @@ newdata(void)
   } else
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
   {
-    /* The ID in the DNS header should be our entry into the name table. */
-    i = RESOLV_DECODE_INDEX(hdr->id);
-
-    namemapptr = &names[i];
+    for(i = 0; i < RESOLV_ENTRIES; ++i) {
+      namemapptr = &names[i];
+      if(namemapptr->state == STATE_ASKING &&
+         namemapptr->id == hdr->id) {
+        break;
+      }
+    }
 
     if(i >= RESOLV_ENTRIES || i < 0 || namemapptr->state != STATE_ASKING) {
       PRINTF("resolver: DNS response has bad ID (%04X) \n", uip_ntohs(hdr->id));
