@@ -1199,6 +1199,16 @@ PROCESS_THREAD(resolv_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+  static uint8_t initialized = 0;
+  if(!initialized) {
+    process_start(&resolv_process, NULL);
+    initialized = 1;
+  }
+}
+/*---------------------------------------------------------------------------*/
 #if RESOLV_AUTO_REMOVE_TRAILING_DOTS
 static const char *
 remove_trailing_dots(const char *name) {
@@ -1232,6 +1242,8 @@ resolv_query(const char *name)
 
   register struct namemap *nameptr = 0;
 
+  init();
+  
   lseq = lseqi = 0;
 
   /* Remove trailing dots, if present. */
