@@ -117,7 +117,7 @@ makestrings(void)
   makeaddr(&addr, gateway);
 
 #if WITH_DNS
-  addrptr = resolv_getserver();
+  addrptr = uip_nameserver_get(0);
   if(addrptr != NULL) {
     makeaddr(addrptr, dnsserver);
   }
@@ -245,7 +245,7 @@ dhcpc_configured(const struct dhcpc_state *s)
   uip_setnetmask(&s->netmask);
   uip_setdraddr(&s->default_router);
 #if WITH_DNS
-  resolv_conf(&s->dnsaddr);
+  uip_nameserver_update(&s->dnsaddr, UIP_NAMESERVER_INFINITE_LIFETIME);
 #endif /* WITH_DNS */
 
   set_statustext("Configured.");
@@ -261,7 +261,7 @@ dhcpc_unconfigured(const struct dhcpc_state *s)
   uip_setnetmask(&nulladdr);
   uip_setdraddr(&nulladdr);
 #if WITH_DNS
-  resolv_conf(&nulladdr);
+  uip_nameserver_update(&nulladdr, UIP_NAMESERVER_INFINITE_LIFETIME);
 #endif /* WITH_DNS */
 
   set_statustext("Unconfigured.");

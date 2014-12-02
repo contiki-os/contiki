@@ -88,7 +88,7 @@ makestrings(void)
   uip_getdraddr(&addr);
   makeaddr(&addr, gateway);
 
-  addrptr = resolv_getserver();
+  addrptr = uip_nameserver_get(0);
   if(addrptr != NULL) {
     makeaddr(addrptr, dnsserver);
   }
@@ -147,7 +147,7 @@ dhcpc_configured(const struct dhcpc_state *s)
   uip_sethostaddr(&s->ipaddr);
   uip_setnetmask(&s->netmask);
   uip_setdraddr(&s->default_router);
-  resolv_conf(&s->dnsaddr);
+  uip_nameserver_update(&s->dnsaddr, UIP_NAMESERVER_INFINITE_LIFETIME);
   set_statustext("Configured.");
   process_post(PROCESS_CURRENT(), SHOWCONFIG, NULL);
 }

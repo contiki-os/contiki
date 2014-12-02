@@ -57,11 +57,6 @@
  */
 CCIF extern process_event_t resolv_event_found;
 
-/* Functions. */
-CCIF void resolv_conf(const uip_ipaddr_t * dnsserver);
-
-CCIF uip_ipaddr_t *resolv_getserver(void);
-
 enum {
   /** Hostname is fresh and usable. This response is cached and will eventually
    *  expire to RESOLV_STATUS_EXPIRED.*/
@@ -95,6 +90,7 @@ enum {
 
 typedef uint8_t resolv_status_t;
 
+/* Functions. */
 CCIF resolv_status_t resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr);
 
 CCIF void resolv_query(const char *name);
