@@ -54,9 +54,17 @@
 #endif /* __CYGWIN__ */
 
 #ifdef __CYGWIN__
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 PROCINIT(&etimer_process, &tcpip_process, &wpcap_process, &serial_line_process);
+#else
+PROCINIT(&etimer_process, &wpcap_process, &serial_line_process);
+#endif
 #else /* __CYGWIN__ */
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 PROCINIT(&etimer_process, &tapdev_process, &tcpip_process, &serial_line_process);
+#else
+PROCINIT(&etimer_process, &tapdev_process, &serial_line_process);
+#endif
 #endif /* __CYGWIN__ */
 
 #if RPL_BORDER_ROUTER
@@ -135,7 +143,7 @@ PROCESS_THREAD(border_router_process, ev, data)
 }
 #endif /* RPL_BORDER_ROUTER */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /*---------------------------------------------------------------------------*/
 static void
 sprint_ip6(uip_ip6addr_t addr)
@@ -174,7 +182,7 @@ sprint_ip6(uip_ip6addr_t addr)
   *result=0;
   printf("%s", thestring);
 }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
 int contiki_argc = 0;
 char **contiki_argv;
@@ -198,7 +206,7 @@ main(int argc, char **argv)
 #endif
 
   clock_init();
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* A hard coded address overrides the stack default MAC address to
    allow multiple instances. uip6.c defines it as
    {0x00,0x06,0x98,0x00,0x02,0x32} giving an ipv6 address of
@@ -229,7 +237,7 @@ main(int argc, char **argv)
   }
  }
 #endif /* HARD_CODED_ADDRESS */
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   process_init();
 /* procinit_init initializes RPL which sets a ctimer for the first DIS */
@@ -248,7 +256,7 @@ main(int argc, char **argv)
   autostart_start(autostart_processes); 
 
   /* Set default IP addresses if not specified */
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   {
     uip_ipaddr_t addr;
 
@@ -273,7 +281,7 @@ main(int argc, char **argv)
     }
     printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
 #if !UIP_CONF_IPV6_RPL
   {
@@ -305,7 +313,7 @@ main(int argc, char **argv)
   }
 #endif /* !UIP_CONF_IPV6_RPL */
 
-#endif /* !UIP_CONF_IPV6 */
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
 
  // procinit_init();
  // autostart_start(autostart_processes); 
@@ -315,7 +323,7 @@ main(int argc, char **argv)
 
   printf("\n*******%s online*******\n",CONTIKI_VERSION_STRING);
 
-#if UIP_CONF_IPV6 && !RPL_BORDER_ROUTER  /* Border router process prints addresses later */
+#if NETSTACK_CONF_WITH_IPV6 && !RPL_BORDER_ROUTER  /* Border router process prints addresses later */
   {
     int i = 0;
     int interface_count = 0;

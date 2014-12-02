@@ -42,7 +42,7 @@ CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAVRGCC -DAUTO_CRC_PADDING=2 -DJACKDAW=1
 #The no-net build using fakeuip.c is always ipv6
 CFLAGS += -I$(CONTIKI)/core/net/ipv6 -I$(CONTIKI)/core/net/ip -I$(CONTIKI)/core/net/ipv4
 ifdef CONTIKI_NO_NET 
-CONTIKI_PLAT_DEFS+= -DUIP_CONF_IPV6=1
+CONTIKI_PLAT_DEFS+= -DNETSTACK_CONF_WITH_IPV6=1
 endif
 
 
@@ -67,8 +67,7 @@ include $(CONTIKIAVR)/Makefile.avr
 include $(CONTIKIAVR)/radio/Makefile.radio
 
 ifndef CONTIKI_NO_NET
-MODULES+=core/net/ip core/net/ipv4 core/net core/net/ipv6 \
-         core/net/rime core/net/mac core/net/mac/sicslowmac \
+MODULES+=core/net/mac core/net/mac/sicslowmac \
          core/net/llsec
 else
 vpath %.c $(CONTIKI)/core/net/ipv6

@@ -74,9 +74,17 @@ FUSES =
 PROCESS(rcb_leds, "RCB leds process");
 
 #if RF230BB
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 PROCINIT(&etimer_process, &tcpip_process, &rcb_leds);
 #else
+PROCINIT(&etimer_process, &rcb_leds);
+#endif
+#else
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 PROCINIT(&etimer_process, &mac_process, &tcpip_process, &rcb_leds);
+#else
+PROCINIT(&etimer_process, &mac_process, &rcb_leds);
+#endif
 #endif
 
 /* Put default MAC address in EEPROM */
@@ -115,7 +123,7 @@ PROCESS_THREAD(rcb_leds, ev, data)
     while(1) {
       PROCESS_YIELD();
       
-#if UIP_CONF_IPV6	  
+#if NETSTACK_CONF_WITH_IPV6	  
 	  if (ev == ICMP6_ECHO_REQUEST) {
 #else
  		if (1) {

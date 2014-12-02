@@ -82,9 +82,17 @@ FUSES =
 	};
 	
 #if RF230BB
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 //PROCINIT(&etimer_process, &tcpip_process );
 #else
+//PROCINIT(&etimer_process );
+#endif
+#else
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
 PROCINIT(&etimer_process, &mac_process, &tcpip_process );
+#else
+PROCINIT(&etimer_process, &mac_process );
+#endif
 #endif
 /* Put default MAC address in EEPROM */
 uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
@@ -124,7 +132,7 @@ init_lowlevel(void)
   memset(&addr, 0, sizeof(linkaddr_t));
   eeprom_read_block ((void *)&addr.u8,  &mac_address, 8);
  
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &addr.u8, 8);
 #endif  
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);
@@ -162,13 +170,15 @@ init_lowlevel(void)
   rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
 #endif
-
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
-
+#endif
 #else
 /* mac process must be started before tcpip process! */
   process_start(&mac_process, NULL);
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
+#endif
 #endif /*RF230BB*/
 
 }

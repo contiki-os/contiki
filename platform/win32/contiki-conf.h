@@ -64,7 +64,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_TCP_SPLIT           1
 #define UIP_CONF_LOGGING             1
 #define UIP_CONF_UDP_CHECKSUMS       1
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define UIP_CONF_IP_FORWARD          0
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 100
 #define UIP_CONF_DS6_DEFRT_NBU       2

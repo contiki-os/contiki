@@ -34,7 +34,7 @@
 
 #include "net/ipv4/uip-fw.h"
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
 
 PROCESS(uip_fw_process, "IP forwarding");
 
@@ -51,4 +51,4 @@ PROCESS_THREAD(uip_fw_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */

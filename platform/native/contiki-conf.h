@@ -79,7 +79,7 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 #endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 
 #define LINKADDR_CONF_SIZE              8
 
@@ -102,9 +102,6 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 
 #define UIP_CONF_ROUTER                 1
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL               1
-#endif /* UIP_CONF_IPV6_RPL */
 
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
@@ -165,7 +162,7 @@ typedef unsigned short uip_stats_t;
 
 
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include <ctype.h>
 #define ctk_arch_isprint isprint

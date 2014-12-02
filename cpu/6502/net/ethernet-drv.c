@@ -59,12 +59,12 @@ pollhandler(void)
   uip_len = ethernet_poll();
 
   if(uip_len > 0) {
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
       uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
       tcpip_input();
     } else
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
       uip_len -= sizeof(struct uip_eth_hdr);
       tcpip_input();

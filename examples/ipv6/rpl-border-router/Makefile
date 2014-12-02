@@ -3,9 +3,6 @@ all: $(CONTIKI_PROJECT)
 
 CONTIKI=../../..
 
-UIP_CONF_IPV6=1
-CFLAGS+= -DUIP_CONF_IPV6_RPL
-
 #linker optimizations
 SMALL=1
 
@@ -39,6 +36,7 @@ ifeq ($(PREFIX),)
  PREFIX = aaaa::1/64
 endif
 
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
 $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c

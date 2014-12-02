@@ -44,7 +44,7 @@
 
 
 /**
- * \defgroup simple-udp
+ * \defgroup simple-udp A simple UDP API
  *
  * The default Contiki UDP API is difficult to use. The simple-udp
  * module provides a significantly simpler API.
