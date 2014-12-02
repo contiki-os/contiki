@@ -89,9 +89,6 @@ typedef uint32_t rtimer_clock_t;
 
 #ifdef NETSTACK_CONF_WITH_IPV6
 #define UIP_CONF_ROUTER                         1
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL                       1
-#endif /* UIP_CONF_IPV6_RPL */
 
 /* IPv6 configuration options */
 #define NETSTACK_CONF_WITH_IPV6                           1

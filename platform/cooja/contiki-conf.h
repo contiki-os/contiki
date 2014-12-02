@@ -124,9 +124,6 @@
 #define UIP_CONF_LLH_LEN            0
 
 #define UIP_CONF_ROUTER             1
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL           1
-#endif /* UIP_CONF_IPV6_RPL */
 
 /* configure number of neighbors and routes */
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS

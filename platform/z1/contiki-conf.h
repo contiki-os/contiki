@@ -138,7 +138,6 @@
 #define UIP_CONF_LLH_LEN                0
 
 #define UIP_CONF_ROUTER                 1
-#define UIP_CONF_IPV6_RPL               1
 
 /* Handle 10 neighbors */
 #define NBR_TABLE_CONF_MAX_NEIGHBORS     15

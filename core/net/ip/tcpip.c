@@ -616,7 +616,7 @@ tcpip_ipv6_output(void)
 
             rpl_repair_root(instance->instance_id);
           }
-#endif /* UIP_CONF_RPL */
+#endif /* UIP_CONF_IPV6_RPL */
           uip_ds6_route_rm(route);
 
           /* We don't have a nexthop to send the packet to, so we drop
