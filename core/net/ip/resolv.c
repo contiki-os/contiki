@@ -1380,7 +1380,8 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
 
 #if VERBOSE_DEBUG
   switch (ret) {
-  case RESOLV_STATUS_CACHED:{
+  case RESOLV_STATUS_CACHED:
+    if(ipaddr) {
       PRINTF("resolver: Found \"%s\" in cache.\n", name);
       const uip_ipaddr_t *addr = *ipaddr;
 
