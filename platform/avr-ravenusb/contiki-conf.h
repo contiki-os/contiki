@@ -222,7 +222,6 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define UIP_CONF_ICMP6           1
 #define UIP_CONF_UDP             1
 #define UIP_CONF_TCP             0
-//#define UIP_CONF_IPV6_RPL        0
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
@@ -380,7 +379,6 @@ typedef unsigned short uip_stats_t;
 //#pragma mark RPL Settings
 /* ************************************************************************** */
 
-#define UIP_CONF_IPV6_RPL        0
 #if UIP_CONF_IPV6_RPL
 
 /* Not completely working yet. Works on Ubuntu after $ifconfig usb0 -arp to drop the neighbor solitications */

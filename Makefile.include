@@ -88,10 +88,16 @@ endif
 ifeq ($(CONTIKI_WITH_IPV6),1)
   CFLAGS += -DNETSTACK_CONF_WITH_IPV6=1
   ifneq ($(CONTIKI_WITH_RPL),0)
+  	CONTIKI_WITH_RPL = 1
+  endif
+  MODULES += core/net/ipv6 core/net/ip
+endif
+
+ifeq ($(CONTIKI_WITH_RPL),1)
     CFLAGS += -DUIP_CONF_IPV6_RPL=1
     MODULES += core/net/rpl
-  endif # UIP_CONF_RPL
-  MODULES += core/net/ipv6 core/net/ip
+else
+    CFLAGS += -DUIP_CONF_IPV6_RPL=0
 endif
 
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)

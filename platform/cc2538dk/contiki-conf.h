@@ -445,10 +445,6 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ROUTER                      1
 #endif
 
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL                    1
-#endif
-
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0

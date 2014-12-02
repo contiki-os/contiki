@@ -135,7 +135,6 @@
 #endif /* WITH_COAP */
 
 #define UIP_CONF_ROUTER						1
-#define UIP_CONF_IPV6_RPL					1
 #define UIP_CONF_ND6_SEND_RA					0
 
 #define NETSTACK_CONF_WITH_IPV6						1

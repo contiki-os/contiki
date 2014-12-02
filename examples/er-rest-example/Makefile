@@ -41,7 +41,7 @@ ${info INFO: er-example compiling with large buffers}
 CFLAGS += -DUIP_CONF_BUFFER_SIZE=1300
 CFLAGS += -DREST_MAX_CHUNK_SIZE=1024
 CFLAGS += -DCOAP_MAX_HEADER_SIZE=176
-UIP_CONF_RPL=0
+CONTIKI_WITH_RPL=0
 endif
 
 # optional rules to get assembly
