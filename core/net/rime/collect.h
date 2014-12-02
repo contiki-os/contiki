@@ -63,7 +63,7 @@
 #include "net/rime/runicast.h"
 #include "net/rime/neighbor-discovery.h"
 #include "net/rime/collect-neighbor.h"
-#include "net/packetqueue.h"
+#include "net/rime/packetqueue.h"
 #include "sys/ctimer.h"
 #include "lib/list.h"
 
