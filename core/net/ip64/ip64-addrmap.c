@@ -35,6 +35,8 @@
 
 #include "ip64-conf.h"
 
+#include "lib/random.h"
+
 #include <string.h>
 
 #ifdef IP64_ADDRMAP_CONF_ENTRIES
@@ -173,10 +175,8 @@ ip64_addrmap_lookup_port(uint16_t mapped_port, uint8_t protocol)
 static void
 increase_mapped_port(void)
 {
-  mapped_port++;
-  if(mapped_port >= LAST_MAPPED_PORT) {
-    mapped_port = FIRST_MAPPED_PORT;
-  }
+  mapped_port = (random_rand() % (LAST_MAPPED_PORT - FIRST_MAPPED_PORT)) +
+    FIRST_MAPPED_PORT;
 }
 /*---------------------------------------------------------------------------*/
 struct ip64_addrmap_entry *
