@@ -743,6 +743,34 @@ dao_input(void)
     return;
   }
 
+  learned_from = uip_is_addr_mcast(&dao_sender_addr) ?
+                 RPL_ROUTE_FROM_MULTICAST_DAO : RPL_ROUTE_FROM_UNICAST_DAO;
+
+  PRINTF("RPL: DAO from %s\n",
+         learned_from == RPL_ROUTE_FROM_UNICAST_DAO? "unicast": "multicast");
+  parent = rpl_find_parent(dag, &dao_sender_addr);
+  if(learned_from == RPL_ROUTE_FROM_UNICAST_DAO) {
+    /* Check whether this is a DAO forwarding loop. */
+    /* check if this is a new DAO registration with an "illegal" rank */
+    /* if we already route to this node it is likely */
+    if(parent != NULL &&
+       DAG_RANK(parent->rank, instance) < DAG_RANK(dag->rank, instance)) {
+      PRINTF("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
+             DAG_RANK(parent->rank, instance), DAG_RANK(dag->rank, instance));
+      parent->rank = INFINITE_RANK;
+      parent->flags |= RPL_PARENT_FLAG_UPDATED;
+      return;
+    }
+
+    /* If we get the DAO from our parent, we also have a loop. */
+    if(parent != NULL && parent == dag->preferred_parent) {
+      PRINTF("RPL: Loop detected when receiving a unicast DAO from our parent\n");
+      parent->rank = INFINITE_RANK;
+      parent->flags |= RPL_PARENT_FLAG_UPDATED;
+      return;
+    }
+  }
+
   PRINTF("RPL: adding DAO route\n");
 
   if((nbr = uip_ds6_nbr_lookup(&dao_sender_addr)) == NULL) {
