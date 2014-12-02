@@ -68,8 +68,6 @@
 #include "rpl/rpl.h"
 #endif /* UIP_CONF_IPV6_RPL */
 
-#if UIP_CONF_IPV6
-
 /** \brief temporary IP address */
 static uip_ipaddr_t tmp_ipaddr;
 
@@ -421,4 +419,3 @@ uip_icmp6_init()
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
-#endif /* UIP_CONF_IPV6 */

@@ -69,8 +69,6 @@
 #include "net/ipv6/sicslowpan.h"
 #include "net/netstack.h"
 
-#if UIP_CONF_IPV6
-
 #include <stdio.h>
 
 #define DEBUG DEBUG_NONE
@@ -1929,4 +1927,3 @@ const struct network_driver sicslowpan_driver = {
 };
 /*--------------------------------------------------------------------*/
 /** @} */
-#endif /* UIP_CONF_IPV6 */

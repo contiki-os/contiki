@@ -2,9 +2,6 @@ all: sky-websense
 
 CONTIKI=../../..
 
-UIP_CONF_IPV6=1
-CFLAGS+= -DUIP_CONF_IPV6_RPL
-
 APPS += webbrowser
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
@@ -12,6 +9,7 @@ CONTIKI_SOURCEFILES += wget.c
 PROJECTDIRS += ../rpl-border-router
 PROJECT_SOURCEFILES += httpd-simple.c
 
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
 $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c

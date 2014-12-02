@@ -68,7 +68,7 @@
 #define FALLBACK_HAS_ETHERNET_HEADERS  1
 #endif
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #include <ws2tcpip.h>
 struct in6_addr addr6;
 char addr6str[64];
@@ -122,7 +122,7 @@ sprint_ip6addr(struct in6_addr addr, char * result)
   return (result - starting);
 }
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 
 #ifdef __CYGWIN__
@@ -158,7 +158,7 @@ static struct pcap *pcap;
 /* uip_lladdr is defined in uip.c. It is not used in uip6.c. 
  * If needed for some purpose it can be defined here
  */
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 //struct uip_eth_addr uip_lladdr;
 #endif
 
@@ -174,7 +174,7 @@ static int (* pcap_sendpacket)(struct pcap *, unsigned char *, int);
 #ifdef UIP_FALLBACK_INTERFACE
 static struct pcap *pfall;
 struct in_addr addrfall;
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 struct in_addr6 addrfall6;
 #endif
 
@@ -265,7 +265,7 @@ set_ethaddr(struct in_addr addr)
           adapters->PhysicalAddress[2], adapters->PhysicalAddress[3],
           adapters->PhysicalAddress[4], adapters->PhysicalAddress[5]);
         log_message("set_ethaddr:  ethernetaddr: ", buffer);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 //      int i;for (i=0;i<6;i++) uip_lladdr.addr[i] = adapters->PhysicalAddress[i];
 #else
         uip_setethaddr((*(struct uip_eth_addr *)adapters->PhysicalAddress));
@@ -281,7 +281,7 @@ set_ethaddr(struct in_addr addr)
   }
 }
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /*---------------------------------------------------------------------------*/
 static void
 set_ethaddr6(struct in_addr6 addr)
@@ -327,7 +327,7 @@ set_ethaddr6(struct in_addr6 addr)
           adapters->PhysicalAddress[2], adapters->PhysicalAddress[3],
           adapters->PhysicalAddress[4], adapters->PhysicalAddress[5]);
         log_message("set_ethaddr:  ethernetaddr: ", buffer);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 //      int i;for (i=0;i<6;i++) uip_lladdr.addr[i] = adapters->PhysicalAddress[i]; //does this need doing?
 #else
         uip_setethaddr((*(struct uip_eth_addr *)adapters->PhysicalAddress));
@@ -396,7 +396,7 @@ init_pcap(struct in_addr addr)
 		  }
 #endif
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 
         } else if(paddr->addr != NULL && paddr->addr->sa_family == AF_INET6) {
 		  struct in6_addr interface_addr;
@@ -431,7 +431,7 @@ init_pcap(struct in_addr addr)
             return;
 		  }
 #endif
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 		}
       }
     }
@@ -457,13 +457,13 @@ wpcap_init(void)
 #ifdef __CYGWIN__
   if ((*__argv)[1]) {
     addr.s_addr = inet_addr((*__argv)[1]);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     uiplib_ipaddrconv((*__argv)[1],(uip_ipaddr_t*) &addr6.s6_addr);
 #endif
 #ifdef UIP_FALLBACK_INTERFACE
     if ((*__argv)[2]) {
       addrfall.s_addr = inet_addr((*__argv)[2]);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
       uiplib_ipaddrconv((*__argv)[2],(uip_ipaddr_t*) &addrfall6.s6_addr);
 #endif
     }
@@ -473,13 +473,13 @@ wpcap_init(void)
 #else /* __CYGWIN__ */
 /* VC++ build on win32 platform. Currently the platform has no ipv6 support */
   addr.s_addr = inet_addr(__argv[1]);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   if((__argv)[1])
   uiplib_ipaddrconv((__argv)[1],(uip_ipaddr_t*) &addr6.s6_addr);
 #endif
 #ifdef UIP_FALLBACK_INTERFACE
   addrfall.s_addr = inet_addr(__argv[2]);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   if((__argv)[2])
   uiplib_ipaddrconv((__argv)[2],(uip_ipaddr_t*) &addrfall6.s6_addr);
 #endif
@@ -498,7 +498,7 @@ wpcap_init(void)
 #endif
 
   /* Use build defaults if not enough addresses passed */
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 
 #ifdef UIP_FALLBACK_INTERFACE
   if(addrfall.s_addr == INADDR_NONE) {
@@ -561,7 +561,7 @@ wpcap_init(void)
 #endif
     log_message("usage: <program> <ip addr of ethernet card to share>\n-->I'll try guessing ", inet_ntoa(addr));
   }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #if DEBUG
   log_message("wpcap_init:Using ipv4 ", inet_ntoa(addr));
@@ -610,7 +610,7 @@ wpcap_poll(void)
     return 0;
   }
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* Since pcap_setdirection(PCAP_D_IN) is not implemented in winpcap all outgoing packets
  * will be echoed back. The stack will ignore any packets not addressed to it, but initial
  * ipv6 neighbor solicitations are addressed to everyone and the echoed NS sent on startup
@@ -649,7 +649,7 @@ wpcap_poll(void)
   }
 #endif
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   if(packet_header->caplen > UIP_BUFSIZE) {
     return 0;
@@ -673,7 +673,7 @@ wfall_poll(void)
   case 0:
     return 0;
   }
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #if FALLBACK_HAS_ETHERNET_HEADERS
 #define ETHERNET_LLADDR_LEN 6
 #else
@@ -692,7 +692,7 @@ wfall_poll(void)
     PRINTF("Discarding echoed packet\n");
     return 0;
   }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   if(packet_header->caplen > UIP_BUFSIZE) {
     return 0;
@@ -706,7 +706,7 @@ wfall_poll(void)
 #endif
 
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 uint8_t
 wpcap_send(const uip_lladdr_t *lladdr)
 {
@@ -777,7 +777,7 @@ wfall_send(const uip_lladdr_t *lladdr)
 return 0;
 }
 #endif
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 void
 wpcap_send(void)
 {
@@ -792,7 +792,7 @@ wpcap_send(void)
     error_exit("error on send\n");
   }
 }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
 void
 wpcap_exit(void)

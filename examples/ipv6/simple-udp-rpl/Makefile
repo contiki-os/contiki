@@ -2,7 +2,5 @@ all: broadcast-example unicast-sender unicast-receiver
 APPS=servreg-hack
 CONTIKI=../../..
 
-UIP_CONF_IPV6=1
-CFLAGS+= -DUIP_CONF_IPV6_RPL
-
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include

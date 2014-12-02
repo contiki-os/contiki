@@ -59,7 +59,6 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 extern rpl_of_t RPL_OF;
 static rpl_of_t * const objective_functions[] = {&RPL_OF};
@@ -1319,5 +1318,4 @@ rpl_lock_parent(rpl_parent_t *p)
   nbr_table_lock(rpl_parents, p);
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
 /** @} */

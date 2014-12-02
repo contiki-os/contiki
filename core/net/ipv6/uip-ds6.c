@@ -50,8 +50,6 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/ip/uip-packetqueue.h"
 
-#if UIP_CONF_IPV6
-
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
@@ -704,6 +702,5 @@ uip_ds6_compute_reachable_time(void)
                 UIP_ND6_MIN_RANDOM_FACTOR(uip_ds6_if.base_reachable_time));
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
 
 /** @}*/

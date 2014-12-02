@@ -7,6 +7,7 @@ DEFINES=ELFLOADER_DATAMEMORY_SIZE=0x100,ELFLOADER_TEXTMEMORY_SIZE=0x100
 
 APPS = serial-shell
 CONTIKI = ../..
+CONTIKI_WITH_RIME = 1
 include $(CONTIKI)/Makefile.include
 
 %.shell-upload: %.ce
