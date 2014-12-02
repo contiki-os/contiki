@@ -1,0 +1,2 @@
+CONTIKI_TARGET_DIRS           += radio/rf230bb
+CONTIKI_TARGET_SOURCEFILES += rf230bb.c halbb.c

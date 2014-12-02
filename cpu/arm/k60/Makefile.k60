@@ -1,0 +1,181 @@
+.SUFFIXES:
+
+### Optimization setting
+ifndef OPTI
+OPTI=0
+endif
+
+#### Debug settings
+# Light debugging info
+#DEBUG=-g
+# Include macro definitions etc in debugging info
+DEBUG=-g3 -gdwarf-4
+# Other interesting settings:
+# For using an ancient GDB version: -gdwarf-2 -gstrict-dwarf
+
+GDB_PORT ?= 3333
+
+### Code common for all ARM CPUs
+
+CONTIKI_CPU_ARM=$(CONTIKI)/cpu/arm
+CONTIKI_CPU_ARM_COMMON=$(CONTIKI_CPU_ARM)/common
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI_CPU_ARM)/k60
+
+
+### Define the source files
+
+CONTIKI_CPU_DIRS = . drivers
+
+CONTIKI_TARGET_SOURCEFILES += \
+  synchronization.c \
+  basevectors.c \
+  devio-null.c \
+  devio-uart.c \
+  port.c \
+  uart.c \
+  rtc.c \
+  rtimer-arch.c \
+  dbg-uart.c \
+  clock.c \
+  llwu.c \
+  power-modes.c \
+  onewire.c \
+  fault-handlers.c \
+  adc.c \
+  ds18b20.c \
+  system_MK60D10.c
+
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+### Compiler definitions
+
+# Target triple for the build. Use arm-none-eabi if you are unsure.
+TARGET_TRIPLE ?= arm-none-eabi
+
+
+# Toolchain prefix, composed of the path and target triple, you will most likely not need to touch this.
+TCPREFIX  ?= $(if $(GCCBIN),$(GCCBIN)/)$(if $(TARGET_TRIPLE),$(TARGET_TRIPLE)-)
+GDBPREFIX ?= $(TCPREFIX)
+
+CC       = $(TCPREFIX)gcc
+LD       = $(TCPREFIX)gcc
+AS       = $(TCPREFIX)as
+AR       = $(TCPREFIX)ar
+NM       = $(TCPREFIX)nm
+LINKER   = $(TCPREFIX)ld
+OBJCOPY  = $(TCPREFIX)objcopy
+OBJDUMP  = $(TCPREFIX)objdump
+STRIP    = $(TCPREFIX)strip
+SIZE     = $(TCPREFIX)size
+GDB      = $(GDBPREFIX)gdb
+CFLAGSNO = -I$(CONTIKI_CPU)/include \
+           -I$(CONTIKI_CPU_ARM_COMMON)/CMSIS \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+           -I. -I$(CONTIKI)/core \
+           -Wall -mcpu=cortex-m4 \
+           -fno-common
+
+#NEWLIB_INCLUDES = -nostdinc \
+#  -isystem /usr/lib/gcc/arm-none-eabi/4.8.3/include \
+#  -isystem /usr/lib/gcc/arm-none-eabi/4.8.3/include-fixed \
+#  -isystem /usr/arm-none-eabi/include \
+#  -isystem /usr/arm-none-eabi/usr/include \
+  #
+
+ifdef BUILD_WITH_CLANG
+ifneq ($(BUILD_WITH_CLANG),0)
+CFLAGSNO += -target $(TARGET_TRIPLE) -ffreestanding
+CC       = clang
+LD       = clang
+LLVMPREFIX ?= llvm-
+AS       = $(LLVMPREFIX)as
+AR       = $(LLVMPREFIX)ar
+NM       = $(LLVMPREFIX)nm
+# There is no LLVM linker yet, use binutils.
+#LINKER   = $(LLVMPREFIX)ld
+# objcopy does not have a clear substitute in LLVM
+#OBJCOPY  = $(LLVMPREFIX)objcopy
+OBJDUMP  = $(LLVMPREFIX)objdump
+# LLVM lacks a binutils strip tool as well...
+#STRIP    = $(LLVMPREFIX)strip
+SIZE     = $(LLVMPREFIX)size
+# llvm-ar does not support the f modifier (anymore, since r186078) set in the
+# default Contiki Makefile.include
+AROPTS   = rcv
+
+# Since Clang is not installed as a separate instance for each crossdev target
+# we need to tell it where to look for platform specific includes (Newlib
+# headers instead of Linux/Glibc headers.)
+# On GCC this is done when building the cross compiler toolchain so we do not
+# actually need to specify the include paths for system includes.
+NEWLIB_INCLUDES = \
+  -isystem /usr/arm-none-eabi/include \
+  -isystem /usr/arm-none-eabi/usr/include \
+  #
+
+endif
+endif
+
+
+LINKERSCRIPTPATH = $(CONTIKI_CPU)/ldscripts
+LINKERSCRIPT = $(CPU_PART).ld
+#AROPTS   = rv
+CFLAGS   += $(CFLAGSNO)  $(DEBUG) -O$(OPTI) $(OPTFLAGS) -Wall -Werror=implicit-function-declaration -fno-common -fno-strict-aliasing -mcpu=cortex-m4 -mthumb -ffunction-sections -fdata-sections -fshort-enums $(NEWLIB_INCLUDES)
+LDFLAGS  += $(CFLAGS) -nostartfiles -Wl,-L$(LINKERSCRIPTPATH) -T $(LINKERSCRIPT) -Wl,-Map=$@.map -Wl,--gc-sections
+
+LD_START_GROUP ?= -Wl,--start-group
+LD_END_GROUP ?= -Wl,--end-group
+
+### Setup directory search path for source files
+
+#CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+#                               $(CONTIKI_TARGET_DIRS)}
+#
+#vpath %.c $(PROJECTDIRS) $(CONTIKI_CPU) \
+#	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT)
+
+# Some object files need to be included directly in the link (without being
+# placed in a static library) in order to not get garbage collected too soon,
+# or replaced by generic stuff (in e.g. newlib).
+# 2014-10-04: Added ssp.c in order to be able to link with a libc built with
+#             -fstack-protector, but Contiki built without the flag which leads
+#             to link errors about undefined reference to `__stack_chk_guard'
+#             and `__stack_chk_fail'
+CPU_STARTC = \
+  startup-k60.c \
+  interrupt-vector-k60.c \
+  newlib-syscalls.c \
+  ssp.c
+
+CPU_STARTOBJ=${addprefix $(OBJECTDIR)/,$(CPU_STARTC:.c=.o)}
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
+ifeq ($(PORT),)
+  PORT=/dev/ttyUSB0
+endif
+
+### Compilation rules
+all:
+
+%-stripped.o: %.c
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+# Link the final binary and display the size
+CUSTOM_RULE_LINK = 1
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(CPU_STARTOBJ)
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) $(LD_START_GROUP) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) $(LD_END_GROUP) -o $@
+	-@$(SIZE) -B -d $@ 2>/dev/null | tail -n 1 | awk -F' ' ' { ROM=($$1+$$2); RAM=($$2+$$3); printf "%16d bytes in ROM\n%16d bytes in RAM\n",ROM,RAM }'
+
+#.SECONDARY:
+
+symbols.c:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h

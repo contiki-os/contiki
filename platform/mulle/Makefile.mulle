@@ -1,0 +1,193 @@
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+PLATFORM_DIR = $(CONTIKI)/platform/mulle
+
+CPU_NAME = k60
+
+### CPU part number (must have a specific linker script for each part)
+# Note that MK60DN256ZVLL10 (version 1.x) and MK60DN256VLL10 (version 2.x, no Z)
+# only differ in some register locations etc, not in the actual memory layout,
+# so it is safe to use the same linker script for both version 1.x and version
+# 2.x silicon.
+CPU_PART ?= K60DN512VLL10
+
+CPU_DIR = $(CONTIKI)/cpu/arm/$(CPU_NAME)
+CONTIKI_TARGET_DIRS = . dev
+CONTIKI_CORE=contiki-main
+CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
+
+
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c \
+  devicemap.c \
+  udelay.c \
+  init-net.c \
+  watchdog.c \
+  slip_arch_uart.c \
+  slip.c \
+  sensors.c \
+  leds-arch.c \
+  leds.c \
+  power-control.c \
+  voltage.c \
+  flash.c \
+  xmem.c \
+  cfs-coffee.c \
+  lis3dh.c \
+  lis3dh-arch.c \
+  radio-sensor.c \
+  battery-sensor.c \
+  button-sensor.c
+
+ifdef MULLEAPPS
+  APPDS += ${wildcard ${addprefix $(CONTIKI)/../apps/, $(MULLEAPPS)} \
+       ${addprefix $(CONTIKI)/platform/$(TARGET)/../apps/, $(MULLEAPPS)} \
+       $(MULLEAPPS)}
+  APPINCLUDES += ${foreach APP, $(MULLEAPPS), ${wildcard ${foreach DIR, $(APPDS), $(DIR)/Makefile.$(APP)}}}
+  -include $(APPINCLUDES)
+  APP_SOURCES = ${foreach APP, $(MULLEAPPS), $($(APP)_src)}
+  DSC_SOURCES = ${foreach APP, $(MULLEAPPS), $($(APP)_dsc)}
+  CONTIKI_SOURCEFILES += $(APP_SOURCES) $(DSC_SOURCES)
+endif
+
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
+endif
+
+ifdef MULLE_BOARD_SERIAL_NUMBER
+CFLAGS += -DMULLE_BOARD_SERIAL_NUMBER=$(MULLE_BOARD_SERIAL_NUMBER)
+endif
+
+include $(PLATFORM_DIR)/radio/rf230bb/Makefile.rf230bb
+CFLAGS += -DRF230BB
+
+include $(CPU_DIR)/Makefile.$(CPU_NAME)
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+
+# OpenOCD settings for Mulle board.
+# Try to determine which version of the OpenOCD config file we should use.
+# Specify PROGRAMMER_VERSION or PROGRAMMER_SERIAL to choose a specific programmer board.
+ifeq ($(PROGRAMMER_VERSION),)
+  ifneq ($(PROGRAMMER_SERIAL),)
+    # Makefile-way of comparing numbers, using lexicographical sorting since we don't have any arithmetic comparisons.
+    # Programmers with serial 100 -- 148 are version 0.60
+    # Programmers with serial 301 -- 330 are version 0.70
+    ifeq "100" "$(word 1, $(sort 100 $(PROGRAMMER_SERIAL)))"
+      # >= 100
+      ifneq "149" "$(word 1, $(sort 149 $(PROGRAMMER_SERIAL)))"
+        # < 149
+        PROGRAMMER_VERSION = 0.60
+      else
+        # >= 149
+        PROGRAMMER_VERSION = 0.70
+      endif
+    endif
+  endif
+  # Default to version 0.60 programmer for now.
+  PROGRAMMER_VERSION ?= 0.60
+endif
+
+OOCD_BOARD_FLAGS ?= -f '$(PLATFORM_DIR)/tools/openocd/mulle-programmer-$(PROGRAMMER_VERSION).conf'
+
+
+# Add serial matching command
+ifneq ($(PROGRAMMER_SERIAL),)
+  OOCD_BOARD_FLAGS += -c 'ftdi_serial $(PROGRAMMER_SERIAL)'
+endif
+
+ifeq ($(FILENAME),)
+FILENAME = $(CONTIKI_PROJECT).$(TARGET)
+endif
+
+FFLAGS ?= $(OOCD_BOARD_FLAGS)
+FFLAGS += \
+    -c 'tcl_port 0' \
+    -c 'gdb_port 0' \
+    -c 'telnet_port 0' \
+    -c 'init' \
+    -c 'targets' \
+    -c 'reset halt' \
+    -c 'flash write_image erase $(FILENAME) 0x00000000 elf' \
+    -c 'verify_image $(FILENAME)' \
+    -c 'reset run' \
+    -c 'shutdown'
+
+export FFLAGS
+
+DEBUGSERVER_FLAGS ?= $(OOCD_BOARD_FLAGS)
+DEBUGSERVER_FLAGS += \
+    -c 'tcl_port 0' \
+    -c 'gdb_port $(GDB_PORT)' \
+    -c 'telnet_port 0' \
+    -c 'init' \
+    -c 'targets' \
+    -c 'reset halt'
+
+export DEBUGSERVER_FLAGS
+
+RESET_FLAGS ?= $(OOCD_BOARD_FLAGS)
+RESET_FLAGS += \
+    -c 'tcl_port 0' \
+    -c 'gdb_port 0' \
+    -c 'telnet_port 0' \
+    -c 'init' \
+    -c 'reset run' \
+    -c 'shutdown'
+
+export RESET_FLAGS
+
+DEBUGGER_FLAGS ?= -x $(PLATFORM_DIR)/tools/gdb.conf
+DEBUGGER_FLAGS += \
+    -ex 'tar ext :$(GDB_PORT)' \
+    $(FILENAME)
+
+export DEBUGGER_FLAGS
+
+export TERMFLAGS += -b115200 "$(PORT)"
+
+
+OPENOCD ?= openocd
+export FLASHER ?= $(OPENOCD)
+export DEBUGGER ?= $(GDB)
+export DEBUGSERVER ?= $(OPENOCD)
+export RESET ?= $(OPENOCD)
+export TERMPROG ?= $(SERIALDUMP)
+
+
+# The CPU on the Mulle board does not have a floating point unit
+CFLAGS += -msoft-float -mfloat-abi=soft
+
+
+SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+
+login:
+	$(SERIALDUMP) -b115200 $(PORT)
+
+### Upload image
+%.upload: %.u
+
+%.u: %.$(TARGET)
+	$(GDB) -x '$(PLATFORM_DIR)/tools/gdb.conf' -ex 'tar ext :$(GDB_PORT)' -ex 'load' -ex 'mon reset halt' $<
+
+# By default, upload the file with the same name as the project.
+upload: $(CONTIKI_PROJECT).u
+
+flash: $(FILENAME)
+	$(FLASHER) $(FFLAGS)
+
+term:
+	$(TERMPROG) $(TERMFLAGS)
+
+debug: $(FILENAME)
+	$(DEBUGGER) $(DEBUGGER_FLAGS)
+
+debug-server:
+	$(DEBUGSERVER) $(DEBUGSERVER_FLAGS)
+
+reset:
+	$(RESET) $(RESET_FLAGS)
+
+
+MODULES+=core/net core/net/ip core/net/ipv4 core/net/ipv6 core/net/rime \
+         core/net/mac core/net/rpl core/net/mac/contikimac core/net/mac/cxmac \
+         core/net/llsec
