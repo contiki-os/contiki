@@ -186,12 +186,12 @@ uip_ds6_periodic(void)
 
   uip_ds6_neighbor_periodic();
 
-#if UIP_CONF_ROUTER & UIP_ND6_SEND_RA
+#if UIP_CONF_ROUTER && UIP_ND6_SEND_RA
   /* Periodic RA sending */
   if(stimer_expired(&uip_ds6_timer_ra) && (uip_len == 0)) {
     uip_ds6_send_ra_periodic();
   }
-#endif /* UIP_CONF_ROUTER & UIP_ND6_SEND_RA */
+#endif /* UIP_CONF_ROUTER && UIP_ND6_SEND_RA */
   etimer_reset(&uip_ds6_timer_periodic);
   return;
 }
