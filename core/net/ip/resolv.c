@@ -227,9 +227,6 @@ struct dns_hdr {
   uint16_t numextrarr;
 };
 
-#define RESOLV_ENCODE_INDEX(i) (uip_htons(i+1))
-#define RESOLV_DECODE_INDEX(i) (unsigned char)(uip_ntohs(i-1))
-
 /** These default values for the DNS server are Google's public DNS:
  *  <https://developers.google.com/speed/public-dns/docs/using>
  */
@@ -264,6 +261,7 @@ struct namemap {
 #define STATE_DONE   4
   uint8_t state;
   uint8_t tmr;
+  uint16_t id;
   uint8_t retries;
   uint8_t seqno;
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
@@ -506,8 +504,6 @@ start_name_collision_check(clock_time_t after)
 static unsigned char *
 mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
 {
-  struct dns_answer *ans;
-
 #if NETSTACK_CONF_WITH_IPV6
   uint8_t i;
 
@@ -524,7 +520,6 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
         *queryptr++ = 0xc0;
         *queryptr++ = sizeof(struct dns_hdr);
       }
-      ans = (struct dns_answer *)queryptr;
 
       *queryptr++ = (uint8_t) ((NATIVE_DNS_TYPE) >> 8);
       *queryptr++ = (uint8_t) ((NATIVE_DNS_TYPE));
@@ -546,6 +541,8 @@ mdns_write_announce_records(unsigned char *queryptr, uint8_t *count)
     }
   }
 #else /* NETSTACK_CONF_WITH_IPV6 */
+  struct dns_answer *ans;
+
   queryptr = encode_name(queryptr, resolv_hostname);
   ans = (struct dns_answer *)queryptr;
   ans->type = UIP_HTONS(NATIVE_DNS_TYPE);
@@ -602,8 +599,6 @@ mdns_prep_host_announce_packet(void)
   unsigned char *queryptr;
 
   uint8_t total_answers = 0;
-
-  struct dns_answer *ans;
 
   /* Be aware that, unless `ARCH_DOESNT_NEED_ALIGNED_STRUCTS` is set,
    * writing directly to the uint16_t members of this struct is an error. */
@@ -703,7 +698,8 @@ check_entries(void)
       }
       hdr = (struct dns_hdr *)uip_appdata;
       memset(hdr, 0, sizeof(struct dns_hdr));
-      hdr->id = RESOLV_ENCODE_INDEX(i);
+      hdr->id = random_rand();
+      namemapptr->id = hdr->id;
 #if RESOLV_CONF_SUPPORTS_MDNS
       if(!namemapptr->is_mdns || namemapptr->is_probe) {
         hdr->flags1 = DNS_FLAG1_RD;
@@ -903,10 +899,13 @@ newdata(void)
   } else
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
   {
-    /* The ID in the DNS header should be our entry into the name table. */
-    i = RESOLV_DECODE_INDEX(hdr->id);
-
-    namemapptr = &names[i];
+    for(i = 0; i < RESOLV_ENTRIES; ++i) {
+      namemapptr = &names[i];
+      if(namemapptr->state == STATE_ASKING &&
+         namemapptr->id == hdr->id) {
+        break;
+      }
+    }
 
     if(i >= RESOLV_ENTRIES || i < 0 || namemapptr->state != STATE_ASKING) {
       PRINTF("resolver: DNS response has bad ID (%04X) \n", uip_ntohs(hdr->id));
@@ -1200,6 +1199,16 @@ PROCESS_THREAD(resolv_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+  static uint8_t initialized = 0;
+  if(!initialized) {
+    process_start(&resolv_process, NULL);
+    initialized = 1;
+  }
+}
+/*---------------------------------------------------------------------------*/
 #if RESOLV_AUTO_REMOVE_TRAILING_DOTS
 static const char *
 remove_trailing_dots(const char *name) {
@@ -1233,6 +1242,8 @@ resolv_query(const char *name)
 
   register struct namemap *nameptr = 0;
 
+  init();
+  
   lseq = lseqi = 0;
 
   /* Remove trailing dots, if present. */
@@ -1369,7 +1380,8 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
 
 #if VERBOSE_DEBUG
   switch (ret) {
-  case RESOLV_STATUS_CACHED:{
+  case RESOLV_STATUS_CACHED:
+    if(ipaddr) {
       PRINTF("resolver: Found \"%s\" in cache.\n", name);
       const uip_ipaddr_t *addr = *ipaddr;
 
