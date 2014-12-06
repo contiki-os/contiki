@@ -35,7 +35,7 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Header for the MAX44009 light sensor in OpenMote-CC2538.
  *

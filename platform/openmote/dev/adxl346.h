@@ -35,7 +35,7 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Header for the ADXL346 acceleration sensor in OpenMote-CC2538.
  *

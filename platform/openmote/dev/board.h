@@ -34,7 +34,7 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Header file with definitions related to the I/O connections on the
  * OpenMote-CC2538 platform. This file provides connectivity information on

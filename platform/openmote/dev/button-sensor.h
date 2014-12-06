@@ -34,7 +34,7 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Header for the OpenMote-CC2538 buttons
  *

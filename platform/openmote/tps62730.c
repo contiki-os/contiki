@@ -35,7 +35,7 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Driver for the TPS62730 voltage regulator on the OpenMote-CC2538.
  *
@@ -73,7 +73,7 @@ tps62730_init(void)
 {
   GPIO_SET_OUTPUT(BSP_TPS62730_BASE, BSP_TPS62730_ON);
   GPIO_SET_INPUT(BSP_TPS62730_BASE, BSP_TPS62730_STATUS);
-  
+
   tps62730_bypass();
 }
 /*---------------------------------------------------------------------------*/

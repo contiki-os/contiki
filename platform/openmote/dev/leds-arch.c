@@ -28,13 +28,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * \addtogroup platform
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Driver for the OpenMote-CC2538 LEDs
  *

@@ -34,12 +34,12 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Driver for the OpenMote-CC2538 buttons
  *
  */
- 
+
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "dev/nvic.h"
@@ -95,7 +95,6 @@ btn_callback(uint8_t port, uint8_t pin)
   if(!timer_expired(&debouncetimer)) {
     return;
   }
-
   timer_set(&debouncetimer, CLOCK_SECOND / 8);
   if(port == GPIO_C_NUM) {
     sensors_changed(&button_user_sensor);

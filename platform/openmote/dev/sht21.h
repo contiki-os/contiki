@@ -35,7 +35,7 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Header for the SHT21 temperature and humidity sensor in OpenMote-CC2538.
  *

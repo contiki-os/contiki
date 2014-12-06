@@ -34,7 +34,7 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Header for the antenna selection on the OpenMote-CC2538 platform.
  */

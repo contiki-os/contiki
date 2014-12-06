@@ -3,7 +3,7 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Configuration for the OpenMote-CC2538 platform.
  */
@@ -40,7 +40,7 @@ typedef uint32_t uip_stats_t;
  * RTIMER_CLOCK_LT to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
+#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -49,7 +49,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR
-#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR	1 /**<Enable the boot loader backdoor */
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR 1 /**<Enable the boot loader backdoor */
 #endif
 
 #ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN
@@ -82,7 +82,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef WATCHDOG_CONF_ENABLE
-#define WATCHDOG_CONF_ENABLE	      1 /**< Enable the watchdog timer */
+#define WATCHDOG_CONF_ENABLE        1 /**< Enable the watchdog timer */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -197,7 +197,7 @@ typedef uint32_t rtimer_clock_t;
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
  * keep using SLIP
  */
-#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
+#if defined(UIP_FALLBACK_INTERFACE) || defined(CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED      1
 #endif
 #endif
@@ -273,13 +273,13 @@ typedef uint32_t rtimer_clock_t;
 #define UART_IN_USE_BY_UART1(u)       (UART1_CONF_UART == (u))
 
 #define UART_IN_USE(u) ( \
-  UART_CONF_ENABLE && \
-  (UART_IN_USE_BY_SERIAL_LINE(u) || \
-   UART_IN_USE_BY_SLIP(u) || \
-   UART_IN_USE_BY_RF_SNIFFER(u) || \
-   UART_IN_USE_BY_DBG(u) || \
-   UART_IN_USE_BY_UART1(u)) \
-)
+    UART_CONF_ENABLE && \
+    (UART_IN_USE_BY_SERIAL_LINE(u) || \
+     UART_IN_USE_BY_SLIP(u) || \
+     UART_IN_USE_BY_RF_SNIFFER(u) || \
+     UART_IN_USE_BY_DBG(u) || \
+     UART_IN_USE_BY_UART1(u)) \
+    )
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* board.h assumes that basic configuration is done */
@@ -491,8 +491,8 @@ typedef uint32_t rtimer_clock_t;
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
 #ifndef SICSLOWPAN_CONF_ADDR_CONTEXT_0
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
-  addr_contexts[0].prefix[0] = 0xaa; \
-  addr_contexts[0].prefix[1] = 0xaa; \
+    addr_contexts[0].prefix[0] = 0xaa; \
+    addr_contexts[0].prefix[1] = 0xaa; \
 }
 #endif
 

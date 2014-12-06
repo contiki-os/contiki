@@ -29,13 +29,13 @@
  * This file is part of the Contiki operating system.
  *
  */
- 
+
 /**
  * \addtogroup platform
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Header for the TPS62730 voltage regulator on the OpenMote-CC2538.
  *
