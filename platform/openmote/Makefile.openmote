@@ -37,5 +37,5 @@ BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
 ifeq ($(wildcard $(BSL)), )
 	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
 else
-	python $(BSL) -b 50000 -e -w -v $<
+	python $(BSL) -e -w -v $<
 endif
