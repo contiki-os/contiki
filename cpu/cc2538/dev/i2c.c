@@ -68,6 +68,12 @@ i2c_master_disable(void)
   REG(I2CM_CR) &= ~0x10;  /* Reset MFE bit */
 }
 /*---------------------------------------------------------------------------*/
+static uint32_t
+get_sys_clock(void)
+{
+  return SYS_CTRL_32MHZ / ((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYS_DIV) + 1); /* Get the clock status diviser */
+}
+/*---------------------------------------------------------------------------*/
 void
 i2c_set_frequency(uint32_t freq)
 {
@@ -152,12 +158,4 @@ i2c_single_receive(uint8_t slave_addr, uint8_t *data)
   }
 }
 /*---------------------------------------------------------------------------*/
-/* Additional functions */
-uint32_t
-get_sys_clock(void)
-{
-  return SYS_CTRL_32MHZ / ((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYS_DIV) + 1); /* Get the clock status diviser */
-}
-/*---------------------------------------------------------------------------*/
-
 /** @} */
