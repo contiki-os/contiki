@@ -95,11 +95,11 @@ fade(unsigned char l)
 
     leds_on(l);
     for(i = 0; i < j; ++i) {
-      asm("nop");
+      asm ("nop");
     }
     leds_off(l);
     for(i = 0; i < 400 - j; ++i) {
-      asm("nop");
+      asm ("nop");
     }
   }
 }
@@ -203,7 +203,7 @@ main(void)
 
   set_rf_params();
   netstack_init();
-  
+
   antenna_init();
   PRINTF(" Antenna: external\n");
 

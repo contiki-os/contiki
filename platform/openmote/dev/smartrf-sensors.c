@@ -46,7 +46,7 @@
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 /**
- *\brief Exports a global symbol to be used by the sensor API
+   *\brief Exports a global symbol to be used by the sensor API
  */
 SENSORS(&button_user_sensor);
 /*---------------------------------------------------------------------------*/

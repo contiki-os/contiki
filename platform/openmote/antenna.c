@@ -34,7 +34,7 @@
  * @{
  *
  * \defgroup openmote
- * 
+ *
  * \file
  * Driver for the antenna selection on the OpenMote-CC2538 platform.
  */
@@ -74,7 +74,7 @@ antenna_init(void)
 
   /* Select external antenna by default. */
   antenna_external();
- }
+}
 /*---------------------------------------------------------------------------*/
 /**
  * Select the external (connector) antenna
