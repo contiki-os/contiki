@@ -283,7 +283,7 @@ output_sniffer(int mac_status)
   add_packet_stats(OUTPUT);
 }
 /*---------------------------------------------------------------------------*/
-#if ! NETSTACK_CONF_WITH_IPV6
+#if NETSTACK_CONF_WITH_RIME
 static void
 sniffprint(char *prefix, int seqno)
 {
@@ -347,7 +347,7 @@ powertrace_printsniff(powertrace_onoff_t onoff)
     break;
   }
 }
-#endif
+#endif /* NETSTACK_CONF_WITH_RIME */
 /*---------------------------------------------------------------------------*/
 RIME_SNIFFER(powersniff, input_sniffer, output_sniffer);
 /*---------------------------------------------------------------------------*/

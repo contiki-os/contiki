@@ -625,7 +625,9 @@ send_packet(void)
      that will need an upper layer ACK (as signified by the
      PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
   if(got_strobe_ack && (packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
-			packetbuf_attr(PACKETBUF_ATTR_ERELIABLE) ||
+#if NETSTACK_CONF_WITH_RIME
+      packetbuf_attr(PACKETBUF_ATTR_ERELIABLE) ||
+#endif /* NETSTACK_CONF_WITH_RIME */
 			packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
 			PACKETBUF_ATTR_PACKET_TYPE_STREAM)) {
     on(); /* Wait for ACK packet */
