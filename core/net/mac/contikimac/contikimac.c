@@ -546,8 +546,11 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
                packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
   }
-  is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
-    packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
+  is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE)
+#if NETSTACK_CONF_WITH_RIME
+          || packetbuf_attr(PACKETBUF_ATTR_ERELIABLE)
+#endif /* NETSTACK_CONF_WITH_RIME */
+      ;
 
   if(!packetbuf_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED)) {
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
