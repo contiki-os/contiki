@@ -1875,8 +1875,6 @@ uip_process(uint8_t flag)
   BUF->seqno[2] = uip_connr->snd_nxt[2];
   BUF->seqno[3] = uip_connr->snd_nxt[3];
 
-  BUF->proto = UIP_PROTO_TCP;
-
   BUF->srcport  = uip_connr->lport;
   BUF->destport = uip_connr->rport;
 
@@ -1893,6 +1891,8 @@ uip_process(uint8_t flag)
   }
 
  tcp_send_noconn:
+  BUF->proto = UIP_PROTO_TCP;
+
   BUF->ttl = UIP_TTL;
 #if NETSTACK_CONF_WITH_IPV6
   /* For IPv6, the IP length field does not include the IPv6 IP header
