@@ -56,10 +56,10 @@ call_event(struct tcp_socket *s, tcp_socket_event_t event)
 static void
 senddata(struct tcp_socket *s)
 {
-  int len;
+  int len = MIN(s->output_data_max_seg, uip_mss());
 
   if(s->output_data_len > 0) {
-    len = MIN(s->output_data_len, uip_mss());
+    len = MIN(s->output_data_len, len);
     s->output_data_send_nxt = len;
     uip_send(s->output_data_ptr, len);
   }
@@ -255,6 +255,7 @@ tcp_socket_register(struct tcp_socket *s, void *ptr,
   s->input_data_maxlen = input_databuf_len;
   s->output_data_ptr = output_databuf;
   s->output_data_maxlen = output_databuf_len;
+  s->output_data_max_seg = uip_mss();
   s->input_callback = input_callback;
   s->event_callback = event_callback;
   list_add(socketlist, s);
