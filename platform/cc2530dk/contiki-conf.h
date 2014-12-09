@@ -193,7 +193,9 @@
 #define NETSTACK_CONF_RADIO   cc2530_rf_driver
 
 /* RF Config */
-#define IEEE802154_CONF_PANID 0x5449 /* TI */
+#ifndef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID 0xABCD
+#endif
 
 #ifndef CC2530_RF_CONF_CHANNEL
 #define CC2530_RF_CONF_CHANNEL    25
