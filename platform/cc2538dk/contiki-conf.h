@@ -390,7 +390,7 @@ typedef uint32_t rtimer_clock_t;
  */
 /* RF Config */
 #ifndef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID           0x5449 /**< Default PAN ID: TI */
+#define IEEE802154_CONF_PANID           0xABCD
 #endif
 
 #ifndef CC2538_RF_CONF_CHANNEL
