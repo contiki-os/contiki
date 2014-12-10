@@ -62,8 +62,13 @@ static uint8_t initialized = 0;
 /** \name List and memory block
  * @{
  */
+#if UIP_NAMESERVER_POOL_SIZE > 1
 LIST(dns);
 MEMB(dnsmemb, uip_nameserver_record, UIP_NAMESERVER_POOL_SIZE);
+#else /* UIP_NAMESERVER_POOL_SIZE > 1 */
+static uip_ipaddr_t serveraddr;
+static uint32_t serverlifetime;
+#endif /* UIP_NAMESERVER_POOL_SIZE > 1 */
 /** @} */
 
 /** \brief Expiration time in seconds */
@@ -74,6 +79,7 @@ MEMB(dnsmemb, uip_nameserver_record, UIP_NAMESERVER_POOL_SIZE);
 /**
  * Initialize the module variables
  */
+#if UIP_NAMESERVER_POOL_SIZE > 1
 static CC_INLINE void
 init(void)
 {
@@ -81,10 +87,12 @@ init(void)
   memb_init(&dnsmemb);
   initialized = 1;
 }
+#endif /* UIP_NAMESERVER_POOL_SIZE > 1 */
 /*----------------------------------------------------------------------------*/
 void
 uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime)
 {
+#if UIP_NAMESERVER_POOL_SIZE > 1
   register uip_nameserver_record *e;
 
   if(initialized == 0) {
@@ -125,8 +133,13 @@ uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime)
       uip_ipaddr_copy(&e->ip, nameserver);
     }
   }
+#else /* UIP_NAMESERVER_POOL_SIZE > 1 */
+  uip_ipaddr_copy(&serveraddr, nameserver);
+  serverlifetime = lifetime;
+#endif /* UIP_NAMESERVER_POOL_SIZE > 1 */
 }
 /*----------------------------------------------------------------------------*/
+#if UIP_NAMESERVER_POOL_SIZE > 1
 /**
  * Purge expired records
  */
@@ -143,10 +156,12 @@ purge(void)
     }
   }
 }
+#endif /* UIP_NAMESERVER_POOL_SIZE > 1 */
 /*----------------------------------------------------------------------------*/
 uip_ipaddr_t *
 uip_nameserver_get(uint8_t num)
 {
+#if UIP_NAMESERVER_POOL_SIZE > 1
   uint8_t i;
   uip_nameserver_record *e = NULL;
 
@@ -162,11 +177,18 @@ uip_nameserver_get(uint8_t num)
     return &e->ip;
   }
   return NULL;
+#else /* UIP_NAMESERVER_POOL_SIZE > 1 */
+  if(num > 0) {
+    return NULL;
+  }
+  return &serveraddr;
+#endif /* UIP_NAMESERVER_POOL_SIZE > 1 */
 }
 /*----------------------------------------------------------------------------*/
 uint32_t
 uip_nameserver_next_expiration(void)
 {
+#if UIP_NAMESERVER_POOL_SIZE > 1
   register uip_nameserver_record *e = NULL;
   uint32_t exp = UIP_NAMESERVER_INFINITE_LIFETIME;
   uint32_t t;
@@ -183,15 +205,30 @@ uip_nameserver_next_expiration(void)
   }
 
   return exp;
+#else /* UIP_NAMESERVER_POOL_SIZE > 1 */
+  return serverlifetime;
+#endif /* UIP_NAMESERVER_POOL_SIZE > 1 */
 }
 /*----------------------------------------------------------------------------*/
 uint16_t
 uip_nameserver_count(void)
 {
+#if UIP_NAMESERVER_POOL_SIZE > 1
   if(initialized == 0) {
     return 0;
   }
   return list_length(dns);
+#else /* UIP_NAMESERVER_POOL_SIZE > 1 */
+#if NETSTACK_CONF_WITH_IPV6
+  if(uip_is_addr_unspecified(&serveraddr)) {
+#else /* NETSTACK_CONF_WITH_IPV6 */
+  if(uip_ipaddr_cmp(&serveraddr, &uip_all_zeroes_addr)) {
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+    return 0;
+  } else {
+    return 1;
+  }
+#endif /* UIP_NAMESERVER_POOL_SIZE > 1 */
 }
 /*----------------------------------------------------------------------------*/
 /** @} */
