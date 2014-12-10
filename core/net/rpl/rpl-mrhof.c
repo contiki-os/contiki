@@ -127,9 +127,10 @@ neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
 
   nbr = rpl_get_nbr(p);
   if(nbr == NULL) {
-    /* No neighbor for this parent - something bad has occured!??? */
+    /* No neighbor for this parent - something bad has occured */
     return;
   }
+
   recorded_etx = nbr->link_metric;
 
   /* Do not penalize the ETX when collisions or transmission errors occur. */
