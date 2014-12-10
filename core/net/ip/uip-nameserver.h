@@ -74,8 +74,7 @@
  *                     considered to remove an entry. Maximum is 0xFFFFFFFF which
  *                     is considered infinite.
  */
-void
-uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime);
+void uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime);
 
 /**
  * \brief Get a Nameserver ip address given in RA
@@ -83,22 +82,19 @@ uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime);
  * \param num   The number of the nameserver to obtain, starting at 0 and going
  *              up to the pool size.
  */
-uip_ipaddr_t *
-uip_nameserver_get(uint8_t num);
+uip_ipaddr_t *uip_nameserver_get(uint8_t num);
 
 /**
  * \brief Get next expiration time
  *
  * The least expiration time is returned
  */
-uint32_t
-uip_nameserver_next_expiration(void);
+uint32_t uip_nameserver_next_expiration(void);
 
 /**
  * \brief Get the number of recorded name servers
  */
-uint16_t
-uip_nameserver_count(void);
+uint16_t uip_nameserver_count(void);
 /** @} */
 
 #endif /* UIP_NAMESERVER_H_ */

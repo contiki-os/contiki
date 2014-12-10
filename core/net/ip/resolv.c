@@ -634,9 +634,10 @@ try_next_server(struct namemap *namemapptr)
 #if VERBOSE_DEBUG
   printf("server %d\n", namemapptr->server);
 #endif
-  if(uip_nameserver_get(++namemapptr->server) != NULL) {
-      namemapptr->retries = 0;
-      return 1;
+  namemapptr->server++;
+  if(uip_nameserver_get(namemapptr->server) != NULL) {
+    namemapptr->retries = 0;
+    return 1;
   }
   namemapptr->server = 0;
   return 0;
