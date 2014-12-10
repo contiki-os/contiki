@@ -83,7 +83,8 @@ rpl_instance_t *default_instance;
 
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
-rpl_get_nbr(rpl_parent_t *parent) {
+rpl_get_nbr(rpl_parent_t *parent)
+{
   linkaddr_t *lladdr = NULL;
   lladdr = nbr_table_get_lladdr(rpl_parents, parent);
   if(lladdr != NULL) {
@@ -93,9 +94,7 @@ rpl_get_nbr(rpl_parent_t *parent) {
     return NULL;
   }
 }
-
 /*---------------------------------------------------------------------------*/
-
 static void
 nbr_callback(void *ptr)
 {
