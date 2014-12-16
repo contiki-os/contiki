@@ -1285,6 +1285,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
   }
 
+  /* Parent info has been updated, trigger rank recalculation */
+  p->flags |= RPL_PARENT_FLAG_UPDATED;
+
   PRINTF("RPL: preferred DAG ");
   PRINT6ADDR(&instance->current_dag->dag_id);
   PRINTF(", rank %u, min_rank %u, ",
