@@ -46,9 +46,7 @@
 #include "sys/mt.h"
 #include "sys/cc.h"
 
-#define MT_STATE_READY   1
-#define MT_STATE_RUNNING 2
-#define MT_STATE_EXITED  5
+
 
 static struct mt_thread *current;
 
@@ -115,3 +113,9 @@ mt_stop(struct mt_thread *thread)
   mtarch_stop(&thread->thread);
 }
 /*--------------------------------------------------------------------------*/
+
+mt_thread*
+mt_current()
+{
+    return current;
+}
