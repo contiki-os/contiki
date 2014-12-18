@@ -148,12 +148,14 @@ appcall(void *state)
 	   s->listen_port != 0 &&
 	   s->listen_port == uip_htons(uip_conn->lport)) {
 	  s->flags &= ~TCP_SOCKET_FLAGS_LISTENING;
+          s->output_data_max_seg = uip_mss();
 	  tcp_markconn(uip_conn, s);
 	  call_event(s, TCP_SOCKET_CONNECTED);
 	  break;
 	}
       }
     } else {
+      s->output_data_max_seg = uip_mss();
       call_event(s, TCP_SOCKET_CONNECTED);
     }
 
@@ -255,7 +257,6 @@ tcp_socket_register(struct tcp_socket *s, void *ptr,
   s->input_data_maxlen = input_databuf_len;
   s->output_data_ptr = output_databuf;
   s->output_data_maxlen = output_databuf_len;
-  s->output_data_max_seg = uip_mss();
   s->input_callback = input_callback;
   s->event_callback = event_callback;
   list_add(socketlist, s);
