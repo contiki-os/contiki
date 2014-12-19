@@ -194,12 +194,12 @@ rpl_update_header_empty(void)
     if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
       PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
       uip_ext_len = last_uip_ext_len;
-      return;
+      return 0;
     }
     if(UIP_EXT_HDR_OPT_RPL_BUF->opt_type != UIP_EXT_HDR_OPT_RPL) {
       PRINTF("RPL: Non RPL Hop-by-hop option support not implemented\n");
       uip_ext_len = last_uip_ext_len;
-      return;
+      return 0;
     }
     if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
       PRINTF("RPL: RPL Hop-by-hop option has wrong length\n");
