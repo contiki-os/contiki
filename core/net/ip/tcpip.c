@@ -549,12 +549,14 @@ tcpip_ipv6_output(void)
   if(uip_len > UIP_LINK_MTU) {
     UIP_LOG("tcpip_ipv6_output: Packet to big");
     uip_len = 0;
+    uip_ext_len = 0;
     return;
   }
 
   if(uip_is_addr_unspecified(&UIP_IP_BUF->destipaddr)){
     UIP_LOG("tcpip_ipv6_output: Destination address unspecified");
     uip_len = 0;
+    uip_ext_len = 0;
     return;
   }
 
@@ -592,6 +594,7 @@ tcpip_ipv6_output(void)
           PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
 #endif /* !UIP_FALLBACK_INTERFACE */
           uip_len = 0;
+          uip_ext_len = 0;
           return;
         }
 
@@ -644,6 +647,7 @@ tcpip_ipv6_output(void)
 #if UIP_CONF_IPV6_RPL
     if(rpl_update_header_final(nexthop)) {
       uip_len = 0;
+      uip_ext_len = 0;
       return;
     }
 #endif /* UIP_CONF_IPV6_RPL */
@@ -652,6 +656,7 @@ tcpip_ipv6_output(void)
 #if UIP_ND6_SEND_NA
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE)) == NULL) {
         uip_len = 0;
+        uip_ext_len = 0;
         return;
       } else {
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -690,6 +695,7 @@ tcpip_ipv6_output(void)
         }
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
         uip_len = 0;
+        uip_ext_len = 0;
         return;
       }
       /* Send in parallel if we are running NUD (nbc state is either STALE,
@@ -720,6 +726,7 @@ tcpip_ipv6_output(void)
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
 
       uip_len = 0;
+      uip_ext_len = 0;
       return;
     }
     return;
