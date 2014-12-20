@@ -70,6 +70,7 @@
 #define SMT_MAX_EVENTS      PROCESS_CONF_NUMEVENTS
 #define SMT_BROADCAST       PROCESS_BROADCAST
 #define SMT_EVENT_POLL      PROCESS_EVENT_POLL
+#define SMT_EVENT_CONTINUE  PROCESS_EVENT_CONTINUE
 
 /*
  * Access macros to smt event data and smt event id
@@ -191,5 +192,15 @@ smt_sleep(clock_time_t interval);
 void
 smt_poll(mt_thread *thread);
 
+/**
+ * Yield the thread for a short while.
+ *
+ * This macro yields the currently running thread for a short while,
+ * thus letting other processes and threads run before the thread continues.
+ *
+ * \hideinitializer
+ */
+void
+smt_pause();
 
 #endif /* SMT_H_ */

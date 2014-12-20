@@ -62,13 +62,23 @@ void cntdwn_thread(void *data)
 {
     uint8_t* cntdwn = data;
     mt_thread *this_thread = mt_current();
+    smt_pause();
     PRINTF("%p : Starting\n",this_thread);
+    smt_pause();
 
     while (*cntdwn)
     {
+        smt_pause();
         PRINTF("%p : cntdwn = %d\n",this_thread, *cntdwn);
+        smt_pause();
         smt_sleep(CLOCK_SECOND);
+        smt_pause();
         (*cntdwn)--;
+        smt_pause();
+        smt_pause();
+        smt_pause();
+        smt_pause();
+
     }
 
     PRINTF("%p : Terminating\n",this_thread);

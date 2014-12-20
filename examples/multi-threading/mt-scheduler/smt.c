@@ -228,6 +228,15 @@ smt_do_poll()
     }
 }
 
+void
+smt_pause()
+{
+    if (!smt_post(mt_current(),SMT_EVENT_CONTINUE,NULL))
+        return; /* to less resources to pause! */
+
+    smt_wait_event_until(SMT_EVENT() == SMT_EVENT_CONTINUE);
+}
+
 /*---------------------------------------------------------------------------*/
 
 PROCESS_THREAD(mt_scheduler_process, ev, data)
