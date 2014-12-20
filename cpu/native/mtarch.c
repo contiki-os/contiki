@@ -35,7 +35,7 @@
 #include "sys/mt.h"
 
 #ifndef MTARCH_STACKSIZE
-#define MTARCH_STACKSIZE 4096
+#define MTARCH_STACKSIZE (8192*2)
 #endif /* MTARCH_STACKSIZE */
 
 #if defined(_WIN32) || defined(__CYGWIN__)

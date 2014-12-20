@@ -111,3 +111,9 @@ mt_stop(struct mt_thread *thread)
   mtarch_stop(&thread->thread);
 }
 /*--------------------------------------------------------------------------*/
+
+mt_thread*
+mt_current()
+{
+    return current;
+}
