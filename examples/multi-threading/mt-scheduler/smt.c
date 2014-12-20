@@ -245,7 +245,7 @@ PROCESS_THREAD(mt_scheduler_process, ev, data)
           if (ev == SMT_EVENT_POLL)
           {
               smt_do_poll();
-              //continue;
+              continue;
           }
 
           /* check if event has been created by using smt_post */
