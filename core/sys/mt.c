@@ -64,6 +64,7 @@ mt_remove(void)
 void
 mt_start(struct mt_thread *thread, void (* function)(void *), void *data)
 {
+  thread->needspoll = 0;
   /* Call the architecture dependant function to set up the processor
      stack with the correct parameters. */
   mtarch_start(&thread->thread, function, data);

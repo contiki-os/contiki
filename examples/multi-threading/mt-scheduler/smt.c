@@ -51,6 +51,7 @@
  *         - A broadcast of an event to all smt-threads can be achieved by setting the
  *           target thread to SMT_BROADCAST when invoking smt_post.
  *         - Don't forget to call mt_init() and smt_init() before using this lib.
+ *         - polling threads from irq or main thread by using smt_poll()
  *
  *
  *
@@ -77,7 +78,8 @@ MEMB(memb_smt_event_ext,struct smt_event_ext_t,SMT_MAX_EVENTS);
 
 PROCESS(mt_scheduler_process, "smt process");
 
-void smt_start(struct mt_thread *thread, void (* function)(void *), void *data)
+void
+smt_start(struct mt_thread *thread, void (* function)(void *), void *data)
 {
     mt_thread *iter;
 
@@ -103,7 +105,8 @@ void smt_start(struct mt_thread *thread, void (* function)(void *), void *data)
 }
 
 /* !!! only smt_post is allowed to send a process event to mt_scheduler_process !!! */
-int smt_post(struct mt_thread *thread, process_event_t ev, process_data_t data)
+int
+smt_post(struct mt_thread *thread, process_event_t ev, process_data_t data)
 {
     struct smt_event_ext_t *smt_event_ext;
 
@@ -119,13 +122,15 @@ int smt_post(struct mt_thread *thread, process_event_t ev, process_data_t data)
 
 /* smt_post_sync ... difficult! ... tbd */
 
-void smt_init()
+void
+smt_init(void)
 {
     PRINTF("smt: process start\n");
     process_start(&mt_scheduler_process,NULL);
 }
 
-static void smt_wakeup_call(void *data)
+static void
+smt_wakeup_call(void *data)
 {
     mt_thread *iter, *thread;
 
@@ -161,7 +166,8 @@ static void smt_wakeup_call(void *data)
 }
 
 
-void smt_sleep(clock_time_t interval)
+void
+smt_sleep(clock_time_t interval)
 {
     struct ctimer ct;
 
@@ -170,6 +176,56 @@ void smt_sleep(clock_time_t interval)
     /* ignore events delivered by scheduler while waiting for ctimer */
     smt_wait_event_until(ctimer_expired(&ct));
     PRINTF("smt: %p wakes up\n", mt_current());
+}
+
+void
+smt_poll(mt_thread *thread)
+{
+    PRINTF("smt: poll requested for %p \n", thread);
+    thread->needspoll = 1; /* irq-save if called from main thread? ... same question for process_poll */
+    process_poll(&mt_scheduler_process);
+}
+
+void
+smt_do_poll()
+{
+    mt_thread *iter, *prev = NULL;
+
+    /* move event into global scope */
+    smt_ev = SMT_EVENT_POLL;
+    smt_data = NULL;
+
+    /* for all threads in list ...*/
+    iter = smt_list;
+    while(iter)
+    {
+        if(iter->needspoll)
+        {
+            iter->needspoll = 0; /* irq-save? ... same question for process_do_poll */
+
+            mt_exec(iter); /* ... deliver event */
+
+            if (iter->state == MT_STATE_EXITED)
+            {
+                mt_stop(iter);
+
+                /* remove thread from list */
+                if(prev) prev->next = iter->next;
+                    else  smt_list = iter->next;
+            }
+            else
+            {
+                prev = iter;
+            }
+
+            iter = iter->next;
+        }
+        else
+        {
+            prev = iter;
+            iter = iter->next;
+        }
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -184,6 +240,13 @@ PROCESS_THREAD(mt_scheduler_process, ev, data)
       PROCESS_WAIT_EVENT();
       {
           mt_thread *target;
+
+          /* thread poll events. may only be raised by smt_poll() */
+          if (ev == SMT_EVENT_POLL)
+          {
+              smt_do_poll();
+              //continue;
+          }
 
           /* check if event has been created by using smt_post */
           if(!memb_inmemb(&memb_smt_event_ext,data))

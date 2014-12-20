@@ -185,8 +185,8 @@ typedef struct mt_thread mt_thread;
 
 struct mt_thread {
   mt_thread *next;      /*!< pointer to the next thread in a thread list */
-  int state;            /*!< check if uint8_t is enough! */
   struct mtarch_thread thread;
+  unsigned char state, needspoll;
 };
 
 

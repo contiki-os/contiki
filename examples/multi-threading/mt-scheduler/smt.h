@@ -51,7 +51,7 @@
  *         - A broadcast of an event to all smt-threads can be achieved by setting the
  *           target thread to SMT_BROADCAST when invoking smt_post.
  *         - Don't forget to call mt_init() and smt_init() before using this lib.
- *
+ *         - polling threads from irq or main thread by using smt_poll()
  *
  * \author
  *         marcas756 <marcas756@gmail.com>
@@ -67,8 +67,10 @@
 
 #define SMT_ERR_FULL        PROCESS_ERR_FULL
 #define SMT_ERR_OK          PROCESS_ERR_OK
-#define SMT_MAX_EVENTS      10
+#define SMT_MAX_EVENTS      PROCESS_CONF_NUMEVENTS
 #define SMT_BROADCAST       PROCESS_BROADCAST
+#define SMT_EVENT_POLL      PROCESS_EVENT_POLL
+
 /*
  * Access macros to smt event data and smt event id
  * In comparison to contiki processes the void pointer provided to mt_threads
@@ -139,7 +141,8 @@ extern process_data_t smt_data;    /*!< Any mthread may access this event data *
  *
  * Currently only starts the smt scheduler process. *
  */
-void smt_init();
+void
+smt_init(void);
 
 /**
  * \brief      Starts an smt mt_thread
@@ -148,7 +151,8 @@ void smt_init();
  * \param   function    Thread function
  * \param   data        Pointer to dat to start the thread with
  */
-void smt_start(struct mt_thread *thread, void (* function)(void *), void *data);
+void
+smt_start(struct mt_thread *thread, void (* function)(void *), void *data);
 
 /**
  * \brief      Posts an event to an smt mt_thread
@@ -160,7 +164,8 @@ void smt_start(struct mt_thread *thread, void (* function)(void *), void *data);
  * \param   ev          Event id
  * \param   data        Data associated with the event
  */
-int smt_post(struct mt_thread *thread, process_event_t ev, process_data_t data);
+int
+smt_post(struct mt_thread *thread, process_event_t ev, process_data_t data);
 
 /**
  * \brief      Suspends the thread for a given time
@@ -172,7 +177,19 @@ int smt_post(struct mt_thread *thread, process_event_t ev, process_data_t data);
  *
  * \param   interval    Duration (1s=CLOCK_SECOND)
  */
-void smt_sleep(clock_time_t interval);
+void
+smt_sleep(clock_time_t interval);
+
+/**
+ * Request a thread to be polled.
+ *
+ * This function typically is called from an interrupt handler to
+ * cause a thread to be polled.
+ *
+ * \param thread A pointer to the threads mt_thread structure.
+ */
+void
+smt_poll(mt_thread *thread);
 
 
 #endif /* SMT_H_ */
