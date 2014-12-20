@@ -66,7 +66,7 @@
 
 
 #define SMT_ERR_FULL        PROCESS_ERR_FULL
-#define SMT_ERR_OK          PROCESS_ERR_OK;
+#define SMT_ERR_OK          PROCESS_ERR_OK
 #define SMT_MAX_EVENTS      10
 #define SMT_BROADCAST       PROCESS_BROADCAST
 /*
