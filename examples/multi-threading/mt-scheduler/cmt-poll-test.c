@@ -43,9 +43,9 @@
 
 
 #include "contiki.h"
-#include "smt.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include "cmt.h"
 
 #define DEBUG 1
 #if DEBUG
@@ -58,8 +58,8 @@
 #define NUM_OF_THREADS 5
 #define MAX_POLL_DELAY CLOCK_SECOND
 
-static mt_thread threads[NUM_OF_THREADS];
-static mt_thread poller_thread;
+static cmt_thread threads[NUM_OF_THREADS];
+static cmt_thread poller_thread;
 
 
 void poller_thread_func(void *data)
@@ -67,15 +67,15 @@ void poller_thread_func(void *data)
     PRINTF("THREAD poller started \n");
     while(1)
     {
-        smt_sleep(rand()%MAX_POLL_DELAY);
-        smt_poll(&threads[rand()%NUM_OF_THREADS]);
+        cmt_sleep(rand()%MAX_POLL_DELAY);
+        cmt_poll(&threads[rand()%NUM_OF_THREADS]);
         PRINTF("THREAD sent poll event \n");
     }
 
     mt_exit();
 }
 
-int get_thread_id(mt_thread *thread)
+int get_thread_id(cmt_thread *thread)
 {
     return (thread-threads);
 }
@@ -84,16 +84,16 @@ void test_thread_func(void *data)
 {
     int thread_id;
 
-    thread_id = get_thread_id(mt_current());
+    thread_id = get_thread_id(cmt_current());
 
     while(1)
     {
 
-        smt_wait_event_until(SMT_EVENT() == SMT_EVENT_POLL);
-        PRINTF("Thread [%d] %p received poll \n",thread_id,mt_current());
+        cmt_wait_event_until(cmt_get_ev() == CMT_EVENT_POLL);
+        PRINTF("Thread [%d] %p received poll \n",thread_id,cmt_current());
     }
 
-    mt_exit();
+    cmt_exit();
 }
 
 
@@ -111,21 +111,21 @@ PROCESS_THREAD(smt_example, ev, data)
           int tmp;
 
           mt_init();
-          smt_init();
+          cmt_init();
 
 
           for(tmp = 0; tmp < NUM_OF_THREADS; tmp+=2)
           {
-              smt_start(&threads[tmp],test_thread_func,NULL);
+              cmt_start(&threads[tmp],test_thread_func,NULL);
           }
 
-          smt_start(&poller_thread,poller_thread_func,NULL);
+          cmt_start(&poller_thread,poller_thread_func,NULL);
 
           while(1)
           {
               etimer_set(&et,rand()%MAX_POLL_DELAY);
               PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-              smt_poll(&threads[rand()%NUM_OF_THREADS]);
+              cmt_poll(&threads[rand()%NUM_OF_THREADS]);
               PRINTF("PROCESS sent poll event \n");
           }
 

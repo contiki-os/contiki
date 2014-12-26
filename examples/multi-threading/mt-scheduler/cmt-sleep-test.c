@@ -35,7 +35,7 @@
 /**
  * \file
  *         Testing mt sleep functionality
- *         Example implementation of an contiki event enabled  mt scheduler
+ *         Example implementation of an contiki event enabled  cooperative mt scheduler
  * \author
  *         marcas756 <marcas756@gmail.com>
  */
@@ -43,8 +43,8 @@
 
 
 #include "contiki.h"
-#include "smt.h"
 #include <stdint.h>
+#include "cmt.h"
 
 #define DEBUG 1
 #if DEBUG
@@ -61,57 +61,57 @@
 void cntdwn_thread(void *data)
 {
     uint8_t* cntdwn = data;
-    mt_thread *this_thread = mt_current();
-    smt_pause();
+    cmt_thread *this_thread = cmt_current();
+    cmt_pause();
     PRINTF("%p : Starting\n",this_thread);
-    smt_pause();
+    cmt_pause();
 
     while (*cntdwn)
     {
-        smt_pause();
+        cmt_pause();
         PRINTF("%p : cntdwn = %d\n",this_thread, *cntdwn);
-        smt_pause();
-        smt_sleep(CLOCK_SECOND);
-        smt_pause();
+        cmt_pause();
+        cmt_sleep(CLOCK_SECOND);
+        cmt_pause();
         (*cntdwn)--;
-        smt_pause();
-        smt_pause();
-        smt_pause();
-        smt_pause();
+        cmt_pause();
+        cmt_pause();
+        cmt_pause();
+        cmt_pause();
 
     }
 
     PRINTF("%p : Terminating\n",this_thread);
 
-    mt_exit();
+    cmt_exit();
 }
 
 
 uint8_t countdown1 = 10;
 uint8_t countdown2 = 20;
 
-static mt_thread threads[4];
+static cmt_thread threads[4];
 
 /*---------------------------------------------------------------------------*/
-PROCESS(smt_example, "smt example");
-AUTOSTART_PROCESSES(&smt_example);
+PROCESS(cmt_example, "cmt example");
+AUTOSTART_PROCESSES(&cmt_example);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(smt_example, ev, data)
+PROCESS_THREAD(cmt_example, ev, data)
 {
       static struct etimer et;
 
       PROCESS_BEGIN();
 
       mt_init();
-      smt_init();
+      cmt_init();
 
-      smt_start(&threads[CNTDWN_THREAD_1],cntdwn_thread,&countdown1);
+      cmt_start(&threads[CNTDWN_THREAD_1],cntdwn_thread,&countdown1);
 
       /* Delay start of second thread for 0.5s */
       etimer_set(&et,CLOCK_SECOND/2);
       PROCESS_WAIT_EVENT();
 
-      smt_start(&threads[CNTDWN_THREAD_2],cntdwn_thread,&countdown2);
+      cmt_start(&threads[CNTDWN_THREAD_2],cntdwn_thread,&countdown2);
 
 
       PROCESS_END();

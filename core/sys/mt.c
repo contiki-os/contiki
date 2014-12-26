@@ -64,7 +64,6 @@ mt_remove(void)
 void
 mt_start(struct mt_thread *thread, void (* function)(void *), void *data)
 {
-  thread->needspoll = 0;
   /* Call the architecture dependant function to set up the processor
      stack with the correct parameters. */
   mtarch_start(&thread->thread, function, data);
@@ -113,8 +112,20 @@ mt_stop(struct mt_thread *thread)
 }
 /*--------------------------------------------------------------------------*/
 
-mt_thread*
-mt_current()
+
+
+
+/**
+ * Returns the currently running thread
+ *
+ * This function returns the currently running thread.
+ *
+ * \return  Either NULL if no thread is running or a pointer to the
+ *          mt_thread instance of the currently running thread is returned.
+ *
+ */
+struct mt_thread*
+mt_current(void)
 {
     return current;
 }

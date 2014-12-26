@@ -181,14 +181,12 @@ void mtarch_pstop(void);
 
 #include "mtarch.h"
 
-typedef struct mt_thread mt_thread;
-
 struct mt_thread {
-  mt_thread *next;      /*!< pointer to the next thread in a thread list */
+  int state;
+  process_event_t *evptr;
+  process_data_t *dataptr;
   struct mtarch_thread thread;
-  unsigned char state, needspoll;
 };
-
 
 /**
  * No error.
@@ -269,17 +267,6 @@ void mt_exit(void);
  *
  */
 void mt_stop(struct mt_thread *thread);
-
-/**
- * Returns the currently running thread
- *
- * This function returns the currently running thread.
- *
- * \return  Either NULL if no thread is running or a pointer to the
- *          mt_thread instance of the currently running thread is returned.
- *
- */
-mt_thread* mt_current();
 
 /** @} */
 /** @} */

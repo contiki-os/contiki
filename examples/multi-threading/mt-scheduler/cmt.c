@@ -34,7 +34,7 @@
 
 /**
  * \file
- *         Scheduled multi threading library
+ *         Scheduled cooperative multi threading implementation
  *
  *         - Non preemtive mt-scheduler (context switch during irq not
  *           allowed for this implementation)
@@ -59,7 +59,7 @@
  *         marcas756 <marcas756@gmail.com>
  */
 
-#include "smt.h"
+#include "cmt.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -69,87 +69,107 @@
 #define PRINTF(...)
 #endif
 
+static struct cmt_thread *cmt_list = NULL;  /*!< list holding active cmt threads */
+process_event_t cmt_ev;     /*!< Any cmt_thread may access this event id */
+process_data_t cmt_data;    /*!< Any cmt_thread may access this event data */
 
-static struct mt_thread *smt_list = NULL;  /*!< list holding active mt_threads */
-process_event_t smt_ev;     /*!< Any mt_thread may access this event id */
-process_data_t smt_data;    /*!< Any mt_thread may access this event data */
+MEMB(memb_cmt_event_ext,struct cmt_event_ext_t,CMT_MAX_EVENTS);
 
-MEMB(memb_smt_event_ext,struct smt_event_ext_t,SMT_MAX_EVENTS);
+PROCESS(cmt_scheduler_process, "cmt process");
 
-PROCESS(mt_scheduler_process, "smt process");
+
+process_event_t cmt_get_ev()
+{
+    return cmt_ev;
+}
+
+process_data_t cmt_get_data()
+{
+    return cmt_data;
+}
 
 void
-smt_start(struct mt_thread *thread, void (* function)(void *), void *data)
+cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
 {
-    mt_thread *iter;
+    struct cmt_thread *iter;
 
     /* First make sure that we don't try to start a thread that is
        already running. */
-    for(iter = smt_list; iter; iter = iter->next)
+    for(iter = cmt_list; iter; iter = iter->next)
     {
         /* If we found the thread on the  thread list, we bail out. */
         if (iter == thread) return;
     }
 
-    PRINTF("smt: initial exec of %p \n", thread);
-    mt_start(thread,function,data);
-    mt_exec(thread); /* exec thread once to get to first blocking situation */
+    PRINTF("cmt: initial exec of %p \n", thread);
+    mt_start((struct mt_thread*)thread,function,data);
+    mt_exec((struct mt_thread*)thread); /* exec thread once to get to first blocking situation */
 
-    if(thread->state == MT_STATE_EXITED) /* thread exited ... thread did not wait for any event */
+    if(((struct mt_thread*)thread)->state == MT_STATE_EXITED)
+    {
+        /* thread exited ... thread did not wait for any event */
+        mt_stop((struct mt_thread*)thread);
         return;
+    }
 
     /* Put on the thread list.*/
-    thread->next = smt_list;
-    smt_list = thread;
-    PRINTF("smt: added %p to scheduler \n", thread);
+    thread->next = cmt_list;
+    cmt_list = thread;
+    PRINTF("cmt: added %p to scheduler \n", thread);
 }
 
 /* !!! only smt_post is allowed to send a process event to mt_scheduler_process !!! */
 int
-smt_post(struct mt_thread *thread, process_event_t ev, process_data_t data)
+cmt_post(struct cmt_thread *thread, process_event_t ev, process_data_t data)
 {
-    struct smt_event_ext_t *smt_event_ext;
+    struct cmt_event_ext_t *cmt_event_ext;
 
-    smt_event_ext = memb_alloc(&memb_smt_event_ext);
+    cmt_event_ext = memb_alloc(&memb_cmt_event_ext);
 
-    if (!smt_event_ext) return SMT_ERR_FULL;
+    if (!cmt_event_ext) return CMT_ERR_FULL;
 
-    smt_event_ext->target = thread;
-    smt_event_ext->data = data;
-    PRINTF("smt: post ev 0x%X to mt %p\n",ev,thread);
-    return process_post(&mt_scheduler_process, ev, smt_event_ext);
+    cmt_event_ext->target = thread;
+    cmt_event_ext->data = data;
+    PRINTF("cmt: post ev 0x%X to mt %p\n",ev,thread);
+    return process_post(&cmt_scheduler_process, ev, cmt_event_ext);
 }
 
 /* smt_post_sync ... difficult! ... tbd */
 
 void
-smt_init(void)
+cmt_init(void)
 {
     PRINTF("smt: process start\n");
-    process_start(&mt_scheduler_process,NULL);
+    process_start(&cmt_scheduler_process,NULL);
 }
 
 static void
-smt_wakeup_call(void *data)
+cmt_wakeup_call(void *data)
 {
-    mt_thread *iter, *thread;
+    cmt_thread *iter, *thread;
 
     thread = data;
 
-    PRINTF("smt: wake up call for %p\n", thread);
+    PRINTF("cmt: wake up call for %p\n", thread);
 
-    mt_exec(thread);
+    /* move event into global scope */
+    cmt_ev = PROCESS_EVENT_CONTINUE;
+    cmt_data = NULL;
 
-    if (thread->state != MT_STATE_EXITED)
+    mt_exec((struct mt_thread*)thread);
+
+    if (((struct mt_thread*)thread)->state != MT_STATE_EXITED)
         return;
 
-    mt_stop(thread);
+    /* thread exited ... thread did not wait for any event */
+
+    mt_stop((struct mt_thread*)thread);
 
     /* remove thread from thread list */
-    iter = smt_list;
+    iter = cmt_list;
     if(iter == thread)
     {
-        smt_list = thread->next;
+        cmt_list = thread->next;
         return;
     }
 
@@ -163,55 +183,56 @@ smt_wakeup_call(void *data)
 
         iter = iter->next;
     }
+
 }
 
 
-void
-smt_sleep(clock_time_t interval)
-{
-    struct ctimer ct;
 
-    ctimer_set(&ct,interval,smt_wakeup_call,mt_current());
-    PRINTF("smt: %p goes to bed\n", mt_current());
+void
+cmt_sleep(clock_time_t interval)
+{
+    cmt_thread *thread = cmt_current();
+    ctimer_set(&(thread->ct),interval,cmt_wakeup_call,thread);
+    PRINTF("cmt: %p goes to bed\n", thread);
     /* ignore events delivered by scheduler while waiting for ctimer */
-    smt_wait_event_until(ctimer_expired(&ct));
-    PRINTF("smt: %p wakes up\n", mt_current());
+    cmt_wait_event_until((cmt_get_ev() == PROCESS_EVENT_CONTINUE) && ctimer_expired(&(thread->ct)));
+    PRINTF("cmt: %p wakes up\n", thread);
 }
 
 void
-smt_poll(mt_thread *thread)
+cmt_poll(cmt_thread *thread)
 {
-    PRINTF("smt: poll requested for %p \n", thread);
+    PRINTF("cmt: poll requested for %p \n", thread);
     thread->needspoll = 1; /* irq-save if called from main thread? ... same question for process_poll */
-    process_poll(&mt_scheduler_process);
+    process_poll(&cmt_scheduler_process);
 }
 
 void
-smt_do_poll()
+cmt_do_poll()
 {
-    mt_thread *iter, *prev = NULL;
+    cmt_thread *iter, *prev = NULL;
 
     /* move event into global scope */
-    smt_ev = SMT_EVENT_POLL;
-    smt_data = NULL;
+    cmt_ev = CMT_EVENT_POLL;
+    cmt_data = NULL;
 
     /* for all threads in list ...*/
-    iter = smt_list;
+    iter = cmt_list;
     while(iter)
     {
         if(iter->needspoll)
         {
             iter->needspoll = 0; /* irq-save? ... same question for process_do_poll */
 
-            mt_exec(iter); /* ... deliver event */
+            mt_exec((struct mt_thread*)iter); /* ... deliver event */
 
-            if (iter->state == MT_STATE_EXITED)
+            if (((struct mt_thread*)iter)->state == MT_STATE_EXITED)
             {
-                mt_stop(iter);
+                mt_stop((struct mt_thread*)iter);
 
                 /* remove thread from list */
                 if(prev) prev->next = iter->next;
-                    else  smt_list = iter->next;
+                    else  cmt_list = iter->next;
             }
             else
             {
@@ -229,17 +250,17 @@ smt_do_poll()
 }
 
 void
-smt_pause()
+cmt_pause()
 {
-    if (!smt_post(mt_current(),SMT_EVENT_CONTINUE,NULL))
+    if (!cmt_post(cmt_current(),CMT_EVENT_CONTINUE,NULL))
         return; /* to less resources to pause! */
 
-    smt_wait_event_until(SMT_EVENT() == SMT_EVENT_CONTINUE);
+    cmt_wait_event_until(cmt_get_ev() == CMT_EVENT_CONTINUE);
 }
 
 /*---------------------------------------------------------------------------*/
 
-PROCESS_THREAD(mt_scheduler_process, ev, data)
+PROCESS_THREAD(cmt_scheduler_process, ev, data)
 {
 
   PROCESS_BEGIN();
@@ -248,45 +269,45 @@ PROCESS_THREAD(mt_scheduler_process, ev, data)
   {
       PROCESS_WAIT_EVENT();
       {
-          mt_thread *target;
+          cmt_thread *target;
 
           /* thread poll events. may only be raised by smt_poll() */
-          if (ev == SMT_EVENT_POLL)
+          if (ev == CMT_EVENT_POLL)
           {
-              smt_do_poll();
+              cmt_do_poll();
               continue;
           }
 
           /* check if event has been created by using smt_post */
-          if(!memb_inmemb(&memb_smt_event_ext,data))
+          if(!memb_inmemb(&memb_cmt_event_ext,data))
               continue;
 
           /* move event into global scope */
-          smt_ev = ev;
-          smt_data = ((struct smt_event_ext_t*)data)->data;
-          target = ((struct smt_event_ext_t*)data)->target;
+          cmt_ev = ev;
+          cmt_data = ((struct cmt_event_ext_t*)data)->data;
+          target = ((struct cmt_event_ext_t*)data)->target;
 
           /* handle addressed event */
           if(target)
           {
-              mt_thread *iter, *prev = NULL;
+              cmt_thread *iter, *prev = NULL;
 
               /* search for thread in list */
-              iter = smt_list;
+              iter = cmt_list;
               while(iter)
               {
                   /* found thread */
                   if(iter == target)
                   {
-                      mt_exec(target); /* deliver event */
+                      mt_exec((struct mt_thread*)target); /* deliver event */
 
-                      if (target->state == MT_STATE_EXITED)
+                      if (((struct mt_thread*)target)->state == MT_STATE_EXITED)
                       {
-                          mt_stop(target);
+                          mt_stop((struct mt_thread*)target);
 
                           /* remove thread from list */
                           if(prev) prev->next = target->next;
-                              else smt_list = target->next;
+                              else cmt_list = target->next;
                       }
 
                       break;
@@ -298,21 +319,21 @@ PROCESS_THREAD(mt_scheduler_process, ev, data)
           }
           else /* handle broadcast event */
           {
-              mt_thread *iter,*prev = NULL;
+              cmt_thread *iter,*prev = NULL;
 
               /* for all threads in list ...*/
-              iter = smt_list;
+              iter = cmt_list;
               while(iter)
               {
-                    mt_exec(iter); /* ... deliver event */
+                    mt_exec((struct mt_thread*)iter); /* ... deliver event */
 
-                    if (iter->state == MT_STATE_EXITED)
+                    if (((struct mt_thread*)iter)->state == MT_STATE_EXITED)
                     {
-                        mt_stop(iter);
+                        mt_stop((struct mt_thread*)iter);
 
                         /* remove thread from list */
                         if(prev) prev->next = iter->next;
-                            else  smt_list = iter->next;
+                            else  cmt_list = iter->next;
                     }
                     else
                     {
@@ -324,11 +345,15 @@ PROCESS_THREAD(mt_scheduler_process, ev, data)
           }
 
           /* free the extended event data allocated by smt_post */
-          memb_free(&memb_smt_event_ext,data);
+          memb_free(&memb_cmt_event_ext,data);
       }
   }
 
-  /* exit ... tbd */
+  /* exit ... tbd :*/
+  /* - stop active cmt threads */
+  /* - clear cmt_list */
+  /* - reinit memb */
+  /* - cleanup/remove pending cmt events in process event queue */
 
   PROCESS_END();
 }

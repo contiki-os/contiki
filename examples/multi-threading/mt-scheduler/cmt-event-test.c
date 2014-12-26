@@ -34,7 +34,7 @@
 
 /**
  * \file
- *         Example implementation of an contiki event enabled  mt scheduler
+ *         Example implementation of an contiki event enabled  cooperative mt scheduler
  *
  *         2 processes(p3,p4), 2 mt_threads (t1,t2)
  *
@@ -52,8 +52,8 @@
 
 
 #include "contiki.h"
-#include "smt.h"
 #include <stdint.h>
+#include "cmt.h"
 
 #define DEBUG 1
 #if DEBUG
@@ -69,7 +69,7 @@
 
 uint8_t token = 0;
 
-mt_thread t1,t2;
+cmt_thread t1,t2;
 PROCESS(p3, "p3");
 PROCESS(p4, "p4");
 
@@ -80,18 +80,20 @@ void t1_thread_func (void* data)
     {
         uint8_t* ev_data;
 
-        smt_wait_event_until(SMT_EVENT() == TEST_EVENT_ID);
+        cmt_wait_event_until(cmt_get_ev() == TEST_EVENT_ID);
 
-        ev_data = SMT_DATA();
+        ev_data = cmt_get_data();
 
         PRINTF("t1 received %d\n", *ev_data);
         (*ev_data)+=1;
 
-        smt_sleep(SLEEP_TIME);
+        cmt_sleep(SLEEP_TIME);
 
-        smt_post(&t2,TEST_EVENT_ID,ev_data);
+        cmt_post(&t2,TEST_EVENT_ID,ev_data);
         PRINTF("t1 sent %d\n", *ev_data);
     }
+
+    cmt_exit();
 }
 
 void t2_thread_func (void* data)
@@ -101,18 +103,20 @@ void t2_thread_func (void* data)
     {
         uint8_t* ev_data;
 
-        smt_wait_event_until(SMT_EVENT() == TEST_EVENT_ID);
+        cmt_wait_event_until(cmt_get_ev() == TEST_EVENT_ID);
 
-        ev_data = SMT_DATA();
+        ev_data = cmt_get_data();
 
         PRINTF("t2 received %d\n", *ev_data);
         (*ev_data)+=1;
 
-        smt_sleep(SLEEP_TIME);
+        cmt_sleep(SLEEP_TIME);
 
         process_post(&p3,TEST_EVENT_ID,ev_data);
         PRINTF("t2 sent %d\n", *ev_data);
     }
+
+    cmt_exit();
 }
 
 PROCESS_THREAD(p3, ev, data)
@@ -160,7 +164,7 @@ PROCESS_THREAD(p4, ev, data)
         etimer_set(&et,SLEEP_TIME);
         PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-        smt_post(&t1,TEST_EVENT_ID,ev_data);
+        cmt_post(&t1,TEST_EVENT_ID,ev_data);
         PRINTF("p4 sent %d\n", *ev_data);
     }
 
@@ -177,16 +181,16 @@ PROCESS_THREAD(smt_example, ev, data)
   PROCESS_BEGIN();
 
   mt_init();
-  smt_init();
+  cmt_init();
 
-  smt_start(&t1,t1_thread_func,NULL);
-  smt_start(&t2,t2_thread_func,NULL);
+  cmt_start(&t1,t1_thread_func,NULL);
+  cmt_start(&t2,t2_thread_func,NULL);
 
   process_start(&p3,NULL);
   process_start(&p4,NULL);
 
   // start the endless event loop
-  smt_post(&t1,TEST_EVENT_ID,&token);
+  cmt_post(&t1,TEST_EVENT_ID,&token);
 
 
   PROCESS_END();

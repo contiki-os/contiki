@@ -1,7 +1,7 @@
-CONTIKI_PROJECT = smt-sleep-test smt-event-test smt-poll-test
+CONTIKI_PROJECT = cmt-sleep-test cmt-event-test cmt-poll-test
 all: $(CONTIKI_PROJECT)
 
-PROJECT_SOURCEFILES += smt.c
+PROJECT_SOURCEFILES += cmt.c
 
 CONTIKI = ../../..
 include $(CONTIKI)/Makefile.include
