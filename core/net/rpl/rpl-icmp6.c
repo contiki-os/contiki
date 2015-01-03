@@ -778,6 +778,7 @@ dao_input(void)
 
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
   rep->state.learned_from = learned_from;
+  rep->state.nopath_received = 0;
 
 #if RPL_CONF_MULTICAST
 fwd_dao:
