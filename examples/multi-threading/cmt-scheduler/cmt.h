@@ -58,8 +58,6 @@
 #include "contiki.h"
 #include "sys/mt.h"
 
-extern struct mt_thread* mt_current(void); /*  access to currently running mt_thread */
-
 #define cmt_current() \
     ((struct cmt_thread*)PROCESS_CURRENT())
 
@@ -150,7 +148,6 @@ struct cmt_thread {
 void
 cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data);
 
-
 /**
  * Returns the current event id.
  *
@@ -166,7 +163,5 @@ cmt_get_ev(void);
  */
 process_data_t
 cmt_get_data(void);
-
-
 
 #endif /* SMT_H_ */

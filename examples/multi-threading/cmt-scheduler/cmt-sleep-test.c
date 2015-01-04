@@ -60,12 +60,15 @@
 
 void cntdwn_thread(void *data)
 {
-    uint8_t* cntdwn = data;
-    struct cmt_thread *this_thread = cmt_current();
+    uint8_t* cntdwn;
+    struct cmt_thread *this_thread;
+
+    cntdwn = data;
+    this_thread = cmt_current();
+
     cmt_pause();
     PRINTF("%p : Starting\n",this_thread);
     cmt_pause();
-
     while (*cntdwn)
     {
         cmt_pause();
@@ -104,12 +107,14 @@ PROCESS_THREAD(cmt_example, ev, data)
 
       mt_init();
 
+      PRINTF("CMT_START CNTDWN_THREAD_1\n");
       cmt_start(&threads[CNTDWN_THREAD_1],cntdwn_thread,&countdown1);
 
       /* Delay start of second thread for 0.5s */
       etimer_set(&et,CLOCK_SECOND/2);
       PROCESS_WAIT_EVENT();
 
+      PRINTF("CMT_START CNTDWN_THREAD_2\n");
       cmt_start(&threads[CNTDWN_THREAD_2],cntdwn_thread,&countdown2);
 
 

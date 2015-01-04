@@ -99,10 +99,10 @@ void test_thread_func(void *data)
 
 
 /*---------------------------------------------------------------------------*/
-PROCESS(smt_example, "smt example");
-AUTOSTART_PROCESSES(&smt_example);
+PROCESS(cmt_example, "cmt example");
+AUTOSTART_PROCESSES(&cmt_example);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(smt_example, ev, data)
+PROCESS_THREAD(cmt_example, ev, data)
 {
       static struct etimer et;
 

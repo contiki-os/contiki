@@ -63,8 +63,13 @@
 #define PRINTF(...)
 #endif
 
-process_event_t cmt_ev;     /*!< Any cmt_thread may access this event id */
-process_data_t cmt_data;    /*!< Any cmt_thread may access this event data */
+static process_event_t cmt_ev;     /*!< Any cmt_thread may access this event id via get func */
+static process_data_t cmt_data;    /*!< Any cmt_thread may access this event data via get func */
+
+struct cmt_startup_t {
+    void *data;
+    void (* function)(void *);
+};
 
 /*---------------------------------------------------------------------------*/
 #define PROCESS_RESOLVE_FUNC_NAME(name) \
@@ -72,7 +77,9 @@ process_data_t cmt_data;    /*!< Any cmt_thread may access this event data */
 
 PROCESS_THREAD(cmt_thread_handler, ev, data)
 {
-  struct mt_thread *mt = &(((struct cmt_thread*)PROCESS_CURRENT())->mt_thread);
+  struct mt_thread *mt;
+
+  mt = &(((struct cmt_thread*)PROCESS_CURRENT())->mt_thread);
 
   PROCESS_EXITHANDLER(goto exit);
 
@@ -83,22 +90,13 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
   PROCESS_BEGIN();
 
   /* exec thread once to get to first blocking situation */
-  mt_start(mt,mt->thread.mt_thread,data);
+  mt_start(mt,((struct cmt_startup_t*)data)->function,((struct cmt_startup_t*)data)->data);
   mt_exec(mt);
 
-  /* thread exited? ... thread did not wait (block) for any event */
-  if(mt->state == MT_STATE_EXITED)
-      goto exit;
-
-  while(1)
+  while(mt->state != MT_STATE_EXITED)
   {
       PROCESS_WAIT_EVENT();
-
       mt_exec(mt);
-
-      /* thread exited ... */
-      if(mt->state == MT_STATE_EXITED)
-          goto exit;
   }
 
 exit:
@@ -121,14 +119,27 @@ cmt_get_data()
     return cmt_data;
 }
 
+
+
 void
 cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
 {
+    struct cmt_startup_t cmt_startup;
 
-    process_exit((struct process*)thread);
-    thread->mt_thread.thread.mt_thread = function;
+    /* First make sure that we don't try to start a process that is
+       already running. */
+    if(process_is_running((struct process *)thread))
+    {
+        /* If process is running, we bail out. */
+        return;
+    }
+
+    cmt_startup.data = data;
+    cmt_startup.function = function;
+
     thread->process.thread = PROCESS_RESOLVE_FUNC_NAME(cmt_thread_handler);
-    process_start((struct process*)thread,data);
+    process_start((struct process*)thread,&cmt_startup); /* calls process_post_sync, thus cmt_startup stays valid also for 6502! */
+
 }
 
 
