@@ -76,9 +76,9 @@ rpl_set_mode(enum rpl_mode m)
      switching to. */
   if(m == RPL_MODE_MESH) {
 
-    /* If we switcht to mesh mode, we should send out a DAO message to
+    /* If we switch to mesh mode, we should send out a DAO message to
        inform our parent that we now are reachable. Before we do this,
-       we must set the mode variable, since DAOs will not be send if
+       we must set the mode variable, since DAOs will not be sent if
        we are in feather mode. */
     PRINTF("RPL: switching to mesh mode\n");
     mode = m;
@@ -139,7 +139,7 @@ rpl_purge_routes(void)
       PRINTF("No more routes to ");
       PRINT6ADDR(&prefix);
       dag = default_instance->current_dag;
-      /* Propagate this information with a No-Path DAO to preferred parent if we are not a RPL Root */
+      /* Propagate this information with a No-Path DAO to preferred parent if we are not an RPL Root */
       if(dag->rank != ROOT_RANK(default_instance)) {
         PRINTF(" -> generate No-Path DAO\n");
         dao_output_target(dag->preferred_parent, &prefix, RPL_ZERO_LIFETIME);
