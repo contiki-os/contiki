@@ -105,10 +105,9 @@ AUTOSTART_PROCESSES(&cmt_example);
 PROCESS_THREAD(cmt_example, ev, data)
 {
       static struct etimer et;
+      static int tmp;
 
       PROCESS_BEGIN();
-      {
-          int tmp;
 
           mt_init();
 
@@ -121,13 +120,14 @@ PROCESS_THREAD(cmt_example, ev, data)
 
           while(1)
           {
+
               etimer_set(&et,rand()%MAX_POLL_DELAY);
               PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
               process_poll((struct process*)&threads[rand()%NUM_OF_THREADS]);
               PRINTF("PROCESS sent poll event \n");
           }
 
-      }
+
       PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

@@ -81,11 +81,11 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
 
   mt = &(((struct cmt_thread*)PROCESS_CURRENT())->mt_thread);
 
-  PROCESS_EXITHANDLER(goto exit);
-
   /* move event into global scope */
   cmt_ev = ev;
   cmt_data = data;
+
+  PROCESS_EXITHANDLER(goto exit);
 
   PROCESS_BEGIN();
 
@@ -101,7 +101,6 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
 
 exit:
   mt_stop(mt);
-  /* tbd: cleanup/remove pending cmt events in process event queue and other queues/lists */
 
   PROCESS_END();
 }
@@ -126,6 +125,10 @@ cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
 {
     struct cmt_startup_t cmt_startup;
 
+#ifndef PROCESS_CONF_NO_PROCESS_NAMES
+    static const char* cmt_any_text = "cmt any";
+#endif
+
     /* First make sure that we don't try to start a process that is
        already running. */
     if(process_is_running((struct process *)thread))
@@ -138,6 +141,9 @@ cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
     cmt_startup.function = function;
 
     thread->process.thread = PROCESS_RESOLVE_FUNC_NAME(cmt_thread_handler);
+#ifndef PROCESS_CONF_NO_PROCESS_NAMES
+    thread->process.name = (char*)cmt_any_text;
+#endif
     process_start((struct process*)thread,&cmt_startup); /* calls process_post_sync, thus cmt_startup stays valid also for 6502! */
 
 }
