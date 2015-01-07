@@ -3,6 +3,9 @@
 	<name>Contiki</name>
 	<comment></comment>
 	<projects>
+		<project>Ti.CC3200.DriverLib</project>
+		<project>Ti.CC3200.OsLib</project>
+		<project>Ti.CC3200.SimpleLink</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
