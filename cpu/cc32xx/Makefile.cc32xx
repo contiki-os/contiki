@@ -34,9 +34,203 @@
 # Author: Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
 #
 #******************************************************************************
- 
-CONTIKI_CPU_DIRS = .
 
-CONTIKI_SOURCEFILES += clock.c clock-arch.c mtarch.c rtimer-arch.c watchdog.c
+#
+# Get the prefix for the tools to use.  Use arm-stellaris-eabi if it exists,
+# otherwise fall back to arm-none-eabi.
+#
+PREFIX:=${shell type arm-stellaris-eabi-gcc > /dev/null 2>&1 && \
+         echo arm-stellaris-eabi || echo arm-none-eabi}
 
-# CFLAGS, LDFLAGS, and build rules come from the Makefile of the final target
+#
+# The command for calling the c compiler.
+#
+CC=$(PREFIX)-gcc
+
+#
+# The command for calling the cpp compiler.
+#
+CPP=$(PREFIX)-cpp
+
+#
+# The location of the C compiler
+# ARMGCC_ROOT is used by some makefiles that need to know where the compiler
+# is installed.
+#
+ARMGCC_ROOT:=${shell dirname '${shell sh -c "which ${CC}"}'}/..
+
+#
+# The command for calling the library archiver.
+#
+AR=$(PREFIX)-ar
+
+#
+# The command for calling the linker.
+#
+LD=$(PREFIX)-gcc
+
+#
+# The source for linker script generation
+#
+ifndef SOURCE_LDSCRIPT
+SOURCE_LDSCRIPT = $(CONTIKI_CPU)/cc32xx.lds
+endif
+LDSCRIPT = $(OBJECTDIR)/cc32xx.ld
+
+#
+# The root of TI CC32xx SDK
+#
+ifndef CC32XX_SDK_ROOT
+CC32XX_SDK_ROOT = ../../../ti-cc3200-sdk
+endif
+
+#
+# The common includes of TI CC32xx SDK
+#
+CC32XX_SDK_INC_DIR = $(CC32XX_SDK_ROOT)/inc
+
+#
+# The driverlib of TI CC32xx SDK
+#
+CC32XX_SDK_DRIVERLIB_DIR = $(CC32XX_SDK_ROOT)/driverlib
+
+ifneq "$(wildcard $(CC32XX_SDK_DRIVERLIB_DIR)/src )" ""
+CC32XX_SDK_DRIVERLIB_INC_DIR = $(CC32XX_SDK_DRIVERLIB_DIR)/src
+else
+CC32XX_SDK_DRIVERLIB_INC_DIR = $(CC32XX_SDK_DRIVERLIB_DIR)
+endif
+
+#
+# The oslib of TI CC32xx SDK
+#
+CC32XX_SDK_OSLIB_DIR = $(CC32XX_SDK_ROOT)/oslib
+
+ifneq "$(wildcard $(CC32XX_SDK_OSLIB_DIR)/src )" ""
+CC32XX_SDK_OSLIB_INC_DIR = $(CC32XX_SDK_OSLIB_DIR)/src
+else
+CC32XX_SDK_OSLIB_INC_DIR = $(CC32XX_SDK_OSLIB_DIR)
+endif
+
+#
+# The simplelink driver of TI CC32xx SDK
+#
+CC32XX_SDK_SIMPLELINK_DIR = $(CC32XX_SDK_ROOT)/simplelink
+
+ifneq "$(wildcard $(CC32XX_SDK_SIMPLELINK_DIR)/src )" ""
+CC32XX_SDK_SIMPLELINK_INC_DIR = $(CC32XX_SDK_SIMPLELINK_DIR)/src
+else
+CC32XX_SDK_SIMPLELINK_INC_DIR = $(CC32XX_SDK_SIMPLELINK_DIR)
+endif
+
+#
+# Set the compiler CPU/FPU options.
+#
+CPU=-mcpu=cortex-m4
+#FPU=-mfpu=fpv4-sp-d16 -mfloat-abi=softfp
+
+#
+# The flags passed to the compiler.
+#
+CFLAGS += $(CPU) $(FPU) -mthumb -mlittle-endian
+CFLAGS += -ffunction-sections -fdata-sections
+CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
+CFLAGS += -Wall
+
+#
+# Set additional compiler flags
+#
+CFLAGS += -DUSE_FREERTOS
+CFLAGS += -DSL_PLATFORM_MULTI_THREADED
+
+#
+# The flags passed to the linker.
+#
+LDFLAGS += $(CPU) $(FPU) -mthumb
+LDFLAGS += -T $(LDSCRIPT)
+LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
+LDFLAGS += -Wl,-Map=$(@:.elf=-$(TARGET).map),--cref,--no-warn-mismatch
+
+#
+# The flags passed to obj-copy.
+#
+OBJCOPY_FLAGS += -O binary --gap-fill 0xff
+OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
+
+#
+# Are we building with code size optimisations?
+#
+ifeq ($(SMALL),1)
+  CFLAGS += -Os
+else
+  CFLAGS += -O2
+endif
+
+#
+# CPU-dependent cleanup files
+#
+CLEAN += symbols.c symbols.h *.d *.bin *.elf *.hex
+
+#
+# CPU-dependent directories
+#
+CONTIKI_CPU_DIRS = . dev
+
+#
+# Use the existing drivers from cc32xx sdk
+#
+CONTIKI_CPU_DIRS += $(CC32XX_SDK_INC_DIR)
+CONTIKI_CPU_DIRS += $(CC32XX_SDK_OSLIB_INC_DIR)
+CONTIKI_CPU_DIRS += $(CC32XX_SDK_DRIVERLIB_INC_DIR)
+CONTIKI_CPU_DIRS += $(CC32XX_SDK_SIMPLELINK_INC_DIR)
+
+#
+# CPU-dependent source files
+#
+CONTIKI_CPU_SOURCEFILES += clock.c clock-arch.c main.c mtarch.c
+CONTIKI_CPU_SOURCEFILES += rtimer-arch.c startup_gcc.c watchdog.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES)
+
+# 
+# Don't treat the .elf as intermediate
+#
+.PRECIOUS: %.elf %.hex %.bin
+
+#
+# Compilation rules
+#
+CUSTOM_RULE_LINK=1
+
+%.elf: %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+
+%.hex: %.elf
+	$(OBJCOPY) -O ihex $< $@
+
+%.bin: %.elf
+	$(OBJCOPY) $(OBJCOPY_FLAGS) $< $@
+
+%.lst: %.elf
+	$(OBJDUMP) $(OBJDUMP_FLAGS) $< > $@
+#
+# We don't really need the .hex and .bin for the .$(TARGET) but let's make
+# sure they get built
+#
+%.$(TARGET): %.elf %.hex %.bin
+	cp $< $@
+
+#
+# This rule is used to generate the correct linker script
+#
+LDGENFLAGS += $(addprefix -D,$(subst $(COMMA), ,$(DEFINES)))
+LDGENFLAGS += $(addprefix -I,$(SOURCEDIRS))
+LDGENFLAGS += -imacros "contiki-conf.h"
+LDGENFLAGS += -x c -P -E
+
+#
+# Assumes LDSCRIPT was not overridden and is in $(OBJECTDIR)
+#
+$(LDSCRIPT): $(SOURCE_LDSCRIPT) FORCE | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(LDGENFLAGS) $< -o $@

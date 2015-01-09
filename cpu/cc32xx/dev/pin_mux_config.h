@@ -28,46 +28,13 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * Author: Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
+ *
  */
 
-/**
- * \file
- *         Headers for clock architecture implementation of TI CC32xx.
- * \author
- *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
- */
+#ifndef PIN_MUX_CONFIG_H_
+#define PIN_MUX_CONFIG_H_
 
-#ifndef CLOCK_ARCH_H_
-#define CLOCK_ARCH_H_
+extern void PinMuxConfig(void);
 
-#include "contiki-conf.h"
-
-#define CLOCK_ARCH_TICK_COUNT			CLOCK_CONF_SECOND
-#define CLOCK_ARCH_TICK_MS				(1000 / CLOCK_ARCH_TICK_COUNT)
-
-#define CLOCK_ARCH_TICKTASK_PRIORITY	8
-#define CLOCK_ARCH_TICKTASK_STACKSIZE	256
-
-#define USEC_TO_LOOP(x)					((80000000/5000000)*x))
-
-/**
- * Start the clock, by creating timer service
- */
-void clock_arch_init(void);
-
-/**
- * Task for time service
- */
-void clock_arch_tick_task(void *pv_parameters);
-
-/**
- * Return tick counter, default is ticks since startup.
- */
-inline clock_time_t clock_arch_get_tick_count(void);
-
-/**
- * Set tick counter.
- */
-inline void clock_arch_set_tick_count(clock_time_t t);
-
-#endif /* RTIMER_ARCH_H_ */
+#endif /* PIN_MUX_CONFIG_H_ */
