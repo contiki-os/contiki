@@ -48,7 +48,7 @@
 #define CLOCK_ARCH_TICKTASK_PRIORITY	8
 #define CLOCK_ARCH_TICKTASK_STACKSIZE	256
 
-#define USEC_TO_LOOP(x)					((80000000/5000000)*x))
+#define USEC_TO_LOOP(x)					((80000000/5000000)*x)
 
 /**
  * Start the clock, by creating timer service

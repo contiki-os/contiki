@@ -31,49 +31,49 @@
  */
 
 /**
+ * \addtogroup cc2538
+ * @{
+ *
+ * \defgroup cc2538-uart cc2538 UART
+ *
+ * Driver for the cc2538 UART controller
+ * @{
+ *
  * \file
- *         Implementation of the Contiki real-time module rt for TI CC32xx
- * \author
- *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
+ * Header file for the cc2538 UART driver
+ */
+#ifndef UART_ARCH_H_
+#define UART_ARCH_H_
+
+#include "contiki.h"
+
+#include <stdint.h>
+
+/** \name UART functions
+ * @{
  */
 
-#include "sys/clock.h"
-#include "sys/rtimer.h"
-#include "rtimer-arch.h"
+/** \brief Initialises the UART controller, configures I/O control
+ * and interrupts
+ * \param uart The UART instance to use (0 to \c UART_INSTANCE_COUNT - 1)
+ */
+void uart_init(uint8_t uart);
 
-static volatile rtimer_clock_t rtimer_arch_wakeup_time;
+/** \brief Sends a single character down the UART
+ * \param uart The UART instance to use (0 to \c UART_INSTANCE_COUNT - 1)
+ * \param b The character to transmit
+ */
+void uart_write_byte(uint8_t uart, uint8_t b);
 
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
-{
-	// Set initial time
-	rtimer_arch_wakeup_time = rtimer_arch_now();
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_request_poll(void)
-{
-	// Run next timer
-	rtimer_run_next();
-}
-/*---------------------------------------------------------------------------*/
-int
-rtimer_arch_pending(void)
-{
-	// Check if timer is expired
-	if (rtimer_arch_now() >= rtimer_arch_wakeup_time)
-	{
-		return 1;
-	}
+/** \brief Assigns a callback to be called when the UART receives a byte
+ * \param uart The UART instance to use (0 to \c UART_INSTANCE_COUNT - 1)
+ * \param input A pointer to the function
+ */
+void uart_set_input(uint8_t uart, int (* input)(unsigned char c));
 
-	return 0;
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_schedule(rtimer_clock_t t)
-{
-	// Save next wake up time
-	rtimer_arch_wakeup_time = t;
-}
-/*---------------------------------------------------------------------------*/
+
+#define uart1_set_input(f) uart_set_input(UART1_CONF_UART, f)
+
+/** @} */
+
+#endif /* UART_ARCH_H_ */

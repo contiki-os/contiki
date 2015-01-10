@@ -40,6 +40,8 @@
 #ifndef MTARCH_H_
 #define MTARCH_H_
 
+#include "osi.h"
+
 #define MTARCH_TASK_PRIORITY 	1
 
 #ifndef MTARCH_STACKSIZE

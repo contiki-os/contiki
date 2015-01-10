@@ -1,4 +1,34 @@
-
+/*
+ * Copyright (c) 2015, 3B Scientific GmbH.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
+ */
 
 /**
  * \addtogroup cc3200-launchxl
@@ -27,7 +57,7 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define CLOCK_CONF_SECOND 128
+#define CLOCK_CONF_SECOND 125
 
 /* Compiler configurations */
 #define CCIF
@@ -84,7 +114,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef UART_CONF_ENABLE
-#define UART_CONF_ENABLE            1 /**< Enable/Disable UART I/O */
+#define UART_CONF_ENABLE            0 /**< Enable/Disable UART I/O */
 #endif
 
 #ifndef UART0_CONF_BAUD_RATE
@@ -95,38 +125,20 @@ typedef uint32_t rtimer_clock_t;
 #define UART1_CONF_BAUD_RATE   115200 /**< Default UART1 baud rate */
 #endif
 
-#ifndef SLIP_ARCH_CONF_USB
-#define SLIP_ARCH_CONF_USB          0 /**< SLIP over UART by default */
-#endif
-
-#ifndef CC2538_RF_CONF_SNIFFER_USB
-#define CC2538_RF_CONF_SNIFFER_USB  0 /**< Sniffer out over UART by default */
-#endif
-
-#ifndef DBG_CONF_USB
-#define DBG_CONF_USB                0 /**< All debugging over UART by default */
-#endif
-
 #ifndef SERIAL_LINE_CONF_UART
 #define SERIAL_LINE_CONF_UART       0 /**< UART to use with serial line */
 #endif
 
-#if !SLIP_ARCH_CONF_USB
 #ifndef SLIP_ARCH_CONF_UART
 #define SLIP_ARCH_CONF_UART         0 /**< UART to use with SLIP */
 #endif
+
+#ifndef CC2520_RF_CONF_SNIFFER_UART
+#define CC2520_RF_CONF_SNIFFER_UART 0 /**< UART to use with sniffer */
 #endif
 
-#if !CC2538_RF_CONF_SNIFFER_USB
-#ifndef CC2538_RF_CONF_SNIFFER_UART
-#define CC2538_RF_CONF_SNIFFER_UART 0 /**< UART to use with sniffer */
-#endif
-#endif
-
-#if !DBG_CONF_USB
 #ifndef DBG_CONF_UART
 #define DBG_CONF_UART               0 /**< UART to use for debugging */
-#endif
 #endif
 
 #ifndef UART1_CONF_UART
@@ -151,11 +163,10 @@ typedef uint32_t rtimer_clock_t;
 
 /*
  * When set, the radio turns off address filtering and sends all captured
- * frames down a peripheral (UART or USB, depending on the value of
- * CC2538_RF_CONF_SNIFFER_USB)
+ * frames down a peripheral
  */
-#ifndef CC2538_RF_CONF_SNIFFER
-#define CC2538_RF_CONF_SNIFFER      0
+#ifndef CC2520_RF_CONF_SNIFFER
+#define CC2520_RF_CONF_SNIFFER      0
 #endif
 
 /**
@@ -164,14 +175,12 @@ typedef uint32_t rtimer_clock_t;
  * The UART will not be initialised its clock will be gated, offering some
  * energy savings. The USB will not be initialised either
  */
-#ifndef CC2538_CONF_QUIET
-#define CC2538_CONF_QUIET           0
+#ifndef CC32XX_CONF_QUIET
+#define CC32XX_CONF_QUIET           0
 #endif
 
-/* CC2538_CONF_QUIET is hard and overrides all other related defines */
-#if CC2538_CONF_QUIET
-#undef USB_SERIAL_CONF_ENABLE
-#define USB_SERIAL_CONF_ENABLE      0
+/* CC32XX_CONF_QUIET is hard and overrides all other related defines */
+#if CC32XX_CONF_QUIET
 
 #undef UART_CONF_ENABLE
 #define UART_CONF_ENABLE            0
@@ -180,30 +189,18 @@ typedef uint32_t rtimer_clock_t;
 #define STARTUP_CONF_VERBOSE        0
 
 /* Little sanity check: We can't have quiet sniffers */
-#if CC2538_RF_CONF_SNIFFER
-#error "CC2538_RF_CONF_SNIFFER == 1 and CC2538_CONF_QUIET == 1"
+#if CC2520_RF_CONF_SNIFFER
+#error "CC2520_RF_CONF_SNIFFER == 1 and CC32XX_CONF_QUIET == 1"
 #error "These values are conflicting. Please set either to 0"
 #endif
 #endif /* CC2538_CONF_QUIET */
-
-/**
- * \brief Enable the USB core only if we need it
- */
-#ifndef USB_SERIAL_CONF_ENABLE
-#define USB_SERIAL_CONF_ENABLE \
-  ((SLIP_ARCH_CONF_USB & SLIP_ARCH_CONF_ENABLED) | \
-   DBG_CONF_USB | \
-   (CC2538_RF_CONF_SNIFFER & CC2538_RF_CONF_SNIFFER_USB))
-#endif
 
 /*
  * If debugging and SLIP use the same peripheral, this will be 1. Don't modify
  * this
  */
 #if SLIP_ARCH_CONF_ENABLED
-#define DBG_CONF_SLIP_MUX (SLIP_ARCH_CONF_USB == DBG_CONF_USB && \
-                           (SLIP_ARCH_CONF_USB || \
-                            SLIP_ARCH_CONF_UART == DBG_CONF_UART))
+#define DBG_CONF_SLIP_MUX (SLIP_ARCH_CONF_UART == DBG_CONF_UART)
 #endif
 
 /*
@@ -229,8 +226,8 @@ typedef uint32_t rtimer_clock_t;
 )
 /** @} */
 /*---------------------------------------------------------------------------*/
-/* board.h assumes that basic configuration is done */
-#include "board.h"
+/* platform-conf.h assumes that basic configuration is done */
+#include "platform-conf.h"
 /*---------------------------------------------------------------------------*/
 
 /**
@@ -238,100 +235,46 @@ typedef uint32_t rtimer_clock_t;
  *
  * @{
  */
-#ifndef NETSTACK_CONF_NETWORK
-#if NETSTACK_CONF_WITH_IPV6
-#define NETSTACK_CONF_NETWORK sicslowpan_driver
-#else
-#define NETSTACK_CONF_NETWORK rime_driver
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-#endif /* NETSTACK_CONF_NETWORK */
+//#ifndef NETSTACK_CONF_NETWORK
+//#if NETSTACK_CONF_WITH_IPV6
+//#define NETSTACK_CONF_NETWORK sicslowpan_driver
+//#else
+//#define NETSTACK_CONF_NETWORK rime_driver
+//#endif /* NETSTACK_CONF_WITH_IPV6 */
+//#endif /* NETSTACK_CONF_NETWORK */
+//
+//#ifndef NETSTACK_CONF_MAC
+///* #define NETSTACK_CONF_MAC     csma_driver */
+//#define NETSTACK_CONF_MAC     csma_driver
+//#endif
+//
+//#ifndef NETSTACK_CONF_RDC
+///* #define NETSTACK_CONF_RDC     contikimac_driver */
+//#define NETSTACK_CONF_RDC     contikimac_driver
+//#endif
+//
+//#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+//#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
+//#endif
+//
+///* Configure NullRDC for when it's selected */
+//#define NULLRDC_802154_AUTOACK                  1
+//#define NULLRDC_802154_AUTOACK_HW               1
+//
+///* Configure ContikiMAC for when it's selected */
+//#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
+//#define WITH_FAST_SLEEP                         1
+//
+//#ifndef NETSTACK_CONF_FRAMER
+//#if NETSTACK_CONF_WITH_IPV6
+//#define NETSTACK_CONF_FRAMER  framer_802154
+//#else /* NETSTACK_CONF_WITH_IPV6 */
+//#define NETSTACK_CONF_FRAMER  contikimac_framer
+//#endif /* NETSTACK_CONF_WITH_IPV6 */
+//#endif /* NETSTACK_CONF_FRAMER */
+//
+//#define NETSTACK_CONF_RADIO   cc2520_driver
 
-#ifndef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     csma_driver
-#endif
-
-#ifndef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     contikimac_driver
-#endif
-
-/* Configure NullRDC for when it's selected */
-#define NULLRDC_802154_AUTOACK                  1
-#define NULLRDC_802154_AUTOACK_HW               1
-
-/* Configure ContikiMAC for when it's selected */
-#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
-#define WITH_FAST_SLEEP                         1
-
-#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
-#endif
-
-#ifndef NETSTACK_CONF_FRAMER
-#if NETSTACK_CONF_WITH_IPV6
-#define NETSTACK_CONF_FRAMER  framer_802154
-#else /* NETSTACK_CONF_WITH_IPV6 */
-#define NETSTACK_CONF_FRAMER  contikimac_framer
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-#endif /* NETSTACK_CONF_FRAMER */
-
-#define NETSTACK_CONF_RADIO   cc2538_rf_driver
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
- * \name LPM configuration
- * @{
- */
-#ifndef LPM_CONF_ENABLE
-#define LPM_CONF_ENABLE       1 /**< Set to 0 to disable LPM entirely */
-#endif
-
-/**
- * \brief Maximum PM
- *
- * The SoC will never drop to a Power Mode deeper than the one specified here.
- * 0 for PM0, 1 for PM1 and 2 for PM2
- */
-#ifndef LPM_CONF_MAX_PM
-#define LPM_CONF_MAX_PM       1
-#endif
-
-#ifndef LPM_CONF_STATS
-#define LPM_CONF_STATS        0 /**< Set to 1 to enable LPM-related stats */
-#endif
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
- * \name IEEE address configuration
- *
- * Used to generate our RIME & IPv6 address
- * @{
- */
-/**
- * \brief Location of the IEEE address
- * 0 => Read from InfoPage,
- * 1 => Use a hardcoded address, configured by IEEE_ADDR_CONF_ADDRESS
- */
-#ifndef IEEE_ADDR_CONF_HARDCODED
-#define IEEE_ADDR_CONF_HARDCODED             0
-#endif
-
-/**
- * \brief The hardcoded IEEE address to be used when IEEE_ADDR_CONF_HARDCODED
- * is defined as 1
- */
-#ifndef IEEE_ADDR_CONF_ADDRESS
-#define IEEE_ADDR_CONF_ADDRESS { 0x00, 0x12, 0x4B, 0x00, 0x89, 0xAB, 0xCD, 0xEF }
-#endif
-
-/**
- * \brief Location of the IEEE address in the InfoPage when
- * IEEE_ADDR_CONF_HARDCODED is defined as 0
- * 0 => Use the primary address location
- * 1 => Use the secondary address location
- */
-#ifndef IEEE_ADDR_CONF_USE_SECONDARY_LOCATION
-#define IEEE_ADDR_CONF_USE_SECONDARY_LOCATION 0
-#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -344,21 +287,14 @@ typedef uint32_t rtimer_clock_t;
 #define IEEE802154_CONF_PANID           0x5449 /**< Default PAN ID: TI */
 #endif
 
-#ifndef CC2538_RF_CONF_CHANNEL
-#define CC2538_RF_CONF_CHANNEL              25
+#ifndef CC2520_RF_CONF_CHANNEL
+#define CC2520_RF_CONF_CHANNEL              25
 #endif /* CC2538_RF_CONF_CHANNEL */
 
-#ifndef CC2538_RF_CONF_AUTOACK
-#define CC2538_RF_CONF_AUTOACK               1 /**< RF H/W generates ACKs */
-#endif /* CC2538_CONF_AUTOACK */
+#ifndef CC2520_CONF_AUTOACK
+#define CC2520_CONF_AUTOACK                  1 /**< RF H/W generates ACKs */
+#endif /* CC2520_CONF_AUTOACK */
 
-#ifndef CC2538_RF_CONF_TX_USE_DMA
-#define CC2538_RF_CONF_TX_USE_DMA            1 /**< RF TX over DMA */
-#endif
-
-#ifndef CC2538_RF_CONF_RX_USE_DMA
-#define CC2538_RF_CONF_RX_USE_DMA            1 /**< RF RX over DMA */
-#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -369,7 +305,7 @@ typedef uint32_t rtimer_clock_t;
 
 /* Don't let contiki-default-conf.h decide if we are an IPv6 build */
 #ifndef NETSTACK_CONF_WITH_IPV6
-#define NETSTACK_CONF_WITH_IPV6                        0
+#define NETSTACK_CONF_WITH_IPV6              0
 #endif
 
 #if NETSTACK_CONF_WITH_IPV6
@@ -408,7 +344,7 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS                20
+#define NBR_TABLE_CONF_MAX_NEIGHBORS        32
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES                 20
@@ -454,13 +390,13 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_IP_FORWARD                  1
 
 #ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE               108
+#define UIP_CONF_BUFFER_SIZE               240
 #endif
 
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS     0
 
 #ifndef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM                    8
+#define QUEUEBUF_CONF_NUM                    16
 #endif
 
 #endif /* NETSTACK_CONF_WITH_IPV6 */

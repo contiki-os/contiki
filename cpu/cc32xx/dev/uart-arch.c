@@ -31,49 +31,37 @@
  */
 
 /**
+ * \addtogroup cc32xx-uart
+ * @{
+ *
  * \file
- *         Implementation of the Contiki real-time module rt for TI CC32xx
- * \author
- *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
+ * Implementation of the cc32xx UART driver
  */
+#include "contiki.h"
 
-#include "sys/clock.h"
-#include "sys/rtimer.h"
-#include "rtimer-arch.h"
+#include "dev/uart-arch.h"
 
-static volatile rtimer_clock_t rtimer_arch_wakeup_time;
+#include "hw_types.h"
+#include "uart.h"
 
-/*---------------------------------------------------------------------------*/
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+
 void
-rtimer_arch_init(void)
+uart_init(uint8_t uart)
 {
-	// Set initial time
-	rtimer_arch_wakeup_time = rtimer_arch_now();
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_request_poll(void)
-{
-	// Run next timer
-	rtimer_run_next();
-}
-/*---------------------------------------------------------------------------*/
-int
-rtimer_arch_pending(void)
-{
-	// Check if timer is expired
-	if (rtimer_arch_now() >= rtimer_arch_wakeup_time)
-	{
-		return 1;
-	}
 
-	return 0;
 }
-/*---------------------------------------------------------------------------*/
+
 void
-rtimer_arch_schedule(rtimer_clock_t t)
+uart_write_byte(uint8_t uart, uint8_t b)
 {
-	// Save next wake up time
-	rtimer_arch_wakeup_time = t;
+
 }
-/*---------------------------------------------------------------------------*/
+
+void
+uart_set_input(uint8_t uart, int (* input)(unsigned char c))
+{
+
+}

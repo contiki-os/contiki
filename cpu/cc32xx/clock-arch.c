@@ -40,6 +40,8 @@
 #include "sys/clock.h"
 #include "sys/etimer.h"
 
+#include "osi.h"
+
 #include "clock-arch.h"
 #include "rtimer-arch.h"
 

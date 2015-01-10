@@ -31,49 +31,50 @@
  */
 
 /**
+ * \addtogroup cc32xx
+ * @{
+ *
+ * \defgroup cc32xx-char-io cc32xx Character I/O
+ *
+ * cc32xx CPU-specific functions for debugging and SLIP I/O
+ *
+ * @{
+ *
  * \file
- *         Implementation of the Contiki real-time module rt for TI CC32xx
- * \author
- *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
+ * Header file for the cc32xx Debug I/O module
  */
+#ifndef DBG_H_
+#define DBG_H_
 
-#include "sys/clock.h"
-#include "sys/rtimer.h"
-#include "rtimer-arch.h"
+#include "contiki-conf.h"
 
-static volatile rtimer_clock_t rtimer_arch_wakeup_time;
+/**
+ * \brief Print a stream of bytes
+ * \param seq A pointer to the stream
+ * \param len The number of bytes to print
+ * \return The number of printed bytes
+ *
+ * This function is an arch-specific implementation required by the dbg-io
+ * API in cpu/arm/common/dbg-io. It prints a stream of bytes over the
+ * peripheral used by the platform.
+ */
+unsigned int dbg_send_bytes(const unsigned char *seq, unsigned int len);
 
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
-{
-	// Set initial time
-	rtimer_arch_wakeup_time = rtimer_arch_now();
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_request_poll(void)
-{
-	// Run next timer
-	rtimer_run_next();
-}
-/*---------------------------------------------------------------------------*/
-int
-rtimer_arch_pending(void)
-{
-	// Check if timer is expired
-	if (rtimer_arch_now() >= rtimer_arch_wakeup_time)
-	{
-		return 1;
-	}
+/**
+ * \brief Flushes character output
+ *
+ *        When debugging is sent over USB, this functions causes the USB
+ *        driver to immediately TX the content of output buffers. When
+ *        debugging is over UART, this function does nothing.
+ *
+ *        There is nothing stopping you from using this macro in your code but
+ *        normally, you won't have to.
+ */
+#define dbg_flush()
 
-	return 0;
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_schedule(rtimer_clock_t t)
-{
-	// Save next wake up time
-	rtimer_arch_wakeup_time = t;
-}
-/*---------------------------------------------------------------------------*/
+#endif /* DBG_H_ */
+
+/**
+ * @}
+ * @}
+ */

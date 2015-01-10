@@ -47,7 +47,7 @@ CONTIKI_TARGET_DIRS = . dev
 #
 # Platform dependent source files
 #
-CONTIKI_TARGET_SOURCEFILES += contiki-main.c
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c pin_mux_config.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
@@ -74,3 +74,10 @@ CFLAGS += -DUSE_LAUNCHPAD
 CONTIKI_CPU=$(CONTIKI)/cpu/cc32xx
 include $(CONTIKI_CPU)/Makefile.cc32xx
 
+#
+# Add additional contiki modules
+#
+MODULES += core/net core/net/mac
+#MODULES += core/net/mac/contikimac
+MODULES += core/net/llsec
+MODULES += core/net/rime

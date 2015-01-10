@@ -67,7 +67,12 @@ AR=$(PREFIX)-ar
 #
 # The command for calling the linker.
 #
-LD=$(PREFIX)-gcc
+LD=$(PREFIX)-ld
+
+#
+# The command for calling objcopy.
+#
+OBJCOPY=$(PREFIX)-objcopy
 
 #
 # The source for linker script generation
@@ -145,10 +150,24 @@ CFLAGS += -DSL_PLATFORM_MULTI_THREADED
 #
 # The flags passed to the linker.
 #
-LDFLAGS += $(CPU) $(FPU) -mthumb
 LDFLAGS += -T $(LDSCRIPT)
-LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
-LDFLAGS += -Wl,-Map=$(@:.elf=-$(TARGET).map),--cref,--no-warn-mismatch
+LDFLAGS += --gc-sections --sort-section=alignment
+LDFLAGS += -Map=$(@:.elf=-$(TARGET).map) --cref --no-warn-mismatch
+
+#
+# Get the location of libgcc.a from the GCC front-end.
+#
+LIBGCC:=${shell ${CC} -mthumb ${CFLAGS} -print-libgcc-file-name}
+
+#
+# Get the location of libc.a from the GCC front-end.
+#
+LIBC:=${shell ${CC} ${CFLAGS} -print-file-name=libc.a}
+
+#
+# Get the location of libm.a from the GCC front-end.
+#
+LIBM:=${shell ${CC} ${CFLAGS} -print-file-name=libm.a}
 
 #
 # The flags passed to obj-copy.
@@ -173,29 +192,52 @@ CLEAN += symbols.c symbols.h *.d *.bin *.elf *.hex
 #
 # CPU-dependent directories
 #
-CONTIKI_CPU_DIRS = . dev
+CONTIKI_CPU_DIRS = . dev sys
 
 #
-# Use the existing drivers from cc32xx sdk
+# Use the existing drivers and libraries from cc32xx sdk
 #
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_INC_DIR)
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_OSLIB_INC_DIR)
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_DRIVERLIB_INC_DIR)
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_SIMPLELINK_INC_DIR)
 
+TARGET_LIBFILES += $(CC32XX_SDK_DRIVERLIB_DIR)/gcc/exe/libdriver.a
+TARGET_LIBFILES += $(CC32XX_SDK_OSLIB_DIR)/gcc/exe/FreeRTOS.a
+TARGET_LIBFILES += $(CC32XX_SDK_SIMPLELINK_DIR)/gcc/exe/libsimplelink.a
+
+#
+# Use the existing debug I/O in cpu/arm/common
+#
+CONTIKI_CPU_DIRS += ../arm/common/dbg-io
+
 #
 # CPU-dependent source files
 #
-CONTIKI_CPU_SOURCEFILES += clock.c clock-arch.c main.c mtarch.c
-CONTIKI_CPU_SOURCEFILES += rtimer-arch.c startup_gcc.c watchdog.c
+CONTIKI_CPU_SOURCEFILES += clock.c clock-arch.c dbg.c main.c 
+CONTIKI_CPU_SOURCEFILES += mtarch.c rtimer-arch.c startup_gcc.c
+CONTIKI_CPU_SOURCEFILES += uart-arch.c watchdog.c
 
-CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES)
+DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 
 # 
 # Don't treat the .elf as intermediate
 #
 .PRECIOUS: %.elf %.hex %.bin
 
+CC3200SDK_DRIVER_LIB:
+	@echo Building CC3200 SDK driver library
+	make -C $(CC32XX_SDK_DRIVERLIB_DIR)/gcc
+
+CC3200SDK_OS_LIB:
+	@echo Building CC3200 SDK FreeRTOS library
+	make -C $(CC32XX_SDK_OSLIB_DIR)/gcc
+	
+CC3200SDK_SIMPLELINK_LIB:
+	@echo Building CC3200 SimpleLink driver library
+	make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc
 #
 # Compilation rules
 #
@@ -203,7 +245,7 @@ CUSTOM_RULE_LINK=1
 
 %.elf: %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
 	$(TRACE_LD)
-	$(Q)$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+	$(Q)$(LD) --entry=ResetISR $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) $(LIBM) $(LIBC) $(LIBGCC) -o $@
 
 %.hex: %.elf
 	$(OBJCOPY) -O ihex $< $@
@@ -231,6 +273,6 @@ LDGENFLAGS += -x c -P -E
 #
 # Assumes LDSCRIPT was not overridden and is in $(OBJECTDIR)
 #
-$(LDSCRIPT): $(SOURCE_LDSCRIPT) FORCE | $(OBJECTDIR)
+$(LDSCRIPT): $(SOURCE_LDSCRIPT) CC3200SDK_DRIVER_LIB CC3200SDK_OS_LIB CC3200SDK_SIMPLELINK_LIB | $(OBJECTDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) $(LDGENFLAGS) $< -o $@

@@ -55,7 +55,7 @@
 extern void (* const g_pfnVectors[])(void);
 
 // Contiki main task
-extern void contiki_main(void);
+extern void contiki_main(void *pv_parameters);
 
 // Local defines
 #define SPAWN_TASK_PRIORITY     		9
@@ -168,4 +168,6 @@ int main(void)
 
     // Start the task scheduler
     osi_start();
+
+    return 0;
 }

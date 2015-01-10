@@ -30,50 +30,88 @@
  *
  */
 
+/** \addtogroup cc32xx-char-io
+ * @{ */
 /**
  * \file
- *         Implementation of the Contiki real-time module rt for TI CC32xx
- * \author
- *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
+ *     Implementation of arch-specific functions required by the dbg_io API in
+ *     cpu/arm/common/dbg-io
  */
+#include "contiki.h"
 
-#include "sys/clock.h"
-#include "sys/rtimer.h"
-#include "rtimer-arch.h"
+#include "dbg.h"
+#include "dev/uart-arch.h"
 
-static volatile rtimer_clock_t rtimer_arch_wakeup_time;
-
+#include <stdio.h>
 /*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
+#define write_byte(b) uart_write_byte(DBG_CONF_UART, b)
+#define flush()
+/*---------------------------------------------------------------------------*/
+#undef abort
+#undef putchar
+#undef puts
+
+#define SLIP_END     0300
+/*---------------------------------------------------------------------------*/
+int
+putchar(int c)
 {
-	// Set initial time
-	rtimer_arch_wakeup_time = rtimer_arch_now();
+#if DBG_CONF_SLIP_MUX
+  static char debug_frame = 0;
+
+  if(!debug_frame) {
+    write_byte(SLIP_END);
+    write_byte('\r');
+    debug_frame = 1;
+  }
+#endif
+
+  write_byte(c);
+
+  if(c == '\n') {
+#if DBG_CONF_SLIP_MUX
+    write_byte(SLIP_END);
+    debug_frame = 0;
+#endif
+    dbg_flush();
+  }
+  return c;
 }
 /*---------------------------------------------------------------------------*/
-void
-rtimer_arch_request_poll(void)
+unsigned int
+dbg_send_bytes(const unsigned char *s, unsigned int len)
 {
-	// Run next timer
-	rtimer_run_next();
+  unsigned int i = 0;
+
+  while(s && *s != 0) {
+    if(i >= len) {
+      break;
+    }
+    putchar(*s++);
+    i++;
+  }
+  return i;
 }
 /*---------------------------------------------------------------------------*/
 int
-rtimer_arch_pending(void)
+puts(const char *s)
 {
-	// Check if timer is expired
-	if (rtimer_arch_now() >= rtimer_arch_wakeup_time)
-	{
-		return 1;
-	}
+  unsigned int i = 0;
 
-	return 0;
+  while(s && *s != 0) {
+    putchar(*s++);
+    i++;
+  }
+  putchar('\n');
+  return i;
 }
 /*---------------------------------------------------------------------------*/
 void
-rtimer_arch_schedule(rtimer_clock_t t)
+abort(void)
 {
-	// Save next wake up time
-	rtimer_arch_wakeup_time = t;
+	while(1)
+	{
+	}
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2015, 3B Scientific GmbH.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,32 +10,28 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * This file is part of the Contiki operating system.
+ *
  */
+
 /**
  * \addtogroup platform
- * @{
- *
- * \defgroup cc2538 The cc2538 Development Kit platform
- *
- * The cc2538DK is the new platform by Texas Instruments, based on the
- * cc2530 SoC with an ARM Cortex-M3 core.
  * @{
  *
  * \file
@@ -43,35 +39,27 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
-#include "dev/leds.h"
-#include "dev/sys-ctrl.h"
-#include "dev/scb.h"
-#include "dev/nvic.h"
-#include "dev/uart.h"
+// #include "dev/leds.h"
+// #include "dev/uart.h"
 #include "dev/watchdog.h"
-#include "dev/ioc.h"
-#include "dev/button-sensor.h"
+// #include "dev/button-sensor.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
-#include "dev/cc2538-rf.h"
-#include "dev/udma.h"
-#include "usb/usb-serial.h"
+// #include "dev/cc2520/cc2520.h"
+
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/queuebuf.h"
 #include "net/ip/tcpip.h"
 #include "net/ip/uip.h"
 #include "net/mac/frame802154.h"
-#include "cpu.h"
-#include "reg.h"
-#include "ieee-addr.h"
-#include "lpm.h"
 
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 #if STARTUP_CONF_VERBOSE
+#define PRINTF(...)
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
@@ -82,7 +70,14 @@
 #else
 #define PUTS(s)
 #endif
+
+#ifdef CC2520_RF_CONF_CHANNEL
+#define CC2520_RF_CHANNEL CC2520_RF_CONF_CHANNEL
+#else
+#define CC2520_RF_CHANNEL 18
+#endif
 /*---------------------------------------------------------------------------*/
+/*
 static void
 fade(unsigned char l)
 {
@@ -101,135 +96,117 @@ fade(unsigned char l)
     }
   }
 }
+*/
 /*---------------------------------------------------------------------------*/
-static void
-set_rf_params(void)
-{
-  uint16_t short_addr;
-  uint8_t ext_addr[8];
-
-  ieee_addr_cpy_to(ext_addr, 8);
-
-  short_addr = ext_addr[7];
-  short_addr |= ext_addr[6] << 8;
-
-  /* Populate linkaddr_node_addr. Maintain endianness */
-  memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
-
-#if STARTUP_CONF_VERBOSE
-  {
-    int i;
-    printf("Rime configured with address ");
-    for(i = 0; i < LINKADDR_SIZE - 1; i++) {
-      printf("%02x:", linkaddr_node_addr.u8[i]);
-    }
-    printf("%02x\n", linkaddr_node_addr.u8[i]);
-  }
-#endif
-
-  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC2538_RF_CHANNEL);
-  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
-}
+//static void
+//set_rf_params(void)
+//{
+//  uint16_t short_addr;
+//  uint8_t ext_addr[8];
+//
+//  ieee_addr_cpy_to(ext_addr, 8);
+//
+//  short_addr = ext_addr[7];
+//  short_addr |= ext_addr[6] << 8;
+//
+//  /* Populate linkaddr_node_addr. Maintain endianness */
+//  memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
+//
+//#if STARTUP_CONF_VERBOSE
+//  {
+//    int i;
+//    printf("Rime configured with address ");
+//    for(i = 0; i < LINKADDR_SIZE - 1; i++) {
+//      printf("%02x:", linkaddr_node_addr.u8[i]);
+//    }
+//    printf("%02x\n", linkaddr_node_addr.u8[i]);
+//  }
+//#endif
+//
+//  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
+//  NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
+//  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC2520_RF_CHANNEL);
+//  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
+//
+//}
 /*---------------------------------------------------------------------------*/
 /**
- * \brief Main routine for the cc2538dk platform
+ * \brief Contiki main routine for the cc3200-launchxl platform
  */
-int
-main(void)
+void
+contiki_main(void *pv_parameters)
 {
-  nvic_init();
-  ioc_init();
-  sys_ctrl_init();
-  clock_init();
-  lpm_init();
-  rtimer_init();
-  gpio_init();
+	// leds_init();
+	//fade(LEDS_YELLOW);
 
-  leds_init();
-  fade(LEDS_YELLOW);
+	process_init();
 
-  process_init();
+	watchdog_init();
+	// button_sensor_init();
 
-  watchdog_init();
-  button_sensor_init();
-
-  /*
-   * Character I/O Initialisation.
-   * When the UART receives a character it will call serial_line_input_byte to
-   * notify the core. The same applies for the USB driver.
-   *
-   * If slip-arch is also linked in afterwards (e.g. if we are a border router)
-   * it will overwrite one of the two peripheral input callbacks. Characters
-   * received over the relevant peripheral will be handled by
-   * slip_input_byte instead
-   */
+	/*
+	 * Character I/O Initialisation.
+	 * When the UART receives a character it will call serial_line_input_byte to
+	 * notify the core.
+	 *
+	 * If slip-arch is also linked in afterwards (e.g. if we are a border router)
+	 * it will overwrite one of the two peripheral input callbacks. Characters
+	 * received over the relevant peripheral will be handled by
+	 * slip_input_byte instead
+	 */
 #if UART_CONF_ENABLE
-  uart_init(0);
-  uart_init(1);
-  uart_set_input(SERIAL_LINE_CONF_UART, serial_line_input_byte);
+	uart_init(0);
+	uart_init(1);
+	uart_set_input(SERIAL_LINE_CONF_UART, serial_line_input_byte);
 #endif
 
-#if USB_SERIAL_CONF_ENABLE
-  usb_serial_init();
-  usb_serial_set_input(serial_line_input_byte);
-#endif
+	serial_line_init();
 
-  serial_line_init();
+	// fade(LEDS_GREEN);
 
-  INTERRUPTS_ENABLE();
-  fade(LEDS_GREEN);
+	PUTS(CONTIKI_VERSION_STRING);
+	PUTS(PLATFORM_STRING);
 
-  PUTS(CONTIKI_VERSION_STRING);
-  PUTS(BOARD_STRING);
+	PRINTF(" Net: ");
+	PRINTF("%s\n", NETSTACK_NETWORK.name);
+	PRINTF(" MAC: ");
+	PRINTF("%s\n", NETSTACK_MAC.name);
+	PRINTF(" RDC: ");
+	PRINTF("%s\n", NETSTACK_RDC.name);
 
-  PRINTF(" Net: ");
-  PRINTF("%s\n", NETSTACK_NETWORK.name);
-  PRINTF(" MAC: ");
-  PRINTF("%s\n", NETSTACK_MAC.name);
-  PRINTF(" RDC: ");
-  PRINTF("%s\n", NETSTACK_RDC.name);
+	/* Initialise the H/W RNG engine. */
+	random_init(0);
 
-  /* Initialise the H/W RNG engine. */
-  random_init(0);
+	clock_init();
+	rtimer_init();
 
-  udma_init();
+	process_start(&etimer_process, NULL);
+	ctimer_init();
 
-  process_start(&etimer_process, NULL);
-  ctimer_init();
+	// set_rf_params();
+	// netstack_init();
 
-  set_rf_params();
-  netstack_init();
+//#if NETSTACK_CONF_WITH_IPV6
+//  memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
+//  queuebuf_init();
+//  process_start(&tcpip_process, NULL);
+//#endif /* NETSTACK_CONF_WITH_IPV6 */
 
-#if NETSTACK_CONF_WITH_IPV6
-  memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
-  queuebuf_init();
-  process_start(&tcpip_process, NULL);
-#endif /* NETSTACK_CONF_WITH_IPV6 */
+  // process_start(&sensors_process, NULL);
 
-  process_start(&sensors_process, NULL);
+	autostart_start(autostart_processes);
 
-  energest_init();
-  ENERGEST_ON(ENERGEST_TYPE_CPU);
+	watchdog_start();
+	// fade(LEDS_ORANGE);
 
-  autostart_start(autostart_processes);
+	while(1)
+	{
+		// Reset watchdog
+		watchdog_periodic();
 
-  watchdog_start();
-  fade(LEDS_ORANGE);
-
-  while(1) {
-    uint8_t r;
-    do {
-      /* Reset watchdog and handle polls and events */
-      watchdog_periodic();
-
-      r = process_run();
-    } while(r > 0);
-
-    /* We have serviced all pending events. Enter a Low-Power mode. */
-    lpm_enter();
-  }
+		// Handle polls and events
+		process_run();
+	}
 }
 /*---------------------------------------------------------------------------*/
 

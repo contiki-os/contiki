@@ -31,49 +31,17 @@
  */
 
 /**
+ * \addtogroup cc32xx-char-io
+ * @{
+ *
  * \file
- *         Implementation of the Contiki real-time module rt for TI CC32xx
- * \author
- *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
+ * This file is here because DBG I/O expects it to be.
  */
+#ifndef DEBUG_UART_H_
+#define DEBUG_UART_H_
 
-#include "sys/clock.h"
-#include "sys/rtimer.h"
-#include "rtimer-arch.h"
+#include "dbg.h"
 
-static volatile rtimer_clock_t rtimer_arch_wakeup_time;
+#endif /* DEBUG_UART_H_ */
 
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_init(void)
-{
-	// Set initial time
-	rtimer_arch_wakeup_time = rtimer_arch_now();
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_request_poll(void)
-{
-	// Run next timer
-	rtimer_run_next();
-}
-/*---------------------------------------------------------------------------*/
-int
-rtimer_arch_pending(void)
-{
-	// Check if timer is expired
-	if (rtimer_arch_now() >= rtimer_arch_wakeup_time)
-	{
-		return 1;
-	}
-
-	return 0;
-}
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_schedule(rtimer_clock_t t)
-{
-	// Save next wake up time
-	rtimer_arch_wakeup_time = t;
-}
-/*---------------------------------------------------------------------------*/
+/** @} */
