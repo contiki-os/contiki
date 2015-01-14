@@ -42,12 +42,6 @@
 
 #include "osi.h"
 
-#define MTARCH_TASK_PRIORITY 	1
-
-#ifndef MTARCH_STACKSIZE
-#define MTARCH_STACKSIZE 		4096
-#endif /* MTARCH_STACKSIZE */
-
 struct mtarch_thread {
 	OsiTaskHandle task;
 };

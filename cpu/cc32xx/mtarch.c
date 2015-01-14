@@ -41,6 +41,16 @@
 #include "osi.h"
 
 #include "mtarch.h"
+#include "contiki-conf.h"
+
+// Local defines
+#define MTARCH_TASK_PRIORITY 	1
+
+#ifdef MTARCH_CONF_STACKSIZE
+#define MTARCH_STACKSIZE 		MTARCH_CONF_STACKSIZE
+#else
+#define MTARCH_STACKSIZE 		4096
+#endif
 
 /*--------------------------------------------------------------------------*/
 void

@@ -58,12 +58,14 @@ extern void (* const g_pfnVectors[])(void);
 extern void contiki_main(void *pv_parameters);
 
 // Local defines
-#define SPAWN_TASK_PRIORITY     		9
-#define CONTIKI_WORKER_TASK_PRIORITY	1
+#define SPAWN_TASK_PRIORITY     	9
+#define CONTIKI_TASK_PRIORITY		1
 
-#ifndef CONTIKI_WORKER_STACKSIZE
-#define CONTIKI_WORKER_STACKSIZE 		4096
-#endif /* CONTIKI_WORKER_STACKSIZE */
+#ifdef CONTIKI_CONF_STACKSIZE
+#define CONTIKI_STACKSIZE 			CONTIKI_CONF_STACKSIZE
+#else
+#define CONTIKI_STACKSIZE 			4096
+#endif
 
 #ifdef USE_FREERTOS
 //*****************************************************************************
@@ -164,7 +166,7 @@ int main(void)
 	PinMuxConfig();
 
 	// Create contiki main task
-	osi_TaskCreate(contiki_main, (const signed char * const)"ContikiWorker", CONTIKI_WORKER_STACKSIZE, NULL, CONTIKI_WORKER_TASK_PRIORITY, NULL);
+	osi_TaskCreate(contiki_main, (const signed char * const)"ContikiWorker", CONTIKI_STACKSIZE, NULL, CONTIKI_TASK_PRIORITY, NULL);
 
     // Start the task scheduler
     osi_start();

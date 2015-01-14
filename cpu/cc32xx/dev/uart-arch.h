@@ -31,16 +31,16 @@
  */
 
 /**
- * \addtogroup cc2538
+ * \addtogroup cc32xx
  * @{
  *
- * \defgroup cc2538-uart cc2538 UART
+ * \defgroup cc32xx-uart cc32xx UART
  *
- * Driver for the cc2538 UART controller
+ * Driver for the cc32xx UART controller
  * @{
  *
  * \file
- * Header file for the cc2538 UART driver
+ * Header file for the cc32xx UART driver
  */
 #ifndef UART_ARCH_H_
 #define UART_ARCH_H_
@@ -49,6 +49,13 @@
 
 #include <stdint.h>
 
+/*---------------------------------------------------------------------------*/
+/** \name UART instance count
+ * @{
+ */
+#define UART_INSTANCE_COUNT   2
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name UART functions
  * @{
  */
@@ -71,7 +78,7 @@ void uart_write_byte(uint8_t uart, uint8_t b);
  */
 void uart_set_input(uint8_t uart, int (* input)(unsigned char c));
 
-
+void uart_isr(uint8_t uart);
 #define uart1_set_input(f) uart_set_input(UART1_CONF_UART, f)
 
 /** @} */

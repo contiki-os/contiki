@@ -59,7 +59,6 @@
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 #if STARTUP_CONF_VERBOSE
-#define PRINTF(...)
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)

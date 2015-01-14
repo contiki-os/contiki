@@ -76,12 +76,20 @@ typedef uint32_t rtimer_clock_t;
 
 /*---------------------------------------------------------------------------*/
 /**
- * \name Heap Memory configuration
+ * \name Memory configuration
  *
  * @{
  */
 #ifndef HEAP_CONF_SIZE
-#define HEAP_CONF_SIZE  		0x00010000 /* 64 KiB */
+#define HEAP_CONF_SIZE  			0x00010000 /* 64 KiB */
+#endif
+
+#ifndef CONTIKI_CONF_STACKSIZE
+#define CONTIKI_CONF_STACKSIZE		0x00004000 /* 16 KiB */
+#endif
+
+#ifndef MTARCH_CONF_STACKSIZE
+#define MTARCH_CONF_STACKSIZE		0x00001000 /*  4 KiB */
 #endif
 
 /** @} */
@@ -114,7 +122,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef UART_CONF_ENABLE
-#define UART_CONF_ENABLE            0 /**< Enable/Disable UART I/O */
+#define UART_CONF_ENABLE            1 /**< Enable/Disable UART I/O */
 #endif
 
 #ifndef UART0_CONF_BAUD_RATE
@@ -142,7 +150,7 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 #ifndef UART1_CONF_UART
-#define UART1_CONF_UART             0 /**< UART to use for examples relying on
+#define UART1_CONF_UART             1 /**< UART to use for examples relying on
                                            the uart1_* API */
 #endif
 
