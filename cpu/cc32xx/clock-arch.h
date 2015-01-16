@@ -42,23 +42,40 @@
 
 #include "contiki-conf.h"
 
+#define CLOCK_ARCH_CPU					80000000
 #define CLOCK_ARCH_TICK_COUNT			CLOCK_CONF_SECOND
+
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 #define CLOCK_ARCH_TICK_MS				(1000 / CLOCK_ARCH_TICK_COUNT)
+#else
+#define CLOCK_ARCH_PRELOAD				(CLOCK_ARCH_CPU / CLOCK_ARCH_TICK_COUNT)
+#endif
 
 #define CLOCK_ARCH_TICKTASK_PRIORITY	8
 #define CLOCK_ARCH_TICKTASK_STACKSIZE	256
 
-#define USEC_TO_LOOP(x)					((80000000/5000000)*x)
+#define USEC_TO_LOOP(x)					((CLOCK_ARCH_CPU/5000000)*x)
 
 /**
  * Start the clock, by creating timer service
  */
 void clock_arch_init(void);
 
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 /**
  * Task for time service
  */
 void clock_arch_tick_task(void *pv_parameters);
+#else
+/**
+ * Systick isr for time service
+ */
+void clock_arch_isr(void);
+#endif
+/**
+ * Update the software clock ticks
+ */
+void clock_arch_update(void);
 
 /**
  * Return tick counter, default is ticks since startup.

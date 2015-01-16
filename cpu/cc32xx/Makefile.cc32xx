@@ -148,9 +148,12 @@ CFLAGS += -Wall
 
 #
 # Set additional compiler flags
-#
+ifeq ($(CC32XX_NONOS),1)
+CFLAGS += -DUSE_NONOS
+else
 CFLAGS += -DUSE_FREERTOS
 CFLAGS += -DSL_PLATFORM_MULTI_THREADED
+endif
 
 #
 # The flags passed to the linker.
@@ -203,15 +206,23 @@ CONTIKI_CPU_DIRS = . dev net sys
 # Use the existing drivers and libraries from cc32xx sdk
 #
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_INC_DIR)
+ifneq ($(CC32XX_NONOS),1)
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_OSLIB_INC_DIR)
+endif
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_DRIVERLIB_INC_DIR)
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_SIMPLELINK_INC_DIR)
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_SIMPLELINK_INC_DIR)/source
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_SIMPLELINK_INC_DIR)/include
 
+ifneq ($(CC32XX_NONOS),1)
 TARGET_LIBFILES += $(CC32XX_SDK_SIMPLELINK_DIR)/gcc/exe/libsimplelink.a
+else
+TARGET_LIBFILES += $(CC32XX_SDK_SIMPLELINK_DIR)/gcc/exe/libsimplelink_nonos.a
+endif
 TARGET_LIBFILES += $(CC32XX_SDK_DRIVERLIB_DIR)/gcc/exe/libdriver.a
+ifneq ($(CC32XX_NONOS),1)
 TARGET_LIBFILES += $(CC32XX_SDK_OSLIB_DIR)/gcc/exe/FreeRTOS.a
+endif
 
 #
 # Use the existing debug I/O in cpu/arm/common
@@ -241,12 +252,21 @@ CC3200SDK_DRIVER_LIB:
 	make -C $(CC32XX_SDK_DRIVERLIB_DIR)/gcc
 
 CC3200SDK_OS_LIB:
+ifneq ($(CC32XX_NONOS),1)
 	@echo Building CC3200 SDK FreeRTOS library
 	make -C $(CC32XX_SDK_OSLIB_DIR)/gcc
-	
+else
+	@echo CC3200 SDK FreeRTOS library not needed
+endif
+
 CC3200SDK_SIMPLELINK_LIB:
 	@echo Building CC3200 SimpleLink driver library
+ifneq ($(CC32XX_NONOS),1)
 	make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc
+else
+	make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc target=NONOS
+endif
+
 #
 # Compilation rules
 #

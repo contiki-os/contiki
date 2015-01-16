@@ -40,7 +40,13 @@
 #include "sys/clock.h"
 #include "sys/etimer.h"
 
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 #include "osi.h"
+#else
+#include "hw_ints.h"
+#include "interrupt.h"
+#include "systick.h"
+#endif
 
 #include "clock-arch.h"
 #include "rtimer-arch.h"
@@ -51,36 +57,63 @@ static volatile clock_time_t clock_arch_tick_count;
 void
 clock_arch_init(void)
 {
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 	// Create task for clock timer tick
 	osi_TaskCreate(clock_arch_tick_task, (const signed char * const)"ContikiClock", CLOCK_ARCH_TICKTASK_STACKSIZE, NULL, CLOCK_ARCH_TICKTASK_PRIORITY, NULL);
+#else
+	// Set SysTick period
+	SysTickPeriodSet(CLOCK_ARCH_PRELOAD);
+
+	// Register SysTick ISR
+	SysTickIntRegister(&clock_arch_isr);
+
+	// Enable the SysTick Interrupt
+	SysTickIntEnable();
+
+	// Enable SysTick
+	SysTickEnable();
+#endif
 }
 /*---------------------------------------------------------------------------*/
-
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 void
 clock_arch_tick_task(void *pv_parameters)
 {
 	// Loop for ever
 	while(1)
 	{
-		// Increment ticks
-		clock_arch_tick_count += CLOCK_ARCH_TICK_MS;
-
-		// Check if rtimer is pending
-		if (rtimer_arch_pending())
-		{
-			// Proceed rtimer module
-			rtimer_arch_request_poll();
-		}
-
-		// Check if etimer events are pending
-		if (etimer_pending())
-		{
-			// Proceed etimer module
-			etimer_request_poll();
-		}
+		clock_arch_update();
 
 		// Thread sleeps for timer tick interval
 		osi_Sleep(CLOCK_ARCH_TICK_MS);
+	}
+}
+
+#else
+void
+clock_arch_isr(void)
+{
+	clock_arch_update();
+}
+#endif
+
+void clock_arch_update(void)
+{
+	// Increment ticks
+	clock_arch_tick_count++;
+
+	// Check if rtimer is pending
+	if (rtimer_arch_pending())
+	{
+		// Proceed rtimer module
+		rtimer_arch_request_poll();
+	}
+
+	// Check if etimer events are pending
+	if (etimer_pending())
+	{
+		// Proceed etimer module
+		etimer_request_poll();
 	}
 }
 /*---------------------------------------------------------------------------*/
