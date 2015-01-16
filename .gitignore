@@ -91,3 +91,4 @@ contiki-cc2530dk.lib
 *.eval-adf7xxxmb4z
 *.eval-adf7xxxmb4z.srec
 *.cc3200-launchxl
+serialdump-macos

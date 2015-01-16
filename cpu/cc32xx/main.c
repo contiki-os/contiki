@@ -49,7 +49,11 @@
 #include "hw_ints.h"
 #include "prcm.h"
 
-#include "contiki-conf.h"
+#include "contiki.h"
+#include "dev/uart-arch.h"
+#include "dev/serial-line.h"
+
+#include "simplelink.h"
 
 // Vector table
 extern void (* const g_pfnVectors[])(void);
@@ -65,6 +69,14 @@ extern void contiki_main(void *pv_parameters);
 #define CONTIKI_STACKSIZE 			CONTIKI_CONF_STACKSIZE
 #else
 #define CONTIKI_STACKSIZE 			4096
+#endif
+
+#if STARTUP_CONF_VERBOSE
+#define ERR_PRINT(x)	printf("Error [%d] at line [%d] in function [%s]\n", x, __LINE__, __FUNCTION__)
+#define PRINTF(...) 	printf(__VA_ARGS__)
+#else
+#define ERR_PRINT(x)
+#define PRINTF(...)
 #endif
 
 #ifdef USE_FREERTOS
@@ -159,17 +171,56 @@ static void BoardInit(void)
 
 int main(void)
 {
+	int retVal = -1;
+
 	// Board Initialization
 	BoardInit();
 
 	// Configure PinMux
 	PinMuxConfig();
 
+	/*
+	 * Character I/O Initialization.
+	 * When the UART receives a character it will call serial_line_input_byte to
+	 * notify the core.
+	 *
+	 * If slip-arch is also linked in afterwards (e.g. if we are a border router)
+	 * it will overwrite one of the two peripheral input callbacks. Characters
+	 * received over the relevant peripheral will be handled by
+	 * slip_input_byte instead
+	 */
+#if UART_CONF_ENABLE
+	// Initialize both uarts
+	uart_init(0);
+	uart_init(1);
+
+	// Set input handle for serial line input
+	uart_set_input(SERIAL_LINE_CONF_UART, serial_line_input_byte);
+#endif
+
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
+	// Initialize cc32xx wireless thread
+	retVal = VStartSimpleLinkSpawnTask(SPAWN_TASK_PRIORITY);
+	if (retVal < 0)
+	{
+		ERR_PRINT(retVal);
+		abort();
+	}
+
 	// Create contiki main task
-	osi_TaskCreate(contiki_main, (const signed char * const)"ContikiWorker", CONTIKI_STACKSIZE, NULL, CONTIKI_TASK_PRIORITY, NULL);
+	retVal = osi_TaskCreate(contiki_main, (const signed char * const)"ContikiWorker", CONTIKI_STACKSIZE, NULL, CONTIKI_TASK_PRIORITY, NULL);
+	if (retVal < 0)
+	{
+		ERR_PRINT(retVal);
+		abort();
+	}
 
     // Start the task scheduler
     osi_start();
+#else
+    // Call contiki main
+    contiki_main(NULL);
+#endif
 
     return 0;
 }

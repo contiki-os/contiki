@@ -67,6 +67,7 @@ endif
 # Set additional compiler flags
 #
 CFLAGS += -DUSE_LAUNCHPAD
+CFLAGS += -g
 
 #
 # Define the CPU directory

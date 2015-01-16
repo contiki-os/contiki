@@ -40,12 +40,13 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 // #include "dev/leds.h"
-// #include "dev/uart.h"
 #include "dev/watchdog.h"
 // #include "dev/button-sensor.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
 // #include "dev/cc2520/cc2520.h"
+
+#include "net/wifi-drv.h"
 
 #include "lib/random.h"
 #include "net/netstack.h"
@@ -143,24 +144,7 @@ contiki_main(void *pv_parameters)
 	watchdog_init();
 	// button_sensor_init();
 
-	/*
-	 * Character I/O Initialisation.
-	 * When the UART receives a character it will call serial_line_input_byte to
-	 * notify the core.
-	 *
-	 * If slip-arch is also linked in afterwards (e.g. if we are a border router)
-	 * it will overwrite one of the two peripheral input callbacks. Characters
-	 * received over the relevant peripheral will be handled by
-	 * slip_input_byte instead
-	 */
-#if UART_CONF_ENABLE
-	uart_init(0);
-	uart_init(1);
-	uart_set_input(SERIAL_LINE_CONF_UART, serial_line_input_byte);
-#endif
-
 	serial_line_init();
-
 	// fade(LEDS_GREEN);
 
 	PUTS(CONTIKI_VERSION_STRING);
@@ -193,6 +177,7 @@ contiki_main(void *pv_parameters)
 
   // process_start(&sensors_process, NULL);
 
+	process_start(&wifi_process, NULL);
 	autostart_start(autostart_processes);
 
 	watchdog_start();

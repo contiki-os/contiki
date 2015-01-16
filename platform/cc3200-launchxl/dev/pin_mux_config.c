@@ -100,6 +100,7 @@ void PinMuxConfig(void)
     MAP_PinTypeUART(PIN_57, PIN_MODE_3);
 #endif
 
+#ifndef USE_LAUNCHPAD
     //
     // Configure PIN_01 for UART1 UART1_TX
     //
@@ -109,6 +110,9 @@ void PinMuxConfig(void)
     // Configure PIN_02 for UART1 UART1_RX
     //
     MAP_PinTypeUART(PIN_02, PIN_MODE_7);
+#else
+
+#endif
 
     //
     // Configure PIN_50 for GPIO Input

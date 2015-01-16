@@ -75,6 +75,11 @@ LD=$(PREFIX)-ld
 OBJCOPY=$(PREFIX)-objcopy
 
 #
+# The command for calling nm.
+#
+NM=$(PREFIX)-nm
+
+#
 # The source for linker script generation
 #
 ifndef SOURCE_LDSCRIPT
@@ -192,7 +197,7 @@ CLEAN += symbols.c symbols.h *.d *.bin *.elf *.hex
 #
 # CPU-dependent directories
 #
-CONTIKI_CPU_DIRS = . dev sys
+CONTIKI_CPU_DIRS = . dev net sys
 
 #
 # Use the existing drivers and libraries from cc32xx sdk
@@ -201,10 +206,12 @@ CONTIKI_CPU_DIRS += $(CC32XX_SDK_INC_DIR)
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_OSLIB_INC_DIR)
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_DRIVERLIB_INC_DIR)
 CONTIKI_CPU_DIRS += $(CC32XX_SDK_SIMPLELINK_INC_DIR)
+CONTIKI_CPU_DIRS += $(CC32XX_SDK_SIMPLELINK_INC_DIR)/source
+CONTIKI_CPU_DIRS += $(CC32XX_SDK_SIMPLELINK_INC_DIR)/include
 
+TARGET_LIBFILES += $(CC32XX_SDK_SIMPLELINK_DIR)/gcc/exe/libsimplelink.a
 TARGET_LIBFILES += $(CC32XX_SDK_DRIVERLIB_DIR)/gcc/exe/libdriver.a
 TARGET_LIBFILES += $(CC32XX_SDK_OSLIB_DIR)/gcc/exe/FreeRTOS.a
-TARGET_LIBFILES += $(CC32XX_SDK_SIMPLELINK_DIR)/gcc/exe/libsimplelink.a
 
 #
 # Use the existing debug I/O in cpu/arm/common
@@ -219,8 +226,10 @@ CONTIKI_CPU_SOURCEFILES += mtarch.c rtimer-arch.c startup_gcc.c
 CONTIKI_CPU_SOURCEFILES += uart-arch.c watchdog.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
+NET_ARCH_SOURCEFILES += wifi.c wifi-drv.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
+CONTIKI_SOURCEFILES += $(NET_ARCH_SOURCEFILES)
 
 # 
 # Don't treat the .elf as intermediate
@@ -243,7 +252,7 @@ CC3200SDK_SIMPLELINK_LIB:
 #
 CUSTOM_RULE_LINK=1
 
-%.elf: %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
+%.elf: %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(OBJECTDIR)/symbols.o $(LDSCRIPT)
 	$(TRACE_LD)
 	$(Q)$(LD) --entry=ResetISR $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) $(LIBM) $(LIBC) $(LIBGCC) -o $@
 
@@ -261,6 +270,22 @@ CUSTOM_RULE_LINK=1
 #
 %.$(TARGET): %.elf %.hex %.bin
 	cp $< $@
+
+#
+# This rule is used to generate the correct symbol lookup table
+#
+ifdef CORE
+ifeq ($(wildcard $(CORE)),)
+	${error $(CORE) doesn\'t exist}
+endif
+.PHONY: symbols.c symbols.h
+symbols.c:
+	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
+else
+symbols.c symbols.h:
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
+endif
 
 #
 # This rule is used to generate the correct linker script

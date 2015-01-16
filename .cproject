@@ -2,19 +2,19 @@
 <?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776" moduleId="org.eclipse.cdt.core.settings" name="Default">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776" moduleId="org.eclipse.cdt.core.settings" name="Hello World - CC3200-LaunchXL">
 				<externalSettings/>
 				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="Contiki" buildProperties="" description="" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+				<configuration artifactName="Contiki" buildProperties="" description="" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776" name="Hello World - CC3200-LaunchXL" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.673224209" name="/" resourcePath="">
 						<toolChain id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1094599597" name="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base">
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.architecture.175009874" name="Architecture" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.architecture" value="ilg.gnuarmeclipse.managedbuild.cross.option.architecture.arm" valueType="enumerated"/>
@@ -87,13 +87,13 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.gprof.853916515" name="Generate gprof information (-pg)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.gprof"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.other.1631107021" name="Other debugging flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.other"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.1611413585" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder id="ilg.gnuarmeclipse.managedbuild.cross.builder.1060172849" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder buildPath="${workspace_loc:/Contiki/examples/hello-world}" cleanBuildTarget="TARGET=cc3200-launchxl clean" id="ilg.gnuarmeclipse.managedbuild.cross.builder.1060172849" incrementalBuildTarget="TARGET=cc3200-launchxl" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1892474481" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1911826017" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.262216138" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1955074281" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.771684687" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" valueType="includePath">
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.771684687" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${workspace_loc}/thirdparty/ti-cc3200-sdk/inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${workspace_loc}/thirdparty/ti-cc3200-sdk/driverlib/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${workspace_loc}/thirdparty/ti-cc3200-sdk/oslib/src}&quot;"/>
@@ -147,6 +147,9 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Hello World - CC3200-LaunchXL">
+			<resource resourceType="PROJECT" workspacePath="/Contiki"/>
+		</configuration>
 		<configuration configurationName="Default">
 			<resource resourceType="PROJECT" workspacePath="/Contiki"/>
 		</configuration>

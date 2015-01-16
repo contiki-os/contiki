@@ -31,69 +31,90 @@
  */
 
 /**
+ * \addtogroup cc32xx
+ * @{
+ *
+ * \defgroup cc32xx-wifi cc32xx Wireless Network driver
+ *
+ * Driver for the cc32xx Wireless Network controller
+ * @{
+ *
  * \file
- *         Clock implementation for TI CC32xx.
- * \author
- *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
+ * Implementation of the cc32xx Wireless Network driver
  */
 
-#include "sys/clock.h"
-#include "clock-arch.h"
+#include <stdio.h>
 
-#include "rom.h"
-#include "rom_map.h"
-#include "utils.h"
+#include "contiki-net.h"
+#include "net/wifi.h"
+#include "net/ipv4/uip-neighbor.h"
 
-#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
-#include "osi.h"
-#endif
+#include "net/wifi-drv.h"
+
+#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+
+PROCESS(wifi_process, "CC32xx WLAN driver");
 
 /*---------------------------------------------------------------------------*/
-void
-clock_init(void)
+uint8_t
+wifi_output(void)
 {
-	// Call architecture specific clock initialize
-	clock_arch_init();
-}
-/*---------------------------------------------------------------------------*/
-clock_time_t
-clock_time(void)
-{
-	// Return architecture specific clock count
-	return clock_arch_get_tick_count();
-}
-/*---------------------------------------------------------------------------*/
-unsigned long
-clock_seconds(void)
-{
-	// Return architecture specific clock seconds
-	return (clock_arch_get_tick_count() / CLOCK_ARCH_TICK_COUNT);
-}
-/*---------------------------------------------------------------------------*/
-void
-clock_set_seconds(unsigned long sec)
-{
-	// Update architecture specific clock seconds
-	clock_arch_set_tick_count((clock_time_t)sec * CLOCK_ARCH_TICK_COUNT);
-}
-/*---------------------------------------------------------------------------*/
-void
-clock_wait(clock_time_t t)
-{
-	clock_time_t start;
+	uip_arp_out();
+	wifi_send();
 
-	start = clock_time();
-	while(clock_time() - start < (clock_time_t)t);
+	return 0;
 }
 /*---------------------------------------------------------------------------*/
-void clock_delay_usec(uint16_t dt)
+static void
+wifi_pollhandler(void)
 {
-#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
-	// Call OS delay
-	osi_Sleep(dt);
+	process_poll(&wifi_process);
+	uip_len = wifi_poll();
+
+	if(uip_len > 0)
+	{
+#if NETSTACK_CONF_WITH_IPV6
+		if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6))
+		{
+			//uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
+			tcpip_input();
+		} else
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+		if(BUF->type == uip_htons(UIP_ETHTYPE_IP))
+		{
+			uip_len -= sizeof(struct uip_eth_hdr);
+			tcpip_input();
+		} else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
+			//uip_arp_arpin();
+			/* If the above function invocation resulted in data that
+          	   should be sent out on the network, the global variable
+          	   uip_len is set to a value > 0. */
+			if(uip_len > 0)
+			{
+				wifi_send();
+			}
+		}
+	}
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(wifi_process, ev, data)
+{
+	PROCESS_POLLHANDLER(wifi_pollhandler());
+	PROCESS_BEGIN();
+
+	wifi_init();
+#if !NETSTACK_CONF_WITH_IPV6
+	tcpip_set_outputfunc(wifi_output);
 #else
-	// Call delay from driver lib
-	MAP_UtilsDelay(USEC_TO_LOOP(dt));
+	tcpip_set_outputfunc(wifi_send);
 #endif
+
+	process_poll(&wifi_process);
+	PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
+
+	wifi_exit();
+
+	PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

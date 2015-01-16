@@ -44,7 +44,9 @@
 #include "contiki-conf.h"
 
 // Local defines
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 #define MTARCH_TASK_PRIORITY 	1
+#endif
 
 #ifdef MTARCH_CONF_STACKSIZE
 #define MTARCH_STACKSIZE 		MTARCH_CONF_STACKSIZE
@@ -68,15 +70,23 @@ mtarch_start(struct mtarch_thread *thread,
 	     void (* function)(void *data),
 	     void *data)
 {
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 	// Create task
 	osi_TaskCreate(function, (const signed char * const)"ContikiMT", MTARCH_STACKSIZE, data, MTARCH_TASK_PRIORITY, &thread->task);
+#else
+
+#endif
 }
 /*--------------------------------------------------------------------------*/
 void
 mtarch_yield(void)
 {
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 	// Sleep to force context switch
 	osi_Sleep(1);
+#else
+
+#endif
 }
 /*--------------------------------------------------------------------------*/
 void
@@ -87,8 +97,12 @@ mtarch_exec(struct mtarch_thread *thread)
 void
 mtarch_stop(struct mtarch_thread *thread)
 {
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 	// Delete task
 	osi_TaskDelete(&thread->task);
+#else
+
+#endif
 }
 /*--------------------------------------------------------------------------*/
 void

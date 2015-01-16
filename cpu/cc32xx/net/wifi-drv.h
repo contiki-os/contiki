@@ -31,68 +31,23 @@
  */
 
 /**
+ * \addtogroup cc32xx
+ * @{
+ *
+ * \defgroup cc32xx-wifi cc32xx Wireless Network driver
+ *
+ * Driver for the cc32xx Wireless Network controller
+ * @{
+ *
  * \file
- *         Implementation of clock architecture for TI CC32xx.
- * \author
- *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
+ * Headers of the cc32xx Wireless Network driver
  */
 
-#include "sys/clock.h"
-#include "sys/etimer.h"
+#ifndef WIFI_DRV_C_
+#define WIFI_DRV_C_
 
-#include "osi.h"
+#include "contiki.h"
 
-#include "clock-arch.h"
-#include "rtimer-arch.h"
+PROCESS_NAME(wifi_process);
 
-static volatile clock_time_t clock_arch_tick_count;
-
-/*---------------------------------------------------------------------------*/
-void
-clock_arch_init(void)
-{
-	// Create task for clock timer tick
-	osi_TaskCreate(clock_arch_tick_task, (const signed char * const)"ContikiClock", CLOCK_ARCH_TICKTASK_STACKSIZE, NULL, CLOCK_ARCH_TICKTASK_PRIORITY, NULL);
-}
-/*---------------------------------------------------------------------------*/
-
-void
-clock_arch_tick_task(void *pv_parameters)
-{
-	// Loop for ever
-	while(1)
-	{
-		// Increment ticks
-		clock_arch_tick_count += CLOCK_ARCH_TICK_MS;
-
-		// Check if rtimer is pending
-		if (rtimer_arch_pending())
-		{
-			// Proceed rtimer module
-			rtimer_arch_request_poll();
-		}
-
-		// Check if etimer events are pending
-		if (etimer_pending())
-		{
-			// Proceed etimer module
-			etimer_request_poll();
-		}
-
-		// Thread sleeps for timer tick interval
-		osi_Sleep(CLOCK_ARCH_TICK_MS);
-	}
-}
-/*---------------------------------------------------------------------------*/
-clock_time_t
-clock_arch_get_tick_count(void)
-{
-	return clock_arch_tick_count;
-}
-/*---------------------------------------------------------------------------*/
-void
-clock_arch_set_tick_count(clock_time_t t)
-{
-	clock_arch_tick_count = t;
-}
-/*---------------------------------------------------------------------------*/
+#endif /* WIFI_DRV_C_ */
