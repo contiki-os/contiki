@@ -5,10 +5,14 @@ CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 CONTIKI_TARGET_SOURCEFILES +=	rs232.c cfs-eeprom.c eeprom.c random.c \
 				mmem.c contiki-rcb-main.c
 
+MODULES += core/net core/net/mac core/net/mac/sicslowmac core/net/mac/contikimac \
+	core/net/mac/cxmac core/net/rime core/net/ipv4 core/net/ip \
+	core/net/ipv6 core/net/rpl core/net/llsec
+
 CONTIKIAVR=$(CONTIKI)/cpu/avr
 CONTIKIBOARD=.
 
-CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAUTO_CRC_PADDING=2
+CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAUTO_CRC_PADDING=2  -DNETSTACK_CONF_WITH_RIME=1 -DNETSTACK_CONF_WITH_IPV6=1
 
 MCU=atmega1281
 AVRDUDE_PROGRAMMER=jtag2
