@@ -92,11 +92,24 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define CCIF
 #define CLIF
 
-//#define NETSTACK_CONF_WITH_IPV6            1  //Let makefile determine this so ipv4 hello-world will compile
-
 #define LINKADDR_CONF_SIZE       8
-#define PACKETBUF_CONF_HDR_SIZE    0
+#define PACKETBUF_CONF_HDR_SIZE    48	/* Choose a buffersize != 0 for the messages which should be sended over the wireless interface */
 
+/* Uncomment this lines to activate the specific drivers */
+//#define NETSTACK_CONF_NETWORK     rime_driver		
+//#define NETSTACK_CONF_MAC         nullmac_driver
+//#define NETSTACK_CONF_RDC         sicslowmac_driver	
+//#define NETSTACK_CONF_FRAMER      framer_802154	/* Framer for 802.15.4 Medium Access Control */
+#define NETSTACK_CONF_RADIO       rf230_driver		/* Select the wireless driver, otherwise contiki would operate with the "nulldriver" which does nothing */
+
+#define RF230_CONF_AUTOACK        1
+#define CXMAC_CONF_ANNOUNCEMENTS  10
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
+
+/* 211 bytes per queue buffer. Burst mode will need 15 for a 1280 byte MTU */
+#define QUEUEBUF_CONF_NUM         15
+/* 54 bytes per queue ref buffer */
+#define QUEUEBUF_CONF_REF_NUM     2
 /* 0 for IPv6, or 1 for HC1, 2 for HC01 */
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6 0 
 #define SICSLOWPAN_CONF_COMPRESSION_HC1  1 
@@ -124,17 +137,15 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
 #define UIP_CONF_ND6_MAX_PREFIXES     3
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
-#if NETSTACK_CONF_WITH_IPV6                       //tcpip.c error on ipv4 build if UIP_CONF_ICMP6 defined
-#define UIP_CONF_ICMP6           1
+#if NETSTACK_CONF_WITH_IPV6 //tcpip.c error on ipv4 build if UIP_CONF_ICMP6 defined
+#define UIP_CONF_ICMP6 1
 #endif
 
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 
-#define UIP_CONF_TCP             0
+#define UIP_CONF_TCP             1
 #define UIP_CONF_TCP_SPLIT       0
-
-
 
 /* These names are deprecated, use C99 names. */
 /*typedef unsigned char u8_t;
