@@ -40,10 +40,15 @@
 #ifndef MTARCH_H_
 #define MTARCH_H_
 
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 #include "osi.h"
 
 struct mtarch_thread {
 	OsiTaskHandle task;
 };
-
+#else
+struct mtarch_thread {
+	unsigned char *sp;
+};
+#endif
 #endif /* MTARCH_H_ */

@@ -42,7 +42,9 @@
 #include "rom.h"
 #include "rom_map.h"
 
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 #include "osi.h"
+#endif
 #include "pin_mux_config.h"
 
 #include "interrupt.h"
@@ -52,8 +54,6 @@
 #include "contiki.h"
 #include "dev/uart-arch.h"
 #include "dev/serial-line.h"
-
-#include "simplelink.h"
 
 // Vector table
 extern void (* const g_pfnVectors[])(void);

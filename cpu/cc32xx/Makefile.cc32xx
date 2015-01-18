@@ -264,7 +264,7 @@ CC3200SDK_SIMPLELINK_LIB:
 ifneq ($(CC32XX_NONOS),1)
 	make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc
 else
-	make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc target=NONOS
+	make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc -e target=NONOS
 endif
 
 #

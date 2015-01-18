@@ -83,8 +83,8 @@ void wifi_init(void)
 	}
 
 #if STARTUP_CONF_VERBOSE
-	PRINTF("Host Driver Version: %s\n",SL_DRIVER_VERSION);
-	PRINTF("Build Version %d.%d.%d.%d.31.%d.%d.%d.%d.%d.%d.%d.%d\n",
+	PRINTF("SimpleLink Host Driver Version: %s\n",SL_DRIVER_VERSION);
+	PRINTF("SimpleLink Build Version %d.%d.%d.%d.31.%d.%d.%d.%d.%d.%d.%d.%d\n",
 	ver.NwpVersion[0],ver.NwpVersion[1],ver.NwpVersion[2],ver.NwpVersion[3],
 	ver.ChipFwAndPhyVersion.FwVersion[0],ver.ChipFwAndPhyVersion.FwVersion[1],
 	ver.ChipFwAndPhyVersion.FwVersion[2],ver.ChipFwAndPhyVersion.FwVersion[3],

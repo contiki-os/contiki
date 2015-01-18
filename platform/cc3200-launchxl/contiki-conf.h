@@ -80,18 +80,23 @@ typedef uint32_t rtimer_clock_t;
  *
  * @{
  */
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 #ifndef HEAP_CONF_SIZE
-#define HEAP_CONF_SIZE  			0x00008000 /* 32 KiB */
+#define HEAP_CONF_SIZE  			0x00010000 /* 64 KiB */
 #endif
 
 #ifndef CONTIKI_CONF_STACKSIZE
-#define CONTIKI_CONF_STACKSIZE		0x00002000 /*  8 KiB */
+#define CONTIKI_CONF_STACKSIZE		0x00004000 /* 16 KiB */
 #endif
 
 #ifndef MTARCH_CONF_STACKSIZE
 #define MTARCH_CONF_STACKSIZE		0x00000800 /*  2 KiB */
 #endif
-
+#else
+#ifndef HEAP_CONF_SIZE
+#define HEAP_CONF_SIZE  			0x00004000 /* 16 KiB */
+#endif
+#endif
 /** @} */
 
 /*---------------------------------------------------------------------------*/

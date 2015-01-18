@@ -38,7 +38,9 @@
  */
 
 #include "sys/mt.h"
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 #include "osi.h"
+#endif
 
 #include "mtarch.h"
 #include "contiki-conf.h"

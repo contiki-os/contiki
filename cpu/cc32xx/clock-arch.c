@@ -43,6 +43,7 @@
 #if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 #include "osi.h"
 #else
+#include "hw_types.h"
 #include "hw_ints.h"
 #include "interrupt.h"
 #include "systick.h"
