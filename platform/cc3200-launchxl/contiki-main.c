@@ -155,7 +155,7 @@ contiki_main(void *pv_parameters)
 	PRINTF(" MAC: ");
 	PRINTF("%s\n", NETSTACK_MAC.name);
 	PRINTF(" RDC: ");
-	PRINTF("%s\n", NETSTACK_RDC.name);
+	PRINTF("%s\n\n", NETSTACK_RDC.name);
 
 	/* Initialise the H/W RNG engine. */
 	random_init(0);

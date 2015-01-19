@@ -193,11 +193,6 @@ else
 endif
 
 #
-# CPU-dependent cleanup files
-#
-CLEAN += symbols.c symbols.h *.d *.bin *.elf *.hex
-
-#
 # CPU-dependent directories
 #
 CONTIKI_CPU_DIRS = . dev net sys
@@ -225,6 +220,21 @@ TARGET_LIBFILES += $(CC32XX_SDK_OSLIB_DIR)/gcc/exe/FreeRTOS.a
 endif
 
 #
+# CPU-dependent cleanup files
+#
+CLEAN += symbols.c symbols.h *.d *.bin *.elf *.hex
+
+CLEAN += $(CC32XX_SDK_OSLIB_DIR)/gcc/obj
+CLEAN += $(CC32XX_SDK_OSLIB_DIR)/gcc/exe
+
+CLEAN += $(CC32XX_SDK_DRIVERLIB_DIR)/gcc/obj
+CLEAN += $(CC32XX_SDK_DRIVERLIB_DIR)/gcc/exe
+
+CLEAN += $(CC32XX_SDK_SIMPLELINK_DIR)/gcc/obj_os
+CLEAN += $(CC32XX_SDK_SIMPLELINK_DIR)/gcc/obj_nonos
+CLEAN += $(CC32XX_SDK_SIMPLELINK_DIR)/gcc/exe
+
+#
 # Use the existing debug I/O in cpu/arm/common
 #
 CONTIKI_CPU_DIRS += ../arm/common/dbg-io
@@ -249,22 +259,22 @@ CONTIKI_SOURCEFILES += $(NET_ARCH_SOURCEFILES)
 
 CC3200SDK_DRIVER_LIB:
 	@echo Building CC3200 SDK driver library
-	make -C $(CC32XX_SDK_DRIVERLIB_DIR)/gcc
+	@make -C $(CC32XX_SDK_DRIVERLIB_DIR)/gcc
 
 CC3200SDK_OS_LIB:
 ifneq ($(CC32XX_NONOS),1)
 	@echo Building CC3200 SDK FreeRTOS library
-	make -C $(CC32XX_SDK_OSLIB_DIR)/gcc
+	@make -C $(CC32XX_SDK_OSLIB_DIR)/gcc
 else
-	@echo CC3200 SDK FreeRTOS library not needed
+	@echo CC3200 SDK FreeRTOS library not needed, skip building.
 endif
 
 CC3200SDK_SIMPLELINK_LIB:
 	@echo Building CC3200 SimpleLink driver library
 ifneq ($(CC32XX_NONOS),1)
-	make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc
+	@make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc
 else
-	make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc -e target=NONOS
+	@make -C $(CC32XX_SDK_SIMPLELINK_DIR)/gcc -e target=NONOS
 endif
 
 #
@@ -300,9 +310,11 @@ ifeq ($(wildcard $(CORE)),)
 endif
 .PHONY: symbols.c symbols.h
 symbols.c:
+	@echo Generating debug symbols for $(CORE)
 	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
 else
 symbols.c symbols.h:
+	@echo Generating empty debug symbols
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
 	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
 endif

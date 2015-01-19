@@ -37,8 +37,16 @@
 //*****************************************************************************
 
 #include <stdint.h>
+#include "contiki.h"
+
 #include "hw_nvic.h"
 #include "hw_types.h"
+
+#ifdef CONTIKI_CONF_STACKSIZE
+#define CONTIKI_STACKSIZE 			CONTIKI_CONF_STACKSIZE
+#else
+#define CONTIKI_STACKSIZE 			4096
+#endif
 
 //*****************************************************************************
 //
@@ -83,7 +91,7 @@ extern int main(void);
 // Reserve space for the system stack.
 //
 //*****************************************************************************
-static uint32_t pui32Stack[1024];
+static uint32_t pui32Stack[CONTIKI_STACKSIZE];
 
 //*****************************************************************************
 //
