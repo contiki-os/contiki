@@ -72,11 +72,13 @@ extern void contiki_main(void *pv_parameters);
 #endif
 
 #if STARTUP_CONF_VERBOSE
-#define ERR_PRINT(x)	printf("Error [%d] at line [%d] in function [%s]\n", x, __LINE__, __FUNCTION__)
-#define PRINTF(...) 	printf(__VA_ARGS__)
+#define ERR_PRINT(x)		printf("Error [%d] at line [%d] in function [%s]\n", x, __LINE__, __FUNCTION__)
+#define PRINTF(...) 		printf(__VA_ARGS__)
+#define ASSERT_ON_ERROR(e)	{ if(e < 0) { ERR_PRINT(e); return e; } }
 #else
 #define ERR_PRINT(x)
 #define PRINTF(...)
+#define ASSERT_ON_ERROR(e)
 #endif
 
 #ifdef USE_FREERTOS
@@ -201,19 +203,11 @@ int main(void)
 #if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 	// Initialize cc32xx wireless thread
 	retVal = VStartSimpleLinkSpawnTask(SPAWN_TASK_PRIORITY);
-	if (retVal < 0)
-	{
-		ERR_PRINT(retVal);
-		abort();
-	}
+	ASSERT_ON_ERROR(retVal);
 
 	// Create contiki main task
 	retVal = osi_TaskCreate(contiki_main, (const signed char * const)"ContikiWorker", CONTIKI_STACKSIZE, NULL, CONTIKI_TASK_PRIORITY, NULL);
-	if (retVal < 0)
-	{
-		ERR_PRINT(retVal);
-		abort();
-	}
+	ASSERT_ON_ERROR(retVal);
 
     // Start the task scheduler
     osi_start();

@@ -218,7 +218,11 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.gprof.344498921" name="Generate gprof information (-pg)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.gprof"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.other.1566355677" name="Other debugging flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.debugging.other"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.970936240" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/Contiki/examples/hello-world}" cleanBuildTarget="TARGET=cc3200-launchxl CC32XX_NONOS=1 clean" id="ilg.gnuarmeclipse.managedbuild.cross.builder.173026970" incrementalBuildTarget="TARGET=cc3200-launchxl CC32XX_NONOS=1" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder buildPath="${workspace_loc:/Contiki/examples/hello-world}" cleanBuildTarget="TARGET=cc3200-launchxl CC32XX_NONOS=1 clean" id="ilg.gnuarmeclipse.managedbuild.cross.builder.173026970" incrementalBuildTarget="TARGET=cc3200-launchxl CC32XX_NONOS=1" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder">
+								<outputEntries>
+									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="examples/hello-world"/>
+								</outputEntries>
+							</builder>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1195203423" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1915555617" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1233099868" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
@@ -226,9 +230,6 @@
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1573831667" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.1826859485" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${workspace_loc}/thirdparty/ti-cc3200-sdk/inc}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${workspace_loc}/thirdparty/ti-cc3200-sdk/driverlib/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${workspace_loc}/thirdparty/ti-cc3200-sdk/oslib/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${workspace_loc}/thirdparty/ti-cc3200-sdk/simplelink/src}&quot;"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.217264415" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -267,15 +268,6 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="Contiki.null.1415131624" name="Contiki"/>
 	</storageModule>
-	<storageModule moduleId="scannerConfiguration">
-		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.673224209;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1955074281;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.455418752">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.673224209;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.2125977780;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.308270241">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		</scannerConfigBuildInfo>
-	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Hello World - CC3200-LaunchXL">
@@ -289,4 +281,19 @@
 		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.673224209;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1955074281;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.455418752">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.673224209;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.2125977780;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.308270241">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1573831667;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.217264415">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1258147719;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1900333374">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+	</storageModule>
 </cproject>
