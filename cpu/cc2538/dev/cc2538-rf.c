@@ -964,17 +964,18 @@ PROCESS_THREAD(cc2538_rf_process, ev, data)
 
     /* If we were polled due to an RF error, reset the transceiver */
     if(rf_flags & RF_MUST_RESET) {
+      uint8_t was_on;
       rf_flags = 0;
 
       /* save state so we know if to switch on again after re-init */
       if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
-        rf_flags |= WAS_OFF;
+        was_on = 0;
       } else {
-        rf_flags &= ~WAS_OFF;
+        was_on = 1;
       }
       off();
       init();
-      if ((rf_flags & WAS_OFF) != WAS_OFF) {
+      if (was_on) {
         /* switch back on */
         on();
       }
