@@ -122,6 +122,7 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 #endif
 /*---------------------------------------------------------------------------*/
 static uint8_t rf_flags;
+static uint8_t rf_channel = CC2538_RF_CHANNEL;
 
 static int on(void);
 static int off(void);
@@ -186,10 +187,22 @@ set_channel(uint8_t channel)
   }
 
   /* Changes to FREQCTRL take effect after the next recalibration */
-  off();
+    
+  /* If we are off, save state, otherwise switch off and save state */
+  if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
+    rf_flags |= WAS_OFF;
+  } else {
+    rf_flags &= ~WAS_OFF;
+    off();
+  }
   REG(RFCORE_XREG_FREQCTRL) = (CC2538_RF_CHANNEL_MIN
       + (channel - CC2538_RF_CHANNEL_MIN) * CC2538_RF_CHANNEL_SPACING);
-  on();
+  /* switch radio back on only if radio was on before - otherwise will turn on radio foor sleepy nodes */
+  if((rf_flags & WAS_OFF) != WAS_OFF) {
+    on();
+  }
+
+  rf_channel = channel;
 
   return (int8_t) channel;
 }
@@ -445,7 +458,7 @@ init(void)
   /* Set TX Power */
   REG(RFCORE_XREG_TXPOWER) = CC2538_RF_TX_POWER;
 
-  set_channel(CC2538_RF_CHANNEL);
+  set_channel(rf_channel);
 
   /* Acknowledge RF interrupts, FIFOP only */
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;
@@ -953,8 +966,18 @@ PROCESS_THREAD(cc2538_rf_process, ev, data)
     if(rf_flags & RF_MUST_RESET) {
       rf_flags = 0;
 
+      /* save state so we know if to switch on again after re-init */
+      if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
+        rf_flags |= WAS_OFF;
+      } else {
+        rf_flags &= ~WAS_OFF;
+      }
       off();
       init();
+      if ((rf_flags & WAS_OFF) != WAS_OFF) {
+        /* switch back on */
+        on();
+      }
     }
   }
 
