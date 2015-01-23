@@ -99,6 +99,17 @@ void uart1_isr(void);
 #define uart0_isr default_handler
 #define uart1_isr default_handler
 #endif /* UART_CONF_ENABLE */
+
+/* Likewise for the SSI ISRs */
+#if SSI_MODE_SLAVE
+void ssi_isr(void);
+
+#define ssi0_isr  ssi_isr
+#define ssi1_isr  default_handler
+#else
+#define ssi0_isr default_handler
+#define ssi1_isr default_handler
+#endif /* SSI ISRs */
 /*---------------------------------------------------------------------------*/
 /* Allocate stack space */
 static unsigned long stack[512];
@@ -144,7 +155,7 @@ void(*const vectors[])(void) =
   0,                          /* 20 none */
   uart0_isr,                  /* 21 UART0 Rx and Tx */
   uart1_isr,                  /* 22 UART1 Rx and Tx */
-  default_handler,            /* 23 SSI0 Rx and Tx */
+  ssi0_isr,                   /* 23 SSI0 Rx and Tx */
   default_handler,            /* 24 I2C Master and Slave */
   0,                          /* 25 Reserved */
   0,                          /* 26 Reserved */
@@ -171,7 +182,7 @@ void(*const vectors[])(void) =
   default_handler,            /* 47 PKA (Alternate) */
   default_handler,            /* 48 SM Timer (Alternate) */
   default_handler,            /* 49 MacTimer (Alternate) */
-  default_handler,            /* 50 SSI1 Rx and Tx */
+  ssi0_isr,            /* 50 SSI1 Rx and Tx */
   default_handler,            /* 51 Timer 3 subtimer A */
   default_handler,            /* 52 Timer 3 subtimer B */
   0,                          /* 53 Reserved */
