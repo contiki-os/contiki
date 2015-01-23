@@ -49,16 +49,18 @@
 // Status bits - These are used to set/reset the corresponding bits in
 // given variable
 typedef enum {
-    STATUS_BIT_NWP_INIT = 0, // If this bit is set: Network Processor is
-                             // powered up
+    STATUS_BIT_NWP_INIT = 0, 	// If this bit is set: Network Processor is
+                             	// powered up
 
-    STATUS_BIT_CONNECTION,   // If this bit is set: the device is connected to
-                             // the AP or client is connected to device (AP)
+    STATUS_BIT_CONNECTION,   	// If this bit is set: the device is connected to
+                             	// the AP or client is connected to device (AP)
 
-    STATUS_BIT_IP_LEASED,    // If this bit is set: the device has leased IP to
-                             // any connected client
+    STATUS_BIT_IP_LEASED,    	// If this bit is set: the device has leased IP to
+                             	// any connected client
 
-    STATUS_BIT_IP_AQUIRED,   // If this bit is set: the device has acquired an IP
+    STATUS_BIT_IP_AQUIRED,		// If this bit is set: the device has acquired an IP
+
+    STATUS_BIT_RAW_SOCKET_OPEN	// If this bit is set: the raw socket is opened
 
 } wifi_statusbits_t;
 
@@ -76,6 +78,8 @@ typedef enum {
 											    	STATUS_BIT_IP_LEASED)
 #define IS_IP_ACQUIRED(status_variable)       	GET_STATUS_BIT(status_variable,\
                                                 	STATUS_BIT_IP_AQUIRED)
+#define IS_RAW_SOCKET_OPEN(status_variable)		GET_STATUS_BIT(status_variable,\
+													STATUS_BIT_RAW_SOCKET_OPEN)
 
 void wifi_init(void);
 uint16_t wifi_poll(void);
