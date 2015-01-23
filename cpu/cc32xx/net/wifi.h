@@ -43,8 +43,36 @@
  * Headers of the cc32xx wireless network wrapper
  */
 
-#ifndef WIFI_DRV_C_
-#define WIFI_DRV_C_
+// Status bits - These are used to set/reset the corresponding bits in
+// given variable
+typedef enum {
+    STATUS_BIT_NWP_INIT = 0, // If this bit is set: Network Processor is
+                             // powered up
+
+    STATUS_BIT_CONNECTION,   // If this bit is set: the device is connected to
+                             // the AP or client is connected to device (AP)
+
+    STATUS_BIT_IP_LEASED,    // If this bit is set: the device has leased IP to
+                             // any connected client
+
+    STATUS_BIT_IP_AQUIRED,   // If this bit is set: the device has acquired an IP
+
+} wifi_statusbits_t;
+
+#define CLR_STATUS_BIT_ALL(status_variable)  	(status_variable = 0)
+#define SET_STATUS_BIT(status_variable, bit) 	status_variable |= (1<<(bit))
+#define CLR_STATUS_BIT(status_variable, bit) 	status_variable &= ~(1<<(bit))
+#define CLR_STATUS_BIT_ALL(status_variable)   	(status_variable = 0)
+#define GET_STATUS_BIT(status_variable, bit) 	(0 != (status_variable & (1<<(bit))))
+
+#define IS_NW_PROCSR_ON(status_variable)     	GET_STATUS_BIT(status_variable,\
+													STATUS_BIT_NWP_INIT)
+#define IS_CONNECTED(status_variable)        	GET_STATUS_BIT(status_variable,\
+													STATUS_BIT_CONNECTION)
+#define IS_IP_LEASED(status_variable)        	GET_STATUS_BIT(status_variable,\
+											    	STATUS_BIT_IP_LEASED)
+#define IS_IP_ACQUIRED(status_variable)       	GET_STATUS_BIT(status_variable,\
+                                                	STATUS_BIT_IP_AQUIRED)
 
 void wifi_init(void);
 uint16_t wifi_poll(void);

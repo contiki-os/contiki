@@ -63,7 +63,9 @@
 #endif
 
 // Static variables
-static volatile unsigned char wifi_mac_addr[SL_MAC_ADDR_LEN + 2];
+unsigned char wifi_mac_addr[SL_MAC_ADDR_LEN + 2];
+unsigned long wifi_
+
 /*---------------------------------------------------------------------------*/
 void wifi_init(void)
 {
@@ -159,7 +161,10 @@ void sl_GeneralEvtHdlr(SlDeviceEvent_t *pSlDeviceEvent)
 /*---------------------------------------------------------------------------*/
 void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 {
+	switch(pSlWlanEvent->Event)
+	{
 
+	}
 }
 /*---------------------------------------------------------------------------*/
 void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
