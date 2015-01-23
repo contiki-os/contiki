@@ -129,8 +129,22 @@ void PinMuxConfig(void)
     MAP_GPIODirModeSet(GPIOA0_BASE, 0x1, GPIO_DIR_MODE_IN);
 
     //
-    // Configure PIN_64 for GPIO Output
+    // Configure PIN_64 for GPIO Output || Configure GPIO09 [PIN64] for LED (red)
     //
-    MAP_PinTypeGPIO(PIN_64, PIN_MODE_0, false);
-    MAP_GPIODirModeSet(GPIOA1_BASE, 0x2, GPIO_DIR_MODE_OUT);
+    PinTypeGPIO(PIN_64, PIN_MODE_0, false);
+    GPIODirModeSet(GPIOA1_BASE, 0x2, GPIO_DIR_MODE_OUT);
+
+#ifdef USE_LAUNCHPAD
+    //
+    // Configure PIN_01 for GPIO Output || Configure GPIO10 [PIN1] for LED (yellow)
+    //
+    PinTypeGPIO(PIN_01, PIN_MODE_0, false);
+    GPIODirModeSet(GPIOA1_BASE, 0x4, GPIO_DIR_MODE_OUT);
+
+    //
+    // Configure PIN_02 for GPIO Output || Configure GPIO11 [PIN2] for LED (green)
+    //
+    PinTypeGPIO(PIN_02, PIN_MODE_0, false);
+    GPIODirModeSet(GPIOA1_BASE, 0x8, GPIO_DIR_MODE_OUT);
+#endif
 }

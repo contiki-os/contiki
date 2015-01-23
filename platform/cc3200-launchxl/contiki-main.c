@@ -39,7 +39,7 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
-// #include "dev/leds.h"
+#include "dev/leds.h"
 #include "dev/watchdog.h"
 // #include "dev/button-sensor.h"
 #include "dev/serial-line.h"
@@ -77,26 +77,26 @@
 #define CC2520_RF_CHANNEL 18
 #endif
 /*---------------------------------------------------------------------------*/
-/*
+
 static void
 fade(unsigned char l)
 {
   volatile int i;
   int k, j;
-  for(k = 0; k < 800; ++k) {
-    j = k > 400 ? 800 - k : k;
+  for(k = 0; k < 4000; ++k) {
+    j = k > 2000 ? 4000 - k : k;
 
     leds_on(l);
     for(i = 0; i < j; ++i) {
       asm("nop");
     }
     leds_off(l);
-    for(i = 0; i < 400 - j; ++i) {
+    for(i = 0; i < 2000 - j; ++i) {
       asm("nop");
     }
   }
 }
-*/
+
 /*---------------------------------------------------------------------------*/
 //static void
 //set_rf_params(void)
@@ -136,8 +136,8 @@ fade(unsigned char l)
 void
 contiki_main(void *pv_parameters)
 {
-	// leds_init();
-	//fade(LEDS_YELLOW);
+	leds_init();
+	fade(LEDS_RED);
 
 	process_init();
 
@@ -145,7 +145,7 @@ contiki_main(void *pv_parameters)
 	// button_sensor_init();
 
 	serial_line_init();
-	// fade(LEDS_GREEN);
+	fade(LEDS_YELLOW);
 
 	PUTS(CONTIKI_VERSION_STRING);
 	PUTS(PLATFORM_STRING);
@@ -181,7 +181,7 @@ contiki_main(void *pv_parameters)
 	autostart_start(autostart_processes);
 
 	watchdog_start();
-	// fade(LEDS_ORANGE);
+	fade(LEDS_GREEN);
 
 	while(1)
 	{

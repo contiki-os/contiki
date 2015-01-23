@@ -40,6 +40,7 @@
 #include "contiki.h"
 
 #include <stdio.h> /* For printf() */
+#include "leds.h"
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
 AUTOSTART_PROCESSES(&hello_world_process);
@@ -49,6 +50,8 @@ PROCESS_THREAD(hello_world_process, ev, data)
   PROCESS_BEGIN();
 
   printf("Hello, world\n");
+  //leds_arch_set(LEDS_ALL);
+  leds_arch_set(LEDS_RED);
   
   PROCESS_END();
 }

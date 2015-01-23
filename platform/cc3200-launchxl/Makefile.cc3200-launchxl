@@ -47,7 +47,7 @@ CONTIKI_TARGET_DIRS = . dev
 #
 # Platform dependent source files
 #
-CONTIKI_TARGET_SOURCEFILES += contiki-main.c pin_mux_config.c
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c pin_mux_config.c leds-arch.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
