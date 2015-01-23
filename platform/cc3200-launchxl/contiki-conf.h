@@ -139,23 +139,23 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 #ifndef SERIAL_LINE_CONF_UART
-#define SERIAL_LINE_CONF_UART       0 /**< UART to use with serial line */
+#define SERIAL_LINE_CONF_UART       1 /**< UART to use with serial line */
 #endif
 
 #ifndef SLIP_ARCH_CONF_UART
-#define SLIP_ARCH_CONF_UART         0 /**< UART to use with SLIP */
+#define SLIP_ARCH_CONF_UART         1 /**< UART to use with SLIP */
 #endif
 
 #ifndef CC2520_RF_CONF_SNIFFER_UART
-#define CC2520_RF_CONF_SNIFFER_UART 0 /**< UART to use with sniffer */
+#define CC2520_RF_CONF_SNIFFER_UART 1 /**< UART to use with sniffer */
 #endif
 
 #ifndef DBG_CONF_UART
-#define DBG_CONF_UART               0 /**< UART to use for debugging */
+#define DBG_CONF_UART               1 /**< UART to use for debugging */
 #endif
 
 #ifndef UART1_CONF_UART
-#define UART1_CONF_UART             1 /**< UART to use for examples relying on
+#define UART1_CONF_UART             0 /**< UART to use for examples relying on
                                            the uart1_* API */
 #endif
 

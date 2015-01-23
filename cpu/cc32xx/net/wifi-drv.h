@@ -43,11 +43,11 @@
  * Headers of the cc32xx Wireless Network driver
  */
 
-#ifndef WIFI_DRV_C_
-#define WIFI_DRV_C_
+#ifndef WIFI_DRV_H_
+#define WIFI_DRV_H_
 
 #include "contiki.h"
 
 PROCESS_NAME(wifi_process);
 
-#endif /* WIFI_DRV_C_ */
+#endif /* WIFI_DRV_H_ */

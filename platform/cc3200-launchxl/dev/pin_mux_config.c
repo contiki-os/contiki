@@ -78,40 +78,48 @@ void PinMuxConfig(void)
     //
     MAP_PinTypeADC(PIN_60, PIN_MODE_255);
 
-#ifndef USE_LAUNCHPAD
+#ifdef USE_LAUNCHPAD
     //
-    // Configure PIN_53 for UART0 UART0_TX
+    // Configure PIN_03 (UART0_TX on LaunchPad, P1.4) for UART0_TX
+    //
+    MAP_PinTypeUART(PIN_03, PIN_MODE_7);
+
+    //
+    // Configure PIN_04 (UART0_RX on LaunchPad, P1.3) for UART0_RX
+    //
+    MAP_PinTypeUART(PIN_04, PIN_MODE_7);
+#else
+    //
+    // Configure PIN_53 (AUD_CLK on LaunchPad, P3.8) for UART0_TX
     //
     MAP_PinTypeUART(PIN_53, PIN_MODE_9);
 
     //
-    // Configure PIN_57 for UART0 UART0_RX
-    //
-    MAP_PinTypeUART(PIN_57, PIN_MODE_3);
-#else
-    //
-    // Configure PIN_55 for UART0 UART0_TX
-    //
-    MAP_PinTypeUART(PIN_55, PIN_MODE_3);
-
-    //
-    // Configure PIN_57 for UART0 UART0_RX
+    // Configure PIN_57 (ADC_CH0 on LaunchPad, P3.3) for UART0_RX
     //
     MAP_PinTypeUART(PIN_57, PIN_MODE_3);
 #endif
 
-#ifndef USE_LAUNCHPAD
+#ifdef USE_LAUNCHPAD
     //
-    // Configure PIN_01 for UART1 UART1_TX
+    // Configure PIN_55 (Connected to FTDI on LaunchPad) for UART1_TX
+    //
+    MAP_PinTypeUART(PIN_55, PIN_MODE_6);
+
+    //
+    // Configure PIN_57 (Connected to FTDI on LaunchPad) for UART1_RX
+    //
+    MAP_PinTypeUART(PIN_57, PIN_MODE_6);
+#else
+    //
+    // Configure PIN_01 (I2C_SCL on LaunchPad, P1.9) for UART1_TX
     //
     MAP_PinTypeUART(PIN_01, PIN_MODE_7);
 
     //
-    // Configure PIN_02 for UART1 UART1_RX
+    // Configure PIN_02 (I2C_SDA on LaunchPad, P1.10) for UART1_RX
     //
     MAP_PinTypeUART(PIN_02, PIN_MODE_7);
-#else
-
 #endif
 
     //

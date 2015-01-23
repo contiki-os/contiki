@@ -43,9 +43,9 @@
 #include "hw_types.h"
 
 #ifdef CONTIKI_CONF_STACKSIZE
-#define CONTIKI_STACKSIZE 			CONTIKI_CONF_STACKSIZE
+#define CONTIKI_STACKSIZE 			(CONTIKI_CONF_STACKSIZE / sizeof(uint32_t))
 #else
-#define CONTIKI_STACKSIZE 			4096
+#define CONTIKI_STACKSIZE 			1024
 #endif
 
 //*****************************************************************************

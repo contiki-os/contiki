@@ -43,6 +43,9 @@
  * Headers of the cc32xx wireless network wrapper
  */
 
+#ifndef WIFI_H_
+#define WIFI_H_
+
 // Status bits - These are used to set/reset the corresponding bits in
 // given variable
 typedef enum {
@@ -79,4 +82,4 @@ uint16_t wifi_poll(void);
 void wifi_send(void);
 void wifi_exit(void);
 
-#endif /* WIFI_DRV_C_ */
+#endif /* WIFI_H_ */

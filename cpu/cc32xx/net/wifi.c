@@ -64,7 +64,7 @@
 
 // Static variables
 unsigned char wifi_mac_addr[SL_MAC_ADDR_LEN + 2];
-unsigned long wifi_
+unsigned long wifi_status;
 
 /*---------------------------------------------------------------------------*/
 void wifi_init(void)
