@@ -62,9 +62,13 @@
 #define ASSERT_ON_ERROR(e)
 #endif
 
+// Enable debug messages
+#define DEBUG	1
+
 // Static variables
 unsigned char wifi_mac_addr[SL_MAC_ADDR_LEN + 2];
-unsigned long wifi_status;
+unsigned long wifi_status, wifi_client_ip;
+unsigned long wifi_own_ip, wifi_gateway;
 
 /*---------------------------------------------------------------------------*/
 void wifi_init(void)
@@ -109,6 +113,15 @@ void wifi_init(void)
     	}
 	}
 
+	// On this point the device is in AP mode,
+	// we need to wait for this event before
+	// doing anything
+	while(!IS_IP_ACQUIRED(wifi_status))
+	{
+		// Call simple link worker
+		_SlNonOsMainLoopTask();
+	}
+
 #if STARTUP_CONF_VERBOSE
 	// Get the device's version-information
 	configOpt = SL_DEVICE_GENERAL_VERSION;
@@ -139,6 +152,34 @@ uint16_t wifi_poll(void)
 	// Call simple link worker
 	_SlNonOsMainLoopTask();
 
+	// Check if client is connected and has an IP leased.
+	if (IS_CONNECTED(wifi_status) && IS_IP_LEASED(wifi_status))
+	{
+		// Check if raw socket is not opened
+		if (!(IS_RAW_SOCKET_OPEN(wifi_status)))
+		{
+			// Set raw socket open flag
+			SET_STATUS_BIT(wifi_status, STATUS_BIT_RAW_SOCKET_OPEN);
+
+#if STARTUP_CONF_VERBOSE
+			PRINTF(" SimpleLink Open RAW Socket\n");
+#endif
+		}
+	}
+	else
+	{
+		// Check if raw socket is opened
+		if (IS_RAW_SOCKET_OPEN(wifi_status))
+		{
+			// Clear raw socket open flag
+			CLR_STATUS_BIT(wifi_status, STATUS_BIT_RAW_SOCKET_OPEN);
+
+#if STARTUP_CONF_VERBOSE
+			PRINTF(" SimpleLink Close RAW Socket\n");
+#endif
+		}
+	}
+
 	// TODO: Implement non OS behavior
 	return 0;
 }
@@ -154,22 +195,133 @@ void wifi_exit(void)
 	sl_Stop(0xFF);
 }
 /*---------------------------------------------------------------------------*/
-void sl_GeneralEvtHdlr(SlDeviceEvent_t *pSlDeviceEvent)
-{
-
-}
-/*---------------------------------------------------------------------------*/
 void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 {
 	switch(pSlWlanEvent->Event)
 	{
+		case SL_WLAN_CONNECT_EVENT:
+		{
+			SET_STATUS_BIT(wifi_status, STATUS_BIT_CONNECTION);
+#if STARTUP_CONF_VERBOSE && DEBUG
+			PRINTF(" SimpleLink WlanEvent: Device connected to the AP.\n");
+#endif
+		}
+		break;
 
+		case SL_WLAN_DISCONNECT_EVENT:
+		{
+			CLR_STATUS_BIT(wifi_status, STATUS_BIT_CONNECTION);
+			CLR_STATUS_BIT(wifi_status, STATUS_BIT_IP_AQUIRED);
+
+#if STARTUP_CONF_VERBOSE && DEBUG
+			slWlanConnectAsyncResponse_t*  pEventData = NULL;
+			pEventData = &pSlWlanEvent->EventData.STAandP2PModeDisconnected;
+
+			// If the user has initiated 'Disconnect' request,
+			//'reason_code' is SL_USER_INITIATED_DISCONNECTION
+			if(SL_USER_INITIATED_DISCONNECTION == pEventData->reason_code)
+			{
+				PRINTF(" SimpleLink WlanEvent: Device disconnected from the AP on application's request.\n");
+			}
+			else
+			{
+				PRINTF(" SimpleLink WlanEvent: Device disconnected from the AP on an ERROR!\n");
+			}
+#endif
+		}
+		break;
+
+		case SL_WLAN_STA_CONNECTED_EVENT:
+		{
+			// when device is in AP mode and any client connects to device cc3xxx
+			SET_STATUS_BIT(wifi_status, STATUS_BIT_CONNECTION);
+
+#if STARTUP_CONF_VERBOSE && DEBUG
+			PRINTF(" SimpleLink WlanEvent: Client connected to the AP.\n");
+#endif
+		}
+		break;
+
+		case SL_WLAN_STA_DISCONNECTED_EVENT:
+		{
+			// when client disconnects from device (AP)
+			CLR_STATUS_BIT(wifi_status, STATUS_BIT_CONNECTION);
+			CLR_STATUS_BIT(wifi_status, STATUS_BIT_IP_LEASED);
+
+#if STARTUP_CONF_VERBOSE && DEBUG
+			PRINTF(" SimpleLink WlanEvent: Client disconnects from the AP.\n");
+#endif
+		}
+		break;
+
+		default:
+		{
+#if STARTUP_CONF_VERBOSE && DEBUG
+			PRINTF(" SimpleLink WlanEvent: Unexpected event [0x%x]\n", pSlWlanEvent->Event);
+#endif
+		}
+		break;
 	}
 }
 /*---------------------------------------------------------------------------*/
 void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
 {
+    switch(pSlNetApp->Event)
+    {
+        case SL_NETAPP_IPV4_IPACQUIRED_EVENT:
+        case SL_NETAPP_IPV6_IPACQUIRED_EVENT:
+        {
+            SET_STATUS_BIT(wifi_status, STATUS_BIT_IP_AQUIRED);
 
+            // IP Acquired Event Data
+            wifi_own_ip = pSlNetApp->EventData.ipAcquiredV4.ip;
+
+            // Gateway IP address
+            wifi_gateway = pSlNetApp->EventData.ipAcquiredV4.gateway;
+
+#if STARTUP_CONF_VERBOSE
+			PRINTF(" Own IP Acquired, IP = %d.%d.%d.%d, Gateway = %d.%d.%d.%d\n",
+					SL_IPV4_BYTE(wifi_own_ip, 3), SL_IPV4_BYTE(wifi_own_ip, 2),
+					SL_IPV4_BYTE(wifi_own_ip, 1), SL_IPV4_BYTE(wifi_own_ip, 0),
+					SL_IPV4_BYTE(wifi_gateway, 3), SL_IPV4_BYTE(wifi_gateway, 2),
+					SL_IPV4_BYTE(wifi_gateway, 1), SL_IPV4_BYTE(wifi_gateway, 0));
+#endif
+        }
+        break;
+
+        case SL_NETAPP_IP_LEASED_EVENT:
+        {
+            SET_STATUS_BIT(wifi_status, STATUS_BIT_IP_LEASED);
+            wifi_client_ip = pSlNetApp->EventData.ipLeased.ip_address;
+
+#if STARTUP_CONF_VERBOSE && DEBUG
+			PRINTF(" SimpleLink NetAppEvent: IP Leased to Client with IP = %d.%d.%d.%d\n",
+					SL_IPV4_BYTE(wifi_client_ip, 3), SL_IPV4_BYTE(wifi_client_ip, 2),
+					SL_IPV4_BYTE(wifi_client_ip, 1), SL_IPV4_BYTE(wifi_client_ip, 0));
+#endif
+        }
+        break;
+
+        case SL_NETAPP_IP_RELEASED_EVENT:
+        {
+            CLR_STATUS_BIT(wifi_status, STATUS_BIT_IP_LEASED);
+
+#if STARTUP_CONF_VERBOSE && DEBUG
+			PRINTF(" SimpleLink NetAppEvent: IP Released from Client with IP = %d.%d.%d.%d\n",
+					SL_IPV4_BYTE(wifi_client_ip,3), SL_IPV4_BYTE(wifi_client_ip,2),
+					SL_IPV4_BYTE(wifi_client_ip,1), SL_IPV4_BYTE(wifi_client_ip,0));
+#endif
+        }
+        break;
+
+        default:
+        {
+#if STARTUP_CONF_VERBOSE && DEBUG
+			PRINTF(" SimpleLink NetAppEvent: Unexpected event [0x%x]\n", pSlNetApp->Event);
+#endif
+        }
+        break;
+    }
 }
 /*---------------------------------------------------------------------------*/
 void sl_SockEvtHdlr(SlSockEvent_t *pSlSockEvent)
@@ -179,5 +331,4 @@ void sl_SockEvtHdlr(SlSockEvent_t *pSlSockEvent)
 /*---------------------------------------------------------------------------*/
 void sl_HttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent, SlHttpServerResponse_t *pSlHttpServerResponse)
 {
-
 }
