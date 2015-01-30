@@ -70,6 +70,8 @@
 #define SHT21_HUMIDITY_NHM_CMD          (0xF5)
 #define SHT21_RESET_CMD                 (0xFE)
 
+#define SHT21_STATUS_MASK               ( 0xFC )
+
 #define SHT21_DEFAULT_CONFIG            (SHT21_RESOLUTION_12b_14b | \
                                          SHT21_ONCHIP_HEATER_DISABLE | \
                                          SHT21_BATTERY_ABOVE_2V25 | \
@@ -147,7 +149,7 @@ sht21_read_temperature(void)
   i2c_write_byte(SHT21_ADDRESS, SHT21_TEMPERATURE_HM_CMD);
   i2c_read_bytes(SHT21_ADDRESS, sht21_temperature, sizeof(sht21_temperature));
 
-  temperature = (sht21_temperature[1] << 8) | sht21_temperature[0];
+  temperature = (sht21_temperature[0] << 8) | (sht21_temperature[1] & SHT21_STATUS_MASK);
 
   return temperature;
 }
@@ -179,7 +181,7 @@ sht21_read_humidity(void)
   i2c_write_byte(SHT21_ADDRESS, SHT21_HUMIDITY_HM_CMD);
   i2c_read_bytes(SHT21_ADDRESS, sht21_humidity, sizeof(sht21_humidity));
 
-  humidity = (sht21_humidity[1] << 8) | sht21_humidity[0];
+  humidity = (sht21_humidity[0] << 8) | (sht21_humidity[1] & SHT21_STATUS_MASK);
 
   return humidity;
 }

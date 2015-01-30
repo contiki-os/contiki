@@ -182,6 +182,8 @@ max44009_convert_light(uint16_t lux)
   float result = 0.045;
 
   exponent = (lux >> 8) & 0xFF;
+  exponent = (exponent == 0x0F ? exponent & 0x0E : exponent);
+  
   mantissa = (lux >> 0) & 0xFF;
 
   result *= 2 ^ exponent * mantissa;
