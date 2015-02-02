@@ -109,17 +109,18 @@ init_lowlevel(void)
   rs232_redirect_stdout(RS232_PORT_1);
   
   DDRE |= LED1 | LED2 | LED3;
+  
+  ctimer_init();
+ 
 }
 
 
 static struct etimer et;
 PROCESS_THREAD(rcb_leds, ev, data)
 {
-  uint8_t error;
 
   PROCESS_BEGIN();
   
-  if((error = icmp6_new(NULL)) == 0) {
     while(1) {
       PROCESS_YIELD();
       
@@ -134,7 +135,6 @@ PROCESS_THREAD(rcb_leds, ev, data)
 		LEDOff(LED2);
 	  }
     }
-  }
   PROCESS_END();
 }
 
@@ -142,14 +142,10 @@ PROCESS_THREAD(rcb_leds, ev, data)
 int
 main(void)
 {
-  //calibrate_rc_osc_32k(); //CO: Had to comment this out
-
   /* Initialize hardware */
-  init_lowlevel();
-
+  init_lowlevel();  
   /* Clock */
   clock_init();
-
   LEDOff(LED1 | LED2);
 
   /* Process subsystem */
@@ -157,17 +153,29 @@ main(void)
 
   /* Register initial processes */
   procinit_init();
+  
+  /* It is very important to do the NETSTACK_* initializations right here
+   * to enable the PROCESS_YIELD** functionality.
+   * The receive process is an single protothread which handles the 
+   * received packets. This process needs PROCESS_YIELD_UNTIL().
+   **/
+  /* Start radio and radio receive process */
+  NETSTACK_RADIO.init();
+  /* Initialize stack protocols */
+  queuebuf_init();
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
 
   /* Autostart processes */
   autostart_start(autostart_processes);
   
   printf_P(PSTR("\n********BOOTING CONTIKI*********\n"));
-
   printf_P(PSTR("System online.\n"));
 
   /* Main scheduler loop */
   while(1) {
-    process_run();
+    process_run();    
   }
 
   return 0;
