@@ -124,7 +124,7 @@ PROCESS_THREAD(rcb_leds, ev, data)
     while(1) {
       PROCESS_YIELD();
       
-#if UIP_CONF_IPV6	  
+#if NETSTACK_CONF_WITH_IPV6	  
 	  if (ev == ICMP6_ECHO_REQUEST) {
 #else
  		if (1) {
