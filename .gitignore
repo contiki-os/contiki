@@ -103,3 +103,6 @@ regression-tests/[0-9][0-9]-*/org/
 # rl78 build artifacts
 *.eval-adf7xxxmb4z
 *.eval-adf7xxxmb4z.srec
+
+# cscope files
+cscope.*
