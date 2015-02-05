@@ -115,10 +115,10 @@ public class IPHCPacketAnalyzer extends PacketAnalyzer {
             .append(", NH = ").append(nhc ? "compressed" : "inline")
             .append(", HLIM = ").append(hlim == 0 ? "inline" : hlim)
             .append(", CID = ").append(cid)
-            .append(", SAC = ").append(sac == 1 ? "stateless" : "stateful")
+            .append(", SAC = ").append(sac == 0 ? "stateless" : "stateful")
             .append(", SAM = ").append(sam)
             .append(", MCast = ").append(m)
-            .append(", DAC = ").append(dac == 1 ? "stateless" : "stateful")
+            .append(", DAC = ").append(dac == 0 ? "stateless" : "stateful")
             .append(", DAM = ").append(dam);
     if (cid == 1) {
       verbose.append("<br>Contexts: sci=").append(packet.get(2) >> 4).
