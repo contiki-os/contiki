@@ -28,6 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /**
  * \addtogroup cc3200-Launchpad
  * @{
@@ -55,29 +56,30 @@
 
 #include "gpio.h"
 
-#define LEDS_GPIO_PIN_MASK   (LEDS_ALL << 1)
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_init(void)
 {
-
   // IOs were still initialized in PinMuxConfig(void)
 }
 /*---------------------------------------------------------------------------*/
 unsigned char
 leds_arch_get(void)
 {
-  return (char)(MAP_GPIOPinRead(GPIOA1_BASE, LEDS_GPIO_PIN_MASK) >> 1);
+	unsigned char result = 0;
+
+	result |= ((MAP_GPIOPinRead(GPIOA1_BASE, LEDS_CONF_RED) & LEDS_CONF_RED) ? LEDS_RED : 0);
+	result |= ((MAP_GPIOPinRead(GPIOA1_BASE, LEDS_CONF_YELLOW) & LEDS_CONF_YELLOW) ? LEDS_YELLOW : 0);
+	result |= ((MAP_GPIOPinRead(GPIOA1_BASE, LEDS_CONF_GREEN) & LEDS_CONF_GREEN) ? LEDS_GREEN : 0);
+
+	return result;
 }
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_set(unsigned char leds)
 {
-  MAP_GPIOPinWrite(GPIOA1_BASE, LEDS_GPIO_PIN_MASK, leds << 1);
+	MAP_GPIOPinWrite(GPIOA1_BASE, LEDS_CONF_RED, ((leds & LEDS_RED) ? LEDS_CONF_RED : 0));
+	MAP_GPIOPinWrite(GPIOA1_BASE, LEDS_CONF_YELLOW, ((leds & LEDS_YELLOW) ? LEDS_CONF_YELLOW : 0));
+	MAP_GPIOPinWrite(GPIOA1_BASE, LEDS_CONF_GREEN, ((leds & LEDS_GREEN) ? LEDS_CONF_GREEN : 0));
 }
 /*---------------------------------------------------------------------------*/
-
-/**
- * @}
- * @}
- */

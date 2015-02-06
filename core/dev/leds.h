@@ -58,13 +58,13 @@ void leds_init(void);
 void leds_blink(void);
 
 #ifndef LEDS_GREEN
-#define LEDS_GREEN  4
+#define LEDS_GREEN  1
 #endif /* LEDS_GREEN */
 #ifndef LEDS_YELLOW
 #define LEDS_YELLOW  2
 #endif /* LEDS_YELLOW */
 #ifndef LEDS_RED
-#define LEDS_RED  1
+#define LEDS_RED  4
 #endif /* LEDS_RED */
 #ifndef LEDS_BLUE
 #define LEDS_BLUE  LEDS_YELLOW
