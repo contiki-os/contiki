@@ -90,7 +90,6 @@ rpl_get_nbr(rpl_parent_t *parent)
   if(lladdr != NULL) {
     return nbr_table_get_from_lladdr(ds6_neighbors, lladdr);
   } else {
-    /* do nothing... can not update ETX Since there is no nbr struct */
     return NULL;
   }
 }
@@ -591,7 +590,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
       p->rank = dio->rank;
       p->dtsn = dio->dtsn;
       
-      /* check if we have a nbr and if we have no prev link_metric  value */
+      /* Check whether we have a neighbor that has not gotten a link metric yet */
       if(nbr != NULL && nbr->link_metric == 0) {
 	nbr->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
       }
