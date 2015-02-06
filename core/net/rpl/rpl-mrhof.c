@@ -127,7 +127,7 @@ neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
 
   nbr = rpl_get_nbr(p);
   if(nbr == NULL) {
-    /* No neighbor for this parent - something bad has occured */
+    /* No neighbor for this parent - something bad has occurred */
     return;
   }
 
