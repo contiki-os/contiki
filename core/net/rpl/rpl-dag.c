@@ -1060,6 +1060,14 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   remove_parents(dag, 0);
   dag->version = dio->version;
+
+  /* copy parts of the configuration so that it propagates in the network */
+  dag->instance->dio_intdoubl = dio->dag_intdoubl;
+  dag->instance->dio_intmin = dio->dag_intmin;
+  dag->instance->dio_redundancy = dio->dag_redund;
+  dag->instance->default_lifetime = dio->default_lifetime;
+  dag->instance->lifetime_unit = dio->lifetime_unit;
+
   dag->instance->of->reset(dag);
   dag->min_rank = INFINITE_RANK;
   RPL_LOLLIPOP_INCREMENT(dag->instance->dtsn_out);
