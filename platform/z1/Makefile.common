@@ -68,7 +68,7 @@ ifeq ($(HOST_OS),Darwin)
       ifneq (,$(REFNUM))
         # No device fo-und
         ifeq (,$(findstring und, $(REFNUM)))
-          CFLAGS += -DSERIALNUM=$(REFNUM)
+          CFLAGS += -DSERIALNUM=0x$(REFNUM)
         endif
       endif
   endif
@@ -89,7 +89,7 @@ else
       ifneq (,$(REFNUM))
         # No device fo-und
         ifeq (,$(findstring und, $(REFNUM)))
-          CFLAGS += -DSERIALNUM=$(REFNUM)
+          CFLAGS += -DSERIALNUM=0x$(REFNUM)
         endif
       endif
     endif
