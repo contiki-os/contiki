@@ -58,6 +58,13 @@ DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 USB_CORE_SOURCEFILES += usb-core.c cdc-acm.c
 USB_ARCH_SOURCEFILES += usb-arch.c usb-serial.c cdc-acm-descriptors.c
 
+ifneq ($(TARGET_START_SOURCEFILES),)
+  CPU_START_SOURCEFILES = TARGET_START_SOURCEFILES
+else
+  CPU_START_SOURCEFILES = startup-gcc.c
+endif
+CPU_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CPU_START_SOURCEFILES)}}
+
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 CONTIKI_SOURCEFILES += $(USB_CORE_SOURCEFILES) $(USB_ARCH_SOURCEFILES)
 
@@ -74,7 +81,7 @@ $(OBJECTDIR)/ieee-addr.o: ieee-addr.c FORCE | $(OBJECTDIR)
 ### Compilation rules
 CUSTOM_RULE_LINK=1
 
-%.elf: $(TARGET_STARTFILES) %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
+%.elf: $(CPU_STARTFILES) %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
 	$(TRACE_LD)
 	$(Q)$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 
