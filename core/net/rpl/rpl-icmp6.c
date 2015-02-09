@@ -700,12 +700,24 @@ dao_input(void)
 
 #if RPL_CONF_MULTICAST
   if(uip_is_addr_mcast_global(&prefix)) {
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+    mcast_group = uip_mcast6_route_add(&prefix, (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+#else
     mcast_group = uip_mcast6_route_add(&prefix);
+#endif /* UIP_MCAST6_ENGINE */
     if(mcast_group) {
       mcast_group->dag = dag;
       mcast_group->lifetime = RPL_LIFETIME(instance, lifetime);
     }
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+    if(lifetime == RPL_ZERO_LIFETIME) {
+      goto end_dao;
+    } else {
+      goto fwd_dao;
+    }
+#else
     goto fwd_dao;
+#endif /* UIP_MCAST6_ENGINE */
   }
 #endif
 
@@ -797,6 +809,9 @@ fwd_dao:
       dao_ack_output(instance, &dao_sender_addr, sequence);
     }
   }
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+end_dao:
+#endif
   uip_len = 0;
 }
 /*---------------------------------------------------------------------------*/

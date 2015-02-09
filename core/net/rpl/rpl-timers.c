@@ -224,6 +224,9 @@ handle_dao_timer(void *ptr)
 #if RPL_CONF_MULTICAST
   uip_mcast6_route_t *mcast_route;
   uint8_t i;
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+  uip_mcast6_route_t *mcast_aux_route;
+#endif /* UIP_MCAST6_ENGINE */
 #endif
 
   instance = (rpl_instance_t *)ptr;
@@ -250,10 +253,36 @@ handle_dao_timer(void *ptr)
           dao_output_target(instance->current_dag->preferred_parent,
               &uip_ds6_if.maddr_list[i].ipaddr, RPL_MCAST_LIFETIME);
         }
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+        else if(!uip_ds6_if.maddr_list[i].isused
+                && uip_is_addr_mcast_global(&uip_ds6_if.maddr_list[i].ipaddr)
+                && !uip_mcast6_route_lookup(&uip_ds6_if.maddr_list[i].ipaddr)) {
+          dao_output_target(instance->current_dag->preferred_parent,
+                            &uip_ds6_if.maddr_list[i].ipaddr, RPL_ZERO_LIFETIME);
+        }
+#endif
       }
 
       /* Iterate over multicast routes and send DAOs */
       mcast_route = uip_mcast6_route_list_head();
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+      while(mcast_route != NULL) {
+        if(uip_ds6_maddr_lookup(&mcast_route->group) == NULL) {
+          mcast_aux_route = uip_mcast6_route_list_head();
+          while(mcast_aux_route != mcast_route) {
+            if(uip_ipaddr_cmp(&mcast_route->group, &mcast_aux_route->group)) {
+              break;
+            }
+            mcast_aux_route = list_item_next(mcast_aux_route);
+          }
+          if(mcast_aux_route == mcast_route) {
+            dao_output_target(instance->current_dag->preferred_parent,
+                              &mcast_route->group, RPL_MCAST_LIFETIME);
+          }
+        }
+        mcast_route = list_item_next(mcast_route);
+      }
+#else
       while(mcast_route != NULL) {
         /* Don't send if it's also our own address, done that already */
         if(uip_ds6_maddr_lookup(&mcast_route->group) == NULL) {
@@ -262,6 +291,7 @@ handle_dao_timer(void *ptr)
         }
         mcast_route = list_item_next(mcast_route);
       }
+#endif /* UIP_MCAST6_ENGINE */
     }
 #endif
   } else {
@@ -315,6 +345,16 @@ rpl_schedule_dao_immediately(rpl_instance_t *instance)
 {
   schedule_dao(instance, 0);
 }
+/*---------------------------------------------------------------------------*/
+#if UIP_MCAST6_ENGINE == UIP_MCAST6_ENGINE_BMRF
+void
+rpl_schedule_dao_immediately_default_instance(void)
+{
+  if(default_instance != NULL) {
+    rpl_schedule_dao_immediately(default_instance);
+  }
+}
+#endif /* UIP_MCAST6_ENGINE */
 /*---------------------------------------------------------------------------*/
 void
 rpl_cancel_dao(rpl_instance_t *instance)
