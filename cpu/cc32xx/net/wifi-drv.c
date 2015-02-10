@@ -77,7 +77,9 @@ wifi_pollhandler(void)
 #if NETSTACK_CONF_WITH_IPV6
 		if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6))
 		{
-			//uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
+#ifdef uip_neighbor_add
+			uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
+#endif
 			tcpip_input();
 		} else
 #endif /* NETSTACK_CONF_WITH_IPV6 */
@@ -86,7 +88,9 @@ wifi_pollhandler(void)
 			uip_len -= sizeof(struct uip_eth_hdr);
 			tcpip_input();
 		} else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
-			//uip_arp_arpin();
+#ifdef uip_arp_arpin
+			uip_arp_arpin();
+#endif
 			/* If the above function invocation resulted in data that
           	   should be sent out on the network, the global variable
           	   uip_len is set to a value > 0. */

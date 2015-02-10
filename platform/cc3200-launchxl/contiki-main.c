@@ -76,8 +76,26 @@
 #else
 #define CC2520_RF_CHANNEL 18
 #endif
-/*---------------------------------------------------------------------------*/
 
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_LOGGING
+void
+uip_log(char *msg)
+{
+	PUTS(msg);
+}
+#endif /* UIP_CONF_LOGGING */
+
+/*---------------------------------------------------------------------------*/
+#if LOG_CONF_ENABLED
+void
+log_message(char *m1, char *m2)
+{
+	PRINTF("%s%s\n", m1, m2);
+}
+#endif /* LOG_CONF_ENABLED */
+
+/*---------------------------------------------------------------------------*/
 static void
 fade(unsigned char l)
 {
@@ -172,7 +190,7 @@ contiki_main(void *pv_parameters)
 //#if NETSTACK_CONF_WITH_IPV6
 //  memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
 //  queuebuf_init();
-//  process_start(&tcpip_process, NULL);
+	process_start(&tcpip_process, NULL);
 //#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   // process_start(&sensors_process, NULL);

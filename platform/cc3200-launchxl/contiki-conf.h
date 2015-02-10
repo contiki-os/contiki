@@ -90,12 +90,12 @@ typedef uint32_t rtimer_clock_t;
 #endif
 #else
 #ifndef HEAP_CONF_SIZE
-#define HEAP_CONF_SIZE  			0x00004000 /* 16 KiB */
+#define HEAP_CONF_SIZE  			0x00002000 /*  8 KiB */
 #endif
 #endif
 
 #ifndef CONTIKI_CONF_STACKSIZE
-#define CONTIKI_CONF_STACKSIZE		0x00004000 /* 16 KiB */
+#define CONTIKI_CONF_STACKSIZE		0x00008000 /* 32 KiB */
 #endif
 /** @} */
 
@@ -118,6 +118,10 @@ typedef uint32_t rtimer_clock_t;
 #ifndef STARTUP_CONF_VERBOSE
 #define STARTUP_CONF_VERBOSE        1 /**< Set to 0 to decrease startup verbosity */
 #endif
+
+#define LOG_CONF_ENABLED 			1
+#define UIP_CONF_LOGGING 			1
+
 /** @} */
 
 /*---------------------------------------------------------------------------*/
@@ -308,6 +312,10 @@ typedef uint32_t rtimer_clock_t;
 #define CC2520_CONF_AUTOACK                  1 /**< RF H/W generates ACKs */
 #endif /* CC2520_CONF_AUTOACK */
 
+/* WIFI Config */
+#define UIP_CONF_LLH_LEN                    14 /**< Standard size of Ethernet Header */
+#define UIP_CONF_BUFFER_SIZE              1500 /**< Standard MTU for Ethernet */
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -326,8 +334,7 @@ typedef uint32_t rtimer_clock_t;
 /* 8-byte addresses here, 2 otherwise */
 #define LINKADDR_CONF_SIZE                   8
 #define UIP_CONF_LL_802154                   1
-#define UIP_CONF_LLH_LEN                     0
-#define UIP_CONF_NETIF_MAX_ADDRESSES         3
+#define UIP_CONF_NETIF_MAX_ADDRESSES         4
 
 /* TCP, UDP, ICMP */
 #ifndef UIP_CONF_TCP
@@ -361,11 +368,6 @@ typedef uint32_t rtimer_clock_t;
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES                 20
-#endif
-
-/* uIP */
-#ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE              1300
 #endif
 
 #define UIP_CONF_IPV6_QUEUE_PKT              0
@@ -402,14 +404,10 @@ typedef uint32_t rtimer_clock_t;
 /* Network setup for non-IPv6 (rime). */
 #define UIP_CONF_IP_FORWARD                  1
 
-#ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE               240
-#endif
-
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS     0
 
 #ifndef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM                    16
+#define QUEUEBUF_CONF_NUM                   16
 #endif
 
 #endif /* NETSTACK_CONF_WITH_IPV6 */
