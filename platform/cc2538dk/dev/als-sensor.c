@@ -79,7 +79,6 @@ configure(int type, int value)
     GPIO_SET_INPUT(GPIO_A_BASE, ADC_ALS_OUT_PIN_MASK);
     ioc_set_over(GPIO_A_NUM, ADC_ALS_OUT_PIN, IOC_OVERRIDE_ANA);
 
-    adc_init();
     break;
   }
   return 0;
