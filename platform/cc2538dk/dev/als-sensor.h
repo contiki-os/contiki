@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2015, Zolertia - http://www.zolertia.com
- * Copyright (c) 2015, University of Bristol - http://www.bristol.ac.uk
+ * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
+ * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,42 +29,34 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc2538-sensors
+ * \addtogroup cc2538-smartrf-sensors
  * @{
  *
- * \defgroup cc2538-temp-sensor CC2538 on-chip temperature Sensor
+ * \defgroup cc2538dk-als-sensor cc2538dk ALS Driver
  *
- * Driver for the CC2538 on-chip temperature sensor
- *
- * This driver can return the raw as well as the converted value of the sensor
- * reading. This is controlled by the type argument of the sensor driver's
- * value() function. The choices for the type argument are:
- * - CC2538_SENSORS_VALUE_TYPE_RAW (value() returns the raw reading)
- * - CC2538_SENSORS_VALUE_TYPE_CONVERTED (value() returns degrees mC)
+ * Driver for the SmartRF06EB ALS sensor
  * @{
  *
  * \file
- * Header file for the CC2538 on-chip temperature Sensor Driver
+ * Header file for the cc2538dk ALS Driver
  */
-/*---------------------------------------------------------------------------*/
-#ifndef TEMP_SENSOR_H_
-#define TEMP_SENSOR_H_
-/*---------------------------------------------------------------------------*/
+#ifndef ALS_SENSOR_H_
+#define ALS_SENSOR_H_
+
 #include "lib/sensors.h"
+
 /*---------------------------------------------------------------------------*/
-/**
- * \name temperature sensor
+/** \name ALS sensor
  * @{
  */
-#define TEMP_SENSOR "On-Chip Temperature"
+#define ALS_SENSOR "ALS"
 /** @} */
-/*---------------------------------------------------------------------------*/
-extern const struct sensors_sensor temp_sensor;
-/*---------------------------------------------------------------------------*/
-#endif /* TEMP_SENSOR_H_ */
-/*---------------------------------------------------------------------------*/
+
+extern const struct sensors_sensor als_sensor;
+
+#endif /* ALS_SENSOR_H_ */
+
 /**
  * @}
  * @}

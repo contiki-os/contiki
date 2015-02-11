@@ -31,48 +31,41 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc2538-temp-sensor
+ * \addtogroup cc2538-sensors
+ * @{
+ *
+ * \defgroup cc2538-temp-sensor CC2538 on-chip temperature Sensor
+ *
+ * Driver for the CC2538 on-chip temperature sensor
+ *
+ * This driver can return the raw as well as the converted value of the sensor
+ * reading. This is controlled by the type argument of the sensor driver's
+ * value() function. The choices for the type argument are:
+ * - CC2538_SENSORS_VALUE_TYPE_RAW (value() returns the raw reading)
+ * - CC2538_SENSORS_VALUE_TYPE_CONVERTED (value() returns degrees mC)
  * @{
  *
  * \file
- *  Driver for the CC2538 On-Chip temperature sensor
+ * Header file for the CC2538 on-chip temperature Sensor Driver
  */
 /*---------------------------------------------------------------------------*/
-#include "contiki.h"
+#ifndef CC2538_TEMP_SENSOR_H_
+#define CC2538_TEMP_SENSOR_H_
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
-#include "dev/temp-sensor.h"
-#include "dev/adc.h"
-#include "dev/cc2538-sensors.h"
-
-#include <stdint.h>
 /*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  int raw = adc_get(SOC_ADC_ADCCON_CH_TEMP, SOC_ADC_ADCCON_REF_INT,
-                    SOC_ADC_ADCCON_DIV_512);
-
-  if(type == CC2538_SENSORS_VALUE_TYPE_RAW) {
-    return raw;
-  } else if(type == CC2538_SENSORS_VALUE_TYPE_CONVERTED) {
-    return 25000 + ((raw >> 4) - 1422) * 10000 / 42;
-  }
-
-  return CC2538_SENSORS_ERROR;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int value)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(temp_sensor, TEMP_SENSOR, value, configure, status);
-/*---------------------------------------------------------------------------*/
+/**
+ * \name temperature sensor
+ * @{
+ */
+#define TEMP_SENSOR "On-Chip Temperature"
 /** @} */
+/*---------------------------------------------------------------------------*/
+extern const struct sensors_sensor cc2538_temp_sensor;
+/*---------------------------------------------------------------------------*/
+#endif /* CC2538_TEMP_SENSOR_H_ */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */
