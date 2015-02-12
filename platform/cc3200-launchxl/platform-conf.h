@@ -49,13 +49,20 @@
 // #define PLATFORM_HAS_LEDS   1
 // #define PLATFORM_HAS_BUTTON 1
 
-
 /**
  * \name Device string used on startup
  * @{
  */
 #define PLATFORM_STRING "TI CC3200 LaunchpadXL + TI CC2520"
 /** @} */
+
+#define CC2520_CS_N_PIN_MASK 		GPIO_PIN_6
+#define CC2520_VREG_EN_PIN_MASK 	GPIO_PIN_7
+#define CC2520_CONTROL_PIN_MASK 	(CC2520_CS_N_PIN_MASK || CC2520_VREG_EN_PIN_MASK)
+
+#define CC2520_SPI_SET_ENABLED		GPIO_PIN_7
+#define CC2520_SPI_SET_POWER_DOWN	GPIO_PIN_6
+#define CC2520_SPI_SET_DISABLED		(CC2520_SPI_SET_ENABLED || CC2520_SPI_SET_POWER_DOWN)
 
 /* Seting the base address of the SPI module */
 #define LAUNCHPAD_SPI_BASE 		GSPI_BASE
@@ -69,18 +76,17 @@
 #define SPI_RXBUF 	HWREG(LAUNCHPAD_SPI_BASE+MCSPI_O_RX0)
 
 /*  */
-#define SPI_WAITFOREOTx()
+#define SPI_WAITFOREOTx() 		while(!(HWREG(LAUNCHPAD_SPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_EOT))
 
 /*
  * Wait for Rx data
  * - Read register status register
  * - Check is data is available
  */
-#define SPI_WAITFOREORx() 	while(!(HWREG(LAUNCHPAD_SPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_RXS))
+#define SPI_WAITFOREORx() 		while(!(HWREG(LAUNCHPAD_SPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_RXS))
 
-/*  */
-#define SPI_WAITFORTxREADY()
-
+/* Wait for data in input register/FIFO. */
+#define SPI_WAITFORTxREADY() 	while(!(HWREG(LAUNCHPAD_SPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_TXS))
 
 /*
  * Enables/disables CC2520 access to the SPI bus (not the bus).
@@ -88,13 +94,18 @@
  */
 
  /* ENABLE CSn (active low) */
-#define CC2520_SPI_ENABLE()     do{ }while(0)
+#define CC2520_SPI_ENABLE()     															\
+	do { 																					\
+		MAP_GPIOPinWrite(GPIOA0_BASE, CC2520_CONTROL_PIN_MASK, CC2520_SPI_SET_ENABLED);		\
+	} while(0)
 
  /* DISABLE CSn (active low) */
-#define CC2520_SPI_DISABLE()    do{ }while(0)
+#define CC2520_SPI_DISABLE()    															\
+	do { 																					\
+		MAP_GPIOPinWrite(GPIOA0_BASE, CC2520_CONTROL_PIN_MASK, CC2520_SPI_SET_DISABLED);	\
+	} while(0)
 
- /*  */
-#define CC2520_SPI_IS_ENABLED()
-
+ /* is CSn == 0? */
+#define CC2520_SPI_IS_ENABLED() 	(!(GPIOA0_BASE&CC2520_CS_N_PIN_MASK))
 
 #endif /* PLATFORM_CONF_H_ */
