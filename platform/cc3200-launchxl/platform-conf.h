@@ -106,6 +106,6 @@
 	} while(0)
 
  /* is CSn == 0? */
-#define CC2520_SPI_IS_ENABLED() 	(!(GPIOA0_BASE&CC2520_CS_N_PIN_MASK))
+#define CC2520_SPI_IS_ENABLED()  (!((MAP_GPIOPinRead(GPIOA0_BASE, CC2520_CS_N_PIN_MASK) & CC2520_CS_N_PIN_MASK) ? 1 : 0))
 
 #endif /* PLATFORM_CONF_H_ */
