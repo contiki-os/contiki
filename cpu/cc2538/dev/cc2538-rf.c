@@ -975,7 +975,7 @@ PROCESS_THREAD(cc2538_rf_process, ev, data)
       }
       off();
       init();
-      if (was_on) {
+      if(was_on) {
         /* switch back on */
         on();
       }
