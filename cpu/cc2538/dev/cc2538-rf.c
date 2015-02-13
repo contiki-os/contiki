@@ -80,7 +80,6 @@
 /* Local RF Flags */
 #define RX_ACTIVE     0x80
 #define RF_MUST_RESET 0x40
-#define WAS_OFF       0x10
 #define RF_ON         0x01
 
 /* Bit Masks for the last byte in the RX FIFO */
@@ -180,6 +179,8 @@ get_channel()
 static int8_t
 set_channel(uint8_t channel)
 {
+  uint8_t was_on = 0;
+
   PRINTF("RF: Set Channel\n");
 
   if((channel < CC2538_RF_CHANNEL_MIN) || (channel > CC2538_RF_CHANNEL_MAX)) {
@@ -189,16 +190,14 @@ set_channel(uint8_t channel)
   /* Changes to FREQCTRL take effect after the next recalibration */
     
   /* If we are off, save state, otherwise switch off and save state */
-  if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
-    rf_flags |= WAS_OFF;
-  } else {
-    rf_flags &= ~WAS_OFF;
+  if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) != 0) {
+    was_on = 1;
     off();
   }
   REG(RFCORE_XREG_FREQCTRL) = (CC2538_RF_CHANNEL_MIN
       + (channel - CC2538_RF_CHANNEL_MIN) * CC2538_RF_CHANNEL_SPACING);
   /* switch radio back on only if radio was on before - otherwise will turn on radio foor sleepy nodes */
-  if((rf_flags & WAS_OFF) != WAS_OFF) {
+  if(was_on) {
     on();
   }
 
@@ -244,10 +243,11 @@ static radio_value_t
 get_rssi(void)
 {
   int8_t rssi;
+  uint8_t was_off = 0;
 
   /* If we are off, turn on first */
   if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
-    rf_flags |= WAS_OFF;
+    was_off = 1;
     on();
   }
 
@@ -257,8 +257,7 @@ get_rssi(void)
   rssi = (int8_t)(REG(RFCORE_XREG_RSSI) & RFCORE_XREG_RSSI_RSSI_VAL) - RSSI_OFFSET;
 
   /* If we were off, turn back off */
-  if((rf_flags & WAS_OFF) == WAS_OFF) {
-    rf_flags &= ~WAS_OFF;
+  if(was_off) {
     off();
   }
 
@@ -345,12 +344,13 @@ static int
 channel_clear(void)
 {
   int cca;
+  uint8_t was_off = 0;
 
   PRINTF("RF: CCA\n");
 
   /* If we are off, turn on first */
   if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
-    rf_flags |= WAS_OFF;
+    was_off = 1;
     on();
   }
 
@@ -364,8 +364,7 @@ channel_clear(void)
   }
 
   /* If we were off, turn back off */
-  if((rf_flags & WAS_OFF) == WAS_OFF) {
-    rf_flags &= ~WAS_OFF;
+  if(was_off) {
     off();
   }
 
@@ -561,13 +560,14 @@ transmit(unsigned short transmit_len)
   uint8_t counter;
   int ret = RADIO_TX_ERR;
   rtimer_clock_t t0;
+  uint8_t was_off = 0;
 
   PRINTF("RF: Transmit\n");
 
   if(!(rf_flags & RX_ACTIVE)) {
     t0 = RTIMER_NOW();
     on();
-    rf_flags |= WAS_OFF;
+    was_off = 1;
     while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
   }
 
@@ -609,8 +609,7 @@ transmit(unsigned short transmit_len)
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
-  if(rf_flags & WAS_OFF) {
-    rf_flags &= ~WAS_OFF;
+  if(was_off) {
     off();
   }
 
