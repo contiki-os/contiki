@@ -52,7 +52,7 @@
 /**
  * \brief Initialize the SPI bus.
  *
- * This SPI init() function uses the following #defines to set the pins:
+ * This SPI init() function uses the following defines to set the pins:
  *    SPI_CLK_PORT               SPI_CLK_PIN
  *    SPI_MOSI_PORT              SPI_MOSI_PIN
  *    SPI_MISO_PORT              SPI_MISO_PIN
