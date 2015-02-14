@@ -31,7 +31,7 @@
  * @{
  *
  * \file
- * Implementation of the cc2538 SPI peripheral
+ * Implementation of the cc2538 SPI peripheral driver
  */
 #include "contiki.h"
 #include "reg.h"
@@ -126,7 +126,9 @@ spi_disable(void)
   REG(SYS_CTRL_RCGCSSI) &= ~1;
 }
 /*---------------------------------------------------------------------------*/
-void spi_set_mode(uint32_t frame_format, uint32_t clock_polarity, uint32_t clock_phase, uint32_t data_size)
+void
+spi_set_mode(uint32_t frame_format, uint32_t clock_polarity,
+             uint32_t clock_phase, uint32_t data_size)
 {
   /* Disable the SSI peripheral to configure it */
   REG(SSI0_BASE + SSI_CR1) = 0;
