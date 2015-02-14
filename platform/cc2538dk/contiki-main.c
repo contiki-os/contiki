@@ -29,10 +29,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup platform
+ * \addtogroup cc2538-platforms
  * @{
  *
- * \defgroup cc2538 The cc2538 Development Kit platform
+ * \defgroup cc2538dk The cc2538 Development Kit platform
  *
  * The cc2538DK is the new platform by Texas Instruments, based on the
  * cc2530 SoC with an ARM Cortex-M3 core.

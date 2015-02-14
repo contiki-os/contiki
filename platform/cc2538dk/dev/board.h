@@ -28,7 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** \addtogroup cc2538
+/** 
+ * \addtogroup cc2538dk
  * @{
  *
  * \defgroup cc2538-smartrf SmartRF06EB Peripherals
