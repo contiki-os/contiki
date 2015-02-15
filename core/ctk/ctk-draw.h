@@ -319,7 +319,7 @@ extern unsigned char ctk_draw_windowborder_width,
 /**
  * The character used for the Return/Enter key.
  *
- * \define #define CH_ENTER '\n'
+ * \#define CH_ENTER '\n'
  */
 
 /**

@@ -33,7 +33,7 @@
 /**
  * \file Shell command for downloading files from a remote node.
  * Example usage:
- * 'download <node addr> <filename> | write <local_filename'.
+ * 'download \<node addr\> \<filename\> | write \<local_filename\>'.
  *
  * \author Luca Mottola <luca@sics.se>, Fredrik Osterlind <fros@sics.se>
  */
