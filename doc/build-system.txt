@@ -1,7 +1,5 @@
 /**
  \defgroup buildsystem The Contiki build system
-
- .
  
  The Contiki build system is designed to make it easy to compile
  Contiki applications for either to a hardware platform or into a
