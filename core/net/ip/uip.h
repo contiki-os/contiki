@@ -489,7 +489,7 @@ void uip_reass_over(void);
 /**
  * The uIP packet buffer.
  *
- * The uip_buf array is used to hold incoming and outgoing
+ * The uip_aligned_buf array is used to hold incoming and outgoing
  * packets. The device driver should place incoming data into this
  * buffer. When sending data, the device driver should read the link
  * level headers and the TCP/IP headers from this buffer. The size of
@@ -519,6 +519,8 @@ typedef union {
 } uip_buf_t;
 
 CCIF extern uip_buf_t uip_aligned_buf;
+
+/** Macro to access uip_aligned_buf as an array of bytes */
 #define uip_buf (uip_aligned_buf.u8)
 
 
