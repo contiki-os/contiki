@@ -85,7 +85,7 @@ void rs232_set_speed(unsigned char speed);
 
 /**
  * \brief      Print a text string on RS232
- * \param str  A pointer to the string that is to be printed
+ * \param text A pointer to the string that is to be printed
  *
  *             This function prints a string to RS232. The string must
  *             be terminated by a null byte. The RS232 module must be

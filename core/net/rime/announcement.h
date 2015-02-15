@@ -131,6 +131,7 @@ void announcement_remove(struct announcement *a);
  * \brief      Set the value of an announcement
  * \param a    A pointer to a struct announcement that has
  *             previously been registered
+ * \param value The new value
  *
  *             This function sets the value of an announcement that
  *             has previously been registered with

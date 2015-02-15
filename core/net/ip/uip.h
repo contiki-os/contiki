@@ -2172,7 +2172,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
  *
  * See RFC1071.
  *
- * \param buf A pointer to the buffer over which the checksum is to be
+ * \param data A pointer to the buffer over which the checksum is to be
  * computed.
  *
  * \param len The length of the buffer over which the checksum is to
@@ -2180,7 +2180,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
  *
  * \return The Internet checksum of the buffer.
  */
-uint16_t uip_chksum(uint16_t *buf, uint16_t len);
+uint16_t uip_chksum(uint16_t *data, uint16_t len);
 
 /**
  * Calculate the IP header checksum of the packet header in uip_buf.
