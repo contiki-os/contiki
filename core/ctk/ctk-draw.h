@@ -201,6 +201,7 @@ void ctk_draw_clear_window(struct ctk_window *window,
  * drawn, in screen coordinates (line 1 is the first line below the
  * menus)
  *
+ * \param draw_borders The border style
  */
 void ctk_draw_window(struct ctk_window *window,
 		     unsigned char focus,

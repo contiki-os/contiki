@@ -105,7 +105,7 @@ struct dsc {
  *
  * \param prgname The name of the program on disk.
  *
- * \param initfunc A pointer to the initialization function of the
+ * \param process A pointer to the initialization function of the
  * program.
  *
  * \param icon A pointer to the CTK icon.
