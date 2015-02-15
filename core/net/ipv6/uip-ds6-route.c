@@ -29,6 +29,15 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
+ * \file
+ *    Routing table manipulation
+ */
 #include "net/ipv6/uip-ds6.h"
 #include "net/ip/uip.h"
 
@@ -636,3 +645,4 @@ uip_ds6_defrt_periodic(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
