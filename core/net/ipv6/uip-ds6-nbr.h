@@ -99,12 +99,12 @@ int uip_ds6_nbr_num(void);
 
 /**
  * \brief
- *     This searches inside the neighbor table for the neighbor that is about to
- *     expire the next.
+ *    This searches inside the neighbor table for the neighbor that is about to
+ *    expire the next.
  *
  * \return
- *     A reference to the neighbor about to expire the next or NULL if
- *     table is empty.
+ *    A reference to the neighbor about to expire the next or NULL if
+ *    table is empty.
  */
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
 
