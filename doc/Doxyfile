@@ -1960,9 +1960,13 @@ INCLUDE_FILE_PATTERNS  =
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
 PREDEFINED             = CC_FUNCTION_POINTER_ARGS \
-                         WITH_UIP6 \
-                         UIP_CONF_IPV6 \
+                         NETSTACK_CONF_WITH_RIME \
+                         NETSTACK_CONF_WITH_IPV4 \
+                         NETSTACK_CONF_WITH_IPV6 \
                          UIP_CONF_IPV6_RPL \
+                         UIP_TCP \
+                         UIP_UDP \
+                         UIP_CONF_ICMP6 \
                          WITH_LOADER_ARCH \
                          DOXYGEN \
                          "ASCCMD(name, flags, args)=void CMD_ASCII(name)"
