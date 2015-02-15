@@ -377,5 +377,7 @@ We pass all the tests for phase 2 except:
 
 
 <HR>
+@{
 */
+/** @} */
 /** @} */
