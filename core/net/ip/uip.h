@@ -350,7 +350,7 @@ void uip_setipid(uint16_t id);
  * Periodic processing for a connection identified by its number.
  *
  * This function does the necessary periodic processing (timers,
- * polling) for a uIP TCP conneciton, and should be called when the
+ * polling) for a uIP TCP connection, and should be called when the
  * periodic uIP timer goes off. It should be called for every
  * connection, regardless of whether they are open of closed.
  *
