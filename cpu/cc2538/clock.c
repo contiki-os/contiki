@@ -136,16 +136,15 @@ clock_wait(clock_time_t i)
   while(clock_time() - start < (clock_time_t)i);
 }
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Arch-specific implementation of clock_delay_usec for the cc2538
- * \param len Delay \e len uSecs
+/*
+ * Arch-specific implementation of clock_delay_usec for the cc2538
  *
  * See clock_init() for GPT0 Timer A's configuration
  */
 void
-clock_delay_usec(uint16_t len)
+clock_delay_usec(uint16_t dt)
 {
-  REG(GPT_0_BASE | GPTIMER_TAILR) = len;
+  REG(GPT_0_BASE | GPTIMER_TAILR) = dt;
   REG(GPT_0_BASE | GPTIMER_CTL) |= GPTIMER_CTL_TAEN;
 
   /* One-Shot mode: TAEN will be cleared when the timer reaches 0 */

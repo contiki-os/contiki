@@ -54,7 +54,7 @@ static unsigned long timer_value;
 static volatile CC_AT_DATA clock_time_t count = 0; /* Uptime in ticks */
 static volatile CC_AT_DATA clock_time_t seconds = 0; /* Uptime in secs */
 /*---------------------------------------------------------------------------*/
-/**
+/*
  * Each iteration is ~1.0xy usec, so this function delays for roughly len usec
  */
 void
@@ -68,7 +68,7 @@ clock_delay_usec(uint16_t len)
   ENABLE_INTERRUPTS();
 }
 /*---------------------------------------------------------------------------*/
-/**
+/*
  * Wait for a multiple of ~8 ms (a tick)
  */
 void
