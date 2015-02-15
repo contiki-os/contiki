@@ -48,7 +48,7 @@
  *
  * The route-discovery module does route discovery for Rime.
  *
- * \section channels Channels
+ * \section route-discovery-channels Channels
  *
  * The ibc module uses 2 channels; one for the flooded route request
  * packets and one for the unicast route replies.

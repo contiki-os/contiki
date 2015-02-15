@@ -84,7 +84,7 @@
  * The polite broadcast module does not add any packet attributes to
  * outgoing packets apart from those added by the upper layer.
  *
- * \section channels Channels
+ * \section polite-channels Channels
  *
  * The polite module uses 1 channel.
  *

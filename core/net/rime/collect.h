@@ -49,7 +49,7 @@
  * The collect module implements a hop-by-hop reliable data collection
  * mechanism.
  *
- * \section channels Channels
+ * \section collect-channels Channels
  *
  * The collect module uses 2 channels; one for neighbor discovery and one
  * for data packets.
