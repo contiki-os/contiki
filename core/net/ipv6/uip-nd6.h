@@ -31,15 +31,15 @@
  */
 
 /**
- * \file
- *         Neighbor discovery (RFC 4861)
- * \author Julien Abeille <jabeille@cisco.com>
- * \author Mathilde Durvy <mdurvy@cisco.com>
+ * \addtogroup uip6
+ * @{
  */
 
 /**
- * \addtogroup uip6
- * @{
+ * \file
+ *    Header file for IPv6 Neighbor discovery (RFC 4861)
+ * \author Julien Abeille <jabeille@cisco.com>
+ * \author Mathilde Durvy <mdurvy@cisco.com>
  */
 
 #ifndef UIP_ND6_H_

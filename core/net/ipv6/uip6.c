@@ -32,17 +32,17 @@
  */
 
 /**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
  * \file
- *         The uIP TCP/IPv6 stack code.
+ *    The uIP TCP/IPv6 stack code.
  *
  * \author Adam Dunkels <adam@sics.se>
  * \author Julien Abeille <jabeille@cisco.com> (IPv6 related code)
  * \author Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
- */
-
-/**
- * \addtogroup uip6
- * @{
  */
 
 /*
