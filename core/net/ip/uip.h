@@ -393,8 +393,10 @@ void uip_setipid(uint16_t id);
     uip_process(UIP_TIMER); } while (0)
 
 /**
+ * Macro to determine whether a specific uIP connection is active
  *
- *
+ * \param conn The connection's number
+ * \retval 0 Connection closed
  */
 #define uip_conn_active(conn) (uip_conns[conn].tcpstateflags != UIP_CLOSED)
 
