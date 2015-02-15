@@ -1843,15 +1843,6 @@ GENERATE_DOCBOOK       = NO
 
 DOCBOOK_OUTPUT         = docbook
 
-# If the DOCBOOK_PROGRAMLISTING tag is set to YES doxygen will include the
-# program listings (including syntax highlighting and cross-referencing
-# information) to the DOCBOOK output. Note that enabling this will significantly
-# increase the size of the DOCBOOK output.
-# The default value is: NO.
-# This tag requires that the tag GENERATE_DOCBOOK is set to YES.
-
-DOCBOOK_PROGRAMLISTING = NO
-
 #---------------------------------------------------------------------------
 # Configuration options for the AutoGen Definitions output
 #---------------------------------------------------------------------------
@@ -2275,15 +2266,6 @@ MSCFILE_DIRS           =
 # command).
 
 DIAFILE_DIRS           =
-
-# When using plantuml, the PLANTUML_JAR_PATH tag should be used to specify the
-# path where java can find the plantuml.jar file. If left blank, it is assumed
-# PlantUML is not used or called during a preprocessing step. Doxygen will
-# generate a warning when it encounters a \startuml command in this case and
-# will not generate output for the diagram.
-# This tag requires that the tag HAVE_DOT is set to YES.
-
-PLANTUML_JAR_PATH      =
 
 # The DOT_GRAPH_MAX_NODES tag can be used to set the maximum number of nodes
 # that will be shown in the graph. If the number of nodes in a graph becomes
