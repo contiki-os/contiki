@@ -1099,7 +1099,7 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
 
 
 
-/**
+/*
  * Check if an address is a broadcast address for a network.
  *
  * Checks if an address is the broadcast address for a network. The
