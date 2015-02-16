@@ -65,7 +65,7 @@
  * If the time to live reaches zero, the primitive does not forward
  * the packet.
  *
- * \section channels Channels
+ * \section netflood-channels Channels
  *
  * The netflood module uses 1 channel.
  *

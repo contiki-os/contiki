@@ -29,17 +29,17 @@
  */
 
 /**
- * \file
- *         IPv6 data structures handling functions.
- *         Comprises part of the Neighbor discovery (RFC 4861)
- *         and auto configuration (RFC 4862) state machines.
- * \author Mathilde Durvy <mdurvy@cisco.com>
- * \author Julien Abeille <jabeille@cisco.com>
+ * \addtogroup uip6
+ * @{
  */
 
 /**
- * \addtogroup uip6
- * @{
+ * \file
+ *    IPv6 data structure manipulation.
+ *    Comprises part of the Neighbor discovery (RFC 4861)
+ *    and auto configuration (RFC 4862) state machines.
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ * \author Julien Abeille <jabeille@cisco.com>
  */
 
 #include <string.h>

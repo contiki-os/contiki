@@ -43,7 +43,7 @@
  */
 
 /**
- * \defgroup noncoresec
+ * \defgroup noncoresec LLSEC driver using a network-wide key (NONCORESEC)
  * 
  * Noncompromise-resilient 802.15.4 security
  * 
