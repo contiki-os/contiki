@@ -56,7 +56,7 @@
  * either directly or indirectly through any of the other
  * communication primitives that are based on the broadcast primitive.
  *
- * \section channels Channels
+ * \section broadcast-channels Channels
  *
  * The broadcast module uses 1 channel.
  *

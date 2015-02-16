@@ -66,7 +66,7 @@ This part of the code is very similar to the \ref ipreass "IPv4 fragmentation co
 is not assumed to be a TCP packet. As a result, we use a different
 %timer to time-out reassembly if all fragments have not been received
 after #UIP_REASS_MAXAGE = 60s.
-\note Fragment reassembly is enabled if #UIP_CONF_REASSEMBLY is set to 1.
+\note Fragment reassembly is enabled if #UIP_REASSEMBLY is set to 1.
 \note We can only reassemble packet of at most #UIP_LINK_MTU = 1280
 bytes as we do not have larger buffers.
 
@@ -81,9 +81,9 @@ typedef union uip_ip6addr_t {
 \endcode
 
 We assume that each node has a <em>single interface</em> of type
-#uip_netif. 
+#uip_ds6_netif_t. 
 
-Each interface can have up to #UIP_NETIF_MAX_ADDRESSES unicast IPv6
+Each interface can have a configurable number of unicast IPv6
 addresses including its link-local address. It also has a
 solicited-node multicast address. We assume that the unicast
 addresses are obtained via \ref autoconf "stateless address autoconfiguration" 
@@ -377,5 +377,7 @@ We pass all the tests for phase 2 except:
 
 
 <HR>
+@{
 */
+/** @} */
 /** @} */

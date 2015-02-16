@@ -53,7 +53,7 @@
  * single-hop receiver address attribute and discards the packet if
  * the address does not match the address of the node.
  *
- * \section channels Channels
+ * \section unicast-channels Channels
  *
  * The unicast module uses 1 channel.
  *

@@ -29,6 +29,14 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+/**
+ * \addtogroup uip6
+ * @{
+ */
+/**
+ * \file
+ *    Header file for routing table manipulation
+ */
 #ifndef UIP_DS6_ROUTE_H
 #define UIP_DS6_ROUTE_H
 
@@ -158,3 +166,4 @@ uip_ds6_route_t *uip_ds6_route_next(uip_ds6_route_t *);
 /** @} */
 
 #endif /* UIP_DS6_ROUTE_H */
+/** @} */

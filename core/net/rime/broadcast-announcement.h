@@ -50,7 +50,7 @@
  * announcement. THe module announces the announcements that have been
  * registered with the \ref rimeannouncement "announcement module".
  *
- * \section channels Channels
+ * \section bcast-announce-channels Channels
  *
  * The broadcast announcement module uses 1 channel.
  *

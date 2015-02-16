@@ -57,15 +57,15 @@
  */
 
 /**
- * \file
- *         Neighbor discovery (RFC 4861)
- * \author Mathilde Durvy <mdurvy@cisco.com>
- * \author Julien Abeille <jabeille@cisco.com>
+ * \addtogroup uip6
+ * @{
  */
 
 /**
- * \addtogroup uip6
- * @{
+ * \file
+ *    Neighbor discovery (RFC 4861)
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ * \author Julien Abeille <jabeille@cisco.com>
  */
 
 #include <string.h>

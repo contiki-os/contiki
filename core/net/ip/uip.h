@@ -350,7 +350,7 @@ void uip_setipid(uint16_t id);
  * Periodic processing for a connection identified by its number.
  *
  * This function does the necessary periodic processing (timers,
- * polling) for a uIP TCP conneciton, and should be called when the
+ * polling) for a uIP TCP connection, and should be called when the
  * periodic uIP timer goes off. It should be called for every
  * connection, regardless of whether they are open of closed.
  *
@@ -393,8 +393,10 @@ void uip_setipid(uint16_t id);
     uip_process(UIP_TIMER); } while (0)
 
 /**
+ * Macro to determine whether a specific uIP connection is active
  *
- *
+ * \param conn The connection's number
+ * \retval 0 Connection closed
  */
 #define uip_conn_active(conn) (uip_conns[conn].tcpstateflags != UIP_CLOSED)
 
@@ -489,7 +491,7 @@ void uip_reass_over(void);
 /**
  * The uIP packet buffer.
  *
- * The uip_buf array is used to hold incoming and outgoing
+ * The uip_aligned_buf array is used to hold incoming and outgoing
  * packets. The device driver should place incoming data into this
  * buffer. When sending data, the device driver should read the link
  * level headers and the TCP/IP headers from this buffer. The size of
@@ -519,6 +521,8 @@ typedef union {
 } uip_buf_t;
 
 CCIF extern uip_buf_t uip_aligned_buf;
+
+/** Macro to access uip_aligned_buf as an array of bytes */
 #define uip_buf (uip_aligned_buf.u8)
 
 
@@ -1097,7 +1101,7 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
 
 
 
-/**
+/*
  * Check if an address is a broadcast address for a network.
  *
  * Checks if an address is the broadcast address for a network. The
@@ -2172,7 +2176,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
  *
  * See RFC1071.
  *
- * \param buf A pointer to the buffer over which the checksum is to be
+ * \param data A pointer to the buffer over which the checksum is to be
  * computed.
  *
  * \param len The length of the buffer over which the checksum is to
@@ -2180,7 +2184,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
  *
  * \return The Internet checksum of the buffer.
  */
-uint16_t uip_chksum(uint16_t *buf, uint16_t len);
+uint16_t uip_chksum(uint16_t *data, uint16_t len);
 
 /**
  * Calculate the IP header checksum of the packet header in uip_buf.
