@@ -3,7 +3,13 @@ CONTIKI_CORE=contiki-avr-zigbit
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
 CONTIKI_TARGET_SOURCEFILES +=	rs232.c cfs-eeprom.c eeprom.c random.c \
-				mmem.c contiki-avr-zigbit-main.c
+				mmem.c contiki-avr-zigbit-main.c adc.c  mspim.c 		
+
+# For I2C bus utilization.				
+CONTIKI_TARGET_SOURCEFILES +=	i2cmaster.c 
+
+# For coffee file system utilization uncomment this line 
+#CONTIKI_TARGET_SOURCEFILES +=   cfs-coffee-arch.c
 
 CONTIKIAVR=$(CONTIKI)/cpu/avr
 CONTIKIBOARD=.
