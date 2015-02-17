@@ -31,7 +31,7 @@
 /** \addtogroup cc2538-examples
  * @{
  *
- * \defgroup cc2538-mqtt-demo
+ *  \defgroup cc2538-mqtt-demo CC2538DK MQTT Demo Project
  *
  *  Demonstrates MQTT functionality. Works with IBM Quickstart as well as
  *  mosquitto
