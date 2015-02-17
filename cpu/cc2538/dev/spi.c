@@ -31,7 +31,7 @@
  * @{
  *
  * \file
- * Implementation of the cc2538 SPI peripheral
+ * Implementation of the cc2538 SPI peripheral driver
  */
 #include "contiki.h"
 #include "reg.h"
@@ -52,7 +52,7 @@
 /**
  * \brief Initialize the SPI bus.
  *
- * This SPI init() function uses the following #defines to set the pins:
+ * This SPI init() function uses the following defines to set the pins:
  *    SPI_CLK_PORT               SPI_CLK_PIN
  *    SPI_MOSI_PORT              SPI_MOSI_PIN
  *    SPI_MISO_PORT              SPI_MISO_PIN
@@ -126,7 +126,9 @@ spi_disable(void)
   REG(SYS_CTRL_RCGCSSI) &= ~1;
 }
 /*---------------------------------------------------------------------------*/
-void spi_set_mode(uint32_t frame_format, uint32_t clock_polarity, uint32_t clock_phase, uint32_t data_size)
+void
+spi_set_mode(uint32_t frame_format, uint32_t clock_polarity,
+             uint32_t clock_phase, uint32_t data_size)
 {
   /* Disable the SSI peripheral to configure it */
   REG(SSI0_BASE + SSI_CR1) = 0;

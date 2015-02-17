@@ -58,11 +58,6 @@
  */
 
 /**
- * \addtogroup cc2538dk CC2538 Development Kit
- * \ingroup platform
- */
-
-/**
  * \addtogroup cooja COOJA network simulator node
  * \ingroup platform
  */
