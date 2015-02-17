@@ -560,12 +560,13 @@ void udma_init(void);
 /**
  * \brief Sets the channels source address
  * \param channel The channel as a value in [0 , UDMA_CONF_MAX_CHANNEL]
- * \param
+ * \param src_end The source's end address
  */
 void udma_set_channel_src(uint8_t channel, uint32_t src_end);
 
 /**
- * \brief
+ * \brief Sets the channel's destination address
+ * \param dst_end The destination's end address
  * \param channel The channel as a value in [0 , UDMA_CONF_MAX_CHANNEL]
  */
 void udma_set_channel_dst(uint8_t channel, uint32_t dst_end);
