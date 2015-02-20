@@ -15,6 +15,7 @@ webserver/c64 \
 webserver/c128 \
 webserver/atarixl \
 webserver/apple2enh \
+multi-threading/cmt-scheduler/c64 \
 
 TOOLS=
 
