@@ -76,6 +76,7 @@ int32_t wifi_socket_handle;
 
 uint32_t wifi_status, wifi_client_ip;
 uint32_t wifi_own_ip, wifi_gateway;
+uint32_t wifi_netmask;
 
 SlSocklen_t wifi_local_addr_size = sizeof(SlSockAddrIn_t);
 SlSockAddrIn_t wifi_local_addr;
@@ -222,7 +223,7 @@ int wifi_read(uint8_t *buffer, uint16_t bufsize)
 				memcpy((buffer + UIP_LLH_LEN), wifi_raw_buffer, retVal);
 
 				// Increase packet size
-				retVal =+ UIP_LLH_LEN;
+				retVal += UIP_LLH_LEN;
 			}
 		}
 	}
@@ -252,6 +253,8 @@ int wifi_send(uint8_t *data, uint16_t datalen)
 	{
 		return -1;
 	}
+
+	memcpy(&wifi_raw_buffer[0], data, datalen);
 
 	return 0;
 }
@@ -345,6 +348,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
 
             // IP Acquired Event Data
             wifi_own_ip = pSlNetApp->EventData.ipAcquiredV4.ip;
+            wifi_netmask = SL_IPV4_VAL(255, 255, 255, 0);
 
             // Gateway IP address
             wifi_gateway = pSlNetApp->EventData.ipAcquiredV4.gateway;

@@ -55,7 +55,6 @@
 #define LEDS_CONF_GREEN  	GPIO_PIN_3
 #define LEDS_CONF_YELLOW  	GPIO_PIN_2
 #define LEDS_CONF_RED  		GPIO_PIN_1
-
 /** @} */
 
 /**
@@ -64,5 +63,8 @@
  */
 #define PLATFORM_STRING "TI CC3200 LaunchpadXL + TI CC2520"
 /** @} */
+
+#undef UIP_FALLBACK_INTERFACE
+#define UIP_FALLBACK_INTERFACE ip64_uip_fallback_interface
 
 #endif /* PLATFORM_CONF_H_ */

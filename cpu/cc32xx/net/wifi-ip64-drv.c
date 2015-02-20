@@ -58,12 +58,17 @@ PROCESS(wifi_ip64_driver_process, "CC32xx WLAN IP64 driver");
 static void
 wifi_ip64_init(void)
 {
+	uint32_t hostaddr = uip_htonl(wifi_own_ip);
+	uint32_t netmask = uip_htonl(wifi_netmask);
+	uint32_t gateway = uip_htonl(wifi_gateway);
+
 	// Setup Ethernet address
 	memcpy(ip64_eth_addr.addr, wifi_mac_addr, sizeof(wifi_mac_addr));
 
 	// Setup IP, Gateway and Netmask
-
-
+	ip64_set_hostaddr((uip_ip4addr_t *)&hostaddr);
+	ip64_set_netmask((uip_ip4addr_t *)&netmask);
+	ip64_set_draddr((uip_ip4addr_t *)&gateway);
 
 	// Startup driver process
 	process_start(&wifi_ip64_driver_process, NULL);

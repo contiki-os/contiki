@@ -46,7 +46,6 @@
 #include "dev/serial-line.h"
 #include "dev/slip.h"
 // #include "dev/cc2520/cc2520.h"
-#include "net/wifi.h"
 
 #include "lib/random.h"
 #include "net/netstack.h"
@@ -54,6 +53,9 @@
 #include "net/ip/tcpip.h"
 #include "net/ip/uip.h"
 #include "net/mac/frame802154.h"
+
+#include "net/wifi.h"
+#include "net/ip64/ip64.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -200,9 +202,16 @@ contiki_main(void *pv_parameters)
 	netstack_init();
 
 #if NETSTACK_CONF_WITH_IPV6
+	// Set IPv6 address
 	memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
 	queuebuf_init();
+
+	// Start TCP/IP stack
 	process_start(&tcpip_process, NULL);
+
+	// Start IPv6 <--> IPv4 translator
+	// for CC32xx wireless network interface
+	ip64_init();
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   // process_start(&sensors_process, NULL);
