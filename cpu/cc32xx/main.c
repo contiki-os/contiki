@@ -204,12 +204,7 @@ int main(void)
 	// Initialize cc32xx wireless thread
 	retVal = VStartSimpleLinkSpawnTask(SPAWN_TASK_PRIORITY);
 	ASSERT_ON_ERROR(retVal);
-#endif
 
-	// Initialize cc32xx wireless driver
-	wifi_init();
-
-#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 	// Create contiki main task
 	retVal = osi_TaskCreate(contiki_main, (const signed char * const)"ContikiWorker", CONTIKI_STACKSIZE, NULL, CONTIKI_TASK_PRIORITY, NULL);
 	ASSERT_ON_ERROR(retVal);

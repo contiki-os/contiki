@@ -46,6 +46,8 @@
 #ifndef WIFI_H_
 #define WIFI_H_
 
+#include "simplelink.h"
+
 // Status bits - These are used to set/reset the corresponding bits in
 // given variable
 typedef enum {
@@ -80,10 +82,18 @@ typedef enum {
                                                 	STATUS_BIT_IP_AQUIRED)
 #define IS_RAW_SOCKET_OPEN(status_variable)		GET_STATUS_BIT(status_variable,\
 													STATUS_BIT_RAW_SOCKET_OPEN)
-
+// Prototypes
 void wifi_init(void);
-uint16_t wifi_poll(void);
-void wifi_send(void);
 void wifi_exit(void);
+
+int wifi_read(uint8_t *buffer, uint16_t bufsize);
+int wifi_send(uint8_t *data, uint16_t datalen);
+
+// Externals
+extern uint8_t wifi_mac_addr[SL_MAC_ADDR_LEN];
+extern uint8_t wifi_client_mac_addr[SL_MAC_ADDR_LEN];
+
+extern uint32_t wifi_client_ip, wifi_own_ip;
+extern uint32_t wifi_gateway, wifi_netmask;
 
 #endif /* WIFI_H_ */

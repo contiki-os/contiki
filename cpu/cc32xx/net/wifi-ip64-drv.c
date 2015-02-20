@@ -40,7 +40,7 @@
  * @{
  *
  * \file
- * Implementation of the cc32xx Wireless Network driver
+ * Implementation of the cc32xx IP64 Wireless Network driver
  */
 
 #include "contiki.h"
@@ -50,78 +50,54 @@
 #include "net/ip64/ip64.h"
 #include "net/ip64/ip64-eth.h"
 
-#include "net/rime/rime.h"
-
 #include <string.h>
 
-#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
-#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+PROCESS(wifi_ip64_driver_process, "CC32xx WLAN IP64 driver");
 
-PROCESS(wifi_process, "CC32xx WLAN IP64 driver");
-
-/*---------------------------------------------------------------------------*/
-uint8_t
-wifi_output(void)
-{
-	uip_arp_out();
-	wifi_send();
-
-	return 0;
-}
 /*---------------------------------------------------------------------------*/
 static void
-wifi_pollhandler(void)
+wifi_ip64_init(void)
 {
-//	process_poll(&wifi_process);
-//	uip_len = wifi_poll();
-//
-//	if(uip_len > 0)
-//	{
-//#if NETSTACK_CONF_WITH_IPV6
-//		if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6))
-//		{
-//#ifdef uip_neighbor_add
-//			uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
-//#endif
-//			tcpip_input();
-//		} else
-//#endif /* NETSTACK_CONF_WITH_IPV6 */
-//		if(BUF->type == uip_htons(UIP_ETHTYPE_IP))
-//		{
-//			uip_len -= sizeof(struct uip_eth_hdr);
-//			tcpip_input();
-//		} else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
-//#ifdef uip_arp_arpin
-//			uip_arp_arpin();
-//#endif
-//			/* If the above function invocation resulted in data that
-//          	   should be sent out on the network, the global variable
-//          	   uip_len is set to a value > 0. */
-//			if(uip_len > 0)
-//			{
-//				wifi_send();
-//			}
-//		}
-//	}
+	// Setup Ethernet address
+	memcpy(ip64_eth_addr.addr, wifi_mac_addr, sizeof(wifi_mac_addr));
+
+	// Setup IP, Gateway and Netmask
+
+
+
+	// Startup driver process
+	process_start(&wifi_ip64_driver_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(wifi_process, ev, data)
+static int
+wifi_ip64_output(uint8_t *packet, uint16_t len)
 {
-	PROCESS_POLLHANDLER(wifi_pollhandler());
+	wifi_send(packet, len);
+	return len;
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(wifi_ip64_driver_process, ev, data)
+{
+	static int len;
+	static struct etimer e;
 	PROCESS_BEGIN();
 
-	// wifi_init();
-#if !NETSTACK_CONF_WITH_IPV6
-	tcpip_set_outputfunc(wifi_output);
-#else
-	tcpip_set_outputfunc(wifi_send);
-#endif
-
-	process_poll(&wifi_process);
-	PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
-
-	wifi_exit();
+	while(1)
+	{
+		etimer_set(&e, 1);
+		PROCESS_WAIT_EVENT();
+		len = wifi_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
+		if(len > 0)
+		{
+			IP64_INPUT(ip64_packet_buffer, len);
+		}
+	}
 
 	PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
+const struct ip64_driver wifi_ip64_driver = {
+	wifi_ip64_init,
+	wifi_ip64_output
+};
 /*---------------------------------------------------------------------------*/

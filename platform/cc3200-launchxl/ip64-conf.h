@@ -34,11 +34,11 @@
 #define IP64_CONF_H
 
 #include "net/ip64/ip64-eth-interface.h"
-#include "net/ip64/ip64-null-driver.h"
+#include "net/wifi-ip64-drv.h"
 
 #define IP64_CONF_UIP_FALLBACK_INTERFACE ip64_eth_interface
 #define IP64_CONF_INPUT                  ip64_eth_interface_input
 
-#define IP64_CONF_ETH_DRIVER             ip64_null_driver
-
+#define IP64_CONF_ETH_DRIVER             wifi_ip64_driver
+#define IP64_CONF_DHCP					 0
 #endif /* IP64_CONF_H */

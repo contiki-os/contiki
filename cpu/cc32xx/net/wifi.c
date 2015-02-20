@@ -43,7 +43,9 @@
  * Implementation of the cc32xx wireless network wrapper
  */
 
+#include "contiki.h"
 #include "contiki-net.h"
+
 #include "sys/log.h"
 #include "uip.h"
 
@@ -62,22 +64,18 @@
 #define ASSERT_ON_ERROR(e)
 #endif
 
-// Ethernet related
-#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
-#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
-
 // Enable debug messages
 #define DEBUG	1
 
 // Static variables
-unsigned char wifi_mac_addr[SL_MAC_ADDR_LEN];
-unsigned char wifi_client_mac_addr[SL_MAC_ADDR_LEN];
+uint8_t wifi_mac_addr[SL_MAC_ADDR_LEN];
+uint8_t wifi_client_mac_addr[SL_MAC_ADDR_LEN];
+uint8_t wifi_raw_buffer[UIP_BUFSIZE];
 
-unsigned long wifi_status, wifi_client_ip;
-unsigned long wifi_own_ip, wifi_gateway;
+int32_t wifi_socket_handle;
 
-unsigned char wifi_raw_buffer[UIP_BUFSIZE];
-long wifi_socket_handle;
+uint32_t wifi_status, wifi_client_ip;
+uint32_t wifi_own_ip, wifi_gateway;
 
 SlSocklen_t wifi_local_addr_size = sizeof(SlSockAddrIn_t);
 SlSockAddrIn_t wifi_local_addr;
@@ -85,11 +83,11 @@ SlSockAddrIn_t wifi_local_addr;
 /*---------------------------------------------------------------------------*/
 void wifi_init(void)
 {
-	unsigned char wifi_mac_addr_len = SL_MAC_ADDR_LEN;
+	uint8_t wifi_mac_addr_len = SL_MAC_ADDR_LEN;
 
 #if STARTUP_CONF_VERBOSE
-	unsigned char configOpt = 0;
-	unsigned char configLen = 0;
+	uint8_t configOpt = 0;
+	uint8_t configLen = 0;
 	SlVersionFull ver = {0};
 #endif
 
@@ -135,8 +133,10 @@ void wifi_init(void)
 	// doing anything
 	while(!IS_IP_ACQUIRED(wifi_status))
 	{
+#if !defined(USE_FREERTOS) || !defined(USE_TIRTOS)
 		// Call simple link worker
 		_SlNonOsMainLoopTask();
+#endif
 	}
 
 #if STARTUP_CONF_VERBOSE
@@ -144,7 +144,7 @@ void wifi_init(void)
 	configOpt = SL_DEVICE_GENERAL_VERSION;
 	configLen = sizeof(ver);
 
-	retVal = sl_DevGet(SL_DEVICE_GENERAL_CONFIGURATION, &configOpt, &configLen, (unsigned char *)(&ver));
+	retVal = sl_DevGet(SL_DEVICE_GENERAL_CONFIGURATION, &configOpt, &configLen, (uint8_t *)(&ver));
 	ASSERT_ON_ERROR(retVal);
 
 	PRINTF(" Host Driver Version: %s\n",SL_DRIVER_VERSION);
@@ -157,19 +157,21 @@ void wifi_init(void)
 #endif
 
 	// Read simplelink MAC address
-	retVal = sl_NetCfgGet(SL_MAC_ADDRESS_GET, NULL, &wifi_mac_addr_len, (unsigned char *)&wifi_mac_addr);
+	retVal = sl_NetCfgGet(SL_MAC_ADDRESS_GET, NULL, &wifi_mac_addr_len, (uint8_t *)&wifi_mac_addr);
 	//ASSERT_ON_ERROR(retVal);
 #if STARTUP_CONF_VERBOSE
 	PRINTF(" MAC address is %02x:%02x:%02x:%02x:%02x:%02x\n\n", wifi_mac_addr[0], wifi_mac_addr[1], wifi_mac_addr[2], wifi_mac_addr[3], wifi_mac_addr[4], wifi_mac_addr[5]);
 #endif
 }
 /*---------------------------------------------------------------------------*/
-uint16_t wifi_poll(void)
+int wifi_read(uint8_t *buffer, uint16_t bufsize)
 {
-	int32_t retVal;
+	int32_t retVal = 0;
 
+#if !defined(USE_FREERTOS) || !defined(USE_TIRTOS)
 	// Call simple link worker
 	_SlNonOsMainLoopTask();
+#endif
 
 	// Check if client is connected and has an IP leased.
 	if (IS_CONNECTED(wifi_status) && IS_IP_LEASED(wifi_status))
@@ -211,19 +213,16 @@ uint16_t wifi_poll(void)
 			retVal = sl_RecvFrom(wifi_socket_handle, wifi_raw_buffer, sizeof(wifi_raw_buffer), 0, (SlSockAddr_t *)&wifi_local_addr, &wifi_local_addr_size);
 			if (retVal > 0)
 			{
-
 				// Add Ethernet header
-				BUF->type = uip_htons(UIP_ETHTYPE_IP);
-				memcpy(BUF->dest.addr, wifi_mac_addr, SL_MAC_ADDR_LEN);
-				memcpy(BUF->src.addr, wifi_client_mac_addr, SL_MAC_ADDR_LEN);
+				((struct uip_eth_hdr *)buffer)->type = uip_htons(UIP_ETHTYPE_IP);
+				memcpy(((struct uip_eth_hdr *)buffer)->dest.addr, wifi_mac_addr, SL_MAC_ADDR_LEN);
+				memcpy(((struct uip_eth_hdr *)buffer)->src.addr, wifi_client_mac_addr, SL_MAC_ADDR_LEN);
 
-#if NETSTACK_CONF_WITH_IPV6
-
-#else
 				// Copy IP Packet
-				memcpy(&uip_buf[UIP_LLH_LEN], wifi_raw_buffer, retVal);
-#endif
-				return (retVal + UIP_LLH_LEN);
+				memcpy((buffer + UIP_LLH_LEN), wifi_raw_buffer, retVal);
+
+				// Increase packet size
+				retVal =+ UIP_LLH_LEN;
 			}
 		}
 	}
@@ -244,12 +243,17 @@ uint16_t wifi_poll(void)
 		}
 	}
 
-	return 0;
+	return retVal;
 }
 /*---------------------------------------------------------------------------*/
-void wifi_send(void)
+int wifi_send(uint8_t *data, uint16_t datalen)
 {
+	if (!(IS_RAW_SOCKET_OPEN(wifi_status)))
+	{
+		return -1;
+	}
 
+	return 0;
 }
 /*---------------------------------------------------------------------------*/
 void wifi_exit(void)
@@ -323,7 +327,7 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 		default:
 		{
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink WlanEvent: Unexpected event [0x%x]\n", pSlWlanEvent->Event);
+			PRINTF("SimpleLink WlanEvent: Unexpected event [0x%x]\n", (unsigned int)pSlWlanEvent->Event);
 #endif
 		}
 		break;
@@ -347,10 +351,10 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
 
 #if STARTUP_CONF_VERBOSE
 			PRINTF(" Own IP Acquired, IP = %d.%d.%d.%d, Gateway = %d.%d.%d.%d\n",
-					SL_IPV4_BYTE(wifi_own_ip, 3), SL_IPV4_BYTE(wifi_own_ip, 2),
-					SL_IPV4_BYTE(wifi_own_ip, 1), SL_IPV4_BYTE(wifi_own_ip, 0),
-					SL_IPV4_BYTE(wifi_gateway, 3), SL_IPV4_BYTE(wifi_gateway, 2),
-					SL_IPV4_BYTE(wifi_gateway, 1), SL_IPV4_BYTE(wifi_gateway, 0));
+					(int)SL_IPV4_BYTE(wifi_own_ip, 3), (int)SL_IPV4_BYTE(wifi_own_ip, 2),
+					(int)SL_IPV4_BYTE(wifi_own_ip, 1), (int)SL_IPV4_BYTE(wifi_own_ip, 0),
+					(int)SL_IPV4_BYTE(wifi_gateway, 3), (int)SL_IPV4_BYTE(wifi_gateway, 2),
+					(int)SL_IPV4_BYTE(wifi_gateway, 1), (int)SL_IPV4_BYTE(wifi_gateway, 0));
 #endif
         }
         break;
@@ -362,8 +366,8 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
 
 #if STARTUP_CONF_VERBOSE && DEBUG
 			PRINTF("SimpleLink NetAppEvent: IP Leased to Client with IP = %d.%d.%d.%d\n",
-					SL_IPV4_BYTE(wifi_client_ip, 3), SL_IPV4_BYTE(wifi_client_ip, 2),
-					SL_IPV4_BYTE(wifi_client_ip, 1), SL_IPV4_BYTE(wifi_client_ip, 0));
+					(int)SL_IPV4_BYTE(wifi_client_ip, 3), (int)SL_IPV4_BYTE(wifi_client_ip, 2),
+					(int)SL_IPV4_BYTE(wifi_client_ip, 1), (int)SL_IPV4_BYTE(wifi_client_ip, 0));
 #endif
         }
         break;
@@ -374,8 +378,8 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
 
 #if STARTUP_CONF_VERBOSE && DEBUG
 			PRINTF("SimpleLink NetAppEvent: IP Released from Client with IP = %d.%d.%d.%d\n",
-					SL_IPV4_BYTE(wifi_client_ip,3), SL_IPV4_BYTE(wifi_client_ip,2),
-					SL_IPV4_BYTE(wifi_client_ip,1), SL_IPV4_BYTE(wifi_client_ip,0));
+					(int)SL_IPV4_BYTE(wifi_client_ip,3), (int)SL_IPV4_BYTE(wifi_client_ip,2),
+					(int)SL_IPV4_BYTE(wifi_client_ip,1), (int)SL_IPV4_BYTE(wifi_client_ip,0));
 #endif
         }
         break;
@@ -383,7 +387,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
         default:
         {
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink NetAppEvent: Unexpected event [0x%x]\n", pSlNetApp->Event);
+			PRINTF("SimpleLink NetAppEvent: Unexpected event [0x%x]\n", (unsigned int)pSlNetApp->Event);
 #endif
         }
         break;
@@ -393,7 +397,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
 void sl_SockEvtHdlr(SlSockEvent_t *pSlSockEvent)
 {
 #if STARTUP_CONF_VERBOSE && DEBUG
-	PRINTF("SimpleLink SockEvent: Unexpected event [0x%x]\n", pSlSockEvent->Event);
+	PRINTF("SimpleLink SockEvent: Unexpected event [0x%x]\n", (unsigned int)pSlSockEvent->Event);
 #endif
 }
 /*---------------------------------------------------------------------------*/

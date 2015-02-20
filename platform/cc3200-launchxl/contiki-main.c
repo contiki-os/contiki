@@ -39,12 +39,14 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
+
 #include "dev/leds.h"
 #include "dev/watchdog.h"
 // #include "dev/button-sensor.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
 // #include "dev/cc2520/cc2520.h"
+#include "net/wifi.h"
 
 #include "lib/random.h"
 #include "net/netstack.h"
@@ -114,37 +116,38 @@ fade(unsigned char l)
 }
 
 /*---------------------------------------------------------------------------*/
-//static void
-//set_rf_params(void)
-//{
-//  uint16_t short_addr;
-//  uint8_t ext_addr[8];
-//
-//  ieee_addr_cpy_to(ext_addr, 8);
-//
-//  short_addr = ext_addr[7];
-//  short_addr |= ext_addr[6] << 8;
-//
-//  /* Populate linkaddr_node_addr. Maintain endianness */
-//  memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
-//
-//#if STARTUP_CONF_VERBOSE
-//  {
-//    int i;
-//    printf("Rime configured with address ");
-//    for(i = 0; i < LINKADDR_SIZE - 1; i++) {
-//      printf("%02x:", linkaddr_node_addr.u8[i]);
-//    }
-//    printf("%02x\n", linkaddr_node_addr.u8[i]);
-//  }
-//#endif
-//
-//  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
-//  NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
-//  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC2520_RF_CHANNEL);
-//  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
-//
-//}
+static void
+set_rf_params(void)
+{
+	uint16_t short_addr;
+	uint8_t ext_addr[8];
+
+	// Generate ZigBee address from Wifi MAC address
+	memset(&ext_addr[0], 0x3B, sizeof(ext_addr));
+	memcpy(&ext_addr[1], &wifi_mac_addr[0], sizeof(wifi_mac_addr));
+
+	short_addr = ext_addr[7];
+	short_addr |= ext_addr[6] << 8;
+
+	/* Populate linkaddr_node_addr. Maintain endianness */
+	memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
+
+	#if STARTUP_CONF_VERBOSE
+	{
+		int i;
+		PRINTF("Rime configured with address ");
+		for(i = 0; i < LINKADDR_SIZE - 1; i++) {
+			PRINTF("%02x:", linkaddr_node_addr.u8[i]);
+		}
+		PRINTF("%02x\n", linkaddr_node_addr.u8[i]);
+	}
+	#endif
+
+	NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
+	NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
+	NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC2520_RF_CHANNEL);
+	NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
+}
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Contiki main routine for the cc3200-launchxl platform
@@ -152,11 +155,14 @@ fade(unsigned char l)
 void
 contiki_main(void *pv_parameters)
 {
+	leds_init();
+
 	// Output platform information
 	PUTS(CONTIKI_VERSION_STRING);
 	PRINTF("%s\n\n", PLATFORM_STRING);
 
-	leds_init();
+	// Initialize cc32xx wireless driver and fade red led
+	wifi_init();
 	fade(LEDS_RED);
 
 	// Initialize watch dog subsystem
@@ -189,14 +195,15 @@ contiki_main(void *pv_parameters)
 	// Initialize random number engine.
 	random_init(0);
 
-	// set_rf_params();
-	// netstack_init();
+	// Setup network stack
+	set_rf_params();
+	netstack_init();
 
-//#if NETSTACK_CONF_WITH_IPV6
-//  memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
-//  queuebuf_init();
+#if NETSTACK_CONF_WITH_IPV6
+	memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
+	queuebuf_init();
 	process_start(&tcpip_process, NULL);
-//#endif /* NETSTACK_CONF_WITH_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   // process_start(&sensors_process, NULL);
 

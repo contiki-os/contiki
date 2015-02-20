@@ -262,14 +262,14 @@ typedef uint32_t rtimer_clock_t;
  *
  * @{
  */
-//#ifndef NETSTACK_CONF_NETWORK
-//#if NETSTACK_CONF_WITH_IPV6
-//#define NETSTACK_CONF_NETWORK sicslowpan_driver
-//#else
-//#define NETSTACK_CONF_NETWORK rime_driver
-//#endif /* NETSTACK_CONF_WITH_IPV6 */
-//#endif /* NETSTACK_CONF_NETWORK */
-//
+#ifndef NETSTACK_CONF_NETWORK
+#if NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_NETWORK sicslowpan_driver
+#else
+#define NETSTACK_CONF_NETWORK rime_driver
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+#endif /* NETSTACK_CONF_NETWORK */
+
 //#ifndef NETSTACK_CONF_MAC
 ///* #define NETSTACK_CONF_MAC     csma_driver */
 //#define NETSTACK_CONF_MAC     csma_driver
@@ -311,7 +311,7 @@ typedef uint32_t rtimer_clock_t;
  */
 /* RF Config */
 #ifndef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID           0x5449 /**< Default PAN ID: TI */
+#define IEEE802154_CONF_PANID           0x5449 /**< Default PAN ID: 3B */
 #endif
 
 #ifndef CC2520_RF_CONF_CHANNEL

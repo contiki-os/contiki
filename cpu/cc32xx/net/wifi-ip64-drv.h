@@ -36,18 +36,17 @@
  *
  * \defgroup cc32xx-wifi cc32xx Wireless Network driver
  *
- * Driver for the cc32xx Wireless Network controller
+ * IP64 Driver for the cc32xx Wireless Network controller
  * @{
  *
  * \file
- * Headers of the cc32xx Wireless Network driver
+ * Headers of the cc32xx IP64 Wireless Network driver
  */
 
-#ifndef WIFI_DRV_H_
-#define WIFI_DRV_H_
+#ifndef WIFI_IP64_DRV_H_
+#define WIFI_IP64_DRV_H_
 
-#include "contiki.h"
+#include "ip64-driver.h"
+extern const struct ip64_driver wifi_ip64_driver;
 
-PROCESS_NAME(wifi_process);
-
-#endif /* WIFI_DRV_H_ */
+#endif /* WIFI_IP64_DRV_H_ */
