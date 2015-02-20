@@ -47,7 +47,6 @@
 #include "sys/log.h"
 #include "uip.h"
 
-#include "net/wifi-drv.h"
 #include "net/wifi.h"
 #include "simplelink.h"
 
@@ -161,7 +160,7 @@ void wifi_init(void)
 	retVal = sl_NetCfgGet(SL_MAC_ADDRESS_GET, NULL, &wifi_mac_addr_len, (unsigned char *)&wifi_mac_addr);
 	//ASSERT_ON_ERROR(retVal);
 #if STARTUP_CONF_VERBOSE
-	PRINTF(" MAC address is [%02x:%02x:%02x:%02x:%02x:%02x]\n\n", wifi_mac_addr[0], wifi_mac_addr[1], wifi_mac_addr[2], wifi_mac_addr[3], wifi_mac_addr[4], wifi_mac_addr[5]);
+	PRINTF(" MAC address is %02x:%02x:%02x:%02x:%02x:%02x\n\n", wifi_mac_addr[0], wifi_mac_addr[1], wifi_mac_addr[2], wifi_mac_addr[3], wifi_mac_addr[4], wifi_mac_addr[5]);
 #endif
 }
 /*---------------------------------------------------------------------------*/
@@ -196,29 +195,34 @@ uint16_t wifi_poll(void)
 				SET_STATUS_BIT(wifi_status, STATUS_BIT_RAW_SOCKET_OPEN);
 
 #if STARTUP_CONF_VERBOSE
-				PRINTF(" SimpleLink RAW socket created! Socket Descriptor: %d \n", wifi_socket_handle);
+				PRINTF("SimpleLink RAW socket created! Socket Descriptor: %d \n", wifi_socket_handle);
 #endif
 			}
 			else
 			{
 #if STARTUP_CONF_VERBOSE
-				PRINTF(" SimpleLink failed to create RAW socket\n");
+				PRINTF("SimpleLink failed to create RAW socket\n");
 #endif
 			}
 		}
 		else
 		{
+			// Try to read received IP packets
 			retVal = sl_RecvFrom(wifi_socket_handle, wifi_raw_buffer, sizeof(wifi_raw_buffer), 0, (SlSockAddr_t *)&wifi_local_addr, &wifi_local_addr_size);
 			if (retVal > 0)
 			{
+
 				// Add Ethernet header
 				BUF->type = uip_htons(UIP_ETHTYPE_IP);
 				memcpy(BUF->dest.addr, wifi_mac_addr, SL_MAC_ADDR_LEN);
 				memcpy(BUF->src.addr, wifi_client_mac_addr, SL_MAC_ADDR_LEN);
 
+#if NETSTACK_CONF_WITH_IPV6
+
+#else
 				// Copy IP Packet
 				memcpy(&uip_buf[UIP_LLH_LEN], wifi_raw_buffer, retVal);
-
+#endif
 				return (retVal + UIP_LLH_LEN);
 			}
 		}
@@ -235,7 +239,7 @@ uint16_t wifi_poll(void)
 			sl_Close(wifi_socket_handle);
 
 #if STARTUP_CONF_VERBOSE
-			PRINTF(" SimpleLink close RAW socket\n");
+			PRINTF("SimpleLink close RAW socket\n");
 #endif
 		}
 	}
@@ -262,7 +266,7 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 		{
 			SET_STATUS_BIT(wifi_status, STATUS_BIT_CONNECTION);
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF(" SimpleLink WlanEvent: Device connected to the AP.\n");
+			PRINTF("SimpleLink WlanEvent: Device connected to the AP.\n");
 #endif
 		}
 		break;
@@ -280,11 +284,11 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 			//'reason_code' is SL_USER_INITIATED_DISCONNECTION
 			if(SL_USER_INITIATED_DISCONNECTION == pEventData->reason_code)
 			{
-				PRINTF(" SimpleLink WlanEvent: Device disconnected from the AP on application's request.\n");
+				PRINTF("SimpleLink WlanEvent: Device disconnected from the AP on application's request.\n");
 			}
 			else
 			{
-				PRINTF(" SimpleLink WlanEvent: Device disconnected from the AP on an ERROR!\n");
+				PRINTF("SimpleLink WlanEvent: Device disconnected from the AP on an ERROR!\n");
 			}
 #endif
 		}
@@ -299,7 +303,7 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 			memcpy(wifi_client_mac_addr, pSlWlanEvent->EventData.APModeStaConnected.mac, SL_MAC_ADDR_LEN);
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF(" SimpleLink WlanEvent: Client connected to the AP, MAC address is [%02x:%02x:%02x:%02x:%02x:%02x]\n", wifi_client_mac_addr[0], wifi_client_mac_addr[1], wifi_client_mac_addr[2], wifi_client_mac_addr[3], wifi_client_mac_addr[4], wifi_client_mac_addr[5]);
+			PRINTF("SimpleLink WlanEvent: Client connected to the AP, MAC address is %02x:%02x:%02x:%02x:%02x:%02x\n", wifi_client_mac_addr[0], wifi_client_mac_addr[1], wifi_client_mac_addr[2], wifi_client_mac_addr[3], wifi_client_mac_addr[4], wifi_client_mac_addr[5]);
 #endif
 		}
 		break;
@@ -311,7 +315,7 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 			CLR_STATUS_BIT(wifi_status, STATUS_BIT_IP_LEASED);
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF(" SimpleLink WlanEvent: Client disconnects from the AP.\n");
+			PRINTF("SimpleLink WlanEvent: Client disconnects from the AP.\n");
 #endif
 		}
 		break;
@@ -319,7 +323,7 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 		default:
 		{
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF(" SimpleLink WlanEvent: Unexpected event [0x%x]\n", pSlWlanEvent->Event);
+			PRINTF("SimpleLink WlanEvent: Unexpected event [0x%x]\n", pSlWlanEvent->Event);
 #endif
 		}
 		break;
@@ -357,7 +361,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
             wifi_client_ip = pSlNetApp->EventData.ipLeased.ip_address;
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF(" SimpleLink NetAppEvent: IP Leased to Client with IP = %d.%d.%d.%d\n",
+			PRINTF("SimpleLink NetAppEvent: IP Leased to Client with IP = %d.%d.%d.%d\n",
 					SL_IPV4_BYTE(wifi_client_ip, 3), SL_IPV4_BYTE(wifi_client_ip, 2),
 					SL_IPV4_BYTE(wifi_client_ip, 1), SL_IPV4_BYTE(wifi_client_ip, 0));
 #endif
@@ -369,7 +373,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
             CLR_STATUS_BIT(wifi_status, STATUS_BIT_IP_LEASED);
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF(" SimpleLink NetAppEvent: IP Released from Client with IP = %d.%d.%d.%d\n",
+			PRINTF("SimpleLink NetAppEvent: IP Released from Client with IP = %d.%d.%d.%d\n",
 					SL_IPV4_BYTE(wifi_client_ip,3), SL_IPV4_BYTE(wifi_client_ip,2),
 					SL_IPV4_BYTE(wifi_client_ip,1), SL_IPV4_BYTE(wifi_client_ip,0));
 #endif
@@ -379,7 +383,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
         default:
         {
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF(" SimpleLink NetAppEvent: Unexpected event [0x%x]\n", pSlNetApp->Event);
+			PRINTF("SimpleLink NetAppEvent: Unexpected event [0x%x]\n", pSlNetApp->Event);
 #endif
         }
         break;
@@ -389,7 +393,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
 void sl_SockEvtHdlr(SlSockEvent_t *pSlSockEvent)
 {
 #if STARTUP_CONF_VERBOSE && DEBUG
-	PRINTF(" SimpleLink SockEvent: Unexpected event [0x%x]\n", pSlSockEvent->Event);
+	PRINTF("SimpleLink SockEvent: Unexpected event [0x%x]\n", pSlSockEvent->Event);
 #endif
 }
 /*---------------------------------------------------------------------------*/

@@ -34,27 +34,30 @@
  * \addtogroup cc32xx
  * @{
  *
- * \defgroup cc32xx-wifi cc32xx Wireless Network driver
+ * \defgroup cc32xx-wifi cc32xx IP64 Wireless Network driver
  *
- * Driver for the cc32xx Wireless Network controller
+ * IP64 Driver for the cc32xx Wireless Network controller
  * @{
  *
  * \file
  * Implementation of the cc32xx Wireless Network driver
  */
 
-#include <stdio.h>
-
-#include "contiki-net.h"
+#include "contiki.h"
 #include "net/wifi.h"
-#include "net/ipv4/uip-neighbor.h"
+#include "net/wifi-ip64-drv.h"
 
-#include "net/wifi-drv.h"
+#include "net/ip64/ip64.h"
+#include "net/ip64/ip64-eth.h"
+
+#include "net/rime/rime.h"
+
+#include <string.h>
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 #define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-PROCESS(wifi_process, "CC32xx WLAN driver");
+PROCESS(wifi_process, "CC32xx WLAN IP64 driver");
 
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -69,37 +72,37 @@ wifi_output(void)
 static void
 wifi_pollhandler(void)
 {
-	process_poll(&wifi_process);
-	uip_len = wifi_poll();
-
-	if(uip_len > 0)
-	{
-#if NETSTACK_CONF_WITH_IPV6
-		if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6))
-		{
-#ifdef uip_neighbor_add
-			uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
-#endif
-			tcpip_input();
-		} else
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-		if(BUF->type == uip_htons(UIP_ETHTYPE_IP))
-		{
-			uip_len -= sizeof(struct uip_eth_hdr);
-			tcpip_input();
-		} else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
-#ifdef uip_arp_arpin
-			uip_arp_arpin();
-#endif
-			/* If the above function invocation resulted in data that
-          	   should be sent out on the network, the global variable
-          	   uip_len is set to a value > 0. */
-			if(uip_len > 0)
-			{
-				wifi_send();
-			}
-		}
-	}
+//	process_poll(&wifi_process);
+//	uip_len = wifi_poll();
+//
+//	if(uip_len > 0)
+//	{
+//#if NETSTACK_CONF_WITH_IPV6
+//		if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6))
+//		{
+//#ifdef uip_neighbor_add
+//			uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
+//#endif
+//			tcpip_input();
+//		} else
+//#endif /* NETSTACK_CONF_WITH_IPV6 */
+//		if(BUF->type == uip_htons(UIP_ETHTYPE_IP))
+//		{
+//			uip_len -= sizeof(struct uip_eth_hdr);
+//			tcpip_input();
+//		} else if(BUF->type == uip_htons(UIP_ETHTYPE_ARP)) {
+//#ifdef uip_arp_arpin
+//			uip_arp_arpin();
+//#endif
+//			/* If the above function invocation resulted in data that
+//          	   should be sent out on the network, the global variable
+//          	   uip_len is set to a value > 0. */
+//			if(uip_len > 0)
+//			{
+//				wifi_send();
+//			}
+//		}
+//	}
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(wifi_process, ev, data)
@@ -107,7 +110,7 @@ PROCESS_THREAD(wifi_process, ev, data)
 	PROCESS_POLLHANDLER(wifi_pollhandler());
 	PROCESS_BEGIN();
 
-	wifi_init();
+	// wifi_init();
 #if !NETSTACK_CONF_WITH_IPV6
 	tcpip_set_outputfunc(wifi_output);
 #else

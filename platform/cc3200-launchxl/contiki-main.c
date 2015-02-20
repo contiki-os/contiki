@@ -46,8 +46,6 @@
 #include "dev/slip.h"
 // #include "dev/cc2520/cc2520.h"
 
-#include "net/wifi-drv.h"
-
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/queuebuf.h"
@@ -154,20 +152,33 @@ fade(unsigned char l)
 void
 contiki_main(void *pv_parameters)
 {
+	// Output platform information
+	PUTS(CONTIKI_VERSION_STRING);
+	PRINTF("%s\n\n", PLATFORM_STRING);
+
 	leds_init();
 	fade(LEDS_RED);
 
+	// Initialize watch dog subsystem
+	watchdog_init();
+
+	// Initialize clock system
+	clock_init();
+	rtimer_init();
+
+	// Initialize process subsystem
 	process_init();
 
-	watchdog_init();
-	// button_sensor_init();
+	// Event timers must be started before ctimer_init
+	process_start(&etimer_process, NULL);
+	ctimer_init();
 
+	// button_sensor_init();
 	serial_line_init();
 	fade(LEDS_YELLOW);
 
-	PUTS(CONTIKI_VERSION_STRING);
-	PUTS(PLATFORM_STRING);
-
+	// Setup ZigBee stack
+	PRINTF("Starting ZigBee Network\n");
 	PRINTF(" Net: ");
 	PRINTF("%s\n", NETSTACK_NETWORK.name);
 	PRINTF(" MAC: ");
@@ -175,14 +186,8 @@ contiki_main(void *pv_parameters)
 	PRINTF(" RDC: ");
 	PRINTF("%s\n\n", NETSTACK_RDC.name);
 
-	/* Initialise the H/W RNG engine. */
+	// Initialize random number engine.
 	random_init(0);
-
-	clock_init();
-	rtimer_init();
-
-	process_start(&etimer_process, NULL);
-	ctimer_init();
 
 	// set_rf_params();
 	// netstack_init();
@@ -195,7 +200,6 @@ contiki_main(void *pv_parameters)
 
   // process_start(&sensors_process, NULL);
 
-	process_start(&wifi_process, NULL);
 	autostart_start(autostart_processes);
 
 	watchdog_start();

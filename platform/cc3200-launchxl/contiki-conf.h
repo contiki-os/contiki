@@ -119,9 +119,13 @@ typedef uint32_t rtimer_clock_t;
 #define STARTUP_CONF_VERBOSE        1 /**< Set to 0 to decrease startup verbosity */
 #endif
 
-#define LOG_CONF_ENABLED 			1
-#define UIP_CONF_LOGGING 			1
+#ifndef LOG_CONF_ENABLED
+#define LOG_CONF_ENABLED 			1 /**< Set to 1 to enable system logging */
+#endif
 
+#ifndef UIP_CONF_LOGGING
+#define UIP_CONF_LOGGING 			1 /**< Set to 1 to enable network stack logging */
+#endif
 /** @} */
 
 /*---------------------------------------------------------------------------*/
@@ -204,6 +208,12 @@ typedef uint32_t rtimer_clock_t;
 
 #undef STARTUP_CONF_VERBOSE
 #define STARTUP_CONF_VERBOSE        0
+
+#undef LOG_CONF_ENABLED
+#define LOG_CONF_ENABLED 			0
+
+#undef UIP_CONF_LOGGING
+#define UIP_CONF_LOGGING 			0
 
 /* Little sanity check: We can't have quiet sniffers */
 #if CC2520_RF_CONF_SNIFFER
@@ -402,7 +412,7 @@ typedef uint32_t rtimer_clock_t;
 /*---------------------------------------------------------------------------*/
 #else /* NETSTACK_CONF_WITH_IPV6 */
 /* Network setup for non-IPv6 (rime). */
-#define UIP_CONF_IP_FORWARD                  1
+#define UIP_CONF_IP_FORWARD                  0
 
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS     0
 
