@@ -62,7 +62,9 @@ typedef enum {
 
     STATUS_BIT_IP_AQUIRED,		// If this bit is set: the device has acquired an IP
 
-    STATUS_BIT_RAW_SOCKET_OPEN	// If this bit is set: the raw socket is opened
+    STATUS_BIT_RAW_SOCKET_OPEN,	// If this bit is set: the raw socket is opened
+
+    STATUS_BIT_ARP_REQUESTED	// If this bit is set: Ethernet emulation has ARP requested
 
 } wifi_statusbits_t;
 
@@ -82,6 +84,9 @@ typedef enum {
                                                 	STATUS_BIT_IP_AQUIRED)
 #define IS_RAW_SOCKET_OPEN(status_variable)		GET_STATUS_BIT(status_variable,\
 													STATUS_BIT_RAW_SOCKET_OPEN)
+#define IS_ARP_REQUESTED(status_variable)		GET_STATUS_BIT(status_variable,\
+													STATUS_BIT_ARP_REQUESTED)
+
 // Prototypes
 void wifi_init(void);
 void wifi_exit(void);

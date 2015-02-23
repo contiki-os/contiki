@@ -67,6 +67,19 @@
 // Enable debug messages
 #define DEBUG	1
 
+// Internal structures
+struct wifi_arp_hdr {
+  uint16_t hwtype;
+  uint16_t protocol;
+  uint8_t hwlen;
+  uint8_t protolen;
+  uint16_t opcode;
+  struct uip_eth_addr shwaddr;
+  uip_ip4addr_t sipaddr;
+  struct uip_eth_addr dhwaddr;
+  uip_ip4addr_t dipaddr;
+};
+
 // Static variables
 uint8_t wifi_mac_addr[SL_MAC_ADDR_LEN];
 uint8_t wifi_client_mac_addr[SL_MAC_ADDR_LEN];
@@ -89,7 +102,7 @@ void wifi_init(void)
 #if STARTUP_CONF_VERBOSE
 	uint8_t configOpt = 0;
 	uint8_t configLen = 0;
-	SlVersionFull ver = {0};
+	SlVersionFull ver;
 #endif
 
 	int retVal = -1;
@@ -180,7 +193,7 @@ int wifi_read(uint8_t *buffer, uint16_t bufsize)
 		// Check if raw socket is not opened
 		if (!(IS_RAW_SOCKET_OPEN(wifi_status)))
 		{
-			int enableHeader = 0;
+			int enableHeader = 1;
 			SlSockNonblocking_t enableOption;
 
 			// Open RAW socket to bypass cc32xx embedded TCP/IP stack
@@ -197,33 +210,70 @@ int wifi_read(uint8_t *buffer, uint16_t bufsize)
 				// Set raw socket open flag
 				SET_STATUS_BIT(wifi_status, STATUS_BIT_RAW_SOCKET_OPEN);
 
-#if STARTUP_CONF_VERBOSE
-				PRINTF("SimpleLink RAW socket created! Socket Descriptor: %d \n", wifi_socket_handle);
+#if STARTUP_CONF_VERBOSE && DEBUG
+				PRINTF("SimpleLink RAW socket created! Socket Descriptor: %d \n", (int)wifi_socket_handle);
 #endif
 			}
 			else
 			{
-#if STARTUP_CONF_VERBOSE
+#if STARTUP_CONF_VERBOSE && DEBUG
 				PRINTF("SimpleLink failed to create RAW socket\n");
 #endif
 			}
 		}
 		else
 		{
-			// Try to read received IP packets
-			retVal = sl_RecvFrom(wifi_socket_handle, wifi_raw_buffer, sizeof(wifi_raw_buffer), 0, (SlSockAddr_t *)&wifi_local_addr, &wifi_local_addr_size);
-			if (retVal > 0)
+			struct uip_eth_hdr *packet_eth_hdr = (struct uip_eth_hdr *)buffer;
+
+			// Check if ARP request is pending
+			if (IS_ARP_REQUESTED(wifi_status))
 			{
+				// Prepare both IPs and ARP header
+				struct wifi_arp_hdr *packet_arp_hdr = (struct wifi_arp_hdr *)(buffer + UIP_LLH_LEN);
+				uint32_t own_ip_uip = uip_htonl(wifi_own_ip);
+				uint32_t client_ip_uip = uip_htonl(wifi_client_ip);
+
 				// Add Ethernet header
-				((struct uip_eth_hdr *)buffer)->type = uip_htons(UIP_ETHTYPE_IP);
-				memcpy(((struct uip_eth_hdr *)buffer)->dest.addr, wifi_mac_addr, SL_MAC_ADDR_LEN);
-				memcpy(((struct uip_eth_hdr *)buffer)->src.addr, wifi_client_mac_addr, SL_MAC_ADDR_LEN);
+				packet_eth_hdr->type = uip_htons(UIP_ETHTYPE_ARP);
+				memcpy(packet_eth_hdr->dest.addr, wifi_mac_addr, SL_MAC_ADDR_LEN);
+				memcpy(packet_eth_hdr->src.addr, wifi_client_mac_addr, SL_MAC_ADDR_LEN);
 
-				// Copy IP Packet
-				memcpy((buffer + UIP_LLH_LEN), wifi_raw_buffer, retVal);
+				// Setup ARP answer
+				packet_arp_hdr->hwtype = uip_htons(1); 	// Ethernet
+				packet_arp_hdr->protocol = uip_htons(0x8000); // IPv4
+				packet_arp_hdr->hwlen = 6; // Ethernet MAC length
+				packet_arp_hdr->protolen = 4; // IPv4 address length
+				packet_arp_hdr->opcode = uip_htons(2); // ARP answer
 
-				// Increase packet size
-				retVal += UIP_LLH_LEN;
+				memcpy(&packet_arp_hdr->shwaddr, &wifi_client_mac_addr, SL_MAC_ADDR_LEN);
+				uip_ip4addr_copy(&packet_arp_hdr->sipaddr, (uip_ip4addr_t *)&client_ip_uip);
+
+				memcpy(&packet_arp_hdr->dhwaddr, &wifi_mac_addr, SL_MAC_ADDR_LEN);
+				uip_ip4addr_copy(&packet_arp_hdr->dipaddr, (uip_ip4addr_t *)&own_ip_uip);
+
+				// Reset ARP pending flag and calculate packet size
+				retVal = sizeof(struct uip_eth_hdr) + sizeof(struct wifi_arp_hdr);
+				CLR_STATUS_BIT(wifi_status, STATUS_BIT_ARP_REQUESTED);
+			}
+			else
+			{
+				uint8_t *packet_payload = buffer + UIP_LLH_LEN;
+
+				// Try to read received IP packets
+				retVal = sl_RecvFrom(wifi_socket_handle, wifi_raw_buffer, sizeof(wifi_raw_buffer), 0, (SlSockAddr_t *)&wifi_local_addr, &wifi_local_addr_size);
+				if (retVal > 0)
+				{
+					// Add Ethernet header
+					packet_eth_hdr->type = uip_htons(UIP_ETHTYPE_IP);
+					memcpy(packet_eth_hdr->dest.addr, wifi_mac_addr, SL_MAC_ADDR_LEN);
+					memcpy(packet_eth_hdr->src.addr, wifi_client_mac_addr, SL_MAC_ADDR_LEN);
+
+					// Copy IP Packet
+					memcpy(packet_payload, wifi_raw_buffer, retVal);
+
+					// Increase packet size
+					retVal += UIP_LLH_LEN;
+				}
 			}
 		}
 	}
@@ -238,7 +288,7 @@ int wifi_read(uint8_t *buffer, uint16_t bufsize)
 			// Close RAW socket
 			sl_Close(wifi_socket_handle);
 
-#if STARTUP_CONF_VERBOSE
+#if STARTUP_CONF_VERBOSE && DEBUG
 			PRINTF("SimpleLink close RAW socket\n");
 #endif
 		}
@@ -249,14 +299,48 @@ int wifi_read(uint8_t *buffer, uint16_t bufsize)
 /*---------------------------------------------------------------------------*/
 int wifi_send(uint8_t *data, uint16_t datalen)
 {
+	// Return on no active connection
 	if (!(IS_RAW_SOCKET_OPEN(wifi_status)))
 	{
 		return -1;
 	}
 
-	memcpy(&wifi_raw_buffer[0], data, datalen);
+	// Get Ethernet header from packet and check for ARP request.
+	struct uip_eth_hdr *packet_eth_hdr = (struct uip_eth_hdr *)data;
+	if (packet_eth_hdr->type == uip_htons(UIP_ETHTYPE_ARP))
+	{
+		// Get ARP Header from packet
+		struct wifi_arp_hdr *packet_arp_hdr = (struct wifi_arp_hdr *)(data + UIP_LLH_LEN);
 
-	return 0;
+		// Prepare client IP for comparing
+		uint32_t client_ip_uip = uip_htonl(wifi_client_ip);
+
+		// Check if ARP request is for client IP
+		if ((packet_arp_hdr->opcode == uip_htons(1)) && (uip_ip4addr_cmp((uip_ip4addr_t *)&client_ip_uip, &packet_arp_hdr->dipaddr)))
+		{
+#if STARTUP_CONF_VERBOSE && DEBUG
+			// Printout requested IP address
+			PRINTF("SimpleLink: ARP request for IP %u.%u.%u.%u received\n", packet_arp_hdr->dipaddr.u8[0], packet_arp_hdr->dipaddr.u8[1], packet_arp_hdr->dipaddr.u8[2], packet_arp_hdr->dipaddr.u8[3]);
+#endif
+
+			// Set status flag that an ARP was requested
+			SET_STATUS_BIT(wifi_status, STATUS_BIT_ARP_REQUESTED);
+		}
+	}
+	else
+	{
+		// Check if packet is for connected client
+		if (memcmp(&packet_eth_hdr->dest.addr, &wifi_client_mac_addr, SL_MAC_ADDR_LEN) == 0)
+		{
+			// Copy IP packet to internal buffer
+			memcpy(&wifi_raw_buffer[0], (data + UIP_LLH_LEN), (datalen - UIP_LLH_LEN));
+
+			// Send IP packet out over wireless network
+			sl_SendTo(wifi_socket_handle, &wifi_raw_buffer, (datalen - UIP_LLH_LEN), 0, (SlSockAddr_t *)&wifi_local_addr, wifi_local_addr_size);
+		}
+	}
+
+	return datalen;
 }
 /*---------------------------------------------------------------------------*/
 void wifi_exit(void)
@@ -408,4 +492,3 @@ void sl_SockEvtHdlr(SlSockEvent_t *pSlSockEvent)
 void sl_HttpServerCallback(SlHttpServerEvent_t *pSlHttpServerEvent, SlHttpServerResponse_t *pSlHttpServerResponse)
 {
 }
-
