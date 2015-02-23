@@ -38,7 +38,10 @@
 #ifndef PLATFORM_CONF_H_
 #define PLATFORM_CONF_H_
 
+#include "hw_memmap.h"
 #include "hw_types.h"
+#include "hw_mcspi.h"
+
 #include "gpio.h"
 
 /*
@@ -64,7 +67,67 @@
 #define PLATFORM_STRING "TI CC3200 LaunchpadXL + TI CC2520"
 /** @} */
 
+/**
+ * UIP fall back interface definitions
+ * @{
+ */
 #undef UIP_FALLBACK_INTERFACE
 #define UIP_FALLBACK_INTERFACE ip64_uip_fallback_interface
+/** @} */
+
+/**
+ * CC2520 SPI related definitions
+ * @{
+ */
+#define CC2520_CS_N_PIN_MASK 		GPIO_PIN_6
+#define CC2520_VREG_EN_PIN_MASK 	GPIO_PIN_7
+#define CC2520_CONTROL_PIN_MASK 	(CC2520_CS_N_PIN_MASK | CC2520_VREG_EN_PIN_MASK)
+
+#define CC2520_SPI_SET_ENABLED		GPIO_PIN_7
+#define CC2520_SPI_SET_POWER_DOWN	GPIO_PIN_6
+#define CC2520_SPI_SET_DISABLED		(CC2520_SPI_SET_ENABLED | CC2520_SPI_SET_POWER_DOWN)
+
+/*
+ * SPI bus configuration for the CC3200 LaunchPad-XL
+ */
+
+/* SPI input/output registers. */
+#define SPI_TXBUF 	HWREG(GSPI_BASE+MCSPI_O_TX0)
+#define SPI_RXBUF 	HWREG(GSPI_BASE+MCSPI_O_RX0)
+
+/*
+ * Wait for end of transmission
+ */
+#define SPI_WAITFOREOTx() 		while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_EOT))
+
+/*
+ * Wait for RX data
+ */
+#define SPI_WAITFOREORx() 		while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_RXS))
+
+/*
+ * Wait for data could be transmitted.
+ */
+#define SPI_WAITFORTxREADY() 	while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_TXS))
+
+/*
+ * Enable / Disable CC2520 access to the SPI bus.
+ */
+
+ /* ENABLE CSn (active low) */
+#define CC2520_SPI_ENABLE()     															\
+	do { 																					\
+		MAP_GPIOPinWrite(GPIOA0_BASE, CC2520_CONTROL_PIN_MASK, CC2520_SPI_SET_ENABLED);		\
+	} while(0)
+
+ /* DISABLE CSn (active low) */
+#define CC2520_SPI_DISABLE()    															\
+	do { 																					\
+		MAP_GPIOPinWrite(GPIOA0_BASE, CC2520_CONTROL_PIN_MASK, CC2520_SPI_SET_DISABLED);	\
+	} while(0)
+
+ /* is CSn == 0? */
+#define CC2520_SPI_IS_ENABLED()  (!((MAP_GPIOPinRead(GPIOA0_BASE, CC2520_CS_N_PIN_MASK) & CC2520_CS_N_PIN_MASK) ? 1 : 0))
+/** @} */
 
 #endif /* PLATFORM_CONF_H_ */

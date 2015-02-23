@@ -244,7 +244,7 @@ CONTIKI_CPU_DIRS += ../arm/common/dbg-io
 #
 CONTIKI_CPU_SOURCEFILES += clock.c clock-arch.c dbg.c main.c 
 CONTIKI_CPU_SOURCEFILES += mtarch.c rtimer-arch.c startup_gcc.c
-CONTIKI_CPU_SOURCEFILES += uart-arch.c watchdog.c
+CONTIKI_CPU_SOURCEFILES += spi-arch.c uart-arch.c watchdog.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 NET_ARCH_SOURCEFILES += wifi.c wifi-ip64-drv.c
