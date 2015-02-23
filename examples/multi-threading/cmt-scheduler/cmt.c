@@ -74,10 +74,6 @@ static process_data_t cmt_data;    /*!< Any cmt_thread may access this event dat
 
 PROCESS_THREAD(cmt_thread_handler, ev, data)
 {
-  struct mt_thread *mt;
-
-  mt = &(cmt_current()->mt_thread);
-
   /* move event into global scope */
   cmt_ev = ev;
   cmt_data = data;
@@ -89,17 +85,18 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
 
   /* exec thread once to get to first blocking situation */
-  mt_start(mt,cmt_current()->function,data);
-  mt_exec(mt);
+  mt_start(&(cmt_current()->mt_thread),cmt_current()->function,data);
+  mt_exec(&(cmt_current()->mt_thread));
 
-  while(mt->state != MT_STATE_EXITED)
+  while((cmt_current()->mt_thread).state != MT_STATE_EXITED)
   {
       PROCESS_WAIT_EVENT();
-      mt_exec(mt);
+      mt_exec(&(cmt_current()->mt_thread));
   }
 
 exit:
-  mt_stop(mt);
+  mt_stop(&(cmt_current()->mt_thread));
+  (cmt_current()->mt_thread).state = MT_STATE_EXITED;
 
   PROCESS_END();
 }
@@ -148,19 +145,28 @@ cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
     process_post((struct process*)thread,PROCESS_EVENT_CONTINUE,data);
 }
 
-void cmt_join(struct cmt_thread *thread)
+void
+cmt_join(struct cmt_thread *thread)
 {
-    int *state;
-
     if (cmt_current() == thread){
         return;
     }
 
-    state = &((thread)->mt_thread.state);
-
-    while(*state != MT_STATE_EXITED) {
+    while(thread->mt_thread.state != MT_STATE_EXITED) {
         cmt_pause();
     }
+
+
+}
+
+void
+cmt_stop(struct cmt_thread *thread)
+{
+    if (cmt_current() == thread){
+        return;
+    }
+
+    process_post((struct process*)thread,PROCESS_EVENT_EXIT,NULL);
 }
 
 

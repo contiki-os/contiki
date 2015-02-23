@@ -81,10 +81,11 @@
 /**
  * Yield the thread for a short while.
  *
+ * Must only be called within a mt_thread function!
+ *
  * This macro yields the currently running thread for a short while,
  * thus letting other processes and threads run before the thread continues.
  *
- * \hideinitializer
  */
 #define cmt_pause() \
     do { \
@@ -107,7 +108,7 @@ struct cmt_thread {
     struct process process;
     struct mt_thread mt_thread; /*!< associated mt_thread */
     struct etimer et;           /*!< sleep timer ... may not be defined as auto var due to stack swapping 6502 arch */
-    void (* function)(void *);
+    void (* function)(void *);  /*!< Thread function pointer */
 };
 
 /**
@@ -144,9 +145,36 @@ struct cmt_thread {
 *          If the calling thread is the joined thread, the function
 *          returns immediately.
 *
+*          Must not be called from a process!
+*
 * \param   thread      cmt thread control instance
 */
 void cmt_join(struct cmt_thread *thread);
+
+/**
+* \brief   Blocks the calling process until the joined thread terminates.
+*
+*          Must not be called from a cmt_thread!
+*
+* \param   threadptr      cmt thread control instance
+*/
+#define process_join_cmt(threadptr)  \
+        while((threadptr)->mt_thread.state != MT_STATE_EXITED) { \
+            PROCESS_PAUSE(); \
+        }
+
+
+/**
+* \brief   Stops a running cmt_thread
+*          If the calling thread is the thread to stop, the function
+*          returns immediately. The thread to stop is not stopped
+*          immediately, thus one must join the thread afterwards.
+*
+*          May be called by a process or a cmt_thread.
+*
+* \param   thread      cmt thread control instance
+*/
+void cmt_stop(struct cmt_thread *thread);
 
 /**
  * \brief      Starts an cmt mt_thread
