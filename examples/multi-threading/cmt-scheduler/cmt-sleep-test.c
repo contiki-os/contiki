@@ -96,10 +96,10 @@ uint8_t countdown2 = 20;
 static struct cmt_thread threads[2];
 
 /*---------------------------------------------------------------------------*/
-PROCESS(cmt_example, "cmt example");
-AUTOSTART_PROCESSES(&cmt_example);
+PROCESS(cmt_sleep_test, "cmt_sleep_test");
+AUTOSTART_PROCESSES(&cmt_sleep_test);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(cmt_example, ev, data)
+PROCESS_THREAD(cmt_sleep_test, ev, data)
 {
       static struct etimer et;
 

@@ -172,10 +172,10 @@ PROCESS_THREAD(p4, ev, data)
 }
 
 /*---------------------------------------------------------------------------*/
-PROCESS(cmt_example, "cmt example");
-AUTOSTART_PROCESSES(&cmt_example);
+PROCESS(cmt_event_test, "cmt_event_test");
+AUTOSTART_PROCESSES(&cmt_event_test);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(cmt_example, ev, data)
+PROCESS_THREAD(cmt_event_test, ev, data)
 {
 
   PROCESS_BEGIN();

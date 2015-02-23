@@ -66,10 +66,7 @@
 static process_event_t cmt_ev;     /*!< Any cmt_thread may access this event id via get func */
 static process_data_t cmt_data;    /*!< Any cmt_thread may access this event data via get func */
 
-struct cmt_startup_t {
-    void *data;
-    void (* function)(void *);
-};
+
 
 /*---------------------------------------------------------------------------*/
 #define PROCESS_RESOLVE_FUNC_NAME(name) \
@@ -79,7 +76,7 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
 {
   struct mt_thread *mt;
 
-  mt = &(((struct cmt_thread*)PROCESS_CURRENT())->mt_thread);
+  mt = &(cmt_current()->mt_thread);
 
   /* move event into global scope */
   cmt_ev = ev;
@@ -89,8 +86,10 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
 
   PROCESS_BEGIN();
 
+  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
+
   /* exec thread once to get to first blocking situation */
-  mt_start(mt,((struct cmt_startup_t*)data)->function,((struct cmt_startup_t*)data)->data);
+  mt_start(mt,cmt_current()->function,data);
   mt_exec(mt);
 
   while(mt->state != MT_STATE_EXITED)
@@ -118,12 +117,9 @@ cmt_get_data()
     return cmt_data;
 }
 
-
-
 void
 cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
 {
-    struct cmt_startup_t cmt_startup;
 
 #ifndef PROCESS_CONF_NO_PROCESS_NAMES
     static const char* cmt_any_text = "cmt any";
@@ -137,18 +133,35 @@ cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
         return;
     }
 
-    cmt_startup.data = data;
-    cmt_startup.function = function;
+    thread->function = function;
+    thread->mt_thread.state = MT_STATE_READY;
 
     thread->process.thread = PROCESS_RESOLVE_FUNC_NAME(cmt_thread_handler);
 #ifndef PROCESS_CONF_NO_PROCESS_NAMES
     thread->process.name = (char*)cmt_any_text;
 #endif
-    process_start((struct process*)thread,&cmt_startup); /* calls process_post_sync, thus cmt_startup stays valid also for 6502! */
+    process_start((struct process*)thread,NULL); /* start the cmt_thread_handler */
 
+    /* move out of any cmt context ...
+       this allows to cmt_start another thread within a
+       cmt_thread context */
+    process_post((struct process*)thread,PROCESS_EVENT_CONTINUE,data);
 }
 
+void cmt_join(struct cmt_thread *thread)
+{
+    int *state;
 
+    if (cmt_current() == thread){
+        return;
+    }
+
+    state = &((thread)->mt_thread.state);
+
+    while(*state != MT_STATE_EXITED) {
+        cmt_pause();
+    }
+}
 
 
 

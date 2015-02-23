@@ -95,6 +95,7 @@
 #define cmt_exit() \
     mt_exit()
 
+
 /** \brief  Extended cmt process/mt_thread structure
  *
  *  Combines a process with an mt_thread structure.
@@ -106,6 +107,7 @@ struct cmt_thread {
     struct process process;
     struct mt_thread mt_thread; /*!< associated mt_thread */
     struct etimer et;           /*!< sleep timer ... may not be defined as auto var due to stack swapping 6502 arch */
+    void (* function)(void *);
 };
 
 /**
@@ -137,6 +139,14 @@ struct cmt_thread {
         cmt_wait_event();           \
     }while(!(cond))
 
+/**
+* \brief   Blocks the calling thread until the joined thread terminates.
+*          If the calling thread is the joined thread, the function
+*          returns immediately.
+*
+* \param   thread      cmt thread control instance
+*/
+void cmt_join(struct cmt_thread *thread);
 
 /**
  * \brief      Starts an cmt mt_thread
