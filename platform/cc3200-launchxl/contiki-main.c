@@ -45,7 +45,7 @@
 // #include "dev/button-sensor.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
-// #include "dev/cc2520/cc2520.h"
+#include "dev/cc2520/cc2520.h"
 
 #include "lib/random.h"
 #include "net/netstack.h"
@@ -145,10 +145,9 @@ set_rf_params(void)
 	}
 	#endif
 
-	NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
-	NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
-	NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC2520_RF_CHANNEL);
-	NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
+	// Configure RF parameters
+	cc2520_set_pan_addr(IEEE802154_PANID, short_addr, ext_addr);
+	cc2520_set_channel(CC2520_RF_CHANNEL);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -197,9 +196,14 @@ contiki_main(void *pv_parameters)
 	// Initialize random number engine.
 	random_init(0);
 
-	// Setup network stack
+	// Initialize cc2520 driver and RF parameters
+	cc2520_init();
 	set_rf_params();
-	netstack_init();
+
+	// Initialize network stack
+	NETSTACK_RDC.init();
+	NETSTACK_MAC.init();
+	NETSTACK_NETWORK.init();
 
 #if NETSTACK_CONF_WITH_IPV6
 	// Set IPv6 address

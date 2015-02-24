@@ -42,6 +42,9 @@
 #include "hw_types.h"
 #include "hw_mcspi.h"
 
+#include "rom.h"
+#include "rom_map.h"
+
 #include "gpio.h"
 
 /*
@@ -72,62 +75,89 @@
  * @{
  */
 #undef UIP_FALLBACK_INTERFACE
-#define UIP_FALLBACK_INTERFACE ip64_uip_fallback_interface
+#define UIP_FALLBACK_INTERFACE 	ip64_uip_fallback_interface
 /** @} */
+
+/*
+ * SPI bus configuration for the CC3200 LaunchPad-XL
+ * @{
+ */
+
+/* SPI input/output registers. */
+#define SPI_TXBUF 				HWREG(GSPI_BASE+MCSPI_O_TX0)
+#define SPI_RXBUF 				HWREG(GSPI_BASE+MCSPI_O_RX0)
+
+/*
+ * Wait for end of transmission
+ */
+#define SPI_WAITFOREOTx() 		do { printf("Before SPI_WAITFOREOTx\n"); while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_EOT)); printf("After SPI_WAITFOREOTx\n"); } while(0)
+
+/*
+ * Wait for RX data
+ */
+#define SPI_WAITFOREORx() 		do { printf("Before SPI_WAITFOREORx\n"); while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_RXS)); printf("After SPI_WAITFOREORx\n");  } while(0)
+
+/*
+ * Wait for data could be transmitted.
+ */
+#define SPI_WAITFORTxREADY() 	do { printf("Before SPI_WAITFORTxREADY\n"); /* while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_TXS)); */ printf("After SPI_WAITFORTxREADY\n"); } while(0)
+
+/** @} */
+
+/**
+ * Include TI CC2520 architecture dependent functions
+ */
+#include "cc2520-arch.h"
+#include "cc2520_const.h"
+#include "clock-arch.h"
 
 /**
  * CC2520 SPI related definitions
  * @{
  */
-#define CC2520_CS_N_PIN_MASK 		GPIO_PIN_6
-#define CC2520_VREG_EN_PIN_MASK 	GPIO_PIN_7
-#define CC2520_CONTROL_PIN_MASK 	(CC2520_CS_N_PIN_MASK | CC2520_VREG_EN_PIN_MASK)
+#define CC2520_CONF_SYMBOL_LOOP_COUNT	USEC_TO_LOOP(326)
 
-#define CC2520_SPI_SET_ENABLED		GPIO_PIN_7
-#define CC2520_SPI_SET_POWER_DOWN	GPIO_PIN_6
-#define CC2520_SPI_SET_DISABLED		(CC2520_SPI_SET_ENABLED | CC2520_SPI_SET_POWER_DOWN)
+/* GPIO06 - Output: SPI Chip Select (CS_N) */
+#define CC2520_CSN_PORT_BASE      		GPIOA0_BASE
+#define CC2520_CSN_PIN            		GPIO_PIN_6
 
-/*
- * SPI bus configuration for the CC3200 LaunchPad-XL
- */
-
-/* SPI input/output registers. */
-#define SPI_TXBUF 	HWREG(GSPI_BASE+MCSPI_O_TX0)
-#define SPI_RXBUF 	HWREG(GSPI_BASE+MCSPI_O_RX0)
+/* GPIO07 - Output: VREG_EN to CC2520 */
+#define CC2520_VREG_PORT_BASE	   		GPIOA0_BASE
+#define CC2520_VREG_PIN           		GPIO_PIN_7
 
 /*
- * Wait for end of transmission
+ * CC2520 pin status emulation
  */
-#define SPI_WAITFOREOTx() 		while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_EOT))
+#define CC2520_FIFOP_IS_1 		(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_FIFOP)
+#define CC2520_FIFO_IS_1 		(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_FIFO)
+#define CC2520_CCA_IS_1 		(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_CCA)
+#define CC2520_SFD_IS_1   		(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_SFD)
 
-/*
- * Wait for RX data
- */
-#define SPI_WAITFOREORx() 		while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_RXS))
+/* CC2520 voltage regulator enable pin. */
+#define SET_VREG_ACTIVE()		MAP_GPIOPinWrite(CC2520_VREG_PORT_BASE, CC2520_VREG_PIN, CC2520_VREG_PIN);
+#define SET_VREG_INACTIVE()     MAP_GPIOPinWrite(CC2520_VREG_PORT_BASE, CC2520_VREG_PIN, 0);
 
-/*
- * Wait for data could be transmitted.
- */
-#define SPI_WAITFORTxREADY() 	while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_TXS))
+/* The CC2520 reset pin. */
+#define SET_RESET_INACTIVE()   	clock_delay(5)
+#define SET_RESET_ACTIVE()   	clock_delay(5)
+
+/* CC2520 dummy external interrupt. */
+#define CC2520_FIFOP_INT_INIT()
+#define CC2520_ENABLE_FIFOP_INT()
+#define CC2520_DISABLE_FIFOP_INT()
+#define CC2520_CLEAR_FIFOP_INT()
 
 /*
  * Enable / Disable CC2520 access to the SPI bus.
+ *
+ * ENABLE CSn (active low)
  */
+#define CC2520_SPI_ENABLE()     	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, 0); clock_delay(5); } while(0)
 
- /* ENABLE CSn (active low) */
-#define CC2520_SPI_ENABLE()     															\
-	do { 																					\
-		MAP_GPIOPinWrite(GPIOA0_BASE, CC2520_CONTROL_PIN_MASK, CC2520_SPI_SET_ENABLED);		\
-	} while(0)
+/* DISABLE CSn (active low) */
+#define CC2520_SPI_DISABLE()    	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, CC2520_CSN_PIN); clock_delay(5); } while(0)
+#define CC2520_SPI_IS_ENABLED()  	(!((MAP_GPIOPinRead(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN) & CC2520_CSN_PIN) ? 1 : 0))
 
- /* DISABLE CSn (active low) */
-#define CC2520_SPI_DISABLE()    															\
-	do { 																					\
-		MAP_GPIOPinWrite(GPIOA0_BASE, CC2520_CONTROL_PIN_MASK, CC2520_SPI_SET_DISABLED);	\
-	} while(0)
-
- /* is CSn == 0? */
-#define CC2520_SPI_IS_ENABLED()  (!((MAP_GPIOPinRead(GPIOA0_BASE, CC2520_CS_N_PIN_MASK) & CC2520_CS_N_PIN_MASK) ? 1 : 0))
 /** @} */
 
 #endif /* PLATFORM_CONF_H_ */

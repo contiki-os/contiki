@@ -47,7 +47,7 @@ CONTIKI_TARGET_DIRS = . dev
 #
 # Platform dependent source files
 #
-CONTIKI_TARGET_SOURCEFILES += contiki-main.c pin_mux_config.c leds-arch.c
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c cc2520-arch.c leds-arch.c pin_mux_config.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
@@ -82,4 +82,5 @@ MODULES += core/net core/net/mac \
            core/net/mac/contikimac \
            core/net/llsec \
            core/net/ip64-addr \
-           core/net/ip64
+           core/net/ip64 \
+           dev/cc2520

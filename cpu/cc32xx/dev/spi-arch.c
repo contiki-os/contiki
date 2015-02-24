@@ -118,7 +118,7 @@ spi_init(void)
 	 * Mode, Sub mode, Bit Rate, Chip Select, Word Length
 	 */
 	MAP_SPIConfigSetExpClk(GSPI_BASE,
-		PRCMPeripheralClockGet(PRCM_GSPI),
+		MAP_PRCMPeripheralClockGet(PRCM_GSPI),
 		CC32XX_SPI_BITRATE,
 		CC32XX_SPI_MODE,
 		CC32XX_SPI_SUBMODE,
@@ -129,6 +129,6 @@ spi_init(void)
 	MAP_SPIEnable(GSPI_BASE);
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-	PRINTF("SPI of CC32XX initialized\n");
+	PRINTF("SPI of CC32xx initialized\n");
 #endif
 }

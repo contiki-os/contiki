@@ -5,12 +5,12 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776" moduleId="org.eclipse.cdt.core.settings" name="Hello World - CC3200-LaunchXL">
 				<externalSettings/>
 				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -136,12 +136,12 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408" moduleId="org.eclipse.cdt.core.settings" name="Hello World - CC3200-LaunchXL NonOS">
 				<externalSettings/>
 				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -268,12 +268,12 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408.1551311230" moduleId="org.eclipse.cdt.core.settings" name="Webserver IPv6 - CC3200-LaunchXL NonOS">
 				<externalSettings/>
 				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -360,7 +360,7 @@
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.2105703529" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1661963061" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.2087359491" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" valueType="includePath">
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.2087359491" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:${workspace_loc}/thirdparty/ti-cc3200-sdk/inc}&quot;"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.811850359" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
@@ -402,19 +402,19 @@
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
-		<configuration configurationName="Default">
-			<resource resourceType="PROJECT" workspacePath="/Contiki"/>
-		</configuration>
+		<configuration configurationName="Webserver IPv6 - CC3200-LaunchXL NonOS"/>
 		<configuration configurationName="Webserver - CC3200-LaunchXL NonOS">
-			<resource resourceType="PROJECT" workspacePath="/Contiki"/>
-		</configuration>
-		<configuration configurationName="Hello World - CC3200-LaunchXL NonOS">
 			<resource resourceType="PROJECT" workspacePath="/Contiki"/>
 		</configuration>
 		<configuration configurationName="Hello World - CC3200-LaunchXL">
 			<resource resourceType="PROJECT" workspacePath="/Contiki"/>
 		</configuration>
-		<configuration configurationName="Webserver IPv6 - CC3200-LaunchXL NonOS"/>
+		<configuration configurationName="Hello World - CC3200-LaunchXL NonOS">
+			<resource resourceType="PROJECT" workspacePath="/Contiki"/>
+		</configuration>
+		<configuration configurationName="Default">
+			<resource resourceType="PROJECT" workspacePath="/Contiki"/>
+		</configuration>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 	<storageModule moduleId="scannerConfiguration">
@@ -422,10 +422,16 @@
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.673224209;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1955074281;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.455418752">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408.1551311230;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408.1551311230.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.2022283767;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1772655314">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.673224209;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.2125977780;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.308270241">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1573831667;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.217264415">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408.1551311230;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408.1551311230.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1661963061;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.811850359">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408;ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.1157926776.1267596408.;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.1258147719;ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.input.1900333374">

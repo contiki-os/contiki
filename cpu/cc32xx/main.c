@@ -173,7 +173,9 @@ static void BoardInit(void)
 
 int main(void)
 {
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
 	int retVal = -1;
+#endif
 
 	// Board Initialization
 	BoardInit();

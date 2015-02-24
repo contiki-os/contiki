@@ -97,3 +97,14 @@ void clock_delay_usec(uint16_t dt)
 #endif
 }
 /*---------------------------------------------------------------------------*/
+void clock_delay(unsigned int cnt)
+{
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
+	// Call OS delay
+	osi_Sleep(dt);
+#else
+	// Call delay from driver lib
+	MAP_UtilsDelay(USEC_TO_LOOP(3) * cnt);
+#endif
+}
+

@@ -67,6 +67,11 @@
 typedef uint32_t clock_time_t;
 typedef uint32_t uip_stats_t;
 
+/* Platform MSP430 emulation for CC2520 driver */
+#ifndef BV
+#define BV(x) (1<<(x))
+#endif
+
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
  * RTIMER_CLOCK_LT to override this
@@ -270,37 +275,37 @@ typedef uint32_t rtimer_clock_t;
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* NETSTACK_CONF_NETWORK */
 
-//#ifndef NETSTACK_CONF_MAC
-///* #define NETSTACK_CONF_MAC     csma_driver */
-//#define NETSTACK_CONF_MAC     csma_driver
-//#endif
-//
-//#ifndef NETSTACK_CONF_RDC
-///* #define NETSTACK_CONF_RDC     contikimac_driver */
-//#define NETSTACK_CONF_RDC     contikimac_driver
-//#endif
-//
-//#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
-//#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
-//#endif
-//
-///* Configure NullRDC for when it's selected */
-//#define NULLRDC_802154_AUTOACK                  1
-//#define NULLRDC_802154_AUTOACK_HW               1
-//
-///* Configure ContikiMAC for when it's selected */
-//#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
-//#define WITH_FAST_SLEEP                         1
-//
-//#ifndef NETSTACK_CONF_FRAMER
-//#if NETSTACK_CONF_WITH_IPV6
-//#define NETSTACK_CONF_FRAMER  framer_802154
-//#else /* NETSTACK_CONF_WITH_IPV6 */
-//#define NETSTACK_CONF_FRAMER  contikimac_framer
-//#endif /* NETSTACK_CONF_WITH_IPV6 */
-//#endif /* NETSTACK_CONF_FRAMER */
-//
-//#define NETSTACK_CONF_RADIO   cc2520_driver
+#ifndef NETSTACK_CONF_MAC
+/* #define NETSTACK_CONF_MAC     csma_driver */
+#define NETSTACK_CONF_MAC     csma_driver
+#endif
+
+#ifndef NETSTACK_CONF_RDC
+/* #define NETSTACK_CONF_RDC     contikimac_driver */
+#define NETSTACK_CONF_RDC     contikimac_driver
+#endif
+
+#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
+#endif
+
+/* Configure NullRDC for when it's selected */
+#define NULLRDC_802154_AUTOACK                  1
+#define NULLRDC_802154_AUTOACK_HW               1
+
+/* Configure ContikiMAC for when it's selected */
+#define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
+#define WITH_FAST_SLEEP                         1
+
+#ifndef NETSTACK_CONF_FRAMER
+#if NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_FRAMER  framer_802154
+#else /* NETSTACK_CONF_WITH_IPV6 */
+#define NETSTACK_CONF_FRAMER  contikimac_framer
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+#endif /* NETSTACK_CONF_FRAMER */
+
+#define NETSTACK_CONF_RADIO   cc2520_driver
 
 /** @} */
 /*---------------------------------------------------------------------------*/
