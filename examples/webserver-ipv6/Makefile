@@ -34,15 +34,15 @@ all : $(CONTIKI_PROJECT)
 	@if (test -n "$(ELF_SIZE)");then $(ELF_SIZE) $(CONTIKI_PROJECT).$(TARGET);fi	
 endif
 
-UIP_CONF_IPV6=1
-DEFINES=WITH_UIP6
+DEFINES=UIP_CONF_TCP=1
 
 # Make no RPL the default for minimal-net builds
 ifeq ($(TARGET),minimal-net)
-ifndef UIP_CONF_RPL
-UIP_CONF_RPL=0
+ifndef CONTIKI_WITH_RPL
+CONTIKI_WITH_RPL = 0
 endif
 endif
 
 CONTIKI = ../..
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include

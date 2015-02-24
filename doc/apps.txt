@@ -1,0 +1,13 @@
+/**
+ * \defgroup apps Applications
+ *
+ * Contiki provides a set of apps that provide functionalities such as a
+ * web server.
+ * 
+ * To include an App in your software project specify in you makefile
+@code
+APPS = list of apps
+@endcode
+ *
+ * @{ */
+/** @} */

@@ -30,11 +30,7 @@
 
 package org.contikios.cooja.contikimote.interfaces;
 
-import java.awt.event.*;
-import java.util.Collection;
-import javax.swing.*;
 import org.apache.log4j.Logger;
-import org.jdom.Element;
 
 import org.contikios.cooja.*;
 import org.contikios.cooja.contikimote.ContikiMote;
@@ -63,10 +59,10 @@ import org.contikios.cooja.mote.memory.VarMemory;
  * @author Fredrik Osterlind
  */
 public class ContikiButton extends Button implements ContikiMoteInterface {
-  private VarMemory moteMem;
-  private ContikiMote mote;
+  private final VarMemory moteMem;
+  private final ContikiMote mote;
 
-  private static Logger logger = Logger.getLogger(ContikiButton.class);
+  private static final Logger logger = Logger.getLogger(ContikiButton.class);
 
   /**
    * Creates an interface to the button at mote.
@@ -76,6 +72,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
    * @see org.contikios.cooja.MoteInterfaceHandler
    */
   public ContikiButton(Mote mote) {
+    super(mote);
     this.mote = (ContikiMote) mote;
     this.moteMem = new VarMemory(mote.getMemory());
   }
@@ -84,55 +81,8 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     return new String[]{"button_interface"};
   }
 
-  private TimeEvent pressButtonEvent = new MoteTimeEvent(mote, 0) {
-    public void execute(long t) {
-      doPressButton();
-    }
-  };
-
-  private TimeEvent releaseButtonEvent = new MoteTimeEvent(mote, 0) {
-    public void execute(long t) {
-      /* Wait until button change is handled by Contiki */
-      if (moteMem.getByteValueOf("simButtonChanged") != 0) {
-        /* Postpone button release */
-        mote.getSimulation().scheduleEvent(releaseButtonEvent, t + Simulation.MILLISECOND);
-        return;
-      }
-
-      /*logger.info("Releasing button at: " + t);*/
-      doReleaseButton();
-    }
-  };
-
-  /**
-   * Clicks button: Presses and immediately releases button.
-   */
-  public void clickButton() {
-    mote.getSimulation().invokeSimulationThread(new Runnable() {
-      public void run() {
-        mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
-        mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
-      }      
-    });
-  }
-
-  public void pressButton() {
-    mote.getSimulation().invokeSimulationThread(new Runnable() {
-      public void run() {
-        mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
-      }      
-    });
-  }
-
-  public void releaseButton() {
-    mote.getSimulation().invokeSimulationThread(new Runnable() {
-      public void run() {
-        mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime());
-      }      
-    });
-  }
-
-  private void doReleaseButton() {
+  @Override
+  protected void doReleaseButton() {
     moteMem.setByteValueOf("simButtonIsDown", (byte) 0);
 
     if (moteMem.getByteValueOf("simButtonIsActive") == 1) {
@@ -146,7 +96,8 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     }
   }
 
-  private void doPressButton() {
+  @Override
+  protected void doPressButton() {
     moteMem.setByteValueOf("simButtonIsDown", (byte) 1);
 
     if (moteMem.getByteValueOf("simButtonIsActive") == 1) {
@@ -160,33 +111,9 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     }
   }
 
+  @Override
   public boolean isPressed() {
     return moteMem.getByteValueOf("simButtonIsDown") == 1;
-  }
-
-  public JPanel getInterfaceVisualizer() {
-    JPanel panel = new JPanel();
-    final JButton clickButton = new JButton("Click button");
-
-    panel.add(clickButton);
-
-    clickButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        clickButton();
-      }
-    });
-
-    return panel;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
 }

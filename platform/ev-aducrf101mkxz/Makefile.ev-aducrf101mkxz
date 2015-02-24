@@ -48,19 +48,10 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
 CONTIKI_PLAT_DEFS =
 
-ifeq ($(UIP_CONF_IPV6),1)
-CFLAGS += -DWITH_UIP6=1
-endif
-
 include $(CONTIKI)/cpu/arm/aducrf101/Makefile.aducrf101
 
 MODULES += \
 	core/net \
-	core/net/rpl \
-	core/net/ip \
-	core/net/ipv4 \
-        core/net/ipv6 \
-	core/net/rime \
 	core/net/mac \
 	core/net/mac/sicslowmac \
 	core/net/llsec

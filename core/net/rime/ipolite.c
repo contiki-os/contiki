@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeipolite
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Ipolite Anonymous best effort local area BroadCast (ipolite)
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimeipolite
+ * @{
  */
 
 #include "net/rime/rime.h"
@@ -148,6 +148,8 @@ ipolite_send(struct ipolite_conn *c, clock_time_t interval, uint8_t hdrsize)
     PRINTF("%d.%d: ipolite_send: cancel old send\n",
 	   linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
     queuebuf_free(c->q);
+    c->q = NULL;
+    ctimer_stop(&c->t);
   }
   c->dups = 0;
   c->hdrsize = hdrsize;

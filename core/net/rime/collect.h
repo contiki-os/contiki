@@ -1,22 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimecollect Tree-based hop-by-hop reliable data collection
- * @{
- *
- * The collect module implements a hop-by-hop reliable data collection
- * mechanism.
- *
- * \section channels Channels
- *
- * The collect module uses 2 channels; one for neighbor discovery and one
- * for data packets.
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -56,6 +37,25 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimecollect Tree-based hop-by-hop reliable data collection
+ * @{
+ *
+ * The collect module implements a hop-by-hop reliable data collection
+ * mechanism.
+ *
+ * \section collect-channels Channels
+ *
+ * The collect module uses 2 channels; one for neighbor discovery and one
+ * for data packets.
+ *
+ */
+
 #ifndef COLLECT_H_
 #define COLLECT_H_
 
@@ -63,7 +63,7 @@
 #include "net/rime/runicast.h"
 #include "net/rime/neighbor-discovery.h"
 #include "net/rime/collect-neighbor.h"
-#include "net/packetqueue.h"
+#include "net/rime/packetqueue.h"
 #include "sys/ctimer.h"
 #include "lib/list.h"
 

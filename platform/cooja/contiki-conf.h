@@ -47,11 +47,11 @@
 
 #define w_memcpy memcpy
 
-#if WITH_UIP
-#if WITH_UIP6
-#error WITH_UIP && WITH_IP6: Bad configuration
-#endif /* WITH_UIP6 */
-#endif /* WITH_UIP */
+#if NETSTACK_CONF_WITH_IPV4
+#if NETSTACK_CONF_WITH_IPV6
+#error NETSTACK_CONF_WITH_IPV4 && NETSTACK_CONF_WITH_IPV6: Bad configuration
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 
 #ifdef NETSTACK_CONF_H
 
@@ -63,7 +63,7 @@
 #else /* NETSTACK_CONF_H */
 
 /* Default network config */
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 
 #define NULLRDC_CONF_802154_AUTOACK  1
 #define NULLRDC_CONF_SEND_802154_ACK 1
@@ -78,9 +78,9 @@
 #define NETSTACK_CONF_RADIO         cooja_radio_driver
 #define NETSTACK_CONF_FRAMER        framer_802154
 
-#else /* WITH_UIP6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
 
 /* Network setup for IPv4 */
 #define NETSTACK_CONF_NETWORK rime_driver /* NOTE: uip_over_mesh. else: uip_driver */
@@ -89,7 +89,7 @@
 #define NETSTACK_CONF_RADIO cooja_radio_driver
 #define UIP_CONF_IP_FORWARD           1
 
-#else /* WITH_UIP */
+#else /* NETSTACK_CONF_WITH_IPV4 */
 
 /* Network setup for Rime */
 #define NETSTACK_CONF_NETWORK rime_driver
@@ -98,15 +98,15 @@
 #define NETSTACK_CONF_RADIO cooja_radio_driver
 /*#define NETSTACK_CONF_FRAMER framer_nullmac*/
 
-#endif /* WITH_UIP */
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #endif /* NETSTACK_CONF_H */
 
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
 
 /* Default network config */
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 
 
 
@@ -116,7 +116,7 @@
 #define NETSTACK_CONF_RDC           nullrdc_driver
 #define NETSTACK_CONF_RADIO         cooja_radio_driver
 #define NETSTACK_CONF_FRAMER        framer_802154
-#define UIP_CONF_IPV6               1
+#define NETSTACK_CONF_WITH_IPV6               1
 
 #define LINKADDR_CONF_SIZE          8
 
@@ -124,9 +124,6 @@
 #define UIP_CONF_LLH_LEN            0
 
 #define UIP_CONF_ROUTER             1
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL           1
-#endif /* UIP_CONF_IPV6_RPL */
 
 /* configure number of neighbors and routes */
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
@@ -174,7 +171,7 @@
 #define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   8
 #endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
 
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
@@ -232,8 +229,12 @@ typedef unsigned long rtimer_clock_t;
 
 #define UIP_CONF_TCP_SPLIT       0
 
-#if UIP_CONF_IPV6
-#endif /* UIP_CONF_IPV6 */
+#if NETSTACK_CONF_WITH_IPV6
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
+/* Turn off example-provided putchars */
+#define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
+
 
 #define CFS_CONF_OFFSET_TYPE	long
 

@@ -1,15 +1,3 @@
-/**
- * \addtogroup timer
- * @{
- */
-
-/**
- * \file
- * Timer library implementation.
- * \author
- * Adam Dunkels <adam@sics.se>
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,6 +30,18 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
+ */
+
+/**
+ * \file
+ * Timer library implementation.
+ * \author
+ * Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup timer
+ * @{
  */
 
 #include "contiki-conf.h"

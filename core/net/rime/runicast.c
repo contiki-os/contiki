@@ -1,9 +1,3 @@
-/**
- * \addtogroup rimerunicast
- * @{
- */
-
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -41,6 +35,11 @@
  *         Reliable unicast
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimerunicast
+ * @{
  */
 
 #include "net/rime/runicast.h"

@@ -1,33 +1,3 @@
-/**
- * \addtogroup uip
- * @{
- */
-
-/**
- * \defgroup uipopt Configuration options for uIP
- * @{
- *
- * uIP is configured using the per-project configuration file
- * "uipopt.h". This file contains all compile-time options for uIP and
- * should be tweaked to match each specific project. The uIP
- * distribution contains a documented example "uipopt.h" that can be
- * copied and modified for each project.
- *
- * \note Contiki does not use the uipopt.h file to configure uIP, but
- * uses a per-port uip-conf.h file that should be edited instead.
- */
-
-/**
- * \file
- * Configuration options for uIP.
- * \author Adam Dunkels <adam@dunkels.com>
- *
- * This file is used for tweaking various configuration options for
- * uIP. You should make a copy of this file into one of your project's
- * directories instead of editing this example "uipopt.h" file that
- * comes with the uIP distribution.
- */
-
 /*
  * Copyright (c) 2001-2003, Adam Dunkels.
  * All rights reserved.
@@ -59,6 +29,36 @@
  * This file is part of the uIP TCP/IP stack.
  *
  *
+ */
+
+/**
+ * \file
+ * Configuration options for uIP.
+ * \author Adam Dunkels <adam@dunkels.com>
+ *
+ * This file is used for tweaking various configuration options for
+ * uIP. You should make a copy of this file into one of your project's
+ * directories instead of editing this example "uipopt.h" file that
+ * comes with the uIP distribution.
+ */
+
+/**
+ * \addtogroup uip
+ * @{
+ */
+
+/**
+ * \defgroup uipopt Configuration options for uIP
+ * @{
+ *
+ * uIP is configured using the per-project configuration file
+ * "uipopt.h". This file contains all compile-time options for uIP and
+ * should be tweaked to match each specific project. The uIP
+ * distribution contains a documented example "uipopt.h" that can be
+ * copied and modified for each project.
+ *
+ * \note Contiki does not use the uipopt.h file to configure uIP, but
+ * uses a per-port uip-conf.h file that should be edited instead.
  */
 
 #ifndef UIPOPT_H_
@@ -282,9 +282,9 @@ void uip_log(char *msg);
 /** The maximum transmission unit at the IP Layer*/
 #define UIP_LINK_MTU 1280
 
-#ifndef UIP_CONF_IPV6
+#ifndef NETSTACK_CONF_WITH_IPV6
 /** Do we use IPv6 or not (default: no) */
-#define UIP_CONF_IPV6                 0
+#define NETSTACK_CONF_WITH_IPV6                 0
 #endif
 
 #ifndef UIP_CONF_IPV6_QUEUE_PKT
@@ -351,7 +351,7 @@ void uip_log(char *msg);
 #ifdef UIP_CONF_UDP_CHECKSUMS
 #define UIP_UDP_CHECKSUMS (UIP_CONF_UDP_CHECKSUMS)
 #else
-#define UIP_UDP_CHECKSUMS (UIP_CONF_IPV6)
+#define UIP_UDP_CHECKSUMS (NETSTACK_CONF_WITH_IPV6)
 #endif
 
 /**

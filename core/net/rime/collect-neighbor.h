@@ -1,14 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-/**
- * \defgroup rimeneighbor Collect neighbor management
- * @{
- *
- * The neighbor module manages the neighbor table that is used by the
- * Collect module.
- */
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -46,6 +35,19 @@
  *         Header file for the Contiki radio neighborhood management
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeneighbor Collect neighbor management
+ * @{
+ *
+ * The neighbor module manages the neighbor table that is used by the
+ * Collect module.
  */
 
 #ifndef COLLECT_NEIGHBOR_H_

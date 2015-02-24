@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeexamples
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         An example announcement back-end, based on the polite primitive
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimepoliteannouncement
+ * @{
  */
 
 #include "contiki.h"

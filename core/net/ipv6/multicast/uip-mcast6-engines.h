@@ -30,21 +30,26 @@
  */
 
 /**
+ * \addtogroup uip6-multicast
+ * @{
+ */
+/**
  * \file
- *         Header file with definition of multicast engine constants
+ * Header file with definition of multicast engine constants
  *
- *         When writing a new engine, add it here with a unique number and
- *         then modify uip-mcast6.h accordingly
+ * When writing a new engine, add it here with a unique number and
+ * then modify uip-mcast6.h accordingly
  *
  * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *     George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
 #ifndef UIP_MCAST6_ENGINES_H_
 #define UIP_MCAST6_ENGINES_H_
 
-#define UIP_MCAST6_ENGINE_NONE        0 /* Selecting this disables mcast */
-#define UIP_MCAST6_ENGINE_SMRF        1
-#define UIP_MCAST6_ENGINE_ROLL_TM     2
+#define UIP_MCAST6_ENGINE_NONE        0 /**< Selecting this disables mcast */
+#define UIP_MCAST6_ENGINE_SMRF        1 /**< The SMRF engine */
+#define UIP_MCAST6_ENGINE_ROLL_TM     2 /**< The ROLL TM engine */
 
 #endif /* UIP_MCAST6_ENGINES_H_ */
+/** @} */

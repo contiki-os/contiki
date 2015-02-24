@@ -63,12 +63,12 @@ init_usart(void)
   rs232_init(RS232_PORT_0, USART_BAUD_115200,
              USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 
-#if WITH_UIP || WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV4 || NETSTACK_CONF_WITH_IPV6
  // slip_arch_init(USART_BAUD_115200);
     rs232_redirect_stdout(RS232_PORT_0);
 #else
   rs232_redirect_stdout(RS232_PORT_0);
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 || NETSTACK_CONF_WITH_IPV6*/
 
 }
 /*---------------------------------------------------------------------------*/

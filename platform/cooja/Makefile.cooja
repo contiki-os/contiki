@@ -52,7 +52,7 @@ COOJA_BASE	= simEnvChange.c cooja_mt.c cooja_mtarch.c rtimer-arch.c slip.c watch
 COOJA_INTFS	= beep.c button-sensor.c ip.c leds-arch.c moteid.c \
 		    pir-sensor.c rs232.c vib-sensor.c \
 		    clock.c log.c cfs-cooja.c cooja-radio.c \
-			eeprom.c
+			eeprom.c slip-arch.c
 
 COOJA_CORE = random.c sensors.c leds.c symbols.c
 
@@ -74,21 +74,29 @@ CONTIKI_CPU=$(CONTIKI)/cpu/x86
 CFLAGSNO = $(EXTRA_CC_ARGS) -Wall -g -I/usr/local/include -DCLASSNAME=$(CLASSNAME)
 CFLAGS   += $(CFLAGSNO)
 
-ifeq ($(UIP_CONF_IPV6),1)
-  CFLAGS += -DWITH_UIP6=1
-endif
-ifdef WITH_UIP
-  CFLAGS += -DWITH_UIP=1
-endif
+MODULES += core/net core/net/mac \
+           core/net/llsec
 
 ## Copied from Makefile.include, since Cooja overrides CFLAGS et al
-ifeq ($(UIP_CONF_IPV6),1)
-  CFLAGS += -DUIP_CONF_IPV6=1
-  ifneq ($(UIP_CONF_RPL),0)
-    CFLAGS += -DUIP_CONF_IPV6_RPL=1
-  endif # UIP_CONF_RPL
-endif # UIP_CONF_IPV6
+HAS_STACK = 0
+ifeq ($(CONTIKI_WITH_IPV4),1)
+  HAS_STACK = 1
+  CFLAGS += -DNETSTACK_CONF_WITH_IPV4=1
+endif
 
-MODULES += core/net core/net/ip core/net/ipv4 \
-           core/net/ipv6 core/net/mac core/net/rime core/net/rpl \
-           core/net/llsec
+ifeq ($(CONTIKI_WITH_RIME),1)
+  HAS_STACK = 1
+  CFLAGS += -DNETSTACK_CONF_WITH_RIME=1 
+endif
+
+# Make IPv6 the default stack
+ifeq ($(HAS_STACK),0)
+CONTIKI_WITH_IPV6 = 1
+endif
+
+ifeq ($(CONTIKI_WITH_IPV6),1)
+  CFLAGS += -DNETSTACK_CONF_WITH_IPV6=1
+  ifneq ($(CONTIKI_WITH_RPL),0)
+    CFLAGS += -DUIP_CONF_IPV6_RPL=1
+  endif
+endif

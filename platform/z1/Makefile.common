@@ -26,10 +26,6 @@ ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-z1-main.c
 endif
 
-ifeq ($(UIP_CONF_IPV6),1)
-CFLAGS += -DWITH_UIP6=1
-endif
-
 ifdef nodemac
 CFLAGS += -DMACID=$(nodemac)
 endif
@@ -68,11 +64,11 @@ ifeq ($(HOST_OS),Darwin)
               cut -f 2 -d ,)
       CMOTES=$(MOTES)
       REFNUM = $(shell $(MOTELIST) -c 2>&- | \
-               cut -f 1 -d , | tail -c5)
+               cut -f 1 -d , | tail -c5 | sed 's/^0*//')
       ifneq (,$(REFNUM))
         # No device fo-und
         ifeq (,$(findstring und, $(REFNUM)))
-          CFLAGS += -DSERIALNUM=$(REFNUM)
+          CFLAGS += -DSERIALNUM=$(REFNUM:0%=%)
         endif
       endif
   endif
@@ -89,7 +85,7 @@ else
               perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
       CMOTES=$(MOTES)
       REFNUM = $(shell $(MOTELIST) -c 2>&- | \
-               cut -f 1 -d , | tail -c5 )
+               cut -f 1 -d , | tail -c5 | sed 's/^0*//')
       ifneq (,$(REFNUM))
         # No device fo-und
         ifeq (,$(findstring und, $(REFNUM)))

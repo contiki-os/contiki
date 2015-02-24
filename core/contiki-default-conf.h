@@ -123,11 +123,11 @@
  * project-specific configuration to save memory.
  */
 
-/* UIP_CONF_IPV6 specifies whether or not IPv6 should be used. If IPv6
+/* NETSTACK_CONF_WITH_IPV6 specifies whether or not IPv6 should be used. If IPv6
    is not used, IPv4 is used instead. */
-#ifndef UIP_CONF_IPV6
-#define UIP_CONF_IPV6 0
-#endif /* UIP_CONF_IPV6 */
+#ifndef NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_WITH_IPV6 0
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* UIP_CONF_BUFFER_SIZE specifies how much memory should be reserved
    for the uIP packet buffer. This sets an upper bound on the largest

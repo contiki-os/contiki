@@ -96,7 +96,6 @@ slip_set_input_callback(void (*c)(void))
 /* slip_send: forward (IPv4) packets with {UIP_FW_NETIF(..., slip_send)}
  * was used in slip-bridge.c
  */
-//#if WITH_UIP
 uint8_t
 slip_send(void)
 {
@@ -125,7 +124,6 @@ slip_send(void)
 
   return UIP_FW_OK;
 }
-//#endif /* WITH_UIP */
 /*---------------------------------------------------------------------------*/
 uint8_t
 slip_write(const void *_ptr, int len)
@@ -264,7 +262,7 @@ PROCESS_THREAD(slip_process, ev, data)
     /* Move packet from rxbuf to buffer provided by uIP. */
     uip_len = slip_poll_handler(&uip_buf[UIP_LLH_LEN],
 				UIP_BUFSIZE - UIP_LLH_LEN);
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
     if(uip_len == 4 && strncmp((char*)&uip_buf[UIP_LLH_LEN], "?IPA", 4) == 0) {
       char buf[8];
       memcpy(&buf[0], "=IPA", 4);
@@ -298,7 +296,7 @@ PROCESS_THREAD(slip_process, ev, data)
       uip_len = 0;
       SLIP_STATISTICS(slip_ip_drop++);
     }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
     if(uip_len > 0) {
       if(input_callback) {
         input_callback();
@@ -309,7 +307,7 @@ PROCESS_THREAD(slip_process, ev, data)
       tcpip_input();
 #endif
     }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   }
 
   PROCESS_END();

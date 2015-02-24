@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -32,6 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  */
+
 /**
  * \file
  *         Management of extension headers for ContikiRPL.
@@ -42,10 +39,16 @@
  *         Nicolas Tsiftes <nvt@sics.se>.
  */
 
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
 #include "net/ip/uip.h"
 #include "net/ip/tcpip.h"
 #include "net/ipv6/uip-ds6.h"
 #include "net/rpl/rpl-private.h"
+#include "net/packetbuf.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
@@ -62,7 +65,6 @@
 #define UIP_EXT_HDR_OPT_PADN_BUF  ((struct uip_ext_hdr_opt_padn *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 #define UIP_EXT_HDR_OPT_RPL_BUF   ((struct uip_ext_hdr_opt_rpl *)&uip_buf[uip_l2_l3_hdr_len + uip_ext_opt_offset])
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_IPV6
 int
 rpl_verify_header(int uip_ext_opt_offset)
 {
@@ -103,19 +105,12 @@ rpl_verify_header(int uip_ext_opt_offset)
     route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
     if(route != NULL) {
       uip_ds6_route_rm(route);
-
-      /* If we are the root and just needed to remove a DAO route,
-         chances are that the network needs to be repaired. The
-         rpl_repair_root() function will cause a global repair if we
-         happen to be the root node of the dag. */
-      PRINTF("RPL: initiate global repair\n");
-      rpl_repair_root(instance->instance_id);
     }
-
-    /* Remove the forwarding error flag and return 0 to let the packet
-       be forwarded again. */
-    UIP_EXT_HDR_OPT_RPL_BUF->flags &= ~RPL_HDR_OPT_FWD_ERR;
-    return 0;
+    RPL_STAT(rpl_stats.forward_errors++);
+    /* Trigger DAO retransmission */
+    rpl_reset_dio_timer(instance);
+    /* drop the packet as it is not routable */
+    return 1;
   }
 
   if(!instance->current_dag->joined) {
@@ -142,13 +137,14 @@ rpl_verify_header(int uip_ext_opt_offset)
 	   sender_rank, instance->current_dag->rank,
 	   sender_closer);
     if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
+      RPL_STAT(rpl_stats.loop_errors++);
       PRINTF("RPL: Rank error signalled in RPL option!\n");
-      /* We should try to repair it, not implemented for the moment */
+      /* Packet must be dropped and dio trickle timer reset, see RFC6550 - 11.2.2.2 */
       rpl_reset_dio_timer(instance);
-      /* Forward the packet anyway. */
-      return 0;
+      return 1;
     }
     PRINTF("RPL: Single error tolerated\n");
+    RPL_STAT(rpl_stats.loop_warnings++);
     UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_RANK_ERR;
     return 0;
   }
@@ -181,12 +177,13 @@ set_rpl_opt(unsigned uip_ext_opt_offset)
   }
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 rpl_update_header_empty(void)
 {
   rpl_instance_t *instance;
   int uip_ext_opt_offset;
   int last_uip_ext_len;
+  rpl_parent_t *parent;
 
   last_uip_ext_len = uip_ext_len;
   uip_ext_len = 0;
@@ -199,22 +196,22 @@ rpl_update_header_empty(void)
     if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
       PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
       uip_ext_len = last_uip_ext_len;
-      return;
+      return 0;
     }
     if(UIP_EXT_HDR_OPT_RPL_BUF->opt_type != UIP_EXT_HDR_OPT_RPL) {
       PRINTF("RPL: Non RPL Hop-by-hop option support not implemented\n");
       uip_ext_len = last_uip_ext_len;
-      return;
+      return 0;
     }
     if(UIP_EXT_HDR_OPT_RPL_BUF->opt_len != RPL_HDR_OPT_LEN) {
       PRINTF("RPL: RPL Hop-by-hop option has wrong length\n");
       uip_ext_len = last_uip_ext_len;
-      return;
+      return 0;
     }
     instance = rpl_get_instance(UIP_EXT_HDR_OPT_RPL_BUF->instance);
     if(instance == NULL || !instance->used || !instance->current_dag->joined) {
       PRINTF("RPL: Unable to add hop-by-hop extension header: incorrect instance\n");
-      return;
+      return 0;
     }
     break;
   default:
@@ -222,11 +219,11 @@ rpl_update_header_empty(void)
     if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE) {
       PRINTF("RPL: Packet too long: impossible to add hop-by-hop option\n");
       uip_ext_len = last_uip_ext_len;
-      return;
+      return 0;
     }
     set_rpl_opt(uip_ext_opt_offset);
     uip_ext_len = last_uip_ext_len + RPL_HOP_BY_HOP_LEN;
-    return;
+    return 0;
   }
 
   switch(UIP_EXT_HDR_OPT_BUF->type) {
@@ -242,6 +239,15 @@ rpl_update_header_empty(void)
       if(uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr) == NULL) {
         UIP_EXT_HDR_OPT_RPL_BUF->flags |= RPL_HDR_OPT_FWD_ERR;
         PRINTF("RPL forwarding error\n");
+        /* We should send back the packet to the originating parent,
+           but it is not feasible yet, so we send a No-Path DAO instead */
+        PRINTF("RPL generate No-Path DAO\n");
+        parent = rpl_get_parent((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+        if(parent != NULL) {
+          dao_output_target(parent, &UIP_IP_BUF->destipaddr, RPL_ZERO_LIFETIME);
+        }
+        /* Drop packet */
+        return 1;
       }
     } else {
       /* Set the down extension flag correctly as described in Section
@@ -260,11 +266,11 @@ rpl_update_header_empty(void)
     }
 
     uip_ext_len = last_uip_ext_len;
-    return;
+    return 0;
   default:
     PRINTF("RPL: Multi Hop-by-hop options not implemented\n");
     uip_ext_len = last_uip_ext_len;
-    return;
+    return 0;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -373,6 +379,5 @@ rpl_insert_header(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
 
 /** @}*/

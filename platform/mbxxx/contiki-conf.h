@@ -115,7 +115,7 @@
 #define RPL_CONF_MAX_DAG_PER_INSTANCE				1
 #define PROCESS_CONF_NUMEVENTS					16
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
@@ -135,10 +135,9 @@
 #endif /* WITH_COAP */
 
 #define UIP_CONF_ROUTER						1
-#define UIP_CONF_IPV6_RPL					1
 #define UIP_CONF_ND6_SEND_RA					0
 
-#define UIP_CONF_IPV6						1
+#define NETSTACK_CONF_WITH_IPV6						1
 #define UIP_CONF_IPV6_QUEUE_PKT					0
 #define UIP_CONF_IPV6_CHECKS					1
 #define UIP_CONF_IPV6_REASSEMBLY				0
@@ -161,12 +160,12 @@
 #define SICSLOWPAN_CONF_MAXAGE					2
 #endif /* SICSLOWPAN_CONF_MAXAGE */
 
-#else /* WITH_UIP6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
 /* Network setup for non-IPv6 (rime). */
 #define NETSTACK_CONF_NETWORK					rime_driver
 
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H

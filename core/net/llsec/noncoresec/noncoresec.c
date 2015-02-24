@@ -1,8 +1,3 @@
-/**
- * \addtogroup noncoresec
- * @{
- */
-
 /*
  * Copyright (c) 2014, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -42,10 +37,15 @@
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
+/**
+ * \addtogroup noncoresec
+ * @{
+ */
+
 #include "net/llsec/noncoresec/noncoresec.h"
 #include "net/llsec/anti-replay.h"
 #include "net/llsec/llsec802154.h"
-#include "net/llsec/ccm.h"
+#include "net/llsec/ccm-star.h"
 #include "net/mac/frame802154.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
@@ -116,9 +116,9 @@ on_frame_created(void)
   dataptr = packetbuf_dataptr();
   data_len = packetbuf_datalen();
   
-  CCM.mic(get_extended_address(&linkaddr_node_addr), dataptr + data_len, LLSEC802154_MIC_LENGTH);
+  CCM_STAR.mic(get_extended_address(&linkaddr_node_addr), dataptr + data_len, LLSEC802154_MIC_LENGTH);
 #if WITH_ENCRYPTION
-  CCM.ctr(get_extended_address(&linkaddr_node_addr));
+  CCM_STAR.ctr(get_extended_address(&linkaddr_node_addr));
 #endif /* WITH_ENCRYPTION */
   packetbuf_set_datalen(data_len + LLSEC802154_MIC_LENGTH);
   
@@ -146,9 +146,9 @@ input(void)
   packetbuf_set_datalen(packetbuf_datalen() - LLSEC802154_MIC_LENGTH);
   
 #if WITH_ENCRYPTION
-  CCM.ctr(get_extended_address(sender));
+  CCM_STAR.ctr(get_extended_address(sender));
 #endif /* WITH_ENCRYPTION */
-  CCM.mic(get_extended_address(sender), generated_mic, LLSEC802154_MIC_LENGTH);
+  CCM_STAR.mic(get_extended_address(sender), generated_mic, LLSEC802154_MIC_LENGTH);
   
   received_mic = ((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen();
   if(memcmp(generated_mic, received_mic, LLSEC802154_MIC_LENGTH) != 0) {

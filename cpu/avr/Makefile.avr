@@ -99,6 +99,7 @@ CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 -fno-strict-aliasing \
             -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
             $(CONTIKI_PLAT_DEFS)
 CFLAGS   += $(CFLAGSNO) -O$(OPTI)
+ASFLAGS  += -mmcu=$(MCU)
 ifndef BOOTLOADER_START
   BOOTLOADER_START = 0x1F800
 endif

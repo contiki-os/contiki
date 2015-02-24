@@ -1,16 +1,3 @@
-#define DEBUG_PRINTF(...) /*printf(__VA_ARGS__)*/
-
-/**
- * \addtogroup uip
- * @{
- */
-
-/**
- * \file
- * The uIP TCP/IP stack code.
- * \author Adam Dunkels <adam@dunkels.com>
- */
-
 /*
  * Copyright (c) 2001-2003, Adam Dunkels.
  * All rights reserved.
@@ -44,6 +31,19 @@
  *
  */
 
+/**
+ * \file
+ * The uIP TCP/IP stack code.
+ * \author Adam Dunkels <adam@dunkels.com>
+ */
+
+/**
+ * \addtogroup uip
+ * @{
+ */
+
+#define DEBUG_PRINTF(...) /*printf(__VA_ARGS__)*/
+
 /*
  * uIP is a small implementation of the IP, UDP and TCP protocols (as
  * well as some basic ICMP stuff). The implementation couples the IP,
@@ -75,15 +75,15 @@
 #include "net/ipv4/uip_arp.h"
 #include "net/ip/uip_arch.h"
 
-#if !UIP_CONF_IPV6 /* If UIP_CONF_IPV6 is defined, we compile the
+#if !NETSTACK_CONF_WITH_IPV6 /* If NETSTACK_CONF_WITH_IPV6 is defined, we compile the
 		      uip6.c file instead of this one. Therefore
 		      this #ifndef removes the entire compilation
 		      output of the uip.c file */
 
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv4/uip-neighbor.h"
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include <string.h>
 
@@ -106,12 +106,12 @@ uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 #endif /* UIP_FIXEDADDR */
 
 const uip_ipaddr_t uip_broadcast_addr =
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
       0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   { { 0xff, 0xff, 0xff, 0xff } };
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 const uip_ipaddr_t uip_all_zeroes_addr = { { 0x0, /* rest is 0 */ } };
 
 #if UIP_FIXEDETHADDR
@@ -322,11 +322,11 @@ upper_layer_chksum(uint8_t proto)
   uint16_t upper_layer_len;
   uint16_t sum;
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   upper_layer_len = (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1]);
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   upper_layer_len = (((uint16_t)(BUF->len[0]) << 8) + BUF->len[1]) - UIP_IPH_LEN;
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   /* First sum pseudoheader. */
 
@@ -342,14 +342,14 @@ upper_layer_chksum(uint8_t proto)
   return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 /*---------------------------------------------------------------------------*/
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 uint16_t
 uip_icmp6chksum(void)
 {
   return upper_layer_chksum(UIP_PROTO_ICMP6);
 
 }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
 uint16_t
 uip_tcpchksum(void)
@@ -529,7 +529,7 @@ uip_listen(uint16_t port)
 /*---------------------------------------------------------------------------*/
 /* XXX: IP fragment reassembly: not well-tested. */
 
-#if UIP_REASSEMBLY && !UIP_CONF_IPV6
+#if UIP_REASSEMBLY && !NETSTACK_CONF_WITH_IPV6
 #define UIP_REASS_BUFSIZE (UIP_BUFSIZE - UIP_LLH_LEN)
 static uint8_t uip_reassbuf[UIP_REASS_BUFSIZE];
 static uint8_t uip_reassbitmap[UIP_REASS_BUFSIZE / (8 * 8)];
@@ -699,7 +699,7 @@ uip_process(uint8_t flag)
     }
     goto drop;
 
-    /* Check if we were invoked because of the perodic timer fireing. */
+    /* Check if we were invoked because of the periodic timer firing. */
   } else if(flag == UIP_TIMER) {
 #if UIP_REASSEMBLY
     if(uip_reasstmr != 0) {
@@ -828,7 +828,7 @@ uip_process(uint8_t flag)
 
   /* Start of IP input header processing code. */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   /* Check validity of the IP header. */
   if((BUF->vtc & 0xf0) != 0x60)  { /* IP version and header length. */
     UIP_STAT(++uip_stat.ip.drop);
@@ -836,7 +836,7 @@ uip_process(uint8_t flag)
     UIP_LOG("ipv6: invalid version.");
     goto drop;
   }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   /* Check validity of the IP header. */
   if(BUF->vhl != 0x45)  { /* IP version and header length. */
     UIP_STAT(++uip_stat.ip.drop);
@@ -844,18 +844,18 @@ uip_process(uint8_t flag)
     UIP_LOG("ip: invalid version or header length.");
     goto drop;
   }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   /* Check the size of the packet. If the size reported to us in
      uip_len is smaller the size reported in the IP header, we assume
      that the packet has been corrupted in transit. If the size of
      uip_len is larger than the size reported in the IP packet header,
      the packet has been padded and we set uip_len to the correct
-     value.. */
+     value. */
 
   if((BUF->len[0] << 8) + BUF->len[1] <= uip_len) {
     uip_len = (BUF->len[0] << 8) + BUF->len[1];
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     uip_len += 40; /* The length reported in the IPv6 header is the
 		      length of the payload that follows the
 		      header. However, uIP uses the uip_len variable
@@ -865,13 +865,13 @@ uip_process(uint8_t flag)
 		      contains the length of the entire packet. But
 		      for IPv6 we need to add the size of the IPv6
 		      header (40 bytes). */
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   } else {
     UIP_LOG("ip: packet shorter than reported in IP header.");
     goto drop;
   }
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   /* Check the fragment flag. */
   if((BUF->ipoffset[0] & 0x3f) != 0 ||
      BUF->ipoffset[1] != 0) {
@@ -887,13 +887,13 @@ uip_process(uint8_t flag)
     goto drop;
 #endif /* UIP_REASSEMBLY */
   }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   if(uip_ipaddr_cmp(&uip_hostaddr, &uip_all_zeroes_addr)) {
     /* If we are configured to use ping IP address configuration and
-       hasn't been assigned an IP address yet, we accept all ICMP
+       haven't been assigned an IP address yet, we accept all ICMP
        packets. */
-#if UIP_PINGADDRCONF && !UIP_CONF_IPV6
+#if UIP_PINGADDRCONF && !NETSTACK_CONF_WITH_IPV6
     if(BUF->proto == UIP_PROTO_ICMP) {
       UIP_LOG("ip: possible ping config packet received.");
       goto icmp_input;
@@ -924,12 +924,12 @@ uip_process(uint8_t flag)
 #endif /* UIP_BROADCAST */
 
     /* Check if the packet is destined for our IP address. */
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
     if(!uip_ipaddr_cmp(&BUF->destipaddr, &uip_hostaddr)) {
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
     }
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
     /* For IPv6, packet reception is a little trickier as we need to
        make sure that we listen to certain multicast addresses (all
        hosts multicast address, and the solicited-node multicast
@@ -940,10 +940,10 @@ uip_process(uint8_t flag)
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
     }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   }
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   if(uip_ipchksum() != 0xffff) { /* Compute and check the IP header
 				    checksum. */
     UIP_STAT(++uip_stat.ip.drop);
@@ -951,7 +951,7 @@ uip_process(uint8_t flag)
     UIP_LOG("ip: bad checksum.");
     goto drop;
   }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #if UIP_TCP
   if(BUF->proto == UIP_PROTO_TCP) { /* Check for TCP packet. If so,
@@ -967,7 +967,7 @@ uip_process(uint8_t flag)
   }
 #endif /* UIP_UDP */
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   /* ICMPv4 processing code follows. */
   if(BUF->proto != UIP_PROTO_ICMP) { /* We only allow ICMP packets from
 					here. */
@@ -1018,7 +1018,7 @@ uip_process(uint8_t flag)
   goto ip_send_nolen;
 
   /* End of IPv4 input header processing code. */
-#else /* !UIP_CONF_IPV6 */
+#else /* !NETSTACK_CONF_WITH_IPV6 */
 
   /* This is IPv6 ICMPv6 processing code. */
   DEBUG_PRINTF("icmp6_input: length %d\n", uip_len);
@@ -1086,7 +1086,7 @@ uip_process(uint8_t flag)
 
   /* End of IPv6 ICMP processing. */
 
-#endif /* !UIP_CONF_IPV6 */
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
 
 #if UIP_UDP
   /* UDP input processing. */
@@ -1137,7 +1137,7 @@ uip_process(uint8_t flag)
   }
   UIP_LOG("udp: no matching connection found");
   UIP_STAT(++uip_stat.udp.drop);
-#if UIP_CONF_ICMP_DEST_UNREACH && !UIP_CONF_IPV6
+#if UIP_CONF_ICMP_DEST_UNREACH && !NETSTACK_CONF_WITH_IPV6
   /* Copy fields from packet header into payload of this ICMP packet. */
   memcpy(&(ICMPBUF->payload[0]), ICMPBUF, UIP_IPH_LEN + 8);
 
@@ -1183,15 +1183,15 @@ uip_process(uint8_t flag)
   }
   uip_len = uip_slen + UIP_IPUDPH_LEN;
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   /* For IPv6, the IP length field does not include the IPv6 IP header
      length. */
   BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
   BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   BUF->len[0] = (uip_len >> 8);
   BUF->len[1] = (uip_len & 0xff);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   BUF->ttl = uip_udp_conn->ttl;
   BUF->proto = UIP_PROTO_UDP;
@@ -1252,7 +1252,7 @@ uip_process(uint8_t flag)
     }
   }
 
-  /* If we didn't find and active connection that expected the packet,
+  /* If we didn't find an active connection that expected the packet,
      either this packet is an old duplicate, or this is a SYN packet
      destined for a connection in LISTEN. If the SYN flag isn't set,
      it is an old packet and we send a RST. */
@@ -1441,7 +1441,7 @@ uip_process(uint8_t flag)
   uip_flags = 0;
   /* We do a very naive form of TCP reset processing; we just accept
      any RST and kill our connection. We should in fact check if the
-     sequence number of this reset is wihtin our advertised window
+     sequence number of this reset is within our advertised window
      before we accept the reset. */
   if(BUF->flags & TCP_RST) {
     uip_connr->tcpstateflags = UIP_CLOSED;
@@ -1875,8 +1875,6 @@ uip_process(uint8_t flag)
   BUF->seqno[2] = uip_connr->snd_nxt[2];
   BUF->seqno[3] = uip_connr->snd_nxt[3];
 
-  BUF->proto = UIP_PROTO_TCP;
-
   BUF->srcport  = uip_connr->lport;
   BUF->destport = uip_connr->rport;
 
@@ -1893,16 +1891,18 @@ uip_process(uint8_t flag)
   }
 
  tcp_send_noconn:
+  BUF->proto = UIP_PROTO_TCP;
+
   BUF->ttl = UIP_TTL;
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   /* For IPv6, the IP length field does not include the IPv6 IP header
      length. */
   BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
   BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   BUF->len[0] = (uip_len >> 8);
   BUF->len[1] = (uip_len & 0xff);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   BUF->urgp[0] = BUF->urgp[1] = 0;
 
@@ -1912,11 +1912,11 @@ uip_process(uint8_t flag)
 #endif
 
  ip_send_nolen:
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   BUF->vtc = 0x60;
   BUF->tcflow = 0x00;
   BUF->flow = 0x00;
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   BUF->vhl = 0x45;
   BUF->tos = 0;
   BUF->ipoffset[0] = BUF->ipoffset[1] = 0;
@@ -1927,11 +1927,11 @@ uip_process(uint8_t flag)
   BUF->ipchksum = 0;
   BUF->ipchksum = ~(uip_ipchksum());
   DEBUG_PRINTF("uip ip_send_nolen: chkecum 0x%04x\n", uip_ipchksum());
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   UIP_STAT(++uip_stat.tcp.sent);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
  send:
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   DEBUG_PRINTF("Sending packet with length %d (%d)\n", uip_len,
 	       (BUF->len[0] << 8) | BUF->len[1]);
 
@@ -1973,6 +1973,6 @@ uip_send(const void *data, int len)
   }
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /** @}*/

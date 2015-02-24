@@ -5,6 +5,16 @@ before_script:
   - WGET="travis_retry wget --continue --tries=20 --waitretry=10 --retry-connrefused --no-dns-cache --timeout 300"
   - sudo apt-get -qq update
 
+  ## Support building a binary that is identical to the CI
+  - echo -n "Contiki will be compiled with RELSTR=" ; git --git-dir .git describe --tags --always
+
+  ## Install doxygen
+  - if [ ${BUILD_CATEGORY:-0} = doxygen ] ; then
+      sudo add-apt-repository ppa:libreoffice/libreoffice-4-3 -y  && sudo apt-get -qq update &&
+      sudo apt-get --no-install-suggests --no-install-recommends -qq install doxygen  &&
+      doxygen --version ;
+    fi
+
   ## Install msp430 toolchain
   - sudo apt-get -qq install lib32z1
   - $WGET http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 &&
@@ -86,6 +96,7 @@ after_script:
 env:
   ## This magically kick-off parallel jobs for each of the for the sets
   ## of environment variable defined below
+  - BUILD_TYPE='doxygen'  BUILD_CATEGORY='doxygen'
   - BUILD_TYPE='compile-base' BUILD_CATEGORY='compile'
   - BUILD_TYPE='collect'
   - BUILD_TYPE='collect-lossy'

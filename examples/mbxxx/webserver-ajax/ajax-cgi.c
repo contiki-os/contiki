@@ -164,7 +164,7 @@ make_neighbor(void *arg)
     return 0;
   }
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   return snprintf((char *)uip_appdata, uip_mss(),
 		  "<li><a href=\"http://172.16.%d.%d/\">%d.%d</a>\r\n",
 		  n->addr.u8[0], n->addr.u8[1],
@@ -212,7 +212,7 @@ make_neighbor(void *arg)
                   n->addr.u8[6],
                   n->addr.u8[7]);
   
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 }
 /*---------------------------------------------------------------------------*/
 static

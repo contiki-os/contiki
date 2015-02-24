@@ -1,17 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup linkaddr Rime addresses
- * @{
- *
- * The linkaddr module is an abstract representation of addresses in
- * Rime.
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -49,6 +35,20 @@
  *         Header file for the Rime address representation
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup linkaddr Rime addresses
+ * @{
+ *
+ * The linkaddr module is an abstract representation of addresses in
+ * Rime.
+ *
  */
 
 #ifndef LINKADDR_H_

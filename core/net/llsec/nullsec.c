@@ -1,8 +1,3 @@
-/**
- * \addtogroup nullsec
- * @{
- */
-
 /*
  * Copyright (c) 2013, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Insecure link layer security driver.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \addtogroup nullsec
+ * @{
  */
 
 #include "net/llsec/nullsec.h"

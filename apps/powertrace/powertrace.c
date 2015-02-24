@@ -51,7 +51,7 @@ struct powertrace_sniff_stats {
   uint32_t num_input, num_output;
   uint32_t input_txtime, input_rxtime;
   uint32_t output_txtime, output_rxtime;
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   uint16_t proto; /* includes proto + possibly flags */
 #endif
   uint16_t channel;
@@ -135,7 +135,7 @@ powertrace_print(char *str)
 
   for(s = list_head(stats_list); s != NULL; s = list_item_next(s)) {
 
-#if ! UIP_CONF_IPV6
+#if ! NETSTACK_CONF_WITH_IPV6
     printf("%s %lu SP %d.%d %lu %u %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu (channel %d radio %d.%02d%% / %d.%02d%%)\n",
            str, clock_time(), linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1], seqno,
            s->channel,
@@ -249,7 +249,7 @@ add_packet_stats(int input_or_output)
      put it on the list. */
   for(s = list_head(stats_list); s != NULL; s = list_item_next(s)) {
     if(s->channel == packetbuf_attr(PACKETBUF_ATTR_CHANNEL)
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
        && s->proto == packetbuf_attr(PACKETBUF_ATTR_NETWORK_ID)
 #endif
        ) {
@@ -262,7 +262,7 @@ add_packet_stats(int input_or_output)
     if(s != NULL) {
       memset(s, 0, sizeof(struct powertrace_sniff_stats));
       s->channel = packetbuf_attr(PACKETBUF_ATTR_CHANNEL);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
       s->proto = packetbuf_attr(PACKETBUF_ATTR_NETWORK_ID);
 #endif
       list_add(stats_list, s);
@@ -283,7 +283,7 @@ output_sniffer(int mac_status)
   add_packet_stats(OUTPUT);
 }
 /*---------------------------------------------------------------------------*/
-#if ! UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_RIME
 static void
 sniffprint(char *prefix, int seqno)
 {
@@ -347,7 +347,7 @@ powertrace_printsniff(powertrace_onoff_t onoff)
     break;
   }
 }
-#endif
+#endif /* NETSTACK_CONF_WITH_RIME */
 /*---------------------------------------------------------------------------*/
 RIME_SNIFFER(powersniff, input_sniffer, output_sniffer);
 /*---------------------------------------------------------------------------*/

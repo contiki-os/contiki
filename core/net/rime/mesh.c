@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimemesh
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         A mesh routing protocol
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimemesh
+ * @{
  */
 
 #include "contiki.h"

@@ -1,8 +1,3 @@
-/**
- * \addtogroup llsec802154
- * @{
- */
-
 /*
  * Copyright (c) 2014, Hasso-Plattner-Institut.
  * All rights reserved.
@@ -41,6 +36,11 @@
  *         unicast or broadcast frame counter of the sender.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
+ */
+
+/**
+ * \addtogroup llsec802154
+ * @{
  */
 
 #include "net/llsec/anti-replay.h"
@@ -87,7 +87,7 @@ anti_replay_was_replayed(struct anti_replay_info *info)
   
   received_counter = anti_replay_get_counter();
   
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+  if(packetbuf_holds_broadcast()) {
     /* broadcast */
     if(received_counter <= info->last_broadcast_counter) {
       return 1;

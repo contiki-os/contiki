@@ -1,29 +1,3 @@
-/**
- * \addtogroup uip
- * {@
- */
-
-/**
- * \defgroup uiparch Architecture specific uIP functions
- * @{
- *
- * The functions in the architecture specific module implement the IP
- * check sum and 32-bit additions.
- *
- * The IP checksum calculation is the most computationally expensive
- * operation in the TCP/IP stack and it therefore pays off to
- * implement this in efficient assembler. The purpose of the uip-arch
- * module is to let the checksum functions to be implemented in
- * architecture specific assembler.
- *
- */
-
-/**
- * \file
- * Declarations of architecture specific functions.
- * \author Adam Dunkels <adam@dunkels.com>
- */
-
 /*
  * Copyright (c) 2001, Adam Dunkels.
  * All rights reserved. 
@@ -54,6 +28,32 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
+ *
+ */
+
+/**
+ * \file
+ * Declarations of architecture specific functions.
+ * \author Adam Dunkels <adam@dunkels.com>
+ */
+
+/**
+ * \addtogroup uip
+ * {@
+ */
+
+/**
+ * \defgroup uiparch Architecture specific uIP functions
+ * @{
+ *
+ * The functions in the architecture specific module implement the IP
+ * check sum and 32-bit additions.
+ *
+ * The IP checksum calculation is the most computationally expensive
+ * operation in the TCP/IP stack and it therefore pays off to
+ * implement this in efficient assembler. The purpose of the uip-arch
+ * module is to let the checksum functions to be implemented in
+ * architecture specific assembler.
  *
  */
 
@@ -93,7 +93,7 @@ void uip_add32(uint8_t *op32, uint16_t op16);
  * \note This function is not called in the current version of uIP,
  * but future versions might make use of it.
  *
- * \param buf A pointer to the buffer over which the checksum is to be
+ * \param data A pointer to the buffer over which the checksum is to be
  * computed.
  *
  * \param len The length of the buffer over which the checksum is to
@@ -101,7 +101,7 @@ void uip_add32(uint8_t *op32, uint16_t op16);
  *
  * \return The Internet checksum of the buffer.
  */
-uint16_t uip_chksum(uint16_t *buf, uint16_t len);
+uint16_t uip_chksum(uint16_t *data, uint16_t len);
 
 /**
  * Calculate the IP header checksum of the packet header in uip_buf.

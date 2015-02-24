@@ -45,10 +45,6 @@
 
 
 
-/** @addtogroup Analog Devices Inc.
-  * @{
-  */
-
 /** @addtogroup ADUCRF101
   * @{
   */

@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimequeuebuf
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,6 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rimequeuebuf
+ * @{
+ */
+
 #include "contiki-net.h"
 #if WITH_SWAP
 #include "cfs/cfs.h"
@@ -77,8 +77,8 @@ struct queuebuf {
 
 /* The actual queuebuf data */
 struct queuebuf_data {
-  uint16_t len;
   uint8_t data[PACKETBUF_SIZE];
+  uint16_t len;
   struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
   struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
 };
@@ -366,6 +366,7 @@ queuebuf_new_from_packetbuf(void)
 #else
       if(buf->ram_ptr == NULL) {
         PRINTF("queuebuf_new_from_packetbuf: could not queuebuf data\n");
+        memb_free(&bufmem, buf);
         return NULL;
       }
       buframptr = buf->ram_ptr;
@@ -389,9 +390,9 @@ queuebuf_new_from_packetbuf(void)
       PRINTF("queuebuf len %d\n", queuebuf_len);
       printf("#A q=%d\n", queuebuf_len);
       if(queuebuf_len == queuebuf_max_len + 1) {
-  memb_free(&bufmem, buf);
-  queuebuf_len--;
-  return NULL;
+        queuebuf_free(buf);
+        queuebuf_len--;
+        return NULL;
       }
 #endif /* QUEUEBUF_STATS */
 

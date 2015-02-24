@@ -1,14 +1,3 @@
-/* XXX todo: add timeout so that hops_from_sink is reset to MAX
-   after a while. */
-
-/* XXX todo: use a ctimer to drive peridodic transmission: the current
-   way does not work if a queuebuf cannot be allocated. */
-
-/**
- * \addtogroup rudolph2
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -47,6 +36,17 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
+
+/**
+ * \addtogroup rudolph2
+ * @{
+ */
+
+/* XXX todo: add timeout so that hops_from_sink is reset to MAX
+   after a while. */
+
+/* XXX todo: use a ctimer to drive peridodic transmission: the current
+   way does not work if a queuebuf cannot be allocated. */
 
 #include <stdio.h>
 #include <stddef.h> /* for offsetof */

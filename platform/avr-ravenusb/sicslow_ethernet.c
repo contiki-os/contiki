@@ -381,7 +381,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 
   /* Simple Address Translation */
   if(memcmp((uint8_t *)&simple_trans_ethernet_addr, &(((struct uip_eth_hdr *) ethHeader)->dest.addr[0]), 6) == 0) {
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
         //Addressed to us: make 802.15.4 address from IPv6 Address
         destAddr.addr[0] = UIP_IP_BUF->destipaddr.u8[8] ^ 0x02;
         destAddr.addr[1] = UIP_IP_BUF->destipaddr.u8[9];
@@ -445,7 +445,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 #endif
   }
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* Send the packet to the uip6 stack if it exists, else send to 6lowpan */
 #if UIP_CONF_IPV6_RPL
 /* Save the destination address, to trap ponging it back to the interface */
@@ -456,9 +456,9 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 //  PRINTF("Output to %x %x %x %x %x %x %x %x\n",destAddr.addr[0],destAddr.addr[1],destAddr.addr[2],destAddr.addr[3],destAddr.addr[4],destAddr.addr[5],destAddr.addr[6],destAddr.addr[7]);
   tcpip_output(destAddrPtr);
 #endif
-#else  /* UIP_CONF_IPV6 */
+#else  /* NETSTACK_CONF_WITH_IPV6 */
   tcpip_output();    //Allow non-ipv6 builds (Hello World) 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #if !RF230BB
   usb_eth_stat.txok++;
@@ -481,11 +481,8 @@ void mac_LowpanToEthernet(void)
   //Setup generic ethernet stuff
   ETHBUF(uip_buf)->type = uip_htons(UIP_ETHTYPE_IPV6);
 
-  //Check for broadcast message
-  
 #if RF230BB
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
-//  if(linkaddr_cmp((const linkaddr_t *)destAddr, &linkaddr_null)) {
+  if(packetbuf_holds_broadcast()) {
 #else
   if(  ( parsed_frame->fcf->destAddrMode == SHORTADDRMODE) &&
        ( parsed_frame->dest_addr->addr16 == 0xffff) ) {
@@ -493,7 +490,7 @@ void mac_LowpanToEthernet(void)
     ETHBUF(uip_buf)->dest.addr[0] = 0x33;
     ETHBUF(uip_buf)->dest.addr[1] = 0x33;
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     ETHBUF(uip_buf)->dest.addr[2] = UIP_IP_BUF->destipaddr.u8[12];
     ETHBUF(uip_buf)->dest.addr[3] = UIP_IP_BUF->destipaddr.u8[13];
     ETHBUF(uip_buf)->dest.addr[4] = UIP_IP_BUF->destipaddr.u8[14];
@@ -712,7 +709,7 @@ int8_t mac_translateIcmpLinkLayer(lltype_t target)
 
       //We broke ICMP checksum, be sure to fix that
       UIP_ICMP_BUF->icmpchksum = 0;
-#if UIP_CONF_IPV6   //allow non ipv6 builds
+#if NETSTACK_CONF_WITH_IPV6   //allow non ipv6 builds
       UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 #endif
 
@@ -977,7 +974,7 @@ mac_log_802_15_4_tx(const uint8_t* buffer, size_t total_len) {
     ETHBUF(raw_buf)->type = uip_htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
  
   /* Check for broadcast message */
-    if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+    if(packetbuf_holds_broadcast()) {
       ETHBUF(raw_buf)->dest.addr[0] = 0x33;
       ETHBUF(raw_buf)->dest.addr[1] = 0x33;
       ETHBUF(raw_buf)->dest.addr[2] = 0x00;
@@ -1018,7 +1015,7 @@ mac_log_802_15_4_rx(const uint8_t* buf, size_t len) {
     ETHBUF(raw_buf)->type = uip_htons(0x809A);  //UIP_ETHTYPE_802154 0x809A
   
   /* Check for broadcast message */
-    if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+    if(packetbuf_holds_broadcast()) {
       ETHBUF(raw_buf)->dest.addr[0] = 0x33;
       ETHBUF(raw_buf)->dest.addr[1] = 0x33;
       ETHBUF(raw_buf)->dest.addr[2] = 0x00;

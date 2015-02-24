@@ -54,12 +54,15 @@ while (( "$#" )); do
 
 
 	#Verbose output when using CI
-	if [ "$CI" = "true" ];  then 
-		echo "==== COOJA.log ====" ; cat COOJA.log; 
-		echo "==== COOJA.testlog ====" ; cat COOJA.testlog; 
-	else  
-		tail -50 COOJA.log ; 
-	fi; 
+	if [ "$CI" = "true" ]; then
+		echo "==== COOJA.log ====" ; cat COOJA.log;
+		echo "==== COOJA.testlog ====" ; cat COOJA.testlog;
+		echo "==== Files used for simulation (sha1sum) ===="
+		grep "Loading firmware from:" COOJA.log | cut -d " " -f 10 | uniq  | xargs -r sha1sum
+		grep "Creating core communicator between Java class" COOJA.log | cut -d " " -f 17 | uniq  | xargs -r sha1sum
+	else
+		tail -50 COOJA.log ;
+	fi;
 
 	mv COOJA.testlog $BASENAME.$RANDOMSEED.faillog
 

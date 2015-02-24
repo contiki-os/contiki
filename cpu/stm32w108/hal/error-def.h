@@ -7,7 +7,11 @@
 */
 
 /**
- * @addtogroup status_codes
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/**
+ * @defgroup status_codes Status Codes
  *
  * Many StZNet API functions return an ::StStatus value to indicate
  * the success or failure of the call.
@@ -30,8 +34,9 @@
 /**
  * @name Generic Messages
  * These messages are system wide.
+ *
+ * @{
  */
-//@{
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -106,13 +111,14 @@ DEFINE_ERROR(EEPROM_MFG_VERSION_MISMATCH, 0x06)
 DEFINE_ERROR(EEPROM_STACK_VERSION_MISMATCH, 0x07)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@} // END Generic Messages
+/** @} */ // END Generic Messages
 
 
 /**
  * @name Packet Buffer Module Errors
+ *
+ * @{
  */
-//@{
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -123,12 +129,13 @@ DEFINE_ERROR(EEPROM_STACK_VERSION_MISMATCH, 0x07)
 DEFINE_ERROR(NO_BUFFERS, 0x18)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@} / END Packet Buffer Module Errors
+/** @} */ // END Packet Buffer Module Errors
 
 /**
  * @name Serial Manager Errors
+ *
+ * @{ 
  */
-//@{ 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -211,12 +218,13 @@ DEFINE_ERROR(SERIAL_RX_EMPTY, 0x26)
 DEFINE_ERROR(SERIAL_RX_OVERRUN_ERROR, 0x27)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 /**
  * @name MAC Errors
- */  
-//@{
+ *  
+ * @{
+ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -341,13 +349,14 @@ DEFINE_ERROR(MAC_NO_ACK_RECEIVED, 0x40)
 DEFINE_ERROR(MAC_INDIRECT_TIMEOUT, 0x42)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 
 /**
  * @name  Simulated EEPROM Errors
- */  
-//@{
+ *
+ * @{
+ */
 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -440,13 +449,13 @@ DEFINE_ERROR(SIM_EEPROM_INIT_2_FAILED, 0x49)
 DEFINE_ERROR(SIM_EEPROM_INIT_3_FAILED, 0x4A)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 
 /**
  * @name  Flash Errors
- */  
-//@{
+ *
+ * @{ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
@@ -500,13 +509,14 @@ DEFINE_ERROR(ERR_FLASH_PROG_FAIL, 0x4B)
 DEFINE_ERROR(ERR_FLASH_ERASE_FAIL, 0x4C)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 
 /**
  * @name  Bootloader Errors
- */  
-//@{
+ *
+ * @{
+ */
 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -541,13 +551,14 @@ DEFINE_ERROR(ERR_BOOTLOADER_TRAP_UNKNOWN, 0x59)
 DEFINE_ERROR(ERR_BOOTLOADER_NO_IMAGE, 0x5A)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 
 /**
  * @name  Transport Errors
- */  
-//@{
+ *
+ * @{
+ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -653,12 +664,13 @@ DEFINE_ERROR(BINDING_IS_ACTIVE, 0x75)
 DEFINE_ERROR(ADDRESS_TABLE_ENTRY_IS_ACTIVE, 0x76)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 /**
  * @name  HAL Module Errors
- */  
-//@{
+ *
+ * @{
+ */
   
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -713,12 +725,13 @@ DEFINE_ERROR(ADC_NO_CONVERSION_PENDING, 0x84)
 DEFINE_ERROR(SLEEP_INTERRUPTED, 0x85)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 /**
  * @name  PHY Errors
- */  
-//@{
+ *
+ * @{
+ */
 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -803,13 +816,14 @@ DEFINE_ERROR(PHY_OSCILLATOR_CHECK_FAILED, 0x8E)
 DEFINE_ERROR(PHY_ACK_RECEIVED, 0x8F)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@}
+/** @} */
 
 /**
  * @name  Return Codes Passed to stStackStatusHandler()
  * See also ::stStackStatusHandler(). 
+ *
+ * @{
  */
-//@{
 
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
@@ -945,10 +959,12 @@ DEFINE_ERROR(PRECONFIGURED_KEY_REQUIRED, 0xAF)
 #endif
 
 
-//@}
+/** @} */
 
 /**
  * @name  Security Errors
+ *
+ * @{
  */
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
@@ -1057,14 +1073,14 @@ DEFINE_ERROR(SECURITY_CONFIGURATION_INVALID, 0xB7)
 #endif
 
 
-//@}
+/** @} */
 
 
 /**
  * @name  Miscellaneous Network Errors
- */  
-//@{
-
+ *
+ * @{
+ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -1139,13 +1155,13 @@ DEFINE_ERROR(BINDING_HAS_CHANGED, 0xA4)
 #endif
 
 
-//@}
+/** @} */
 
 /**
  * @name  Miscellaneous Utility Errors
- */  
-//@{
-
+ *
+ * @{
+ */
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -1209,13 +1225,14 @@ DEFINE_ERROR(LIBRARY_NOT_PRESENT, 0xB5)
 DEFINE_ERROR(OPERATION_IN_PROGRESS, 0xBA)
 #endif
 
-//@}
+/** @} */
 
 /**
  * @name  Application Errors
  * These error codes are available for application use.
+ *
+ * @{
  */
-//@{
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
@@ -1257,7 +1274,7 @@ DEFINE_ERROR( APPLICATION_ERROR_14, 0xFE)
 DEFINE_ERROR( APPLICATION_ERROR_15, 0xFF)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-//@} // END name group
+/** @} */ // END name group
 
 /** @} END addtogroup */
 

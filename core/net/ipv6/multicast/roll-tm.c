@@ -30,19 +30,14 @@
  */
 
 /**
+ * \addtogroup roll-tm
+ * @{
+ */
+/**
  * \file
- *         This file implements IPv6 MCAST forwarding according to the
- *         algorithm described in the "MCAST Forwarding Using Trickle"
- *         internet draft.
- *
- *         The current version of the draft can always be found in
- *         http://tools.ietf.org/html/draft-ietf-roll-trickle-mcast
- *
- *         This implementation is based on the draft version stored in
- *         ROLL_TM_VER
- *
+ *    Implementation of the ROLL TM multicast engine
  * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *    George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
 #include "contiki.h"
@@ -67,7 +62,6 @@
 #define VERBOSE_PRINT_SEED(...)
 #endif
 
-#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 /* Data Representation */
 /*---------------------------------------------------------------------------*/
@@ -1441,6 +1435,9 @@ init()
   return;
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief The ROLL TM engine driver
+ */
 const struct uip_mcast6_driver roll_tm_driver = {
   "ROLL TM",
   init,
@@ -1448,5 +1445,4 @@ const struct uip_mcast6_driver roll_tm_driver = {
   in,
 };
 /*---------------------------------------------------------------------------*/
-
-#endif /* UIP_CONF_IPV6 */
+/** @} */

@@ -1,31 +1,3 @@
-/** \addtogroup sys
- * @{ */
-
-/**
- * \defgroup etimer Event timers
- *
- * Event timers provides a way to generate timed events. An event
- * timer will post an event to the process that set the timer when the
- * event timer expires.
- *
- * An event timer is declared as a \c struct \c etimer and all access
- * to the event timer is made by a pointer to the declared event
- * timer.
- *
- * \sa \ref timer "Simple timer library"
- * \sa \ref clock "Clock library" (used by the timer library)
- *
- * @{
- */
-
-
-/**
- * \file
- * Event timer header file.
- * \author
- * Adam Dunkels <adam@sics.se>
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -59,6 +31,34 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
+
+/**
+ * \file
+ * Event timer header file.
+ * \author
+ * Adam Dunkels <adam@sics.se>
+ */
+
+/** \addtogroup sys
+ * @{ */
+
+/**
+ * \defgroup etimer Event timers
+ *
+ * Event timers provides a way to generate timed events. An event
+ * timer will post an event to the process that set the timer when the
+ * event timer expires.
+ *
+ * An event timer is declared as a \c struct \c etimer and all access
+ * to the event timer is made by a pointer to the declared event
+ * timer.
+ *
+ * \sa \ref timer "Simple timer library"
+ * \sa \ref clock "Clock library" (used by the timer library)
+ *
+ * @{
+ */
+
 #ifndef ETIMER_H_
 #define ETIMER_H_
 

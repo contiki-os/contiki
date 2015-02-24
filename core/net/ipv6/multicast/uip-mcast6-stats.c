@@ -28,11 +28,15 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
+ * \addtogroup uip6-multicast
+ * @{
+ */
+/**
  * \file
- *         IPv6 multicast forwarding stats maintenance
+ *    IPv6 multicast forwarding stats maintenance
  *
  * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *    George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 #include "net/ipv6/multicast/uip-mcast6-stats.h"
 
@@ -47,3 +51,4 @@ uip_mcast6_stats_init(void *stats)
   uip_mcast6_stats.engine_stats = stats;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

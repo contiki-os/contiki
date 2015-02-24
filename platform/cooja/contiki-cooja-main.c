@@ -52,6 +52,7 @@
 #include "net/rime/rime.h"
 #include "net/netstack.h"
 
+#include "dev/eeprom.h"
 #include "dev/serial-line.h"
 #include "dev/cooja-radio.h"
 #include "dev/button-sensor.h"
@@ -74,10 +75,10 @@
 #define Java_org_contikios_cooja_corecomm_CLASSNAME_tick COOJA__QUOTEME(COOJA_JNI_PATH,CLASSNAME,_tick)
 #define Java_org_contikios_cooja_corecomm_CLASSNAME_setReferenceAddress COOJA__QUOTEME(COOJA_JNI_PATH,CLASSNAME,_setReferenceAddress)
 
-#ifndef WITH_UIP
-#define WITH_UIP 0
+#ifndef NETSTACK_CONF_WITH_IPV4
+#define NETSTACK_CONF_WITH_IPV4 0
 #endif
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
 #include "dev/rs232.h"
 #include "dev/slip.h"
 #include "net/ip/uip.h"
@@ -91,16 +92,16 @@ static struct uip_fw_netif meshif =
 
 #define UIP_OVER_MESH_CHANNEL 8
 static uint8_t is_gateway;
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 
-#ifndef WITH_UIP6
-#define WITH_UIP6 0
+#ifndef NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_WITH_IPV6 0
 #endif
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-ds6.h"
 #define PRINT6ADDR(addr) printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* Simulation mote interfaces */
 SIM_INTERFACE_NAME(moteid_interface);
@@ -138,7 +139,7 @@ static struct cooja_mt_thread process_run_thread;
 #define MIN(a, b)   ( (a)<(b) ? (a) : (b) )
 
 /*---------------------------------------------------------------------------*/
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
 static void
 set_gateway(void)
 {
@@ -152,7 +153,7 @@ set_gateway(void)
     is_gateway = 1;
   }
 }
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 /*---------------------------------------------------------------------------*/
 static void
 print_processes(struct process * const processes[])
@@ -185,15 +186,15 @@ set_rime_addr(void)
   int i;
 
   memset(&addr, 0, sizeof(linkaddr_t));
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
   for(i = 0; i < sizeof(uip_lladdr.addr); i += 2) {
     addr.u8[i + 1] = node_id & 0xff;
     addr.u8[i + 0] = node_id >> 8;
   }
-#else /* WITH_UIP6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
   addr.u8[0] = node_id & 0xff;
   addr.u8[1] = node_id >> 8;
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   linkaddr_set_node_addr(&addr);
   printf("Rime started with address ");
   for(i = 0; i < sizeof(addr.u8) - 1; i++) {
@@ -228,10 +229,7 @@ contiki_init()
   set_rime_addr();
   {
     uint8_t longaddr[8];
-    uint16_t shortaddr;
     
-    shortaddr = (linkaddr_node_addr.u8[0] << 8) +
-      linkaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
     linkaddr_copy((linkaddr_t *)&longaddr, &linkaddr_node_addr);
     printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
@@ -248,7 +246,7 @@ contiki_init()
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
                          NETSTACK_RDC.channel_check_interval()));
 
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
   /* IPv4 CONFIGURATION */
   {
     uip_ipaddr_t hostaddr, netmask;
@@ -275,9 +273,9 @@ contiki_init()
     rs232_set_input(slip_input_byte);
     printf("IPv4 address: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&hostaddr));
   }
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
   /* IPv6 CONFIGURATION */
   {
     int i;
@@ -286,7 +284,7 @@ contiki_init()
       addr[i + 1] = node_id & 0xff;
       addr[i + 0] = node_id >> 8;
     }
-    linkaddr_copy(addr, &linkaddr_node_addr);
+    linkaddr_copy((linkaddr_t *)addr, &linkaddr_node_addr);
     memcpy(&uip_lladdr.addr, addr, sizeof(uip_lladdr.addr));
 
     process_start(&tcpip_process, NULL);
@@ -319,7 +317,7 @@ contiki_init()
              ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
     }
   }
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   /* Initialize eeprom */
   eeprom_init();

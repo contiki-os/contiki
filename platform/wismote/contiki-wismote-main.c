@@ -44,9 +44,9 @@
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include "net/rime/rime.h"
 
@@ -66,11 +66,11 @@
 extern const struct uip_router UIP_ROUTER_MODULE;
 #endif /* UIP_CONF_ROUTER */
 
-#ifndef WITH_UIP
-#define WITH_UIP 0
+#ifndef NETSTACK_CONF_WITH_IPV4
+#define NETSTACK_CONF_WITH_IPV4 0
 #endif
 
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
 #include "net/ip/uip.h"
 #include "net/ipv4/uip-fw.h"
 #include "net/uip-fw-drv.h"
@@ -80,12 +80,12 @@ static struct uip_fw_netif slipif =
 static struct uip_fw_netif meshif =
   {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
 
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 
 #define UIP_OVER_MESH_CHANNEL 8
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
 static uint8_t is_gateway;
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 
 #ifdef EXPERIMENT_SETUP
 #include "experiment-setup.h"
@@ -133,7 +133,7 @@ set_rime_addr(void)
   memset(&n_addr, 0, sizeof(linkaddr_t));
 
   //	Set node address
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   //memcpy(addr.u8, ds2411_id, sizeof(addr.u8));
   n_addr.u8[7] = node_id & 0xff;
   n_addr.u8[6] = node_id >> 8;
@@ -172,7 +172,7 @@ print_processes(struct process * const processes[])
 }
 #endif /* !PROCESS_CONF_NO_PROCESS_NAMES */
 /*--------------------------------------------------------------------------*/
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
 static void
 set_gateway(void)
 {
@@ -187,7 +187,7 @@ set_gateway(void)
     is_gateway = 1;
   }
 }
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 /*---------------------------------------------------------------------------*/
 int
 main(int argc, char **argv)
@@ -206,9 +206,9 @@ main(int argc, char **argv)
 
   uart1_init(115200); /* Must come before first printf */
 
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
   slip_arch_init(115200);
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 
   clock_wait(1);
 
@@ -283,7 +283,7 @@ main(int argc, char **argv)
     printf("Node id is not set.\n");
   }
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
   /* memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr)); */
   memcpy(&uip_lladdr.addr, linkaddr_node_addr.u8,
          UIP_LLADDR_LEN > LINKADDR_SIZE ? LINKADDR_SIZE : UIP_LLADDR_LEN);
@@ -333,7 +333,7 @@ main(int argc, char **argv)
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
 
-#else /* WITH_UIP6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 
   NETSTACK_RDC.init();
   NETSTACK_MAC.init();
@@ -344,9 +344,9 @@ main(int argc, char **argv)
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0? 1:
                          NETSTACK_RDC.channel_check_interval()),
          RF_CHANNEL);
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
-#if !WITH_UIP && !WITH_UIP6
+#if !NETSTACK_CONF_WITH_IPV4 && !NETSTACK_CONF_WITH_IPV6
   uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
@@ -358,7 +358,7 @@ main(int argc, char **argv)
   timesynch_set_authority_level((linkaddr_node_addr.u8[0] << 4) + 16);
 #endif /* TIMESYNCH_CONF_ENABLED */
 
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
   process_start(&uip_fw_process, NULL);	/* Start IP output */
   process_start(&slip_process, NULL);
@@ -385,7 +385,7 @@ main(int argc, char **argv)
     printf("uIP started with IP address %d.%d.%d.%d\n",
            uip_ipaddr_to_quad(&hostaddr));
   }
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);

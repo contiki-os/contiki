@@ -11,18 +11,18 @@ support on Atmel RAVEN hardware.
 
 
 \section toc Table of contents
-\ref introduction<br>
-\ref hardware<br>
-\ref software<br>
-\ref overview<br>
-\ref installation<br>
-\ref running<br>
-\ref advanced<br>
-\ref issues<br>
-\ref annex<br>
+\ref tutorial-raven-introduction <br>
+\ref hardware <br>
+\ref software <br>
+\ref overview <br>
+\ref installation <br>
+\ref running <br>
+\ref advanced <br>
+\ref issues <br>
+\ref annex <br>
 
 <HR>
-\section introduction Introduction
+\section tutorial-raven-introduction Introduction
 This tutorial explains how to run Contiki with IPv6 and 6lowpan
 support on Atmel RAVEN evaluation kit (ATAVRRZRAVEN) hardware. We
 present basic example system architecture and application scenarios,
@@ -419,7 +419,7 @@ is the one to the file you just modified and click on "Program".
 The third is to modify the default value in the code:
 
 \li Edit the file contiki-raven-main.c in the directory
-platform\avr-raven. You will see the MAC address set in a line like:
+platform\\avr-raven. You will see the MAC address set in a line like:
 
 \code
 /* Put default MAC address in EEPROM */

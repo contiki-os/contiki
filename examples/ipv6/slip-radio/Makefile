@@ -8,9 +8,6 @@ endif
 
 CONTIKI=../../..
 
-UIP_CONF_IPV6=1
-UIP_CONF_RPL=0
-
 #linker optimizations
 SMALL=1
 
@@ -26,4 +23,6 @@ ifeq ($(TARGET),econotag)
   PROJECT_SOURCEFILES += slip-radio-mc1322x.c
 endif
 
+CONTIKI_WITH_RPL = 0
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include

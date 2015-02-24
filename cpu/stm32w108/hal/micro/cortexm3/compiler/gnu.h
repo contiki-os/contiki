@@ -3,7 +3,11 @@
  *
  */
 
-/** @addtogroup gnu
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/** @defgroup gnu
  * @brief Compiler and Platform specific definitions and typedefs for the
  *  GNU C ARM compiler.
  *
@@ -539,4 +543,5 @@ int abs(int I);
 #endif // GNU_H_
 
 /** @}  END addtogroup */
+/** @} */
 

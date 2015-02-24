@@ -115,7 +115,7 @@ slip_set_tcpip_input_callback(void (*c)(void))
 	tcpip_input_callback = c;
 }
 /*---------------------------------------------------------------------------*/
-#if WITH_UIP
+#if NETSTACK_CONF_WITH_IPV4
 uint8_t
 slip_send(void)
 {
@@ -144,7 +144,7 @@ slip_send(void)
 
 	return UIP_FW_OK;
 }
-#endif /* WITH_UIP */
+#endif /* NETSTACK_CONF_WITH_IPV4 */
 /*---------------------------------------------------------------------------*/
 uint8_t
 slip_write(const void *_ptr, int len)
@@ -339,7 +339,7 @@ PROCESS_THREAD(slip_process, ev, data)
 		/* Move packet from rxbuf to buffer provided by uIP. */
 		uip_len = slip_poll_handler(&uip_buf[UIP_LLH_LEN],
 			UIP_BUFSIZE - UIP_LLH_LEN);
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
 		if(uip_len == 4 && strncmp((char*)&uip_buf[UIP_LLH_LEN], "?IPA", 4) == 0) {
 			char buf[8];
 			memcpy(&buf[0], "=IPA", 4);
@@ -373,7 +373,7 @@ PROCESS_THREAD(slip_process, ev, data)
 			uip_len = 0;
 			SLIP_STATISTICS(slip_ip_drop++);
 		}
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 		if(uip_len > 0) {
 			if(tcpip_input_callback) {
 				tcpip_input_callback();
@@ -381,7 +381,7 @@ PROCESS_THREAD(slip_process, ev, data)
 				tcpip_input();
 			}
 		}
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 	}
 
 	PROCESS_END();

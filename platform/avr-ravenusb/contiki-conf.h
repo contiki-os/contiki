@@ -217,19 +217,18 @@ extern void mac_log_802_15_4_rx(const uint8_t* buffer, size_t total_len);
 #define PACKETBUF_CONF_HDR_SIZE    0         //RF230 combined driver/mac handles headers internally
 #endif /*RF230BB */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define LINKADDR_CONF_SIZE       8
 #define UIP_CONF_ICMP6           1
 #define UIP_CONF_UDP             1
 #define UIP_CONF_TCP             0
-//#define UIP_CONF_IPV6_RPL        0
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
 /* ip4 should build but is thoroughly untested */
 #define LINKADDR_CONF_SIZE       2
 #define NETSTACK_CONF_NETWORK    rime_driver
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* See uip-ds6.h */
 #define NBR_TABLE_CONF_MAX_NEIGHBORS     2
@@ -312,7 +311,13 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_MAC         nullmac_driver
 //#define NETSTACK_CONF_MAC         csma_driver
 #define NETSTACK_CONF_RDC         contikimac_driver
-#define NETSTACK_CONF_FRAMER      framer_802154
+
+#if NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_FRAMER      framer802154
+#else /* NETSTACK_CONF_WITH_IPV6 */
+#define NETSTACK_CONF_FRAMER      contikimac_framer
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 /* Enable extended mode with autoack, but no csma/autoretry */
@@ -374,13 +379,12 @@ typedef unsigned short uip_stats_t;
 //#pragma mark RPL Settings
 /* ************************************************************************** */
 
-#define UIP_CONF_IPV6_RPL        0
 #if UIP_CONF_IPV6_RPL
 
 /* Not completely working yet. Works on Ubuntu after $ifconfig usb0 -arp to drop the neighbor solitications */
 /* Dropping the NS on other OSs is more complicated, see http://www.sics.se/~adam/wiki/index.php/Jackdaw_RNDIS_RPL_border_router */
 
-/* RPL requires the uip stack. Change #CONTIKI_NO_NET=1 to UIP_CONF_IPV6=1 in the examples makefile,
+/* RPL requires the uip stack. Change #CONTIKI_NO_NET=1 to NETSTACK_CONF_WITH_IPV6=1 in the examples makefile,
    or include the needed source files in /plaftorm/avr-ravenusb/Makefile.avr-ravenusb */
 /* For the present the buffer_length calcs in rpl-icmp6.c will need adjustment by the length difference
    between 6lowpan (0) and ethernet (14) link-layer headers:
