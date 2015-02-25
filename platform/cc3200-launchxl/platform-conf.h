@@ -100,13 +100,14 @@
 /*
  * Wait for data could be transmitted.
  */
-#define SPI_WAITFORTxREADY() 	do { printf("Before SPI_WAITFORTxREADY\n"); /* while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_TXS)); */ printf("After SPI_WAITFORTxREADY\n"); } while(0)
+#define SPI_WAITFORTxREADY() 	do { printf("Before SPI_WAITFORTxREADY\n"); while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_TXS)); printf("After SPI_WAITFORTxREADY\n"); } while(0)
 
 /** @} */
 
 /**
  * Include TI CC2520 architecture dependent functions
  */
+#include "dev/spi-arch.h"
 #include "cc2520-arch.h"
 #include "cc2520_const.h"
 #include "clock-arch.h"
@@ -152,10 +153,12 @@
  *
  * ENABLE CSn (active low)
  */
-#define CC2520_SPI_ENABLE()     	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, 0); clock_delay(5); } while(0)
-
+// #define CC2520_SPI_ENABLE()     	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, 0); clock_delay(5); } while(0)
+#define CC2520_SPI_ENABLE()			spi_cs_enable()
 /* DISABLE CSn (active low) */
-#define CC2520_SPI_DISABLE()    	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, CC2520_CSN_PIN); clock_delay(5); } while(0)
+// #define CC2520_SPI_DISABLE()    	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, CC2520_CSN_PIN); clock_delay(5); } while(0)
+#define CC2520_SPI_DISABLE()		spi_cs_disable()
+
 #define CC2520_SPI_IS_ENABLED()  	(!((MAP_GPIOPinRead(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN) & CC2520_CSN_PIN) ? 1 : 0))
 
 /** @} */

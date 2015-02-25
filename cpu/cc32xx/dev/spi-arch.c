@@ -51,6 +51,7 @@
 #include "rom_map.h"
 
 #include "../../ti-cc3200-sdk/driverlib/src/spi.h"	// Ti SPI driver for cc32xx
+#include "spi-arch.h"
 #include "spi.h"									// Contiki SPI driver
 
 #include <stdio.h>
@@ -86,7 +87,7 @@
 #endif
 
 #ifndef CC32XX_SPI_CONFIG
-#define CC32XX_SPI_CONFIG		(SPI_SW_CTRL_CS | SPI_4PIN_MODE|SPI_TURBO_OFF |	SPI_CS_ACTIVEHIGH |	SPI_WL_8)
+#define CC32XX_SPI_CONFIG		(SPI_SW_CTRL_CS | SPI_4PIN_MODE | SPI_TURBO_OFF | SPI_CS_ACTIVELOW | SPI_WL_8)
 #endif
 
 // Enable debug messages
@@ -131,4 +132,20 @@ spi_init(void)
 #if STARTUP_CONF_VERBOSE && DEBUG
 	PRINTF("SPI of CC32xx initialized\n");
 #endif
+}
+
+void spi_cs_enable(void)
+{
+	PRINTF("spi_cs_enable\n");
+
+	// Enable chip select
+	MAP_SPICSEnable(GSPI_BASE);
+}
+
+void spi_cs_disable(void)
+{
+	// Disable chip select
+	MAP_SPICSDisable(GSPI_BASE);
+
+	PRINTF("spi_cs_disable\n");
 }
