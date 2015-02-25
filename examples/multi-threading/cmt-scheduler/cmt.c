@@ -79,8 +79,6 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
 
   PRINTF("cmt: %p receives 0x%0X\n",cmt_current(),cmt_ev);
 
-  PROCESS_EXITHANDLER(goto exit);
-
   PROCESS_BEGIN();
 
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
@@ -98,7 +96,7 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
       mt_exec(&(cmt_current()->mt_thread));
   }
 
-exit:
+
   mt_stop(&(cmt_current()->mt_thread));
   PRINTF("cmt: %p exited\n",cmt_current());
 

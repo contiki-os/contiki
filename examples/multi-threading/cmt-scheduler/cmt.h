@@ -160,9 +160,14 @@ void cmt_join(struct cmt_thread *thread);
 * \param   threadptr      cmt thread control instance
 */
 #define cmt_process_join(threadptr)  \
-    PROCESS_WAIT_EVENT_UNTIL( \
-        ev == PROCESS_EVENT_EXITED && \
-        (threadptr) == data);
+        if (process_is_running((struct process *)threadptr)){ \
+            PROCESS_WAIT_EVENT_UNTIL( \
+                ev == PROCESS_EVENT_EXITED && \
+                (threadptr) == data); \
+        }
+
+
+
 
 /**
  * \brief      Starts an cmt mt_thread
