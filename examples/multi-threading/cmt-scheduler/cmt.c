@@ -55,7 +55,7 @@
 
 #include "cmt.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -66,17 +66,18 @@
 static process_event_t cmt_ev;     /*!< Any cmt_thread may access this event id via get func */
 static process_data_t cmt_data;    /*!< Any cmt_thread may access this event data via get func */
 
-
-
 /*---------------------------------------------------------------------------*/
 #define PROCESS_RESOLVE_FUNC_NAME(name) \
         process_thread_##name
 
 PROCESS_THREAD(cmt_thread_handler, ev, data)
 {
+
   /* move event into global scope */
   cmt_ev = ev;
   cmt_data = data;
+
+  PRINTF("cmt: %p receives 0x%0X\n",cmt_current(),cmt_ev);
 
   PROCESS_EXITHANDLER(goto exit);
 
@@ -84,19 +85,22 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
 
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
 
+  PRINTF("cmt: %p started\n",cmt_current());
+
   /* exec thread once to get to first blocking situation */
   mt_start(&(cmt_current()->mt_thread),cmt_current()->function,data);
   mt_exec(&(cmt_current()->mt_thread));
 
   while((cmt_current()->mt_thread).state != MT_STATE_EXITED)
   {
+      PRINTF("cmt: %p blocks  \n",cmt_current());
       PROCESS_WAIT_EVENT();
       mt_exec(&(cmt_current()->mt_thread));
   }
 
 exit:
   mt_stop(&(cmt_current()->mt_thread));
-  (cmt_current()->mt_thread).state = MT_STATE_EXITED;
+  PRINTF("cmt: %p exited\n",cmt_current());
 
   PROCESS_END();
 }
@@ -119,7 +123,7 @@ cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
 {
 
 #ifndef PROCESS_CONF_NO_PROCESS_NAMES
-    static const char* cmt_any_text = "cmt any";
+    static const char* cmt_any_text = "any cmt";
 #endif
 
     /* First make sure that we don't try to start a process that is
@@ -131,43 +135,38 @@ cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
     }
 
     thread->function = function;
-    thread->mt_thread.state = MT_STATE_READY;
 
     thread->process.thread = PROCESS_RESOLVE_FUNC_NAME(cmt_thread_handler);
 #ifndef PROCESS_CONF_NO_PROCESS_NAMES
     thread->process.name = (char*)cmt_any_text;
 #endif
+
+    PRINTF("cmt: %p starts %p\n",cmt_current(),thread);
+
     process_start((struct process*)thread,NULL); /* start the cmt_thread_handler */
 
     /* move out of any cmt context ...
        this allows to cmt_start another thread within a
        cmt_thread context */
     process_post((struct process*)thread,PROCESS_EVENT_CONTINUE,data);
+
+
 }
 
 void
 cmt_join(struct cmt_thread *thread)
 {
-    if (cmt_current() == thread){
+    if (cmt_current() == thread || !process_is_running((struct process *)thread)){
         return;
     }
 
-    while(thread->mt_thread.state != MT_STATE_EXITED) {
-        cmt_pause();
-    }
+    PRINTF("cmt: %p joined %p\n",cmt_current(),thread);
 
-
+    cmt_wait_event_until(
+            cmt_get_ev() == PROCESS_EVENT_EXITED &&
+            (struct process*)thread == (struct process*)cmt_get_data());
 }
 
-void
-cmt_stop(struct cmt_thread *thread)
-{
-    if (cmt_current() == thread){
-        return;
-    }
-
-    process_post((struct process*)thread,PROCESS_EVENT_EXIT,NULL);
-}
 
 
 

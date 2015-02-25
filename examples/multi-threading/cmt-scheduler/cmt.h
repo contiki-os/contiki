@@ -74,8 +74,8 @@
  */
 #define cmt_sleep(interval) \
     do { \
-        etimer_set(&((struct cmt_thread*)PROCESS_CURRENT())->et,interval); \
-        cmt_wait_event_until(etimer_expired(&((struct cmt_thread*)PROCESS_CURRENT())->et)); \
+        etimer_set(&cmt_current()->et,interval); \
+        cmt_wait_event_until(etimer_expired(&cmt_current()->et)); \
     }while(0)
 
 /**
@@ -151,6 +151,7 @@ struct cmt_thread {
 */
 void cmt_join(struct cmt_thread *thread);
 
+
 /**
 * \brief   Blocks the calling process until the joined thread terminates.
 *
@@ -158,23 +159,10 @@ void cmt_join(struct cmt_thread *thread);
 *
 * \param   threadptr      cmt thread control instance
 */
-#define process_join_cmt(threadptr)  \
-        while((threadptr)->mt_thread.state != MT_STATE_EXITED) { \
-            PROCESS_PAUSE(); \
-        }
-
-
-/**
-* \brief   Stops a running cmt_thread
-*          If the calling thread is the thread to stop, the function
-*          returns immediately. The thread to stop is not stopped
-*          immediately, thus one must join the thread afterwards.
-*
-*          May be called by a process or a cmt_thread.
-*
-* \param   thread      cmt thread control instance
-*/
-void cmt_stop(struct cmt_thread *thread);
+#define cmt_process_join(threadptr)  \
+    PROCESS_WAIT_EVENT_UNTIL( \
+        ev == PROCESS_EVENT_EXITED && \
+        (threadptr) == data);
 
 /**
  * \brief      Starts an cmt mt_thread
@@ -202,4 +190,4 @@ cmt_get_ev(void);
 process_data_t
 cmt_get_data(void);
 
-#endif /* SMT_H_ */
+#endif /* CMT_H_ */

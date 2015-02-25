@@ -57,10 +57,10 @@
 #endif
 
 #define SIZE 2
-const static uint16_t numbers [SIZE] = {5869,8209} ;
-struct cmt_thread prime_threads [SIZE];
-struct cmt_thread main_thread;
-struct cmt_thread stop_thread;
+const static uint16_t numbers [SIZE] = {7,3} ;
+static struct cmt_thread prime_threads [SIZE];
+static struct cmt_thread main_thread;
+
 
 void prime_thread_func (void *data)
 {
@@ -90,6 +90,7 @@ not_prime:
     cmt_exit();
 }
 
+
 void main_thread_func(void *data)
 {
     int tmp;
@@ -107,25 +108,11 @@ void main_thread_func(void *data)
         cmt_join(&prime_threads[tmp]);
     }
 
-    cmt_stop(&stop_thread);
-    cmt_join(&stop_thread);
-
     PRINTF("Exit main thread\n");
     cmt_exit();
 }
 
-void stop_thread_func (void *data)
-{
-    volatile int tmp = 0;
 
-    for (;;)
-    {
-        tmp++;
-        cmt_pause();
-    }
-
-    cmt_exit();
-}
 
 /*---------------------------------------------------------------------------*/
 PROCESS(cmt_join_test, "cmt_join_test");
@@ -137,14 +124,12 @@ PROCESS_THREAD(cmt_join_test, ev, data)
 
   mt_init();
 
-  cmt_start(&stop_thread, stop_thread_func, NULL);
-
   PRINTF("Starting main thread ... \n");
   cmt_start(&main_thread,main_thread_func,NULL);
-
-  process_join_cmt(&main_thread);
+  cmt_process_join(&main_thread);
 
   PRINTF("Exit cmt_join_test \n");
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
