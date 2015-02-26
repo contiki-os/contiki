@@ -78,6 +78,8 @@ import se.sics.mspsim.util.MapEntry;
 import se.sics.mspsim.util.MapTable;
 import se.sics.mspsim.profiler.SimpleProfiler;
 
+import org.contikios.cooja.mspmote.interfaces.MspClock;
+
 /**
  * @author Fredrik Osterlind
  */
@@ -313,9 +315,24 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       throw new RuntimeException("Bad event ordering: " + lastExecute + " < " + t);
     }
 
+    /* time deviation skip if ahead*/
+    double rtime = ((MspClock) (myMoteInterfaceHandler.getClock()))
+        .getReferenceTime();
+    double deviation = ((MspClock) myMoteInterfaceHandler.getClock())
+        .getDeviation();
+    long drift = myMoteInterfaceHandler.getClock().getDrift();
+    if (Math.round(rtime) < (t + drift)) {
+      lastExecute = t;
+      nextExecute = t + duration;
+      ((MspClock) (myMoteInterfaceHandler.getClock())).setReferenceTime(rtime
+          + duration + (deviation * duration));
+      scheduleNextWakeup(nextExecute);
+      return;
+    }
+
     /* Execute MSPSim-based mote */
     /* TODO Try-catch overhead */
-    try {
+    try { 
       nextExecute =
         t + duration +
         myCpu.stepMicros(t - lastExecute, duration);
@@ -333,6 +350,10 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     /*logger.debug(t + ": Schedule next wakeup at " + nextExecute);*/
     scheduleNextWakeup(nextExecute);
 
+    /* time deviation book keeping */
+    ((MspClock) (myMoteInterfaceHandler.getClock())).setReferenceTime(rtime
+        + deviation * (nextExecute - lastExecute));
+    
     if (stopNextInstruction) {
       stopNextInstruction = false;
       throw new RuntimeException("MSPSim requested simulation stop");
