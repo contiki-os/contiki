@@ -52,9 +52,11 @@ public class MspClock extends Clock {
   private Simulation simulation;
   
   private long timeDrift; /* Microseconds */
+  private double deviation;
 
   public MspClock(Mote mote) {
     simulation = mote.getSimulation();
+    deviation = 1.0;
   }
 
   public void setTime(long newTime) {
@@ -71,6 +73,15 @@ public class MspClock extends Clock {
 
   public long getDrift() {
     return timeDrift;
+  }
+
+  public void setDeviation(double deviation) {
+    assert deviation>0.0;
+    this.deviation = deviation;
+  }
+
+  public double getDeviation() {
+    return deviation;
   }
 
   public JPanel getInterfaceVisualizer() {

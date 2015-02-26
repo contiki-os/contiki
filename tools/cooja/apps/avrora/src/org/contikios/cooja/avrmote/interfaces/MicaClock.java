@@ -54,10 +54,12 @@ public class MicaClock extends Clock {
   private MicaZMote myMote;
 
   private long timeDrift; /* Microseconds */
+  private double deviation;
   
   public MicaClock(Mote mote) {
     simulation = mote.getSimulation();
     myMote = (MicaZMote) mote;
+    deviation = 1.0;
   }
 
   public void setTime(long newTime) {
@@ -90,4 +92,12 @@ public class MicaClock extends Clock {
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
+  public double getDeviation() {
+    return deviation;
+  }
+
+  public void setDeviation(double deviation) {
+    assert deviation > 0.0;
+    this.deviation = deviation;
+  }
 }
