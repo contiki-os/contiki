@@ -54,6 +54,7 @@ public class MicaClock extends Clock {
   private MicaZMote myMote;
 
   private long timeDrift; /* Microseconds */
+  private double referenceTime; /* Microseconds */
   private double deviation;
   
   public MicaClock(Mote mote) {
@@ -70,12 +71,29 @@ public class MicaClock extends Clock {
     return simulation.getSimulationTime() + timeDrift;
   }
 
+  public double getDeviation() {
+    return deviation;
+  }
+
+  public void setDeviation(double deviation) {
+    assert (deviation>0.0) && (deviation<=1.0);
+    this.deviation = deviation;
+  }
+
   public void setDrift(long drift) {
     timeDrift = drift;
   }
 
   public long getDrift() {
     return timeDrift;
+  }
+
+  public void setReferenceTime(double referenceTime) {
+    this.referenceTime = referenceTime;
+  }
+
+  public double getReferenceTime() {
+    return referenceTime;
   }
 
   public JPanel getInterfaceVisualizer() {
@@ -90,14 +108,5 @@ public class MicaClock extends Clock {
   }
 
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-  }
-
-  public double getDeviation() {
-    return deviation;
-  }
-
-  public void setDeviation(double deviation) {
-    assert deviation > 0.0;
-    this.deviation = deviation;
   }
 }
