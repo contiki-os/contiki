@@ -149,17 +149,28 @@
 #define CC2520_CLEAR_FIFOP_INT()
 
 /*
+ * Use GPIO06 for controlling chip select (CSn)
+ * otherwise SPI_CS of CC32xx controller is used
+ */
+#define CC2520_USE_CSN_GPIO		0
+
+/*
  * Enable / Disable CC2520 access to the SPI bus.
  *
  * ENABLE CSn (active low)
  */
-// #define CC2520_SPI_ENABLE()     	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, 0); clock_delay(5); } while(0)
-#define CC2520_SPI_ENABLE()			spi_cs_enable()
-/* DISABLE CSn (active low) */
-// #define CC2520_SPI_DISABLE()    	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, CC2520_CSN_PIN); clock_delay(5); } while(0)
-#define CC2520_SPI_DISABLE()		spi_cs_disable()
+#if CC2520_USE_CSN_GPIO
+#define CC2520_SPI_ENABLE()     	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, 0); clock_delay(5); } while(0)
+#else
+#define CC2520_SPI_ENABLE()			do { spi_cs_enable(); clock_delay(5); } while(0)
+#endif
 
-#define CC2520_SPI_IS_ENABLED()  	(!((MAP_GPIOPinRead(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN) & CC2520_CSN_PIN) ? 1 : 0))
+/* DISABLE CSn (active low) */
+#if CC2520_USE_CSN_GPIO
+#define CC2520_SPI_DISABLE()    	do { MAP_GPIOPinWrite(CC2520_CSN_PORT_BASE, CC2520_CSN_PIN, CC2520_CSN_PIN); clock_delay(5); } while(0)
+#else
+#define CC2520_SPI_DISABLE()		do { spi_cs_disable(); clock_delay(5); } while(0)
+#endif
 
 /** @} */
 
