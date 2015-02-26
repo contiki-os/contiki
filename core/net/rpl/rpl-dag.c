@@ -972,6 +972,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 }
 
+#if RPL_MAX_DAG_PER_INSTANCE > 1
 /*---------------------------------------------------------------------------*/
 void
 rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
@@ -1051,6 +1052,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_process_parent_event(instance, p);
   p->dtsn = dio->dtsn;
 }
+#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -1246,9 +1248,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   if(dag == NULL) {
+#if RPL_MAX_DAG_PER_INSTANCE > 1
     PRINTF("RPL: Adding new DAG to known instance.\n");
     rpl_add_dag(from, dio);
     return;
+#else /* RPL_MAX_DAG_PER_INSTANCE > 1 */
+    PRINTF("RPL: Only one instance supported.\n");
+    return;
+#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
   }
 
 
