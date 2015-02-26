@@ -44,6 +44,7 @@ import org.contikios.cooja.MoteType;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.motes.AbstractEmulatedMote;
+
 import avrora.arch.avr.AVRProperties;
 import avrora.core.LoadableProgram;
 import avrora.sim.AtmelInterpreter;
@@ -53,6 +54,8 @@ import avrora.sim.mcu.AtmelMicrocontroller;
 import avrora.sim.mcu.EEPROM;
 import avrora.sim.platform.MicaZ;
 import avrora.sim.platform.PlatformFactory;
+
+import org.contikios.cooja.avrmote.interfaces.MicaClock;
 
 /**
  * @author Joakim Eriksson, Fredrik Osterlind
@@ -197,12 +200,29 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
 
     /* TODO Poll mote interfaces? */
 
+    /* time deviation skip if ahead*/
+    double rtime = ((MicaClock) (myMoteInterfaceHandler.getClock()))
+        .getReferenceTime();
+    double deviation = ((MicaClock) myMoteInterfaceHandler.getClock())
+        .getDeviation();
+    long drift = myMoteInterfaceHandler.getClock().getDrift();
+    if (Math.round(rtime) < (t + drift)) {
+      ((MicaClock) (myMoteInterfaceHandler.getClock())).setReferenceTime(rtime
+          + Simulation.MILLISECOND + (deviation * Simulation.MILLISECOND));
+      scheduleNextWakeup(t + Simulation.MILLISECOND);
+      return;
+    }
+    
     /* Execute one millisecond */
     cyclesUntil += NR_CYCLES_PER_MSEC;
     while (cyclesExecuted < cyclesUntil) {
       cyclesExecuted += interpreter.step();
     }
 
+    /* time deviation book keeping */
+    ((MicaClock) (myMoteInterfaceHandler.getClock())).setReferenceTime(rtime
+        + (deviation * Simulation.MILLISECOND));
+    
     /* TODO Poll mote interfaces? */
 
     /* Schedule wakeup every millisecond */
