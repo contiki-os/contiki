@@ -76,6 +76,7 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
 
   private long moteTime; /* Microseconds */
   private long timeDrift; /* Microseconds */
+  private double deviation;
 
   /**
    * @param mote Mote
@@ -89,6 +90,7 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
     this.moteMem = new VarMemory(mote.getMemory());
     timeDrift = 0;
     moteTime = 0;
+    deviation = 1.0;
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -113,6 +115,15 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
 
   public long getTime() {
     return moteTime;
+  }
+  
+  public void setDeviation(double deviation) {
+  	assert deviation>0.0;
+  	this.deviation = deviation;
+  }
+
+  public double getDeviation() {
+  	return deviation;
   }
 
   public void doActionsBeforeTick() {
@@ -161,5 +172,4 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
 
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
-
 }

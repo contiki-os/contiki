@@ -39,6 +39,7 @@ import org.contikios.cooja.*;
  * This observable never notifies.
  *
  * @author Fredrik Osterlind
+ *         Andreas Löscher
  */
 @ClassDescription("Clock")
 public abstract class Clock extends MoteInterface {
@@ -76,4 +77,21 @@ public abstract class Clock extends MoteInterface {
    */
   public abstract long getDrift();
 
+
+  /**
+   * The clock deviation is a factor that represents with how much speed the
+   * mote progresses through the simulation in relation to the simulation speed.
+   *
+   * A value of 1.0 results in the mote beeing simulated with the same speed
+   * as the simulation. A value of 0.5 results in the mote beeing simulation
+   * at half of the simulation speed.
+   *
+   *  @param deviation Deviation factor
+   */
+  public abstract void setDeviation(double deviation);
+
+  /**
+   * Get deviation factor
+   */
+  public abstract double getDeviation();
 }
