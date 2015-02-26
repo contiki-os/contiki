@@ -37,5 +37,18 @@
  *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
  */
 
+
+#ifndef SPI_ARCH_H_
+#define SPI_ARCH_H_
+
+extern uint8_t spi_rxbuf;
+extern uint8_t spi_txbuf;
+
+// Prototyps (Chip Select)
 void spi_cs_enable(void);
 void spi_cs_disable(void);
+
+// Prototype RXBUF
+uint8_t spi_get_rxbuf(void);
+
+#endif /* SPI_ARCH_H_ */

@@ -40,7 +40,6 @@
 
 #include "hw_memmap.h"
 #include "hw_types.h"
-#include "hw_mcspi.h"
 
 #include "rom.h"
 #include "rom_map.h"
@@ -78,37 +77,11 @@
 #define UIP_FALLBACK_INTERFACE 	ip64_uip_fallback_interface
 /** @} */
 
-/*
- * SPI bus configuration for the CC3200 LaunchPad-XL
- * @{
- */
-
-/* SPI input/output registers. */
-#define SPI_TXBUF 				HWREG(GSPI_BASE+MCSPI_O_TX0)
-#define SPI_RXBUF 				HWREG(GSPI_BASE+MCSPI_O_RX0)
-
-/*
- * Wait for end of transmission
- */
-#define SPI_WAITFOREOTx() 		do { printf("Before SPI_WAITFOREOTx\n"); while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_EOT)); printf("After SPI_WAITFOREOTx\n"); } while(0)
-
-/*
- * Wait for RX data
- */
-#define SPI_WAITFOREORx() 		do { printf("Before SPI_WAITFOREORx\n"); while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_RXS)); printf("After SPI_WAITFOREORx\n");  } while(0)
-
-/*
- * Wait for data could be transmitted.
- */
-#define SPI_WAITFORTxREADY() 	do { printf("Before SPI_WAITFORTxREADY\n"); while(!(HWREG(GSPI_BASE+MCSPI_O_CH0STAT)&MCSPI_CH0STAT_TXS)); printf("After SPI_WAITFORTxREADY\n"); } while(0)
-
-/** @} */
-
 /**
  * Include TI CC2520 architecture dependent functions
  */
 #include "dev/spi-arch.h"
-#include "cc2520-arch.h"
+#include "dev/cc2520-arch.h"
 #include "cc2520_const.h"
 #include "clock-arch.h"
 

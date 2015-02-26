@@ -96,7 +96,10 @@
 
 // Enable debug messages
 #define DEBUG	1
-
+/*---------------------------------------------------------------------------*/
+// Global variables
+uint8_t spi_rxbuf;
+uint8_t spi_txbuf;
 /*---------------------------------------------------------------------------*/
 void
 spi_init(void)
@@ -137,19 +140,23 @@ spi_init(void)
 	PRINTF("SPI of CC32xx initialized\n");
 #endif
 }
-
-void spi_cs_enable(void)
+/*---------------------------------------------------------------------------*/
+void
+spi_cs_enable(void)
 {
-	PRINTF("spi_cs_enable\n");
-
 	// Enable chip select
 	MAP_SPICSEnable(GSPI_BASE);
 }
-
-void spi_cs_disable(void)
+/*---------------------------------------------------------------------------*/
+void
+spi_cs_disable(void)
 {
 	// Disable chip select
 	MAP_SPICSDisable(GSPI_BASE);
-
-	PRINTF("spi_cs_disable\n");
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+spi_get_rxbuf(void)
+{
+	return spi_rxbuf;
 }
