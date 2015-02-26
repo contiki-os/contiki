@@ -58,7 +58,7 @@ public class MspClock extends Clock {
   public MspClock(Mote mote) {
     simulation = mote.getSimulation();
     referenceTime = 0.0;
-    deviation = 0.999;
+    deviation = 1.0;
   }
 
   public void setTime(long newTime) {
