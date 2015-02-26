@@ -82,8 +82,8 @@ public abstract class Clock extends MoteInterface {
    * The clock deviation is a factor that represents with how much speed the
    * mote progresses through the simulation in relation to the simulation speed.
    *
-   * A value of 1.0 results in the mote beeing simulated with the same speed
-   * as the simulation. A value of 0.5 results in the mote beeing simulation
+   * A value of 1.0 results in the mote being simulated with the same speed
+   * as the simulation. A value of 0.5 results in the mote being simulation
    * at half of the simulation speed.
    *
    *  @param deviation Deviation factor
