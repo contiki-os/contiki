@@ -75,6 +75,11 @@ LD=$(PREFIX)-ld
 OBJCOPY=$(PREFIX)-objcopy
 
 #
+# The command for calling objdump.
+#
+OBJDUMP=$(PREFIX)-objdump
+
+#
 # The command for calling nm.
 #
 NM=$(PREFIX)-nm
@@ -181,6 +186,10 @@ LIBM:=${shell ${CC} ${CFLAGS} -print-file-name=libm.a}
 # The flags passed to obj-copy.
 #
 OBJCOPY_FLAGS += -O binary --gap-fill 0xff
+
+#
+# The flags passed to obj-dump.
+#
 OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 
 #
@@ -255,7 +264,7 @@ CONTIKI_SOURCEFILES += $(NET_ARCH_SOURCEFILES)
 # 
 # Don't treat the .elf as intermediate
 #
-.PRECIOUS: %.elf %.hex %.bin
+.PRECIOUS: %.elf %.hex %.bin %.lss
 
 CC3200SDK_DRIVER_LIB:
 	@echo Building CC3200 SDK driver library
@@ -292,13 +301,13 @@ CUSTOM_RULE_LINK=1
 %.bin: %.elf
 	$(OBJCOPY) $(OBJCOPY_FLAGS) $< $@
 
-%.lst: %.elf
+%.lss: %.elf
 	$(OBJDUMP) $(OBJDUMP_FLAGS) $< > $@
 #
 # We don't really need the .hex and .bin for the .$(TARGET) but let's make
 # sure they get built
 #
-%.$(TARGET): %.elf %.hex %.bin
+%.$(TARGET): %.elf %.hex %.bin %.lss
 	cp $< $@
 
 #

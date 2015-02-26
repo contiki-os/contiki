@@ -3,6 +3,7 @@
 *.map
 *.png
 *.log
+*.lss
 *.elf
 *.d
 *.ihex
@@ -90,5 +91,6 @@ contiki-cc2530dk.lib
 # rl78 build artifacts
 *.eval-adf7xxxmb4z
 *.eval-adf7xxxmb4z.srec
+
+# cc3200-launchxl build artifacts
 *.cc3200-launchxl
-serialdump-macos
