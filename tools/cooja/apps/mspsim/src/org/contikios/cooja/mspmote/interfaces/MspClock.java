@@ -52,11 +52,13 @@ public class MspClock extends Clock {
   private Simulation simulation;
   
   private long timeDrift; /* Microseconds */
+  private double referenceTime; /* Microseconds */
   private double deviation;
 
   public MspClock(Mote mote) {
     simulation = mote.getSimulation();
-    deviation = 1.0;
+    referenceTime = 0.0;
+    deviation = 0.999;
   }
 
   public void setTime(long newTime) {
@@ -75,8 +77,16 @@ public class MspClock extends Clock {
     return timeDrift;
   }
 
+  public void setReferenceTime(double referenceTime) {
+    this.referenceTime = referenceTime;
+  }
+  
+  public double getReferenceTime() {
+    return referenceTime;
+  }
+  
   public void setDeviation(double deviation) {
-    assert deviation>0.0;
+    assert (deviation>0.0) && (deviation<=1.0);
     this.deviation = deviation;
   }
 
