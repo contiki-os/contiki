@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 3B Scientific GmbH.
+ * Copyright (c) 2015, 3B Scientific GmbH, http://www.3bscientific.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,62 +32,16 @@
 
 /**
  * \file
- *         Headers for clock architecture implementation of TI CC32xx.
+ *         Header for quick program that blinks the RED LED
  * \author
  *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
  */
 
-#ifndef CLOCK_ARCH_H_
-#define CLOCK_ARCH_H_
+#include "contiki.h"
 
-#include "contiki-conf.h"
-#include "rtimer-arch.h"
+#ifndef BLINK_H_
+#define BLINK_H_
 
-#define CLOCK_ARCH_CPU					80000000
-#define RTIMER_TO_CLOCK_SECOND			(RTIMER_ARCH_SECOND / CLOCK_CONF_SECOND)
+PROCESS_NAME(blink_process);
 
-#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
-#define CLOCK_ARCH_TICK_MS				(1000 / RTIMER_ARCH_SECOND)
-#else
-#define CLOCK_ARCH_PRELOAD				(CLOCK_ARCH_CPU / RTIMER_ARCH_SECOND)
-#endif
-
-#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
-#define CLOCK_ARCH_TICKTASK_PRIORITY	8
-#define CLOCK_ARCH_TICKTASK_STACKSIZE	256
-#endif
-
-#define USEC_TO_LOOP(x)					((CLOCK_ARCH_CPU/5000000)*x)
-
-/**
- * Start the clock, by creating timer service
- */
-void clock_arch_init(void);
-
-#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
-/**
- * Task for time service
- */
-void clock_arch_tick_task(void *pv_parameters);
-#else
-/**
- * Systick isr for time service
- */
-void clock_arch_isr(void);
-#endif
-/**
- * Update the software clock ticks
- */
-void clock_arch_update(void);
-
-/**
- * Return tick counter, default is ticks since startup.
- */
-inline clock_time_t clock_arch_get_tick_count(void);
-
-/**
- * Set tick counter.
- */
-inline void clock_arch_set_tick_count(clock_time_t t);
-
-#endif /* RTIMER_ARCH_H_ */
+#endif /* BLINK_H_ */

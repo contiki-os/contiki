@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 3B Scientific GmbH.
+ * Copyright (c) 2015, 3B Scientific GmbH, http://www.3bscientific.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,68 +32,36 @@
 
 /**
  * \file
- *         Clock implementation for TI CC32xx.
+ *         A quick program that blinks the RED LED
  * \author
  *         Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
  */
 
-#include "sys/clock.h"
-#include "clock-arch.h"
+#include "contiki.h"
+#include "dev/leds.h"
 
-#include "rom.h"
-#include "rom_map.h"
-#include "utils.h"
-
-#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
-#include "osi.h"
-#endif
+#include "blink.h"
 
 /*---------------------------------------------------------------------------*/
-void
-clock_init(void)
-{
-	// Call architecture specific clock initialize
-	clock_arch_init();
-}
+PROCESS(blink_process, "Blink");
 /*---------------------------------------------------------------------------*/
-clock_time_t
-clock_time(void)
+PROCESS_THREAD(blink_process, ev, data)
 {
-	// Return architecture specific clock count
-	return (clock_arch_get_tick_count() / RTIMER_TO_CLOCK_SECOND);
-}
-/*---------------------------------------------------------------------------*/
-unsigned long
-clock_seconds(void)
-{
-	// Return architecture specific clock seconds
-	return ((clock_arch_get_tick_count() / RTIMER_TO_CLOCK_SECOND) / CLOCK_SECOND);
-}
-/*---------------------------------------------------------------------------*/
-void
-clock_set_seconds(unsigned long sec)
-{
-	// Update architecture specific clock seconds
-	clock_arch_set_tick_count(((clock_time_t)sec * CLOCK_SECOND) * RTIMER_TO_CLOCK_SECOND);
-}
-/*---------------------------------------------------------------------------*/
-void
-clock_wait(clock_time_t t)
-{
-	clock_time_t start;
+  PROCESS_EXITHANDLER(goto exit;)
+  PROCESS_BEGIN();
 
-	start = clock_time();
-	while(clock_time() - start < (clock_time_t)t);
-}
-/*---------------------------------------------------------------------------*/
-void clock_delay_usec(uint16_t dt)
-{
-#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
-	// Call OS delay
-	osi_Sleep(dt);
-#else
-	// Call delay from driver lib
-	MAP_UtilsDelay(USEC_TO_LOOP(dt));
-#endif
+  while(1) {
+    static struct etimer et;
+    etimer_set(&et, CLOCK_SECOND / 2);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    leds_on(LEDS_RED);
+    etimer_set(&et, CLOCK_SECOND / 10);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    leds_off(LEDS_RED);
+  }
+
+ exit:
+  leds_off(LEDS_RED);
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

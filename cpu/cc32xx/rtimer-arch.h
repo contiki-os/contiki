@@ -41,10 +41,15 @@
 #define RTIMER_ARCH_H_
 
 #include "contiki-conf.h"
+#include "clock-arch.h"
 
-#define RTIMER_ARCH_SECOND CLOCK_CONF_SECOND
-
-#define rtimer_arch_now() clock_time()
+#if defined(USE_FREERTOS) || defined(USE_TIRTOS)
+#define RTIMER_ARCH_SECOND 	CLOCK_CONF_SECOND
+#define rtimer_arch_now() 	clock_time()
+#else
+#define RTIMER_ARCH_SECOND 	32768UL
+#define rtimer_arch_now() 	clock_arch_get_tick_count()
+#endif
 
 /**
  * \brief      Make the timer aware that the clock has changed
