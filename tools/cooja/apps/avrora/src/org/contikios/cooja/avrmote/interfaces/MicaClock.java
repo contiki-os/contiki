@@ -95,18 +95,4 @@ public class MicaClock extends Clock {
   public double getReferenceTime() {
     return referenceTime;
   }
-
-  public JPanel getInterfaceVisualizer() {
-    return null;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-  }
 }

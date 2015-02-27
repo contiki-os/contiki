@@ -93,20 +93,4 @@ public class MspClock extends Clock {
   public double getDeviation() {
     return deviation;
   }
-
-  public JPanel getInterfaceVisualizer() {
-    /* TODO Show current CPU speed */
-    return null;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-  }
-
 }
