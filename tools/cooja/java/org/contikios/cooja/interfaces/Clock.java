@@ -30,7 +30,19 @@
 
 package org.contikios.cooja.interfaces;
 
+import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
 import org.contikios.cooja.*;
+import org.jdom.Element;
 
 /**
  * Represents a mote's internal clock. Notice that the overall
@@ -43,7 +55,6 @@ import org.contikios.cooja.*;
  */
 @ClassDescription("Clock")
 public abstract class Clock extends MoteInterface {
-
   /**
    * Set mote's time to given time.
    *
@@ -94,4 +105,71 @@ public abstract class Clock extends MoteInterface {
    * Get deviation factor
    */
   public abstract double getDeviation();
+  
+  @Override
+  public JPanel getInterfaceVisualizer() {
+    JPanel panel = new JPanel();
+    GridLayout layout = new GridLayout(0,2);
+    
+    /* elements */
+    final JLabel timeLabel = new JLabel("Time (ms)");
+    final JTextField timeField = new JTextField(String.valueOf(getTime() / 1000));
+    final JLabel deviationLabel = new JLabel("Deviation Factor");
+    final JTextField deviationField = new JTextField(String.valueOf(getDeviation()));
+    final JButton readButton = new JButton("Read Clock Values");
+    final JButton updateButton = new JButton("Write Clock Values");
+    /* set layout */
+    panel.setLayout(layout);
+    /* add components */
+    panel.add(timeLabel);
+    panel.add(timeField);
+    panel.add(deviationLabel);
+    panel.add(deviationField);
+    panel.add(readButton);
+    panel.add(updateButton);
+    
+    readButton.addMouseListener(new MouseAdapter() {      
+      @Override
+      public void mouseClicked(MouseEvent ev) {
+        if (ev.getButton()==1) {
+          timeField.setText(String.valueOf(getTime() / 1000));
+          deviationField.setText(String.valueOf(getDeviation()));
+        }
+      }
+    });
+    
+    updateButton.addMouseListener(new MouseAdapter() {      
+      @Override
+      public void mouseClicked(MouseEvent ev) {
+        if (ev.getButton()==1) {
+          setTime(Long.parseLong(timeField.getText()) * 1000);
+          setDeviation(Double.parseDouble(deviationField.getText()));
+        }
+      }
+    });
+    
+    return panel;
+  }
+  
+  @Override
+  public void releaseInterfaceVisualizer(JPanel panel) {
+  }
+ 
+  @Override
+  public Collection<Element> getConfigXML() {
+    ArrayList<Element> config = new ArrayList<Element>();
+    Element element = new Element("deviation");
+    element.setText(String.valueOf(getDeviation()));
+    config.add(element);
+    return config;
+  }
+
+  @Override
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    for (Element element : configXML) {
+      if (element.getName().equals("deviation")) {
+        setDeviation(Double.parseDouble(element.getText()));
+      }
+    }
+  }
 }
