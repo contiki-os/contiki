@@ -56,6 +56,7 @@
 
 #include "net/wifi.h"
 #include "net/ip64/ip64.h"
+#include "apps/blink.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -219,11 +220,12 @@ contiki_main(void *pv_parameters)
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   // process_start(&sensors_process, NULL);
-
 	autostart_start(autostart_processes);
 
 	watchdog_start();
 	fade(LEDS_GREEN);
+
+	process_start(&blink_process, NULL);
 
 	while(1)
 	{

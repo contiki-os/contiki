@@ -42,12 +42,12 @@ endif
 #
 # Platform dependent directories
 #
-CONTIKI_TARGET_DIRS = . dev
+CONTIKI_TARGET_DIRS = . dev apps
 
 #
 # Platform dependent source files
 #
-CONTIKI_TARGET_SOURCEFILES += contiki-main.c cc2520-arch.c leds-arch.c pin_mux_config.c
+CONTIKI_TARGET_SOURCEFILES += blink.c contiki-main.c cc2520-arch.c leds-arch.c pin_mux_config.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 

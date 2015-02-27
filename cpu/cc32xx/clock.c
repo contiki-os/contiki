@@ -60,21 +60,21 @@ clock_time_t
 clock_time(void)
 {
 	// Return architecture specific clock count
-	return clock_arch_get_tick_count();
+	return (clock_arch_get_tick_count() / RTIMER_TO_CLOCK_SECOND);
 }
 /*---------------------------------------------------------------------------*/
 unsigned long
 clock_seconds(void)
 {
 	// Return architecture specific clock seconds
-	return (clock_arch_get_tick_count() / CLOCK_ARCH_TICK_COUNT);
+	return ((clock_arch_get_tick_count() / RTIMER_TO_CLOCK_SECOND) / CLOCK_SECOND);
 }
 /*---------------------------------------------------------------------------*/
 void
 clock_set_seconds(unsigned long sec)
 {
 	// Update architecture specific clock seconds
-	clock_arch_set_tick_count((clock_time_t)sec * CLOCK_ARCH_TICK_COUNT);
+	clock_arch_set_tick_count(((clock_time_t)sec * CLOCK_SECOND) * RTIMER_TO_CLOCK_SECOND);
 }
 /*---------------------------------------------------------------------------*/
 void

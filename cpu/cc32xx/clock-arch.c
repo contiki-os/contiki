@@ -110,11 +110,15 @@ void clock_arch_update(void)
 		rtimer_arch_request_poll();
 	}
 
-	// Check if etimer events are pending
-	if (etimer_pending())
+	// Check if one clock tick needs increment
+	if (clock_arch_tick_count % RTIMER_TO_CLOCK_SECOND == 0)
 	{
-		// Proceed etimer module
-		etimer_request_poll();
+		// Check if etimer events are pending
+		if (etimer_pending())
+		{
+			// Proceed etimer module
+			etimer_request_poll();
+		}
 	}
 }
 /*---------------------------------------------------------------------------*/
