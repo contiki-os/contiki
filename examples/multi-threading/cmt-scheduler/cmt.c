@@ -53,6 +53,7 @@
  *         marcas756 <marcas756@gmail.com>
  */
 
+
 #include "cmt.h"
 
 #define DEBUG 0
@@ -67,6 +68,7 @@ static process_event_t cmt_ev;     /*!< Any cmt_thread may access this event id 
 static process_data_t cmt_data;    /*!< Any cmt_thread may access this event data via get func */
 
 /*---------------------------------------------------------------------------*/
+
 #define PROCESS_RESOLVE_FUNC_NAME(name) \
         process_thread_##name
 
@@ -102,6 +104,7 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
 
   PROCESS_END();
 }
+
 /*---------------------------------------------------------------------------*/
 
 process_event_t
@@ -147,8 +150,20 @@ cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
        this allows to cmt_start another thread within a
        cmt_thread context */
     process_post((struct process*)thread,PROCESS_EVENT_CONTINUE,data);
+}
 
+void
+cmt_pause()
+{
+    process_post(PROCESS_CURRENT(),PROCESS_EVENT_CONTINUE,NULL);
+    cmt_wait_event_until(cmt_get_ev() == PROCESS_EVENT_CONTINUE);
+}
 
+void
+cmt_sleep(clock_time_t interval)
+{
+    etimer_set(&cmt_current()->et,interval);
+    cmt_wait_event_until(etimer_expired(&cmt_current()->et));
 }
 
 void
@@ -164,7 +179,6 @@ cmt_join(struct cmt_thread *thread)
             cmt_get_ev() == PROCESS_EVENT_EXITED &&
             (struct process*)thread == (struct process*)cmt_get_data());
 }
-
 
 
 

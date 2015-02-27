@@ -56,8 +56,9 @@
 #define PRINTF(...)
 #endif
 
-#define SIZE 2
-const static uint16_t numbers [SIZE] = {7,3} ;
+
+const static uint16_t numbers [] = {1033,1039,1049,1051,1061,1063,1069,1087,1091,1093,1097};
+#define SIZE  (sizeof(numbers)/sizeof(*numbers))
 static struct cmt_thread prime_threads [SIZE];
 static struct cmt_thread main_thread;
 
@@ -125,6 +126,7 @@ PROCESS_THREAD(cmt_join_test, ev, data)
   mt_init();
 
   PRINTF("Starting main thread ... \n");
+
   cmt_start(&main_thread,main_thread_func,NULL);
   cmt_process_join(&main_thread);
 

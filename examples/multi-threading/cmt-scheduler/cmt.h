@@ -62,41 +62,6 @@
     ((struct cmt_thread*)PROCESS_CURRENT())
 
 
-/**
- * \brief      Suspends the thread for a given time
- *
- * Must only be called within a cmt thread function!
- *
- * The cmt thread function calling this sleep suspends for interval time,
- * but does not block the rest of the system.
- *
- * \param   interval    Duration (1s=CLOCK_SECOND)
- */
-#define cmt_sleep(interval) \
-    do { \
-        etimer_set(&cmt_current()->et,interval); \
-        cmt_wait_event_until(etimer_expired(&cmt_current()->et)); \
-    }while(0)
-
-/**
- * Yield the thread for a short while.
- *
- * Must only be called within a mt_thread function!
- *
- * This macro yields the currently running thread for a short while,
- * thus letting other processes and threads run before the thread continues.
- *
- */
-#define cmt_pause() \
-    do { \
-        process_post(PROCESS_CURRENT(),PROCESS_EVENT_CONTINUE,NULL); \
-        cmt_wait_event_until(cmt_get_ev() == PROCESS_EVENT_CONTINUE); \
-    }while(0)
-
-#define cmt_exit() \
-    mt_exit()
-
-
 /** \brief  Extended cmt process/mt_thread structure
  *
  *  Combines a process with an mt_thread structure.
@@ -110,6 +75,33 @@ struct cmt_thread {
     struct etimer et;           /*!< sleep timer ... may not be defined as auto var due to stack swapping 6502 arch */
     void (* function)(void *);  /*!< Thread function pointer */
 };
+
+/**
+ * \brief      Suspends the thread for a given time
+ *
+ * Must only be called within a cmt thread function!
+ *
+ * The cmt thread function calling this sleep suspends for interval time,
+ * but does not block the rest of the system.
+ *
+ * \param   interval    Duration (1s=CLOCK_SECOND)
+ */
+void cmt_sleep(clock_time_t interval);
+
+/**
+ * \brief Yield the thread for a short while.
+ *
+ * Must only be called within a mt_thread function!
+ *
+ * This macro yields the currently running thread for a short while,
+ * thus letting other processes and threads run before the thread continues.
+ *
+ */
+void cmt_pause();
+
+#define cmt_exit() \
+    mt_exit()
+
 
 /**
  * Wait for an event within a mt_thread function
