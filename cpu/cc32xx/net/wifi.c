@@ -147,7 +147,7 @@ void wifi_init(void)
 	// doing anything
 	while(!IS_IP_ACQUIRED(wifi_status))
 	{
-#if !defined(USE_FREERTOS) || !defined(USE_TIRTOS)
+#if !(defined(USE_FREERTOS) || defined(USE_TIRTOS))
 		// Call simple link worker
 		_SlNonOsMainLoopTask();
 #endif
@@ -182,7 +182,7 @@ int wifi_read(uint8_t *buffer, uint16_t bufsize)
 {
 	int32_t retVal = 0;
 
-#if !defined(USE_FREERTOS) || !defined(USE_TIRTOS)
+#if !(defined(USE_FREERTOS) || defined(USE_TIRTOS))
 	// Call simple link worker
 	_SlNonOsMainLoopTask();
 #endif
