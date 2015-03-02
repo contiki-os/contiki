@@ -40,7 +40,9 @@
  * @{
  *
  * \file
- * Implementation of the cc32xx wireless network wrapper
+ * 		Implementation of the cc32xx wireless network wrapper
+ * \author
+ *      Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
  */
 
 #include "contiki.h"

@@ -55,7 +55,11 @@
 #include "net/mac/frame802154.h"
 
 #include "net/wifi.h"
+#if NETSTACK_CONF_WITH_IPV6
 #include "net/ip64/ip64.h"
+#else
+#include "net/wifi-drv.h"
+#endif
 #include "apps/blink.h"
 
 #include <stdint.h>
@@ -217,6 +221,12 @@ contiki_main(void *pv_parameters)
 	// Start IPv6 <--> IPv4 translator
 	// for CC32xx wireless network interface
 	ip64_init();
+#else
+	// Start TCP/IP stack
+	process_start(&tcpip_process, NULL);
+
+	// Start CC32xx wifi driver process
+	process_start(&wifi_drv_process, NULL);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   // process_start(&sensors_process, NULL);

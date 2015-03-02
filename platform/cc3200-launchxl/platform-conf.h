@@ -73,8 +73,10 @@
  * UIP fall back interface definitions
  * @{
  */
+#if NETSTACK_CONF_WITH_IPV6
 #undef UIP_FALLBACK_INTERFACE
 #define UIP_FALLBACK_INTERFACE 	ip64_uip_fallback_interface
+#endif
 /** @} */
 
 /**

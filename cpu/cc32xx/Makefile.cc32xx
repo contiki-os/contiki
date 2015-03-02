@@ -256,7 +256,12 @@ CONTIKI_CPU_SOURCEFILES += mtarch.c rtimer-arch.c startup_gcc.c
 CONTIKI_CPU_SOURCEFILES += spi-arch.c uart-arch.c watchdog.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
-NET_ARCH_SOURCEFILES += wifi.c wifi-ip64-drv.c
+NET_ARCH_SOURCEFILES += wifi.c
+ifeq ($(CONTIKI_WITH_IPV6),1)
+	NET_ARCH_SOURCEFILES += wifi-ip64-drv.c
+else
+	NET_ARCH_SOURCEFILES += wifi-drv.c 
+endif
 
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 CONTIKI_SOURCEFILES += $(NET_ARCH_SOURCEFILES)

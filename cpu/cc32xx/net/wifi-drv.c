@@ -34,77 +34,86 @@
  * \addtogroup cc32xx
  * @{
  *
- * \defgroup cc32xx-wifi cc32xx IP64 Wireless Network driver
+ * \defgroup cc32xx-wifi cc32xx Wireless Network driver
  *
  * IP64 Driver for the cc32xx Wireless Network controller
  * @{
  *
  * \file
- * 		Implementation of the cc32xx IP64 Wireless Network driver
+ * 		Implementation of the cc32xx Wireless Network driver
  * \author
  *      Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
  */
 
-#include "contiki.h"
+#include "contiki-net.h"
 #include "net/wifi.h"
-#include "net/wifi-ip64-drv.h"
 
-#include "net/ip64/ip64.h"
-#include "net/ip64/ip64-eth.h"
+#include "net/wifi-drv.h"
 
-#include <string.h>
+#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
-PROCESS(wifi_ip64_driver_process, "CC32xx WLAN IP64 driver");
+PROCESS(wifi_drv_process, "CC32xx WLAN driver");
 
+/*---------------------------------------------------------------------------*/
+uint8_t
+wifi_drv_output(void)
+{
+	uip_arp_out();
+	wifi_drv_send();
+
+	return 0;
+}
+/*---------------------------------------------------------------------------*/
+void
+wifi_drv_send(void)
+{
+	wifi_send(&uip_buf[0], uip_len);
+}
 /*---------------------------------------------------------------------------*/
 static void
-wifi_ip64_init(void)
+wifi_drv_pollhandler(void)
 {
-	uint32_t hostaddr = uip_htonl(wifi_own_ip);
-	uint32_t netmask = uip_htonl(wifi_netmask);
-	uint32_t gateway = uip_htonl(wifi_gateway);
+	process_poll(&wifi_drv_process);
+	uip_len = wifi_read(&uip_buf[0], UIP_BUFSIZE);
 
-	// Setup Ethernet address
-	memcpy(ip64_eth_addr.addr, wifi_mac_addr, sizeof(wifi_mac_addr));
-
-	// Setup IP, Gateway and Netmask
-	ip64_set_hostaddr((uip_ip4addr_t *)&hostaddr);
-	ip64_set_netmask((uip_ip4addr_t *)&netmask);
-	ip64_set_draddr((uip_ip4addr_t *)&gateway);
-
-	// Startup driver process
-	process_start(&wifi_ip64_driver_process, NULL);
-}
-/*---------------------------------------------------------------------------*/
-static int
-wifi_ip64_output(uint8_t *packet, uint16_t len)
-{
-	wifi_send(packet, len);
-	return len;
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(wifi_ip64_driver_process, ev, data)
-{
-	static int len;
-	static struct etimer e;
-	PROCESS_BEGIN();
-
-	while(1)
+	if (uip_len > 0)
 	{
-		etimer_set(&e, 1);
-		PROCESS_WAIT_EVENT();
-		len = wifi_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
-		if(len > 0)
+		if (BUF->type == uip_htons(UIP_ETHTYPE_IP))
 		{
-			IP64_INPUT(ip64_packet_buffer, len);
+			uip_len -= sizeof(struct uip_eth_hdr);
+			tcpip_input();
+		}
+		else
+		{
+			if (BUF->type == uip_htons(UIP_ETHTYPE_ARP))
+			{
+				uip_arp_arpin();
+				/* If the above function invocation resulted in data that
+				 should be sent out on the network, the global variable
+				 uip_len is set to a value > 0. */
+				if (uip_len > 0)
+				{
+					wifi_drv_send();
+				}
+			}
 		}
 	}
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(wifi_drv_process, ev, data)
+{
+	PROCESS_POLLHANDLER(wifi_drv_pollhandler());
+	PROCESS_BEGIN();
+
+	wifi_init();
+	tcpip_set_outputfunc(wifi_drv_output);
+
+	process_poll(&wifi_drv_process);
+
+	PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
+
+	wifi_exit();
 
 	PROCESS_END();
 }
-/*---------------------------------------------------------------------------*/
-const struct ip64_driver wifi_ip64_driver = {
-	wifi_ip64_init,
-	wifi_ip64_output
-};
 /*---------------------------------------------------------------------------*/

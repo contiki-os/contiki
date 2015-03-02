@@ -34,77 +34,23 @@
  * \addtogroup cc32xx
  * @{
  *
- * \defgroup cc32xx-wifi cc32xx IP64 Wireless Network driver
+ * \defgroup cc32xx-wifi cc32xx Wireless Network driver
  *
  * IP64 Driver for the cc32xx Wireless Network controller
  * @{
  *
  * \file
- * 		Implementation of the cc32xx IP64 Wireless Network driver
+ * 		Headers of the cc32xx Wireless Network driver
  * \author
  *      Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
  */
 
+#ifndef WIFI_DRV_H_
+#define WIFI_DRV_H_
+
 #include "contiki.h"
-#include "net/wifi.h"
-#include "net/wifi-ip64-drv.h"
 
-#include "net/ip64/ip64.h"
-#include "net/ip64/ip64-eth.h"
+PROCESS_NAME(wifi_drv_process);
+uint8_t wifi_drv_output(void);
 
-#include <string.h>
-
-PROCESS(wifi_ip64_driver_process, "CC32xx WLAN IP64 driver");
-
-/*---------------------------------------------------------------------------*/
-static void
-wifi_ip64_init(void)
-{
-	uint32_t hostaddr = uip_htonl(wifi_own_ip);
-	uint32_t netmask = uip_htonl(wifi_netmask);
-	uint32_t gateway = uip_htonl(wifi_gateway);
-
-	// Setup Ethernet address
-	memcpy(ip64_eth_addr.addr, wifi_mac_addr, sizeof(wifi_mac_addr));
-
-	// Setup IP, Gateway and Netmask
-	ip64_set_hostaddr((uip_ip4addr_t *)&hostaddr);
-	ip64_set_netmask((uip_ip4addr_t *)&netmask);
-	ip64_set_draddr((uip_ip4addr_t *)&gateway);
-
-	// Startup driver process
-	process_start(&wifi_ip64_driver_process, NULL);
-}
-/*---------------------------------------------------------------------------*/
-static int
-wifi_ip64_output(uint8_t *packet, uint16_t len)
-{
-	wifi_send(packet, len);
-	return len;
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(wifi_ip64_driver_process, ev, data)
-{
-	static int len;
-	static struct etimer e;
-	PROCESS_BEGIN();
-
-	while(1)
-	{
-		etimer_set(&e, 1);
-		PROCESS_WAIT_EVENT();
-		len = wifi_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
-		if(len > 0)
-		{
-			IP64_INPUT(ip64_packet_buffer, len);
-		}
-	}
-
-	PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-const struct ip64_driver wifi_ip64_driver = {
-	wifi_ip64_init,
-	wifi_ip64_output
-};
-/*---------------------------------------------------------------------------*/
+#endif /* WIFI_DRV_H_ */

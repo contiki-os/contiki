@@ -40,7 +40,9 @@
  * @{
  *
  * \file
- * Headers of the cc32xx wireless network wrapper
+ * 		Headers of the cc32xx wireless network wrapper
+ * \author
+ *      Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
  */
 
 #ifndef WIFI_H_
