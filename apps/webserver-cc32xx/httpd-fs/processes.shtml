@@ -1,0 +1,5 @@
+%!: /header.html
+<h1>System processes</h1><br><table width="100%">
+<tr><th>ID</th><th>Name</th><th>Thread</th><th>Process state</th></tr>
+%! processes
+%!: /footer.html

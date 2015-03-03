@@ -14,6 +14,9 @@ SMALL=1
 WITH_WEBSERVER=webserver-nano
 else ifeq ($(TARGET),avr-raven)
 WITH_WEBSERVER=raven-webserver
+else ifeq ($(TARGET),cc3200-launchxl)
+WITH_WEBSERVER=webserver-cc32xx
+
 endif
 #
 endif
