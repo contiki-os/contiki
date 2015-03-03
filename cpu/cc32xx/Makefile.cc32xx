@@ -185,7 +185,7 @@ LIBM:=${shell ${CC} ${CFLAGS} -print-file-name=libm.a}
 #
 # The flags passed to obj-copy.
 #
-OBJCOPY_FLAGS += -O binary --gap-fill 0xff
+OBJCOPY_FLAGS += -O binary
 
 #
 # The flags passed to obj-dump.
