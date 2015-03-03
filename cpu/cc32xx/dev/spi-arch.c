@@ -34,6 +34,7 @@
  * \file
  *         Implementation of SPI architecture for TI CC32xx.
  * \author
+ * 		   Björn Rennfanz <bjoern.rennfanz@3bscientific.com>
  *         Dominik Grauert <dominik.grauert@3bscientific.com>
  */
 
@@ -75,7 +76,7 @@
  * • Word Length: 8 bits
  */
 #ifndef CC32XX_SPI_BITRATE
-#define CC32XX_SPI_BITRATE		1000000				// value is in Hz
+#define CC32XX_SPI_BITRATE		100000				// value is in Hz
 #endif
 
 #ifndef CC32XX_SPI_MODE
@@ -96,6 +97,7 @@
 
 // Enable debug messages
 #define DEBUG	1
+
 /*---------------------------------------------------------------------------*/
 // Global variables
 uint8_t spi_rxbuf;
@@ -142,21 +144,64 @@ spi_init(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-spi_cs_enable(void)
+spi_flush()
+{
+	unsigned long temp;
+
+	// Read FIFO empty
+	while(MAP_SPIDataGetNonBlocking(GSPI_BASE, &temp) > 0)
+	{
+		// Save into receive buffer
+		spi_rxbuf = (uint8_t)temp;
+	}
+}
+/*---------------------------------------------------------------------------*/
+void
+spi_write(uint8_t data)
+{
+	spi_txbuf = data;
+	MAP_SPITransfer(GSPI_BASE, &spi_txbuf, &spi_rxbuf, 1, 0);
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+spi_read()
+{
+	spi_txbuf = 0;
+	MAP_SPITransfer(GSPI_BASE, &spi_txbuf, &spi_rxbuf, 1, 0);
+
+	return spi_rxbuf;
+}
+/*---------------------------------------------------------------------------*/
+void
+spi_wait_tx_ready()
+{
+	// Wait for space in FIFO
+	while(!(HWREG(GSPI_BASE + MCSPI_O_CH0STAT) & MCSPI_CH0STAT_TXS));
+}
+/*---------------------------------------------------------------------------*/
+void
+spi_wait_tx_ended()
+{
+	// Wait for end of transmission flag
+	while(!(HWREG(GSPI_BASE + MCSPI_O_CH0STAT) & MCSPI_CH0STAT_EOT));
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+spi_get_rxbuf()
+{
+	return spi_rxbuf;
+}
+/*---------------------------------------------------------------------------*/
+void
+spi_cs_enable()
 {
 	// Enable chip select
 	MAP_SPICSEnable(GSPI_BASE);
 }
 /*---------------------------------------------------------------------------*/
 void
-spi_cs_disable(void)
+spi_cs_disable()
 {
 	// Disable chip select
 	MAP_SPICSDisable(GSPI_BASE);
-}
-/*---------------------------------------------------------------------------*/
-uint8_t
-spi_get_rxbuf(void)
-{
-	return spi_rxbuf;
 }
