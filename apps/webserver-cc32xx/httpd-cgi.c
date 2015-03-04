@@ -49,6 +49,9 @@
 #include "httpd-cgi.h"
 #include "httpd-fs.h"
 
+#include "dev/leds.h"
+
+
 #include "lib/petsciiconv.h"
 
 static struct httpd_cgi_call *calls = NULL;
@@ -96,6 +99,8 @@ static const char tcp_name[] = /*  "tcp-connections"*/
 static const char proc_name[] = /*  "processes"*/
 {0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73,
  0x65, 0x73, 0};
+static const char togglegreen_name[] = /*  "togglegreen"*/
+{0x74, 0x6f, 0x67, 0x67, 0x6c, 0x65, 0x67, 0x72, 0x65, 0x65, 0x6e, 0};
 
 static const char *states[] = {
   closed,
@@ -343,6 +348,12 @@ PT_THREAD(routes(struct httpd_state *s, char *ptr))
 }
 #endif /* WEBSERVER_CONF_STATUSPAGE */
 /*---------------------------------------------------------------------------*/
+static
+PT_THREAD(toggle_led())
+{
+	leds_toggle(LEDS_GREEN);
+}
+/*---------------------------------------------------------------------------*/
 void
 httpd_cgi_add(struct httpd_cgi_call *c)
 {
@@ -365,6 +376,7 @@ static const char   rtes_name[] HTTPD_STRING_ATTR = "routes";
 HTTPD_CGI_CALL(file, file_name, file_stats);
 HTTPD_CGI_CALL(tcp, tcp_name, tcp_stats);
 HTTPD_CGI_CALL(proc, proc_name, processes);
+HTTPD_CGI_CALL(togglegreen, togglegreen_name, toggle_led);
 #if WEBSERVER_CONF_STATUSPAGE && NETSTACK_CONF_WITH_IPV6
 HTTPD_CGI_CALL(adrs, adrs_name, addresses);
 HTTPD_CGI_CALL(nbrs, nbrs_name, neighbors);
@@ -377,6 +389,7 @@ httpd_cgi_init(void)
   httpd_cgi_add(&file);
   httpd_cgi_add(&tcp);
   httpd_cgi_add(&proc);
+  httpd_cgi_add(&togglegreen);
 #if WEBSERVER_CONF_STATUSPAGE && NETSTACK_CONF_WITH_IPV6
   httpd_cgi_add(&adrs);
   httpd_cgi_add(&nbrs);

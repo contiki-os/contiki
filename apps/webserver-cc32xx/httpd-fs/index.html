@@ -13,10 +13,7 @@
   <p class="menu">
   
   <a href="/">Front page</a><br>
-  <a href="status.shtml">Status</a><br>
-  <a href="files.shtml">File statistics</a><br>
-  <a href="tcp.shtml">Network connections</a><br>
-  <a href="processes.shtml">System processes kay</a><br>
+  <a href="processes.shtml">System processes</a><br>
 
   </p>
   </div>
@@ -34,8 +31,29 @@
 	    href="http://www.contiki-os.org">Contiki operating
 	    system</a>.
 	  </p>
-
 	  
+
+	  <button onclick="toggle()">Toggle Green LED</button>
+	  
+	  <script>
+		  function toggle() {
+		  var r;
+		  try { r = new XMLHttpRequest(); }
+		  catch(e) {
+		    try { r = new ActiveXObject("Msxml2.XMLHTTP"); }
+		    catch(e) {
+		      try { r = new ActiveXObject("Microsoft.XMLHTTP"); }
+		      catch(e) {
+		        alert("Your browser does not support AJAX!");
+		        return false;
+		      }
+		    }
+		  }
+		  start = new Date();
+		  r.open("GET", "/toggle_led.shtml", true);
+		  r.send(null);
+		  }	  
+	</script>
 	 
   </body>
 </html>
