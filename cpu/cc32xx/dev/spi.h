@@ -41,60 +41,44 @@
 #include "hw_ints.h"
 #include "hw_types.h"
 
-#include "hw_memmap.h"
-#include "hw_mcspi.h"
-
-#include "prcm.h"
-
-#include "rom.h"
-#include "rom_map.h"
-
-#include "../../ti-cc3200-sdk/driverlib/src/spi.h"	// Ti SPI driver for cc32xx
 #include "spi-arch.h"
 
+/* Externals */
 extern uint8_t spi_busy;
+
+/* Prototypes */
+void spi_flush(void);
+void spi_init(void);
+uint8_t spi_read(void);
+void spi_write(uint8_t data);
+void spi_write_fast(uint8_t data);
+
+void spi_wait_tx_ready(void);
+void spi_wait_tx_ended(void);
 
 /* SPI buffer dummy's */
 #define SPI_RXBUF	spi_get_rxbuf()
 #define SPI_TXBUF	spi_txbuf;
 
 /* Define SPI macros used by CC2x20 drivers */
-#define SPI_WAITFORTxREADY()
+#define SPI_WAITFORTxREADY()	spi_wait_tx_ready()
 #define SPI_WAITFORTx_BEFORE() 	SPI_WAITFORTxREADY()
 #define SPI_WAITFORTx_AFTER()
-#define SPI_WAITFORTx_ENDED()	do { while(!(HWREG(GSPI_BASE + MCSPI_O_CH0STAT) & MCSPI_CH0STAT_EOT)); } while(0)
-
-/* Prototypes */
-void spi_init(void);
+#define SPI_WAITFORTx_ENDED()	spi_wait_tx_ended()
 
 /* Write one character to SPI */
-#define SPI_WRITE(data)                         				\
-  do {															\
-	spi_txbuf = data;											\
-	MAP_SPITransfer(GSPI_BASE, &spi_txbuf, &spi_rxbuf, 1, 0);	\
-  } while(0)
+#define SPI_WRITE(data)			spi_write(data)
 
 /* Write one character to SPI - will not wait for end
    useful for multiple writes with wait after final */
-#define SPI_WRITE_FAST(data)                         			\
-do {															\
-	spi_txbuf = data;											\
-	MAP_SPITransfer(GSPI_BASE, &spi_txbuf, &spi_rxbuf, 1, 0);	\
-} while(0)
+#define SPI_WRITE_FAST(data)	spi_write(data)
 
 /* Read one character from SPI */
-#define SPI_READ(data)   										\
-do {															\
-	spi_txbuf = 0;												\
-	MAP_SPITransfer(GSPI_BASE, &spi_txbuf, &spi_rxbuf, 1, 0);	\
-	data = spi_get_rxbuf();										\
-} while(0)
+#define SPI_READ(data)			data = spi_read()
 
 /* Flush the SPI read register */
 #ifndef SPI_FLUSH
-#define SPI_FLUSH() \
-  do {              \
-  } while(0);
+#define SPI_FLUSH()				spi_flush()
 #endif
 
 #endif /* SPI_H_ */
