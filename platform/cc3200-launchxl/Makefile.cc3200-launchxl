@@ -80,7 +80,7 @@ include $(CONTIKI_CPU)/Makefile.cc32xx
 #
 MODULES += core/net core/net/mac \
            core/net/mac/contikimac \
-           core/net/mac/cxmac\
+           core/net/mac/sicslowmac \
            core/net/llsec \
 		   dev/cc2520
            

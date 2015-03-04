@@ -277,12 +277,12 @@ typedef uint32_t rtimer_clock_t;
 
 #ifndef NETSTACK_CONF_MAC
 /* #define NETSTACK_CONF_MAC     csma_driver */
-#define NETSTACK_CONF_MAC     csma_driver
+#define NETSTACK_CONF_MAC     nullmac_driver
 #endif
 
 #ifndef NETSTACK_CONF_RDC
 /* #define NETSTACK_CONF_RDC     contikimac_driver */
-#define NETSTACK_CONF_RDC     contikimac_driver
+#define NETSTACK_CONF_RDC	  sicslowmac_driver
 #endif
 
 #ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE

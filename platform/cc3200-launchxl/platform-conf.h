@@ -104,23 +104,23 @@
 /*
  * CC2520 pin status emulation
  */
-#define CC2520_FIFOP_IS_1 		(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_FIFOP)
-#define CC2520_FIFO_IS_1 		(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_FIFO)
-#define CC2520_CCA_IS_1 		(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_CCA)
-#define CC2520_SFD_IS_1   		(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_SFD)
+#define CC2520_FIFOP_IS_1 			(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_FIFOP)
+#define CC2520_FIFO_IS_1 			(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_FIFO)
+#define CC2520_CCA_IS_1 			(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_CCA)
+#define CC2520_SFD_IS_1   			(cc2520_arch_getreg(CC2520_FSMSTAT1) & CC2520_FSMSTAT1_SFD)
 
 /* CC2520 voltage regulator enable pin. */
-#define SET_VREG_ACTIVE()		MAP_GPIOPinWrite(CC2520_VREG_PORT_BASE, CC2520_VREG_PIN, CC2520_VREG_PIN);
-#define SET_VREG_INACTIVE()     MAP_GPIOPinWrite(CC2520_VREG_PORT_BASE, CC2520_VREG_PIN, 0);
+#define SET_VREG_ACTIVE()			MAP_GPIOPinWrite(CC2520_VREG_PORT_BASE, CC2520_VREG_PIN, CC2520_VREG_PIN);
+#define SET_VREG_INACTIVE()     	MAP_GPIOPinWrite(CC2520_VREG_PORT_BASE, CC2520_VREG_PIN, 0);
 
 /* The CC2520 reset pin. */
-#define SET_RESET_INACTIVE()   	clock_delay(5)
-#define SET_RESET_ACTIVE()   	clock_delay(5)
+#define SET_RESET_INACTIVE()   		clock_delay(5)
+#define SET_RESET_ACTIVE()   		clock_delay(5)
 
 /* CC2520 dummy external interrupt. */
-#define CC2520_FIFOP_INT_INIT()
-#define CC2520_ENABLE_FIFOP_INT()
-#define CC2520_DISABLE_FIFOP_INT()
+#define CC2520_FIFOP_INT_INIT()		cc2520_arch_fifop_int_init()
+#define CC2520_ENABLE_FIFOP_INT()	cc2520_arch_enable_fifop_int()
+#define CC2520_DISABLE_FIFOP_INT()	cc2520_arch_disable_fifop_int()
 #define CC2520_CLEAR_FIFOP_INT()
 
 /*
@@ -146,6 +146,12 @@
 #else
 #define CC2520_SPI_DISABLE()		do { spi_cs_disable(); clock_delay(5); } while(0)
 #endif
+
+/*
+ * Platform MSP430 emulation for CC2520 driver
+ */
+#define splhigh() 	0
+#define splx(arg)
 
 /** @} */
 

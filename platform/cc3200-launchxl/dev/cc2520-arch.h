@@ -51,10 +51,6 @@
 #ifndef CC2520_ARCH_H_
 #define CC2520_ARCH_H_
 
-#ifndef BV
-#define BV(x) 					(1<<(x))
-#endif
-
 /*
  * Definitions for CC2520 FSMSTAT1 register
  */
@@ -67,11 +63,8 @@
  * Prototypes for CC2520
  */
 uint8_t cc2520_arch_getreg(uint16_t regname);
-
-/*
- * Platform MSP430 emulation for CC2520 driver
- */
-int splhigh(void);
-void splx(int saved);
+void cc2520_arch_fifop_int_init();
+void cc2520_arch_enable_fifop_int();
+void cc2520_arch_disable_fifop_int();
 
 #endif /* CC2520_ARCH_H_ */
