@@ -213,13 +213,13 @@ int wifi_read(uint8_t *buffer, uint16_t bufsize)
 				SET_STATUS_BIT(wifi_status, STATUS_BIT_RAW_SOCKET_OPEN);
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-				PRINTF("SimpleLink RAW socket created! Socket Descriptor: %d \n", (int)wifi_socket_handle);
+				PRINTF("simplelink_wifi: RAW socket created! Socket Descriptor: %d \n", (int)wifi_socket_handle);
 #endif
 			}
 			else
 			{
 #if STARTUP_CONF_VERBOSE && DEBUG
-				PRINTF("SimpleLink failed to create RAW socket\n");
+				PRINTF("simplelink_wifi: Failed to create RAW socket\n");
 #endif
 			}
 		}
@@ -291,7 +291,7 @@ int wifi_read(uint8_t *buffer, uint16_t bufsize)
 			sl_Close(wifi_socket_handle);
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink close RAW socket\n");
+			PRINTF("simplelink_wifi: Close RAW socket\n");
 #endif
 		}
 	}
@@ -322,7 +322,7 @@ int wifi_send(uint8_t *data, uint16_t datalen)
 		{
 #if STARTUP_CONF_VERBOSE && DEBUG
 			// Printout requested IP address
-			PRINTF("SimpleLink: ARP request for IP %u.%u.%u.%u received\n", packet_arp_hdr->dipaddr.u8[0], packet_arp_hdr->dipaddr.u8[1], packet_arp_hdr->dipaddr.u8[2], packet_arp_hdr->dipaddr.u8[3]);
+			PRINTF("simplelink_wifi: ARP request for IP %u.%u.%u.%u received\n", packet_arp_hdr->dipaddr.u8[0], packet_arp_hdr->dipaddr.u8[1], packet_arp_hdr->dipaddr.u8[2], packet_arp_hdr->dipaddr.u8[3]);
 #endif
 
 			// Set status flag that an ARP was requested
@@ -359,7 +359,7 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 		{
 			SET_STATUS_BIT(wifi_status, STATUS_BIT_CONNECTION);
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink WlanEvent: Device connected to the AP.\n");
+			PRINTF("simplelink_wifi: WlanEvent -> Device connected to the AP.\n");
 #endif
 		}
 		break;
@@ -377,11 +377,11 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 			//'reason_code' is SL_USER_INITIATED_DISCONNECTION
 			if(SL_USER_INITIATED_DISCONNECTION == pEventData->reason_code)
 			{
-				PRINTF("SimpleLink WlanEvent: Device disconnected from the AP on application's request.\n");
+				PRINTF("simplelink_wifi: WlanEvent -> Device disconnected from the AP on application's request.\n");
 			}
 			else
 			{
-				PRINTF("SimpleLink WlanEvent: Device disconnected from the AP on an ERROR!\n");
+				PRINTF("simplelink_wifi: WlanEvent -> Device disconnected from the AP on an ERROR!\n");
 			}
 #endif
 		}
@@ -396,7 +396,7 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 			memcpy(wifi_client_mac_addr, pSlWlanEvent->EventData.APModeStaConnected.mac, SL_MAC_ADDR_LEN);
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink WlanEvent: Client connected to the AP, MAC address is %02x:%02x:%02x:%02x:%02x:%02x\n", wifi_client_mac_addr[0], wifi_client_mac_addr[1], wifi_client_mac_addr[2], wifi_client_mac_addr[3], wifi_client_mac_addr[4], wifi_client_mac_addr[5]);
+			PRINTF("simplelink_wifi: WlanEvent -> Client connected to the AP, MAC address is %02x:%02x:%02x:%02x:%02x:%02x\n", wifi_client_mac_addr[0], wifi_client_mac_addr[1], wifi_client_mac_addr[2], wifi_client_mac_addr[3], wifi_client_mac_addr[4], wifi_client_mac_addr[5]);
 #endif
 		}
 		break;
@@ -408,7 +408,7 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 			CLR_STATUS_BIT(wifi_status, STATUS_BIT_IP_LEASED);
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink WlanEvent: Client disconnects from the AP.\n");
+			PRINTF("simplelink_wifi: WlanEvent -> Client disconnects from the AP.\n");
 #endif
 		}
 		break;
@@ -416,7 +416,7 @@ void sl_WlanEvtHdlr(SlWlanEvent_t *pSlWlanEvent)
 		default:
 		{
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink WlanEvent: Unexpected event [0x%x]\n", (unsigned int)pSlWlanEvent->Event);
+			PRINTF("simplelink_wifi: WlanEvent -> Unexpected event [0x%x]\n", (unsigned int)pSlWlanEvent->Event);
 #endif
 		}
 		break;
@@ -455,7 +455,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
             wifi_client_ip = pSlNetApp->EventData.ipLeased.ip_address;
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink NetAppEvent: IP Leased to Client with IP = %d.%d.%d.%d\n",
+			PRINTF("simplelink_wifi: NetAppEvent -> IP Leased to Client with IP = %d.%d.%d.%d\n",
 					(int)SL_IPV4_BYTE(wifi_client_ip, 3), (int)SL_IPV4_BYTE(wifi_client_ip, 2),
 					(int)SL_IPV4_BYTE(wifi_client_ip, 1), (int)SL_IPV4_BYTE(wifi_client_ip, 0));
 #endif
@@ -467,7 +467,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
             CLR_STATUS_BIT(wifi_status, STATUS_BIT_IP_LEASED);
 
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink NetAppEvent: IP Released from Client with IP = %d.%d.%d.%d\n",
+			PRINTF("simplelink_wifi: NetAppEvent -> IP Released from Client with IP = %d.%d.%d.%d\n",
 					(int)SL_IPV4_BYTE(wifi_client_ip,3), (int)SL_IPV4_BYTE(wifi_client_ip,2),
 					(int)SL_IPV4_BYTE(wifi_client_ip,1), (int)SL_IPV4_BYTE(wifi_client_ip,0));
 #endif
@@ -477,7 +477,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
         default:
         {
 #if STARTUP_CONF_VERBOSE && DEBUG
-			PRINTF("SimpleLink NetAppEvent: Unexpected event [0x%x]\n", (unsigned int)pSlNetApp->Event);
+			PRINTF("simplelink_wifi: NetAppEvent -> Unexpected event [0x%x]\n", (unsigned int)pSlNetApp->Event);
 #endif
         }
         break;
@@ -487,7 +487,7 @@ void sl_NetAppEvtHdlr(SlNetAppEvent_t *pSlNetApp)
 void sl_SockEvtHdlr(SlSockEvent_t *pSlSockEvent)
 {
 #if STARTUP_CONF_VERBOSE && DEBUG
-	PRINTF("SimpleLink SockEvent: Unexpected event [0x%x]\n", (unsigned int)pSlSockEvent->Event);
+	PRINTF("simplelink_wifi: SockEvent -> Unexpected event [0x%x]\n", (unsigned int)pSlSockEvent->Event);
 #endif
 }
 /*---------------------------------------------------------------------------*/
