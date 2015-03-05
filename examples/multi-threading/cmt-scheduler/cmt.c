@@ -66,6 +66,7 @@
 
 static process_event_t cmt_ev;     /*!< Any cmt_thread may access this event id via get func */
 static process_data_t cmt_data;    /*!< Any cmt_thread may access this event data via get func */
+static process_event_t CMT_STARTUP_EVENT; /* ouch! */
 
 /*---------------------------------------------------------------------------*/
 
@@ -83,7 +84,7 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
   PROCESS_BEGIN();
 
   /* Ensure that we are outside of any other mt_thread context, see cmt_start */
-  PROCESS_WAIT_EVENT();
+  PROCESS_WAIT_EVENT_UNTIL(ev == CMT_STARTUP_EVENT);
 
   /* exec thread once to get to first blocking situation */
   mt_start(&(cmt_current()->mt_thread),cmt_current()->function,data);
@@ -106,6 +107,12 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
 }
 
 /*---------------------------------------------------------------------------*/
+
+void cmt_init()
+{
+    CMT_STARTUP_EVENT = process_alloc_event();
+    mt_init();
+}
 
 process_event_t
 cmt_get_ev()
@@ -149,7 +156,7 @@ cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
     /* move out of any cmt context ...
        this allows to cmt_start another thread within a
        cmt_thread context */
-    process_post((struct process*)thread,PROCESS_EVENT_NONE,data);
+    process_post((struct process*)thread,CMT_STARTUP_EVENT,data);
 }
 
 void

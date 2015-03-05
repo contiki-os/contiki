@@ -109,23 +109,23 @@ PROCESS_THREAD(cmt_poll_test, ev, data)
 
       PROCESS_BEGIN();
 
-          mt_init();
+      cmt_init();
 
-          for(tmp = 0; tmp < NUM_OF_THREADS; tmp+=2)
-          {
-              cmt_start(&threads[tmp],test_thread_func,NULL);
-          }
+      for(tmp = 0; tmp < NUM_OF_THREADS; tmp+=2)
+      {
+          cmt_start(&threads[tmp],test_thread_func,NULL);
+      }
 
-          cmt_start(&poller_thread,poller_thread_func,NULL);
+      cmt_start(&poller_thread,poller_thread_func,NULL);
 
-          while(1)
-          {
+      while(1)
+      {
 
-              etimer_set(&et,rand()%MAX_POLL_DELAY);
-              PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-              process_poll((struct process*)&threads[rand()%NUM_OF_THREADS]);
-              PRINTF("PROCESS sent poll event \n");
-          }
+          etimer_set(&et,rand()%MAX_POLL_DELAY);
+          PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+          process_poll((struct process*)&threads[rand()%NUM_OF_THREADS]);
+          PRINTF("PROCESS sent poll event \n");
+      }
 
 
       PROCESS_END();

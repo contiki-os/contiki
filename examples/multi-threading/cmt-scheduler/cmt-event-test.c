@@ -180,7 +180,7 @@ PROCESS_THREAD(cmt_event_test, ev, data)
 
   PROCESS_BEGIN();
 
-  mt_init();
+  cmt_init();
 
   cmt_start(&t1,t1_thread_func,NULL);
   cmt_start(&t2,t2_thread_func,NULL);

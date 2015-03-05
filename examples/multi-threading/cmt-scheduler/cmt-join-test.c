@@ -123,7 +123,7 @@ PROCESS_THREAD(cmt_join_test, ev, data)
 {
   PROCESS_BEGIN();
 
-  mt_init();
+  cmt_init();
 
   PRINTF("Starting main thread ... \n");
 

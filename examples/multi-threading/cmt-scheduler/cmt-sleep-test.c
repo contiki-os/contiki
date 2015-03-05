@@ -105,7 +105,7 @@ PROCESS_THREAD(cmt_sleep_test, ev, data)
 
       PROCESS_BEGIN();
 
-      mt_init();
+      cmt_init();
 
       PRINTF("CMT_START CNTDWN_THREAD_1\n");
       cmt_start(&threads[CNTDWN_THREAD_1],cntdwn_thread,&countdown1);

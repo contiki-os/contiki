@@ -67,14 +67,21 @@
  *  Combines a process with an mt_thread structure.
  *  Process has to be on first position within struct due to casting issues.
  *  (in other words: cmt_thread is derived from process)
- *
  **/
 struct cmt_thread {
     struct process process;
     struct mt_thread mt_thread; /*!< associated mt_thread */
     struct etimer et;           /*!< sleep timer ... may not be defined as auto var due to stack swapping 6502 arch */
-    void (* function)(void *);  /*!< Thread function pointer */
+    void (* function)(void *);  /*!< Thread function pointer (ouch!) */
 };
+
+/**
+ * \brief     Initializes cooperative multithreading
+ *
+ *  Optains a startup event id from contiki.
+ *  Initializes the mt_thread lib.
+ */
+void cmt_init();
 
 /**
  * \brief      Suspends the thread for a given time
@@ -95,7 +102,6 @@ void cmt_sleep(clock_time_t interval);
  *
  * This macro yields the currently running thread for a short while,
  * thus letting other processes and threads run before the thread continues.
- *
  */
 void cmt_pause();
 
