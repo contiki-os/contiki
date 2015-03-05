@@ -74,7 +74,6 @@ static process_data_t cmt_data;    /*!< Any cmt_thread may access this event dat
 
 PROCESS_THREAD(cmt_thread_handler, ev, data)
 {
-
   /* move event into global scope */
   cmt_ev = ev;
   cmt_data = data;
@@ -83,13 +82,14 @@ PROCESS_THREAD(cmt_thread_handler, ev, data)
 
   PROCESS_BEGIN();
 
-  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
-
-  PRINTF("cmt: %p started\n",cmt_current());
+  /* Ensure that we are outside of any other mt_thread context, see cmt_start */
+  PROCESS_WAIT_EVENT();
 
   /* exec thread once to get to first blocking situation */
   mt_start(&(cmt_current()->mt_thread),cmt_current()->function,data);
   mt_exec(&(cmt_current()->mt_thread));
+
+  PRINTF("cmt: %p started\n",cmt_current());
 
   while((cmt_current()->mt_thread).state != MT_STATE_EXITED)
   {
@@ -149,7 +149,7 @@ cmt_start(struct cmt_thread *thread, void (* function)(void *), void *data)
     /* move out of any cmt context ...
        this allows to cmt_start another thread within a
        cmt_thread context */
-    process_post((struct process*)thread,PROCESS_EVENT_CONTINUE,data);
+    process_post((struct process*)thread,PROCESS_EVENT_NONE,data);
 }
 
 void
@@ -169,15 +169,19 @@ cmt_sleep(clock_time_t interval)
 void
 cmt_join(struct cmt_thread *thread)
 {
+    /* if we would join on ourself, the cmt will block forever -> not allowed! */
+    /* if the joined thread is not running anymore, it can not fire PROCESS_EVENT_EXITED anymore,
+       thus we return directly here in this case.*/
     if (cmt_current() == thread || !process_is_running((struct process *)thread)){
         return;
     }
 
     PRINTF("cmt: %p joined %p\n",cmt_current(),thread);
 
+    /* wait until the joined cmt_thread_handler broadcasts PROCESS_EVENT_EXITED */
     cmt_wait_event_until(
-            cmt_get_ev() == PROCESS_EVENT_EXITED &&
-            (struct process*)thread == (struct process*)cmt_get_data());
+        cmt_get_ev() == PROCESS_EVENT_EXITED &&
+        cmt_get_data() == thread);
 }
 
 
