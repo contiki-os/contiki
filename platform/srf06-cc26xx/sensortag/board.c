@@ -76,7 +76,7 @@ shutdown_handler(uint8_t mode)
     SENSORS_DEACTIVATE(bmp_280_sensor);
     SENSORS_DEACTIVATE(opt_3001_sensor);
     SENSORS_DEACTIVATE(tmp_007_sensor);
-    SENSORS_DEACTIVATE(sht_21_sensor);
+    SENSORS_DEACTIVATE(hdc_1000_sensor);
     mpu_9250_sensor.configure(MPU_9250_SENSOR_SHUTDOWN, 0);
   }
 }
