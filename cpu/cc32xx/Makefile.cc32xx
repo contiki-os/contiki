@@ -149,7 +149,7 @@ CPU=-mcpu=cortex-m4
 CFLAGS += $(CPU) $(FPU) -mthumb -mlittle-endian
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
-CFLAGS += -Wall
+CFLAGS += -Wall -Dgcc
 
 #
 # Set additional compiler flags

@@ -161,7 +161,7 @@ static void BoardInit(void)
 #ifndef USE_TIRTOS
 	// Set vector table base
 #if defined(ccs) || defined(gcc)
-    IntVTableBaseSet((unsigned long)&g_pfnVectors[0]);
+	MAP_IntVTableBaseSet((unsigned long)&g_pfnVectors[0]);
 #endif
 #endif
 
