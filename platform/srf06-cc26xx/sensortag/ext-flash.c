@@ -182,8 +182,8 @@ power_standby(void)
 }
 /*---------------------------------------------------------------------------*/
 /**
- * Verify the flash part.
- * @return True when successful.
+ * \brief Verify the flash part.
+ * \return True when successful.
  */
 static bool
 verify_part(void)
