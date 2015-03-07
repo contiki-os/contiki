@@ -39,7 +39,7 @@ In terms of hardware support, the following drivers have been implemented:
   * Motion Processing Unit (MPU9250 - Accelerometer, Gyro)
   * BMP280 sensor
   * TMP007 sensor
-  * SHT21 sensor
+  * HDC1000 sensor
   * OPT3001 sensor
   * Buzzer
   * External SPI flash
