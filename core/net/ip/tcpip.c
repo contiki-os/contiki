@@ -675,7 +675,11 @@ tcpip_ipv6_output(void)
 
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         nbr->nscount = 1;
+        /* Send the first NS try from here (multicast destination IP address). */
       }
+#else /* UIP_ND6_SEND_NA */
+      uip_len = 0;
+      return;  
 #endif /* UIP_ND6_SEND_NA */
     } else {
 #if UIP_ND6_SEND_NA
@@ -722,7 +726,6 @@ tcpip_ipv6_output(void)
       uip_len = 0;
       return;
     }
-    return;
   }
   /* Multicast IP destination address. */
   tcpip_output(NULL);
