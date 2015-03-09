@@ -334,7 +334,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     /* Execute MSPSim-based mote */
     /* TODO Try-catch overhead */
     try {
-      nextExecute = myCpu.stepMicros(t-lastExecute, duration) + t + duration;
+      nextExecute = myCpu.stepMicros(Math.max(0, t-lastExecute), duration) + t + duration;
       lastExecute = t;
     } catch (EmulationException e) {
       String trace = e.getMessage() + "\n\n" + getStackTrace();
