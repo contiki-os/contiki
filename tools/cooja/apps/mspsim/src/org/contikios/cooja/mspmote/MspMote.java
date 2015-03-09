@@ -290,13 +290,22 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
   private long lastExecute = -1; /* Last time mote executed */
   private long nextExecute;
+  
+  private long executed = 0;
+  private long skipped = 0;
+  
   public void execute(long time) {
     execute(time, EXECUTE_DURATION_US);
   }
+
   public void execute(long t, int duration) {
+    MspClock clock = ((MspClock) (myMoteInterfaceHandler.getClock()));
+    double deviation = clock.getDeviation();
+    long drift = clock.getDrift();
+
     /* Wait until mote boots */
-    if (!booted && myMoteInterfaceHandler.getClock().getTime() < 0) {
-      scheduleNextWakeup(t - myMoteInterfaceHandler.getClock().getTime());
+    if (!booted && clock.getTime() < 0) {
+      scheduleNextWakeup(t - clock.getTime());
       return;
     }
     booted = true;
@@ -315,27 +324,17 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
       throw new RuntimeException("Bad event ordering: " + lastExecute + " < " + t);
     }
 
-    /* time deviation skip if ahead*/
-    double rtime = ((MspClock) (myMoteInterfaceHandler.getClock()))
-        .getReferenceTime();
-    double deviation = ((MspClock) myMoteInterfaceHandler.getClock())
-        .getDeviation();
-    long drift = myMoteInterfaceHandler.getClock().getDrift();
-    if (Math.round(rtime) < (t + drift)) {
+    if (((1-deviation) * executed) > skipped) {
       lastExecute = t;
-      nextExecute = t + duration;
-      ((MspClock) (myMoteInterfaceHandler.getClock())).setReferenceTime(rtime
-          + duration + (deviation * duration));
+      nextExecute = t+duration;
+      skipped += duration;
       scheduleNextWakeup(nextExecute);
-      return;
     }
-
+    
     /* Execute MSPSim-based mote */
     /* TODO Try-catch overhead */
-    try { 
-      nextExecute =
-        t + duration +
-        myCpu.stepMicros(t - lastExecute, duration);
+    try {
+      nextExecute = myCpu.stepMicros(t-lastExecute, duration) + t + duration;
       lastExecute = t;
     } catch (EmulationException e) {
       String trace = e.getMessage() + "\n\n" + getStackTrace();
@@ -347,13 +346,11 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     if (nextExecute < t) {
       throw new RuntimeException(t + ": MSPSim requested early wakeup: " + nextExecute);
     }
+
     /*logger.debug(t + ": Schedule next wakeup at " + nextExecute);*/
+    executed += duration; 
     scheduleNextWakeup(nextExecute);
 
-    /* time deviation book keeping */
-    ((MspClock) (myMoteInterfaceHandler.getClock())).setReferenceTime(rtime
-        + deviation * (nextExecute - lastExecute));
-    
     if (stopNextInstruction) {
       stopNextInstruction = false;
       throw new RuntimeException("MSPSim requested simulation stop");

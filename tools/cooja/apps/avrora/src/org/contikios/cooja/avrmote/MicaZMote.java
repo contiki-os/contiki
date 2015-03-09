@@ -77,6 +77,10 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
 
   private EEPROM eeprom = null;
   
+  private long executed = 0;
+  private long skipped = 0;
+  
+  
   /* Stack monitoring variables */
   private boolean stopNextInstruction = false;
 
@@ -187,6 +191,10 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   private long cyclesExecuted = 0;
   private long cyclesUntil = 0;
   public void execute(long t) {
+    MicaClock clock = ((MicaClock) (myMoteInterfaceHandler.getClock()));
+    double deviation = clock.getDeviation();
+    long drift = clock.getDrift();
+    
     /* Wait until mote boots */
     if (myMoteInterfaceHandler.getClock().getTime() < 0) {
       scheduleNextWakeup(t - myMoteInterfaceHandler.getClock().getTime());
@@ -199,18 +207,11 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
     } 
 
     /* TODO Poll mote interfaces? */
-
-    /* time deviation skip if ahead*/
-    double rtime = ((MicaClock) (myMoteInterfaceHandler.getClock()))
-        .getReferenceTime();
-    double deviation = ((MicaClock) myMoteInterfaceHandler.getClock())
-        .getDeviation();
-    long drift = myMoteInterfaceHandler.getClock().getDrift();
-    if (Math.round(rtime) < (t + drift)) {
-      ((MicaClock) (myMoteInterfaceHandler.getClock())).setReferenceTime(rtime
-          + Simulation.MILLISECOND + (deviation * Simulation.MILLISECOND));
+    
+    /* skip if necessary */
+    if (((1-deviation) * executed) > skipped) {
+      skipped += 1;
       scheduleNextWakeup(t + Simulation.MILLISECOND);
-      return;
     }
     
     /* Execute one millisecond */
@@ -219,9 +220,8 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
       cyclesExecuted += interpreter.step();
     }
 
-    /* time deviation book keeping */
-    ((MicaClock) (myMoteInterfaceHandler.getClock())).setReferenceTime(rtime
-        + (deviation * Simulation.MILLISECOND));
+     /* book keeping */
+    executed += 1;
     
     /* TODO Poll mote interfaces? */
 
