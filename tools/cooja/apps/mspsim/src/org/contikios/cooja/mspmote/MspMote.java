@@ -325,7 +325,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     }
 
     if (((1-deviation) * executed) > skipped) {
-      lastExecute = t;
+      lastExecute = lastExecute + duration; // (t+duration) - (t-lastExecute);
       nextExecute = t+duration;
       skipped += duration;
       scheduleNextWakeup(nextExecute);
