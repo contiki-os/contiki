@@ -54,7 +54,6 @@ public class MicaClock extends Clock {
   private MicaZMote myMote;
 
   private long timeDrift; /* Microseconds */
-  private double referenceTime; /* Microseconds */
   private double deviation;
   
   public MicaClock(Mote mote) {
@@ -86,13 +85,5 @@ public class MicaClock extends Clock {
 
   public long getDrift() {
     return timeDrift;
-  }
-
-  public void setReferenceTime(double referenceTime) {
-    this.referenceTime = referenceTime;
-  }
-
-  public double getReferenceTime() {
-    return referenceTime;
   }
 }
