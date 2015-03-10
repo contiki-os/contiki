@@ -8,6 +8,7 @@ webserver-ipv6/ev-aducrf101mkxz \
 ipv6/multicast/ev-aducrf101mkxz \
 cc2538dk/sniffer/ev-aducrf101mkxz \
 cc26xx/cc26xx-web-demo/srf06-cc26xx \
+ipv6/ubidots-demo/srf06-cc26xx \
 
 TOOLS=
 
