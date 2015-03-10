@@ -55,11 +55,7 @@ The example will build for IPv6 by default. To switch to IP, open the example's
 
 If you want to keep using IPv6 but you are behind NAT64 and you don't have an
 accompanying Bind installation that will translate A records to AAAA ones, then
-open the example's `project-conf.h`. Change:
-
-    #define UBIDOTS_CONF_REMOTE_HOST    "things.ubidots.com"
-
-to
+open the example's `project-conf.h`. Add this:
 
     #define UBIDOTS_CONF_REMOTE_HOST    "64:ff9b::3217:7c44"
 
