@@ -94,3 +94,4 @@ contiki-cc2530dk.lib
 
 # cc3200-launchxl build artifacts
 *.cc3200-launchxl
+apps/webserver-cc32xx/httpd-fsdata.c
