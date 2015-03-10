@@ -19,7 +19,7 @@ ARCH=msp430.c leds.c watchdog.c xmem.c \
      slip.c slip_uart0.c \
      z1-phidgets.c sht11.c sht11-sensor.c light-sensor.c \
      battery-sensor.c sky-sensors.c tmp102.c temperature-sensor.c light-ziglet.c \
-     relay-phidget.c tlc59116.c
+     relay-phidget.c tlc59116.c sht25.c
 
 CONTIKI_TARGET_DIRS = . dev apps net
 ifndef CONTIKI_TARGET_MAIN
