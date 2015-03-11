@@ -46,7 +46,7 @@ static uint8_t enabled;
 static int
 configure(int type, int value)
 {
-  if((type != SENSORS_ACTIVE) && (type != SENSORS_ACTIVE)) {
+  if(type != SENSORS_ACTIVE) {
     return SHT25_ERROR;
   }
   if(value) {
