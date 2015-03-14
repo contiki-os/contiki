@@ -28,6 +28,8 @@
  *
  * This file is part of the Contiki operating system.
  * 
+ * Author: Oliver Schmidt <ol.sc@web.de>
+ *
  */
 
 #ifndef MTARCH_H_
