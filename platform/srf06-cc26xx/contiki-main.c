@@ -177,8 +177,6 @@ main(void)
   clock_init();
   rtimer_init();
 
-  board_init();
-
   watchdog_init();
   process_init();
 
