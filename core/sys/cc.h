@@ -1,13 +1,3 @@
-/**
- * \file
- * Default definitions of C compiler quirk work-arounds.
- * \author Adam Dunkels <adam@dunkels.com>
- *
- * This file is used for making use of extra functionality of some C
- * compilers used for Contiki, and defining work-arounds for various
- * quirks and problems with some other C compilers.
- */
-
 /*
  * Copyright (c) 2003, Adam Dunkels.
  * All rights reserved.
@@ -41,6 +31,17 @@
  *
  *
  */
+
+/**
+ * \file
+ * Default definitions of C compiler quirk work-arounds.
+ * \author Adam Dunkels <adam@dunkels.com>
+ *
+ * This file is used for making use of extra functionality of some C
+ * compilers used for Contiki, and defining work-arounds for various
+ * quirks and problems with some other C compilers.
+ */
+
 #ifndef CC_H_
 #define CC_H_
 
@@ -132,7 +133,7 @@
  * strings.
  *
  * We need use two macros (CC_CONCAT and CC_CONCAT2) in order to allow
- * concatenation of two #defined macros.
+ * concatenation of two \#defined macros.
  */
 #define CC_CONCAT(s1, s2) CC_CONCAT2(s1, s2)
 

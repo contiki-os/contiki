@@ -1,15 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup packetbuf Rime buffer management
- * @{
- *
- * The packetbuf module does Rime's buffer management.
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -49,11 +37,24 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup packetbuf Rime buffer management
+ * @{
+ *
+ * The packetbuf module does Rime's buffer management.
+ */
+
 #ifndef PACKETBUF_H_
 #define PACKETBUF_H_
 
 #include "contiki-conf.h"
 #include "net/linkaddr.h"
+#include "net/llsec/llsec802154.h"
 
 /**
  * \brief      The size of the packetbuf, in bytes
@@ -132,7 +133,7 @@ void *packetbuf_dataptr(void);
 void *packetbuf_hdrptr(void);
 
 /**
- * \brief      Get the length of the header in the packetbuf, for outbound packets
+ * \brief      Get the length of the header in the packetbuf
  * \return     Length of the header in the packetbuf
  *
  *             For outbound packets, the packetbuf consists of two
@@ -347,33 +348,73 @@ enum {
   PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS,
   PACKETBUF_ATTR_MAC_SEQNO,
   PACKETBUF_ATTR_MAC_ACK,
-
+  PACKETBUF_ATTR_IS_CREATED_AND_SECURED,
+  
   /* Scope 1 attributes: used between two neighbors only. */
   PACKETBUF_ATTR_RELIABLE,
   PACKETBUF_ATTR_PACKET_ID,
   PACKETBUF_ATTR_PACKET_TYPE,
+#if NETSTACK_CONF_WITH_RIME
   PACKETBUF_ATTR_REXMIT,
   PACKETBUF_ATTR_MAX_REXMIT,
   PACKETBUF_ATTR_NUM_REXMIT,
+#endif /* NETSTACK_CONF_WITH_RIME */
   PACKETBUF_ATTR_PENDING,
+  PACKETBUF_ATTR_FRAME_TYPE,
+#if LLSEC802154_SECURITY_LEVEL
+  PACKETBUF_ATTR_SECURITY_LEVEL,
+  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1,
+  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3,
+#if LLSEC802154_USES_EXPLICIT_KEYS
+  PACKETBUF_ATTR_KEY_ID_MODE,
+  PACKETBUF_ATTR_KEY_INDEX,
+  PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1,
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+#endif /* LLSEC802154_SECURITY_LEVEL */
   
   /* Scope 2 attributes: used between end-to-end nodes. */
+#if NETSTACK_CONF_WITH_RIME
   PACKETBUF_ATTR_HOPS,
   PACKETBUF_ATTR_TTL,
   PACKETBUF_ATTR_EPACKET_ID,
   PACKETBUF_ATTR_EPACKET_TYPE,
   PACKETBUF_ATTR_ERELIABLE,
+#endif /* NETSTACK_CONF_WITH_RIME */
 
   /* These must be last */
   PACKETBUF_ADDR_SENDER,
   PACKETBUF_ADDR_RECEIVER,
+#if NETSTACK_CONF_WITH_RIME
   PACKETBUF_ADDR_ESENDER,
   PACKETBUF_ADDR_ERECEIVER,
-  
+#endif /* NETSTACK_CONF_WITH_RIME */
+
   PACKETBUF_ATTR_MAX
 };
 
+/* Define surrogates when 802.15.4 security is off */
+#if !LLSEC802154_SECURITY_LEVEL
+enum {
+  PACKETBUF_ATTR_SECURITY_LEVEL,
+  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1,
+  PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3
+};
+#endif /* LLSEC802154_SECURITY_LEVEL */
+
+/* Define surrogates when not using explicit keys */
+#if !LLSEC802154_USES_EXPLICIT_KEYS
+enum {
+  PACKETBUF_ATTR_KEY_ID_MODE,
+  PACKETBUF_ATTR_KEY_INDEX,
+  PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1
+};
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+
+#if NETSTACK_CONF_WITH_RIME
 #define PACKETBUF_NUM_ADDRS 4
+#else /* NETSTACK_CONF_WITH_RIME */
+#define PACKETBUF_NUM_ADDRS 2
+#endif /* NETSTACK_CONF_WITH_RIME */
 #define PACKETBUF_NUM_ATTRS (PACKETBUF_ATTR_MAX - PACKETBUF_NUM_ADDRS)
 #define PACKETBUF_ADDR_FIRST PACKETBUF_ADDR_SENDER
 
@@ -421,6 +462,12 @@ packetbuf_attr_t packetbuf_attr(uint8_t type);
 int               packetbuf_set_addr(uint8_t type, const linkaddr_t *addr);
 const linkaddr_t *packetbuf_addr(uint8_t type);
 #endif /* PACKETBUF_CONF_ATTRS_INLINE */
+
+/**
+ * \brief      Checks whether the current packet is a broadcast.
+ * \retval 0   iff current packet is not a broadcast
+ */
+int               packetbuf_holds_broadcast(void);
 
 void              packetbuf_attr_clear(void);
 

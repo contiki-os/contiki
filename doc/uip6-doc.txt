@@ -5,7 +5,7 @@
 
 /**
  * \defgroup uip6 uIP IPv6 specific features
- * @{
+ *
 The uIP IPv6 stack provides new Internet communication abilities to Contiki. 
 This document describes Ipv6 specific features. For features that
 are common to the IPv4 and IPv6 code please refer to \ref uip "uIP".
@@ -36,9 +36,9 @@ are part of the uIP IPv6 stack. A complete description can be found in the
 corresponding IETF standards which are available at
 http://www.ietf.org/rfc.html.
 
-\note The #UIP_CONF_IPV6 compilation flag is used to enable IPv6 (and
-disable IPv4). It is also recommended to set #UIP_CONF_IPV6_CHECKS to
-1 if one cannot guarantee that the incoming packets are correctly formed. 
+\note The #NETSTACK_CONF_WITH_IPV6 compilation flag is used to enable IPv6.
+It is also recommended to set #UIP_CONF_IPV6_CHECKS to 1
+if one cannot guarantee that the incoming packets are correctly formed. 
 
 \subsection ipv6 IPv6 (RFC 2460)
 The IP packets are processed in the #uip_process function.
@@ -66,7 +66,7 @@ This part of the code is very similar to the \ref ipreass "IPv4 fragmentation co
 is not assumed to be a TCP packet. As a result, we use a different
 %timer to time-out reassembly if all fragments have not been received
 after #UIP_REASS_MAXAGE = 60s.
-\note Fragment reassembly is enabled if #UIP_CONF_REASSEMBLY is set to 1.
+\note Fragment reassembly is enabled if #UIP_REASSEMBLY is set to 1.
 \note We can only reassemble packet of at most #UIP_LINK_MTU = 1280
 bytes as we do not have larger buffers.
 
@@ -81,9 +81,9 @@ typedef union uip_ip6addr_t {
 \endcode
 
 We assume that each node has a <em>single interface</em> of type
-#uip_netif. 
+#uip_ds6_netif_t. 
 
-Each interface can have up to #UIP_NETIF_MAX_ADDRESSES unicast IPv6
+Each interface can have a configurable number of unicast IPv6
 addresses including its link-local address. It also has a
 solicited-node multicast address. We assume that the unicast
 addresses are obtained via \ref autoconf "stateless address autoconfiguration" 
@@ -236,15 +236,15 @@ This section just lists all IPv6 related compile time flags. Each flag
 function is documented in this page in the appropriate section.
 \code
 /*Boolean flags*/
-UIP_CONF_IPV6        
+NETSTACK_CONF_WITH_IPV6        
 UIP_CONF_IPV6_CHECKS
 UIP_CONF_IPV6_QUEUE_PKT	
 UIP_CONF_IPV6_REASSEMBLY	
 /*Integer flags*/
-UIP_NETIF_MAX_ADDRESSES	
-UIP_ND6_MAX_PREFIXES   
-UIP_ND6_MAX_NEIGHBORS   
-UIP_ND6_MAX_DEFROUTER  
+UIP_CONF_NETIF_MAX_ADDRESSES	
+UIP_CONF_ND6_MAX_PREFIXES      
+UIP_CONF_ND6_MAX_DEFROUTERS  
+NBR_TABLE_CONF_MAX_NEIGHBORS
 \endcode
 
 <HR>
@@ -257,10 +257,10 @@ reass "fragment reassembly" is enabled an additional buffer of the
 same size is used. 
 
 The only difference with the IPv4 code is the per %neighbor buffering
-that is available when  #UIP_CONF_QUEUE_PKT is set to 1. This
+that is available when  #UIP_CONF_IPV6_QUEUE_PKT is set to 1. This
 additional buffering is used to queue one packet per %neighbor while
 performing address resolution for it. This is a very costly feature as
-it increases the RAM usage by approximately #UIP_ND6_MAX_NEIGHBORS *
+it increases the RAM usage by approximately #NBR_TABLE_CONF_MAX_NEIGHBORS *
 #UIP_LINK_MTU bytes.
 
 <HR>
@@ -340,7 +340,7 @@ We will soon support RFC4944 transmission of IPv6 packets over 802.15.4\n
 <b>IP layer</b><br>
 
 \li IPv6 RFC2460 (MUST): When the compile flags UIP_CONF_IPV6_CHECKS and UIP_CONF_REASSEMBLY are set, full support
-\li Neighbor Discovery RFC4861 (MUST): When the UIP_CONF_CHECKS and UIP_CONF_QUEUE_PKT flag are set, full support except redirect function
+\li Neighbor Discovery RFC4861 (MUST): When the UIP_CONF_CHECKS and UIP_CONF_IPV6_QUEUE_PKT flag are set, full support except redirect function
 \li Address Autoconfiguration RFC4862 (MUST): When the UIP_CONF_CHECKS flag is set, full support except sending MLD report (see MLD)
 \li Path MTU Discovery RFC 1981 (SHOULD): no support
 \li Jumbograms RFC 2675 (MAY): no support
@@ -377,7 +377,7 @@ We pass all the tests for phase 2 except:
 
 
 <HR>
-
+@{
 */
 /** @} */
 /** @} */

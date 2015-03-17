@@ -403,7 +403,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     // Allocate core communicator class
-    logger.info("Creating core communicator between Java class '" + javaClassName + "' and Contiki library '" + getContikiFirmwareFile().getName() + "'");
+    logger.info("Creating core communicator between Java class " + javaClassName + " and Contiki library '" + getContikiFirmwareFile().getPath() + "");
     myCoreComm = CoreComm.createCoreComm(this.javaClassName, getContikiFirmwareFile());
 
     /* Parse addresses using map file

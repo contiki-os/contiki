@@ -73,7 +73,7 @@ init_net(uint8_t node_id)
   uint16_t shortaddr;
   uint64_t longaddr;
   linkaddr_t addr;
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
   uip_ds6_addr_t *lladdr;
   uip_ipaddr_t ipaddr;
 #endif
@@ -135,7 +135,7 @@ init_net(uint8_t node_id)
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1 :
                          NETSTACK_RDC.channel_check_interval()), RF_CHANNEL);
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 
 #if LINKADDR_CONF_SIZE == 2
   memset(&uip_lladdr.addr, 0, sizeof(uip_lladdr.addr));
@@ -146,7 +146,9 @@ init_net(uint8_t node_id)
   memcpy(&uip_lladdr.addr, &longaddr, sizeof(uip_lladdr.addr));
 #endif
 
+#if NETSTACK_CONF_WITH_IPV6 || NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
+#endif
 
   lladdr = uip_ds6_get_link_local(-1);
 

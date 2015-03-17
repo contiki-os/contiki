@@ -426,11 +426,7 @@ sicslowmac_dataRequest(void)
   params.fcf.srcAddrMode = LONGADDRMODE;
   params.dest_pid = ieee15_4ManagerAddress.get_dst_panid();
 
-  /*
-   *  If the output address is NULL in the Rime buf, then it is broadcast
-   *  on the 802.15.4 network.
-   */
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null) ) {
+  if(packetbuf_holds_broadcast()) {
     /* Broadcast requires short address mode. */
     params.fcf.destAddrMode = SHORTADDRMODE;
     params.dest_pid = BROADCASTPANDID;

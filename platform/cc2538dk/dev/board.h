@@ -28,7 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** \addtogroup cc2538
+/** 
+ * \addtogroup cc2538dk
  * @{
  *
  * \defgroup cc2538-smartrf SmartRF06EB Peripherals
@@ -158,7 +159,7 @@
 #define BUTTON_UP_VECTOR         NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_DOWN -> PC7 */
-#define BUTTON_DOWN_PORT        GPIO_C_NUM
+#define BUTTON_DOWN_PORT         GPIO_C_NUM
 #define BUTTON_DOWN_PIN          7
 #define BUTTON_DOWN_VECTOR       NVIC_INT_GPIO_PORT_C
 
@@ -186,12 +187,12 @@
  * These values configure which CC2538 pins to use for the SPI lines.
  * @{
  */
-#define SPI_CLK_PORT             GPIO_A_NUM
-#define SPI_CLK_PIN              2
-#define SPI_MOSI_PORT            GPIO_A_NUM
-#define SPI_MOSI_PIN             4
-#define SPI_MISO_PORT            GPIO_A_NUM
-#define SPI_MISO_PIN             5
+#define SPI_CLK_PORT             GPIO_A_NUM /**< Clock port */
+#define SPI_CLK_PIN              2          /**< Clock pin */
+#define SPI_MOSI_PORT            GPIO_A_NUM /**< MOSI port */
+#define SPI_MOSI_PIN             4          /**< MOSI pin */
+#define SPI_MISO_PORT            GPIO_A_NUM /**< MISO port */
+#define SPI_MISO_PIN             5          /**< MISO pin */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

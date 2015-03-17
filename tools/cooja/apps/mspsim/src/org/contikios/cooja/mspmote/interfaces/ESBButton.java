@@ -30,13 +30,7 @@
 
 package org.contikios.cooja.mspmote.interfaces;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Collection;
-import javax.swing.JButton;
-import javax.swing.JPanel;
 import org.apache.log4j.Logger;
-import org.jdom.Element;
 
 import org.contikios.cooja.*;
 import org.contikios.cooja.interfaces.Button;
@@ -47,58 +41,28 @@ import org.contikios.cooja.mspmote.ESBMote;
  */
 @ClassDescription("Button")
 public class ESBButton extends Button {
-  private static Logger logger = Logger.getLogger(ESBButton.class);
+  private static final Logger logger = Logger.getLogger(ESBButton.class);
 
-  private ESBMote mote;
+  private final ESBMote mote;
 
   public ESBButton(Mote mote) {
+    super(mote);
     this.mote = (ESBMote) mote;
   }
 
-  public void clickButton() {
-    pressButton();
-    releaseButton();
-  }
-
-  public void releaseButton() {
+  @Override
+  protected void doReleaseButton() {
     mote.esbNode.setButton(false);
-    setChanged();
-    notifyObservers();
   }
 
-  public void pressButton() {
+  @Override
+  protected void doPressButton() {
     mote.esbNode.setButton(true);
-    setChanged();
-    notifyObservers();
   }
 
+  @Override
   public boolean isPressed() {
     return false;
-  }
-
-  public JPanel getInterfaceVisualizer() {
-    JPanel panel = new JPanel();
-    final JButton clickButton = new JButton("Click button");
-
-    panel.add(clickButton);
-
-    clickButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        clickButton();
-      }
-    });
-
-    return panel;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
 }

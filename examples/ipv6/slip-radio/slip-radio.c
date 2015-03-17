@@ -125,7 +125,7 @@ slip_radio_cmd_handler(const uint8_t *data, int len)
 
       /* parse frame before sending to get addresses, etc. */
       no_framer.parse();
-      NETSTACK_MAC.send(packet_sent, &packet_ids[packet_pos]);
+      NETSTACK_LLSEC.send(packet_sent, &packet_ids[packet_pos]);
 
       packet_pos++;
       if(packet_pos >= sizeof(packet_ids)) {

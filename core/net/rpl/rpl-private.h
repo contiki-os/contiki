@@ -242,6 +242,10 @@ struct rpl_stats {
   uint16_t malformed_msgs;
   uint16_t resets;
   uint16_t parent_switch;
+  uint16_t forward_errors;
+  uint16_t loop_errors;
+  uint16_t loop_warnings;
+  uint16_t root_repairs;
 };
 typedef struct rpl_stats rpl_stats_t;
 

@@ -39,9 +39,6 @@
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                 0
 
-#undef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL               0
-
 #define CMD_CONF_OUTPUT slip_radio_cmd_output
 
 /* add the cmd_handler_cc2420 + some sensors if TARGET_SKY */

@@ -128,8 +128,11 @@ public class AddressVisualizerSkin implements VisualizerSkin {
 
   private static String getMoteString(Mote mote) {
     IPAddress ipAddr = mote.getInterfaces().getIPAddress();
-    if (ipAddr != null && ipAddr.getIPString() != null) {
-      return ipAddr.getIPString();
+    if ((ipAddr != null) && (ipAddr.hasIP())) {
+      if (ipAddr.getLocalIP() == null) {
+        return "";
+      }
+      return ipAddr.getLocalIP().toString();
     }
 
     RimeAddress rimeAddr = mote.getInterfaces().getRimeAddress();

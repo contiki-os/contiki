@@ -49,9 +49,9 @@
 #include "dev/button-sensor.h"
 #include "dev/leds.h"
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
-#endif /* WITH_UIP6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 #include "net/rime/rime.h"
 
@@ -75,7 +75,7 @@ set_rime_addr(void)
   int i;
 
   memset(&addr, 0, sizeof(linkaddr_t));
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(addr.u8, serial_id, sizeof(addr.u8));
 #else
   if(node_id == 0) {
@@ -115,7 +115,7 @@ main(int argc, char **argv)
   uart_init(115200);
   clock_init();
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #if UIP_CONF_IPV6_RPL
   printf(CONTIKI_VERSION_STRING " started with IPV6, RPL\n");
 #else
@@ -142,7 +142,7 @@ main(int argc, char **argv)
   printf("MAC %s RDC %s NETWORK %s\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
 
   process_start(&tcpip_process, NULL);
@@ -159,7 +159,7 @@ main(int argc, char **argv)
     /* make it hardcoded... */
     lladdr->state = ADDR_AUTOCONF;
   }
-#else
+#elif NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
 #endif
 

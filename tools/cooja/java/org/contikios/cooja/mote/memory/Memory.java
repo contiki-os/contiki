@@ -29,6 +29,8 @@
  */
 package org.contikios.cooja.mote.memory;
 
+import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor;
+import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor.EventType;
 import org.contikios.cooja.mote.memory.MemoryLayout.DataType;
 
 /**
@@ -151,6 +153,18 @@ public abstract class Memory {
     return MemoryBuffer.wrap(memIntf.getLayout(), memIntf.getMemorySegment(addr, memIntf.getLayout().addrSize)).getAddr();
   }
 
+  /**
+   * Read byte array starting at given address.
+   *
+   * @param addr Start address to read from
+   * @param length Numbe of bytes to read
+   * @return byte array read from location assigned to variable name
+   */
+  public byte[] getByteArray(long addr, int length)
+          throws UnknownVariableException {
+    return memIntf.getMemorySegment(addr, length);
+  }
+
   // -- Set fixed size types
   /**
    * Write 8 bit integer to address.
@@ -253,4 +267,38 @@ public abstract class Memory {
     memIntf.setMemorySegment(addr, MemoryBuffer.wrap(memIntf.getLayout(), new byte[memIntf.getLayout().addrSize]).putAddr(value).getBytes());
   }
 
+  /**
+   * Write byte array starting at given address.
+   *
+   * @param addr Start address to write to
+   * @param data data to write
+   */
+  public void setByteArray(long addr, byte[] data)
+          throws UnknownVariableException {
+    memIntf.setMemorySegment(addr, data);
+  }
+
+  /**
+   * Adds monitor to specified memory region.
+   * 
+   * @param flag Select memory operation(s) to listen for (read, write, read/write)
+   * @param addr Start address of monitored region
+   * @param size Size of monitored region
+   * @param mm Monitor to add
+   * @return if monitor could be added, false if not
+   */
+  public boolean addMemoryMonitor(EventType flag, long addr, int size, SegmentMonitor mm) {
+    return memIntf.addSegmentMonitor(flag, addr, size, mm);
+  }
+
+  /**
+   * Removes monitor assigned to the specified region.
+   *
+   * @param addr Start address of monitored region
+   * @param size Size of monitored region
+   * @param mm Monitor to remove
+   */
+  public void removeMemoryMonitor(long addr, int size, SegmentMonitor mm) {
+    memIntf.removeSegmentMonitor(addr, size, mm);
+  }
 }

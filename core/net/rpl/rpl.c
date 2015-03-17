@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -32,12 +28,18 @@
  *
  * This file is part of the Contiki operating system.
  */
+
 /**
  * \file
  *         ContikiRPL, an implementation of RPL: IPv6 Routing Protocol
  *         for Low-Power and Lossy Networks (IETF RFC 6550)
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include "net/ip/uip.h"
@@ -52,8 +54,6 @@
 
 #include <limits.h>
 #include <string.h>
-
-#if UIP_CONF_IPV6
 
 #if RPL_CONF_STATS
 rpl_stats_t rpl_stats;
@@ -76,9 +76,9 @@ rpl_set_mode(enum rpl_mode m)
      switching to. */
   if(m == RPL_MODE_MESH) {
 
-    /* If we switcht to mesh mode, we should send out a DAO message to
+    /* If we switch to mesh mode, we should send out a DAO message to
        inform our parent that we now are reachable. Before we do this,
-       we must set the mode variable, since DAOs will not be send if
+       we must set the mode variable, since DAOs will not be sent if
        we are in feather mode. */
     PRINTF("RPL: switching to mesh mode\n");
     mode = m;
@@ -314,6 +314,5 @@ rpl_init(void)
   RPL_OF.reset(NULL);
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
 
 /** @}*/

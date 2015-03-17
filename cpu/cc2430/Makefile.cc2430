@@ -35,9 +35,9 @@ endef
 ### Banking Guesswork:
 ### Examples outside examples/sensinode do not specify banking.
 ### We automatically turn it on if its unspecified and if we are building with
-### UIP_CONF_IPV6
+### CONTIKI_WITH_IPV6
 ifndef HAVE_BANKING
-  ifeq ($(UIP_CONF_IPV6),1)
+  ifeq ($(CONTIKI_WITH_IPV6),1)
     HAVE_BANKING=1
   else
     HAVE_BANKING=0

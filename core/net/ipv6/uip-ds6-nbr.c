@@ -1,8 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
 /*
  * Copyright (c) 2013, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -35,8 +30,13 @@
  */
 
 /**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
  * \file
- *         IPv6 Neighbor cache (link-layer/IPv6 address mapping)
+ *    IPv6 Neighbor cache (link-layer/IPv6 address mapping)
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
  * \author Simon Duquennoy <simonduq@sics.se>
@@ -201,12 +201,25 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
   LINK_NEIGHBOR_CALLBACK(dest, status, numtx);
 
 #if UIP_DS6_LL_NUD
+  /* From RFC4861, page 72, last paragraph of section 7.3.3:
+   *
+   * 	"In some cases, link-specific information may indicate that a path to
+   * 	a neighbor has failed (e.g., the resetting of a virtual circuit). In
+   * 	such cases, link-specific information may be used to purge Neighbor
+   * 	Cache entries before the Neighbor Unreachability Detection would do
+   * 	so. However, link-specific information MUST NOT be used to confirm
+   * 	the reachability of a neighbor; such information does not provide
+   * 	end-to-end confirmation between neighboring IP layers."
+   *
+   * However, we assume that receiving a link layer ack ensures the delivery
+   * of the transmitted packed to the IP stack of the neighbour. This is a 
+   * fair assumption and allows battery powered nodes save some battery by 
+   * not re-testing the state of a neighbour periodically if it 
+   * acknowledges link packets. */
   if(status == MAC_TX_OK) {
     uip_ds6_nbr_t *nbr;
     nbr = uip_ds6_nbr_ll_lookup((uip_lladdr_t *)dest);
-    if(nbr != NULL &&
-        (nbr->state == NBR_STALE || nbr->state == NBR_DELAY ||
-         nbr->state == NBR_PROBE)) {
+    if(nbr != NULL && nbr->state != NBR_INCOMPLETE) {
       nbr->state = NBR_REACHABLE;
       stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
       PRINTF("uip-ds6-neighbor : received a link layer ACK : ");
@@ -227,10 +240,32 @@ uip_ds6_neighbor_periodic(void)
     switch(nbr->state) {
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
+#if UIP_CONF_IPV6_RPL
+        /* when a neighbor leave it's REACHABLE state and is a default router,
+           instead of going to STALE state it enters DELAY state in order to
+           force a NUD on it. Otherwise, if there is no upward traffic, the
+           node never knows if the default router is still reachable. This
+           mimics the 6LoWPAN-ND behavior.
+         */
+        if(uip_ds6_defrt_lookup(&nbr->ipaddr) != NULL) {
+          PRINTF("REACHABLE: defrt moving to DELAY (");
+          PRINT6ADDR(&nbr->ipaddr);
+          PRINTF(")\n");
+          nbr->state = NBR_DELAY;
+          stimer_set(&nbr->reachable, UIP_ND6_DELAY_FIRST_PROBE_TIME);
+          nbr->nscount = 0;
+        } else {
+          PRINTF("REACHABLE: moving to STALE (");
+          PRINT6ADDR(&nbr->ipaddr);
+          PRINTF(")\n");
+          nbr->state = NBR_STALE;
+        }
+#else /* UIP_CONF_IPV6_RPL */
         PRINTF("REACHABLE: moving to STALE (");
         PRINT6ADDR(&nbr->ipaddr);
         PRINTF(")\n");
         nbr->state = NBR_STALE;
+#endif /* UIP_CONF_IPV6_RPL */
       }
       break;
 #if UIP_ND6_SEND_NA

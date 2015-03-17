@@ -1,27 +1,3 @@
-/**
- * \addtogroup sys
- * @{
- */
-
-/**
- * \defgroup cfs The Contiki file system interface
- *
- * The Contiki file system interface (CFS) defines an abstract API for
- * reading directories and for reading and writing files. The CFS API
- * is intentionally simple. The CFS API is modeled after the POSIX
- * file API, and slightly simplified.
- *
- * @{
- */
-
-/**
- * \file
- *         CFS header file.
- * \author
- *         Adam Dunkels <adam@sics.se>
- *
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -55,6 +31,31 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
+
+/**
+ * \file
+ *         CFS header file.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ *
+ */
+
+/**
+ * \addtogroup sys
+ * @{
+ */
+
+/**
+ * \defgroup cfs The Contiki file system interface
+ *
+ * The Contiki file system interface (CFS) defines an abstract API for
+ * reading directories and for reading and writing files. The CFS API
+ * is intentionally simple. The CFS API is modeled after the POSIX
+ * file API, and slightly simplified.
+ *
+ * @{
+ */
+
 #ifndef CFS_H_
 #define CFS_H_
 

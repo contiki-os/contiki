@@ -342,7 +342,7 @@ httpd_init(void)
   memb_init(&conns);
   httpd_cgi_init();
 }
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /*---------------------------------------------------------------------------*/
 uint8_t
 httpd_sprint_ip6(uip_ip6addr_t addr, char * result)
@@ -374,5 +374,5 @@ httpd_sprint_ip6(uip_ip6addr_t addr, char * result)
   *result=0;
   return (result - starting);
 }
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/

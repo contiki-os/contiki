@@ -1,37 +1,3 @@
-/** \addtogroup sys
- * @{
- */
-
-/**
- * \defgroup clock Clock library
- *
- * The clock library is the interface between Contiki and the platform
- * specific clock functionality. The clock library defines a macro,
- * CLOCK_SECOND, to convert seconds into the tick resolution of the platform.
- * Typically this is 1-10 milliseconds, e.g. 4*CLOCK_SECOND could be 512.
- * A 16 bit counter would thus overflow every 1-10 minutes.
- * Platforms use the tick interrupt to maintain a long term count
- * of seconds since startup.
- *
- * Platforms may also implement rtimers for greater time resolution
- * and for real-time interrupts, These use a corresponding RTIMER_SECOND.
- *
- * \note These timers do not necessarily have a common divisor or are phase locked.
- * One may be crystal controlled and the other may not. Low power operation
- * or sleep will often use one for wake and disable the other, then give
- * it a tick correction after wakeup.
- *
- * \note The clock library need in many cases not be used
- * directly. Rather, the \ref timer "timer library", \ref etimer
- * "event timers", or \ref trimer "rtimer library" should be used.
- *
- * \sa \ref timer "Timer library"
- * \sa \ref etimer "Event timers"
- * \sa \ref rtimer "Realtime library"
- *
- * @{
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -65,6 +31,41 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
+
+/** \addtogroup sys
+ * @{
+ */
+
+/**
+ * \defgroup clock Clock library
+ *
+ * The clock library is the interface between Contiki and the platform
+ * specific clock functionality. The clock library defines a macro,
+ * CLOCK_SECOND, to convert seconds into the tick resolution of the platform.
+ * Typically this is 1-10 milliseconds, e.g. 4*CLOCK_SECOND could be 512.
+ * A 16 bit counter would thus overflow every 1-10 minutes.
+ * Platforms use the tick interrupt to maintain a long term count
+ * of seconds since startup.
+ *
+ * Platforms may also implement rtimers for greater time resolution
+ * and for real-time interrupts, These use a corresponding RTIMER_SECOND.
+ *
+ * \note These timers do not necessarily have a common divisor or are phase locked.
+ * One may be crystal controlled and the other may not. Low power operation
+ * or sleep will often use one for wake and disable the other, then give
+ * it a tick correction after wakeup.
+ *
+ * \note The clock library need in many cases not be used
+ * directly. Rather, the \ref timer "timer library", \ref etimer
+ * "event timers", or \ref rtimer "rtimer library" should be used.
+ *
+ * \sa \ref timer "Timer library"
+ * \sa \ref etimer "Event timers"
+ * \sa \ref rtimer "Realtime library"
+ *
+ * @{
+ */
+
 #ifndef CLOCK_H_
 #define CLOCK_H_
 

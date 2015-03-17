@@ -42,13 +42,11 @@
 #include "contiki.h"
 #include "dev/relay-phidget.h"
 
-
 #if 1
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
-
 
 #if 0
 #define PRINTFDEBUG(...) printf(__VA_ARGS__)
@@ -56,14 +54,13 @@
 #define PRINTFDEBUG(...)
 #endif
 
-
 #define RELAY_INTERVAL (CLOCK_SECOND)
 
 PROCESS(test_process, "Relay test process");
 AUTOSTART_PROCESSES(&test_process);
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
-static uint8_t status;
+static int8_t status;
 
 PROCESS_THREAD(test_process, ev, data)
 {
@@ -75,7 +72,7 @@ PROCESS_THREAD(test_process, ev, data)
   while(1) {
     etimer_set(&et, RELAY_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    
+
     status = relay_toggle();
     PRINTF("Relay [%d]\n", status);
   }

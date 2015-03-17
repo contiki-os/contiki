@@ -114,7 +114,6 @@ struct rpl_parent {
   rpl_metric_container_t mc;
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   rpl_rank_t rank;
-  uint16_t link_metric;
   uint8_t dtsn;
   uint8_t flags;
 };
@@ -240,17 +239,18 @@ int rpl_repair_root(uint8_t instance_id);
 int rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from);
 rpl_dag_t *rpl_get_any_dag(void);
 rpl_instance_t *rpl_get_instance(uint8_t instance_id);
-void rpl_update_header_empty(void);
+int rpl_update_header_empty(void);
 int rpl_update_header_final(uip_ipaddr_t *addr);
 int rpl_verify_header(int);
 void rpl_insert_header(void);
 void rpl_remove_header(void);
 uint8_t rpl_invert_header(void);
 uip_ipaddr_t *rpl_get_parent_ipaddr(rpl_parent_t *nbr);
+rpl_parent_t *rpl_get_parent(uip_lladdr_t *addr);
 rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
 uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
-
+uip_ds6_nbr_t *rpl_get_nbr(rpl_parent_t *parent);
 
 /**
  * RPL modes

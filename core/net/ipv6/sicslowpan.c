@@ -1,7 +1,3 @@
-/**
- * \addtogroup sicslowpan
- * @{
- */
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         6lowpan implementation (RFC4944 and draft-ietf-6lowpan-hc-06)
@@ -44,6 +41,11 @@
  * \author Julien Abeille <jabeille@cisco.com>
  * \author Joakim Eriksson <joakime@sics.se>
  * \author Joel Hoglund <joel@sics.se>
+ */
+
+/**
+ * \addtogroup sicslowpan
+ * @{
  */
 
 /**
@@ -66,8 +68,6 @@
 #include "net/rime/rime.h"
 #include "net/ipv6/sicslowpan.h"
 #include "net/netstack.h"
-
-#if UIP_CONF_IPV6
 
 #include <stdio.h>
 
@@ -155,11 +155,13 @@ void uip_log(char *msg);
 /** @} */
 
 
-/** \brief Size of the 802.15.4 payload (127byte - 25 for MAC header) */
+/** \brief Maximum available size for frame headers,
+           link layer security-related overhead, as well as
+           6LoWPAN payload. */
 #ifdef SICSLOWPAN_CONF_MAC_MAX_PAYLOAD
 #define MAC_MAX_PAYLOAD SICSLOWPAN_CONF_MAC_MAX_PAYLOAD
 #else /* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD */
-#define MAC_MAX_PAYLOAD 102
+#define MAC_MAX_PAYLOAD (127 - 2)
 #endif /* SICSLOWPAN_CONF_MAC_MAX_PAYLOAD */
 
 
@@ -1341,7 +1343,7 @@ send_packet(linkaddr_t *dest)
 
   /* Provide a callback function to receive the result of
      a packet transmission. */
-  NETSTACK_MAC.send(&packet_sent, NULL);
+  NETSTACK_LLSEC.send(&packet_sent, NULL);
 
   /* If we are sending multiple packets in a row, we need to let the
      watchdog know that we are still alive. */
@@ -1361,6 +1363,7 @@ static uint8_t
 output(const uip_lladdr_t *localdest)
 {
   int framer_hdrlen;
+  int max_payload;
 
   /* The MAC address of the destination of the packet */
   linkaddr_t dest;
@@ -1443,8 +1446,9 @@ output(const uip_lladdr_t *localdest)
 #else /* USE_FRAMER_HDRLEN */
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
+  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen - NETSTACK_LLSEC.get_overhead();
 
-  if((int)uip_len - (int)uncomp_hdr_len > (int)MAC_MAX_PAYLOAD - framer_hdrlen - (int)packetbuf_hdr_len) {
+  if((int)uip_len - (int)uncomp_hdr_len > max_payload - (int)packetbuf_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
     struct queuebuf *q;
     /*
@@ -1454,6 +1458,13 @@ output(const uip_lladdr_t *localdest)
      * IPv6/HC1/HC06/HC_UDP dispatchs/headers.
      * The following fragments contain only the fragn dispatch.
      */
+    int estimated_fragments = ((int)uip_len) / ((int)MAC_MAX_PAYLOAD - SICSLOWPAN_FRAGN_HDR_LEN) + 1;
+    int freebuf = queuebuf_numfree() - 1;
+    PRINTFO("uip_len: %d, fragments: %d, free bufs: %d\n", uip_len, estimated_fragments, freebuf);
+    if(freebuf < estimated_fragments) {
+      PRINTFO("Dropping packet, not enough free bufs\n");
+      return 0;
+    }
 
     PRINTFO("Fragmentation sending packet len %d\n", uip_len);
 
@@ -1477,7 +1488,7 @@ output(const uip_lladdr_t *localdest)
 
     /* Copy payload and send */
     packetbuf_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
-    packetbuf_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - packetbuf_hdr_len) & 0xfffffff8;
+    packetbuf_payload_len = (max_payload - packetbuf_hdr_len) & 0xfffffff8;
     PRINTFO("(len %d, tag %d)\n", packetbuf_payload_len, my_tag);
     memcpy(packetbuf_ptr + packetbuf_hdr_len,
            (uint8_t *)UIP_IP_BUF + uncomp_hdr_len, packetbuf_payload_len);
@@ -1513,7 +1524,7 @@ output(const uip_lladdr_t *localdest)
 /*       uip_htons((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len); */
     SET16(PACKETBUF_FRAG_PTR, PACKETBUF_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len));
-    packetbuf_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - packetbuf_hdr_len) & 0xfffffff8;
+    packetbuf_payload_len = (max_payload - packetbuf_hdr_len) & 0xfffffff8;
     while(processed_ip_out_len < uip_len) {
       PRINTFO("sicslowpan output: fragment ");
       PACKETBUF_FRAG_PTR[PACKETBUF_FRAG_OFFSET] = processed_ip_out_len >> 3;
@@ -1705,7 +1716,7 @@ input(void)
 
       sicslowpan_len = frag_size;
       reass_tag = frag_tag;
-      timer_set(&reass_timer, SICSLOWPAN_REASS_MAXAGE * CLOCK_SECOND / 16);
+      timer_set(&reass_timer, SICSLOWPAN_REASS_MAXAGE * CLOCK_SECOND);
       PRINTFI("sicslowpan input: INIT FRAGMENTATION (len %d, tag %d)\n",
              sicslowpan_len, reass_tag);
       linkaddr_copy(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER));
@@ -1916,4 +1927,3 @@ const struct network_driver sicslowpan_driver = {
 };
 /*--------------------------------------------------------------------*/
 /** @} */
-#endif /* UIP_CONF_IPV6 */

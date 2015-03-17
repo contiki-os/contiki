@@ -41,14 +41,6 @@
 **/
 
 
-/** @addtogroup CMSIS
-  * @{
-  */
-
-/** @addtogroup aducrf101_system
-  * @{
-  */  
-
 #ifndef __SYSTEM_ADUCRF101_H__
 #define __SYSTEM_ADUCRF101_H__
 
@@ -105,12 +97,4 @@ extern uint32_t GetSystemExtClkFreq (void);
 #endif
 
 #endif /* __SYSTEM_ADUCRF101_H__ */
-
-/**
-  * @}
-  */
-  
-/**
-  * @}
-  */  
 

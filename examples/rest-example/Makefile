@@ -6,8 +6,6 @@ endif
 
 CONTIKI=../..
 
-UIP_CONF_IPV6=1
-
 WITH_COAP = 1
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
@@ -20,6 +18,7 @@ CFLAGS += -DWITH_HTTP
 APPS += rest-http
 endif
 
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
 $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c

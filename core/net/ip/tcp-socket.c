@@ -56,10 +56,10 @@ call_event(struct tcp_socket *s, tcp_socket_event_t event)
 static void
 senddata(struct tcp_socket *s)
 {
-  int len;
+  int len = MIN(s->output_data_max_seg, uip_mss());
 
   if(s->output_data_len > 0) {
-    len = MIN(s->output_data_len, uip_mss());
+    len = MIN(s->output_data_len, len);
     s->output_data_send_nxt = len;
     uip_send(s->output_data_ptr, len);
   }
@@ -148,12 +148,14 @@ appcall(void *state)
 	   s->listen_port != 0 &&
 	   s->listen_port == uip_htons(uip_conn->lport)) {
 	  s->flags &= ~TCP_SOCKET_FLAGS_LISTENING;
+          s->output_data_max_seg = uip_mss();
 	  tcp_markconn(uip_conn, s);
 	  call_event(s, TCP_SOCKET_CONNECTED);
 	  break;
 	}
       }
     } else {
+      s->output_data_max_seg = uip_mss();
       call_event(s, TCP_SOCKET_CONNECTED);
     }
 

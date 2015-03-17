@@ -36,6 +36,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "contiki.h"
 #include "dev/serial-line.h"
@@ -110,6 +111,7 @@ buffer_db_data(const char *format, ...)
   return len;
 }
 /*---------------------------------------------------------------------------*/
+#if !PREPARE_DB
 static void
 take_sample(void)
 {
@@ -123,6 +125,7 @@ take_sample(void)
     printf("DB insertion failed\n");
   }
 }
+#endif /* !PREPARE_DB */
 /*---------------------------------------------------------------------------*/
 static void
 stop_handler(void *ptr)

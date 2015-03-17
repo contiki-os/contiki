@@ -14,6 +14,7 @@ webserver-ipv6/cc2538dk \
 cc2538dk/cc2538dk \
 cc2538dk/udp-ipv6-echo-server/cc2538dk \
 cc2538dk/sniffer/cc2538dk \
+cc2538dk/mqtt-demo/cc2538dk \
 ipv6/multicast/econotag \
 ipv6/multicast/cc2538dk \
 

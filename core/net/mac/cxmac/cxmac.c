@@ -433,11 +433,11 @@ send_packet(void)
   /* If NETSTACK_CONF_BRIDGE_MODE is set, assume PACKETBUF_ADDR_SENDER is already set. */
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
 #endif
-  if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_null)) {
+  if(packetbuf_holds_broadcast()) {
     is_broadcast = 1;
     PRINTDEBUG("cxmac: send broadcast\n");
   } else {
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     PRINTDEBUG("cxmac: send unicast to %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
            packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
            packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1],
@@ -451,7 +451,7 @@ send_packet(void)
     PRINTDEBUG("cxmac: send unicast to %u.%u\n",
            packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
            packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
   }
 /* is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
     packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);*/
@@ -625,7 +625,9 @@ send_packet(void)
      that will need an upper layer ACK (as signified by the
      PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
   if(got_strobe_ack && (packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
-			packetbuf_attr(PACKETBUF_ATTR_ERELIABLE) ||
+#if NETSTACK_CONF_WITH_RIME
+      packetbuf_attr(PACKETBUF_ATTR_ERELIABLE) ||
+#endif /* NETSTACK_CONF_WITH_RIME */
 			packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
 			PACKETBUF_ATTR_PACKET_TYPE_STREAM)) {
     on(); /* Wait for ACK packet */

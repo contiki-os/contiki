@@ -104,6 +104,7 @@ import org.contikios.cooja.mote.memory.MemoryInterface.SegmentMonitor;
 import org.contikios.cooja.mote.memory.VarMemory;
 import org.contikios.cooja.motes.AbstractEmulatedMote;
 import org.contikios.cooja.util.ArrayQueue;
+import org.contikios.cooja.util.IPUtils;
 import org.contikios.cooja.util.StringUtils;
 
 /**
@@ -1696,7 +1697,7 @@ public class BufferListener extends VisPlugin {
       } else {
         mem = ba.mem;
       }
-      return IPAddress.compressIPv6Address(StringUtils.toHex(mem, 2).replaceAll(" ", ":"));
+      return IPUtils.getCompressedIPv6AddressString(mem);
     }
   }
 
@@ -1708,15 +1709,7 @@ public class BufferListener extends VisPlugin {
       if (ba.mem.length < 4) {
         return "[must monitor at least 4 bytes]";
       }
-      StringBuilder sb = new StringBuilder();
-      sb.append(0xff&ba.mem[0]);
-      sb.append(".");
-      sb.append(0xff&ba.mem[1]);
-      sb.append(".");
-      sb.append(0xff&ba.mem[2]);
-      sb.append(".");
-      sb.append(0xff&ba.mem[3]);
-      return sb.toString();
+      return IPUtils.getIPv4AddressString(ba.mem);
     }
   }
 

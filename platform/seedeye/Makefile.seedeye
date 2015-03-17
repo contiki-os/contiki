@@ -6,10 +6,6 @@ ifdef SEEDEYE_ID
 CFLAGS += -DSEEDEYE_ID=${SEEDEYE_ID}
 endif
 
-ifeq ($(UIP_CONF_IPV6),1)
-CFLAGS += -DWITH_UIP6=1
-endif
-
 CONTIKI_TARGET_DIRS = . dev dev/mrf24j40 apps net
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
@@ -63,3 +59,6 @@ CONTIKI_TARGET_SOURCEFILES += $(CONTIKI_CORE_SOURCEFILES)
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
 include $(CONTIKI)/cpu/pic32/Makefile.pic32
+
+MODULES += core/net core/net/mac core/net/rime core/net/llsec 
+

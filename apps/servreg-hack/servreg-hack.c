@@ -1,6 +1,3 @@
-/** \addtogroup servreghack
- * @{ */
-
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -39,6 +36,9 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
+
+/** \addtogroup servreghack
+ * @{ */
 
 #include "contiki.h"
 #include "contiki-lib.h"
@@ -379,3 +379,5 @@ PROCESS_THREAD(servreg_hack_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+
+/** @} */

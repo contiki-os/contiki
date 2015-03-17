@@ -29,10 +29,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538
+ * \addtogroup cc2538-platforms
  * @{
  *
- * \defgroup cc2538-examples cc2538dk Example Projects
+ * \defgroup cc2538-examples cc2538 Example Projects
  * @{
  *
  * \defgroup cc2538-demo cc2538dk Demo Project

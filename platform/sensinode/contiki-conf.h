@@ -146,11 +146,11 @@
 
 /* Sensinode-Specific Tools and APPs */
 /* Viztool on by default for IPv6 builds */
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #ifndef VIZTOOL_CONF_ON
 #define VIZTOOL_CONF_ON        1
 #endif /* VIZTOOL_CONF_ON */
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* BatMon off by default unless we build with APPS += batmon */
 #ifndef BATMON_CONF_ON
@@ -159,11 +159,11 @@
 
 /* Network Stack */
 #ifndef NETSTACK_CONF_NETWORK
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #else
 #define NETSTACK_CONF_NETWORK rime_driver
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* NETSTACK_CONF_NETWORK */
 
 #ifndef NETSTACK_CONF_MAC
@@ -201,7 +201,7 @@
 #define CC2430_RF_CONF_AUTOACK 1
 #endif /* CC2430_CONF_AUTOACK */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* Addresses, Sizes and Interfaces */
 /* 8-byte addresses here, 2 otherwise */
 #define LINKADDR_CONF_SIZE                   8
@@ -270,13 +270,13 @@
 #define QUEUEBUF_CONF_NUM                    6
 #endif
 
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 /* Network setup for non-IPv6 (rime). */
 #define UIP_CONF_IP_FORWARD                  1
 #define UIP_CONF_BUFFER_SIZE               108
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS     0
 #define QUEUEBUF_CONF_NUM                    8
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* Prevent SDCC compile error when UIP_CONF_ROUTER == 0 */
 #if !UIP_CONF_ROUTER

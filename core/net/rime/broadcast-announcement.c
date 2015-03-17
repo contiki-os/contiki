@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeexamples
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,6 +28,11 @@
  *
  * This file is part of the Contiki operating system.
  *
+ */
+
+/**
+ * \addtogroup rimebroadcastannouncement
+ * @{
  */
 
 /**

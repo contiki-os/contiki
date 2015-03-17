@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         Logic for Directed Acyclic Graphs in RPL.
@@ -41,11 +38,16 @@
  * Contributors: George Oikonomou <oikonomou@users.sourceforge.net> (multicast)
  */
 
+/**
+ * \addtogroup uip6
+ * @{
+ */
 
 #include "contiki.h"
 #include "net/rpl/rpl-private.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-nd6.h"
+#include "net/ipv6/uip-ds6-nbr.h"
 #include "net/nbr-table.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "lib/list.h"
@@ -58,7 +60,6 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 extern rpl_of_t RPL_OF;
 static rpl_of_t * const objective_functions[] = {&RPL_OF};
@@ -79,6 +80,19 @@ NBR_TABLE(rpl_parent_t, rpl_parents);
 /* Allocate instance table. */
 rpl_instance_t instance_table[RPL_MAX_INSTANCES];
 rpl_instance_t *default_instance;
+
+/*---------------------------------------------------------------------------*/
+uip_ds6_nbr_t *
+rpl_get_nbr(rpl_parent_t *parent)
+{
+  linkaddr_t *lladdr = NULL;
+  lladdr = nbr_table_get_lladdr(rpl_parents, parent);
+  if(lladdr != NULL) {
+    return nbr_table_get_from_lladdr(ds6_neighbors, lladdr);
+  } else {
+    return NULL;
+  }
+}
 /*---------------------------------------------------------------------------*/
 static void
 nbr_callback(void *ptr)
@@ -90,6 +104,13 @@ void
 rpl_dag_init(void)
 {
   nbr_table_register(rpl_parents, (nbr_table_callback *)nbr_callback);
+}
+/*---------------------------------------------------------------------------*/
+rpl_parent_t *
+rpl_get_parent(uip_lladdr_t *addr)
+{
+  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (linkaddr_t *)addr);
+  return p;
 }
 /*---------------------------------------------------------------------------*/
 rpl_rank_t
@@ -106,9 +127,11 @@ rpl_get_parent_rank(uip_lladdr_t *addr)
 uint16_t
 rpl_get_parent_link_metric(const uip_lladdr_t *addr)
 {
-  rpl_parent_t *p = nbr_table_get_from_lladdr(rpl_parents, (const linkaddr_t *)addr);
-  if(p != NULL) {
-    return p->link_metric;
+  uip_ds6_nbr_t *nbr;
+  nbr = nbr_table_get_from_lladdr(ds6_neighbors, (const linkaddr_t *)addr);
+  
+  if(nbr != NULL) {
+    return nbr->link_metric;
   } else {
     return 0;
   }
@@ -325,6 +348,7 @@ rpl_repair_root(uint8_t instance_id)
     PRINTF("RPL: rpl_repair_root triggered but not root\n");
     return 0;
   }
+  RPL_STAT(rpl_stats.root_repairs++);
 
   RPL_LOLLIPOP_INCREMENT(instance->current_dag->version);
   RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
@@ -512,6 +536,7 @@ rpl_free_instance(rpl_instance_t *instance)
 
   ctimer_stop(&instance->dio_timer);
   ctimer_stop(&instance->dao_timer);
+  ctimer_stop(&instance->dao_lifetime_timer);
 
   if(default_instance == instance) {
     default_instance = NULL;
@@ -559,10 +584,17 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
     if(p == NULL) {
       PRINTF("RPL: rpl_add_parent p NULL\n");
     } else {
+      uip_ds6_nbr_t *nbr;
+      nbr = rpl_get_nbr(p);
+
       p->dag = dag;
       p->rank = dio->rank;
       p->dtsn = dio->dtsn;
-      p->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
+      
+      /* Check whether we have a neighbor that has not gotten a link metric yet */
+      if(nbr != NULL && nbr->link_metric == 0) {
+	nbr->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
+      }
 #if RPL_DAG_MC != RPL_DAG_MC_NONE
       memcpy(&p->mc, &dio->mc, sizeof(p->mc));
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
@@ -757,7 +789,6 @@ rpl_nullify_parent(rpl_parent_t *parent)
   /* This function can be called when the preferred parent is NULL, so we
      need to handle this condition in order to trigger uip_ds6_defrt_rm. */
   if(parent == dag->preferred_parent || dag->preferred_parent == NULL) {
-    rpl_set_preferred_parent(dag, NULL);
     dag->rank = INFINITE_RANK;
     if(dag->joined) {
       if(dag->instance->def_route != NULL) {
@@ -767,7 +798,11 @@ rpl_nullify_parent(rpl_parent_t *parent)
         uip_ds6_defrt_rm(dag->instance->def_route);
         dag->instance->def_route = NULL;
       }
-      dao_output(parent, RPL_ZERO_LIFETIME);
+      /* Send no-path DAO only to preferred parent, if any */
+      if(parent == dag->preferred_parent) {
+        dao_output(parent, RPL_ZERO_LIFETIME);
+        rpl_set_preferred_parent(dag, NULL);
+      }
     }
   }
 
@@ -940,6 +975,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 }
 
+#if RPL_MAX_DAG_PER_INSTANCE > 1
 /*---------------------------------------------------------------------------*/
 void
 rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
@@ -1019,6 +1055,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_process_parent_event(instance, p);
   p->dtsn = dio->dtsn;
 }
+#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -1028,6 +1065,14 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   remove_parents(dag, 0);
   dag->version = dio->version;
+
+  /* copy parts of the configuration so that it propagates in the network */
+  dag->instance->dio_intdoubl = dio->dag_intdoubl;
+  dag->instance->dio_intmin = dio->dag_intmin;
+  dag->instance->dio_redundancy = dio->dag_redund;
+  dag->instance->default_lifetime = dio->default_lifetime;
+  dag->instance->lifetime_unit = dio->lifetime_unit;
+
   dag->instance->of->reset(dag);
   dag->min_rank = INFINITE_RANK;
   RPL_LOLLIPOP_INCREMENT(dag->instance->dtsn_out);
@@ -1206,9 +1251,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   if(dag == NULL) {
+#if RPL_MAX_DAG_PER_INSTANCE > 1
     PRINTF("RPL: Adding new DAG to known instance.\n");
     rpl_add_dag(from, dio);
     return;
+#else /* RPL_MAX_DAG_PER_INSTANCE > 1 */
+    PRINTF("RPL: Only one instance supported.\n");
+    return;
+#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
   }
 
 
@@ -1310,5 +1360,4 @@ rpl_lock_parent(rpl_parent_t *p)
   nbr_table_lock(rpl_parents, p);
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
 /** @} */

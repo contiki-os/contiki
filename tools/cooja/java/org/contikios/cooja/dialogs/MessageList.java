@@ -26,13 +26,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
- * Created : 2006-06-14
- * Updated : $Date: 2009/11/13 14:27:46 $
- *           $Revision: 1.15 $
  */
 
 package org.contikios.cooja.dialogs;
@@ -64,10 +57,20 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import org.apache.log4j.Logger;
 
 import org.contikios.cooja.Cooja;
 
+/**
+ *
+ * @author Adam Dunkels
+ * @author Joakim Eriksson
+ * @author Niclas Finne
+ * @author Fredrik Osterlind
+ */
 public class MessageList extends JList {
+
+  private static final Logger logger = Logger.getLogger(MessageList.class);
 
   public static final int NORMAL = 0;
   public static final int WARNING = 1;
@@ -130,6 +133,7 @@ public class MessageList extends JList {
       final BufferedReader stringInput = new BufferedReader(new InputStreamReader(input));
 
       Thread readThread = new Thread(new Runnable() {
+        @Override
         public void run() {
           String readLine;
           try {
@@ -145,8 +149,8 @@ public class MessageList extends JList {
       readThread.start();
 
       return new PrintStream(output);
-    } catch (Exception e) {
-      System.out.println("Exception: "+ e);
+    } catch (IOException e) {
+      logger.error(messages);
       return null;
     }
   }
@@ -184,6 +188,7 @@ public class MessageList extends JList {
     messages.add(msg);
 
     java.awt.EventQueue.invokeLater(new Runnable() {
+      @Override
       public void run() {
         updateModel();
       }
@@ -195,6 +200,7 @@ public class MessageList extends JList {
     ((DefaultListModel) getModel()).clear();
   }
 
+  @Override
   public void setModel(ListModel model) {
     throw new IllegalArgumentException("changing model not permitted");
   }
@@ -203,16 +209,19 @@ public class MessageList extends JList {
     if (popup == null) {
       popup = new JPopupMenu();
       addMouseListener(new MouseAdapter() {
+        @Override
         public void mouseClicked(MouseEvent e) {
           if (e.isPopupTrigger()) {
             popup.show(MessageList.this, e.getX(), e.getY());
           }
         }
+        @Override
         public void mousePressed(MouseEvent e) {
           if (e.isPopupTrigger()) {
             popup.show(MessageList.this, e.getX(), e.getY());
           }
         }
+        @Override
         public void mouseReleased(MouseEvent e) {
           if (e.isPopupTrigger()) {
             popup.show(MessageList.this, e.getX(), e.getY());
@@ -230,6 +239,7 @@ public class MessageList extends JList {
         final JMenuItem hideNormalMenuItem = new JCheckBoxMenuItem("Hide normal output");
         hideNormalMenuItem.setEnabled(true);
         hideNormalMenuItem.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent e) {
             MessageList.this.hideNormal = hideNormalMenuItem.isSelected();
             ((MessageModel)getModel()).updateList();
@@ -240,16 +250,17 @@ public class MessageList extends JList {
         JMenuItem consoleOutputMenuItem = new JMenuItem("Output to console");
         consoleOutputMenuItem.setEnabled(true);
         consoleOutputMenuItem.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent e) {
             MessageContainer[] messages = getMessages();
-            System.out.println("\nCOMPILATION OUTPUT:\n");
+            logger.info("\nCOMPILATION OUTPUT:\n");
             for (MessageContainer msg: messages) {
               if (hideNormal && msg.type == NORMAL) {
                 continue;
               }
-              System.out.println(msg);
+              logger.info(msg);
             }
-            System.out.println();
+            logger.info("\n");
           }
         });
         popup.add(consoleOutputMenuItem);
@@ -257,6 +268,7 @@ public class MessageList extends JList {
         JMenuItem clipboardMenuItem = new JMenuItem("Copy to clipboard");
         clipboardMenuItem.setEnabled(true);
         clipboardMenuItem.addActionListener(new ActionListener() {
+          @Override
           public void actionPerformed(ActionEvent e) {
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
@@ -299,6 +311,7 @@ public class MessageList extends JList {
       this.type = type;
     }
 
+    @Override
     public String toString() {
       return message;
     }
@@ -318,6 +331,7 @@ public class MessageList extends JList {
 
   private class MessageRenderer extends DefaultListCellRenderer {
     private Dimension nullDimension = new Dimension(0,0);
+    @Override
     public Component getListCellRendererComponent(
         JList list,
 	Object value,

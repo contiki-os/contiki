@@ -47,3 +47,5 @@ cooja: $(CONTIKI)/tools/cooja/dist/cooja.jar
 $(CONTIKI)/tools/cooja/dist/cooja.jar:
 	(cd $(CONTIKI)/tools/cooja; ant jar)
 
+scan-build:
+	cd scan_build && scan-build $(MAKE)
