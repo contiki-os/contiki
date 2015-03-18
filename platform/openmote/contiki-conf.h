@@ -1,13 +1,10 @@
 /**
- * \addtogroup platform
+ * \addtogroup openmote
  * @{
  *
- * \defgroup openmote
- *
  * \file
- * Configuration for the OpenMote-CC2538 platform.
+ *  Configuration for the OpenMote-CC2538 platform.
  */
-
 #ifndef CONTIKI_CONF_H_
 #define CONTIKI_CONF_H_
 
@@ -40,7 +37,7 @@ typedef uint32_t uip_stats_t;
  * RTIMER_CLOCK_LT to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
+#define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -49,11 +46,11 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR
-#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR 1 /**<Enable the boot loader backdoor */
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR	1 /**<Enable the boot loader backdoor */
 #endif
 
 #ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN
-#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 6 /**< Pin PA_6 (On/Sleep) activates the boot loader */
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 6 /**< Pin PA_3 (On/Sleep button) activates the boot loader */
 #endif
 
 #ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH
@@ -82,7 +79,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef WATCHDOG_CONF_ENABLE
-#define WATCHDOG_CONF_ENABLE        1 /**< Enable the watchdog timer */
+#define WATCHDOG_CONF_ENABLE	      1 /**< Enable the watchdog timer */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -197,7 +194,7 @@ typedef uint32_t rtimer_clock_t;
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
  * keep using SLIP
  */
-#if defined(UIP_FALLBACK_INTERFACE) || defined(CMD_CONF_OUTPUT)
+#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED      1
 #endif
 #endif
@@ -273,13 +270,13 @@ typedef uint32_t rtimer_clock_t;
 #define UART_IN_USE_BY_UART1(u)       (UART1_CONF_UART == (u))
 
 #define UART_IN_USE(u) ( \
-    UART_CONF_ENABLE && \
-    (UART_IN_USE_BY_SERIAL_LINE(u) || \
-     UART_IN_USE_BY_SLIP(u) || \
-     UART_IN_USE_BY_RF_SNIFFER(u) || \
-     UART_IN_USE_BY_DBG(u) || \
-     UART_IN_USE_BY_UART1(u)) \
-    )
+  UART_CONF_ENABLE && \
+  (UART_IN_USE_BY_SERIAL_LINE(u) || \
+   UART_IN_USE_BY_SLIP(u) || \
+   UART_IN_USE_BY_RF_SNIFFER(u) || \
+   UART_IN_USE_BY_DBG(u) || \
+   UART_IN_USE_BY_UART1(u)) \
+)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* board.h assumes that basic configuration is done */
@@ -291,11 +288,11 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef NETSTACK_CONF_NETWORK
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #else
 #define NETSTACK_CONF_NETWORK rime_driver
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* NETSTACK_CONF_NETWORK */
 
 #ifndef NETSTACK_CONF_MAC
@@ -311,7 +308,6 @@ typedef uint32_t rtimer_clock_t;
 #define NULLRDC_802154_AUTOACK_HW               1
 
 /* Configure ContikiMAC for when it's selected */
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #define WITH_FAST_SLEEP                         1
 
@@ -320,8 +316,12 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 #ifndef NETSTACK_CONF_FRAMER
+#if NETSTACK_CONF_WITH_IPV6
 #define NETSTACK_CONF_FRAMER  framer_802154
-#endif
+#else /* NETSTACK_CONF_WITH_IPV6 */
+#define NETSTACK_CONF_FRAMER  contikimac_framer
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+#endif /* NETSTACK_CONF_FRAMER */
 
 #define NETSTACK_CONF_RADIO   cc2538_rf_driver
 /** @} */
@@ -390,7 +390,7 @@ typedef uint32_t rtimer_clock_t;
  */
 /* RF Config */
 #ifndef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID           0x5449 /**< Default PAN ID: TI */
+#define IEEE802154_CONF_PANID           0xABCD
 #endif
 
 #ifndef CC2538_RF_CONF_CHANNEL
@@ -417,11 +417,11 @@ typedef uint32_t rtimer_clock_t;
  */
 
 /* Don't let contiki-default-conf.h decide if we are an IPv6 build */
-#ifndef UIP_CONF_IPV6
-#define UIP_CONF_IPV6                        0
+#ifndef NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_WITH_IPV6                        0
 #endif
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* Addresses, Sizes and Interfaces */
 /* 8-byte addresses here, 2 otherwise */
 #define LINKADDR_CONF_SIZE                   8
@@ -443,10 +443,6 @@ typedef uint32_t rtimer_clock_t;
 /* ND and Routing */
 #ifndef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                      1
-#endif
-
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL                    1
 #endif
 
 #define UIP_CONF_ND6_SEND_RA                 0
@@ -491,8 +487,8 @@ typedef uint32_t rtimer_clock_t;
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS    1
 #ifndef SICSLOWPAN_CONF_ADDR_CONTEXT_0
 #define SICSLOWPAN_CONF_ADDR_CONTEXT_0 { \
-    addr_contexts[0].prefix[0] = 0xaa; \
-    addr_contexts[0].prefix[1] = 0xaa; \
+  addr_contexts[0].prefix[0] = 0xaa; \
+  addr_contexts[0].prefix[1] = 0xaa; \
 }
 #endif
 
@@ -502,7 +498,7 @@ typedef uint32_t rtimer_clock_t;
 #define QUEUEBUF_CONF_NUM                    8
 #endif
 /*---------------------------------------------------------------------------*/
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 /* Network setup for non-IPv6 (rime). */
 #define UIP_CONF_IP_FORWARD                  1
 
@@ -516,7 +512,7 @@ typedef uint32_t rtimer_clock_t;
 #define QUEUEBUF_CONF_NUM                    8
 #endif
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 /** @} */
 /*---------------------------------------------------------------------------*/
 
