@@ -29,18 +29,13 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /**
- * \addtogroup platform
+ * \addtogroup openmote
  * @{
- *
- * \defgroup openmote
  *
  * \file
  * Startup code for the OpenMote-CC2538 platform, to be used when building with gcc.
  */
-
-/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "reg.h"
 #include "flash-cca.h"
@@ -78,13 +73,13 @@ void udma_err_isr(void);
 #define FLASH_CCA_BOOTLDR_CFG_ACTIVE_LEVEL 0
 #endif
 
-#if ((FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN < 0) || (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN > 7))
+#if ( (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN < 0) || (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN > 7) )
 #error Invalid boot loader backdoor pin. Please set FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN between 0 and 7 (indicating PA0 - PA7).
 #endif
 
-#define FLASH_CCA_BOOTLDR_CFG (FLASH_CCA_BOOTLDR_CFG_ENABLE \
-                               | FLASH_CCA_BOOTLDR_CFG_ACTIVE_LEVEL \
-                               | (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN << FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S))
+#define FLASH_CCA_BOOTLDR_CFG ( FLASH_CCA_BOOTLDR_CFG_ENABLE \
+  | FLASH_CCA_BOOTLDR_CFG_ACTIVE_LEVEL \
+  | (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN << FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S) )
 #else
 #define FLASH_CCA_BOOTLDR_CFG FLASH_CCA_BOOTLDR_CFG_DISABLE
 #endif
@@ -124,7 +119,7 @@ const flash_cca_lock_page_t __cca = {
 };
 /*---------------------------------------------------------------------------*/
 __attribute__ ((section(".vectors"), used))
-void(*const vectors[]) (void) =
+void(*const vectors[])(void) =
 {
   (void (*)(void))((unsigned long)stack + sizeof(stack)),   /* Stack pointer */
   reset_handler,              /* Reset handler */
@@ -325,6 +320,7 @@ reset_handler(void)
   for(pul_dst = &_data; pul_dst < &_edata;) {
     *pul_dst++ = *pul_src++;
   }
+
   /* Zero-fill the bss segment. */
   __asm("    ldr     r0, =_bss\n"
         "    ldr     r1, =_ebss\n"
@@ -342,4 +338,5 @@ reset_handler(void)
   while(1);
 }
 /*---------------------------------------------------------------------------*/
+
 /** @} */

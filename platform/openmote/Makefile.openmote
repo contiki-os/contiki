@@ -8,9 +8,10 @@ CONTIKI_TARGET_DIRS = . dev
 
 CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
-CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c button-sensor.c
 CONTIKI_TARGET_SOURCEFILES += antenna.c
 CONTIKI_TARGET_SOURCEFILES += adxl346.c max44009.c sht21.c
+CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c
+CONTIKI_TARGET_SOURCEFILES += button-sensor.c adc-sensor.c
 
 TARGET_START_SOURCEFILES += startup-gcc.c
 TARGET_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(TARGET_START_SOURCEFILES)}}
@@ -28,8 +29,9 @@ endif
 CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
 include $(CONTIKI_CPU)/Makefile.cc2538
 
-MODULES += core/net core/net/ipv6 core/net/mac core/net/ip \
-           core/net/rpl core/net/rime core/net/mac/contikimac
+MODULES += core/net core/net/mac \
+           core/net/mac/contikimac \
+           core/net/llsec
 
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
 

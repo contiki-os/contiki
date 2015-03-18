@@ -28,19 +28,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /**
- * \addtogroup platform
+ * \addtogroup cc2538-platforms
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote The OpenMote-CC2538 platform
+ *
  * The OpenMote-CC2538 is based on the CC2538, the new platform by Texas Instruments
  * based on an ARM Cortex-M3 core and a IEEE 802.15.4 radio.
+ * @{
  *
  * \file
  * Main module for the OpenMote-CC2538 platform
  */
-
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "dev/leds.h"
@@ -95,11 +95,11 @@ fade(unsigned char l)
 
     leds_on(l);
     for(i = 0; i < j; ++i) {
-      asm ("nop");
+      asm("nop");
     }
     leds_off(l);
     for(i = 0; i < 400 - j; ++i) {
-      asm ("nop");
+      asm("nop");
     }
   }
 }
@@ -207,11 +207,11 @@ main(void)
   antenna_init();
   PRINTF(" Antenna: external\n");
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
   process_start(&tcpip_process, NULL);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
   process_start(&sensors_process, NULL);
 
@@ -237,4 +237,8 @@ main(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-/** @} */
+
+/**
+ * @}
+ * @}
+ */
