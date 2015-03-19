@@ -161,6 +161,8 @@ enum {
 
   /*
    * The preamble length if using sniff mode / wake-up preambles
+   *
+   * Will propably need support for non-blocking transmit() function
    */
   RADIO_PARAM_PREAMBLE_LENGTH,
 
