@@ -11,7 +11,7 @@ CONTIKI_TARGET_SOURCEFILES += contiki-main.c
 CONTIKI_TARGET_SOURCEFILES += antenna.c
 CONTIKI_TARGET_SOURCEFILES += adxl346.c max44009.c sht21.c
 CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c
-CONTIKI_TARGET_SOURCEFILES += button-sensor.c adc-sensor.c
+CONTIKI_TARGET_SOURCEFILES += button-sensor.c
 
 TARGET_START_SOURCEFILES += startup-gcc.c
 TARGET_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(TARGET_START_SOURCEFILES)}}
