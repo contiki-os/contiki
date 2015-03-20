@@ -219,14 +219,10 @@ main(void)
   queuebuf_init();
 #if !SLIP_RADIO
   process_start(&tcpip_process, NULL);
-<<<<<<< HEAD
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-=======
 #endif
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   adc_init();
->>>>>>> 4258f05152b64d1763036c07750124a1b5d7f446
 
   process_start(&sensors_process, NULL);
 
