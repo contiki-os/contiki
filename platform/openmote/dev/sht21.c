@@ -34,7 +34,7 @@
  * \addtogroup platform
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote The OpenMote Platform
  *
  * \file
  * Driver for the SHT21 temperature and humidity sensor in OpenMote-CC2538.
@@ -44,8 +44,9 @@
  */
 
 /*---------------------------------------------------------------------------*/
-#include "i2c.h"
-#include "sht21.h"
+#include "lib/sensors.h"
+#include "dev/i2c.h"
+#include "dev/sht21.h"
 /*---------------------------------------------------------------------------*/
 #define SHT21_ADDRESS                   (0x40)
 
@@ -82,30 +83,88 @@
                                          SHT21_BATTERY_ABOVE_2V25 | \
                                          SHT21_OTP_RELOAD_DISABLE)
 /*---------------------------------------------------------------------------*/
+//const struct sensors_sensor temp_sensor, humidity_sensor;
+SENSORS_SENSOR(temp_sensor, "Temp Sensor", sht21_value, sht21_config, sht21_status);
+SENSORS_SENSOR(humidity_sensor, "Humidity Sensor", sht21_value, sht21_config, sht21_status);
+/*---------------------------------------------------------------------------*/
+/**
+ *
+ */
+int sht21_value(int type)
+{
+  switch(type) {
+    case SHT21_TEMP_VAL :
+      return (int)sht21_read_temperature();
+    case SHT21_HUMIDITY_VAL :
+      return (int)sht21_read_humidity();
+  }
+  return 0;
+}
+/**
+ *
+ */
+int sht21_config(int type, int value)
+{
+  switch(type) {
+    case SENSORS_HW_INIT :
+      sht21_init();
+      return 0;
+    case SENSORS_ACTIVE :
+      return 0;
+    case SENSORS_CONFIG :
+      switch(value) {
+        case 0 :
+          sht21_set_config(SHT21_DEFAULT_CONFIG);
+          break;
+        case 1 :
+          sht21_set_config(SHT21_USER_CONFIG);
+          break;
+        default :
+          sht21_set_config(value);
+          break;
+      }
+      break;
+  }
+  return 0;
+}
+/**
+ *
+ */
+int sht21_status(int type){
+  return (int)sht21_is_present();
+}
+/**
+ *
+ */
+void sht21_set_config(uint8_t config)
+{
+  uint8_t data[2];
+
+  /* Setup the configuration vector, the first position holds address */
+  /* and the second position holds the actual configuration */
+  data[0] = SHT21_USER_REG_WRITE;
+  data[1] = 0;
+
+  /* Read the current configuration according to the datasheet (pag. 9, fig. 18) */
+  i2c_single_send(SHT21_ADDRESS, SHT21_USER_REG_READ);
+  i2c_single_receive(SHT21_ADDRESS, &data[1]);
+
+  /* Clean all the configuration bits except those reserved */
+  data[1] &= SHT21_USER_REG_RESERVED_BITS;
+
+  /* Set the configuration bits without changing those reserved */
+  data[1] |= config;
+
+  i2c_burst_send(SHT21_ADDRESS, data, sizeof(data));
+}
+/*---------------------------------------------------------------------------*/
 /**
  *
  */
 void
 sht21_init(void)
 {
-  uint8_t config[2];
-
-  /* Setup the configuration vector, the first position holds address */
-  /* and the second position holds the actual configuration */
-  config[0] = SHT21_USER_REG_WRITE;
-  config[1] = 0;
-
-  /* Read the current configuration according to the datasheet (pag. 9, fig. 18) */
-  i2c_write_byte(SHT21_ADDRESS, SHT21_USER_REG_READ);
-  i2c_read_byte(SHT21_ADDRESS, &config[1]);
-
-  /* Clean all the configuration bits except those reserved */
-  config[1] &= SHT21_USER_REG_RESERVED_BITS;
-
-  /* Set the configuration bits without changing those reserved */
-  config[1] |= SHT21_USER_CONFIG;
-
-  i2c_write_byte(SHT21_ADDRESS, config, sizeof(config));
+  sht21_set_config(SHT21_USER_CONFIG);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -115,7 +174,7 @@ void
 sht21_reset(void)
 {
   /* Send a soft-reset command according to the datasheet (pag. 9, fig. 17) */
-  i2c_write_byte(SHT21_ADDRESS, SHT21_RESET_CMD);
+  i2c_single_send(SHT21_ADDRESS, SHT21_RESET_CMD);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -127,8 +186,8 @@ sht21_is_present(void)
   uint8_t is_present;
 
   /* Read the current configuration according to the datasheet (pag. 9, fig. 18) */
-  i2c_write_byte(SHT21_ADDRESS, SHT21_USER_REG_READ);
-  i2c_read_byte(SHT21_ADDRESS, &is_present);
+  i2c_single_send(SHT21_ADDRESS, SHT21_USER_REG_READ);
+  i2c_single_receive(SHT21_ADDRESS, &is_present);
 
   /* Clear the reserved bits according to the datasheet (pag. 9, tab. 8) */
   is_present &= ~SHT21_USER_REG_RESERVED_BITS;
@@ -146,8 +205,8 @@ sht21_read_temperature(void)
   uint16_t temperature;
 
   /* Read the current temperature according to the datasheet (pag. 8, fig. 15) */
-  i2c_write_byte(SHT21_ADDRESS, SHT21_TEMPERATURE_HM_CMD);
-  i2c_read_bytes(SHT21_ADDRESS, sht21_temperature, sizeof(sht21_temperature));
+  i2c_single_send(SHT21_ADDRESS, SHT21_TEMPERATURE_HM_CMD);
+  i2c_burst_receive(SHT21_ADDRESS, sht21_temperature, sizeof(sht21_temperature));
 
   temperature = (sht21_temperature[0] << 8) | (sht21_temperature[1] & SHT21_STATUS_MASK);
 
@@ -163,7 +222,7 @@ sht21_convert_temperature(uint16_t temperature)
   float result;
 
   result = -46.85;
-  result += 175.72 * temperature / 65536;
+  result += 175.72*(float)temperature/65536.0;
 
   return result;
 }
@@ -178,8 +237,8 @@ sht21_read_humidity(void)
   uint16_t humidity;
 
   /* Read the current humidity according to the datasheet (pag. 8, fig. 15) */
-  i2c_write_byte(SHT21_ADDRESS, SHT21_HUMIDITY_HM_CMD);
-  i2c_read_bytes(SHT21_ADDRESS, sht21_humidity, sizeof(sht21_humidity));
+  i2c_single_send(SHT21_ADDRESS, SHT21_HUMIDITY_HM_CMD);
+  i2c_burst_receive(SHT21_ADDRESS, sht21_humidity, sizeof(sht21_humidity));
 
   humidity = (sht21_humidity[0] << 8) | (sht21_humidity[1] & SHT21_STATUS_MASK);
 
@@ -195,7 +254,7 @@ sht21_convert_humidity(uint16_t humidity)
   float result;
 
   result = -6.0;
-  result += 125.0 * humidity / 65536;
+  result += 125.0*(float)humidity/65536.0;
 
   return result;
 }

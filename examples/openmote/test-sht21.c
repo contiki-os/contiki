@@ -64,13 +64,19 @@ PROCESS_THREAD(test_sht21_process, ev, data)
   PROCESS_BEGIN();
   sht21_init();
 
-  for (etimer_set(&et, CLOCK_SECOND);; etimer_reset(&et)) {
-    PROCESS_YIELD();
-    temperature = sht21_temp();
-    printf("Temperature:   %u degrees Celsius\n", temperature);
-    humidity = sht11_humidity();
-    printf("Rel. humidity: %u%%\n", humidity));
+  etimer_set(&et, 5 * CLOCK_SECOND);
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    temperature = sht21_read_temperature();
+    printf("Temperature: %d degrees Celsius\n", (int)sht21_convert_temperature(temperature));
+    humidity = sht21_read_humidity();
+    printf("Rel. humidity: %d %%\n", (int)sht21_convert_humidity(humidity));
+    etimer_reset(&et);
   }
 
   PROCESS_END();
 }
+/**
+ * @}
+ * @}
+ */

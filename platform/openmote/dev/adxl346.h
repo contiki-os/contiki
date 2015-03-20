@@ -34,7 +34,7 @@
  * \addtogroup platform
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote The OpenMote Platform
  *
  * \file
  * Header for the ADXL346 acceleration sensor in OpenMote-CC2538.
@@ -45,13 +45,24 @@
 
 #ifndef __ADXL346_H__
 #define __ADXL346_H__
+
+#include "lib/sensors.h"
+
+#define SENSORS_CONFIG      0xFF
+#define ADXL346_X_VAL       0
+#define ADXL346_Y_VAL       1
+#define ADXL346_Z_VAL       2
+
 /*---------------------------------------------------------------------------*/
-void adx346_init(void);
-void adx346_reset(void);
-uint8_t adx346_is_present(void);
-uint16_t adx346_read_x(void);
-uint16_t adx346_read_y(void);
-uint16_t adx346_read_z(void);
+void adxl346_init(void);
+void adxl346_reset(void);
+uint8_t adxl346_is_present(void);
+uint16_t adxl346_read_x(void);
+uint16_t adxl346_read_y(void);
+uint16_t adxl346_read_z(void);
 /*---------------------------------------------------------------------------*/
+void adxl346_set_config(int reg, int config);
+/*---------------------------------------------------------------------------*/
+extern const struct sensors_sensor acceleration_sensor;
 #endif /* ifndef __ADXL346_H__ */
 /** @} */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2014, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -27,6 +26,7 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 /**
@@ -36,34 +36,64 @@
  * \defgroup openmote The OpenMote Platform
  *
  * \file
- * Driver for the OpenMote-CC2538 LEDs
- *
+ * Driver for the antenna selection on the OpenMote-CC2538 platform.
  */
 
 /*---------------------------------------------------------------------------*/
-#include "contiki.h"
-#include "reg.h"
-#include "dev/leds.h"
+#include "contiki-conf.h"
 #include "dev/gpio.h"
+#include "antenna.h"
 /*---------------------------------------------------------------------------*/
-#define LEDS_GPIO_PIN_MASK   LEDS_ALL
+#define BSP_RADIO_BASE              (GPIO_D_BASE)
+#define BSP_RADIO_INT               (1 << 5)
+#define BSP_RADIO_EXT               (1 << 4)
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
+static void
+gpio_set(int port, int bit)
 {
-  GPIO_SET_OUTPUT(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
+  REG((port | GPIO_DATA) + (bit << 2)) = bit;
 }
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
+static void
+gpio_reset(int port, int bit)
 {
-  return GPIO_READ_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
+  REG((port | GPIO_DATA) + (bit << 2)) = 0;
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * Configure the antenna using the RF switch
+ * INT is the internal antenna (chip) configured through ANT1_SEL (V1)
+ * EXT is the external antenna (connector) configured through ANT2_SEL (V2)
+ */
 void
-leds_arch_set(unsigned char leds)
+antenna_init(void)
 {
-  GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, leds);
+  /* Configure the ANT1 and ANT2 GPIO as output */
+  GPIO_SET_OUTPUT(BSP_RADIO_BASE, BSP_RADIO_INT);
+  GPIO_SET_OUTPUT(BSP_RADIO_BASE, BSP_RADIO_EXT);
+
+  /* Select external antenna by default. */
+  antenna_external();
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Select the external (connector) antenna
+ */
+void
+antenna_external(void)
+{
+  gpio_reset(BSP_RADIO_BASE, BSP_RADIO_INT);
+  gpio_set(BSP_RADIO_BASE, BSP_RADIO_EXT);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Select the internal (chip) antenna
+ */
+void
+antenna_internal(void)
+{
+  gpio_reset(BSP_RADIO_BASE, BSP_RADIO_EXT);
+  gpio_set(BSP_RADIO_BASE, BSP_RADIO_INT);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

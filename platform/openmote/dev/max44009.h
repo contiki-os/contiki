@@ -34,7 +34,7 @@
  * \addtogroup platform
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote The OpenMote Platform
  *
  * \file
  * Header for the MAX44009 light sensor in OpenMote-CC2538.
@@ -45,12 +45,23 @@
 
 #ifndef __MAX44009_H__
 #define __MAX44009_H__
+
+#include "lib/sensors.h"
+
+#define SENSORS_CONFIG      0xFF
+#define MAX44009_LIGHT_VAL    0
+
+extern const struct sensors_sensor light_sensor;
 /*---------------------------------------------------------------------------*/
-void init(void);
-void reset(void);
-uint8_t is_present(void);
-uint16_t read_light(void);
-float convert_light(uint16_t light);
+void max44009_init(void);
+void max44009_reset(void);
+uint8_t max44009_is_present(void);
+uint16_t max44009_read_light(void);
+float max44009_convert_light(uint16_t light);
+/*---------------------------------------------------------------------------*/
+int max44009_value(int type);
+int max44009_config(int type, int value);
+int max44009_status(int type);
 /*---------------------------------------------------------------------------*/
 #endif /* ifndef __MAX44009_H__ */
 /** @} */

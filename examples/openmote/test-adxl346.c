@@ -53,22 +53,29 @@
 #include <stdio.h>
 
 PROCESS(test_adxl346_process, "ADXL346 test");
-AUTOSTART_PROCESSES(&test_sht21_process);
+AUTOSTART_PROCESSES(&test_adxl346_process);
 
 PROCESS_THREAD(test_adxl346_process, ev, data)
 {
   static struct etimer et;
-  static unsigned temperature;
-  static unsigned acceleration;
+  static unsigned acceleration[3];
 
   PROCESS_BEGIN();
   adxl346_init();
 
-  for (etimer_set(&et, CLOCK_SECOND);; etimer_reset(&et)) {
-    PROCESS_YIELD();
-    acceleration = adxl346_temp();
-    printf("Temperature:   %u degrees Celsius\n", temperature);
+  etimer_set(&et, 5 * CLOCK_SECOND);
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    acceleration[0] = adxl346_read_x();
+    acceleration[1] = adxl346_read_y();
+    acceleration[2] = adxl346_read_z();
+    printf("Acceleration X, Y, Z:   %u, %u, %u \n", acceleration[0], acceleration[1], acceleration[2]);
+    etimer_reset(&et);
   }
 
   PROCESS_END();
 }
+/**
+ * @}
+ * @}
+ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2014, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -27,27 +26,25 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 /**
  * \addtogroup platform
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote The OpenMote Platform
  *
  * \file
- * Implementation of a generic module controlling OpenMote-CC2538 sensors.
+ * Header for the antenna selection on the OpenMote-CC2538 platform.
  */
 
+#ifndef ANTENNA_H_
+#define ANTENNA_H_
 /*---------------------------------------------------------------------------*/
-#include "contiki.h"
-#include "dev/button-sensor.h"
-
-#include <string.h>
+void antenna_init(void);
+void antenna_internal(void);
+void antenna_external(void);
 /*---------------------------------------------------------------------------*/
-/**
-   *\brief Exports a global symbol to be used by the sensor API
- */
-SENSORS(&button_user_sensor);
-/*---------------------------------------------------------------------------*/
+#endif /* ANTENNA_H_ */
 /** @} */
