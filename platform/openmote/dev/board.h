@@ -33,7 +33,7 @@
  * \addtogroup platform
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote The OpenMote Platform
  *
  * \file
  * Header file with definitions related to the I/O connections on the
@@ -141,6 +141,22 @@
 #define SPI_MISO_PIN             4
 #define SPI_SEL_PORT             GPIO_A_NUM
 #define SPI_SEL_PIN              3
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name I2C configuration
+ *
+ * These values configure which CC2538 pins to use for the I2C lines.
+ * @{
+ */
+#define I2C_INT0_PORT             GPIO_B_NUM		//DI8
+#define I2C_INT0_PIN              2
+#define I2C_SCL_PORT            	GPIO_B_NUM		//PWM1
+#define I2C_SCL_PIN               3
+#define I2C_SDA_PORT              GPIO_B_NUM		//PWM0
+#define I2C_SDA_PIN               4
+#define I2C_INT1_PORT             GPIO_B_NUM		//DO8
+#define I2C_INT1_PIN              5
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

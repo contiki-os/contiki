@@ -48,11 +48,11 @@
  */
 
 #include "contiki.h"
-#include "dev/max40009.h"
+#include "dev/max44009.h"
 
 #include <stdio.h>
 
-PROCESS(test_max4009_process, "MAX44009 test");
+PROCESS(test_max44009_process, "MAX44009 test");
 AUTOSTART_PROCESSES(&test_max44009_process);
 
 PROCESS_THREAD(test_max44009_process, ev, data)
@@ -63,11 +63,16 @@ PROCESS_THREAD(test_max44009_process, ev, data)
   PROCESS_BEGIN();
   max44009_init();
 
-  for (etimer_set(&et, CLOCK_SECOND);; etimer_reset(&et)) {
-    PROCESS_YIELD();
-    light = max44009_temp();
-    printf("Light:   %u degrees Celsius\n", light);
+  etimer_set(&et, 5 * CLOCK_SECOND);
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    light = max44009_read_light();
+    printf("Light:   %f lux\n", max44009_convert_light(light));
+    etimer_reset(&et);
   }
-
   PROCESS_END();
 }
+/**
+ * @}
+ * @}
+ */

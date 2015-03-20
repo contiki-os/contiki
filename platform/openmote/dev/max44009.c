@@ -34,7 +34,7 @@
  * \addtogroup platform
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote The OpenMote Platform
  *
  * \file
  * Driver for the MAX44009 light sensor in OpenMote-CC2538.
@@ -44,8 +44,9 @@
  */
 
 /*---------------------------------------------------------------------------*/
-#include "i2c.h"
-#include "max44009.h"
+#include "lib/sensors.h"
+#include "dev/i2c.h"
+#include "dev/max44009.h"
 /*---------------------------------------------------------------------------*/
 /* ADDRESS AND NOT_FOUND VALUE */
 #define MAX44009_ADDRESS                    (0x4A)
@@ -89,6 +90,51 @@
                                              MAX44009_CONFIG_CDR_NORMAL | \
                                              MAX44009_CONFIG_INTEGRATION_100ms)
 /*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(light_sensor, "Light Sensor", max44009_value, max44009_config, max44009_status);
+/**
+ *
+ */
+int max44009_value(int type)
+{
+  switch(type) {
+    case MAX44009_LIGHT_VAL :
+      return (int)max44009_read_light();
+  }
+  return 0;
+}
+/**
+ *
+ */
+int max44009_config(int type, int value)
+{
+  switch(type) {
+    case SENSORS_HW_INIT :
+      max44009_init();
+      return 0;
+    case SENSORS_ACTIVE :
+      return 0;
+    case SENSORS_CONFIG :
+      //max44009_set_config(value[0], value[1]);
+      break;
+  }
+  return 0;
+}
+/**
+ *
+ */
+int max44009_status(int type){
+  return (int)max44009_is_present();
+}
+/**
+ *
+ */
+void max44009_set_config(uint8_t reg, uint8_t config){
+  uint8_t data[2];
+  data[0] = reg;
+  data[1] = config;
+  i2c_burst_send(MAX44009_ADDRESS, data, sizeof(data));
+}
+/*---------------------------------------------------------------------------*/
 /**
  *
  */
@@ -109,9 +155,9 @@ max44009_init(void)
   max44009_value[4] = (0xFF);
 
   for(i = 0; i < sizeof(max44009_address); i++) {
-    max44009_data[0] = max44009_value[i];
-    max44009_data[1] = max44009_data[i];
-    i2c_write_bytes(MAX44009_ADDRESS, max44009_data, 2);
+    max44009_data[0] = max44009_address[i];
+    max44009_data[1] = max44009_value[i];
+    i2c_burst_send(MAX44009_ADDRESS, max44009_data, 2);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -129,9 +175,9 @@ max44009_reset(void)
   uint8_t i;
 
   for(i = 0; i < sizeof(max44009_address); i++) {
-    max44009_data[0] = max44009_value[i];
-    max44009_data[1] = max44009_data[i];
-    i2c_write_bytes(MAX44009_ADDRESS, max44009_data, 2);
+    max44009_data[0] = max44009_address[i];
+    max44009_data[1] = max44009_value[i];
+    i2c_burst_send(MAX44009_ADDRESS, max44009_data, 2);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -143,8 +189,8 @@ max44009_is_present(void)
 {
   uint8_t is_present;
 
-  i2c_write_byte(MAX44009_ADDRESS, MAX44009_CONFIG_ADDR);
-  i2c_read_byte(MAX44009_ADDRESS, &is_present);
+  i2c_single_send(MAX44009_ADDRESS, MAX44009_CONFIG_ADDR);
+  i2c_single_receive(MAX44009_ADDRESS, &is_present);
 
   return is_present != MAX44009_NOT_FOUND;
 }
@@ -158,11 +204,11 @@ max44009_read_light(void)
   uint8_t exponent, mantissa;
   uint8_t max44009_data[2];
   uint16_t result;
-
-  i2c_write_byte(MAX44009_ADDRESS, MAX44009_LUX_HIGH_ADDR);
-  i2c_read_byte(MAX44009_ADDRESS, &max44009_data[0]);
-  i2c_write_byte(MAX44009_ADDRESS, MAX44009_LUX_LOW_ADDR);
-  i2c_read_byte(MAX44009_ADDRESS, &max44009_data[1]);
+  
+  i2c_single_send(MAX44009_ADDRESS, MAX44009_LUX_HIGH_ADDR);
+  i2c_single_receive(MAX44009_ADDRESS, &max44009_data[0]);
+  i2c_single_send(MAX44009_ADDRESS, MAX44009_LUX_LOW_ADDR);
+  i2c_single_receive(MAX44009_ADDRESS, &max44009_data[1]);
 
   exponent = ((max44009_data[0] >> 4) & 0x0E);
   mantissa = ((max44009_data[0] & 0x0F) << 4) | (max44009_data[1] & 0x0F);
@@ -181,12 +227,14 @@ max44009_convert_light(uint16_t lux)
   uint8_t exponent, mantissa;
   float result = 0.045;
 
-  exponent = (lux >> 8) & 0xFF;
-  exponent = (exponent == 0x0F ? exponent & 0x0E : exponent);
+  exponent = (lux >> 8) & 0x0F;
+  if(exponent == 15){
+    return -1;
+  }
   
-  mantissa = (lux >> 0) & 0xFF;
+  mantissa = lux & 0xFF;
 
-  result *= 2 ^ exponent * mantissa;
+  result *= (1 << exponent) * mantissa;
 
   return result;
 }

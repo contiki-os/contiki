@@ -28,42 +28,86 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/**
- * \addtogroup platform
+/** \addtogroup cc2538-examples
  * @{
  *
- * \defgroup openmote The OpenMote Platform
+ * \defgroup cc2538-echo-server cc2538dk UDP Echo Server Project
+ *
+ *  Tests that a node can correctly join an RPL network and also tests UDP
+ *  functionality
+ * @{
  *
  * \file
- * Driver for the OpenMote-CC2538 LEDs
- *
+ *  An example of a simple UDP echo server for the cc2538dk platform
  */
-
-/*---------------------------------------------------------------------------*/
 #include "contiki.h"
-#include "reg.h"
+#include "contiki-lib.h"
+#include "contiki-net.h"
+
+#include <string.h>
+
+#define DEBUG DEBUG_PRINT
+#include "net/ip/uip-debug.h"
+#include "dev/watchdog.h"
 #include "dev/leds.h"
-#include "dev/gpio.h"
+#include "net/rpl/rpl.h"
 /*---------------------------------------------------------------------------*/
-#define LEDS_GPIO_PIN_MASK   LEDS_ALL
+#define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define UIP_UDP_BUF  ((struct uip_udp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
+
+#define MAX_PAYLOAD_LEN 120
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
+static struct uip_udp_conn *server_conn;
+static char buf[MAX_PAYLOAD_LEN];
+static uint16_t len;
+/*---------------------------------------------------------------------------*/
+PROCESS(udp_echo_server_process, "UDP echo server process");
+AUTOSTART_PROCESSES(&udp_echo_server_process);
+/*---------------------------------------------------------------------------*/
+static void
+tcpip_handler(void)
 {
-  GPIO_SET_OUTPUT(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
+  memset(buf, 0, MAX_PAYLOAD_LEN);
+  if(uip_newdata()) {
+    leds_on(LEDS_RED);
+    len = uip_datalen();
+    memcpy(buf, uip_appdata, len);
+    PRINTF("%u bytes from [", len);
+    PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+    PRINTF("]:%u\n", UIP_HTONS(UIP_UDP_BUF->srcport));
+    uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
+    server_conn->rport = UIP_UDP_BUF->srcport;
+
+    uip_udp_packet_send(server_conn, buf, len);
+    uip_create_unspecified(&server_conn->ripaddr);
+    server_conn->rport = 0;
+  }
+  leds_off(LEDS_RED);
+  return;
 }
 /*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
+PROCESS_THREAD(udp_echo_server_process, ev, data)
 {
-  return GPIO_READ_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
+
+  PROCESS_BEGIN();
+  PRINTF("Starting UDP echo server\n");
+
+  server_conn = udp_new(NULL, UIP_HTONS(0), NULL);
+  udp_bind(server_conn, UIP_HTONS(3000));
+
+  PRINTF("Listen port: 3000, TTL=%u\n", server_conn->ttl);
+
+  while(1) {
+    PROCESS_YIELD();
+    if(ev == tcpip_event) {
+      tcpip_handler();
+    }
+  }
+
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
-{
-  GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, leds);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */
+/**
+ * @}
+ * @}
+ */

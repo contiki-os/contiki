@@ -33,7 +33,7 @@
  * \addtogroup platform
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote The OpenMote Platform
  *
  * \file
  * Header for the antenna selection on the OpenMote-CC2538 platform.

@@ -28,42 +28,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /**
- * \addtogroup platform
+ * \addtogroup openmote-examples
  * @{
  *
- * \defgroup openmote The OpenMote Platform
- *
  * \file
- * Driver for the OpenMote-CC2538 LEDs
- *
+ * Project specific configuration defines for the basic cc2538dk examples
  */
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
-/*---------------------------------------------------------------------------*/
-#include "contiki.h"
-#include "reg.h"
-#include "dev/leds.h"
-#include "dev/gpio.h"
-/*---------------------------------------------------------------------------*/
-#define LEDS_GPIO_PIN_MASK   LEDS_ALL
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
-{
-  GPIO_SET_OUTPUT(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
-}
-/*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  return GPIO_READ_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
-}
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
-{
-  GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, leds);
-}
-/*---------------------------------------------------------------------------*/
+#define NETSTACK_CONF_RDC     drowsie_driver
+
+#endif /* PROJECT_CONF_H_ */
+
 /** @} */

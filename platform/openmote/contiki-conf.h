@@ -2,6 +2,11 @@
  * \addtogroup openmote
  * @{
  *
+<<<<<<< HEAD
+=======
+ * \defgroup openmote The OpenMote Platform
+ *
+>>>>>>> 4258f05152b64d1763036c07750124a1b5d7f446
  * \file
  *  Configuration for the OpenMote-CC2538 platform.
  */
@@ -445,7 +450,12 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ROUTER                      1
 #endif
 
+<<<<<<< HEAD
+=======
+#ifndef UIP_CONF_ND6_SEND_RA
+>>>>>>> 4258f05152b64d1763036c07750124a1b5d7f446
 #define UIP_CONF_ND6_SEND_RA                 0
+#endif
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
 #define RPL_CONF_MAX_DAG_ENTRIES             1

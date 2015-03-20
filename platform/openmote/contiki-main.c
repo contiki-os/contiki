@@ -43,6 +43,7 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
+#include "dev/adc.h"
 #include "dev/leds.h"
 #include "dev/sys-ctrl.h"
 #include "dev/scb.h"
@@ -67,6 +68,7 @@
 #include "ieee-addr.h"
 #include "lpm.h"
 
+#include "dev/i2c.h"
 #include "antenna.h"
 
 #include <stdint.h>
@@ -148,6 +150,7 @@ main(void)
   lpm_init();
   rtimer_init();
   gpio_init();
+  i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN, I2C_SCL_FAST_BUS_SPEED);
 
   leds_init();
   fade(LEDS_YELLOW);
@@ -192,6 +195,10 @@ main(void)
   PRINTF("%s\n", NETSTACK_MAC.name);
   PRINTF(" RDC: ");
   PRINTF("%s\n", NETSTACK_RDC.name);
+  PRINTF(" Channel: ");
+  PRINTF("%d\n", CC2538_RF_CHANNEL);
+  PRINTF(" PAN-ID: ");
+  PRINTF("%x\n", IEEE802154_PANID);
 
   /* Initialise the H/W RNG engine. */
   random_init(0);
@@ -210,8 +217,16 @@ main(void)
 #if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
+#if !SLIP_RADIO
   process_start(&tcpip_process, NULL);
+<<<<<<< HEAD
 #endif /* NETSTACK_CONF_WITH_IPV6 */
+=======
+#endif
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
+  adc_init();
+>>>>>>> 4258f05152b64d1763036c07750124a1b5d7f446
 
   process_start(&sensors_process, NULL);
 

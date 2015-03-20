@@ -36,34 +36,26 @@
  * \defgroup openmote The OpenMote Platform
  *
  * \file
- * Driver for the OpenMote-CC2538 LEDs
- *
+ * Implementation of a generic module controlling OpenMote-CC2538 sensors.
+ * 
+ * \author 
+ * Johan Bregell <johan_bregell@hotmail.com>
  */
+#ifndef OPENMOTE_SENSORS_H_
+#define OPENMOTE_SENSORS_H_
+/*---------------------------------------------------------------------------*/
+#include "lib/sensors.h"
+#include "dev/button-sensor.h"
+#include "dev/cc2538-sensors.h"
+#include "dev/sht21.h"
+#include "dev/max44009.h"
+#include "dev/adxl346.h"
 
 /*---------------------------------------------------------------------------*/
-#include "contiki.h"
-#include "reg.h"
-#include "dev/leds.h"
-#include "dev/gpio.h"
-/*---------------------------------------------------------------------------*/
-#define LEDS_GPIO_PIN_MASK   LEDS_ALL
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
-{
-  GPIO_SET_OUTPUT(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
-}
-/*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  return GPIO_READ_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
-}
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
-{
-  GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, leds);
-}
+/**
+   *\brief Exports a global symbol to be used by the sensor API
+ */
+SENSORS(&button_user_sensor, &cc2538_temp_sensor, &vdd3_sensor, &temp_sensor, &humidity_sensor, &light_sensor, &acceleration_sensor);
 /*---------------------------------------------------------------------------*/
 /** @} */
+#endif
