@@ -1,4 +1,7 @@
 /**
+ * \addtogroup cc2538
+ * @{
+ * 
  * \addtogroup cc2538-i2c cc2538 I2C Control
  * @{
  *
@@ -10,7 +13,7 @@
  * Mehdi Migault
  */
 
-#include "i2c.h"
+#include "dev/i2c.h"
 
 /*---------------------------------------------------------------------------*/
 void
@@ -68,7 +71,7 @@ i2c_master_disable(void)
   REG(I2CM_CR) &= ~0x10;  /* Reset MFE bit */
 }
 /*---------------------------------------------------------------------------*/
-static uint32_t
+uint32_t
 get_sys_clock(void)
 {
   return SYS_CTRL_32MHZ / ((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYS_DIV) + 1); /* Get the clock status diviser */
@@ -158,4 +161,57 @@ i2c_single_receive(uint8_t slave_addr, uint8_t *data)
   }
 }
 /*---------------------------------------------------------------------------*/
-/** @} */
+uint8_t
+i2c_burst_send(uint8_t slave_addr, uint8_t *data, uint8_t size)
+{
+	int i = 0;
+	uint8_t temp = 0;
+	i2c_master_set_slave_address(slave_addr, I2C_SEND);
+	for(i = 0; i < size; i++){
+		i2c_master_data_put(data[i]);
+		if(i == 0){
+			i2c_master_command(I2C_MASTER_CMD_BURST_SEND_START);
+		} else if(i == size-1) {
+			i2c_master_command(I2C_MASTER_CMD_BURST_SEND_FINISH);
+		} else {
+			i2c_master_command(I2C_MASTER_CMD_BURST_SEND_CONT);
+		}
+		while(i2c_master_busy()){
+		}
+		if((temp = i2c_master_error())) {
+			i2c_master_command(I2C_MASTER_CMD_BURST_SEND_ERROR_STOP);
+			return temp;
+		}
+	}
+	return I2C_MASTER_ERR_NONE;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+i2c_burst_receive(uint8_t slave_addr, uint8_t *data, uint8_t size)
+{
+	int i = 0;
+	uint8_t temp = 0;
+	i2c_master_set_slave_address(slave_addr, I2C_RECEIVE);
+	for(i = 0; i < size; i++){
+		if(i == 0){
+			i2c_master_command(I2C_MASTER_CMD_BURST_RECEIVE_START);
+		} else if(i == size-1) {
+			i2c_master_command(I2C_MASTER_CMD_BURST_RECEIVE_FINISH);
+		} else {
+			i2c_master_command(I2C_MASTER_CMD_BURST_RECEIVE_CONT);
+		}
+		while(i2c_master_busy()){
+		}
+		if((temp = i2c_master_error())) {
+			i2c_master_command(I2C_MASTER_CMD_BURST_RECEIVE_ERROR_STOP);
+			return temp;
+		}
+		data[i] = i2c_master_data_get();
+	}
+	return I2C_MASTER_ERR_NONE;
+}
+/*---------------------------------------------------------------------------*/
+/** 
+ * @} 
+ * @}
+ **/

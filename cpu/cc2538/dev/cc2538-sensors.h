@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2015, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2015, University of Bristol - http://www.bristol.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,30 +29,43 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc2538-smartrf
+ * \addtogroup cc2538
  * @{
  *
- * \defgroup cc2538-smartrf-sensors SmartRF06EB Sensors
+ * \defgroup cc2538-sensors CC2538 Built-In Sensors
  *
- * Generic module controlling sensors on the SmartRF06EB
+ * Module controlling sensors on the CC2538 SoC (Tmp and VDD3)
  * @{
  *
  * \file
- * Implementation of a generic module controlling SmartRF06EB sensors
+ * Generic header usable by all CC2538 sensor drivers
  */
-#include "contiki.h"
-#include "dev/button-sensor.h"
-#include "dev/als-sensor.h"
-#include "dev/cc2538-sensors.h"
+/*---------------------------------------------------------------------------*/
+#ifndef CC2538_SENSORS_H_
+#define CC2538_SENSORS_H_
+/*---------------------------------------------------------------------------*/
+#include "lib/sensors.h"
+#include "dev/cc2538-temp-sensor.h"
+#include "dev/vdd3-sensor.h"
+/*---------------------------------------------------------------------------*/
+/**
+ * \name CC2538 sensor constants
+ *
+ * These constants are used by various sensors on the CC2538. They can be used
+ * to differentiate between raw and converted readings, to configure ADC
+ * decimation rate (where applicable).
+ * @{
+ */
+#define CC2538_SENSORS_VALUE_TYPE_RAW         0 /**< Request the raw reading */
+#define CC2538_SENSORS_VALUE_TYPE_CONVERTED   1 /**< Request the converted reading */
 
-#include <string.h>
-
-/** \brief Exports a global symbol to be used by the sensor API */
-SENSORS(&button_select_sensor, &button_left_sensor, &button_right_sensor,
-        &button_up_sensor, &button_down_sensor, &als_sensor,
-        &cc2538_temp_sensor, &vdd3_sensor);
-
+#define CC2538_SENSORS_ERROR         0x80000000 /**< Generic Error */
+/** @} */
+/*---------------------------------------------------------------------------*/
+#endif /* CC2538_SENSORS_H_ */
+/*---------------------------------------------------------------------------*/
 /**
  * @}
  * @}

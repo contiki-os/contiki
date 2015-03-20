@@ -30,11 +30,11 @@
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538dk
+ * \addtogroup cc2538
  * @{
  *
  * \file
- * Startup code for the cc2538dk platform, to be used when building with gcc
+ * Startup code for the cc2538 chip, to be used when building with gcc
  */
 #include "contiki.h"
 #include "reg.h"
@@ -62,6 +62,7 @@ void cc2538_rf_rx_tx_isr(void);
 void cc2538_rf_err_isr(void);
 void udma_isr(void);
 void udma_err_isr(void);
+void aes_isr(void);
 
 /* Boot Loader Backdoor selection */
 #if FLASH_CCA_CONF_BOOTLDR_BACKDOOR
@@ -73,13 +74,13 @@ void udma_err_isr(void);
 #define FLASH_CCA_BOOTLDR_CFG_ACTIVE_LEVEL 0
 #endif
 
-#if ( (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN < 0) || (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN > 7) )
+#if ((FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN < 0) || (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN > 7))
 #error Invalid boot loader backdoor pin. Please set FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN between 0 and 7 (indicating PA0 - PA7).
 #endif
 
-#define FLASH_CCA_BOOTLDR_CFG ( FLASH_CCA_BOOTLDR_CFG_ENABLE \
+#define FLASH_CCA_BOOTLDR_CFG (FLASH_CCA_BOOTLDR_CFG_ENABLE \
   | FLASH_CCA_BOOTLDR_CFG_ACTIVE_LEVEL \
-  | (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN << FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S) )
+  | (FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN << FLASH_CCA_BOOTLDR_CFG_PORT_A_PIN_S))
 #else
 #define FLASH_CCA_BOOTLDR_CFG FLASH_CCA_BOOTLDR_CFG_DISABLE
 #endif
@@ -280,7 +281,7 @@ void(*const vectors[])(void) =
   usb_isr,                    /* 156 USB */
   cc2538_rf_rx_tx_isr,        /* 157 RFCORE RX/TX */
   cc2538_rf_err_isr,          /* 158 RFCORE Error */
-  default_handler,            /* 159 AES */
+  aes_isr,                    /* 159 AES */
   default_handler,            /* 160 PKA */
   rtimer_isr,                 /* 161 SM Timer */
   default_handler,            /* 162 MACTimer */

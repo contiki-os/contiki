@@ -131,7 +131,17 @@
 #define SOC_ADC_CMPCTL_EN       0x00000002 /**< Comparator enable */
 #define SOC_ADC_CMPCTL_OUTPUT   0x00000001 /**< Comparator output */
 /** @} */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * \name Shift values for data retrieval depending on decimation rate
+ * @{
+ */
+#define SOC_ADC_7_BIT_RSHIFT        9 /**< 64 decimation rate - 7 bits ENOB */
+#define SOC_ADC_9_BIT_RSHIFT        7 /**< 128 decimation rate - 9 bits ENOB */
+#define SOC_ADC_10_BIT_RSHIFT       6 /**< 256 decimation rate - 10 bits ENOB */
+#define SOC_ADC_12_BIT_RSHIFT       4 /**< 512 decimation rate - 12 bits ENOB */
+/** @} */
+/*---------------------------------------------------------------------------*/
 #endif /* SOC_ADC_H_ */
 
 /**
