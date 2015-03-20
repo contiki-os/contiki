@@ -1,6 +1,6 @@
 CONTIKI_CPU_DIRS = .
 
-CONTIKI_SOURCEFILES += mtarch.c elfloader-x86.c
+CONTIKI_SOURCEFILES += mtarch.c
 
 ### Compiler definitions
 CC       = gcc
