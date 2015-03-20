@@ -47,7 +47,7 @@ CONTIKI_TARGET_DIRS = . dev lib sys cfs net
 # (COOJA_SOURCEDIRS contains additional sources dirs set from simulator)
 vpath %.c $(COOJA_SOURCEDIRS)
 
-COOJA_BASE	= simEnvChange.c cooja_mt.c cooja_mtarch.c rtimer-arch.c slip.c watchdog.c rimestats.c
+COOJA_BASE	= simEnvChange.c cooja_mt.c cooja_mtarch.c rtimer-arch.c slip.c watchdog.c rimestats.c elfloader-x86.c
 
 COOJA_INTFS	= beep.c button-sensor.c ip.c leds-arch.c moteid.c \
 		    pir-sensor.c rs232.c vib-sensor.c \
