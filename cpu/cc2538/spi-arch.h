@@ -34,43 +34,132 @@
  * Header file for the cc2538 SPI driver, including macros for the
  * implementation of the low-level SPI primitives such as waiting for the TX
  * FIFO to be ready, inserting into the TX FIFO, etc.
+ *
+ * It supports the usage of SSI_NUM_INSTANCES instances by providing new 
+ * functions calls like
+ *
+ * - spix_init(uint8_t instance)
+ * - spix_enable(uint8_t instance)
+ * - spix_disable(uint8_t instance)
+ * - spix_set_mode(unit8_t instance, ...)
+ *
+ * and new macros like
+ * 
+ * - SPIX_WAITFORTxREADY(x)
+ * - SPIX_TXBUF(x)
+ * - SPIX_RXBUF(x)
+ * - SPIX_WAITFOREOTx(x)
+ * - SPIX_WAITFOREORx(x)
+ * - SPIX_FLUSH(x)
+ *
+ * The old functions "spi_foo()" and macros "SPI_FOO()" are still supported, 
+ * by mapping them to new ones. When using these deprecated functions, the SSI
+ * module to use can be selected by means of the macro SPI_DEFAULT_INSTANCE.
+ *
+ * This SPI driver depends on the following defines:
+ *
+ * For the SSI0 module:
+ *
+ * - SPI0_CKL_PORT
+ * - SPI0_CLK_PIN
+ * - SPI0_TX_PORT
+ * - SPI0_TX_PIN
+ * - SPI0_RX_PORT
+ * - SPI0_RX_PIN
+ *
+ * For the SSI1 module:
+ *
+ * - SPI1_CKL_PORT
+ * - SPI1_CLK_PIN
+ * - SPI1_TX_PORT
+ * - SPI1_TX_PIN
+ * - SPI1_RX_PORT
+ * - SPI1_RX_PIN
  */
 #ifndef SPI_ARCH_H_
 #define SPI_ARCH_H_
 
 #include "dev/ssi.h"
-
-#define SPI_WAITFORTxREADY() do { \
-  while(!(REG(SSI0_BASE + SSI_SR) & SSI_SR_TNF)); \
-} while(0)
-
-#define SPI_TXBUF REG(SSI0_BASE + SSI_DR)
-
-#define SPI_RXBUF REG(SSI0_BASE + SSI_DR)
-
-#define SPI_WAITFOREOTx() do { \
-  while(REG(SSI0_BASE + SSI_SR) & SSI_SR_BSY); \
-} while(0)
-
-#define SPI_WAITFOREORx() do { \
-  while(!(REG(SSI0_BASE + SSI_SR) & SSI_SR_RNE)); \
-} while(0)
-
+/*---------------------------------------------------------------------------*/
+/* The default SPI instance to use. You can configure either instance 0 or 1
+   and proceed to use the "old" function calls / macros */ 
+#ifdef SPI_CONF_DEFAULT_INSTANCE
+#define SPI_DEFAULT_INSTANCE			SPI_CONF_DEFAULT_INSTANCE
+#else
+#define SPI_DEFAULT_INSTANCE			0
+#endif
+/*---------------------------------------------------------------------------*/
+/* Deprecated function calls provided for compatibility reasons */
+#define spi_init()						spix_init(SPI_DEFAULT_INSTANCE)	
+#define spi_enable()					spix_enable(SPI_DEFAULT_INSTANCE)	
+#define spi_disable()					spix_disable(SPI_DEFAULT_INSTANCE)	
+#define spi_set_mode(ff, cpo, cph, ds)	spix_set_mode(SPI_DEFAULT_INSTANCE, ff, cpo, cph, ds)
+#define spi_cs_init(port, pin );		spix_cs_init(port, pin)	
+/*---------------------------------------------------------------------------*/
+/* We define a new set of "SPIX" macros which will then be mapped to the 
+   corresponding macros defined later on */
+#define SPIX_WAITFORTxREADY(x)			SPI##x##_WAITFORTxREADY()
+#define SPIX_TXBUF(x)					SPI##x##_TXBUF()
+#define SPIX_RXBUF(x)					SPI##x##_RXBUF()
+#define SPIX_WAITFOREOTx(x)				SPI##x##_WAIT_FOREOTx()
+#define SPIX_WAITFOREORx(x)				SPI##x##_WAITFOREORx()	
+#define SPIX_FLUSH(x)					SPI##x##_FLUSH()
+/*---------------------------------------------------------------------------*/
+/* Deprecated macros provided for compatibility reasons */
+#define SPI_WAITFORTxREADY()			SPIX_WAITFORTxREADY(SPI_DEFAULT_INSTANCE)	
+#define SPI_TXBUF						SPIX_TXBUF(SPI_DEFAULT_INSTANCE)
+#define SPI_RXBUF						SPIX_RXBUF(SPI_DEFAULT_INSTANCE)
+#define SPI_WAITFOREOTx()				SPIX_WAITFOREOTx(SPI_DEFAULT_INSTANCE)	
+#define SPI_WAITFOREORx()				SPIX_WAITFOREORx(SPI_DEFAULT_INSTANCE)	
 #ifdef SPI_FLUSH
 #error "You must include spi-arch.h before spi.h for the CC2538."
 #endif
-#define SPI_FLUSH() do { \
+#define SPI_FLUSH()						SPIX_FLUSH(SPI_DEFAULT_INSTANCE)
+#endif
+#define SPI_CS_CLR(port, pin)			SPIX_CS_CLR(port, pin)	
+#define SPI_CS_SET(port, pin)			SPIX_CS_SET(port, pin)	
+/*---------------------------------------------------------------------------*/
+/* New API macros */
+#define SPI0_WAITFORTxREADY() do { \
+  while(!(REG(SSI0_BASE + SSI_SR) & SSI_SR_TNF)); \
+} while(0)
+#define SPI0_TXBUF REG(SSI0_BASE + SSI_DR)
+#define SPI0_RXBUF REG(SSI0_BASE + SSI_DR)
+#define SPI0_WAITFOREOTx() do { \
+  while(REG(SSI0_BASE + SSI_SR) & SSI_SR_BSY); \
+} while(0)
+#define SPI0_WAITFOREORx() do { \
+  while(!(REG(SSI0_BASE + SSI_SR) & SSI_SR_RNE)); \
+} while(0)
+#define SPI0_FLUSH() do { \
   SPI_WAITFOREORx(); \
   while (REG(SSI0_BASE + SSI_SR) & SSI_SR_RNE) { \
     SPI_RXBUF; \
   } \
 } while(0)
 
-#define SPI_CS_CLR(port, pin) do { \
-  GPIO_CLR_PIN(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin)); \
+#define SPI1_WAITFORTxREADY() do { \
+  while(!(REG(SSI1_BASE + SSI_SR) & SSI_SR_TNF)); \
+} while(0)
+#define SPI1_TXBUF REG(SSI1_BASE + SSI_DR)
+#define SPI1_RXBUF REG(SSI1_BASE + SSI_DR)
+#define SPI1_WAITFOREOTx() do { \
+  while(REG(SSI1_BASE + SSI_SR) & SSI_SR_BSY); \
+} while(0)
+#define SPI1_WAITFOREORx() do { \
+  while(!(REG(SSI1_BASE + SSI_SR) & SSI_SR_RNE)); \
+} while(0)
+#define SPI1_FLUSH() do { \
+  SPI_WAITFOREORx(); \
+  while (REG(SSI1_BASE + SSI_SR) & SSI_SR_RNE) { \
+    SPI_RXBUF; \
+  } \
 } while(0)
 
-#define SPI_CS_SET(port, pin) do { \
+#define SPIX_CS_CLR(port, pin) do { \
+  GPIO_CLR_PIN(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin)); \
+} while(0)
+#define SPIX_CS_SET(port, pin) do { \
   GPIO_SET_PIN(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin)); \
 } while(0)
 /*---------------------------------------------------------------------------*/
@@ -79,18 +168,27 @@
  */
 
 /**
- * \brief Configure a GPIO to be the chip select pin
+ * \brief Initialize the SPI bus for the instance given
+ *
+ * This sets the mode to Motorola SPI with the following format options:
+ *    Clock phase:               1; data captured on second (rising) edge
+ *    Clock polarity:            1; clock is high when idle
+ *    Data size:                 8 bits
+ *
+ * Use spix_set_mode() to change the spi mode.
  */
-void spi_cs_init(uint8_t port, uint8_t pin);
+void spix_init(uint8_t instance);
 
-/** \brief Enables the SPI peripheral
+/** 
+ * \brief Enables the SPI peripheral 
  */
-void spi_enable(void);
+void spix_enable(uint8_t instance);
 
-/** \brief Disables the SPI peripheral
+/** 
+ * \brief Disables the SPI peripheral
  * \note Call this function to save power when the SPI is unused.
  */
-void spi_disable(void);
+void spix_disable(uint8_t instance);
 
 /**
  * \brief Configure the SPI data and clock polarity and the data size.
@@ -110,8 +208,18 @@ void spi_disable(void);
  * \param data_size      The number of bits in each "byte" of data. Must be
  *                       between 4 and 16, inclusive.
  */
-void spi_set_mode(uint32_t frame_format, uint32_t clock_polarity,
-                  uint32_t clock_phase, uint32_t data_size);
+/* New API */
+void spix_set_mode(uint8_t instance,
+				   uint32_t frame_format, uint32_t clock_polarity,
+				   uint32_t clock_phase, uint32_t data_size);
+
+/**
+ * \brief Configure a GPIO to be the chip select pin.
+ * 
+ * Even if this function does not depend on the SPI instance used, we rename
+ * it to reflect the new naming convention.
+ */
+void spix_cs_init(uint8_t port, uint8_t pin);
 
 /** @} */
 
