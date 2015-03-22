@@ -395,12 +395,12 @@ PT_THREAD(generate_top_matter(struct httpd_state *s, const char *title,
 
   s->page = list_head(pages_list);
   PT_WAIT_THREAD(&s->top_matter_pt,
-                 enqueue_chunk(s, 0, "<a href=\"%s\">[ %s ]</a>",
+                 enqueue_chunk(s, 0, "[ <a href=\"%s\">%s</a> ]",
                                s->page->filename, s->page->title));
 
   for(s->page = s->page->next; s->page != NULL; s->page = s->page->next) {
     PT_WAIT_THREAD(&s->top_matter_pt,
-                   enqueue_chunk(s, 0, " | <a href=\"%s\">[ %s ]</a>",
+                   enqueue_chunk(s, 0, " | [ <a href=\"%s\">%s</a> ]",
                                  s->page->filename, s->page->title));
   }
 
@@ -1279,8 +1279,8 @@ PROCESS_THREAD(httpd_simple_process, ev, data)
   init();
 
   snprintf(http_mqtt_a, IBM_QUICKSTART_LINK_LEN,
-           "<a href=\"http://quickstart.internetofthings.ibmcloud.com/#/device/"
-           "%02x%02x%02x%02x%02x%02x/sensor/\">[ IBM Quickstart ]</a>",
+           "[ <a href=\"http://quickstart.internetofthings.ibmcloud.com/#/device/"
+           "%02x%02x%02x%02x%02x%02x/sensor/\">IBM Quickstart</a> ]",
            linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
            linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
            linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
