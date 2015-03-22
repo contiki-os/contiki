@@ -54,7 +54,25 @@
 
 extern unsigned char spi_busy;
 
+/* Deprecated */
 void spi_init(void);
+/*---------------------------------------------------------------------------*/
+/* New SPI API supporting mutliple instances. 
+   See /cpu/cc2538/spi-arch.h + cpu/cc2538/dev/spi.c for an example on 
+   how this new API could be implemented. 
+   In addition to spix_init() we also define a new set of "SPIX_" macros 
+   like this
+   
+   #define SPIX_WAITFORTxREADY(x)			SPI##x##_WAITFORTxREADY()
+   #define SPIX_TXBUF(x)					SPI##x##_TXBUF()
+   #define SPIX_RXBUF(x)					SPI##x##_RXBUF()
+   #define SPIX_WAITFOREOTx(x)				SPI##x##_WAIT_FOREOTx()
+   #define SPIX_WAITFOREORx(x)				SPI##x##_WAITFOREORx()	
+   #define SPIX_FLUSH(x)					SPI##x##_FLUSH()
+
+   which are then mapped to the corresponding hardware specific code */
+void spix_init(uint8_t instance);
+/*---------------------------------------------------------------------------*/
 
 /* Write one character to SPI */
 #define SPI_WRITE(data)                         \
