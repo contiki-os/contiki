@@ -57,15 +57,15 @@ extern unsigned char spi_busy;
 /* Deprecated */
 void spi_init(void);
 /*---------------------------------------------------------------------------*/
-/* New SPI API supporting mutliple instances. 
-   See /cpu/cc2538/spi-arch.h + cpu/cc2538/dev/spi.c for an example on 
-   how this new API could be implemented. 
-   In addition to spix_init() we also define a new set of "SPIX_" macros 
+/* New SPI API supporting mutliple instances.
+   See /cpu/cc2538/spi-arch.h + cpu/cc2538/dev/spi.c for an example on
+   how this new API could be implemented.
+   In addition to spix_init() we also define a new set of "SPIX_" macros
    like this
-   
+
    #define SPIX_WAITFORTxREADY(x)			SPI##x##_WAITFORTxREADY()
    #define SPIX_WAITFOREOTx(x)				SPI##x##_WAIT_FOREOTx()
-   #define SPIX_WAITFOREORx(x)				SPI##x##_WAITFOREORx()	
+   #define SPIX_WAITFOREORx(x)				SPI##x##_WAITFOREORx()
    #define SPIX_FLUSH(x)					SPI##x##_FLUSH()
 
    which are then mapped to the corresponding hardware specific code */
@@ -73,36 +73,36 @@ void spix_init(uint8_t instance);
 /*---------------------------------------------------------------------------*/
 
 /* Write one character to SPI */
-#define SPI_WRITE(data)                         \
-  do {                                          \
-    SPI_WAITFORTx_BEFORE();                     \
-    SPI_TXBUF = data;                           \
-    SPI_WAITFOREOTx();                          \
+#define SPI_WRITE(data) \
+  do { \
+    SPI_WAITFORTx_BEFORE(); \
+    SPI_TXBUF = data; \
+    SPI_WAITFOREOTx(); \
   } while(0)
 
 /* Write one character to SPI - will not wait for end
    useful for multiple writes with wait after final */
-#define SPI_WRITE_FAST(data)                    \
-  do {                                          \
-    SPI_WAITFORTx_BEFORE();                     \
-    SPI_TXBUF = data;                           \
-    SPI_WAITFORTx_AFTER();                      \
+#define SPI_WRITE_FAST(data) \
+  do { \
+    SPI_WAITFORTx_BEFORE(); \
+    SPI_TXBUF = data; \
+    SPI_WAITFORTx_AFTER(); \
   } while(0)
 
 /* Read one character from SPI */
-#define SPI_READ(data)   \
-  do {                   \
-    SPI_TXBUF = 0;       \
-    SPI_WAITFOREORx();   \
-    data = SPI_RXBUF;    \
+#define SPI_READ(data) \
+  do { \
+    SPI_TXBUF = 0; \
+    SPI_WAITFOREORx(); \
+    data = SPI_RXBUF; \
   } while(0)
 
 /* Flush the SPI read register */
 #ifndef SPI_FLUSH
 #define SPI_FLUSH() \
-  do {              \
-    SPI_RXBUF;      \
-  } while(0);
+  do { \
+    SPI_RXBUF; \
+  } while(0)
 #endif
 
 #endif /* SPI_H_ */
