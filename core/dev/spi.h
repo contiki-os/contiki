@@ -64,8 +64,6 @@ void spi_init(void);
    like this
    
    #define SPIX_WAITFORTxREADY(x)			SPI##x##_WAITFORTxREADY()
-   #define SPIX_TXBUF(x)					SPI##x##_TXBUF()
-   #define SPIX_RXBUF(x)					SPI##x##_RXBUF()
    #define SPIX_WAITFOREOTx(x)				SPI##x##_WAIT_FOREOTx()
    #define SPIX_WAITFOREORx(x)				SPI##x##_WAITFOREORx()	
    #define SPIX_FLUSH(x)					SPI##x##_FLUSH()
