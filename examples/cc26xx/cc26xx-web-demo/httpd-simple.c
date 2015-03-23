@@ -538,7 +538,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
 
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"config\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_dev_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
@@ -577,7 +578,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
   PT_WAIT_THREAD(&s->generate_pt, enqueue_chunk(s, 0, "<h1>Actions</h1>"));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"defaults\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_dev_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
@@ -614,7 +616,8 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
 
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"config\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_mqtt_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
@@ -754,7 +757,8 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                  enqueue_chunk(s, 0, "</form>"));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"config\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_mqtt_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
@@ -793,7 +797,8 @@ PT_THREAD(generate_net_uart_config(struct httpd_state *s))
 
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"net_uart\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_net_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
