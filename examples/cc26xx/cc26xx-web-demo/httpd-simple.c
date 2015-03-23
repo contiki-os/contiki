@@ -1124,6 +1124,15 @@ PT_THREAD(handle_input(struct httpd_state *s))
     }
   } else if(strncasecmp(s->inputbuf, http_post, 5) == 0) {
     s->request_type = REQUEST_TYPE_POST;
+    PSOCK_READTO(&s->sin, ISO_space);
+
+    if(s->inputbuf[0] != ISO_slash) {
+      PSOCK_CLOSE_EXIT(&s->sin);
+    }
+
+    s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
+    strncpy(s->filename, s->inputbuf, sizeof(s->filename));
+
     /* POST: Read out the rest of the line and ignore it */
     PSOCK_READTO(&s->sin, ISO_nl);
 
