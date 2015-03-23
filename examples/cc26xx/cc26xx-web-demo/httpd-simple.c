@@ -163,11 +163,6 @@ static const char *http_header_srv_str[] = {
   NULL
 };
 
-static const char *http_header_redir_location[] = {
-  "Location: /config.html\r\n",
-  NULL
-};
-
 static const char *http_header_con_close[] = {
   CONN_CLOSE,
   NULL
@@ -1003,7 +998,8 @@ PT_THREAD(send_string(struct httpd_state *s, const char *str))
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr,
-                       const char *content_type, const char **additional))
+                       const char *content_type, const char *redir,
+                       const char **additional))
 {
   PT_BEGIN(&s->generate_pt);
 
@@ -1011,6 +1007,11 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr,
 
   for(s->ptr = http_header_srv_str; *(s->ptr) != NULL; s->ptr++) {
     PT_WAIT_THREAD(&s->generate_pt, enqueue_chunk(s, 0, *(s->ptr)));
+  }
+
+  if(redir) {
+    PT_WAIT_THREAD(&s->generate_pt,
+                   enqueue_chunk(s, 0, "Location: %s\r\n", redir));
   }
 
   if(additional) {
@@ -1041,25 +1042,30 @@ PT_THREAD(handle_output(struct httpd_state *s))
     if(s->return_code == RETURN_CODE_OK) {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_302,
                                                 http_content_type_plain,
-                                                http_header_redir_location));
+                                                s->filename,
+                                                NULL));
     } else if(s->return_code == RETURN_CODE_LR) {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_411,
                                                 http_content_type_plain,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, send_string(s, "Content-Length Required\n"));
     } else if(s->return_code == RETURN_CODE_TL) {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_413,
                                                 http_content_type_plain,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, send_string(s, "Content-Length too Large\n"));
     } else if(s->return_code == RETURN_CODE_SU) {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_503,
                                                 http_content_type_plain,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, send_string(s, "Service Unavailable\n"));
     } else {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_400,
                                                 http_content_type_plain,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, send_string(s, "Bad Request\n"));
     }
@@ -1069,6 +1075,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
       strncpy(s->filename, "/notfound.html", sizeof(s->filename));
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_404,
                                                 http_content_type_html,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt,
                      send_string(s, NOT_FOUND));
@@ -1077,6 +1084,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
     } else {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_200,
                                                 http_content_type_html,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, s->script(s));
     }
