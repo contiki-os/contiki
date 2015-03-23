@@ -192,37 +192,49 @@ static const char config_div_left[] = "<div class=\"left\">";
 static const char config_div_right[] = "<div class=\"right\">";
 static const char config_div_close[] = "</div>";
 /*---------------------------------------------------------------------------*/
+static char generate_index(struct httpd_state *s);
+static char generate_config(struct httpd_state *s);
+/*---------------------------------------------------------------------------*/
 typedef struct page {
   struct page *next;
   char *filename;
   char *title;
+  char (*script)(struct httpd_state *s);
 } page_t;
 
 static page_t http_index_page = {
   NULL,
   "index.html",
   "Index",
+  generate_index,
 };
 
 static page_t http_dev_cfg_page = {
   NULL,
   "config.html",
   "Device Config",
+  generate_config,
 };
 
 #if CC26XX_WEB_DEMO_NET_UART
+static char generate_net_uart_config(struct httpd_state *s);
+
 static page_t http_net_cfg_page = {
   NULL,
-  "net.html",
+  "netu.html",
   "Net-UART Config",
+  generate_net_uart_config,
 };
 #endif
 
 #if CC26XX_WEB_DEMO_MQTT_CLIENT
+static char generate_mqtt_config(struct httpd_state *s);
+
 static page_t http_mqtt_cfg_page = {
   NULL,
   "mqtt.html",
   "MQTT/IBM Cloud Config",
+  generate_mqtt_config,
 };
 #endif
 /*---------------------------------------------------------------------------*/
@@ -969,18 +981,13 @@ parse_post_request_chunk(char *buf, int buf_len, int last_chunk)
 static httpd_simple_script_t
 get_script(const char *name)
 {
-  if(strlen(name) == 10 && strncmp(name, "index.html", 10) == 0) {
-    return generate_index;
-  } else if(strlen(name) == 11 && strncmp(name, "config.html", 11) == 0) {
-    return generate_config;
-#if CC26XX_WEB_DEMO_MQTT_CLIENT
-  } else if(strlen(name) == 9 && strncmp(name, "mqtt.html", 9) == 0) {
-    return generate_mqtt_config;
-#endif
-#if CC26XX_WEB_DEMO_NET_UART
-  } else if(strlen(name) == 8 && strncmp(name, "net.html", 8) == 0) {
-    return generate_net_uart_config;
-#endif
+  page_t *page;
+
+  for(page = list_head(pages_list); page != NULL;
+      page = list_item_next(page)) {
+    if(strncmp(name, page->filename, strlen(page->filename)) == 0) {
+      return page->script;
+    }
   }
 
   return NULL;
