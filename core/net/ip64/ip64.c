@@ -59,7 +59,8 @@
 #include "ip64-special-ports.h"
 #include "ip64-eth-interface.h"
 #include "ip64-slip-interface.h"
-
+#include "ip64-dns64.h"
+#include "net/ipv6/uip-ds6.h"
 #include "ip64-ipv4-dhcp.h"
 #include "contiki-net.h"
 
@@ -172,6 +173,8 @@ static uip_ip4addr_t ipv4_broadcast_addr;
 #define TCP_FIN 0x01
 #define TCP_SYN 0x02
 #define TCP_RST 0x04
+
+#define DNS_PORT 53
 
 /*---------------------------------------------------------------------------*/
 void
@@ -367,7 +370,7 @@ ip64_6to4(const uint8_t *ipv6packet, const uint16_t ipv6packet_len,
   struct icmpv6_hdr *icmpv6hdr;
   uint16_t ipv6len, ipv4len;
   struct ip64_addrmap_entry *m;
-  
+
   v6hdr = (struct ipv6_hdr *)ipv6packet;
   v4hdr = (struct ipv4_hdr *)resultpacket;
 
@@ -435,6 +438,15 @@ ip64_6to4(const uint8_t *ipv6packet, const uint16_t ipv6packet_len,
   case IP_PROTO_UDP:
     PRINTF("ip64_6to4: UDP header\n");
     v4hdr->proto = IP_PROTO_UDP;
+
+    /* Check if this is a DNS request. If so, we should rewrite it
+       with the DNS64 module. */
+    if(udphdr->destport == UIP_HTONS(DNS_PORT)) {
+      ip64_dns64_6to4((uint8_t *)v6hdr + IPV6_HDRLEN + sizeof(struct udp_hdr),
+                      ipv6len - IPV6_HDRLEN - sizeof(struct udp_hdr),
+                      (uint8_t *)udphdr + sizeof(struct udp_hdr),
+                      BUFSIZE - IPV4_HDRLEN - sizeof(struct udp_hdr));
+    }
     /* Compute and check the UDP checksum - since we're going to
        recompute it ourselves, we must ensure that it was correct in
        the first place. */
@@ -575,7 +587,7 @@ ip64_6to4(const uint8_t *ipv6packet, const uint16_t ipv6packet_len,
 
         /* Treat DNS requests specially: since the are one-shot, we
            mark them as recyclable. */
-        if(udphdr->destport == UIP_HTONS(53)) {
+        if(udphdr->destport == UIP_HTONS(DNS_PORT)) {
           ip64_addrmap_set_recycleble(m);
         }
       }
@@ -707,6 +719,21 @@ ip64_4to6(const uint8_t *ipv4packet, const uint16_t ipv4packet_len,
   switch(v4hdr->proto) {
   case IP_PROTO_UDP:
     v6hdr->nxthdr = IP_PROTO_UDP;
+    /* Check if this is a DNS request. If so, we should rewrite it
+       with the DNS64 module. */
+    if(udphdr->srcport == UIP_HTONS(DNS_PORT)) {
+      int len;
+
+      len = ip64_dns64_4to6((uint8_t *)v4hdr + IPV4_HDRLEN + sizeof(struct udp_hdr),
+                            ipv4len - IPV4_HDRLEN - sizeof(struct udp_hdr),
+                            (uint8_t *)v6hdr + IPV6_HDRLEN + sizeof(struct udp_hdr),
+                            ipv6_packet_len - sizeof(struct udp_hdr));
+      ipv6_packet_len = len + sizeof(struct udp_hdr);
+      v6hdr->len[0] = ipv6_packet_len >> 8;
+      v6hdr->len[1] = ipv6_packet_len & 0xff;
+      ipv6len = ipv6_packet_len + IPV6_HDRLEN;
+
+    }
     break;
 
   case IP_PROTO_TCP:
