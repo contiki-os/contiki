@@ -585,7 +585,16 @@ ip64_6to4(const uint8_t *ipv6packet, const uint16_t ipv6packet_len,
       } else {
         ip64_addrmap_set_lifetime(m, DEFAULT_LIFETIME);
 
-        /* Treat DNS requests specially: since the are one-shot, we
+        /* Treat UDP packets from the IPv6 network to a multicast
+           address on the IPv4 network differently: since there is
+           no way for packets from the IPv4 network to go back to
+           the IPv6 network on these mappings, we'll mark them as
+           recyclable. */
+        if(v4hdr->destipaddr.u8[0] == 224) {
+          ip64_addrmap_set_recycleble(m);
+        }
+
+        /* Treat DNS requests differently: since the are one-shot, we
            mark them as recyclable. */
         if(udphdr->destport == UIP_HTONS(DNS_PORT)) {
           ip64_addrmap_set_recycleble(m);
