@@ -75,7 +75,7 @@ CFLAGSNO = $(EXTRA_CC_ARGS) -Wall -g -I/usr/local/include -DCLASSNAME=$(CLASSNAM
 CFLAGS   += $(CFLAGSNO)
 
 MODULES += core/net core/net/mac \
-           core/net/llsec
+           core/net/llsec core/net/ip64-addr
 
 ## Copied from Makefile.include, since Cooja overrides CFLAGS et al
 HAS_STACK = 0
