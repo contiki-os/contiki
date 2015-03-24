@@ -108,7 +108,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 /* The new NETSTACK interface requires RF230BB */
 #if RF230BB
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
-#define SICSLOWPAN_CONF_CONVENTIONAL_MAC  1     //for barebones driver, sicslowpan calls radio->read function
 #undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
 #define UIP_CONF_LLH_LEN         0
 
