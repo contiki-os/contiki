@@ -65,10 +65,12 @@
 
 #define RSSI_OFFSET 74  /* This seems to need to be tweaked for every
                            hw design, according to the data sheet. */
+
+/* 2 bytes for RSSI and LQI */
 #define AUX_LEN 2
 #define ACK_LEN 3
 
-#define CC1101_MAX_PAYLOAD 161
+#define CC1101_MAX_PAYLOAD CC1101_SETTING_PKTLEN
 
 /* Flag indicating whether non-interrupt routines are using SPI */
 static volatile uint8_t spi_locked = 0;
@@ -78,7 +80,8 @@ static volatile uint8_t spi_locked = 0;
 
 /* Packet buffers. */
 static uint8_t packet_tx[CC1101_MAX_PAYLOAD];
-static uint8_t packet_rx[1 + CC1101_MAX_PAYLOAD + AUX_LEN];
+/* AUX_LEN bytes for RSSI and LQI */
+static uint8_t packet_rx[CC1101_MAX_PAYLOAD + AUX_LEN];
 static volatile uint16_t packet_rx_len = 0;
 
 static volatile uint8_t is_transmitting;
@@ -789,9 +792,9 @@ input_byte(uint8_t byte)
   rxstate.receiving = 1;
   rxstate.len = byte;
 
-  if(byte == 0) {
+  if(rxstate.len == 0 || rxstate.len > (sizeof(packet_rx) - AUX_LEN)) {
 #if DEBUG
-    printf("Bad len 0, state %d rxbytes %d\n", state(), read_rxbytes());
+    printf("Bad len %u, state %d rxbytes %d\n", len, cc1101_get_state(), read_rxbytes());
 #endif /* DEBUG */
     flushrx();
     PT_EXIT(&rxstate.pt);
@@ -919,7 +922,7 @@ cc1101_rx_interrupt(void)
 #if DEBUG
   printf("-");
 #endif /* DEBUG */
-  
+
   if(SPI_IS_LOCKED()) {
 #if DEBUG
     printf("/%d", spi_locked);
