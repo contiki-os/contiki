@@ -154,7 +154,6 @@
 #define SICSLOWPAN_CONF_FRAG                    1
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
-#define SICSLOWPAN_CONF_CONVENTIONAL_MAC        1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
 #else /* NETSTACK_CONF_WITH_IPV6 */
 #define UIP_CONF_IP_FORWARD             1
