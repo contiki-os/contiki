@@ -59,16 +59,7 @@ void spi_init(void);
 /*---------------------------------------------------------------------------*/
 /* New SPI API supporting mutliple instances.
    See /cpu/cc2538/spi-arch.h + cpu/cc2538/dev/spi.c for an example on
-   how this new API could be implemented.
-   In addition to spix_init() we also define a new set of "SPIX_" macros
-   like this
-
-   #define SPIX_WAITFORTxREADY(x)			SPI##x##_WAITFORTxREADY()
-   #define SPIX_WAITFOREOTx(x)				SPI##x##_WAIT_FOREOTx()
-   #define SPIX_WAITFOREORx(x)				SPI##x##_WAITFOREORx()
-   #define SPIX_FLUSH(x)					SPI##x##_FLUSH()
-
-   which are then mapped to the corresponding hardware specific code */
+   how this new API could be implemented. */
 void spix_init(uint8_t instance);
 /*---------------------------------------------------------------------------*/
 

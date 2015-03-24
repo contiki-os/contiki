@@ -1,5 +1,9 @@
 /*
  * Copyright (c) 2013, University of Michigan.
+ *
+ * Copyright (c) 2015, Weptech elektronik GmbH
+ * Author: Ulf Knoblich, ulf.knoblich@weptech.de
+ *
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,141 +46,106 @@
 #include "dev/ssi.h"
 #include "dev/gpio.h"
 /*---------------------------------------------------------------------------*/
-/* Map the old port / pin names to the new ones for compatibility reasons */
-#if (SPI_DEFAULT_INSTANCE == 0)
-#ifdef SPI_CLK_PORT
-#define SPI0_CLK_PORT         SPI_CLK_PORT
-#endif
-#ifdef SPI_CLK_PIN
-#define SPI0_CLK_PIN          SPI_CLK_PIN
-#endif
-#ifdef SPI_MOSI_PORT
-#define SPI0_TX_PORT          SPI_MOSI_PORT
-#endif
-#ifdef SPI_MOSI_PIN
-#define SPI0_TX_PIN           SPI_MOSI_PIN
-#endif
-#ifdef SPI_MISO_PORT
-#define SPI0_RX_PORT          SPI_MISO_PORT
-#endif
-#ifdef SPI_MISO_PIN
-#define SPI0_RX_PIN           SPI_MISO_PIN
-#endif
-#elif (SPI_DEFAULT_INSTANCE == 1)
-#ifdef SPI_CLK_PORT
-#define SPI1_CLK_PORT         SPI_CLK_PORT
-#endif
-#ifdef SPI_CLK_PIN
-#define SPI1_CLK_PIN          SPI_CLK_PIN
-#endif
-#ifdef SPI_MOSI_PORT
-#define SPI1_TX_PORT          SPI_MOSI_PORT
-#endif
-#ifdef SPI_MOSI_PIN
-#define SPI1_TX_PIN           SPI_MOSI_PIN
-#endif
-#ifdef SPI_MISO_PORT
-#define SPI1_RX_PORT          SPI_MISO_PORT
-#endif
-#ifdef SPI_MISO_PIN
-#define SPI1_RX_PIN           SPI_MISO_PIN
-#endif
-#else
-#error "Invalid SPI instance. Valid values are 0 or 1"
-#endif
-/*---------------------------------------------------------------------------*/
 /* Check port / pin settings for SPI0 and provide default values for spi_cfg */
 #ifndef SPI0_CLK_PORT
-#define SPI0_CLK_PORT         (-1)
+#define SPI0_CLK_PORT					(-1)
 #endif
 #ifndef SPI0_CLK_PIN
-#define SPI0_CLK_PIN          (-1)
+#define SPI0_CLK_PIN					(-1)
 #endif
 #if SPI0_CLK_PORT >= 0 && SPI0_CLK_PIN < 0 || \
   SPI0_CLK_PORT < 0 && SPI0_CLK_PIN >= 0
-#error "Both SPI0_CLK_PORT and SPI0_CLK_PIN must be valid or invalid"
+#error Both SPI0_CLK_PORT and SPI0_CLK_PIN must be valid or invalid
 #endif
 
 #ifndef SPI0_TX_PORT
-#define SPI0_TX_PORT          (-1)
+#define SPI0_TX_PORT					(-1)
 #endif
 #ifndef SPI0_TX_PIN
-#define SPI0_TX_PIN           (-1)
+#define SPI0_TX_PIN						(-1)
 #endif
 #if SPI0_TX_PORT >= 0 && SPI0_TX_PIN < 0 || \
   SPI0_TX_PORT < 0 && SPI0_TX_PIN >= 0
-#error "Both SPI0_TX_PORT and SPI0_TX_PIN must be valid or invalid"
+#error Both SPI0_TX_PORT and SPI0_TX_PIN must be valid or invalid
 #endif
 
 #ifndef SPI0_RX_PORT
-#define SPI0_RX_PORT          (-1)
+#define SPI0_RX_PORT					(-1)
 #endif
 #ifndef SPI0_RX_PIN
-#define SPI0_RX_PIN           (-1)
+#define SPI0_RX_PIN						(-1)
 #endif
 #if SPI0_RX_PORT >= 0 && SPI0_RX_PIN < 0 || \
   SPI0_RX_PORT < 0 && SPI0_RX_PIN >= 0
-#error "Both SPI0_RX_PORT and SPI0_RX_PIN must be valid or invalid"
+#error Both SPI0_RX_PORT and SPI0_RX_PIN must be valid or invalid
 #endif
 
 /* Here we check that either all or none of the ports are defined. As
    we did already check that both ports + pins are either defined or
    not for every pin, this means that we can check for an incomplete
    configuration by only looking at the port defines */
-#if (SPI0_CLK_PORT < 0 && SPI0_TX_PORT < 0 && SPI0_RX_PORT >= 0) || \
-  (SPI0_CLK_PORT < 0 && SPI0_TX_PORT >= 0 && SPI0_RX_PORT < 0) || \
-  (SPI0_CLK_PORT < 0 && SPI0_TX_PORT >= 0 && SPI0_RX_PORT >= 0) || \
-  (SPI0_CLK_PORT >= 0 && SPI0_TX_PORT < 0 && SPI0_RX_PORT < 0) || \
-  (SPI0_CLK_PORT >= 0 && SPI0_TX_PORT < 0 && SPI0_RX_PORT >= 0) || \
-  (SPI0_CLK_PORT >= 0 && SPI0_TX_PORT >= 0 && SPI0_RX_PORT < 0)
-#error "SPI0 port / pin definition incomplete"
+/* If some SPI0 pads are valid */
+#if SPI0_CLK_PORT >= 0 || SPI0_TX_PORT >= 0 || SPI0_RX_PORT >= 0
+/* but not all */
+#if SPI0_CLK_PORT < 0 || SPI0_TX_PORT < 0 || SPI0_RX_PORT < 0
+#error Some SPI0 pad definitions are invalid
+#endif
+#define SPI0_PADS_VALID
 #endif
 /*---------------------------------------------------------------------------*/
 /* Check port / pin settings for SPI1 and provide default values for spi_cfg */
 #ifndef SPI1_CLK_PORT
-#define SPI1_CLK_PORT         (-1)
+#define SPI1_CLK_PORT					(-1)
 #endif
 #ifndef SPI1_CLK_PIN
-#define SPI1_CLK_PIN          (-1)
+#define SPI1_CLK_PIN					(-1)
 #endif
 #if SPI1_CLK_PORT >= 0 && SPI1_CLK_PIN < 0 || \
   SPI1_CLK_PORT < 0 && SPI1_CLK_PIN >= 0
-#error "Both SPI1_CLK_PORT and SPI1_CLK_PIN must be valid or invalid"
+#error Both SPI1_CLK_PORT and SPI1_CLK_PIN must be valid or invalid
 #endif
 
 #ifndef SPI1_TX_PORT
-#define SPI1_TX_PORT          (-1)
+#define SPI1_TX_PORT					(-1)
 #endif
 #ifndef SPI1_TX_PIN
-#define SPI1_TX_PIN             (-1)
+#define SPI1_TX_PIN						(-1)
 #endif
 #if SPI1_TX_PORT >= 0 && SPI1_TX_PIN < 0 || \
   SPI1_TX_PORT < 0 && SPI1_TX_PIN >= 0
-#error "Both SPI1_TX_PORT and SPI1_TX_PIN must be valid or invalid"
+#error Both SPI1_TX_PORT and SPI1_TX_PIN must be valid or invalid
 #endif
 
 #ifndef SPI1_RX_PORT
-#define SPI1_RX_PORT            (-1)
+#define SPI1_RX_PORT					(-1)
 #endif
 #ifndef SPI1_RX_PIN
-#define SPI1_RX_PIN             (-1)
+#define SPI1_RX_PIN						(-1)
 #endif
 #if SPI1_RX_PORT >= 0 && SPI1_RX_PIN < 0 || \
   SPI1_RX_PORT < 0 && SPI1_RX_PIN >= 0
-#error "Both SPI1_RX_PORT and SPI1_RX_PIN must be valid or invalid"
+#error Both SPI1_RX_PORT and SPI1_RX_PIN must be valid or invalid
 #endif
 
-/* Here we check that either all or none of the ports are defined. As
-   we did already check that both ports + pins are either defined or
-   not for every pin, this means that we can check for an incomplete
-   configuration by only looking at the port defines */
-#if (SPI1_CLK_PORT < 0 && SPI1_TX_PORT < 0 && SPI1_RX_PORT >= 0) || \
-  (SPI1_CLK_PORT < 0 && SPI1_TX_PORT >= 0 && SPI1_RX_PORT < 0) || \
-  (SPI1_CLK_PORT < 0 && SPI1_TX_PORT >= 0 && SPI1_RX_PORT >= 0) || \
-  (SPI1_CLK_PORT >= 0 && SPI1_TX_PORT < 0 && SPI1_RX_PORT < 0) || \
-  (SPI1_CLK_PORT >= 0 && SPI1_TX_PORT < 0 && SPI1_RX_PORT >= 0) || \
-  (SPI1_CLK_PORT >= 0 && SPI1_TX_PORT >= 0 && SPI1_RX_PORT < 0)
-#error "SPI1 port / pin definition incomplete"
+/* If some SPI1 pads are valid */
+#if SPI1_CLK_PORT >= 0 || SPI1_TX_PORT >= 0 || SPI1_RX_PORT >= 0
+/* but not all */
+#if SPI1_CLK_PORT < 0 || SPI1_TX_PORT < 0 || SPI1_RX_PORT < 0
+#error Some SPI1 pad definitions are invalid
+#endif
+#define SPI1_PADS_VALID
+#endif
+
+#ifdef SPI_DEFAULT_INSTANCE
+#if SPI_DEFAULT_INSTANCE == 0
+#ifndef SPI0_PADS_VALID
+#error SPI_DEFAULT_INSTANCE is set to SPI0, but its pads are not valid
+#endif
+#elif SPI_DEFAULT_INSTANCE == 1
+#ifndef SPI1_PADS_VALID
+#error SPI_DEFAULT_INSTANCE is set to SPI1, but its pads are not valid
+#endif
+#endif
 #endif
 /*---------------------------------------------------------------------------*/
 typedef struct {
@@ -191,9 +160,9 @@ typedef struct {
   spi_pad_t clk;
   spi_pad_t tx;
   spi_pad_t rx;
-} spi_cfg_t;
+} spi_regs_t;
 /*---------------------------------------------------------------------------*/
-static const spi_cfg_t spi_cfg[SSI_INSTANCE_COUNT] = {
+static const spi_regs_t spi_regs[SSI_INSTANCE_COUNT] = {
   {
     .base = SSI0_BASE,
     .ioc_ssirxd_ssi = IOC_SSIRXD_SSI0,
@@ -219,79 +188,57 @@ spi_init(void)
 {
   spix_init(SPI_DEFAULT_INSTANCE);
 }
-void
-spi_enable(void)
-{
-  spix_enable(SPI_DEFAULT_INSTANCE);
-}
-void
-spi_disable(void)
-{
-  spix_disable(SPI_DEFAULT_INSTANCE);
-}
-void
-spi_set_mode(uint32_t frame_format, uint32_t clock_polarity,
-             uint32_t clock_phase, uint32_t data_size)
-{
-  spix_set_mode(SPI_DEFAULT_INSTANCE, frame_format, clock_polarity,
-                clock_phase, data_size);
-}
-void
-spi_cs_init(uint8_t port, uint8_t pin)
-{
-  spix_cs_init(port, pin);
-}
 /*---------------------------------------------------------------------------*/
 void
-spix_init(uint8_t instance)
+spix_init(uint8_t spi)
 {
-  const spi_cfg_t *cfg;
+  const spi_regs_t *regs;
 
-  if(instance >= SSI_INSTANCE_COUNT) {
+  if(spi >= SSI_INSTANCE_COUNT) {
     return;
   }
 
-  spix_enable(instance);
+  regs = &spi_regs[spi];
 
-  cfg = &spi_cfg[instance];
-
-  if(cfg->clk.port < 0) {
+  if(regs->clk.port < 0) {
     /* Port / pin configuration invalid. We checked for completeness
        above. If clk.port is < 0, this means that all other defines are
        < 0 as well */
     return;
   }
 
+  spix_enable(spi);
+
   /* Start by disabling the peripheral before configuring it */
-  REG(cfg->base + SSI_CR1) = 0;
+  REG(regs->base + SSI_CR1) = 0;
 
   /* Set the IO clock as the SSI clock */
-  REG(cfg->base + SSI_CC) = 1;
+  REG(regs->base + SSI_CC) = 1;
 
   /* Set the mux correctly to connect the SSI pins to the correct GPIO pins */
-  ioc_set_sel(cfg->clk.port,
-              cfg->clk.pin,
-              cfg->ioc_pxx_sel_ssi_clkout);
-  ioc_set_sel(cfg->tx.port,
-              cfg->tx.pin,
-              cfg->ioc_pxx_sel_ssi_txd);
-  REG(cfg->ioc_ssirxd_ssi) = (cfg->rx.port * 8) + cfg->rx.pin;
+  ioc_set_sel(regs->clk.port,
+              regs->clk.pin,
+              regs->ioc_pxx_sel_ssi_clkout);
+  ioc_set_sel(regs->tx.port,
+              regs->tx.pin,
+              regs->ioc_pxx_sel_ssi_txd);
+  REG(regs->ioc_ssirxd_ssi) = (regs->rx.port * 8) + regs->rx.pin;
 
   /* Put all the SSI gpios into peripheral mode */
-  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(cfg->clk.port),
-                          GPIO_PIN_MASK(cfg->clk.pin));
-  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(cfg->tx.port),
-                          GPIO_PIN_MASK(cfg->tx.pin));
-  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(cfg->rx.port),
-                          GPIO_PIN_MASK(cfg->rx.pin));
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->clk.port),
+                          GPIO_PIN_MASK(regs->clk.pin));
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->tx.port),
+                          GPIO_PIN_MASK(regs->tx.pin));
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->rx.port),
+                          GPIO_PIN_MASK(regs->rx.pin));
 
   /* Disable any pull ups or the like */
-  ioc_set_over(cfg->clk.port, cfg->clk.pin, IOC_OVERRIDE_DIS);
-  ioc_set_over(cfg->tx.port, cfg->tx.pin, IOC_OVERRIDE_DIS);
-  ioc_set_over(cfg->rx.port, cfg->rx.pin, IOC_OVERRIDE_DIS);
+  ioc_set_over(regs->clk.port, regs->clk.pin, IOC_OVERRIDE_DIS);
+  ioc_set_over(regs->tx.port, regs->tx.pin, IOC_OVERRIDE_DIS);
+  ioc_set_over(regs->rx.port, regs->rx.pin, IOC_OVERRIDE_DIS);
 
   /* Configure the clock */
-  REG(cfg->base + SSI_CPSR) = 2;
+  REG(regs->base + SSI_CPSR) = 2;
 
   /*
    * Configure the default SPI options.
@@ -300,69 +247,56 @@ spix_init(uint8_t instance)
    *   data:  Valid on rising edges of the clock
    *   bits:  8 byte data
    */
-  REG(cfg->base + SSI_CR0) = SSI_CR0_SPH | SSI_CR0_SPO | (0x07);
+  REG(regs->base + SSI_CR0) = SSI_CR0_SPH | SSI_CR0_SPO | (0x07);
 
   /* Enable the SSI */
-  REG(cfg->base + SSI_CR1) |= SSI_CR1_SSE;
+  REG(regs->base + SSI_CR1) |= SSI_CR1_SSE;
 }
 /*---------------------------------------------------------------------------*/
 void
-spix_enable(uint8_t instance)
+spix_enable(uint8_t spi)
 {
-  if(instance >= SSI_INSTANCE_COUNT) {
+  if(spi >= SSI_INSTANCE_COUNT) {
     return;
   }
-
-  /* Enable the clock for the SSI peripheral */
-  if(instance == 0) {
-    /* Enable the clock for the SSI peripheral */
-    REG(SYS_CTRL_RCGCSSI) |= 1;
-  } else {
-    REG(SYS_CTRL_RCGCSSI) |= 2;
-  }
+  REG(SYS_CTRL_RCGCSSI) |= (1 << spi);
 }
 /*---------------------------------------------------------------------------*/
 void
-spix_disable(uint8_t instance)
+spix_disable(uint8_t spi)
 {
-  if(instance >= SSI_INSTANCE_COUNT) {
+  if(spi >= SSI_INSTANCE_COUNT) {
     return;
   }
-
-  /* Gate the clock for the SSI peripheral */
-  if(instance == 0) {
-    REG(SYS_CTRL_RCGCSSI) &= ~1;
-  } else {
-    REG(SYS_CTRL_RCGCSSI) &= ~2;
-  }
+  REG(SYS_CTRL_RCGCSSI) &= ~(1 << spi);
 }
 /*---------------------------------------------------------------------------*/
 void
-spix_set_mode(uint8_t instance,
+spix_set_mode(uint8_t spi,
               uint32_t frame_format,
               uint32_t clock_polarity,
               uint32_t clock_phase,
               uint32_t data_size)
 {
-  const spi_cfg_t *cfg;
+  const spi_regs_t *regs;
 
-  if(instance >= SSI_INSTANCE_COUNT) {
+  if(spi >= SSI_INSTANCE_COUNT) {
     return;
   }
 
-  cfg = &spi_cfg[instance];
+  regs = &spi_regs[spi];
 
   /* Disable the SSI peripheral to configure it */
-  REG(cfg->base + SSI_CR1) = 0;
+  REG(regs->base + SSI_CR1) = 0;
 
   /* Configure the SSI options */
-  REG(cfg->base + SSI_CR0) = clock_phase |
+  REG(regs->base + SSI_CR0) = clock_phase |
     clock_polarity |
     frame_format |
     (data_size - 1);
 
   /* Re-enable the SSI */
-  REG(cfg->base + SSI_CR1) |= SSI_CR1_SSE;
+  REG(regs->base + SSI_CR1) |= SSI_CR1_SSE;
 }
 /*---------------------------------------------------------------------------*/
 void
