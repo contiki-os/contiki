@@ -488,7 +488,7 @@ start_request(struct http_socket *s)
     /* Check if we are to route the request through a proxy. */
     if(s->proxy_port != 0) {
       /* The proxy address should be an IPv6 address. */
-      uip_ipaddr_copy(&ip6addr, &s->proxy_addr);
+      uip_ip6addr_copy(&ip6addr, &s->proxy_addr);
       port = s->proxy_port;
     } else if(uiplib_ip6addrconv(host, &ip6addr) == 0) {
       /* First check if the host is an IP address. */
