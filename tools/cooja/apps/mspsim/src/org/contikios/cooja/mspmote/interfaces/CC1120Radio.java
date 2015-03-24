@@ -59,12 +59,9 @@ public class CC1120Radio extends Radio implements CustomDataRadio {
 
 	/**
 	 * Cross-level:
-	 * Inter-byte delay for delivering cross-level packet bytes.
+	 * Inter-byte delay for delivering cross-level packet bytes. us.
 	 */
-	/* TODO XXX Fix me as well as symbol duration in CC1120.java */
-	public static final long DELAY_BETWEEN_BYTES =
-			(long) (1000.0*Simulation.MILLISECOND/(200000.0/8.0)); /* us. Corresponds to 200kbit/s */
-
+	public static final long DELAY_BETWEEN_BYTES = (long) (CC1120.BITRATE_BYTE_DURATION * Simulation.MILLISECOND);
 	private RadioEvent lastEvent = RadioEvent.UNKNOWN;
 
 	private final MspMote mote;

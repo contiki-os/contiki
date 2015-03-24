@@ -61,8 +61,8 @@ public class CC1101Radio extends Radio implements CustomDataRadio {
 	 * Cross-level:
 	 * Inter-byte delay for delivering cross-level packet bytes.
 	 */
-	public static final long DELAY_BETWEEN_BYTES =
-			(long) (1000.0*Simulation.MILLISECOND/(250000.0/8.0)); /* us. Corresponds to 250kbit/s */
+    //	public static final long DELAY_BETWEEN_BYTES =
+    //			(long) (1000.0*Simulation.MILLISECOND/(250000.0/8.0)); /* us. Corresponds to 250kbit/s */
 
 	private RadioEvent lastEvent = RadioEvent.UNKNOWN;
 
@@ -230,6 +230,7 @@ public class CC1101Radio extends Radio implements CustomDataRadio {
 		/* Delivering packet bytes with delays */
 		byte[] packetData = packet.getPacketData();
 		long deliveryTime = getMote().getSimulation().getSimulationTime();
+                long delayBetweenBytes = (long) (1000.0*Simulation.MILLISECOND/(cc1101.getBitRate()/8.0));
 		for (byte b: packetData) {
 			if (isInterfered()) {
 				b = (byte) 0xFF;
@@ -243,7 +244,7 @@ public class CC1101Radio extends Radio implements CustomDataRadio {
 					mote.requestImmediateWakeup();
 				}
 			}, deliveryTime);
-			deliveryTime += DELAY_BETWEEN_BYTES;
+			deliveryTime += delayBetweenBytes;
 		}
 	}
 
@@ -383,7 +384,8 @@ public class CC1101Radio extends Radio implements CustomDataRadio {
 
 					rssiLastCounter--;
 					if (rssiLastCounter > 0) {
-						mote.getSimulation().scheduleEvent(this, t+DELAY_BETWEEN_BYTES/2);
+                                            long delayBetweenBytes = (long) (1000.0*Simulation.MILLISECOND/(cc1101.getBitRate()/8.0));
+                                            mote.getSimulation().scheduleEvent(this, t+delayBetweenBytes/2);
 					}
 				}
 			}, mote.getSimulation().getSimulationTime());
