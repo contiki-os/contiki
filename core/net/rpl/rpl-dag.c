@@ -517,6 +517,12 @@ rpl_set_default_instance(rpl_instance_t *instance)
   default_instance = instance;
 }
 /*---------------------------------------------------------------------------*/
+rpl_instance_t *
+rpl_get_default_instance(void)
+{
+  return default_instance;
+}
+/*---------------------------------------------------------------------------*/
 void
 rpl_free_instance(rpl_instance_t *instance)
 {
