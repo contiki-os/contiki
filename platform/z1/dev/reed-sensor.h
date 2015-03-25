@@ -30,42 +30,47 @@
  *
  */
 /**
+ * Header file for the reed sensor
+ *
+ * The Reed sensor allows to be used either by polling the sensor status or by
+ * setting up a timer on the background ticking every REED_CHECK_PERIOD, posting
+ * a reed_sensor_event_changed event, informing the application about a change
+ * in the sensor status (basically open or closed).  To enable each mode
+ * (default is polling) call the configure() function with REED_SENSOR_MODE
+ * using REED_SENSOR_EVENT_MODE or REED_SENSOR_POLL_MODE, after having
+ * initialized the device using SENSORS_ACTIVATE(reed_sensor).
+ *
  * \file
- *         SHT25 temperature and humidity sensor driver
+ *         Reed sensor header file
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
  */
 #include "lib/sensors.h"
 
-#ifndef SHT25_H_
-#define SHT25_H_
-
+#ifndef REED_SENSOR_H_
+#define REED_SENSOR_H_
 /* -------------------------------------------------------------------------- */
-#define SHT25_ADDR            0x40
-#define SHT25_TEMP_HOLD       0xE3
-#define SHT25_HUM_HOLD        0xE5
-#define SHT25_TEMP_NO_HOLD    0xF3
-#define SHT25_HUM_NO_HOLD     0xF5
-#define SHT2X_UREG_WRITE      0xE6
-#define SHT2X_UREG_READ       0xE7
-#define SHT2X_SOFT_RESET      0XFE
-#define SHT2X_NULL            0x00
+#define REED_SENSOR_ERROR       -1
+#define REED_SENSOR_SUCCESS     0x00
+#define REED_SENSOR_VAL         0x01
 /* -------------------------------------------------------------------------- */
-#define SHT2X_RES_14T_12RH    0x00
-#define SHT2X_RES_12T_08RH    0x01
-#define SHT2X_RES_13T_10RH    0x80
-#define SHT2X_RES_11T_11RH    0x81
-#define SHT2X_HEATER_ON       0x04
-#define SHT2X_HEATER_OFF      0x00
-#define SHT2X_OTP_RELOAD_EN   0x00
-#define SHT2X_OTP_RELOAD_DIS  0x02
+#define REED_OPEN               0x00
+#define REED_CLOSED             0x01
 /* -------------------------------------------------------------------------- */
-#define SHT25_VAL_TEMP        SHT25_TEMP_HOLD
-#define SHT25_VAL_HUM         SHT25_HUM_HOLD
-#define SHT25_ERROR           -1
+#define REED_SENSOR_MODE        0x01
+#define REED_SENSOR_EVENT_MODE  0x0A
+#define REED_SENSOR_EVENT_POLL  0x0B
 /* -------------------------------------------------------------------------- */
-#define SHT25_SENSOR "SHT25 Sensor"
+#define REED_PORT_DIR           P4DIR
+#define REED_PORT_SEL           P4SEL
+#define REED_PORT_REN           P4REN
+#define REED_PORT_READ          P4IN
+#define REED_PORT_PRES          P4OUT
+#define REED_READ_PIN           (1 << 2)
 /* -------------------------------------------------------------------------- */
-extern const struct sensors_sensor sht25;
+#define REED_SENSOR             "Reed Sensor"
 /* -------------------------------------------------------------------------- */
-#endif /* ifndef SHT25_H_ */
+extern const struct sensors_sensor reed_sensor;
+extern process_event_t reed_sensor_event_changed;
+/* -------------------------------------------------------------------------- */
+#endif /* ifndef REED_SENSOR_H_ */
