@@ -31,41 +31,43 @@
  */
 /**
  * \file
- *         SHT25 temperature and humidity sensor driver
+ *         A quick program for testing a reed sensor.
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
  */
-#include "lib/sensors.h"
 
-#ifndef SHT25_H_
-#define SHT25_H_
+#include <stdio.h>
+#include "contiki.h"
+#include "reed-sensor.h"
+#define REED_READ_INTERVAL (CLOCK_SECOND / 4)
+#define REED_EXAMPLE_EVENT  1
+/*---------------------------------------------------------------------------*/
+PROCESS(test_process, "Reed test process");
+AUTOSTART_PROCESSES(&test_process);
+/*---------------------------------------------------------------------------*/
+static struct etimer et;
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(test_process, ev, data)
+{
+  PROCESS_BEGIN();
 
-/* -------------------------------------------------------------------------- */
-#define SHT25_ADDR            0x40
-#define SHT25_TEMP_HOLD       0xE3
-#define SHT25_HUM_HOLD        0xE5
-#define SHT25_TEMP_NO_HOLD    0xF3
-#define SHT25_HUM_NO_HOLD     0xF5
-#define SHT2X_UREG_WRITE      0xE6
-#define SHT2X_UREG_READ       0xE7
-#define SHT2X_SOFT_RESET      0XFE
-#define SHT2X_NULL            0x00
-/* -------------------------------------------------------------------------- */
-#define SHT2X_RES_14T_12RH    0x00
-#define SHT2X_RES_12T_08RH    0x01
-#define SHT2X_RES_13T_10RH    0x80
-#define SHT2X_RES_11T_11RH    0x81
-#define SHT2X_HEATER_ON       0x04
-#define SHT2X_HEATER_OFF      0x00
-#define SHT2X_OTP_RELOAD_EN   0x00
-#define SHT2X_OTP_RELOAD_DIS  0x02
-/* -------------------------------------------------------------------------- */
-#define SHT25_VAL_TEMP        SHT25_TEMP_HOLD
-#define SHT25_VAL_HUM         SHT25_HUM_HOLD
-#define SHT25_ERROR           -1
-/* -------------------------------------------------------------------------- */
-#define SHT25_SENSOR "SHT25 Sensor"
-/* -------------------------------------------------------------------------- */
-extern const struct sensors_sensor sht25;
-/* -------------------------------------------------------------------------- */
-#endif /* ifndef SHT25_H_ */
+  SENSORS_ACTIVATE(reed_sensor);
+#if REED_EXAMPLE_EVENT
+  reed_sensor.configure(REED_SENSOR_MODE, REED_SENSOR_EVENT_MODE);
+#else
+  etimer_set(&et, REED_READ_INTERVAL);
+#endif
+
+  while(1) {
+
+    PROCESS_YIELD();
+
+    if(ev == PROCESS_EVENT_TIMER) {
+      printf("Reed poll status [%d]\n", reed_sensor.value(REED_SENSOR_VAL));
+      etimer_restart(&et);
+    } else if(ev == reed_sensor_event_changed) {
+      printf("Reed sensor event --> %d\n", (*((int *)data)));
+    }
+  }
+  PROCESS_END();
+}
