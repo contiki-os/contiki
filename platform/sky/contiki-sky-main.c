@@ -42,6 +42,7 @@
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
+#include "lib/csprng.h"
 
 #if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
@@ -279,6 +280,8 @@ main(int argc, char **argv)
     
     cc2420_set_pan_addr(IEEE802154_PANID, shortaddr, longaddr);
   }
+  
+  csprng_init();
 
   PRINTF(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {

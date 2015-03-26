@@ -68,6 +68,7 @@
 #include "reg.h"
 #include "ieee-addr.h"
 #include "lpm.h"
+#include "lib/csprng.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -209,6 +210,7 @@ main(void)
 #if CRYPTO_CONF_INIT
   crypto_init();
   crypto_disable();
+  csprng_init();
 #endif
 
   netstack_init();
