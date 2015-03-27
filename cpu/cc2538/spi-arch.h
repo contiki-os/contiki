@@ -54,9 +54,9 @@
  * - SPIX_WAITFOREORx(x)
  * - SPIX_FLUSH(x)
  *
- * The old functions "spi_foo()" and macros "SPI_FOO()" are still supported,
- * by mapping them to new ones. When using these deprecated functions, the SSI
- * module to use can be selected by means of the macro SPI_DEFAULT_INSTANCE.
+ * Some of the old functions and macros are still supported.
+ * When using these deprecated functions, the SSI module to use 
+ * has to be be selected by means of the macro SPI_CONF_DEFAULT_INSTANCE.
  *
  * This SPI driver depends on the following defines:
  *
@@ -81,34 +81,33 @@
 #ifndef SPI_ARCH_H_
 #define SPI_ARCH_H_
 
+#include "contiki.h"
+
 #include "dev/ssi.h"
 /*---------------------------------------------------------------------------*/
-/* The default SPI instance to use. You can configure either instance 0 or 1 */
+/* The SPI instance to use when using the deprecated SPI API. */
 #ifdef SPI_CONF_DEFAULT_INSTANCE
-#define SPI_DEFAULT_INSTANCE			SPI_CONF_DEFAULT_INSTANCE
+#if SPI_CONF_DEFAULT_INSTANCE > (SSI_INSTANCE_COUNT - 1)
+#error Invalid SPI_CONF_DEFAULT_INSTANCE: valid values are 0 and 1
 #else
-#define SPI_DEFAULT_INSTANCE			0
+#define SPI_DEFAULT_INSTANCE			SPI_CONF_DEFAULT_INSTANCE
 #endif
-/*---------------------------------------------------------------------------*/
-#if SPI_DEFAULT_INSTANCE > (SSI_INSTANCE_COUNT - 1)
-#error Invalid SPI_DEFAULT_INSTANCE: valid values are 0 and 1
 #endif
 /*---------------------------------------------------------------------------*/
 /* New API macros */
-#define TPASTE3(a, b, c)				a##b##c
 #define SPIX_WAITFORTxREADY(spi) do { \
-    while(!(REG(TPASTE3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_TNF)) ; \
+    while(!(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_TNF)) ; \
 } while(0)
-#define SPIX_BUF(spi)					REG(TPASTE3(SSI, spi, _BASE) + SSI_DR)
+#define SPIX_BUF(spi)					REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_DR)
 #define SPIX_WAITFOREOTx(spi) do { \
-    while(REG(TPASTE3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_BSY) ; \
+    while(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_BSY) ; \
 } while(0)
 #define SPIX_WAITFOREORx(spi) do { \
-    while(!(REG(TPASTE3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_RNE)) ; \
+    while(!(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_RNE)) ; \
 } while(0)
 #define SPIX_FLUSH(spi) do { \
     SPIX_WAITFOREORx(spi); \
-    while(REG(TPASTE3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_RNE) { \
+    while(REG(CC_CONCAT3(SSI, spi, _BASE) + SSI_SR) & SSI_SR_RNE) { \
 		SPIX_BUF(spi);											 \
     } \
 } while(0)
@@ -120,6 +119,7 @@
 } while(0)
 /*---------------------------------------------------------------------------*/
 /* Deprecated macros provided for compatibility reasons */
+#ifdef SPI_DEFAULT_INSTANCE
 #define SPI_WAITFORTxREADY()			SPIX_WAITFORTxREADY(SPI_DEFAULT_INSTANCE)
 #define SPI_TXBUF						SPIX_BUF(SPI_DEFAULT_INSTANCE)
 #define SPI_RXBUF						SPI_TXBUF
@@ -132,6 +132,7 @@
 #endif
 #define SPI_CS_CLR(port, pin)			SPIX_CS_CLR(port, pin)
 #define SPI_CS_SET(port, pin)			SPIX_CS_SET(port, pin)
+#endif	/* #ifdef SPI_DEFAULT_INSTANCE */
 /*---------------------------------------------------------------------------*/
 /** \name Arch-specific SPI functions
  * @{
@@ -170,6 +171,7 @@ void spix_disable(uint8_t spi);
  *
  * See section 19.4.4 in the CC2538 user guide for more information.
  *
+ * \param spi			 The SSI instance to use.		
  * \param frame_format   Set the SSI frame format. Use SSI_CR0_FRF_MOTOROLA,
  *                       SSI_CR0_FRF_TI, or SSI_CR0_FRF_MICROWIRE.
  * \param clock_polarity In Motorola mode, set whether the clock is high or low
@@ -179,7 +181,6 @@ void spix_disable(uint8_t spi);
  * \param data_size      The number of bits in each "byte" of data. Must be
  *                       between 4 and 16, inclusive.
  */
-/* New API */
 void spix_set_mode(uint8_t spi, uint32_t frame_format,
                    uint32_t clock_polarity, uint32_t clock_phase,
                    uint32_t data_size);
