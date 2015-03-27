@@ -182,12 +182,14 @@ static const spi_regs_t spi_regs[SSI_INSTANCE_COUNT] = {
   }
 };
 /*---------------------------------------------------------------------------*/
-/* Deprecated function calls provided for compatibility reasons */
+/* Deprecated function call provided for compatibility reasons */
+#ifdef SPI_DEFAULT_INSTANCE
 void
 spi_init(void)
 {
   spix_init(SPI_DEFAULT_INSTANCE);
 }
+#endif	/* #ifdef SPI_DEFAULT_INSTANCE */
 /*---------------------------------------------------------------------------*/
 void
 spix_init(uint8_t spi)

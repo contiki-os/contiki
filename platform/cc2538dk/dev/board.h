@@ -184,15 +184,41 @@
 /**
  * \name SPI configuration
  *
- * These values configure which CC2538 pins to use for the SPI lines.
+ * These values configure which CC2538 pins to use for the SPI lines. Both
+ * SPI instances can be used independently by providing the corresponding 
+ * port / pin macros.
  * @{
  */
-#define SPI_CLK_PORT             GPIO_A_NUM /**< Clock port */
-#define SPI_CLK_PIN              2          /**< Clock pin */
-#define SPI_MOSI_PORT            GPIO_A_NUM /**< MOSI port */
-#define SPI_MOSI_PIN             4          /**< MOSI pin */
-#define SPI_MISO_PORT            GPIO_A_NUM /**< MISO port */
-#define SPI_MISO_PIN             5          /**< MISO pin */
+#define SPI0_IN_USE				 0
+#define SPI1_IN_USE				 0
+#if SPI0_IN_USE
+/** Clock port SPI0 */
+#define SPI0_CLK_PORT            GPIO_A_NUM 
+/** Clock pin SPI0 */
+#define SPI0_CLK_PIN             2
+/** TX port SPI0 (master mode: MOSI) */
+#define SPI0_TX_PORT             GPIO_A_NUM 
+/** TX pin SPI0 */
+#define SPI0_TX_PIN              4
+/** RX port SPI0 (master mode: MISO */
+#define SPI0_RX_PORT             GPIO_A_NUM
+/** RX pin SPI0 */
+#define SPI0_RX_PIN				 5 
+#endif	/* #if SPI0_IN_USE */
+#if SPI1_IN_USE
+/** Clock port SPI1 */
+#define SPI1_CLK_PORT            GPIO_A_NUM 
+/** Clock pin SPI1 */
+#define SPI1_CLK_PIN             2
+/** TX port SPI1 (master mode: MOSI) */
+#define SPI1_TX_PORT             GPIO_A_NUM 
+/** TX pin SPI1 */
+#define SPI1_TX_PIN              4
+/** RX port SPI1 (master mode: MISO) */
+#define SPI1_RX_PORT             GPIO_A_NUM
+/** RX pin SPI1 */
+#define SPI1_RX_PIN				 5 
+#endif	/* #if SPI1_IN_USE */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
