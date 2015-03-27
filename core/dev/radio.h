@@ -159,11 +159,6 @@ enum {
    */
   RADIO_PARAM_64BIT_ADDR,
 
-  /*
-   * The preamble length if using sniff mode / wake-up preambles
-   */
-  RADIO_PARAM_PREAMBLE_LENGTH,
-
   /* Constants (read only) */
 
   /* The lowest radio channel. */
