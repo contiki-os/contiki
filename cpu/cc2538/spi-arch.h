@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2013, University of Michigan.
  *
- * Copyright (c) 2015, Weptech elektronik GmbH
+ * Copyright (c) 2015, Weptech elektronik GmbH Germany
  * Author: Ulf Knoblich, ulf.knoblich@weptech.de
  *
  * All rights reserved.
