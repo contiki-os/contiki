@@ -91,28 +91,28 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_SET_INPUT(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_DIR) &= ~(PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_DIR) &= ~(PIN_MASK); } while(0)
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE to output.
 * \param PORT_BASE GPIO Port register offset
 * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
 */
 #define GPIO_SET_OUTPUT(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_DIR) |= (PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_DIR) |= (PIN_MASK); } while(0)
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE high.
  * \param PORT_BASE GPIO Port register offset
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_SET_PIN(PORT_BASE, PIN_MASK) \
-  do { REG(((PORT_BASE) | GPIO_DATA) + ((PIN_MASK) << 2)) = 0xFF; } while(0)
+  do { REG((PORT_BASE) + GPIO_DATA + ((PIN_MASK) << 2)) = 0xFF; } while(0)
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE low.
 * \param PORT_BASE GPIO Port register offset
 * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
 */
 #define GPIO_CLR_PIN(PORT_BASE, PIN_MASK) \
-  do { REG(((PORT_BASE) | GPIO_DATA) + ((PIN_MASK) << 2)) = 0x00; } while(0)
+  do { REG((PORT_BASE) + GPIO_DATA + ((PIN_MASK) << 2)) = 0x00; } while(0)
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE to value.
  * \param PORT_BASE GPIO Port register offset
@@ -133,7 +133,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * and then use 0x0A as the value ((1 << 3) | (1 << 1) for pins 3 and 1)
  */
 #define GPIO_WRITE_PIN(PORT_BASE, PIN_MASK, value) \
-  do { REG(((PORT_BASE) | GPIO_DATA) + ((PIN_MASK) << 2)) = (value); } while(0)
+  do { REG((PORT_BASE) + GPIO_DATA + ((PIN_MASK) << 2)) = (value); } while(0)
 
 /** \brief Read pins with PIN_MASK of port with PORT_BASE.
  * \param PORT_BASE GPIO Port register offset
@@ -146,21 +146,21 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * the macro will return 0x81.
  */
 #define GPIO_READ_PIN(PORT_BASE, PIN_MASK) \
-  REG(((PORT_BASE) | GPIO_DATA) + ((PIN_MASK) << 2))
+  REG((PORT_BASE) + GPIO_DATA + ((PIN_MASK) << 2))
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE to detect edge.
  * \param PORT_BASE GPIO Port register offset
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_DETECT_EDGE(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_IS) &= ~(PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_IS) &= ~(PIN_MASK); } while(0)
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE to detect level.
  * \param PORT_BASE GPIO Port register offset
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_DETECT_LEVEL(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_IS) |= (PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_IS) |= (PIN_MASK); } while(0)
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE to trigger an
  * interrupt on both edges.
@@ -168,7 +168,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_TRIGGER_BOTH_EDGES(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_IBE) |= (PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_IBE) |= (PIN_MASK); } while(0)
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE to trigger an
  * interrupt on single edge (controlled by GPIO_IEV).
@@ -176,7 +176,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_TRIGGER_SINGLE_EDGE(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_IBE) &= ~(PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_IBE) &= ~(PIN_MASK); } while(0)
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE to trigger an
  * interrupt on rising edge.
@@ -184,7 +184,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_DETECT_RISING(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_IEV) |= (PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_IEV) |= (PIN_MASK); } while(0)
 
 /** \brief Set pins with PIN_MASK of port with PORT_BASE to trigger an
  * interrupt on falling edge.
@@ -192,7 +192,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_DETECT_FALLING(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_IEV) &= ~(PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_IEV) &= ~(PIN_MASK); } while(0)
 
 /** \brief Enable interrupt triggering for pins with PIN_MASK of port with
  * PORT_BASE.
@@ -200,7 +200,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_ENABLE_INTERRUPT(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_IE) |= (PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_IE) |= (PIN_MASK); } while(0)
 
 /** \brief Disable interrupt triggering for pins with PIN_MASK of port with
  * PORT_BASE.
@@ -208,7 +208,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_DISABLE_INTERRUPT(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_IE) &= ~(PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_IE) &= ~(PIN_MASK); } while(0)
 
 /** \brief Clear interrupt triggering for pins with PIN_MASK of port with
  * PORT_BASE.
@@ -216,7 +216,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_CLEAR_INTERRUPT(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_IC) = (PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_IC) = (PIN_MASK); } while(0)
 
 /** \brief Configure the pin to be under peripheral control with PIN_MASK of
  * port with PORT_BASE.
@@ -224,7 +224,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_PERIPHERAL_CONTROL(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_AFSEL) |= (PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_AFSEL) |= (PIN_MASK); } while(0)
 
 /** \brief Configure the pin to be software controlled with PIN_MASK of port
  * with PORT_BASE.
@@ -232,7 +232,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_SOFTWARE_CONTROL(PORT_BASE, PIN_MASK) \
-  do { REG((PORT_BASE) | GPIO_AFSEL) &= ~(PIN_MASK); } while(0)
+  do { REG((PORT_BASE) + GPIO_AFSEL) &= ~(PIN_MASK); } while(0)
 
 /** \brief Set pins with PIN_MASK of port PORT to trigger a power-up interrupt
  * on rising edge.
@@ -240,7 +240,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_POWER_UP_ON_RISING(PORT, PIN_MASK) \
-  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_P_EDGE_CTRL) &= \
+  do { REG(GPIO_PORT_TO_BASE(PORT) + GPIO_P_EDGE_CTRL) &= \
        ~((PIN_MASK) << ((PORT) << 3)); } while(0)
 
 /** \brief Set pins with PIN_MASK of port PORT to trigger a power-up interrupt
@@ -249,7 +249,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_POWER_UP_ON_FALLING(PORT, PIN_MASK) \
-  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_P_EDGE_CTRL) |= \
+  do { REG(GPIO_PORT_TO_BASE(PORT) + GPIO_P_EDGE_CTRL) |= \
        (PIN_MASK) << ((PORT) << 3); } while(0)
 
 /** \brief Enable power-up interrupt triggering for pins with PIN_MASK of port
@@ -258,7 +258,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_ENABLE_POWER_UP_INTERRUPT(PORT, PIN_MASK) \
-  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_PI_IEN) |= \
+  do { REG(GPIO_PORT_TO_BASE(PORT) + GPIO_PI_IEN) |= \
        (PIN_MASK) << ((PORT) << 3); } while(0)
 
 /** \brief Disable power-up interrupt triggering for pins with PIN_MASK of port
@@ -267,7 +267,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_DISABLE_POWER_UP_INTERRUPT(PORT, PIN_MASK) \
-  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_PI_IEN) &= \
+  do { REG(GPIO_PORT_TO_BASE(PORT) + GPIO_PI_IEN) &= \
        ~((PIN_MASK) << ((PORT) << 3)); } while(0)
 
 /** \brief Clear power-up interrupt triggering for pins with PIN_MASK of port
@@ -276,7 +276,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \param PIN_MASK Pin number mask. Pin 0: 0x01, Pin 1: 0x02 ... Pin 7: 0x80
  */
 #define GPIO_CLEAR_POWER_UP_INTERRUPT(PORT, PIN_MASK) \
-  do { REG(GPIO_PORT_TO_BASE(PORT) | GPIO_IRQ_DETECT_ACK) = \
+  do { REG(GPIO_PORT_TO_BASE(PORT) + GPIO_IRQ_DETECT_ACK) = \
        (PIN_MASK) << ((PORT) << 3); } while(0)
 
 /**
