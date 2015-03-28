@@ -103,15 +103,11 @@ typedef unsigned short uip_stats_t;
 
 #define UIP_CONF_ROUTER                 1
 
-#define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
-#define SICSLOWPAN_CONF_COMPRESSION_HC1         1
-#define SICSLOWPAN_CONF_COMPRESSION_HC01        2
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
 #ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    1
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
-#define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
 #ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
 #define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
@@ -121,8 +117,6 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_IPV6_QUEUE_PKT  1
 #define UIP_CONF_IPV6_REASSEMBLY 0
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
-#define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_DEFROUTERS   2
 #define UIP_CONF_ICMP6           1
 
 /* configure number of neighbors and routes */
