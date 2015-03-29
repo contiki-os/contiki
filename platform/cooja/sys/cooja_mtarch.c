@@ -70,9 +70,7 @@ struct frame {
 #endif /* ON_64BIT_ARCH */
   unsigned long retaddr;
   unsigned long retaddr2;
-#if !ON_64BIT_ARCH
   unsigned long data;
-#endif
 };
 /*--------------------------------------------------------------------------*/
 void
