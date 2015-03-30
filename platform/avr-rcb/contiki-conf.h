@@ -110,12 +110,8 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define QUEUEBUF_CONF_NUM         15
 /* 54 bytes per queue ref buffer */
 #define QUEUEBUF_CONF_REF_NUM     2
-/* 0 for IPv6, or 1 for HC1, 2 for HC01 */
-#define SICSLOWPAN_CONF_COMPRESSION_IPV6 0 
-#define SICSLOWPAN_CONF_COMPRESSION_HC1  1 
-#define SICSLOWPAN_CONF_COMPRESSION_HC01 2
 
-#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_CONF_COMPRESSION_HC01 
+#define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
 #define SICSLOWPAN_CONF_FRAG              1
 
@@ -135,8 +131,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 #define UIP_CONF_IPV6_QUEUE_PKT  0
 #define UIP_CONF_IPV6_REASSEMBLY 0
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
-#define UIP_CONF_ND6_MAX_PREFIXES     3
-#define UIP_CONF_ND6_MAX_DEFROUTERS   2
 #if NETSTACK_CONF_WITH_IPV6 //tcpip.c error on ipv4 build if UIP_CONF_ICMP6 defined
 #define UIP_CONF_ICMP6 1
 #endif
