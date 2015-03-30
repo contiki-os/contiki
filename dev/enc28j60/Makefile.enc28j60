@@ -1,0 +1,1 @@
+enc28j60_src = enc28j60.c enc28j60-ip64-driver.c
