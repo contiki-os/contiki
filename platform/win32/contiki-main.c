@@ -140,7 +140,7 @@ main(int argc, char **argv)
     log_message("Def. Router: ", inet_ntoa(*(struct in_addr*)&addr));
 
     uip_ipaddr(&addr, 192,168,0,1);
-    resolv_conf(&addr);
+    uip_nameserver_update(&addr, UIP_NAMESERVER_INFINITE_LIFETIME);
     log_message("DNS Server:  ", inet_ntoa(*(struct in_addr*)&addr));
   }
 

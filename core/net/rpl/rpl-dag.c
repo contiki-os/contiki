@@ -789,7 +789,6 @@ rpl_nullify_parent(rpl_parent_t *parent)
   /* This function can be called when the preferred parent is NULL, so we
      need to handle this condition in order to trigger uip_ds6_defrt_rm. */
   if(parent == dag->preferred_parent || dag->preferred_parent == NULL) {
-    rpl_set_preferred_parent(dag, NULL);
     dag->rank = INFINITE_RANK;
     if(dag->joined) {
       if(dag->instance->def_route != NULL) {
@@ -799,7 +798,11 @@ rpl_nullify_parent(rpl_parent_t *parent)
         uip_ds6_defrt_rm(dag->instance->def_route);
         dag->instance->def_route = NULL;
       }
-      dao_output(parent, RPL_ZERO_LIFETIME);
+      /* Send no-path DAO only to preferred parent, if any */
+      if(parent == dag->preferred_parent) {
+        dao_output(parent, RPL_ZERO_LIFETIME);
+        rpl_set_preferred_parent(dag, NULL);
+      }
     }
   }
 
@@ -972,6 +975,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 }
 
+#if RPL_MAX_DAG_PER_INSTANCE > 1
 /*---------------------------------------------------------------------------*/
 void
 rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
@@ -1051,6 +1055,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_process_parent_event(instance, p);
   p->dtsn = dio->dtsn;
 }
+#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -1246,9 +1251,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   if(dag == NULL) {
+#if RPL_MAX_DAG_PER_INSTANCE > 1
     PRINTF("RPL: Adding new DAG to known instance.\n");
     rpl_add_dag(from, dio);
     return;
+#else /* RPL_MAX_DAG_PER_INSTANCE > 1 */
+    PRINTF("RPL: Only one instance supported.\n");
+    return;
+#endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
   }
 
 

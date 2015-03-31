@@ -96,17 +96,17 @@ clock_init(void)
   REG(SYS_CTRL_RCGCGPT) |= SYS_CTRL_RCGCGPT_GPT0;
 
   /* Make sure GPT0 is off */
-  REG(GPT_0_BASE | GPTIMER_CTL) = 0;
+  REG(GPT_0_BASE + GPTIMER_CTL) = 0;
 
 
   /* 16-bit */
-  REG(GPT_0_BASE | GPTIMER_CFG) = 0x04;
+  REG(GPT_0_BASE + GPTIMER_CFG) = 0x04;
 
   /* One-Shot, Count Down, No Interrupts */
-  REG(GPT_0_BASE | GPTIMER_TAMR) = GPTIMER_TAMR_TAMR_ONE_SHOT;
+  REG(GPT_0_BASE + GPTIMER_TAMR) = GPTIMER_TAMR_TAMR_ONE_SHOT;
 
   /* Prescale by 16 (thus, value 15 in TAPR) */
-  REG(GPT_0_BASE | GPTIMER_TAPR) = 0x0F;
+  REG(GPT_0_BASE + GPTIMER_TAPR) = 0x0F;
 }
 /*---------------------------------------------------------------------------*/
 CCIF clock_time_t
@@ -144,11 +144,11 @@ clock_wait(clock_time_t i)
 void
 clock_delay_usec(uint16_t dt)
 {
-  REG(GPT_0_BASE | GPTIMER_TAILR) = dt;
-  REG(GPT_0_BASE | GPTIMER_CTL) |= GPTIMER_CTL_TAEN;
+  REG(GPT_0_BASE + GPTIMER_TAILR) = dt;
+  REG(GPT_0_BASE + GPTIMER_CTL) |= GPTIMER_CTL_TAEN;
 
   /* One-Shot mode: TAEN will be cleared when the timer reaches 0 */
-  while(REG(GPT_0_BASE | GPTIMER_CTL) & GPTIMER_CTL_TAEN);
+  while(REG(GPT_0_BASE + GPTIMER_CTL) & GPTIMER_CTL_TAEN);
 }
 /*---------------------------------------------------------------------------*/
 /**
