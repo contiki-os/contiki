@@ -91,11 +91,12 @@ cooja_mtarch_start(struct cooja_mtarch_thread *t,
 
   memset(f, 0, sizeof(struct frame));
   f->retaddr = (unsigned long)function;
-  f->data    = (unsigned long)data;
   t->sp      = (unsigned long)&f->flags;
 #if ON_64BIT_ARCH
+  f->rdi     = (unsigned long)data;
   f->rbp     = (unsigned long)&f->rax;
 #else /* ON_64BIT_ARCH */
+  f->data    = (unsigned long)data;
   f->ebp     = (unsigned long)&f->eax;
 #endif /* ON_64BIT_ARCH */
 }
