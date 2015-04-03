@@ -215,6 +215,7 @@ rpl_update_header_empty(void)
     }
     break;
   default:
+#if RPL_INSERT_HBH_OPTION
     PRINTF("RPL: No hop-by-hop option found, creating it\n");
     if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE) {
       PRINTF("RPL: Packet too long: impossible to add hop-by-hop option\n");
@@ -223,6 +224,7 @@ rpl_update_header_empty(void)
     }
     set_rpl_opt(uip_ext_opt_offset);
     uip_ext_len = last_uip_ext_len + RPL_HOP_BY_HOP_LEN;
+#endif
     return 0;
   }
 
@@ -374,9 +376,11 @@ rpl_invert_header(void)
 void
 rpl_insert_header(void)
 {
+#if RPL_INSERT_HBH_OPTION
   if(default_instance != NULL && !uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     rpl_update_header_empty();
   }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 
