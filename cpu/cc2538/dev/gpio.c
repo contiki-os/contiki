@@ -79,69 +79,34 @@ notify(uint8_t mask, uint8_t port)
   }
 }
 /*---------------------------------------------------------------------------*/
-/** \brief Interrupt service routine for Port A */
-void
-gpio_port_a_isr()
+/** \brief Interrupt service routine for Port \a port
+ * \param port Number between 0 and 3. Port A: 0, Port B: 1, etc.
+ */
+static void
+gpio_port_isr(uint8_t port)
 {
+  uint32_t base;
+
   lpm_exit();
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  notify(REG(GPIO_A_BASE + GPIO_MIS), GPIO_A_NUM);
+  base = GPIO_PORT_TO_BASE(port);
 
-  GPIO_CLEAR_INTERRUPT(GPIO_A_BASE, 0xFF);
-  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_A_NUM, 0xFF);
+  notify(REG(base + GPIO_MIS), port);
+
+  GPIO_CLEAR_INTERRUPT(base, 0xFF);
+  GPIO_CLEAR_POWER_UP_INTERRUPT(port, 0xFF);
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-/** \brief Interrupt service routine for Port B */
-void
-gpio_port_b_isr()
-{
-  lpm_exit();
-
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  notify(REG(GPIO_B_BASE + GPIO_MIS), GPIO_B_NUM);
-
-  GPIO_CLEAR_INTERRUPT(GPIO_B_BASE, 0xFF);
-  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_B_NUM, 0xFF);
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-/*---------------------------------------------------------------------------*/
-/** \brief Interrupt service routine for Port C */
-void
-gpio_port_c_isr()
-{
-  lpm_exit();
-
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  notify(REG(GPIO_C_BASE + GPIO_MIS), GPIO_C_NUM);
-
-  GPIO_CLEAR_INTERRUPT(GPIO_C_BASE, 0xFF);
-  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_C_NUM, 0xFF);
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-/*---------------------------------------------------------------------------*/
-/** \brief Interrupt service routine for Port D */
-void
-gpio_port_d_isr()
-{
-  lpm_exit();
-
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  notify(REG(GPIO_D_BASE + GPIO_MIS), GPIO_D_NUM);
-
-  GPIO_CLEAR_INTERRUPT(GPIO_D_BASE, 0xFF);
-  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_D_NUM, 0xFF);
-
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
+#define GPIO_PORT_ISR(port) \
+  void gpio_port_##port##_isr(void) { gpio_port_isr(GPIO_##port##_NUM); }
+GPIO_PORT_ISR(A)
+GPIO_PORT_ISR(B)
+GPIO_PORT_ISR(C)
+GPIO_PORT_ISR(D)
 /*---------------------------------------------------------------------------*/
 void
 gpio_init()

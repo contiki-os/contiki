@@ -53,10 +53,10 @@ void default_handler(void);
 
 /* System Handler and ISR prototypes implemented elsewhere */
 void clock_isr(void); /* SysTick Handler */
-void gpio_port_a_isr(void);
-void gpio_port_b_isr(void);
-void gpio_port_c_isr(void);
-void gpio_port_d_isr(void);
+void gpio_port_A_isr(void);
+void gpio_port_B_isr(void);
+void gpio_port_C_isr(void);
+void gpio_port_D_isr(void);
 void rtimer_isr(void);
 void cc2538_rf_rx_tx_isr(void);
 void cc2538_rf_err_isr(void);
@@ -137,10 +137,10 @@ void(*const vectors[])(void) =
   0,                          /* 13 Reserved */
   default_handler,            /* 14 The PendSV handler */
   clock_isr,                  /* 15 The SysTick handler */
-  gpio_port_a_isr,            /* 16 GPIO Port A */
-  gpio_port_b_isr,            /* 17 GPIO Port B */
-  gpio_port_c_isr,            /* 18 GPIO Port C */
-  gpio_port_d_isr,            /* 19 GPIO Port D */
+  gpio_port_A_isr,            /* 16 GPIO Port A */
+  gpio_port_B_isr,            /* 17 GPIO Port B */
+  gpio_port_C_isr,            /* 18 GPIO Port C */
+  gpio_port_D_isr,            /* 19 GPIO Port D */
   0,                          /* 20 none */
   uart0_isr,                  /* 21 UART0 Rx and Tx */
   uart1_isr,                  /* 22 UART1 Rx and Tx */
