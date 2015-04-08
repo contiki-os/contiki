@@ -86,18 +86,20 @@ static void
 gpio_port_isr(uint8_t port)
 {
   uint32_t base;
+  uint8_t int_status, power_up_int_status;
 
   lpm_exit();
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   base = GPIO_PORT_TO_BASE(port);
+  int_status = GPIO_GET_MASKED_INT_STATUS(base);
+  power_up_int_status = GPIO_GET_POWER_UP_INT_STATUS(port);
 
-  notify(GPIO_GET_MASKED_INT_STATUS(base) | GPIO_GET_POWER_UP_INT_STATUS(port),
-         port);
+  notify(int_status | power_up_int_status, port);
 
-  GPIO_CLEAR_INTERRUPT(base, 0xFF);
-  GPIO_CLEAR_POWER_UP_INTERRUPT(port, 0xFF);
+  GPIO_CLEAR_INTERRUPT(base, int_status);
+  GPIO_CLEAR_POWER_UP_INTERRUPT(port, power_up_int_status);
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
