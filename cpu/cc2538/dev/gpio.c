@@ -93,7 +93,7 @@ gpio_port_isr(uint8_t port)
 
   base = GPIO_PORT_TO_BASE(port);
 
-  notify(REG(base + GPIO_MIS), port);
+  notify(GPIO_GET_MASKED_INT_STATUS(base), port);
 
   GPIO_CLEAR_INTERRUPT(base, 0xFF);
   GPIO_CLEAR_POWER_UP_INTERRUPT(port, 0xFF);
