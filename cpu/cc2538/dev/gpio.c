@@ -83,14 +83,16 @@ notify(uint8_t mask, uint8_t port)
 void
 gpio_port_a_isr()
 {
+  uint32_t mask = REG(GPIO_A_BASE + GPIO_MIS);
+
   lpm_exit();
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  notify(REG(GPIO_A_BASE + GPIO_MIS), GPIO_A_NUM);
+  notify(mask, GPIO_A_NUM);
 
-  GPIO_CLEAR_INTERRUPT(GPIO_A_BASE, 0xFF);
-  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_A_NUM, 0xFF);
+  GPIO_CLEAR_INTERRUPT(GPIO_A_BASE, mask);
+  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_A_NUM, mask);
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
@@ -99,14 +101,16 @@ gpio_port_a_isr()
 void
 gpio_port_b_isr()
 {
+  uint32_t mask = REG(GPIO_B_BASE + GPIO_MIS);
+
   lpm_exit();
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  notify(REG(GPIO_B_BASE + GPIO_MIS), GPIO_B_NUM);
+  notify(mask, GPIO_B_NUM);
 
-  GPIO_CLEAR_INTERRUPT(GPIO_B_BASE, 0xFF);
-  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_B_NUM, 0xFF);
+  GPIO_CLEAR_INTERRUPT(GPIO_B_BASE, mask);
+  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_B_NUM, mask);
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
@@ -115,14 +119,16 @@ gpio_port_b_isr()
 void
 gpio_port_c_isr()
 {
+  uint32_t mask = REG(GPIO_C_BASE + GPIO_MIS);
+
   lpm_exit();
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  notify(REG(GPIO_C_BASE + GPIO_MIS), GPIO_C_NUM);
+  notify(mask, GPIO_C_NUM);
 
-  GPIO_CLEAR_INTERRUPT(GPIO_C_BASE, 0xFF);
-  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_C_NUM, 0xFF);
+  GPIO_CLEAR_INTERRUPT(GPIO_C_BASE, mask);
+  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_C_NUM, mask);
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
@@ -131,14 +137,16 @@ gpio_port_c_isr()
 void
 gpio_port_d_isr()
 {
+  uint32_t mask = REG(GPIO_D_BASE + GPIO_MIS);
+
   lpm_exit();
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  notify(REG(GPIO_D_BASE + GPIO_MIS), GPIO_D_NUM);
+  notify(mask, GPIO_D_NUM);
 
-  GPIO_CLEAR_INTERRUPT(GPIO_D_BASE, 0xFF);
-  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_D_NUM, 0xFF);
+  GPIO_CLEAR_INTERRUPT(GPIO_D_BASE, mask);
+  GPIO_CLEAR_POWER_UP_INTERRUPT(GPIO_D_NUM, mask);
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
