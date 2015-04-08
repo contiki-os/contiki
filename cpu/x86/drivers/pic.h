@@ -28,19 +28,43 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef HELPERS_H
-#define HELPERS_H
+#ifndef PIC_H
+#define PIC_H
 
-#include <stdint.h>
+#include "helpers.h"
 
-#define BIT(n) (1UL << (n))
+#define PIC1_CMD_PORT   0x20
+#define PIC1_DATA_PORT  0x21
+#define PIC2_CMD_PORT   0xA0
+#define PIC2_DATA_PORT  0xA1
 
-void halt(void) __attribute__((__noreturn__));
-
-/**
- * Wrapper for the assembly 'out' instruction.
- *
+/* This function initializes the daisy-chained Master and Slave 8259 PICs.
+ * It is only called once, so let's give the compiler the option to inline it.
+ * For more information about the ICWs, please refer to http://stanislavs.org/helppc/8259.html.
  */
-void outb(uint16_t port, uint8_t byte);
+static inline void
+pic_init(void)
+{
+  /* ICW1: Initialization. */
+  outb(PIC1_CMD_PORT, 0x11);
+  outb(PIC2_CMD_PORT, 0x11);
 
-#endif /* HELPERS_H */
+  /* ICW2: Remap IRQs by setting an IDT Offset for each PIC. */
+  outb(PIC1_DATA_PORT, 0x20);
+  outb(PIC2_DATA_PORT, 0x28);
+
+  /* ICW3: Setup Slave to Master's IRQ2. */
+  outb(PIC1_DATA_PORT, 0x04);
+  outb(PIC2_DATA_PORT, 0x02);
+
+  /* ICW4: Environment setup. Set PIC1 as master and PIC2 as slave. */
+  outb(PIC1_DATA_PORT, 0x01);
+  outb(PIC2_DATA_PORT, 0x01);
+
+  /* Set the IMR register, masking all hardware interrupts but IRQ 2.
+   * We will have to unmask each IRQ when registering them. */
+  outb(PIC1_DATA_PORT, 0xfb);
+  outb(PIC2_DATA_PORT, 0xff);
+}
+
+#endif /* PIC_H */
