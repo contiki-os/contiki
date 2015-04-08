@@ -30,11 +30,14 @@
 
 #include "contiki.h"
 #include "cpu.h"
+#include "interrupt.h"
 
 int
 main(void)
 {
   cpu_init();
+
+  ENABLE_IRQ();
 
   process_init();
   autostart_start(autostart_processes);
