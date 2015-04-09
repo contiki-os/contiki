@@ -57,7 +57,7 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define CLOCK_CONF_SECOND 125
+#define CLOCK_CONF_SECOND 128
 
 /* Compiler configurations */
 #define CCIF
