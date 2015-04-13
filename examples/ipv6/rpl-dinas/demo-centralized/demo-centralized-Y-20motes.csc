@@ -417,7 +417,7 @@
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <scriptfile>[COOJA_DIR]/build/scripts/dinastest.js</scriptfile>
+      <scriptfile>[CONTIKI_DIR]/examples/ipv6/rpl-dinas/demo-centralized/dinastest.js</scriptfile>
       <active>true</active>
     </plugin_config>
     <width>600</width>
