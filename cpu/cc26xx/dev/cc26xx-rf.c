@@ -937,6 +937,7 @@ init_rf_params(void)
     BITVALUE(CMD_IEEE_RX, frameFiltOpt, defaultPend, 0) |
     BITVALUE(CMD_IEEE_RX, frameFiltOpt, bPendDataReqOnly, 0) |
     BITVALUE(CMD_IEEE_RX, frameFiltOpt, bPanCoord, 0) |
+    BITVALUE(CMD_IEEE_RX, frameFiltOpt, maxFrameVersion, 1) |
     BITVALUE(CMD_IEEE_RX, frameFiltOpt, bStrictLenFilter, 0);
   /* Receive all frame types */
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, frameTypes) =
