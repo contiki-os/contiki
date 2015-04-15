@@ -57,6 +57,10 @@ typedef struct intr_gate_desc {
  */
 static intr_gate_desc_t idt[NUM_DESC] __attribute__ ((aligned(8)));
 
+/* XXX: If you change this function prototype, make sure you fix the assembly
+ * code in SET_INTERRUPT_HANDLER macro in interrupt.h. Otherwise, you might
+ * face a very-hard-to-find bug in the interrupt handling system.
+ */
 void
 idt_set_intr_gate_desc(int intr_num, uint32_t offset)
 {
