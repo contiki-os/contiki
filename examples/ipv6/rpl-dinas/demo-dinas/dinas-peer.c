@@ -75,33 +75,6 @@ PROCESS(dinas_peer_process, "DINAS peer process");
 PROCESS(send_process, "DINAS send process");
 AUTOSTART_PROCESSES(&dinas_peer_process, &send_process);
 
-/*---------------------------------------------------------------------------*/
-/*
-void
-collect_common_set_sink(void)
-{
-  
-}
-*/
-
-/*---------------------------------------------------------------------------*/
-//extern uip_ds6_route_t uip_ds6_routing_table[UIP_DS6_ROUTE_NB];
-
-
-/*---------------------------------------------------------------------------*/
-/*
-void
-collect_common_net_init(void)
-{
-#if CONTIKI_TARGET_Z1
-  uart0_set_input(serial_line_input_byte);
-#else
-  uart1_set_input(serial_line_input_byte);
-#endif
-  serial_line_init();
-}
-*/
-
 
 /*---------------------------------------------------------------------------*/
 

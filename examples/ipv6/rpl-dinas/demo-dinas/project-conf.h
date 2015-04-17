@@ -38,7 +38,7 @@
 
 #define MAX_NUM_MSG 21
 #define NOTIFICATION_COUNTER 10 /* the pattern is N R R R R .. */
-#define NUM_ROOMS 20  /* N = number of nodes */
+#define NUM_ROOMS 100  /* N = number of nodes */
 #define TTL 3 /* this is D */
 #define PERIOD 120
 #define RANDWAIT (PERIOD)
@@ -48,7 +48,7 @@
 #define BLOOM_NFUNCS_PARAM 7
 
 /* overwrite params defined in proximity-cache.h */
-#define CACHE_SIZE_PARAM 5 /* this is C */
+#define CACHE_SIZE_PARAM 8 /* this is C */
 #define T1_PARAM 30
 #define T2_PARAM 90
 
