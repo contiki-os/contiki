@@ -2332,7 +2332,9 @@ void
 uip_send(const void *data, int len)
 {
   int copylen;
+#ifndef MIN
 #define MIN(a,b) ((a) < (b)? (a): (b))
+#endif
 
   if(uip_sappdata != NULL) {
     copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -

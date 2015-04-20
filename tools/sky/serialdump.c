@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BAUDRATE B57600
-#define BAUDRATE_S "57600"
+#define BAUDRATE B115200
+#define BAUDRATE_S "115200"
 #ifdef linux
 #define MODEMDEVICE "/dev/ttyS0"
 #else
@@ -112,7 +112,25 @@ int main(int argc, char **argv)
 	} else if (strcmp(&argv[index][2], "115200") == 0) {
 	  speed = B115200;
 	  speedname = "115200";
-	} else {
+	} else if (strcmp(&argv[index][2], "230400") == 0) {
+    speed = B230400;
+    speedname = "230400";
+  } else if (strcmp(&argv[index][2], "460800") == 0) {
+    speed = B460800;
+    speedname = "460800";
+  } else if (strcmp(&argv[index][2], "500000") == 0) {
+    speed = B500000;
+    speedname = "500000";
+  } else if (strcmp(&argv[index][2], "576000") == 0) {
+    speed = B576000;
+    speedname = "576000";
+  } else if (strcmp(&argv[index][2], "921600") == 0) {
+    speed = B921600;
+    speedname = "921600";
+  } else if (strcmp(&argv[index][2], "1000000") == 0) {
+    speed = B1000000;
+    speedname = "1000000";
+  } else {
 	  fprintf(stderr, "unsupported speed: %s\n", &argv[index][2]);
 	  return usage(1);
 	}
@@ -162,7 +180,7 @@ int main(int argc, char **argv)
   fprintf(stderr, "connecting to %s (%s)", device, speedname);
 
 #ifndef __APPLE__
-  fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_DIRECT | O_SYNC );
+  fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | /*O_DIRECT |*/ O_SYNC );
 #else
   fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC );
 #endif

@@ -256,5 +256,27 @@
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #endif /* CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION */
 
+/* Default implementation for logging functions */
+#ifndef LOG
+#define LOG(...) printf(__VA_ARGS__)
+#endif /* LOG */
+#ifndef LOGN
+#define LOGN(...) { printf(__VA_ARGS__); printf("\n"); }
+#endif /* LOG */
+#ifndef LOGA
+#define LOGA(appdata, ...) { LOGN(__VA_ARGS__) }
+#endif /* LOG */
+#ifndef LOGP
+#define LOGP LOGN
+#endif /* LOGP */
+#ifndef LOGU
+#define LOGU LOGN
+#endif /* LOGU */
+#ifndef LOG_NODEID_FROM_LINKADDR
+#define LOG_NODEID_FROM_LINKADDR(addr) ((addr) ? (addr)->u8[LINKADDR_SIZE-1] : 0)
+#endif /* LOG_NODEID_FROM_LINKADDR */
+#ifndef LOG_NODEID_FROM_IPADDR
+#define LOG_NODEID_FROM_IPADDR(addr) ((addr) ? (addr)->u8[15] : 0)
+#endif /* LOG_NODEID_FROM_IPADDR */
 
 #endif /* CONTIKI_DEFAULT_CONF_H */

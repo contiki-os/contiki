@@ -39,7 +39,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef MIN
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif
 
 LIST(socketlist);
 /*---------------------------------------------------------------------------*/

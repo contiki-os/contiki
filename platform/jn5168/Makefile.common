@@ -1,0 +1,206 @@
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+##############################################################################
+# User definable make parameters that may be overwritten from the command line
+JENNIC_CHIP ?= JN5168
+JENNIC_PCB ?= DEVKIT4
+JENNIC_STACK ?= MAC
+JENNIC_MAC ?= MiniMac
+DISABLE_LTO ?= 1
+# can be set to SW or HW
+DEBUG ?= None
+ifeq ($(HOST_OS),Windows)     
+  SDK_BASE_DIR ?= /cygdrive/c/NXP/bstudio_nxp/sdk/JN-SW-4163
+else
+  SDK_BASE_DIR ?= /usr/jn-toolchain/sdk/JN-SW-4163
+endif
+
+###############################################################################
+# Include NXP makefiles
+include $(SDK_BASE_DIR)/Chip/Common/Build/config.mk
+include $(SDK_BASE_DIR)/Platform/Common/Build/Config.mk
+include $(SDK_BASE_DIR)/Stack/Common/Build/config.mk
+
+# Add missing includes
+INCFLAGS += -I$(COMPONENTS_BASE_DIR)/MicroSpecific/Include
+INCFLAGS += -I$(COMPONENTS_BASE_DIR)/Recal/Include
+INCFLAGS += -I$(COMPONENTS_BASE_DIR)/ProductionTestApi/Include
+
+# Add missing libs
+LDLIBS += Recal_$(JENNIC_CHIP_FAMILY)
+LDLIBS += JPT_$(JENNIC_CHIP)
+
+# Do not link with MiniMac nor MiniMacShim (we use MMAC)
+LDLIBS := $(subst MiniMac_JN516x, ,$(LDLIBS))
+LDLIBS := $(subst MiniMacShim_JN516x, ,$(LDLIBS))
+
+# Pass DEBUG as CFLAG
+ifeq ($(DEBUG),SW)
+CFLAGS += -DDEBUG=1
+endif
+
+# Path-independent cross-compiler
+CC:=$(CROSS_COMPILE)-gcc
+AS:=$(CROSS_COMPILE)-as
+LD:=$(CROSS_COMPILE)-ls
+AR:=$(CROSS_COMPILE)-ar
+NM:=$(CROSS_COMPILE)-nm
+STRIP:=$(CROSS_COMPILE)-strip
+SIZE:=$(CROSS_COMPILE)-size
+OBJCOPY:=$(CROSS_COMPILE)-objcopy
+OBJDUMP:=$(CROSS_COMPILE)-objdump
+
+CFLAGS  := $(subst -Wcast-align,,$(CFLAGS))
+CFLAGS  := $(subst -Wall,,$(CFLAGS))
+
+ARCH=clock.c rtimer-arch.c slip_uart0.c uart0.c uart-driver.c watchdog.c \
+ leds.c leds-arch.c \
+ micromac-radio.c node-id.c exceptions.c sprintf.c
+
+APPLIBS += MMAC 
+STACKLIBS += JPT
+
+CONTIKI_TARGET_DIRS = . dev lib net net/mac net/rime
+CONTIKI_TARGET_MAIN = contiki-jn5168-main.c
+
+ifdef nodemac
+CFLAGS += -DMACID=$(nodemac)
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH)
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
+CFLAGS += $(INCFLAGS)
+
+# Library search paths
+LDFLAGS += -L$(CHIP_BASE_DIR)/Build
+LDFLAGS += -L$(CHIP_BASE_DIR)/Library
+
+LDLIBS := $(addsuffix _$(JENNIC_CHIP_FAMILY),$(APPLIBS)) $(LDLIBS)
+
+ifeq ($(HOST_OS),Windows)
+# Windows assumes Cygwin. Substitute all paths in CFLAGS and LDFLAGS with Windows paths.
+CFLAGS := $(patsubst -I/cygdrive/c/%,-Ic:/%,$(CFLAGS))
+LDFLAGS := $(patsubst -L/cygdrive/c/%,-Lc:/%,$(LDFLAGS))
+endif 
+
+#### make targets
+
+ifeq ($(HOST_OS),Windows)
+  SERIALDUMP = serialdump-windows
+endif
+ifeq ($(HOST_OS),Darwin)
+  SERIALDUMP = serialdump-macos
+endif
+ifndef SERIALDUMP
+  # Assume Linux
+  SERIALDUMP = serialdump-linux
+endif
+
+UART_BAUDRATE ?= 1000000
+
+########################################################################
+# Dependency, compilation and flash-programming rules
+
+.PHONY: all clean
+
+.PRECIOUS: %.elf
+
+%.d: clean
+
+%.nm: %.$(TARGET)
+	$(Q)$(NM) -nS $< > $@
+
+%.dmp: %.$(TARGET) 
+	$(Q)$(OBJDUMP) -d $< > $@
+
+define FINALIZE_DEPENDENCY_
+# hack: subsitute windows path back to cygwin path
+sed -e 's/c:\//\/cygdrive\/c\//' $(@:.o=.d) > $(@:.o=.$$$$); \
+cp $(@:.o=.$$$$) $(@:.o=.d); \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+    -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.$$$$) >> $(@:.o=.d); \
+rm -f $(@:.o=.$$$$)
+endef
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -MMD -c $< -o $@
+	@$(FINALIZE_DEPENDENCY_)
+
+CUSTOM_RULE_LINK = 1
+ALLLIBS = $(addprefix -l,$(LDLIBS)) $(addprefix -l,$(LDSTACKLIBS)) $(addprefix -l,$(LDMYLIBS))
+ABS_APPLIBS = $(addsuffix _$(JENNIC_CHIP_FAMILY).a,$(addprefix $(COMPONENTS_BASE_DIR)/Library/lib,$(APPLIBS)))
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(ABS_APPLIBS)
+	echo  ${filter %.a,$^}
+	$(Q)$(CC) -Wl,--gc-sections $(LDFLAGS) -T$(LINKCMD) -o $@ -Wl,--start-group \
+	  $(patsubst /cygdrive/c/%,c:/%,${filter-out %.a,$^}) \
+	  $(patsubst /cygdrive/c/%,c:/%,${filter %.a,$^}) \
+	  $(ALLLIBS) -Wl,--end-group -Wl,-Map,contiki-$(TARGET).map
+	$(OBJCOPY) -S -O binary $@ $@.bin
+
+%.$(TARGET).bin: %.$(TARGET) 
+	$(Q)$(OBJCOPY) -S -O binary $< $@
+
+symbols.c symbols.h:
+	@${CONTIKI}/tools/make-empty-symbols
+
+### Upload target to one jn5168 mote specified by MOTE=portNumber
+%.upload: %.$(TARGET).bin
+	${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe -a -c COM${MOTE} -B 1000000 -s -w -f $<
+
+### Flash the given file
+%.flash: 
+	${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe -a -c COM${MOTE} -B 1000000 -s -w -f $*.$(TARGET).bin
+
+### List the ports with connected jn5168 motes	
+motelist:
+	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe \#
+
+motelistmac:
+	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe \!
+	
+motelistinfo:
+	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe \?	
+
+### Upload target to all connected jn5168 motes	
+%.uploadall: %.$(TARGET).bin
+	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe $<
+
+### Flash the given file to all connected jn5168 motes	
+%.flashall:
+	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe $*
+	
+serialdumpall:
+	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe \%
+	
+########### login: read serial line ##############
+### USAGE: make TARGET=jn5168 login UART_BAUDRATE={baudrate} {serial device}
+### UART_BAUDRATE: i.e., 115200. default is 1000000
+### example: make TARGET=jn5168 UART_BAUDRATE=115200 login MOTE=1
+
+ifeq ($(HOST_OS),Windows)
+PORT = /dev/com$(MOTE)
+else
+PORT = /dev/ttyUSB$(MOTE)
+endif
+
+$(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
+	($(MAKE) -C $(CONTIKI)/tools tunslip6 CFLAGS= LDFLAGS= LDLIBS= INCFLAGS=)
+
+$(SERIALDUMP): 
+	(cd $(CONTIKI)/tools/sky; ${MAKE} $(SERIALDUMP))
+
+login: $(SERIALDUMP)	
+	$(CONTIKI)/tools/sky/$(SERIALDUMP) -b${UART_BAUDRATE} $(PORT)
+
+serialview: $(SERIALDUMP)	
+	$(CONTIKI)/tools/sky/$(SERIALDUMP) -b${UART_BAUDRATE} $(PORT) | $(CONTIKI)/tools/timestamp
+		
+serialdump: $(SERIALDUMP)	
+	$(CONTIKI)/tools/sky/$(SERIALDUMP) -b${UART_BAUDRATE} $(PORT) | $(CONTIKI)/tools/timestamp | tee serialdump-$(notdir $(PORT))-`date +%Y%m%d-%H%M`

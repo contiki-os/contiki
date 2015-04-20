@@ -49,8 +49,13 @@
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/netstack.h"
+#include "sys/rtimer.h"
 
+#ifdef CC2420_CONF_SEND_CCA
+#define WITH_SEND_CCA CC2420_CONF_SEND_CCA
+#else
 #define WITH_SEND_CCA 1
+#endif
 
 #ifndef CC2420_CONF_CHANNEL
 #define CC2420_CONF_CHANNEL 26
@@ -135,11 +140,18 @@ volatile uint8_t cc2420_sfd_counter;
 volatile uint16_t cc2420_sfd_start_time;
 volatile uint16_t cc2420_sfd_end_time;
 
-static volatile uint16_t last_packet_timestamp;
+static volatile rtimer_clock_t last_packet_timestamp;
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2420_process, "CC2420 driver");
 /*---------------------------------------------------------------------------*/
 
+#define AUTOACK (1 << 4)
+#define AUTOCRC (1 << 5)
+#define ADR_DECODE (1 << 11)
+#define RXFIFO_PROTECTION (1 << 9)
+#define CORR_THR(n) (((n) & 0x1f) << 6)
+#define FIFOP_THR(n) ((n) & 0x7f)
+#define RXBPF_LOCUR (1 << 13);
 
 int cc2420_on(void);
 int cc2420_off(void);
@@ -154,12 +166,21 @@ static int cc2420_receiving_packet(void);
 static int pending_packet(void);
 static int get_cca_threshold(void);
 static int cc2420_cca(void);
+static void setup_sfd_rising_edge(void);
+static rtimer_clock_t get_last_packet_timestamp(void);
+static void set_frame_filtering(uint8_t enable);
+static void set_poll_mode(uint8_t enable);
+static void set_auto_ack(uint8_t enable);
+static uint16_t getreg(enum cc2420_register regname);
 
 signed char cc2420_last_rssi;
 uint8_t cc2420_last_correlation;
 
 static uint8_t receive_on;
 static int channel;
+
+/* Are we currently in poll mode? */
+static uint8_t volatile poll_mode = 0;
 
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
@@ -175,6 +196,18 @@ get_value(radio_param_t param, radio_value_t *value)
     return RADIO_RESULT_OK;
   case RADIO_PARAM_CHANNEL:
     *value = cc2420_get_channel();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
+    *value = 0;
+    if(getreg(CC2420_MDMCTRL0) & ADR_DECODE) {
+      *value |= RADIO_RX_MODE_ADDRESS_FILTER;
+    }
+    if(getreg(CC2420_MDMCTRL0) & AUTOACK) {
+      *value |= RADIO_RX_MODE_AUTOACK;
+    }
+    if(poll_mode) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     v = cc2420_get_txpower();
@@ -194,6 +227,10 @@ get_value(radio_param_t param, radio_value_t *value)
     /* Return the RSSI value in dBm */
     *value = cc2420_rssi();
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_RSSI:
+      /* Return the RSSI value in dBm */
+      *value = cc2420_last_rssi;
+      return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = 11;
     return RADIO_RESULT_OK;
@@ -233,6 +270,17 @@ set_value(radio_param_t param, radio_value_t value)
     }
     cc2420_set_channel(value);
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
+    if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
+        RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
+    set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
+    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
+
+    return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
@@ -256,6 +304,15 @@ set_value(radio_param_t param, radio_value_t value)
 static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
+  if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+    if(size != sizeof(rtimer_clock_t) || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    *(rtimer_clock_t*)dest = get_last_packet_timestamp();
+
+    return RADIO_RESULT_OK;
+  }
   return RADIO_RESULT_NOT_SUPPORTED;
 }
 
@@ -447,7 +504,10 @@ wait_for_transmission(void)
 static void
 on(void)
 {
-  CC2420_ENABLE_FIFOP_INT();
+  if(!poll_mode) {
+    CC2420_ENABLE_FIFOP_INT();
+  }
+
   strobe(CC2420_SRXON);
 
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
@@ -465,8 +525,10 @@ off(void)
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   strobe(CC2420_SRFOFF);
-  CC2420_DISABLE_FIFOP_INT();
-
+  if(!poll_mode) {
+    CC2420_DISABLE_FIFOP_INT();
+  }
+  
   if(!CC2420_FIFOP_IS_1) {
     flushrx();
   }
@@ -502,7 +564,7 @@ set_key(uint8_t *key)
   GET_LOCK();
   
   write_ram(key, CC2420RAM_KEY0, 16, WRITE_RAM_REVERSE);
-  
+
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
@@ -520,7 +582,7 @@ encrypt(uint8_t *plaintext_and_result)
   while(get_status() & BV(CC2420_ENC_BUSY));
   
   read_ram(plaintext_and_result, CC2420RAM_SABUF, 16);
-  
+
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
@@ -538,14 +600,6 @@ set_txpower(uint8_t power)
   reg = (reg & 0xffe0) | (power & 0x1f);
   setreg(CC2420_TXCTRL, reg);
 }
-/*---------------------------------------------------------------------------*/
-#define AUTOACK (1 << 4)
-#define AUTOCRC (1 << 5)
-#define ADR_DECODE (1 << 11)
-#define RXFIFO_PROTECTION (1 << 9)
-#define CORR_THR(n) (((n) & 0x1f) << 6)
-#define FIFOP_THR(n) ((n) & 0x7f)
-#define RXBPF_LOCUR (1 << 13);
 /*---------------------------------------------------------------------------*/
 int
 cc2420_init(void)
@@ -613,6 +667,15 @@ cc2420_init(void)
   cc2420_set_cca_threshold(CC2420_CONF_CCA_THRESH);
 
   flushrx();
+
+#if !CC2420_CONF_SFD_TIMESTAMPS
+  /* SFD timestamp interrupts are not used, se need to have SFD on rising
+   * edge only to be able to read timestamps after reception. */
+  setup_sfd_rising_edge();
+#endif
+
+  set_poll_mode(0);
+  CC2420_CLEAR_FIFOP_INT();
 
   process_start(&cc2420_process, NULL);
   return 1;
@@ -736,7 +799,7 @@ cc2420_prepare(const void *payload, unsigned short payload_len)
   total_len = payload_len + CHECKSUM_LEN;
   write_fifo_buf(&total_len, 1);
   write_fifo_buf(payload, payload_len);
-  
+
   RELEASE_LOCK();
   return 0;
 }
@@ -867,7 +930,7 @@ PROCESS_THREAD(cc2420_process, ev, data)
   PRINTF("cc2420_process: started\n");
 
   while(1) {
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+    PROCESS_YIELD_UNTIL(!poll_mode && ev == PROCESS_EVENT_POLL);
 
     PRINTF("cc2420_process: calling receiver callback\n");
 
@@ -907,32 +970,35 @@ cc2420_read(void *buf, unsigned short bufsize)
   } else {
     getrxdata((uint8_t *) buf, len - FOOTER_LEN);
     getrxdata(footer, FOOTER_LEN);
-    
+
     if(footer[1] & FOOTER1_CRC_OK) {
       cc2420_last_rssi = footer[0] + RSSI_OFFSET;
       cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
-      
-      packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
-      packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
-  
+      if(!poll_mode) {
+        packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
+        packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
+      }
+
       RIMESTATS_ADD(llrx);
     } else {
       RIMESTATS_ADD(badcrc);
       len = FOOTER_LEN;
     }
-  
-    if(CC2420_FIFOP_IS_1) {
-      if(!CC2420_FIFO_IS_1) {
-        /* Clean up in case of FIFO overflow!  This happens for every
-         * full length frame and is signaled by FIFOP = 1 and FIFO =
-         * 0. */
-        flushrx();
-      } else {
-        /* Another packet has been received and needs attention. */
-        process_poll(&cc2420_process);
+
+    if(!poll_mode) {
+      if(CC2420_FIFOP_IS_1) {
+        if(!CC2420_FIFO_IS_1) {
+          /* Clean up in case of FIFO overflow!  This happens for every
+           * full length frame and is signaled by FIFOP = 1 and FIFO =
+           * 0. */
+          flushrx();
+        } else {
+          /* Another packet has been received and needs attention. */
+          process_poll(&cc2420_process);
+        }
       }
     }
-    
+
     RELEASE_LOCK();
     return len - FOOTER_LEN;
   }
@@ -1059,4 +1125,92 @@ cc2420_set_cca_threshold(int value)
   setreg(CC2420_RSSI, shifted);
   RELEASE_LOCK();
 }
-/*---------------------------------------------------------------------------*/
+
+/* Configures timer B to capture SFD rising edge */
+static void
+setup_sfd_rising_edge()
+{
+  /* Need to select the special function! */
+  CC2420_SFD_PORT(SEL) = BV(CC2420_SFD_PIN);
+
+  /* start timer B - 32768 ticks per second */
+  TBCTL = TBSSEL_1 | TBCLR;
+
+  /* Capture mode: 1 - pos. edge */
+  TBCCTL1 = CM_1 | CAP | SCS;
+
+  /* Start Timer_B in continuous mode. */
+	TBCTL |= MC1; //it is already started?
+
+	/* Sync with RTIMER */
+  TBR = RTIMER_NOW();
+}
+
+/* Returns last packet timestamp */
+static rtimer_clock_t
+get_last_packet_timestamp(void)
+{
+#if CC2420_CONF_SFD_TIMESTAMPS
+ return cc2420_sfd_start_time;
+#else
+  return TBCCR1;
+#endif
+}
+
+/* Set or unset frame autoack */
+static void
+set_auto_ack(uint8_t enable)
+{
+  GET_LOCK();
+
+  uint16_t reg = getreg(CC2420_MDMCTRL0);
+  if(enable) {
+    reg |= AUTOACK;
+  } else {
+    reg &= ~(AUTOACK);
+  }
+  /* Writing RAM requires crystal oscillator to be stable. */
+  wait_for_status(BV(CC2420_XOSC16M_STABLE));
+  setreg(CC2420_MDMCTRL0, reg);
+  RELEASE_LOCK();
+}
+
+/* Set or unset frame filtering */
+static void
+set_frame_filtering(uint8_t enable)
+{
+	GET_LOCK();
+
+	/* Turn on/off address decoding. */
+	uint16_t reg = getreg(CC2420_MDMCTRL0);
+	if(enable) {
+	  reg |= ADR_DECODE;
+	} else {
+	  reg &= ~(ADR_DECODE);
+	}
+  /* Writing RAM requires crystal oscillator to be stable. */
+	wait_for_status(BV(CC2420_XOSC16M_STABLE));
+	setreg(CC2420_MDMCTRL0, reg);
+	RELEASE_LOCK();
+}
+
+/* Enable or disable radio interrupts (both FIFOP and SFD timer capture) */
+static void
+set_poll_mode(uint8_t enable)
+{
+	GET_LOCK();
+
+	poll_mode = enable;
+
+	if(enable) {
+	  /* Disable FIFOP interrupt */
+	  CC2420_CLEAR_FIFOP_INT();
+	  CC2420_DISABLE_FIFOP_INT();
+	} else {
+    /* Initialize and enable FIFOP interrupt */
+    CC2420_FIFOP_INT_INIT();
+    CC2420_ENABLE_FIFOP_INT();
+    CC2420_CLEAR_FIFOP_INT();
+	}
+	RELEASE_LOCK();
+}

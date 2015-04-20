@@ -38,7 +38,7 @@ UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
 ELFLOADER  = elfloader.c elfloader-msp430.c symtab.c
 
 CONTIKI_TARGET_SOURCEFILES += $(MSP430) \
-                              $(SYSAPPS) $(ELFLOADER) \
+                              $(SYSAPPS) \
                               $(UIPDRIVERS)
 
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
@@ -151,7 +151,7 @@ ifneq (,$(findstring 4.7.,$(shell msp430-gcc -dumpversion)))
 ifdef CPU_HAS_MSP430X
   TARGET_MEMORY_MODEL ?= medium
   CFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL)
-  CFLAGS += -ffunction-sections -fdata-sections -mcode-region=any
+  CFLAGS += -ffunction-sections -fdata-sections -mcode-region=far
   LDFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL) -Wl,-gc-sections
 endif
 endif
