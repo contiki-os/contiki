@@ -80,7 +80,7 @@ board_i2c_wakeup()
   while(!ti_lib_prcm_load_get());
 
   /* Reset the I2C controller */
-  HWREG(PRCM_BASE + PRCM_O_RESETI2C) = PRCM_RESETI2C_I2C;
+  ti_lib_hapi_reset_peripheral(PRCM_PERIPH_I2C0);
 
   /* Enable and initialize the I2C master module */
   ti_lib_i2c_master_init_exp_clk(I2C0_BASE,
