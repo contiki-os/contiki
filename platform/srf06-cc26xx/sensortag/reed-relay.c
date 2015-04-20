@@ -54,8 +54,7 @@ static struct timer debouncetimer;
                                  IOC_IOPULL_DOWN  | IOC_SLEW_DISABLE  |       \
                                  IOC_HYST_DISABLE | IOC_BOTH_EDGES    |       \
                                  IOC_INT_DISABLE  | IOC_IOMODE_NORMAL |       \
-                                 IOC_NO_WAKE_UP   | IOC_INPUT_ENABLE  |       \
-                                 IOC_JTAG_DISABLE)
+                                 IOC_NO_WAKE_UP   | IOC_INPUT_ENABLE)
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Handler for Sensortag-CC26XX reed interrupts
