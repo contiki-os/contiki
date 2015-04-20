@@ -160,7 +160,7 @@ lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
   /* Turn off AUX */
   ti_lib_aux_wuc_power_ctrl(AUX_WUC_POWER_OFF);
   ti_lib_aon_wuc_domain_power_down_enable();
-  while(ti_lib_aon_wuc_power_status() & AONWUC_AUX_POWER_ON);
+  while(ti_lib_aon_wuc_power_status_get() & AONWUC_AUX_POWER_ON);
 
   /*
    * Request MCU VD power off.
@@ -362,7 +362,7 @@ lpm_drop()
     /* Turn off AUX */
     ti_lib_aux_wuc_power_ctrl(AUX_WUC_POWER_OFF);
     ti_lib_aon_wuc_domain_power_down_enable();
-    while(ti_lib_aon_wuc_power_status() & AONWUC_AUX_POWER_ON);
+    while(ti_lib_aon_wuc_power_status_get() & AONWUC_AUX_POWER_ON);
 
     /* Configure the recharge controller */
     ti_lib_sys_ctrl_set_recharge_before_power_down(false);
