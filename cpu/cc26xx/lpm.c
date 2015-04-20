@@ -141,11 +141,9 @@ lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
   ti_lib_aon_wuc_mcu_power_down_config(AONWUC_NO_CLOCK);
   ti_lib_aon_wuc_aux_power_down_config(AONWUC_NO_CLOCK);
 
-  /* Disable retentions: SRAM, CPU, AUX, RFCORE - possibly not required */
+  /* Disable SRAM and AUX retentions */
   ti_lib_aon_wuc_mcu_sram_config(0);
-  ti_lib_prcm_retention_disable(PRCM_DOMAIN_CPU);
   ti_lib_aon_wuc_aux_sram_config(false);
-  ti_lib_prcm_retention_disable(PRCM_DOMAIN_RFCORE);
 
   /*
    * Request CPU, SYSBYS and VIMS PD off.
@@ -176,7 +174,7 @@ lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
   ti_lib_pwr_ctrl_io_freeze_enable();
 
   /* Turn off VIMS cache, CRAM and TRAM - possibly not required */
-  ti_lib_prcm_retention_disable(PRCM_DOMAIN_VIMS);
+  ti_lib_prcm_cache_retention_disable();
   ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_OFF);
 
   /* Enable shutdown and sync AON */
@@ -216,7 +214,7 @@ wake_up(void)
 
   /* Turn on cache again */
   ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_ENABLED);
-  ti_lib_prcm_retention_enable(PRCM_DOMAIN_VIMS);
+  ti_lib_prcm_cache_retention_enable();
 
   ti_lib_aon_ioc_freeze_disable();
   ti_lib_sys_ctrl_aon_sync();
@@ -340,14 +338,8 @@ lpm_drop()
     ti_lib_aon_wuc_mcu_sram_config(MCU_RAM0_RETENTION | MCU_RAM1_RETENTION |
                                    MCU_RAM2_RETENTION | MCU_RAM3_RETENTION);
 
-    /* Enable retention on the CPU domain */
-    ti_lib_prcm_retention_enable(PRCM_DOMAIN_CPU);
-
     /* Disable retention of AUX RAM */
     ti_lib_aon_wuc_aux_sram_config(false);
-
-    /* Disable retention in the RFCORE RAM */
-    ti_lib_prcm_retention_disable(PRCM_DOMAIN_RFCORE);
 
     /*
      * Always turn off RFCORE, CPU, SYSBUS and VIMS. RFCORE should be off
@@ -389,7 +381,7 @@ lpm_drop()
      * until right before deep sleep to be able to use the cache for as long
      * as possible.
      */
-    ti_lib_prcm_retention_disable(PRCM_DOMAIN_VIMS);
+    ti_lib_prcm_cache_retention_disable();
     ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_OFF);
 
     /* Deep Sleep */
