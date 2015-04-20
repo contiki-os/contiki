@@ -118,10 +118,8 @@
 #define ti_lib_aon_wuc_mcu_power_down_config(...)     AONWUCMcuPowerDownConfig(__VA_ARGS__)
 #define ti_lib_aon_wuc_mcu_power_off_config(...)      AONWUCMcuPowerOffConfig(__VA_ARGS__)
 #define ti_lib_aon_wuc_mcu_sram_config(...)           AONWUCMcuSRamConfig(__VA_ARGS__)
-#define ti_lib_aon_wuc_aux_clock_config_set(...)      AONWUCAuxClockConfigSet(__VA_ARGS__)
 #define ti_lib_aon_wuc_aux_clock_config_get(...)      AONWUCAuxClockConfigGet(__VA_ARGS__)
 #define ti_lib_aon_wuc_aux_power_down_config(...)     AONWUCAuxPowerDownConfig(__VA_ARGS__)
-#define ti_lib_aon_wuc_aux_power_off_config(...)      AONWUCAuxPowerOffConfig(__VA_ARGS__)
 #define ti_lib_aon_wuc_aux_wake_up_config(...)        AONWUCAuxWakeUpConfig(__VA_ARGS__)
 #define ti_lib_aon_wuc_aux_sram_config(...)           AONWUCAuxSRamConfig(__VA_ARGS__)
 #define ti_lib_aon_wuc_aux_wakeup_event(...)          AONWUCAuxWakeupEvent(__VA_ARGS__)
@@ -168,10 +166,6 @@
 
 #define ti_lib_aux_adi_ddi_safe_write(...) AuxAdiDdiSafeWrite(__VA_ARGS__)
 #define ti_lib_aux_adi_ddi_safe_read(...)  AuxAdiDdiSafeRead(__VA_ARGS__)
-#define ti_lib_ddi_status_get(...)         DDIStatusGet(__VA_ARGS__)
-#define ti_lib_ddi_config_set(...)         DDIConfigSet(__VA_ARGS__)
-#define ti_lib_ddi_sync(...)               DDISync(__VA_ARGS__)
-#define ti_lib_ddi_protect(...)            DDIProtect(__VA_ARGS__)
 #define ti_lib_ddi_32_reg_write(...)       DDI32RegWrite(__VA_ARGS__)
 #define ti_lib_ddi_32_reg_read(...)        DDI32RegRead(__VA_ARGS__)
 #define ti_lib_ddi_32_bits_set(...)        DDI32BitsSet(__VA_ARGS__)
@@ -251,7 +245,6 @@
 #define ti_lib_ioc_port_configure_set(...)   IOCPortConfigureSet(__VA_ARGS__)
 #define ti_lib_ioc_port_configure_get(...)   IOCPortConfigureGet(__VA_ARGS__)
 #define ti_lib_ioc_io_shutdown_set(...)      IOCIOShutdownSet(__VA_ARGS__)
-#define ti_lib_ioc_io_jtag_set(...)          IOCIOJTagSet(__VA_ARGS__)
 #define ti_lib_ioc_io_mode_set(...)          IOCIOModeSet(__VA_ARGS__)
 #define ti_lib_ioc_io_port_pull_set(...)     IOCIOPortPullSet(__VA_ARGS__)
 #define ti_lib_ioc_io_hyst_set(...)          IOCIOHystSet(__VA_ARGS__)
@@ -298,8 +291,6 @@
 #define ti_lib_prcm_mcu_power_off(...)                 PRCMMcuPowerOff(__VA_ARGS__)
 #define ti_lib_prcm_mcu_power_off_cancel(...)          PRCMMcuPowerOffCancel(__VA_ARGS__)
 #define ti_lib_prcm_mcu_uldo_configure(...)            PRCMMcuUldoConfigure(__VA_ARGS__)
-#define ti_lib_prcm_clock_configure_set(...)           PRCMClockConfigureSet(__VA_ARGS__)
-#define ti_lib_prcm_clock_configure_get(...)           PRCMClockConfigureGet(__VA_ARGS__)
 #define ti_lib_prcm_audio_clock_enable(...)            PRCMAudioClockEnable(__VA_ARGS__)
 #define ti_lib_prcm_audio_clock_disable(...)           PRCMAudioClockDisable(__VA_ARGS__)
 #define ti_lib_prcm_audio_clock_config_set(...)        PRCMAudioClockConfigSet(__VA_ARGS__)
@@ -321,8 +312,8 @@
 #define ti_lib_prcm_wdt_reset_status(...)              PRCMWdtResetStatus(__VA_ARGS__)
 #define ti_lib_prcm_sleep(...)                         PRCMSleep(__VA_ARGS__)
 #define ti_lib_prcm_deep_sleep(...)                    PRCMDeepSleep(__VA_ARGS__)
-#define ti_lib_prcm_retention_enable(...)              PRCMRetentionEnable(__VA_ARGS__)
-#define ti_lib_prcm_retention_disable(...)             PRCMRetentionDisable(__VA_ARGS__)
+#define ti_lib_prcm_cache_retention_enable(...)        PRCMCacheRetentionEnable(__VA_ARGS__)
+#define ti_lib_prcm_cache_retention_disable(...)       PRCMCacheRetentionDisable(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* sys_ctrl.h */
 #include "driverlib/pwr_ctrl.h"
@@ -330,7 +321,6 @@
 #define ti_lib_pwr_ctrl_state_set(...)          PowerCtrlStateSet(__VA_ARGS__)
 #define ti_lib_pwr_ctrl_source_set(...)         PowerCtrlSourceSet(__VA_ARGS__)
 #define ti_lib_pwr_ctrl_source_get(...)         PowerCtrlSourceGet(__VA_ARGS__)
-#define ti_lib_pwr_ctrl_io_config_set(...)      PowerCtrlIoConfigSet(__VA_ARGS__)
 #define ti_lib_pwr_ctrl_reset_source_get(...)   PowerCtrlResetSourceGet(__VA_ARGS__)
 #define ti_lib_pwr_ctrl_reset_source_clear(...) PowerCtrlResetSourceClear(__VA_ARGS__)
 #define ti_lib_pwr_ctrl_io_freeze_enable(...)   PowerCtrlIOFreezeEnable(__VA_ARGS__)
@@ -366,7 +356,6 @@
 #define ti_lib_rom_aon_rtc_current_compare_value_get  ROM_AONRTCCurrentCompareValueGet
 
 /* AON_WUC API */
-#define ti_lib_rom_aon_wuc_aux_clock_config_set       ROM_AONWUCAuxClockConfigSet
 #define ti_lib_rom_aon_wuc_aux_s_ram_config           ROM_AONWUCAuxSRamConfig
 #define ti_lib_rom_aon_wuc_aux_wakeup_event           ROM_AONWUCAuxWakeupEvent
 #define ti_lib_rom_aon_wuc_aux_reset                  ROM_AONWUCAuxReset
@@ -444,8 +433,6 @@
 /* PRCM API */
 #define ti_lib_rom_prcm_inf_clock_configure_set       ROM_PRCMInfClockConfigureSet
 #define ti_lib_rom_prcm_inf_clock_configure_get       ROM_PRCMInfClockConfigureGet
-#define ti_lib_rom_prcm_clock_configure_set           ROM_PRCMClockConfigureSet
-#define ti_lib_rom_prcm_clock_configure_get           ROM_PRCMClockConfigureGet
 #define ti_lib_rom_prcm_audio_clock_config_set        ROM_PRCMAudioClockConfigSet
 #define ti_lib_rom_prcm_power_domain_on               ROM_PRCMPowerDomainOn
 #define ti_lib_rom_prcm_power_domain_off              ROM_PRCMPowerDomainOff
@@ -457,8 +444,6 @@
 #define ti_lib_rom_prcm_peripheral_deep_sleep_disable ROM_PRCMPeripheralDeepSleepDisable
 #define ti_lib_rom_prcm_power_domain_status           ROM_PRCMPowerDomainStatus
 #define ti_lib_rom_prcm_deep_sleep                    ROM_PRCMDeepSleep
-#define ti_lib_rom_prcm_retention_enable              ROM_PRCMRetentionEnable
-#define ti_lib_rom_prcm_retention_disable             ROM_PRCMRetentionDisable
 
 /* SMPH API */
 #define ti_lib_rom_smph_acquire                       ROM_SMPHAcquire
@@ -512,6 +497,29 @@
 #define ti_lib_rom_vims_configure                     ROM_VIMSConfigure
 #define ti_lib_rom_vims_mode_set                      ROM_VIMSModeSet
 #define ti_lib_rom_vims_mode_get                      ROM_VIMSModeGet
+
+/* HAPI */
+#define ti_lib_hapi_crc32(a, b, c)              HapiCrc32(a, b, c)
+#define ti_lib_hapi_get_chip_id()               HapiGetChipId()
+#define ti_lib_hapi_reset_device()              HapiResetDevice()
+#define ti_lib_hapi_fletcher32(a, b, c)         HapiFletcher32(a, b, c)
+#define ti_lib_hapi_min_value(a, b)             HapiMinValue(a,b)
+#define ti_lib_hapi_max_value(a, b)             HapiMaxValue(a,b)
+#define ti_lib_hapi_mean_value(a, b)            HapiMeanValue(a,b)
+#define ti_lib_hapi_stand_deviation_value(a, b) HapiStandDeviationValue(a,b)
+#define ti_lib_hapi_reset_peripheral(a)         HapiResetPeripheral(a)
+#define ti_lib_hapi_reset_domain(a)             HapiResetDomain(a)
+#define ti_lib_hapi_hf_source_safe_switch()     HapiHFSourceSafeSwitch()
+#define ti_lib_hapi_select_comp_a_input(a)      HapiSelectCompAInput(a)
+#define ti_lib_hapi_select_comp_a_ref(a)        HapiSelectCompARef(a)
+#define ti_lib_hapi_select_adc_comp_b_input(a)  HapiSelectADCCompBInput(a)
+#define ti_lib_hapi_select_comp_b_ref(a)        HapiSelectCompBRef(a)
+#define ti_lib_hapi_get_flash_size()            HapiGetFlashSize()
+#define ti_lib_hapi_sector_erase(a)             HapiSectorErase(a)
+#define ti_lib_hapi_program_flash(a, b, c)      HapiProgramFlash(a, b, c)
+#define ti_lib_hapi_get_flash_size()            HapiGetFlashSize()
+#define ti_lib_hapi_sector_erase(a)             HapiSectorErase(a)
+#define ti_lib_hapi_program_flash(a, b, c)      HapiProgramFlash(a, b, c)
 /*---------------------------------------------------------------------------*/
 /* sys_ctrl.h */
 #include "driverlib/sys_ctrl.h"
@@ -521,13 +529,13 @@
 #define ti_lib_sys_ctrl_standby(...)                          SysCtrlStandby(__VA_ARGS__)
 #define ti_lib_sys_ctrl_shutdown(...)                         SysCtrlShutdown(__VA_ARGS__)
 #define ti_lib_sys_ctrl_clock_get(...)                        SysCtrlClockGet(__VA_ARGS__)
-#define ti_lib_sys_ctrl_peripheral_clock_get(...)             SysCtrlPeripheralClockGet(__VA_ARGS__)
 #define ti_lib_sys_ctrl_aon_sync(...)                         SysCtrlAonSync(__VA_ARGS__)
 #define ti_lib_sys_ctrl_aon_update(...)                       SysCtrlAonUpdate(__VA_ARGS__)
 #define ti_lib_sys_ctrl_set_recharge_before_power_down(...)   SysCtrlSetRechargeBeforePowerDown(__VA_ARGS__)
 #define ti_lib_sys_ctrl_adjust_recharge_after_power_down(...) SysCtrlAdjustRechargeAfterPowerDown(__VA_ARGS__)
 #define ti_lib_sys_ctrl_dcdc_voltage_conditional_control(...) SysCtrl_DCDC_VoltageConditionalControl(__VA_ARGS__)
 #define ti_lib_sys_ctrl_reset_source_get(...)                 SysCtrlResetSourceGet(__VA_ARGS__)
+#define ti_lib_sys_ctrl_system_reset(...)                     SysCtrlSystemReset(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* ssi.h */
 #include "driverlib/ssi.h"
@@ -592,6 +600,10 @@
 #define ti_lib_timer_int_status(...)              TimerIntStatus(__VA_ARGS__)
 #define ti_lib_timer_int_clear(...)               TimerIntClear(__VA_ARGS__)
 #define ti_lib_timer_synchronize(...)             TimerSynchronize(__VA_ARGS__)
+#define ti_lib_timer_ccp_combine_enable(...)      TimerCcpCombineEnable(__VA_ARGS__)
+#define ti_lib_timer_ccp_combine_disable(...)     TimerCcpCombineDisable(__VA_ARGS__)
+#define ti_lib_timer_match_update_mode(...)       TimerMatchUpdateMode(__VA_ARGS__)
+#define ti_lib_timer_interval_load_mode(...)      TimerIntervalLoadMode(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* uart.h */
 #include "driverlib/uart.h"
@@ -624,8 +636,8 @@
 #define ti_lib_uart_dma_disable(...)           UARTDMADisable(__VA_ARGS__)
 #define ti_lib_uart_rx_error_get(...)          UARTRxErrorGet(__VA_ARGS__)
 #define ti_lib_uart_rx_error_clear(...)        UARTRxErrorClear(__VA_ARGS__)
-#define ti_lib_uart_tx_int_mode_set(...)       UARTTxIntModeSet(__VA_ARGS__)
-#define ti_lib_uart_tx_int_mode_get(...)       UARTTxIntModeGet(__VA_ARGS__)
+#define ti_lib_uart_hw_flow_control_en(...)    UARTHwFlowControlEnable(__VA_ARGS__)
+#define ti_lib_uart_hw_flow_control_dis(...)   UARTHwFlowControlDisable(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* vims.h */
 #include "driverlib/vims.h"
