@@ -83,9 +83,7 @@ board_i2c_wakeup()
   ti_lib_hapi_reset_peripheral(PRCM_PERIPH_I2C0);
 
   /* Enable and initialize the I2C master module */
-  ti_lib_i2c_master_init_exp_clk(I2C0_BASE,
-                                 ti_lib_sys_ctrl_peripheral_clock_get(
-                                   PRCM_PERIPH_I2C0, SYSCTRL_SYSBUS_ON),
+  ti_lib_i2c_master_init_exp_clk(I2C0_BASE, ti_lib_sys_ctrl_clock_get(),
                                  true);
 }
 /*---------------------------------------------------------------------------*/
@@ -331,9 +329,7 @@ board_i2c_select(uint8_t new_interface, uint8_t address)
     }
 
     /* Enable and initialize the I2C master module */
-    ti_lib_i2c_master_init_exp_clk(I2C0_BASE,
-                                   ti_lib_sys_ctrl_peripheral_clock_get(
-                                     PRCM_PERIPH_I2C0, SYSCTRL_SYSBUS_ON),
+    ti_lib_i2c_master_init_exp_clk(I2C0_BASE, ti_lib_sys_ctrl_clock_get(),
                                    true);
   }
 }
