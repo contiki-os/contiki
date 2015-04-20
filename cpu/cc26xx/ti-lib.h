@@ -57,12 +57,7 @@
 
 #define ti_lib_aon_batmon_enable(...)                    AONBatMonEnable(__VA_ARGS__)
 #define ti_lib_aon_batmon_disable(...)                   AONBatMonDisable(__VA_ARGS__)
-#define ti_lib_aon_batmon_measurement_cycle_set(...)     AONBatMonMeasurementCycleSet(__VA_ARGS__)
-#define ti_lib_aon_batmon_measurement_cycle_get(...)     AONBatMonMeasurementCycleGet(__VA_ARGS__)
-#define ti_lib_aon_batmon_battery_trim_set(...)          AONBatMonBatteryTrimSet(__VA_ARGS__)
-#define ti_lib_aon_batmon_temperature_trim_set(...)      AONBatMonTemperatureTrimSet(__VA_ARGS__)
-#define ti_lib_aon_batmon_temperature_get(...)           AONBatMonTemperatureGet(__VA_ARGS__)
-#define ti_lib_aon_batmon_temp_get_deg(...)              AON_BatmonTempGetDegC(__VA_ARGS__)
+#define ti_lib_aon_batmon_temperature_get_deg_c(...)     AONBatMonTemperatureGetDegC(__VA_ARGS__)
 #define ti_lib_aon_batmon_battery_voltage_get(...)       AONBatMonBatteryVoltageGet(__VA_ARGS__)
 #define ti_lib_aon_batmon_new_battery_measure_ready(...) AONBatMonNewBatteryMeasureReady(__VA_ARGS__)
 #define ti_lib_aon_batmon_new_temp_measure_ready(...)    AONBatMonNewTempMeasureReady(__VA_ARGS__)
