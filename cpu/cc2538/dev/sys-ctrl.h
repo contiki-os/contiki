@@ -32,7 +32,7 @@
  * \addtogroup cc2538
  * @{
  *
- * \defgroup cc2538-sys-ctrl cc2538 System Control
+ * \defgroup cc2538-sys-ctrl cc2538 System Control (SysCtrl)
  *
  * Driver for the cc2538 System Control Module
  * @{

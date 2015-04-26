@@ -57,7 +57,7 @@
  *
  * \note The clock library need in many cases not be used
  * directly. Rather, the \ref timer "timer library", \ref etimer
- * "event timers", or \ref trimer "rtimer library" should be used.
+ * "event timers", or \ref rtimer "rtimer library" should be used.
  *
  * \sa \ref timer "Timer library"
  * \sa \ref etimer "Event timers"
