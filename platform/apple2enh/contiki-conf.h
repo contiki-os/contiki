@@ -64,5 +64,6 @@
 #define WWW_CONF_MAX_FORMACTIONLEN  20
 #define WWW_CONF_MAX_INPUTNAMELEN   20
 #define WWW_CONF_MAX_INPUTVALUELEN  20
+#define WWW_CONF_WGET_EXEC(url)     exec("wget", url)
 
 #endif /* CONTIKI_CONF_H_ */
