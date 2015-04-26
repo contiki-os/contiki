@@ -89,7 +89,7 @@ fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup29-fixup28, fixup30-fixup29, fixup31-fixup30
 	.byte	fixup32-fixup31, fixup33-fixup32, fixup34-fixup33
 	.byte	fixup35-fixup34, fixup36-fixup35, fixup37-fixup36
-	.byte	fixup38-fixup37, fixup39-fixup38, fixup40-fixup39
+	.byte	fixup38-fixup37, fixup39-fixup38
 
 fixups	= * - fixup
 
@@ -272,9 +272,7 @@ fixup22:lda ethdata
 	bcs :++
 
 	; Yes, skip packet
-	; Remove and release RX packet from the FIFO
-	lda #%10000000
-fixup23:sta ethmmucr
+	jsr releasepacket
 
 	; No packet available
 	lda #$00
@@ -285,7 +283,7 @@ fixup23:sta ethmmucr
 	; Read bytes into buffer
 :	jsr adjustptr
 :
-fixup24:lda ethdata
+fixup23:lda ethdata
 	sta (ptr),y
 	iny
 	bne :-
@@ -294,8 +292,7 @@ fixup24:lda ethdata
 	bpl :-
 
 	; Remove and release RX packet from the FIFO
-	lda #%10000000
-fixup25:sta ethmmucr
+	jsr releasepacket
 
 	; Return packet length
 	lda len
@@ -313,19 +310,19 @@ send:
 	; Allocate memory for TX
 	txa
 	ora #%00100000
-fixup26:sta ethmmucr
+fixup24:sta ethmmucr
 
 	; 8 retries
 	ldy #$08
 
 	; Wait for allocation ready
 :
-fixup27:lda ethist
+fixup25:lda ethist
 	and #%00001000		; ALLOC INT
 	bne :+
 
-	; Shouldn't we do something here to actively free memory,
-	; maybe removing and releasing an RX packet from the FIFO ???
+	; No space avaliable, skip a received frame
+	jsr releasepacket
 
 	; And try again
 	dey
@@ -335,21 +332,21 @@ fixup27:lda ethist
 
 	; Acknowledge interrupt, is it necessary ???
 :	lda #%00001000
-fixup28:sta ethack
+fixup26:sta ethack
 
 	; Set packet address
-fixup29:lda etharr
-fixup30:sta ethpnr
+fixup27:lda etharr
+fixup28:sta ethpnr
 
 	lda #$00
 	ldx #%01000000		; AUTO INCR.
-fixup31:sta ethptr
-fixup32:stx ethptr+1
+fixup29:sta ethptr
+fixup30:stx ethptr+1
 
 	; Status written by CSMA
 	lda #$00
-fixup33:sta ethdata
-fixup34:sta ethdata
+fixup31:sta ethdata
+fixup32:sta ethdata
 
 	; Check packet length parity:
 	; - Even packet length -> carry set   -> add 6 bytes
@@ -361,10 +358,10 @@ fixup34:sta ethdata
 	; The packet contains 3 extra words
 	lda len
 	adc #$05		; Actually 5 or 6 depending on carry
-fixup35:sta ethdata
+fixup33:sta ethdata
 	lda len+1
 	adc #$00
-fixup36:sta ethdata
+fixup34:sta ethdata
 
 	; Send the packet
 	; ---------------
@@ -372,7 +369,7 @@ fixup36:sta ethdata
 	; Write bytes from buffer
 	jsr adjustptr
 :	lda (ptr),y
-fixup37:sta ethdata
+fixup35:sta ethdata
 	iny
 	bne :-
 	inc ptr+1
@@ -390,19 +387,27 @@ fixup37:sta ethdata
 
 	; No
 :	lda #$00
-fixup38:sta ethdata		; Fill byte
+fixup36:sta ethdata		; Fill byte
 :	
-fixup39:sta ethdata		; Control byte
+fixup37:sta ethdata		; Control byte
 
 	; Add packet to FIFO
 	lda #%11000000		; ENQUEUE PACKET - transmit packet
-fixup40:sta ethmmucr
+fixup38:sta ethmmucr
 	clc
 	rts
 
 ;---------------------------------------------------------------------
 
 exit:
+	rts
+
+;---------------------------------------------------------------------
+
+releasepacket:
+	; Remove and release RX packet from the FIFO
+	lda #%10000000
+fixup39:sta ethmmucr
 	rts
 
 ;---------------------------------------------------------------------
