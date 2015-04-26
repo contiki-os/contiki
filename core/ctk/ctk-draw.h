@@ -201,6 +201,7 @@ void ctk_draw_clear_window(struct ctk_window *window,
  * drawn, in screen coordinates (line 1 is the first line below the
  * menus)
  *
+ * \param draw_borders The border style
  */
 void ctk_draw_window(struct ctk_window *window,
 		     unsigned char focus,
@@ -318,7 +319,7 @@ extern unsigned char ctk_draw_windowborder_width,
 /**
  * The character used for the Return/Enter key.
  *
- * \define #define CH_ENTER '\n'
+ * \#define CH_ENTER '\n'
  */
 
 /**

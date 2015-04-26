@@ -133,7 +133,7 @@
  * strings.
  *
  * We need use two macros (CC_CONCAT and CC_CONCAT2) in order to allow
- * concatenation of two #defined macros.
+ * concatenation of two \#defined macros.
  */
 #define CC_CONCAT(s1, s2) CC_CONCAT2(s1, s2)
 

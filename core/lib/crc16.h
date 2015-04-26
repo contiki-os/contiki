@@ -77,7 +77,7 @@ unsigned short crc16_add(unsigned char b, unsigned short crc);
  * \brief      Calculate the CRC16 over a data area
  * \param data Pointer to the data
  * \param datalen The length of the data
- * \param crc  The accumulated CRC that is to be updated (or zero).
+ * \param acc  The accumulated CRC that is to be updated (or zero).
  * \return     The CRC16 checksum.
  *
  *             This function calculates the CRC16 checksum of a data area.

@@ -30,17 +30,17 @@
  */
 
 /**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
  * \file
- *         IPv6 Neighbor cache (link-layer/IPv6 address mapping)
+ *    IPv6 Neighbor cache (link-layer/IPv6 address mapping)
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
  * \author Simon Duquennoy <simonduq@sics.se>
  *
- */
-
-/**
- * \addtogroup uip6
- * @{
  */
 
 #include <string.h>

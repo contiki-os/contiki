@@ -105,7 +105,7 @@ config_read(char *filename)
   uip_setnetmask(&config.netmask);
   uip_setdraddr(&config.draddr);
 #if WITH_DNS
-  resolv_conf(&config.resolvaddr);
+  uip_nameserver_update(&config.resolvaddr, UIP_NAMESERVER_INFINITE_LIFETIME);
 #endif /* WITH_DNS */
 
   return &config.ethernetcfg;

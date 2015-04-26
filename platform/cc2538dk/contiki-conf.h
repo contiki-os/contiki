@@ -1,5 +1,5 @@
 /**
- * \addtogroup cc2538
+ * \addtogroup cc2538dk
  * @{
  *
  * \file

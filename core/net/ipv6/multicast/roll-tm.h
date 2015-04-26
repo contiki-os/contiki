@@ -30,24 +30,33 @@
  */
 
 /**
+ * \addtogroup uip6-multicast
+ * @{
+ */
+/**
+ * \defgroup roll-tm ROLL Trickle Multicast
+ *
+ * IPv6 multicast according to the algorithm in the
+ * "MCAST Forwarding Using Trickle" internet draft.
+ *
+ * The current version of the draft can always be found in
+ * http://tools.ietf.org/html/draft-ietf-roll-trickle-mcast
+ *
+ * This implementation is based on the draft version stored in
+ * ROLL_TM_VER.
+ *
+ * In draft v2, the document was renamed to
+ * "Multicast Protocol for Low power and Lossy Networks (MPL)"
+ * Due to very significant changes between draft versions 1 and 2,
+ * MPL will be implemented as a separate engine and this file here
+ * will provide legacy support for Draft v1.
+ * @{
+ */
+/**
  * \file
- *         Header file for IPv6 multicast according to the algorithm in the
- *         "MCAST Forwarding Using Trickle" internet draft.
- *
- *         The current version of the draft can always be found in
- *         http://tools.ietf.org/html/draft-ietf-roll-trickle-mcast
- *
- *         This implementation is based on the draft version stored in
- *         ROLL_TM_VER.
- *
- *         In draft v2, the document was renamed to
- *         "Multicast Protocol for Low power and Lossy Networks (MPL)"
- *         Due to very significant changes between draft versions 1 and 2,
- *         MPL will be implemented as a separate engine and this file here
- *         will provide legacy support for Draft v1.
- *
+ *    Header file for the implementation of the ROLL-TM multicast engine
  * \author
- *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *    George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
 #ifndef ROLL_TM_H_
@@ -60,9 +69,9 @@
 /*---------------------------------------------------------------------------*/
 /* Protocol Constants */
 /*---------------------------------------------------------------------------*/
-#define ROLL_TM_VER                    1   /* Supported Draft Version */
-#define ROLL_TM_ICMP_CODE              0   /* ICMPv6 code field */
-#define ROLL_TM_IP_HOP_LIMIT        0xFF   /* Hop limit for ICMP messages */
+#define ROLL_TM_VER                    1   /**< Supported Draft Version */
+#define ROLL_TM_ICMP_CODE              0   /**< ROLL TM ICMPv6 code field */
+#define ROLL_TM_IP_HOP_LIMIT        0xFF   /**< Hop limit for ICMP messages */
 #define ROLL_TM_INFINITE_REDUNDANCY 0xFF
 #define ROLL_TM_DGRAM_OUT              0
 #define ROLL_TM_DGRAM_IN               1
@@ -153,7 +162,7 @@
 /*---------------------------------------------------------------------------*/
 /* Configuration */
 /*---------------------------------------------------------------------------*/
-/*
+/**
  * Number of Sliding Windows
  * In essence: How many unique sources of simultaneous multicast traffic do we
  * want to support for our lowpan
@@ -166,7 +175,7 @@
 #define ROLL_TM_WINS 2
 #endif
 /*---------------------------------------------------------------------------*/
-/*
+/**
  * Maximum Number of Buffered Multicast Messages
  * This buffer is shared across all Seed IDs, therefore a new very active Seed
  * may eventually occupy all slots. It would make little sense (if any) to
@@ -178,7 +187,7 @@
 #define ROLL_TM_BUFF_NUM 6
 #endif
 /*---------------------------------------------------------------------------*/
-/*
+/**
  * Use Short Seed IDs [short: 2, long: 16 (default)]
  * It can be argued that we should (and it would be easy to) support both at
  * the same time but the draft doesn't list this as a MUST so we opt for
@@ -190,7 +199,7 @@
 #define ROLL_TM_SHORT_SEEDS 0
 #endif
 /*---------------------------------------------------------------------------*/
-/*
+/**
  * Destination address for our ICMPv6 advertisements. The draft gives us a
  * choice between LL all-nodes or LL all-routers
  *
@@ -202,7 +211,7 @@
 #define ROLL_TM_DEST_ALL_NODES 0
 #endif
 /*---------------------------------------------------------------------------*/
-/*
+/**
  * M param for our outgoing messages
  * By default, we set the M bit (conservative). Define this as 0 to clear the
  * M bit in our outgoing messages (aggressive)
@@ -215,10 +224,21 @@
 /*---------------------------------------------------------------------------*/
 /* Stats datatype */
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Multicast stats extension for the ROLL TM engine
+ */
 struct roll_tm_stats {
+  /** Number of received ICMP datagrams */
   UIP_MCAST6_STATS_DATATYPE icmp_in;
+
+  /** Number of ICMP datagrams sent */
   UIP_MCAST6_STATS_DATATYPE icmp_out;
+
+  /** Number of malformed ICMP datagrams seen by us */
   UIP_MCAST6_STATS_DATATYPE icmp_bad;
 };
-
+/*---------------------------------------------------------------------------*/
 #endif /* ROLL_TM_H_ */
+/*---------------------------------------------------------------------------*/
+/** @} */
+/** @} */
