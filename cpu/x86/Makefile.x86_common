@@ -1,14 +1,14 @@
-CONTIKI_CPU_DIRS = . drivers/legacy_pc
+CONTIKI_CPU_DIRS += .
 
-CONTIKI_SOURCEFILES += gdt.c helpers.S idt.c cpu.c rtc.c pit.c pic.c
+CONTIKI_SOURCEFILES += gdt.c helpers.S idt.c cpu.c
 
-### Compiler definitions
 CC       = gcc
 LD       = gcc
 AS       = as
 OBJCOPY  = objcopy
 SIZE     = size
 STRIP    = strip
+
 CFLAGSNO = -Wall -g -I/usr/local/include
 CFLAGS  += $(CFLAGSNO)
 ifeq ($(HOST_OS),Linux)
