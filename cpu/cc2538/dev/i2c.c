@@ -50,7 +50,7 @@ get_sys_clock(void)
 {
   /* Get the clock status diviser */
   return SYS_CTRL_32MHZ /
-         (1 << (REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYS_DIV));
+         ((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYS_DIV) + 1);
 }
 /*---------------------------------------------------------------------------*/
 void
