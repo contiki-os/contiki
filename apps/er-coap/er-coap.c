@@ -113,17 +113,19 @@ coap_set_option_header(unsigned int delta, size_t length, uint8_t *buffer)
 
   buffer[0] = coap_option_nibble(delta) << 4 | coap_option_nibble(length);
 
-  /* avoids code duplication without function overhead */
-  unsigned int *x = &delta;
+  if(delta > 268) {
+    buffer[++written] = ((delta - 269) >> 8) & 0xff;
+    buffer[++written] = (delta - 269) & 0xff;
+  } else if(delta > 12) {
+    buffer[++written] = (delta - 13);
+  }
 
-  do {
-    if(*x > 268) {
-      buffer[++written] = (*x - 269) >> 8;
-      buffer[++written] = (*x - 269);
-    } else if(*x > 12) {
-      buffer[++written] = (*x - 13);
-    }
-  } while(x != &length && (x = &length));
+  if(length > 268) {
+    buffer[++written] = ((length - 269) >> 8) & 0xff;
+    buffer[++written] = (length - 269) & 0xff;
+  } else if(length > 12) {
+    buffer[++written] = (length - 13);
+  }
 
   PRINTF("WRITTEN %u B opt header\n", 1 + written);
 
@@ -500,25 +502,31 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
     option_length = current_option[0] & 0x0F;
     ++current_option;
 
-    /* avoids code duplication without function overhead */
-    unsigned int *x = &option_delta;
+    if(option_delta == 13) {
+      option_delta += current_option[0];
+      ++current_option;
+    } else if(option_delta == 14) {
+      option_delta += 255;
+      option_delta += current_option[0] << 8;
+      ++current_option;
+      option_delta += current_option[0];
+      ++current_option;
+    }
 
-    do {
-      if(*x == 13) {
-        *x += current_option[0];
-        ++current_option;
-      } else if(*x == 14) {
-        *x += 255;
-        *x += current_option[0] << 8;
-        ++current_option;
-        *x += current_option[0];
-        ++current_option;
-      }
-    } while(x != &option_length && (x = &option_length));
+    if(option_length == 13) {
+      option_length += current_option[0];
+      ++current_option;
+    } else if(option_length == 14) {
+      option_length += 255;
+      option_length += current_option[0] << 8;
+      ++current_option;
+      option_length += current_option[0];
+      ++current_option;
+    }
 
     option_number += option_delta;
 
-    PRINTF("OPTION %u (delta %u, len %u): ", option_number, option_delta,
+    PRINTF("OPTION %u (delta %u, len %zu): ", option_number, option_delta,
            option_length);
 
     SET_OPTION(coap_pkt, option_number);
