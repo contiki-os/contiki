@@ -124,15 +124,19 @@ rest_invoke_restful_service(void *request, void *response, uint8_t *buffer,
 
   resource_t *resource = NULL;
   const char *url = NULL;
+  int url_len, res_url_len;
 
   for(resource = (resource_t *)list_head(restful_services);
       resource; resource = resource->next) {
 
     /* if the web service handles that kind of requests and urls matches */
-    if((REST.get_url(request, &url) == strlen(resource->url)
-        || (REST.get_url(request, &url) > strlen(resource->url)
-            && (resource->flags & HAS_SUB_RESOURCES)))
-       && strncmp(resource->url, url, strlen(resource->url)) == 0) {
+    url_len = REST.get_url(request, &url);
+    res_url_len = strlen(resource->url);
+    if((url_len == res_url_len
+        || (url_len > res_url_len
+            && (resource->flags & HAS_SUB_RESOURCES)
+            && url[res_url_len] == '/'))
+       && strncmp(resource->url, url, res_url_len) == 0) {
       found = 1;
       rest_resource_flags_t method = REST.get_method_type(request);
 
