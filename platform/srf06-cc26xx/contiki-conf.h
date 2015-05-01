@@ -244,10 +244,6 @@
 #ifndef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON            0 /**< Energest Module */
 #endif
-
-#ifndef STARTUP_CONF_VERBOSE
-#define STARTUP_CONF_VERBOSE        1 /**< Set to 0 to decrease startup verbosity */
-#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -277,25 +273,6 @@
 #define SLIP_ARCH_CONF_ENABLED             1
 #endif
 #endif
-
-/**
- * \brief Define this as 1 to build a headless node.
- *
- * The UART will not be initialised its clock will be gated, offering some
- * energy savings. The USB will not be initialised either
- */
-#ifndef CC26XX_CONF_QUIET
-#define CC26XX_CONF_QUIET                  0
-#endif
-
-/* CC26XX_CONF_QUIET is hard and overrides all other related defines */
-#if CC26XX_CONF_QUIET
-#undef CC26XX_UART_CONF_ENABLE
-#define CC26XX_UART_CONF_ENABLE            0
-
-#undef STARTUP_CONF_VERBOSE
-#define STARTUP_CONF_VERBOSE               0
-#endif /* CC26XX_CONF_QUIET */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
