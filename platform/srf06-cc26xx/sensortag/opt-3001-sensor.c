@@ -69,16 +69,42 @@
 #define REG_MANUFACTURER_ID             0x7E
 #define REG_DEVICE_ID                   0x7F
 /*---------------------------------------------------------------------------*/
-/* Register values */
-#define MANUFACTURER_ID                 0x5449  /* TI */
-#define DEVICE_ID                       0x3001  /* Opt 3001 */
-#define CONFIG_RESET                    0xC810
-#define CONFIG_TEST                     0xCC10
-#define CONFIG_ENABLE                   0x10CC /* 0xCC10 */
-#define CONFIG_DISABLE                  0x108C /* 0xC810 */
-/*---------------------------------------------------------------------------*/
-/* Bit values */
-#define DATA_RDY_BIT                    0x0080  /* Data ready */
+/*
+ * Configuration Register Bits and Masks.
+ * We use uint16_t to read from / write to registers, meaning that the
+ * register's MSB is the variable's LSB.
+ */
+#define CONFIG_RN      0x00F0 /* [15..12] Range Number */
+#define CONFIG_CT      0x0008 /* [11] Conversion Time */
+#define CONFIG_M       0x0006 /* [10..9] Mode of Conversion */
+#define CONFIG_OVF     0x0001 /* [8] Overflow */
+#define CONFIG_CRF     0x8000 /* [7] Conversion Ready Field */
+#define CONFIG_FH      0x4000 /* [6] Flag High */
+#define CONFIG_FL      0x2000 /* [5] Flag Low */
+#define CONFIG_L       0x1000 /* [4] Latch */
+#define CONFIG_POL     0x0800 /* [3] Polarity */
+#define CONFIG_ME      0x0400 /* [2] Mask Exponent */
+#define CONFIG_FC      0x0300 /* [1..0] Fault Count */
+
+/* Possible Values for CT */
+#define CONFIG_CT_100      0x0000
+#define CONFIG_CT_800      CONFIG_CT
+
+/* Possible Values for M */
+#define CONFIG_M_CONTI     0x0004
+#define CONFIG_M_SINGLE    0x0002
+#define CONFIG_M_SHUTDOWN  0x0000
+
+/* Reset Value for the register 0xC810. All zeros except: */
+#define CONFIG_RN_RESET    0x00C0
+#define CONFIG_CT_RESET    CONFIG_CT_800
+#define CONFIG_L_RESET     0x1000
+#define CONFIG_DEFAULTS    (CONFIG_RN_RESET | CONFIG_CT_100 | CONFIG_L_RESET)
+
+/* Enable / Disable */
+#define CONFIG_ENABLE_CONTINUOUS  (CONFIG_M_CONTI | CONFIG_DEFAULTS)
+#define CONFIG_ENABLE_SINGLE_SHOT (CONFIG_M_SINGLE | CONFIG_DEFAULTS)
+#define CONFIG_DISABLE             CONFIG_DEFAULTS
 /*---------------------------------------------------------------------------*/
 /* Register length */
 #define REGISTER_LENGTH                 2
@@ -86,23 +112,21 @@
 /* Sensor data size */
 #define DATA_LENGTH                     2
 /*---------------------------------------------------------------------------*/
-#define SENSOR_STATUS_DISABLED     0
-#define SENSOR_STATUS_NOT_READY    1
-#define SENSOR_STATUS_ENABLED      2
+/*
+ * SENSOR_STATE_SLEEPING and SENSOR_STATE_ACTIVE are mutually exclusive.
+ * SENSOR_STATE_DATA_READY can be ORd with both of the above. For example the
+ * sensor may be sleeping but with a conversion ready to read out.
+ */
+#define SENSOR_STATE_SLEEPING     0
+#define SENSOR_STATE_ACTIVE       1
+#define SENSOR_STATE_DATA_READY   2
 
-static int enabled = SENSOR_STATUS_DISABLED;
+static int state = SENSOR_STATE_SLEEPING;
 /*---------------------------------------------------------------------------*/
 /* Wait SENSOR_STARTUP_DELAY for the sensor to be ready - 125ms */
 #define SENSOR_STARTUP_DELAY (CLOCK_SECOND >> 3)
 
 static struct ctimer startup_timer;
-/*---------------------------------------------------------------------------*/
-static void
-notify_ready(void *not_used)
-{
-  enabled = SENSOR_STATUS_ENABLED;
-  sensors_changed(&opt_3001_sensor);
-}
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Select the sensor on the I2C bus
@@ -114,6 +138,28 @@ select(void)
   board_i2c_select(BOARD_I2C_INTERFACE_0, OPT3001_I2C_ADDRESS);
 }
 /*---------------------------------------------------------------------------*/
+static void
+notify_ready(void *not_used)
+{
+  /*
+   * Depending on the CONFIGURATION.CONVERSION_TIME bits, a conversion will
+   * take either 100 or 800 ms. Here we inspect the CONVERSION_READY bit and
+   * if the reading is ready we notify, otherwise we just reschedule ourselves
+   */
+  uint16_t val;
+
+  select();
+
+  sensor_common_read_reg(REG_CONFIGURATION, (uint8_t *)&val, REGISTER_LENGTH);
+
+  if(val & CONFIG_CRF) {
+    sensors_changed(&opt_3001_sensor);
+    state = SENSOR_STATE_DATA_READY;
+  } else {
+    ctimer_set(&startup_timer, SENSOR_STARTUP_DELAY, notify_ready, NULL);
+  }
+}
+/*---------------------------------------------------------------------------*/
 /**
  * \brief Turn the sensor on/off
  * \param enable TRUE: on, FALSE: off
@@ -122,13 +168,20 @@ static void
 enable_sensor(bool enable)
 {
   uint16_t val;
+  uint16_t had_data_ready = state & SENSOR_STATE_DATA_READY;
 
   select();
 
   if(enable) {
-    val = CONFIG_ENABLE;
+    val = CONFIG_ENABLE_SINGLE_SHOT;
+
+    /* Writing CONFIG_ENABLE_SINGLE_SHOT to M bits will clear CRF bits */
+    state = SENSOR_STATE_ACTIVE;
   } else {
     val = CONFIG_DISABLE;
+
+    /* Writing CONFIG_DISABLE to M bits will not clear CRF bits */
+    state = SENSOR_STATE_SLEEPING | had_data_ready;
   }
 
   sensor_common_write_reg(REG_CONFIGURATION, (uint8_t *)&val, REGISTER_LENGTH);
@@ -145,14 +198,14 @@ read_data(uint16_t *raw_data)
   bool success;
   uint16_t val;
 
+  if((state & SENSOR_STATE_DATA_READY) != SENSOR_STATE_DATA_READY) {
+    return false;
+  }
+
   select();
 
   success = sensor_common_read_reg(REG_CONFIGURATION, (uint8_t *)&val,
                                    REGISTER_LENGTH);
-
-  if(success) {
-    success = (val & DATA_RDY_BIT) == DATA_RDY_BIT;
-  }
 
   if(success) {
     success = sensor_common_read_reg(REG_RESULT, (uint8_t *)&val, DATA_LENGTH);
@@ -196,14 +249,9 @@ value(int type)
   uint16_t raw_val;
   float converted_val;
 
-  if(enabled != SENSOR_STATUS_ENABLED) {
-    PRINTF("Sensor disabled or starting up (%d)\n", enabled);
-    return CC26XX_SENSOR_READING_ERROR;
-  }
-
   rv = read_data(&raw_val);
 
-  if(rv == 0) {
+  if(rv == false) {
     return CC26XX_SENSOR_READING_ERROR;
   }
 
@@ -229,30 +277,38 @@ value(int type)
 static int
 configure(int type, int enable)
 {
+  int rv = 0;
+
   switch(type) {
   case SENSORS_HW_INIT:
+    /*
+     * Device reset won't reset the sensor, so we put it to sleep here
+     * explicitly
+     */
+    enable_sensor(0);
+    rv = 0;
     break;
   case SENSORS_ACTIVE:
     if(enable) {
       enable_sensor(1);
       ctimer_set(&startup_timer, SENSOR_STARTUP_DELAY, notify_ready, NULL);
-      enabled = SENSOR_STATUS_NOT_READY;
+      rv = 1;
     } else {
       ctimer_stop(&startup_timer);
       enable_sensor(0);
-      enabled = SENSOR_STATUS_DISABLED;
+      rv = 0;
     }
     break;
   default:
     break;
   }
-  return enabled;
+  return rv;
 }
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Returns the status of the sensor
- * \param type SENSORS_ACTIVE or SENSORS_READY
- * \return 1 if the sensor is enabled
+ * \param type ignored
+ * \return The state of the sensor SENSOR_STATE_xyz
  */
 static int
 status(int type)
@@ -260,12 +316,10 @@ status(int type)
   switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
-    return enabled;
-    break;
   default:
     break;
   }
-  return SENSOR_STATUS_DISABLED;
+  return state;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(opt_3001_sensor, "OPT3001", value, configure, status);

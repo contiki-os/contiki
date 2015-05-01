@@ -574,8 +574,6 @@ get_light_reading()
 
   value = opt_3001_sensor.value(0);
 
-  SENSORS_DEACTIVATE(opt_3001_sensor);
-
   if(value != CC26XX_SENSOR_READING_ERROR) {
     opt_reading.raw = value;
 
@@ -587,6 +585,7 @@ get_light_reading()
              value % 100);
   }
 
+  /* The OPT will turn itself off, so we don't need to call its DEACTIVATE */
   ctimer_set(&opt_timer, next, init_light_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
