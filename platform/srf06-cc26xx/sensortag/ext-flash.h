@@ -54,6 +54,8 @@ bool ext_flash_open(void);
 
 /**
  * \brief Close the storage driver
+ *
+ * This call will put the device in its lower power mode (power down).
  */
 void ext_flash_close(void);
 
@@ -94,6 +96,17 @@ bool ext_flash_write(size_t offset, size_t length, const uint8_t *buf);
  * \return True when successful.
  */
 bool ext_flash_test(void);
+
+/**
+ * \brief Initialise the external flash
+ *
+ * This function will explicitly put the part in its lowest power mode
+ * (power-down).
+ *
+ * In order to perform any operation, the caller must first wake the device
+ * up by calling ext_flash_open()
+ */
+void ext_flash_init(void);
 /*---------------------------------------------------------------------------*/
 #endif /* EXT_FLASH_H_ */
 /*---------------------------------------------------------------------------*/
