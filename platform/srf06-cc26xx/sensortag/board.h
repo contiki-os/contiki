@@ -100,12 +100,16 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_UART_RX        IOID_17
+#define BOARD_IOID_DP4_UARTRX     IOID_28
+#define BOARD_IOID_DP5_UARTTX     IOID_29
+
+#define BOARD_IOID_UART_RX        BOARD_IOID_DP4_UARTRX
 #define BOARD_IOID_UART_TX        IOID_16
+
 #define BOARD_IOID_UART_CTS       IOID_UNUSED
 #define BOARD_IOID_UART_RTS       IOID_UNUSED
-#define BOARD_UART_RXD            (1 << BOARD_IOID_UART_RXD)
-#define BOARD_UART_TXD            (1 << BOARD_IOID_UART_TXD)
+#define BOARD_UART_RX             (1 << BOARD_IOID_UART_RX)
+#define BOARD_UART_TX             (1 << BOARD_IOID_UART_TX)
 #define BOARD_UART_CTS            (1 << BOARD_IOID_UART_CTS)
 #define BOARD_UART_RTS            (1 << BOARD_IOID_UART_RTS)
 /** @} */
