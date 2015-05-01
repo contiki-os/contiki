@@ -75,9 +75,10 @@ the section ["Drivers" in the CC2538DK readme](https://github.com/contiki-os/con
 
 Environment
 ===========
-To use this port, you will need to download and extract CC26xxware sources, 
-provided by TI here http://www.ti.com/tool/cc26xxware. Once you have done this, you will need to configure the Contiki
-build system so that it can locate and compile them as part of the build process.
+To use this port, you will need to download and extract CC26xxware sources,
+provided by TI here http://www.ti.com/tool/cc26xxware. Once you have done this,
+you will need to configure the Contiki build system so that it can locate and
+compile them as part of the build process.
 
 To do this, you will need to set the following environment variable:
 
