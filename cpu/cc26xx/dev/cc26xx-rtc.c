@@ -68,18 +68,17 @@ cc26xx_rtc_init(void)
   /* Setup the wakeup event */
   ti_lib_aon_event_mcu_wake_up_set(AON_EVENT_MCU_WU0, AON_EVENT_RTC0);
   ti_lib_aon_event_mcu_wake_up_set(AON_EVENT_MCU_WU1, AON_EVENT_RTC2);
+  ti_lib_aon_rtc_combined_event_config(AON_RTC_CH0 | AON_RTC_CH2);
 
   /* Configure channel 2 in continuous compare, 128 ticks / sec */
+  ti_lib_aon_rtc_inc_value_ch2_set(RTIMER_SECOND / CLOCK_SECOND);
+  ti_lib_aon_rtc_mode_ch2_set(AON_RTC_MODE_CH2_CONTINUOUS);
   compare_value = (RTIMER_SECOND / CLOCK_SECOND) +
                   ti_lib_aon_rtc_current_compare_value_get();
   ti_lib_aon_rtc_compare_value_set(AON_RTC_CH2, compare_value);
-  ti_lib_aon_rtc_inc_value_ch2_set(RTIMER_SECOND / CLOCK_SECOND);
-  ti_lib_aon_rtc_mode_ch2_set(AON_RTC_MODE_CH2_CONTINUOUS);
 
-  /* Enable event generation for channels 0 and 2 and enable the RTC */
-  ti_lib_aon_rtc_combined_event_config(AON_RTC_CH0 | AON_RTC_CH2);
+  /* Enable channel 2 and the RTC */
   ti_lib_aon_rtc_channel_enable(AON_RTC_CH2);
-
   ti_lib_aon_rtc_enable();
 
   ti_lib_int_enable(INT_AON_RTC);
