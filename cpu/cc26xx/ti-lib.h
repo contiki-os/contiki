@@ -148,7 +148,7 @@
 #include "driverlib/aux_wuc.h"
 
 #define ti_lib_aux_wuc_clock_enable(...)   AUXWUCClockEnable(__VA_ARGS__)
-#define ti_lib_aux_wuc_clock_disble(...)   AUXWUCClockDisable(__VA_ARGS__)
+#define ti_lib_aux_wuc_clock_disable(...)  AUXWUCClockDisable(__VA_ARGS__)
 #define ti_lib_aux_wuc_clock_status(...)   AUXWUCClockStatus(__VA_ARGS__)
 #define ti_lib_aux_wuc_clock_freq_req(...) AUXWUCClockFreqReq(__VA_ARGS__)
 #define ti_lib_aux_wuc_power_ctrl(...)     AUXWUCPowerCtrl(__VA_ARGS__)
