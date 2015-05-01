@@ -184,6 +184,44 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \brief Board devpack IOID mappings (LCD etc.)
+ *
+ * Those values are not meant to be modified by the user
+ * @{
+ */
+#define BOARD_IOID_AUDIOFS_TDO        IOID_16
+#define BOARD_IOID_DEVPACK_CS         IOID_20
+#define BOARD_IOID_DEVPK_LCD_EXTCOMIN IOID_22
+#define BOARD_IOID_AUDIODO            IOID_22
+#define BOARD_IOID_DP2                IOID_23
+#define BOARD_IOID_DP1                IOID_24
+#define BOARD_IOID_DP0                IOID_25
+#define BOARD_IOID_DP3                IOID_27
+#define BOARD_IOID_DEVPK_ID           IOID_30
+#define BOARD_DEVPACK_CS              (1 << BOARD_IOID_DEVPACK_CS)
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief TMP Sensor
+ *
+ * Those values are not meant to be modified by the user
+ * @{
+ */
+#define BOARD_IOID_TMP_RDY          IOID_1
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Digital Microphone
+ *
+ * Those values are not meant to be modified by the user
+ * @{
+ */
+#define BOARD_IOID_MIC_POWER        IOID_13
+#define BOARD_IOID_AUDIO_DI         IOID_2
+#define BOARD_IOID_AUDIO_CLK        IOID_11
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name Device string used on startup
  * @{
  */
