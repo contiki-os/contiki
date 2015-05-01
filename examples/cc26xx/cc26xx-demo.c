@@ -251,8 +251,7 @@ get_light_reading()
     printf("OPT: Light Read Error\n");
   }
 
-  SENSORS_DEACTIVATE(opt_3001_sensor);
-
+  /* The OPT will turn itself off, so we don't need to call its DEACTIVATE */
   ctimer_set(&opt_timer, next, init_opt_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
