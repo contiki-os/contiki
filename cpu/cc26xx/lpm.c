@@ -143,17 +143,11 @@ shutdown_now(void)
 }
 /*---------------------------------------------------------------------------*/
 /*
- * We'll get called on three occasions:
- * - While running
- * - While sleeping
- * - While deep sleeping
- *
- * For the former two, we don't need to do anything. For the latter, we
- * notify all modules that we're back on and rely on them to restore clocks
+ * Notify all modules that we're back on and rely on them to restore clocks
  * and power domains as required.
  */
-void
-lpm_wake_up()
+static void
+wake_up(void)
 {
   lpm_registered_module_t *module;
 
@@ -362,7 +356,7 @@ lpm_drop()
      * the chip properly, and then we will enable the global interrupt without
      * unpending events so the handlers can fire
      */
-    lpm_wake_up();
+    wake_up();
 
     ti_lib_int_master_enable();
   }
