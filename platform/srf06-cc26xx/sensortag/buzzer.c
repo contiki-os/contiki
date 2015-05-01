@@ -52,13 +52,6 @@ void
 buzzer_init()
 {
   buzzer_on = 0;
-
-  /* Drive the I/O ID with GPT0 / Timer A */
-  ti_lib_ioc_port_configure_set(BOARD_IOID_BUZZER, IOC_PORT_MCU_PORT_EVENT0,
-                                IOC_STD_OUTPUT);
-
-  /* GPT0 / Timer A: PWM, Interrupt Enable */
-  HWREG(GPT0_BASE + GPT_O_TAMR) = (TIMER_CFG_A_PWM & 0xFF) | GPT_TAMR_TAPWMIE;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -71,6 +64,20 @@ void
 buzzer_start(int freq)
 {
   uint32_t load;
+
+  /* Enable GPT0 clocks under active, sleep, deep sleep */
+  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_TIMER0);
+  ti_lib_prcm_peripheral_sleep_enable(PRCM_PERIPH_TIMER0);
+  ti_lib_prcm_peripheral_deep_sleep_enable(PRCM_PERIPH_TIMER0);
+  ti_lib_prcm_load_set();
+  while(!ti_lib_prcm_load_get());
+
+  /* Drive the I/O ID with GPT0 / Timer A */
+  ti_lib_ioc_port_configure_set(BOARD_IOID_BUZZER, IOC_PORT_MCU_PORT_EVENT0,
+                                IOC_STD_OUTPUT);
+
+  /* GPT0 / Timer A: PWM, Interrupt Enable */
+  HWREG(GPT0_BASE + GPT_O_TAMR) = (TIMER_CFG_A_PWM & 0xFF) | GPT_TAMR_TAPWMIE;
 
   buzzer_on = 1;
 
@@ -93,12 +100,6 @@ buzzer_start(int freq)
     /* Start */
     ti_lib_timer_enable(GPT0_BASE, TIMER_A);
   }
-
-  /* Run in sleep mode */
-  ti_lib_prcm_peripheral_sleep_enable(PRCM_PERIPH_TIMER0);
-  ti_lib_prcm_peripheral_deep_sleep_enable(PRCM_PERIPH_TIMER0);
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -117,18 +118,26 @@ buzzer_stop()
   ti_lib_timer_disable(GPT0_BASE, TIMER_A);
 
   /*
-   * Stop running in sleep mode.
-   * ToDo: Currently GPT0 is in use by clock_delay_usec (GPT0/TB) and by this
-   * module here (GPT0/TA). clock_delay_usec will never need GPT0/TB in sleep
-   * mode and we control TA here. Thus, with the current setup, it's OK to
-   * control whether GPT0 runs in sleep mode in this module here. However, if
-   * some other module at some point starts using GPT0, we should change this
-   * to happen through an umbrella module
+   * Stop the module clock:
+   *
+   * Currently GPT0 is in use by clock_delay_usec (GPT0/TB) and by this
+   * module here (GPT0/TA).
+   *
+   * clock_delay_usec
+   * - is definitely not running when we enter here and
+   * - handles the module clock internally
+   *
+   * Thus, we can safely change the state of module clocks here.
    */
+  ti_lib_prcm_peripheral_run_disable(PRCM_PERIPH_TIMER0);
   ti_lib_prcm_peripheral_sleep_disable(PRCM_PERIPH_TIMER0);
   ti_lib_prcm_peripheral_deep_sleep_disable(PRCM_PERIPH_TIMER0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
+
+  /* Un-configure the pin */
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_BUZZER);
+  ti_lib_ioc_io_input_set(BOARD_IOID_BUZZER, IOC_INPUT_DISABLE);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

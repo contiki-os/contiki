@@ -91,6 +91,39 @@ shutdown_handler(uint8_t mode)
 LPM_MODULE(sensortag_module, NULL, shutdown_handler, lpm_wakeup_handler,
            LPM_DOMAIN_NONE);
 /*---------------------------------------------------------------------------*/
+static void
+configure_unused_pins(void)
+{
+  /* DP[0..3] */
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP0);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP0, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP1);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP1, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP2);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP2, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP3);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP3, IOC_IOPULL_DOWN);
+
+  /* Devpack ID */
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DEVPK_ID);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DEVPK_ID, IOC_IOPULL_UP);
+
+  /* Digital Microphone */
+  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MIC_POWER);
+  ti_lib_gpio_pin_clear((1 << BOARD_IOID_MIC_POWER));
+  ti_lib_ioc_io_drv_strength_set(BOARD_IOID_MIC_POWER, IOC_CURRENT_2MA,
+                                 IOC_STRENGTH_MIN);
+
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_AUDIO_DI);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_AUDIO_DI, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_AUDIO_CLK);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_AUDIO_CLK, IOC_IOPULL_DOWN);
+
+  /* UART over Devpack - TX only (ToDo: Map all UART pins to Debugger) */
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP5_UARTTX);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP5_UARTTX, IOC_IOPULL_DOWN);
+}
+/*---------------------------------------------------------------------------*/
 void
 board_init()
 {
@@ -113,26 +146,7 @@ board_init()
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
 
-  /* Keys (input pullup) */
-  ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_KEY_LEFT);
-  ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_KEY_RIGHT);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_KEY_LEFT, IOC_IOPULL_UP);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_KEY_RIGHT, IOC_IOPULL_UP);
-
   /* I2C controller */
-
-  /* Sensor interface */
-  ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_MPU_INT);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_MPU_INT, IOC_IOPULL_DOWN);
-
-  ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_REED_RELAY);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_REED_RELAY, IOC_IOPULL_DOWN);
-
-  ti_lib_rom_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
-
-  /* Flash interface */
-  ti_lib_rom_ioc_pin_type_gpio_output(BOARD_IOID_FLASH_CS);
-  ti_lib_gpio_pin_write(BOARD_FLASH_CS, 1);
   board_i2c_wakeup();
 
   buzzer_init();
@@ -141,6 +155,9 @@ board_init()
   ext_flash_init();
 
   lpm_register_module(&sensortag_module);
+
+  /* For unsupported peripherals, select a default pin configuration */
+  configure_unused_pins();
 
   /* Re-enable interrupt if initially enabled. */
   if(!int_disabled) {
