@@ -390,6 +390,12 @@ lpm_register_module(lpm_registered_module_t *module)
 }
 /*---------------------------------------------------------------------------*/
 void
+lpm_unregister_module(lpm_registered_module_t *module)
+{
+  list_remove(modules_list, module);
+}
+/*---------------------------------------------------------------------------*/
+void
 lpm_init()
 {
   list_init(modules_list);
