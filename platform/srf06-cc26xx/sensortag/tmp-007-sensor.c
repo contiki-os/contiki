@@ -267,6 +267,10 @@ configure(int type, int enable)
 {
   switch(type) {
   case SENSORS_HW_INIT:
+    ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_TMP_RDY);
+    ti_lib_ioc_io_port_pull_set(BOARD_IOID_TMP_RDY, IOC_IOPULL_UP);
+    ti_lib_ioc_io_hyst_set(BOARD_IOID_TMP_RDY, IOC_HYST_ENABLE);
+
     enable_sensor(false);
     enabled = SENSOR_STATUS_INITIALISED;
     break;
