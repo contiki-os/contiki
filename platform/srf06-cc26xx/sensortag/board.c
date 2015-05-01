@@ -112,11 +112,6 @@ board_init()
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
 
-  /* Enable GPT0 module - Wait for the clock to be enabled */
-  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_TIMER0);
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
-
   /* Keys (input pullup) */
   ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_KEY_LEFT);
   ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_KEY_RIGHT);
