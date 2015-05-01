@@ -42,12 +42,10 @@
  *
  * Once the sensor is stable, the driver will generate a sensors_changed event.
  *
- * Once a reading has been taken, the caller has two options:
- * - Turn the sensor off by calling SENSORS_DEACTIVATE, but in order to take
- *   subsequent readings SENSORS_ACTIVATE must be called again
- * - Leave the sensor on. In this scenario, the caller can simply keep calling
- *   value() for subsequent readings, but having the sensor on will consume
- *   energy
+ * We take readings in "Forced" mode. In this mode, the BMP will take a single
+ * measurement and it will then automatically go to sleep.
+ *
+ * SENSORS_ACTIVATE must be called again to trigger a new reading cycle
  * @{
  *
  * \file
