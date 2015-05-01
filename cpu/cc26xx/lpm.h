@@ -154,6 +154,15 @@ void lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on);
 void lpm_register_module(lpm_registered_module_t *module);
 
 /**
+ * \brief Unregister a module from LPM notifications.
+ * \param module A pointer to the data structure with the module definition
+ *
+ * When a previously registered module is no longer interested in LPM
+ * notifications, this function can be used to unregister it.
+ */
+void lpm_unregister_module(lpm_registered_module_t *module);
+
+/**
  * \brief Initialise the low-power mode management module
  */
 void lpm_init(void);
