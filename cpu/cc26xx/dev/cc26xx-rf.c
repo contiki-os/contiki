@@ -69,6 +69,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 #define BUSYWAIT_UNTIL(cond, max_time)                                \
   do {                                                                \
@@ -431,16 +432,19 @@ static uint_fast8_t
 rf_send_cmd(uint32_t cmd, uint32_t *status)
 {
   uint32_t timeout_count = 0;
+  bool interrupts_disabled;
 
   /*
    * Make sure ContikiMAC doesn't turn us off from within an interrupt while
    * we are accessing RF Core registers
    */
-  ti_lib_int_master_disable();
+  interrupts_disabled = ti_lib_int_master_disable();
 
   if(!rf_is_accessible()) {
     PRINTF("rf_send_cmd: RF was off\n");
-    ti_lib_int_master_enable();
+    if(!interrupts_disabled) {
+      ti_lib_int_master_enable();
+    }
     return RF_CMD_ERROR;
   }
 
@@ -449,12 +453,16 @@ rf_send_cmd(uint32_t cmd, uint32_t *status)
     *status = HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDSTA);
     if(++timeout_count > 50000) {
       PRINTF("rf_send_cmd: Timeout\n");
-      ti_lib_int_master_enable();
+      if(!interrupts_disabled) {
+        ti_lib_int_master_enable();
+      }
       return RF_CMD_ERROR;
     }
   } while(*status == RF_CMD_STATUS_PENDING);
 
-  ti_lib_int_master_enable();
+  if(!interrupts_disabled) {
+    ti_lib_int_master_enable();
+  }
 
   /*
    * If we reach here the command is no longer pending. It is either completed
@@ -911,8 +919,8 @@ static int
 power_up(void)
 {
   uint32_t cmd_status;
+  bool interrupts_disabled = ti_lib_int_master_disable();
 
-  ti_lib_int_master_disable();
   ti_lib_int_pend_clear(INT_RF_CPE0);
   ti_lib_int_pend_clear(INT_RF_CPE1);
   ti_lib_int_disable(INT_RF_CPE0);
@@ -935,7 +943,10 @@ power_up(void)
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
   ti_lib_int_enable(INT_RF_CPE0);
   ti_lib_int_enable(INT_RF_CPE1);
-  ti_lib_int_master_enable();
+
+  if(!interrupts_disabled) {
+    ti_lib_int_master_enable();
+  }
 
   /* Let CPE boot */
   HWREG(RFC_PWR_NONBUF_BASE + RFC_PWR_O_PWMCLKEN) = RF_CORE_CLOCKS_MASK;
@@ -955,7 +966,7 @@ power_up(void)
 static void
 power_down(void)
 {
-  ti_lib_int_master_disable();
+  bool interrupts_disabled = ti_lib_int_master_disable();
   ti_lib_int_disable(INT_RF_CPE0);
   ti_lib_int_disable(INT_RF_CPE1);
 
@@ -978,7 +989,9 @@ power_down(void)
   ti_lib_int_pend_clear(INT_RF_CPE1);
   ti_lib_int_enable(INT_RF_CPE0);
   ti_lib_int_enable(INT_RF_CPE1);
-  ti_lib_int_master_enable();
+  if(!interrupts_disabled) {
+    ti_lib_int_master_enable();
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -1093,6 +1106,8 @@ cc26xx_rf_cpe0_isr(void)
 static void
 setup_interrupts(void)
 {
+  bool interrupts_disabled;
+
   /* We are already turned on by the caller, so this should not happen */
   if(!rf_is_accessible()) {
     PRINTF("setup_interrupts: No access\n");
@@ -1100,7 +1115,7 @@ setup_interrupts(void)
   }
 
   /* Disable interrupts */
-  ti_lib_int_master_disable();
+  interrupts_disabled = ti_lib_int_master_disable();
 
   /* Set all interrupt channels to CPE0 channel, error to CPE1 */
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEISL) = ERROR_IRQ;
@@ -1115,7 +1130,10 @@ setup_interrupts(void)
   ti_lib_int_pend_clear(INT_RF_CPE1);
   ti_lib_int_enable(INT_RF_CPE0);
   ti_lib_int_enable(INT_RF_CPE1);
-  ti_lib_int_master_enable();
+
+  if(!interrupts_disabled) {
+    ti_lib_int_master_enable();
+  }
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
@@ -1926,6 +1944,7 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
   uint8_t was_on;
   int j;
   uint32_t cmd_status;
+  bool interrupts_disabled;
 
   PROCESS_BEGIN();
 
@@ -1956,9 +1975,11 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
        * Under ContikiMAC, some IEEE-related operations will be called from an
        * interrupt context. We need those to see that we are in BLE mode.
        */
-      ti_lib_int_master_disable();
+      interrupts_disabled = ti_lib_int_master_disable();
       ble_mode_on = 1;
-      ti_lib_int_master_enable();
+      if(!interrupts_disabled) {
+        ti_lib_int_master_enable();
+      }
 
       /*
        * Send BLE_ADV_MESSAGES beacon bursts. Each burst on all three
@@ -2055,9 +2076,13 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
       }
       etimer_set(&ble_adv_et, BLE_ADV_DUTY_CYCLE);
 
-      ti_lib_int_master_disable();
+      interrupts_disabled = ti_lib_int_master_disable();
+
       ble_mode_on = 0;
-      ti_lib_int_master_enable();
+
+      if(!interrupts_disabled) {
+        ti_lib_int_master_enable();
+      }
 
       /* Wait unless this is the last burst */
       if(i < BLE_ADV_MESSAGES - 1) {
@@ -2065,9 +2090,13 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
       }
     }
 
-    ti_lib_int_master_disable();
+    interrupts_disabled = ti_lib_int_master_disable();
+
     ble_mode_on = 0;
-    ti_lib_int_master_enable();
+
+    if(!interrupts_disabled) {
+      ti_lib_int_master_enable();
+    }
   }
   PROCESS_END();
 }

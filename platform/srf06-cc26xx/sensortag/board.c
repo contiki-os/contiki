@@ -48,6 +48,7 @@
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 #define PRCM_DOMAINS (PRCM_DOMAIN_SERIAL | PRCM_DOMAIN_PERIPH)
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 static void
 power_domains_on(void)
@@ -94,7 +95,7 @@ void
 board_init()
 {
   /* Disable global interrupts */
-  uint8_t int_disabled = ti_lib_int_master_disable();
+  bool int_disabled = ti_lib_int_master_disable();
 
   power_domains_on();
 
