@@ -77,12 +77,6 @@
  *                - The example also shows how to retrieve the duration of a
  *                  button press (in ticks). The driver will generate a
  *                  sensors_changed event upon button release
- * - UART         : Receiving an entire line of text over UART (ending
- *                  in \\r) will cause CC26XX_DEMO_LEDS_SERIAL_IN to toggle
- *                  This also demonstrates how a code module can influence
- *                  low-power operation: In this example we keep the UART on
- *                  and capable to RX even with the chip in deep sleep.
- *                  see keep_uart_on() and the UART driver
  * - Reed Relay   : Will toggle the sensortag buzzer on/off
  *
  * @{
@@ -384,8 +378,6 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   get_sync_sensor_readings();
   init_sensor_readings();
 
-  keep_uart_on();
-
   while(1) {
 
     PROCESS_YIELD();
@@ -440,8 +432,6 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
                button_select_sensor.value(BUTTON_SENSOR_VALUE_DURATION));
 #endif
       }
-    } else if(ev == serial_line_event_message) {
-      leds_toggle(CC26XX_DEMO_LEDS_SERIAL_IN);
     }
   }
 
