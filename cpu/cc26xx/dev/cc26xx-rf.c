@@ -267,15 +267,17 @@ const output_config_t *tx_power_current = &output_power[0];
 /*---------------------------------------------------------------------------*/
 /* RF interrupts */
 #define RX_IRQ       IRQ_IEEE_RX_ENTRY_DONE
-#define TX_IRQ       IRQ_IEEE_TX_FRAME
 #define TX_ACK_IRQ   IRQ_IEEE_TX_ACK
 #define ERROR_IRQ    IRQ_INTERNAL_ERROR
 
+/* Those IRQs are enabled all the time */
+#define ENABLED_IRQS (RX_IRQ + ERROR_IRQ)
+
 /*
- * We don't really care about TX ISR, we just use it to bring the CM3 out
- * of sleep, which it enters while the RF is TXing
+ * We only enable this right before starting frame TX, so we can sleep while
+ * the TX is ongoing
  */
-#define ENABLED_IRQS (RX_IRQ + TX_IRQ + ERROR_IRQ)
+#define LAST_FG_CMD_DONE  IRQ_LAST_FG_COMMAND_DONE
 
 #define cc26xx_rf_cpe0_isr RFCCPE0IntHandler
 #define cc26xx_rf_cpe1_isr RFCCPE1IntHandler
@@ -1295,6 +1297,10 @@ transmit(unsigned short transmit_len)
   GET_FIELD(cmd_immediate_buf, CMD_IEEE_TX, payloadLen) = transmit_len;
   GET_FIELD(cmd_immediate_buf, CMD_IEEE_TX, pPayload) = tx_buf;
 
+  /* Enable the LAST_FG_COMMAND_DONE interrupt, which will wake us up */
+  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = ENABLED_IRQS +
+    LAST_FG_CMD_DONE;
+
   ret = rf_send_cmd((uint32_t)cmd_immediate_buf, &cmd_status);
 
   if(ret) {
@@ -1335,9 +1341,11 @@ transmit(unsigned short transmit_len)
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
-  if(was_off) {
-    off();
-  }
+  /*
+   * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
+   * except when we are transmitting
+   */
+  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = ENABLED_IRQS;
 
   return ret;
 }
