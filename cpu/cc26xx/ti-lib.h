@@ -531,6 +531,8 @@
 #define ti_lib_sys_ctrl_aon_update(...)                       SysCtrlAonUpdate(__VA_ARGS__)
 #define ti_lib_sys_ctrl_set_recharge_before_power_down(...)   SysCtrlSetRechargeBeforePowerDown(__VA_ARGS__)
 #define ti_lib_sys_ctrl_adjust_recharge_after_power_down(...) SysCtrlAdjustRechargeAfterPowerDown(__VA_ARGS__)
+#define ti_lib_sys_ctrl_dcdc_voltage_conditional_control(...) SysCtrl_DCDC_VoltageConditionalControl(__VA_ARGS__)
+#define ti_lib_sys_ctrl_reset_source_get(...)                 SysCtrlResetSourceGet(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* ssi.h */
 #include "driverlib/ssi.h"
