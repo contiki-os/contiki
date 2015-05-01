@@ -100,7 +100,6 @@
 #include "button-sensor.h"
 #include "batmon-sensor.h"
 #include "board-peripherals.h"
-#include "lpm.h"
 #include "cc26xx-rf.h"
 
 #include "ti-lib.h"
@@ -366,26 +365,6 @@ init_sensor_readings(void)
 
   init_mpu_reading(NULL);
 #endif
-}
-/*---------------------------------------------------------------------------*/
-static lpm_power_domain_lock_t lock;
-/*---------------------------------------------------------------------------*/
-/*
- * In order to maintain UART input operation:
- * - Keep the uart clocked in sleep and deep sleep
- * - Keep the serial PD on in deep sleep
- */
-static void
-keep_uart_on(void)
-{
-  /* Keep the serial PD on */
-  lpm_pd_lock_obtain(&lock, PRCM_DOMAIN_SERIAL);
-
-  /* Keep the UART clock on during Sleep and Deep Sleep */
-  ti_lib_prcm_peripheral_sleep_enable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_peripheral_deep_sleep_enable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc26xx_demo_process, ev, data)

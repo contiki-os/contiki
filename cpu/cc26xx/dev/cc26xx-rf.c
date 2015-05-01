@@ -1150,7 +1150,7 @@ request(void)
   return LPM_MODE_MAX_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
-LPM_MODULE(cc26xx_rf_lpm_module, request, NULL, NULL);
+LPM_MODULE(cc26xx_rf_lpm_module, request, NULL, NULL, LPM_DOMAIN_NONE);
 /*---------------------------------------------------------------------------*/
 static int
 init(void)
