@@ -220,7 +220,7 @@
 #define UIP_CONF_TCP                         1
 #endif
 #ifndef UIP_CONF_TCP_MSS
-#define UIP_CONF_TCP_MSS                   128
+#define UIP_CONF_TCP_MSS                    64
 #endif
 
 #define UIP_CONF_UDP                         1
