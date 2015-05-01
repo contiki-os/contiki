@@ -155,10 +155,18 @@ clock_wait(clock_time_t i)
 void
 clock_delay_usec(uint16_t len)
 {
+  uint32_t clock_status;
+
   if(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH) !=
      PRCM_DOMAIN_POWER_ON) {
     power_domain_on();
   }
+
+  clock_status = HWREG(PRCM_BASE + PRCM_O_GPTCLKGR) & PRCM_GPIOCLKGR_CLK_EN;
+
+  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_TIMER0);
+  ti_lib_prcm_load_set();
+  while(!ti_lib_prcm_load_get());
 
   ti_lib_timer_load_set(GPT0_BASE, TIMER_B, len);
   ti_lib_timer_enable(GPT0_BASE, TIMER_B);
@@ -168,6 +176,12 @@ clock_delay_usec(uint16_t len)
    * function, hence the direct register access here
    */
   while(HWREG(GPT0_BASE + GPT_O_CTL) & GPT_CTL_TBEN);
+
+  if(clock_status == 0) {
+    ti_lib_prcm_peripheral_run_disable(PRCM_PERIPH_TIMER0);
+    ti_lib_prcm_load_set();
+    while(!ti_lib_prcm_load_get());
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
