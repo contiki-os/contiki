@@ -81,7 +81,7 @@ CONTIKI_CPU_SOURCEFILES += clock.c rtimer-arch.c cc26xx-rtc.c uart.c
 CONTIKI_CPU_SOURCEFILES += cc26xx-rf.c contiki-watchdog.c
 CONTIKI_CPU_SOURCEFILES += putchar.c ieee-addr.c batmon-sensor.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c cc26xx-uart.c lpm.c
-CONTIKI_CPU_SOURCEFILES += gpio-interrupt.c
+CONTIKI_CPU_SOURCEFILES += gpio-interrupt.c oscillators.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 
