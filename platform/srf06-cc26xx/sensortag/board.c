@@ -142,6 +142,9 @@ board_init()
 
   buzzer_init();
 
+  /* Make sure the external flash is in the lower power mode */
+  ext_flash_init();
+
   lpm_register_module(&sensortag_module);
 
   /* Re-enable interrupt if initially enabled. */
