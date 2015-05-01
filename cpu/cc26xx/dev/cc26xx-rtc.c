@@ -44,6 +44,7 @@
 #include "ti-lib.h"
 
 #include <stdint.h>
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 #define cc26xx_rtc_isr(...) AONRTCIntHandler(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
@@ -54,9 +55,11 @@ void
 cc26xx_rtc_init(void)
 {
   uint32_t compare_value;
+  bool interrupts_disabled;
 
   /* Disable and clear interrupts */
-  ti_lib_int_master_disable();
+  interrupts_disabled = ti_lib_int_master_disable();
+
   ti_lib_aon_rtc_disable();
 
   ti_lib_aon_rtc_event_clear(AON_RTC_CH0);
@@ -80,7 +83,11 @@ cc26xx_rtc_init(void)
   ti_lib_aon_rtc_enable();
 
   ti_lib_int_enable(INT_AON_RTC);
-  ti_lib_int_master_enable();
+
+  /* Re-enable interrupts */
+  if(!interrupts_disabled) {
+    ti_lib_int_master_enable();
+  }
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
