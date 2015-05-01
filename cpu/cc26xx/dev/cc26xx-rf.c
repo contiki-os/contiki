@@ -39,6 +39,7 @@
 #include "contiki.h"
 #include "dev/radio.h"
 #include "dev/cc26xx-rf.h"
+#include "dev/oscillators.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/linkaddr.h"
@@ -392,74 +393,6 @@ PROCESS(cc26xx_rf_process, "CC26xx RF driver");
 static int on(void);
 static int off(void);
 static void setup_interrupts(void);
-/*---------------------------------------------------------------------------*/
-/* Select the HF XOSC as the source for the HF clock, but don't switch yet */
-static void
-request_hf_xosc(void)
-{
-  /* Enable OSC DIG interface to change clock sources */
-  ti_lib_osc_interface_enable();
-
-  /* Make sure the SMPH clock within AUX is enabled */
-  ti_lib_aux_wuc_clock_enable(AUX_WUC_SMPH_CLOCK);
-  while(ti_lib_aux_wuc_clock_status(AUX_WUC_SMPH_CLOCK) != AUX_WUC_CLOCK_READY);
-
-  if(ti_lib_osc_clock_source_get(OSC_SRC_CLK_HF) != OSC_XOSC_HF) {
-    /*
-     * Request to switch to the crystal to enable radio operation. It takes a
-     * while for the XTAL to be ready so instead of performing the actual
-     * switch, we return and we do other stuff while the XOSC is getting ready.
-     */
-    ti_lib_osc_clock_source_set(OSC_SRC_CLK_MF | OSC_SRC_CLK_HF, OSC_XOSC_HF);
-  }
-
-  /* Disable OSC DIG interface */
-  ti_lib_osc_interface_disable();
-}
-/*---------------------------------------------------------------------------*/
-/*
- * Switch to the XOSC. This will block until the XOSC is ready, so this must
- * be preceded by a call to select_hf_xosc()
- */
-static void
-switch_to_hf_xosc(void)
-{
-  /* Enable OSC DIG interface to change clock sources */
-  ti_lib_osc_interface_enable();
-
-  /* Make sure the SMPH clock within AUX is enabled */
-  ti_lib_aux_wuc_clock_enable(AUX_WUC_SMPH_CLOCK);
-  while(ti_lib_aux_wuc_clock_status(AUX_WUC_SMPH_CLOCK) != AUX_WUC_CLOCK_READY);
-
-  if(ti_lib_osc_clock_source_get(OSC_SRC_CLK_HF) != OSC_XOSC_HF) {
-    /* Switch the HF clock source (cc26xxware executes this from ROM) */
-    ti_lib_osc_hf_source_switch();
-  }
-
-  /* Disable OSC DIG interface */
-  ti_lib_osc_interface_disable();
-}
-/*---------------------------------------------------------------------------*/
-static void
-switch_to_hf_rc_osc(void)
-{
-  /* Enable OSC DIG interface to change clock sources */
-  ti_lib_osc_interface_enable();
-
-  /* Make sure the SMPH clock within AUX is enabled */
-  ti_lib_aux_wuc_clock_enable(AUX_WUC_SMPH_CLOCK);
-  while(ti_lib_aux_wuc_clock_status(AUX_WUC_SMPH_CLOCK) != AUX_WUC_CLOCK_READY);
-
-  /* Set all clock sources to the HF RC Osc */
-  ti_lib_osc_clock_source_set(OSC_SRC_CLK_MF | OSC_SRC_CLK_HF, OSC_RCOSC_HF);
-
-  /* Check to not enable HF RC oscillator if already enabled */
-  if(ti_lib_osc_clock_source_get(OSC_SRC_CLK_HF) != OSC_RCOSC_HF) {
-    /* Switch the HF clock source (cc26xxware executes this from ROM) */
-    ti_lib_osc_hf_source_switch();
-  }
-  ti_lib_osc_interface_disable();
-}
 /*---------------------------------------------------------------------------*/
 static uint8_t
 rf_is_accessible(void)
@@ -1530,7 +1463,7 @@ on(void)
    * Request the HF XOSC as the source for the HF clock. Needed before we can
    * use the FS. This will only request, it will _not_ perform the switch.
    */
-  request_hf_xosc();
+  oscillators_request_hf_xosc();
 
   /*
    * If we are in the middle of a BLE operation, we got called by ContikiMAC
@@ -1568,7 +1501,7 @@ on(void)
    * This will block until the XOSC is actually ready, but give how we
    * requested it early on, this won't be too long a wait/
    */
-  switch_to_hf_xosc();
+  oscillators_switch_to_hf_xosc();
 
   if(rf_radio_setup(RF_MODE_IEEE) != RF_CMD_OK) {
     PRINTF("on: radio_setup() failed\n");
@@ -1597,7 +1530,7 @@ off(void)
   power_down();
 
   /* Switch HF clock source to the RCOSC to preserve power */
-  switch_to_hf_rc_osc();
+  oscillators_switch_to_hf_rc();
 
   /* We pulled the plug, so we need to restore the status manually */
   GET_FIELD(cmd_ieee_rx_buf, radioOp, status) = IDLE;
@@ -2061,7 +1994,7 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
         }
       } else {
         /* Request the HF XOSC to source the HF clock. */
-        request_hf_xosc();
+        oscillators_request_hf_xosc();
 
         /* We were off: Boot the CPE */
         if(power_up() != RF_CMD_OK) {
@@ -2079,7 +2012,7 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
         }
 
         /* Trigger a switch to the XOSC, so that we can use the FS */
-        switch_to_hf_xosc();
+        oscillators_switch_to_hf_xosc();
       }
 
       /* Enter BLE mode */
@@ -2118,7 +2051,7 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
         power_down();
 
         /* Switch HF clock source to the RCOSC to preserve power */
-        switch_to_hf_rc_osc();
+        oscillators_switch_to_hf_rc();
       }
       etimer_set(&ble_adv_et, BLE_ADV_DUTY_CYCLE);
 
