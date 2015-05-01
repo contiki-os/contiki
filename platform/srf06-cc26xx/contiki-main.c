@@ -193,7 +193,7 @@ main(void)
   serial_line_init();
 
   printf("Starting " CONTIKI_VERSION_STRING "\n");
-  printf("With CC26xxware v%u.%02u.%02u.%u\n", DRIVERLIB_MAJOR_VER,
+  printf("With DriverLib v%u.%02u.%02u.%u\n", DRIVERLIB_MAJOR_VER,
          DRIVERLIB_MINOR_VER, DRIVERLIB_PATCH_VER, DRIVERLIB_BUILD_ID);
   printf(BOARD_STRING " using CC%u\n", CC26XX_MODEL_CPU_VARIANT);
 
