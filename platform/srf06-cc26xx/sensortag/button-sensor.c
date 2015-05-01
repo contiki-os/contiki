@@ -116,7 +116,7 @@ button_press_handler(uint8_t ioid)
         sensors_changed(&button_right_sensor);
       }
     } else {
-      lpm_shutdown(BOARD_IOID_KEY_RIGHT);
+      lpm_shutdown(BOARD_IOID_KEY_RIGHT, IOC_IOPULL_UP, IOC_WAKE_ON_LOW);
     }
   }
 }
