@@ -46,18 +46,16 @@
 
 #include <stdint.h>
 #include <string.h>
-/*---------------------------------------------------------------------------*/
-#define PRCM_DOMAINS (PRCM_DOMAIN_SERIAL | PRCM_DOMAIN_PERIPH)
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 static void
 power_domains_on(void)
 {
-  /* Turn on relevant power domains */
-  ti_lib_prcm_power_domain_on(PRCM_DOMAINS);
+  /* Turn on the PERIPH PD */
+  ti_lib_prcm_power_domain_on(PRCM_DOMAIN_PERIPH);
 
   /* Wait for domains to power on */
-  while((ti_lib_prcm_power_domain_status(PRCM_DOMAINS)
+  while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH)
         != PRCM_DOMAIN_POWER_ON));
 }
 /*---------------------------------------------------------------------------*/
