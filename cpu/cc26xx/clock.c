@@ -79,8 +79,14 @@ clock_init(void)
    * Here, we configure GPT0 Timer A, which we subsequently use in
    * clock_delay_usec
    *
-   * First, enable GPT0 in run mode. We don't need it in sleep mode
+   * We need to access registers, so firstly power up the PD and then enable
+   * the clock to GPT0.
    */
+  if(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH) !=
+     PRCM_DOMAIN_POWER_ON) {
+    power_domain_on();
+  }
+
   ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_TIMER0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
