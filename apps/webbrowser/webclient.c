@@ -63,11 +63,11 @@ struct webclient_state {
 
   uint16_t port;
   char host[40];
-  char file[WWW_CONF_MAX_URLLEN];
+  char file[WWW_CONF_MAX_URLLEN - 10]; // URL - "http://<host>/"
   uint16_t getrequestptr;
   uint16_t getrequestleft;
   
-  char httpheaderline[200];
+  char httpheaderline[WWW_CONF_MAX_URLLEN + 10]; // URL + "Location: "
   uint16_t httpheaderlineptr;
 
   char mimetype[32];
@@ -327,13 +327,12 @@ parse_headers(uint16_t len)
   char *cptr;
   static unsigned char i;
   
-  while(len > 0 && s.httpheaderlineptr < sizeof(s.httpheaderline)) {
+  while(len > 0) {
     s.httpheaderline[s.httpheaderlineptr] = *(char *)uip_appdata;
     uip_appdata = (char *)uip_appdata + 1;
     --len;
     if(s.httpheaderline[s.httpheaderlineptr] == ISO_nl) {
-      /* We have an entire HTTP header line in s.httpheaderline, so
-	 we parse it. */
+      /* We reached the end of an HTTP header line. */
       if(s.httpheaderline[0] == ISO_cr) {
 	/* This was the last header line (i.e., and empty "\r\n"), so
 	   we are done with the headers and proceed with the actual
@@ -342,46 +341,51 @@ parse_headers(uint16_t len)
 	return len;
       }
 
-      s.httpheaderline[s.httpheaderlineptr - 1] = 0;
-      /* Check for specific HTTP header fields. */
-      if(casecmp(s.httpheaderline, http_content_type,
-		     sizeof(http_content_type) - 1) == 0) {
-	/* Found Content-type field. */
-	cptr = strchr(s.httpheaderline, ';');
-	if(cptr != NULL) {
-	  *cptr = 0;
-	}
-	strncpy(s.mimetype, s.httpheaderline +
-		sizeof(http_content_type) - 1, sizeof(s.mimetype));
-      } else if(casecmp(s.httpheaderline, http_location,
-			    sizeof(http_location) - 1) == 0) {
-	cptr = s.httpheaderline +
-	  sizeof(http_location) - 1;
-	
-	if(strncmp(cptr, http_http, 7) == 0) {
-	  cptr += 7;
-	  for(i = 0; i < s.httpheaderlineptr - 7; ++i) {
-	    if(*cptr == 0 ||
-	       *cptr == '/' ||
-	       *cptr == ' ' ||
-	       *cptr == ':') {
-	      s.host[i] = 0;
-	      break;
-	    }
-	    s.host[i] = *cptr;
-	    ++cptr;
+      if(s.httpheaderlineptr < sizeof(s.httpheaderline) - 1) {
+        /* We have an entire HTTP header line in s.httpheaderline, so
+	   we parse it. */
+	s.httpheaderline[s.httpheaderlineptr - 1] = 0;
+	/* Check for specific HTTP header fields. */
+	if(casecmp(s.httpheaderline, http_content_type,
+		       sizeof(http_content_type) - 1) == 0) {
+	  /* Found Content-type field. */
+	  cptr = strchr(s.httpheaderline, ';');
+	  if(cptr != NULL) {
+	    *cptr = 0;
 	  }
+	  strncpy(s.mimetype, s.httpheaderline +
+		  sizeof(http_content_type) - 1, sizeof(s.mimetype));
+	} else if(casecmp(s.httpheaderline, http_location,
+			      sizeof(http_location) - 1) == 0) {
+	  cptr = s.httpheaderline +
+	    sizeof(http_location) - 1;
+	
+	  if(strncmp(cptr, http_http, 7) == 0) {
+	    cptr += 7;
+	    for(i = 0; i < s.httpheaderlineptr - 7; ++i) {
+	      if(*cptr == 0 ||
+		 *cptr == '/' ||
+		 *cptr == ' ' ||
+		 *cptr == ':') {
+		s.host[i] = 0;
+		break;
+	      }
+	      s.host[i] = *cptr;
+	      ++cptr;
+	    }
+	  }
+	  strncpy(s.file, cptr, sizeof(s.file));
+	  /*	s.file[s.httpheaderlineptr - i] = 0;*/
 	}
-	strncpy(s.file, cptr, sizeof(s.file));
-	/*	s.file[s.httpheaderlineptr - i] = 0;*/
       }
-
 
       /* We're done parsing, so we reset the pointer and start the
 	 next line. */
       s.httpheaderlineptr = 0;
     } else {
-      ++s.httpheaderlineptr;
+      if(s.httpheaderlineptr < sizeof(s.httpheaderline) - 1) {
+        ++s.httpheaderlineptr;
+      }
     }
   }
   return len;
