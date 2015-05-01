@@ -273,7 +273,7 @@
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
  * keep using SLIP
  */
-#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
+#if defined(UIP_FALLBACK_INTERFACE) || defined(CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED             1
 #endif
 #endif
@@ -332,14 +332,14 @@ typedef uint32_t clock_time_t;
 typedef uint32_t uip_stats_t;
 
 /* Clock (time) comparison macro */
-#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define CLOCK_LT(a, b)  ((signed long)((a) - (b)) < 0)
 
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
  * RTIMER_CLOCK_LT to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
+#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* board.h assumes that basic configuration is done */
