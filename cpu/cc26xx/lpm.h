@@ -138,15 +138,6 @@ void lpm_sleep(void);
 void lpm_shutdown(uint32_t wakeup_pin);
 
 /**
- * \brief Wake up from sleep mode
- *
- * This function must be called at the start of any interrupt context which
- * may bring us out of sleep. Current interrupts do this already, but make sure
- * to do the same when adding new ISRs
- */
-void lpm_wake_up(void);
-
-/**
  * \brief Register a module for LPM notifications.
  * \param module A pointer to the data structure with the module definition
  *
