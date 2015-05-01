@@ -396,6 +396,17 @@ lpm_init()
   list_init(power_domain_locks_list);
 }
 /*---------------------------------------------------------------------------*/
+void
+lpm_pin_set_default_state(uint32_t ioid)
+{
+  if(ioid == IOID_UNUSED) {
+    return;
+  }
+
+  ti_lib_ioc_port_configure_set(ioid, IOC_PORT_GPIO, IOC_STD_OUTPUT);
+  ti_lib_gpio_dir_mode_set((1 << ioid), GPIO_DIR_MODE_IN);
+}
+/*---------------------------------------------------------------------------*/
 /**
  * @}
  * @}

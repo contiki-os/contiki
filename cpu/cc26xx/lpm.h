@@ -154,6 +154,18 @@ void lpm_register_module(lpm_registered_module_t *module);
  * \brief Initialise the low-power mode management module
  */
 void lpm_init(void);
+
+/**
+ * \brief Sets an IOID to a default state
+ * \param ioid IOID_0...
+ *
+ * This will set ioid to sw control, input, no pull. Input buffer and output
+ * driver will both be disabled
+ *
+ * The function will do nothing if ioid == IOID_UNUSED, so the caller does not
+ * have to check board configuration before calling this.
+ */
+void lpm_pin_set_default_state(uint32_t ioid);
 /*---------------------------------------------------------------------------*/
 #endif /* LPM_H_ */
 /*---------------------------------------------------------------------------*/
