@@ -58,6 +58,10 @@ slip_arch_writeb(unsigned char c)
 void
 slip_arch_init(unsigned long ubr)
 {
+  /*
+   * Enable an input handler. In doing so, the driver will make sure that UART
+   * RX stays operational during deep sleep
+   */
   cc26xx_uart_set_input(slip_input_byte);
 }
 /*---------------------------------------------------------------------------*/

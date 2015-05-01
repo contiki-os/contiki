@@ -88,7 +88,8 @@ shutdown_handler(uint8_t mode)
  * wake up so we can turn power domains back on for I2C and SSI, and to make
  * sure everything on the board is off before CM3 shutdown.
  */
-LPM_MODULE(sensortag_module, NULL, shutdown_handler, lpm_wakeup_handler);
+LPM_MODULE(sensortag_module, NULL, shutdown_handler, lpm_wakeup_handler,
+           LPM_DOMAIN_NONE);
 /*---------------------------------------------------------------------------*/
 void
 board_init()

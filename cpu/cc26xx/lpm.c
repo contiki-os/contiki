@@ -64,9 +64,6 @@ static unsigned long irq_energest = 0;
 /*---------------------------------------------------------------------------*/
 LIST(modules_list);
 /*---------------------------------------------------------------------------*/
-/* Control what power domains we are allow to run under what mode */
-LIST(power_domain_locks_list);
-
 /* PDs that may stay on in deep sleep */
 #define LOCKABLE_DOMAINS ((uint32_t)(PRCM_DOMAIN_SERIAL | PRCM_DOMAIN_PERIPH))
 /*---------------------------------------------------------------------------*/
@@ -399,7 +396,6 @@ void
 lpm_init()
 {
   list_init(modules_list);
-  list_init(power_domain_locks_list);
 }
 /*---------------------------------------------------------------------------*/
 void

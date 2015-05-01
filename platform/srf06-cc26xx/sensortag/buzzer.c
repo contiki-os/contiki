@@ -46,7 +46,7 @@
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 static uint8_t buzzer_on;
-static lpm_power_domain_lock_t lock;
+LPM_MODULE(buzzer_module, NULL, NULL, NULL, LPM_DOMAIN_PERIPH);
 /*---------------------------------------------------------------------------*/
 void
 buzzer_init()
@@ -74,7 +74,12 @@ buzzer_start(int freq)
 
   buzzer_on = 1;
 
-  lpm_pd_lock_obtain(&lock, PRCM_DOMAIN_PERIPH);
+  /*
+   * Register ourself with LPM. This will keep the PERIPH PD powered on
+   * during deep sleep, allowing the buzzer to keep working while the chip is
+   * being power-cycled
+   */
+  lpm_register_module(&buzzer_module);
 
   /* Stop the timer */
   ti_lib_timer_disable(GPT0_BASE, TIMER_A);
@@ -101,7 +106,12 @@ buzzer_stop()
 {
   buzzer_on = 0;
 
-  lpm_pd_lock_release(&lock);
+  /*
+   * Unregister the buzzer module from LPM. This will effectively release our
+   * lock for the PERIPH PD allowing it to be powered down (unless some other
+   * module keeps it on)
+   */
+  lpm_unregister_module(&buzzer_module);
 
   /* Stop the timer */
   ti_lib_timer_disable(GPT0_BASE, TIMER_A);
