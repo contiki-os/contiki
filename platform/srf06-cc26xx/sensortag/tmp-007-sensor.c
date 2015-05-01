@@ -88,7 +88,7 @@
 
 #define SWAP(v) ((LO_UINT16(v) << 8) | HI_UINT16(v))
 /*---------------------------------------------------------------------------*/
-#define SELECT() board_i2c_select(BOARD_I2C_INTERFACE_0, SENSOR_I2C_ADDRESS);
+#define SELECT() board_i2c_select(BOARD_I2C_INTERFACE_0, SENSOR_I2C_ADDRESS)
 /*---------------------------------------------------------------------------*/
 static uint8_t buf[DATA_SIZE];
 static uint16_t val;
@@ -124,7 +124,7 @@ enable_sensor(bool enable)
 {
   bool success;
 
-  SELECT()
+  SELECT();
 
   if(enable) {
     val = TMP007_VAL_CONFIG_ON;
