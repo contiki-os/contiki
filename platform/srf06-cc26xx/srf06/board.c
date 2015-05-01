@@ -90,9 +90,8 @@ board_init()
 
   /* Configure all clock domains to run at full speed */
   ti_lib_prcm_clock_configure_set(PRCM_DOMAIN_SYSBUS | PRCM_DOMAIN_CPU |
-                                  PRCM_DOMAIN_CPU | PRCM_DOMAIN_TIMER |
-                                  PRCM_DOMAIN_SERIAL | PRCM_DOMAIN_PERIPH,
-                                  PRCM_CLOCK_DIV_1);
+                                  PRCM_DOMAIN_TIMER | PRCM_DOMAIN_SERIAL |
+                                  PRCM_DOMAIN_PERIPH, PRCM_CLOCK_DIV_1);
 
   /* Enable GPIO peripheral */
   ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);
