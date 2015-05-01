@@ -134,8 +134,11 @@ void lpm_sleep(void);
 /**
  * \brief Put the chip in shutdown power mode
  * \param wakeup_pin The GPIO pin which will wake us up. Must be IOID_0 etc...
+ * \param io_pull Pull configuration for the shutdown pin: IOC_NO_IOPULL,
+ *        IOC_IOPULL_UP or IOC_IOPULL_DOWN
+ * \param wake_on High or Low (IOC_WAKE_ON_LOW or IOC_WAKE_ON_HIGH)
  */
-void lpm_shutdown(uint32_t wakeup_pin);
+void lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on);
 
 /**
  * \brief Register a module for LPM notifications.
