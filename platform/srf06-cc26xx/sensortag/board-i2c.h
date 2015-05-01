@@ -101,6 +101,27 @@ bool board_i2c_write_single(uint8_t data);
  */
 bool board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata,
                           uint8_t rlen);
+
+/**
+ * \brief Enables the I2C peripheral with defaults
+ *
+ * This function is called to wakeup and initialise the I2C.
+ *
+ * This function can be called explicitly, but it will also be called
+ * automatically by board_i2c_select() when required. One of those two
+ * functions MUST be called before any other I2C operation after a chip
+ * sleep / wakeup cycle or after a call to board_i2c_shutdown(). Failing to do
+ * so will lead to a bus fault.
+ */
+void board_i2c_wakeup(void);
+
+/**
+ * \brief Stops the I2C peripheral and restores pins to s/w control
+ *
+ * This function is called automatically by the board's LPM logic, but it
+ * can also be called explicitly.
+ */
+void board_i2c_shutdown(void);
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_I2C_H_ */
 /*---------------------------------------------------------------------------*/

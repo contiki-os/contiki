@@ -65,8 +65,6 @@ static void
 lpm_wakeup_handler(void)
 {
   power_domains_on();
-
-  board_i2c_init();
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -80,6 +78,9 @@ shutdown_handler(uint8_t mode)
     SENSORS_DEACTIVATE(hdc_1000_sensor);
     mpu_9250_sensor.configure(MPU_9250_SENSOR_SHUTDOWN, 0);
   }
+
+  /* In all cases, stop the I2C */
+  board_i2c_shutdown();
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -125,7 +126,6 @@ board_init()
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_KEY_RIGHT, IOC_IOPULL_UP);
 
   /* I2C controller */
-  board_i2c_init();
 
   /* Sensor interface */
   ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_MPU_INT);
@@ -139,6 +139,7 @@ board_init()
   /* Flash interface */
   ti_lib_rom_ioc_pin_type_gpio_output(BOARD_IOID_FLASH_CS);
   ti_lib_gpio_pin_write(BOARD_FLASH_CS, 1);
+  board_i2c_wakeup();
 
   buzzer_init();
 
