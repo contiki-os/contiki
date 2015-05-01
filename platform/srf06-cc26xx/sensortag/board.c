@@ -74,7 +74,8 @@ shutdown_handler(uint8_t mode)
     SENSORS_DEACTIVATE(opt_3001_sensor);
     SENSORS_DEACTIVATE(tmp_007_sensor);
     SENSORS_DEACTIVATE(hdc_1000_sensor);
-    mpu_9250_sensor.configure(MPU_9250_SENSOR_SHUTDOWN, 0);
+    SENSORS_DEACTIVATE(mpu_9250_sensor);
+    ti_lib_gpio_pin_clear(BOARD_MPU_POWER);
   }
 
   /* In all cases, stop the I2C */
