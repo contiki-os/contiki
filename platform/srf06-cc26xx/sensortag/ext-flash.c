@@ -72,7 +72,7 @@
 /* Part specific constants */
 
 #define BLS_MANUFACTURER_ID       0xEF
-#define BLS_DEVICE_ID             0x11
+#define BLS_DEVICE_ID             0x12
 
 #define BLS_PROGRAM_PAGE_SIZE      256
 #define BLS_ERASE_SECTOR_SIZE     4096
@@ -182,8 +182,8 @@ power_standby(void)
 }
 /*---------------------------------------------------------------------------*/
 /**
- * Verify the flash part.
- * @return True when successful.
+ * \brief Verify the flash part.
+ * \return True when successful.
  */
 static bool
 verify_part(void)
