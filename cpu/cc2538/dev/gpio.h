@@ -210,6 +210,31 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
 #define GPIO_DISABLE_INTERRUPT(PORT_BASE, PIN_MASK) \
   do { REG((PORT_BASE) + GPIO_IE) &= ~(PIN_MASK); } while(0)
 
+/** \brief Get raw interrupt status of port with PORT_BASE.
+ * \param PORT_BASE GPIO Port register offset
+ * \return Bit-mask reflecting the raw interrupt status of all the port pins
+ *
+ * The bits set in the returned bit-mask reflect the status of the interrupts
+ * trigger conditions detected (raw, before interrupt masking), indicating that
+ * all the requirements are met, before they are finally allowed to trigger by
+ * the interrupt mask. The bits cleared indicate that corresponding input pins
+ * have not initiated an interrupt.
+ */
+#define GPIO_GET_RAW_INT_STATUS(PORT_BASE) \
+  REG((PORT_BASE) + GPIO_RIS)
+
+/** \brief Get masked interrupt status of port with PORT_BASE.
+ * \param PORT_BASE GPIO Port register offset
+ * \return Bit-mask reflecting the masked interrupt status of all the port pins
+ *
+ * The bits set in the returned bit-mask reflect the status of input lines
+ * triggering an interrupt. The bits cleared indicate that either no interrupt
+ * has been generated, or the interrupt is masked. This is the state of the
+ * interrupt after interrupt masking.
+ */
+#define GPIO_GET_MASKED_INT_STATUS(PORT_BASE) \
+  REG((PORT_BASE) + GPIO_MIS)
+
 /** \brief Clear interrupt triggering for pins with PIN_MASK of port with
  * PORT_BASE.
  * \param PORT_BASE GPIO Port register offset
@@ -269,6 +294,14 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
 #define GPIO_DISABLE_POWER_UP_INTERRUPT(PORT, PIN_MASK) \
   do { REG(GPIO_PORT_TO_BASE(PORT) + GPIO_PI_IEN) &= \
        ~((PIN_MASK) << ((PORT) << 3)); } while(0)
+
+/** \brief Get power-up interrupt status of port PORT.
+ * \param PORT GPIO Port (not port base address)
+ * \return Bit-mask reflecting the power-up interrupt status of all the port
+ * pins
+ */
+#define GPIO_GET_POWER_UP_INT_STATUS(PORT) \
+  ((REG(GPIO_PORT_TO_BASE(PORT) + GPIO_IRQ_DETECT_ACK) >> ((PORT) << 3)) & 0xFF)
 
 /** \brief Clear power-up interrupt triggering for pins with PIN_MASK of port
  * PORT.
