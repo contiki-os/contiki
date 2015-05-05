@@ -312,7 +312,7 @@ typedef uint32_t rtimer_clock_t;
 #define WITH_FAST_SLEEP                         1
 
 #ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    32
 #endif
 
 #ifndef NETSTACK_CONF_FRAMER
