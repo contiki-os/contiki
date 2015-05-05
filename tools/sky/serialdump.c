@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -6,6 +7,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define BAUDRATE B57600
 #define BAUDRATE_S "57600"
