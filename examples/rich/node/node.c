@@ -55,7 +55,17 @@ PROCESS_THREAD(unicast_sender_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  rich_init(NULL);
+  static int is_coordinator = 0;
+  //is_coordinator = node_id == 1;
+
+  if(is_coordinator) {
+    uip_ipaddr_t prefix;
+    uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    rich_init(&prefix);
+  } else {
+    rich_init(NULL);
+  }
+
   printf("Starting RPL node\n");
 
   PROCESS_END();
