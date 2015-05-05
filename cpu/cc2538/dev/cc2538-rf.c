@@ -87,7 +87,7 @@
 #define CRC_BIT_MASK 0x80
 #define LQI_BIT_MASK 0x7F
 /* RSSI Offset */
-#define RSSI_OFFSET    73
+#define RSSI_OFFSET    85
 
 /* 192 usec off -> on interval (RX Callib -> SFD Wait). We wait a bit more */
 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
@@ -490,6 +490,18 @@ init(void)
     udma_set_channel_src(CC2538_RF_CONF_RX_DMA_CHAN, RFCORE_SFR_RFDATA);
   }
 
+  REG(RFCORE_XREG_RFC_OBS_CTRL0) = 0x0000006A;			//PA Control down signal
+  REG(RFCORE_XREG_RFC_OBS_CTRL1) = 0x00000068;			//LNA Control signal
+  
+  //Set PA (PC6) as output
+  REG(RFCORE_XREG_RFC_OBSSEL6) = 0x00000081;								//Connect OBS_CTRL0 to PC6
+  REG(RFCORE_XREG_RFC_OBSSEL3) = 0x00000081;								//Connect PC3 to PA enable
+  
+  //Set LNA (PC7) as output
+  REG(RFCORE_XREG_RFC_OBSSEL7) = 0x00000080;								//Connect RF_OBS_CTRL1 to PC7
+  REG(RFCORE_XREG_RFC_OBSSEL2) = 0x00000080;
+  
+  
   process_start(&cc2538_rf_process, NULL);
 
   rf_flags |= RF_ON;
