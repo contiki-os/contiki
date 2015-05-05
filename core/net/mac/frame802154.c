@@ -74,6 +74,7 @@
  *  in the 802.15.4 header.  This structure is used in \ref frame802154_create()
  */
 typedef struct {
+  uint8_t seqno_len;       /**<  Length (in bytes) of sequence number field */
   uint8_t dest_pid_len;    /**<  Length (in bytes) of destination PAN ID field */
   uint8_t dest_addr_len;   /**<  Length (in bytes) of destination address field */
   uint8_t src_pid_len;     /**<  Length (in bytes) of source PAN ID field */
@@ -119,6 +120,9 @@ field_len(frame802154_t *p, field_length_t *flen)
   memset(flen, 0, sizeof(field_length_t));
 
   /* Determine lengths of each field based on fcf and other args */
+  if((p->fcf.sequence_number_suppression & 1) == 0) {
+    flen->seqno_len = 1;
+  }
   if(p->fcf.dest_addr_mode & 3) {
     flen->dest_pid_len = 2;
   }
@@ -167,7 +171,7 @@ frame802154_hdrlen(frame802154_t *p)
 {
   field_length_t flen;
   field_len(p, &flen);
-  return 3 + flen.dest_pid_len + flen.dest_addr_len +
+  return 2 + flen.seqno_len + flen.dest_pid_len + flen.dest_addr_len +
     flen.src_pid_len + flen.src_addr_len + flen.aux_sec_len;
 }
 /*----------------------------------------------------------------------------*/
@@ -201,13 +205,18 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
     ((p->fcf.frame_pending & 1) << 4) |
     ((p->fcf.ack_required & 1) << 5) |
     ((p->fcf.panid_compression & 1) << 6);
-  buf[1] = ((p->fcf.dest_addr_mode & 3) << 2) |
+  buf[1] = ((p->fcf.sequence_number_suppression & 1)) |
+    ((p->fcf.ie_list_present & 1)) << 1 |
+    ((p->fcf.dest_addr_mode & 3) << 2) |
     ((p->fcf.frame_version & 3) << 4) |
     ((p->fcf.src_addr_mode & 3) << 6);
 
-  /* sequence number */
-  buf[2] = p->seq;
-  pos = 3;
+  pos = 2;
+
+  /* Sequence number */
+  if(flen.seqno_len == 1) {
+    buf[pos++] = p->seq;
+  }
 
   /* Destination PAN ID */
   if(flen.dest_pid_len == 2) {
@@ -276,7 +285,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
   uint8_t key_id_mode;
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 
-  if(len < 3) {
+  if(len < 2) {
     return 0;
   }
 
@@ -289,6 +298,8 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
   fcf.ack_required = (p[0] >> 5) & 1;
   fcf.panid_compression = (p[0] >> 6) & 1;
 
+  fcf.sequence_number_suppression = p[0] & 1;
+  fcf.ie_list_present = (p[1] >> 1) & 1;
   fcf.dest_addr_mode = (p[1] >> 2) & 3;
   fcf.frame_version = (p[1] >> 4) & 3;
   fcf.src_addr_mode = (p[1] >> 6) & 3;

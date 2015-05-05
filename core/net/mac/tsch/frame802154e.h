@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,49 +26,51 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
+
 /**
  * \file
- *         RICH node.
- *
- * \author Simon Duquennoy <simonduq@sics.se>
+ *         IEEE 802.15.4e-specific frame creation and parsing
+ * \author
+ *         Simon Duquennoy <simonduq@sics.se>
  */
 
-#include "contiki-conf.h"
-#include "net/netstack.h"
-#include "net/mac/tsch/tsch-schedule.h"
-#include "net/rpl/rpl-private.h"
-#include "net/mac/tsch/tsch-schedule.h"
-#include "net/ip/uip-debug.h"
-#include "lib/random.h"
-#include "tools/rich.h"
-#include "node-id.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#ifndef FRAME_802154E_H
+#define FRAME_802154E_H
 
-/*---------------------------------------------------------------------------*/
-PROCESS(unicast_sender_process, "RICH Node");
-AUTOSTART_PROCESSES(&unicast_sender_process);
+#include "contiki.h"
+#include "net/mac/tsch/tsch-private.h"
 
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(unicast_sender_process, ev, data)
-{
-  PROCESS_BEGIN();
+/* The information elements that we currently support */
+struct ieee802154_ies {
+  /* Header IEs */
+  int16_t ie_time_correction;
+  uint8_t ie_is_nack;
+  /* Payload MLME */
+  uint16_t ie_mlme_len;
+  /* Payload Short MLME IEs */
+  uint8_t ie_tsch_synchronization_offset;
+  struct asn_t ie_asn;
+  uint8_t ie_join_priority;
+  uint8_t ie_timeslot_id;
+  /* Payload Long MLME IEs */
+  uint8_t ie_hopping_sequence_id;
+};
 
-  static int is_coordinator = 0;
-  //is_coordinator = node_id == 1;
+/* Insert various Information Elements */
+int frame80215e_create_ie_ack_nack_time_correction(uint8_t *buf, int len,
+    struct ieee802154_ies *ies);
+int frame80215e_create_ie_tsch_synchronization(uint8_t *buf, int len,
+    struct ieee802154_ies *ies);
+int frame80215e_create_ie_mlme(uint8_t *buf, int len,
+    struct ieee802154_ies *ies);
+int frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
+    struct ieee802154_ies *ies);
+int frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
+    struct ieee802154_ies *ies);
+/* Parse all Information Elements of a frame */
+int frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size, struct ieee802154_ies *ies);
 
-  if(is_coordinator) {
-    uip_ipaddr_t prefix;
-    uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-    rich_init(&prefix);
-  } else {
-    rich_init(NULL);
-  }
-
-  printf("Starting RPL node\n");
-
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
+#endif /* FRAME_802154E_H */

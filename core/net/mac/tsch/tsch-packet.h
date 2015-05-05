@@ -43,41 +43,25 @@
 
 #include "contiki.h"
 #include "net/mac/tsch/tsch-private.h"
-
-/* Return values for tsch_packet_parse_frame_type */
-#define DO_ACK 2
-#define IS_DATA 4
-#define IS_ACK 8
-#define IS_EB 16
-
-/* Return values for tsch_packet_parse_sync_ack */
-#define TSCH_ACK_OK 2
-#define TSCH_ACK_HAS_SYNC_IE 4
+#include "net/mac/tsch/frame802154e.h"
 
 /* Construct enhanced ACK packet and return ACK length */
-int tsch_packet_make_sync_ack(int32_t drift, int nack,
-    uint8_t *ackbuf, int ackbuf_len, linkaddr_t *dest_addr, uint8_t seqno);
+int tsch_packet_create_eack(uint8_t *buf, int buf_size,
+    linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack);
 
 /* Parse enhanced ACK packet, extract drift and nack */
-int tsch_packet_parse_sync_ack(int32_t *drift, int *nack,
-    uint8_t *ackbuf, int ackbuf_len, uint8_t seqno, int extract_sync_ie);
+int tsch_packet_parse_eack(uint8_t *buf, int buf_size, uint8_t seqno,
+    struct ieee802154_ies *ies);
 
 /* Create an EB packet */
-int tsch_packet_make_eb(uint8_t* const buf, uint8_t buf_size, uint8_t seqno);
-
-/* Extract addresses from raw packet */
-int tsch_packet_extract_addresses(uint8_t *buf, uint8_t len, linkaddr_t *source_address, linkaddr_t *dest_address);
-
-/* Parse EB and extract ASN and join priority */
-uint8_t tsch_parse_eb(uint8_t *buf, uint8_t buf_len, linkaddr_t *source_address, struct asn_t *asn, uint8_t *join_priority);
+int tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size,
+    uint8_t seqno, uint8_t *tsch_sync_ie_ptr);
 
 /* Update ASN in EB packet */
-int tsch_packet_update_eb(uint8_t *buf, uint8_t buf_len);
+int tsch_packet_update_eb(uint8_t *buf, uint8_t buf_size, uint8_t tsch_sync_ie_offset);
 
-/* Extract 802.15.4 frame type from FCF least-significant byte */
-uint8_t tsch_packet_parse_frame_type_from_fcf_lsb(uint8_t fcf_lsb);
-
-/* Extract 802.15.4 frame type from a struct packet_input */
-uint8_t tsch_packet_parse_frame_type(uint8_t *buf, uint8_t len, uint8_t *seqno);
+/* Parse EB and extract ASN and join priority */
+int tsch_packet_parse_eb(uint8_t *buf, uint8_t buf_size,
+    linkaddr_t *source_address, struct ieee802154_ies *ies);
 
 #endif /* __TSCH_PACKET_H__ */

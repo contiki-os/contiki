@@ -1,4 +1,5 @@
 #include "net/mac/rdc.h"
+#include "net/mac/tsch/tsch.h"
 #include "net/netstack.h"
 
 /*---------------------------------------------------------------------------*/

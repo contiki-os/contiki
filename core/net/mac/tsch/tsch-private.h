@@ -113,16 +113,14 @@
 #define TSCH_BASE_ACK_LEN 3
 #define TSCH_SYNC_IE_LEN 4
 #define TSCH_EACK_DEST_LEN (LINKADDR_SIZE+2) /* Dest PAN ID + dest MAC address */
-/* Send enhanced ACK with Information Elements or Std ACK? */
-#define TSCH_PACKET_WITH_SYNC_IE 1
 #ifdef TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
 #define TSCH_PACKET_DEST_ADDR_IN_ACK TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
 #else
 #define TSCH_PACKET_DEST_ADDR_IN_ACK 0
 #endif
-#define TSCH_ACK_LEN (TSCH_BASE_ACK_LEN \
-                      + TSCH_PACKET_WITH_SYNC_IE*TSCH_SYNC_IE_LEN \
-                      + TSCH_PACKET_DEST_ADDR_IN_ACK*TSCH_EACK_DEST_LEN)
+#define TSCH_MAX_ACK_LEN (TSCH_BASE_ACK_LEN \
+                          + TSCH_EACK_DEST_LEN \
+                          + TSCH_SYNC_IE_LEN)
 
 /* Timeslot timing */
 
@@ -161,7 +159,7 @@
 
 /* Max time to wait for end of packet reception. Add a 350us margin. */
 #define TSCH_DATA_MAX_DURATION ((unsigned)(TSCH_PACKET_DURATION(TSCH_MAX_PACKET_LEN) + US_TO_RTIMERTICKS(350)))
-#define TSCH_ACK_MAX_DURATION  ((unsigned)(TSCH_PACKET_DURATION(TSCH_ACK_LEN) + US_TO_RTIMERTICKS(350)))
+#define TSCH_ACK_MAX_DURATION  ((unsigned)(TSCH_PACKET_DURATION(TSCH_MAX_ACK_LEN) + US_TO_RTIMERTICKS(350)))
 
 /* Convert rtimer ticks to clock and vice versa */
 #define TSCH_CLOCK_TO_TICKS(c) (((c)*RTIMER_SECOND)/CLOCK_SECOND)

@@ -270,6 +270,39 @@ parse(void)
   return FRAMER_FAILED;
 }
 /*---------------------------------------------------------------------------*/
+/* Extract addresses from raw packet */
+int
+frame802154_packet_extract_addresses(frame802154_t *frame,
+    linkaddr_t *source_address, linkaddr_t *dest_address)
+{
+  if(frame != NULL) {
+    if(dest_address != NULL) {
+      linkaddr_copy(dest_address, &linkaddr_null);
+    }
+    if(frame->fcf.dest_addr_mode) {
+      if(frame->dest_pid != mac_src_pan_id
+          && frame->dest_pid != FRAME802154_BROADCASTPANDID) {
+        /* Packet to another PAN */
+        return 0;
+      }
+      if(!is_broadcast_addr(frame->fcf.dest_addr_mode, frame->dest_addr)) {
+        if(dest_address != NULL) {
+          linkaddr_copy(dest_address, (linkaddr_t *)frame->dest_addr);
+        }
+      }
+    }
+
+    if(frame->fcf.src_addr_mode && frame->src_pid != IEEE802154_PANID) {
+      /* Reject if from another PAN */
+      return 0;
+    }
+    if(source_address != NULL) {
+      linkaddr_copy(source_address, (linkaddr_t *)frame->src_addr);
+    }
+  }
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
 const struct framer framer_802154 = {
   hdr_length,
   create,

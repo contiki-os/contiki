@@ -45,6 +45,8 @@
 #include "net/nbr-table.h"
 #include "net/packetbuf.h"
 #include "net/queuebuf.h"
+#include "net/mac/frame802154.h"
+#include "net/mac/framer-802154.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-queue.h"
 #include "net/mac/tsch/tsch-private.h"
@@ -496,13 +498,12 @@ eb_input(struct input_packet *current_input)
 {
   /* LOG("TSCH: EB received\n"); */
   linkaddr_t source_address;
-  struct asn_t eb_asn;
-  uint8_t eb_join_priority;
   /* Verify incoming EB (does its ASN match our Rx time?),
    * and update our join priority. */
+  struct ieee802154_ies eb_ies;
 
-  if(tsch_parse_eb(current_input->payload, current_input->len,
-      &source_address, &eb_asn, &eb_join_priority)) {
+  if(tsch_packet_parse_eb(current_input->payload, current_input->len,
+      &source_address, &eb_ies)) {
 
 #if TSCH_EB_AUTOSELECT
     if(!tsch_is_coordinator) {
@@ -513,7 +514,7 @@ eb_input(struct input_packet *current_input)
       }
       if(stat != NULL) {
         stat->rx_count++;
-        stat->jp = eb_join_priority;
+        stat->jp = eb_ies.join_priority;
         best_neighbor_eb_count = MAX(best_neighbor_eb_count, stat->rx_count);
       }
       /* Select best time source */
@@ -541,7 +542,7 @@ eb_input(struct input_packet *current_input)
     /* Did the EB come from our time source? */
     if(n != NULL && linkaddr_cmp(&source_address, &n->addr)) {
       /* Check for ASN drift */
-      int32_t asn_diff = ASN_DIFF(current_input->rx_asn, eb_asn);
+      int32_t asn_diff = ASN_DIFF(current_input->rx_asn, eb_ies.ie_asn);
       if(asn_diff != 0) {
         /* We first need to take the lock, i.e. make sure no link operation inteferes with us */
         if(tsch_get_lock()) {
@@ -562,16 +563,16 @@ eb_input(struct input_packet *current_input)
       }
 
       /* Update join priority */
-      if(eb_join_priority < TSCH_MAX_JOIN_PRIORITY) {
-        if(tsch_join_priority != eb_join_priority + 1) {
+      if(eb_ies.ie_join_priority < TSCH_MAX_JOIN_PRIORITY) {
+        if(tsch_join_priority != eb_ies.ie_join_priority + 1) {
           LOG("TSCH: update JP from EB %u -> %u\n",
-              tsch_join_priority, eb_join_priority + 1);
-          tsch_join_priority = eb_join_priority + 1;
+              tsch_join_priority, eb_ies.ie_join_priority + 1);
+          tsch_join_priority = eb_ies.ie_join_priority + 1;
         }
       } else {
         /* Join priority unacceptable. Leave network. */
         LOG("TSCH:! EB JP too high %u, leaving the network\n",
-            eb_join_priority);
+            eb_ies.ie_join_priority);
         tsch_is_associated = 0;
         process_post(&tsch_process, PROCESS_EVENT_POLL, NULL);
       }
@@ -771,7 +772,7 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
   /* is the packet in its neighbor's queue? */
   uint8_t in_queue;
   static int dequeued_index;
-  int packet_ready = 1;
+  static int packet_ready = 1;
 
   PT_BEGIN(pt);
 
@@ -779,6 +780,8 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
    * successful Tx or Drop) */
   dequeued_index = ringbufindex_peek_put(&dequeued_ringbuf);
   if(dequeued_index != -1) {
+    /* is this a data packet? */
+    static uint8_t is_data;
     if(current_packet == NULL || current_packet->qb == NULL) {
       mac_tx_status = MAC_TX_ERR_FATAL;
     } else {
@@ -801,11 +804,14 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
       payload_len = queuebuf_datalen(current_packet->qb);
       /* is this a broadcast packet? (wait for ack?) */
       is_broadcast = current_neighbor->is_broadcast;
+      is_data = ((((uint8_t *)(payload))[0]) & 7) == FRAME802154_DATAFRAME;
       /* read seqno from payload */
       seqno = ((uint8_t *)(payload))[2];
       /* if this is an EB, then update its Sync-IE */
       if(current_neighbor == n_eb) {
-        packet_ready = tsch_packet_update_eb(payload, payload_len);
+        packet_ready = tsch_packet_update_eb(payload, payload_len, current_packet->tsch_sync_ie_offset);
+      } else {
+        packet_ready = 1;
       }
       /* prepare packet to send: copy to radio buffer */
       if(packet_ready && NETSTACK_RADIO.prepare(payload, payload_len) == 0) { /* 0 means success */
@@ -841,14 +847,14 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
 
           if(mac_tx_status == RADIO_TX_OK) {
             if(!is_broadcast) {
-              uint8_t ackbuf[TSCH_ACK_LEN];
+              uint8_t ackbuf[TSCH_MAX_ACK_LEN];
               int ack_len;
-              int is_nack;
               int ret;
-              int32_t received_drift;
               rtimer_clock_t ack_start_time;
               int is_time_source;
               radio_value_t radio_rx_mode;
+              struct ieee802154_ies ack_ies;
+              rtimer_clock_t time_correction_rtimer;
 
               /* Entering promiscuous mode so that the radio accepts the enhanced ACK */
               NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
@@ -873,31 +879,30 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
               NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode | RADIO_RX_MODE_ADDRESS_FILTER);
 
               /* Read ack frame */
-              ack_len = NETSTACK_RADIO.read((void *)ackbuf, TSCH_ACK_LEN);
+              ack_len = NETSTACK_RADIO.read((void *)ackbuf, sizeof(ackbuf));
 
               is_time_source = current_neighbor != NULL && current_neighbor->is_time_source;
-              received_drift = 0;
-              ret = tsch_packet_parse_sync_ack(&received_drift, &is_nack,
-                  ackbuf, ack_len, seqno, is_time_source);
+              ret = tsch_packet_parse_eack(ackbuf, ack_len, seqno, &ack_ies);
+              time_correction_rtimer = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
 
-              if(ret & TSCH_ACK_OK) {
-                if(is_time_source && (ret & TSCH_ACK_HAS_SYNC_IE)) {
+              if(ret != 0) {
+                if(is_time_source && time_correction_rtimer != 0) {
 #if TRUNCATE_SYNC_IE
-                  if(received_drift > TRUNCATE_SYNC_IE_BOUND) {
+                  if(time_correction_rtimer > TRUNCATE_SYNC_IE_BOUND) {
                     drift_correction = TRUNCATE_SYNC_IE_BOUND;
-                  } else if(received_drift < -TRUNCATE_SYNC_IE_BOUND) {
+                  } else if(time_correction_rtimer < -TRUNCATE_SYNC_IE_BOUND) {
                     drift_correction = -TRUNCATE_SYNC_IE_BOUND;
                   } else {
-                    drift_correction = received_drift;
+                    drift_correction = time_correction_rtimer;
                   }
-                  if(drift_correction != received_drift) {
+                  if(drift_correction != time_correction_rtimer) {
                     TSCH_LOG_ADD(tsch_log_message,
                         snprintf(log->message, sizeof(log->message),
-                            "!truncated dr %d %d", (int)received_drift, (int)drift_correction);
+                            "!truncated dr %d %d", (int)time_correction_rtimer, (int)drift_correction);
                     );
                   }
 #else /* TRUNCATE_SYNC_IE */
-                  drift_correction = received_drift;
+                  drift_correction = ack_ies.time_correction;
 #endif /* TRUNCATE_SYNC_IE */
                   drift_neighbor = current_neighbor;
                   /* Keep track of sync time */
@@ -939,9 +944,7 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
     log->tx.datalen = queuebuf_datalen(current_packet->qb);
     log->tx.drift = drift_correction;
     log->tx.drift_used = drift_neighbor != NULL;
-    log->tx.is_data =
-        (tsch_packet_parse_frame_type_from_fcf_lsb(((uint8_t*)queuebuf_dataptr(current_packet->qb))[0])
-            & IS_DATA) != 0;
+    log->tx.is_data = is_data;
     log->tx.dest = LOG_NODEID_FROM_LINKADDR(queuebuf_addr(current_packet->qb, PACKETBUF_ADDR_RECEIVER));
     //appdata_copy(&log->tx.appdata, LOG_APPDATAPTR_FROM_BUFFER(queuebuf_dataptr(current_packet->qb), queuebuf_datalen(current_packet->qb)));
     );
@@ -1003,8 +1006,6 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
       off();
       /* no packets on air */
     } else {
-      uint8_t seqno;
-
       /* Wait until packet is received, turn radio off */
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
           current_link_start, TS_TX_OFFSET + TS_LONG_GT + TSCH_DATA_MAX_DURATION);
@@ -1012,8 +1013,8 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
       off();
 
       if(NETSTACK_RADIO.pending_packet()) {
-        static int ack_needed;
         static int frame_valid;
+        static frame802154_t frame;
         radio_value_t radio_last_rssi;
 
         NETSTACK_RADIO.get_value(RADIO_PARAM_LAST_RSSI, &radio_last_rssi);
@@ -1021,9 +1022,8 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
         current_input->len = NETSTACK_RADIO.read((void *)current_input->payload, TSCH_MAX_PACKET_LEN);
         current_input->rx_asn = current_asn;
         current_input->rssi = (signed)radio_last_rssi;
-        ack_needed = tsch_packet_parse_frame_type((uint8_t *)current_input->payload, current_input->len, &seqno) & DO_ACK;
-        frame_valid = tsch_packet_extract_addresses((uint8_t*)current_input->payload,
-            current_input->len, &source_address, &destination_address);
+        frame_valid = frame802154_parse((uint8_t*)current_input->payload, current_input->len, &frame);
+        frame_valid = frame_valid && frame802154_packet_extract_addresses(&frame, &source_address, &destination_address);
 
         if(frame_valid) {
           if(linkaddr_cmp(&destination_address, &linkaddr_node_addr)
@@ -1032,20 +1032,19 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
             estimated_drift = ((int32_t)expected_rx_time - (int32_t)rx_start_time);
 
 #ifdef TSCH_CALLBACK_DO_NACK
-            if(ack_needed) {
+            if(frame.fcf.ack_required) {
               do_nack = TSCH_CALLBACK_DO_NACK(current_link,
                   &source_address, &destination_address);
             }
 #endif
 
-            if(ack_needed) {
-              static uint8_t ack_buf[TSCH_ACK_LEN];
+            if(frame.fcf.ack_required) {
+              static uint8_t ack_buf[TSCH_MAX_ACK_LEN];
               static int ack_len;
 
               /* Build ACK frame */
-              ack_len = tsch_packet_make_sync_ack(
-                  estimated_drift, do_nack,
-                  ack_buf, sizeof(ack_buf), &source_address, seqno);
+              ack_len = tsch_packet_create_eack(ack_buf, sizeof(ack_buf),
+                  &source_address, frame.seq, (int16_t)RTIMERTICKS_TO_US(estimated_drift), do_nack);
               /* Copy to radio buffer */
               NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);
 
@@ -1073,13 +1072,11 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
             /* Log every reception */
             TSCH_LOG_ADD(tsch_log_rx,
               log->rx.src = LOG_NODEID_FROM_LINKADDR(&source_address);
-              log->rx.is_unicast = ack_needed;
+              log->rx.is_unicast = frame.fcf.ack_required;
               log->rx.datalen = current_input->len;
               log->rx.drift = drift_correction;
               log->rx.drift_used = drift_neighbor != NULL;
-              log->rx.is_data =
-                  (tsch_packet_parse_frame_type(current_input->payload, current_input->len, NULL)
-                  & IS_DATA) != 0;
+              log->rx.is_data = frame.fcf.frame_type == FRAME802154_DATAFRAME;
               log->rx.estimated_drift = estimated_drift;
               //appdata_copy(&log->rx.appdata, LOG_APPDATAPTR_FROM_BUFFER(current_input->payload, current_input->len));
             );
@@ -1267,8 +1264,11 @@ PT_THREAD(tsch_associate(struct pt *pt))
 
         if(input_eb.len != 0) {
           /* Parse EB and extract ASN and join priority */
-          eb_parsed = tsch_parse_eb(input_eb.payload, input_eb.len,
-              &source_address, &current_asn, &tsch_join_priority);
+          struct ieee802154_ies ies;
+          eb_parsed = tsch_packet_parse_eb(input_eb.payload, input_eb.len,
+              &source_address, &ies) && ies.ie_join_priority != 0xff;
+          current_asn = ies.ie_asn;
+          tsch_join_priority = ies.ie_join_priority;
         }
 
 #if TSCH_CHECK_TIME_AT_ASSOCIATION > 0
@@ -1424,9 +1424,10 @@ tsch_rx_process_pending()
   /* Loop on accessing (without removing) a pending input packet */
   while((input_index = ringbufindex_peek_get(&input_ringbuf)) != -1) {
     struct input_packet *current_input = &input_array[input_index];
-    uint8_t ret = tsch_packet_parse_frame_type(current_input->payload, current_input->len, NULL);
-    int is_data = (ret & IS_DATA) != 0;
-    int needs_ack = (ret & DO_ACK) != 0;
+    frame802154_t frame;
+    uint8_t ret = frame802154_parse(current_input->payload, current_input->len, &frame);
+    int is_data = ret && frame.fcf.frame_type == FRAME802154_DATAFRAME;
+    int needs_ack = ret && frame.fcf.ack_required;
 
     if(is_data) {
       /* Skip EBs and other control messages */
@@ -1504,6 +1505,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
       /* Enqueue EB only if there isn't already one in queue */
       if(tsch_queue_packet_count(&tsch_eb_address) == 0) {
         int eb_len;
+        uint8_t tsch_sync_ie_offset;
         /* Prepare the EB packet and schedule it to be sent */
         packetbuf_clear();
         /* We don't use seqno 0 */
@@ -1511,14 +1513,17 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
           tsch_packet_seqno++;
         }
         packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
-        eb_len = tsch_packet_make_eb(packetbuf_dataptr(), PACKETBUF_SIZE, tsch_packet_seqno);
+        eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
+            tsch_packet_seqno, &tsch_sync_ie_offset);
         if(eb_len != 0) {
+          struct tsch_packet *p;
           packetbuf_set_datalen(eb_len);
           /* Enqueue EB packet */
-          if(!tsch_queue_add_packet(&tsch_eb_address, NULL, NULL)) {
+          if(!(p = tsch_queue_add_packet(&tsch_eb_address, NULL, NULL))) {
             LOG("TSCH:! could not enqueue EB packet\n");
           } else {
             LOG("TSCH: enqueue EB packet\n");
+            p->tsch_sync_ie_offset = tsch_sync_ie_offset;
           }
         }
       }

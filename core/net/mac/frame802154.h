@@ -99,6 +99,7 @@
 
 #define FRAME802154_IEEE802154_2003 (0x00)
 #define FRAME802154_IEEE802154_2006 (0x01)
+#define FRAME802154_IEEE802154      (0x02)
 
 #define FRAME802154_SECURITY_LEVEL_NONE        (0)
 #define FRAME802154_SECURITY_LEVEL_MIC_32      (1)
@@ -136,7 +137,9 @@ typedef struct {
   uint8_t frame_pending;     /**< 1 bit. True if sender has more data to send */
   uint8_t ack_required;      /**< 1 bit. Is an ack frame required? */
   uint8_t panid_compression; /**< 1 bit. Is this a compressed header? */
-  /*   uint8_t reserved; */  /**< 3 bit. Unused bits */
+  /*   uint8_t reserved; */  /**< 1 bit. Unused bit */
+  uint8_t sequence_number_suppression; /**< 1 bit. Does the header omit sequence number?, see 802.15.4e */
+  uint8_t ie_list_present;   /**< 1 bit. Does the header contain Information Elements?, see 802.15.4e */
   uint8_t dest_addr_mode;    /**< 2 bit. Destination address mode, see 802.15.4 */
   uint8_t frame_version;     /**< 2 bit. 802.15.4 frame version */
   uint8_t src_addr_mode;     /**< 2 bit. Source address mode, see 802.15.4 */

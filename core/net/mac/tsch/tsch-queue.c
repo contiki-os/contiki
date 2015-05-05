@@ -230,7 +230,7 @@ tsch_queue_remove_nbr(struct tsch_neighbor *n)
   }
 }
 /* Add packet to neighbor queue. Use same lockfree implementation as ringbuf.c (put is atomic) */
-int
+struct tsch_packet *
 tsch_queue_add_packet(const linkaddr_t *addr, mac_callback_t sent, void *ptr)
 {
   struct tsch_neighbor *n = NULL;
@@ -253,7 +253,7 @@ tsch_queue_add_packet(const linkaddr_t *addr, mac_callback_t sent, void *ptr)
             /* Add to ringbuf (actual add committed through atomic operation) */
             n->tx_array[put_index] = p;
             ringbufindex_put(&n->tx_ringbuf);
-            return 1;
+            return p;
           } else {
             memb_free(&packet_memb, p);
           }
