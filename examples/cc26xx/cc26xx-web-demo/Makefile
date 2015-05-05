@@ -1,4 +1,5 @@
 DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
+TI_CC26XXWARE=/cc26xxware
 
 all: cc26xx-web-demo
 
