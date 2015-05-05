@@ -269,9 +269,6 @@ static void tsch_tx_process_pending();
 static void tsch_rx_process_pending();
 static void tsch_schedule_keepalive();
 
-/* Debug timing */
-static rtimer_clock_t t0prepare = 0, t0tx = 0, t0txack = 0, t0post_tx = 0, t0rx = 0, t0rxack = 0;
-
 /* A global lock for manipulating data structures safely from outside of interrupt */
 static volatile int tsch_locked = 0;
 /* As long as this is set, skip all link operation */
@@ -723,8 +720,6 @@ update_neighbor_state(struct tsch_neighbor *n, struct tsch_packet *p,
   int is_shared_link = link->link_options & LINK_OPTION_SHARED;
   int is_unicast = !n->is_broadcast;
 
-  t0post_tx = RTIMER_NOW();
-
   if(mac_tx_status == MAC_TX_OK) {
     /* Successful transmission */
     tsch_queue_remove_packet_from_queue(n);
@@ -756,8 +751,6 @@ update_neighbor_state(struct tsch_neighbor *n, struct tsch_packet *p,
     }
   }
 
-  t0post_tx = RTIMER_NOW() - t0post_tx;
-
   return in_queue;
 }
 static
@@ -787,9 +780,6 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
    * successful Tx or Drop) */
   dequeued_index = ringbufindex_peek_put(&dequeued_ringbuf);
   if(dequeued_index != -1) {
-
-    t0prepare = RTIMER_NOW();
-
     if(current_packet == NULL || current_packet->qb == NULL) {
       mac_tx_status = MAC_TX_ERR_FATAL;
     } else {
@@ -822,8 +812,6 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
       if(packet_ready && NETSTACK_RADIO.prepare(payload, payload_len) == 0) { /* 0 means success */
         static rtimer_clock_t tx_duration;
 
-        t0prepare = RTIMER_NOW() - t0prepare;
-
 #if CCA_ENABLED
         cca_status = 1;
         /* delay before CCA */
@@ -841,7 +829,6 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
         {
           /* delay before TX */
           TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start, TS_TX_OFFSET - RADIO_DELAY_BEFORE_TX, "TxBeforeTx");
-          t0tx = RTIMER_NOW();
           /* send packet already in radio tx buffer */
           mac_tx_status = NETSTACK_RADIO.transmit(payload_len);
           /* Save tx timestamp */
@@ -852,9 +839,7 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
           tx_duration = MIN(tx_duration, TSCH_DATA_MAX_DURATION);
           /* turn tadio off -- will turn on again to wait for ACK if needed */
           off();
-          t0tx = RTIMER_NOW() - t0tx;
 
-          t0txack = RTIMER_NOW();
           if(mac_tx_status == RADIO_TX_OK) {
             if(!is_broadcast) {
               uint8_t ackbuf[TSCH_ACK_LEN];
@@ -933,7 +918,6 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
         }
       }
     }
-    t0txack = RTIMER_NOW() - t0txack;
 
     current_packet->transmissions++;
     current_packet->ret = mac_tx_status;
@@ -1002,8 +986,6 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
     /* Default start time: expected Rx time */
     rx_start_time = expected_rx_time;
 
-    t0rx = RTIMER_NOW();
-
     current_input = &input_array[input_index];
 
     /* Wait before starting to listen */
@@ -1020,7 +1002,6 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
     }
     if(!NETSTACK_RADIO.receiving_packet() && !NETSTACK_RADIO.pending_packet()) {
       off();
-      t0rx = RTIMER_NOW() - t0rx;
       /* no packets on air */
     } else {
       uint8_t seqno;
@@ -1044,9 +1025,6 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
         ack_needed = tsch_packet_parse_frame_type((uint8_t *)current_input->payload, current_input->len, &seqno) & DO_ACK;
         frame_valid = tsch_packet_extract_addresses((uint8_t*)current_input->payload,
             current_input->len, &source_address, &destination_address);
-
-        t0rx = RTIMER_NOW() - t0rx;
-        t0rxack = RTIMER_NOW();
 
         if(frame_valid) {
           if(linkaddr_cmp(&destination_address, &linkaddr_node_addr)
@@ -1118,7 +1096,6 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
       }
     }
 
-    t0rxack = RTIMER_NOW() - t0rxack;
     if(input_queue_drop != 0) {
       TSCH_LOG_ADD(tsch_log_message,
           snprintf(log->message, sizeof(log->message),
@@ -1221,13 +1198,6 @@ PT_THREAD(tsch_link_operation(struct rtimer *t, void *ptr))
         prev_link_start = current_link_start;
         current_link_start += tsch_time_until_next_active_link;
       } while(!tsch_schedule_link_operation(t, prev_link_start, tsch_time_until_next_active_link, 1, "main"));
-
-      /* Drift correction monitoring */
-      //PRINTF("TSCH: end of cell, drift correction: %d ticks, next wake up: %u slots\n", (int16_t)drift_correction_backup, timeslot_diff);
-      /* Timing profiling of various parts of TSCH link operation */
-      // PRINTF("TSCH: timing: TX_prepare %u, TX %u, TX_ack %u, post_TX %u, RX %u, RX_ack %u\n", t0prepare, t0tx, t0txack, t0post_tx, t0rx, t0rxack);
-      /* Reset time-profiling variables for next wake up */
-      t0prepare=0; t0tx=0; t0txack=0; t0post_tx=0; t0rx=0; t0rxack=0;
     }
 
     tsch_in_link_operation = 0;
@@ -1309,8 +1279,8 @@ PT_THREAD(tsch_associate(struct pt *pt))
           int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION*60ul*TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND);
           int32_t asn_diff = (int32_t)current_asn.ls4b-expected_asn;
           if(asn_diff > asn_threshold) {
-            //LOG("TSCH:! EB ASN rejected %lx %lx %ld\n",
-              //current_asn.ls4b, expected_asn, asn_diff);
+            LOG("TSCH:! EB ASN rejected %lx %lx %ld\n",
+              current_asn.ls4b, expected_asn, asn_diff);
             eb_parsed = 0;
           }
         }
@@ -1547,9 +1517,9 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
           packetbuf_set_datalen(eb_len);
           /* Enqueue EB packet */
           if(!tsch_queue_add_packet(&tsch_eb_address, NULL, NULL)) {
-//            LOG("TSCH:! could not enqueue EB packet\n");
+            LOG("TSCH:! could not enqueue EB packet\n");
           } else {
-//            LOG("TSCH: enqueue EB packet\n");
+            LOG("TSCH: enqueue EB packet\n");
           }
         }
       }
@@ -1587,8 +1557,6 @@ tsch_reset(void)
   best_neighbor_eb_count = 0;
   nbr_table_register(eb_stats, NULL);
 #endif
-  /* Reset time-profiling variables for next wake up */
-  t0prepare=0; t0tx=0; t0txack=0; t0post_tx=0; t0rx=0; t0rxack=0;
 }
 /*---------------------------------------------------------------------------*/
 static void
