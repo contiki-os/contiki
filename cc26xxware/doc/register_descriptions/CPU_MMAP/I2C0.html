@@ -1,0 +1,3015 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<link href="../elements/mmap.css" rel="stylesheet" type="text/css">
+<TITLE>I2C0</TITLE>
+</HEAD>
+<BODY class=mmapBody><H2 class="mmapCellTitle"><A name="Top_Tag">I2C0</A></H2>
+<P>Instance: I2C0<BR>Component: I2C<BR>Base address: 0x40002000</P>
+<P>&nbsp;</P>
+<P>I2CMaster/Slave Serial Controler</P>
+ 
+<P>&nbsp;</P>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A name="I2C0"></A><A href="CPU_MMAP.html"> TOP</A>:<B>I2C0</B> Register Summary</H3>
+  <TABLE class="mmapRegisterSummaryTable" cellspacing=0>
+	 	<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Register Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol3">
+	  			<P>Register Width (Bits)</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Register Reset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Address Offset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Physical Address</P>
+	  		</TD>
+	 	</TR>
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SOAR">SOAR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2000 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SSTAT">SSTAT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0004</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2004 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SCTL">SCTL</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>WO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0004</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2004 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SDR">SDR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0008</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2008 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SIMR">SIMR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 000C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 200C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SRIS">SRIS</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0010</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2010 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SMIS">SMIS</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0014</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2014 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SICR">SICR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>WO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0018</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2018 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MSA">MSA</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0800</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2800 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MSTAT">MSTAT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0020</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0804</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2804 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MCTRL">MCTRL</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>WO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0804</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2804 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MDR">MDR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0808</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2808 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MTPR">MTPR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0001</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 080C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 280C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MIMR">MIMR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0810</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2810 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MRIS">MRIS</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0814</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2814 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MMIS">MMIS</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0818</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2818 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MICR">MICR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>WO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 081C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 281C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MCR">MCR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0820</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 2820 </P>
+			</TD>
+		</TR>
+		
+	</TABLE>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A href="CPU_MMAP.html"> TOP</A>:I2C0 Register Descriptions</H3>
+
+
+	<H3 class="mmapRegisterTitle"><A name="SOAR"><A name="SOAR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:SOAR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0000</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2000</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Slave Own Address<BR>This register consists of seven address bits that identify this <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> device on the <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> bus.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SOAR_Reserved">
+	  			<P>31:7</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SOAR_OAR">
+	  			<P>6:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>OAR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> slave own address<BR>This field specifies bits a6 through a0 of the slave address.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SSTAT"><A name="SSTAT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:SSTAT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0004</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2004</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Slave Status <BR>Internal Note: This register shares address with <A class="xref" href="#SCTL">SCTL</A>, meaning that this register functions as a control register when written, and a status register when read.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SSTAT_Reserved">
+	  			<P>31:3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SSTAT_FBR">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FBR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>First byte received<BR><BR>0: The first byte has not been received.<BR>1: The first byte following the slave&#x27;s own address has been received.<BR><BR>This bit is only valid when the <A class="xref" href="#_RREQ">RREQ</A> bit is set and is automatically cleared when data has been read from the <A class="xref" href="#SDR">SDR</A> register.<BR>Note: This bit is not used for slave transmit operations.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SSTAT_TREQ">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TREQ</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Transmit request<BR><BR>0: No outstanding transmit request.<BR>1: The <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> controller has been addressed as a slave transmitter and is using clock stretching to delay the master until data has been written to the <A class="xref" href="#SDR">SDR</A> register.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SSTAT_RREQ">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RREQ</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Receive request<BR><BR>0: No outstanding receive data<BR>1: The <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> controller has outstanding receive data from the <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> master and is using clock stretching to delay the master until data has been read from the <A class="xref" href="#SDR">SDR</A> register.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SCTL"><A name="SCTL"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:SCTL</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0004</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2004</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Slave Control<BR>Note: This register shares address with <A class="xref" href="#SSTAT">SSTAT</A>, meaning that this register functions as a control register when written, and a status register when read.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCTL_RESERVED1">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED1</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved field.  Writing any other value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCTL_DA">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Device active<BR><BR>0: Disables the <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> slave operation<BR>1: Enables the <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> slave operation</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SDR"><A name="SDR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:SDR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0008</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2008</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Slave Data<BR>This register contains the data to be transmitted when in the Slave Transmit state, and the data received when in the Slave Receive state.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SDR_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SDR_DATA">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Data for transfer<BR>This field contains the data for transfer during a slave receive or transmit operation.  When written the register data is used as transmit data.  When read, this register returns the last data received.<BR>Data is stored until next update, either by a system write for transmit or by an external master for receive.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SIMR"><A name="SIMR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:SIMR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 000C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 200C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Slave Interrupt Mask<BR>This register controls whether a raw interrupt is promoted to a controller interrupt.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SIMR_Reserved">
+	  			<P>31:3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SIMR_STOPIM">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STOPIM</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Stop condition interrupt mask<BR><BR>0: The <A class="xref" href="#SRIS_STOPRIS">SRIS.STOPRIS</A> interrupt is suppressed and not sent to the interrupt controller.<BR>1: The <A class="xref" href="#SRIS_STOPRIS">SRIS.STOPRIS</A> interrupt is enabled and sent to the interrupt controller.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Disable Interrupt</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Enable Interrupt</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SIMR_STARTIM">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STARTIM</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Start condition interrupt mask<BR><BR>0: The <A class="xref" href="#SRIS_STARTRIS">SRIS.STARTRIS</A> interrupt is suppressed and not sent to the interrupt controller.<BR>1: The <A class="xref" href="#SRIS_STARTRIS">SRIS.STARTRIS</A> interrupt is enabled and sent to the interrupt controller.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Disable Interrupt</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Enable Interrupt</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SIMR_DATAIM">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATAIM</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Data interrupt mask<BR><BR>0: The <A class="xref" href="#SRIS_DATARIS">SRIS.DATARIS</A> interrupt is suppressed and not sent to the interrupt controller.<BR>1: The <A class="xref" href="#SRIS_DATARIS">SRIS.DATARIS</A> interrupt is enabled and sent to the interrupt controller.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SRIS"><A name="SRIS"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:SRIS</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0010</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2010</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Slave Raw Interrupt Status<BR>This register shows the unmasked interrupt status.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SRIS_Reserved">
+	  			<P>31:3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SRIS_STOPRIS">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STOPRIS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Stop condition raw interrupt status<BR><BR>0: No interrupt<BR>1: A Stop condition interrupt is pending.<BR><BR>This bit is cleared by writing a 1 to <A class="xref" href="#SICR_STOPIC">SICR.STOPIC</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SRIS_STARTRIS">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STARTRIS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Start condition raw interrupt status<BR><BR>0: No interrupt<BR>1: A Start condition interrupt is pending.<BR><BR>This bit is cleared by writing a 1 to <A class="xref" href="#SICR_STARTIC">SICR.STARTIC</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SRIS_DATARIS">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATARIS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Data raw interrupt status<BR><BR>0: No interrupt<BR>1: A data received or data requested interrupt is pending.<BR><BR>This bit is cleared by writing a 1 to the <A class="xref" href="#SICR_DATAIC">SICR.DATAIC</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SMIS"><A name="SMIS"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:SMIS</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0014</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2014</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Slave Masked Interrupt Status<BR>This register show which interrupt is active (based on result from <A class="xref" href="#SRIS">SRIS</A> and <A class="xref" href="#SIMR">SIMR</A>).</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SMIS_Reserved">
+	  			<P>31:3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SMIS_STOPMIS">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STOPMIS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Stop condition masked interrupt status<BR><BR>0: An interrupt has not occurred or is masked/disabled.<BR>1: An unmasked Stop condition interrupt is pending.<BR><BR>This bit is cleared by writing a 1 to the <A class="xref" href="#SICR_STOPIC">SICR.STOPIC</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SMIS_STARTMIS">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STARTMIS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Start condition masked interrupt status<BR><BR>0: An interrupt has not occurred or is masked/disabled.<BR>1: An unmasked Start condition interrupt is pending.<BR><BR>This bit is cleared by writing a 1 to the <A class="xref" href="#SICR_STARTIC">SICR.STARTIC</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SMIS_DATAMIS">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATAMIS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Data masked interrupt status<BR><BR>0: An interrupt has not occurred or is masked/disabled.<BR>1: An unmasked data received or data requested interrupt is pending.<BR><BR>This bit is cleared by writing a 1 to the <A class="xref" href="#SICR_DATAIC">SICR.DATAIC</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SICR"><A name="SICR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:SICR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0018</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2018</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Slave Interrupt Clear<BR>This register clears the raw interrupt <A class="xref" href="SRIS.html">SRIS</A>.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SICR_Reserved">
+	  			<P>31:3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(WO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SICR_STOPIC">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STOPIC</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Stop condition interrupt clear<BR><BR>Writing 1 to this bit clears <A class="xref" href="#SRIS_STOPRIS">SRIS.STOPRIS</A> and <A class="xref" href="#SMIS_STOPMIS">SMIS.STOPMIS</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SICR_STARTIC">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STARTIC</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Start condition interrupt clear<BR><BR>Writing 1 to this bit clears <A class="xref" href="#SRIS_STARTRIS">SRIS.STARTRIS</A> <A class="xref" href="#SMIS_STARTMIS">SMIS.STARTMIS</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SICR_DATAIC">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATAIC</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Data interrupt clear<BR><BR>Writing 1 to this bit clears <A class="xref" href="#SRIS_DATARIS">SRIS.DATARIS</A> <A class="xref" href="#SMIS_DATAMIS">SMIS.DATAMIS</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MSA"><A name="MSA"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MSA</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0800</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2800</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Salve Address<BR>This register contains seven address bits of the slave to be accessed by the master (a6-a0), and an <A class="xref" href="#_RS">RS</A> bit determining if the next operation is a receive or transmit.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSA_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSA_SA">
+	  			<P>7:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> master slave address<BR>Defines which slave is addressed for the transaction in master mode</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSA_RS">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Receive or Send<BR>This bit-field specifies if the next operation is a receive (high) or a transmit/send (low) from the addressed slave <A class="xref" href="#_SA">SA</A>.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>TX</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Transmit/send data to slave</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>RX</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Receive data from slave</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MSTAT"><A name="MSTAT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MSTAT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0804</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2804</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Status</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSTAT_Reserved">
+	  			<P>31:7</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSTAT_BUSBSY">
+	  			<P>6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>BUSBSY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bus busy<BR><BR>0: The <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> bus is idle.<BR>1: The <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> bus is busy.<BR><BR>The bit changes based on the <A class="xref" href="#MCTRL_START">MCTRL.START</A> and <A class="xref" href="#MCTRL_STOP">MCTRL.STOP</A> conditions.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSTAT_IDLE">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>IDLE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>I2C idle<BR><BR>0: The <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> controller is not idle.<BR>1: The <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> controller is idle.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>1</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSTAT_ARBLST">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ARBLST</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Arbitration lost<BR><BR>0: The <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> controller won arbitration.<BR>1: The <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> controller lost arbitration.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSTAT_DATACK_N">
+	  			<P>3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATACK_N</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Data Was Not Acknowledge<BR><BR>0: The transmitted data was acknowledged.<BR>1: The transmitted data was not acknowledged.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSTAT_ADRACK_N">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ADRACK_N</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Address Was Not Acknowledge<BR><BR>0: The transmitted address was acknowledged.<BR>1: The transmitted address was not acknowledged.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSTAT_ERR">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Error<BR><BR>0: No error was detected on the last operation.<BR>1: An error occurred on the last operation.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MSTAT_BUSY">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>BUSY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>I2C busy<BR><BR>0: The controller is idle.<BR>1: The controller is busy.<BR><BR>When this bit-field is set, the other status bits are not valid.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MCTRL"><A name="MCTRL"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MCTRL</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0804</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2804</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Control<BR><BR>This register accesses status bits when read and control bits when written. When read, the status register indicates the state of the <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> bus controller as stated in <A class="xref" href="#MSTAT">MSTAT</A>. When written, the control register configures the <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> controller operation.<BR><BR>To generate a single transmit cycle, the <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Slave Address (<A class="xref" href="#MSA">MSA</A>) register is written with the desired address, the <A class="xref" href="#MSA_RS">MSA.RS</A> bit is cleared, and this register is written with <BR>* <A class="xref" href="#_ACK">ACK</A>=X (0 or 1), <BR>* <A class="xref" href="#_STOP">STOP</A>=1, <BR>* <A class="xref" href="#_START">START</A>=1, <BR>* <A class="xref" href="#_RUN">RUN</A>=1 <BR>to perform the operation and stop. <BR>When the operation is completed (or aborted due an error), an interrupt becomes active and the data may be read from the <A class="xref" href="#MDR">MDR</A> register.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCTRL_Reserved">
+	  			<P>31:4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(WO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCTRL_ACK">
+	  			<P>3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ACK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Data acknowledge enable<BR><BR>0: The received data byte is not acknowledged automatically by the master.<BR>1: The received data byte is acknowledged automatically by the master.<BR><BR>This bit-field must be cleared when the <A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> bus controller requires no further data to be transmitted from the slave transmitter.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Disable acknowledge</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Enable acknowledge</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCTRL_STOP">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STOP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This bit-field determines if the cycle stops at the end of the data cycle or continues on to a repeated <A class="xref" href="#_START">START</A> condition.<BR><BR>0: The controller does not generate the Stop condition.<BR>1: The controller generates the Stop condition.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Disable STOP</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Enable STOP</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCTRL_START">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>START</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This bit-field generates the Start or Repeated Start condition. <BR><BR>0: The controller does not generate the Start condition.<BR>1: The controller generates the Start condition.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Disable START</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Enable START</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCTRL_RUN">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RUN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> master enable<BR><BR>0: The master is disabled.<BR>1: The master is enabled to transmit or receive data.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Disable Master</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Enable Master</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MDR"><A name="MDR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MDR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0808</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2808</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Data<BR>This register contains the data to be transmitted when in the Master Transmit state and the data received when in the Master Receive state.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MDR_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MDR_DATA">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>When Read: Last <A class="mmap_legend_link" href="../legend.html#RX">RX</A> Data is returned<BR>When Written: Data is transferred during <A class="mmap_legend_link" href="../legend.html#TX">TX</A>  transaction</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MTPR"><A name="MTPR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MTPR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 080C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 280C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Timer Period<BR>This register specifies the period of the <A class="mmap_legend_link" href="../legend.html#SCL">SCL</A> clock.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MTPR_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MTPR_TPR_7">
+	  			<P>7</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TPR_7</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Must be set to 0 to set <A class="xref" href="#_TPR">TPR</A>. If set to 1, a write to <A class="xref" href="#_TPR">TPR</A> will be ignored.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MTPR_TPR">
+	  			<P>6:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TPR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#SCL">SCL</A> clock period<BR>This field specifies the period of the <A class="mmap_legend_link" href="../legend.html#SCL">SCL</A> clock.<BR>SCL_PRD = 2*(1+TPR)*(SCL_LP + SCL_HP)*CLK_PRD<BR>where:<BR>SCL_PRD is the <A class="mmap_legend_link" href="../legend.html#SCL">SCL</A> line period (<A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> clock).<BR>TPR is the timer period register value (range of 1 to 127)<BR>SCL_LP is the <A class="mmap_legend_link" href="../legend.html#SCL">SCL</A> low period (fixed at 6).<BR>SCL_HP is the <A class="mmap_legend_link" href="../legend.html#SCL">SCL</A> high period (fixed at 4).<BR>CLK_PRD is the system clock period in ns.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x01</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MIMR"><A name="MIMR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MIMR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0810</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2810</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Interrupt Mask<BR>This register controls whether a raw interrupt is promoted to a controller interrupt.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MIMR_Reserved">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MIMR_IM">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>IM</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Interrupt mask<BR><BR>0: The <A class="xref" href="#MRIS_RIS">MRIS.RIS</A> interrupt is suppressed and not sent to the interrupt controller.<BR>1: The master interrupt is sent to the interrupt controller when the <A class="xref" href="#MRIS_RIS">MRIS.RIS</A> is set.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Disable Interrupt</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Enable Interrupt</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MRIS"><A name="MRIS"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MRIS</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0814</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2814</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Raw Interrupt Status<BR>This register show the unmasked interrupt status.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MRIS_Reserved">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MRIS_RIS">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RIS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Raw interrupt status<BR><BR>0: No interrupt<BR>1: A master interrupt is pending.<BR><BR>This bit is cleared by writing 1 to the <A class="xref" href="#MICR_IC">MICR.IC</A> bit .</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MMIS"><A name="MMIS"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MMIS</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0818</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2818</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Masked Interrupt Status<BR>This register show which interrupt is active (based on result from <A class="xref" href="#MRIS">MRIS</A> and <A class="xref" href="#MIMR">MIMR</A>).</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MMIS_Reserved">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MMIS_MIS">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MIS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Masked interrupt status<BR><BR>0: An interrupt has not occurred or is masked.<BR>1: A master interrupt is pending.<BR><BR>This bit is cleared by writing 1 to the <A class="xref" href="#MICR_IC">MICR.IC</A> bit .</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MICR"><A name="MICR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MICR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 081C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 281C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Interrupt Clear<BR>This register clears the raw and masked interrupt.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MICR_Reserved">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(WO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MICR_IC">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>IC</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Interrupt clear<BR>Writing 1 to this bit clears <A class="xref" href="#MRIS_RIS">MRIS.RIS</A> and  <A class="xref" href="#MMIS_MIS">MMIS.MIS</A> .<BR><BR>Reading this register returns no meaningful data.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MCR"><A name="MCR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2C</A>:MCR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0820</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4000 2820</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2C0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> Master Configuration<BR>This register configures the mode (Master or Slave) and sets the interface for test mode loopback.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCR_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCR_Reserved">
+	  			<P>7:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCR_SFE">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SFE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> slave function enable</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Slave mode is disabled.</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Slave mode is enabled.</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCR_MFE">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MFE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> master function enable</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Master mode is disabled.</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Master mode is enabled.</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCR_Reserved">
+	  			<P>3:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MCR_LPBK">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>LPBK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#I2C">I2C</A> loopback<BR><BR>0: Normal operation<BR>1: Loopback operation (test mode)</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Disable Test Mode</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Enable Test Mode</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+<hr><table class="footer"><tr><td>&copy; 2015. Texas Instruments | All Rights Reserved</td></tr></table>
+</BODY>
+</HTML>

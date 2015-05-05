@@ -1,0 +1,2991 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<link href="../elements/mmap.css" rel="stylesheet" type="text/css">
+<TITLE>TRNG</TITLE>
+</HEAD>
+<BODY class=mmapBody><H2 class="mmapCellTitle"><A name="Top_Tag">TRNG</A></H2>
+<P>Instance: TRNG<BR>Component: TRNG<BR>Base address: 0x40028000</P>
+<P>&nbsp;</P>
+<P>True Random Number Generator</P>
+ 
+<P>&nbsp;</P>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A name="TRNG"></A><A href="CPU_MMAP.html"> TOP</A>:<B>TRNG</B> Register Summary</H3>
+  <TABLE class="mmapRegisterSummaryTable" cellspacing=0>
+	 	<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Register Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol3">
+	  			<P>Register Width (Bits)</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Register Reset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Address Offset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Physical Address</P>
+	  		</TD>
+	 	</TR>
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#OUT0">OUT0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8000 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#OUT1">OUT1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0004</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8004 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQFLAGSTAT">IRQFLAGSTAT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0008</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8008 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQFLAGMASK">IRQFLAGMASK</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 000C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 800C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQFLAGCLR">IRQFLAGCLR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>WO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0010</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8010 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#CTL">CTL</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0014</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8014 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#CFG0">CFG0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0018</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8018 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#ALARMCNT">ALARMCNT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 00FF</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 001C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 801C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#FROEN">FROEN</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x00FF FFFF</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0020</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8020 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#FRODETUNE">FRODETUNE</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0024</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8024 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#ALARMMASK">ALARMMASK</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0028</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8028 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#ALARMSTOP">ALARMSTOP</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 002C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 802C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#LFSR0">LFSR0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0030</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8030 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#LFSR1">LFSR1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0034</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8034 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#LFSR2">LFSR2</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0038</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8038 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#HWOPT">HWOPT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0600</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0078</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 8078 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#HWVER0">HWVER0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0200 B44B</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 007C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 807C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQSTATMASK">IRQSTATMASK</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 1FD8</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 9FD8 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#HWVER1">HWVER1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0020</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 1FE0</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 9FE0 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQSET">IRQSET</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 1FEC</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 9FEC </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SWRESET">SWRESET</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 1FF0</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 9FF0 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQSTAT">IRQSTAT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 1FF8</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 9FF8 </P>
+			</TD>
+		</TR>
+		
+	</TABLE>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A href="CPU_MMAP.html"> TOP</A>:TRNG Register Descriptions</H3>
+
+
+	<H3 class="mmapRegisterTitle"><A name="OUT0"><A name="OUT0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:OUT0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0000</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8000</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OUT0_VALUE_31_0">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VALUE_31_0</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="OUT1"><A name="OUT1"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:OUT1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0004</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8004</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OUT1_VALUE_63_32">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VALUE_63_32</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQFLAGSTAT"><A name="IRQFLAGSTAT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:IRQFLAGSTAT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0008</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8008</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGSTAT_NEED_CLOCK">
+	  			<P>31</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>NEED_CLOCK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGSTAT_Reserved">
+	  			<P>30:2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGSTAT_SHUTDOWN_OVF">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SHUTDOWN_OVF</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGSTAT_RDY">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RDY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQFLAGMASK"><A name="IRQFLAGMASK"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:IRQFLAGMASK</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 000C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 800C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGMASK_Reserved">
+	  			<P>31:2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGMASK_SHUTDOWN_OVF">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SHUTDOWN_OVF</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGMASK_RDY">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RDY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQFLAGCLR"><A name="IRQFLAGCLR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:IRQFLAGCLR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0010</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8010</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGCLR_Reserved">
+	  			<P>31:2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(WO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGCLR_SHUTDOWN_OVF">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SHUTDOWN_OVF</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGCLR_RDY">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RDY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="CTL"><A name="CTL"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:CTL</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0014</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8014</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTL_STARTUP_CYCLES">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STARTUP_CYCLES</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTL_Reserved">
+	  			<P>15:11</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTL_TRNG_EN">
+	  			<P>10</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRNG_EN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTL_Reserved">
+	  			<P>9:3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTL_NO_LFSR_FB">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>NO_LFSR_FB</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTL_TEST_MODE">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TEST_MODE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTL_Reserved">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="CFG0"><A name="CFG0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:CFG0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0018</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8018</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CFG0_MAX_REFILL_CYCLES">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MAX_REFILL_CYCLES</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CFG0_Reserved">
+	  			<P>15:12</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CFG0_SMPL_DIV">
+	  			<P>11:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SMPL_DIV</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CFG0_MIN_REFILL_CYCLES">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MIN_REFILL_CYCLES</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="ALARMCNT"><A name="ALARMCNT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:ALARMCNT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 001C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 801C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMCNT_Reserved">
+	  			<P>31:30</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMCNT_SHUTDOWN_CNT">
+	  			<P>29:24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SHUTDOWN_CNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMCNT_Reserved">
+	  			<P>23:21</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMCNT_SHUTDOWN_THR">
+	  			<P>20:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SHUTDOWN_THR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMCNT_Reserved">
+	  			<P>15:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMCNT_ALARM_THR">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ALARM_THR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xFF</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="FROEN"><A name="FROEN"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:FROEN</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0020</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8020</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FROEN_Reserved">
+	  			<P>31:24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FROEN_FRO_MASK">
+	  			<P>23:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FRO_MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xFF FFFF</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="FRODETUNE"><A name="FRODETUNE"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:FRODETUNE</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0024</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8024</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FRODETUNE_Reserved">
+	  			<P>31:24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FRODETUNE_FRO_MASK">
+	  			<P>23:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FRO_MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="ALARMMASK"><A name="ALARMMASK"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:ALARMMASK</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0028</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8028</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMMASK_Reserved">
+	  			<P>31:24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMMASK_FRO_MASK">
+	  			<P>23:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FRO_MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="ALARMSTOP"><A name="ALARMSTOP"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:ALARMSTOP</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 002C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 802C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMSTOP_Reserved">
+	  			<P>31:24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ALARMSTOP_FRO_FLAGS">
+	  			<P>23:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FRO_FLAGS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="LFSR0"><A name="LFSR0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:LFSR0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0030</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8030</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="LFSR0_LFSR_31_0">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>LFSR_31_0</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="LFSR1"><A name="LFSR1"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:LFSR1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0034</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8034</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="LFSR1_LFSR_63_32">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>LFSR_63_32</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="LFSR2"><A name="LFSR2"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:LFSR2</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0038</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8038</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="LFSR2_Reserved">
+	  			<P>31:17</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="LFSR2_LFSR_80_64">
+	  			<P>16:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>LFSR_80_64</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="HWOPT"><A name="HWOPT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:HWOPT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0078</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 8078</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWOPT_Reserved">
+	  			<P>31:12</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWOPT_NR_OF_FROS">
+	  			<P>11:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>NR_OF_FROS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x18</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWOPT_Reserved">
+	  			<P>5:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="HWVER0"><A name="HWVER0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:HWVER0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 007C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 807C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWVER0_Reserved">
+	  			<P>31:28</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWVER0_HW_MAJOR_VER">
+	  			<P>27:24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>HW_MAJOR_VER</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x2</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWVER0_HW_MINOR_VER">
+	  			<P>23:20</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>HW_MINOR_VER</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWVER0_HW_PATCH_LVL">
+	  			<P>19:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>HW_PATCH_LVL</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWVER0_EIP_NUM_COMPL">
+	  			<P>15:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EIP_NUM_COMPL</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xB4</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWVER0_EIP_NUM">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EIP_NUM</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x4B</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQSTATMASK"><A name="IRQSTATMASK"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:IRQSTATMASK</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 1FD8</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 9FD8</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSTATMASK_Reserved">
+	  			<P>31:2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSTATMASK_SHUTDOWN_OVF">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SHUTDOWN_OVF</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSTATMASK_RDY">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RDY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="HWVER1"><A name="HWVER1"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:HWVER1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 1FE0</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 9FE0</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWVER1_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="HWVER1_REV">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>REV</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x20</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQSET"><A name="IRQSET"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:IRQSET</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 1FEC</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 9FEC</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_Reserved">
+	  			<P>31:2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_Reserved">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(WO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_Reserved">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(WO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SWRESET"><A name="SWRESET"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:SWRESET</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 1FF0</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 9FF0</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SWRESET_Reserved">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SWRESET_RESET">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESET</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQSTAT"><A name="IRQSTAT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">TRNG</A>:IRQSTAT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 1FF8</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 9FF8</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>TRNG</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Internal Register. Customers can control this through TI provided API</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSTAT_Reserved">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSTAT_STAT">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STAT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Internal</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+<hr><table class="footer"><tr><td>&copy; 2015. Texas Instruments | All Rights Reserved</td></tr></table>
+</BODY>
+</HTML>

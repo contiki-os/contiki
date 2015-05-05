@@ -1,0 +1,4369 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<link href="../elements/mmap.css" rel="stylesheet" type="text/css">
+<TITLE>I2S0</TITLE>
+</HEAD>
+<BODY class=mmapBody><H2 class="mmapCellTitle"><A name="Top_Tag">I2S0</A></H2>
+<P>Instance: I2S0<BR>Component: I2S<BR>Base address: 0x40021000</P>
+<P>&nbsp;</P>
+<P>I2S Audio <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> module supporting formats <A class="mmap_legend_link" href="../legend.html#I2S">I2S</A>, <A class="mmap_legend_link" href="../legend.html#LJF">LJF</A>, <A class="mmap_legend_link" href="../legend.html#RJF">RJF</A> and <A class="mmap_legend_link" href="../legend.html#DSP">DSP</A></P>
+ 
+<P>&nbsp;</P>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A name="I2S0"></A><A href="CPU_MMAP.html"> TOP</A>:<B>I2S0</B> Register Summary</H3>
+  <TABLE class="mmapRegisterSummaryTable" cellspacing=0>
+	 	<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Register Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol3">
+	  			<P>Register Width (Bits)</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Register Reset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Address Offset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Physical Address</P>
+	  		</TD>
+	 	</TR>
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFWCLKSRC">AIFWCLKSRC</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1000 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFDMACFG">AIFDMACFG</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0004</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1004 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFDIRCFG">AIFDIRCFG</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0008</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1008 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFFMTCFG">AIFFMTCFG</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0170</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 000C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 100C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFWMASK0">AIFWMASK0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0003</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0010</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1010 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFWMASK1">AIFWMASK1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0003</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0014</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1014 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFWMASK2">AIFWMASK2</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0003</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0018</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1018 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFPWMVALUE">AIFPWMVALUE</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 001C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 101C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFINPTRNEXT">AIFINPTRNEXT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0020</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1020 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFINPTR">AIFINPTR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0024</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1024 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFOUTPTRNEXT">AIFOUTPTRNEXT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0028</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1028 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#AIFOUTPTR">AIFOUTPTR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 002C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 102C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPCTL">STMPCTL</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0034</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1034 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPXCNTCAPT0">STMPXCNTCAPT0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0038</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1038 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPXPER">STMPXPER</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 003C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 103C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPWCNTCAPT0">STMPWCNTCAPT0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0040</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1040 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPWPER">STMPWPER</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0044</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1044 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPINTRIG">STMPINTRIG</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0048</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1048 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPOUTTRIG">STMPOUTTRIG</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 004C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 104C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPWSET">STMPWSET</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0050</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1050 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPWADD">STMPWADD</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0054</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1054 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPXPERMIN">STMPXPERMIN</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 FFFF</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0058</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1058 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPWCNT">STMPWCNT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 005C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 105C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPXCNT">STMPXCNT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0060</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1060 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPXCNTCAPT1">STMPXCNTCAPT1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0064</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1064 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#STMPWCNTCAPT1">STMPWCNTCAPT1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0068</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1068 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQMASK">IRQMASK</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0070</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1070 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQFLAGS">IRQFLAGS</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0074</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1074 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQSET">IRQSET</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>WO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0078</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 1078 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#IRQCLR">IRQCLR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>WO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 007C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4002 107C </P>
+			</TD>
+		</TR>
+		
+	</TABLE>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A href="CPU_MMAP.html"> TOP</A>:I2S0 Register Descriptions</H3>
+
+
+	<H3 class="mmapRegisterTitle"><A name="AIFWCLKSRC"><A name="AIFWCLKSRC"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFWCLKSRC</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0000</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1000</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WCLK Source Selection</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFWCLKSRC_Reserved">
+	  			<P>31:3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFWCLKSRC_WCLK_INV">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_INV</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Inverts <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> source (pad or internal) when set.<BR><BR>0: Not inverted<BR>1: Inverted</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFWCLKSRC_WCLK_SRC">
+	  			<P>1:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_SRC</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Selects <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> source for <A class="mmap_legend_link" href="../legend.html#AIF">AIF</A> (should be the same as the <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> source). The <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> source is defined in the <A class="xref" href="PRCM.html#I2SBCLKSEL_SRC">PRCM:I2SBCLKSEL.SRC</A></P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>NONE</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>None (&#x27;0&#x27;)</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>EXT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>External <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> generator, from pad</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x2</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>INT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Internal <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> generator, from module PRCM/ClkCtrl</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x3</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>RESERVED</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Not supported. Will give same <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> as &#x27;NONE&#x27; (&#x27;00&#x27;)</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFDMACFG"><A name="AIFDMACFG"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFDMACFG</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0004</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1004</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DMA Buffer Size Configuration</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFDMACFG_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFDMACFG_END_FRAME_IDX">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>END_FRAME_IDX</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Defines the length of the Writing a non-zero value to this registerfield enables and initializes AIF. Note that before doing so, all other configuration must have been done, and <A class="xref" href="#AIFINPTR">AIFINPTR</A>/<A class="xref" href="#AIFOUTPTR">AIFOUTPTR</A> must have been loaded.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFDIRCFG"><A name="AIFDIRCFG"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFDIRCFG</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0008</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1008</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Pin Direction</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFDIRCFG_Reserved">
+	  			<P>31:10</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFDIRCFG_AD2">
+	  			<P>9:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AD2</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Configures the <A class="mmap_legend_link" href="../legend.html#AD2">AD2</A> audio data pin usage<BR><BR>0x3: Reserved</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Not in use (disabled)</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>IN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Input mode</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x2</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>OUT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Output mode</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFDIRCFG_Reserved">
+	  			<P>7:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFDIRCFG_AD1">
+	  			<P>5:4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AD1</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Configures the <A class="mmap_legend_link" href="../legend.html#AD1">AD1</A> audio data pin usage:<BR><BR>0x3: Reserved</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Not in use (disabled)</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>IN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Input mode</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x2</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>OUT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Output mode</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFDIRCFG_Reserved">
+	  			<P>3:2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFDIRCFG_AD0">
+	  			<P>1:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AD0</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Configures the <A class="mmap_legend_link" href="../legend.html#AD0">AD0</A> audio data pin usage:<BR><BR>0x3: Reserved</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Not in use (disabled)</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>IN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Input mode</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x2</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>OUT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Output mode</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFFMTCFG"><A name="AIFFMTCFG"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFFMTCFG</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 000C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 100C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Serial Interface Format Configuration</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFFMTCFG_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFFMTCFG_DATA_DELAY">
+	  			<P>15:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATA_DELAY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>The number of <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> periods between a <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> edge and <A class="mmap_legend_link" href="../legend.html#MSB">MSB</A> of the first word in a phase:<BR><BR>0x00: <A class="mmap_legend_link" href="../legend.html#LJF">LJF</A> format<BR>0x01: <A class="mmap_legend_link" href="../legend.html#I2S">I2S</A> and <A class="mmap_legend_link" href="../legend.html#DSP">DSP</A> format<BR>0x02: <A class="mmap_legend_link" href="../legend.html#RJF">RJF</A> format<BR>...<BR>0xFF: <A class="mmap_legend_link" href="../legend.html#RJF">RJF</A> format<BR><BR>Note: When 0, <A class="mmap_legend_link" href="../legend.html#MSB">MSB</A> of the next word will be output in the idle period between <A class="mmap_legend_link" href="../legend.html#LSB">LSB</A> of the previous word and the start of the next word. Otherwise logical 0 will be output until the data delay has expired.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x01</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFFMTCFG_MEM_LEN_24">
+	  			<P>7</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MEM_LEN_24</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>The size of each word stored to or loaded from memory:</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>16BIT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>16-bit (one 16 bit access per sample)</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>24BIT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>24-bit (one 8 bit and one 16 bit locked access per sample)</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFFMTCFG_SMPL_EDGE">
+	  			<P>6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SMPL_EDGE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>On the serial audio interface, data (and wclk) is sampled and clocked out on opposite edges of BCLK.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>NEG</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Data is sampled on the negative edge and clocked out on the positive edge.</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>POS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Data is sampled on the positive edge and clocked out on the negative edge.</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>1</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFFMTCFG_DUAL_PHASE">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DUAL_PHASE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Selects dual- or single-phase format.<BR><BR>0: Single-phase<BR>1: Dual-phase</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>1</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFFMTCFG_WORD_LEN">
+	  			<P>4:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WORD_LEN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Number of bits per word (8-24):<BR>In single-phase format, this is the exact number of bits per word. <BR>In dual-phase format, this is the maximum number of bits per word.<BR><BR>Values below 8 and above 24 give undefined behavior. Data written to memory is always aligned to 16 or 24 bits as defined by <A class="xref" href="#_MEM_LEN_24">MEM_LEN_24</A>. Bit widths that differ from this alignment will either be truncated or zero padded.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x10</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFWMASK0"><A name="AIFWMASK0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFWMASK0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0010</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1010</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Word Selection Bit Mask for Pin 0</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFWMASK0_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFWMASK0_MASK">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bit-mask indicating valid channels in a frame on AD0.<BR><BR>In single-phase mode, each bit represents one channel, starting with <A class="mmap_legend_link" href="../legend.html#LSB">LSB</A> for the first word in the frame. A frame can contain up to 8 channels.  Channels that are not included in the mask will not be sampled and stored in memory, and clocked out as &#x27;0&#x27;.<BR><BR>In dual-phase mode, only the two <A class="mmap_legend_link" href="../legend.html#LSB">LSB</A>s are considered. For a stereo configuration, set both bits. For a mono configuration, set bit 0 only. In mono mode, only channel 0 will be sampled and stored to memory, and channel 0 will be repeated when clocked out.<BR><BR>In mono mode, only channel 0 will be sampled and stored to memory, and channel 0 will be repeated in the second phase when clocked out.<BR><BR>If all bits are zero, no input words will be stored to memory, and the output data lines will be constant &#x27;0&#x27;. This can be utilized when <A class="mmap_legend_link" href="../legend.html#PWM">PWM</A> debug output is desired without any actively used output pins.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x03</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFWMASK1"><A name="AIFWMASK1"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFWMASK1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0014</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1014</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Word Selection Bit Mask for Pin 1</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFWMASK1_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFWMASK1_MASK">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bit-mask indicating valid channels in a frame on AD1.<BR><BR>In single-phase mode, each bit represents one channel, starting with <A class="mmap_legend_link" href="../legend.html#LSB">LSB</A> for the first word in the frame. A frame can contain up to 8 channels.  Channels that are not included in the mask will not be sampled and stored in memory, and clocked out as &#x27;0&#x27;.<BR><BR>In dual-phase mode, only the two <A class="mmap_legend_link" href="../legend.html#LSB">LSB</A>s are considered. For a stereo configuration, set both bits. For a mono configuration, set bit 0 only. In mono mode, only channel 0 will be sampled and stored to memory, and channel 0 will be repeated when clocked out.<BR><BR>In mono mode, only channel 0 will be sampled and stored to memory, and channel 0 will be repeated in the second phase when clocked out.<BR><BR>If all bits are zero, no input words will be stored to memory, and the output data lines will be constant &#x27;0&#x27;. This can be utilized when <A class="mmap_legend_link" href="../legend.html#PWM">PWM</A> debug output is desired without any actively used output pins.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x03</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFWMASK2"><A name="AIFWMASK2"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFWMASK2</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0018</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1018</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Word Selection Bit Mask for Pin 2</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFWMASK2_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFWMASK2_MASK">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bit-mask indicating valid channels in a frame on <A class="mmap_legend_link" href="../legend.html#AD2">AD2</A><BR><BR>In single-phase mode, each bit represents one channel, starting with <A class="mmap_legend_link" href="../legend.html#LSB">LSB</A> for the first word in the frame. A frame can contain up to 8 channels.  Channels that are not included in the mask will not be sampled and stored in memory, and clocked out as &#x27;0&#x27;.<BR><BR>In dual-phase mode, only the two <A class="mmap_legend_link" href="../legend.html#LSB">LSB</A>s are considered. For a stereo configuration, set both bits. For a mono configuration, set bit 0 only. In mono mode, only channel 0 will be sampled and stored to memory, and channel 0 will be repeated when clocked out.<BR><BR>In mono mode, only channel 0 will be sampled and stored to memory, and channel 0 will be repeated in the second phase when clocked out.<BR><BR>If all bits are zero, no input words will be stored to memory, and the output data lines will be constant &#x27;0&#x27;. This can be utilized when <A class="mmap_legend_link" href="../legend.html#PWM">PWM</A> debug output is desired without any actively used output pins.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x03</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFPWMVALUE"><A name="AIFPWMVALUE"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFPWMVALUE</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 001C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 101C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Audio Interface <A class="mmap_legend_link" href="../legend.html#PWM">PWM</A> Debug Value</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFPWMVALUE_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFPWMVALUE_PULSE_WIDTH">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PULSE_WIDTH</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>The value written to this register determines the width of the active high <A class="mmap_legend_link" href="../legend.html#PWM">PWM</A> pulse (pwm_debug), which starts together with <A class="mmap_legend_link" href="../legend.html#MSB">MSB</A> of the first output word in a <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> buffer:<BR><BR>0x0000: Constant low<BR>0x0001: Width of the pulse (number of <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> cycles, here 1).<BR>...<BR>0xFFFE: Width of the pulse (number of <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> cycles, here 65534).<BR>0xFFFF: Constant high</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFINPTRNEXT"><A name="AIFINPTRNEXT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFINPTRNEXT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0020</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1020</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DMA Input Buffer Next Pointer</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFINPTRNEXT_PTR">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PTR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Pointer to the first byte in the next <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> input buffer.<BR><BR>The read value equals the last written value until the currently used <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> input buffer is completed, and then becomes null when the last written value is transferred to the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> controller to start on the next buffer. This event is signalized by aif_dma_in_irq. <BR><BR>At startup, the value should be written once before and once after configuring the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> buffer size in <A class="xref" href="#AIFDMACFG">AIFDMACFG</A>.<BR><BR>The next pointer must be written to this register while the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> function uses the previously written pointer. If not written in time, <A class="xref" href="#IRQFLAGS_PTR_ERR">IRQFLAGS.PTR_ERR</A> will be raised and all input pins will be disabled.<BR><BR>Note the following limitations:<BR>-  Address space wrapping is not supported (i.e. address(last sample) must be higher than address(first sample).<BR>-  A <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> block cannot be aligned with the end of the address space (i.e. a block cannot contain the address 0xFFFF)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFINPTR"><A name="AIFINPTR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFINPTR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0024</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1024</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DMA Input Buffer Current Pointer</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFINPTR_PTR">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PTR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value of the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> input buffer pointer currently used by the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> controller. Incremented by 1 (byte) or 2 (word) for each <A class="mmap_legend_link" href="../legend.html#AHB">AHB</A> access.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFOUTPTRNEXT"><A name="AIFOUTPTRNEXT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFOUTPTRNEXT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0028</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1028</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DMA Output Buffer Next Pointer</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFOUTPTRNEXT_PTR">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PTR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Pointer to the first byte in the next <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> output buffer.<BR><BR>The read value equals the last written value until the currently used <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> output buffer is completed, and then becomes null when the last written value is transferred to the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> controller to start on the next buffer. This event is signalized by aif_dma_out_irq. <BR><BR>At startup, the value should be written once before and once after configuring the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> buffer size in <A class="xref" href="#AIFDMACFG">AIFDMACFG</A>. At this time, the first two samples will be fetched from memory.<BR><BR>The next pointer must be written to this register while the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> function uses the previously written pointer. If not written in time, <A class="xref" href="#IRQFLAGS_PTR_ERR">IRQFLAGS.PTR_ERR</A> will be raised and all output pins will be disabled.<BR><BR>Note the following limitations:<BR>-  Address space wrapping is not supported (i.e. address(last sample) must be higher than address(first sample).<BR>- A <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> block cannot be aligned with the end of the address space (i.e. a block cannot contain the address 0xFFFF)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="AIFOUTPTR"><A name="AIFOUTPTR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:AIFOUTPTR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 002C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 102C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DMA Output Buffer Current Pointer</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="AIFOUTPTR_PTR">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PTR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value of the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> output buffer pointer currently used by the <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> controller Incremented by 1 (byte) or 2 (word) for each <A class="mmap_legend_link" href="../legend.html#AHB">AHB</A> access.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPCTL"><A name="STMPCTL"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPCTL</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0034</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1034</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>SampleStaMP Generator Control Register</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPCTL_Reserved">
+	  			<P>31:3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPCTL_OUT_RDY">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>OUT_RDY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Low until the output pins are ready to be started by the samplestamp generator. When started (i.e. <A class="xref" href="#STMPOUTTRIG">STMPOUTTRIG</A> equals the <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter) the bit goes back low.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPCTL_IN_RDY">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>IN_RDY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Low until the input pins are ready to be started by the samplestamp generator. When started (i.e. <A class="xref" href="#STMPINTRIG">STMPINTRIG</A> equals the <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter) the bit goes back low.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPCTL_STMP_EN">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STMP_EN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enables the samplestamp generator. The samplestamp generator should only be enabled after it has been properly configured.<BR>When cleared, all samplestamp generator counters and capture values are cleared.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPXCNTCAPT0"><A name="STMPXCNTCAPT0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPXCNTCAPT0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0038</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1038</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Captured <A class="mmap_legend_link" href="../legend.html#XOSC">XOSC</A> Counter Value, Capture Channel 0</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXCNTCAPT0_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXCNTCAPT0_CAPT_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CAPT_VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>The value of the samplestamp <A class="mmap_legend_link" href="../legend.html#XOSC">XOSC</A> counter (<A class="xref" href="#STMPXCNT_CURR_VALUE">STMPXCNT.CURR_VALUE</A>) last time an event was pulsed (event source selected in [EVENT.I2SSTMPSEL0.EV] for channel 0). This number corresponds to the number of 24 MHz clock cycles since the last positive edge of the selected <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A>.<BR>The value is cleared when <A class="xref" href="#STMPCTL_STMP_EN">STMPCTL.STMP_EN</A> = 0.<BR>Note: Due to buffering and synchronization, <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> is delayed by a small number of <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> periods and clk periods.<BR>Note: When calculating the fractional part of the sample stamp, <A class="xref" href="#STMPXPER">STMPXPER</A> may be less than this bit field.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPXPER"><A name="STMPXPER"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPXPER</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 003C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 103C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>XOSC Period Value</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXPER_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXPER_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>The number of 24 MHz clock cycles in the previous <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> period (i.e. the next value of the <A class="mmap_legend_link" href="../legend.html#XOSC">XOSC</A> counter at the positive <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> edge, had it not been reset to 0).<BR>The value is cleared when <A class="xref" href="#STMPCTL_STMP_EN">STMPCTL.STMP_EN</A> = 0.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPWCNTCAPT0"><A name="STMPWCNTCAPT0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPWCNTCAPT0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0040</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1040</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Captured <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> Counter Value, Capture Channel 0</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWCNTCAPT0_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWCNTCAPT0_CAPT_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CAPT_VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>The value of the samplestamp <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter (<A class="xref" href="#STMPWCNT_CURR_VALUE">STMPWCNT.CURR_VALUE</A>) last time an event was pulsed (event source selected in [EVENT.I2SSTMPSEL0.EV] for channel 0). This number corresponds to the number of positive <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> edges since the samplestamp generator was enabled (not taking modification through <A class="xref" href="#STMPWADD">STMPWADD</A>/<A class="xref" href="#STMPWSET">STMPWSET</A> into account).<BR>The value is cleared when <A class="xref" href="#STMPCTL_STMP_EN">STMPCTL.STMP_EN</A> = 0.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPWPER"><A name="STMPWPER"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPWPER</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0044</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1044</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P><A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> Counter Period Value</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWPER_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWPER_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Used to define when <A class="xref" href="#STMPWCNT">STMPWCNT</A> is to be reset so number of <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> edges are found for the size of the sample buffer. This is thus a modulo value for the <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter. This number should correspond to the size of the sample buffer used by the system (i.e. the index of the last sample plus 1).</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPINTRIG"><A name="STMPINTRIG"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPINTRIG</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0048</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1048</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WCLK Counter Trigger Value for Input Pins</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPINTRIG_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPINTRIG_IN_START_WCNT">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>IN_START_WCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Compare value used to start the incoming audio streams.<BR>This bit field shall equal the <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter value during the <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> period in which the first input word(s) are sampled and stored to memory (i.e. the sample at the start of the very first <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> input buffer).<BR><BR>The value of this register takes effect when the following conditions are met:<BR>- One or more pins are configured as inputs in <A class="xref" href="#AIFDIRCFG">AIFDIRCFG</A>.<BR>- <A class="xref" href="#AIFDMACFG">AIFDMACFG</A> has been configured for the correct buffer size, and at least 32 <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> cycle ticks have happened.<BR><BR>Note: To avoid false triggers, this bit field should be set higher than <A class="xref" href="#STMPWPER_VALUE">STMPWPER.VALUE</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPOUTTRIG"><A name="STMPOUTTRIG"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPOUTTRIG</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 004C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 104C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WCLK Counter Trigger Value for Output Pins</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPOUTTRIG_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPOUTTRIG_OUT_START_WCNT">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>OUT_START_WCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Compare value used to start the outgoing audio streams.<BR><BR>This bit field shall equal the <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter value during the <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> period in which the first output word(s) read from memory are clocked out (i.e. the sample at the start of the very first <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> output buffer).<BR><BR>The value of this register takes effect when the following conditions are met:<BR>- One or more pins are configured as outputs in <A class="xref" href="#AIFDIRCFG">AIFDIRCFG</A>.<BR>- <A class="xref" href="#AIFDMACFG">AIFDMACFG</A> has been configured for the correct buffer size, and 32 <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> cycle ticks have happened.<BR>- 2 samples have been preloaded from memory (examine the <A class="xref" href="#AIFOUTPTR">AIFOUTPTR</A> register if necessary). <BR>Note: The memory read access is only performed when required, i.e. channels 0/1 must be selected in <A class="xref" href="#AIFWMASK0">AIFWMASK0</A>/<A class="xref" href="#AIFWMASK1">AIFWMASK1</A>.<BR><BR>Note: To avoid false triggers, this bit field should be set higher than <A class="xref" href="#STMPWPER_VALUE">STMPWPER.VALUE</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPWSET"><A name="STMPWSET"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPWSET</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0050</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1050</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WCLK Counter Set Operation</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWSET_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWSET_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter modification: Sets the running <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter equal to the written value.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPWADD"><A name="STMPWADD"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPWADD</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0054</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1054</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WCLK Counter Add Operation</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWADD_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWADD_VALUE_INC">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VALUE_INC</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter modification: Adds the written value to the running <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter. If a positive edge of <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> occurs at the same time as the operation, this will be taken into account.<BR>This operation is typically used to adjust the <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter after receiving the first <A class="mmap_legend_link" href="../legend.html#WASP">WASP</A> beacon.<BR>To add a negative value, write &#x22;<A class="xref" href="#STMPWPER_VALUE">STMPWPER.VALUE</A> - value&#x22;.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPXPERMIN"><A name="STMPXPERMIN"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPXPERMIN</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0058</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1058</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>XOSC Minimum Period Value<BR>Minimum Value of <A class="xref" href="#STMPXPER">STMPXPER</A></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXPERMIN_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXPERMIN_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Each time <A class="xref" href="#STMPXPER">STMPXPER</A> is updated, the value is also loaded into this register, provided that the value is smaller than the current value in this register.<BR>When written, the register is reset to 0xFFFF (65535), regardless of the value written.<BR>The minimum value can be used to detect extra <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> pulses (this registers value will be significantly smaller than <A class="xref" href="#STMPXPER_VALUE">STMPXPER.VALUE</A>).</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xFFFF</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPWCNT"><A name="STMPWCNT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPWCNT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 005C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 105C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Current Value of WCNT</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWCNT_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWCNT_CURR_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CURR_VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Current value of the <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> counter</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPXCNT"><A name="STMPXCNT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPXCNT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0060</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1060</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Current Value of XCNT</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXCNT_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXCNT_CURR_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CURR_VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Current value of the <A class="mmap_legend_link" href="../legend.html#XOSC">XOSC</A> counter, latched when reading <A class="xref" href="#STMPWCNT">STMPWCNT</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPXCNTCAPT1"><A name="STMPXCNTCAPT1"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPXCNTCAPT1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0064</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1064</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Captured <A class="mmap_legend_link" href="../legend.html#XOSC">XOSC</A> Counter Value, Capture Channel 1</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXCNTCAPT1_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPXCNTCAPT1_CAPT_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CAPT_VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Channel 1 is idle and can not be sampled from an external pulse as with Channel 0 <A class="xref" href="#STMPXCNTCAPT0">STMPXCNTCAPT0</A></P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="STMPWCNTCAPT1"><A name="STMPWCNTCAPT1"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:STMPWCNTCAPT1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0068</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1068</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Captured <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> Counter Value, Capture Channel 1</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWCNTCAPT1_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="STMPWCNTCAPT1_CAPT_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CAPT_VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Channel 1 is idle and can not be sampled from an external event as with Channel 0 <A class="xref" href="#STMPWCNTCAPT0">STMPWCNTCAPT0</A></P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQMASK"><A name="IRQMASK"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:IRQMASK</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0070</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1070</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>I2S Masked Interrupt Status Register</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQMASK_Reserved">
+	  			<P>31:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQMASK_AIF_DMA_IN">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AIF_DMA_IN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Defines the masks state for the interrupt  of <A class="xref" href="#IRQFLAGS_AIF_DMA_IN">IRQFLAGS.AIF_DMA_IN</A><BR><BR>0: Disable<BR>1: Enable</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQMASK_AIF_DMA_OUT">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AIF_DMA_OUT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Defines the masks state for the interrupt of <A class="xref" href="#IRQFLAGS_AIF_DMA_OUT">IRQFLAGS.AIF_DMA_OUT</A><BR><BR>0: Disable<BR>1: Enable</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQMASK_WCLK_TIMEOUT">
+	  			<P>3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_TIMEOUT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Defines the masks state for the interrupt  of <A class="xref" href="#IRQFLAGS_WCLK_TIMEOUT">IRQFLAGS.WCLK_TIMEOUT</A><BR><BR>0: Disable<BR>1: Enable</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQMASK_BUS_ERR">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>BUS_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Defines the masks state for the interrupt  of <A class="xref" href="#IRQFLAGS_BUS_ERR">IRQFLAGS.BUS_ERR</A><BR><BR>0: Disable<BR>1: Enable</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQMASK_WCLK_ERR">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Defines the masks state for the interrupt  of <A class="xref" href="#IRQFLAGS_WCLK_ERR">IRQFLAGS.WCLK_ERR</A><BR><BR>0: Disable<BR>1: Enable</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQMASK_PTR_ERR">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PTR_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Defines the masks state for the interrupt of <A class="xref" href="#IRQFLAGS_PTR_ERR">IRQFLAGS.PTR_ERR</A><BR><BR>0: Disable<BR>1: Enable</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQFLAGS"><A name="IRQFLAGS"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:IRQFLAGS</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0074</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1074</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>I2S Raw Interrupt Status Register</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGS_Reserved">
+	  			<P>31:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGS_AIF_DMA_IN">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AIF_DMA_IN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Set when condition for this bit field event occurs (auto cleared when input pointer is updated - <A class="xref" href="#AIFINPTR">AIFINPTR</A>), see description of <A class="xref" href="#AIFINPTR">AIFINPTR</A> register</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGS_AIF_DMA_OUT">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AIF_DMA_OUT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Set when condition for this bit field event occurs (auto cleared when output pointer is updated - <A class="xref" href="#AIFOUTPTR">AIFOUTPTR</A>), see description of <A class="xref" href="#AIFOUTPTR">AIFOUTPTR</A> register for details</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGS_WCLK_TIMEOUT">
+	  			<P>3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_TIMEOUT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Set when the sample stamp generator does not detect a positive <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> edge for  65535 clk periods. This signalizes that the internal or external <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> and <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> generator source has been disabled.<BR><BR>The bit is sticky and may only be cleared by software (by writing &#x27;1&#x27; to <A class="xref" href="#IRQCLR_WCLK_TIMEOUT">IRQCLR.WCLK_TIMEOUT</A>).</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGS_BUS_ERR">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>BUS_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Set when a <A class="mmap_legend_link" href="../legend.html#DMA">DMA</A> operation is not completed in time (i.e. audio output buffer underflow, or audio input buffer overflow). <BR>This error requires a complete restart since word synchronization has been lost. The bit is sticky and may only be cleared by software (by writing &#x27;1&#x27; to <A class="xref" href="#IRQCLR_BUS_ERR">IRQCLR.BUS_ERR</A>).</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGS_WCLK_ERR">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Set when: <BR>- An unexpected <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> edge occurs during the data delay period of a phase.  Note unexpected <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> edges during the word and idle periods of the phase are not detected.<BR>-  In dual-phase mode, when two <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> edges are less than 4 <A class="mmap_legend_link" href="../legend.html#BCLK">BCLK</A> cycles apart.<BR>-  In single-phase mode, when a <A class="mmap_legend_link" href="../legend.html#WCLK">WCLK</A> pulse occurs before the last channel.<BR>This error requires a complete restart since word synchronization has been lost. The bit is sticky and may only be cleared by software (by writing &#x27;1&#x27; to <A class="xref" href="#IRQCLR_WCLK_ERR">IRQCLR.WCLK_ERR</A>).</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQFLAGS_PTR_ERR">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PTR_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Set when <A class="xref" href="#AIFINPTRNEXT">AIFINPTRNEXT</A> or <A class="xref" href="#AIFOUTPTRNEXT">AIFOUTPTRNEXT</A> has not been loaded with the next block address in time. <BR>This error requires a complete restart since word synchronization has been lost. The bit is sticky and may only be cleared by software (by writing &#x27;1&#x27; to <A class="xref" href="#IRQCLR_PTR_ERR">IRQCLR.PTR_ERR</A>).</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQSET"><A name="IRQSET"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:IRQSET</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0078</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 1078</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>I2S Interrupt Set Register</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_Reserved">
+	  			<P>31:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(WO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_AIF_DMA_IN">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AIF_DMA_IN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Sets the interrupt of <A class="xref" href="#IRQFLAGS_AIF_DMA_IN">IRQFLAGS.AIF_DMA_IN</A> (unless a auto clear criteria was given at the same time, in which the set will be ignored)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_AIF_DMA_OUT">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AIF_DMA_OUT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Sets the interrupt of <A class="xref" href="#IRQFLAGS_AIF_DMA_OUT">IRQFLAGS.AIF_DMA_OUT</A> (unless a auto clear criteria was given at the same time, in which the set will be ignored)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_WCLK_TIMEOUT">
+	  			<P>3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_TIMEOUT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Sets the interrupt of <A class="xref" href="#IRQFLAGS_WCLK_TIMEOUT">IRQFLAGS.WCLK_TIMEOUT</A></P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_BUS_ERR">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>BUS_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Sets the interrupt of <A class="xref" href="#IRQFLAGS_BUS_ERR">IRQFLAGS.BUS_ERR</A></P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_WCLK_ERR">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Sets the interrupt of <A class="xref" href="#IRQFLAGS_WCLK_ERR">IRQFLAGS.WCLK_ERR</A></P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQSET_PTR_ERR">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PTR_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Sets the interrupt of <A class="xref" href="#IRQFLAGS_PTR_ERR">IRQFLAGS.PTR_ERR</A></P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="IRQCLR"><A name="IRQCLR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">I2S</A>:IRQCLR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 007C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x4002 107C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>I2S0</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>I2S Interrupt Clear Register</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>WO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQCLR_Reserved">
+	  			<P>31:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(WO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQCLR_AIF_DMA_IN">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AIF_DMA_IN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Clears the interrupt of <A class="xref" href="#IRQFLAGS_AIF_DMA_IN">IRQFLAGS.AIF_DMA_IN</A> (unless a set criteria was given at the same time in which the clear will be ignored)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQCLR_AIF_DMA_OUT">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>AIF_DMA_OUT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Clears the interrupt of <A class="xref" href="#IRQFLAGS_AIF_DMA_OUT">IRQFLAGS.AIF_DMA_OUT</A> (unless a set criteria was given at the same time in which the clear will be ignored)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQCLR_WCLK_TIMEOUT">
+	  			<P>3</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_TIMEOUT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Clears the interrupt of <A class="xref" href="#IRQFLAGS_WCLK_TIMEOUT">IRQFLAGS.WCLK_TIMEOUT</A> (unless a set criteria was given at the same time in which the clear will be ignored)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQCLR_BUS_ERR">
+	  			<P>2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>BUS_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Clears the interrupt of <A class="xref" href="#IRQFLAGS_BUS_ERR">IRQFLAGS.BUS_ERR</A> (unless a set criteria was given at the same time in which the clear will be ignored)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQCLR_WCLK_ERR">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>WCLK_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Clears the interrupt of <A class="xref" href="#IRQFLAGS_WCLK_ERR">IRQFLAGS.WCLK_ERR</A> (unless a set criteria was given at the same time in which the clear will be ignored)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="IRQCLR_PTR_ERR">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PTR_ERR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>1: Clears the interrupt of <A class="xref" href="#IRQFLAGS_PTR_ERR">IRQFLAGS.PTR_ERR</A> (unless a set criteria was given at the same time in which the clear will be ignored)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>WO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+<hr><table class="footer"><tr><td>&copy; 2015. Texas Instruments | All Rights Reserved</td></tr></table>
+</BODY>
+</HTML>

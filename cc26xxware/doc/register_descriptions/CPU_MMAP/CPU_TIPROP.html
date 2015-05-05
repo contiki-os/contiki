@@ -1,0 +1,320 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<link href="../elements/mmap.css" rel="stylesheet" type="text/css">
+<TITLE>CPU_TIPROP</TITLE>
+</HEAD>
+<BODY class=mmapBody><H2 class="mmapCellTitle"><A name="Top_Tag">CPU_TIPROP</A></H2>
+<P>Instance: CPU_TIPROP<BR>Component: CPU_TIPROP<BR>Base address: 0xe00fe000</P>
+<P>&nbsp;</P>
+<P>Cortex-M&#x27;s <A class="mmap_legend_link" href="../legend.html#TI">TI</A> proprietary registers</P>
+ 
+<P>&nbsp;</P>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A name="CPU_TIPROP"></A><A href="CPU_MMAP.html"> TOP</A>:<B>CPU_TIPROP</B> Register Summary</H3>
+  <TABLE class="mmapRegisterSummaryTable" cellspacing=0>
+	 	<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Register Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol3">
+	  			<P>Register Width (Bits)</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Register Reset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Address Offset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Physical Address</P>
+	  		</TD>
+	 	</TR>
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#TRACECLKMUX">TRACECLKMUX</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0FF8</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE00F EFF8 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#DYN_CG">DYN_CG</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0FFC</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE00F EFFC </P>
+			</TD>
+		</TR>
+		
+	</TABLE>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A href="CPU_MMAP.html"> TOP</A>:CPU_TIPROP Register Descriptions</H3>
+
+
+	<H3 class="mmapRegisterTitle"><A name="TRACECLKMUX"><A name="TRACECLKMUX"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_TIPROP</A>:TRACECLKMUX</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0FF8</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE00F EFF8</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_TIPROP</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Mux Selector for <A class="mmap_legend_link" href="../legend.html#SWV">SWV</A> or <A class="mmap_legend_link" href="../legend.html#TRACECLK">TRACECLK</A><BR>This selector allows user to route <A class="mmap_legend_link" href="../legend.html#SWV">SWV</A> or <A class="mmap_legend_link" href="../legend.html#TRACECLK">TRACECLK</A> to <A class="mmap_legend_link" href="../legend.html#IO">IO</A> pads. <A class="mmap_legend_link" href="../legend.html#SWV">SWV</A> can be used as standalone output. However, <A class="mmap_legend_link" href="../legend.html#TRACECLK">TRACECLK</A> should be used together with <A class="mmap_legend_link" href="../legend.html#TRACEDATA">TRACEDATA</A> (4-bit) which can be routed out to the pads as observation signals.<BR>Note: <A class="mmap_legend_link" href="../legend.html#IOC">IOC</A> must be configured to route the mux output to the <A class="mmap_legend_link" href="../legend.html#IO">IO</A>s.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="TRACECLKMUX_RESERVED">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="TRACECLKMUX_TRACECLK_N_SWV">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRACECLK_N_SWV</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Mux selector for <A class="mmap_legend_link" href="../legend.html#SWV">SWV</A> or <A class="mmap_legend_link" href="../legend.html#TRACECLK">TRACECLK</A><BR>This bit is reset when <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> is reset.</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>SWV</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P><A class="mmap_legend_link" href="../legend.html#SWV">SWV</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>TRACECLK</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P><A class="mmap_legend_link" href="../legend.html#TRACECLK">TRACECLK</A></P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="DYN_CG"><A name="DYN_CG"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_TIPROP</A>:DYN_CG</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0FFC</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE00F EFFC</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_TIPROP</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Clock Gating Scheme Configuration</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="DYN_CG_RESERVED">
+	  			<P>31:2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="DYN_CG_DYN_CG">
+	  			<P>1:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DYN_CG</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Clock gating scheme configuration:<BR><BR>0: No clock gating from bus monitor<BR>1: Clock gating as soon as the clock gating conditions are met (most aggressive).<BR>2: Clock gating if the clock gating conditions stays valid more than one cycle.<BR>3: Clock gating if the clock gating conditions stays valid more than two cycles.<BR><BR>This field is reset when <A class="mmap_legend_link" href="../legend.html#CPU">CPU</A> core is reset.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+<hr><table class="footer"><tr><td>&copy; 2015. Texas Instruments | All Rights Reserved</td></tr></table>
+</BODY>
+</HTML>

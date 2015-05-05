@@ -1,0 +1,745 @@
+<HTML><HEAD><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<link href = "../elements/mmap.css" rel="stylesheet" type="text/css">
+<TITLE>TOP_CPU_MMAP</TITLE>
+</HEAD>
+<BODY class=mmapBody>
+
+<H1 class=mmapProductTitle><A name="Top">cc26_chameleon CPU_MMAP</A></H1>
+<P>This document presents a summary of the hardware interface for the CPU_MMAP interface on cc26_chameleon product. Each module instance within the design is shown below, together with the module register map and bit definitions for each bitfield.</P>
+
+<H2 class="mmapInstanceSummaryTitle">cc26_chameleon Instance Summary</H2>
+
+
+<P>The table below shows the base address and address space for this memorymap.</P>
+<TABLE cellspacing=0 class="mmapInstanceSummaryTable">
+
+
+    <TR class="rowHead">
+        <TD class="cellTopCol1">
+            <P>Module Name</P>
+        </TD>
+        <TD  class="cellTopCol2">
+            <P>Base Address</P>
+        </TD>
+        <TD  class="cellTopCol3">
+            <P>Size</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="FLASHMEM.html">FLASHMEM</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x00000000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>512 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="BROM.html">BROM</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x10000000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>512 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="GPRAM.html">GPRAM</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x11000000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>32 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="SRAM.html">SRAM</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x20000000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>128 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_RAM.html">RFC_RAM</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x21000000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="SSI0.html">SSI0</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40000000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="UART0.html">UART0</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40001000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="I2C0.html">I2C0</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40002000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="SSI1.html">SSI1</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40008000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="GPT0.html">GPT0</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40010000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="GPT1.html">GPT1</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40011000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="GPT2.html">GPT2</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40012000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="GPT3.html">GPT3</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40013000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="UDMA0.html">UDMA0</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40020000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="I2S0.html">I2S0</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40021000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="GPIO.html">GPIO</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40022000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="CRYPTO.html">CRYPTO</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40024000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>8 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="TRNG.html">TRNG</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40028000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>32 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="FLASH.html">FLASH</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40030000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>64 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="VIMS.html">VIMS</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40034000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_PWR.html">RFC_PWR</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40040000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 Bytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_DBELL.html">RFC_DBELL</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40041000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>256 Bytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_PHA.html">RFC_PHA</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40042000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_RAT.html">RFC_RAT</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40043000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>1 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_FSCA.html">RFC_FSCA</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40044000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>2 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_MDM.html">RFC_MDM</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40045000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_RFE.html">RFC_RFE</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40046000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>1 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_TRC.html">RFC_TRC</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40047000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>256 Bytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="RFC_S2R.html">RFC_S2R</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40048000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>64 Bytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="WDT.html">WDT</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40080000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="IOC.html">IOC</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40081000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="PRCM.html">PRCM</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40082000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="EVENT.html">EVENT</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40083000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="SMPH.html">SMPH</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40084000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="SPIS.html">SPIS</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40085000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>6 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="ADI2.html">ADI2</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40086000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>2 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="ADI3.html">ADI3</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40086200</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>2 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AON_SYSCTL.html">AON_SYSCTL</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40090000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AON_WUC.html">AON_WUC</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40091000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AON_RTC.html">AON_RTC</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40092000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AON_EVENT.html">AON_EVENT</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40093000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AON_IOC.html">AON_IOC</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40094000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AON_BATMON.html">AON_BATMON</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x40095000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_AIODIO0.html">AUX_AIODIO0</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400C1000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_AIODIO1.html">AUX_AIODIO1</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400C2000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_TDCIF.html">AUX_TDCIF</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400C4000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_EVCTL.html">AUX_EVCTL</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400C5000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_WUC.html">AUX_WUC</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400C6000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_TIMER.html">AUX_TIMER</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400C7000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_SMPH.html">AUX_SMPH</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400C8000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_ANAIF.html">AUX_ANAIF</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400C9000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_DDI0_OSC.html">AUX_DDI0_OSC</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400CA000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_ADI4.html">AUX_ADI4</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400CB000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>2 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_RAM.html">AUX_RAM</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400E0000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="AUX_SCE.html">AUX_SCE</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x400E1000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="FCFG1.html">FCFG1</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x50001000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="FCFG2.html">FCFG2</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x50002000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>4 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="CCFG.html">CCFG</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0x50003000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="CPU_ITM.html">CPU_ITM</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0xE0000000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="CPU_DWT.html">CPU_DWT</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0xE0001000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="CPU_FPB.html">CPU_FPB</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0xE0002000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="CPU_SCS.html">CPU_SCS</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0xE000E000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="CPU_TPIU.html">CPU_TPIU</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0xE0040000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="CPU_TIPROP.html">CPU_TIPROP</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0xE00FE000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+    <TR class="row">
+        <TD class="cellCol1">
+            <P><A href="CPU_ROM_TABLE.html">CPU_ROM_TABLE</P>
+        </TD>
+        <TD class="cellCol2">
+            <P>0xE00FF000</P>
+        </TD>
+        <TD class="cellCol3">
+            <P>16 KBytes</P>
+        </TD>
+    </TR>
+</TABLE>
+</HTML>
+Add som trailing text about who built the page and with what configspec.

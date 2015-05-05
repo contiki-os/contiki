@@ -1,0 +1,3115 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<link href="../elements/mmap.css" rel="stylesheet" type="text/css">
+<TITLE>CPU_DWT</TITLE>
+</HEAD>
+<BODY class=mmapBody><H2 class="mmapCellTitle"><A name="Top_Tag">CPU_DWT</A></H2>
+<P>Instance: CPU_DWT<BR>Component: CPU_DWT<BR>Base address: 0xe0001000</P>
+<P>&nbsp;</P>
+<P>Cortex-M&#x27;s Data watchpoint and Trace (DWT)</P>
+ 
+<P>&nbsp;</P>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A name="CPU_DWT"></A><A href="CPU_MMAP.html"> TOP</A>:<B>CPU_DWT</B> Register Summary</H3>
+  <TABLE class="mmapRegisterSummaryTable" cellspacing=0>
+	 	<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Register Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol3">
+	  			<P>Register Width (Bits)</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Register Reset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Address Offset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Physical Address</P>
+	  		</TD>
+	 	</TR>
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#CTRL">CTRL</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x4000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1000 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#CYCCNT">CYCCNT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0004</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1004 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#CPICNT">CPICNT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0008</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1008 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#EXCCNT">EXCCNT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 000C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 100C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SLEEPCNT">SLEEPCNT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0010</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1010 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#LSUCNT">LSUCNT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0014</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1014 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#FOLDCNT">FOLDCNT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0018</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1018 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#PCSR">PCSR</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RO</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 001C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 101C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#COMP0">COMP0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0020</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1020 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MASK0">MASK0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0024</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1024 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#FUNCTION0">FUNCTION0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0028</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1028 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#COMP1">COMP1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0030</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1030 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MASK1">MASK1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0034</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1034 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#FUNCTION1">FUNCTION1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0200</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0038</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1038 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#COMP2">COMP2</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0040</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1040 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MASK2">MASK2</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0044</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1044 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#FUNCTION2">FUNCTION2</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0048</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1048 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#COMP3">COMP3</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0050</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1050 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#MASK3">MASK3</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0054</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1054 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#FUNCTION3">FUNCTION3</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0058</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0xE000 1058 </P>
+			</TD>
+		</TR>
+		
+	</TABLE>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A href="CPU_MMAP.html"> TOP</A>:CPU_DWT Register Descriptions</H3>
+
+
+	<H3 class="mmapRegisterTitle"><A name="CTRL"><A name="CTRL"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:CTRL</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0000</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1000</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Control Register<BR>Use the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> Control Register to enable the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> unit.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_RESERVED26">
+	  			<P>31:26</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED26</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x10</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_NOCYCCNT">
+	  			<P>25</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>NOCYCCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>When set, <A class="xref" href="#CYCCNT">CYCCNT</A> is not supported.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_NOPRFCNT">
+	  			<P>24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>NOPRFCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>When set, <A class="xref" href="#FOLDCNT">FOLDCNT</A>, <A class="xref" href="#LSUCNT">LSUCNT</A>, <A class="xref" href="#SLEEPCNT">SLEEPCNT</A>, <A class="xref" href="#EXCCNT">EXCCNT</A>, and <A class="xref" href="#CPICNT">CPICNT</A> are not supported.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_RESERVED23">
+	  			<P>23</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED23</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_CYCEVTENA">
+	  			<P>22</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CYCEVTENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enables Cycle count event. Emits an event when the <A class="xref" href="#_POSTCNT">POSTCNT</A> counter triggers it. See <A class="xref" href="#_CYCTAP">CYCTAP</A> and <A class="xref" href="#_POSTPRESET">POSTPRESET</A> for details. This event is only emitted if <A class="xref" href="#_PCSAMPLEENA">PCSAMPLEENA</A> is disabled. <A class="xref" href="#_PCSAMPLEENA">PCSAMPLEENA</A> overrides the setting of this bit. <BR><BR>0: Cycle count events disabled<BR>1: Cycle count events enabled</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_FOLDEVTENA">
+	  			<P>21</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FOLDEVTENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enables Folded instruction count event. Emits an event when <A class="xref" href="#FOLDCNT">FOLDCNT</A> overflows (every 256 cycles of folded instructions). A folded instruction is one that does not incur even one cycle to execute. For example, an <A class="mmap_legend_link" href="../legend.html#IT">IT</A> instruction is folded away and so does not use up one cycle.<BR><BR>0: Folded instruction count events disabled.<BR>1: Folded instruction count events enabled.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_LSUEVTENA">
+	  			<P>20</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>LSUEVTENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enables <A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> count event. Emits an event when <A class="xref" href="#LSUCNT">LSUCNT</A> overflows (every 256 cycles of <A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> operation). <A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> counts include all <A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> costs after the initial cycle for the instruction.<BR><BR>0: <A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> count events disabled.<BR>1: <A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> count events enabled.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_SLEEPEVTENA">
+	  			<P>19</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SLEEPEVTENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enables Sleep count event. Emits an event when <A class="xref" href="#SLEEPCNT">SLEEPCNT</A> overflows (every 256 cycles that the processor is sleeping).<BR><BR>0: Sleep count events disabled.<BR>1: Sleep count events enabled.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_EXCEVTENA">
+	  			<P>18</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EXCEVTENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enables Interrupt overhead event. Emits an event when <A class="xref" href="#EXCCNT">EXCCNT</A> overflows (every 256 cycles of interrupt overhead).<BR><BR>0x0: Interrupt overhead event disabled.<BR>0x1: Interrupt overhead event enabled.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_CPIEVTENA">
+	  			<P>17</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CPIEVTENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enables <A class="mmap_legend_link" href="../legend.html#CPI">CPI</A> count event. Emits an event when <A class="xref" href="#CPICNT">CPICNT</A> overflows (every 256 cycles of multi-cycle instructions).<BR><BR>0: <A class="mmap_legend_link" href="../legend.html#CPI">CPI</A> counter events disabled.<BR>1: <A class="mmap_legend_link" href="../legend.html#CPI">CPI</A> counter events enabled.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_EXCTRCENA">
+	  			<P>16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EXCTRCENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enables Interrupt event tracing.<BR><BR>0: Interrupt event trace disabled.<BR>1: Interrupt event trace enabled.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_RESERVED13">
+	  			<P>15:13</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED13</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_PCSAMPLEENA">
+	  			<P>12</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PCSAMPLEENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enables <A class="mmap_legend_link" href="../legend.html#PC">PC</A> Sampling event. A <A class="mmap_legend_link" href="../legend.html#PC">PC</A> sample event is emitted when the <A class="xref" href="#_POSTCNT">POSTCNT</A> counter triggers it. See <A class="xref" href="#_CYCTAP">CYCTAP</A> and <A class="xref" href="#_POSTPRESET">POSTPRESET</A> for details. Enabling this bit overrides <A class="xref" href="#_CYCEVTENA">CYCEVTENA</A>.<BR><BR>0: <A class="mmap_legend_link" href="../legend.html#PC">PC</A> Sampling event disabled.<BR>1: Sampling event enabled.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_SYNCTAP">
+	  			<P>11:10</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SYNCTAP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Selects a synchronization packet rate. <A class="xref" href="#_CYCCNTENA">CYCCNTENA</A> and <A class="xref" href="CPU_ITM.html#TCR_SYNCENA">CPU_ITM:TCR.SYNCENA</A> must also be enabled for this feature.<BR>Synchronization packets (if enabled) are generated on tap transitions (0 to1 or 1 to 0).</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>DIS</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Disabled. No synchronization packets</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>BIT24</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Tap at bit 24 of <A class="xref" href="#CYCCNT">CYCCNT</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x2</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>BIT26</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Tap at bit 26 of <A class="xref" href="#CYCCNT">CYCCNT</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x3</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>BIT28</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Tap at bit 28 of <A class="xref" href="#CYCCNT">CYCCNT</A></P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_CYCTAP">
+	  			<P>9</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CYCTAP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Selects a tap on <A class="xref" href="#CYCCNT">CYCCNT</A>. These are spaced at bits [6] and [10]. When the selected bit in <A class="xref" href="#CYCCNT">CYCCNT</A> changes from 0 to 1 or 1 to 0, it emits into the <A class="xref" href="#_POSTCNT">POSTCNT</A>, post-scalar counter. That counter then counts down. On a bit change when post-scalar is 0, it triggers an event for <A class="mmap_legend_link" href="../legend.html#PC">PC</A> sampling or cycle count event (see details in <A class="xref" href="#_CYCEVTENA">CYCEVTENA</A>).</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>BIT6</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects bit [6] to tap</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>BIT10</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects bit [10] to tap</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_POSTCNT">
+	  			<P>8:5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>POSTCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Post-scalar counter for <A class="xref" href="#_CYCTAP">CYCTAP</A>. When the selected tapped bit changes from 0 to 1 or 1 to 0, the post scalar counter is down-counted when not 0. If 0, it triggers an event for <A class="xref" href="#_PCSAMPLEENA">PCSAMPLEENA</A> or <A class="xref" href="#_CYCEVTENA">CYCEVTENA</A> use. It also reloads with the value from <A class="xref" href="#_POSTPRESET">POSTPRESET</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_POSTPRESET">
+	  			<P>4:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>POSTPRESET</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Reload value for post-scalar counter <A class="xref" href="#_POSTCNT">POSTCNT</A>. When 0, events are triggered on each tap change (a power of 2). If this field has a non-0 value, it forms a count-down value, to be reloaded into <A class="xref" href="#_POSTCNT">POSTCNT</A> each time it reaches 0. For example, a value 1 in this register means an event is formed every other tap change.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CTRL_CYCCNTENA">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CYCCNTENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Enable <A class="xref" href="#CYCCNT">CYCCNT</A>, allowing it to increment and generate synchronization and count events. If <A class="xref" href="#_NOCYCCNT">NOCYCCNT</A> = 1, this bit reads zero and ignore writes.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="CYCCNT"><A name="CYCCNT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:CYCCNT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0004</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1004</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Current <A class="mmap_legend_link" href="../legend.html#PC">PC</A> Sampler Cycle Count Register<BR>This register is used to count the number of core cycles. This counter can measure elapsed execution time. This is a free-running counter (this counter will not advance in power modes where free-running clock to <A class="mmap_legend_link" href="../legend.html#CPU">CPU</A> stops). The counter has three functions: <BR><BR>1: When <A class="xref" href="#CTRL_PCSAMPLEENA">CTRL.PCSAMPLEENA</A> = 1, the <A class="mmap_legend_link" href="../legend.html#PC">PC</A> is sampled and emitted when the selected tapped bit changes value (0 to 1 or 1 to 0) and any post-scalar value counts to 0. <BR>2: When <A class="xref" href="#CTRL_CYCEVTENA">CTRL.CYCEVTENA</A> = 1 , (and <A class="xref" href="#CTRL_PCSAMPLEENA">CTRL.PCSAMPLEENA</A> = 0), an event is emitted when the selected tapped bit changes value (0 to 1 or 1 to 0) and any post-scalar value counts to 0. <BR>3: Applications and debuggers can use the counter to measure elapsed execution time. By subtracting a start and an end time, an application can measure time between in-core clocks (other than when Halted in debug). This is valid to 2^32 core clock cycles (for example, almost 89.5 seconds at 48MHz).</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CYCCNT_CYCCNT">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CYCCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Current <A class="mmap_legend_link" href="../legend.html#PC">PC</A> Sampler Cycle Counter count value. When enabled, this counter counts the number of core cycles, except when the core is halted. The cycle counter is a free running counter, counting upwards (this counter will not advance in power modes where free-running clock to <A class="mmap_legend_link" href="../legend.html#CPU">CPU</A> stops). It wraps around to 0 on overflow. The debugger must initialize this to 0 when first enabling.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="CPICNT"><A name="CPICNT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:CPICNT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0008</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1008</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT <A class="mmap_legend_link" href="../legend.html#CPI">CPI</A> Count Register<BR>This register is used to count the total number of instruction cycles beyond the first cycle.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CPICNT_RESERVED8">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED8</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="CPICNT_CPICNT">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CPICNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Current <A class="mmap_legend_link" href="../legend.html#CPI">CPI</A> counter value. Increments on the additional cycles (the first cycle is not counted) required to execute all instructions except those recorded by <A class="xref" href="#LSUCNT">LSUCNT</A>. This counter also increments on all instruction fetch stalls. If <A class="xref" href="#CTRL_CPIEVTENA">CTRL.CPIEVTENA</A> is set, an event is emitted when the counter overflows. This counter initializes to 0 when it is enabled using <A class="xref" href="#CTRL_CPIEVTENA">CTRL.CPIEVTENA</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="EXCCNT"><A name="EXCCNT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:EXCCNT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 000C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 100C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Exception Overhead Count Register<BR>This register is used to count the total cycles spent in interrupt processing.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="EXCCNT_RESERVED8">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED8</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="EXCCNT_EXCCNT">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EXCCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Current interrupt overhead counter value. Counts the total cycles spent in interrupt processing (for example entry stacking, return unstacking, pre-emption). An event is emitted on counter overflow (every 256 cycles). This counter initializes to 0 when it is enabled using <A class="xref" href="#CTRL_EXCEVTENA">CTRL.EXCEVTENA</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SLEEPCNT"><A name="SLEEPCNT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:SLEEPCNT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0010</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1010</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Sleep Count Register<BR>This register is used to count the total number of cycles during which the processor is sleeping.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SLEEPCNT_RESERVED8">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED8</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SLEEPCNT_SLEEPCNT">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SLEEPCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Sleep counter. Counts the number of cycles during which the processor is sleeping. An event is emitted on counter overflow (every 256 cycles). This counter initializes to 0 when it is enabled using <A class="xref" href="#CTRL_SLEEPEVTENA">CTRL.SLEEPEVTENA</A>. Note that the sleep counter is clocked using <A class="mmap_legend_link" href="../legend.html#CPU">CPU</A>&#x27;s free-running clock. In some power modes the free-running clock to <A class="mmap_legend_link" href="../legend.html#CPU">CPU</A> is gated to minimize power consumption. This means that the sleep counter will be invalid in these power modes.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="LSUCNT"><A name="LSUCNT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:LSUCNT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0014</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1014</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT <A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> Count Register<BR>This register is used to count the total number of cycles during which the processor is processing an <A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> operation beyond the first cycle.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="LSUCNT_RESERVED8">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED8</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="LSUCNT_LSUCNT">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>LSUCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P><A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> counter. This counts the total number of cycles that the processor is processing an <A class="mmap_legend_link" href="../legend.html#LSU">LSU</A> operation. The initial execution cost of the instruction is not counted. For example, an <A class="mmap_legend_link" href="../legend.html#LDR">LDR</A> that takes two cycles to complete increments this counter one cycle. Equivalently, an <A class="mmap_legend_link" href="../legend.html#LDR">LDR</A> that stalls for two cycles (i.e. takes four cycles to execute), increments this counter three times. An event is emitted on counter overflow (every 256 cycles). This counter initializes to 0 when it is enabled using <A class="xref" href="#CTRL_LSUEVTENA">CTRL.LSUEVTENA</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="FOLDCNT"><A name="FOLDCNT"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:FOLDCNT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0018</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1018</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Fold Count Register<BR>This register is used to count the total number of folded instructions. The counter increments on each instruction which takes 0 cycles.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FOLDCNT_RESERVED8">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED8</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FOLDCNT_FOLDCNT">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FOLDCNT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This counts the total number folded instructions. This counter initializes to 0 when it is enabled using <A class="xref" href="#CTRL_FOLDEVTENA">CTRL.FOLDEVTENA</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="PCSR"><A name="PCSR"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:PCSR</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 001C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 101C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Program Counter Sample Register<BR>This register is used to enable coarse-grained software profiling using a debug agent, without changing the currently executing code. If the core is not in debug state, the value returned is the instruction address of a recently executed instruction. If the core is in debug state, the value returned is 0xFFFFFFFF.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RO</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="PCSR_EIASAMPLE">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EIASAMPLE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Execution instruction address sample, or 0xFFFFFFFF if the core is halted.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="COMP0"><A name="COMP0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:COMP0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0020</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1020</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Comparator Register 0<BR>This register is used to write the reference value for comparator 0.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="COMP0_COMP">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>COMP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Reference value to compare against <A class="mmap_legend_link" href="../legend.html#PC">PC</A> or the data address as given by <A class="xref" href="#FUNCTION0">FUNCTION0</A>. Comparator 0 can also compare against the value of the <A class="mmap_legend_link" href="../legend.html#PC">PC</A> Sampler Counter (<A class="xref" href="#CYCCNT">CYCCNT</A>).</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MASK0"><A name="MASK0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:MASK0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0024</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1024</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Mask Register 0<BR>Use the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> Mask Registers 0 to apply a mask to data addresses when matching against <A class="xref" href="#COMP0">COMP0</A>.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MASK0_RESERVED4">
+	  			<P>31:4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED4</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MASK0_MASK">
+	  			<P>3:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Mask on data address when matching against <A class="xref" href="#COMP0">COMP0</A>. This is the size of the ignore mask. That is, <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> matching is performed as:(ADDR ANDed with (0xFFFF left bit-shifted by <A class="xref" href="#_MASK">MASK</A>)) == <A class="xref" href="#COMP0">COMP0</A>. However, the actual comparison is slightly more complex to enable matching an address wherever it appears on a bus. So, if <A class="xref" href="#COMP0">COMP0</A> is 3, this matches a word access of 0, because 3 would be within the word.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="FUNCTION0"><A name="FUNCTION0"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:FUNCTION0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0028</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1028</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Function Register 0<BR>Use the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> Function Registers 0 to control the operation of the comparator 0. This comparator can:<BR>1. Match against either the <A class="mmap_legend_link" href="../legend.html#PC">PC</A> or the data address. This is controlled by <A class="xref" href="#_CYCMATCH">CYCMATCH</A>. This function is only available for comparator 0 (<A class="xref" href="#COMP0">COMP0</A>). <BR>2. Emit data or <A class="mmap_legend_link" href="../legend.html#PC">PC</A> couples, trigger the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A>, or generate a watchpoint depending on the operation defined by <A class="xref" href="#_FUNCTION">FUNCTION</A>.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION0_RESERVED25">
+	  			<P>31:25</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED25</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION0_MATCHED">
+	  			<P>24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MATCHED</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This bit is set when the comparator matches, and indicates that the operation defined by <A class="xref" href="#_FUNCTION">FUNCTION</A> has occurred since this bit was last read. This bit is cleared on read.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION0_RESERVED8">
+	  			<P>23:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED8</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION0_CYCMATCH">
+	  			<P>7</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CYCMATCH</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This bit is only available in comparator 0. When set, <A class="xref" href="#COMP0">COMP0</A> will compare against the cycle counter (<A class="xref" href="#CYCCNT">CYCCNT</A>).</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION0_RESERVED6">
+	  			<P>6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED6</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION0_EMITRANGE">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EMITRANGE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Emit range field. This bit permits emitting offset when range match occurs. <A class="mmap_legend_link" href="../legend.html#PC">PC</A> sampling is not supported when emit range is enabled. <BR>This field only applies for: <A class="xref" href="#_FUNCTION">FUNCTION</A> = 1, 2, 3, 12, 13, 14, and 15.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION0_RESERVED4">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED4</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION0_FUNCTION">
+	  			<P>3:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FUNCTION</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Function settings. <BR><BR>0x0: Disabled<BR>0x1: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample and emit <A class="mmap_legend_link" href="../legend.html#PC">PC</A> through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A>. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit address offset through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A><BR>0x2: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, emit data through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read and write. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit data and address offset through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write.<BR>0x3: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> and data value through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit address offset and data value through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write.<BR>0x4: Watchpoint on <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match.<BR>0x5: Watchpoint on read.<BR>0x6: Watchpoint on write.<BR>0x7: Watchpoint on read or write.<BR>0x8: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match<BR>0x9: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on read<BR>0xA: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on write<BR>0xB: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on read or write<BR>0xC: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample data for read transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) for read transfers<BR>0xD: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample data for write transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) for write transfers<BR>0xE: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> + data for read transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) + data for read transfers<BR>0xF: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> + data for write transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) + data for write transfers<BR><BR>Note 1: If the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> is not fitted, then <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger is not possible. <BR>Note 2: Data value is only sampled for accesses that do not fault (<A class="mmap_legend_link" href="../legend.html#MPU">MPU</A> or bus fault). The <A class="mmap_legend_link" href="../legend.html#PC">PC</A> is sampled irrespective of any faults. The <A class="mmap_legend_link" href="../legend.html#PC">PC</A> is only sampled for the first address of a burst. <BR>Note 3: <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match is not recommended for watchpoints because it stops after the instruction. It mainly guards and triggers the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="COMP1"><A name="COMP1"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:COMP1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0030</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1030</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Comparator Register 1<BR>This register is used to write the reference value for comparator 1.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="COMP1_COMP">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>COMP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Reference value to compare against <A class="mmap_legend_link" href="../legend.html#PC">PC</A> or the data address as given by  <A class="xref" href="#FUNCTION1">FUNCTION1</A>. <BR>Comparator 1 can also compare data values. So this register can contain reference values for data matching.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MASK1"><A name="MASK1"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:MASK1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0034</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1034</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Mask Register 1<BR>Use the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> Mask Registers 1 to apply a mask to data addresses when matching against <A class="xref" href="#COMP1">COMP1</A>.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MASK1_RESERVED4">
+	  			<P>31:4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED4</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MASK1_MASK">
+	  			<P>3:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Mask on data address when matching against <A class="xref" href="#COMP1">COMP1</A>. This is the size of the ignore mask. That is, <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> matching is performed as:(ADDR ANDed with (0xFFFF left bit-shifted by <A class="xref" href="#_MASK">MASK</A>)) == <A class="xref" href="#COMP1">COMP1</A>. However, the actual comparison is slightly more complex to enable matching an address wherever it appears on a bus. So, if <A class="xref" href="#COMP1">COMP1</A> is 3, this matches a word access of 0, because 3 would be within the word.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="FUNCTION1"><A name="FUNCTION1"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:FUNCTION1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0038</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1038</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Function Register 1<BR>Use the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> Function Registers 1 to control the operation of the comparator 1. This comparator can:<BR>1. Perform data value comparisons if associated address comparators have performed an address match. This function is only available for comparator 1 (<A class="xref" href="#COMP1">COMP1</A>). <BR>2. Emit data or <A class="mmap_legend_link" href="../legend.html#PC">PC</A> couples, trigger the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A>, or generate a watchpoint depending on the operation defined by <A class="xref" href="#_FUNCTION">FUNCTION</A>.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_RESERVED25">
+	  			<P>31:25</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED25</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_MATCHED">
+	  			<P>24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MATCHED</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This bit is set when the comparator matches, and indicates that the operation defined by <A class="xref" href="#_FUNCTION">FUNCTION</A> has occurred since this bit was last read. This bit is cleared on read.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_RESERVED20">
+	  			<P>23:20</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED20</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_DATAVADDR1">
+	  			<P>19:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATAVADDR1</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Identity of a second linked address comparator for data value matching when <A class="xref" href="#_DATAVMATCH">DATAVMATCH</A> == 1 and <A class="xref" href="#_LNK1ENA">LNK1ENA</A> == 1.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_DATAVADDR0">
+	  			<P>15:12</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATAVADDR0</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Identity of a linked address comparator for data value matching when <A class="xref" href="#_DATAVMATCH">DATAVMATCH</A> == 1.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_DATAVSIZE">
+	  			<P>11:10</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATAVSIZE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Defines the size of the data in the <A class="xref" href="#COMP1">COMP1</A> register that is to be matched:<BR><BR>0x0: Byte<BR>0x1: Halfword<BR>0x2: Word<BR>0x3: Unpredictable.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_LNK1ENA">
+	  			<P>9</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>LNK1ENA</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Read only bit-field only supported in comparator 1.<BR><BR>0: <A class="xref" href="#_DATAVADDR1">DATAVADDR1</A> not supported<BR>1: <A class="xref" href="#_DATAVADDR1">DATAVADDR1</A> supported (enabled)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>1</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_DATAVMATCH">
+	  			<P>8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DATAVMATCH</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Data match feature:<BR><BR>0: Perform address comparison<BR>1: Perform data value compare. The comparators given by <A class="xref" href="#_DATAVADDR0">DATAVADDR0</A> and <A class="xref" href="#_DATAVADDR1">DATAVADDR1</A> provide the address for the data comparison. The <A class="xref" href="#_FUNCTION">FUNCTION</A> setting for the comparators given by <A class="xref" href="#_DATAVADDR0">DATAVADDR0</A> and <A class="xref" href="#_DATAVADDR1">DATAVADDR1</A> are overridden and those comparators only provide the address match for the data comparison.<BR><BR>This bit is only available in comparator 1.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_RESERVED6">
+	  			<P>7:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED6</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_EMITRANGE">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EMITRANGE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Emit range field. This bit permits emitting offset when range match occurs. <A class="mmap_legend_link" href="../legend.html#PC">PC</A> sampling is not supported when emit range is enabled. <BR>This field only applies for: <A class="xref" href="#_FUNCTION">FUNCTION</A> = 1, 2, 3, 12, 13, 14, and 15.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_RESERVED4">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED4</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION1_FUNCTION">
+	  			<P>3:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FUNCTION</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Function settings:<BR><BR>0x0: Disabled<BR>0x1: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample and emit <A class="mmap_legend_link" href="../legend.html#PC">PC</A> through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A>. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit address offset through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A><BR>0x2: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, emit data through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read and write. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit data and address offset through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write.<BR>0x3: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> and data value through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit address offset and data value through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write.<BR>0x4: Watchpoint on <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match.<BR>0x5: Watchpoint on read.<BR>0x6: Watchpoint on write.<BR>0x7: Watchpoint on read or write.<BR>0x8: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match<BR>0x9: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on read<BR>0xA: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on write<BR>0xB: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on read or write<BR>0xC: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample data for read transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) for read transfers<BR>0xD: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample data for write transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) for write transfers<BR>0xE: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> + data for read transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) + data for read transfers<BR>0xF: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> + data for write transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) + data for write transfers<BR><BR>Note 1: If the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> is not fitted, then <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger is not possible. <BR>Note 2: Data value is only sampled for accesses that do not fault (<A class="mmap_legend_link" href="../legend.html#MPU">MPU</A> or bus fault). The <A class="mmap_legend_link" href="../legend.html#PC">PC</A> is sampled irrespective of any faults. The <A class="mmap_legend_link" href="../legend.html#PC">PC</A> is only sampled for the first address of a burst. <BR>Note 3: <A class="xref" href="#_FUNCTION">FUNCTION</A> is overridden for comparators given by <A class="xref" href="#_DATAVADDR0">DATAVADDR0</A> and <A class="xref" href="#_DATAVADDR1">DATAVADDR1</A> if <A class="xref" href="#_DATAVMATCH">DATAVMATCH</A> is also set. The comparators given by <A class="xref" href="#_DATAVADDR0">DATAVADDR0</A> and <A class="xref" href="#_DATAVADDR1">DATAVADDR1</A> can then only perform address comparator matches for comparator 1 data matches. <BR>Note 4: If the data matching functionality is not included during implementation it is not possible to set <A class="xref" href="#_DATAVADDR0">DATAVADDR0</A>, <A class="xref" href="#_DATAVADDR1">DATAVADDR1</A>, or <A class="xref" href="#_DATAVMATCH">DATAVMATCH</A>. This means that the data matching functionality is not available in the implementation. Test the availability of data matching by writing and reading <A class="xref" href="#_DATAVMATCH">DATAVMATCH</A>. If it is not settable then data matching is unavailable. <BR>Note 5: <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match is not recommended for watchpoints because it stops after the instruction. It mainly guards and triggers the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="COMP2"><A name="COMP2"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:COMP2</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0040</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1040</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Comparator Register 2<BR>This register is used to write the reference value for comparator 2.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="COMP2_COMP">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>COMP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Reference value to compare against <A class="mmap_legend_link" href="../legend.html#PC">PC</A> or the data address as given by <A class="xref" href="#FUNCTION2">FUNCTION2</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MASK2"><A name="MASK2"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:MASK2</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0044</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1044</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Mask Register 2<BR>Use the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> Mask Registers 2 to apply a mask to data addresses when matching against <A class="xref" href="#COMP2">COMP2</A>.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MASK2_RESERVED4">
+	  			<P>31:4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED4</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MASK2_MASK">
+	  			<P>3:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Mask on data address when matching against <A class="xref" href="#COMP2">COMP2</A>. This is the size of the ignore mask. That is, <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> matching is performed as:(ADDR ANDed with (0xFFFF left bit-shifted by <A class="xref" href="#_MASK">MASK</A>)) == <A class="xref" href="#COMP2">COMP2</A>. However, the actual comparison is slightly more complex to enable matching an address wherever it appears on a bus. So, if <A class="xref" href="#COMP2">COMP2</A> is 3, this matches a word access of 0, because 3 would be within the word.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="FUNCTION2"><A name="FUNCTION2"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:FUNCTION2</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0048</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1048</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Function Register 2<BR>Use the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> Function Registers 2 to control the operation of the comparator 2. This comparator can emit data or <A class="mmap_legend_link" href="../legend.html#PC">PC</A> couples, trigger the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A>, or generate a watchpoint depending on the operation defined by <A class="xref" href="#_FUNCTION">FUNCTION</A>.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION2_RESERVED25">
+	  			<P>31:25</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED25</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION2_MATCHED">
+	  			<P>24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MATCHED</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This bit is set when the comparator matches, and indicates that the operation defined by <A class="xref" href="#_FUNCTION">FUNCTION</A> has occurred since this bit was last read. This bit is cleared on read.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION2_RESERVED6">
+	  			<P>23:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED6</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION2_EMITRANGE">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EMITRANGE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Emit range field. This bit permits emitting offset when range match occurs. <A class="mmap_legend_link" href="../legend.html#PC">PC</A> sampling is not supported when emit range is enabled. <BR>This field only applies for: <A class="xref" href="#_FUNCTION">FUNCTION</A> = 1, 2, 3, 12, 13, 14, and 15.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION2_RESERVED4">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED4</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION2_FUNCTION">
+	  			<P>3:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FUNCTION</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Function settings. <BR><BR>0x0: Disabled<BR>0x1: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample and emit <A class="mmap_legend_link" href="../legend.html#PC">PC</A> through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A>. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit address offset through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A><BR>0x2: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, emit data through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read and write. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit data and address offset through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write.<BR>0x3: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> and data value through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit address offset and data value through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write.<BR>0x4: Watchpoint on <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match.<BR>0x5: Watchpoint on read.<BR>0x6: Watchpoint on write.<BR>0x7: Watchpoint on read or write.<BR>0x8: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match<BR>0x9: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on read<BR>0xA: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on write<BR>0xB: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on read or write<BR>0xC: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample data for read transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) for read transfers<BR>0xD: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample data for write transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) for write transfers<BR>0xE: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> + data for read transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) + data for read transfers<BR>0xF: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> + data for write transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) + data for write transfers<BR><BR>Note 1: If the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> is not fitted, then <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger is not possible. <BR>Note 2: Data value is only sampled for accesses that do not fault (<A class="mmap_legend_link" href="../legend.html#MPU">MPU</A> or bus fault). The <A class="mmap_legend_link" href="../legend.html#PC">PC</A> is sampled irrespective of any faults. The <A class="mmap_legend_link" href="../legend.html#PC">PC</A> is only sampled for the first address of a burst. <BR>Note 3: <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match is not recommended for watchpoints because it stops after the instruction. It mainly guards and triggers the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="COMP3"><A name="COMP3"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:COMP3</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0050</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1050</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Comparator Register 3<BR>This register is used to write the reference value for comparator 3.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="COMP3_COMP">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>COMP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Reference value to compare against <A class="mmap_legend_link" href="../legend.html#PC">PC</A> or the data address as given by <A class="xref" href="#FUNCTION3">FUNCTION3</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="MASK3"><A name="MASK3"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:MASK3</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0054</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1054</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Mask Register 3<BR>Use the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> Mask Registers 3 to apply a mask to data addresses when matching against <A class="xref" href="#COMP3">COMP3</A>.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MASK3_RESERVED4">
+	  			<P>31:4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED4</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="MASK3_MASK">
+	  			<P>3:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MASK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Mask on data address when matching against <A class="xref" href="#COMP3">COMP3</A>. This is the size of the ignore mask. That is, <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> matching is performed as:(ADDR ANDed with (0xFFFF left bit-shifted by <A class="xref" href="#_MASK">MASK</A>)) == <A class="xref" href="#COMP3">COMP3</A>. However, the actual comparison is slightly more complex to enable matching an address wherever it appears on a bus. So, if <A class="xref" href="#COMP3">COMP3</A> is 3, this matches a word access of 0, because 3 would be within the word.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="FUNCTION3"><A name="FUNCTION3"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">CPU_DWT</A>:FUNCTION3</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0058</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0xE000 1058</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>CPU_DWT</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>DWT Function Register 3<BR>Use the <A class="mmap_legend_link" href="../legend.html#DWT">DWT</A> Function Registers 3 to control the operation of the comparator 3. This comparator can emit data or <A class="mmap_legend_link" href="../legend.html#PC">PC</A> couples, trigger the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A>, or generate a watchpoint depending on the operation defined by <A class="xref" href="#_FUNCTION">FUNCTION</A>.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION3_RESERVED25">
+	  			<P>31:25</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED25</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION3_MATCHED">
+	  			<P>24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MATCHED</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This bit is set when the comparator matches, and indicates that the operation defined by <A class="xref" href="#_FUNCTION">FUNCTION</A> has occurred since this bit was last read. This bit is cleared on read.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION3_RESERVED6">
+	  			<P>23:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED6</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION3_EMITRANGE">
+	  			<P>5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EMITRANGE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Emit range field. This bit permits emitting offset when range match occurs. <A class="mmap_legend_link" href="../legend.html#PC">PC</A> sampling is not supported when emit range is enabled. <BR>This field only applies for: <A class="xref" href="#_FUNCTION">FUNCTION</A> = 1, 2, 3, 12, 13, 14, and 15.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION3_RESERVED4">
+	  			<P>4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RESERVED4</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="FUNCTION3_FUNCTION">
+	  			<P>3:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FUNCTION</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Function settings. <BR><BR>0x0: Disabled<BR>0x1: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample and emit <A class="mmap_legend_link" href="../legend.html#PC">PC</A> through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A>. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit address offset through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A><BR>0x2: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, emit data through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read and write. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit data and address offset through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write.<BR>0x3: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> and data value through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, emit address offset and data value through <A class="mmap_legend_link" href="../legend.html#ITM">ITM</A> on read or write.<BR>0x4: Watchpoint on <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match.<BR>0x5: Watchpoint on read.<BR>0x6: Watchpoint on write.<BR>0x7: Watchpoint on read or write.<BR>0x8: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match<BR>0x9: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on read<BR>0xA: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on write<BR>0xB: <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger on read or write<BR>0xC: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample data for read transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) for read transfers<BR>0xD: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample data for write transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) for write transfers<BR>0xE: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> + data for read transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) + data for read transfers<BR>0xF: <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 0, sample <A class="mmap_legend_link" href="../legend.html#PC">PC</A> + data for write transfers. <A class="xref" href="#_EMITRANGE">EMITRANGE</A> = 1, sample Daddr (lower 16 bits) + data for write transfers<BR><BR>Note 1: If the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> is not fitted, then <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A> trigger is not possible. <BR>Note 2: Data value is only sampled for accesses that do not fault (<A class="mmap_legend_link" href="../legend.html#MPU">MPU</A> or bus fault). The <A class="mmap_legend_link" href="../legend.html#PC">PC</A> is sampled irrespective of any faults. The <A class="mmap_legend_link" href="../legend.html#PC">PC</A> is only sampled for the first address of a burst. <BR>Note 3: <A class="mmap_legend_link" href="../legend.html#PC">PC</A> match is not recommended for watchpoints because it stops after the instruction. It mainly guards and triggers the <A class="mmap_legend_link" href="../legend.html#ETM">ETM</A>.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+<hr><table class="footer"><tr><td>&copy; 2015. Texas Instruments | All Rights Reserved</td></tr></table>
+</BODY>
+</HTML>

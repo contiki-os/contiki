@@ -1,0 +1,2 @@
+COMPILER_TOOL = "/cygdrive/c/Program Files (x86)/IAR Systems/EW_7_30_3/arm/bin/iccarm.exe"
+ARCHIVER_TOOL = "/cygdrive/c/Program Files (x86)/IAR Systems/EW_7_30_3/arm/bin/iarchive.exe"

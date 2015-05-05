@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['overview',['Overview',['../index.html',1,'']]],
+  ['obs_2eh',['obs.h',['../obs_8h.html',1,'']]],
+  ['osc_2ec',['osc.c',['../osc_8c.html',1,'']]],
+  ['osc_2eh',['osc.h',['../osc_8h.html',1,'']]],
+  ['osc_5frcosc_5fhf',['OSC_RCOSC_HF',['../group__osc__api.html#ga69c226c32f77c516b33207cc23179c34',1,'osc.h']]],
+  ['osc_5frcosc_5flf',['OSC_RCOSC_LF',['../group__osc__api.html#ga77f1adccd50f1b219d9657ba2ac7dd9b',1,'osc.h']]],
+  ['osc_5fsrc_5fclk_5fhf',['OSC_SRC_CLK_HF',['../group__osc__api.html#gac53cc71494c69f6f486be9b3b0566b83',1,'osc.h']]],
+  ['osc_5fsrc_5fclk_5flf',['OSC_SRC_CLK_LF',['../group__osc__api.html#gac57298ac9008f605f9b2c70609790bab',1,'osc.h']]],
+  ['osc_5fsrc_5fclk_5fmf',['OSC_SRC_CLK_MF',['../group__osc__api.html#ga3791959ca0a46e15b1b8d0d6c23af66d',1,'osc.h']]],
+  ['osc_5fxosc_5fhf',['OSC_XOSC_HF',['../group__osc__api.html#gaa167a08c9239cfcfefb8c35bf984ce8b',1,'osc.h']]],
+  ['osc_5fxosc_5flf',['OSC_XOSC_LF',['../group__osc__api.html#ga6502b0b712473f2ec7a4112cda0725bb',1,'osc.h']]],
+  ['oscclocksourceget',['OSCClockSourceGet',['../group__osc__api.html#ga279bd3a34548bd4c5e2fc6939f7be228',1,'OSCClockSourceGet(uint32_t ui32SrcClk):&#160;osc.c'],['../group__osc__api.html#ga279bd3a34548bd4c5e2fc6939f7be228',1,'OSCClockSourceGet(uint32_t ui32SrcClk):&#160;osc.c']]],
+  ['oscclocksourceset',['OSCClockSourceSet',['../group__osc__api.html#ga37a02687fbd8680396550f682a7f046f',1,'OSCClockSourceSet(uint32_t ui32SrcClk, uint32_t ui32Osc):&#160;osc.c'],['../group__osc__api.html#ga37a02687fbd8680396550f682a7f046f',1,'OSCClockSourceSet(uint32_t ui32SrcClk, uint32_t ui32Osc):&#160;osc.c']]],
+  ['oschf_5fattempttoswitchtoxosc',['OSCHF_AttemptToSwitchToXosc',['../group__osc__api.html#ga47914d2750ee826560f2107a567bb1a4',1,'OSCHF_AttemptToSwitchToXosc(void):&#160;osc.c'],['../group__osc__api.html#ga47914d2750ee826560f2107a567bb1a4',1,'OSCHF_AttemptToSwitchToXosc(void):&#160;osc.c']]],
+  ['oschf_5fgetstartuptime',['OSCHF_GetStartupTime',['../group__osc__api.html#ga8f7fce82e80c984531622af61963db51',1,'OSCHF_GetStartupTime(uint32_t timeUntilWakeupInMs):&#160;osc.c'],['../group__osc__api.html#ga8f7fce82e80c984531622af61963db51',1,'OSCHF_GetStartupTime(uint32_t timeUntilWakeupInMs):&#160;osc.c']]],
+  ['oschf_5fswitchtorcoscturnoffxosc',['OSCHF_SwitchToRcOscTurnOffXosc',['../group__osc__api.html#ga9eeb99e769d9c911305ff4c3c33c736c',1,'OSCHF_SwitchToRcOscTurnOffXosc(void):&#160;osc.c'],['../group__osc__api.html#ga9eeb99e769d9c911305ff4c3c33c736c',1,'OSCHF_SwitchToRcOscTurnOffXosc(void):&#160;osc.c']]],
+  ['oschf_5fturnonxosc',['OSCHF_TurnOnXosc',['../group__osc__api.html#gaee5a511c4ca70e8eb66f4a6252488506',1,'OSCHF_TurnOnXosc(void):&#160;osc.c'],['../group__osc__api.html#gaee5a511c4ca70e8eb66f4a6252488506',1,'OSCHF_TurnOnXosc(void):&#160;osc.c']]],
+  ['oschfglobals_5ft',['OscHfGlobals_t',['../struct_osc_hf_globals__t.html',1,'']]],
+  ['oschfsourceready',['OSCHfSourceReady',['../group__osc__api.html#gac4830e0a6fdc2ec2d9370a7873e16cb5',1,'osc.h']]],
+  ['oschfsourceswitch',['OSCHfSourceSwitch',['../group__osc__api.html#ga6383c5294ef6d4ac0efc6e55c274f86f',1,'osc.h']]],
+  ['oscinterfacedisable',['OSCInterfaceDisable',['../group__osc__api.html#gaa59d55cf52d034b8c87ef0b1f8df0d57',1,'osc.h']]],
+  ['oscinterfaceenable',['OSCInterfaceEnable',['../group__osc__api.html#ga6fb2cee20c657b549d534219a41c1428',1,'OSCInterfaceEnable(void):&#160;osc.c'],['../group__osc__api.html#ga6fb2cee20c657b549d534219a41c1428',1,'OSCInterfaceEnable(void):&#160;osc.c']]],
+  ['oscxhfpowermodeset',['OSCXHfPowerModeSet',['../group__osc__api.html#ga505c162f7c7c90bae40bdfa3de5f8f0e',1,'osc.h']]]
+];

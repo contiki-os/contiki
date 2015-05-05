@@ -1,0 +1,1549 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<link href="../elements/mmap.css" rel="stylesheet" type="text/css">
+<TITLE>EFUSE</TITLE>
+</HEAD>
+<BODY class=mmapBody><H2 class="mmapCellTitle"><A name="Top_Tag">EFUSE</A></H2>
+<P>Instance: EFUSE<BR>Component: EFUSE<BR>Base address: 0x10000000</P>
+<P>&nbsp;</P>
+<P>Efuse area</P>
+ 
+<P>&nbsp;</P>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A name="EFUSE"></A><A href="JTAG_TAP.html"> TOP</A>:<B>EFUSE</B> Register Summary</H3>
+  <TABLE class="mmapRegisterSummaryTable" cellspacing=0>
+	 	<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Register Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol3">
+	  			<P>Register Width (Bits)</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>IR</P>
+	  		</TD>
+	 	</TR>
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#DIE_ID_0">DIE_ID_0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>3</P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#DIE_ID_1">DIE_ID_1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>4</P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#DIE_ID_2">DIE_ID_2</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>5</P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#DIE_ID_3">DIE_ID_3</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>6</P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SCAN_DATA0">SCAN_DATA0</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>7</P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SCAN_DATA1">SCAN_DATA1</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>8</P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#SCAN_DATA2_BOOT">SCAN_DATA2_BOOT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>9</P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#BANK_TRIM_BOOT">BANK_TRIM_BOOT</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>10</P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#OSC_BIAS_LDO_TRIM">OSC_BIAS_LDO_TRIM</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>11</P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#ANA_TRIM">ANA_TRIM</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>12</P>
+			</TD>
+		</TR>
+		
+	</TABLE>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A href="JTAG_TAP.html"> TOP</A>:EFUSE Register Descriptions</H3>
+
+
+	<H3 class="mmapRegisterTitle"><A name="DIE_ID_0"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:DIE_ID_0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>3</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4)</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="DIE_ID_0_ID_31_0">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ID_31_0</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bit[31:0] of the 128-bit die ID</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXXXX XXXX</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="DIE_ID_1"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:DIE_ID_1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>4</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4)</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="DIE_ID_1_ID_63_32">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ID_63_32</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bit[63:32] of the 128-bit die ID</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXXXX XXXX</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="DIE_ID_2"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:DIE_ID_2</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>5</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4)</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="DIE_ID_2_ID_95_64">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ID_95_64</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bit[95:64] of the 128-bit die ID</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXXXX XXXX</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="DIE_ID_3"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:DIE_ID_3</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>6</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4)</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="DIE_ID_3_ID_127_96">
+	  			<P>31:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ID_127_96</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bit[127:96] of the 128-bit die ID</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXXXX XXXX</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SCAN_DATA0"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:SCAN_DATA0</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>7</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4).<BR>This row is included in the HW scan. Bit[0] is the first bit in the scan chain.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA0_ULL_MCU_RAM1_REP">
+	  			<P>31:29</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ULL_MCU_RAM1_REP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bits[2:0] of MCU RAM1 repair</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA0_ULL_MCU_RAM2_REP">
+	  			<P>28:19</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ULL_MCU_RAM2_REP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bits[9:0] of MCU RAM2 repair</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA0_ULL_MCU_RAM3_REP">
+	  			<P>18:9</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ULL_MCU_RAM3_REP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bits[9:0] of MCU RAM3 repair</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA0_ULL_AUX_RAM_REP">
+	  			<P>8:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ULL_AUX_RAM_REP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bits[7:0] of AUX RAM repair</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA0_TAP_DAP_LOCK">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TAP_DAP_LOCK</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="#_TAP_DAP_LOCK">TAP_DAP_LOCK</A> == <A class="xref" href="#SCAN_DATA2_BOOT_TAP_DAP_LOCK_N">SCAN_DATA2_BOOT.TAP_DAP_LOCK_N</A>: Device locked<BR>If <A class="xref" href="#_TAP_DAP_LOCK">TAP_DAP_LOCK</A> != <A class="xref" href="#SCAN_DATA2_BOOT_TAP_DAP_LOCK_N">SCAN_DATA2_BOOT.TAP_DAP_LOCK_N</A>: Device unlocked<BR><BR>The device lock status will be <BR>reflected [CPU_MMAP::AON_WUC.LOCKCFG.UNLOCK]</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SCAN_DATA1"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:SCAN_DATA1</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>8</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4).<BR>This row is included in the HW scan and crc but not used in HW.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA1_Reserved">
+	  			<P>31:17</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA1_ULL_MCU_RAM0_REP">
+	  			<P>16:7</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ULL_MCU_RAM0_REP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bits[9:0] of MCU RAM0 repair</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA1_ULL_MCU_RAM1_REP">
+	  			<P>6:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ULL_MCU_RAM1_REP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Bits[9:3] of MCU RAM1 repair</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="SCAN_DATA2_BOOT"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:SCAN_DATA2_BOOT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>9</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4).<BR>Bits[8:0] of this row is included in the HW scan. Bit[8] is the last bit in the scan chain.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_FLASH_RDY">
+	  			<P>31</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>FLASH_RDY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>0: FW halts CPU during boot with all DAP/TAPs unlocked after having configured flash module for read capability.<BR>1: FW will not interfere the boot process due to this value.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>1</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_STANDBY_MODE_SEL_INT">
+	  			<P>30</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STANDBY_MODE_SEL_INT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 0, this value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#CFG_STANDBY_MODE_SEL">FLASH:CFG.STANDBY_MODE_SEL</A> by FW during boot. This register bit field will be updated by FW with trim value from FCFG1 later in the boot sequence.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_STANDBY_PW_SEL_INT">
+	  			<P>29:28</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STANDBY_PW_SEL_INT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 0, this value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#CFG_STANDBY_PW_SEL">FLASH:CFG.STANDBY_PW_SEL</A> by FW during boot. This register bit field will be updated by FW with trim value from FCFG1 later in the boot sequence.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_DIS_STANDBY_INT">
+	  			<P>27</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DIS_STANDBY_INT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 0, this value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#CFG_DIS_STANDBY">FLASH:CFG.DIS_STANDBY</A> by FW during boot. This register bit field will be updated by FW with trim value from FCFG1 later in the boot sequence.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_VIN_AT_X_INT">
+	  			<P>26:24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VIN_AT_X_INT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 0, this value will be written to [FLASH.FSEQPMP.VIN_AT_X] by FW during boot. This register bit field will be updated by FW with trim value from FCFG1 later in the boot sequence.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_STANDBY_MODE_SEL_EXT">
+	  			<P>23</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STANDBY_MODE_SEL_EXT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 1, this value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#CFG_STANDBY_MODE_SEL">FLASH:CFG.STANDBY_MODE_SEL</A> by FW during boot. This register bit field will be updated by FW with trim value from FCFG1 later in the boot sequence.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_STANDBY_PW_SEL_EXT">
+	  			<P>22:21</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>STANDBY_PW_SEL_EXT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 1, this value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#CFG_STANDBY_PW_SEL">FLASH:CFG.STANDBY_PW_SEL</A> by FW during boot. This register bit field will be updated by FW with trim value from FCFG1 later in the boot sequence.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_DIS_STANDBY_EXT">
+	  			<P>20</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>DIS_STANDBY_EXT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 1, this value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#CFG_DIS_STANDBY">FLASH:CFG.DIS_STANDBY</A> by FW during boot. This register bit field will be updated by FW with trim value from FCFG1 later in the boot sequence.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_VIN_AT_X_EXT">
+	  			<P>19:17</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VIN_AT_X_EXT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 1, this value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#FSEQPMP_VIN_AT_X">FLASH:FSEQPMP.VIN_AT_X</A> by FW during boot. This register bit field will be updated by FW with trim value from FCFG1 later in the boot sequence.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_Reserved">
+	  			<P>16:9</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_CRC">
+	  			<P>8:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>CRC</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Checksum of SCAN_DATA0 row bits[31:0] and SCAN_DATA1 row bit[31:0] and SCAN_DATA2_TRIM row bit[0]. This field is included in the scan chain.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="SCAN_DATA2_BOOT_TAP_DAP_LOCK_N">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TAP_DAP_LOCK_N</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>If <A class="xref" href="#_TAP_DAP_LOCK">TAP_DAP_LOCK</A> == <A class="xref" href="#SCAN_DATA2_BOOT_TAP_DAP_LOCK_N">SCAN_DATA2_BOOT.TAP_DAP_LOCK_N</A>: [CPU_MMAP::AON_WUC.LOCKCFG.SECURITY_STATE] = 0, ie device is locked.<BR>If <A class="xref" href="#_TAP_DAP_LOCK">TAP_DAP_LOCK</A> != <A class="xref" href="#SCAN_DATA2_BOOT_TAP_DAP_LOCK_N">SCAN_DATA2_BOOT.TAP_DAP_LOCK_N</A>: [CPU_MMAP::AON_WUC.LOCKCFG.SECURITY_STATE] = 1, ie device is unlocked.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="BANK_TRIM_BOOT"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:BANK_TRIM_BOOT</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>10</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4).<BR>The data in this row will be written to registers in the FLASH module by FW during boot. <A class="xref" href="#_ROM_BOOT">ROM_BOOT</A> will control debug capabilities of the boot FW.</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="BANK_TRIM_BOOT_Reserved">
+	  			<P>31:30</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="BANK_TRIM_BOOT_ROM_BOOT">
+	  			<P>29</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ROM_BOOT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>0: FW will halt CPU immediatly after release of reset and the reading of this bit.<BR>1: FW will not interfere the boot process due to this value.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>1</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="BANK_TRIM_BOOT_TRIM3P4">
+	  			<P>28:25</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIM3P4</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#FSEQPMP_TRIM_3P4">FLASH:FSEQPMP.TRIM_3P4</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x5</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="BANK_TRIM_BOOT_VCG2P5CT">
+	  			<P>24:21</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VCG2P5CT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#FVNVCT_VCG2P5CT">FLASH:FVNVCT.VCG2P5CT</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="BANK_TRIM_BOOT_VREADCT">
+	  			<P>20:17</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VREADCT</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#FVREADCT_VREADCT">FLASH:FVREADCT.VREADCT</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="BANK_TRIM_BOOT_TRIM_0P8">
+	  			<P>16:13</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIM_0P8</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../CPU_MMAP/FLASH.html#FSEQPMP_TRIM_0P8">FLASH:FSEQPMP.TRIM_0P8</A>by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x8</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="BANK_TRIM_BOOT_TRIM_SADLY">
+	  			<P>12:10</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIM_SADLY</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This value will be written to bit[12:10] of <A class="xref" href="../CPU_MMAP/FLASH.html#BANK_0_EFUSE">FLASH:BANK_0_EFUSE</A> by FW during boot.<BR>The 19 MSB bits of that register will be written to the pattern 0b0000000000001001000 by FW.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x1</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="BANK_TRIM_BOOT_TRIM_NMOS">
+	  			<P>9:5</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIM_NMOS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This value will be written to bit[9:5] of <A class="xref" href="../CPU_MMAP/FLASH.html#BANK_0_EFUSE">FLASH:BANK_0_EFUSE</A> by FW during boot.<BR>The 19 MSB bits of that register will be written to the pattern 0b0000000000001001000 by FW.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="BANK_TRIM_BOOT_TRIM_PMOS">
+	  			<P>4:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIM_PMOS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This value will be written to bit[4:0] of <A class="xref" href="../CPU_MMAP/FLASH.html#BANK_0_EFUSE">FLASH:BANK_0_EFUSE</A> by FW during boot.<BR>The 19 MSB bits of that register will be written to the pattern 0b0000000000001001000 by FW.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXX</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="OSC_BIAS_LDO_TRIM"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:OSC_BIAS_LDO_TRIM</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>11</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4)</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OSC_BIAS_LDO_TRIM_Reserved">
+	  			<P>31:29</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OSC_BIAS_LDO_TRIM_SET_RCOSC_HF_COARSE_RESISTOR">
+	  			<P>28:27</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>SET_RCOSC_HF_COARSE_RESISTOR</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/DDI_0_OSC.html#ATESTCTL_SET_RCOSC_HF_FINE_RESISTOR">DDI_0_OSC:ATESTCTL.SET_RCOSC_HF_FINE_RESISTOR</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OSC_BIAS_LDO_TRIM_TRIMMAG">
+	  			<P>26:23</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIMMAG</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_3_REFSYS.html#REFSYSCTL2_TRIM_VREF">ADI_3_REFSYS:REFSYSCTL2.TRIM_VREF</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OSC_BIAS_LDO_TRIM_TRIMIREF">
+	  			<P>22:18</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIMIREF</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_2_REFSYS.html#REFSYSCTL0_TRIM_IREF">ADI_2_REFSYS:REFSYSCTL0.TRIM_IREF</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OSC_BIAS_LDO_TRIM_ITRIM_DIG_LDO">
+	  			<P>17:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>ITRIM_DIG_LDO</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value is read by FW and is used in the calculation to find the value that is written to <A class="xref" href="../ANATOP_MMAP/ADI_2_REFSYS.html#SOCLDOCTL3_ITRIM_DIGLDO">ADI_2_REFSYS:SOCLDOCTL3.ITRIM_DIGLDO</A> during boot. <BR><BR>0x0: <A class="xref" href="../ANATOP_MMAP/ADI_2_REFSYS.html#SOCLDOCTL3_ITRIM_DIGLDO">ADI_2_REFSYS:SOCLDOCTL3.ITRIM_DIGLDO</A> = 0x0<BR>0x1: <A class="xref" href="../ANATOP_MMAP/ADI_2_REFSYS.html#SOCLDOCTL3_ITRIM_DIGLDO">ADI_2_REFSYS:SOCLDOCTL3.ITRIM_DIGLDO</A> = 0x3<BR>0x2: <A class="xref" href="../ANATOP_MMAP/ADI_2_REFSYS.html#SOCLDOCTL3_ITRIM_DIGLDO">ADI_2_REFSYS:SOCLDOCTL3.ITRIM_DIGLDO</A> = 0x5<BR>0x3: <A class="xref" href="../ANATOP_MMAP/ADI_2_REFSYS.html#SOCLDOCTL3_ITRIM_DIGLDO">ADI_2_REFSYS:SOCLDOCTL3.ITRIM_DIGLDO</A> = 0x7</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OSC_BIAS_LDO_TRIM_VTRIM_DIG">
+	  			<P>15:12</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VTRIM_DIG</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_2_REFSYS.html#SOCLDOCTL1_VTRIM_DIG">ADI_2_REFSYS:SOCLDOCTL1.VTRIM_DIG</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OSC_BIAS_LDO_TRIM_VTRIM_COARSE">
+	  			<P>11:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VTRIM_COARSE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_2_REFSYS.html#SOCLDOCTL1_VTRIM_COARSE">ADI_2_REFSYS:SOCLDOCTL1.VTRIM_COARSE</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="OSC_BIAS_LDO_TRIM_RCOSCHF_CTRIM">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RCOSCHF_CTRIM</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>The boot FW will use this value as a trim target for the RCOSCHF cap trim. FW calculates the delta between current register bit field value of <A class="xref" href="../ANATOP_MMAP/DDI_0_OSC.html#RCOSCHFCTL_RCOSCHF_CTRIM">DDI_0_OSC:RCOSCHFCTL.RCOSCHF_CTRIM</A> and this field. 1/16 of this delta value is added to <A class="xref" href="../ANATOP_MMAP/DDI_0_OSC.html#RCOSCHFCTL_RCOSCHF_CTRIM">DDI_0_OSC:RCOSCHFCTL.RCOSCHF_CTRIM</A> in each loop of a total of 16. The 2 MSB bits of the value read and written from/to <A class="xref" href="../ANATOP_MMAP/DDI_0_OSC.html#RCOSCHFCTL_RCOSCHF_CTRIM">DDI_0_OSC:RCOSCHFCTL.RCOSCHF_CTRIM</A> register bit field will be inverted by FW.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXX</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="ANA_TRIM"></A><A class="mmapRegisterTitle" href="JTAG_TAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">EFUSE</A>:ANA_TRIM</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>IR</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>12</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Note: Efuse row number = (Address Offset / 4)</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ANA_TRIM_Reserved">
+	  			<P>31:27</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RW std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ANA_TRIM_BOD_BANDGAP_TRIM_CNF">
+	  			<P>26:25</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>BOD_BANDGAP_TRIM_CNF</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Configuration of ROM boot FW trim algorithm for Bandgap and VDDS BOD.<BR><BR>0: ROM boot FW will disable all BOD reset sources except VDDS BOD followed by a sync to AON and then latch the trim target values for Bandgap and VDDS BOD in ANATOP.<BR>1: ROM boot FW will disable all BOD reset sources followed by a sync to AON. Then  the trim target values for Bandgap and VDDS BOD are latched in ANATOP. Then VDDS BOD is re-enabled followed by one sync to AON.<BR>2: ROM boot FW will disable all BOD reset sources followed by a sync to AON. Then  the trim target values for Bandgap and VDDS BOD are latched in ANATOP followed by a sync to AON. Then VDDS BOD is re-enabled followed by one sync to AON.<BR>3: ROM boot FW will disable all BOD reset sources followed by a sync to AON. Then  the trim target values for Bandgap and VDDS BOD are latched in ANATOP followed by two syncs to AON. Then VDDS BOD is re-enabled followed by one sync to AON.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x1</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ANA_TRIM_VDDR_ENABLE_PG1">
+	  			<P>24</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VDDR_ENABLE_PG1</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>This value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_3_REFSYS.html#DCDCCTL2_TURNON_EA_SW">ADI_3_REFSYS:DCDCCTL2.TURNON_EA_SW</A> by FW during boot. <BR>If value is 1 it will cause the &#x27; trim-down VDDR_OK glitch fix&#x27; in PG2 to be bypassed and it will also cause the boot FW to include a delay of approx. 700 us after the global LDO trimming, if <A class="xref" href="#_VDDR_TRIM">VDDR_TRIM</A>  < -2.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ANA_TRIM_VDDR_OK_HYS">
+	  			<P>23</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VDDR_OK_HYS</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_3_REFSYS.html#DCDCCTL1_VDDR_OK_HYST">ADI_3_REFSYS:DCDCCTL1.VDDR_OK_HYST</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ANA_TRIM_IPTAT_TRIM">
+	  			<P>22:21</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>IPTAT_TRIM</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_3_REFSYS.html#DCDCCTL1_IPTAT_TRIM">ADI_3_REFSYS:DCDCCTL1.IPTAT_TRIM</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ANA_TRIM_VDDR_TRIM">
+	  			<P>20:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VDDR_TRIM</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_3_REFSYS.html#DCDCCTL0_VDDR_TRIM">ADI_3_REFSYS:DCDCCTL0.VDDR_TRIM</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ANA_TRIM_TRIMBOD_INTMODE">
+	  			<P>15:11</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIMBOD_INTMODE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_3_REFSYS.html#REFSYSCTL1_TRIM_VDDS_BOD">ADI_3_REFSYS:REFSYSCTL1.TRIM_VDDS_BOD</A> by FW during boot if <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 0.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ANA_TRIM_TRIMBOD_EXTMODE">
+	  			<P>10:6</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIMBOD_EXTMODE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_3_REFSYS.html#REFSYSCTL1_TRIM_VDDS_BOD">ADI_3_REFSYS:REFSYSCTL1.TRIM_VDDS_BOD</A> by FW during boot if <A class="xref" href="../CPU_MMAP/AON_SYSCTL.html#PWRCTL_EXT_REG_MODE">AON_SYSCTL:PWRCTL.EXT_REG_MODE</A> = 1.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXX</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="ANA_TRIM_TRIMTEMP">
+	  			<P>5:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TRIMTEMP</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Value will be written to <A class="xref" href="../ANATOP_MMAP/ADI_3_REFSYS.html#REFSYSCTL3_TRIM_VBG">ADI_3_REFSYS:REFSYSCTL3.TRIM_VBG</A> by FW during boot.</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0xXX</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+<hr><table class="footer"><tr><td>&copy; 2015. Texas Instruments | All Rights Reserved</td></tr></table>
+</BODY>
+</HTML>

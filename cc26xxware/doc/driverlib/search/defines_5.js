@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['hapicrc32',['HapiCrc32',['../rom_8h.html#a6cdbf988829a1169f9fee7a54238b040',1,'rom.h']]],
+  ['hapifletcher32',['HapiFletcher32',['../rom_8h.html#ae878ab9dc2a797ffb0a471830733fad9',1,'rom.h']]],
+  ['hapigetchipid',['HapiGetChipId',['../rom_8h.html#ae6be85c9bb44f7b66a2529193151212c',1,'rom.h']]],
+  ['hapigetflashsize',['HapiGetFlashSize',['../rom_8h.html#a020067dc1108b27de207140384dc44d4',1,'rom.h']]],
+  ['hapihfsourcesafeswitch',['HapiHFSourceSafeSwitch',['../rom_8h.html#a47e9779b2088543033cd8ddb3a28b766',1,'rom.h']]],
+  ['hapimaxvalue',['HapiMaxValue',['../rom_8h.html#a17760e225352b2e0298aa5d3d0a5cea0',1,'rom.h']]],
+  ['hapimeanvalue',['HapiMeanValue',['../rom_8h.html#aefa01c68117b37e06e2c20829bc7f5e2',1,'rom.h']]],
+  ['hapiminvalue',['HapiMinValue',['../rom_8h.html#a7d334c3520888b535e2375336fc2495f',1,'rom.h']]],
+  ['hapiprogramflash',['HapiProgramFlash',['../rom_8h.html#a51c07e6accd9bb8a717e546767ad0e02',1,'rom.h']]],
+  ['hapiresetdevice',['HapiResetDevice',['../rom_8h.html#a5dc1b69ed8a02d7370f2558bab0ccfb1',1,'rom.h']]],
+  ['hapiresetdomain',['HapiResetDomain',['../rom_8h.html#a1b681399d41218bc133a6147c5c2335a',1,'rom.h']]],
+  ['hapiresetperipheral',['HapiResetPeripheral',['../rom_8h.html#aa6eaf002c2698c8e940c647d50c7013c',1,'rom.h']]],
+  ['hapisectorerase',['HapiSectorErase',['../rom_8h.html#a3926666cb09086ab7ee0d570ac371b4c',1,'rom.h']]],
+  ['hapiselectadccompbinput',['HapiSelectADCCompBInput',['../rom_8h.html#ad69781c2f025a9c8d31df6c9ef321997',1,'rom.h']]],
+  ['hapiselectcompainput',['HapiSelectCompAInput',['../rom_8h.html#ae40a0df2ca267b2b6a0573e62361ad44',1,'rom.h']]],
+  ['hapiselectcomparef',['HapiSelectCompARef',['../rom_8h.html#a92f47d20e2cbb345c7a48cd6fa65c0f8',1,'rom.h']]],
+  ['hapiselectcompbref',['HapiSelectCompBRef',['../rom_8h.html#aa96d836b64faf564d4cb839e2700245c',1,'rom.h']]],
+  ['hapistanddeviationvalue',['HapiStandDeviationValue',['../rom_8h.html#a94351bb37c43c89d0f8e54d2cfeeb5b5',1,'rom.h']]]
+];

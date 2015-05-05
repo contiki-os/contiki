@@ -1,0 +1,1853 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+<link href="../elements/mmap.css" rel="stylesheet" type="text/css">
+<TITLE>AUX_TIMER</TITLE>
+</HEAD>
+<BODY class=mmapBody><H2 class="mmapCellTitle"><A name="Top_Tag">AUX_TIMER</A></H2>
+<P>Instance: AUX_TIMER<BR>Component: AUX_TIMER<BR>Base address: 0x400c7000</P>
+<P>&nbsp;</P>
+<P>AUX Timer</P>
+ 
+<P>&nbsp;</P>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A name="AUX_TIMER"></A><A href="CPU_MMAP.html"> TOP</A>:<B>AUX_TIMER</B> Register Summary</H3>
+  <TABLE class="mmapRegisterSummaryTable" cellspacing=0>
+	 	<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Register Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol3">
+	  			<P>Register Width (Bits)</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Register Reset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Address Offset</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Physical Address</P>
+	  		</TD>
+	 	</TR>
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#T0CFG">T0CFG</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x400C 7000 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#T1CFG">T1CFG</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0004</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x400C 7004 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#T0CTL">T0CTL</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0008</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x400C 7008 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#T0TARGET">T0TARGET</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 000C</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x400C 700C </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#T1TARGET">T1TARGET</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0010</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x400C 7010 </P>
+			</TD>
+		</TR>
+		
+	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><A HREF="#T1CTL">T1CTL</A></P>
+			</TD>
+			<TD class="cellCol2">
+				<P>RW</P>
+			</TD>
+			<TD class="cellCol3">
+				<P>32</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0000</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x0000 0014</P>
+			</TD>
+			<TD class="cellCol4">
+				<P>0x400C 7014 </P>
+			</TD>
+		</TR>
+		
+	</TABLE>
+
+
+	<H3 class="mmapRegisterSummaryTitle"><A href="CPU_MMAP.html"> TOP</A>:AUX_TIMER Register Descriptions</H3>
+
+
+	<H3 class="mmapRegisterTitle"><A name="T0CFG"><A name="T0CFG"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">AUX_TIMER</A>:T0CFG</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0000</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x400C 7000</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>AUX_TIMER</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Timer 0 Configuration</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0CFG_Reserved">
+	  			<P>31:14</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0CFG_TICK_SRC_POL">
+	  			<P>13</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TICK_SRC_POL</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Source count polarity for timer 0</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>RISE</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Count on rising edges of <A class="xref" href="#_TICK_SRC">TICK_SRC</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>FALL</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Count on falling edges of <A class="xref" href="#_TICK_SRC">TICK_SRC</A></P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0CFG_TICK_SRC">
+	  			<P>12:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TICK_SRC</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Selected tick source for timer 0</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x00</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>RTC_CH2_EV</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#RTC_CH2_EV">RTC_CH2_EV</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x01</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUX_COMPA</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUX_COMPA">AUX_COMPA</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x02</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUX_COMPB</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUX_COMPB">AUX_COMPB</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x03</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>TDC_DONE</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#TDC_DONE">TDC_DONE</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x05</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>TIMER1_EV</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#TIMER1_EV">TIMER1_EV</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x06</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>SMPH_AUTOTAKE_DONE</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#SMPH_AUTOTAKE_DONE">SMPH_AUTOTAKE_DONE</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x07</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>ADC_DONE</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#ADC_DONE">ADC_DONE</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x08</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>RTC_4KHZ</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#RTC_4KHZ">RTC_4KHZ</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x09</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>OBSMUX0</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#OBSMUX0">OBSMUX0</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0A</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>OBSMUX1</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#OBSMUX1">OBSMUX1</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0B</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AON_SW</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AON_SW">AON_SW</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0C</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AON_PROG_WU</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AON_PROG_WU">AON_PROG_WU</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0D</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO0</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO0">AUXIO0</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0E</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO1</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO1">AUXIO1</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0F</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO2</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO2">AUXIO2</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x10</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO3</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO3">AUXIO3</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x11</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO4</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO4">AUXIO4</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x12</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO5</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO5">AUXIO5</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x13</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO6</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO6">AUXIO6</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x14</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO7</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO7">AUXIO7</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x15</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO8</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO8">AUXIO8</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x16</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO9</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO9">AUXIO9</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x17</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO10</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO10">AUXIO10</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x18</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO11</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO11">AUXIO11</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x19</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO12</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO12">AUXIO12</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1A</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO13</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO13">AUXIO13</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1B</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO14</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO14">AUXIO14</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1C</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO15</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO15">AUXIO15</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1D</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>ACLK_REF</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#ACLK_REF">ACLK_REF</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1E</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>MCU_EVENT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#MCU_EV">MCU_EV</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1F</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>ADC_IRQ</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#ADC_IRQ">ADC_IRQ</A></P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0CFG_PRE">
+	  			<P>7:4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PRE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Prescaler division ratio is 2^<A class="xref" href="#_PRE">PRE</A></P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0CFG_Reserved">
+	  			<P>3:2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0CFG_MODE">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MODE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Timer 0 mode</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>CLK</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Timer 0 increments on every 2^<A class="xref" href="#_PRE">PRE</A> edges of <A class="mmap_legend_link" href="../legend.html#AUX">AUX</A> clock</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>TICK</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Timer 0 counter increments only on edges of the event set by <A class="xref" href="#_TICK_SRC">TICK_SRC</A>. The events are divided by the <A class="xref" href="#_PRE">PRE</A> setting.</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0CFG_RELOAD">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RELOAD</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Timer 0 reload setting</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>MAN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Timer has to be restarted manually</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>CONT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Timer is automatically restarted when target is reached</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="T1CFG"><A name="T1CFG"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">AUX_TIMER</A>:T1CFG</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0004</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x400C 7004</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>AUX_TIMER</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Timer 1 Configuration</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1CFG_Reserved">
+	  			<P>31:14</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1CFG_TICK_SRC_POL">
+	  			<P>13</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TICK_SRC_POL</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Source count polarity for timer 1</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>RISE</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Count on rising edges of <A class="xref" href="#_TICK_SRC">TICK_SRC</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>FALL</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Count on falling edges of <A class="xref" href="#_TICK_SRC">TICK_SRC</A></P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1CFG_TICK_SRC">
+	  			<P>12:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>TICK_SRC</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Selected tick source for timer 1</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x00</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>RTC_CH2_EV</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#RTC_CH2_EV">RTC_CH2_EV</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x01</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUX_COMPA</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUX_COMPA">AUX_COMPA</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x02</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUX_COMPB</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUX_COMPB">AUX_COMPB</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x03</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>TDC_DONE</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#TDC_DONE">TDC_DONE</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x04</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>TIMER0_EV</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#TIMER0_EV">TIMER0_EV</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x06</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>SMPH_AUTOTAKE_DONE</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#SMPH_AUTOTAKE_DONE">SMPH_AUTOTAKE_DONE</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x07</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>ADC_DONE</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#ADC_DONE">ADC_DONE</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x08</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>RTC_4KHZ</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#RTC_4KHZ">RTC_4KHZ</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x09</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>OBSMUX0</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#OBSMUX0">OBSMUX0</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0A</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>OBSMUX1</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#OBSMUX1">OBSMUX1</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0B</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AON_SW</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AON_SW">AON_SW</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0C</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AON_PROG_WU</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AON_PROG_WU">AON_PROG_WU</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0D</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO0</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO0">AUXIO0</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0E</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO1</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO1">AUXIO1</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x0F</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO2</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO2">AUXIO2</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x10</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO3</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO3">AUXIO3</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x11</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO4</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO4">AUXIO4</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x12</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO5</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO5">AUXIO5</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x13</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO6</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO6">AUXIO6</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x14</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO7</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO7">AUXIO7</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x15</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO8</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO8">AUXIO8</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x16</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO9</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO9">AUXIO9</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x17</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO10</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO10">AUXIO10</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x18</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO11</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO11">AUXIO11</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x19</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO12</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO12">AUXIO12</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1A</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO13</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO13">AUXIO13</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1B</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO14</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO14">AUXIO14</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1C</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>AUXIO15</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#AUXIO15">AUXIO15</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1D</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>ACLK_REF</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#ACLK_REF">ACLK_REF</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1E</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>MCU_EVENT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#MCU_EV">MCU_EV</A></P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0x1F</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>ADC_IRQ</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Selects <A class="mmap_legend_link" href="../legend.html#ADC_IRQ">ADC_IRQ</A></P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1CFG_PRE">
+	  			<P>7:4</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>PRE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Prescaler division ratio is 2^<A class="xref" href="#_PRE">PRE</A></P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1CFG_Reserved">
+	  			<P>3:2</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1CFG_MODE">
+	  			<P>1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>MODE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Timer 1 mode</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>CLK</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Timer 1 increments on every 2^<A class="xref" href="#_PRE">PRE</A> edges of <A class="mmap_legend_link" href="../legend.html#AUX">AUX</A> clock</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>TICK</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Timer 1 counter increments only on edges of the event set by <A class="xref" href="#_TICK_SRC">TICK_SRC</A>. The events are divided by the <A class="xref" href="#_PRE">PRE</A> setting.</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1CFG_RELOAD">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>RELOAD</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Timer 1 reload setting</P>
+		          <TABLE class="LprfEnum">
+		            <TR class="rowEnumHead">
+	  		      <TD class="cellEnumTableHeadCol1">
+                               <P>Value</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol2">
+	  	                <P>ENUM name</P>
+	  		      </TD>
+	  		      <TD class="cellEnumTableHeadCol3">
+	  		        <P>Description</P>
+			      </TD>
+		            </TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>0</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>MAN</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Timer has to be restarted manually</P>
+			</TD>
+		</TR>
+		<TR class="rowEnum">
+			<TD class="cellEnumTableCol1">
+				<P>1</P>
+			</TD>
+			<TD class="cellEnumTableCol2">
+				<P>CONT</P>
+			</TD>
+			<TD class="cellEnumTableCol3" colspan=2>
+				<P>Timer is automatically restarted when target is reached</P>
+			</TD>
+		</TR>
+			 </TABLE>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="T0CTL"><A name="T0CTL"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">AUX_TIMER</A>:T0CTL</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0008</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x400C 7008</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>AUX_TIMER</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Timer 0 Control<BR><BR>Run control/status for timer 0</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0CTL_Reserved">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0CTL_EN">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Timer 0 run enable control. The counter restarts when enabling the timer. If <A class="xref" href="#T0CFG_RELOAD">T0CFG.RELOAD</A> = 0, the timer is automatically disabled when reaching <A class="xref" href="#T0TARGET_VALUE">T0TARGET.VALUE</A><BR><BR>0: Disable timer 0<BR>1: Enable timer 0</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="T0TARGET"><A name="T0TARGET"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">AUX_TIMER</A>:T0TARGET</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 000C</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x400C 700C</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>AUX_TIMER</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Timer 0 Target<BR><BR>Target counter value for timer 0</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0TARGET_Reserved">
+	  			<P>31:16</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T0TARGET_VALUE">
+	  			<P>15:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Timer 0 counts from 0 to <A class="xref" href="#_VALUE">VALUE</A>. Then gives an event and restarts if configured to do to so in the <A class="xref" href="#T0CFG_RELOAD">T0CFG.RELOAD</A> setting. If <A class="xref" href="#_VALUE">VALUE</A> is changed while timer 0 is running so that the count becomes higher than <A class="xref" href="#_VALUE">VALUE</A> timer 0 will also restart if configured to do so.<BR><BR>If <A class="xref" href="#T0CFG_MODE">T0CFG.MODE</A>=0,no prescaler is used, and <A class="xref" href="#_VALUE">VALUE</A> equals 1, the <A class="mmap_legend_link" href="../legend.html#TIMER0_EV">TIMER0_EV</A> event line will be always set</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="T1TARGET"><A name="T1TARGET"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">AUX_TIMER</A>:T1TARGET</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0010</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x400C 7010</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>AUX_TIMER</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Timer 1 Target<BR><BR>Target Counter Value Timer 1</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1TARGET_Reserved">
+	  			<P>31:8</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1TARGET_VALUE">
+	  			<P>7:0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>VALUE</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Timer 1 counts from 0 to <A class="xref" href="#_VALUE">VALUE</A>. Then gives an event and restarts if configured to do to so in the <A class="xref" href="#T1CFG_RELOAD">T1CFG.RELOAD</A> setting. If <A class="xref" href="#_VALUE">VALUE</A> is changed while timer 1 is running so that the count becomes higher than <A class="xref" href="#_VALUE">VALUE</A> timer 1 will also restart if configured to do so.<BR><BR>If <A class="xref" href="#T1CFG_MODE">T1CFG.MODE</A>=0,no prescaler is used, and <A class="xref" href="#_VALUE">VALUE</A> equals 1, the <A class="mmap_legend_link" href="../legend.html#TIMER1_EV">TIMER1_EV</A> event line will be always set</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x00</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+	<H3 class="mmapRegisterTitle"><A name="T1CTL"><A name="T1CTL"></A></A><A class="mmapRegisterTitle" href="CPU_MMAP.html">TOP</A>:<A class="mmapRegisterTitle" href="#Top_Tag">AUX_TIMER</A>:T1CTL</H3>
+	<TABLE class="mmapRegisterTable" cellspacing=0>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Address offset</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+		  		<P>0x0000 0014</P>
+			</TD>
+		</TR>	
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Physical address</B></P>
+			</TD>
+			<TD class="cellCol2">
+		   		<P>0x400C 7014</P>
+			</TD>
+			<TD class="cellCol3">
+				<P><B>Instance</B></P>
+			</TD>
+			<TD class="cellCol4">
+				<P><B>AUX_TIMER</B></P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1" valign="top">
+				<P><B>Description</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>Timer 1 Control<BR><BR>Run Control/Status For Timer 1</P>
+			</TD>
+		</TR>
+		<TR class="row">
+			<TD class="cellCol1">
+				<P><B>Type</B></P>
+			</TD>
+			<TD class="cellCol2" colspan=3>
+				<P>RW</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<TABLE class="mmapBitfieldTable" cellspacing=0>
+		<TR class="rowTop">
+	  		<TD class="cellTopCol1">
+	  			<P>Bits</P>
+	  		</TD>
+	  		<TD class="cellTopCol2">
+	  			<P>Field Name</P>
+	  		</TD>
+	  		<TD class="cellTopCol3" colspan=3 valign ="top">
+	  			<P>Description</P>
+	  		</TD>
+	  		<TD class="cellTopCol4">
+	  			<P>Type</P>
+	  		</TD>
+	  		<TD class="cellTopCol5">
+	  			<P>Reset</P>
+	  		</TD>
+	 	</TR>
+
+
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1CTL_Reserved">
+	  			<P>31:1</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>Reserved</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Software should not rely on the value of a reserved. Writing any other value than the reset value may result in undefined behavior.(RO std text)</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RO</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0x0000 0000</P>
+			</TD>
+		</TR>
+		<TR class="rowBitfield"></H1>
+	  		<TD class="cellBitfieldCol1" valign="top"><A name="T1CTL_EN">
+	  			<P>0</span></P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol2" valign="top">
+	  			<P>EN</P>
+	  		</TD>
+	  		<TD class="cellBitfieldCol3" colspan=3 valign="top">
+	  			<P>Timer 1 run enable control. The counter restarts when enabling the timer. If <A class="xref" href="#T1CFG_RELOAD">T1CFG.RELOAD</A> = 0, the timer is automatically disabled when reaching <A class="xref" href="#T1TARGET_VALUE">T1TARGET.VALUE</A><BR><BR>0: Disable timer 1<BR>1: Enable timer 1</P>
+			</TD>
+	  		<TD class="cellBitfieldCol4" valign="top">
+	  			<P>RW</P>
+			</TD>
+			<TD class="cellBitfieldCol5" valign="top">
+				<P>0</P>
+			</TD>
+		</TR>
+
+        </TABLE><BR><BR>
+
+<hr><table class="footer"><tr><td>&copy; 2015. Texas Instruments | All Rights Reserved</td></tr></table>
+</BODY>
+</HTML>
