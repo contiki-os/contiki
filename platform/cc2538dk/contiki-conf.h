@@ -331,7 +331,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef LPM_CONF_ENABLE
-#define LPM_CONF_ENABLE       1 /**< Set to 0 to disable LPM entirely */
+#define LPM_CONF_ENABLE       0 /**< Set to 0 to disable LPM entirely */
 #endif
 
 /**
