@@ -179,6 +179,10 @@
 #define ADC_ALS_PWR_PORT         GPIO_A_NUM /**< ALS power GPIO control port */
 #define ADC_ALS_PWR_PIN          7 /**< ALS power GPIO control pin */
 #define ADC_ALS_OUT_PIN          6 /**< ALS output ADC input pin on port A */
+#define ADC_SENSOR_SENS4_PIN	7 /**< Onfarm Board SENS4 */
+#define ADC_SENSOR_SENS3_PIN	6 /**< Onfarm Board SENS3 */
+#define ADC_SENSOR_SENS2_PIN	5 /**< Onfarm Board SENS2 */
+#define ADC_SENSOR_SENS1_PIN	4 /**< Onfarm Board SENS1 */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

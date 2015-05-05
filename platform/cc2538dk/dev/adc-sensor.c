@@ -48,6 +48,12 @@
 #define ADC_ALS_PWR_PORT_BASE    GPIO_PORT_TO_BASE(ADC_ALS_PWR_PORT)
 #define ADC_ALS_PWR_PIN_MASK     GPIO_PIN_MASK(ADC_ALS_PWR_PIN)
 #define ADC_ALS_OUT_PIN_MASK     GPIO_PIN_MASK(ADC_ALS_OUT_PIN)
+
+#define ADC_SENSOR_SENS1_PIN_MASK     GPIO_PIN_MASK(ADC_SENSOR_SENS1_PIN)
+#define ADC_SENSOR_SENS2_PIN_MASK     GPIO_PIN_MASK(ADC_SENSOR_SENS2_PIN)
+#define ADC_SENSOR_SENS3_PIN_MASK     GPIO_PIN_MASK(ADC_SENSOR_SENS3_PIN)
+#define ADC_SENSOR_SENS4_PIN_MASK     GPIO_PIN_MASK(ADC_SENSOR_SENS4_PIN)
+
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
@@ -66,6 +72,22 @@ value(int type)
     channel = SOC_ADC_ADCCON_CH_AIN0 + ADC_ALS_OUT_PIN;
     GPIO_SET_PIN(ADC_ALS_PWR_PORT_BASE, ADC_ALS_PWR_PIN_MASK);
     clock_delay_usec(2000);
+    break;
+  case ADC_SENSOR_SENS1:
+    channel = ADC_SENSOR_SENS1_PIN;
+	res = adc_get(channel, SOC_ADC_ADCCON_REF_AVDD5, SOC_ADC_ADCCON_DIV_512);
+    break;
+  case ADC_SENSOR_SENS2:
+    channel = ADC_SENSOR_SENS2_PIN;
+	res = adc_get(channel, SOC_ADC_ADCCON_REF_AVDD5, SOC_ADC_ADCCON_DIV_512);
+    break;
+  case ADC_SENSOR_SENS3:
+    channel = ADC_SENSOR_SENS3_PIN;
+	res = adc_get(channel, SOC_ADC_ADCCON_REF_AVDD5, SOC_ADC_ADCCON_DIV_512);
+    break;
+  case ADC_SENSOR_SENS4:
+    channel = ADC_SENSOR_SENS4_PIN;
+	res = adc_get(channel, SOC_ADC_ADCCON_REF_AVDD5, SOC_ADC_ADCCON_DIV_512);
     break;
   default:
     return 0;
