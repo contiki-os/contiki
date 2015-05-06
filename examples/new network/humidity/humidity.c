@@ -31,7 +31,7 @@
 #include "dev/adc-sensor.h"
 #include "dev/leds.h"
 #include "net/rpl/rpl.h"
-#include "dev/sht15.h"
+#include "dev/sht11.h"
 
 #define false 0
 #define true 1
@@ -45,24 +45,28 @@
 
 #define MAX_PAYLOAD_LEN		150
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG NONE
 #include "net/ip/uip-debug.h"
 
 //Global Variables
 char ThisNodeAddress[12];											//String containing this nodes address (used for checking if a trickle message is for us)
 
 static struct etimer periodic;										//Declare the timer used for sending measurements to the network
-static struct ctimer backoff_timer;									//Declare the timer for delaying a measurement (get one wire data, delay and send)
 
 char usart_rx_buffer[500];											//Define a buffer for storing serial port strings
 int usart_rx_buffer_index = 0;										//And an index for that buffer
 
 unsigned char channel = 0x19;										//Set the RF channel to 0x19 by default			
 unsigned char client[11] = {0,0,0,0,0,0,0,0,0,0,0};					//Declare a variable to store the client name (used as a reference only)
-unsigned int MeasurementPeriod = 10;								//Default measurement period = 1 min
+unsigned int MeasurementPeriod = 60;								//Default measurement period = 1 min
+
+int16_t rv, dec;
+float frac;
+float A0;
 
 //SHT75
-float restemp, truehumid;    
+float tc, hc;    
+ unsigned int temp, humidity;
 
 static struct uip_udp_conn *client_conn;
 static uip_ipaddr_t server_ipaddr;
@@ -85,29 +89,44 @@ void delay_msec(int time) {
 //sink (base node)
 //Called when the event timer expires in the collect process main loop
 /*---------------------------------------------------------------------------*/
-void send_message(void* ptr) {
+void send_message() {
 	char StringBuffer[MAX_PAYLOAD_LEN];				//Buffer for building the string of readings sent over the wireless network
 	watchdog_periodic();				//Feed the dog
 	static int seq_id;
+	int32_t value;	
+	unsigned char i;
 	
-	printf("ADC Set\r");				//Print debug to UART
+	//printf("ADC Set\r");				//Print debug to UART
 
-	lpm_set_max_pm(0);					//Disable power saving modes as this can affect the ADC / radio messages
-	leds_on(LEDS_RED);					//Turn RED leds on to signal that power saving is disabled
-
-	sprintf(StringBuffer, "KN,");				//Add KN designator to packet buffer
+	//Measure Regulator voltage (VCC / 3 (internal))
+	value = 0;							//Reset the temporary 'value' variable
+	for (i = 0; i < 100; i++)	{		//Take 100 readings of VDD/3
+		value += adc_sensor.value(ADC_SENSOR_VDD_3);
+	}
+	A0 = ((value / 100) * (3 * 1190)) / (2047 << 4);	//Divide the ADC value by 100 readings, multiply by 3 as VDD/3
+	A0 = A0 / 1000.0;								//Divide by 1000 to get mV
 	
-	watchdog_periodic();											//Feed the dog
+	dec = tc;
+	frac = tc - dec;	
+	sprintf(StringBuffer, "HU,T1=%d.%02u,", dec, (unsigned int) (frac*100));				
+	
+	dec = hc;
+	frac = hc - dec;	
+	sprintf(StringBuffer, "%sH1=%d.%02u,", StringBuffer, dec, (unsigned int) (frac*100));
 
-	printf("%s\r",StringBuffer);			//Print the complete string buffer to the UART (debug)
-	printf("Sending message\r");			//Debug message
+	dec = A0;
+	frac = A0 - dec;	
+	sprintf(StringBuffer, "%sBV=%d.%02u",StringBuffer, dec, (unsigned int) (frac*100));
+	
+	//printf("%s\r",StringBuffer);			//Print the complete string buffer to the UART (debug)
+	//printf("Sending message\r");			//Debug message
 	
 	//Send the string over the wireless network to the sink using RIME collect
 
-    printf("Sending\n");					//Debug message
+   // printf("Sending\n");					//Debug message
     
 	 seq_id++;
-	PRINTF("DATA send to %d seq %d'\n", server_ipaddr.u8[sizeof(server_ipaddr.u8) - 1], seq_id);
+	//PRINTF("DATA send to %d seq %d'\n", server_ipaddr.u8[sizeof(server_ipaddr.u8) - 1], seq_id);
     uip_udp_packet_sendto(client_conn, StringBuffer, strlen(StringBuffer), &server_ipaddr, UIP_HTONS(UDP_SERVER_PORT));
 	
 }
@@ -156,6 +175,51 @@ int uart_rx_callback(unsigned char c) {
 
 	return 1;												//We always return 1 (success)
 }
+
+float sht11_TemperatureC(int rawdata)
+{
+  int _val;                // Raw value returned from sensor
+  float _temperature;      // Temperature derived from raw value
+
+  // Conversion coefficients from SHT11 datasheet
+  const float D1 = -39.6;
+  const float D2 =   0.01;
+
+  // Fetch raw value
+  _val = rawdata;
+
+  // Convert raw value to degrees Celsius
+  _temperature = (_val * D2) + D1;
+
+  return (_temperature);
+}
+
+float sht11_Humidity(int temprawdata,int humidityrawdata)
+{
+  int _val;                    // Raw humidity value returned from sensor
+  float _linearHumidity;       // Humidity with linear correction applied
+  float _correctedHumidity;    // Temperature-corrected humidity
+  float _temperature;          // Raw temperature value
+
+  // Conversion coefficients from SHT15 datasheet
+  const float C1 = -4.0;       // for 12 Bit
+  const float C2 =  0.0405;    // for 12 Bit
+  const float C3 = -0.0000028; // for 12 Bit
+  const float T1 =  0.01;      // for 14 Bit @ 5V
+  const float T2 =  0.00008;   // for 14 Bit @ 5V
+
+  _val = humidityrawdata;
+   _linearHumidity = C1 + C2 * _val + C3 * _val * _val;
+
+  // Get current temperature for humidity correction
+  _temperature = sht11_TemperatureC(temprawdata);
+
+  // Correct humidity value for current temperature
+  _correctedHumidity = (_temperature - 25.0 ) * (T1 + T2 * _val) + _linearHumidity;
+
+  return (_correctedHumidity);
+}
+
 
 static void print_route_network(void)
 {
@@ -278,7 +342,7 @@ PROCESS_THREAD(knob_collect_process, ev, data)
 	//NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);		//Set the radio channel to the value read from SPI EEPROM (this will default to 0x19 if invalid)
 	//printf("On channel %d\r",channel);							//Debug message
 		
-	sprintf(ThisNodeAddress, "SO %03u.%03u", linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);	//Debug message printing node address
+	//sprintf(ThisNodeAddress, "SO %03u.%03u", linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);	//Debug message printing node address
 
 	PROCESS_PAUSE();
 
@@ -302,13 +366,14 @@ PROCESS_THREAD(knob_collect_process, ev, data)
   UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
 		
 	//Set up the UART for communication with the programmer
-	printf("UART BEGIN\r");
-	uart_set_input(0,uart_rx_callback);
+	//printf("UART BEGIN\r");
+	//uart_set_input(0,uart_rx_callback);
 	
 	etimer_set(&periodic, SEND_INTERVAL);											//Set up an event timer to send data back to base at a set interval
-	watchdog_periodic();															//Feed the doge
 	
-  sht_init();
+//printf("Init SHT75\r");
+  sht11_init();
+//  printf("SHT75 Initialised\r");
   
   while(1) {
 	PROCESS_YIELD();								//Pause the process until an event is triggered
@@ -316,13 +381,23 @@ PROCESS_THREAD(knob_collect_process, ev, data)
       tcpip_handler();
     }
 	if(etimer_expired(&periodic)) {					//The send message event timer expired variable
-		sht_rd (&restemp, &truehumid);  
+//		printf("Reading SHT75\r");
+		/* Read temperature value. */
+      temp = sht11_temp();
+      /* Read humidity value. */
+      humidity = sht11_humidity();
+	  
+	  //printf("temp raw data:%u\nhumidity raw data:%u\n", temp, humidity);
+      tc=sht11_TemperatureC(temp);
+      hc=sht11_Humidity(temp,humidity);
+      //printf("temp:%u.%u\nhumidity:%u.%u\n",(int)tc,((int)(tc*10))%10 , (int)hc,((int)(hc*10))%10);
+	  
+		//printf("Finished reading SHT75\r");
 		etimer_set(&periodic, SEND_INTERVAL);		//Reset the event timer (SEND_INTERVAL may have changed due to a node reconfiguration)
-		watchdog_periodic();						//Give the dog some food
-		printf("Prepare Packet\r");					//Debug message
-			
-		ctimer_set(&backoff_timer, (random_rand() % (3 * CLOCK_SECOND)), send_message, NULL);		//Wait 3 seconds for soil moisture node to settle and then send data
-		watchdog_periodic();				//Feed doge
+
+		//printf("Prepare Packet\r");					//Debug message
+		
+		send_message();
 	}
   }
   PROCESS_END();
