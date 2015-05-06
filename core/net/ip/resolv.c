@@ -787,7 +787,7 @@ newdata(void)
 
   static int8_t i;
 
-  register struct namemap *namemapptr;
+  register struct namemap *namemapptr = NULL;
 
   struct dns_answer *ans;
 

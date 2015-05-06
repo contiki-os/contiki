@@ -73,13 +73,13 @@ static unsigned char ascii2petscii[128] = {
 };
 
 static unsigned int i;
-static unsigned char *ptr;
+static char *ptr;
 
 /*-----------------------------------------------------------------------------------*/
 void
 petsciiconv_toascii(char *buf, unsigned int len)
 {
-  static char c;
+  char c;
   
   ptr = buf;
   for(i = len; i > 0; --i) {
