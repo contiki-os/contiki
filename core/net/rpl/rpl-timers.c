@@ -166,6 +166,10 @@ handle_dio_timer(void *ptr)
     }
     new_dio_interval(instance);
   }
+
+#if DEBUG
+  rpl_print_neighbor_list();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
