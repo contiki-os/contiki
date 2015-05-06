@@ -76,8 +76,9 @@ timer_set(struct timer *t, clock_time_t interval)
  * function will cause the timer to be stable over time, unlike the
  * timer_restart() function.
  *
- * \param t A pointer to the timer.
+ * \note Must not be executed before timer expired
  *
+ * \param t A pointer to the timer.
  * \sa timer_restart()
  */
 void

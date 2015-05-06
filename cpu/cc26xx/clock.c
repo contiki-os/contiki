@@ -167,7 +167,7 @@ clock_delay_usec(uint16_t len)
    * Wait for TBEN to clear. CC26xxware does not provide us with a convenient
    * function, hence the direct register access here
    */
-  while(HWREG(GPT0_BASE | GPT_O_CTL) & GPT_CTL_TBEN);
+  while(HWREG(GPT0_BASE + GPT_O_CTL) & GPT_CTL_TBEN);
 }
 /*---------------------------------------------------------------------------*/
 /**

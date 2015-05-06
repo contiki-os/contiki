@@ -9,7 +9,7 @@ shell_src = shell.c shell-reboot.c shell-vars.c shell-ps.c \
 shell_dsc = shell-dsc.c
 	    
 ifeq ($(CONTIKI_WITH_RIME),1)
-shell_src += shell-rime.c shell-sendtest.c shell-netfile.c \
+shell_src += shell-rime.c shell-sendtest.c \
             shell-rime-ping.c shell-rime-sniff.c shell-rime-netcmd.c \
             shell-rime-debug.c shell-rime-debug-runicast.c \
             shell-rime-sendcmd.c shell-download.c shell-rime-neighbors.c \

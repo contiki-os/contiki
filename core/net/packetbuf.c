@@ -106,10 +106,7 @@ packetbuf_compact(void)
 {
   int i, len;
 
-  if(packetbuf_is_reference()) {
-    memcpy(&packetbuf[PACKETBUF_HDR_SIZE], packetbuf_reference_ptr(),
-	   packetbuf_datalen());
-  } else if(bufptr > 0) {
+  if(bufptr > 0) {
     len = packetbuf_datalen() + PACKETBUF_HDR_SIZE;
     for(i = PACKETBUF_HDR_SIZE; i < len; i++) {
       packetbuf[i] = packetbuf[bufptr + i];
@@ -213,26 +210,6 @@ void *
 packetbuf_hdrptr(void)
 {
   return (void *)(&packetbuf[hdrptr]);
-}
-/*---------------------------------------------------------------------------*/
-void
-packetbuf_reference(void *ptr, uint16_t len)
-{
-  packetbuf_clear();
-  packetbufptr = ptr;
-  buflen = len;
-}
-/*---------------------------------------------------------------------------*/
-int
-packetbuf_is_reference(void)
-{
-  return packetbufptr != &packetbuf[PACKETBUF_HDR_SIZE];
-}
-/*---------------------------------------------------------------------------*/
-void *
-packetbuf_reference_ptr(void)
-{
-  return packetbufptr;
 }
 /*---------------------------------------------------------------------------*/
 uint16_t

@@ -65,6 +65,7 @@
 #include "net/ip/tcpip.h"
 #include "net/ip/resolv.h"
 #include "net/ip/uip-udp-packet.h"
+#include "net/ip/uip-nameserver.h"
 #include "lib/random.h"
 
 #ifndef DEBUG
@@ -227,17 +228,6 @@ struct dns_hdr {
   uint16_t numextrarr;
 };
 
-/** These default values for the DNS server are Google's public DNS:
- *  <https://developers.google.com/speed/public-dns/docs/using>
- */
-static uip_ipaddr_t resolv_default_dns_server =
-#if NETSTACK_CONF_WITH_IPV6
-  { { 0x20, 0x01, 0x48, 0x60, 0x48, 0x60, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x88 } };
-#else /* NETSTACK_CONF_WITH_IPV6 */
-  { { 8, 8, 8, 8 } };
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-
 /** \internal The DNS answer message structure. */
 struct dns_answer {
   /* DNS answer record starts with either a domain name or a pointer
@@ -269,6 +259,7 @@ struct namemap {
 #endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
   uip_ipaddr_t ipaddr;
   uint8_t err;
+  uint8_t server;
 #if RESOLV_CONF_SUPPORTS_MDNS
   int is_mdns:1, is_probe:1;
 #endif
@@ -637,6 +628,21 @@ mdns_prep_host_announce_packet(void)
 }
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 /*---------------------------------------------------------------------------*/
+static char
+try_next_server(struct namemap *namemapptr)
+{
+#if VERBOSE_DEBUG
+  printf("server %d\n", namemapptr->server);
+#endif
+  namemapptr->server++;
+  if(uip_nameserver_get(namemapptr->server) != NULL) {
+    namemapptr->retries = 0;
+    return 1;
+  }
+  namemapptr->server = 0;
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 /** \internal
  * Runs through the list of names to see if there are any that have
  * not yet been queried and, if so, sends out a query.
@@ -666,16 +672,20 @@ check_entries(void)
           if(++namemapptr->retries == RESOLV_CONF_MAX_RETRIES)
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
           {
-            /* STATE_ERROR basically means "not found". */
-            namemapptr->state = STATE_ERROR;
+            /* Try the next server (if possible) before failing. Otherwise
+               simply mark the entry as failed. */
+            if(try_next_server(namemapptr) == 0) {
+              /* STATE_ERROR basically means "not found". */
+              namemapptr->state = STATE_ERROR;
 
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
-            /* Keep the "not found" error valid for 30 seconds */
-            namemapptr->expiration = clock_seconds() + 30;
+              /* Keep the "not found" error valid for 30 seconds */
+              namemapptr->expiration = clock_seconds() + 30;
 #endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
 
-            resolv_found(namemapptr->name, NULL);
-            continue;
+              resolv_found(namemapptr->name, NULL);
+              continue;
+            }
           }
           namemapptr->tmr = namemapptr->retries * namemapptr->retries * 3;
 
@@ -747,7 +757,9 @@ check_entries(void)
       } else {
         uip_udp_packet_sendto(resolv_conn, uip_appdata,
                               (query - (uint8_t *) uip_appdata),
-                              &resolv_default_dns_server, UIP_HTONS(DNS_PORT));
+                              (const uip_ipaddr_t *)
+                                uip_nameserver_get(namemapptr->server), 
+                              UIP_HTONS(DNS_PORT));
 
         PRINTF("resolver: (i=%d) Sent DNS request for \"%s\".\n", i,
                namemapptr->name);
@@ -755,7 +767,8 @@ check_entries(void)
 #else /* RESOLV_CONF_SUPPORTS_MDNS */
       uip_udp_packet_sendto(resolv_conn, uip_appdata,
                             (query - (uint8_t *) uip_appdata),
-                            &resolv_default_dns_server, UIP_HTONS(DNS_PORT));
+                            uip_nameserver_get(namemapptr->server), 
+                            UIP_HTONS(DNS_PORT));
       PRINTF("resolver: (i=%d) Sent DNS request for \"%s\".\n", i,
              namemapptr->name);
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
@@ -1041,11 +1054,28 @@ newdata(void)
     uip_ipaddr_copy(&namemapptr->ipaddr, (uip_ipaddr_t *) ans->ipaddr);
 
     resolv_found(namemapptr->name, &namemapptr->ipaddr);
+    break;
 
   skip_to_next_answer:
     queryptr = (unsigned char *)skip_name(queryptr) + 10 + uip_htons(ans->len);
     --nanswers;
   }
+
+  /* Got to this point there's no answer, try next nameserver if available
+     since this one doesn't know the answer */
+#if RESOLV_CONF_SUPPORTS_MDNS
+  if(nanswers == 0 && UIP_UDP_BUF->srcport != UIP_HTONS(MDNS_PORT) 
+      && hdr->id != 0)
+#else
+  if(nanswers == 0) 
+#endif
+  {
+    if(try_next_server(namemapptr)) {
+      namemapptr->state = STATE_ASKING;
+      process_post(&resolv_process, PROCESS_EVENT_TIMER, NULL);
+    }
+  }
+
 }
 /*---------------------------------------------------------------------------*/
 #if RESOLV_CONF_SUPPORTS_MDNS
@@ -1403,31 +1433,6 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
 #endif /* VERBOSE_DEBUG */
 
   return ret;
-}
-/*---------------------------------------------------------------------------*/
-/**
- * Obtain the currently configured DNS server.
- *
- * \return A pointer to a 4-byte representation of the IP address of
- * the currently configured DNS server or NULL if no DNS server has
- * been configured.
- */
-uip_ipaddr_t *
-resolv_getserver(void)
-{
-  return &resolv_default_dns_server;
-}
-/*---------------------------------------------------------------------------*/
-/**
- * Configure a DNS server.
- *
- * \param dnsserver A pointer to a 4-byte representation of the IP
- * address of the DNS server to be configured.
- */
-void
-resolv_conf(const uip_ipaddr_t * dnsserver)
-{
-  uip_ipaddr_copy(&resolv_default_dns_server, dnsserver);
 }
 /*---------------------------------------------------------------------------*/
 /** \internal

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,19 +29,35 @@
  * This file is part of the Contiki operating system.
  *
  */
-
 /**
  * \file
- *         A brief description of what this file is.
+ *         A quick program for testing the SHT25 temperature and humidity sensor
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Antonio Lignan <alinan@zolertia.com>
  */
+#include <stdio.h>
+#include "contiki.h"
+#include "dev/sht25.h"
 
-#ifndef SHELL_NETFILE_H_
-#define SHELL_NETFILE_H_
+PROCESS(test_sht25_process, "SHT25 test");
+AUTOSTART_PROCESSES(&test_sht25_process);
 
-#include "shell.h"
+static struct etimer et;
 
-void shell_netfile_init(void);
+PROCESS_THREAD(test_sht25_process, ev, data)
+{
+  int16_t temperature, humidity;
 
-#endif /* SHELL_NETFILE_H_ */
+  PROCESS_BEGIN();
+  SENSORS_ACTIVATE(sht25);
+
+  while(1) {
+    etimer_set(&et, CLOCK_SECOND);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    temperature = sht25.value(SHT25_VAL_TEMP);
+    printf("Temperature %d.%d ºC\n", temperature / 100, temperature % 100);
+    humidity = sht25.value(SHT25_VAL_HUM);
+    printf("Humidity %d.%d %RH\n", humidity / 100, humidity % 100);
+  }
+  PROCESS_END();
+}

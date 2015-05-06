@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,46 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Adam Dunkels <adam@sics.se>
- *
  */
-#ifndef CONTIKI_NET_H_
-#define CONTIKI_NET_H_
+/**
+ * \file
+ *         A quick program for testing a reed sensor.
+ * \author
+ *         Antonio Lignan <alinan@zolertia.com>
+ */
 
+#include <stdio.h>
 #include "contiki.h"
+#include "reed-sensor.h"
+#define REED_READ_INTERVAL (CLOCK_SECOND / 4)
+#define REED_EXAMPLE_EVENT  1
+/*---------------------------------------------------------------------------*/
+PROCESS(test_process, "Reed test process");
+AUTOSTART_PROCESSES(&test_process);
+/*---------------------------------------------------------------------------*/
+static struct etimer et;
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(test_process, ev, data)
+{
+  PROCESS_BEGIN();
 
-#include "net/ip/tcpip.h"
-#include "net/ip/uip.h"
-#include "net/ipv4/uip-fw.h"
-#include "net/ipv4/uip-fw-drv.h"
-#include "net/ipv4/uip_arp.h"
-#include "net/ip/uiplib.h"
-#include "net/ip/uip-udp-packet.h"
-#include "net/ip/simple-udp.h"
-#include "net/ip/uip-nameserver.h"
+  SENSORS_ACTIVATE(reed_sensor);
+#if REED_EXAMPLE_EVENT
+  reed_sensor.configure(REED_SENSOR_MODE, REED_SENSOR_EVENT_MODE);
+#else
+  etimer_set(&et, REED_READ_INTERVAL);
+#endif
 
-#if NETSTACK_CONF_WITH_IPV6
-#include "net/ipv6/uip-icmp6.h"
-#include "net/ipv6/uip-ds6.h"
-#endif /* NETSTACK_CONF_WITH_IPV6 */
+  while(1) {
 
-#include "net/ip/resolv.h"
+    PROCESS_YIELD();
 
-#include "net/ip/psock.h"
-
-#include "net/ip/udp-socket.h"
-#include "net/ip/tcp-socket.h"
-
-#include "net/rime/rime.h"
-
-#include "net/netstack.h"
-
-#endif /* CONTIKI_NET_H_ */
+    if(ev == PROCESS_EVENT_TIMER) {
+      printf("Reed poll status [%d]\n", reed_sensor.value(REED_SENSOR_VAL));
+      etimer_restart(&et);
+    } else if(ev == reed_sensor_event_changed) {
+      printf("Reed sensor event --> %d\n", (*((int *)data)));
+    }
+  }
+  PROCESS_END();
+}

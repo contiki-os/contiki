@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2012-2013, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -27,85 +26,78 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-/**
- * \addtogroup cc2538-nvic
- * @{
  *
- * \file
- * Driver for the cc2538 NVIC
- * All interrupt-related functionality is implemented here
  */
+
 #include "contiki.h"
-#include "dev/nvic.h"
-#include "dev/scb.h"
-#include "reg.h"
+#include "enc28j60.h"
+#include "enc28j60-ip64-driver.h"
 
-#include <stdint.h>
+#include "ip64.h"
+#include "ip64-eth.h"
 
-static uint32_t *interrupt_enable;
-static uint32_t *interrupt_disable;
-static uint32_t *interrupt_pend;
-static uint32_t *interrupt_unpend;
+#include <string.h>
+#include <stdio.h>
+
+PROCESS(enc28j60_ip64_driver_process, "ENC28J60 IP64 driver");
+
 /*---------------------------------------------------------------------------*/
-void
-nvic_init()
+static void
+init(void)
 {
-  interrupt_enable = (uint32_t *)NVIC_EN0;
-  interrupt_disable = (uint32_t *)NVIC_DIS0;
-  interrupt_pend = (uint32_t *)NVIC_PEND0;
-  interrupt_unpend = (uint32_t *)NVIC_UNPEND0;
+  uint8_t eui64[8];
+  uint8_t macaddr[6];
 
-  /* Provide our interrupt table to the NVIC */
-  REG(SCB_VTABLE) = (NVIC_CONF_VTABLE_BASE + NVIC_CONF_VTABLE_OFFSET);
+  /* Assume that linkaddr_node_addr holds the EUI64 of this device. */
+  memcpy(eui64, &linkaddr_node_addr, sizeof(eui64));
+
+  /* Mangle the EUI64 into a 48-bit Ethernet address. */
+  memcpy(&macaddr[0], &eui64[0], 3);
+  memcpy(&macaddr[3], &eui64[5], 3);
+
+  /* In case the OUI happens to contain a broadcast bit, we mask that
+     out here. */
+  macaddr[0] = (macaddr[0] & 0xfe);
+
+  /* Set the U/L bit, in order to create a locally administered MAC address */
+  macaddr[0] = (macaddr[0] | 0x02);
+
+  memcpy(ip64_eth_addr.addr, macaddr, sizeof(macaddr));
+
+  printf("MAC addr %02x:%02x:%02x:%02x:%02x:%02x\n",
+         macaddr[0], macaddr[1], macaddr[2],
+         macaddr[3], macaddr[4], macaddr[5]);
+  enc28j60_init(macaddr);
+  process_start(&enc28j60_ip64_driver_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_enable(uint32_t intr)
+static int
+output(uint8_t *packet, uint16_t len)
 {
-  /* Writes of 0 are ignored, which is why we can simply use = */
-  interrupt_enable[intr >> 5] = 1 << (intr & 0x1F);
+  enc28j60_send(packet, len);
+  return len;
 }
 /*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_disable(uint32_t intr)
+PROCESS_THREAD(enc28j60_ip64_driver_process, ev, data)
 {
-  /* Writes of 0 are ignored, which is why we can simply use = */
-  interrupt_disable[intr >> 5] = 1 << (intr & 0x1F);
-}
-/*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_en_restore(uint32_t intr, uint8_t v)
-{
-  if(v != 1) {
-    return;
+  static int len;
+  static struct etimer e;
+  PROCESS_BEGIN();
+
+  while(1) {
+    etimer_set(&e, 1);
+    PROCESS_WAIT_EVENT();
+    len = enc28j60_read(ip64_packet_buffer, ip64_packet_buffer_maxlen);
+    if(len > 0) {
+      IP64_INPUT(ip64_packet_buffer, len);
+    }
   }
 
-  interrupt_enable[intr >> 5] = 1 << (intr & 0x1F);
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-uint8_t
-nvic_interrupt_en_save(uint32_t intr)
-{
-  uint8_t rv = ((interrupt_enable[intr >> 5] & (1 << (intr & 0x1F)))
-      > NVIC_INTERRUPT_DISABLED);
-
-  nvic_interrupt_disable(intr);
-
-  return rv;
-}
+const struct ip64_driver enc28j60_ip64_driver = {
+  init,
+  output
+};
 /*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_pend(uint32_t intr)
-{
-  /* Writes of 0 are ignored, which is why we can simply use = */
-  interrupt_pend[intr >> 5] = 1 << (intr & 0x1F);
-}
-/*---------------------------------------------------------------------------*/
-void
-nvic_interrupt_unpend(uint32_t intr)
-{
-  /* Writes of 0 are ignored, which is why we can simply use = */
-  interrupt_unpend[intr >> 5] = 1 << (intr & 0x1F);
-}
-/** @} */

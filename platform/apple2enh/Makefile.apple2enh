@@ -55,7 +55,7 @@ endif
 
 disk: all
 	cp $(CONTIKI)/tools/$(TARGET)/prodos.dsk contiki.dsk
-	java -jar $(AC) -p    contiki.dsk contiki.system sys 0 < $(CC65_HOME)/targetutil/loader.system
+	java -jar $(AC) -p    contiki.dsk contiki.system sys   < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 contiki.dsk contiki        bin   < $(CONTIKI_PROJECT).$(TARGET)
 	java -jar $(AC) -p    contiki.dsk contiki.cfg    bin 0 < $(CONTIKI)/tools/$(TARGET)/sample.cfg
 	java -jar $(AC) -p    contiki.dsk cs8900a.eth    rel 0 < cs8900a.eth

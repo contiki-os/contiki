@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,44 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Adam Dunkels <adam@sics.se>
- *
  */
-#ifndef CONTIKI_NET_H_
-#define CONTIKI_NET_H_
+/**
+ * \file
+ *         SHT25 temperature and humidity sensor driver
+ * \author
+ *         Antonio Lignan <alinan@zolertia.com>
+ */
+#include "lib/sensors.h"
 
-#include "contiki.h"
+#ifndef SHT25_H_
+#define SHT25_H_
 
-#include "net/ip/tcpip.h"
-#include "net/ip/uip.h"
-#include "net/ipv4/uip-fw.h"
-#include "net/ipv4/uip-fw-drv.h"
-#include "net/ipv4/uip_arp.h"
-#include "net/ip/uiplib.h"
-#include "net/ip/uip-udp-packet.h"
-#include "net/ip/simple-udp.h"
-#include "net/ip/uip-nameserver.h"
-
-#if NETSTACK_CONF_WITH_IPV6
-#include "net/ipv6/uip-icmp6.h"
-#include "net/ipv6/uip-ds6.h"
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-
-#include "net/ip/resolv.h"
-
-#include "net/ip/psock.h"
-
-#include "net/ip/udp-socket.h"
-#include "net/ip/tcp-socket.h"
-
-#include "net/rime/rime.h"
-
-#include "net/netstack.h"
-
-#endif /* CONTIKI_NET_H_ */
+/* -------------------------------------------------------------------------- */
+#define SHT25_ADDR            0x40
+#define SHT25_TEMP_HOLD       0xE3
+#define SHT25_HUM_HOLD        0xE5
+#define SHT25_TEMP_NO_HOLD    0xF3
+#define SHT25_HUM_NO_HOLD     0xF5
+#define SHT2X_UREG_WRITE      0xE6
+#define SHT2X_UREG_READ       0xE7
+#define SHT2X_SOFT_RESET      0XFE
+#define SHT2X_NULL            0x00
+/* -------------------------------------------------------------------------- */
+#define SHT2X_RES_14T_12RH    0x00
+#define SHT2X_RES_12T_08RH    0x01
+#define SHT2X_RES_13T_10RH    0x80
+#define SHT2X_RES_11T_11RH    0x81
+#define SHT2X_HEATER_ON       0x04
+#define SHT2X_HEATER_OFF      0x00
+#define SHT2X_OTP_RELOAD_EN   0x00
+#define SHT2X_OTP_RELOAD_DIS  0x02
+/* -------------------------------------------------------------------------- */
+#define SHT25_VAL_TEMP        SHT25_TEMP_HOLD
+#define SHT25_VAL_HUM         SHT25_HUM_HOLD
+#define SHT25_ERROR           -1
+/* -------------------------------------------------------------------------- */
+#define SHT25_SENSOR "SHT25 Sensor"
+/* -------------------------------------------------------------------------- */
+extern const struct sensors_sensor sht25;
+/* -------------------------------------------------------------------------- */
+#endif /* ifndef SHT25_H_ */
