@@ -473,7 +473,7 @@ send_packet(void)
     return MAC_TX_ERR;
   }
 
-#if WITH_STREAMING
+#if WITH_STREAMING && PACKETBUF_WITH_PACKET_TYPE
   if(is_streaming == 1 &&
      (linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
 		   &is_streaming_to) ||
@@ -517,7 +517,7 @@ send_packet(void)
       wait = ((rtimer_clock_t)(e->time - now)) % (DEFAULT_PERIOD);
       expected = now + wait - 2 * DEFAULT_ON_TIME;
 
-#if WITH_ACK_OPTIMIZATION
+#if WITH_ACK_OPTIMIZATION && PACKETBUF_WITH_PACKET_TYPE
       /* Wait until the receiver is expected to be awake */
       if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
 	 PACKETBUF_ATTR_PACKET_TYPE_ACK &&
@@ -627,8 +627,11 @@ send_packet(void)
       packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
       packetbuf_attr(PACKETBUF_ATTR_ERELIABLE) ||
 #endif /* NETSTACK_CONF_WITH_RIME */
+#if PACKETBUF_WITH_PACKET_TYPE
 			packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
-			PACKETBUF_ATTR_PACKET_TYPE_STREAM)) {
+			PACKETBUF_ATTR_PACKET_TYPE_STREAM ||
+#endif
+      0)) {
     on(); /* Wait for ACK packet */
     waiting_for_packet = 1;
   } else {
