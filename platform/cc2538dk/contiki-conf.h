@@ -312,7 +312,7 @@ typedef uint32_t rtimer_clock_t;
 #define WITH_FAST_SLEEP                         1
 
 #ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    32
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE    8
 #endif
 
 #ifndef NETSTACK_CONF_FRAMER
@@ -457,10 +457,10 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS                20
+#define NBR_TABLE_CONF_MAX_NEIGHBORS                100
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES                 20
+#define UIP_CONF_MAX_ROUTES                 200
 #endif
 
 /* uIP */
