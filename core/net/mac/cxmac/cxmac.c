@@ -453,8 +453,6 @@ send_packet(void)
            packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
   }
-/* is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
-    packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);*/
   len = NETSTACK_FRAMER.create();
   strobe_len = len + sizeof(struct cxmac_hdr);
   if(len < 0 || strobe_len > (int)sizeof(strobe)) {
@@ -624,8 +622,9 @@ send_packet(void)
   /* If we have received the strobe ACK, and we are sending a packet
      that will need an upper layer ACK (as signified by the
      PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
-  if(got_strobe_ack && (packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
+  if(got_strobe_ack && (
 #if NETSTACK_CONF_WITH_RIME
+      packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
       packetbuf_attr(PACKETBUF_ATTR_ERELIABLE) ||
 #endif /* NETSTACK_CONF_WITH_RIME */
 			packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==

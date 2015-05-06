@@ -109,7 +109,6 @@ parse(void)
     }
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&frame.src_addr);
     packetbuf_set_attr(PACKETBUF_ATTR_PENDING, frame.fcf.frame_pending);
-    /*    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, frame.fcf.ack_required);*/
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
 
     PRINTF("15.4-IN: %2X", frame.fcf.frame_type);
