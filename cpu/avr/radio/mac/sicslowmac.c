@@ -409,7 +409,9 @@ sicslowmac_dataRequest(void)
   params.fcf.frameType = DATAFRAME;
   params.fcf.securityEnabled = false;
   params.fcf.framePending = false;
+#if NETSTACK_CONF_WITH_RIME
   params.fcf.ackRequired = packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
+#endif
   params.fcf.panIdCompression = false;
 
   /* Insert IEEE 802.15.4 (2003) version bit. */
