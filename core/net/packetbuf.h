@@ -74,6 +74,12 @@
 #define PACKETBUF_HDR_SIZE 48
 #endif
 
+#ifdef PACKETBUF_CONF_WITH_PACKET_TYPE
+#define PACKETBUF_WITH_PACKET_TYPE PACKETBUF_CONF_WITH_PACKET_TYPE
+#else
+#define PACKETBUF_WITH_PACKET_TYPE NETSTACK_CONF_WITH_RIME
+#endif
+
 /**
  * \brief      Clear and reset the packetbuf
  *
@@ -309,7 +315,9 @@ enum {
   PACKETBUF_ATTR_IS_CREATED_AND_SECURED,
   
   /* Scope 1 attributes: used between two neighbors only. */
+#if PACKETBUF_WITH_PACKET_TYPE
   PACKETBUF_ATTR_PACKET_TYPE,
+#endif
 #if NETSTACK_CONF_WITH_RIME
   PACKETBUF_ATTR_PACKET_ID,
   PACKETBUF_ATTR_RELIABLE,

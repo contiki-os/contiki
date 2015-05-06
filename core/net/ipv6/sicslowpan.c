@@ -1383,6 +1383,7 @@ output(const uip_lladdr_t *localdest)
     set_packet_attrs();
   }
 
+#if PACKETBUF_WITH_PACKET_TYPE
 #define TCP_FIN 0x01
 #define TCP_ACK 0x10
 #define TCP_CTL 0x3f
@@ -1397,6 +1398,7 @@ output(const uip_lladdr_t *localdest)
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
                        PACKETBUF_ATTR_PACKET_TYPE_STREAM_END);
   }
+#endif
 
   /*
    * The destination address will be tagged to each outbound
