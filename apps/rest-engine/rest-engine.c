@@ -126,11 +126,11 @@ rest_invoke_restful_service(void *request, void *response, uint8_t *buffer,
   const char *url = NULL;
   int url_len, res_url_len;
 
+  url_len = REST.get_url(request, &url);
   for(resource = (resource_t *)list_head(restful_services);
       resource; resource = resource->next) {
 
     /* if the web service handles that kind of requests and urls matches */
-    url_len = REST.get_url(request, &url);
     res_url_len = strlen(resource->url);
     if((url_len == res_url_len
         || (url_len > res_url_len
