@@ -28,68 +28,20 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "drivers/legacy_pc/rtc.h"
-#include "drivers/legacy_pc/pic.h"
-#include "drivers/legacy_pc/nmi.h"
 #include "helpers.h"
-#include "interrupt.h"
 
-#define RTC_INDEX_REGISTER   0x70
-#define RTC_TARGET_REGISTER  0x71
-#define RTC_IRQ 8
-#define RTC_INT PIC_INT(RTC_IRQ)
+#define NMI_ENABLE_PORT 0x70
 
-static void (*user_callback)(void);
-
-static void
-rtc_handler()
+void
+nmi_enable(void)
 {
-  user_callback();
-
-  /* Clear Register C otherwise interrupts will not happen again.
-   * Register C is automatically cleared when it is read so we do
-   * a dummy read to clear it.
-   */
-  outb(RTC_INDEX_REGISTER, 0x0C);
-  inb(RTC_TARGET_REGISTER);
-
-  /* Issue the End of Interrupt to PIC */
-  pic_eoi(RTC_IRQ);
+  uint8_t value = inb(NMI_ENABLE_PORT);
+  outb(NMI_ENABLE_PORT, value & ~BIT(8));
 }
 /*---------------------------------------------------------------------------*/
-/* Initialize the Real Time Clock.
- * @frequency: RTC has very specific values for frequency. They are: 2, 4, 8,
- *             16, 32, 64, 128, 256, 512, 1024, 2048, 4096, and 8192 Hz.
- *             value otherwise it will not work properly.
- * @callback:  This callback is called every time the RTC IRQ is raised.
- *             It is executed in interrupt context.
- */
 void
-rtc_init(rtc_frequency_t frequency, void (*callback)(void))
+nmi_disable(void)
 {
-  uint8_t reg_a, reg_b;
-
-  user_callback = callback;
-
-  SET_INTERRUPT_HANDLER(RTC_INT, 0, rtc_handler);
-
-  nmi_disable();
-
-  /* Select interrupt period to 7.8125 ms */
-  outb(RTC_INDEX_REGISTER, 0x8A);
-  reg_a = inb(RTC_TARGET_REGISTER);
-  reg_a &= 0xF0;
-  reg_a |= frequency;
-  outb(RTC_INDEX_REGISTER, 0x8A);
-  outb(RTC_TARGET_REGISTER, reg_a);
-
-  /* Enable periodic interrupt */
-  outb(RTC_INDEX_REGISTER, 0x8B);
-  reg_b = inb(RTC_TARGET_REGISTER);
-  outb(RTC_INDEX_REGISTER, 0x8B);
-  outb(RTC_TARGET_REGISTER, reg_b | BIT(6));
-
-  nmi_enable();
-
-  pic_unmask_irq(RTC_IRQ);
+  uint8_t value = inb(NMI_ENABLE_PORT);
+  outb(NMI_ENABLE_PORT, value | BIT(8));
 }
