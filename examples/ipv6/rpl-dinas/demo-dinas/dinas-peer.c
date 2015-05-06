@@ -197,10 +197,16 @@ PROCESS_THREAD(dinas_peer_process, ev, data)
         else /* msg is a notification or a request */
         {	
           /*	
-          if (msg->type == 0) 	
-            PRINTF("Received notification from %s\n", short_ipaddr);
-          else if (msg->type == 1) 
-            PRINTF("Received request from from %s\n", short_ipaddr);
+          if (dinas_msg_get_type(msg->config) == 0) {	
+            PRINTF("Received notification from ");
+            PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+            PRINTF("\n");
+          }
+          else if (dinas_msg_get_type(msg->config) == 1) {	
+            PRINTF("Received request from ");
+            PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+            PRINTF("\n");
+          }
           */
           /*  
           PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
