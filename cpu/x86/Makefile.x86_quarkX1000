@@ -2,4 +2,6 @@ include $(CONTIKI)/cpu/x86/Makefile.x86_common
 
 CONTIKI_CPU_DIRS += drivers/legacy_pc init/legacy_pc
 
-CONTIKI_SOURCEFILES += rtc.c pit.c pic.c irq.c
+CONTIKI_SOURCEFILES += bootstrap_quarkX1000.S rtc.c pit.c pic.c irq.c
+
+LINKERSCRIPT = $(CONTIKI)/cpu/x86/quarkX1000.ld
