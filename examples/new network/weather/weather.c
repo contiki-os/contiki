@@ -93,9 +93,8 @@ static uip_ipaddr_t server_ipaddr;
 
 /*---------------------------- Contiki Processes ----------------------------*/
 PROCESS(example_mesh_process, "Mesh example");
-PROCESS(weather_serial_process, "Serial");
 
-AUTOSTART_PROCESSES(&example_mesh_process,&weather_serial_process);
+AUTOSTART_PROCESSES(&example_mesh_process);
 /*---------------------------------------------------------------------------*/
 
 
@@ -104,7 +103,7 @@ AUTOSTART_PROCESSES(&example_mesh_process,&weather_serial_process);
 void ExtractDataFromweather_String(void)
 {
 	char Command;
-	//printf("->%s\r",weather_rx_buffer);
+	printf("->%s\r",weather_rx_buffer);
 	
 	Command = weather_rx_buffer[0];    
     if (Command == '*')
@@ -407,6 +406,7 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	
 	etimer_set(&periodic, SEND_INTERVAL);
 	watchdog_periodic();
+uart_set_input(1, WeatherSerialDataCallback);
 
   while(1) {
 	PROCESS_YIELD();
@@ -426,17 +426,4 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 
   }
   PROCESS_END();
-}
-  
-PROCESS_THREAD(weather_serial_process, ev, data)
-{
-	PROCESS_BEGIN();
-
-	uart_set_input(1, WeatherSerialDataCallback);
-
-
-	while(1) {
-		PROCESS_YIELD();
-	}
-	PROCESS_END();
 }
