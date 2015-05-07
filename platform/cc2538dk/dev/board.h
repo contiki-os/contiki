@@ -121,11 +121,11 @@
 #define UART0_TX_PORT            GPIO_A_NUM
 #define UART0_TX_PIN             1
 
-//#define UART1_CTS_PORT           GPIO_B_NUM
-//#define UART1_CTS_PIN            0
+#define UART1_CTS_PORT           GPIO_B_NUM
+#define UART1_CTS_PIN            0
 
-//#define UART1_RTS_PORT           GPIO_D_NUM
-//#define UART1_RTS_PIN            3
+#define UART1_RTS_PORT           GPIO_D_NUM
+#define UART1_RTS_PIN            3
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name SmartRF Button configuration
@@ -194,32 +194,11 @@
 #define SPI_CLK_PORT             GPIO_A_NUM /**< Clock port */
 #define SPI_CLK_PIN              2          /**< Clock pin */
 #define SPI_MOSI_PORT            GPIO_A_NUM /**< MOSI port */
-#define SPI_MOSI_PIN             3          /**< MOSI pin */
+#define SPI_MOSI_PIN             4          /**< MOSI pin */
 #define SPI_MISO_PORT            GPIO_A_NUM /**< MISO port */
-#define SPI_MISO_PIN             4          /**< MISO pin */
+#define SPI_MISO_PIN             5          /**< MISO pin */
 /** @} */
 /*---------------------------------------------------------------------------*/
-/** \name I2C configuration
-*
-* There are no a priori defintions on the SmartRF06EB for i2c.  Pin RF1.5
-* is a NC so it is an easy choice for one of the pins. The second pin is
-* defaulted to pin RF1.13 (#LCD_RESET) as the LCD is not supported in 
-* Contiki yet.
-*
-* /note Using the #LCD_RESET line will need to be changed if an LCD
-* driver is developed
-
-* - SCL:  PB3 (RF1.13 on the DK)
-* - SDA:  PB1 (RF1.5 on the DK)
-*/
-
-#define I2C_SCL_PORT        GPIO_B_NUM
-#define I2C_SCL_PORT_BASE   GPIO_B_BASE
-#define I2C_SCL_PIN         2
-#define I2C_SDA_PORT        GPIO_B_NUM
-#define I2C_SDA_PORT_BASE   GPIO_B_BASE
-#define I2C_SDA_PIN         1
-
 /**
  * \name Device string used on startup
  * @{
