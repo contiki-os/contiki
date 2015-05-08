@@ -408,7 +408,7 @@ insert_srh_header(void)
       path_len, cmpri, cmpre, ext_len, padding);
 
   /* Check if there is enough space to store the extension header */
-  if(uip_len + ext_len > UIP_BUFSIZE) {
+  if(uip_len + ext_len > UIP_BUFSIZE - UIP_LLH_LEN) {
     PRINTF("RPL: Packet too long: impossible to add source routing header (%u bytes)\n", ext_len);
     return 1;
   }
@@ -553,7 +553,7 @@ insert_hbh_header(const rpl_instance_t *instance)
 
   /* Insert hop-by-hop header */
   PRINTF("RPL: Creating hop-by-hop option\n");
-  if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE) {
+  if(uip_len + RPL_HOP_BY_HOP_LEN > UIP_BUFSIZE - UIP_LLH_LEN) {
     PRINTF("RPL: Packet too long: impossible to add hop-by-hop option\n");
     uip_ext_len = last_uip_ext_len;
     return 0;

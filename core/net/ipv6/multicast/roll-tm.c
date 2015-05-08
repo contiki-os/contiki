@@ -1321,7 +1321,7 @@ static void
 out()
 {
 
-  if(uip_len + HBHO_TOTAL_LEN > UIP_BUFSIZE) {
+  if(uip_len + HBHO_TOTAL_LEN > UIP_BUFSIZE - UIP_LLH_LEN) {
     PRINTF("ROLL TM: Multicast Out can not add HBHO. Packet too long\n");
     goto drop;
   }
