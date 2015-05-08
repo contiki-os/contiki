@@ -22,4 +22,4 @@ endif
 all:	$(SERIALDUMP)
 
 $(SERIALDUMP):	serialdump.c
-	$(CC) -o $@ $<
+	$(CC) -O2 -o $@ $<
