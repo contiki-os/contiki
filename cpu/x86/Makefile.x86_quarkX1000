@@ -1,5 +1,5 @@
 include $(CONTIKI)/cpu/x86/Makefile.x86_common
 
-CONTIKI_CPU_DIRS += drivers/legacy_pc
+CONTIKI_CPU_DIRS += drivers/legacy_pc init/legacy_pc
 
-CONTIKI_SOURCEFILES += rtc.c pit.c pic.c
+CONTIKI_SOURCEFILES += rtc.c pit.c pic.c irq.c
