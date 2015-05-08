@@ -414,9 +414,7 @@ handle_probing_timer(void *ptr)
 void
 rpl_schedule_probing(rpl_instance_t *instance)
 {
-  clock_time_t delay = (RPL_PROBING_INTERVAL / 2) +
-      random_rand() % (RPL_PROBING_INTERVAL / 2);
-  ctimer_set(&instance->probing_timer, delay,
+  ctimer_set(&instance->probing_timer, RPL_PROBING_DELAY_FUNC(),
                   handle_probing_timer, instance);
 }
 #endif /* RPL_WITH_PROBING */
