@@ -165,7 +165,7 @@ public class CC2420RadioPacketConverter {
     }
 
     /* 1 byte length */
-    len = data[pos];
+    len = data[pos] & 0xFF;
     originalLen = len;
     pos += 1;
 
