@@ -9,8 +9,8 @@
 #include <string.h>
 #include <time.h>
 
-#define BAUDRATE B57600
-#define BAUDRATE_S "57600"
+#define BAUDRATE B115200
+#define BAUDRATE_S "115200"
 #ifdef linux
 #define MODEMDEVICE "/dev/ttyS0"
 #else
