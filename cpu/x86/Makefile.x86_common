@@ -12,7 +12,7 @@ STRIP    = strip
 CFLAGSNO = -Wall -g -I/usr/local/include
 CFLAGS  += $(CFLAGSNO)
 ifeq ($(HOST_OS),Linux)
-  LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
+  LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic,--build-id=none
 else
   LDFLAGS  = -Wl
 endif

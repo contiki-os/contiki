@@ -60,10 +60,4 @@ SECTIONS {
         *(COMMON)
         *(.bss)
     }
-
-    /* Put this here so it doesn't sit above the multiboot section. */
-    .note.gnu.build-id :
-    {
-        *(.note.gnu.build-id)
-    }
 }
