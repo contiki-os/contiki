@@ -174,7 +174,7 @@ main(int argc, char **argv)
 #endif
   if(fd < 0) {
     fprintf(stderr, "\n");
-    perror(device);
+    perror("open");
     exit(-1);
   }
   fprintf(stderr, " [OK]\n");
