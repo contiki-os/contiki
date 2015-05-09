@@ -220,7 +220,7 @@
 #define UIP_CONF_TCP                         1
 #endif
 #ifndef UIP_CONF_TCP_MSS
-#define UIP_CONF_TCP_MSS                   128
+#define UIP_CONF_TCP_MSS                    64
 #endif
 
 #define UIP_CONF_UDP                         1
@@ -287,6 +287,13 @@
 
 /* Notify various examples that we have Buttons */
 #define PLATFORM_HAS_BUTTON      1
+
+/*
+ * Override button symbols from dev/button-sensor.h, for the examples that
+ * include it
+ */
+#define button_sensor button_left_sensor
+#define button_sensor2 button_right_sensor
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* Platform-specific define to signify sensor reading failure */
