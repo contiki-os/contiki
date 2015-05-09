@@ -852,7 +852,7 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
   while(1) {
     if(ev == sensors_event && data == CC26XX_WEB_DEMO_SENSOR_READING_TRIGGER) {
       if((CC26XX_WEB_DEMO_SENSOR_READING_TRIGGER)->value(
-          BUTTON_SENSOR_VALUE_DURATION) > CLOCK_SECOND * 5) {
+           BUTTON_SENSOR_VALUE_DURATION) > CLOCK_SECOND * 5) {
         printf("Restoring defaults!\n");
         cc26xx_web_demo_restore_defaults();
       } else {

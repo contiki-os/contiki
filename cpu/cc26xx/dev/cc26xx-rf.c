@@ -464,7 +464,7 @@ rf_is_accessible(void)
 {
   if(ti_lib_prcm_rf_ready() &&
      ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE) ==
-         PRCM_DOMAIN_POWER_ON) {
+     PRCM_DOMAIN_POWER_ON) {
     return 1;
   }
   return 0;

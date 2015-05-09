@@ -50,7 +50,7 @@
 /*---------------------------------------------------------------------------*/
 static struct timer debouncetimer;
 /*---------------------------------------------------------------------------*/
-#define REED_ISR_CFG            (IOC_CURRENT_2MA  | IOC_STRENGTH_AUTO |       \
+#define REED_IO_CFG             (IOC_CURRENT_2MA  | IOC_STRENGTH_AUTO |       \
                                  IOC_IOPULL_DOWN  | IOC_SLEW_DISABLE  |       \
                                  IOC_HYST_DISABLE | IOC_BOTH_EDGES    |       \
                                  IOC_INT_DISABLE  | IOC_IOMODE_NORMAL |       \
@@ -94,10 +94,12 @@ configure(int type, int value)
     ti_lib_ioc_int_disable(BOARD_IOID_REED_RELAY);
     ti_lib_gpio_event_clear(1 << BOARD_IOID_REED_RELAY);
 
-    /* Enabled the GPIO clock when the CM3 is running */
+    /* Enable the GPIO clock when the CM3 is running */
     ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);
+
+    /* S/W control, input, pull-down */
     ti_lib_ioc_port_configure_set(BOARD_IOID_REED_RELAY, IOC_PORT_GPIO,
-                                  REED_ISR_CFG);
+                                  REED_IO_CFG);
 
     gpio_interrupt_register_handler(BOARD_IOID_REED_RELAY,
                                     reed_interrupt_handler);
