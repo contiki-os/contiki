@@ -30,7 +30,7 @@ before_script:
   - sudo apt-get -qq install libc6:i386 libgcc1:i386 gcc-4.6-base:i386
       libstdc++5:i386 libstdc++6:i386
 
-  ## Install old APCS ARM toolchain for mc1233x, cc2538 and mbxxx
+  ## Install old APCS ARM toolchain for mc1233x and mbxxx
   - if [ ${BUILD_ARCH:-0} = arm-apcs ] ; then
       $WGET https://raw.githubusercontent.com/wiki/malvira/libmc1322x/files/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2 &&
       tar xjf arm-2008q3*.tar.bz2 -C /tmp/ &&
@@ -41,7 +41,7 @@ before_script:
 
   ## Install mainline ARM toolchain.  gcc-arm-none-eabi is available
   ## in Ubuntu >= 14.04, but this external PPA is needed for 12.04.
-  - if [ ${BUILD_ARCH:-0} = arm ] ; then
+  - if [ ${BUILD_ARCH:-0} = arm-aapcs ] ; then
       sudo add-apt-repository -y ppa:terry.guo/gcc-arm-embedded &&
       sudo apt-get -qq update &&
       sudo apt-get -qq install gcc-arm-none-eabi &&
@@ -49,7 +49,7 @@ before_script:
     fi
 
   ## Download and extract cc26xxware
-  - if [ ${BUILD_ARCH:-0} = arm ] ; then
+  - if [ ${BUILD_ARCH:-0} = arm-aapcs ] ; then
       wget http://www.ti.com/lit/sw/swrc296/swrc296.zip &&
       unzip swrc296.zip &&
       export TI_CC26XXWARE=cc26xxware_2_20_06_14829 ;
@@ -122,6 +122,6 @@ env:
   - BUILD_TYPE='compile-8051-ports' BUILD_CATEGORY='compile' BUILD_ARCH='8051'
   - BUILD_TYPE='compile-arm-apcs-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-apcs'
   - BUILD_TYPE='compile-6502-ports' BUILD_CATEGORY='compile' BUILD_ARCH='6502'
-  - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm'
+  - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-aapcs'
   - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
   - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
