@@ -1,4 +1,4 @@
-CFLAGS += -DBOARD_SENSORTAG=1 -DTI_BSP_BOARD_HDR=\"ti-bsp-st.h\"
+CFLAGS += -DBOARD_SENSORTAG=1
 CFLAGS += -DBACKDOOR_IOID=0x00000000
 
 BOARD_SOURCEFILES += leds-arch.c sensortag-sensors.c  sensor-common.c

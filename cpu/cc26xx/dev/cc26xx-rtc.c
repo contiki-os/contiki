@@ -91,7 +91,7 @@ cc26xx_rtc_get_next_trigger()
   if(HWREG(AON_RTC_BASE + AON_RTC_O_CHCTL) & AON_RTC_CHCTL_CH0_EN) {
     rtimer_clock_t ch0 = ti_lib_aon_rtc_compare_value_get(AON_RTC_CH2);
 
-    return RTIMER_CLOCK_LT(ch0 ,ch2) ? ch0 : ch2;
+    return RTIMER_CLOCK_LT(ch0, ch2) ? ch0 : ch2;
   }
 
   return ch2;
