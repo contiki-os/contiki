@@ -373,11 +373,13 @@ send_packet(mac_callback_t sent, void *ptr)
             }
             metadata->sent = sent;
             metadata->cptr = ptr;
-
+#if PACKETBUF_WITH_PACKET_TYPE
             if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
                PACKETBUF_ATTR_PACKET_TYPE_ACK) {
               list_push(n->queued_packet_list, q);
-            } else {
+            } else
+#endif
+            {
               list_add(n->queued_packet_list, q);
             }
 

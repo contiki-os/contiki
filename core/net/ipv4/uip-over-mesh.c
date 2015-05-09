@@ -262,8 +262,8 @@ uip_over_mesh_send(void)
   if(BUF->proto == UIP_PROTO_TCP) {
 #if NETSTACK_CONF_WITH_RIME
     packetbuf_set_attr(PACKETBUF_ATTR_ERELIABLE, 1);
-#endif /* NETSTACK_CONF_WITH_RIME */
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
+#endif /* NETSTACK_CONF_WITH_RIME */
     /*    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_STREAM);*/
   }
 
