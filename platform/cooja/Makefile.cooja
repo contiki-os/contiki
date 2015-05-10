@@ -37,7 +37,7 @@ endif ## QUICKSTART
 #MAIN_SRC = $(OBJECTDIR)/$(LIBNAME).c
 MAIN_OBJ = $(OBJECTDIR)/$(LIBNAME).o
 ARCHIVE = $(OBJECTDIR)/$(LIBNAME).a
-JNILIB = $(OBJECTDIR)/$(LIBNAME).cooja
+JNILIB = $(OBJECTDIR)/$(LIBNAME).$(TARGET)
 CONTIKI_APP_OBJ = $(CONTIKI_APP).co
 
 ### COOJA platform sources
@@ -75,7 +75,7 @@ CFLAGSNO = $(EXTRA_CC_ARGS) -Wall -g -I/usr/local/include -DCLASSNAME=$(CLASSNAM
 CFLAGS   += $(CFLAGSNO)
 
 MODULES += core/net core/net/mac \
-           core/net/llsec
+           core/net/llsec core/net/ip64-addr
 
 ## Copied from Makefile.include, since Cooja overrides CFLAGS et al
 HAS_STACK = 0

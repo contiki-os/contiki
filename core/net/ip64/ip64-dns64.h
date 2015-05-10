@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2014, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -29,16 +28,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "ip64-eth.h"
 
-#include <string.h>
+#ifndef IP64_DNS64_H_
+#define IP64_DNS64_H_
 
-struct ip64_eth_addr ip64_eth_addr;
+void ip64_dns64_6to4(const uint8_t *ipv6data, int ipv6datalen,
+                     uint8_t *ipv4data, int ipv4datalen);
+int ip64_dns64_4to6(const uint8_t *ipv4data, int ipv4datalen,
+                    uint8_t *ipv6data, int ipv6datalen);
 
-/*---------------------------------------------------------------------------*/
-void
-ip64_eth_addr_set(struct ip64_eth_addr *addr)
-{
-  memcpy(&ip64_eth_addr, addr, sizeof(struct ip64_eth_addr));
-}
-/*---------------------------------------------------------------------------*/
+#endif /* IP64_DNS64_H_ */
