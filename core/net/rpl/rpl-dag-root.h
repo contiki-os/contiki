@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2012-2014, Thingsquare, http://www.thingsquare.com/.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -29,16 +28,14 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#include "ip64-eth.h"
 
-#include <string.h>
+#ifndef RPL_DAG_ROOT_H_
+#define RPL_DAG_ROOT_H_
 
-struct ip64_eth_addr ip64_eth_addr;
+void rpl_dag_root_init(void);
+void rpl_dag_root_init_dag(void);
+int rpl_dag_root_init_dag_immediately(void);
 
-/*---------------------------------------------------------------------------*/
-void
-ip64_eth_addr_set(struct ip64_eth_addr *addr)
-{
-  memcpy(&ip64_eth_addr, addr, sizeof(struct ip64_eth_addr));
-}
-/*---------------------------------------------------------------------------*/
+int rpl_dag_root_is_root(void);
+
+#endif /* RPL_DAG_ROOT_H_ */
