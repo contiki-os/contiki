@@ -313,6 +313,7 @@ rpl_of_t *rpl_find_of(rpl_ocp_t);
 void rpl_schedule_dao(rpl_instance_t *);
 void rpl_schedule_dao_immediately(rpl_instance_t *);
 void rpl_cancel_dao(rpl_instance_t *instance);
+void rpl_schedule_probing(rpl_instance_t *instance);
 
 void rpl_reset_dio_timer(rpl_instance_t *);
 void rpl_reset_periodic_timer(void);
