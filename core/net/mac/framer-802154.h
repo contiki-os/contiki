@@ -41,6 +41,8 @@
 
 #include "net/mac/framer.h"
 
+void framer_802154_set_seqno(void);
+
 extern const struct framer framer_802154;
 
 #endif /* FRAMER_802154_H_ */
