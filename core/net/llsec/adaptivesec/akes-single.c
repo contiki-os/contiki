@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Hasso-Plattner-Institut.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,56 +32,41 @@
 
 /**
  * \file
- *         CCM* convenience functions for LLSEC use
+ *         Network-wide key scheme.
  * \author
- *         Justin King-Lacroix <justin.kinglacroix@gmail.com>
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#include "llsec/ccm-star-packetbuf.h"
-#include "net/llsec/anti-replay.h"
-#include "net/linkaddr.h"
-#include "net/packetbuf.h"
-#include "net/llsec/llsec802154.h"
+#include "net/llsec/adaptivesec/akes-single.h"
+#include "lib/aes-128.h"
 #include <string.h>
 
-#if LLSEC802154_USES_FRAME_COUNTER
+#ifdef AKES_SINGLE_CONF_KEY
+#define KEY AKES_SINGLE_CONF_KEY
+#else /* AKES_SINGLE_CONF_KEY */
+#define KEY { 0x00 , 0x01 , 0x02 , 0x03 , \
+              0x04 , 0x05 , 0x06 , 0x07 , \
+              0x08 , 0x09 , 0x0A , 0x0B , \
+              0x0C , 0x0D , 0x0E , 0x0F }
+#endif /* AKES_SINGLE_CONF_KEY */
+
+static const uint8_t key[AES_128_KEY_LENGTH] = KEY;
 
 /*---------------------------------------------------------------------------*/
-static const uint8_t *
-get_extended_address(const linkaddr_t *addr)
-#if LINKADDR_SIZE == 2
+static uint8_t *
+get_secret_with(const linkaddr_t *addr)
 {
-  /* workaround for short addresses: derive EUI64 as in RFC 6282 */
-  static linkaddr_extended_t template = { { 0x00 , 0x00 , 0x00 ,
-                                            0xFF , 0xFE , 0x00 , 0x00 , 0x00 } };
-  
-  template.u16[3] = LLSEC802154_HTONS(addr->u16);
-  
-  return template.u8;
-}
-#else /* LINKADDR_SIZE == 2 */
-{
-  return addr->u8;
-}
-#endif /* LINKADDR_SIZE == 2 */
-/*---------------------------------------------------------------------------*/
-void
-ccm_star_packetbuf_set_nonce(uint8_t *nonce, int forward)
-{
-  const linkaddr_t *source_addr;
-  
-  source_addr = forward ? &linkaddr_node_addr : packetbuf_addr(PACKETBUF_ADDR_SENDER);
-  memcpy(nonce, get_extended_address(source_addr), 8);
-  nonce[8] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) >> 8;
-  nonce[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
-  nonce[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
-  nonce[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
-#if LLSEC802154_USES_AUX_HEADER
-  nonce[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-#else /* LLSEC802154_USES_AUX_HEADER */
-  nonce[12] = packetbuf_holds_broadcast() ? 0xFF : packetbuf_attr(PACKETBUF_ATTR_NEIGHBOR_INDEX);
-#endif /* LLSEC802154_USES_AUX_HEADER */
+  return (uint8_t *)key;
 }
 /*---------------------------------------------------------------------------*/
-#endif /* LLSEC802154_USES_FRAME_COUNTER */
+static void
+init(void)
+{
+}
+/*---------------------------------------------------------------------------*/
+const struct akes_scheme akes_single_scheme = {
+  init,
+  get_secret_with,
+  get_secret_with
+};
+/*---------------------------------------------------------------------------*/

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,46 @@
 
 /**
  * \file
- *         Creates and parses the ContikiMAC header.
+ *         Autoconfigures the adaptivesec_driver.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef CONTIKIMAC_FRAMER_H_
-#define CONTIKIMAC_FRAMER_H_
+#undef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC adaptivesec_driver
+#undef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER adaptivesec_framer
+#undef ADAPTIVESEC_CONF_STRATEGY
+#define ADAPTIVESEC_CONF_STRATEGY noncoresec_strategy
+#undef LLSEC802154_CONF_ENABLED
+#define LLSEC802154_CONF_ENABLED 1
+#undef PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES
+#define PACKETBUF_CONF_WITH_UNENCRYPTED_BYTES 1
 
-#include "net/mac/framer.h"
+#ifndef ADAPTIVESEC_CONF_UNICAST_SEC_LVL
+#define ADAPTIVESEC_CONF_UNICAST_SEC_LVL 6
+#endif /* ADAPTIVESEC_CONF_UNICAST_SEC_LVL */
 
-#ifdef CONTIKIMAC_FRAMER_CONF_ENABLED
-#define CONTIKIMAC_FRAMER_ENABLED CONTIKIMAC_FRAMER_CONF_ENABLED
-#else /* CONTIKIMAC_FRAMER_CONF_ENABLED */
-#define CONTIKIMAC_FRAMER_ENABLED 0
-#endif /* CONTIKIMAC_FRAMER_CONF_ENABLED */
+#if ((ADAPTIVESEC_CONF_UNICAST_SEC_LVL & 3) == 1)
+#define ADAPTIVESEC_CONF_UNICAST_MIC_LEN 6
+#elif ((ADAPTIVESEC_CONF_UNICAST_SEC_LVL & 3) == 2)
+#define ADAPTIVESEC_CONF_UNICAST_MIC_LEN 8
+#elif ((ADAPTIVESEC_CONF_UNICAST_SEC_LVL & 3) == 3)
+#define ADAPTIVESEC_CONF_UNICAST_MIC_LEN 10
+#else
+#error "unsupported security level"
+#endif
 
-extern const struct framer contikimac_framer;
+#ifndef ADAPTIVESEC_CONF_BROADCAST_SEC_LVL
+#define ADAPTIVESEC_CONF_BROADCAST_SEC_LVL ADAPTIVESEC_CONF_UNICAST_SEC_LVL
+#endif /* ADAPTIVESEC_CONF_BROADCAST_SEC_LVL */
 
-#endif /* CONTIKIMAC_FRAMER_H_ */
+#if ((ADAPTIVESEC_CONF_BROADCAST_SEC_LVL & 3) == 1)
+#define ADAPTIVESEC_CONF_BROADCAST_MIC_LEN 6
+#elif ((ADAPTIVESEC_CONF_BROADCAST_SEC_LVL & 3) == 2)
+#define ADAPTIVESEC_CONF_BROADCAST_MIC_LEN 8
+#elif ((ADAPTIVESEC_CONF_BROADCAST_SEC_LVL & 3) == 3)
+#define ADAPTIVESEC_CONF_BROADCAST_MIC_LEN 10
+#else
+#error "unsupported security level"
+#endif

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,15 @@
 
 /**
  * \file
- *         Creates and parses the ContikiMAC header.
+ *         Deletes inactive permanent neighbors.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef CONTIKIMAC_FRAMER_H_
-#define CONTIKIMAC_FRAMER_H_
+#ifndef AKES_DELETE_H_
+#define AKES_DELETE_H_
 
-#include "net/mac/framer.h"
+void akes_delete_on_update_sent(void *ptr, int status, int transmissions);
+void akes_delete_init(void);
 
-#ifdef CONTIKIMAC_FRAMER_CONF_ENABLED
-#define CONTIKIMAC_FRAMER_ENABLED CONTIKIMAC_FRAMER_CONF_ENABLED
-#else /* CONTIKIMAC_FRAMER_CONF_ENABLED */
-#define CONTIKIMAC_FRAMER_ENABLED 0
-#endif /* CONTIKIMAC_FRAMER_CONF_ENABLED */
-
-extern const struct framer contikimac_framer;
-
-#endif /* CONTIKIMAC_FRAMER_H_ */
+#endif /* AKES_DELETE_H_ */

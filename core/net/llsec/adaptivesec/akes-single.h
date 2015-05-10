@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,16 @@
 
 /**
  * \file
- *         Creates and parses the ContikiMAC header.
+ *         Network-wide key scheme.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef CONTIKIMAC_FRAMER_H_
-#define CONTIKIMAC_FRAMER_H_
+#ifndef AKES_SINGLE_H_
+#define AKES_SINGLE_H_
 
-#include "net/mac/framer.h"
+#include "net/llsec/adaptivesec/akes.h"
 
-#ifdef CONTIKIMAC_FRAMER_CONF_ENABLED
-#define CONTIKIMAC_FRAMER_ENABLED CONTIKIMAC_FRAMER_CONF_ENABLED
-#else /* CONTIKIMAC_FRAMER_CONF_ENABLED */
-#define CONTIKIMAC_FRAMER_ENABLED 0
-#endif /* CONTIKIMAC_FRAMER_CONF_ENABLED */
+extern const struct akes_scheme akes_single_scheme;
 
-extern const struct framer contikimac_framer;
-
-#endif /* CONTIKIMAC_FRAMER_H_ */
+#endif /* AKES_SINGLE_H_ */

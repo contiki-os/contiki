@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,18 @@
 
 /**
  * \file
- *         Creates and parses the ContikiMAC header.
+ *         Uses group session keys for securing frames.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef CONTIKIMAC_FRAMER_H_
-#define CONTIKIMAC_FRAMER_H_
+#ifndef NONCORESEC_STRATEGY_H_
+#define NONCORESEC_STRATEGY_H_
 
-#include "net/mac/framer.h"
+#include "net/llsec/adaptivesec/adaptivesec.h"
 
-#ifdef CONTIKIMAC_FRAMER_CONF_ENABLED
-#define CONTIKIMAC_FRAMER_ENABLED CONTIKIMAC_FRAMER_CONF_ENABLED
-#else /* CONTIKIMAC_FRAMER_CONF_ENABLED */
-#define CONTIKIMAC_FRAMER_ENABLED 0
-#endif /* CONTIKIMAC_FRAMER_CONF_ENABLED */
+#if AKES_NBR_WITH_GROUP_KEYS
+extern const struct adaptivesec_strategy noncoresec_strategy;
+#endif /* AKES_NBR_WITH_GROUP_KEYS */
 
-extern const struct framer contikimac_framer;
-
-#endif /* CONTIKIMAC_FRAMER_H_ */
+#endif /* NONCORESEC_STRATEGY_H_ */

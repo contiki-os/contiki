@@ -45,35 +45,75 @@
 #ifndef ANTI_REPLAY_H
 #define ANTI_REPLAY_H
 
-#include "contiki.h"
+#include "net/mac/frame802154.h"
+#include "net/llsec/llsec802154.h"
+
+#ifdef ANTI_REPLAY_CONF_WITH_SUPPRESSION
+#define ANTI_REPLAY_WITH_SUPPRESSION ANTI_REPLAY_CONF_WITH_SUPPRESSION
+#else /* ANTI_REPLAY_CONF_WITH_SUPPRESSION */
+#define ANTI_REPLAY_WITH_SUPPRESSION !LLSEC802154_USES_AUX_HEADER
+#endif /* ANTI_REPLAY_CONF_WITH_SUPPRESSION */
 
 struct anti_replay_info {
-  uint32_t last_broadcast_counter;
-  uint32_t last_unicast_counter;
+  frame802154_frame_counter_t his_broadcast_counter;
+  frame802154_frame_counter_t his_unicast_counter;
+#if ANTI_REPLAY_WITH_SUPPRESSION
+  frame802154_frame_counter_t my_unicast_counter;
+#endif /* ANTI_REPLAY_WITH_SUPPRESSION */
 };
 
-/**
- * \brief Sets the frame counter packetbuf attributes.
- */
-void anti_replay_set_counter(void);
+#if ANTI_REPLAY_WITH_SUPPRESSION
+extern uint32_t anti_replay_my_broadcast_counter;
+#endif /* ANTI_REPLAY_WITH_SUPPRESSION */
 
 /**
- * \brief Gets the frame counter from packetbuf.
+ * \brief Parses the frame counter to packetbuf attributes
+ */
+void anti_replay_parse_counter(uint8_t *p);
+
+/**
+ * \brief Writes the frame counter of packetbuf to dst
+ */
+void anti_replay_write_counter(uint8_t *dst);
+
+/**
+ * \brief                Sets the frame counter packetbuf attributes
+ * \param  receiver_info Anti-replay information about the receiver
+ *                       (NULL if broadcast)
+ * \retval 0             <-> error
+ */
+int anti_replay_set_counter(struct anti_replay_info *receiver_info);
+
+/**
+ * \brief Gets the frame counter from packetbuf
  */
 uint32_t anti_replay_get_counter(void);
 
 /**
- * \brief Initializes the anti-replay information about the sender
- * \param info Anti-replay information about the sender
+ * \brief Suppresses frame counter
  */
-void anti_replay_init_info(struct anti_replay_info *info);
+void anti_replay_suppress_counter(void);
+
+#if ANTI_REPLAY_WITH_SUPPRESSION
+/**
+ * \brief             Restores suppressed frame counter
+ * \param sender_info Anti-replay information about the sender
+ */
+void anti_replay_restore_counter(struct anti_replay_info *sender_info);
+#endif /* ANTI_REPLAY_WITH_SUPPRESSION */
 
 /**
- * \brief               Checks if received frame was replayed
- * \param info          Anti-replay information about the sender
- * \retval 0            <-> received frame was not replayed
+ * \brief             Initializes the anti-replay information about the sender
+ * \param sender_info Anti-replay information about the sender
  */
-int anti_replay_was_replayed(struct anti_replay_info *info);
+void anti_replay_init_info(struct anti_replay_info *sender_info);
+
+/**
+ * \brief              Checks if received frame was replayed
+ * \param  sender_info Anti-replay information about the sender
+ * \retval 0           <-> received frame was not replayed
+ */
+int anti_replay_was_replayed(struct anti_replay_info *sender_info);
 
 #endif /* ANTI_REPLAY_H */
 

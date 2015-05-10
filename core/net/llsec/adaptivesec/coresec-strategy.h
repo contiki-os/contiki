@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,20 @@
 
 /**
  * \file
- *         Creates and parses the ContikiMAC header.
+ *         Uses pairwise session keys for securing frames.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef CONTIKIMAC_FRAMER_H_
-#define CONTIKIMAC_FRAMER_H_
+#ifndef CORESEC_STRATEGY_H_
+#define CORESEC_STRATEGY_H_
 
-#include "net/mac/framer.h"
+#include "net/llsec/adaptivesec/adaptivesec.h"
 
-#ifdef CONTIKIMAC_FRAMER_CONF_ENABLED
-#define CONTIKIMAC_FRAMER_ENABLED CONTIKIMAC_FRAMER_CONF_ENABLED
-#else /* CONTIKIMAC_FRAMER_CONF_ENABLED */
-#define CONTIKIMAC_FRAMER_ENABLED 0
-#endif /* CONTIKIMAC_FRAMER_CONF_ENABLED */
+#define CORESEC_STRATEGY_ANNOUNCE_IDENTIFIER 0x0D
 
-extern const struct framer contikimac_framer;
+#if AKES_NBR_WITH_PAIRWISE_KEYS && AKES_NBR_WITH_INDICES
+extern const struct adaptivesec_strategy coresec_strategy;
+#endif /* AKES_NBR_WITH_PAIRWISE_KEYS && AKES_NBR_WITH_INDICES */
 
-#endif /* CONTIKIMAC_FRAMER_H_ */
+#endif /* CORESEC_STRATEGY_H_ */

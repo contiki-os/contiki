@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Hasso-Plattner-Institut.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,22 +32,20 @@
 
 /**
  * \file
- *         Creates and parses the ContikiMAC header.
+ *         Trickles HELLOs.
  * \author
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef CONTIKIMAC_FRAMER_H_
-#define CONTIKIMAC_FRAMER_H_
+#ifndef AKES_TRICKLE_H_
+#define AKES_TRICKLE_H_
 
-#include "net/mac/framer.h"
+#include "net/llsec/adaptivesec/akes-nbr.h"
+#include "net/llsec/llsec.h"
 
-#ifdef CONTIKIMAC_FRAMER_CONF_ENABLED
-#define CONTIKIMAC_FRAMER_ENABLED CONTIKIMAC_FRAMER_CONF_ENABLED
-#else /* CONTIKIMAC_FRAMER_CONF_ENABLED */
-#define CONTIKIMAC_FRAMER_ENABLED 0
-#endif /* CONTIKIMAC_FRAMER_CONF_ENABLED */
+void akes_trickle_on_fresh_authentic_hello(struct akes_nbr *sender);
+void akes_trickle_on_new_nbr(void);
+void akes_trickle_stop(void);
+void akes_trickle_start(void);
 
-extern const struct framer contikimac_framer;
-
-#endif /* CONTIKIMAC_FRAMER_H_ */
+#endif /* AKES_TRICKLE_H_ */
