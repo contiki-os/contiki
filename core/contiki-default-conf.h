@@ -192,10 +192,16 @@
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 8
 #endif /* NBR_TABLE_CONF_MAX_NEIGHBORS */
 
+/* UIP_CONF_ND6_SEND_RA enables standard IPv6 Router Advertisement.
+ * This is unneeded when RPL is used. */
+#ifndef UIP_CONF_ND6_SEND_RA
+#define UIP_CONF_ND6_SEND_RA (NETSTACK_CONF_WITH_IPV6 && !UIP_CONF_IPV6_RPL)
+#endif /* UIP_CONF_ND6_SEND_RA */
+
 /* UIP_CONF_ND6_SEND_NA enables standard IPv6 Neighbor Discovery Protocol.
-   This is unneeded when RPL is used. Disable to save ROM and a little RAM. */
+   This is unneeded when RPL is used. */
 #ifndef UIP_CONF_ND6_SEND_NA
-#define UIP_CONF_ND6_SEND_NA 1
+#define UIP_CONF_ND6_SEND_NA (NETSTACK_CONF_WITH_IPV6 && !UIP_CONF_IPV6_RPL)
 #endif /* UIP_CONF_ND6_SEND_NA */
 
 /*---------------------------------------------------------------------------*/
