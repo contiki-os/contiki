@@ -227,7 +227,7 @@ value_left(int type)
 {
   if(type == BUTTON_SENSOR_VALUE_STATE) {
     return ti_lib_gpio_pin_read(BOARD_KEY_LEFT) == 0 ?
-           BUTTON_SENSOR_VALUE_PRESSED : BUTTON_SENSOR_VALUE_RELEASED;
+        BUTTON_SENSOR_VALUE_PRESSED : BUTTON_SENSOR_VALUE_RELEASED;
   } else if(type == BUTTON_SENSOR_VALUE_DURATION) {
     return (int)left_timer.duration;
   }
@@ -239,7 +239,7 @@ value_right(int type)
 {
   if(type == BUTTON_SENSOR_VALUE_STATE) {
     return ti_lib_gpio_pin_read(BOARD_KEY_RIGHT) == 0 ?
-           BUTTON_SENSOR_VALUE_PRESSED : BUTTON_SENSOR_VALUE_RELEASED;
+        BUTTON_SENSOR_VALUE_PRESSED : BUTTON_SENSOR_VALUE_RELEASED;
   } else if(type == BUTTON_SENSOR_VALUE_DURATION) {
     return (int)right_timer.duration;
   }

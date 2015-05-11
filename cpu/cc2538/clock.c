@@ -61,8 +61,20 @@
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-#define RTIMER_CLOCK_TICK_RATIO (RTIMER_SECOND / CLOCK_SECOND)
-#define RELOAD_VALUE (125000 - 1)  /** Fire 128 times / sec */
+#define RTIMER_CLOCK_TICK_RATIO			(RTIMER_SECOND / CLOCK_SECOND)
+
+/* Prescaler for GPT0:Timer A used for clock_delay_usec(). */
+#if SYS_CTRL_SYS_CLOCK < SYS_CTRL_1MHZ
+#error System clock speeds below 1MHz are not supported
+#endif
+#define PRESCALER_VALUE					(SYS_CTRL_SYS_CLOCK / SYS_CTRL_1MHZ - 1)
+
+/* Reload value for SysTick counter */
+#if SYS_CTRL_SYS_CLOCK % CLOCK_SECOND
+/* Clock speeds below 2 MHz will lead to reduced accurracy */
+#error System clock speed too slow for CLOCK_SECOND, leading to reduced accuracy 
+#endif
+#define RELOAD_VALUE					(SYS_CTRL_SYS_CLOCK / CLOCK_SECOND - 1)
 
 static volatile uint64_t rt_ticks_startup = 0, rt_ticks_epoch = 0;
 /*---------------------------------------------------------------------------*/
@@ -74,8 +86,7 @@ static volatile uint64_t rt_ticks_startup = 0, rt_ticks_epoch = 0;
  *
  * We also initialise GPT0:Timer A, which is used by clock_delay_usec().
  * We use 16-bit range (individual), count-down, one-shot, no interrupts.
- * The system clock is at 16MHz giving us 62.5 nano sec ticks for Timer A.
- * Prescaled by 16 gives us a very convenient 1 tick per usec
+ * The prescaler is computed according to the system clock.
  */
 void
 clock_init(void)
@@ -98,15 +109,14 @@ clock_init(void)
   /* Make sure GPT0 is off */
   REG(GPT_0_BASE + GPTIMER_CTL) = 0;
 
-
   /* 16-bit */
   REG(GPT_0_BASE + GPTIMER_CFG) = 0x04;
 
   /* One-Shot, Count Down, No Interrupts */
   REG(GPT_0_BASE + GPTIMER_TAMR) = GPTIMER_TAMR_TAMR_ONE_SHOT;
 
-  /* Prescale by 16 (thus, value 15 in TAPR) */
-  REG(GPT_0_BASE + GPTIMER_TAPR) = 0x0F;
+  /* Prescale depending on system clock used */
+  REG(GPT_0_BASE + GPTIMER_TAPR) = PRESCALER_VALUE;
 }
 /*---------------------------------------------------------------------------*/
 CCIF clock_time_t

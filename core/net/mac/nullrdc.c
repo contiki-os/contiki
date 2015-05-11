@@ -294,7 +294,7 @@ packet_input(void)
     if(duplicate) {
       /* Drop the packet. */
       PRINTF("nullrdc: drop duplicate link layer packet %u\n",
-             packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+             packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
     } else {
       mac_sequence_register_seqno();
     }

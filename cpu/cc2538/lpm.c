@@ -73,13 +73,12 @@ static unsigned long irq_energest = 0;
 #define DEEP_SLEEP_PM1_THRESHOLD    10
 #define DEEP_SLEEP_PM2_THRESHOLD    100
 /*---------------------------------------------------------------------------*/
-#define assert_wfi() do { asm("wfi"::); } while(0)
+#define assert_wfi() do { asm ("wfi"::); } while(0)
 /*---------------------------------------------------------------------------*/
 #if LPM_CONF_STATS
 rtimer_clock_t lpm_stats[3];
 
-#define LPM_STATS_INIT()         do { memset(lpm_stats, 0, sizeof(lpm_stats)); \
-  } while(0)
+#define LPM_STATS_INIT()  do { memset(lpm_stats, 0, sizeof(lpm_stats)); } while(0)
 #define LPM_STATS_ADD(pm, val)   do { lpm_stats[pm] += val; } while(0)
 #else
 #define LPM_STATS_INIT()
@@ -154,7 +153,7 @@ enter_pm0(void)
 static void
 select_32_mhz_xosc(void)
 {
-  /*First, make sure there is no ongoing clock source change */
+  /* First, make sure there is no ongoing clock source change */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SOURCE_CHANGE) != 0);
 
   /* Turn on the 32 MHz XOSC and source the system clock on it. */
@@ -163,13 +162,38 @@ select_32_mhz_xosc(void)
   /* Wait for the switch to take place */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_OSC) != 0);
 
-  /* Power down the unused oscillator. */
-  REG(SYS_CTRL_CLOCK_CTRL) |= SYS_CTRL_CLOCK_CTRL_OSC_PD;
+  /* Power down the unused oscillator and restore divisors (silicon errata) */
+  REG(SYS_CTRL_CLOCK_CTRL) = (REG(SYS_CTRL_CLOCK_CTRL)
+#if SYS_CTRL_SYS_DIV == SYS_CTRL_CLOCK_CTRL_SYS_DIV_32MHZ
+    & ~SYS_CTRL_CLOCK_CTRL_SYS_DIV
+#endif
+#if SYS_CTRL_IO_DIV == SYS_CTRL_CLOCK_CTRL_IO_DIV_32MHZ
+    & ~SYS_CTRL_CLOCK_CTRL_IO_DIV
+#endif
+    ) | SYS_CTRL_CLOCK_CTRL_OSC_PD;
 }
 /*---------------------------------------------------------------------------*/
 static void
 select_16_mhz_rcosc(void)
 {
+
+  /*
+   * Power up both oscillators in order to speed up the transition to the 32-MHz
+   * XOSC after wake up. In addition, consider CC2538 silicon errata:
+   * "Possible Incorrect Value of Clock Dividers after PM2 and PM3" and
+   * set system clock divisor / I/O clock divisor to 16 MHz in case they run
+   * at full speed (=32 MHz)
+   */
+
+  REG(SYS_CTRL_CLOCK_CTRL) = (REG(SYS_CTRL_CLOCK_CTRL)
+#if SYS_CTRL_SYS_DIV == SYS_CTRL_CLOCK_CTRL_SYS_DIV_32MHZ
+    | SYS_CTRL_CLOCK_CTRL_SYS_DIV_16MHZ
+#endif
+#if SYS_CTRL_IO_DIV == SYS_CTRL_CLOCK_CTRL_IO_DIV_32MHZ
+    | SYS_CTRL_CLOCK_CTRL_IO_DIV_16MHZ
+#endif
+    ) & ~SYS_CTRL_CLOCK_CTRL_OSC_PD;
+
   /*
    * Power up both oscillators in order to speed up the transition to the 32-MHz
    * XOSC after wake up.
