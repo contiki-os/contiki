@@ -228,7 +228,7 @@ packet_input(void)
 #if UIP_TCP
 #if UIP_ACTIVE_OPEN
 struct uip_conn *
-tcp_connect(const uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
+tcp_connect(uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
 {
   struct uip_conn *c;
   

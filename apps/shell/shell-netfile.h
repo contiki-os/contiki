@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,19 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __TCPDUMP_H__
-#define __TCPDUMP_H__
 
-#include "net/ip/uip.h"
+/**
+ * \file
+ *         A brief description of what this file is.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ */
 
-int tcpdump_format(uint8_t *packet, uint16_t packetlen,
-		   char *printbuf, uint16_t printbuflen);
+#ifndef SHELL_NETFILE_H_
+#define SHELL_NETFILE_H_
 
-#endif /* __TCPDUMP_H__ */
+#include "shell.h"
+
+void shell_netfile_init(void);
+
+#endif /* SHELL_NETFILE_H_ */
