@@ -106,6 +106,7 @@ env:
   ## of environment variable defined below
   - BUILD_TYPE='doxygen'  BUILD_CATEGORY='doxygen'
   - BUILD_TYPE='compile-base' BUILD_CATEGORY='compile'
+  - BUILD_TYPE='compile-tools' BUILD_CATEGORY='compile'
   - BUILD_TYPE='collect'
   - BUILD_TYPE='collect-lossy'
   - BUILD_TYPE='rpl'
