@@ -70,6 +70,15 @@ LIST(restful_periodic_services);
 void
 rest_init_engine(void)
 {
+  /* avoid initializing twice */
+  static uint8_t initialized = 0;
+
+  if(initialized) {
+    PRINTF("REST engine process already running - double initialization?\n");
+    return;
+  }
+  initialized = 1;
+
   list_init(restful_services);
 
   REST.set_service_callback(rest_invoke_restful_service);
