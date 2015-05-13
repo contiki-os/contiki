@@ -114,6 +114,14 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
   public long getTime() {
     return moteTime;
   }
+  
+  public void setDeviation(double deviation) {
+    logger.fatal("Can't change deviation");;
+  }
+
+  public double getDeviation() {
+  	return 1.0;
+  }
 
   public void doActionsBeforeTick() {
     /* Update time */
@@ -161,5 +169,4 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
 
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
-
 }
