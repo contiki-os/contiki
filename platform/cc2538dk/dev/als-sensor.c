@@ -30,18 +30,18 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538dk-adc-sensor
+ * \addtogroup cc2538dk-als-sensor
  * @{
  *
  * \file
- *  Driver for the SmartRF06EB ADC
+ *  Driver for the SmartRF06EB ALS
  */
 #include "contiki.h"
 #include "sys/clock.h"
 #include "dev/ioc.h"
 #include "dev/gpio.h"
 #include "dev/adc.h"
-#include "dev/adc-sensor.h"
+#include "dev/als-sensor.h"
 
 #include <stdint.h>
 
@@ -52,30 +52,15 @@
 static int
 value(int type)
 {
-  uint8_t channel;
+  uint8_t channel = SOC_ADC_ADCCON_CH_AIN0 + ADC_ALS_OUT_PIN;
   int16_t res;
 
-  switch(type) {
-  case ADC_SENSOR_VDD_3:
-    channel = SOC_ADC_ADCCON_CH_VDD_3;
-    break;
-  case ADC_SENSOR_TEMP:
-    channel = SOC_ADC_ADCCON_CH_TEMP;
-    break;
-  case ADC_SENSOR_ALS:
-    channel = SOC_ADC_ADCCON_CH_AIN0 + ADC_ALS_OUT_PIN;
-    GPIO_SET_PIN(ADC_ALS_PWR_PORT_BASE, ADC_ALS_PWR_PIN_MASK);
-    clock_delay_usec(2000);
-    break;
-  default:
-    return 0;
-  }
+  GPIO_SET_PIN(ADC_ALS_PWR_PORT_BASE, ADC_ALS_PWR_PIN_MASK);
+  clock_delay_usec(2000);
 
   res = adc_get(channel, SOC_ADC_ADCCON_REF_INT, SOC_ADC_ADCCON_DIV_512);
 
-  if(type == ADC_SENSOR_ALS) {
-    GPIO_CLR_PIN(ADC_ALS_PWR_PORT_BASE, ADC_ALS_PWR_PIN_MASK);
-  }
+  GPIO_CLR_PIN(ADC_ALS_PWR_PORT_BASE, ADC_ALS_PWR_PIN_MASK);
 
   return res;
 }
@@ -94,7 +79,6 @@ configure(int type, int value)
     GPIO_SET_INPUT(GPIO_A_BASE, ADC_ALS_OUT_PIN_MASK);
     ioc_set_over(GPIO_A_NUM, ADC_ALS_OUT_PIN, IOC_OVERRIDE_ANA);
 
-    adc_init();
     break;
   }
   return 0;
@@ -106,6 +90,6 @@ status(int type)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(adc_sensor, ADC_SENSOR, value, configure, status);
+SENSORS_SENSOR(als_sensor, ALS_SENSOR, value, configure, status);
 
 /** @} */

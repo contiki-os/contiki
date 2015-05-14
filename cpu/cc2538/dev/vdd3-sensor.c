@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
- * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
+ * Copyright (c) 2015, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2015, University of Bristol - http://www.bristol.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,39 +29,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc2538-smartrf-sensors
- * @{
- *
- * \defgroup cc2538dk-adc-sensor cc2538dk ADC Driver
- *
- * Driver for the SmartRF06EB ADC sensors
+ * \addtogroup cc2538-vdd3-sensor
  * @{
  *
  * \file
- * Header file for the cc2538dk ADC Driver
+ *  Driver for the CC2538 VDD3 sensor
  */
-#ifndef ADC_SENSOR_H_
-#define ADC_SENSOR_H_
-
-#include "lib/sensors.h"
-
 /*---------------------------------------------------------------------------*/
-/** \name ADC sensors
- * @{
- */
-#define ADC_SENSOR "ADC"
+#include "contiki.h"
+#include "lib/sensors.h"
+#include "dev/vdd3-sensor.h"
+#include "dev/adc.h"
+#include "dev/cc2538-sensors.h"
 
-#define ADC_SENSOR_VDD_3        0 /**< On-chip VDD / 3 */
-#define ADC_SENSOR_TEMP         1 /**< On-chip temperature */
-#define ADC_SENSOR_ALS          2 /**< Ambient light sensor */
+#include <stdint.h>
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
+{
+  int raw = adc_get(SOC_ADC_ADCCON_CH_VDD_3, SOC_ADC_ADCCON_REF_INT,
+                    SOC_ADC_ADCCON_DIV_512);
+
+  if(type == CC2538_SENSORS_VALUE_TYPE_RAW) {
+    return raw;
+  } else if(type == CC2538_SENSORS_VALUE_TYPE_CONVERTED) {
+    return raw * (3 * 1190) / (2047 << 4);
+  }
+
+  return CC2538_SENSORS_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int value)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(vdd3_sensor, VDD3_SENSOR, value, configure, status);
+/*---------------------------------------------------------------------------*/
 /** @} */
-
-extern const struct sensors_sensor adc_sensor;
-
-#endif /* ADC_SENSOR_H_ */
-
-/**
- * @}
- * @}
- */

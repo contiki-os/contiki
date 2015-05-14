@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2015, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2015, University of Bristol - http://www.bristol.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,31 +29,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc2538-smartrf
- * @{
- *
- * \defgroup cc2538-smartrf-sensors SmartRF06EB Sensors
- *
- * Generic module controlling sensors on the SmartRF06EB
+ * \addtogroup cc2538-temp-sensor
  * @{
  *
  * \file
- * Implementation of a generic module controlling SmartRF06EB sensors
+ *  Driver for the CC2538 On-Chip temperature sensor
  */
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
-#include "dev/button-sensor.h"
-#include "dev/als-sensor.h"
+#include "lib/sensors.h"
+#include "dev/adc.h"
 #include "dev/cc2538-sensors.h"
 
-#include <string.h>
+#include <stdint.h>
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
+{
+  int raw = adc_get(SOC_ADC_ADCCON_CH_TEMP, SOC_ADC_ADCCON_REF_INT,
+                    SOC_ADC_ADCCON_DIV_512);
 
-/** \brief Exports a global symbol to be used by the sensor API */
-SENSORS(&button_select_sensor, &button_left_sensor, &button_right_sensor,
-        &button_up_sensor, &button_down_sensor, &als_sensor,
-        &cc2538_temp_sensor, &vdd3_sensor);
+  if(type == CC2538_SENSORS_VALUE_TYPE_RAW) {
+    return raw;
+  } else if(type == CC2538_SENSORS_VALUE_TYPE_CONVERTED) {
+    return 25000 + ((raw >> 4) - 1422) * 10000 / 42;
+  }
 
-/**
- * @}
- * @}
- */
+  return CC2538_SENSORS_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int value)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(cc2538_temp_sensor, TEMP_SENSOR, value, configure, status);
+/*---------------------------------------------------------------------------*/
+/** @} */

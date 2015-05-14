@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2015, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2015, University of Bristol - http://www.bristol.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,30 +29,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc2538-smartrf
+ * \addtogroup cc2538-sensors
  * @{
  *
- * \defgroup cc2538-smartrf-sensors SmartRF06EB Sensors
+ * \defgroup cc2538-vdd3-sensor CC2538 VDD3 Sensor
  *
- * Generic module controlling sensors on the SmartRF06EB
+ * Driver for the CC2538 VDD3 sensor
+ *
+ * This driver can return the raw as well as the converted value of the sensor
+ * reading. This is controlled by the type argument of the sensor driver's
+ * value() function. The choices for the type argument are:
+ * - REMOTE_SENSORS_VALUE_TYPE_RAW (value() returns the raw reading)
+ * - REMOTE_SENSORS_VALUE_TYPE_CONVERTED (value() returns mV)
  * @{
  *
  * \file
- * Implementation of a generic module controlling SmartRF06EB sensors
+ * Header file for the CC2538 VDD3 Sensor Driver
  */
-#include "contiki.h"
-#include "dev/button-sensor.h"
-#include "dev/als-sensor.h"
-#include "dev/cc2538-sensors.h"
-
-#include <string.h>
-
-/** \brief Exports a global symbol to be used by the sensor API */
-SENSORS(&button_select_sensor, &button_left_sensor, &button_right_sensor,
-        &button_up_sensor, &button_down_sensor, &als_sensor,
-        &cc2538_temp_sensor, &vdd3_sensor);
-
+/*---------------------------------------------------------------------------*/
+#ifndef VDD3_SENSOR_H_
+#define VDD3_SENSOR_H_
+/*---------------------------------------------------------------------------*/
+#include "lib/sensors.h"
+/*---------------------------------------------------------------------------*/
+/**
+ * \name VDD3 sensors
+ * @{
+ */
+#define VDD3_SENSOR "VDD3"
+/** @} */
+/*---------------------------------------------------------------------------*/
+extern const struct sensors_sensor vdd3_sensor;
+/*---------------------------------------------------------------------------*/
+#endif /* VDD3_SENSOR_H_ */
+/*---------------------------------------------------------------------------*/
 /**
  * @}
  * @}
