@@ -43,6 +43,7 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
+#include "dev/adc.h"
 #include "dev/leds.h"
 #include "dev/sys-ctrl.h"
 #include "dev/scb.h"
@@ -207,6 +208,8 @@ main(void)
   queuebuf_init();
   process_start(&tcpip_process, NULL);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
+
+  adc_init();
 
   process_start(&sensors_process, NULL);
 

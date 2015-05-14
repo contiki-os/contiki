@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
+ * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,28 +30,32 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538-smartrf
+ * \addtogroup cc2538-smartrf-sensors
  * @{
  *
- * \defgroup cc2538-smartrf-sensors SmartRF06EB Sensors
+ * \defgroup cc2538dk-als-sensor cc2538dk ALS Driver
  *
- * Generic module controlling sensors on the SmartRF06EB
+ * Driver for the SmartRF06EB ALS sensor
  * @{
  *
  * \file
- * Implementation of a generic module controlling SmartRF06EB sensors
+ * Header file for the cc2538dk ALS Driver
  */
-#include "contiki.h"
-#include "dev/button-sensor.h"
-#include "dev/als-sensor.h"
-#include "dev/cc2538-sensors.h"
+#ifndef ALS_SENSOR_H_
+#define ALS_SENSOR_H_
 
-#include <string.h>
+#include "lib/sensors.h"
 
-/** \brief Exports a global symbol to be used by the sensor API */
-SENSORS(&button_select_sensor, &button_left_sensor, &button_right_sensor,
-        &button_up_sensor, &button_down_sensor, &als_sensor,
-        &cc2538_temp_sensor, &vdd3_sensor);
+/*---------------------------------------------------------------------------*/
+/** \name ALS sensor
+ * @{
+ */
+#define ALS_SENSOR "ALS"
+/** @} */
+
+extern const struct sensors_sensor als_sensor;
+
+#endif /* ALS_SENSOR_H_ */
 
 /**
  * @}
