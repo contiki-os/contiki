@@ -49,6 +49,7 @@ CONTIKI_CPU_DIRS += ../cc253x/usb/common ../cc253x/usb/common/cdc-acm
 ### CPU-dependent source files
 CONTIKI_CPU_SOURCEFILES += clock.c rtimer-arch.c uart.c watchdog.c
 CONTIKI_CPU_SOURCEFILES += nvic.c cpu.c sys-ctrl.c gpio.c ioc.c spi.c adc.c
+CONTIKI_CPU_SOURCEFILES += crypto.c ccm.c sha256.c
 CONTIKI_CPU_SOURCEFILES += cc2538-rf.c udma.c lpm.c
 CONTIKI_CPU_SOURCEFILES += dbg.c ieee-addr.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c
