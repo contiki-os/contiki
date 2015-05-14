@@ -69,6 +69,7 @@ To use the port you need:
     [...]
     gcc version 4.9.3 20141119 (release) [ARM/embedded-4_9-branch revision 218278] (GNU Tools for ARM Embedded Processors)
 
+* srecord (http://srecord.sourceforge.net/)
 * You may also need other drivers so that the SmartRF can communicate with your
 operating system and so that you can use the chip's UART for I/O. Please read
 the section ["Drivers" in the CC2538DK readme](https://github.com/contiki-os/contiki/tree/master/platform/cc2538dk#drivers).
