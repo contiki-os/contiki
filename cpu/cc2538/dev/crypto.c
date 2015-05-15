@@ -36,14 +36,54 @@
  * Implementation of the cc2538 AES/SHA cryptoprocessor driver
  */
 #include "contiki.h"
+#include "sys/energest.h"
 #include "dev/sys-ctrl.h"
+#include "dev/nvic.h"
 #include "dev/crypto.h"
+#include "dev/aes.h"
 #include "reg.h"
+#include "lpm.h"
+
+#include <stdbool.h>
+/*---------------------------------------------------------------------------*/
+static volatile struct process *notification_process = NULL;
+/*---------------------------------------------------------------------------*/
+/** \brief The AES/SHA cryptoprocessor ISR
+ *
+ *        This is the interrupt service routine for the AES/SHA
+ *        cryptoprocessor.
+ *
+ *        This ISR is called at worst from PM0, so lpm_exit() does not need
+ *        to be called.
+ */
+void
+crypto_isr(void)
+{
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  nvic_interrupt_unpend(NVIC_INT_AES);
+  nvic_interrupt_disable(NVIC_INT_AES);
+
+  if(notification_process != NULL) {
+    process_poll((struct process *)notification_process);
+    notification_process = NULL;
+  }
+
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+/*---------------------------------------------------------------------------*/
+static bool
+permit_pm1(void)
+{
+  return REG(AES_CTRL_ALG_SEL) == 0;
+}
 /*---------------------------------------------------------------------------*/
 void
 crypto_init(void)
 {
   volatile int i;
+
+  lpm_register_peripheral(permit_pm1);
 
   crypto_enable();
 
@@ -69,6 +109,12 @@ crypto_disable(void)
   REG(SYS_CTRL_RCGCSEC) &= ~SYS_CTRL_RCGCSEC_AES;
   REG(SYS_CTRL_SCGCSEC) &= ~SYS_CTRL_SCGCSEC_AES;
   REG(SYS_CTRL_DCGCSEC) &= ~SYS_CTRL_DCGCSEC_AES;
+}
+/*---------------------------------------------------------------------------*/
+void
+crypto_register_process_notification(struct process *p)
+{
+  notification_process = p;
 }
 
 /** @} */

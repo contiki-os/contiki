@@ -43,6 +43,7 @@
 #include "contiki.h"
 #include "sys/cc.h"
 #include "dev/rom-util.h"
+#include "dev/nvic.h"
 #include "dev/ccm.h"
 #include "reg.h"
 
@@ -52,9 +53,14 @@
 uint8_t
 ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
                        const void *adata, uint16_t adata_len, void *pdata,
-                       uint16_t pdata_len, uint8_t mic_len)
+                       uint16_t pdata_len, uint8_t mic_len,
+                       struct process *process)
 {
   uint32_t iv[4];
+
+  if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
+    return CRYPTO_RESOURCE_IN_USE;
+  }
 
   /* Workaround for AES registers not retained after PM2 */
   REG(AES_CTRL_INT_CFG) = AES_CTRL_INT_CFG_LEVEL;
@@ -74,6 +80,8 @@ ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
   if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_KEY_ST_RD_ERR) {
     /* Clear the Keystore Read error bit */
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_KEY_ST_RD_ERR;
+    /* Disable the master control / DMA clock */
+    REG(AES_CTRL_ALG_SEL) = 0x00000000;
     return AES_KEYSTORE_READ_ERROR;
   }
 
@@ -125,6 +133,8 @@ ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
     if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
       /* Clear the DMA error */
       REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
+      /* Disable the master control / DMA clock */
+      REG(AES_CTRL_ALG_SEL) = 0x00000000;
       return CRYPTO_DMA_BUS_ERROR;
     }
   }
@@ -132,6 +142,12 @@ ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
   /* Clear interrupt status */
   REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_IN_DONE |
                           AES_CTRL_INT_CLR_RESULT_AV;
+
+  if(process != NULL) {
+    crypto_register_process_notification(process);
+    nvic_interrupt_unpend(NVIC_INT_AES);
+    nvic_interrupt_enable(NVIC_INT_AES);
+  }
 
   /* Enable result available bit in interrupt enable */
   REG(AES_CTRL_INT_EN) = AES_CTRL_INT_EN_RESULT_AV;
@@ -167,26 +183,30 @@ ccm_auth_encrypt_check_status(void)
 uint8_t
 ccm_auth_encrypt_get_result(void *mic, uint8_t mic_len)
 {
+  uint32_t aes_ctrl_int_stat;
   uint32_t tag[4];
 
-  if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
-    /* Clear the DMA error bit */
-    REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
-    return CRYPTO_DMA_BUS_ERROR;
-  }
-  if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_KEY_ST_WR_ERR) {
-    /* Clear the Key Store Write error bit */
-    REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_KEY_ST_WR_ERR;
-    return AES_KEYSTORE_WRITE_ERROR;
-  }
-  if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_KEY_ST_RD_ERR) {
-    /* Clear the Key Store Read error bit */
-    REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_KEY_ST_RD_ERR;
-    return AES_KEYSTORE_READ_ERROR;
-  }
+  aes_ctrl_int_stat = REG(AES_CTRL_INT_STAT);
+  /* Clear the error bits */
+  REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR |
+                          AES_CTRL_INT_CLR_KEY_ST_WR_ERR |
+                          AES_CTRL_INT_CLR_KEY_ST_RD_ERR;
+
+  nvic_interrupt_disable(NVIC_INT_AES);
+  crypto_register_process_notification(NULL);
 
   /* Disable the master control / DMA clock */
   REG(AES_CTRL_ALG_SEL) = 0x00000000;
+
+  if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
+    return CRYPTO_DMA_BUS_ERROR;
+  }
+  if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_KEY_ST_WR_ERR) {
+    return AES_KEYSTORE_WRITE_ERROR;
+  }
+  if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_KEY_ST_RD_ERR) {
+    return AES_KEYSTORE_READ_ERROR;
+  }
 
   /* Read tag
    * Wait for the context ready bit */
@@ -211,10 +231,15 @@ ccm_auth_encrypt_get_result(void *mic, uint8_t mic_len)
 uint8_t
 ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
                        const void *adata, uint16_t adata_len, void *cdata,
-                       uint16_t cdata_len, uint8_t mic_len)
+                       uint16_t cdata_len, uint8_t mic_len,
+                       struct process *process)
 {
   uint16_t pdata_len = cdata_len - mic_len;
   uint32_t iv[4];
+
+  if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
+    return CRYPTO_RESOURCE_IN_USE;
+  }
 
   /* Workaround for AES registers not retained after PM2 */
   REG(AES_CTRL_INT_CFG) = AES_CTRL_INT_CFG_LEVEL;
@@ -234,6 +259,8 @@ ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
   if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_KEY_ST_RD_ERR) {
     /* Clear the Keystore Read error bit */
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_KEY_ST_RD_ERR;
+    /* Disable the master control / DMA clock */
+    REG(AES_CTRL_ALG_SEL) = 0x00000000;
     return AES_KEYSTORE_READ_ERROR;
   }
 
@@ -284,6 +311,8 @@ ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
     if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
       /* Clear the DMA error */
       REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
+      /* Disable the master control / DMA clock */
+      REG(AES_CTRL_ALG_SEL) = 0x00000000;
       return CRYPTO_DMA_BUS_ERROR;
     }
   }
@@ -291,6 +320,12 @@ ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
   /* Clear interrupt status */
   REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_IN_DONE |
                           AES_CTRL_INT_CLR_RESULT_AV;
+
+  if(process != NULL) {
+    crypto_register_process_notification(process);
+    nvic_interrupt_unpend(NVIC_INT_AES);
+    nvic_interrupt_enable(NVIC_INT_AES);
+  }
 
   /* Enable result available bit in interrupt enable */
   REG(AES_CTRL_INT_EN) = AES_CTRL_INT_EN_RESULT_AV;
@@ -326,27 +361,31 @@ uint8_t
 ccm_auth_decrypt_get_result(const void *cdata, uint16_t cdata_len,
                             void *mic, uint8_t mic_len)
 {
+  uint32_t aes_ctrl_int_stat;
   uint16_t pdata_len = cdata_len - mic_len;
   uint32_t tag[4];
 
-  if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
-    /* Clear the DMA error */
-    REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
-    return CRYPTO_DMA_BUS_ERROR;
-  }
-  if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_KEY_ST_WR_ERR) {
-    /* Clear the Key Store Write error bit */
-    REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_KEY_ST_WR_ERR;
-    return AES_KEYSTORE_WRITE_ERROR;
-  }
-  if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_KEY_ST_RD_ERR) {
-    /* Clear the Key Store Read error bit */
-    REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_KEY_ST_RD_ERR;
-    return AES_KEYSTORE_READ_ERROR;
-  }
+  aes_ctrl_int_stat = REG(AES_CTRL_INT_STAT);
+  /* Clear the error bits */
+  REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR |
+                          AES_CTRL_INT_CLR_KEY_ST_WR_ERR |
+                          AES_CTRL_INT_CLR_KEY_ST_RD_ERR;
+
+  nvic_interrupt_disable(NVIC_INT_AES);
+  crypto_register_process_notification(NULL);
 
   /* Disable the master control / DMA clock */
   REG(AES_CTRL_ALG_SEL) = 0x00000000;
+
+  if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
+    return CRYPTO_DMA_BUS_ERROR;
+  }
+  if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_KEY_ST_WR_ERR) {
+    return AES_KEYSTORE_WRITE_ERROR;
+  }
+  if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_KEY_ST_RD_ERR) {
+    return AES_KEYSTORE_READ_ERROR;
+  }
 
   /* Read tag
    * Wait for the context ready bit */

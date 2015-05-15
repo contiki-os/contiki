@@ -462,8 +462,8 @@
 /** \name AES drivers return codes
  * @{
  */
-#define AES_KEYSTORE_READ_ERROR       4
-#define AES_KEYSTORE_WRITE_ERROR      5
+#define AES_KEYSTORE_READ_ERROR       5
+#define AES_KEYSTORE_WRITE_ERROR      6
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name AES functions

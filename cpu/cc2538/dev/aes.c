@@ -52,6 +52,10 @@ aes_load_key(const void *key, uint8_t key_area)
 {
   uint32_t aligned_key[4];
 
+  if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
+    return CRYPTO_RESOURCE_IN_USE;
+  }
+
   /* The key address needs to be 4-byte aligned */
   rom_util_memcpy(aligned_key, key, sizeof(aligned_key));
 
@@ -93,10 +97,14 @@ aes_load_key(const void *key, uint8_t key_area)
   /* Check for absence of errors in DMA and key store */
   if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
+    /* Disable master control / DMA clock */
+    REG(AES_CTRL_ALG_SEL) = 0x00000000;
     return CRYPTO_DMA_BUS_ERROR;
   }
   if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_KEY_ST_WR_ERR) {
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_KEY_ST_WR_ERR;
+    /* Disable master control / DMA clock */
+    REG(AES_CTRL_ALG_SEL) = 0x00000000;
     return AES_KEYSTORE_WRITE_ERROR;
   }
 

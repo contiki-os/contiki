@@ -57,7 +57,7 @@
 /** \name AES-CCM driver return codes
  * @{
  */
-#define CCM_AUTHENTICATION_FAILED     6
+#define CCM_AUTHENTICATION_FAILED     7
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name AES-CCM functions
@@ -73,12 +73,14 @@
  * \param pdata Pointer to message to authenticate and encrypt, or \c NULL
  * \param pdata_len Length of message to authenticate and encrypt in octets, or \c 0
  * \param mic_len Number of octets in authentication field (even value between 0 and 16)
+ * \param process Process to be polled upon completion of the operation, or \c NULL
  * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES/CCM error code
  */
 uint8_t ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area,
                                const void *nonce, const void *adata,
                                uint16_t adata_len, void *pdata,
-                               uint16_t pdata_len, uint8_t mic_len);
+                               uint16_t pdata_len, uint8_t mic_len,
+                               struct process *process);
 
 /** \brief Checks the status of the CCM authentication and encryption operation
  * \retval false Result not yet available, and no error occurred
@@ -103,12 +105,14 @@ uint8_t ccm_auth_encrypt_get_result(void *mic, uint8_t mic_len);
  * \param cdata Pointer to encrypted and authenticated message
  * \param cdata_len Length of encrypted and authenticated message in octets
  * \param mic_len Number of octets in authentication field (even value between 0 and 16)
+ * \param process Process to be polled upon completion of the operation, or \c NULL
  * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES/CCM error code
  */
 uint8_t ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area,
                                const void *nonce, const void *adata,
                                uint16_t adata_len, void *cdata,
-                               uint16_t cdata_len, uint8_t mic_len);
+                               uint16_t cdata_len, uint8_t mic_len,
+                               struct process *process);
 
 /** \brief Checks the status of the CCM authentication checking and decryption operation
  * \retval false Result not yet available, and no error occurred
