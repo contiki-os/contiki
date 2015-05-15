@@ -44,6 +44,7 @@ In terms of hardware support, the following drivers have been implemented:
     * Low Power Modes
     * General-Purpose Timers. NB: GPT0 is in use by the platform code, the remaining GPTs are available for application development.
     * ADC
+    * Cryptoprocessor (AES-CCM-128, SHA-256)
     * LEDs
     * Buttons
     * Internal/external 2.4GHz antenna switch controllable by SW.
