@@ -143,11 +143,11 @@ AUTOSTART_PROCESSES(&cc26xx_demo_process);
 #define SENSOR_READING_PERIOD (CLOCK_SECOND * 20)
 #define SENSOR_READING_RANDOM (CLOCK_SECOND << 4)
 
-static struct ctimer bmp_timer, opt_timer, sht_timer, tmp_timer, mpu_timer;
+static struct ctimer bmp_timer, opt_timer, hdc_timer, tmp_timer, mpu_timer;
 /*---------------------------------------------------------------------------*/
 static void init_bmp_reading(void *not_used);
 static void init_opt_reading(void *not_used);
-static void init_sht_reading(void *not_used);
+static void init_hdc_reading(void *not_used);
 static void init_tmp_reading(void *not_used);
 static void init_mpu_reading(void *not_used);
 /*---------------------------------------------------------------------------*/
@@ -214,27 +214,27 @@ get_tmp_reading()
 }
 /*---------------------------------------------------------------------------*/
 static void
-get_sht_reading()
+get_hdc_reading()
 {
   int value;
   clock_time_t next = SENSOR_READING_PERIOD +
     (random_rand() % SENSOR_READING_RANDOM);
 
-  value = sht_21_sensor.value(SHT_21_SENSOR_TYPE_TEMP);
+  value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_TEMP);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("SHT: Temp=%d.%02d C\n", value / 100, value % 100);
+    printf("HDC: Temp=%d.%02d C\n", value / 100, value % 100);
   } else {
-    printf("SHT: Temp Read Error\n");
+    printf("HDC: Temp Read Error\n");
   }
 
-  value = sht_21_sensor.value(SHT_21_SENSOR_TYPE_HUMIDITY);
+  value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("SHT: Humidity=%d.%02d %%RH\n", value / 100, value % 100);
+    printf("HDC: Humidity=%d.%02d %%RH\n", value / 100, value % 100);
   } else {
-    printf("SHT: Humidity Read Error\n");
+    printf("HDC: Humidity Read Error\n");
   }
 
-  ctimer_set(&sht_timer, next, init_sht_reading, NULL);
+  ctimer_set(&hdc_timer, next, init_hdc_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -311,9 +311,9 @@ init_opt_reading(void *not_used)
 }
 /*---------------------------------------------------------------------------*/
 static void
-init_sht_reading(void *not_used)
+init_hdc_reading(void *not_used)
 {
-  SENSORS_ACTIVATE(sht_21_sensor);
+  SENSORS_ACTIVATE(hdc_1000_sensor);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -360,7 +360,7 @@ static void
 init_sensor_readings(void)
 {
 #if BOARD_SENSORTAG
-  SENSORS_ACTIVATE(sht_21_sensor);
+  SENSORS_ACTIVATE(hdc_1000_sensor);
   SENSORS_ACTIVATE(tmp_007_sensor);
   SENSORS_ACTIVATE(opt_3001_sensor);
   SENSORS_ACTIVATE(bmp_280_sensor);
@@ -450,8 +450,8 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
         get_bmp_reading();
       } else if(ev == sensors_event && data == &opt_3001_sensor) {
         get_light_reading();
-      } else if(ev == sensors_event && data == &sht_21_sensor) {
-        get_sht_reading();
+      } else if(ev == sensors_event && data == &hdc_1000_sensor) {
+        get_hdc_reading();
       } else if(ev == sensors_event && data == &tmp_007_sensor) {
         get_tmp_reading();
       } else if(ev == sensors_event && data == &mpu_9250_sensor) {
