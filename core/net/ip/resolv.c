@@ -364,7 +364,7 @@ decode_name(const unsigned char *query, char *dest,
   //DEBUG_PRINTF("resolver: decoding name: \"");
 
   while(len && n) {
-    if(n & 0xc0) {
+    if((n & 0xc0) == 0xc0) {
       const uint16_t offset = query[0] + ((n & ~0xC0) << 8);
 
       //DEBUG_PRINTF("<skip-to-%d>",offset);
@@ -412,7 +412,7 @@ dns_name_isequal(const unsigned char *queryptr, const char *name,
     return 0;
 
   while(n) {
-    if(n & 0xc0) {
+    if((n & 0xc0) == 0xc0) {
       queryptr = packet + queryptr[0] + ((n & ~0xC0) << 8);
       n = *queryptr++;
     }
@@ -452,7 +452,7 @@ skip_name(unsigned char *query)
 
   do {
     n = *query;
-    if(n & 0xc0) {
+    if((n & 0xc0) == 0xc0) {
       DEBUG_PRINTF("<skip-to-%d>", query[0] + ((n & ~0xC0) << 8));
       ++query;
       break;
