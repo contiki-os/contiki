@@ -81,7 +81,7 @@ oscillators_select_lf_xosc(void)
     ti_lib_osc_clock_source_set(OSC_SRC_CLK_LF, OSC_XOSC_LF);
 
     /* Wait for LF clock source to become XOSC_LF */
-    while(ti_lib_osc_clock_source_get(OSC_SRC_CLK_LF) != OSC_XOSC_LF) ;
+    while(ti_lib_osc_clock_source_get(OSC_SRC_CLK_LF) != OSC_XOSC_LF);
 
     /* Disable the LF clock qualifiers */
     ti_lib_ddi_16_bit_field_write(AUX_DDI0_OSC_BASE, DDI_0_OSC_O_CTL0,
@@ -106,7 +106,7 @@ oscillators_select_lf_rcosc(void)
     ti_lib_osc_clock_source_set(OSC_SRC_CLK_LF, OSC_RCOSC_LF);
 
     /* Wait for LF clock source to become XOSC_LF */
-    while(ti_lib_osc_clock_source_get(OSC_SRC_CLK_LF) != OSC_RCOSC_LF) ;
+    while(ti_lib_osc_clock_source_get(OSC_SRC_CLK_LF) != OSC_RCOSC_LF);
   }
 
   /* Restore the SMPH clock and disable the OSC interface */
