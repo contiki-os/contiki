@@ -13,7 +13,9 @@ button_press(void)
 static int
 value(int type)
 {
-  return 0;
+  static int v = 0;
+  v = !v;
+  return v;
 }
 /*---------------------------------------------------------------------------*/
 static int
