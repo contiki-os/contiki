@@ -95,7 +95,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
   PRINTF("UDP server started\n");
 
 #if RESOLV_CONF_SUPPORTS_MDNS
-  resolv_set_hostname("con-serv");
+  resolv_set_hostname("cus");
 
 #if RESOLV_CONF_SUPPORTS_DNS_SD
   resolv_add_service("_server._udp", "status=avail", 3000);
