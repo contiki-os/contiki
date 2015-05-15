@@ -128,12 +128,6 @@
 
 #define UIP_CONF_UDP                				1
 
-#if (WITH_COAP==7) || (WITH_COAP==6) || (WITH_COAP==3)
-#define UIP_CONF_TCP						0
-#else
-#define UIP_CONF_TCP						1
-#endif /* WITH_COAP */
-
 #define UIP_CONF_ROUTER						1
 #define UIP_CONF_ND6_SEND_RA					0
 
