@@ -68,7 +68,7 @@ PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
 struct ctimer batmon_timer;
 
 #if BOARD_SENSORTAG
-struct ctimer bmp_timer, sht_timer, tmp_timer, opt_timer, mpu_timer;
+struct ctimer bmp_timer, hdc_timer, tmp_timer, opt_timer, mpu_timer;
 #endif
 /*---------------------------------------------------------------------------*/
 /* Provide visible feedback via LEDS while searching for a network */
@@ -111,11 +111,11 @@ DEMO_SENSOR(bmp_pres, CC26XX_WEB_DEMO_SENSOR_BMP_PRES,
 DEMO_SENSOR(bmp_temp, CC26XX_WEB_DEMO_SENSOR_BMP_TEMP,
             "Air Temp", "air-temp", "bmp_temp",
             CC26XX_WEB_DEMO_UNIT_TEMP);
-DEMO_SENSOR(sht_temp, CC26XX_WEB_DEMO_SENSOR_SHT_TEMP,
-            "SHT Temp", "sht-temp", "sht_temp",
+DEMO_SENSOR(hdc_temp, CC26XX_WEB_DEMO_SENSOR_HDC_TEMP,
+            "HDC Temp", "hdc-temp", "hdc_temp",
             CC26XX_WEB_DEMO_UNIT_TEMP);
-DEMO_SENSOR(sht_hum, CC26XX_WEB_DEMO_SENSOR_SHT_HUMIDITY,
-            "SHT Humidity", "sht-humidity", "sht_hum",
+DEMO_SENSOR(hdc_hum, CC26XX_WEB_DEMO_SENSOR_HDC_HUMIDITY,
+            "HDC Humidity", "hdc-humidity", "hdc_hum",
             CC26XX_WEB_DEMO_UNIT_HUMIDITY);
 DEMO_SENSOR(tmp_amb, CC26XX_WEB_DEMO_SENSOR_TMP_AMBIENT,
             "Ambient Temp", "ambient-temp", "tmp_amb",
@@ -152,7 +152,7 @@ DEMO_SENSOR(mpu_gyro_z, CC26XX_WEB_DEMO_SENSOR_MPU_GYRO_Z,
 #if BOARD_SENSORTAG
 static void init_bmp_reading(void *data);
 static void init_light_reading(void *data);
-static void init_sht_reading(void *data);
+static void init_hdc_reading(void *data);
 static void init_tmp_reading(void *data);
 static void init_mpu_reading(void *data);
 #endif
@@ -526,42 +526,42 @@ get_tmp_reading()
 }
 /*---------------------------------------------------------------------------*/
 static void
-get_sht_reading()
+get_hdc_reading()
 {
   int value;
   char *buf;
   clock_time_t next = SENSOR_READING_PERIOD +
     (random_rand() % SENSOR_READING_RANDOM);
 
-  if(sht_temp_reading.publish) {
-    value = sht_21_sensor.value(SHT_21_SENSOR_TYPE_TEMP);
+  if(hdc_temp_reading.publish) {
+    value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_TEMP);
     if(value != CC26XX_SENSOR_READING_ERROR) {
-      sht_temp_reading.raw = value;
+      hdc_temp_reading.raw = value;
 
-      compare_and_update(&sht_temp_reading);
+      compare_and_update(&hdc_temp_reading);
 
-      buf = sht_temp_reading.converted;
+      buf = hdc_temp_reading.converted;
       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
       snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
                value % 100);
     }
   }
 
-  if(sht_hum_reading.publish) {
-    value = sht_21_sensor.value(SHT_21_SENSOR_TYPE_HUMIDITY);
+  if(hdc_hum_reading.publish) {
+    value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
     if(value != CC26XX_SENSOR_READING_ERROR) {
-      sht_hum_reading.raw = value;
+      hdc_hum_reading.raw = value;
 
-      compare_and_update(&sht_hum_reading);
+      compare_and_update(&hdc_hum_reading);
 
-      buf = sht_hum_reading.converted;
+      buf = hdc_hum_reading.converted;
       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
       snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
                value % 100);
     }
   }
 
-  ctimer_set(&sht_timer, next, init_sht_reading, NULL);
+  ctimer_set(&hdc_timer, next, init_hdc_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -702,12 +702,12 @@ init_bmp_reading(void *data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-init_sht_reading(void *data)
+init_hdc_reading(void *data)
 {
-  if(sht_hum_reading.publish || sht_temp_reading.publish) {
-    SENSORS_ACTIVATE(sht_21_sensor);
+  if(hdc_hum_reading.publish || hdc_temp_reading.publish) {
+    SENSORS_ACTIVATE(hdc_1000_sensor);
   } else {
-    ctimer_set(&sht_timer, CLOCK_SECOND, init_sht_reading, NULL);
+    ctimer_set(&hdc_timer, CLOCK_SECOND, init_hdc_reading, NULL);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -756,7 +756,7 @@ init_sensor_readings(void)
 #if BOARD_SENSORTAG
   init_bmp_reading(NULL);
   init_light_reading(NULL);
-  init_sht_reading(NULL);
+  init_hdc_reading(NULL);
   init_tmp_reading(NULL);
   init_mpu_reading(NULL);
 #endif /* BOARD_SENSORTAG */
@@ -781,8 +781,8 @@ init_sensors(void)
 
   list_add(sensor_list, &opt_reading);
 
-  list_add(sensor_list, &sht_hum_reading);
-  list_add(sensor_list, &sht_temp_reading);
+  list_add(sensor_list, &hdc_hum_reading);
+  list_add(sensor_list, &hdc_temp_reading);
 
   list_add(sensor_list, &mpu_acc_x_reading);
   list_add(sensor_list, &mpu_acc_y_reading);
@@ -873,8 +873,8 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
       get_bmp_reading();
     } else if(ev == sensors_event && data == &opt_3001_sensor) {
       get_light_reading();
-    } else if(ev == sensors_event && data == &sht_21_sensor) {
-      get_sht_reading();
+    } else if(ev == sensors_event && data == &hdc_1000_sensor) {
+      get_hdc_reading();
     } else if(ev == sensors_event && data == &tmp_007_sensor) {
       get_tmp_reading();
     } else if(ev == sensors_event && data == &mpu_9250_sensor) {
