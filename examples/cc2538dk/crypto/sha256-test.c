@@ -68,6 +68,7 @@ PROCESS_THREAD(sha256_test_process, ev, data)
     "success",
     "invalid param",
     "NULL error",
+    "resource in use",
     "DMA bus error"
   };
   static const struct {

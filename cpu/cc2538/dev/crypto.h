@@ -51,7 +51,8 @@
 #define CRYPTO_SUCCESS                0
 #define CRYPTO_INVALID_PARAM          1
 #define CRYPTO_NULL_ERROR             2
-#define CRYPTO_DMA_BUS_ERROR          3
+#define CRYPTO_RESOURCE_IN_USE        3
+#define CRYPTO_DMA_BUS_ERROR          4
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name Crypto functions
@@ -70,6 +71,13 @@ void crypto_enable(void);
  * \note Call this function to save power when the cryptoprocessor is unused.
  */
 void crypto_disable(void);
+
+/** \brief Registers a process to be notified of the completion of a crypto
+ * operation
+ * \param p Process to be polled upon IRQ
+ * \note This function is only supposed to be called by the crypto drivers.
+ */
+void crypto_register_process_notification(struct process *p);
 
 /** @} */
 
