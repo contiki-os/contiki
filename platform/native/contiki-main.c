@@ -242,6 +242,8 @@ main(int argc, char **argv)
 
   serial_line_init();
 
+  process_start(&sensors_process, NULL);
+
   autostart_start(autostart_processes);
 
   /* Make standard output unbuffered. */
