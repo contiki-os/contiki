@@ -76,7 +76,7 @@ The toolchain used to build contiki is arm-gcc, also used by other arm-based Con
 
 The platform is currently being used/tested with "GNU Tools for ARM Embedded Processors". This is the recommended version and the one being used by Contiki's regression tests on Travis. <https://launchpad.net/gcc-arm-embedded>
 
-The older version (Sourcery G++ Lite 2008q3-66) shown above should still work, but the port is no longer being tested with it.
+The older version (Sourcery G++ Lite 2008q3-66) shown above should still work, but the port is no longer being tested with it. <http://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi>
 
 Drivers
 -------
