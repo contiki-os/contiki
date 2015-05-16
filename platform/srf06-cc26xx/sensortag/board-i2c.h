@@ -48,13 +48,15 @@
 #define BOARD_I2C_INTERFACE_0     0
 #define BOARD_I2C_INTERFACE_1     1
 /*---------------------------------------------------------------------------*/
-#define board_i2c_deselect(...)
-/*---------------------------------------------------------------------------*/
 /**
- * \brief Initialise the I2C controller with defaults for the sensortag
+ * \brief Put the I2C controller in a known state
+ *
+ * In this state, pins SDA and SCL will be under i2c control and pins SDA HP
+ * and SCL HP will be configured as gpio inputs. This is equal to selecting
+ * BOARD_I2C_INTERFACE_0, but without selecting a slave device address
  */
-void board_i2c_init(void);
-
+#define board_i2c_deselect() board_i2c_select(BOARD_I2C_INTERFACE_0, 0)
+/*---------------------------------------------------------------------------*/
 /**
  * \brief Select an I2C slave
  * \param interface The I2C interface to be used (BOARD_I2C_INTERFACE_0 or _1)
@@ -99,6 +101,27 @@ bool board_i2c_write_single(uint8_t data);
  */
 bool board_i2c_write_read(uint8_t *wdata, uint8_t wlen, uint8_t *rdata,
                           uint8_t rlen);
+
+/**
+ * \brief Enables the I2C peripheral with defaults
+ *
+ * This function is called to wakeup and initialise the I2C.
+ *
+ * This function can be called explicitly, but it will also be called
+ * automatically by board_i2c_select() when required. One of those two
+ * functions MUST be called before any other I2C operation after a chip
+ * sleep / wakeup cycle or after a call to board_i2c_shutdown(). Failing to do
+ * so will lead to a bus fault.
+ */
+void board_i2c_wakeup(void);
+
+/**
+ * \brief Stops the I2C peripheral and restores pins to s/w control
+ *
+ * This function is called automatically by the board's LPM logic, but it
+ * can also be called explicitly.
+ */
+void board_i2c_shutdown(void);
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_I2C_H_ */
 /*---------------------------------------------------------------------------*/

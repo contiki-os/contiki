@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2015, Texas Instruments Incorporated - http://www.ti.com/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,86 +29,71 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-cc26xx-peripherals
+ * \addtogroup cc26xx
  * @{
  *
- * \defgroup sensortag-cc26xx-ext-flash SensorTag 2.0 External Flash
+ * \defgroup cc26xx-oscillators CC26XX oscillator control
+ *
+ * Wrapper around those CC26xxware OSC functions that we need in Contiki.
+ *
+ * All CC26xxware OSC control requires access to the semaphore module within
+ * AUX. Thus, in addition to enabling the oscillator interface, we need to
+ * start the clock to SMPH and restore it to its previous state when we are
+ * done.
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx External Flash Driver
+ * Header file for the CC26XX oscillator control
  */
 /*---------------------------------------------------------------------------*/
-#ifndef EXT_FLASH_H_
-#define EXT_FLASH_H_
-/*---------------------------------------------------------------------------*/
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#ifndef OSCILLATORS_H_
+#define OSCILLATORS_H_
 /*---------------------------------------------------------------------------*/
 /**
- * \brief Initialize storage driver.
- * \return True when successful.
+ * \brief Set the LF clock source to be the LF XOSC
+ *
+ * This function is only called once as soon as the system starts.
+ *
+ * Do not switch the LF clock source to the RC OSC for normal system operation
+ * See CC26xx Errata (swrz058)
  */
-bool ext_flash_open(void);
+void oscillators_select_lf_xosc(void);
 
 /**
- * \brief Close the storage driver
+ * \brief Set the LF clock source to be the LF RCOSC
  *
- * This call will put the device in its lower power mode (power down).
+ * This function is only called once, when the systen transitions to a full
+ * shutdown
+ *
+ * Do not switch the LF clock source to the RC OSC for normal system operation
+ * See CC26xx Errata (swrz058)
  */
-void ext_flash_close(void);
+void oscillators_select_lf_rcosc(void);
 
 /**
- * \brief Read storage content
- * \param offset Address to read from
- * \param length Number of bytes to read
- * \param buf Buffer where to store the read bytes
- * \return True when successful.
+ * \brief Requests the HF XOSC as the source for the HF clock, but does not
+ * perform the actual switch.
  *
- * buf must be allocated by the caller
+ * This triggers the startup sequence of the HF XOSC and returns so the CPU
+ * can perform other tasks while the XOSC is starting.
+ *
+ * The XOSC is requested as the source for the HF as well as the MF clock.
  */
-bool ext_flash_read(size_t offset, size_t length, uint8_t *buf);
+void oscillators_request_hf_xosc(void);
 
 /**
- * \brief Erase storage sectors corresponding to the range.
- * \param offset Address to start erasing
- * \param length Number of bytes to erase
- * \return True when successful.
+ * \brief Performs the switch to the XOSC
  *
- * The erase operation will be sector-wise, therefore a call to this function
- * will generally start the erase procedure at an address lower than offset
+ * This function must be preceded by a call to oscillators_request_hf_xosc()
  */
-bool ext_flash_erase(size_t offset, size_t length);
+void oscillators_switch_to_hf_xosc(void);
 
 /**
- * \brief Write to storage sectors.
- * \param offset Address to write to
- * \param length Number of bytes to write
- * \param buf Buffer holding the bytes to be written
- *
- * \return True when successful.
+ * \brief Switches MF and HF clock source to be the HF RC OSC
  */
-bool ext_flash_write(size_t offset, size_t length, const uint8_t *buf);
-
-/**
- * \brief Test the flash (power on self-test)
- * \return True when successful.
- */
-bool ext_flash_test(void);
-
-/**
- * \brief Initialise the external flash
- *
- * This function will explicitly put the part in its lowest power mode
- * (power-down).
- *
- * In order to perform any operation, the caller must first wake the device
- * up by calling ext_flash_open()
- */
-void ext_flash_init(void);
+void oscillators_switch_to_hf_rc(void);
 /*---------------------------------------------------------------------------*/
-#endif /* EXT_FLASH_H_ */
+#endif /* OSCILLATORS_H_ */
 /*---------------------------------------------------------------------------*/
 /**
  * @}

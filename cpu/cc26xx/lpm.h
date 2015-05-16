@@ -49,17 +49,22 @@
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-#define LPM_MODE_SLEEP         PWRCTRL_ACTIVE
-#define LPM_MODE_DEEP_SLEEP    PWRCTRL_POWER_DOWN
-#define LPM_MODE_SHUTDOWN      PWRCTRL_SHUTDOWN
+#define LPM_MODE_SLEEP         1
+#define LPM_MODE_DEEP_SLEEP    2
+#define LPM_MODE_SHUTDOWN      3
 
 #define LPM_MODE_MAX_SUPPORTED LPM_MODE_DEEP_SLEEP
+/*---------------------------------------------------------------------------*/
+#define LPM_DOMAIN_NONE        0
+#define LPM_DOMAIN_SERIAL      PRCM_DOMAIN_SERIAL
+#define LPM_DOMAIN_PERIPH      PRCM_DOMAIN_PERIPH
 /*---------------------------------------------------------------------------*/
 typedef struct lpm_registered_module {
   struct lpm_registered_module *next;
   uint8_t (*request_max_pm)(void);
   void (*shutdown)(uint8_t mode);
   void (*wakeup)(void);
+  uint32_t domain_lock;
 } lpm_registered_module_t;
 /*---------------------------------------------------------------------------*/
 /**
@@ -78,46 +83,14 @@ typedef struct lpm_registered_module {
  *          woken up. This can be used to e.g. turn a peripheral back on. This
  *          function is in charge of turning power domains back on. This
  *          function will normally be called within an interrupt context.
+ * \param l Power domain locks, if any are required. The module can request
+ *          that the SERIAL or PERIPH PD be kept powered up at the transition
+ *          to deep sleep. This field can be a bitwise OR of LPM_DOMAIN_x, so
+ *          if required multiple domains can be kept powered.
  */
-#define LPM_MODULE(n, m, s, w) static lpm_registered_module_t n = \
-  { NULL, m, s, w }
+#define LPM_MODULE(n, m, s, w, l) static lpm_registered_module_t n = \
+  { NULL, m, s, w, l }
 /*---------------------------------------------------------------------------*/
-/**
- *
- * \brief Data type used to control whether a PD will get shut down when the
- * CM3 drops to deep sleep
- *
- * Modules using these facilities must allocate a variable of this type, but
- * they must not try to manipulate it directly. Instead, the respective
- * functions must be used
- *
- * \sa lpm_pd_lock_obtain(), lpm_pd_lock_release()
- */
-typedef struct lpm_power_domain_lock {
-  struct lpm_power_domain_lock *next;
-  uint32_t domains;
-} lpm_power_domain_lock_t;
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Prohibit a PD from turning off in standby mode
- * \param lock A pointer to a lpm_power_domain_lock_t
- * \param domains Bitwise OR from PRCM_DOMAIN_PERIPH, PRCM_DOMAIN_SERIAL
- *
- * The caller is responsible for allocating lpm_power_domain_lock_t
- *
- * Only the domains listed above can be locked / released, but a single lock
- * can be used for multiple domains
- */
-void lpm_pd_lock_obtain(lpm_power_domain_lock_t *lock, uint32_t domains);
-
-/**
- * \brief Permit a PD to turn off in standby mode
- * \param pd A pointer to a previously used lock
- *
- * \sa lpm_pd_lock_obtain()
- */
-void lpm_pd_lock_release(lpm_power_domain_lock_t *pd);
-
 /**
  * \brief Drop the cortex to sleep / deep sleep and shut down peripherals
  *
@@ -134,17 +107,11 @@ void lpm_sleep(void);
 /**
  * \brief Put the chip in shutdown power mode
  * \param wakeup_pin The GPIO pin which will wake us up. Must be IOID_0 etc...
+ * \param io_pull Pull configuration for the shutdown pin: IOC_NO_IOPULL,
+ *        IOC_IOPULL_UP or IOC_IOPULL_DOWN
+ * \param wake_on High or Low (IOC_WAKE_ON_LOW or IOC_WAKE_ON_HIGH)
  */
-void lpm_shutdown(uint32_t wakeup_pin);
-
-/**
- * \brief Wake up from sleep mode
- *
- * This function must be called at the start of any interrupt context which
- * may bring us out of sleep. Current interrupts do this already, but make sure
- * to do the same when adding new ISRs
- */
-void lpm_wake_up(void);
+void lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on);
 
 /**
  * \brief Register a module for LPM notifications.
@@ -160,9 +127,30 @@ void lpm_wake_up(void);
 void lpm_register_module(lpm_registered_module_t *module);
 
 /**
+ * \brief Unregister a module from LPM notifications.
+ * \param module A pointer to the data structure with the module definition
+ *
+ * When a previously registered module is no longer interested in LPM
+ * notifications, this function can be used to unregister it.
+ */
+void lpm_unregister_module(lpm_registered_module_t *module);
+
+/**
  * \brief Initialise the low-power mode management module
  */
 void lpm_init(void);
+
+/**
+ * \brief Sets an IOID to a default state
+ * \param ioid IOID_0...
+ *
+ * This will set ioid to sw control, input, no pull. Input buffer and output
+ * driver will both be disabled
+ *
+ * The function will do nothing if ioid == IOID_UNUSED, so the caller does not
+ * have to check board configuration before calling this.
+ */
+void lpm_pin_set_default_state(uint32_t ioid);
 /*---------------------------------------------------------------------------*/
 #endif /* LPM_H_ */
 /*---------------------------------------------------------------------------*/
