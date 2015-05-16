@@ -55,7 +55,7 @@
 /*---------------------------------------------------------------------------*/
 #define BUTTON_GPIO_CFG         (IOC_CURRENT_2MA  | IOC_STRENGTH_AUTO | \
                                  IOC_IOPULL_UP    | IOC_SLEW_DISABLE  | \
-                                 IOC_HYST_DISABLE | IOC_BOTH_EDGES    | \
+                                 IOC_HYST_ENABLE  | IOC_BOTH_EDGES    | \
                                  IOC_INT_ENABLE   | IOC_IOMODE_NORMAL | \
                                  IOC_NO_WAKE_UP   | IOC_INPUT_ENABLE  | \
                                  IOC_JTAG_DISABLE)
@@ -116,7 +116,7 @@ button_press_handler(uint8_t ioid)
         sensors_changed(&button_right_sensor);
       }
     } else {
-      lpm_shutdown(BOARD_IOID_KEY_RIGHT);
+      lpm_shutdown(BOARD_IOID_KEY_RIGHT, IOC_IOPULL_UP, IOC_WAKE_ON_LOW);
     }
   }
 }

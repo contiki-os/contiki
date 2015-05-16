@@ -29,6 +29,7 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "cc26xx-uart.h"
+#include "ti-lib.h"
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
@@ -47,9 +48,16 @@ puts(const char *str)
     return 0;
   }
   for(i = 0; i < strlen(str); i++) {
-    putchar(str[i]);
+    cc26xx_uart_write_byte(str[i]);
   }
-  putchar('\n');
+  cc26xx_uart_write_byte('\n');
+
+  /*
+   * Wait for the line to go out. This is to prevent garbage when used between
+   * UART on/off cycles
+   */
+  while(cc26xx_uart_busy() == UART_BUSY);
+
   return i;
 }
 /*---------------------------------------------------------------------------*/
@@ -62,9 +70,16 @@ dbg_send_bytes(const unsigned char *s, unsigned int len)
     if(i >= len) {
       break;
     }
-    putchar(*s++);
+    cc26xx_uart_write_byte(*s++);
     i++;
   }
+
+  /*
+   * Wait for the buffer to go out. This is to prevent garbage when used
+   * between UART on/off cycles
+   */
+  while(cc26xx_uart_busy() == UART_BUSY);
+
   return i;
 }
 /*---------------------------------------------------------------------------*/

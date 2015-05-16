@@ -100,12 +100,16 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_UART_RX        IOID_17
+#define BOARD_IOID_DP4_UARTRX     IOID_28
+#define BOARD_IOID_DP5_UARTTX     IOID_29
+
+#define BOARD_IOID_UART_RX        BOARD_IOID_DP4_UARTRX
 #define BOARD_IOID_UART_TX        IOID_16
+
 #define BOARD_IOID_UART_CTS       IOID_UNUSED
 #define BOARD_IOID_UART_RTS       IOID_UNUSED
-#define BOARD_UART_RXD            (1 << BOARD_IOID_UART_RXD)
-#define BOARD_UART_TXD            (1 << BOARD_IOID_UART_TXD)
+#define BOARD_UART_RX             (1 << BOARD_IOID_UART_RX)
+#define BOARD_UART_TX             (1 << BOARD_IOID_UART_TX)
 #define BOARD_UART_CTS            (1 << BOARD_IOID_UART_CTS)
 #define BOARD_UART_RTS            (1 << BOARD_IOID_UART_RTS)
 /** @} */
@@ -156,7 +160,7 @@
  */
 #define BOARD_IOID_FLASH_CS       IOID_14
 #define BOARD_FLASH_CS            (1 << BOARD_IOID_FLASH_CS)
-#define BOARD_SPI_CLK_FLASH       IOID_11
+#define BOARD_IOID_SPI_CLK_FLASH  IOID_17
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -181,6 +185,44 @@
 #define BOARD_IOID_MPU_POWER      IOID_12
 #define BOARD_MPU_INT             (1 << BOARD_IOID_MPU_INT)
 #define BOARD_MPU_POWER           (1 << BOARD_IOID_MPU_POWER)
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Board devpack IOID mappings (LCD etc.)
+ *
+ * Those values are not meant to be modified by the user
+ * @{
+ */
+#define BOARD_IOID_AUDIOFS_TDO        IOID_16
+#define BOARD_IOID_DEVPACK_CS         IOID_20
+#define BOARD_IOID_DEVPK_LCD_EXTCOMIN IOID_22
+#define BOARD_IOID_AUDIODO            IOID_22
+#define BOARD_IOID_DP2                IOID_23
+#define BOARD_IOID_DP1                IOID_24
+#define BOARD_IOID_DP0                IOID_25
+#define BOARD_IOID_DP3                IOID_27
+#define BOARD_IOID_DEVPK_ID           IOID_30
+#define BOARD_DEVPACK_CS              (1 << BOARD_IOID_DEVPACK_CS)
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief TMP Sensor
+ *
+ * Those values are not meant to be modified by the user
+ * @{
+ */
+#define BOARD_IOID_TMP_RDY          IOID_1
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Digital Microphone
+ *
+ * Those values are not meant to be modified by the user
+ * @{
+ */
+#define BOARD_IOID_MIC_POWER        IOID_13
+#define BOARD_IOID_AUDIO_DI         IOID_2
+#define BOARD_IOID_AUDIO_CLK        IOID_11
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

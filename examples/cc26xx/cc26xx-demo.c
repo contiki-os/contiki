@@ -77,12 +77,6 @@
  *                - The example also shows how to retrieve the duration of a
  *                  button press (in ticks). The driver will generate a
  *                  sensors_changed event upon button release
- * - UART         : Receiving an entire line of text over UART (ending
- *                  in \\r) will cause CC26XX_DEMO_LEDS_SERIAL_IN to toggle
- *                  This also demonstrates how a code module can influence
- *                  low-power operation: In this example we keep the UART on
- *                  and capable to RX even with the chip in deep sleep.
- *                  see keep_uart_on() and the UART driver
  * - Reed Relay   : Will toggle the sensortag buzzer on/off
  *
  * @{
@@ -100,7 +94,6 @@
 #include "button-sensor.h"
 #include "batmon-sensor.h"
 #include "board-peripherals.h"
-#include "lpm.h"
 #include "cc26xx-rf.h"
 
 #include "ti-lib.h"
@@ -251,8 +244,7 @@ get_light_reading()
     printf("OPT: Light Read Error\n");
   }
 
-  SENSORS_DEACTIVATE(opt_3001_sensor);
-
+  /* The OPT will turn itself off, so we don't need to call its DEACTIVATE */
   ctimer_set(&opt_timer, next, init_opt_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
@@ -369,26 +361,6 @@ init_sensor_readings(void)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-static lpm_power_domain_lock_t lock;
-/*---------------------------------------------------------------------------*/
-/*
- * In order to maintain UART input operation:
- * - Keep the uart clocked in sleep and deep sleep
- * - Keep the serial PD on in deep sleep
- */
-static void
-keep_uart_on(void)
-{
-  /* Keep the serial PD on */
-  lpm_pd_lock_obtain(&lock, PRCM_DOMAIN_SERIAL);
-
-  /* Keep the UART clock on during Sleep and Deep Sleep */
-  ti_lib_prcm_peripheral_sleep_enable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_peripheral_deep_sleep_enable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
-}
-/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc26xx_demo_process, ev, data)
 {
 
@@ -405,8 +377,6 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   etimer_set(&et, CC26XX_DEMO_LOOP_INTERVAL);
   get_sync_sensor_readings();
   init_sensor_readings();
-
-  keep_uart_on();
 
   while(1) {
 
@@ -462,8 +432,6 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
                button_select_sensor.value(BUTTON_SENSOR_VALUE_DURATION));
 #endif
       }
-    } else if(ev == serial_line_event_message) {
-      leds_toggle(CC26XX_DEMO_LEDS_SERIAL_IN);
     }
   }
 
