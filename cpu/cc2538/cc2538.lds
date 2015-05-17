@@ -91,6 +91,7 @@ SECTIONS
         *(.data*)
         _edata = .;
     } > SRAM AT > FLASH
+    _ldata = LOADADDR(.data);
 
     .ARM.exidx :
     {
