@@ -85,7 +85,7 @@ SECTIONS
         *(.udma_channel_control_table)
     } > SRAM
 
-    .data :
+    .data : ALIGN(4)
     {
         _data = .;
         *(.data*)
