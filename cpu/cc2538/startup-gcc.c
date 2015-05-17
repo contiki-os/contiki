@@ -275,7 +275,7 @@ void(*const vectors[])(void) =
 };
 /*---------------------------------------------------------------------------*/
 /* Linker constructs indicating .data and .bss segment locations */
-extern unsigned long _etext;
+extern unsigned long _ldata;
 extern unsigned long _data;
 extern unsigned long _edata;
 extern unsigned long _bss;
@@ -303,7 +303,7 @@ reset_handler(void)
   REG(SYS_CTRL_EMUOVR) = 0xFF;
 
   /* Copy the data segment initializers from flash to SRAM. */
-  pul_src = &_etext;
+  pul_src = &_ldata;
 
   for(pul_dst = &_data; pul_dst < &_edata;) {
     *pul_dst++ = *pul_src++;
