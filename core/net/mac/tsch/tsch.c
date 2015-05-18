@@ -608,13 +608,13 @@ packet_input(void)
        of the incoming packet with the last few ones we saw. */
     int i;
     for(i = 0; i < MAX_SEQNOS; ++i) {
-      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno &&
+      if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) == received_seqnos[i].seqno &&
          linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
                       &received_seqnos[i].sender)) {
         /* Drop the packet. */
         LOGP("TSCH:! drop dup ll from %u seqno %u",
                LOG_NODEID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
-               packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
+               packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
         duplicate = 1;
       }
     }
@@ -623,7 +623,7 @@ packet_input(void)
         memcpy(&received_seqnos[i], &received_seqnos[i - 1],
                sizeof(struct seqno));
       }
-      received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+      received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
       linkaddr_copy(&received_seqnos[0].sender,
                     packetbuf_addr(PACKETBUF_ADDR_SENDER));
     }
@@ -632,7 +632,7 @@ packet_input(void)
     if(!duplicate) {
       LOGP("TSCH: received from %u with seqno %u",
           LOG_NODEID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
-          packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
+          packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
       NETSTACK_LLSEC.input();
     }
   }
