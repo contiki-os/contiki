@@ -171,9 +171,9 @@ main(int argc, char **argv)
 #endif
 #ifdef O_DIRECT
   fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_DIRECT | O_SYNC);
-  // Some system do not support certain parameters (e.g. raspberian)
-  // Just do some random testing. Not sure wheter ther is a better way
-  // of doing this.
+  /* Some systems do not support certain parameters (e.g. raspbian)
+   * Just do some random testing. Not sure  whether there is a better way
+   * of doing this. */
   if(fd < 0 && errno == EINVAL){
     fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   }
