@@ -47,6 +47,7 @@
 #include "sys/energest.h"
 #include "sys/clock.h"
 #include "sys/rtimer.h"
+#include "sys/cc.h"
 #include "lpm.h"
 #include "ti-lib.h"
 /*---------------------------------------------------------------------------*/
@@ -77,10 +78,6 @@
     t0 = RTIMER_NOW();                                                \
     while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))); \
   } while(0)
-/*---------------------------------------------------------------------------*/
-#ifndef MIN
-#define MIN(n, m)   (((n) < (m)) ? (n) : (m))
-#endif
 /*---------------------------------------------------------------------------*/
 #ifdef __GNUC__
 #define CC_ALIGN_ATTR(n) __attribute__ ((aligned(n)))

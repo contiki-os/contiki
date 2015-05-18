@@ -65,6 +65,7 @@
 #include "net/ip/uiplib.h"
 #include "net-uart.h"
 #include "httpd-simple.h"
+#include "sys/cc.h"
 
 #include "ti-lib.h"
 
@@ -85,10 +86,6 @@
 /*---------------------------------------------------------------------------*/
 #define ADDRESS_CONVERSION_OK       1
 #define ADDRESS_CONVERSION_ERROR    0
-/*---------------------------------------------------------------------------*/
-#ifndef MIN
-#define MIN(n, m)   (((n) < (m)) ? (n) : (m))
-#endif
 /*---------------------------------------------------------------------------*/
 static struct uip_udp_conn *udp_conn = NULL;
 

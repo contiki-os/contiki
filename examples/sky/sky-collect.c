@@ -38,6 +38,7 @@
  */
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "net/netstack.h"
 #include "net/rime/rime.h"
 #include "net/rime/collect.h"
@@ -120,8 +121,6 @@ PROCESS_THREAD(depth_blink_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-#define MAX(a, b) ((a) > (b)? (a): (b))
-#define MIN(a, b) ((a) < (b)? (a): (b))
 struct spectrum {
   int channel[16];
 };

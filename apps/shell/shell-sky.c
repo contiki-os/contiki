@@ -38,6 +38,7 @@
  */
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "shell-sky.h"
 
 #include "dev/watchdog.h"
@@ -84,8 +85,6 @@ SHELL_COMMAND(rfchannel_command,
 	      "rfchannel <channel>: change CC2420 radio channel (11 - 26)",
 	      &shell_rfchannel_process);
 /*---------------------------------------------------------------------------*/
-#define MAX(a, b) ((a) > (b)? (a): (b))
-#define MIN(a, b) ((a) < (b)? (a): (b))
 struct spectrum {
   int channel[16];
 };
