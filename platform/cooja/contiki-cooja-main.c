@@ -40,6 +40,7 @@
 #include <string.h>
 
 #include "contiki.h"
+#include "sys/cc.h"
 
 #include "sys/clock.h"
 #include "sys/etimer.h"
@@ -135,8 +136,6 @@ long referenceVar;
  */
 static struct cooja_mt_thread rtimer_thread;
 static struct cooja_mt_thread process_run_thread;
-
-#define MIN(a, b)   ( (a)<(b) ? (a) : (b) )
 
 /*---------------------------------------------------------------------------*/
 #if NETSTACK_CONF_WITH_IPV4

@@ -43,7 +43,7 @@
  */
 
 #include "contiki.h"
-
+#include "sys/cc.h"
 #include "lib/list.h"
 #include "net/rime/rime.h"
 #include "net/rime/announcement.h"
@@ -89,8 +89,6 @@ static struct polite_announcement_state {
 #else
 #define PRINTF(...)
 #endif
-
-#define MIN(a, b) ((a)<(b)?(a):(b))
 
 /*---------------------------------------------------------------------------*/
 static void

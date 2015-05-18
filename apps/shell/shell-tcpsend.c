@@ -36,12 +36,9 @@
 #include <stddef.h>
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "shell.h"
 #include "telnet.h"
-
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_tcpsend_process, "tcpsend");

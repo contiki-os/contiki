@@ -127,6 +127,19 @@
 #define NULL 0
 #endif /* NULL */
 
+#ifndef MAX
+#define MAX(n, m)   (((n) < (m)) ? (m) : (n))
+#endif
+
+#ifndef MIN
+#define MIN(n, m)   (((n) < (m)) ? (n) : (m))
+#endif
+
+#ifndef ABS
+#define ABS(n)      (((n) < 0) ? -(n) : (n))
+#endif
+
+
 #define CC_CONCAT2(s1, s2) s1##s2
 /**
  * A C preprocessing macro for concatenating two preprocessor tokens.
