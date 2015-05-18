@@ -129,12 +129,18 @@
 
 #define CC_CONCAT2(s1, s2) s1##s2
 /**
- * A C preprocessing macro for concatenating to
- * strings.
+ * A C preprocessing macro for concatenating two preprocessor tokens.
  *
  * We need use two macros (CC_CONCAT and CC_CONCAT2) in order to allow
  * concatenation of two \#defined macros.
  */
 #define CC_CONCAT(s1, s2) CC_CONCAT2(s1, s2)
+#define CC_CONCAT_EXT_2(s1, s2) CC_CONCAT2(s1, s2)
+
+/**
+ * A C preprocessing macro for concatenating three preprocessor tokens.
+ */
+#define CC_CONCAT3(s1, s2, s3) s1##s2##s3
+#define CC_CONCAT_EXT_3(s1, s2, s3) CC_CONCAT3(s1, s2, s3)
 
 #endif /* CC_H_ */
