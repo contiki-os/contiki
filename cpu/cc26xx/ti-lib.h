@@ -148,7 +148,7 @@
 #include "driverlib/aux_wuc.h"
 
 #define ti_lib_aux_wuc_clock_enable(...)   AUXWUCClockEnable(__VA_ARGS__)
-#define ti_lib_aux_wuc_clock_disble(...)   AUXWUCClockDisable(__VA_ARGS__)
+#define ti_lib_aux_wuc_clock_disable(...)  AUXWUCClockDisable(__VA_ARGS__)
 #define ti_lib_aux_wuc_clock_status(...)   AUXWUCClockStatus(__VA_ARGS__)
 #define ti_lib_aux_wuc_clock_freq_req(...) AUXWUCClockFreqReq(__VA_ARGS__)
 #define ti_lib_aux_wuc_power_ctrl(...)     AUXWUCPowerCtrl(__VA_ARGS__)
@@ -531,6 +531,8 @@
 #define ti_lib_sys_ctrl_aon_update(...)                       SysCtrlAonUpdate(__VA_ARGS__)
 #define ti_lib_sys_ctrl_set_recharge_before_power_down(...)   SysCtrlSetRechargeBeforePowerDown(__VA_ARGS__)
 #define ti_lib_sys_ctrl_adjust_recharge_after_power_down(...) SysCtrlAdjustRechargeAfterPowerDown(__VA_ARGS__)
+#define ti_lib_sys_ctrl_dcdc_voltage_conditional_control(...) SysCtrl_DCDC_VoltageConditionalControl(__VA_ARGS__)
+#define ti_lib_sys_ctrl_reset_source_get(...)                 SysCtrlResetSourceGet(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* ssi.h */
 #include "driverlib/ssi.h"
@@ -640,24 +642,24 @@
 /* watchdog.h */
 #include "driverlib/watchdog.h"
 
-#define ti_lib_wathdog_running(...)        WatchdogRunning(__VA_ARGS__)
-#define ti_lib_wathdog_enable(...)         WatchdogEnable(__VA_ARGS__)
-#define ti_lib_wathdog_reset_enable(...)   WatchdogResetEnable(__VA_ARGS__)
-#define ti_lib_wathdog_reset_disable(...)  WatchdogResetDisable(__VA_ARGS__)
-#define ti_lib_wathdog_lock(...)           WatchdogLock(__VA_ARGS__)
-#define ti_lib_wathdog_unlock(...)         WatchdogUnlock(__VA_ARGS__)
-#define ti_lib_wathdog_lock_state(...)     WatchdogLockState(__VA_ARGS__)
-#define ti_lib_wathdog_reload_set(...)     WatchdogReloadSet(__VA_ARGS__)
-#define ti_lib_wathdog_reload_get(...)     WatchdogReloadGet(__VA_ARGS__)
-#define ti_lib_wathdog_value_get(...)      WatchdogValueGet(__VA_ARGS__)
-#define ti_lib_wathdog_int_register(...)   WatchdogIntRegister(__VA_ARGS__)
-#define ti_lib_wathdog_int_unregister(...) WatchdogIntUnregister(__VA_ARGS__)
-#define ti_lib_wathdog_int_enable(...)     WatchdogIntEnable(__VA_ARGS__)
-#define ti_lib_wathdog_int_status(...)     WatchdogIntStatus(__VA_ARGS__)
-#define ti_lib_wathdog_int_clear(...)      WatchdogIntClear(__VA_ARGS__)
-#define ti_lib_wathdog_int_type_set(...)   WatchdogIntTypeSet(__VA_ARGS__)
-#define ti_lib_wathdog_stall_enable(...)   WatchdogStallEnable(__VA_ARGS__)
-#define ti_lib_wathdog_stall_disable(...)  WatchdogStallDisable(__VA_ARGS__)
+#define ti_lib_watchdog_running(...)        WatchdogRunning(__VA_ARGS__)
+#define ti_lib_watchdog_enable(...)         WatchdogEnable(__VA_ARGS__)
+#define ti_lib_watchdog_reset_enable(...)   WatchdogResetEnable(__VA_ARGS__)
+#define ti_lib_watchdog_reset_disable(...)  WatchdogResetDisable(__VA_ARGS__)
+#define ti_lib_watchdog_lock(...)           WatchdogLock(__VA_ARGS__)
+#define ti_lib_watchdog_unlock(...)         WatchdogUnlock(__VA_ARGS__)
+#define ti_lib_watchdog_lock_state(...)     WatchdogLockState(__VA_ARGS__)
+#define ti_lib_watchdog_reload_set(...)     WatchdogReloadSet(__VA_ARGS__)
+#define ti_lib_watchdog_reload_get(...)     WatchdogReloadGet(__VA_ARGS__)
+#define ti_lib_watchdog_value_get(...)      WatchdogValueGet(__VA_ARGS__)
+#define ti_lib_watchdog_int_register(...)   WatchdogIntRegister(__VA_ARGS__)
+#define ti_lib_watchdog_int_unregister(...) WatchdogIntUnregister(__VA_ARGS__)
+#define ti_lib_watchdog_int_enable(...)     WatchdogIntEnable(__VA_ARGS__)
+#define ti_lib_watchdog_int_status(...)     WatchdogIntStatus(__VA_ARGS__)
+#define ti_lib_watchdog_int_clear(...)      WatchdogIntClear(__VA_ARGS__)
+#define ti_lib_watchdog_int_type_set(...)   WatchdogIntTypeSet(__VA_ARGS__)
+#define ti_lib_watchdog_stall_enable(...)   WatchdogStallEnable(__VA_ARGS__)
+#define ti_lib_watchdog_stall_disable(...)  WatchdogStallDisable(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 #endif /* TI_LIB_H_ */
 /*---------------------------------------------------------------------------*/

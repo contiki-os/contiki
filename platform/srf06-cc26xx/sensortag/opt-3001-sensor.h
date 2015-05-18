@@ -40,14 +40,16 @@
  * sequence, but the call will not wait for it to complete so that the CPU can
  * perform other tasks or drop to a low power mode.
  *
- * Once the sensor is stable, the driver will generate a sensors_changed event.
+ * Once the reading and conversion are complete, the driver will generate a
+ * sensors_changed event.
  *
- * Once a reading has been taken, the caller has two options:
- * - Turn the sensor off by calling SENSORS_DEACTIVATE, but in order to take
- *   subsequent readings SENSORS_ACTIVATE must be called again
- * - Leave the sensor on. In this scenario, the caller can simply keep calling
- *   value() for subsequent readings, but having the sensor on will consume
- *   energy
+ * We use single-shot readings. In this mode, the hardware automatically goes
+ * back to its shutdown mode after the conversion is finished. However, it will
+ * still respond to I2C operations, so the last conversion can still be read
+ * out.
+ *
+ * In order to take a new reading, the caller has to use SENSORS_ACTIVATE
+ * again.
  * @{
  *
  * \file

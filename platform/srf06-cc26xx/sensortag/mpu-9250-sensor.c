@@ -212,12 +212,12 @@ static uint8_t acc_range_reg;
 static uint8_t val;
 static uint8_t interrupt_status;
 /*---------------------------------------------------------------------------*/
-#define SENSOR_STATUS_DISABLED     0
-#define SENSOR_STATUS_BOOTING      1
-#define SENSOR_STATUS_ENABLED      2
+#define SENSOR_STATE_DISABLED     0
+#define SENSOR_STATE_BOOTING      1
+#define SENSOR_STATE_ENABLED      2
 
-static int enabled = SENSOR_STATUS_DISABLED;
-static int elements;
+static int state = SENSOR_STATE_DISABLED;
+static int elements = MPU_9250_SENSOR_TYPE_NONE;
 /*---------------------------------------------------------------------------*/
 /* 3 16-byte words for all sensor readings */
 #define SENSOR_DATA_BUF_SIZE   3
@@ -289,7 +289,9 @@ static void
 select_axes(void)
 {
   val = ~mpu_config;
+  SENSOR_SELECT();
   sensor_common_write_reg(PWR_MGMT_2, &val, 1);
+  SENSOR_DESELECT();
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -332,37 +334,6 @@ acc_set_range(uint8_t new_range)
   }
 
   return success;
-}
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Initialise the MPU
- * \return True if success
- */
-static bool
-init_sensor(void)
-{
-  bool ret;
-
-  interrupt_status = false;
-  acc_range = ACC_RANGE_INVALID;
-  mpu_config = 0;   /* All axes off */
-
-  /* Device reset */
-  val = 0x80;
-  SENSOR_SELECT();
-  ret = sensor_common_write_reg(PWR_MGMT_1, &val, 1);
-  SENSOR_DESELECT();
-
-  if(ret) {
-    delay_ms(200);
-
-    /* Initial configuration */
-    acc_set_range(ACC_RANGE_8G);
-    /* Power save */
-    sensor_sleep();
-  }
-
-  return ret;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -450,13 +421,13 @@ gyro_read(uint16_t *data)
     /* Burst read of all gyroscope values */
     success = sensor_common_read_reg(GYRO_XOUT_H, (uint8_t *)data, DATA_SIZE);
 
-    SENSOR_DESELECT();
-
     if(success) {
       convert_to_le((uint8_t *)data, DATA_SIZE);
     } else {
       sensor_common_set_error_data((uint8_t *)data, DATA_SIZE);
     }
+
+    SENSOR_DESELECT();
   } else {
     success = false;
   }
@@ -514,15 +485,13 @@ gyro_convert(int16_t raw_data)
 static void
 notify_ready(void *not_used)
 {
-  enabled = SENSOR_STATUS_ENABLED;
+  state = SENSOR_STATE_ENABLED;
   sensors_changed(&mpu_9250_sensor);
 }
 /*---------------------------------------------------------------------------*/
 static void
 initialise(void *not_used)
 {
-  init_sensor();
-
   /* Configure the accelerometer range */
   if((elements & MPU_9250_SENSOR_TYPE_ACC) != 0) {
     acc_set_range(MPU_9250_SENSOR_ACC_RANGE);
@@ -537,7 +506,7 @@ static void
 power_up(void)
 {
   ti_lib_gpio_pin_write(BOARD_MPU_POWER, 1);
-  enabled = SENSOR_STATUS_BOOTING;
+  state = SENSOR_STATE_BOOTING;
 
   ctimer_set(&startup_timer, SENSOR_BOOT_DELAY, initialise, NULL);
 }
@@ -553,7 +522,7 @@ value(int type)
   int rv;
   float converted_val = 0;
 
-  if(enabled == SENSOR_STATUS_DISABLED) {
+  if(state == SENSOR_STATE_DISABLED) {
     PRINTF("MPU: Sensor Disabled\n");
     return CC26XX_SENSOR_READING_ERROR;
   }
@@ -632,33 +601,42 @@ configure(int type, int enable)
 {
   switch(type) {
   case SENSORS_HW_INIT:
+    ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_MPU_INT);
+    ti_lib_ioc_io_port_pull_set(BOARD_IOID_MPU_INT, IOC_IOPULL_DOWN);
+    ti_lib_ioc_io_hyst_set(BOARD_IOID_MPU_INT, IOC_HYST_ENABLE);
+
+    ti_lib_rom_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
+    ti_lib_ioc_io_drv_strength_set(BOARD_IOID_MPU_POWER, IOC_CURRENT_4MA,
+                                   IOC_STRENGTH_MAX);
+    ti_lib_gpio_pin_clear(BOARD_MPU_POWER);
     elements = MPU_9250_SENSOR_TYPE_NONE;
     break;
   case SENSORS_ACTIVE:
-    if((enable & MPU_9250_SENSOR_TYPE_ACC) != 0 ||
-       (enable & MPU_9250_SENSOR_TYPE_GYRO) != 0) {
+    if(((enable & MPU_9250_SENSOR_TYPE_ACC) != 0) ||
+       ((enable & MPU_9250_SENSOR_TYPE_GYRO) != 0)) {
       PRINTF("MPU: Enabling\n");
       elements = enable & MPU_9250_SENSOR_TYPE_ALL;
 
       power_up();
 
-      enabled = SENSOR_STATUS_BOOTING;
+      state = SENSOR_STATE_BOOTING;
     } else {
       PRINTF("MPU: Disabling\n");
-      ctimer_stop(&startup_timer);
-      elements = MPU_9250_SENSOR_TYPE_NONE;
-      enable_sensor(0);
-      while(ti_lib_i2c_master_busy(I2C0_BASE));
-      enabled = SENSOR_STATUS_DISABLED;
+      if(HWREG(GPIO_BASE + GPIO_O_DOUT31_0) & BOARD_MPU_POWER) {
+        /* Then check our state */
+        elements = MPU_9250_SENSOR_TYPE_NONE;
+        ctimer_stop(&startup_timer);
+        sensor_sleep();
+        while(ti_lib_i2c_master_busy(I2C0_BASE));
+        state = SENSOR_STATE_DISABLED;
+        ti_lib_gpio_pin_clear(BOARD_MPU_POWER);
+      }
     }
-    break;
-  case MPU_9250_SENSOR_SHUTDOWN:
-    ti_lib_gpio_pin_write(BOARD_MPU_POWER, 0);
     break;
   default:
     break;
   }
-  return enabled;
+  return state;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -672,12 +650,12 @@ status(int type)
   switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
-    return enabled;
+    return state;
     break;
   default:
     break;
   }
-  return SENSOR_STATUS_DISABLED;
+  return SENSOR_STATE_DISABLED;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(mpu_9250_sensor, "MPU9250", value, configure, status);

@@ -220,7 +220,7 @@
 #define UIP_CONF_TCP                         1
 #endif
 #ifndef UIP_CONF_TCP_MSS
-#define UIP_CONF_TCP_MSS                   128
+#define UIP_CONF_TCP_MSS                    64
 #endif
 
 #define UIP_CONF_UDP                         1
@@ -243,10 +243,6 @@
  */
 #ifndef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON            0 /**< Energest Module */
-#endif
-
-#ifndef STARTUP_CONF_VERBOSE
-#define STARTUP_CONF_VERBOSE        1 /**< Set to 0 to decrease startup verbosity */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -273,29 +269,10 @@
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
  * keep using SLIP
  */
-#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
+#if defined(UIP_FALLBACK_INTERFACE) || defined(CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED             1
 #endif
 #endif
-
-/**
- * \brief Define this as 1 to build a headless node.
- *
- * The UART will not be initialised its clock will be gated, offering some
- * energy savings. The USB will not be initialised either
- */
-#ifndef CC26XX_CONF_QUIET
-#define CC26XX_CONF_QUIET                  0
-#endif
-
-/* CC26XX_CONF_QUIET is hard and overrides all other related defines */
-#if CC26XX_CONF_QUIET
-#undef CC26XX_UART_CONF_ENABLE
-#define CC26XX_UART_CONF_ENABLE            0
-
-#undef STARTUP_CONF_VERBOSE
-#define STARTUP_CONF_VERBOSE               0
-#endif /* CC26XX_CONF_QUIET */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -310,6 +287,13 @@
 
 /* Notify various examples that we have Buttons */
 #define PLATFORM_HAS_BUTTON      1
+
+/*
+ * Override button symbols from dev/button-sensor.h, for the examples that
+ * include it
+ */
+#define button_sensor button_left_sensor
+#define button_sensor2 button_right_sensor
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* Platform-specific define to signify sensor reading failure */
@@ -332,14 +316,14 @@ typedef uint32_t clock_time_t;
 typedef uint32_t uip_stats_t;
 
 /* Clock (time) comparison macro */
-#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define CLOCK_LT(a, b)  ((signed long)((a) - (b)) < 0)
 
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
  * RTIMER_CLOCK_LT to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
+#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* board.h assumes that basic configuration is done */

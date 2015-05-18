@@ -53,7 +53,7 @@
 #include "lib/sensors.h"
 #include "dev/button-sensor.h"
 #include "dev/leds.h"
-#include "dev/adc-sensor.h"
+#include "dev/cc2538-sensors.h"
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
@@ -450,7 +450,6 @@ publish(void)
   /* Publish MQTT topic in IBM quickstart format */
   int len;
   int remaining = APP_BUFFER_SIZE;
-  int16_t value;
 
   seq_nr_value++;
 
@@ -487,9 +486,8 @@ publish(void)
   remaining -= len;
   buf_ptr += len;
 
-  value = adc_sensor.value(ADC_SENSOR_TEMP);
   len = snprintf(buf_ptr, remaining, ",\"On-Chip Temp (mC)\":%d",
-                 25000 + ((value >> 4) - 1422) * 10000 / 42);
+                 cc2538_temp_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED));
 
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
@@ -498,9 +496,8 @@ publish(void)
   remaining -= len;
   buf_ptr += len;
 
-  value = adc_sensor.value(ADC_SENSOR_VDD_3);
   len = snprintf(buf_ptr, remaining, ",\"VDD3 (mV)\":%d",
-                 value * (3 * 1190) / (2047 << 4));
+                 vdd3_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED));
 
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);

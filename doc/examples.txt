@@ -11,7 +11,6 @@
 /** \example example-mesh.c */
 /** \example example-multihop.c */
 /** \example example-rucb.c */
-/** \example example-rudolph0.c */
 /** \example example-rudolph1.c */
 /** \example example-rudolph2.c */
 /** \example example-runicast.c */

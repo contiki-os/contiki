@@ -39,7 +39,7 @@ In terms of hardware support, the following drivers have been implemented:
   * Motion Processing Unit (MPU9250 - Accelerometer, Gyro)
   * BMP280 sensor
   * TMP007 sensor
-  * SHT21 sensor
+  * HDC1000 sensor
   * OPT3001 sensor
   * Buzzer
   * External SPI flash
@@ -69,15 +69,19 @@ To use the port you need:
     [...]
     gcc version 4.9.3 20141119 (release) [ARM/embedded-4_9-branch revision 218278] (GNU Tools for ARM Embedded Processors)
 
+* srecord (http://srecord.sourceforge.net/)
 * You may also need other drivers so that the SmartRF can communicate with your
 operating system and so that you can use the chip's UART for I/O. Please read
 the section ["Drivers" in the CC2538DK readme](https://github.com/contiki-os/contiki/tree/master/platform/cc2538dk#drivers).
 
 Environment
 ===========
-To use this port, you will need to download and extract CC26xxware sources, 
-provided by TI here http://www.ti.com/tool/cc26xxware. Once you have done this, you will need to configure the Contiki
-build system so that it can locate and compile them as part of the build process.
+To use this port, you will need to download and extract CC26xxware sources. We
+currently use CC26xxware version 2.20.06.14829. The download link can be found
+here: http://processors.wiki.ti.com/index.php/CC26xxware
+
+Once you have done this, you will need to configure the Contiki build system so
+that it can locate and compile them as part of the build process.
 
 To do this, you will need to set the following environment variable:
 

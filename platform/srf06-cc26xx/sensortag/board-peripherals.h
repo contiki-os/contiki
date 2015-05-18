@@ -43,7 +43,7 @@
 #include "bmp-280-sensor.h"
 #include "tmp-007-sensor.h"
 #include "opt-3001-sensor.h"
-#include "sht-21-sensor.h"
+#include "hdc-1000-sensor.h"
 #include "mpu-9250-sensor.h"
 #include "reed-relay.h"
 #include "buzzer.h"

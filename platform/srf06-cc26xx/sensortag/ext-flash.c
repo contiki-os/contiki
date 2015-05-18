@@ -72,7 +72,7 @@
 /* Part specific constants */
 
 #define BLS_MANUFACTURER_ID       0xEF
-#define BLS_DEVICE_ID             0x11
+#define BLS_DEVICE_ID             0x12
 
 #define BLS_PROGRAM_PAGE_SIZE      256
 #define BLS_ERASE_SECTOR_SIZE     4096
@@ -140,50 +140,8 @@ wait_ready(void)
 }
 /*---------------------------------------------------------------------------*/
 /**
- * \brief Put the device in power save mode. No access to data; only
- *        the status register is accessible.
- * \return True when SPI transactions succeed
- */
-static bool
-power_down(void)
-{
-  uint8_t cmd;
-  bool success;
-
-  cmd = BLS_CODE_DP;
-  select();
-  success = board_spi_write(&cmd, sizeof(cmd));
-  deselect();
-
-  return success;
-}
-/*---------------------------------------------------------------------------*/
-/**
- * \brief    Take device out of power save mode and prepare it for normal operation
- * \return   True if the command was written successfully
- */
-static bool
-power_standby(void)
-{
-  uint8_t cmd;
-  bool success;
-
-  cmd = BLS_CODE_RDP;
-  select();
-  success = board_spi_write(&cmd, sizeof(cmd));
-
-  if(success) {
-    success = wait_ready() == 0;
-  }
-
-  deselect();
-
-  return success;
-}
-/*---------------------------------------------------------------------------*/
-/**
- * Verify the flash part.
- * @return True when successful.
+ * \brief Verify the flash part.
+ * \return True when successful.
  */
 static bool
 verify_part(void)
@@ -211,6 +169,57 @@ verify_part(void)
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * \brief Put the device in power save mode. No access to data; only
+ *        the status register is accessible.
+ */
+static void
+power_down(void)
+{
+  uint8_t cmd;
+  uint8_t i;
+
+  cmd = BLS_CODE_DP;
+  select();
+  board_spi_write(&cmd, sizeof(cmd));
+  deselect();
+
+  i = 0;
+  while(i < 10) {
+    if(!verify_part()) {
+      /* Verify Part failed: Device is powered down */
+      return;
+    }
+    i++;
+  }
+
+  /* Should not be required */
+  deselect();
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief    Take device out of power save mode and prepare it for normal operation
+ * \return   True if the command was written successfully
+ */
+static bool
+power_standby(void)
+{
+  uint8_t cmd;
+  bool success;
+
+  cmd = BLS_CODE_RDP;
+  select();
+  success = board_spi_write(&cmd, sizeof(cmd));
+
+  if(success) {
+    success = wait_ready() == 0;
+  }
+
+  deselect();
+
+  return success;
+}
+/*---------------------------------------------------------------------------*/
+/**
  * \brief Enable write.
  * \return Zero when successful.
  */
@@ -232,7 +241,7 @@ write_enable(void)
 bool
 ext_flash_open()
 {
-  board_spi_open(4000000, BOARD_SPI_CLK_FLASH);
+  board_spi_open(4000000, BOARD_IOID_SPI_CLK_FLASH);
 
   /* GPIO pin configuration */
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_FLASH_CS);
@@ -404,6 +413,13 @@ ext_flash_test(void)
   ext_flash_close();
 
   return ret;
+}
+/*---------------------------------------------------------------------------*/
+void
+ext_flash_init()
+{
+  ext_flash_open();
+  ext_flash_close();
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

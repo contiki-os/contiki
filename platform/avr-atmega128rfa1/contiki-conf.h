@@ -191,8 +191,6 @@ typedef unsigned short uip_stats_t;
 #define CHANNEL_802_15_4          26
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-/* Request 802.15.4 ACK on all packets sent (else autoretry). This is primarily for testing. */
-#define SICSLOWPAN_CONF_ACK_ALL   0
 /* 1 + Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode) */
 #define RF230_CONF_FRAME_RETRIES    2
 /* Number of csma retry attempts 0-5 in extended tx mode (7 does immediate tx with no csma) */
