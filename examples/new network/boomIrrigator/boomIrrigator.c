@@ -945,6 +945,10 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	etimer_set(&spoolTimer, 60 * CLOCK_SECOND);
 	etimer_set(&wheelTimer, 60 * CLOCK_SECOND);
 	
+		//Enable high gain mode on cc2592
+	GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(2));			
+	GPIO_SET_PIN(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(2));
+	
     while(1) {
 	    PROCESS_YIELD();								//Pause the process until an event is triggered
 	    if(ev == tcpip_event) {
