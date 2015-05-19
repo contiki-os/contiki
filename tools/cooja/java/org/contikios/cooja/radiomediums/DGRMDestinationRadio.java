@@ -42,6 +42,7 @@ public class DGRMDestinationRadio extends DestinationRadio {
 	public double signal = AbstractRadioMedium.SS_STRONG; /* RSSI */
 	public long delay = 0; /* EXPERIMENTAL: Propagation delay (us). */
 	public int lqi = 105;
+	public int channel = -1; /* not set by default */
 
 	public DGRMDestinationRadio() {
 		super();
@@ -50,12 +51,17 @@ public class DGRMDestinationRadio extends DestinationRadio {
 		super(dest);
 	}
 
+	public int getChannel() {
+		return channel;
+	}
+
 	protected Object clone() {
 		DGRMDestinationRadio clone = new DGRMDestinationRadio(this.radio);
 		clone.ratio = this.ratio;
 		clone.delay = this.delay;
 		clone.signal = this.signal;
 		clone.lqi = this.lqi;
+		clone.channel = this.channel;
 		return clone;
 	}
 	
@@ -75,9 +81,12 @@ public class DGRMDestinationRadio extends DestinationRadio {
 		element.setText("" + lqi);
 		config.add(element);
 		
-		
 		element = new Element("delay");
 		element.setText("" + delay);
+		config.add(element);
+		
+		element = new Element("channel");
+		element.setText("" + channel);
 		config.add(element);
 
 		return config;
@@ -96,6 +105,8 @@ public class DGRMDestinationRadio extends DestinationRadio {
 				lqi = Integer.parseInt(element.getText());
 			} else if (element.getName().equals("delay")) {
 				delay = Long.parseLong(element.getText());
+			} else if (element.getName().equals("channel")) {
+				channel = Integer.parseInt(element.getText());
 			}
 		}
 		return true;
