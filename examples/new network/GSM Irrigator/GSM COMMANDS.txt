@@ -1,0 +1,54 @@
+while (sendATcommand2("AT+CREG?", "+CREG: 0,1", "+CREG: 0,5", 2000) == 0);
+
+
+    sendATcommand("AT+SAPBR=3,1,\"Contype\",\"GPRS\"", "OK", 2000);
+    sendATcommand("AT+SAPBR=3,1,\"APN\",\"APN\"", "OK", 2000);
+    sendATcommand("AT+SAPBR=3,1,\"USER\",\"user_name\"", "OK", 2000);
+    sendATcommand("AT+SAPBR=3,1,\"PWD\",\"password\"", "OK", 2000);
+
+    while (sendATcommand("AT+SAPBR=1,1", "OK", 20000) == 0)
+    {
+        delay(5000);
+    }
+	
+	
+//NETWORK REGISTRATION
+AT+CREG=?
+
+//ATTACH TO A GPRS SERVICE
+AT+CGATT=1
+
+//DEFINE PDP CONTEXT
+AT+CGDCONT=1,"IP","<Your APN Name>"
+
+//START TASK AND SET APN USER ID AND PWD
+AT+CSTT="<Your APN Name>","<User ID>","<PASSWORD>"
+
+//BRING UP GPRS CONNECTION
+AT+CIICR
+
+//GET LOCAL IP
+AT+CIFSR
+
+//GET CONNECTION STATUS
+AT+CIPSTATUS
+
+-> AT+CIPHEAD=1 //Tells module to add an 'IP Header' to receive data
+<- OK
+
+-> AT+CDNSORIP=1 //Indicates whether connection request will be IP address (0), or domain name (1)
+<- OK
+
+-> AT+CIPSTART="TCP","www.google.com","80" //Start up TCP connection (mode, IP address/name, port)
+<- OK
+<- CONNECT OK //Indicates you've connected to the server - this command may take time to give this response
+
+ AT+CIPSEND //Issue Send Command
+<- > //wait for module to return '>' prompt to indicate it's ready to receive data
+-> GET / HTTP/1.1 //Send data - this example is an HTTP request for the google
+-> Host: http://www.google.com
+-> Connection: Keep-Alive
+-> Accept: */*
+-> Accept-Language: en-us
+->
+<- //data from server returned - Server will return data here
