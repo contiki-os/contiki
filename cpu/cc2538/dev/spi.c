@@ -226,8 +226,8 @@ spix_init(uint8_t spi)
   /* Start by disabling the peripheral before configuring it */
   REG(regs->base + SSI_CR1) = 0;
 
-  /* Set the IO clock as the SSI clock */
-  REG(regs->base + SSI_CC) = 1;
+  /* Set the system clock as the SSI clock */
+  REG(regs->base + SSI_CC) = 0;
 
   /* Set the mux correctly to connect the SSI pins to the correct GPIO pins */
   ioc_set_sel(regs->clk.port,
