@@ -42,6 +42,8 @@
  */
 #ifndef SYS_CTRL_H_
 #define SYS_CTRL_H_
+
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
 /** \name SysCtrl Constants, used by the SYS_DIV and IO_DIV bits of the
  * SYS_CTRL_CLOCK_CTRL register
@@ -242,6 +244,33 @@
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
+/** \name System clock divisor selection
+ * @{
+ */
+#ifdef SYS_CTRL_CONF_SYS_DIV
+#if SYS_CTRL_CONF_SYS_DIV & ~SYS_CTRL_CLOCK_CTRL_SYS_DIV
+#error Invalid system clock divisor
+#endif
+#define SYS_CTRL_SYS_DIV        SYS_CTRL_CONF_SYS_DIV
+#else
+#define SYS_CTRL_SYS_DIV        SYS_CTRL_CLOCK_CTRL_SYS_DIV_16MHZ
+#endif
+
+#ifdef SYS_CTRL_CONF_IO_DIV
+#if SYS_CTRL_CONF_IO_DIV & ~SYS_CTRL_CLOCK_CTRL_IO_DIV
+#error Invalid I/O clock divisor
+#endif
+#define SYS_CTRL_IO_DIV         SYS_CTRL_CONF_IO_DIV
+#else
+#define SYS_CTRL_IO_DIV         SYS_CTRL_CLOCK_CTRL_IO_DIV_16MHZ
+#endif
+
+/* Returns actual system clock in Hz */
+#define SYS_CTRL_SYS_CLOCK      (SYS_CTRL_32MHZ >> SYS_CTRL_SYS_DIV)
+/* Returns actual I/O clock in Hz */
+#define SYS_CTRL_IO_CLOCK       (SYS_CTRL_32MHZ >> (SYS_CTRL_IO_DIV >> 8))
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name SysCtrl functions
  * @{
  */
@@ -252,6 +281,12 @@ void sys_ctrl_init();
 
 /** \brief Generates a warm reset through the SYS_CTRL_PWRDBG register */
 void sys_ctrl_reset();
+
+/** \brief Returns the actual system clock in Hz */
+uint32_t sys_ctrl_get_sys_clock();
+
+/** \brief Returns the actual io clock in Hz */
+uint32_t sys_ctrl_get_io_clock();
 
 /** @} */
 

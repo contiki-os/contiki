@@ -43,15 +43,7 @@
 
 #include <stdint.h>
 #include "clock.h"
-/*---------------------------------------------------------------------------*/
-/* Additional functions */
-static uint32_t
-get_sys_clock(void)
-{
-  /* Get the clock status diviser */
-  return SYS_CTRL_32MHZ /
-         (1 << (REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYS_DIV));
-}
+#include "sys-ctrl.h"
 /*---------------------------------------------------------------------------*/
 void
 i2c_init(uint8_t port_sda, uint8_t pin_sda, uint8_t port_scl, uint8_t pin_scl,
@@ -111,7 +103,7 @@ void
 i2c_set_frequency(uint32_t freq)
 {
   /* Peripheral clock setting, using the system clock */
-  REG(I2CM_TPR) = ((get_sys_clock() + (2 * 10 * freq) - 1) /
+  REG(I2CM_TPR) = ((SYS_CTRL_SYS_CLOCK + (2 * 10 * freq) - 1) /
                    (2 * 10 * freq)) - 1;
 }
 /*---------------------------------------------------------------------------*/
