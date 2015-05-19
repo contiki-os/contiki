@@ -243,10 +243,10 @@ button_sensor_init()
   timer_set(&debouncetimer, 0);
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(button_select_sensor, BUTTON_SENSOR, NULL, config_select, NULL);
-SENSORS_SENSOR(button_left_sensor, BUTTON_SENSOR, NULL, config_left, NULL);
-SENSORS_SENSOR(button_right_sensor, BUTTON_SENSOR, NULL, config_right, NULL);
-SENSORS_SENSOR(button_up_sensor, BUTTON_SENSOR, NULL, config_up, NULL);
-SENSORS_SENSOR(button_down_sensor, BUTTON_SENSOR, NULL, config_down, NULL);
+//SENSORS_SENSOR(button_select_sensor, BUTTON_SENSOR, NULL, config_select, NULL);
+//SENSORS_SENSOR(button_left_sensor, BUTTON_SENSOR, NULL, config_left, NULL);
+//SENSORS_SENSOR(button_right_sensor, BUTTON_SENSOR, NULL, config_right, NULL);
+//SENSORS_SENSOR(button_up_sensor, BUTTON_SENSOR, NULL, config_up, NULL);
+//SENSORS_SENSOR(button_down_sensor, BUTTON_SENSOR, NULL, config_down, NULL);
 
 /** @} */

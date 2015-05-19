@@ -121,11 +121,11 @@
 #define UART0_TX_PORT            GPIO_A_NUM
 #define UART0_TX_PIN             1
 
-#define UART1_CTS_PORT           GPIO_B_NUM
-#define UART1_CTS_PIN            0
+//#define UART1_CTS_PORT           GPIO_B_NUM
+//#define UART1_CTS_PIN            0
 
-#define UART1_RTS_PORT           GPIO_D_NUM
-#define UART1_RTS_PIN            3
+//#define UART1_RTS_PORT           GPIO_D_NUM
+//#define UART1_RTS_PIN            3
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name SmartRF Button configuration
@@ -164,7 +164,7 @@
 #define BUTTON_DOWN_VECTOR       NVIC_INT_GPIO_PORT_C
 
 /* Notify various examples that we have Buttons */
-#define PLATFORM_HAS_BUTTON      1
+#define PLATFORM_HAS_BUTTON      0
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -176,9 +176,6 @@
  * ADC inputs can only be on port A.
  * @{
  */
-#define ADC_ALS_PWR_PORT         GPIO_A_NUM /**< ALS power GPIO control port */
-#define ADC_ALS_PWR_PIN          7 /**< ALS power GPIO control pin */
-#define ADC_ALS_OUT_PIN          6 /**< ALS output ADC input pin on port A */
 #define ADC_SENSOR_SENS4_PIN	7 /**< Onfarm Board SENS4 */
 #define ADC_SENSOR_SENS3_PIN	6 /**< Onfarm Board SENS3 */
 #define ADC_SENSOR_SENS2_PIN	5 /**< Onfarm Board SENS2 */
@@ -191,12 +188,12 @@
  * These values configure which CC2538 pins to use for the SPI lines.
  * @{
  */
-#define SPI_CLK_PORT             GPIO_A_NUM /**< Clock port */
+#define SPI_CLK_PORT             GPIO_B_NUM /**< Clock port */
 #define SPI_CLK_PIN              2          /**< Clock pin */
-#define SPI_MOSI_PORT            GPIO_A_NUM /**< MOSI port */
-#define SPI_MOSI_PIN             4          /**< MOSI pin */
-#define SPI_MISO_PORT            GPIO_A_NUM /**< MISO port */
-#define SPI_MISO_PIN             5          /**< MISO pin */
+#define SPI_MOSI_PORT            GPIO_B_NUM /**< MOSI port */
+#define SPI_MOSI_PIN             3          /**< MOSI pin */
+#define SPI_MISO_PORT            GPIO_B_NUM /**< MISO port */
+#define SPI_MISO_PIN             4          /**< MISO pin */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

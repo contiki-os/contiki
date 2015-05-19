@@ -208,7 +208,7 @@ main(void)
   process_start(&tcpip_process, NULL);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
-  //process_start(&sensors_process, NULL);
+  process_start(&sensors_process, NULL);
 
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
