@@ -205,9 +205,6 @@ void send_message(void* ptr) {
 
 	printf("ADC Set\r");				//Print debug to UART
 
-	lpm_set_max_pm(0);					//Disable power saving modes as this can affect the ADC / radio messages
-	leds_on(LEDS_RED);					//Turn RED leds on to signal that power saving is disabled
-
 	//Check digital input line. This is on port c, pin 5
 	if (GPIO_READ_PIN(GPIO_PORT_TO_BASE(GPIO_C_NUM), GPIO_PIN_MASK(5)) == 0)	//If PC.5 is low
 		DigitalInput1 = 0;				//Set the DigitalInput1 variable to 0 to signify that Input1 is low
@@ -1079,11 +1076,6 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(GPIO_C_NUM), GPIO_PIN_MASK(4));		//Enable software control of PINC.4
 	GPIO_CLR_PIN(GPIO_PORT_TO_BASE(GPIO_C_NUM), GPIO_PIN_MASK(4));				//Make sure PINC.4 is set to no pullup
 
-	//Set up Sleep mode control pin (PIND.5) as input with weak pullup (floating = sleep mode enabled & 0v = no sleep)
-	GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(5));		//Enable software control of PIND.5
-	GPIO_SET_INPUT(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(5));			//Set PIND.5 as input
-	GPIO_SET_PIN(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(5));				//Enable weak pullup on PIND.5
-
 	//Set analog inputs to ADC peripheral control
 	ioc_set_over(GPIO_A_NUM, ADC_SENSOR_SENS1_PIN, IOC_OVERRIDE_ANA);
     ioc_set_over(GPIO_A_NUM, ADC_SENSOR_SENS2_PIN, IOC_OVERRIDE_ANA);
@@ -1122,12 +1114,17 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	
 	//Set up the UART for communication with the programmer
 	printf("UART BEGIN\r");
+	ioc_set_over(GPIO_A_NUM, 6, IOC_OVERRIDE_DIS);	//Disable analog (used for uart)
 	uart_set_input(0,uart_rx_callback);
+	uart_init(1);
 	uart_set_input(1,uart1_rx_callback);
 	
 	etimer_set(&periodic, SEND_INTERVAL);											//Set up an event timer to send data back to base at a set interval
 	watchdog_periodic();															//Feed the doge
 	
+	//Enable high gain mode on cc2592
+	GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(2));			
+	GPIO_SET_PIN(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(2));
   while(1) {
 	PROCESS_YIELD();								//Pause the process until an event is triggered
 	if(ev == tcpip_event) {
@@ -1141,7 +1138,7 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 		printf("Prepare Packet\r");					//Debug message
 		
 		//Turn on Soil Moisture Sensors (PORTB.5)
-		GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(GPIO_B_NUM), GPIO_PIN_MASK(5));
+		ioc_set_over(GPIO_B_NUM, 5, IOC_OVERRIDE_DIS);
 		GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(GPIO_B_NUM), GPIO_PIN_MASK(5));
 		GPIO_SET_PIN(GPIO_PORT_TO_BASE(GPIO_B_NUM), GPIO_PIN_MASK(5));
 		OneWireGetReading();						//Instruct one wire devices to take a measurement (takes 1/2 sec)

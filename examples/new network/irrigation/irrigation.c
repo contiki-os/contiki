@@ -979,6 +979,7 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	//sendUBX(GPSoff, sizeof(GPSon)/sizeof(uint8_t));
 
 	//Enable high gain mode on cc2592
+	GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(2));			
 	GPIO_SET_PIN(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(2));
 	
 PROCESS_PAUSE();

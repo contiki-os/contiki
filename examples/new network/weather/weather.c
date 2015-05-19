@@ -407,7 +407,10 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	
 	etimer_set(&periodic, SEND_INTERVAL);
 	watchdog_periodic();
-
+	
+	//Enable high gain mode on cc2592
+	GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(2));			
+	GPIO_SET_PIN(GPIO_PORT_TO_BASE(GPIO_D_NUM), GPIO_PIN_MASK(2));
   while(1) {
 	PROCESS_YIELD();
 	if(ev == tcpip_event) {
