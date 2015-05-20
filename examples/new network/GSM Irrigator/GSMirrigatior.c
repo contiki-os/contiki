@@ -107,14 +107,14 @@ static int gsm_buffer_index = 0;
 
 bool FoundSatellite = false;
 
-static signed char GPS_TimeString[12]; 
-static signed char GPS_DateString[12];
-static signed char GPS_LatString[14];
-static signed char GPS_Lat_Hemisphere;
-static signed char GPS_LongString[14];
-static signed char GPS_Long_Hemisphere;
-static signed char GPS_SpeedString[10];
-static signed char GPS_BearingString[10];
+static char GPS_TimeString[12]; 
+static char GPS_DateString[12];
+static char GPS_LatString[14];
+static char GPS_Lat_Hemisphere;
+static char GPS_LongString[14];
+static char GPS_Long_Hemisphere;
+static char GPS_SpeedString[10];
+static char GPS_BearingString[10];
 
 unsigned char channel = 0x19;										//Set the RF channel to 0x19 by default			
 unsigned char client[11] = {0,0,0,0,0,0,0,0,0,0,0};					//Declare a variable to store the client name (used as a reference only)
@@ -179,12 +179,7 @@ void send_message(void* ptr) {
 	unsigned char i;				//Temporary variables for storing string loop index
 	
 	printf("Send message\r");
-	
-	if (FoundSatellite == false)
-	{
-		printf("No satellites found!\r");
-	}
-	
+
 	//Measure Regulator voltage (VCC / 3 (internal))
 	value = 0;							//Reset the temporary 'value' variable
 	for (i = 0; i < 20; i++) {			//Take 20 readings of VDD/3
@@ -196,6 +191,14 @@ void send_message(void* ptr) {
 	dec = A0;
 	frac = A0 - dec;	
 	printf("VDD=%d.%02u\r", dec, (unsigned int) (frac*100));
+	
+	//Measure battery voltage
+	value = 0;
+	for (i = 0; i < 20; i++) {
+		value = value + adc_sensor.value(ADC_SENSOR_SENS4);
+	}
+	//Voltage = (((value / 20) * A0) / (2047 << 4)) * 4.031;
+	Voltage = (((value / 20) * A0) / (2047 << 4)) * 4.218;
 	
 	//Measure pressure sensor
     value = 0;
@@ -211,8 +214,8 @@ void send_message(void* ptr) {
 	frac = A1 - dec;	
 	sprintf(StringBuffer, "__device=IRRIGATOR&IRA1=%d.%02u&", dec, (unsigned int) (frac*100));				//Add SO designator and Analog1 value to packet buffer
 	
-	sprintf(StringBuffer, "%sIRLAT=%s%c,",StringBuffer,GPS_LatString,GPS_Lat_Hemisphere);
-	sprintf(StringBuffer, "%sIRLON=%s%c,",StringBuffer,GPS_LongString,GPS_Long_Hemisphere);	
+	sprintf(StringBuffer, "%sIRLAT=%s%c&",StringBuffer,GPS_LatString,GPS_Lat_Hemisphere);
+	sprintf(StringBuffer, "%sIRLON=%s%c&",StringBuffer,GPS_LongString,GPS_Long_Hemisphere);	
 	
 	if (spoolTurning)
 		sprintf(StringBuffer, "%sIRSpool=1&",StringBuffer);	
@@ -220,15 +223,18 @@ void send_message(void* ptr) {
 		sprintf(StringBuffer, "%sIRSpool=0&",StringBuffer);	
 
 	if (wheelTurning)
-		sprintf(StringBuffer, "%sIRWheel=1",StringBuffer);	
+		sprintf(StringBuffer, "%sIRWheel=1&",StringBuffer);	
 	else
-		sprintf(StringBuffer, "%sIRWheel=0",StringBuffer);	
+		sprintf(StringBuffer, "%sIRWheel=0&",StringBuffer);	
 	
-	watchdog_periodic();											//Feed the dog
+	dec = Voltage;
+	frac = Voltage - dec;	
+	sprintf(StringBuffer, "%sIRBV=%d.%02u", StringBuffer, dec, (unsigned int) (frac*100));
 
 	printf("%s\r",StringBuffer);			//Print the complete string buffer to the UART (debug)
 
     printf("Sending\n");					//Debug message
+	printf("%s\r",StringBuffer);
 	sendHTTPdata();
 }
 
@@ -403,7 +409,7 @@ int sendHTTPdata()
 	
 	//if (!waitForResponse(SAPBR))
 	//	return 0;
-	delay_msec(500);
+	delay_msec(1000);
 	
 	printf("Open Bearer 1\r");
 	sprintf(UART1TXBuffer, "AT+SAPBR=1,1\r");
@@ -411,7 +417,7 @@ int sendHTTPdata()
 	
 	//if (!waitForResponse(SAPBR))
 	//	return 0;
-	delay_msec(500);
+	delay_msec(1000);
 	
 	printf("Check registration status\r");
 	sprintf(UART1TXBuffer, "AT+CREG?\r");
@@ -419,7 +425,7 @@ int sendHTTPdata()
 
 	//if (!waitForResponse(CREG))
 	//	return 0;
-	delay_msec(500);
+	delay_msec(1000);
 	
 	printf("Query bearer 1\r");
 	sprintf(UART1TXBuffer, "AT+SAPBR=2,1\r");
@@ -427,7 +433,7 @@ int sendHTTPdata()
 	
 	//if (!waitForResponse(SAPBR))
 	//	return 0;
-	delay_msec(500);
+	delay_msec(1000);
 	
 	printf("Initialize HTTP service\r");
 	sprintf(UART1TXBuffer, "AT+HTTPINIT\r");
@@ -435,7 +441,7 @@ int sendHTTPdata()
 
 	//if (!waitForResponse(HTTPINIT))
 	//	return 0;
-	delay_msec(500);
+	delay_msec(1000);
 	
 	printf("Send URL\r");
 	sprintf(UART1TXBuffer, "AT+HTTPPARA=\"URL\",\"http://onfarmdata.com/httpds?%s\"\r", StringBuffer);
@@ -443,7 +449,7 @@ int sendHTTPdata()
 
 	//if (!waitForResponse(HTTPPARA))
 	//	return 0;
-	delay_msec(500);
+	delay_msec(1000);
 	
 	printf("Send CID\r");
 	sprintf(UART1TXBuffer, "AT+HTTPPARA=\"CID\",1\r");
@@ -451,7 +457,7 @@ int sendHTTPdata()
 
 	//if (!waitForResponse(HTTPPARA))
 	//	return 0;
-	delay_msec(500);
+	delay_msec(1000);
 	
 	printf("Send HTTP Action\r");
 	sprintf(UART1TXBuffer, "AT+HTTPACTION=0\r");
@@ -459,7 +465,7 @@ int sendHTTPdata()
 
 	//if (!waitForResponse(HTTPACTION))
 	//	return 0;
-	delay_msec(500);
+	delay_msec(1000);
 	
 	printf("Send HTTP Read command\r");
 	sprintf(UART1TXBuffer, "AT+HTTPACTION=0\r");
@@ -467,7 +473,7 @@ int sendHTTPdata()
 
 	//if (!waitForResponse(HTTPREAD))
 	//	return 0;
-	delay_msec(500);
+	delay_msec(1000);
 	
 	printf("Terminate HTTP session\r");
 	sprintf(UART1TXBuffer, "AT+HTTPTERM\r");
@@ -515,9 +521,13 @@ void ExtractDataFromGPS_String(void)
      x++;
      
      if (response_string[x++] == 'A')
+	 {
+		
         FoundSatellite = true;
+	 }
      else
 	 {
+		printf("\rNo Satellites Found!\r");
 		FoundSatellite = false;
         return;
 	 }
@@ -540,13 +550,10 @@ void ExtractDataFromGPS_String(void)
      }  
      
      x++;  //Search for next comma
-     while (response_string[x] != ',' && x < StrLen)         //Strip out the Latitude Hemisphere
-     {
-		uart_write_byte(0,response_string[x]);
-        GPS_Lat_Hemisphere = response_string[x];
-        x++;
-     }
-     
+	 
+	 if (response_string[x++] == 'S')
+        GPS_Lat_Hemisphere = 'S';
+	      
      x++;  //Search for next comma 
        
      i = 0;
@@ -566,13 +573,8 @@ void ExtractDataFromGPS_String(void)
      
      x++;  //Search for next comma
      
-     while (response_string[x] != ',' && x < StrLen)         //Strip out the Longitude Hemisphere
-     {
-		uart_write_byte(0,response_string[x]);
-        GPS_Long_Hemisphere = response_string[x];
-        x++;
-     }
-     
+     if (response_string[x++] == 'E')
+        GPS_Long_Hemisphere = 'E';    
     
      x++;  //Search for next comma
      
@@ -628,6 +630,9 @@ void ExtractDataFromGPS_String(void)
      }  
 
 	uart_write_byte(0,'\r');
+	
+	
+	send_message(NULL);
 }
 
 static void start_GPS(void *ptr)
@@ -664,7 +669,7 @@ int uart1_rx_callback(unsigned char c)
 		
 		if (strcmp(response_string, "GPS Ready") == 0)
 		{
-			ctimer_set(&GPSStartTimer, CLOCK_SECOND * 5, start_GPS, NULL);
+			ctimer_set(&GPSStartTimer, CLOCK_SECOND * 20, start_GPS, NULL);			//Wait a bit for GSM to be initialised as well
 		}
 		return 1;
     }   
@@ -743,6 +748,19 @@ config_spool_pulse()
 	return 1;
 }
 
+void init_GPS_strings()
+{
+	sprintf(GPS_TimeString, "0.0");
+	sprintf(GPS_DateString, "0.0");
+	sprintf(GPS_LatString, "0.0");
+	GPS_Lat_Hemisphere = 'N';
+	sprintf(GPS_LongString, "0.0");
+	GPS_Long_Hemisphere = 'E';
+	sprintf(GPS_SpeedString, "0.0");
+	sprintf(GPS_BearingString, "0.0");
+
+}
+
 //This is the main Gate process.
 //Here is where we set up I/O, timers and kick of the network processes
 /*---------------------------------------------------------------------------*/
@@ -752,6 +770,7 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	
 //	ReadFromEEPROM();											//Read all our saved values from SPI EEPROM
 
+	init_GPS_strings();
 	timer_set(&debouncetimer, 0);
 	
 	config_spool_pulse();
@@ -761,7 +780,11 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(GPIO_B_NUM), GPIO_PIN_MASK(5));
 	GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(GPIO_B_NUM), GPIO_PIN_MASK(5));
 	GPIO_CLR_PIN(GPIO_PORT_TO_BASE(GPIO_B_NUM), GPIO_PIN_MASK(5));
-			
+	
+	ioc_set_over(GPIO_A_NUM, ADC_SENSOR_SENS1_PIN, IOC_OVERRIDE_ANA);
+	ioc_set_over(GPIO_A_NUM, ADC_SENSOR_SENS2_PIN, IOC_OVERRIDE_ANA);
+	ioc_set_over(GPIO_A_NUM, ADC_SENSOR_SENS4_PIN, IOC_OVERRIDE_ANA);
+	
 	PROCESS_PAUSE();
 
 	//Set up the UART for communication with the programmer
@@ -769,7 +792,7 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	uart_set_input(0,uart_rx_callback);
 	uart_set_input(1,uart1_rx_callback);
 
-	etimer_set(&periodic, SEND_INTERVAL);											//Set up an event timer to send data back to base at a set interval
+	etimer_set(&periodic, CLOCK_SECOND * 120);											//Set up an event timer to send data back to base at a set interval
 	etimer_set(&spoolTimer, 60 * CLOCK_SECOND);
 	etimer_set(&wheelTimer, 60 * CLOCK_SECOND);
 	
@@ -786,9 +809,6 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 			printf("Get GPS Info\r");
 			sprintf(UART1TXBuffer, "AT+CGPSINF=32\r");
 			uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
-	
-			
-			send_message(NULL);
 	    }
 		
 		if(etimer_expired(&wheelTimer)) {
