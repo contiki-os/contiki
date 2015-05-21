@@ -329,8 +329,7 @@ get_sync_sensor_readings(void)
   printf("-----------------------------------------\n");
 
   value = batmon_sensor.value(BATMON_SENSOR_TYPE_TEMP);
-  printf("Bat: Temp=%d.%02d C (%08x)\n", value >> 2,
-         (value & 0x00000003) * 25, value);
+  printf("Bat: Temp=%d C\n", value);
 
   value = batmon_sensor.value(BATMON_SENSOR_TYPE_VOLT);
   printf("Bat: Volt=%d mV\n", (value * 125) >> 5);
