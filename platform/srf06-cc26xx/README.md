@@ -59,7 +59,8 @@ Requirements
 ============
 To use the port you need:
 
-* TI's CC26xxware sources (more below)
+* TI's CC26xxware sources. The correct version will be installed automatically
+  as a submodule when you clone Contiki.
 * Software to program the nodes. Use TI's SmartRF Flash Programmer
 * A toolchain to build firmware: The port has been developed and tested with
   GNU Tools for ARM Embedded Processors <https://launchpad.net/gcc-arm-embedded>.
@@ -74,44 +75,13 @@ To use the port you need:
 operating system and so that you can use the chip's UART for I/O. Please read
 the section ["Drivers" in the CC2538DK readme](https://github.com/contiki-os/contiki/tree/master/platform/cc2538dk#drivers).
 
-Environment
-===========
-To use this port, you will need to download and extract CC26xxware sources. We
-currently use CC26xxware version 2.20.06.14829. The download link can be found
-here: http://processors.wiki.ti.com/index.php/CC26xxware
-
-Once you have done this, you will need to configure the Contiki build system so
-that it can locate and compile them as part of the build process.
-
-To do this, you will need to set the following environment variable:
-
-*  `TI_CC26XXWARE`
-
-    Stores the path to a directory containing the following:
-
-    * cc26xxware sources under `$(TI_CC26XXWARE)/driverlib`
-    * cc26xxware includes under `$(TI_CC26XXWARE)/inc`
-    * Startup files under `$(TI_CC26XXWARE)/startup_files`
-
-This _must_ be a path relative to the Contiki source directory. For
-example, if Contiki is in `/home/user/contiki-2.x` and the CC26xxware is in
-`/home/user/cc26xxware`, then `TI_CC26XXWARE` must be set to `../cc26xxware`
-
-The variable can be set within the example's Makefile, by adding this:
-
-    TI_CC26XXWARE=../cc26xxware
-
-or you can use an environment variable, like so:
-
-    export TI_CC26XXWARE=../cc26xxware
-
 Filename conflicts between Contiki and CC26xxware
 =================================================
 There is a file called `timer.c` both in Contiki as well as in CC26xxware. The
 way things are configured now, we don't use the latter. However, if you need to
 start using it at some point, you will need to rename it:
 
-From `$(TI_CC26XXWARE)/driverlib/cc26xx/source/timer.c` to `driverlib-timer.c`
+From `cpu/cc26xx/lib/cc26xxware/driverlib/timer.c` to `driverlib-timer.c`
 
 Sensortag vs Srf06
 ==================

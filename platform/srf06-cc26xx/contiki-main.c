@@ -62,7 +62,7 @@
 #include "dev/serial-line.h"
 #include "net/mac/frame802154.h"
 
-#include "driverlib/driverlib_ver.h"
+#include "driverlib/driverlib_release.h"
 
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
@@ -174,8 +174,8 @@ main(void)
   serial_line_init();
 
   printf("Starting " CONTIKI_VERSION_STRING "\n");
-  printf("With DriverLib v%u.%02u.%02u.%u\n", DRIVERLIB_MAJOR_VER,
-         DRIVERLIB_MINOR_VER, DRIVERLIB_PATCH_VER, DRIVERLIB_BUILD_ID);
+  printf("With DriverLib v%u.%u\n", DRIVERLIB_RELEASE_GROUP,
+         DRIVERLIB_RELEASE_BUILD);
   printf(BOARD_STRING " using CC%u\n", CC26XX_MODEL_CPU_VARIANT);
 
   process_start(&etimer_process, NULL);

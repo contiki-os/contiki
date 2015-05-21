@@ -61,28 +61,25 @@ static int enabled = SENSOR_STATUS_DISABLED;
  * \brief Returns a reading from the sensor
  * \param type BATMON_SENSOR_TYPE_TEMP or BATMON_SENSOR_TYPE_VOLT
  *
- * \return The raw sensor reading, not converted to human-readable form
+ * \return The value as returned by the respective CC26xxware function
  */
 static int
 value(int type)
 {
-  uint32_t tmp_value;
-
   if(enabled == SENSOR_STATUS_DISABLED) {
     PRINTF("Sensor Disabled\n");
     return 0;
   }
 
   if(type == BATMON_SENSOR_TYPE_TEMP) {
-    tmp_value = ti_lib_aon_batmon_temperature_get();
+    return (int)ti_lib_aon_batmon_temperature_get_deg_c();
   } else if(type == BATMON_SENSOR_TYPE_VOLT) {
-    tmp_value = ti_lib_aon_batmon_battery_voltage_get();
+    return (int)ti_lib_aon_batmon_battery_voltage_get();
   } else {
     PRINTF("Invalid type\n");
-    return 0;
   }
 
-  return (int)tmp_value;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -101,7 +98,6 @@ configure(int type, int enable)
   switch(type) {
   case SENSORS_HW_INIT:
     ti_lib_aon_batmon_enable();
-    ti_lib_aon_batmon_measurement_cycle_set(AON_BATMON_CYCLE_32);
     enabled = SENSOR_STATUS_ENABLED;
     break;
   case SENSORS_ACTIVE:
