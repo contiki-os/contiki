@@ -335,7 +335,7 @@ struct process {
  *
  * \param p A pointer to a process structure.
  *
- * \param arg An argument pointer that can be passed to the new
+ * \param data An argument pointer that can be passed to the new
  * process
  *
  */

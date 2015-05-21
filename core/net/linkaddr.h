@@ -1,17 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup linkaddr Rime addresses
- * @{
- *
- * The linkaddr module is an abstract representation of addresses in
- * Rime.
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -51,6 +37,20 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup linkaddr Rime addresses
+ * @{
+ *
+ * The linkaddr module is an abstract representation of addresses in
+ * Rime.
+ *
+ */
+
 #ifndef LINKADDR_H_
 #define LINKADDR_H_
 
@@ -64,8 +64,15 @@
 
 typedef union {
   unsigned char u8[LINKADDR_SIZE];
+#if LINKADDR_SIZE == 2
+  uint16_t u16;
+#endif /* LINKADDR_SIZE == 2 */
 } linkaddr_t;
 
+typedef union {
+  uint8_t u8[8];
+  uint16_t u16[4];
+} linkaddr_extended_t;
 
 /**
  * \brief      Copy a Rime address

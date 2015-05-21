@@ -4,7 +4,11 @@
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
 
-/** @addtogroup iar
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/** @defgroup iar
  * @brief Compiler and Platform specific definitions and typedefs for the
  *  IAR ARM C compiler.
  *
@@ -532,4 +536,5 @@ int abs(int I);
 #endif // IAR_H_
 
 /** @}  END addtogroup */
+/** @} */
 

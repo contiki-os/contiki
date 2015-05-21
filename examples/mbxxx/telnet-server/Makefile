@@ -1,6 +1,4 @@
 CONTIKI_PROJECT = telnet-server
-
-UIP_CONF_IPV6=1
 			
 APPS = telnetd
 
@@ -11,4 +9,5 @@ PROJECT_SOURCEFILES = shell-sensors.c
 all: $(CONTIKI_PROJECT)
 
 CONTIKI = ../../..
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include

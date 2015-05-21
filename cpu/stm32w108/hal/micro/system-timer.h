@@ -6,7 +6,11 @@
 
  */
 
-/** @addtogroup system_timer
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/** @defgroup system_timer
  * @brief Functions that provide access to the system clock.
  *
  * A single system tick (as returned by ::halCommonGetInt16uMillisecondTick() and
@@ -76,7 +80,7 @@ uint16_t halCommonGetInt16uQuarterSecondTick(void);
 
 /**@} //END addtogroup
  */
-
+/** @} */
 
 
 

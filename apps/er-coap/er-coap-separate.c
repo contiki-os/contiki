@@ -36,6 +36,7 @@
  *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
  */
 
+#include "sys/cc.h"
 #include <stdio.h>
 #include <string.h>
 #include "er-coap-separate.h"

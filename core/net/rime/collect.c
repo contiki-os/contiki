@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimecollect
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,14 +37,18 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rimecollect
+ * @{
+ */
+
 #include "contiki.h"
 #include "net/netstack.h"
 #include "net/rime/rime.h"
 #include "net/rime/collect.h"
 #include "net/rime/collect-neighbor.h"
 #include "net/rime/collect-link-estimate.h"
-
-#include "net/packetqueue.h"
+#include "net/rime/packetqueue.h"
 
 #include "dev/radio-sensor.h"
 

@@ -1,15 +1,3 @@
-/**
- * \addtogroup etimer
- * @{
- */
-
-/**
- * \file
- * Event timer library implementation.
- * \author
- * Adam Dunkels <adam@sics.se>
- */
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,6 +30,18 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
+ */
+
+/**
+ * \addtogroup etimer
+ * @{
+ */
+
+/**
+ * \file
+ * Event timer library implementation.
+ * \author
+ * Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki-conf.h"

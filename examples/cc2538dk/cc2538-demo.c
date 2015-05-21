@@ -29,10 +29,10 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538
+ * \addtogroup cc2538-platforms
  * @{
  *
- * \defgroup cc2538-examples cc2538dk Example Projects
+ * \defgroup cc2538-examples cc2538 Example Projects
  * @{
  *
  * \defgroup cc2538-demo cc2538dk Demo Project
@@ -69,8 +69,9 @@
 #include "sys/rtimer.h"
 #include "dev/leds.h"
 #include "dev/uart.h"
+#include "dev/cc2538-sensors.h"
 #include "dev/button-sensor.h"
-#include "dev/adc-sensor.h"
+#include "dev/als-sensor.h"
 #include "dev/watchdog.h"
 #include "dev/serial-line.h"
 #include "dev/sys-ctrl.h"
@@ -114,8 +115,6 @@ rt_callback(struct rtimer *t, void *ptr)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc2538_demo_process, ev, data)
 {
-  int16_t value;
-
   PROCESS_EXITHANDLER(broadcast_close(&bc))
 
   PROCESS_BEGIN();
@@ -134,15 +133,13 @@ PROCESS_THREAD(cc2538_demo_process, ev, data)
       printf("-----------------------------------------\n"
              "Counter = 0x%08x\n", counter);
 
-      value = adc_sensor.value(ADC_SENSOR_VDD_3);
-      printf("VDD = %d mV\n", value * (3 * 1190) / (2047 << 4));
+      printf("VDD = %d mV\n",
+             vdd3_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED));
 
-      value = adc_sensor.value(ADC_SENSOR_TEMP);
       printf("Temperature = %d mC\n",
-             25000 + ((value >> 4) - 1422) * 10000 / 42);
+              cc2538_temp_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED));
 
-      value = adc_sensor.value(ADC_SENSOR_ALS);
-      printf("Ambient light sensor = %d raw\n", value);
+      printf("Ambient light sensor = %d raw\n", als_sensor.value(0));
 
       etimer_set(&et, CLOCK_SECOND);
       rtimer_set(&rt, RTIMER_NOW() + LEDS_OFF_HYSTERISIS, 1,

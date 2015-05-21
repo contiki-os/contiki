@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeroute
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Rime route table
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimeroute
+ * @{
  */
 
 #include <stdio.h>

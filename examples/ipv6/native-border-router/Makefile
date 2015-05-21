@@ -4,9 +4,6 @@ APPS = slip-cmd
 
 CONTIKI=../../..
 
-UIP_CONF_IPV6=1
-CFLAGS+= -DUIP_CONF_IPV6_RPL -DUIP_CONF_IPV6 -DWITH_UIP6
-
 #linker optimizations
 SMALL=1
 
@@ -23,6 +20,7 @@ APPS += $(WITH_WEBSERVER)
 CFLAGS += -DWEBSERVER=2
 endif
 
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
 connect-router:	border-router.native

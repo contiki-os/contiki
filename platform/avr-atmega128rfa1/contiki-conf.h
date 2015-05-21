@@ -142,7 +142,7 @@ typedef unsigned short uip_stats_t;
 /* Allow MCU sleeping between channel checks */
 #define RDC_CONF_MCU_SLEEP         1
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define LINKADDR_CONF_SIZE        8
 #define UIP_CONF_ICMP6            1
 #define UIP_CONF_UDP              1
@@ -191,8 +191,6 @@ typedef unsigned short uip_stats_t;
 #define CHANNEL_802_15_4          26
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-/* Request 802.15.4 ACK on all packets sent (else autoretry). This is primarily for testing. */
-#define SICSLOWPAN_CONF_ACK_ALL   0
 /* 1 + Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode) */
 #define RF230_CONF_FRAME_RETRIES    2
 /* Number of csma retry attempts 0-5 in extended tx mode (7 does immediate tx with no csma) */
@@ -237,15 +235,19 @@ typedef unsigned short uip_stats_t;
 #define NETSTACK_CONF_RDC         contikimac_driver
 /* Default is two CCA separated by 500 usec */
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE   8
-/* Wireshark won't decode with the header, but padded packets will fail ipv6 checksum */
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER 0
 /* So without the header this needed for RPL mesh to form */
-#define CONTIKIMAC_CONF_SHORTEST_PACKET_SIZE   43-18  //multicast RPL DIS length
+#define CONTIKIMAC_FRAMER_CONF_SHORTEST_PACKET_SIZE   43-18  //multicast RPL DIS length
 /* Not tested much yet */
 #define WITH_PHASE_OPTIMIZATION                0
 #define CONTIKIMAC_CONF_COMPOWER               1
 #define RIMESTATS_CONF_ENABLED                 1
-#define NETSTACK_CONF_FRAMER      framer_802154
+
+#if NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_FRAMER      framer802154
+#else /* NETSTACK_CONF_WITH_IPV6 */
+#define NETSTACK_CONF_FRAMER      contikimac_framer
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
 #define NETSTACK_CONF_RADIO       rf230_driver
 #define CHANNEL_802_15_4          26
 /* The radio needs to interrupt during an rtimer interrupt */

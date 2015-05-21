@@ -1,11 +1,3 @@
-/**
- * \file
- * Various uIP library functions.
- * \author
- * Adam Dunkels <adam@sics.se>
- *
- */
-
 /*
  * Copyright (c) 2002, Adam Dunkels.
  * All rights reserved. 
@@ -39,6 +31,15 @@
  *
  *
  */
+
+/**
+ * \file
+ * Various uIP library functions.
+ * \author
+ * Adam Dunkels <adam@sics.se>
+ *
+ */
+
 #ifndef UIPLIB_H_
 #define UIPLIB_H_
 
@@ -66,11 +67,11 @@
  * \retval 0 If the IP address could not be parsed.
  * \retval Non-zero If the IP address was parsed. 
  */
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define uiplib_ipaddrconv uiplib_ip6addrconv
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 #define uiplib_ipaddrconv uiplib_ip4addrconv
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 CCIF int uiplib_ip4addrconv(const char *addrstr, uip_ip4addr_t *addr);
 CCIF int uiplib_ip6addrconv(const char *addrstr, uip_ip6addr_t *addr);

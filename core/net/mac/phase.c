@@ -217,6 +217,7 @@ phase_wait(const linkaddr_t *neighbor, rtimer_clock_t cycle_time,
       p = memb_alloc(&queued_packets_memb);
       if(p != NULL) {
         if(buf_list == NULL) {
+          packetbuf_set_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED, 1);
           p->q = queuebuf_new_from_packetbuf();
         }
         p->mac_callback = mac_callback;

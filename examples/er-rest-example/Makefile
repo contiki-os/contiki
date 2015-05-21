@@ -3,12 +3,6 @@ all: er-example-server er-example-client
 
 CONTIKI=../..
 
-# Contiki IPv6 configuration
-WITH_UIP6=1
-UIP_CONF_IPV6=1
-CFLAGS += -DUIP_CONF_IPV6=1
-CFLAGS += -DUIP_CONF_IPV6_RPL=1
-
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 # automatically build RESTful resources
@@ -37,6 +31,7 @@ APPS += rest-engine
 #CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 #CUSTOM_RULE_S_TO_OBJECTDIR_O = 1
 
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
 # minimal-net target is currently broken in Contiki
@@ -46,7 +41,7 @@ ${info INFO: er-example compiling with large buffers}
 CFLAGS += -DUIP_CONF_BUFFER_SIZE=1300
 CFLAGS += -DREST_MAX_CHUNK_SIZE=1024
 CFLAGS += -DCOAP_MAX_HEADER_SIZE=176
-CFLAGS += -DUIP_CONF_IPV6_RPL=0
+CONTIKI_WITH_RPL=0
 endif
 
 # optional rules to get assembly

@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         ICMP6 I/O for RPL control messages.
@@ -41,6 +38,11 @@
  * Contributors: Niclas Finne <nfi@sics.se>, Joel Hoglund <joel@sics.se>,
  *               Mathieu Pouillot <m.pouillot@watteco.com>
  *               George Oikonomou <oikonomou@users.sourceforge.net> (multicast)
+ */
+
+/**
+ * \addtogroup uip6
+ * @{
  */
 
 #include "net/ip/tcpip.h"
@@ -59,11 +61,10 @@
 
 #include "net/ip/uip-debug.h"
 
-#if UIP_CONF_IPV6
 /*---------------------------------------------------------------------------*/
 #define RPL_DIO_GROUNDED                 0x80
 #define RPL_DIO_MOP_SHIFT                3
-#define RPL_DIO_MOP_MASK                 0x3c
+#define RPL_DIO_MOP_MASK                 0x38
 #define RPL_DIO_PREFERENCE_MASK          0x07
 
 #define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -465,8 +466,12 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
   buffer[pos++] = instance->dtsn_out;
 
-  /* always request new DAO to refresh route */
-  RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
+  if(uc_addr == NULL) {
+    /* Request new DAO to refresh route. We do not do this for unicast DIO
+     * in order to avoid DAO messages after a DIS-DIO update,
+     * or upon unicast DIO probing. */
+    RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
+  }
 
   /* reserved 2 bytes */
   buffer[pos++] = 0; /* flags */
@@ -777,6 +782,7 @@ dao_input(void)
 
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
   rep->state.learned_from = learned_from;
+  rep->state.nopath_received = 0;
 
 #if RPL_CONF_MULTICAST
 fwd_dao:
@@ -956,6 +962,5 @@ rpl_icmp6_register_handlers()
   uip_icmp6_register_input_handler(&dao_ack_handler);
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
 
 /** @}*/

@@ -1,7 +1,5 @@
 /**
  \defgroup buildsystem The Contiki build system
-
- .
  
  The Contiki build system is designed to make it easy to compile
  Contiki applications for either to a hardware platform or into a
@@ -18,18 +16,15 @@
  builds an entire Contiki system as a program that runs on the
  development system. After compiling the application for the
  <tt>native</tt> target it is possible to run the Contiki system with
- the application by running the file <tt>hello-world.native</tt>. To
- compile the application and a Contiki system for the \ref esb "ESB
- platform" the command <tt>make TARGET=esb</tt> is used. This produces
- a hello-world.esb file that can be loaded into an ESB board.
-
+ the application by running the file <tt>hello-world.native</tt>.
+ 
  To compile the hello-world application into a stand-alone executable
  that can be loaded into a running Contiki system, the command
  <tt>make hello-world.ce</tt> is used. To build an executable file for
- the ESB platform, <tt>make TARGET=esb hello-world.ce</tt> is run.
+ the Sky platform, <tt>make TARGET=sky hello-world.sky</tt> is run.
 
  To avoid having to type <tt>TARGET=</tt> every time <tt>make</tt> is
- run, it is possible to run <tt>make TARGET=esb savetarget</tt> to
+ run, it is possible to run <tt>make TARGET=sky savetarget</tt> to
  save the selected target as the default target platform for
  subsequent invocations of <tt>make</tt>. A file called
  <tt>Makefile.target</tt> containing the currently saved target is

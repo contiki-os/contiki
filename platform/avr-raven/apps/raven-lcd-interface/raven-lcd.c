@@ -30,21 +30,19 @@
  *
 */
 
-/**
- *  \brief This module contains code to interface a Contiki-based
- *  project on the AVR Raven platform's ATMega1284P chip to the LCD
- *  driver chip (ATMega3290P) on the Raven.
- *
- *  \author Blake Leverett <bleverett@gmail.com>
- *
-*/
-
 /**  \addtogroup raven
  * @{
  */
 
 /**
  *  \defgroup ravenserial Serial interface between Raven processors
+ *
+ *  \brief This module contains code to interface a Contiki-based
+ *  project on the AVR Raven platform's ATMega1284P chip to the LCD
+ *  driver chip (ATMega3290P) on the Raven.
+ *
+ *  \author Blake Leverett <bleverett@gmail.com>
+ *
  * @{
  */
 /**

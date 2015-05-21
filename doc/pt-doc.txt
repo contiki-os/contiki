@@ -28,7 +28,7 @@ after the blocking call. This makes it hard to use control structures
 such as if() conditionals and while() loops.
 
 The advantage of protothreads over ordinary threads is that a
-protothread do not require a separate stack. In memory constrained
+protothread does not require a separate stack. In memory constrained
 systems, the overhead of allocating multiple stacks can consume large
 amounts of the available memory. In contrast, each protothread only
 requires between two and twelve bytes of state, depending on the

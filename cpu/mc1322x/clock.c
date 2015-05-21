@@ -97,7 +97,7 @@ clock_wait(clock_time_t t)
 	while ((signed long)(current_clock - endticks) < 0) {;}
 }
 /*---------------------------------------------------------------------------*/
-/**
+/*
  * Delay the CPU for up to 65535 microseconds.
  * Use the 250KHz MACA clock for longer delays to avoid interrupt effects.
  * However that can't be used if the radio is being power cycled!
@@ -118,7 +118,7 @@ clock_delay_usec(uint16_t howlong)
 		while(--i);
 }
 /*---------------------------------------------------------------------------*/
-/**
+/*
  * Delay the CPU for up to 65535 milliseconds. The watchdog is NOT disabled.
  */
 void
@@ -127,7 +127,7 @@ clock_delay_msec(uint16_t howlong)
 	while(howlong--) clock_delay_usec(1000);
 }
 /*---------------------------------------------------------------------------*/
-/**
+/*
  * Legacy delay. The original clock_delay for the msp430 used a granularity
  * of 2.83 usec. This approximates that delay for values up to 1456 usec.
  * (The largest core call in leds.c uses 400).
@@ -139,7 +139,7 @@ clock_delay(unsigned int howlong)
 	clock_delay_usec((283*howlong)/100);
 }
 /*---------------------------------------------------------------------------*/
-/**
+/*
  * Adjust clock ticks after a cpu sleep.
  */
 void clock_adjust_ticks(clock_time_t howmany) {

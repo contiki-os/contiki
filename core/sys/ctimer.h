@@ -1,17 +1,3 @@
-/**
- * \addtogroup sys
- * @{
- */
-
-/**
- * \defgroup ctimer Callback timer
- * @{
- *
- * The ctimer module provides a timer mechanism that calls a specified
- * C function when a ctimer expires.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -49,6 +35,20 @@
  *         Header file for the callback timer
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup sys
+ * @{
+ */
+
+/**
+ * \defgroup ctimer Callback timer
+ * @{
+ *
+ * The ctimer module provides a timer mechanism that calls a specified
+ * C function when a ctimer expires.
+ *
  */
 
 #ifndef CTIMER_H_

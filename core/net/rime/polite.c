@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimepolite
- * @{
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,20 +37,17 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rimepolite
+ * @{
+ */
+
+#include "sys/cc.h"
 #include "net/rime/rime.h"
 #include "net/rime/polite.h"
 #include "lib/random.h"
 
 #include <string.h>
-
-#ifndef MAX
-#define MAX(a,b) ((a) > (b)? (a) : (b))
-#endif /* MAX */
-
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
-
 
 /*---------------------------------------------------------------------------*/
 static void

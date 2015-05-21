@@ -1,14 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-/**
- * \defgroup rimeroute Rime route table
- * @{
- *
- * The route module handles the route table in Rime.
- */
-
 /*
  * Copyright (c) 2005, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -46,6 +35,18 @@
  *         Header file for the Rime route table
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeroute Rime route table
+ * @{
+ *
+ * The route module handles the route table in Rime.
  */
 
 #ifndef ROUTE_H_

@@ -1,15 +1,3 @@
-/**
- * \addtogroup trickle-timer
- * @{
- */
-
-/**
- * \file
- *   Trickle timer library implementation.
- * \author
- *   George Oikonomou - <oikonomou@users.sourceforge.net>
- */
-
 /*
  * Copyright (c) 2012, George Oikonomou - <oikonomou@users.sourceforge.net>
  * All rights reserved.
@@ -40,6 +28,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/**
+ * \file
+ *   Trickle timer library implementation.
+ * \author
+ *   George Oikonomou - <oikonomou@users.sourceforge.net>
+ */
+
+/**
+ * \addtogroup trickle-timer
+ * @{
+ */
+
 #include "contiki-conf.h"
 #include "lib/trickle-timer.h"
 #include "sys/ctimer.h"

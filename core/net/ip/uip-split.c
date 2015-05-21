@@ -73,33 +73,33 @@ uip_split_output(void)
     /* Create the first packet. This is done by altering the length
        field of the IP header and updating the checksums. */
     uip_len = len1 + UIP_TCPIP_HLEN;
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     /* For IPv6, the IP length field does not include the IPv6 IP header
        length. */
     BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
     BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
     BUF->len[0] = uip_len >> 8;
     BUF->len[1] = uip_len & 0xff;
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     
     /* Recalculate the TCP checksum. */
     BUF->tcpchksum = 0;
     BUF->tcpchksum = ~(uip_tcpchksum());
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
     /* Recalculate the IP checksum. */
     BUF->ipchksum = 0;
     BUF->ipchksum = ~(uip_ipchksum());
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     
     /* Transmit the first packet. */
     /*    uip_fw_output();*/
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     tcpip_ipv6_output();
 #else
     tcpip_output();
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
    
     /* Now, create the second packet. To do this, it is not enough to
        just alter the length field, but we must also update the TCP
@@ -107,15 +107,15 @@ uip_split_output(void)
        memory. This place is detemined by the length of the first
        packet (len1). */
     uip_len = len2 + UIP_TCPIP_HLEN;
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     /* For IPv6, the IP length field does not include the IPv6 IP header
        length. */
     BUF->len[0] = ((uip_len - UIP_IPH_LEN) >> 8);
     BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
     BUF->len[0] = uip_len >> 8;
     BUF->len[1] = uip_len & 0xff;
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     
     /*    uip_appdata += len1;*/
     memcpy(uip_appdata, (uint8_t *)uip_appdata + len1, len2);
@@ -130,29 +130,29 @@ uip_split_output(void)
     BUF->tcpchksum = 0;
     BUF->tcpchksum = ~(uip_tcpchksum());
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
     /* Recalculate the IP checksum. */
     BUF->ipchksum = 0;
     BUF->ipchksum = ~(uip_ipchksum());
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
     /* Transmit the second packet. */
     /*    uip_fw_output();*/
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
     tcpip_ipv6_output();
 #else
     tcpip_output();
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
     return;
   }
 #endif /* UIP_TCP */
 
   /*    uip_fw_output();*/
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
      tcpip_ipv6_output();
 #else
      tcpip_output();
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 }
 
 /*-----------------------------------------------------------------------------*/

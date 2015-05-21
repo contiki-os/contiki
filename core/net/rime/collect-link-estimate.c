@@ -1,7 +1,3 @@
-/**
- * \addtogroup rimelinkestimate
- * @{
- */
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -39,6 +35,11 @@
  *         Implementation of Collect link estimate based on ETX
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimelinkestimate
+ * @{
  */
 
 #include "net/rime/collect.h"

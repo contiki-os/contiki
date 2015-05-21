@@ -195,4 +195,77 @@
 #define RPL_PREFERENCE              0
 #endif
 
+/*
+ * Hop-by-hop option
+ * This option control the insertion of the RPL Hop-by-Hop extension header
+ * into packets originating from this node. Incoming Hop-by-hop extension
+ * header are still processed and forwarded.
+ */
+#ifdef RPL_CONF_INSERT_HBH_OPTION
+#define RPL_INSERT_HBH_OPTION       RPL_CONF_INSERT_HBH_OPTION
+#else
+#define RPL_INSERT_HBH_OPTION       1
+#endif
+
+/*
+ * RPL probing. When enabled, probes will be sent periodically to keep
+ * parent link estimates up to date.
+ * */
+#ifdef RPL_CONF_WITH_PROBING
+#define RPL_WITH_PROBING RPL_CONF_WITH_PROBING
+#else
+#define RPL_WITH_PROBING 1
+#endif
+
+/*
+ * RPL probing interval.
+ * */
+#ifdef RPL_CONF_PROBING_INTERVAL
+#define RPL_PROBING_INTERVAL RPL_CONF_PROBING_INTERVAL
+#else
+#define RPL_PROBING_INTERVAL (120 * CLOCK_SECOND)
+#endif
+
+/*
+ * RPL probing expiration time.
+ * */
+#ifdef RPL_CONF_PROBING_EXPIRATION_TIME
+#define RPL_PROBING_EXPIRATION_TIME RPL_CONF_PROBING_EXPIRATION_TIME
+#else
+#define RPL_PROBING_EXPIRATION_TIME (10 * 60 * CLOCK_SECOND)
+#endif
+
+/*
+ * Function used to select the next parent to be probed.
+ * */
+#ifdef RPL_CONF_PROBING_SELECT_FUNC
+#define RPL_PROBING_SELECT_FUNC RPL_CONF_PROBING_SELECT_FUNC
+#else
+#define RPL_PROBING_SELECT_FUNC(dag) get_probing_target((dag))
+#endif
+
+/*
+ * Function used to send RPL probes.
+ * To probe with DIO, use:
+ * #define RPL_CONF_PROBING_SEND_FUNC(instance, addr) dio_output((instance), (addr))
+ * To probe with DIS, use:
+ * #define RPL_CONF_PROBING_SEND_FUNC(instance, addr) dis_output((addr))
+ * Any other custom probing function is also acceptable.
+ * */
+#ifdef RPL_CONF_PROBING_SEND_FUNC
+#define RPL_PROBING_SEND_FUNC RPL_CONF_PROBING_SEND_FUNC
+#else
+#define RPL_PROBING_SEND_FUNC(instance, addr) dio_output((instance), (addr))
+#endif
+
+/*
+ * Function used to calculate next RPL probing interval
+ * */
+#ifdef RPL_CONF_PROBING_DELAY_FUNC
+#define RPL_PROBING_DELAY_FUNC RPL_CONF_PROBING_DELAY_FUNC
+#else
+#define RPL_PROBING_DELAY_FUNC() ((RPL_PROBING_INTERVAL / 2) \
+    + random_rand() % (RPL_PROBING_INTERVAL))
+#endif
+
 #endif /* RPL_CONF_H */

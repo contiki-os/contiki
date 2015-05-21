@@ -1,9 +1,3 @@
-/**
- * \addtogroup timesynch
- * @{
- */
-
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -41,6 +35,11 @@
  *         A simple time synchronization mechanism
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup timesynch
+ * @{
  */
 
 #include "contiki.h"

@@ -43,7 +43,7 @@
  * \name ANA_REGS register offsets
  * @{
  */
-#define ANA_REGS_IVCTRL       0x00000004
+#define ANA_REGS_IVCTRL       0x400D6004
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

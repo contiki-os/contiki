@@ -29,11 +29,15 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
+ * \addtogroup uip6-multicast
+ * @{
+ */
+/**
  * \file
- *     Multicast routing table manipulation
+ *    Header file for multicast routing table manipulation
  *
  * \author
- *     George Oikonomou - <oikonomou@users.sourceforge.net>
+ *    George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 #ifndef UIP_MCAST6_ROUTE_H_
 #define UIP_MCAST6_ROUTE_H_
@@ -45,18 +49,48 @@
 /*---------------------------------------------------------------------------*/
 /** \brief An entry in the multicast routing table */
 typedef struct uip_mcast6_route {
-  struct uip_mcast6_route *next;
-  uip_ipaddr_t group;
-  uint32_t lifetime; /* seconds */
-  void *dag; /* Pointer to an rpl_dag_t struct */
+  struct uip_mcast6_route *next; /**< Routes are arranged in a linked list */
+  uip_ipaddr_t group; /**< The multicast group */
+  uint32_t lifetime; /**< Entry lifetime seconds */
+  void *dag; /**< Pointer to an rpl_dag_t struct */
 } uip_mcast6_route_t;
 /*---------------------------------------------------------------------------*/
 /** \name Multicast Routing Table Manipulation */
 /** @{ */
+
+/**
+ * \brief Lookup a multicast route
+ * \param group A pointer to the multicast group to be searched for
+ * \return A pointer to the new routing entry, or NULL if the route could not
+ *         be found
+ */
 uip_mcast6_route_t *uip_mcast6_route_lookup(uip_ipaddr_t *group);
+
+/**
+ * \brief Add a multicast route
+ * \param group A pointer to the multicast group to be added
+ * \return A pointer to the new route, or NULL if the route could not be added
+ */
 uip_mcast6_route_t *uip_mcast6_route_add(uip_ipaddr_t *group);
-void uip_mcast6_route_rm(uip_mcast6_route_t *defrt);
+
+/**
+ * \brief Remove a multicast route
+ * \param route A pointer to the route to be removed
+ */
+void uip_mcast6_route_rm(uip_mcast6_route_t *route);
+
+/**
+ * \brief Retrieve the count of multicast routes
+ * \return The number of multicast routes
+ */
 int uip_mcast6_route_count(void);
+
+/**
+ * \brief Retrieve a pointer to the start of the multicast routes list
+ * \return A pointer to the start of the multicast routes
+ *
+ * If the multicast routes list is empty, this function will return NULL
+ */
 uip_mcast6_route_t *uip_mcast6_route_list_head(void);
 /*---------------------------------------------------------------------------*/
 /**
@@ -73,3 +107,4 @@ void uip_mcast6_route_init(void);
 /** @} */
 
 #endif /* UIP_MCAST6_ROUTE_H_ */
+/** @} */

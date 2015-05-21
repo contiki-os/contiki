@@ -169,6 +169,7 @@ public class MRM extends AbstractRadioMedium {
       if (sender.getChannel() >= 0 &&
           recv.getChannel() >= 0 &&
           sender.getChannel() != recv.getChannel()) {
+        newConnection.addInterfered(recv);
         continue;
       }
       final Radio recvFinal = recv;
@@ -313,14 +314,14 @@ public class MRM extends AbstractRadioMedium {
     /* Interfering/colliding radio connections */
     for (RadioConnection conn : conns) {
       for (Radio intfRadio : ((MRMRadioConnection) conn).getInterfered()) {
-        double signalStrength = ((MRMRadioConnection) conn).getInterferenceSignalStrength(intfRadio);
-        if (intfRadio.getCurrentSignalStrength() < signalStrength) {
-                intfRadio.setCurrentSignalStrength(signalStrength);
-        }
         if (conn.getSource().getChannel() >= 0 &&
             intfRadio.getChannel() >= 0 &&
             conn.getSource().getChannel() != intfRadio.getChannel()) {
           continue;
+        }
+        double signalStrength = ((MRMRadioConnection) conn).getInterferenceSignalStrength(intfRadio);
+        if (intfRadio.getCurrentSignalStrength() < signalStrength) {
+                intfRadio.setCurrentSignalStrength(signalStrength);
         }
 
         if (!intfRadio.isInterfered()) {

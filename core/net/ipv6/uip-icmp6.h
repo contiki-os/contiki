@@ -1,15 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
-
-/**
- * \file
- *         ICMPv6 echo request and error messages (RFC 4443)
- * \author Julien Abeille <jabeille@cisco.com> 
- * \author Mathilde Durvy <mdurvy@cisco.com>
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,6 +30,17 @@
  *
  */
 
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
+ * \file
+ *    Header file for ICMPv6 message and error handing (RFC 4443)
+ * \author Julien Abeille <jabeille@cisco.com> 
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ */
 
 #ifndef ICMP6_H_
 #define ICMP6_H_
@@ -113,7 +112,7 @@ typedef struct uip_icmp6_error{
  * \brief Send an icmpv6 error message
  * \param type type of the error message
  * \param code of the error message
- * \param type 32 bit parameter of the error message, semantic depends on error 
+ * \param param 32 bit parameter of the error message, semantic depends on error
  */
 void
 uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param); 

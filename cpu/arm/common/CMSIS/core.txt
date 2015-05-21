@@ -1,0 +1,50 @@
+/**
+ * @addtogroup  CMSIS_Core_FunctionInterface
+ * @ingroup     cmsis
+ */
+
+/**
+ * @addtogroup    CMSIS_core_register
+ * @ingroup     cmsis
+ */
+
+/**
+ * @addtogroup    CMSIS_glob_defs
+ * @ingroup     cmsis
+ */
+
+/**
+ * @addtogroup    CMSIS_MISRA_Exceptions
+ * @ingroup     cmsis
+ */
+
+/**
+ * @addtogroup    CMSIS_core_definitions
+ * @ingroup     cmsis
+ */
+
+/**
+ * @addtogroup    CMSIS_SIMD_intrinsics
+ * @ingroup     cmsis
+ */
+
+/**
+ * @addtogroup    CMSIS_Core_InstructionInterface
+ * @ingroup     cmsis
+ */
+
+/**
+ * @defgroup Cortex_M0
+ * @ingroup cmsis
+ */
+
+/**
+ * @defgroup Cortex_M3
+ * @ingroup cmsis
+ */
+
+/**
+ * @defgroup Cortex_M4
+ * @ingroup cmsis
+ */
+

@@ -1,17 +1,3 @@
-/**
- * \addtogroup dev
- * @{
- */
-
-/**
- * \defgroup radio Radio API
- *
- * The radio API module defines a set of functions that a radio device
- * driver must implement.
- *
- * @{
- */
-
 /*
  * Copyright (c) 2005, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -52,6 +38,20 @@
  *         Joakim Eriksson <joakime@sics.se>
  *         Niclas Finne <nfi@sics.se>
  *         Nicolas Tsiftes <nvt@sics.se>
+ */
+
+/**
+ * \addtogroup dev
+ * @{
+ */
+
+/**
+ * \defgroup radio Radio API
+ *
+ * The radio API module defines a set of functions that a radio device
+ * driver must implement.
+ *
+ * @{
  */
 
 #ifndef RADIO_H_

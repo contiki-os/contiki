@@ -1,9 +1,3 @@
-
-/**
- * \addtogroup rimeuc
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -41,6 +35,11 @@
  *         Single-hop unicast
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimeuc
+ * @{
  */
 
 #include "net/rime/rime.h"

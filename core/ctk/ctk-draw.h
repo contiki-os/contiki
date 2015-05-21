@@ -1,19 +1,3 @@
-/**
- * \addtogroup ctk
- * @{
- */
-
-/**
- * \file
- * CTK screen drawing module interface, ctk-draw.
- * \author Adam Dunkels <adam@dunkels.com>
- *
- * This file contains the interface for the ctk-draw module.The
- * ctk-draw module takes care of the actual screen drawing for CTK by
- * implementing a handful of functions that are called by CTK.
- *
- */
-
 /*
  * Copyright (c) 2002-2003, Adam Dunkels.
  * All rights reserved. 
@@ -45,6 +29,22 @@
  *
  * This file is part of the Contiki desktop OS.
  *
+ *
+ */
+
+/**
+ * \addtogroup ctk
+ * @{
+ */
+
+/**
+ * \file
+ * CTK screen drawing module interface, ctk-draw.
+ * \author Adam Dunkels <adam@dunkels.com>
+ *
+ * This file contains the interface for the ctk-draw module.The
+ * ctk-draw module takes care of the actual screen drawing for CTK by
+ * implementing a handful of functions that are called by CTK.
  *
  */
 
@@ -201,6 +201,7 @@ void ctk_draw_clear_window(struct ctk_window *window,
  * drawn, in screen coordinates (line 1 is the first line below the
  * menus)
  *
+ * \param draw_borders The border style
  */
 void ctk_draw_window(struct ctk_window *window,
 		     unsigned char focus,
@@ -318,7 +319,7 @@ extern unsigned char ctk_draw_windowborder_width,
 /**
  * The character used for the Return/Enter key.
  *
- * \define #define CH_ENTER '\n'
+ * \#define CH_ENTER '\n'
  */
 
 /**
