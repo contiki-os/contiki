@@ -71,6 +71,7 @@
  * the packet back to the peer.
  */
 
+#include "sys/cc.h"
 #include "net/ip/uip.h"
 #include "net/ip/uipopt.h"
 #include "net/ipv6/uip-icmp6.h"
@@ -459,7 +460,7 @@ uip_init(void)
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP && UIP_ACTIVE_OPEN
 struct uip_conn *
-uip_connect(uip_ipaddr_t *ripaddr, uint16_t rport)
+uip_connect(const uip_ipaddr_t *ripaddr, uint16_t rport)
 {
   register struct uip_conn *conn, *cconn;
   
@@ -2332,7 +2333,6 @@ void
 uip_send(const void *data, int len)
 {
   int copylen;
-#define MIN(a,b) ((a) < (b)? (a): (b))
 
   if(uip_sappdata != NULL) {
     copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -

@@ -6,8 +6,6 @@ boards. More specifically, the example demonstrates:
 * How to take sensor readings
 * How to use buttons and the reed relay (triggered by holding a magnet near S3
   on the SensorTag).
-* How to keep a power domain powered and a peripheral clocked under low power
-  operation
 * How to send out BLE advertisements. The device will periodically send out BLE
   beacons with the platform name as payload. Those beacons/BLE ADV packets can
   be captured with any BLE capable device. Two such applications for iOS are the

@@ -59,12 +59,13 @@
 #include "contiki-conf.h"
 #include "sys/process.h"
 #include "dev/serial-line.h"
+#include "dev/cc26xx-uart.h"
 #include "net/ip/uip.h"
 #include "net/ip/uip-udp-packet.h"
 #include "net/ip/uiplib.h"
-#include "lpm.h"
 #include "net-uart.h"
 #include "httpd-simple.h"
+#include "sys/cc.h"
 
 #include "ti-lib.h"
 
@@ -85,10 +86,6 @@
 /*---------------------------------------------------------------------------*/
 #define ADDRESS_CONVERSION_OK       1
 #define ADDRESS_CONVERSION_ERROR    0
-/*---------------------------------------------------------------------------*/
-#ifndef MIN
-#define MIN(n, m)   (((n) < (m)) ? (n) : (m))
-#endif
 /*---------------------------------------------------------------------------*/
 static struct uip_udp_conn *udp_conn = NULL;
 
@@ -148,37 +145,16 @@ net_input(void)
   return;
 }
 /*---------------------------------------------------------------------------*/
-/*
- * In order to maintain UART input operation:
- * - Keep the uart clocked in sleep and deep sleep
- * - Keep the serial PD on in deep sleep
- */
-static lpm_power_domain_lock_t lock;
-/*---------------------------------------------------------------------------*/
 static void
 release_uart(void)
 {
-  /* Release serial PD lock */
-  lpm_pd_lock_release(&lock);
-
-  /* Let the UART turn off during Sleep and Deep Sleep */
-  ti_lib_prcm_peripheral_sleep_disable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_peripheral_deep_sleep_disable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
+  cc26xx_uart_set_input(NULL);
 }
 /*---------------------------------------------------------------------------*/
 static void
 keep_uart_on(void)
 {
-  /* Keep the serial PD on */
-  lpm_pd_lock_obtain(&lock, PRCM_DOMAIN_SERIAL);
-
-  /* Keep the UART clock on during Sleep and Deep Sleep */
-  ti_lib_prcm_peripheral_sleep_enable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_peripheral_deep_sleep_enable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
+  cc26xx_uart_set_input(serial_line_input_byte);
 }
 /*---------------------------------------------------------------------------*/
 static int

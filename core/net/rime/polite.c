@@ -42,20 +42,12 @@
  * @{
  */
 
+#include "sys/cc.h"
 #include "net/rime/rime.h"
 #include "net/rime/polite.h"
 #include "lib/random.h"
 
 #include <string.h>
-
-#ifndef MAX
-#define MAX(a,b) ((a) > (b)? (a) : (b))
-#endif /* MAX */
-
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
-
 
 /*---------------------------------------------------------------------------*/
 static void

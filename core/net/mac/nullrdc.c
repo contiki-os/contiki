@@ -264,11 +264,13 @@ send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 static void
 packet_input(void)
 {
+#if NULLRDC_SEND_802154_ACK
   int original_datalen;
   uint8_t *original_dataptr;
 
   original_datalen = packetbuf_datalen();
   original_dataptr = packetbuf_dataptr();
+#endif
 
 #if NULLRDC_802154_AUTOACK
   if(packetbuf_datalen() == ACK_LEN) {
@@ -294,7 +296,7 @@ packet_input(void)
     if(duplicate) {
       /* Drop the packet. */
       PRINTF("nullrdc: drop duplicate link layer packet %u\n",
-             packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
+             packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
     } else {
       mac_sequence_register_seqno();
     }

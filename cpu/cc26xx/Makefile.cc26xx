@@ -6,34 +6,26 @@ OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 NM      = arm-none-eabi-nm
 SIZE    = arm-none-eabi-size
+SREC_CAT = srec_cat
 
-### TI CC26xxware out-of-tree
-### TI_CC26XXWARE is the home directory of the cc26xxware
-### It MUST be provided as a path relative to $(CONTIKI)
-### For example, if
-### CONTIKI = /home/user/contiki
-### and TI_CC26XXWARE is stored in
-### /home/user/cc26xxware
-### then set
-### TI_CC26XXWARE = ../cc26xxware
-ifndef TI_CC26XXWARE
-  $(error TI_CC26XXWARE not defined. Please see the README)
-endif
+CPU_ABS_PATH       = cpu/cc26xx
+TI_CC26XXWARE_PATH = lib/cc26xxware
+TI_CC26XXWARE = $(CONTIKI_CPU)/$(TI_CC26XXWARE_PATH)
 
-### cc26xxware sources will be added to the MODULES list
-TI_CC26XXWARE_SRC = $(TI_CC26XXWARE)/driverlib
+### cc26xxware sources under driverlib will be added to the MODULES list
+TI_CC26XXWARE_SRC = $(CPU_ABS_PATH)/$(TI_CC26XXWARE_PATH)/driverlib
 
 ### The directory with startup sources will be added to the CONTIKI_CPU_DIRS
 ### and the sources therein are added to the sources list explicitly. They are
 ### also listed explicitly in the linker command (through TARGET_STARTFILES),
 ### to make sure they always get linked in the image
-TI_CC26XXWARE_STARTUP = ../../$(TI_CC26XXWARE)/startup_files
+TI_CC26XXWARE_STARTUP_DIR = $(TI_CC26XXWARE_PATH)/startup_files
 TI_CC26XXWARE_STARTUP_SRCS = ccfg.c startup_gcc.c
 
-### MODULES will add some of these to the include pach, but we need to add
+### MODULES will add some of these to the include path, but we need to add
 ### them earlier to prevent filename clashes with Contiki core files
-CFLAGS += -I$(CONTIKI)/$(TI_CC26XXWARE) -I$(CONTIKI)/$(TI_CC26XXWARE_SRC) 
-CFLAGS += -I$(CONTIKI)/$(TI_CC26XXWARE)/inc
+CFLAGS += -I$(TI_CC26XXWARE) -I$(CONTIKI)/$(TI_CC26XXWARE_SRC)
+CFLAGS += -I$(TI_CC26XXWARE)/inc
 MODULES += $(TI_CC26XXWARE_SRC)
 
 LDSCRIPT = $(CONTIKI_CPU)/cc26xx.ld
@@ -70,7 +62,7 @@ endif
 CLEAN += symbols.c symbols.h *.d *.elf *.hex
 
 ### CPU-dependent directories
-CONTIKI_CPU_DIRS = . dev dev/rfc-api $(TI_CC26XXWARE_STARTUP)
+CONTIKI_CPU_DIRS = . dev dev/rfc-api $(TI_CC26XXWARE_STARTUP_DIR)
 
 ### Use the existing debug I/O in cpu/arm/common
 CONTIKI_CPU_DIRS += ../arm/common/dbg-io
@@ -80,7 +72,7 @@ CONTIKI_CPU_SOURCEFILES += clock.c rtimer-arch.c cc26xx-rtc.c uart.c
 CONTIKI_CPU_SOURCEFILES += cc26xx-rf.c contiki-watchdog.c
 CONTIKI_CPU_SOURCEFILES += putchar.c ieee-addr.c batmon-sensor.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c cc26xx-uart.c lpm.c
-CONTIKI_CPU_SOURCEFILES += gpio-interrupt.c
+CONTIKI_CPU_SOURCEFILES += gpio-interrupt.c oscillators.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 
@@ -106,8 +98,11 @@ CUSTOM_RULE_LINK=1
 	$(TRACE_LD)
 	$(Q)$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -lm -o $@
 
-%.hex: %.elf
+%.i16hex: %.elf
 	$(OBJCOPY) -O ihex $< $@
+
+%.hex: %.i16hex
+	$(SREC_CAT) $< -intel -o $@ -intel
 
 %.bin: %.elf
 	$(OBJCOPY) $(OBJCOPY_FLAGS) $< $@

@@ -46,17 +46,16 @@
 
 #include <stdint.h>
 #include <string.h>
-/*---------------------------------------------------------------------------*/
-#define PRCM_DOMAINS (PRCM_DOMAIN_SERIAL | PRCM_DOMAIN_PERIPH)
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 static void
 power_domains_on(void)
 {
-  /* Turn on relevant power domains */
-  ti_lib_prcm_power_domain_on(PRCM_DOMAINS);
+  /* Turn on the PERIPH PD */
+  ti_lib_prcm_power_domain_on(PRCM_DOMAIN_PERIPH);
 
   /* Wait for domains to power on */
-  while((ti_lib_prcm_power_domain_status(PRCM_DOMAINS)
+  while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH)
         != PRCM_DOMAIN_POWER_ON));
 }
 /*---------------------------------------------------------------------------*/
@@ -64,8 +63,6 @@ static void
 lpm_wakeup_handler(void)
 {
   power_domains_on();
-
-  board_i2c_init();
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -76,9 +73,13 @@ shutdown_handler(uint8_t mode)
     SENSORS_DEACTIVATE(bmp_280_sensor);
     SENSORS_DEACTIVATE(opt_3001_sensor);
     SENSORS_DEACTIVATE(tmp_007_sensor);
-    SENSORS_DEACTIVATE(sht_21_sensor);
-    mpu_9250_sensor.configure(MPU_9250_SENSOR_SHUTDOWN, 0);
+    SENSORS_DEACTIVATE(hdc_1000_sensor);
+    SENSORS_DEACTIVATE(mpu_9250_sensor);
+    ti_lib_gpio_pin_clear(BOARD_MPU_POWER);
   }
+
+  /* In all cases, stop the I2C */
+  board_i2c_shutdown();
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -88,22 +89,49 @@ shutdown_handler(uint8_t mode)
  * wake up so we can turn power domains back on for I2C and SSI, and to make
  * sure everything on the board is off before CM3 shutdown.
  */
-LPM_MODULE(sensortag_module, NULL, shutdown_handler, lpm_wakeup_handler);
+LPM_MODULE(sensortag_module, NULL, shutdown_handler, lpm_wakeup_handler,
+           LPM_DOMAIN_NONE);
+/*---------------------------------------------------------------------------*/
+static void
+configure_unused_pins(void)
+{
+  /* DP[0..3] */
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP0);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP0, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP1);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP1, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP2);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP2, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP3);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP3, IOC_IOPULL_DOWN);
+
+  /* Devpack ID */
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DEVPK_ID);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DEVPK_ID, IOC_IOPULL_UP);
+
+  /* Digital Microphone */
+  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_MIC_POWER);
+  ti_lib_gpio_pin_clear((1 << BOARD_IOID_MIC_POWER));
+  ti_lib_ioc_io_drv_strength_set(BOARD_IOID_MIC_POWER, IOC_CURRENT_2MA,
+                                 IOC_STRENGTH_MIN);
+
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_AUDIO_DI);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_AUDIO_DI, IOC_IOPULL_DOWN);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_AUDIO_CLK);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_AUDIO_CLK, IOC_IOPULL_DOWN);
+
+  /* UART over Devpack - TX only (ToDo: Map all UART pins to Debugger) */
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP5_UARTTX);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP5_UARTTX, IOC_IOPULL_DOWN);
+}
 /*---------------------------------------------------------------------------*/
 void
 board_init()
 {
   /* Disable global interrupts */
-  uint8_t int_disabled = ti_lib_int_master_disable();
+  bool int_disabled = ti_lib_int_master_disable();
 
   power_domains_on();
-
-  /* Configure all clock domains to run at full speed */
-  ti_lib_prcm_clock_configure_set(PRCM_DOMAIN_SYSBUS, PRCM_CLOCK_DIV_1);
-  ti_lib_prcm_clock_configure_set(PRCM_DOMAIN_CPU, PRCM_CLOCK_DIV_1);
-  ti_lib_prcm_clock_configure_set(PRCM_DOMAIN_TIMER, PRCM_CLOCK_DIV_1);
-  ti_lib_prcm_clock_configure_set(PRCM_DOMAIN_SERIAL, PRCM_CLOCK_DIV_1);
-  ti_lib_prcm_clock_configure_set(PRCM_DOMAIN_PERIPH, PRCM_CLOCK_DIV_1);
 
   /* Enable GPIO peripheral */
   ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);
@@ -112,36 +140,18 @@ board_init()
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
 
-  /* Enable GPT0 module - Wait for the clock to be enabled */
-  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_TIMER0);
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
-
-  /* Keys (input pullup) */
-  ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_KEY_LEFT);
-  ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_KEY_RIGHT);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_KEY_LEFT, IOC_IOPULL_UP);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_KEY_RIGHT, IOC_IOPULL_UP);
-
   /* I2C controller */
-  board_i2c_init();
-
-  /* Sensor interface */
-  ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_MPU_INT);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_MPU_INT, IOC_IOPULL_DOWN);
-
-  ti_lib_rom_ioc_pin_type_gpio_input(BOARD_IOID_REED_RELAY);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_REED_RELAY, IOC_IOPULL_DOWN);
-
-  ti_lib_rom_ioc_pin_type_gpio_output(BOARD_IOID_MPU_POWER);
-
-  /* Flash interface */
-  ti_lib_rom_ioc_pin_type_gpio_output(BOARD_IOID_FLASH_CS);
-  ti_lib_gpio_pin_write(BOARD_FLASH_CS, 1);
+  board_i2c_wakeup();
 
   buzzer_init();
 
+  /* Make sure the external flash is in the lower power mode */
+  ext_flash_init();
+
   lpm_register_module(&sensortag_module);
+
+  /* For unsupported peripherals, select a default pin configuration */
+  configure_unused_pins();
 
   /* Re-enable interrupt if initially enabled. */
   if(!int_disabled) {

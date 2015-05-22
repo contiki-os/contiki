@@ -136,7 +136,7 @@ static int enabled = SENSOR_STATUS_DISABLED;
 static uint8_t sensor_value[SENSOR_DATA_BUF_SIZE];
 /*---------------------------------------------------------------------------*/
 /* Wait SENSOR_STARTUP_DELAY clock ticks for the sensor to be ready - ~80ms */
-#define SENSOR_STARTUP_DELAY 11
+#define SENSOR_STARTUP_DELAY 3
 
 static struct ctimer startup_timer;
 /*---------------------------------------------------------------------------*/
@@ -187,7 +187,7 @@ enable_sensor(bool enable)
 
   if(enable) {
     /* Enable forced mode */
-    val = PM_NORMAL | OSRSP(1) | OSRST(1);
+    val = PM_FORCED | OSRSP(1) | OSRST(1);
   } else {
     val = PM_OFF;
   }
@@ -345,6 +345,7 @@ configure(int type, int enable)
   case SENSORS_HW_INIT:
     enabled = SENSOR_STATUS_INITIALISED;
     init();
+    enable_sensor(0);
     break;
   case SENSORS_ACTIVE:
     /* Must be initialised first */

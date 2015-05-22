@@ -1073,8 +1073,10 @@ rf230_transmit(unsigned short payload_len)
 
   if (tx_result==RADIO_TX_OK) {
     RIMESTATS_ADD(lltx);
+#if NETSTACK_CONF_WITH_RIME
     if(packetbuf_attr(PACKETBUF_ATTR_RELIABLE))
       RIMESTATS_ADD(ackrx);		//ack was requested and received
+#endif
 #if RF230_INSERTACK
   /* Not PAN broadcast to FFFF, and ACK was requested and received */
   if (!((buffer[5]==0xff) && (buffer[6]==0xff)) && (buffer[0]&(1<<6)))

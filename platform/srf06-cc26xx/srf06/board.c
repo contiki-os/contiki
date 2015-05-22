@@ -45,27 +45,13 @@
 #include <stdint.h>
 #include <string.h>
 /*---------------------------------------------------------------------------*/
-#define PRCM_DOMAINS (PRCM_DOMAIN_RFCORE | PRCM_DOMAIN_SERIAL | \
-                      PRCM_DOMAIN_PERIPH | PRCM_DOMAIN_CPU | \
-                      PRCM_DOMAIN_SYSBUS | PRCM_DOMAIN_VIMS)
-/*---------------------------------------------------------------------------*/
-#define LPM_DOMAINS (PRCM_DOMAIN_SERIAL | PRCM_DOMAIN_PERIPH)
-/*---------------------------------------------------------------------------*/
 static void
-power_domains_on(void)
+wakeup_handler(void)
 {
-  /* Turn on relevant power domains */
-  ti_lib_prcm_power_domain_on(LPM_DOMAINS);
-
-  /* Wait for domains to power on */
-  while((ti_lib_prcm_power_domain_status(LPM_DOMAINS)
+  /* Turn on the PERIPH PD */
+  ti_lib_prcm_power_domain_on(PRCM_DOMAIN_PERIPH);
+  while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH)
         != PRCM_DOMAIN_POWER_ON));
-}
-/*---------------------------------------------------------------------------*/
-static void
-lpm_wakeup_handler(void)
-{
-  power_domains_on();
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -74,65 +60,44 @@ lpm_wakeup_handler(void)
  * getting notified before deep sleep. All we need is to be notified when we
  * wake up so we can turn power domains back on
  */
-LPM_MODULE(srf_module, NULL, NULL, lpm_wakeup_handler);
+LPM_MODULE(srf_module, NULL, NULL, wakeup_handler, LPM_DOMAIN_NONE);
 /*---------------------------------------------------------------------------*/
-void
-board_init()
+static void
+configure_unused_pins(void)
 {
-  uint8_t int_disabled = ti_lib_int_master_disable();
-
-  /* Turn on all power domains */
-  ti_lib_prcm_power_domain_on(PRCM_DOMAINS);
-
-  /* Wait for power on domains */
-  while((ti_lib_prcm_power_domain_status(PRCM_DOMAINS)
-        != PRCM_DOMAIN_POWER_ON));
-
-  /* Configure all clock domains to run at full speed */
-  ti_lib_prcm_clock_configure_set(PRCM_DOMAIN_SYSBUS | PRCM_DOMAIN_CPU |
-                                  PRCM_DOMAIN_CPU | PRCM_DOMAIN_TIMER |
-                                  PRCM_DOMAIN_SERIAL | PRCM_DOMAIN_PERIPH,
-                                  PRCM_CLOCK_DIV_1);
-
-  /* Enable GPIO peripheral */
-  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);
-
-  /* Apply settings and wait for them to take effect */
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get()) ;
-
-  /* Keys (input pullup) */
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_KEY_UP);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_KEY_DOWN);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_KEY_LEFT);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_KEY_RIGHT);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_KEY_SELECT);
-
-  /* Turn off 3.3V domain (Powers the LCD and SD card reader): Output, low */
+  /* Turn off 3.3-V domain (lcd/sdcard power, output low) */
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_3V3_EN);
   ti_lib_gpio_pin_write(BOARD_3V3_EN, 0);
 
-  /* LCD CSn (output high) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_LCD_CS);
-  ti_lib_gpio_pin_write(BOARD_LCD_CS, 1);
-
-  /* SD Card reader CSn (output high) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_SDCARD_CS);
-  ti_lib_gpio_pin_write(BOARD_SDCARD_CS, 1);
-
-  /* Accelerometer (PWR output low, CSn output high) */
+  /* Accelerometer (PWR output low, CSn output, high) */
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ACC_PWR);
   ti_lib_gpio_pin_write(BOARD_ACC_PWR, 0);
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ACC_CS);
-  ti_lib_gpio_pin_write(BOARD_IOID_ACC_CS, 1);
 
   /* Ambient light sensor (off, output low) */
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ALS_PWR);
   ti_lib_gpio_pin_write(BOARD_ALS_PWR, 0);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_ALS_OUT);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_ALS_OUT, IOC_NO_IOPULL);
+}
+/*---------------------------------------------------------------------------*/
+void
+board_init()
+{
+  uint8_t int_disabled = ti_lib_int_master_disable();
+
+  /* Turn on relevant PDs */
+  wakeup_handler();
+
+  /* Enable GPIO peripheral */
+  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);
+
+  /* Apply settings and wait for them to take effect */
+  ti_lib_prcm_load_set();
+  while(!ti_lib_prcm_load_get());
 
   lpm_register_module(&srf_module);
+
+  configure_unused_pins();
 
   /* Re-enable interrupt if initially enabled. */
   if(!int_disabled) {

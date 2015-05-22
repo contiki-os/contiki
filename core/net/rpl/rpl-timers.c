@@ -166,6 +166,10 @@ handle_dio_timer(void *ptr)
     }
     new_dio_interval(instance);
   }
+
+#if DEBUG
+  rpl_print_neighbor_list();
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -323,5 +327,97 @@ rpl_cancel_dao(rpl_instance_t *instance)
   ctimer_stop(&instance->dao_lifetime_timer);
 }
 /*---------------------------------------------------------------------------*/
+#if RPL_WITH_PROBING
+static rpl_parent_t *
+get_probing_target(rpl_dag_t *dag)
+{
+  /* Returns the next probing target. The current implementation probes the current
+   * preferred parent if we have not updated its link for RPL_PROBING_EXPIRATION_TIME.
+   * Otherwise, it picks at random between:
+   * (1) selecting the best parent not updated for RPL_PROBING_EXPIRATION_TIME
+   * (2) selecting the least recently updated parent
+   */
 
+  rpl_parent_t *p;
+  rpl_parent_t *probing_target = NULL;
+  rpl_rank_t probing_target_rank = INFINITE_RANK;
+  /* min_last_tx is the clock time RPL_PROBING_EXPIRATION_TIME in the past */
+  clock_time_t min_last_tx = clock_time();
+  min_last_tx = min_last_tx > 2 * RPL_PROBING_EXPIRATION_TIME
+      ? min_last_tx - RPL_PROBING_EXPIRATION_TIME : 1;
+
+  if(dag == NULL ||
+      dag->instance == NULL ||
+      dag->preferred_parent == NULL) {
+    return NULL;
+  }
+
+  /* Our preferred parent needs probing */
+  if(dag->preferred_parent->last_tx_time < min_last_tx) {
+    probing_target = dag->preferred_parent;
+  }
+
+  /* With 50% probability: probe best parent not updated for RPL_PROBING_EXPIRATION_TIME */
+  if(probing_target == NULL && (random_rand() % 2) == 0) {
+    p = nbr_table_head(rpl_parents);
+    while(p != NULL) {
+      if(p->dag == dag && p->last_tx_time < min_last_tx) {
+        /* p is in our dag and needs probing */
+        rpl_rank_t p_rank = dag->instance->of->calculate_rank(p, 0);
+        if(probing_target == NULL
+            || p_rank < probing_target_rank) {
+          probing_target = p;
+          probing_target_rank = p_rank;
+        }
+      }
+      p = nbr_table_next(rpl_parents, p);
+    }
+  }
+
+  /* The default probing target is the least recently updated parent */
+  if(probing_target == NULL) {
+    p = nbr_table_head(rpl_parents);
+    while(p != NULL) {
+      if(p->dag == dag) {
+        if(probing_target == NULL
+            || p->last_tx_time < probing_target->last_tx_time) {
+          probing_target = p;
+        }
+      }
+      p = nbr_table_next(rpl_parents, p);
+    }
+  }
+
+  return probing_target;
+}
+/*---------------------------------------------------------------------------*/
+static void
+handle_probing_timer(void *ptr)
+{
+  rpl_instance_t *instance = (rpl_instance_t *)ptr;
+  rpl_parent_t *probing_target = RPL_PROBING_SELECT_FUNC(instance->current_dag);
+
+  /* Perform probing */
+  if(probing_target != NULL && rpl_get_parent_ipaddr(probing_target) != NULL) {
+    PRINTF("RPL: probing %3u\n",
+        nbr_table_get_lladdr(rpl_parents, probing_target)->u8[7]);
+    /* Send probe, e.g. unicast DIO or DIS */
+    RPL_PROBING_SEND_FUNC(instance, rpl_get_parent_ipaddr(probing_target));
+  }
+
+  /* Schedule next probing */
+  rpl_schedule_probing(instance);
+
+#if DEBUG
+  rpl_print_neighbor_list();
+#endif
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_schedule_probing(rpl_instance_t *instance)
+{
+  ctimer_set(&instance->probing_timer, RPL_PROBING_DELAY_FUNC(),
+                  handle_probing_timer, instance);
+}
+#endif /* RPL_WITH_PROBING */
 /** @}*/

@@ -54,7 +54,7 @@
 void
 watchdog_init(void)
 {
-  ti_lib_wathdog_reload_set(0xFFFFF);
+  ti_lib_watchdog_reload_set(0xFFFFF);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -63,7 +63,7 @@ watchdog_init(void)
 void
 watchdog_start(void)
 {
-  ti_lib_wathdog_reset_enable();
+  ti_lib_watchdog_reset_enable();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -72,7 +72,7 @@ watchdog_start(void)
 void
 watchdog_periodic(void)
 {
-  ti_lib_wathdog_int_clear();
+  ti_lib_watchdog_int_clear();
 }
 /*---------------------------------------------------------------------------*/
 /**
