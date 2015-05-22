@@ -60,6 +60,7 @@ value(int type)
   switch(type) {
   case ADC_SENSOR_VDD_3:
     channel = SOC_ADC_ADCCON_CH_VDD_3;
+	res = adc_get(channel, SOC_ADC_ADCCON_REF_INT, SOC_ADC_ADCCON_DIV_512);
     break;
   case ADC_SENSOR_SENS1:
     channel = ADC_SENSOR_SENS1_PIN;
@@ -81,7 +82,7 @@ value(int type)
     return 0;
   }
 
-  res = adc_get(channel, SOC_ADC_ADCCON_REF_INT, SOC_ADC_ADCCON_DIV_512);
+  //res = adc_get(channel, SOC_ADC_ADCCON_REF_INT, SOC_ADC_ADCCON_DIV_512);
 
   return res;
 }

@@ -79,8 +79,6 @@
 #define SPOOL_PULSE_PORT_BASE    GPIO_PORT_TO_BASE(SPOOL_PULSE_PORT)
 #define SPOOL_PULSE_PIN_MASK     GPIO_PIN_MASK(SPOOL_PULSE_PIN)
 
-static struct ctimer GPSStartTimer;
-
 float Voltage, A0, A1;
 uint8_t DigitalInput1 = false;
 
@@ -116,9 +114,11 @@ static char GPS_Long_Hemisphere;
 static char GPS_SpeedString[10];
 static char GPS_BearingString[10];
 
+static char RSSI[10];
+
 unsigned char channel = 0x19;										//Set the RF channel to 0x19 by default			
 unsigned char client[11] = {0,0,0,0,0,0,0,0,0,0,0};					//Declare a variable to store the client name (used as a reference only)
-unsigned int MeasurementPeriod = 20;								//Default measurement period = 1 min
+unsigned int MeasurementPeriod = 60;								//Default measurement period = 1 min
 
 uint8_t GPSon[] = {0xB5, 0x62, 0x02, 0x41, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x4C, 0x37};
 uint8_t GPSoff[] = {0xB5, 0x62, 0x02, 0x41, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x4D, 0x3B};
@@ -132,6 +132,20 @@ int sendHTTPdata();
 void ReadFromEEPROM(void);
 void WriteToEEPROM(void);
 static struct timer debouncetimer;
+
+static struct ctimer timer1;
+static struct ctimer timer2;
+static struct ctimer timer3;
+static struct ctimer timer4;
+static struct ctimer timer5;
+static struct ctimer timer6;
+static struct ctimer timer7;
+static struct ctimer timer8;
+static struct ctimer timer9;
+
+static struct ctimer cellStrengthTimer;
+static struct ctimer GPSinfoTimer;
+
 /*---------------------------------------------------------------------------*/
 PROCESS(example_mesh_process, "Mesh example");
 AUTOSTART_PROCESSES(&example_mesh_process);
@@ -197,8 +211,7 @@ void send_message(void* ptr) {
 	for (i = 0; i < 20; i++) {
 		value = value + adc_sensor.value(ADC_SENSOR_SENS4);
 	}
-	//Voltage = (((value / 20) * A0) / (2047 << 4)) * 4.031;
-	Voltage = (((value / 20) * A0) / (2047 << 4)) * 4.218;
+	Voltage = (((value / 20) * A0) / (2047 << 4)) * 9.495;
 	
 	//Measure pressure sensor
     value = 0;
@@ -229,8 +242,10 @@ void send_message(void* ptr) {
 	
 	dec = Voltage;
 	frac = Voltage - dec;	
-	sprintf(StringBuffer, "%sIRBV=%d.%02u", StringBuffer, dec, (unsigned int) (frac*100));
+	sprintf(StringBuffer, "%sIRBV=%d.%02u&", StringBuffer, dec, (unsigned int) (frac*100));
 
+	sprintf(StringBuffer, "%sIRRSSI=%s",StringBuffer, RSSI);	
+	
 	printf("%s\r",StringBuffer);			//Print the complete string buffer to the UART (debug)
 
     printf("Sending\n");					//Debug message
@@ -400,89 +415,127 @@ int waitForResponse(int param)
 	return 0;
 
 }
+static void get_gps_info(void* ptr)
+{
+	printf("Get GPS Info\r");
+	sprintf(UART1TXBuffer, "AT+CGPSINF=32\r");
+	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
 
-int sendHTTPdata()
+static void get_cell_strength(void* ptr)
+{
+	printf("Get Cell Strength\r");
+	sprintf(UART1TXBuffer, "AT+CSQ\r");
+	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
+
+static void disable_Local_Echo(void *ptr)
+{
+	printf("Disable Local Echo\r");
+	sprintf(UART1TXBuffer, "ATE0\r");
+	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
+
+static void start_GPS(void *ptr)
+{
+	printf("Turn GPS ON\r");
+	sprintf(UART1TXBuffer, "AT+CGPSPWR=1;+CGPSRST=1\r");
+	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+
+}
+
+static void get_bearer_profiles(void* ptr)
 {
 	printf("Get Bearer Profiles\r");
 	sprintf(UART1TXBuffer, "AT+SAPBR=4,1\r");
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
-	
-	//if (!waitForResponse(SAPBR))
-	//	return 0;
-	delay_msec(1000);
-	
+}
+
+static void open_bearer_1(void* ptr)
+{
 	printf("Open Bearer 1\r");
 	sprintf(UART1TXBuffer, "AT+SAPBR=1,1\r");
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
-	
-	//if (!waitForResponse(SAPBR))
-	//	return 0;
-	delay_msec(1000);
-	
+}
+
+static void check_registration_status(void* ptr)
+{
 	printf("Check registration status\r");
 	sprintf(UART1TXBuffer, "AT+CREG?\r");
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
 
-	//if (!waitForResponse(CREG))
-	//	return 0;
-	delay_msec(1000);
-	
+static void query_bearer_1(void* ptr)
+{
 	printf("Query bearer 1\r");
 	sprintf(UART1TXBuffer, "AT+SAPBR=2,1\r");
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
-	
-	//if (!waitForResponse(SAPBR))
-	//	return 0;
-	delay_msec(1000);
-	
+}
+
+static void init_http(void* ptr)
+{
 	printf("Initialize HTTP service\r");
 	sprintf(UART1TXBuffer, "AT+HTTPINIT\r");
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
 
-	//if (!waitForResponse(HTTPINIT))
-	//	return 0;
-	delay_msec(1000);
-	
+static void send_URL(void* ptr)
+{
 	printf("Send URL\r");
 	sprintf(UART1TXBuffer, "AT+HTTPPARA=\"URL\",\"http://onfarmdata.com/httpds?%s\"\r", StringBuffer);
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
 
-	//if (!waitForResponse(HTTPPARA))
-	//	return 0;
-	delay_msec(1000);
-	
+static void send_CID(void* ptr)
+{
 	printf("Send CID\r");
 	sprintf(UART1TXBuffer, "AT+HTTPPARA=\"CID\",1\r");
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
 
-	//if (!waitForResponse(HTTPPARA))
-	//	return 0;
-	delay_msec(1000);
-	
+static void send_http_action(void* ptr)
+{
 	printf("Send HTTP Action\r");
 	sprintf(UART1TXBuffer, "AT+HTTPACTION=0\r");
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
 
-	//if (!waitForResponse(HTTPACTION))
-	//	return 0;
-	delay_msec(1000);
-	
+static void send_http_read(void* ptr)
+{
 	printf("Send HTTP Read command\r");
-	sprintf(UART1TXBuffer, "AT+HTTPACTION=0\r");
+	sprintf(UART1TXBuffer, "AT+HTTPREAD\r");
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
 
-	//if (!waitForResponse(HTTPREAD))
-	//	return 0;
-	delay_msec(1000);
-	
+static void terminate_http(void* ptr)
+{
 	printf("Terminate HTTP session\r");
 	sprintf(UART1TXBuffer, "AT+HTTPTERM\r");
 	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+}
 
-	//if (!waitForResponse(HTTPTERM))
-	//	return 0;
-	delay_msec(500);
+int sendHTTPdata()
+{
+	ctimer_set(&timer1, CLOCK_SECOND, get_bearer_profiles, NULL);
 	
+	ctimer_set(&timer2, CLOCK_SECOND * 2, open_bearer_1, NULL);
+
+	ctimer_set(&timer3, CLOCK_SECOND * 3, check_registration_status, NULL);
+
+	ctimer_set(&timer3, CLOCK_SECOND * 4, query_bearer_1, NULL);
+	
+	ctimer_set(&timer4, CLOCK_SECOND * 5, init_http, NULL);
+
+	ctimer_set(&timer5, CLOCK_SECOND * 5.5, send_URL, NULL);
+	
+	ctimer_set(&timer6, CLOCK_SECOND * 6, send_CID, NULL);
+	
+	ctimer_set(&timer7, CLOCK_SECOND * 6.5, send_http_action, NULL);
+	
+//	ctimer_set(&timer8, CLOCK_SECOND * 8, send_http_read, NULL);
+
+	ctimer_set(&timer9, CLOCK_SECOND * 10, terminate_http, NULL);
+
 	return 1;
 }
  
@@ -635,17 +688,18 @@ void ExtractDataFromGPS_String(void)
 	send_message(NULL);
 }
 
-static void start_GPS(void *ptr)
+void extract_signal_quality(void)
 {
-	printf("Disable Local Echo\r");
-	sprintf(UART1TXBuffer, "ATE0\r");
-	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
-	
-	delay_msec(500);
-			
-	printf("Turn GPS ON\r");
-	sprintf(UART1TXBuffer, "AT+CGPSPWR=1;+CGPSRST=1\r");
-	uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+	int i = 0;
+	for (i = 0; i < 9; i++)
+	{
+		
+		RSSI[i] = gsm_buffer[i + 6];
+		RSSI[i + 1] = 0;
+		if (gsm_buffer[i] > 9 || gsm_buffer[i] < 0)
+			break;
+	}
+	printf("RSSI=%s\r", RSSI);
 }
 
 //.............................................................................
@@ -653,25 +707,30 @@ static void start_GPS(void *ptr)
 int uart1_rx_callback(unsigned char c)
 {
     if (c == 0 || c == '\n')   //Ignore a null character or linefeed
-        return 0;   
-       
-    if (c == '\r')
+    {
+		
+	}
+    else if (c == '\r')
     {
 		printf("->");
-        gsm_buffer_index = 0;  
 		strncpy(response_string, gsm_buffer, 200);		
+		gsm_buffer_index = 0;  
+		strcpy(gsm_buffer, "");
 		printf(response_string);
 		printf("\r");
-		if (strcmp(response_string, "32,") > 0)
+		if (strstr(response_string, "32,") != NULL)
 		{
 			ExtractDataFromGPS_String();
 		}
-		
+		if (strstr(response_string, "+CSQ: ") != NULL)
+		{
+			extract_signal_quality();
+		}
 		if (strcmp(response_string, "GPS Ready") == 0)
 		{
-			ctimer_set(&GPSStartTimer, CLOCK_SECOND * 20, start_GPS, NULL);			//Wait a bit for GSM to be initialised as well
+			disable_Local_Echo(NULL);											//Disable Local Echo
+			ctimer_set(&timer1, CLOCK_SECOND * 5, start_GPS, NULL);			//Wait a bit for GSM to be initialised as well
 		}
-		return 1;
     }   
          
     else
@@ -679,8 +738,6 @@ int uart1_rx_callback(unsigned char c)
         gsm_buffer[gsm_buffer_index++] = c;
         gsm_buffer[gsm_buffer_index] = 0;
     } 
-
-
 	return 1;
 }
 
@@ -695,13 +752,15 @@ static void pulse_callback(uint8_t port, uint8_t pin)
 		if(pin == 4)
 		{
 			wheelTurning = true;
-			etimer_reset(&wheelTimer);
+			etimer_set(&wheelTimer, 60 * CLOCK_SECOND);
+			printf("Wheel\r");
 		}
 
 		if(pin == 5)
 		{
 			spoolTurning = true;
-			etimer_reset(&spoolTimer);
+			etimer_set(&spoolTimer, 60 * CLOCK_SECOND);
+			printf("Spool\r");
 		}
 	}
 	return ;
@@ -771,7 +830,7 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 //	ReadFromEEPROM();											//Read all our saved values from SPI EEPROM
 
 	init_GPS_strings();
-	timer_set(&debouncetimer, 0);
+	timer_set(&debouncetimer, 20);
 	
 	config_spool_pulse();
 	config_wheel_pulse();
@@ -793,12 +852,10 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 	uart_set_input(1,uart1_rx_callback);
 
 	etimer_set(&periodic, CLOCK_SECOND * 120);											//Set up an event timer to send data back to base at a set interval
-	etimer_set(&spoolTimer, 60 * CLOCK_SECOND);
-	etimer_set(&wheelTimer, 60 * CLOCK_SECOND);
+	etimer_set(&spoolTimer, CLOCK_SECOND * 60);
+	etimer_set(&wheelTimer, CLOCK_SECOND * 60);
+	//ctimer_set(&cellStrengthTimer, CLOCK_SECOND * 27, get_cell_strength, NULL);
 	
-	
-	delay_msec(500);
-		
     while(1) {
 	    PROCESS_YIELD();								//Pause the process until an event is triggered
 	
@@ -806,9 +863,9 @@ PROCESS_THREAD(example_mesh_process, ev, data)
     		etimer_set(&periodic, SEND_INTERVAL);		//Reset the event timer (SEND_INTERVAL may have changed due to a node reconfiguration)
     		printf("Prepare Packet\r");					//Debug message
 			//Get GPS Info
-			printf("Get GPS Info\r");
-			sprintf(UART1TXBuffer, "AT+CGPSINF=32\r");
-			uart1_send_bytes((uint8_t *)UART1TXBuffer,sizeof(UART1TXBuffer)-1);
+			get_cell_strength(NULL);
+			ctimer_set(&cellStrengthTimer, 1, get_cell_strength, NULL);
+			ctimer_set(&GPSinfoTimer, CLOCK_SECOND * 5, get_gps_info, NULL);
 	    }
 		
 		if(etimer_expired(&wheelTimer)) {

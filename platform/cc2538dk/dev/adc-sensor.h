@@ -53,10 +53,10 @@
 #define ADC_SENSOR "ADC"
 
 #define ADC_SENSOR_VDD_3        0 /**< On-chip VDD / 3 */
-#define ADC_SENSOR_SENS4	3 /**< Onfarm Board SENS4 */
-#define ADC_SENSOR_SENS3	4 /**< Onfarm Board SENS3 */
-#define ADC_SENSOR_SENS2	5 /**< Onfarm Board SENS2 */
-#define ADC_SENSOR_SENS1	6 /**< Onfarm Board SENS1 */
+#define ADC_SENSOR_SENS4	1 /**< Onfarm Board SENS4 */
+#define ADC_SENSOR_SENS3	2 /**< Onfarm Board SENS3 */
+#define ADC_SENSOR_SENS2	3 /**< Onfarm Board SENS2 */
+#define ADC_SENSOR_SENS1	4 /**< Onfarm Board SENS1 */
 /** @} */
 
 extern const struct sensors_sensor adc_sensor;

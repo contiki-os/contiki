@@ -1,0 +1,1501 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="cc2538dk" />
+		<Option makefile_is_custom="1" />
+		<Option execution_dir="./" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Option virtualFolders="cpu\;cpu\cc2538\;examples\;examples\cc2538dk\;cpu\cc2538\dev\;cpu\cc2538\usb\;platform\;platform\cc2538dk\;platform\cc2538dk\dev\;core\;core\cfs\;core\ctk\;core\dev\;core\lib\;core\loader\;core\net\;core\net\mac\;core\net\rime\;core\net\rpl\;core\sys\;" />
+		<Build>
+			<Target title="Debug">
+				<Option output="cc2538-demo.elf" prefix_auto="0" extension_auto="0" />
+				<Option object_output="C:/Work/contiki-2.7/examples/cc2538dk/.objs" />
+				<Option type="1" />
+				<Option compiler="arm-elf-gcc" />
+				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -f $makefile cc2538-demo" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile cc2538-demo &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../../Makefile.include" />
+		<Unit filename="../../README-BUILDING.md" />
+		<Unit filename="../../README-EXAMPLES.md" />
+		<Unit filename="../../README.md" />
+		<Unit filename="../../core/cfs/cfs-coffee.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/cfs/" />
+		</Unit>
+		<Unit filename="../../core/cfs/cfs-coffee.h">
+			<Option virtualFolder="core/cfs/" />
+		</Unit>
+		<Unit filename="../../core/cfs/cfs-eeprom.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/cfs/" />
+		</Unit>
+		<Unit filename="../../core/cfs/cfs-posix-dir.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/cfs/" />
+		</Unit>
+		<Unit filename="../../core/cfs/cfs-posix.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/cfs/" />
+		</Unit>
+		<Unit filename="../../core/cfs/cfs-ram.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/cfs/" />
+		</Unit>
+		<Unit filename="../../core/cfs/cfs-xmem.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/cfs/" />
+		</Unit>
+		<Unit filename="../../core/cfs/cfs.h">
+			<Option virtualFolder="core/cfs/" />
+		</Unit>
+		<Unit filename="../../core/contiki-default-conf.h">
+			<Option virtualFolder="core/" />
+		</Unit>
+		<Unit filename="../../core/contiki-lib.h">
+			<Option virtualFolder="core/" />
+		</Unit>
+		<Unit filename="../../core/contiki-net.h">
+			<Option virtualFolder="core/" />
+		</Unit>
+		<Unit filename="../../core/contiki-version.h">
+			<Option virtualFolder="core/" />
+		</Unit>
+		<Unit filename="../../core/contiki.h">
+			<Option virtualFolder="core/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk-conio.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk-conio.h">
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk-draw.h">
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk-mouse.h">
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk-vncarch.h">
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk-vncfont.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk-vncfont.h">
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk-vncserver.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk-vncserver.h">
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/ctk.h">
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/vnc-out.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/vnc-out.h">
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/vnc-server.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/ctk/vnc-server.h">
+			<Option virtualFolder="core/ctk/" />
+		</Unit>
+		<Unit filename="../../core/dev/battery-sensor.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/button-sensor.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/cc2420-aes.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/cc2420-aes.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/cc2420.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/cc2420.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/cc2420_const.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/cc2520.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/cc2520.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/cc2520_const.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/ds2411.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/ds2411.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/eeprom.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/leds.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/leds.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/nullradio.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/nullradio.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/radio-sensor.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/radio.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/rom.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/serial-line.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/serial-line.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/sht11-sensor.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/sht11-sensor.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/sht11.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/sht11.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/slip.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/slip.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/spi.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/watchdog.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/dev/xmem.h">
+			<Option virtualFolder="core/dev/" />
+		</Unit>
+		<Unit filename="../../core/lib/assert.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/assert.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/checkpoint.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/checkpoint.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/crc16.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/crc16.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ctk-filedialog.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ctk-filedialog.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ctk-textentry-checkbox.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ctk-textentry-checkbox.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ctk-textentry-cmdline.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ctk-textentry-cmdline.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ctk-textentry-multiline.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ctk-textentry-multiline.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/gcr.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/gcr.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ifft.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ifft.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/libconio.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/libconio.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/list.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/list.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/me.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/me.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/me_tabs.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/me_tabs.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/memb.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/memb.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/mmem.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/mmem.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/petsciiconv.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/petsciiconv.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/print-stats.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/print-stats.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/random.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/random.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ringbuf.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/ringbuf.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/sensors.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/sensors.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/settings.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/settings.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/strncasecmp.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/trickle-timer.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/lib/trickle-timer.h">
+			<Option virtualFolder="core/lib/" />
+		</Unit>
+		<Unit filename="../../core/loader/cle.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/cle.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/cle_avr.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/cle_msp430.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/cmod.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/cmod.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/dlloader.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/dlloader.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elf32.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elfloader-arch.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elfloader-avr.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elfloader-msp430.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elfloader-stub.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elfloader-x86.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elfloader.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elfloader.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elfloader_compat.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/elfloader_compat.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/sym.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/sym.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/symbols-def.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/symbols.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/symtab-avr.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/symtab.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/loader/symtab.h">
+			<Option virtualFolder="core/loader/" />
+		</Unit>
+		<Unit filename="../../core/net/Makefile.uip">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/dhcpc.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/dhcpc.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/hc.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/hc.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/Makefile.mac">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/contikimac.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/contikimac.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/csma.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/csma.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/cxmac.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/cxmac.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/frame802154.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/frame802154.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/framer-802154.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/framer-802154.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/framer-nullmac.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/framer-nullmac.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/framer.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/lpp.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/lpp.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/mac.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/mac.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/nullmac.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/nullmac.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/nullrdc-noframer.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/nullrdc-noframer.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/nullrdc.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/nullrdc.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/phase.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/phase.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/rdc.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/sicslowmac.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/sicslowmac.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/xmac.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/mac/xmac.h">
+			<Option virtualFolder="core/net/mac/" />
+		</Unit>
+		<Unit filename="../../core/net/nbr-table.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/nbr-table.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/netstack.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/netstack.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/packetbuf.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/packetbuf.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/packetqueue.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/packetqueue.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/psock.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/psock.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/queuebuf.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/queuebuf.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/rawpacket-udp.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/rawpacket-udp.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/rawpacket.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/resolv.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/resolv.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/rime.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/Makefile.rime">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/abc.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/abc.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/announcement.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/announcement.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/broadcast-announcement.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/broadcast-announcement.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/broadcast.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/broadcast.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/chameleon-bitopt.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/chameleon-bitopt.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/chameleon-raw.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/chameleon-raw.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/chameleon.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/chameleon.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/channel.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/channel.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/collect-link-estimate.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/collect-link-estimate.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/collect-neighbor.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/collect-neighbor.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/collect.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/collect.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/ipolite.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/ipolite.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/mesh.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/mesh.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/multihop.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/multihop.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/neighbor-discovery.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/neighbor-discovery.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/netflood.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/netflood.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/polite-announcement.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/polite-announcement.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/polite.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/polite.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rime-udp.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rime-udp.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rime.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rimeaddr.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rimeaddr.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rimestats.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rimestats.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rmh.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rmh.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/route-discovery.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/route-discovery.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/route.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/route.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rucb.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rucb.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rudolph0.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rudolph0.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rudolph1.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rudolph1.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rudolph2.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/rudolph2.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/runicast.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/runicast.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/stbroadcast.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/stbroadcast.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/stunicast.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/stunicast.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/timesynch.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/timesynch.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/trickle.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/trickle.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/unicast.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rime/unicast.h">
+			<Option virtualFolder="core/net/rime/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/Makefile.rpl">
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl-conf.h">
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl-dag.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl-ext-header.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl-icmp6.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl-mrhof.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl-of0.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl-private.h">
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl-timers.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/rpl/rpl.h">
+			<Option virtualFolder="core/net/rpl/" />
+		</Unit>
+		<Unit filename="../../core/net/sicslowpan.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/sicslowpan.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/simple-udp.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/simple-udp.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/slipdev.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/slipdev.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/tcpdump.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/tcpdump.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/tcpip.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/tcpip.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uaodv-def.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uaodv-rt.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uaodv-rt.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uaodv.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uaodv.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-debug.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-debug.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-ds6-nbr.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-ds6-nbr.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-ds6-route.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-ds6-route.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-ds6.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-ds6.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-fw-drv.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-fw-drv.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-fw.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-fw.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-icmp6.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-icmp6.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-nd6.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-nd6.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-neighbor.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-neighbor.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-over-mesh.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-over-mesh.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-packetqueue.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-packetqueue.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-split.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-split.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-udp-packet.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip-udp-packet.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip6.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip_arch.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip_arp.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uip_arp.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uiplib.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uiplib.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/net/uipopt.h">
+			<Option virtualFolder="core/net/" />
+		</Unit>
+		<Unit filename="../../core/sys/arg.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/arg.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/autostart.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/autostart.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/cc.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/clock.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/compower.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/compower.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/ctimer.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/ctimer.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/dsc.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/energest.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/energest.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/etimer.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/etimer.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/lc-addrlabels.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/lc-switch.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/lc.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/loader.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/log.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/mt.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/mt.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/node-id.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/process.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/process.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/procinit.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/procinit.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/profile-aggregates.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/profile.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/profile.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/pt-sem.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/pt.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/rtimer.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/rtimer.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/stimer.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/stimer.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/subprocess.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/timer.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/timer.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/timetable-aggregate.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/timetable-aggregate.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/timetable.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../core/sys/timetable.h">
+			<Option virtualFolder="core/sys/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/Makefile.cc2538">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/clock.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/cpu.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/cpu.h">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dbg.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dbg.h">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/debug-uart.h">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/ana-regs.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/cc2538-rf.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/cc2538-rf.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/gpio.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/gpio.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/gptimer.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/ioc.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/ioc.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/mpu.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/nvic.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/nvic.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/random.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/rfcore-ffsm.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/rfcore-sfr.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/rfcore-xreg.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/rfcore.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/scb.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/smwdthrosc.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/soc-adc.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/spi.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/ssi.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/sys-ctrl.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/sys-ctrl.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/systick.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/uart.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/uart.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/uart1.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/udma.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/udma.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/usb-regs.h">
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/dev/watchdog.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/dev/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/ieee-addr.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/ieee-addr.h">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/lpm.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/lpm.h">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/mtarch.h">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/reg.h">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/rtimer-arch.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/rtimer-arch.h">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/slip-arch.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/spi-arch.h">
+			<Option virtualFolder="cpu/cc2538/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/usb/cdc-acm-descriptors.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/usb/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/usb/usb-arch.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/usb/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/usb/usb-serial.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="cpu/cc2538/usb/" />
+		</Unit>
+		<Unit filename="../../cpu/cc2538/usb/usb-serial.h">
+			<Option virtualFolder="cpu/cc2538/usb/" />
+		</Unit>
+		<Unit filename="../../platform/cc2538dk/Makefile.cc2538dk">
+			<Option virtualFolder="platform/cc2538dk/" />
+		</Unit>
+		<Unit filename="../../platform/cc2538dk/contiki-conf.h">
+			<Option virtualFolder="platform/cc2538dk/" />
+		</Unit>
+		<Unit filename="../../platform/cc2538dk/contiki-main.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="platform/cc2538dk/" />
+		</Unit>
+		<Unit filename="../../platform/cc2538dk/dev/board.h">
+			<Option virtualFolder="platform/cc2538dk/dev/" />
+		</Unit>
+		<Unit filename="../../platform/cc2538dk/dev/button-sensor.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="platform/cc2538dk/dev/" />
+		</Unit>
+		<Unit filename="../../platform/cc2538dk/dev/button-sensor.h">
+			<Option virtualFolder="platform/cc2538dk/dev/" />
+		</Unit>
+		<Unit filename="../../platform/cc2538dk/dev/leds-arch.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="platform/cc2538dk/dev/" />
+		</Unit>
+		<Unit filename="../../platform/cc2538dk/dev/smartrf-sensors.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="platform/cc2538dk/dev/" />
+		</Unit>
+		<Unit filename="../../platform/cc2538dk/startup-gcc.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="platform/cc2538dk/" />
+		</Unit>
+		<Unit filename="Makefile">
+			<Option virtualFolder="examples/cc2538dk/" />
+		</Unit>
+		<Unit filename="Makefile.target">
+			<Option virtualFolder="examples/cc2538dk/" />
+		</Unit>
+		<Unit filename="cc2538-demo.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="examples/cc2538dk/" />
+		</Unit>
+		<Unit filename="project-conf.h">
+			<Option virtualFolder="examples/cc2538dk/" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
