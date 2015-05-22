@@ -185,5 +185,6 @@ tmp102_read_temp_x100(void)
 int8_t
 tmp102_read_temp_simple(void)
 {
-  return (int8_t)tmp102_read_temp_x100() / 100;
+  /* Casted to int8_t: We don't expect temperatures outside -128 to 127 C */
+  return tmp102_read_temp_x100() / 100;
 }
