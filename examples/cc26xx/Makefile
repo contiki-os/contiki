@@ -1,6 +1,5 @@
 DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 CONTIKI_PROJECT = cc26xx-demo
-TI_CC26XXWARE=/cc26xxware
 
 all: $(CONTIKI_PROJECT)
 
