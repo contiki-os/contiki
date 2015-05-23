@@ -34,14 +34,14 @@
  *
  */
 /**
- * \file  platform-conf.h
+ * \file  platform/seedeye/platform-conf.h
  * \brief Platform configuration file for the SEEDEYE port.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-06-06
  */
 
-#ifndef __PLATFORM_CONF_H__
-#define __PLATFORM_CONF_H__
+#ifndef PLATFORM_CONF_H_
+#define PLATFORM_CONF_H_
 
 #ifndef SEEDEYE_ID
 #define SEEDEYE_ID 1
@@ -61,4 +61,4 @@
 
 #define CLOCK_CONF_SECOND                       1024
 
-#endif /* __PLATFORM_CONF_H__ */
+#endif /* PLATFORM_CONF_H_ */

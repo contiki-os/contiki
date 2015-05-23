@@ -38,7 +38,7 @@
 #include "smtp.h"
 #include "lib/petsciiconv.h"
 
-#include "lib/ctk-textentry-multiline.h"
+#include "ctk/ctk-textentry-multiline.h"
 
 
 #include <string.h>

@@ -4,6 +4,7 @@
 
 import ftdi
 import os
+import pyudev
 import serial
 import struct
 import subprocess
@@ -62,10 +63,8 @@ class FTDI_Interface(object):
 		return returnValue
 
 	def getFTDIIdFromDevPort(self, port):
-		command = (('for udi in `hal-find-by-capability --capability serial`\n				do\n						parent=`hal-get-property --udi ${udi} --key "info.parent"`\n						device=`hal-get-property --udi ${udi} --key "linux.device_file"`\n						grandpa=`hal-get-property --udi ${parent} --key "info.parent"`\n						serial=`hal-get-property --udi ${grandpa} --key "usb_device.serial" 2>/dev/null`\n						if [ "${device}" = "' + port) + '" ]\n						then\n								printf "%s" "${serial}"\n								break\n						fi\n				done ')
-		p = subprocess.Popen([command], shell=True, stdout=subprocess.PIPE)
-		out = p.communicate()
-		return (out[0])
+		device = pyudev.Device.from_device_file(pyudev.Context(), port)
+		return device['ID_SERIAL']
 
 	def guessResetDirection(self, h):
 		if (self.resetValue is None or self.nBootValue is None):
@@ -1020,16 +1019,14 @@ def getAvailableSerialPorts(refreshList=True):
 	global rs232PortsList
 	if (refreshList or rs232PortsList is None):
 		returnValue = {}
+		context = pyudev.Context()
 		id = [{ 'vendor': FT232R_VENDOR , 'product': FT232R_PRODUCT , 'type': 'FTDI' }, { 'vendor': STM32F103_VENDOR , 'product': STM32F103_PRODUCT , 'type': 'STM32' }, { 'vendor': STM32F103_VENDOR , 'product': STM32F103_PRODUCT_OLD , 'type': 'STM32' }]
-		for i in range(len(id)):
-			command = (((('for udi in `hal-find-by-capability --capability serial`\n								do\n										parent=`hal-get-property --udi ${udi} --key "info.parent"`\n										device=`hal-get-property --udi ${udi} --key "linux.device_file"`\n										serial=`hal-get-property --udi ${parent} --key "usb.serial" 2>/dev/null`\n										vendor=`hal-get-property --udi ${parent} --key "usb.vendor_id" 2>/dev/null`\n										product=`hal-get-property --udi ${parent} --key "usb.product_id" 2>/dev/null`\n										if [ "${vendor}" = "' + str(((id[i])['vendor']))) + '" ] && [ "${product}" = "') + str(((id[i])['product']))) + '" ]\n										then\n												printf "%s %s\n" "${device}" "${serial}"\n										fi\n								done')
-			p = subprocess.Popen([command], shell=True, stdout=subprocess.PIPE)
-			out = p.communicate()
-			for line in (out[0]).splitlines():
-				device_serial = line.split(' ')
-				returnValue[(device_serial[0])] = [((id[i])['type']), (device_serial[1])]
-				continue
-			continue
+		for device in context.list_devices(subsystem='tty', ID_BUS='usb'):
+			for serialId in id:
+				#device['ID_VENDOR_ID'] (VID) and device['ID_MODEL_ID'] (PID) are in hex, but without the 0x prefix
+				if (int(device['ID_VENDOR_ID'], 16) == serialId['vendor']) and (int(device['ID_MODEL_ID'], 16) == serialId['product']):
+					#e.g. returnValue[/dev/ttyACM0] = [STM32, serial number]
+					returnValue[(device.device_node)] = [(serialId['type']), (device['ID_SERIAL'])]
 		rs232PortsList = returnValue
 	return rs232PortsList
 

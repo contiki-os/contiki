@@ -88,7 +88,7 @@ NBR_TABLE(struct phase, nbr_phase);
 #endif
 /*---------------------------------------------------------------------------*/
 void
-phase_update(const rimeaddr_t *neighbor, rtimer_clock_t time,
+phase_update(const linkaddr_t *neighbor, rtimer_clock_t time,
              int mac_status)
 {
   struct phase *e;
@@ -151,13 +151,13 @@ send_packet(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 phase_status_t
-phase_wait(const rimeaddr_t *neighbor, rtimer_clock_t cycle_time,
+phase_wait(const linkaddr_t *neighbor, rtimer_clock_t cycle_time,
            rtimer_clock_t guard_time,
            mac_callback_t mac_callback, void *mac_callback_ptr,
            struct rdc_buf_list *buf_list)
 {
   struct phase *e;
-  //  const rimeaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+  //  const linkaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
   /* We go through the list of phases to find if we have recorded a
      phase for this particular neighbor. If so, we can compute the
      time for the next expected phase and setup a ctimer to switch on
@@ -217,6 +217,7 @@ phase_wait(const rimeaddr_t *neighbor, rtimer_clock_t cycle_time,
       p = memb_alloc(&queued_packets_memb);
       if(p != NULL) {
         if(buf_list == NULL) {
+          packetbuf_set_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED, 1);
           p->q = queuebuf_new_from_packetbuf();
         }
         p->mac_callback = mac_callback;

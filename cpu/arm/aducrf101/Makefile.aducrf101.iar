@@ -1,0 +1,94 @@
+# -*- makefile -*-
+
+# Copyright (c) 2014, Analog Devices, Inc.  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted (subject to the limitations in the
+# disclaimer below) provided that the following conditions are met:
+#
+# - Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#
+# - Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the
+#   distribution.
+#
+# - Neither the name of Analog Devices, Inc. nor the names of its
+#   contributors may be used to endorse or promote products derived
+#   from this software without specific prior written permission.
+#
+# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE
+# GRANTED BY THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT
+# HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+# IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Author: Jim Paris <jim.paris@rigado.com>
+
+# Filename quoting here is very tricky, and probably depends on which Windows
+# build of "make" is being used.  This works for mingw32-make.
+
+ifeq ($(IAR_PATH),)
+  IAR_SUBPATH := $(shell ls "${PROGRAMFILES}\IAR Systems" 2>/dev/null | tail -1)
+  ifeq ($(IAR_SUBPATH),)
+    define iar_error
+
+Unable to find the IAR installation path.  Please specify IAR_PATH.
+For example: $(MAKE) IAR_PATH="C:\\Program Files (x86)\\IAR Systems\\Embedded Workbench 7.0\\arm"
+    endef
+    $(error $(iar_error))
+  endif
+  IAR_PATH := ${PROGRAMFILES}\IAR Systems\${IAR_SUBPATH}\arm
+endif
+
+CC      := "$(IAR_PATH)""\\bin\iccarm"
+LD      := "$(IAR_PATH)""\\bin\ilinkarm"
+AS      := "$(IAR_PATH)""\\bin\iasmarm"
+AR      := "$(IAR_PATH)""\\bin\iarchive"
+OBJCOPY := "$(IAR_PATH)""\\bin\ielftool"
+
+CFLAGS  += -Ohz
+CFLAGS  += --silent
+CFLAGS  += --debug
+CFLAGS  += --endian=little
+CFLAGS  += --cpu=Cortex-M3
+CFLAGS  += -I"$(IAR_PATH)""\\inc"
+CFLAGS  += -D__ICCARM__
+
+AROPTS   = --create
+ASFLAGS  = -S -s+ -w+ --cpu Cortex-M3
+
+LDFLAGS += --config $(CONTIKI_CPU)/Common/IAR/ADUCRF101.icf
+
+# Compiler-specific startup code
+CONTIKI_CPU_DIRS += Common/IAR
+CONTIKI_SOURCEFILES += startup_ADuCRF101.S
+
+# Rules
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.d) -o $@
+
+CUSTOM_RULE_C_TO_O = 1
+%.co: %.c
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $< -o $@
+
+CUSTOM_RULE_C_TO_CO = 1
+%.co: %.c
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
+
+%.hex: %
+	$(OBJCOPY) --silent --ihex $^ $@

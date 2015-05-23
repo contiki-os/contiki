@@ -1,5 +1,5 @@
-#ifndef __USB_MSC_BULK_H__SHSP6ONHDJ__
-#define __USB_MSC_BULK_H__SHSP6ONHDJ__
+#ifndef USB_MSC_BULK_H_SHSP6ONHDJ__
+#define USB_MSC_BULK_H_SHSP6ONHDJ__
 
 #include <usb.h>
 #include <stdint.h>
@@ -100,4 +100,4 @@ usb_msc_receive_data_buf_flags(uint8_t *data, unsigned int len,
 
 
 
-#endif /* __USB_MSC_BULK_H__SHSP6ONHDJ__ */
+#endif /* USB_MSC_BULK_H_SHSP6ONHDJ__ */

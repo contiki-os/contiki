@@ -1,5 +1,5 @@
-#ifndef __CDC_ACM_H__UFV6K50827__
-#define __CDC_ACM_H__UFV6K50827__
+#ifndef CDC_ACM_H_UFV6K50827__
+#define CDC_ACM_H_UFV6K50827__
 
 #include "cdc.h"
 #include "contiki.h"
@@ -21,4 +21,4 @@ const struct usb_cdc_line_coding *usb_cdc_acm_get_line_coding(void);
 
 void usb_cdc_acm_set_event_process(struct process *p);
 
-#endif /* __CDC_ACM_H__UFV6K50827__ */
+#endif /* CDC_ACM_H_UFV6K50827__ */

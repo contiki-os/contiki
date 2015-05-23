@@ -41,7 +41,7 @@
 #include "shell.h"
 #include "serial-shell.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "dev/leds.h"
 #include "net/rime/timesynch.h"
 
@@ -60,14 +60,12 @@ PROCESS_THREAD(example_shell_process, ev, data)
 
   shell_base64_init();
   shell_blink_init();
-  /*shell_checkpoint_init();*/
   /*shell_coffee_init();*/
   shell_download_init();
   /*shell_exec_init();*/
   shell_file_init();
   shell_httpd_init();
   shell_irc_init();
-  shell_netfile_init();
   /*shell_ping_init();*/ /* uIP ping */
   shell_power_init();
   /*shell_profile_init();*/

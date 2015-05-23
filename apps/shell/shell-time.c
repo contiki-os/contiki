@@ -38,6 +38,7 @@
  */
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "shell-time.h"
 
 #include "sys/clock.h"
@@ -50,11 +51,6 @@
 
 #define MAX_COMMANDLENGTH 64
 #define PERIOD_INTERVAL   60
-
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
-
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_time_process, "time");
@@ -266,7 +262,7 @@ PROCESS_THREAD(shell_repeat_process, ev, data)
   etimer_set(&etimer, CLOCK_SECOND * period);
   for(i = 0; reps == 0 || i < reps; ++i) {
 
-    process_start(&shell_repeat_server_process, command);
+    process_start(&shell_repeat_server_process, (void *)command);
     process_post(&shell_repeat_server_process,
 		 PROCESS_EVENT_CONTINUE,
 		 &shell_repeat_process);

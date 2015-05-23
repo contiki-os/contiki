@@ -38,8 +38,8 @@
  *
  */
 
-#ifndef __KEY_H__
-#define __KEY_H__
+#ifndef KEY_H_
+#define KEY_H_
 
 #include <stdint.h>
 #include <avr/io.h>
@@ -93,4 +93,4 @@ key_state_t key_state_get(void);
 uint8_t is_button(void);
 uint8_t get_button(void);
 
-#endif /* __KEY_H__ */
+#endif /* KEY_H_ */

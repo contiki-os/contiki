@@ -41,8 +41,8 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _USB_SPECIFIC_REQUEST_H_
-#define _USB_SPECIFIC_REQUEST_H_
+#ifndef USB_SPECIFIC_REQUEST_H_
+#define USB_SPECIFIC_REQUEST_H_
 
 /*_____ I N C L U D E S ____________________________________________________*/
 
@@ -86,5 +86,5 @@ extern usb_mode_t usb_mode;
 
 // ____ T Y P E  D E F I N I T I O N _______________________________________
 
-#endif // _USB_SPECIFIC_REQUEST_H_
+#endif //USB_SPECIFIC_REQUEST_H_
 

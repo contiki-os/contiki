@@ -1,0 +1,22 @@
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) -c -o $@ $(CFLAGS) --create-dep $(@:.o=.d) $<
+
+CUSTOM_RULE_C_TO_CO = 1
+%.co: %.c
+	$(TRACE_CC)
+	$(Q)$(CC) -c -o $@ $(CFLAGS) -DAUTOSTART_ENABLE --create-dep $(@:.o=.d) $<
+
+CUSTOM_RULE_LINK = 1
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(TRACE_LD)
+	$(Q)$(LD) -o $@ $(LDFLAGS) -u _main $^ $(TARGET).lib
+
+%.o: %.S
+	$(TRACE_AS)
+	$(Q)$(AS) $(ASFLAGS) -o $@ $<
+
+%.eth: %.o
+	$(TRACE_LD)
+	$(Q)$(LD) -o $@ -t module -m $@.map $<

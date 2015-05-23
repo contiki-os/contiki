@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __RTIMER_ARCH_H__
-#define __RTIMER_ARCH_H__
+#ifndef RTIMER_ARCH_H_
+#define RTIMER_ARCH_H_
 
 #include "sys/rtimer.h"
 
@@ -50,4 +50,4 @@
 
 rtimer_clock_t rtimer_arch_now(void);
 
-#endif /* __RTIMER_ARCH_H__ */
+#endif /* RTIMER_ARCH_H_ */

@@ -45,7 +45,7 @@
 
 #include "lib/random.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/route.h"
 #include "net/rime/trickle.h"
 
@@ -114,7 +114,7 @@ PROCESS_THREAD(shell_broadcast_process, ev, data)
   PROCESS_END();
 }
 static void
-recv_broadcast(struct broadcast_conn *c, const rimeaddr_t *from)
+recv_broadcast(struct broadcast_conn *c, const linkaddr_t *from)
 {
   struct collect_msg *msg;
   rtimer_clock_t latency;
@@ -138,7 +138,7 @@ static const struct broadcast_callbacks broadcast_callbacks = {recv_broadcast};
 PROCESS_THREAD(shell_unicast_process, ev, data)
 {
   struct shell_input *input;
-  static rimeaddr_t receiver;
+  static linkaddr_t receiver;
   int len;
   const char *nextptr;
   struct collect_msg *msg;
@@ -186,7 +186,7 @@ PROCESS_THREAD(shell_unicast_process, ev, data)
   PROCESS_END();
 }
 static void
-recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
+recv_uc(struct unicast_conn *c, const linkaddr_t *from)
 {
   struct collect_msg *msg;
   rtimer_clock_t latency;

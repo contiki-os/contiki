@@ -30,23 +30,15 @@
  *
  */
 
-/** \addtogroup esb
- * @{ */
-
-/**
- * \defgroup esbrs232 ESB RS232
- *
- * @{
- */
 
 /**
  * \file
- * Header file for MSP430 RS232 driver.
+ * Header file for COOJA RS232 driver.
  * \author Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __RS232_H__
-#define __RS232_H__
+#ifndef RS232_H_
+#define RS232_H_
 
 
 #define RS232_19200 1
@@ -93,7 +85,7 @@ void rs232_set_speed(unsigned char speed);
 
 /**
  * \brief      Print a text string on RS232
- * \param str  A pointer to the string that is to be printed
+ * \param text A pointer to the string that is to be printed
  *
  *             This function prints a string to RS232. The string must
  *             be terminated by a null byte. The RS232 module must be
@@ -112,6 +104,5 @@ void rs232_print(char *text);
  */
 void rs232_send(char c);
 
-#endif /* __RS232_H__ */
+#endif /* RS232_H_ */
 
-/** @} */ /** @} */

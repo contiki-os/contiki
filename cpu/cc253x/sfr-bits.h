@@ -184,6 +184,9 @@
 /*---------------------------------------------------------------------------
  * Radio Register Bits
  *---------------------------------------------------------------------------*/
+/* FRMFILT0 */
+#define FRMFILT0_FRAME_FILTER_EN    0x01
+
 /* FRMCTRL0 */
 #define FRMCTRL0_APPEND_DATA_MODE   0x80
 #define FRMCTRL0_AUTOCRC            0x40

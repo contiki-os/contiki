@@ -9,6 +9,7 @@ CONTIKI_SOURCEFILES += cc2420-arch.c sensors.c sht11.c
 PROJECT_SOURCEFILES = i2cmaster.c tmp102.c adxl345.c battery-sensor.c sky-sensors.c #potentiometer-sensor.c
 all: example-unicast2
 
+CONTIKI_WITH_RIME = 1
 include $(CONTIKI)/Makefile.include
 
 

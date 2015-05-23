@@ -37,9 +37,8 @@
  */
 
 #include "net/netstack.h"
-#include "net/uip.h"
-#include "net/tcpip.h"
-#include "net/hc.h"
+#include "net/ip/uip.h"
+#include "net/ip/tcpip.h"
 #include "net/packetbuf.h"
 #include "net/uip-driver.h"
 #include <string.h>
@@ -52,7 +51,7 @@ uip_driver_send(void)
 
   /* XXX we should provide a callback function that is called when the
      packet is sent. For now, we just supply a NULL pointer. */
-  NETSTACK_MAC.send(NULL, NULL);
+  NETSTACK_LLSEC.send(NULL, NULL);
   return 1;
 }
 /*--------------------------------------------------------------------*/

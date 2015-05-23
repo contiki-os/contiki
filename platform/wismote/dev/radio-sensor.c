@@ -31,7 +31,7 @@
  */
 
 #include "lib/sensors.h"
-#include "dev/cc2520.h"
+#include "dev/cc2520/cc2520.h"
 #include "dev/radio-sensor.h"
 
 const struct sensors_sensor radio_sensor;

@@ -47,52 +47,17 @@
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
+/** \name UART instance count
+ * @{
+ */
+#define UART_INSTANCE_COUNT   2
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name UART base addresses
  * @{
  */
 #define UART_0_BASE           0x4000C000
 #define UART_1_BASE           0x4000D000
-
-/* Default to UART 0 unless the configuration tells us otherwise */
-#ifdef UART_CONF_BASE
-#define UART_BASE             UART_CONF_BASE
-#else
-#define UART_BASE             UART_0_BASE
-#endif
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
- * \name Baud rate defines
- *
- * Used in uart_init() to set the values of UART_IBRD and UART_FBRD in order to
- * achieve some standard baud rates. These defines assume that the UART is
- * clocked at 16MHz and that Clock Div is 16 (UART_CTL:HSE clear)
- * @{
- */
-#define UART_IBRD_115200              8 /**< IBRD value for baud rate 115200 */
-#define UART_FBRD_115200             44 /**< FBRD value for baud rate 115200 */
-#define UART_IBRD_230400              4 /**< IBRD value for baud rate 230400 */
-#define UART_FBRD_230400             22 /**< FBRD value for baud rate 230400 */
-#define UART_IBRD_460800              2 /**< IBRD value for baud rate 460800 */
-#define UART_FBRD_460800             11 /**< FBRD value for baud rate 460800 */
-
-#if UART_CONF_BAUD_RATE==115200
-#define UART_CONF_IBRD UART_IBRD_115200
-#define UART_CONF_FBRD UART_FBRD_115200
-#elif UART_CONF_BAUD_RATE==230400
-#define UART_CONF_IBRD UART_IBRD_230400
-#define UART_CONF_FBRD UART_FBRD_230400
-#elif UART_CONF_BAUD_RATE==460800
-#define UART_CONF_IBRD UART_IBRD_460800
-#define UART_CONF_FBRD UART_FBRD_460800
-#else /* Bail out with an error unless the user provided custom values */
-#if !(defined UART_CONF_IBRD && defined UART_CONF_FBRD)
-#error "UART baud rate misconfigured and custom IBRD/FBRD values not provided"
-#error "Check the value of UART_CONF_BAUD_RATE in contiki-conf.h or project-conf.h"
-#error "Supported values are 115200, 230400 and 460800. Alternatively, you can"
-#error "provide custom values for UART_CONF_IBRD and UART_CONF_FBRD"
-#endif
-#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART Register Offsets
@@ -200,6 +165,8 @@
 /** \name UART_CTL Register Bit-Masks
  * @{
  */
+#define UART_CTL_CTSEN          0x00008000  /**< UART CTS flow-control enable (UART1 only) */
+#define UART_CTL_RTSEN          0x00004000  /**< UART RTS flow-control enable (UART1 only) */
 #define UART_CTL_RXE            0x00000200  /**< UART receive enable */
 #define UART_CTL_TXE            0x00000100  /**< UART transmit enable */
 #define UART_CTL_LBE            0x00000080  /**< UART loop back enable */
@@ -366,18 +333,22 @@
  */
 
 /** \brief Initialises the UART controller, configures I/O control
- * and interrupts */
-void uart_init(void);
+ * and interrupts
+ * \param uart The UART instance to use (0 to \c UART_INSTANCE_COUNT - 1)
+ */
+void uart_init(uint8_t uart);
 
 /** \brief Sends a single character down the UART
+ * \param uart The UART instance to use (0 to \c UART_INSTANCE_COUNT - 1)
  * \param b The character to transmit
  */
-void uart_write_byte(uint8_t b);
+void uart_write_byte(uint8_t uart, uint8_t b);
 
 /** \brief Assigns a callback to be called when the UART receives a byte
+ * \param uart The UART instance to use (0 to \c UART_INSTANCE_COUNT - 1)
  * \param input A pointer to the function
  */
-void uart_set_input(int (* input)(unsigned char c));
+void uart_set_input(uint8_t uart, int (* input)(unsigned char c));
 
 /** @} */
 

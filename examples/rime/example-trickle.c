@@ -53,7 +53,7 @@ static void
 trickle_recv(struct trickle_conn *c)
 {
   printf("%d.%d: trickle message received '%s'\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	 (char *)packetbuf_dataptr());
 }
 const static struct trickle_callbacks trickle_call = {trickle_recv};

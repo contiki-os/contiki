@@ -31,14 +31,14 @@
 
 import java.util.Random;
 
-import se.sics.cooja.COOJARadioPacket;
-import se.sics.cooja.MoteTimeEvent;
-import se.sics.cooja.MoteType;
-import se.sics.cooja.RadioPacket;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.interfaces.ApplicationLED;
-import se.sics.cooja.interfaces.ApplicationRadio;
-import se.sics.cooja.motes.AbstractApplicationMote;
+import org.contikios.cooja.COOJARadioPacket;
+import org.contikios.cooja.MoteTimeEvent;
+import org.contikios.cooja.MoteType;
+import org.contikios.cooja.RadioPacket;
+import org.contikios.cooja.Simulation;
+import org.contikios.cooja.interfaces.ApplicationLED;
+import org.contikios.cooja.interfaces.ApplicationRadio;
+import org.contikios.cooja.motes.AbstractApplicationMote;
 
 /**
  * Example application-level mote.

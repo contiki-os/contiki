@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __RUCB_H__
-#define __RUCB_H__
+#ifndef RUCB_H_
+#define RUCB_H_
 
 #include "net/rime/runicast.h"
 
@@ -63,7 +63,7 @@ struct rucb_callbacks {
 struct rucb_conn {
   struct runicast_conn c;
   const struct rucb_callbacks *u;
-  rimeaddr_t receiver, sender;
+  linkaddr_t receiver, sender;
   uint16_t chunk;
   uint8_t last_seqno;
   int last_size;
@@ -73,7 +73,7 @@ void rucb_open(struct rucb_conn *c, uint16_t channel,
 	      const struct rucb_callbacks *u);
 void rucb_close(struct rucb_conn *c);
 
-int rucb_send(struct rucb_conn *c, const rimeaddr_t *receiver);
+int rucb_send(struct rucb_conn *c, const linkaddr_t *receiver);
 
 
-#endif /* __RUCB_H__ */
+#endif /* RUCB_H_ */

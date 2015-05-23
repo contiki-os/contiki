@@ -81,7 +81,7 @@ collect_common_set_send_active(int active)
 }
 /*---------------------------------------------------------------------------*/
 void
-collect_common_recv(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops,
+collect_common_recv(const linkaddr_t *originator, uint8_t seqno, uint8_t hops,
                     uint8_t *payload, uint16_t payload_len)
 {
   unsigned long time;

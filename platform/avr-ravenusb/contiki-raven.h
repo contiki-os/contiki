@@ -36,8 +36,8 @@
  *
  */
 
-#ifndef __CONTIKI_RAVEN_H__
-#define __CONTIKI_RAVEN_H__
+#ifndef CONTIKI_RAVEN_H_
+#define CONTIKI_RAVEN_H_
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -65,4 +65,4 @@ void init_lowlevel(void);
 void init_net(void);
 
 
-#endif /* #ifndef __CONTIKI_RAVEN_H__ */
+#endif /* #ifndef CONTIKI_RAVEN_H_ */

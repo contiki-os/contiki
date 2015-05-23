@@ -41,5 +41,6 @@ void
 netstack_init(void)
 {
   NETSTACK_RADIO.init();
+  NETSTACK_RADIO.on();
 }
 /*---------------------------------------------------------------------------*/

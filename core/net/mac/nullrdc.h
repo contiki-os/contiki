@@ -38,11 +38,11 @@
  *         Niclas Finne <nfi@sics.se>
  */
 
-#ifndef __NULLRDC_H__
-#define __NULLRDC_H__
+#ifndef NULLRDC_H_
+#define NULLRDC_H_
 
 #include "net/mac/rdc.h"
 
 extern const struct rdc_driver nullrdc_driver;
 
-#endif /* __NULLRDC_H__ */
+#endif /* NULLRDC_H_ */

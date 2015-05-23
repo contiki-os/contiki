@@ -9,8 +9,12 @@
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
- 
-/** @addtogroup nvm
+
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/** @defgroup nvm
  * @brief Cortex-M3 Non-Volatile Memory data storage system.
  *
  * This header defines the API for NVM data storage.  This header also
@@ -170,8 +174,8 @@
  */
 
 
-#ifndef __NVM_H__
-#define __NVM_H__
+#ifndef NVM_H_
+#define NVM_H_
 
 //Pull in the MFB_ definitions.
 #include "hal/micro/cortexm3/memmap.h"
@@ -274,6 +278,7 @@ StStatus halCommonWriteToNvm(const void *data, uint32_t offset, uint16_t length)
 #define NVM_MGMT_SIZE_B  (4)
 
 /** @} END addtogroup */
+/** @} */
 
-#endif // __NVM_H__
+#endif // NVM_H_
 

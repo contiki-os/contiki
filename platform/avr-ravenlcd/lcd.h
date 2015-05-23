@@ -38,8 +38,8 @@
  *
  */
 
-#ifndef __LCD_H__
-#define __LCD_H__
+#ifndef LCD_H_
+#define LCD_H_
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -347,5 +347,5 @@ void led_on(void);
 void led_off(void);
 /** @} */
 
-#endif /* __LCD_H__ */
+#endif /* LCD_H_ */
 

@@ -1,8 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,6 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rime
+ * @{
+ */
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -51,7 +51,7 @@
 #endif
 
 #include "net/netstack.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/rime/chameleon.h"
 #include "net/rime/route.h"
 #include "net/rime/announcement.h"
@@ -180,7 +180,7 @@ rime_output(struct channel *c)
   if(chameleon_create(c)) {
     packetbuf_compact();
 
-    NETSTACK_MAC.send(packet_sent, c);
+    NETSTACK_LLSEC.send(packet_sent, c);
     return 1;
   }
   return 0;

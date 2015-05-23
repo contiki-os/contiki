@@ -85,14 +85,14 @@ PT_THREAD(nodeidcall(struct httpd_state *s, char *ptr))
   static char buf[24];
   PSOCK_BEGIN(&s->sout);
   snprintf(buf, sizeof(buf), "%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X",
-	   rimeaddr_node_addr.u8[0],
-       rimeaddr_node_addr.u8[1],
-       rimeaddr_node_addr.u8[2],
-       rimeaddr_node_addr.u8[3],
-       rimeaddr_node_addr.u8[4],
-       rimeaddr_node_addr.u8[5],
-       rimeaddr_node_addr.u8[6],
-       rimeaddr_node_addr.u8[7]);
+	   linkaddr_node_addr.u8[0],
+       linkaddr_node_addr.u8[1],
+       linkaddr_node_addr.u8[2],
+       linkaddr_node_addr.u8[3],
+       linkaddr_node_addr.u8[4],
+       linkaddr_node_addr.u8[5],
+       linkaddr_node_addr.u8[6],
+       linkaddr_node_addr.u8[7]);
   PSOCK_SEND_STR(&s->sout, buf);
   PSOCK_END(&s->sout);
 }
@@ -164,7 +164,7 @@ make_neighbor(void *arg)
     return 0;
   }
 
-#if !UIP_CONF_IPV6
+#if !NETSTACK_CONF_WITH_IPV6
   return snprintf((char *)uip_appdata, uip_mss(),
 		  "<li><a href=\"http://172.16.%d.%d/\">%d.%d</a>\r\n",
 		  n->addr.u8[0], n->addr.u8[1],
@@ -212,7 +212,7 @@ make_neighbor(void *arg)
                   n->addr.u8[6],
                   n->addr.u8[7]);
   
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -237,7 +237,7 @@ PT_THREAD(neighborscall(struct httpd_state *s, char *ptr))
 /*---------------------------------------------------------------------------*/
 
 static void
-received_announcement(struct announcement *a, const rimeaddr_t *from,
+received_announcement(struct announcement *a, const linkaddr_t *from,
 	     uint16_t id, uint16_t value)
 {
   struct collect_neighbor *n;

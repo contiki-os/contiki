@@ -51,7 +51,7 @@
 #define write_byte(b) usb_serial_writeb(b)
 #define flush()       usb_serial_flush()
 #else
-#define write_byte(b) uart_write_byte(b)
+#define write_byte(b) uart_write_byte(DBG_CONF_UART, b)
 #define flush()
 #endif
 /*---------------------------------------------------------------------------*/

@@ -1,12 +1,12 @@
 
-#define UIP_CONF_IPV6 1
+#define NETSTACK_CONF_WITH_IPV6 1
 #define UIP_CONF_LL_802154 1
 
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
 
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #include "ip-process.h"
 
@@ -46,8 +46,8 @@ int8_t mac_translateIPLinkLayer()
   return 0;
 }
 
-#include "net/uip-icmp6.h"
-#include "net/uip-nd6.h"
+#include "net/ipv6/uip-icmp6.h"
+#include "net/ipv6/uip-nd6.h"
 
 typedef struct {
   uint8_t type;

@@ -1,0 +1,3 @@
+CFLAGS += -DBOARD_SMARTRF06EB=1
+
+BOARD_SOURCEFILES += leds-arch.c srf06-sensors.c button-sensor.c board.c

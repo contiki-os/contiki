@@ -36,8 +36,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __PLATFORM_CONF_H__
-#define __PLATFORM_CONF_H__
+#ifndef PLATFORM_CONF_H_
+#define PLATFORM_CONF_H_
 
 /*
  * Definitions below are dictated by the hardware and not really
@@ -51,6 +51,7 @@
 #define PLATFORM_HAS_LIGHT   1
 #define PLATFORM_HAS_BATTERY 1
 #define PLATFORM_HAS_SHT11   1
+#define PLATFORM_HAS_RADIO   1
 
 /* CPU target speed in Hz */
 #define F_CPU 3900000uL /*2457600uL*/
@@ -209,4 +210,4 @@ typedef unsigned long off_t;
 #define CC2420_SPI_DISABLE()    (CC2420_CSN_PORT(OUT) |=  BV(CC2420_CSN_PIN))
 #define CC2420_SPI_IS_ENABLED() ((CC2420_CSN_PORT(OUT) & BV(CC2420_CSN_PIN)) != BV(CC2420_CSN_PIN))
 
-#endif /* __PLATFORM_CONF_H__ */
+#endif /* PLATFORM_CONF_H_ */

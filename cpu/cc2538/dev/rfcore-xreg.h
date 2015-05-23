@@ -139,6 +139,12 @@
 #define RFCORE_XREG_RFC_OBS_CTRL1  0x400887B0 /**< RF observation mux control */
 #define RFCORE_XREG_RFC_OBS_CTRL2  0x400887B4 /**< RF observation mux control */
 #define RFCORE_XREG_TXFILTCFG   0x400887E8 /**< TX filter configuration */
+#define RFCORE_XREG_RFC_OBSSEL0 0x44010014
+#define RFCORE_XREG_RFC_OBSSEL1 0x44010018
+#define RFCORE_XREG_RFC_OBSSEL2 0x4401001C
+#define RFCORE_XREG_RFC_OBSSEL3 0x44010020
+#define RFCORE_XREG_RFC_OBSSEL6 0x4401002C	
+#define RFCORE_XREG_RFC_OBSSEL7 0x44010030	
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name RFCORE_XREG_FRMFILT0 register offsets
@@ -575,6 +581,8 @@
  * @{
  */
 #define RFCORE_XREG_ATEST_ATEST_CTRL 0x0000003F /**< Controls the analog test mode */
+#define RFCORE_XREG_ATEST_ATEST_CTRL_DIS 0x00000000 /**< Analog test mode: disabled */
+#define RFCORE_XREG_ATEST_ATEST_CTRL_TEMP 0x00000001 /**< Analog test mode: enable temperature sensor */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name RFCORE_XREG_PTEST0 register bit masks

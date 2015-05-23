@@ -41,7 +41,7 @@
 #include "sys/rtimer.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "net/netstack.h"
 #include "sys/energest.h"
 #include "dev/cc2538-rf.h"
@@ -80,14 +80,13 @@
 /* Local RF Flags */
 #define RX_ACTIVE     0x80
 #define RF_MUST_RESET 0x40
-#define WAS_OFF       0x10
 #define RF_ON         0x01
 
 /* Bit Masks for the last byte in the RX FIFO */
 #define CRC_BIT_MASK 0x80
 #define LQI_BIT_MASK 0x7F
 /* RSSI Offset */
-#define RSSI_OFFSET    73
+#define RSSI_OFFSET    85
 
 /* 192 usec off -> on interval (RX Callib -> SFD Wait). We wait a bit more */
 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
@@ -106,7 +105,7 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 #define flush()       usb_serial_flush()
 #else
 #include "dev/uart.h"
-#define write_byte(b) uart_write_byte(b)
+#define write_byte(b) uart_write_byte(CC2538_RF_CONF_SNIFFER_UART, b)
 #define flush()
 #endif
 
@@ -122,14 +121,48 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 #endif
 /*---------------------------------------------------------------------------*/
 static uint8_t rf_flags;
+static uint8_t rf_channel = CC2538_RF_CHANNEL;
 
 static int on(void);
 static int off(void);
 /*---------------------------------------------------------------------------*/
+/* TX Power dBm lookup table. Values from SmartRF Studio v1.16.0 */
+typedef struct output_config {
+  radio_value_t power;
+  uint8_t txpower_val;
+} output_config_t;
+
+static const output_config_t output_power[] = {
+  {  7, 0xFF },
+  {  5, 0xED },
+  {  3, 0xD5 },
+  {  1, 0xC5 },
+  {  0, 0xB6 },
+  { -1, 0xB0 },
+  { -3, 0xA1 },
+  { -5, 0x91 },
+  { -7, 0x88 },
+  { -9, 0x72 },
+  {-11, 0x62 },
+  {-13, 0x58 },
+  {-15, 0x42 },
+  {-24, 0x00 },
+};
+
+#define OUTPUT_CONFIG_COUNT (sizeof(output_power) / sizeof(output_config_t))
+
+/* Max and Min Output Power in dBm */
+#define OUTPUT_POWER_MIN    (output_power[OUTPUT_CONFIG_COUNT - 1].power)
+#define OUTPUT_POWER_MAX    (output_power[0].power)
+/*---------------------------------------------------------------------------*/
 PROCESS(cc2538_rf_process, "cc2538 RF driver");
 /*---------------------------------------------------------------------------*/
-uint8_t
-cc2538_rf_channel_get()
+/**
+ * \brief Get the current operating channel
+ * \return Returns a value in [11,26] representing the current channel
+ */
+static uint8_t
+get_channel()
 {
   uint8_t chan = REG(RFCORE_XREG_FREQCTRL) & RFCORE_XREG_FREQCTRL_FREQ;
 
@@ -137,53 +170,172 @@ cc2538_rf_channel_get()
           + CC2538_RF_CHANNEL_MIN);
 }
 /*---------------------------------------------------------------------------*/
-int8_t
-cc2538_rf_channel_set(uint8_t channel)
+/**
+ * \brief Set the current operating channel
+ * \param channel The desired channel as a value in [11,26]
+ * \return Returns a value in [11,26] representing the current channel
+ *         or a negative value if \e channel was out of bounds
+ */
+static int8_t
+set_channel(uint8_t channel)
 {
+  uint8_t was_on = 0;
+
   PRINTF("RF: Set Channel\n");
 
   if((channel < CC2538_RF_CHANNEL_MIN) || (channel > CC2538_RF_CHANNEL_MAX)) {
-    return -1;
+    return CC2538_RF_CHANNEL_SET_ERROR;
   }
 
   /* Changes to FREQCTRL take effect after the next recalibration */
-  off();
+    
+  /* If we are off, save state, otherwise switch off and save state */
+  if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) != 0) {
+    was_on = 1;
+    off();
+  }
   REG(RFCORE_XREG_FREQCTRL) = (CC2538_RF_CHANNEL_MIN
       + (channel - CC2538_RF_CHANNEL_MIN) * CC2538_RF_CHANNEL_SPACING);
-  on();
+  /* switch radio back on only if radio was on before - otherwise will turn on radio foor sleepy nodes */
+  if(was_on) {
+    on();
+  }
+
+  rf_channel = channel;
 
   return (int8_t) channel;
 }
 /*---------------------------------------------------------------------------*/
-uint8_t
-cc2538_rf_power_set(uint8_t new_power)
+static radio_value_t
+get_pan_id(void)
 {
-  PRINTF("RF: Set Power\n");
-
-  REG(RFCORE_XREG_TXPOWER) = new_power;
-
-  return (REG(RFCORE_XREG_TXPOWER) & 0xFF);
+  return (radio_value_t)(REG(RFCORE_FFSM_PAN_ID1) << 8 | REG(RFCORE_FFSM_PAN_ID0));
 }
 /*---------------------------------------------------------------------------*/
-/* ToDo: Check once we have info on the... infopage */
-void
-cc2538_rf_set_addr(uint16_t pan)
+static void
+set_pan_id(uint16_t pan)
 {
-#if RIMEADDR_SIZE==8
-  /* EXT_ADDR[7:0] is ignored when using short addresses */
-  int i;
-
-  for(i = (RIMEADDR_SIZE - 1); i >= 0; --i) {
-    ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[i] =
-        rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1 - i];
-  }
-#endif
-
   REG(RFCORE_FFSM_PAN_ID0) = pan & 0xFF;
   REG(RFCORE_FFSM_PAN_ID1) = pan >> 8;
+}
+/*---------------------------------------------------------------------------*/
+static radio_value_t
+get_short_addr(void)
+{
+  return (radio_value_t)(REG(RFCORE_FFSM_SHORT_ADDR1) << 8 | REG(RFCORE_FFSM_SHORT_ADDR0));
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_short_addr(uint16_t addr)
+{
+  REG(RFCORE_FFSM_SHORT_ADDR0) = addr & 0xFF;
+  REG(RFCORE_FFSM_SHORT_ADDR1) = addr >> 8;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Reads the current signal strength (RSSI)
+ * \return The current RSSI in dBm
+ *
+ * This function reads the current RSSI on the currently configured
+ * channel.
+ */
+static radio_value_t
+get_rssi(void)
+{
+  int8_t rssi;
+  uint8_t was_off = 0;
 
-  REG(RFCORE_FFSM_SHORT_ADDR0) = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 1];
-  REG(RFCORE_FFSM_SHORT_ADDR1) = rimeaddr_node_addr.u8[RIMEADDR_SIZE - 2];
+  /* If we are off, turn on first */
+  if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
+    was_off = 1;
+    on();
+  }
+
+  /* Wait on RSSI_VALID */
+  while((REG(RFCORE_XREG_RSSISTAT) & RFCORE_XREG_RSSISTAT_RSSI_VALID) == 0);
+
+  rssi = (int8_t)(REG(RFCORE_XREG_RSSI) & RFCORE_XREG_RSSI_RSSI_VAL) - RSSI_OFFSET;
+
+  /* If we were off, turn back off */
+  if(was_off) {
+    off();
+  }
+
+  return rssi;
+}
+/*---------------------------------------------------------------------------*/
+/* Returns the current CCA threshold in dBm */
+static radio_value_t
+get_cca_threshold(void)
+{
+  return (int8_t)(REG(RFCORE_XREG_CCACTRL0) & RFCORE_XREG_CCACTRL0_CCA_THR) - RSSI_OFFSET;
+}
+/*---------------------------------------------------------------------------*/
+/* Sets the CCA threshold in dBm */
+static void
+set_cca_threshold(radio_value_t value)
+{
+  REG(RFCORE_XREG_CCACTRL0) = (value & 0xFF) + RSSI_OFFSET;
+}
+/*---------------------------------------------------------------------------*/
+/* Returns the current TX power in dBm */
+static radio_value_t
+get_tx_power(void)
+{
+  int i;
+  uint8_t reg_val = REG(RFCORE_XREG_TXPOWER) & 0xFF;
+
+  /*
+   * Find the TXPOWER value in the lookup table
+   * If the value has been written with set_tx_power, we should be able to
+   * find the exact value. However, in case the register has been written in
+   * a different fashion, we return the immediately lower value of the lookup
+   */
+  for(i = 0; i < OUTPUT_CONFIG_COUNT; i++) {
+    if(reg_val >= output_power[i].txpower_val) {
+      return output_power[i].power;
+    }
+  }
+  return OUTPUT_POWER_MIN;
+}
+/*---------------------------------------------------------------------------*/
+/*
+ * Set TX power to 'at least' power dBm
+ * This works with a lookup table. If the value of 'power' does not exist in
+ * the lookup table, TXPOWER will be set to the immediately higher available
+ * value
+ */
+static void
+set_tx_power(radio_value_t power)
+{
+  int i;
+
+  for(i = OUTPUT_CONFIG_COUNT - 1; i >= 0; --i) {
+    if(power <= output_power[i].power) {
+      REG(RFCORE_XREG_TXPOWER) = output_power[i].txpower_val;
+      return;
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_frame_filtering(uint8_t enable)
+{
+  if(enable) {
+    REG(RFCORE_XREG_FRMFILT0) |= RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
+  } else {
+    REG(RFCORE_XREG_FRMFILT0) &= ~RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_auto_ack(uint8_t enable)
+{
+  if(enable) {
+    REG(RFCORE_XREG_FRMCTRL0) |= RFCORE_XREG_FRMCTRL0_AUTOACK;
+  } else {
+    REG(RFCORE_XREG_FRMCTRL0) &= ~RFCORE_XREG_FRMCTRL0_AUTOACK;
+  }
 }
 /*---------------------------------------------------------------------------*/
 /* Netstack API radio driver functions */
@@ -192,12 +344,13 @@ static int
 channel_clear(void)
 {
   int cca;
+  uint8_t was_off = 0;
 
   PRINTF("RF: CCA\n");
 
   /* If we are off, turn on first */
   if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
-    rf_flags |= WAS_OFF;
+    was_off = 1;
     on();
   }
 
@@ -211,8 +364,7 @@ channel_clear(void)
   }
 
   /* If we were off, turn back off */
-  if((rf_flags & WAS_OFF) == WAS_OFF) {
-    rf_flags &= ~WAS_OFF;
+  if(was_off) {
     off();
   }
 
@@ -302,8 +454,10 @@ init(void)
   /* MAX FIFOP threshold */
   REG(RFCORE_XREG_FIFOPCTRL) = CC2538_RF_MAX_PACKET_LEN;
 
-  cc2538_rf_power_set(CC2538_RF_TX_POWER);
-  cc2538_rf_channel_set(CC2538_RF_CHANNEL);
+  /* Set TX Power */
+  REG(RFCORE_XREG_TXPOWER) = CC2538_RF_TX_POWER;
+
+  set_channel(rf_channel);
 
   /* Acknowledge RF interrupts, FIFOP only */
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;
@@ -335,6 +489,18 @@ init(void)
     udma_set_channel_src(CC2538_RF_CONF_RX_DMA_CHAN, RFCORE_SFR_RFDATA);
   }
 
+  REG(RFCORE_XREG_RFC_OBS_CTRL0) = 0x0000006A;			//PA Control down signal
+  REG(RFCORE_XREG_RFC_OBS_CTRL1) = 0x00000068;			//LNA Control signal
+  
+  //Set PA (PC6) as output
+  REG(RFCORE_XREG_RFC_OBSSEL6) = 0x00000081;								//Connect OBS_CTRL0 to PC6
+  REG(RFCORE_XREG_RFC_OBSSEL3) = 0x00000081;								//Connect PC3 to PA enable
+  
+  //Set LNA (PC7) as output
+  REG(RFCORE_XREG_RFC_OBSSEL7) = 0x00000080;								//Connect RF_OBS_CTRL1 to PC7
+  REG(RFCORE_XREG_RFC_OBSSEL2) = 0x00000080;
+  
+  
   process_start(&cc2538_rf_process, NULL);
 
   rf_flags |= RF_ON;
@@ -406,13 +572,14 @@ transmit(unsigned short transmit_len)
   uint8_t counter;
   int ret = RADIO_TX_ERR;
   rtimer_clock_t t0;
+  uint8_t was_off = 0;
 
   PRINTF("RF: Transmit\n");
 
   if(!(rf_flags & RX_ACTIVE)) {
     t0 = RTIMER_NOW();
     on();
-    rf_flags |= WAS_OFF;
+    was_off = 1;
     while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
   }
 
@@ -454,8 +621,7 @@ transmit(unsigned short transmit_len)
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
-  if(rf_flags & WAS_OFF) {
-    rf_flags &= ~WAS_OFF;
+  if(was_off) {
     off();
   }
 
@@ -613,6 +779,156 @@ pending_packet(void)
   return (REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP);
 }
 /*---------------------------------------------------------------------------*/
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  if(!value) {
+    return RADIO_RESULT_INVALID_VALUE;
+  }
+
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    *value = (REG(RFCORE_XREG_RXENABLE) && RFCORE_XREG_RXENABLE_RXENMASK) == 0
+      ? RADIO_POWER_MODE_OFF : RADIO_POWER_MODE_ON;
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CHANNEL:
+    *value = (radio_value_t)get_channel();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_PAN_ID:
+    *value = get_pan_id();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_16BIT_ADDR:
+    *value = get_short_addr();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
+    *value = 0;
+    if(REG(RFCORE_XREG_FRMFILT0) & RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN) {
+      *value |= RADIO_RX_MODE_ADDRESS_FILTER;
+    }
+    if(REG(RFCORE_XREG_FRMCTRL0) & RFCORE_XREG_FRMCTRL0_AUTOACK) {
+      *value |= RADIO_RX_MODE_AUTOACK;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TXPOWER:
+    *value = get_tx_power();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CCA_THRESHOLD:
+    *value = get_cca_threshold();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RSSI:
+    *value = get_rssi();
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_CHANNEL_MIN:
+    *value = CC2538_RF_CHANNEL_MIN;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_CHANNEL_MAX:
+    *value = CC2538_RF_CHANNEL_MAX;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_TXPOWER_MIN:
+    *value = OUTPUT_POWER_MIN;
+    return RADIO_RESULT_OK;
+  case RADIO_CONST_TXPOWER_MAX:
+    *value = OUTPUT_POWER_MAX;
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  switch(param) {
+  case RADIO_PARAM_POWER_MODE:
+    if(value == RADIO_POWER_MODE_ON) {
+      on();
+      return RADIO_RESULT_OK;
+    }
+    if(value == RADIO_POWER_MODE_OFF) {
+      off();
+      return RADIO_RESULT_OK;
+    }
+    return RADIO_RESULT_INVALID_VALUE;
+  case RADIO_PARAM_CHANNEL:
+    if(value < CC2538_RF_CHANNEL_MIN ||
+       value > CC2538_RF_CHANNEL_MAX) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    if(set_channel(value) == CC2538_RF_CHANNEL_SET_ERROR) {
+      return RADIO_RESULT_ERROR;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_PAN_ID:
+    set_pan_id(value & 0xffff);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_16BIT_ADDR:
+    set_short_addr(value & 0xffff);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_RX_MODE:
+    if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
+                 RADIO_RX_MODE_AUTOACK)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
+    set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
+
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TXPOWER:
+    if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    set_tx_power(value);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CCA_THRESHOLD:
+    set_cca_threshold(value);
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  uint8_t *target;
+  int i;
+
+  if(param == RADIO_PARAM_64BIT_ADDR) {
+    if(size != 8 || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    target = dest;
+    for(i = 0; i < 8; i++) {
+      target[i] = ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[7 - i] & 0xFF;
+    }
+
+    return RADIO_RESULT_OK;
+  }
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  int i;
+
+  if(param == RADIO_PARAM_64BIT_ADDR) {
+    if(size != 8 || !src) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    for(i = 0; i < 8; i++) {
+      ((uint32_t *)RFCORE_FFSM_EXT_ADDR0)[i] = ((uint8_t *)src)[7 - i];
+    }
+
+    return RADIO_RESULT_OK;
+  }
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
 const struct radio_driver cc2538_rf_driver = {
   init,
   prepare,
@@ -624,6 +940,10 @@ const struct radio_driver cc2538_rf_driver = {
   pending_packet,
   on,
   off,
+  get_value,
+  set_value,
+  get_object,
+  set_object
 };
 /*---------------------------------------------------------------------------*/
 /**
@@ -655,10 +975,21 @@ PROCESS_THREAD(cc2538_rf_process, ev, data)
 
     /* If we were polled due to an RF error, reset the transceiver */
     if(rf_flags & RF_MUST_RESET) {
+      uint8_t was_on;
       rf_flags = 0;
 
+      /* save state so we know if to switch on again after re-init */
+      if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) == 0) {
+        was_on = 0;
+      } else {
+        was_on = 1;
+      }
       off();
       init();
+      if(was_on) {
+        /* switch back on */
+        on();
+      }
     }
   }
 
@@ -720,5 +1051,10 @@ cc2538_rf_err_isr(void)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-
+void
+cc2538_rf_set_promiscous_mode(char p)
+{
+  set_frame_filtering(p);
+}
+/*---------------------------------------------------------------------------*/
 /** @} */

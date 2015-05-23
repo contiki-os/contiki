@@ -46,7 +46,7 @@
 #include "lib/crc16.h"
 #include "lib/random.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "net/netstack.h"
 #include "net/rime/route.h"
 
@@ -200,8 +200,8 @@ PROCESS_THREAD(shell_routes_process, ev, data)
   msg.len = 4;
   for(i = 0; i < route_num(); ++i) {
     r = route_get(i);
-    rimeaddr_copy((rimeaddr_t *)&msg.dest, &r->dest);
-    rimeaddr_copy((rimeaddr_t *)&msg.nexthop, &r->nexthop);
+    linkaddr_copy((linkaddr_t *)&msg.dest, &r->dest);
+    linkaddr_copy((linkaddr_t *)&msg.nexthop, &r->nexthop);
     msg.hop_count = r->cost;
     msg.seqno = r->seqno;
     shell_output(&routes_command, &msg, sizeof(msg), "", 0);
@@ -292,7 +292,7 @@ PROCESS_THREAD(shell_send_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_collect(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
+recv_collect(const linkaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct collect_msg collect_msg;
   char *dataptr;
@@ -323,7 +323,7 @@ recv_collect(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 
       if(collect_msg.crc == crc16_data(dataptr, len, 0)) {
 	msg.len = 5 + (packetbuf_datalen() - COLLECT_MSG_HDRSIZE) / 2;
-	rimeaddr_copy((rimeaddr_t *)&msg.originator, originator);
+	linkaddr_copy((linkaddr_t *)&msg.originator, originator);
 	msg.seqno = seqno;
 	msg.hops = hops;
 	msg.latency = latency;

@@ -1,21 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimeabc Anonymous best-effort local area broadcast
- * @{
- *
- * The abc module sends packets to all local area neighbors. The abc
- * module adds no headers to outgoing packets.
- *
- * \section channels Channels
- *
- * The abc module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -47,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         Header file for the Rime module Anonymous BroadCast (abc)
@@ -54,8 +37,26 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __ABC_H__
-#define __ABC_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeabc Anonymous best-effort local area broadcast
+ * @{
+ *
+ * The abc module sends packets to all local area neighbors. The abc
+ * module adds no headers to outgoing packets.
+ *
+ * \section abc-channels Channels
+ *
+ * The abc module uses 1 channel.
+ *
+ */
+
+#ifndef ABC_H_
+#define ABC_H_
 
 #include "net/packetbuf.h"
 #include "net/rime/channel.h"
@@ -138,6 +139,6 @@ void abc_input(struct channel *channel);
 
 void abc_sent(struct channel *channel, int status, int num_tx);
 
-#endif /* __ABC_H__ */
+#endif /* ABC_H_ */
 /** @} */
 /** @} */

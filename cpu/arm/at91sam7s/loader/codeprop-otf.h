@@ -29,8 +29,8 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __CODEPROP_H__
-#define __CODEPROP_H__
+#ifndef CODEPROP_H_
+#define CODEPROP_H_
 
 #include "contiki.h"
 
@@ -48,4 +48,4 @@ extern struct elfloader_output *codeprop_output;
 
 extern char *codeprop_filesystem;
 
-#endif /* __CODEPROP_H__ */
+#endif /* CODEPROP_H_ */

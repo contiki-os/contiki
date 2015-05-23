@@ -1,13 +1,13 @@
 /*
  * Contiki PIC32 Port project
- * 
+ *
  * Copyright (c) 2012,
  *  Scuola Superiore Sant'Anna (http://www.sssup.it) and
  *  Consorzio Nazionale Interuniversitario per le Telecomunicazioni
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   rtimer-arch.c
+ * \file   cpu/pic32/rtimer-arch.c
  * \brief  PIC32MX RTIMER routines
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-04-11
@@ -49,7 +49,7 @@
 
 /*
  * PIC32MX795F512L - Specific Functions
- * 
+ *
  * All the functions in this part of the file are specific for the
  * pic32mx795f512l that is characterized by registers' name that differ from
  * the 3xx and 4xx families of the pic32mx.
@@ -85,7 +85,7 @@ rtimer_arch_init(void)
   IPC3CLR = _IPC3_T3IP_MASK | _IPC3_T3IS_MASK;
   IPC3SET = (7 << _IPC3_T3IP_POSITION) | (3 << _IPC3_T3IS_POSITION);
   T2CON = 0;
-  T3CON = 0;     
+  T3CON = 0;
   T2CONSET = _T2CON_T32_MASK | (TIMER_B_PRESCALE_256 << _T2CON_TCKPS_POSITION);
   PR2 =  0xFFFFFFFF;
   TMR2 = 0;

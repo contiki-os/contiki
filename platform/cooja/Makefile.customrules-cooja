@@ -1,0 +1,49 @@
+### Define custom targets
+
+CUSTOM_RULE_C_TO_CE=1
+#CUSTOM_RULE_C_TO_OBJECTDIR_O=1
+CUSTOM_RULE_S_TO_OBJECTDIR_O=1
+#CUSTOM_RULE_C_TO_O=1
+#CUSTOM_RULE_C_TO_CO=1
+CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
+CUSTOM_RULE_LINK=1
+
+REDEF_PRINTF=1 # Redefine functions to enable printf()s inside Cooja
+
+# NB: Assumes ARCHIVE was not overridden and is in $(OBJECTDIR)
+$(ARCHIVE): $(CONTIKI_OBJECTFILES) | $(OBJECTDIR)
+	$(AR_COMMAND_1) $^ $(AR_COMMAND_2)
+
+# NB: Assumes JNILIB was not overridden and is in $(OBJECTDIR)
+$(JNILIB): $(CONTIKI_APP_OBJ) $(MAIN_OBJ) $(PROJECT_OBJECTFILES) $(ARCHIVE) | $(OBJECTDIR)
+ifdef SYMBOLS
+	@echo Generating symbols
+	# Recreate symbols file and relink with final memory layout (twice)
+	${CONTIKI}/tools/make-symbols-nm $(JNILIB)
+	$(CC) $(CFLAGS) -c symbols.c -o $(OBJECTDIR)/symbols.o
+	$(LINK_COMMAND_1) $^ $(LINK_COMMAND_2)
+	${CONTIKI}/tools/make-symbols-nm $(JNILIB)
+	$(CC) $(CFLAGS) -c symbols.c -o $(OBJECTDIR)/symbols.o
+endif ## SYMBOLS
+ifdef REDEF_PRINTF
+	@echo Redefining printf
+	-$(foreach OBJ,$^, $(OBJCOPY) --redefine-sym printf=log_printf $(OBJ); )
+	-$(foreach OBJ,$^, $(OBJCOPY) --redefine-sym puts=log_puts $(OBJ); )
+	-$(foreach OBJ,$^, $(OBJCOPY) --redefine-sym putchar=log_putchar $(OBJ); )
+endif ## REDEF_PRINTF
+	$(LINK_COMMAND_1) $^ $(LINK_COMMAND_2)
+
+.PHONY: $(CONTIKI_APP).cooja
+$(CONTIKI_APP).cooja: $(JNILIB)
+	cp $(JNILIB) $@
+	rm $(CONTIKI_APP_OBJ)
+
+# Trickiness: GNU make matches this against the file base name.
+# Assume that the directory part is the standard location.
+mtype%.o: contiki-cooja-main.o | $(OBJECTDIR)
+	mv contiki-cooja-main.o $@
+
+symbols.c:
+	# Create initial symbol files if not existing
+	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
+	cp ${CONTIKI}/tools/empty-symbols.h symbols.h

@@ -162,7 +162,7 @@ http_post_auth(const uint8_t *username_password, const char *msg)
       PRINTF("message '%s'\n", s->message);*/
 
   /* Spawn process to deal with TCP connection */
-  process_start(&http_post_auth_process, (char *)s);
+  process_start(&http_post_auth_process, (void *)s);
   return 1;
 }
 /*---------------------------------------------------------------------------*/

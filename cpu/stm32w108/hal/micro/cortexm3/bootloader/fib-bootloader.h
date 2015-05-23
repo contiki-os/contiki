@@ -4,8 +4,8 @@
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
 
-#ifndef __FIB_BOOTLOADER_H__
-#define __FIB_BOOTLOADER_H__
+#ifndef FIB_BOOTLOADER_H_
+#define FIB_BOOTLOADER_H_
 
 //------------------------------------------------------------------------------
 // Reset signatures.
@@ -53,4 +53,4 @@ FibStatus fibFlashWrite(uint32_t address, uint8_t *data,
 
 FibStatus fibFlashErase(FibEraseType eraseType, uint32_t address);
 
-#endif //__FIB_BOOTLOADER_H__
+#endif //FIB_BOOTLOADER_H_

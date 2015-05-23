@@ -36,8 +36,8 @@
  *         Niclas Finne <nfi@sics.se>
  */
 
-#ifndef __SPI_H__
-#define __SPI_H__
+#ifndef SPI_H_
+#define SPI_H_
 
 /* Define macros to use for checking SPI transmission status depending
    on if it is possible to wait for TX buffer ready. This is possible
@@ -57,35 +57,36 @@ extern unsigned char spi_busy;
 void spi_init(void);
 
 /* Write one character to SPI */
-#define SPI_WRITE(data)                         \
-  do {                                          \
-    SPI_WAITFORTx_BEFORE();                     \
-    SPI_TXBUF = data;                           \
-    SPI_WAITFOREOTx();                          \
+#define SPI_WRITE(data) \
+  do { \
+    SPI_WAITFORTx_BEFORE(); \
+    SPI_TXBUF = data; \
+    SPI_WAITFOREOTx(); \
   } while(0)
 
 /* Write one character to SPI - will not wait for end
    useful for multiple writes with wait after final */
-#define SPI_WRITE_FAST(data)                    \
-  do {                                          \
-    SPI_WAITFORTx_BEFORE();                     \
-    SPI_TXBUF = data;                           \
-    SPI_WAITFORTx_AFTER();                      \
+#define SPI_WRITE_FAST(data) \
+  do { \
+    SPI_WAITFORTx_BEFORE(); \
+    SPI_TXBUF = data; \
+    SPI_WAITFORTx_AFTER(); \
   } while(0)
 
 /* Read one character from SPI */
-#define SPI_READ(data)   \
-  do {                   \
-    SPI_TXBUF = 0;       \
-    SPI_WAITFOREORx();   \
-    data = SPI_RXBUF;    \
+#define SPI_READ(data) \
+  do { \
+    SPI_TXBUF = 0; \
+    SPI_WAITFOREORx(); \
+    data = SPI_RXBUF; \
   } while(0)
 
 /* Flush the SPI read register */
+#ifndef SPI_FLUSH
 #define SPI_FLUSH() \
-  do {              \
-    SPI_RXBUF;      \
-  } while(0);
+  do { \
+    SPI_RXBUF; \
+  } while(0)
+#endif
 
-
-#endif /* __SPI_H__ */
+#endif /* SPI_H_ */

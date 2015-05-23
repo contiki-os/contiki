@@ -31,10 +31,22 @@
  *
  */
 
+/**
+ * \ingroup platform
+ *
+ * \defgroup native_platform Native platform
+ *
+ * Platform running in the host (Windows or Linux) environment.
+ *
+ * Used mainly for development and debugging.
+ * @{
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/select.h>
+#include <errno.h>
 
 #ifdef __CYGWIN__
 #include "net/wpcap-drv.h"
@@ -48,17 +60,17 @@
 
 #include "dev/serial-line.h"
 
-#include "net/uip.h"
+#include "net/ip/uip.h"
 
 #include "dev/button-sensor.h"
 #include "dev/pir-sensor.h"
 #include "dev/vib-sensor.h"
 
-#if WITH_UIP6
-#include "net/uip-ds6.h"
-#endif /* WITH_UIP6 */
+#if NETSTACK_CONF_WITH_IPV6
+#include "net/ipv6/uip-ds6.h"
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #ifdef SELECT_CONF_MAX
 #define SELECT_MAX SELECT_CONF_MAX
@@ -129,15 +141,15 @@ const static struct select_callback stdin_fd = {
 static void
 set_rime_addr(void)
 {
-  rimeaddr_t addr;
+  linkaddr_t addr;
   int i;
 
-  memset(&addr, 0, sizeof(rimeaddr_t));
-#if UIP_CONF_IPV6
+  memset(&addr, 0, sizeof(linkaddr_t));
+#if NETSTACK_CONF_WITH_IPV6
   memcpy(addr.u8, serial_id, sizeof(addr.u8));
 #else
   if(node_id == 0) {
-    for(i = 0; i < sizeof(rimeaddr_t); ++i) {
+    for(i = 0; i < sizeof(linkaddr_t); ++i) {
       addr.u8[i] = serial_id[7 - i];
     }
   } else {
@@ -145,7 +157,7 @@ set_rime_addr(void)
     addr.u8[1] = node_id >> 8;
   }
 #endif
-  rimeaddr_set_node_addr(&addr);
+  linkaddr_set_node_addr(&addr);
   printf("Rime started with address ");
   for(i = 0; i < sizeof(addr.u8) - 1; i++) {
     printf("%d.", addr.u8[i]);
@@ -161,7 +173,7 @@ char **contiki_argv;
 int
 main(int argc, char **argv)
 {
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #if UIP_CONF_IPV6_RPL
   printf(CONTIKI_VERSION_STRING " started with IPV6, RPL\n");
 #else
@@ -190,6 +202,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   ctimer_init();
+  rtimer_init();
 
 #if WITH_GUI
   process_start(&ctk_process, NULL);
@@ -197,12 +210,12 @@ main(int argc, char **argv)
 
   set_rime_addr();
 
-  queuebuf_init();
-
   netstack_init();
   printf("MAC %s RDC %s NETWORK %s\n", NETSTACK_MAC.name, NETSTACK_RDC.name, NETSTACK_NETWORK.name);
 
-#if WITH_UIP6
+#if NETSTACK_CONF_WITH_IPV6
+  queuebuf_init();
+
   memcpy(&uip_lladdr.addr, serial_id, sizeof(uip_lladdr.addr));
 
   process_start(&tcpip_process, NULL);
@@ -223,7 +236,7 @@ main(int argc, char **argv)
 
     printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
-#else
+#elif NETSTACK_CONF_WITH_IPV4
   process_start(&tcpip_process, NULL);
 #endif
 
@@ -259,7 +272,9 @@ main(int argc, char **argv)
 
     retval = select(maxfd + 1, &fdr, &fdw, NULL, &tv);
     if(retval < 0) {
-      perror("select");
+      if(errno != EINTR) {
+        perror("select");
+      }
     } else if(retval > 0) {
       /* timeout => retval == 0 */
       for(i = 0; i <= maxfd; i++) {
@@ -293,3 +308,5 @@ uip_log(char *m)
   fprintf(stderr, "%s\n", m);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
+

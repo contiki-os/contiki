@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __MAC_H__
-#define __MAC_H__
+#ifndef MAC_H_
+#define MAC_H_
 
 #include "contiki-conf.h"
 #include "dev/radio.h"
@@ -98,4 +98,4 @@ enum {
   MAC_TX_ERR_FATAL,
 };
 
-#endif /* __MAC_H__ */
+#endif /* MAC_H_ */

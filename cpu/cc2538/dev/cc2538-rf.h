@@ -52,10 +52,11 @@
  *---------------------------------------------------------------------------*/
 /* Constants */
 #define CC2538_RF_CCA_THRES_USER_GUIDE 0xF8
-#define CC2538_RF_TX_POWER_RECOMMENDED 0xD5 /* ToDo: Determine value */
+#define CC2538_RF_TX_POWER_RECOMMENDED 0xFF /* ToDo: Determine value */
 #define CC2538_RF_CHANNEL_MIN            11
 #define CC2538_RF_CHANNEL_MAX            26
 #define CC2538_RF_CHANNEL_SPACING         5
+#define CC2538_RF_CHANNEL_SET_ERROR      -1
 #define CC2538_RF_MAX_PACKET_LEN        127
 #define CC2538_RF_MIN_PACKET_LEN          4
 #define CC2538_RF_CCA_CLEAR               1
@@ -133,40 +134,26 @@
 extern const struct radio_driver cc2538_rf_driver;
 /*---------------------------------------------------------------------------*/
 /**
- * \brief Set the current operating channel
- * \param channel The desired channel as a value in [11,26]
- * \return Returns a value in [11,26] representing the current channel
- *         or a negative value if \e channel was out of bounds
- */
-int8_t cc2538_rf_channel_set(uint8_t channel);
-
-/**
- * \brief Get the current operating channel
- * \return Returns a value in [11,26] representing the current channel
- */
-uint8_t cc2538_rf_channel_get();
-
-/**
- * \brief Sets RF TX power
- * \param new_power The desired power level
- * \return The power level in use after the adjustment
- *
- * The value specified in \e new_power will be written directly to the
- * RFCORE_XREG_TXPOWER register. See the datasheet for more details on
- * possible values.
- */
-uint8_t cc2538_rf_power_set(uint8_t new_power);
-
-/**
  * \brief Sets addresses and PAN identifier to the relevant RF hardware
  *        registers
  * \param pan The PAN Identifier
  *
  * Values for short and extended addresses are not needed as parameters
- * since they exist in the rimeaddr buffer in the contiki core. They
+ * since they exist in the linkaddr buffer in the contiki core. They
  * are thus simply copied over from there.
  */
 void cc2538_rf_set_addr(uint16_t pan);
+
+/**
+ * \brief Turn promiscous mode on or off
+ * \param p If promiscous mode should be on (1) or off (0)
+ *
+ * This function turns promiscous mode on or off. In promiscous mode,
+ * every received frame is returned from the RF core. In
+ * non-promiscous mode, only broadcast frames or frames with our
+ * address as the receive address are returned from the RF core.
+ */
+void cc2538_rf_set_promiscous_mode(char p);
 /*---------------------------------------------------------------------------*/
 #endif /* CC2538_RF_H__ */
 

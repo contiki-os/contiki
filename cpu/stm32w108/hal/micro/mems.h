@@ -1,17 +1,17 @@
-/** @file mems.h
- * @brief Header for MB851 mems APIS 
+/** @file cpu/stm32w108/hal/micro/mems.h
+ * @brief Header for MB851 mems APIS
  *
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
 
-#ifndef _MEMS_H_
-#define _MEMS_H_
+#ifndef MEMS_H_
+#define MEMS_H_
 
 #include "hal/micro/mems-regs.h"
 
 /** @brief Mems data type: three acceleration values each related to a specific direction
-   Watch out: only lower data values (e.g. those terminated by the _l) are 
+   Watch out: only lower data values (e.g. those terminated by the _l) are
    currently used by the device */
 
 typedef struct {
@@ -32,5 +32,5 @@ uint8_t mems_Init(void);
  */
 uint8_t mems_GetValue(t_mems_data *mems_data);
 
-#endif /* _MEMS_H_ */
+#endif /*MEMS_H_ */
 

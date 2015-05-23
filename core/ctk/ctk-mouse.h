@@ -31,8 +31,8 @@
  *
  *
  */
-#ifndef __CTK_MOUSE_H__
-#define __CTK_MOUSE_H__
+#ifndef CTK_MOUSE_H_
+#define CTK_MOUSE_H_
 
 #include "contiki-conf.h"
 
@@ -68,4 +68,4 @@ void ctk_mouse_show(void);
 
 #endif /* CTK_CONF_MOUSE_SUPPORT */
 
-#endif /* __CTK_MOUSE_H__ */
+#endif /* CTK_MOUSE_H_ */

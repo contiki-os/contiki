@@ -30,11 +30,11 @@
  *
  */
 
-#ifndef __ADC_H__
-#define __ADC_H__
+#ifndef ADC_H_
+#define ADC_H_
 
 void adc_init();
 
 uint16_t get_adc(int channel);
 
-#endif /* __ADC_H__ */
+#endif /* ADC_H_ */

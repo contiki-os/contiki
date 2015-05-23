@@ -19,8 +19,7 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
 CLEAN += *.cc2530dk
 
-ifeq ($(UIP_CONF_IPV6),1)
-  CFLAGS += -DUIP_CONF_IPV6=1
+ifeq ($(CONTIKI_WITH_IPV6),1)
   CONTIKI_TARGET_SOURCEFILES += viztool.c
 endif
 
@@ -46,3 +45,7 @@ FORCE:
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/cc253x
 include $(CONTIKI_CPU)/Makefile.cc253x
+
+# Default modules
+MODULES += core/net core/net/mac \
+           core/net/llsec

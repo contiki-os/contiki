@@ -1,33 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimemultihop Best-effort multihop forwarding
- * @{
- *
- * The multihop module implements a multihop forwarding mechanism. Routes
- * must have already been setup with the route_add() function. Setting
- * up routes is done with another Rime module such as the \ref
- * routediscovery "route-discovery module".
- *
- * The multihop sends a packet to an identified node in the network by
- * using multi-hop forwarding at each node in the network.  The
- * application or protocol that uses the multihop primitive supplies a
- * routing function for selecting the next-hop neighbor.  If the
- * multihop primitive is requested to send a packet for which no
- * suitable next hop neighbor is found, the caller is immediately
- * notified of this and may choose to initiate a route discovery
- * process.
- *
- *
- * \section channels Channels
- *
- * The multihop module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -67,11 +37,41 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __MULTIHOP_H__
-#define __MULTIHOP_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimemultihop Best-effort multihop forwarding
+ * @{
+ *
+ * The multihop module implements a multihop forwarding mechanism. Routes
+ * must have already been setup with the route_add() function. Setting
+ * up routes is done with another Rime module such as the \ref
+ * routediscovery "route-discovery module".
+ *
+ * The multihop sends a packet to an identified node in the network by
+ * using multi-hop forwarding at each node in the network.  The
+ * application or protocol that uses the multihop primitive supplies a
+ * routing function for selecting the next-hop neighbor.  If the
+ * multihop primitive is requested to send a packet for which no
+ * suitable next hop neighbor is found, the caller is immediately
+ * notified of this and may choose to initiate a route discovery
+ * process.
+ *
+ *
+ * \section multihop-channels Channels
+ *
+ * The multihop module uses 1 channel.
+ *
+ */
+
+#ifndef MULTIHOP_H_
+#define MULTIHOP_H_
 
 #include "net/rime/unicast.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 
 struct multihop_conn;
 
@@ -84,13 +84,13 @@ struct multihop_conn;
 
 struct multihop_callbacks {
   void (* recv)(struct multihop_conn *ptr,
-		const rimeaddr_t *sender,
-		const rimeaddr_t *prevhop,
+		const linkaddr_t *sender,
+		const linkaddr_t *prevhop,
 		uint8_t hops);
-  rimeaddr_t *(* forward)(struct multihop_conn *ptr,
-			  const rimeaddr_t *originator,
-			  const rimeaddr_t *dest,
-			  const rimeaddr_t *prevhop,
+  linkaddr_t *(* forward)(struct multihop_conn *ptr,
+			  const linkaddr_t *originator,
+			  const linkaddr_t *dest,
+			  const linkaddr_t *prevhop,
 			  uint8_t hops);
 };
 
@@ -102,9 +102,9 @@ struct multihop_conn {
 void multihop_open(struct multihop_conn *c, uint16_t channel,
 	     const struct multihop_callbacks *u);
 void multihop_close(struct multihop_conn *c);
-int multihop_send(struct multihop_conn *c, const rimeaddr_t *to);
-void multihop_resend(struct multihop_conn *c, const rimeaddr_t *nexthop);
+int multihop_send(struct multihop_conn *c, const linkaddr_t *to);
+void multihop_resend(struct multihop_conn *c, const linkaddr_t *nexthop);
 
-#endif /* __MULTIHOP_H__ */
+#endif /* MULTIHOP_H_ */
 /** @} */
 /** @} */

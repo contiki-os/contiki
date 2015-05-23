@@ -41,12 +41,15 @@
 #include "dev/sys-ctrl.h"
 #include "dev/scb.h"
 #include "dev/rfcore-xreg.h"
-#include "dev/usb-regs.h"
 #include "rtimer-arch.h"
+#include "lpm.h"
 #include "reg.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+
+#if LPM_CONF_ENABLE != 0
 /*---------------------------------------------------------------------------*/
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
@@ -75,8 +78,8 @@ static unsigned long irq_energest = 0;
 #if LPM_CONF_STATS
 rtimer_clock_t lpm_stats[3];
 
-#define LPM_STATS_INIT()         do { memset(lpm_stats, 0, sizeof(lpm_stats)); \
-  } while(0)
+#define LPM_STATS_INIT() \
+  do { memset(lpm_stats, 0, sizeof(lpm_stats)); } while(0)
 #define LPM_STATS_ADD(pm, val)   do { lpm_stats[pm] += val; } while(0)
 #else
 #define LPM_STATS_INIT()
@@ -85,17 +88,38 @@ rtimer_clock_t lpm_stats[3];
 /*---------------------------------------------------------------------------*/
 /*
  * Remembers what time it was when went to deep sleep
- * This is used when coming out of PM1/2 to adjust the system clock, which
- * stops ticking while in those PMs
+ * This is used when coming out of PM0/1/2 to keep stats
  */
 static rtimer_clock_t sleep_enter_time;
 
-#define RTIMER_CLOCK_TICK_RATIO (RTIMER_SECOND / CLOCK_SECOND)
-
-void clock_adjust(clock_time_t ticks);
+void clock_adjust(void);
 /*---------------------------------------------------------------------------*/
 /* Stores the currently specified MAX allowed PM */
 static uint8_t max_pm;
+/*---------------------------------------------------------------------------*/
+/* Buffer to store peripheral PM1+ permission FPs */
+#ifdef LPM_CONF_PERIPH_PERMIT_PM1_FUNCS_MAX
+#define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX LPM_CONF_PERIPH_PERMIT_PM1_FUNCS_MAX
+#else
+#define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX 2
+#endif
+
+static lpm_periph_permit_pm1_func_t
+periph_permit_pm1_funcs[LPM_PERIPH_PERMIT_PM1_FUNCS_MAX];
+/*---------------------------------------------------------------------------*/
+static bool
+periph_permit_pm1(void)
+{
+  int i;
+
+  for(i = 0; i < LPM_PERIPH_PERMIT_PM1_FUNCS_MAX &&
+      periph_permit_pm1_funcs[i] != NULL; i++) {
+    if(!periph_permit_pm1_funcs[i]()) {
+      return false;
+    }
+  }
+  return true;
+}
 /*---------------------------------------------------------------------------*/
 /*
  * Routine to put is in PM0. We also need to do some housekeeping if the stats
@@ -110,10 +134,7 @@ enter_pm0(void)
   /* We are only interested in IRQ energest while idle or in LPM */
   ENERGEST_IRQ_RESTORE(irq_energest);
 
-  /*
-   * After PM0 we don't need to adjust the system clock. Thus, saving the time
-   * we enter Deep Sleep is only required if we are keeping stats.
-   */
+  /* Remember the current time so we can keep stats when we wake up */
   if(LPM_CONF_STATS) {
     sleep_enter_time = RTIMER_NOW();
   }
@@ -133,16 +154,45 @@ enter_pm0(void)
 static void
 select_32_mhz_xosc(void)
 {
+  /* First, make sure there is no ongoing clock source change */
+  while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SOURCE_CHANGE) != 0);
+
   /* Turn on the 32 MHz XOSC and source the system clock on it. */
   REG(SYS_CTRL_CLOCK_CTRL) &= ~SYS_CTRL_CLOCK_CTRL_OSC;
 
   /* Wait for the switch to take place */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_OSC) != 0);
+
+  /* Power down the unused oscillator and restore divisors (silicon errata) */
+  REG(SYS_CTRL_CLOCK_CTRL) = (REG(SYS_CTRL_CLOCK_CTRL)
+#if SYS_CTRL_SYS_DIV == SYS_CTRL_CLOCK_CTRL_SYS_DIV_32MHZ
+    & ~SYS_CTRL_CLOCK_CTRL_SYS_DIV
+#endif
+#if SYS_CTRL_IO_DIV == SYS_CTRL_CLOCK_CTRL_IO_DIV_32MHZ
+    & ~SYS_CTRL_CLOCK_CTRL_IO_DIV
+#endif
+    ) | SYS_CTRL_CLOCK_CTRL_OSC_PD;
 }
 /*---------------------------------------------------------------------------*/
 static void
 select_16_mhz_rcosc(void)
 {
+  /*
+   * Power up both oscillators in order to speed up the transition to the 32-MHz
+   * XOSC after wake up. In addition, consider CC2538 silicon errata:
+   * "Possible Incorrect Value of Clock Dividers after PM2 and PM3" and
+   * set system clock divisor / I/O clock divisor to 16 MHz in case they run
+   * at full speed (=32 MHz)
+   */
+  REG(SYS_CTRL_CLOCK_CTRL) = (REG(SYS_CTRL_CLOCK_CTRL)
+#if SYS_CTRL_SYS_DIV == SYS_CTRL_CLOCK_CTRL_SYS_DIV_32MHZ
+    | SYS_CTRL_CLOCK_CTRL_SYS_DIV_16MHZ
+#endif
+#if SYS_CTRL_IO_DIV == SYS_CTRL_CLOCK_CTRL_IO_DIV_32MHZ
+    | SYS_CTRL_CLOCK_CTRL_IO_DIV_16MHZ
+#endif
+    ) & ~SYS_CTRL_CLOCK_CTRL_OSC_PD;
+
   /*First, make sure there is no ongoing clock source change */
   while((REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SOURCE_CHANGE) != 0);
 
@@ -162,14 +212,22 @@ lpm_exit()
     return;
   }
 
+  /*
+   * When returning from PM1/2, the sleep timer value (used by RTIMER_NOW()) is
+   * not up-to-date until a positive edge on the 32-kHz clock has been detected
+   * after the system clock restarted. To ensure an updated value is read, wait
+   * for a positive transition on the 32-kHz clock by polling the
+   * SYS_CTRL_CLOCK_STA.SYNC_32K bit, before reading the sleep timer value.
+   */
+  while(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K);
+  while(!(REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_SYNC_32K));
+
   LPM_STATS_ADD(REG(SYS_CTRL_PMCTL) & SYS_CTRL_PMCTL_PM3,
                 RTIMER_NOW() - sleep_enter_time);
 
   /* Adjust the system clock, since it was not counting while we were sleeping
-   * We need to convert sleep duration from rtimer ticks to clock ticks and
-   * this will cost us some accuracy */
-  clock_adjust((clock_time_t)
-               ((RTIMER_NOW() - sleep_enter_time) / RTIMER_CLOCK_TICK_RATIO));
+   * We need to convert sleep duration from rtimer ticks to clock ticks */
+  clock_adjust();
 
   /* Restore system clock to the 32 MHz XOSC */
   select_32_mhz_xosc();
@@ -191,15 +249,12 @@ lpm_enter()
   rtimer_clock_t duration;
 
   /*
-   * If either the RF or the USB is on, dropping to PM1/2 would equal pulling
-   * the rug (32MHz XOSC) from under their feet. Thus, we only drop to PM0.
-   * PM0 is also used if max_pm==0
-   *
-   * Note: USB Suspend/Resume/Remote Wake-Up are not supported. Once the PLL is
-   * on, it stays on.
+   * If either the RF or the registered peripherals are on, dropping to PM1/2
+   * would equal pulling the rug (32MHz XOSC) from under their feet. Thus, we
+   * only drop to PM0. PM0 is also used if max_pm==0.
    */
   if((REG(RFCORE_XREG_FSMSTAT0) & RFCORE_XREG_FSMSTAT0_FSM_FFCTRL_STATE) != 0
-     || REG(USB_CTRL) != 0 || max_pm == 0) {
+     || !periph_permit_pm1() || max_pm == 0) {
     enter_pm0();
 
     /* We reach here when the interrupt context that woke us up has returned */
@@ -207,7 +262,7 @@ lpm_enter()
   }
 
   /*
-   * USB PLL was off. Radio was off: Some Duty Cycling in place.
+   * Registered peripherals were off. Radio was off: Some Duty Cycling in place.
    * rtimers run on the Sleep Timer. Thus, if we have a scheduled rtimer
    * task, a Sleep Timer interrupt will fire and will wake us up.
    * Choose the most suitable PM based on anticipated deep sleep duration
@@ -224,7 +279,8 @@ lpm_enter()
   }
 
   /* If we reach here, we -may- (but may as well not) be dropping to PM1+. We
-   * know the USB and RF are off so we can switch to the 16MHz RCOSC. */
+   * know the registered peripherals and RF are off so we can switch to the
+   * 16MHz RCOSC. */
   select_16_mhz_rcosc();
 
   /*
@@ -259,8 +315,10 @@ lpm_enter()
   ENERGEST_OFF(ENERGEST_TYPE_CPU);
   ENERGEST_ON(ENERGEST_TYPE_LPM);
 
-  /* Remember the current time so we can adjust the clock when we wake up */
-  sleep_enter_time = RTIMER_NOW();
+  /* Remember the current time so we can keep stats when we wake up */
+  if(LPM_CONF_STATS) {
+    sleep_enter_time = RTIMER_NOW();
+  }
 
   /*
    * Last chance to abort entering Deep Sleep.
@@ -278,6 +336,11 @@ lpm_enter()
     select_32_mhz_xosc();
 
     REG(SYS_CTRL_PMCTL) = SYS_CTRL_PMCTL_PM0;
+
+    /* Remember IRQ energest for next pass */
+    ENERGEST_IRQ_SAVE(irq_energest);
+    ENERGEST_ON(ENERGEST_TYPE_CPU);
+    ENERGEST_OFF(ENERGEST_TYPE_LPM);
   } else {
     /* All clear. Assert WFI and drop to PM1/2. This is now un-interruptible */
     assert_wfi();
@@ -299,6 +362,21 @@ lpm_set_max_pm(uint8_t pm)
 }
 /*---------------------------------------------------------------------------*/
 void
+lpm_register_peripheral(lpm_periph_permit_pm1_func_t permit_pm1_func)
+{
+  int i;
+
+  for(i = 0; i < LPM_PERIPH_PERMIT_PM1_FUNCS_MAX; i++) {
+    if(periph_permit_pm1_funcs[i] == permit_pm1_func) {
+      break;
+    } else if(periph_permit_pm1_funcs[i] == NULL) {
+      periph_permit_pm1_funcs[i] = permit_pm1_func;
+      break;
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
 lpm_init()
 {
   /*
@@ -313,4 +391,5 @@ lpm_init()
   LPM_STATS_INIT();
 }
 /*---------------------------------------------------------------------------*/
+#endif /* LPM_CONF_ENABLE != 0 */
 /** @} */

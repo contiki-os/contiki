@@ -32,8 +32,8 @@
  *         Platform configuration for the wismote platform.
  */
 
-#ifndef __PLATFORM_CONF_H__
-#define __PLATFORM_CONF_H__
+#ifndef PLATFORM_CONF_H_
+#define PLATFORM_CONF_H_
 
 /*
  * Definitions below are dictated by the hardware and not really
@@ -197,4 +197,4 @@ typedef unsigned long off_t;
 #define CC2520_SPI_DISABLE()    do{clock_delay(5);UCB0CTL1 |= UCSWRST;clock_delay(1); P3OUT |= BIT0;clock_delay(5);}while(0)
 #define CC2520_SPI_IS_ENABLED() ((CC2520_CSN_PORT(OUT) & BV(CC2520_CSN_PIN)) != BV(CC2520_CSN_PIN))
 
-#endif /* __PLATFORM_CONF_H__ */
+#endif /* PLATFORM_CONF_H_ */

@@ -28,7 +28,7 @@
  *
  */
 
-#ifndef __IP_H__
-#define __IP_H__
+#ifndef IP_H_
+#define IP_H_
 
-#endif /* __IP_H__ */
+#endif /* IP_H_ */

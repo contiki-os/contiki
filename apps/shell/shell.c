@@ -1,8 +1,3 @@
-/**
- * \addtogroup shell
- * @{
- */
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,10 +37,15 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup shell
+ * @{
+ */
+
 #include "contiki.h"
 #include "contiki-lib.h"
 
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "shell.h"
 
@@ -298,7 +298,7 @@ start_command(char *commandline, struct shell_command *child)
     c->child = child;
     /*    printf("shell: start_command starting '%s'\n", c->process->name);*/
     /* Start a new process for the command. */
-    process_start(c->process, args);
+    process_start(c->process, (void *)args);
   }
   
   return c;
@@ -364,7 +364,7 @@ shell_input(char *commandline, int commandline_len)
 
   if(commandline[0] == '~' &&
      commandline[1] == 'K') {
-    /*    process_start(&shell_killall_process, commandline);*/
+    /*    process_start(&shell_killall_process, (void *)commandline);*/
     if(front_process != &shell_process) {
       process_exit(front_process);
     }

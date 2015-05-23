@@ -42,8 +42,10 @@
 void
 error_exit(void)
 {
+#if LOG_CONF_ENABLED
   log_message("Press any key to continue ...", "");
   ctk_arch_getkey();
+#endif /* LOG_CONF_ENABLED */
   exit(EXIT_FAILURE);
 }
 /*-----------------------------------------------------------------------------------*/

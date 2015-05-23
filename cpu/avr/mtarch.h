@@ -39,8 +39,8 @@
  *
  */
 
-#ifndef __MTARCH_H__
-#define __MTARCH_H__
+#ifndef MTARCH_H_
+#define MTARCH_H_
 
 #include "contiki-conf.h"
 
@@ -55,5 +55,5 @@ struct mtarch_thread {
   unsigned char *sp;
 };
 
-#endif /* __MTARCH_H__ */
+#endif /* MTARCH_H_ */
 	

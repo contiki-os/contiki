@@ -37,8 +37,12 @@
  * Implementation of the clock module for the cc2538
  *
  * To implement the clock functionality, we use the SysTick peripheral on the
- * cortex-M3. We run the system clock at 16 MHz and we set the SysTick to give
- * us 128 interrupts / sec
+ * cortex-M3. We run the system clock at a configurable speed and set the 
+ * SysTick to give us 128 interrupts / sec. However, the Sleep Timer counter 
+ * value is used for the number of elapsed ticks in order to avoid a 
+ * significant time drift caused by PM1/2. Contrary to the Sleep Timer, the 
+ * SysTick peripheral is indeed frozen during PM1/2, so adjusting upon wake-up 
+ * a tick counter based on this peripheral would hardly be accurate.
  * @{
  *
  * \file
@@ -52,14 +56,27 @@
 #include "dev/sys-ctrl.h"
 
 #include "sys/energest.h"
+#include "sys/etimer.h"
+#include "sys/rtimer.h"
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-#define RELOAD_VALUE (125000 - 1)  /** Fire 128 times / sec */
+#define RTIMER_CLOCK_TICK_RATIO (RTIMER_SECOND / CLOCK_SECOND)
 
-static volatile clock_time_t count;
-static volatile unsigned long secs = 0;
-static volatile uint8_t second_countdown = CLOCK_SECOND;
+/* Prescaler for GPT0:Timer A used for clock_delay_usec(). */
+#if SYS_CTRL_SYS_CLOCK < SYS_CTRL_1MHZ
+#error System clock speeds below 1MHz are not supported
+#endif
+#define PRESCALER_VALUE         (SYS_CTRL_SYS_CLOCK / SYS_CTRL_1MHZ - 1)
+
+/* Reload value for SysTick counter */
+#if SYS_CTRL_SYS_CLOCK % CLOCK_SECOND
+/* Too low clock speeds will lead to reduced accurracy */
+#error System clock speed too slow for CLOCK_SECOND, accuracy reduced
+#endif
+#define RELOAD_VALUE            (SYS_CTRL_SYS_CLOCK / CLOCK_SECOND - 1)
+
+static volatile uint64_t rt_ticks_startup = 0, rt_ticks_epoch = 0;
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Arch-specific implementation of clock_init for the cc2538
@@ -69,14 +86,12 @@ static volatile uint8_t second_countdown = CLOCK_SECOND;
  *
  * We also initialise GPT0:Timer A, which is used by clock_delay_usec().
  * We use 16-bit range (individual), count-down, one-shot, no interrupts.
- * The system clock is at 16MHz giving us 62.5 nano sec ticks for Timer A.
- * Prescaled by 16 gives us a very convenient 1 tick per usec
+ * The prescaler is computed according to the system clock in order to get 1
+ * tick per usec.
  */
 void
 clock_init(void)
 {
-  count = 0;
-
   REG(SYSTICK_STRELOAD) = RELOAD_VALUE;
 
   /* System clock source, Enable */
@@ -93,35 +108,34 @@ clock_init(void)
   REG(SYS_CTRL_RCGCGPT) |= SYS_CTRL_RCGCGPT_GPT0;
 
   /* Make sure GPT0 is off */
-  REG(GPT_0_BASE | GPTIMER_CTL) = 0;
-
+  REG(GPT_0_BASE + GPTIMER_CTL) = 0;
 
   /* 16-bit */
-  REG(GPT_0_BASE | GPTIMER_CFG) = 0x04;
+  REG(GPT_0_BASE + GPTIMER_CFG) = 0x04;
 
   /* One-Shot, Count Down, No Interrupts */
-  REG(GPT_0_BASE | GPTIMER_TAMR) = GPTIMER_TAMR_TAMR_ONE_SHOT;
+  REG(GPT_0_BASE + GPTIMER_TAMR) = GPTIMER_TAMR_TAMR_ONE_SHOT;
 
-  /* Prescale by 16 (thus, value 15 in TAPR) */
-  REG(GPT_0_BASE | GPTIMER_TAPR) = 0x0F;
+  /* Prescale depending on system clock used */
+  REG(GPT_0_BASE + GPTIMER_TAPR) = PRESCALER_VALUE;
 }
 /*---------------------------------------------------------------------------*/
 CCIF clock_time_t
 clock_time(void)
 {
-  return count;
+  return rt_ticks_startup / RTIMER_CLOCK_TICK_RATIO;
 }
 /*---------------------------------------------------------------------------*/
 void
 clock_set_seconds(unsigned long sec)
 {
-  secs = sec;
+  rt_ticks_epoch = (uint64_t)sec * RTIMER_SECOND;
 }
 /*---------------------------------------------------------------------------*/
 CCIF unsigned long
 clock_seconds(void)
 {
-  return secs;
+  return rt_ticks_epoch / RTIMER_SECOND;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -133,20 +147,19 @@ clock_wait(clock_time_t i)
   while(clock_time() - start < (clock_time_t)i);
 }
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Arch-specific implementation of clock_delay_usec for the cc2538
- * \param len Delay \e len uSecs
+/*
+ * Arch-specific implementation of clock_delay_usec for the cc2538
  *
  * See clock_init() for GPT0 Timer A's configuration
  */
 void
-clock_delay_usec(uint16_t len)
+clock_delay_usec(uint16_t dt)
 {
-  REG(GPT_0_BASE | GPTIMER_TAILR) = len;
-  REG(GPT_0_BASE | GPTIMER_CTL) |= GPTIMER_CTL_TAEN;
+  REG(GPT_0_BASE + GPTIMER_TAILR) = dt;
+  REG(GPT_0_BASE + GPTIMER_CTL) |= GPTIMER_CTL_TAEN;
 
   /* One-Shot mode: TAEN will be cleared when the timer reaches 0 */
-  while(REG(GPT_0_BASE | GPTIMER_CTL) & GPTIMER_CTL_TAEN);
+  while(REG(GPT_0_BASE + GPTIMER_CTL) & GPTIMER_CTL_TAEN);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -160,63 +173,84 @@ clock_delay(unsigned int i)
 }
 /*---------------------------------------------------------------------------*/
 /**
- * \brief Adjust the clock by moving it forward by a number of ticks
- * \param ticks The number of ticks
+ * \brief Update the software clock ticks and seconds
+ *
+ * This function is used to update the software tick counters whenever the
+ * system clock might have changed, which can occur upon a SysTick ISR or upon
+ * wake-up from PM1/2.
+ *
+ * For the software clock ticks counter, the Sleep Timer counter value is used
+ * as the base tick value, and extended to a 64-bit value thanks to a detection
+ * of wraparounds.
+ *
+ * For the seconds counter, the changes of the Sleep Timer counter value are
+ * added to the reference time, which is either the startup time or the value
+ * passed to clock_set_seconds().
+ *
+ * This function polls the etimer process if an etimer has expired.
+ */
+static void
+update_ticks(void)
+{
+  rtimer_clock_t now;
+  uint64_t prev_rt_ticks_startup, cur_rt_ticks_startup;
+  uint32_t cur_rt_ticks_startup_hi;
+
+  now = RTIMER_NOW();
+  prev_rt_ticks_startup = rt_ticks_startup;
+
+  cur_rt_ticks_startup_hi = prev_rt_ticks_startup >> 32;
+  if(now < (rtimer_clock_t)prev_rt_ticks_startup) {
+    cur_rt_ticks_startup_hi++;
+  }
+  cur_rt_ticks_startup = (uint64_t)cur_rt_ticks_startup_hi << 32 | now;
+  rt_ticks_startup = cur_rt_ticks_startup;
+
+  rt_ticks_epoch += cur_rt_ticks_startup - prev_rt_ticks_startup;
+
+  /*
+   * Inform the etimer library that the system clock has changed and that an
+   * etimer might have expired.
+   */
+  if(etimer_pending()) {
+    etimer_request_poll();
+  }
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Adjust the clock following missed SysTick ISRs
  *
  * This function is useful when coming out of PM1/2, during which the system
- * clock is stopped. We adjust the clock by moving it forward by a number of
- * ticks equal to the deep sleep duration. We update the seconds counter if
- * we have to and we also do some housekeeping so that the next second will
- * increment when it is meant to.
+ * clock is stopped. We adjust the clock counters like after any SysTick ISR.
  *
  * \note This function is only meant to be used by lpm_exit(). Applications
  * should really avoid calling this
  */
 void
-clock_adjust(clock_time_t ticks)
+clock_adjust(void)
 {
   /* Halt the SysTick while adjusting */
   REG(SYSTICK_STCTRL) &= ~SYSTICK_STCTRL_ENABLE;
 
-  /* Moving forward by more than a second? */
-  secs += ticks >> 7;
-
-  /* Increment tick count */
-  count += ticks;
-
-  /*
-   * Update internal second countdown so that next second change will actually
-   * happen when it's meant to happen.
-   */
-  second_countdown -= ticks;
-
-  if(second_countdown == 0 || second_countdown > 128) {
-    secs++;
-    second_countdown -= 128;
-  }
+  update_ticks();
 
   /* Re-Start the SysTick */
   REG(SYSTICK_STCTRL) |= SYSTICK_STCTRL_ENABLE;
 }
 /*---------------------------------------------------------------------------*/
 /**
- * \brief The clock Interrupt Service Routine. It polls the etimer process
- * if an etimer has expired. It also updates the software clock tick and
- * seconds counter since reset.
+ * \brief The clock Interrupt Service Routine
+ *
+ * It polls the etimer process if an etimer has expired. It also updates the
+ * software clock tick and seconds counter.
  */
 void
 clock_isr(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  count++;
-  if(etimer_pending()) {
-    etimer_request_poll();
-  }
 
-  if(--second_countdown == 0) {
-    secs++;
-    second_countdown = CLOCK_SECOND;
-  }
+  update_ticks();
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/

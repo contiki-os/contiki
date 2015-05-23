@@ -1,5 +1,5 @@
-/** @file board.c
- * @brief Board file x STM32W108 Kits boards 
+/** @file cpu/stm32w108/hal/micro/cortexm3/board.c
+ * @brief Board file x STM32W108 Kits boards
  *
  * This file implements a software layer to support all the ST kits boards
  * and deal with the difference in leds, buttons and sensors connected to the board.
@@ -138,22 +138,22 @@ const MemsResourceType memsSensor = {
 
 const BoardIOType ioMB851A = {
   LedsMB851A,
-  ButtonsMB851A,  
+  ButtonsMB851A,
 };
 
 const BoardIOType ioMB954A = {
   LedsMB954A,
-  ButtonsMB954A,  
+  ButtonsMB954A,
 };
 
 const BoardIOType ioMB950A = {
   LedsMB954A,
-  ButtonsMB950A,  
+  ButtonsMB950A,
 };
 
 const BoardIOType ioMB951A = {
   LedsMB954A,
-  ButtonsMB951A,  
+  ButtonsMB951A,
 };
 
 const BoardResourcesType MB851A = {
@@ -264,7 +264,7 @@ void halBoardInit(void)
     i--;
   }
 
-  for (i = 0; i < (sizeof(boardList)/4) ; i++) 
+  for (i = 0; i < (sizeof(boardList)/4) ; i++)
     if (strcmp(boardName, (boardList[i])->name) == 0) {
       boardDescription = (BoardResourcesType *) boardList[i];
       break;

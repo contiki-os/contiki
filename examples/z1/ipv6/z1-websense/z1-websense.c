@@ -43,7 +43,7 @@
 #include "webserver-nogui.h"
 #include "dev/temperature-sensor.h"
 #include "dev/battery-sensor.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include <stdio.h>
 

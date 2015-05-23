@@ -3,7 +3,11 @@
  *
  */
 
-/** @addtogroup gnu
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/** @defgroup gnu
  * @brief Compiler and Platform specific definitions and typedefs for the
  *  GNU C ARM compiler.
  *
@@ -15,8 +19,8 @@
  *@{
  */
 
-#ifndef __GNU_H__
-#define __GNU_H__
+#ifndef GNU_H_
+#define GNU_H_
 
 #include <stdint.h>
 
@@ -536,7 +540,8 @@ int abs(int I);
   #include "hal/micro/generic/compiler/platform-common.h"
 #undef PLATCOMMONOKTOINCLUDE
 
-#endif // __GNU_H__
+#endif // GNU_H_
 
 /** @}  END addtogroup */
+/** @} */
 

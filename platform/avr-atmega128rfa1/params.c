@@ -159,7 +159,7 @@ params_get_channel(void) {
 uint8_t
 params_get_eui64(uint8_t *eui64) {
   cli();
-  eeprom_read_block ((void *)eui64, &eemem_mac_address, sizeof(rimeaddr_t));
+  eeprom_read_block ((void *)eui64, &eemem_mac_address, sizeof(linkaddr_t));
   sei();
 #if CONTIKI_CONF_RANDOM_MAC
   return randomeui64;
@@ -199,7 +199,7 @@ params_get_channel() {
 }
 uint8_t
 params_get_eui64(uint8_t *eui64) {
-  size_t size = sizeof(rimeaddr_t); 
+  size_t size = sizeof(linkaddr_t); 
   if(settings_get(SETTINGS_KEY_EUI64, 0, (unsigned char*)eui64, &size) == SETTINGS_STATUS_OK) {
     PRINTD("<-Get EUI64 MAC\n");
     return 0;		

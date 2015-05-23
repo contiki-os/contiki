@@ -1,14 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-/**
- * \defgroup rimeneighbor Collect neighbor management
- * @{
- *
- * The neighbor module manages the neighbor table that is used by the
- * Collect module.
- */
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -48,10 +37,23 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __COLLECT_NEIGHBOR_H__
-#define __COLLECT_NEIGHBOR_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
 
-#include "net/rime/rimeaddr.h"
+/**
+ * \defgroup rimeneighbor Collect neighbor management
+ * @{
+ *
+ * The neighbor module manages the neighbor table that is used by the
+ * Collect module.
+ */
+
+#ifndef COLLECT_NEIGHBOR_H_
+#define COLLECT_NEIGHBOR_H_
+
+#include "net/linkaddr.h"
 #include "net/rime/collect-link-estimate.h"
 #include "lib/list.h"
 
@@ -62,7 +64,7 @@ struct collect_neighbor_list {
 
 struct collect_neighbor {
   struct collect_neighbor *next;
-  rimeaddr_t addr;
+  linkaddr_t addr;
   uint16_t rtmetric;
   uint16_t age;
   uint16_t le_age;
@@ -77,11 +79,11 @@ list_t collect_neighbor_list(struct collect_neighbor_list *neighbor_list);
 void collect_neighbor_list_new(struct collect_neighbor_list *neighbor_list);
 
 int collect_neighbor_list_add(struct collect_neighbor_list *neighbor_list,
-                              const rimeaddr_t *addr, uint16_t rtmetric);
+                              const linkaddr_t *addr, uint16_t rtmetric);
 void collect_neighbor_list_remove(struct collect_neighbor_list *neighbor_list,
-                                  const rimeaddr_t *addr);
+                                  const linkaddr_t *addr);
 struct collect_neighbor *collect_neighbor_list_find(struct collect_neighbor_list *neighbor_list,
-                                               const rimeaddr_t *addr);
+                                               const linkaddr_t *addr);
 struct collect_neighbor *collect_neighbor_list_best(struct collect_neighbor_list *neighbor_list);
 int collect_neighbor_list_num(struct collect_neighbor_list *neighbor_list);
 struct collect_neighbor *collect_neighbor_list_get(struct collect_neighbor_list *neighbor_list, int num);
@@ -100,6 +102,6 @@ uint16_t collect_neighbor_rtmetric_link_estimate(struct collect_neighbor *n);
 uint16_t collect_neighbor_rtmetric(struct collect_neighbor *n);
 
 
-#endif /* __COLLECT_NEIGHBOR_H__ */
+#endif /* COLLECT_NEIGHBOR_H_ */
 /** @} */
 /** @} */

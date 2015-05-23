@@ -5,7 +5,7 @@
 
 /* debug */
 #define DEBUG DEBUG_FULL
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 mc1322xConfig mc1322x_config;
 

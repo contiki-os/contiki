@@ -28,7 +28,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** \addtogroup cc2538
+/**
+ * \addtogroup cc2538dk
  * @{
  *
  * \defgroup cc2538-smartrf SmartRF06EB Peripherals
@@ -77,29 +78,28 @@
 #undef LEDS_RED
 #undef LEDS_CONF_ALL
 
-#define LEDS_YELLOW    2 /**< LED2 (Yellow) -> PC1 */
-#define LEDS_GREEN     4 /**< LED3 (Green)  -> PC2 */
-#define LEDS_ORANGE    8 /**< LED4 (Orange) -> PC3 */
+#define LEDS_YELLOW             2 /**< LED2 (Yellow) -> PC1 */
+#define LEDS_GREEN              4 /**< LED3 (Green)  -> PC2 */
+#define LEDS_ORANGE             8 /**< LED4 (Orange) -> PC3 */
 
 #if USB_SERIAL_CONF_ENABLE
-#define LEDS_CONF_ALL 14
-#define LEDS_RED LEDS_ORANGE
+#define LEDS_CONF_ALL           14
+#define LEDS_RED                LEDS_ORANGE
 #else
-#define LEDS_CONF_ALL 15
-#define LEDS_RED       1 /**< LED1 (Red)    -> PC0 */
+#define LEDS_CONF_ALL           15
+#define LEDS_RED                1 /**< LED1 (Red)    -> PC0 */
 #endif
 
 /* Notify various examples that we have LEDs */
-#define PLATFORM_HAS_LEDS        1
+#define PLATFORM_HAS_LEDS       1
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name USB configuration
  *
  * The USB pullup is driven by PC0 and is shared with LED1
  */
-#define USB_PULLUP_PORT          GPIO_C_BASE
-#define USB_PULLUP_PIN           0
-#define USB_PULLUP_PIN_MASK      (1 << USB_PULLUP_PIN)
+#define USB_PULLUP_PORT         GPIO_C_NUM
+#define USB_PULLUP_PIN          0
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name UART configuration
@@ -111,22 +111,22 @@
  * - CTS: PB0 (Can only be used with UART1)
  * - RTS: PD3 (Can only be used with UART1)
  *
- * We configure the port to use UART0. To use UART1, change UART_CONF_BASE
+ * We configure the port to use UART0. To use UART1, replace UART0_* with
+ * UART1_* below.
  * @{
  */
-#define UART_CONF_BASE           UART_0_BASE
+#define UART0_RX_PORT           GPIO_A_NUM
+#define UART0_RX_PIN            0
 
-#define UART_RX_PORT             GPIO_A_NUM
-#define UART_RX_PIN              0
+#define UART0_TX_PORT           GPIO_A_NUM
+#define UART0_TX_PIN            1
 
-#define UART_TX_PORT             GPIO_A_NUM
-#define UART_TX_PIN              1
+//#define UART1_CTS_PORT           GPIO_B_NUM
+//#define UART1_CTS_PIN            0
 
-#define UART_CTS_PORT            GPIO_B_NUM
-#define UART_CTS_PIN             0
+//#define UART1_RTS_PORT           GPIO_D_NUM
+//#define UART1_RTS_PIN            3
 
-#define UART_RTS_PORT            GPIO_D_NUM
-#define UART_RTS_PIN             3
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name SmartRF Button configuration
@@ -140,58 +140,106 @@
  * @{
  */
 /** BUTTON_SELECT -> PA3 */
-#define BUTTON_SELECT_PORT_NO    GPIO_A_NUM
-#define BUTTON_SELECT_PIN        3
-#define BUTTON_SELECT_PORT       GPIO_A_BASE
-#define BUTTON_SELECT_PIN_MASK   (1 << BUTTON_SELECT_PIN)
-#define BUTTON_SELECT_VECTOR     NVIC_INT_GPIO_PORT_A
+#define BUTTON_SELECT_PORT      GPIO_A_NUM
+#define BUTTON_SELECT_PIN       3
+#define BUTTON_SELECT_VECTOR    NVIC_INT_GPIO_PORT_A
 
 /** BUTTON_LEFT -> PC4 */
-#define BUTTON_LEFT_PORT_NO      GPIO_C_NUM
-#define BUTTON_LEFT_PIN          4
-#define BUTTON_LEFT_PORT         GPIO_C_BASE
-#define BUTTON_LEFT_PIN_MASK     (1 << BUTTON_LEFT_PIN)
-#define BUTTON_LEFT_VECTOR       NVIC_INT_GPIO_PORT_C
+#define BUTTON_LEFT_PORT        GPIO_C_NUM
+#define BUTTON_LEFT_PIN         4
+#define BUTTON_LEFT_VECTOR      NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_RIGHT -> PC5 */
-#define BUTTON_RIGHT_PORT_NO     GPIO_C_NUM
-#define BUTTON_RIGHT_PIN         5
-#define BUTTON_RIGHT_PORT        GPIO_C_BASE
-#define BUTTON_RIGHT_PIN_MASK    (1 << BUTTON_RIGHT_PIN)
-#define BUTTON_RIGHT_VECTOR      NVIC_INT_GPIO_PORT_C
+#define BUTTON_RIGHT_PORT       GPIO_C_NUM
+#define BUTTON_RIGHT_PIN        5
+#define BUTTON_RIGHT_VECTOR     NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_UP -> PC6 */
-#define BUTTON_UP_PORT_NO        GPIO_C_NUM
-#define BUTTON_UP_PIN            6
-#define BUTTON_UP_PORT           GPIO_C_BASE
-#define BUTTON_UP_PIN_MASK       (1 << BUTTON_UP_PIN)
-#define BUTTON_UP_VECTOR         NVIC_INT_GPIO_PORT_C
+#define BUTTON_UP_PORT          GPIO_C_NUM
+#define BUTTON_UP_PIN           6
+#define BUTTON_UP_VECTOR        NVIC_INT_GPIO_PORT_C
 
 /** BUTTON_DOWN -> PC7 */
-#define BUTTON_DOWN_PORT_NO      GPIO_C_NUM
-#define BUTTON_DOWN_PIN          7
-#define BUTTON_DOWN_PORT         GPIO_C_BASE
-#define BUTTON_DOWN_PIN_MASK     (1 << BUTTON_DOWN_PIN)
-#define BUTTON_DOWN_VECTOR       NVIC_INT_GPIO_PORT_C
+#define BUTTON_DOWN_PORT        GPIO_C_NUM
+#define BUTTON_DOWN_PIN         7
+#define BUTTON_DOWN_VECTOR      NVIC_INT_GPIO_PORT_C
 
 /* Notify various examples that we have Buttons */
-#define PLATFORM_HAS_BUTTON      1
+<<<<<<< HEAD
+#define PLATFORM_HAS_BUTTON      0
+=======
+#define PLATFORM_HAS_BUTTON     1
+>>>>>>> upstream/master
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name ADC configuration
+ *
+ * These values configure which CC2538 pins and ADC channels to use for the ADC
+ * inputs.
+ *
+ * ADC inputs can only be on port A.
+ * @{
+ */
+<<<<<<< HEAD
+#define ADC_SENSOR_SENS4_PIN	7 /**< Onfarm Board SENS4 */
+#define ADC_SENSOR_SENS3_PIN	6 /**< Onfarm Board SENS3 */
+#define ADC_SENSOR_SENS2_PIN	5 /**< Onfarm Board SENS2 */
+#define ADC_SENSOR_SENS1_PIN	4 /**< Onfarm Board SENS1 */
+=======
+#define ADC_ALS_PWR_PORT        GPIO_A_NUM /**< ALS power GPIO control port */
+#define ADC_ALS_PWR_PIN         7 /**< ALS power GPIO control pin */
+#define ADC_ALS_OUT_PIN         6 /**< ALS output ADC input pin on port A */
+>>>>>>> upstream/master
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name SPI configuration
  *
- * These values configure which CC2538 pins to use for the SPI lines.
+ * These values configure which CC2538 pins to use for the SPI lines. Both
+ * SPI instances can be used independently by providing the corresponding
+ * port / pin macros.
  * @{
  */
-#define CC2538_SPI_CLK_PORT_NUM  GPIO_A_NUM
-#define CC2538_SPI_CLK_PIN_NUM   2
-#define CC2538_SPI_MOSI_PORT_NUM GPIO_A_NUM
-#define CC2538_SPI_MOSI_PIN_NUM  4
-#define CC2538_SPI_MISO_PORT_NUM GPIO_A_NUM
-#define CC2538_SPI_MISO_PIN_NUM  5
-#define CC2538_SPI_SEL_PORT_NUM  GPIO_B_NUM
-#define CC2538_SPI_SEL_PIN_NUM   5
+<<<<<<< HEAD
+#define SPI_CLK_PORT             GPIO_B_NUM /**< Clock port */
+#define SPI_CLK_PIN              2          /**< Clock pin */
+#define SPI_MOSI_PORT            GPIO_B_NUM /**< MOSI port */
+#define SPI_MOSI_PIN             3          /**< MOSI pin */
+#define SPI_MISO_PORT            GPIO_B_NUM /**< MISO port */
+#define SPI_MISO_PIN             4          /**< MISO pin */
+=======
+#define SPI0_IN_USE             0
+#define SPI1_IN_USE             0
+#if SPI0_IN_USE
+/** Clock port SPI0 */
+#define SPI0_CLK_PORT           GPIO_A_NUM
+/** Clock pin SPI0 */
+#define SPI0_CLK_PIN            2
+/** TX port SPI0 (master mode: MOSI) */
+#define SPI0_TX_PORT            GPIO_A_NUM
+/** TX pin SPI0 */
+#define SPI0_TX_PIN             4
+/** RX port SPI0 (master mode: MISO */
+#define SPI0_RX_PORT            GPIO_A_NUM
+/** RX pin SPI0 */
+#define SPI0_RX_PIN             5
+#endif  /* #if SPI0_IN_USE */
+#if SPI1_IN_USE
+/** Clock port SPI1 */
+#define SPI1_CLK_PORT           GPIO_A_NUM
+/** Clock pin SPI1 */
+#define SPI1_CLK_PIN            2
+/** TX port SPI1 (master mode: MOSI) */
+#define SPI1_TX_PORT            GPIO_A_NUM
+/** TX pin SPI1 */
+#define SPI1_TX_PIN             4
+/** RX port SPI1 (master mode: MISO) */
+#define SPI1_RX_PORT            GPIO_A_NUM
+/** RX pin SPI1 */
+#define SPI1_RX_PIN             5
+#endif  /* #if SPI1_IN_USE */
+>>>>>>> upstream/master
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

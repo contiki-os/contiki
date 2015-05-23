@@ -1,8 +1,3 @@
-/**
- * \addtogroup rimeannouncement
- * @{
- */
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -40,6 +35,11 @@
  *         Implementation of the announcement primitive
  * \author
  *         Adam Dunkels <adam@sics.se>
+ */
+
+/**
+ * \addtogroup rimeannouncement
+ * @{
  */
 
 #include "net/rime/announcement.h"
@@ -137,7 +137,7 @@ announcement_list(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value)
+announcement_heard(const linkaddr_t *from, uint16_t id, uint16_t value)
 {
   struct announcement *a;
   for(a = list_head(announcements); a != NULL; a = list_item_next(a)) {

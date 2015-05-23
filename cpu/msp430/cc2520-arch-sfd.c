@@ -29,7 +29,7 @@
 
 #include "contiki.h"
 #include "dev/spi.h"
-#include "dev/cc2520.h"
+#include "dev/cc2520/cc2520.h"
 #include "isr_compat.h"
 
 extern volatile uint8_t cc2520_sfd_counter;
@@ -58,7 +58,7 @@ void
 cc2520_arch_sfd_init(void)
 {
   /* Need to select the special function! */
-  P4SEL = BV(CC2520_SFD_PIN);
+  CC2520_SFD_PORT(SEL) = BV(CC2520_SFD_PIN);
 
   /* start timer B - 32768 ticks per second */
   TBCTL = TBSSEL_1 | TBCLR;

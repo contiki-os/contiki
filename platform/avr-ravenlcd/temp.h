@@ -38,8 +38,8 @@
  *
  */
 
-#ifndef __TEMP_H__
-#define __TEMP_H__
+#ifndef TEMP_H_
+#define TEMP_H_
 
 
 #include <stdint.h>
@@ -90,4 +90,4 @@ void temp_deinit(void);
  */
 int16_t temp_get(temp_unit_t unit);
 /** \} */
-#endif /* __TEMP_H__ */
+#endif /* TEMP_H_ */

@@ -43,7 +43,7 @@
 #include "lib/random.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #include "db-options.h"
 #include "storage.h"

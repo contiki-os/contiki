@@ -41,13 +41,10 @@
 #include "rpl-conf.h"
 
 #include "lib/list.h"
-#include "net/uip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #include "sys/ctimer.h"
 
-/*---------------------------------------------------------------------------*/
-/* The amount of parents that this node has in a particular DAG. */
-#define RPL_PARENT_COUNT(dag)   list_length((dag)->parents)
 /*---------------------------------------------------------------------------*/
 typedef uint16_t rpl_rank_t;
 typedef uint16_t rpl_ocp_t;
@@ -107,6 +104,9 @@ typedef struct rpl_metric_container rpl_metric_container_t;
 struct rpl_instance;
 struct rpl_dag;
 /*---------------------------------------------------------------------------*/
+#define RPL_PARENT_FLAG_UPDATED           0x1
+#define RPL_PARENT_FLAG_LINK_METRIC_VALID 0x2
+
 struct rpl_parent {
   struct rpl_parent *next;
   struct rpl_dag *dag;
@@ -114,9 +114,9 @@ struct rpl_parent {
   rpl_metric_container_t mc;
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   rpl_rank_t rank;
-  uint16_t link_metric;
+  clock_time_t last_tx_time;
   uint8_t dtsn;
-  uint8_t updated;
+  uint8_t flags;
 };
 typedef struct rpl_parent rpl_parent_t;
 /*---------------------------------------------------------------------------*/
@@ -142,7 +142,6 @@ struct rpl_dag {
   rpl_parent_t *preferred_parent;
   rpl_rank_t rank;
   struct rpl_instance *instance;
-  LIST_STRUCT(parents);
   rpl_prefix_t prefix_info;
 };
 typedef struct rpl_dag rpl_dag_t;
@@ -193,6 +192,9 @@ struct rpl_of {
   rpl_ocp_t ocp;
 };
 typedef struct rpl_of rpl_of_t;
+
+/* Declare the selected objective function. */
+extern rpl_of_t RPL_OF;
 /*---------------------------------------------------------------------------*/
 /* Instance */
 struct rpl_instance {
@@ -223,29 +225,71 @@ struct rpl_instance {
   uint16_t dio_totrecv;
 #endif /* RPL_CONF_STATS */
   clock_time_t dio_next_delay; /* delay for completion of dio interval */
+#if RPL_WITH_PROBING
+  struct ctimer probing_timer;
+#endif /* RPL_WITH_PROBING */
   struct ctimer dio_timer;
   struct ctimer dao_timer;
+  struct ctimer dao_lifetime_timer;
 };
 
 /*---------------------------------------------------------------------------*/
 /* Public RPL functions. */
 void rpl_init(void);
 void uip_rpl_input(void);
-rpl_dag_t *rpl_set_root(uint8_t instance_id, uip_ipaddr_t * dag_id);
+rpl_dag_t *rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id);
 int rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len);
 int rpl_repair_root(uint8_t instance_id);
 int rpl_set_default_route(rpl_instance_t *instance, uip_ipaddr_t *from);
 rpl_dag_t *rpl_get_any_dag(void);
 rpl_instance_t *rpl_get_instance(uint8_t instance_id);
-void rpl_update_header_empty(void);
+int rpl_update_header_empty(void);
 int rpl_update_header_final(uip_ipaddr_t *addr);
 int rpl_verify_header(int);
 void rpl_insert_header(void);
 void rpl_remove_header(void);
 uint8_t rpl_invert_header(void);
 uip_ipaddr_t *rpl_get_parent_ipaddr(rpl_parent_t *nbr);
+rpl_parent_t *rpl_get_parent(uip_lladdr_t *addr);
 rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
-uint16_t rpl_get_parent_link_metric(uip_lladdr_t *addr);
+uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
+uip_ds6_nbr_t *rpl_get_nbr(rpl_parent_t *parent);
+void rpl_print_neighbor_list();
+
+/* Per-parent RPL information */
+NBR_TABLE_DECLARE(rpl_parents);
+
+/**
+ * RPL modes
+ *
+ * The RPL module can be in either of three modes: mesh mode
+ * (RPL_MODE_MESH), feater mode (RPL_MODE_FEATHER), and leaf mode
+ * (RPL_MODE_LEAF). In mesh mode, nodes forward data for other nodes,
+ * and are reachable by others. In feather mode, nodes can forward
+ * data for other nodes, but are not reachable themselves. In leaf
+ * mode, nodes do not forward data for others, but are reachable by
+ * others. */
+enum rpl_mode {
+  RPL_MODE_MESH = 0,
+  RPL_MODE_FEATHER = 1,
+  RPL_MODE_LEAF = 2,
+};
+
+/**
+ * Set the RPL mode
+ *
+ * \param mode The new RPL mode
+ * \retval The previous RPL mode
+ */
+enum rpl_mode rpl_set_mode(enum rpl_mode mode);
+
+/**
+ * Get the RPL mode
+ *
+ * \retval The RPL mode
+ */
+enum rpl_mode rpl_get_mode(void);
+
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */

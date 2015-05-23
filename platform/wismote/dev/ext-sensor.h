@@ -32,8 +32,8 @@
  * Created : 2005-11-01
  */
 
-#ifndef __EXT_SENSOR_H__
-#define __EXT_SENSOR_H__
+#ifndef EXT_SENSOR_H_
+#define EXT_SENSOR_H_
 
 #include "lib/sensors.h"
 
@@ -46,4 +46,4 @@ extern const struct sensors_sensor ext_sensor;
 
 #define EXT_SENSOR "Ext"
 
-#endif /* __EXT_SENSOR_H__ */
+#endif /* EXT_SENSOR_H_ */

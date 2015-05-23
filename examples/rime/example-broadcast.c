@@ -38,7 +38,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "random.h"
 
 #include "dev/button-sensor.h"
@@ -51,7 +51,7 @@ PROCESS(example_broadcast_process, "Broadcast example");
 AUTOSTART_PROCESSES(&example_broadcast_process);
 /*---------------------------------------------------------------------------*/
 static void
-broadcast_recv(struct broadcast_conn *c, const rimeaddr_t *from)
+broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
   printf("broadcast message received from %d.%d: '%s'\n",
          from->u8[0], from->u8[1], (char *)packetbuf_dataptr());

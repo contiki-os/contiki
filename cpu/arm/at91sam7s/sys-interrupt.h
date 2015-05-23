@@ -1,5 +1,5 @@
-#ifndef __SYS_INTERRUPT_H__QIHZ66NP8K__
-#define __SYS_INTERRUPT_H__QIHZ66NP8K__
+#ifndef SYS_INTERRUPT_H_QIHZ66NP8K__
+#define SYS_INTERRUPT_H_QIHZ66NP8K__
 
 
 /* Returns true if it handled an activbe interrupt */
@@ -28,4 +28,4 @@ sys_interrupt_prepend_handler(SystemInterruptHandler *handler);
 void
 sys_interrupt_remove_handler(SystemInterruptHandler *handler);
 
-#endif /* __SYS_INTERRUPT_H__QIHZ66NP8K__ */
+#endif /* SYS_INTERRUPT_H_QIHZ66NP8K__ */

@@ -38,8 +38,8 @@
  *         Joel Hoglund    <joel@sics.se>
  */
 
-#ifndef __JSON_WS_H__
-#define __JSON_WS_H__
+#ifndef JSON_WS_H_
+#define JSON_WS_H_
 
 #include "jsontree.h"
 
@@ -55,4 +55,4 @@ extern struct jsontree_callback json_leds_callback;
 #endif
 extern struct jsontree_object cosm_tree;
 
-#endif /* __JSON_WS_H__ */
+#endif /* JSON_WS_H_ */

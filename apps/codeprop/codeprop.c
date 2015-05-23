@@ -30,9 +30,6 @@
  *
  */
 
-/** \addtogroup esb
- * @{ */
-
 /**
  *
  * \file
@@ -71,7 +68,7 @@
 #include "sys/clock.h"
 
 #include "loader/elfloader.h"
-#include "net/tcpip.h"
+#include "net/ip/tcpip.h"
 
 #include "dev/eeprom.h"
 #include "dev/leds.h"
@@ -477,4 +474,3 @@ uipcall(void *state)
   }
 }
 /*---------------------------------------------------------------------*/
-/** @} */

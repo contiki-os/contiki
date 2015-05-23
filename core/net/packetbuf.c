@@ -1,8 +1,3 @@
-/**
- * \addtogroup packetbuf
- * @{
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -42,11 +37,16 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup packetbuf
+ * @{
+ */
+
 #include <string.h>
 
 #include "contiki-net.h"
 #include "net/packetbuf.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 struct packetbuf_attr packetbuf_attrs[PACKETBUF_NUM_ATTRS];
 struct packetbuf_addr packetbuf_addrs[PACKETBUF_NUM_ADDRS];
@@ -56,10 +56,10 @@ static uint16_t buflen, bufptr;
 static uint8_t hdrptr;
 
 /* The declarations below ensure that the packet buffer is aligned on
-   an even 16-bit boundary. On some platforms (most notably the
-   msp430), having apotentially misaligned packet buffer may lead to
-   problems when accessing 16-bit values. */
-static uint16_t packetbuf_aligned[(PACKETBUF_SIZE + PACKETBUF_HDR_SIZE) / 2 + 1];
+   an even 32-bit boundary. On some platforms (most notably the
+   msp430 or OpenRISC), having a potentially misaligned packet buffer may lead to
+   problems when accessing words. */
+static uint32_t packetbuf_aligned[(PACKETBUF_SIZE + PACKETBUF_HDR_SIZE + 3) / 4];
 static uint8_t *packetbuf = (uint8_t *)packetbuf_aligned;
 
 static uint8_t *packetbufptr;
@@ -106,10 +106,7 @@ packetbuf_compact(void)
 {
   int i, len;
 
-  if(packetbuf_is_reference()) {
-    memcpy(&packetbuf[PACKETBUF_HDR_SIZE], packetbuf_reference_ptr(),
-	   packetbuf_datalen());
-  } else if(bufptr > 0) {
+  if(bufptr > 0) {
     len = packetbuf_datalen() + PACKETBUF_HDR_SIZE;
     for(i = PACKETBUF_HDR_SIZE; i < len; i++) {
       packetbuf[i] = packetbuf[bufptr + i];
@@ -215,26 +212,6 @@ packetbuf_hdrptr(void)
   return (void *)(&packetbuf[hdrptr]);
 }
 /*---------------------------------------------------------------------------*/
-void
-packetbuf_reference(void *ptr, uint16_t len)
-{
-  packetbuf_clear();
-  packetbufptr = ptr;
-  buflen = len;
-}
-/*---------------------------------------------------------------------------*/
-int
-packetbuf_is_reference(void)
-{
-  return packetbufptr != &packetbuf[PACKETBUF_HDR_SIZE];
-}
-/*---------------------------------------------------------------------------*/
-void *
-packetbuf_reference_ptr(void)
-{
-  return packetbufptr;
-}
-/*---------------------------------------------------------------------------*/
 uint16_t
 packetbuf_datalen(void)
 {
@@ -244,7 +221,16 @@ packetbuf_datalen(void)
 uint8_t
 packetbuf_hdrlen(void)
 {
-  return PACKETBUF_HDR_SIZE - hdrptr;
+  uint8_t hdrlen;
+  
+  hdrlen = PACKETBUF_HDR_SIZE - hdrptr;
+  if(hdrlen) {
+    /* outbound packet */
+    return hdrlen;
+  } else {
+    /* inbound packet */
+    return bufptr;
+  }
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
@@ -261,7 +247,7 @@ packetbuf_attr_clear(void)
     packetbuf_attrs[i].val = 0;
   }
   for(i = 0; i < PACKETBUF_NUM_ADDRS; ++i) {
-    rimeaddr_copy(&packetbuf_addrs[i].addr, &rimeaddr_null);
+    linkaddr_copy(&packetbuf_addrs[i].addr, &linkaddr_null);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -297,18 +283,25 @@ packetbuf_attr(uint8_t type)
 }
 /*---------------------------------------------------------------------------*/
 int
-packetbuf_set_addr(uint8_t type, const rimeaddr_t *addr)
+packetbuf_set_addr(uint8_t type, const linkaddr_t *addr)
 {
 /*   packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].type = type; */
-  rimeaddr_copy(&packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
+  linkaddr_copy(&packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-const rimeaddr_t *
+const linkaddr_t *
 packetbuf_addr(uint8_t type)
 {
   return &packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr;
 }
 /*---------------------------------------------------------------------------*/
 #endif /* PACKETBUF_CONF_ATTRS_INLINE */
+int
+packetbuf_holds_broadcast(void)
+{
+  return linkaddr_cmp(&packetbuf_addrs[PACKETBUF_ADDR_RECEIVER - PACKETBUF_ADDR_FIRST].addr, &linkaddr_null);
+}
+/*---------------------------------------------------------------------------*/
+
 /** @} */

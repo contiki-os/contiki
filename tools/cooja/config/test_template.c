@@ -50,12 +50,12 @@ int uvar1;
 int uvar2;
 
 JNIEXPORT void JNICALL
-Java_se_sics_cooja_corecomm_[CLASS_NAME]_init(JNIEnv *env, jobject obj)
+Java_org_contikios_cooja_corecomm_[CLASS_NAME]_init(JNIEnv *env, jobject obj)
 {
  }
 /*---------------------------------------------------------------------------*/
 JNIEXPORT void JNICALL
-Java_se_sics_cooja_corecomm_[CLASS_NAME]_getMemory(JNIEnv *env, jobject obj, jint rel_addr, jint length, jbyteArray mem_arr)
+Java_org_contikios_cooja_corecomm_[CLASS_NAME]_getMemory(JNIEnv *env, jobject obj, jint rel_addr, jint length, jbyteArray mem_arr)
 {
   (*env)->SetByteArrayRegion(
       env,
@@ -68,7 +68,7 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_getMemory(JNIEnv *env, jobject obj, jin
 }
 /*---------------------------------------------------------------------------*/
 JNIEXPORT void JNICALL
-Java_se_sics_cooja_corecomm_[CLASS_NAME]_setMemory(JNIEnv *env, jobject obj, jint rel_addr, jint length, jbyteArray mem_arr)
+Java_org_contikios_cooja_corecomm_[CLASS_NAME]_setMemory(JNIEnv *env, jobject obj, jint rel_addr, jint length, jbyteArray mem_arr)
 {
   jbyte *mem = (*env)->GetByteArrayElements(env, mem_arr, 0);
   memcpy(
@@ -79,14 +79,14 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_setMemory(JNIEnv *env, jobject obj, jin
 }
 /*---------------------------------------------------------------------------*/
 JNIEXPORT void JNICALL
-Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
+Java_org_contikios_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
 {
   ++var1;
   ++uvar1;
 }
 /*---------------------------------------------------------------------------*/
 JNIEXPORT void JNICALL
-Java_se_sics_cooja_corecomm_[CLASS_NAME]_setReferenceAddress(JNIEnv *env, jobject obj, jint addr)
+Java_org_contikios_cooja_corecomm_[CLASS_NAME]_setReferenceAddress(JNIEnv *env, jobject obj, jint addr)
 {
   referenceVar = (((long)&referenceVar) - ((long)addr));
 }

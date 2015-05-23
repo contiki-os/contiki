@@ -40,7 +40,7 @@
 #include <stdio.h>
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "lib/list.h"
 #include "lib/memb.h"
@@ -60,19 +60,19 @@ AUTOSTART_PROCESSES(&test_runicast_process);
  * Duplicates appear when ack messages are lost. */
 struct history_entry {
   struct history_entry *next;
-  rimeaddr_t addr;
+  linkaddr_t addr;
   uint8_t seq;
 };
 LIST(history_table);
 MEMB(history_mem, struct history_entry, NUM_HISTORY_ENTRIES);
 /*---------------------------------------------------------------------------*/
 static void
-recv_runicast(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
+recv_runicast(struct runicast_conn *c, const linkaddr_t *from, uint8_t seqno)
 {
   /* OPTIONAL: Sender history */
   struct history_entry *e = NULL;
   for(e = list_head(history_table); e != NULL; e = e->next) {
-    if(rimeaddr_cmp(&e->addr, from)) {
+    if(linkaddr_cmp(&e->addr, from)) {
       break;
     }
   }
@@ -82,7 +82,7 @@ recv_runicast(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
     if(e == NULL) {
       e = list_chop(history_table); /* Remove oldest at full history */
     }
-    rimeaddr_copy(&e->addr, from);
+    linkaddr_copy(&e->addr, from);
     e->seq = seqno;
     list_push(history_table, e);
   } else {
@@ -100,13 +100,13 @@ recv_runicast(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
 	 from->u8[0], from->u8[1], seqno);
 }
 static void
-sent_runicast(struct runicast_conn *c, const rimeaddr_t *to, uint8_t retransmissions)
+sent_runicast(struct runicast_conn *c, const linkaddr_t *to, uint8_t retransmissions)
 {
   printf("runicast message sent to %d.%d, retransmissions %d\n",
 	 to->u8[0], to->u8[1], retransmissions);
 }
 static void
-timedout_runicast(struct runicast_conn *c, const rimeaddr_t *to, uint8_t retransmissions)
+timedout_runicast(struct runicast_conn *c, const linkaddr_t *to, uint8_t retransmissions)
 {
   printf("runicast message timed out when sending to %d.%d, retransmissions %d\n",
 	 to->u8[0], to->u8[1], retransmissions);
@@ -129,8 +129,8 @@ PROCESS_THREAD(test_runicast_process, ev, data)
   memb_init(&history_mem);
 
   /* Receiver node: do nothing */
-  if(rimeaddr_node_addr.u8[0] == 1 &&
-     rimeaddr_node_addr.u8[1] == 0) {
+  if(linkaddr_node_addr.u8[0] == 1 &&
+     linkaddr_node_addr.u8[1] == 0) {
     PROCESS_WAIT_EVENT_UNTIL(0);
   }
 
@@ -141,15 +141,15 @@ PROCESS_THREAD(test_runicast_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
     if(!runicast_is_transmitting(&runicast)) {
-      rimeaddr_t recv;
+      linkaddr_t recv;
 
       packetbuf_copyfrom("Hello", 5);
       recv.u8[0] = 1;
       recv.u8[1] = 0;
 
       printf("%u.%u: sending runicast to address %u.%u\n",
-	     rimeaddr_node_addr.u8[0],
-	     rimeaddr_node_addr.u8[1],
+	     linkaddr_node_addr.u8[0],
+	     linkaddr_node_addr.u8[1],
 	     recv.u8[0],
 	     recv.u8[1]);
 

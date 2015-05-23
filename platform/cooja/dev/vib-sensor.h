@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef __VIB_H__
-#define __VIB_H__
+#ifndef VIB_H_
+#define VIB_H_
 
 #include "lib/sensors.h"
 
@@ -37,4 +37,4 @@ extern const struct sensors_sensor vib_sensor;
 
 #define VIB_SENSOR "Vibration"
 
-#endif /* __VIB_H__ */
+#endif /* VIB_H_ */

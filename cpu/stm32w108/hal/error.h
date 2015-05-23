@@ -1,14 +1,14 @@
 /**
- * @file error.h
+ * @file cpu/stm32w108/hal/error.h
  * @brief Return codes for API functions and module definitions.
  *
  * See @ref status_codes for documentation.
- * 
+ *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
 
-#ifndef __ERRORS_H__
-#define __ERRORS_H__
+#ifndef ERRORS_H_
+#define ERRORS_H_
 
 /**
  * @brief  Return type for St functions.
@@ -28,7 +28,7 @@
  *
  * @param symbol  The name of the constant being defined. All St returns
  *                begin with ST_. For example, ::ST_CONNECTION_OPEN.
- * 
+ *
  * @param value   The value of the return code. For example, 0x61.
  */
 #define DEFINE_ERROR(symbol, value) \
@@ -39,8 +39,8 @@ enum {
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "error-def.h"
 #endif //DOXYGEN_SHOULD_SKIP_THIS
-  /** Gets defined as a count of all the possible return codes in the 
-  * StZNet stack API. 
+  /** Gets defined as a count of all the possible return codes in the
+  * StZNet stack API.
   */
   ST_ERROR_CODE_COUNT
 
@@ -48,9 +48,9 @@ enum {
 
 #undef DEFINE_ERROR
 
-#endif // __ERRORS_H__
+#endif // ERRORS_H_
 
 /**@} // End of addtogroup
  */
- 
+
 

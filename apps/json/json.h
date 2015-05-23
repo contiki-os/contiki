@@ -37,8 +37,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __JSON_H__
-#define __JSON_H__
+#ifndef JSON_H_
+#define JSON_H_
 
 #define JSON_TYPE_ARRAY '['
 #define JSON_TYPE_OBJECT '{'
@@ -67,4 +67,4 @@ enum {
 
 #define JSON_CONTENT_TYPE "application/json"
 
-#endif /* __JSON_H__ */
+#endif /* JSON_H_ */

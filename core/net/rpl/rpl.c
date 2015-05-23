@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -32,6 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  */
+
 /**
  * \file
  *         ContikiRPL, an implementation of RPL: IPv6 Routing Protocol
@@ -40,23 +37,69 @@
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include "net/uip.h"
-#include "net/tcpip.h"
-#include "net/uip-ds6.h"
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
+#include "net/ip/uip.h"
+#include "net/ip/tcpip.h"
+#include "net/ipv6/uip-ds6.h"
+#include "net/ipv6/uip-icmp6.h"
 #include "net/rpl/rpl-private.h"
+#include "net/ipv6/multicast/uip-mcast6.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #include <limits.h>
 #include <string.h>
-
-#if UIP_CONF_IPV6
 
 #if RPL_CONF_STATS
 rpl_stats_t rpl_stats;
 #endif
 
+static enum rpl_mode mode = RPL_MODE_MESH;
+/*---------------------------------------------------------------------------*/
+enum rpl_mode
+rpl_get_mode(void)
+{
+  return mode;
+}
+/*---------------------------------------------------------------------------*/
+enum rpl_mode
+rpl_set_mode(enum rpl_mode m)
+{
+  enum rpl_mode oldmode = mode;
+
+  /* We need to do different things depending on what mode we are
+     switching to. */
+  if(m == RPL_MODE_MESH) {
+
+    /* If we switch to mesh mode, we should send out a DAO message to
+       inform our parent that we now are reachable. Before we do this,
+       we must set the mode variable, since DAOs will not be sent if
+       we are in feather mode. */
+    PRINTF("RPL: switching to mesh mode\n");
+    mode = m;
+
+    if(default_instance != NULL) {
+      rpl_schedule_dao_immediately(default_instance);
+    }
+  } else if(m == RPL_MODE_FEATHER) {
+
+    PRINTF("RPL: switching to feather mode\n");
+    mode = m;
+    if(default_instance != NULL) {
+      rpl_cancel_dao(default_instance);
+    }
+
+  } else {
+    mode = m;
+  }
+
+  return oldmode;
+}
 /*---------------------------------------------------------------------------*/
 void
 rpl_purge_routes(void)
@@ -64,6 +107,9 @@ rpl_purge_routes(void)
   uip_ds6_route_t *r;
   uip_ipaddr_t prefix;
   rpl_dag_t *dag;
+#if RPL_CONF_MULTICAST
+  uip_mcast6_route_t *mcast_route;
+#endif
 
   /* First pass, decrement lifetime */
   r = uip_ds6_route_head();
@@ -105,12 +151,29 @@ rpl_purge_routes(void)
       r = uip_ds6_route_next(r);
     }
   }
+
+#if RPL_CONF_MULTICAST
+  mcast_route = uip_mcast6_route_list_head();
+
+  while(mcast_route != NULL) {
+    if(mcast_route->lifetime <= 1) {
+      uip_mcast6_route_rm(mcast_route);
+      mcast_route = uip_mcast6_route_list_head();
+    } else {
+      mcast_route->lifetime--;
+      mcast_route = list_item_next(mcast_route);
+    }
+  }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
 rpl_remove_routes(rpl_dag_t *dag)
 {
   uip_ds6_route_t *r;
+#if RPL_CONF_MULTICAST
+  uip_mcast6_route_t *mcast_route;
+#endif
 
   r = uip_ds6_route_head();
 
@@ -122,6 +185,19 @@ rpl_remove_routes(rpl_dag_t *dag)
       r = uip_ds6_route_next(r);
     }
   }
+
+#if RPL_CONF_MULTICAST
+  mcast_route = uip_mcast6_route_list_head();
+
+  while(mcast_route != NULL) {
+    if(mcast_route->dag == dag) {
+      uip_mcast6_route_rm(mcast_route);
+      mcast_route = uip_mcast6_route_list_head();
+    } else {
+      mcast_route = list_item_next(mcast_route);
+    }
+  }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -168,7 +244,7 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 }
 /*---------------------------------------------------------------------------*/
 void
-rpl_link_neighbor_callback(const rimeaddr_t *addr, int status, int numtx)
+rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
 {
   uip_ipaddr_t ipaddr;
   rpl_parent_t *parent;
@@ -184,9 +260,10 @@ rpl_link_neighbor_callback(const rimeaddr_t *addr, int status, int numtx)
       if(parent != NULL) {
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_link_neighbor_callback triggering update\n");
-        parent->updated = 1;
+        parent->flags |= RPL_PARENT_FLAG_UPDATED;
         if(instance->of->neighbor_link_callback != NULL) {
           instance->of->neighbor_link_callback(parent, status, numtx);
+          parent->last_tx_time = clock_time();
         }
       }
     }
@@ -210,7 +287,7 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
         p->rank = INFINITE_RANK;
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_ipv6_neighbor_callback infinite rank\n");
-        p->updated = 1;
+        p->flags |= RPL_PARENT_FLAG_UPDATED;
       }
     }
   }
@@ -225,6 +302,7 @@ rpl_init(void)
 
   rpl_dag_init();
   rpl_reset_periodic_timer();
+  rpl_icmp6_register_handlers();
 
   /* add rpl multicast address */
   uip_create_linklocal_rplnodes_mcast(&rplmaddr);
@@ -233,6 +311,9 @@ rpl_init(void)
 #if RPL_CONF_STATS
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
+
+  RPL_OF.reset(NULL);
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_CONF_IPV6 */
+
+/** @}*/

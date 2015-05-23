@@ -33,7 +33,7 @@
 #include "contiki-net.h"
 
 #include "dev/spi.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include "isr_compat.h"
 

@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "shell-netperf.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "contiki-conf.h"
 
 #include <stdio.h>
@@ -76,7 +76,7 @@ enum {
 } datapath_commands;
 
 struct datapath_msg {
-  rimeaddr_t receiver;
+  linkaddr_t receiver;
   rtimer_clock_t tx, rx;
   uint8_t datapath_command;
   uint8_t received;
@@ -99,7 +99,7 @@ static struct broadcast_conn broadcast;
 static struct mesh_conn mesh;
 static struct rucb_conn rucb;
 
-static rimeaddr_t receiver;
+static linkaddr_t receiver;
 static uint8_t is_sender;
 static int left_to_send;
 
@@ -230,11 +230,11 @@ clear_stats(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-setup_sending(rimeaddr_t *to, int num)
+setup_sending(linkaddr_t *to, int num)
 {
   is_sender = 1;
   left_to_send = num;
-  rimeaddr_copy(&receiver, to);
+  linkaddr_copy(&receiver, to);
   clear_stats();
 }
 /*---------------------------------------------------------------------------*/
@@ -291,7 +291,7 @@ construct_next_packet(void)
 #else /* TIMESYNCH_CONF_ENABLED */
     msg->tx = msg->rx = 0;
 #endif /* TIMESYNCH_CONF_ENABLED */
-    rimeaddr_copy(&msg->receiver, &receiver);
+    linkaddr_copy(&msg->receiver, &receiver);
     left_to_send--;
     return 1;
   }
@@ -344,7 +344,7 @@ process_incoming_packet(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-construct_reply(const rimeaddr_t *from)
+construct_reply(const linkaddr_t *from)
 {
   struct datapath_msg *msg = packetbuf_dataptr();
 #if TIMESYNCH_CONF_ENABLED
@@ -390,7 +390,7 @@ timedout_mesh(struct mesh_conn *c)
   stats.timedout++;
 }
 static void
-recv_mesh(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops)
+recv_mesh(struct mesh_conn *c, const linkaddr_t *from, uint8_t hops)
 {
   process_incoming_packet();
   if(is_sender) {
@@ -407,18 +407,18 @@ const static struct mesh_callbacks mesh_callbacks =
   { recv_mesh, sent_mesh, timedout_mesh };
 /*---------------------------------------------------------------------------*/
 static void
-sent_ctrl(struct runicast_conn *c, const rimeaddr_t *to, uint8_t rexmits)
+sent_ctrl(struct runicast_conn *c, const linkaddr_t *to, uint8_t rexmits)
 {
   process_post(&shell_netperf_process, CONTINUE_EVENT, NULL);
 }
 static void
-timedout_ctrl(struct runicast_conn *c, const rimeaddr_t *to, uint8_t rexmits)
+timedout_ctrl(struct runicast_conn *c, const linkaddr_t *to, uint8_t rexmits)
 {
   shell_output_str(&netperf_command, "netperf control connection failed", "");
   process_exit(&shell_netperf_process);
 }
 static void
-recv_ctrl(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
+recv_ctrl(struct runicast_conn *c, const linkaddr_t *from, uint8_t seqno)
 {
   static uint8_t last_seqno = -1;
   struct stats s;
@@ -450,7 +450,7 @@ const static struct runicast_callbacks runicast_callbacks =
   { recv_ctrl, sent_ctrl, timedout_ctrl };
 /*---------------------------------------------------------------------------*/
 static int
-send_ctrl_command(const rimeaddr_t *to, uint8_t command)
+send_ctrl_command(const linkaddr_t *to, uint8_t command)
 {
   struct ctrl_msg *msg;
   packetbuf_clear();
@@ -461,7 +461,7 @@ send_ctrl_command(const rimeaddr_t *to, uint8_t command)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_broadcast(struct broadcast_conn *c, const rimeaddr_t *from)
+recv_broadcast(struct broadcast_conn *c, const linkaddr_t *from)
 {
   process_incoming_packet();
   if(is_sender) {
@@ -473,7 +473,7 @@ const static struct broadcast_callbacks broadcast_callbacks =
   { recv_broadcast };
 /*---------------------------------------------------------------------------*/
 static void
-recv_unicast(struct unicast_conn *c, const rimeaddr_t *from)
+recv_unicast(struct unicast_conn *c, const linkaddr_t *from)
 {
   process_incoming_packet();
   if(is_sender) {
@@ -517,7 +517,7 @@ shell_netperf_init(void)
 PROCESS_THREAD(shell_netperf_process, ev, data)
 {
   static struct etimer e;
-  static rimeaddr_t receiver;
+  static linkaddr_t receiver;
   const char *nextptr;
   const char *args;
   static char recvstr[40];

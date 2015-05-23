@@ -1,23 +1,3 @@
-/** \addtogroup sys
- * @{ */
-
-/**
- * \defgroup rt Real-time task scheduling
- *
- * The real-time module handles the scheduling and execution of
- * real-time tasks (with predictable execution times).
- *
- * @{
- */
-
-/**
- * \file
- *         Header file for the real-time timer module.
- * \author
- *         Adam Dunkels <adam@sics.se>
- *
- */
-
 /*
  * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
@@ -49,8 +29,29 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __RTIMER_H__
-#define __RTIMER_H__
+
+/**
+ * \file
+ *         Header file for the real-time timer module.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ *
+ */
+
+/** \addtogroup sys
+ * @{ */
+
+/**
+ * \defgroup rt Real-time task scheduling
+ *
+ * The real-time module handles the scheduling and execution of
+ * real-time tasks (with predictable execution times).
+ *
+ * @{
+ */
+
+#ifndef RTIMER_H_
+#define RTIMER_H_
 
 #include "contiki-conf.h"
 
@@ -150,7 +151,7 @@ void rtimer_arch_schedule(rtimer_clock_t t);
 
 #define RTIMER_SECOND RTIMER_ARCH_SECOND
 
-#endif /* __RTIMER_H__ */
+#endif /* RTIMER_H_ */
 
 /** @} */
 /** @} */

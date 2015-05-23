@@ -36,8 +36,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __UIP_DRIVER_H__
-#define __UIP_DRIVER_H__
+#ifndef UIP_DRIVER_H_
+#define UIP_DRIVER_H_
 
 #include "net/netstack.h"
 
@@ -45,4 +45,4 @@ uint8_t uip_driver_send(void);
 
 extern const struct network_driver uip_driver;
 
-#endif /* __UIP_DRIVER_H__ */
+#endif /* UIP_DRIVER_H_ */

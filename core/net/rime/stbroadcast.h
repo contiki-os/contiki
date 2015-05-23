@@ -1,23 +1,3 @@
-/**
- * \addtogroup rime
- * @{
-*/
-
-/**
- * \defgroup rimestbroadcast Stubborn best-effort local area broadcast
- * @{
- *
- * The stbroadcast module provides stubborn anonymous best-effort local area
- * broadcast. A message sent with the stbroadcast module is repeated until
- * either the message is canceled or a new message is sent. Messages
- * sent with the stbroadcast module are not identified with a sender ID.
- *
- * \section channels Channels
- *
- * The stbroadcast module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -57,8 +37,28 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __STBROADCAST_H__
-#define __STBROADCAST_H__
+/**
+ * \addtogroup rime
+ * @{
+*/
+
+/**
+ * \defgroup rimestbroadcast Stubborn best-effort local area broadcast
+ * @{
+ *
+ * The stbroadcast module provides stubborn anonymous best-effort local area
+ * broadcast. A message sent with the stbroadcast module is repeated until
+ * either the message is canceled or a new message is sent. Messages
+ * sent with the stbroadcast module are not identified with a sender ID.
+ *
+ * \section stbroadcast-channels Channels
+ *
+ * The stbroadcast module uses 1 channel.
+ *
+ */
+
+#ifndef STBROADCAST_H_
+#define STBROADCAST_H_
 
 #include "sys/ctimer.h"
 
@@ -147,7 +147,7 @@ void stbroadcast_cancel(struct stbroadcast_conn *c);
  */
 void stbroadcast_set_timer(struct stbroadcast_conn *c, clock_time_t t);
 
-#endif /* __STBROADCAST_H__ */
+#endif /* STBROADCAST_H_ */
 
 /** @} */
 /** @} */

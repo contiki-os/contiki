@@ -41,7 +41,7 @@ The COOJA Simulator
   </target>
   
   <target name="export-jar" depends="init, jar">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.util.ExecuteJAR" maxmemory="512m">
+    <java fork="yes" dir="${build}" classname="org.contikios.cooja.util.ExecuteJAR" maxmemory="512m">
         <sysproperty key="user.language" value="en"/>
         <arg file="${CSC}"/>
         <arg file="exported.jar"/>
@@ -51,6 +51,7 @@ The COOJA Simulator
           <pathelement location="lib/jdom.jar"/>
           <pathelement location="lib/log4j.jar"/>
           <pathelement location="lib/jsyntaxpane.jar"/>
+          <pathelement location="lib/swingx-all-1.6.4.jar"/>
         </classpath>
     </java>
   </target>
@@ -64,6 +65,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </javadoc>
   </target>
@@ -71,12 +73,14 @@ The COOJA Simulator
   <target name="compile" depends="init">
     <mkdir dir="${build}"/>
     <javac srcdir="${java}" destdir="${build}" debug="on"
-           includeantruntime="false">
+           includeantruntime="false"
+           encoding="utf-8">
       <classpath>
         <pathelement path="."/>
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </javac>
   </target>
@@ -100,7 +104,7 @@ The COOJA Simulator
   </target>
 
   <target name="run" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
+    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="512m">
       <sysproperty key="user.language" value="en"/>
       <arg line="${args}"/>
       <env key="LD_LIBRARY_PATH" value="."/>
@@ -109,12 +113,13 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
 
   <target name="run64" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
+    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="512m">
       <sysproperty key="user.language" value="en"/>
       <jvmarg value="-d64 -XX:+ShowMessageBoxOnError"/>
       <arg line="${args}"/>
@@ -124,12 +129,13 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
 
   <target name="run_errorbox" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
+    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="512m">
       <sysproperty key="user.language" value="en"/>
       <jvmarg value="-XX:+ShowMessageBoxOnError"/>
       <env key="LD_LIBRARY_PATH" value="."/>
@@ -138,12 +144,13 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
 
   <target name="runprof" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI">
+    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja">
       <arg line="${args}"/>
       <env key="LD_LIBRARY_PATH" value="."/>
       <jvmarg line="-agentlib:yjpagent"/>
@@ -152,12 +159,13 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
 
   <target name="runfree" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="1536m">
+    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="1536m">
       <arg line="${args}"/>
       <env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
@@ -165,6 +173,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
         <pathelement location="../mspsim/lib/jfreechart-1.0.11.jar"/>
         <pathelement location="../mspsim/lib/jcommon-1.0.14.jar"/>
       </classpath>
@@ -172,7 +181,7 @@ The COOJA Simulator
   </target>
 
   <target name="run_bigmem" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="1536m">
+    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="1536m">
       <arg line="${args}"/>
       <env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
@@ -180,6 +189,7 @@ The COOJA Simulator
         <pathelement location="lib/jdom.jar"/>
         <pathelement location="lib/log4j.jar"/>
         <pathelement location="lib/jsyntaxpane.jar"/>
+        <pathelement location="lib/swingx-all-1.6.4.jar"/>
       </classpath>
     </java>
   </target>
@@ -194,7 +204,7 @@ The COOJA Simulator
   </target>
 
   <target name="run_nogui" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
+    <java fork="yes" dir="${build}" classname="org.contikios.cooja.Cooja" maxmemory="512m">
       <arg line="-nogui=${args}"/>
       <env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
@@ -225,8 +235,8 @@ The COOJA Simulator
     <mkdir dir="${dist}"/>
     <jar destfile="${dist}/cooja.jar" basedir="${build}">
       <manifest>
-        <attribute name="Main-Class" value="se.sics.cooja.GUI"/>
-        <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar lib/jsyntaxpane.jar"/>
+        <attribute name="Main-Class" value="org.contikios.cooja.Cooja"/>
+        <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar lib/jsyntaxpane.jar lib/swingx-all-1.6.4.jar"/>
       </manifest>
     </jar>
     <mkdir dir="${dist}/lib"/>

@@ -48,8 +48,8 @@
   @{
   */
 
-#ifndef _USB_USERCONFIG_H_
-#define _USB_USERCONFIG_H_
+#ifndef USB_USERCONFIG_H_
+#define USB_USERCONFIG_H_
 
 //_____ I N C L U D E S ____________________________________________________
 
@@ -543,6 +543,6 @@ U8 Usb_get_dev_desc_length(void);
 PGM_VOID_P  Usb_get_conf_desc_pointer(U8 index) ;
 U8  Usb_get_conf_desc_length(U8 index);
 
-#endif // _USB_USERCONFIG_H_
+#endif //USB_USERCONFIG_H_
 
 /** @} */

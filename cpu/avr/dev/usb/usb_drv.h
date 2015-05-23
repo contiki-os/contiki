@@ -40,8 +40,8 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _USB_DRV_H_
-#define _USB_DRV_H_
+#ifndef USB_DRV_H_
+#define USB_DRV_H_
 
 #include "compiler.h"
 
@@ -936,6 +936,6 @@ U8 usb_endpoint_wait_for_IN_ready();
 
 #define usb_endpoint_wait_for_read_enabled usb_endpoint_wait_for_write_enabled
 
-#endif  // _USB_DRV_H_
+#endif  //USB_DRV_H_
 
 /** @} */

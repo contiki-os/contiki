@@ -48,7 +48,7 @@
 #include "storage.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 struct search_handle {
   index_t *index;

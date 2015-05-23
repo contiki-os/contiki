@@ -56,7 +56,7 @@ PROCESS_THREAD(test_potent_process, ev, data)
   while(1) {
     uint16_t value = potentiometer_sensor.value(0);
 
-    printf("Potentiometer Value: %i\n", v);
+    printf("Potentiometer Value: %u\n", value);
   }
 
   SENSORS_DEACTIVATE(potentiometer_sensor);

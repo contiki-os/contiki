@@ -73,7 +73,6 @@ PROCESS_THREAD(collect_view_shell_process, ev, data)
   /* shell_base64_init(); */
   shell_text_init();
   shell_time_init();
-  /* shell_checkpoint_init(); */
   /* shell_sendtest_init(); */
 
 #if CONTIKI_TARGET_SKY

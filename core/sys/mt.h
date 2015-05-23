@@ -79,11 +79,14 @@
  * Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __MT_H__
-#define __MT_H__
+#ifndef MT_H_
+#define MT_H_
 
 #include "contiki.h"
 
+#define MT_STATE_READY   1
+#define MT_STATE_RUNNING 2
+#define MT_STATE_EXITED  5
 
 /**
  * An opaque structure that is used for holding the state of a thread.
@@ -267,4 +270,4 @@ void mt_stop(struct mt_thread *thread);
 
 /** @} */
 /** @} */
-#endif /* __MT_H__ */
+#endif /* MT_H_ */

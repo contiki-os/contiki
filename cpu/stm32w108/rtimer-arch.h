@@ -42,8 +42,8 @@
  *         Salvatore Pitrulli <salvopitru@users.sourceforge.net>
  */
 
-#ifndef __RTIMER_ARCH_H__
-#define __RTIMER_ARCH_H__
+#ifndef RTIMER_ARCH_H_
+#define RTIMER_ARCH_H_
 
 #define RTIMER_ARCH_RES_341US 0
 #define RTIMER_ARCH_RES_171US 1
@@ -93,5 +93,5 @@ void rtimer_arch_disable_irq(void);
 
 void rtimer_arch_enable_irq(void);
 
-#endif /* __RTIMER_ARCH_H__ */
+#endif /* RTIMER_ARCH_H_ */
 /** @} */

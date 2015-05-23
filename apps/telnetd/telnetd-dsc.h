@@ -31,11 +31,11 @@
  *
  *
  */
-#ifndef __TELNETD_DSC_H__
-#define __TELNETD_DSC_H__
+#ifndef TELNETD_DSC_H_
+#define TELNETD_DSC_H_
 
 #include "sys/dsc.h"
 
 DSC_HEADER(telnetd_dsc);
 
-#endif /* __TELNETD_DSC_H__ */
+#endif /* TELNETD_DSC_H_ */

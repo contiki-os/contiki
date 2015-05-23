@@ -30,7 +30,7 @@
 #include "contiki.h"
 #include "net/packetbuf.h"
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
 int

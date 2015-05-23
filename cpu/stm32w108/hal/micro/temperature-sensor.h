@@ -1,11 +1,11 @@
-/** @file temperature-sensor.h
- * @brief Header for temperature sensor driver 
+/** @file cpu/stm32w108/hal/micro/temperature-sensor.h
+ * @brief Header for temperature sensor driver
  *
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
-#ifndef _TEMP_SENSOR_H_
-#define _TEMP_SENSOR_H_
+#ifndef TEMP_SENSOR_H_
+#define TEMP_SENSOR_H_
 
 /* Include --------------------------------------------------------------------*/
 #include "hal/micro/adc.h"
@@ -15,13 +15,13 @@
 
 /* Functions -----------------------------------------------------------------*/
 
-/** @brief Temperature Sensor Initialization function 
+/** @brief Temperature Sensor Initialization function
 */
 void temperatureSensor_Init(void);
 
-/** @brief  Get temperature sensor value 
+/** @brief  Get temperature sensor value
 */
 uint32_t temperatureSensor_GetValue(void);
 
-#endif /* _TEMP_SENSOR_H_ */
+#endif /*TEMP_SENSOR_H_ */
 

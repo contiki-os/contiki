@@ -1,9 +1,3 @@
-/**
- * \addtogroup rimeabc
- * @{
- */
-
-
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -45,8 +39,13 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+/**
+ * \addtogroup rimeabc
+ * @{
+ */
+
 #include "contiki-net.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 
 #define DEBUG 0
@@ -80,7 +79,7 @@ int
 abc_send(struct abc_conn *c)
 {
   PRINTF("%d.%d: abc: abc_send on channel %d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 c->channel.channelno);
   return rime_output(&c->channel);
 }
@@ -90,7 +89,7 @@ abc_input(struct channel *channel)
 {
   struct abc_conn *c = (struct abc_conn *)channel;
   PRINTF("%d.%d: abc: abc_input_packet on channel %d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 channel->channelno);
 
   if(c->u->recv) {
@@ -103,7 +102,7 @@ abc_sent(struct channel *channel, int status, int num_tx)
 {
   struct abc_conn *c = (struct abc_conn *)channel;
   PRINTF("%d.%d: abc: abc_sent on channel %d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 channel->channelno);
 
   if(c->u->sent) {

@@ -1,22 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimebroadcastannouncement
- * @{
- *
- * The broadcast announcement module implements a periodic explicit
- * announcement. THe module announces the announcements that have been
- * registered with the \ref rimeannouncement "announcement module".
- *
- * \section channels Channels
- *
- * The broadcast announcement module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -56,8 +37,27 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __BROADCAST_ANNOUNCEMENT_H__
-#define __BROADCAST_ANNOUNCEMENT_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimebroadcastannouncement Broadcast announcement
+ * @{
+ *
+ * The broadcast announcement module implements a periodic explicit
+ * announcement. THe module announces the announcements that have been
+ * registered with the \ref rimeannouncement "announcement module".
+ *
+ * \section bcast-announce-channels Channels
+ *
+ * The broadcast announcement module uses 1 channel.
+ *
+ */
+
+#ifndef BROADCAST_ANNOUNCEMENT_H_
+#define BROADCAST_ANNOUNCEMENT_H_
 
 void broadcast_announcement_init(uint16_t channel,
                                  clock_time_t bump_time,
@@ -66,6 +66,6 @@ void broadcast_announcement_init(uint16_t channel,
 
 clock_time_t broadcast_announcement_beacon_interval(void);
 
-#endif /* __BROADCAST_ANNOUNCEMENT_H__ */
+#endif /* BROADCAST_ANNOUNCEMENT_H_ */
 /** @} */
 /** @} */

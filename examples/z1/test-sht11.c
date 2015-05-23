@@ -39,7 +39,7 @@
  */
 
 #include "contiki.h"
-#include "dev/sht11.h"
+#include "dev/sht11/sht11.h"
 
 #include <stdio.h>
 

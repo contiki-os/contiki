@@ -28,12 +28,12 @@
  *
  */
 
-#ifndef __DUMMY_INTF_H__
-#define __DUMMY_INTF_H__
+#ifndef DUMMY_INTF_H_
+#define DUMMY_INTF_H_
 
 // Interface needs to include something?
 
 #define DUMMY_NR_1 1
 #define DUMMY_NR_2 2
 
-#endif /* __DUMMY_INTF_H__ */
+#endif /* DUMMY_INTF_H_ */

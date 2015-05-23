@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef __PROJECT_RPL_WEB_CONF_H__
-#define __PROJECT_RPL_WEB_CONF_H__
+#ifndef PROJECT_RPL_WEB_CONF_H_
+#define PROJECT_RPL_WEB_CONF_H_
 
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          5
@@ -47,4 +47,4 @@
 #undef WEBSERVER_CONF_CFS_PATHLEN
 #define WEBSERVER_CONF_CFS_PATHLEN 80
 
-#endif /* __PROJECT_RPL_WEB_CONF_H__ */
+#endif /* PROJECT_RPL_WEB_CONF_H_ */

@@ -45,3 +45,6 @@ ifneq ($(strip $(HAVE_PRGBOARD_FILE)), )
   include $(PRGBOARD_FILE)
 endif 
 
+MODULES += core/net \
+           core/net/mac core/net/mac/cxmac core/net/mac/sicslowmac \
+           core/net/llsec dev/cc2420

@@ -1,5 +1,5 @@
 /**
- * \addtogroup cc2538
+ * \addtogroup cc2538dk
  * @{
  *
  * \file
@@ -38,6 +38,49 @@ typedef uint32_t uip_stats_t;
  */
 typedef uint32_t rtimer_clock_t;
 #define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name Serial Boot Loader Backdoor configuration
+ *
+ * @{
+ */
+#ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR	0 /**<Enable the boot loader backdoor */
+#endif
+
+#ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN 3 /**< Pin PA_3 (Select button) activates the boot loader */
+#endif
+
+#ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH 0 /**< A logic low level activates the boot loader */
+#endif
+/** @} */
+
+/*---------------------------------------------------------------------------*/
+/**
+ * \name Flash Memory configuration
+ *
+ * @{
+ */
+#ifndef FLASH_CONF_ORIGIN
+#define FLASH_CONF_ORIGIN  0x00200000
+#endif
+
+#ifndef FLASH_CONF_SIZE
+#define FLASH_CONF_SIZE    0x00080000 /* 512 KiB */
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name Watchdog Timer configuration
+ *
+ * @{
+ */
+#ifndef WATCHDOG_CONF_ENABLE
+#define WATCHDOG_CONF_ENABLE	      1 /**< Enable the watchdog timer */
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -94,24 +137,58 @@ typedef uint32_t rtimer_clock_t;
 #define UART_CONF_ENABLE            1 /**< Enable/Disable UART I/O */
 #endif
 
-#ifndef UART_CONF_BAUD_RATE
-#define UART_CONF_BAUD_RATE    115200 /**< Default baud rate */
+#ifndef UART0_CONF_BAUD_RATE
+#define UART0_CONF_BAUD_RATE   115200 /**< Default UART0 baud rate */
+#endif
+
+#ifndef UART1_CONF_BAUD_RATE
+#define UART1_CONF_BAUD_RATE   115200 /**< Default UART1 baud rate */
 #endif
 
 #ifndef SLIP_ARCH_CONF_USB
 #define SLIP_ARCH_CONF_USB          0 /**< SLIP over UART by default */
 #endif
+
 #ifndef CC2538_RF_CONF_SNIFFER_USB
 #define CC2538_RF_CONF_SNIFFER_USB  0 /**< Sniffer out over UART by default */
 #endif
+
 #ifndef DBG_CONF_USB
 #define DBG_CONF_USB                0 /**< All debugging over UART by default */
+#endif
+
+#ifndef SERIAL_LINE_CONF_UART
+#define SERIAL_LINE_CONF_UART       0 /**< UART to use with serial line */
+#endif
+
+#if !SLIP_ARCH_CONF_USB
+#ifndef SLIP_ARCH_CONF_UART
+#define SLIP_ARCH_CONF_UART         0 /**< UART to use with SLIP */
+#endif
+#endif
+
+#if !CC2538_RF_CONF_SNIFFER_USB
+#ifndef CC2538_RF_CONF_SNIFFER_UART
+#define CC2538_RF_CONF_SNIFFER_UART 0 /**< UART to use with sniffer */
+#endif
+#endif
+
+#if !DBG_CONF_USB
+#ifndef DBG_CONF_UART
+#define DBG_CONF_UART               0 /**< UART to use for debugging */
+#endif
+#endif
+
+#ifndef UART1_CONF_UART
+#define UART1_CONF_UART             0 /**< UART to use for examples relying on
+                                           the uart1_* API */
 #endif
 
 /* Turn off example-provided putchars */
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
 #define SLIP_RADIO_CONF_NO_PUTCHAR  1
 
+#ifndef SLIP_ARCH_CONF_ENABLED
 /*
  * Determine whether we need SLIP
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
@@ -119,6 +196,7 @@ typedef uint32_t rtimer_clock_t;
  */
 #if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED      1
+#endif
 #endif
 
 /*
@@ -173,8 +251,32 @@ typedef uint32_t rtimer_clock_t;
  * this
  */
 #if SLIP_ARCH_CONF_ENABLED
-#define DBG_CONF_SLIP_MUX (SLIP_ARCH_CONF_USB==DBG_CONF_USB)
+#define DBG_CONF_SLIP_MUX (SLIP_ARCH_CONF_USB == DBG_CONF_USB && \
+                           (SLIP_ARCH_CONF_USB || \
+                            SLIP_ARCH_CONF_UART == DBG_CONF_UART))
 #endif
+
+/*
+ * Automatic detection of whether a specific UART is in use
+ */
+#define UART_IN_USE_BY_SERIAL_LINE(u) (SERIAL_LINE_CONF_UART == (u))
+#define UART_IN_USE_BY_SLIP(u)        (SLIP_ARCH_CONF_ENABLED && \
+                                       !SLIP_ARCH_CONF_USB && \
+                                       SLIP_ARCH_CONF_UART == (u))
+#define UART_IN_USE_BY_RF_SNIFFER(u)  (CC2538_RF_CONF_SNIFFER && \
+                                       !CC2538_RF_CONF_SNIFFER_USB && \
+                                       CC2538_RF_CONF_SNIFFER_UART == (u))
+#define UART_IN_USE_BY_DBG(u)         (!DBG_CONF_USB && DBG_CONF_UART == (u))
+#define UART_IN_USE_BY_UART1(u)       (UART1_CONF_UART == (u))
+
+#define UART_IN_USE(u) ( \
+  UART_CONF_ENABLE && \
+  (UART_IN_USE_BY_SERIAL_LINE(u) || \
+   UART_IN_USE_BY_SLIP(u) || \
+   UART_IN_USE_BY_RF_SNIFFER(u) || \
+   UART_IN_USE_BY_DBG(u) || \
+   UART_IN_USE_BY_UART1(u)) \
+)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* board.h assumes that basic configuration is done */
@@ -186,11 +288,11 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef NETSTACK_CONF_NETWORK
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #else
 #define NETSTACK_CONF_NETWORK rime_driver
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* NETSTACK_CONF_NETWORK */
 
 #ifndef NETSTACK_CONF_MAC
@@ -206,7 +308,6 @@ typedef uint32_t rtimer_clock_t;
 #define NULLRDC_802154_AUTOACK_HW               1
 
 /* Configure ContikiMAC for when it's selected */
-#define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #define WITH_FAST_SLEEP                         1
 
@@ -215,8 +316,12 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 #ifndef NETSTACK_CONF_FRAMER
+#if NETSTACK_CONF_WITH_IPV6
 #define NETSTACK_CONF_FRAMER  framer_802154
-#endif
+#else /* NETSTACK_CONF_WITH_IPV6 */
+#define NETSTACK_CONF_FRAMER  contikimac_framer
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+#endif /* NETSTACK_CONF_FRAMER */
 
 #define NETSTACK_CONF_RADIO   cc2538_rf_driver
 /** @} */
@@ -226,7 +331,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef LPM_CONF_ENABLE
-#define LPM_CONF_ENABLE       1 /**< Set to 0 to disable LPM entirely */
+#define LPM_CONF_ENABLE       0 /**< Set to 0 to disable LPM entirely */
 #endif
 
 /**
@@ -266,6 +371,16 @@ typedef uint32_t rtimer_clock_t;
 #ifndef IEEE_ADDR_CONF_ADDRESS
 #define IEEE_ADDR_CONF_ADDRESS { 0x00, 0x12, 0x4B, 0x00, 0x89, 0xAB, 0xCD, 0xEF }
 #endif
+
+/**
+ * \brief Location of the IEEE address in the InfoPage when
+ * IEEE_ADDR_CONF_HARDCODED is defined as 0
+ * 0 => Use the primary address location
+ * 1 => Use the secondary address location
+ */
+#ifndef IEEE_ADDR_CONF_USE_SECONDARY_LOCATION
+#define IEEE_ADDR_CONF_USE_SECONDARY_LOCATION 0
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -275,7 +390,7 @@ typedef uint32_t rtimer_clock_t;
  */
 /* RF Config */
 #ifndef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID           0x5449 /**< Default PAN ID: TI */
+#define IEEE802154_CONF_PANID           0xABCD
 #endif
 
 #ifndef CC2538_RF_CONF_CHANNEL
@@ -302,14 +417,14 @@ typedef uint32_t rtimer_clock_t;
  */
 
 /* Don't let contiki-default-conf.h decide if we are an IPv6 build */
-#ifndef UIP_CONF_IPV6
-#define UIP_CONF_IPV6                        0
+#ifndef NETSTACK_CONF_WITH_IPV6
+#define NETSTACK_CONF_WITH_IPV6                        0
 #endif
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* Addresses, Sizes and Interfaces */
 /* 8-byte addresses here, 2 otherwise */
-#define RIMEADDR_CONF_SIZE                   8
+#define LINKADDR_CONF_SIZE                   8
 #define UIP_CONF_LL_802154                   1
 #define UIP_CONF_LLH_LEN                     0
 #define UIP_CONF_NETIF_MAX_ADDRESSES         3
@@ -318,7 +433,9 @@ typedef uint32_t rtimer_clock_t;
 #ifndef UIP_CONF_TCP
 #define UIP_CONF_TCP                         1
 #endif
+#ifndef UIP_CONF_TCP_MSS
 #define UIP_CONF_TCP_MSS                    64
+#endif
 #define UIP_CONF_UDP                         1
 #define UIP_CONF_UDP_CHECKSUMS               1
 #define UIP_CONF_ICMP6                       1
@@ -326,10 +443,6 @@ typedef uint32_t rtimer_clock_t;
 /* ND and Routing */
 #ifndef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER                      1
-#endif
-
-#ifndef UIP_CONF_IPV6_RPL
-#define UIP_CONF_IPV6_RPL                    1
 #endif
 
 #define UIP_CONF_ND6_SEND_RA                 0
@@ -344,10 +457,10 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS                20
+#define NBR_TABLE_CONF_MAX_NEIGHBORS                100
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES                 20
+#define UIP_CONF_MAX_ROUTES                 200
 #endif
 
 /* uIP */
@@ -385,7 +498,7 @@ typedef uint32_t rtimer_clock_t;
 #define QUEUEBUF_CONF_NUM                    8
 #endif
 /*---------------------------------------------------------------------------*/
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 /* Network setup for non-IPv6 (rime). */
 #define UIP_CONF_IP_FORWARD                  1
 
@@ -399,7 +512,7 @@ typedef uint32_t rtimer_clock_t;
 #define QUEUEBUF_CONF_NUM                    8
 #endif
 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 /** @} */
 /*---------------------------------------------------------------------------*/
 

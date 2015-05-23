@@ -38,7 +38,7 @@
  */
 
 #include "contiki.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include "net/rime/announcement.h"
 
@@ -53,7 +53,7 @@ PROCESS(example_announcement_process, "Example announcement process");
 AUTOSTART_PROCESSES(&example_announcement_process);
 /*---------------------------------------------------------------------------*/
 static void
-received_announcement(struct announcement *a, const rimeaddr_t *from,
+received_announcement(struct announcement *a, const linkaddr_t *from,
 		      uint16_t id, uint16_t value)
 {
   /* We set our own announced value to one plus that of our neighbor. */
@@ -88,7 +88,7 @@ PROCESS_THREAD(example_announcement_process, ev, data)
 			received_announcement);
 
   /* Set the lowest eight bytes of the Rime address as the value. */
-  announcement_set_value(&example_announcement, rimeaddr_node_addr.u8[0]);
+  announcement_set_value(&example_announcement, linkaddr_node_addr.u8[0]);
 
   while(1) {
     static struct etimer et;

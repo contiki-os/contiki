@@ -1,0 +1,6 @@
+# Makefile for Z1 Starter Platform
+
+# This is the actual flag we need to include specific Z1SP components
+CFLAGS += -DZ1_IS_Z1SP
+
+CONTIKI_TARGET_SOURCEFILES += potentiometer-sensor.c

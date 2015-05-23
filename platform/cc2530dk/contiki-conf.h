@@ -1,5 +1,5 @@
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef CONTIKI_CONF_H_
+#define CONTIKI_CONF_H_
 
 #include "8051def.h"
 #include "sys/cc.h"
@@ -157,19 +157,19 @@
 #endif
 
 /* Viztool on by default for IPv6 builds */
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #ifndef VIZTOOL_CONF_ON
 #define VIZTOOL_CONF_ON        1
 #endif /* VIZTOOL_CONF_ON */
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* Network Stack */
 #ifndef NETSTACK_CONF_NETWORK
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #else
 #define NETSTACK_CONF_NETWORK rime_driver
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* NETSTACK_CONF_NETWORK */
 
 #ifndef NETSTACK_CONF_MAC
@@ -193,7 +193,9 @@
 #define NETSTACK_CONF_RADIO   cc2530_rf_driver
 
 /* RF Config */
-#define IEEE802154_CONF_PANID 0x5449 /* TI */
+#ifndef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID 0xABCD
+#endif
 
 #ifndef CC2530_RF_CONF_CHANNEL
 #define CC2530_RF_CONF_CHANNEL    25
@@ -203,10 +205,10 @@
 #define CC2530_RF_CONF_AUTOACK 1
 #endif /* CC2530_CONF_AUTOACK */
 
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 /* Addresses, Sizes and Interfaces */
 /* 8-byte addresses here, 2 otherwise */
-#define RIMEADDR_CONF_SIZE                   8
+#define LINKADDR_CONF_SIZE                   8
 #define UIP_CONF_LL_802154                   1
 #define UIP_CONF_LLH_LEN                     0
 #define UIP_CONF_NETIF_MAX_ADDRESSES         3
@@ -267,17 +269,17 @@
 #define QUEUEBUF_CONF_NUM                    6
 #endif
 
-#else /* UIP_CONF_IPV6 */
+#else /* NETSTACK_CONF_WITH_IPV6 */
 /* Network setup for non-IPv6 (rime). */
 #define UIP_CONF_IP_FORWARD                  1
 #define UIP_CONF_BUFFER_SIZE               108
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS     0
 #define QUEUEBUF_CONF_NUM                    8
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 
 /* Prevent SDCC compile error when UIP_CONF_ROUTER == 0 */
 #if !UIP_CONF_ROUTER
 #define UIP_CONF_DS6_AADDR_NBU               1
 #endif
 
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* CONTIKI_CONF_H_ */

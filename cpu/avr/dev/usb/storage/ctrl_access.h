@@ -52,8 +52,8 @@
  @{
 */
 
-#ifndef _MEM_CTRL_H_
-#define _MEM_CTRL_H_
+#ifndef MEM_CTRL_H_
+#define MEM_CTRL_H_
 
 #include "storage/conf_access.h"
 #include "storage/ctrl_status.h"
@@ -153,5 +153,5 @@ Ctrl_status    ram_2_memory( U8 lun , const U32 _MEM_TYPE_SLOW_ *addr , U8 _MEM_
 #endif   // (ACCESS_STREAM == ENABLED)
 //--------------------------------------------------------------------------
 
-#endif   // _MEM_CTRL_H_
+#endif   //MEM_CTRL_H_
 /**@}*/

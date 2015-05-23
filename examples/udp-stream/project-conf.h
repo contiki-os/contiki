@@ -28,8 +28,8 @@
  *
  */
 
-#ifndef __PROJECT_H__
-#define __PROJECT_H__
+#ifndef PROJECT_H_
+#define PROJECT_H_
 
 /* Free some code and RAM space */
 #define UIP_CONF_TCP                    0
@@ -49,4 +49,4 @@
 /* Set a large (1 sector) default size for coffee files. */
 #define COFFEE_CONF_DYN_SIZE     (COFFEE_SECTOR_SIZE - COFFEE_PAGE_SIZE + 1)
 
-#endif /* __PROJECT_H__ */
+#endif /* PROJECT_H_ */

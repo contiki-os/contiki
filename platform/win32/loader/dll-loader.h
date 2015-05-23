@@ -31,8 +31,8 @@
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
  */
-#ifndef __DLL_LOADER_H__
-#define __DLL_LOADER_H__
+#ifndef DLL_LOADER_H_
+#define DLL_LOADER_H_
 
 #define LOADER_LOAD(name, arg) dll_loader_load(name, arg)
 #define LOADER_UNLOAD()        dll_loader_unload((void *)autostart_processes)
@@ -44,4 +44,4 @@ CCIF void dll_loader_unload(void *addr);
 CCIF struct dsc *dll_loader_load_dsc(char *name);
 CCIF void __stdcall dll_loader_unload_dsc(void *addr);
 
-#endif /* __DLL_LOADER_H__ */
+#endif /* DLL_LOADER_H_ */

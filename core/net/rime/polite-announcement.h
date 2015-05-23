@@ -1,22 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimepoliteannouncement
- * @{
- *
- * The polite announcement module implements a periodic explicit
- * announcement. THe module announces the announcements that have been
- * registered with the \ref rimeannouncement "announcement module".
- *
- * \section channels Channels
- *
- * The polite announcement module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -56,13 +37,32 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __POLITE_ANNOUNCEMENT_H__
-#define __POLITE_ANNOUNCEMENT_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimepoliteannouncement Polite announcement
+ * @{
+ *
+ * The polite announcement module implements a periodic explicit
+ * announcement. THe module announces the announcements that have been
+ * registered with the \ref rimeannouncement "announcement module".
+ *
+ * \section polite-announcement-channels Channels
+ *
+ * The polite announcement module uses 1 channel.
+ *
+ */
+
+#ifndef POLITE_ANNOUNCEMENT_H_
+#define POLITE_ANNOUNCEMENT_H_
 
 void polite_announcement_init(uint16_t channel,
 			      clock_time_t min,
 			      clock_time_t max);
 
-#endif /* __POLITE_ANNOUNCEMENT_H__ */
+#endif /* POLITE_ANNOUNCEMENT_H_ */
 /** @} */
 /** @} */

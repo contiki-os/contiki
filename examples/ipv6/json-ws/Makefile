@@ -1,7 +1,5 @@
 CONTIKI=../../..
 
-WITH_UIP6=1
-UIP_CONF_IPV6=1
 SMALL=1
 
 PROJECT_SOURCEFILES += json-ws.c
@@ -27,4 +25,5 @@ ifneq ($(TARGET),)
 all: websense-$(TARGET)
 endif
 
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include

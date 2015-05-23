@@ -1,12 +1,16 @@
 /** @file hal/micro/system-timer.h
  *  @brief Header file for system_timer APIs
- * 
+ *
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
 
  */
 
-/** @addtogroup system_timer
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/** @defgroup system_timer
  * @brief Functions that provide access to the system clock.
  *
  * A single system tick (as returned by ::halCommonGetInt16uMillisecondTick() and
@@ -29,13 +33,13 @@
  *@{
  */
 
-#ifndef __SYSTEM_TIMER_H__
-#define __SYSTEM_TIMER_H__
+#ifndef SYSTEM_TIMER_H_
+#define SYSTEM_TIMER_H_
 
 /**
  * @brief Initializes the system tick.
  *
- * @return Time to update the async registers after RTC is started (units of 100 
+ * @return Time to update the async registers after RTC is started (units of 100
  * microseconds).
  */
 uint16_t halInternalStartSystemTimer(void);
@@ -54,9 +58,9 @@ uint16_t halCommonGetInt16uMillisecondTick(void);
  * @brief Returns the current system time in system ticks, as a 32-bit
  * value.
  *
- * @nostackusage
+ * nostackusage
  *
- * @return The least significant 32 bits of the current system time, in 
+ * @return The least significant 32 bits of the current system time, in
  * system ticks.
  */
 uint32_t halCommonGetInt32uMillisecondTick(void);
@@ -65,18 +69,18 @@ uint32_t halCommonGetInt32uMillisecondTick(void);
  * @brief Returns the current system time in quarter second ticks, as a
  * 16-bit value.
  *
- * @nostackusage
+ * nostackusage
  *
  * @return The least significant 16 bits of the current system time, in system
  * ticks multiplied by 256.
  */
 uint16_t halCommonGetInt16uQuarterSecondTick(void);
 
-#endif //__SYSTEM_TIMER_H__
+#endif //SYSTEM_TIMER_H_
 
-/**@} //END addtogroup 
+/**@} //END addtogroup
  */
-
+/** @} */
 
 
 

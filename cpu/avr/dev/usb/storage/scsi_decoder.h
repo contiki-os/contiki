@@ -44,8 +44,8 @@
  \addtogroup usbstorage
  @{
 */
-#ifndef _SCSI_DECODER_H_
-#define _SCSI_DECODER_H_
+#ifndef SCSI_DECODER_H_
+#define SCSI_DECODER_H_
 
 //_____ I N C L U D E S ____________________________________________________
 
@@ -334,5 +334,5 @@ void  sbc_lun_status_is_not_present(void);
 void  sbc_lun_status_is_fail(void);
 void  sbc_lun_status_is_protected(void);
 
-#endif /* _SCSI_DECODER_H_ */
+#endif /*SCSI_DECODER_H_ */
 /** @} */

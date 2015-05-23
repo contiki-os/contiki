@@ -39,8 +39,8 @@
  *         Frederic Thepaut
  */
 
-#ifndef __CONTIKI_AVR_ZIGBIT_H__
-#define __CONTIKI_AVR_ZIGBIT_H__
+#ifndef CONTIKI_AVR_ZIGBIT_H_
+#define CONTIKI_AVR_ZIGBIT_H_
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -55,4 +55,4 @@ void init_lowlevel(void);
 void init_net(void);
 
 
-#endif /* #ifndef __CONTIKI_AVR_ZIGBIT_H__ */
+#endif /* #ifndef CONTIKI_AVR_ZIGBIT_H_ */

@@ -54,14 +54,14 @@ import javax.swing.table.DefaultTableCellRenderer;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
-import se.sics.cooja.Mote;
-import se.sics.cooja.PluginType;
-import se.sics.cooja.SimEventCentral.MoteCountListener;
-import se.sics.cooja.Simulation;
-import se.sics.cooja.VisPlugin;
-import se.sics.cooja.interfaces.Radio;
+import org.contikios.cooja.ClassDescription;
+import org.contikios.cooja.Cooja;
+import org.contikios.cooja.Mote;
+import org.contikios.cooja.PluginType;
+import org.contikios.cooja.SimEventCentral.MoteCountListener;
+import org.contikios.cooja.Simulation;
+import org.contikios.cooja.VisPlugin;
+import org.contikios.cooja.interfaces.Radio;
 
 /**
  * Tracks radio events to sum up transmission, reception, and radio on times.
@@ -88,7 +88,7 @@ public class PowerTracker extends VisPlugin {
   private JTable table;
   private int tableMaxRadioOnIndex = -1;
 
-  public PowerTracker(final Simulation simulation, final GUI gui) {
+  public PowerTracker(final Simulation simulation, final Cooja gui) {
     super("PowerTracker", gui, false);
     this.simulation = simulation;
 
@@ -109,7 +109,7 @@ public class PowerTracker extends VisPlugin {
       addMote(m);
     }
 
-    if (!GUI.isVisualized()) {
+    if (!Cooja.isVisualized()) {
       return;
     }
 

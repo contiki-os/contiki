@@ -37,8 +37,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __JSONTREE_H__
-#define __JSONTREE_H__
+#ifndef JSONTREE_H_
+#define JSONTREE_H_
 
 #include "contiki-conf.h"
 #include "json.h"
@@ -115,6 +115,13 @@ struct jsontree_array {
     JSON_TYPE_OBJECT,							\
     sizeof(jsontree_pair_##name)/sizeof(struct jsontree_pair),          \
     jsontree_pair_##name }
+    
+#define JSONTREE_ARRAY(name, count)                                     \
+  static struct jsontree_value *jsontree_value##name[count];            \
+  static struct jsontree_array name = {                                 \
+    JSON_TYPE_ARRAY,              \
+    count,                        \
+    jsontree_value##name }         
 
 void jsontree_setup(struct jsontree_context *js_ctx,
                     struct jsontree_value *root, int (* putchar)(int));
@@ -132,4 +139,4 @@ int jsontree_print_next(struct jsontree_context *js_ctx);
 struct jsontree_value *jsontree_find_next(struct jsontree_context *js_ctx,
                                           int type);
 
-#endif /* __JSONTREE_H__ */
+#endif /* JSONTREE_H_ */

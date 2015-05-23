@@ -51,7 +51,7 @@
 #define MIN_RADIO_POWER     -43 // dBm
 #define MAX_RADIO_POWER       3 // dBm
 
-#ifndef  __PHY_H__
+#ifndef  PHY_H_
 enum {
   ST_RADIO_POWER_MODE_RX_ON,
   ST_RADIO_POWER_MODE_OFF
@@ -78,7 +78,7 @@ typedef struct {
   u8 backoffExponentMax; // Backoff exponent for the final CCA attempt(s).
   boolean appendCrc;        // Append CRC to transmitted packets.
 } RadioTransmitConfig;
-#endif// __PHY_H__
+#endif// PHY_H_
 
 #ifndef ST_TYPES_H
 /**

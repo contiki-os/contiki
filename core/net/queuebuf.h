@@ -1,16 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimequeuebuf Rime queue buffer management
- * @{
- *
- * The queuebuf module handles buffers that are queued.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -50,8 +37,21 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __QUEUEBUF_H__
-#define __QUEUEBUF_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimequeuebuf Rime queue buffer management
+ * @{
+ *
+ * The queuebuf module handles buffers that are queued.
+ *
+ */
+
+#ifndef QUEUEBUF_H_
+#define QUEUEBUF_H_
 
 #include "net/packetbuf.h"
 
@@ -96,6 +96,7 @@ struct queuebuf *queuebuf_new_from_packetbuf_debug(const char *file, int line);
 struct queuebuf *queuebuf_new_from_packetbuf(void);
 #endif /* QUEUEBUF_DEBUG */
 void queuebuf_update_attr_from_packetbuf(struct queuebuf *b);
+void queuebuf_update_from_packetbuf(struct queuebuf *b);
 
 void queuebuf_to_packetbuf(struct queuebuf *b);
 void queuebuf_free(struct queuebuf *b);
@@ -103,10 +104,12 @@ void queuebuf_free(struct queuebuf *b);
 void *queuebuf_dataptr(struct queuebuf *b);
 int queuebuf_datalen(struct queuebuf *b);
 
-rimeaddr_t *queuebuf_addr(struct queuebuf *b, uint8_t type);
+linkaddr_t *queuebuf_addr(struct queuebuf *b, uint8_t type);
 packetbuf_attr_t queuebuf_attr(struct queuebuf *b, uint8_t type);
 
 void queuebuf_debug_print(void);
+
+int queuebuf_numfree(void);
 
 #endif /* __QUEUEBUF_H__ */
 

@@ -39,7 +39,7 @@
 
 
 #include "shell.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -66,7 +66,7 @@ PROCESS_THREAD(shell_rime_ping_process, ev, data)
 {
   static int i;
   static struct etimer timeout, periodic;
-  static rimeaddr_t receiver;
+  static linkaddr_t receiver;
   struct rime_ping_msg *ping;
   const char *nextptr;
   char buf[32];
@@ -122,7 +122,7 @@ sent_mesh(struct mesh_conn *c)
 {
 }
 static void
-recv_mesh(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops)
+recv_mesh(struct mesh_conn *c, const linkaddr_t *from, uint8_t hops)
 {
   struct rime_ping_msg ping;
   char buf[64];

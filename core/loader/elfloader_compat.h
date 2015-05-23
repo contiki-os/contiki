@@ -29,8 +29,8 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __ELFLOADER_H__
-#define __ELFLOADER_H__
+#ifndef ELFLOADER_H_
+#define ELFLOADER_H_
 
 #define ELFLOADER_OK                  0
 #define ELFLOADER_BAD_ELF_HEADER      1
@@ -51,4 +51,4 @@ extern struct process *elfloader_loaded_process;
 extern void (*elfloader_fini)(void);
 extern char elfloader_unknown[30];
 
-#endif /* __ELFLOADER_H__ */
+#endif /* ELFLOADER_H_ */

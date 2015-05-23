@@ -4,9 +4,9 @@
  */
 
 
-#ifndef __MPU_H__
-#define __MPU_H__
+#ifndef MPU_H_
+#define MPU_H_
 
 #define BYPASS_MPU(blah) blah
 
-#endif//__MPU_H__
+#endif//MPU_H_

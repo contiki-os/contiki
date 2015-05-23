@@ -39,8 +39,8 @@
  *
  */
 
-#ifndef __UART_H__
-#define __UART_H__   1
+#ifndef UART_H_
+#define UART_H_   1
 
 #include <inttypes.h>
 
@@ -75,4 +75,4 @@ void uart_send_byte(uint8_t byte);
 void uart_serial_send_frame(uint8_t cmd, uint8_t payload_length, uint8_t *payload);
 void uart_serial_rcv_frame(uint8_t wait_for_it);
 
-#endif /* __UART_H__ */
+#endif /* UART_H_ */

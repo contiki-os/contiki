@@ -1,25 +1,3 @@
-/**
- * \addtogroup dev
- * @{
- */
-
-/**
- * \defgroup eeprom EEPROM API
- *
- * The EEPROM API defines a common interface for EEPROM access on
- * Contiki platforms.
- *
- * A platform with EEPROM support must implement this API.
- *
- * @{
- */
-
-/**
- * \file
- * EEPROM functions.
- * \author Adam Dunkels <adam@sics.se>
- */
-
 /* Copyright (c) 2004 Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -50,9 +28,30 @@
  *
  */
 
+/**
+ * \file
+ * EEPROM functions.
+ * \author Adam Dunkels <adam@sics.se>
+ */
 
-#ifndef __EEPROM_H__
-#define __EEPROM_H__
+/**
+ * \addtogroup dev
+ * @{
+ */
+
+/**
+ * \defgroup eeprom EEPROM API
+ *
+ * The EEPROM API defines a common interface for EEPROM access on
+ * Contiki platforms.
+ *
+ * A platform with EEPROM support must implement this API.
+ *
+ * @{
+ */
+
+#ifndef EEPROM_H_
+#define EEPROM_H_
 
 typedef unsigned short eeprom_addr_t;
 
@@ -111,7 +110,7 @@ void eeprom_read(eeprom_addr_t addr, unsigned char *buf, int size);
  
 void eeprom_init(void);
 
-#endif /* __EEPROM_H__ */
+#endif /* EEPROM_H_ */
 
 /** @} */
 /** @} */

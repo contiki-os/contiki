@@ -40,8 +40,8 @@
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
  */
 
-#ifndef __DEBUG_H__
-#define __DEBUG_H__
+#ifndef DEBUG_H_
+#define DEBUG_H_
 
 #include "8051def.h"
 #include "dev/uart1.h"
@@ -52,4 +52,4 @@ void puthex(uint8_t c);
 void putbin(uint8_t c);
 void putdec(uint8_t c);
 
-#endif /* __DEBUG_H__ */
+#endif /* DEBUG_H_ */

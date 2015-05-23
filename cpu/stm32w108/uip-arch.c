@@ -42,8 +42,8 @@
 *			Salvatore Pitrulli <salvopitru@users.sourceforge.net>
 */
 
-#include "net/uip.h"
-#include "net/uip_arch.h"
+#include "net/ip/uip.h"
+#include "net/ip/uip_arch.h"
 
 #if UIP_TCP
 void

@@ -63,8 +63,8 @@
  *
  */
 
-#ifndef __ELFLOADER_ARCH_H__
-#define __ELFLOADER_ARCH_H__
+#ifndef ELFLOADER_ARCH_H_
+#define ELFLOADER_ARCH_H_
 
 #include "elfloader-otf.h"
 
@@ -94,7 +94,7 @@ int elfloader_arch_relocate(int input_fd,
 			    char *sectionaddr,
 			    struct elf32_rela *rela, char *addr);
 
-#endif /* __ELFLOADER_ARCH_H__ */
+#endif /* ELFLOADER_ARCH_H_ */
 
 /** @} */
 /** @} */

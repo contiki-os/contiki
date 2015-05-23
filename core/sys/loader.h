@@ -1,23 +1,3 @@
-/** \addtogroup sys
- * @{
- */
-
-/**
- * \defgroup loader The Contiki program loader
- *
- * The Contiki program loader is an abstract interface for loading and
- * starting programs.
- *
- * @{
- */
-
-/**
- * \file
- * Default definitions and error values for the Contiki program loader.
- * \author Adam Dunkels <adam@dunkels.com>
- *
- */
-
 /*
  * Copyright (c) 2003, Adam Dunkels.
  * All rights reserved.
@@ -51,8 +31,29 @@
  *
  *
  */
-#ifndef __LOADER_H__
-#define __LOADER_H__
+
+/**
+ * \file
+ * Default definitions and error values for the Contiki program loader.
+ * \author Adam Dunkels <adam@dunkels.com>
+ *
+ */
+
+/** \addtogroup sys
+ * @{
+ */
+
+/**
+ * \defgroup loader The Contiki program loader
+ *
+ * The Contiki program loader is an abstract interface for loading and
+ * starting programs.
+ *
+ * @{
+ */
+
+#ifndef LOADER_H_
+#define LOADER_H_
 
 /* Errors that the LOADER_LOAD() function may return: */
 
@@ -125,7 +126,7 @@
 #define LOADER_UNLOAD_DSC(dsc)
 #endif /* LOADER_UNLOAD */
 
-#endif /* __LOADER_H__ */
+#endif /* LOADER_H_ */
 
 /** @} */
 /** @} */

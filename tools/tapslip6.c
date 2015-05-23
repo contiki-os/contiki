@@ -65,7 +65,7 @@ void write_to_serial(int outfd, void *inbuf, int len);
 
 #define USAGE_STRING "usage: tapslip6 [-B baudrate] [-s siodev] [-t tundev] ipaddress netmask"
 
-char tundev[32] = { "tap0" };
+char tundev[1024] = { "tap0" };
 
 int
 ssystem(const char *fmt, ...) __attribute__((__format__ (__printf__, 1, 2)));
@@ -360,7 +360,7 @@ stty_telos(int fd)
 int
 devopen(const char *dev, int flags)
 {
-  char t[32];
+  char t[1024];
   strcpy(t, "/dev/");
   strcat(t, dev);
   return open(t, flags);

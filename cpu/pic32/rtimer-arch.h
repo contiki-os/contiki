@@ -1,13 +1,13 @@
 /*
  * Contiki PIC32 Port project
- * 
+ *
  * Copyright (c) 2012,
  *  Scuola Superiore Sant'Anna (http://www.sssup.it) and
  *  Consorzio Nazionale Interuniversitario per le Telecomunicazioni
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -40,15 +40,15 @@
  * @{
  */
 
-/** 
- * \file   rtimer-arch.h
+/**
+ * \file   cpu/pic32/rtimer-arch.h
  * \brief  PIC32MX RTIMER routines
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-04-11
  */
 
-#ifndef __RTIMER_ARCH_H__
-#define __RTIMER_ARCH_H__
+#ifndef RTIMER_ARCH_H_
+#define RTIMER_ARCH_H_
 
 #include "contiki-conf.h"
 
@@ -58,6 +58,6 @@ rtimer_clock_t rtimer_arch_now(void);
 
 #define RTIMER_ARCH_SECOND 312500
 
-#endif /* __RTIMER_ARCH_H__ */
+#endif /* RTIMER_ARCH_H_ */
 
 /** @} */

@@ -39,8 +39,8 @@
  *
  */
 
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef MAIN_H_
+#define MAIN_H_
 
 /** \name Logical defines */
 /** \{ */
@@ -70,4 +70,4 @@
 /** \} */
 
 
-#endif /* __MAIN_H__ */
+#endif /* MAIN_H_ */

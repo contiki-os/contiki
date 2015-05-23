@@ -34,7 +34,7 @@
 #include "contiki-net.h"
 
 #include "dev/spi.h"
-#include "dev/cc2420.h"
+#include "cc2420.h"
 
 void
 __cc2420_arch_init(void)

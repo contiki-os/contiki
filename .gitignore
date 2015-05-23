@@ -24,6 +24,8 @@
 *.c128
 *.c64
 *.cc2538dk
+*.srf06-cc26xx
+*.ev-aducrf101mkxz
 *.report
 summary
 *.summary
@@ -36,6 +38,7 @@ symbols.*
 Makefile.target
 doc/html
 patches-*
+tools/tunslip
 tools/tunslip6
 build
 tools/coffee-manager/build/
@@ -84,3 +87,7 @@ contiki-cc2530dk.lib
 
 #regression tests artifacts
 *.testlog
+
+# rl78 build artifacts
+*.eval-adf7xxxmb4z
+*.eval-adf7xxxmb4z.srec

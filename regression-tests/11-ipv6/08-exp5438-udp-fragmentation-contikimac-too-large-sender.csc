@@ -11,7 +11,7 @@
     <randomseed>123456</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
-      se.sics.cooja.radiomediums.UDGM
+      org.contikios.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
       <interference_range>100.0</interference_range>
       <success_ratio_tx>1.0</success_ratio_tx>
@@ -21,55 +21,55 @@
       <logoutput>40000</logoutput>
     </events>
     <motetype>
-      se.sics.cooja.mspmote.Exp5438MoteType
+      org.contikios.cooja.mspmote.Exp5438MoteType
       <identifier>exp5438#1</identifier>
       <description>Sender</description>
       <source EXPORT="discard">[CONTIKI_DIR]/regression-tests/11-ipv6/code/sender/udp-sender.c</source>
       <commands EXPORT="discard">make clean TARGET=exp5438
 make udp-sender.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver,SIZE=500,BUFSIZE=200 TARGET=exp5438</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/regression-tests/11-ipv6/code/sender/udp-sender.exp5438</firmware>
-      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.UsciA1Serial</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.Exp5438LED</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.UsciA1Serial</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Exp5438LED</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
     </motetype>
     <motetype>
-      se.sics.cooja.mspmote.Exp5438MoteType
+      org.contikios.cooja.mspmote.Exp5438MoteType
       <identifier>exp5438#2</identifier>
       <description>Receiver</description>
       <source EXPORT="discard">[CONTIKI_DIR]/regression-tests/11-ipv6/code/receiver/udp-receiver.c</source>
       <commands EXPORT="discard">make clean TARGET=exp5438
 make udp-receiver.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver TARGET=exp5438</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/regression-tests/11-ipv6/code/receiver/udp-receiver.exp5438</firmware>
-      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
-      <moteinterface>se.sics.cooja.interfaces.MoteAttributes</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.UsciA1Serial</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.Exp5438LED</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>org.contikios.cooja.interfaces.MoteAttributes</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Msp802154Radio</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.UsciA1Serial</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.Exp5438LED</moteinterface>
+      <moteinterface>org.contikios.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
     </motetype>
     <mote>
       <breakpoints />
       <interface_config>
-        se.sics.cooja.interfaces.Position
+        org.contikios.cooja.interfaces.Position
         <x>40.305234290431166</x>
         <y>41.884881003965305</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspMoteID
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
       <motetype_identifier>exp5438#1</motetype_identifier>
@@ -77,20 +77,20 @@ make udp-receiver.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver TARGET=exp
     <mote>
       <breakpoints />
       <interface_config>
-        se.sics.cooja.interfaces.Position
+        org.contikios.cooja.interfaces.Position
         <x>65.38552901873047</x>
         <y>40.93246474846026</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspMoteID
+        org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
       </interface_config>
       <motetype_identifier>exp5438#2</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
-    se.sics.cooja.plugins.SimControl
+    org.contikios.cooja.plugins.SimControl
     <width>280</width>
     <z>0</z>
     <height>160</height>
@@ -98,10 +98,10 @@ make udp-receiver.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver TARGET=exp
     <location_y>0</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.Visualizer
+    org.contikios.cooja.plugins.Visualizer
     <plugin_config>
-      <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
-      <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <viewport>6.299766478490424 0.0 0.0 6.299766478490424 -160.913563890561 -119.86496930434095</viewport>
     </plugin_config>
     <width>400</width>
@@ -111,10 +111,11 @@ make udp-receiver.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver TARGET=exp
     <location_y>1</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.LogListener
+    org.contikios.cooja.plugins.LogListener
     <plugin_config>
       <filter />
       <formatted_time />
+      <coloring />
     </plugin_config>
     <width>1200</width>
     <z>5</z>
@@ -123,7 +124,7 @@ make udp-receiver.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver TARGET=exp
     <location_y>160</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.TimeLine
+    org.contikios.cooja.plugins.TimeLine
     <plugin_config>
       <mote>0</mote>
       <mote>1</mote>
@@ -139,7 +140,7 @@ make udp-receiver.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver TARGET=exp
     <location_y>539</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.Notes
+    org.contikios.cooja.plugins.Notes
     <plugin_config>
       <notes>Enter notes here</notes>
       <decorations>true</decorations>
@@ -151,9 +152,9 @@ make udp-receiver.exp5438 DEFINES=NETSTACK_CONF_RDC=contikimac_driver TARGET=exp
     <location_y>0</location_y>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.ScriptRunner
+    org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <scriptfile>[CONFIG_DIR]/fragmentation-should-receive-none.js</scriptfile>
+      <scriptfile>[CONTIKI_DIR]/regression-tests/11-ipv6/fragmentation-should-receive-none.js</scriptfile>
       <active>true</active>
     </plugin_config>
     <width>618</width>

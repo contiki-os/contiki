@@ -1,7 +1,3 @@
-/**
- * \addtogroup uip6
- * @{
- */
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -33,22 +29,28 @@
  * This file is part of the Contiki operating system.
  *
  */
+
 /**
  * \file
  *         The Minimum Rank with Hysteresis Objective Function (MRHOF)
  *
- *         This implementation uses the estimated number of 
+ *         This implementation uses the estimated number of
  *         transmissions (ETX) as the additive routing metric,
  *         and also provides stubs for the energy metric.
  *
  * \author Joakim Eriksson <joakime@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  */
 
+/**
+ * \addtogroup uip6
+ * @{
+ */
+
 #include "net/rpl/rpl-private.h"
 #include "net/nbr-table.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 static void reset(rpl_dag_t *);
 static void neighbor_link_callback(rpl_parent_t *, int, int);
@@ -88,23 +90,29 @@ typedef uint16_t rpl_path_metric_t;
 static rpl_path_metric_t
 calculate_path_metric(rpl_parent_t *p)
 {
+  uip_ds6_nbr_t *nbr;
   if(p == NULL) {
     return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
   }
-
+  nbr = rpl_get_nbr(p);
+  if(nbr == NULL) {
+    return MAX_PATH_COST * RPL_DAG_MC_ETX_DIVISOR;
+  }
 #if RPL_DAG_MC == RPL_DAG_MC_NONE
-  return p->rank + (uint16_t)p->link_metric;
+  {
+    return p->rank + (uint16_t)nbr->link_metric;
+  }
 #elif RPL_DAG_MC == RPL_DAG_MC_ETX
-  return p->mc.obj.etx + (uint16_t)p->link_metric;
+  return p->mc.obj.etx + (uint16_t)nbr->link_metric;
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
-  return p->mc.obj.energy.energy_est + (uint16_t)p->link_metric;
+  return p->mc.obj.energy.energy_est + (uint16_t)nbr->link_metric;
 #else
 #error "Unsupported RPL_DAG_MC configured. See rpl.h."
 #endif /* RPL_DAG_MC */
 }
 
 static void
-reset(rpl_dag_t *sag)
+reset(rpl_dag_t *dag)
 {
   PRINTF("RPL: Reset MRHOF\n");
 }
@@ -112,9 +120,18 @@ reset(rpl_dag_t *sag)
 static void
 neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
 {
-  uint16_t recorded_etx = p->link_metric;
+  uint16_t recorded_etx = 0;
   uint16_t packet_etx = numtx * RPL_DAG_MC_ETX_DIVISOR;
   uint16_t new_etx;
+  uip_ds6_nbr_t *nbr = NULL;
+
+  nbr = rpl_get_nbr(p);
+  if(nbr == NULL) {
+    /* No neighbor for this parent - something bad has occurred */
+    return;
+  }
+
+  recorded_etx = nbr->link_metric;
 
   /* Do not penalize the ETX when collisions or transmission errors occur. */
   if(status == MAC_TX_OK || status == MAC_TX_NOACK) {
@@ -122,14 +139,23 @@ neighbor_link_callback(rpl_parent_t *p, int status, int numtx)
       packet_etx = MAX_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
     }
 
-    new_etx = ((uint32_t)recorded_etx * ETX_ALPHA +
-               (uint32_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+    if(p->flags & RPL_PARENT_FLAG_LINK_METRIC_VALID) {
+      /* We already have a valid link metric, use weighted moving average to update it */
+      new_etx = ((uint32_t)recorded_etx * ETX_ALPHA +
+                 (uint32_t)packet_etx * (ETX_SCALE - ETX_ALPHA)) / ETX_SCALE;
+    } else {
+      /* We don't have a valid link metric, set it to the current packet's ETX */
+      new_etx = packet_etx;
+      /* Set link metric as valid */
+      p->flags |= RPL_PARENT_FLAG_LINK_METRIC_VALID;
+    }
 
     PRINTF("RPL: ETX changed from %u to %u (packet ETX = %u)\n",
         (unsigned)(recorded_etx / RPL_DAG_MC_ETX_DIVISOR),
         (unsigned)(new_etx  / RPL_DAG_MC_ETX_DIVISOR),
         (unsigned)(packet_etx / RPL_DAG_MC_ETX_DIVISOR));
-    p->link_metric = new_etx;
+    /* update the link metric for this nbr */
+    nbr->link_metric = new_etx;
   }
 }
 
@@ -138,14 +164,15 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
 {
   rpl_rank_t new_rank;
   rpl_rank_t rank_increase;
+  uip_ds6_nbr_t *nbr;
 
-  if(p == NULL) {
+  if(p == NULL || (nbr = rpl_get_nbr(p)) == NULL) {
     if(base_rank == 0) {
       return INFINITE_RANK;
     }
     rank_increase = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
   } else {
-    rank_increase = p->link_metric;
+    rank_increase = nbr->link_metric;
     if(base_rank == 0) {
       base_rank = p->rank;
     }
@@ -264,3 +291,5 @@ update_metric_container(rpl_instance_t *instance)
 #endif /* RPL_DAG_MC == RPL_DAG_MC_ETX */
 }
 #endif /* RPL_DAG_MC == RPL_DAG_MC_NONE */
+
+/** @}*/

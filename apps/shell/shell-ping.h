@@ -37,11 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_PING_H__
-#define __SHELL_PING_H__
+#ifndef SHELL_PING_H_
+#define SHELL_PING_H_
 
 #include "shell.h"
 
 void shell_ping_init(void);
 
-#endif /* __SHELL_PING_H__ */
+#endif /* SHELL_PING_H_ */

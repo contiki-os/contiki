@@ -62,6 +62,7 @@ int simSignalStrength = -100;
 int simLastSignalStrength = -100;
 char simPower = 100;
 int simRadioChannel = 26;
+int simLQI = 105;
 
 static const void *pending_data;
 
@@ -91,6 +92,12 @@ int
 radio_signal_strength_current(void)
 {
   return simSignalStrength;
+}
+/*---------------------------------------------------------------------------*/
+int
+radio_LQI(void)
+{
+	return simLQI;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -145,6 +152,9 @@ radio_read(void *buf, unsigned short bufsize)
 
   memcpy(buf, simInDataBuffer, simInSize);
   simInSize = 0;
+  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, simSignalStrength);
+  packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, simLQI);
+
   return tmp;
 }
 /*---------------------------------------------------------------------------*/
@@ -262,6 +272,30 @@ init(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
 const struct radio_driver cooja_radio_driver =
 {
     init,
@@ -274,6 +308,10 @@ const struct radio_driver cooja_radio_driver =
     pending_packet,
     radio_on,
     radio_off,
+    get_value,
+    set_value,
+    get_object,
+    set_object
 };
 /*---------------------------------------------------------------------------*/
 SIM_INTERFACE(radio_interface,

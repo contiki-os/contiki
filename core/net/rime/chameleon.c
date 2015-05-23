@@ -39,7 +39,7 @@
 
 #include "net/rime/chameleon.h"
 #include "net/rime/channel.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "lib/list.h"
 
 #include <stdio.h>
@@ -112,19 +112,19 @@ chameleon_parse(void)
 {
   struct channel *c = NULL;
   PRINTF("%d.%d: chameleon_input\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
 #if DEBUG
   printhdr(packetbuf_dataptr(), packetbuf_datalen());
 #endif /* DEBUG */
   c = CHAMELEON_MODULE.input();
   if(c != NULL) {
     PRINTF("%d.%d: chameleon_input channel %d\n",
-           rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+           linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
            c->channelno);
     packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, c->channelno);
   } else {
     PRINTF("%d.%d: chameleon_input channel not found for incoming packet\n",
-           rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+           linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
   }
   return c;
 }
@@ -135,7 +135,7 @@ chameleon_create(struct channel *c)
   int ret;
 
   PRINTF("%d.%d: chameleon_output channel %d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 c->channelno);
 
   ret = CHAMELEON_MODULE.output(c);

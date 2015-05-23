@@ -37,8 +37,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __HTTPD_SIMPLE_H__
-#define __HTTPD_SIMPLE_H__
+#ifndef HTTPD_SIMPLE_H_
+#define HTTPD_SIMPLE_H_
 
 #include "contiki-net.h"
 
@@ -71,4 +71,4 @@ httpd_simple_script_t httpd_simple_get_script(const char *name);
 
 #define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
 
-#endif /* __HTTPD_SIMPLE_H__ */
+#endif /* HTTPD_SIMPLE_H_ */

@@ -1,13 +1,13 @@
 /*
  * Contiki PIC32 Port project
- * 
+ *
  * Copyright (c) 2012,
  *  Scuola Superiore Sant'Anna (http://www.sssup.it) and
  *  Consorzio Nazionale Interuniversitario per le Telecomunicazioni
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -40,20 +40,20 @@
  * @{
  */
 
-/** 
- * \file   mtarch.h
+/**
+ * \file   cpu/pic32/mtarch.h
  * \brief  Implementation of multithreading in PIC32. To be done.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \date   2012-03-23
  */
 
-#ifndef __MTARCH_H__
-#define __MTARCH_H__
+#ifndef MTARCH_H_
+#define MTARCH_H_
 
 struct mtarch_thread {
   short mt_thread;
 };
 
-#endif /* __MTARCH_H__ */
+#endif /* MTARCH_H_ */
 
 /** @} */

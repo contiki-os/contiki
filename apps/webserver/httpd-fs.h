@@ -31,8 +31,8 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#ifndef __HTTPD_FS_H__
-#define __HTTPD_FS_H__
+#ifndef HTTPD_FS_H_
+#define HTTPD_FS_H_
 
 #include "contiki-net.h"
 
@@ -55,4 +55,4 @@ uint16_t httpd_fs_count(char *name);
 
 void httpd_fs_init(void);
 
-#endif /* __HTTPD_FS_H__ */
+#endif /* HTTPD_FS_H_ */

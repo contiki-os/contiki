@@ -38,7 +38,7 @@
  */
 
 #include "shell.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 
 static uint8_t sniff_for_attributes;
 
@@ -65,7 +65,7 @@ struct sniff_attributes_blob {
   uint16_t listen_time;
   uint16_t transmit_time;
   uint16_t channel;
-  rimeaddr_t src, dest;
+  linkaddr_t src, dest;
 };
 struct sniff_packet_blob {
   uint16_t len;
@@ -84,8 +84,8 @@ sniff_attributes_output(int type)
   msg.listen_time = packetbuf_attr(PACKETBUF_ATTR_LISTEN_TIME);
   msg.transmit_time = packetbuf_attr(PACKETBUF_ATTR_TRANSMIT_TIME);
   msg.channel = packetbuf_attr(PACKETBUF_ATTR_CHANNEL);
-  rimeaddr_copy(&msg.src, packetbuf_addr(PACKETBUF_ADDR_SENDER));
-  rimeaddr_copy(&msg.dest, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+  linkaddr_copy(&msg.src, packetbuf_addr(PACKETBUF_ADDR_SENDER));
+  linkaddr_copy(&msg.dest, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   
   shell_output(&sniff_command, &msg, sizeof(msg), NULL, 0);
 }

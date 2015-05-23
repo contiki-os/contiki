@@ -57,8 +57,8 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _USB_TASK_H_
-#define _USB_TASK_H_
+#ifndef USB_TASK_H_
+#define USB_TASK_H_
 
 /**
    \ingroup usbstick
@@ -191,6 +191,6 @@ void usb_device_task   (void);
 
 //! @}
 
-#endif /* _USB_TASK_H_ */
+#endif /*USB_TASK_H_ */
 
 /** @} */

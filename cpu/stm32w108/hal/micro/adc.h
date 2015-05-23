@@ -3,8 +3,12 @@
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
-/** @addtogroup adc
- * Sample A/D converter driver.
+
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
+
+/** @defgroup adc Sample A/D converter driver.
  *
  * See adc.h for source code.
  *
@@ -31,8 +35,8 @@
  *
  *@{
  */
-#ifndef __ADC_H__
-#define __ADC_H__
+#ifndef ADC_H_
+#define ADC_H_
 
 #ifdef CORTEXM3_STM32W108
 
@@ -314,9 +318,9 @@ boolean halAdcGetRange(void);
 #include "micro/cortexm3/stm32f103ret/adc.h"
 #endif /* CORTEXM3_STM32F103 */
 
-#endif // __ADC_H__
+#endif // ADC_H_
 
 /** @} // END addtogroup
  */
-
+/** @} */
 

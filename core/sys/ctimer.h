@@ -1,17 +1,3 @@
-/**
- * \addtogroup sys
- * @{
- */
-
-/**
- * \defgroup ctimer Callback timer
- * @{
- *
- * The ctimer module provides a timer mechanism that calls a specified
- * C function when a ctimer expires.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -51,8 +37,22 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __CTIMER_H__
-#define __CTIMER_H__
+/**
+ * \addtogroup sys
+ * @{
+ */
+
+/**
+ * \defgroup ctimer Callback timer
+ * @{
+ *
+ * The ctimer module provides a timer mechanism that calls a specified
+ * C function when a ctimer expires.
+ *
+ */
+
+#ifndef CTIMER_H_
+#define CTIMER_H_
 
 #include "sys/etimer.h"
 
@@ -143,6 +143,6 @@ int ctimer_expired(struct ctimer *c);
  */
 void ctimer_init(void);
 
-#endif /* __CTIMER_H__ */
+#endif /* CTIMER_H_ */
 /** @} */
 /** @} */

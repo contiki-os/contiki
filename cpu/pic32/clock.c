@@ -1,13 +1,13 @@
 /*
  * Contiki PIC32 Port project
- * 
+ *
  * Copyright (c) 2012,
  *  Scuola Superiore Sant'Anna (http://www.sssup.it) and
  *  Consorzio Nazionale Interuniversitario per le Telecomunicazioni
  *  (http://www.cnit.it).
  *
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -41,7 +41,7 @@
  */
 
 /**
- * \file   clock.c
+ * \file   cpu/pic32/clock.c
  * \brief  Clock routines.
  * \author Giovanni Pellerano <giovanni.pellerano@evilaliv3.org>
  * \author Daniele Alessandrelli <d.alessandrelli@sssup.it>
@@ -129,7 +129,7 @@ clock_delay_usec(uint16_t dt)
   uint32_t stop;
 
   asm volatile("mfc0   %0, $9" : "=r"(now));
-  
+
   /* The Count register is incremented every two system clock (SYSCLK) cycles. */
 
   stop = now + dt * ((pic32_clock_get_system_clock() / 1000000) / 2);

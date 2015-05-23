@@ -37,8 +37,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __CHANNEL_H__
-#define __CHANNEL_H__
+#ifndef CHANNEL_H_
+#define CHANNEL_H_
 
 struct channel;
 
@@ -61,4 +61,4 @@ void channel_open(struct channel *c, uint16_t channelno);
 void channel_close(struct channel *c);
 void channel_init(void);
 
-#endif /* __CHANNEL_H__ */
+#endif /* CHANNEL_H_ */

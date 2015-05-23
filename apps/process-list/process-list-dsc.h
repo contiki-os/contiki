@@ -31,11 +31,11 @@
  *
  *
  */
-#ifndef __PROCESSES_DSC_H__
-#define __PROCESSES_DSC_H__
+#ifndef PROCESSES_DSC_H_
+#define PROCESSES_DSC_H_
 
 #include "sys/dsc.h"
 
 DSC_HEADER(processes_dsc);
 
-#endif /* __PROCESSES_DSC_H__ */
+#endif /* PROCESSES_DSC_H_ */

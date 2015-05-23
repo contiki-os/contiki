@@ -2,7 +2,7 @@
 #define COLLECT_VIEW_H
 
 #include "contiki-conf.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 #include "net/rime/collect.h"
 
 struct collect_view_data_msg {
@@ -23,7 +23,7 @@ struct collect_view_data_msg {
 };
 
 void collect_view_construct_message(struct collect_view_data_msg *msg,
-                                    const rimeaddr_t *parent,
+                                    const linkaddr_t *parent,
                                     uint16_t etx_to_parent,
                                     uint16_t current_rtmetric,
                                     uint16_t num_neighbors,

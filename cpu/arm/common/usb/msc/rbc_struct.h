@@ -1,5 +1,5 @@
-#ifndef __RBC_STRUCT_H__10L0HKARRV__
-#define __RBC_STRUCT_H__10L0HKARRV__
+#ifndef RBC_STRUCT_H_10L0HKARRV__
+#define RBC_STRUCT_H_10L0HKARRV__
 
 #include <spc2_struct.h>
 
@@ -55,4 +55,4 @@ struct rbc_write_cmd
 } CC_BYTE_ALIGNED;
 
 
-#endif /* __RBC_STRUCT_H__10L0HKARRV__ */
+#endif /* RBC_STRUCT_H_10L0HKARRV__ */

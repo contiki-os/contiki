@@ -36,8 +36,8 @@
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef __BRIDGE_CONF_H__
-#define __BRIDGE_CONF_H__
+#ifndef BRIDGE_CONF_H_
+#define BRIDGE_CONF_H_
 
 #undef UIP_CONF_ROUTER
 
@@ -51,4 +51,4 @@
 
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE  256
-#endif /* __BRIDGE_CONF_H__ */
+#endif /* BRIDGE_CONF_H_ */

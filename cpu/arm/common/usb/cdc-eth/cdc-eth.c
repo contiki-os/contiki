@@ -3,7 +3,7 @@
 #include <uip_arp.h>
 #include <stdio.h>
 #include <string.h>
-#include <net/uip-fw.h>
+#include <net/ipv4/uip-fw.h>
 
 #define DATA_IN 0x81
 #define DATA_OUT 0x02
@@ -117,12 +117,12 @@ PROCESS_THREAD(usb_eth_process, ev , data)
 	uip_len = sizeof(recv_data) - recv_buffer.left;
 	/* printf("Received: %d bytes\n", uip_len);  */
 	memcpy(uip_buf, recv_data, uip_len);
-#if UIP_CONF_IPV6
+#if NETSTACK_CONF_WITH_IPV6
 	if(BUF->type == uip_htons(UIP_ETHTYPE_IPV6)) {
 	  uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
 	    tcpip_input();
 	} else 
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 	  if(BUF->type == uip_htons(UIP_ETHTYPE_IP)) {
 	    uip_len -= sizeof(struct uip_eth_hdr);
 	    tcpip_input();

@@ -1,5 +1,5 @@
-#ifndef __ASM_H__
-#define __ASM_H__
+#ifndef ASM_H_
+#define ASM_H_
 
 #ifdef __IAR_SYSTEMS_ASM__
 
@@ -54,4 +54,4 @@
 
 #endif // __GNUC__
 
-#endif // __ASM_H__
+#endif // ASM_H_

@@ -46,6 +46,17 @@
 #include "cpu.h"
 #include "dev/smwdthrosc.h"
 /*---------------------------------------------------------------------------*/
+/* Enabled by default */
+#ifndef WATCHDOG_CONF_ENABLE
+#define WATCHDOG_CONF_ENABLE 1
+#endif
+
+#if WATCHDOG_CONF_ENABLE
+#define WATCHDOG_ENABLE SMWDTHROSC_WDCTL_EN
+#else
+#define WATCHDOG_ENABLE 0
+#endif
+/*---------------------------------------------------------------------------*/
 /** \brief Initialisation function for the WDT. Currently simply explicitly
  * sets the WDT interval to max interval */
 void
@@ -55,20 +66,24 @@ watchdog_init(void)
   REG(SMWDTHROSC_WDCTL) = 0;
 }
 /*---------------------------------------------------------------------------*/
-/** \brief Starts the WDT in watchdog mode, maximum interval */
+/** \brief Starts the WDT in watchdog mode if enabled by user configuration,
+ * maximum interval */
 void
 watchdog_start(void)
 {
-  /* Max interval (32768), watchdog mode, Enable */
-  REG(SMWDTHROSC_WDCTL) = SMWDTHROSC_WDCTL_EN;
+  /* Max interval (32768), watchdog mode, enable if configured to do so */
+  REG(SMWDTHROSC_WDCTL) = WATCHDOG_ENABLE;
 }
 /*---------------------------------------------------------------------------*/
-/** \brief Writes the WDT clear sequence. This function assumes that we are
- * in watchdog mode and that interval bits (bits [1:0]) are 00 */
+/**
+ * \brief Writes the WDT clear sequence.
+ *
+ * Due to how the SMWDTHROSC_WDCTL works, it is OK to simply write these bits
+ * rather than use RMW operations.
+ */
 void
 watchdog_periodic(void)
 {
-  /* Safe to write to bits [3:0] since EN is 1 */
   REG(SMWDTHROSC_WDCTL) = (SMWDTHROSC_WDCTL_CLR_3 | SMWDTHROSC_WDCTL_CLR_1);
   REG(SMWDTHROSC_WDCTL) = (SMWDTHROSC_WDCTL_CLR_2 | SMWDTHROSC_WDCTL_CLR_0);
 }
@@ -82,11 +97,19 @@ watchdog_stop(void)
   return;
 }
 /*---------------------------------------------------------------------------*/
-/** \brief Keeps control until the WDT throws a reset signal */
+/** \brief Keeps control until the WDT throws a reset signal. Starts the WDT
+ * if not already started. */
 void
 watchdog_reboot(void)
 {
   INTERRUPTS_DISABLE();
+
+  /*
+   * If the WDT is not started, set minimum interval and start
+   * If the WDT is started, this will have no effect
+   */
+  REG(SMWDTHROSC_WDCTL) = SMWDTHROSC_WDCTL_INT | SMWDTHROSC_WDCTL_EN;
+
   while(1);
 }
 /**

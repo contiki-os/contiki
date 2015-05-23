@@ -105,7 +105,7 @@ send_packet(mac_callback_t sent, void *ptr)
   uint8_t buf[PACKETBUF_NUM_ATTRS * 3 + PACKETBUF_SIZE + 3];
   uint8_t sid;
 
-  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &linkaddr_node_addr);
 
   /* ack or not ? */
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);

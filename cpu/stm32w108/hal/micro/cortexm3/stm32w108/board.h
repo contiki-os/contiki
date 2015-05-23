@@ -1,4 +1,4 @@
-/** @file board.h
+/** @file cpu/stm32w108/hal/micro/cortexm3/stm32w108/board.h
  * @brief Header file x STM32W108 Kits boards abstraction.
  * See @ref board for documentation.
  *
@@ -7,8 +7,8 @@
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
-#ifndef _BOARD_H_
-#define _BOARD_H_
+#ifndef BOARD_H_
+#define BOARD_H_
 
 /** @addtogroup board
  * @brief ST board abstraction layer
@@ -18,7 +18,7 @@
  * See hal/micro/cortexm3/stm32w108/board.h for source code.
  *@{
  */
- 
+
 /**
  * @brief Define the number of LEDs in the specific board revision
  */
@@ -134,7 +134,7 @@ typedef struct BoardIOStruct {
   /** Pointer to LED resources */
   const LedResourceType *leds;
   /** Pointer to button resources */
-  const ButtonResourceType *buttons;  
+  const ButtonResourceType *buttons;
 } BoardIOType;
 
 /**
@@ -227,7 +227,7 @@ extern BoardResourcesType const *boardDescription;
 
 /** @brief Return pointer to board description structure
  *
- * 
+ *
  * @return Pointer to board description structure
  */
 BoardResourcesType const *halBoardGetDescription(void);
@@ -253,7 +253,7 @@ void halBoardPowerUp(void);
  */
 void halBoardPowerDown(void);
 
-#endif /* _BOARD_H_ */
+#endif /*BOARD_H_ */
 
 /** @} // END addtogroup
  */

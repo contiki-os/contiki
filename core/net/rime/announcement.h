@@ -1,29 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimeannouncement Announcements
- * @{
- *
- * The Announcement primitive does local area announcements. An
- * announcement is an (ID, value) tuple that is disseminated to local
- * area neighbors. An application or protocol can explicitly listen to
- * announcements from neighbors. When an announcement is heard, a
- * callback is invoked.
- *
- * Announcements can be used for a variety of network mechanisms such
- * as neighbor discovery, node-level service discovery, or routing
- * metric dissemination.
- *
- * Application programs and protocols register announcements with the
- * announcement module. An announcement back-end, implemented by the
- * system, takes care of sending out announcements over the radio, as
- * well as collecting announcements heard from neighbors.
- *
- */
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -63,15 +37,41 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __ANNOUNCEMENT_H__
-#define __ANNOUNCEMENT_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
 
-#include "net/rime/rimeaddr.h"
+/**
+ * \defgroup rimeannouncement Announcements
+ * @{
+ *
+ * The Announcement primitive does local area announcements. An
+ * announcement is an (ID, value) tuple that is disseminated to local
+ * area neighbors. An application or protocol can explicitly listen to
+ * announcements from neighbors. When an announcement is heard, a
+ * callback is invoked.
+ *
+ * Announcements can be used for a variety of network mechanisms such
+ * as neighbor discovery, node-level service discovery, or routing
+ * metric dissemination.
+ *
+ * Application programs and protocols register announcements with the
+ * announcement module. An announcement back-end, implemented by the
+ * system, takes care of sending out announcements over the radio, as
+ * well as collecting announcements heard from neighbors.
+ *
+ */
+
+#ifndef ANNOUNCEMENT_H_
+#define ANNOUNCEMENT_H_
+
+#include "net/linkaddr.h"
 
 struct announcement;
 
 typedef void (*announcement_callback_t)(struct announcement *a,
-					const rimeaddr_t *from,
+					const linkaddr_t *from,
 					uint16_t id, uint16_t val);
 
 /**
@@ -131,6 +131,7 @@ void announcement_remove(struct announcement *a);
  * \brief      Set the value of an announcement
  * \param a    A pointer to a struct announcement that has
  *             previously been registered
+ * \param value The new value
  *
  *             This function sets the value of an announcement that
  *             has previously been registered with
@@ -224,7 +225,7 @@ struct announcement *announcement_list(void);
  *             neighbor has been heard.
  *
  */
-void announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value);
+void announcement_heard(const linkaddr_t *from, uint16_t id, uint16_t value);
 
 /**
  * \brief      Register a listen callback with the announcement module
@@ -267,7 +268,7 @@ void announcement_register_observer_callback(announcement_observer observer);
  * @}
  */
 
-#endif /* __ANNOUNCE_H__ */
+#endif /* ANNOUNCE_H_ */
 
 /** @} */
 /** @} */

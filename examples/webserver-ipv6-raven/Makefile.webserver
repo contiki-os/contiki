@@ -3,9 +3,7 @@ all: webserver6
 
 APPS=raven-webserver raven-lcd-interface
 TARGET=avr-raven
-UIP_CONF_IPV6=1
 
-#UIP_CONF_RPL=0        //RPL is now the default.
 #RF230BB=1             //Use radio driver that communicates with the core MAC layer. Now the default.
 #COFFEE_FILES=1        //Static coffee file system in EEPROM
 #COFFEE_FILES=2        //Dynamic coffee file system in EEPROM
@@ -14,5 +12,5 @@ UIP_CONF_IPV6=1
 #COFFEE_ADDRESS=0xnnnn //Override default coffee file system starting address
 CONTIKI = ../..
 
-
+CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include

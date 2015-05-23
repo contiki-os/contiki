@@ -43,56 +43,114 @@
 
 #include <stdio.h>              /* For printf() */
 
+void
+print_content()
+{
+  eeprom_addr_t addr_row = 0, j;
+  uint8_t i;
+  uint8_t byte;
+
+  printf("\t");
+  for(i = 0; i < 16; i++)
+    printf("0x%x\t", i);
+  printf
+    ("\n-----------------------------------------------------------------------------------------------------------------------------------------\n");
+
+  for(addr_row = 0; addr_row < EEPROM_SIZE / 16; ++addr_row) {
+    printf("0x%x\t|", addr_row * 16);
+
+    for(j = 0; j < 16; j++) {
+      eeprom_read(addr_row * 16 + j, &byte, 1);
+      printf("0x%x\t", byte);
+    }
+    printf("\n");
+  }
+}
+
+void
+erase_content()
+{
+  static eeprom_addr_t addr = 0;
+
+  for(addr = 0; addr < EEPROM_SIZE; ++addr) {
+    eeprom_write(addr, 0, 1);
+  }
+}
+
 /*---------------------------------------------------------------------------*/
 PROCESS(eeprom_test_process, "EEPROM Test Process");
 AUTOSTART_PROCESSES(&eeprom_test_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(eeprom_test_process, ev, data)
 {
-  static uint8_t counter = 0;
-
+  static uint8_t counter = 0, error = 0;
   static eeprom_addr_t addr = 0;
+  uint8_t byte;
+
+  uint8_t buffer[] =
+    { 0xAA, 0xAA, 0xAA, 0xBB, 0xBB, 0xBB, 0xCC, 0xCC, 0xCC, 0xBB,
+    0xBB, 0xBB, 0xAA, 0xAA, 0xAA, 0xFF, 0xAA, 0xAA, 0xAA, 0xBB,
+    0xBB, 0xBB, 0xCC, 0xCC, 0xCC, 0xBB, 0xBB, 0xBB, 0xAA, 0xAA,
+    0xAA, 0xFF, 0xAA, 0xAA, 0xAA, 0xBB, 0xBB, 0xBB, 0xCC, 0xCC,
+    0xCC, 0xBB, 0xBB, 0xBB, 0xAA, 0xAA, 0xAA, 0xFF
+  };
 
   PROCESS_BEGIN();
 
   printf("eeprom-test: Size = %d bytes\n", EEPROM_SIZE);
 
-  /* Check to see if the EEPROM is empty */
-  for(addr = 0; addr < EEPROM_SIZE; ++addr) {
-    uint8_t byte;
+  print_content();
 
+  printf("\nErase EEPROM content\n");
+  erase_content();
+
+  print_content();
+
+  counter = 0;
+  for(addr = 0; addr < EEPROM_SIZE; ++addr) {
+    eeprom_write(addr, &counter, 1);
+    counter += 1;
+  }
+
+  counter = 0;
+  for(addr = 0; addr < EEPROM_SIZE; ++addr) {
+    byte = 0;
     eeprom_read(addr, &byte, 1);
-    if(byte != 0xFF) {
+    if(byte != counter) {
+      error++;
+      eeprom_read(addr, &byte, 1);
+      printf
+        ("eeprom-test: EEPROM write failure! 0x%x =/= 0x%x at address 0x%x\n",
+         byte, counter, addr);
       break;
     }
+    counter += 1;
   }
 
-  if(addr == EEPROM_SIZE) {
-    printf("eeprom-test: EEPROM is empty. Proceding with write test...\n");
-
-    counter = 0;
-    for(addr = 0; addr < EEPROM_SIZE; ++addr) {
-      eeprom_write(addr, &counter, 1);
-      counter += 1;
-    }
-
-    counter = 0;
-    for(addr = 0; addr < EEPROM_SIZE; ++addr) {
-      uint8_t byte;
-
-      eeprom_read(addr, &byte, 1);
-      if(byte != counter) {
-        printf("eeprom-test: EEPROM write failure!\n");
-        break;
-      }
-      counter += 1;
-    }
-
+  if(error)
+    printf("eeprom-test: EEPROM write test FAIL!\n%d errors", error);
+  else
     printf("eeprom-test: EEPROM write test success!\n");
-  } else {
-    printf("eeprom-test: EEPROM is NOT empty! Skipping write test.\n");
-  }
 
+
+  print_content();
+
+  printf("Fill memory with buffer\n");
+
+  for(addr = 0; addr < EEPROM_SIZE; addr += sizeof(buffer)) {
+    eeprom_write(addr, ((unsigned char *)buffer), sizeof(buffer));
+  }
+/*
+  printf("Write data buffer %d at address 0x0\n", sizeof(buffer));
+  eeprom_write(0x0, ((unsigned char *)buffer), sizeof(buffer));
+
+  printf("Write data buffer %d at address 0x40\n", sizeof(buffer));
+  eeprom_write(0x40, ((unsigned char *)buffer), sizeof(buffer));
+
+  printf("Write data buffer %d at address 0x95\n", sizeof(buffer));
+  eeprom_write(0x95, ((unsigned char *)buffer), sizeof(buffer));
+*/
+  print_content();
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

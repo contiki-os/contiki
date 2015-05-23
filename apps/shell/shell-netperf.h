@@ -37,11 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_NETPERF_H__
-#define __SHELL_NETPERF_H__
+#ifndef SHELL_NETPERF_H_
+#define SHELL_NETPERF_H_
 
 #include "shell.h"
 
 void shell_netperf_init(void);
 
-#endif /* __SHELL_NETPERF_H__ */
+#endif /* SHELL_NETPERF_H_ */

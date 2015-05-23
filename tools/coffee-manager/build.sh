@@ -1,3 +1,3 @@
 #!/bin/sh
-(cd se/sics/coffee && javac *.java) && \
-jar cvfm coffee.jar MANIFEST.MF se/sics/coffee/*.class *.properties
+(cd org/contikios/coffee && javac *.java) && \
+jar cvfm coffee.jar MANIFEST.MF org/contikios/coffee/*.class *.properties

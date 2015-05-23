@@ -928,6 +928,31 @@ PROCESS_THREAD(mrf24j40_process, ev, data)
 }
 
 /*---------------------------------------------------------------------------*/
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+
+/*---------------------------------------------------------------------------*/
 const struct radio_driver mrf24j40_driver = {
   mrf24j40_init,
   mrf24j40_prepare,
@@ -938,7 +963,11 @@ const struct radio_driver mrf24j40_driver = {
   mrf24j40_receiving_packet,
   mrf24j40_pending_packet,
   mrf24j40_on,
-  mrf24j40_off
+  mrf24j40_off,
+  get_value,
+  set_value,
+  get_object,
+  set_object
 };
 /*---------------------------------------------------------------------------*/
 

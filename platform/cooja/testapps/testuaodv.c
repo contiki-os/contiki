@@ -29,12 +29,12 @@
  */
 
 #include <stdlib.h>
-#include "net/uip.h"
+#include "net/ip/uip.h"
 #include "dev/button-sensor.h"
 #include "dev/leds.h"
 
 #include "net/uaodv.h"
-#include "net/uaodv-rt.h"
+#include "net/ipv4/uaodv-rt.h"
 
 #include <stdio.h>
 

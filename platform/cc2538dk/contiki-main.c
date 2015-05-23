@@ -29,13 +29,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup platform
+ * \addtogroup cc2538-platforms
  * @{
  *
- * \defgroup cc2538 The cc2538 Development Kit platform
+ * \defgroup cc2538dk The cc2538 Development Kit platform
  *
- * The cc2538DK is the new platform by Texas Instruments, based on the
- * cc2530 SoC with an ARM Cortex-M3 core.
+ * The cc2538DK is a platform by Texas Instruments, based on the
+ * cc2538 SoC with an ARM Cortex-M3 core.
  * @{
  *
  * \file
@@ -43,6 +43,7 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
+#include "dev/adc.h"
 #include "dev/leds.h"
 #include "dev/sys-ctrl.h"
 #include "dev/scb.h"
@@ -59,8 +60,8 @@
 #include "lib/random.h"
 #include "net/netstack.h"
 #include "net/queuebuf.h"
-#include "net/tcpip.h"
-#include "net/uip.h"
+#include "net/ip/tcpip.h"
+#include "net/ip/uip.h"
 #include "net/mac/frame802154.h"
 #include "cpu.h"
 #include "reg.h"
@@ -103,21 +104,34 @@ fade(unsigned char l)
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_rime_addr()
+set_rf_params(void)
 {
-  ieee_addr_cpy_to(&rimeaddr_node_addr.u8[0], RIMEADDR_SIZE);
+  uint16_t short_addr;
+  uint8_t ext_addr[8];
+
+  ieee_addr_cpy_to(ext_addr, 8);
+
+  short_addr = ext_addr[7];
+  short_addr |= ext_addr[6] << 8;
+
+  /* Populate linkaddr_node_addr. Maintain endianness */
+  memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
 
 #if STARTUP_CONF_VERBOSE
   {
     int i;
     printf("Rime configured with address ");
-    for(i = 0; i < RIMEADDR_SIZE - 1; i++) {
-      printf("%02x:", rimeaddr_node_addr.u8[i]);
+    for(i = 0; i < LINKADDR_SIZE - 1; i++) {
+      printf("%02x:", linkaddr_node_addr.u8[i]);
     }
-    printf("%02x\n", rimeaddr_node_addr.u8[i]);
+    printf("%02x\n", linkaddr_node_addr.u8[i]);
   }
 #endif
 
+  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC2538_RF_CHANNEL);
+  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -127,12 +141,12 @@ int
 main(void)
 {
   nvic_init();
+  ioc_init();
   sys_ctrl_init();
   clock_init();
   lpm_init();
   rtimer_init();
   gpio_init();
-  ioc_init();
 
   leds_init();
   fade(LEDS_YELLOW);
@@ -153,8 +167,9 @@ main(void)
    * slip_input_byte instead
    */
 #if UART_CONF_ENABLE
-  uart_init();
-  uart_set_input(serial_line_input_byte);
+  uart_init(0);
+  uart_init(1);
+  uart_set_input(SERIAL_LINE_CONF_UART, serial_line_input_byte);
 #endif
 
 #if USB_SERIAL_CONF_ENABLE
@@ -185,15 +200,16 @@ main(void)
   process_start(&etimer_process, NULL);
   ctimer_init();
 
-  set_rime_addr();
+  set_rf_params();
   netstack_init();
-  cc2538_rf_set_addr(IEEE802154_PANID);
 
-#if UIP_CONF_IPV6
-  memcpy(&uip_lladdr.addr, &rimeaddr_node_addr, sizeof(uip_lladdr.addr));
+#if NETSTACK_CONF_WITH_IPV6
+  memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
   process_start(&tcpip_process, NULL);
-#endif /* UIP_CONF_IPV6 */
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
+  adc_init();
 
   process_start(&sensors_process, NULL);
 

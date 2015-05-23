@@ -48,7 +48,7 @@
 #include <string.h>
 
 #define DEBUG DEBUG_FULL
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 static struct uip_udp_conn *client_conn;
 static uip_ipaddr_t server_ipaddr;

@@ -38,7 +38,7 @@
  */
 
 #include "net/rime/chameleon.h"
-#include "net/rime.h"
+#include "net/rime/rime.h"
 #include "lib/list.h"
 
 LIST(channel_list);

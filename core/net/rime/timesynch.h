@@ -1,30 +1,3 @@
-/**
- * \addtogroup sys
- * @{
- */
-
-/**
- * \defgroup timesynch Implicit network time synchronization
- * @{
- *
- * This crude and simple network time synchronization module
- * synchronizes clocks of all nodes in a network. The time
- * synchronization is implicit in that no explicit time
- * synchronization messages are sent: the module relies on the
- * underlying network device driver to timestamp all radio messages,
- * both outgoing and incoming. The code currently only works on the
- * Tmote Sky platform and the cc2420 driver.
- *
- * Every node has an authority level, which is included in every
- * outgoing packet. If a message is received from a node with higher
- * authority (lower authority number), the node adjusts its clock
- * towards the clock of the sending node.
- *
- * The timesynch module is implemented as a meta-MAC protocol, so that
- * the module is invoked for every incoming packet.
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -64,8 +37,35 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __TIMESYNCH_H__
-#define __TIMESYNCH_H__
+/**
+ * \addtogroup sys
+ * @{
+ */
+
+/**
+ * \defgroup timesynch Implicit network time synchronization
+ * @{
+ *
+ * This crude and simple network time synchronization module
+ * synchronizes clocks of all nodes in a network. The time
+ * synchronization is implicit in that no explicit time
+ * synchronization messages are sent: the module relies on the
+ * underlying network device driver to timestamp all radio messages,
+ * both outgoing and incoming. The code currently only works on the
+ * Tmote Sky platform and the cc2420 driver.
+ *
+ * Every node has an authority level, which is included in every
+ * outgoing packet. If a message is received from a node with higher
+ * authority (lower authority number), the node adjusts its clock
+ * towards the clock of the sending node.
+ *
+ * The timesynch module is implemented as a meta-MAC protocol, so that
+ * the module is invoked for every incoming packet.
+ *
+ */
+
+#ifndef TIMESYNCH_H_
+#define TIMESYNCH_H_
 
 #include "net/mac/mac.h"
 #include "sys/rtimer.h"
@@ -144,7 +144,7 @@ int timesynch_authority_level(void);
  */
 void timesynch_set_authority_level(int level);
 
-#endif /* __TIMESYNCH_H__ */
+#endif /* TIMESYNCH_H_ */
 
 /** @} */
 /** @} */

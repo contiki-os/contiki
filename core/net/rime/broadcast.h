@@ -1,28 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimeibc Best-effort local area broadcast
- * @{
- *
- * The broadcast module sends packets to all local area neighbors with an a
- * header that identifies the sender.
- *
- * The broadcast module sends a packet to all local neighbors.  The
- * module adds the single-hop sender address as a packet attribute to
- * outgoing packets.  All Rime primitives that need the identity of
- * the sender in the outgoing packets use the broadcast primitive,
- * either directly or indirectly through any of the other
- * communication primitives that are based on the broadcast primitive.
- *
- * \section channels Channels
- *
- * The broadcast module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -62,11 +37,36 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __BROADCAST_H__
-#define __BROADCAST_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeibc Best-effort local area broadcast
+ * @{
+ *
+ * The broadcast module sends packets to all local area neighbors with an a
+ * header that identifies the sender.
+ *
+ * The broadcast module sends a packet to all local neighbors.  The
+ * module adds the single-hop sender address as a packet attribute to
+ * outgoing packets.  All Rime primitives that need the identity of
+ * the sender in the outgoing packets use the broadcast primitive,
+ * either directly or indirectly through any of the other
+ * communication primitives that are based on the broadcast primitive.
+ *
+ * \section broadcast-channels Channels
+ *
+ * The broadcast module uses 1 channel.
+ *
+ */
+
+#ifndef BROADCAST_H_
+#define BROADCAST_H_
 
 #include "net/rime/abc.h"
-#include "net/rime/rimeaddr.h"
+#include "net/linkaddr.h"
 
 struct broadcast_conn;
 
@@ -79,7 +79,7 @@ struct broadcast_conn;
  */
 struct broadcast_callbacks {
   /** Called when a packet has been received by the broadcast module. */
-  void (* recv)(struct broadcast_conn *ptr, const rimeaddr_t *sender);
+  void (* recv)(struct broadcast_conn *ptr, const linkaddr_t *sender);
   void (* sent)(struct broadcast_conn *ptr, int status, int num_tx);
 };
 
@@ -134,6 +134,6 @@ void broadcast_close(struct broadcast_conn *c);
  */
 int broadcast_send(struct broadcast_conn *c);
 
-#endif /* __BROADCAST_H__ */
+#endif /* BROADCAST_H_ */
 /** @} */
 /** @} */

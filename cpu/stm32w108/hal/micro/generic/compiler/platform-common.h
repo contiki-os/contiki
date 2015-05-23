@@ -1,4 +1,4 @@
-/** \addtogroup platform_common
+/** 
  * \brief Compiler and Platform specific definitions and typedefs common to
  * all platforms.  
  *
@@ -9,6 +9,10 @@
  * See platform-common.h for source code.
  *@{
  */
+
+/**
+ * @addtogroup stm32w-cpu
+ * @{ */
 
 /** \file hal/micro/generic/compiler/platform-common.h
  * See \ref platform_common for detailed documentation.
@@ -22,8 +26,8 @@
   #error  platform-common.h should not be included directly
 #endif
 
-#ifndef __PLATFORMCOMMON_H__
-#define __PLATFORMCOMMON_H__
+#ifndef PLATFORMCOMMON_H_
+#define PLATFORMCOMMON_H_
 ////////////////////////////////////////////////////////////////////////////////
 // Many of the common definitions must be explicitly enabled by the 
 //  particular PLATFORM_HEADER being used
@@ -345,7 +349,8 @@
 
 
 
-#endif //__PLATFORMCOMMON_H__
+#endif //PLATFORMCOMMON_H_
 
 /** @}  END addtogroup */
+/** @} */
 

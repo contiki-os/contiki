@@ -1,5 +1,5 @@
-#ifndef __USB_CORE_H__YIKJDA7S1X__
-#define __USB_CORE_H__YIKJDA7S1X__
+#ifndef USB_CORE_H_YIKJDA7S1X__
+#define USB_CORE_H_YIKJDA7S1X__
 
 #include <stdint.h>
 
@@ -16,4 +16,4 @@ typedef void (*usb_ctrl_data_callback)(uint8_t *data, unsigned int length);
 void usb_get_ctrl_data(uint8_t *data, unsigned int length,
                        usb_ctrl_data_callback cb);
 
-#endif /* __USB_CORE_H__YIKJDA7S1X__ */
+#endif /* USB_CORE_H_YIKJDA7S1X__ */

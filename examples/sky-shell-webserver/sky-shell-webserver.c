@@ -51,7 +51,7 @@ PROCESS_THREAD(sky_shell_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  /* WITH_UIP=1 assumes incoming SLIP serial data.
+  /* NETSTACK_CONF_WITH_IPV4=1 assumes incoming SLIP serial data.
    * We override this assumption by restoring default serial input handler. */
   uart1_set_input(serial_line_input_byte);
   serial_line_init();

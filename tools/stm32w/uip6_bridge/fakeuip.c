@@ -4,8 +4,8 @@
  * to get a few things */
 
 
-#include "net/uip.h"
-#include "net/uip-ds6.h"
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #include <string.h>
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])

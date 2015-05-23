@@ -36,14 +36,12 @@
 
 #include "dev/watchdog.h"
 
-#include "net/rime.h"
-#include "dev/cc2420.h"
+#include "net/rime/rime.h"
+#include "cc2420.h"
 #include "dev/leds.h"
 #include "dev/light.h"
-#include "dev/sht11.h"
+#include "dev/sht11/sht11.h"
 #include "dev/battery-sensor.h"
-
-#include "lib/checkpoint.h"
 
 #include "net/rime/timesynch.h"
 
@@ -72,7 +70,6 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   /*shell_sky_init();*/
   shell_text_init();
   /*shell_time_init();*/
-  /*  shell_checkpoint_init();*/
   shell_exec_init();
   shell_base64_init();
 

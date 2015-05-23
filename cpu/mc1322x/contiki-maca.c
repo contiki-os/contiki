@@ -39,7 +39,7 @@
 
 /* debug */
 #define DEBUG DEBUG_ANNOTATE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /* contiki */
 #include "radio.h"
@@ -79,6 +79,31 @@ int contiki_maca_channel_clear(void);
 int contiki_maca_receiving_packet(void);
 int contiki_maca_pending_packet(void);
 
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_value(radio_param_t param, radio_value_t *value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_value(radio_param_t param, radio_value_t value)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+get_object(radio_param_t param, void *dest, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
+static radio_result_t
+set_object(radio_param_t param, const void *src, size_t size)
+{
+  return RADIO_RESULT_NOT_SUPPORTED;
+}
+/*---------------------------------------------------------------------------*/
 const struct radio_driver contiki_maca_driver =
 {
 	.init = contiki_maca_init,
@@ -91,6 +116,10 @@ const struct radio_driver contiki_maca_driver =
 	.channel_clear = contiki_maca_channel_clear,
 	.on = contiki_maca_on_request,
 	.off = contiki_maca_off_request,
+        .get_value = get_value,
+        .set_value = set_value,
+        .get_object = get_object,
+        .set_object = set_object
 };
 
 static volatile uint8_t contiki_maca_request_on = 0;
@@ -101,7 +130,7 @@ static process_event_t event_data_ready;
 static volatile packet_t prepped_p;
 
 void contiki_maca_set_mac_address(uint64_t eui) {
-	rimeaddr_t addr;
+	linkaddr_t addr;
 	uint8_t i;
 
 	/* setup mac address registers in maca hardware */
@@ -116,14 +145,14 @@ void contiki_maca_set_mac_address(uint64_t eui) {
 	ANNOTATE("setting long mac 0x%08x_%08x\n\r", *MACA_MAC64HI, *MACA_MAC64LO);
 
 	/* setup mac addresses in Contiki (RIME) */
-	rimeaddr_copy(&addr, &rimeaddr_null);
+	linkaddr_copy(&addr, &linkaddr_null);
 
-	for(i=0; i < RIMEADDR_CONF_SIZE; i++) {
-		addr.u8[RIMEADDR_CONF_SIZE - 1 - i] = (mc1322x_config.eui >> (i * 8)) & 0xff;
+	for(i=0; i < LINKADDR_CONF_SIZE; i++) {
+		addr.u8[LINKADDR_CONF_SIZE - 1 - i] = (mc1322x_config.eui >> (i * 8)) & 0xff;
 	}
 
 	node_id = (addr.u8[6] << 8 | addr.u8[7]);
-	rimeaddr_set_node_addr(&addr);
+	linkaddr_set_node_addr(&addr);
 
 #if DEBUG_ANNOTATE
 	ANNOTATE("Rime configured with address ");
@@ -200,7 +229,7 @@ int contiki_maca_read(void *buf, unsigned short bufsize) {
 		}
 #endif
 		PRINTF("\n\r");
-		free_packet(p);
+		maca_free_packet(p);
 		return bufsize;
 	} else {
 		return 0;

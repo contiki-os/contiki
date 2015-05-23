@@ -40,7 +40,7 @@
 #include "lib/list.h"
 
 #define DEBUG DEBUG_NONE
-#include "net/uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 #include "antelope.h"
 #include "attribute.h"

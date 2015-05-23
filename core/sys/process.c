@@ -96,7 +96,7 @@ process_alloc_event(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-process_start(struct process *p, const char *arg)
+process_start(struct process *p, process_data_t data)
 {
   struct process *q;
 
@@ -117,7 +117,7 @@ process_start(struct process *p, const char *arg)
   PRINTF("process: starting '%s'\n", PROCESS_NAME_STRING(p));
 
   /* Post a synchronous initialization event to the process. */
-  process_post_synch(p, PROCESS_EVENT_INIT, (process_data_t)arg);
+  process_post_synch(p, PROCESS_EVENT_INIT, data);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -267,7 +267,7 @@ do_event(void)
     receiver = events[fevent].p;
 
     /* Since we have seen the new event, we move pointer upwards
-       and decrese the number of events. */
+       and decrease the number of events. */
     fevent = (fevent + 1) % PROCESS_CONF_NUMEVENTS;
     --nevents;
 
@@ -337,7 +337,7 @@ process_post(struct process *p, process_event_t ev, process_data_t data)
     if(p == PROCESS_BROADCAST) {
       printf("soft panic: event queue is full when broadcast event %d was posted from %s\n", ev, PROCESS_NAME_STRING(process_current));
     } else {
-      printf("soft panic: event queue is full when event %d was posted to %s frpm %s\n", ev, PROCESS_NAME_STRING(p), PROCESS_NAME_STRING(process_current));
+      printf("soft panic: event queue is full when event %d was posted to %s from %s\n", ev, PROCESS_NAME_STRING(p), PROCESS_NAME_STRING(process_current));
     }
 #endif /* DEBUG */
     return PROCESS_ERR_FULL;

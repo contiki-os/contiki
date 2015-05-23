@@ -1,5 +1,5 @@
-#ifndef __RBC_CONST_H__7YXZF39S33__
-#define __RBC_CONST_H__7YXZF39S33__
+#ifndef RBC_CONST_H_7YXZF39S33__
+#define RBC_CONST_H_7YXZF39S33__
 
 #include <spc2_const.h>
 
@@ -63,4 +63,4 @@
 
 #define SCSI_WRITE_FUA 0x08
 
-#endif /* __RBC_CONST_H__7YXZF39S33__ */
+#endif /* RBC_CONST_H_7YXZF39S33__ */

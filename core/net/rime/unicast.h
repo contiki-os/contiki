@@ -1,25 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimeuc Single-hop unicast
- * @{
- *
- * The unicast module sends a packet to an identified single-hop
- * neighbor.  The unicast primitive uses the broadcast primitive and
- * adds the single-hop receiver address attribute to the outgoing
- * packets. For incoming packets, the unicast module inspects the
- * single-hop receiver address attribute and discards the packet if
- * the address does not match the address of the node.
- *
- * \section channels Channels
- *
- * The unicast module uses 1 channel.
- *
- */
-
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -59,8 +37,30 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __UNICAST_H__
-#define __UNICAST_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeuc Single-hop unicast
+ * @{
+ *
+ * The unicast module sends a packet to an identified single-hop
+ * neighbor.  The unicast primitive uses the broadcast primitive and
+ * adds the single-hop receiver address attribute to the outgoing
+ * packets. For incoming packets, the unicast module inspects the
+ * single-hop receiver address attribute and discards the packet if
+ * the address does not match the address of the node.
+ *
+ * \section unicast-channels Channels
+ *
+ * The unicast module uses 1 channel.
+ *
+ */
+
+#ifndef UNICAST_H_
+#define UNICAST_H_
 
 #include "net/rime/broadcast.h"
 
@@ -70,7 +70,7 @@ struct unicast_conn;
                         BROADCAST_ATTRIBUTES
 
 struct unicast_callbacks {
-  void (* recv)(struct unicast_conn *c, const rimeaddr_t *from);
+  void (* recv)(struct unicast_conn *c, const linkaddr_t *from);
   void (* sent)(struct unicast_conn *ptr, int status, int num_tx);
 };
 
@@ -83,8 +83,8 @@ void unicast_open(struct unicast_conn *c, uint16_t channel,
 	      const struct unicast_callbacks *u);
 void unicast_close(struct unicast_conn *c);
 
-int unicast_send(struct unicast_conn *c, const rimeaddr_t *receiver);
+int unicast_send(struct unicast_conn *c, const linkaddr_t *receiver);
 
-#endif /* __UNICAST_H__ */
+#endif /* UNICAST_H_ */
 /** @} */
 /** @} */

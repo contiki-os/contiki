@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 #include "contiki-lib.h"
-#include "net/uip-ds6.h"
+#include "net/ipv6/uip-ds6.h"
 #include "servreg-hack.h"
 
 #include <stdio.h> /* For printf() */

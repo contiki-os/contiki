@@ -2,7 +2,7 @@
 ====
 
 The cpu/6502/ directory is used for targeting 6502-based machines using the
-cc65 compiler [http://oliverschmidt.github.io/cc65/](http://oliverschmidt.github.io/cc65/).
+cc65 compiler [http://cc65.github.io/cc65/](http://cc65.github.io/cc65/).
 
 The Contiki network configuration for 6502-based targets is loaded from a
 binary configuration file (by default named contiki.cfg). It has the following
@@ -40,6 +40,11 @@ high-level configuration macros may be set:
     - Default: 10
     - Purpose: Set the maximum number of concurrent TCP connections.
 
+- ETHERNET
+    - Default: N/A
+    - Purpose: Link Ethernet driver statically instead of loading it dynamically
+      using the network configuration file.
+
 - WITH_LOGGING
     - Default: 0
     - Purpose: Have log_message() and UIP_LOG() write messages to the screen.
@@ -68,6 +73,10 @@ high-level configuration macros may be set:
 - WITH_MOUSE
     - Default: 0
     - Purpose: Enable CTK mouse support and load a mouse driver.
+
+- WITH_ARGS
+    - Default: 0
+    - Purpose: Enable support for contiki_argc / contiki_argv.
 
 - WITH_PFS
     - Default: 0

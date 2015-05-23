@@ -136,19 +136,19 @@ rtimer_arch_now()
 void
 rtimer_isr()
 {
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-
-  next_trigger = 0;
-
-  nvic_interrupt_unpend(NVIC_INT_SM_TIMER);
-  nvic_interrupt_disable(NVIC_INT_SM_TIMER);
-
   /*
    * If we were in PM1+, call the wake-up sequence first. This will make sure
    * that the 32MHz OSC is selected as the clock source. We need to do this
    * before calling the next rtimer_task, since the task may need the RF.
    */
   lpm_exit();
+
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  next_trigger = 0;
+
+  nvic_interrupt_unpend(NVIC_INT_SM_TIMER);
+  nvic_interrupt_disable(NVIC_INT_SM_TIMER);
 
   rtimer_run_next();
 

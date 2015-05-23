@@ -54,6 +54,9 @@ disk: all
 	cp $(CONTIKI_PROJECT).$(TARGET)             atr/autorun.sys
 	cp $(CONTIKI)/tools/$(TARGET)/sample.cfg    atr/contiki.cfg
 	cp cs8900a.eth                              atr/cs8900a.eth
+ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
+	cp $(CC65_HOME)/mou/atrxst.mou              atr/contiki.mou
+endif
 ifeq ($(HTTPD-CFS),1)
 	cp httpd-cfs/index.htm                      atr/index.htm
 	cp httpd-cfs/backgrnd.gif                   atr/backgrnd.gif

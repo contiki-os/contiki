@@ -21,6 +21,7 @@ PRELIMINARIES
   You can disable RDC in border-router project-conf.h (not really required as BR keeps radio turned on).
     #undef NETSTACK_CONF_RDC
     #define NETSTACK_CONF_RDC     nullrdc_driver
+- Alternatively, you can use the native-border-router together with the slip-radio.
 - For convenience, define the Cooja addresses in /etc/hosts
       aaaa::0212:7401:0001:0101 cooja1
       aaaa::0212:7402:0002:0202 cooja2
@@ -125,10 +126,10 @@ Under Windows/Cygwin, WPCAP might need a patch in
 DETAILS
 -------
 
-Erbium currently implements draft 13.  Central features are commented in
-er-example-server.c.  In general, apps/er-coap-13 supports:
+Erbium implements the Proposed Standard of CoAP. Central features are commented
+in er-example-server.c.  In general, apps/er-coap supports:
 
-- All draft 13 header options
+- All draft-18 header options
 - CON Retransmissions (note COAP_MAX_OPEN_TRANSACTIONS)
 - Blockwise Transfers (note REST_MAX_CHUNK_SIZE, see er-plugtest-server.c for
   Block1 uploads)
@@ -137,24 +138,6 @@ er-example-server.c.  In general, apps/er-coap-13 supports:
 - Resource Discovery
 - Observing Resources (see EVENT_ and PRERIODIC_RESOURCE, note
   COAP_MAX_OBSERVERS)
-
-REST IMPLEMENTATIONS
---------------------
-
-The Makefile uses WITH_COAP to configure different implementations for the
-Erbium (Er) REST Engine.
-
-- WITH_COAP=13 uses Erbium CoAP 13 apps/er-coap-13/.  The default port for
-  coap-13 is 5683.
-- WITH_COAP=12 uses Erbium CoAP 12 apps/er-coap-12/.  The default port for
-  coap-12 is 5683.
-- WITH_COAP=7 uses Erbium CoAP 08 apps/er-coap-07/.  The default port for
-  coap-07/-08 is 5683.
-- WITH_COAP=3 uses Erbium CoAP 03 apps/er-coap-03/.  The default port for
-  coap-03 is 61616.  er-coap-03 produces some warnings, as it not fully
-  maintained anymore.
-- WITH_COAP=0 is a stub to link an Erbium HTTP engine that uses the same
-  resource abstraction (REST.x() functions and RESOURCE macros.
 
 TODOs
 -----

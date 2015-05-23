@@ -1,22 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rudolph2 Single-hop reliable bulk data transfer
- * @{
- *
- * The rudolph2 module implements a single-hop reliable bulk data
- * transfer mechanism.
- *
- * \section channels Channels
- *
- * The rudolph2 module uses 2 channels; one for data packets and one
- * for NACK and repair packets.
- *
- */
-
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -56,8 +37,27 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __RUDOLPH2_H__
-#define __RUDOLPH2_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rudolph2 Single-hop reliable bulk data transfer (rudolph2)
+ * @{
+ *
+ * The rudolph2 module implements a single-hop reliable bulk data
+ * transfer mechanism.
+ *
+ * \section rudolph2-channels Channels
+ *
+ * The rudolph2 module uses 2 channels; one for data packets and one
+ * for NACK and repair packets.
+ *
+ */
+
+#ifndef RUDOLPH2_H_
+#define RUDOLPH2_H_
 
 #include "net/rime/polite.h"
 #include "sys/ctimer.h"
@@ -99,7 +99,7 @@ void rudolph2_stop(struct rudolph2_conn *c);
 void rudolph2_set_version(struct rudolph2_conn *c, int version);
 int rudolph2_version(struct rudolph2_conn *c);
 
-#endif /* __RUDOLPH2_H__ */
+#endif /* RUDOLPH2_H_ */
 /** @} */
 /** @} */
     

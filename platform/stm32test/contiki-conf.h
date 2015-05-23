@@ -1,12 +1,12 @@
-#ifndef __CONTIKI_CONF_H__CDBB4VIH3I__
-#define __CONTIKI_CONF_H__CDBB4VIH3I__
+#ifndef CONTIKI_CONF_H_CDBB4VIH3I__
+#define CONTIKI_CONF_H_CDBB4VIH3I__
 
 #include <stdint.h>
 
 #define CCIF
 #define CLIF
 
-#define WITH_UIP 1
+#define NETSTACK_CONF_WITH_IPV4 1
 #define WITH_ASCII 1
 
 #define CLOCK_CONF_SECOND 100
@@ -43,4 +43,4 @@ typedef unsigned int uip_stats_t;
 #define USB_EP2_SIZE 64
 
 #define RAND_MAX 0x7fff
-#endif /* __CONTIKI_CONF_H__CDBB4VIH3I__ */
+#endif /* CONTIKI_CONF_H_CDBB4VIH3I__ */

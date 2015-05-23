@@ -83,68 +83,6 @@ msp430_init_dco(void)
   /* DCO Internal Resistor  */
 }
 /*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-/* Start CPU with full speed (? good or bad?) and go downwards               */
-/*---------------------------------------------------------------------------*/
-void
-msp430_quick_synch_dco(void) {
-  uint16_t last;
-  uint16_t diff;
-  uint16_t dco_reg = 0x0fff;
-  uint8_t current_bit = 12;
-  uint16_t i;
-  /*  DELTA_2 assumes an ACLK of 32768 Hz */
-#define DELTA_2    ((MSP430_CPU_SPEED) / 32768)
-
-  /* Select SMCLK clock, and capture on ACLK for TBCCR6 */
-  TBCTL = TBSSEL1 | TBCLR;
-  TBCCTL6 = CCIS0 + CM0 + CAP;
-  /* start the timer */
-  TBCTL |= MC1;
-
-  BCSCTL1 = 0x8D | 7;
-  DCOCTL = 0xff; /* MAX SPEED ?? */
-
-  /* IDEA: do binary search - check MSB first, etc...   */
-  /* 1 set current bit to zero - if to slow, put back to 1 */
-  while(current_bit--) {
-    /* first set the current bit to zero and check - we know that it is
-       set from start so ^ works (first bit = bit 11) */
-    dco_reg = dco_reg ^ (1 << current_bit); /* clear bit 11..10..9.. */
-
-    /* set dco registers */
-    DCOCTL = dco_reg & 0xff;
-    BCSCTL1 = (BCSCTL1 & 0xf8) | (dco_reg >> 8);
-
-    /* some delay to make clock stable - could possibly be made using
-       captures too ... */
-    for(i=0; i < 1000; i++) {
-      i = i | 1;
-    }
-
-
-    /* do capture... */
-    while(!(TBCCTL6 & CCIFG));
-    last = TBCCR6;
-
-    TBCCTL6 &= ~CCIFG;
-    /* wait for next Capture - and calculate difference */
-    while(!(TBCCTL6 & CCIFG));
-    diff = TBCCR6 - last;
-
-/*     /\* store what was run during the specific test *\/ */
-/*     dcos[current_bit] = dco_reg; */
-/*     vals[current_bit] = diff; */
-
-    /* should we keep the bit cleared or not ? */
-    if(diff < DELTA_2) { /* DCO is too slow - fewer ticks than desired */
-      /* toggle bit again to get it back to one */
-      dco_reg = dco_reg ^ (1 << current_bit);
-    }
-  }
-}
-/*---------------------------------------------------------------------------*/
 static void
 init_ports(void)
 {
@@ -224,7 +162,10 @@ msp430_cpu_init(void)
   dint();
   watchdog_init();
   init_ports();
-  msp430_quick_synch_dco();
+  /* set DCO to a reasonable default value (8MHz) */
+  msp430_init_dco();
+  /* calibrate the DCO step-by-step */ 
+  msp430_sync_dco();
   eint();
 #if defined(__MSP430__) && defined(__GNUC__)
   if((uintptr_t)cur_break & 1) { /* Workaround for msp430-ld bug! */
@@ -282,13 +223,10 @@ int __low_level_init(void)
 }
 #endif
 /*---------------------------------------------------------------------------*/
-#if DCOSYNCH_CONF_ENABLED
-/* this code will always start the TimerB if not already started */
 void
 msp430_sync_dco(void) {
-  uint16_t last;
-  uint16_t diff;
-/*   uint32_t speed; */
+  uint16_t oldcapture;
+  int16_t diff;
   /* DELTA_2 assumes an ACLK of 32768 Hz */
 #define DELTA_2    ((MSP430_CPU_SPEED) / 32768)
 
@@ -298,36 +236,35 @@ msp430_sync_dco(void) {
   /* start the timer */
   TBCTL |= MC1;
 
-  /* wait for next Capture */
-  TBCCTL6 &= ~CCIFG;
-  while(!(TBCCTL6 & CCIFG));
-  last = TBCCR6;
+  while(1) {
+    /* wait for the next capture */
+    TBCCTL6 &= ~CCIFG;
+    while(!(TBCCTL6 & CCIFG));
+    oldcapture = TBCCR6;
 
-  TBCCTL6 &= ~CCIFG;
-  /* wait for next Capture - and calculate difference */
-  while(!(TBCCTL6 & CCIFG));
-  diff = TBCCR6 - last;
+    /* wait for the next capture - and calculate difference */
+    TBCCTL6 &= ~CCIFG;
+    while(!(TBCCTL6 & CCIFG));
+    diff = TBCCR6 - oldcapture;
 
-  /* Stop timer - conserves energy according to user guide */
-  TBCTL = 0;
-
-  /*   speed = diff; */
-  /*   speed = speed * 32768; */
-  /*   printf("Last TAR diff:%d target: %ld ", diff, DELTA_2); */
-  /*   printf("CPU Speed: %lu DCOCTL: %d\n", speed, DCOCTL); */
-
-  /* resynchronize the DCO speed if not at target */
-  if(DELTA_2 < diff) {        /* DCO is too fast, slow it down */
-    DCOCTL--;
-    if(DCOCTL == 0xFF) {              /* Did DCO role under? */
-      BCSCTL1--;
-    }
-  } else if(DELTA_2 > diff) {
-    DCOCTL++;
-    if(DCOCTL == 0x00) {              /* Did DCO role over? */
-      BCSCTL1++;
+    /* resynchronize the DCO speed if not at target */
+    if(DELTA_2 == diff) {
+      break;                            /* if equal, leave "while(1)" */
+    } else if(DELTA_2 < diff) {         /* DCO is too fast, slow it down */
+      DCOCTL--;
+      if(DCOCTL == 0xFF) {              /* Did DCO roll under? */
+        BCSCTL1--;
+      }
+    } else {                            /* -> Select next lower RSEL */
+      DCOCTL++;
+      if(DCOCTL == 0x00) {              /* Did DCO roll over? */
+        BCSCTL1++;
+      }
+                                        /* -> Select next higher RSEL  */
     }
   }
+
+  /* Stop the timer - conserves energy according to user guide */
+  TBCTL = 0;
 }
-#endif /* DCOSYNCH_CONF_ENABLED */
 /*---------------------------------------------------------------------------*/

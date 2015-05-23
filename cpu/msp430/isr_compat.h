@@ -25,8 +25,8 @@
  *
  */
 
-#ifndef _ISR_COMPAT_H_
-#define _ISR_COMPAT_H_
+#ifndef ISR_COMPAT_H_
+#define ISR_COMPAT_H_
 
 /* Cross compiler interrupt service routine compatibility definitions */
 /* This code currently allows for:

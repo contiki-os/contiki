@@ -32,8 +32,8 @@
  * This file is ripped from x86/mtarch.h of the Contiki Multi-threading library.
  * Fredrik Osterlind <fros@sics.se>
  */
-#ifndef __COOJA_MTARCH_H__
-#define __COOJA_MTARCH_H__
+#ifndef COOJA_MTARCH_H_
+#define COOJA_MTARCH_H_
 
 #ifndef COOJA_MTARCH_STACKSIZE
 #define COOJA_MTARCH_STACKSIZE 1024
@@ -48,5 +48,5 @@ struct cooja_mt_thread;
 
 int cooja_mtarch_stack_usage(struct cooja_mt_thread *t);
 
-#endif /* __COOJA_MTARCH_H__ */
+#endif /* COOJA_MTARCH_H_ */
 	

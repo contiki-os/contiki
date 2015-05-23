@@ -1,5 +1,5 @@
-#ifndef __USB_H__6PFTDPIMZM__
-#define __USB_H__6PFTDPIMZM__
+#ifndef USB_H_6PFTDPIMZM__
+#define USB_H_6PFTDPIMZM__
 #include <stdint.h>
 
 /* Adapted from usb_kbd_enum.h in c5131-usb-kbd-light-1_0_2 package from
@@ -182,4 +182,4 @@ struct usb_st_language_descriptor
   Uint16 wlangid[1];               /* language id */
 } BYTE_ALIGNED;
 
-#endif /* __USB_H__6PFTDPIMZM__ */
+#endif /* USB_H_6PFTDPIMZM__ */

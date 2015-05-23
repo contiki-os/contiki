@@ -40,8 +40,8 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _RNDIS_TASK_H_
-#define _RNDIS_TASK_H_
+#ifndef RNDIS_TASK_H_
+#define RNDIS_TASK_H_
 
 /**
  \addtogroup RNDIS
@@ -56,7 +56,7 @@
 
 //_____ M A C R O S ________________________________________________________
 
-#define USB_ETH_MTU	UIP_BUFSIZE+4
+#define USB_ETH_MTU (UIP_BUFSIZE + 4)
 
 
 /*! Hook Documentation
@@ -121,5 +121,5 @@ PROCESS_NAME(usb_eth_process);
 
 /** @} */
 
-#endif /* _RNDIS_TASK_H_ */
+#endif /*RNDIS_TASK_H_ */
 

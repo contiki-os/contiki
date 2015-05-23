@@ -34,3 +34,6 @@ AVRDUDE_MCU=m1284p
 
 include $(CONTIKIAVR)/Makefile.avr
 include $(CONTIKIAVR)/radio/Makefile.radio
+
+MODULES += core/net/mac core/net core/net/mac/sicslowmac \
+           core/net/llsec

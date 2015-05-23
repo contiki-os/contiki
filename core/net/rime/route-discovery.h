@@ -1,20 +1,3 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup routediscovery Rime route discovery protocol
- * @{
- *
- * The route-discovery module does route discovery for Rime.
- *
- * \section channels Channels
- *
- * The ibc module uses 2 channels; one for the flooded route request
- * packets and one for the unicast route replies.
- *
- */
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -54,8 +37,25 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __ROUTE_DISCOVERY_H__
-#define __ROUTE_DISCOVERY_H__
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup routediscovery Rime route discovery protocol
+ * @{
+ *
+ * The route-discovery module does route discovery for Rime.
+ *
+ * \section route-discovery-channels Channels
+ *
+ * The ibc module uses 2 channels; one for the flooded route request
+ * packets and one for the unicast route replies.
+ *
+ */
+#ifndef ROUTE_DISCOVERY_H_
+#define ROUTE_DISCOVERY_H_
 
 #include "net/rime/unicast.h"
 #include "net/rime/netflood.h"
@@ -64,7 +64,7 @@
 struct route_discovery_conn;
 
 struct route_discovery_callbacks {
-  void (* new_route)(struct route_discovery_conn *c, const rimeaddr_t *to);
+  void (* new_route)(struct route_discovery_conn *c, const linkaddr_t *to);
   void (* timedout)(struct route_discovery_conn *c);
 };
 
@@ -74,7 +74,7 @@ struct route_discovery_conn {
   struct netflood_conn rreqconn;
   struct unicast_conn rrepconn;
   struct ctimer t;
-  rimeaddr_t last_rreq_originator;
+  linkaddr_t last_rreq_originator;
   uint16_t last_rreq_id;
   uint16_t rreq_id;
   const struct route_discovery_callbacks *cb;
@@ -83,11 +83,11 @@ struct route_discovery_conn {
 void route_discovery_open(struct route_discovery_conn *c, clock_time_t time,
 			  uint16_t channels,
 			  const struct route_discovery_callbacks *callbacks);
-int route_discovery_discover(struct route_discovery_conn *c, const rimeaddr_t *dest,
+int route_discovery_discover(struct route_discovery_conn *c, const linkaddr_t *dest,
 			     clock_time_t timeout);
 
 void route_discovery_close(struct route_discovery_conn *c);
 
-#endif /* __ROUTE_DISCOVERY_H__ */
+#endif /* ROUTE_DISCOVERY_H_ */
 /** @} */
 /** @} */

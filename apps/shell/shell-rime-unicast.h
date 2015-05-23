@@ -37,11 +37,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_RIME_UNICAST_H__
-#define __SHELL_RIME_UNICAST_H__
+#ifndef SHELL_RIME_UNICAST_H_
+#define SHELL_RIME_UNICAST_H_
 
 #include "shell.h"
 
 void shell_rime_unicast_init(void);
 
-#endif /* __SHELL_RIME_UNICAST_H__ */
+#endif /* SHELL_RIME_UNICAST_H_ */
