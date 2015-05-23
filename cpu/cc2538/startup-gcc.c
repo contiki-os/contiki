@@ -40,6 +40,7 @@
 #include "reg.h"
 #include "flash-cca.h"
 #include "sys-ctrl.h"
+#include "rom-util.h"
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -89,7 +90,7 @@ void uart1_isr(void) WEAK_ALIAS(default_handler);
 #endif
 /*---------------------------------------------------------------------------*/
 /* Allocate stack space */
-static unsigned long stack[512];
+static unsigned long stack[512] __attribute__ ((section(".stack")));
 /*---------------------------------------------------------------------------*/
 /* Linker construct indicating .text section location */
 extern uint8_t _text[0];
@@ -275,11 +276,11 @@ void(*const vectors[])(void) =
 };
 /*---------------------------------------------------------------------------*/
 /* Linker constructs indicating .data and .bss segment locations */
-extern unsigned long _etext;
-extern unsigned long _data;
-extern unsigned long _edata;
-extern unsigned long _bss;
-extern unsigned long _ebss;
+extern uint8_t _ldata;
+extern uint8_t _data;
+extern uint8_t _edata;
+extern uint8_t _bss;
+extern uint8_t _ebss;
 /*---------------------------------------------------------------------------*/
 /* Weak interrupt handlers. */
 void
@@ -298,26 +299,13 @@ default_handler(void)
 void
 reset_handler(void)
 {
-  unsigned long *pul_src, *pul_dst;
-
   REG(SYS_CTRL_EMUOVR) = 0xFF;
 
   /* Copy the data segment initializers from flash to SRAM. */
-  pul_src = &_etext;
-
-  for(pul_dst = &_data; pul_dst < &_edata;) {
-    *pul_dst++ = *pul_src++;
-  }
+  rom_util_memcpy(&_data, &_ldata, &_edata - &_data);
 
   /* Zero-fill the bss segment. */
-  __asm("    ldr     r0, =_bss\n"
-        "    ldr     r1, =_ebss\n"
-        "    mov     r2, #0\n"
-        "    .thumb_func\n"
-        "zero_loop:\n"
-        "        cmp     r0, r1\n"
-        "        it      lt\n"
-        "        strlt   r2, [r0], #4\n" "        blt     zero_loop");
+  rom_util_memset(&_bss, 0, &_ebss - &_bss);
 
   /* call the application's entry point. */
   main();
