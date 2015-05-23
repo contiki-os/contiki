@@ -85,12 +85,13 @@ SECTIONS
         *(.udma_channel_control_table)
     } > SRAM
 
-    .data :
+    .data : ALIGN(4)
     {
         _data = .;
         *(.data*)
         _edata = .;
     } > SRAM AT > FLASH
+    _ldata = LOADADDR(.data);
 
     .ARM.exidx :
     {
@@ -103,6 +104,11 @@ SECTIONS
         *(.bss*)
         *(COMMON)
         _ebss = .;
+    } > SRAM
+
+    .stack (NOLOAD) :
+    {
+        *(.stack)
     } > SRAM
 
 #if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
