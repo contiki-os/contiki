@@ -89,7 +89,7 @@ void uart1_isr(void) WEAK_ALIAS(default_handler);
 #endif
 /*---------------------------------------------------------------------------*/
 /* Allocate stack space */
-static unsigned long stack[512];
+static unsigned long stack[512] __attribute__ ((section(".stack")));
 /*---------------------------------------------------------------------------*/
 /* Linker construct indicating .text section location */
 extern uint8_t _text[0];
