@@ -390,9 +390,11 @@ parse_tag(void)
     newline();
     break;
   case TAG_LI:
-    newline();
-    add_char(ISO_asterisk);
-    add_char(ISO_space);
+    if(s.tagattr[0] == 0) {
+      newline();
+      add_char(ISO_asterisk);
+      add_char(ISO_space);
+    }
     break;
   case TAG_SCRIPT:
   case TAG_STYLE:
