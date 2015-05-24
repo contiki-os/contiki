@@ -305,7 +305,9 @@ do_word(void)
 {
   if(s.wordlen > 0) {
     if(s.majorstate == MAJORSTATE_LINK) {
-      add_char(ISO_space);
+      if(s.word[s.wordlen - 1] != ISO_space) {
+	add_char(ISO_space);
+      }
     } else if(s.majorstate == MAJORSTATE_DISCARD) {
       s.wordlen = 0;
     } else {
