@@ -119,9 +119,6 @@ G * (<br>, <p>, <h>), the <li> tag (but does not even try to
 #define ISO_eq    0x3d
 #define ISO_gt    0x3e
 
-#define ISO_rbrack 0x5b
-#define ISO_lbrack 0x5d
-
 #define MINORSTATE_NONE           0
 #define MINORSTATE_TEXT           1 /* Parse normal text */
 #define MINORSTATE_EXTCHAR        2 /* Check for semi-colon */
@@ -196,33 +193,31 @@ static const char *tags[] = {
   html_br,
 #define TAG_FORM       10
   html_form,
-#define TAG_FRAME      11
-  html_frame,
-#define TAG_H1         12
+#define TAG_H1         11
   html_h1,
-#define TAG_H2         13
+#define TAG_H2         12
   html_h2,
-#define TAG_H3         14
+#define TAG_H3         13
   html_h3,
-#define TAG_H4         15
+#define TAG_H4         14
   html_h4,
-#define TAG_IMG        16
+#define TAG_IMG        15
   html_img,
-#define TAG_INPUT      17
+#define TAG_INPUT      16
   html_input,
-#define TAG_LI         18
+#define TAG_LI         17
   html_li,
-#define TAG_P          19
+#define TAG_P          18
   html_p,
-#define TAG_SCRIPT     20
+#define TAG_SCRIPT     19
   html_script, 
-#define TAG_SELECT     21
+#define TAG_SELECT     20
   html_select,
-#define TAG_STYLE      22
+#define TAG_STYLE      21
   html_style,
-#define TAG_TR         23
+#define TAG_TR         22
   html_tr,
-#define TAG_LAST       24
+#define TAG_LAST       23
   last,
 };
 
@@ -370,8 +365,6 @@ parse_tag(void)
   static char *tagattrparam;
   static unsigned char size;
 
-  static char dummy;
-  
   PRINTF(("Parsing tag '%s' '%s' '%s'\n", s.tag, s.tagattr, s.tagattrparam));
 
   switch(find_tag(s.tag)) {
@@ -386,7 +379,6 @@ parse_tag(void)
   case TAG_TR:
   case TAG_SLASHDIV:
   case TAG_SLASHH:
-    dummy = 0;
     newline();
     break;
   case TAG_LI:
@@ -409,18 +401,6 @@ parse_tag(void)
     break;
   case TAG_BODY:
     s.majorstate = s.lastmajorstate = MAJORSTATE_BODY;
-    break;
-  case TAG_FRAME:
-    if(strncmp(s.tagattr, html_src, sizeof(html_src)) == 0 && s.tagattrparam[0] != 0) {
-      switch_majorstate(MAJORSTATE_BODY);
-      newline();
-      add_char(ISO_rbrack);
-      do_word();
-      htmlparser_link((char *)html_frame, (unsigned char)strlen(html_frame), s.tagattrparam);
-      PRINTF(("Frame [%s]\n", s.tagattrparam));
-      add_char(ISO_lbrack);
-      newline();
-    }
     break;
   case TAG_IMG:
     if(strncmp(s.tagattr, html_alt, sizeof(html_alt)) == 0 && s.tagattrparam[0] != 0) {
