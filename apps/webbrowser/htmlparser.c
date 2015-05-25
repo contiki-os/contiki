@@ -137,7 +137,7 @@ G * (<br>, <p>, <h>), the <li> tag (but does not even try to
 #define MAJORSTATE_LINK       2
 #define MAJORSTATE_FORM       3
 #define MAJORSTATE_DISCARD    4
-
+#define MAJORSTATE_SCRIPT     5
 
 struct htmlparser_state {
 
@@ -303,7 +303,7 @@ do_word(void)
       if(s.word[s.wordlen - 1] != ISO_space) {
 	add_char(ISO_space);
       }
-    } else if(s.majorstate == MAJORSTATE_DISCARD) {
+    } else if(s.majorstate >= MAJORSTATE_DISCARD) {
       s.wordlen = 0;
     } else {
       s.word[s.wordlen] = '\0';
@@ -363,11 +363,17 @@ static void
 parse_tag(void)
 {
   static char *tagattrparam;
+  static unsigned char tag;
   static unsigned char size;
+
+  tag = find_tag(s.tag);
+  if(s.majorstate == MAJORSTATE_SCRIPT && tag != TAG_SLASHSCRIPT) {
+    return;
+  }
 
   PRINTF(("Parsing tag '%s' '%s' '%s'\n", s.tag, s.tagattr, s.tagattrparam));
 
-  switch(find_tag(s.tag)) {
+  switch(tag) {
   case TAG_P:
   case TAG_H1:
   case TAG_H2:
@@ -389,6 +395,8 @@ parse_tag(void)
     }
     break;
   case TAG_SCRIPT:
+    switch_majorstate(MAJORSTATE_SCRIPT);
+    break;
   case TAG_STYLE:
   case TAG_SELECT:
     switch_majorstate(MAJORSTATE_DISCARD);
