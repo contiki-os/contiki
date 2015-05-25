@@ -72,7 +72,6 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_LLH_LEN                      14
 #define RESOLV_CONF_SUPPORTS_MDNS              0
 #define RESOLV_CONF_SUPPORTS_RECORD_EXPIRATION 0
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE   1
 
 #define LOADER_CONF_ARCH "lib/unload.h"
 
