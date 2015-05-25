@@ -170,11 +170,12 @@ static struct inputattrib *currptr;
 
 #define ISO_nl    0x0a
 #define ISO_space 0x20
+#define ISO_hash  0x23
 #define ISO_ampersand 0x26
-#define ISO_plus 0x2b
+#define ISO_plus  0x2b
 #define ISO_slash 0x2f
 #define ISO_eq    0x3d
-#define ISO_questionmark  0x3f
+#define ISO_questionmark 0x3f
 
 /* The state of the rendering code. */
 static char *webpageptr;
@@ -886,7 +887,11 @@ htmlparser_word(char *word, unsigned char wordlen)
 void
 htmlparser_link(char *text, unsigned char textlen, char *url)
 {
-  add_pagewidget(text, textlen, url, CTK_WIDGET_HYPERLINK, 0);
+  if(url[0] == ISO_hash) {
+    htmlparser_word(text, textlen);
+  } else {
+    add_pagewidget(text, textlen, url, CTK_WIDGET_HYPERLINK, 0);
+  }
 }
 /*-----------------------------------------------------------------------------------*/
 #if WWW_CONF_FORMS
