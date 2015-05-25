@@ -189,12 +189,4 @@ void tsch_release_lock();
 /* Returns a 802.15.4 channel from an ASN and channel offset */
 uint8_t tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset);
 
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif /* MIN */
-
-#ifndef MAX
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif /* MAX */
-
 #endif /* __TSCH_PRIVATE_H__ */

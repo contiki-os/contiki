@@ -39,6 +39,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "contiki.h"
+#include "sys/cc.h"
 #include "contiki-net.h"
 
 #include "er-coap.h"

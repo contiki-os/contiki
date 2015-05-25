@@ -62,10 +62,6 @@
 #define REST_MAX_CHUNK_SIZE     64
 #endif
 
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif /* MIN */
-
 struct resource_s;
 struct periodic_resource_s;
 

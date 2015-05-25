@@ -57,8 +57,7 @@
                                  IOC_IOPULL_UP    | IOC_SLEW_DISABLE  | \
                                  IOC_HYST_ENABLE  | IOC_BOTH_EDGES    | \
                                  IOC_INT_ENABLE   | IOC_IOMODE_NORMAL | \
-                                 IOC_NO_WAKE_UP   | IOC_INPUT_ENABLE  | \
-                                 IOC_JTAG_DISABLE)
+                                 IOC_NO_WAKE_UP   | IOC_INPUT_ENABLE)
 /*---------------------------------------------------------------------------*/
 #define DEBOUNCE_DURATION (CLOCK_SECOND >> 5)
 

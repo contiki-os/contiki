@@ -392,8 +392,7 @@ get_batmon_reading(void *data)
 
       buf = batmon_temp_reading.converted;
       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-      snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value >> 2,
-               (value & 0x00000003) * 25);
+      snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d", value);
     }
   }
 

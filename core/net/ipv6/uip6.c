@@ -71,6 +71,7 @@
  * the packet back to the peer.
  */
 
+#include "sys/cc.h"
 #include "net/ip/uip.h"
 #include "net/ip/uipopt.h"
 #include "net/ipv6/uip-icmp6.h"
@@ -2332,9 +2333,6 @@ void
 uip_send(const void *data, int len)
 {
   int copylen;
-#ifndef MIN
-#define MIN(a,b) ((a) < (b)? (a): (b))
-#endif
 
   if(uip_sappdata != NULL) {
     copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -

@@ -30,6 +30,7 @@
  */
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "contiki-net.h"
 
 #include "lib/list.h"
@@ -39,9 +40,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifndef MIN
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#endif
 
 static void relisten(struct tcp_socket *s);
 

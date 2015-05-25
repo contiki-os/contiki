@@ -49,13 +49,6 @@ before_script:
       arm-none-eabi-gcc --version ;
     fi
 
-  ## Download and extract cc26xxware
-  - if [ ${BUILD_ARCH:-0} = arm-aapcs ] ; then
-      wget http://www.ti.com/lit/sw/swrc296/swrc296.zip &&
-      unzip swrc296.zip &&
-      export TI_CC26XXWARE=cc26xxware_2_20_06_14829 ;
-    fi
-
   ## Install RL78 GCC toolchain
   - sudo apt-get install libncurses5:i386 zlib1g:i386
   - $WGET http://adamdunkels.github.io/contiki-fork/gnurl78-v13.02-elf_1-2_i386.deb &&
