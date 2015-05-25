@@ -421,7 +421,6 @@ tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset)
 static void
 hop_channel(struct asn_t *asn, uint8_t offset)
 {
-  current_channel = -1;
   uint8_t channel = tsch_calculate_channel(asn, offset);
   if(current_channel != channel) {
     NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
@@ -1525,9 +1524,9 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
       }
     }
     /* Next EB transmission with a random delay
-     * within [tsch_current_eb_period*0.9, tsch_current_eb_period[ */
-    delay = (tsch_current_eb_period - tsch_current_eb_period/10)
-        + random_rand() % (tsch_current_eb_period/10);
+     * within [tsch_current_eb_period*0.75, tsch_current_eb_period[ */
+    delay = (tsch_current_eb_period - tsch_current_eb_period/4)
+        + random_rand() % (tsch_current_eb_period/4);
     etimer_set(&eb_timer, delay);
     PROCESS_WAIT_UNTIL(etimer_expired(&eb_timer));
   }
