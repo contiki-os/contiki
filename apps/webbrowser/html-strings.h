@@ -9,7 +9,6 @@ extern const char html_a[3];
 extern const char html_body[6];
 extern const char html_br[4];
 extern const char html_form[6];
-extern const char html_frame[7];
 extern const char html_h1[4];
 extern const char html_h2[4];
 extern const char html_h3[4];
