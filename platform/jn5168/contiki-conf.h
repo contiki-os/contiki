@@ -74,6 +74,9 @@
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #define UIP_CONF_BROADCAST 1
 
+/* Configure NullRDC for when it is selected */
+#define NULLRDC_CONF_802154_AUTOACK_HW 1
+
 #ifndef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM                8
 #endif

@@ -409,8 +409,11 @@ prepare(const void *payload, unsigned short payload_len)
 static int
 send(const void *payload, unsigned short payload_len)
 {
-  return prepare(payload, payload_len)
-      && transmit(payload_len);
+  if(prepare(payload, payload_len) == 0) {
+    return transmit(payload_len);
+  } else {
+    return RADIO_TX_ERR;
+  }
 }
 /*---------------------------------------------------------------------------*/
 int

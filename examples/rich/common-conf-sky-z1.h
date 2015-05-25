@@ -85,4 +85,8 @@
 #undef CC2420_CONF_SFD_TIMESTAMPS
 #define CC2420_CONF_SFD_TIMESTAMPS 0
 
+/* NullRDC: check for autoack in S/W */
+#undef NULLRDC_CONF_802154_AUTOACK
+#define NULLRDC_CONF_802154_AUTOACK 1
+
 #endif /* __COMMON_CONF_SKY_Z1_H__ */
