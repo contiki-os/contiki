@@ -177,9 +177,6 @@ static uint8_t tx_in_progress = 0;
 /* Are we currently listening? */
 static uint8_t listen_on = 0;
 
-/* are there pending packets */
-static volatile uint8_t pending = 0;
-
 /* TX frame buffer */
 static tsPhyFrame tx_frame_buffer;
 
@@ -263,7 +260,7 @@ init(void)
   if(put_index == -1) {
     rx_frame_buffer = NULL;
     printf("micromac_radio init:! no buffer available. Abort init.\n");
-    off();;
+    off();
     return 0;
   } else {
     rx_frame_buffer = &input_array[put_index];
@@ -506,8 +503,6 @@ read(void *buf, unsigned short bufsize)
         bufsize = MIN(len, bufsize);
         memcpy(buf, input_frame_buffer->uPayload.au8Byte, bufsize);
         RIMESTATS_ADD(llrx);
-      } else { /* report an invalid packet */
-        len = 0;
       }
     } else {
       len = 0;
@@ -515,7 +510,6 @@ read(void *buf, unsigned short bufsize)
     /* Disable further read attempts */
     input_frame_buffer->u8PayloadLength = 0;
   }
-  pending = 0;
   return len;
 }
 /*---------------------------------------------------------------------------*/
@@ -554,12 +548,11 @@ static int
 pending_packet(void)
 {
   if(!poll_mode) {
-    pending = (ringbufindex_peek_get(&input_ringbuf) != -1);
+    return (ringbufindex_peek_get(&input_ringbuf) != -1);
   } else {
-    pending += u32MMAC_PollInterruptSource(
+    return u32MMAC_PollInterruptSource(
         E_MMAC_INT_RX_COMPLETE | E_MMAC_INT_RX_HEADER);
   }
-  return pending;
 }
 /*---------------------------------------------------------------------------*/
 static int
