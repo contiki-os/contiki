@@ -182,6 +182,7 @@ static char *webpageptr;
 static unsigned char x, y;
 static unsigned char loading;
 static unsigned short firsty, pagey;
+static unsigned char newlines;
 
 static unsigned char count;
 static char receivingmsgs[4][23] = {
@@ -278,6 +279,7 @@ start_loading(void)
   loading = 1;
   x = y = 0;
   pagey = 0;
+  newlines = 0;
   webpageptr = webpage;
 
   clear_page();
@@ -732,6 +734,8 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
   char *wptr;
   static unsigned char maxwidth;
 
+  newlines = 0;
+
   if(!loading) {
     return;
   }
@@ -838,6 +842,10 @@ htmlparser_newline(void)
 {
   char *wptr;
 
+  if(++newlines > 2) {
+    return;
+  }
+
   if(pagey < firsty) {
     ++pagey;
     x = 0;
@@ -864,6 +872,8 @@ htmlparser_newline(void)
 void
 htmlparser_word(char *word, unsigned char wordlen)
 {
+  newlines = 0;
+
   if(loading) {
     if(wordlen + 1 > WWW_CONF_WEBPAGE_WIDTH - x) {
       htmlparser_newline();
