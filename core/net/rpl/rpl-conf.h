@@ -106,6 +106,22 @@
 #endif /* RPL_CONF_MAX_DAG_PER_INSTANCE */
 
 /*
+ * RPL Default route lifetime
+ * The RPL route lifetime is used for the downward routes and for the default
+ * route. In a high density network with DIO suppression activated it may happen
+ * that a node will never send a DIO once the DIO interval becomes high as it
+ * has heard DIO from many neighbors already. As the default route to the
+ * preferred parent has a lifetime reset by receiving DIO from the parent, it
+ * means that the default route can be destroyed after a while. Setting the
+ * default route with infinite lifetime secures the upstream route.
+ */
+#ifdef RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
+#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
+#else
+#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    0
+#endif /* RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME */
+
+/*
  * 
  */
 #ifndef RPL_CONF_DAO_SPECIFY_DAG
