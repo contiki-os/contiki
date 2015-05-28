@@ -57,7 +57,7 @@ typedef registerSetting_t cc1200_register_settings_t;
 /* This struct holds the complete configuration for a given mode */
 typedef struct cc1200_rf_cfg {
   /* A string describing the mode */
-  const char *rf_cfg_descriptor;
+  const char *cfg_descriptor;
   /* A pointer to a register setup exported from SmartRF */
   const cc1200_register_settings_t *register_settings;
   /* The size of the register setup */

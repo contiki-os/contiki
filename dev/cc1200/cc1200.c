@@ -67,6 +67,16 @@
  * The channel is set according to CC1200_DEFAULT_CHANNEL
  */
 #define RF_TESTMODE                     0
+#if RF_TESTMODE
+#undef CC1200_RF_CFG
+#if RF_TESTMODE == 1
+#define CC1200_RF_CFG                   cc1200_802154g_863_870_fsk_50kbps
+#elif RF_TESTMODE == 2
+#define CC1200_RF_CFG                   cc1200_802154g_863_870_fsk_50kbps
+#elif RF_TESTMODE == 3
+#define CC1200_RF_CFG                   cc1200_802154g_863_870_fsk_50kbps
+#endif
+#endif
 /*
  * Set this parameter to 1 in order to use the MARC_STATE register when
  * polling the chips's status. Else use the status byte returned when sending
@@ -82,21 +92,6 @@
  * TODO: Option to be removed upon approval of the driver
  */
 #define USE_SFSTXON                     1
-/*
- * Set this parameter to 1 in order to force the transmission of an ACK
- * regardless of the frame received. Used during development in order
- * to determine various timing parameters (e.g. RX/TX turnaround)
- *
- * TODO: Option to be removed upon approval of the driver
- */
-#define ALWAYS_SEND_ACK                 0
-/*
- * Set this parameter to 1 in order to avoid passing data to the next upper
- * layer. Used to test RX path and timings
- *
- * TODO: Option to be removed upon approval of the driver
- */
-#define RX_STRESSTEST                   0
 /*---------------------------------------------------------------------------*/
 /* Phy header length */
 #if CC1200_802154G
@@ -198,23 +193,6 @@ extern const cc1200_rf_cfg_t CC1200_RF_CFG;
 #else
 #error Invalid settings for frequency calculation
 #endif
-/*---------------------------------------------------------------------------*/
-/* Sniffer configuration */
-/*---------------------------------------------------------------------------*/
-#if CC1200_SNIFFER
-#if CC1200_SNIFFER_USB
-#include "usb/usb-serial.h"
-#define write_byte(b)                   usb_serial_writeb(b)
-#define flush()                         usb_serial_flush()
-#else
-#include "dev/uart.h"
-#define write_byte(b)                   uart_write_byte(CC1200_SNIFFER_UART, b)
-#define flush()
-#endif /* CC1200_SNIFFER_USB */
-#else /* CC1200_SNIFFER */
-#define write_byte(b)
-#define flush()
-#endif /* CC1200_SNIFFER */
 /*---------------------------------------------------------------------------*/
 #if STATE_USES_MARC_STATE
 /* We use the MARC_STATE register to poll the chip's status */
@@ -672,7 +650,7 @@ static int
 init(void)
 {
 
-  INFO("RF: Init\n");
+  INFO("RF: Init (%s)\n", CC1200_RF_CFG.cfg_descriptor);
 
   if(!(rf_flags & RF_INITIALIZED)) {
 
@@ -884,9 +862,6 @@ static int
 read(void *buf, unsigned short buf_len)
 {
 
-#if CC1200_SNIFFER
-  int i;
-#endif
   int len = 0;
 
   if(rx_pkt_len > 0) {
@@ -907,25 +882,8 @@ read(void *buf, unsigned short buf_len)
 
       memcpy((void *)buf, (const void *)rx_pkt, len);
 
-      /* Release rx_pkt as soon as possible */
+      /* Release rx_pkt */
       rx_pkt_len = 0;
-
-#if CC1200_SNIFFER
-
-      /* Use sensniff tool + Wireshark */
-      write_byte('S');
-      write_byte('n');
-      write_byte('i');
-      write_byte('f');
-      write_byte(len + APPENDIX_LEN);
-      for(i = 0; i < len; i++) {
-        write_byte(((uint8_t *)buf)[i]);
-      }
-      write_byte(rssi);
-      write_byte(crc_lqi);
-      flush();
-
-#endif
 
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
       /* Mask out CRC bit */
@@ -933,10 +891,6 @@ read(void *buf, unsigned short buf_len)
                          crc_lqi & ~(1 << 7));
 
       RIMESTATS_ADD(llrx);
-
-#if DONT_PASS_DATA
-      len = 0;
-#endif
 
     }
 
@@ -1347,7 +1301,6 @@ set_object(radio_param_t param, const void *src, size_t size)
   return RADIO_RESULT_NOT_SUPPORTED;
 
 }
-
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 /*
@@ -2117,7 +2070,7 @@ static int
 is_broadcast_addr(uint8_t mode, uint8_t *addr)
 {
 
-  int i = ((mode == FRAME802154_SHORTADDRMODE) ? 2 : 8);
+  int i = mode == FRAME802154_SHORTADDRMODE ? 2 : 8;
 
   while(i-- > 0) {
     if(addr[i] != 0xff) {
@@ -2130,19 +2083,37 @@ is_broadcast_addr(uint8_t mode, uint8_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 /* Validate address and send ACK if requested. */
+#if CC1200_SNIFFER
 static int
 addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
 {
 
   frame802154_t info154;
 
-#if ALWAYS_SEND_ACK
-  info154.seq = (uint8_t)frame_len;
-#endif
+  if(frame802154_parse(frame, frame_len, &info154) != 0) {
 
-#if !ALWAYS_SEND_ACK
+    /* We accept all 802.15.4 frames ... */
+    return ADDR_CHECK_OK;
+
+  } else {
+
+    /* .. and discard others. */
+    return INVALID_FRAME;
+
+  }
+
+}
+#else /* #if CC1200_SNIFFER */
+static int
+addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
+{
+
+  frame802154_t info154;
 
   if(frame802154_parse(frame, frame_len, &info154) != 0) {
+
+    /* We received a valid 802.15.4 frame */
+
     if(!(rx_mode_value & RADIO_RX_MODE_ADDRESS_FILTER) ||
        info154.fcf.frame_type == FRAME802154_ACKFRAME ||
        is_broadcast_addr(info154.fcf.dest_addr_mode,
@@ -2150,55 +2121,58 @@ addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
        linkaddr_cmp((linkaddr_t *)&info154.dest_addr,
                     &linkaddr_node_addr)) {
 
-      /* Address check succeeded */
+      /* 
+       * Address check succeeded or address filter disabled. 
+       * We send an ACK in case a corresponding data frame
+       * is received even in promiscuous mode (if auto-ack is
+       * enabled)!
+       */
 
       if((rx_mode_value & RADIO_RX_MODE_AUTOACK) &&
          info154.fcf.frame_type == FRAME802154_DATAFRAME &&
          info154.fcf.ack_required != 0 &&
-         linkaddr_cmp((linkaddr_t *)&info154.dest_addr,
-                      &linkaddr_node_addr)) {
+         (!(rx_mode_value & RADIO_RX_MODE_ADDRESS_FILTER) || 
+          linkaddr_cmp((linkaddr_t *)&info154.dest_addr,
+                       &linkaddr_node_addr))) {
 
-#endif /* #if !ALWAYS_SEND_ACK */
+        /* 
+         * Data frame destined for us & ACK request bit set -> send ACK.
+         * Make sure the preamble length is configured accordingly as
+         * MAC timing parameters rely on this!
+         */
 
-  /* Data frame destined for us & ACK request bit set -> send ACK */
-
-  /*
-   * Make sure the preamble length is configured accordingly as
-   * MAC timing parameters rely on this!
-   */
-
-  uint8_t ack[ACK_LEN] = { FRAME802154_ACKFRAME, 0, info154.seq };
+        uint8_t ack[ACK_LEN] = { FRAME802154_ACKFRAME, 0, info154.seq };
 
 #if (RXOFF_MODE_RX == 1)
-  /*
-   * This turns off GPIOx interrupts. Make sure they are turned on
-   * in rx_rx() later on!
-   */
-  idle();
+        /*
+         * This turns off GPIOx interrupts. Make sure they are turned on
+         * in rx_rx() later on!
+         */
+        idle();
 #endif
+        
+        idle_tx_rx((const uint8_t *)ack, ACK_LEN);
+        
+        /* rx_rx() will follow */
+        
+        return ADDR_CHECK_OK_ACK_SEND;
+        
+      }
 
-  idle_tx_rx((const uint8_t *)ack, ACK_LEN);
+      return ADDR_CHECK_OK;
+      
+    } else {
 
-  /* rx_rx() will follow */
+      return ADDR_CHECK_FAILED;
 
-  return ADDR_CHECK_OK_ACK_SEND;
+    }
 
-#if !ALWAYS_SEND_ACK
+  }
+  
+  return INVALID_FRAME;
 
 }
-return ADDR_CHECK_OK;
-
-} else {
-  return ADDR_CHECK_FAILED;
-}
-
-}
-
-return INVALID_FRAME;
-
-#endif /* #if !ALWAYS_SEND_ACK */
-
-}
+#endif /* #if CC1200_SNIFFER */
 /*---------------------------------------------------------------------------*/
 /*
  * The CC1200 interrupt handler: called by the hardware interrupt
@@ -2387,12 +2361,9 @@ cc1200_rx_interrupt(void)
         /* An old packet is pending. Drop the packet */
         WARNING("RF: Packet pending!\n");
       } else {
-#if CC1200_SNIFFER
-        /* Skip address check in sniffer mode */
-        int ret = ADDR_CHECK_OK;
-#else
+
         int ret = addr_check_auto_ack(buf, bytes_read);
-#endif
+
         if((ret == ADDR_CHECK_OK) ||
            (ret == ADDR_CHECK_OK_ACK_SEND)) {
 #if APPEND_STATUS
