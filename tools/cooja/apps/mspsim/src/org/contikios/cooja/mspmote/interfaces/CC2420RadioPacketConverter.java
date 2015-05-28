@@ -198,7 +198,7 @@ public class CC2420RadioPacketConverter {
     System.arraycopy(data, 6 /* skipping preamble+synch+len */, originalData, 0, originalLen);
     if (len < 0) {
       /*logger.warn("No cross-level conversion available: negative packet length");*/
-      return new ConvertedRadioPacket(new byte[0], originalData);
+      return null;
     }
     byte convertedData[] = new byte[len];
     System.arraycopy(data, pos, convertedData, 0, len);

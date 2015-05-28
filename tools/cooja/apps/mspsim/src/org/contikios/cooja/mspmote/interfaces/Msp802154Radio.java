@@ -99,6 +99,7 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
       public void receivedByte(byte data) {
         if (!isTransmitting()) {
           lastEvent = RadioEvent.TRANSMISSION_STARTED;
+          lastOutgoingPacket = null;
           isTransmitting = true;
           len = 0;
           expMpduLen = 0;
@@ -139,10 +140,12 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
 
         if (((expMpduLen & 0x80) == 0) && len == expMpduLen + 6 && isSynchronized) {
           lastOutgoingPacket = CC2420RadioPacketConverter.fromCC2420ToCooja(buffer);
-          lastEvent = RadioEvent.PACKET_TRANSMITTED;
-          //logger.debug("----- 802.15.4 PACKET TRANSMITTED -----");
-          setChanged();
-          notifyObservers();
+          if (lastOutgoingPacket != null) {
+            lastEvent = RadioEvent.PACKET_TRANSMITTED;
+            //logger.debug("----- 802.15.4 PACKET TRANSMITTED -----");
+            setChanged();
+            notifyObservers();
+          }
           isSynchronized = false;
         }
       }
