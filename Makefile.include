@@ -147,7 +147,6 @@ endif
 
 ifdef MODULES
   UNIQUEMODULES = $(call uniq,$(MODULES))
-  MODULESSUBST = ${subst /,-,$(UNIQUEMODULES)}
   MODULEDIRS = ${wildcard ${addprefix $(CONTIKI)/, $(UNIQUEMODULES)}}
   MODULES_SOURCES = ${foreach d, $(MODULEDIRS), ${subst ${d}/,,${wildcard $(d)/*.c}}}
   CONTIKI_SOURCEFILES += $(MODULES_SOURCES)
