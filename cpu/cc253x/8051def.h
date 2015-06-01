@@ -14,11 +14,6 @@
 
 #include <stdint.h>
 
-/* In watchdog mode, our WDT can't be stopped once started
- * Include watchdog_stop()'s declaration and then trash it */
-#include "dev/watchdog.h"
-#define watchdog_stop() watchdog_periodic()
-
 /* This port no longer implements the legacy clock_delay. Hack its usages
  * outta the way till it gets phased out completely
  * NB: This also overwrites the prototype so delay_usec() is declared twice */
