@@ -359,7 +359,7 @@ uart_write_byte(uint8_t uart, uint8_t b)
   REG(uart_base + UART_DR) = b;
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 uart_isr(uint8_t uart)
 {
   uint32_t uart_base;
