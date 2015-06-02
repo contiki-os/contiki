@@ -89,11 +89,11 @@ create_header_ie_descriptor(uint8_t *buf, uint8_t element_id, int ie_len)
 
 /* Create a payload IE 2-byte descriptor */
 static void
-create_payload_ie_descriptor(uint8_t *buf, uint8_t element_id, int ie_len)
+create_payload_ie_descriptor(uint8_t *buf, uint8_t group_id, int ie_len)
 {
   uint16_t ie_desc;
-  /* MLME Long IE descriptor: b0-10: len, b11-14: element id:, b15: type: 1 */
-  ie_desc = (ie_len & 0x07ff) + ((element_id & 0x0f) << 11) + (1 << 15);
+  /* MLME Long IE descriptor: b0-10: len, b11-14: group id:, b15: type: 1 */
+  ie_desc = (ie_len & 0x07ff) + ((group_id & 0x0f) << 11) + (1 << 15);
   buf[0] = ie_desc & 0xff;
   buf[1] = (ie_desc >> 8) & 0xff;
 }
@@ -120,7 +120,7 @@ create_mlme_long_ie_descriptor(uint8_t *buf, uint8_t sub_id, int ie_len)
   buf[1] = (ie_desc >> 8) & 0xff;
 }
 
-/* Insert various Information Elements */
+/* Header IE. ACK/NACK time correction. Used in enhanced ACKs */
 int
 frame80215e_create_ie_ack_nack_time_correction(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
@@ -143,6 +143,23 @@ frame80215e_create_ie_ack_nack_time_correction(uint8_t *buf, int len,
   }
 }
 
+/* Payload IE. MLME. Used to nest sub-IEs */
+int
+frame80215e_create_ie_mlme(uint8_t *buf, int len,
+    struct ieee802154_ies *ies)
+{
+  int ie_len = 0;
+  if(len >= 2 + ie_len && ies != NULL) {
+    /* The length of the outer MLME IE is the total length of sub-IEs */
+    create_payload_ie_descriptor(buf, PAYLOAD_IE_MLME, ies->ie_mlme_len);
+    return 2 + ie_len;
+  } else {
+    return -1;
+  }
+}
+
+
+/* MLME sub-IE. TSCH synchronization. Used in EBs: ASN and join priority */
 int
 frame80215e_create_ie_tsch_synchronization(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
@@ -162,20 +179,15 @@ frame80215e_create_ie_tsch_synchronization(uint8_t *buf, int len,
   }
 }
 
-int
-frame80215e_create_ie_mlme(uint8_t *buf, int len,
+/* MLME sub-IE. TSCH slotframe and link. Used in EBs: initial schedule */
+int frame80215e_create_ie_tsch_slotframe_and_link(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
-  int ie_len = 0;
-  if(len >= 2 + ie_len && ies != NULL) {
-    /* The length of the outer MLME IE is the total length of sub-IEs */
-    create_payload_ie_descriptor(buf, PAYLOAD_IE_MLME, ies->ie_mlme_len);
-    return 2 + ie_len;
-  } else {
-    return -1;
-  }
+  /* TODO */
+  return -1;
 }
 
+/* MLME sub-IE. TSCH timeslot. Used in EBs: timeslot template (timing) */
 int
 frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
@@ -190,6 +202,7 @@ frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
   }
 }
 
+/* MLME sub-IE. TSCH channel hopping sequence. Used in EBs: hopping sequence */
 int
 frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
     struct ieee802154_ies *ies)

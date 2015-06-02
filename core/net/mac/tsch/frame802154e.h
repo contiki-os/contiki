@@ -59,17 +59,26 @@ struct ieee802154_ies {
   uint8_t ie_hopping_sequence_id;
 };
 
-/* Insert various Information Elements */
+/** Insert various Information Elements **/
+/* Header IE. ACK/NACK time correction. Used in enhanced ACKs */
 int frame80215e_create_ie_ack_nack_time_correction(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
-int frame80215e_create_ie_tsch_synchronization(uint8_t *buf, int len,
-    struct ieee802154_ies *ies);
+/* Payload IE. MLME. Used to nest sub-IEs */
 int frame80215e_create_ie_mlme(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
+/* MLME sub-IE. TSCH synchronization. Used in EBs: ASN and join priority */
+int frame80215e_create_ie_tsch_synchronization(uint8_t *buf, int len,
+    struct ieee802154_ies *ies);
+/* MLME sub-IE. TSCH slotframe and link. Used in EBs: initial schedule */
+int frame80215e_create_ie_tsch_slotframe_and_link(uint8_t *buf, int len,
+    struct ieee802154_ies *ies);
+/* MLME sub-IE. TSCH timeslot. Used in EBs: timeslot template (timing) */
 int frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
+/* MLME sub-IE. TSCH channel hopping sequence. Used in EBs: hopping sequence */
 int frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
+
 /* Parse all Information Elements of a frame */
 int frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size, struct ieee802154_ies *ies);
 
