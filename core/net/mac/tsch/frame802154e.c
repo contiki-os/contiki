@@ -76,6 +76,13 @@ enum ieee802154e_mlme_long_subie_id {
   PAYLOAD_IE_TSCH_CHANNEL_HOPPING_SEQUENCE = 0x9,
 };
 
+#define WRITE16(buf, val) \
+  do { ((uint8_t*)(buf))[0] = (val) & 0xff; \
+  ((uint8_t*)(buf))[1] = ((val) >> 8) & 0xff; } while(0);
+
+#define READ16(buf, var) \
+  (var) = ((uint8_t*)(buf))[0] | ((uint8_t*)(buf))[1] << 8
+
 /* Create a header IE 2-byte descriptor */
 static void
 create_header_ie_descriptor(uint8_t *buf, uint8_t element_id, int ie_len)
@@ -83,8 +90,7 @@ create_header_ie_descriptor(uint8_t *buf, uint8_t element_id, int ie_len)
   uint16_t ie_desc;
   /* Header IE descriptor: b0-6: len, b7-14: element id:, b15: type: 0 */
   ie_desc = (ie_len & 0x7f) + ((element_id & 0xff) << 7);
-  buf[0] = ie_desc & 0xff;
-  buf[1] = (ie_desc >> 8) & 0xff;
+  WRITE16(buf, ie_desc);
 }
 
 /* Create a payload IE 2-byte descriptor */
@@ -94,8 +100,7 @@ create_payload_ie_descriptor(uint8_t *buf, uint8_t group_id, int ie_len)
   uint16_t ie_desc;
   /* MLME Long IE descriptor: b0-10: len, b11-14: group id:, b15: type: 1 */
   ie_desc = (ie_len & 0x07ff) + ((group_id & 0x0f) << 11) + (1 << 15);
-  buf[0] = ie_desc & 0xff;
-  buf[1] = (ie_desc >> 8) & 0xff;
+  WRITE16(buf, ie_desc);
 }
 
 /* Create a MLME short IE 2-byte descriptor */
@@ -105,8 +110,7 @@ create_mlme_short_ie_descriptor(uint8_t *buf, uint8_t sub_id, int ie_len)
   uint16_t ie_desc;
   /* MLME Short IE descriptor: b0-7: len, b8-14: sub id:, b15: type: 0 */
   ie_desc = (ie_len & 0xff) + ((sub_id & 0x7f) << 8);
-  buf[0] = ie_desc & 0xff;
-  buf[1] = (ie_desc >> 8) & 0xff;
+  WRITE16(buf, ie_desc);
 }
 
 /* Create a MLME long IE 2-byte descriptor */
@@ -116,8 +120,7 @@ create_mlme_long_ie_descriptor(uint8_t *buf, uint8_t sub_id, int ie_len)
   uint16_t ie_desc;
   /* MLME Long IE descriptor: b0-10: len, b11-14: sub id:, b15: type: 1 */
   ie_desc = (ie_len & 0x07ff) + ((sub_id & 0x0f) << 11) + (1 << 15);
-  buf[0] = ie_desc & 0xff;
-  buf[1] = (ie_desc >> 8) & 0xff;
+  WRITE16(buf, ie_desc);
 }
 
 /* Header IE. ACK/NACK time correction. Used in enhanced ACKs */
@@ -134,8 +137,7 @@ frame80215e_create_ie_ack_nack_time_correction(uint8_t *buf, int len,
     if(ies->ie_is_nack) {
       time_sync_field |= 0x8000;
     }
-    buf[2] = time_sync_field & 0xff;
-    buf[3] = (time_sync_field >> 8) & 0xff;
+    WRITE16(buf+2, time_sync_field);
     create_header_ie_descriptor(buf, HEADER_IE_ACK_NACK_TIME_CORRECTION, ie_len);
     return 2 + ie_len;
   } else {
@@ -192,9 +194,25 @@ int
 frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
-  int ie_len = 1;
+  /* Only ID if ID == 0, else full timing description */
+  int ie_len = ies->ie_tsch_timeslot_id == 0 ? 1 : 25;
   if(len >= 2 + ie_len && ies != NULL) {
     buf[2] = ies->ie_tsch_timeslot_id;
+    if(ies->ie_tsch_timeslot_id != 0) {
+      int i = 3;
+      WRITE16(buf+i, ies->timeslot_timing.cca_offset); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.cca); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.tx_offset); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.rx_offset); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.rx_ack_delay); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.tx_ack_delay); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.rx_wait); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.ack_wait); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.tx_tx); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.max_ack); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.max_tx); i+=2;
+      WRITE16(buf+i, ies->timeslot_timing.timeslot_length); i+=2;
+    }
     create_mlme_short_ie_descriptor(buf, PAYLOAD_IE_TSCH_TIMESLOT, ie_len);
     return 2 + ie_len;
   } else {
@@ -233,7 +251,7 @@ frame802154e_parse_header_ie(uint8_t *buf, int len,
           /* Extract drift correction from Sync-IE, cast from 12 to 16-bit,
            * and convert it to RTIMER ticks.
            * See page 88 in IEEE Std 802.15.4e-2012. */
-          time_sync_field = buf[0] | buf[1] << 8;
+          READ16(buf, time_sync_field);
           /* First extract NACK */
           ies->ie_is_nack = (time_sync_field & (uint16_t)0x8000) ? 1 : 0;
           /* Then cast from 12 to 16 bit signed */
@@ -270,9 +288,24 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
       }
       break;
     case PAYLOAD_IE_TSCH_TIMESLOT:
-      if(len == 1) {
+      if(len == 1 || len == 25) {
         if(ies != NULL) {
           ies->ie_tsch_timeslot_id = buf[0];
+          if(len == 25) {
+            int i = 1;
+            READ16(buf+i, ies->timeslot_timing.cca_offset); i+=2;
+            READ16(buf+i, ies->timeslot_timing.cca); i+=2;
+            READ16(buf+i, ies->timeslot_timing.tx_offset); i+=2;
+            READ16(buf+i, ies->timeslot_timing.rx_offset); i+=2;
+            READ16(buf+i, ies->timeslot_timing.rx_ack_delay); i+=2;
+            READ16(buf+i, ies->timeslot_timing.tx_ack_delay); i+=2;
+            READ16(buf+i, ies->timeslot_timing.rx_wait); i+=2;
+            READ16(buf+i, ies->timeslot_timing.ack_wait); i+=2;
+            READ16(buf+i, ies->timeslot_timing.tx_tx); i+=2;
+            READ16(buf+i, ies->timeslot_timing.max_ack); i+=2;
+            READ16(buf+i, ies->timeslot_timing.max_tx); i+=2;
+            READ16(buf+i, ies->timeslot_timing.timeslot_length); i+=2;
+          }
         }
       }
       break;
@@ -313,7 +346,7 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
     if(buf_size < 2) { /* Not enough space for IE descriptor */
       return -1;
     }
-    ie_desc = (buf[1] << 8) + buf[0];
+    READ16(buf, ie_desc);
     buf_size -= 2;
     buf += 2;
     type = ie_desc & 0x8000 ? 1 : 0; /* b15 */
@@ -337,6 +370,9 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
         if(id == 1) {
           in_nested_mlme = len;
           len = 0; /* Reset len as we want to read subIEs and not jump over them */
+        } else {
+          /* We support only MLME as payload IE */
+          return -1;
         }
       }
     } else {

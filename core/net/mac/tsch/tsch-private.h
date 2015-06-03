@@ -160,6 +160,22 @@
 #error "TSCH: Unsupported default timeslot length"
 #endif
 
+/* Structure holding a complete description of TSCH timeslot timings */
+struct tsch_timeslot_timing_t {
+  uint16_t cca_offset;
+  uint16_t cca;
+  uint16_t tx_offset;
+  uint16_t rx_offset;
+  uint16_t rx_ack_delay;
+  uint16_t tx_ack_delay;
+  uint16_t rx_wait;
+  uint16_t ack_wait;
+  uint16_t tx_tx;
+  uint16_t max_ack;
+  uint16_t max_tx;
+  uint16_t timeslot_length;
+};
+
 /* Calculate packet tx/rx duration in rtimer ticks based on sent
  * packet len in bytes with 802.15.4 250kbps data rate.
  * One byte = 32us. Add two bytes for CRC and one for len field */
@@ -169,6 +185,8 @@
 #define TSCH_CLOCK_TO_TICKS(c) (((c)*RTIMER_SECOND)/CLOCK_SECOND)
 #define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c)/timeslot_length)
 
+/* Default TSCH timeslot timing */
+extern const struct tsch_timeslot_timing_t default_timeslot_timing;
 /* 802.15.4 broadcast MAC address */
 extern const linkaddr_t tsch_broadcast_address;
 /* The address we use to identify EB queue */

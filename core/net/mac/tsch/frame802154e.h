@@ -55,6 +55,7 @@ struct ieee802154_ies {
   struct asn_t ie_asn;
   uint8_t ie_join_priority;
   uint8_t ie_tsch_timeslot_id;
+  struct tsch_timeslot_timing_t timeslot_timing;
   /* Payload Long MLME IEs */
   uint8_t ie_channel_hopping_sequence_id;
 };

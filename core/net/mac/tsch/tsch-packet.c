@@ -141,6 +141,7 @@ tsch_packet_parse_eack(uint8_t *buf, int buf_size, uint8_t seqno,
 int
 tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *tsch_sync_ie_offset)
 {
+  int ret = 0;
   uint8_t curr_len = 0;
   uint8_t mlme_ie_offset;
 
@@ -168,6 +169,10 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
   memset(&ies, 0, sizeof(ies));
   /* 6TiSCH minimal timeslot timing sequence ID: 0 */
   ies.ie_tsch_timeslot_id = 0;
+  /* Explicit inclusion of timeslot timing with:
+   * ies.ie_tsch_timeslot_id = 1;
+  ies.timeslot_timing = default_timeslot_timing; */
+
   /* 6TiSCH minimal hopping sequence ID: 0 */
   ies.ie_channel_hopping_sequence_id = 0;
 
@@ -179,11 +184,25 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
     *tsch_sync_ie_offset = curr_len;
   }
 
-  curr_len += frame80215e_create_ie_tsch_synchronization(buf+curr_len, buf_size-curr_len, &ies);
-  curr_len += frame80215e_create_ie_tsch_timeslot(buf+curr_len, buf_size-curr_len, &ies);
-  curr_len += frame80215e_create_ie_tsch_channel_hopping_sequence(buf+curr_len, buf_size-curr_len, &ies);
+  if((ret = frame80215e_create_ie_tsch_synchronization(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+    return -1;
+  }
+  curr_len += ret;
+
+  if((ret = frame80215e_create_ie_tsch_timeslot(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+    return -1;
+  }
+  curr_len += ret;
+
+  if((ret = frame80215e_create_ie_tsch_channel_hopping_sequence(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+    return -1;
+  }
+  curr_len += ret;
+
   ies.ie_mlme_len = curr_len - mlme_ie_offset - 2;
-  frame80215e_create_ie_mlme(buf+mlme_ie_offset, buf_size-mlme_ie_offset, &ies);
+  if((ret = frame80215e_create_ie_mlme(buf+mlme_ie_offset, buf_size-mlme_ie_offset, &ies)) == -1) {
+    return -1;
+  }
 
   return curr_len;
 }
