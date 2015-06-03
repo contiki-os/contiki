@@ -207,9 +207,9 @@ int
 frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
-  int ie_len = 6;
+  int ie_len = 1;
   if(len >= 2 + ie_len && ies != NULL) {
-    buf[2] = ies->ie_hopping_sequence_id;
+    buf[2] = ies->ie_channel_hopping_sequence_id;
     create_mlme_long_ie_descriptor(buf, PAYLOAD_IE_TSCH_CHANNEL_HOPPING_SEQUENCE, ie_len);
     return 2 + ie_len;
   } else {
@@ -289,7 +289,7 @@ frame802154e_parse_mlme_long_ie(uint8_t *buf, int len,
   case PAYLOAD_IE_TSCH_CHANNEL_HOPPING_SEQUENCE:
     if(len == 1) {
       if(ies != NULL) {
-        ies->ie_hopping_sequence_id = buf[0];
+        ies->ie_channel_hopping_sequence_id = buf[0];
       }
     }
     break;

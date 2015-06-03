@@ -167,7 +167,8 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
 
   memset(&ies, 0, sizeof(ies));
   ies.ie_timeslot_id = 1;
-  ies.ie_hopping_sequence_id = 1;
+  /* 6TiSCH minimal hopping sequence ID: 0 */
+  ies.ie_channel_hopping_sequence_id = 0;
 
   /* Save offset of the MLME IE descriptor, we need to know the total length
    * before writing it */

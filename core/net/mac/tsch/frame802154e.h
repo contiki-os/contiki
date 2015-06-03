@@ -56,7 +56,7 @@ struct ieee802154_ies {
   uint8_t ie_join_priority;
   uint8_t ie_timeslot_id;
   /* Payload Long MLME IEs */
-  uint8_t ie_hopping_sequence_id;
+  uint8_t ie_channel_hopping_sequence_id;
 };
 
 /** Insert various Information Elements **/

@@ -101,11 +101,34 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-#ifdef TSCH_CONF_N_CHANNELS
-#define TSCH_N_CHANNELS TSCH_CONF_N_CHANNELS
+/* Default IEEE 802.15.4e hopping sequences, obtained from https://gist.github.com/twatteyne/2e22ee3c1a802b685695 */
+/* 16 channels, sequence length 16 */
+#define TSCH_HOPPING_SEQUENCE_16_16 (uint8_t[]){16, 17, 23, 18, 26, 15, 25, 22, 19, 11, 12, 13, 24, 14, 20, 21}
+/* 4 channels, sequence length 16 */
+#define TSCH_HOPPING_SEQUENCE_4_16 (uint8_t[]){20, 26, 25, 26, 15, 15, 25, 20, 26, 15, 26, 25, 20, 15, 20, 25}
+/* 4 channels, sequence length 4 */
+#define TSCH_HOPPING_SEQUENCE_4_4 (uint8_t[]){15, 25, 26, 20}
+
+/* Default hopping sequence, used in case hopping sequence ID == 0 */
+#ifdef TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
+#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
 #else
-#define TSCH_N_CHANNELS 16
-#endif /* TSCH_CONF_N_CHANNELS */
+#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_16_16
+#endif
+
+/* Hopping sequence used for joining (scan channels) */
+#ifdef TSCH_CONF_JOIN_HOPPING_SEQUENCE
+#define TSCH_JOIN_HOPPING_SEQUENCE TSCH_DEFAULT_HOPPING_SEQUENCE
+#else
+#define TSCH_JOIN_HOPPING_SEQUENCE TSCH_DEFAULT_HOPPING_SEQUENCE
+#endif
+
+/* Maximum length of the TSCH channel hopping sequence */
+#ifdef TSCH_CONF_HOPPING_SEQUENCE_MAX_LEN
+#define TSCH_HOPPING_SEQUENCE_MAX_LEN TSCH_CONF_HOPPING_SEQUENCE_MAX_LEN
+#else
+#define TSCH_HOPPING_SEQUENCE_MAX_LEN sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE)
+#endif
 
 #ifdef TSCH_CONF_ADDRESS_FILTER
 #define TSCH_ADDRESS_FILTER TSCH_CONF_ADDRESS_FILTER
@@ -162,9 +185,8 @@ NBR_TABLE(struct eb_stat, eb_stats);
 static struct seqno received_seqnos[MAX_SEQNOS];
 #endif /* TSCH_802154_DUPLICATE_DETECTION */
 
-/* TODO use the standard hopping sequence */
-/* Channel hopping: a list of channels (ordered by measured goodness from a specific testbed experiment in Indriya) */
-uint8_t hopping_sequence_list[] = { 26, 15, 25, 20, 16, 19, 14, 24, 18, 17, 17, 11, 21, 23, 12, 22, 13 };
+/* TSCH channel hopping sequence */
+static uint8_t hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN] = TSCH_DEFAULT_HOPPING_SEQUENCE;
 struct asn_divisor_t hopping_sequence_length;
 
 /* 802.15.4 broadcast MAC address  */
@@ -417,13 +439,12 @@ tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset)
 {
   uint16_t index_of_0 = ASN_MOD(*asn, hopping_sequence_length);
   uint16_t index_of_offset = (index_of_0 + channel_offset) % hopping_sequence_length.val;
-  return hopping_sequence_list[index_of_offset];
+  return hopping_sequence[index_of_offset];
 }
 /* Select the current channel from ASN and channel offset, hop to it */
 static void
-hop_channel(struct asn_t *asn, uint8_t offset)
+hop_channel(uint8_t channel)
 {
-  uint8_t channel = tsch_calculate_channel(asn, offset);
   if(current_channel != channel) {
     NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
     current_channel = channel;
@@ -1130,7 +1151,7 @@ PT_THREAD(tsch_link_operation(struct rtimer *t, void *ptr))
       /* Get a packet ready to be sent */
       current_packet = get_packet_and_neighbor_for_link(current_link, &current_neighbor);
       /* Hop channel */
-      hop_channel(&current_asn, current_link->channel_offset);
+      hop_channel(tsch_calculate_channel(&current_asn, current_link->channel_offset));
       /* Reset drift correction */
       drift_correction = 0;
       drift_neighbor = NULL;
@@ -1228,8 +1249,8 @@ PT_THREAD(tsch_associate(struct pt *pt))
     current_link_start = RTIMER_NOW() + tsch_time_until_next_active_link;
   } else {
     static struct etimer associate_timer;
-    static uint32_t base_channel;
-    base_channel = random_rand();
+    static uint32_t base_channel_index;
+    base_channel_index = random_rand();
     etimer_set(&associate_timer, CLOCK_SECOND / TSCH_ASSOCIATION_POLL_FREQUENCY);
 
     while(!tsch_is_associated && !tsch_is_coordinator) {
@@ -1238,7 +1259,9 @@ PT_THREAD(tsch_associate(struct pt *pt))
       int is_packet_pending = 0;
 
       /* Hop to any channel offset */
-      hop_channel(&current_asn, base_channel + clock_seconds());
+      uint8_t scan_channel = TSCH_JOIN_HOPPING_SEQUENCE[
+                                  (base_channel_index + clock_seconds()) % sizeof(TSCH_JOIN_HOPPING_SEQUENCE)];
+      hop_channel(scan_channel);
 
       /* Turn radio on and wait for EB */
       NETSTACK_RADIO.on();
@@ -1253,6 +1276,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
       }
 
       if(is_packet_pending) {
+        struct ieee802154_ies ies;
         linkaddr_t source_address;
         int eb_parsed = 0;
 
@@ -1264,11 +1288,23 @@ PT_THREAD(tsch_associate(struct pt *pt))
 
         if(input_eb.len != 0) {
           /* Parse EB and extract ASN and join priority */
-          struct ieee802154_ies ies;
           eb_parsed = tsch_packet_parse_eb(input_eb.payload, input_eb.len,
-              &source_address, &ies) && ies.ie_join_priority != 0xff;
+              &source_address, &ies);
           current_asn = ies.ie_asn;
           tsch_join_priority = ies.ie_join_priority;
+        }
+
+        /* There was no join priority (or 0xff) in the EB, do not join */
+        if(ies.ie_join_priority == 0xff) {
+          eb_parsed = 0;
+        }
+
+        /* TSCH hopping sequence, we support only the default, with ID 0 */
+        if(ies.ie_channel_hopping_sequence_id == 0) {
+          memcpy(hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+          ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+        } else {
+          eb_parsed = 0;
         }
 
 #if TSCH_CHECK_TIME_AT_ASSOCIATION > 0
@@ -1584,7 +1620,7 @@ tsch_init(void)
     return;
   }
   /* Test setting channel */
-  if(NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, hopping_sequence_list[0]) != RADIO_RESULT_OK) {
+  if(NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, TSCH_DEFAULT_HOPPING_SEQUENCE[0]) != RADIO_RESULT_OK) {
     printf("TSCH:! radio does not support setting channel. Abort init.\n");
     return;
   }
@@ -1603,7 +1639,8 @@ tsch_init(void)
   tsch_log_init();
   ringbufindex_init(&input_ringbuf, TSCH_MAX_INCOMING_PACKETS);
   ringbufindex_init(&dequeued_ringbuf, DEQUEUED_ARRAY_SIZE);
-  ASN_DIVISOR_INIT(hopping_sequence_length, TSCH_N_CHANNELS);
+  /* Initialize hopping sequence as default */
+  ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
 #if TSCH_WITH_MINIMAL_SCHEDULE
     tsch_schedule_create_minimal();
 #endif
