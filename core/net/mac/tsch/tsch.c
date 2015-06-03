@@ -101,35 +101,6 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-/* Default IEEE 802.15.4e hopping sequences, obtained from https://gist.github.com/twatteyne/2e22ee3c1a802b685695 */
-/* 16 channels, sequence length 16 */
-#define TSCH_HOPPING_SEQUENCE_16_16 (uint8_t[]){16, 17, 23, 18, 26, 15, 25, 22, 19, 11, 12, 13, 24, 14, 20, 21}
-/* 4 channels, sequence length 16 */
-#define TSCH_HOPPING_SEQUENCE_4_16 (uint8_t[]){20, 26, 25, 26, 15, 15, 25, 20, 26, 15, 26, 25, 20, 15, 20, 25}
-/* 4 channels, sequence length 4 */
-#define TSCH_HOPPING_SEQUENCE_4_4 (uint8_t[]){15, 25, 26, 20}
-
-/* Default hopping sequence, used in case hopping sequence ID == 0 */
-#ifdef TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
-#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
-#else
-#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_16_16
-#endif
-
-/* Hopping sequence used for joining (scan channels) */
-#ifdef TSCH_CONF_JOIN_HOPPING_SEQUENCE
-#define TSCH_JOIN_HOPPING_SEQUENCE TSCH_DEFAULT_HOPPING_SEQUENCE
-#else
-#define TSCH_JOIN_HOPPING_SEQUENCE TSCH_DEFAULT_HOPPING_SEQUENCE
-#endif
-
-/* Maximum length of the TSCH channel hopping sequence */
-#ifdef TSCH_CONF_HOPPING_SEQUENCE_MAX_LEN
-#define TSCH_HOPPING_SEQUENCE_MAX_LEN TSCH_CONF_HOPPING_SEQUENCE_MAX_LEN
-#else
-#define TSCH_HOPPING_SEQUENCE_MAX_LEN sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE)
-#endif
-
 #ifdef TSCH_CONF_ADDRESS_FILTER
 #define TSCH_ADDRESS_FILTER TSCH_CONF_ADDRESS_FILTER
 #else
@@ -191,9 +162,19 @@ struct asn_divisor_t hopping_sequence_length;
 
 /* TSCH timeslot timing */
 const struct tsch_timeslot_timing_t default_timeslot_timing = {
-    TSCH_DEFAULT_TS_CCA_OFFSET, TSCH_DEFAULT_TS_CCA, TSCH_DEFAULT_TS_TX_OFFSET, TSCH_DEFAULT_TS_RX_OFFSET,
-    TSCH_DEFAULT_TS_RX_ACK_DELAY, TSCH_DEFAULT_TS_TX_ACK_DELAY, TSCH_DEFAULT_TS_RX_WAIT, TSCH_DEFAULT_TS_ACK_WAIT,
-    TSCH_DEFAULT_TS_RX_TX, TSCH_DEFAULT_TS_MAX_ACK, TSCH_DEFAULT_TS_MAX_TX, TSCH_DEFAULT_TS_TIMESLOT_LENGTH };
+    TSCH_DEFAULT_TS_CCA_OFFSET,
+    TSCH_DEFAULT_TS_CCA,
+    TSCH_DEFAULT_TS_TX_OFFSET,
+    TSCH_DEFAULT_TS_RX_OFFSET,
+    TSCH_DEFAULT_TS_RX_ACK_DELAY,
+    TSCH_DEFAULT_TS_TX_ACK_DELAY,
+    TSCH_DEFAULT_TS_RX_WAIT,
+    TSCH_DEFAULT_TS_ACK_WAIT,
+    TSCH_DEFAULT_TS_RX_TX,
+    TSCH_DEFAULT_TS_MAX_ACK,
+    TSCH_DEFAULT_TS_MAX_TX,
+    TSCH_DEFAULT_TS_TIMESLOT_LENGTH
+};
 static struct tsch_timeslot_timing_t timeslot_timing;
 
 /* 802.15.4 broadcast MAC address  */
@@ -1311,15 +1292,20 @@ PT_THREAD(tsch_associate(struct pt *pt))
         if(ies.ie_tsch_timeslot_id == 0) {
           timeslot_timing = default_timeslot_timing;
         } else {
-          timeslot_timing = ies.timeslot_timing;
+          timeslot_timing = ies.ie_timeslot_timing;
         }
 
-        /* TSCH hopping sequence, we support only the default, with ID 0 */
+        /* TSCH hopping sequence */
         if(ies.ie_channel_hopping_sequence_id == 0) {
           memcpy(hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
           ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
         } else {
-          eb_parsed = 0;
+          if(ies.ie_hopping_sequence_len <= sizeof(hopping_sequence)) {
+            memcpy(hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
+            ASN_DIVISOR_INIT(hopping_sequence_length, ies.ie_hopping_sequence_len);
+          } else {
+            eb_parsed = 0;
+          }
         }
 
 #if TSCH_CHECK_TIME_AT_ASSOCIATION > 0

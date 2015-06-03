@@ -46,6 +46,37 @@
 #include "net/linkaddr.h"
 #include "net/mac/tsch/tsch-asn.h"
 
+/* Default IEEE 802.15.4e hopping sequences, obtained from https://gist.github.com/twatteyne/2e22ee3c1a802b685695 */
+/* 16 channels, sequence length 16 */
+#define TSCH_HOPPING_SEQUENCE_16_16 (uint8_t[]){16, 17, 23, 18, 26, 15, 25, 22, 19, 11, 12, 13, 24, 14, 20, 21}
+/* 4 channels, sequence length 16 */
+#define TSCH_HOPPING_SEQUENCE_4_16 (uint8_t[]){20, 26, 25, 26, 15, 15, 25, 20, 26, 15, 26, 25, 20, 15, 20, 25}
+/* 4 channels, sequence length 4 */
+#define TSCH_HOPPING_SEQUENCE_4_4 (uint8_t[]){15, 25, 26, 20}
+
+/* Default hopping sequence, used in case hopping sequence ID == 0 */
+#ifdef TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
+#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
+#else
+#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_16_16
+#endif
+
+/* Hopping sequence used for joining (scan channels) */
+#ifdef TSCH_CONF_JOIN_HOPPING_SEQUENCE
+#define TSCH_JOIN_HOPPING_SEQUENCE TSCH_DEFAULT_HOPPING_SEQUENCE
+#else
+#define TSCH_JOIN_HOPPING_SEQUENCE TSCH_DEFAULT_HOPPING_SEQUENCE
+#endif
+
+/* Maximum length of the TSCH channel hopping sequence.
+ * Set to a larger value to support joining a network with a hopping sequence
+ * longer than the default sequence TSCH_DEFAULT_HOPPING_SEQUENCE */
+#ifdef TSCH_CONF_HOPPING_SEQUENCE_MAX_LEN
+#define TSCH_HOPPING_SEQUENCE_MAX_LEN TSCH_CONF_HOPPING_SEQUENCE_MAX_LEN
+#else
+#define TSCH_HOPPING_SEQUENCE_MAX_LEN sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE)
+#endif
+
 /* Initializes TSCH with a 6TiSCH minimal schedule */
 #ifdef TSCH_CONF_WITH_MINIMAL_SCHEDULE
 #define TSCH_WITH_MINIMAL_SCHEDULE TSCH_CONF_WITH_MINIMAL_SCHEDULE
@@ -154,7 +185,7 @@
 #define TSCH_DEFAULT_TS_RX_TX              US_TO_RTIMERTICKS(2072)
 #define TSCH_DEFAULT_TS_MAX_ACK            US_TO_RTIMERTICKS(2400)
 #define TSCH_DEFAULT_TS_MAX_TX             US_TO_RTIMERTICKS(4256)
-#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    US_TO_RTIMERTICKS(10000)
+#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    US_TO_RTIMERTICKS(15000)
 
 #else
 #error "TSCH: Unsupported default timeslot length"
@@ -162,18 +193,18 @@
 
 /* Structure holding a complete description of TSCH timeslot timings */
 struct tsch_timeslot_timing_t {
-  uint16_t cca_offset;
-  uint16_t cca;
-  uint16_t tx_offset;
-  uint16_t rx_offset;
-  uint16_t rx_ack_delay;
-  uint16_t tx_ack_delay;
-  uint16_t rx_wait;
-  uint16_t ack_wait;
-  uint16_t tx_tx;
-  uint16_t max_ack;
-  uint16_t max_tx;
-  uint16_t timeslot_length;
+  rtimer_clock_t cca_offset;
+  rtimer_clock_t cca;
+  rtimer_clock_t tx_offset;
+  rtimer_clock_t rx_offset;
+  rtimer_clock_t rx_ack_delay;
+  rtimer_clock_t tx_ack_delay;
+  rtimer_clock_t rx_wait;
+  rtimer_clock_t ack_wait;
+  rtimer_clock_t tx_tx;
+  rtimer_clock_t max_ack;
+  rtimer_clock_t max_tx;
+  rtimer_clock_t timeslot_length;
 };
 
 /* Calculate packet tx/rx duration in rtimer ticks based on sent

@@ -194,24 +194,27 @@ int
 frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
+  if(ies == NULL) {
+    return -1;
+  }
   /* Only ID if ID == 0, else full timing description */
   int ie_len = ies->ie_tsch_timeslot_id == 0 ? 1 : 25;
-  if(len >= 2 + ie_len && ies != NULL) {
+  if(len >= 2 + ie_len) {
     buf[2] = ies->ie_tsch_timeslot_id;
     if(ies->ie_tsch_timeslot_id != 0) {
       int i = 3;
-      WRITE16(buf+i, ies->timeslot_timing.cca_offset); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.cca); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.tx_offset); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.rx_offset); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.rx_ack_delay); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.tx_ack_delay); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.rx_wait); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.ack_wait); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.tx_tx); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.max_ack); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.max_tx); i+=2;
-      WRITE16(buf+i, ies->timeslot_timing.timeslot_length); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.cca_offset); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.cca); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.tx_offset); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.rx_offset); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.rx_ack_delay); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.tx_ack_delay); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.rx_wait); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.ack_wait); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.tx_tx); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.max_ack); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.max_tx); i+=2;
+      WRITE16(buf+i, ies->ie_timeslot_timing.timeslot_length); i+=2;
     }
     create_mlme_short_ie_descriptor(buf, PAYLOAD_IE_TSCH_TIMESLOT, ie_len);
     return 2 + ie_len;
@@ -225,9 +228,20 @@ int
 frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
-  int ie_len = 1;
+  if(ies == NULL || ies->ie_hopping_sequence_len > sizeof(ies->ie_hopping_sequence_list)) {
+    return -1;
+  }
+  int ie_len = ies->ie_channel_hopping_sequence_id == 0 ? 1 : 12 + ies->ie_hopping_sequence_len;
   if(len >= 2 + ie_len && ies != NULL) {
     buf[2] = ies->ie_channel_hopping_sequence_id;
+    buf[3] = 0; /* channel page */
+    WRITE16(buf+4, 0); /* number of channels */
+    WRITE16(buf+6, 0); /* phy configuration */
+    WRITE16(buf+8, 0);
+    /* Extended bitmap. Size: 0 */
+    WRITE16(buf+10, ies->ie_hopping_sequence_len); /* sequence len */
+    memcpy(buf+12, ies->ie_hopping_sequence_list, ies->ie_hopping_sequence_len); /* sequence list */
+    WRITE16(buf+12 + ies->ie_hopping_sequence_len, 0); /* current hop */
     create_mlme_long_ie_descriptor(buf, PAYLOAD_IE_TSCH_CHANNEL_HOPPING_SEQUENCE, ie_len);
     return 2 + ie_len;
   } else {
@@ -293,18 +307,18 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
           ies->ie_tsch_timeslot_id = buf[0];
           if(len == 25) {
             int i = 1;
-            READ16(buf+i, ies->timeslot_timing.cca_offset); i+=2;
-            READ16(buf+i, ies->timeslot_timing.cca); i+=2;
-            READ16(buf+i, ies->timeslot_timing.tx_offset); i+=2;
-            READ16(buf+i, ies->timeslot_timing.rx_offset); i+=2;
-            READ16(buf+i, ies->timeslot_timing.rx_ack_delay); i+=2;
-            READ16(buf+i, ies->timeslot_timing.tx_ack_delay); i+=2;
-            READ16(buf+i, ies->timeslot_timing.rx_wait); i+=2;
-            READ16(buf+i, ies->timeslot_timing.ack_wait); i+=2;
-            READ16(buf+i, ies->timeslot_timing.tx_tx); i+=2;
-            READ16(buf+i, ies->timeslot_timing.max_ack); i+=2;
-            READ16(buf+i, ies->timeslot_timing.max_tx); i+=2;
-            READ16(buf+i, ies->timeslot_timing.timeslot_length); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.cca_offset); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.cca); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.tx_offset); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.rx_offset); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.rx_ack_delay); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.tx_ack_delay); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.rx_wait); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.ack_wait); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.tx_tx); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.max_ack); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.max_tx); i+=2;
+            READ16(buf+i, ies->ie_timeslot_timing.timeslot_length); i+=2;
           }
         }
       }
@@ -320,9 +334,16 @@ frame802154e_parse_mlme_long_ie(uint8_t *buf, int len,
 {
   switch(sub_id) {
   case PAYLOAD_IE_TSCH_CHANNEL_HOPPING_SEQUENCE:
-    if(len == 1) {
+    if(len > 0) {
       if(ies != NULL) {
         ies->ie_channel_hopping_sequence_id = buf[0];
+        if(len > 1) {
+          READ16(buf+8, ies->ie_hopping_sequence_len); /* sequence len */
+          if(ies->ie_hopping_sequence_len <= sizeof(ies->ie_hopping_sequence_list)
+              && len == 12 + ies->ie_hopping_sequence_len) {
+            memcpy(ies->ie_hopping_sequence_list, buf+10, ies->ie_hopping_sequence_len); /* sequence list */
+          }
+        }
       }
     }
     break;

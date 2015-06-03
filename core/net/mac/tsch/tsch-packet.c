@@ -171,10 +171,16 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
   ies.ie_tsch_timeslot_id = 0;
   /* Explicit inclusion of timeslot timing with:
    * ies.ie_tsch_timeslot_id = 1;
-  ies.timeslot_timing = default_timeslot_timing; */
+  ies.ie_timeslot_timing = default_timeslot_timing; */
 
   /* 6TiSCH minimal hopping sequence ID: 0 */
   ies.ie_channel_hopping_sequence_id = 0;
+  /* Explicit inclusion of channel hopping sequence with:
+   * ies.ie_channel_hopping_sequence_id = 1;
+  ies.ie_hopping_sequence_len = sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE);
+  if(sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE) <= sizeof(ies.ie_hopping_sequence_list)) {
+    memcpy(ies.ie_hopping_sequence_list, TSCH_DEFAULT_HOPPING_SEQUENCE, ies.ie_hopping_sequence_len);
+  } */
 
   /* Save offset of the MLME IE descriptor, we need to know the total length
    * before writing it */
