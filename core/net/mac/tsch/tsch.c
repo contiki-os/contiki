@@ -61,9 +61,9 @@
 #include <string.h>
 
 /* Truncate received drift correction information to maximum half
- * of the guard time. */
+ * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT). */
 #define TRUNCATE_SYNC_IE 1
-#define TRUNCATE_SYNC_IE_BOUND ((int)TS_LONG_GT/2)
+#define TRUNCATE_SYNC_IE_BOUND ((int)TSCH_DEFAULT_TS_RX_WAIT/4)
 
 #ifdef TSCH_CONF_LINK_NEIGHBOR_CALLBACK
 #define LINK_NEIGHBOR_CALLBACK(dest,status,num) TSCH_CONF_LINK_NEIGHBOR_CALLBACK(dest,status,num)
@@ -188,6 +188,20 @@ static struct seqno received_seqnos[MAX_SEQNOS];
 /* TSCH channel hopping sequence */
 static uint8_t hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN] = TSCH_DEFAULT_HOPPING_SEQUENCE;
 struct asn_divisor_t hopping_sequence_length;
+
+/* TSCH timeslot timing */
+static uint16_t tsch_ts_cca_offset       = TSCH_DEFAULT_TS_CCA_OFFSET;
+static uint16_t tsch_ts_cca              = TSCH_DEFAULT_TS_CCA;
+static uint16_t tsch_ts_tx_offset        = TSCH_DEFAULT_TS_TX_OFFSET;
+static uint16_t tsch_ts_rx_offset        = TSCH_DEFAULT_TS_RX_OFFSET;
+static uint16_t tsch_ts_rx_ack_delay     = TSCH_DEFAULT_TS_RX_ACK_DELAY;
+static uint16_t tsch_ts_tx_ack_delay     = TSCH_DEFAULT_TS_TX_ACK_DELAY;
+static uint16_t tsch_ts_rx_wait          = TSCH_DEFAULT_TS_RX_WAIT;
+static uint16_t tsch_ts_ack_wait         = TSCH_DEFAULT_TS_ACK_WAIT;
+static uint16_t tsch_ts_tx_tx            = TSCH_DEFAULT_TS_RX_TX;
+static uint16_t tsch_ts_max_ack          = TSCH_DEFAULT_TS_MAX_ACK;
+static uint16_t tsch_ts_max_tx           = TSCH_DEFAULT_TS_MAX_TX;
+static uint16_t tsch_ts_timeslot_length  = TSCH_DEFAULT_TS_TIMESLOT_LENGTH;
 
 /* 802.15.4 broadcast MAC address  */
 const linkaddr_t tsch_broadcast_address = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
@@ -854,15 +868,15 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
 #endif /* CCA_ENABLED */
         {
           /* delay before TX */
-          TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start, TS_TX_OFFSET - RADIO_DELAY_BEFORE_TX, "TxBeforeTx");
+          TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start, tsch_ts_tx_offset - RADIO_DELAY_BEFORE_TX, "TxBeforeTx");
           /* send packet already in radio tx buffer */
           mac_tx_status = NETSTACK_RADIO.transmit(payload_len);
           /* Save tx timestamp */
-          tx_start_time = current_link_start + TS_TX_OFFSET;
+          tx_start_time = current_link_start + tsch_ts_tx_offset;
           /* calculate TX duration based on sent packet len */
           tx_duration = TSCH_PACKET_DURATION(payload_len);
           /* limit tx_time to its max value */
-          tx_duration = MIN(tx_duration, TSCH_DATA_MAX_DURATION);
+          tx_duration = MIN(tx_duration, tsch_ts_max_tx);
           /* turn tadio off -- will turn on again to wait for ACK if needed */
           off();
 
@@ -882,17 +896,17 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
               NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode & (~RADIO_RX_MODE_ADDRESS_FILTER));
               /* Unicast: wait for ack after tx: sleep until ack time */
               TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start,
-                  TS_TX_OFFSET + tx_duration + TS_TX_ACK_DELAY - TS_SHORT_GT - RADIO_DELAY_BEFORE_RX, "TxBeforeAck");
+                  tsch_ts_tx_offset + tx_duration + tsch_ts_rx_ack_delay - RADIO_DELAY_BEFORE_RX, "TxBeforeAck");
               on();
               /* Wait for ACK to come */
               BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet(),
-                  tx_start_time, tx_duration + TS_TX_ACK_DELAY + TS_SHORT_GT);
+                  tx_start_time, tx_duration + tsch_ts_rx_ack_delay + tsch_ts_ack_wait);
 
               ack_start_time = RTIMER_NOW();
 
               /* Wait for ACK to finish */
               BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
-                  ack_start_time, TSCH_ACK_MAX_DURATION);
+                  ack_start_time, tsch_ts_max_ack);
               off();
 
               /* Leaving promiscuous mode */
@@ -1005,21 +1019,21 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
     static rtimer_clock_t rx_start_time;
     static rtimer_clock_t expected_rx_time;
 
-    expected_rx_time = current_link_start + TS_TX_OFFSET;
+    expected_rx_time = current_link_start + tsch_ts_tx_offset;
     /* Default start time: expected Rx time */
     rx_start_time = expected_rx_time;
 
     current_input = &input_array[input_index];
 
     /* Wait before starting to listen */
-    TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start, TS_TX_OFFSET - TS_LONG_GT - RADIO_DELAY_BEFORE_RX, "RxBeforeListen");
+    TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start, tsch_ts_rx_offset - RADIO_DELAY_BEFORE_RX, "RxBeforeListen");
 
     /* Start radio for at least guard time */
     on();
     if(!NETSTACK_RADIO.receiving_packet()) {
       /* Check if receiving within guard time */
       BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet(),
-          current_link_start, TS_TX_OFFSET + TS_LONG_GT);
+          current_link_start, tsch_ts_rx_offset + tsch_ts_rx_wait);
       /* Save packet timestamp */
       rx_start_time = RTIMER_NOW();
     }
@@ -1029,7 +1043,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
     } else {
       /* Wait until packet is received, turn radio off */
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
-          current_link_start, TS_TX_OFFSET + TS_LONG_GT + TSCH_DATA_MAX_DURATION);
+          current_link_start, tsch_ts_rx_offset + tsch_ts_rx_wait + tsch_ts_max_tx);
 
       off();
 
@@ -1071,7 +1085,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
 
               /* Wait for time to ACK and transmit ACK */
               TSCH_SCHEDULE_AND_YIELD(pt, t, rx_start_time,
-                  TSCH_PACKET_DURATION(current_input->len) + TS_TX_ACK_DELAY - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
+                  TSCH_PACKET_DURATION(current_input->len) + tsch_ts_tx_ack_delay - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
               NETSTACK_RADIO.transmit(ack_len);
             }
 
@@ -1175,7 +1189,8 @@ PT_THREAD(tsch_link_operation(struct rtimer *t, void *ptr))
     /* End of slot operation, schedule next slot or resynchronize */
 
     /* Do we need to resynchronize? i.e., wait for EB again */
-    if(!tsch_is_coordinator && (ASN_DIFF(current_asn, last_sync_asn) > (100*TSCH_CLOCK_TO_SLOTS(TSCH_DESYNC_THRESHOLD/100)))) {
+    if(!tsch_is_coordinator && (ASN_DIFF(current_asn, last_sync_asn) >
+        (100*TSCH_CLOCK_TO_SLOTS(TSCH_DESYNC_THRESHOLD/100, tsch_ts_timeslot_length)))) {
       TSCH_LOG_ADD(tsch_log_message,
             snprintf(log->message, sizeof(log->message),
                 "! leaving the network, last sync %u",
@@ -1208,7 +1223,7 @@ PT_THREAD(tsch_link_operation(struct rtimer *t, void *ptr))
         /* Update ASN */
         ASN_INC(current_asn, timeslot_diff);
         /* Time to next wake up */
-        tsch_time_until_next_active_link = timeslot_diff * TS_SLOT_DURATION + drift_correction;
+        tsch_time_until_next_active_link = timeslot_diff * tsch_ts_timeslot_length + drift_correction;
         drift_correction = 0;
         drift_neighbor = NULL;
         /* Update current link start */
@@ -1310,8 +1325,8 @@ PT_THREAD(tsch_associate(struct pt *pt))
 #if TSCH_CHECK_TIME_AT_ASSOCIATION > 0
         if(eb_parsed != 0) {
           /* Divide by 4k and multiply again to avoid integer overflow */
-          uint32_t expected_asn = 4096*TSCH_CLOCK_TO_SLOTS(clock_time()/4096); /* Expected ASN based on our current time*/
-          int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION*60ul*TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND);
+          uint32_t expected_asn = 4096*TSCH_CLOCK_TO_SLOTS(clock_time()/4096, tsch_ts_timeslot_length); /* Expected ASN based on our current time*/
+          int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION*60ul*TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND, tsch_ts_timeslot_length);
           int32_t asn_diff = (int32_t)current_asn.ls4b-expected_asn;
           if(asn_diff > asn_threshold) {
             LOG("TSCH:! EB ASN rejected %lx %lx %ld\n",
@@ -1335,7 +1350,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
             tsch_schedule_keepalive();
 
             /* Calculate TSCH link start from packet timestamp */
-            current_link_start = t0 - TS_TX_OFFSET;
+            current_link_start = t0 - tsch_ts_tx_offset;
 
             /* Make our join priority 1 plus what we received */
             tsch_join_priority++;
@@ -1400,7 +1415,7 @@ PROCESS_THREAD(tsch_process, ev, data)
       /* Update ASN */
       ASN_INC(current_asn, timeslot_diff);
       /* Time to next wake up */
-      tsch_time_until_next_active_link = timeslot_diff * TS_SLOT_DURATION;
+      tsch_time_until_next_active_link = timeslot_diff * tsch_ts_timeslot_length;
       /* Update current link start */
       prev_link_start = current_link_start;
       current_link_start += tsch_time_until_next_active_link;

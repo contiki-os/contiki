@@ -89,13 +89,6 @@
 #define TSCH_MAX_JOIN_PRIORITY 32
 #endif
 
-/* Rx guard time (TS_LONG_GT) */
-#ifdef TSCH_CONF_GUARD_TIME
-#define TSCH_GUARD_TIME TSCH_CONF_GUARD_TIME
-#else
-#define TSCH_GUARD_TIME 1000
-#endif
-
 /* Max number of links */
 #ifdef TSCH_CONF_MAX_LINKS
 #define TSCH_MAX_LINKS TSCH_CONF_MAX_LINKS
@@ -124,46 +117,57 @@
 
 /* Timeslot timing */
 
-#ifndef TSCH_CONF_SLOT_DURATION
-#define TSCH_CONF_SLOT_DURATION 10000
+#ifndef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH
+#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 10000
 #endif
 
-#if TSCH_CONF_SLOT_DURATION == 10000
-#define TS_CCA_OFFSET         US_TO_RTIMERTICKS(1800)
-#define TS_CCA                US_TO_RTIMERTICKS(128)
-#define TS_TX_ACK_DELAY       US_TO_RTIMERTICKS(1000)
-#define TS_TX_OFFSET          US_TO_RTIMERTICKS(2120)
-#define TS_SLOT_DURATION      US_TO_RTIMERTICKS(10000)
-#define TS_SHORT_GT           US_TO_RTIMERTICKS(200)
-#elif TSCH_CONF_SLOT_DURATION == 15000
-#define TS_CCA_OFFSET         US_TO_RTIMERTICKS(1800)
-#define TS_CCA                US_TO_RTIMERTICKS(128)
-#define TS_TX_ACK_DELAY       US_TO_RTIMERTICKS(4000)
-#define TS_TX_OFFSET          US_TO_RTIMERTICKS(4000)
-#define TS_SLOT_DURATION      US_TO_RTIMERTICKS(15000)
-#define TS_SHORT_GT           US_TO_RTIMERTICKS(400)
+#if TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 10000
+/* Default timeslot timing as per IEEE 802.15.4e */
+
+#define TSCH_DEFAULT_TS_CCA_OFFSET         US_TO_RTIMERTICKS(1800)
+#define TSCH_DEFAULT_TS_CCA                US_TO_RTIMERTICKS(128)
+#define TSCH_DEFAULT_TS_TX_OFFSET          US_TO_RTIMERTICKS(2120)
+/* By standard, TS_RX_OFFSET is 1120us by default. To have the guard time
+ * equally spent before and after the expected reception, use
+ * (TS_TX_OFFSET - (TS_RX_WAIT / 2)) instead */
+#define TSCH_DEFAULT_TS_RX_OFFSET          US_TO_RTIMERTICKS(1120)
+#define TSCH_DEFAULT_TS_RX_ACK_DELAY       US_TO_RTIMERTICKS(800)
+#define TSCH_DEFAULT_TS_TX_ACK_DELAY       US_TO_RTIMERTICKS(1000)
+#define TSCH_DEFAULT_TS_RX_WAIT            US_TO_RTIMERTICKS(2200)
+#define TSCH_DEFAULT_TS_ACK_WAIT           US_TO_RTIMERTICKS(400)
+#define TSCH_DEFAULT_TS_RX_TX              US_TO_RTIMERTICKS(192)
+#define TSCH_DEFAULT_TS_MAX_ACK            US_TO_RTIMERTICKS(2400)
+#define TSCH_DEFAULT_TS_MAX_TX             US_TO_RTIMERTICKS(4256)
+#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    US_TO_RTIMERTICKS(10000)
+
+#elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 15000
+/* Default timeslot timing for platfroms requiring 15ms slots */
+
+#define TSCH_DEFAULT_TS_CCA_OFFSET         US_TO_RTIMERTICKS(1800)
+#define TSCH_DEFAULT_TS_CCA                US_TO_RTIMERTICKS(128)
+#define TSCH_DEFAULT_TS_TX_OFFSET          US_TO_RTIMERTICKS(4000)
+#define TSCH_DEFAULT_TS_RX_OFFSET          US_TO_RTIMERTICKS(2900)
+#define TSCH_DEFAULT_TS_RX_ACK_DELAY       US_TO_RTIMERTICKS(3600)
+#define TSCH_DEFAULT_TS_TX_ACK_DELAY       US_TO_RTIMERTICKS(4000)
+#define TSCH_DEFAULT_TS_RX_WAIT            US_TO_RTIMERTICKS(2200)
+#define TSCH_DEFAULT_TS_ACK_WAIT           US_TO_RTIMERTICKS(800)
+#define TSCH_DEFAULT_TS_RX_TX              US_TO_RTIMERTICKS(2072)
+#define TSCH_DEFAULT_TS_MAX_ACK            US_TO_RTIMERTICKS(2400)
+#define TSCH_DEFAULT_TS_MAX_TX             US_TO_RTIMERTICKS(4256)
+#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    US_TO_RTIMERTICKS(10000)
+
 #else
-#error "TSCH: Unsupported slot duration"
+#error "TSCH: Unsupported default timeslot length"
 #endif
-
-#define TS_LONG_GT            US_TO_RTIMERTICKS(TSCH_GUARD_TIME)
-#define TS_RX_TX              (TS_TX_OFFSET - tsCCA - tsCCAOffset)
-#define TS_RW_WAIT            (2 * TS_LONG_GT)
-#define TS_ACK_WAIT           (2 * TS_SHORT_GT)
-#define TS_RX_ACK_DELAY       (TS_TX_ACK_DELAY - (tsAckWait / 2))
 
 /* Calculate packet tx/rx duration in rtimer ticks based on sent
  * packet len in bytes with 802.15.4 250kbps data rate.
  * One byte = 32us. Add two bytes for CRC and one for len field */
 #define TSCH_PACKET_DURATION(len) US_TO_RTIMERTICKS(32 * ((len) + 3))
 
-/* Max time to wait for end of packet reception. Add a 350us margin. */
-#define TSCH_DATA_MAX_DURATION ((unsigned)(TSCH_PACKET_DURATION(TSCH_MAX_PACKET_LEN) + US_TO_RTIMERTICKS(350)))
-#define TSCH_ACK_MAX_DURATION  ((unsigned)(TSCH_PACKET_DURATION(TSCH_MAX_ACK_LEN) + US_TO_RTIMERTICKS(350)))
-
 /* Convert rtimer ticks to clock and vice versa */
 #define TSCH_CLOCK_TO_TICKS(c) (((c)*RTIMER_SECOND)/CLOCK_SECOND)
-#define TSCH_CLOCK_TO_SLOTS(c) (TSCH_CLOCK_TO_TICKS(c)/TS_SLOT_DURATION)
+#define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c)/timeslot_length)
 
 /* 802.15.4 broadcast MAC address */
 extern const linkaddr_t tsch_broadcast_address;
