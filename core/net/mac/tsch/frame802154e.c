@@ -194,7 +194,7 @@ frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
 {
   int ie_len = 1;
   if(len >= 2 + ie_len && ies != NULL) {
-    buf[2] = ies->ie_timeslot_id;
+    buf[2] = ies->ie_tsch_timeslot_id;
     create_mlme_short_ie_descriptor(buf, PAYLOAD_IE_TSCH_TIMESLOT, ie_len);
     return 2 + ie_len;
   } else {
@@ -272,7 +272,7 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
     case PAYLOAD_IE_TSCH_TIMESLOT:
       if(len == 1) {
         if(ies != NULL) {
-          ies->ie_timeslot_id = buf[0];
+          ies->ie_tsch_timeslot_id = buf[0];
         }
       }
       break;

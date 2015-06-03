@@ -1314,6 +1314,24 @@ PT_THREAD(tsch_associate(struct pt *pt))
           eb_parsed = 0;
         }
 
+        /* TSCH timeslot timing, we support only the default, with ID 0 */
+        if(ies.ie_tsch_timeslot_id == 0) {
+          tsch_ts_cca_offset       = TSCH_DEFAULT_TS_CCA_OFFSET;
+          tsch_ts_cca              = TSCH_DEFAULT_TS_CCA;
+          tsch_ts_tx_offset        = TSCH_DEFAULT_TS_TX_OFFSET;
+          tsch_ts_rx_offset        = TSCH_DEFAULT_TS_RX_OFFSET;
+          tsch_ts_rx_ack_delay     = TSCH_DEFAULT_TS_RX_ACK_DELAY;
+          tsch_ts_tx_ack_delay     = TSCH_DEFAULT_TS_TX_ACK_DELAY;
+          tsch_ts_rx_wait          = TSCH_DEFAULT_TS_RX_WAIT;
+          tsch_ts_ack_wait         = TSCH_DEFAULT_TS_ACK_WAIT;
+          tsch_ts_tx_tx            = TSCH_DEFAULT_TS_RX_TX;
+          tsch_ts_max_ack          = TSCH_DEFAULT_TS_MAX_ACK;
+          tsch_ts_max_tx           = TSCH_DEFAULT_TS_MAX_TX;
+          tsch_ts_timeslot_length  = TSCH_DEFAULT_TS_TIMESLOT_LENGTH;
+        } else {
+          eb_parsed = 0;
+        }
+
         /* TSCH hopping sequence, we support only the default, with ID 0 */
         if(ies.ie_channel_hopping_sequence_id == 0) {
           memcpy(hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
