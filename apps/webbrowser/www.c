@@ -308,10 +308,13 @@ open_url(void)
   static uip_ipaddr_t addr;
 
   /* Trim off any spaces in the end of the url. */
-  urlptr = url + strlen(url) - 1;
-  while(*urlptr == ' ' && urlptr > url) {
-    *urlptr = 0;
-    --urlptr;
+  urlptr = url + strlen(url);
+  while(urlptr > url) {
+    if(*(urlptr - 1) == ' ') {
+      *--urlptr = 0;
+    } else {
+      break;
+    }
   }
 
   /* Don't even try to go further if the URL is empty. */
