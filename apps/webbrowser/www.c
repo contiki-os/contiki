@@ -778,49 +778,49 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
     wptr[size + border] = ' ';
 
     switch(type) {
-      case CTK_WIDGET_HYPERLINK: {
-	struct linkattrib *linkptr =
-	  (struct linkattrib *)add_pageattrib(sizeof(struct linkattrib) /* incl 1 attrib char */ + attriblen);
-	if(linkptr != NULL) {
-	  CTK_HYPERLINK_NEW(&linkptr->hyperlink, x, y + 3, size, wptr, linkptr->url);
-	  strcpy(linkptr->url, attrib);
-	  CTK_WIDGET_SET_FLAG(&linkptr->hyperlink, CTK_WIDGET_FLAG_MONOSPACE);
-	  CTK_WIDGET_ADD(&mainwindow, &linkptr->hyperlink);
-	}
-	break;
+    case CTK_WIDGET_HYPERLINK: {
+      struct linkattrib *linkptr =
+	(struct linkattrib *)add_pageattrib(sizeof(struct linkattrib) /* incl 1 attrib char */ + attriblen);
+      if(linkptr != NULL) {
+	CTK_HYPERLINK_NEW(&linkptr->hyperlink, x, y + 3, size, wptr, linkptr->url);
+	strcpy(linkptr->url, attrib);
+	CTK_WIDGET_SET_FLAG(&linkptr->hyperlink, CTK_WIDGET_FLAG_MONOSPACE);
+	CTK_WIDGET_ADD(&mainwindow, &linkptr->hyperlink);
       }
+      break;
+    }
 #if WWW_CONF_FORMS
-      case CTK_WIDGET_BUTTON: {
-	struct submitattrib *submitptr =
-	  (struct submitattrib *)add_pageattrib(sizeof(struct submitattrib) /* incl 1 attrib char */ + attriblen);
-	if(submitptr != NULL) {
-	  CTK_BUTTON_NEW((struct ctk_button *)&submitptr->button, x, y + 3, size, wptr);
-	  add_forminput((struct inputattrib *)submitptr);
-	  submitptr->formptr = formptr;
-	  strcpy(submitptr->name, attrib);
-	  CTK_WIDGET_SET_FLAG(&submitptr->button, CTK_WIDGET_FLAG_MONOSPACE);
-	  CTK_WIDGET_ADD(&mainwindow, &submitptr->button);
-	}
-	break;
+    case CTK_WIDGET_BUTTON: {
+      struct submitattrib *submitptr =
+	(struct submitattrib *)add_pageattrib(sizeof(struct submitattrib) /* incl 1 attrib char */ + attriblen);
+      if(submitptr != NULL) {
+	CTK_BUTTON_NEW((struct ctk_button *)&submitptr->button, x, y + 3, size, wptr);
+	add_forminput((struct inputattrib *)submitptr);
+	submitptr->formptr = formptr;
+	strcpy(submitptr->name, attrib);
+	CTK_WIDGET_SET_FLAG(&submitptr->button, CTK_WIDGET_FLAG_MONOSPACE);
+	CTK_WIDGET_ADD(&mainwindow, &submitptr->button);
       }
-      case CTK_WIDGET_TEXTENTRY: {
-	struct textattrib *textptr =
-	  (struct textattrib *)add_pageattrib(sizeof(struct textattrib) /* incl 1 attrib char */ + attriblen
-					      + (size ? WWW_CONF_MAX_INPUTVALUELEN : strlen(text)) + 1);
-	if(textptr != NULL) {
-	  CTK_TEXTENTRY_NEW((struct ctk_textentry *)&textptr->textentry, x, y + 3, size, 1,
-	    textptr->name + attriblen + 1, WWW_CONF_MAX_INPUTVALUELEN);
-	  add_forminput((struct inputattrib *)textptr);
-	  textptr->formptr = formptr;
-	  strcpy(textptr->textentry.text, text);
-	  strcpy(textptr->name, attrib);
-	  if(size) {
-	    CTK_WIDGET_SET_FLAG(&textptr->textentry, CTK_WIDGET_FLAG_MONOSPACE);
-	    CTK_WIDGET_ADD(&mainwindow, &textptr->textentry);
-	  }
+      break;
+    }
+    case CTK_WIDGET_TEXTENTRY: {
+      struct textattrib *textptr =
+	(struct textattrib *)add_pageattrib(sizeof(struct textattrib) /* incl 1 attrib char */ + attriblen
+					    + (size ? WWW_CONF_MAX_INPUTVALUELEN : strlen(text)) + 1);
+      if(textptr != NULL) {
+	CTK_TEXTENTRY_NEW((struct ctk_textentry *)&textptr->textentry, x, y + 3, size, 1,
+	  textptr->name + attriblen + 1, WWW_CONF_MAX_INPUTVALUELEN);
+	add_forminput((struct inputattrib *)textptr);
+	textptr->formptr = formptr;
+	strcpy(textptr->textentry.text, text);
+	strcpy(textptr->name, attrib);
+	if(size) {
+	  CTK_WIDGET_SET_FLAG(&textptr->textentry, CTK_WIDGET_FLAG_MONOSPACE);
+	  CTK_WIDGET_ADD(&mainwindow, &textptr->textentry);
 	}
-	break;
       }
+      break;
+    }
 #endif /* WWW_CONF_FORMS */
     }
   }
