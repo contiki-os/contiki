@@ -196,10 +196,12 @@ coap_notify_observers_sub(resource_t *resource, const char *subpath)
   char url[COAP_OBSERVER_URL_LEN];
 
   url_len = strlen(resource->url);
-  strncpy(url, resource->url, COAP_OBSERVER_URL_LEN);
-  if(strlen(url) < COAP_OBSERVER_URL_LEN && subpath != NULL) {
-    strncpy(&url[url_len], subpath, COAP_OBSERVER_URL_LEN - url_len);
+  strncpy(url, resource->url, COAP_OBSERVER_URL_LEN - 1);
+  if(url_len < COAP_OBSERVER_URL_LEN - 1 && subpath != NULL) {
+    strncpy(&url[url_len], subpath, COAP_OBSERVER_URL_LEN - url_len - 1);
   }
+  /* Ensure url is null terminated because strncpy does not guarantee this */
+  url[COAP_OBSERVER_URL_LEN - 1] = '\0';
   /* url now contains the notify URL that needs to match the observer */
   PRINTF("Observe: Notification from %s\n", url);
 
