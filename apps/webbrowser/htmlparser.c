@@ -148,7 +148,7 @@ struct htmlparser_state {
   unsigned char tagattrptr;
   char tagattrparam[WWW_CONF_MAX_URLLEN + 1];
   unsigned char tagattrparamptr;
-  unsigned char lastchar, quotechar;
+  unsigned char quotechar;
   unsigned char majorstate, lastmajorstate;
   char linkurl[WWW_CONF_MAX_URLLEN + 1];
 
@@ -249,7 +249,7 @@ htmlparser_init(void)
 {
   s.majorstate = s.lastmajorstate = MAJORSTATE_DISCARD;
   s.minorstate = MINORSTATE_TEXT;
-  s.lastchar = 0;
+  s.wordlen = 0;
 #if WWW_CONF_FORMS
   s.formaction[0] = 0;
 #endif /* WWW_CONF_FORMS */
