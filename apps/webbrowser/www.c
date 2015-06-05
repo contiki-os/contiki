@@ -125,7 +125,7 @@ static struct ctk_button wgetyesbutton =
 #if WWW_CONF_HISTORY_SIZE > 0
 /* The char arrays that hold the history of visited URLs. */
 static char history[WWW_CONF_HISTORY_SIZE][WWW_CONF_MAX_URLLEN];
-static char history_last;
+static unsigned char history_last;
 #endif /* WWW_CONF_HISTORY_SIZE > 0 */
 
 struct linkattrib {
@@ -516,10 +516,12 @@ PROCESS_THREAD(www_process, ev, data)
 	firsty = 0;
 	start_loading();
 	--history_last;
+	/* Note: history_last is unsigned ! */
 	if(history_last > WWW_CONF_HISTORY_SIZE) {
 	  history_last = WWW_CONF_HISTORY_SIZE - 1;
 	}
 	memcpy(url, history[(int)history_last], WWW_CONF_MAX_URLLEN);
+	*history[(int)history_last] = 0;
 	open_url();
 	CTK_WIDGET_FOCUS(&mainwindow, &backbutton);
 #endif /* WWW_CONF_HISTORY_SIZE > 0 */
