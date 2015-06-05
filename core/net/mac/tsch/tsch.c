@@ -938,12 +938,10 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
     /* Post TX: Update neighbor state */
     in_queue = update_neighbor_state(current_neighbor, current_packet, current_link, mac_tx_status);
 
-    /* The packet was dequeued, i.e. successfully sent or dropped.
-     * Call upper layer callback. */
+    /* The packet was dequeued, add it to dequeued_ringbuf for later processing */
     if(in_queue == 0) {
       dequeued_array[dequeued_index] = current_packet;
       ringbufindex_put(&dequeued_ringbuf);
-      process_poll(&tsch_pending_events_process);
     }
 
     /* Log every tx attempt */
@@ -957,6 +955,9 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
     log->tx.dest = LOG_NODEID_FROM_LINKADDR(queuebuf_addr(current_packet->qb, PACKETBUF_ADDR_RECEIVER));
     //appdata_copy(&log->tx.appdata, LOG_APPDATAPTR_FROM_BUFFER(queuebuf_dataptr(current_packet->qb), queuebuf_datalen(current_packet->qb)));
     );
+
+    /* Poll process for later processing of packet sent events and logs */
+    process_poll(&tsch_pending_events_process);
   }
 
   PT_END(pt);
@@ -1074,9 +1075,8 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
               tsch_schedule_keepalive();
             }
 
-            /* Add current input to ringbuf and set ctimer for later processing */
+            /* Add current input to ringbuf */
             ringbufindex_put(&input_ringbuf);
-            process_poll(&tsch_pending_events_process);
 
             /* Log every reception */
             TSCH_LOG_ADD(tsch_log_rx,
@@ -1097,6 +1097,9 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
                       destination_address.u8[6], destination_address.u8[7]);
             );
           }
+
+          /* Poll process for processing of pending input and logs */
+          process_poll(&tsch_pending_events_process);
         }
       }
     }
