@@ -146,7 +146,7 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
             setChanged();
             notifyObservers();
           }
-          isSynchronized = false;
+          finishTransmission();
         }
       }
     }); /* addRFListener */
