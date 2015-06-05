@@ -49,7 +49,7 @@
 #define HTTPFLAG_NONE   0
 #define HTTPFLAG_OK     1
 #define HTTPFLAG_MOVED  2
-#define HTTPFLAG_ERROR  3
+#define HTTPFLAG_HTTPS  3
 
 
 #define ISO_nl       0x0a
@@ -359,8 +359,10 @@ parse_headers(uint16_t len)
 			      sizeof(http_location) - 1) == 0) {
 	  cptr = s.httpheaderline +
 	    sizeof(http_location) - 1;
-	
-	  if(strncmp(cptr, http_http, 7) == 0) {
+
+	  if(strncmp(cptr, http_https, sizeof(http_https) - 1) == 0) {
+	    s.httpflag = HTTPFLAG_HTTPS;
+	  } else if(strncmp(cptr, http_http, 7) == 0) {
 	    cptr += 7;
 	    for(i = 0; i < s.httpheaderlineptr - 7; ++i) {
 	      if(*cptr == 0 ||
@@ -407,7 +409,7 @@ newdata(void)
   }
 
   if(len > 0 && s.state == WEBCLIENT_STATE_DATA &&
-     s.httpflag != HTTPFLAG_MOVED) {
+     s.httpflag == HTTPFLAG_OK) {
     webclient_datahandler((char *)uip_appdata, len);
   }
 }
@@ -445,7 +447,6 @@ webclient_appcall(void *state)
     return;
   }
 
-
   /* The acked() and newdata() functions may alter the uip_appdata
      ptr, so we need to store it in the "dataptr" variable so that we
      can restore it before the senddata() function is called. */  
@@ -478,10 +479,18 @@ webclient_appcall(void *state)
 
   if(uip_closed()) {
     tcp_markconn(uip_conn, NULL);
-    if(s.httpflag != HTTPFLAG_MOVED) {
+    switch(s.httpflag) {
+    case HTTPFLAG_HTTPS:
+      /* Send some info to the user. */
+      webclient_datahandler((char *)http_redirect, sizeof(http_redirect) - 1);
+      webclient_datahandler(s.file, strlen(s.file));
+      webclient_datahandler((char *)http_crnl, sizeof(http_crnl) - 1);
+      /* FALLTHROUGH */
+    case HTTPFLAG_OK:
       /* Send NULL data to signal EOF. */
       webclient_datahandler(NULL, 0);
-    } else {
+      break;
+    case HTTPFLAG_MOVED:
       /*      conn = uip_connect(uip_conn->ripaddr, s.port);
       if(conn != NULL) {
 	dispatcher_markconn(conn, NULL);
@@ -493,6 +502,7 @@ webclient_appcall(void *state)
       }
 #endif /* UIP_UDP */
       webclient_get(s.host, s.port, s.file);
+      break;
     }
   }
 }
