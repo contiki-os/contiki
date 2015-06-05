@@ -525,7 +525,7 @@ PROCESS_THREAD(www_process, ev, data)
 	CTK_WIDGET_FOCUS(&mainwindow, &backbutton);
 #endif /* WWW_CONF_HISTORY_SIZE > 0 */
       } else if(w == (struct ctk_widget *)&downbutton) {
-	firsty = pagey + WWW_CONF_WEBPAGE_HEIGHT - 4;
+	firsty = pagey + WWW_CONF_WEBPAGE_HEIGHT - 2;
 	start_loading();
 	open_url();
 	CTK_WIDGET_FOCUS(&mainwindow, &downbutton);
