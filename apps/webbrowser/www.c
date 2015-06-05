@@ -382,7 +382,6 @@ open_url(void)
   } else {
     show_statustext("Connecting...");
   }
-  redraw_window();
 }
 /*-----------------------------------------------------------------------------------*/
 /* set_link(link):
@@ -677,8 +676,6 @@ void
 webclient_connected(void)
 {
   start_loading();
-
-  clear_page();
 
   show_statustext("Request sent...");
   set_url(webclient_hostname(), webclient_port(), webclient_filename());
