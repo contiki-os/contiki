@@ -367,6 +367,8 @@ parse_tag(void)
   static unsigned char size;
 
   tag = find_tag(s.tag);
+  /* If we are inside a <script> we mustn't interpret any tags
+     (inside JavaScript strings) but wait for the </script>. */
   if(s.majorstate == MAJORSTATE_SCRIPT && tag != TAG_SLASHSCRIPT) {
     return;
   }
@@ -562,6 +564,15 @@ parse_word(char *data, uint8_t dlen)
     }
     break;
   case MINORSTATE_TAG:
+    /* If we are inside a <srcipt> we mustn't mistake a JavaScript
+       equation with a '<' as a tag. So we check for the very next
+       character to be a '/' as we're only interested in parsing
+       the </script>. */
+    if(s.majorstate == MAJORSTATE_SCRIPT && data[0] != ISO_slash) {
+      s.minorstate = MINORSTATE_TEXT;
+      break;
+    }
+
     /* We are currently parsing within the name of a tag. We check
        for the end of a tag (the '>' character) or whitespace (which
        indicates that we should parse a tag attr argument
