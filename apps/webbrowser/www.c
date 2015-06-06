@@ -196,7 +196,7 @@ PROCESS(www_process, "Web browser");
 
 AUTOSTART_PROCESSES(&www_process);
 
-static void CC_FASTCALL formsubmit(struct formattrib *form);
+static void CC_FASTCALL formsubmit(struct inputattrib *trigger);
 
 /*-----------------------------------------------------------------------------------*/
 /* make_window()
@@ -564,9 +564,8 @@ PROCESS_THREAD(www_process, ev, data)
 #if WWW_CONF_FORMS
       } else {
 	/* Assume form widget. */
-	struct inputattrib *input = (struct inputattrib *)
-				      (((char *)w) - offsetof(struct inputattrib, widget));
-	formsubmit(input->formptr);
+	formsubmit((struct inputattrib *)
+		   (((char *)w) - offsetof(struct inputattrib, widget)));
 #endif /* WWW_CONF_FORMS */
       }
     } else if(ev == ctk_signal_hyperlink_activate) {
@@ -964,23 +963,36 @@ add_query(char delimiter, char *string)
 }
 /*-----------------------------------------------------------------------------------*/
 static void CC_FASTCALL
-formsubmit(struct formattrib *form)
+formsubmit(struct inputattrib *trigger)
 {
-  struct inputattrib *inputptr;
+  struct inputattrib *input;
+  struct formattrib *form = trigger->formptr;
   char delimiter = ISO_questionmark;
 
   set_link(form->action);
 
-  for(inputptr = form->nextptr; inputptr != NULL; inputptr = inputptr->nextptr) {
+  /* No button pressed so prepare to look for default button. */
+  if(trigger->widget.type == CTK_WIDGET_TEXTENTRY) {
+    trigger = NULL;
+  }
+
+  for(input = form->nextptr; input != NULL; input = input->nextptr) {
     char *name;
     char *value;
 
-    if(inputptr->widget.type == CTK_WIDGET_BUTTON) {
-      name  = ((struct submitattrib *)inputptr)->name;
-      value = ((struct submitattrib *)inputptr)->button.text;
+    if(input->widget.type == CTK_WIDGET_TEXTENTRY) {
+      name  = ((struct textattrib *)input)->name;
+      value = ((struct textattrib *)input)->textentry.text;
     } else {
-      name  = ((struct textattrib *)inputptr)->name;
-      value = ((struct textattrib *)inputptr)->textentry.text;
+      /* Consider first button as default button. */
+      if(trigger == NULL) {
+        trigger = input;
+      }
+      if(input != trigger) {
+        continue;
+      }
+      name  = ((struct submitattrib *)input)->name;
+      value = ((struct submitattrib *)input)->button.text;
     }
 
     add_query(delimiter, name);
