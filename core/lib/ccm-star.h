@@ -46,11 +46,6 @@
 #define CCM_STAR_H_
 
 #include "contiki.h"
-#include "net/mac/frame802154.h"
-
-/* see RFC 3610 */
-#define CCM_STAR_AUTH_FLAGS(Adata, M) ((Adata ? (1 << 6) : 0) | (((M - 2) >> 1) << 3) | 1)
-#define CCM_STAR_ENCRYPTION_FLAGS     1
 
 #ifdef CCM_STAR_CONF
 #define CCM_STAR CCM_STAR_CONF
@@ -62,20 +57,34 @@
  * Structure of CCM* drivers.
  */
 struct ccm_star_driver {
-  
-   /**
-    * \brief         Generates a MIC over the frame in the packetbuf.
-    * \param result  The generated MIC will be put here
-    * \param mic_len  <= 16; set to LLSEC802154_MIC_LENGTH to be compliant
-    */
-  void (* mic)(const uint8_t *extended_source_address,
-      uint8_t *result,
-      uint8_t mic_len);
-  
-  /**
-   * \brief XORs the frame in the packetbuf with the key stream.
-   */
-  void (* ctr)(const uint8_t *extended_source_address);
+
+    /**
+     * \brief             Generates a MIC over the data supplied.
+     * \param data        The data buffer to read.
+     * \param data_length The data buffer length.
+     * \param iv          The IV to use.
+     * \param iv_length   The IV's length.
+     * \param mic         Output buffer to hold the MIC to be generated.
+     * \param mic_len     The size of the MIC to be generated. <= 16.
+     */
+    void (* mic)(const uint8_t* data, uint8_t data_length,
+                 const uint8_t* iv,   uint8_t iv_len,
+                 const uint8_t* add,  uint8_t add_len,
+                       uint8_t* tag,  uint8_t tag_len);
+
+    /**
+     * \brief XORs the frame in the packetbuf with the key stream.
+     * \param data        The data buffer to read.
+     * \param data_length The data buffer length.
+     * \param iv          The IV to use.
+     * \param iv_length   The IV's length.
+     * \param mic         Output buffer to hold the MIC to be generated.
+     * \param mic_len     The size of the MIC to be generated. <= 16.
+     */
+    void (* ctr)(      uint8_t* data, uint8_t data_length,
+                 const uint8_t* iv,   uint8_t iv_len);
+
+    void (* set_key)(const uint8_t* key);
 };
 
 extern const struct ccm_star_driver CCM_STAR;
