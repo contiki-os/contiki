@@ -45,6 +45,8 @@
 #include "ccm-star.h"
 #include "lib/aes-128.h"
 
+#include <string.h>
+
 /* see RFC 3610 */
 #define CCM_STAR_AUTH_FLAGS(Adata, M) ((Adata ? (1u << 6) : 0) | (((M - 2u) >> 1) << 3) | 1u)
 #define CCM_STAR_ENCRYPTION_FLAGS     1
@@ -68,7 +70,7 @@ static void set_nonce(uint8_t *nonce, uint8_t flags, const uint8_t *iv, uint8_t 
 /* XORs the block m[pos] ... m[pos + 15] with K_{counter} */
 static void
 ctr_step(const uint8_t *iv,
-         size_t iv_len,
+         uint8_t iv_len,
          uint8_t pos,
          uint8_t *m_and_result,
          uint8_t m_len,
