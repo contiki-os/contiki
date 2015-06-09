@@ -486,7 +486,7 @@ transmit(unsigned short transmit_len)
 }
 /*---------------------------------------------------------------------------*/
 static int
-send(void *payload, unsigned short payload_len)
+send(const void *payload, unsigned short payload_len)
 {
   prepare(payload, payload_len);
   return transmit(payload_len);
