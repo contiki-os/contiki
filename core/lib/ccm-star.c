@@ -34,16 +34,13 @@
  * \file
  *         AES_128-based CCM* implementation.
  * \author
- *         Konrad Krentz <konrad.krentz@gmail.com>
- */
-
-/**
- * \addtogroup llsec802154
- * @{
+ *         Original: Konrad Krentz <konrad.krentz@gmail.com>
+ *         Generified version: Justin King-Lacroix <justin.kinglacroix@gmail.com>
  */
 
 #include "ccm-star.h"
 #include "lib/aes-128.h"
+#include "net/packetbuf.h"
 #include <string.h>
 
 /* see RFC 3610 */
@@ -165,5 +162,3 @@ const struct ccm_star_driver ccm_star_driver = {
   set_key
 };
 /*---------------------------------------------------------------------------*/
-
-/** @} */

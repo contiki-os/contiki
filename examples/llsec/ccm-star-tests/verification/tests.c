@@ -41,9 +41,10 @@
 #include "net/packetbuf.h"
 #include "net/netstack.h"
 #include "net/llsec/llsec802154.h"
-#include "lib/ccm-star.h"
+#include "net/llsec/ccm-star-packetbuf.h"
 #include "net/mac/frame802154.h"
 #include "lib/aes-128.h"
+#include "lib/ccm-star.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -100,11 +101,6 @@ test_sec_lvl_2()
                                              0x84 , 0x1A , 0xB5 , 0x53 };
   frame802154_frame_counter_t counter;
   uint8_t mic[LLSEC802154_MIC_LENGTH];
-  uint8_t *dataptr;
-  uint8_t data_len;
-  uint8_t *headerptr;
-  uint8_t header_len;
-  uint8_t iv[13];
   
   printf("Testing verification ... ");
   
@@ -117,18 +113,8 @@ test_sec_lvl_2()
   packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
   packetbuf_hdrreduce(18);
   
-  dataptr = packetbuf_dataptr();
-  data_len = packetbuf_datalen();
-  headerptr = packetbuf_hdrptr();
-  header_len = packetbuf_hdrlen();
-  memcpy(iv, extended_source_address, 8);
-  iv[8] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) >> 8;
-  iv[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
-  iv[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
-  iv[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
-  iv[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
   CCM_STAR.set_key(key);
-  CCM_STAR.mic(dataptr, data_len, iv, 13, headerptr, header_len, mic, LLSEC802154_MIC_LENGTH);
+  ccm_star_mic_packetbuf(extended_source_address,mic, LLSEC802154_MIC_LENGTH);
   
   if(memcmp(mic, oracle, LLSEC802154_MIC_LENGTH) == 0) {
     printf("Success\n");

@@ -34,14 +34,9 @@
  * \file
  *         CCM* header file.
  * \author
- *         Konrad Krentz <konrad.krentz@gmail.com>
+ *         Original: Konrad Krentz <konrad.krentz@gmail.com>
+ *         Generified version: Justin King-Lacroix <justin.kinglacroix@gmail.com>
  */
-
-/**
- * \addtogroup llsec802154
- * @{
- */
-
 #ifndef CCM_STAR_H_
 #define CCM_STAR_H_
 
@@ -95,5 +90,3 @@ struct ccm_star_driver {
 extern const struct ccm_star_driver CCM_STAR;
 
 #endif /* CCM_STAR_H_ */
-
-/** @} */

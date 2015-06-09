@@ -42,6 +42,7 @@
 #include "net/netstack.h"
 #include "net/llsec/llsec802154.h"
 #include "lib/ccm-star.h"
+#include "net/llsec/ccm-star-packetbuf.h"
 #include "net/mac/frame802154.h"
 #include <stdio.h>
 #include <string.h>
@@ -73,11 +74,6 @@ test_sec_lvl_6()
                                              0x61 , 0xF9 , 0xC6 , 0xF1 };
   frame802154_frame_counter_t counter;
   uint8_t mic[LLSEC802154_MIC_LENGTH];
-  uint8_t *dataptr;
-  uint8_t data_len;
-  uint8_t *headerptr;
-  uint8_t header_len;
-  uint8_t iv[13];
   
   printf("Testing verification ... ");
   
@@ -90,18 +86,8 @@ test_sec_lvl_6()
   packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
   packetbuf_hdrreduce(29);
   
-  dataptr = packetbuf_dataptr();
-  data_len = packetbuf_datalen();
-  headerptr = packetbuf_hdrptr();
-  header_len = packetbuf_hdrlen();
-  memcpy(iv, extended_source_address, 8);
-  iv[8] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) >> 8;
-  iv[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
-  iv[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
-  iv[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
-  iv[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
   CCM_STAR.set_key(key);
-  CCM_STAR.mic(dataptr, data_len, iv, 13, headerptr, header_len, mic, LLSEC802154_MIC_LENGTH);
+  ccm_star_mic_packetbuf(extended_source_address, mic, LLSEC802154_MIC_LENGTH);
   
   if(memcmp(mic, oracle, LLSEC802154_MIC_LENGTH) == 0) {
     printf("Success\n");
@@ -111,7 +97,7 @@ test_sec_lvl_6()
   
   printf("Testing encryption ... ");
   
-  CCM_STAR.ctr(dataptr, data_len, iv, 13);
+  ccm_star_ctr_packetbuf(extended_source_address);
   if(((uint8_t *) packetbuf_hdrptr())[29] == 0xD8) {
     printf("Success\n");
   } else {
@@ -119,7 +105,7 @@ test_sec_lvl_6()
   }
   
   printf("Testing decryption ... ");
-  CCM_STAR.ctr(dataptr, data_len, iv, 13);
+  ccm_star_ctr_packetbuf(extended_source_address);
   if(((uint8_t *) packetbuf_hdrptr())[29] == 0xCE) {
     printf("Success\n");
   } else {

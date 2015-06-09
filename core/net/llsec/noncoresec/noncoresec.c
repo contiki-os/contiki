@@ -45,6 +45,7 @@
 #include "net/llsec/noncoresec/noncoresec.h"
 #include "net/llsec/anti-replay.h"
 #include "net/llsec/llsec802154.h"
+#include "net/llsec/ccm-star-packetbuf.h"
 #include "net/mac/frame802154.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
@@ -111,20 +112,10 @@ on_frame_created(void)
 {
   uint8_t *dataptr = packetbuf_dataptr();
   uint8_t data_len = packetbuf_datalen();
-  uint8_t *headerptr = packetbuf_hdrptr();
-  uint8_t header_len = packetbuf_hdrlen();
-  uint8_t iv[13];
-  
-  memcpy(iv, get_extended_address(&linkaddr_node_addr), 8);
-  iv[8] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) >> 8;
-  iv[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
-  iv[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
-  iv[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
-  iv[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-  
-  CCM_STAR.mic(dataptr, data_len, iv, 13, headerptr, header_len, dataptr + data_len, LLSEC802154_MIC_LENGTH);
+
+  ccm_star_mic_packetbuf(get_extended_address(&linkaddr_node_addr), dataptr + data_len, LLSEC802154_MIC_LENGTH);
 #if WITH_ENCRYPTION
-  CCM_STAR.ctr(dataptr, data_len, iv, 13);
+  ccm_star_ctr_packetbuf(get_extended_address(&linkaddr_node_addr));
 #endif /* WITH_ENCRYPTION */
   packetbuf_set_datalen(data_len + LLSEC802154_MIC_LENGTH);
   
@@ -140,9 +131,6 @@ input(void)
   struct anti_replay_info* info;
   uint8_t *dataptr = packetbuf_dataptr();
   uint8_t data_len = packetbuf_datalen();
-  uint8_t *headerptr = packetbuf_hdrptr();
-  uint8_t header_len = packetbuf_hdrlen();
-  uint8_t iv[13];
   
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) != LLSEC802154_SECURITY_LEVEL) {
     PRINTF("noncoresec: received frame with wrong security level\n");
@@ -157,17 +145,10 @@ input(void)
   data_len -= LLSEC802154_MIC_LENGTH;
   packetbuf_set_datalen(data_len);
   
-  memcpy(iv, get_extended_address(sender), 8);
-  iv[8] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) >> 8;
-  iv[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
-  iv[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
-  iv[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
-  iv[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-  
 #if WITH_ENCRYPTION
-  CCM_STAR.ctr(dataptr, data_len, iv, 13);
+  ccm_star_ctr_packetbuf(get_extended_address(sender));
 #endif /* WITH_ENCRYPTION */
-  CCM_STAR.mic(dataptr, data_len, iv, 13, headerptr, header_len, generated_mic, LLSEC802154_MIC_LENGTH);
+  ccm_star_mic_packetbuf(get_extended_address(sender), generated_mic, LLSEC802154_MIC_LENGTH);
   
   received_mic = dataptr + data_len;
   if(memcmp(generated_mic, received_mic, LLSEC802154_MIC_LENGTH) != 0) {
