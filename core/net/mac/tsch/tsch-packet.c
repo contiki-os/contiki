@@ -166,12 +166,14 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
     return 0;
   }
 
+  /* Prepare Information Elements for inclusion in the EB */
   memset(&ies, 0, sizeof(ies));
+
   /* 6TiSCH minimal timeslot timing sequence ID: 0 */
   ies.ie_tsch_timeslot_id = 0;
   /* Explicit inclusion of timeslot timing with:
    * ies.ie_tsch_timeslot_id = 1;
-  ies.ie_timeslot_timing = default_timeslot_timing; */
+  ies.ie_tsch_timeslot = default_timeslot_timing; */
 
   /* 6TiSCH minimal hopping sequence ID: 0 */
   ies.ie_channel_hopping_sequence_id = 0;

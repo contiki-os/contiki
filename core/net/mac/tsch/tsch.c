@@ -1295,7 +1295,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
         if(ies.ie_tsch_timeslot_id == 0) {
           timeslot_timing = default_timeslot_timing;
         } else {
-          timeslot_timing = ies.ie_timeslot_timing;
+          timeslot_timing = ies.ie_tsch_timeslot;
         }
 
         /* TSCH hopping sequence */

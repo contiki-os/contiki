@@ -62,18 +62,18 @@ enum ieee802154e_payload_ie_id {
 
 /* c.f. IEEE 802.15.4e Table 4d */
 enum ieee802154e_mlme_short_subie_id {
-  PAYLOAD_IE_TSCH_SYNCHRONIZATION = 0x1a,
-  PAYLOAD_IE_TSCH_SLOFTRAME_AND_LINK,
-  PAYLOAD_IE_TSCH_TIMESLOT,
-  PAYLOAD_IE_TSCH_HOPPING_TIMING,
-  PAYLOAD_IE_TSCH_EB_FILTER,
-  PAYLOAD_IE_TSCH_MAC_METRICS_1,
-  PAYLOAD_IE_TSCH_MAC_METRICS_2,
+  MLME_SHORT_IE_TSCH_SYNCHRONIZATION = 0x1a,
+  MLME_SHORT_IE_TSCH_SLOFTRAME_AND_LINK,
+  MLME_SHORT_IE_TSCH_TIMESLOT,
+  MLME_SHORT_IE_TSCH_HOPPING_TIMING,
+  MLME_SHORT_IE_TSCH_EB_FILTER,
+  MLME_SHORT_IE_TSCH_MAC_METRICS_1,
+  MLME_SHORT_IE_TSCH_MAC_METRICS_2,
 };
 
 /* c.f. IEEE 802.15.4e Table 4e */
 enum ieee802154e_mlme_long_subie_id {
-  PAYLOAD_IE_TSCH_CHANNEL_HOPPING_SEQUENCE = 0x9,
+  MLME_LONG_IE_TSCH_CHANNEL_HOPPING_SEQUENCE = 0x9,
 };
 
 #define WRITE16(buf, val) \
@@ -174,7 +174,7 @@ frame80215e_create_ie_tsch_synchronization(uint8_t *buf, int len,
     buf[5] = ies->ie_asn.ls4b >> 24;
     buf[6] = ies->ie_asn.ms1b;
     buf[7] = ies->ie_join_priority;
-    create_mlme_short_ie_descriptor(buf, PAYLOAD_IE_TSCH_SYNCHRONIZATION, ie_len);
+    create_mlme_short_ie_descriptor(buf, MLME_SHORT_IE_TSCH_SYNCHRONIZATION, ie_len);
     return 2 + ie_len;
   } else {
     return -1;
@@ -203,20 +203,20 @@ frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
     buf[2] = ies->ie_tsch_timeslot_id;
     if(ies->ie_tsch_timeslot_id != 0) {
       int i = 3;
-      WRITE16(buf+i, ies->ie_timeslot_timing.cca_offset); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.cca); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.tx_offset); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.rx_offset); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.rx_ack_delay); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.tx_ack_delay); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.rx_wait); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.ack_wait); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.tx_tx); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.max_ack); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.max_tx); i+=2;
-      WRITE16(buf+i, ies->ie_timeslot_timing.timeslot_length); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.cca_offset); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.cca); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.tx_offset); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.rx_offset); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.rx_ack_delay); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.tx_ack_delay); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.rx_wait); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.ack_wait); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.tx_tx); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.max_ack); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.max_tx); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.timeslot_length); i+=2;
     }
-    create_mlme_short_ie_descriptor(buf, PAYLOAD_IE_TSCH_TIMESLOT, ie_len);
+    create_mlme_short_ie_descriptor(buf, MLME_SHORT_IE_TSCH_TIMESLOT, ie_len);
     return 2 + ie_len;
   } else {
     return -1;
@@ -242,7 +242,7 @@ frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
     WRITE16(buf+10, ies->ie_hopping_sequence_len); /* sequence len */
     memcpy(buf+12, ies->ie_hopping_sequence_list, ies->ie_hopping_sequence_len); /* sequence list */
     WRITE16(buf+12 + ies->ie_hopping_sequence_len, 0); /* current hop */
-    create_mlme_long_ie_descriptor(buf, PAYLOAD_IE_TSCH_CHANNEL_HOPPING_SEQUENCE, ie_len);
+    create_mlme_long_ie_descriptor(buf, MLME_LONG_IE_TSCH_CHANNEL_HOPPING_SEQUENCE, ie_len);
     return 2 + ie_len;
   } else {
     return -1;
@@ -301,24 +301,24 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
         }
       }
       break;
-    case PAYLOAD_IE_TSCH_TIMESLOT:
+    case MLME_SHORT_IE_TSCH_TIMESLOT:
       if(len == 1 || len == 25) {
         if(ies != NULL) {
           ies->ie_tsch_timeslot_id = buf[0];
           if(len == 25) {
             int i = 1;
-            READ16(buf+i, ies->ie_timeslot_timing.cca_offset); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.cca); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.tx_offset); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.rx_offset); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.rx_ack_delay); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.tx_ack_delay); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.rx_wait); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.ack_wait); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.tx_tx); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.max_ack); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.max_tx); i+=2;
-            READ16(buf+i, ies->ie_timeslot_timing.timeslot_length); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.cca_offset); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.cca); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.tx_offset); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.rx_offset); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.rx_ack_delay); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.tx_ack_delay); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.rx_wait); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.ack_wait); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.tx_tx); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.max_ack); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.max_tx); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.timeslot_length); i+=2;
           }
         }
       }
@@ -333,7 +333,7 @@ frame802154e_parse_mlme_long_ie(uint8_t *buf, int len,
     uint8_t sub_id, struct ieee802154_ies *ies)
 {
   switch(sub_id) {
-  case PAYLOAD_IE_TSCH_CHANNEL_HOPPING_SEQUENCE:
+  case MLME_LONG_IE_TSCH_CHANNEL_HOPPING_SEQUENCE:
     if(len > 0) {
       if(ies != NULL) {
         ies->ie_channel_hopping_sequence_id = buf[0];
