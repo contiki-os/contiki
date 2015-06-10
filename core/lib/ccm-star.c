@@ -40,7 +40,6 @@
 
 #include "ccm-star.h"
 #include "lib/aes-128.h"
-#include "net/packetbuf.h"
 #include <string.h>
 
 /* see RFC 3610 */
