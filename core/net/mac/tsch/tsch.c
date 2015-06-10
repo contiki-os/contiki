@@ -1230,6 +1230,14 @@ PT_THREAD(tsch_associate(struct pt *pt))
   if(tsch_is_coordinator) {
     /* We are coordinator, start operating now */
 
+    /* Initialize timeslot timing */
+    timeslot_timing = default_timeslot_timing;
+    /* Initialize hopping sequence as default */
+    ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+#if TSCH_WITH_MINIMAL_SCHEDULE
+    tsch_schedule_create_minimal();
+#endif
+
     tsch_is_associated = 1;
     tsch_join_priority = 0;
 
@@ -1324,6 +1332,32 @@ PT_THREAD(tsch_associate(struct pt *pt))
           }
         }
 #endif
+
+        /* Create schedule */
+        if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
+#if TSCH_WITH_MINIMAL_SCHEDULE
+          tsch_schedule_create_minimal();
+#else
+          eb_parsed = 0;
+#endif
+        } else {
+          /* We support only 0 or 1 slotframe in this IE */
+          int num_links = ies.ie_tsch_slotframe_and_link.num_links;
+          if(num_links <= FRAME802154E_IE_MAX_LINKS) {
+            int i;
+            struct tsch_slotframe *sf = tsch_schedule_add_slotframe(
+                ies.ie_tsch_slotframe_and_link.slotframe_handle,
+                ies.ie_tsch_slotframe_and_link.slotframe_size);
+            for(i = 0; i < num_links; i++) {
+              tsch_schedule_add_link(sf,
+                  ies.ie_tsch_slotframe_and_link.links[i].link_options,
+                  LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
+                  ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
+            }
+          } else {
+            eb_parsed = 0;
+          }
+        }
 
         if(eb_parsed != 0 && tsch_join_priority < TSCH_MAX_JOIN_PRIORITY) {
           struct tsch_neighbor *n;
@@ -1643,13 +1677,6 @@ tsch_init(void)
   tsch_log_init();
   ringbufindex_init(&input_ringbuf, TSCH_MAX_INCOMING_PACKETS);
   ringbufindex_init(&dequeued_ringbuf, DEQUEUED_ARRAY_SIZE);
-  /* Initialize hopping sequence (needed at coordinator, other nodes will override when joining) */
-  timeslot_timing = default_timeslot_timing;
-  /* Initialize hopping sequence as default (needed at coordinator, other nodes will override when joining) */
-  ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-#if TSCH_WITH_MINIMAL_SCHEDULE
-    tsch_schedule_create_minimal();
-#endif
   /* Process tx/rx callback and log messages whenever polled */
   process_start(&tsch_pending_events_process, NULL);
   /* periodically send TSCH EBs */

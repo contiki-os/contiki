@@ -184,15 +184,33 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
     memcpy(ies.ie_hopping_sequence_list, TSCH_DEFAULT_HOPPING_SEQUENCE, ies.ie_hopping_sequence_len);
   } */
 
+  /* Include no slotframe */
+  ies.ie_tsch_slotframe_and_link.num_slotframes = 0;
+  /* Add Slotframe and Link IE: 6TiSCH minimal schedule of length
+  * ies.ie_tsch_slotframe_and_link.num_slotframes = 1;
+  * ies.ie_tsch_slotframe_and_link.slotframe_handle = 0;
+  * ies.ie_tsch_slotframe_and_link.slotframe_size = TSCH_SCHEDULE_DEFAULT_LENGTH;
+  * ies.ie_tsch_slotframe_and_link.num_links = 1;
+  * ies.ie_tsch_slotframe_and_link.links[0].timeslot = 0;
+  * ies.ie_tsch_slotframe_and_link.links[0].channel_offset = 0;
+  * ies.ie_tsch_slotframe_and_link.links[0].link_options = LINK_OPTION_RX | LINK_OPTION_TX | LINK_OPTION_SHARED | LINK_OPTION_TIME_KEEPING;
+  */
+
   /* Save offset of the MLME IE descriptor, we need to know the total length
    * before writing it */
   mlme_ie_offset = curr_len;
   curr_len += 2; /* Space needed for MLME descriptor */
+
+  /* Save the offset of the TSCH Synchronization IE, needed to update ASN and join priority before sending */
   if(tsch_sync_ie_offset != NULL) {
     *tsch_sync_ie_offset = curr_len;
   }
-
   if((ret = frame80215e_create_ie_tsch_synchronization(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+    return -1;
+  }
+  curr_len += ret;
+
+  if((ret = frame80215e_create_ie_tsch_slotframe_and_link(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
     return -1;
   }
   curr_len += ret;

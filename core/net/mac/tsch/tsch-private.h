@@ -84,6 +84,13 @@
 #define TSCH_WITH_MINIMAL_SCHEDULE 1
 #endif
 
+/* 6TiSCH Minimal schedule slotframe length */
+#ifdef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
+#define TSCH_SCHEDULE_DEFAULT_LENGTH TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
+#else
+#define TSCH_SCHEDULE_DEFAULT_LENGTH 7
+#endif
+
 /* Max time before sending a unicast keep-alive message to the time source */
 #ifdef TSCH_CONF_KEEPALIVE_TIMEOUT
 #define TSCH_KEEPALIVE_TIMEOUT TSCH_CONF_KEEPALIVE_TIMEOUT

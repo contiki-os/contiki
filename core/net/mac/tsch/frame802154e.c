@@ -185,8 +185,36 @@ frame80215e_create_ie_tsch_synchronization(uint8_t *buf, int len,
 int frame80215e_create_ie_tsch_slotframe_and_link(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
-  /* TODO */
-  return -1;
+  if(ies != NULL) {
+    int i;
+    int num_slotframes = ies->ie_tsch_slotframe_and_link.num_slotframes;
+    int num_links = ies->ie_tsch_slotframe_and_link.num_links;
+    int ie_len = 1 + num_slotframes * (4 + 5 * num_links);
+    if(num_slotframes > 1 || num_links > FRAME802154E_IE_MAX_LINKS
+        || len < 2 + ie_len) {
+      /* We support only 0 or 1 slotframe in this IE and a predefined maximum number of links */
+      return -1;
+    }
+    /* Insert IE */
+    buf[2] = num_slotframes;
+    /* Insert slotframe */
+    if(num_slotframes == 1) {
+      buf[2 + 1] = ies->ie_tsch_slotframe_and_link.slotframe_handle;
+      WRITE16(buf + 2 + 2, ies->ie_tsch_slotframe_and_link.slotframe_size);
+      buf[2 + 4] = num_links;
+      /* Loop over links */
+      for(i = 0; i < num_links; i++) {
+        /* Insert links */
+        WRITE16(buf + 2 + 5 + i * 5, ies->ie_tsch_slotframe_and_link.links[i].timeslot);
+        WRITE16(buf + 2 + 5 + i * 5 + 2, ies->ie_tsch_slotframe_and_link.links[i].channel_offset);
+        buf[2 + 5 + i * 5 + 4] = ies->ie_tsch_slotframe_and_link.links[i].link_options;
+      }
+    }
+    create_mlme_short_ie_descriptor(buf, MLME_SHORT_IE_TSCH_SLOFTRAME_AND_LINK, ie_len);
+    return 2 + ie_len;
+  } else {
+    return -1;
+  }
 }
 
 /* MLME sub-IE. TSCH timeslot. Used in EBs: timeslot template (timing) */
@@ -289,7 +317,27 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
     uint8_t sub_id, struct ieee802154_ies *ies)
 {
   switch(sub_id) {
-    case PAYLOAD_IE_TSCH_SYNCHRONIZATION:
+    case MLME_SHORT_IE_TSCH_SLOFTRAME_AND_LINK:
+      if(ies != NULL && len >= 1) {
+        int i;
+        int num_slotframes = buf[0];
+        int num_links = buf[4];
+        if(num_slotframes <= 1 && num_links <= FRAME802154E_IE_MAX_LINKS
+            && len == 1 + num_slotframes * (4 + 5 * num_links)) {
+          /* We support only 0 or 1 slotframe in this IE and a predefined maximum number of links */
+          ies->ie_tsch_slotframe_and_link.num_slotframes = buf[0];
+          ies->ie_tsch_slotframe_and_link.slotframe_handle = buf[1];
+          READ16(buf + 2, ies->ie_tsch_slotframe_and_link.slotframe_size);
+          ies->ie_tsch_slotframe_and_link.num_links = buf[4];
+          for(i = 0; i < num_links; i++) {
+            READ16(buf + 5 + i * 5, ies->ie_tsch_slotframe_and_link.links[i].timeslot);
+            READ16(buf + 5 + i * 5 + 2, ies->ie_tsch_slotframe_and_link.links[i].channel_offset);
+            ies->ie_tsch_slotframe_and_link.links[i].link_options = buf[5 + i * 5 + 4];
+          }
+        }
+      }
+      break;
+    case MLME_SHORT_IE_TSCH_SYNCHRONIZATION:
       if(len == 6) {
         if(ies != NULL) {
           ies->ie_asn.ls4b = (uint32_t)buf[0];

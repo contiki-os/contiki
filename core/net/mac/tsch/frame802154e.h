@@ -43,6 +43,22 @@
 #include "contiki.h"
 #include "net/mac/tsch/tsch-private.h"
 
+#define FRAME802154E_IE_MAX_LINKS       4
+
+/* Structures used for the Slotframe and Links information element */
+struct tsch_slotframe_and_links_link {
+  uint16_t timeslot;
+  uint16_t channel_offset;
+  uint8_t link_options;
+};
+struct tsch_slotframe_and_links {
+  uint8_t num_slotframes; /* We support only 0 or 1 slotframe in this IE */
+  uint8_t slotframe_handle;
+  uint16_t slotframe_size;
+  uint8_t num_links;
+  struct tsch_slotframe_and_links_link links[FRAME802154E_IE_MAX_LINKS];
+};
+
 /* The information elements that we currently support */
 struct ieee802154_ies {
   /* Header IEs */
@@ -55,7 +71,8 @@ struct ieee802154_ies {
   struct asn_t ie_asn;
   uint8_t ie_join_priority;
   uint8_t ie_tsch_timeslot_id;
-  struct tsch_timeslot_timing_t ie_timeslot_timing;
+  struct tsch_timeslot_timing_t ie_tsch_timeslot;
+  struct tsch_slotframe_and_links ie_tsch_slotframe_and_link;
   /* Payload Long MLME IEs */
   uint8_t ie_channel_hopping_sequence_id;
   /* We include and parse only the sequence len and list and omit unused fields */
