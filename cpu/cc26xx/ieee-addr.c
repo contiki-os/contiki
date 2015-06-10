@@ -81,10 +81,10 @@ ieee_addr_cpy_to(uint8_t *dst, uint8_t len)
     }
   }
 
-#if IEEE_ADDR_NODE_ID
-  dst[len - 1] = IEEE_ADDR_NODE_ID & 0xFF;
-  dst[len - 2] = IEEE_ADDR_NODE_ID >> 8;
-#endif
+  if(IEEE_ADDR_NODE_ID){
+    dst[len - 1] = IEEE_ADDR_NODE_ID & 0xFF;
+    dst[len - 2] = IEEE_ADDR_NODE_ID >> 8;
+  }
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

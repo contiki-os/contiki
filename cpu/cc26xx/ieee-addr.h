@@ -85,6 +85,10 @@
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
+#ifndef IEEE_ADDR_NODE_ID
+#define IEEE_ADDR_NODE_ID (0)
+#endif
+/*---------------------------------------------------------------------------*/
 /**
  * \brief Copy the node's IEEE address to a destination memory area
  * \param dst A pointer to the destination area where the IEEE address is to be
