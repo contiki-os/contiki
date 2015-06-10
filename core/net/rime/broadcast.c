@@ -70,7 +70,9 @@ recv_from_abc(struct abc_conn *bc)
   PRINTF("%d.%d: broadcast: from %d.%d\n",
 	 linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1],
 	 sender.u8[0], sender.u8[1]);
-  if(c->u->recv) {
+
+  /*lanwan: check pointer */
+  if(c->u && c->u->recv) {
     c->u->recv(c, &sender);
   }
 }
@@ -85,7 +87,9 @@ sent_by_abc(struct abc_conn *bc, int status, int num_tx)
 	 packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[0],
          packetbuf_addr(PACKETBUF_ADDR_SENDER)->u8[1],
          status, num_tx);
-  if(c->u->sent) {
+
+  /*lanwan: check pointer */
+  if(c->u && c->u->sent) {
     c->u->sent(c, status, num_tx);
   }
 }
