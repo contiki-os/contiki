@@ -12,7 +12,8 @@ DISABLE_LTO ?= 1
 # can be set to SW or HW
 DEBUG ?= None
 ifeq ($(HOST_OS),Windows)     
-  SDK_BASE_DIR ?= /cygdrive/c/NXP/bstudio_nxp/sdk/JN-SW-4163
+#  SDK_BASE_DIR ?= /cygdrive/c/NXP/bstudio_nxp/sdk/JN-SW-4163
+  SDK_BASE_DIR ?= C:/NXP/bstudio_nxp/sdk/JN-SW-4163
 else
   SDK_BASE_DIR ?= /usr/jn-toolchain/sdk/JN-SW-4163
 endif

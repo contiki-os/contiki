@@ -56,10 +56,6 @@
 #include "net/ip/uip.h"
 #include "dev/leds.h"
 
-#include "dev/button-sensor.h"
-//#include "dev/pir-sensor.h"
-//#include "dev/vib-sensor.h"
-
 #include "lib/random.h"
 #include "sys/node-id.h"
 #include "rtimer-arch.h"
@@ -72,14 +68,28 @@
 
 #include "dev/micromac-radio.h"
 #include "MMAC.h"
+/* Includes depending on connected sensor boards */
+#if SENSOR_BOARD_DR1175
+  #include "light-sensor.h"
+  #include "ht-sensor.h"
+  SENSORS(&light_sensor, &ht_sensor);
+#elif SENSOR_BOARD_DR1199
+  #include "button-sensor.h"
+  #include "pot-sensor.h"
+  SENSORS(&pot_sensor, &button_sensor);
+#else
+  #include "dev/button-sensor.h"	
+//#include "dev/pir-sensor.h"
+//#include "dev/vib-sensor.h"
+  /*&pir_sensor, &vib_sensor*/
+  SENSORS(&button_sensor);
+ #endif
 unsigned char node_mac[8];
 
 /* Symbol defined by the linker script
  * marks the end of the stack taking into account the used heap  */
 extern uint32_t heap_location;
 
-/*&pir_sensor, &vib_sensor*/
-SENSORS(&button_sensor);
 
 #ifndef NETSTACK_CONF_WITH_IPV4
 #define NETSTACK_CONF_WITH_IPV4 0
