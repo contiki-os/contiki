@@ -36,6 +36,7 @@
 #include <windows.h>
 #include <winsock2.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #include "contiki-net.h"
 
@@ -101,6 +102,8 @@ char **contiki_argv;
 int
 main(int argc, char **argv)
 {
+  _set_fmode(O_BINARY);
+
   contiki_argc = argc;
   contiki_argv = argv;
 
