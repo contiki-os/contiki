@@ -119,9 +119,6 @@ G * (<br>, <p>, <h>), the <li> tag (but does not even try to
 #define ISO_eq    0x3d
 #define ISO_gt    0x3e
 
-#define ISO_rbrack 0x5b
-#define ISO_lbrack 0x5d
-
 #define MINORSTATE_NONE           0
 #define MINORSTATE_TEXT           1 /* Parse normal text */
 #define MINORSTATE_EXTCHAR        2 /* Check for semi-colon */
@@ -140,7 +137,7 @@ G * (<br>, <p>, <h>), the <li> tag (but does not even try to
 #define MAJORSTATE_LINK       2
 #define MAJORSTATE_FORM       3
 #define MAJORSTATE_DISCARD    4
-
+#define MAJORSTATE_SCRIPT     5
 
 struct htmlparser_state {
 
@@ -151,7 +148,7 @@ struct htmlparser_state {
   unsigned char tagattrptr;
   char tagattrparam[WWW_CONF_MAX_URLLEN + 1];
   unsigned char tagattrparamptr;
-  unsigned char lastchar, quotechar;
+  unsigned char quotechar;
   unsigned char majorstate, lastmajorstate;
   char linkurl[WWW_CONF_MAX_URLLEN + 1];
 
@@ -196,33 +193,31 @@ static const char *tags[] = {
   html_br,
 #define TAG_FORM       10
   html_form,
-#define TAG_FRAME      11
-  html_frame,
-#define TAG_H1         12
+#define TAG_H1         11
   html_h1,
-#define TAG_H2         13
+#define TAG_H2         12
   html_h2,
-#define TAG_H3         14
+#define TAG_H3         13
   html_h3,
-#define TAG_H4         15
+#define TAG_H4         14
   html_h4,
-#define TAG_IMG        16
+#define TAG_IMG        15
   html_img,
-#define TAG_INPUT      17
+#define TAG_INPUT      16
   html_input,
-#define TAG_LI         18
+#define TAG_LI         17
   html_li,
-#define TAG_P          19
+#define TAG_P          18
   html_p,
-#define TAG_SCRIPT     20
+#define TAG_SCRIPT     19
   html_script, 
-#define TAG_SELECT     21
+#define TAG_SELECT     20
   html_select,
-#define TAG_STYLE      22
+#define TAG_STYLE      21
   html_style,
-#define TAG_TR         23
+#define TAG_TR         22
   html_tr,
-#define TAG_LAST       24
+#define TAG_LAST       23
   last,
 };
 
@@ -254,7 +249,7 @@ htmlparser_init(void)
 {
   s.majorstate = s.lastmajorstate = MAJORSTATE_DISCARD;
   s.minorstate = MINORSTATE_TEXT;
-  s.lastchar = 0;
+  s.wordlen = 0;
 #if WWW_CONF_FORMS
   s.formaction[0] = 0;
 #endif /* WWW_CONF_FORMS */
@@ -305,10 +300,10 @@ do_word(void)
 {
   if(s.wordlen > 0) {
     if(s.majorstate == MAJORSTATE_LINK) {
-      if(s.word[s.wordlen] != ISO_space) {
+      if(s.word[s.wordlen - 1] != ISO_space) {
 	add_char(ISO_space);
       }
-    } else if(s.majorstate == MAJORSTATE_DISCARD) {
+    } else if(s.majorstate >= MAJORSTATE_DISCARD) {
       s.wordlen = 0;
     } else {
       s.word[s.wordlen] = '\0';
@@ -368,13 +363,19 @@ static void
 parse_tag(void)
 {
   static char *tagattrparam;
+  static unsigned char tag;
   static unsigned char size;
 
-  static char dummy;
-  
+  tag = find_tag(s.tag);
+  /* If we are inside a <script> we mustn't interpret any tags
+     (inside JavaScript strings) but wait for the </script>. */
+  if(s.majorstate == MAJORSTATE_SCRIPT && tag != TAG_SLASHSCRIPT) {
+    return;
+  }
+
   PRINTF(("Parsing tag '%s' '%s' '%s'\n", s.tag, s.tagattr, s.tagattrparam));
 
-  switch(find_tag(s.tag)) {
+  switch(tag) {
   case TAG_P:
   case TAG_H1:
   case TAG_H2:
@@ -386,15 +387,18 @@ parse_tag(void)
   case TAG_TR:
   case TAG_SLASHDIV:
   case TAG_SLASHH:
-    dummy = 0;
     newline();
     break;
   case TAG_LI:
-    newline();
-    add_char(ISO_asterisk);
-    add_char(ISO_space);
+    if(s.tagattr[0] == 0) {
+      newline();
+      add_char(ISO_asterisk);
+      add_char(ISO_space);
+    }
     break;
   case TAG_SCRIPT:
+    switch_majorstate(MAJORSTATE_SCRIPT);
+    break;
   case TAG_STYLE:
   case TAG_SELECT:
     switch_majorstate(MAJORSTATE_DISCARD);
@@ -407,18 +411,6 @@ parse_tag(void)
     break;
   case TAG_BODY:
     s.majorstate = s.lastmajorstate = MAJORSTATE_BODY;
-    break;
-  case TAG_FRAME:
-    if(strncmp(s.tagattr, html_src, sizeof(html_src)) == 0 && s.tagattrparam[0] != 0) {
-      switch_majorstate(MAJORSTATE_BODY);
-      newline();
-      add_char(ISO_rbrack);
-      do_word();
-      htmlparser_link((char *)html_frame, (unsigned char)strlen(html_frame), s.tagattrparam);
-      PRINTF(("Frame [%s]\n", s.tagattrparam));
-      add_char(ISO_lbrack);
-      newline();
-    }
     break;
   case TAG_IMG:
     if(strncmp(s.tagattr, html_alt, sizeof(html_alt)) == 0 && s.tagattrparam[0] != 0) {
@@ -572,6 +564,15 @@ parse_word(char *data, uint8_t dlen)
     }
     break;
   case MINORSTATE_TAG:
+    /* If we are inside a <srcipt> we mustn't mistake a JavaScript
+       equation with a '<' as a tag. So we check for the very next
+       character to be a '/' as we're only interested in parsing
+       the </script>. */
+    if(s.majorstate == MAJORSTATE_SCRIPT && data[0] != ISO_slash) {
+      s.minorstate = MINORSTATE_TEXT;
+      break;
+    }
+
     /* We are currently parsing within the name of a tag. We check
        for the end of a tag (the '>' character) or whitespace (which
        indicates that we should parse a tag attr argument
