@@ -57,9 +57,7 @@ typedef struct uip_nameserver_record {
 } uip_nameserver_record;
 
 /** \brief Initialization flag */
-#if UIP_NAMESERVER_POOL_SIZE > 1
 static uint8_t initialized = 0;
-#endif
 
 /** \name List and memory block
  * @{
