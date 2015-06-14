@@ -1125,8 +1125,6 @@ cfs_read(int fd, void *buf, unsigned size)
    * ordinary file if the page has no log record.
    */
   for(bytes_left = size; bytes_left > 0; bytes_left -= r) {
-    r = -1;
-
     lp.offset = fdp->offset;
     lp.buf = buf;
     lp.size = bytes_left;

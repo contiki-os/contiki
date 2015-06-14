@@ -136,7 +136,7 @@
  * Baud rate defines used in uart_init() to set the values of UART_IBRD and
  * UART_FBRD in order to achieve the configured baud rates.
  */
-#define UART_CLOCK_RATE       16000000 /* 16 MHz */
+#define UART_CLOCK_RATE       SYS_CTRL_SYS_CLOCK
 #define UART_CTL_HSE_VALUE    0
 #define UART_CTL_VALUE        (UART_CTL_RXE | UART_CTL_TXE | (UART_CTL_HSE_VALUE << 5))
 
@@ -359,7 +359,7 @@ uart_write_byte(uint8_t uart, uint8_t b)
   REG(uart_base + UART_DR) = b;
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 uart_isr(uint8_t uart)
 {
   uint32_t uart_base;

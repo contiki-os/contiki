@@ -32,6 +32,8 @@
 #ifndef TCP_SOCKET_H
 #define TCP_SOCKET_H
 
+#include "uip.h"
+
 struct tcp_socket;
 
 typedef enum {
@@ -95,6 +97,7 @@ struct tcp_socket {
   uint16_t output_data_maxlen;
   uint16_t output_data_len;
   uint16_t output_data_send_nxt;
+  uint16_t output_senddata_len;
   uint16_t output_data_max_seg;
 
   uint8_t flags;
@@ -170,7 +173,7 @@ int tcp_socket_register(struct tcp_socket *s, void *ptr,
  *
  */
 int tcp_socket_connect(struct tcp_socket *s,
-                       uip_ipaddr_t *ipaddr,
+                       const uip_ipaddr_t *ipaddr,
                        uint16_t port);
 
 /**
@@ -266,4 +269,19 @@ int tcp_socket_close(struct tcp_socket *s);
  *
  */
 int tcp_socket_unregister(struct tcp_socket *s);
+
+/**
+ * \brief      The maximum amount of data that could currently be sent
+ * \param s    A pointer to a TCP socket
+ * \return     The number of bytes available in the output buffer
+ *
+ *             This function queries the TCP socket and returns the
+ *             number of bytes available in the output buffer. This
+ *             function is used before calling tcp_socket_send() to
+ *             ensure that one application level message can be held
+ *             in the output buffer.
+ *
+ */
+int tcp_socket_max_sendlen(struct tcp_socket *s);
+
 #endif /* TCP_SOCKET_H */

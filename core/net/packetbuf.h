@@ -74,6 +74,12 @@
 #define PACKETBUF_HDR_SIZE 48
 #endif
 
+#ifdef PACKETBUF_CONF_WITH_PACKET_TYPE
+#define PACKETBUF_WITH_PACKET_TYPE PACKETBUF_CONF_WITH_PACKET_TYPE
+#else
+#define PACKETBUF_WITH_PACKET_TYPE NETSTACK_CONF_WITH_RIME
+#endif
+
 /**
  * \brief      Clear and reset the packetbuf
  *
@@ -182,51 +188,11 @@ uint16_t packetbuf_totlen(void);
 void packetbuf_set_datalen(uint16_t len);
 
 /**
- * \brief      Point the packetbuf to external data
- * \param ptr  A pointer to the external data
- * \param len  The length of the external data
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to make
- *             the packetbuf point to external data. The function also
- *             specifies the length of the external data that the
- *             packetbuf references.
- */
-void packetbuf_reference(void *ptr, uint16_t len);
-
-/**
- * \brief      Check if the packetbuf references external data
- * \retval     Non-zero if the packetbuf references external data, zero otherwise.
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to check
- *             if the packetbuf points to external data that has
- *             previously been referenced with packetbuf_reference().
- *
- */
-int packetbuf_is_reference(void);
-
-/**
- * \brief      Get a pointer to external data referenced by the packetbuf
- * \retval     A pointer to the external data
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. The data may point to external
- *             data that has previously been referenced with
- *             packetbuf_reference(). This function is used to get a
- *             pointer to the external data.
- *
- */
-void *packetbuf_reference_ptr(void);
-
-/**
  * \brief      Compact the packetbuf
  *
  *             This function compacts the packetbuf by copying the data
  *             portion of the packetbuf so that becomes consecutive to
- *             the header. It also copies external data that has
- *             previously been referenced with packetbuf_reference()
- *             into the packetbuf.
+ *             the header.
  *
  *             This function is called by the Rime code before a
  *             packet is to be sent by a device driver. This assures
@@ -257,9 +223,7 @@ int packetbuf_copyfrom(const void *from, uint16_t len);
  *
  *             This function copies the packetbuf to an external
  *             buffer. Both the data portion and the header portion of
- *             the packetbuf is copied. If the packetbuf referenced
- *             external data (referenced with packetbuf_reference()) the
- *             external data is copied.
+ *             the packetbuf is copied.
  *
  *             The external buffer to which the packetbuf is to be
  *             copied must be able to accomodate at least
@@ -351,10 +315,12 @@ enum {
   PACKETBUF_ATTR_IS_CREATED_AND_SECURED,
   
   /* Scope 1 attributes: used between two neighbors only. */
-  PACKETBUF_ATTR_RELIABLE,
-  PACKETBUF_ATTR_PACKET_ID,
+#if PACKETBUF_WITH_PACKET_TYPE
   PACKETBUF_ATTR_PACKET_TYPE,
+#endif
 #if NETSTACK_CONF_WITH_RIME
+  PACKETBUF_ATTR_PACKET_ID,
+  PACKETBUF_ATTR_RELIABLE,
   PACKETBUF_ATTR_REXMIT,
   PACKETBUF_ATTR_MAX_REXMIT,
   PACKETBUF_ATTR_NUM_REXMIT,

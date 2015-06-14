@@ -46,6 +46,7 @@
 #include "lpm.h"
 #include "gpio-interrupt.h"
 #include "dev/watchdog.h"
+#include "dev/oscillators.h"
 #include "ieee-addr.h"
 #include "vims.h"
 #include "cc26xx-model.h"
@@ -61,7 +62,7 @@
 #include "dev/serial-line.h"
 #include "net/mac/frame802154.h"
 
-#include "driverlib/driverlib_ver.h"
+#include "driverlib/driverlib_release.h"
 
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
@@ -119,23 +120,6 @@ set_rf_params(void)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-static void
-select_lf_xosc(void)
-{
-  ti_lib_osc_interface_enable();
-
-  /* Make sure the SMPH clock within AUX is enabled */
-  ti_lib_aux_wuc_clock_enable(AUX_WUC_SMPH_CLOCK);
-  while(ti_lib_aux_wuc_clock_status(AUX_WUC_SMPH_CLOCK) != AUX_WUC_CLOCK_READY);
-
-  /* Switch LF clock source to the LF RCOSC if required */
-  if(ti_lib_osc_clock_source_get(OSC_SRC_CLK_LF) != OSC_XOSC_LF) {
-    ti_lib_osc_clock_source_set(OSC_SRC_CLK_LF, OSC_XOSC_LF);
-  }
-
-  ti_lib_osc_interface_disable();
-}
-/*---------------------------------------------------------------------------*/
 /**
  * \brief Main function for CC26xx-based platforms
  *
@@ -144,40 +128,38 @@ select_lf_xosc(void)
 int
 main(void)
 {
+  /* Enable flash cache and prefetch. */
+  ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_ENABLED);
+  ti_lib_vims_configure(VIMS_BASE, true, true);
+
+  ti_lib_int_master_disable();
+
   /* Set the LF XOSC as the LF system clock source */
-  select_lf_xosc();
-
-  /*
-   * Make sure to open the latches - this will be important when returning
-   * from shutdown
-   */
-  ti_lib_pwr_ctrl_io_freeze_disable();
-
-  /* Use DCDC instead of LDO to save current */
-  ti_lib_pwr_ctrl_source_set(PWRCTRL_PWRSRC_DCDC);
+  oscillators_select_lf_xosc();
 
   lpm_init();
 
   board_init();
 
-  /* Enable flash cache and prefetch. */
-  ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_ENABLED);
-  ti_lib_vims_configure(VIMS_BASE, true, true);
-
   gpio_interrupt_init();
-
-  /* Clock must always be enabled for the semaphore module */
-  HWREG(AUX_WUC_BASE + AUX_WUC_O_MODCLKEN1) = AUX_WUC_MODCLKEN1_SMPH;
 
   leds_init();
 
+  /*
+   * Disable I/O pad sleep mode and open I/O latches in the AON IOC interface
+   * This is only relevant when returning from shutdown (which is what froze
+   * latches in the first place. Before doing these things though, we should
+   * allow software to first regain control of pins
+   */
+  ti_lib_pwr_ctrl_io_freeze_disable();
+
   fade(LEDS_RED);
+
+  ti_lib_int_master_enable();
 
   cc26xx_rtc_init();
   clock_init();
   rtimer_init();
-
-  board_init();
 
   watchdog_init();
   process_init();
@@ -187,14 +169,13 @@ main(void)
   /* Character I/O Initialisation */
 #if CC26XX_UART_CONF_ENABLE
   cc26xx_uart_init();
-  cc26xx_uart_set_input(serial_line_input_byte);
 #endif
 
   serial_line_init();
 
   printf("Starting " CONTIKI_VERSION_STRING "\n");
-  printf("With CC26xxware v%u.%02u.%02u.%u\n", DRIVERLIB_MAJOR_VER,
-         DRIVERLIB_MINOR_VER, DRIVERLIB_PATCH_VER, DRIVERLIB_BUILD_ID);
+  printf("With DriverLib v%u.%u\n", DRIVERLIB_RELEASE_GROUP,
+         DRIVERLIB_RELEASE_BUILD);
   printf(BOARD_STRING " using CC%u\n", CC26XX_MODEL_CPU_VARIANT);
 
   process_start(&etimer_process, NULL);

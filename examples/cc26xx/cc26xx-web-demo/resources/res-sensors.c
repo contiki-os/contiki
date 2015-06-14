@@ -229,28 +229,28 @@ RESOURCE(res_bmp280_press,
          "title=\"Barometer (Pressure)\";rt=\"hPa (hectopascal / millibar)\"",
          res_get_handler_bmp_press, NULL, NULL, NULL);
 /*---------------------------------------------------------------------------*/
-/* SHT21 sensor resources and handler: Temperature, Pressure */
+/* HDC1000 sensor resources and handler: Temperature, Pressure */
 static void
-res_get_handler_sht_temp(void *request, void *response, uint8_t *buffer,
+res_get_handler_hdc_temp(void *request, void *response, uint8_t *buffer,
                          uint16_t preferred_size, int32_t *offset)
 {
-  res_get_handler_all(CC26XX_WEB_DEMO_SENSOR_SHT_TEMP, request, response,
+  res_get_handler_all(CC26XX_WEB_DEMO_SENSOR_HDC_TEMP, request, response,
                       buffer, preferred_size, offset);
 }
 /*---------------------------------------------------------------------------*/
 static void
-res_get_handler_sht_humidity(void *request, void *response, uint8_t *buffer,
+res_get_handler_hdc_humidity(void *request, void *response, uint8_t *buffer,
                              uint16_t preferred_size, int32_t *offset)
 {
-  res_get_handler_all(CC26XX_WEB_DEMO_SENSOR_SHT_HUMIDITY, request, response,
+  res_get_handler_all(CC26XX_WEB_DEMO_SENSOR_HDC_HUMIDITY, request, response,
                       buffer, preferred_size, offset);
 }
 /*---------------------------------------------------------------------------*/
-RESOURCE(res_sht21_temp, "title=\"Temperature\";rt=\"C\"",
-         res_get_handler_sht_temp, NULL, NULL, NULL);
+RESOURCE(res_hdc1000_temp, "title=\"Temperature\";rt=\"C\"",
+         res_get_handler_hdc_temp, NULL, NULL, NULL);
 
-RESOURCE(res_sht21_hum, "title=\"Humidity\";rt=\"%RH\"",
-         res_get_handler_sht_humidity, NULL, NULL, NULL);
+RESOURCE(res_hdc1000_hum, "title=\"Humidity\";rt=\"%RH\"",
+         res_get_handler_hdc_humidity, NULL, NULL, NULL);
 /*---------------------------------------------------------------------------*/
 /* Illuminance resources and handler */
 static void

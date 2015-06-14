@@ -106,7 +106,9 @@ send_packet(mac_callback_t sent, void *ptr)
   params.fcf.frame_type = FRAME802154_DATAFRAME;
   params.fcf.security_enabled = 0;
   params.fcf.frame_pending = 0;
+#if NETSTACK_CONF_WITH_RIME
   params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
+#endif
   params.fcf.panid_compression = 0;
 
   /* Insert IEEE 802.15.4 (2003) version bit. */

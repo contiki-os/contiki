@@ -229,10 +229,6 @@ static struct compower_activity current_packet;
 
 #define DEFAULT_STREAM_TIME (4 * CYCLE_TIME)
 
-#ifndef MIN
-#define MIN(a, b) ((a) < (b)? (a) : (b))
-#endif /* MIN */
-
 #if CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT
 static struct timer broadcast_rate_timer;
 static int broadcast_rate_counter;
@@ -341,7 +337,6 @@ powercycle(struct rtimer *t, void *ptr)
 
   while(1) {
     static uint8_t packet_seen;
-    static rtimer_clock_t t0;
     static uint8_t count;
 
 #if SYNC_CYCLE_STARTS
@@ -365,7 +360,6 @@ powercycle(struct rtimer *t, void *ptr)
     packet_seen = 0;
 
     for(count = 0; count < CCA_COUNT_MAX; ++count) {
-      t0 = RTIMER_NOW();
       if(we_are_sending == 0 && we_are_receiving_burst == 0) {
         powercycle_turn_radio_on();
         /* Check if a packet is seen in the air. If so, we keep the
@@ -499,7 +493,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
   uint8_t got_strobe_ack = 0;
   int len;
   uint8_t is_broadcast = 0;
-  uint8_t is_reliable = 0;
   uint8_t is_known_receiver = 0;
   uint8_t collisions;
   int transmit_len;
@@ -546,11 +539,6 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
                packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
   }
-  is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE)
-#if NETSTACK_CONF_WITH_RIME
-          || packetbuf_attr(PACKETBUF_ATTR_ERELIABLE)
-#endif /* NETSTACK_CONF_WITH_RIME */
-      ;
 
   if(!packetbuf_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED)) {
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
@@ -672,11 +660,12 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
     {
       rtimer_clock_t wt;
-      rtimer_clock_t txtime;
-      int ret;
-
-      txtime = RTIMER_NOW();
-      ret = NETSTACK_RADIO.transmit(transmit_len);
+      rtimer_clock_t txtime = RTIMER_NOW();
+#if RDC_CONF_HARDWARE_ACK
+      int ret = NETSTACK_RADIO.transmit(transmit_len);
+#else
+      NETSTACK_RADIO.transmit(transmit_len);
+#endif
 
 #if RDC_CONF_HARDWARE_ACK
      /* For radios that block in the transmit routine and detect the

@@ -65,10 +65,6 @@
 #define SETTINGS_BOTTOM_ADDR	(SETTINGS_TOP_ADDR + 1 - SETTINGS_MAX_SIZE)
 #endif
 
-#ifndef MIN
-#define MIN(a,b) ((a)<(b)?a:b)
-#endif
-
 typedef struct {
 #if SETTINGS_CONF_SUPPORT_LARGE_VALUES
   uint8_t size_extra;

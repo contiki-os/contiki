@@ -10,6 +10,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
+ *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -40,6 +41,7 @@ struct ip64_addrmap_entry {
   struct timer timer;
   uip_ip6addr_t ip6addr;
   uip_ip4addr_t ip4addr;
+  uint32_t ip6to4, ip4to6;
   uint16_t mapped_port;
   uint16_t ip6port;
   uint16_t ip4port;

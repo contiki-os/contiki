@@ -284,9 +284,6 @@ typedef unsigned short uip_stats_t;
 #define RADIO_CONF_CALIBRATE_INTERVAL 256
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-/* Request 802.15.4 ACK on all packets sent by sicslowpan.c (else autoretry) */
-/* Broadcasts will be duplicated by the retry count, since no one will ACK them! */
-#define SICSLOWPAN_CONF_ACK_ALL   0
 /* 1 + Number of auto retry attempts 0-15 (0 implies don't use extended TX_ARET_ON mode with CCA) */
 #define RF230_CONF_FRAME_RETRIES    2
 /* CCA theshold energy -91 to -61 dBm (default -77). Set this smaller than the expected minimum rssi to avoid packet collisions */

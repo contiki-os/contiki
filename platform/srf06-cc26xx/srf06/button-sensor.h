@@ -49,7 +49,6 @@
 #define BUTTON_SENSOR_VALUE_RELEASED 0
 #define BUTTON_SENSOR_VALUE_PRESSED  1
 /*---------------------------------------------------------------------------*/
-#define button_sensor button_select_sensor
 extern const struct sensors_sensor button_select_sensor;
 extern const struct sensors_sensor button_left_sensor;
 extern const struct sensors_sensor button_right_sensor;

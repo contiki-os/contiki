@@ -49,15 +49,23 @@ CONTIKI_CPU_DIRS += ../cc253x/usb/common ../cc253x/usb/common/cdc-acm
 ### CPU-dependent source files
 CONTIKI_CPU_SOURCEFILES += clock.c rtimer-arch.c uart.c watchdog.c
 CONTIKI_CPU_SOURCEFILES += nvic.c cpu.c sys-ctrl.c gpio.c ioc.c spi.c adc.c
+CONTIKI_CPU_SOURCEFILES += crypto.c aes.c ccm.c sha256.c
 CONTIKI_CPU_SOURCEFILES += cc2538-rf.c udma.c lpm.c
 CONTIKI_CPU_SOURCEFILES += dbg.c ieee-addr.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c
-CONTIKI_CPU_SOURCEFILES += i2c.c
+CONTIKI_CPU_SOURCEFILES += i2c.c cc2538-temp-sensor.c vdd3-sensor.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 
 USB_CORE_SOURCEFILES += usb-core.c cdc-acm.c
 USB_ARCH_SOURCEFILES += usb-arch.c usb-serial.c cdc-acm-descriptors.c
+
+ifneq ($(TARGET_START_SOURCEFILES),)
+  CPU_START_SOURCEFILES = TARGET_START_SOURCEFILES
+else
+  CPU_START_SOURCEFILES = startup-gcc.c
+endif
+CPU_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CPU_START_SOURCEFILES)}}
 
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 CONTIKI_SOURCEFILES += $(USB_CORE_SOURCEFILES) $(USB_ARCH_SOURCEFILES)
@@ -75,7 +83,7 @@ $(OBJECTDIR)/ieee-addr.o: ieee-addr.c FORCE | $(OBJECTDIR)
 ### Compilation rules
 CUSTOM_RULE_LINK=1
 
-%.elf: $(TARGET_STARTFILES) %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
+%.elf: $(CPU_STARTFILES) %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
 	$(TRACE_LD)
 	$(Q)$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 
