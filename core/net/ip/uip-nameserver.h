@@ -74,7 +74,7 @@
  *                     considered to remove an entry. Maximum is 0xFFFFFFFF which
  *                     is considered infinite.
  */
-void uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime);
+void uip_nameserver_update(const uip_ipaddr_t *nameserver, uint32_t lifetime);
 
 /**
  * \brief Get a Nameserver ip address given in RA
