@@ -56,11 +56,8 @@ typedef          long  s32_t;
 
 typedef unsigned short uip_stats_t;
 
-#define UIP_CONF_MAX_CONNECTIONS     40
-#define UIP_CONF_MAX_LISTENPORTS     40
 #define UIP_CONF_LLH_LEN             14
 #define UIP_CONF_BUFFER_SIZE         1514
-#define UIP_CONF_BYTE_ORDER          UIP_LITTLE_ENDIAN
 #define UIP_CONF_TCP_SPLIT           1
 #define UIP_CONF_LOGGING             1
 #define UIP_CONF_UDP_CHECKSUMS       1
@@ -77,6 +74,8 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_IP_FORWARD          1
 #endif
 
+#define RESOLV_CONF_SUPPORTS_MDNS              0
+#define RESOLV_CONF_SUPPORTS_RECORD_EXPIRATION 0
 
 #include <ctype.h>
 #define ctk_arch_isprint isprint

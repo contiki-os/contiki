@@ -49,7 +49,7 @@
 #define HTTPFLAG_NONE   0
 #define HTTPFLAG_OK     1
 #define HTTPFLAG_MOVED  2
-#define HTTPFLAG_ERROR  3
+#define HTTPFLAG_HTTPS  3
 
 
 #define ISO_nl       0x0a
@@ -63,11 +63,11 @@ struct webclient_state {
 
   uint16_t port;
   char host[40];
-  char file[WWW_CONF_MAX_URLLEN];
+  char file[WWW_CONF_MAX_URLLEN - 10]; // URL - "http://<host>/"
   uint16_t getrequestptr;
   uint16_t getrequestleft;
   
-  char httpheaderline[200];
+  char httpheaderline[WWW_CONF_MAX_URLLEN + 10]; // URL + "Location: "
   uint16_t httpheaderlineptr;
 
   char mimetype[32];
@@ -327,13 +327,12 @@ parse_headers(uint16_t len)
   char *cptr;
   static unsigned char i;
   
-  while(len > 0 && s.httpheaderlineptr < sizeof(s.httpheaderline)) {
+  while(len > 0) {
     s.httpheaderline[s.httpheaderlineptr] = *(char *)uip_appdata;
     uip_appdata = (char *)uip_appdata + 1;
     --len;
     if(s.httpheaderline[s.httpheaderlineptr] == ISO_nl) {
-      /* We have an entire HTTP header line in s.httpheaderline, so
-	 we parse it. */
+      /* We reached the end of an HTTP header line. */
       if(s.httpheaderline[0] == ISO_cr) {
 	/* This was the last header line (i.e., and empty "\r\n"), so
 	   we are done with the headers and proceed with the actual
@@ -342,46 +341,53 @@ parse_headers(uint16_t len)
 	return len;
       }
 
-      s.httpheaderline[s.httpheaderlineptr - 1] = 0;
-      /* Check for specific HTTP header fields. */
-      if(casecmp(s.httpheaderline, http_content_type,
-		     sizeof(http_content_type) - 1) == 0) {
-	/* Found Content-type field. */
-	cptr = strchr(s.httpheaderline, ';');
-	if(cptr != NULL) {
-	  *cptr = 0;
-	}
-	strncpy(s.mimetype, s.httpheaderline +
-		sizeof(http_content_type) - 1, sizeof(s.mimetype));
-      } else if(casecmp(s.httpheaderline, http_location,
-			    sizeof(http_location) - 1) == 0) {
-	cptr = s.httpheaderline +
-	  sizeof(http_location) - 1;
-	
-	if(strncmp(cptr, http_http, 7) == 0) {
-	  cptr += 7;
-	  for(i = 0; i < s.httpheaderlineptr - 7; ++i) {
-	    if(*cptr == 0 ||
-	       *cptr == '/' ||
-	       *cptr == ' ' ||
-	       *cptr == ':') {
-	      s.host[i] = 0;
-	      break;
-	    }
-	    s.host[i] = *cptr;
-	    ++cptr;
+      if(s.httpheaderlineptr < sizeof(s.httpheaderline) - 1) {
+        /* We have an entire HTTP header line in s.httpheaderline, so
+	   we parse it. */
+	s.httpheaderline[s.httpheaderlineptr - 1] = 0;
+	/* Check for specific HTTP header fields. */
+	if(casecmp(s.httpheaderline, http_content_type,
+		       sizeof(http_content_type) - 1) == 0) {
+	  /* Found Content-type field. */
+	  cptr = strchr(s.httpheaderline, ';');
+	  if(cptr != NULL) {
+	    *cptr = 0;
 	  }
-	}
-	strncpy(s.file, cptr, sizeof(s.file));
-	/*	s.file[s.httpheaderlineptr - i] = 0;*/
-      }
+	  strncpy(s.mimetype, s.httpheaderline +
+		  sizeof(http_content_type) - 1, sizeof(s.mimetype));
+	} else if(casecmp(s.httpheaderline, http_location,
+			      sizeof(http_location) - 1) == 0) {
+	  cptr = s.httpheaderline +
+	    sizeof(http_location) - 1;
 
+	  if(strncmp(cptr, http_https, sizeof(http_https) - 1) == 0) {
+	    s.httpflag = HTTPFLAG_HTTPS;
+	  } else if(strncmp(cptr, http_http, 7) == 0) {
+	    cptr += 7;
+	    for(i = 0; i < s.httpheaderlineptr - 7; ++i) {
+	      if(*cptr == 0 ||
+		 *cptr == '/' ||
+		 *cptr == ' ' ||
+		 *cptr == ':') {
+		s.host[i] = 0;
+		break;
+	      }
+	      s.host[i] = *cptr;
+	      ++cptr;
+	    }
+	  }
+	  strncpy(s.file, cptr, sizeof(s.file));
+	  /*	s.file[s.httpheaderlineptr - i] = 0;*/
+	}
+      }
 
       /* We're done parsing, so we reset the pointer and start the
 	 next line. */
       s.httpheaderlineptr = 0;
     } else {
-      ++s.httpheaderlineptr;
+      if(s.httpheaderlineptr < sizeof(s.httpheaderline) - 1) {
+        ++s.httpheaderlineptr;
+      }
     }
   }
   return len;
@@ -403,7 +409,7 @@ newdata(void)
   }
 
   if(len > 0 && s.state == WEBCLIENT_STATE_DATA &&
-     s.httpflag != HTTPFLAG_MOVED) {
+     s.httpflag == HTTPFLAG_OK) {
     webclient_datahandler((char *)uip_appdata, len);
   }
 }
@@ -441,7 +447,6 @@ webclient_appcall(void *state)
     return;
   }
 
-
   /* The acked() and newdata() functions may alter the uip_appdata
      ptr, so we need to store it in the "dataptr" variable so that we
      can restore it before the senddata() function is called. */  
@@ -474,10 +479,18 @@ webclient_appcall(void *state)
 
   if(uip_closed()) {
     tcp_markconn(uip_conn, NULL);
-    if(s.httpflag != HTTPFLAG_MOVED) {
+    switch(s.httpflag) {
+    case HTTPFLAG_HTTPS:
+      /* Send some info to the user. */
+      webclient_datahandler((char *)http_redirect, sizeof(http_redirect) - 1);
+      webclient_datahandler(s.file, strlen(s.file));
+      webclient_datahandler((char *)http_crnl, sizeof(http_crnl) - 1);
+      /* FALLTHROUGH */
+    case HTTPFLAG_OK:
       /* Send NULL data to signal EOF. */
       webclient_datahandler(NULL, 0);
-    } else {
+      break;
+    case HTTPFLAG_MOVED:
       /*      conn = uip_connect(uip_conn->ripaddr, s.port);
       if(conn != NULL) {
 	dispatcher_markconn(conn, NULL);
@@ -489,6 +502,7 @@ webclient_appcall(void *state)
       }
 #endif /* UIP_UDP */
       webclient_get(s.host, s.port, s.file);
+      break;
     }
   }
 }
