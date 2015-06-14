@@ -107,8 +107,8 @@
  */
 #define BOARD_IOID_UART_RX        IOID_2
 #define BOARD_IOID_UART_TX        IOID_3
-#define BOARD_IOID_UART_CTS       IOID_0
-#define BOARD_IOID_UART_RTS       IOID_21
+#define BOARD_IOID_UART_CTS       IOID_UNUSED
+#define BOARD_IOID_UART_RTS       IOID_UNUSED
 #define BOARD_UART_RX             (1 << BOARD_IOID_UART_RX)
 #define BOARD_UART_TX             (1 << BOARD_IOID_UART_TX)
 #define BOARD_UART_CTS            (1 << BOARD_IOID_UART_CTS)

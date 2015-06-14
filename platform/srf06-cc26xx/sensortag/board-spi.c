@@ -40,12 +40,35 @@
 #include "ti-lib.h"
 #include "board-spi.h"
 #include "board.h"
+
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 #define CPU_FREQ      48000000ul
+/*---------------------------------------------------------------------------*/
+static bool
+accessible(void)
+{
+  /* First, check the PD */
+  if(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_SERIAL)
+     != PRCM_DOMAIN_POWER_ON) {
+    return false;
+  }
+
+  /* Then check the 'run mode' clock gate */
+  if(!(HWREG(PRCM_BASE + PRCM_O_SSICLKGR) & PRCM_SSICLKGR_CLK_EN_SSI0)) {
+    return false;
+  }
+
+  return true;
+}
 /*---------------------------------------------------------------------------*/
 int
 board_spi_write(const uint8_t *buf, size_t len)
 {
+  if(accessible() == false) {
+    return 0;
+  }
+
   while(len > 0) {
     uint32_t ul;
 
@@ -61,6 +84,10 @@ board_spi_write(const uint8_t *buf, size_t len)
 int
 board_spi_read(uint8_t *buf, size_t len)
 {
+  if(accessible() == false) {
+    return 0;
+  }
+
   while(len > 0) {
     uint32_t ul;
 
@@ -79,6 +106,10 @@ board_spi_read(uint8_t *buf, size_t len)
 void
 board_spi_flush()
 {
+  if(accessible() == false) {
+    return;
+  }
+
   uint32_t ul;
   while(ti_lib_rom_ssi_data_get_non_blocking(SSI0_BASE, &ul));
 }
@@ -88,7 +119,12 @@ board_spi_open(uint32_t bit_rate, uint32_t clk_pin)
 {
   uint32_t buf;
 
-  /* SPI power */
+  /* First, make sure the SERIAL PD is on */
+  ti_lib_prcm_power_domain_on(PRCM_DOMAIN_SERIAL);
+  while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_SERIAL)
+        != PRCM_DOMAIN_POWER_ON));
+
+  /* Enable clock in active mode */
   ti_lib_rom_prcm_peripheral_run_enable(PRCM_PERIPH_SSI0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
@@ -113,6 +149,16 @@ board_spi_close()
   ti_lib_rom_prcm_peripheral_run_disable(PRCM_PERIPH_SSI0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
+
+  /* Restore pins to a low-consumption state */
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SPI_MISO);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SPI_MISO, IOC_IOPULL_DOWN);
+
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SPI_MOSI);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SPI_MOSI, IOC_IOPULL_DOWN);
+
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SPI_CLK_FLASH);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SPI_CLK_FLASH, IOC_IOPULL_DOWN);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

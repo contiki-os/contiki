@@ -49,6 +49,7 @@
 #include "dev/leds.h"
 #include "dev/watchdog.h"
 #include "dev/cc26xx-rtc.h"
+#include "dev/oscillators.h"
 /*---------------------------------------------------------------------------*/
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
@@ -64,9 +65,6 @@ static unsigned long irq_energest = 0;
 /*---------------------------------------------------------------------------*/
 LIST(modules_list);
 /*---------------------------------------------------------------------------*/
-/* Control what power domains we are allow to run under what mode */
-LIST(power_domain_locks_list);
-
 /* PDs that may stay on in deep sleep */
 #define LOCKABLE_DOMAINS ((uint32_t)(PRCM_DOMAIN_SERIAL | PRCM_DOMAIN_PERIPH))
 /*---------------------------------------------------------------------------*/
@@ -76,49 +74,48 @@ LIST(power_domain_locks_list);
  */
 #define STANDBY_MIN_DURATION (RTIMER_SECOND >> 8)
 /*---------------------------------------------------------------------------*/
-/* Variables used by the power on/off (Power mode: SHUTDOWN) functionality */
-static uint8_t shutdown_requested;
-static uint32_t pin;
-/*---------------------------------------------------------------------------*/
 void
-lpm_pd_lock_obtain(lpm_power_domain_lock_t *lock, uint32_t domains)
-{
-  /* We only accept locks for specific PDs */
-  domains &= LOCKABLE_DOMAINS;
-
-  if(domains == 0) {
-    return;
-  }
-
-  lock->domains = domains;
-
-  list_add(power_domain_locks_list, lock);
-}
-/*---------------------------------------------------------------------------*/
-void
-lpm_pd_lock_release(lpm_power_domain_lock_t *lock)
-{
-  lock->domains = 0;
-
-  list_remove(power_domain_locks_list, lock);
-}
-/*---------------------------------------------------------------------------*/
-void
-lpm_shutdown(uint32_t wakeup_pin)
-{
-  shutdown_requested = 1;
-  pin = wakeup_pin;
-}
-/*---------------------------------------------------------------------------*/
-static void
-shutdown_now(void)
+lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
 {
   lpm_registered_module_t *module;
-  int i;
-  rtimer_clock_t t0;
-  uint32_t io_cfg = (IOC_STD_INPUT & ~IOC_IOPULL_M) | IOC_IOPULL_UP |
-                     IOC_WAKE_ON_LOW;
+  int i, j;
+  uint32_t io_cfg = (IOC_STD_INPUT & ~IOC_IOPULL_M) | io_pull |
+    wake_on;
 
+  /* This procedure may not be interrupted */
+  ti_lib_int_master_disable();
+
+  /* Disable the RTC */
+  ti_lib_aon_rtc_disable();
+  ti_lib_aon_rtc_event_clear(AON_RTC_CH0);
+  ti_lib_aon_rtc_event_clear(AON_RTC_CH1);
+  ti_lib_aon_rtc_event_clear(AON_RTC_CH2);
+
+  /* Reset AON even fabric to default wakeup sources */
+  for(i = AON_EVENT_MCU_WU0; i <= AON_EVENT_MCU_WU3; i++) {
+    ti_lib_aon_event_mcu_wake_up_set(i, AON_EVENT_NULL);
+  }
+  for(i = AON_EVENT_AUX_WU0; i <= AON_EVENT_AUX_WU2; i++) {
+    ti_lib_aon_event_aux_wake_up_set(i, AON_EVENT_NULL);
+  }
+
+  ti_lib_sys_ctrl_aon_sync();
+
+  watchdog_periodic();
+
+  /* fade away....... */
+  j = 1000;
+
+  for(i = j; i > 0; --i) {
+    leds_on(LEDS_ALL);
+    clock_delay_usec(i);
+    leds_off(LEDS_ALL);
+    clock_delay_usec(j - i);
+  }
+
+  leds_off(LEDS_ALL);
+
+  /* Notify all modules that we're shutting down */
   for(module = list_head(modules_list); module != NULL;
       module = module->next) {
     if(module->shutdown) {
@@ -126,34 +123,74 @@ shutdown_now(void)
     }
   }
 
-  leds_off(LEDS_ALL);
+  /* Configure the wakeup trigger */
+  ti_lib_gpio_dir_mode_set((1 << wakeup_pin), GPIO_DIR_MODE_IN);
+  ti_lib_ioc_port_configure_set(wakeup_pin, IOC_PORT_GPIO, io_cfg);
 
-  for(i = 0; i < 5; i++) {
-    t0 = RTIMER_NOW();
-    leds_toggle(LEDS_ALL);
-    while(RTIMER_CLOCK_LT(RTIMER_NOW(), (t0 + (RTIMER_SECOND >> 3))));
-  }
+  /* Freeze I/O latches in AON */
+  ti_lib_aon_ioc_freeze_enable();
 
-  leds_off(LEDS_ALL);
+  /* Turn off RFCORE, SERIAL and PERIPH PDs. This will happen immediately */
+  ti_lib_prcm_power_domain_off(PRCM_DOMAIN_RFCORE | PRCM_DOMAIN_SERIAL |
+                               PRCM_DOMAIN_PERIPH);
 
-  ti_lib_gpio_dir_mode_set((1 << pin), GPIO_DIR_MODE_IN);
-  ti_lib_ioc_port_configure_set(pin, IOC_PORT_GPIO, io_cfg);
+  oscillators_switch_to_hf_rc();
+  oscillators_select_lf_rcosc();
 
-  ti_lib_pwr_ctrl_state_set(LPM_MODE_SHUTDOWN);
+  /* Configure clock sources for MCU and AUX: No clock */
+  ti_lib_aon_wuc_mcu_power_down_config(AONWUC_NO_CLOCK);
+  ti_lib_aon_wuc_aux_power_down_config(AONWUC_NO_CLOCK);
+
+  /* Disable SRAM and AUX retentions */
+  ti_lib_aon_wuc_mcu_sram_config(0);
+  ti_lib_aon_wuc_aux_sram_config(false);
+
+  /*
+   * Request CPU, SYSBYS and VIMS PD off.
+   * This will only happen when the CM3 enters deep sleep
+   */
+  ti_lib_prcm_power_domain_off(PRCM_DOMAIN_CPU | PRCM_DOMAIN_VIMS |
+                               PRCM_DOMAIN_SYSBUS);
+
+  /* Request JTAG domain power off */
+  ti_lib_aon_wuc_jtag_power_off();
+
+  /* Turn off AUX */
+  ti_lib_aux_wuc_power_ctrl(AUX_WUC_POWER_OFF);
+  ti_lib_aon_wuc_domain_power_down_enable();
+  while(ti_lib_aon_wuc_power_status_get() & AONWUC_AUX_POWER_ON);
+
+  /*
+   * Request MCU VD power off.
+   * This will only happen when the CM3 enters deep sleep
+   */
+  ti_lib_prcm_mcu_power_off();
+
+  /* Set MCU wakeup to immediate and disable virtual power off */
+  ti_lib_aon_wuc_mcu_wake_up_config(MCU_IMM_WAKE_UP);
+  ti_lib_aon_wuc_mcu_power_off_config(MCU_VIRT_PWOFF_DISABLE);
+
+  /* Latch the IOs in the padring and enable I/O pad sleep mode */
+  ti_lib_pwr_ctrl_io_freeze_enable();
+
+  /* Turn off VIMS cache, CRAM and TRAM - possibly not required */
+  ti_lib_prcm_cache_retention_disable();
+  ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_OFF);
+
+  /* Enable shutdown and sync AON */
+  ti_lib_aon_wuc_shut_down_enable();
+  ti_lib_sys_ctrl_aon_sync();
+
+  /* Deep Sleep */
+  ti_lib_prcm_deep_sleep();
 }
 /*---------------------------------------------------------------------------*/
 /*
- * We'll get called on three occasions:
- * - While running
- * - While sleeping
- * - While deep sleeping
- *
- * For the former two, we don't need to do anything. For the latter, we
- * notify all modules that we're back on and rely on them to restore clocks
+ * Notify all modules that we're back on and rely on them to restore clocks
  * and power domains as required.
  */
-void
-lpm_wake_up()
+static void
+wake_up(void)
 {
   lpm_registered_module_t *module;
 
@@ -177,13 +214,13 @@ lpm_wake_up()
 
   /* Turn on cache again */
   ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_ENABLED);
-  ti_lib_prcm_retention_enable(PRCM_DOMAIN_VIMS);
+  ti_lib_prcm_cache_retention_enable();
 
   ti_lib_aon_ioc_freeze_disable();
   ti_lib_sys_ctrl_aon_sync();
 
-  /* Power up AUX and allow it to go to sleep */
-  ti_lib_aon_wuc_aux_wakeup_event(AONWUC_AUX_ALLOW_SLEEP);
+  /* Check operating conditions, optimally choose DCDC versus GLDO */
+  ti_lib_sys_ctrl_dcdc_voltage_conditional_control();
 
   /* Notify all registered modules that we've just woken up */
   for(module = list_head(modules_list); module != NULL;
@@ -198,15 +235,10 @@ void
 lpm_drop()
 {
   lpm_registered_module_t *module;
-  lpm_power_domain_lock_t *lock;
   uint8_t max_pm = LPM_MODE_MAX_SUPPORTED;
   uint8_t module_pm;
 
   uint32_t domains = LOCKABLE_DOMAINS;
-
-  if(shutdown_requested) {
-    shutdown_now();
-  }
 
   if(RTIMER_CLOCK_LT(cc26xx_rtc_get_next_trigger(),
                      RTIMER_NOW() + STANDBY_MIN_DURATION)) {
@@ -244,26 +276,21 @@ lpm_drop()
      * This is a chance for modules to delay us a little bit until an ongoing
      * operation has finished (e.g. uart TX) or to configure themselves for
      * deep sleep.
+     *
+     * At this stage, we also collect power domain locks, if any.
+     * The argument to PRCMPowerDomainOff() is a bitwise OR, so every time
+     * we encounter a lock we just clear the respective bits in the 'domains'
+     * variable as required by the lock. In the end the domains variable will
+     * just hold whatever has not been cleared
      */
     for(module = list_head(modules_list); module != NULL;
         module = module->next) {
       if(module->shutdown) {
         module->shutdown(max_pm);
       }
-    }
 
-    /*
-     * Iterate PD locks to see what we can and cannot turn off.
-     *
-     * The argument to PRCMPowerDomainOff() is a bitwise OR, so every time
-     * we encounter a lock we just clear the respective bits  in the 'domains'
-     * variable as required by the lock. In the end the domains variable will
-     * just hold whatever has not been cleared
-     */
-    for(lock = list_head(power_domain_locks_list); lock != NULL;
-        lock = lock->next) {
       /* Clear the bits specified in the lock */
-      domains &= ~lock->domains;
+      domains &= ~module->domain_lock;
     }
 
     /* Pat the dog: We don't want it to shout right after we wake up */
@@ -289,6 +316,20 @@ lpm_drop()
       ti_lib_prcm_power_domain_off(domains);
     }
 
+    /*
+     * Before entering Deep Sleep, we must switch off the HF XOSC. The HF XOSC
+     * is predominantly controlled by the RF driver. In a build with radio
+     * cycling (e.g. ContikiMAC), the RF driver will request the XOSC before
+     * using the Freq. Synth, and switch back to the RC when it is about to
+     * turn back off.
+     *
+     * If the radio is on, we won't even reach here, and if it's off the HF
+     * clock source should already be the HF RC.
+     *
+     * Nevertheless, request the switch to the HF RC explicitly here.
+     */
+    oscillators_switch_to_hf_rc();
+
     /* Configure clock sources for MCU and AUX: No clock */
     ti_lib_aon_wuc_mcu_power_down_config(AONWUC_NO_CLOCK);
     ti_lib_aon_wuc_aux_power_down_config(AONWUC_NO_CLOCK);
@@ -297,18 +338,8 @@ lpm_drop()
     ti_lib_aon_wuc_mcu_sram_config(MCU_RAM0_RETENTION | MCU_RAM1_RETENTION |
                                    MCU_RAM2_RETENTION | MCU_RAM3_RETENTION);
 
-    /* Enable retention on the CPU domain */
-    ti_lib_prcm_retention_enable(PRCM_DOMAIN_CPU);
-
     /* Disable retention of AUX RAM */
     ti_lib_aon_wuc_aux_sram_config(false);
-
-    /* Disable retention in the RFCORE RAM */
-    HWREG(PRCM_BASE + PRCM_O_RAMRETEN) &= ~PRCM_RAMRETEN_RFC;
-
-    /* Disable retention of VIMS RAM (TRAM and CRAM) */
-    //TODO: This can probably be removed, we are calling ti_lib_prcm_retention_disable(PRCM_DOMAIN_VIMS); further down
-    HWREG(PRCM_BASE + PRCM_O_RAMRETEN) &= ~PRCM_RAMRETEN_VIMS_M;
 
     /*
      * Always turn off RFCORE, CPU, SYSBUS and VIMS. RFCORE should be off
@@ -323,13 +354,13 @@ lpm_drop()
     /* Turn off AUX */
     ti_lib_aux_wuc_power_ctrl(AUX_WUC_POWER_OFF);
     ti_lib_aon_wuc_domain_power_down_enable();
-    while(ti_lib_aon_wuc_power_status() & AONWUC_AUX_POWER_ON);
+    while(ti_lib_aon_wuc_power_status_get() & AONWUC_AUX_POWER_ON);
 
     /* Configure the recharge controller */
     ti_lib_sys_ctrl_set_recharge_before_power_down(false);
 
     /*
-     * If both PERIPH and SERIAL PDs are off, request the uLDO for as the power
+     * If both PERIPH and SERIAL PDs are off, request the uLDO as the power
      * source while in deep sleep.
      */
     if(domains == LOCKABLE_DOMAINS) {
@@ -350,7 +381,7 @@ lpm_drop()
      * until right before deep sleep to be able to use the cache for as long
      * as possible.
      */
-    ti_lib_prcm_retention_disable(PRCM_DOMAIN_VIMS);
+    ti_lib_prcm_cache_retention_disable();
     ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_OFF);
 
     /* Deep Sleep */
@@ -362,7 +393,7 @@ lpm_drop()
      * the chip properly, and then we will enable the global interrupt without
      * unpending events so the handlers can fire
      */
-    lpm_wake_up();
+    wake_up();
 
     ti_lib_int_master_enable();
   }
@@ -396,10 +427,26 @@ lpm_register_module(lpm_registered_module_t *module)
 }
 /*---------------------------------------------------------------------------*/
 void
+lpm_unregister_module(lpm_registered_module_t *module)
+{
+  list_remove(modules_list, module);
+}
+/*---------------------------------------------------------------------------*/
+void
 lpm_init()
 {
   list_init(modules_list);
-  list_init(power_domain_locks_list);
+}
+/*---------------------------------------------------------------------------*/
+void
+lpm_pin_set_default_state(uint32_t ioid)
+{
+  if(ioid == IOID_UNUSED) {
+    return;
+  }
+
+  ti_lib_ioc_port_configure_set(ioid, IOC_PORT_GPIO, IOC_STD_OUTPUT);
+  ti_lib_gpio_dir_mode_set((1 << ioid), GPIO_DIR_MODE_IN);
 }
 /*---------------------------------------------------------------------------*/
 /**

@@ -77,12 +77,6 @@
  *                - The example also shows how to retrieve the duration of a
  *                  button press (in ticks). The driver will generate a
  *                  sensors_changed event upon button release
- * - UART         : Receiving an entire line of text over UART (ending
- *                  in \\r) will cause CC26XX_DEMO_LEDS_SERIAL_IN to toggle
- *                  This also demonstrates how a code module can influence
- *                  low-power operation: In this example we keep the UART on
- *                  and capable to RX even with the chip in deep sleep.
- *                  see keep_uart_on() and the UART driver
  * - Reed Relay   : Will toggle the sensortag buzzer on/off
  *
  * @{
@@ -100,7 +94,6 @@
 #include "button-sensor.h"
 #include "batmon-sensor.h"
 #include "board-peripherals.h"
-#include "lpm.h"
 #include "cc26xx-rf.h"
 
 #include "ti-lib.h"
@@ -143,11 +136,11 @@ AUTOSTART_PROCESSES(&cc26xx_demo_process);
 #define SENSOR_READING_PERIOD (CLOCK_SECOND * 20)
 #define SENSOR_READING_RANDOM (CLOCK_SECOND << 4)
 
-static struct ctimer bmp_timer, opt_timer, sht_timer, tmp_timer, mpu_timer;
+static struct ctimer bmp_timer, opt_timer, hdc_timer, tmp_timer, mpu_timer;
 /*---------------------------------------------------------------------------*/
 static void init_bmp_reading(void *not_used);
 static void init_opt_reading(void *not_used);
-static void init_sht_reading(void *not_used);
+static void init_hdc_reading(void *not_used);
 static void init_tmp_reading(void *not_used);
 static void init_mpu_reading(void *not_used);
 /*---------------------------------------------------------------------------*/
@@ -214,27 +207,27 @@ get_tmp_reading()
 }
 /*---------------------------------------------------------------------------*/
 static void
-get_sht_reading()
+get_hdc_reading()
 {
   int value;
   clock_time_t next = SENSOR_READING_PERIOD +
     (random_rand() % SENSOR_READING_RANDOM);
 
-  value = sht_21_sensor.value(SHT_21_SENSOR_TYPE_TEMP);
+  value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_TEMP);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("SHT: Temp=%d.%02d C\n", value / 100, value % 100);
+    printf("HDC: Temp=%d.%02d C\n", value / 100, value % 100);
   } else {
-    printf("SHT: Temp Read Error\n");
+    printf("HDC: Temp Read Error\n");
   }
 
-  value = sht_21_sensor.value(SHT_21_SENSOR_TYPE_HUMIDITY);
+  value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
   if(value != CC26XX_SENSOR_READING_ERROR) {
-    printf("SHT: Humidity=%d.%02d %%RH\n", value / 100, value % 100);
+    printf("HDC: Humidity=%d.%02d %%RH\n", value / 100, value % 100);
   } else {
-    printf("SHT: Humidity Read Error\n");
+    printf("HDC: Humidity Read Error\n");
   }
 
-  ctimer_set(&sht_timer, next, init_sht_reading, NULL);
+  ctimer_set(&hdc_timer, next, init_hdc_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -251,8 +244,7 @@ get_light_reading()
     printf("OPT: Light Read Error\n");
   }
 
-  SENSORS_DEACTIVATE(opt_3001_sensor);
-
+  /* The OPT will turn itself off, so we don't need to call its DEACTIVATE */
   ctimer_set(&opt_timer, next, init_opt_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
@@ -311,9 +303,9 @@ init_opt_reading(void *not_used)
 }
 /*---------------------------------------------------------------------------*/
 static void
-init_sht_reading(void *not_used)
+init_hdc_reading(void *not_used)
 {
-  SENSORS_ACTIVATE(sht_21_sensor);
+  SENSORS_ACTIVATE(hdc_1000_sensor);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -337,8 +329,7 @@ get_sync_sensor_readings(void)
   printf("-----------------------------------------\n");
 
   value = batmon_sensor.value(BATMON_SENSOR_TYPE_TEMP);
-  printf("Bat: Temp=%d.%02d C (%08x)\n", value >> 2,
-         (value & 0x00000003) * 25, value);
+  printf("Bat: Temp=%d C\n", value);
 
   value = batmon_sensor.value(BATMON_SENSOR_TYPE_VOLT);
   printf("Bat: Volt=%d mV\n", (value * 125) >> 5);
@@ -360,33 +351,13 @@ static void
 init_sensor_readings(void)
 {
 #if BOARD_SENSORTAG
-  SENSORS_ACTIVATE(sht_21_sensor);
+  SENSORS_ACTIVATE(hdc_1000_sensor);
   SENSORS_ACTIVATE(tmp_007_sensor);
   SENSORS_ACTIVATE(opt_3001_sensor);
   SENSORS_ACTIVATE(bmp_280_sensor);
 
   init_mpu_reading(NULL);
 #endif
-}
-/*---------------------------------------------------------------------------*/
-static lpm_power_domain_lock_t lock;
-/*---------------------------------------------------------------------------*/
-/*
- * In order to maintain UART input operation:
- * - Keep the uart clocked in sleep and deep sleep
- * - Keep the serial PD on in deep sleep
- */
-static void
-keep_uart_on(void)
-{
-  /* Keep the serial PD on */
-  lpm_pd_lock_obtain(&lock, PRCM_DOMAIN_SERIAL);
-
-  /* Keep the UART clock on during Sleep and Deep Sleep */
-  ti_lib_prcm_peripheral_sleep_enable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_peripheral_deep_sleep_enable(PRCM_PERIPH_UART0);
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc26xx_demo_process, ev, data)
@@ -405,8 +376,6 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   etimer_set(&et, CC26XX_DEMO_LOOP_INTERVAL);
   get_sync_sensor_readings();
   init_sensor_readings();
-
-  keep_uart_on();
 
   while(1) {
 
@@ -450,8 +419,8 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
         get_bmp_reading();
       } else if(ev == sensors_event && data == &opt_3001_sensor) {
         get_light_reading();
-      } else if(ev == sensors_event && data == &sht_21_sensor) {
-        get_sht_reading();
+      } else if(ev == sensors_event && data == &hdc_1000_sensor) {
+        get_hdc_reading();
       } else if(ev == sensors_event && data == &tmp_007_sensor) {
         get_tmp_reading();
       } else if(ev == sensors_event && data == &mpu_9250_sensor) {
@@ -462,8 +431,6 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
                button_select_sensor.value(BUTTON_SENSOR_VALUE_DURATION));
 #endif
       }
-    } else if(ev == serial_line_event_message) {
-      leds_toggle(CC26XX_DEMO_LEDS_SERIAL_IN);
     }
   }
 

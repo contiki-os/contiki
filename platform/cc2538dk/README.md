@@ -29,6 +29,7 @@ In terms of hardware support, the following drivers have been implemented:
     * Low Power Modes
     * General-Purpose Timers. NB: GPT0 is in use by the platform code, the remaining GPTs are available for application development.
     * ADC
+    * Cryptoprocessor (AES-CCM-256, SHA-256)
   * SmartRF06 EB and BB peripherals
     * LEDs
     * Buttons
@@ -74,10 +75,9 @@ The toolchain used to build contiki is arm-gcc, also used by other arm-based Con
     Thread model: single
     gcc version 4.3.2 (Sourcery G++ Lite 2008q3-66)
 
-The platform is currently being used/tested with the following toolchains:
+The platform is currently being used/tested with "GNU Tools for ARM Embedded Processors". This is the recommended version and the one being used by Contiki's regression tests on Travis. <https://launchpad.net/gcc-arm-embedded>
 
-* GNU Tools for ARM Embedded Processors. This is the recommended version. Works nicely on OS X. <https://launchpad.net/gcc-arm-embedded>
-* Alternatively, you can use this older version for Linux. At the time of writing, this is the version used by Contiki's regression tests. <https://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi/arm-2008q3-66-arm-none-eabi-i686-pc-linux-gnu.tar.bz2>
+The older version (Sourcery G++ Lite 2008q3-66) shown above should still work, but the port is no longer being tested with it. <http://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi>
 
 Drivers
 -------
@@ -147,10 +147,14 @@ The CC2538 EM's USB Vendor and Product IDs are the following:
 
 The implementation in Contiki is pure CDC-ACM: The Linux and OS X kernels know exactly what to do and drivers are not required.
 
-On windows, you will need to provide a driver:
+On windows, you will need to provide a driver. You have two options:
 
-  * Download this LUFA CDC-ACM driver:
-<http://code.google.com/p/lufa-lib/source/browse/trunk/Demos/Device/LowLevel/VirtualSerial/LUFA+VirtualSerial.inf>
+  * Use the signed or unsigned driver provided by TI in [CC2538 Foundation Firmware](http://www.ti.com/tool/cc2538-sw). You will find them both under the `drivers` directory.
+  * Download a generic Virtual Serial Port driver and modify it so it works for the CC2538.
+
+For the latter option:
+
+  * Download this [LUFA CDC-ACM driver](https://raw.githubusercontent.com/abcminiuser/lufa/master/Demos/Device/LowLevel/VirtualSerial/LUFA%20VirtualSerial.inf).
   * Adjust the VID and PID near the end with the values at the start of this section.
   * Next time you get prompted for the driver, include the directory containing the .inf file in the search path and the driver will be installed.
 

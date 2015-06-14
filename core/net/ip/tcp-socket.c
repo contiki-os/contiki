@@ -30,6 +30,7 @@
  */
 
 #include "contiki.h"
+#include "sys/cc.h"
 #include "contiki-net.h"
 
 #include "lib/list.h"
@@ -39,7 +40,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+static void relisten(struct tcp_socket *s);
 
 LIST(socketlist);
 /*---------------------------------------------------------------------------*/
@@ -58,8 +60,8 @@ senddata(struct tcp_socket *s)
 {
   int len = MIN(s->output_data_max_seg, uip_mss());
 
-  if(s->output_data_len > 0) {
-    len = MIN(s->output_data_len, len);
+  if(s->output_senddata_len > 0) {
+    len = MIN(s->output_senddata_len, len);
     s->output_data_send_nxt = len;
     uip_send(s->output_data_ptr, len);
   }
@@ -68,21 +70,27 @@ senddata(struct tcp_socket *s)
 static void
 acked(struct tcp_socket *s)
 {
-  if(s->output_data_len > 0) {
+  if(s->output_senddata_len > 0) {
     /* Copy the data in the outputbuf down and update outputbufptr and
        outputbuf_lastsent */
 
     if(s->output_data_send_nxt > 0) {
       memcpy(&s->output_data_ptr[0],
-	     &s->output_data_ptr[s->output_data_send_nxt],
-	     s->output_data_maxlen - s->output_data_send_nxt);
+             &s->output_data_ptr[s->output_data_send_nxt],
+             s->output_data_maxlen - s->output_data_send_nxt);
     }
     if(s->output_data_len < s->output_data_send_nxt) {
       printf("tcp: acked assertion failed s->output_data_len (%d) < s->output_data_send_nxt (%d)\n",
-	     s->output_data_len,
-	     s->output_data_send_nxt);
+             s->output_data_len,
+             s->output_data_send_nxt);
+      tcp_markconn(uip_conn, NULL);
+      uip_abort();
+      call_event(s, TCP_SOCKET_ABORTED);
+      relisten(s);
+      return;
     }
     s->output_data_len -= s->output_data_send_nxt;
+    s->output_senddata_len = s->output_data_len;
     s->output_data_send_nxt = 0;
 
     call_event(s, TCP_SOCKET_DATA_SENT);
@@ -134,6 +142,11 @@ appcall(void *state)
 {
   struct tcp_socket *s = state;
 
+  if(s != NULL && s->c != NULL && s->c != uip_conn) {
+    /* Safe-guard: this should not happen, as the incoming event relates to
+     * a previous connection */
+    return;
+  }
   if(uip_connected()) {
     /* Check if this connection originated in a local listen
        socket. We do this by checking the state pointer - if NULL,
@@ -176,8 +189,10 @@ appcall(void *state)
   }
 
   if(uip_aborted()) {
+    tcp_markconn(uip_conn, NULL);
     call_event(s, TCP_SOCKET_ABORTED);
     relisten(s);
+
   }
 
   if(s == NULL) {
@@ -203,13 +218,16 @@ appcall(void *state)
   if(s->output_data_len == 0 && s->flags & TCP_SOCKET_FLAGS_CLOSING) {
     s->flags &= ~TCP_SOCKET_FLAGS_CLOSING;
     uip_close();
+    s->c = NULL;
     tcp_markconn(uip_conn, NULL);
-    call_event(s, TCP_SOCKET_CLOSED);
+    s->c = NULL;
+    /*call_event(s, TCP_SOCKET_CLOSED);*/
     relisten(s);
   }
 
   if(uip_closed()) {
     tcp_markconn(uip_conn, NULL);
+    s->c = NULL;
     call_event(s, TCP_SOCKET_CLOSED);
     relisten(s);
   }
@@ -255,6 +273,7 @@ tcp_socket_register(struct tcp_socket *s, void *ptr,
   s->ptr = ptr;
   s->input_data_ptr = input_databuf;
   s->input_data_maxlen = input_databuf_len;
+  s->output_data_len = 0;
   s->output_data_ptr = output_databuf;
   s->output_data_maxlen = output_databuf_len;
   s->input_callback = input_callback;
@@ -268,11 +287,14 @@ tcp_socket_register(struct tcp_socket *s, void *ptr,
 /*---------------------------------------------------------------------------*/
 int
 tcp_socket_connect(struct tcp_socket *s,
-            uip_ipaddr_t *ipaddr,
-            uint16_t port)
+                   const uip_ipaddr_t *ipaddr,
+                   uint16_t port)
 {
   if(s == NULL) {
     return -1;
+  }
+  if(s->c != NULL) {
+    tcp_markconn(s->c, NULL);
   }
   PROCESS_CONTEXT_BEGIN(&tcp_socket_process);
   s->c = tcp_connect(ipaddr, uip_htons(port), s);
@@ -317,7 +339,7 @@ tcp_socket_unlisten(struct tcp_socket *s)
 /*---------------------------------------------------------------------------*/
 int
 tcp_socket_send(struct tcp_socket *s,
-         const uint8_t *data, int datalen)
+                const uint8_t *data, int datalen)
 {
   int len;
 
@@ -329,6 +351,11 @@ tcp_socket_send(struct tcp_socket *s,
 
   memcpy(&s->output_data_ptr[s->output_data_len], data, len);
   s->output_data_len += len;
+
+  if(s->output_senddata_len == 0) {
+    s->output_senddata_len = s->output_data_len;
+  }
+
   return len;
 }
 /*---------------------------------------------------------------------------*/
@@ -363,5 +390,11 @@ tcp_socket_unregister(struct tcp_socket *s)
   }
   list_remove(socketlist, s);
   return 1;
+}
+/*---------------------------------------------------------------------------*/
+int
+tcp_socket_max_sendlen(struct tcp_socket *s)
+{
+  return s->output_data_maxlen - s->output_data_len;
 }
 /*---------------------------------------------------------------------------*/

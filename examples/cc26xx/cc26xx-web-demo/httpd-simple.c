@@ -163,11 +163,6 @@ static const char *http_header_srv_str[] = {
   NULL
 };
 
-static const char *http_header_redir_location[] = {
-  "Location: /config.html\r\n",
-  NULL
-};
-
 static const char *http_header_con_close[] = {
   CONN_CLOSE,
   NULL
@@ -197,37 +192,49 @@ static const char config_div_left[] = "<div class=\"left\">";
 static const char config_div_right[] = "<div class=\"right\">";
 static const char config_div_close[] = "</div>";
 /*---------------------------------------------------------------------------*/
+static char generate_index(struct httpd_state *s);
+static char generate_config(struct httpd_state *s);
+/*---------------------------------------------------------------------------*/
 typedef struct page {
   struct page *next;
   char *filename;
   char *title;
+  char (*script)(struct httpd_state *s);
 } page_t;
 
 static page_t http_index_page = {
   NULL,
   "index.html",
   "Index",
+  generate_index,
 };
 
 static page_t http_dev_cfg_page = {
   NULL,
   "config.html",
   "Device Config",
+  generate_config,
 };
 
 #if CC26XX_WEB_DEMO_NET_UART
+static char generate_net_uart_config(struct httpd_state *s);
+
 static page_t http_net_cfg_page = {
   NULL,
-  "net.html",
+  "netu.html",
   "Net-UART Config",
+  generate_net_uart_config,
 };
 #endif
 
 #if CC26XX_WEB_DEMO_MQTT_CLIENT
+static char generate_mqtt_config(struct httpd_state *s);
+
 static page_t http_mqtt_cfg_page = {
   NULL,
   "mqtt.html",
   "MQTT/IBM Cloud Config",
+  generate_mqtt_config,
 };
 #endif
 /*---------------------------------------------------------------------------*/
@@ -395,12 +402,12 @@ PT_THREAD(generate_top_matter(struct httpd_state *s, const char *title,
 
   s->page = list_head(pages_list);
   PT_WAIT_THREAD(&s->top_matter_pt,
-                 enqueue_chunk(s, 0, "<a href=\"%s\">[ %s ]</a>",
+                 enqueue_chunk(s, 0, "[ <a href=\"%s\">%s</a> ]",
                                s->page->filename, s->page->title));
 
   for(s->page = s->page->next; s->page != NULL; s->page = s->page->next) {
     PT_WAIT_THREAD(&s->top_matter_pt,
-                   enqueue_chunk(s, 0, " | <a href=\"%s\">[ %s ]</a>",
+                   enqueue_chunk(s, 0, " | [ <a href=\"%s\">%s</a> ]",
                                  s->page->filename, s->page->title));
   }
 
@@ -531,7 +538,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
 
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"config\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_dev_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
@@ -570,7 +578,8 @@ PT_THREAD(generate_config(struct httpd_state *s))
   PT_WAIT_THREAD(&s->generate_pt, enqueue_chunk(s, 0, "<h1>Actions</h1>"));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"defaults\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_dev_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
@@ -607,7 +616,8 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
 
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"config\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_mqtt_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
@@ -747,7 +757,8 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
                  enqueue_chunk(s, 0, "</form>"));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"config\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_mqtt_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
@@ -786,7 +797,8 @@ PT_THREAD(generate_net_uart_config(struct httpd_state *s))
 
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
-                               "<form name=\"input\" action=\"net_uart\" "));
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_net_cfg_page.filename));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
   PT_WAIT_THREAD(&s->generate_pt,
@@ -974,18 +986,13 @@ parse_post_request_chunk(char *buf, int buf_len, int last_chunk)
 static httpd_simple_script_t
 get_script(const char *name)
 {
-  if(strlen(name) == 10 && strncmp(name, "index.html", 10) == 0) {
-    return generate_index;
-  } else if(strlen(name) == 11 && strncmp(name, "config.html", 11) == 0) {
-    return generate_config;
-#if CC26XX_WEB_DEMO_MQTT_CLIENT
-  } else if(strlen(name) == 9 && strncmp(name, "mqtt.html", 9) == 0) {
-    return generate_mqtt_config;
-#endif
-#if CC26XX_WEB_DEMO_NET_UART
-  } else if(strlen(name) == 8 && strncmp(name, "net.html", 8) == 0) {
-    return generate_net_uart_config;
-#endif
+  page_t *page;
+
+  for(page = list_head(pages_list); page != NULL;
+      page = list_item_next(page)) {
+    if(strncmp(name, page->filename, strlen(page->filename)) == 0) {
+      return page->script;
+    }
   }
 
   return NULL;
@@ -1003,7 +1010,8 @@ PT_THREAD(send_string(struct httpd_state *s, const char *str))
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr,
-                       const char *content_type, const char **additional))
+                       const char *content_type, const char *redir,
+                       const char **additional))
 {
   PT_BEGIN(&s->generate_pt);
 
@@ -1011,6 +1019,11 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr,
 
   for(s->ptr = http_header_srv_str; *(s->ptr) != NULL; s->ptr++) {
     PT_WAIT_THREAD(&s->generate_pt, enqueue_chunk(s, 0, *(s->ptr)));
+  }
+
+  if(redir) {
+    PT_WAIT_THREAD(&s->generate_pt,
+                   enqueue_chunk(s, 0, "Location: %s\r\n", redir));
   }
 
   if(additional) {
@@ -1041,25 +1054,30 @@ PT_THREAD(handle_output(struct httpd_state *s))
     if(s->return_code == RETURN_CODE_OK) {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_302,
                                                 http_content_type_plain,
-                                                http_header_redir_location));
+                                                s->filename,
+                                                NULL));
     } else if(s->return_code == RETURN_CODE_LR) {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_411,
                                                 http_content_type_plain,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, send_string(s, "Content-Length Required\n"));
     } else if(s->return_code == RETURN_CODE_TL) {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_413,
                                                 http_content_type_plain,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, send_string(s, "Content-Length too Large\n"));
     } else if(s->return_code == RETURN_CODE_SU) {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_503,
                                                 http_content_type_plain,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, send_string(s, "Service Unavailable\n"));
     } else {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_400,
                                                 http_content_type_plain,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, send_string(s, "Bad Request\n"));
     }
@@ -1069,6 +1087,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
       strncpy(s->filename, "/notfound.html", sizeof(s->filename));
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_404,
                                                 http_content_type_html,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt,
                      send_string(s, NOT_FOUND));
@@ -1077,6 +1096,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
     } else {
       PT_WAIT_THREAD(&s->outputpt, send_headers(s, http_header_200,
                                                 http_content_type_html,
+                                                NULL,
                                                 http_header_con_close));
       PT_WAIT_THREAD(&s->outputpt, s->script(s));
     }
@@ -1109,6 +1129,15 @@ PT_THREAD(handle_input(struct httpd_state *s))
     }
   } else if(strncasecmp(s->inputbuf, http_post, 5) == 0) {
     s->request_type = REQUEST_TYPE_POST;
+    PSOCK_READTO(&s->sin, ISO_space);
+
+    if(s->inputbuf[0] != ISO_slash) {
+      PSOCK_CLOSE_EXIT(&s->sin);
+    }
+
+    s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
+    strncpy(s->filename, s->inputbuf, sizeof(s->filename));
+
     /* POST: Read out the rest of the line and ignore it */
     PSOCK_READTO(&s->sin, ISO_nl);
 
@@ -1279,8 +1308,8 @@ PROCESS_THREAD(httpd_simple_process, ev, data)
   init();
 
   snprintf(http_mqtt_a, IBM_QUICKSTART_LINK_LEN,
-           "<a href=\"http://quickstart.internetofthings.ibmcloud.com/#/device/"
-           "%02x%02x%02x%02x%02x%02x/sensor/\">[ IBM Quickstart ]</a>",
+           "[ <a href=\"http://quickstart.internetofthings.ibmcloud.com/#/device/"
+           "%02x%02x%02x%02x%02x%02x/sensor/\">IBM Quickstart</a> ]",
            linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
            linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
            linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);

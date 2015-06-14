@@ -63,9 +63,32 @@ void cc26xx_uart_write_byte(uint8_t b);
 /**
  * \brief Assigns a callback to be called when the UART receives a byte
  * \param input A pointer to the function
+ *
+ * If \e input is NULL, the UART driver will assume that RX functionality is
+ * not required and it will be disabled. It will also disable the module's
+ * clocks under sleep and deep sleep and allow the SERIAL PD to be powered off.
+ *
+ * If \e input is not NULL, the UART driver will assume that RX is in fact
+ * required and it will be enabled. The module's clocks will be enabled under
+ * sleep and deep sleep and the driver will not allow the SERIAL PD to turn
+ * off during deep sleep, so that the UART can still receive bytes.
+ *
+ * \note This has a significant impact on overall energy consumption, so you
+ * should only enabled UART RX input when it's actually required.
  */
 void cc26xx_uart_set_input(int (*input)(unsigned char c));
 
+/**
+ * \brief Returns the UART busy status
+ * \return UART_IDLE or UART_BUSY
+ *
+ * ti_lib_uart_busy() will access UART registers. It is our responsibility
+ * to first make sure the UART is accessible before calling it. Hence this
+ * wrapper.
+ *
+ * Return values are defined in CC26xxware's uart.h
+ */
+uint8_t cc26xx_uart_busy(void);
 /** @} */
 /*---------------------------------------------------------------------------*/
 #endif /* CC26XX_UART_H_ */
