@@ -56,8 +56,10 @@ typedef struct uip_nameserver_record {
   uint32_t lifetime;
 } uip_nameserver_record;
 
+#if UIP_NAMESERVER_POOL_SIZE > 1
 /** \brief Initialization flag */
 static uint8_t initialized = 0;
+#endif /* UIP_NAMESERVER_POOL_SIZE > 1 */
 
 /** \name List and memory block
  * @{
@@ -90,7 +92,7 @@ init(void)
 #endif /* UIP_NAMESERVER_POOL_SIZE > 1 */
 /*----------------------------------------------------------------------------*/
 void
-uip_nameserver_update(uip_ipaddr_t *nameserver, uint32_t lifetime)
+uip_nameserver_update(const uip_ipaddr_t *nameserver, uint32_t lifetime)
 {
 #if UIP_NAMESERVER_POOL_SIZE > 1
   register uip_nameserver_record *e;
