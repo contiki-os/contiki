@@ -80,7 +80,7 @@ galois_mul2(uint8_t value)
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_key(uint8_t *key)
+set_key(const uint8_t *key)
 {
   uint8_t i;
   uint8_t j;
