@@ -188,7 +188,7 @@ ip64_init(void)
 
   PRINTF("ip64_init\n");
   IP64_ETH_DRIVER.init();
-#if IP64_CONF_DHCP
+#if IP64_DHCP
   ip64_ipv4_dhcp_init();
 #endif /* IP64_CONF_DHCP */
 
@@ -894,14 +894,14 @@ ip64_hostaddr_is_configured(void)
 static void
 interface_init(void)
 {
-  IP64_CONF_UIP_FALLBACK_INTERFACE.init();
+  IP64_UIP_FALLBACK_INTERFACE.init();
 }
 /*---------------------------------------------------------------------------*/
 static void
 interface_output(void)
 {
   PRINTF("ip64: interface_output len %d\n", uip_len);
-  IP64_CONF_UIP_FALLBACK_INTERFACE.output();
+  IP64_UIP_FALLBACK_INTERFACE.output();
 }
 /*---------------------------------------------------------------------------*/
 const struct uip_fallback_interface ip64_uip_fallback_interface = {
