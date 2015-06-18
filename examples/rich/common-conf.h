@@ -116,6 +116,13 @@
 
 /* Netstack */
 
+/* Link-layer security */
+/* #undef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC noncoresec_driver
+
+#define LLSEC802154_CONF_SECURITY_LEVEL 2
+#define LLSEC802154_CONF_SECURITY_LEVEL 6 */
+
 #if WITH_TSCH
 
 /* Contiki netstack: MAC */
