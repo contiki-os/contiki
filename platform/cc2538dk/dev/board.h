@@ -199,11 +199,11 @@
 /** TX port SPI0 (master mode: MOSI) */
 #define SPI0_TX_PORT            GPIO_A_NUM
 /** TX pin SPI0 */
-#define SPI0_TX_PIN             4
+#define SPI0_TX_PIN             5
 /** RX port SPI0 (master mode: MISO */
 #define SPI0_RX_PORT            GPIO_A_NUM
 /** RX pin SPI0 */
-#define SPI0_RX_PIN             5
+#define SPI0_RX_PIN             4
 #endif  /* #if SPI0_IN_USE */
 #if SPI1_IN_USE
 /** Clock port SPI1 */
