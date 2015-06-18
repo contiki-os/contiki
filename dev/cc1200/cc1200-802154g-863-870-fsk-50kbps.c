@@ -1,3 +1,37 @@
+/*
+ * Copyright (c) 2015, Weptech elektronik GmbH Germany
+ * http://www.weptech.de
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ */
+
 #include "cc1200-rf-cfg.h"
 #include "cc1200-const.h"
 
@@ -6,9 +40,9 @@
  *
  * 802.15.4g
  * =========
- * Table 86f: Frequency band identifier 4 (863-870 MHz)
- * Table 86g: Modulation scheme identifier 0 (Filtered FSK)
- * Table 86h: Mode #1 (50kbps)
+ * Table 68f: Frequency band identifier 4 (863-870 MHz)
+ * Table 68g: Modulation scheme identifier 0 (Filtered FSK)
+ * Table 68h: Mode #1 (50kbps)
  */
 
 /* Base frequency in kHz */
@@ -23,7 +57,36 @@
 #define RF_CFG_MAX_TXPOWER              CC1200_CONST_TX_POWER_MAX
 /* The carrier sense level used for CCA in dBm */
 #define RF_CFG_CCA_THRESHOLD            (-91)
-
+/*
+ * ACK_WAIT_TIME is the time between sending a packet and detecting
+ * an arbitrary incoming packet (hopefully an ACK). 
+ * An incoming packet is detected using either
+ * - receiving_packet()
+ * - pending_packet()
+ * - channel_clear()
+ * Let's assume we use receiving_packet() as the latest (reliable) 
+ * indication for an incoming packet. It returns 1 as soon as the sync word
+ * is detected. We can then estimate this time (assuming an 802.15.4-2011 frame)
+ * by:
+ * - 1ms RX/TX turnarround (also FIFO read-out -> depends on packet length!)
+ * + length of preamble (4 bytes)
+ * + length of sync word (2 bytes)
+ * -> let's use 2.5 ms for 50kbps
+ */
+#define NULLRDC_CONF_ACK_WAIT_TIME      RTIMER_SECOND/400
+/*
+ * NULLRDC_AFTER_ACK_DETECTED_WAIT_TIME is the time after an incoming
+ * paket is detected (using the means described above) and the ACK is
+ * available for read-out by the MAC layer (pending_packet(), read()).
+ * If we assume that channel_clear() indicated the incoming packet, the maximum
+ * time it takes for the ACK to be available calulates as following:
+ * - length of preamble (4 bytes)
+ * + length of ACK (3 bytes)
+ * + length of CRC (2 bytes)
+ * - 1ms safety margin
+ * -> let's use 2.5 ms for 50kbps
+ */
+#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME   RTIMER_SECOND/400
 /*---------------------------------------------------------------------------*/
 static const char rf_cfg_descriptor[] = "802.15.4g 863-870MHz MR-FSK mode #1";
 /*---------------------------------------------------------------------------*/

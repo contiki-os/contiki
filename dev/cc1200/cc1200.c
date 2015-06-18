@@ -535,9 +535,11 @@ calculate_freq(uint8_t channel);
 /* Update rf channel if possible, else postpone it (-> pollhandler). */
 static int
 set_channel(uint8_t channel);
+#if !CC1200_SNIFFER
 /* Check broadcast address. */
 static int
 is_broadcast_addr(uint8_t mode, uint8_t *addr);
+#endif /* CC1200_SNIFFER */
 /* Validate address and send ACK if requested. */
 static int
 addr_check_auto_ack(uint8_t *frame, uint16_t frame_len);
@@ -1480,6 +1482,34 @@ configure(void)
   single_write(CC1200_FREQ0, ((uint8_t *)&freq)[0]);
   single_write(CC1200_FREQ1, ((uint8_t *)&freq)[1]);
   single_write(CC1200_FREQ2, ((uint8_t *)&freq)[2]);
+
+  printf("RF: Freq0 0x%02x\n",  ((uint8_t *)&freq)[0]);
+  printf("RF: Freq1 0x%02x\n",  ((uint8_t *)&freq)[1]);
+  printf("RF: Freq2 0x%02x\n",  ((uint8_t *)&freq)[2]);
+
+#if (RF_TESTMODE == 1)
+  single_write(CC1200_SYNC_CFG1, 0xE8);
+  single_write(CC1200_PREAMBLE_CFG1, 0x00);
+  single_write(CC1200_MDMCFG1, 0x46);
+  single_write(CC1200_PKT_CFG0, 0x40);
+  single_write(CC1200_FS_DIG1, 0x07);
+  single_write(CC1200_FS_DIG0, 0xAA);
+  single_write(CC1200_FS_DVC1, 0xFF);
+  single_write(CC1200_FS_DVC0, 0x17);
+#endif
+
+#if (RF_TESTMODE == 2)
+  single_write(CC1200_SYNC_CFG1, 0xE8);
+  single_write(CC1200_PREAMBLE_CFG1, 0x00);
+  single_write(CC1200_MDMCFG1, 0x06);
+  single_write(CC1200_PA_CFG1, 0x3F);
+  single_write(CC1200_MDMCFG2, 0x03);
+  single_write(CC1200_FS_DIG1, 0x07);
+  single_write(CC1200_FS_DIG0, 0xAA);
+  single_write(CC1200_FS_DVC0, 0x17);
+  single_write(CC1200_SERIAL_STATUS, 0x08);
+#endif
+
   strobe(CC1200_STX);
 
   while(1) {
@@ -2066,6 +2096,7 @@ set_channel(uint8_t channel)
 }
 /*---------------------------------------------------------------------------*/
 /* Check broadcast address. */
+#if !CC1200_SNIFFER
 static int
 is_broadcast_addr(uint8_t mode, uint8_t *addr)
 {
@@ -2081,6 +2112,7 @@ is_broadcast_addr(uint8_t mode, uint8_t *addr)
   return 1;
 
 }
+#endif /* CC12100_SNIFFER */
 /*---------------------------------------------------------------------------*/
 /* Validate address and send ACK if requested. */
 #if CC1200_SNIFFER
@@ -2103,7 +2135,7 @@ addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
   }
 
 }
-#else /* #if CC1200_SNIFFER */
+#else /* CC1200_SNIFFER */
 static int
 addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
 {
@@ -2172,7 +2204,7 @@ addr_check_auto_ack(uint8_t *frame, uint16_t frame_len)
   return INVALID_FRAME;
 
 }
-#endif /* #if CC1200_SNIFFER */
+#endif /* CC1200_SNIFFER */
 /*---------------------------------------------------------------------------*/
 /*
  * The CC1200 interrupt handler: called by the hardware interrupt
@@ -2288,10 +2320,19 @@ cc1200_rx_interrupt(void)
                PHR_LEN);
 #endif
 
-    if((payload_len < ACK_LEN) ||
-       payload_len > CC1200_MAX_PAYLOAD_LEN) {
-      /* Invalid payload length. Discard packet */
-      WARNING("RF: Invalid payload length!\n");
+    if(payload_len < ACK_LEN) {
+      /* Packet to short. Discard it */
+      WARNING("RF: Packet too short!\n");
+      RIMESTATS_ADD(tooshort);
+      rx_rx();
+      RELEASE_SPI();
+      return 0;
+    }
+
+    if(payload_len > CC1200_MAX_PAYLOAD_LEN) {
+      /* Packet to long. Discard it */
+      WARNING("RF: Packet to long!\n");
+      RIMESTATS_ADD(toolong);
       rx_rx();
       RELEASE_SPI();
       return 0;

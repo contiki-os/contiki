@@ -215,22 +215,5 @@
 #define CC1200_SNIFFER                  0
 #endif
 /*---------------------------------------------------------------------------*/
-/*
- * Wether to use USB for SNIFF mode or not
- */
-#ifdef CC1200_CONF_SNIFFER_USB
-#define CC1200_SNIFFER_USB              CC1200_CONF_SNIFFER_USB
-#else
-#define CC1200_SNIFFER_USB              0
-#endif
-/*---------------------------------------------------------------------------*/
-/*
- * Which UART to use for the Sniffer unless USB is used
- */
-#ifdef CC1200_CONF_SNIFFER_UART
-#define CC1200_SNIFFER_UART             CC1200_CONF_SNIFFER_UART
-#else
-#define CC1200_SNIFFER_UART             0
-#endif
 
 #endif /* CC1200_H_ */
