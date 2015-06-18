@@ -48,7 +48,17 @@
 #ifndef FLASH_CCA_H_
 #define FLASH_CCA_H_
 
+#include "dev/cc2538-dev.h"
+
 #include <stdint.h>
+/*---------------------------------------------------------------------------*/
+/** \name Flash lock bit page and CCA location
+ * @{
+ */
+#define FLASH_CCA_ADDR  (CC2538_DEV_FLASH_ADDR + CC2538_DEV_FLASH_SIZE - \
+                         FLASH_CCA_SIZE)        /**< Address */
+#define FLASH_CCA_SIZE  0x0000002C		/**< Size in bytes */
+/** @} */
 /*---------------------------------------------------------------------------*/
 /** \name Bootloader backdoor configuration bit fields
  * @{
