@@ -8,7 +8,7 @@
  * @addtogroup stm32w-cpu
  * @{ */
 
-/** @defgroup iar
+/** @defgroup iar IAR
  * @brief Compiler and Platform specific definitions and typedefs for the
  *  IAR ARM C compiler.
  *
