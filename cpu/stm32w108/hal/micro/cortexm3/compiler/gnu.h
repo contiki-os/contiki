@@ -7,7 +7,7 @@
  * @addtogroup stm32w-cpu
  * @{ */
 
-/** @defgroup gnu
+/** @defgroup gnu GNU
  * @brief Compiler and Platform specific definitions and typedefs for the
  *  GNU C ARM compiler.
  *

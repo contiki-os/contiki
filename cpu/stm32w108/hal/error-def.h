@@ -486,7 +486,7 @@ DEFINE_ERROR(ERR_FLASH_VERIFY_FAILED, 0x47)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
- * @description A fatal error has occured while trying to write data to the
+ * @brief A fatal error has occured while trying to write data to the
  * flash, possibly due to write protection or an invalid address.  The data in
  * the flash cannot be trusted after this error, and it is possible this error
  * is the result of exceeding the life cycles of the flash.
@@ -499,7 +499,7 @@ DEFINE_ERROR(ERR_FLASH_PROG_FAIL, 0x4B)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
- * @description A fatal error has occured while trying to erase flash, possibly
+ * @brief A fatal error has occured while trying to erase flash, possibly
  * due to write protection.  The data in the flash cannot be trusted after
  * this error, and it is possible this error is the result of exceeding the
  * life cycles of the flash.
@@ -1274,7 +1274,9 @@ DEFINE_ERROR( APPLICATION_ERROR_14, 0xFE)
 DEFINE_ERROR( APPLICATION_ERROR_15, 0xFF)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-/** @} */ // END name group
+/** @} */
+
+/** @} END defgroup */
 
 /** @} END addtogroup */
 
