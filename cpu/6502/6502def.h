@@ -84,7 +84,7 @@ typedef unsigned short uip_stats_t;
 #if CONNECTIONS
 #define UIP_CONF_MAX_CONNECTIONS CONNECTIONS
 #else /* CONNECTIONS */
-#define UIP_CONF_MAX_CONNECTIONS 10
+#define UIP_CONF_MAX_CONNECTIONS 2
 #endif /* CONNECTIONS */
 
 #if WITH_LOGGING
