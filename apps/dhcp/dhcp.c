@@ -97,9 +97,9 @@ makestrings(void)
 PROCESS_THREAD(dhcp_process, ev, data)
 {
   PROCESS_BEGIN();
-  
+
   ctk_window_new(&window, 28, 7, "DHCP");
-  
+
   CTK_WIDGET_ADD(&window, &getbutton);
   CTK_WIDGET_ADD(&window, &statuslabel);
   CTK_WIDGET_ADD(&window, &ipaddrlabel);
@@ -110,22 +110,21 @@ PROCESS_THREAD(dhcp_process, ev, data)
   CTK_WIDGET_ADD(&window, &gatewayentry);
   CTK_WIDGET_ADD(&window, &dnsserverlabel);
   CTK_WIDGET_ADD(&window, &dnsserverentry);
-  
+
   CTK_WIDGET_FOCUS(&window, &getbutton);
 
   ctk_window_open(&window);
   dhcpc_init(uip_lladdr.addr, sizeof(uip_lladdr.addr));
 
-
   while(1) {
     PROCESS_WAIT_EVENT();
-    
+
     if(ev == ctk_signal_widget_activate) {
       if(data == (process_data_t)&getbutton) {
 	dhcpc_request();
 	set_statustext("Requesting...");
       }
-    } else if(ev == tcpip_event) {
+    } else if(ev == tcpip_event || ev == PROCESS_EVENT_TIMER) {
       dhcpc_appcall(ev, data);
     } else if(ev == PROCESS_EVENT_EXIT ||
 	      ev == ctk_signal_window_close) {
