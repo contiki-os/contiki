@@ -544,6 +544,7 @@ hal_frame_write(uint8_t *write_buffer, uint8_t length)
 }
 
 /*----------------------------------------------------------------------------*/
+#if 0  //Uses 80 bytes (on Raven) omit unless needed
 /** \brief Read SRAM
  *
  * This function reads from the SRAM of the radio transceiver.
@@ -552,7 +553,6 @@ hal_frame_write(uint8_t *write_buffer, uint8_t length)
  * \param length Length of the read burst
  * \param data Pointer to buffer where data is stored.
  */
-#if 0  //Uses 80 bytes (on Raven) omit unless needed
 void
 hal_sram_read(uint8_t address, uint8_t length, uint8_t *data)
 {
@@ -576,6 +576,7 @@ hal_sram_read(uint8_t address, uint8_t length, uint8_t *data)
 }
 #endif
 /*----------------------------------------------------------------------------*/
+#if 0  //omit unless needed
 /** \brief Write SRAM
  *
  * This function writes into the SRAM of the radio transceiver. It can reduce
@@ -585,7 +586,6 @@ hal_sram_read(uint8_t address, uint8_t length, uint8_t *data)
  * \param length  Length of the write burst
  * \param data    Pointer to an array of bytes that should be written
  */
-#if 0  //omit unless needed
 void
 hal_sram_write(uint8_t address, uint8_t length, uint8_t *data)
 {
