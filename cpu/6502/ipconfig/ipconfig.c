@@ -177,9 +177,9 @@ app_quit(void)
 PROCESS_THREAD(ipconfig_process, ev, data)
 {
   PROCESS_BEGIN();
-  
+
   ctk_window_new(&window, 29, 14, "IP config");
-  
+
   CTK_WIDGET_ADD(&window, &requestbutton);
   CTK_WIDGET_ADD(&window, &statuslabel);  
   CTK_WIDGET_ADD(&window, &ipaddrlabel);  
@@ -208,11 +208,11 @@ PROCESS_THREAD(ipconfig_process, ev, data)
 
   while(1) {
     PROCESS_WAIT_EVENT();
-    
+
     if(ev == PROCESS_EVENT_MSG) {
       makestrings();
       ctk_window_redraw(&window);
-    } else if(ev == tcpip_event) {
+    } else if(ev == tcpip_event || ev == PROCESS_EVENT_TIMER) {
       dhcpc_appcall(ev, data);
     } else if(ev == ctk_signal_button_activate) {   
       if(data == (process_data_t)&requestbutton) {
