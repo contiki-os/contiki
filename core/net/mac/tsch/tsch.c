@@ -1426,7 +1426,7 @@ PROCESS_THREAD(tsch_process, ev, data)
     }
 
     association_time = clock_seconds();
-    tsch_current_eb_period = TSCH_MIN_EB_PERIOD;
+    tsch_current_eb_period = TSCH_EB_PERIOD;
 
     PRINTF("TSCH: scheduling initial link operation: asn-%x.%lx, start: %u, now: %u\n", current_asn.ms1b, current_asn.ls4b, current_link_start, RTIMER_NOW());
 
@@ -1542,13 +1542,10 @@ tsch_set_eb_period(uint32_t period)
 {
   /* Stick to the minimum period in the first minute after association */
   if(clock_seconds() > association_time + 60) {
-    /* Keep the period within boundaries */
-    period = MAX(period, TSCH_MIN_EB_PERIOD);
-    period = MIN(period, TSCH_MAX_EB_PERIOD);
     /* Update EB period */
     tsch_current_eb_period = period;
   } else {
-    tsch_current_eb_period = TSCH_MIN_EB_PERIOD;
+    tsch_current_eb_period = TSCH_EB_PERIOD;
   }
 }
 

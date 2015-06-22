@@ -108,18 +108,11 @@
 #define TSCH_DESYNC_THRESHOLD (4 * TSCH_KEEPALIVE_TIMEOUT)
 #endif
 
-/* Min period between two consecutive EBs */
-#ifdef TSCH_CONF_MIN_EB_PERIOD
-#define TSCH_MIN_EB_PERIOD TSCH_CONF_MIN_EB_PERIOD
+/* Period between two consecutive EBs */
+#ifdef TSCH_CONF_EB_PERIOD
+#define TSCH_EB_PERIOD TSCH_CONF_EB_PERIOD
 #else
-#define TSCH_MIN_EB_PERIOD (4 * CLOCK_SECOND)
-#endif
-
-/* Max period between two consecutive EBs */
-#ifdef TSCH_CONF_MAX_EB_PERIOD
-#define TSCH_MAX_EB_PERIOD TSCH_CONF_MAX_EB_PERIOD
-#else
-#define TSCH_MAX_EB_PERIOD (60 * CLOCK_SECOND)
+#define TSCH_EB_PERIOD (10 * CLOCK_SECOND)
 #endif
 
 /* Max acceptable join priority */
