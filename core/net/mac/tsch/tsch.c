@@ -447,14 +447,12 @@ send_packet(mac_callback_t sent, void *ptr)
   int packet_count_before;
   const linkaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
-  /*
   if(!tsch_is_associated) {
     LOGP("TSCH:! not associated");
     ret = MAC_TX_ERR;
     mac_call_sent_callback(sent, ptr, ret, 1);
     return;
   }
-  */
 
   /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
          in framer-802154.c. */
