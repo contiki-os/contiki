@@ -1309,25 +1309,32 @@ static int
 read_frame(void *buf, unsigned short buf_len)
 {
   int len = 0;
+  uint8_t rx_status_bf;
 
   if(GET_FIELD_V(rx_read_entry, dataEntry, status) == DATA_ENTRY_STATUS_FINISHED) {
-    /* Set status to 0 "Pending" in element */
-    GET_FIELD_V(rx_read_entry, dataEntry, status) = DATA_ENTRY_STATUS_PENDING;
 
     if(rx_read_entry[8] > 0) {
-      memcpy(buf, (char *)&rx_read_entry[9], buf_len);
-
-      /* Remove the footer */
       len = MIN(buf_len, rx_read_entry[8] - 4);
+      rx_status_bf = rx_read_entry[9 + len + 3];
 
-      int rssi = (int8_t)rx_read_entry[9 + len + 2];
+      if(rx_status_bf & 0x80) {
+        len = 0;
+        RIMESTATS_ADD(badcrc);
+        PRINTF("RF: Bad CRC\n");
+      } else {
+        int rssi = (int8_t)rx_read_entry[9 + len + 2];
 
-      packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
-      RIMESTATS_ADD(llrx);
+        memcpy(buf, (char *)&rx_read_entry[9], buf_len);
 
+        packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+        RIMESTATS_ADD(llrx);
+      }
       /* Clear the length byte */
       rx_read_entry[8] = 0;
     }
+
+    /* Set status to 0 "Pending" in element */
+    GET_FIELD_V(rx_read_entry, dataEntry, status) = DATA_ENTRY_STATUS_PENDING;
 
     /* Move read entry pointer to next entry */
     rx_read_entry = GET_FIELD_V(rx_read_entry, dataEntry, pNextEntry);
