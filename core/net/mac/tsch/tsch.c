@@ -494,13 +494,6 @@ send_packet(mac_callback_t sent, void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-keepalive_input(struct input_packet *current_input)
-{
-  LOG("TSCH: KA received from %u\n",
-      LOG_NODEID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)));
-}
-/*---------------------------------------------------------------------------*/
-static void
 eb_input(struct input_packet *current_input)
 {
   /* LOG("TSCH: EB received\n"); */
@@ -664,6 +657,7 @@ keepalive_send()
     /* Simply send an empty packet */
     packetbuf_clear();
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &n->addr);
+    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
     send_packet(keepalive_packet_sent, NULL);
     LOG("TSCH: sending KA to %u\n",
         LOG_NODEID_FROM_LINKADDR(&n->addr));
@@ -1498,7 +1492,6 @@ tsch_rx_process_pending()
     frame802154_t frame;
     uint8_t ret = frame802154_parse(current_input->payload, current_input->len, &frame);
     int is_data = ret && frame.fcf.frame_type == FRAME802154_DATAFRAME;
-    int needs_ack = ret && frame.fcf.ack_required;
 
     if(is_data) {
       /* Skip EBs and other control messages */
@@ -1513,8 +1506,6 @@ tsch_rx_process_pending()
     if(is_data) {
       /* Pass to upper layers */
       packet_input();
-    } else if(needs_ack) {
-      keepalive_input(current_input);
     } else {
       eb_input(current_input);
     }
