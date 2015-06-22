@@ -37,7 +37,7 @@ high-level configuration macros may be set:
     - Purpose: Set the Maximum Transfer Unit size.
 
 - CONNECTIONS
-    - Default: 10
+    - Default: 2
     - Purpose: Set the maximum number of concurrent TCP connections.
 
 - ETHERNET
