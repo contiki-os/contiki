@@ -40,6 +40,7 @@
 #include "dev/watchdog.h"
 #include "sys/process.h"
 #include "sys/energest.h"
+#include "sys/cc.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
@@ -71,12 +72,6 @@
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
-#endif
-/*---------------------------------------------------------------------------*/
-#ifdef __GNUC__
-#define CC_ALIGN_ATTR(n) __attribute__ ((aligned(n)))
-#else
-#define CC_ALIGN_ATTR(n)
 #endif
 /*---------------------------------------------------------------------------*/
 #ifdef RF_CORE_CONF_DEBUG_CRC
