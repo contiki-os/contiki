@@ -409,14 +409,14 @@ void
 tsch_queue_backoff_reset(struct tsch_neighbor *n)
 {
   n->backoff_window = 0;
-  n->backoff_exponent = MAC_MIN_BE;
+  n->backoff_exponent = TSCH_MAC_MIN_BE;
 }
 /* Increment backoff exponent, pick a new window */
 void
 tsch_queue_backoff_inc(struct tsch_neighbor *n)
 {
   /* Increment exponent */
-  n->backoff_exponent = MIN(n->backoff_exponent + 1, MAC_MAX_BE);
+  n->backoff_exponent = MIN(n->backoff_exponent + 1, TSCH_MAC_MAX_BE);
   /* Pick a window (number of shared slots to skip) */
   n->backoff_window = tsch_random_byte((1 << n->backoff_exponent) - 1);
   /* Add one to the window as we will decrement it at the end of the current slot

@@ -130,9 +130,21 @@
 #endif
 
 /* TSCH MAC parameters */
-#define MAC_MIN_BE 0
-#define MAC_MAX_FRAME_RETRIES 8
-#define MAC_MAX_BE 4
+#ifdef TSCH_CONF_MAC_MIN_BE
+#define TSCH_MAC_MIN_BE TSCH_CONF_MAC_MIN_BE
+#else
+#define TSCH_MAC_MIN_BE 0
+#endif
+#ifdef TSCH_CONF_MAC_MAX_BE
+#define TSCH_MAC_MAX_BE TSCH_CONF_MAC_MAX_BE
+#else
+#define TSCH_MAC_MAX_BE 4
+#endif
+#ifdef TSCH_CONF_MAC_MAX_FRAME_RETRIES
+#define TSCH_MAC_MAX_FRAME_RETRIES TSCH_CONF_MAC_MAX_FRAME_RETRIES
+#else
+#define TSCH_MAC_MAX_FRAME_RETRIES 3
+#endif
 
 /* TSCH packet len */
 #define TSCH_MAX_PACKET_LEN 127
