@@ -187,6 +187,10 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
     }
     PRINTF("\n");
 
+#ifdef RPL_CALLBACK_PARENT_SWITCH
+    tsch_rpl_callback_parent_switch(dag->preferred_parent, p);
+#endif /* RPL_CALLBACK_PARENT_SWITCH */
+
     /* Always keep the preferred parent locked, so it remains in the
      * neighbor table. */
     nbr_table_unlock(rpl_parents, dag->preferred_parent);

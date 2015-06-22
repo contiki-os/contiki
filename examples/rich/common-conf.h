@@ -58,7 +58,7 @@
 #define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 3
 
 #define RPL_CALLBACK_PARENT_SWITCH tsch_rpl_callback_parent_switch
-/* #define RPL_CALLBACK_NEW_DIO_INTERVAL tsch_rpl_callback_new_dio_interval */
+#define RPL_CALLBACK_NEW_DIO_INTERVAL tsch_rpl_callback_new_dio_interval
 #endif
 
 /* CoAP */

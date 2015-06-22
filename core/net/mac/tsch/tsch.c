@@ -1426,7 +1426,6 @@ PROCESS_THREAD(tsch_process, ev, data)
     }
 
     association_time = clock_seconds();
-    tsch_current_eb_period = TSCH_EB_PERIOD;
 
     PRINTF("TSCH: scheduling initial link operation: asn-%x.%lx, start: %u, now: %u\n", current_asn.ms1b, current_asn.ls4b, current_link_start, RTIMER_NOW());
 
@@ -1529,6 +1528,7 @@ void
 tsch_set_coordinator(int enable)
 {
   tsch_is_coordinator = enable;
+  tsch_set_eb_period(TSCH_EB_PERIOD);
 }
 
 void
@@ -1540,13 +1540,7 @@ tsch_set_join_priority(uint8_t jp)
 void
 tsch_set_eb_period(uint32_t period)
 {
-  /* Stick to the minimum period in the first minute after association */
-  if(clock_seconds() > association_time + 60) {
-    /* Update EB period */
-    tsch_current_eb_period = period;
-  } else {
-    tsch_current_eb_period = TSCH_EB_PERIOD;
-  }
+  tsch_current_eb_period = period;
 }
 
 /* A periodic process to send TSCH Enhanced Beacons (EB) */
@@ -1565,14 +1559,14 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
 
   /* Set an initial delay except for coordinator, which should send an EB asap */
   if(!tsch_is_coordinator) {
-    etimer_set(&eb_timer, random_rand() % tsch_current_eb_period);
+    etimer_set(&eb_timer, random_rand() % TSCH_EB_PERIOD);
     PROCESS_WAIT_UNTIL(etimer_expired(&eb_timer));
   }
 
   while(1) {
     unsigned long delay;
 
-    if(tsch_is_associated) {
+    if(tsch_is_associated && tsch_current_eb_period > 0) {
       /* Enqueue EB only if there isn't already one in queue */
       if(tsch_queue_packet_count(&tsch_eb_address) == 0) {
         int eb_len;
@@ -1599,10 +1593,14 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         }
       }
     }
-    /* Next EB transmission with a random delay
-     * within [tsch_current_eb_period*0.75, tsch_current_eb_period[ */
-    delay = (tsch_current_eb_period - tsch_current_eb_period/4)
-        + random_rand() % (tsch_current_eb_period/4);
+    if(tsch_current_eb_period > 0) {
+      /* Next EB transmission with a random delay
+       * within [tsch_current_eb_period*0.75, tsch_current_eb_period[ */
+      delay = (tsch_current_eb_period - tsch_current_eb_period/4)
+          + random_rand() % (tsch_current_eb_period/4);
+    } else {
+      delay = TSCH_EB_PERIOD;
+    }
     etimer_set(&eb_timer, delay);
     PROCESS_WAIT_UNTIL(etimer_expired(&eb_timer));
   }
@@ -1631,6 +1629,7 @@ tsch_reset(void)
 #if TSCH_EB_AUTOSELECT
   best_neighbor_eb_count = 0;
   nbr_table_register(eb_stats, NULL);
+  tsch_set_eb_period(TSCH_EB_PERIOD);
 #endif
 }
 /*---------------------------------------------------------------------------*/

@@ -76,7 +76,13 @@ tsch_rpl_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighbo
 void
 tsch_rpl_callback_new_dio_interval(uint8_t dio_interval)
 {
-  tsch_set_eb_period(((1UL << dio_interval) * CLOCK_SECOND) / 1000UL);
+  /* Transmit EBs only if we have a valid rank as per 6TiSCH minimal */
+  rpl_dag_t *dag = rpl_get_any_dag();
+  if(dag != NULL && dag->rank != INFINITE_RANK) {
+    tsch_set_eb_period(TSCH_EB_PERIOD);
+  } else {
+    tsch_set_eb_period(0);
+  }
 }
 
 /* Set TSCH time source based on current RPL preferred parent.

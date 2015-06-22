@@ -123,6 +123,10 @@ new_dio_interval(rpl_instance_t *instance)
   /* schedule the timer */
   PRINTF("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", ticks);
   ctimer_set(&instance->dio_timer, ticks, &handle_dio_timer, instance);
+
+#ifdef RPL_CALLBACK_NEW_DIO_INTERVAL
+  RPL_CALLBACK_NEW_DIO_INTERVAL(instance->dio_intcurrent);
+#endif /* RPL_CALLBACK_NEW_DIO_INTERVAL */
 }
 /*---------------------------------------------------------------------------*/
 static void
