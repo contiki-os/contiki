@@ -562,13 +562,15 @@ eb_input(struct input_packet *current_input)
         LOG("TSCH: corrected ASN by %ld\n", asn_diff);
       }
 
-      /* Update join priority */
       if(eb_ies.ie_join_priority < TSCH_MAX_JOIN_PRIORITY) {
+#if TSCH_EB_AUTOSELECT
+        /* Update join priority */
         if(tsch_join_priority != eb_ies.ie_join_priority + 1) {
           LOG("TSCH: update JP from EB %u -> %u\n",
               tsch_join_priority, eb_ies.ie_join_priority + 1);
           tsch_join_priority = eb_ies.ie_join_priority + 1;
         }
+#endif /* TSCH_EB_AUTOSELECT */
       } else {
         /* Join priority unacceptable. Leave network. */
         LOG("TSCH:! EB JP too high %u, leaving the network\n",
@@ -1283,7 +1285,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
           eb_parsed = tsch_packet_parse_eb(input_eb.payload, input_eb.len,
               &source_address, &ies);
           current_asn = ies.ie_asn;
-          tsch_join_priority = ies.ie_join_priority;
+          tsch_join_priority = ies.ie_join_priority + 1;
         }
 
         /* There was no join priority (or 0xff) in the EB, do not join */
@@ -1366,9 +1368,6 @@ PT_THREAD(tsch_associate(struct pt *pt))
 
             /* Calculate TSCH link start from packet timestamp */
             current_link_start = t0 - timeslot_timing.tx_offset;
-
-            /* Make our join priority 1 plus what we received */
-            tsch_join_priority++;
 
             /* Update global flags */
             tsch_is_associated = 1;

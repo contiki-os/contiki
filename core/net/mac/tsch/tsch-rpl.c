@@ -80,6 +80,8 @@ tsch_rpl_callback_new_dio_interval(uint8_t dio_interval)
   rpl_dag_t *dag = rpl_get_any_dag();
   if(dag != NULL && dag->rank != INFINITE_RANK) {
     tsch_set_eb_period(TSCH_EB_PERIOD);
+    /* Set join priority based on RPL rank */
+    tsch_set_join_priority(DAG_RANK(dag->rank, dag->instance) - 1);
   } else {
     tsch_set_eb_period(0);
   }
