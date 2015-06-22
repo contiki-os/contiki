@@ -863,7 +863,7 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
               int is_time_source;
               radio_value_t radio_rx_mode;
               struct ieee802154_ies ack_ies;
-              rtimer_clock_t time_correction_rtimer;
+              int32_t eack_time_correction;
 
               /* Entering promiscuous mode so that the radio accepts the enhanced ACK */
               NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
@@ -892,22 +892,22 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
 
               is_time_source = current_neighbor != NULL && current_neighbor->is_time_source;
               ret = tsch_packet_parse_eack(ackbuf, ack_len, seqno, &ack_ies);
-              time_correction_rtimer = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
+              eack_time_correction = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
 
               if(ret != 0) {
-                if(is_time_source && time_correction_rtimer != 0) {
+                if(is_time_source && eack_time_correction != 0) {
 #if TRUNCATE_SYNC_IE
-                  if(time_correction_rtimer > TRUNCATE_SYNC_IE_BOUND) {
+                  if(eack_time_correction > TRUNCATE_SYNC_IE_BOUND) {
                     drift_correction = TRUNCATE_SYNC_IE_BOUND;
-                  } else if(time_correction_rtimer < -TRUNCATE_SYNC_IE_BOUND) {
+                  } else if(eack_time_correction < -TRUNCATE_SYNC_IE_BOUND) {
                     drift_correction = -TRUNCATE_SYNC_IE_BOUND;
                   } else {
-                    drift_correction = time_correction_rtimer;
+                    drift_correction = eack_time_correction;
                   }
-                  if(drift_correction != time_correction_rtimer) {
+                  if(drift_correction != eack_time_correction) {
                     TSCH_LOG_ADD(tsch_log_message,
                         snprintf(log->message, sizeof(log->message),
-                            "!truncated dr %d %d", (int)time_correction_rtimer, (int)drift_correction);
+                            "!truncated dr %d %d", (int)eack_time_correction, (int)drift_correction);
                     );
                   }
 #else /* TRUNCATE_SYNC_IE */
