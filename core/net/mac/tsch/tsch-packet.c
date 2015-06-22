@@ -58,6 +58,7 @@ int
 tsch_packet_create_eack(uint8_t *buf, int buf_size,
     linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack)
 {
+  int ret;
   uint8_t curr_len = 0;
   frame802154_t p;
   struct ieee802154_ies ies;
@@ -88,7 +89,10 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   ies.ie_time_correction = drift;
   ies.ie_is_nack = nack;
 
-  frame80215e_create_ie_ack_nack_time_correction(buf+curr_len, buf_size-curr_len, &ies);
+  if((ret = frame80215e_create_ie_ack_nack_time_correction(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+    return -1;
+  }
+  curr_len += ret;
 
   return curr_len;
 }
