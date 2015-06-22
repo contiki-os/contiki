@@ -196,6 +196,12 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
   * ies.ie_tsch_slotframe_and_link.links[0].link_options = LINK_OPTION_RX | LINK_OPTION_TX | LINK_OPTION_SHARED | LINK_OPTION_TIME_KEEPING;
   */
 
+  /* First add header-IE termination IE to stipulate that next come payload IEs */
+  if((ret = frame80215e_create_ie_header_list_termination_1(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+    return -1;
+  }
+  curr_len += ret;
+
   /* Save offset of the MLME IE descriptor, we need to know the total length
    * before writing it */
   mlme_ie_offset = curr_len;

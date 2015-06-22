@@ -145,6 +145,50 @@ frame80215e_create_ie_ack_nack_time_correction(uint8_t *buf, int len,
   }
 }
 
+/* Header IE. List termination 1 (Signals the end of the Header IEs when
+ * followed by payload IEs) */
+int
+frame80215e_create_ie_header_list_termination_1(uint8_t *buf, int len,
+    struct ieee802154_ies *ies)
+{
+  int ie_len = 0;
+  if(len >= 2 + ie_len && ies != NULL) {
+    create_header_ie_descriptor(buf, HEADER_IE_LIST_TERMINATION_1, ies->ie_mlme_len);
+    return 2 + ie_len;
+  } else {
+    return -1;
+  }
+}
+
+/* Header IE. List termination 2 (Signals the end of the Header IEs when
+ * followed by an unformatted payload) */
+int
+frame80215e_create_ie_header_list_termination_2(uint8_t *buf, int len,
+    struct ieee802154_ies *ies)
+{
+  int ie_len = 0;
+  if(len >= 2 + ie_len && ies != NULL) {
+    create_header_ie_descriptor(buf, HEADER_IE_LIST_TERMINATION_2, ies->ie_mlme_len);
+    return 2 + ie_len;
+  } else {
+    return -1;
+  }
+}
+
+/* Payload IE. List termination */
+int
+frame80215e_create_ie_payload_list_termination(uint8_t *buf, int len,
+    struct ieee802154_ies *ies)
+{
+  int ie_len = 0;
+  if(len >= 2 + ie_len && ies != NULL) {
+    create_header_ie_descriptor(buf, PAYLOAD_IE_LIST_TERMINATION, ies->ie_mlme_len);
+    return 2 + ie_len;
+  } else {
+    return -1;
+  }
+}
+
 /* Payload IE. MLME. Used to nest sub-IEs */
 int
 frame80215e_create_ie_mlme(uint8_t *buf, int len,
@@ -159,7 +203,6 @@ frame80215e_create_ie_mlme(uint8_t *buf, int len,
     return -1;
   }
 }
-
 
 /* MLME sub-IE. TSCH synchronization. Used in EBs: ASN and join priority */
 int
@@ -305,10 +348,11 @@ frame802154e_parse_header_ie(uint8_t *buf, int len,
           /* Convert to RTIMER ticks */
           ies->ie_time_correction = drift_us;
         }
+        return len;
       }
       break;
   }
-  return len;
+  return -1;
 }
 
 /* Parse a MLME short IE */
@@ -318,22 +362,25 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
 {
   switch(sub_id) {
     case MLME_SHORT_IE_TSCH_SLOFTRAME_AND_LINK:
-      if(ies != NULL && len >= 1) {
+      if(len >= 1) {
         int i;
         int num_slotframes = buf[0];
         int num_links = buf[4];
         if(num_slotframes <= 1 && num_links <= FRAME802154E_IE_MAX_LINKS
             && len == 1 + num_slotframes * (4 + 5 * num_links)) {
-          /* We support only 0 or 1 slotframe in this IE and a predefined maximum number of links */
-          ies->ie_tsch_slotframe_and_link.num_slotframes = buf[0];
-          ies->ie_tsch_slotframe_and_link.slotframe_handle = buf[1];
-          READ16(buf + 2, ies->ie_tsch_slotframe_and_link.slotframe_size);
-          ies->ie_tsch_slotframe_and_link.num_links = buf[4];
-          for(i = 0; i < num_links; i++) {
-            READ16(buf + 5 + i * 5, ies->ie_tsch_slotframe_and_link.links[i].timeslot);
-            READ16(buf + 5 + i * 5 + 2, ies->ie_tsch_slotframe_and_link.links[i].channel_offset);
-            ies->ie_tsch_slotframe_and_link.links[i].link_options = buf[5 + i * 5 + 4];
+          if(ies != NULL) {
+            /* We support only 0 or 1 slotframe in this IE and a predefined maximum number of links */
+            ies->ie_tsch_slotframe_and_link.num_slotframes = buf[0];
+            ies->ie_tsch_slotframe_and_link.slotframe_handle = buf[1];
+            READ16(buf + 2, ies->ie_tsch_slotframe_and_link.slotframe_size);
+            ies->ie_tsch_slotframe_and_link.num_links = buf[4];
+            for(i = 0; i < num_links; i++) {
+              READ16(buf + 5 + i * 5, ies->ie_tsch_slotframe_and_link.links[i].timeslot);
+              READ16(buf + 5 + i * 5 + 2, ies->ie_tsch_slotframe_and_link.links[i].channel_offset);
+              ies->ie_tsch_slotframe_and_link.links[i].link_options = buf[5 + i * 5 + 4];
+            }
           }
+          return len;
         }
       }
       break;
@@ -347,6 +394,7 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
           ies->ie_asn.ms1b = (uint8_t)buf[4];
           ies->ie_join_priority = (uint8_t)buf[5];
         }
+        return len;
       }
       break;
     case MLME_SHORT_IE_TSCH_TIMESLOT:
@@ -369,10 +417,11 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
             READ16(buf+i, ies->ie_tsch_timeslot.timeslot_length); i+=2;
           }
         }
+        return len;
       }
       break;
   }
-  return len;
+  return -1;
 }
 
 /* Parse a MLME long IE */
@@ -381,22 +430,23 @@ frame802154e_parse_mlme_long_ie(uint8_t *buf, int len,
     uint8_t sub_id, struct ieee802154_ies *ies)
 {
   switch(sub_id) {
-  case MLME_LONG_IE_TSCH_CHANNEL_HOPPING_SEQUENCE:
-    if(len > 0) {
-      if(ies != NULL) {
-        ies->ie_channel_hopping_sequence_id = buf[0];
-        if(len > 1) {
-          READ16(buf+8, ies->ie_hopping_sequence_len); /* sequence len */
-          if(ies->ie_hopping_sequence_len <= sizeof(ies->ie_hopping_sequence_list)
-              && len == 12 + ies->ie_hopping_sequence_len) {
-            memcpy(ies->ie_hopping_sequence_list, buf+10, ies->ie_hopping_sequence_len); /* sequence list */
+    case MLME_LONG_IE_TSCH_CHANNEL_HOPPING_SEQUENCE:
+      if(len > 0) {
+        if(ies != NULL) {
+          ies->ie_channel_hopping_sequence_id = buf[0];
+          if(len > 1) {
+            READ16(buf+8, ies->ie_hopping_sequence_len); /* sequence len */
+            if(ies->ie_hopping_sequence_len <= sizeof(ies->ie_hopping_sequence_list)
+                && len == 12 + ies->ie_hopping_sequence_len) {
+              memcpy(ies->ie_hopping_sequence_list, buf+10, ies->ie_hopping_sequence_len); /* sequence list */
+            }
           }
         }
+        return len;
       }
-    }
-    break;
+      break;
   }
-  return len;
+  return -1;
 }
 
 /* Parse all IEEE 802.15.4e Information Elements (IE) from a frame */
@@ -409,7 +459,12 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
   uint8_t type;
   uint16_t len;
   uint8_t id;
-  int in_nested_mlme = 0;
+  int nested_mlme_len = 0;
+  enum {PARSING_HEADER_IE, PARSING_PAYLOAD_IE, PARSING_MLME_SUBIE} parsing_state;
+
+  /* Always look for a header IE first (at least "list termination 1") */
+  parsing_state = PARSING_HEADER_IE;
+
   /* Loop over all IEs */
   while(buf_size > 0) {
     if(buf_size < 2) { /* Not enough space for IE descriptor */
@@ -419,59 +474,83 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
     buf_size -= 2;
     buf += 2;
     type = ie_desc & 0x8000 ? 1 : 0; /* b15 */
-    if(in_nested_mlme == 0) {
-      /* Header IE: type == 0 means header IE, type == 1 means payload IE */
-      if(type == 0) {
+
+    switch(parsing_state) {
+      case PARSING_HEADER_IE:
+        if(type != 0) {
+          return -1;
+        }
         /* Header IE: 2 bytes descriptor, c.f. fig 48n in IEEE 802.15.4e */
         len = ie_desc & 0x007f; /* b0-b6 */
         id = (ie_desc & 0x7f80) >> 7; /* b7-b14 */
-        if(len > buf_size || !frame802154e_parse_header_ie(buf, len, id, ies)) {
+        switch(id) {
+          case HEADER_IE_LIST_TERMINATION_1:
+            if(len == 0) {
+              /* End of payload IE list, now expect payload IEs */
+              parsing_state = PARSING_PAYLOAD_IE;
+            } else {
+              return -1;
+            }
+            break;
+          case HEADER_IE_LIST_TERMINATION_2:
+            /* End of IE parsing */
+            return (len == 0) ? buf + len - start : -1;
+          default:
+            if(len > buf_size || frame802154e_parse_header_ie(buf, len, id, ies) == -1) {
+              return -1;
+            }
+            break;
+        }
+        break;
+      case PARSING_PAYLOAD_IE:
+        if(type != 1) {
           return -1;
         }
-        if(id == HEADER_IE_LIST_TERMINATION_2) {
-          /* End of IE parsing */
-          return buf + len - start;
-        }
-      } else {
         /* Payload IE: 2 bytes descriptor, c.f. fig 48o in IEEE 802.15.4e */
         len = ie_desc & 0x7ff; /* b0-b10 */
         id = (ie_desc & 0x7800) >> 11; /* b11-b14 */
-        if(id == 1) {
-          in_nested_mlme = len;
-          len = 0; /* Reset len as we want to read subIEs and not jump over them */
+        switch(id) {
+          case PAYLOAD_IE_MLME:
+            /* Now expect 'len' bytes of MLME sub-IEs */
+            parsing_state = PARSING_MLME_SUBIE;
+            nested_mlme_len = len;
+            len = 0; /* Reset len as we want to read subIEs and not jump over them */
+            break;
+          case PAYLOAD_IE_LIST_TERMINATION:
+            return (len == 0) ? buf + len - start : -1;
+          default:
+            return -1;
+        }
+        break;
+      case PARSING_MLME_SUBIE:
+        /* MLME sub-IE: 2 bytes descriptor, c.f. fig 48q in IEEE 802.15.4e */
+        /* type == 0 means short sub-IE, type == 1 means long sub-IE */
+        if(type == 0) {
+          /* Short sub-IE, c.f. fig 48r in IEEE 802.15.4e */
+          len = ie_desc & 0x00ff; /* b0-b7 */
+          id = (ie_desc & 0x7f00) >> 8; /* b8-b14 */
+          if(len > buf_size || frame802154e_parse_mlme_short_ie(buf, len, id, ies) == -1) {
+            return -1;
+          }
         } else {
-          /* We support only MLME as payload IE */
+          /* Long sub-IE, c.f. fig 48s in IEEE 802.15.4e */
+          len = ie_desc & 0x7ff; /* b0-b10 */
+          id = (ie_desc & 0x7800) >> 11; /* b11-b14 */
+          if(len > buf_size || frame802154e_parse_mlme_long_ie(buf, len, id, ies) == -1) {
+            return -1;
+          }
+        }
+        /* Update remaining nested MLME len */
+        nested_mlme_len -= 2 + len;
+        if(nested_mlme_len < 0) {
+          /* We found more sub-IEs than initially advertised */
           return -1;
         }
-      }
-    } else {
-      /* MLME sub-IE: 2 bytes descriptor, c.f. fig 48q in IEEE 802.15.4e */
-      /* type == 0 means short sub-IE, type == 1 means long sub-IE */
-      if(type == 0) {
-        /* Short sub-IE, c.f. fig 48r in IEEE 802.15.4e */
-        len = ie_desc & 0x00ff; /* b0-b7 */
-        id = (ie_desc & 0x7f00) >> 8; /* b8-b14 */
-        if(len > buf_size || !frame802154e_parse_mlme_short_ie(buf, len, id, ies)) {
-          return -1;
+        if(nested_mlme_len == 0) {
+          /* End of IE parsing, look for another payload IE */
+          parsing_state = PARSING_PAYLOAD_IE;
         }
-      } else {
-        /* Long sub-IE, c.f. fig 48s in IEEE 802.15.4e */
-        len = ie_desc & 0x7ff; /* b0-b10 */
-        id = (ie_desc & 0x7800) >> 11; /* b11-b14 */
-        if(len > buf_size || !frame802154e_parse_mlme_long_ie(buf, len, id, ies)) {
-          return -1;
-        }
-      }
-      /* Update remaining nested MLME len */
-      in_nested_mlme -= 2 + len;
-      if(in_nested_mlme < 0) {
-        /* We found more sub-IEs than initially advertised */
-        return -1;
-      }
-      if(in_nested_mlme == 0) {
-        /* End of IE parsing */
-        return buf + len - start;
-      }
+        break;
     }
     buf += len;
     buf_size -= len;
