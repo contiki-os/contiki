@@ -37,7 +37,7 @@
 #define printf(...)
 /*---------------------------------------------------------------------------*/
 static int
-ip64_addr_ipv4_is_private(const uip_ip4addr_t *ipv4addr)
+is_private_ipv4addr(const uip_ip4addr_t *ipv4addr)
 {
   uip_ipaddr_t ipaddr, mask;
 
@@ -195,7 +195,7 @@ ip64_addr_6to4(const uip_ip6addr_t *ipv6addr,
     ipv4addr->u8[2] = ipv6addr->u8[14];
     ipv4addr->u8[3] = ipv6addr->u8[15];
 
-    if(!ip64_addr_ipv4_is_private(ipv4addr)) {
+    if(!is_private_ipv4addr(ipv4addr)) {
       printf("ip64_addr_6to4: IPv6-encoded IPv4 address %d.%d.%d.%d\n",
              ipv4addr->u8[0], ipv4addr->u8[1],
              ipv4addr->u8[2], ipv4addr->u8[3]);
