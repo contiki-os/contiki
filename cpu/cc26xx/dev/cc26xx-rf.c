@@ -50,6 +50,7 @@
 #include "sys/cc.h"
 #include "lpm.h"
 #include "ti-lib.h"
+#include "isr-control.h"
 /*---------------------------------------------------------------------------*/
 /* RF core and RF HAL API */
 #include "hw_rfc_dbell.h"
@@ -429,19 +430,17 @@ static uint_fast8_t
 rf_send_cmd(uint32_t cmd, uint32_t *status)
 {
   uint32_t timeout_count = 0;
-  bool interrupts_disabled;
+  isr_state_t atomic_state;
 
   /*
    * Make sure ContikiMAC doesn't turn us off from within an interrupt while
    * we are accessing RF Core registers
    */
-  interrupts_disabled = ti_lib_int_master_disable();
+  atomic_state = atomic_section_enter();
 
   if(!rf_is_accessible()) {
     PRINTF("rf_send_cmd: RF was off\n");
-    if(!interrupts_disabled) {
-      ti_lib_int_master_enable();
-    }
+    atomic_section_exit(atomic_state);
     return RF_CMD_ERROR;
   }
 
@@ -450,21 +449,16 @@ rf_send_cmd(uint32_t cmd, uint32_t *status)
     *status = HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDSTA);
     if(++timeout_count > 50000) {
       PRINTF("rf_send_cmd: Timeout\n");
-      if(!interrupts_disabled) {
-        ti_lib_int_master_enable();
-      }
+      atomic_section_exit(atomic_state);
       return RF_CMD_ERROR;
     }
   } while(*status == RF_CMD_STATUS_PENDING);
-
-  if(!interrupts_disabled) {
-    ti_lib_int_master_enable();
-  }
 
   /*
    * If we reach here the command is no longer pending. It is either completed
    * successfully or with error
    */
+  atomic_section_exit(atomic_state);
   return *status == RF_CMD_STATUS_DONE;
 }
 /*---------------------------------------------------------------------------*/
@@ -916,7 +910,7 @@ static int
 power_up(void)
 {
   uint32_t cmd_status;
-  bool interrupts_disabled = ti_lib_int_master_disable();
+  isr_state_t atomic_state = atomic_section_enter();
 
   ti_lib_int_pend_clear(INT_RF_CPE0);
   ti_lib_int_pend_clear(INT_RF_CPE1);
@@ -941,9 +935,7 @@ power_up(void)
   ti_lib_int_enable(INT_RF_CPE0);
   ti_lib_int_enable(INT_RF_CPE1);
 
-  if(!interrupts_disabled) {
-    ti_lib_int_master_enable();
-  }
+  atomic_section_exit(atomic_state);
 
   /* Let CPE boot */
   HWREG(RFC_PWR_NONBUF_BASE + RFC_PWR_O_PWMCLKEN) = RF_CORE_CLOCKS_MASK;
@@ -963,7 +955,8 @@ power_up(void)
 static void
 power_down(void)
 {
-  bool interrupts_disabled = ti_lib_int_master_disable();
+  isr_state_t atomic_state = atomic_section_enter();
+
   ti_lib_int_disable(INT_RF_CPE0);
   ti_lib_int_disable(INT_RF_CPE1);
 
@@ -986,9 +979,8 @@ power_down(void)
   ti_lib_int_pend_clear(INT_RF_CPE1);
   ti_lib_int_enable(INT_RF_CPE0);
   ti_lib_int_enable(INT_RF_CPE1);
-  if(!interrupts_disabled) {
-    ti_lib_int_master_enable();
-  }
+
+  atomic_section_exit(atomic_state);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -1057,9 +1049,11 @@ rx_isr(void)
 void
 cc26xx_rf_cpe1_isr(void)
 {
+  isr_state_t atomic_state;
+
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  ti_lib_int_master_disable();
+  atomic_state = atomic_section_enter();
   PRINTF("RF Error\n");
 
   if(!rf_is_accessible()) {
@@ -1070,7 +1064,8 @@ cc26xx_rf_cpe1_isr(void)
 
   /* Clear interrupt flags */
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
-  ti_lib_int_master_enable();
+
+  atomic_section_exit(atomic_state);
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
@@ -1078,6 +1073,8 @@ cc26xx_rf_cpe1_isr(void)
 void
 cc26xx_rf_cpe0_isr(void)
 {
+  isr_state_t atomic_state;
+
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   if(!rf_is_accessible()) {
@@ -1088,14 +1085,16 @@ cc26xx_rf_cpe0_isr(void)
     }
   }
 
-  ti_lib_int_master_disable();
+ atomic_state = atomic_section_enter();
+
   if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & RX_IRQ) {
     rx_isr();
   }
 
   /* Clear interrupt flags */
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
-  ti_lib_int_master_enable();
+
+  atomic_section_exit(atomic_state);
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
@@ -1103,7 +1102,7 @@ cc26xx_rf_cpe0_isr(void)
 static void
 setup_interrupts(void)
 {
-  bool interrupts_disabled;
+  isr_state_t atomic_state;
 
   /* We are already turned on by the caller, so this should not happen */
   if(!rf_is_accessible()) {
@@ -1112,7 +1111,7 @@ setup_interrupts(void)
   }
 
   /* Disable interrupts */
-  interrupts_disabled = ti_lib_int_master_disable();
+  atomic_state = atomic_section_enter();
 
   /* Set all interrupt channels to CPE0 channel, error to CPE1 */
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEISL) = ERROR_IRQ;
@@ -1128,9 +1127,7 @@ setup_interrupts(void)
   ti_lib_int_enable(INT_RF_CPE0);
   ti_lib_int_enable(INT_RF_CPE1);
 
-  if(!interrupts_disabled) {
-    ti_lib_int_master_enable();
-  }
+  atomic_section_exit(atomic_state);
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
@@ -1942,6 +1939,7 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
   int j;
   uint32_t cmd_status;
   bool interrupts_disabled;
+  isr_state_t atomic_state;
 
   PROCESS_BEGIN();
 
@@ -1972,11 +1970,9 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
        * Under ContikiMAC, some IEEE-related operations will be called from an
        * interrupt context. We need those to see that we are in BLE mode.
        */
-      interrupts_disabled = ti_lib_int_master_disable();
+      atomic_state = atomic_section_enter();
       ble_mode_on = 1;
-      if(!interrupts_disabled) {
-        ti_lib_int_master_enable();
-      }
+      atomic_section_exit(atomic_state);
 
       /*
        * Send BLE_ADV_MESSAGES beacon bursts. Each burst on all three
@@ -2073,13 +2069,10 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
       }
       etimer_set(&ble_adv_et, BLE_ADV_DUTY_CYCLE);
 
-      interrupts_disabled = ti_lib_int_master_disable();
 
+      atomic_state = atomic_section_enter();
       ble_mode_on = 0;
-
-      if(!interrupts_disabled) {
-        ti_lib_int_master_enable();
-      }
+      atomic_section_exit(atomic_state);
 
       /* Wait unless this is the last burst */
       if(i < BLE_ADV_MESSAGES - 1) {
@@ -2087,13 +2080,9 @@ PROCESS_THREAD(cc26xx_rf_ble_beacon_process, ev, data)
       }
     }
 
-    interrupts_disabled = ti_lib_int_master_disable();
-
+    atomic_state = atomic_section_enter();
     ble_mode_on = 0;
-
-    if(!interrupts_disabled) {
-      ti_lib_int_master_enable();
-    }
+    atomic_section_exit(atomic_state);
   }
   PROCESS_END();
 }
