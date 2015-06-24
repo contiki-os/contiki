@@ -54,6 +54,7 @@
 #include "MMAC.h"
 #include "micromac-radio.h"
 #include "JPT.h"
+#include "PeripheralRegs.h"
 
 /* This driver configures the radio in PHY mode and does address decoding
  * and acknowledging in software. */
@@ -271,7 +272,6 @@ init(void)
   process_start(&micromac_radio_process, NULL);
 
 #if RADIO_TEST_MODE == RADIO_TEST_MODE_HIGH_PWR
-#include "HardwareApi/Include/PeripheralRegs.h"
   /* Enable high power mode.
    * In this mode DIO2 goes high during RX
    * and DIO3 goes high during TX
@@ -281,7 +281,6 @@ init(void)
       | REG_SYSCTRL_PWRCTRL_RFRXEN_MASK
       | REG_SYSCTRL_PWRCTRL_RFTXEN_MASK);
 #elif RADIO_TEST_MODE == RADIO_TEST_MODE_ADVANCED
-#include "HardwareApi/Include/PeripheralRegs.h"
   /* output internal radio status on IO pins.
    * See Chris@NXP email */
   vREG_SysWrite(REG_SYS_PWR_CTRL,

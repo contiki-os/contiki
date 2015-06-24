@@ -60,6 +60,31 @@
 #include "sys/rtimer.h"
 #include <string.h>
 
+#ifndef TSCH_DEBUG_INIT
+#define TSCH_DEBUG_INIT()
+#endif
+#ifndef TSCH_DEBUG_INTERRUPT
+#define TSCH_DEBUG_INTERRUPT()
+#endif
+#ifndef TSCH_DEBUG_RX_EVENT
+#define TSCH_DEBUG_RX_EVENT()
+#endif
+#ifndef TSCH_DEBUG_TX_EVENT
+#define TSCH_DEBUG_TX_EVENT()
+#endif
+#ifndef TSCH_DEBUG_SLOT_START
+#define TSCH_DEBUG_SLOT_START()
+#endif
+#ifndef TSCH_DEBUG_SLOT_END
+#define TSCH_DEBUG_SLOT_END()
+#endif
+#ifndef TSCH_DEBUG_RX_START
+#define TSCH_DEBUG_RX_START()
+#endif
+#ifndef TSCH_DEBUG_RX_END
+#define TSCH_DEBUG_RX_END()
+#endif
+
 /* Truncate received drift correction information to maximum half
  * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT). */
 #define TRUNCATE_SYNC_IE 1
@@ -335,6 +360,7 @@ void tsch_release_lock() {
 static void
 on(void)
 {
+  TSCH_DEBUG_RX_START();
   NETSTACK_RADIO.on();
 }
 /*---------------------------------------------------------------------------*/
@@ -342,6 +368,7 @@ static void
 off(void)
 {
   NETSTACK_RADIO.off();
+  TSCH_DEBUG_RX_END();
 }
 /*---------------------------------------------------------------------------*/
 static unsigned short
@@ -779,6 +806,8 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
 
   PT_BEGIN(pt);
 
+  TSCH_DEBUG_TX_EVENT();
+
   /* First check if we have space to store a newly dequeued packet (in case of
    * successful Tx or Drop) */
   dequeued_index = ringbufindex_peek_put(&dequeued_ringbuf);
@@ -824,10 +853,12 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
         cca_status = 1;
         /* delay before CCA */
         TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start, TS_CCA_OFFSET, "cca");
+        TSCH_DEBUG_TX_EVENT();
         on();
         /* CCA */
         BUSYWAIT_UNTIL_ABS(!(cca_status |= NETSTACK_RADIO.channel_clear()),
             current_link_start, TS_CCA_OFFSET + TS_CCA);
+        TSCH_DEBUG_TX_EVENT();
         /* there is not enough time to turn radio off */
         /*  off(); */
         if(cca_status == 0) {
@@ -837,6 +868,7 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
         {
           /* delay before TX */
           TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start, timeslot_timing.tx_offset - RADIO_DELAY_BEFORE_TX, "TxBeforeTx");
+          TSCH_DEBUG_TX_EVENT();
           /* send packet already in radio tx buffer */
           mac_tx_status = NETSTACK_RADIO.transmit(payload_len);
           /* Save tx timestamp */
@@ -865,16 +897,19 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
               /* Unicast: wait for ack after tx: sleep until ack time */
               TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start,
                   timeslot_timing.tx_offset + tx_duration + timeslot_timing.rx_ack_delay - RADIO_DELAY_BEFORE_RX, "TxBeforeAck");
+              TSCH_DEBUG_TX_EVENT();
               on();
               /* Wait for ACK to come */
               BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet(),
                   tx_start_time, tx_duration + timeslot_timing.rx_ack_delay + timeslot_timing.ack_wait);
+              TSCH_DEBUG_TX_EVENT();
 
               ack_start_time = RTIMER_NOW();
 
               /* Wait for ACK to finish */
               BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
                   ack_start_time, timeslot_timing.max_ack);
+              TSCH_DEBUG_TX_EVENT();
               off();
 
               /* Leaving promiscuous mode */
@@ -954,6 +989,8 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
     process_poll(&tsch_pending_events_process);
   }
 
+  TSCH_DEBUG_TX_EVENT();
+
   PT_END(pt);
 }
 
@@ -977,6 +1014,8 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
 
   PT_BEGIN(pt);
 
+  TSCH_DEBUG_RX_EVENT();
+
   input_index = ringbufindex_peek_put(&input_ringbuf);
   if(input_index == -1) {
     input_queue_drop++;
@@ -996,6 +1035,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
 
     /* Wait before starting to listen */
     TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start, timeslot_timing.rx_offset - RADIO_DELAY_BEFORE_RX, "RxBeforeListen");
+    TSCH_DEBUG_RX_EVENT();
 
     /* Start radio for at least guard time */
     on();
@@ -1003,6 +1043,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
       /* Check if receiving within guard time */
       BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet(),
           current_link_start, timeslot_timing.rx_offset + timeslot_timing.rx_wait);
+      TSCH_DEBUG_RX_EVENT();
       /* Save packet timestamp */
       rx_start_time = RTIMER_NOW();
     }
@@ -1013,7 +1054,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
       /* Wait until packet is received, turn radio off */
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
           current_link_start, timeslot_timing.rx_offset + timeslot_timing.rx_wait + timeslot_timing.max_tx);
-
+      TSCH_DEBUG_RX_EVENT();
       off();
 
       if(NETSTACK_RADIO.pending_packet()) {
@@ -1055,6 +1096,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
               /* Wait for time to ACK and transmit ACK */
               TSCH_SCHEDULE_AND_YIELD(pt, t, rx_start_time,
                   TSCH_PACKET_DURATION(current_input->len) + timeslot_timing.tx_ack_delay - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
+              TSCH_DEBUG_RX_EVENT();
               NETSTACK_RADIO.transmit(ack_len);
             }
 
@@ -1107,6 +1149,8 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
     }
   }
 
+  TSCH_DEBUG_RX_EVENT();
+
   PT_END(pt);
 }
 
@@ -1115,6 +1159,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
 static
 PT_THREAD(tsch_link_operation(struct rtimer *t, void *ptr))
 {
+  TSCH_DEBUG_INTERRUPT();
   PT_BEGIN(&link_operation_pt);
 
   /* Loop over all active links */
@@ -1132,6 +1177,7 @@ PT_THREAD(tsch_link_operation(struct rtimer *t, void *ptr))
       );
 
     } else {
+      TSCH_DEBUG_SLOT_START();
       tsch_in_link_operation = 1;
       /* Get a packet ready to be sent */
       current_packet = get_packet_and_neighbor_for_link(current_link, &current_neighbor);
@@ -1155,6 +1201,7 @@ PT_THREAD(tsch_link_operation(struct rtimer *t, void *ptr))
         static struct pt link_rx_pt;
         PT_SPAWN(&link_operation_pt, &link_rx_pt, tsch_rx_link(&link_rx_pt, t));
       }
+      TSCH_DEBUG_SLOT_END();
     }
 
     /* End of slot operation, schedule next slot or resynchronize */
@@ -1654,6 +1701,7 @@ tsch_init(void)
 
   leds_blink();
 
+  TSCH_DEBUG_INIT();
   /* Init TSCH sub-modules */
   tsch_reset();
   tsch_queue_init();
