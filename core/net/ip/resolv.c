@@ -394,7 +394,7 @@ dns_name_isequal(const unsigned char *queryptr, const char *name,
         return 0;
       }
 
-      if(tolower(*name++) != tolower(*queryptr++)) {
+      if(tolower((unsigned int)*name++) != tolower((unsigned int)*queryptr++)) {
         return 0;
       }
     }
