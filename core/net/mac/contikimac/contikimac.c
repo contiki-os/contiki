@@ -488,7 +488,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
             int is_receiver_awake)
 {
   rtimer_clock_t t0;
+#if WITH_PHASE_OPTIMIZATION
   rtimer_clock_t encounter_time = 0;
+#endif
   int strobes;
   uint8_t got_strobe_ack = 0;
   int len;
@@ -660,7 +662,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
     {
       rtimer_clock_t wt;
+#if WITH_PHASE_OPTIMIZATION
       rtimer_clock_t txtime = RTIMER_NOW();
+#endif
 #if RDC_CONF_HARDWARE_ACK
       int ret = NETSTACK_RADIO.transmit(transmit_len);
 #else
@@ -673,7 +677,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
       if(ret == RADIO_TX_OK) {
         if(!is_broadcast) {
           got_strobe_ack = 1;
+#if WITH_PHASE_OPTIMIZATION
           encounter_time = txtime;
+#endif
           break;
         }
       } else if (ret == RADIO_TX_NOACK) {
@@ -698,7 +704,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
         len = NETSTACK_RADIO.read(ackbuf, ACK_LEN);
         if(len == ACK_LEN && seqno == ackbuf[ACK_LEN - 1]) {
           got_strobe_ack = 1;
+#if WITH_PHASE_OPTIMIZATION
           encounter_time = txtime;
+#endif
           break;
         } else {
           PRINTF("contikimac: collisions while sending\n");
