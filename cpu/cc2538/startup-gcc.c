@@ -38,7 +38,7 @@
  */
 #include "contiki.h"
 #include "reg.h"
-#include "flash-cca.h"
+#include "flash.h"
 #include "sys-ctrl.h"
 #include "rom-util.h"
 
