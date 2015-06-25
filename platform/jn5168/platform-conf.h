@@ -39,11 +39,11 @@
 #undef putchar
 
 /* Delay between GO signal and SFD
- * Measured ~350us: 100uSec + between GO signal and SFD: radio fixed delay + 4Bytes preamble + 1B SFD -- 1Byte time is 31.25us */
-#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(350))
+ * Measured 153us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 153+5*32 = 313 */
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(313))
 /* Delay between GO signal and start listening
- * Measured 248us: between GO signal and start listening */
-#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(248))
+ * Measured 104us: between GO signal and start listening */
+#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(104))
 
 /* Micromac configuration */
 
@@ -101,8 +101,6 @@
   } while(0);
 #define TSCH_DEBUG_SLOT_START() vAHI_DioSetOutput((1<<DR_11744_DIO3), 0);
 #define TSCH_DEBUG_SLOT_END() vAHI_DioSetOutput(0, (1<<DR_11744_DIO3));
-#define TSCH_DEBUG_RX_START() vAHI_DioSetOutput((1<<DR_11744_DIO6), 0);
-#define TSCH_DEBUG_RX_END() vAHI_DioSetOutput(0, (1<<DR_11744_DIO6));
 #endif /* TSCH_DEBUG */
 
 #ifndef BAUD2UBR

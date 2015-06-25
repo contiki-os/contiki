@@ -78,12 +78,6 @@
 #ifndef TSCH_DEBUG_SLOT_END
 #define TSCH_DEBUG_SLOT_END()
 #endif
-#ifndef TSCH_DEBUG_RX_START
-#define TSCH_DEBUG_RX_START()
-#endif
-#ifndef TSCH_DEBUG_RX_END
-#define TSCH_DEBUG_RX_END()
-#endif
 
 /* Truncate received drift correction information to maximum half
  * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT). */
@@ -155,6 +149,12 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #error "TSCH: RTIMER_SECOND < 32*1024"
 #endif
 #define RTIMER_GUARD (RTIMER_SECOND / 10000)
+#endif
+
+#ifdef TSCH_CONF_USE_RADIO_TIMESTAMPS
+#define TSCH_USE_RADIO_TIMESTAMPS TSCH_CONF_USE_RADIO_TIMESTAMPS
+#else
+#define TSCH_USE_RADIO_TIMESTAMPS 0
 #endif
 
 #if TSCH_802154_DUPLICATE_DETECTION
@@ -358,7 +358,6 @@ void tsch_release_lock() {
 static void
 on(void)
 {
-  TSCH_DEBUG_RX_START();
   NETSTACK_RADIO.on();
 }
 /*---------------------------------------------------------------------------*/
@@ -366,7 +365,6 @@ static void
 off(void)
 {
   NETSTACK_RADIO.off();
-  TSCH_DEBUG_RX_END();
 }
 /*---------------------------------------------------------------------------*/
 static unsigned short
@@ -1054,6 +1052,11 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
           current_link_start, tsch_timing_rx_offset + tsch_timing_rx_wait + tsch_timing_max_tx);
       TSCH_DEBUG_RX_EVENT();
       off();
+
+#if TSCH_USE_RADIO_TIMESTAMPS
+      /* At the end of the reception, get an more accurate estimate of SFD arrival time */
+      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &rx_start_time, sizeof(rtimer_clock_t));
+#endif
 
       if(NETSTACK_RADIO.pending_packet()) {
         static int frame_valid;
