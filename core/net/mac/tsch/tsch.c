@@ -1328,6 +1328,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
 
         if(input_eb.len != 0) {
           /* Parse EB and extract ASN and join priority */
+          LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
           eb_parsed = tsch_packet_parse_eb(input_eb.payload, input_eb.len,
               &source_address, &ies);
           current_asn = ies.ie_asn;

@@ -283,10 +283,12 @@ tsch_packet_parse_eb(uint8_t *buf, uint8_t buf_size,
 
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
   if((ret = frame802154_parse(buf, buf_size, &frame)) == 0) {
+    LOG("TSCH:! parse_eb: failed to parse frame\n");
     return 0;
   }
 
   if(frame.fcf.frame_type != FRAME802154_BEACONFRAME) {
+    LOG("TSCH:! parse_eb: frame is not a beacon\n");
     return 0;
   }
 
@@ -301,6 +303,7 @@ tsch_packet_parse_eb(uint8_t *buf, uint8_t buf_size,
   }
   if(frame.fcf.ie_list_present) {
     if((ret = frame802154e_parse_information_elements(buf+curr_len, buf_size-curr_len, ies)) == -1) {
+      LOG("TSCH:! parse_eb: failed to parse IEs\n");
       return 0;
     }
     curr_len += ret;
