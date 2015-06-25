@@ -239,6 +239,11 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
     return -1;
   }
 
+  if((ret = frame80215e_create_ie_payload_list_termination(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+    return -1;
+  }
+  curr_len += ret;
+
   return curr_len;
 }
 

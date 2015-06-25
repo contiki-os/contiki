@@ -153,7 +153,7 @@ frame80215e_create_ie_header_list_termination_1(uint8_t *buf, int len,
 {
   int ie_len = 0;
   if(len >= 2 + ie_len && ies != NULL) {
-    create_header_ie_descriptor(buf, HEADER_IE_LIST_TERMINATION_1, ies->ie_mlme_len);
+    create_header_ie_descriptor(buf, HEADER_IE_LIST_TERMINATION_1, 0);
     return 2 + ie_len;
   } else {
     return -1;
@@ -168,7 +168,7 @@ frame80215e_create_ie_header_list_termination_2(uint8_t *buf, int len,
 {
   int ie_len = 0;
   if(len >= 2 + ie_len && ies != NULL) {
-    create_header_ie_descriptor(buf, HEADER_IE_LIST_TERMINATION_2, ies->ie_mlme_len);
+    create_header_ie_descriptor(buf, HEADER_IE_LIST_TERMINATION_2, 0);
     return 2 + ie_len;
   } else {
     return -1;
@@ -182,7 +182,7 @@ frame80215e_create_ie_payload_list_termination(uint8_t *buf, int len,
 {
   int ie_len = 0;
   if(len >= 2 + ie_len && ies != NULL) {
-    create_header_ie_descriptor(buf, PAYLOAD_IE_LIST_TERMINATION, ies->ie_mlme_len);
+    create_payload_ie_descriptor(buf, PAYLOAD_IE_LIST_TERMINATION, 0);
     return 2 + ie_len;
   } else {
     return -1;
