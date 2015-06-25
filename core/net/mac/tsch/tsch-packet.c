@@ -175,9 +175,20 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
 
   /* 6TiSCH minimal timeslot timing sequence ID: 0 */
   ies.ie_tsch_timeslot_id = 0;
-  /* Explicit inclusion of timeslot timing with:
-   * ies.ie_tsch_timeslot_id = 1;
-  ies.ie_tsch_timeslot = default_timeslot_timing; */
+  /* Explicit inclusion of timeslot timing with: */
+  /* ies.ie_tsch_timeslot_id = 1;
+  ies.ie_tsch_timeslot.cca_offset = TSCH_DEFAULT_TS_CCA_OFFSET;
+  ies.ie_tsch_timeslot.cca = TSCH_DEFAULT_TS_CCA;
+  ies.ie_tsch_timeslot.tx_offset = TSCH_DEFAULT_TS_TX_OFFSET;
+  ies.ie_tsch_timeslot.rx_offset = TSCH_DEFAULT_TS_RX_OFFSET;
+  ies.ie_tsch_timeslot.rx_ack_delay = TSCH_DEFAULT_TS_RX_ACK_DELAY;
+  ies.ie_tsch_timeslot.tx_ack_delay = TSCH_DEFAULT_TS_TX_ACK_DELAY;
+  ies.ie_tsch_timeslot.rx_wait = TSCH_DEFAULT_TS_RX_WAIT;
+  ies.ie_tsch_timeslot.ack_wait = TSCH_DEFAULT_TS_ACK_WAIT;
+  ies.ie_tsch_timeslot.rx_tx = TSCH_DEFAULT_TS_RX_TX;
+  ies.ie_tsch_timeslot.max_ack = TSCH_DEFAULT_TS_MAX_ACK;
+  ies.ie_tsch_timeslot.max_tx = TSCH_DEFAULT_TS_MAX_TX;
+  ies.ie_tsch_timeslot.timeslot_length = TSCH_DEFAULT_TS_TIMESLOT_LENGTH; */
 
   /* 6TiSCH minimal hopping sequence ID: 0 */
   ies.ie_channel_hopping_sequence_id = 0;

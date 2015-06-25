@@ -169,57 +169,41 @@
 #if TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 10000
 /* Default timeslot timing as per IEEE 802.15.4e */
 
-#define TSCH_DEFAULT_TS_CCA_OFFSET         US_TO_RTIMERTICKS(1800)
-#define TSCH_DEFAULT_TS_CCA                US_TO_RTIMERTICKS(128)
-#define TSCH_DEFAULT_TS_TX_OFFSET          US_TO_RTIMERTICKS(2120)
+#define TSCH_DEFAULT_TS_CCA_OFFSET         1800
+#define TSCH_DEFAULT_TS_CCA                128
+#define TSCH_DEFAULT_TS_TX_OFFSET          2120
 /* By standard, TS_RX_OFFSET is 1120us by default. To have the guard time
  * equally spent before and after the expected reception, use
  * (TS_TX_OFFSET - (TS_RX_WAIT / 2)) instead */
-#define TSCH_DEFAULT_TS_RX_OFFSET          US_TO_RTIMERTICKS(1120)
-#define TSCH_DEFAULT_TS_RX_ACK_DELAY       US_TO_RTIMERTICKS(800)
-#define TSCH_DEFAULT_TS_TX_ACK_DELAY       US_TO_RTIMERTICKS(1000)
-#define TSCH_DEFAULT_TS_RX_WAIT            US_TO_RTIMERTICKS(2200)
-#define TSCH_DEFAULT_TS_ACK_WAIT           US_TO_RTIMERTICKS(400)
-#define TSCH_DEFAULT_TS_RX_TX              US_TO_RTIMERTICKS(192)
-#define TSCH_DEFAULT_TS_MAX_ACK            US_TO_RTIMERTICKS(2400)
-#define TSCH_DEFAULT_TS_MAX_TX             US_TO_RTIMERTICKS(4256)
-#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    US_TO_RTIMERTICKS(10000)
+#define TSCH_DEFAULT_TS_RX_OFFSET          1120
+#define TSCH_DEFAULT_TS_RX_ACK_DELAY       800
+#define TSCH_DEFAULT_TS_TX_ACK_DELAY       1000
+#define TSCH_DEFAULT_TS_RX_WAIT            2200
+#define TSCH_DEFAULT_TS_ACK_WAIT           400
+#define TSCH_DEFAULT_TS_RX_TX              192
+#define TSCH_DEFAULT_TS_MAX_ACK            2400
+#define TSCH_DEFAULT_TS_MAX_TX             4256
+#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    10000
 
 #elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 15000
 /* Default timeslot timing for platfroms requiring 15ms slots */
 
-#define TSCH_DEFAULT_TS_CCA_OFFSET         US_TO_RTIMERTICKS(1800)
-#define TSCH_DEFAULT_TS_CCA                US_TO_RTIMERTICKS(128)
-#define TSCH_DEFAULT_TS_TX_OFFSET          US_TO_RTIMERTICKS(4000)
-#define TSCH_DEFAULT_TS_RX_OFFSET          US_TO_RTIMERTICKS(2900)
-#define TSCH_DEFAULT_TS_RX_ACK_DELAY       US_TO_RTIMERTICKS(3600)
-#define TSCH_DEFAULT_TS_TX_ACK_DELAY       US_TO_RTIMERTICKS(4000)
-#define TSCH_DEFAULT_TS_RX_WAIT            US_TO_RTIMERTICKS(2200)
-#define TSCH_DEFAULT_TS_ACK_WAIT           US_TO_RTIMERTICKS(800)
-#define TSCH_DEFAULT_TS_RX_TX              US_TO_RTIMERTICKS(2072)
-#define TSCH_DEFAULT_TS_MAX_ACK            US_TO_RTIMERTICKS(2400)
-#define TSCH_DEFAULT_TS_MAX_TX             US_TO_RTIMERTICKS(4256)
-#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    US_TO_RTIMERTICKS(15000)
+#define TSCH_DEFAULT_TS_CCA_OFFSET         1800
+#define TSCH_DEFAULT_TS_CCA                128
+#define TSCH_DEFAULT_TS_TX_OFFSET          4000
+#define TSCH_DEFAULT_TS_RX_OFFSET          2900
+#define TSCH_DEFAULT_TS_RX_ACK_DELAY       3600
+#define TSCH_DEFAULT_TS_TX_ACK_DELAY       4000
+#define TSCH_DEFAULT_TS_RX_WAIT            2200
+#define TSCH_DEFAULT_TS_ACK_WAIT           800
+#define TSCH_DEFAULT_TS_RX_TX              2072
+#define TSCH_DEFAULT_TS_MAX_ACK            2400
+#define TSCH_DEFAULT_TS_MAX_TX             4256
+#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    15000
 
 #else
 #error "TSCH: Unsupported default timeslot length"
 #endif
-
-/* Structure holding a complete description of TSCH timeslot timings */
-struct tsch_timeslot_timing_t {
-  rtimer_clock_t cca_offset;
-  rtimer_clock_t cca;
-  rtimer_clock_t tx_offset;
-  rtimer_clock_t rx_offset;
-  rtimer_clock_t rx_ack_delay;
-  rtimer_clock_t tx_ack_delay;
-  rtimer_clock_t rx_wait;
-  rtimer_clock_t ack_wait;
-  rtimer_clock_t tx_tx;
-  rtimer_clock_t max_ack;
-  rtimer_clock_t max_tx;
-  rtimer_clock_t timeslot_length;
-};
 
 /* Calculate packet tx/rx duration in rtimer ticks based on sent
  * packet len in bytes with 802.15.4 250kbps data rate.
@@ -230,8 +214,6 @@ struct tsch_timeslot_timing_t {
 #define TSCH_CLOCK_TO_TICKS(c) (((c)*RTIMER_SECOND)/CLOCK_SECOND)
 #define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c)/timeslot_length)
 
-/* Default TSCH timeslot timing */
-extern const struct tsch_timeslot_timing_t default_timeslot_timing;
 /* 802.15.4 broadcast MAC address */
 extern const linkaddr_t tsch_broadcast_address;
 /* The address we use to identify EB queue */

@@ -282,7 +282,7 @@ frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
       WRITE16(buf+i, ies->ie_tsch_timeslot.tx_ack_delay); i+=2;
       WRITE16(buf+i, ies->ie_tsch_timeslot.rx_wait); i+=2;
       WRITE16(buf+i, ies->ie_tsch_timeslot.ack_wait); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.tx_tx); i+=2;
+      WRITE16(buf+i, ies->ie_tsch_timeslot.rx_tx); i+=2;
       WRITE16(buf+i, ies->ie_tsch_timeslot.max_ack); i+=2;
       WRITE16(buf+i, ies->ie_tsch_timeslot.max_tx); i+=2;
       WRITE16(buf+i, ies->ie_tsch_timeslot.timeslot_length); i+=2;
@@ -411,7 +411,7 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
             READ16(buf+i, ies->ie_tsch_timeslot.tx_ack_delay); i+=2;
             READ16(buf+i, ies->ie_tsch_timeslot.rx_wait); i+=2;
             READ16(buf+i, ies->ie_tsch_timeslot.ack_wait); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.tx_tx); i+=2;
+            READ16(buf+i, ies->ie_tsch_timeslot.rx_tx); i+=2;
             READ16(buf+i, ies->ie_tsch_timeslot.max_ack); i+=2;
             READ16(buf+i, ies->ie_tsch_timeslot.max_tx); i+=2;
             READ16(buf+i, ies->ie_tsch_timeslot.timeslot_length); i+=2;
@@ -457,8 +457,8 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
   uint8_t *start = buf;
   uint16_t ie_desc;
   uint8_t type;
-  uint16_t len;
   uint8_t id;
+  uint16_t len = 0;
   int nested_mlme_len = 0;
   enum {PARSING_HEADER_IE, PARSING_PAYLOAD_IE, PARSING_MLME_SUBIE} parsing_state;
 
