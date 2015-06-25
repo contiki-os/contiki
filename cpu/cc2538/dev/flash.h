@@ -36,21 +36,27 @@
  * \addtogroup cc2538
  * @{
  *
- * \defgroup cc2538-flash-cca cc2538 flash CCA
+ * \defgroup cc2538-flash cc2538 flash memory
  *
- * Definitions for the cc2538 flash lock bit page and customer configuration
- * area
+ * Definitions for the cc2538 flash memory
  * @{
  *
  * \file
- * Header file for the flash lock bit page and CCA definitions
+ * Header file for the flash memory definitions
  */
-#ifndef FLASH_CCA_H_
-#define FLASH_CCA_H_
+#ifndef FLASH_H_
+#define FLASH_H_
 
 #include "dev/cc2538-dev.h"
 
 #include <stdint.h>
+/*---------------------------------------------------------------------------*/
+/** \name Flash memory organization
+ * @{
+ */
+#define FLASH_PAGE_SIZE 2048
+#define FLASH_WORD_SIZE 4
+/** @} */
 /*---------------------------------------------------------------------------*/
 /** \name Flash lock bit page and CCA location
  * @{
@@ -95,7 +101,7 @@ typedef struct {
 } flash_cca_lock_page_t;
 /** @} */
 
-#endif /* FLASH_CCA_H_ */
+#endif /* FLASH_H_ */
 
 /**
  * @}

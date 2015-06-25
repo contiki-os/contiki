@@ -111,7 +111,7 @@ CUSTOM_RULE_LINK=1
 LDGENFLAGS += $(addprefix -D,$(subst $(COMMA), ,$(DEFINES)))
 LDGENFLAGS += $(addprefix -I,$(SOURCEDIRS))
 LDGENFLAGS += -imacros "contiki-conf.h" -imacros "dev/cc2538-dev.h"
-LDGENFLAGS += -imacros "dev/flash-cca.h"
+LDGENFLAGS += -imacros "dev/flash.h"
 LDGENFLAGS += -x c -P -E
 
 # NB: Assumes LDSCRIPT was not overridden and is in $(OBJECTDIR)
