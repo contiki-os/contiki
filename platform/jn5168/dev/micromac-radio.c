@@ -130,14 +130,6 @@ static const struct output_config output_power[] = {
 #define MMAC_TX_AUTO_ACK_CONF E_MMAC_TX_NO_AUTO_ACK
 #endif /* MICROMAC_CONF_AUTOACK */
 
-#ifndef IEEE802154_PANID
-#ifdef IEEE802154_CONF_PANID
-#define IEEE802154_PANID           IEEE802154_CONF_PANID
-#else
-#define IEEE802154_PANID           0xABCD
-#endif
-#endif
-
 #define RADIO_TO_RTIMER(X) ((rtimer_clock_t)((X) << (int32_t)8L))
 
 /* Set radio always on for now because this is what Contiki MAC layers

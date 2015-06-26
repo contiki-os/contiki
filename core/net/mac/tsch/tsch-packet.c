@@ -162,8 +162,11 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
   p.fcf.ie_list_present = 1;
   p.fcf.frame_version = FRAME802154_IEEE802154;
   p.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
+  p.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
   p.seq = seqno;
-  p.src_pid = IEEE802154_PANID;
+
+  p.src_pid = frame802154_get_pan_id();
+  p.dest_pid = 0xffff;
   linkaddr_copy((linkaddr_t*)&p.src_addr, &linkaddr_node_addr);
 
   if((curr_len = frame802154_create(&p, buf)) == 0) {
@@ -275,7 +278,7 @@ tsch_packet_update_eb(uint8_t *buf, uint8_t buf_size, uint8_t tsch_sync_ie_offse
 /* Parse a IEEE 802.15.4e TSCH Enhanced Beacon (EB) */
 int
 tsch_packet_parse_eb(uint8_t *buf, uint8_t buf_size,
-    linkaddr_t *source_address, struct ieee802154_ies *ies)
+    linkaddr_t *source_address, uint16_t *source_pan_id, struct ieee802154_ies *ies)
 {
   frame802154_t frame;
   uint8_t curr_len = 0;
@@ -295,6 +298,11 @@ tsch_packet_parse_eb(uint8_t *buf, uint8_t buf_size,
   if(source_address != NULL) {
     linkaddr_copy(source_address, (linkaddr_t *)frame.src_addr);
   }
+
+  if(source_pan_id != NULL) {
+    *source_pan_id = frame.src_pid;
+  }
+
   curr_len += ret;
 
   if(ies != NULL) {

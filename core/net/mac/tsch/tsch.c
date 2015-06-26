@@ -521,12 +521,13 @@ eb_input(struct input_packet *current_input)
 {
   /* LOG("TSCH: EB received\n"); */
   linkaddr_t source_address;
+  uint16_t source_pan_id;
   /* Verify incoming EB (does its ASN match our Rx time?),
    * and update our join priority. */
   struct ieee802154_ies eb_ies;
 
   if(tsch_packet_parse_eb(current_input->payload, current_input->len,
-      &source_address, &eb_ies)) {
+      &source_address, &source_pan_id, &eb_ies) && source_pan_id == frame802154_get_pan_id()) {
 
 #if TSCH_EB_AUTOSELECT
     if(!tsch_is_coordinator) {
@@ -1272,6 +1273,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
   if(tsch_is_coordinator) {
     /* We are coordinator, start operating now */
 
+    frame802154_set_pan_id(IEEE802154_PANID);
     /* Initialize hopping sequence as default */
     ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
 #if TSCH_WITH_MINIMAL_SCHEDULE
@@ -1318,6 +1320,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
       if(is_packet_pending) {
         struct ieee802154_ies ies;
         linkaddr_t source_address;
+        uint16_t source_pan_id;
         int eb_parsed = 0;
 
         /* Save packet timestamp */
@@ -1330,7 +1333,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
           /* Parse EB and extract ASN and join priority */
           LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
           eb_parsed = tsch_packet_parse_eb(input_eb.payload, input_eb.len,
-              &source_address, &ies);
+              &source_address, &source_pan_id, &ies);
           current_asn = ies.ie_asn;
           tsch_join_priority = ies.ie_join_priority + 1;
         }
@@ -1437,7 +1440,11 @@ PT_THREAD(tsch_associate(struct pt *pt))
             /* Association done, schedule keepalive messages */
             tsch_schedule_keepalive();
 
-            LOG("TSCH: association done, asn-%x.%lx, jp %u, from %u, time source %u\n",
+            /* Set PANID */
+            frame802154_set_pan_id(source_pan_id);
+
+            LOG("TSCH: association done, PAN ID %x, asn-%x.%lx, jp %u, from %u, time source %u\n",
+                source_pan_id,
                 current_asn.ms1b, current_asn.ls4b, tsch_join_priority,
                 LOG_NODEID_FROM_LINKADDR(&source_address),
                 LOG_NODEID_FROM_LINKADDR(&tsch_queue_get_time_source()->addr));
@@ -1673,6 +1680,7 @@ tsch_reset_timeslot_timing(void)
 static void
 tsch_reset(void)
 {
+  frame802154_set_pan_id(0xffff);
   /* First make sure pending packet callbacks are sent etc */
   process_post_synch(&tsch_pending_events_process, PROCESS_EVENT_POLL, NULL);
   /* Empty all neighbor queues */

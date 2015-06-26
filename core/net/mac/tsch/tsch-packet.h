@@ -62,6 +62,6 @@ int tsch_packet_update_eb(uint8_t *buf, uint8_t buf_size, uint8_t tsch_sync_ie_o
 
 /* Parse EB and extract ASN and join priority */
 int tsch_packet_parse_eb(uint8_t *buf, uint8_t buf_size,
-    linkaddr_t *source_address, struct ieee802154_ies *ies);
+    linkaddr_t *source_address, uint16_t *source_pan_id, struct ieee802154_ies *ies);
 
 #endif /* __TSCH_PACKET_H__ */

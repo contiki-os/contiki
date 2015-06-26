@@ -63,17 +63,23 @@ static uint8_t mac_dsn;
 static uint8_t initialized = 0;
 
 /**  \brief The 16-bit identifier of the PAN on which the device is
- *   sending to.  If this value is 0xffff, the device is not
- *   associated.
- */
-static const uint16_t mac_dst_pan_id = IEEE802154_PANID;
-
-/**  \brief The 16-bit identifier of the PAN on which the device is
  *   operating.  If this value is 0xffff, the device is not
  *   associated.
  */
-static const uint16_t mac_src_pan_id = IEEE802154_PANID;
+static uint16_t mac_pan_id = IEEE802154_PANID;
 
+/*---------------------------------------------------------------------------*/
+uint16_t
+frame802154_get_pan_id()
+{
+  return mac_pan_id;
+}
+/*---------------------------------------------------------------------------*/
+void
+frame802154_set_pan_id(uint16_t pan_id)
+{
+  mac_pan_id = pan_id;
+}
 /*---------------------------------------------------------------------------*/
 static int
 is_broadcast_addr(uint8_t mode, uint8_t *addr)
@@ -92,6 +98,10 @@ create_frame(int type, int do_create)
 {
   frame802154_t params;
   int hdr_len;
+
+  if(mac_pan_id == 0xffff) {
+   return -1;
+  }
 
   /* init to zeros */
   memset(&params, 0, sizeof(params));
@@ -157,7 +167,7 @@ create_frame(int type, int do_create)
   } else {
     params.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
   }
-  params.dest_pid = mac_dst_pan_id;
+  params.dest_pid = mac_pan_id;
 
   if(packetbuf_holds_broadcast()) {
     /* Broadcast requires short address mode. */
@@ -177,7 +187,7 @@ create_frame(int type, int do_create)
   }
 
   /* Set the source PAN ID to the global variable. */
-  params.src_pid = mac_src_pan_id;
+  params.src_pid = mac_pan_id;
 
   /*
    * Set up the source address using only the long address mode for
@@ -230,7 +240,7 @@ parse(void)
     packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, frame.fcf.frame_type);
     
     if(frame.fcf.dest_addr_mode) {
-      if(frame.dest_pid != mac_src_pan_id &&
+      if(frame.dest_pid != mac_pan_id &&
           frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         PRINTF("15.4: for another pan %u\n", frame.dest_pid);
@@ -280,7 +290,7 @@ frame802154_packet_extract_addresses(frame802154_t *frame,
       linkaddr_copy(dest_address, &linkaddr_null);
     }
     if(frame->fcf.dest_addr_mode) {
-      if(frame->dest_pid != mac_src_pan_id
+      if(frame->dest_pid != mac_pan_id
           && frame->dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         return 0;

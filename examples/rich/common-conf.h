@@ -150,6 +150,9 @@
 
 /* Netstack */
 
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID       0x81B2
+
 /* Link-layer security */
 /* #undef NETSTACK_CONF_LLSEC
 #define NETSTACK_CONF_LLSEC noncoresec_driver
