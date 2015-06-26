@@ -50,6 +50,12 @@
 static uint32_t counter;
 
 /*---------------------------------------------------------------------------*/
+uint32_t
+anti_replay_next_counter(void)
+{
+  return ++counter;
+}
+/*---------------------------------------------------------------------------*/
 void
 anti_replay_set_counter(void)
 {

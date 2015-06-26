@@ -39,6 +39,10 @@
 #include "platform-conf.h"
 #endif /* PLATFORM_CONF_H */
 
+#ifndef CCM_STAR_CONF
+#define CCM_STAR_CONF ccm_star_driver_jn5168
+#endif /* CCM_STAR_CONF */
+
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     tschmac_driver
 #endif /* NETSTACK_CONF_MAC */

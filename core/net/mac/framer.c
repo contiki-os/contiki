@@ -41,7 +41,7 @@ framer_canonical_create_and_secure(void)
   hdr_len = NETSTACK_FRAMER.create();
   if(hdr_len >= 0) {
     packetbuf_compact();
-    if(!NETSTACK_LLSEC.on_frame_created()) {
+    if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) && !NETSTACK_LLSEC.on_frame_created()) {
       return FRAMER_FAILED;
     }
   }

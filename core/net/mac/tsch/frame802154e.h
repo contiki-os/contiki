@@ -79,6 +79,7 @@ struct ieee802154_ies {
   int16_t ie_time_correction;
   uint8_t ie_is_nack;
   /* Payload MLME */
+  uint8_t ie_payload_ie_offset;
   uint16_t ie_mlme_len;
   /* Payload Short MLME IEs */
   uint8_t ie_tsch_synchronization_offset;
@@ -96,7 +97,7 @@ struct ieee802154_ies {
 
 /** Insert various Information Elements **/
 /* Header IE. ACK/NACK time correction. Used in enhanced ACKs */
-int frame80215e_create_ie_ack_nack_time_correction(uint8_t *buf, int len,
+int frame80215e_create_ie_header_ack_nack_time_correction(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
 /* Header IE. List termination 1 (Signals the end of the Header IEs when
  * followed by payload IEs) */
@@ -126,6 +127,7 @@ int frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
 
 /* Parse all Information Elements of a frame */
-int frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size, struct ieee802154_ies *ies);
+int frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
+    struct ieee802154_ies *ies);
 
 #endif /* FRAME_802154E_H */

@@ -52,6 +52,8 @@ struct anti_replay_info {
   uint32_t last_unicast_counter;
 };
 
+uint32_t anti_replay_next_counter(void);
+
 /**
  * \brief Sets the frame counter packetbuf attributes.
  */

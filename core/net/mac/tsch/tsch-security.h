@@ -32,38 +32,59 @@
 
 /**
  * \file
- *         TSCH packet format management
+ *         TSCH security
  * \author
- *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennoy <simonduq@sics.se>
  */
 
-#ifndef __TSCH_PACKET_H__
-#define __TSCH_PACKET_H__
+#ifndef __TSCH_SECURITY_H__
+#define __TSCH_SECURITY_H__
 
 #include "contiki.h"
+#include "net/mac/tsch/tsch-asn.h"
 #include "net/mac/tsch/tsch-private.h"
-#include "net/mac/frame802154.h"
 #include "net/mac/tsch/frame802154e.h"
 
-/* Construct enhanced ACK packet and return ACK length */
-int tsch_packet_create_eack(uint8_t *buf, int buf_size,
-    linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack);
+#ifdef TSCH_SECURITY_CONF_KEY_INDEX_EB
+#define TSCH_SECURITY_KEY_INDEX_EB TSCH_SECURITY_CONF_KEY_INDEX_EB
+#else
+#define TSCH_SECURITY_KEY_INDEX_EB 1
+#endif
 
-/* Parse enhanced ACK packet, extract drift and nack */
-int tsch_packet_parse_eack(uint8_t *buf, int buf_size,
-    uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len);
+#ifdef TSCH_SECURITY_CONF_SEC_LEVEL_EB
+#define TSCH_SECURITY_KEY_SEC_LEVEL_EB TSCH_SECURITY_CONF_SEC_LEVEL_EB
+#else
+#define TSCH_SECURITY_KEY_SEC_LEVEL_EB 1 /* MIC-32 */
+#endif
 
-/* Create an EB packet */
-int tsch_packet_create_eb(uint8_t *buf, int buf_size,
-    uint8_t seqno, uint8_t *hdr_len, uint8_t *tsch_sync_ie_ptr);
+#ifdef TSCH_SECURITY_CONF_KEY_INDEX_ACK
+#define TSCH_SECURITY_KEY_INDEX_ACK TSCH_SECURITY_CONF_KEY_INDEX_ACK
+#else
+#define TSCH_SECURITY_KEY_INDEX_ACK 2
+#endif
 
-/* Update ASN in EB packet */
-int tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset);
+#ifdef TSCH_SECURITY_CONF_SEC_LEVEL_ACK
+#define TSCH_SECURITY_KEY_SEC_LEVEL_ACK TSCH_SECURITY_CONF_SEC_LEVEL_ACK
+#else
+#define TSCH_SECURITY_KEY_SEC_LEVEL_ACK 5 /* Ecnryption + MIC-32 */
+#endif
 
-/* Parse EB and extract ASN and join priority */
-int tsch_packet_parse_eb(uint8_t *buf, int buf_size,
-    frame802154_t *frame, struct ieee802154_ies *ies,
-    uint8_t *hdrlen, int frame_without_mic);
+#ifdef TSCH_SECURITY_CONF_KEY_INDEX_OTHER
+#define TSCH_SECURITY_KEY_INDEX_OTHER TSCH_SECURITY_CONF_KEY_INDEX_OTHER
+#else
+#define TSCH_SECURITY_KEY_INDEX_OTHER 2
+#endif
 
-#endif /* __TSCH_PACKET_H__ */
+#ifdef TSCH_SECURITY_CONF_SEC_LEVEL_OTHER
+#define TSCH_SECURITY_KEY_SEC_LEVEL_ACK TSCH_SECURITY_CONF_SEC_LEVEL_OTHER
+#else
+#define TSCH_SECURITY_KEY_SEC_LEVEL_OTHER 5 /* Ecnryption + MIC-32 */
+#endif
+
+int tsch_security_mic_len(frame802154_t *frame);
+int tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
+    int hdrlen, int datalen, struct asn_t *asn);
+int tsch_security_parse_frame(uint8_t *hdr, int hdrlen, int datalen,
+    frame802154_t *frame, const linkaddr_t *sender, struct asn_t *asn);
+
+#endif /* __TSCH_SECURITY_H__ */

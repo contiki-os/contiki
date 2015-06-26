@@ -53,6 +53,7 @@
 #include "net/mac/tsch/tsch-log.h"
 #include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/tsch/tsch-security.h"
 #include "net/mac/frame802154.h"
 #include "lib/random.h"
 #include "lib/ringbufindex.h"
@@ -468,6 +469,7 @@ send_packet(mac_callback_t sent, void *ptr)
 {
   int ret = MAC_TX_DEFERRED;
   int packet_count_before;
+  int hdr_len = 0;
   const linkaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
   if(!tsch_is_associated) {
@@ -494,21 +496,33 @@ send_packet(mac_callback_t sent, void *ptr)
   }
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
 
+#if LLSEC802154_SECURITY_LEVEL
+  /* Set security level, key id and index */
+  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_OTHER);
+  packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
+  packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_OTHER);
+#endif
+
   packet_count_before = tsch_queue_packet_count(addr);
 
-  if(NETSTACK_FRAMER.create_and_secure() < 0) {
+  if((hdr_len = NETSTACK_FRAMER.create_and_secure()) < 0) {
     LOGP("TSCH:! can't send packet due to framer error");
     ret = MAC_TX_ERR;
   } else {
+    struct tsch_packet *p;
     /* Enqueue packet */
-    if(!tsch_queue_add_packet(addr, sent, ptr)) {
+    p = tsch_queue_add_packet(addr, sent, ptr);
+    if(p == NULL) {
       LOGP("TSCH:! can't send packet !tsch_queue_add_packet");
       ret = MAC_TX_ERR;
     } else {
-      LOGP("TSCH: send packet to %u with seqno %u, queue %u %u",
+      p->header_len = hdr_len;
+      LOGP("TSCH: send packet to %u with seqno %u, queue %u %u, len %u %u",
             LOG_NODEID_FROM_LINKADDR(addr), tsch_packet_seqno,
             packet_count_before,
-            tsch_queue_packet_count(addr));
+            tsch_queue_packet_count(addr),
+            p->header_len,
+            queuebuf_datalen(p->qb));
     }
   }
   if(ret != MAC_TX_DEFERRED) {
@@ -520,21 +534,21 @@ static void
 eb_input(struct input_packet *current_input)
 {
   /* LOG("TSCH: EB received\n"); */
-  linkaddr_t source_address;
-  uint16_t source_pan_id;
+  frame802154_t frame;
   /* Verify incoming EB (does its ASN match our Rx time?),
    * and update our join priority. */
   struct ieee802154_ies eb_ies;
 
   if(tsch_packet_parse_eb(current_input->payload, current_input->len,
-      &source_address, &source_pan_id, &eb_ies) && source_pan_id == frame802154_get_pan_id()) {
+      &frame, &eb_ies, NULL, 1)) {
+    /* PAN ID check and authentication done at rx time */
 
-#if TSCH_EB_AUTOSELECT
+ #if TSCH_EB_AUTOSELECT
     if(!tsch_is_coordinator) {
       /* Maintain EB received counter for every neighbor */
-      struct eb_stat *stat = (struct eb_stat *)nbr_table_get_from_lladdr(eb_stats, &source_address);
+      struct eb_stat *stat = (struct eb_stat *)nbr_table_get_from_lladdr(eb_stats, &frame.src_addr);
       if(stat == NULL) {
-        stat = (struct eb_stat *)nbr_table_add_lladdr(eb_stats, &source_address);
+        stat = (struct eb_stat *)nbr_table_add_lladdr(eb_stats, &frame.src_addr);
       }
       if(stat != NULL) {
         stat->rx_count++;
@@ -564,7 +578,7 @@ eb_input(struct input_packet *current_input)
 
     struct tsch_neighbor *n = tsch_queue_get_time_source();
     /* Did the EB come from our time source? */
-    if(n != NULL && linkaddr_cmp(&source_address, &n->addr)) {
+    if(n != NULL && linkaddr_cmp((linkaddr_t*)&frame.src_addr, &n->addr)) {
       /* Check for ASN drift */
       int32_t asn_diff = ASN_DIFF(current_input->rx_asn, eb_ies.ie_asn);
       if(asn_diff != 0) {
@@ -609,15 +623,11 @@ eb_input(struct input_packet *current_input)
 static void
 packet_input(void)
 {
-#ifdef NETSTACK_DECRYPT
-  NETSTACK_DECRYPT();
-#endif /* NETSTACK_DECRYPT */
-
   int frame_parsed = 1;
 
   frame_parsed = NETSTACK_FRAMER.parse();
 
-    if(frame_parsed < 0) {
+  if(frame_parsed < 0) {
       LOGP("TSCH:! failed to parse %u", packetbuf_datalen());
 #if TSCH_ADDRESS_FILTER
   } else if(!linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
@@ -683,8 +693,7 @@ keepalive_send()
     /* Simply send an empty packet */
     packetbuf_clear();
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &n->addr);
-    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
-    send_packet(keepalive_packet_sent, NULL);
+    NETSTACK_LLSEC.send(keepalive_packet_sent, NULL);
     LOG("TSCH: sending KA to %u\n",
         LOG_NODEID_FROM_LINKADDR(&n->addr));
   }
@@ -815,9 +824,13 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
       mac_tx_status = MAC_TX_ERR_FATAL;
     } else {
       /* packet payload */
-      static void *payload;
+      static void *packet;
+#if LLSEC802154_SECURITY_LEVEL
+      /* encrypted payload */
+      static uint8_t encrypted_packet[TSCH_MAX_PACKET_LEN];
+#endif
       /* packet payload length */
-      static uint8_t payload_len;
+      static uint8_t packet_len;
       /* packet seqno */
       static uint8_t seqno;
       /* is this a broadcast packet? (wait for ack?) */
@@ -829,21 +842,34 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
 #endif
 
       /* get payload */
-      payload = queuebuf_dataptr(current_packet->qb);
-      payload_len = queuebuf_datalen(current_packet->qb);
+      packet = queuebuf_dataptr(current_packet->qb);
+      packet_len = queuebuf_datalen(current_packet->qb);
       /* is this a broadcast packet? (wait for ack?) */
       is_broadcast = current_neighbor->is_broadcast;
-      is_data = ((((uint8_t *)(payload))[0]) & 7) == FRAME802154_DATAFRAME;
+      is_data = ((((uint8_t *)(packet))[0]) & 7) == FRAME802154_DATAFRAME;
       /* read seqno from payload */
-      seqno = ((uint8_t *)(payload))[2];
+      seqno = ((uint8_t *)(packet))[2];
       /* if this is an EB, then update its Sync-IE */
       if(current_neighbor == n_eb) {
-        packet_ready = tsch_packet_update_eb(payload, payload_len, current_packet->tsch_sync_ie_offset);
+        packet_ready = tsch_packet_update_eb(packet, packet_len, current_packet->tsch_sync_ie_offset);
       } else {
         packet_ready = 1;
       }
+
+#if LLSEC802154_SECURITY_LEVEL
+      /* If we are going to encrypt, we need to generate the output in a separate buffer and keep
+       * the original untouched. This is to allow for future retransmissions. */
+      int with_encryption = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL) & 0x4;
+      with_encryption = 1;
+      packet_len += tsch_security_secure_frame(packet, with_encryption ? encrypted_packet : packet, current_packet->header_len,
+          packet_len - current_packet->header_len, &current_asn);
+      if(with_encryption) {
+        packet = encrypted_packet;
+      }
+#endif
+
       /* prepare packet to send: copy to radio buffer */
-      if(packet_ready && NETSTACK_RADIO.prepare(payload, payload_len) == 0) { /* 0 means success */
+      if(packet_ready && NETSTACK_RADIO.prepare(packet, packet_len) == 0) { /* 0 means success */
         static rtimer_clock_t tx_duration;
 
 #if CCA_ENABLED
@@ -867,11 +893,11 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
           TSCH_SCHEDULE_AND_YIELD(pt, t, current_link_start, tsch_timing_tx_offset - RADIO_DELAY_BEFORE_TX, "TxBeforeTx");
           TSCH_DEBUG_TX_EVENT();
           /* send packet already in radio tx buffer */
-          mac_tx_status = NETSTACK_RADIO.transmit(payload_len);
+          mac_tx_status = NETSTACK_RADIO.transmit(packet_len);
           /* Save tx timestamp */
           tx_start_time = current_link_start + tsch_timing_tx_offset;
           /* calculate TX duration based on sent packet len */
-          tx_duration = TSCH_PACKET_DURATION(payload_len);
+          tx_duration = TSCH_PACKET_DURATION(packet_len);
           /* limit tx_time to its max value */
           tx_duration = MIN(tx_duration, tsch_timing_max_tx);
           /* turn tadio off -- will turn on again to wait for ACK if needed */
@@ -879,14 +905,14 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
 
           if(mac_tx_status == RADIO_TX_OK) {
             if(!is_broadcast) {
-              uint8_t ackbuf[TSCH_MAX_ACK_LEN];
+              uint8_t ackbuf[TSCH_MAX_PACKET_LEN];
               int ack_len;
-              int ret;
               rtimer_clock_t ack_start_time;
               int is_time_source;
               radio_value_t radio_rx_mode;
               struct ieee802154_ies ack_ies;
-              int32_t eack_time_correction;
+              uint8_t ack_hdrlen;
+              frame802154_t frame;
 
               /* Entering promiscuous mode so that the radio accepts the enhanced ACK */
               NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
@@ -916,11 +942,33 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
               /* Read ack frame */
               ack_len = NETSTACK_RADIO.read((void *)ackbuf, sizeof(ackbuf));
 
-              is_time_source = current_neighbor != NULL && current_neighbor->is_time_source;
-              ret = tsch_packet_parse_eack(ackbuf, ack_len, seqno, &ack_ies);
-              eack_time_correction = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
+              is_time_source = 0;
+              if(ack_len > 0) {
+                is_time_source = current_neighbor != NULL && current_neighbor->is_time_source;
+                if(tsch_packet_parse_eack(ackbuf, ack_len, seqno,
+                    &frame, &ack_ies, &ack_hdrlen) == 0) {
+                  ack_len = 0;
+                }
 
-              if(ret != 0) {
+#if LLSEC802154_SECURITY_LEVEL
+                if(ack_len != 0) {
+                  if(!tsch_security_parse_frame(ackbuf, ack_hdrlen, ack_len - ack_hdrlen - tsch_security_mic_len(&frame),
+                      &frame, &current_neighbor->addr, &current_asn)) {
+                    TSCH_LOG_ADD(tsch_log_message,
+                        snprintf(log->message, sizeof(log->message),
+                        "!failed to authenticate ACK"););
+                    ack_len = 0;
+                  }
+                } else {
+                  TSCH_LOG_ADD(tsch_log_message,
+                      snprintf(log->message, sizeof(log->message),
+                      "!failed to parse ACK"););
+                }
+#endif
+              }
+
+              if(ack_len != 0) {
+                int32_t eack_time_correction = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
                 if(is_time_source && eack_time_correction != 0) {
 #if TRUNCATE_SYNC_IE
                   if(eack_time_correction > TRUNCATE_SYNC_IE_BOUND) {
@@ -1023,6 +1071,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
     /* Rx timestamps */
     static rtimer_clock_t rx_start_time;
     static rtimer_clock_t expected_rx_time;
+    static rtimer_clock_t packet_duration;
 
     expected_rx_time = current_link_start + tsch_timing_tx_offset;
     /* Default start time: expected Rx time */
@@ -1061,6 +1110,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
 
       if(NETSTACK_RADIO.pending_packet()) {
         static int frame_valid;
+        static int header_len;
         static frame802154_t frame;
         radio_value_t radio_last_rssi;
 
@@ -1069,8 +1119,31 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
         current_input->len = NETSTACK_RADIO.read((void *)current_input->payload, TSCH_MAX_PACKET_LEN);
         current_input->rx_asn = current_asn;
         current_input->rssi = (signed)radio_last_rssi;
-        frame_valid = frame802154_parse((uint8_t*)current_input->payload, current_input->len, &frame);
-        frame_valid = frame_valid && frame802154_packet_extract_addresses(&frame, &source_address, &destination_address);
+        header_len = frame802154_parse((uint8_t*)current_input->payload, current_input->len, &frame);
+        frame_valid = header_len > 0 && frame802154_packet_extract_addresses(&frame, &source_address, &destination_address);
+
+        packet_duration = TSCH_PACKET_DURATION(current_input->len);
+
+#if LLSEC802154_SECURITY_LEVEL
+        /* Decrypt and verify incoming frame */
+        if(frame_valid) {
+          if(tsch_security_parse_frame(
+              current_input->payload, header_len, current_input->len - header_len - tsch_security_mic_len(&frame),
+              &frame, &source_address, &current_asn)) {
+            current_input->len -= tsch_security_mic_len(&frame);
+          } else {
+            TSCH_LOG_ADD(tsch_log_message,
+                snprintf(log->message, sizeof(log->message),
+                "!failed to authenticate frame %u", current_input->len););
+            frame_valid = 0;
+          }
+        } else {
+          TSCH_LOG_ADD(tsch_log_message,
+              snprintf(log->message, sizeof(log->message),
+              "!failed to parse frame %u", current_input->len););
+          frame_valid = 0;
+        }
+#endif
 
         if(frame_valid) {
           if(linkaddr_cmp(&destination_address, &linkaddr_node_addr)
@@ -1086,18 +1159,24 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
 #endif
 
             if(frame.fcf.ack_required) {
-              static uint8_t ack_buf[TSCH_MAX_ACK_LEN];
+              static uint8_t ack_buf[TSCH_MAX_PACKET_LEN];
               static int ack_len;
 
               /* Build ACK frame */
               ack_len = tsch_packet_create_eack(ack_buf, sizeof(ack_buf),
                   &source_address, frame.seq, (int16_t)RTIMERTICKS_TO_US(estimated_drift), do_nack);
+
+#if LLSEC802154_SECURITY_LEVEL
+              /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
+              ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &current_asn);
+#endif
+
               /* Copy to radio buffer */
               NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);
 
               /* Wait for time to ACK and transmit ACK */
               TSCH_SCHEDULE_AND_YIELD(pt, t, rx_start_time,
-                  TSCH_PACKET_DURATION(current_input->len) + tsch_timing_tx_ack_delay - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
+                  packet_duration + tsch_timing_tx_ack_delay - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
               TSCH_DEBUG_RX_EVENT();
               NETSTACK_RADIO.transmit(ack_len);
             }
@@ -1118,7 +1197,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
 
             /* Log every reception */
             TSCH_LOG_ADD(tsch_log_rx,
-              log->rx.src = LOG_NODEID_FROM_LINKADDR(&source_address);
+              log->rx.src = LOG_NODEID_FROM_LINKADDR((linkaddr_t*)&frame.src_addr);
               log->rx.is_unicast = frame.fcf.ack_required;
               log->rx.datalen = current_input->len;
               log->rx.drift = drift_correction;
@@ -1318,28 +1397,43 @@ PT_THREAD(tsch_associate(struct pt *pt))
       }
 
       if(is_packet_pending) {
+        frame802154_t frame;
         struct ieee802154_ies ies;
-        linkaddr_t source_address;
-        uint16_t source_pan_id;
         int eb_parsed = 0;
+        int eb_parsing_err = 0;
+        uint8_t hdrlen;
+
+        printf("TSCH: packet pending\n");
 
         /* Save packet timestamp */
         NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
 
         /* Read packet */
         input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_MAX_PACKET_LEN);
+        printf("TSCH: packet read %u bytes\n", input_eb.len);
 
-        if(input_eb.len != 0) {
-          /* Parse EB and extract ASN and join priority */
-          LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
-          eb_parsed = tsch_packet_parse_eb(input_eb.payload, input_eb.len,
-              &source_address, &source_pan_id, &ies);
-          current_asn = ies.ie_asn;
-          tsch_join_priority = ies.ie_join_priority + 1;
+        /* Parse EB and extract ASN and join priority */
+        LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
+        eb_parsed = input_eb.len > 0 &&
+            tsch_packet_parse_eb(input_eb.payload, input_eb.len,
+                &frame, &ies, &hdrlen, 0);
+        current_asn = ies.ie_asn;
+        tsch_join_priority = ies.ie_join_priority + 1;
+
+#if LLSEC802154_SECURITY_LEVEL
+        if(eb_parsed &&
+            !tsch_security_parse_frame(input_eb.payload, hdrlen,
+                input_eb.len - hdrlen - tsch_security_mic_len(&frame),
+            &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
+          LOG("TSCH:! parse_eb: failed to authenticate\n");
+          eb_parsing_err = 1;
+          eb_parsed = 0;
         }
+#endif
 
         /* There was no join priority (or 0xff) in the EB, do not join */
         if(ies.ie_join_priority == 0xff) {
+          eb_parsing_err = 2;
           eb_parsed = 0;
         }
 
@@ -1370,6 +1464,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
             memcpy(hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
             ASN_DIVISOR_INIT(hopping_sequence_length, ies.ie_hopping_sequence_len);
           } else {
+            eb_parsing_err = 3;
             eb_parsed = 0;
           }
         }
@@ -1383,6 +1478,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
           if(asn_diff > asn_threshold) {
             LOG("TSCH:! EB ASN rejected %lx %lx %ld\n",
               current_asn.ls4b, expected_asn, asn_diff);
+            eb_parsing_err = 4;
             eb_parsed = 0;
           }
         }
@@ -1393,6 +1489,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
 #if TSCH_WITH_MINIMAL_SCHEDULE
           tsch_schedule_create_minimal();
 #else
+          eb_parsing_err = 5;
           eb_parsed = 0;
 #endif
         } else {
@@ -1410,6 +1507,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
                   ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
             }
           } else {
+            eb_parsing_err = 6;
             eb_parsed = 0;
           }
         }
@@ -1418,10 +1516,10 @@ PT_THREAD(tsch_associate(struct pt *pt))
           struct tsch_neighbor *n;
 
           /* Add coordinator to list of neighbors, lock the entry */
-          n = tsch_queue_add_nbr(&source_address);
+          n = tsch_queue_add_nbr((linkaddr_t*)&frame.src_addr);
 
           if(n != NULL) {
-            tsch_queue_update_time_source(&source_address);
+            tsch_queue_update_time_source((linkaddr_t*)&frame.src_addr);
 
             /* Use this ASN as "last synchronization ASN" */
             last_sync_asn = current_asn;
@@ -1441,14 +1539,19 @@ PT_THREAD(tsch_associate(struct pt *pt))
             tsch_schedule_keepalive();
 
             /* Set PANID */
-            frame802154_set_pan_id(source_pan_id);
+            frame802154_set_pan_id(frame.src_pid);
 
-            LOG("TSCH: association done, PAN ID %x, asn-%x.%lx, jp %u, from %u, time source %u\n",
-                source_pan_id,
+            LOG("TSCH: association done, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe and links %u %u, from %u\n",
+                frame.src_pid,
                 current_asn.ms1b, current_asn.ls4b, tsch_join_priority,
-                LOG_NODEID_FROM_LINKADDR(&source_address),
-                LOG_NODEID_FROM_LINKADDR(&tsch_queue_get_time_source()->addr));
+                ies.ie_tsch_timeslot_id,
+                ies.ie_channel_hopping_sequence_id,
+                ies.ie_tsch_slotframe_and_link.num_slotframes,
+                ies.ie_tsch_slotframe_and_link.num_links,
+                LOG_NODEID_FROM_LINKADDR((linkaddr_t*)&frame.src_addr));
           }
+        } else {
+          LOG("TSCH:! did not associate. Error code: %u\n", eb_parsing_err);
         }
       }
 
@@ -1623,6 +1726,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
       /* Enqueue EB only if there isn't already one in queue */
       if(tsch_queue_packet_count(&tsch_eb_address) == 0) {
         int eb_len;
+        uint8_t hdr_len = 0;
         uint8_t tsch_sync_ie_offset;
         /* Prepare the EB packet and schedule it to be sent */
         packetbuf_clear();
@@ -1631,8 +1735,14 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
           tsch_packet_seqno++;
         }
         packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
+#if LLSEC802154_SECURITY_LEVEL
+        /* Set security level, key id and index */
+        packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_EB);
+        packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
+        packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_EB);
+#endif
         eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
-            tsch_packet_seqno, &tsch_sync_ie_offset);
+            tsch_packet_seqno, &hdr_len, &tsch_sync_ie_offset);
         if(eb_len != 0) {
           struct tsch_packet *p;
           packetbuf_set_datalen(eb_len);
@@ -1640,8 +1750,9 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
           if(!(p = tsch_queue_add_packet(&tsch_eb_address, NULL, NULL))) {
             LOG("TSCH:! could not enqueue EB packet\n");
           } else {
-            LOG("TSCH: enqueue EB packet\n");
+            LOG("TSCH: enqueue EB packet %u %u\n", eb_len, hdr_len);
             p->tsch_sync_ie_offset = tsch_sync_ie_offset;
+            p->header_len = hdr_len;
           }
         }
       }

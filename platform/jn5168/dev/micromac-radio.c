@@ -148,9 +148,6 @@ static const struct output_config output_power[] = {
 /* Local variables */
 signed char radio_last_rssi;
 
-/* The node's PANID and MAC addresses */
-static uint16_t current_pan_id = (uint16_t)IEEE802154_PANID;
-
 /* Did we miss a request to turn the radio on due to overflow? */
 static uint8_t volatile missed_radio_on_request = 0;
 
@@ -240,7 +237,7 @@ init(void)
 
   /* Short addresses are disabled by default */
   node_short_address = (uint16_t)node_long_address.u32L;
-  vMMAC_SetRxAddress(current_pan_id, node_short_address, &node_long_address);
+  vMMAC_SetRxAddress(frame802154_get_pan_id(), node_short_address, &node_long_address);
 
   /* Disable hardware backoff */
   vMMAC_SetTxParameters(1, 0, 0, 0);
@@ -437,7 +434,7 @@ is_packet_for_us(uint8_t *buf, int len)
   uint8_t parsed = frame802154_parse(buf, len, &frame);
   if(parsed) {
     if(frame.fcf.dest_addr_mode) {
-      if(frame.dest_pid != IEEE802154_PANID
+      if(frame.dest_pid != frame802154_get_pan_id()
           && frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         return 0;
@@ -446,7 +443,7 @@ is_packet_for_us(uint8_t *buf, int len)
         return linkaddr_cmp((linkaddr_t *)frame.dest_addr, &linkaddr_node_addr);
       }
     } else { /* broadcast (EB) packet with no addresses */
-      if(frame.fcf.src_addr_mode && frame.src_pid != IEEE802154_PANID) {
+      if(frame.fcf.src_addr_mode && frame.src_pid != frame802154_get_pan_id()) {
         /* Reject if from another PAN */
         return 0;
       }

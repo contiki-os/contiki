@@ -54,13 +54,13 @@
 /* 4 channels, sequence length 4 */
 #define TSCH_HOPPING_SEQUENCE_4_4 (uint8_t[]){15, 25, 26, 20}
 /* 1 channel, sequence length 1 */
-#define TSCH_HOPPING_SEQUENCE_1_1 (uint8_t[]){25}
+#define TSCH_HOPPING_SEQUENCE_1_1 (uint8_t[]){20}
 
 /* Default hopping sequence, used in case hopping sequence ID == 0 */
 #ifdef TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
 #define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
 #else
-#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_16_16
+#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_4_4
 #endif
 
 /* Hopping sequence used for joining (scan channels) */
@@ -156,9 +156,6 @@
 #else
 #define TSCH_PACKET_DEST_ADDR_IN_ACK 0
 #endif
-#define TSCH_MAX_ACK_LEN (TSCH_BASE_ACK_LEN \
-                          + TSCH_EACK_DEST_LEN \
-                          + TSCH_SYNC_IE_LEN)
 
 /* Timeslot timing */
 
@@ -200,6 +197,23 @@
 #define TSCH_DEFAULT_TS_MAX_ACK            2400
 #define TSCH_DEFAULT_TS_MAX_TX             4256
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    15000
+
+#elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 25000
+/* Default timeslot timing for platfroms requiring 25ms slots
+ * (e.g. sky/z1 with security enabled) */
+
+#define TSCH_DEFAULT_TS_CCA_OFFSET         1800
+#define TSCH_DEFAULT_TS_CCA                128
+#define TSCH_DEFAULT_TS_TX_OFFSET          9000
+#define TSCH_DEFAULT_TS_RX_OFFSET          7900
+#define TSCH_DEFAULT_TS_RX_ACK_DELAY       8600
+#define TSCH_DEFAULT_TS_TX_ACK_DELAY       9000
+#define TSCH_DEFAULT_TS_RX_WAIT            2200
+#define TSCH_DEFAULT_TS_ACK_WAIT           800
+#define TSCH_DEFAULT_TS_RX_TX              2072
+#define TSCH_DEFAULT_TS_MAX_ACK            2400
+#define TSCH_DEFAULT_TS_MAX_TX             4256
+#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    25000
 
 #else
 #error "TSCH: Unsupported default timeslot length"

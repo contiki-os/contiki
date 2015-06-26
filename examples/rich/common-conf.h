@@ -39,6 +39,8 @@
 #define WITH_COAP_RESOURCES 0
 #define WITH_TSCH 1
 #define WITH_6TISCH_DEFAULTS 1
+#define WITH_TSCH_SECURITY 1
+#define WITH_TSCH_LOG 1
 
 #if WITH_COAP_RESOURCES
 #define UIP_DS6_WITH_LINK_METRICS 1
@@ -52,8 +54,6 @@
 #undef ENABLE_COOJA_DEBUG
 #define ENABLE_COOJA_DEBUG 0
 
-#define WITH_TSCH_LOG 1
-
 #if WITH_TSCH
 
 #if WITH_6TISCH_DEFAULTS
@@ -61,8 +61,8 @@
 //#define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 101
 #define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 11
 #define TSCH_CONF_MAC_MAX_FRAME_RETRIES 3
-#define TSCH_CONF_EB_PERIOD (10 * CLOCK_SECOND)
-#define TSCH_CONF_KEEPALIVE_TIMEOUT (30 * CLOCK_SECOND)
+#define TSCH_CONF_EB_PERIOD (2 * CLOCK_SECOND)
+#define TSCH_CONF_KEEPALIVE_TIMEOUT (5 * CLOCK_SECOND)
 #define RPL_CONF_OF rpl_of0_6tisch
 
 /* RPL Trickle timer tuning */
@@ -84,7 +84,7 @@
 
 #define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 3
 #define TSCH_CONF_MAC_MAX_FRAME_RETRIES 8
-#define TSCH_CONF_EB_PERIOD (4 * CLOCK_SECOND)
+#define TSCH_CONF_EB_PERIOD (10 * CLOCK_SECOND)
 #define TSCH_CONF_KEEPALIVE_TIMEOUT (12 * CLOCK_SECOND)
 #define RPL_CONF_OF rpl_mrhof
 
@@ -154,11 +154,20 @@
 #define IEEE802154_CONF_PANID       0x81B2
 
 /* Link-layer security */
-/* #undef NETSTACK_CONF_LLSEC
-#define NETSTACK_CONF_LLSEC noncoresec_driver
 
-#define LLSEC802154_CONF_SECURITY_LEVEL 2
-#define LLSEC802154_CONF_SECURITY_LEVEL 6 */
+/* Even when link-layer security is needed, we do not use a LLSEC layer, as it does not
+ * allow to secure MAC-layer packets, nor can run encrypt/decrupt from interrupt.
+ * Instead, we call AES-CCM* primitives directly from TSCH */
+#undef NETSTACK_CONF_LLSEC
+#define NETSTACK_CONF_LLSEC nullsec_driver
+
+#if WITH_TSCH_SECURITY
+/* Set security level to the maximum, even if unused, to all crypto code */
+#define LLSEC802154_CONF_SECURITY_LEVEL 7
+/* We need explicit keys to identify k1 and k2 */
+#undef LLSEC802154_CONF_USES_EXPLICIT_KEYS
+#define LLSEC802154_CONF_USES_EXPLICIT_KEYS 1
+#endif /* WITH_TSCH_SECURITY */
 
 #if WITH_TSCH
 

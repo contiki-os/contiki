@@ -125,7 +125,7 @@ create_mlme_long_ie_descriptor(uint8_t *buf, uint8_t sub_id, int ie_len)
 
 /* Header IE. ACK/NACK time correction. Used in enhanced ACKs */
 int
-frame80215e_create_ie_ack_nack_time_correction(uint8_t *buf, int len,
+frame80215e_create_ie_header_ack_nack_time_correction(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
   int ie_len = 2;
@@ -462,8 +462,13 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
   int nested_mlme_len = 0;
   enum {PARSING_HEADER_IE, PARSING_PAYLOAD_IE, PARSING_MLME_SUBIE} parsing_state;
 
+  if(ies == NULL) {
+    return -1;
+  }
+
   /* Always look for a header IE first (at least "list termination 1") */
   parsing_state = PARSING_HEADER_IE;
+  ies->ie_payload_ie_offset = 0;
 
   /* Loop over all IEs */
   while(buf_size > 0) {
@@ -488,13 +493,19 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
             if(len == 0) {
               /* End of payload IE list, now expect payload IEs */
               parsing_state = PARSING_PAYLOAD_IE;
+              ies->ie_payload_ie_offset = buf - start; /* Save IE header len */
             } else {
               return -1;
             }
             break;
           case HEADER_IE_LIST_TERMINATION_2:
             /* End of IE parsing */
-            return (len == 0) ? buf + len - start : -1;
+            if(len == 0) {
+              ies->ie_payload_ie_offset = buf - start; /* Save IE header len */
+              return buf + len - start;
+            } else {
+              return -1;
+            }
           default:
             if(len > buf_size || frame802154e_parse_header_ie(buf, len, id, ies) == -1) {
               return -1;
@@ -555,5 +566,10 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
     buf += len;
     buf_size -= len;
   }
+
+  if(parsing_state == PARSING_HEADER_IE) {
+    ies->ie_payload_ie_offset = buf - start; /* Save IE header len */
+  }
+
   return buf - start;
 }

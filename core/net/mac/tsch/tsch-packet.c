@@ -43,10 +43,14 @@
 #include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/tsch/tsch-security.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
+#include "net/llsec/anti-replay.h"
+#include "lib/ccm-star.h"
+#include "lib/aes-128.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -63,10 +67,6 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   frame802154_t p;
   struct ieee802154_ies ies;
 
-  if(buf_size < TSCH_MAX_ACK_LEN) {
-    return 0;
-  }
-
   memset(&p, 0, sizeof(p));
   p.fcf.frame_type = FRAME802154_ACKFRAME;
   p.fcf.frame_version = FRAME802154_IEEE802154;
@@ -79,6 +79,12 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
     linkaddr_copy((linkaddr_t*)&p.dest_addr, dest_addr);
   }
 #endif
+#if LLSEC802154_SECURITY_LEVEL
+  p.fcf.security_enabled = 1;
+  p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_ACK;
+  p.aux_hdr.security_control.key_id_mode = 1;
+  p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_ACK;
+#endif
 
   if((curr_len = frame802154_create(&p, buf)) == 0) {
     return 0;
@@ -89,7 +95,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   ies.ie_time_correction = drift;
   ies.ie_is_nack = nack;
 
-  if((ret = frame80215e_create_ie_ack_nack_time_correction(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+  if((ret = frame80215e_create_ie_header_ack_nack_time_correction(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
     return -1;
   }
   curr_len += ret;
@@ -99,27 +105,33 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
 
 /* Parse enhanced ACK packet, extract drift and nack */
 int
-tsch_packet_parse_eack(uint8_t *buf, int buf_size, uint8_t seqno,
-    struct ieee802154_ies *ies)
+tsch_packet_parse_eack(uint8_t *buf, int buf_size,
+    uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len)
 {
-  frame802154_t frame;
   uint8_t curr_len = 0;
   int ret;
   linkaddr_t dest;
 
-  /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
-  if((ret = frame802154_parse(buf, buf_size, &frame)) < 3) {
+  if(frame == NULL || buf_size < 0) {
     return 0;
+  }
+
+  /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
+  if((ret = frame802154_parse(buf, buf_size, frame)) < 3) {
+    return 0;
+  }
+  if(hdr_len != NULL) {
+    *hdr_len = ret;
   }
   curr_len += ret;
 
   /* Check seqno */
-  if(seqno != frame.seq) {
+  if(seqno != frame->seq) {
     return 0;
   }
 
   /* Check destination address (if any) */
-  ret = frame802154_packet_extract_addresses(&frame, NULL, &dest);
+  ret = frame802154_packet_extract_addresses(frame, NULL, &dest);
   if(ret == 0 ||
       (!linkaddr_cmp(&dest, &linkaddr_node_addr)
           && !linkaddr_cmp(&dest, &linkaddr_null))) {
@@ -130,12 +142,24 @@ tsch_packet_parse_eack(uint8_t *buf, int buf_size, uint8_t seqno,
     memset(ies, 0, sizeof(struct ieee802154_ies));
   }
 
-  if(frame.fcf.ie_list_present) {
-    /* Extract information elements */
-    if((ret = frame802154e_parse_information_elements(buf+curr_len, buf_size-curr_len, ies)) == -1) {
+  if(frame->fcf.ie_list_present) {
+    int mic_len = 0;
+#if LLSEC802154_SECURITY_LEVEL
+    /* Check if there is space for the security MIC (if any) */
+    mic_len = tsch_security_mic_len(frame);
+    if(buf_size < curr_len + mic_len) {
+      return 0;
+    }
+#endif
+    /* Parse information elements. We need to substract the MIC length, as the exact payload len is needed while parsing */
+    if((ret = frame802154e_parse_information_elements(buf + curr_len, buf_size - curr_len - mic_len, ies)) == -1) {
       return 0;
     }
     curr_len += ret;
+  }
+
+  if(hdr_len != NULL) {
+    *hdr_len += ies->ie_payload_ie_offset;
   }
 
   return curr_len;
@@ -143,7 +167,8 @@ tsch_packet_parse_eack(uint8_t *buf, int buf_size, uint8_t seqno,
 
 /* Create an EB packet */
 int
-tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *tsch_sync_ie_offset)
+tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
+    uint8_t *hdr_len, uint8_t *tsch_sync_ie_offset)
 {
   int ret = 0;
   uint8_t curr_len = 0;
@@ -168,6 +193,15 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
   p.src_pid = frame802154_get_pan_id();
   p.dest_pid = 0xffff;
   linkaddr_copy((linkaddr_t*)&p.src_addr, &linkaddr_node_addr);
+  p.dest_addr[0] = 0xff;
+  p.dest_addr[1] = 0xff;
+
+#if LLSEC802154_SECURITY_LEVEL
+  p.fcf.security_enabled = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) > 0;
+  p.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
+  p.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
+  p.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);;
+#endif
 
   if((curr_len = frame802154_create(&p, buf)) == 0) {
     return 0;
@@ -219,6 +253,11 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
   }
   curr_len += ret;
 
+  /* We start payload IEs, save offset */
+  if(hdr_len != NULL) {
+    *hdr_len = curr_len;
+  }
+
   /* Save offset of the MLME IE descriptor, we need to know the total length
    * before writing it */
   mlme_ie_offset = curr_len;
@@ -266,7 +305,7 @@ tsch_packet_create_eb(uint8_t *buf, uint8_t buf_size, uint8_t seqno, uint8_t *ts
 
 /* Update ASN in EB packet */
 int
-tsch_packet_update_eb(uint8_t *buf, uint8_t buf_size, uint8_t tsch_sync_ie_offset)
+tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)
 {
   struct ieee802154_ies ies;
   ies.ie_asn = current_asn;
@@ -277,44 +316,58 @@ tsch_packet_update_eb(uint8_t *buf, uint8_t buf_size, uint8_t tsch_sync_ie_offse
 
 /* Parse a IEEE 802.15.4e TSCH Enhanced Beacon (EB) */
 int
-tsch_packet_parse_eb(uint8_t *buf, uint8_t buf_size,
-    linkaddr_t *source_address, uint16_t *source_pan_id, struct ieee802154_ies *ies)
+tsch_packet_parse_eb(uint8_t *buf, int buf_size,
+    frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len, int frame_without_mic)
 {
-  frame802154_t frame;
   uint8_t curr_len = 0;
   int ret;
 
+  if(frame == NULL || buf_size < 0) {
+    return 0;
+  }
+
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
-  if((ret = frame802154_parse(buf, buf_size, &frame)) == 0) {
+  if((ret = frame802154_parse(buf, buf_size, frame)) == 0) {
     LOG("TSCH:! parse_eb: failed to parse frame\n");
     return 0;
   }
 
-  if(frame.fcf.frame_type != FRAME802154_BEACONFRAME) {
-    LOG("TSCH:! parse_eb: frame is not a beacon\n");
+  if(frame->fcf.frame_type != FRAME802154_BEACONFRAME) {
+    LOG("TSCH:! parse_eb: frame is not a beacon %02x %02x\n", buf[0], buf[1]);
     return 0;
   }
 
-  if(source_address != NULL) {
-    linkaddr_copy(source_address, (linkaddr_t *)frame.src_addr);
+  if(hdr_len != NULL) {
+    *hdr_len = ret;
   }
-
-  if(source_pan_id != NULL) {
-    *source_pan_id = frame.src_pid;
-  }
-
   curr_len += ret;
 
   if(ies != NULL) {
     memset(ies, 0, sizeof(struct ieee802154_ies));
     ies->ie_join_priority = 0xff; /* Use max value in case the Beacon does not include a join priority */
   }
-  if(frame.fcf.ie_list_present) {
-    if((ret = frame802154e_parse_information_elements(buf+curr_len, buf_size-curr_len, ies)) == -1) {
+  if(frame->fcf.ie_list_present) {
+    /* Check if there is space for the security MIC (if any) */
+    int mic_len = 0;
+#if LLSEC802154_SECURITY_LEVEL
+    if(!frame_without_mic) {
+      mic_len = tsch_security_mic_len(frame);
+      if(buf_size < curr_len + mic_len) {
+        return 0;
+      }
+    }
+#endif
+
+    /* Parse information elements. We need to substract the MIC length, as the exact payload len is needed while parsing */
+    if((ret = frame802154e_parse_information_elements(buf + curr_len, buf_size - curr_len - mic_len, ies)) == -1) {
       LOG("TSCH:! parse_eb: failed to parse IEs\n");
       return 0;
     }
     curr_len += ret;
+  }
+
+  if(hdr_len != NULL) {
+    *hdr_len += ies->ie_payload_ie_offset;
   }
 
   return curr_len;

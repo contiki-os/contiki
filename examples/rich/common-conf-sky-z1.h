@@ -34,6 +34,16 @@
 #ifndef __COMMON_CONF_SKY_Z1_H__
 #define __COMMON_CONF_SKY_Z1_H__
 
+#ifndef AES_128_CONF
+#define AES_128_CONF cc2420_aes_128_driver
+#endif /* AES_128_CONF */
+
+#if WITH_TSCH_SECURITY
+/* We need longer slots to accommodate crypto operations */
+#undef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH
+#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 25000
+#endif /* WITH_TSCH_SECURITY */
+
  /* CoAP */
 #undef COAP_MAX_OPEN_TRANSACTIONS
 #define COAP_MAX_OPEN_TRANSACTIONS 2
