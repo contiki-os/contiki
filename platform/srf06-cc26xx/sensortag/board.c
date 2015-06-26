@@ -119,10 +119,6 @@ configure_unused_pins(void)
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_AUDIO_DI, IOC_IOPULL_DOWN);
   ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_AUDIO_CLK);
   ti_lib_ioc_io_port_pull_set(BOARD_IOID_AUDIO_CLK, IOC_IOPULL_DOWN);
-
-  /* UART over Devpack - TX only (ToDo: Map all UART pins to Debugger) */
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_DP5_UARTTX);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_DP5_UARTTX, IOC_IOPULL_DOWN);
 }
 /*---------------------------------------------------------------------------*/
 void
