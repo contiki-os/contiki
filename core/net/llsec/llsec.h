@@ -75,20 +75,10 @@ struct llsec_driver {
   void (* send)(mac_callback_t sent_callback, void *ptr);
   
   /**
-   * Once the NETSTACK_FRAMER wrote the headers, the LLSEC driver
-   * can generate a MIC over the entire frame.
-   * \return Returns != 0 <-> success
-   */
-  int (* on_frame_created)(void);
-  
-  /**
    * Decrypts incoming frames;
    * filters out injected or replayed frames.
    */
   void (* input)(void);
-  
-  /** Returns the security-related overhead per frame in bytes */
-  uint8_t (* get_overhead)(void);
 };
 
 #endif /* LLSEC_H_ */

@@ -1443,7 +1443,7 @@ output(const uip_lladdr_t *localdest)
 #else /* USE_FRAMER_HDRLEN */
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
-  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen - NETSTACK_LLSEC.get_overhead();
+  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen;
 
   if((int)uip_len - (int)uncomp_hdr_len > max_payload - (int)packetbuf_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
