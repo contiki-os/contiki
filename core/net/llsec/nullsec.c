@@ -49,11 +49,9 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
+init(void)
 {
-  if(on_bootstrapped) {
-    on_bootstrapped();
-  }
+
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -71,7 +69,7 @@ input(void)
 /*---------------------------------------------------------------------------*/
 const struct llsec_driver nullsec_driver = {
   "nullsec",
-  bootstrap,
+  init,
   send,
   input
 };

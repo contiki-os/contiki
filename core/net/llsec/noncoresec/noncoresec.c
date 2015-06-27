@@ -214,18 +214,15 @@ length(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
+init(void)
 {
   CCM_STAR.set_key(key);
   nbr_table_register(anti_replay_table, NULL);
-  if(on_bootstrapped) {
-    on_bootstrapped();
-  }
 }
 /*---------------------------------------------------------------------------*/
 const struct llsec_driver noncoresec_driver = {
   "noncoresec",
-  bootstrap,
+  init,
   send,
   input
 };
