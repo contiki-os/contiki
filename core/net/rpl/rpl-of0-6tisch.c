@@ -62,7 +62,7 @@ rpl_of_t rpl_of0_6tisch = {
   best_dag,
   calculate_rank,
   update_metric_container,
-  1
+  0
 };
 
 #define RANK_FACTOR                    1
