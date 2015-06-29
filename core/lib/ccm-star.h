@@ -48,6 +48,8 @@
 #define CCM_STAR ccm_star_driver
 #endif /* CCM_STAR_CONF */
 
+#define CCM_STAR_NONCE_LENGTH 13
+
 /**
  * Structure of CCM* drivers.
  */
@@ -57,13 +59,12 @@ struct ccm_star_driver {
     * \brief             Generates a MIC over the data supplied.
     * \param data        The data buffer to read.
     * \param data_length The data buffer length.
-    * \param iv          The IV to use.
-    * \param iv_length   The IV's length.
+    * \param nonce       The nonce to use. CCM_STAR_NONCE_LENGTH bytes long.
     * \param result      The generated MIC will be put here
     * \param mic_len     The size of the MIC to be generated. <= 16.
     */
   void (* mic)(const uint8_t* data, uint8_t data_length,
-      const uint8_t* iv,   uint8_t iv_len,
+      const uint8_t* nonce,
       const uint8_t* add,  uint8_t add_len,
       uint8_t *result,
       uint8_t mic_len);
@@ -72,13 +73,10 @@ struct ccm_star_driver {
    * \brief XORs the frame in the packetbuf with the key stream.
    * \param data        The data buffer to read.
    * \param data_length The data buffer length.
-   * \param iv          The IV to use.
-   * \param iv_length   The IV's length.
-   * \param mic         Output buffer to hold the MIC to be generated.
-   * \param mic_len     The size of the MIC to be generated. <= 16.
+   * \param nonce       The nonce to use. CCM_STAR_NONCE_LENGTH bytes long.
    */
   void (* ctr)(      uint8_t* data, uint8_t data_length,
-               const uint8_t* iv,   uint8_t iv_len);
+               const uint8_t* nonce);
   
   /**
    * \brief Sets the key in use. Default implementation calls AES_128.set_key()
