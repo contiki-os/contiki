@@ -121,8 +121,8 @@ create_frame(int type, int do_create)
   }
   params.fcf.panid_compression = 0;
 
-  /* Insert IEEE 802.15.4 (2006) version bits. */
-  params.fcf.frame_version = FRAME802154_IEEE802154_2006;
+  /* Insert IEEE 802.15.4 version bits. */
+  params.fcf.frame_version = FRAME802154_IEEE802154;
   
 #if LLSEC802154_SECURITY_LEVEL
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
