@@ -240,6 +240,8 @@ extern struct tsch_link *current_link;
 extern int tsch_is_coordinator;
 /* Are we associated to a TSCH network? */
 extern int tsch_is_associated;
+/* Is the PAN running link-layer security? */
+extern int tsch_is_pan_secured;
 
 /* Is TSCH locked? */
 int tsch_is_locked();

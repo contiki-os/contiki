@@ -80,10 +80,12 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   }
 #endif
 #if LLSEC802154_SECURITY_LEVEL
-  p.fcf.security_enabled = 1;
-  p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_ACK;
-  p.aux_hdr.security_control.key_id_mode = 1;
-  p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_ACK;
+  if(tsch_is_pan_secured) {
+    p.fcf.security_enabled = 1;
+    p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_ACK;
+    p.aux_hdr.security_control.key_id_mode = 1;
+    p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_ACK;
+  }
 #endif
 
   if((curr_len = frame802154_create(&p, buf)) == 0) {
@@ -197,10 +199,12 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   p.dest_addr[1] = 0xff;
 
 #if LLSEC802154_SECURITY_LEVEL
-  p.fcf.security_enabled = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) > 0;
-  p.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-  p.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
-  p.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);;
+  if(tsch_is_pan_secured) {
+    p.fcf.security_enabled = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) > 0;
+    p.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
+    p.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
+    p.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
+  }
 #endif
 
   if((curr_len = frame802154_create(&p, buf)) == 0) {

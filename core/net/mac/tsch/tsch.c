@@ -215,6 +215,8 @@ const linkaddr_t tsch_eb_address = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
 int tsch_is_coordinator = 0;
 /* Are we associated to a TSCH network? */
 int tsch_is_associated = 0;
+/* Is the PAN running link-layer security? */
+int tsch_is_pan_secured = LLSEC802154_SECURITY_LEVEL;
 /* The current radio channel */
 static uint8_t current_channel = -1;
 /* The current Absolute Slot Number (ASN) */
@@ -503,10 +505,12 @@ send_packet(mac_callback_t sent, void *ptr)
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
 
 #if LLSEC802154_SECURITY_LEVEL
-  /* Set security level, key id and index */
-  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_OTHER);
-  packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
-  packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_OTHER);
+  if(tsch_is_pan_secured) {
+    /* Set security level, key id and index */
+    packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_OTHER);
+    packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
+    packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_OTHER);
+  }
 #endif
 
   packet_count_before = tsch_queue_packet_count(addr);
@@ -863,14 +867,16 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
       }
 
 #if LLSEC802154_SECURITY_LEVEL
-      /* If we are going to encrypt, we need to generate the output in a separate buffer and keep
-       * the original untouched. This is to allow for future retransmissions. */
-      int with_encryption = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL) & 0x4;
-      with_encryption = 1;
-      packet_len += tsch_security_secure_frame(packet, with_encryption ? encrypted_packet : packet, current_packet->header_len,
-          packet_len - current_packet->header_len, &current_asn);
-      if(with_encryption) {
-        packet = encrypted_packet;
+      if(tsch_is_pan_secured) {
+        /* If we are going to encrypt, we need to generate the output in a separate buffer and keep
+         * the original untouched. This is to allow for future retransmissions. */
+        int with_encryption = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL) & 0x4;
+        with_encryption = 1;
+        packet_len += tsch_security_secure_frame(packet, with_encryption ? encrypted_packet : packet, current_packet->header_len,
+            packet_len - current_packet->header_len, &current_asn);
+        if(with_encryption) {
+          packet = encrypted_packet;
+        }
       }
 #endif
 
@@ -1173,8 +1179,10 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
                   &source_address, frame.seq, (int16_t)RTIMERTICKS_TO_US(estimated_drift), do_nack);
 
 #if LLSEC802154_SECURITY_LEVEL
-              /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
-              ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &current_asn);
+              if(tsch_is_pan_secured) {
+                /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
+                ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &current_asn);
+              }
 #endif
 
               /* Copy to radio buffer */
@@ -1538,6 +1546,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
 
             /* Update global flags */
             tsch_is_associated = 1;
+            tsch_is_pan_secured = frame.fcf.security_enabled;
 
 #ifdef TSCH_CALLBACK_JOINING_NETWORK
             TSCH_CALLBACK_JOINING_NETWORK();
@@ -1549,7 +1558,8 @@ PT_THREAD(tsch_associate(struct pt *pt))
             /* Set PANID */
             frame802154_set_pan_id(frame.src_pid);
 
-            LOG("TSCH: association done, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe and links %u %u, from %u\n",
+            LOG("TSCH: association done, sec %u, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe and links %u %u, from %u\n",
+                tsch_is_pan_secured,
                 frame.src_pid,
                 current_asn.ms1b, current_asn.ls4b, tsch_join_priority,
                 ies.ie_tsch_timeslot_id,
@@ -1744,10 +1754,12 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         }
         packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
 #if LLSEC802154_SECURITY_LEVEL
-        /* Set security level, key id and index */
-        packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_EB);
-        packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
-        packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_EB);
+        if(tsch_is_pan_secured) {
+          /* Set security level, key id and index */
+          packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_EB);
+          packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
+          packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_EB);
+        }
 #endif
         eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
             tsch_packet_seqno, &hdr_len, &tsch_sync_ie_offset);
