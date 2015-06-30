@@ -261,7 +261,7 @@
 #define LOG(...) printf(__VA_ARGS__)
 #endif /* LOG */
 #ifndef LOGN
-#define LOGN(...) { printf(__VA_ARGS__); printf("\n"); }
+#define LOGN(...) { LOG(__VA_ARGS__); LOG("\n"); }
 #endif /* LOG */
 #ifndef LOGA
 #define LOGA(appdata, ...) { LOGN(__VA_ARGS__) }
