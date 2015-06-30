@@ -104,6 +104,12 @@ void TSCH_CALLBACK_JOINING_NETWORK();
 void TSCH_CALLBACK_LEAVING_NETWORK();
 #endif
 
+#ifdef TSCH_CONF_INIT_SCHEDULE_FROM_EB
+#define TSCH_INIT_SCHEDULE_FROM_EB TSCH_CONF_INIT_SCHEDULE_FROM_EB
+#else
+#define TSCH_INIT_SCHEDULE_FROM_EB 1
+#endif
+
 /* The radio polling frequency (in Hz) during association process */
 #ifdef TSCH_CONF_ASSOCIATION_POLL_FREQUENCY
 #define TSCH_ASSOCIATION_POLL_FREQUENCY TSCH_CONF_ASSOCIATION_POLL_FREQUENCY
@@ -1484,6 +1490,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
         }
 #endif
 
+#if TSCH_INIT_SCHEDULE_FROM_EB
         /* Create schedule */
         if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
 #if TSCH_WITH_MINIMAL_SCHEDULE
@@ -1511,6 +1518,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
             eb_parsed = 0;
           }
         }
+#endif /* TSCH_INIT_SCHEDULE_FROM_EB */
 
         if(eb_parsed != 0 && tsch_join_priority < TSCH_MAX_JOIN_PRIORITY) {
           struct tsch_neighbor *n;
