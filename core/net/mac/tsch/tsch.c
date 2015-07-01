@@ -1512,6 +1512,8 @@ PT_THREAD(tsch_associate(struct pt *pt))
             eb_parsed = 0;
 #endif
           } else {
+            /* First, empty current schedule */
+            tsch_schedule_remove_all_slotframes();
             /* We support only 0 or 1 slotframe in this IE */
             int num_links = ies.ie_tsch_slotframe_and_link.num_links;
             if(num_links <= FRAME802154E_IE_MAX_LINKS) {
@@ -1831,6 +1833,7 @@ tsch_reset(void)
   current_packet = NULL;
   current_neighbor = NULL;
   tsch_reset_timeslot_timing();
+  tsch_schedule_remove_all_slotframes();
 #ifdef TSCH_CALLBACK_LEAVING_NETWORK
   TSCH_CALLBACK_LEAVING_NETWORK();
 #endif

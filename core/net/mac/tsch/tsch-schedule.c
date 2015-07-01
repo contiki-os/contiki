@@ -106,6 +106,18 @@ tsch_schedule_add_slotframe(uint16_t handle, uint16_t size)
   }
   return NULL;
 }
+/* Removes all slotframes, resulting in an empty schedule */
+int
+tsch_schedule_remove_all_slotframes()
+{
+  struct tsch_slotframe *sf;
+  while((sf = list_head(slotframe_list))) {
+    if(tsch_schedule_remove_slotframe(sf) == 0) {
+      return 0;
+    }
+  }
+  return 1;
+}
 /* Removes a slotframe Return 1 if success, 0 if failure */
 int
 tsch_schedule_remove_slotframe(struct tsch_slotframe *slotframe)
@@ -119,6 +131,7 @@ tsch_schedule_remove_slotframe(struct tsch_slotframe *slotframe)
 
     /* Now that the slotframe has no links, remove it. */
     if(tsch_get_lock()) {
+      PRINTF("TSCH-schedule: remove slotframe %u %u\n", slotframe->handle, slotframe->size.val);
       memb_free(&slotframe_memb, slotframe);
       list_remove(slotframe_list, slotframe);
       tsch_release_lock();
@@ -459,6 +472,8 @@ void
 tsch_schedule_create_minimal()
 {
   struct tsch_slotframe *sf_min;
+  /* First, empty current schedule */
+  tsch_schedule_remove_all_slotframes();
   /* Build 6TiSCH minimal schedule.
    * We pick a slotframe length of TSCH_SCHEDULE_DEFAULT_LENGTH */
   sf_min = tsch_schedule_add_slotframe(0, TSCH_SCHEDULE_DEFAULT_LENGTH);
