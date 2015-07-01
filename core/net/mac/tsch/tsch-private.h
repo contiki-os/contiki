@@ -46,6 +46,10 @@
 #include "net/linkaddr.h"
 #include "net/mac/tsch/tsch-asn.h"
 
+#if FRAME802154_VERSION < FRAME802154_IEEE802154
+#error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154
+#endif
+
 /* Default IEEE 802.15.4e hopping sequences, obtained from https://gist.github.com/twatteyne/2e22ee3c1a802b685695 */
 /* 16 channels, sequence length 16 */
 #define TSCH_HOPPING_SEQUENCE_16_16 (uint8_t[]){16, 17, 23, 18, 26, 15, 25, 22, 19, 11, 12, 13, 24, 14, 20, 21}

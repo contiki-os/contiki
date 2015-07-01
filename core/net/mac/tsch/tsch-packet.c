@@ -84,6 +84,8 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
     p.fcf.security_enabled = 1;
     p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_ACK;
     p.aux_hdr.security_control.key_id_mode = 1;
+    p.aux_hdr.security_control.frame_counter_suppression = 1;
+    p.aux_hdr.security_control.frame_counter_size = 1;
     p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_ACK;
   }
 #endif
@@ -193,7 +195,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   p.seq = seqno;
 
   p.src_pid = frame802154_get_pan_id();
-  p.dest_pid = 0xffff;
+  p.dest_pid = frame802154_get_pan_id();
   linkaddr_copy((linkaddr_t*)&p.src_addr, &linkaddr_node_addr);
   p.dest_addr[0] = 0xff;
   p.dest_addr[1] = 0xff;
@@ -203,6 +205,8 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
     p.fcf.security_enabled = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) > 0;
     p.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
     p.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
+    p.aux_hdr.security_control.frame_counter_suppression = 1;
+    p.aux_hdr.security_control.frame_counter_size = 1;
     p.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
   }
 #endif

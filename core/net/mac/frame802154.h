@@ -74,6 +74,12 @@
 #define IEEE802154_PANID           0xABCD
 #endif /* IEEE802154_CONF_PANID */
 
+#ifdef FRAME802154_CONF_VERSION
+#define FRAME802154_VERSION FRAME802154_CONF_VERSION
+#else /* FRAME802154_CONF_VERSION */
+#define FRAME802154_VERSION FRAME802154_IEEE802154
+#endif /* FRAME802154_CONF_VERSION */
+
 /* Macros & Defines */
 
 /** \brief These are some definitions of values used in the FCF.  See the 802.15.4 spec for details.
@@ -149,6 +155,8 @@ typedef struct {
 typedef struct {
   uint8_t  security_level; /**< 3 bit. security level      */
   uint8_t  key_id_mode;    /**< 2 bit. Key identifier mode */
+  uint8_t  frame_counter_suppression;  /**< 1 bit. Frame counter suppression */
+  uint8_t  frame_counter_size;  /**< 1 bit. Frame counter size (0: 4 bytes, 1: 5 bytes) */
   uint8_t  reserved;       /**< 3 bit. Reserved bits       */
 } frame802154_scf_t;
 

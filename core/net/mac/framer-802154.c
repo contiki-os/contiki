@@ -122,7 +122,7 @@ create_frame(int type, int do_create)
   params.fcf.panid_compression = 0;
 
   /* Insert IEEE 802.15.4 version bits. */
-  params.fcf.frame_version = FRAME802154_IEEE802154;
+  params.fcf.frame_version = FRAME802154_VERSION;
   
 #if LLSEC802154_SECURITY_LEVEL
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
@@ -130,8 +130,13 @@ create_frame(int type, int do_create)
   }
   /* Setting security-related attributes */
   params.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
+#if LLSEC802154_USES_FRAME_COUNTER
   params.aux_hdr.frame_counter.u16[0] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1);
   params.aux_hdr.frame_counter.u16[1] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3);
+#else /* LLSEC802154_USES_FRAME_COUNTER */
+  params.aux_hdr.security_control.frame_counter_suppression = 1;
+  params.aux_hdr.security_control.frame_counter_size = 1;
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
 #if LLSEC802154_USES_EXPLICIT_KEYS
   params.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
   params.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
@@ -260,8 +265,10 @@ parse(void)
 #if LLSEC802154_SECURITY_LEVEL
     if(frame.fcf.security_enabled) {
       packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, frame.aux_hdr.security_control.security_level);
+#if LLSEC802154_USES_FRAME_COUNTER
       packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, frame.aux_hdr.frame_counter.u16[0]);
       packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, frame.aux_hdr.frame_counter.u16[1]);
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
 #if LLSEC802154_USES_EXPLICIT_KEYS
       packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, frame.aux_hdr.security_control.key_id_mode);
       packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, frame.aux_hdr.key_index);

@@ -148,9 +148,16 @@ field_len(frame802154_t *p, field_length_t *flen)
 #if LLSEC802154_SECURITY_LEVEL
   /* Aux security header */
   if(p->fcf.security_enabled & 1) {
-    flen->aux_sec_len = 5
+    flen->aux_sec_len = 1; /* FCF + possibly frame counter and key ID */
+    if(p->aux_hdr.security_control.frame_counter_suppression == 0) {
+      if(p->aux_hdr.security_control.frame_counter_size == 1) {
+        flen->aux_sec_len += 5;
+      } else {
+        flen->aux_sec_len += 4;
+      }
+    }
 #if LLSEC802154_USES_EXPLICIT_KEYS
-        + get_key_id_len(p->aux_hdr.security_control.key_id_mode);
+    flen->aux_sec_len += get_key_id_len(p->aux_hdr.security_control.key_id_mode);
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
     ;
   }
@@ -247,9 +254,17 @@ frame802154_create(frame802154_t *p, uint8_t *buf)
 #if LLSEC802154_USES_EXPLICIT_KEYS
         | (p->aux_hdr.security_control.key_id_mode << 3)
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+        | (p->aux_hdr.security_control.frame_counter_suppression << 5)
+        | (p->aux_hdr.security_control.frame_counter_size << 6)
     ;
-    memcpy(buf + pos, p->aux_hdr.frame_counter.u8, 4);
-    pos += 4;
+    if(p->aux_hdr.security_control.frame_counter_suppression == 0) {
+      /* We support only 4-byte counters */
+      memcpy(buf + pos, p->aux_hdr.frame_counter.u8, 4);
+      pos += 4;
+      if(p->aux_hdr.security_control.frame_counter_size == 1) {
+        pos++;
+      }
+    }
 
 #if LLSEC802154_USES_EXPLICIT_KEYS
     key_id_mode = p->aux_hdr.security_control.key_id_mode;
@@ -375,10 +390,17 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
 #if LLSEC802154_USES_EXPLICIT_KEYS
     pf->aux_hdr.security_control.key_id_mode = (p[0] >> 3) & 3;
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+    pf->aux_hdr.security_control.frame_counter_suppression = p[0] >> 5;
+    pf->aux_hdr.security_control.frame_counter_size = p[0] >> 6;
     p += 1;
     
-    memcpy(pf->aux_hdr.frame_counter.u8, p, 4);
-    p += 4;
+    if(pf->aux_hdr.security_control.frame_counter_suppression == 0) {
+      memcpy(pf->aux_hdr.frame_counter.u8, p, 4);
+      p += 4;
+      if(pf->aux_hdr.security_control.frame_counter_size == 1) {
+        p ++;
+      }
+    }
     
 #if LLSEC802154_USES_EXPLICIT_KEYS
     key_id_mode = pf->aux_hdr.security_control.key_id_mode;
