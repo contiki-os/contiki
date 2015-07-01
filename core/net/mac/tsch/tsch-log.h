@@ -58,7 +58,7 @@ struct tsch_log_t {
   struct asn_t asn;
   struct tsch_link *link;
   union {
-    char message[26];
+    char message[64];
     struct {
       //struct app_data appdata;
       int mac_tx_status;

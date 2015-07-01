@@ -98,6 +98,8 @@ tsch_schedule_add_slotframe(uint16_t handle, uint16_t size)
         /* Add the slotframe to the global list */
         list_add(slotframe_list, sf);
       }
+      PRINTF("TSCH-schedule: add_slotframe %u %u\n",
+                  handle, size);
       tsch_release_lock();
       return sf;
     }
@@ -196,8 +198,8 @@ tsch_schedule_add_link(struct tsch_slotframe *slotframe,
         }
         linkaddr_copy(&l->addr, address);
 
-        PRINTF("TSCH-schedule: add_link %u %u %u %u %u\n",
-            slotframe->handle, link_options, timeslot, channel_offset, LOG_NODEID_FROM_LINKADDR(address));
+        PRINTF("TSCH-schedule: add_link %u %u %u %u %u %u\n",
+            slotframe->handle, link_options, link_type, timeslot, channel_offset, LOG_NODEID_FROM_LINKADDR(address));
 
         /* Release the lock before we update the neighbor (will take the lock) */
         tsch_release_lock();

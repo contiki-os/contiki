@@ -1152,7 +1152,7 @@ PT_THREAD(tsch_rx_link(struct pt *pt, struct rtimer *t))
         } else {
           TSCH_LOG_ADD(tsch_log_message,
               snprintf(log->message, sizeof(log->message),
-              "!failed to parse frame %u", current_input->len););
+              "!failed to parse frame %u %u", header_len, current_input->len););
           frame_valid = 0;
         }
 #endif
@@ -1424,7 +1424,6 @@ PT_THREAD(tsch_associate(struct pt *pt))
 
         /* Read packet */
         input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_MAX_PACKET_LEN);
-        printf("TSCH: packet read %u bytes\n", input_eb.len);
 
         /* Parse EB and extract ASN and join priority */
         LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
