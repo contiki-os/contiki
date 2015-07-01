@@ -54,7 +54,8 @@
 #ifdef NVIC_CONF_VTABLE_ADDRESS
 #define NVIC_VTABLE_ADDRESS     NVIC_CONF_VTABLE_ADDRESS
 #else
-#define NVIC_VTABLE_ADDRESS     0x200000
+extern void(*const vectors[])(void);
+#define NVIC_VTABLE_ADDRESS     ((uint32_t)&vectors)
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
