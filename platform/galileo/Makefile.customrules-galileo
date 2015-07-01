@@ -1,0 +1,8 @@
+GDB ?= gdb
+OPENOCD_SCRIPTS = $(CONTIKI)/platform/galileo/bsp/openocd-scripts
+
+.PHONY: debug
+
+debug: $(CONTIKI_PROJECT).$(TARGET)
+	@openocd -s $(OPENOCD_SCRIPTS) -f debug.cfg &> $(shell pwd)/LOG_OPENOCD &
+	@$(GDB) $< -ex "target remote :3333"
