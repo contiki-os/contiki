@@ -262,7 +262,7 @@ void(*const vectors[])(void) =
   default_handler,            /* 162 MACTimer */
 };
 /*---------------------------------------------------------------------------*/
-__attribute__((__section__(".flashcca"), __used__))
+__attribute__((__section__(".flashcca")))
 const flash_cca_lock_page_t flash_cca_lock_page = {
   FLASH_CCA_BOOTLDR_CFG,        /* Boot loader backdoor configuration */
   FLASH_CCA_IMAGE_VALID,        /* Image valid */
