@@ -59,6 +59,7 @@ MEMORY
 #endif
 }
 
+ENTRY(flash_cca_lock_page)
 SECTIONS
 {
     .text :
@@ -110,6 +111,6 @@ SECTIONS
 
     .flashcca :
     {
-        KEEP(*(.flashcca))
+        *(.flashcca)
     } > FLASH_CCA
 }
