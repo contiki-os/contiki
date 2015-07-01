@@ -1,0 +1,20 @@
+LIBC=$(CONTIKI)/platform/galileo/bsp/libc/i586-elf
+LIBGCC_PATH = /usr/lib/gcc/$(shell gcc -dumpmachine)/$(shell gcc -dumpversion)
+
+CONTIKI_TARGET_DIRS = .
+CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
+CONTIKI_SOURCEFILES += contiki-main.c newlib-syscalls.c loader.S
+
+LINKERSCRIPT = $(CONTIKI)/platform/galileo/galileo.ld
+
+CONTIKI_CPU=$(CONTIKI)/cpu/x86
+include $(CONTIKI)/cpu/x86/Makefile.x86
+
+CFLAGS += -m32 -march=i586 -nostdinc -isystem $(LIBC)/include -isystem $(LIBGCC_PATH)/include -isystem $(LIBGCC_PATH)/include-fixed
+LDFLAGS += -m32 -nostdlib -T $(LINKERSCRIPT)
+ASFLAGS += --32 -march=i586 -mtune=i586
+
+# Ideally, this should be part of LDFLAGS (-lc -lm etc). However, we found out that archive
+# static files (.a) must be linked after our own object files, otherwise the linker gets lost
+# and we get undefined references only.
+TARGET_LIBFILES = $(OBJECTDIR)/newlib-syscalls.o $(LIBC)/lib/libm.a $(LIBC)/lib/libc.a $(LIBGCC_PATH)/32/libgcc.a

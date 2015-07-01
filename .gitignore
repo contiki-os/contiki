@@ -112,3 +112,6 @@ platform/galileo/bsp/libc/i586-elf/
 platform/galileo/bsp/libc/newlib-2.2.0-1*
 platform/galileo/bsp/grub/src/
 platform/galileo/bsp/grub/bin/
+
+# galileo build artefacts
+*.galileo
