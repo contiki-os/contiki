@@ -41,7 +41,7 @@
 #include "net/mac/tsch/frame802154e.h"
 
 #define DEBUG DEBUG_NONE
-#include "uip-debug.h"
+#include "net/ip/uip-debug.h"
 
 /* c.f. IEEE 802.15.4e Table 4b */
 enum ieee802154e_header_ie_id {
