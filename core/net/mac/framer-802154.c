@@ -302,10 +302,6 @@ frame802154_packet_extract_addresses(frame802154_t *frame,
       }
     }
 
-    if(frame->fcf.src_addr_mode && frame->src_pid != IEEE802154_PANID) {
-      /* Reject if from another PAN */
-      return 0;
-    }
     if(source_address != NULL) {
       linkaddr_copy(source_address, (linkaddr_t *)frame->src_addr);
     }

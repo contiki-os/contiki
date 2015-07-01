@@ -40,6 +40,9 @@
 #include <string.h>
 #include "net/mac/tsch/frame802154e.h"
 
+#define DEBUG DEBUG_NONE
+#include "uip-debug.h"
+
 /* c.f. IEEE 802.15.4e Table 4b */
 enum ieee802154e_header_ie_id {
   HEADER_IE_LE_CSL = 0x1a,
@@ -479,22 +482,27 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
     buf_size -= 2;
     buf += 2;
     type = ie_desc & 0x8000 ? 1 : 0; /* b15 */
+    PRINTF("frame802154e: ie type %u, current state %u\n", type, parsing_state);
 
     switch(parsing_state) {
       case PARSING_HEADER_IE:
         if(type != 0) {
+          PRINTF("frame802154e: wrong type %04x\n", ie_desc);
           return -1;
         }
         /* Header IE: 2 bytes descriptor, c.f. fig 48n in IEEE 802.15.4e */
         len = ie_desc & 0x007f; /* b0-b6 */
         id = (ie_desc & 0x7f80) >> 7; /* b7-b14 */
+        PRINTF("frame802154e: header ie len %u id %x\n", len, id);
         switch(id) {
           case HEADER_IE_LIST_TERMINATION_1:
             if(len == 0) {
               /* End of payload IE list, now expect payload IEs */
               parsing_state = PARSING_PAYLOAD_IE;
               ies->ie_payload_ie_offset = buf - start; /* Save IE header len */
+              PRINTF("frame802154e: list termination 1, look for payload IEs\n");
             } else {
+              PRINTF("frame802154e: list termination 1, wrong len %u\n", len);
               return -1;
             }
             break;
@@ -502,12 +510,15 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
             /* End of IE parsing */
             if(len == 0) {
               ies->ie_payload_ie_offset = buf - start; /* Save IE header len */
+              PRINTF("frame802154e: list termination 2\n");
               return buf + len - start;
             } else {
+              PRINTF("frame802154e: list termination 2, wrong len %u\n", len);
               return -1;
             }
           default:
             if(len > buf_size || frame802154e_parse_header_ie(buf, len, id, ies) == -1) {
+              PRINTF("frame802154e: failed to parse\n");
               return -1;
             }
             break;
@@ -515,21 +526,26 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
         break;
       case PARSING_PAYLOAD_IE:
         if(type != 1) {
+          PRINTF("frame802154e: wrong type %04x\n", ie_desc);
           return -1;
         }
         /* Payload IE: 2 bytes descriptor, c.f. fig 48o in IEEE 802.15.4e */
         len = ie_desc & 0x7ff; /* b0-b10 */
         id = (ie_desc & 0x7800) >> 11; /* b11-b14 */
+        PRINTF("frame802154e: payload ie len %u id %x\n", len, id);
         switch(id) {
           case PAYLOAD_IE_MLME:
             /* Now expect 'len' bytes of MLME sub-IEs */
             parsing_state = PARSING_MLME_SUBIE;
             nested_mlme_len = len;
             len = 0; /* Reset len as we want to read subIEs and not jump over them */
+            PRINTF("frame802154e: entering MLME ie with len %u\n", nested_mlme_len);
             break;
           case PAYLOAD_IE_LIST_TERMINATION:
+            PRINTF("frame802154e: payload ie list termination %u\n", len);
             return (len == 0) ? buf + len - start : -1;
           default:
+            PRINTF("frame802154e: non-supported payload ie\n");
             return -1;
         }
         break;
@@ -540,24 +556,30 @@ frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
           /* Short sub-IE, c.f. fig 48r in IEEE 802.15.4e */
           len = ie_desc & 0x00ff; /* b0-b7 */
           id = (ie_desc & 0x7f00) >> 8; /* b8-b14 */
+          PRINTF("frame802154e: short mlme ie len %u id %x\n", len, id);
           if(len > buf_size || frame802154e_parse_mlme_short_ie(buf, len, id, ies) == -1) {
+            PRINTF("frame802154e: failed to parse ie\n");
             return -1;
           }
         } else {
           /* Long sub-IE, c.f. fig 48s in IEEE 802.15.4e */
           len = ie_desc & 0x7ff; /* b0-b10 */
           id = (ie_desc & 0x7800) >> 11; /* b11-b14 */
+          PRINTF("frame802154e: long mlme ie len %u id %x\n", len, id);
           if(len > buf_size || frame802154e_parse_mlme_long_ie(buf, len, id, ies) == -1) {
+            PRINTF("frame802154e: failed to parse ie\n");
             return -1;
           }
         }
         /* Update remaining nested MLME len */
         nested_mlme_len -= 2 + len;
         if(nested_mlme_len < 0) {
+          PRINTF("frame802154e: found more sub-IEs than initially advertised\n");
           /* We found more sub-IEs than initially advertised */
           return -1;
         }
         if(nested_mlme_len == 0) {
+          PRINTF("frame802154e: end of MLME IE parsing\n");
           /* End of IE parsing, look for another payload IE */
           parsing_state = PARSING_PAYLOAD_IE;
         }

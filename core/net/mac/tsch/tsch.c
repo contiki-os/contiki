@@ -1446,45 +1446,49 @@ PT_THREAD(tsch_associate(struct pt *pt))
 #endif
 
         /* There was no join priority (or 0xff) in the EB, do not join */
-        if(ies.ie_join_priority == 0xff) {
+        if(eb_parsed && ies.ie_join_priority == 0xff) {
           eb_parsing_err = 2;
           eb_parsed = 0;
         }
 
         /* TSCH timeslot timing */
-        if(ies.ie_tsch_timeslot_id == 0) {
-          tsch_reset_timeslot_timing();
-        } else {
-          tsch_timing_cca_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca_offset);
-          tsch_timing_cca = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca);
-          tsch_timing_tx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_offset);
-          tsch_timing_rx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_offset);
-          tsch_timing_rx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_ack_delay);
-          tsch_timing_tx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_ack_delay);
-          tsch_timing_rx_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_wait);
-          tsch_timing_ack_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.ack_wait);
-          tsch_timing_rx_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_tx);
-          tsch_timing_max_ack = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_ack);
-          tsch_timing_max_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_tx);
-          tsch_timing_timeslot_length = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.timeslot_length);
+        if(eb_parsed) {
+          if(ies.ie_tsch_timeslot_id == 0) {
+            tsch_reset_timeslot_timing();
+          } else {
+            tsch_timing_cca_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca_offset);
+            tsch_timing_cca = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca);
+            tsch_timing_tx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_offset);
+            tsch_timing_rx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_offset);
+            tsch_timing_rx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_ack_delay);
+            tsch_timing_tx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_ack_delay);
+            tsch_timing_rx_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_wait);
+            tsch_timing_ack_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.ack_wait);
+            tsch_timing_rx_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_tx);
+            tsch_timing_max_ack = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_ack);
+            tsch_timing_max_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_tx);
+            tsch_timing_timeslot_length = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.timeslot_length);
+          }
         }
 
         /* TSCH hopping sequence */
-        if(ies.ie_channel_hopping_sequence_id == 0) {
-          memcpy(hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-          ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-        } else {
-          if(ies.ie_hopping_sequence_len <= sizeof(hopping_sequence)) {
-            memcpy(hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
-            ASN_DIVISOR_INIT(hopping_sequence_length, ies.ie_hopping_sequence_len);
+        if(eb_parsed) {
+          if(ies.ie_channel_hopping_sequence_id == 0) {
+            memcpy(hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+            ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
           } else {
-            eb_parsing_err = 3;
-            eb_parsed = 0;
+            if(ies.ie_hopping_sequence_len <= sizeof(hopping_sequence)) {
+              memcpy(hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
+              ASN_DIVISOR_INIT(hopping_sequence_length, ies.ie_hopping_sequence_len);
+            } else {
+              eb_parsing_err = 3;
+              eb_parsed = 0;
+            }
           }
         }
 
 #if TSCH_CHECK_TIME_AT_ASSOCIATION > 0
-        if(eb_parsed != 0) {
+        if(eb_parsed) {
           /* Divide by 4k and multiply again to avoid integer overflow */
           uint32_t expected_asn = 4096*TSCH_CLOCK_TO_SLOTS(clock_time()/4096, tsch_timing_timeslot_length); /* Expected ASN based on our current time*/
           int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION*60ul*TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND, tsch_timing_timeslot_length);
@@ -1499,31 +1503,33 @@ PT_THREAD(tsch_associate(struct pt *pt))
 #endif
 
 #if TSCH_INIT_SCHEDULE_FROM_EB
-        /* Create schedule */
-        if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
+        if(eb_parsed) {
+          /* Create schedule */
+          if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
 #if TSCH_WITH_MINIMAL_SCHEDULE
-          tsch_schedule_create_minimal();
+            tsch_schedule_create_minimal();
 #else
-          eb_parsing_err = 5;
-          eb_parsed = 0;
-#endif
-        } else {
-          /* We support only 0 or 1 slotframe in this IE */
-          int num_links = ies.ie_tsch_slotframe_and_link.num_links;
-          if(num_links <= FRAME802154E_IE_MAX_LINKS) {
-            int i;
-            struct tsch_slotframe *sf = tsch_schedule_add_slotframe(
-                ies.ie_tsch_slotframe_and_link.slotframe_handle,
-                ies.ie_tsch_slotframe_and_link.slotframe_size);
-            for(i = 0; i < num_links; i++) {
-              tsch_schedule_add_link(sf,
-                  ies.ie_tsch_slotframe_and_link.links[i].link_options,
-                  LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
-                  ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
-            }
-          } else {
-            eb_parsing_err = 6;
+            eb_parsing_err = 5;
             eb_parsed = 0;
+#endif
+          } else {
+            /* We support only 0 or 1 slotframe in this IE */
+            int num_links = ies.ie_tsch_slotframe_and_link.num_links;
+            if(num_links <= FRAME802154E_IE_MAX_LINKS) {
+              int i;
+              struct tsch_slotframe *sf = tsch_schedule_add_slotframe(
+                  ies.ie_tsch_slotframe_and_link.slotframe_handle,
+                  ies.ie_tsch_slotframe_and_link.slotframe_size);
+              for(i = 0; i < num_links; i++) {
+                tsch_schedule_add_link(sf,
+                    ies.ie_tsch_slotframe_and_link.links[i].link_options,
+                    LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
+                    ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
+              }
+            } else {
+              eb_parsing_err = 6;
+              eb_parsed = 0;
+            }
           }
         }
 #endif /* TSCH_INIT_SCHEDULE_FROM_EB */
