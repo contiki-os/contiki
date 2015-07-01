@@ -45,13 +45,13 @@
 #include "net/llsec/noncoresec/noncoresec.h"
 #include "net/llsec/anti-replay.h"
 #include "net/llsec/llsec802154.h"
-#include "net/llsec/ccm-star.h"
+#include "net/llsec/ccm-star-packetbuf.h"
 #include "net/mac/frame802154.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/nbr-table.h"
 #include "net/linkaddr.h"
-#include "lib/aes-128.h"
+#include "lib/ccm-star.h"
 #include <string.h>
 
 #define WITH_ENCRYPTION (LLSEC802154_SECURITY_LEVEL & (1 << 2))
@@ -110,15 +110,12 @@ send(mac_callback_t sent, void *ptr)
 static int
 on_frame_created(void)
 {
-  uint8_t *dataptr;
-  uint8_t data_len;  
-  
-  dataptr = packetbuf_dataptr();
-  data_len = packetbuf_datalen();
-  
-  CCM_STAR.mic(get_extended_address(&linkaddr_node_addr), dataptr + data_len, LLSEC802154_MIC_LENGTH);
+  uint8_t *dataptr = packetbuf_dataptr();
+  uint8_t data_len = packetbuf_datalen();
+
+  ccm_star_mic_packetbuf(get_extended_address(&linkaddr_node_addr), dataptr + data_len, LLSEC802154_MIC_LENGTH);
 #if WITH_ENCRYPTION
-  CCM_STAR.ctr(get_extended_address(&linkaddr_node_addr));
+  ccm_star_ctr_packetbuf(get_extended_address(&linkaddr_node_addr));
 #endif /* WITH_ENCRYPTION */
   packetbuf_set_datalen(data_len + LLSEC802154_MIC_LENGTH);
   
@@ -132,6 +129,8 @@ input(void)
   uint8_t *received_mic;
   const linkaddr_t *sender;
   struct anti_replay_info* info;
+  uint8_t *dataptr = packetbuf_dataptr();
+  uint8_t data_len = packetbuf_datalen();
   
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) != LLSEC802154_SECURITY_LEVEL) {
     PRINTF("noncoresec: received frame with wrong security level\n");
@@ -143,14 +142,15 @@ input(void)
     return;
   }
   
-  packetbuf_set_datalen(packetbuf_datalen() - LLSEC802154_MIC_LENGTH);
+  data_len -= LLSEC802154_MIC_LENGTH;
+  packetbuf_set_datalen(data_len);
   
 #if WITH_ENCRYPTION
-  CCM_STAR.ctr(get_extended_address(sender));
+  ccm_star_ctr_packetbuf(get_extended_address(sender));
 #endif /* WITH_ENCRYPTION */
-  CCM_STAR.mic(get_extended_address(sender), generated_mic, LLSEC802154_MIC_LENGTH);
+  ccm_star_mic_packetbuf(get_extended_address(sender), generated_mic, LLSEC802154_MIC_LENGTH);
   
-  received_mic = ((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen();
+  received_mic = dataptr + data_len;
   if(memcmp(generated_mic, received_mic, LLSEC802154_MIC_LENGTH) != 0) {
     PRINTF("noncoresec: received nonauthentic frame %"PRIu32"\n",
         anti_replay_get_counter());
@@ -203,7 +203,7 @@ get_overhead(void)
 static void
 bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
 {
-  AES_128.set_key(key);
+  CCM_STAR.set_key(key);
   nbr_table_register(anti_replay_table, NULL);
   on_bootstrapped();
 }

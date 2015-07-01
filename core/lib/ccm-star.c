@@ -34,44 +34,37 @@
  * \file
  *         AES_128-based CCM* implementation.
  * \author
- *         Konrad Krentz <konrad.krentz@gmail.com>
+ *         Original: Konrad Krentz <konrad.krentz@gmail.com>
+ *         Generified version: Justin King-Lacroix <justin.kinglacroix@gmail.com>
  */
 
-/**
- * \addtogroup llsec802154
- * @{
- */
-
-#include "net/llsec/ccm-star.h"
-#include "net/llsec/llsec802154.h"
-#include "net/packetbuf.h"
+#include "ccm-star.h"
 #include "lib/aes-128.h"
 #include <string.h>
 
+/* see RFC 3610 */
+#define CCM_STAR_AUTH_FLAGS(Adata, M) ((Adata ? (1u << 6) : 0) | (((M - 2u) >> 1) << 3) | 1u)
+#define CCM_STAR_ENCRYPTION_FLAGS     1
+
 /*---------------------------------------------------------------------------*/
 static void
-set_nonce(uint8_t *nonce,
+set_nonce(uint8_t *iv,
     uint8_t flags,
-    const uint8_t *extended_source_address,
+    const uint8_t *nonce,
     uint8_t counter)
 {
   /* 1 byte||          8 bytes        ||    4 bytes    || 1 byte  || 2 bytes */
   /* flags || extended_source_address || frame_counter || sec_lvl || counter */
-  
-  nonce[0] = flags;
-  memcpy(nonce + 1, extended_source_address, 8);
-  nonce[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) >> 8;
-  nonce[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
-  nonce[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
-  nonce[12] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
-  nonce[13] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-  nonce[14] = 0;
-  nonce[15] = counter;
+
+  iv[0] = flags;
+  memcpy(iv + 1, nonce, CCM_STAR_NONCE_LENGTH);
+  iv[14] = 0;
+  iv[15] = counter;
 }
 /*---------------------------------------------------------------------------*/
 /* XORs the block m[pos] ... m[pos + 15] with K_{counter} */
 static void
-ctr_step(const uint8_t *extended_source_address,
+ctr_step(const uint8_t *nonce,
     uint8_t pos,
     uint8_t *m_and_result,
     uint8_t m_len,
@@ -80,7 +73,7 @@ ctr_step(const uint8_t *extended_source_address,
   uint8_t a[AES_128_BLOCK_SIZE];
   uint8_t i;
   
-  set_nonce(a, CCM_STAR_ENCRYPTION_FLAGS, extended_source_address, counter);
+  set_nonce(a, CCM_STAR_ENCRYPTION_FLAGS, nonce, counter);
   AES_128.encrypt(a);
   
   for(i = 0; (pos + i < m_len) && (i < AES_128_BLOCK_SIZE); i++) {
@@ -89,43 +82,20 @@ ctr_step(const uint8_t *extended_source_address,
 }
 /*---------------------------------------------------------------------------*/
 static void
-mic(const uint8_t *extended_source_address,
+mic(const uint8_t *m,  uint8_t m_len,
+    const uint8_t *nonce,
+    const uint8_t *a,  uint8_t a_len,
     uint8_t *result,
     uint8_t mic_len)
 {
   uint8_t x[AES_128_BLOCK_SIZE];
   uint8_t pos;
   uint8_t i;
-  uint8_t a_len;
-  uint8_t *a;
-#if LLSEC802154_USES_ENCRYPTION
-  uint8_t shall_encrypt;
-  uint8_t m_len;
-  uint8_t *m;
   
-  shall_encrypt = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) & (1 << 2);
-  if(shall_encrypt) {
-    a_len = packetbuf_hdrlen();
-    m_len = packetbuf_datalen();
-  } else {
-    a_len = packetbuf_totlen();
-    m_len = 0;
-  }
-  set_nonce(x,
-      CCM_STAR_AUTH_FLAGS(a_len, mic_len),
-      extended_source_address,
-      m_len);
-#else /* LLSEC802154_USES_ENCRYPTION */
-  a_len = packetbuf_totlen();
-  set_nonce(x,
-      CCM_STAR_AUTH_FLAGS(a_len, mic_len),
-      extended_source_address,
-      0);
-#endif /* LLSEC802154_USES_ENCRYPTION */
+  set_nonce(x, CCM_STAR_AUTH_FLAGS(a_len, mic_len), nonce, m_len);
   AES_128.encrypt(x);
   
-  a = packetbuf_hdrptr();
-  if(a_len) {
+  if(a_len > 0) {
     x[1] = x[1] ^ a_len;
     for(i = 2; (i - 2 < a_len) && (i < AES_128_BLOCK_SIZE); i++) {
       x[i] ^= a[i - 2];
@@ -143,8 +113,7 @@ mic(const uint8_t *extended_source_address,
     }
   }
   
-#if LLSEC802154_USES_ENCRYPTION
-  if(shall_encrypt) {
+  if(m_len > 0) {
     m = a + a_len;
     pos = 0;
     while(pos < m_len) {
@@ -155,36 +124,33 @@ mic(const uint8_t *extended_source_address,
       AES_128.encrypt(x);
     }
   }
-#endif /* LLSEC802154_USES_ENCRYPTION */
   
-  ctr_step(extended_source_address, 0, x, AES_128_BLOCK_SIZE, 0);
+  ctr_step(nonce, 0, x, AES_128_BLOCK_SIZE, 0);
   
   memcpy(result, x, mic_len);
 }
 /*---------------------------------------------------------------------------*/
 static void
-ctr(const uint8_t *extended_source_address)
+ctr(uint8_t *m, uint8_t m_len, const uint8_t* nonce)
 {
-  uint8_t m_len;
-  uint8_t *m;
   uint8_t pos;
   uint8_t counter;
-  
-  m_len = packetbuf_datalen();
-  m = (uint8_t *) packetbuf_dataptr();
   
   pos = 0;
   counter = 1;
   while(pos < m_len) {
-    ctr_step(extended_source_address, pos, m, m_len, counter++);
+    ctr_step(nonce, pos, m, m_len, counter++);
     pos += AES_128_BLOCK_SIZE;
   }
 }
 /*---------------------------------------------------------------------------*/
+static void set_key(const uint8_t *key) {
+    AES_128.set_key((uint8_t*)key);
+}
+/*---------------------------------------------------------------------------*/
 const struct ccm_star_driver ccm_star_driver = {
   mic,
-  ctr
+  ctr,
+  set_key
 };
 /*---------------------------------------------------------------------------*/
-
-/** @} */
