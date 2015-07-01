@@ -28,8 +28,17 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "contiki.h"
+
 int
 main(void)
 {
+  process_init();
+  autostart_start(autostart_processes);
+
+  while(1) {
+    process_run();
+  }
+
   return 0;
 }
