@@ -6,3 +6,10 @@ OPENOCD_SCRIPTS = $(CONTIKI)/platform/galileo/bsp/openocd-scripts
 debug: $(CONTIKI_PROJECT).$(TARGET)
 	@openocd -s $(OPENOCD_SCRIPTS) -f debug.cfg &> $(shell pwd)/LOG_OPENOCD &
 	@$(GDB) $< -ex "target remote :3333"
+
+CUSTOM_RULE_LINK=1
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+	@$(SIZE) $@

@@ -7,6 +7,7 @@ CC       = gcc
 LD       = gcc
 AS       = as
 OBJCOPY  = objcopy
+SIZE     = size
 STRIP    = strip
 CFLAGSNO = -Wall -g -I/usr/local/include
 CFLAGS  += $(CFLAGSNO)
