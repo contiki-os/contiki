@@ -28,20 +28,9 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "contiki.h"
-#include "cpu.h"
+#ifndef CPU_H
+#define CPU_H
 
-int
-main(void)
-{
-  cpu_init();
+void cpu_init(void);
 
-  process_init();
-  autostart_start(autostart_processes);
-
-  while(1) {
-    process_run();
-  }
-
-  return 0;
-}
+#endif /* CPU_H */

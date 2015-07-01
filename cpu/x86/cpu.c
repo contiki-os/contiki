@@ -28,20 +28,12 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "contiki.h"
-#include "cpu.h"
+#include "gdt.h"
+#include "idt.h"
 
-int
-main(void)
+void
+cpu_init(void)
 {
-  cpu_init();
-
-  process_init();
-  autostart_start(autostart_processes);
-
-  while(1) {
-    process_run();
-  }
-
-  return 0;
+  gdt_init();
+  idt_init();
 }
