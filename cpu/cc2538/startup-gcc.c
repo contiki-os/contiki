@@ -94,22 +94,7 @@ void pka_isr(void);
 /* Allocate stack space */
 static unsigned long stack[512] __attribute__ ((section(".stack")));
 /*---------------------------------------------------------------------------*/
-/* Linker construct indicating .text section location */
-extern uint8_t _text[0];
-/*---------------------------------------------------------------------------*/
-__attribute__ ((section(".flashcca"), used))
-const flash_cca_lock_page_t __cca = {
-  FLASH_CCA_BOOTLDR_CFG,          /* Boot loader backdoor configuration */
-  FLASH_CCA_IMAGE_VALID,         /* Image valid */
-  &_text,                        /* Vector table located at the start of .text */
-  /* Unlock all pages and debug */
-  { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
-};
-/*---------------------------------------------------------------------------*/
-__attribute__ ((section(".vectors"), used))
+__attribute__((__section__(".vectors")))
 void(*const vectors[])(void) =
 {
   (void (*)(void))((unsigned long)stack + sizeof(stack)),   /* Stack pointer */
@@ -275,6 +260,18 @@ void(*const vectors[])(void) =
   pka_isr,                    /* 160 PKA */
   rtimer_isr,                 /* 161 SM Timer */
   default_handler,            /* 162 MACTimer */
+};
+/*---------------------------------------------------------------------------*/
+__attribute__((__section__(".flashcca"), __used__))
+const flash_cca_lock_page_t flash_cca_lock_page = {
+  FLASH_CCA_BOOTLDR_CFG,        /* Boot loader backdoor configuration */
+  FLASH_CCA_IMAGE_VALID,        /* Image valid */
+  &vectors,                     /* Vector table */
+  /* Unlock all pages and debug */
+  { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
 };
 /*---------------------------------------------------------------------------*/
 /* Linker constructs indicating .data and .bss segment locations */

@@ -64,7 +64,7 @@ SECTIONS
     .text :
     {
         _text = .;
-        KEEP(*(.vectors))
+        *(.vectors)
         *(.text*)
         *(.rodata*)
         _etext = .;
