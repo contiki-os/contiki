@@ -119,6 +119,9 @@ create_frame(int type, int do_create)
   } else {
     params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
   }
+  /* We do not compress PAN ID in outgoing frames, i.e. include one PAN ID (dest by default)
+   * There is one exception, seemingly a typo in Table 2a: rows 2 and 3: when there is no
+   * source nor destination address, we have dest PAN ID iff compression is *set*. */
   params.fcf.panid_compression = 0;
   params.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
 
@@ -302,7 +305,10 @@ frame802154_packet_extract_addresses(frame802154_t *frame,
       linkaddr_copy(dest_address, &linkaddr_null);
     }
     if(frame->fcf.dest_addr_mode) {
-      if(frame->dest_pid != mac_pan_id
+      int has_dest_panid;
+      frame802154_has_panid(&frame->fcf, NULL, &has_dest_panid);
+      if(has_dest_panid
+          && frame->dest_pid != mac_pan_id
           && frame->dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         return 0;

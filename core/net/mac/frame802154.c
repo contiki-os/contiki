@@ -113,9 +113,69 @@ get_key_id_len(uint8_t key_id_mode)
 }
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 /*----------------------------------------------------------------------------*/
+void
+frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest_pan_id)
+{
+  int src_pan_id = 0;
+  int dest_pan_id = 0;
+
+  if(fcf == NULL) {
+    return;
+  }
+
+  if(fcf->frame_version == FRAME802154_IEEE802154) {
+    if(!fcf->panid_compression) {
+      /* Compressed PAN ID == no PAN ID at all */
+      if(fcf->dest_addr_mode == fcf->dest_addr_mode) {
+        /* No address or both addresses: include destination PAN ID */
+        dest_pan_id = 1;
+      } else if(fcf->dest_addr_mode) {
+        /* Only dest address, include dest PAN ID */
+        dest_pan_id = 1;
+      } else if(fcf->src_addr_mode) {
+        /* Only src address, include src PAN ID */
+        src_pan_id = 1;
+      }
+    }
+    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 1) {
+      /* No address included, include dest PAN ID conditionally */
+      if(!fcf->panid_compression) {
+        dest_pan_id = 1;
+      }
+    }
+    /* Remove the following rule the day rows 2 and 3 from table 2a are fixed: */
+    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 0) {
+      /* Not meaningful, we include a PAN ID iff the compress flag is set, but
+       * this is what the standard currently stipulates */
+      dest_pan_id = fcf->panid_compression;
+    }
+  } else {
+    /* No PAN ID in ACK */
+    if(fcf->frame_type != FRAME802154_ACKFRAME) {
+      if(!fcf->panid_compression && fcf->src_addr_mode & 3) {
+        /* If compressed, don't inclue source PAN ID */
+        src_pan_id = 1;
+      }
+      if(fcf->dest_addr_mode & 3) {
+        dest_pan_id = 1;
+      }
+    }
+  }
+
+  if(has_src_pan_id != NULL) {
+    *has_src_pan_id = src_pan_id;
+  }
+  if(has_dest_pan_id != NULL) {
+    *has_dest_pan_id = dest_pan_id;
+  }
+}
+/*----------------------------------------------------------------------------*/
 static void
 field_len(frame802154_t *p, field_length_t *flen)
 {
+  int has_src_panid;
+  int has_dest_panid;
+
   /* init flen to zeros */
   memset(flen, 0, sizeof(field_length_t));
 
@@ -123,22 +183,28 @@ field_len(frame802154_t *p, field_length_t *flen)
   if((p->fcf.sequence_number_suppression & 1) == 0) {
     flen->seqno_len = 1;
   }
-  if(p->fcf.dest_addr_mode & 3) {
-    flen->dest_pid_len = 2;
+
+  /* IEEE802.15.4e changes the meaning of PAN ID Compression (see Table 2a).
+   * In this case, we leave the decision whether to compress PAN ID or not
+   * up to the caller. */
+  if(p->fcf.frame_version < FRAME802154_IEEE802154) {
+    /* Set PAN ID compression bit if src pan id matches dest pan id. */
+    if(p->fcf.dest_addr_mode & 3 && p->fcf.src_addr_mode & 3 &&
+       p->src_pid == p->dest_pid) {
+      p->fcf.panid_compression = 1;
+    } else {
+      p->fcf.panid_compression = 0;
+    }
   }
-  if(p->fcf.src_addr_mode & 3) {
+
+  frame802154_has_panid(&p->fcf, &has_src_panid, &has_dest_panid);
+
+  if(has_src_panid) {
     flen->src_pid_len = 2;
   }
 
-  /* Set PAN ID compression bit if src pan id matches dest pan id. */
-  if(p->fcf.dest_addr_mode & 3 && p->fcf.src_addr_mode & 3 &&
-     p->src_pid == p->dest_pid) {
-    p->fcf.panid_compression = 1;
-
-    /* compressed header, only do dest pid */
-    flen->src_pid_len = 0;
-  } else {
-    p->fcf.panid_compression = 0;
+  if(has_dest_panid) {
+    flen->dest_pid_len = 2;
   }
 
   /* determine address lengths */
@@ -296,6 +362,8 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
   uint8_t *p;
   frame802154_fcf_t fcf;
   int c;
+  int has_src_panid;
+  int has_dest_panid;
 #if LLSEC802154_USES_EXPLICIT_KEYS
   uint8_t key_id_mode;
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
@@ -328,11 +396,17 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
     p++;
   }
 
+  frame802154_has_panid(&fcf, &has_src_panid, &has_dest_panid);
+
   /* Destination address, if any */
   if(fcf.dest_addr_mode) {
-    /* Destination PAN */
-    pf->dest_pid = p[0] + (p[1] << 8);
-    p += 2;
+    if(has_dest_panid) {
+      /* Destination PAN */
+      pf->dest_pid = p[0] + (p[1] << 8);
+      p += 2;
+    } else {
+      pf->dest_pid = 0;
+    }
 
     /* Destination address */
 /*     l = addr_len(fcf.dest_addr_mode); */
@@ -359,9 +433,12 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
   /* Source address, if any */
   if(fcf.src_addr_mode) {
     /* Source PAN */
-    if(!fcf.panid_compression) {
+    if(has_src_panid) {
       pf->src_pid = p[0] + (p[1] << 8);
       p += 2;
+      if(!has_dest_panid) {
+        pf->dest_pid = pf->src_pid;
+      }
     } else {
       pf->src_pid = pf->dest_pid;
     }

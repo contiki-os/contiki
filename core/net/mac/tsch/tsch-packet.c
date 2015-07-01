@@ -71,11 +71,15 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   p.fcf.frame_type = FRAME802154_ACKFRAME;
   p.fcf.frame_version = FRAME802154_IEEE802154;
   p.fcf.ie_list_present = 1;
+  /* Compression unset. According to IEEE802.15.4e-2012:
+   * - if no address is present: elide PAN ID
+   * - if at least one address is present: include exactly one PAN ID (dest by default) */
+  p.fcf.panid_compression = 0;
+  p.dest_pid = IEEE802154_PANID;
   p.seq = seqno;
 #if TSCH_PACKET_DEST_ADDR_IN_ACK
   if(dest_addr != NULL) {
     p.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
-    p.dest_pid = IEEE802154_PANID;
     linkaddr_copy((linkaddr_t*)&p.dest_addr, dest_addr);
   }
 #endif
@@ -199,6 +203,9 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   p.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
   p.seq = seqno;
   p.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
+  /* It is important not to compress PAN ID, as this would result in not including either
+   * source nor destination PAN ID, leaving potential joining devices unaware of the PAN ID. */
+  p.fcf.panid_compression = 0;
 
   p.src_pid = frame802154_get_pan_id();
   p.dest_pid = frame802154_get_pan_id();

@@ -206,6 +206,7 @@ typedef struct {
 
 /* Prototypes */
 
+void frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest_pan_id);
 int frame802154_hdrlen(frame802154_t *p);
 int frame802154_create(frame802154_t *p, uint8_t *buf);
 int frame802154_parse(uint8_t *data, int length, frame802154_t *pf);

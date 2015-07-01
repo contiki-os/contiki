@@ -434,7 +434,10 @@ is_packet_for_us(uint8_t *buf, int len)
   uint8_t parsed = frame802154_parse(buf, len, &frame);
   if(parsed) {
     if(frame.fcf.dest_addr_mode) {
-      if(frame802154_get_pan_id() != FRAME802154_BROADCASTPANDID
+      int has_dest_panid;
+      frame802154_has_panid(frame->fcf, NULL, &has_dest_panid);
+      if(has_dest_panid
+          && frame802154_get_pan_id() != FRAME802154_BROADCASTPANDID
           && frame.dest_pid != frame802154_get_pan_id()
           && frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
