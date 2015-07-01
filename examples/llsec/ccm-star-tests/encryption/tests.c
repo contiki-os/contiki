@@ -41,9 +41,9 @@
 #include "net/packetbuf.h"
 #include "net/netstack.h"
 #include "net/llsec/llsec802154.h"
-#include "net/llsec/ccm-star.h"
+#include "lib/ccm-star.h"
+#include "net/llsec/ccm-star-packetbuf.h"
 #include "net/mac/frame802154.h"
-#include "lib/aes-128.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -86,8 +86,8 @@ test_sec_lvl_6()
   packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
   packetbuf_hdrreduce(29);
   
-  AES_128.set_key(key);
-  CCM_STAR.mic(extended_source_address, mic, LLSEC802154_MIC_LENGTH);
+  CCM_STAR.set_key(key);
+  ccm_star_mic_packetbuf(extended_source_address, mic, LLSEC802154_MIC_LENGTH);
   
   if(memcmp(mic, oracle, LLSEC802154_MIC_LENGTH) == 0) {
     printf("Success\n");
@@ -97,7 +97,7 @@ test_sec_lvl_6()
   
   printf("Testing encryption ... ");
   
-  CCM_STAR.ctr(extended_source_address);
+  ccm_star_ctr_packetbuf(extended_source_address);
   if(((uint8_t *) packetbuf_hdrptr())[29] == 0xD8) {
     printf("Success\n");
   } else {
@@ -105,7 +105,7 @@ test_sec_lvl_6()
   }
   
   printf("Testing decryption ... ");
-  CCM_STAR.ctr(extended_source_address);
+  ccm_star_ctr_packetbuf(extended_source_address);
   if(((uint8_t *) packetbuf_hdrptr())[29] == 0xCE) {
     printf("Success\n");
   } else {

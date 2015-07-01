@@ -34,23 +34,13 @@
  * \file
  *         CCM* header file.
  * \author
- *         Konrad Krentz <konrad.krentz@gmail.com>
+ *         Original: Konrad Krentz <konrad.krentz@gmail.com>
+ *         Generified version: Justin King-Lacroix <justin.kinglacroix@gmail.com>
  */
-
-/**
- * \addtogroup llsec802154
- * @{
- */
-
 #ifndef CCM_STAR_H_
 #define CCM_STAR_H_
 
 #include "contiki.h"
-#include "net/mac/frame802154.h"
-
-/* see RFC 3610 */
-#define CCM_STAR_AUTH_FLAGS(Adata, M) ((Adata ? (1 << 6) : 0) | (((M - 2) >> 1) << 3) | 1)
-#define CCM_STAR_ENCRYPTION_FLAGS     1
 
 #ifdef CCM_STAR_CONF
 #define CCM_STAR CCM_STAR_CONF
@@ -58,28 +48,43 @@
 #define CCM_STAR ccm_star_driver
 #endif /* CCM_STAR_CONF */
 
+#define CCM_STAR_NONCE_LENGTH 13
+
 /**
  * Structure of CCM* drivers.
  */
 struct ccm_star_driver {
   
    /**
-    * \brief         Generates a MIC over the frame in the packetbuf.
-    * \param result  The generated MIC will be put here
-    * \param mic_len  <= 16; set to LLSEC802154_MIC_LENGTH to be compliant
+    * \brief             Generates a MIC over the data supplied.
+    * \param data        The data buffer to read.
+    * \param data_length The data buffer length.
+    * \param nonce       The nonce to use. CCM_STAR_NONCE_LENGTH bytes long.
+    * \param result      The generated MIC will be put here
+    * \param mic_len     The size of the MIC to be generated. <= 16.
     */
-  void (* mic)(const uint8_t *extended_source_address,
+  void (* mic)(const uint8_t* data, uint8_t data_length,
+      const uint8_t* nonce,
+      const uint8_t* add,  uint8_t add_len,
       uint8_t *result,
       uint8_t mic_len);
   
   /**
    * \brief XORs the frame in the packetbuf with the key stream.
+   * \param data        The data buffer to read.
+   * \param data_length The data buffer length.
+   * \param nonce       The nonce to use. CCM_STAR_NONCE_LENGTH bytes long.
    */
-  void (* ctr)(const uint8_t *extended_source_address);
+  void (* ctr)(      uint8_t* data, uint8_t data_length,
+               const uint8_t* nonce);
+  
+  /**
+   * \brief Sets the key in use. Default implementation calls AES_128.set_key()
+   * \param key The key to use.
+   */
+  void (* set_key)(const uint8_t* key);
 };
 
 extern const struct ccm_star_driver CCM_STAR;
 
 #endif /* CCM_STAR_H_ */
-
-/** @} */
