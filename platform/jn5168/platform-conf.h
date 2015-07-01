@@ -66,7 +66,7 @@
 #define DR_11744_DIO6 16
 #define DR_11744_DIO7 17
 
-#define TSCH_DEBUG 1
+#define TSCH_DEBUG 0
 
 #if TSCH_DEBUG
 #define TSCH_DEBUG_INIT() do { \
@@ -99,8 +99,16 @@
     vAHI_DioSetOutput(0, (1<<DR_11744_DIO5)); \
   } \
   } while(0);
-#define TSCH_DEBUG_SLOT_START() vAHI_DioSetOutput((1<<DR_11744_DIO3), 0);
-#define TSCH_DEBUG_SLOT_END() vAHI_DioSetOutput(0, (1<<DR_11744_DIO3));
+#define TSCH_DEBUG_SLOT_START() do { \
+  static dio_state = 0; \
+  dio_state = !dio_state; \
+  if(dio_state) { \
+    vAHI_DioSetOutput((1<<DR_11744_DIO3), 0); \
+  } else { \
+    vAHI_DioSetOutput(0, (1<<DR_11744_DIO3)); \
+  } \
+  } while(0);
+#define TSCH_DEBUG_SLOT_END()
 #endif /* TSCH_DEBUG */
 
 #ifndef BAUD2UBR
