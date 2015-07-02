@@ -121,7 +121,7 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #ifdef TSCH_CONF_JOIN_ANY_PANID
 #define TSCH_JOIN_ANY_PANID TSCH_CONF_JOIN_ANY_PANID
 #else
-#define TSCH_JOIN_ANY_PANID 0
+#define TSCH_JOIN_ANY_PANID 1
 #endif
 
 /* The radio polling frequency (in Hz) during association process */
