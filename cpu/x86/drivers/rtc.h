@@ -28,23 +28,25 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-.text
+#ifndef RTC_H
+#define RTC_H
 
-.global halt
-halt:
-        cli
-die:    hlt
-        jmp die
+typedef enum {
+  RTC_8192_HZ = 2,
+  RTC_4096_HZ = 3,
+  RTC_2048_HZ = 4,
+  RTC_1024_HZ = 5,
+  RTC_512_HZ = 6,
+  RTC_256_HZ = 7,
+  RTC_128_HZ = 8,
+  RTC_64_HZ = 9,
+  RTC_32_HZ = 10,
+  RTC_16_HZ = 11,
+  RTC_8_HZ = 12,
+  RTC_4_HZ = 13,
+  RTC_2_HZ = 14,
+} rtc_frequency_t;
 
-.global outb
-outb:
-        mov 4(%esp), %dx
-        mov 8(%esp), %al
-        out %al, %dx
-        ret
+void rtc_init(rtc_frequency_t frequency, void (*callback)(void));
 
-.global inb
-inb:
-        mov 4(%esp), %dx
-        in %dx, %al
-        ret
+#endif /* RTC_H */

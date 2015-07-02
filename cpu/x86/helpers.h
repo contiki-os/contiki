@@ -43,4 +43,7 @@ void halt(void) __attribute__((__noreturn__));
  */
 void outb(uint16_t port, uint8_t byte);
 
+/* Wrapper for the assembly 'in' instruction */
+uint8_t inb(uint16_t port);
+
 #endif /* HELPERS_H */

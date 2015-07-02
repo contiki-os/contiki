@@ -1,6 +1,6 @@
 CONTIKI_CPU_DIRS = . drivers
 
-CONTIKI_SOURCEFILES += mtarch.c gdt.c helpers.S idt.c cpu.c
+CONTIKI_SOURCEFILES += mtarch.c gdt.c helpers.S idt.c cpu.c rtc.c
 
 ### Compiler definitions
 CC       = gcc
