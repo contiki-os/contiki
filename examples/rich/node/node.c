@@ -47,27 +47,75 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define CONFIG_VIA_BUTTON 1
+#if CONFIG_VIA_BUTTON
+#include "button-sensor.h"
+#endif /* CONFIG_VIA_BUTTON */
+
 /*---------------------------------------------------------------------------*/
 PROCESS(unicast_sender_process, "RICH Node");
-AUTOSTART_PROCESSES(&unicast_sender_process);
+AUTOSTART_PROCESSES(&unicast_sender_process, &sensors_process);
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(unicast_sender_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  static int is_coordinator = 0;
-  //is_coordinator = node_id == 1;
+  /* 3 possible roles:
+   * - role_6ln: simple node, will join any network, secured or not
+   * - role_6dg: DAG root, will advertise (unsecured) beacons
+   * - role_6dg_sec: DAG root, will advertise secured beacons
+   * */
+  static enum { role_6ln, role_6dg, role_6dg_sec } node_role;
 
-  if(is_coordinator) {
+  /* Set node with ID == 1 as coordinator, handy in Cooja. */
+  if(node_id == 1) {
+    if(LLSEC802154_CONF_SECURITY_LEVEL) {
+      node_role = role_6dg_sec;
+    } else {
+      node_role = role_6dg;
+    }
+  } else {
+    node_role = role_6ln;
+  }
+
+#if CONFIG_VIA_BUTTON
+  {
+#define CONFIG_WAIT_TIME 10
+    static struct etimer et;
+
+    SENSORS_ACTIVATE(button_sensor);
+    etimer_set(&et, CLOCK_SECOND * CONFIG_WAIT_TIME);
+
+    while(!etimer_expired(&et)) {
+      printf("Init: current role: %s. Will start in %u seconds.\n",
+          node_role == role_6ln ? "6ln" : (node_role == role_6dg) ? "6dg" : "6dg-sec",
+          CONFIG_WAIT_TIME);
+      PROCESS_WAIT_EVENT_UNTIL(((ev == sensors_event) &&
+                                (data == &button_sensor) && button_sensor.value(0) > 0)
+                                || etimer_expired(&et));
+      if(ev == sensors_event && data == &button_sensor && button_sensor.value(0) > 0) {
+        node_role = (node_role + 1) % 3;
+        etimer_restart(&et);
+      }
+    }
+  }
+
+#endif /* CONFIG_VIA_BUTTON */
+
+  printf("Init: node starting with role %s\n",
+      node_role == role_6ln ? "6ln" : (node_role == role_6dg) ? "6dg" : "6dg-sec");
+
+  tsch_is_pan_secured = LLSEC802154_CONF_SECURITY_LEVEL && (node_role == role_6dg_sec);
+  tsch_is_coordinator = node_role > role_6ln;
+
+  if(tsch_is_coordinator) {
     uip_ipaddr_t prefix;
     uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
     rich_init(&prefix);
   } else {
     rich_init(NULL);
   }
-
-  printf("Starting RPL node\n");
 
   PROCESS_END();
 }

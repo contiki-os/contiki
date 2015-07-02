@@ -75,9 +75,10 @@ rich_network_init(uip_ipaddr_t *br_prefix)
   uip_ipaddr_t global_ipaddr;
 
   if(br_prefix) { /* We are root */
-    /* If an RDC layer is used, turn it off (i.e. keep the radio on at the root).
-     * For TSCH, this means start as coordinator */
+    /* If an RDC layer is used, turn it off (i.e. keep the radio on at the root). */
     NETSTACK_RDC.off(1);
+    /* Set TSCH as coordinator */
+    tsch_set_coordinator(1);
     memcpy(&global_ipaddr, br_prefix, 16);
     uip_ds6_set_addr_iid(&global_ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&global_ipaddr, 0, ADDR_AUTOCONF);
@@ -85,6 +86,9 @@ rich_network_init(uip_ipaddr_t *br_prefix)
     rpl_set_prefix(rpl_get_any_dag(), br_prefix, 64);
     rpl_repair_root(RPL_DEFAULT_INSTANCE);
   }
+
+  /* Start TSCH */
+  NETSTACK_MAC.on();
 }
 /*---------------------------------------------------------------------------*/
 void
