@@ -80,6 +80,12 @@
 #define FRAME802154_VERSION FRAME802154_IEEE802154
 #endif /* FRAME802154_CONF_VERSION */
 
+#ifdef FRAME802154_CONF_SUPPR_SEQNO
+#define FRAME802154_SUPPR_SEQNO FRAME802154_CONF_SUPPR_SEQNO
+#else /* FRAME802154_CONF_SUPPR_SEQNO */
+#define FRAME802154_SUPPR_SEQNO 0
+#endif /* FRAME802154_CONF_SUPPR_SEQNO */
+
 /* Macros & Defines */
 
 /** \brief These are some definitions of values used in the FCF.  See the 802.15.4 spec for details.

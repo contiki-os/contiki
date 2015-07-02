@@ -193,6 +193,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   p.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
   p.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
   p.seq = seqno;
+  p.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
 
   p.src_pid = frame802154_get_pan_id();
   p.dest_pid = frame802154_get_pan_id();

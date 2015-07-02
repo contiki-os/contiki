@@ -120,6 +120,7 @@ create_frame(int type, int do_create)
     params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
   }
   params.fcf.panid_compression = 0;
+  params.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
 
   /* Insert IEEE 802.15.4 version bits. */
   params.fcf.frame_version = FRAME802154_VERSION;
