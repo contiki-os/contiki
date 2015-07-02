@@ -79,6 +79,11 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
     linkaddr_copy((linkaddr_t*)&p.dest_addr, dest_addr);
   }
 #endif
+#if TSCH_PACKET_SRC_ADDR_IN_ACK
+  p.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
+  p.src_pid = IEEE802154_PANID;
+  linkaddr_copy((linkaddr_t*)&p.src_addr, &linkaddr_node_addr);
+#endif
 #if LLSEC802154_SECURITY_LEVEL
   if(tsch_is_pan_secured) {
     p.fcf.security_enabled = 1;
