@@ -1,3 +1,4 @@
+CONTIKI=../../..
 CONTIKI_PROJECT = node
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
@@ -18,5 +19,4 @@ APPS += rest-engine
 
 all: $(CONTIKI_PROJECT)
 
-CONTIKI=../../..
 include $(CONTIKI)/Makefile.include

@@ -58,12 +58,13 @@ CFLAGS  := $(subst -Wall,,$(CFLAGS))
 
 ARCH=clock.c rtimer-arch.c slip_uart0.c uart0.c uart-driver.c watchdog.c \
  leds.c leds-arch.c \
- micromac-radio.c node-id.c exceptions.c sprintf.c
+ micromac-radio.c node-id.c exceptions.c sprintf.c \
+ ht-sensor.c light-sensor.c button-sensor.c pot-sensor.c
 
 APPLIBS += MMAC 
 STACKLIBS += JPT
 
-CONTIKI_TARGET_DIRS = . dev lib net net/mac net/rime
+CONTIKI_TARGET_DIRS = . dev lib net net/mac net/rime dev/dr1199 dev/dr1175
 CONTIKI_TARGET_MAIN = contiki-jn5168-main.c
 
 ifdef nodemac
