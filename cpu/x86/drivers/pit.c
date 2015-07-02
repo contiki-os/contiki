@@ -30,6 +30,7 @@
 
 #include <math.h>
 
+#include "drivers/pic.h"
 #include "pit.h"
 #include "helpers.h"
 #include "interrupt.h"
@@ -75,6 +76,5 @@ pit_init(uint32_t ticks_rate, pit_int_callback cb)
   outb(PIT_COUNTER0_PORT, divisor & 0xFF); /* Write least significant bytes first. */
   outb(PIT_COUNTER0_PORT, (divisor >> 8) & 0xFF);
 
-  /* FIXME: Unmask IRQ0 from Master PIC. Add a pic_set_mask() or similar and call it here. */
-  outb(0x21, 0xfa);
+  pic_unmask_irq(0);
 }

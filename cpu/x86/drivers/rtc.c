@@ -29,6 +29,7 @@
  */
 
 #include "drivers/rtc.h"
+#include "drivers/pic.h"
 #include "helpers.h"
 #include "interrupt.h"
 
@@ -87,6 +88,5 @@ rtc_init(rtc_frequency_t frequency, void (*callback)(void))
   outb(RTC_INDEX_REGISTER, 0x0B);
   outb(RTC_TARGET_REGISTER, reg_b | BIT(6));
 
-  /* Unmask IRQ8 */
-  outb(0xA1, 0xFE);
+  pic_unmask_irq(8);
 }
