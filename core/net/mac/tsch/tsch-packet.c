@@ -341,7 +341,7 @@ tsch_packet_parse_eb(uint8_t *buf, int buf_size,
   }
 
   if(frame->fcf.frame_type != FRAME802154_BEACONFRAME) {
-    LOG("TSCH:! parse_eb: frame is not a beacon %02x %02x\n", buf[0], buf[1]);
+    LOG("TSCH:! parse_eb: frame is not a beacon. Frame type %u, FCF %02x %02x\n", frame->fcf.frame_type, buf[0], buf[1]);
     return 0;
   }
 

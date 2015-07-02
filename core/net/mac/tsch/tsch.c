@@ -1420,8 +1420,6 @@ PT_THREAD(tsch_associate(struct pt *pt))
         int eb_parsing_err = 0;
         uint8_t hdrlen;
 
-        printf("TSCH: packet pending\n");
-
         /* Save packet timestamp */
         NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
 
@@ -1430,6 +1428,11 @@ PT_THREAD(tsch_associate(struct pt *pt))
 
         /* Parse EB and extract ASN and join priority */
         LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
+
+        if(input_eb.len == 0) {
+          eb_parsing_err = -1;
+        }
+
         eb_parsed = input_eb.len > 0 &&
             tsch_packet_parse_eb(input_eb.payload, input_eb.len,
                 &frame, &ies, &hdrlen, 0);
