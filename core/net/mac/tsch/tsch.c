@@ -110,6 +110,13 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #define TSCH_INIT_SCHEDULE_FROM_EB 1
 #endif
 
+/* The radio polling frequency (in Hz) during association process */
+#ifdef TSCH_CONF_AUTOSTART
+#define TSCH_AUTOSTART TSCH_CONF_AUTOSTART
+#else
+#define TSCH_AUTOSTART 1
+#endif
+
 /* By default, join any PAN ID. Otherwise, wait for an EB from IEEE802154_PANID */
 #ifdef TSCH_CONF_JOIN_ANY_PANID
 #define TSCH_JOIN_ANY_PANID TSCH_CONF_JOIN_ANY_PANID
@@ -218,6 +225,8 @@ const linkaddr_t tsch_broadcast_address = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 /* Address used for the EB virtual neighbor queue */
 const linkaddr_t tsch_eb_address = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
+/* Is TSCH started? */
+int tsch_is_started = 0;
 /* Are we coordinator of the TSCH network? */
 int tsch_is_coordinator = 0;
 /* Are we associated to a TSCH network? */
@@ -314,11 +323,12 @@ PROCESS(tsch_process, "TSCH: main process");
 PROCESS(tsch_pending_events_process, "TSCH: pending events process");
 
 /* Other function prototypes */
+static int turn_on(void);
 static void tsch_reset_timeslot_timing(void);
 static void tsch_reset(void);
-static void tsch_tx_process_pending();
-static void tsch_rx_process_pending();
-static void tsch_schedule_keepalive();
+static void tsch_tx_process_pending(void);
+static void tsch_rx_process_pending(void);
+static void tsch_schedule_keepalive(void);
 
 /* A global lock for manipulating data structures safely from outside of interrupt */
 static volatile int tsch_locked = 0;
@@ -1904,18 +1914,29 @@ tsch_init(void)
   tsch_log_init();
   ringbufindex_init(&input_ringbuf, TSCH_MAX_INCOMING_PACKETS);
   ringbufindex_init(&dequeued_ringbuf, DEQUEUED_ARRAY_SIZE);
-  /* Process tx/rx callback and log messages whenever polled */
-  process_start(&tsch_pending_events_process, NULL);
-  /* periodically send TSCH EBs */
-  process_start(&tsch_send_eb_process, NULL);
-  /* try to associate to a network or start one if setup as coordinator */
-  process_start(&tsch_process, NULL);
+
+#if TSCH_AUTOSTART
+  /* Start TSCH operation.
+   * If TSCH_AUTOSTART is not set, one needs to call NETSTACK_MAC.on() to start TSCH. */
+  turn_on();
+#endif /* TSCH_AUTOSTART */
 }
 /*---------------------------------------------------------------------------*/
 static int
 turn_on(void)
 {
-  return 1;
+  if(tsch_is_started == 0) {
+    tsch_is_started = 1;
+    /* Process tx/rx callback and log messages whenever polled */
+    process_start(&tsch_pending_events_process, NULL);
+    /* periodically send TSCH EBs */
+    process_start(&tsch_send_eb_process, NULL);
+    /* try to associate to a network or start one if setup as coordinator */
+    process_start(&tsch_process, NULL);
+    LOG("TSCH: starting as %s\n", tsch_is_coordinator ? "coordinator" : "node");
+    return 1;
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
