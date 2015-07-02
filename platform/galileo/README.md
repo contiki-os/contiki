@@ -24,7 +24,14 @@ Features
 This section presents the features currently supported (e.g. device drivers
 and Contiki APIs) by the Galileo port.
 
-For now, no features are supported.
+Device drivers:
+  * Programmable Interrupt Controller (PIC)
+  * Programmable Intergal Timer (PIT)
+  * Real-Time Clock (RTC)
+
+Contiki APIs:
+  * Clock module
+  * Timer, Stimer, Etimer, Ctimer, and Rtimer libraries
 
 Building
 --------
