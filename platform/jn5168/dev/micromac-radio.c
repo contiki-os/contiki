@@ -443,11 +443,6 @@ is_packet_for_us(uint8_t *buf, int len)
       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
         return linkaddr_cmp((linkaddr_t *)frame.dest_addr, &linkaddr_node_addr);
       }
-    } else { /* broadcast (EB) packet with no addresses */
-      if(frame.fcf.src_addr_mode && frame.src_pid != frame802154_get_pan_id()) {
-        /* Reject if from another PAN */
-        return 0;
-      }
     }
     return 1;
   } else {
