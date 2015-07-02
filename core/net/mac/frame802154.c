@@ -313,7 +313,7 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
   fcf.ack_required = (p[0] >> 5) & 1;
   fcf.panid_compression = (p[0] >> 6) & 1;
 
-  fcf.sequence_number_suppression = p[0] & 1;
+  fcf.sequence_number_suppression = p[1] & 1;
   fcf.ie_list_present = (p[1] >> 1) & 1;
   fcf.dest_addr_mode = (p[1] >> 2) & 3;
   fcf.frame_version = (p[1] >> 4) & 3;
@@ -321,8 +321,12 @@ frame802154_parse(uint8_t *data, int len, frame802154_t *pf)
 
   /* copy fcf and seqNum */
   memcpy(&pf->fcf, &fcf, sizeof(frame802154_fcf_t));
-  pf->seq = p[2];
-  p += 3;                             /* Skip first three bytes */
+  p += 2;                             /* Skip first two bytes */
+
+  if(fcf.sequence_number_suppression == 0) {
+    pf->seq = p[0];
+    p++;
+  }
 
   /* Destination address, if any */
   if(fcf.dest_addr_mode) {

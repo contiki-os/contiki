@@ -650,28 +650,31 @@ packet_input(void)
     int duplicate = 0;
 
 #if TSCH_802154_DUPLICATE_DETECTION
-    /* Check for duplicate packet by comparing the sequence number
-       of the incoming packet with the last few ones we saw. */
-    int i;
-    for(i = 0; i < MAX_SEQNOS; ++i) {
-      if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) == received_seqnos[i].seqno &&
-         linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                      &received_seqnos[i].sender)) {
-        /* Drop the packet. */
-        LOGP("TSCH:! drop dup ll from %u seqno %u",
-               LOG_NODEID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
-               packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
-        duplicate = 1;
+    /* Seqno of 0xffff means no seqno */
+    if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) != 0xffff) {
+      /* Check for duplicate packet by comparing the sequence number
+         of the incoming packet with the last few ones we saw. */
+      int i;
+      for(i = 0; i < MAX_SEQNOS; ++i) {
+        if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) == received_seqnos[i].seqno &&
+           linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                        &received_seqnos[i].sender)) {
+          /* Drop the packet. */
+          LOGP("TSCH:! drop dup ll from %u seqno %u",
+                 LOG_NODEID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
+                 packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+          duplicate = 1;
+        }
       }
-    }
-    if(!duplicate) {
-      for(i = MAX_SEQNOS - 1; i > 0; --i) {
-        memcpy(&received_seqnos[i], &received_seqnos[i - 1],
-               sizeof(struct seqno));
+      if(!duplicate) {
+        for(i = MAX_SEQNOS - 1; i > 0; --i) {
+          memcpy(&received_seqnos[i], &received_seqnos[i - 1],
+                 sizeof(struct seqno));
+        }
+        received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
+        linkaddr_copy(&received_seqnos[0].sender,
+                      packetbuf_addr(PACKETBUF_ADDR_SENDER));
       }
-      received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
-      linkaddr_copy(&received_seqnos[0].sender,
-                    packetbuf_addr(PACKETBUF_ADDR_SENDER));
     }
 #endif /* TSCH_802154_DUPLICATE_DETECTION */
 

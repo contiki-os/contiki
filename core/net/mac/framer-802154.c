@@ -257,7 +257,11 @@ parse(void)
     }
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&frame.src_addr);
     packetbuf_set_attr(PACKETBUF_ATTR_PENDING, frame.fcf.frame_pending);
-    packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, frame.seq);
+    if(frame.fcf.sequence_number_suppression == 0) {
+      packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, frame.seq);
+    } else {
+      packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, 0xffff);
+    }
 #if NETSTACK_CONF_WITH_RIME
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
 #endif
