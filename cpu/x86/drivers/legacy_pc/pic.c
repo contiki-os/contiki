@@ -28,7 +28,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "drivers/pic.h"
+#include "drivers/legacy_pc/pic.h"
 
 #define PIC_ACK 0x20
 

@@ -31,7 +31,7 @@
 #include "sys/rtimer.h"
 
 #include "contiki-conf.h"
-#include "drivers/pit.h"
+#include "drivers/legacy_pc/pit.h"
 
 static volatile rtimer_clock_t tick_count = 0;
 static rtimer_clock_t trigger = UINT64_MAX;

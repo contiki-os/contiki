@@ -28,8 +28,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "drivers/rtc.h"
-#include "drivers/pic.h"
+#include "drivers/legacy_pc/rtc.h"
+#include "drivers/legacy_pc/pic.h"
 #include "helpers.h"
 #include "interrupt.h"
 
