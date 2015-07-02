@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         TSCH security
+ *         TSCH security header file
  * \author
  *         Simon Duquennoy <simonduq@sics.se>
  */

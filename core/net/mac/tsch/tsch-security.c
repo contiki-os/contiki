@@ -32,9 +32,8 @@
 
 /**
  * \file
- *         TSCH packet format management
+ *         TSCH security
  * \author
- *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennoy <simonduq@sics.se>
  */
 
@@ -207,12 +206,12 @@ tsch_security_parse_frame(uint8_t *hdr, int hdrlen, int datalen,
   tsch_security_init_nonce(nonce, sender, asn);
 
   if(with_encryption) {
-      a_len = hdrlen;
-      m_len = datalen;
-    } else {
-      a_len = hdrlen + datalen;
-      m_len = 0;
-    }
+    a_len = hdrlen;
+    m_len = datalen;
+  } else {
+    a_len = hdrlen + datalen;
+    m_len = 0;
+  }
 
   CCM_STAR.set_key(keys[key_index - 1]);
 
