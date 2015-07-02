@@ -31,4 +31,6 @@
 #ifndef RTIMER_ARCH_H
 #define RTIMER_ARCH_H
 
+rtimer_clock_t rtimer_arch_now();
+
 #endif /* RTIMER_ARCH_H */

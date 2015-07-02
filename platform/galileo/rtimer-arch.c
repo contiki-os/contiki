@@ -28,27 +28,38 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "contiki.h"
-#include "cpu.h"
-#include "interrupt.h"
+#include "sys/rtimer.h"
 
-int
-main(void)
+#include "contiki-conf.h"
+#include "drivers/pit.h"
+
+static volatile rtimer_clock_t tick_count = 0;
+static rtimer_clock_t trigger = UINT64_MAX;
+
+static void
+update_ticks(void)
 {
-  cpu_init();
-  clock_init();
-  rtimer_init();
-
-  ENABLE_IRQ();
-
-  process_init();
-  process_start(&etimer_process, NULL);
-  ctimer_init();
-  autostart_start(autostart_processes);
-
-  while(1) {
-    process_run();
+  if(++tick_count >= trigger) {
+    /* Disable trigger by assigning it to the maximum value */
+    trigger = UINT64_MAX;
+    rtimer_run_next();
   }
-
-  return 0;
+}
+/*---------------------------------------------------------------------------*/
+void
+rtimer_arch_init(void)
+{
+  pit_init(RTIMER_ARCH_SECOND, update_ticks);
+}
+/*---------------------------------------------------------------------------*/
+rtimer_clock_t
+rtimer_arch_now()
+{
+  return tick_count;
+}
+/*---------------------------------------------------------------------------*/
+void
+rtimer_arch_schedule(rtimer_clock_t t)
+{
+  trigger = t;
 }

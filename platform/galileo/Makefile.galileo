@@ -3,7 +3,7 @@ LIBGCC_PATH = /usr/lib/gcc/$(shell gcc -dumpmachine)/$(shell gcc -dumpversion)
 
 CONTIKI_TARGET_DIRS = .
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
-CONTIKI_SOURCEFILES += contiki-main.c newlib-syscalls.c loader.S clock.c
+CONTIKI_SOURCEFILES += contiki-main.c newlib-syscalls.c loader.S clock.c rtimer-arch.c
 
 LINKERSCRIPT = $(CONTIKI)/platform/galileo/galileo.ld
 
