@@ -47,7 +47,7 @@
 #endif
 
 #undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID 0xABCD
+#define IEEE802154_CONF_PANID 0x81B2
 
 #define ANNOTATE_DEFAULT_ROUTE 1
 
@@ -156,11 +156,6 @@
 #define UIP_CONF_FWCACHE_SIZE    1
 #undef UIP_CONF_UDP_CHECKSUMS
 #define UIP_CONF_UDP_CHECKSUMS   1
-
-/* Netstack */
-
-#undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID       0x81B2
 
 /* Link-layer security */
 

@@ -110,6 +110,13 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #define TSCH_INIT_SCHEDULE_FROM_EB 1
 #endif
 
+/* By default, join any PAN ID. Otherwise, wait for an EB from IEEE802154_PANID */
+#ifdef TSCH_CONF_JOIN_ANY_PANID
+#define TSCH_JOIN_ANY_PANID TSCH_CONF_JOIN_ANY_PANID
+#else
+#define TSCH_JOIN_ANY_PANID 0
+#endif
+
 /* The radio polling frequency (in Hz) during association process */
 #ifdef TSCH_CONF_ASSOCIATION_POLL_FREQUENCY
 #define TSCH_ASSOCIATION_POLL_FREQUENCY TSCH_CONF_ASSOCIATION_POLL_FREQUENCY
@@ -1430,11 +1437,11 @@ PT_THREAD(tsch_associate(struct pt *pt))
         LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
 
         if(input_eb.len == 0) {
-          eb_parsing_err = -1;
+          LOG("TSCH:! parse_eb: len == 0\n");
+          eb_parsed = 0;
         }
 
-        eb_parsed = input_eb.len > 0 &&
-            tsch_packet_parse_eb(input_eb.payload, input_eb.len,
+        eb_parsed = tsch_packet_parse_eb(input_eb.payload, input_eb.len,
                 &frame, &ies, &hdrlen, 0);
         current_asn = ies.ie_asn;
         tsch_join_priority = ies.ie_join_priority + 1;
@@ -1445,14 +1452,21 @@ PT_THREAD(tsch_associate(struct pt *pt))
                 input_eb.len - hdrlen - tsch_security_mic_len(&frame),
             &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
           LOG("TSCH:! parse_eb: failed to authenticate\n");
-          eb_parsing_err = 1;
           eb_parsed = 0;
         }
 #endif
 
+#if TSCH_JOIN_ANY_PANID == 0
+        /* Check if the EB comes from the PAN ID we expact */
+        if(eb_parsed && frame.src_pid != IEEE802154_PANID) {
+          LOG("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
+          eb_parsed = 0;
+        }
+#endif /* TSCH_JOIN_ANY_PANID == 0 */
+
         /* There was no join priority (or 0xff) in the EB, do not join */
         if(eb_parsed && ies.ie_join_priority == 0xff) {
-          eb_parsing_err = 2;
+          LOG("TSCH:! parse_eb: no join priority\n");
           eb_parsed = 0;
         }
 
@@ -1486,7 +1500,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
               memcpy(hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
               ASN_DIVISOR_INIT(hopping_sequence_length, ies.ie_hopping_sequence_len);
             } else {
-              eb_parsing_err = 3;
+              LOG("TSCH:! parse_eb: hopping sequence too long (%u)\n", ies.ie_hopping_sequence_len);
               eb_parsed = 0;
             }
           }
@@ -1501,7 +1515,6 @@ PT_THREAD(tsch_associate(struct pt *pt))
           if(asn_diff > asn_threshold) {
             LOG("TSCH:! EB ASN rejected %lx %lx %ld\n",
               current_asn.ls4b, expected_asn, asn_diff);
-            eb_parsing_err = 4;
             eb_parsed = 0;
           }
         }
@@ -1514,7 +1527,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
 #if TSCH_WITH_MINIMAL_SCHEDULE
             tsch_schedule_create_minimal();
 #else
-            eb_parsing_err = 5;
+            LOG("TSCH:! parse_eb: no schedule\n");
             eb_parsed = 0;
 #endif
           } else {
@@ -1534,7 +1547,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
                     ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
               }
             } else {
-              eb_parsing_err = 6;
+              LOG("TSCH:! parse_eb: too many links in schedule (%u)\n", num_links);
               eb_parsed = 0;
             }
           }
@@ -1582,7 +1595,7 @@ PT_THREAD(tsch_associate(struct pt *pt))
                 LOG_NODEID_FROM_LINKADDR((linkaddr_t*)&frame.src_addr));
           }
         } else {
-          LOG("TSCH:! did not associate. Error code: %u\n", eb_parsing_err);
+          LOG("TSCH:! did not associate.\n");
         }
       }
 
