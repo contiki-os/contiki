@@ -37,6 +37,14 @@
 #define PIC1_DATA_PORT  0x21
 #define PIC2_CMD_PORT   0xA0
 #define PIC2_DATA_PORT  0xA1
+#define PIC1_OFFSET     0x20
+#define PIC2_OFFSET     PIC1_OFFSET + 8
+
+/*
+ * Returns the actual interrupt number of a given IRQ,
+ * no matter which PIC it is part of.
+ */
+#define PIC_INT(a)      (a + PIC1_OFFSET)
 
 void pic_unmask_irq(unsigned int num);
 
@@ -52,8 +60,8 @@ pic_init(void)
   outb(PIC2_CMD_PORT, 0x11);
 
   /* ICW2: Remap IRQs by setting an IDT Offset for each PIC. */
-  outb(PIC1_DATA_PORT, 0x20);
-  outb(PIC2_DATA_PORT, 0x28);
+  outb(PIC1_DATA_PORT, PIC1_OFFSET);
+  outb(PIC2_DATA_PORT, PIC2_OFFSET);
 
   /* ICW3: Setup Slave to Master's IRQ2. */
   outb(PIC1_DATA_PORT, 0x04);
@@ -68,5 +76,11 @@ pic_init(void)
   outb(PIC1_DATA_PORT, 0xfb);
   outb(PIC2_DATA_PORT, 0xff);
 }
+
+/*
+ * This function sends an end-of-interrupt (EOI) to the correct PIC according
+ * to the IRQ line number.
+ */
+void pic_eoi(unsigned int irq);
 
 #endif /* PIC_H */

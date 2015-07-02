@@ -35,6 +35,8 @@
 
 #define RTC_INDEX_REGISTER   0x70
 #define RTC_TARGET_REGISTER  0x71
+#define RTC_IRQ 8
+#define RTC_INT PIC_INT(RTC_IRQ)
 
 static void (*user_callback)(void);
 
@@ -51,8 +53,7 @@ rtc_handler()
   inb(RTC_TARGET_REGISTER);
 
   /* Issue the End of Interrupt to PIC */
-  outb(0xA0, 0x20);
-  outb(0x20, 0x20);
+  pic_eoi(RTC_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 /* Initialize the Real Time Clock.
@@ -69,10 +70,7 @@ rtc_init(rtc_frequency_t frequency, void (*callback)(void))
 
   user_callback = callback;
 
-  /* FIXME: Once we have a proper API to ask PIC what is the IRQ offset, we
-   * should consider using it here.
-   */
-  SET_INTERRUPT_HANDLER(40, 0, rtc_handler);
+  SET_INTERRUPT_HANDLER(RTC_INT, 0, rtc_handler);
 
   /* Select interrupt period to 7.8125 ms */
   outb(RTC_INDEX_REGISTER, 0x0A);
@@ -88,5 +86,5 @@ rtc_init(rtc_frequency_t frequency, void (*callback)(void))
   outb(RTC_INDEX_REGISTER, 0x0B);
   outb(RTC_TARGET_REGISTER, reg_b | BIT(6));
 
-  pic_unmask_irq(8);
+  pic_unmask_irq(RTC_IRQ);
 }

@@ -39,6 +39,8 @@
 #define PIT_CONTROL_PORT    0x43
 #define PIT_COUNTER0_PORT   0x40
 #define PIT_CLOCK_FREQUENCY 1193182
+#define PIT_IRQ 0
+#define PIT_INT PIC_INT(PIT_IRQ)
 
 static pit_int_callback interrupt_cb;
 
@@ -47,15 +49,13 @@ pit_int_handler(void)
 {
   interrupt_cb();
 
-  /* FIXME: Add a pic_send_eoi() API or similar and call it here. */
-  outb(0x20, 0x20); /* master PIC */
+  pic_eoi(PIT_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 void
 pit_init(uint32_t ticks_rate, pit_int_callback cb)
 {
-  /* FIXME: Call some PIC API to get the current offset and then add to its default IRQ number (0). */
-  SET_INTERRUPT_HANDLER(32, 0, pit_int_handler);
+  SET_INTERRUPT_HANDLER(PIT_INT, 0, pit_int_handler);
 
   interrupt_cb = cb;
 
@@ -76,5 +76,5 @@ pit_init(uint32_t ticks_rate, pit_int_callback cb)
   outb(PIT_COUNTER0_PORT, divisor & 0xFF); /* Write least significant bytes first. */
   outb(PIT_COUNTER0_PORT, (divisor >> 8) & 0xFF);
 
-  pic_unmask_irq(0);
+  pic_unmask_irq(PIT_IRQ);
 }
