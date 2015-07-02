@@ -30,8 +30,8 @@
 
 #include <math.h>
 
-#include "drivers/pic.h"
-#include "pit.h"
+#include "drivers/legacy_pc/pic.h"
+#include "drivers/legacy_pc/pit.h"
 #include "helpers.h"
 #include "interrupt.h"
 

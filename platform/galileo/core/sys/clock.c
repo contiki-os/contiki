@@ -32,7 +32,7 @@
 #include "sys/etimer.h"
 
 #include "contiki-conf.h"
-#include "drivers/rtc.h"
+#include "drivers/legacy_pc/rtc.h"
 
 #if CLOCK_CONF_SECOND == 2
 #define FREQ   RTC_2_HZ
