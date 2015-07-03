@@ -28,21 +28,34 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef HELPERS_H
-#define HELPERS_H
+#ifndef CPU_X86_DRIVERS_LEGACY_PC_PCI_H_
+#define CPU_X86_DRIVERS_LEGACY_PC_PCI_H_
 
 #include <stdint.h>
 
-#define BIT(n) (1UL << (n))
+/** PCI configuration register identifier for Base Address Register 0 (BAR0) */
+#define PCI_CONFIG_REG_BAR0 0x10
 
-void halt(void) __attribute__((__noreturn__));
+/**
+ * PCI configuration address
+ *
+ * Refer to Intel Quark SoC X1000 Datasheet, Section 5.5 for more details on
+ * PCI configuration register access.
+ */
+typedef union pci_config_addr {
+  struct {
+    /** Register/offset number.  Least-significant two bits should be zero. */
+    uint32_t reg_off     : 8;
+    uint32_t func        : 3; /**< Function number */
+    uint32_t dev         : 5; /**< Device number */
+    uint32_t bus         : 8; /**< Bus number */
+    uint32_t             : 7;
+    /** Must be set to perform PCI configuration access. */
+    uint32_t en_mapping  : 1;
+  };
+  uint32_t raw;
+} pci_config_addr_t;
 
-/** Wrappers for the assembly 'out' instruction. */
-void outb(uint16_t port, uint8_t val);
-void outl(uint16_t port, uint32_t val);
+uint32_t pci_config_read(pci_config_addr_t addr);
 
-/** Wrappers for the assembly 'in' instruction */
-uint8_t inb(uint16_t port);
-uint32_t inl(uint16_t port);
-
-#endif /* HELPERS_H */
+#endif /* CPU_X86_DRIVERS_LEGACY_PC_PCI_H_ */

@@ -43,8 +43,21 @@ outb:
         out %al, %dx
         ret
 
+.global outl
+outl:
+        mov 4(%esp), %dx
+        mov 8(%esp), %eax
+        out %eax, %dx
+        ret
+
 .global inb
 inb:
         mov 4(%esp), %dx
         in %dx, %al
+        ret
+
+.global inl
+inl:
+        mov 4(%esp), %dx
+        in %dx, %eax
         ret
