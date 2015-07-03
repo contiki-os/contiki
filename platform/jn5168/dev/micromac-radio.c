@@ -435,7 +435,7 @@ is_packet_for_us(uint8_t *buf, int len)
   if(parsed) {
     if(frame.fcf.dest_addr_mode) {
       int has_dest_panid;
-      frame802154_has_panid(frame->fcf, NULL, &has_dest_panid);
+      frame802154_has_panid(&frame.fcf, NULL, &has_dest_panid);
       if(has_dest_panid
           && frame802154_get_pan_id() != FRAME802154_BROADCASTPANDID
           && frame.dest_pid != frame802154_get_pan_id()
