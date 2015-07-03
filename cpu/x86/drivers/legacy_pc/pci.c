@@ -28,21 +28,36 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef HELPERS_H
-#define HELPERS_H
+#include "pci.h"
+#include "helpers.h"
 
-#include <stdint.h>
+/* I/O port for PCI configuration address */
+#define PCI_CONFIG_ADDR_PORT 0xCF8
+/* I/O port for PCI configuration data */
+#define PCI_CONFIG_DATA_PORT 0xCFC
 
-#define BIT(n) (1UL << (n))
+/*---------------------------------------------------------------------------*/
+/* Initialize PCI configuration register address in preparation for accessing
+ * the specified register.
+ */
+static void
+set_addr(pci_config_addr_t addr)
+{
+  addr.en_mapping = 1;
 
-void halt(void) __attribute__((__noreturn__));
+  outl(PCI_CONFIG_ADDR_PORT, addr.raw);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief      Read from the specified PCI configuration register.
+ * \param addr Address of PCI configuration register.
+ * \return     Value read from PCI configuration register.
+ */
+uint32_t
+pci_config_read(pci_config_addr_t addr)
+{
+  set_addr(addr);
 
-/** Wrappers for the assembly 'out' instruction. */
-void outb(uint16_t port, uint8_t val);
-void outl(uint16_t port, uint32_t val);
-
-/** Wrappers for the assembly 'in' instruction */
-uint8_t inb(uint16_t port);
-uint32_t inl(uint16_t port);
-
-#endif /* HELPERS_H */
+  return inl(PCI_CONFIG_DATA_PORT);
+}
+/*---------------------------------------------------------------------------*/
