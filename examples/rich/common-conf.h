@@ -226,7 +226,9 @@
 
 #endif
 
-/* Radio: cc2420 */
+#undef CONTIKI_VERSION_STRING
+#define CONTIKI_VERSION_STRING "Contiki RICH-3.x"
+
 #if CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1
 
 #include "common-conf-sky-z1.h"
