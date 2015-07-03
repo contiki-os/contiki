@@ -58,4 +58,13 @@ typedef union pci_config_addr {
 
 uint32_t pci_config_read(pci_config_addr_t addr);
 
+/**
+ * PCI device driver instance with a single MMIO range.
+ */
+typedef struct pci_driver {
+  uintptr_t mmio; /**< MMIO range base address */
+} pci_driver_t;
+
+void pci_init_bar0(pci_driver_t *c_this, pci_config_addr_t pci_addr);
+
 #endif /* CPU_X86_DRIVERS_LEGACY_PC_PCI_H_ */

@@ -61,3 +61,19 @@ pci_config_read(pci_config_addr_t addr)
   return inl(PCI_CONFIG_DATA_PORT);
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief          Initialize a structure for a PCI device driver that performs
+ *                 MMIO to address range 0.  Assumes that device has already
+ *                 been configured with an MMIO address range 0, e.g. by
+ *                 firmware.
+ * \param c_this   Structure that will be initialized to represent the driver.
+ * \param pci_addr PCI base address of device.
+ */
+void
+pci_init_bar0(pci_driver_t *c_this, pci_config_addr_t pci_addr)
+{
+  pci_addr.reg_off = PCI_CONFIG_REG_BAR0;
+  /* The BAR0 value is masked to clear non-address bits. */
+  c_this->mmio = pci_config_read(pci_addr) & ~0xFFF;
+}
+/*---------------------------------------------------------------------------*/
