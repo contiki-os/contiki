@@ -8,7 +8,7 @@ CONTIKI_SOURCEFILES += contiki-main.c newlib-syscalls.c clock.c rtimer-arch.c
 CONTIKI_CPU=$(CONTIKI)/cpu/x86
 include $(CONTIKI)/cpu/x86/Makefile.x86_quarkX1000
 
-CFLAGS += -m32 -march=i586 -fno-stack-protector -nostdinc -isystem $(LIBC)/include -isystem $(LIBGCC_PATH)/include -isystem $(LIBGCC_PATH)/include-fixed
+CFLAGS += -m32 -march=i586 -mtune=i586 -fno-stack-protector -nostdinc -isystem $(LIBC)/include -isystem $(LIBGCC_PATH)/include -isystem $(LIBGCC_PATH)/include-fixed
 LDFLAGS += -m32 -nostdlib -T $(LINKERSCRIPT)
 ASFLAGS += --32 -march=i586 -mtune=i586
 
