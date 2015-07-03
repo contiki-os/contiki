@@ -29,6 +29,7 @@
  */
 
 #include "sys/clock.h"
+#include "sys/etimer.h"
 
 #include "contiki-conf.h"
 #include "drivers/rtc.h"
@@ -69,7 +70,14 @@ static volatile clock_time_t tick_count = 0;
 static void
 update_ticks(void)
 {
+  clock_time_t expire = etimer_next_expiration_time();
+
   tick_count++;
+
+  /* Notify etimer library if the next event timer has expired */
+  if(expire != 0 && tick_count >= expire) {
+    etimer_request_poll();
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
