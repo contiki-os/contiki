@@ -33,13 +33,15 @@
 
 #include <inttypes.h>
 
+#define CLOCK_CONF_SECOND 128
+typedef unsigned long clock_time_t;
+
 /* We define the following macros and types otherwise Contiki does not
  * compile.
  */
 #define CCIF
 #define CLIF
 
-typedef unsigned long clock_time_t;
 typedef unsigned short uip_stats_t;
 
 #endif /* CONTIKI_CONF_H */
