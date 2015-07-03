@@ -36,6 +36,7 @@ int
 main(void)
 {
   cpu_init();
+  clock_init();
 
   ENABLE_IRQ();
 
