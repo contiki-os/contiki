@@ -65,6 +65,10 @@
 #define IRC_CONF_WIDTH  40
 #define IRC_CONF_HEIGHT 24
 
+#ifndef TELNETD_CONF_MAX_IDLE_TIME
+#define TELNETD_CONF_MAX_IDLE_TIME 300
+#endif
+
 #define WWW_CONF_WEBPAGE_WIDTH  40
 #define WWW_CONF_HISTORY_SIZE    4
 #define WWW_CONF_WGET_EXEC(url) exec("wget", url)
