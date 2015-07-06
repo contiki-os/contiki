@@ -65,6 +65,10 @@
 #define IRC_CONF_WIDTH  80
 #define IRC_CONF_HEIGHT 24
 
+#ifndef TELNETD_CONF_MAX_IDLE_TIME
+#define TELNETD_CONF_MAX_IDLE_TIME 300
+#endif
+
 #define WWW_CONF_HISTORY_SIZE       0
 #define WWW_CONF_FORMS              0
 #define WWW_CONF_PAGEATTRIB_SIZE 1500
