@@ -9,25 +9,5 @@ OBJCOPY  = objcopy
 SIZE     = size
 STRIP    = strip
 
-CFLAGSNO = -Wall -g -I/usr/local/include
-CFLAGS  += $(CFLAGSNO)
-ifeq ($(HOST_OS),Linux)
-  LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic,--build-id=none
-else
-  LDFLAGS  = -Wl
-endif
-
-### Compilation rules
-
-%.so: $(OBJECTDIR)/%.o
-	$(LD) -shared -o $@ $^
-
-ifdef CORE
-.PHONY: symbols.c symbols.h
-symbols.c symbols.h:
-	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
-else
-symbols.c symbols.h:
-	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
-	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
-endif
+CFLAGS  += -Wall -g
+LDFLAGS += -Wl,-Map=contiki-$(TARGET).map,--build-id=none
