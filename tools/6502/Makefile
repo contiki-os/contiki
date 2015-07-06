@@ -66,7 +66,7 @@ endef
 
 $(eval $(call makes,apple2enh))
 
-apple2: contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.dsk contiki-apple2.2mg
+apple2: contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.dsk contiki-apple2.po
 
 contiki-apple2-1.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
@@ -121,8 +121,8 @@ contiki-apple2-3.dsk: apple2enh-makes
 	java -jar $(AC) -p    $@ contiki.gif     bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
 	java -jar $(AC) -p    $@ notfound.htm    bin 0 < ../../examples/webserver/httpd-cfs/notfound.htm
 
-contiki-apple2.2mg: apple2enh-makes
-	cp ../apple2enh/prodos.2mg $@
+contiki-apple2.po: apple2enh-makes
+	cp ../apple2enh/prodos.po $@
 	java -jar $(AC) -p    $@ menu.system     sys   < ../apple2enh/menu.system
 	java -jar $(AC) -p    $@ ethconfi.system sys   < $(CC65_HOME)/targetutil/loader.system
 	java -jar $(AC) -cc65 $@ ethconfi        bin   < ../../cpu/6502/ethconfig/ethconfig.apple2enh

@@ -80,7 +80,7 @@ contiki-cc2530dk.lib
 *.S
 *.eth
 *.dsk
-*.2mg
+*.po
 *.atr
 *.d64
 *.d71
