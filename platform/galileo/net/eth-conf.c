@@ -28,45 +28,48 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-
-#include "contiki.h"
-#include "contiki-net.h"
-#include "cpu.h"
-#include "interrupt.h"
-#include "uart.h"
 #include "eth-conf.h"
+#include "eth.h"
+#include "net/eth-proc.h"
+#include "contiki-net.h"
+#include "net/linkaddr.h"
 
-PROCINIT(  &etimer_process
-         , &tcpip_process
-#if WITH_DNS
-         , &resolv_process
+#if NETSTACK_CONF_WITH_IPV6
+const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
+#else
+/* 192.0.2.0/24 is a block reserved for documentation by RFC 5737. */
+#define SUBNET_IP       192, 0, 2
+#define NETMASK_IP      255, 255, 255, 0
+#define HOST_IP         SUBNET_IP, 2
+#define GATEWAY_IP      SUBNET_IP, 1
+#define NAMESERVER_IP   GATEWAY_IP
 #endif
-         );
 
-int
-main(void)
+void
+eth_init(void)
 {
-  cpu_init();
-  /* Initialize UART connected to Galileo Gen2 FTDI header */
-  quarkX1000_uart_init(QUARK_X1000_UART_1);
-  clock_init();
-  rtimer_init();
+#if !NETSTACK_CONF_WITH_IPV6
+  uip_ipaddr_t ip_addr;
 
-  printf("Starting Contiki\n");
+#define SET_IP_ADDR(x) \
+  uip_ipaddr(&ip_addr, x)
 
-  ENABLE_IRQ();
+  SET_IP_ADDR(HOST_IP);
+  uip_sethostaddr(&ip_addr);
 
-  process_init();
-  procinit_init();
-  ctimer_init();
-  autostart_start(autostart_processes);
+  SET_IP_ADDR(NETMASK_IP);
+  uip_setnetmask(&ip_addr);
 
-  eth_init();
+  SET_IP_ADDR(GATEWAY_IP);
+  uip_setdraddr(&ip_addr);
 
-  while(1) {
-    process_run();
-  }
+#if WITH_DNS
+  SET_IP_ADDR(NAMESERVER_IP);
+  uip_nameserver_update(&ip_addr, UIP_NAMESERVER_INFINITE_LIFETIME);
+#endif
+#endif
 
-  return 0;
+  quarkX1000_eth_init();
+
+  process_start(&eth_process, NULL);
 }
