@@ -28,45 +28,9 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
+#ifndef PLATFORM_GALILEO_ETH_CONF_H_
+#define PLATFORM_GALILEO_ETH_CONF_H_
 
-#include "contiki.h"
-#include "contiki-net.h"
-#include "cpu.h"
-#include "interrupt.h"
-#include "uart.h"
-#include "eth-conf.h"
+void eth_init(void);
 
-PROCINIT(  &etimer_process
-         , &tcpip_process
-#if WITH_DNS
-         , &resolv_process
-#endif
-         );
-
-int
-main(void)
-{
-  cpu_init();
-  /* Initialize UART connected to Galileo Gen2 FTDI header */
-  quarkX1000_uart_init(QUARK_X1000_UART_1);
-  clock_init();
-  rtimer_init();
-
-  printf("Starting Contiki\n");
-
-  ENABLE_IRQ();
-
-  process_init();
-  procinit_init();
-  ctimer_init();
-  autostart_start(autostart_processes);
-
-  eth_init();
-
-  while(1) {
-    process_run();
-  }
-
-  return 0;
-}
+#endif /* PLATFORM_GALILEO_ETH_CONF_H_ */

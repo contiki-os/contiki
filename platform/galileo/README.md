@@ -29,6 +29,7 @@ Device drivers:
   * Programmable Intergal Timer (PIT)
   * Real-Time Clock (RTC)
   * UART
+  * Ethernet
 
 Contiki APIs:
   * Clock module

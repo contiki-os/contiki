@@ -31,6 +31,14 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
+/* Include the default configuration file early here so that this file can
+ * unconfigure the IP buffer size.  That will allow uipopt.h to define a
+ * default IP buffer size that is larger and more useful.
+ */
+#include "contiki-default-conf.h"
+
+#undef UIP_CONF_BUFFER_SIZE
+
 #include <inttypes.h>
 
 #define CLOCK_CONF_SECOND 128
@@ -45,6 +53,10 @@ typedef uint64_t rtimer_clock_t;
  */
 #define CCIF
 #define CLIF
+
+#define UIP_CONF_LLH_LEN 14
+
+#define LINKADDR_CONF_SIZE 6
 
 typedef unsigned short uip_stats_t;
 
