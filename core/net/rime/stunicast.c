@@ -115,7 +115,7 @@ send(void *ptr)
   if(c->buf) {
     queuebuf_to_packetbuf(c->buf);
     unicast_send(&c->c, &c->receiver);
-    stunicast_set_timer(c, CLOCK_SECOND);
+    ctimer_restart(&c->t);
   }
   /*  if(c->u->sent != NULL) {
     c->u->sent(c);
