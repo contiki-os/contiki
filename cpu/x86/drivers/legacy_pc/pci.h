@@ -32,6 +32,7 @@
 #define CPU_X86_DRIVERS_LEGACY_PC_PCI_H_
 
 #include <stdint.h>
+#include "helpers.h"
 
 /** PCI configuration register identifier for Base Address Register 0 (BAR0) */
 #define PCI_CONFIG_REG_BAR0 0x10
@@ -67,6 +68,11 @@ typedef enum {
   PIRQH,
 } PIRQ;
 
+/** PCI command register bit to enable bus mastering */
+#define PCI_CMD_2_BUS_MST_EN           BIT(2)
+/** PCI command register bit to enable memory space */
+#define PCI_CMD_1_MEM_SPACE_EN         BIT(1)
+
 /**
  * PCI configuration address
  *
@@ -88,16 +94,27 @@ typedef union pci_config_addr {
 } pci_config_addr_t;
 
 uint32_t pci_config_read(pci_config_addr_t addr);
+void pci_config_write(pci_config_addr_t addr, uint32_t data);
+void pci_command_enable(pci_config_addr_t addr, uint32_t flags);
 
 /**
- * PCI device driver instance with a single MMIO range.
+ * PCI device driver instance with an optional single MMIO range and optional
+ * metadata.
  */
 typedef struct pci_driver {
   uintptr_t mmio; /**< MMIO range base address */
+  uintptr_t meta; /**< Driver-defined metadata base address */
 } pci_driver_t;
 
-void pci_init_bar0(pci_driver_t *c_this, pci_config_addr_t pci_addr);
+void pci_init_bar0(pci_driver_t *c_this,
+                   pci_config_addr_t pci_addr,
+                   uintptr_t meta);
 int pci_irq_agent_set_pirq(IRQAGENT agent, INTR_PIN pin, PIRQ pirq);
 void pci_pirq_set_irq(PIRQ pirq, uint8_t irq, uint8_t route_to_legacy);
+
+#define PCI_MMIO_READL(c_this, dest, reg_addr)                                \
+  dest = *((volatile uint32_t *)((c_this).mmio + (reg_addr)))
+#define PCI_MMIO_WRITEL(c_this, reg_addr, src)                                \
+  *((volatile uint32_t *)((c_this).mmio + (reg_addr))) = (src)
 
 #endif /* CPU_X86_DRIVERS_LEGACY_PC_PCI_H_ */

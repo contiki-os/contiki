@@ -64,6 +64,36 @@ pci_config_read(pci_config_addr_t addr)
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * \brief      Write to the PCI configuration data port.
+ * \param addr Address of PCI configuration register.
+ * \param data Value to write.
+ */
+void
+pci_config_write(pci_config_addr_t addr, uint32_t data)
+{
+  set_addr(addr);
+
+  outl(PCI_CONFIG_DATA_PORT, data);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief       Enable PCI command bits of the specified PCI configuration
+ *              register.
+ * \param addr  Address of PCI configuration register.
+ * \param flags Flags used to enable PCI command bits.
+ */
+void
+pci_command_enable(pci_config_addr_t addr, uint32_t flags)
+{
+  uint32_t data;
+
+  addr.reg_off = 0x04; /* PCI COMMAND_REGISTER */
+
+  data = pci_config_read(addr);
+  pci_config_write(addr, data | flags);
+}
+/*---------------------------------------------------------------------------*/
+/**
  * \brief       Set current PIRQ to interrupt queue agent. PCI based interrupts
  *              PIRQ[A:H] are then available for consumption by either the 8259
  *              PICs or the IO-APIC depending on configuration of the 8 PIRQx
@@ -201,12 +231,16 @@ pci_pirq_set_irq(PIRQ pirq, uint8_t irq, uint8_t route_to_legacy)
  *                 firmware.
  * \param c_this   Structure that will be initialized to represent the driver.
  * \param pci_addr PCI base address of device.
+ * \param meta     Base address of optional driver-defined metadata.
  */
 void
-pci_init_bar0(pci_driver_t *c_this, pci_config_addr_t pci_addr)
+pci_init_bar0(pci_driver_t *c_this,
+              pci_config_addr_t pci_addr,
+              uintptr_t meta)
 {
   pci_addr.reg_off = PCI_CONFIG_REG_BAR0;
   /* The BAR0 value is masked to clear non-address bits. */
   c_this->mmio = pci_config_read(pci_addr) & ~0xFFF;
+  c_this->meta = meta;
 }
 /*---------------------------------------------------------------------------*/
