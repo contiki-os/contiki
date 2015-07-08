@@ -892,10 +892,11 @@ init_rf_params(void)
   /* Configure CCA settings */
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, ccaOpt) =
     BITVALUE(CMD_IEEE_RX, ccaOpt, ccaEnEnergy, 1) |
-    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaEnCorr, 0) |
+    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaEnCorr, 1) |
     BITVALUE(CMD_IEEE_RX, ccaOpt, ccaEnSync, 0) |
-    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaCorrOp, 0) |
-    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaSyncOp, 0);
+    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaCorrOp, 1) |
+    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaSyncOp, 1) |
+    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaCorrThr, 3);
   /* Set CCA RSSI Threshold, 0xA6 corresponds to -90dBm (two's comp.)*/
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, ccaRssiThr) = 0xA6;
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, numExtEntries) = 0x00;
