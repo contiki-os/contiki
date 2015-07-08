@@ -90,7 +90,6 @@ send_word(const uint8_t *data) {
     for(i = 0; i < CC2530_AES_SUBWORD_SIZE; i++) {
         ENCDI = data[i];
     }
-
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -147,11 +146,10 @@ static void
 encrypt_block_chunked(uint8_t* block, uint8_t mode) {
     uint8_t j;
 
-    ENCCS = CC2530_AES_ENCCS(mode, CC2530_AES_CMD_LOADIV, 1);
-    for(j = 0; j < (AES_128_BLOCK_SIZE / CC2530_AES_SUBWORD_SIZE); j++) {
-        send_word(block);
-        receive_word(block);
-        block += CC2530_AES_SUBWORD_SIZE;
+    ENCCS = CC2530_AES_ENCCS(mode, CC2530_AES_CMD_ENCRYPT, 1);
+    for(j = 0; j < AES_128_BLOCK_SIZE; j += CC2530_AES_SUBWORD_SIZE) {
+        send_word(block + j);
+        receive_word(block + j);
     }
     wait_for_ready();
 }
@@ -162,7 +160,7 @@ mic(const uint8_t *m,  uint8_t m_len,
     const uint8_t *a,  uint8_t a_len,
     uint8_t *result,
     uint8_t mic_len) {
-    uint8_t tmp[AES_128_BLOCK_SIZE];
+    static uint8_t tmp[AES_128_BLOCK_SIZE];
     uint8_t i;
     uint16_t bytes_sent = 0;
     uint16_t t_len = AES_128_BLOCK_SIZE + ((m_len + AES_128_BLOCK_SIZE - 1) & ~(AES_128_BLOCK_SIZE - 1)) + (a_len ? ((a_len + 2 + AES_128_BLOCK_SIZE - 1) & ~(AES_128_BLOCK_SIZE - 1)) : 0);
@@ -275,7 +273,7 @@ mic(const uint8_t *m,  uint8_t m_len,
 
     //send the CBC-MAC result, padded with zeros
     memcpy(tmp, result, mic_len);
-    memset(tmp, 0, AES_128_BLOCK_SIZE - mic_len);
+    memset(tmp + mic_len, 0, AES_128_BLOCK_SIZE - mic_len);
 
     //CTR-encrypt
     encrypt_block_chunked(tmp, CC2530_AES_MODE_CTR);
