@@ -103,9 +103,10 @@ fixups	= * - fixup
 
 ;---------------------------------------------------------------------
 
-mode		:= $FF00	; High byte patched at runtime
-addr		:= $FF01	; High byte patched at runtime
-data		:= $FF03	; High byte patched at runtime
+; 14 most significant bits are fixed up at runtime
+mode		:= $FFFC|0
+addr		:= $FFFC|1
+data		:= $FFFC|3
 
 	.data
 
@@ -125,8 +126,9 @@ init:
 	ldy #$00
 
 	; Fixup address at location
-:	lda reg
-	ora (ptr),y
+:	lda (ptr),y
+	and #$03
+	ora reg
 	sta (ptr),y
 	iny
 	lda reg+1
