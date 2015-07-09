@@ -195,6 +195,12 @@ static int we_are_receiving_burst = 0;
    to a neighbor for which we have a phase lock. */
 #define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 60
 
+#ifdef CONTIKIMAC_CONF_SEND_SW_ACK
+#define CONTIKIMAC_SEND_SW_ACK CONTIKIMAC_CONF_SEND_SW_ACK
+#else
+#define CONTIKIMAC_SEND_SW_ACK 0
+#endif
+
 #define ACK_LEN 3
 
 #include <stdio.h>
@@ -865,8 +871,24 @@ static void
 input_packet(void)
 {
   static struct ctimer ct;
+  int duplicate = 0;
+
+#if CONTIKIMAC_SEND_SW_ACK
+  int original_datalen;
+  uint8_t *original_dataptr;
+
+  original_datalen = packetbuf_datalen();
+  original_dataptr = packetbuf_dataptr();
+#endif
+
   if(!we_are_receiving_burst) {
     off();
+  }
+
+  if(packetbuf_datalen() == ACK_LEN) {
+    /* Ignore ack packets */
+    PRINTF("ContikiMAC: ignored ack\n");
+    return;
   }
 
   /*  printf("cycle_start 0x%02x 0x%02x\n", cycle_start, cycle_start % CYCLE_TIME);*/
@@ -896,12 +918,13 @@ input_packet(void)
 
 #if RDC_WITH_DUPLICATE_DETECTION
       /* Check for duplicate packet. */
-      if(mac_sequence_is_duplicate()) {
+      duplicate = mac_sequence_is_duplicate();
+      if(duplicate) {
         /* Drop the packet. */
-        /*        printf("Drop duplicate ContikiMAC layer packet\n");*/
-        return;
+        PRINTF("contikimac: Drop duplicate\n");
+      } else {
+        mac_sequence_register_seqno();
       }
-      mac_sequence_register_seqno();
 #endif /* RDC_WITH_DUPLICATE_DETECTION */
 
 #if CONTIKIMAC_CONF_COMPOWER
@@ -919,7 +942,30 @@ input_packet(void)
 #endif /* CONTIKIMAC_CONF_COMPOWER */
 
       PRINTDEBUG("contikimac: data (%u)\n", packetbuf_datalen());
-      NETSTACK_MAC.input();
+
+#if CONTIKIMAC_SEND_SW_ACK
+      {
+        frame802154_t info154;
+        frame802154_parse(original_dataptr, original_datalen, &info154);
+        if(info154.fcf.frame_type == FRAME802154_DATAFRAME &&
+            info154.fcf.ack_required != 0 &&
+            linkaddr_cmp((linkaddr_t *)&info154.dest_addr,
+                &linkaddr_node_addr)) {
+          uint8_t ackdata[ACK_LEN] = {0, 0, 0};
+
+          we_are_sending = 1;
+          ackdata[0] = FRAME802154_ACKFRAME;
+          ackdata[1] = 0;
+          ackdata[2] = info154.seq;
+          NETSTACK_RADIO.send(ackdata, ACK_LEN);
+          we_are_sending = 0;
+        }
+      }
+#endif /* CONTIKIMAC_SEND_SW_ACK */
+
+      if(!duplicate) {
+        NETSTACK_MAC.input();
+      }
       return;
     } else {
       PRINTDEBUG("contikimac: data not for us\n");
