@@ -136,11 +136,15 @@ static int we_are_receiving_burst = 0;
 
 /* CCA_SLEEP_TIME is the time between two successive CCA checks. */
 /* Add 1 when rtimer ticks are coarse */
+#ifdef CONTIKIMAC_CONF_CCA_SLEEP_TIME
+#define CCA_SLEEP_TIME CONTIKIMAC_CONF_CCA_SLEEP_TIME
+#else
 #if RTIMER_ARCH_SECOND > 8000
 #define CCA_SLEEP_TIME                     RTIMER_ARCH_SECOND / 2000
 #else
 #define CCA_SLEEP_TIME                     (RTIMER_ARCH_SECOND / 2000) + 1
-#endif
+#endif /* RTIMER_ARCH_SECOND > 8000 */
+#endif /* CONTIKIMAC_CONF_CCA_SLEEP_TIME */
 
 /* CHECK_TIME is the total time it takes to perform CCA_COUNT_MAX
    CCAs. */
@@ -153,7 +157,11 @@ static int we_are_receiving_burst = 0;
 /* LISTEN_TIME_AFTER_PACKET_DETECTED is the time that we keep checking
    for activity after a potential packet has been detected by a CCA
    check. */
+#ifdef CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED
+#define LISTEN_TIME_AFTER_PACKET_DETECTED  CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED
+#else
 #define LISTEN_TIME_AFTER_PACKET_DETECTED  RTIMER_ARCH_SECOND / 80
+#endif
 
 /* MAX_SILENCE_PERIODS is the maximum amount of periods (a period is
    CCA_CHECK_TIME + CCA_SLEEP_TIME) that we allow to be silent before
