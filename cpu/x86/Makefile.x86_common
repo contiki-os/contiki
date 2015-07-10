@@ -11,3 +11,9 @@ STRIP    = strip
 
 CFLAGS  += -Wall -g
 LDFLAGS += -Wl,-Map=contiki-$(TARGET).map,--build-id=none
+
+ifeq ($(BUILD_RELEASE),1)
+	CFLAGS  += -Os -fno-strict-aliasing
+	LDFLAGS += -Wl,--strip-all
+endif
+

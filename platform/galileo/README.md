@@ -56,18 +56,27 @@ $ cd examples/hello-world/ && make TARGET=galileo
 ```
 
 This will generate the 'hello-world.galileo' file which is a multiboot-
-compliant [3] ELF image. In order to boot the Contiki image, you will need
-a multiboot-compliant bootloader. In the bsp directory, we provide a helper
-script which builds the Grub bootloader with multiboot support. To build the
-bootloader, just run the following command:
+compliant [3] ELF image. This image contains debugging information and it
+should be used in your daily development.
+
+You can also build a "Release" image by setting the BUILD_RELEASE variable to
+1. This will generate a Contiki stripped-image optimized for size.
 ```
-$ platform/galileo/bsp/grub/build_grub.sh
+$ cd examples/hello-world/ && make TARGET=galileo BUILD_RELEASE=1
 ```
 
 Running
 -------
 
-So to run Contiki applications in Galileo, we have three main steps:
+In order to boot the Contiki image, you will need a multiboot-compliant
+bootloader. In the bsp directory, we provide a helper script which builds the
+Grub bootloader with multiboot support. To build the bootloader, just run the
+following command:
+```
+$ platform/galileo/bsp/grub/build_grub.sh
+```
+
+Once Grub is built, we have three main steps to run Contiki applications:
 prepare SDcard, connect to console, and boot image. Below follows
 detailed instructions.
 
