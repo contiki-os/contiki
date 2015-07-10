@@ -71,6 +71,12 @@ You can also build a "Release" image by setting the BUILD_RELEASE variable to
 $ cd examples/hello-world/ && make TARGET=galileo BUILD_RELEASE=1
 ```
 
+To also generate an '<application>.galileo.efi' file which is a UEFI [4] image,
+you can run the following command prior to building applications:
+```
+$ cpu/x86/uefi/build_uefi.sh
+```
+
 Running
 -------
 
@@ -90,6 +96,8 @@ detailed instructions.
 
 Mount the sdcard in directory /mnt/sdcard.
 
+#### Approach for Multiboot-compliant ELF Image
+
 Copy Contiki binary image to sdcard
 ```
 $ cp examples/hello-world/hello-world.galileo /mnt/sdcard
@@ -98,6 +106,13 @@ $ cp examples/hello-world/hello-world.galileo /mnt/sdcard
 Copy grub binary to sdcard
 ```
 $ cp platform/galileo/bsp/grub/bin/grub.efi /mnt/sdcard
+```
+
+#### Approach for UEFI Image
+
+Copy Contiki binary image to sdcard
+```
+$ cp examples/hello-world/hello-world.galileo.efi /mnt/sdcard
 ```
 
 ### Connect to the console output
@@ -117,8 +132,11 @@ Press [Enter] to directly boot.
 Press [F7]    to show boot menu options.
 ```
 
-Press <F7> and select the option "UEFI Internal Shell" within the menu. Once
-you have a shell, run the following commands to run grub application:
+Press <F7> and select the option "UEFI Internal Shell" within the menu.
+
+#### Boot Multiboot-compliant ELF Image
+
+Once you have a shell, run the following commands to run grub application:
 ```
 $ fs0:
 $ grub.efi
@@ -130,6 +148,16 @@ image:
 $ multiboot /hello-world.galileo
 $ boot
 ```
+
+#### Boot UEFI Image
+
+Once you have a shell, run the following commands to boot Contiki image:
+```
+$ fs0:
+$ hello-world.galileo.efi
+```
+
+### Verify that Contiki is Running
 
 This should boot the Contiki image, resulting in the following messages being
 sent to the serial console:
@@ -176,3 +204,5 @@ References
 [2] http://www.intel.com/support/galileo/sb/CS-035124.htm
 
 [3] https://www.gnu.org/software/grub/manual/multiboot/multiboot.html
+
+[4] http://www.uefi.org/
