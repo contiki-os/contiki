@@ -1,4 +1,6 @@
-LIBC=$(CONTIKI)/platform/galileo/bsp/libc/i586-elf
+BSP_PATH=$(CONTIKI)/platform/galileo/bsp
+LIBC_PATH=$(BSP_PATH)/libc
+LIBC=$(LIBC_PATH)/i586-elf
 LIBGCC_PATH = /usr/lib/gcc/$(shell gcc -dumpmachine)/$(shell gcc -dumpversion)
 
 CONTIKI_TARGET_DIRS = . core/sys/
@@ -10,6 +12,12 @@ include $(CONTIKI)/cpu/x86/Makefile.x86_quarkX1000
 
 CFLAGS += -fno-stack-protector -nostdinc -isystem $(LIBC)/include -isystem $(LIBGCC_PATH)/include -isystem $(LIBGCC_PATH)/include-fixed
 LDFLAGS += -nostdlib
+
+-include $(LIBC_PATH)/Makefile.libc
+
+ifndef BUILT_LIBC
+  $(error Build the C library by executing $(LIBC_PATH)/build_newlib.sh)
+endif
 
 # Ideally, this should be part of LDFLAGS (-lc -lm etc). However, we found out that archive
 # static files (.a) must be linked after our own object files, otherwise the linker gets lost
