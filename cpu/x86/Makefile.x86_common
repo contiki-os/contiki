@@ -9,11 +9,12 @@ OBJCOPY  = objcopy
 SIZE     = size
 STRIP    = strip
 
-CFLAGS  += -Wall -g
+CFLAGS  += -Wall
 LDFLAGS += -Wl,-Map=contiki-$(TARGET).map,--build-id=none
 
 ifeq ($(BUILD_RELEASE),1)
 	CFLAGS  += -Os -fno-strict-aliasing
 	LDFLAGS += -Wl,--strip-all
+else
+	CFLAGS  += -Og -ggdb3
 endif
-
