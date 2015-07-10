@@ -14,6 +14,12 @@ STRIP    = strip
 # tables saves space and has not caused any readily-apparent functional
 # changes.
 #
+# Furthermore, the .eh_frame and .eh_frame_hdr sections that are otherwise
+# generated are treated as code sections by the UEFI GenFw program, since they
+# are read-only alloc sections.  They get grouped with the actual code
+# sections, ahead of the data sections.  This perturbs symbols and complicates
+# debugging.
+#
 # Synchronize the unwind table options here with the CFLAGS and CXXFLAGS in
 # ./bsp/libc/build_newlib.sh.
 CFLAGS  += -Wall -fno-asynchronous-unwind-tables -fno-unwind-tables
@@ -23,7 +29,9 @@ ifeq ($(BUILD_RELEASE),1)
 	CFLAGS  += -Os -fno-strict-aliasing -ffunction-sections -fdata-sections
 # XXX: --gc-sections can be very tricky sometimes. If somehow the release
 # binary seems to be broken, check if removing this option fixes the issue.
-	LDFLAGS += -Wl,--strip-all,--gc-sections
+# Applying the --strip-all option to the UEFI build may induce an "Invalid operation" error.
+# The UEFI GenFw program strips symbols.
+	MULTIBOOT_LDFLAGS += -Wl,--strip-all,--gc-sections
 else
   CFLAGS  += -O0
 	ifeq ($(findstring clang,$(CC)),clang)
