@@ -4,7 +4,11 @@ JOBS=5
 TARGET=i586-elf
 VERSION=2.2.0-1
 MD5=94114fdc1d8391cdbc2653d89249cccf
-TARBALL=newlib-${VERSION}.tar.gz
+PKG_NAME=newlib
+SRC_DIR=${PKG_NAME}-${VERSION}
+PATCH_DIR=../patches
+TARBALL=${SRC_DIR}.tar.gz
+DIST_SITE=ftp://sources.redhat.com/pub/newlib
 
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
@@ -14,7 +18,7 @@ pushd ${SCRIPT_DIR}
 prepare() {
     # If the source tarball doesn't exist of its md5 checksum doesn't match, download it.
     if [ ! -e ./${TARBALL} ] || [ "$(md5sum ./${TARBALL} | cut -d' ' -f1)" != $MD5 ]; then
-        wget -c ftp://sources.redhat.com/pub/newlib/${TARBALL}
+        wget -c ${DIST_SITE}/${TARBALL}
     fi
     if [ ! -e ./${TARBALL} ] || [ "$(md5sum ./${TARBALL} | cut -d' ' -f1)" != $MD5 ]; then
         echo "Error obtaining tarball."
@@ -22,8 +26,8 @@ prepare() {
     fi
 
     # Clean up the previous source dir, if any.
-    if [[ -d ./newlib-${VERSION} ]]; then
-        rm -rf ./newlib-${VERSION}
+    if [[ -d ./${SRC_DIR} ]]; then
+        rm -rf ./${SRC_DIR}
     fi
 
     # Clean up the previous install dir, if any.
@@ -32,9 +36,9 @@ prepare() {
     fi
 
     tar xf ${TARBALL}
-    cd newlib-${VERSION}
+    cd ${SRC_DIR}
 
-    for i in  `ls ../patches/`; do patch -p0 < ../patches/${i}; done
+    for i in  `ls ${PATCH_DIR}`; do patch -p0 < ${PATCH_DIR}/${i}; done
 }
 
 
@@ -84,11 +88,11 @@ build() {
 }
 
 setup() {
-    cp -r ./newlib-${VERSION}/install/${TARGET} .
+    cp -r ./${SRC_DIR}/install/${TARGET} .
 }
 
 cleanup() {
-    rm -rf ./newlib-${VERSION}*
+    rm -rf ./${SRC_DIR}*
 }
 
 
