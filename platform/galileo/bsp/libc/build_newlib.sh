@@ -85,6 +85,8 @@ build() {
 
     make -j${JOBS} all && make install
     cd ..
+
+    echo "BUILT_LIBC = newlib" > Makefile.libc
 }
 
 setup() {
