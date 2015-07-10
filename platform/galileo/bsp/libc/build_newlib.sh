@@ -16,6 +16,10 @@ prepare() {
     if [ ! -e ./${TARBALL} ] || [ "$(md5sum ./${TARBALL} | cut -d' ' -f1)" != $MD5 ]; then
         wget -c ftp://sources.redhat.com/pub/newlib/${TARBALL}
     fi
+    if [ ! -e ./${TARBALL} ] || [ "$(md5sum ./${TARBALL} | cut -d' ' -f1)" != $MD5 ]; then
+        echo "Error obtaining tarball."
+	exit 1
+    fi
 
     # Clean up the previous source dir, if any.
     if [[ -d ./newlib-${VERSION} ]]; then
