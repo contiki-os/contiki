@@ -32,6 +32,20 @@
 
 #define NUM_DESC 3
 
+#define GDT_IDX_NULL 0
+#define GDT_IDX_CODE 1
+#define GDT_IDX_DATA 2
+
+/* All code in the x86 port of Contiki runs at ring (privilege) level 0 */
+#define PRIV_LVL 0
+
+/* Compute GDT selector from descriptor index and requested privilege level */
+#define GDT_SEL(IDX, RPL) (((IDX) << 3) | (RPL))
+
+#define GDT_SEL_NULL GDT_SEL(GDT_IDX_NULL, 0)
+#define GDT_SEL_CODE GDT_SEL(GDT_IDX_CODE, PRIV_LVL)
+#define GDT_SEL_DATA GDT_SEL(GDT_IDX_DATA, PRIV_LVL)
+
 /* Each define here is for a specific flag in the descriptor. Refer to Intel
  * Combined Manual (Intel 64 and IA-32 Architectures Software Developer's
  * Manual), Vol. 3, Section 3.4.5 for a description of each flag.
@@ -110,27 +124,25 @@ gdt_init(void)
   gdtr.base = (uint32_t) &gdt;
 
   /* Initialize descriptors */
-  set_descriptor(0, 0, 0, 0);
-  set_descriptor(1, 0, 0x0FFFFF, GDT_CODE_PL0);
-  set_descriptor(2, 0, 0x0FFFFF, GDT_DATA_PL0);
+  set_descriptor(GDT_IDX_NULL, 0, 0, 0);
+  set_descriptor(GDT_IDX_CODE, 0, 0x0FFFFF, GDT_CODE_PL0);
+  set_descriptor(GDT_IDX_DATA, 0, 0x0FFFFF, GDT_DATA_PL0);
 
   /* Load GDTR register and update segment registers.
    *
-   * In protected mode, segment registers should be loaded according to
-   * the offset in GDT. So DS, SS, ES, FS and GS registers should be
-   * loadded with 0x10 while CS with 0x08. CS register cannot be changed
-   * directly. For that reason, we do a far jump.
+   * CS register cannot be changed directly. For that reason, we do a far jump.
    */
-  __asm__ ("lgdt %0\n\t"
-           "jmp $0x08, $1f\n\t"
+  __asm__ ("lgdt %[_gdtr_]\n\t"
+           "jmp %[_cs_], $1f\n\t"
            "1:\n\t"
-           "mov $0x10, %%ax\n\t"
-           "mov %%ax, %%ds\n\t"
-           "mov %%ax, %%ss\n\t"
-           "mov %%ax, %%es\n\t"
-           "mov %%ax, %%fs\n\t"
-           "mov %%ax, %%gs\n\t"
+           "mov %[_ds_], %%ds\n\t"
+           "mov %[_ds_], %%ss\n\t"
+           "mov %[_ds_], %%es\n\t"
+           "mov %[_ds_], %%fs\n\t"
+           "mov %[_ds_], %%gs\n\t"
       :
-      : "m" (gdtr)
+      : [_gdtr_] "m" (gdtr),
+        [_cs_] "i" (GDT_SEL_CODE),
+        [_ds_] "r" (GDT_SEL_DATA)
   );
 }
