@@ -128,18 +128,19 @@ aes_encrypt(uint8_t *plaintext_and_result) {
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_nonce(uint8_t *iv,
-      uint8_t flags,
-      const uint8_t *nonce,
-      uint8_t counter)
+send_nonce(uint8_t flags,
+           const uint8_t* nonce,
+           uint8_t counter)
 {
-    /* 1 byte||      8 bytes    ||    4 bytes    || 1 byte  || 2 bytes */
+    uint8_t i;
+    /* 1 byte||      8 bytes            ||    4 bytes    || 1 byte  || 2 bytes */
     /* flags || extended_source_address || frame_counter || sec_lvl || counter */
 
-    iv[0] = flags;
-    memcpy(iv + 1, nonce, CCM_STAR_NONCE_LENGTH);
-    iv[14] = 0;
-    iv[15] = counter;
+    ENCDI = flags;
+    for(i = 0; i < CCM_STAR_NONCE_LENGTH; i++)
+        ENCDI = nonce[i];
+    ENCDI = 0;
+    ENCDI = counter;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -155,22 +156,65 @@ encrypt_block_chunked(uint8_t* block, uint8_t mode) {
 }
 /*---------------------------------------------------------------------------*/
 static void
+encrypt_nonblock_chunked(uint8_t* data, uint8_t mode, uint8_t size) {
+    uint8_t i;
+    uint8_t j;
+
+    ENCCS = CC2530_AES_ENCCS(mode, CC2530_AES_CMD_ENCRYPT, 1);
+
+    //process as many complete subwords as possible
+    i = 0;
+    while(i < size) {
+        if(size - i >= CC2530_AES_SUBWORD_SIZE) {
+            send_word(data + i);
+            receive_word(data + i);
+            i += CC2530_AES_SUBWORD_SIZE;
+        } else {
+            break;
+        }
+    }
+
+    //we now have either a fraction of a subword, or just a bunch of zeros
+    //send the subword fragment, padded with zeros
+    if(i < size) {
+        for(j = 0; i + j < size               ; j++)
+            ENCDI = data[i + j];
+        for(     ; j < CC2530_AES_SUBWORD_SIZE; j++)
+            ENCDI = 0;
+
+        //receive the results
+        for(j = 0; i < size                   ; i++, j++)
+            data[i] = ENCDO;
+        for(     ; j < CC2530_AES_SUBWORD_SIZE; j++)
+            ENCDO;
+    }
+
+    //zero-pad the rest of the block, discarding the results
+    for(; i < AES_128_BLOCK_SIZE; i += CC2530_AES_SUBWORD_SIZE) {
+        for(j = 0; j < CC2530_AES_SUBWORD_SIZE; j++)
+            ENCDI = 0;
+        for(j = 0; j < CC2530_AES_SUBWORD_SIZE; j++)
+            ENCDO;
+    }
+
+    wait_for_ready();
+}
+/*---------------------------------------------------------------------------*/
+static void
 mic(const uint8_t *m,  uint8_t m_len,
     const uint8_t *nonce,
     const uint8_t *a,  uint8_t a_len,
     uint8_t *result,
     uint8_t mic_len) {
-    static uint8_t tmp[AES_128_BLOCK_SIZE];
     uint8_t i;
     uint16_t bytes_sent = 0;
     uint16_t t_len = AES_128_BLOCK_SIZE + ((m_len + AES_128_BLOCK_SIZE - 1) & ~(AES_128_BLOCK_SIZE - 1)) + (a_len ? ((a_len + 2 + AES_128_BLOCK_SIZE - 1) & ~(AES_128_BLOCK_SIZE - 1)) : 0);
 
     //the IV for the authentication phase is all-zeros
-    memset(tmp, 0, AES_128_BLOCK_SIZE);
-
-    //send the IV to the chip, and set its mode to CBC-MAC
+    //send it to the chip, and set its mode to CBC-MAC
     ENCCS = CC2530_AES_ENCCS(CC2530_AES_MODE_CBC_MAC, CC2530_AES_CMD_LOADIV, 1);
-    send_block(tmp);
+    for(i = 0; i < AES_128_BLOCK_SIZE; i++)
+        ENCDI = 0;
 
     /* GOTCHA:
      * The AES coprocessor requires the message to be CBC-MACed to be input in CBC_MAC mode...
@@ -183,8 +227,7 @@ mic(const uint8_t *m,  uint8_t m_len,
     BLOCK_PREAMBLE;
 
     //generate the first authenticated block (aka B0), and send it to the chip
-    set_nonce(tmp, CCM_STAR_AUTH_FLAGS(a_len, mic_len), nonce, m_len);
-    send_block(tmp);
+    send_nonce(CCM_STAR_AUTH_FLAGS(a_len, mic_len), nonce, m_len);
     bytes_sent += AES_128_BLOCK_SIZE;
 
     if (a_len > 0) {
@@ -264,22 +307,11 @@ mic(const uint8_t *m,  uint8_t m_len,
     //finally, we CTR-encrypt the CBC-MAC result, with counter 0:
 
     //generate the CTR IV
-    set_nonce(tmp, CCM_STAR_ENCRYPTION_FLAGS, nonce, 0);
-
-    //load it into the chip
     ENCCS = CC2530_AES_ENCCS(CC2530_AES_MODE_CTR, CC2530_AES_CMD_LOADIV, 1);
-    send_block(tmp);
+    send_nonce(CCM_STAR_ENCRYPTION_FLAGS, nonce, 0);
     wait_for_ready();
 
-    //send the CBC-MAC result, padded with zeros
-    memcpy(tmp, result, mic_len);
-    memset(tmp + mic_len, 0, AES_128_BLOCK_SIZE - mic_len);
-
-    //CTR-encrypt
-    encrypt_block_chunked(tmp, CC2530_AES_MODE_CTR);
-
-    //output the final MIC
-    memcpy(result, tmp, mic_len);
+    encrypt_nonblock_chunked(result, CC2530_AES_MODE_CTR, mic_len);
 
 #undef BLOCK_PREAMBLE
 }
@@ -287,30 +319,21 @@ mic(const uint8_t *m,  uint8_t m_len,
 static void
 ctr(uint8_t *m, uint8_t m_len, const uint8_t* nonce)
 {
-    uint8_t tmp[AES_128_BLOCK_SIZE];
     uint8_t i;
 
-    //generate the encryption-phase IV (aka A0)
-    set_nonce(tmp, CCM_STAR_ENCRYPTION_FLAGS, nonce, 1);
-
-    //send the IV to the chip, and set its mode to CTR
+    //tell the chip to expect an IV, and set its mode to CTR
     ENCCS = CC2530_AES_ENCCS(CC2530_AES_MODE_CTR, CC2530_AES_CMD_LOADIV, 1);
-    send_block(tmp);
+    //generate the encryption-phase IV (aka A0)
+    send_nonce(CCM_STAR_ENCRYPTION_FLAGS, nonce, 1);
     wait_for_ready();
 
     //encrypt blockwise in CTR mode
-    for(i = 0; i < (m_len & ~(uint8_t)(AES_128_BLOCK_SIZE - 1)); i += AES_128_BLOCK_SIZE)
-    //for(i = 0; i < (m_len - (m_len % (AES_128_BLOCK_SIZE - 1))); i += AES_128_BLOCK_SIZE)
+    for(i = 0; m_len - i >= AES_128_BLOCK_SIZE; i += AES_128_BLOCK_SIZE)
         encrypt_block_chunked(m + i, CC2530_AES_MODE_CTR);
 
     //if the message isn't block-aligned, we can safely pad with zeros and discard the encrypted padding
     if(i < m_len) {
-        memcpy(tmp, m + i, m_len - i);
-        memset(tmp + m_len - i, 0, AES_128_BLOCK_SIZE - (m_len - i));
-
-        encrypt_block_chunked(tmp, CC2530_AES_MODE_CTR);
-
-        memcpy(m + i, tmp, m_len - i);
+        encrypt_nonblock_chunked(m + i, CC2530_AES_MODE_CTR, m_len - i);
     }
 }
 /*---------------------------------------------------------------------------*/
