@@ -60,6 +60,7 @@ CONTIKI_CPU_SOURCEFILES += ecc-curve.c
 CONTIKI_CPU_SOURCEFILES += dbg.c ieee-addr.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c
 CONTIKI_CPU_SOURCEFILES += i2c.c cc2538-temp-sensor.c vdd3-sensor.c
+CONTIKI_CPU_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 
@@ -111,7 +112,7 @@ CUSTOM_RULE_LINK=1
 LDGENFLAGS += $(addprefix -D,$(subst $(COMMA), ,$(DEFINES)))
 LDGENFLAGS += $(addprefix -I,$(SOURCEDIRS))
 LDGENFLAGS += -imacros "contiki-conf.h" -imacros "dev/cc2538-dev.h"
-LDGENFLAGS += -imacros "dev/flash.h"
+LDGENFLAGS += -imacros "dev/flash.h" -imacros "cfs-coffee-arch.h"
 LDGENFLAGS += -x c -P -E
 
 # NB: Assumes LDSCRIPT was not overridden and is in $(OBJECTDIR)
