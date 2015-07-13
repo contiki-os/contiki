@@ -148,18 +148,3 @@ _sbrk_r(struct _reent *ptr, int incr)
 
   return prev_prog_break;
 }
-/*---------------------------------------------------------------------------*/
-void
-_kill_r(struct _reent *ptr)
-{
-  /* Stubbed function */
-  ptr->_errno = ENOTSUP;
-}
-/*---------------------------------------------------------------------------*/
-int
-_getpid_r(struct _reent *ptr)
-{
-  /* Stubbed function */
-  ptr->_errno = ENOTSUP;
-  return 1;
-}
