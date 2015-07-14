@@ -356,8 +356,8 @@ reset(void)
   writereg(ERXNDH, RX_BUF_END >> 8);
   writereg(ERDPTL, RX_BUF_START & 0xff);
   writereg(ERDPTH, RX_BUF_START >> 8);
-  writereg(ERXRDPTL, RX_BUF_START & 0xff);
-  writereg(ERXRDPTH, RX_BUF_START >> 8);
+  writereg(ERXRDPTL, RX_BUF_END & 0xff);
+  writereg(ERXRDPTH, RX_BUF_END >> 8);
 
   /* Receive filters */
   setregbank(EPKTCNT_BANK);
