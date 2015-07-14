@@ -360,8 +360,8 @@ reset(void)
     will be connected to a full-duplex configured remote node;
     otherwise, it should be left clear.
 
-    3. Configure the bits in MACON4. Many applications may not need to
-    modify the Reset default.
+    3. Configure the bits in MACON4. For conformance to the IEEE 802.3
+    standard, set the DEFER bit.
 
     4. Program the MAMXFL registers with the maximum frame length to
     be permitted to be received or transmitted. Normal network nodes
