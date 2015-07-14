@@ -411,7 +411,6 @@ reset(void)
 
   /* Set non-back-to-back packet gap */
   writereg(MAIPGL, 0x12);
-  writereg(MAIPGH, 0x0c);
 
   /* Set MAC address */
   setregbank(MAADRX_BANK);
