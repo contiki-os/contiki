@@ -114,6 +114,7 @@
 #define MAADR5 0x00 /* MAADR<15:8> */
 #define MAADR6 0x01 /* MAADR<7:0> */
 #define MISTAT 0x0a
+#define EREVID 0x12
 
 #define EPKTCNT_BANK 0x01
 #define ERXFCON 0x18
@@ -232,6 +233,24 @@ softreset(void)
   enc28j60_arch_spi_deselect();
   bank = ERXTX_BANK;
 }
+/*---------------------------------------------------------------------------*/
+#if DEBUG
+static uint8_t
+readrev(void)
+{
+  uint8_t rev;
+  setregbank(MAADRX_BANK);
+  rev = readreg(EREVID);
+  switch(rev) {
+  case 2:
+    return 1;
+  case 6:
+    return 7;
+  default:
+    return rev;
+  }
+}
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 reset(void)
@@ -463,6 +482,8 @@ enc28j60_init(uint8_t *mac_addr)
   process_start(&enc_watchdog_process, NULL);
 
   reset();
+
+  PRINTF("ENC28J60 rev. B%d\n", readrev());
 
   initialized = 1;
 }
