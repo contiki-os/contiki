@@ -535,11 +535,11 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
      configuration (the values in MACON3) will be used.  */
   writedatabyte(0x00); /* MACON3 */
 
+  writedata(data, datalen);
+
   /* Write a pointer to the last data byte. */
   writereg(ETXNDL, (TX_BUF_START + datalen + 0) & 0xff);
   writereg(ETXNDH, (TX_BUF_START + datalen + 0) >> 8);
-
-  writedata(data, datalen);
 
   /* Clear EIR.TXIF */
   clearregbitfield(EIR, EIR_TXIF);
