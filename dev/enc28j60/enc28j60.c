@@ -298,10 +298,13 @@ reset(void)
     see Section 2.2 “Oscillator Start-up Timer.
   */
 
+  softreset();
+
+  /* Workaround for erratum #2. */
+  clock_delay_usec(1000);
+
   /* Wait for OST */
   while((readreg(ESTAT) & ESTAT_CLKRDY) == 0);
-
-  softreset();
 
   setregbank(ERXTX_BANK);
   /* Set up receive buffer */
