@@ -160,16 +160,6 @@ setregbank(uint8_t bank)
 }
 /*---------------------------------------------------------------------------*/
 static void
-writedatabyte(uint8_t byte)
-{
-  enc28j60_arch_spi_select();
-  /* The Write Buffer Memory (WBM) command is 0 1 1 1 1 0 1 0  */
-  enc28j60_arch_spi_write(0x7a);
-  enc28j60_arch_spi_write(byte);
-  enc28j60_arch_spi_deselect();
-}
-/*---------------------------------------------------------------------------*/
-static void
 writedata(uint8_t *data, int datalen)
 {
   int i;
@@ -182,16 +172,10 @@ writedata(uint8_t *data, int datalen)
   enc28j60_arch_spi_deselect();
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t
-readdatabyte(void)
+static void
+writedatabyte(uint8_t byte)
 {
-  uint8_t r;
-  enc28j60_arch_spi_select();
-  /* THe Read Buffer Memory (RBM) command is 0 0 1 1 1 0 1 0 */
-  enc28j60_arch_spi_write(0x3a);
-  r = enc28j60_arch_spi_read();
-  enc28j60_arch_spi_deselect();
-  return r;
+  writedata(&byte, 1);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -206,6 +190,14 @@ readdata(uint8_t *buf, int len)
   }
   enc28j60_arch_spi_deselect();
   return i;
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+readdatabyte(void)
+{
+  uint8_t r;
+  readdata(&r, 1);
+  return r;
 }
 /*---------------------------------------------------------------------------*/
 static void
