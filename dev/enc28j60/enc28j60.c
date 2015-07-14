@@ -589,6 +589,10 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
   uint8_t status[2];
   uint8_t length[2];
 
+  if(!initialized) {
+    return -1;
+  }
+
   err = 0;
 
   setregbank(EPKTCNT_BANK);
