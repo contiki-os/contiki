@@ -498,8 +498,6 @@ enc28j60_init(uint8_t *mac_addr)
 int
 enc28j60_send(uint8_t *data, uint16_t datalen)
 {
-  int padding = 0;
-
   if(!initialized) {
     return -1;
   }
@@ -535,30 +533,13 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
   /* Write the transmission control register as the first byte of the
      output packet. We write 0x00 to indicate that the default
      configuration (the values in MACON3) will be used.  */
-#define WITH_MANUAL_PADDING 1
-#if WITH_MANUAL_PADDING
-#define PADDING_MIN_SIZE 60
-  writedatabyte(0x0B); /* POVERRIDE, PCRCEN, PHUGEEN. Not PPADEN */
-  if(datalen < PADDING_MIN_SIZE) {
-    padding = PADDING_MIN_SIZE - datalen;
-  } else {
-    padding = 0;
-  }
-#else /* WITH_MANUAL_PADDING */
   writedatabyte(0x00); /* MACON3 */
-  padding = 0;
-#endif /* WITH_MANUAL_PADDING */
 
   /* Write a pointer to the last data byte. */
-  writereg(ETXNDL, (TX_BUF_START + datalen + 0 + padding) & 0xff);
-  writereg(ETXNDH, (TX_BUF_START + datalen + 0 + padding) >> 8);
+  writereg(ETXNDL, (TX_BUF_START + datalen + 0) & 0xff);
+  writereg(ETXNDH, (TX_BUF_START + datalen + 0) >> 8);
 
   writedata(data, datalen);
-  if(padding > 0) {
-    uint8_t padding_buf[60];
-    memset(padding_buf, 0, padding);
-    writedata(padding_buf, padding);
-  }
 
   /* Clear EIR.TXIF */
   clearregbitfield(EIR, EIR_TXIF);
