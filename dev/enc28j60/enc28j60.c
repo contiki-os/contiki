@@ -174,6 +174,32 @@ writereg(uint8_t reg, uint8_t data)
 }
 /*---------------------------------------------------------------------------*/
 static void
+setregbitfield(uint8_t reg, uint8_t mask)
+{
+  if(is_mac_mii_reg(reg)) {
+    writereg(reg, readreg(reg) | mask);
+  } else {
+    enc28j60_arch_spi_select();
+    enc28j60_arch_spi_write(0x80 | (reg & 0x1f));
+    enc28j60_arch_spi_write(mask);
+    enc28j60_arch_spi_deselect();
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+clearregbitfield(uint8_t reg, uint8_t mask)
+{
+  if(is_mac_mii_reg(reg)) {
+    writereg(reg, readreg(reg) & ~mask);
+  } else {
+    enc28j60_arch_spi_select();
+    enc28j60_arch_spi_write(0xa0 | (reg & 0x1f));
+    enc28j60_arch_spi_write(mask);
+    enc28j60_arch_spi_deselect();
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
 setregbank(uint8_t new_bank)
 {
   writereg(ECON1, (readreg(ECON1) & 0xfc) | (new_bank & 0x03));
@@ -388,12 +414,11 @@ reset(void)
   setregbank(MACONX_BANK);
 
   /* Turn on reception and IEEE-defined flow control */
-  writereg(MACON1, readreg(MACON1) | (MACON1_MARXEN + MACON1_TXPAUS +
-                                      MACON1_RXPAUS));
+  setregbitfield(MACON1, MACON1_MARXEN | MACON1_TXPAUS | MACON1_RXPAUS);
 
   /* Set padding, crc, full duplex */
-  writereg(MACON3, readreg(MACON3) | (MACON3_PADCFG_FULL + MACON3_TXCRCEN +
-                                      MACON3_FULDPX + MACON3_FRMLNEN));
+  setregbitfield(MACON3, MACON3_PADCFG_FULL | MACON3_TXCRCEN | MACON3_FULDPX |
+                         MACON3_FRMLNEN);
 
   /* Don't modify MACON4 */
 
@@ -445,7 +470,7 @@ reset(void)
   /* Don't worry about PHY configuration for now */
 
   /* Turn on autoincrement for buffer access */
-  writereg(ECON2, readreg(ECON2) | ECON2_AUTOINC);
+  setregbitfield(ECON2, ECON2_AUTOINC);
 
   /* Turn on reception */
   writereg(ECON1, ECON1_RXEN);
@@ -536,12 +561,12 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
   }
 
   /* Clear EIR.TXIF */
-  writereg(EIR, readreg(EIR) & (~EIR_TXIF));
+  clearregbitfield(EIR, EIR_TXIF);
 
   /* Don't care about interrupts for now */
 
   /* Send the packet */
-  writereg(ECON1, readreg(ECON1) | ECON1_TXRTS);
+  setregbitfield(ECON1, ECON1_TXRTS);
   while((readreg(ECON1) & ECON1_TXRTS) > 0);
 
   if((readreg(ESTAT) & ESTAT_TXABRT) != 0) {
@@ -626,7 +651,7 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
   writereg(ERXRDPTL, next & 0xff);
   writereg(ERXRDPTH, next >> 8);
 
-  writereg(ECON2, readreg(ECON2) | ECON2_PKTDEC);
+  setregbitfield(ECON2, ECON2_PKTDEC);
 
   if(err) {
     PRINTF("enc28j60: rx err: flushed %d\n", len);
