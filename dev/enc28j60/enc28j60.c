@@ -113,6 +113,7 @@
 #define MAADR4 0x03 /* MAADR<23:16> */
 #define MAADR5 0x00 /* MAADR<15:8> */
 #define MAADR6 0x01 /* MAADR<7:0> */
+#define MISTAT 0x0a
 
 #define EPKTCNT_BANK 0x01
 #define ERXFCON 0x18
@@ -128,10 +129,27 @@
 PROCESS(enc_watchdog_process, "Enc28j60 watchdog");
 
 static uint8_t initialized = 0;
+static uint8_t bank = ERXTX_BANK;
 static uint8_t enc_mac_addr[6];
 static int received_packets = 0;
 static int sent_packets = 0;
 
+/*---------------------------------------------------------------------------*/
+static uint8_t
+is_mac_mii_reg(uint8_t reg)
+{
+  /* MAC or MII register (otherwise, ETH register)? */
+  switch(bank) {
+  case MACONX_BANK:
+    return reg < EIE;
+  case MAADRX_BANK:
+    return reg <= MAADR2 || reg == MISTAT;
+  case ERXTX_BANK:
+  case EPKTCNT_BANK:
+  default:
+    return 0;
+  }
+}
 /*---------------------------------------------------------------------------*/
 static uint8_t
 readreg(uint8_t reg)
@@ -139,6 +157,10 @@ readreg(uint8_t reg)
   uint8_t r;
   enc28j60_arch_spi_select();
   enc28j60_arch_spi_write(0x00 | (reg & 0x1f));
+  if(is_mac_mii_reg(reg)) {
+    /* MAC and MII registers require that a dummy byte be read first. */
+    enc28j60_arch_spi_read();
+  }
   r = enc28j60_arch_spi_read();
   enc28j60_arch_spi_deselect();
   return r;
@@ -154,9 +176,10 @@ writereg(uint8_t reg, uint8_t data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-setregbank(uint8_t bank)
+setregbank(uint8_t new_bank)
 {
-  writereg(ECON1, (readreg(ECON1) & 0xfc) | (bank & 0x03));
+  writereg(ECON1, (readreg(ECON1) & 0xfc) | (new_bank & 0x03));
+  bank = new_bank;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -207,6 +230,7 @@ softreset(void)
   /* The System Command (soft reset) is 1 1 1 1 1 1 1 1 */
   enc28j60_arch_spi_write(0xff);
   enc28j60_arch_spi_deselect();
+  bank = ERXTX_BANK;
 }
 /*---------------------------------------------------------------------------*/
 static void
