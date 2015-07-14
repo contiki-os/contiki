@@ -84,7 +84,6 @@
 #define MACONX_BANK 0x02
 
 #define MACON1  0x00
-#define MACON2  0x01
 #define MACON3  0x02
 #define MACON4  0x03
 #define MABBIPG 0x04
@@ -96,8 +95,6 @@
 #define MACON1_TXPAUS 0x08
 #define MACON1_RXPAUS 0x04
 #define MACON1_MARXEN 0x01
-
-#define MACON2_MARST  0x80
 
 #define MACON3_PADCFG_FULL 0xe0
 #define MACON3_TXCRCEN     0x10
@@ -351,13 +348,11 @@ reset(void)
     initialization. This only needs to be done once; the order of
     programming is unimportant.
 
-    1. Clear the MARST bit in MACON2 to pull the MAC out of Reset.
-
-    2. Set the MARXEN bit in MACON1 to enable the MAC to receive
+    1. Set the MARXEN bit in MACON1 to enable the MAC to receive
     frames. If using full duplex, most applications should also set
     TXPAUS and RXPAUS to allow IEEE defined flow control to function.
 
-    3. Configure the PADCFG, TXCRCEN and FULDPX bits of MACON3. Most
+    2. Configure the PADCFG, TXCRCEN and FULDPX bits of MACON3. Most
     applications should enable automatic padding to at least 60 bytes
     and always append a valid CRC. For convenience, many applications
     may wish to set the FRMLNEN bit as well to enable frame length
@@ -365,40 +360,37 @@ reset(void)
     will be connected to a full-duplex configured remote node;
     otherwise, it should be left clear.
 
-    4. Configure the bits in MACON4. Many applications may not need to
+    3. Configure the bits in MACON4. Many applications may not need to
     modify the Reset default.
 
-    5. Program the MAMXFL registers with the maximum frame length to
+    4. Program the MAMXFL registers with the maximum frame length to
     be permitted to be received or transmitted. Normal network nodes
     are designed to handle packets that are 1518 bytes or less.
 
-    6. Configure the Back-to-Back Inter-Packet Gap register,
+    5. Configure the Back-to-Back Inter-Packet Gap register,
     MABBIPG. Most applications will program this register with 15h
     when Full-Duplex mode is used and 12h when Half-Duplex mode is
     used.
 
-    7. Configure the Non-Back-to-Back Inter-Packet Gap register low
+    6. Configure the Non-Back-to-Back Inter-Packet Gap register low
     byte, MAIPGL. Most applications will program this register with
     12h.
 
-    8. If half duplex is used, the Non-Back-to-Back Inter-Packet Gap
+    7. If half duplex is used, the Non-Back-to-Back Inter-Packet Gap
     register high byte, MAIPGH, should be programmed. Most
     applications will program this register to 0Ch.
 
-    9. If Half-Duplex mode is used, program the Retransmission and
+    8. If Half-Duplex mode is used, program the Retransmission and
     Collision Window registers, MACLCON1 and MACLCON2. Most
     applications will not need to change the default Reset values.  If
     the network is spread over exceptionally long cables, the default
     value of MACLCON2 may need to be increased.
 
-    10. Program the local MAC address into the
+    9. Program the local MAC address into the
     MAADR0:MAADR5 registers.
   */
 
   setregbank(MACONX_BANK);
-
-  /* Pull MAC out of reset */
-  writereg(MACON2, 0);//readreg(MACON2) & (~MACON2_MARST));
 
   /* Turn on reception and IEEE-defined flow control */
   writereg(MACON1, readreg(MACON1) | (MACON1_MARXEN + MACON1_TXPAUS +
