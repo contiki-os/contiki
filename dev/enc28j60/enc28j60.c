@@ -498,6 +498,8 @@ enc28j60_init(uint8_t *mac_addr)
 int
 enc28j60_send(uint8_t *data, uint16_t datalen)
 {
+  uint16_t dataend;
+
   if(!initialized) {
     return -1;
   }
@@ -538,8 +540,9 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
   writedata(data, datalen);
 
   /* Write a pointer to the last data byte. */
-  writereg(ETXNDL, (TX_BUF_START + datalen + 0) & 0xff);
-  writereg(ETXNDH, (TX_BUF_START + datalen + 0) >> 8);
+  dataend = TX_BUF_START + datalen;
+  writereg(ETXNDL, dataend & 0xff);
+  writereg(ETXNDH, dataend >> 8);
 
   /* Clear EIR.TXIF */
   clearregbitfield(EIR, EIR_TXIF);
@@ -550,15 +553,28 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
   setregbitfield(ECON1, ECON1_TXRTS);
   while((readreg(ECON1) & ECON1_TXRTS) > 0);
 
+#if DEBUG
   if((readreg(ESTAT) & ESTAT_TXABRT) != 0) {
-    PRINTF("enc28j60: tx err: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
+    uint16_t erdpt;
+    uint8_t tsv[7];
+    erdpt = (readreg(ERDPTH) << 8) | readreg(ERDPTL);
+    writereg(ERDPTL, (dataend + 1) & 0xff);
+    writereg(ERDPTH, (dataend + 1) >> 8);
+    readdata(tsv, sizeof(tsv));
+    writereg(ERDPTL, erdpt & 0xff);
+    writereg(ERDPTH, erdpt >> 8);
+    PRINTF("enc28j60: tx err: %d: %02x:%02x:%02x:%02x:%02x:%02x\n"
+           "                  tsv: %02x%02x%02x%02x%02x%02x%02x\n", datalen,
            0xff & data[0], 0xff & data[1], 0xff & data[2],
-           0xff & data[3], 0xff & data[4], 0xff & data[5]);
+           0xff & data[3], 0xff & data[4], 0xff & data[5],
+           tsv[6], tsv[5], tsv[4], tsv[3], tsv[2], tsv[1], tsv[0]);
   } else {
     PRINTF("enc28j60: tx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
            0xff & data[0], 0xff & data[1], 0xff & data[2],
            0xff & data[3], 0xff & data[4], 0xff & data[5]);
   }
+#endif
+
   sent_packets++;
   PRINTF("enc28j60: sent_packets %d\n", sent_packets);
   return datalen;
