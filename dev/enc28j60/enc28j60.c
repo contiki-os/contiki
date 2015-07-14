@@ -386,8 +386,7 @@ reset(void)
     the network is spread over exceptionally long cables, the default
     value of MACLCON2 may need to be increased.
 
-    9. Program the local MAC address into the
-    MAADR0:MAADR5 registers.
+    9. Program the local MAC address into the MAADR1:MAADR6 registers.
   */
 
   setregbank(MACONX_BANK);
