@@ -335,11 +335,7 @@ reset(void)
 
   /* Receive filters */
   setregbank(EPKTCNT_BANK);
-  /*  writereg(ERXFCON, ERXFCON_UCEN | ERXFCON_CRCEN |
-      ERXFCON_MCEN | ERXFCON_BCEN);*/
-  /* XXX: can't seem to get the unicast filter to work right now,
-     using promiscous mode for now. */
-  writereg(ERXFCON, 0);
+  writereg(ERXFCON, ERXFCON_UCEN | ERXFCON_CRCEN | ERXFCON_BCEN);
 
   /*
     6.5 MAC Initialization Settings
@@ -419,10 +415,6 @@ reset(void)
   writereg(MAADR3, enc_mac_addr[2]);
   writereg(MAADR2, enc_mac_addr[1]);
   writereg(MAADR1, enc_mac_addr[0]);
-
-  /* Receive filters */
-  setregbank(EPKTCNT_BANK);
-  writereg(ERXFCON, ERXFCON_UCEN | ERXFCON_CRCEN | ERXFCON_BCEN);
 
   /*
     6.6 PHY Initialization Settings
