@@ -81,6 +81,45 @@ static uint8_t key[16] = NONCORESEC_KEY;
 NBR_TABLE(struct anti_replay_info, anti_replay_table);
 
 /*---------------------------------------------------------------------------*/
+static int
+aead(int forward)
+{
+  uint8_t nonce[CCM_STAR_NONCE_LENGTH];
+  uint8_t *m;
+  uint8_t m_len;
+  uint8_t *a;
+  uint8_t a_len;
+  uint8_t *result;
+  uint8_t generated_mic[LLSEC802154_MIC_LENGTH];
+  uint8_t *mic;
+  
+  ccm_star_packetbuf_set_nonce(nonce, forward);
+  a = packetbuf_hdrptr();
+  m = packetbuf_dataptr();
+#if WITH_ENCRYPTION
+  a_len = packetbuf_hdrlen();
+  m_len = packetbuf_datalen();
+#else /* WITH_ENCRYPTION */
+  a_len = packetbuf_totlen();
+  m_len = 0;
+#endif /* WITH_ENCRYPTION */
+  mic = a + a_len + m_len;
+  result = forward ? mic : generated_mic;
+  
+  CCM_STAR.aead(nonce,
+      m, m_len,
+      a, a_len,
+      result, LLSEC802154_MIC_LENGTH,
+      forward);
+  
+  if(forward) {
+    packetbuf_set_datalen(packetbuf_datalen() + LLSEC802154_MIC_LENGTH);
+    return 1;
+  } else {
+    return (memcmp(generated_mic, mic, LLSEC802154_MIC_LENGTH) == 0);
+  }
+}
+/*---------------------------------------------------------------------------*/
 static void
 send(mac_callback_t sent, void *ptr)
 {
@@ -94,22 +133,13 @@ static int
 create(void)
 {
   int result;
-  uint8_t *dataptr;
-  uint8_t datalen;
   
   result = framer_802154.create();
   if(result == FRAMER_FAILED) {
     return result;
   }
-  
-  dataptr = packetbuf_dataptr();
-  datalen = packetbuf_datalen();
 
-  ccm_star_packetbuf_mic(&linkaddr_node_addr, dataptr + datalen, LLSEC802154_MIC_LENGTH);
-#if WITH_ENCRYPTION
-  ccm_star_packetbuf_ctr(&linkaddr_node_addr);
-#endif /* WITH_ENCRYPTION */
-  packetbuf_set_datalen(datalen + LLSEC802154_MIC_LENGTH);
+  aead(1);
   
   return result;
 }
@@ -123,8 +153,6 @@ parse(void)
 static void
 input(void)
 {
-  uint8_t generated_mic[LLSEC802154_MIC_LENGTH];
-  uint8_t *received_mic;
   const linkaddr_t *sender;
   struct anti_replay_info* info;
   
@@ -140,14 +168,8 @@ input(void)
   
   packetbuf_set_datalen(packetbuf_datalen() - LLSEC802154_MIC_LENGTH);
   
-#if WITH_ENCRYPTION
-  ccm_star_packetbuf_ctr(sender);
-#endif /* WITH_ENCRYPTION */
-  ccm_star_packetbuf_mic(sender, generated_mic, LLSEC802154_MIC_LENGTH);
-  
-  received_mic = ((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen();
-  if(memcmp(generated_mic, received_mic, LLSEC802154_MIC_LENGTH) != 0) {
-    PRINTF("noncoresec: received nonauthentic frame %"PRIu32"\n",
+  if(!aead(0)) {
+    PRINTF("noncoresec: received unauthentic frame %"PRIu32"\n",
         anti_replay_get_counter());
     return;
   }

@@ -41,18 +41,8 @@
 #ifndef CCM_STAR_PACKETBUF_H_
 #define CCM_STAR_PACKETBUF_H_
 
-#include "net/linkaddr.h"
+#include "lib/ccm-star.h"
 
-/**
- * \brief Calls CCM_STAR.mic with parameters appropriate for LLSEC.
- */
-void ccm_star_packetbuf_mic(const linkaddr_t *source_addr,
-    uint8_t *result,
-    uint8_t mic_len);
-
-/**
- * \brief Calls CCM_STAR.ctr with parameters appropriate for LLSEC.
- */
-void ccm_star_packetbuf_ctr(const linkaddr_t *source_addr);
+void ccm_star_packetbuf_set_nonce(uint8_t *nonce, int forward);
 
 #endif /* CCM_STAR_PACKETBUF_H_ */
