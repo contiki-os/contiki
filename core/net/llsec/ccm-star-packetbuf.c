@@ -39,7 +39,7 @@
  */
 
 #include "llsec/ccm-star-packetbuf.h"
-#include "lib/ccm-star.h"
+#include "net/linkaddr.h"
 #include "net/packetbuf.h"
 #include <string.h>
 
@@ -62,55 +62,17 @@ get_extended_address(const linkaddr_t *addr)
 }
 #endif /* LINKADDR_SIZE == 2 */
 /*---------------------------------------------------------------------------*/
-/* Inits the 13-byte CCM* nonce as of 802.15.4-2011. */
-static void
-set_nonce(uint8_t *nonce, const linkaddr_t *source_addr)
+void
+ccm_star_packetbuf_set_nonce(uint8_t *nonce, int forward)
 {
+  const linkaddr_t *source_addr;
+  
+  source_addr = forward ? &linkaddr_node_addr : packetbuf_addr(PACKETBUF_ADDR_SENDER);
   memcpy(nonce, get_extended_address(source_addr), 8);
   nonce[8] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) >> 8;
   nonce[9] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3) & 0xff;
   nonce[10] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) >> 8;
   nonce[11] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1) & 0xff;
   nonce[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-}
-/*---------------------------------------------------------------------------*/
-void
-ccm_star_packetbuf_mic(const linkaddr_t *source_addr,
-    uint8_t *result,
-    uint8_t mic_len)
-{
-  uint8_t nonce[CCM_STAR_NONCE_LENGTH];
-  uint8_t *m;
-  uint8_t m_len;
-  uint8_t *a;
-  uint8_t a_len;
-
-  set_nonce(nonce, source_addr);
-  
-  a = packetbuf_hdrptr();
-  if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) & (1 << 2)) {
-    m = packetbuf_dataptr();
-    m_len = packetbuf_datalen();
-    a_len = packetbuf_hdrlen();
-  } else {
-    m = NULL;
-    m_len = 0;
-    a_len = packetbuf_totlen();
-  }
-  
-  CCM_STAR.mic(nonce,
-      m, m_len,
-      a, a_len,
-      result,
-      mic_len);
-}
-/*---------------------------------------------------------------------------*/
-void
-ccm_star_packetbuf_ctr(const linkaddr_t *source_addr)
-{
-  uint8_t nonce[CCM_STAR_NONCE_LENGTH];
-  
-  set_nonce(nonce, source_addr);
-  CCM_STAR.ctr(nonce, packetbuf_dataptr(), packetbuf_datalen());
 }
 /*---------------------------------------------------------------------------*/

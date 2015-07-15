@@ -146,9 +146,32 @@ set_key(const uint8_t *key)
   AES_128.set_key(key);
 }
 /*---------------------------------------------------------------------------*/
+void
+aead(const uint8_t* nonce,
+    uint8_t* m, uint8_t m_len,
+    const uint8_t* a, uint8_t a_len,
+    uint8_t *result, uint8_t mic_len,
+    int forward)
+{
+  if(!forward) {
+    /* decrypt */
+    ctr(nonce, m, m_len);
+  }
+  
+  mic(nonce,
+    m, m_len,
+    a, a_len,
+    result,
+    mic_len);
+  
+  if(forward) {
+    /* encrypt */
+    ctr(nonce, m, m_len);
+  }
+}
+/*---------------------------------------------------------------------------*/
 const struct ccm_star_driver ccm_star_driver = {
-  mic,
-  ctr,
-  set_key
+  set_key,
+  aead
 };
 /*---------------------------------------------------------------------------*/
