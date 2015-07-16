@@ -250,6 +250,9 @@ extern int tsch_is_coordinator;
 extern int tsch_is_associated;
 /* Is the PAN running link-layer security? */
 extern int tsch_is_pan_secured;
+/* TSCH channel hopping sequence */
+extern uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
+extern struct asn_divisor_t tsch_hopping_sequence_length;
 
 /* Is TSCH locked? */
 int tsch_is_locked();

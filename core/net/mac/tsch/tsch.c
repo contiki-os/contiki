@@ -209,8 +209,8 @@ static struct seqno received_seqnos[MAX_SEQNOS];
 #endif /* TSCH_802154_DUPLICATE_DETECTION */
 
 /* TSCH channel hopping sequence */
-static uint8_t hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN] = TSCH_DEFAULT_HOPPING_SEQUENCE;
-struct asn_divisor_t hopping_sequence_length;
+uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
+struct asn_divisor_t tsch_hopping_sequence_length;
 
 /* TSCH timeslot timing */
 rtimer_clock_t tsch_timing_cca_offset;
@@ -480,9 +480,9 @@ tsch_schedule_link_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
 uint8_t
 tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset)
 {
-  uint16_t index_of_0 = ASN_MOD(*asn, hopping_sequence_length);
-  uint16_t index_of_offset = (index_of_0 + channel_offset) % hopping_sequence_length.val;
-  return hopping_sequence[index_of_offset];
+  uint16_t index_of_0 = ASN_MOD(*asn, tsch_hopping_sequence_length);
+  uint16_t index_of_offset = (index_of_0 + channel_offset) % tsch_hopping_sequence_length.val;
+  return tsch_hopping_sequence[index_of_offset];
 }
 /* Select the current channel from ASN and channel offset, hop to it */
 static void
@@ -1394,7 +1394,8 @@ PT_THREAD(tsch_associate(struct pt *pt))
 
     frame802154_set_pan_id(IEEE802154_PANID);
     /* Initialize hopping sequence as default */
-    ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+    memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+    ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
 #if TSCH_WITH_MINIMAL_SCHEDULE
     tsch_schedule_create_minimal();
 #endif
@@ -1516,12 +1517,12 @@ PT_THREAD(tsch_associate(struct pt *pt))
         /* TSCH hopping sequence */
         if(eb_parsed) {
           if(ies.ie_channel_hopping_sequence_id == 0) {
-            memcpy(hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-            ASN_DIVISOR_INIT(hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+            memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+            ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
           } else {
-            if(ies.ie_hopping_sequence_len <= sizeof(hopping_sequence)) {
-              memcpy(hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
-              ASN_DIVISOR_INIT(hopping_sequence_length, ies.ie_hopping_sequence_len);
+            if(ies.ie_hopping_sequence_len <= sizeof(tsch_hopping_sequence)) {
+              memcpy(tsch_hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
+              ASN_DIVISOR_INIT(tsch_hopping_sequence_length, ies.ie_hopping_sequence_len);
             } else {
               LOG("TSCH:! parse_eb: hopping sequence too long (%u)\n", ies.ie_hopping_sequence_len);
               eb_parsed = 0;
