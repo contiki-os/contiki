@@ -369,6 +369,9 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
         int i;
         int num_slotframes = buf[0];
         int num_links = buf[4];
+        if(num_slotframes == 0) {
+          return len;
+        }
         if(num_slotframes <= 1 && num_links <= FRAME802154E_IE_MAX_LINKS
             && len == 1 + num_slotframes * (4 + 5 * num_links)) {
           if(ies != NULL) {
