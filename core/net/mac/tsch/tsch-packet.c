@@ -231,9 +231,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   /* Prepare Information Elements for inclusion in the EB */
   memset(&ies, 0, sizeof(ies));
 
-  /* 6TiSCH minimal timeslot timing sequence ID: 0 */
-  ies.ie_tsch_timeslot_id = 0;
-  /* Explicit inclusion of timeslot timing with: */
+  /* Add TSCH timeslot timing IE. */
   /* ies.ie_tsch_timeslot_id = 1;
   ies.ie_tsch_timeslot.cca_offset = RTIMERTICKS_TO_US(tsch_timing_cca_offset);
   ies.ie_tsch_timeslot.cca = RTIMERTICKS_TO_US(tsch_timing_cca);
@@ -246,20 +244,31 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   ies.ie_tsch_timeslot.rx_tx = RTIMERTICKS_TO_US(tsch_timing_rx_tx);
   ies.ie_tsch_timeslot.max_ack = RTIMERTICKS_TO_US(tsch_timing_max_ack);
   ies.ie_tsch_timeslot.max_tx = RTIMERTICKS_TO_US(tsch_timing_max_tx);
-  ies.ie_tsch_timeslot.timeslot_length = RTIMERTICKS_TO_US(tsch_timing_timeslot_length); */
+  ies.ie_tsch_timeslot.timeslot_length = RTIMERTICKS_TO_US(tsch_timing_timeslot_length);
+  */
 
-  /* 6TiSCH minimal hopping sequence ID: 0 */
-  ies.ie_channel_hopping_sequence_id = 0;
-  /* Explicit inclusion of channel hopping sequence with: */
+  /* Add TSCH hopping sequence IE */
   /* if(tsch_hopping_sequence_length.val <= sizeof(ies.ie_hopping_sequence_list)) {
     ies.ie_channel_hopping_sequence_id = 1;
     ies.ie_hopping_sequence_len = tsch_hopping_sequence_length.val;
     memcpy(ies.ie_hopping_sequence_list, tsch_hopping_sequence, ies.ie_hopping_sequence_len);
-  } */
+  }
+  */
 
   /* Add Slotframe and Link IE */
-  if(tsch_has_slotframe_and_links_ie != 0) {
-    ies.ie_tsch_slotframe_and_link = tsch_current_slotframe_and_links;
+  {
+    /* Send slotframe 0 with link at timeslot 0 */
+    struct tsch_slotframe *sf0 = tsch_schedule_get_slotframe_from_handle(0);
+    struct tsch_link *link0 = tsch_schedule_get_link_from_timeslot(sf0, 0);
+    if(sf0 && link0) {
+      ies.ie_tsch_slotframe_and_link.num_slotframes = 1;
+      ies.ie_tsch_slotframe_and_link.slotframe_handle = sf0->handle;
+      ies.ie_tsch_slotframe_and_link.slotframe_size = sf0->size.val;
+      ies.ie_tsch_slotframe_and_link.num_links = 1;
+      ies.ie_tsch_slotframe_and_link.links[0].timeslot = link0->timeslot;
+      ies.ie_tsch_slotframe_and_link.links[0].channel_offset = link0->channel_offset;
+      ies.ie_tsch_slotframe_and_link.links[0].link_options = link0->link_options;
+    }
   }
 
   /* First add header-IE termination IE to stipulate that next come payload IEs */

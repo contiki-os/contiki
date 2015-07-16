@@ -212,10 +212,6 @@ static struct seqno received_seqnos[MAX_SEQNOS];
 uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
 struct asn_divisor_t tsch_hopping_sequence_length;
 
-/* TSCH schedule as received in EB */
-int tsch_has_slotframe_and_links_ie;
-struct tsch_slotframe_and_links tsch_current_slotframe_and_links;
-
 /* TSCH timeslot timing */
 rtimer_clock_t tsch_timing_cca_offset;
 rtimer_clock_t tsch_timing_cca;
@@ -1400,15 +1396,6 @@ PT_THREAD(tsch_associate(struct pt *pt))
     /* Initialize hopping sequence as default */
     memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
     ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-    /* Initialize slotframe and link IE with 6TiSCH minimal configuration */
-    tsch_has_slotframe_and_links_ie = 1;
-    tsch_current_slotframe_and_links.num_slotframes = 1;
-    tsch_current_slotframe_and_links.slotframe_handle = 0;
-    tsch_current_slotframe_and_links.slotframe_size = TSCH_SCHEDULE_DEFAULT_LENGTH;
-    tsch_current_slotframe_and_links.num_links = 1;
-    tsch_current_slotframe_and_links.links[0].timeslot = 0;
-    tsch_current_slotframe_and_links.links[0].channel_offset = 0;
-    tsch_current_slotframe_and_links.links[0].link_options = LINK_OPTION_RX | LINK_OPTION_TX | LINK_OPTION_SHARED | LINK_OPTION_TIME_KEEPING;
 #if TSCH_WITH_MINIMAL_SCHEDULE
     tsch_schedule_create_minimal();
 #endif
@@ -1569,9 +1556,6 @@ PT_THREAD(tsch_associate(struct pt *pt))
           } else {
             /* First, empty current schedule */
             tsch_schedule_remove_all_slotframes();
-            /* Save received IE for inclusion in future EBs */
-            tsch_has_slotframe_and_links_ie = 1;
-            tsch_current_slotframe_and_links = ies.ie_tsch_slotframe_and_link;
             /* We support only 0 or 1 slotframe in this IE */
             int num_links = ies.ie_tsch_slotframe_and_link.num_links;
             if(num_links <= FRAME802154E_IE_MAX_LINKS) {
@@ -1892,7 +1876,6 @@ tsch_reset(void)
   current_neighbor = NULL;
   tsch_reset_timeslot_timing();
   tsch_schedule_remove_all_slotframes();
-  tsch_has_slotframe_and_links_ie = 0;
 #ifdef TSCH_CALLBACK_LEAVING_NETWORK
   TSCH_CALLBACK_LEAVING_NETWORK();
 #endif

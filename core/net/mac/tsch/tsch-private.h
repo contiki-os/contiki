@@ -253,9 +253,6 @@ extern int tsch_is_pan_secured;
 /* TSCH channel hopping sequence */
 extern uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
 extern struct asn_divisor_t tsch_hopping_sequence_length;
-/* TSCH slotframe and link IE info */
-extern int tsch_has_slotframe_and_links_ie;
-extern struct tsch_slotframe_and_links tsch_current_slotframe_and_links;
 /* TSCH timeslot timing */
 extern rtimer_clock_t tsch_timing_cca_offset;
 extern rtimer_clock_t tsch_timing_cca;
