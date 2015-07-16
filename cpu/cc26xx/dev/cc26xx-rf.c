@@ -850,7 +850,7 @@ init_rf_params(void)
   GET_FIELD(cmd_ieee_rx_buf, radioOp, condition) = COND_NEVER;
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, channel) = CC26XX_RF_CHANNEL;
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, rxConfig) =
-    BITVALUE(CMD_IEEE_RX, rxConfig, bAutoFlushCrc, 0) |
+    BITVALUE(CMD_IEEE_RX, rxConfig, bAutoFlushCrc, 1) |
     BITVALUE(CMD_IEEE_RX, rxConfig, bAutoFlushIgn, 0) |
     BITVALUE(CMD_IEEE_RX, rxConfig, bIncludePhyHdr, 0) |
     BITVALUE(CMD_IEEE_RX, rxConfig, bIncludeCrc, 1) |
