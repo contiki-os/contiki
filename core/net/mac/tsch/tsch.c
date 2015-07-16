@@ -1000,8 +1000,8 @@ PT_THREAD(tsch_tx_link(struct pt *pt, struct rtimer *t))
               }
 
               if(ack_len != 0) {
-                int32_t eack_time_correction = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
-                if(is_time_source && eack_time_correction != 0) {
+                if(is_time_source) {
+                  int32_t eack_time_correction = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
 #if TRUNCATE_SYNC_IE
                   if(eack_time_correction > TRUNCATE_SYNC_IE_BOUND) {
                     drift_correction = TRUNCATE_SYNC_IE_BOUND;
