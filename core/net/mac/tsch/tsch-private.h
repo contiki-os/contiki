@@ -256,6 +256,19 @@ extern struct asn_divisor_t tsch_hopping_sequence_length;
 /* TSCH slotframe and link IE info */
 extern int tsch_has_slotframe_and_links_ie;
 extern struct tsch_slotframe_and_links tsch_current_slotframe_and_links;
+/* TSCH timeslot timing */
+extern rtimer_clock_t tsch_timing_cca_offset;
+extern rtimer_clock_t tsch_timing_cca;
+extern rtimer_clock_t tsch_timing_tx_offset;
+extern rtimer_clock_t tsch_timing_rx_offset;
+extern rtimer_clock_t tsch_timing_rx_ack_delay;
+extern rtimer_clock_t tsch_timing_tx_ack_delay;
+extern rtimer_clock_t tsch_timing_rx_wait;
+extern rtimer_clock_t tsch_timing_ack_wait;
+extern rtimer_clock_t tsch_timing_rx_tx;
+extern rtimer_clock_t tsch_timing_max_ack;
+extern rtimer_clock_t tsch_timing_max_tx;
+extern rtimer_clock_t tsch_timing_timeslot_length;
 
 /* Is TSCH locked? */
 int tsch_is_locked();
