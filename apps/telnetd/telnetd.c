@@ -173,6 +173,8 @@ shell_prompt(char *str)
 void
 shell_default_output(const char *str1, int len1, const char *str2, int len2)
 {
+  static const char crnl[2] = {ISO_cr, ISO_nl};
+
   if(len1 > 0 && str1[len1 - 1] == '\n') {
     --len1;
   }
@@ -187,7 +189,7 @@ shell_default_output(const char *str1, int len1, const char *str2, int len2)
 #endif /* TELNETD_CONF_GUI */
   buf_append(&buf, str1, len1);
   buf_append(&buf, str2, len2);
-  buf_append(&buf, "\r\n", 2);
+  buf_append(&buf, crnl, sizeof(crnl));
 }
 /*---------------------------------------------------------------------------*/
 void
