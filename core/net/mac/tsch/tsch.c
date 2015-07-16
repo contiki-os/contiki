@@ -117,6 +117,12 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #define TSCH_AUTOSTART 1
 #endif
 
+#ifdef TSCH_CONF_JOIN_SECURED_ONLY
+#define TSCH_JOIN_SECURED_ONLY TSCH_CONF_JOIN_SECURED_ONLY
+#else
+#define TSCH_JOIN_SECURED_ONLY LLSEC802154_SECURITY_LEVEL
+#endif
+
 /* By default, join any PAN ID. Otherwise, wait for an EB from IEEE802154_PANID */
 #ifdef TSCH_CONF_JOIN_ANY_PANID
 #define TSCH_JOIN_ANY_PANID TSCH_CONF_JOIN_ANY_PANID
@@ -1462,6 +1468,13 @@ PT_THREAD(tsch_associate(struct pt *pt))
                 input_eb.len - hdrlen - tsch_security_mic_len(&frame),
             &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
           LOG("TSCH:! parse_eb: failed to authenticate\n");
+          eb_parsed = 0;
+        }
+#endif
+
+#if TSCH_JOIN_SECURED_ONLY
+        if(frame.fcf.security_enabled == 0) {
+          LOG("TSCH:! parse_eb: EB is not secured\n");
           eb_parsed = 0;
         }
 #endif
