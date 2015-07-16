@@ -41,7 +41,7 @@
 #if WITH_TSCH_SECURITY
 /* We need longer slots to accommodate crypto operations */
 #undef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH
-#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 25000
+#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 35000
 #endif /* WITH_TSCH_SECURITY */
 
  /* CoAP */

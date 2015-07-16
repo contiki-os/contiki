@@ -206,22 +206,22 @@
 #define TSCH_DEFAULT_TS_MAX_TX             4256
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    15000
 
-#elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 25000
-/* Default timeslot timing for platfroms requiring 25ms slots
+#elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 35000
+/* Default timeslot timing for platfroms requiring 35ms slots
  * (e.g. sky/z1 with security enabled) */
 
 #define TSCH_DEFAULT_TS_CCA_OFFSET         1800
 #define TSCH_DEFAULT_TS_CCA                128
-#define TSCH_DEFAULT_TS_TX_OFFSET          9000
-#define TSCH_DEFAULT_TS_RX_OFFSET          7900
-#define TSCH_DEFAULT_TS_RX_ACK_DELAY       8600
-#define TSCH_DEFAULT_TS_TX_ACK_DELAY       9000
+#define TSCH_DEFAULT_TS_TX_OFFSET          13000
+#define TSCH_DEFAULT_TS_RX_OFFSET          11900
+#define TSCH_DEFAULT_TS_RX_ACK_DELAY       12600
+#define TSCH_DEFAULT_TS_TX_ACK_DELAY       13000
 #define TSCH_DEFAULT_TS_RX_WAIT            2200
 #define TSCH_DEFAULT_TS_ACK_WAIT           800
 #define TSCH_DEFAULT_TS_RX_TX              2072
 #define TSCH_DEFAULT_TS_MAX_ACK            2400
 #define TSCH_DEFAULT_TS_MAX_TX             4256
-#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    25000
+#define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    35000
 
 #else
 #error "TSCH: Unsupported default timeslot length"
