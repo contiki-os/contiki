@@ -31,6 +31,11 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#define HEAP_MAX_SIZE 2048
+
+static char _heap[HEAP_MAX_SIZE];
+static char *prog_break = _heap;
+
 int
 _close_r(struct _reent *ptr, int file)
 {
@@ -81,9 +86,21 @@ _fstat_r(struct _reent *ptr, int file, struct stat *st)
 caddr_t
 _sbrk_r(struct _reent *ptr, int incr)
 {
-  /* Stubbed function */
-  ptr->_errno = ENOTSUP;
-  return NULL;
+  char *prev_prog_break;
+
+  /* If the new program break overruns the maximum heap address, we return
+   * "Out of Memory" error to the user.
+   */
+  if(prog_break + incr > _heap + HEAP_MAX_SIZE) {
+    ptr->_errno = ENOMEM;
+    return NULL;
+  }
+
+  prev_prog_break = prog_break;
+
+  prog_break += incr;
+
+  return prev_prog_break;
 }
 /*---------------------------------------------------------------------------*/
 void
