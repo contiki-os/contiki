@@ -93,21 +93,6 @@
 void packetbuf_clear(void);
 
 /**
- * \brief      Clear and reset the header of the packetbuf
- *
- *             This function clears the header of the packetbuf and
- *             resets all the internal state pointers pertaining to
- *             the header (header size, header pointer, but not
- *             external data pointer). It is used before after sending
- *             a packet in the packetbuf, to be able to reuse the
- *             packet buffer for a later retransmission.
- *
- */
-void packetbuf_clear_hdr(void);
-
-void packetbuf_hdr_remove(int bytes);
-
-/**
  * \brief      Get a pointer to the data in the packetbuf
  * \return     Pointer to the packetbuf data
  *
@@ -234,22 +219,6 @@ int packetbuf_copyfrom(const void *from, uint16_t len);
  *
  */
 int packetbuf_copyto(void *to);
-
-/**
- * \brief      Copy the header portion of the packetbuf to an external buffer
- * \param to   A pointer to the buffer to which the data is to be copied
- * \retval     The number of bytes that was copied to the external buffer
- *
- *             This function copies the header portion of the packetbuf
- *             to an external buffer.
- *
- *             The external buffer to which the packetbuf is to be
- *             copied must be able to accomodate at least
- *             PACKETBUF_HDR_SIZE bytes. The number of bytes that was
- *             copied to the external buffer is returned.
- *
- */
-int packetbuf_copyto_hdr(uint8_t *to);
 
 /**
  * \brief      Extend the header of the packetbuf, for outbound packets
