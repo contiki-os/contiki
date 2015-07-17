@@ -915,8 +915,6 @@ input_packet(void)
          broadcast address. */
 
       /* If FRAME_PENDING is set, we are receiving a packets in a burst */
-      /* TODO To prevent denial-of-sleep attacks, the transceiver should
-         be disabled upon receipt of an unauthentic frame. */
       we_are_receiving_burst = packetbuf_attr(PACKETBUF_ATTR_PENDING);
       if(we_are_receiving_burst) {
         on();

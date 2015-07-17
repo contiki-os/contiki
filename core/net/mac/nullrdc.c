@@ -302,8 +302,7 @@ packet_input(void)
     }
 #endif /* RDC_WITH_DUPLICATE_DETECTION */
 #endif /* NULLRDC_802154_AUTOACK */
-
-/* TODO We may want to acknowledge only authentic frames */ 
+ 
 #if NULLRDC_SEND_802154_ACK
     {
       frame802154_t info154;
