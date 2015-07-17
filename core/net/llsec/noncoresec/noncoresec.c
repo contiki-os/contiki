@@ -82,8 +82,9 @@ NBR_TABLE(struct anti_replay_info, anti_replay_table);
 
 /*---------------------------------------------------------------------------*/
 static int
-aead(int forward)
+aead(uint8_t hdrlen, int forward)
 {
+  uint8_t totlen;
   uint8_t nonce[CCM_STAR_NONCE_LENGTH];
   uint8_t *m;
   uint8_t m_len;
@@ -94,16 +95,19 @@ aead(int forward)
   uint8_t *mic;
   
   ccm_star_packetbuf_set_nonce(nonce, forward);
+  totlen = packetbuf_totlen();
   a = packetbuf_hdrptr();
-  m = packetbuf_dataptr();
 #if WITH_ENCRYPTION
-  a_len = packetbuf_hdrlen();
-  m_len = packetbuf_datalen();
+  a_len = hdrlen;
+  m = a + a_len;
+  m_len = totlen - hdrlen;
 #else /* WITH_ENCRYPTION */
-  a_len = packetbuf_totlen();
+  a_len = totlen;
+  m = NULL;
   m_len = 0;
 #endif /* WITH_ENCRYPTION */
-  mic = a + a_len + m_len;
+  
+  mic = a + totlen;
   result = forward ? mic : generated_mic;
   
   CCM_STAR.aead(nonce,
@@ -121,11 +125,18 @@ aead(int forward)
 }
 /*---------------------------------------------------------------------------*/
 static void
+add_security_header(void)
+{
+  if(!packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
+    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
+    packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
+    anti_replay_set_counter();
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
 send(mac_callback_t sent, void *ptr)
 {
-  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
-  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
-  anti_replay_set_counter();
   NETSTACK_MAC.send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/
@@ -134,12 +145,13 @@ create(void)
 {
   int result;
   
+  add_security_header();
   result = framer_802154.create();
   if(result == FRAMER_FAILED) {
     return result;
   }
 
-  aead(1);
+  aead(result, 1);
   
   return result;
 }
@@ -147,31 +159,31 @@ create(void)
 static int
 parse(void)
 {
-  return framer_802154.parse();
-}
-/*---------------------------------------------------------------------------*/
-static void
-input(void)
-{
+  int result;
   const linkaddr_t *sender;
   struct anti_replay_info* info;
   
+  result = framer_802154.parse();
+  if(result == FRAMER_FAILED) {
+    return result;
+  }
+  
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) != LLSEC802154_SECURITY_LEVEL) {
     PRINTF("noncoresec: received frame with wrong security level\n");
-    return;
+    return FRAMER_FAILED;
   }
   sender = packetbuf_addr(PACKETBUF_ADDR_SENDER);
   if(linkaddr_cmp(sender, &linkaddr_node_addr)) {
     PRINTF("noncoresec: frame from ourselves\n");
-    return;
+    return FRAMER_FAILED;
   }
   
   packetbuf_set_datalen(packetbuf_datalen() - LLSEC802154_MIC_LENGTH);
   
-  if(!aead(0)) {
+  if(!aead(result, 0)) {
     PRINTF("noncoresec: received unauthentic frame %"PRIu32"\n",
         anti_replay_get_counter());
-    return;
+    return FRAMER_FAILED;
   }
   
   info = nbr_table_get_from_lladdr(anti_replay_table, sender);
@@ -179,7 +191,7 @@ input(void)
     info = nbr_table_add_lladdr(anti_replay_table, sender);
     if(!info) {
       PRINTF("noncoresec: could not get nbr_table_item\n");
-      return;
+      return FRAMER_FAILED;
     }
     
     /*
@@ -196,7 +208,7 @@ input(void)
     if(!nbr_table_lock(anti_replay_table, info)) {
       nbr_table_remove(anti_replay_table, info);
       PRINTF("noncoresec: could not lock\n");
-      return;
+      return FRAMER_FAILED;
     }
     
     anti_replay_init_info(info);
@@ -204,17 +216,24 @@ input(void)
     if(anti_replay_was_replayed(info)) {
        PRINTF("noncoresec: received replayed frame %"PRIu32"\n",
            anti_replay_get_counter());
-       return;
+       return FRAMER_FAILED;
     }
   }
   
+  return result;
+}
+/*---------------------------------------------------------------------------*/
+static void
+input(void)
+{
   NETSTACK_NETWORK.input();
 }
 /*---------------------------------------------------------------------------*/
 static int
 length(void)
 {
-  return framer_802154.length() + SECURITY_HEADER_LENGTH + LLSEC802154_MIC_LENGTH;
+  add_security_header();
+  return framer_802154.length() + LLSEC802154_MIC_LENGTH;
 }
 /*---------------------------------------------------------------------------*/
 static void

@@ -101,7 +101,8 @@ create(void)
   }
   chdr = packetbuf_hdrptr();
   chdr->id = CONTIKIMAC_ID;
-  chdr->len = 0;
+  chdr->len = packetbuf_datalen();
+  pad();
   
   hdr_len = DECORATED_FRAMER.create();
   if(hdr_len < 0) {
@@ -110,8 +111,6 @@ create(void)
   }
   
   packetbuf_compact();
-  chdr->len = packetbuf_datalen();
-  pad();
   
   return hdr_len + sizeof(struct hdr);
 }
@@ -123,7 +122,7 @@ pad(void)
   uint8_t *ptr;
   uint8_t zeroes_count;
   
-  transmit_len = packetbuf_totlen();
+  transmit_len = packetbuf_totlen() + hdr_length();
   if(transmit_len < SHORTEST_PACKET_SIZE) {
     /* Padding required */
     zeroes_count = SHORTEST_PACKET_SIZE - transmit_len;
@@ -156,7 +155,6 @@ parse(void)
   }
   
   packetbuf_set_datalen(chdr->len);
-  chdr->len = 0;
   
   return hdr_len + sizeof(struct hdr);
 }
