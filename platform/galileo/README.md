@@ -28,10 +28,15 @@ Device drivers:
   * Programmable Interrupt Controller (PIC)
   * Programmable Intergal Timer (PIT)
   * Real-Time Clock (RTC)
+  * UART
 
 Contiki APIs:
   * Clock module
   * Timer, Stimer, Etimer, Ctimer, and Rtimer libraries
+
+Standard APIs:
+  * Stdio library (stdout and stderr only). Console output through UART 1
+    device (connected to Galileo Gen2 FTDI header)
 
 Building
 --------

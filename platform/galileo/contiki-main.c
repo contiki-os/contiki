@@ -28,16 +28,23 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdio.h>
+
 #include "contiki.h"
 #include "cpu.h"
 #include "interrupt.h"
+#include "uart.h"
 
 int
 main(void)
 {
   cpu_init();
+  /* Initialize UART connected to Galileo Gen2 FTDI header */
+  quarkX1000_uart_init(QUARK_X1000_UART_1);
   clock_init();
   rtimer_init();
+
+  printf("Starting Contiki\n");
 
   ENABLE_IRQ();
 

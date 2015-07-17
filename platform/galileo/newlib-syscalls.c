@@ -31,6 +31,10 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#include "uart.h"
+
+#define CONSOLE_OUTPUT_DEV QUARK_X1000_UART_1
+
 #define HEAP_MAX_SIZE 2048
 
 static char _heap[HEAP_MAX_SIZE];
@@ -62,9 +66,40 @@ _read_r(struct _reent *ptr, int file, char *buf, int len)
 int
 _write_r(struct _reent *ptr, int file, const char *buf, int len)
 {
-  /* Stubbed function */
-  ptr->_errno = ENOTSUP;
-  return -1;
+  int ret;
+  int i;
+
+  switch(file) {
+  case 0:
+    ptr->_errno = EBADF;
+    ret = -1;
+    break;
+
+  case 1:
+  case 2:
+    for(i = 0; i < len; i++) {
+      /* Since file descriptors 1 and 2 (stdout and stderr) are mapped to a
+       * serial console, we should translate the 'newline' escape sequence
+       * to 'carriage return' (CR) followed by 'line feed' (LF) ASCII
+       * characters.
+       */
+      if(buf[i] == '\n') {
+        quarkX1000_uart_tx(CONSOLE_OUTPUT_DEV, '\r');
+      }
+      quarkX1000_uart_tx(CONSOLE_OUTPUT_DEV, buf[i]);
+    }
+
+    ret = len;
+    break;
+
+  default:
+    /* We don't support any filesystem yet. */
+    ptr->_errno = ENOTSUP;
+    ret = -1;
+    break;
+  }
+
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -78,9 +113,20 @@ _lseek_r(struct _reent *ptr, int file, int p, int dir)
 int
 _fstat_r(struct _reent *ptr, int file, struct stat *st)
 {
-  /* Stubbed function */
-  ptr->_errno = ENOTSUP;
-  return -1;
+  /* We don't support the standard input yet so file descriptor 0 is not
+   * supported by this function. Additionally, we don't have support for
+   * any filesystem thus file descriptors greater than 2 are not supported
+   * as well.
+   *
+   * We support standard ouput and error (file descriptors 1 and 2) only.
+   */
+  if(file == 0 || file > 2) {
+    ptr->_errno = ENOTSUP;
+    return -1;
+  }
+
+  st->st_mode = S_IFCHR;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 caddr_t
