@@ -83,12 +83,6 @@ packetbuf_clear(void)
   packetbuf_attr_clear();
 }
 /*---------------------------------------------------------------------------*/
-void
-packetbuf_clear_hdr(void)
-{
-  hdrptr = PACKETBUF_HDR_SIZE;
-}
-/*---------------------------------------------------------------------------*/
 int
 packetbuf_copyfrom(const void *from, uint16_t len)
 {
@@ -114,23 +108,6 @@ packetbuf_compact(void)
 
     bufptr = 0;
   }
-}
-/*---------------------------------------------------------------------------*/
-int
-packetbuf_copyto_hdr(uint8_t *to)
-{
-#if DEBUG_LEVEL > 0
-  {
-    int i;
-    PRINTF("packetbuf_write_hdr: header:\n");
-    for(i = hdrptr; i < PACKETBUF_HDR_SIZE; ++i) {
-      PRINTF("0x%02x, ", packetbuf[i]);
-    }
-    PRINTF("\n");
-  }
-#endif /* DEBUG_LEVEL */
-  memcpy(to, packetbuf + hdrptr, PACKETBUF_HDR_SIZE - hdrptr);
-  return PACKETBUF_HDR_SIZE - hdrptr;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -174,12 +151,6 @@ packetbuf_hdralloc(int size)
     return 1;
   }
   return 0;
-}
-/*---------------------------------------------------------------------------*/
-void
-packetbuf_hdr_remove(int size)
-{
-  hdrptr += size;
 }
 /*---------------------------------------------------------------------------*/
 int
