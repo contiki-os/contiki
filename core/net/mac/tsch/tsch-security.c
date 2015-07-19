@@ -81,11 +81,11 @@ tsch_security_init_nonce(uint8_t *nonce,
     const linkaddr_t *sender, struct asn_t *asn)
 {
   memcpy(nonce, sender, 8);
-  nonce[8] = (asn->ls4b) & 0xff;
-  nonce[9] = (asn->ls4b >> 8) & 0xff;
+  nonce[8] = asn->ms1b;
+  nonce[9] = (asn->ls4b >> 24) & 0xff;
   nonce[10] = (asn->ls4b >> 16) & 0xff;
-  nonce[11] = (asn->ls4b >> 24) & 0xff;
-  nonce[12] = asn->ms1b;
+  nonce[11] = (asn->ls4b >> 8) & 0xff;
+  nonce[12] = (asn->ls4b) & 0xff;
 }
 
 int
