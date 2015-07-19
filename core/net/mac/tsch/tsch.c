@@ -1452,15 +1452,15 @@ PT_THREAD(tsch_associate(struct pt *pt))
         /* Parse EB and extract ASN and join priority */
         LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
 
-        if(input_eb.len == 0) {
-          LOG("TSCH:! parse_eb: len == 0\n");
-          eb_parsed = 0;
-        }
-
         eb_parsed = tsch_packet_parse_eb(input_eb.payload, input_eb.len,
                 &frame, &ies, &hdrlen, 0);
         current_asn = ies.ie_asn;
         tsch_join_priority = ies.ie_join_priority + 1;
+
+        if(input_eb.len == 0) {
+          LOG("TSCH:! failed to parse (len %u)\n", input_eb.len);
+          eb_parsed = 0;
+        }
 
 #if LLSEC802154_SECURITY_LEVEL
         if(eb_parsed &&
