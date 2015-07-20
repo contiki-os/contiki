@@ -1334,8 +1334,6 @@ read_frame(void *buf, unsigned short buf_len)
   int len = 0;
 
   if(GET_FIELD_V(rx_read_entry, dataEntry, status) == DATA_ENTRY_STATUS_FINISHED) {
-    /* Set status to 0 "Pending" in element */
-    GET_FIELD_V(rx_read_entry, dataEntry, status) = DATA_ENTRY_STATUS_PENDING;
 
     if(rx_read_entry[8] > 0) {
       memcpy(buf, (char *)&rx_read_entry[9], buf_len);
@@ -1351,6 +1349,9 @@ read_frame(void *buf, unsigned short buf_len)
       /* Clear the length byte */
       rx_read_entry[8] = 0;
     }
+
+    /* Set status to 0 "Pending" in element */
+    GET_FIELD_V(rx_read_entry, dataEntry, status) = DATA_ENTRY_STATUS_PENDING;
 
     /* Move read entry pointer to next entry */
     rx_read_entry = GET_FIELD_V(rx_read_entry, dataEntry, pNextEntry);
