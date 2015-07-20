@@ -1350,15 +1350,26 @@ read_frame(void *buf, unsigned short buf_len)
     return 0;
   }
 
-  if(!rx_read_entry[8]) {
+
+  if(rx_read_entry[8] < 4) {
+    PRINTF("RF: too short\n");
+    RIMESTATS_ADD(tooshort);
+
     release_data_entry();
     return 0;
   }
 
-  memcpy(buf, (char *)&rx_read_entry[9], buf_len);
+  len = rx_read_entry[8] - 4;
 
-  /* Remove the footer */
-  len = MIN(buf_len, rx_read_entry[8] - 4);
+  if(len > buf_len) {
+    PRINTF("RF: too long\n");
+    RIMESTATS_ADD(toolong);
+
+    release_data_entry();
+    return 0;
+  }
+
+  memcpy(buf, (char *)&rx_read_entry[9], len);
 
   rssi = (int8_t)rx_read_entry[9 + len + 2];
 
