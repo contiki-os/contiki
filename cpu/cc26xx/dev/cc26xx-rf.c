@@ -1328,34 +1328,44 @@ send(const void *payload, unsigned short payload_len)
   return transmit(payload_len);
 }
 /*---------------------------------------------------------------------------*/
+static void
+release_data_entry(void)
+{
+  /* Clear the length byte */
+  rx_read_entry[8] = 0;
+  /* Set status to 0 "Pending" in element */
+  GET_FIELD_V(rx_read_entry, dataEntry, status) = DATA_ENTRY_STATUS_PENDING;
+  rx_read_entry = GET_FIELD_V(rx_read_entry, dataEntry, pNextEntry);
+}
+/*---------------------------------------------------------------------------*/
 static int
 read_frame(void *buf, unsigned short buf_len)
 {
+  int8_t rssi;
   int len = 0;
+  uint8_t status = GET_FIELD_V(rx_read_entry, dataEntry, status);
 
-  if(GET_FIELD_V(rx_read_entry, dataEntry, status) == DATA_ENTRY_STATUS_FINISHED) {
-
-    if(rx_read_entry[8] > 0) {
-      memcpy(buf, (char *)&rx_read_entry[9], buf_len);
-
-      /* Remove the footer */
-      len = MIN(buf_len, rx_read_entry[8] - 4);
-
-      int rssi = (int8_t)rx_read_entry[9 + len + 2];
-
-      packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
-      RIMESTATS_ADD(llrx);
-
-      /* Clear the length byte */
-      rx_read_entry[8] = 0;
-    }
-
-    /* Set status to 0 "Pending" in element */
-    GET_FIELD_V(rx_read_entry, dataEntry, status) = DATA_ENTRY_STATUS_PENDING;
-
-    /* Move read entry pointer to next entry */
-    rx_read_entry = GET_FIELD_V(rx_read_entry, dataEntry, pNextEntry);
+  if(status != DATA_ENTRY_STATUS_FINISHED) {
+    /* No available data */
+    return 0;
   }
+
+  if(!rx_read_entry[8]) {
+    release_data_entry();
+    return 0;
+  }
+
+  memcpy(buf, (char *)&rx_read_entry[9], buf_len);
+
+  /* Remove the footer */
+  len = MIN(buf_len, rx_read_entry[8] - 4);
+
+  rssi = (int8_t)rx_read_entry[9 + len + 2];
+
+  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+  RIMESTATS_ADD(llrx);
+
+  release_data_entry();
 
   return len;
 }
