@@ -42,7 +42,7 @@ SECTIONS {
     .text ALIGN (4K) :
     {
         *(.multiboot)
-        *(.text)
+        *(.text*)
     }
 
     .rodata ALIGN (4K) :
@@ -52,12 +52,12 @@ SECTIONS {
 
     .data ALIGN (4K) :
     {
-        *(.data)
+        *(.data*)
     }
 
     .bss ALIGN (4K) :
     {
         *(COMMON)
-        *(.bss)
+        *(.bss*)
     }
 }
