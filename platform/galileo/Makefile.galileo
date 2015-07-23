@@ -12,7 +12,7 @@ PROJECT_SOURCEFILES += newlib-syscalls.c
 CONTIKI_CPU=$(CONTIKI)/cpu/x86
 include $(CONTIKI)/cpu/x86/Makefile.x86_quarkX1000
 
-CFLAGS += -fno-stack-protector -nostdinc -isystem $(LIBC)/include -isystem $(LIBGCC_PATH)/include -isystem $(LIBGCC_PATH)/include-fixed
+CFLAGS += -fno-stack-protector -nostdinc -I$(LIBC)/include -isystem $(LIBGCC_PATH)/include -isystem $(LIBGCC_PATH)/include-fixed
 LDFLAGS += -nostdlib -L$(LIBC)/lib -L$(LIBGCC_PATH)/32
 
 TARGET_LIBFILES += -lm -lc -lgcc

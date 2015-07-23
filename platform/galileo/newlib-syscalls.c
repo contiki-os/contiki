@@ -32,6 +32,7 @@
 #include <errno.h>
 
 #include "uart.h"
+#include "helpers.h"
 
 #define CONSOLE_OUTPUT_DEV QUARK_X1000_UART_1
 
@@ -48,11 +49,34 @@ _close_r(struct _reent *ptr, int file)
   return -1;
 }
 /*---------------------------------------------------------------------------*/
+void
+_exit(int status)
+{
+  halt();
+}
+/*---------------------------------------------------------------------------*/
+int
+_getpid_r(struct _reent *ptr)
+{
+  /* Stubbed function */
+  ptr->_errno = ENOTSUP;
+  return -1;
+}
+/*---------------------------------------------------------------------------*/
 int
 _isatty_r(struct _reent *ptr, int file)
 {
   /* Stubbed function */
+  ptr->_errno = ENOTSUP;
   return 0;
+}
+/*---------------------------------------------------------------------------*/
+int
+_kill_r(struct _reent *ptr, int pid, int signal)
+{
+  /* Stubbed function */
+  ptr->_errno = ENOTSUP;
+  return -1;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -60,7 +84,7 @@ _read_r(struct _reent *ptr, int file, char *buf, int len)
 {
   /* Stubbed function */
   ptr->_errno = ENOTSUP;
-  return 0;
+  return -1;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -107,7 +131,7 @@ _lseek_r(struct _reent *ptr, int file, int p, int dir)
 {
   /* Stubbed function */
   ptr->_errno = ENOTSUP;
-  return 0;
+  return -1;
 }
 /*---------------------------------------------------------------------------*/
 int
