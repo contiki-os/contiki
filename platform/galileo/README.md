@@ -96,11 +96,11 @@ $ cp platform/galileo/bsp/grub/bin/grub.efi /mnt/sdcard
 
 ### Connect to the console output
 
-Connect the serial cable to your computer as showed in [2].
+Connect the serial cable to your computer as shown in [2].
 
-Choose one terminal emulator such as screen, putty or minicom. Make sure you
-use keyboard SCO mode (on putty that option is at Terminal -> Keyboard, on
-the left menu). Connect to /dev/ttyUSB0, use 115200 speed.
+Choose a terminal emulator such as PuTTY. Make sure you use the SCO keyboard
+mode (on PuTTY that option is at Terminal -> Keyboard, on the left menu).
+Connect to the appropriate serial port using a baud rate of 115200.
 
 ### Boot Contiki Image
 
@@ -118,15 +118,19 @@ $ fs0:
 $ grub.efi
 ```
 
-You'll reach de grub shell. Now run the following commands to boot Contiki
+You'll reach the grub shell. Now run the following commands to boot Contiki
 image:
 ```
 $ multiboot /hello-world.galileo
 $ boot
 ```
 
-For now, we lack of UART support so you won't see any output. However, you can
-use JTAG (see next section) to verify that the Contiki is running.
+This should boot the Contiki image, resulted in the following messages being
+sent to the serial console:
+```
+Starting Contiki
+Hello World
+```
 
 Debugging
 ---------
