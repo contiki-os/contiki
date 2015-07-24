@@ -41,6 +41,7 @@ define dooneexample
 @echo Building example $(3): $(1) for target $(2)
 @((cd $(EXAMPLESDIR)/$(1); \
  export STM32W_CPUREV=CC; \
+ export USE_SUBGHZ_BOARD=IDS01A5; \
  make TARGET=$(2) clean && make TARGET=$(2)) > \
       $(3)-$(subst /,-,$(1))$(2).report 2>&1 && \
  (echo $(1) $(2): OK | tee $(3)-$(subst /,-,$(1))$(2).summary) || \
