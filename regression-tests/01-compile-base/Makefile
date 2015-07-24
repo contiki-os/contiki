@@ -2,6 +2,7 @@ EXAMPLESDIR=../../examples
 TOOLSDIR=../../tools
 
 EXAMPLES = \
+hello-world/stm32nucleo-spirit1 \
 hello-world/avr-raven \
 hello-world/exp5438 \
 hello-world/eval-adf7xxxmb4z \
@@ -14,6 +15,7 @@ hello-world/z1 \
 eeprom-test/native \
 collect/sky \
 er-rest-example/sky \
+er-rest-example/stm32nucleo-spirit1 \
 example-shell/native \
 netperf/sky \
 powertrace/sky \
@@ -34,6 +36,7 @@ wget/minimal-net \
 z1/z1 \
 settings-example/avr-raven \
 ipv6/multicast/sky \
+ipv6/multicast/stm32nucleo-spirit1 \
 
 TOOLS=
 
