@@ -16,7 +16,7 @@ The following drivers are included:
 - LEDs and buttons (user, reset)
 - USB
 - SPIRIT1 sub-1GHz transceiver  
-- HTS221, LIS3MDL, LPS25H, LSM6DS0 sensors
+- HTS221, LIS3MDL, LPS25HB, LSM6DS0 sensors
 
 
 Hardware Requirements
@@ -34,13 +34,16 @@ http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/LN1847/PF260002
 
  >The X-NUCLEO-IDS01A4 and X-NUCLEO-IDS01A5 are STM32 Nucleo expansion boards that use 
 the module SPSGRF-868 or SPSGRF-915 based on SPIRIT1 low data rate, low power sub-1 GHz transceiver.
-The user can select the X-NUCLEO-IDS01A4 board to operate the SPIRIT1 transceiver at 868MHz 
-or the X-NUCLEO-IDS01A5 board to operate the SPIRIT1 transceiver at 915MHz.
-Detailed information on the X-NUCLEO-IDS01A4 expansion board can be found at:
+
+>The user can select the X-NUCLEO-IDS01A4 board to operate the SPIRIT1 transceiver at 868MHz or the X-NUCLEO-IDS01A5 board to operate the SPIRIT1 transceiver at 915MHz.
+
+>Detailed information on the X-NUCLEO-IDS01A4 expansion board can be found at:
 http://www.st.com/web/catalog/tools/FM146/CL2167/SC2006/PF261982
-Detailed information on the X-NUCLEO-IDS01A5 expansion board can be found at:
+
+>Detailed information on the X-NUCLEO-IDS01A5 expansion board can be found at:
 http://www.st.com/web/catalog/tools/FM146/CL2167/SC2006/PF261983 
-Detailed information on the SPIRIT1 sub-1GHz transceiver can be found at:
+
+>Detailed information on the SPIRIT1 sub-1GHz transceiver can be found at:
 http://www.st.com/web/catalog/sense_power/FM2185/SC1845/PF253167
 
 * X-NUCLEO-IKS01A1, motion MEMS and environmental sensors expansion board (OPTIONAL)
@@ -48,7 +51,7 @@ http://www.st.com/web/catalog/sense_power/FM2185/SC1845/PF253167
  >The X-NUCLEO-IKS01A1 is a motion MEMS and environmental sensor evaluation board.
 The use of this board is optional in the stm32nucleo-spirit1 Contiki platform. 
 
-Detailed information on the X-NUCLEO-IKS01A1 expansion board can be found at:
+>Detailed information on the X-NUCLEO-IKS01A1 expansion board can be found at:
 http://www.st.com/web/catalog/tools/FM146/CL2167/SC2006/PF261191
 
 
