@@ -1,0 +1,207 @@
+
+CONTIKI_TARGET_DIRS = .
+
+
+ifeq ($(USE_SENSOR_BOARD),1)
+ COMPILE_SENSORS=TRUE
+ CFLAGS += -DCOMPILE_SENSORS
+ ${info Compiling with Sensor Files}
+else
+ COMPILE_SENSORS=FALSE
+ ${info NOT compiling Sensor Files}
+endif
+
+
+ifeq ($(USE_SUBGHZ_BOARD),IDS01A4)
+  CFLAGS += -DX_NUCLEO_IDS01A4
+  ${info Using 868 MHz SPIRIT1 Board}
+else ifeq  ($(USE_SUBGHZ_BOARD),IDS01A5)
+  CFLAGS += -DX_NUCLEO_IDS01A5
+  ${info Using 915 MHz SPIRIT1 Board}
+else
+  ${info You must specify which SPIRIT1 board you use:}
+  ${info make USE_SUBGHZ_BOARD=IDS01A4 for 868 MHz}
+  ${info make USE_SUBGHZ_BOARD=IDS01A5 for 915 MHz}
+  ${error }
+endif
+
+
+#Currently we support only GCC
+GCC=1
+
+CONTIKI_TARGET_DIRS += stm32cube-hal/Src
+CONTIKI_TARGET_DIRS += dev
+CONTIKI_TARGET_DIRS += drivers/stm32l1xx_nucleo
+CONTIKI_TARGET_DIRS += drivers/x_nucleo_ids01ax
+CONTIKI_TARGET_DIRS += drivers/Common
+CONTIKI_TARGET_DIRS += drivers/spirit1/src drivers/spirit1/inc
+
+ifeq ($(COMPILE_SENSORS),TRUE)
+CONTIKI_TARGET_DIRS += drivers/x_nucleo_iks01a1
+CONTIKI_TARGET_DIRS += drivers/sensors/hts221 drivers/sensors/lps25h drivers/sensors/lps25hb\
+                       drivers/sensors/lsm6ds0 drivers/sensors/lsm6ds3 drivers/sensors/lis3mdl
+endif
+
+
+ARCH_DEV = button-sensor.c leds-arch.c
+
+ARCH_DEV_SENSORS = temperature-sensor.c humidity-sensor.c pressure-sensor.c magneto-sensor.c acceleration-sensor.c gyroscope-sensor.c
+
+ARCH_NUCLEOSPIRIT1 = contiki-spirit1-main.c  uart-msg.c  spirit1-arch.c  spirit1.c node-id.c
+
+ARCH_NUCLEOSPIRIT1_STM32CUBEHAL = spirit1_appli.c  stm32l1xx_hal_msp.c  stm32l1xx_it.c stm32cube_hal_init.c
+
+ARCH_DRIVERS_STM32L1xx = stm32l1xx_nucleo.c
+
+ARCH_DRIVERS_IDS01AX = radio_gpio.c  radio_shield_config.c  radio_spi.c
+
+ARCH_DRIVERS_SPIRIT1 = \
+				SPIRIT1_Util.c \
+				SPIRIT_Aes.c \
+				SPIRIT_Calibration.c \
+				SPIRIT_Commands.c \
+				SPIRIT_Csma.c \
+				SPIRIT_DirectRF.c \
+				SPIRIT_General.c \
+				SPIRIT_Gpio.c \
+				SPIRIT_Irq.c \
+				SPIRIT_LinearFifo.c \
+				SPIRIT_Management.c \
+				SPIRIT_PktBasic.c \
+				SPIRIT_PktCommon.c \
+				SPIRIT_PktMbus.c \
+				SPIRIT_PktStack.c \
+				SPIRIT_Qi.c \
+				SPIRIT_Radio.c \
+				SPIRIT_Timer.c \
+				SPIRIT_Types.c
+
+ARCH_DRIVERS_IKS01A1 =  x_nucleo_iks01a1.c  x_nucleo_iks01a1_hum_temp.c  x_nucleo_iks01a1_imu_6axes.c \
+		x_nucleo_iks01a1_magneto.c  x_nucleo_iks01a1_pressure.c 
+
+ARCH_DRIVERS_SENSORS =	hts221.c  \
+			lis3mdl.c \
+			lps25h.c  \
+			lps25hb.c \
+			lsm6ds0.c \
+			lsm6ds3.c
+
+ARCH+=$(ARCH_DEV)
+ARCH+=$(ARCH_NUCLEOSPIRIT1)
+ARCH+=$(ARCH_NUCLEOSPIRIT1_STM32CUBEHAL)
+ARCH+=$(ARCH_DRIVERS_STM32L1xx)
+ARCH+=$(ARCH_DRIVERS_IDS01AX)
+ARCH+=$(ARCH_DRIVERS_SPIRIT1)
+
+ifeq ($(COMPILE_SENSORS),TRUE)
+  ARCH+=$(ARCH_DEV_SENSORS)
+  ARCH+=$(ARCH_DRIVERS_IKS01A1)
+  ARCH+=$(ARCH_DRIVERS_SENSORS)
+endif
+
+CFLAGS += -DUSE_STM32L152_EVAL \
+		-DSTM32L152xE \
+		-DUSE_STM32L1XX_NUCLEO \
+		-DUSE_HAL_DRIVER \
+		-DUSE_STDPERIPH_DRIVER \
+		-DNO_EEPROM \
+		-DSPIRIT1_ST_SHIELD \
+		-DSPIRIT_MODULE \
+		-DUSE_SPIRIT1_DEFAULT
+
+CFLAGS += -I. \
+	  -I$(CONTIKI)/platform/$(TARGET)/ \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-hal/Inc \
+	  -I$(CONTIKI)/platform/$(TARGET)/drivers/Common \
+	  -I$(CONTIKI)/platform/$(TARGET)/divers/x_nucleo_ids01ax\
+	  -I$(CONTIKI)/platform/$(TARGET)/drivers/spirit1/inc \
+	  -I$(CONTIKI)/cpu/arm/stm32l152/CMSIS \
+	  -I$(CONTIKI)/platform/$(TARGET)/drvers/stm32l1xx_nucleo \
+	  -I$(CONTIKI)/cpu/arm/stm32l152/STM32L1xx_HAL_Driver/Inc \
+	  -I$(CONTIKI)/cpu/arm/stm32l152 \
+	  -I$(CONTIKI)/core                   \
+	  -I$(CONTIKI)/platform/$(TARGET)/dev
+
+
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
+endif
+
+
+ifndef CONTIKI_TARGET_MAIN
+CONTIKI_TARGET_MAIN = contiki-spirit1-main.c
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(CONTIKI_TARGET_MAIN)
+
+MCU=stm32l152
+CONTIKI_CPU=$(CONTIKI)/cpu/arm/stm32l152
+include $(CONTIKI)/cpu/arm/stm32l152/Makefile.stm32l152
+
+
+MODULES+=core/net \
+         core/net/mac core/net/mac/contikimac \
+         core/net/llsec
+
+
+# build rules ------------------------------------
+
+CLEAN += *.stm32nucleo-spirit1 symbols.c symbols.h contiki-stm32nucleo-spirit1.log 
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+
+help:
+	@echo A few useful make commands:
+	@echo make help - shows this help
+	@echo make TARGET=stm32nucleo-spirit1 savetarget - stores selection of target to avoid using TARGET= on every make invokation
+	@echo make program.upload - compiles and uploads program to connected board
+	@echo make program.upload IAR=1 - uses the IAR compiler instead of gcc (not implemented yet)
+	@echo make program.upload NODEID=x - uploads with node_id set to x
+
+# Serialdump rules
+ifeq ($(HOST_OS),Windows)
+  SERIALDUMP = serialdump-windows
+  # this ID is a string with which the node identifies itself as, and is used to
+  # find the proper /dev/comX-port in Cygwin to connect to.
+  CYGWIN_DEV_ID="stm32nucleo-spirit1 Spirit1 Platform"
+# include $(CONTIKI)/tools/cygwin/Makefile.cygwin
+endif
+ifeq ($(HOST_OS),Darwin)
+  SERIALDUMP = serialdump-macos
+endif
+ifndef SERIALDUMP
+  # Assume Linux
+  SERIALDUMP = serialdump-linux
+endif
+
+# IAR/windows/cygwin only for now; after GCC port, see if stm32flash works with Linux
+STLINKCLI=ST-LINK_CLI.exe
+%.upload: %.hex
+	#Note: this command only uploads to a single connected device
+	#$(STLINKCLI) -ME || $(STLINKCLI) -ME || $(STLINKCLI) -ME || $(STLINKCLI) -ME
+	$(STLINKCLI) -Q -P $*.hex -V -Run
+
+
+# devcon requires WinDriverKit, downloadable from microsoft.com
+DEVCON=devcon.exe
+DEVCON_ALLDEVS=$(shell $(DEVCON) find =USB | grep "STMicroelectronics STLink dongle" | cut -d " " -f 1)
+devcon_enableonly:
+	devcon disable =USB @"USB\VID_0483&PID_3748\*"
+	devcon enable =USB @"$(ID)"
+
+%.uploadall: %.hex
+	$(foreach D,$(DEVCON_ALLDEVS), echo D IS "$(D)" && make devcon_enableonly ID="$(D)" && make $*.upload && ) echo "Done"
+	devcon enable =USB @"USB\VID_0483&PID_3748\*"
+
+login:
+	@echo "Connecting to $(COMPORT)"
+	$(CONTIKI)/tools/sky/$(SERIALDUMP) -b115200 $(COMPORT)
+
+%.ramusage: %.$(TARGET)
+	$(NM) -S $< --size-sort --line-numbers | grep -v " T " | grep -v " t "
+%.romusage: %.$(TARGET)
+	$(NM) -S $< --size-sort --line-numbers | grep -v " b " | grep -v " B " | grep -v " d " | grep -v " D "
+
+
+
+
