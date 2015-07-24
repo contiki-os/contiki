@@ -1,7 +1,7 @@
 Getting Started with Contiki for STM32 Nucleo equipped with sub-1GHz SPIRIT1 expansion boards
 =============================================================================================
 
-This guide explains how get started with the STM32 Nucleo and expansion boards port to Contiki.
+This guide explains how to get started with the STM32 Nucleo and expansion boards port to Contiki.
 
 Port Feature
 ============
@@ -47,8 +47,7 @@ http://www.st.com/web/catalog/sense_power/FM2185/SC1845/PF253167
 
  >The X-NUCLEO-IKS01A1 is a motion MEMS and environmental sensor evaluation board.
 The use of this board is optional in the stm32nucleo-spirit1 Contiki platform. 
-Drivers are currently included in the platform folder but the sensors APIs are not
-yet integrated with Contiki APIs. This feature will be provided soon.
+
 Detailed information on the X-NUCLEO-IKS01A1 expansion board can be found at:
 http://www.st.com/web/catalog/tools/FM146/CL2167/SC2006/PF261191
 
@@ -67,7 +66,7 @@ The platform name is: stm32nucleo-spirit1
 * A toolchain to build the firmware: The port has been developed and tested with GNU Tools 
 for ARM Embedded Processors.
 >The toolchain can be found at: https://launchpad.net/gcc-arm-embedded
-The port was developed and tested using this version: gcc-arm-none-eabi v4.83
+The port was developed and tested using this version: gcc-arm-none-eabi v4.8.3
 
 
 Examples
@@ -75,7 +74,8 @@ Examples
 
 The following examples have been successfully tested:
 
-* Examples located in: examples/ipv6/simple-udp-rpl					
+* examples/stm32nucleo-spirit1/sensor-demo
+* examples/ipv6/simple-udp-rpl (multicast, rpl-border-router, simple-udp-rpl)
 
 
 Build an example
@@ -101,6 +101,13 @@ This will create executables for UDP sender and receiver nodes.
 
 These executables can be programmed on the nodes using the procedure described hereafter.
 
+
+In case you need to build an example that uses the additional sensors expansion board 
+(for example, considering a system made of NUCLEO-L152RE, X-NUCLEO-IDS01A4 and X-NUCLEO-IKS01A1)
+then the command to be run would be:
+
+	make TARGET=stm32nucleo-spirit1 USE_SUBGHZ_BOARD=IDS01A4 USE_SENSOR_BOARD=1
+
 System setup
 ============ 
 
@@ -109,20 +116,18 @@ This jumper provides the required voltage to the devices on the board.
 
 2. Connect the X-NUCLEO-IDS01Ax board to the STM32 Nucleo board (NUCLEO-L152RE) from the top.
 
-3. Power the STM32 Nucleo board using the Mini-B USB cable connected to the PC.
+3. If the optional X-NUCLEO-IKS01A1 board is used, connect it on top of the X-NUCLEO-IDS01Ax board.
 
-4. Program the firmware on the STM32 Nucleo board. 
+4. Power the STM32 Nucleo board using the Mini-B USB cable connected to the PC.
+
+5. Program the firmware on the STM32 Nucleo board. 
 This can be done by copying the binary file on the USB mass storage that is 
 automatically created when plugging the STM32 Nucleo board to the PC.
 On Linux machines the serial port device is located in /dev/ttyACMx (x depends on the PC).
 
-5. Reset the MCU by using the reset button on the STM32 Nucleo board
+6. Reset the MCU by using the reset button on the STM32 Nucleo board
 
 
-Know Limitations
-================
-
-* The border router functionality is not yet fully supported. 
 
 
 
