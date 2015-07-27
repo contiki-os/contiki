@@ -102,6 +102,11 @@ If the X-NUCLEO-IDS01A5 sub-1GHz RF expansion board is used, the following must 
 	
 This will create executables for UDP sender and receiver nodes.
 
+In order to generate binary files that can be flashed on the STM32 Nucleo the following command must be run:
+
+	arm-none-eabi-objcopy -O binary unicast-sender.stm32nucleo-spirit1 unicast-sender.bin
+	arm-none-eabi-objcopy -O binary unicast-receiver.stm32nucleo-spirit1 unicast-receiver.bin
+
 These executables can be programmed on the nodes using the procedure described hereafter.
 
 
