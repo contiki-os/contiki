@@ -92,6 +92,7 @@ struct interrupt_context {
       "         iret\n\t"                                        \
       "skip_trampoline%=:\n\t"                                   \
       :: "g" (num), "i" (idt_set_intr_gate_desc), "i" (handler)  \
+      : "eax", "ecx", "edx"                                      \
     );                                                           \
   } while (0)
 
