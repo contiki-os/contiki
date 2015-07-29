@@ -16,5 +16,9 @@ ifeq ($(BUILD_RELEASE),1)
 	CFLAGS  += -Os -fno-strict-aliasing
 	LDFLAGS += -Wl,--strip-all
 else
-	CFLAGS  += -Og -ggdb3
+	ifeq ($(findstring clang,$(CC)),clang)
+		CFLAGS  += -O0 -g
+	else
+		CFLAGS  += -Og -ggdb3
+	endif
 endif
