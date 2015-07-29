@@ -67,22 +67,17 @@ struct interrupt_context {
  * interrupt.
  *
  * [1] http://wiki.osdev.org/Interrupt_Service_Routines
- *
- * XXX: If you are debugging at assembly level, make sure you don't be misled
- * by the "trampolineXX" symbol name. The suffix number is NOT related to the
- * interrupt number at all. The suffix number is a unique random number to
- * guarantee there is no symbol name clashing.
  */
 #define SET_INTERRUPT_HANDLER(num, has_error_code, handler)      \
   do {                                                           \
     __asm__ __volatile__ (                                       \
-      "push $trampoline%=\n\t"                                   \
+      "push $1f\n\t"                                             \
       "push %0\n\t"                                              \
       "call %P1\n\t"                                             \
       "add $8, %%esp\n\t"                                        \
-      "jmp skip_trampoline%=\n\t"                                \
+      "jmp 2f\n\t"                                               \
       ".align 4\n\t"                                             \
-      "trampoline%=:\n\t"                                        \
+      "1:\n\t"                                                   \
       "         pushal\n\t"                                      \
       "         call %P2\n\t"                                    \
       "         popal\n\t"                                       \
@@ -90,7 +85,7 @@ struct interrupt_context {
       "         add $4, %%esp\n\t"                               \
       "         .endif\n\t"                                      \
       "         iret\n\t"                                        \
-      "skip_trampoline%=:\n\t"                                   \
+      "2:\n\t"                                                   \
       :: "g" (num), "i" (idt_set_intr_gate_desc), "i" (handler)  \
       : "eax", "ecx", "edx"                                      \
     );                                                           \
