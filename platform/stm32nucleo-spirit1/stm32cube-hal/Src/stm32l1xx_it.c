@@ -41,6 +41,7 @@
 #include "radio_gpio.h"
 #include "spirit1.h"    
 
+
 extern UART_HandleTypeDef UartHandle;    
 /** @addtogroup STM32L1xx_HAL_Examples
 * @{
@@ -319,10 +320,28 @@ void EXTI15_10_IRQHandler(void)
 
 void USART2_IRQHandler()
 {
-	slip_input_byte(UartHandle.Instance->DR);
-	return;
+	UART_HandleTypeDef *huart = &UartHandle;
 
-  //HAL_UART_IRQHandler(&UartHandle);
+	if(__HAL_UART_GET_FLAG(huart, UART_FLAG_PE)){
+		__HAL_UART_CLEAR_PEFLAG(huart);
+	}
+	
+	if(__HAL_UART_GET_FLAG(huart, UART_FLAG_FE)){
+		__HAL_UART_CLEAR_FEFLAG(huart);
+	}
+	
+	if(__HAL_UART_GET_FLAG(huart, UART_FLAG_NE)){
+		__HAL_UART_CLEAR_NEFLAG(huart);  
+	}
+	
+	if(__HAL_UART_GET_FLAG(huart, UART_FLAG_ORE)){
+		__HAL_UART_CLEAR_OREFLAG(&UartHandle);
+	}
+	
+	if(__HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE)){
+		slip_input_byte(UartHandle.Instance->DR);
+		__HAL_UART_GET_IT_SOURCE(&UartHandle, UART_IT_RXNE);
+	}
 }
 
 /**
