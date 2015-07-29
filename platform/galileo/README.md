@@ -48,9 +48,14 @@ command:
 $ ./platform/galileo/bsp/libc/build_newlib.sh
 ```
 
-Once newlib is built, you are ready to build applications. To build
-applications for Galileo platform you should set TARGET variable to 'galileo'.
-For instance, building the hello-world application should look like this:
+Once newlib is built, you are ready to build applications.  By default, the
+following steps will use gcc as the C compiler and to invoke the linker.  To
+use LLVM clang instead, change the values for both the CC and LD variables in
+cpu/x86/Makefile.x86_common to 'clang'.
+
+To build applications for the Galileo platform you should set the TARGET
+variable to 'galileo'.  For instance, building the hello-world application
+should look like this:
 ```
 $ cd examples/hello-world/ && make TARGET=galileo
 ```
@@ -125,7 +130,7 @@ $ multiboot /hello-world.galileo
 $ boot
 ```
 
-This should boot the Contiki image, resulted in the following messages being
+This should boot the Contiki image, resulting in the following messages being
 sent to the serial console:
 ```
 Starting Contiki
