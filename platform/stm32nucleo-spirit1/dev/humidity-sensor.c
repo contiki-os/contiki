@@ -34,84 +34,87 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
-
-
+/**
+ * \addtogroup stm32nucleo-spirit1-humidity-sensor
+ * @{
+ *
+ * \file
+ * Driver for the stm32nucleo-spirit1 Humidity sensor (on expansion board)
+ */
+/*---------------------------------------------------------------------------*/
 #if COMPILE_SENSORS
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "humidity-sensor.h"
-
-#include "x_nucleo_iks01a1_hum_temp.h"
-
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
 static int _active = 1;
-
+/*---------------------------------------------------------------------------*/
 static void init(void)
 {
   /*Temperature and Humity sensors share the same hw*/
-  if (!BSP_HUM_TEMP_isInitialized())
-  {
-	BSP_HUM_TEMP_Init();
-	_active = 1;
+  if (!st_lib_bsp_hum_temp_is_initialized()) {
+	st_lib_bsp_hum_temp_init();
+	_active=1;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 static void activate(void)
 {
   _active = 1;
 }
-
+/*---------------------------------------------------------------------------*/
 static void deactivate(void)
 {
   _active = 0;
 }
-
-
+/*---------------------------------------------------------------------------*/
 static int active(void)
 {
   return _active;
 }
-
-
+/*---------------------------------------------------------------------------*/
 static int value(int type)
 {
   uint32_t humidity;
-  volatile float HUMIDITY_Value;
+  volatile float humidity_value;
   
-  BSP_HUM_TEMP_GetHumidity((float *)&HUMIDITY_Value); 
+  st_lib_bsp_hum_temp_get_humidity((float *)&humidity_value); 
   
-  humidity = HUMIDITY_Value * 10;
-  return(humidity);
+  humidity = humidity_value * 10;
+  return humidity;
 }
-
-
+/*---------------------------------------------------------------------------*/
 static int configure(int type, int value)
 {
-  switch(type){
-  case SENSORS_HW_INIT:
-    init();
-    return 1;
-  case SENSORS_ACTIVE:
-    if(value)        
-      activate();
-    else
-      deactivate();
-    return 1;
+  switch(type) {
+    case SENSORS_HW_INIT:
+      init();
+      return 1;
+    case SENSORS_ACTIVE:
+      if(value) {      
+        activate();
+      } else {
+        deactivate();
+      }
+      return 1;
   }
-  
+ 
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
 static int status(int type)
 {
-  switch(type) 
-  {    
-	case SENSORS_READY:
-	  return active();
+  switch(type) {
+    case SENSORS_READY:
+      return active();
   }
   
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(humidity_sensor, HUMIDITY_SENSOR, value, configure, status);
+/*---------------------------------------------------------------------------*/
 #endif /*COMPILE_SENSORS*/
+/*---------------------------------------------------------------------------*/
 /** @} */

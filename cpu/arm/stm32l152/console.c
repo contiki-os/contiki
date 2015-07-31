@@ -34,131 +34,115 @@
  *
  ******************************************************************************
  */
- 
+/*---------------------------------------------------------------------------*/ 
 #include <stdio.h>
 #include <stdlib.h>
-//#include "console.h"
+#include "console.h"
 #include "stm32l1xx.h"
 #include "stm32l1xx_hal_dma.h"
 #include "stm32l1xx_hal_uart.h"
-
-
-extern UART_HandleTypeDef UartHandle;
-
-/** @addtogroup STM32F4xx_HAL_Examples
-  * @{
-  */
-
-/** @addtogroup X_NUCLEO_IKC01A1_Demonstration
-  * @{
-  */ 
-
-/** @defgroup X_NUCLEO_IKC01A1_Demonstration_Console_Utilities
- * @{
- */
- 
-
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
+extern st_lib_uart_handle_typedef st_lib_uart_handle;
+/*---------------------------------------------------------------------------*/
 /**
- * @brief  Initialises Nucleo UART port for user IO
- * @param  None
+ * @brief Initialises Nucleo UART port for user IO
  * @retval 0
  */
-int consoleInit(void)
+int console_init(void)
 {
-	UartHandle.Instance        = USART2;
+  st_lib_uart_handle.Instance        = USART2;
 
-	UartHandle.Init.BaudRate   = 9600;
-	UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-	UartHandle.Init.StopBits   = UART_STOPBITS_1;
-	UartHandle.Init.Parity     = UART_PARITY_NONE;
-	UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
-	UartHandle.Init.Mode       = UART_MODE_TX_RX;
+  st_lib_uart_handle.Init.BaudRate   = 115200;
+  st_lib_uart_handle.Init.WordLength = UART_WORDLENGTH_8B;
+  st_lib_uart_handle.Init.StopBits   = UART_STOPBITS_1;
+  st_lib_uart_handle.Init.Parity     = UART_PARITY_NONE;
+  st_lib_uart_handle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+  st_lib_uart_handle.Init.Mode       = UART_MODE_TX_RX;
 
-	HAL_UART_Init(&UartHandle);
+  st_lib_hal_uart_init(&st_lib_uart_handle);
 	
-	return 0;
+  return 0;
 }
-
-
+/*---------------------------------------------------------------------------*/
 /** @brief Sends a character to serial port
  * @param ch Character to send
  * @retval Character sent
  */
-int uartSendChar(int ch)
+int uart_send_char(int ch)
 {
-	HAL_UART_Transmit(&UartHandle, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-	return ch;
+  st_lib_hal_uart_transmit(&st_lib_uart_handle, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  return ch;
 }
-
+/*---------------------------------------------------------------------------*/
 /** @brief Receives a character from serial port
- * @param None
  * @retval Character received
  */
-int uartReceiveChar(void)
+int uart_receive_char(void)
 {
-	uint8_t ch;
-	HAL_UART_Receive(&UartHandle, &ch, 1, HAL_MAX_DELAY);
+  uint8_t ch;
+  st_lib_hal_uart_receive(&st_lib_uart_handle, &ch, 1, HAL_MAX_DELAY);
 	
-	/* Echo character back to console */
-	HAL_UART_Transmit(&UartHandle, &ch, 1, HAL_MAX_DELAY);
+  /* Echo character back to console */
+  st_lib_hal_uart_transmit(&st_lib_uart_handle, &ch, 1, HAL_MAX_DELAY);
 
-	/* And cope with Windows */
-	if(ch == '\r'){
-		uint8_t ret = '\n';
-		HAL_UART_Transmit(&UartHandle, &ret, 1, HAL_MAX_DELAY);
-	}
+  /* And cope with Windows */
+  if(ch == '\r'){
+    uint8_t ret = '\n';
+    st_lib_hal_uart_transmit(&st_lib_uart_handle, &ret, 1, HAL_MAX_DELAY);
+  }
 
-	return ch;
+  return ch;
 }
-
-
+/*---------------------------------------------------------------------------*/
 #if defined (__IAR_SYSTEMS_ICC__)
 
 size_t __write(int Handle, const unsigned char * Buf, size_t Bufsize);
 size_t __read(int Handle, unsigned char *Buf, size_t Bufsize);
 
 /** @brief IAR specific low level standard input
- * @param Handle IAR internal handle
- * @param Buf Buffer where to store characters read from stdin
- * @param Bufsize Number of characters to read
+ * @param handle IAR internal handle
+ * @param buf Buffer where to store characters read from stdin
+ * @param bufsize Number of characters to read
  * @retval Number of characters read
  */
-size_t __read(int Handle, unsigned char *Buf, size_t Bufsize)
+size_t __read(int handle, unsigned char *buf, size_t bufsize)
 {
-	int i;
+  int i;
   
-	if (Handle != 0){
-		return -1;
-	}
+  if (handle != 0){
+    return -1;
+  }
 
-	for(i=0; i<Bufsize; i++)
-		Buf[i] = uartReceiveChar();
+  for(i=0; i<bufsize; i++) {
+    buf[i] = uart_receive_char();
+  }
 
-	return Bufsize;
+  return bufsize;
 }
 
 /** @brief IAR specific low level standard output
- * @param Handle IAR internal handle
- * @param Buf Buffer containing characters to be written to stdout
- * @param Bufsize Number of characters to write
+ * @param handle IAR internal handle
+ * @param buf Buffer containing characters to be written to stdout
+ * @param bufsize Number of characters to write
  * @retval Number of characters read
  */
-size_t __write(int Handle, const unsigned char * Buf, size_t Bufsize)
+size_t __write(int handle, const unsigned char * buf, size_t bufsize)
 {
-	int i;
+  int i;
   
-	if (Handle != 1 && Handle != 2){
-		return -1;
-	}
+  if (handle != 1 && handle != 2) {
+    return -1;
+  }
   
-	for(i=0; i< Bufsize; i++)
-		uartSendChar(Buf[i]);
+  for(i=0; i< bufsize; i++) {
+    uart_send_char(buf[i]);
+  }
   
-	return Bufsize;
+  return bufsize;
 }
-
+/*---------------------------------------------------------------------------*/
 #elif defined (__CC_ARM)
-
 /**
  * @brief fputc call for standard output implementation
  * @param ch Character to print
@@ -167,7 +151,7 @@ size_t __write(int Handle, const unsigned char * Buf, size_t Bufsize)
  */
 int fputc(int ch, FILE *f)
 {
-	return uartSendChar(ch);
+  return uart_send_char(ch);
 }
 
 /** @brief fgetc call for standard input implementation
@@ -176,9 +160,9 @@ int fputc(int ch, FILE *f)
  */
 int fgetc(FILE *f)
 {
-	return uartReceiveChar();
+  return uart_receive_char();
 }
-
+/*---------------------------------------------------------------------------*/
 #elif defined (__GNUC__)
 
 /** @brief putchar call for standard output implementation
@@ -187,7 +171,7 @@ int fgetc(FILE *f)
  */
 int __io_putchar(int ch)
 {
-	return uartSendChar(ch);
+  return uart_send_char(ch);
 }
 
 /** @brief getchar call for standard input implementation
@@ -196,20 +180,10 @@ int __io_putchar(int ch)
  */
 int __io_getchar(void)
 {
-	return uartReceiveChar();
+  return uart_receive_char();
 }
-
+/*---------------------------------------------------------------------------*/
 #else
 #error "Toolchain not supported"
 #endif
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
+/*---------------------------------------------------------------------------*/

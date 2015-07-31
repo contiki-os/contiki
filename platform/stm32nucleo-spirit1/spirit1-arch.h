@@ -29,29 +29,21 @@
  * This file is part of the Contiki operating system.
  *
  */
-
-
+/*---------------------------------------------------------------------------*/
 #ifndef __SPIRIT1_ARCH_H__
 #define __SPIRIT1_ARCH_H__
-
+/*---------------------------------------------------------------------------*/
 #include "string.h"
 #include "SPIRIT_Management.h"
 #include "radio_gpio.h"
 #include "radio_spi.h"
-
-
-
-#define IRQ_ENABLE()             RadioGpioInterruptCmd(RADIO_GPIO_IRQ,0x0F,0x0F,ENABLE);
-#define IRQ_DISABLE()            RadioGpioInterruptCmd(RADIO_GPIO_IRQ,0x0F,0x0F,DISABLE); 
-#define SDK_EVAL_GPIO_INIT()              RadioGpioInit(RADIO_GPIO_IRQ,M2S_MODE_EXTI_IN);
-#define SDK_EVAL_SDN_GPIO_INIT()          RadioGpioInit(RADIO_GPIO_SDN, M2S_MODE_GPIO_OUT);
-#define RadioSpiCSLow()        HAL_GPIO_WritePin(RADIO_SPI_CS_PORT, RADIO_SPI_CS_PIN, GPIO_PIN_RESET)
-#define RadioSpiCSHigh()       HAL_GPIO_WritePin(RADIO_SPI_CS_PORT, RADIO_SPI_CS_PIN, GPIO_PIN_SET)
-#define SpiritSPIBusy()        (!(RADIO_SPI_CS_PORT->IDR & RADIO_SPI_CS_PIN))
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
+#define IRQ_ENABLE()             st_lib_radio_gpio_interrupt_cmd(RADIO_GPIO_IRQ,0x0F,0x0F,ENABLE);
+#define IRQ_DISABLE()            st_lib_radio_gpio_interrupt_cmd(RADIO_GPIO_IRQ,0x0F,0x0F,DISABLE); 
+#define spirit_spi_busy()        (!(RADIO_SPI_CS_PORT->IDR & RADIO_SPI_CS_PIN))
 #define SPIRIT1_STATUS()       (spirit1_arch_refresh_status() & SPIRIT1_STATE_STATEBITS)
-
+/*---------------------------------------------------------------------------*/
 uint16_t spirit1_arch_refresh_status(void);
-
-
-
+/*---------------------------------------------------------------------------*/
 #endif /* __SPIRIT1_ARCH_H__ */

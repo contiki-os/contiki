@@ -34,28 +34,22 @@
   *
   ******************************************************************************
   */
-/* Define to prevent recursive inclusion -------------------------------------*/
+/*---------------------------------------------------------------------------*/
 #ifndef __HW_CONFIG_H
 #define __HW_CONFIG_H
-
-/* Includes ------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 #include "stm32l-spirit1-config.h"
-
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported define -----------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 #define UART_RxBufferSize    512
-    
-
+/*---------------------------------------------------------------------------*/    
 #define I2Cx                            I2C1
 #define I2Cx_CLK_ENABLE()               __I2C1_CLK_ENABLE()
 #define I2Cx_SDA_GPIO_CLK_ENABLE()      __GPIOB_CLK_ENABLE()
 #define I2Cx_SCL_GPIO_CLK_ENABLE()      __GPIOB_CLK_ENABLE() 
-
+/*---------------------------------------------------------------------------*/
 #define I2Cx_FORCE_RESET()              __I2C1_FORCE_RESET()
 #define I2Cx_RELEASE_RESET()            __I2C1_RELEASE_RESET()
-
+/*---------------------------------------------------------------------------*/
 /* Definition for I2Cx Pins */
 #define I2Cx_SCL_PIN                    GPIO_PIN_8
 #define I2Cx_SCL_GPIO_PORT              GPIOB
@@ -91,9 +85,6 @@
 #define I2Cx_EV_IRQHandler              I2C1_EV_IRQHandler
 #define I2Cx_ER_IRQHandler              I2C1_ER_IRQHandler
 
-
-
-     
 /* User can use this section to tailor USARTx/UARTx instance used and associated
    resources */
 /* Definition for USARTx clock resources */
@@ -113,7 +104,7 @@
 #define USARTx_RX_PIN                    GPIO_PIN_3
 #define USARTx_RX_GPIO_PORT              GPIOA
 
-//     /* Definition for USARTx's NVIC */
+     /* Definition for USARTx's NVIC */
 #define USARTx_IRQn                      USART2_IRQn
 #define USARTx_IRQHandler                USART2_IRQHandler
 
@@ -121,7 +112,7 @@
 #define USARTx_RX_AF                     GPIO_AF7_USART2
 
 
-  // Enalble sensor mask 
+  /* Enable sensor mask */
 #define PRESSURE_SENSOR                         0x00000001
 #define TEMPERATURE_SENSOR                      0x00000002
 #define HUMIDITY_SENSOR                         0x00000004
@@ -129,8 +120,6 @@
 #define ACCELEROMETER_SENSOR                    0x00000010  
 #define GYROSCOPE_SENSOR                        0x00000020
 #define MAGNETIC_SENSOR                         0x00000040      
-/* Exported functions ------------------------------------------------------- */
-/* External variables --------------------------------------------------------*/
-
+/*---------------------------------------------------------------------------*/
 #endif  /*__HW_CONFIG_H*/
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+/*---------------------------------------------------------------------------*/

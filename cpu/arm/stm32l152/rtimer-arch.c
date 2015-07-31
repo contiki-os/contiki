@@ -28,7 +28,7 @@
 *
 *
 */
-
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "platform-conf.h"
 
@@ -41,65 +41,64 @@
 #include "stm32l1xx_hal_rcc.h"
 #include "stm32l1xx_hal_tim.h"
 #include "stm32l1xx_hal_cortex.h"
-
-
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
 volatile uint32_t rtimer_clock = 0uL;
-
-TIM_HandleTypeDef htim2; 
-
-void TIM2_IRQHandler(void)
+/*---------------------------------------------------------------------------*/
+st_lib_tim_handle_typedef htim2; 
+/*---------------------------------------------------------------------------*/
+void st_lib_tim2_irq_handler(void)
 {
   /* clear interrupt pending flag */ 
-   __HAL_TIM_CLEAR_IT(&htim2, TIM_IT_UPDATE);
+   st_lib_hal_tim_clear_it(&htim2, TIM_IT_UPDATE);
 
   rtimer_clock++;
-  
 }
-
-
+/*---------------------------------------------------------------------------*/
 void rtimer_arch_init(void)
 {
-  TIM_ClockConfigTypeDef sClockSourceConfig;
-  TIM_OC_InitTypeDef sConfigOC;
+  st_lib_tim_clock_config_typedef s_clock_source_config;
+  st_lib_tim_oc_init_typedef s_config_oc;
 
-  __TIM2_CLK_ENABLE();  
+  st_lib_tim2_clk_enable();  
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = PRESCALER;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 1;
   
-  HAL_TIM_Base_Init(&htim2); 
-  HAL_TIM_Base_Start_IT(&htim2);
+  st_lib_hal_tim_base_init(&htim2); 
+  st_lib_hal_tim_base_start_it(&htim2);
  
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig);
+  s_clock_source_config.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  st_lib_hal_tim_config_clock_source(&htim2, &s_clock_source_config);
 
-  HAL_TIM_OC_Init(&htim2);
+  st_lib_hal_tim_oc_init(&htim2);
 
-  sConfigOC.OCMode = TIM_OCMODE_TIMING;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  HAL_TIM_OC_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
+  s_config_oc.OCMode = TIM_OCMODE_TIMING;
+  s_config_oc.Pulse = 0;
+  s_config_oc.OCPolarity = TIM_OCPOLARITY_HIGH;
+  st_lib_hal_tim_oc_config_channel(&htim2, &s_config_oc, TIM_CHANNEL_1);
 
 
-  __HAL_TIM_CLEAR_FLAG(&htim2, TIM_FLAG_UPDATE);
+  st_lib_hal_tim_clear_flag(&htim2, TIM_FLAG_UPDATE);
 
   /* Enable TIM2 Update interrupt */
-  __HAL_TIM_ENABLE_IT(&htim2, TIM_IT_UPDATE);
+  st_lib_hal_tim_enable_it(&htim2, TIM_IT_UPDATE);
 
-  __HAL_TIM_ENABLE(&htim2);
+  st_lib_hal_tim_enable(&htim2);
 
-  HAL_NVIC_SetPriority((IRQn_Type) TIM2_IRQn, 0, 0);  
-  HAL_NVIC_EnableIRQ((IRQn_Type)(TIM2_IRQn));
+  st_lib_hal_nvic_set_priority((st_lib_irq_n_type) TIM2_IRQn, 0, 0);  
+  st_lib_hal_nvic_enable_irq((st_lib_irq_n_type)(TIM2_IRQn));
   
 }
-
+/*---------------------------------------------------------------------------*/
 rtimer_clock_t rtimer_arch_now(void)
 {
   return rtimer_clock;
 }
-
+/*---------------------------------------------------------------------------*/
 void rtimer_arch_schedule(rtimer_clock_t t)
 {
   
 }
+/*---------------------------------------------------------------------------*/

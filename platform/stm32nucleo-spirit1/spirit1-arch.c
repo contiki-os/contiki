@@ -34,47 +34,48 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 #include "stm32l1xx.h"
 #include "spirit1-arch.h"
 #include "spirit1.h"
-
-extern void spirit1_interrupt_callback(void);
-SpiritBool spiritdk_timer_expired = S_FALSE;
+#include "st-lib.h"
 /*---------------------------------------------------------------------------*/
+extern void spirit1_interrupt_callback(void);
+st_lib_spirit_bool spiritdk_timer_expired = S_FALSE;
 /*---------------------------------------------------------------------------*/
 /* use the SPI-port to acquire the status bytes from the radio. */
 #define CS_TO_SCLK_DELAY  0x0100
-extern SPI_HandleTypeDef pSpiHandle;
+/*---------------------------------------------------------------------------*/
+extern st_lib_spi_handle_typedef st_lib_p_spi_handle;
+/*---------------------------------------------------------------------------*/
 uint16_t
 spirit1_arch_refresh_status(void)
 {
-
   volatile uint16_t mcstate = 0x0000;
   uint8_t header[2];
   header[0]=0x01;
   header[1]=MC_STATE1_BASE;
-  uint32_t SpiTimeout = ((uint32_t)1000);                         /*<! Value of Timeout when SPI communication fails */    
+  uint32_t spi_timeout = ((uint32_t)1000);  /*<! Value of Timeout when SPI communication fails */    
   
   IRQ_DISABLE();
   
   /* Puts the SPI chip select low to start the transaction */
-  RadioSpiCSLow();
+  st_lib_radio_spi_cs_low();
   
-  for (volatile uint16_t Index = 0; Index < CS_TO_SCLK_DELAY; Index++);
+  for (volatile uint16_t index = 0; index < CS_TO_SCLK_DELAY; index++);
 
   /* Write the aHeader bytes and read the SPIRIT1 status bytes */
-  HAL_SPI_TransmitReceive(&pSpiHandle, (uint8_t *)&header[0], (uint8_t *)&mcstate, 1, SpiTimeout);
+  st_lib_hal_spi_transmit_receive(&st_lib_p_spi_handle, (uint8_t *)&header[0], (uint8_t *)&mcstate, 1, spi_timeout);
   mcstate = mcstate<<8;  
 
   /* Write the aHeader bytes and read the SPIRIT1 status bytes */
-  HAL_SPI_TransmitReceive(&pSpiHandle, (uint8_t *)&header[1], (uint8_t *)&mcstate, 1, SpiTimeout);
+  st_lib_hal_spi_transmit_receive(&st_lib_p_spi_handle, (uint8_t *)&header[1], (uint8_t *)&mcstate, 1, spi_timeout);
 
   /* To be sure to don't rise the Chip Select before the end of last sending */
-  while (__HAL_SPI_GET_FLAG(&pSpiHandle, SPI_FLAG_TXE) == RESET);
+  while (st_lib_hal_spi_get_flag(&st_lib_p_spi_handle, SPI_FLAG_TXE) == RESET);
 
   /* Puts the SPI chip select high to end the transaction */
-  RadioSpiCSHigh();
+  st_lib_radio_spi_cs_high();
   
   IRQ_ENABLE();
   

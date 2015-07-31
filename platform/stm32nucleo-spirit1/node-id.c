@@ -1,6 +1,6 @@
 /**
 ******************************************************************************
-* @file    node-id.c
+* @file    platform/stm32nucleo-spirit1/node-id.c
 * @author  System LAB
 * @version V1.0.0
 * @date    17-June-2015
@@ -34,20 +34,18 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 #include "node-id.h"
 #include "contiki-conf.h"
-
 #include <string.h>
-
+/*---------------------------------------------------------------------------*/
 unsigned short node_id = 0;
 unsigned char node_mac[8];
 volatile uint32_t device_id[3];
-
+/*---------------------------------------------------------------------------*/
 #define DEVICE_ID_REG0  (*((volatile uint32_t *) 0x1FF80050))
 #define DEVICE_ID_REG1  (*((volatile uint32_t *) 0x1FF80054))
 #define DEVICE_ID_REG2  (*((volatile uint32_t *) 0x1FF80064))
-
 /*---------------------------------------------------------------------------*/
 void node_id_restore(void)
 {
@@ -59,3 +57,4 @@ void node_id_restore(void)
   (*(((uint32_t*)node_mac)+1))=DEVICE_ID_REG2+DEVICE_ID_REG0;
   node_id = (unsigned short) DEVICE_ID_REG2;
 }
+/*---------------------------------------------------------------------------*/

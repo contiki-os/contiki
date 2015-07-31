@@ -34,79 +34,83 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
-
+/**
+ * \addtogroup stm32nucleo-spirit1-pressure-sensor
+ * @{
+ *
+ * \file
+ * Driver for the stm32nucleo-spirit1 Pressure sensor (on expansion board)
+ */
+/*---------------------------------------------------------------------------*/
 #if COMPILE_SENSORS
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "pressure-sensor.h"
-
-#include "x_nucleo_iks01a1_pressure.h"
-
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
 static int _active = 1;
-
+/*---------------------------------------------------------------------------*/
 static void init(void)
 {
-  BSP_PRESSURE_Init();
+  st_lib_bsp_pressure_init();
   _active =1;
 }
-
-
+/*---------------------------------------------------------------------------*/
 static void activate(void)
 {
   _active = 1;
 }
-
+/*---------------------------------------------------------------------------*/
 static void deactivate(void)
 {
   _active = 0;
 }
-
-
+/*---------------------------------------------------------------------------*/
 static int active(void)
 {
   return _active;
 }
-
-
+/*---------------------------------------------------------------------------*/
 static int value(int type)
 {
   uint16_t pressure;
-  volatile float PRESSURE_Value;
+  volatile float pressure_value;
   
-  BSP_PRESSURE_GetPressure((float *)&PRESSURE_Value); 
-  pressure = PRESSURE_Value * 10;
+  st_lib_bsp_pressure_get_pressure((float *)&pressure_value);
+  pressure = pressure_value * 10;
 
-  return(pressure);
+  return pressure;
 }
-
+/*---------------------------------------------------------------------------*/
 static int configure(int type, int value)
 {
-  switch(type){
-  case SENSORS_HW_INIT:
-    init();
-    return 1;
-  case SENSORS_ACTIVE:
-    if(value)        
-      activate();
-    else
-      deactivate();
-    return 1;
+  switch(type) {
+    case SENSORS_HW_INIT:
+      init();
+      return 1;
+    case SENSORS_ACTIVE:
+      if(value) {      
+        activate();
+      } else {
+        deactivate();
+      }
+      return 1;
   }
-  
+ 
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
 static int status(int type)
 {
   switch(type) {
-	case SENSORS_READY:
-	  return active();
+    case SENSORS_READY:
+      return active();
   }
   
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(pressure_sensor, PRESSURE_SENSOR, value, configure, status);
-
+/*---------------------------------------------------------------------------*/
 #endif /*COMPILE_SENSORS*/
 /** @} */

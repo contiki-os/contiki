@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    platform_config.h
+  * @file    stm32l-spirit1-config.h
   * @author  MCD Application Team
   * @version V3.4.0
   * @date    29-June-2012
@@ -25,10 +25,9 @@
   ******************************************************************************
   */
 
-
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __PLATFORM_CONFIG_H
-#define __PLATFORM_CONFIG_H
+#ifndef __STM32L_SPIRIT1_CONFIG_H
+#define __STM32L_SPIRIT1_CONFIG_H
 
 /* Includes ------------------------------------------------------------------*/
 
@@ -85,16 +84,15 @@
  #endif /* USB_USE_EXTERNAL_PULLUP */
 
 #ifdef USE_STM32L152_EVAL 
- #define EVAL_COM1_IRQHandler                USART2_IRQHandler
+ #define EVAL_COM1_IRQHandler              USART2_IRQHandler
 #elif defined (USE_STM32L152D_EVAL) 
  #define EVAL_COM1_IRQHandler              USART1_IRQHandler
-#endif
+#endif /*USE_STM32L152_EVAL*/
 
 #endif /* USE_STM3210B_EVAL */
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 
-#endif /* __PLATFORM_CONFIG_H */
-
+#endif /* __STM32L_SPIRIT1_CONFIG_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

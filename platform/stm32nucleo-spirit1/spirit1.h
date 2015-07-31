@@ -29,30 +29,18 @@
  * This file is part of the Contiki operating system.
  *
  */
-
-/*
- *  \file
- *      spirit1.h
- *   \author
- *      Marcus Lunden <marcus@thingsquare.com>>
- *   \desc
- *      Spirit1 radio driver 
- *      
- *      
- */
-
-
-
+/*---------------------------------------------------------------------------*/
 #ifndef __SPIRIT_H__
 #define __SPIRIT_H__
-
+/*---------------------------------------------------------------------------*/
 #include "radio.h"
 #include "SPIRIT_Config.h"
 #include "spirit1-config.h"
 #include "spirit1_appli.h"
 #include "spirit1-const.h"
-   
+/*---------------------------------------------------------------------------*/   
 extern const struct radio_driver spirit_radio_driver;
 void spirit1_interrupt_callback(void);
-
+/*---------------------------------------------------------------------------*/
 #endif /* __SPIRIT_H__ */
+/*---------------------------------------------------------------------------*/

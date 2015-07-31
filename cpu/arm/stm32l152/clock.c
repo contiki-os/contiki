@@ -28,29 +28,25 @@
 *
 *
 */
-
-
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "contiki.h"
 #include "platform-conf.h"
 #include "contiki-conf.h"
 #include "dev/leds.h"
-
 #include "stm32l1xx.h"
-
 #include "stm32l1xx_hal_rcc.h"
 #include "stm32l1xx_hal_cortex.h"
 #include "stm32l1xx_hal.h"
-
+#include "st-lib.h"
 /*---------------------------------------------------------------------------*/
 #define RELOAD_VALUE        ((F_CPU/CLOCK_CONF_SECOND) - 1)
-
+/*---------------------------------------------------------------------------*/
 static volatile unsigned long seconds = 0;
 static volatile clock_time_t ticks;
-void SysTick_Handler(void);
+void st_lib_sys_tick_handler(void);
 /*---------------------------------------------------------------------------*/
-
-void SysTick_Handler(void)
+void st_lib_sys_tick_handler(void)
 {
   ticks++;
   if((ticks % CLOCK_SECOND) == 0) {
@@ -58,35 +54,34 @@ void SysTick_Handler(void)
     energest_flush();
   }
   HAL_IncTick();
-//  HAL_SYSTICK_IRQHandler();  
+
   if(etimer_pending()) {
     etimer_request_poll();
   }
-
 }
-
+/*---------------------------------------------------------------------------*/
 void clock_init(void)
 { 
   ticks = 0;
-  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
-  HAL_SYSTICK_Config(RELOAD_VALUE);
-  
+  st_lib_hal_systick_clk_source_config(SYSTICK_CLKSOURCE_HCLK);
+  st_lib_hal_systick_config(RELOAD_VALUE);
 }
+/*---------------------------------------------------------------------------*/
 unsigned long clock_seconds(void)
 {
   return seconds;
 }
-
+/*---------------------------------------------------------------------------*/
 void clock_set_seconds(unsigned long sec)
 {
   seconds = sec;
 }
-
+/*---------------------------------------------------------------------------*/
 clock_time_t clock_time(void)
 {
   return ticks;
 }
-
+/*---------------------------------------------------------------------------*/
 void clock_delay(unsigned int i)
 {
   for(; i > 0; i--) {
@@ -96,7 +91,7 @@ void clock_delay(unsigned int i)
     }
   }
 }
-
+/*---------------------------------------------------------------------------*/
 /**
  * Wait for a multiple of clock ticks (7.8 ms at 128 Hz).
  */
@@ -106,4 +101,4 @@ void clock_wait(clock_time_t i)
   start = clock_time();
   while(clock_time() - start < (clock_time_t)i);
 }
-
+/*---------------------------------------------------------------------------*/

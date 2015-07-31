@@ -34,98 +34,101 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
-
+/**
+ * \addtogroup stm32nucleo-spirit1-gyroscope-sensor
+ * @{
+ *
+ * \file
+ * Driver for the stm32nucleo-spirit1 Gyroscope sensor (on expansion board)
+ */
+/*---------------------------------------------------------------------------*/
 #if COMPILE_SENSORS
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "gyroscope-sensor.h"
-
-#include "x_nucleo_iks01a1_imu_6axes.h"
-
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
 static int _active = 1;
-
+/*---------------------------------------------------------------------------*/
 static void init(void)
 {
   /*Acceleration and Gyroscope sensors share the same hw*/
-  if (!BSP_IMU_6AXES_isInitialized())
-  {
-    if (IMU_6AXES_OK == BSP_IMU_6AXES_Init())
-    {
+  if (!st_lib_bsp_imu_6axes_is_initialized()) {
+    if (IMU_6AXES_OK == st_lib_bsp_imu_6axes_init()) {
       _active = 1;
     }
   }
 }
-
+/*---------------------------------------------------------------------------*/
 static void activate(void)
 {
   _active = 1;
 }
-
+/*---------------------------------------------------------------------------*/
 static void deactivate(void)
 {
   _active = 0;
 }
-
-
+/*---------------------------------------------------------------------------*/
 static int active(void)
 {
   return _active;
 }
-
-
+/*---------------------------------------------------------------------------*/
 static int value(int type)
 {
-  int32_t RetVal;
-  volatile AxesRaw_TypeDef AxesRaw_Data;
+  int32_t ret_val = 0;
+  volatile st_lib_axes_raw_typedef axes_raw_data;
 
-  BSP_IMU_6AXES_G_GetAxesRaw(&AxesRaw_Data);
+  st_lib_bsp_imu_6axes_g_get_axes_raw(&axes_raw_data);
 
-  switch (type)
-  {
+  switch (type) {
     case X_AXIS:
-        RetVal = AxesRaw_Data.AXIS_X ;
+        ret_val = axes_raw_data.AXIS_X ;
 	break;
     case Y_AXIS:
-        RetVal = AxesRaw_Data.AXIS_Y ;
+        ret_val = axes_raw_data.AXIS_Y ;
 	break;
     case Z_AXIS:
-        RetVal = AxesRaw_Data.AXIS_Z ;
+        ret_val = axes_raw_data.AXIS_Z ;
 	break;
     default:
 	break;
   }
 
-  return (RetVal);
+  return ret_val;
 }
-
+/*---------------------------------------------------------------------------*/
 static int configure(int type, int value)
 {
-  switch(type){
-  case SENSORS_HW_INIT:
-    init();
-    return 1;
-  case SENSORS_ACTIVE:
-    if(value)        
-      activate();
-    else
-      deactivate();
-    return 1;
+  switch(type) {
+    case SENSORS_HW_INIT:
+      init();
+      return 1;
+    case SENSORS_ACTIVE:
+      if(value) {      
+        activate();
+      } else {
+        deactivate();
+      }
+      return 1;
   }
-  
+ 
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
 static int status(int type)
 {
   switch(type) {
-	case SENSORS_READY:
-	  return active();
+    case SENSORS_READY:
+      return active();
   }
   
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(gyroscope_sensor, GYROSCOPE_SENSOR, value, configure, status);
-
+/*---------------------------------------------------------------------------*/
 #endif /*COMPILE_SENSORS*/
+/*---------------------------------------------------------------------------*/
 /** @} */

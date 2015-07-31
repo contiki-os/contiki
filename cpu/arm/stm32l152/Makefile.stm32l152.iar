@@ -1,5 +1,4 @@
-PROP_SYS_ARCH_S = \
-		startup_stm32l152xe-IAR.s
+PROP_SYS_ARCH_S = startup_stm32l152xe.s
 
 
 # Compiler definitions
@@ -56,8 +55,7 @@ AROPTS= --create --output
 
 # ----------linker flags
 # this will also generate log and symbol map files
-#MGR: check which 
-ICF_FILE="$(CONTIKI_CPU)/stm32l1xx_flash.icf"
+ICF_FILE="$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/stm32cube-prj/linker/iar/stm32l1xx_flash.icf"
 LDFLAGS+= \
 	--config $(ICF_FILE) \
 	--entry __iar_program_start \

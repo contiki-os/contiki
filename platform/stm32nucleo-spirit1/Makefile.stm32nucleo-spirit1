@@ -29,17 +29,22 @@ endif
 #Currently we support only GCC
 GCC=1
 
-CONTIKI_TARGET_DIRS += stm32cube-hal/Src
 CONTIKI_TARGET_DIRS += dev
-CONTIKI_TARGET_DIRS += drivers/stm32l1xx_nucleo
-CONTIKI_TARGET_DIRS += drivers/x_nucleo_ids01ax
-CONTIKI_TARGET_DIRS += drivers/Common
-CONTIKI_TARGET_DIRS += drivers/spirit1/src drivers/spirit1/inc
+CONTIKI_TARGET_DIRS += stm32cube-lib/stm32cube-prj/Src
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/stm32l1xx_nucleo
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/x_nucleo_ids01ax
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/Common
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/spirit1/src stm32cube-lib/drivers/spirit1/inc
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/CMSIS
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/STM32L1xx_HAL_Driver
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/STM32L1xx_HAL_Driver/Src
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/STM32L1xx_HAL_Driver/Inc
+
 
 ifeq ($(COMPILE_SENSORS),TRUE)
-CONTIKI_TARGET_DIRS += drivers/x_nucleo_iks01a1
-CONTIKI_TARGET_DIRS += drivers/sensors/hts221 drivers/sensors/lps25h drivers/sensors/lps25hb\
-                       drivers/sensors/lsm6ds0 drivers/sensors/lsm6ds3 drivers/sensors/lis3mdl
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/x_nucleo_iks01a1
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/sensors/hts221 stm32cube-lib/drivers/sensors/lps25h stm32cube-lib/drivers/sensors/lps25hb\
+                       stm32cube-lib/drivers/sensors/lsm6ds0 stm32cube-lib/drivers/sensors/lsm6ds3 stm32cube-lib/drivers/sensors/lis3mdl
 endif
 
 
@@ -86,12 +91,58 @@ ARCH_DRIVERS_SENSORS =	hts221.c  \
 			lsm6ds0.c \
 			lsm6ds3.c
 
+STM32L1XX_HAL =\
+	stm32l1xx_hal.c\
+	stm32l1xx_hal_adc_ex.c\
+	stm32l1xx_hal_adc.c\
+	stm32l1xx_hal_comp.c\
+	stm32l1xx_hal_cortex.c\
+	stm32l1xx_hal_crc.c\
+	stm32l1xx_hal_cryp_ex.c\
+	stm32l1xx_hal_cryp.c\
+	stm32l1xx_hal_dac_ex.c\
+	stm32l1xx_hal_dac.c\
+	stm32l1xx_hal_dma.c\
+	stm32l1xx_hal_flash_ex.c\
+	stm32l1xx_hal_flash.c\
+	stm32l1xx_hal_flash_ramfunc.c\
+	stm32l1xx_hal_gpio.c\
+	stm32l1xx_hal_i2c.c\
+	stm32l1xx_hal_i2s.c\
+	stm32l1xx_hal_irda.c\
+	stm32l1xx_hal_iwdg.c\
+	stm32l1xx_hal_lcd.c\
+	stm32l1xx_hal_nor.c\
+	stm32l1xx_hal_opamp_ex.c\
+	stm32l1xx_hal_opamp.c\
+	stm32l1xx_hal_pcd_ex.c\
+	stm32l1xx_hal_pcd.c\
+	stm32l1xx_hal_pwr_ex.c\
+	stm32l1xx_hal_pwr.c\
+	stm32l1xx_hal_rcc_ex.c\
+	stm32l1xx_hal_rcc.c\
+	stm32l1xx_hal_rtc_ex.c\
+	stm32l1xx_hal_rtc.c\
+	stm32l1xx_hal_sd.c\
+	stm32l1xx_hal_smartcard.c\
+	stm32l1xx_hal_spi_ex.c\
+	stm32l1xx_hal_spi.c\
+	stm32l1xx_hal_sram.c\
+	stm32l1xx_hal_tim_ex.c\
+	stm32l1xx_hal_tim.c\
+	stm32l1xx_hal_uart.c\
+	stm32l1xx_hal_usart.c\
+	stm32l1xx_hal_wwdg.c\
+	stm32l1xx_ll_fsmc.c\
+	stm32l1xx_ll_sdmmc.c
+
 ARCH+=$(ARCH_DEV)
 ARCH+=$(ARCH_NUCLEOSPIRIT1)
 ARCH+=$(ARCH_NUCLEOSPIRIT1_STM32CUBEHAL)
 ARCH+=$(ARCH_DRIVERS_STM32L1xx)
 ARCH+=$(ARCH_DRIVERS_IDS01AX)
 ARCH+=$(ARCH_DRIVERS_SPIRIT1)
+ARCH+=$(STM32L1XX_HAL)
 
 ifeq ($(COMPILE_SENSORS),TRUE)
   ARCH+=$(ARCH_DEV_SENSORS)
@@ -111,17 +162,14 @@ CFLAGS += -DUSE_STM32L152_EVAL \
 
 CFLAGS += -I. \
 	  -I$(CONTIKI)/platform/$(TARGET)/ \
-	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-hal/Inc \
-	  -I$(CONTIKI)/platform/$(TARGET)/drivers/Common \
-	  -I$(CONTIKI)/platform/$(TARGET)/divers/x_nucleo_ids01ax\
-	  -I$(CONTIKI)/platform/$(TARGET)/drivers/spirit1/inc \
-	  -I$(CONTIKI)/cpu/arm/stm32l152/CMSIS \
-	  -I$(CONTIKI)/platform/$(TARGET)/drvers/stm32l1xx_nucleo \
-	  -I$(CONTIKI)/cpu/arm/stm32l152/STM32L1xx_HAL_Driver/Inc \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/stm32cube-prj/Inc \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/drivers/Common \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/drivers/spirit1/inc \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/drivers/CMSIS \
+	  -I$(CONTIKI)/platform/$(TARGET)/stm32cube-lib/drivers/STM32L1xx_HAL_Driver/Inc \
 	  -I$(CONTIKI)/cpu/arm/stm32l152 \
 	  -I$(CONTIKI)/core                   \
 	  -I$(CONTIKI)/platform/$(TARGET)/dev
-
 
 ifdef UIP_CONF_IPV6
 CFLAGS += -DWITH_UIP6=1
