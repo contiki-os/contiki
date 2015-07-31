@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2012, STMicroelectronics.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,14 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
-/*
- *  \file
- *      spirit1-const.h
- *   \author
- *      Marcus Lunden <marcus@thingsquare.com>>
- *   \desc
- *      Spirit1 constants
- *      
- *      
- */
-
+/*---------------------------------------------------------------------------*/
 #ifndef __SPIRIT1_CONST_H__
 #define __SPIRIT1_CONST_H__
-
-
+/*---------------------------------------------------------------------------*/
 /* The state bitfield and values for different states, as read from MC_STATE[1:0] registers, 
 which are returned on any SPI read or write operation. */
 #define SPIRIT1_STATE_STATEBITS           (0x00FE)
+/*---------------------------------------------------------------------------*/
 
 #define SPIRIT1_STATE_STANDBY             ((0x0040)<<1)
 #define SPIRIT1_STATE_SLEEP               ((0x0036)<<1)
@@ -60,8 +49,7 @@ which are returned on any SPI read or write operation. */
 #define SPIRIT1_STATE_SYNTH_SETUP         ((0x0053)<<1)
 #define SPIRIT1_STATE_PROTOCOL            ((0x001F)<<1)
 #define SPIRIT1_STATE_SYNTH_CALIBRATION   ((0x004F)<<1)
-
-
+/*---------------------------------------------------------------------------*/
 /* strobe commands */
 #define SPIRIT1_STROBE_TX             0x60
 #define SPIRIT1_STROBE_RX             0x61
@@ -72,7 +60,6 @@ which are returned on any SPI read or write operation. */
 #define SPIRIT1_STROBE_SRES           0x70
 #define SPIRIT1_STROBE_FRX            0x71
 #define SPIRIT1_STROBE_FTX            0x72
-
-
+/*---------------------------------------------------------------------------*/
 #endif /* __SPIRIT1_CONST_H__ */
-
+/*---------------------------------------------------------------------------*/

@@ -34,16 +34,33 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+/**
+ * \addtogroup stm32nucleo-spirit1-peripherals
+ * @{
+ *
+ * \defgroup stm32nucleo-spirit1-acceleration-sensor Acceleration Sensor
+ *
+ * Maps the acceleration sensor on the STM32 Nucleo Sensor Expansion board.
+ * @{
+ *
+ * \file
+ * Header file for the stm32nucleo-spirit1 Acceleration Sensor Driver
+ */
+/*---------------------------------------------------------------------------*/
 #ifndef ACCELERATION_SENSOR_H_
 #define ACCELERATION_SENSOR_H_
-
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "sensor-common.h"
-
+/*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor acceleration_sensor;
-
+/*---------------------------------------------------------------------------*/
 #define ACCELERATION_SENSOR "Acceleration"
-
+/*---------------------------------------------------------------------------*/
 #endif /* ACCELERATION_SENSOR_H_ */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

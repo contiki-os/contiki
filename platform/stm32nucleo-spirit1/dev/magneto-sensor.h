@@ -34,16 +34,33 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+/**
+ * \addtogroup stm32nucleo-spirit1-peripherals
+ * @{
+ *
+ * \defgroup stm32nucleo-spirit1-magneto-sensor Magneto Sensor
+ *
+ * Maps the magneto sensor on the STM32 Nucleo Sensor Expansion board.
+ * @{
+ *
+ * \file
+ * Header file for the stm32nucleo-spirit1 Magneto Sensor Driver
+ */
+/*---------------------------------------------------------------------------*/
 #ifndef MAGNETO_SENSOR_H_
 #define MAGNETO_SENSOR_H_
-
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "sensor-common.h"
-
+/*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor magneto_sensor;
-
+/*---------------------------------------------------------------------------*/
 #define MAGNETO_SENSOR "Magneto"
-
+/*---------------------------------------------------------------------------*/
 #endif /* MAGNETO_SENSOR_H_ */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

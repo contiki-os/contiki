@@ -34,15 +34,32 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+/**
+ * \addtogroup stm32nucleo-spirit1-peripherals
+ * @{
+ *
+ * \defgroup stm32nucleo-spirit1-humidity-sensor Humidity Sensor
+ *
+ * Maps the humidity sensor on the STM32 Nucleo Sensor Expansion board.
+ * @{
+ *
+ * \file
+ * Header file for the stm32nucleo-spirit1 Humidity Sensor Driver
+ */
+/*---------------------------------------------------------------------------*/
 #ifndef HUMIDITY_SENSOR_H_
 #define HUMIDITY_SENSOR_H_
-
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
-
+/*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor humidity_sensor;
-
+/*---------------------------------------------------------------------------*/
 #define HUMIDITY_SENSOR "Humidity"
-
+/*---------------------------------------------------------------------------*/
 #endif /* HUMIDITY_SENSOR_H_ */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

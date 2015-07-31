@@ -1,6 +1,6 @@
 /**
 ******************************************************************************
-* @file    contiki-conf.h
+* @file    platform/stm32nucleo-spirit1/contiki-conf.h
 * @author  System LAB 
 * @version V1.0.0
 * @date    17-May-2015
@@ -34,12 +34,12 @@
 *
 ******************************************************************************
 */
-
+/*---------------------------------------------------------------------------*/
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
-
+/*---------------------------------------------------------------------------*/
 #include "platform-conf.h"
-
+/*---------------------------------------------------------------------------*/
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
 
 #define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
@@ -64,7 +64,6 @@
 
 
 /* Network setup for IPv6 */
-
 
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 
@@ -142,13 +141,12 @@
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_TCP		 1
-
+/*---------------------------------------------------------------------------*/
 /* include the project config */
 /* PROJECT_CONF_H might be defined in the project Makefile */
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
-
-
-
+/*---------------------------------------------------------------------------*/
 #endif /* CONTIKI_CONF_H */
+/*---------------------------------------------------------------------------*/

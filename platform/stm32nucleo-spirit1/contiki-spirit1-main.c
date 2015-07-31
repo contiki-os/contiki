@@ -4,7 +4,7 @@
 * @author  System LAB
 * @version V1.0.0
 * @date    17-June-2015
-* @brief   Contiki main file for SPIRIT1 platform
+* @brief   Contiki main file for stm32nucleo-spirit1 platform
 ******************************************************************************
 * @attention
 *
@@ -34,7 +34,14 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/**
+ * \addtogroup stm32nucleo-spirit1
+ * @{
+ *
+ * \file
+ * main file for stm32nucleo-spirit1 platform
+ */
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include <string.h>
 #include "stm32cube_hal_init.h"
@@ -60,11 +67,11 @@
 #include "hw-config.h" 
 #include "stdbool.h"
 #include "dev/button-sensor.h"
-
+/*---------------------------------------------------------------------------*/
 #if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
 #endif /*NETSTACK_CONF_WITH_IPV6*/
-
+/*---------------------------------------------------------------------------*/
 #if COMPILE_SENSORS
 extern const struct sensors_sensor temperature_sensor;
 extern const struct sensors_sensor humidity_sensor;
@@ -79,11 +86,12 @@ SENSORS(&button_sensor,
 	&magneto_sensor,
         &acceleration_sensor,
 	&gyroscope_sensor);
-#else
+#else /*COMPILE_SENSORS*/
 SENSORS(&button_sensor);
-#endif
-
+#endif /*COMPILE_SENSORS*/
+/*---------------------------------------------------------------------------*/
 extern unsigned char node_mac[8];
+/*---------------------------------------------------------------------------*/
 #ifdef __GNUC__
 /* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
 set to 'Yes') calls __io_putchar() */
@@ -91,27 +99,23 @@ set to 'Yes') calls __io_putchar() */
 #else
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
 #endif /* __GNUC__ */  
-
-
+/*---------------------------------------------------------------------------*/
 #if NETSTACK_CONF_WITH_IPV6
 PROCINIT(&etimer_process, &tcpip_process);
-#else
+#else /*NETSTACK_CONF_WITH_IPV6*/
 PROCINIT(&etimer_process);
 #warning "No TCP/IP process!"
-#endif
-
+#endif /*NETSTACK_CONF_WITH_IPV6*/
+/*---------------------------------------------------------------------------*/
 #define BUSYWAIT_UNTIL(cond, max_time)                                  \
-do {                                                                  \
-  rtimer_clock_t t0;                                                  \
+do {                                                                    \
+  rtimer_clock_t t0;                                                    \
     t0 = RTIMER_NOW();                                                  \
-      while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time)));   \
+      while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))); \
 } while(0)
-
-
 /*---------------------------------------------------------------------------*/
 static void set_rime_addr(void);
-int Stack_6LoWPAN_Init(int argc, char *argv[]);
-
+void stm32cube_hal_init();
 /*---------------------------------------------------------------------------*/
 #if 0
 static void panic_main(void)
@@ -126,7 +130,6 @@ static void panic_main(void)
 /*---------------------------------------------------------------------------*/
 int main (int argc, char *argv[])
 {
-
   stm32cube_hal_init();
 
   /* init LEDs */
@@ -171,18 +174,13 @@ int main (int argc, char *argv[])
 
   watchdog_start();
     
-    while(1)
-    {
-    
-      int r = 0;
-      do {
-        r = process_run();        
-      } while(r > 0);
-      
-    }
+  while(1) {
+    int r = 0;
+    do {
+      r = process_run();        
+    } while(r > 0);
+  }
 }
-
-
 /*---------------------------------------------------------------------------*/
 static void set_rime_addr(void)
 {
@@ -193,3 +191,5 @@ static void set_rime_addr(void)
 
   linkaddr_set_node_addr(&addr);
 }
+/*---------------------------------------------------------------------------*/
+/** @} */

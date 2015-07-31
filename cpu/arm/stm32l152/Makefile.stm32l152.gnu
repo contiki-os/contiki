@@ -20,7 +20,7 @@ STRIP    = arm-none-eabi-strip
 
 
 ifndef LDSCRIPT
-LDSCRIPT = $(CONTIKI_CPU)/STM32L152RETx_FLASH.ld
+LDSCRIPT = $(CONTIKI)/platform/$(TARGET)/stm32cube-lib/stm32cube-prj/linker/gcc/STM32L152RETx_FLASH.ld
 endif
 
 #ASFLAGS += -mcpu=cortex-m3 -mthumb
@@ -44,7 +44,7 @@ CFLAGS+=\
 LDFLAGS += -Wl,-Map=contiki-$(TARGET).map,--cref,--no-warn-mismatch
 
 
-LDLIBS += $(CONTIKI_CPU)/smallprintf_thumb2.a
+LDLIBS += $(CONTIKI_CPU)/lib/smallprintf_thumb2.a
 
 
 

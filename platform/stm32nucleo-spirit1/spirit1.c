@@ -34,8 +34,7 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
-
+/*---------------------------------------------------------------------------*/
 #include "spirit1.h"
 #include "spirit1-arch.h"
 #include "stm32l1xx.h"
@@ -46,9 +45,11 @@
 #include "net/rime/rimestats.h"
 #include "spirit1-arch.h"
 #include <stdio.h>
-    
-extern SpiritIrqs xIrqStatus; 
-extern volatile FlagStatus rx_timeout;
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/    
+//MGR extern st_lib_spirit_irqs st_lib_x_irq_status;
+extern volatile st_lib_spirit_flag_status rx_timeout;
+/*---------------------------------------------------------------------------*/
 #define XXX_ACK_WORKAROUND 1
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
@@ -59,6 +60,7 @@ extern volatile FlagStatus rx_timeout;
 #define PRINTF(...)
 #endif
 
+/*---------------------------------------------------------------------------*/
 #define BUSYWAIT_UNTIL(cond, max_time)                                  \
   do {                                                                  \
     rtimer_clock_t t0;                                                  \
@@ -72,15 +74,14 @@ extern volatile FlagStatus rx_timeout;
 #define IS_TXBUF_EMPTY()        (spirit_txbuf[0] == 0)
 #define IS_RXBUF_EMPTY()        (spirit_rxbuf[0] == 0)
 #define IS_RXBUF_FULL()         (spirit_rxbuf[0] != 0)
-
+/*---------------------------------------------------------------------------*/
 /* transceiver state. */
 #define ON     0
 #define OFF    1
-
-
 /*---------------------------------------------------------------------------*/
 static volatile unsigned int spirit_on = OFF;
 static volatile uint8_t receiving_packet = 0;
+/*---------------------------------------------------------------------------*/
 /* 
 * The buffers which hold incoming data.
 * The +1 because of the first byte, 
@@ -88,8 +89,8 @@ static volatile uint8_t receiving_packet = 0;
 */
 static uint8_t spirit_rxbuf[MAX_PACKET_LEN+1];
 static uint8_t spirit_txbuf[MAX_PACKET_LEN+1-SPIRIT_MAX_FIFO_LEN];
-void SpiritManagementSetFrequencyBase(uint32_t lFBase);
-
+void st_lib_spirit_management_set_frequency_base(uint32_t);
+/*---------------------------------------------------------------------------*/
 static int just_got_an_ack = 0; /* Interrupt callback just detected an ack */
 #if NULLRDC_CONF_802154_AUTOACK
 #define ACK_LEN 3
@@ -98,9 +99,7 @@ static int wants_an_ack = 0; /* The packet sent expects an ack */
 //#define ACKPRINTF printf
 #define ACKPRINTF(...)
 #endif /* NULLRDC_CONF_802154_AUTOACK */
-
 /*---------------------------------------------------------------------------*/
-
 static int packet_is_prepared = 0;
 /*---------------------------------------------------------------------------*/
 PROCESS(spirit_radio_process, "SPIRIT radio driver");
@@ -130,14 +129,6 @@ const struct radio_driver spirit_radio_driver =
   spirit_radio_off,
 };
 /*---------------------------------------------------------------------------*/
-/* convienience macro for reading the MC_STATE[1] register from Spirit1, to be used like eg
-      if(SPIRIT1_STATUS() == SPIRIT1_STATE_READY) {
-      }
-  or    
-      BUSYWAIT_UNTIL(SPIRIT1_STATUS() == SPIRIT1_STATE_READY, RTIMER_SECOND/1000);
-*/
-
-/*---------------------------------------------------------------------------*/
 void
 spirit1_printstatus(void)
 {
@@ -159,28 +150,21 @@ spirit1_printstatus(void)
 static void
 spirit1_strobe(uint8_t s)
 {
-  SpiritCmdStrobeCommand(s);
+  st_lib_spirit_cmd_strobe_command(s);
 }
 /*---------------------------------------------------------------------------*/
-/**
-* @brief  Puts the SPIRIT1 in READY state.
-* @param  None
-* @retval None
-*/
-void SpiritSetReadyState(void)
+void spirit_set_ready_state(void)
 {
   PRINTF("READY IN\n");
 
-  SpiritIrqClearStatus();
+  st_lib_spirit_irq_clear_status();
   IRQ_DISABLE();
 
   if(SPIRIT1_STATUS() == SPIRIT1_STATE_STANDBY) {
     spirit1_strobe(SPIRIT1_STROBE_READY);
-/*    SpiritCmdStrobeReady();*/
   } else if(SPIRIT1_STATUS() == SPIRIT1_STATE_RX) {
     spirit1_strobe(SPIRIT1_STROBE_SABORT);
-/*    SpiritCmdStrobeSabort();*/
-    SpiritIrqClearStatus();
+    st_lib_spirit_irq_clear_status();
   }
 
   IRQ_ENABLE();
@@ -194,19 +178,19 @@ spirit_radio_init(void)
 
   PRINTF("RADIO INIT IN\n");
 
-  SpiritSpiInit();
+  st_lib_spirit_spi_init();
   
   /* Configure radio shut-down (SDN) pin and activate radio */
-  RadioGpioInit(RADIO_GPIO_SDN, RADIO_MODE_GPIO_OUT);
+  st_lib_radio_gpio_init(RADIO_GPIO_SDN, RADIO_MODE_GPIO_OUT);
   
   /* Configures the SPIRIT1 library */
-  SpiritRadioSetXtalFrequency(XTAL_FREQUENCY);
-  SpiritManagementSetFrequencyBase(XTAL_FREQUENCY);
+  st_lib_spirit_radio_set_xtal_frequency(XTAL_FREQUENCY);
+  st_lib_spirit_management_set_frequency_base(XTAL_FREQUENCY);
   
   /* wake up to READY state */
   /* weirdly enough, this *should* actually *set* the pin, not clear it! The pins is declared as GPIO_pin13 == 0x2000 */
   RADIO_GPIO_SDN_PORT->BSRR = RADIO_GPIO_SDN_PIN; 
-  HAL_GPIO_WritePin(RADIO_GPIO_SDN_PORT, RADIO_GPIO_SDN_PIN,GPIO_PIN_RESET);
+  st_lib_hal_gpio_write_pin(RADIO_GPIO_SDN_PORT, RADIO_GPIO_SDN_PIN,GPIO_PIN_RESET);
 
   /* wait minimum 1.5 ms to allow SPIRIT1 a proper boot-up sequence */
   BUSYWAIT_UNTIL(0, 3 * RTIMER_SECOND/2000);
@@ -215,7 +199,7 @@ spirit_radio_init(void)
   spirit1_strobe(SPIRIT1_STROBE_SRES);
   
   /* Configures the SPIRIT1 radio part */
-  SRadioInit xRadioInit = {
+  st_lib_s_radio_init x_radio_init = {
    // XTAL_FREQUENCY,
     XTAL_OFFSET_PPM,
     BASE_FREQUENCY,
@@ -226,13 +210,13 @@ spirit_radio_init(void)
     FREQ_DEVIATION,
     BANDWIDTH
   };
-  SpiritRadioInit(&xRadioInit);
-  SpiritRadioSetXtalFrequency(XTAL_FREQUENCY);
-  SpiritRadioSetPALeveldBm(0,POWER_DBM);
-  SpiritRadioSetPALevelMaxIndex(0);
+  st_lib_spirit_radio_init(&x_radio_init);
+  st_lib_spirit_radio_set_xtal_frequency(XTAL_FREQUENCY);
+  st_lib_spirit_radio_set_pa_level_dbm(0,POWER_DBM);
+  st_lib_spirit_radio_set_pa_level_max_index(0);
   
   /* Configures the SPIRIT1 packet handler part*/
-  PktBasicInit xBasicInit = {
+  st_lib_pkt_basic_init x_basic_init = {
     PREAMBLE_LENGTH,
     SYNC_LENGTH,
     SYNC_WORD,
@@ -244,26 +228,26 @@ spirit_radio_init(void)
     EN_FEC,
     EN_WHITENING
   };
-  SpiritPktBasicInit(&xBasicInit);
+  st_lib_spirit_pkt_basic_init(&x_basic_init);
   
   /* Enable the following interrupt sources, routed to GPIO */
-  SpiritIrqDeInit(NULL);
-  SpiritIrqClearStatus();
-  SpiritIrq(TX_DATA_SENT, S_ENABLE);
-  SpiritIrq(RX_DATA_READY,S_ENABLE);
-  SpiritIrq(VALID_SYNC,S_ENABLE);
-  SpiritIrq(RX_DATA_DISC, S_ENABLE);
-  SpiritIrq(TX_FIFO_ERROR, S_ENABLE);
-  SpiritIrq(RX_FIFO_ERROR, S_ENABLE);
+  st_lib_spirit_irq_de_init(NULL);
+  st_lib_spirit_irq_clear_status();
+  st_lib_spirit_irq(TX_DATA_SENT, S_ENABLE);
+  st_lib_spirit_irq(RX_DATA_READY,S_ENABLE);
+  st_lib_spirit_irq(VALID_SYNC,S_ENABLE);
+  st_lib_spirit_irq(RX_DATA_DISC, S_ENABLE);
+  st_lib_spirit_irq(TX_FIFO_ERROR, S_ENABLE);
+  st_lib_spirit_irq(RX_FIFO_ERROR, S_ENABLE);
 
   /* Configure Spirit1 */
-  SpiritRadioPersistenRx(S_ENABLE);
-  SpiritQiSetSqiThreshold(SQI_TH_0);
-  SpiritQiSqiCheck(S_ENABLE);
-  SpiritQiSetRssiThresholddBm(CCA_THRESHOLD);
-  SpiritTimerSetRxTimeoutStopCondition(SQI_ABOVE_THRESHOLD);
+  st_lib_spirit_radio_persisten_rx(S_ENABLE);
+  st_lib_spirit_qi_set_sqi_threshold(SQI_TH_0);
+  st_lib_spirit_qi_sqi_check(S_ENABLE);
+  st_lib_spirit_qi_set_rssi_threshold_dbm(CCA_THRESHOLD);
+  st_lib_spirit_timer_set_rx_timeout_stop_condition(SQI_ABOVE_THRESHOLD);
   SET_INFINITE_RX_TIMEOUT();
-  SpiritRadioAFCFreezeOnSync(S_ENABLE);
+  st_lib_spirit_radio_afc_freeze_on_sync(S_ENABLE);
   
   /* Puts the SPIRIT1 in STANDBY mode (125us -> rx/tx) */
   spirit1_strobe(SPIRIT1_STROBE_STANDBY);
@@ -272,18 +256,16 @@ spirit_radio_init(void)
   CLEAR_TXBUF();
   
   /* Initializes the mcu pin as input, used for IRQ */
-  RadioGpioInit(RADIO_GPIO_IRQ, RADIO_MODE_EXTI_IN);
+  st_lib_radio_gpio_init(RADIO_GPIO_IRQ, RADIO_MODE_EXTI_IN);
   
   /* Configure the radio to route the IRQ signal to its GPIO 3 */
-  SpiritGpioInit(&(SGpioInit){SPIRIT_GPIO_IRQ, SPIRIT_GPIO_MODE_DIGITAL_OUTPUT_LP, SPIRIT_GPIO_DIG_OUT_IRQ});
+  st_lib_spirit_gpio_init(&(st_lib_s_gpio_init){SPIRIT_GPIO_IRQ, SPIRIT_GPIO_MODE_DIGITAL_OUTPUT_LP, SPIRIT_GPIO_DIG_OUT_IRQ});
 
   process_start(&spirit_radio_process, NULL);
 
   PRINTF("Spirit1 init done\n");
   return 0;
 }
-
-
 /*---------------------------------------------------------------------------*/
 static int
 spirit_radio_prepare(const void *payload, unsigned short payload_len)
@@ -312,8 +294,8 @@ spirit_radio_prepare(const void *payload, unsigned short payload_len)
   /* Sets the length of the packet to send */
   IRQ_DISABLE();
   spirit1_strobe(SPIRIT1_STROBE_FTX);
-  SpiritPktBasicSetPayloadLength(payload_len);
-  SpiritSpiWriteLinearFifo(payload_len, (uint8_t *)payload);
+  st_lib_spirit_pkt_basic_set_payload_length(payload_len);
+  st_lib_spirit_spi_write_linear_fifo(payload_len, (uint8_t *)payload);
   IRQ_ENABLE();
   
   PRINTF("PREPARE OUT\n");
@@ -339,7 +321,7 @@ spirit_radio_transmit(unsigned short payload_len)
   
   /* Puts the SPIRIT1 in TX state */
   receiving_packet = 0;
-  SpiritSetReadyState(); 
+  spirit_set_ready_state(); 
   spirit1_strobe(SPIRIT1_STROBE_TX);
   just_got_an_ack = 0;
   BUSYWAIT_UNTIL(SPIRIT1_STATUS() == SPIRIT1_STATE_TX, 1 * RTIMER_SECOND/1000);
@@ -350,7 +332,7 @@ spirit_radio_transmit(unsigned short payload_len)
   CLEAR_TXBUF();
   CLEAR_RXBUF();
   IRQ_DISABLE();
-  SpiritIrqClearStatus();
+  st_lib_spirit_irq_clear_status();
   spirit1_strobe(SPIRIT1_STROBE_SABORT);
   BUSYWAIT_UNTIL(0, RTIMER_SECOND/2500);
   spirit1_strobe(SPIRIT1_STROBE_READY);
@@ -454,20 +436,20 @@ spirit_radio_channel_clear(void)
   IRQ_DISABLE();
   spirit1_strobe(SPIRIT1_STROBE_SABORT);
 /*  SpiritCmdStrobeSabort();*/
-  SpiritIrqClearStatus();
+  st_lib_spirit_irq_clear_status();
   IRQ_ENABLE();
   {
     rtimer_clock_t timeout = RTIMER_NOW() + 5 * RTIMER_SECOND/1000;
     do {
-      SpiritRefreshStatus();
-    } while((g_xStatus.MC_STATE != MC_STATE_READY) && (RTIMER_NOW() < timeout));
+      st_lib_spirit_refresh_status();
+    } while((st_lib_g_x_status.MC_STATE != MC_STATE_READY) && (RTIMER_NOW() < timeout));
     if(RTIMER_NOW() < timeout) {
       return 1;
     }
   }
 
   /* Stores the RSSI value */
-  rssi_value = SpiritQiGetRssidBm();
+  rssi_value = st_lib_spirit_qi_get_rssi_dbm();
   
   /* Puts the SPIRIT1 in its previous state */
   if(spirit_state==OFF) {
@@ -513,7 +495,7 @@ spirit_radio_off(void)
     spirit1_strobe(SPIRIT1_STROBE_SABORT);
 
     /* Clear any pending irqs */
-    SpiritIrqClearStatus();
+    st_lib_spirit_irq_clear_status();
     
     BUSYWAIT_UNTIL(SPIRIT1_STATUS() == SPIRIT1_STATE_READY, 5 * RTIMER_SECOND/1000);
     if(SPIRIT1_STATUS() != SPIRIT1_STATE_READY) {
@@ -537,21 +519,18 @@ spirit_radio_off(void)
   return 0; 
 }
 /*---------------------------------------------------------------------------*/
-
 static int spirit_radio_on(void)
 {
 
   PRINTF("Spirit1: on\n"); 
   spirit1_strobe(SPIRIT1_STROBE_SABORT);
   BUSYWAIT_UNTIL(0, RTIMER_SECOND/2500);
-  if(spirit_on == OFF) 
-  {
+  if(spirit_on == OFF) {
     IRQ_DISABLE();
     /* ensure we are in READY state as we go from there to Rx */
     spirit1_strobe(SPIRIT1_STROBE_READY);
     BUSYWAIT_UNTIL(SPIRIT1_STATUS() == SPIRIT1_STATE_READY, 5 * RTIMER_SECOND/1000);
-    if(SPIRIT1_STATUS() != SPIRIT1_STATE_READY) 
-    {
+    if(SPIRIT1_STATUS() != SPIRIT1_STATE_READY) {
       PRINTF("Spirit1: failed to turn on\n");
 	  while(1);
       //return 1;
@@ -560,8 +539,7 @@ static int spirit_radio_on(void)
     /* now we go to Rx */
     spirit1_strobe(SPIRIT1_STROBE_RX);
     BUSYWAIT_UNTIL(SPIRIT1_STATUS() == SPIRIT1_STATE_RX, 5 * RTIMER_SECOND/1000);
-    if(SPIRIT1_STATUS() != SPIRIT1_STATE_RX) 
-    {
+    if(SPIRIT1_STATUS() != SPIRIT1_STATE_RX) {
       PRINTF("Spirit1: failed to enter rx\n");
 	  while(1);
       //return 1;
@@ -613,10 +591,10 @@ PROCESS_THREAD(spirit_radio_process, ev, data)
           };
           IRQ_DISABLE();
           spirit1_strobe(SPIRIT1_STROBE_FTX);
-          SpiritPktBasicSetPayloadLength((uint16_t) ACK_LEN);
-          SpiritSpiWriteLinearFifo((uint16_t) ACK_LEN, (uint8_t *) ack_frame);
+          st_lib_spirit_pkt_basic_set_payload_length((uint16_t) ACK_LEN);
+          st_lib_spirit_spi_write_linear_fifo((uint16_t) ACK_LEN, (uint8_t *) ack_frame);
 
-          SpiritSetReadyState();
+          spirit_set_ready_state();
           IRQ_ENABLE();
           spirit1_strobe(SPIRIT1_STROBE_TX);
           BUSYWAIT_UNTIL(SPIRIT1_STATUS() == SPIRIT1_STATE_TX, 1 * RTIMER_SECOND/1000);
@@ -630,7 +608,8 @@ PROCESS_THREAD(spirit_radio_process, ev, data)
       packetbuf_set_datalen(len);   
       NETSTACK_RDC.input();
     }
-    if(!IS_RXBUF_EMPTY()){
+
+    if(!IS_RXBUF_EMPTY()) {
       process_poll(&spirit_radio_process);
     }
 
@@ -641,7 +620,6 @@ PROCESS_THREAD(spirit_radio_process, ev, data)
         spirit1_strobe(SPIRIT1_STROBE_RX);
         BUSYWAIT_UNTIL(SPIRIT1_STATUS() == SPIRIT1_STATE_RX, 1 * RTIMER_SECOND/1000);
       }
-
     }
   }
 
@@ -652,9 +630,8 @@ void
 spirit1_interrupt_callback(void)
 {
 #define INTPRINTF(...) // PRINTF
-  SpiritIrqs xIrqStatus;
-  if (SpiritSPIBusy() || interrupt_callback_in_progress)
-  {
+  st_lib_spirit_irqs x_irq_status;
+  if (spirit_spi_busy() || interrupt_callback_in_progress) {
     process_poll(&spirit_radio_process);
     interrupt_callback_wants_poll = 1;
     return;
@@ -664,18 +641,17 @@ spirit1_interrupt_callback(void)
   interrupt_callback_in_progress = 1;
 
   /* get interrupt source from radio */
-  SpiritIrqGetStatus(&xIrqStatus);
-  SpiritIrqClearStatus();
+  st_lib_spirit_irq_get_status(&x_irq_status);
+  st_lib_spirit_irq_clear_status();
 
-  if(xIrqStatus.IRQ_RX_FIFO_ERROR)
-  {
+  if(x_irq_status.IRQ_RX_FIFO_ERROR) {
     receiving_packet = 0;
     interrupt_callback_in_progress = 0;
     spirit1_strobe(SPIRIT1_STROBE_FRX);
     return;
   }
-  if(xIrqStatus.IRQ_TX_FIFO_ERROR) 
-  {
+
+  if(x_irq_status.IRQ_TX_FIFO_ERROR) {
     receiving_packet = 0;
     interrupt_callback_in_progress = 0;
     spirit1_strobe(SPIRIT1_STROBE_FTX);
@@ -683,15 +659,13 @@ spirit1_interrupt_callback(void)
   }
 
   /* The IRQ_VALID_SYNC is used to notify a new packet is coming */
-  if(xIrqStatus.IRQ_VALID_SYNC)
-  {
+  if(x_irq_status.IRQ_VALID_SYNC) {
     INTPRINTF("SYNC\n");
     receiving_packet = 1;
   }
 
   /* The IRQ_TX_DATA_SENT notifies the packet received. Puts the SPIRIT1 in RX */
-  if(xIrqStatus.IRQ_TX_DATA_SENT)
-  {
+  if(x_irq_status.IRQ_TX_DATA_SENT) {
     spirit1_strobe(SPIRIT1_STROBE_RX);
 /*    SpiritCmdStrobeRx();*/
     INTPRINTF("SENT\n");
@@ -701,14 +675,15 @@ spirit1_interrupt_callback(void)
   }
 
   /* The IRQ_RX_DATA_READY notifies a new packet arrived */
-  if(xIrqStatus.IRQ_RX_DATA_READY) {
-    SpiritSpiReadLinearFifo(SpiritLinearFifoReadNumElementsRxFifo(), &spirit_rxbuf[1]);
-    spirit_rxbuf[0] = SpiritPktBasicGetReceivedPktLength();
+  if(x_irq_status.IRQ_RX_DATA_READY) {
+    st_lib_spirit_spi_read_linear_fifo(st_lib_spirit_linear_fifo_read_num_elements_rx_fifo(),
+                                       &spirit_rxbuf[1]);
+    spirit_rxbuf[0] = st_lib_spirit_pkt_basic_get_received_pkt_length();
     spirit1_strobe(SPIRIT1_STROBE_FRX);
 
     INTPRINTF("RECEIVED\n");
 
-   	process_poll(&spirit_radio_process);
+    process_poll(&spirit_radio_process);
 
     receiving_packet = 0;
     
@@ -723,18 +698,15 @@ spirit1_interrupt_callback(void)
     return;
   }
   
-  if(xIrqStatus.IRQ_RX_DATA_DISC) 
+  if(x_irq_status.IRQ_RX_DATA_DISC) 
   {
     /* RX command - to ensure the device will be ready for the next reception */
-    if(xIrqStatus.IRQ_RX_TIMEOUT)
-    {
-      SpiritCmdStrobeFlushRxFifo();
+    if(x_irq_status.IRQ_RX_TIMEOUT) {
+      st_lib_spirit_cmd_strobe_flush_rx_fifo();
       rx_timeout = SET; 
     }
-
   }
 
   interrupt_callback_in_progress = 0;
 }
-
 /*---------------------------------------------------------------------------*/

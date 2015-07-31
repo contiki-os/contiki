@@ -1,6 +1,6 @@
 /**
 ******************************************************************************
-* @file    temperature-sensor.c
+* @file    platform/stm32nucleo-spirit1/dev/temperature-sensor.c
 * @author  System LAB
 * @version V1.0.0
 * @date    17-June-2015
@@ -34,79 +34,86 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
-
+/**
+ * \addtogroup stm32nucleo-spirit1-temperature-sensor
+ * @{
+ *
+ * \file
+ * Driver for the stm32nucleo-spirit1 Temperature sensor (on expansion board)
+ */
+/*---------------------------------------------------------------------------*/
 #if COMPILE_SENSORS
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "temperature-sensor.h"
-
-#include "x_nucleo_iks01a1_hum_temp.h"
-
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
 static int _active = 0;
-
+/*---------------------------------------------------------------------------*/
 static void init(void)
 {
   /*Temperature and Humity sensors share the same hw*/
-  if (!BSP_HUM_TEMP_isInitialized())
-  {
-	BSP_HUM_TEMP_Init();
+  if (!st_lib_bsp_hum_temp_is_initialized()) {
+	st_lib_bsp_hum_temp_init();
 	_active=1;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 static void activate(void)
 {
   _active = 1;
 }
-
+/*---------------------------------------------------------------------------*/
 static void deactivate(void)
 {
   _active = 0;
 }
-
-
+/*---------------------------------------------------------------------------*/
 static int active(void)
 {
   return _active;
 }
-
+/*---------------------------------------------------------------------------*/
 static int value(int type)
 {
   int32_t temperature;
-  volatile float TEMPERATURE_Value;
+  volatile float temperature_value;
   
-  BSP_HUM_TEMP_GetTemperature((float *)&TEMPERATURE_Value); 
-  temperature = TEMPERATURE_Value * 10;
-  return(temperature);
+  st_lib_bsp_hum_temp_get_temperature((float *)&temperature_value); 
+  temperature = temperature_value * 10;
+  return temperature;
 }
-
+/*---------------------------------------------------------------------------*/
 static int configure(int type, int value)
 {
-  switch(type){
-  case SENSORS_HW_INIT:
-    init();
-    return 1;
-  case SENSORS_ACTIVE:
-    if(value)        
-      activate();
-    else
-      deactivate();
-    return 1;
+  switch(type) {
+    case SENSORS_HW_INIT:
+      init();
+      return 1;
+    case SENSORS_ACTIVE:
+      if(value) {      
+        activate();
+      } else {
+        deactivate();
+      }
+      return 1;
   }
-  
+ 
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
 static int status(int type)
 {
   switch(type) {
-	case SENSORS_READY:
-	  return active();
+    case SENSORS_READY:
+      return active();
   }
   
   return 0;
 }
-
-SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR, value, configure, status);
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
+                value, configure, status);
 #endif /*COMPILE_SENSORS*/
+/*---------------------------------------------------------------------------*/
 /** @} */

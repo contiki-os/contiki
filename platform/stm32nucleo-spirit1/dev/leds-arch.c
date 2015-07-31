@@ -1,6 +1,6 @@
 /**
 ******************************************************************************
-* @file    leds-arch.c
+* @file    platform/stm32nucleo-spirit1/dev/leds-arch.c
 * @author  System LAB
 * @version V1.0.0
 * @date    17-June-2015
@@ -34,78 +34,82 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/**
+ * \addtogroup stm32nucleo-spirit1-peripherals
+ * @{
+ *
+ * \file
+ * Driver for the stm32nucleo-spirit1 LEDs
+ */
+/*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
 #include "dev/leds.h"
-#include "stm32l1xx_nucleo.h"
-
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
 #ifndef COMPILE_SENSORS
-#include "radio_shield_config.h"
-extern GPIO_TypeDef*  aLED_GPIO_PORT[];
-extern const uint16_t aLED_GPIO_PIN[];
+/* The Red LED (on SPIRIT1 exp board) is exposed only if the sensor board is NOT
+ * used, becasue of a pin conflict.
+ */
+extern st_lib_gpio_typedef*  st_lib_a_led_gpio_port[];
+extern const uint16_t st_lib_a_led_gpio_pin[];
 #endif /*COMPILE_SENSORS*/
 
-extern GPIO_TypeDef* GPIO_PORT[];
-extern const uint16_t GPIO_PIN[];
-
-
+extern st_lib_gpio_typedef* st_lib_gpio_port[];
+extern const uint16_t st_lib_gpio_pin[];
 /*---------------------------------------------------------------------------*/
 void leds_arch_init(void)
 {
-  /* We have two led, one on the Nucleo (GREEN) ....*/
-  BSP_LED_Init(LED2);
-  BSP_LED_Off(LED2);
+  /* We have at least one led, the one on the Nucleo (GREEN)*/
+  st_lib_bsp_led_init(LED2);
+  st_lib_bsp_led_off(LED2);
 
 #ifndef COMPILE_SENSORS
-  /* ... and one the SPIRIT1 (RED) ....*/
-  RadioShieldLedInit(RADIO_SHIELD_LED);
-  RadioShieldLedOff(RADIO_SHIELD_LED);
+/* The Red LED (on SPIRIT1 exp board) is exposed only if the sensor board is NOT
+ * used, becasue of a pin conflict.
+ */
+  st_lib_radio_shield_led_init(RADIO_SHIELD_LED);
+  st_lib_radio_shield_led_off(RADIO_SHIELD_LED);
 #endif /*COMPILE_SENSORS*/
 }
-
 /*---------------------------------------------------------------------------*/
 unsigned char leds_arch_get(void)
 {
   unsigned char ret = 0 ;
-  if (HAL_GPIO_ReadPin(GPIO_PORT[LED2],GPIO_PIN[LED2]))
-  {
+  if (st_lib_hal_gpio_read_pin(st_lib_gpio_port[LED2],st_lib_gpio_pin[LED2])) {
     ret |= LEDS_GREEN;
   }
 
 #ifndef COMPILE_SENSORS
-  if (HAL_GPIO_ReadPin(aLED_GPIO_PORT[RADIO_SHIELD_LED],
-                       aLED_GPIO_PIN[RADIO_SHIELD_LED])
-     )
-  {
+/* The Red LED (on SPIRIT1 exp board) is exposed only if the sensor board is NOT
+ * used, becasue of a pin conflict.
+ */
+  if (st_lib_hal_gpio_read_pin(st_lib_a_led_gpio_port[RADIO_SHIELD_LED],
+                               st_lib_a_led_gpio_pin[RADIO_SHIELD_LED])) {
     ret |= LEDS_RED;
   }
 #endif /*COMPILE_SENSORS*/
 
   return ret;
 }
-
 /*---------------------------------------------------------------------------*/
 void leds_arch_set(unsigned char leds)
 {
-  if (leds & LEDS_GREEN)
-  {
-    BSP_LED_On(LED2);
-  }
-  else
-  {
-    BSP_LED_Off(LED2);
+  if (leds & LEDS_GREEN) {
+    st_lib_bsp_led_on(LED2);
+  } else {
+    st_lib_bsp_led_off(LED2);
   }
 
 #ifndef COMPILE_SENSORS
-  if (leds & LEDS_RED)
-  {
-    RadioShieldLedOn(RADIO_SHIELD_LED);
-  }
-  else
-  {
-    RadioShieldLedOff(RADIO_SHIELD_LED);
+/* The Red LED (on SPIRIT1 exp board) is exposed only if the sensor board is NOT
+ * used, becasue of a pin conflict.
+ */
+  if (leds & LEDS_RED) {
+    st_lib_radio_shield_led_on(RADIO_SHIELD_LED);
+  } else {
+    st_lib_radio_shield_led_off(RADIO_SHIELD_LED);
   }
 #endif /*COMPILE_SENSORS*/
 }
 /*---------------------------------------------------------------------------*/
-
+/** @} */

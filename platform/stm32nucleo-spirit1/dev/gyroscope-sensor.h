@@ -34,16 +34,33 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+/**
+ * \addtogroup stm32nucleo-spirit1-peripherals
+ * @{
+ *
+ * \defgroup stm32nucleo-spirit1-gyroscope-sensor Gyroscope Sensor
+ *
+ * Maps the gyroscope sensor on the STM32 Sensor Expansion board.
+ * @{
+ *
+ * \file
+ * Header file for the stm32nucleo-spirit1 Gyroscope Sensor Driver
+ */
+/*---------------------------------------------------------------------------*/
 #ifndef GYROSCOPE_SENSOR_H_
 #define GYROSCOPE_SENSOR_H_
-
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "sensor-common.h"
-
+/*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor gyroscope_sensor;
-
+/*---------------------------------------------------------------------------*/
 #define GYROSCOPE_SENSOR "Gyroscope"
-
+/*---------------------------------------------------------------------------*/
 #endif /* GYROSCOPE_SENSOR_H_ */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

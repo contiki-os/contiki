@@ -34,36 +34,12 @@
  *
  ******************************************************************************
  */
- 
-
-/** @addtogroup STM32F4xx_HAL_Examples
-  * @{
-  */
-
-/** @addtogroup X_NUCLEO_IKC01A1_Demonstration
-  * @{
-  */ 
-
-/** @defgroup X_NUCLEO_IKC01A1_Demonstration_Console_Utilities
- * @{
- */
- 
-
-/**
- * @brief  Initialises Nucleo UART port for user IO
- * @param  None
- * @retval 0
- */
-
-
+/*---------------------------------------------------------------------------*/
 #if defined (__IAR_SYSTEMS_ICC__)
-
-size_t __write(int Handle, const unsigned char * Buf, size_t Bufsize);
-size_t __read(int Handle, unsigned char *Buf, size_t Bufsize);
-
-
+size_t __write(int handle, const unsigned char * buf, size_t bufsize);
+size_t __read(int handle, unsigned char *buf, size_t bufsize);
+/*---------------------------------------------------------------------------*/
 #elif defined (__CC_ARM)
-
 /**
  * @brief fputc call for standard output implementation
  * @param ch Character to print
@@ -77,9 +53,8 @@ int fputc(int ch, FILE *f);
  * @retval Character acquired from standard input
  */
 int fgetc(FILE *f);
-
+/*---------------------------------------------------------------------------*/
 #elif defined (__GNUC__)
-
 /** @brief putchar call for standard output implementation
  * @param ch Character to print
  * @retval Character printed
@@ -91,18 +66,8 @@ int __io_putchar(int ch);
  * @retval Character acquired from standard input
  */
 int __io_getchar(void);
-
+/*---------------------------------------------------------------------------*/
 #else
 #error "Toolchain not supported"
 #endif
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
+/*---------------------------------------------------------------------------*/

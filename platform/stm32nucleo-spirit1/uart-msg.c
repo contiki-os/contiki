@@ -33,8 +33,7 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
-
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "dev/leds.h"
 #include "stm32l1xx_nucleo.h"
@@ -43,53 +42,52 @@
 #include "dev/slip.h"
 #include "hw-config.h"
 #include "stm32l1xx_hal.h"
-
-void UART_SendMsg(char *Msg);
-extern UART_HandleTypeDef UartHandle;
-
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
+void uart_send_msg(char *);
+extern st_lib_uart_handle_typedef st_lib_uart_handle;
+/*---------------------------------------------------------------------------*/
+static unsigned char databyte[1] = {0};
+/*---------------------------------------------------------------------------*/
 /**
 * @brief  Rx Transfer completed callbacks.
-* @param  huart: Pointer to a UART_HandleTypeDef structure that contains
+* @param  huart: Pointer to a st_lib_uart_handle_typedef structure that contains
 *                the configuration information for the specified UART module.
 * @retval None
 */
-
-static unsigned char databyte[1] = {0};
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void st_lib_hal_uart_rx_cplt_callback(st_lib_uart_handle_typedef *huart)
 {   
   slip_input_byte(databyte[0]);
-  HAL_UART_Receive_IT(&UartHandle, databyte, 1);
+  st_lib_hal_uart_receive_it(&st_lib_uart_handle, databyte, 1);
 }
-
 /*---------------------------------------------------------------------------*/
 void
 uart1_set_input(int (*input) (unsigned char c))
 {
-  HAL_UART_Receive_IT(&UartHandle, databyte, 1);
+  st_lib_hal_uart_receive_it(&st_lib_uart_handle, databyte, 1);
 }
-
 /*--------------------------------------------------------------------------*/
 void
 slip_arch_init(unsigned long ubr)
 {
-  __HAL_UART_ENABLE_IT(&UartHandle, UART_IT_RXNE);
+  st_lib_hal_uart_enable_it(&st_lib_uart_handle, UART_IT_RXNE);
   //uart1_set_input(slip_input_byte);
 }
 /*--------------------------------------------------------------------------*/
 void
 slip_arch_writeb(unsigned char c)
 {
-  UART_SendMsg(&c);
+  uart_send_msg(&c);
 }
 /*--------------------------------------------------------------------------*/
 
 /**
   * @brief  Send a message via UART
-  * @param  Msg the pointer to the message to be sent
+  * @param  msg the pointer to the message to be sent
   * @retval None
   */
-void UART_SendMsg(char *Msg)
+void uart_send_msg(char *msg)
 {
-     HAL_UART_Transmit(&UartHandle, (uint8_t*)Msg, 1, 5000);
+  st_lib_hal_uart_transmit(&st_lib_uart_handle, (uint8_t*)msg, 1, 5000);
 }
 /*--------------------------------------------------------------------------*/

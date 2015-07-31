@@ -1,6 +1,6 @@
 /**
 ******************************************************************************
-* @file    temperature-sensor.h
+* @file    platform/stm32nucleo-spirit1/dev/temperature-sensor.h
 * @author  System LAB
 * @version V1.0.0
 * @date    17-June-2015
@@ -34,15 +34,32 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+/**
+ * \addtogroup stm32nucleo-spirit1-peripherals
+ * @{
+ *
+ * \defgroup stm32nucleo-spirit1-temperature-sensor Temperature Sensor
+ *
+ * Maps the temperature sensor on the STM32 Nucleo Sensor Expansion board.
+ * @{
+ *
+ * \file
+ * Header file for the stm32nucleo-spirit1 Temperature Sensor Driver
+ */
+/*---------------------------------------------------------------------------*/
 #ifndef TEMPERATURE_SENSOR_H_
 #define TEMPERATURE_SENSOR_H_
-
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
-
+/*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor temperature_sensor;
-
+/*---------------------------------------------------------------------------*/
 #define TEMPERATURE_SENSOR "Temperature"
-
+/*---------------------------------------------------------------------------*/
 #endif /* TEMPERATURE_SENSOR_H_ */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

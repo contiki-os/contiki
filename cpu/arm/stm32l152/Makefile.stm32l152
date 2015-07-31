@@ -1,17 +1,12 @@
-# Makefile for the STM32L152VB Cortex M3 medium-density microcontroller
-# author Marcus Lunden <marcus@thingsquare.com>
+# Makefile for the STM32L152 Cortex M3 medium-density microcontroller
 
 .SUFFIXES:
 
 # CPU folder
 CONTIKI_CPU=$(CONTIKI)/cpu/arm/stm32l152
 
-# Source folders for ST HAL libraries, ARM CMSIS and IAR conf files
-CONTIKI_CPU_DIRS =  . \
-		STM32L1xx_HAL_Driver \
-		STM32L1xx_HAL_Driver/Src \
-		CMSIS \
-		STM32L1xx_HAL_Driver/Inc 
+# Source folders for contiki cpu files
+CONTIKI_CPU_DIRS =  . 
 
 # source files: proprietary sources for startup. Refer to CMSIS docs.
 PROP_SYS_ARCH_C = system_stm32l1xx.c
@@ -31,7 +26,7 @@ CONTIKI_CPU_ARCH=   watchdog.c                                \
 
 ifdef GCC 
 CONTIKI_CPU_PORT=   sysmem.c                                  \
-		    		console.c				      \
+		    console.c				      \
                     crt.c				      \
                     uart.c                                    
 else
@@ -46,61 +41,16 @@ UIPDRIVERS=
 ELFLOADER=
 
 
-STM32L1XX_HAL =\
-	stm32l1xx_hal.c\
-	stm32l1xx_hal_adc_ex.c\
-	stm32l1xx_hal_adc.c\
-	stm32l1xx_hal_comp.c\
-	stm32l1xx_hal_cortex.c\
-	stm32l1xx_hal_crc.c\
-	stm32l1xx_hal_cryp_ex.c\
-	stm32l1xx_hal_cryp.c\
-	stm32l1xx_hal_dac_ex.c\
-	stm32l1xx_hal_dac.c\
-	stm32l1xx_hal_dma.c\
-	stm32l1xx_hal_flash_ex.c\
-	stm32l1xx_hal_flash.c\
-	stm32l1xx_hal_flash_ramfunc.c\
-	stm32l1xx_hal_gpio.c\
-	stm32l1xx_hal_i2c.c\
-	stm32l1xx_hal_i2s.c\
-	stm32l1xx_hal_irda.c\
-	stm32l1xx_hal_iwdg.c\
-	stm32l1xx_hal_lcd.c\
-	stm32l1xx_hal_nor.c\
-	stm32l1xx_hal_opamp_ex.c\
-	stm32l1xx_hal_opamp.c\
-	stm32l1xx_hal_pcd_ex.c\
-	stm32l1xx_hal_pcd.c\
-	stm32l1xx_hal_pwr_ex.c\
-	stm32l1xx_hal_pwr.c\
-	stm32l1xx_hal_rcc_ex.c\
-	stm32l1xx_hal_rcc.c\
-	stm32l1xx_hal_rtc_ex.c\
-	stm32l1xx_hal_rtc.c\
-	stm32l1xx_hal_sd.c\
-	stm32l1xx_hal_smartcard.c\
-	stm32l1xx_hal_spi_ex.c\
-	stm32l1xx_hal_spi.c\
-	stm32l1xx_hal_sram.c\
-	stm32l1xx_hal_tim_ex.c\
-	stm32l1xx_hal_tim.c\
-	stm32l1xx_hal_uart.c\
-	stm32l1xx_hal_usart.c\
-	stm32l1xx_hal_wwdg.c\
-	stm32l1xx_ll_fsmc.c\
-	stm32l1xx_ll_sdmmc.c
-
-
-
 # add CPU folder to search path for .s (assembler) files
-vpath %.s $(CONTIKI_CPU)
-
-
+ifdef GCC
+vpath %.s $(CONTIKI)/platform/$(TARGET)/stm32cube-lib/stm32cube-prj/startup_files/gcc
+else
+vpath %.s $(CONTIKI)/platform/$(TARGET)/stm32cube-lib/stm32cube-prj/startup_files/iar
+endif
 
 # include all files above
 ssubst = ${patsubst %.s,%.o,${patsubst %.s79,%.o,$(1)}}
-CONTIKI_TARGET_SOURCEFILES += $(PROP_SYS_ARCH_C) $(PROP_USB_ARCH) $(CONTIKI_CPU_ARCH) $(CONTIKI_CPU_PORT) $(ELFLOADER) $(UIPDRIVERS) $(STM32L1XX_HAL)
+CONTIKI_TARGET_SOURCEFILES += $(PROP_SYS_ARCH_C) $(PROP_USB_ARCH) $(CONTIKI_CPU_ARCH) $(CONTIKI_CPU_PORT) $(ELFLOADER) $(UIPDRIVERS)
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,${call ssubst, $(PROP_SYS_ARCH_S)}}

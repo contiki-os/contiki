@@ -1,6 +1,6 @@
 /**
 ******************************************************************************
-* @file    uart.c
+* @file    cpu/arm/stm32l152/uart.c
 * @author  System LAB
 * @version V1.0.0
 * @date    17-June-2015
@@ -34,28 +34,26 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
-
+/*---------------------------------------------------------------------------*/
 #include "console.h"
 #include <stdio.h>
-
-
+/*---------------------------------------------------------------------------*/
 size_t
 _write(int handle, const unsigned char *buffer, size_t size)
 {
-	int DataIdx;
+  int data_idx;
 
-	for (DataIdx = 0; DataIdx < size; DataIdx++)
-	{
-	   __io_putchar( *buffer++ );
-	}
-	return size;
+  for (data_idx = 0; data_idx < size; data_idx++) {
+    __io_putchar( *buffer++ );
+  }
+  return size;
 }
-
+/*---------------------------------------------------------------------------*/
 size_t
 _read(int handle, unsigned char *buffer, size_t size)
 {
-	/* scanf calls _read() with len=1024, so eat one character at time */
-	*buffer = __io_getchar();
-	return 1;
+  /* scanf calls _read() with len=1024, so eat one character at time */
+  *buffer = __io_getchar();
+  return 1;
 }
+/*---------------------------------------------------------------------------*/

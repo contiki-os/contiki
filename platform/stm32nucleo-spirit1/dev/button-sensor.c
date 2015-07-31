@@ -1,6 +1,6 @@
 /**
 ******************************************************************************
-* @file    button-sensor.c
+* @file    platform/stm32nucleo-spirit1/dev/button-sensor.c
 * @author  System LAB
 * @version V1.0.0
 * @date    17-June-2015
@@ -34,72 +34,76 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
-
+/**
+ * \addtogroup stm32nucleo-spirit1-peripherals
+ * @{
+ *
+ * \file
+ * Driver for the stm32nucleo-spirit1 User Button
+ */
+/*---------------------------------------------------------------------------*/
 #include "dev/button-sensor.h"
 #include "lib/sensors.h"
-
-#include "stm32l1xx_nucleo.h"
-
+#include "st-lib.h"
+/*---------------------------------------------------------------------------*/
 static int _active = 0 ;
-
+/*---------------------------------------------------------------------------*/
 static void init(void)
 {
   /* See spirit1_appli.c for the Callback: it triggers the relevant
    * sensors_changed event
    */
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
+  st_lib_bsp_pb_init(BUTTON_USER, BUTTON_MODE_EXTI);
 }
-
+/*---------------------------------------------------------------------------*/
 static void activate(void)
 {
   _active = 1;
 }
-
+/*---------------------------------------------------------------------------*/
 static void deactivate(void)
 {
   _active = 0;
 }
-
+/*---------------------------------------------------------------------------*/
 static int active(void)
 {
   return active;
 }
-
+/*---------------------------------------------------------------------------*/
 static int value(int type)
 {
-  return BSP_PB_GetState(BUTTON_USER);
+  return st_lib_bsp_pb_get_state(BUTTON_USER);
 }
-
+/*---------------------------------------------------------------------------*/
 static int configure(int type, int value)
 {
-  switch(type){
-  case SENSORS_HW_INIT:
-    init();
-    return 1;
-  case SENSORS_ACTIVE:
-    if(value)        
-      activate();
-    else
-      deactivate();
-    return 1;
+  switch(type) {
+    case SENSORS_HW_INIT:
+      init();
+      return 1;
+    case SENSORS_ACTIVE:
+      if(value) {      
+        activate();
+      } else {
+        deactivate();
+      }
+      return 1;
   }
-  
+ 
   return 0;
 }
-
+/*---------------------------------------------------------------------------*/
 static int status(int type)
 {
   switch(type) {
-    
-  case SENSORS_READY:
-    return active();
+    case SENSORS_READY:
+      return active();
   }
   
   return 0;
 }
-
-
+/*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(button_sensor, BUTTON_SENSOR, value, configure, status);
-
+/*---------------------------------------------------------------------------*/
 /** @} */

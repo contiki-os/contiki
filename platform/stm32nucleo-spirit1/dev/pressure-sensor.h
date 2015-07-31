@@ -34,15 +34,32 @@
 *
 ******************************************************************************
 */
-/* Includes ------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+/**
+ * \addtogroup stm32nucleo-spirit1-peripherals
+ * @{
+ *
+ * \defgroup stm32nucleo-spirit1-pressure-sensor Pressure Sensor
+ *
+ * Maps the pressure sensor on the STM32 Nucleo Sensor Expansion board.
+ * @{
+ *
+ * \file
+ * Header file for the stm32nucleo-spirit1 Pressure Sensor Driver
+ */
+/*---------------------------------------------------------------------------*/
 #ifndef PRESSURE_SENSOR_H_
 #define PRESSURE_SENSOR_H_
-
+/*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
-
+/*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor pressure_sensor;
-
+/*---------------------------------------------------------------------------*/
 #define PRESSURE_SENSOR "Pressure"
-
+/*---------------------------------------------------------------------------*/
 #endif /* PRESSURE_SENSOR_H_ */
-
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */
