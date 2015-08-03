@@ -145,12 +145,6 @@
 #undef RPL_CONF_INIT_LINK_METRIC
 #define RPL_CONF_INIT_LINK_METRIC 2 /* default 5 */
 
-#undef RPL_CONF_DEFAULT_LIFETIME_UNIT
-#define RPL_CONF_DEFAULT_LIFETIME_UNIT 60
-
-#undef RPL_CONF_DEFAULT_LIFETIME
-#define RPL_CONF_DEFAULT_LIFETIME 2 /* Route lifetime: 2 minutes */
-
 #define RPL_CONF_MAX_INSTANCES    1 /* default 1 */
 #define RPL_CONF_MAX_DAG_PER_INSTANCE 1 /* default 2 */
 
