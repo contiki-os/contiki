@@ -1107,26 +1107,26 @@ icmp_input()
     PRINT6ADDR(&UIP_IP_BUF->destipaddr);
     PRINTF("\n");
     ROLL_TM_STATS_ADD(icmp_bad);
-    return;
+    goto discard;
   }
 
   if(!uip_is_addr_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr)
      && !uip_is_addr_linklocal_allrouters_mcast(&UIP_IP_BUF->destipaddr)) {
     PRINTF("ROLL TM: ICMPv6 In, bad destination\n");
     ROLL_TM_STATS_ADD(icmp_bad);
-    return;
+    goto discard;
   }
 
   if(UIP_ICMP_BUF->icode != ROLL_TM_ICMP_CODE) {
     PRINTF("ROLL TM: ICMPv6 In, bad ICMP code\n");
     ROLL_TM_STATS_ADD(icmp_bad);
-    return;
+    goto discard;
   }
 
   if(UIP_IP_BUF->ttl != ROLL_TM_IP_HOP_LIMIT) {
     PRINTF("ROLL TM: ICMPv6 In, bad TTL\n");
     ROLL_TM_STATS_ADD(icmp_bad);
-    return;
+    goto discard;
   }
 #endif
 
@@ -1311,6 +1311,9 @@ drop:
     t[1].c++;
   }
 
+discard:
+
+  uip_len = 0;
   return;
 }
 /*---------------------------------------------------------------------------*/
