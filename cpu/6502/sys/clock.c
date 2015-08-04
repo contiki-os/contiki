@@ -45,11 +45,8 @@ clock_time(void)
    * of overhead for cc65 targets.
    * On the other hand we want to avoid wrapping around frequently so the idea
    * is to reduce the clock resolution to the bare minimum. This is defined by
-   * the TCP/IP stack using a 1/2 second periodic timer. So CLOCK_CONF_SECOND
-   * needs to be defined at least as 2.
-   * The value 2 works out especially nicely as it allows us to implement the
-   * clock frequency devider below purely in (32 bit) integer arithmetic based
-   * on the educated guess of CLK_TCK being an even value. */
+   * the DNS resolver using a 1/4 second timer. So CLOCK_CONF_SECOND needs to
+   * be defined at least as 4. */
   return clock() / (CLK_TCK / CLOCK_CONF_SECOND);
 }
 /*---------------------------------------------------------------------------*/
