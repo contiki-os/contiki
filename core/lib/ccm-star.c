@@ -146,7 +146,7 @@ set_key(const uint8_t *key)
   AES_128.set_key(key);
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 aead(const uint8_t* nonce,
     uint8_t* m, uint8_t m_len,
     const uint8_t* a, uint8_t a_len,
