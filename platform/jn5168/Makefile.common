@@ -11,11 +11,14 @@ JENNIC_MAC ?= MiniMac
 DISABLE_LTO ?= 1
 # can be set to SW or HW
 DEBUG ?= None
+
 ifeq ($(HOST_OS),Windows)     
-#  SDK_BASE_DIR ?= /cygdrive/c/NXP/bstudio_nxp/sdk/JN-SW-4163
   SDK_BASE_DIR ?= C:/NXP/bstudio_nxp/sdk/JN-SW-4163
+  FLASH_PROGRAMMER ?= ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe
 else
+  # Assume Linux
   SDK_BASE_DIR ?= /usr/jn-toolchain/sdk/JN-SW-4163
+  FLASH_PROGRAMMER ?= /usr/jn-toolchain/tools/flashprogrammer/JennicModuleProgrammer
 endif
 
 ###############################################################################
@@ -90,20 +93,37 @@ CFLAGS := $(patsubst -I/cygdrive/c/%,-Ic:/%,$(CFLAGS))
 LDFLAGS := $(patsubst -L/cygdrive/c/%,-Lc:/%,$(LDFLAGS))
 endif 
 
-#### make targets
+########################################################################
 
+MOTELIST = python $(CONTIKI)/tools/jn5168/mote-list.py
+
+# Check if we are running under Windows
 ifeq ($(HOST_OS),Windows)
-  SERIALDUMP = serialdump-windows
-endif
+  USBDEVPREFIX=/dev/com
+  USBDEVBASENAME=COM
+  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-windows
+else
 ifeq ($(HOST_OS),Darwin)
-  SERIALDUMP = serialdump-macos
+  USBDEVPREFIX=
+  USBDEVBASENAME=/dev/tty.usbserial-
+  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-macos
+else
+  # Else we assume Linux
+  USBDEVPREFIX=
+  USBDEVBASENAME=/dev/ttyUSB
+  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-linux
 endif
-ifndef SERIALDUMP
-  # Assume Linux
-  SERIALDUMP = serialdump-linux
 endif
 
-UART_BAUDRATE ?= 1000000
+# Note: this logic is different from Sky
+ifneq ("", "$(filter-out %all,$(filter %.upload serial% login, $(MAKECMDGOALS)))")
+ifndef MOTE
+  $(error MOTE not defined! You must specify which MOTE (serial port) to use)
+endif
+endif
+PORT = $(USBDEVBASENAME)$(MOTE)
+
+#### make targets
 
 ########################################################################
 # Dependency, compilation and flash-programming rules
@@ -153,44 +173,51 @@ symbols.c symbols.h:
 	@${CONTIKI}/tools/make-empty-symbols
 
 ### Upload target to one jn5168 mote specified by MOTE=portNumber
+ifeq ($(HOST_OS),Windows)
 %.upload: %.$(TARGET).bin
-	${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe -a -c COM${MOTE} -B 1000000 -s -w -f $<
+	${FLASH_PROGRAMMER} -a -c $(PORT) -B 1000000 -s -w -f $<
+else
+%.upload: %.$(TARGET).bin
+	${FLASH_PROGRAMMER} -V 10 -v -s $(PORT) -I 38400 -P 1000000 -f $<
+endif
 
 ### Flash the given file
+ifeq ($(HOST_OS),Windows)
 %.flash: 
-	${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe -a -c COM${MOTE} -B 1000000 -s -w -f $*.$(TARGET).bin
+	${FLASH_PROGRAMMER} -a -c $(CPORT) -B 1000000 -s -w -f $*.$(TARGET).bin
+else
+%.flash:
+	${FLASH_PROGRAMMER} -V 10 -v -s $(PORT) -I 38400 -P 1000000 -s -f $*.$(TARGET).bin
+endif
 
 ### List the ports with connected jn5168 motes	
 motelist:
-	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe \#
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} \#
 
 motelistmac:
-	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe \!
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} \!
 	
 motelistinfo:
-	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe \?	
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} \?
 
-### Upload target to all connected jn5168 motes	
+### Upload target to all connected jn5168 motes
 %.uploadall: %.$(TARGET).bin
-	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe $<
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} $<
 
-### Flash the given file to all connected jn5168 motes	
+### Flash the given file to all connected jn5168 motes
 %.flashall:
-	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe $*
-	
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} $*
+
+### Dump output from all connected jn5168 motes
 serialdumpall:
-	python $(CONTIKI)/tools/jn5168/mote-list.py  ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe \%
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} \% $(SERIALDUMP)
 	
 ########### login: read serial line ##############
 ### USAGE: make TARGET=jn5168 login UART_BAUDRATE={baudrate} {serial device}
 ### UART_BAUDRATE: i.e., 115200. default is 1000000
 ### example: make TARGET=jn5168 UART_BAUDRATE=115200 login MOTE=1
 
-ifeq ($(HOST_OS),Windows)
-PORT = /dev/com$(MOTE)
-else
-PORT = /dev/ttyUSB$(MOTE)
-endif
+UART_BAUDRATE ?= 1000000
 
 $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
 	($(MAKE) -C $(CONTIKI)/tools tunslip6 CFLAGS= LDFLAGS= LDLIBS= INCFLAGS=)
@@ -198,11 +225,11 @@ $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
 $(SERIALDUMP): 
 	(cd $(CONTIKI)/tools/sky; ${MAKE} $(SERIALDUMP))
 
-login: $(SERIALDUMP)	
-	$(CONTIKI)/tools/sky/$(SERIALDUMP) -b${UART_BAUDRATE} $(PORT)
+login: $(SERIALDUMP)
+	$(SERIALDUMP) -b${UART_BAUDRATE} $(USBDEVPREFIX)$(PORT)
 
 serialview: $(SERIALDUMP)	
-	$(CONTIKI)/tools/sky/$(SERIALDUMP) -b${UART_BAUDRATE} $(PORT) | $(CONTIKI)/tools/timestamp
+	$(SERIALDUMP) -b${UART_BAUDRATE} $(USBDEVPREFIX)$(PORT) | $(CONTIKI)/tools/timestamp
 		
 serialdump: $(SERIALDUMP)	
-	$(CONTIKI)/tools/sky/$(SERIALDUMP) -b${UART_BAUDRATE} $(PORT) | $(CONTIKI)/tools/timestamp | tee serialdump-$(notdir $(PORT))-`date +%Y%m%d-%H%M`
+	$(SERIALDUMP) -b${UART_BAUDRATE} $(USBDEVPREFIX)$(PORT) | $(CONTIKI)/tools/timestamp | tee serialdump-$(notdir $(PORT))-`date +%Y%m%d-%H%M`
