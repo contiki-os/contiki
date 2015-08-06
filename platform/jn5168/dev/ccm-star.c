@@ -53,13 +53,13 @@ mic(const uint8_t* m,  uint8_t m_len,
     uint8_t mic_len)
 {
   bACI_CCMstar(
-    (struct tsReg128 *)current_key,
+    (tsReg128 *)current_key,
     current_key_is_new,
     XCV_REG_AES_SET_MODE_CCM,
     mic_len,
     a_len,
     m_len,
-    (struct tsReg128 *)iv,
+    (tsReg128 *)iv,
     (uint8_t*)a,
     (uint8_t*)m,
     NULL,
@@ -73,13 +73,13 @@ static void
 ctr(uint8_t* m, uint8_t* output, uint8_t m_len, const uint8_t* iv, uint8_t iv_len)
 {
   bACI_CCMstar(
-    (struct tsReg128 *)current_key,
+    (tsReg128 *)current_key,
     current_key_is_new,
     XCV_REG_AES_SET_MODE_CCM,
     0,
     0,
     m_len,
-    (struct tsReg128 *)iv,
+    (tsReg128 *)iv,
     NULL,
     (uint8_t*)m,
     output,
@@ -98,13 +98,13 @@ ctr_and_mic(const uint8_t* m,  uint8_t* output, uint8_t m_len,
 {
   if(encrypt) {
     bACI_CCMstar(
-      (struct tsReg128 *)current_key,
+      (tsReg128 *)current_key,
       current_key_is_new,
       XCV_REG_AES_SET_MODE_CCM,
       mic_len,
       a_len,
       m_len,
-      (struct tsReg128 *)iv,
+      (tsReg128 *)iv,
       (uint8_t*)a,
       (uint8_t*)m,
       output,
@@ -114,13 +114,13 @@ ctr_and_mic(const uint8_t* m,  uint8_t* output, uint8_t m_len,
   } else {
     bool_t auth;
     bACI_CCMstar(
-      (struct tsReg128 *)current_key,
+      (tsReg128 *)current_key,
       current_key_is_new,
       XCV_REG_AES_SET_MODE_CCM_D,
       mic_len,
       a_len,
       m_len,
-      (struct tsReg128 *)iv,
+      (tsReg128 *)iv,
       (uint8_t*)a,
       (uint8_t*)m,
       output,
