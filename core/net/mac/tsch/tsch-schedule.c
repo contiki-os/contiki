@@ -84,25 +84,29 @@ LIST(slotframe_list);
 struct tsch_slotframe *
 tsch_schedule_add_slotframe(uint16_t handle, uint16_t size)
 {
+  if(size == 0) {
+    return NULL;
+  }
+
   if(tsch_schedule_get_slotframe_from_handle(handle)) {
     /* A slotframe with this handle already exists */
     return NULL;
-  } else {
-    if(tsch_get_lock()) {
-      struct tsch_slotframe *sf = memb_alloc(&slotframe_memb);
-      if(sf != NULL) {
-        /* Initialize the slotframe */
-        sf->handle = handle;
-        ASN_DIVISOR_INIT(sf->size, size);
-        LIST_STRUCT_INIT(sf, links_list);
-        /* Add the slotframe to the global list */
-        list_add(slotframe_list, sf);
-      }
-      PRINTF("TSCH-schedule: add_slotframe %u %u\n",
-                  handle, size);
-      tsch_release_lock();
-      return sf;
+  }
+
+  if(tsch_get_lock()) {
+    struct tsch_slotframe *sf = memb_alloc(&slotframe_memb);
+    if(sf != NULL) {
+      /* Initialize the slotframe */
+      sf->handle = handle;
+      ASN_DIVISOR_INIT(sf->size, size);
+      LIST_STRUCT_INIT(sf, links_list);
+      /* Add the slotframe to the global list */
+      list_add(slotframe_list, sf);
     }
+    PRINTF("TSCH-schedule: add_slotframe %u %u\n",
+        handle, size);
+    tsch_release_lock();
+    return sf;
   }
   return NULL;
 }
