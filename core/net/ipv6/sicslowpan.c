@@ -1336,6 +1336,10 @@ send_packet(linkaddr_t *dest)
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER,(void*)&uip_lladdr);
 #endif
 
+#ifdef NETSTACK_CONF_READY_TO_SEND_CALLBACK
+    NETSTACK_CONF_READY_TO_SEND_CALLBACK();
+#endif
+
   /* Provide a callback function to receive the result of
      a packet transmission. */
   NETSTACK_LLSEC.send(&packet_sent, NULL);
