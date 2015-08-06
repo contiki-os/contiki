@@ -30,9 +30,11 @@
 /**
  * \file
  *         Orchestra: a slotframe dedicated to unicast data transmission.
- *         Nodes transmit at a timeslot defined as hash(MAC) % ORCHESTRA_SB_UNICAST_PERIOD
- *         Nodes listen at: for each nbr in RPL children and RPL preferred parent,
+ *         If sender-based:
+ *           Nodes listen at a timeslot defined as hash(MAC) % ORCHESTRA_SB_UNICAST_PERIOD
+ *           Nodes transmit at: for each nbr in RPL children and RPL preferred parent,
  *                                             hash(nbr.MAC) % ORCHESTRA_SB_UNICAST_PERIOD
+ *         If receiver-based: the opposite
  *
  * \author Simon Duquennoy <simonduq@sics.se>
  */
@@ -45,13 +47,16 @@
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
-#if ORCHESTRA_COLLISION_FREE_HASH
-#define UNICAST_SLOT_IS_SHARED    (ORCHESTRA_SB_UNICAST_PERIOD < ORCHESTRA_MAX_HASH)
-#else /* ORCHESTRA_COLLISION_FREE_HASH */
-#define UNICAST_SLOT_IS_SHARED    1
-#endif /* ORCHESTRA_COLLISION_FREE_HASH */
+#define SENDER_BASED 0 /* Set to 0 for receiver-based unicast slots */
 
-static struct tsch_slotframe *sf_sb;
+#if SENDER_BASED && ORCHESTRA_COLLISION_FREE_HASH
+#define UNICAST_SLOT_SHARED_FLAG    ((ORCHESTRA_UNICAST_PERIOD < ORCHESTRA_MAX_HASH) ? LINK_OPTION_SHARED : 0)
+#else
+#define UNICAST_SLOT_SHARED_FLAG      LINK_OPTION_SHARED
+#endif
+
+static uint16_t channel_offset = 0;
+static struct tsch_slotframe *sf_unicast;
 /* A net-layer sniffer for packets sent and received */
 static void orchestra_packet_received(void);
 static void orchestra_packet_sent(int mac_status);
@@ -62,6 +67,15 @@ linkaddr_t curr_parent_linkaddr;
 /* Set to one only after getting an ACK from our preferred parent */
 int curr_parent_confirmed = 0;
 
+/*---------------------------------------------------------------------------*/
+static uint16_t
+get_node_timeslot(const linkaddr_t *addr) {
+#if ORCHESTRA_UNICAST_PERIOD > 0
+  return orchestra_linkaddr_hash(addr) % ORCHESTRA_UNICAST_PERIOD;
+#else
+  return 0xffff;
+#endif
+}
 /*---------------------------------------------------------------------------*/
 static int
 neighbor_has_uc_link(const linkaddr_t *linkaddr)
@@ -85,8 +99,11 @@ orchestra_callback_ready_to_send()
 #if WITH_TSCH_SLOTFRAME_SELECTOR
   if(has_uc_link) {
     packetbuf_set_attr(PACKETBUF_ATTR_TSCH_SLOTFRAME, 2);
+    packetbuf_set_attr(PACKETBUF_ATTR_TSCH_TIMESLOT,
+        SENDER_BASED ? get_node_timeslot(&linkaddr_node_addr) : get_node_timeslot(dest));
   } else {
     packetbuf_set_attr(PACKETBUF_ATTR_TSCH_SLOTFRAME, 1);
+    packetbuf_set_attr(PACKETBUF_ATTR_TSCH_TIMESLOT, 0);
   }
 #endif
 }
@@ -114,25 +131,20 @@ orchestra_packet_sent(int mac_status)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-static uint16_t
-get_node_timeslot(linkaddr_t *addr) {
-  return orchestra_linkaddr_hash(addr) % ORCHESTRA_SB_UNICAST_PERIOD;
-}
-/*---------------------------------------------------------------------------*/
 static void
 rx_neighbor_add(linkaddr_t *linkaddr) {
   uint16_t timeslot = get_node_timeslot(linkaddr);
-  tsch_schedule_add_link(sf_sb,
-      LINK_OPTION_RX,
+  tsch_schedule_add_link(sf_unicast,
+      SENDER_BASED ? LINK_OPTION_RX : LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG,
       LINK_TYPE_NORMAL, &tsch_broadcast_address,
-      timeslot, 2);
-  PRINTF("Orchestra: adding Rx link at %u\n", timeslot);
+      timeslot, channel_offset);
+  PRINTF("Orchestra: adding %s link at %u\n", SENDER_BASED ? "Rx" : "Tx", timeslot);
 }
 /*---------------------------------------------------------------------------*/
 static void
 rx_neighbor_rm(linkaddr_t *linkaddr) {
   uint16_t timeslot = get_node_timeslot(linkaddr);
-  struct tsch_link *l = tsch_schedule_get_link_from_timeslot(sf_sb, timeslot);
+  struct tsch_link *l = tsch_schedule_get_link_from_timeslot(sf_unicast, timeslot);
   if(l == NULL) {
     return;
   }
@@ -152,8 +164,8 @@ rx_neighbor_rm(linkaddr_t *linkaddr) {
     }
     item = nbr_table_next(nbr_routes, item);
   }
-  tsch_schedule_remove_link(sf_sb, l);
-  PRINTF("Orchestra: removing Rx link at %u\n", timeslot);
+  tsch_schedule_remove_link(sf_unicast, l);
+  PRINTF("Orchestra: removing %s link at %u\n", SENDER_BASED ? "Rx" : "Tx", timeslot);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -171,7 +183,7 @@ update_parent(linkaddr_t *linkaddr) {
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_sf_sb_unicast_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new)
+orchestra_sf_unicast_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new)
 {
   if(new != old) {
     update_parent(new != NULL ? &new->addr : NULL);
@@ -179,32 +191,33 @@ orchestra_sf_sb_unicast_new_time_source(struct tsch_neighbor *old, struct tsch_n
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_callback_routing_neighbor_added(linkaddr_t *linkaddr)
+orchestra_callback_routing_neighbor_added(linkaddr_t *addr)
 {
-  PRINTF("Orchestra: new child %d\n", LOG_NODEID_FROM_LINKADDR(linkaddr));
-  rx_neighbor_add(linkaddr);
+  PRINTF("Orchestra: new child %d\n", LOG_NODEID_FROM_LINKADDR(addr));
+  rx_neighbor_add(addr);
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_callback_routing_neighbor_removed(linkaddr_t *linkaddr)
+orchestra_callback_routing_neighbor_removed(linkaddr_t *addr)
 {
-  PRINTF("Orchestra: lost child %d\n", LOG_NODEID_FROM_LINKADDR(linkaddr));
-  rx_neighbor_rm(linkaddr);
+  PRINTF("Orchestra: lost child %d\n", LOG_NODEID_FROM_LINKADDR(addr));
+  rx_neighbor_rm(addr);
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_sf_sb_unicast_init(uint16_t slotframe_handle)
+orchestra_sf_unicast_init(uint16_t slotframe_handle)
 {
+  channel_offset = slotframe_handle;
   linkaddr_copy(&curr_parent_linkaddr, &linkaddr_null);
   /* Snoop on packet transmission to know if our parent is confirmed
    * (i.e. has ACKed at least one of our packets since we decided to use it as a parent) */
   rime_sniffer_add(&orhcestra_sniffer);
   /* Slotframe for unicast transmissions */
-  sf_sb = tsch_schedule_add_slotframe(slotframe_handle, ORCHESTRA_SB_UNICAST_PERIOD);
+  sf_unicast = tsch_schedule_add_slotframe(slotframe_handle, ORCHESTRA_UNICAST_PERIOD);
   uint16_t timeslot = get_node_timeslot(&linkaddr_node_addr);
-  tsch_schedule_add_link(sf_sb,
-            LINK_OPTION_TX | (UNICAST_SLOT_IS_SHARED ? LINK_OPTION_SHARED : 0),
+  tsch_schedule_add_link(sf_unicast,
+            SENDER_BASED ? LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG: LINK_OPTION_RX,
             LINK_TYPE_NORMAL, &tsch_broadcast_address,
-            timeslot, 2);
-  PRINTF("Orchestra: adding Tx link at %u\n", timeslot);
+            timeslot, channel_offset);
+  PRINTF("Orchestra: adding %s link at %u\n", SENDER_BASED ? "Tx" : "Rx", timeslot);
 }

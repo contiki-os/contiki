@@ -42,41 +42,52 @@
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
+static uint16_t channel_offset = 0;
 static struct tsch_slotframe *sf_eb;
 
+/*---------------------------------------------------------------------------*/
+static uint16_t
+get_node_timeslot(const linkaddr_t *addr) {
+#if ORCHESTRA_EBSF_PERIOD > 0
+  return orchestra_linkaddr_hash(addr) % ORCHESTRA_EBSF_PERIOD;
+#else
+  return 0xffff;
+#endif
+}
 /*---------------------------------------------------------------------------*/
 void
 orchestra_sf_eb_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new)
 {
-  uint16_t old_index = orchestra_linkaddr_hash(&old->addr) % ORCHESTRA_EBSF_PERIOD;
-  uint16_t new_index = orchestra_linkaddr_hash(&new->addr) % ORCHESTRA_EBSF_PERIOD;
+  uint16_t old_ts = get_node_timeslot(&old->addr);
+  uint16_t new_ts = get_node_timeslot(&new->addr);
 
-  if(new_index == old_index) {
+  if(new_ts == old_ts) {
     return;
   }
 
-  if(old_index != 0xffff) {
-    PRINTF("Orchestra: removing EB rx link at %u\n", old_index);
+  if(old_ts != 0xffff) {
+    PRINTF("Orchestra: removing EB rx link at %u\n", old_ts);
     /* Stop listening to the old time source's EBs */
-    tsch_schedule_remove_link_from_timeslot(sf_eb, old_index);
+    tsch_schedule_remove_link_from_timeslot(sf_eb, old_ts);
   }
-  if(new_index != 0xffff) {
+  if(new_ts != 0xffff) {
     /* Listen to the time source's EBs */
-    PRINTF("Orchestra: adding EB rx link at %u\n", new_index);
+    PRINTF("Orchestra: adding EB rx link at %u\n", new_ts);
     tsch_schedule_add_link(sf_eb,
         LINK_OPTION_RX,
         LINK_TYPE_ADVERTISING_ONLY, NULL,
-        new_index, 0);
+        new_ts, 0);
   }
 }
 
 void
 orchestra_sf_eb_init(uint16_t slotframe_handle)
 {
+  channel_offset = slotframe_handle;
   sf_eb = tsch_schedule_add_slotframe(slotframe_handle, ORCHESTRA_EBSF_PERIOD);
   /* EB link: every neighbor uses its own to avoid contention */
   tsch_schedule_add_link(sf_eb,
       LINK_OPTION_TX,
       LINK_TYPE_ADVERTISING_ONLY, &tsch_broadcast_address,
-      orchestra_linkaddr_hash(&linkaddr_node_addr) % ORCHESTRA_EBSF_PERIOD, 0);
+      get_node_timeslot(&linkaddr_node_addr), 0);
 }

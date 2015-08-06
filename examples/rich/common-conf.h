@@ -58,9 +58,9 @@
 #if WITH_TSCH
 
 #if WITH_TSCH_ORCHESTRA
-#define TSCH_CALLBACK_NEW_TIME_SOURCE orchestra_callback_new_time_source
 #define TSCH_CONF_WITH_MINIMAL_SCHEDULE 0
 #define WITH_TSCH_SLOTFRAME_SELECTOR 1
+#define TSCH_CALLBACK_NEW_TIME_SOURCE orchestra_callback_new_time_source
 #define NETSTACK_CONF_READY_TO_SEND_CALLBACK orchestra_callback_ready_to_send
 #define NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK orchestra_callback_routing_neighbor_added
 #define NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK orchestra_callback_routing_neighbor_removed

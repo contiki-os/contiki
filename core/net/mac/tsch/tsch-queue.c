@@ -355,7 +355,9 @@ tsch_queue_get_packet_for_nbr(const struct tsch_neighbor *n, struct tsch_link *l
                                                                     make sure the backoff has expired */
 #if WITH_TSCH_SLOTFRAME_SELECTOR
         int packet_attr_slotframe = queuebuf_attr(n->tx_array[get_index]->qb, PACKETBUF_ATTR_TSCH_SLOTFRAME);
-        if(packet_attr_slotframe && packet_attr_slotframe != link->slotframe_handle) {
+        int packet_attr_timeslot = queuebuf_attr(n->tx_array[get_index]->qb, PACKETBUF_ATTR_TSCH_TIMESLOT);
+        if(packet_attr_slotframe &&
+            (packet_attr_slotframe != link->slotframe_handle || packet_attr_timeslot != link->timeslot)) {
           return NULL;
         }
 #endif

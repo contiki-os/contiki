@@ -41,6 +41,8 @@
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
+static uint16_t channel_offset = 0;
+
 #if ORCHESTRA_EBSF_PERIOD > 0
 /* There is a slotframe for EBs, use this slotframe for non-EB traffic only */
 #define ORCHESTRA_COMMON_SHARED_TYPE              LINK_TYPE_NORMAL
@@ -52,11 +54,12 @@
 void
 orchestra_sf_common_shared_init(uint16_t slotframe_handle)
 {
+  channel_offset = slotframe_handle;
   /* Default slotframe: for broadcast or unicast to neighbors we
    * do not have a link to */
   struct tsch_slotframe *sf_common = tsch_schedule_add_slotframe(slotframe_handle, ORCHESTRA_COMMON_SHARED_PERIOD);
   tsch_schedule_add_link(sf_common,
       LINK_OPTION_RX | LINK_OPTION_TX | LINK_OPTION_SHARED,
       ORCHESTRA_COMMON_SHARED_TYPE, &tsch_broadcast_address,
-      0, 1);
+      0, channel_offset);
 }

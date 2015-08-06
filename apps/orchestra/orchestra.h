@@ -42,7 +42,7 @@
 
 #define ORCHESTRA_EBSF_PERIOD                     397
 #define ORCHESTRA_COMMON_SHARED_PERIOD            31
-#define ORCHESTRA_SB_UNICAST_PERIOD               7
+#define ORCHESTRA_UNICAST_PERIOD                  7
 
 #define ORCHESTRA_LINKADDR_HASH(addr)             ((addr != NULL) ? (addr)->u8[LINKADDR_SIZE-1] : -1)
 #define ORCHESTRA_MAX_HASH                        0x7fff
@@ -50,8 +50,6 @@
 
 void orchestra_init();
 void orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new);
-void orchestra_callback_joining_network();
-int orchestra_callback_do_nack(struct tsch_link *link, linkaddr_t *src, linkaddr_t *dst);
 int orchestra_linkaddr_hash(const linkaddr_t *addr);
 
 #endif /* __ORCHESTRA_H__ */

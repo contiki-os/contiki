@@ -38,7 +38,7 @@
 #include "orchestra.h"
 #include "orchestra-sf-eb.h"
 #include "orchestra-sf-common-shared.h"
-#include "orchestra-sf-sb-unicast.h"
+#include "orchestra-sf-unicast.h"
 
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
@@ -56,8 +56,8 @@ orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighb
     orchestra_sf_eb_new_time_source(old, new);
   }
 
-  if(ORCHESTRA_SB_UNICAST_PERIOD > 0) {
-    orchestra_sf_sb_unicast_new_time_source(old, new);
+  if(ORCHESTRA_UNICAST_PERIOD > 0) {
+    orchestra_sf_unicast_new_time_source(old, new);
   }
 }
 
@@ -74,7 +74,7 @@ orchestra_init()
     orchestra_sf_common_shared_init(slotframe_handle++);
   }
 
-  if(ORCHESTRA_SB_UNICAST_PERIOD > 0) {
-    orchestra_sf_sb_unicast_init(slotframe_handle++);
+  if(ORCHESTRA_UNICAST_PERIOD > 0) {
+    orchestra_sf_unicast_init(slotframe_handle++);
   }
 }
