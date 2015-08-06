@@ -49,7 +49,8 @@
 #define ORCHESTRA_COLLISION_FREE_HASH             0 /* Set to 1 if ORCHESTRA_LINKADDR_HASH returns unique hashes */
 
 void orchestra_init();
-void orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new);
 int orchestra_linkaddr_hash(const linkaddr_t *addr);
+void orchestra_callback_ready_to_send();
+void orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new);
 
 #endif /* __ORCHESTRA_H__ */

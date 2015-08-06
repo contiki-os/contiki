@@ -55,6 +55,7 @@
 #define UNICAST_SLOT_SHARED_FLAG      LINK_OPTION_SHARED
 #endif
 
+static uint16_t slotframe_handle = 0;
 static uint16_t channel_offset = 0;
 static struct tsch_slotframe *sf_unicast;
 /* A net-layer sniffer for packets sent and received */
@@ -92,18 +93,15 @@ neighbor_has_uc_link(const linkaddr_t *linkaddr)
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_callback_ready_to_send()
+orchestra_sf_unicast_callback_ready_to_send()
 {
   const linkaddr_t *dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
   int has_uc_link = neighbor_has_uc_link(dest);
 #if WITH_TSCH_SLOTFRAME_SELECTOR
   if(has_uc_link) {
-    packetbuf_set_attr(PACKETBUF_ATTR_TSCH_SLOTFRAME, 2);
+    packetbuf_set_attr(PACKETBUF_ATTR_TSCH_SLOTFRAME, slotframe_handle);
     packetbuf_set_attr(PACKETBUF_ATTR_TSCH_TIMESLOT,
         SENDER_BASED ? get_node_timeslot(&linkaddr_node_addr) : get_node_timeslot(dest));
-  } else {
-    packetbuf_set_attr(PACKETBUF_ATTR_TSCH_SLOTFRAME, 1);
-    packetbuf_set_attr(PACKETBUF_ATTR_TSCH_TIMESLOT, 0);
   }
 #endif
 }
@@ -205,9 +203,10 @@ orchestra_callback_routing_neighbor_removed(linkaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_sf_unicast_init(uint16_t slotframe_handle)
+orchestra_sf_unicast_init(uint16_t sf_handle)
 {
-  channel_offset = slotframe_handle;
+  slotframe_handle = sf_handle;
+  channel_offset = sf_handle;
   linkaddr_copy(&curr_parent_linkaddr, &linkaddr_null);
   /* Snoop on packet transmission to know if our parent is confirmed
    * (i.e. has ACKed at least one of our packets since we decided to use it as a parent) */

@@ -39,7 +39,7 @@
 
 void orchestra_sf_unicast_init(uint16_t slotframe_handle);
 void orchestra_sf_unicast_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new);
-void orchestra_callback_ready_to_send();
+void orchestra_sf_unicast_callback_ready_to_send();
 void orchestra_callback_routing_neighbor_added(linkaddr_t *addr);
 void orchestra_callback_routing_neighbor_removed(linkaddr_t *addr);
 

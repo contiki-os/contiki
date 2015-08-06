@@ -39,9 +39,12 @@
 #include "orchestra-sf-eb.h"
 #include "orchestra-sf-common-shared.h"
 #include "orchestra-sf-unicast.h"
+#include "net/packetbuf.h"
 
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
+
+static uint16_t common_shared_slotframe_handle = 0;
 
 int
 orchestra_linkaddr_hash(const linkaddr_t *addr)
@@ -62,6 +65,16 @@ orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighb
 }
 
 void
+orchestra_callback_ready_to_send()
+{
+  packetbuf_set_attr(PACKETBUF_ATTR_TSCH_SLOTFRAME, common_shared_slotframe_handle);
+  packetbuf_set_attr(PACKETBUF_ATTR_TSCH_TIMESLOT, 0);
+  if(ORCHESTRA_UNICAST_PERIOD > 0) {
+    orchestra_sf_unicast_callback_ready_to_send();
+  }
+}
+
+void
 orchestra_init()
 {
   uint16_t slotframe_handle = 0;
@@ -71,6 +84,7 @@ orchestra_init()
   }
 
   if(ORCHESTRA_COMMON_SHARED_PERIOD > 0) {
+    common_shared_slotframe_handle = slotframe_handle;
     orchestra_sf_common_shared_init(slotframe_handle++);
   }
 
