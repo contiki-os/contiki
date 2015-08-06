@@ -38,9 +38,10 @@
 
 #define WITH_COAP_RESOURCES 0
 #define WITH_TSCH 1
-#define WITH_6TISCH_DEFAULTS 1
-#define WITH_TSCH_SECURITY 1
+#define WITH_6TISCH_DEFAULTS 0
+#define WITH_TSCH_SECURITY 0
 #define WITH_TSCH_LOG 1
+#define WITH_TSCH_ORCHESTRA 1
 
 #define ANNOTATE_DEFAULT_ROUTE 1
 
@@ -55,6 +56,15 @@
 #define IEEE802154_CONF_PANID 0x81b2
 
 #if WITH_TSCH
+
+#if WITH_TSCH_ORCHESTRA
+#define TSCH_CALLBACK_NEW_TIME_SOURCE orchestra_callback_new_time_source
+#define TSCH_CONF_WITH_MINIMAL_SCHEDULE 0
+#define WITH_TSCH_SLOTFRAME_SELECTOR 1
+#define NETSTACK_CONF_READY_TO_SEND_CALLBACK orchestra_callback_ready_to_send
+#define NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK orchestra_callback_routing_neighbor_added
+#define NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK orchestra_callback_routing_neighbor_removed
+#endif
 
 #undef TSCH_CONF_JOIN_ANY_PANID
 #define TSCH_CONF_JOIN_ANY_PANID 0

@@ -40,6 +40,7 @@
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-schedule.h"
 #include "node-id.h"
+#include "orchestra.h"
 #include "tools/rich-scheduler-interface.h"
 #if CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1
 #include "cc2420.h"
@@ -94,6 +95,10 @@ rich_network_init(uip_ipaddr_t *br_prefix)
 void
 rich_init(uip_ipaddr_t *br_prefix)
 {
+#if WITH_TSCH_ORCHESTRA
+  orchestra_init();
+#endif
+
   rich_network_init(br_prefix);
 
 #if WITH_COAP_RESOURCES
