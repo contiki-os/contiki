@@ -1,155 +1,94 @@
-import sys
-import re
+#!/usr/bin/python
 
-import subprocess
+# Copyright (c) 2015, Swedish Institute of Computer Science
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of the Institute nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+# This file is part of the Contiki operating system.
+#
+
+import sys, os, platform
 import multiprocessing
-from multiprocessing import Pool, Lock
 
-flashProgram = 'c:\\Jennic\\Tools\\flashprogrammer\\FlashCLI.exe'
+# detect the operating system
+sysname = platform.system()
+if "Linux" in sysname:
+    IS_WINDOWS = False
+    FLASH_PROGRAMMER_DEFAULT_PATH = "/usr/jn-toolchain/tools/flashprogrammer/JennicModuleProgrammer"
+    import motelist_lib.linux_motelist_impl as motelist_impl # @UnusedImport
 
-def serialdump(port):
-  cmd=['start','make','TARGET=jn5168','serialdump',port]
-  rv = subprocess.call(cmd, shell=True)
+elif ("Win" in sysname) or ("NT" in sysname):
+    IS_WINDOWS = True
+    FLASH_PROGRAMMER_DEFAULT_PATH = 'C:\\NXP\\bstudio_nxp\\sdk\\JN-SW-4163\\Tools\\flashprogrammer\\FlashCLI.exe'
+    import motelist_lib.windows_motelist_impl as motelist_impl # @Reimport @UnusedImport
 
-def serialdumpPorts(comStr):
-  ttyPorts = []
-  for port in comStr:
-    portNum=int(port.replace('COM',''))-1
-    ttyPorts.append('ttyS'+str(portNum))
-          
-  p = Pool()
-  p.map(serialdump, ttyPorts)
-  p.close()
+else:
+    print ("OS ('{}') is not supported".format(os.name))
 
-def list_mote():
-  #There is no COM0 in windows. We use this to trigger an error message that lists all valid COM ports
-  cmd=[flashProgram,'-c','COM0']
-  proc = subprocess.Popen(cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
-  stdout_value, stderr_value = proc.communicate('through stdin to stdout')
-  com_str = (stderr_value)
-  #print '\tpass through:', repr(stdout_value)
-  #print '\tstderr      :', com_str
-  
-  ## Extract COM ports from output:
-  ## Example com_str: "Available ports: ['COM15', 'COM10']" 
-  res = re.compile('\[((?:\'COM\d+\'.?.?)+)\]').search(com_str)
-  #res = re.compile('.*\[(.*)\].*').match(com_str)
-  
-  ports = []
-  if res:
-    portsStr=str(res.group(1))
-    #print portsStr
-    ports=portsStr.replace('\'', '').replace(',','').split()
-  return ports
-
-def extractInformation(inputStr):
-    stdout_value=(inputStr)
-    portStr=''
-    macStr=''
-    info=''
-    programSuccess=''
-    
-    #print 'output: ', inputStr
-    
-    res = re.compile('Connecting to device on (COM\d+)').search(stdout_value) 
-    if res:
-      portStr=str(res.group(1))
-      
-    ### extracting the following information    
-    '''
-    Devicelabel:           JN516x, BL 0x00080006
-    FlashLabel:            Internal Flash (256K)
-    Memory:                0x00008000 bytes RAM, 0x00040000 bytes Flash
-    ChipPartNo:            8
-    ChipRevNo:             1
-    ROM Version:           0x00080006
-    MAC Address:           00:15:8D:00:00:35:DD:FB
-    ZB License:            0x00.00.00.00.00.00.00.00.00.00.00.00.00.00.00.00
-    User Data:             00:00:00:00:00:00:00:00
-    FlashMID:              0xCC
-    FlashDID:              0xEE
-    MacLocation:           0x00000010
-    Sector Length:         0x08000
-    Bootloader Version:    0x00080006
-    '''
-    
-    res = re.compile('(Devicelabel.*\sFlashLabel.*\sMemory.*\sChipPartNo.*\sChipRevNo.*\sROM Version.*\sMAC Address.*\sZB License.*\sUser Data.*\sFlashMID.*\sFlashDID.*\sMacLocation.*\sSector Length.*\sBootloader Version\:\s+0x\w{8})').search(stdout_value) 
-    if res:
-      info=str(res.group(1))
-      
-    res = re.compile('MAC Address\:\s+((?:\w{2}\:?){8})').search(stdout_value)
-    if res:
-      macStr=str(res.group(1))
-    
-    res = re.compile('(Program\ssuccessfully\swritten\sto\sflash)').search(stdout_value)
-    if res:
-      programSuccess=str(res.group(1))
-      
-    return [portStr, macStr, info, programSuccess] 
-        
-def program_motes(motes, firmwareFile):
-  for m in motes:
-    cmd=[flashProgram,'-c',m, '-B', '1000000', '-s', '-w', '-f', firmwareFile]
-    proc = subprocess.Popen(cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
-    stdout_value, stderr_value = proc.communicate('through stdin to stdout')   
-    [portStr, macStr, info, programSuccess]=extractInformation(stdout_value)               
-    print portStr, macStr, programSuccess
-      
-    errors = (stderr_value)
-    if errors != '':
-    	print 'Errors:', errors  
-
-def motes_info(motes, macOnly):
-  if macOnly:
-    print "Listing Mac addresses:"
-  else:
-    print "Listing motes info:" 
-  for m in motes:
-    cmd=[flashProgram,'-c',m, '-B', '1000000']
-    proc = subprocess.Popen(cmd, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
-    stdout_value, stderr_value = proc.communicate('through stdin to stdout')   
-    [portStr, macStr, info, programSuccess]=extractInformation(stdout_value)  
-    errors = (stderr_value)
-    
-    if macOnly:
-      print portStr, macStr
-    else:
-      print portStr, '\n', info, '\n'    
-          
-    if errors != '':
-      print 'Errors:', errors                    
 
 def main():
-   if len(sys.argv) > 2:
-   	flashProgram=sys.argv[1]
+    # use the default location
+    flash_programmer = FLASH_PROGRAMMER_DEFAULT_PATH
+    if len(sys.argv) > 2:
+       flash_programmer=sys.argv[1]
 
-   motes=list_mote()
-   if motes:
-    motes.sort()
-   print 'Found %d JN5168 motes at:' %(len(motes))
-   motesStr=''
-   for m in motes:
-    motesStr += "%s " %(str(m))
-   print motesStr 
-   firmwareFile='#'	
+    serial_dumper = ""
+    if len(sys.argv) > 3:
+       serial_dumper=sys.argv[3]
 
-   if len(sys.argv) > 2:   		
-    firmwareFile=sys.argv[2]
-   elif len(sys.argv) > 1:
-   	firmwareFile=sys.argv[1]		   
-   
-   if firmwareFile not in ['#', '!', '?', '%']:    	
-   	print '\nBatch programming all connected motes...\n'
-   	program_motes(motes, firmwareFile)
-   elif firmwareFile == '?' or firmwareFile == '!':
-    displayMacList=(firmwareFile == '!')
-    motes_info(motes,displayMacList)          
-   elif firmwareFile == '%':
-    print '\nLogging from all connected motes...\n'
-    serialdumpPorts(motes)         
-   else:
-    print '\nNo firmware file specified.\n'
+    motes = motelist_impl.list_motes(flash_programmer)
+    if motes:
+        motes.sort()
+    print 'Found %d JN5168 motes at:' %(len(motes))
+    motes_str = ''
+    for m in motes:
+        motes_str += "%s " %(str(m))
+    print motes_str
+
+    firmware_file='#'
+    if len(sys.argv) > 2:
+        firmware_file = sys.argv[2]
+    elif len(sys.argv) > 1:
+        firmware_file = sys.argv[1]
+
+    if firmware_file[0] == '\\':
+        firmware_file = firmware_file[1:]
+
+    if firmware_file not in ['#', '!', '?', '%']:
+        print '\nBatch programming all connected motes...\n'
+        motelist_impl.program_motes(flash_programmer, motes, firmware_file)
+    elif firmware_file == '?' or firmware_file == '!':
+        should_display_mac_list = (firmware_file == '!')
+        motelist_impl.print_info(flash_programmer, motes, should_display_mac_list)
+    elif firmware_file == '%':
+        print '\nLogging from all connected motes...\n'
+        motelist_impl.serialdump_ports(flash_programmer, serial_dumper, motes)
+    else:
+        print '\nNo firmware file specified.\n'
 
 if __name__ == '__main__':
-  multiprocessing.freeze_support()         
-  main()
+    multiprocessing.freeze_support()         
+    main()
