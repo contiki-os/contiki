@@ -1548,10 +1548,10 @@ PT_THREAD(tsch_associate(struct pt *pt))
           /* Create schedule */
           if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
 #if TSCH_WITH_MINIMAL_SCHEDULE
+            LOG("TSCH: parse_eb: no schedule, setting up minimal schedule\n");
             tsch_schedule_create_minimal();
 #else
-            LOG("TSCH:! parse_eb: no schedule\n");
-            eb_parsed = 0;
+            LOG("TSCH: parse_eb: no schedule\n");
 #endif
           } else {
             /* First, empty current schedule */
@@ -1875,7 +1875,6 @@ tsch_reset(void)
   current_packet = NULL;
   current_neighbor = NULL;
   tsch_reset_timeslot_timing();
-  tsch_schedule_remove_all_slotframes();
 #ifdef TSCH_CALLBACK_LEAVING_NETWORK
   TSCH_CALLBACK_LEAVING_NETWORK();
 #endif
