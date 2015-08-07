@@ -92,10 +92,10 @@
 #define MICROMAC_CONF_CHANNEL 26
 #endif
 
-/* Default RSSI threshold */
-#ifndef MICROMAC_CONF_RSSI_THR
-#define MICROMAC_CONF_RSSI_THR 127
-#endif /* MICROMAC_CONF_RSSI_THR */
+/* Default energy level threshold for clear channel detection */
+#ifndef MICROMAC_CONF_CCA_THR
+#define MICROMAC_CONF_CCA_THR 14 /* approximately -90 dBm */
+#endif /* MICROMAC_CONF_CCA_THR */
 
 #define RADIO_TXPOWER_MAX  3
 #define RADIO_TXPOWER_MIN  0
@@ -147,6 +147,7 @@ static const struct output_config output_power[] = {
 
 /* Local variables */
 signed char radio_last_rssi;
+uint8_t radio_last_correlation;
 
 /* Did we miss a request to turn the radio on due to overflow? */
 static uint8_t volatile missed_radio_on_request = 0;
@@ -160,7 +161,7 @@ static uint8_t frame_filtering = 1;
 static int current_channel;
 
 /* an integer between 0 and 255, used only with cca() */
-static uint8_t cca_thershold = MICROMAC_CONF_RSSI_THR;
+static uint8_t cca_thershold = MICROMAC_CONF_CCA_THR;
 
 /* Tx im progress? */
 static uint8_t tx_in_progress = 0;
@@ -480,7 +481,6 @@ read(void *buf, unsigned short bufsize)
     if(radio_last_rx_crc_ok) {
       /* If we are in poll mode we need to check the frame here */
       if(poll_mode) {
-        radio_last_rssi = get_rssi();
         if(frame_filtering &&
             !is_packet_for_us(input_frame_buffer->uPayload.au8Byte, len)) {
           len = 0;
@@ -515,14 +515,14 @@ get_txpower(void)
 static int
 get_detected_energy(void)
 {
-  uint32 u32Samples = 8;
+  const uint32 u32Samples = 8;
   return u8JPT_EnergyDetect(current_channel, u32Samples);
 }
 /*---------------------------------------------------------------------------*/
 static int
 get_rssi(void)
 {
-  return 0; /* TODO */
+  return i16JPT_ConvertEnergyTodBm(get_detected_energy());
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -545,8 +545,10 @@ pending_packet(void)
 static int
 cca(void)
 {
-  return bJPT_CCA(current_channel, E_JPT_CCA_MODE_CARRIER_OR_ENERGY,
-        cca_thershold);
+  bool_t isChannelBusy = bJPT_CCA(current_channel,
+      E_JPT_CCA_MODE_CARRIER_OR_ENERGY,
+      cca_thershold);
+  return isChannelBusy == FALSE;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -557,6 +559,7 @@ radio_interrupt_handler(uint32 mac_event)
   int get_index;
   int put_index;
   int packet_for_me = 0;
+  uint8_t radio_last_rx_energy;
 
   if(mac_event & E_MMAC_INT_TX_COMPLETE) {
     /* Transmission attempt has finished */
@@ -581,7 +584,10 @@ radio_interrupt_handler(uint32 mac_event)
           /* Prevent reading */
           rx_frame_buffer->u8PayloadLength = 0;
         } else {
-          radio_last_rssi = get_rssi();
+          /* read and cache RSSI and LQI values */
+          radio_last_rx_energy = u8MMAC_GetRxLqi(&radio_last_correlation);
+          radio_last_rssi = i16JPT_ConvertEnergyTodBm(radio_last_rx_energy);
+
           /* Put received frame in queue */
           ringbufindex_put(&input_ringbuf);
 
