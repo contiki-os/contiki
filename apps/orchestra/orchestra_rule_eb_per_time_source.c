@@ -30,7 +30,7 @@
 /**
  * \file
 
- * *         Orchestra: a slotframe dedicated to transmission of EBs.
+ *         Orchestra: a slotframe dedicated to transmission of EBs.
  *         Nodes transmit at a timeslot defined as hash(MAC) % ORCHESTRA_EBSF_PERIOD
  *         Nodes listen at a timeslot defined as hash(time_source.MAC) % ORCHESTRA_EBSF_PERIOD
  * \author Simon Duquennoy <simonduq@sics.se>
@@ -38,10 +38,9 @@
 
 #include "contiki.h"
 #include "orchestra.h"
+#include "net/packetbuf.h"
 
-#define DEBUG DEBUG_PRINT
-#include "net/ip/uip-debug.h"
-
+static uint16_t slotframe_handle = 0;
 static uint16_t channel_offset = 0;
 static struct tsch_slotframe *sf_eb;
 
@@ -49,14 +48,30 @@ static struct tsch_slotframe *sf_eb;
 static uint16_t
 get_node_timeslot(const linkaddr_t *addr) {
 #if ORCHESTRA_EBSF_PERIOD > 0
-  return orchestra_linkaddr_hash(addr) % ORCHESTRA_EBSF_PERIOD;
+  return ORCHESTRA_LINKADDR_HASH(addr) % ORCHESTRA_EBSF_PERIOD;
 #else
   return 0xffff;
 #endif
 }
 /*---------------------------------------------------------------------------*/
-void
-orchestra_sf_eb_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new)
+static int
+select_packet(uint16_t *slotframe, uint16_t *timeslot)
+{
+  /* Select EBs only */
+  if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE) == FRAME802154_BEACONFRAME) {
+    if(slotframe != NULL) {
+      *slotframe = slotframe_handle;
+    }
+    if(timeslot != NULL) {
+      *timeslot = get_node_timeslot(&linkaddr_node_addr);
+    }
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static void
+new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new)
 {
   uint16_t old_ts = get_node_timeslot(&old->addr);
   uint16_t new_ts = get_node_timeslot(&new->addr);
@@ -66,24 +81,23 @@ orchestra_sf_eb_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor 
   }
 
   if(old_ts != 0xffff) {
-    PRINTF("Orchestra: removing EB rx link at %u\n", old_ts);
     /* Stop listening to the old time source's EBs */
     tsch_schedule_remove_link_from_timeslot(sf_eb, old_ts);
   }
   if(new_ts != 0xffff) {
     /* Listen to the time source's EBs */
-    PRINTF("Orchestra: adding EB rx link at %u\n", new_ts);
     tsch_schedule_add_link(sf_eb,
         LINK_OPTION_RX,
         LINK_TYPE_ADVERTISING_ONLY, NULL,
         new_ts, 0);
   }
 }
-
-void
-orchestra_sf_eb_init(uint16_t slotframe_handle)
+/*---------------------------------------------------------------------------*/
+static void
+init(uint16_t sf_handle)
 {
-  channel_offset = slotframe_handle;
+  slotframe_handle = sf_handle;
+  channel_offset = sf_handle;
   sf_eb = tsch_schedule_add_slotframe(slotframe_handle, ORCHESTRA_EBSF_PERIOD);
   /* EB link: every neighbor uses its own to avoid contention */
   tsch_schedule_add_link(sf_eb,
@@ -91,3 +105,11 @@ orchestra_sf_eb_init(uint16_t slotframe_handle)
       LINK_TYPE_ADVERTISING_ONLY, &tsch_broadcast_address,
       get_node_timeslot(&linkaddr_node_addr), 0);
 }
+/*---------------------------------------------------------------------------*/
+struct orchestra_rule eb_per_time_source = {
+  init,
+  new_time_source,
+  select_packet,
+  NULL,
+  NULL,
+};

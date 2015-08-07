@@ -1801,6 +1801,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         if(++tsch_packet_seqno == 0) {
           tsch_packet_seqno++;
         }
+        packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
         packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
 #if LLSEC802154_SECURITY_LEVEL
         if(tsch_is_pan_secured) {

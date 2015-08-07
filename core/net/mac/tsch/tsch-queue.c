@@ -244,6 +244,9 @@ tsch_queue_add_packet(const linkaddr_t *addr, mac_callback_t sent, void *ptr)
         p = memb_alloc(&packet_memb);
         if(p != NULL) {
           /* Enqueue packet */
+#ifdef TSCH_CALLBACK_PACKET_READY
+          TSCH_CALLBACK_PACKET_READY();
+#endif
           p->qb = queuebuf_new_from_packetbuf();
           if(p->qb != NULL) {
             p->sent = sent;
@@ -356,8 +359,10 @@ tsch_queue_get_packet_for_nbr(const struct tsch_neighbor *n, struct tsch_link *l
 #if WITH_TSCH_SLOTFRAME_SELECTOR
         int packet_attr_slotframe = queuebuf_attr(n->tx_array[get_index]->qb, PACKETBUF_ATTR_TSCH_SLOTFRAME);
         int packet_attr_timeslot = queuebuf_attr(n->tx_array[get_index]->qb, PACKETBUF_ATTR_TSCH_TIMESLOT);
-        if(packet_attr_slotframe &&
-            (packet_attr_slotframe != link->slotframe_handle || packet_attr_timeslot != link->timeslot)) {
+        if(packet_attr_slotframe != 0xffff && packet_attr_slotframe != link->slotframe_handle) {
+          return NULL;
+        }
+        if(packet_attr_timeslot != 0xffff && packet_attr_timeslot != link->timeslot) {
           return NULL;
         }
 #endif
