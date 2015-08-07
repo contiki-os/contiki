@@ -67,8 +67,8 @@ void
 uart0_set_input(int
 (*input)(unsigned char c))
 {
-	uart0_input = input;
-	uart_driver_set_input(E_AHI_UART_0, uart0_input);
+  uart0_input = input;
+  uart_driver_set_input(E_AHI_UART_0, uart0_input);
 }
 
 void

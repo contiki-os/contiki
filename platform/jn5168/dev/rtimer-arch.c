@@ -60,28 +60,28 @@ static volatile uint32_t last_expired_time;
 void
 rtimer_arch_run_next(uint32 u32DeviceId, uint32 u32ItemBitmap)
 {
-	uint32_t delta, temp;
-	if(u32DeviceId != RTIMER_TIMER_ISR_DEV) {
-		return;
-	}
+  uint32_t delta, temp;
+  if(u32DeviceId != RTIMER_TIMER_ISR_DEV) {
+    return;
+  }
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-	vAHI_TickTimerIntPendClr();
-	vAHI_TickTimerIntEnable(0);
+  vAHI_TickTimerIntPendClr();
+  vAHI_TickTimerIntEnable(0);
   /*
    * compare register is only 28bits wide so make sure the upper 4bits match
    * the set compare point
    */
   delta = u32AHI_TickTimerRead() - compare_time;
   if(0 == (delta >> 28)) {
-  		/* compare_time might change after executing rtimer_run_next()
-  		 * as some process might schedule the timer
-  		 */
+      /* compare_time might change after executing rtimer_run_next()
+       * as some process might schedule the timer
+       */
       temp = compare_time;
 
       /* run scheduled */
       watchdog_start();
-    	rtimer_run_next();
+      rtimer_run_next();
 
       if(process_nevents() > 0) {
         /* TODO exit low-power mode */
@@ -100,13 +100,13 @@ rtimer_arch_run_next(uint32 u32DeviceId, uint32 u32ItemBitmap)
 void
 rtimer_arch_init(void)
 {
-	/* Initialise tick timer to run continuously */
-	vAHI_TickTimerIntEnable(0);
-	vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
-	last_expired_time = compare_time = 0;
-	vAHI_TickTimerWrite(0);
-	vAHI_TickTimerRegisterCallback(rtimer_arch_run_next);
-	vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
+  /* Initialise tick timer to run continuously */
+  vAHI_TickTimerIntEnable(0);
+  vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
+  last_expired_time = compare_time = 0;
+  vAHI_TickTimerWrite(0);
+  vAHI_TickTimerRegisterCallback(rtimer_arch_run_next);
+  vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
 
 }
 /*---------------------------------------------------------------------------*/
@@ -119,13 +119,11 @@ rtimer_arch_now(void)
 void
 rtimer_arch_schedule(rtimer_clock_t t)
 {
-	PRINTF("rtimer_arch_schedule time %lu\n", t);
-	vAHI_TickTimerIntPendClr();
-	vAHI_TickTimerIntEnable(1);
-  uint32_t now = u32AHI_TickTimerRead();
-  if (RT
-	vAHI_TickTimerInterval(t);
-	compare_time = t;
+  PRINTF("rtimer_arch_schedule time %lu\n", t);
+  vAHI_TickTimerIntPendClr();
+  vAHI_TickTimerIntEnable(1);
+  vAHI_TickTimerInterval(t);
+  compare_time = t;
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t

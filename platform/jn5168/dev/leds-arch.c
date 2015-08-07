@@ -46,8 +46,8 @@ static volatile uint8_t leds;
 void
 leds_arch_init(void)
 {
-	vGenericLEDInit();
-	leds=0;
+  vGenericLEDInit();
+  leds=0;
 }
 /*---------------------------------------------------------------------------*/
 unsigned char

@@ -78,32 +78,32 @@ configure(int type, int value)
     return 1;  
   } else if(type == SENSORS_ACTIVE) {
     if(pot_status != POT_STATUS_NOT_INIT) {
-    	if(value){
-    	  /* ACTIVATE SENSOR  */
+      if(value){
+        /* ACTIVATE SENSOR  */
         bPotEnable();
         prev_pot_event_val = 0;
         /* Activate POT. */
         PRINTF("POT ACTIVATED\n");
         pot_status = POT_STATUS_ACTIVE;
         process_post(&POTSampling, PROCESS_EVENT_MSG, (void *)&pot_status);
-  		} else {
-    	  /* DE-ACTIVATE SENSOR */
+      } else {
+        /* DE-ACTIVATE SENSOR */
         bPotDisable();
         PRINTF("POT DE-ACTIVATED\n");
         pot_status = POT_STATUS_NOT_ACTIVE;
         process_post(&POTSampling, PROCESS_EVENT_MSG, (void *)&pot_status);
-  		}	
+      }  
       return 1;
     } else {
       /* 
       POT must be intialised before being (de)-activated */
- 		  PRINTF("ERROR: NO HW_INIT POT\n");
- 		  return 0;
+       PRINTF("ERROR: NO HW_INIT POT\n");
+       return 0;
     }
   } else {
     /* Non valid type */
     return 0;
-	}
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
