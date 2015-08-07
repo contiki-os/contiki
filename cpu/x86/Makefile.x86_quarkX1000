@@ -25,6 +25,11 @@ else ifeq ($(X86_CONF_PROT_DOMAINS),tss)
 CFLAGS += -DX86_CONF_PROT_DOMAINS=2
 X86_CONF_MULTI_SEG = 1
 CONTIKI_SOURCEFILES += tss-prot-domains-asm.S
+else ifeq ($(X86_CONF_PROT_DOMAINS),swseg)
+# This matches the definition of X86_CONF_PROT_DOMAINS__SWSEG in prot-domains.h:
+CFLAGS += -DX86_CONF_PROT_DOMAINS=3
+X86_CONF_SYSCALLS_INT = 1
+X86_CONF_MULTI_SEG = 1
 else
 $(error Unrecognized setting for X86_CONF_PROT_DOMAINS: \
         $(X86_CONF_PROT_DOMAINS).  See cpu/x86/mm/README.md for \

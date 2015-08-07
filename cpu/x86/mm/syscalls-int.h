@@ -74,7 +74,7 @@ extern dom_id_t cur_dom;
     #nm ":\n\t"                                                               \
     /* First, load server protection domain ID into EDX, as required by */    \
     /* prot_domains_syscall_dispatcher: */                                    \
-    "  mov " #dcd ", %edx\n\t"                                                \
+    "  mov %" SEG_KERN "s:" #dcd ", %edx\n\t"                                 \
     SYSCALLS_STUB_EPILOGUE(nm))
 
 void syscalls_int_init(void);

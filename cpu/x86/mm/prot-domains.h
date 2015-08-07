@@ -41,9 +41,11 @@
 #define X86_CONF_PROT_DOMAINS__NONE   0
 #define X86_CONF_PROT_DOMAINS__PAGING 1
 #define X86_CONF_PROT_DOMAINS__TSS    2
+#define X86_CONF_PROT_DOMAINS__SWSEG  3
 
 #define X86_CONF_PROT_DOMAINS_MULTI_SEG                                       \
-  (X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS)
+  ((X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS) ||                    \
+   (X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__SWSEG))
 
 /** Privilege level (ring) for exception handlers and other supervisory code */
 #define PRIV_LVL_EXC  0
@@ -74,6 +76,8 @@ typedef uint32_t dom_id_t;
 #include "paging-prot-domains.h"
 #elif X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
 #include "tss-prot-domains.h"
+#elif X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__SWSEG
+#include "swseg-prot-domains.h"
 #endif
 
 #ifndef ATTR_META_ADDR_SPACE

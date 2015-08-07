@@ -61,6 +61,12 @@
 #else
 #define STACKS_SIZE_EXC 256
 #endif
+#elif X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__SWSEG
+#ifdef __clang__
+#define STACKS_SIZE_EXC 512
+#else
+#define STACKS_SIZE_EXC 256
+#endif
 #elif X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
 /**
  * This should be large enough to execute the exception handler with the

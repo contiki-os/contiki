@@ -47,15 +47,20 @@ static segment_desc_t ATTR_BSS_GDT sys_tss_desc;
 void
 tss_init(void)
 {
-  sys_tss.iomap_base = sizeof(sys_tss);
-  sys_tss.esp2 = ((uint32_t)stacks_int) + STACKS_SIZE_INT;
-  sys_tss.ss2 = GDT_SEL_STK_INT;
-  sys_tss.esp0 = ((uint32_t)stacks_exc) + STACKS_SIZE_EXC;
-  sys_tss.ss0 = GDT_SEL_STK_EXC;
+  segment_desc_t seg_desc;
 
-  segment_desc_init(&sys_tss_desc, (uint32_t)&sys_tss, sizeof(sys_tss),
+  /* Initialize TSS */
+  KERN_WRITEW(sys_tss.iomap_base, sizeof(sys_tss));
+  KERN_WRITEL(sys_tss.esp2, ((uint32_t)stacks_int) + STACKS_SIZE_INT);
+  KERN_WRITEL(sys_tss.ss2, GDT_SEL_STK_INT);
+  KERN_WRITEL(sys_tss.esp0, ((uint32_t)stacks_exc) + STACKS_SIZE_EXC);
+  KERN_WRITEL(sys_tss.ss0, GDT_SEL_STK_EXC);
+
+  segment_desc_init(&seg_desc,
+                    KERN_DATA_OFF_TO_PHYS_ADDR(&sys_tss), sizeof(sys_tss),
                     SEG_FLAG(DPL, PRIV_LVL_EXC) |
                     SEG_DESCTYPE_SYS | SEG_TYPE_TSS32_AVAIL);
+  gdt_insert(GDT_IDX_OF_DESC(&sys_tss_desc), seg_desc);
 
   __asm__ __volatile__ (
     "ltr %0"

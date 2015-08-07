@@ -91,7 +91,10 @@ syscall_dispatcher_tail(interrupt_stack_t *intr_stk,
                         uint32_t syscall_eip)
 {
   dom_id_t from_id;
-  volatile dom_kern_data_t *from_dkd, *to_dkd;
+  uint32_t tmp;
+  volatile dom_kern_data_t ATTR_KERN_ADDR_SPACE *from_dkd, *to_dkd;
+
+  uint32_t loc_call_stk_ptr;
 
   to_dkd = prot_domains_kern_data + to_id;
 
@@ -101,36 +104,40 @@ syscall_dispatcher_tail(interrupt_stack_t *intr_stk,
    * kernel data associated with that protection domain.  That model does not
    * permit reentrancy.
    */
-  if((to_dkd->flags & PROT_DOMAINS_FLAG_BUSY) == PROT_DOMAINS_FLAG_BUSY) {
+  KERN_READL(tmp, to_dkd->flags);
+  if((tmp & PROT_DOMAINS_FLAG_BUSY) == PROT_DOMAINS_FLAG_BUSY) {
     halt();
   }
-  to_dkd->flags |= PROT_DOMAINS_FLAG_BUSY;
+  tmp |= PROT_DOMAINS_FLAG_BUSY;
+  KERN_WRITEL(to_dkd->flags, tmp);
 
   /* Update the interrupt stack so that the IRET instruction will return to the
    * system call entrypoint.
    */
   intr_stk->eip = syscall_eip;
 
+  KERN_READL(loc_call_stk_ptr, inter_dom_call_stk_ptr);
   /* Lookup the information for the caller */
-  from_id = inter_dom_call_stk[inter_dom_call_stk_ptr - 1];
+  KERN_READL(from_id, inter_dom_call_stk[loc_call_stk_ptr - 1]);
   from_dkd = prot_domains_kern_data + from_id;
 
   /* Save the current return address from the unprivileged stack to a protected
    * location in the kernel-owned data structure.  This enforces return
    * entrypoint control.
    */
-  from_dkd->orig_ret_addr = *(uintptr_t *)intr_stk->esp;
+  KERN_WRITEL(from_dkd->orig_ret_addr, *(uintptr_t *)intr_stk->esp);
   /* Update the unprivileged stack so that when the system call body is
    * complete, it will invoke the system call return stub.
    */
   *((uintptr_t *)intr_stk->esp) = (uintptr_t)prot_domains_sysret_stub;
 
-  if(MAX_INTER_DOM_CALL_STK_SZ <= inter_dom_call_stk_ptr) {
+  if(MAX_INTER_DOM_CALL_STK_SZ <= loc_call_stk_ptr) {
     halt();
   }
-  inter_dom_call_stk[inter_dom_call_stk_ptr] = to_id;
+  KERN_WRITEL(inter_dom_call_stk[loc_call_stk_ptr], to_id);
 
-  inter_dom_call_stk_ptr++;
+  loc_call_stk_ptr++;
+  KERN_WRITEL(inter_dom_call_stk_ptr, loc_call_stk_ptr);
 
   dispatcher_tail(from_id, to_id, intr_stk);
 }
@@ -140,6 +147,7 @@ prot_domains_syscall_dispatcher_impl(interrupt_stack_t *intr_stk,
                                      dom_id_t to_id,
                                      syscalls_entrypoint_t *syscall)
 {
+  uint32_t tmp;
   uint32_t syscall_eip;
 
   if(PROT_DOMAINS_ACTUAL_CNT <= to_id) {
@@ -156,11 +164,12 @@ prot_domains_syscall_dispatcher_impl(interrupt_stack_t *intr_stk,
     halt();
   }
 
-  if((BIT(to_id) & syscall->doms) == 0) {
+  KERN_READL(tmp, syscall->doms);
+  if((BIT(to_id) & tmp) == 0) {
     halt();
   }
 
-  syscall_eip = syscall->entrypoint;
+  KERN_READL(syscall_eip, syscall->entrypoint);
 
   prot_domains_set_wp(false);
 
@@ -171,9 +180,9 @@ int main(void);
 void __attribute__((fastcall))
 prot_domains_launch_kernel_impl(interrupt_stack_t *intr_stk)
 {
-  inter_dom_call_stk[0] = DOM_ID_app;
+  KERN_WRITEL(inter_dom_call_stk[0], DOM_ID_app);
 
-  inter_dom_call_stk_ptr = 1;
+  KERN_WRITEL(inter_dom_call_stk_ptr, 1);
 
   syscall_dispatcher_tail(intr_stk, DOM_ID_kern, (uint32_t)main);
 }
@@ -182,20 +191,27 @@ void __attribute__((fastcall))
 prot_domains_sysret_dispatcher_impl(interrupt_stack_t *intr_stk)
 {
   dom_id_t from_id, to_id;
-  if(inter_dom_call_stk_ptr <= 1) {
+  uint32_t loc_call_stk_ptr;
+  uint32_t flags;
+
+  KERN_READL(loc_call_stk_ptr, inter_dom_call_stk_ptr);
+  if(loc_call_stk_ptr <= 1) {
     halt();
   }
 
-  from_id = inter_dom_call_stk[inter_dom_call_stk_ptr - 1];
-  to_id = inter_dom_call_stk[inter_dom_call_stk_ptr - 2];
+  KERN_READL(from_id, inter_dom_call_stk[loc_call_stk_ptr - 1]);
+  KERN_READL(to_id, inter_dom_call_stk[loc_call_stk_ptr - 2]);
 
-  intr_stk->eip = prot_domains_kern_data[to_id].orig_ret_addr;
+  KERN_READL(intr_stk->eip,
+            prot_domains_kern_data[to_id].orig_ret_addr);
 
   prot_domains_set_wp(false);
 
-  prot_domains_kern_data[from_id].flags &= ~PROT_DOMAINS_FLAG_BUSY;
+  KERN_READL(flags, prot_domains_kern_data[from_id].flags);
+  flags &= ~PROT_DOMAINS_FLAG_BUSY;
+  KERN_WRITEL(prot_domains_kern_data[from_id].flags, flags);
 
-  inter_dom_call_stk_ptr--;
+  KERN_WRITEL(inter_dom_call_stk_ptr, loc_call_stk_ptr - 1);
 
   dispatcher_tail(from_id, to_id, intr_stk);
 }
@@ -204,11 +220,13 @@ prot_domains_sysret_dispatcher_impl(interrupt_stack_t *intr_stk)
  * \brief  Lookup the current protection domain.
  * \return Kernel data structure for the current protection domain.
  */
-static volatile dom_kern_data_t *
+static volatile dom_kern_data_t ATTR_KERN_ADDR_SPACE *
 get_current_domain(void)
 {
+  uint32_t loc_call_stk_ptr;
   dom_id_t id;
-  id = inter_dom_call_stk[inter_dom_call_stk_ptr - 1];
+  KERN_READL(loc_call_stk_ptr, inter_dom_call_stk_ptr);
+  KERN_READL(id, inter_dom_call_stk[loc_call_stk_ptr - 1]);
   return prot_domains_kern_data + id;
 }
 /*---------------------------------------------------------------------------*/
@@ -219,9 +237,11 @@ get_current_domain(void)
  * \return    Result of the check as a Boolean value
  */
 static bool
-needs_port_io(volatile dom_kern_data_t *dkd)
+needs_port_io(volatile dom_kern_data_t ATTR_KERN_ADDR_SPACE *dkd)
 {
-  return (dkd->flags & PROT_DOMAINS_FLAG_PIO) == PROT_DOMAINS_FLAG_PIO;
+  uint32_t dkd_flags;
+  KERN_READL(dkd_flags, dkd->flags);
+  return (dkd_flags & PROT_DOMAINS_FLAG_PIO) == PROT_DOMAINS_FLAG_PIO;
 }
 /*---------------------------------------------------------------------------*/
 /* Mark the context parameter as volatile so that writes to it will not get
@@ -236,7 +256,7 @@ gp_fault_handler(volatile struct interrupt_context context)
   uint32_t cs_lim;
   uint8_t opcode;
 
-  volatile dom_kern_data_t *dkd = get_current_domain();
+  volatile dom_kern_data_t ATTR_KERN_ADDR_SPACE *dkd = get_current_domain();
   if (needs_port_io(dkd)) {
     __asm__ __volatile__ (
       "mov %%cs, %0\n\t"

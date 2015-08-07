@@ -28,51 +28,56 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "prot-domains.h"
-
 #include "gdt.h"
-#include <stdio.h>
-#include "interrupt.h"
-#include <stdint.h>
-#include <assert.h>
-#include "syscalls.h"
-#include "stacks.h"
-
-static dom_kern_data_t __attribute__((section(".kern_prot_dom_bss")))
-  ATTR_KERN_ADDR_SPACE PROT_DOMAINS_PDCS_NM(kern_dcd);
-PROT_DOMAINS_ALLOC_IMPL(kern_dcd);
-static dom_client_data_t ATTR_BSS_KERN kern_dcd;
-static dom_kern_data_t __attribute__((section(".app_prot_dom_bss")))
-  ATTR_KERN_ADDR_SPACE PROT_DOMAINS_PDCS_NM(app_dcd);
-PROT_DOMAINS_ALLOC_IMPL(app_dcd);
-static dom_client_data_t ATTR_BSS_KERN app_dcd;
+#include "helpers.h"
+#include "multi-segment.h"
+#include "prot-domains.h"
 
 /*---------------------------------------------------------------------------*/
 void
-prot_domains_init(void)
+prot_domains_reg(dom_client_data_t ATTR_KERN_ADDR_SPACE *dcd,
+                 uintptr_t mmio, size_t mmio_sz,
+                 uintptr_t meta, size_t meta_sz,
+                 bool pio)
 {
-  segment_desc_t desc;
+  volatile dom_kern_data_t ATTR_KERN_ADDR_SPACE *dkd;
+  dom_id_t dom_id;
 
-  gdt_lookup(GDT_IDX_CODE_EXC, &desc);
-#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__SWSEG
-  /* The exception code segment needs to be readable so that the general
-   * protection fault handler can decode instructions, but the interrupt and
-   * user level code segments should not be.
-   */
-  SEG_SET_FLAG(desc, TYPE, SEG_TYPE_CODE_EX);
-#endif
+  KERN_READL(dom_id, dcd->dom_id);
 
-  SEG_SET_FLAG(desc, DPL, PRIV_LVL_INT);
-  gdt_insert(GDT_IDX_CODE_INT, desc);
+  if(PROT_DOMAINS_ACTUAL_CNT <= dom_id) {
+    halt();
+  }
 
-  SEG_SET_FLAG(desc, DPL, PRIV_LVL_USER);
-  gdt_insert(GDT_IDX_CODE, desc);
+  dkd = prot_domains_kern_data + dom_id;
 
-  PROT_DOMAINS_INIT_ID(kern_dcd);
-  prot_domains_reg(&kern_dcd, 0, 0, 0, 0, true);
-  PROT_DOMAINS_INIT_ID(app_dcd);
-  prot_domains_reg(&app_dcd, 0, 0, 0, 0, false);
+  prot_domains_reg_multi_seg(dkd, mmio, mmio_sz, meta, meta_sz);
 
-  prot_domains_impl_init();
+  KERN_WRITEL(dkd->flags, pio ? PROT_DOMAINS_FLAG_PIO : 0);
 }
 /*---------------------------------------------------------------------------*/
+static inline void __attribute__((always_inline))
+prot_domains_switch(dom_id_t from_id, dom_id_t to_id,
+                    interrupt_stack_t *intr_stk)
+{
+  __asm__ __volatile__ (
+    "lldt %[_ldt_]\n\t"
+    "mov %[_meta_seg_], %%eax\n\t"
+    "lsl %%eax, %%ecx\n\t"
+    "jz 1f\n\t" /* ZF will only be set if the segment descriptor is valid. */
+    "xor %%eax, %%eax\n\t" /* Nullify metadata selector */
+    "1: mov %%eax, %%" SEG_META "s\n\t"
+    "mov %[_kern_seg_], %%eax\n\t"
+    "mov %%eax, %%" SEG_KERN "s\n\t"
+    :
+    : [_ldt_] "r" ((uint16_t)GDT_SEL_LDT(to_id)),
+      [_meta_seg_] "i" (LDT_SEL_META),
+      [_kern_seg_] "i" (LDT_SEL_KERN)
+    : "cc", "eax", "ecx"
+    );
+}
+/*---------------------------------------------------------------------------*/
+
+/* Enable inter-procedural optimization with procedures in the following file:
+ */
+#include "syscalls-int.c"

@@ -6,11 +6,12 @@ Introduction
 
 The X86 port of Contiki implements a simple, lightweight form of
 protection domains using a pluggable framework.  Currently, there are
-two plugins available:
+three plugins available:
 
  - Flat memory model with paging.
- - Multi-segment memory model with hardware-switched segments based on
-   Task-State Segment (TSS) structures.
+ - Multi-segment memory model with either hardware- or
+   software-switched segments.  The hardware-switched segments
+   approach is based on Task-State Segment (TSS) structures.
 
 For an introduction to paging and TSS and possible ways in which they
 can be used, refer to the following resources:
@@ -144,8 +145,8 @@ Similarly, register contents may be accessed and modified across
 protection domain boundaries in some protection domain
 implementations.  The TSS task switching mechanism automatically saves
 and restores many registers to and from TSS data structures when
-switching tasks, but the paging-based protection domain implementation
-does not perform analogous operations.
+switching tasks, but the other protection domain implementations do
+not perform analogous operations.
 
 For the reasons described above, each protection domain should only
 invoke other protection domains that it trusts to properly handle data
@@ -847,6 +848,25 @@ in an unexpected manner, since segment register load instructions are
 unprivileged.  Similar segment register updates must be performed for
 similar reasons when dispatching system calls.
 
+### Software-Switched Segment-Based Protection Domains
+
+Primary implementation sources:
+
+ - cpu/x86/mm/swseg-prot-domains.c
+
+The requirement to allocate a TSS for each protection domain in the
+hardware-switched segments plugin may consume a substantial amount of
+space, since the size of each TSS is fixed by hardware to be at least
+104 bytes.  The software-switched segments plugin saves space by
+defining a more compact PDCS.  However, the layout and definitions of
+the segments is identical to what was described above for the
+hardware-switched segments plugin.
+
+The system call and return procedure is mostly identical to that for
+paging-based protection domains.  However, instead of updating and
+invalidating page tables, the dispatchers update the LDT and some of
+the segment registers.
+
 ### Pointer Validation
 
 Primary implementation sources:
@@ -957,6 +977,7 @@ the command line and specify one of the following options:
 
  - paging
  - tss
+ - swseg
 
 The paging option accepts a sub-option to determine whether the TLB is
 fully- or selectively-invalidated during protection domain switches.

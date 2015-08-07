@@ -33,6 +33,10 @@
 #include "gdt-layout.h"
 #include "stacks.h"
 
+/* Must match definitions (plus the trailing 's') in multi-segment.h */
+#define SEG_MMIO fs
+#define SEG_KERN fs
+
 .text
 
 /* Invoke the system call return dispatcher from the default privilege
@@ -42,21 +46,57 @@
 prot_domains_sysret_stub:
   int $PROT_DOMAINS_SYSRET_DISPATCH_INT
 
+.macro save_segs
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__SWSEG
+  /* Save (and restore, in restore_segs) MMIO segment register into
+   * callee-saved register in case a system call was invoked from a region in
+   * which MMIO is enabled.
+   */
+  push %SEG_MMIO
+#endif
+.endm
+
+.macro restore_segs
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__SWSEG
+  pop %SEG_MMIO
+#endif
+.endm
+
+/* Refresh most of the segment registers in case they were corrupted by
+ * userspace code to prevent that from corrupting the operation of the
+ * privileged code.
+ */
+.macro load_kern_segs
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__SWSEG
+  mov $GDT_SEL_DATA, %eax
+  mov %eax, %ds
+  mov %eax, %es
+  mov $GDT_SEL_DATA_KERN_EXC, %eax
+  mov %eax, %SEG_KERN
+#endif
+.endm
+
 /* Invoke the system call dispatcher C routine */
 .global prot_domains_syscall_dispatcher
 prot_domains_syscall_dispatcher:
   mov %esp, %ecx /*< interrupt_stack_t *intr_stk */
   /* EDX already set to "dom_client_data_t to_dcd" by syscall stub */
-  push %eax /*< syscalls_id_t syscall_id */
+  save_segs
+  push %eax /*< syscalls_entrypoint_t *syscall */
+  load_kern_segs
   call prot_domains_syscall_dispatcher_impl
   /* fastcall convention, so callee pops arguments */
+  restore_segs
   iret
 
 /* Invoke the system call return dispatcher C routine */
 .global prot_domains_sysret_dispatcher
 prot_domains_sysret_dispatcher:
   mov %esp, %ecx /*< interrupt_stack_t *intr_stk */
+  save_segs
+  load_kern_segs
   call prot_domains_sysret_dispatcher_impl
+  restore_segs
   /* Zero caller-saved registers in case they contain secrets.  The system call
    * handlers and dispatchers need to preserve the callee-saved registers.
    */
@@ -67,11 +107,17 @@ prot_domains_sysret_dispatcher:
 
 .global prot_domains_launch_kernel
 prot_domains_launch_kernel:
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__PAGING
   mov $GDT_SEL_DATA, %eax
   mov %eax, %ds
   mov %eax, %es
   mov %eax, %fs
   mov %eax, %gs
+#else
+  mov $GDT_SEL_LDT(DOM_ID_kern), %eax
+  lldt %ax
+  call multi_segment_launch_kernel
+#endif
   /* init interrupt return stack: */
   pushl $GDT_SEL_STK
   lea stacks_main, %eax
