@@ -298,8 +298,13 @@ main(void)
     node_mac[7] = node_id & 0xff;
   }
 #endif
-  /* TODO initialize random with a seed from the SoC random generator */
-  random_init(node_mac[0] + node_mac[7] + node_id);
+
+  /* Initialize random with a seed from the SoC random generator.
+   * This must be done before selecting the high-precision external oscillator.
+   */
+  vAHI_StartRandomNumberGenerator(E_AHI_RND_SINGLE_SHOT, E_AHI_INTS_DISABLED);
+  random_init(u16AHI_ReadRandomNumber());
+
   process_init();
   ctimer_init();
   uart0_init(UART_BAUD_RATE); /* Must come before first PRINTF */
