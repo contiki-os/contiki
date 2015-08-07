@@ -52,10 +52,10 @@ typedef enum{
 
 /* Mapping of DIO port connections to buttons. Use as mask to get button value */
 #define APP_PORT_BUTTON_SW0   (8)
-#define APP_PORT_BUTTON_SW1		(11)
-#define APP_PORT_BUTTON_SW2		(12)
-#define APP_PORT_BUTTON_SW3		(17)
-#define APP_PORT_BUTTON_SW4		(1)
+#define APP_PORT_BUTTON_SW1    (11)
+#define APP_PORT_BUTTON_SW2    (12)
+#define APP_PORT_BUTTON_SW3    (17)
+#define APP_PORT_BUTTON_SW4    (1)
 
 /* Definition of port masks based on button mapping */ 
 #define APP_BUTTONS_DIO_MASK  ((1 << APP_PORT_BUTTON_SW0) | \
@@ -111,28 +111,26 @@ configure(int type, int value)
     return 1;  
   } else if(type == SENSORS_ACTIVE) {
     if(buttons_status != BUTTONS_STATUS_NOT_INIT) {
-    	if(value){
+      if(value){
         /* Button sensor activated */
         PRINTF("BUTTONS ACTIVATED\n");
         buttons_status = BUTTONS_STATUS_ACTIVE;
-  		} else {
+      } else {
         /* Button sensor de-activated */
         PRINTF("BUTTONS DE-ACTIVATED\n");
         buttons_status = BUTTONS_STATUS_NOT_ACTIVE;
       }
       process_post(&key_sampling, PROCESS_EVENT_MSG, (void *)&buttons_status);
       return 1;
-    }      
-    else {
+    } else {
       /* Buttons must be intialised before being (de)-activated */
- 		  PRINTF("ERROR: NO HW_INIT BUTTONS\n");
- 		  return 0;
+       PRINTF("ERROR: NO HW_INIT BUTTONS\n");
+       return 0;
     }
-  }
-  /* Non valid type */
-  else {		
+  } else {
+    /* Non valid type */
     return 0;
-	}
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -199,8 +197,7 @@ PROCESS_THREAD(key_sampling, ev, data)
           /* Bouncing */
           previous_key_value = current_key_value;
         }
-      }
-      else {
+      } else {
         /* Check for new key change */
         if(current_key_value != previous_key_value) {
           previous_key_value = current_key_value;
@@ -208,8 +205,7 @@ PROCESS_THREAD(key_sampling, ev, data)
         }     
       }
       etimer_reset(&et);
-    }
-    else {
+    } else {
       /* ev == PROCESS_EVENT_MSG */
       if(*(int*)data == BUTTONS_STATUS_NOT_ACTIVE) {
         /* Stop sampling */

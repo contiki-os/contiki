@@ -248,7 +248,7 @@ uart_driver_set_input(uint8_t uart_dev, int
  * buffer, then return FALSE
  *
  * PARAMETERS:      Name            RW  Usage
- *                  uart_dev		  	R   UART to use, eg, E_AHI_UART_0
+ *                  uart_dev        R   UART to use, eg, E_AHI_UART_0
  *
  * RETURNS:
  * TRUE if a byte has been read from the queue
@@ -545,10 +545,10 @@ uart_driver_set_high_baudrate(uint8_t uart_dev, uint32_t baud_rate)
  * Interrupt service callback for UART's
  *
  * PARAMETERS:        Name          RW  Usage
- *                    device_id	  	R   Device ID of whatever generated the
- *										                  interrupt
- *			          		item_bitmap	  R 	Which part of the device generated
- *									                	  the interrupt
+ *                    device_id     R   Device ID of whatever generated the
+ *                                      interrupt
+ *                    item_bitmap   R   Which part of the device generated
+ *                                      the interrupt
  *
  * RETURNS:
  * void

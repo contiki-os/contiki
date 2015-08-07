@@ -80,31 +80,31 @@ configure(int type, int value)
     return 1;  
   } else if(type == SENSORS_ACTIVE) {
     if(light_sensor_status != LIGHT_SENSOR_STATUS_NOT_INIT) {
-    	if(value){
-    	  /* ACTIVATE SENSOR */
+      if(value){
+        /* ACTIVATE SENSOR */
         vALSreset();
         prev_light_event_val = 0;
         /* Activate light sensor. Use channel 0. (Channel 1 = IR). Start sampling */
         PRINTF("LIGHT SENSOR ACTIVATED\n");
         light_sensor_status = LIGHT_SENSOR_STATUS_ACTIVE;
         process_post(&LightSensorSampling, PROCESS_EVENT_MSG, (void *)&light_sensor_status);
-  		} else {
-    	  /* DE-ACTIVATE SENSOR */
+      } else {
+        /* DE-ACTIVATE SENSOR */
         vALSpowerDown();
         PRINTF("LIGHT SENSOR DE-ACTIVATED\n");
         light_sensor_status = LIGHT_SENSOR_STATUS_NOT_ACTIVE;
         process_post(&LightSensorSampling, PROCESS_EVENT_MSG, (void *)&light_sensor_status);
-  		}	
+      }  
       return 1;
     } else {
       /* Light sensor must be intialised before being (de)-activated */
- 		  PRINTF("ERROR: NO HW_INIT LIGHT SENSOR\n");
- 		  return 0;
+       PRINTF("ERROR: NO HW_INIT LIGHT SENSOR\n");
+       return 0;
     }
   } else {
     /* Non valid type */
     return 0;
-	}
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int

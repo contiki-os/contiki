@@ -70,7 +70,7 @@ watchdog_periodic(void)
 {
   /* This function is called periodically to restart the watchdog
      timer. */
-	 vAHI_WatchdogRestart();
+  vAHI_WatchdogRestart();
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -85,6 +85,6 @@ watchdog_stop(void)
 void
 watchdog_reboot(void)
 {
-	vAHI_SwReset();
+  vAHI_SwReset();
 }
 /*---------------------------------------------------------------------------*/

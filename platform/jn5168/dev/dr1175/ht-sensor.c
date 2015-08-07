@@ -81,8 +81,8 @@ configure(int type, int value)
     return 1;  
   } else if(type == SENSORS_ACTIVE) {
     if(ht_sensor_status != HT_SENSOR_STATUS_NOT_INIT) {
-    	if(value){
-    	  /* ACTIVATE SENSOR */
+      if(value){
+        /* ACTIVATE SENSOR */
         vHTSreset();
         prev_temp_event_val = 0;
         prev_hum_event_val = 0;
@@ -90,22 +90,22 @@ configure(int type, int value)
         PRINTF("HT SENSOR ACTIVATED\n");
         ht_sensor_status = HT_SENSOR_STATUS_ACTIVE;
         process_post(&HTSensorSampling, PROCESS_EVENT_MSG, (void *)&ht_sensor_status);
-  		} else {
-    	  /* DE-ACTIVATE SENSOR */
+      } else {
+        /* DE-ACTIVATE SENSOR */
         PRINTF("HT SENSOR DE-ACTIVATED\n");
         ht_sensor_status = HT_SENSOR_STATUS_NOT_ACTIVE;
         process_post(&HTSensorSampling, PROCESS_EVENT_MSG, (void *)&ht_sensor_status);
-  		}	
+      }  
       return 1;
     } else {
       /* HT sensor must be intialised before being (de)-activated */
- 		  PRINTF("ERROR: NO HW_INIT HT SENSOR\n");
- 		  return 0;
+       PRINTF("ERROR: NO HW_INIT HT SENSOR\n");
+       return 0;
     }
   } else {
     /* Non valid type */
     return 0;
-	}
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
