@@ -62,7 +62,8 @@ CFLAGS  := $(subst -Wall,,$(CFLAGS))
 ARCH=clock.c rtimer-arch.c slip_uart0.c uart0.c uart-driver.c watchdog.c \
  leds.c leds-arch.c \
  micromac-radio.c node-id.c exceptions.c sprintf.c \
- ht-sensor.c light-sensor.c button-sensor.c pot-sensor.c
+ ht-sensor.c light-sensor.c button-sensor.c pot-sensor.c \
+ uip-ipchksum.c log.c
 
 APPLIBS += MMAC 
 STACKLIBS += JPT
