@@ -266,6 +266,26 @@ set_rime_addr(void)
 #endif
 }
 /*---------------------------------------------------------------------------*/
+#if USE_EXTERNAL_OSCILLATOR
+static bool_t
+init_xosc(void)
+{
+  /* The internal 32kHz RC oscillator is used by default;
+   * Initialize and enable the external 32.768kHz crystal for better accuracy.
+   */
+  vAHI_Init32KhzXtal();
+  /* wait for 1.0 seconds for the crystal to stabilize */
+  clock_time_t start = clock_time();
+  clock_time_t now;
+  do {
+      now = clock_time();
+      watchdog_periodic();
+  } while(now - start < CLOCK_SECOND);
+  /* switch to the 32.768 kHz crystal */
+  return bAHI_Set32KhzClockMode(E_AHI_XTAL);
+}
+#endif
+/*---------------------------------------------------------------------------*/
 #if WITH_TINYOS_AUTO_IDS
 uint16_t TOS_NODE_ID = 0x1234; /* non-zero */
 uint16_t TOS_LOCAL_ADDRESS = 0x1234; /* non-zero */
@@ -308,6 +328,10 @@ main(void)
   process_init();
   ctimer_init();
   uart0_init(UART_BAUD_RATE); /* Must come before first PRINTF */
+
+#if USE_EXTERNAL_OSCILLATOR
+  init_xosc();
+#endif
 
 #if NETSTACK_CONF_WITH_IPV4
   slip_arch_init(UART_BAUD_RATE);
