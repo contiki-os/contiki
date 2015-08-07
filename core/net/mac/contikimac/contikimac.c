@@ -191,6 +191,12 @@ static int we_are_receiving_burst = 0;
 #define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
 #endif
 
+#if RTIMER_ARCH_SECOND < (1 << 15)
+#define CONTIKIMAC_RTIMER_GUARD_TIME       1
+#else
+#define CONTIKIMAC_RTIMER_GUARD_TIME       (RTIMER_ARCH_SECOND >> 15)
+#endif
+
 /* MAX_PHASE_STROBE_TIME is the time that we transmit repeated packets
    to a neighbor for which we have a phase lock. */
 #define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 60
@@ -260,14 +266,17 @@ static void
 schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
 {
   int r;
+  rtimer_clock_t now;
 
   if(contikimac_is_on) {
 
-    if(RTIMER_CLOCK_LT(RTIMER_TIME(t) + time, RTIMER_NOW() + 2)) {
-      time = RTIMER_NOW() - RTIMER_TIME(t) + 2;
+    time += RTIMER_TIME(t);
+    now = RTIMER_NOW();
+    if(RTIMER_CLOCK_LT(time, now + CONTIKIMAC_RTIMER_GUARD_TIME)) {
+      time = now + CONTIKIMAC_RTIMER_GUARD_TIME;
     }
 
-    r = rtimer_set(t, RTIMER_TIME(t) + time, 1,
+    r = rtimer_set(t, time, 1,
                    (void (*)(struct rtimer *, void *))powercycle, NULL);
     if(r != RTIMER_OK) {
       PRINTF("schedule_powercycle: could not set rtimer\n");
@@ -279,11 +288,13 @@ static void
 schedule_powercycle_fixed(struct rtimer *t, rtimer_clock_t fixed_time)
 {
   int r;
+  rtimer_clock_t now;
 
   if(contikimac_is_on) {
 
-    if(RTIMER_CLOCK_LT(fixed_time, RTIMER_NOW() + 1)) {
-      fixed_time = RTIMER_NOW() + 1;
+    now = RTIMER_NOW();
+    if(RTIMER_CLOCK_LT(fixed_time, now + CONTIKIMAC_RTIMER_GUARD_TIME)) {
+      fixed_time = now + CONTIKIMAC_RTIMER_GUARD_TIME;
     }
 
     r = rtimer_set(t, fixed_time, 1,
