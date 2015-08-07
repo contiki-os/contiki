@@ -74,15 +74,14 @@ PROCESS(HTSensorSampling, "Humidity/Temperature sensor");
 static int
 configure(int type, int value)
 {
-  if (type == SENSORS_HW_INIT) {
+  if(type == SENSORS_HW_INIT) {
     PRINTF("SENSORS_HW_INIT\n");
     ht_sensor_status = HT_SENSOR_STATUS_INIT;
     process_start(&HTSensorSampling, NULL);
     return 1;  
-  } 
-  else if (type == SENSORS_ACTIVE) {
-    if (ht_sensor_status != HT_SENSOR_STATUS_NOT_INIT) {
-    	if (value){
+  } else if(type == SENSORS_ACTIVE) {
+    if(ht_sensor_status != HT_SENSOR_STATUS_NOT_INIT) {
+    	if(value){
     	  /* ACTIVATE SENSOR */
         vHTSreset();
         prev_temp_event_val = 0;
@@ -103,9 +102,8 @@ configure(int type, int value)
  		  PRINTF("ERROR: NO HW_INIT HT SENSOR\n");
  		  return 0;
     }
-  }
-  /* Non valid type */
-  else {		
+  } else {
+    /* Non valid type */
     return 0;
 	}
 }
@@ -113,10 +111,9 @@ configure(int type, int value)
 static int
 status(int type)
 {
-  if (type == SENSORS_ACTIVE) {
+  if(type == SENSORS_ACTIVE) {
     return (ht_sensor_status == HT_SENSOR_STATUS_ACTIVE);
-  }
-  else if (type == SENSORS_READY) {
+  } else if(type == SENSORS_READY) {
     return (ht_sensor_status != HT_SENSOR_STATUS_NOT_INIT);
   }
   return 0;
@@ -127,7 +124,7 @@ value(int type)
 {
   /* type: HT_SENSOR_TEMP is to return temperature
            !=HT_SENSOR_TEMP is to return humidity */
-  if (type == HT_SENSOR_TEMP) {
+  if(type == HT_SENSOR_TEMP) {
     return temp_sensor_value;
   } else {
     return hum_sensor_value;
@@ -149,8 +146,7 @@ PROCESS_THREAD(HTSensorSampling, ev, data)
   etimer_set(&et, CLOCK_SECOND);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL((ev == PROCESS_EVENT_TIMER) || (ev == PROCESS_EVENT_MSG));
-    if (ev == PROCESS_EVENT_TIMER)
-    {
+    if(ev == PROCESS_EVENT_TIMER) {
       /* Handle sensor reading. */
       vHTSstartReadTemp();
       temp_sensor_value = u16HTSreadTempResult();
@@ -158,7 +154,7 @@ PROCESS_THREAD(HTSensorSampling, ev, data)
       vHTSstartReadHumidity();
       hum_sensor_value = u16HTSreadHumidityResult();
       PRINTF("Humidity sample: %d\n", hum_sensor_value);
-      if ( (abs(temp_sensor_value - prev_temp_event_val) > DELTA_TEMP_SENSOR_VALUE) ||
+      if( (abs(temp_sensor_value - prev_temp_event_val) > DELTA_TEMP_SENSOR_VALUE) ||
            (abs(hum_sensor_value  - prev_hum_event_val)  > DELTA_HUM_SENSOR_VALUE) ) {
         prev_temp_event_val = temp_sensor_value;
         prev_hum_event_val  = hum_sensor_value;
@@ -167,10 +163,10 @@ PROCESS_THREAD(HTSensorSampling, ev, data)
       etimer_reset(&et);
     } else {
       /* ev == PROCESS_EVENT_MSG */
-      if (*(int*)data == HT_SENSOR_STATUS_NOT_ACTIVE) {
+      if(*(int*)data == HT_SENSOR_STATUS_NOT_ACTIVE) {
         /* Stop sampling */
         etimer_stop(&et);
-      } else if ((*(int*)data == HT_SENSOR_STATUS_ACTIVE)) {
+      } else if((*(int*)data == HT_SENSOR_STATUS_ACTIVE)) {
         /* restart sampling */
         etimer_restart(&et);
       }

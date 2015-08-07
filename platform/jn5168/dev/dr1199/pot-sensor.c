@@ -71,15 +71,14 @@ PROCESS(POTSampling, "POT");
 static int
 configure(int type, int value)
 {
-  if (type == SENSORS_HW_INIT) {
+  if(type == SENSORS_HW_INIT) {
     pot_status = POT_STATUS_INIT;
     bPotEnable();
     process_start(&POTSampling, NULL);
     return 1;  
-  } 
-  else if (type == SENSORS_ACTIVE) {
-    if (pot_status != POT_STATUS_NOT_INIT) {
-    	if (value){
+  } else if(type == SENSORS_ACTIVE) {
+    if(pot_status != POT_STATUS_NOT_INIT) {
+    	if(value){
     	  /* ACTIVATE SENSOR  */
         bPotEnable();
         prev_pot_event_val = 0;
@@ -95,16 +94,14 @@ configure(int type, int value)
         process_post(&POTSampling, PROCESS_EVENT_MSG, (void *)&pot_status);
   		}	
       return 1;
-    }
-    else {
+    } else {
       /* 
       POT must be intialised before being (de)-activated */
  		  PRINTF("ERROR: NO HW_INIT POT\n");
  		  return 0;
     }
-  }
-  /* Non valid type */
-  else {		
+  } else {
+    /* Non valid type */
     return 0;
 	}
 }
@@ -112,10 +109,9 @@ configure(int type, int value)
 static int
 status(int type)
 {
-  if (type == SENSORS_ACTIVE) {
+  if(type == SENSORS_ACTIVE) {
     return (pot_status == POT_STATUS_ACTIVE);
-  }
-  else if (type == SENSORS_READY) {
+  } else if(type == SENSORS_READY) {
     return (pot_status != POT_STATUS_NOT_INIT);
   }
   return 0;
@@ -143,24 +139,22 @@ PROCESS_THREAD(POTSampling, ev, data)
   etimer_set(&et, CLOCK_SECOND/10);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL((ev == PROCESS_EVENT_TIMER) || (ev == PROCESS_EVENT_MSG));
-    if (ev == PROCESS_EVENT_TIMER) {
+    if(ev == PROCESS_EVENT_TIMER) {
       /* Handle sensor reading.   */
       PRINTF("POT sample\n");
       pot_value = u16ReadPotValue(); 
       PRINTF("POT = %d\n", pot_value);
-      if (abs(pot_value - prev_pot_event_val) > DELTA_POT_VALUE) {
+      if(abs(pot_value - prev_pot_event_val) > DELTA_POT_VALUE) {
         prev_pot_event_val = pot_value;
         sensors_changed(&pot_sensor);
       }
       etimer_reset(&et);
-    }
-    else {
+    } else {
       /* ev == PROCESS_EVENT_MSG */
-      if (*(int*)data == POT_STATUS_NOT_ACTIVE) {
+      if(*(int*)data == POT_STATUS_NOT_ACTIVE) {
         /* Stop sampling */
         etimer_stop(&et);
-      }
-      else if ((*(int*)data == POT_STATUS_ACTIVE)) {
+      } else if((*(int*)data == POT_STATUS_ACTIVE)) {
         /* restart sampling */
         etimer_restart(&et);
       }

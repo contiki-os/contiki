@@ -64,11 +64,13 @@ static void outDgt(char dgt) {
 
 static void divOut(unsigned int div) {
   unsigned char dgt=0;
-  while (num>=div) {
+  while(num>=div) {
     num -= div;
     dgt++;
   }
-  if (zs || dgt>0) outDgt(dgt);
+  if(zs || dgt>0) {
+    outDgt(dgt);
+  }
 }
 
 int vsnprintf(char *str, size_t n, const char *fmt, __VALIST va)
@@ -76,20 +78,20 @@ int vsnprintf(char *str, size_t n, const char *fmt, __VALIST va)
   char ch, *p, *str_orig = str;
   char next_ch;
 
-  while ((ch=*fmt++) && str-str_orig < n) {
-    if (ch!='%') {
+  while((ch=*fmt++) && str-str_orig < n) {
+    if(ch!='%') {
       *str++ = ch;
     } else {
       char lz=0;
       char w=0;
       ch=*(fmt++);
-      if (ch=='0') {
+      if(ch=='0') {
         ch=*(fmt++);
         lz=1;
       }
-      if (ch>='0' && ch<='9') {
+      if(ch>='0' && ch<='9') {
         w=0;
-        while (ch>='0' && ch<='9') {
+        while(ch>='0' && ch<='9') {
           w=(((w<<2)+w)<<1)+ch-'0';
           ch=*fmt++;
         }
@@ -99,7 +101,7 @@ int vsnprintf(char *str, size_t n, const char *fmt, __VALIST va)
       zs=0;
       start_format:
       next_ch = *fmt;
-      switch (ch) {
+      switch(ch) {
       case 0:
         goto abort;
       case 'l':
@@ -113,7 +115,7 @@ int vsnprintf(char *str, size_t n, const char *fmt, __VALIST va)
       case 'u':
       case 'd':
         num=va_arg(va, unsigned int);
-        if (ch=='d' && (int)num<0) {
+        if(ch=='d' && (int)num<0) {
           num = -(int)num;
           out('-');
         }
@@ -157,18 +159,23 @@ int vsnprintf(char *str, size_t n, const char *fmt, __VALIST va)
       *bf=0;
       bf=p;
 
-      while (*bf++ && w > 0)
+      while(*bf++ && w > 0) {
         w--;
-      while (w-- > 0)
-        if (str-str_orig < n)
+      }
+      while(w-- > 0) {
+        if(str-str_orig < n) {
           *str++ = lz ? '0' : ' ';
-        else
+        } else {
           goto abort;
-      while ((ch= *p++))
-        if (str-str_orig < n)
+        }
+      }
+      while((ch= *p++)) {
+        if(str-str_orig < n) {
           *str++ = ch;
-        else
+        } else {
           goto abort;
+        }
+      }
     }
   }
 
@@ -209,15 +216,16 @@ int printf(const char *fmt, ...)
   va_start(va,fmt);
   m = vsnprintf(str, sizeof(str), fmt, va);
   va_end(va);
-  for (i=0;i<m;i++)
+  for(i=0;i<m;i++) {
     putchar(str[i]);
+  }
   return m;
 }
 
 int puts(const char *s)
 {
   char c;
-  while (c=*s++)
+  while(c=*s++)
     putchar(c);
   putchar('\n');
   return strlen(s);

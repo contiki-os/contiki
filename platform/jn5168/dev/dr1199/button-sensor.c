@@ -98,7 +98,7 @@ static int get_key_value(void);
 static int
 configure(int type, int value)
 {
-  if (type == SENSORS_HW_INIT) {
+  if(type == SENSORS_HW_INIT) {
     /* Called from sensor thread when started.
        Configure DIO lines with buttons connected as input */
     vAHI_DioSetDirection(APP_BUTTONS_DIO_MASK, 0);
@@ -109,10 +109,9 @@ configure(int type, int value)
     buttons_status = BUTTONS_STATUS_INIT;
     process_start(&key_sampling, NULL);
     return 1;  
-  } 
-  else if (type == SENSORS_ACTIVE) {
-    if (buttons_status != BUTTONS_STATUS_NOT_INIT) {
-    	if (value){
+  } else if(type == SENSORS_ACTIVE) {
+    if(buttons_status != BUTTONS_STATUS_NOT_INIT) {
+    	if(value){
         /* Button sensor activated */
         PRINTF("BUTTONS ACTIVATED\n");
         buttons_status = BUTTONS_STATUS_ACTIVE;
@@ -139,10 +138,9 @@ configure(int type, int value)
 static int
 status(int type)
 {
-  if (type == SENSORS_ACTIVE) {
+  if(type == SENSORS_ACTIVE) {
     return (buttons_status == BUTTONS_STATUS_ACTIVE);
-  }
-  else if (type == SENSORS_READY) {
+  } else if(type == SENSORS_READY) {
     return (buttons_status != BUTTONS_STATUS_NOT_INIT);
   }
   return 0;
@@ -165,8 +163,8 @@ static int get_key_value(void)
   int k = 0;
   int key = 0;
   
-  while (k < APP_E_BUTTON_NUM) {
-    if (io_value & (1 << key_map[k])) {
+  while(k < APP_E_BUTTON_NUM) {
+    if(io_value & (1 << key_map[k])) {
       key |= (1 << k);
     }
     k++;
@@ -187,13 +185,13 @@ PROCESS_THREAD(key_sampling, ev, data)
   etimer_set(&et, CLOCK_SECOND/50);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL((ev == PROCESS_EVENT_TIMER) || (ev == PROCESS_EVENT_MSG));
-    if (ev == PROCESS_EVENT_TIMER) {
+    if(ev == PROCESS_EVENT_TIMER) {
       /* Handle sensor reading.   */
       PRINTF("Key sample\n");
       current_key_value = get_key_value(); 
-      if (debounce_check != 0) {
+      if(debounce_check != 0) {
         /* Check if key remained constant */
-        if (previous_key_value == current_key_value) {
+        if(previous_key_value == current_key_value) {
           sensors_changed(&button_sensor);
           key_value = current_key_value;
           debounce_check = 0;
@@ -204,7 +202,7 @@ PROCESS_THREAD(key_sampling, ev, data)
       }
       else {
         /* Check for new key change */
-        if (current_key_value != previous_key_value) {
+        if(current_key_value != previous_key_value) {
           previous_key_value = current_key_value;
           debounce_check = 1;   
         }     
@@ -213,11 +211,10 @@ PROCESS_THREAD(key_sampling, ev, data)
     }
     else {
       /* ev == PROCESS_EVENT_MSG */
-      if (*(int*)data == BUTTONS_STATUS_NOT_ACTIVE) {
+      if(*(int*)data == BUTTONS_STATUS_NOT_ACTIVE) {
         /* Stop sampling */
         etimer_stop(&et);
-      }
-      else if ((*(int*)data == BUTTONS_STATUS_ACTIVE)) {
+      } else if((*(int*)data == BUTTONS_STATUS_ACTIVE)) {
         /* restart sampling */
         etimer_restart(&et);
       }

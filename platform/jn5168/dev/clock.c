@@ -85,11 +85,11 @@ clockTimerISR(uint32 u32Device, uint32 u32ItemBitmap)
 	watchdog_start();
 
 	clock_ticks++;
-	if (clock_ticks % CLOCK_CONF_SECOND == 0) {
+	if(clock_ticks % CLOCK_CONF_SECOND == 0) {
 		++seconds;
 		energest_flush();
 	}
-	if (etimer_pending() && (etimer_next_expiration_time() - clock_ticks - 1) > MAX_TICKS) {
+	if(etimer_pending() && (etimer_next_expiration_time() - clock_ticks - 1) > MAX_TICKS) {
 		etimer_request_poll();
 		/* TODO exit low-power mode */
 	}
@@ -143,7 +143,7 @@ clock_init(void)
 	bAHI_SetClockRate(E_AHI_XTAL_32MHZ);
 
   /* Wait for oscillator to stabilise */
-  while (bAHI_GetClkSource() == 1);
+  while(bAHI_GetClkSource() == 1);
   while(bAHI_Clock32MHzStable() == 0);
 
   vAHI_OptimiseWaitStates();
