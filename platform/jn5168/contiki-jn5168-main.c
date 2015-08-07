@@ -314,7 +314,7 @@ main(void)
 #endif /* NETSTACK_CONF_WITH_IPV4 */
 
   /* check for reset source */
-  if (bAHI_WatchdogResetEvent()) {
+  if(bAHI_WatchdogResetEvent()) {
 		PRINTF("Init: Watchdog timer has reset device!\r\n");
 	}
 
@@ -342,14 +342,7 @@ main(void)
 
 #if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
-
   queuebuf_init();
-  NETSTACK_RDC.init();
-  NETSTACK_MAC.init();
-#else
-  NETSTACK_RDC.init();
-  NETSTACK_MAC.init();
-  NETSTACK_NETWORK.init();
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   PRINTF("%s %s %s\n", NETSTACK_LLSEC.name, NETSTACK_MAC.name, NETSTACK_RDC.name);
@@ -442,14 +435,14 @@ void
 AppColdStart(void)
 {
   /* After reset or sleep with memory off */
-	main();
-
+  main();
 }
 /*---------------------------------------------------------------------------*/
 void
 AppWarmStart(void)
 {
-  /* TODO Wakeup after sleep with memory on
-   * Need to initialize devices but not the application state */
-	main();
+  /* Wakeup after sleep with memory on.
+   * TODO: Need to initialize devices but not the application state */
+  main();
 }
+/*---------------------------------------------------------------------------*/
