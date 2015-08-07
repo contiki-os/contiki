@@ -433,20 +433,6 @@ main(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-#if LOG_CONF_ENABLED
-void
-log_message(char *m1, char *m2)
-{
-  printf("%s%s\n", m1, m2);
-}
-#endif /* LOG_CONF_ENABLED */
-/*---------------------------------------------------------------------------*/
-void
-uip_log(char *m)
-{
-  PRINTF("uip_log: %s\n", m);
-}
-/*---------------------------------------------------------------------------*/
 void
 AppColdStart(void)
 {
@@ -462,85 +448,3 @@ AppWarmStart(void)
    * Need to initialize devices but not the application state */
 	main();
 }
-/*---------------------------------------------------------------------------*/
-#if UIP_ARCH_ADD32
-void
-uip_add32(uint8_t *op32, uint16_t op16)
-{
-  uip_acc32[3] = op32[3] + (op16 & 0xff);
-  uip_acc32[2] = op32[2] + (op16 >> 8);
-  uip_acc32[1] = op32[1];
-  uip_acc32[0] = op32[0];
-
-  if(uip_acc32[2] < (op16 >> 8)) {
-    ++uip_acc32[1];
-    if(uip_acc32[1] == 0) {
-      ++uip_acc32[0];
-    }
-  }
-
-
-  if(uip_acc32[3] < (op16 & 0xff)) {
-    ++uip_acc32[2];
-    if(uip_acc32[2] == 0) {
-      ++uip_acc32[1];
-      if(uip_acc32[1] == 0) {
-	++uip_acc32[0];
-      }
-    }
-  }
-}
-
-#endif /* UIP_ARCH_ADD32 */
-
-#if UIP_ARCH_CHKSUM
-/*---------------------------------------------------------------------------*/
-static uint16_t
-chksum(uint16_t sum, const uint8_t *data, uint16_t len)
-{
-  uint16_t t;
-  const uint8_t *dataptr;
-  const uint8_t *last_byte;
-
-  dataptr = data;
-  last_byte = data + len - 1;
-
-  while(dataptr < last_byte) {	/* At least two more bytes */
-    t = (dataptr[0] << 8) + dataptr[1];
-    sum += t;
-    if(sum < t) {
-      sum++;		/* carry */
-    }
-    dataptr += 2;
-  }
-
-  if(dataptr == last_byte) {
-    t = (dataptr[0] << 8) + 0;
-    sum += t;
-    if(sum < t) {
-      sum++;		/* carry */
-    }
-  }
-
-  /* Return sum in host byte order. */
-  return sum;
-}
-/*---------------------------------------------------------------------------*/
-uint16_t
-uip_chksum(uint16_t *data, uint16_t len)
-{
-  return uip_htons(chksum(0, (uint8_t *)data, len));
-}
-#endif  /*UIP_ARCH_CHKSUM*/
-/*---------------------------------------------------------------------------*/
-#ifdef UIP_ARCH_IPCHKSUM
-uint16_t
-uip_ipchksum(void)
-{
-  uint16_t sum;
-
-  sum = chksum(0, &uip_buf[UIP_LLH_LEN], UIP_IPH_LEN);
-  DEBUG_PRINTF("uip_ipchksum: sum 0x%04x\n", sum);
-  return (sum == 0) ? 0xffff : uip_htons(sum);
-}
-#endif
