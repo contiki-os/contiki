@@ -45,5 +45,17 @@
 .global start
 start:
         cli
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
+        /* TSS-based protection domains use a multi-segment model that defines
+         * tight bounds around stacks.  That means that the bottom of the stack
+         * has an offset of 0, which is the address of the stacks_main symbol.
+         * The following code computes the physical load address of the top of
+         * the stack, which is what should be initially used as the stack
+         * pointer while the flat memory model is in use.
+         */
+        lea _sdata_addr, %eax
+        lea (stacks_main + STACKS_SIZE_MAIN)(%eax), %esp
+#else
         mov $(stacks_main + STACKS_SIZE_MAIN), %esp
+#endif
         call cpu_boot_stage0

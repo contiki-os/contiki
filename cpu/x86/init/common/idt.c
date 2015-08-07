@@ -43,17 +43,23 @@ typedef struct idtr {
   uint32_t base;
 } __attribute__((packed)) idtr_t;
 
-typedef struct intr_gate_desc {
-  uint16_t    offset_low;
-  uint16_t    selector;   /* Segment Selector for destination code segment */
-  uint16_t    fixed:11;
-  uint16_t    d:1;        /* Size of gate: 1 = 32 bits; 0 = 16 bits */
-  uint16_t    pad:1;
-  uint16_t    dpl:2;      /* Descriptor Privilege Level */
-  uint16_t    p:1;        /* Segment Present flag */
-  uint16_t    offset_high;
-
-} __attribute__((packed)) intr_gate_desc_t;
+typedef union intr_gate_desc {
+  struct __attribute__((packed)) {
+    uint16_t    offset_low;
+    uint16_t    selector;   /* Segment Selector for destination code segment */
+    uint16_t    fixed:11;
+    uint16_t    d:1;        /* Size of gate: 1 = 32 bits; 0 = 16 bits */
+    uint16_t    pad:1;
+    uint16_t    dpl:2;      /* Descriptor Privilege Level */
+    uint16_t    p:1;        /* Segment Present flag */
+    uint16_t    offset_high;
+  };
+  uint64_t raw;
+  struct {
+    uint32_t raw_lo;
+    uint32_t raw_hi;
+  };
+} intr_gate_desc_t;
 
 /* According to Intel Combined Manual, Vol. 3, Section 6.10, the base addresses
  * of the IDT should be aligned on an 8-byte boundary to maximize performance
@@ -73,15 +79,19 @@ idt_set_intr_gate_desc(int intr_num,
                        uint16_t cs,
                        uint16_t dpl)
 {
-  intr_gate_desc_t *desc = &idt[intr_num];
+  intr_gate_desc_t desc;
 
-  desc->offset_low = offset & 0xFFFF;
-  desc->selector = cs;
-  desc->fixed = BIT(9) | BIT(10);
-  desc->d = 1;
-  desc->dpl = dpl;
-  desc->p = 1;
-  desc->offset_high = (offset >> 16) & 0xFFFF;
+  desc.offset_low = offset & 0xFFFF;
+  desc.selector = cs;
+  desc.fixed = BIT(9) | BIT(10);
+  desc.pad = 0;
+  desc.d = 1;
+  desc.dpl = dpl;
+  desc.p = 1;
+  desc.offset_high = (offset >> 16) & 0xFFFF;
+
+  KERN_WRITEL(idt[intr_num].raw_hi, desc.raw_hi);
+  KERN_WRITEL(idt[intr_num].raw_lo, desc.raw_lo);
 }
 /*---------------------------------------------------------------------------*/
 /* Initialize Interrupt Descriptor Table. The IDT is initialized with
@@ -95,7 +105,7 @@ idt_init(void)
 
   /* Initialize idtr structure */
   idtr.limit = (sizeof(intr_gate_desc_t) * NUM_DESC) - 1;
-  idtr.base = (uint32_t)&idt;
+  idtr.base = KERN_DATA_OFF_TO_PHYS_ADDR((uint32_t)idt);
 
   /* Load IDTR register */
   __asm__("lidt %0\n\t" :: "m" (idtr));

@@ -138,7 +138,9 @@ SYSCALLS_DEFINE_SINGLETON(pci_irq_agent_set_pirq,
     offset = 0x3146;
   }
 
-  value = *(uint16_t*)(rcba_addr + offset);
+  prot_domains_enable_mmio();
+
+  MMIO_READW(value, *(uint16_t ATTR_MMIO_ADDR_SPACE *)(rcba_addr + offset));
 
   /* clear interrupt pin route and set corresponding pirq. */
   switch(pin) {
@@ -159,7 +161,9 @@ SYSCALLS_DEFINE_SINGLETON(pci_irq_agent_set_pirq,
     value |= (pirq << 12);
   }
 
-  *(uint16_t*)(rcba_addr + offset) = value;
+  MMIO_WRITEW(*(uint16_t ATTR_MMIO_ADDR_SPACE *)(rcba_addr + offset), value);
+
+  prot_domains_disable_mmio();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -231,7 +235,7 @@ pci_pirq_set_irq(PIRQ pirq, uint8_t irq, uint8_t route_to_legacy)
  * \param meta_sz  Size of optional driver-defined metadata.
  */
 void
-pci_init(pci_driver_t *c_this,
+pci_init(pci_driver_t ATTR_KERN_ADDR_SPACE *c_this,
          pci_config_addr_t pci_addr,
          size_t mmio_sz,
          uintptr_t meta,

@@ -59,8 +59,11 @@
 #define SEG_WIDTH_GRAN       1
 #define SEG_SHAMT_GRAN       15
 
+#define SEG_TYPE_DATA_RDONLY SEG_FLAG(TYPE, 0x00) /* Read only */
 #define SEG_TYPE_DATA_RDWR   SEG_FLAG(TYPE, 0x02) /* Read/Write */
 #define SEG_TYPE_CODE_EXRD   SEG_FLAG(TYPE, 0x0A) /* Execute/Read */
+#define SEG_TYPE_CODE_EX     SEG_FLAG(TYPE, 0x08) /* Execute only */
+#define SEG_TYPE_LDT         SEG_FLAG(TYPE, 0x02)
 #define SEG_TYPE_TSS32_AVAIL SEG_FLAG(TYPE, 0x09)
 
 #define SEG_DESCTYPE_SYS     SEG_FLAG(DESCTYPE, 0)
@@ -72,6 +75,12 @@
 
 #define SEG_GRAN_BYTE        SEG_FLAG(GRAN, 0)
 #define SEG_GRAN_PAGE        SEG_FLAG(GRAN, 1)
+
+/**
+ * Maximum length of segment that can be regulated with a byte-granularity
+ * segment limit.
+ */
+#define SEG_MAX_BYTE_GRAN_LEN (1 << 20)
 
 /**
  * Segment descriptor.  See Intel Combined Manual,
@@ -91,7 +100,13 @@ typedef union segment_desc {
   uint64_t raw;
 } segment_desc_t;
 
-static inline void
+#define SEG_DESC_NOT_PRESENT 0
+
+/* The next two functions are invoked by boot code, so they must always be
+ * inlined to avoid being placed in a different address space than the initial,
+ * flat address space.
+ */
+static inline void __attribute__((always_inline))
 segment_desc_set_limit(segment_desc_t *c_this, uint32_t len)
 {
   uint32_t limit = len - 1;
@@ -108,7 +123,7 @@ segment_desc_set_limit(segment_desc_t *c_this, uint32_t len)
  * \param flags  Flags to be added to the default flags: present, default
  *               operand size of 32 bits, and high limit bits.
  */
-static inline void
+static inline void __attribute__((always_inline))
 segment_desc_init(segment_desc_t *c_this,
                   uint32_t base, uint32_t len, uint16_t flags)
 {

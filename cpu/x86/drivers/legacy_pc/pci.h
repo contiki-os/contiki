@@ -102,7 +102,7 @@ void pci_command_enable(pci_config_addr_t addr, uint32_t flags);
 
 typedef dom_client_data_t pci_driver_t;
 
-void pci_init(pci_driver_t *c_this,
+void pci_init(pci_driver_t ATTR_KERN_ADDR_SPACE *c_this,
               pci_config_addr_t pci_addr,
               size_t mmio_sz,
               uintptr_t meta,
@@ -113,10 +113,12 @@ void pci_root_complex_init(void);
 void pci_root_complex_lock(void);
 
 #define PCI_MMIO_READL(c_this, dest, reg_addr)                                \
-  dest = *((volatile uint32_t *)                                              \
-    (((uintptr_t)PROT_DOMAINS_MMIO(c_this)) + (reg_addr)))
+  MMIO_READL(dest,                                                            \
+             *((volatile uint32_t ATTR_MMIO_ADDR_SPACE *)                     \
+               (((uintptr_t)PROT_DOMAINS_MMIO(c_this)) + (reg_addr))))
 #define PCI_MMIO_WRITEL(c_this, reg_addr, src)                                \
-  *((volatile uint32_t *)                                                     \
-    (((uintptr_t)PROT_DOMAINS_MMIO(c_this)) + (reg_addr))) = (src)
+  MMIO_WRITEL(*((volatile uint32_t ATTR_MMIO_ADDR_SPACE *)                    \
+                (((uintptr_t)PROT_DOMAINS_MMIO(c_this)) + (reg_addr))),       \
+              src)
 
 #endif /* CPU_X86_DRIVERS_LEGACY_PC_PCI_H_ */

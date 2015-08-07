@@ -42,8 +42,11 @@ double_fault_handler(struct interrupt_context context)
   halt();
 }
 /*---------------------------------------------------------------------------*/
-/* The OS has switched to its own segment descriptors.  However, the protection
- * domain support, if enabled, has not yet been fully activated.
+/* The OS has switched to its own segment descriptors.  When multi-segment
+ * protection domain support is enabled, this routine runs with the
+ * necessary address translations configured to invoke other routines that
+ * require those translations to be in place.  However, the protection domain
+ * support, if enabled, has not yet been fully activated.
  */
 static void
 boot_stage1(void)
@@ -75,7 +78,8 @@ cpu_boot_stage0(void)
   uintptr_t top_of_stack = STACKS_INIT_TOP;
 
 #if X86_CONF_PROT_DOMAINS != X86_CONF_PROT_DOMAINS__NONE
-  uintptr_t *top_of_stack_ptr = (uintptr_t *)top_of_stack;
+  uintptr_t *top_of_stack_ptr =
+    (uintptr_t *)DATA_OFF_TO_PHYS_ADDR(top_of_stack);
 
   top_of_stack_ptr[0] = (uintptr_t)prot_domains_launch_kernel;
   top_of_stack_ptr[1] = (uintptr_t)prot_domains_launch_app;

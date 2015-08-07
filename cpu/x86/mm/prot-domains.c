@@ -39,10 +39,12 @@
 #include "stacks.h"
 
 static dom_kern_data_t __attribute__((section(".kern_prot_dom_bss")))
-  PROT_DOMAINS_PDCS_NM(kern_dcd);
+  ATTR_KERN_ADDR_SPACE PROT_DOMAINS_PDCS_NM(kern_dcd);
+PROT_DOMAINS_ALLOC_IMPL(kern_dcd);
 static dom_client_data_t ATTR_BSS_KERN kern_dcd;
 static dom_kern_data_t __attribute__((section(".app_prot_dom_bss")))
-  PROT_DOMAINS_PDCS_NM(app_dcd);
+  ATTR_KERN_ADDR_SPACE PROT_DOMAINS_PDCS_NM(app_dcd);
+PROT_DOMAINS_ALLOC_IMPL(app_dcd);
 static dom_client_data_t ATTR_BSS_KERN app_dcd;
 
 /*---------------------------------------------------------------------------*/

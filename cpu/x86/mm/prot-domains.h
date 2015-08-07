@@ -40,6 +40,10 @@
 
 #define X86_CONF_PROT_DOMAINS__NONE   0
 #define X86_CONF_PROT_DOMAINS__PAGING 1
+#define X86_CONF_PROT_DOMAINS__TSS    2
+
+#define X86_CONF_PROT_DOMAINS_MULTI_SEG                                       \
+  (X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS)
 
 /** Privilege level (ring) for exception handlers and other supervisory code */
 #define PRIV_LVL_EXC  0
@@ -68,6 +72,49 @@ typedef uint32_t dom_id_t;
 
 #if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__PAGING
 #include "paging-prot-domains.h"
+#elif X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
+#include "tss-prot-domains.h"
+#endif
+
+#ifndef ATTR_META_ADDR_SPACE
+#define ATTR_META_ADDR_SPACE
+#endif
+#ifndef ATTR_MMIO_ADDR_SPACE
+#define ATTR_MMIO_ADDR_SPACE
+#endif
+#ifndef ATTR_KERN_ADDR_SPACE
+#define ATTR_KERN_ADDR_SPACE
+#endif
+
+#ifndef MMIO_READL
+#define MMIO_READL(dst, src) dst = (src)
+#define MMIO_READW(dst, src) dst = (src)
+#define MMIO_READB(dst, src) dst = (src)
+#define MMIO_WRITEL(dst, src) MMIO_READL(dst, src)
+#define MMIO_WRITEW(dst, src) MMIO_READW(dst, src)
+#define MMIO_WRITEB(dst, src) MMIO_READB(dst, src)
+#endif
+#ifndef KERN_READL
+#define KERN_READL(dst, src) dst = (src)
+#define KERN_READW(dst, src) dst = (src)
+#define KERN_READB(dst, src) dst = (src)
+#define KERN_WRITEL(dst, src) KERN_READL(dst, src)
+#define KERN_WRITEW(dst, src) KERN_READW(dst, src)
+#define KERN_WRITEB(dst, src) KERN_READB(dst, src)
+#endif
+#ifndef META_READL
+#define META_READL(dst, src) dst = (src)
+#define META_READW(dst, src) dst = (src)
+#define META_READB(dst, src) dst = (src)
+#define META_WRITEL(dst, src) META_READL(dst, src)
+#define META_WRITEW(dst, src) META_READw(dst, src)
+#define META_WRITEB(dst, src) META_READB(dst, src)
+#endif
+
+#ifndef MEMCPY_FROM_META
+#define MEMCPY_FROM_META(dst, src, sz) \
+  memcpy((void *)(dst), (const void *)(src), (sz))
+#define MEMCPY_TO_META(dst, src, sz) MEMCPY_FROM_META(dst, src, sz)
 #endif
 
 /* The following symbols are defined in the linker script */
@@ -77,9 +124,9 @@ extern uint32_t _stext_addr, _etext_addr;
 #if X86_CONF_PROT_DOMAINS != X86_CONF_PROT_DOMAINS__NONE
 
 /** Metadata that should not be DMA-accessible */
-#define ATTR_BSS_META __attribute__((section(".meta_bss")))
+#define ATTR_BSS_META __attribute__((section(".meta_bss"))) ATTR_META_ADDR_SPACE
 /** Kernel-owned data */
-#define ATTR_BSS_KERN __attribute__((section(".kern_bss")))
+#define ATTR_BSS_KERN __attribute__((section(".kern_bss"))) ATTR_KERN_ADDR_SPACE
 /** Code that should only be executable during bootup */
 #define ATTR_CODE_BOOT __attribute__((section(".boot_text")))
 
@@ -96,6 +143,10 @@ extern uint32_t _sbss_kern_addr, _ebss_kern_addr;
 extern uint32_t _ebss_syscall_addr;
 /** Bounds for other data sections */
 extern uint32_t _sdata_addr, _edata_addr;
+
+#ifndef SEG_KERN
+#define SEG_KERN "d"
+#endif
 
 /**
  * If set, this protection domain is already in the call stack and is not
@@ -114,8 +165,8 @@ extern uint32_t _sdata_addr, _edata_addr;
  */
 typedef struct dom_kern_data dom_kern_data_t;
 
-extern volatile dom_kern_data_t prot_domains_kern_data[];
-extern volatile dom_kern_data_t prot_domains_kern_data_end[];
+extern volatile dom_kern_data_t ATTR_KERN_ADDR_SPACE prot_domains_kern_data[];
+extern volatile dom_kern_data_t ATTR_KERN_ADDR_SPACE prot_domains_kern_data_end[];
 
 #define PROT_DOMAINS_ACTUAL_CNT                                               \
   (prot_domains_kern_data_end - prot_domains_kern_data)
@@ -125,6 +176,7 @@ extern volatile dom_kern_data_t prot_domains_kern_data_end[];
 
 void prot_domains_syscall_dispatcher(void);
 
+#if X86_CONF_PROT_DOMAINS != X86_CONF_PROT_DOMAINS__TSS
 /**
  * Data associated with each protection domain that is owned by clients of that
  * domain and used to identify the domain.
@@ -132,15 +184,21 @@ void prot_domains_syscall_dispatcher(void);
 struct dom_client_data {
   dom_id_t dom_id;
 } __attribute__((packed));
+#endif
+
+#ifndef PROT_DOMAINS_ALLOC_IMPL
+#define PROT_DOMAINS_ALLOC_IMPL(nm)
+#endif
 
 /** Allocate the client-owned protection domain data structure. */
 #define PROT_DOMAINS_PDCS_NM(nm) _pdcs_##nm
 #define PROT_DOMAINS_ALLOC(typ, nm)                                           \
   static dom_kern_data_t __attribute__((section(".prot_dom_bss")))            \
-    PROT_DOMAINS_PDCS_NM(nm);                                                 \
+    ATTR_KERN_ADDR_SPACE PROT_DOMAINS_PDCS_NM(nm);                            \
+  PROT_DOMAINS_ALLOC_IMPL(nm);                                                \
   static typ ATTR_BSS_KERN nm
 #define PROT_DOMAINS_INIT_ID(nm)                                              \
-  (nm).dom_id = PROT_DOMAINS_GET_DOM_ID(&PROT_DOMAINS_PDCS_NM(nm))
+  KERN_WRITEL((nm).dom_id, PROT_DOMAINS_GET_DOM_ID(&PROT_DOMAINS_PDCS_NM(nm)))
 
 /**
  * Perform early initialization during boot stage 0 to prepare for boot stage 1
@@ -169,8 +227,12 @@ void prot_domains_launch_kernel(void);
  */
 #define PROT_DOMAINS_INIT_RET_ADDR_CNT 2
 
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
+void prot_domains_launch_app(void);
+#else
 void app_main(void);
 #define prot_domains_launch_app app_main
+#endif
 
 #else
 
@@ -229,7 +291,7 @@ typedef struct dom_client_data dom_client_data_t;
  * \param meta_sz Size of metadata
  * \param pio     Set to true if protection domain requires port IO access
  */
-void prot_domains_reg(dom_client_data_t *dcd,
+void prot_domains_reg(dom_client_data_t ATTR_KERN_ADDR_SPACE *dcd,
                       uintptr_t mmio,
                       size_t mmio_sz,
                       uintptr_t meta,
@@ -238,10 +300,40 @@ void prot_domains_reg(dom_client_data_t *dcd,
 #endif
 
 #if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__NONE
+#define prot_domains_copy_dcd(dst, src) *(dst) = *(src)
+#else
+static inline void
+/**
+ * It is necessary to make a local copy of a dom_client_data structure when a
+ * multi-segment protection domain implementation is in use, segment attributes
+ * are not supported by the compiler, and a dom_client_data structure needs to
+ * be passed by value into some function. Otherwise, the compiler will not know
+ * to access the non-default segment in which *src is stored and will attempt
+ * to copy it out of the default data segment.
+ */
+prot_domains_copy_dcd(struct dom_client_data *dst,
+                      struct dom_client_data ATTR_KERN_ADDR_SPACE *src)
+{
+  KERN_READL(dst->dom_id, src->dom_id);
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
+  KERN_READL(dst->tss_sel, src->tss_sel);
+#endif
+}
+#endif
+
+#if !X86_CONF_PROT_DOMAINS_MULTI_SEG
+#define prot_domains_enable_mmio()
+#define prot_domains_disable_mmio()
+
+#define KERN_DATA_OFF_TO_PHYS_ADDR(x) ((uintptr_t)(x))
+#define DATA_OFF_TO_PHYS_ADDR(x) ((uintptr_t)(x))
+#endif
+
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__NONE
 #define prot_domains_lookup_meta_phys_base(drv) 0
 #else
 /** Lookup base physical address of metadata region for specified domain */
-uintptr_t prot_domains_lookup_meta_phys_base(dom_client_data_t *drv);
+uintptr_t prot_domains_lookup_meta_phys_base(dom_client_data_t ATTR_KERN_ADDR_SPACE *drv);
 #endif
 
 #if X86_CONF_PROT_DOMAINS != X86_CONF_PROT_DOMAINS__PAGING
@@ -268,6 +360,11 @@ uintptr_t prot_domains_lookup_meta_phys_base(dom_client_data_t *drv);
   ".if !" #exc "\n\t"                                                         \
   "mov %%ebx, %%esp\n\t"                                                      \
   ".endif\n\t"
+#endif
+
+#ifdef X86_CONF_PROT_DOMAINS_MULTI_SEG
+/* include GDT section definitions used when allocating protection domains: */
+#include "gdt.h"
 #endif
 
 #endif /* !__ASSEMBLER__ */

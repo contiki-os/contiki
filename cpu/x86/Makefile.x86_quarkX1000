@@ -20,6 +20,11 @@ CFLAGS += -DX86_CONF_USE_INVLPG
 endif
 # This matches the definition of X86_CONF_PROT_DOMAINS__PAGING in prot-domains.h:
 CFLAGS += -DX86_CONF_PROT_DOMAINS=1
+else ifeq ($(X86_CONF_PROT_DOMAINS),tss)
+# This matches the definition of X86_CONF_PROT_DOMAINS__TSS in prot-domains.h:
+CFLAGS += -DX86_CONF_PROT_DOMAINS=2
+X86_CONF_MULTI_SEG = 1
+CONTIKI_SOURCEFILES += tss-prot-domains-asm.S
 else
 $(error Unrecognized setting for X86_CONF_PROT_DOMAINS: \
         $(X86_CONF_PROT_DOMAINS).  See cpu/x86/mm/README.md for \
@@ -28,6 +33,20 @@ endif
 
 ifeq ($(X86_CONF_SYSCALLS_INT),1)
 CONTIKI_SOURCEFILES += syscalls-int-asm.S tss.c
+endif
+
+ifeq ($(X86_CONF_MULTI_SEG),1)
+LINKERSCRIPT_SFX = _multi_seg
+CONTIKI_SOURCEFILES += multi-segment.c
+# Due to the way the multi-segment implementation of protection domains define
+# tightly-bounded stack segments, the base pointer register cannot be used as
+# a general-purpose register in all circumstances.  The stack segment is used
+# by default for a data access that uses the base pointer as the base register
+# to compute the address.  If the data referenced by the base pointer is not
+# on the stack, then the access will fail.  Thus, it is necessary to disable
+# the omit-frame-pointer optimization.  See mm/README.md for more details of
+# how multi-segment protection domains are implemented.
+CFLAGS += -fno-omit-frame-pointer
 endif
 
 endif

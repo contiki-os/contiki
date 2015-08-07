@@ -51,7 +51,11 @@
 
 #define I2C_IRQ 9
 
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__PAGING
 #define MMIO_SZ MIN_PAGE_SIZE
+#else
+#define MMIO_SZ (QUARKX1000_IC_HIGHEST + 4)
+#endif
 
 typedef enum {
   I2C_DIRECTION_READ,
@@ -99,7 +103,9 @@ SYSCALLS_DEFINE_SINGLETON(quarkX1000_i2c_mmin, drv,
     halt();
   }
 
+  prot_domains_enable_mmio();
   PCI_MMIO_READL(drv, *loc_res, offset);
+  prot_domains_disable_mmio();
 }
 
 static inline uint32_t
@@ -119,7 +125,9 @@ SYSCALLS_DEFINE_SINGLETON(quarkX1000_i2c_mmout, drv,
     halt();
   }
 
+  prot_domains_enable_mmio();
   PCI_MMIO_WRITEL(drv, offset, val);
+  prot_domains_disable_mmio();
 }
 
 static inline void
