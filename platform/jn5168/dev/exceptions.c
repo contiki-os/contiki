@@ -298,8 +298,7 @@ PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType)
 //	vAHI_WatchdogRestart();
 	MICRO_DISABLE_INTERRUPTS();
 
-	switch (eType)
-	{
+	switch(eType) {
 	case E_EXC_BUS_ERROR:
 		pcString = "BUS";
 		break;
@@ -366,7 +365,7 @@ PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType)
 #ifdef EXC_DUMP_REGS
 	printstring("\nREGS: ");
     /* Pull and print the registers from saved locations */
-    for (i = 0; i < REG_COUNT; i += 4) {
+    for(i = 0; i < REG_COUNT; i += 4) {
 //        vLog_Printf(TRACE_EXC, LOG_ERR, "\nR%02d: %08x R%02d: %08x R%02d: %08x R%02d: %08x\n", i, pu32Stack[i], i+1, pu32Stack[i+1], i+2, pu32Stack[i+2], i+3, pu32Stack[i+3]);
 //        vSL_LogFlush();
     	printstring("R");
@@ -391,7 +390,7 @@ PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType)
   	hexprint32(EXCEPTION_RAM_TOP);
     printstring("\nSTACK: \n");
     pu32Stack = (uint32 *)(u32Stack & 0xFFFFFFF0);
-	for (i = 0; (pu32Stack + i) < (uint32 *)(EXCEPTION_RAM_TOP); i += 4)
+	for(i = 0; (pu32Stack + i) < (uint32 *)(EXCEPTION_RAM_TOP); i += 4)
 	{
 //		vLog_Printf(TRACE_EXC, LOG_ERR, "\n%08x: %08x %08x %08x %08x", pu32Stack + i, pu32Stack[i], pu32Stack[i+1], pu32Stack[i+2], pu32Stack[i+3]);
 //		vSL_LogFlush();

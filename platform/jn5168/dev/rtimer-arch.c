@@ -73,7 +73,7 @@ rtimer_arch_run_next(uint32 u32DeviceId, uint32 u32ItemBitmap)
    * the set compare point
    */
   delta = u32AHI_TickTimerRead() - compare_time;
-  if (0 == (delta >> 28)) {
+  if(0 == (delta >> 28)) {
   		/* compare_time might change after executing rtimer_run_next()
   		 * as some process might schedule the timer
   		 */
@@ -122,6 +122,8 @@ rtimer_arch_schedule(rtimer_clock_t t)
 	PRINTF("rtimer_arch_schedule time %lu\n", t);
 	vAHI_TickTimerIntPendClr();
 	vAHI_TickTimerIntEnable(1);
+  uint32_t now = u32AHI_TickTimerRead();
+  if (RT
 	vAHI_TickTimerInterval(t);
 	compare_time = t;
 }

@@ -73,15 +73,14 @@ PROCESS(LightSensorSampling, "Light sensor");
 static int
 configure(int type, int value)
 {
-  if (type == SENSORS_HW_INIT) {
+  if(type == SENSORS_HW_INIT) {
     PRINTF("SENSORS_HW_INIT\n");
     light_sensor_status = LIGHT_SENSOR_STATUS_INIT;
     process_start(&LightSensorSampling, NULL);
     return 1;  
-  } 
-  else if (type == SENSORS_ACTIVE) {
-    if (light_sensor_status != LIGHT_SENSOR_STATUS_NOT_INIT) {
-    	if (value){
+  } else if(type == SENSORS_ACTIVE) {
+    if(light_sensor_status != LIGHT_SENSOR_STATUS_NOT_INIT) {
+    	if(value){
     	  /* ACTIVATE SENSOR */
         vALSreset();
         prev_light_event_val = 0;
@@ -97,15 +96,13 @@ configure(int type, int value)
         process_post(&LightSensorSampling, PROCESS_EVENT_MSG, (void *)&light_sensor_status);
   		}	
       return 1;
-    }
-    else {
+    } else {
       /* Light sensor must be intialised before being (de)-activated */
  		  PRINTF("ERROR: NO HW_INIT LIGHT SENSOR\n");
  		  return 0;
     }
-  }
-  /* Non valid type */
-  else {		
+  } else {
+    /* Non valid type */
     return 0;
 	}
 }
@@ -113,10 +110,9 @@ configure(int type, int value)
 static int
 status(int type)
 {
-  if (type == SENSORS_ACTIVE) {
+  if(type == SENSORS_ACTIVE) {
     return (light_sensor_status == LIGHT_SENSOR_STATUS_ACTIVE);
-  }
-  else if (type == SENSORS_READY) {
+  } else if(type == SENSORS_READY) {
     return (light_sensor_status != LIGHT_SENSOR_STATUS_NOT_INIT);
   }
   return 0;
@@ -145,7 +141,7 @@ PROCESS_THREAD(LightSensorSampling, ev, data)
   etimer_set(&et, CLOCK_SECOND/10);
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL((ev == PROCESS_EVENT_TIMER) || (ev == PROCESS_EVENT_MSG));
-    if (ev == PROCESS_EVENT_TIMER) {
+    if(ev == PROCESS_EVENT_TIMER) {
       /* Handle sensor reading.  */
       PRINTF("Light sensor sample\n");
       vALSstartReadChannel(0);
@@ -156,18 +152,17 @@ PROCESS_THREAD(LightSensorSampling, ev, data)
       PRINTF("Channel 1 = %d\n", channel1_value);
       light_sensor_value = adjust(channel0_value, channel1_value);      
       PRINTF("Light output = %d\n", light_sensor_value);
-      if (abs(light_sensor_value - prev_light_event_val) > DELTA_LIGHT_SENSOR_VALUE) {
+      if(abs(light_sensor_value - prev_light_event_val) > DELTA_LIGHT_SENSOR_VALUE) {
         prev_light_event_val = light_sensor_value;
         sensors_changed(&light_sensor);
       }
       etimer_reset(&et);
-    }
-    else {
+    } else {
       /* ev == PROCESS_EVENT_MSG */
-      if (*(int*)data == LIGHT_SENSOR_STATUS_NOT_ACTIVE) {
+      if(*(int*)data == LIGHT_SENSOR_STATUS_NOT_ACTIVE) {
         /* Stop sampling */
         etimer_stop(&et);
-      } else if ((*(int*)data == LIGHT_SENSOR_STATUS_ACTIVE)) {
+      } else if((*(int*)data == LIGHT_SENSOR_STATUS_ACTIVE)) {
         /* restart sampling */
         etimer_restart(&et);
       }
@@ -189,10 +184,9 @@ SENSORS_SENSOR(light_sensor, LIGHT_SENSOR, value, configure, status);
 static int 
 adjust(int ch0, int ch1)
 {
-  if (ch0 > ch1) {
+  if(ch0 > ch1) {
     return( (39*(ch0-ch1))/100);
-  }
-  else {
+  } else {
     return(0);
   }  
 }

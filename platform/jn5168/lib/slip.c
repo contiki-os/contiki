@@ -247,7 +247,7 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
       break;
     }
 
-    if (len >= blen) {
+    if(len >= blen) {
       /* End of buffer with no SLIP_END
        * ==> something wrong happened */
       break;
