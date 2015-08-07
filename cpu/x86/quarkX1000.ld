@@ -87,4 +87,6 @@ SECTIONS {
         */
         _ebss_gdt_addr = .;
     }
+
+    _ebss_pre_dma_addr = ALIGN(32);
 }

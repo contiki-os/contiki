@@ -5,13 +5,15 @@ Introduction
 ------------
 
 The X86 port of Contiki implements a simple, lightweight form of
-protection domains using a pluggable framework.  Currently, the
-following plugin is available:
+protection domains using a pluggable framework.  Currently, there are
+two plugins available:
 
  - Flat memory model with paging.
+ - Multi-segment memory model with hardware-switched segments based on
+   Task-State Segment (TSS) structures.
 
-For an introduction to paging and possible ways in which it can be
-used, refer to the following resources:
+For an introduction to paging and TSS and possible ways in which they
+can be used, refer to the following resources:
 
  - Intel Combined Manual (Intel 64 and IA-32 Architectures Software
    Developer's Manual), Vol. 3, Chapter 4
@@ -28,7 +30,7 @@ idealized principle is balanced against the practical objectives of
 limiting the number of relatively time-consuming context switches and
 minimizing changes to existing code.  In fact, no changes were made to
 code outside of the CPU- and platform-specific code directories for
-the initial plugin.
+the initial plugins.
 
 Each protection domain can optionally be associated with a metadata
 and/or MMIO region.  The hardware can support additional regions per
@@ -139,7 +141,11 @@ the one that was interrupted.  However, interrupts are only actually
 enabled in the application protection domain.
 
 Similarly, register contents may be accessed and modified across
-protection domain boundaries.
+protection domain boundaries in some protection domain
+implementations.  The TSS task switching mechanism automatically saves
+and restores many registers to and from TSS data structures when
+switching tasks, but the paging-based protection domain implementation
+does not perform analogous operations.
 
 For the reasons described above, each protection domain should only
 invoke other protection domains that it trusts to properly handle data
@@ -186,7 +192,9 @@ disabled.  Flat segments each map the whole 4GiB physical memory
 space.  This is the state of the system when the OS enters boot stage
 0.  This stage is responsible for setting up a new GDT and loading the
 segment registers with the appropriate descriptors from the new GDT to
-enable boot stage 1 to run.
+enable boot stage 1 to run.  Code in stage 1 for multi-segment
+protection domain implementations require that the appropriate
+segment-based address translations be configured.
 
 #### Boot Stage 1
 
@@ -258,17 +266,18 @@ Ring level 1 is unused.
 ### IO and Interrupt Privileges
 
 The kernel protection domain cooperative scheduling context needs
-access to IO ports, for device initialization.  Other protection
-domains may also require such access.  The IO Privilege Level (IOPL)
-that is assigned to a protection domain using the relevant bits in the
+access to IO ports, for device initialization.  Some other protection
+domains also require such access.  The IO Privilege Level (IOPL) that
+is assigned to a protection domain using the relevant bits in the
 EFLAGS field could be set according to whether IO port access is
-required in that protection domain.  However, this would introduce
-additional complexity and overhead in the critical system call and
-return dispatchers.  Instead, the IOPL is always set to block IO
-access from the cooperative scheduling context.  Port IO instructions
-in that context will then generate general protection faults, and the
-exception handler decodes and emulates authorized port IO
-instructions.
+required in that protection domain.  This is straightforward for TSS,
+which includes separate flags settings for each protection domain.
+However, this would introduce additional complexity and overhead in
+the critical system call and return dispatchers for other plugins.
+Instead, the IOPL is always set to block IO access from the
+cooperative scheduling context.  Port IO instructions in that context
+will then generate general protection faults, and the exception
+handler decodes and emulates authorized port IO instructions.
 
 Interrupts are handled at ring level 2, since they do not use any
 privileged instructions.  They do cause the interrupt flag to be
@@ -307,11 +316,15 @@ pivoting to the main stack and executing the handler.
 ### Protection Domain Control Structures (PDCSes)
 
 Each protection domain is managed by the kernel and privileged
-functions using a PDCS.  The PDCS structure is entirely
-software-defined.  The initial protection domain plugin does not
-support re-entrant protection domains to simplify the implementation
-of the plugin by enabling domain-specific information (e.g. system
-call return address) to be trivially stored in each PDCS.
+functions using a PDCS.  The structure of the PDCS is partially
+hardware-imposed in the cases of the two segment-based plugins, since
+the PDCS contains the Local Descriptor Table (LDT) and the TSS, if
+applicable.  In the paging plugin, the PDCS structure is entirely
+software-defined.  None of the initial protection domain plugins
+support re-entrant protection domains due to hardware-imposed
+limitations of TSS and to simplify the implementation of the other
+plugins by enabling domain-specific information (e.g. system call
+return address) to be trivially stored in each PDCS.
 
 ### Paging-Based Protection Domains
 
@@ -547,6 +560,293 @@ be possible to improve the robustness of the system by marking that
 data as read-only.  Doing so would introduce additional complexity
 into the system.
 
+### Hardware-Switched Segment-Based Protection Domains
+
+Primary implementation sources:
+
+ - cpu/x86/mm/tss-prot-domains.c
+ - cpu/x86/mm/tss-prot-domains-asm.S
+
+#### Introduction
+
+One TSS is allocated for each protection domain.  Each one is
+associated with its own dedicated LDT.  The memory resources assigned
+to each protection domain are represented as segment descriptors in
+the LDT for the protection domain.  Additional shared memory resources
+are represented as segment descriptors in the GDT.
+
+#### System Call and Return Dispatching
+
+The system call dispatcher runs in the context of the server
+protection domain.  It is a common piece of code that is shared among
+all protection domains.  Thus, each TSS, except the application TSS,
+has its EIP field initialized to the entrypoint for the system call
+dispatcher so that will be the first code to run when the first switch
+to that task is performed.
+
+The overall process of handling a system call can be illustrated at a
+high level as follows.  Some minor steps are omitted from this
+illustration in the interest of clarity and brevity.
+
+```
+ == BEGIN Client protection domain ==========================================
+ -- BEGIN Caller ------------------------------------------------------------
+  1.  Call system call stub.
+ --
+  13. Continue execution...
+ -- END Caller --------------------------------------------------------------
+ -- BEGIN System call stub --------------------------------------------------
+  2.  Already in desired (server) protection domain?
+    - No: Request task switch to server protection domain.
+    - Yes: Jump to system call body.
+ --
+  12. Return to caller.
+ -- END System call stub ----------------------------------------------------
+ == END Client protection domain ============================================
+ == BEGIN Server protection domain ==========================================
+ -- BEGIN System call dispatcher---------------------------------------------
+  3.  Check that the requested system call is allowed.  Get entrypoint.
+  4.  Switch to the main stack.
+  5.  Pop the client return address off the stack to a callee-saved register.
+  6.  Push the address of the system call return dispatcher onto the stack.
+  7.  Jump to system call body.
+ --
+  10. Restore the client return address to the stack.
+  11. Request task switch to client protection domain.
+ -- END System call dispatcher ----------------------------------------------
+ -- BEGIN System call body --------------------------------------------------
+  8.  Execute the work for the requested system call.
+  9.  Return (to system call return stub, unless invoked from server
+      protection domain, in which case return is to caller).
+ -- END System call body ----------------------------------------------------
+ == END Server protection domain ============================================
+```
+
+An additional exception handler is needed, for the "Device Not
+Available" exception.  The handler comprises just a CLTS and an IRET
+instruction.  The CLTS instruction is privileged, which is why it must
+be run at ring level 0.  This exception handler is invoked when a
+floating point instruction is used following a task switch, and its
+sole purpose is to enable the floating point instruction to execute
+after the exception handler returns.  See the TSS resources listed
+above for more details regarding interactions between task switching
+and floating point instructions.
+
+Each segment register may represent a different data region within
+each protection domain, although the FS register is used for two
+separate purposes at different times.  The segments are defined as
+follows:
+
+ - CS (code segment) maps all non-startup code with execute-only
+   permissions in all protection domains.  Limiting the code that is
+   executable within each protection domain to just the code that is
+   actually needed within that protection domain could improve the
+   robustness of the system, but it is challenging to determine all
+   code that may be needed in a given protection domain (e.g. all
+   needed library routines).  Furthermore, that code may not all be
+   contiguous, and each segment descriptor can only map a contiguous
+   memory region.  Finally, segment-based memory addressing is
+   relative to an offset of zero from the beginning of each segment,
+   introducing additional complexity if such fine-grained memory
+   management were to be used.
+ - DS (default data segment) typically maps the main stack and all
+   non-stack data memory that is accessible from all protection
+   domains.  Limiting the data that is accessible via DS within each
+   protection domain to just the subset of the data that is actually
+   needed within that protection domain could improve the robustness
+   of the system, but it is challenging for similar reasons to those
+   that apply to CS.  Access to the main stack via DS is supported so
+   that code that copies the stack pointer to a register and attempts
+   to access stack entries via DS works correctly.  Disallowing access
+   to the main stack via DS could improve the robustness of the
+   system, but that may require modifying code that expects to be able
+   to access the stack via DS.
+ - ES is loaded with the same segment descriptor as DS so that string
+   operations (e.g. the MOVS instruction) work correctly.
+ - FS usually maps the kernel-owned data region.  That region can only
+   be written via FS in the kernel protection domain.  FS contains a
+   descriptor specifying a read-only mapping in all other protection
+   domains except the application protection domain, in which FS is
+   nullified.  Requiring that code specifically request access to the
+   kernel-owned data region by using the FS segment may improve the
+   robustness of the system by blocking undesired accesses to the
+   kernel-owned data region via memory access instructions within the
+   kernel protection domain that implicitly access DS.  The reason for
+   granting read-only access to the kernel-owned data region from most
+   protection domains is that the system call dispatcher runs in the
+   context of the server protection domain to minimize overhead, and
+   it requires access to the kernel-owned data region.  It may improve
+   the robustness of the system to avoid this by running the system
+   call dispatcher in a more-privileged ring level (e.g. ring 1)
+   within the protection domain and just granting access to the
+   kernel-owned data region from that ring.  However, that would
+   necessitate a ring level transition to ring 3 when dispatching the
+   system call, which would increase overhead.  The application
+   protection domain does not export any system calls, so it does not
+   require access to the kernel-owned data region.
+ - FS is temporarily loaded with a segment descriptor that maps just
+   an MMIO region used by a driver protection domain when such a
+   driver needs to perform MMIO accesses.
+ - GS maps an optional region of readable and writable metadata that
+   can be associated with a protection domain.  In protection domains
+   that are not associated with metadata, GS is nullified.
+ - SS usually maps just the main stack.  This may improve the
+   robustness of the system by enabling immediate detection of stack
+   underflows and overflows rather than allowing such a condition to
+   result in silent data corruption.  Interrupt handlers use a stack
+   segment that covers the main stack and also includes a region above
+   the main stack that is specifically for use by interrupt handlers.
+   In like manner, exception handlers use a stack segment that covers
+   both of the other stacks and includes an additional region.  This
+   is to support the interrupt dispatchers that copy parameters from
+   the interrupt-specific stack region to the main stack prior to
+   pivoting to the main stack to execute an interrupt handler body.
+
+The approximate memory layout of the system is depicted below,
+starting with the highest physical addresses and proceeding to lower
+physical addresses.  The memory ranges that are mapped at various
+times by each of the segment registers are also depicted.  Read the
+descriptions of each segment above for more information about what
+memory range may be mapped by each segment register at various times
+with various protection domain configurations.  Parenthetical notes
+indicate the protection domains that can use each mapping.  The suffix
+[L] indicates that the descriptor is loaded from LDT.  Optional
+mappings are denoted by a '?' after the protection domain label.  The
+'other' protection domain label refers to protection domains other
+than the application and kernel domains.
+
+```
+ ...
+ +------------------------------------------+ \
+ | Domain X MMIO                            | +- FS[L]
+ +------------------------------------------+ /  (other?)
+ ...
+ +------------------------------------------+ \
+ | Domain X DMA-accessible metadata         | +- GS[L] (other?)
+ | (section .dma_bss)                       | |
+ +------------------------------------------+ /
+ +------------------------------------------+ \
+ | Domain X metadata (section .meta_bss)    | +- GS[L] (other?)
+ +------------------------------------------+ /
+ ...
+ +------------------------------------------+ \
+ | Kernel-private data                      | |
+ | (sections .prot_dom_bss, .gdt_bss, etc.) | +- FS[L] (kern)
+ +------------------------------------------+ |
+ +------------------------------------------+ \
+ | System call data (section .syscall_bss)  | |
+ +------------------------------------------+ +- FS[L] (all)
+ +------------------------------------------+ |
+ | Kernel-owned data (section .kern_bss)    | |
+ +------------------------------------------+ /
+ +------------------------------------------+             \
+ | Common data                              |             |
+ | (sections .data, .rodata*, .bss, etc.)   |             |
+ +------------------------------------------+             +- DS, ES
+ +------------------------------------------+ \           |  (all)
+ | Exception stack (section .exc_stack)     | |           |
+ |+----------------------------------------+| \           |
+ || Interrupt stack (section .int_stack)   || |           |
+ ||+--------------------------------------+|| \           |
+ ||| Main stack (section .main_stack)     ||| +- SS (all) |
+ +++--------------------------------------+++ /           /
+ +------------------------------------------+ \
+ | Main code (.text)                        | +- CS (all)
+ +------------------------------------------+ /
+ +------------------------------------------+
+ | Bootstrap code (section .boot_text)      |
+ +------------------------------------------+
+ +------------------------------------------+
+ | Multiboot header                         |
+ +------------------------------------------+
+ ...
+```
+
+This memory layout is more efficient than the layout that is possible
+with paging-based protection domains, since segments have byte
+granularity, whereas the minimum unit of control supported by paging
+is a 4KiB page.  For example, this means that metadata may need to be
+padded to be a multiple of the page size.  This may also permit
+potentially-undesirable accesses to padded areas of code and data
+regions that do not entirely fill the pages that they occupy.
+
+Kernel data structure access, including to the descriptor tables
+themselves, is normally restricted to the code running at ring level
+0, specifically the exception handlers and the system call and return
+dispatchers.  It is also accessible from the cooperative scheduling
+context in the kernel protection domain. Interrupt delivery is
+disabled in the kernel protection domain, so the preemptive scheduling
+context is not used.
+
+SS, DS, and ES all have the same base address, since the compiler may
+assume that a flat memory model is in use.  Memory accesses that use a
+base register of SP/ESP or BP/EBP or that are generated by certain
+other instructions (e.g. PUSH, RET, etc.) are directed to SS by
+default, whereas other accesses are directed to DS or ES by default.
+The compiler may use an instruction that directs an access to DS or ES
+even if the data being accessed is on the stack, which is why these
+three segments must use the same base address.  However, it is
+possible to use a lower limit for SS than for DS and ES for the
+following reasons.  Compilers commonly provide an option for
+preventing the frame pointer, EBP, from being omitted and possibly
+used to point to non-stack data.  In our tests, compilers never used
+ESP to point to non-stack data.
+
+Each task switch ends up saving and restoring more state than is
+actually useful to us, but the implementation attempts to minimize
+overhead by configuring the register values in each TSS to reduce the
+number of register loads that are needed in the system call
+dispatcher.  Specifically, two callee-saved registers are populated
+with base addresses used when computing addresses in the entrypoint
+information table as well as a mask corresponding to the ID of the
+server protection domain that is used to check whether the requested
+system call is exported by the server protection domain.  Callee-saved
+registers are used, since the task return will update the saved
+register values.
+
+Note that this implies that the intervening code run between the task
+call and return can modify critical data used by the system call
+dispatcher.  However, this is analogous to the considerations
+associated with sharing a single stack amongst all protection domains
+and should be addressed similarly, by only invoking protection domains
+that are trusted by the caller to not modify the saved critical
+values.  This consideration is specific to the TSS-based dispatcher
+and is not shared by the ring 0 dispatcher used in the other
+plugins.
+
+Data in the .rodata sections is marked read/write, even though it may
+be possible to improve the robustness of the system by marking that
+data as read-only.  Doing so would introduce even more complexity into
+the system than would be the case with paging-based protection
+domains, since it would require allocating different segment
+descriptors for the read-only vs. the read/write data.
+
+#### Supporting Null-Pointer Checks
+
+A lot of code considers a pointer value of 0 to be invalid.  However,
+segment offsets always start at 0.  To accommodate the common software
+behavior, at least the first byte of each segment is marked as
+unusable.  An exception to this is that the first byte of the stack
+segments is usable.
+
+#### Interrupt and Exception Dispatching
+
+A distinctive challenge that occurs during interrupt and exception
+dispatching is that the state of the segment registers when an
+interrupt or exception occurs is somewhat unpredictable.  For example,
+an exception may occur while MMIO is being performed, meaning that FS
+is loaded with the MMIO descriptor instead of the kernel descriptor.
+Leaving the segment registers configured in that way could cause
+incorrect interrupt or exception handler behavior.  Thus, the
+interrupt or exception dispatcher must save the current segment
+configuration, switch to a configuration that is suitable for the
+handler body, and then restore the saved segment configuration after
+the handler body returns.  Another motivation for this is that the
+interrupted code may have corrupted the segment register configuration
+in an unexpected manner, since segment register load instructions are
+unprivileged.  Similar segment register updates must be performed for
+similar reasons when dispatching system calls.
+
 ### Pointer Validation
 
 Primary implementation sources:
@@ -563,10 +863,14 @@ an unintended manner.  For example, if an incoming pointer referenced
 the return address, it could potentially redirect execution with the
 privileges of the callee protection domain.
 
-It is also necessary to check that the pointer is either within the
-stack region or the shared data region (or a guard band region, since
-that will generate a fault) to prevent redirection of data accesses to
-MMIO or metadata regions.
+When the paging-based plugin is in use, it is also necessary to check
+that the pointer is either within the stack region or the shared data
+region (or a guard band region, since that will generate a fault) to
+prevent redirection of data accesses to MMIO or metadata regions.  The
+other plugins already configure segments to restrict accesses to DS to
+just those regions.  Pointers provided as inputs to system calls as
+defined above should never be dereferenced in any segment other than
+DS.
 
 The pointer is both validated and copied to a new storage location,
 which must be within the callee's local stack region (excluding the
@@ -648,8 +952,11 @@ The following steps are required:
 Usage
 -----
 
-To enable protection domain support, add
-"X86_CONF_PROT_DOMAINS=paging" to the command line.
+To enable protection domain support, add "X86_CONF_PROT_DOMAINS=" to
+the command line and specify one of the following options:
+
+ - paging
+ - tss
 
 The paging option accepts a sub-option to determine whether the TLB is
 fully- or selectively-invalidated during protection domain switches.

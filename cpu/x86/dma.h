@@ -43,6 +43,6 @@
 #endif
 #endif
 
-extern int _sbss_dma_addr, _ebss_dma_addr;
+extern int _ebss_pre_dma_addr, _sbss_dma_addr, _ebss_dma_addr;
 
 #endif /* CPU_X86_DMA_H_ */

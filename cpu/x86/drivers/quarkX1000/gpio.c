@@ -56,7 +56,11 @@
 
 #define HIGHEST_REG   LS_SYNC
 
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__PAGING
 #define MMIO_SZ       MIN_PAGE_SIZE
+#else
+#define MMIO_SZ       (HIGHEST_REG + 4)
+#endif
 
 PROT_DOMAINS_ALLOC(pci_driver_t, drv);
 
@@ -77,7 +81,9 @@ SYSCALLS_DEFINE_SINGLETON(quarkX1000_gpio_mmin, drv,
     halt();
   }
 
+  prot_domains_enable_mmio();
   PCI_MMIO_READL(drv, *loc_res, offset);
+  prot_domains_disable_mmio();
 }
 
 static inline uint32_t
@@ -96,7 +102,9 @@ SYSCALLS_DEFINE_SINGLETON(quarkX1000_gpio_mmout, drv,
     halt();
   }
 
+  prot_domains_enable_mmio();
   PCI_MMIO_WRITEL(drv, offset, val);
+  prot_domains_disable_mmio();
 }
 
 static inline void

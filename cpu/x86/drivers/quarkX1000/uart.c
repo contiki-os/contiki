@@ -49,7 +49,7 @@ void
 quarkX1000_uart_init(quarkX1000_uart_dev_t dev)
 {
   pci_config_addr_t pci_addr;
-  uart_16x50_driver_t *drv;
+  uart_16x50_driver_t ATTR_KERN_ADDR_SPACE *drv;
 
   assert((dev == QUARK_X1000_UART_0) || (dev == QUARK_X1000_UART_1));
 
@@ -78,7 +78,11 @@ quarkX1000_uart_init(quarkX1000_uart_dev_t dev)
 void
 quarkX1000_uart_tx(quarkX1000_uart_dev_t dev, uint8_t c)
 {
+  uart_16x50_driver_t drv;
   assert((dev == QUARK_X1000_UART_0) || (dev == QUARK_X1000_UART_1));
-  uart_16x50_tx((dev == QUARK_X1000_UART_0) ? quarkX1000_uart0 : quarkX1000_uart1, c);
+  prot_domains_copy_dcd(&drv,
+                        (dev == QUARK_X1000_UART_0) ?
+                          &quarkX1000_uart0 : &quarkX1000_uart1);
+  uart_16x50_tx(drv, c);
 }
 /*---------------------------------------------------------------------------*/

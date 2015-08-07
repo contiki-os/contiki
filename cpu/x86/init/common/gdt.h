@@ -35,12 +35,20 @@
 #include "prot-domains.h"
 #include "segmentation.h"
 
-extern segment_desc_t gdt[];
-extern int _ebss_gdt_addr;
+extern segment_desc_t ATTR_KERN_ADDR_SPACE gdt[];
+extern int ATTR_KERN_ADDR_SPACE _ebss_gdt_addr;
 
 #define GDT_IDX_OF_DESC(ptr)                      \
        ((((uintptr_t)(ptr)) - ((uintptr_t)&gdt))/ \
         sizeof(segment_desc_t))
+
+typedef struct far_pointer {
+  /** Far pointer offset. */
+  uint32_t offset;
+  /** Far pointer segment/gate selector. */
+  uint16_t sel;
+  uint16_t pad;
+} __attribute__((packed)) far_pointer_t;
 
 /**
  * \brief     Compute the selector for a GDT entry allocated somewhere besides gdt.c.
@@ -49,14 +57,22 @@ extern int _ebss_gdt_addr;
  */
 #define GDT_SEL_OF_DESC(ptr, rpl) GDT_SEL(GDT_IDX_OF_DESC(ptr), rpl)
 
-#define ATTR_BSS_GDT       __attribute__((section(".gdt_bss")))
-#define ATTR_BSS_GDT_START __attribute__((section(".gdt_bss_start")))
+/* Section for fixed GDT entries */
+#define ATTR_BSS_GDT \
+  __attribute__((section(".gdt_bss"))) ATTR_KERN_ADDR_SPACE
+/* Section for TSS and LDT descriptors for protection domains */
+#define ATTR_BSS_GDT_MID \
+  __attribute__((used, section(".gdt_bss_mid"))) ATTR_KERN_ADDR_SPACE
+/* Section for other GDT entries */
+#define ATTR_BSS_GDT_START \
+  __attribute__((section(".gdt_bss_start"))) ATTR_KERN_ADDR_SPACE
 
 void gdt_copy_desc_change_dpl(unsigned int dest_idx,
                               unsigned int src_idx,
                               unsigned dpl);
 void gdt_init(void) ATTR_CODE_BOOT;
 void gdt_insert(unsigned int idx, segment_desc_t desc);
+void gdt_insert_boot(unsigned int idx, segment_desc_t desc) ATTR_CODE_BOOT;
 void gdt_lookup(unsigned int idx, segment_desc_t *desc);
 
 #endif /* GDT_H */

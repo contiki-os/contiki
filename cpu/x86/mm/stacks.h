@@ -61,6 +61,17 @@
 #else
 #define STACKS_SIZE_EXC 256
 #endif
+#elif X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
+/**
+ * This should be large enough to execute the exception handler with the
+ * largest stack requirement: double_fault_handler:
+ *  - 1 word for the return address from calling double_fault_handler
+ *  - 1 word for the saved frame pointer in double_fault_handler
+ *  - 2 words that GCC has been observed to skip on the stack to align it
+ *    to a preferred boundary
+ *  - 1 word for the return address for calling halt
+ */
+#define STACKS_SIZE_EXC (STACKS_SIZE_INT + (6 * 4))
 #else
 #define STACKS_SIZE_EXC STACKS_SIZE_INT
 #endif

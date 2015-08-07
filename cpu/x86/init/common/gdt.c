@@ -72,7 +72,7 @@ set_descriptor(unsigned int index,
   segment_desc_init(&descriptor, base, len, flag);
 
   /* Save descriptor into gdt */
-  gdt[index] = descriptor;
+  gdt_insert_boot(index, descriptor);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -86,15 +86,17 @@ gdt_copy_desc_change_dpl(unsigned int dest_idx,
     halt();
   }
 
-  desc = gdt[src_idx];
+  gdt_lookup(src_idx, &desc);
   SEG_SET_FLAG(desc, DPL, dpl);
-  gdt[dest_idx] = desc;
+  gdt_insert(dest_idx, desc);
 }
 /*---------------------------------------------------------------------------*/
 /* This function initializes the Global Descriptor Table. For simplicity, the
- * memory is organized following the flat model. Thus, memory appears to
- * Contiki as a single continuous address space. Code, data, and stack
+ * memory is initially organized following the flat model. Thus, memory appears
+ * to Contiki as a single continuous address space. Code, data, and stack
  * are all contained in this address space (so called linear address space).
+ * Certain protection domain implementations switch to a multi-segment memory
+ * model later during boot.
  */
 void
 gdt_init(void)
@@ -103,7 +105,7 @@ gdt_init(void)
 
   /* Initialize gdtr structure */
   gdtr.limit = sizeof(segment_desc_t) * GDT_LEN - 1;
-  gdtr.base = (uint32_t) &gdt;
+  gdtr.base = KERN_DATA_OFF_TO_PHYS_ADDR(gdt);
 
   /* Initialize descriptors */
   set_descriptor(GDT_IDX_NULL, 0, 0, 0);
@@ -115,13 +117,20 @@ gdt_init(void)
 }
 /*---------------------------------------------------------------------------*/
 void
+gdt_insert_boot(unsigned int idx, segment_desc_t desc)
+{
+  ((segment_desc_t *)KERN_DATA_OFF_TO_PHYS_ADDR(gdt))[idx] = desc;
+}
+/*---------------------------------------------------------------------------*/
+void
 gdt_insert(unsigned int idx, segment_desc_t desc)
 {
   if(GDT_LEN <= idx) {
     halt();
   }
 
-  gdt[idx] = desc;
+  KERN_WRITEL(gdt[idx].raw_lo, desc.raw_lo);
+  KERN_WRITEL(gdt[idx].raw_hi, desc.raw_hi);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -131,6 +140,7 @@ gdt_lookup(unsigned int idx, segment_desc_t *desc)
     halt();
   }
 
-  *desc = gdt[idx];
+  KERN_READL(desc->raw_lo, gdt[idx].raw_lo);
+  KERN_READL(desc->raw_hi, gdt[idx].raw_hi);
 }
 /*---------------------------------------------------------------------------*/

@@ -39,6 +39,8 @@
  * outside of gdt.c.
  */
 #define GDT_NUM_FIXED_DESC    7
+#elif X86_CONF_PROT_DOMAINS_MULTI_SEG
+#define GDT_NUM_FIXED_DESC    11
 #else
 #define GDT_NUM_FIXED_DESC    3
 #endif
@@ -66,11 +68,33 @@
 /** Stack segment for interrupt handlers */
 #define GDT_IDX_STK_INT       5
 
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__PAGING
 #define GDT_IDX_CODE_EXC      GDT_IDX_CODE_FLAT
 /** Default data segment used by code at all privilege levels */
 #define GDT_IDX_DATA          6
 #define GDT_IDX_STK           GDT_IDX_DATA
 #define GDT_IDX_STK_EXC       GDT_IDX_DATA_FLAT
+#else
+/**
+ * Same bounds and permissions as default code segment, but at the exception
+ * handler privilege level
+ */
+#define GDT_IDX_CODE_EXC      6
+/** R/W kernel data descriptor used during boot stage 1 */
+#define GDT_IDX_DATA_KERN_EXC 7
+/** Default data segment used by code at all privilege levels */
+#define GDT_IDX_DATA          8
+/**
+ * Default stack segment, which overlaps with the beginning of the default data
+ * segment
+ */
+#define GDT_IDX_STK           9
+/** Stack segment for exception handlers */
+#define GDT_IDX_STK_EXC       10
+
+#define GDT_IDX_TSS(dom_id)   (GDT_NUM_FIXED_DESC + (2 * (dom_id)))
+#define GDT_IDX_LDT(dom_id)   (GDT_NUM_FIXED_DESC + (2 * (dom_id)) + 1)
+#endif
 #else
 #define GDT_IDX_CODE          GDT_IDX_CODE_FLAT
 #define GDT_IDX_CODE_INT      GDT_IDX_CODE_FLAT
@@ -96,10 +120,14 @@
 #define GDT_SEL_CODE_EXC      GDT_SEL(GDT_IDX_CODE_EXC, PRIV_LVL_EXC)
 
 #define GDT_SEL_DATA          GDT_SEL(GDT_IDX_DATA, PRIV_LVL_EXC)
+#define GDT_SEL_DATA_KERN_EXC GDT_SEL(GDT_IDX_DATA_KERN_EXC, PRIV_LVL_EXC)
 
 #define GDT_SEL_STK           GDT_SEL(GDT_IDX_STK, PRIV_LVL_USER)
 #define GDT_SEL_STK_INT       GDT_SEL(GDT_IDX_STK_INT, PRIV_LVL_INT)
 #define GDT_SEL_STK_EXC       GDT_SEL(GDT_IDX_STK_EXC, PRIV_LVL_EXC)
+
+#define GDT_SEL_TSS(dom_id)   GDT_SEL(GDT_IDX_TSS(dom_id), PRIV_LVL_USER)
+#define GDT_SEL_LDT(dom_id)   GDT_SEL(GDT_IDX_LDT(dom_id), PRIV_LVL_USER)
 
 #endif /* CPU_X86_MM_GDT_LAYOUT_H_ */
 

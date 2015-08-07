@@ -74,6 +74,11 @@ typedef struct uart_16x50_regs {
  */
 #define UART_MMIO_SZ MIN_PAGE_SIZE
 #else
+/* Multi-segment protection domain implementations can control memory with
+ * byte granularity.  Thus, only the registers defined in the uart_16x50_regs
+ * structure are included in the MMIO region allocated for this protection
+ * domain:
+ */
 #define UART_MMIO_SZ sizeof(uart_16x50_regs_t)
 #endif
 
@@ -82,24 +87,30 @@ void uart_16x50_setup(uart_16x50_driver_t c_this, uint16_t dl);
 /*---------------------------------------------------------------------------*/
 SYSCALLS_DEFINE(uart_16x50_setup, uart_16x50_driver_t c_this, uint16_t dl)
 {
-  uart_16x50_regs_t *regs = (uart_16x50_regs_t *)PROT_DOMAINS_MMIO(c_this);
+  uart_16x50_regs_t ATTR_MMIO_ADDR_SPACE *regs =
+    (uart_16x50_regs_t ATTR_MMIO_ADDR_SPACE *)PROT_DOMAINS_MMIO(c_this);
+
+  prot_domains_enable_mmio();
 
   /* Set the DLAB bit to enable access to divisor settings. */
-  regs->lcr = UART_LCR_7_DLAB;
+  MMIO_WRITEL(regs->lcr, UART_LCR_7_DLAB);
 
   /* The divisor settings configure the baud rate, and may need to be defined
    * on a per-device basis.
    */
-  regs->rbr_thr_dll = dl & UINT8_MAX;
-  regs->ier_dlh = dl >> 8;
+  MMIO_WRITEL(regs->rbr_thr_dll, dl & UINT8_MAX);
+  MMIO_WRITEL(regs->ier_dlh, dl >> 8);
 
   /* Clear the DLAB bit to enable access to other settings and configure other
    * UART parameters.
    */
-  regs->lcr = UART_LCR_8BITS;
+  MMIO_WRITEL(regs->lcr, UART_LCR_8BITS);
 
   /* Enable the FIFOs. */
-  regs->iir_fcr = UART_FCR_0_FIFOE | UART_FCR_1_RFIFOR | UART_FCR_2_XFIFOR;
+  MMIO_WRITEL(regs->iir_fcr,
+              UART_FCR_0_FIFOE | UART_FCR_1_RFIFOR | UART_FCR_2_XFIFOR);
+
+  prot_domains_disable_mmio();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -112,13 +123,21 @@ SYSCALLS_DEFINE(uart_16x50_setup, uart_16x50_driver_t c_this, uint16_t dl)
  */
 SYSCALLS_DEFINE(uart_16x50_tx, uart_16x50_driver_t c_this, uint8_t c)
 {
-  uart_16x50_regs_t *regs = (uart_16x50_regs_t *)PROT_DOMAINS_MMIO(c_this);
+  uint32_t ready;
+  uart_16x50_regs_t ATTR_MMIO_ADDR_SPACE *regs =
+    (uart_16x50_regs_t ATTR_MMIO_ADDR_SPACE *)PROT_DOMAINS_MMIO(c_this);
+
+  prot_domains_enable_mmio();
 
   /* Wait for space in TX FIFO. */
-  while((regs->lsr & UART_LSR_5_THRE) == 0);
+  do {
+    MMIO_READL(ready, regs->lsr);
+  } while((ready & UART_LSR_5_THRE) == 0);
 
   /* Add character to TX FIFO. */
-  regs->rbr_thr_dll = c;
+  MMIO_WRITEL(regs->rbr_thr_dll, c);
+
+  prot_domains_disable_mmio();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -128,10 +147,12 @@ SYSCALLS_DEFINE(uart_16x50_tx, uart_16x50_driver_t c_this, uint8_t c)
  * \param dl       Divisor setting to configure the baud rate.
  */
 void
-uart_16x50_init(uart_16x50_driver_t *c_this,
+uart_16x50_init(uart_16x50_driver_t ATTR_KERN_ADDR_SPACE *c_this,
                 pci_config_addr_t pci_addr,
                 uint16_t dl)
 {
+  uart_16x50_driver_t loc_c_this;
+
   /* This assumes that the UART had an MMIO range assigned to it by the
    * firmware during boot.
    */
@@ -141,6 +162,8 @@ uart_16x50_init(uart_16x50_driver_t *c_this,
   SYSCALLS_INIT(uart_16x50_tx);
   SYSCALLS_AUTHZ(uart_16x50_tx, *c_this);
 
-  uart_16x50_setup(*c_this, dl);
+  prot_domains_copy_dcd(&loc_c_this, c_this);
+
+  uart_16x50_setup(loc_c_this, dl);
 }
 /*---------------------------------------------------------------------------*/

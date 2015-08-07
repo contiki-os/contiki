@@ -129,7 +129,7 @@ SECTIONS {
         *(.data*)
 
         /*
-           These could also be treated as read-only data to prevent tampering
+           These could alternatively be treated as read-only data to prevent tampering
            from the user privilege level.
         */
         _sdata_shared_isr = .;
@@ -201,4 +201,6 @@ SECTIONS {
 
         . = ALIGN(4K);
     }
+
+    _ebss_pre_dma_addr = ALIGN(32);
 }
