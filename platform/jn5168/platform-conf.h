@@ -219,4 +219,9 @@ typedef uint32_t rtimer_clock_t;
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
 #endif /* SLIP_BRIDGE_CONF_NO_PUTCHAR */
 
+/* Enable this to get the higher-precision (but binary!) 32.768kHz oscillator */
+#ifndef USE_EXTERNAL_OSCILLATOR
+#define USE_EXTERNAL_OSCILLATOR 0
+#endif /* USE_EXTERNAL_OSCILLATOR */
+
 #endif /* PLATFORM_CONF_H */
