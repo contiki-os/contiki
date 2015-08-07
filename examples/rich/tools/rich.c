@@ -95,7 +95,7 @@ rich_network_init(uip_ipaddr_t *br_prefix)
 void
 rich_init(uip_ipaddr_t *br_prefix)
 {
-#if WITH_TSCH_ORCHESTRA
+#if TSCH_CONFIG == TSCH_CONFIG_ORCHESTRA
   orchestra_init();
 #endif
 
