@@ -132,7 +132,7 @@ rtimer_arch_get_time_until_next_wakeup(void)
   rtimer_clock_t now = RTIMER_NOW();
   rtimer_clock_t next_wakeup = compare_time;
   if(bAHI_TickTimerIntStatus()) {
-    return next_wakeup >= now ? next_wakeup - now : (rtimer_clock_t)(-1) - next_wakeup + now;
+    return next_wakeup >= now ? next_wakeup - now : 0;
   }
   /* if no wakeup is scheduled yet return maximum time */
   return (rtimer_clock_t)-1;
