@@ -139,7 +139,14 @@ prot_domains_gdt_init()
                     (uint32_t)&_stext_addr,
                     ((uint32_t)&_etext_addr) - (uint32_t)&_stext_addr,
                     SEG_FLAG(DPL, PRIV_LVL_EXC) | SEG_GRAN_BYTE |
-                    SEG_DESCTYPE_NSYS | SEG_TYPE_CODE_EX);
+                    SEG_DESCTYPE_NSYS |
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__SWSEG
+  /* The general protection fault handler requires read access to CS */
+                    SEG_TYPE_CODE_EXRD
+#else
+                    SEG_TYPE_CODE_EX
+#endif
+                    );
   gdt_insert_boot(GDT_IDX_CODE_EXC, desc);
 
   segment_desc_init(&desc,
@@ -180,7 +187,9 @@ prot_domains_gdt_init()
    */
   desc.raw = SEG_DESC_NOT_PRESENT;
   for(i = 0; i < PROT_DOMAINS_ACTUAL_CNT; i++) {
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
     gdt_insert_boot(GDT_IDX_TSS(i), desc);
+#endif
     gdt_insert_boot(GDT_IDX_LDT(i), desc);
   }
 

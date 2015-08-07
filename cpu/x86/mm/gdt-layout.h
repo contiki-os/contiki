@@ -92,8 +92,13 @@
 /** Stack segment for exception handlers */
 #define GDT_IDX_STK_EXC       10
 
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
 #define GDT_IDX_TSS(dom_id)   (GDT_NUM_FIXED_DESC + (2 * (dom_id)))
 #define GDT_IDX_LDT(dom_id)   (GDT_NUM_FIXED_DESC + (2 * (dom_id)) + 1)
+#else
+#define GDT_IDX_LDT(dom_id)   (GDT_NUM_FIXED_DESC + (dom_id))
+#endif
+
 #endif
 #else
 #define GDT_IDX_CODE          GDT_IDX_CODE_FLAT
