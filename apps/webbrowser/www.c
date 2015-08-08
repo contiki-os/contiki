@@ -810,6 +810,7 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
 	  textptr->name + attriblen + 1, WWW_CONF_MAX_INPUTVALUELEN);
 	add_forminput((struct inputattrib *)textptr);
 	textptr->formptr = formptr;
+	petsciiconv_topetscii(text, strlen(text));
 	strcpy(textptr->textentry.text, text);
 	strcpy(textptr->name, attrib);
 	if(size) {
