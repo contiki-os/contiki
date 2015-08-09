@@ -54,6 +54,8 @@ PROCINIT(  &etimer_process
 #endif
          );
 
+extern int _sdata_kern_startup_func, _edata_kern_startup_func;
+
 /*---------------------------------------------------------------------------*/
 void
 app_main(void)
@@ -78,6 +80,8 @@ app_main(void)
 int
 main(void)
 {
+  uintptr_t *func_ptr;
+
 #ifdef X86_CONF_RESTRICT_DMA
   quarkX1000_imr_conf();
 #endif
@@ -103,6 +107,13 @@ main(void)
    * thus be disabled according to the principle of least privilege.
    */
   pci_root_complex_lock();
+
+  func_ptr = (uintptr_t *)&_sdata_kern_startup_func;
+  while(func_ptr != (uintptr_t *)&_edata_kern_startup_func) {
+    ((void (*)(void))*func_ptr)();
+
+    func_ptr++;
+  }
 
   prot_domains_leave_main();
 
