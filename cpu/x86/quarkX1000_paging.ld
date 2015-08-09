@@ -128,6 +128,10 @@ SECTIONS {
         *(.rodata*)
         *(.data*)
 
+        _sdata_kern_startup_func = .;
+        KEEP(*(.kern_startup_func))
+        _edata_kern_startup_func = .;
+
         /*
            These could alternatively be treated as read-only data to prevent tampering
            from the user privilege level.

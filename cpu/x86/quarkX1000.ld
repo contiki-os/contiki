@@ -63,6 +63,10 @@ SECTIONS {
     {
         *(.rodata*)
 
+        _sdata_kern_startup_func = .;
+        KEEP(*(.kern_startup_func))
+        _edata_kern_startup_func = .;
+
         _sdata_shared_isr = .;
         KEEP(*(.shared_isr_data*))
         _edata_shared_isr = .;
