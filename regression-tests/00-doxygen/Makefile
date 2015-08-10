@@ -27,10 +27,7 @@
 
 DOCDIR=../../doc
 
-all: skip
-
-skip:
-	@echo Skipping the Doxygen test...
+all: summary
 
 doxygen:
 	@make -C $(DOCDIR) doxygen.log 2> doxygen.runerr > doxygen.runlog

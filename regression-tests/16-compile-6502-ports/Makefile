@@ -1,6 +1,3 @@
-skip:
-	@echo Skipping this test...
-
 EXAMPLESDIR=../../examples
 TOOLSDIR=../../tools
 
