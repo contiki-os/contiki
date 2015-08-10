@@ -62,7 +62,8 @@ shared_isr_init(void)
 
   void shared_isr_stub(void);
   __asm__ __volatile__ (
-    ISR_STUB("shared_isr_stub", 0, "shared_handler")
+    ISR_STUB("shared_isr_stub", 0, "shared_handler", 0)
+    :
   );
 
   while(client < &_edata_shared_isr) {
@@ -91,11 +92,10 @@ shared_isr_init(void)
              (client->pin == consistency_check_client->pin) &&
              (client->pirq == consistency_check_client->pirq));
     } else {
-      idt_set_intr_gate_desc(PIC_INT(client->irq), (uint32_t)shared_isr_stub);
+      idt_set_intr_gate_desc(PIC_INT(client->irq), (uint32_t)shared_isr_stub,
+                             GDT_SEL_CODE_INT, PRIV_LVL_INT);
 
-      assert(pci_irq_agent_set_pirq(client->agent,
-                                    client->pin,
-                                    client->pirq) == 0);
+      pci_irq_agent_set_pirq(client->agent, client->pin, client->pirq);
 
       pci_pirq_set_irq(client->pirq, client->irq, 1);
 

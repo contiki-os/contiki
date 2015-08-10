@@ -8,6 +8,10 @@ ifeq ($(filter $(EXAMPLE),$(KNOWN_EXAMPLES)),)
     $(error Unable to proceed)
 endif
 
+ifeq ($(EXAMPLE),print-imr)
+    CFLAGS += -DDBG_IMRS
+endif
+
 CONTIKI_PROJECT = $(EXAMPLE)
 
 all: $(CONTIKI_PROJECT)

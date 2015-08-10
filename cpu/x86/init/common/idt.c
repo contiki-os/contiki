@@ -28,9 +28,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "gdt-layout.h"
+#include "prot-domains.h"
 #include <stdint.h>
 
 #include "helpers.h"
+#include "segmentation.h"
+#include "idt.h"
 
 #define NUM_DESC 256
 
@@ -55,22 +59,27 @@ typedef struct intr_gate_desc {
  * of the IDT should be aligned on an 8-byte boundary to maximize performance
  * of cache line fills.
  */
-static intr_gate_desc_t idt[NUM_DESC] __attribute__ ((aligned(8)));
+static intr_gate_desc_t __attribute__((aligned(8))) ATTR_BSS_KERN
+  idt[NUM_DESC];
 
+/*---------------------------------------------------------------------------*/
 /* XXX: If you change this function prototype, make sure you fix the assembly
- * code in SET_INTERRUPT_HANDLER macro in interrupt.h. Otherwise, you might
+ * code in SET_INT_EXC_HANDLER macro in interrupt.h. Otherwise, you might
  * face a very-hard-to-find bug in the interrupt handling system.
  */
 void
-idt_set_intr_gate_desc(int intr_num, uint32_t offset)
+idt_set_intr_gate_desc(int intr_num,
+                       uint32_t offset,
+                       uint16_t cs,
+                       uint16_t dpl)
 {
   intr_gate_desc_t *desc = &idt[intr_num];
 
   desc->offset_low = offset & 0xFFFF;
-  desc->selector = 0x08; /* Offset in GDT for code segment */
+  desc->selector = cs;
   desc->fixed = BIT(9) | BIT(10);
   desc->d = 1;
-  desc->dpl = 0;
+  desc->dpl = dpl;
   desc->p = 1;
   desc->offset_high = (offset >> 16) & 0xFFFF;
 }

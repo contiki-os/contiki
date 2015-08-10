@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,47 +28,38 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth-conf.h"
-#include "net/eth-proc.h"
-#include "contiki-net.h"
-#include "net/linkaddr.h"
+#ifndef CPU_X86_MM_PAGING_H_
+#define CPU_X86_MM_PAGING_H_
 
-#if NETSTACK_CONF_WITH_IPV6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#else
-/* 192.0.2.0/24 is a block reserved for documentation by RFC 5737. */
-#define SUBNET_IP       192, 0, 2
-#define NETMASK_IP      255, 255, 255, 0
-#define HOST_IP         SUBNET_IP, 2
-#define GATEWAY_IP      SUBNET_IP, 1
-#define NAMESERVER_IP   GATEWAY_IP
-#endif
+#include <stdint.h>
 
-/*---------------------------------------------------------------------------*/
-void
-eth_init(void)
-{
-#if !NETSTACK_CONF_WITH_IPV6
-  uip_ipaddr_t ip_addr;
+/**
+ * Page table entry format for PAE mode page table.  See Intel Combined Manual,
+ * Vol. 3, Section 4.4 for more details.
+ */
+typedef union pte {
+  struct {
+    uint64_t present         : 1;
+    uint64_t writable        : 1;
+    uint64_t user_accessible : 1;
+    uint64_t pwt             : 1; /**< Specify write-through cache policy */
+    uint64_t pcd             : 1; /**< Disable caching */
+    uint64_t accessed        : 1;
+    uint64_t dirty           : 1;
+    uint64_t                 : 5;
+    uint64_t addr            : 51;
+    uint64_t exec_disable    : 1;
+  };
+  uint64_t raw;
+} pte_t;
 
-#define SET_IP_ADDR(x) \
-  uip_ipaddr(&ip_addr, x)
+#define ENTRIES_PER_PDPT 4
+#define ENTRIES_PER_PAGE_TABLE 512
 
-  SET_IP_ADDR(HOST_IP);
-  uip_sethostaddr(&ip_addr);
+typedef pte_t pdpt_t[ENTRIES_PER_PDPT];
+typedef pte_t page_table_t[ENTRIES_PER_PAGE_TABLE];
 
-  SET_IP_ADDR(NETMASK_IP);
-  uip_setnetmask(&ip_addr);
+#define MIN_PAGE_SIZE_SHAMT 12
+#define MIN_PAGE_SIZE (1 << MIN_PAGE_SIZE_SHAMT)
 
-  SET_IP_ADDR(GATEWAY_IP);
-  uip_setdraddr(&ip_addr);
-
-#if WITH_DNS
-  SET_IP_ADDR(NAMESERVER_IP);
-  uip_nameserver_update(&ip_addr, UIP_NAMESERVER_INFINITE_LIFETIME);
-#endif
-#endif
-
-  process_start(&eth_process, NULL);
-}
-/*---------------------------------------------------------------------------*/
+#endif /* CPU_X86_MM_PAGING_H_ */

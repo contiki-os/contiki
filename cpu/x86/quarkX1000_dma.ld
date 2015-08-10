@@ -37,8 +37,12 @@ SECTIONS {
        Using 1K-alignment perturbs the symbols, hindering debugging.  Thus,
        this section is simply padded out to the desired alignment and
        declared to have a section alignment of only 32 bytes.
+
+       The alignment directives used here suffice even when paging is in use,
+       because this is the last section and directly follows one (.bss.meta)
+       that is 4K-aligned.
     */
-    .bss.dma ALIGN (32) (NOLOAD) :
+    .bss.dma (NOLOAD) : ALIGN (32)
     {
         /* The IMR feature operates at 1K granularity. */
         . = ALIGN(1K);

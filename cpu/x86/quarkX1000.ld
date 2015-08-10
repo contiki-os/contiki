@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,6 +55,7 @@ SECTIONS {
     .text ALIGN (32) :
     {
         KEEP(*(.multiboot))
+        *(.boot_text)
         *(.text*)
     }
 
@@ -75,6 +76,15 @@ SECTIONS {
     .bss ALIGN (32) :
     {
         *(COMMON)
+        *(.main_stack)
         *(.bss*)
+
+        *(.gdt_bss_start)
+        /*
+           The other GDT-related sections defined in gdt.h are only used when
+           protection domain support is enabled.  Thus, they do not need to be
+           included here.
+        */
+        _ebss_gdt_addr = .;
     }
 }

@@ -28,47 +28,38 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth-conf.h"
-#include "net/eth-proc.h"
-#include "contiki-net.h"
-#include "net/linkaddr.h"
+#include "gdt.h"
+#include "gdt-layout.h"
+#include "prot-domains.h"
+#include "segmentation.h"
+#include "stacks.h"
+#include "tss.h"
 
-#if NETSTACK_CONF_WITH_IPV6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#else
-/* 192.0.2.0/24 is a block reserved for documentation by RFC 5737. */
-#define SUBNET_IP       192, 0, 2
-#define NETMASK_IP      255, 255, 255, 0
-#define HOST_IP         SUBNET_IP, 2
-#define GATEWAY_IP      SUBNET_IP, 1
-#define NAMESERVER_IP   GATEWAY_IP
-#endif
+/* System-wide TSS */
+tss_t ATTR_BSS_KERN sys_tss;
+
+static segment_desc_t ATTR_BSS_GDT sys_tss_desc;
 
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Initialize system-wide TSS.
+ */
 void
-eth_init(void)
+tss_init(void)
 {
-#if !NETSTACK_CONF_WITH_IPV6
-  uip_ipaddr_t ip_addr;
+  sys_tss.iomap_base = sizeof(sys_tss);
+  sys_tss.esp2 = ((uint32_t)stacks_int) + STACKS_SIZE_INT;
+  sys_tss.ss2 = GDT_SEL_STK_INT;
+  sys_tss.esp0 = ((uint32_t)stacks_exc) + STACKS_SIZE_EXC;
+  sys_tss.ss0 = GDT_SEL_STK_EXC;
 
-#define SET_IP_ADDR(x) \
-  uip_ipaddr(&ip_addr, x)
+  segment_desc_init(&sys_tss_desc, (uint32_t)&sys_tss, sizeof(sys_tss),
+                    SEG_FLAG(DPL, PRIV_LVL_EXC) |
+                    SEG_DESCTYPE_SYS | SEG_TYPE_TSS32_AVAIL);
 
-  SET_IP_ADDR(HOST_IP);
-  uip_sethostaddr(&ip_addr);
-
-  SET_IP_ADDR(NETMASK_IP);
-  uip_setnetmask(&ip_addr);
-
-  SET_IP_ADDR(GATEWAY_IP);
-  uip_setdraddr(&ip_addr);
-
-#if WITH_DNS
-  SET_IP_ADDR(NAMESERVER_IP);
-  uip_nameserver_update(&ip_addr, UIP_NAMESERVER_INFINITE_LIFETIME);
-#endif
-#endif
-
-  process_start(&eth_process, NULL);
+  __asm__ __volatile__ (
+    "ltr %0"
+    :
+    : "r" ((uint16_t)GDT_SEL_OF_DESC(&sys_tss_desc, 0)));
 }
 /*---------------------------------------------------------------------------*/
