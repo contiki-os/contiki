@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         Header file for NXP jn5168-specific rtimer code
+ *         Header file for NXP jn516x-specific rtimer code
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
  */

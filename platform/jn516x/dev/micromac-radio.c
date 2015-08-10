@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         Contiki driver for NXP JN5168 using MMAC interface
+ *         Contiki driver for NXP JN516X using MMAC interface
  * \authors
  *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennot <simonduq@sics.se>

@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         Clock implementation for NXP jn5168.
+ *         Clock implementation for NXP jn516x.
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
  *

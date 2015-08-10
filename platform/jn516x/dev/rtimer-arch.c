@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         RTIMER for NXP jn5168
+ *         RTIMER for NXP jn516x
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
  */

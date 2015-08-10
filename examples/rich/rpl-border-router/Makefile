@@ -1,7 +1,7 @@
 CONTIKI_PROJECT=border-router
 all: $(CONTIKI_PROJECT) 
 
-TARGET ?= jn5168
+TARGET ?= jn516x
 
 APPS = json
 
@@ -30,11 +30,11 @@ include $(CONTIKI)/Makefile.include
 #using XON/XOFF flow control
 connect-router-sw:	$(CONTIKI)/tools/tunslip6
 	sudo $(CONTIKI)/tools/tunslip6 -v1 -X -B 1000000 $(PREFIX)
-	
+
 #using hw flow control	
 connect-router-hw:	$(CONTIKI)/tools/tunslip6
 	sudo $(CONTIKI)/tools/tunslip6 -v1 -H -B 1000000 $(PREFIX)
-	
+
 #using no flow control	
 connect-router-no:	$(CONTIKI)/tools/tunslip6
 	sudo $(CONTIKI)/tools/tunslip6 -v1 -B 1000000 $(PREFIX)

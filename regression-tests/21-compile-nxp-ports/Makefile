@@ -2,8 +2,8 @@ EXAMPLESDIR=../../examples
 TOOLSDIR=../../tools
 
 EXAMPLES = \
-hello-world/jn5168 \
-jn516x/contikimac/jn5168
+hello-world/jn516x \
+jn516x/contikimac/jn516x
 
 
 TOOLS=

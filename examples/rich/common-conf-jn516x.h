@@ -31,8 +31,8 @@
  * \author Simon Duquennoy <simonduq@sics.se>
  */
 
-#ifndef __COMMON_CONF_JN5168_H__
-#define __COMMON_CONF_JN5168_H__
+#ifndef __COMMON_CONF_JN516X_H__
+#define __COMMON_CONF_JN516X_H__
 
 /* Shall we restart after exception, or stall?
  * in production code we should restart, so set this to 0 */
@@ -107,4 +107,4 @@
 #undef UART_BAUD_RATE
 #define UART_BAUD_RATE UART_RATE_1000000
 
-#endif /* __COMMON_CONF_JN5168_H__ */
+#endif /* __COMMON_CONF_JN516X_H__ */

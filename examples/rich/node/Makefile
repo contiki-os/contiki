@@ -2,7 +2,7 @@ CONTIKI=../../..
 CONTIKI_PROJECT = node
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
-TARGET ?= jn5168
+TARGET ?= jn516x
 
 APPS = 
 CONTIKI_WITH_IPV6 = 1
