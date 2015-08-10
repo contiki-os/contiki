@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,47 +28,42 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth-conf.h"
-#include "net/eth-proc.h"
-#include "contiki-net.h"
-#include "net/linkaddr.h"
+#include "prot-domains.h"
 
-#if NETSTACK_CONF_WITH_IPV6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#else
-/* 192.0.2.0/24 is a block reserved for documentation by RFC 5737. */
-#define SUBNET_IP       192, 0, 2
-#define NETMASK_IP      255, 255, 255, 0
-#define HOST_IP         SUBNET_IP, 2
-#define GATEWAY_IP      SUBNET_IP, 1
-#define NAMESERVER_IP   GATEWAY_IP
-#endif
+#include "gdt.h"
+#include <stdio.h>
+#include "interrupt.h"
+#include <stdint.h>
+#include <assert.h>
+#include "syscalls.h"
+#include "stacks.h"
+
+static dom_kern_data_t __attribute__((section(".kern_prot_dom_bss")))
+  PROT_DOMAINS_PDCS_NM(kern_dcd);
+static dom_client_data_t ATTR_BSS_KERN kern_dcd;
+static dom_kern_data_t __attribute__((section(".app_prot_dom_bss")))
+  PROT_DOMAINS_PDCS_NM(app_dcd);
+static dom_client_data_t ATTR_BSS_KERN app_dcd;
 
 /*---------------------------------------------------------------------------*/
 void
-eth_init(void)
+prot_domains_init(void)
 {
-#if !NETSTACK_CONF_WITH_IPV6
-  uip_ipaddr_t ip_addr;
+  segment_desc_t desc;
 
-#define SET_IP_ADDR(x) \
-  uip_ipaddr(&ip_addr, x)
+  gdt_lookup(GDT_IDX_CODE_EXC, &desc);
 
-  SET_IP_ADDR(HOST_IP);
-  uip_sethostaddr(&ip_addr);
+  SEG_SET_FLAG(desc, DPL, PRIV_LVL_INT);
+  gdt_insert(GDT_IDX_CODE_INT, desc);
 
-  SET_IP_ADDR(NETMASK_IP);
-  uip_setnetmask(&ip_addr);
+  SEG_SET_FLAG(desc, DPL, PRIV_LVL_USER);
+  gdt_insert(GDT_IDX_CODE, desc);
 
-  SET_IP_ADDR(GATEWAY_IP);
-  uip_setdraddr(&ip_addr);
+  PROT_DOMAINS_INIT_ID(kern_dcd);
+  prot_domains_reg(&kern_dcd, 0, 0, 0, 0, true);
+  PROT_DOMAINS_INIT_ID(app_dcd);
+  prot_domains_reg(&app_dcd, 0, 0, 0, 0, false);
 
-#if WITH_DNS
-  SET_IP_ADDR(NAMESERVER_IP);
-  uip_nameserver_update(&ip_addr, UIP_NAMESERVER_INFINITE_LIFETIME);
-#endif
-#endif
-
-  process_start(&eth_process, NULL);
+  prot_domains_impl_init();
 }
 /*---------------------------------------------------------------------------*/

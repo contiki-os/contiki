@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,47 +28,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth-conf.h"
-#include "net/eth-proc.h"
-#include "contiki-net.h"
-#include "net/linkaddr.h"
+#include "stacks.h"
 
-#if NETSTACK_CONF_WITH_IPV6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#else
-/* 192.0.2.0/24 is a block reserved for documentation by RFC 5737. */
-#define SUBNET_IP       192, 0, 2
-#define NETMASK_IP      255, 255, 255, 0
-#define HOST_IP         SUBNET_IP, 2
-#define GATEWAY_IP      SUBNET_IP, 1
-#define NAMESERVER_IP   GATEWAY_IP
+uint8_t stacks_main[STACKS_SIZE_MAIN]
+  __attribute__((section(".main_stack"), aligned(4)));
+#if X86_CONF_PROT_DOMAINS != X86_CONF_PROT_DOMAINS__NONE
+uint8_t stacks_int[STACKS_SIZE_INT]
+  __attribute__((section(".int_stack"), aligned(4)));
+uint8_t stacks_exc[STACKS_SIZE_EXC]
+  __attribute__((section(".exc_stack"), aligned(4)));
 #endif
-
-/*---------------------------------------------------------------------------*/
-void
-eth_init(void)
-{
-#if !NETSTACK_CONF_WITH_IPV6
-  uip_ipaddr_t ip_addr;
-
-#define SET_IP_ADDR(x) \
-  uip_ipaddr(&ip_addr, x)
-
-  SET_IP_ADDR(HOST_IP);
-  uip_sethostaddr(&ip_addr);
-
-  SET_IP_ADDR(NETMASK_IP);
-  uip_setnetmask(&ip_addr);
-
-  SET_IP_ADDR(GATEWAY_IP);
-  uip_setdraddr(&ip_addr);
-
-#if WITH_DNS
-  SET_IP_ADDR(NAMESERVER_IP);
-  uip_nameserver_update(&ip_addr, UIP_NAMESERVER_INFINITE_LIFETIME);
-#endif
-#endif
-
-  process_start(&eth_process, NULL);
-}
-/*---------------------------------------------------------------------------*/

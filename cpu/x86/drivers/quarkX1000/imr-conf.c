@@ -28,9 +28,9 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "dma.h"
 #include "imr.h"
-
-extern int _sbss_dma_addr, _ebss_dma_addr;
+#include "msg-bus.h"
 
 /*---------------------------------------------------------------------------*/
 void
@@ -48,6 +48,8 @@ quarkX1000_imr_conf(void)
 
   imr.rdmsk.cpu0 = imr.rdmsk.cpu_0 = 1;
   imr.wrmsk.cpu0 = imr.wrmsk.cpu_0 = 1;
+
+  quarkX1000_msg_bus_init();
 
   imr.lo.addr = 0;
   imr.hi.addr = (((uint32_t)&_sbss_dma_addr) - 1) >> QUARKX1000_IMR_SHAMT;
@@ -69,5 +71,12 @@ quarkX1000_imr_conf(void)
     quarkX1000_imr_write(imr_idx, imr);
     imr_idx++;
   }
+
+#ifndef DBG_IMRS
+  /* The IMRs are locked by the hardware, but the message bus could still
+   * provide access to other potentially-sensitive functionality.
+   */
+  quarkX1000_msg_bus_lock();
+#endif
 }
 /*---------------------------------------------------------------------------*/

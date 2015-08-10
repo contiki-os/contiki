@@ -44,6 +44,9 @@ Standard APIs:
   * Stdio library (stdout and stderr only). Console output through UART 1
     device (connected to Galileo Gen2 FTDI header)
 
+Optional support for protection domains is also implemented and is
+described in cpu/x86/mm/README.md.
+
 Building
 --------
 

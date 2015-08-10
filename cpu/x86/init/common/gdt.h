@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,6 +31,32 @@
 #ifndef GDT_H
 #define GDT_H
 
-void gdt_init(void);
+#include "gdt-layout.h"
+#include "prot-domains.h"
+#include "segmentation.h"
+
+extern segment_desc_t gdt[];
+extern int _ebss_gdt_addr;
+
+#define GDT_IDX_OF_DESC(ptr)                      \
+       ((((uintptr_t)(ptr)) - ((uintptr_t)&gdt))/ \
+        sizeof(segment_desc_t))
+
+/**
+ * \brief     Compute the selector for a GDT entry allocated somewhere besides gdt.c.
+ * \param ptr Pointer to GDT descriptor.
+ * \param rpl Requested Privilege Level.
+ */
+#define GDT_SEL_OF_DESC(ptr, rpl) GDT_SEL(GDT_IDX_OF_DESC(ptr), rpl)
+
+#define ATTR_BSS_GDT       __attribute__((section(".gdt_bss")))
+#define ATTR_BSS_GDT_START __attribute__((section(".gdt_bss_start")))
+
+void gdt_copy_desc_change_dpl(unsigned int dest_idx,
+                              unsigned int src_idx,
+                              unsigned dpl);
+void gdt_init(void) ATTR_CODE_BOOT;
+void gdt_insert(unsigned int idx, segment_desc_t desc);
+void gdt_lookup(unsigned int idx, segment_desc_t *desc);
 
 #endif /* GDT_H */

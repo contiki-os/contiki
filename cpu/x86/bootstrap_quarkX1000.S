@@ -28,8 +28,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-# Kernel
-.set STACK_SIZE, 8192
+#include "stacks.h"
 
 # Multiboot
 .set MAGIC_NUMBER, 0x1BADB002
@@ -42,15 +41,9 @@
 .long FLAGS
 .long CHECKSUM
 
-# Reserve space for the C stack.
-.lcomm c_stack, STACK_SIZE
-
-.section .text
+.section .boot_text
 .global start
 start:
         cli
-        movl $(c_stack + STACK_SIZE), %esp
-        call main
-
-        /* We're not expected to return from main(). But if we do we halt */
-        call halt
+        mov $(stacks_main + STACKS_SIZE_MAIN), %esp
+        call cpu_boot_stage0
