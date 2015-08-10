@@ -73,6 +73,11 @@ before_script:
       cc65 --version ;
     fi
 
+  ## Install NXP toolchain
+  - if [ ${BUILD_ARCH:-0} = jn5168 ] ; then
+      echo "Should download the NXP headers and libraries from somewhere at this point..."
+    fi
+
   ## Compile cooja.jar only when it's going to be needed
   - if [ ${BUILD_CATEGORY:-sim} = sim ] ; then
       java -version &&
@@ -97,27 +102,28 @@ after_script:
 env:
   ## This magically kick-off parallel jobs for each of the for the sets
   ## of environment variable defined below
-  - BUILD_TYPE='doxygen'  BUILD_CATEGORY='doxygen'
-  - BUILD_TYPE='compile-base' BUILD_CATEGORY='compile'
-  - BUILD_TYPE='compile-tools' BUILD_CATEGORY='compile'
-  - BUILD_TYPE='collect'
-  - BUILD_TYPE='collect-lossy'
-  - BUILD_TYPE='rpl'
-  - BUILD_TYPE='rime'
-  - BUILD_TYPE='ipv6'
-  - BUILD_TYPE='ip64' MAKE_TARGETS='cooja'
+#  - BUILD_TYPE='doxygen'  BUILD_CATEGORY='doxygen'
+#  - BUILD_TYPE='compile-base' BUILD_CATEGORY='compile'
+#  - BUILD_TYPE='compile-tools' BUILD_CATEGORY='compile'
+#  - BUILD_TYPE='collect'
+#  - BUILD_TYPE='collect-lossy'
+#  - BUILD_TYPE='rpl'
+#  - BUILD_TYPE='rime'
+#  - BUILD_TYPE='ipv6'
+#  - BUILD_TYPE='ip64' MAKE_TARGETS='cooja'
   - BUILD_TYPE='hello-world'
-  - BUILD_TYPE='base'
+#  - BUILD_TYPE='base'
 # XXX: netperf disabled b/c it's flaky
 #  - BUILD_TYPE='netperf' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='shell'
-  - BUILD_TYPE='elfloader'
+#  - BUILD_TYPE='shell'
+#  - BUILD_TYPE='elfloader'
 # Tests under the ipv4 dir are individually disabled. Thus the entire job can be off
 #  - BUILD_TYPE='ipv4'
-  - BUILD_TYPE='ipv6-apps'
-  - BUILD_TYPE='compile-8051-ports' BUILD_CATEGORY='compile' BUILD_ARCH='8051'
-  - BUILD_TYPE='compile-arm-apcs-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-apcs'
-  - BUILD_TYPE='compile-6502-ports' BUILD_CATEGORY='compile' BUILD_ARCH='6502'
-  - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-aapcs'
-  - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
+#  - BUILD_TYPE='ipv6-apps'
+#  - BUILD_TYPE='compile-8051-ports' BUILD_CATEGORY='compile' BUILD_ARCH='8051'
+#  - BUILD_TYPE='compile-arm-apcs-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-apcs'
+#  - BUILD_TYPE='compile-6502-ports' BUILD_CATEGORY='compile' BUILD_ARCH='6502'
+#  - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-aapcs'
+  - BUILD_TYPE='compile-nxp-ports' BUILD_CATEGORY='compile' BUILD_ARCH='jn5168'
+#  - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
+#  - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
