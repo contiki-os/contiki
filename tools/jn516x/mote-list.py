@@ -62,7 +62,7 @@ def main():
     motes = motelist_impl.list_motes(flash_programmer)
     if motes:
         motes.sort()
-    print 'Found %d JN5168 motes at:' %(len(motes))
+    print 'Found %d JN516X motes at:' %(len(motes))
     motes_str = ''
     for m in motes:
         motes_str += "%s " %(str(m))

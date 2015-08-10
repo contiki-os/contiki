@@ -1,9 +1,9 @@
 # Platform Makefile
 
-CLEAN += *.jn5168 
-CLEAN += *.jn5168.bin
+CLEAN += *.jn516x 
+CLEAN += *.jn516x.bin
  
-include $(CONTIKI)/platform/jn5168/Makefile.common
+include $(CONTIKI)/platform/jn516x/Makefile.common
 
 MODULES += core/net \
            core/net/mac \

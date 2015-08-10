@@ -41,7 +41,7 @@
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-ds6.h"
 #include "dev/slip.h"
-#if CONTIKI_TARGET_JN5168
+#if CONTIKI_TARGET_JN516X
 #include "dev/uart0.h"
 #else
 #include "dev/uart1.h"

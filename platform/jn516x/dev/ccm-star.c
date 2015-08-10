@@ -151,7 +151,7 @@ static void set_key(const uint8_t* key) {
   }
 }
 /*---------------------------------------------------------------------------*/
-const struct ccm_star_driver ccm_star_driver_jn5168 = {
+const struct ccm_star_driver ccm_star_driver_jn516x = {
   mic,
   ctr,
   ctr_and_mic,

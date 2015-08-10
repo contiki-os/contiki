@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         JN5168 watchdog support.
+ *         JN516X watchdog support.
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
  *

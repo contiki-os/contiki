@@ -1,4 +1,4 @@
-dr1199-node is an example of a RICH node containing a JN5168 microcontroller on a DR1199 baseboard. 
+dr1199-node is an example of a RICH node containing a JN516x microcontroller on a DR1199 baseboard. 
 A DR1199 shield is mounted on the baseboard. 
 The boards are part of the NXP JN516x Evaluation Kit (see http://www.nxp.com/documents/leaflet/75017368.pdf) 
 The dr1199-node connects to the network in the same way as described in examples\rich\README.md

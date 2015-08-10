@@ -40,7 +40,7 @@
 #endif /* PLATFORM_CONF_H */
 
 #ifndef CCM_STAR_CONF
-#define CCM_STAR_CONF ccm_star_driver_jn5168
+#define CCM_STAR_CONF ccm_star_driver_jn516x
 #endif /* CCM_STAR_CONF */
 
 #ifndef NETSTACK_CONF_MAC

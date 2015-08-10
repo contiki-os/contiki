@@ -7,7 +7,7 @@ In this folder we have a fully functional demonstrator for RICH stack (CoAP + IP
 1. **RPL border router**: to start the wireless network and connect it to other networks.  
 2. and a **wireless node** that does nothing except acting as a wireless forwarder. It is possible to implement other meaningful processes on this node to make an embedded smart controller/actuator that utilizes RICH stack.
 
-These components can be compiled for either NXP JN5168 or sky platforms, and should work out-of-the-box.
+These components can be compiled for either NXP JN516X or sky platforms, and should work out-of-the-box.
 
 ## RICH RPL Border Router
 
@@ -25,7 +25,7 @@ Setup the UART flow-control mode for the router from rpl-border-router/project-c
 ```
 * You can disable both, but it is not recommended.
 
-Compile and flash a node with the rpl-border-router.jn5168.bin image. Either a USB dongle or a dev-board would work.
+Compile and flash a node with the rpl-border-router.jn516x.bin image. Either a USB dongle or a dev-board would work.
 
 From a Linux terminal, go to `contiki-private/examples/rich/rpl-border-router` and do either
 `make connect-router-hw` if you have **HW flow control**

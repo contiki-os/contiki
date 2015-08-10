@@ -33,7 +33,7 @@
 
 /**
  * \file
- *         Contiki main for NXP JN5168 platform
+ *         Contiki main for NXP JN516X platform
  *
  * \author
  *         Beshr Al Nahas <beshr@sics.se>

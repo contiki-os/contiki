@@ -1,7 +1,7 @@
 CONTIKI_PROJECT = dongle-node
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
-TARGET = jn5168
+TARGET = jn516x
 CFLAGS += -DDONGLE_NODE
 
 CONTIKI_WITH_IPV6 = 1
