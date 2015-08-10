@@ -1,3 +1,6 @@
+skip:
+	@echo Skipping this test...
+
 # Copyright (c) 2014, Friedrich-Alexander University Erlangen-Nuremberg
 # All rights reserved.
 #
