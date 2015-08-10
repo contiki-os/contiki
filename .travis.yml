@@ -75,7 +75,7 @@ before_script:
 
   ## Install NXP toolchain
   - if [ ${BUILD_ARCH:-0} = jn5168 ] ; then
-      echo "Should download the NXP headers and libraries from somewhere at this point..."
+      echo "Should download the NXP headers and libraries from somewhere at this point..." ;
     fi
 
   ## Compile cooja.jar only when it's going to be needed
