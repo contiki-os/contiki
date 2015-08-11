@@ -36,31 +36,9 @@
 #undef   NETSTACK_CONF_MAC
 #undef   NETSTACK_CONF_NETWORK
 
-#if 1
-#define  NETSTACK_CONF_RDC     contikimac_driver
-#define  NETSTACK_CONF_FRAMER  contikimac_framer
-#else
 #define  NETSTACK_CONF_RDC     nullrdc_driver
 #define  NETSTACK_CONF_FRAMER  framer_802154
-#endif
 #define  NETSTACK_CONF_MAC     csma_driver
 #define  NETSTACK_CONF_NETWORK rime_driver
-
-#undef   UIP_CONF_IPV6
-#define  UIP_CONF_IPV6                   0
-
-#undef   RF_CHANNEL
-#define  RF_CHANNEL             25
-
-#undef   MICROMAC_CONF_CHANNEL
-#define  MICROMAC_CONF_CHANNEL  RF_CHANNEL
-
-#undef   CC2420_CONF_CHANNEL
-#define  CC2420_CONF_CHANNEL    RF_CHANNEL
-
-
-#undef   MICROMAC_CONF_AUTOACK
-#define  MICROMAC_CONF_AUTOACK   1
-
 
 #endif /* __PROJECT_CONF_H__ */
