@@ -116,7 +116,14 @@ enum {
 #else
 #define NEXTHOP_NON_STORING(addr) 0
 #endif
-
+/*---------------------------------------------------------------------------*/
+static void
+init_appstate(uip_tcp_appstate_t *as, void *state)
+{
+  as->p = PROCESS_CURRENT();
+  as->state = state;
+}
+/*---------------------------------------------------------------------------*/
 /* Called on IP packet output. */
 #if NETSTACK_CONF_WITH_IPV6
 
@@ -236,8 +243,7 @@ tcp_connect(const uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
     return NULL;
   }
 
-  c->appstate.p = PROCESS_CURRENT();
-  c->appstate.state = appstate;
+  init_appstate(&c->appstate, appstate);
 
   tcpip_poll_tcp(c);
 
@@ -282,44 +288,29 @@ tcp_listen(uint16_t port)
 }
 /*---------------------------------------------------------------------------*/
 void
-tcp_attach(struct uip_conn *conn,
-	   void *appstate)
+tcp_attach(struct uip_conn *conn, void *appstate)
 {
-  uip_tcp_appstate_t *s;
-
-  s = &conn->appstate;
-  s->p = PROCESS_CURRENT();
-  s->state = appstate;
+  init_appstate(&conn->appstate, appstate);
 }
-
 #endif /* UIP_TCP */
 /*---------------------------------------------------------------------------*/
 #if UIP_UDP
 void
-udp_attach(struct uip_udp_conn *conn,
-	   void *appstate)
+udp_attach(struct uip_udp_conn *conn, void *appstate)
 {
-  uip_udp_appstate_t *s;
-
-  s = &conn->appstate;
-  s->p = PROCESS_CURRENT();
-  s->state = appstate;
+  init_appstate(&conn->appstate, appstate);
 }
 /*---------------------------------------------------------------------------*/
 struct uip_udp_conn *
 udp_new(const uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
 {
-  struct uip_udp_conn *c;
-  uip_udp_appstate_t *s;
+  struct uip_udp_conn *c = uip_udp_new(ripaddr, port);
 
-  c = uip_udp_new(ripaddr, port);
   if(c == NULL) {
     return NULL;
   }
 
-  s = &c->appstate;
-  s->p = PROCESS_CURRENT();
-  s->state = appstate;
+  init_appstate(&c->appstate, appstate);
 
   return c;
 }
@@ -347,8 +338,7 @@ udp_broadcast_new(uint16_t port, void *appstate)
 uint8_t
 icmp6_new(void *appstate) {
   if(uip_icmp6_conns.appstate.p == PROCESS_NONE) {
-    uip_icmp6_conns.appstate.p = PROCESS_CURRENT();
-    uip_icmp6_conns.appstate.state = appstate;
+    init_appstate(&uip_icmp6_conns.appstate, appstate);
     return 0;
   }
   return 1;
@@ -758,6 +748,7 @@ tcpip_ipv6_output(void)
       PRINTF("tcpip_ipv6_output: failed to add neighbor to cache\n");
       goto exit;
     } else {
+      /* We're sending NS here instead of original packet */
       goto send_packet;
     }
   }
@@ -863,14 +854,8 @@ PROCESS_THREAD(tcpip_process, ev, data)
   PROCESS_BEGIN();
 
 #if UIP_TCP
-  {
-    unsigned char i;
-
-    for(i = 0; i < UIP_LISTENPORTS; ++i) {
-      s.listenports[i].port = 0;
-    }
-    s.p = PROCESS_CURRENT();
-  }
+  memset(s.listenports, 0, UIP_LISTENPORTS*sizeof(*(s.listenports)));
+  s.p = PROCESS_CURRENT();
 #endif
 
   tcpip_event = process_alloc_event();
