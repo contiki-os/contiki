@@ -70,6 +70,25 @@
 #include "contiki.h"
 
 struct uip_conn;
+struct tcpip_track {
+  void (*callback)(struct tcpip_track *, int);
+  void *ptr;
+
+  enum {
+    FRAG_TRACK_NONE,
+    FRAG_TRACK_UNQUEUED,
+    FRAG_TRACK_ALL_QUEUED,
+    FRAG_TRACK_ERROR
+  } frag_track;
+  int frag_count_queued;
+  int first_fail_status;
+};
+
+struct tcpip_udp_track_status {
+  struct uip_udp_conn *conn;
+  struct tcpip_track *track;
+  int status;
+};
 
 struct tcpip_uipstate {
   struct process *p;
@@ -327,6 +346,14 @@ void tcpip_icmp6_call(uint8_t type);
  * This event is posted to a process whenever a uIP event has occurred.
  */
 CCIF extern process_event_t tcpip_event;
+/** @} */
+/**
+ * The udp sent event
+ *
+ * This event is posted to a process whenever a udp packet has finished sending
+ * (possibly as a result of error).
+ */
+CCIF extern process_event_t tcpip_udp_sent_event;
 
 /**
  * \name TCP/IP packet processing
@@ -349,8 +376,12 @@ CCIF void tcpip_input(void);
  * The eventual parameter is the MAC address of the destination.
  */
 #if NETSTACK_CONF_WITH_IPV6
-uint8_t tcpip_output(const uip_lladdr_t *);
-void tcpip_set_outputfunc(uint8_t (* f)(const uip_lladdr_t *));
+#define tcpip_output(addr) tcpip_output_sent(addr, NULL)
+
+uint8_t tcpip_output_sent(const uip_lladdr_t *, struct tcpip_track *ptr);
+void tcpip_set_outputfunc(
+  uint8_t (*f)(const uip_lladdr_t *, struct tcpip_track *)
+  );
 #else
 uint8_t tcpip_output(void);
 void tcpip_set_outputfunc(uint8_t (* f)(void));
@@ -360,8 +391,14 @@ void tcpip_set_outputfunc(uint8_t (* f)(void));
  * \brief This function does address resolution and then calls tcpip_output
  */
 #if NETSTACK_CONF_WITH_IPV6
-int tcpip_ipv6_output(void);
+#define tcpip_ipv6_output() tcpip_ipv6_output_tracked(NULL)
+int tcpip_ipv6_output_tracked(struct tcpip_track* track);
 #endif
+
+/**
+ * \brief call after sending a udp packet, informs the application
+ */
+void tcpip_udp_sent(struct tcpip_track *track, int status);
 
 /**
  * \brief Is forwarding generally enabled?

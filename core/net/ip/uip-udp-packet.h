@@ -42,6 +42,8 @@
 
 #include "net/ip/uip.h"
 
+int uip_udp_packet_send2(struct uip_udp_conn *c, const void *data, int len,
+                          struct tcpip_track* track);
 void uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len);
 void uip_udp_packet_sendto(struct uip_udp_conn *c, const void *data, int len,
 			   const uip_ipaddr_t *toaddr, uint16_t toport);

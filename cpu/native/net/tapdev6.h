@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2003, Adam Dunkels.
  * All rights reserved. 
@@ -39,7 +40,7 @@
 #include "contiki-net.h"
 
 void tapdev_init(void);
-uint8_t tapdev_send(const uip_lladdr_t *lladdr);
+uint8_t tapdev_send(const uip_lladdr_t *lladdr, struct tcpip_track *track);
 uint16_t tapdev_poll(void);
 void tapdev_do_send(void);
 void tapdev_exit(void); //math

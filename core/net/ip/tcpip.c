@@ -77,6 +77,7 @@ extern struct uip_fallback_interface UIP_FALLBACK_INTERFACE;
 #include "rpl/rpl.h"
 #endif
 
+process_event_t tcpip_udp_sent_event;
 process_event_t tcpip_event;
 #if UIP_CONF_ICMP6
 process_event_t tcpip_icmp6_event;
@@ -127,14 +128,14 @@ setup_appstate(uip_tcp_appstate_t* as, void* state)
 /* Called on IP packet output. */
 #if NETSTACK_CONF_WITH_IPV6
 
-static uint8_t (* outputfunc)(const uip_lladdr_t *a);
+static uint8_t (*outputfunc)(const uip_lladdr_t *a, struct tcpip_track *track);
 
 uint8_t
-tcpip_output(const uip_lladdr_t *a)
+tcpip_output_sent(const uip_lladdr_t *a, struct tcpip_track *track)
 {
   int ret;
   if(outputfunc != NULL) {
-    ret = outputfunc(a);
+    ret = outputfunc(a, track);
     return ret;
   }
   UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
@@ -142,7 +143,7 @@ tcpip_output(const uip_lladdr_t *a)
 }
 
 void
-tcpip_set_outputfunc(uint8_t (*f)(const uip_lladdr_t *))
+tcpip_set_outputfunc(uint8_t (*f)(const uip_lladdr_t *, struct tcpip_track *))
 {
   outputfunc = f;
 }
@@ -165,7 +166,20 @@ tcpip_set_outputfunc(uint8_t (*f)(void))
   outputfunc = f;
 }
 #endif
+/*---------------------------------------------------------------------------*/
+void
+tcpip_udp_sent(struct tcpip_track *track, int status)
+{
+  struct uip_udp_conn *conn = track->ptr;
+  struct tcpip_udp_track_status data;
 
+  data.conn = conn;
+  data.status = status;
+  data.track = track;
+
+  process_post_synch(conn->appstate.p, tcpip_udp_sent_event, &data);
+}
+/*---------------------------------------------------------------------------*/
 #if UIP_CONF_IP_FORWARD
 unsigned char tcpip_is_forwarding; /* Forwarding right now? */
 #endif /* UIP_CONF_IP_FORWARD */
@@ -719,7 +733,7 @@ send_nd6_ns(uip_ipaddr_t *nexthop)
 }
 /*---------------------------------------------------------------------------*/
 int
-tcpip_ipv6_output(void)
+tcpip_ipv6_output_tracked(struct tcpip_track *track)
 {
   uip_ipaddr_t ipaddr;
   int err = TCPIP_SUCCESS;
@@ -796,7 +810,7 @@ send_packet:
     linkaddr = NULL;
   }
 
-  if(tcpip_output(linkaddr)) {
+  if(!tcpip_output_sent(linkaddr, track)) {
     err = TCPIP_ERR_NEXTLAYER;
   }
 
@@ -881,6 +895,9 @@ PROCESS_THREAD(tcpip_process, ev, data)
 #endif
 
   tcpip_event = process_alloc_event();
+
+  tcpip_udp_sent_event = process_alloc_event();
+
 #if UIP_CONF_ICMP6
   tcpip_icmp6_event = process_alloc_event();
 #endif /* UIP_CONF_ICMP6 */
