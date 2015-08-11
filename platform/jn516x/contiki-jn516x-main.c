@@ -410,10 +410,6 @@ main(void)
   }
 #endif /* NETSTACK_CONF_WITH_IPV4 */
 
-#if !PROCESS_CONF_NO_PROCESS_NAMES
-  print_processes(autostart_processes);
-#endif /* !PROCESS_CONF_NO_PROCESS_NAMES */
-
   watchdog_start();
   NETSTACK_LLSEC.bootstrap(start_network_layer);
 
