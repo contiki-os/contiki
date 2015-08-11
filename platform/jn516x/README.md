@@ -60,7 +60,7 @@ Install a Toolchain
 
 The toolchain used to build Contiki for JN516x is `ba-elf-gcc`.
 
-The compiler as well as the binary libraries required to link the executable can de downloaded from NXP. To express your interest in them, go to [NXP 802.15.4 software page][NXP-802.15.4-software], select the required SDK (for example, JN-SW-4163 for Windows development), and contact the NXP support through the web form. The download link is then obtained via e-mail (allow 1+ working day for a reply).
+The compiler as well as the binary libraries required to link the executables can be downloaded from NXP. To express your interest in obtaining them, go to [NXP 802.15.4 software page][NXP-802.15.4-software], select the required SDK (for example, JN-SW-4163 for Windows development), and contact the NXP support through the web form. The download link is then obtained via e-mail (allow 1+ working day for a reply).
 
 The recommended installation locations for the toolchain are:
 * On Linux: `/usr/jn-toolchain/`
@@ -136,19 +136,19 @@ Platform-specific make targets
 ------------------------------
 * `<application>.uploadall` - upload the application to all all connected JN516x motes
 * `serialdumpall` - dump serial port output from all connected JN516x motes
-* `motelist` - list all conneted JN516x motes.
+* `motelist` - list all connected JN516x motes.
 * `motelistmac` - list MAC addresses of all connected JN516x motes. (Note: not implemented on Linux!)
 * `motelistinfo` - list info about all connected JN516x motes. (Note: very limited functionality on Linux!)
 
 *Troubleshooting:* you need a working Python installation for these commands to work. On Windows, make sure Python executable is in your `PATH`.
 
 
-Compiling for different jhatd
--------------------
+Compiling for different MCUs and boards
+---------------------------------------
 
 The platforms can selected by using `Makefile` variables.
 
-The following CPU models are suppored:
+The following MCU models are supported:
 * `JN5168` - the default one, 256kB/32kB/4kB Flash/RAM/EEPROM
 * `JN5164` - 160kB/32kB/4kB Flash/RAM/EEPROM
 
@@ -156,7 +156,7 @@ Set `JENNIC_CHIP` variable to change this; for example, to select JN5164 use:
 
 `make JENNIC_CHIP=JN5164`
 
-The following platform-specific configuration is suppored:
+The following platform-specific configurations are supported:
 * USB dongle; enable this with `CFLAGS += -DDONGLE_NODE`
 * DR1175 sensor board; enable this with `CFLAGS += -DSENSOR_BOARD_DR1175`
 * DR1199 sensor board; enable this with `CFLAGS += -DSENSOR_BOARD_DR1199`
