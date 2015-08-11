@@ -3,7 +3,8 @@ TOOLSDIR=../../tools
 
 EXAMPLES = \
 hello-world/jn516x \
-jn516x/contikimac/jn516x
+jn516x/contikimac/jn516x \
+jn516x/sensors/jn516x
 
 
 TOOLS=
