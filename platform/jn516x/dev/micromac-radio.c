@@ -36,6 +36,7 @@
  * \authors
  *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennot <simonduq@sics.se>
+ *         Atis Elsts <atis.elsts@sics.se>
  *
  */
 
@@ -62,16 +63,16 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-#define MIN(A,B)                ( ( ( A ) < ( B ) ) ? ( A ) : ( B ) )
-
 /* Perform CRC check for received packets in SW,
  * since we use PHY mode which does not calculate CRC in HW */
 #define CRC_SW 1
 
 #define CHECKSUM_LEN 2
 
-/* Max packet duration: 127 + 3 bytes, 32us per byte, 4160us */
-#define MAX_PACKET_DURATION US_TO_RTIMERTICKS((127+3)*32)
+/* Max packet duration: 5 + 127 + 2 bytes, 32us per byte */
+#define MAX_PACKET_DURATION US_TO_RTIMERTICKS((127+2)*32 + RADIO_DELAY_BEFORE_TX)
+/* Max ACK duration: 5 + 3 + 2 bytes */
+#define MAX_ACK_DURATION    US_TO_RTIMERTICKS((3+2)*32 + RADIO_DELAY_BEFORE_TX)
 
 /* Test-mode pins output on dev-kit */
 #define RADIO_TEST_MODE_HIGH_PWR 1
@@ -94,7 +95,7 @@
 
 /* Default energy level threshold for clear channel detection */
 #ifndef MICROMAC_CONF_CCA_THR
-#define MICROMAC_CONF_CCA_THR 14 /* approximately -90 dBm */
+#define MICROMAC_CONF_CCA_THR 39 /* approximately -85 dBm */
 #endif /* MICROMAC_CONF_CCA_THR */
 
 #define RADIO_TXPOWER_MAX  3
@@ -122,12 +123,8 @@ static const struct output_config output_power[] = {
 #define OUTPUT_POWER_MIN -25
 
 /* Autoack */
-#if MICROMAC_CONF_AUTOACK
-#define MMAC_RX_AUTO_ACK_CONF E_MMAC_RX_USE_AUTO_ACK
-#define MMAC_TX_AUTO_ACK_CONF E_MMAC_TX_USE_AUTO_ACK
-#else
-#define MMAC_RX_AUTO_ACK_CONF E_MMAC_RX_NO_AUTO_ACK
-#define MMAC_TX_AUTO_ACK_CONF E_MMAC_TX_NO_AUTO_ACK
+#ifndef MICROMAC_CONF_AUTOACK
+#define MICROMAC_CONF_AUTOACK 1
 #endif /* MICROMAC_CONF_AUTOACK */
 
 #define RADIO_TO_RTIMER(X) ((rtimer_clock_t)((X) << (int32_t)8L))
@@ -146,11 +143,10 @@ static const struct output_config output_power[] = {
   } while(0)
 
 /* Local variables */
-signed char radio_last_rssi;
-uint8_t radio_last_correlation;
+static volatile signed char radio_last_rssi;
 
 /* Did we miss a request to turn the radio on due to overflow? */
-static uint8_t volatile missed_radio_on_request = 0;
+static volatile uint8_t missed_radio_on_request = 0;
 
 /* Poll mode disabled by default */
 static uint8_t poll_mode = 0;
@@ -163,10 +159,13 @@ static int current_channel;
 /* an integer between 0 and 255, used only with cca() */
 static uint8_t cca_thershold = MICROMAC_CONF_CCA_THR;
 
-/* Tx im progress? */
-static uint8_t tx_in_progress = 0;
+/* Tx in progress? */
+static volatile uint8_t tx_in_progress = 0;
 /* Are we currently listening? */
-static uint8_t listen_on = 0;
+static volatile uint8_t listen_on = 0;
+
+/* Is the driver currently transmitting a software ACK? */
+static uint8_t in_ack_transmission = 0;
 
 /* TX frame buffer */
 static tsPhyFrame tx_frame_buffer;
@@ -182,12 +181,12 @@ static struct ringbufindex input_ringbuf;
 static tsPhyFrame input_array[MIRCOMAC_CONF_BUF_NUM];
 
 /* SFD timestamp in RTIMER ticks */
-static uint32_t last_packet_timestamp = 0;
+static volatile uint32_t last_packet_timestamp = 0;
 
 /* Local functions prototypes */
 static int on(void);
 static int off(void);
-static int is_packet_for_us(uint8_t *buf, int len);
+static int is_packet_for_us(uint8_t *buf, int len, int do_send_ack);
 static void set_frame_filtering(uint8_t enable);
 static rtimer_clock_t get_packet_timestamp(void);
 static void set_txpower(uint8_t power);
@@ -329,7 +328,18 @@ transmit(unsigned short payload_len)
   /* Transmit and wait */
   vMMAC_StartPhyTransmit(&tx_frame_buffer,
       E_MMAC_TX_START_NOW | E_MMAC_TX_NO_CCA);
-  BUSYWAIT_UNTIL(u32MMAC_PollInterruptSource(E_MMAC_INT_TX_COMPLETE), MAX_PACKET_DURATION);
+
+  if (poll_mode) {
+    BUSYWAIT_UNTIL(u32MMAC_PollInterruptSource(E_MMAC_INT_TX_COMPLETE), MAX_PACKET_DURATION);
+  } else {
+    if (in_ack_transmission) {
+      /* as nested interupts are not possible, the tx flag will never be cleared */
+      BUSYWAIT_UNTIL(FALSE, MAX_ACK_DURATION);
+    } else {
+      /* wait until the tx flag is cleared */
+      BUSYWAIT_UNTIL(!tx_in_progress, MAX_PACKET_DURATION);
+    }
+  }
 
   /* Energest */
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
@@ -427,11 +437,29 @@ is_broadcast_addr(uint8_t mode, uint8_t *addr)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+#if MICROMAC_CONF_AUTOACK
+/* Send an ACK */
+static void
+send_ack(const frame802154_t *frame)
+{
+  uint8_t buffer[3];
+  /* FCF: 2 octets */
+  buffer[0] = FRAME802154_ACKFRAME;
+  buffer[1] = 0;
+  /* Seqnum: 1 octets */
+  buffer[2] = frame->seq;
+  in_ack_transmission = 1;
+  send(&buffer, sizeof(buffer));
+  in_ack_transmission = 0;
+}
+#endif /* MICROMAC_CONF_AUTOACK */
+/*---------------------------------------------------------------------------*/
 /* Check if a packet is for us */
 static int
-is_packet_for_us(uint8_t *buf, int len)
+is_packet_for_us(uint8_t *buf, int len, int do_send_ack)
 {
   frame802154_t frame;
+  int result;
   uint8_t parsed = frame802154_parse(buf, len, &frame);
   if(parsed) {
     if(frame.fcf.dest_addr_mode) {
@@ -445,7 +473,14 @@ is_packet_for_us(uint8_t *buf, int len)
         return 0;
       }
       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
-        return linkaddr_cmp((linkaddr_t *)frame.dest_addr, &linkaddr_node_addr);
+        result = linkaddr_cmp((linkaddr_t *)frame.dest_addr, &linkaddr_node_addr);
+#if MICROMAC_CONF_AUTOACK
+        if (result && do_send_ack) {
+          /* this is a unicast frame and sending ACKs is enabled */
+          send_ack(&frame);
+        }
+#endif
+        return result;
       }
     }
     return 1;
@@ -482,7 +517,7 @@ read(void *buf, unsigned short bufsize)
       /* If we are in poll mode we need to check the frame here */
       if(poll_mode) {
         if(frame_filtering &&
-            !is_packet_for_us(input_frame_buffer->uPayload.au8Byte, len)) {
+            !is_packet_for_us(input_frame_buffer->uPayload.au8Byte, len, 0)) {
           len = 0;
         }
       }
@@ -497,6 +532,7 @@ read(void *buf, unsigned short bufsize)
     /* Disable further read attempts */
     input_frame_buffer->u8PayloadLength = 0;
   }
+
   return len;
 }
 /*---------------------------------------------------------------------------*/
@@ -522,7 +558,8 @@ get_detected_energy(void)
 static int
 get_rssi(void)
 {
-  return i16JPT_ConvertEnergyTodBm(get_detected_energy());
+  /* this approximate formula for RSSI is taken from NXP internal docs */
+  return (7 * get_detected_energy() - 1970) / 20;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -560,6 +597,7 @@ radio_interrupt_handler(uint32 mac_event)
   int put_index;
   int packet_for_me = 0;
   uint8_t radio_last_rx_energy;
+  uint8_t radio_last_correlation; /* LQI (a.k.a. MQI according to NXP) */
 
   if(mac_event & E_MMAC_INT_TX_COMPLETE) {
     /* Transmission attempt has finished */
@@ -575,7 +613,7 @@ radio_interrupt_handler(uint32 mac_event)
         if(rx_frame_buffer->u8PayloadLength > CHECKSUM_LEN) {
           if(frame_filtering) {
             /* Check RX address */
-            packet_for_me = is_packet_for_us(rx_frame_buffer->uPayload.au8Byte, rx_frame_buffer->u8PayloadLength - CHECKSUM_LEN);
+            packet_for_me = is_packet_for_us(rx_frame_buffer->uPayload.au8Byte, rx_frame_buffer->u8PayloadLength - CHECKSUM_LEN, 1);
           } else if(!frame_filtering) {
             packet_for_me = 1;
           }
@@ -643,7 +681,7 @@ PROCESS_THREAD(micromac_radio_process, ev, data)
       packetbuf_clear();
       int len = read(packetbuf_dataptr(), PACKETBUF_SIZE);
       /* is packet valid? */
-      if(len >0) {
+      if(len > 0) {
         packetbuf_set_datalen(len);
         NETSTACK_RDC.input();
       }
@@ -690,8 +728,9 @@ set_poll_mode(uint8_t enable)
     vMMAC_ConfigureInterruptSources(0);
   } else {
     /* Initialize and enable interrupts */
+    /* TODO: enable E_MMAC_INT_RX_HEADER & filter out frames after header rx */
     vMMAC_ConfigureInterruptSources(
-        E_MMAC_INT_RX_HEADER | E_MMAC_INT_RX_COMPLETE | E_MMAC_INT_TX_COMPLETE);
+        E_MMAC_INT_RX_COMPLETE | E_MMAC_INT_TX_COMPLETE);
     vMMAC_EnableInterrupts(&radio_interrupt_handler);
   }
 }
@@ -716,7 +755,7 @@ get_value(radio_param_t param, radio_value_t *value)
     if(frame_filtering) {
       *value |= RADIO_RX_MODE_ADDRESS_FILTER;
     }
-    if(MMAC_RX_AUTO_ACK_CONF) {
+    if(MICROMAC_CONF_AUTOACK) {
       *value |= RADIO_RX_MODE_AUTOACK;
     }
     if(poll_mode) {
@@ -788,7 +827,7 @@ set_value(radio_param_t param, radio_value_t value)
       return RADIO_RESULT_INVALID_VALUE;
     }
 
-    if(((value & RADIO_RX_MODE_AUTOACK) != 0) != MMAC_RX_AUTO_ACK_CONF) {
+    if(((value & RADIO_RX_MODE_AUTOACK) != 0) != MICROMAC_CONF_AUTOACK) {
       /* We do not support runtime enabling/disabling of autoack */
       return RADIO_RESULT_INVALID_VALUE;
     }
