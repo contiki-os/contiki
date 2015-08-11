@@ -74,18 +74,48 @@
 #define PROCESS_CONF_NUMEVENTS 8
 #define PROCESS_CONF_STATS 1
 
+
+#if !defined NETSTACK_CONF_WITH_IPV6 && !defined NETSTACK_CONF_WITH_IPV4 && !defined NETSTACK_CONF_WITH_RIME
+#define NETSTACK_CONF_WITH_IPV6 1
+#endif /* NETSTACK_CONF_ not defined */
+
+
+/* Network setup for IP */
+#if NETSTACK_CONF_WITH_IPV4 || NETSTACK_CONF_WITH_IPV6
+
+#define LINKADDR_CONF_SIZE              8
+
+#ifndef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM               8
+#endif
+
+/* Network setup for non-IP (rime). */
+#else
+
+#define LINKADDR_CONF_SIZE              2
+
+#ifndef COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS
+#define COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS     32
+#endif /* COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS */
+
+#ifndef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM               16
+#endif /* QUEUEBUF_CONF_NUM */
+
+#endif /* NETSTACK_CONF_WITH_IPV4 || NETSTACK_CONF_WITH_IPV6 */
+
+
+/* Network setup for IPv6 */
+#if NETSTACK_CONF_WITH_IPV6
+
+#define UIP_CONF_IPV6                   1
+
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #define UIP_CONF_BROADCAST 1
 
 /* Configure NullRDC for when it is selected */
-#define NULLRDC_CONF_802154_AUTOACK_HW 1
-
-#ifndef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM                8
-#endif
-
-#define LINKADDR_CONF_SIZE              8
+#define NULLRDC_CONF_802154_AUTOACK_HW  1
 
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
@@ -107,7 +137,6 @@
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
-#define UIP_CONF_IPV6                   1
 #ifndef UIP_CONF_IPV6_QUEUE_PKT
 #define UIP_CONF_IPV6_QUEUE_PKT         0
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
@@ -136,10 +165,10 @@
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 
 #define UIP_CONF_DHCP_LIGHT
-#ifndef  UIP_CONF_RECEIVE_WINDOW
+#ifndef UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW  48
 #endif
-#ifndef  UIP_CONF_TCP_MSS
+#ifndef UIP_CONF_TCP_MSS
 #define UIP_CONF_TCP_MSS         48
 #endif
 #define UIP_CONF_MAX_CONNECTIONS 4
@@ -159,6 +188,9 @@
 
 #define UIP_CONF_BYTE_ORDER      UIP_BIG_ENDIAN
 #define UIP_CONF_LOGGING         0
+
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+
 
 #ifndef AES_128_CONF
 /* TODO add AES support. */
