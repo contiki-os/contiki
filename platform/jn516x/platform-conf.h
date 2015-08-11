@@ -33,6 +33,8 @@
 #ifndef PLATFORM_CONF_H
 #define PLATFORM_CONF_H
 
+#define HOST_PROCESSOR_BIG_ENDIAN   1
+
 #include <inttypes.h>
 #include <jendefs.h>
 
@@ -53,6 +55,10 @@
 
 #ifndef MICROMAC_CONF_CHANNEL
 #define MICROMAC_CONF_CHANNEL 26
+#endif
+
+#ifdef RF_CHANNEL
+#define MICROMAC_CONF_CHANNEL RF_CHANNEL
 #endif
 
 /* Timer conversion
