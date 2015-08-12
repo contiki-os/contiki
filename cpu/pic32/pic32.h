@@ -91,10 +91,11 @@
 #pragma config DEBUG     = OFF               // Debugger Disabled for Starter Kit 
 #pragma config FSRSSEL   = PRIORITY_7
 
+#ifdef __32MX795F512L__
 /* external PHY in RMII/default configuration */
-
 #pragma config FMIIEN    = OFF
 #pragma config FETHIO    = ON
+#endif
 
 void pic32_init(void);
 
