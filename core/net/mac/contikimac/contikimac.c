@@ -388,8 +388,8 @@ powercycle(struct rtimer *t, void *ptr)
         }
         powercycle_turn_radio_off();
       }
-      schedule_powercycle_fixed(t, RTIMER_NOW() + CCA_SLEEP_TIME);
-      PT_YIELD(&pt);
+      PT_YIELD_ON(&pt,
+                  schedule_powercycle_fixed(t, RTIMER_NOW() + CCA_SLEEP_TIME));
     }
 
     if(packet_seen) {
@@ -438,8 +438,8 @@ powercycle(struct rtimer *t, void *ptr)
           break;
         }
 
-        schedule_powercycle(t, CCA_CHECK_TIME + CCA_SLEEP_TIME);
-        PT_YIELD(&pt);
+        PT_YIELD_ON(&pt,
+                     schedule_powercycle(t, CCA_CHECK_TIME + CCA_SLEEP_TIME));
       }
       if(radio_is_on) {
         if(!(NETSTACK_RADIO.receiving_packet() ||
@@ -462,12 +462,12 @@ powercycle(struct rtimer *t, void *ptr)
         rtimer_arch_sleep(CYCLE_TIME - (RTIMER_NOW() - cycle_start));
       } else {
         sleepcycle = 0;
-        schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start);
-        PT_YIELD(&pt);
+        PT_YIELD_ON(&pt,
+                    schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start));
       }
 #else
-      schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start);
-      PT_YIELD(&pt);
+     PT_YIELD_ON(&pt,
+                 schedule_powercycle_fixed(t, CYCLE_TIME + cycle_start));
 #endif
     }
   }
