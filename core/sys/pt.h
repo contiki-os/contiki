@@ -296,6 +296,32 @@ struct pt {
   } while(0)
 
 /**
+ * Yield from the current protothread then execute a statement
+ *
+ * This function will yield the protothread, thereby allowing other
+ * processing to take place in the system.
+ *
+ * This macro should be used when there is a possibility that the given
+ * statement will cause re-entry into the protothread either directly (i.e.
+ * through recursion) or through an ISR. Without this macro, the protothread
+ * would not correctly continue from the yield point.
+ *
+ * \param pt A pointer to the protothread control structure.
+ * \param stmnt a statement to execute just before yielding
+ *
+ * \hideinitializer
+ */
+#define PT_YIELD_ON(pt,stmnt)                         \
+  do{                                                 \
+    PT_YIELD_FLAG = 0;                                \
+    LC_SET((pt)->lc);                                 \
+    if(PT_YIELD_FLAG == 0) {                          \
+      ({ stmnt ;});                                   \
+      return PT_YIELDED;                              \
+    }                                                 \
+  }while(0)
+
+/**
  * \brief      Yield from the protothread until a condition occurs.
  * \param pt   A pointer to the protothread control structure.
  * \param cond The condition.
