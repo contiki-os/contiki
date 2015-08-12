@@ -329,10 +329,10 @@ transmit(unsigned short payload_len)
   vMMAC_StartPhyTransmit(&tx_frame_buffer,
       E_MMAC_TX_START_NOW | E_MMAC_TX_NO_CCA);
 
-  if (poll_mode) {
+  if(poll_mode) {
     BUSYWAIT_UNTIL(u32MMAC_PollInterruptSource(E_MMAC_INT_TX_COMPLETE), MAX_PACKET_DURATION);
   } else {
-    if (in_ack_transmission) {
+    if(in_ack_transmission) {
       /* as nested interupts are not possible, the tx flag will never be cleared */
       BUSYWAIT_UNTIL(FALSE, MAX_ACK_DURATION);
     } else {
@@ -475,7 +475,7 @@ is_packet_for_us(uint8_t *buf, int len, int do_send_ack)
       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
         result = linkaddr_cmp((linkaddr_t *)frame.dest_addr, &linkaddr_node_addr);
 #if MICROMAC_CONF_AUTOACK
-        if (result && do_send_ack) {
+        if(result && do_send_ack) {
           /* this is a unicast frame and sending ACKs is enabled */
           send_ack(&frame);
         }
