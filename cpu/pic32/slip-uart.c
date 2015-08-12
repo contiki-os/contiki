@@ -77,6 +77,7 @@
                                                      \
   UART_INTERRUPT(XX, YY, slip_input_byte);
 
+#ifdef __32MX795F512L__
 #ifdef __USE_UART_PORT1A_FOR_SLIP__
 SLIP_UART(1A, 0);
 #elif defined  __USE_UART_PORT1B_FOR_SLIP__
@@ -92,5 +93,6 @@ SLIP_UART(3B, 2);
 #else
 SLIP_UART(1A);
 #endif
+#endif /* __32MX795F512L__ */
 
 /** @} */

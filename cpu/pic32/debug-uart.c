@@ -79,6 +79,8 @@
                                                       \
   UART_INTERRUPT(XX, YY, pic32_uart##XX##_write);
 
+
+#ifdef __32MX795F512L__
 #ifdef __USE_UART_PORT1A_FOR_DEBUG__
 DEBUG_UART(1A, 0);
 #elif defined  __USE_UART_PORT1B_FOR_DEBUG__
@@ -94,6 +96,7 @@ DEBUG_UART(3B, 2);
 #else
 DEBUG_UART(1A);
 #endif
+#endif /* __32MX795F512L__ */
 
 #endif /* __USE_UART__*/
 
