@@ -50,8 +50,6 @@
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-queue.h"
 #include "net/mac/tsch/tsch-schedule.h"
-#include "net/rpl/rpl.h"
-#include "net/rpl/rpl-private.h"
 #include <string.h>
 
 #ifdef TSCH_CALLBACK_NEW_TIME_SOURCE

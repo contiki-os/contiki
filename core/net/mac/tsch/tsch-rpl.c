@@ -34,6 +34,8 @@
  * \author Simon Duquennoy <simonduq@sics.se>
  */
 
+#if UIP_CONF_IPV6_RPL
+
 #include "contiki.h"
 #include "net/rpl/rpl.h"
 #include "net/rpl/rpl-private.h"
@@ -104,3 +106,5 @@ tsch_rpl_callback_parent_switch(rpl_parent_t *old, rpl_parent_t *new)
     }
   }
 }
+
+#endif /* UIP_CONF_IPV6_RPL */
