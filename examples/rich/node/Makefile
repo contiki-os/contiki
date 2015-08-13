@@ -4,7 +4,6 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 TARGET ?= jn516x
 
-APPS = 
 CONTIKI_WITH_IPV6 = 1
 
 PROJECTDIRS += .. ../tools
