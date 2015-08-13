@@ -271,7 +271,7 @@ static bool_t
 init_xosc(void)
 {
   /* The internal 32kHz RC oscillator is used by default;
-   * Initialize and enable the external 32.768kHz crystal for better accuracy.
+   * Initialize and enable the external 32.768kHz crystal.
    */
   vAHI_Init32KhzXtal();
   /* wait for 1.0 seconds for the crystal to stabilize */
