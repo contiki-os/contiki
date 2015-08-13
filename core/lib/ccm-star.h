@@ -80,7 +80,7 @@ struct ccm_star_driver {
   void (* ctr)(uint8_t* data, uint8_t* output, uint8_t data_length,
                const uint8_t* iv,   uint8_t iv_len);
 
-  void (* ctr_and_mic)(const uint8_t* data, uint8_t* output,
+  void (* ctr_and_mic)(uint8_t* data, uint8_t* output,
         uint8_t data_length,
         const uint8_t* iv,   uint8_t iv_len,
         const uint8_t* add,  uint8_t add_len,

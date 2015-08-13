@@ -90,7 +90,7 @@ ctr(uint8_t* m, uint8_t* output, uint8_t m_len, const uint8_t* iv, uint8_t iv_le
 }
 /*---------------------------------------------------------------------------*/
 static void
-ctr_and_mic(const uint8_t* m,  uint8_t* output, uint8_t m_len,
+ctr_and_mic(uint8_t* m,  uint8_t* output, uint8_t m_len,
     const uint8_t* iv, uint8_t iv_len,
     const uint8_t* a,  uint8_t a_len,
     uint8_t *result,
