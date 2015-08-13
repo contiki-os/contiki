@@ -62,18 +62,6 @@ struct bitopt_hdr {
 static const uint8_t bitmask[9] = { 0x00, 0x80, 0xc0, 0xe0, 0xf0,
 				 0xf8, 0xfc, 0xfe, 0xff };
 
-#ifdef HOST_PROCESSOR_BIG_ENDIAN
-#define htole16(x) ((((x) << 8) & 0xff00) | ((x) >> 8))
-#define htobe16(x) (x)
-#define le16toh(x) ((((x) << 8) & 0xff00) | ((x) >> 8))
-#define be16toh(x) (x)
-#else
-#define htole16(x) (x)
-#define htobe16(x) ((((x) << 8) & 0xff00) | ((x) >> 8))
-#define le16toh(x) (x)
-#define be16toh(x) ((((x) << 8) & 0xff00) | ((x) >> 8))
-#endif /* HOST_PROCESSOR_BIG_ENDIAN */
-
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -294,7 +282,7 @@ pack_header(struct channel *c)
 	    ((uint8_t *)packetbuf_addr(a->type))[1]);
     } else {
       packetbuf_attr_t val;
-      val = htole16(packetbuf_attr(a->type));
+      val = packetbuf_attr(a->type);
       set_bits(&hdrptr[byteptr], bitptr & 7,
 	       (uint8_t *)&val, len);
       PRINTF("value %d\n",
@@ -366,7 +354,7 @@ unpack_header(void)
       packetbuf_attr_t val = 0;
       get_bits((uint8_t *)&val, &hdrptr[byteptr], bitptr & 7, len);
 
-      packetbuf_set_attr(a->type, le16toh(val));
+      packetbuf_set_attr(a->type, val);
       PRINTF("%d.%d: unpack_header type %d, val %d\n",
 	     linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
 	     a->type, val);
