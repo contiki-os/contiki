@@ -74,8 +74,13 @@ before_script:
     fi
 
   ## Install NXP toolchain
-  - if [ ${BUILD_ARCH:-0} = jn5168 ] ; then
-      echo "Should download the NXP headers and libraries from somewhere at this point..." ;
+  - if [ ${BUILD_ARCH:-0} = jn516x ] ; then
+      $WGET http://www.simonduquennoy.net/resources/jn-toolchain-r36379.tgz &&
+      tar xzf jn-toolchain*.tgz -C /tmp/ &&
+      sudo cp -f -r /tmp/jn-toolchain/* /usr/local/ &&
+      sudo ln /usr/local/ -s /usr/jn-toolchain &&
+      rm -rf /tmp/jn-toolchain* jn-toolchain*.tgz &&
+      ba-elf-gcc --version ;
     fi
 
   ## Compile cooja.jar only when it's going to be needed
@@ -124,6 +129,6 @@ env:
 #  - BUILD_TYPE='compile-arm-apcs-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-apcs'
 #  - BUILD_TYPE='compile-6502-ports' BUILD_CATEGORY='compile' BUILD_ARCH='6502'
 #  - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-aapcs'
-  - BUILD_TYPE='compile-nxp-ports' BUILD_CATEGORY='compile' BUILD_ARCH='jn5168'
+  - BUILD_TYPE='compile-nxp-ports' BUILD_CATEGORY='compile' BUILD_ARCH='jn516x'
 #  - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
 #  - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
