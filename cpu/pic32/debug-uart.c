@@ -81,22 +81,34 @@
 
 
 #ifdef __32MX795F512L__
-#ifdef __USE_UART_PORT1A_FOR_DEBUG__
-DEBUG_UART(1A, 0);
-#elif defined  __USE_UART_PORT1B_FOR_DEBUG__
-DEBUG_UART(1B, 2);
-#elif defined  __USE_UART_PORT2A_FOR_DEBUG__
-DEBUG_UART(2A, 1);
-#elif defined  __USE_UART_PORT2B_FOR_DEBUG__
-DEBUG_UART(2B, 2);
-#elif defined  __USE_UART_PORT3A_FOR_DEBUG__
-DEBUG_UART(3A, 1);
-#elif defined  __USE_UART_PORT3B_FOR_DEBUG__
-DEBUG_UART(3B, 2);
-#else
-DEBUG_UART(1A);
-#endif
+  #ifdef __USE_UART_PORT1A_FOR_DEBUG__
+  DEBUG_UART(1A, 0);
+  #elif defined  __USE_UART_PORT1B_FOR_DEBUG__
+  DEBUG_UART(1B, 2);
+  #elif defined  __USE_UART_PORT2A_FOR_DEBUG__
+  DEBUG_UART(2A, 1);
+  #elif defined  __USE_UART_PORT2B_FOR_DEBUG__
+  DEBUG_UART(2B, 2);
+  #elif defined  __USE_UART_PORT3A_FOR_DEBUG__
+  DEBUG_UART(3A, 1);
+  #elif defined  __USE_UART_PORT3B_FOR_DEBUG__
+  DEBUG_UART(3B, 2);
+  #else
+  DEBUG_UART(1A);
+  #endif
 #endif /* __32MX795F512L__ */
+
+#ifdef __32MX470F512H__
+  #ifdef __USE_UART_PORT1_FOR_DEBUG__
+  DEBUG_UART(1, 1);
+  #elif defined  __USE_UART_PORT2_FOR_DEBUG__
+  DEBUG_UART(2, 1);
+  #elif defined  __USE_UART_PORT3_FOR_DEBUG__
+  DEBUG_UART(3, 1);
+  #elif defined  __USE_UART_PORT4_FOR_DEBUG__
+  DEBUG_UART(4, 2);
+  #endif
+#endif /* __32MX470F512H__ */
 
 #endif /* __USE_UART__*/
 

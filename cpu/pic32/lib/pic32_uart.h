@@ -96,29 +96,49 @@
     }                                                                    \
   }
 
-#ifdef __USE_UART_PORT1A__
-UART_PORT_DEF(1A)
-#endif /* __USE_UART_PORT1A__ */
+#ifdef __32MX795F512L__
+  #ifdef __USE_UART_PORT1A__
+  UART_PORT_DEF(1A)
+  #endif /* __USE_UART_PORT1A__ */
 
-#ifdef __USE_UART_PORT1B__
-UART_PORT_DEF(1B)
-#endif /* __USE_UART_PORT1B__ */
+  #ifdef __USE_UART_PORT1B__
+  UART_PORT_DEF(1B)
+  #endif /* __USE_UART_PORT1B__ */
 
-#ifdef __USE_UART_PORT2A__
-UART_PORT_DEF(2A)
-#endif /* __USE_UART_PORT2A__ */
+  #ifdef __USE_UART_PORT2A__
+  UART_PORT_DEF(2A)
+  #endif /* __USE_UART_PORT2A__ */
 
-#ifdef __USE_UART_PORT2B__
-UART_PORT_DEF(2B)
-#endif /* __USE_UART_PORT2B__ */
+  #ifdef __USE_UART_PORT2B__
+  UART_PORT_DEF(2B)
+  #endif /* __USE_UART_PORT2B__ */
 
-#ifdef __USE_UART_PORT3A__
-UART_PORT_DEF(3A)
-#endif /* __USE_UART_PORT3A__ */
+  #ifdef __USE_UART_PORT3A__
+  UART_PORT_DEF(3A)
+  #endif /* __USE_UART_PORT3A__ */
 
-#ifdef __USE_UART_PORT3B__
-UART_PORT_DEF(3B)
-#endif /* __USE_UART_PORT3B__ */
+  #ifdef __USE_UART_PORT3B__
+  UART_PORT_DEF(3B)
+  #endif /* __USE_UART_PORT3B__ */
+#endif /* __32MX795F512L__ */
+
+#ifdef __32MX470F512H__
+  #ifdef __USE_UART_PORT1__
+  UART_PORT_DEF(1)
+  #endif /* __USE_UART_PORT1__ */
+
+  #ifdef __USE_UART_PORT2__
+  UART_PORT_DEF(2)
+  #endif /* __USE_UART_PORT2__ */
+
+  #ifdef __USE_UART_PORT3__
+  UART_PORT_DEF(3)
+  #endif /* __USE_UART_PORT3__ */
+
+  #ifdef __USE_UART_PORT4__
+  UART_PORT_DEF(4)
+  #endif /* __USE_UART_PORT4__ */
+#endif /* __32MX470F512H__ */
 
 #endif /* __USE_UART__ */
 
