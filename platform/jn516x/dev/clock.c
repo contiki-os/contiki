@@ -180,17 +180,17 @@ clock_fine_max(void)
  * Delay the CPU for a multiple of 0.0625 us.
  */
 void
-clock_delay_usec(uint16_t i)
+clock_delay_usec(uint16_t dt)
 {
   volatile uint32_t t = u32AHI_TickTimerRead();
 #define RTIMER_MAX_TICKS 0xffffffff
   /* beware of wrapping */
-  if(RTIMER_MAX_TICKS-t < i) {
+  if(RTIMER_MAX_TICKS-t < dt) {
     while(u32AHI_TickTimerRead() < RTIMER_MAX_TICKS && u32AHI_TickTimerRead() !=0);
-    i-=RTIMER_MAX_TICKS-t;
+    dt-=RTIMER_MAX_TICKS-t;
     t=0;
   }
-  while(u32AHI_TickTimerRead()-t < i) {watchdog_periodic();};
+  while(u32AHI_TickTimerRead()-t < dt) {watchdog_periodic();};
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -214,12 +214,12 @@ clock_delay(unsigned int i)
  *
  */
 void
-clock_wait(clock_time_t i)
+clock_wait(clock_time_t t)
 {
   clock_time_t start;
 
   start = clock_time();
-  while(clock_time() - start < (clock_time_t)i){watchdog_periodic();};
+  while(clock_time() - start < (clock_time_t)t){watchdog_periodic();};
 }
 /*---------------------------------------------------------------------------*/
 void
