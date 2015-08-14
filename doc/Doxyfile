@@ -1918,14 +1918,14 @@ MACRO_EXPANSION        = YES
 # The default value is: NO.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-EXPAND_ONLY_PREDEF     = NO
+EXPAND_ONLY_PREDEF     = YES
 
 # If the SEARCH_INCLUDES tag is set to YES the includes files in the
 # INCLUDE_PATH will be searched if a #include is found.
 # The default value is: YES.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-SEARCH_INCLUDES        = YES
+SEARCH_INCLUDES        = NO
 
 # The INCLUDE_PATH tag can be used to specify one or more directories that
 # contain include files that are not input files but should be processed by the
@@ -1950,17 +1950,23 @@ INCLUDE_FILE_PATTERNS  =
 # recursively expanded use the := operator instead of the = operator.
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
-PREDEFINED             = CC_FUNCTION_POINTER_ARGS \
-                         NETSTACK_CONF_WITH_RIME \
-                         NETSTACK_CONF_WITH_IPV4 \
-                         NETSTACK_CONF_WITH_IPV6 \
-                         UIP_CONF_IPV6_RPL \
-                         UIP_TCP \
-                         UIP_UDP \
-                         UIP_CONF_ICMP6 \
-                         WITH_LOADER_ARCH \
-                         DOXYGEN \
-                         "ASCCMD(name, flags, args)=void CMD_ASCII(name)"
+PREDEFINED             = CC_FUNCTION_POINTER_ARGS:=1 \
+                         NETSTACK_CONF_WITH_RIME:=1 \
+                         NETSTACK_CONF_WITH_IPV4:=1 \
+                         NETSTACK_CONF_WITH_IPV6:=1 \
+                         UIP_CONF_IPV6_RPL:=1 \
+                         UIP_TCP:=1 \
+                         UIP_UDP:=1 \
+                         UIP_CONF_ICMP6:=1 \
+                         WITH_LOADER_ARCH:=1 \
+                         __attribute__(x):= \
+                         CC_ALIGN_ATTR(n):= \
+                         HTTPD_STRING_ATTR:= \
+                         PROGMEM:= \
+                         EEMEM:= \
+                         DOXYGEN:=1 \
+                         DOXYGEN_SHOULD_SKIP_THIS:=1 \
+                         "ASCCMD(name, flags, args):=void CMD_ASCII(name)"
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this
 # tag can be used to specify a list of macro names that should be expanded. The

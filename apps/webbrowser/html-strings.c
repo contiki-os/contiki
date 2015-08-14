@@ -31,9 +31,6 @@ const char html_br[4] =
 const char html_form[6] = 
 /* "form\0" */
 {0x66, 0x6f, 0x72, 0x6d, 00, };
-const char html_frame[7] = 
-/* "frame\0" */
-{0x66, 0x72, 0x61, 0x6d, 0x65, 00, };
 const char html_h1[4] = 
 /* "h1\0" */
 {0x68, 0x31, 00, };

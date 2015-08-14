@@ -65,11 +65,12 @@
 #define IRC_CONF_WIDTH  80
 #define IRC_CONF_HEIGHT 24
 
-#define WWW_CONF_WEBPAGE_WIDTH      80
-#define WWW_CONF_WEBPAGE_HEIGHT     20
-#define WWW_CONF_HISTORY_SIZE        0
-#define WWW_CONF_MAX_URLLEN         78
-#define WWW_CONF_MAX_NUMPAGEWIDGETS 20
-#define WWW_CONF_FORMS               0
+#ifndef TELNETD_CONF_MAX_IDLE_TIME
+#define TELNETD_CONF_MAX_IDLE_TIME 300
+#endif
+
+#define WWW_CONF_HISTORY_SIZE       0
+#define WWW_CONF_FORMS              0
+#define WWW_CONF_PAGEATTRIB_SIZE 1500
 
 #endif /* CONTIKI_CONF_H_ */

@@ -55,15 +55,12 @@
 #define IRC_CONF_WIDTH  80
 #define IRC_CONF_HEIGHT 23
 
-#define WWW_CONF_WEBPAGE_WIDTH      80
-#define WWW_CONF_WEBPAGE_HEIGHT     19
-#define WWW_CONF_HISTORY_SIZE        4
-#define WWW_CONF_MAX_URLLEN         78
-#define WWW_CONF_MAX_NUMPAGEWIDGETS 20
-#define WWW_CONF_FORMS               1
-#define WWW_CONF_MAX_FORMACTIONLEN  20
-#define WWW_CONF_MAX_INPUTNAMELEN   20
-#define WWW_CONF_MAX_INPUTVALUELEN  20
-#define WWW_CONF_WGET_EXEC(url)     exec("wget", url)
+#ifndef TELNETD_CONF_MAX_IDLE_TIME
+#define TELNETD_CONF_MAX_IDLE_TIME 300
+#endif
+
+#define WWW_CONF_WEBPAGE_HEIGHT 19
+#define WWW_CONF_HISTORY_SIZE    4
+#define WWW_CONF_WGET_EXEC(url) exec("wget", url)
 
 #endif /* CONTIKI_CONF_H_ */

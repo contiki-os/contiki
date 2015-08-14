@@ -149,7 +149,7 @@ input(void)
   ccm_star_ctr_packetbuf(get_extended_address(sender));
 #endif /* WITH_ENCRYPTION */
   ccm_star_mic_packetbuf(get_extended_address(sender), generated_mic, LLSEC802154_MIC_LENGTH);
-
+  
   received_mic = dataptr + data_len;
   if(memcmp(generated_mic, received_mic, LLSEC802154_MIC_LENGTH) != 0) {
     PRINTF("noncoresec: received nonauthentic frame %"PRIu32"\n",

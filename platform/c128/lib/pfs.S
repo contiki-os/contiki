@@ -73,8 +73,7 @@ flags:	.res	10
 	.data
 
 illchr:	.byte	$3A, $2A, $3F, $3D	;illegal chars
-pw:	.byte	$2C
-filet:	.byte	$50, $2C, $57	;,p,w
+pw:	.byte	$2C, $50, $2C, $57	;,p,w
 ;---------------------------------------------------------------------
 	.segment	"INIT"
 
@@ -149,7 +148,7 @@ nopath: lda	#$3A
 	lsr	ptr2
 	bcs	ro	;read only
 	lda	__filetype
-	sta	filet	;set filetype
+	sta	pw+1	;set filetype
 	ldx	#252
 @L20:	lda	pw-252,x
 	sta	(sp),y	;write

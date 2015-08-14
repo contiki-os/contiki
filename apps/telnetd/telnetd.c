@@ -62,6 +62,10 @@ static char telnetd_reject_text[] =
             "Too many connections, please try again later.";
 #endif
 
+#ifndef TELNETD_CONF_MAX_IDLE_TIME
+#define TELNETD_CONF_MAX_IDLE_TIME (CLOCK_SECOND * 30)
+#endif
+
 struct telnetd_state {
   char buf[TELNETD_CONF_LINELEN + 1];
   char bufptr;
@@ -74,7 +78,9 @@ struct telnetd_state {
 #define STATE_DO     4
 #define STATE_DONT   5
 #define STATE_CLOSE  6
+#if TELNETD_CONF_MAX_IDLE_TIME
   struct timer silence_timer;
+#endif /* TELNETD_CONF_MAX_IDLE_TIME */
 };
 static struct telnetd_state s;
 
@@ -101,8 +107,6 @@ struct telnetd_buf {
 static struct telnetd_buf buf;
 
 static uint8_t connected;
-
-#define MAX_SILENCE_TIME (CLOCK_SECOND * 30)
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -169,6 +173,8 @@ shell_prompt(char *str)
 void
 shell_default_output(const char *str1, int len1, const char *str2, int len2)
 {
+  static const char crnl[2] = {ISO_cr, ISO_nl};
+
   if(len1 > 0 && str1[len1 - 1] == '\n') {
     --len1;
   }
@@ -183,7 +189,7 @@ shell_default_output(const char *str1, int len1, const char *str2, int len2)
 #endif /* TELNETD_CONF_GUI */
   buf_append(&buf, str1, len1);
   buf_append(&buf, str2, len2);
-  buf_append(&buf, "\r\n", 2);
+  buf_append(&buf, crnl, sizeof(crnl));
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -359,7 +365,9 @@ telnetd_appcall(void *ts)
       s.state = STATE_NORMAL;
       connected = 1;
       shell_start();
-      timer_set(&s.silence_timer, MAX_SILENCE_TIME);
+#if TELNETD_CONF_MAX_IDLE_TIME
+      timer_set(&s.silence_timer, TELNETD_CONF_MAX_IDLE_TIME);
+#endif /* TELNETD_CONF_MAX_IDLE_TIME */
       ts = (char *)0;
     } else {
       uip_send(telnetd_reject_text, strlen(telnetd_reject_text));
@@ -381,11 +389,15 @@ telnetd_appcall(void *ts)
       connected = 0;
     }
     if(uip_acked()) {
-      timer_set(&s.silence_timer, MAX_SILENCE_TIME);
+#if TELNETD_CONF_MAX_IDLE_TIME
+      timer_set(&s.silence_timer, TELNETD_CONF_MAX_IDLE_TIME);
+#endif /* TELNETD_CONF_MAX_IDLE_TIME */
       acked();
     }
     if(uip_newdata()) {
-      timer_set(&s.silence_timer, MAX_SILENCE_TIME);
+#if TELNETD_CONF_MAX_IDLE_TIME
+      timer_set(&s.silence_timer, TELNETD_CONF_MAX_IDLE_TIME);
+#endif /* TELNETD_CONF_MAX_IDLE_TIME */
       newdata();
     }
     if(uip_rexmit() ||
@@ -394,16 +406,20 @@ telnetd_appcall(void *ts)
        uip_connected() ||
        uip_poll()) {
       senddata();
+#if TELNETD_CONF_MAX_IDLE_TIME
       if(s.numsent > 0) {
-	timer_set(&s.silence_timer, MAX_SILENCE_TIME);
+	timer_set(&s.silence_timer, TELNETD_CONF_MAX_IDLE_TIME);
       }
+#endif /* TELNETD_CONF_MAX_IDLE_TIME */
     }
+#if TELNETD_CONF_MAX_IDLE_TIME
     if(uip_poll()) {
       if(timer_expired(&s.silence_timer)) {
         uip_close();
         tcp_markconn(uip_conn, NULL);
       }
     }
+#endif /* TELNETD_CONF_MAX_IDLE_TIME */
   }
 }
 /*---------------------------------------------------------------------------*/

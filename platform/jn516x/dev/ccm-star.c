@@ -47,7 +47,7 @@ static int current_key_is_new = 1;
 /*---------------------------------------------------------------------------*/
 static void
 mic(const uint8_t* m,  uint8_t m_len,
-    const uint8_t* iv, uint8_t iv_len,
+    const uint8_t* iv,
     const uint8_t* a,  uint8_t a_len,
     uint8_t *result,
     uint8_t mic_len)
@@ -70,7 +70,7 @@ mic(const uint8_t* m,  uint8_t m_len,
 }
 /*---------------------------------------------------------------------------*/
 static void
-ctr(uint8_t* m, uint8_t* output, uint8_t m_len, const uint8_t* iv, uint8_t iv_len)
+ctr(uint8_t* m, uint8_t m_len, const uint8_t* iv)
 {
   bACI_CCMstar(
     (tsReg128 *)current_key,
@@ -81,8 +81,8 @@ ctr(uint8_t* m, uint8_t* output, uint8_t m_len, const uint8_t* iv, uint8_t iv_le
     m_len,
     (tsReg128 *)iv,
     NULL,
-    (uint8_t*)m,
-    output,
+    m,
+    m,
     NULL,
     NULL
   );
@@ -91,7 +91,7 @@ ctr(uint8_t* m, uint8_t* output, uint8_t m_len, const uint8_t* iv, uint8_t iv_le
 /*---------------------------------------------------------------------------*/
 static void
 ctr_and_mic(uint8_t* m,  uint8_t* output, uint8_t m_len,
-    const uint8_t* iv, uint8_t iv_len,
+    const uint8_t* iv,
     const uint8_t* a,  uint8_t a_len,
     uint8_t *result,
     uint8_t mic_len, int encrypt)
@@ -154,7 +154,6 @@ static void set_key(const uint8_t* key) {
 const struct ccm_star_driver ccm_star_driver_jn516x = {
   mic,
   ctr,
-  ctr_and_mic,
   set_key
 };
 /*---------------------------------------------------------------------------*/

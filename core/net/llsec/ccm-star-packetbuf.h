@@ -21,3 +21,4 @@ void ccm_star_mic_packetbuf(const uint8_t *extended_source_address,
 void ccm_star_ctr_packetbuf(const uint8_t *extended_source_address);
 
 #endif /* CCM_STAR_PACKETBUF_H_ */
+

@@ -92,6 +92,12 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
+#ifdef CC26XX_CONF_DEBUG_CRC
+#define CC26XX_DEBUG_CRC CC26XX_CONF_DEBUG_CRC
+#else /* CC26XX_CONF_DEBUG_CRC */
+#define CC26XX_DEBUG_CRC DEBUG
+#endif /* CC26XX_CONF_DEBUG_CRC */
+/*---------------------------------------------------------------------------*/
 /* Data entry status field constants */
 #define DATA_ENTRY_STATUS_PENDING    0x00 /* Not in use by the Radio CPU */
 #define DATA_ENTRY_STATUS_ACTIVE     0x01 /* Open for r/w by the radio CPU */
@@ -266,11 +272,16 @@ const output_config_t *tx_power_current = &output_power[0];
 /*---------------------------------------------------------------------------*/
 /* RF interrupts */
 #define RX_IRQ       IRQ_IEEE_RX_ENTRY_DONE
+#define RX_NOK_IRQ   IRQ_IEEE_RX_NOK
 #define TX_ACK_IRQ   IRQ_IEEE_TX_ACK
 #define ERROR_IRQ    IRQ_INTERNAL_ERROR
 
 /* Those IRQs are enabled all the time */
-#define ENABLED_IRQS (RX_IRQ + ERROR_IRQ)
+#if CC26XX_DEBUG_CRC
+#define ENABLED_IRQS (RX_IRQ | ERROR_IRQ | RX_NOK_IRQ)
+#else
+#define ENABLED_IRQS (RX_IRQ | ERROR_IRQ)
+#endif
 
 /*
  * We only enable this right before starting frame TX, so we can sleep while
@@ -850,7 +861,7 @@ init_rf_params(void)
   GET_FIELD(cmd_ieee_rx_buf, radioOp, condition) = COND_NEVER;
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, channel) = CC26XX_RF_CHANNEL;
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, rxConfig) =
-    BITVALUE(CMD_IEEE_RX, rxConfig, bAutoFlushCrc, 0) |
+    BITVALUE(CMD_IEEE_RX, rxConfig, bAutoFlushCrc, 1) |
     BITVALUE(CMD_IEEE_RX, rxConfig, bAutoFlushIgn, 0) |
     BITVALUE(CMD_IEEE_RX, rxConfig, bIncludePhyHdr, 0) |
     BITVALUE(CMD_IEEE_RX, rxConfig, bIncludeCrc, 1) |
@@ -892,10 +903,11 @@ init_rf_params(void)
   /* Configure CCA settings */
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, ccaOpt) =
     BITVALUE(CMD_IEEE_RX, ccaOpt, ccaEnEnergy, 1) |
-    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaEnCorr, 0) |
+    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaEnCorr, 1) |
     BITVALUE(CMD_IEEE_RX, ccaOpt, ccaEnSync, 0) |
-    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaCorrOp, 0) |
-    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaSyncOp, 0);
+    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaCorrOp, 1) |
+    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaSyncOp, 1) |
+    BITVALUE(CMD_IEEE_RX, ccaOpt, ccaCorrThr, 3);
   /* Set CCA RSSI Threshold, 0xA6 corresponds to -90dBm (two's comp.)*/
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, ccaRssiThr) = 0xA6;
   GET_FIELD(cmd_ieee_rx_buf, CMD_IEEE_RX, numExtEntries) = 0x00;
@@ -1054,6 +1066,13 @@ rx_isr(void)
   process_poll(&cc26xx_rf_process);
 }
 /*---------------------------------------------------------------------------*/
+static void
+rx_nok_isr(void)
+{
+  RIMESTATS_ADD(badcrc);
+  PRINTF("RF: Bad CRC\n");
+}
+/*---------------------------------------------------------------------------*/
 void
 cc26xx_rf_cpe1_isr(void)
 {
@@ -1092,7 +1111,11 @@ cc26xx_rf_cpe0_isr(void)
   if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & RX_IRQ) {
     rx_isr();
   }
-
+  if(CC26XX_DEBUG_CRC) {
+    if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & RX_NOK_IRQ) {
+      rx_nok_isr();
+    }
+  }
   /* Clear interrupt flags */
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
   ti_lib_int_master_enable();

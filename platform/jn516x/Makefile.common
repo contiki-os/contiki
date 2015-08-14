@@ -185,7 +185,7 @@ endif
 ### Flash the given file
 ifeq ($(HOST_OS),Windows)
 %.flash: 
-	${FLASH_PROGRAMMER} -a -c $(CPORT) -B 1000000 -s -w -f $*.$(TARGET).bin
+	${FLASH_PROGRAMMER} -a -c $(PORT) -B 1000000 -s -w -f $*.$(TARGET).bin
 else
 %.flash:
 	${FLASH_PROGRAMMER} -V 10 -v -s $(PORT) -I 38400 -P 1000000 -s -f $*.$(TARGET).bin

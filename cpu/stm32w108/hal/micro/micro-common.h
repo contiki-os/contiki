@@ -9,7 +9,7 @@
  * @addtogroup stm32w-cpu
  * @{ */
 
-/** @defgroup micro
+/** @defgroup micro Micro
  * Many of the supplied example applications use these microcontroller functions.
  * See hal/micro/micro-common.h for source code.
  *

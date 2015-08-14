@@ -61,7 +61,7 @@ typedef int32_t  s32_t;
 #define HAVE_SNPRINTF
 #define snprintf(buf, len, ...) sprintf(buf, __VA_ARGS__)
 
-#define CLOCK_CONF_SECOND 2
+#define CLOCK_CONF_SECOND 4
 typedef unsigned short clock_time_t;
 
 typedef unsigned short uip_stats_t;
@@ -72,7 +72,6 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_LLH_LEN                      14
 #define RESOLV_CONF_SUPPORTS_MDNS              0
 #define RESOLV_CONF_SUPPORTS_RECORD_EXPIRATION 0
-#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE   1
 
 #define LOADER_CONF_ARCH "lib/unload.h"
 
@@ -85,7 +84,7 @@ typedef unsigned short uip_stats_t;
 #if CONNECTIONS
 #define UIP_CONF_MAX_CONNECTIONS CONNECTIONS
 #else /* CONNECTIONS */
-#define UIP_CONF_MAX_CONNECTIONS 10
+#define UIP_CONF_MAX_CONNECTIONS 2
 #endif /* CONNECTIONS */
 
 #if WITH_LOGGING

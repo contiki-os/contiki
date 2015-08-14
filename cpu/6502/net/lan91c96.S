@@ -95,40 +95,41 @@ fixups	= * - fixup
 
 ;---------------------------------------------------------------------
 
-ethbsr		:= $FF0E	; Bank select register             R/W (2B)
+; 3 most significant nibbles are fixed up at runtime
+ethbsr		:= $FFFE	; Bank select register             R/W (2B)
 
 ; Register bank 0
-ethtcr		:= $FF00	; Transmition control register     R/W (2B)
-ethephsr	:= $FF02	; EPH status register              R/O (2B)
-ethrcr		:= $FF04	; Receive control register         R/W (2B)
-ethecr		:= $FF06	; Counter register                 R/O (2B)
-ethmir		:= $FF08	; Memory information register      R/O (2B)
-ethmcr		:= $FF0A	; Memory Config. reg.    +0 R/W +1 R/O (2B)
+ethtcr		:= $FFF0	; Transmition control register     R/W (2B)
+ethephsr	:= $FFF2	; EPH status register              R/O (2B)
+ethrcr		:= $FFF4	; Receive control register         R/W (2B)
+ethecr		:= $FFF6	; Counter register                 R/O (2B)
+ethmir		:= $FFF8	; Memory information register      R/O (2B)
+ethmcr		:= $FFFA	; Memory Config. reg.    +0 R/W +1 R/O (2B)
 
 ; Register bank 1
-ethcr		:= $FF00	; Configuration register           R/W (2B)
-ethbar		:= $FF02	; Base address register            R/W (2B)
-ethiar		:= $FF04	; Individual address register      R/W (6B)
-ethgpr		:= $FF0A	; General address register         R/W (2B)
-ethctr		:= $FF0C	; Control register                 R/W (2B)
+ethcr		:= $FFF0	; Configuration register           R/W (2B)
+ethbar		:= $FFF2	; Base address register            R/W (2B)
+ethiar		:= $FFF4	; Individual address register      R/W (6B)
+ethgpr		:= $FFFA	; General address register         R/W (2B)
+ethctr		:= $FFFC	; Control register                 R/W (2B)
 
 ; Register bank 2
-ethmmucr	:= $FF00	; MMU command register             W/O (1B)
-ethautotx	:= $FF01	; AUTO TX start register           R/W (1B)
-ethpnr		:= $FF02	; Packet number register           R/W (1B)
-etharr		:= $FF03	; Allocation result register       R/O (1B)
-ethfifo		:= $FF04	; FIFO ports register              R/O (2B)
-ethptr		:= $FF06	; Pointer register                 R/W (2B)
-ethdata		:= $FF08	; Data register                    R/W (4B)
-ethist		:= $FF0C	; Interrupt status register        R/O (1B)
-ethack		:= $FF0C	; Interrupt acknowledge register   W/O (1B)
-ethmsk		:= $FF0D	; Interrupt mask register          R/W (1B)
+ethmmucr	:= $FFF0	; MMU command register             W/O (1B)
+ethautotx	:= $FFF1	; AUTO TX start register           R/W (1B)
+ethpnr		:= $FFF2	; Packet number register           R/W (1B)
+etharr		:= $FFF3	; Allocation result register       R/O (1B)
+ethfifo		:= $FFF4	; FIFO ports register              R/O (2B)
+ethptr		:= $FFF6	; Pointer register                 R/W (2B)
+ethdata		:= $FFF8	; Data register                    R/W (4B)
+ethist		:= $FFFC	; Interrupt status register        R/O (1B)
+ethack		:= $FFFC	; Interrupt acknowledge register   W/O (1B)
+ethmsk		:= $FFFD	; Interrupt mask register          R/W (1B)
 
 ; Register bank 3
-ethmt		:= $FF00	; Multicast table                  R/W (8B)
-ethmgmt		:= $FF08	; Management interface             R/W (2B)
-ethrev		:= $FF0A	; Revision register                R/W (2B)
-ethercv		:= $FF0C	; Early RCV register               R/W (2B)
+ethmt		:= $FFF0	; Multicast table                  R/W (8B)
+ethmgmt		:= $FFF8	; Management interface             R/W (2B)
+ethrev		:= $FFFA	; Revision register                R/W (2B)
+ethercv		:= $FFFC	; Early RCV register               R/W (2B)
 
 	.data
 
@@ -148,8 +149,9 @@ init:
 	ldy #$00
 
 	; Fixup address at location
-:	lda reg
-	ora (ptr),y
+:	lda (ptr),y
+	and #$0F
+	ora reg
 	sta (ptr),y
 	iny
 	lda reg+1

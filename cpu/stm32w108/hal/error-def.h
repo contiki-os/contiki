@@ -363,9 +363,9 @@ DEFINE_ERROR(MAC_INDIRECT_TIMEOUT, 0x42)
 /** 
  * @brief The Simulated EEPROM is telling the application that there
  * is at least one flash page to be erased.  The GREEN status means the
- * current page has not filled above the ::ERASE_CRITICAL_THRESHOLD.
+ * current page has not filled above the ERASE_CRITICAL_THRESHOLD.
  * 
- * The application should call the function ::halSimEepromErasePage() when it can
+ * The application should call the function halSimEepromErasePage() when it can
  * to erase a page.
  */
 #define ST_SIM_EEPROM_ERASE_PAGE_GREEN(0x43)
@@ -378,10 +378,10 @@ DEFINE_ERROR(SIM_EEPROM_ERASE_PAGE_GREEN, 0x43)
 /** 
  * @brief The Simulated EEPROM is telling the application that there
  * is at least one flash page to be erased.  The RED status means the
- * current page has filled above the ::ERASE_CRITICAL_THRESHOLD.
+ * current page has filled above the ERASE_CRITICAL_THRESHOLD.
  * 
  * Due to the shrinking availablity of write space, there is a danger of
- * data loss.  The application must call the function ::halSimEepromErasePage()
+ * data loss.  The application must call the function halSimEepromErasePage()
  * as soon as possible to erase a page.
  */
 #define ST_SIM_EEPROM_ERASE_PAGE_RED(0x44)
@@ -394,9 +394,9 @@ DEFINE_ERROR(SIM_EEPROM_ERASE_PAGE_RED, 0x44)
 /** 
  * @brief The Simulated EEPROM has run out of room to write any new data
  * and the data trying to be set has been lost.  This error code is the
- * result of ignoring the ::SIM_EEPROM_ERASE_PAGE_RED error code.
+ * result of ignoring the ::ST_SIM_EEPROM_ERASE_PAGE_RED error code.
  *
- * The application must call the function ::halSimEepromErasePage() to make room for
+ * The application must call the function halSimEepromErasePage() to make room for
  * any further calls to set a token.
  */
 #define ST_SIM_EEPROM_FULL(0x45)
@@ -440,8 +440,8 @@ DEFINE_ERROR(SIM_EEPROM_INIT_2_FAILED, 0x49)
 /** 
  * @brief Attempt 3 to initialize the Simulated EEPROM has failed.
  *
- * This failure means one or both of the tokens ::TOKEN_MFG_NVDATA_VERSION or
- * ::TOKEN_STACK_NVDATA_VERSION were incorrect and the token system failed to
+ * This failure means one or both of the tokens TOKEN_MFG_NVDATA_VERSION or
+ * TOKEN_STACK_NVDATA_VERSION were incorrect and the token system failed to
  * properly reload default tokens and reset the Simulated EEPROM.
  */
 #define ST_SIM_EEPROM_INIT_3_FAILED(0x4A)
@@ -486,7 +486,7 @@ DEFINE_ERROR(ERR_FLASH_VERIFY_FAILED, 0x47)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
- * @description A fatal error has occured while trying to write data to the
+ * @brief A fatal error has occured while trying to write data to the
  * flash, possibly due to write protection or an invalid address.  The data in
  * the flash cannot be trusted after this error, and it is possible this error
  * is the result of exceeding the life cycles of the flash.
@@ -499,7 +499,7 @@ DEFINE_ERROR(ERR_FLASH_PROG_FAIL, 0x4B)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** 
- * @description A fatal error has occured while trying to erase flash, possibly
+ * @brief A fatal error has occured while trying to erase flash, possibly
  * due to write protection.  The data in the flash cannot be trusted after
  * this error, and it is possible this error is the result of exceeding the
  * life cycles of the flash.
@@ -626,7 +626,7 @@ DEFINE_ERROR(COST_NOT_KNOWN, 0x71)
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
  * @brief The maximum number of in-flight messages (i.e. 
- * ::ST_APS_UNICAST_MESSAGE_COUNT)  has been reached.
+ * ST_APS_UNICAST_MESSAGE_COUNT)  has been reached.
  */
 #define ST_MAX_MESSAGE_LIMIT_REACHED(0x72)
 #else
@@ -820,7 +820,7 @@ DEFINE_ERROR(PHY_ACK_RECEIVED, 0x8F)
 
 /**
  * @name  Return Codes Passed to stStackStatusHandler()
- * See also ::stStackStatusHandler(). 
+ * See also stStackStatusHandler().
  *
  * @{
  */
@@ -882,7 +882,7 @@ DEFINE_ERROR(CANNOT_JOIN_AS_ROUTER, 0x98)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief The local node ID has changed. The application can obtain the new
- *  node ID by calling ::stGetNodeId().
+ *  node ID by calling stGetNodeId().
  */
 #define ST_NODE_ID_CHANGED(0x99)
 #else
@@ -892,7 +892,7 @@ DEFINE_ERROR(NODE_ID_CHANGED, 0x99)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief The local PAN ID has changed. The application can obtain the new PAN
- *  ID by calling ::stGetPanId().
+ *  ID by calling stGetPanId().
  */
 #define ST_PAN_ID_CHANGED(0x9A)
 #else
@@ -920,7 +920,7 @@ DEFINE_ERROR(NO_BEACONS, 0xAB)
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief An attempt was made to join a Secured Network using a pre-configured
  *  key, but the Trust Center sent back a Network Key in-the-clear when
- *  an encrypted Network Key was required. (::ST_REQUIRE_ENCRYPTED_KEY).
+ *  an encrypted Network Key was required. (ST_REQUIRE_ENCRYPTED_KEY).
  */
 #define ST_RECEIVED_KEY_IN_THE_CLEAR(0xAC)
 #else
@@ -940,7 +940,7 @@ DEFINE_ERROR(NO_NETWORK_KEY_RECEIVED, 0xAD)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief After a device joined a Secured Network, a Link Key was requested 
- *  (::ST_GET_LINK_KEY_WHEN_JOINING) but no response was ever received.
+ *  (ST_GET_LINK_KEY_WHEN_JOINING) but no response was ever received.
  */
 #define ST_NO_LINK_KEY_RECEIVED(0xAE)
 #else
@@ -978,7 +978,7 @@ DEFINE_ERROR(KEY_INVALID, 0xB2)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /**
- * @brief The chosen security level (the value of ::ST_SECURITY_LEVEL)
+ * @brief The chosen security level (the value of ST_SECURITY_LEVEL)
  *  is not supported by the stack.
  */
 #define ST_INVALID_SECURITY_LEVEL(0x95)
@@ -1011,7 +1011,7 @@ DEFINE_ERROR(INVALID_SECURITY_LEVEL, 0x95)
 
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief There was an attempt to form or join a network with security
- * without calling ::stSetInitialSecurityState() first.
+ * without calling stSetInitialSecurityState() first.
  */
 #define ST_SECURITY_STATE_NOT_SET(0xA8)
 #else
@@ -1274,7 +1274,9 @@ DEFINE_ERROR( APPLICATION_ERROR_14, 0xFE)
 DEFINE_ERROR( APPLICATION_ERROR_15, 0xFF)
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
-/** @} */ // END name group
+/** @} */
+
+/** @} END defgroup */
 
 /** @} END addtogroup */
 
