@@ -40,7 +40,7 @@ UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
 ELFLOADER  = elfloader.c elfloader-msp430.c symtab.c
 
 CONTIKI_TARGET_SOURCEFILES += $(MSP430) \
-                              $(SYSAPPS) \
+                              $(SYSAPPS) $(ELFLOADER) \
                               $(UIPDRIVERS)
 
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
