@@ -41,7 +41,7 @@
  * @{ */
 
 /**
- * \defgroup ringbuf Ring buffer index library
+ * \defgroup ringbufindex Ring buffer index library
  * @{
  *
  */
