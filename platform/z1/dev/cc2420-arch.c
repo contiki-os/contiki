@@ -34,13 +34,13 @@
 #include "cc2420.h"
 #include "isr_compat.h"
 
-#ifndef CONF_SFD_TIMESTAMPS
-#define CONF_SFD_TIMESTAMPS 0
-#endif /* CONF_SFD_TIMESTAMPS */
+#ifndef CC2420_CONF_SFD_TIMESTAMPS
+#define CC2420_CONF_SFD_TIMESTAMPS 0
+#endif /* CC2420_CONF_SFD_TIMESTAMPS */
 
-#ifdef CONF_SFD_TIMESTAMPS
+#ifdef CC2420_CONF_SFD_TIMESTAMPS
 #include "cc2420-arch-sfd.h"
-#endif
+#endif /* CC2420_CONF_SFD_TIMESTAMPS */
 
 /*---------------------------------------------------------------------------*/
 #if 0
@@ -65,9 +65,9 @@ cc2420_arch_init(void)
   CC2420_VREG_PORT(DIR) |= BV(CC2420_VREG_PIN);
   CC2420_RESET_PORT(DIR) |= BV(CC2420_RESET_PIN);
 
-#if CONF_SFD_TIMESTAMPS
+#if CC2420_CONF_SFD_TIMESTAMPS
   cc2420_arch_sfd_init();
-#endif
+#endif /* CC2420_CONF_SFD_TIMESTAMPS */
 
   CC2420_SPI_DISABLE();                /* Unselect radio. */
 }
