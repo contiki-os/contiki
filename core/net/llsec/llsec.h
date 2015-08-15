@@ -59,7 +59,6 @@
 #define LLSEC_H_
 
 #include "net/mac/mac.h"
-#include "net/linkaddr.h"
 
 typedef void (* llsec_on_bootstrapped_t)(void);
 
@@ -90,7 +89,6 @@ struct llsec_driver {
   
   /** Returns the security-related overhead per frame in bytes */
   uint8_t (* get_overhead)(void);
-
 };
 
 #endif /* LLSEC_H_ */
