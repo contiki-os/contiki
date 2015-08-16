@@ -39,7 +39,7 @@
  * other peripherals
  *
  * This file can be used as the basis to configure other boards using the
- * CC26xx code as their basis.
+ * CC13xx/CC26xx code as their basis.
  *
  * This file is not meant to be modified by the user.
  * @{
@@ -231,14 +231,7 @@
  * \name Device string used on startup
  * @{
  */
-#define BOARD_STRING "TI SmartRF06EB+CC26xx EM"
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Board specific iniatialisation
- * @{
- */
-void board_init(void);
+#define BOARD_STRING "TI SmartRF06EB + CC26xx EM"
 /** @} */
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_H_ */

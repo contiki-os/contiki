@@ -29,7 +29,7 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup srf06-cc26xx-peripherals
+ * \addtogroup srf06-common-peripherals
  * @{
  *
  * \file
