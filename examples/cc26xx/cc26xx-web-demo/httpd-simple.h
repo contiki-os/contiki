@@ -48,7 +48,7 @@
 /*---------------------------------------------------------------------------*/
 /* Ideally a multiple of TCP_MSS */
 #ifdef HTTPD_SIMPLE_CONF_MAIN_BUF_SIZE
-#define HTTPD_SIMPLE_MAIN_BUF_SIZE HTTPD_SIMPLE_CONF_BUF_SIZE
+#define HTTPD_SIMPLE_MAIN_BUF_SIZE HTTPD_SIMPLE_CONF_MAIN_BUF_SIZE
 #else
 #define HTTPD_SIMPLE_MAIN_BUF_SIZE UIP_TCP_MSS
 #endif
