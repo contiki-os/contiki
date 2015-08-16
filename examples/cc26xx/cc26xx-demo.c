@@ -88,13 +88,12 @@
 #include "sys/etimer.h"
 #include "sys/ctimer.h"
 #include "dev/leds.h"
-#include "dev/serial-line.h"
 #include "dev/watchdog.h"
 #include "random.h"
 #include "button-sensor.h"
 #include "batmon-sensor.h"
 #include "board-peripherals.h"
-#include "cc26xx-rf.h"
+#include "rf-core/rf-ble.h"
 
 #include "ti-lib.h"
 
@@ -104,7 +103,6 @@
 #define CC26XX_DEMO_LOOP_INTERVAL       (CLOCK_SECOND * 20)
 #define CC26XX_DEMO_LEDS_PERIODIC       LEDS_YELLOW
 #define CC26XX_DEMO_LEDS_BUTTON         LEDS_RED
-#define CC26XX_DEMO_LEDS_SERIAL_IN      LEDS_ORANGE
 #define CC26XX_DEMO_LEDS_REBOOT         LEDS_ALL
 /*---------------------------------------------------------------------------*/
 #define CC26XX_DEMO_SENSOR_NONE         (void *)0xFFFFFFFF
@@ -370,8 +368,8 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
   init_sensors();
 
   /* Init the BLE advertisement daemon */
-  cc26xx_rf_ble_beacond_config(0, BOARD_STRING);
-  cc26xx_rf_ble_beacond_start();
+  rf_ble_beacond_config(0, BOARD_STRING);
+  rf_ble_beacond_start();
 
   etimer_set(&et, CC26XX_DEMO_LOOP_INTERVAL);
   get_sync_sensor_readings();
