@@ -143,6 +143,21 @@ If you want to switch between building for one platform to the other, make
 certain to `make clean` before building for the new one, or you will get linker
 errors.
 
+Sensortag UART usage (with or without the Debugger Devpack)
+===========================================================
+There are two ways to get debugging (printf etc) output from the Sensortag.
+
+* Purchase a Debugger Devpack and set `BOARD_CONF_DEBUGGER_DEVPACK` to 1 in
+`contiki-conf.h` or `project-conf.h`. This will work off the shelf for revision
+1.2.0 of the debugger devpack.
+* If you have an older (rev 1.0.0) devpack, you will need to do the above and
+then to modify `board.h` in order to cross the RX and TX DIO mappings. (TX to
+`IOID_28`, RX to `IOID_29`).
+* If you don't have/want a debugger devpack, you can use a SmartRF and modify
+the jumper configuration on P408 as discussed in
+[this thread](https://e2e.ti.com/support/wireless_connectivity/f/158/p/411992/1483824#1483824)
+on E2E. For this to work, you need to set `BOARD_CONF_DEBUGGER_DEVPACK` to 0.
+
 Low Power Operation
 ===================
 The platform takes advantage of the CC26xx's power saving features. In a
