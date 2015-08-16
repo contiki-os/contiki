@@ -4,11 +4,11 @@ Getting Started with Contiki for TI CC26xx
 This guide's aim is to help you start using Contiki for TI's CC26xx. The
 platform supports two different boards:
 
-* SmartRF 06 Evaluation Board with a CC26xx Evaluation Module (relevant files
-  and drivers are under `srf06/`)
-* CC26xx SensorTag 2.0 (relevant drivers under `sensortag/`)
+* SmartRF 06 Evaluation Board with a CC26xx or CC13xx Evaluation Module
+  (relevant files and drivers are under `srf06/`)
+* CC2650 SensorTag 2.0 (relevant drivers under `sensortag/cc2650`)
 
-The CPU code, common for both platforms, can be found under `$(CONTIKI)/cpu/cc26xx`.
+The CPU code, common for both platforms, can be found under `$(CONTIKI)/cpu/cc26xx-cc13xx`.
 The port was developed and tested with CC2650s, but the intention is for it to
 work with the CC2630 as well. Thus, bug reports are welcome for both chips.
 Bear in mind that the CC2630 does not have BLE capability.
@@ -25,6 +25,7 @@ The platform has the following key features:
 * Deep Sleep support with RAM retention for ultra-low energy consumption.
 * Support for CC26xx RF in IEEE as well as BLE mode (BLE support is very basic
   since Contiki does not provide a BLE stack).
+* Support for CC13xx prop mode: IEEE 802.15.4g-compliant sub GHz operation
 
 In terms of hardware support, the following drivers have been implemented:
 
@@ -61,6 +62,8 @@ To use the port you need:
 
 * TI's CC26xxware sources. The correct version will be installed automatically
   as a submodule when you clone Contiki.
+* TI's CC13xxware sources. The correct version will be installed automatically
+  as a submodule when you clone Contiki.
 * Software to program the nodes. Use TI's SmartRF Flash Programmer
 * A toolchain to build firmware: The port has been developed and tested with
   GNU Tools for ARM Embedded Processors <https://launchpad.net/gcc-arm-embedded>.
@@ -85,12 +88,18 @@ From `cpu/cc26xx/lib/cc26xxware/driverlib/timer.c` to `driverlib-timer.c`
 
 Sensortag vs Srf06
 ==================
-To build for the sensortag, set `BOARD=sensortag`. You can do that by exporting
-it as an environment variable, by adding it to your Makefile or by adding it to
-your make command as an argument
+To build for the sensortag, you will need to set the `BOARD` make variable as
+follows:
 
-If the `BOARD` variable is not equal to `sensortag`, an image for the Srf06
-CC26XXEM will be built instead.
+* Srf06+CC26xxEM: Set `BOARD=srf06/cc26xx`
+* Srf06+CC13xxEM: Set `BOARD=srf06/cc13xx`
+* CC2650 tag: Set `BOARD=sensortag/cc2650`
+
+You can do that by exporting `BOARD` as an environment variable, by adding it
+to your Makefile or by adding it to your make command as an argument.
+
+If the `BOARD` variable is unspecified, an image for the Srf06 CC26XXEM will be
+built.
 
 If you want to switch between building for one platform to the other, make
 certain to `make clean` before building for the new one, or you will get linker

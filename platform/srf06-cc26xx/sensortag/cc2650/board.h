@@ -33,13 +33,13 @@
  *
  * \defgroup sensortag-cc26xx-peripherals Sensortag Peripherals
  *
- * Defines related to the Sensortag-CC26XX
+ * Defines related to the CC2650 Sensortag
  *
  * This file provides connectivity information on LEDs, Buttons, UART and
  * other peripherals
  *
  * This file can be used as the basis to configure other boards using the
- * CC26XX code as their basis.
+ * CC13xx/CC26xx code as their basis.
  *
  * This file is not meant to be modified by the user.
  * @{
@@ -103,8 +103,13 @@
 #define BOARD_IOID_DP4_UARTRX     IOID_28
 #define BOARD_IOID_DP5_UARTTX     IOID_29
 
+#if BOARD_CONF_DEBUGGER_DEVPACK
 #define BOARD_IOID_UART_RX        BOARD_IOID_DP4_UARTRX
+#define BOARD_IOID_UART_TX        BOARD_IOID_DP5_UARTTX
+#else
+#define BOARD_IOID_UART_RX        IOID_17
 #define BOARD_IOID_UART_TX        IOID_16
+#endif
 
 #define BOARD_IOID_UART_CTS       IOID_UNUSED
 #define BOARD_IOID_UART_RTS       IOID_UNUSED
@@ -231,13 +236,6 @@
  */
 #define BOARD_STRING "TI CC2650 SensorTag"
 
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Board specific iniatialisation
- * @{
- */
-void board_init(void);
 /** @} */
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_H_ */

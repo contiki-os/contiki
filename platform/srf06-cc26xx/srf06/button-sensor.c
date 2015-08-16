@@ -29,11 +29,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup srf06-cc26xx-peripherals
+ * \addtogroup srf06-common-peripherals
  * @{
  *
  * \file
- *  Driver for the SmartRF06EB buttons when a CC26xxEM is mounted on the board
+ *  Driver for the SmartRF06EB buttons when a CC13xx/CC26xxEM is mounted on it
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -55,7 +55,7 @@
 /*---------------------------------------------------------------------------*/
 #define BUTTON_GPIO_CFG         (IOC_CURRENT_2MA  | IOC_STRENGTH_AUTO | \
                                  IOC_IOPULL_UP    | IOC_SLEW_DISABLE  | \
-                                 IOC_HYST_ENABLE  | IOC_BOTH_EDGES    | \
+                                 IOC_HYST_DISABLE | IOC_BOTH_EDGES    | \
                                  IOC_INT_ENABLE   | IOC_IOMODE_NORMAL | \
                                  IOC_NO_WAKE_UP   | IOC_INPUT_ENABLE)
 /*---------------------------------------------------------------------------*/

@@ -1,0 +1,7 @@
+### Will allow the inclusion of the correct CPU makefile
+CPU_FAMILY = cc13xx
+
+### Include the common sensortag makefile
+include $(PLATFORM_ROOT_DIR)/srf06/Makefile.srf06
+
+CONTIKI_TARGET_DIRS += srf06/cc13xx
