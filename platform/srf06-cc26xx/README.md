@@ -56,6 +56,44 @@ can be used to configure the rest of the example.
 
 More details about those two examples can be found in their respective READMEs.
 
+CC13xx/CC26xx Border Router over UART
+=====================================
+The platform code can be used as a border router (SLIP over UART) by using the
+example under `examples/ipv6/rpl-border-router`. This example defines the
+following:
+
+
+    #ifndef UIP_CONF_BUFFER_SIZE
+    #define UIP_CONF_BUFFER_SIZE    140
+    #endif
+
+    #ifndef UIP_CONF_RECEIVE_WINDOW
+    #define UIP_CONF_RECEIVE_WINDOW  60
+    #endif
+
+The CC26xx port has much higher capability than some other platforms used as
+border routers. Thus, before building the example, it is recommended to delete
+these two configuration directives. This will allow platform defaults to take
+effect and this will improve performance and stability.
+
+Do not forget to set the correct channel by defining `RF_CORE_CONF_CHANNEL` as
+required.
+
+CC13xx/CC26xx slip-radio with 6lbr
+==================================
+The platform can also operate as a slip-radio over UART, to be used with
+[6lbr](http://cetic.github.io/6lbr/).
+
+Similar to the border router configuration, you will need to remove the defines
+that limit the size of the uIP buffer. Removing the two lines below from
+`examples/ipv6/slip-radio/project-conf.h` should do it.
+
+    #undef UIP_CONF_BUFFER_SIZE
+    #define UIP_CONF_BUFFER_SIZE    140
+
+Do not forget to set the correct channel by defining `RF_CORE_CONF_CHANNEL` as
+required.
+
 Requirements
 ============
 To use the port you need:
