@@ -91,7 +91,7 @@
 /* Force an MQTT publish on sensor event */
 #define CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER &reed_relay_sensor
 #else
-#define CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER &button_right_sensor
+#define CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER &button_down_sensor
 #endif
 
 #define CC26XX_WEB_DEMO_STATUS_LED LEDS_GREEN
@@ -101,7 +101,11 @@
 /*---------------------------------------------------------------------------*/
 /* Default configuration values */
 #define CC26XX_WEB_DEMO_DEFAULT_ORG_ID              "quickstart"
+#if CPU_FAMILY_CC13XX
+#define CC26XX_WEB_DEMO_DEFAULT_TYPE_ID             "cc13xx"
+#else
 #define CC26XX_WEB_DEMO_DEFAULT_TYPE_ID             "cc26xx"
+#endif
 #define CC26XX_WEB_DEMO_DEFAULT_EVENT_TYPE_ID       "status"
 #define CC26XX_WEB_DEMO_DEFAULT_SUBSCRIBE_CMD_TYPE  "+"
 #define CC26XX_WEB_DEMO_DEFAULT_BROKER_PORT         1883
