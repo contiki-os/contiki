@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Swedish Institute of Computer Science.
+ * Copyright (c) 2014, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +27,59 @@
  * SUCH DAMAGE.
  *
  */
+/**
+ * \author Simon Duquennoy <simonduq@sics.se>
+ */
 
-#ifndef __PROJECT_CONF_H__
-#define __PROJECT_CONF_H__
+#ifndef __COMMON_CONF_H__
+#define __COMMON_CONF_H__
 
-#undef   NETSTACK_CONF_RDC
-#undef   NETSTACK_CONF_FRAMER
-#undef   NETSTACK_CONF_MAC
-#undef   NETSTACK_CONF_NETWORK
+#define MAC_CONFIG_NULLRDC                    0
+#define MAC_CONFIG_CONTIKIMAC                 1
+/* Select a MAC configuration */
+#define MAC_CONFIG MAC_CONFIG_NULLRDC
 
-#if 1
-#define  NETSTACK_CONF_RDC     contikimac_driver
-#define  NETSTACK_CONF_FRAMER  contikimac_framer
-#else
-#define  NETSTACK_CONF_RDC     nullrdc_driver
-#define  NETSTACK_CONF_FRAMER  framer_802154
-#endif
-#define  NETSTACK_CONF_MAC     csma_driver
-#define  NETSTACK_CONF_NETWORK rime_driver
+#undef NETSTACK_CONF_MAC
+#undef NETSTACK_CONF_RDC
+#undef NETSTACK_CONF_FRAMER
 
-#undef   UIP_CONF_IPV6
-#define  UIP_CONF_IPV6                   0
+#if MAC_CONFIG == MAC_CONFIG_NULLRDC
 
-#undef   RF_CHANNEL
-#define  RF_CHANNEL             25
+#define NETSTACK_CONF_MAC     csma_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
+#define NETSTACK_CONF_FRAMER  framer_802154
 
-#undef   MICROMAC_CONF_CHANNEL
-#define  MICROMAC_CONF_CHANNEL  RF_CHANNEL
+#elif MAC_CONFIG == MAC_CONFIG_CONTIKIMAC
 
-#undef   CC2420_CONF_CHANNEL
-#define  CC2420_CONF_CHANNEL    RF_CHANNEL
-
-
+#define NETSTACK_CONF_MAC     csma_driver
+#define NETSTACK_CONF_RDC     contikimac_driver
+#define NETSTACK_CONF_FRAMER  contikimac_framer
 #undef   MICROMAC_CONF_AUTOACK
-#define  MICROMAC_CONF_AUTOACK   1
+#define  MICROMAC_CONF_AUTOACK 1
 
+#else
 
-#endif /* __PROJECT_CONF_H__ */
+#error Unsupported MAC configuration
+
+#endif /* MAC_CONFIG */
+
+/* IEEE802.15.4 PANID and channel */
+
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID 0xabcd
+
+#undef RF_CHANNEL
+#define RF_CHANNEL 26
+
+/* UART Configuration */
+
+#undef UART_HW_FLOW_CTRL
+#define UART_HW_FLOW_CTRL 0
+
+#undef UART_XONXOFF_FLOW_CTRL
+#define UART_XONXOFF_FLOW_CTRL 1
+
+#undef UART_BAUD_RATE
+#define UART_BAUD_RATE UART_RATE_1000000
+
+#endif /* __COMMON_CONF_H__ */
