@@ -42,8 +42,15 @@
  * \file
  * Implementation of the CC13xx/CC26xx watchdog driver.
  */
-#include "watchdog.h"
+#include "contiki.h"
+#include "dev/watchdog.h"
 #include "ti-lib.h"
+/*---------------------------------------------------------------------------*/
+#ifdef CONTIKI_WATCHDOG_CONF_TIMER_TOP
+#define CONTIKI_WATCHDOG_TIMER_TOP CONTIKI_WATCHDOG_CONF_TIMER_TOP
+#else
+#define CONTIKI_WATCHDOG_TIMER_TOP 0xFFFFF
+#endif
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Initialises the CC26xx WDT
@@ -54,7 +61,7 @@
 void
 watchdog_init(void)
 {
-  ti_lib_watchdog_reload_set(0xFFFFF);
+  ti_lib_watchdog_reload_set(CONTIKI_WATCHDOG_TIMER_TOP);
 }
 /*---------------------------------------------------------------------------*/
 /**
