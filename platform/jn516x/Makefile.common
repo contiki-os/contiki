@@ -18,7 +18,7 @@ ifeq ($(HOST_OS),Windows)
 else
   # Assume Linux
   SDK_BASE_DIR ?= /usr/jn-toolchain/sdk/JN-SW-4163
-  FLASH_PROGRAMMER ?= /usr/jn-toolchain/tools/flashprogrammer/JennicModuleProgrammer
+  FLASH_PROGRAMMER ?= $(CONTIKI)/tools/jn516x/JennicModuleProgrammer/Build/JennicModuleProgrammer
 endif
 
 ###############################################################################
@@ -102,17 +102,17 @@ MOTELIST = python $(CONTIKI)/tools/jn516x/mote-list.py
 ifeq ($(HOST_OS),Windows)
   USBDEVPREFIX=/dev/com
   USBDEVBASENAME=COM
-  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-windows
+  SERIALDUMP ?= $(CONTIKI)/tools/jn516x/serialdump-windows
 else
 ifeq ($(HOST_OS),Darwin)
   USBDEVPREFIX=
   USBDEVBASENAME=/dev/tty.usbserial-
-  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-macos
+  SERIALDUMP ?= $(CONTIKI)/tools/jn516x/serialdump-macos
 else
   # Else we assume Linux
   USBDEVPREFIX=
   USBDEVBASENAME=/dev/ttyUSB
-  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-linux
+  SERIALDUMP ?= $(CONTIKI)/tools/jn516x/serialdump-linux
 endif
 endif
 
@@ -173,21 +173,24 @@ ABS_APPLIBS = $(addsuffix _$(JENNIC_CHIP_FAMILY).a,$(addprefix $(COMPONENTS_BASE
 symbols.c symbols.h:
 	@${CONTIKI}/tools/make-empty-symbols
 
+${FLASH_PROGRAMMER}:
+	$(MAKE) -C ${dir ${FLASH_PROGRAMMER}} MAKEFLAGS= CFLAGS= LDFLAGS= TARGET=${notdir ${FLASH_PROGRAMMER}}
+
 ### Upload target to one jn516x mote specified by MOTE=portNumber
 ifeq ($(HOST_OS),Windows)
-%.upload: %.$(TARGET).bin
+%.upload: ${FLASH_PROGRAMMER} %.$(TARGET).bin
 	${FLASH_PROGRAMMER} -a -c $(PORT) -B 1000000 -s -w -f $<
 else
-%.upload: %.$(TARGET).bin
+%.upload: ${FLASH_PROGRAMMER} %.$(TARGET).bin
 	${FLASH_PROGRAMMER} -V 10 -v -s $(PORT) -I 38400 -P 1000000 -f $<
 endif
 
 ### Flash the given file
 ifeq ($(HOST_OS),Windows)
-%.flash: 
+%.flash: ${FLASH_PROGRAMMER}
 	${FLASH_PROGRAMMER} -a -c $(PORT) -B 1000000 -s -w -f $*.$(TARGET).bin
 else
-%.flash:
+%.flash: ${FLASH_PROGRAMMER}
 	${FLASH_PROGRAMMER} -V 10 -v -s $(PORT) -I 38400 -P 1000000 -s -f $*.$(TARGET).bin
 endif
 
@@ -223,8 +226,8 @@ UART_BAUDRATE ?= 1000000
 $(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
 	($(MAKE) -C $(CONTIKI)/tools tunslip6 CFLAGS= LDFLAGS= LDLIBS= INCFLAGS=)
 
-$(SERIALDUMP): 
-	(cd $(CONTIKI)/tools/sky; ${MAKE} $(SERIALDUMP))
+$(SERIALDUMP): $(CONTIKI)/tools/jn516x/serialdump.c
+	(cd $(CONTIKI)/tools/jn516x; ${MAKE} $(notdir $(SERIALDUMP)))
 
 login: $(SERIALDUMP)
 	$(SERIALDUMP) -b${UART_BAUDRATE} $(USBDEVPREFIX)$(PORT)
