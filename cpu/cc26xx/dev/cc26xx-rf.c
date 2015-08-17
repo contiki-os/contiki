@@ -1328,33 +1328,55 @@ send(const void *payload, unsigned short payload_len)
   return transmit(payload_len);
 }
 /*---------------------------------------------------------------------------*/
+static void
+release_data_entry(void)
+{
+  /* Clear the length byte */
+  rx_read_entry[8] = 0;
+  /* Set status to 0 "Pending" in element */
+  GET_FIELD_V(rx_read_entry, dataEntry, status) = DATA_ENTRY_STATUS_PENDING;
+  rx_read_entry = GET_FIELD_V(rx_read_entry, dataEntry, pNextEntry);
+}
+/*---------------------------------------------------------------------------*/
 static int
 read_frame(void *buf, unsigned short buf_len)
 {
+  int8_t rssi;
   int len = 0;
+  uint8_t status = GET_FIELD_V(rx_read_entry, dataEntry, status);
 
-  if(GET_FIELD_V(rx_read_entry, dataEntry, status) == DATA_ENTRY_STATUS_FINISHED) {
-    /* Set status to 0 "Pending" in element */
-    GET_FIELD_V(rx_read_entry, dataEntry, status) = DATA_ENTRY_STATUS_PENDING;
-
-    if(rx_read_entry[8] > 0) {
-      memcpy(buf, (char *)&rx_read_entry[9], buf_len);
-
-      /* Remove the footer */
-      len = MIN(buf_len, rx_read_entry[8] - 4);
-
-      int rssi = (int8_t)rx_read_entry[9 + len + 2];
-
-      packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
-      RIMESTATS_ADD(llrx);
-
-      /* Clear the length byte */
-      rx_read_entry[8] = 0;
-    }
-
-    /* Move read entry pointer to next entry */
-    rx_read_entry = GET_FIELD_V(rx_read_entry, dataEntry, pNextEntry);
+  if(status != DATA_ENTRY_STATUS_FINISHED) {
+    /* No available data */
+    return 0;
   }
+
+
+  if(rx_read_entry[8] < 4) {
+    PRINTF("RF: too short\n");
+    RIMESTATS_ADD(tooshort);
+
+    release_data_entry();
+    return 0;
+  }
+
+  len = rx_read_entry[8] - 4;
+
+  if(len > buf_len) {
+    PRINTF("RF: too long\n");
+    RIMESTATS_ADD(toolong);
+
+    release_data_entry();
+    return 0;
+  }
+
+  memcpy(buf, (char *)&rx_read_entry[9], len);
+
+  rssi = (int8_t)rx_read_entry[9 + len + 2];
+
+  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+  RIMESTATS_ADD(llrx);
+
+  release_data_entry();
 
   return len;
 }
