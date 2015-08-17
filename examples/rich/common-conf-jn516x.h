@@ -85,18 +85,12 @@
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES  28
 
-/* SLIP */
-#define SLIP_CONF_RX_BUFSIZE (UIP_CONF_BUFFER_SIZE*2)
-
 /* Radio */
 
 #undef ENABLE_COOJA_DEBUG
 #define ENABLE_COOJA_DEBUG 0
 
 /* max 3, min 0 */
-
-#undef USE_SLIP_UART1
-#define USE_SLIP_UART1     0
 
 #undef UART_HW_FLOW_CTRL
 #define UART_HW_FLOW_CTRL 0

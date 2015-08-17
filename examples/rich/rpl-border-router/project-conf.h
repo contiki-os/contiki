@@ -41,16 +41,4 @@
 
 #include "../common-conf.h"
 
-/* Disabling HW_FLOW_CTRL because of lack of support on IoT Gateway */
-#undef UART_HW_FLOW_CTRL
-#define UART_HW_FLOW_CTRL  0
-
-/* Enabling XON/XOFF */
-#undef UART_XONXOFF_FLOW_CTRL
-#define UART_XONXOFF_FLOW_CTRL 1
-
-/* Baudrate for the IoT Gateway */
-#undef UART_BAUD_RATE
-#define UART_BAUD_RATE UART_RATE_1000000
-
 #endif /* PROJECT_ROUTER_CONF_H_ */

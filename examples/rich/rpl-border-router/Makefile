@@ -3,8 +3,6 @@ all: $(CONTIKI_PROJECT)
 
 TARGET ?= jn516x
 
-APPS = json
-
 CONTIKI=../../..
 
 CONTIKI_WITH_IPV6 = 1
@@ -18,6 +16,8 @@ PROJECT_SOURCEFILES += rich.c #rich-scheduler-interface.c
 CFLAGS += -DWITH_COAP
 CFLAGS += -DREST=coap_rest_implementation
 CFLAGS += -DUIP_CONF_TCP=0
+APPS += orchestra
+APPS += json
 APPS += er-coap
 APPS += rest-engine
 
@@ -26,6 +26,10 @@ ifeq ($(PREFIX),)
 endif
 
 include $(CONTIKI)/Makefile.include
+
+#no flow control
+connect-router:	$(CONTIKI)/tools/tunslip6
+	sudo $(CONTIKI)/tools/tunslip6 -v1 -B 1000000 $(PREFIX)
 
 #using XON/XOFF flow control
 connect-router-sw:	$(CONTIKI)/tools/tunslip6

@@ -11,10 +11,10 @@ PROJECT_SOURCEFILES += rich.c
 
 CFLAGS += -DWITH_COAP
 CFLAGS += -DUIP_CONF_TCP=0
-APPS = json
+APPS = orchestra
+APPS += json
 APPS += er-coap
 APPS += rest-engine
-
 all: $(CONTIKI_PROJECT)
 
 CONTIKI=../../..
