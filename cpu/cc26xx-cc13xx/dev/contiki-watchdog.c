@@ -79,6 +79,7 @@ watchdog_start(void)
 void
 watchdog_periodic(void)
 {
+  ti_lib_watchdog_reload_set(CONTIKI_WATCHDOG_TIMER_TOP);
   ti_lib_watchdog_int_clear();
 }
 /*---------------------------------------------------------------------------*/
