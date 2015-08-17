@@ -70,6 +70,7 @@ watchdog_init(void)
 void
 watchdog_start(void)
 {
+  watchdog_periodic();
   ti_lib_watchdog_reset_enable();
 }
 /*---------------------------------------------------------------------------*/
@@ -81,6 +82,15 @@ watchdog_periodic(void)
 {
   ti_lib_watchdog_reload_set(CONTIKI_WATCHDOG_TIMER_TOP);
   ti_lib_watchdog_int_clear();
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Stops the WDT such that it won't timeout and cause MCU reset
+ */
+void
+watchdog_stop(void)
+{
+  ti_lib_watchdog_reset_disable();
 }
 /*---------------------------------------------------------------------------*/
 /**
