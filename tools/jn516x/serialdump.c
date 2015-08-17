@@ -183,7 +183,7 @@ main(int argc, char **argv)
   fprintf(stderr, "connecting to %s (%s)", device, speedname);
 
 #ifdef O_SYNC
-  fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_DIRECT | O_SYNC);
+  fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY /*| O_DIRECT*/ | O_SYNC);
   if(fd < 0 && errno == EINVAL){ // O_SYNC not supported (e.g. raspberian)
     fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_DIRECT);
   }
