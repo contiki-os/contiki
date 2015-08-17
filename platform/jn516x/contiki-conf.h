@@ -86,7 +86,7 @@
 #define LINKADDR_CONF_SIZE              8
 
 #ifndef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM               8
+#define QUEUEBUF_CONF_NUM               16
 #endif
 
 /* Network setup for non-IP (rime). */
@@ -190,11 +190,6 @@
 #define UIP_CONF_LOGGING         0
 
 #endif /* NETSTACK_CONF_WITH_IPV6 */
-
-
-#ifndef AES_128_CONF
-/* TODO add AES support. */
-#endif /* AES_128_CONF */
 
 /* include the project config */
 /* PROJECT_CONF_H might be defined in the project Makefile */

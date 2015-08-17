@@ -18,7 +18,7 @@ ifeq ($(HOST_OS),Windows)
 else
   # Assume Linux
   SDK_BASE_DIR ?= /usr/jn-toolchain/sdk/JN-SW-4163
-  FLASH_PROGRAMMER ?= $(CONTIKI)/tools/jn516x/JennicModuleProgrammer/Build/JennicModuleProgrammer
+  FLASH_PROGRAMMER ?= $(CONTIKI)/tools/jn516x/JennicModuleProgrammer
 endif
 
 ###############################################################################
@@ -173,15 +173,12 @@ ABS_APPLIBS = $(addsuffix _$(JENNIC_CHIP_FAMILY).a,$(addprefix $(COMPONENTS_BASE
 symbols.c symbols.h:
 	@${CONTIKI}/tools/make-empty-symbols
 
-${FLASH_PROGRAMMER}:
-	$(MAKE) -C ${dir ${FLASH_PROGRAMMER}} MAKEFLAGS= CFLAGS= LDFLAGS= TARGET=${notdir ${FLASH_PROGRAMMER}}
-
 ### Upload target to one jn516x mote specified by MOTE=portNumber
 ifeq ($(HOST_OS),Windows)
-%.upload: ${FLASH_PROGRAMMER} %.$(TARGET).bin
+%.upload: %.$(TARGET).bin
 	${FLASH_PROGRAMMER} -a -c $(PORT) -B 1000000 -s -w -f $<
 else
-%.upload: ${FLASH_PROGRAMMER} %.$(TARGET).bin
+%.upload: %.$(TARGET).bin
 	${FLASH_PROGRAMMER} -V 10 -v -s $(PORT) -I 38400 -P 1000000 -f $<
 endif
 

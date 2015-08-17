@@ -205,7 +205,7 @@ typedef uint32_t rtimer_clock_t;
 
 /* Disable UART SW flow control */
 #ifndef UART_XONXOFF_FLOW_CTRL
-#define UART_XONXOFF_FLOW_CTRL 0
+#define UART_XONXOFF_FLOW_CTRL 1
 #endif /* UART_XONXOFF_FLOW_CTRL */
 
 #ifndef UART_BAUD_RATE
@@ -213,10 +213,6 @@ typedef uint32_t rtimer_clock_t;
 #endif /* UART_BAUD_RATE */
 
 #define ENABLE_ADVANCED_BAUD_SELECTION (UART_BAUD_RATE > UART_RATE_115200)
-
-#ifndef USE_SLIP_UART1
-#define USE_SLIP_UART1 0
-#endif /* USE_SLIP_UART1 */
 
 /* Set this to zero only if we are using SLIP */
 #ifndef SLIP_BRIDGE_CONF_NO_PUTCHAR

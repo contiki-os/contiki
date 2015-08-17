@@ -123,7 +123,7 @@ unsigned long slip_received, slip_frames;
 #endif
 
 #else
-#define RX_BUFSIZE (UIP_BUFSIZE - UIP_LLH_LEN + 16)
+#define RX_BUFSIZE (UIP_CONF_BUFFER_SIZE*2)
 #endif
 
 /*
