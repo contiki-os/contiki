@@ -90,6 +90,13 @@
 
 #define RPL_DAO_K_FLAG                   0x80 /* DAO ACK requested */
 #define RPL_DAO_D_FLAG                   0x40 /* DODAG ID present */
+
+#define RPL_DAO_ACK_UNCONDITIONAL_ACCEPT 0
+#define RPL_DAO_ACK_ACCEPT               1   /* 1 - 127 is OK but not good */
+#define RPL_DAO_ACK_UNABLE_TO_ACCEPT     128 /* >127 is fail */
+
+#define RPL_DAO_ACK_TIMEOUT              -1
+
 /*---------------------------------------------------------------------------*/
 /* RPL IPv6 extension header option. */
 #define RPL_HDR_OPT_LEN			4
@@ -116,6 +123,9 @@
 #else /* RPL_CONF_NOPATH_REMOVAL_DELAY */
 #define RPL_NOPATH_REMOVAL_DELAY          60
 #endif /* RPL_CONF_NOPATH_REMOVAL_DELAY */
+
+#define RPL_DAO_MAX_RETRANSMISSIONS     5
+#define RPL_DAO_RETRANSMISSION_TIMEOUT  (5 * CLOCK_SECOND)
 
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0
@@ -268,7 +278,7 @@ void dis_output(uip_ipaddr_t *addr);
 void dio_output(rpl_instance_t *, uip_ipaddr_t *uc_addr);
 void dao_output(rpl_parent_t *, uint8_t lifetime);
 void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
-void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t);
+void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t, uint8_t);
 void rpl_icmp6_register_handlers(void);
 
 /* RPL logic functions. */
