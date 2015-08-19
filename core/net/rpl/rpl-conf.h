@@ -236,6 +236,16 @@
 #endif
 
 /*
+ * RPL DAO ACK support. When enabled, DAO ACK will be sent and requested.
+ * This will also enable retransmission of DAO when no ack is received.
+ * */
+#ifdef RPL_CONF_WITH_DAO_ACK
+#define RPL_WITH_DAO_ACK RPL_CONF_WITH_DAO_ACK
+#else
+#define RPL_WITH_DAO_ACK 1
+#endif /* RPL_CONF_WITH_DAO_ACK */
+
+/*
  * RPL probing. When enabled, probes will be sent periodically to keep
  * parent link estimates up to date.
  */

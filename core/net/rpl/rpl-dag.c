@@ -1028,7 +1028,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_set_default_route(instance, from);
 
   if(instance->mop != RPL_MOP_NO_DOWNWARD_ROUTES) {
-    rpl_schedule_dao(instance);
+    rpl_schedule_dao_immediately(instance);
   } else {
     PRINTF("RPL: The DIO does not meet the prerequisites for sending a DAO\n");
   }
