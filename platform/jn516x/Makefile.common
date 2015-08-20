@@ -59,11 +59,10 @@ OBJDUMP:=$(CROSS_COMPILE)-objdump
 CFLAGS  := $(subst -Wcast-align,,$(CFLAGS))
 CFLAGS  := $(subst -Wall,,$(CFLAGS))
 
-ARCH=clock.c rtimer-arch.c slip_uart0.c uart0.c uart-driver.c watchdog.c \
- leds.c leds-arch.c \
- micromac-radio.c node-id.c exceptions.c sprintf.c \
- ht-sensor.c light-sensor.c button-sensor.c pot-sensor.c \
- uip-ipchksum.c log.c
+ARCH = ccm-star.c exceptions.c leds-arch.c rtimer-arch.c slip_uart0.c clock.c micromac-radio.c \
+       mtarch.c node-id.c uart0.c uart-driver.c watchdog.c \
+       ht-sensor.c light-sensor.c button-sensor.c pot-sensor.c \
+       ringbufindex.c slip.c sprintf.c
 
 APPLIBS += MMAC 
 STACKLIBS += JPT

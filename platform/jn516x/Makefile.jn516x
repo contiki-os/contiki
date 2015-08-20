@@ -7,6 +7,5 @@ include $(CONTIKI)/platform/jn516x/Makefile.common
 
 MODULES += core/net \
            core/net/mac \
-           core/net/mac/tsch \
            core/net/mac/contikimac \
            core/net/llsec core/net/llsec/noncoresec 

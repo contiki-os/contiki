@@ -21,11 +21,13 @@ APPS += json
 APPS += er-coap
 APPS += rest-engine
 
+MODULES += core/net/mac/tsch
+
+include $(CONTIKI)/Makefile.include
+
 ifeq ($(PREFIX),)
  PREFIX = aaaa::1/64
 endif
-
-include $(CONTIKI)/Makefile.include
 
 #no flow control
 connect-router:	$(CONTIKI)/tools/tunslip6

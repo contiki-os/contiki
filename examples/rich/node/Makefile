@@ -17,6 +17,8 @@ APPS += json
 APPS += er-coap
 APPS += rest-engine
 
+MODULES += core/net/mac/tsch
+
 all: $(CONTIKI_PROJECT)
 
 include $(CONTIKI)/Makefile.include
