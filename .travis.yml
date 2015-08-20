@@ -17,7 +17,7 @@ before_script:
 
   ## Install msp430 toolchain
   - sudo apt-get -qq install lib32z1
-  - $WGET http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 &&
+  - $WGET http://simonduq.github.io/resources/mspgcc-4.7.2-compiled.tar.bz2 &&
     tar xjf mspgcc*.tar.bz2 -C /tmp/ &&
     sudo cp -f -r /tmp/msp430/* /usr/local/ &&
     rm -rf /tmp/msp430 mspgcc*.tar.bz2 &&
