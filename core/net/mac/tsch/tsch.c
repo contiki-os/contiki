@@ -1892,6 +1892,11 @@ tsch_init(void)
   radio_value_t radio_rx_mode;
   rtimer_clock_t t;
 
+  if(FRAME802154_VERSION < FRAME802154_IEEE802154E_2012) {
+    printf("TSCH:! frame version is %u, needs to be >= %u.\n", FRAME802154_VERSION, FRAME802154_IEEE802154E_2012);
+    return;
+  }
+  
   if(NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode) != RADIO_RESULT_OK) {
     printf("TSCH:! radio does not support getting RADIO_PARAM_RX_MODE. Abort init.\n");
     return;
