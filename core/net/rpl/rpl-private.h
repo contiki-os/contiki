@@ -124,8 +124,17 @@
 #define RPL_NOPATH_REMOVAL_DELAY          60
 #endif /* RPL_CONF_NOPATH_REMOVAL_DELAY */
 
+#ifdef RPL_CONF_DAO_MAX_RETRANSMISSIONS
+#define RPL_DAO_MAX_RETRANSMISSIONS RPL_CONF_DAO_MAX_RETRANSMISSIONS
+#else
 #define RPL_DAO_MAX_RETRANSMISSIONS     5
+#endif /* RPL_CONF_DAO_MAX_RETRANSMISSIONS */
+
+#ifdef RPL_CONF_DAO_RETRANSMISSION_TIMEOUT
+#define RPL_DAO_RETRANSMISSION_TIMEOUT RPL_CONF_DAO_RETRANSMISSION_TIMEOUT
+#else
 #define RPL_DAO_RETRANSMISSION_TIMEOUT  (5 * CLOCK_SECOND)
+#endif /* RPL_CONF_DAO_RETRANSMISSION_TIMEOUT */
 
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0
@@ -260,6 +269,24 @@ typedef struct rpl_stats rpl_stats_t;
 
 extern rpl_stats_t rpl_stats;
 #endif
+
+struct nbr_policy {
+  /** check if it is ok to add a nbr via UC DIS - positive => ok */
+  int (* check_add_from_dis)(uip_ipaddr_t *from);
+  int (* check_add_from_dio)(uip_ipaddr_t *from, rpl_dio_t *dio);
+  int (* check_add_from_dao)(uip_ipaddr_t *from);
+};
+
+
+#ifdef RPL_CONF_NBR_POLICY
+#define RPL_NBR_POLICY RPL_CONF_NBR_POLICY
+#else /* RPL_CONF_NBR_POLICY */
+#define RPL_NBR_POLICY rpl_nbr_policy
+#endif /* RPL_CONF_NBR_POLICY */
+
+extern const struct nbr_policy RPL_NBR_POLICY;
+
+
 /*---------------------------------------------------------------------------*/
 /* RPL macros. */
 
@@ -280,6 +307,7 @@ void dao_output(rpl_parent_t *, uint8_t lifetime);
 void dao_output_target(rpl_parent_t *, uip_ipaddr_t *, uint8_t lifetime);
 void dao_ack_output(rpl_instance_t *, uip_ipaddr_t *, uint8_t, uint8_t);
 void rpl_icmp6_register_handlers(void);
+uip_ds6_nbr_t *rpl_icmp6_update_nbr_table(uip_ipaddr_t *from);
 
 /* RPL logic functions. */
 void rpl_join_dag(uip_ipaddr_t *from, rpl_dio_t *dio);

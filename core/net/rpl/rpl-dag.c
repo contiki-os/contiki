@@ -1174,6 +1174,8 @@ rpl_local_repair(rpl_instance_t *instance)
   }
 
   rpl_reset_dio_timer(instance);
+  /* Request refresh of DAO registrations next DIO */
+  RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
 
   RPL_STAT(rpl_stats.local_repairs++);
 }
@@ -1250,6 +1252,23 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
   return return_value;
 }
 /*---------------------------------------------------------------------------*/
+static int
+add_nbr_from_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
+{
+  /* check if it is ok to add this nbr based on this DIO */
+  if(RPL_NBR_POLICY.check_add_from_dio(from, dio)) {
+    /* add this to the neighbor cache if not already there */
+    if(rpl_icmp6_update_nbr_table(from) == NULL) {
+      PRINTF("RPL: Out of memory, dropping DIO from ");
+      PRINT6ADDR(from);
+      PRINTF("\n");
+      return 0;
+    }
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 void
 rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
@@ -1303,7 +1322,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   if(instance == NULL) {
     PRINTF("RPL: New instance detected (ID=%u): Joining...\n", dio->instance_id);
-    rpl_join_instance(from, dio);
+    if(add_nbr_from_dio(from, dio)) {
+      rpl_join_instance(from, dio);
+    } else {
+      PRINTF("RPL: Not joining since could not add parent\n");
+    }
     return;
   }
 
@@ -1315,6 +1338,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(dag == NULL) {
 #if RPL_MAX_DAG_PER_INSTANCE > 1
     PRINTF("RPL: Adding new DAG to known instance.\n");
+    if(!add_nbr_from_dio(from, dio)) {
+      PRINTF("RPL: Could not add new DAG, could not add parent\n");
+      return;
+    }
     dag = rpl_add_dag(from, dio);
     if(dag == NULL) {
       PRINTF("RPL: Failed to add DAG.\n");
@@ -1362,6 +1389,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
    * a candidate parent, and let rpl_process_parent_event decide
    * whether to keep it in the set.
    */
+
+  if(!add_nbr_from_dio(from, dio)) {
+    PRINTF("RPL: Could not add parent based on DIO\n");
+    return;
+  }
 
   p = rpl_find_parent(dag, from);
   if(p == NULL) {

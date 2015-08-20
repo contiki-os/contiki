@@ -88,7 +88,6 @@ void RPL_DEBUG_DIO_INPUT(uip_ipaddr_t *, rpl_dio_t *);
 void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 #endif
 
-/* TODO: should these variables be a part of the instance? */
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 
 extern rpl_of_t RPL_OF;
@@ -182,6 +181,32 @@ set16(uint8_t *buffer, int pos, uint16_t value)
   buffer[pos++] = value & 0xff;
 }
 /*---------------------------------------------------------------------------*/
+uip_ds6_nbr_t *
+rpl_icmp6_update_nbr_table(uip_ipaddr_t *from)
+{
+  uip_ds6_nbr_t *nbr;
+
+  if((nbr = uip_ds6_nbr_lookup(from)) == NULL) {
+    if((nbr = uip_ds6_nbr_add(from, (uip_lladdr_t *)
+                              packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                              0, NBR_REACHABLE)) != NULL) {
+      PRINTF("RPL: Neighbor added to neighbor cache ");
+      PRINT6ADDR(from);
+      PRINTF(", ");
+      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      PRINTF("\n");
+    }
+  }
+
+  if(nbr != NULL) {
+#if UIP_ND6_SEND_NA
+    /* set reachable timer if we added or found the nbr entry */
+    stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+#endif /* UIP_ND6_SEND_NA */
+  }
+  return nbr;
+ }
+/*---------------------------------------------------------------------------*/
 static void
 dis_input(void)
 {
@@ -205,8 +230,20 @@ dis_input(void)
         rpl_reset_dio_timer(instance);
       } else {
 #endif /* !RPL_LEAF_ONLY */
-        PRINTF("RPL: Unicast DIS, reply to sender\n");
-        dio_output(instance, &UIP_IP_BUF->srcipaddr);
+	/* Check if this neighbor should be added according to the policy. */
+	if(RPL_NBR_POLICY.check_add_from_dis(&UIP_IP_BUF->srcipaddr)) {
+	  /* Add this to the neighbor cache if not already there */
+	  if(rpl_icmp6_update_nbr_table(&UIP_IP_BUF->srcipaddr) == NULL) {
+	    PRINTF("RPL: Out of Memory, not sending unicast DIO, DIS from ");
+	    PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+	    PRINTF(", ");
+	    PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+	    PRINTF("\n");
+	    return;
+	  }
+	  PRINTF("RPL: Unicast DIS, reply to sender\n");
+	  dio_output(instance, &UIP_IP_BUF->srcipaddr);
+	}
       }
     }
   }
@@ -253,7 +290,6 @@ dio_input(void)
   int i;
   int len;
   uip_ipaddr_t from;
-  uip_ds6_nbr_t *nbr;
 
   memset(&dio, 0, sizeof(dio));
 
@@ -273,32 +309,6 @@ dio_input(void)
   PRINTF("RPL: Received a DIO from ");
   PRINT6ADDR(&from);
   PRINTF("\n");
-
-  if((nbr = uip_ds6_nbr_lookup(&from)) == NULL) {
-    if((nbr = uip_ds6_nbr_add(&from, (uip_lladdr_t *)
-                              packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                              0, NBR_REACHABLE)) != NULL) {
-#if UIP_ND6_SEND_NA
-      /* set reachable timer */
-      stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
-#endif /* UIP_ND6_SEND_NA */
-      PRINTF("RPL: Neighbor added to neighbor cache ");
-      PRINT6ADDR(&from);
-      PRINTF(", ");
-      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-      PRINTF("\n");
-    } else {
-      PRINTF("RPL: Out of memory, dropping DIO from ");
-      PRINT6ADDR(&from);
-      PRINTF(", ");
-      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-      PRINTF("\n");
-
-      goto discard;
-    }
-  } else {
-    PRINTF("RPL: Neighbor already in neighbor cache\n");
-  }
 
   buffer_length = uip_len - uip_l3_icmp_hdr_len;
 
@@ -796,29 +806,19 @@ dao_input(void)
 
   PRINTF("RPL: adding DAO route\n");
 
-  if((nbr = uip_ds6_nbr_lookup(&dao_sender_addr)) == NULL) {
-    if((nbr = uip_ds6_nbr_add(&dao_sender_addr,
-                              (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                              0, NBR_REACHABLE)) != NULL) {
-#if UIP_ND6_SEND_NA
-      /* set reachable timer */
-      stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
-#endif /* UIP_ND6_SEND_NA */
-      PRINTF("RPL: Neighbor added to neighbor cache ");
-      PRINT6ADDR(&dao_sender_addr);
-      PRINTF(", ");
-      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-      PRINTF("\n");
-    } else {
-      PRINTF("RPL: Out of Memory, dropping DAO from ");
-      PRINT6ADDR(&dao_sender_addr);
-      PRINTF(", ");
-      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-      PRINTF("\n");
-      goto discard;
-    }
-  } else {
-    PRINTF("RPL: Neighbor already in neighbor cache\n");
+  /* Check if we should add another neighbor based on DAO. */
+  if(!RPL_NBR_POLICY.check_add_from_dao(&dao_sender_addr)) {
+    /* Do not add the neighbor. */
+    return;
+  }
+  /* Update and add neighbor - if no room - fail. */
+  if((nbr = rpl_icmp6_update_nbr_table(&dao_sender_addr)) == NULL) {
+    PRINTF("RPL: Out of Memory, dropping DAO from ");
+    PRINT6ADDR(&dao_sender_addr);
+    PRINTF(", ");
+    PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+    PRINTF("\n");
+    goto discard;
   }
 
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
@@ -834,9 +834,8 @@ dao_input(void)
     goto discard;
   }
 
+  /* State is all zeroes, set lifetime but no need for other initialization. */
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
-  /* rep->state.learned_from = learned_from; */
-  /* rep->state.nopath_received = 0; */
 
 #if RPL_CONF_MULTICAST
 fwd_dao:
@@ -877,8 +876,6 @@ fwd_dao:
                      ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     }
 
-    /* Ack sent immediately after forwarding (otherwise the packets is
-       corrupted. */
     if(should_ack) {
       PRINTF("RPL: sending DAO ACK\n");
       dao_ack_output(instance, &dao_sender_addr, sequence,
@@ -897,30 +894,33 @@ handle_dao_retransmission(void *ptr)
   rpl_parent_t *parent;
   uip_ipaddr_t prefix;
   rpl_instance_t *instance;
-  parent = ptr;
 
+  parent = ptr;
   if(parent == NULL || parent->dag == NULL || parent->dag->instance == NULL) {
     return;
   }
   instance = parent->dag->instance;
 
   if(instance->my_dao_transmissions >= RPL_DAO_MAX_RETRANSMISSIONS) {
-    /* no more retransmissions - what now ??? */
+    /* No more retransmissions - give up. */
     if(instance->lifetime_unit == 0xffff && instance->default_lifetime == 0xff) {
-      /* RPL is using infinite lifetime for routes. This probably
-	 means that the root is running an old version that does not
-	 support DAO ack. Assume that everything is ok for now and
-	 let the normal repair mechanisms detect any problems. */
+      /*
+       * ContikiRPL was previously using infinite lifetime for routes
+       * and no DAO_ACK configured. This probably means that the root
+       * and possibly other nodes might be running an old version that
+       * does not support DAO ack. Assume that everything is ok for
+       * now and let the normal repair mechanisms detect any problems.
+       */
       return;
     }
 
     if(instance->of->dao_ack_callback) {
-      /* Inform about the timeout for taking decision on punishment */
+      /* Inform the objective function about the timeout. */
       instance->of->dao_ack_callback(parent, RPL_DAO_ACK_TIMEOUT);
     }
 
+    /* Perform local repair and hope to find another parent. */
     rpl_local_repair(instance);
-    /* give up this and hope to find another parent */
     return;
   }
 
@@ -1102,7 +1102,7 @@ dao_ack_input(void)
 #endif /* DEBUG */
 
   if(sequence == instance->my_dao_seqno) {
-    PRINTF("RPL: DAO ACK for me!\n");
+    PRINTF("RPL: DAO %s for me!\n", status < 128 ? "ACK" : "NACK");
 
     /* always stop the retransmit timer when the ACK arrived */
     ctimer_stop(&instance->dao_retransmit_timer);
