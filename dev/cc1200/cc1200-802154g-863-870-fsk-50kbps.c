@@ -57,36 +57,6 @@
 #define RF_CFG_MAX_TXPOWER              CC1200_CONST_TX_POWER_MAX
 /* The carrier sense level used for CCA in dBm */
 #define RF_CFG_CCA_THRESHOLD            (-91)
-/*
- * ACK_WAIT_TIME is the time between sending a packet and detecting
- * an arbitrary incoming packet (hopefully an ACK). 
- * An incoming packet is detected using either
- * - receiving_packet()
- * - pending_packet()
- * - channel_clear()
- * Let's assume we use receiving_packet() as the latest (reliable) 
- * indication for an incoming packet. It returns 1 as soon as the sync word
- * is detected. We can then estimate this time (assuming an 802.15.4-2011 frame)
- * by:
- * - 1ms RX/TX turnarround (also FIFO read-out -> depends on packet length!)
- * + length of preamble (4 bytes)
- * + length of sync word (2 bytes)
- * -> let's use 2.5 ms for 50kbps
- */
-#define NULLRDC_CONF_ACK_WAIT_TIME      RTIMER_SECOND/400
-/*
- * NULLRDC_AFTER_ACK_DETECTED_WAIT_TIME is the time after an incoming
- * paket is detected (using the means described above) and the ACK is
- * available for read-out by the MAC layer (pending_packet(), read()).
- * If we assume that channel_clear() indicated the incoming packet, the maximum
- * time it takes for the ACK to be available calulates as following:
- * - length of preamble (4 bytes)
- * + length of ACK (3 bytes)
- * + length of CRC (2 bytes)
- * - 1ms safety margin
- * -> let's use 2.5 ms for 50kbps
- */
-#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME   RTIMER_SECOND/400
 /*---------------------------------------------------------------------------*/
 static const char rf_cfg_descriptor[] = "802.15.4g 863-870MHz MR-FSK mode #1";
 /*---------------------------------------------------------------------------*/
