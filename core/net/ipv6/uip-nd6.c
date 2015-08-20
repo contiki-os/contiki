@@ -189,15 +189,16 @@ ns_input(void)
 #endif /*UIP_CONF_IPV6_CHECKS */
         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
         if(nbr == NULL) {
-          uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-			  (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-			  0, NBR_STALE);
+          /* Copy link address to a uip_lladdr_t first
+           * to ensure the second argument to uip_ds6_nbr_add is word-aligned */
+          uip_lladdr_t lladdr;
+          memcpy(&lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], UIP_LLADDR_LEN);
+          uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, &lladdr, 0, NBR_STALE);
         } else {
           uip_lladdr_t *lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
           if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		    lladdr, UIP_LLADDR_LEN) != 0) {
-            memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		   UIP_LLADDR_LEN);
+              lladdr, UIP_LLADDR_LEN) != 0) {
+            memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], UIP_LLADDR_LEN);
             nbr->state = NBR_STALE;
           } else {
             if(nbr->state == NBR_INCOMPLETE) {
@@ -619,18 +620,20 @@ rs_input(void)
       goto discard;
     } else {
 #endif /*UIP_CONF_IPV6_CHECKS */
+      /* Copy link address to a uip_lladdr_t first
+       * to ensure the second argument to uip_ds6_nbr_add is word-aligned */
+      uip_lladdr_t lladdr;
+      memcpy(&lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], UIP_LLADDR_LEN);
       if((nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr)) == NULL) {
         /* we need to add the neighbor */
-        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                        (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+        uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, &lladdr, 0, NBR_STALE);
       } else {
         /* If LL address changed, set neighbor state to stale */
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
             uip_ds6_nbr_get_ll(nbr), UIP_LLADDR_LEN) != 0) {
           uip_ds6_nbr_t nbr_data = *nbr;
           uip_ds6_nbr_rm(nbr);
-          nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                                (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], 0, NBR_STALE);
+          nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, &lladdr, 0, NBR_STALE);
           nbr->reachable = nbr_data.reachable;
           nbr->sendns = nbr_data.sendns;
           nbr->nscount = nbr_data.nscount;
@@ -859,9 +862,11 @@ ra_input(void)
       nd6_opt_llao = (uint8_t *) UIP_ND6_OPT_HDR_BUF;
       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
       if(nbr == NULL) {
-        nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr,
-                              (uip_lladdr_t *)&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-			      1, NBR_STALE);
+        /* Copy link address to a uip_lladdr_t first
+         * to ensure the second argument to uip_ds6_nbr_add is word-aligned */
+        uip_lladdr_t lladdr;
+        memcpy(&lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], UIP_LLADDR_LEN);
+        nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, &lladdr, 1, NBR_STALE);
       } else {
         uip_lladdr_t *lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
         if(nbr->state == NBR_INCOMPLETE) {
