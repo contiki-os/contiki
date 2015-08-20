@@ -17,7 +17,7 @@ ifeq ($(HOST_OS),Windows)
   FLASH_PROGRAMMER ?= ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe
 else
   # Assume Linux
-  SDK_BASE_DIR ?= /usr/jn-toolchain/sdk/JN-SW-4163
+  SDK_BASE_DIR ?= /usr/jn516x-sdk/JN-SW-4163
   FLASH_PROGRAMMER ?= $(CONTIKI)/tools/jn516x/JennicModuleProgrammer
 endif
 
