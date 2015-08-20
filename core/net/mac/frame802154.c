@@ -123,7 +123,7 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
     return;
   }
 
-  if(fcf->frame_version == FRAME802154_IEEE802154) {
+  if(fcf->frame_version == FRAME802154_IEEE802154E_2012) {
     if(!fcf->panid_compression) {
       /* Compressed PAN ID == no PAN ID at all */
       if(fcf->dest_addr_mode == fcf->dest_addr_mode) {
@@ -187,7 +187,7 @@ field_len(frame802154_t *p, field_length_t *flen)
   /* IEEE802.15.4e changes the meaning of PAN ID Compression (see Table 2a).
    * In this case, we leave the decision whether to compress PAN ID or not
    * up to the caller. */
-  if(p->fcf.frame_version < FRAME802154_IEEE802154) {
+  if(p->fcf.frame_version < FRAME802154_IEEE802154E_2012) {
     /* Set PAN ID compression bit if src pan id matches dest pan id. */
     if(p->fcf.dest_addr_mode & 3 && p->fcf.src_addr_mode & 3 &&
        p->src_pid == p->dest_pid) {

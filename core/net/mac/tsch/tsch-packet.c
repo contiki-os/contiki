@@ -69,7 +69,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
 
   memset(&p, 0, sizeof(p));
   p.fcf.frame_type = FRAME802154_ACKFRAME;
-  p.fcf.frame_version = FRAME802154_IEEE802154;
+  p.fcf.frame_version = FRAME802154_IEEE802154E_2012;
   p.fcf.ie_list_present = 1;
   /* Compression unset. According to IEEE802.15.4e-2012:
    * - if no address is present: elide PAN ID
@@ -198,7 +198,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   memset(&p, 0, sizeof(p));
   p.fcf.frame_type = FRAME802154_BEACONFRAME;
   p.fcf.ie_list_present = 1;
-  p.fcf.frame_version = FRAME802154_IEEE802154;
+  p.fcf.frame_version = FRAME802154_IEEE802154E_2012;
   p.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
   p.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
   p.seq = seqno;

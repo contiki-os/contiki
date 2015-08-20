@@ -46,8 +46,8 @@
 #include "net/linkaddr.h"
 #include "net/mac/tsch/tsch-asn.h"
 
-#if FRAME802154_VERSION < FRAME802154_IEEE802154
-#error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154
+#if FRAME802154_VERSION < FRAME802154_IEEE802154E_2012
+#error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154E_2012
 #endif
 
 /* Default IEEE 802.15.4e hopping sequences, obtained from https://gist.github.com/twatteyne/2e22ee3c1a802b685695 */
