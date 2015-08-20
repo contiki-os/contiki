@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, NXP and Swedish Institute of Computer Science.
+ * Copyright (c) 2014, NXP and SICS Swedish ICT.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

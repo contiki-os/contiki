@@ -32,7 +32,7 @@
  * Author(s): Philipp Scholl <scholl@teco.edu>
  */
 
-/* Copied from Philipp Scholl's Contiki port to Jennic */
+/* Copied from Philipp Scholl's (BSD) Contiki port to Jennic */
 
 #include "mtarch.h"
 

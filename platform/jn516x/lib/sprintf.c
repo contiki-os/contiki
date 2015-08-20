@@ -33,13 +33,12 @@ File: printf.c
 */
 
 /*
- * Copied from http://www.sparetimelabs.com/printfrevisited/index.html
+ * This is BSD code obtained from http://www.sparetimelabs.com/printfrevisited/index.html
  * From the web page:
  * "The code is GPL and BSD lincensed, download the BSD licensed version from the link
  * above or use the GPL licensed code from this page below."
  *
  * modified by Beshr Al Nahas <beshr@sics.se> and Simon Duquennoy <simonduq@sics.se>
- *
  */
 
 #include "contiki-conf.h"
