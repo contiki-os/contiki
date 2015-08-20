@@ -246,6 +246,18 @@
 #endif /* RPL_CONF_WITH_DAO_ACK */
 
 /*
+ * Setting the DIO_REFRESH_DAO_ROUTES will make RPL always increase
+ * the DTSN (Destination Advertisement Trigger Sequence Number) when
+ * sending broadcast DIO. This is to get all children to re-register
+ * their DAO route.
+ * */
+#ifdef RPL_CONF_DIO_REFRESH_DAO_ROUTES
+#define RPL_DIO_REFRESH_DAO_ROUTES RPL_CONF_DIO_REFRESH_DAO_ROUTES
+#else
+#define RPL_DIO_REFRESH_DAO_ROUTES 0
+#endif /* RPL_CONF_DIO_REFRESH_DAO_ROUTES */
+
+/*
  * RPL probing. When enabled, probes will be sent periodically to keep
  * parent link estimates up to date.
  */
