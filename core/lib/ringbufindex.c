@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, SICS Swedish ICT
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,20 @@
 
 /**
  * \file
- *         Ring buffer library implementation
+ *         ringbufindex library. Implements basic support for ring buffers
+ *         of any type, as opposed to the core/lib/ringbuf module which
+ *         is only for byte arrays. Simply returns index in the ringbuf
+ *         rather than actual elements. The ringbuf size must be power of two.
+ *         Like the original ringbuf, this module implements atomic put and get.
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Simon Duquennoy <simonduq@sics.se>
+ *         based on Contiki's core/lib/ringbuf library by Adam Dunkels
  */
 
 #include <string.h>
 #include "lib/ringbufindex.h"
-/*---------------------------------------------------------------------------*/
+
+/* Initialize a ring buffer. The size must be a power of two */
 void
 ringbufindex_init(struct ringbufindex *r, uint8_t size)
 {
@@ -47,12 +53,13 @@ ringbufindex_init(struct ringbufindex *r, uint8_t size)
   r->put_ptr = 0;
   r->get_ptr = 0;
 }
-/*---------------------------------------------------------------------------*/
+
+/* Put one element to the ring buffer */
 int
 ringbufindex_put(struct ringbufindex *r)
 {
   /* Check if buffer is full. If it is full, return 0 to indicate that
-     the element was not inserted into the buffer.
+     the element was not inserted.
 
      XXX: there is a potential risk for a race condition here, because
      the ->get_ptr field may be written concurrently by the
@@ -66,8 +73,10 @@ ringbufindex_put(struct ringbufindex *r)
   r->put_ptr = (r->put_ptr + 1) & r->mask;
   return 1;
 }
-/*---------------------------------------------------------------------------*/
-int16_t
+
+/* Check if there is space to put an element.
+ * Return the index where the next element is to be added */
+int
 ringbufindex_peek_put(const struct ringbufindex *r)
 {
   /* Check if there are bytes in the buffer. If so, we return the
@@ -78,11 +87,12 @@ ringbufindex_peek_put(const struct ringbufindex *r)
   }
   return (r->put_ptr + 1) & r->mask;
 }
-/*---------------------------------------------------------------------------*/
-int16_t
+
+/* Remove the first element and return its index */
+int
 ringbufindex_get(struct ringbufindex *r)
 {
-  int16_t get_ptr;
+  int get_ptr;
   
   /* Check if there are bytes in the buffer. If so, we return the
      first one and increase the pointer. If there are no bytes left, we
@@ -102,8 +112,10 @@ ringbufindex_get(struct ringbufindex *r)
     return -1;
   }
 }
-/*---------------------------------------------------------------------------*/
-int16_t
+
+/* Return the index of the first element
+ * (which will be removed if calling ringbufindex_peek) */
+int
 ringbufindex_peek_get(const struct ringbufindex *r)
 {
   /* Check if there are bytes in the buffer. If so, we return the
@@ -115,28 +127,31 @@ ringbufindex_peek_get(const struct ringbufindex *r)
     return -1;
   }
 }
-/*---------------------------------------------------------------------------*/
+
+/* Return the ring buffer size */
 int
 ringbufindex_size(const struct ringbufindex *r)
 {
   return r->mask + 1;
 }
-/*---------------------------------------------------------------------------*/
+
+/* Return the number of elements currently in the ring buffer */
 int
 ringbufindex_elements(const struct ringbufindex *r)
 {
   return (r->put_ptr - r->get_ptr) & r->mask;
 }
-/*---------------------------------------------------------------------------*/
+
+/* Is the ring buffer full? */
 int
 ringbufindex_full(const struct ringbufindex *r)
 {
   return ((r->put_ptr - r->get_ptr) & r->mask) == r->mask;
 }
-/*---------------------------------------------------------------------------*/
+
+/* Is the ring buffer empty? */
 int
 ringbufindex_empty(const struct ringbufindex *r)
 {
   return ringbufindex_elements(r) == 0;
 }
- /*---------------------------------------------------------------------------*/

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, SICS Swedish ICT
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +32,9 @@
 
 /**
  * \file
- *         Header file for the ring buffer index library
+ *         Header file for the ringbufindex library
  * \author
  *         Simon Duquennoy <simonduq@sics.se>
- */
-
-/** \addtogroup lib
- * @{ */
-
-/**
- * \defgroup ringbufindex Ring buffer index library
- * @{
- *
  */
 
 #ifndef __RINGBUFINDEX_H__
@@ -51,108 +42,31 @@
 
 #include "contiki-conf.h"
 
-/**
- * \brief      Structure that holds the state of a ring buffer.
- *
- *             This structure holds the state of a ring buffer. The
- *             actual buffer needs to be defined separately. This
- *             struct is an opaque structure with no user-visible
- *             elements.
- *
- */
 struct ringbufindex {
   uint8_t mask;
-  
-  /* XXX these must be 8-bit quantities to avoid race conditions. */
+  /* These must be 8-bit quantities to avoid race conditions. */
   uint8_t put_ptr, get_ptr;
 };
 
-/**
- * \brief      Initialize a ring buffer
- * \param r    A pointer to a struct ringbufindex to hold the state of the ring buffer
- * \param size_power_of_two The size of the ring buffer, which must be a power of two
- *
- *
- */
-void    ringbufindex_init(struct ringbufindex *r,
-		     uint8_t size_power_of_two);
-
-/**
- * \brief      Insert a byte into the ring buffer
- * \param r    A pointer to a struct ringbufindex to hold the state of the ring buffer
- * \return     Non-zero if there data could be written, or zero if the buffer was full.
- *
- *             This function inserts a byte into the ring buffer. It
- *             is safe to call this function from an interrupt
- *             handler.
- *
- */
-int     ringbufindex_put(struct ringbufindex *r);
-
-/**
- * \brief      Get the index of the next put
- * \param r    A pointer to a struct ringbufindex to hold the state of the ring buffer
- * \return     Non-zero if there data could be written, or zero if the buffer was full.
- *
- *             This function inserts a byte into the ring buffer. It
- *             is safe to call this function from an interrupt
- *             handler.
- *
- */
-int16_t     ringbufindex_peek_put(const struct ringbufindex *r);
-
-/**
- * \brief      Remove and get an element from the ring buffer
- * \param r    A pointer to a struct ringbufindex to hold the state of the ring buffer
- * \return     The index in the buffer, or -1 if the buffer was empty
- *
- *             This function removes a byte from the ring buffer. It
- *             is safe to call this function from an interrupt
- *             handler.
- *
- */
-int16_t     ringbufindex_get(struct ringbufindex *r);
-
-/**
- * \brief      Get the next index
- * \param r    A pointer to a struct ringbufindex to hold the state of the ring buffer
- * \return     The index in the buffer, or -1 if the buffer was empty
- *
- *             It is safe to call this function from an interrupt
- *             handler.
- *
- */
-int16_t     ringbufindex_peek_get(const struct ringbufindex *r);
-
-/**
- * \brief      Get the size of a ring buffer
- * \param r    A pointer to a struct ringbufindex to hold the state of the ring buffer
- * \return     The size of the buffer.
- */
-int     ringbufindex_size(const struct ringbufindex *r);
-
-/**
- * \brief      Get the number of elements currently in the ring buffer
- * \param r    A pointer to a struct ringbufindex to hold the state of the ring buffer
- * \return     The number of elements in the buffer.
- */
-int     ringbufindex_elements(const struct ringbufindex *r);
-
-/**
- * \brief      Is the ring buffer full?
- * \param r    A pointer to a struct ringbufindex to hold the state of the ring buffer
- * \return     1 if full 0 otherwise
- */
-int     ringbufindex_full(const struct ringbufindex *r);
-
-/**
- * \brief      Is the ring buffer empty?
- * \param r    A pointer to a struct ringbufindex to hold the state of the ring buffer
- * \return     1 if empty 0 otherwise
- */
-int     ringbufindex_empty(const struct ringbufindex *r);
+/* Initialize a ring buffer. The size must be a power of two */
+void ringbufindex_init(struct ringbufindex *r, uint8_t size);
+/* Put one element to the ring buffer */
+int ringbufindex_put(struct ringbufindex *r);
+/* Check if there is space to put an element.
+ * Return the index where the next element is to be added */
+int ringbufindex_peek_put(const struct ringbufindex *r);
+/* Remove the first element and return its index */
+int ringbufindex_get(struct ringbufindex *r);
+/* Return the index of the first element
+ * (which will be removed if calling ringbufindex_peek) */
+int ringbufindex_peek_get(const struct ringbufindex *r);
+/* Return the ring buffer size */
+int ringbufindex_size(const struct ringbufindex *r);
+/* Return the number of elements currently in the ring buffer */
+int ringbufindex_elements(const struct ringbufindex *r);
+/* Is the ring buffer full? */
+int ringbufindex_full(const struct ringbufindex *r);
+/* Is the ring buffer empty? */
+int ringbufindex_empty(const struct ringbufindex *r);
 
 #endif /* __RINGBUFINDEX_H__ */
-
-/** @}*/
-/** @}*/
