@@ -48,11 +48,11 @@
 #endif /* CONFIG_VIA_BUTTON */
 
 /*---------------------------------------------------------------------------*/
-PROCESS(unicast_sender_process, "RPL Node");
-AUTOSTART_PROCESSES(&unicast_sender_process, &sensors_process);
+PROCESS(node_process, "RPL Node");
+AUTOSTART_PROCESSES(&node_process, &sensors_process);
 
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(unicast_sender_process, ev, data)
+PROCESS_THREAD(node_process, ev, data)
 {
   PROCESS_BEGIN();
 

@@ -239,7 +239,7 @@ start_network_layer(void)
 }
 /*--------------------------------------------------------------------------*/
 static void
-set_rime_addr(void)
+set_linkaddr(void)
 {
   int i;
   linkaddr_t addr;
@@ -258,7 +258,7 @@ set_rime_addr(void)
 #endif
   linkaddr_set_node_addr(&addr);
 #if DEBUG
-  PRINTF("Rime started with address ");
+  PRINTF("Link-layer address: ");
   for(i = 0; i < sizeof(addr.u8) - 1; i++) {
     PRINTF("%d.", addr.u8[i]);
   }
@@ -343,7 +343,7 @@ main(void)
 	}
 
   process_start(&etimer_process, NULL);
-  set_rime_addr();
+  set_linkaddr();
   netstack_init();
 
 #if NETSTACK_CONF_WITH_IPV6
