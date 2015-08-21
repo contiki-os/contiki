@@ -2,7 +2,7 @@ CONTIKI_PROJECT = dongle-node
 all: $(CONTIKI_PROJECT)
 
 TARGET ?= jn516x
-CFLAGS += -DDONGLE_NODE
+JN516x_WITH_DONGLE = 1
 
 CONTIKI=../../../..
 

@@ -61,14 +61,29 @@ CFLAGS  := $(subst -Wall,,$(CFLAGS))
 
 ARCH = ccm-star.c exceptions.c leds-arch.c rtimer-arch.c slip_uart0.c clock.c micromac-radio.c \
        mtarch.c node-id.c uart0.c uart-driver.c watchdog.c \
-       ht-sensor.c light-sensor.c button-sensor.c pot-sensor.c \
-       ringbufindex.c slip.c sprintf.c
+       log.c ringbufindex.c slip.c sprintf.c
 
 APPLIBS += MMAC 
 STACKLIBS += JPT
 
-CONTIKI_TARGET_DIRS = . dev lib net net/mac net/rime dev/dr1199 dev/dr1175
+CONTIKI_TARGET_DIRS = . dev lib
 CONTIKI_TARGET_MAIN = contiki-jn516x-main.c
+
+ifeq ($(JN516x_WITH_DR1175),1)
+CFLAGS += -DSENSOR_BOARD_DR1175
+CONTIKI_TARGET_DIRS += dev/dr1175
+ARCH += ht-sensor.c light-sensor.c
+endif
+
+ifeq ($(JN516x_WITH_DR1199),1)
+CFLAGS += -DSENSOR_BOARD_DR1199
+CONTIKI_TARGET_DIRS += dev/dr1199
+ARCH += button-sensor.c pot-sensor.c
+endif
+
+ifeq ($(JN516x_WITH_DONGLE),1)
+CFLAGS += -DDONGLE_NODE
+endif
 
 ifdef nodemac
 CFLAGS += -DMACID=$(nodemac)

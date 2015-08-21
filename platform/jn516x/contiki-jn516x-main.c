@@ -79,9 +79,9 @@
   SENSORS(&pot_sensor, &button_sensor);
 #else
   #include "dev/button-sensor.h"	
-//#include "dev/pir-sensor.h"
-//#include "dev/vib-sensor.h"
-  /*&pir_sensor, &vib_sensor*/
+  /* #include "dev/pir-sensor.h" */
+  /* #include "dev/vib-sensor.h" */
+  /* &pir_sensor, &vib_sensor */
   SENSORS(&button_sensor);
  #endif
 unsigned char node_mac[8];
