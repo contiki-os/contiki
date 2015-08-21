@@ -322,6 +322,7 @@ create_na:
 
 discard:
   uip_len = 0;
+  uip_ext_len = 0;
   return;
 }
 #endif /* UIP_ND6_SEND_NA */
@@ -558,6 +559,7 @@ na_input(void)
 
 discard:
   uip_len = 0;
+  uip_ext_len = 0;
   return;
 }
 #endif /* UIP_ND6_SEND_NA */
@@ -647,6 +649,7 @@ rs_input(void)
 
 discard:
   uip_len = 0;
+  uip_ext_len = 0;
   return;
 }
 
@@ -1030,6 +1033,7 @@ ra_input(void)
 
 discard:
   uip_len = 0;
+  uip_ext_len = 0;
   return;
 }
 #endif /* !UIP_CONF_ROUTER */
