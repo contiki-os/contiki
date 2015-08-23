@@ -54,6 +54,12 @@
 /*---------------------------------------------------------------------------*/
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
+#ifdef CC26XX_RF_CONF_TX_POWER
+#define CC26XX_RF_TX_POWER CC26XX_RF_CONF_TX_POWER
+#else
+#define CC26XX_RF_TX_POWER 0
+#endif /* CC26XX_RF_CONF_TX_POWER */
+
 #ifdef CC26XX_RF_CONF_CHANNEL
 #define CC26XX_RF_CHANNEL CC26XX_RF_CONF_CHANNEL
 #else
