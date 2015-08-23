@@ -264,8 +264,10 @@ static const output_config_t output_power[] = {
 #define OUTPUT_POWER_UNKNOWN 0xFFFF
 
 /* Default TX Power - position in output_power[] */
+#ifndef
 #define CC26XX_RF_TX_POWER 0
-const output_config_t *tx_power_current = &output_power[0];
+#endif
+const output_config_t *tx_power_current = &output_power[CC26XX_RF_TX_POWER];
 /*---------------------------------------------------------------------------*/
 #define RF_CORE_CLOCKS_MASK (RFC_PWR_PWMCLKEN_RFC_M | RFC_PWR_PWMCLKEN_CPE_M \
                              | RFC_PWR_PWMCLKEN_CPERAM_M)
