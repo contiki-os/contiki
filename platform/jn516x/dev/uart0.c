@@ -32,7 +32,7 @@
 
 /**
  * \file
- *          UART0 drivers
+ *         UART0 drivers
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
  *

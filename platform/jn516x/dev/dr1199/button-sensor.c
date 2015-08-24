@@ -118,7 +118,7 @@ configure(int type, int value)
     return 1;  
   } else if(type == SENSORS_ACTIVE) {
     if(buttons_status != BUTTONS_STATUS_NOT_INIT) {
-      if(value){
+      if(value) {
         /* Button sensor activated */
         PRINTF("BUTTONS ACTIVATED\n");
         buttons_status = BUTTONS_STATUS_ACTIVE;

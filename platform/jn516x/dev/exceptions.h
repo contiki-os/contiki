@@ -34,52 +34,27 @@
 */
 
 
-#ifndef  EXCEPTIONS_H_INCLUDED
-#define  EXCEPTIONS_H_INCLUDED
-
-/****************************************************************************/
-/***        Include Files                                                 ***/
-/****************************************************************************/
+#ifndef  EXCEPTIONS_H
+#define  EXCEPTIONS_H
 
 #include <jendefs.h>
 
-/****************************************************************************/
-/***        Macro Definitions                                             ***/
-/****************************************************************************/
-
-/****************************************************************************/
-/***        Type Definitions                                              ***/
-/****************************************************************************/
-
 /** Enumerated type of CPU exception numbers */
 typedef enum {
-	E_EXC_BUS_ERROR				= 0x02,
-	E_EXC_TICK_TIMER			= 0x05,
+	E_EXC_BUS_ERROR				    = 0x02,
+	E_EXC_TICK_TIMER			    = 0x05,
 	E_EXC_UNALIGNED_ACCESS		= 0x06,
 	E_EXC_ILLEGAL_INSTRUCTION	= 0x07,
 	E_EXC_EXTERNAL_INTERRUPT	= 0x08,
-	E_EXC_SYSCALL				= 0x0C,
-	E_EXC_TRAP					= 0x0E,
-	E_EXC_GENERIC				= 0x0F,
-	E_EXC_STACK_OVERFLOW		= 0x10
+	E_EXC_SYSCALL				      = 0x0C,
+	E_EXC_TRAP					      = 0x0E,
+	E_EXC_GENERIC				      = 0x0F,
+	E_EXC_STACK_OVERFLOW		  = 0x10
 } eExceptionType;
-
-/****************************************************************************/
-/***        Exported Functions                                            ***/
-/****************************************************************************/
 
 /* Exceptions set up function */
 PUBLIC void vEXC_Register(void);
 /* For debugging */
 void debug_file_line(const char *file, int line);
 
-/****************************************************************************/
-/***        Exported Variables                                            ***/
-/****************************************************************************/
-
 #endif  /* EXCEPTIONS_H */
-
-/****************************************************************************/
-/***        END OF FILE                                                   ***/
-/****************************************************************************/
-

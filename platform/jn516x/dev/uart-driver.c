@@ -33,9 +33,6 @@
 *
 */
 
-/****************************************************************************/
-/***        Include files                                                 ***/
-/****************************************************************************/
 #include <jendefs.h>
 
 #ifdef DEBUG
@@ -43,18 +40,18 @@
 #else
 #define DBG_vPrintf(...)
 #endif
+
 #include "contiki-conf.h"
+#include "uart-driver.h"
 #include "sys/rtimer.h"
 #include <math.h>
 #include <AppHardwareApi.h>
-#include "uart-driver.h"
-
-#define UART_NUM_UARTS  2
 
 #if UART_XONXOFF_FLOW_CTRL
-#include "sys/process.h"
-#define TX_FIFO_SW_FLOW_LIMIT 8 /* Maximum allowed fill level for tx fifo */
 
+#include "sys/process.h"
+
+#define TX_FIFO_SW_FLOW_LIMIT 8 /* Maximum allowed fill level for tx fifo */
 #if TX_FIFO_SW_FLOW_LIMIT > 16
 #undef TX_FIFO_SW_FLOW_LIMIT
 #define TX_FIFO_SW_FLOW_LIMIT 16
@@ -63,7 +60,9 @@
 
 #define XON   17
 #define XOFF  19
+
 extern volatile unsigned char xonxoff_state;
+
 #endif /* UART_XONXOFF_FLOW_CTRL */
 
 /***        Macro Definitions                                             ***/
@@ -85,6 +84,7 @@ static void uart_driver_set_baudrate(uint8_t uart_dev, uint8_t br);
 static void uart_driver_set_high_baudrate(uint8_t uart_dev, uint32_t baud_rate);
 
 /***        Local Variables                                               ***/
+#define UART_NUM_UARTS  2
 static uint16_t tx_fifo_size[UART_NUM_UARTS] = { 0 };
 static uint8_t active_uarts[UART_NUM_UARTS] = { 0 };
 /** slip input function pointer */
@@ -93,8 +93,6 @@ static int (*uart_input[UART_NUM_UARTS])(unsigned char) = { 0 };
 static uint16_t uart_char_delay = 0;
 static volatile int8_t interrupt_enabled[UART_NUM_UARTS] = { 0 };
 static volatile int8_t interrupt_enabled_saved[UART_NUM_UARTS] = { 0 };
-
-/***        Exported Functions                                            ***/
 
 /****************************************************************************
  *
@@ -222,7 +220,6 @@ uart_driver_set_input(uint8_t uart_dev, int
 {
   uart_input[uart_dev] = uart_input_function;
 }
-
 
 /****************************************************************************
  *
@@ -627,6 +624,3 @@ uart_driver_flush(uint8_t uart_dev)
   uart_driver_enable_interrupts(uart_dev);
 }
 #endif /* UART_EXTRAS */
-/****************************************************************************/
-/***        END OF FILE                                                   ***/
-/****************************************************************************/

@@ -118,7 +118,7 @@ static uint8_t is_gateway;
 #if DEBUG
 #define PRINTF(...) do {printf(__VA_ARGS__);} while(0)
 #else
-#define PRINTF(...) do {} while (0)
+#define PRINTF(...) do {} while(0)
 #endif
 /*---------------------------------------------------------------------------*/
 /* Reads MAC from SoC

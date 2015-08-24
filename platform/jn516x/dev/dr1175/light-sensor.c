@@ -87,7 +87,7 @@ configure(int type, int value)
     return 1;  
   } else if(type == SENSORS_ACTIVE) {
     if(light_sensor_status != LIGHT_SENSOR_STATUS_NOT_INIT) {
-      if(value){
+      if(value) {
         /* ACTIVATE SENSOR */
         vALSreset();
         prev_light_event_val = 0;

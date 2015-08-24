@@ -88,7 +88,7 @@ configure(int type, int value)
     return 1;  
   } else if(type == SENSORS_ACTIVE) {
     if(ht_sensor_status != HT_SENSOR_STATUS_NOT_INIT) {
-      if(value){
+      if(value) {
         /* ACTIVATE SENSOR */
         vHTSreset();
         prev_temp_event_val = 0;

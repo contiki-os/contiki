@@ -33,12 +33,8 @@
 *
 */
 
-#ifndef  UARTDRIVER_H_INCLUDED
-#define  UARTDRIVER_H_INCLUDED
-
-#if defined __cplusplus
-extern "C" {
-#endif
+#ifndef UARTDRIVER_H
+#define UARTDRIVER_H
 
 #include <jendefs.h>
 #include "contiki-conf.h"
@@ -63,9 +59,4 @@ uint8_t uart_driver_tx_in_progress(uint8_t uart_dev);
 void uart_driver_flush(uint8_t uart_dev);
 #endif
 
-
-#if defined __cplusplus
-}
-#endif
-
-#endif  /* UARTDRIVER_H_INCLUDED */
+#endif  /* UARTDRIVER_H */

@@ -33,19 +33,11 @@
 *
 */
 
-
-/****************************************************************************/
-/***        Include files                                                 ***/
-/****************************************************************************/
-
 #include <jendefs.h>
 #include <AppHardwareApi.h>
 #include <MicroInt.h>
 #include "exceptions.h"
 
-/****************************************************************************/
-/***        Macro Definitions                                             ***/
-/****************************************************************************/
 #ifndef EXCEPTION_STALLS_SYSTEM
 #define EXCEPTION_STALLS_SYSTEM 0
 #endif /* EXCEPTION_STALLS_SYSTEM */
@@ -64,7 +56,6 @@
 //#define EXC_DUMP_REGS
 #endif /* EXC_DUMP_REGS */
 
-
 /* Select whether exception vectors should be in RAM or Flash based on chip family */
 #if (defined JENNIC_CHIP_FAMILY_JN514x)
 #define EXCEPTION_VECTORS_LOCATION_RAM
@@ -73,7 +64,6 @@
 #else
 #error Unsupported chip family selected
 #endif /* JENNIC_CHIP_FAMILY */
-
 
 #if (defined EXCEPTION_VECTORS_LOCATION_RAM)
 #pragma "EXCEPTION_VECTORS_LOCATION_RAM"
@@ -109,16 +99,8 @@
 #else
   #define EXCEPTION_RAM_TOP 0x04008000
 #endif
-/****************************************************************************/
-/***        Type Definitions                                              ***/
-/****************************************************************************/
 
-/****************************************************************************/
-/***        Local Function Prototypes                                     ***/
-/****************************************************************************/
-
-PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType);
-PRIVATE void *pvHeapAllocOverflowProtect(void *pvPointer, uint32 u32Size, bool_t bClear);
+PRIVATE void exception_handler(uint32 *pu32Stack, eExceptionType eType);
 /*---------------------------------------------------------------------------*/
 #if PRINT_STACK_ON_REBOOT
 static void hexprint(uint8 v);
@@ -126,23 +108,16 @@ static void hexprint32(uint32 v);
 static void printstring(const char *s);
 #endif /* PRINT_STACK_ON_REBOOT */
 
-/****************************************************************************/
-/***        Exported Variables                                            ***/
-/****************************************************************************/
+/* For debugging */
 static const char *debug_filename = "nothing";
 static int debug_line = -1;
 
-/* For debugging */
 void
 debug_file_line(const char *file, int line)
 {
 	debug_filename = file;
 	debug_line = line;
 }
-
-/****************************************************************************/
-/***        Local Variables                                               ***/
-/****************************************************************************/
 
 extern uint32 heap_location;
 extern void *(*prHeap_AllocFunc)(void *, uint32, bool_t);
@@ -151,79 +126,6 @@ PRIVATE void *(*prHeap_AllocOrig)(void *, uint32, bool_t);
 /* Symbol defined by the linker script */
 /* marks the end of the stack */
 extern void *stack_low_water_mark;
-/****************************************************************************/
-/***        Exported Functions                                            ***/
-/****************************************************************************/
-
-/****************************************************************************
- *
- * NAME: vEXC_Register
- *
- * DESCRIPTION:
- * Set up exceptions. When in RAM, overwrite the default vectors with ours.
- * We also patch the heap allocation function so that we can keep tabs on
- * the amount of free heap.
- *
- * PARAMETERS: None
- *
- * RETURNS:
- * None
- *
- ****************************************************************************/
-PUBLIC void vEXC_Register(void)
-{
-#ifdef EXCEPTION_VECTORS_LOCATION_RAM
-	/* Overwrite exception vectors, pointing them all at the generic handler */
-	BUS_ERROR			= (uint32)vExceptionHandler;
-	UNALIGNED_ACCESS	= (uint32)vExceptionHandler;
-	ILLEGAL_INSTRUCTION	= (uint32)vExceptionHandler;
-	SYSCALL				= (uint32)vExceptionHandler;
-	TRAP				= (uint32)vExceptionHandler;
-	GENERIC				= (uint32)vExceptionHandler;
-	STACK_OVERFLOW		= (uint32)vExceptionHandler;
-#endif /* EXCEPTION_VECTORS_LOCATION */
-
-  prHeap_AllocOrig = prHeap_AllocFunc;
-  prHeap_AllocFunc = pvHeapAllocOverflowProtect;
-}
-
-
-#ifdef EXCEPTION_VECTORS_LOCATION_FLASH
-/* If exception vectors are in flash, define the handler functions here to be linked in */
-/* These function names are defined in the 6x linker script for the various exceptions */
-/* Point them all at the generic handler */
-PUBLIC void vException_BusError(uint32 *pu32Stack, eExceptionType eType)
-{
-    vExceptionHandler(pu32Stack, eType);
-}
-
-PUBLIC void vException_UnalignedAccess(uint32 *pu32Stack, eExceptionType eType)
-{
-    vExceptionHandler(pu32Stack, eType);
-}
-
-PUBLIC void vException_IllegalInstruction(uint32 *pu32Stack, eExceptionType eType)
-{
-    vExceptionHandler(pu32Stack, eType);
-}
-
-PUBLIC void vException_SysCall(uint32 *pu32Stack, eExceptionType eType)
-{
-    vExceptionHandler(pu32Stack, eType);
-}
-
-PUBLIC void vException_Trap(uint32 *pu32Stack, eExceptionType eType)
-{
-    vExceptionHandler(pu32Stack, eType);
-}
-
-PUBLIC void vException_StackOverflow(uint32 *pu32Stack, eExceptionType eType)
-{
-    vExceptionHandler(pu32Stack, eType);
-}
-
-#endif /* EXCEPTION_VECTORS_LOCATION_FLASH */
-
 
 /****************************************************************************/
 /***        Local Functions                                               ***/
@@ -244,10 +146,10 @@ hexprint(uint8 v)
 static void
 hexprint32(uint32 v)
 {
-	hexprint(((uint32)v) >> (uint32)24);
-	hexprint(((uint32)v) >> (uint32)16);
-	hexprint(((uint32)v) >> (uint32)8);
-	hexprint((v) & 0xff);
+  hexprint(((uint32)v) >> (uint32)24);
+  hexprint(((uint32)v) >> (uint32)16);
+  hexprint(((uint32)v) >> (uint32)8);
+  hexprint((v) & 0xff);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -261,7 +163,75 @@ printstring(const char *s)
 
 /****************************************************************************
  *
- * NAME: vExceptionHandler
+ * NAME: vEXC_Register
+ *
+ * DESCRIPTION:
+ * Set up exceptions. When in RAM, overwrite the default vectors with ours.
+ * We also patch the heap allocation function so that we can keep tabs on
+ * the amount of free heap.
+ *
+ * PARAMETERS: None
+ *
+ * RETURNS:
+ * None
+ *
+ ****************************************************************************/
+PUBLIC void vEXC_Register(void)
+{
+#ifdef EXCEPTION_VECTORS_LOCATION_RAM
+	/* Overwrite exception vectors, pointing them all at the generic handler */
+	BUS_ERROR			= (uint32)exception_handler;
+	UNALIGNED_ACCESS	= (uint32)exception_handler;
+	ILLEGAL_INSTRUCTION	= (uint32)exception_handler;
+	SYSCALL				= (uint32)exception_handler;
+	TRAP				= (uint32)exception_handler;
+	GENERIC				= (uint32)exception_handler;
+	STACK_OVERFLOW		= (uint32)exception_handler;
+#endif /* EXCEPTION_VECTORS_LOCATION */
+
+  prHeap_AllocOrig = prHeap_AllocFunc;
+  prHeap_AllocFunc = pvHeapAllocOverflowProtect;
+}
+
+#ifdef EXCEPTION_VECTORS_LOCATION_FLASH
+/* If exception vectors are in flash, define the handler functions here to be linked in */
+/* These function names are defined in the 6x linker script for the various exceptions */
+/* Point them all at the generic handler */
+PUBLIC void vException_BusError(uint32 *pu32Stack, eExceptionType eType)
+{
+    exception_handler(pu32Stack, eType);
+}
+
+PUBLIC void vException_UnalignedAccess(uint32 *pu32Stack, eExceptionType eType)
+{
+    exception_handler(pu32Stack, eType);
+}
+
+PUBLIC void vException_IllegalInstruction(uint32 *pu32Stack, eExceptionType eType)
+{
+    exception_handler(pu32Stack, eType);
+}
+
+PUBLIC void vException_SysCall(uint32 *pu32Stack, eExceptionType eType)
+{
+    exception_handler(pu32Stack, eType);
+}
+
+PUBLIC void vException_Trap(uint32 *pu32Stack, eExceptionType eType)
+{
+    exception_handler(pu32Stack, eType);
+}
+
+PUBLIC void vException_StackOverflow(uint32 *pu32Stack, eExceptionType eType)
+{
+    exception_handler(pu32Stack, eType);
+}
+
+#endif /* EXCEPTION_VECTORS_LOCATION_FLASH */
+
+/****************************************************************************
+ *
+ * NAME: exception_handler
  *
  * DESCRIPTION:
  * Generic exception handler which is called whether the vectors are in RAM or flash
@@ -272,7 +242,7 @@ printstring(const char *s)
  * None
  *
  ****************************************************************************/
-PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType)
+static void exception_handler(uint32 *pu32Stack, eExceptionType eType)
 {
 #if (defined EXC_DUMP_STACK) || (defined EXC_DUMP_REGS)
 	int i;
@@ -280,7 +250,6 @@ PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType)
 	uint32 u32EPCR, u32EEAR, u32Stack;
 	char *pcString;
 
-//	vAHI_WatchdogRestart();
 	MICRO_DISABLE_INTERRUPTS();
 
 	switch(eType) {
@@ -328,8 +297,6 @@ PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType)
 	u32Stack = pu32Stack[STACK_REG];
 
 	/* Log the exception */
-//	vLog_Printf(TRACE_EXC, LOG_CRIT, "\n\n\n%s EXCEPTION @ %08x (EA: %08x SK: %08x HP: %08x)", pcString, u32EPCR, u32EEAR, u32Stack, ((uint32 *)&heap_location)[0]);
-//    vSL_LogFlush();
 	printstring("\n\n\n");
 	printstring(pcString);
 	printstring(" EXCEPTION @ $");
@@ -351,8 +318,6 @@ PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType)
 	printstring("\nREGS: ");
     /* Pull and print the registers from saved locations */
     for(i = 0; i < REG_COUNT; i += 4) {
-//        vLog_Printf(TRACE_EXC, LOG_ERR, "\nR%02d: %08x R%02d: %08x R%02d: %08x R%02d: %08x\n", i, pu32Stack[i], i+1, pu32Stack[i+1], i+2, pu32Stack[i+2], i+3, pu32Stack[i+3]);
-//        vSL_LogFlush();
     	printstring("R");
     	hexprint(i);
     	printstring("-");
@@ -377,8 +342,6 @@ PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType)
     pu32Stack = (uint32 *)(u32Stack & 0xFFFFFFF0);
 	for(i = 0; (pu32Stack + i) < (uint32 *)(EXCEPTION_RAM_TOP); i += 4)
 	{
-//		vLog_Printf(TRACE_EXC, LOG_ERR, "\n%08x: %08x %08x %08x %08x", pu32Stack + i, pu32Stack[i], pu32Stack[i+1], pu32Stack[i+2], pu32Stack[i+3]);
-//		vSL_LogFlush();
   	printstring("@");
   	hexprint32((uint32)(pu32Stack + i));
   	printstring(": ");
@@ -401,42 +364,3 @@ PRIVATE void vExceptionHandler(uint32 *pu32Stack, eExceptionType eType)
 	vAHI_SwReset();
 #endif /* EXCEPTION_STALLS_SYSTEM */
 }
-
-
-/****************************************************************************
- *
- * NAME: pvHeapAllocOverflowProtect
- *
- * DESCRIPTION:
- * New heap allocation function that sets the stack overflow location to the new
- * top address of the heap.
- *
- * PARAMETERS:  Name             RW  Usage
- *              pvPointer		 W   Location of allocated heap memory
- *              u32Size          R   Number of bytes to allocate
- *              bClear           R   Flag to set new memory to 0
- *
- * RETURNS:
- * Pointer to new memory
- *
- ****************************************************************************/
-PRIVATE void *pvHeapAllocOverflowProtect(void *pvPointer, uint32 u32Size, bool_t bClear)
-{
-  /* XXX this function is never called */
-
-  void *pvAlloc;
-  /* Call original heap allocation function */
-  pvAlloc = prHeap_AllocOrig(pvPointer, u32Size, bClear);
-  /*
-   * Initialise the stack overflow exception to trigger if the end of the
-   * stack is reached. See the linker command file to adjust the allocated
-   * stack size.
-   */
-  /* Set stack overflow address */
-  vAHI_SetStackOverflow(TRUE, ((uint32 *)&heap_location)[0]);
-  return pvAlloc;
-}
-
-/****************************************************************************/
-/***        END OF FILE                                                   ***/
-/****************************************************************************/

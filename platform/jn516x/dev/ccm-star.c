@@ -32,7 +32,8 @@
 
 /**
  * \file
- *         CCM* header implementation.
+ *         CCM* header implementation exploiting the JN516x
+ *         cryptographic co-processor
  * \author
  *         Simon Duquennoy <simonduq@sics.se>
  */
