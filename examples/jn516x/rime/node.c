@@ -28,6 +28,7 @@
  *
  */
 /**
+ * \author Atis Elsts <atis.elsts@sics.se>
  * \file
  *         ContikiMAC + Rime stack test for JN516x platform.
  */

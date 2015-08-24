@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,10 @@
  *
  */
 
+/**
+ * \author Simon Duquennoy <simonduq@sics.se>
+ */
+ 
 #ifndef BR_PROJECT_CONF_H_
 #define BR_PROJECT_CONF_H_
 

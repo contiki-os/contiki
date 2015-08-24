@@ -41,5 +41,3 @@ or by enabling DEBUG output in rpl-icmp6.c and looking at DAO prefixes being add
 
 coap-*-node are example nodes that expose their sensors as CoAP resources. See README.md files from the sub-directories
 for more details.
-
-

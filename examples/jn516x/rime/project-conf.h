@@ -27,6 +27,9 @@
  * SUCH DAMAGE.
  *
  */
+/**
+ * \author Atis Elsts <atis.elsts@sics.se>
+ */
 
 #ifndef __PROJECT_CONF_H__
 #define __PROJECT_CONF_H__
@@ -44,7 +47,6 @@
 #define  NETSTACK_CONF_FRAMER  framer_802154
 #endif
 
-
 #define  NETSTACK_CONF_MAC     csma_driver
 #define  NETSTACK_CONF_NETWORK rime_driver
 
@@ -60,9 +62,7 @@
 #undef   CC2420_CONF_CHANNEL
 #define  CC2420_CONF_CHANNEL    RF_CHANNEL
 
-
 #undef   MICROMAC_CONF_AUTOACK
 #define  MICROMAC_CONF_AUTOACK   1
-
 
 #endif /* __PROJECT_CONF_H__ */

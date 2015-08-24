@@ -28,6 +28,7 @@
  *
  */
 /**
+ * \author Atis Elsts <atis.elsts@sics.se>
  * \file
  *         Sensor test for DR1174 evaluation board (light + temp/humidity).
  */
