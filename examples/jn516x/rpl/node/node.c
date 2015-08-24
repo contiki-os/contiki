@@ -74,11 +74,11 @@ PROCESS_THREAD(node_process, ev, data)
 
     while(!etimer_expired(&et)) {
       printf("Init: current role: %s. Will start in %u seconds.\n",
-          node_role == role_6ln ? "6ln" : "6dr",
-          CONFIG_WAIT_TIME);
+             node_role == role_6ln ? "6ln" : "6dr",
+             CONFIG_WAIT_TIME);
       PROCESS_WAIT_EVENT_UNTIL(((ev == sensors_event) &&
                                 (data == &button_sensor) && button_sensor.value(0) > 0)
-                                || etimer_expired(&et));
+                               || etimer_expired(&et));
       if(ev == sensors_event && data == &button_sensor && button_sensor.value(0) > 0) {
         node_role = (node_role + 1) % 3;
         etimer_restart(&et);
@@ -89,7 +89,7 @@ PROCESS_THREAD(node_process, ev, data)
 #endif /* CONFIG_VIA_BUTTON */
 
   printf("Init: node starting with role %s\n",
-      node_role == role_6ln ? "6ln" : "6dr");
+         node_role == role_6ln ? "6ln" : "6dr");
 
   is_coordinator = node_role > role_6ln;
 
@@ -100,7 +100,6 @@ PROCESS_THREAD(node_process, ev, data)
   } else {
     rpl_tools_init(NULL);
   }
-
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

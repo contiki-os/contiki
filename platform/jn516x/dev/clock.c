@@ -70,7 +70,7 @@ static volatile clock_time_t clock_ticks = 0;
 /* 16Mhz / 2^7 = 125Khz */
 #define CLOCK_PRESCALE 7
 /* 10ms tick --> overflow after ~981/2 days */
-#define CLOCK_INTERVAL (125*10)
+#define CLOCK_INTERVAL (125 * 10)
 #define MAX_TICKS (CLOCK_INTERVAL)
 /*---------------------------------------------------------------------------*/
 void
@@ -79,7 +79,6 @@ clockTimerISR(uint32 u32Device, uint32 u32ItemBitmap)
   if(u32Device != CLOCK_TIMER_ISR_DEV) {
     return;
   }
-
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   watchdog_start();
@@ -93,7 +92,6 @@ clockTimerISR(uint32 u32Device, uint32 u32ItemBitmap)
     etimer_request_poll();
     /* TODO exit low-power mode */
   }
-
   if(process_nevents() >= 0) {
     /* TODO exit low-power mode */
   }
@@ -112,9 +110,9 @@ clock_timer_init(void)
   vAHI_TimerConfigureOutputs(CLOCK_TIMER, 0, 1);
   vAHI_TimerDIOControl(CLOCK_TIMER, 0);
 
-#if (CLOCK_TIMER==E_AHI_TIMER_0)
+#if (CLOCK_TIMER == E_AHI_TIMER_0)
   vAHI_Timer0RegisterCallback(clockTimerISR);
-#elif (CLOCK_TIMER==E_AHI_TIMER_1)
+#elif (CLOCK_TIMER == E_AHI_TIMER_1)
   vAHI_Timer1RegisterCallback(clockTimerISR);
 #endif
   clock_ticks = 0;
@@ -125,10 +123,10 @@ clock_timer_init(void)
 void
 clock_init(void)
 {
-  //gMAC_u8MaxBuffers = 2;
+  /* gMAC_u8MaxBuffers = 2; */
 #ifdef JENNIC_CHIP_FAMILY_JN516x
   /* Turn off debugger */
-  *(volatile uint32 *) 0x020000a0 = 0;
+  *(volatile uint32 *)0x020000a0 = 0;
 #endif
   /* system controller interrupts callback is disabled
    * -- Only wake Interrupts --
@@ -138,19 +136,19 @@ clock_init(void)
   /* schedule clock tick interrupt */
   clock_timer_init();
   rtimer_init();
-  (void) u32AHI_Init();
+  (void)u32AHI_Init();
 
   bAHI_SetClockRate(E_AHI_XTAL_32MHZ);
 
   /* Wait for oscillator to stabilise */
-  while(bAHI_GetClkSource() == 1);
-  while(bAHI_Clock32MHzStable() == 0);
+  while(bAHI_GetClkSource() == 1) ;
+  while(bAHI_Clock32MHzStable() == 0) ;
 
   vAHI_OptimiseWaitStates();
 
   /* Turn on SPI master */
   vREG_SysWrite(REG_SYS_PWR_CTRL, u32REG_SysRead(REG_SYS_PWR_CTRL)
-      | REG_SYSCTRL_PWRCTRL_SPIMEN_MASK);
+                | REG_SYSCTRL_PWRCTRL_SPIMEN_MASK);
 }
 /*---------------------------------------------------------------------------*/
 clock_time_t
@@ -185,12 +183,14 @@ clock_delay_usec(uint16_t dt)
   volatile uint32_t t = u32AHI_TickTimerRead();
 #define RTIMER_MAX_TICKS 0xffffffff
   /* beware of wrapping */
-  if(RTIMER_MAX_TICKS-t < dt) {
-    while(u32AHI_TickTimerRead() < RTIMER_MAX_TICKS && u32AHI_TickTimerRead() !=0);
-    dt-=RTIMER_MAX_TICKS-t;
-    t=0;
+  if(RTIMER_MAX_TICKS - t < dt) {
+    while(u32AHI_TickTimerRead() < RTIMER_MAX_TICKS && u32AHI_TickTimerRead() != 0) ;
+    dt -= RTIMER_MAX_TICKS - t;
+    t = 0;
   }
-  while(u32AHI_TickTimerRead()-t < dt) {watchdog_periodic();};
+  while(u32AHI_TickTimerRead() - t < dt) {
+    watchdog_periodic();
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -201,12 +201,14 @@ clock_delay(unsigned int i)
 {
   volatile uint32_t t = u16AHI_TimerReadCount(CLOCK_TIMER);
   /* beware of wrapping */
-  if(MAX_TICKS-t < i) {
-    while(u16AHI_TimerReadCount(CLOCK_TIMER) < MAX_TICKS && u16AHI_TimerReadCount(CLOCK_TIMER) !=0);
-    i-=MAX_TICKS-t;
-    t=0;
+  if(MAX_TICKS - t < i) {
+    while(u16AHI_TimerReadCount(CLOCK_TIMER) < MAX_TICKS && u16AHI_TimerReadCount(CLOCK_TIMER) != 0) ;
+    i -= MAX_TICKS - t;
+    t = 0;
   }
-  while(u16AHI_TimerReadCount(CLOCK_TIMER)-t < i) {watchdog_periodic();};
+  while(u16AHI_TimerReadCount(CLOCK_TIMER) - t < i) {
+    watchdog_periodic();
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -219,7 +221,7 @@ clock_wait(clock_time_t t)
   clock_time_t start;
 
   start = clock_time();
-  while(clock_time() - start < (clock_time_t)t){
+  while(clock_time() - start < (clock_time_t)t) {
     watchdog_periodic();
   }
 }

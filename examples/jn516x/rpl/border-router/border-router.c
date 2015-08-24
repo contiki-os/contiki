@@ -48,7 +48,7 @@ request_prefix(void)
   /* mess up uip_buf with a dirty request... */
   uip_buf[0] = '?';
   uip_buf[1] = 'P';
-//  uip_buf[2] = '\n';
+/*  uip_buf[2] = '\n'; */
   uip_len = 2;
   slip_send();
   uip_len = 0;

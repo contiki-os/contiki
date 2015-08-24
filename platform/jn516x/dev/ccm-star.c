@@ -47,9 +47,9 @@ static int current_key_is_new = 1;
 
 /*---------------------------------------------------------------------------*/
 static void
-mic(const uint8_t* m,  uint8_t m_len,
-    const uint8_t* iv,
-    const uint8_t* a,  uint8_t a_len,
+mic(const uint8_t *m, uint8_t m_len,
+    const uint8_t *iv,
+    const uint8_t *a, uint8_t a_len,
     uint8_t *result,
     uint8_t mic_len)
 {
@@ -61,17 +61,17 @@ mic(const uint8_t* m,  uint8_t m_len,
     a_len,
     m_len,
     (tsReg128 *)iv,
-    (uint8_t*)a,
-    (uint8_t*)m,
+    (uint8_t *)a,
+    (uint8_t *)m,
     NULL,
     result,
     NULL
-  );
+    );
   current_key_is_new = 0;
 }
 /*---------------------------------------------------------------------------*/
 static void
-ctr(uint8_t* m, uint8_t m_len, const uint8_t* iv)
+ctr(uint8_t *m, uint8_t m_len, const uint8_t *iv)
 {
   bACI_CCMstar(
     (tsReg128 *)current_key,
@@ -86,16 +86,16 @@ ctr(uint8_t* m, uint8_t m_len, const uint8_t* iv)
     m,
     NULL,
     NULL
-  );
+    );
   current_key_is_new = 0;
 }
 /*---------------------------------------------------------------------------*/
 static void
-ctr_and_mic(uint8_t* m,  uint8_t* output, uint8_t m_len,
-    const uint8_t* iv,
-    const uint8_t* a,  uint8_t a_len,
-    uint8_t *result,
-    uint8_t mic_len, int encrypt)
+ctr_and_mic(uint8_t *m, uint8_t *output, uint8_t m_len,
+            const uint8_t *iv,
+            const uint8_t *a, uint8_t a_len,
+            uint8_t *result,
+            uint8_t mic_len, int encrypt)
 {
   if(encrypt) {
     bACI_CCMstar(
@@ -106,12 +106,12 @@ ctr_and_mic(uint8_t* m,  uint8_t* output, uint8_t m_len,
       a_len,
       m_len,
       (tsReg128 *)iv,
-      (uint8_t*)a,
-      (uint8_t*)m,
+      (uint8_t *)a,
+      (uint8_t *)m,
       output,
       result,
       NULL
-    );
+      );
   } else {
     bool_t auth;
     bACI_CCMstar(
@@ -122,12 +122,12 @@ ctr_and_mic(uint8_t* m,  uint8_t* output, uint8_t m_len,
       a_len,
       m_len,
       (tsReg128 *)iv,
-      (uint8_t*)a,
-      (uint8_t*)m,
+      (uint8_t *)a,
+      (uint8_t *)m,
       output,
-      (uint8_t*)a + a_len + m_len,
+      (uint8_t *)a + a_len + m_len,
       &auth
-    );
+      );
     /* To comply with the CCM_STAR interface, copy MIC to result in case of success */
     if(result != NULL) {
       if(auth) {
@@ -143,7 +143,9 @@ ctr_and_mic(uint8_t* m,  uint8_t* output, uint8_t m_len,
   current_key_is_new = 0;
 }
 /*---------------------------------------------------------------------------*/
-static void set_key(const uint8_t* key) {
+static void
+set_key(const uint8_t *key)
+{
   if(memcmp(current_key, key, 16) == 0) {
     current_key_is_new = 0;
   } else {

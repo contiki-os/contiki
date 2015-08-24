@@ -31,7 +31,7 @@
 /**
  * \author Simon Duquennoy <simonduq@sics.se>
  */
- 
+
 #ifndef BR_PROJECT_CONF_H_
 #define BR_PROJECT_CONF_H_
 

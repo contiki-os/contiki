@@ -1,37 +1,37 @@
 /*
-* Copyright (c) 2015 NXP B.V.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions
-* are met:
-* 1. Redistributions of source code must retain the above copyright
-*    notice, this list of conditions and the following disclaimer.
-* 2. Redistributions in binary form must reproduce the above copyright
-*    notice, this list of conditions and the following disclaimer in the
-*    documentation and/or other materials provided with the distribution.
-* 3. Neither the name of NXP B.V. nor the names of its contributors
-*    may be used to endorse or promote products derived from this software
-*    without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY NXP B.V. AND CONTRIBUTORS ``AS IS'' AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED.  IN NO EVENT SHALL NXP B.V. OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-* OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-* SUCH DAMAGE.
-*
-* This file is part of the Contiki operating system.
-*
-* Author: Lee Mitchell
-* Integrated into Contiki by Beshr Al Nahas 
-*
-*/
+ * Copyright (c) 2015 NXP B.V.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of NXP B.V. nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NXP B.V. AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL NXP B.V. OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
+ * Author: Lee Mitchell
+ * Integrated into Contiki by Beshr Al Nahas
+ *
+ */
 
 #include <jendefs.h>
 
@@ -66,11 +66,11 @@ extern volatile unsigned char xonxoff_state;
 #endif /* UART_XONXOFF_FLOW_CTRL */
 
 /***        Macro Definitions                                             ***/
-#define BUSYWAIT_UNTIL(cond, max_time)                                  \
-  do {                                                                  \
-    rtimer_clock_t t0;                                                  \
-    t0 = RTIMER_NOW();                                                  \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time)));   \
+#define BUSYWAIT_UNTIL(cond, max_time) \
+  do { \
+    rtimer_clock_t t0; \
+    t0 = RTIMER_NOW(); \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) ; \
   } while(0)
 
 #define DEBUG_UART_BUFFERED FALSE
@@ -88,7 +88,7 @@ static void uart_driver_set_high_baudrate(uint8_t uart_dev, uint32_t baud_rate);
 static uint16_t tx_fifo_size[UART_NUM_UARTS] = { 0 };
 static uint8_t active_uarts[UART_NUM_UARTS] = { 0 };
 /** slip input function pointer */
-static int (*uart_input[UART_NUM_UARTS])(unsigned char) = { 0 };
+static int(*uart_input[UART_NUM_UARTS]) (unsigned char) = { 0 };
 /* time in uSec for transmitting 1 char */
 static uint16_t uart_char_delay = 0;
 static volatile int8_t interrupt_enabled[UART_NUM_UARTS] = { 0 };
@@ -118,8 +118,8 @@ static volatile int8_t interrupt_enabled_saved[UART_NUM_UARTS] = { 0 };
  ****************************************************************************/
 void
 uart_driver_init(uint8_t uart_dev, uint8_t br, uint8_t *txbuf_data,
-    uint16_t txbuf_size, uint8_t *rxbuf_data, uint16_t rxbuf_size,
-    int (*uart_input_function)(unsigned char c))
+                 uint16_t txbuf_size, uint8_t *rxbuf_data, uint16_t rxbuf_size,
+                 int (*uart_input_function)(unsigned char c))
 {
 #if !UART_HW_FLOW_CTRL
   /* Disable RTS/CTS */
@@ -130,7 +130,7 @@ uart_driver_init(uint8_t uart_dev, uint8_t br, uint8_t *txbuf_data,
 
   /* Configure the selected Uart */
   uint8_t uart_enabled = bAHI_UartEnable(uart_dev, txbuf_data, txbuf_size,
-      rxbuf_data, rxbuf_size);
+                                         rxbuf_data, rxbuf_size);
   /* fallback to internal buffers */
   if(!uart_enabled) {
     vAHI_UartEnable(uart_dev);
@@ -144,11 +144,10 @@ uart_driver_init(uint8_t uart_dev, uint8_t br, uint8_t *txbuf_data,
 
   /* install interrupt service callback */
   if(uart_dev == E_AHI_UART_0) {
-    vAHI_Uart0RegisterCallback((void*) uart_driver_isr);
+    vAHI_Uart0RegisterCallback((void *)uart_driver_isr);
   } else {
-    vAHI_Uart1RegisterCallback((void*) uart_driver_isr);
+    vAHI_Uart1RegisterCallback((void *)uart_driver_isr);
   }
-
   /* Enable RX interrupt */
   uart_driver_enable_interrupts(uart_dev);
   uart_input[uart_dev] = uart_input_function;
@@ -157,47 +156,43 @@ uart_driver_init(uint8_t uart_dev, uint8_t br, uint8_t *txbuf_data,
 #if UART_HW_FLOW_CTRL
   /* Configure HW flow control */
   vAHI_UartSetAutoFlowCtrl(uart_dev, E_AHI_UART_FIFO_ARTS_LEVEL_13, /* uint8 const u8RxFifoLevel,*/
-      FALSE, /* bool_t const bFlowCtrlPolarity,*/
-      TRUE, /* bool_t const bAutoRts, */
-      TRUE /* bool_t const bAutoCts */);
+                           FALSE, /* bool_t const bFlowCtrlPolarity,*/
+                           TRUE, /* bool_t const bAutoRts, */
+                           TRUE /* bool_t const bAutoCts */);
 #endif
 
   printf("UART %d init: using %s buffers %d\n", uart_dev,
-      uart_enabled ? "external" : "internal", tx_fifo_size[uart_dev]);
+         uart_enabled ? "external" : "internal", tx_fifo_size[uart_dev]);
 }
-
 void
 uart_driver_enable_interrupts(uint8_t uart_dev)
 {
   /* wait while char being tx is done */
-  while((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_THRE) == 0);
+  while((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_THRE) == 0) ;
 
   vAHI_UartSetInterrupt(uart_dev, FALSE /*bEnableModemStatus*/,
-  FALSE /*bEnableRxLineStatus == Break condition */,
-      FALSE /*bEnableTxFifoEmpty*/,
-      TRUE /* bEnableRxData */, E_AHI_UART_FIFO_LEVEL_14);
+                        FALSE /*bEnableRxLineStatus == Break condition */,
+                        FALSE /*bEnableTxFifoEmpty*/,
+                        TRUE /* bEnableRxData */, E_AHI_UART_FIFO_LEVEL_14);
   interrupt_enabled[uart_dev] = 1;
 }
-
 void
 uart_driver_disable_interrupts(uint8_t uart_dev)
 {
   /* wait while char being tx is done */
-  while((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_THRE) == 0);
+  while((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_THRE) == 0) ;
 
   vAHI_UartSetInterrupt(uart_dev, FALSE /*bEnableModemStatus*/,
-  FALSE /*bEnableRxLineStatus == Break condition */,
-      FALSE /*bEnableTxFifoEmpty*/,
-      FALSE /* bEnableRxData */, E_AHI_UART_FIFO_LEVEL_14);
+                        FALSE /*bEnableRxLineStatus == Break condition */,
+                        FALSE /*bEnableTxFifoEmpty*/,
+                        FALSE /* bEnableRxData */, E_AHI_UART_FIFO_LEVEL_14);
   interrupt_enabled[uart_dev] = 0;
 }
-
 void
 uart_driver_store_interrupts(uint8_t uart_dev)
 {
   interrupt_enabled_saved[uart_dev] = interrupt_enabled[uart_dev];
 }
-
 void
 uart_driver_restore_interrupts(uint8_t uart_dev)
 {
@@ -207,20 +202,17 @@ uart_driver_restore_interrupts(uint8_t uart_dev)
     uart_driver_disable_interrupts(uart_dev);
   }
 }
-
 int8_t
 uart_driver_interrupt_is_enabled(uint8_t uart_dev)
 {
   return interrupt_enabled[uart_dev];
 }
-
 void
 uart_driver_set_input(uint8_t uart_dev, int
-(*uart_input_function)(unsigned char c))
+                      (*uart_input_function)(unsigned char c))
 {
   uart_input[uart_dev] = uart_input_function;
 }
-
 /****************************************************************************
  *
  * NAME:       uart_driver_read
@@ -245,13 +237,11 @@ uart_driver_read(uint8_t uart_dev, uint8_t *data)
   }
   return FALSE;
 }
-
 void
 uart_driver_write_buffered(uint8_t uart_dev, uint8_t ch)
 {
   uart_driver_write_with_deadline(uart_dev, ch);
 }
-
 /****************************************************************************
  *
  * NAME:       uart_driver_write_with_deadline
@@ -274,7 +264,7 @@ uart_driver_write_with_deadline(uint8_t uart_dev, uint8_t ch)
   /* Block until host can receive data */
   /* Wait until there are less than N characters in TX FIFO */
   while(xonxoff_state != XON
-      || u16AHI_UartReadTxFifoLevel(uart_dev) > TX_FIFO_SW_FLOW_LIMIT) {
+        || u16AHI_UartReadTxFifoLevel(uart_dev) > TX_FIFO_SW_FLOW_LIMIT) {
     watchdog_periodic();
   }
   /* write to TX FIFO and return immediately */
@@ -284,25 +274,23 @@ uart_driver_write_with_deadline(uint8_t uart_dev, uint8_t ch)
   watchdog_periodic();
   /* wait until there is space in tx fifo */
   BUSYWAIT_UNTIL(write = (uart_driver_get_tx_fifo_available_space(uart_dev) > 0),
-      CHAR_DEADLINE);
+                 CHAR_DEADLINE);
   /* write only if there is space so we do not get stuck */
   if(write) {
     /* write to TX FIFO and return immediately */
     vAHI_UartWriteData(uart_dev, ch);
   }
-#endif  /* UART_XONXOFF_FLOW_CTRL */
+#endif /* UART_XONXOFF_FLOW_CTRL */
 }
-
 void
 uart_driver_write_direct(uint8_t uart_dev, uint8_t ch)
 {
   /* Write character */
   vAHI_UartWriteData(uart_dev, ch);
   /* Wait for buffers to empty */
-  while((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_THRE) == 0);
-  while((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_TEMT) == 0);
+  while((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_THRE) == 0) ;
+  while((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_TEMT) == 0) ;
 }
-
 /****************************************************************************
  *
  * NAME:       uart_driver_rx_handler
@@ -342,7 +330,7 @@ uart_driver_rx_handler(uint8_t uart_dev)
       /* process received character */
       status = (uart_input[uart_dev])(u8AHI_UartReadData(uart_dev));
 
-  #if UART_XONXOFF_FLOW_CTRL
+#if UART_XONXOFF_FLOW_CTRL
       /* Process XON-XOFF*/
       if(xonxoff_state == XOFF) {
         /* XXX do not set break condition as it corrupts one character, instead we block on TX */
@@ -353,15 +341,13 @@ uart_driver_rx_handler(uint8_t uart_dev)
         /* Instruct uart to resume TX if it was stopped */
         /* vAHI_UartSetBreak(uart_dev, FALSE); */
       }
-  #endif /* UART_XONXOFF_FLOW_CTRL */
-
+#endif /* UART_XONXOFF_FLOW_CTRL */
     } else {
       /* no input handler, or no bytes to read: Discard byte. */
       u8AHI_UartReadData(uart_dev);
     }
   }
 }
-
 /****************************************************************************/
 /***        Local Functions                                               ***/
 /****************************************************************************/
@@ -372,7 +358,6 @@ uart_driver_get_tx_fifo_available_space(uint8_t uart_dev)
 {
   return tx_fifo_size[uart_dev] - u16AHI_UartReadTxFifoLevel(uart_dev);
 }
-
 /* Initializes the specified UART with auto-selection of
    baudrate tuning method */
 static void
@@ -441,7 +426,6 @@ uart_driver_set_baudrate(uint8_t uart_dev, uint8_t br)
     uart_driver_set_high_baudrate(uart_dev, high_br);
   }
 }
-
 /****************************************************************************
  *
  * NAME:       uart_driver_set_high_baudrate
@@ -473,46 +457,43 @@ uart_driver_set_high_baudrate(uint8_t uart_dev, uint32_t baud_rate)
   int32 i32BaudError = 0x7FFFFFFF;
 
   DBG_vPrintf(DEBUG_UART_BUFFERED, "Config uart=%d, baud=%d\n", uart_dev,
-      baud_rate);
+              baud_rate);
 
-  while(abs(i32BaudError) > (int32) (baud_rate >> 4)) /* 6.25% (100/16) error */
-  {
+  while(abs(i32BaudError) > (int32)(baud_rate >> 4)) { /* 6.25% (100/16) error */
     if(--u8ClocksPerBit < 3) {
       DBG_vPrintf(DEBUG_UART_BUFFERED,
-          "Could not calculate UART settings for target baud!");
+                  "Could not calculate UART settings for target baud!");
       return;
     }
 #endif /* ENABLE_ADVANCED_BAUD_SELECTION */
 
-    /* Calculate Divisor register = 16MHz / (16 x baud rate) */
-    u16Divisor = (uint16) (16000000UL / ((u8ClocksPerBit + 1) * baud_rate));
+  /* Calculate Divisor register = 16MHz / (16 x baud rate) */
+  u16Divisor = (uint16)(16000000UL / ((u8ClocksPerBit + 1) * baud_rate));
 
-    /* Correct for rounding errors */
-    u32Remainder =
-        (uint32_t) (16000000UL % ((u8ClocksPerBit + 1) * baud_rate));
+  /* Correct for rounding errors */
+  u32Remainder =
+    (uint32_t)(16000000UL % ((u8ClocksPerBit + 1) * baud_rate));
 
-    if(u32Remainder >= (((u8ClocksPerBit + 1) * baud_rate) / 2)) {
-      u16Divisor += 1;
-    }
-
-#if (ENABLE_ADVANCED_BAUD_SELECTION)
-    DBG_vPrintf(DEBUG_UART_BUFFERED, "Divisor=%d, cpb=%d\n", u16Divisor,
-        u8ClocksPerBit);
-
-    u32CalcBaudRate = (16000000UL / ((u8ClocksPerBit + 1) * u16Divisor));
-
-    DBG_vPrintf(DEBUG_UART_BUFFERED, "Calculated baud=%d\n", u32CalcBaudRate);
-
-    i32BaudError = (int32) u32CalcBaudRate - (int32) baud_rate;
-
-    DBG_vPrintf(DEBUG_UART_BUFFERED, "Error baud=%d\n", i32BaudError);
+  if(u32Remainder >= (((u8ClocksPerBit + 1) * baud_rate) / 2)) {
+    u16Divisor += 1;
   }
+#if (ENABLE_ADVANCED_BAUD_SELECTION)
+  DBG_vPrintf(DEBUG_UART_BUFFERED, "Divisor=%d, cpb=%d\n", u16Divisor,
+              u8ClocksPerBit);
 
-  DBG_vPrintf(DEBUG_UART_BUFFERED, "Config uart=%d: Divisor=%d, cpb=%d\n",
-      uart_dev, u16Divisor, u8ClocksPerBit);
+  u32CalcBaudRate = (16000000UL / ((u8ClocksPerBit + 1) * u16Divisor));
 
-  /* Set the calculated clocks per bit */
-  vAHI_UartSetClocksPerBit(uart_dev, u8ClocksPerBit);
+  DBG_vPrintf(DEBUG_UART_BUFFERED, "Calculated baud=%d\n", u32CalcBaudRate);
+
+  i32BaudError = (int32)u32CalcBaudRate - (int32)baud_rate;
+
+  DBG_vPrintf(DEBUG_UART_BUFFERED, "Error baud=%d\n", i32BaudError);
+}
+DBG_vPrintf(DEBUG_UART_BUFFERED, "Config uart=%d: Divisor=%d, cpb=%d\n",
+            uart_dev, u16Divisor, u8ClocksPerBit);
+
+/* Set the calculated clocks per bit */
+vAHI_UartSetClocksPerBit(uart_dev, u8ClocksPerBit);
 #endif /* ENABLE_ADVANCED_BAUD_SELECTION */
 
   /* Set the calculated divisor */
@@ -562,11 +543,10 @@ uart_driver_isr(uint32_t device_id, uint32_t item_bitmap)
   case E_AHI_UART_INT_RXLINE:
     /* rx-line interrupt is disabled. Should not get here */
     /* An error condition has occurred on the RxD line, such as
-    a break indication, framing error, parity error or over-run. */
+       a break indication, framing error, parity error or over-run. */
     break;
   }
 }
-
 /****************************************************************************
  *
  * NAME:       uart_driver_tx_in_progress
@@ -587,13 +567,12 @@ uart_driver_tx_in_progress(uint8_t uart_dev)
 {
 
   if(u16AHI_UartReadTxFifoLevel(uart_dev) == 0) {
-    if((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_TEMT ) != 0) {
+    if((u8AHI_UartReadLineStatus(uart_dev) & E_AHI_UART_LS_TEMT) != 0) {
       return FALSE;
     }
   }
   return TRUE;
 }
-
 #ifdef UART_EXTRAS
 
 /****************************************************************************

@@ -46,7 +46,7 @@
 #define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
 #else
 /* 32MHz CPU clock => 16MHz timer */
-#define RTIMER_ARCH_SECOND (F_CPU/2)
+#define RTIMER_ARCH_SECOND (F_CPU / 2)
 #endif
 
 #define US_TO_RTIMERTICKS(D) ((int64_t)(D) << 4)
