@@ -68,6 +68,18 @@ static int num_free;
 static uip_ds6_nbr_t *worst_rank_nbr; /* the parent that has the worst rank */
 static rpl_rank_t worst_rank;
 /*---------------------------------------------------------------------------*/
+#if DEBUG == DEBUG_FULL
+static void update_nbr(void);
+static struct ctimer periodic_timer;
+static int timer_init = 0;
+static void
+handle_periodic_timer(void *ptr)
+{
+  update_nbr();
+  ctimer_restart(&periodic_timer);
+}
+#endif /* DEBUG == DEBUG_FULL */
+/*---------------------------------------------------------------------------*/
 static void
 update_nbr(void)
 {
@@ -76,6 +88,14 @@ update_nbr(void)
   int num_used;
   int is_used;
   rpl_rank_t rank;
+
+#if DEBUG == DEBUG_FULL
+  if(!timer_init) {
+    timer_init = 1;
+    ctimer_set(&periodic_timer, 60 * CLOCK_SECOND,
+               &handle_periodic_timer, NULL);
+  }
+#endif /* DEBUG == DEBUG_FULL */
 
   worst_rank = 0;
   worst_rank_nbr = NULL;
