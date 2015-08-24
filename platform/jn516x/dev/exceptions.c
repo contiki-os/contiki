@@ -100,7 +100,8 @@
   #define EXCEPTION_RAM_TOP 0x04008000
 #endif
 
-PRIVATE void exception_handler(uint32 *pu32Stack, eExceptionType eType);
+static void exception_handler(uint32 *pu32Stack, eExceptionType eType);
+static void *heap_alloc_overflow_protect(void *pvPointer, uint32 u32Size, bool_t bClear);
 /*---------------------------------------------------------------------------*/
 #if PRINT_STACK_ON_REBOOT
 static void hexprint(uint8 v);
@@ -190,7 +191,7 @@ PUBLIC void vEXC_Register(void)
 #endif /* EXCEPTION_VECTORS_LOCATION */
 
   prHeap_AllocOrig = prHeap_AllocFunc;
-  prHeap_AllocFunc = pvHeapAllocOverflowProtect;
+  prHeap_AllocFunc = heap_alloc_overflow_protect;
 }
 
 #ifdef EXCEPTION_VECTORS_LOCATION_FLASH
@@ -363,4 +364,36 @@ static void exception_handler(uint32 *pu32Stack, eExceptionType eType)
 	vAHI_WatchdogException(0);
 	vAHI_SwReset();
 #endif /* EXCEPTION_STALLS_SYSTEM */
+}
+
+/****************************************************************************
+ *
+ * NAME: heap_alloc_overflow_protect
+ *
+ * DESCRIPTION:
+ * New heap allocation function that sets the stack overflow location to the new
+ * top address of the heap.
+ *
+ * PARAMETERS:  Name             RW  Usage
+ *              pvPointer    W   Location of allocated heap memory
+ *              u32Size          R   Number of bytes to allocate
+ *              bClear           R   Flag to set new memory to 0
+ *
+ * RETURNS:
+ * Pointer to new memory
+ *
+ ****************************************************************************/
+static void *heap_alloc_overflow_protect(void *pvPointer, uint32 u32Size, bool_t bClear)
+{
+  void *pvAlloc;
+  /* Call original heap allocation function */
+  pvAlloc = prHeap_AllocOrig(pvPointer, u32Size, bClear);
+  /*
+   * Initialise the stack overflow exception to trigger if the end of the
+   * stack is reached. See the linker command file to adjust the allocated
+   * stack size.
+   */
+  /* Set stack overflow address */
+  vAHI_SetStackOverflow(TRUE, ((uint32 *)&heap_location)[0]);
+  return pvAlloc;
 }
