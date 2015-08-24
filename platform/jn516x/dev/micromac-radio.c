@@ -200,13 +200,9 @@ PROCESS(micromac_radio_process, "micromac_radio_driver");
 /*---------------------------------------------------------------------------*/
 
 /* Custom Radio parameters */
-#ifndef RADIO_PARAM_LAST_RSSI
-#define RADIO_PARAM_LAST_RSSI 0x80
-#endif /* RADIO_PARAM_LAST_RSSI */
-#ifndef RADIO_PARAM_LAST_PACKET_TIMESTAMP
-#define RADIO_PARAM_LAST_PACKET_TIMESTAMP 0x81
-#endif /* RADIO_PARAM_LAST_PACKET_TIMESTAMP */
 #ifndef RADIO_RX_MODE_POLL_MODE
+#define RADIO_PARAM_LAST_RSSI 0x80
+#define RADIO_PARAM_LAST_PACKET_TIMESTAMP 0x81
 #define RADIO_RX_MODE_POLL_MODE        (1 << 2)
 #endif /* RADIO_RX_MODE_POLL_MODE */
 
