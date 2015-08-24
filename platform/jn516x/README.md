@@ -24,7 +24,7 @@ These system on chip (SoC) devices have the following main [features][jn516x-dat
 Port Features
 =============
 The following features have been implemented:
-  * A radio driver with two mode (polling and interrupt based)
+  * A radio driver with two modes (polling and interrupt based)
   * CCM* driver with HW accelerated AES
   * UART driver (with HW and SW flow control, 1'000'000 baudrate by default)
   * Contiki system clock and rtimers (16MHz tick frequency)
@@ -84,7 +84,7 @@ Software to Program the Nodes
 -----------------------------
 The JN516x can be programmed via the serial boot loader on the chip.
 
-* On Windows, nodes are be programmed by using NXP's Flash Programmer. There are two version of it: GUI and command line. The Contiki make system is configured to use the command line version. By default it searches for the programmer under SDK base directory + `Tools/flashprogrammer/FlashCLI.exe`. With the default SDK installation path the file should be located under `C:/NXP/bstudio_nxp/sdk/JN-SW-4163/Tools/flashprogrammer/FlashCLI.exe`. Modify `platforms/jn516x/Makefile.common` to change this default location.
+* On Windows, nodes are be programmed by using NXP's Flash Programmer. There are two versions of it: GUI and command line. The Contiki make system is configured to use the command line version. By default it looks for the programmer in the SDK base directory under `Tools/flashprogrammer/FlashCLI.exe`. With the default SDK installation path the file should be located under `C:/NXP/bstudio_nxp/sdk/JN-SW-4163/Tools/flashprogrammer/FlashCLI.exe`. Modify `platforms/jn516x/Makefile.common` to change this default location.
 
 * On Linux, nodes can be programmed via the serial boot loader using the [JennicModuleProgrammer] tool. By default, it is assumed to be located in `/usr/jn-toolchain/tools/flashprogrammer/JennicModuleProgrammer`. Modify `platforms/jn516x/Makefile.common` to change this default location.
 
