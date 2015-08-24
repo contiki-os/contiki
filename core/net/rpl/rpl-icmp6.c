@@ -515,7 +515,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
   buffer[pos++] = instance->dtsn_out;
 
-  if(uc_addr == NULL) {
+  if(RPL_DIO_REFRESH_DAO_ROUTES && uc_addr == NULL) {
     /* Request new DAO to refresh route. We do not do this for unicast DIO
      * in order to avoid DAO messages after a DIS-DIO update,
      * or upon unicast DIO probing. */
