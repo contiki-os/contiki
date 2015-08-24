@@ -78,10 +78,10 @@ slip_input_callback(void)
       PRINTF("\n");
       set_prefix_64(&prefix);
     }
-  } else if (uip_buf[0] == '?') {
+  } else if(uip_buf[0] == '?') {
     PRINTF("Got request message of type %c\n", uip_buf[1]);
     if(uip_buf[1] == 'M') {
-      char* hexchar = "0123456789abcdef";
+      char *hexchar = "0123456789abcdef";
       int j;
       /* this is just a test so far... just to see if it works */
       uip_buf[0] = '!';
@@ -91,7 +91,6 @@ slip_input_callback(void)
       }
       uip_len = 18;
       slip_send();
-
     }
     uip_len = 0;
   }
@@ -125,7 +124,6 @@ output(void)
     printf("\n");
   }
 }
-
 /*---------------------------------------------------------------------------*/
 #if !SLIP_BRIDGE_CONF_NO_PUTCHAR
 #undef putchar

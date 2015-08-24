@@ -57,8 +57,8 @@
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PUTCHAR(X) do { putchar(X); putchar('\n'); } while(0)
 #else
-#define PRINTF(...) do { } while(0)
-#define PUTCHAR(X) do { } while(0)
+#define PRINTF(...) do {} while(0)
+#define PUTCHAR(X) do {} while(0)
 #endif
 
 #define SLIP_END     0300
@@ -87,22 +87,22 @@ PROCESS(slip_process, "SLIP driver");
  * macro.  Something which is atomic cannot be interrupted by interrupts.
  */
 /* A specific ATMOIC that disables UART interrupts only */
-#define ATOMIC(blah)                \
-{                                   \
-  /* STORE_UART_INTERRUPTS(); */    \
-  DISABLE_UART_INTERRUPTS();        \
-  { blah }                          \
-  /* RESTORE_UART_INTERRUPTS(); */  \
-  ENABLE_UART_INTERRUPTS();         \
-}
+#define ATOMIC(blah) \
+  { \
+    /* STORE_UART_INTERRUPTS(); */ \
+    DISABLE_UART_INTERRUPTS(); \
+    { blah } \
+    /* RESTORE_UART_INTERRUPTS(); */ \
+    ENABLE_UART_INTERRUPTS(); \
+  }
 
 /* A generic ATMOIC that disables all interrupts */
-#define GLOBAL_ATOMIC(blah)   \
-{                             \
-  MICRO_DISABLE_INTERRUPTS(); \
-  { blah }                    \
-  MICRO_ENABLE_INTERRUPTS();  \
-}
+#define GLOBAL_ATOMIC(blah) \
+  { \
+    MICRO_DISABLE_INTERRUPTS(); \
+    { blah } \
+    MICRO_ENABLE_INTERRUPTS(); \
+  }
 
 #if 1
 #define SLIP_STATISTICS(statement)
@@ -123,7 +123,7 @@ unsigned long slip_received, slip_frames;
 #endif
 
 #else
-#define RX_BUFSIZE (UIP_CONF_BUFFER_SIZE*2)
+#define RX_BUFSIZE (UIP_CONF_BUFFER_SIZE * 2)
 #endif
 
 /*
@@ -137,7 +137,7 @@ static uint8_t rxbuf[RX_BUFSIZE];
 static volatile uint8_t is_dropping = 0;
 static volatile uint8_t is_full = 0;
 
-static void (* input_callback)(void) = NULL;
+static void (*input_callback)(void) = NULL;
 /*---------------------------------------------------------------------------*/
 void
 slip_set_input_callback(void (*c)(void))
@@ -230,7 +230,6 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
   if(end_counter == 0 && is_full == 0) {
     return 0;
   }
-
   for(len = 0, pos = begin, state = c = SLIP_NEUTRAL;
       len < blen + 1; /* +1 for SLIP_END! */
       ) {
@@ -241,18 +240,15 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
       /* Circular buffer: warp around */
       pos = 0;
     }
-
     if(c == SLIP_END) {
       /* End of packet */
       break;
     }
-
     if(len >= blen) {
       /* End of buffer with no SLIP_END
        * ==> something wrong happened */
       break;
     }
-
     switch(c) {
     case SLIP_ESC:
       state = SLIP_ESC;
@@ -263,32 +259,28 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
         state = SLIP_NEUTRAL;
       } else {
         outbuf[len++] = c;
-      }
-      break;
+      } break;
     case SLIP_ESC_ESC:
       if(state == SLIP_ESC) {
         outbuf[len++] = SLIP_ESC;
         state = SLIP_NEUTRAL;
       } else {
         outbuf[len++] = c;
-      }
-      break;
+      } break;
     case SLIP_ESC_XON:
       if(state == SLIP_ESC) {
         outbuf[len++] = XON;
         state = SLIP_NEUTRAL;
       } else {
         outbuf[len++] = c;
-      }
-      break;
+      } break;
     case SLIP_ESC_XOFF:
       if(state == SLIP_ESC) {
         outbuf[len++] = XOFF;
         state = SLIP_NEUTRAL;
       } else {
         outbuf[len++] = c;
-      }
-      break;
+      } break;
     default:
       outbuf[len++] = c;
       state = SLIP_NEUTRAL;
@@ -298,11 +290,17 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
 
   /* Update counters */
   if(c == SLIP_END) {
-    ATOMIC(begin = pos; if(end_counter) end_counter--;)
+    ATOMIC(begin = pos;
+           if(end_counter) {
+             end_counter--;
+           }
+           )
     PUTCHAR('P');
   } else {
     /* Something went wrong, no SLIP_END found, drop everything */
-    ATOMIC(rxbuf_init(); is_dropping = 1;)
+    ATOMIC(rxbuf_init();
+           is_dropping = 1;
+           )
     SLIP_STATISTICS(slip_error_drop++);
     len = 0;
     PRINTF("SLIP: *** out of sync!\n");
@@ -312,7 +310,6 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
     /* One more packet is buffered, need to be polled again! */
     process_poll(&slip_process);
   }
-
   return len;
 }
 /*---------------------------------------------------------------------------*/
@@ -327,10 +324,10 @@ PROCESS_THREAD(slip_process, ev, data)
 
     /* Move packet from rxbuf to buffer provided by uIP. */
     uip_len = slip_poll_handler(&uip_buf[UIP_LLH_LEN],
-        UIP_BUFSIZE - UIP_LLH_LEN);
+                                UIP_BUFSIZE - UIP_LLH_LEN);
 
     PRINTF("SLIP: recv bytes %u frames RECV: %u. is_full %u, is_dropping %u.\n",
-            end_counter, uip_len, is_full, is_dropping);
+           end_counter, uip_len, is_full, is_dropping);
 
     /* We have free space now, resume slip RX */
     if(is_full) {
@@ -394,17 +391,15 @@ slip_input_byte(unsigned char c)
     /* Ignore slip end when not receiving frame */
     return error_return_code;
   }
-
   /* increment and wrap */
   next = end + 1;
   if(next >= RX_BUFSIZE) {
     next = 0;
   }
   next_next = next + 1;
-  if(next_next  >= RX_BUFSIZE) {
-    next_next  = 0;
+  if(next_next >= RX_BUFSIZE) {
+    next_next = 0;
   }
-
   /* Next byte will overflow. Stop accepting. */
   if(next_next == begin) {
     is_full = 1;
@@ -441,7 +436,8 @@ slip_input_byte(unsigned char c)
 }
 /*---------------------------------------------------------------------------*/
 #if SLIP_BRIDGE_CONF_NO_PUTCHAR
-int putchar(int c)
+int
+putchar(int c)
 {
   uart0_writeb(c);
   return 1;

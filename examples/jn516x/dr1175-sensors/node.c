@@ -58,7 +58,7 @@ PROCESS_THREAD(test_process, ev, data)
   bWhite_LED_SetLevel(0);
   bWhite_LED_On();
 
-  /* Coloured LED initialisation */ 
+  /* Coloured LED initialisation */
   bRGB_LED_Enable();
   bRGB_LED_SetGroupLevel(255);
   bRGB_LED_SetLevel(0, 0, 0);
@@ -67,7 +67,7 @@ PROCESS_THREAD(test_process, ev, data)
   /* Make sensor active for measuring */
   SENSORS_ACTIVATE(light_sensor);
   SENSORS_ACTIVATE(ht_sensor);
- 
+
   while(1) {
     etimer_set(&et, CLOCK_SECOND * 1);
 

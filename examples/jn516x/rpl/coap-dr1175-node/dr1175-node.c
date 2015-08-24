@@ -1,37 +1,36 @@
 /*
-* Copyright (c) 2015 NXP B.V.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions
-* are met:
-* 1. Redistributions of source code must retain the above copyright
-*    notice, this list of conditions and the following disclaimer.
-* 2. Redistributions in binary form must reproduce the above copyright
-*    notice, this list of conditions and the following disclaimer in the
-*    documentation and/or other materials provided with the distribution.
-* 3. Neither the name of NXP B.V. nor the names of its contributors
-*    may be used to endorse or promote products derived from this software
-*    without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY NXP B.V. AND CONTRIBUTORS ``AS IS'' AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED.  IN NO EVENT SHALL NXP B.V. OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-* OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-* SUCH DAMAGE.
-*
-* This file is part of the Contiki operating system.
-*
-* Author: Theo van Daele <theo.van.daele@nxp.com>
-*
-*/
-
+ * Copyright (c) 2015 NXP B.V.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of NXP B.V. nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NXP B.V. AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL NXP B.V. OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
+ * Author: Theo van Daele <theo.van.daele@nxp.com>
+ *
+ */
 
 #include "contiki.h"
 #include "net/ip/uip.h"
@@ -45,23 +44,23 @@
 static void event_sensors_dr1175_handler(void);
 static void get_sensors_dr1175_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void get_light_sensor_value_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void get_light_sensor_unit_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void get_light_sensor_unit_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void get_temperature_value_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void get_temperature_unit_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void get_humidity_value_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void get_humidity_unit_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void put_post_white_led_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void put_post_rgb_led_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void put_post_scale_rgb_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_white_led_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_rgb_led_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_scale_rgb_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 static char content[REST_MAX_CHUNK_SIZE];
 static int content_len = 0;
 
-#define CONTENT_PRINTF(...) { if(content_len < sizeof(content)) content_len += snprintf(content+content_len, sizeof(content)-content_len, __VA_ARGS__); }
+#define CONTENT_PRINTF(...) { if(content_len < sizeof(content)) { content_len += snprintf(content + content_len, sizeof(content) - content_len, __VA_ARGS__); } }
 
-#define CLIP(value, level) if (value > level) { \
-                              value = level;    \
-                           }                
+#define CLIP(value, level) if(value > level) { \
+    value = level; \
+}
 /*---------------------------------------------------------------------------*/
 PROCESS(start_app, "START_APP");
 AUTOSTART_PROCESSES(&start_app, &sensors_process);
@@ -71,7 +70,7 @@ AUTOSTART_PROCESSES(&start_app, &sensors_process);
 /*********** CoAP sensor/ resource *************************************************/
 
 /*******************************************************************/
-/* Observable resource and event handler to obtain all sensor data */ 
+/* Observable resource and event handler to obtain all sensor data */
 /*******************************************************************/
 EVENT_RESOURCE(resource_sensors_dr1175,               /* name */
                "obs;title=\"All_DR1175_sensors\"",    /* attributes */
@@ -95,17 +94,15 @@ get_sensors_dr1175_handler(void *request, void *response, uint8_t *buffer, uint1
     REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
     REST.set_response_payload(response, (uint8_t *)content, content_len);
   }
-} 
-
+}
 static void
 event_sensors_dr1175_handler()
 {
   /* Registered observers are notified and will trigger the GET handler to create the response. */
   REST.notify_subscribers(&resource_sensors_dr1175);
 }
-
 /*****************************************************/
-/* Resource and handler to obtain light sensor value */ 
+/* Resource and handler to obtain light sensor value */
 /*****************************************************/
 RESOURCE(resource_light_sensor_value,
          "title=\"light sensor value\"",
@@ -125,18 +122,17 @@ get_light_sensor_value_handler(void *request, void *response, uint8_t *buffer, u
     REST.set_response_payload(response, (uint8_t *)content, content_len);
   }
 }
-
 /***************************************************/
-/* Resource and handler to obtain light unit value */ 
+/* Resource and handler to obtain light unit value */
 /***************************************************/
-RESOURCE(resource_light_sensor_unit, 
+RESOURCE(resource_light_sensor_unit,
          "title=\"light sensor unit\"",
          get_light_sensor_unit_handler,
          NULL,
          NULL,
          NULL);
 static void
-get_light_sensor_unit_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+get_light_sensor_unit_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
@@ -147,9 +143,8 @@ get_light_sensor_unit_handler(void* request, void* response, uint8_t *buffer, ui
     REST.set_response_payload(response, (uint8_t *)content, content_len);
   }
 }
-
 /***********************************************************/
-/* Resource and handler to obtain temperature sensor value */ 
+/* Resource and handler to obtain temperature sensor value */
 /***********************************************************/
 RESOURCE(resource_temperature_value,
          "title=\"temperature value\"",
@@ -169,18 +164,17 @@ get_temperature_value_handler(void *request, void *response, uint8_t *buffer, ui
     REST.set_response_payload(response, (uint8_t *)content, content_len);
   }
 }
-
 /*********************************************************/
-/* Resource and handler to obtain temperature unit value */ 
+/* Resource and handler to obtain temperature unit value */
 /*********************************************************/
-RESOURCE(resource_temperature_unit, 
+RESOURCE(resource_temperature_unit,
          "title=\"temperature unit\"",
          get_temperature_unit_handler,
          NULL,
          NULL,
          NULL);
 static void
-get_temperature_unit_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+get_temperature_unit_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
@@ -191,9 +185,8 @@ get_temperature_unit_handler(void* request, void* response, uint8_t *buffer, uin
     REST.set_response_payload(response, (uint8_t *)content, content_len);
   }
 }
-
 /********************************************************/
-/* Resource and handler to obtain humidity sensor value */ 
+/* Resource and handler to obtain humidity sensor value */
 /********************************************************/
 RESOURCE(resource_humidity_value,
          "title=\"humidity value\"",
@@ -213,18 +206,17 @@ get_humidity_value_handler(void *request, void *response, uint8_t *buffer, uint1
     REST.set_response_payload(response, (uint8_t *)content, content_len);
   }
 }
-
 /******************************************************/
-/* Resource and handler to obtain humidity unit value */ 
+/* Resource and handler to obtain humidity unit value */
 /******************************************************/
-RESOURCE(resource_humidity_unit, 
+RESOURCE(resource_humidity_unit,
          "title=\"humidity unit\"",
          get_humidity_unit_handler,
          NULL,
          NULL,
          NULL);
 static void
-get_humidity_unit_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+get_humidity_unit_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
@@ -235,125 +227,119 @@ get_humidity_unit_handler(void* request, void* response, uint8_t *buffer, uint16
     REST.set_response_payload(response, (uint8_t *)content, content_len);
   }
 }
-
 /***************************************************/
-/* Resource and handler to control White LED level */ 
+/* Resource and handler to control White LED level */
 /***************************************************/
-RESOURCE(resource_white_led, 
+RESOURCE(resource_white_led,
          "title=\"WhiteLED <[0..255]>\"",
          NULL,
          put_post_white_led_handler,
          put_post_white_led_handler,
          NULL);
 static void
-put_post_white_led_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+put_post_white_led_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content = NULL;
   int request_content_len;
   int level;
- 
+
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
     request_content_len = REST.get_request_payload(request, &request_content);
     level = atoi((const char *)request_content);
     CLIP(level, 255)
-    if (level > 255)
-    {
+    if(level > 255) {
       level = 255;
     }
     bWhite_LED_SetLevel(level);
     bWhite_LED_On();
   }
 }
-
 /*************************************************/
-/* Resource and handler to control RGB LED level */ 
+/* Resource and handler to control RGB LED level */
 /*************************************************/
-RESOURCE(resource_rgb_led, 
+RESOURCE(resource_rgb_led,
          "title=\"RGB LED <[0..255] [0..255] [0..255]>\"",
          NULL,
          put_post_rgb_led_handler,
          put_post_rgb_led_handler,
          NULL);
 static void
-put_post_rgb_led_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+put_post_rgb_led_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content = NULL;
   int request_content_len;
-  char * pch;
-  int RGB[] = {0,0,0};
+  char *pch;
+  int RGB[] = { 0, 0, 0 };
   int index = 0;
- 
+
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
     request_content_len = REST.get_request_payload(request, &request_content);
     pch = strtok((char *)request_content, " ");
-    while((pch != NULL) && (index != sizeof(RGB)/sizeof(int)))
-    {
+    while((pch != NULL) && (index != sizeof(RGB) / sizeof(int))) {
       /* Convert token to int */
       RGB[index] = atoi(pch);
-      CLIP(RGB[index], 255) 
+      CLIP(RGB[index], 255)
       index++;
       /* Get next token */
       pch = strtok(NULL, " ");
     }
-    bRGB_LED_SetLevel(RGB[0],RGB[1],RGB[2]);
+    bRGB_LED_SetLevel(RGB[0], RGB[1], RGB[2]);
     bRGB_LED_On();
   }
 }
-
 /***************************************************/
-/* Resource and handler to control RGB LED scaling */ 
+/* Resource and handler to control RGB LED scaling */
 /***************************************************/
-RESOURCE(resource_scale_rgb, 
+RESOURCE(resource_scale_rgb,
          "title=\"Scale RGB <[0..255]>\"",
          NULL,
          put_post_scale_rgb_handler,
          put_post_scale_rgb_handler,
          NULL);
 static void
-put_post_scale_rgb_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+put_post_scale_rgb_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content = NULL;
   int request_content_len;
   int level;
- 
+
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
     request_content_len = REST.get_request_payload(request, &request_content);
     level = atoi((const char *)request_content);
-    CLIP(level,255)
+    CLIP(level, 255)
     bRGB_LED_SetGroupLevel(level);
     bRGB_LED_On();
   }
 }
-
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(start_app, ev, data)
 {
   PROCESS_BEGIN();
 
   static int is_coordinator = 0;
-  //is_coordinator = node_id == 1;
-  
+  /* is_coordinator = node_id == 1; */
+
   /* White LED initialisation */
   bWhite_LED_Enable();
   bWhite_LED_SetLevel(0);
   bWhite_LED_On();
 
-  /* Coloured LED initialisation */ 
+  /* Coloured LED initialisation */
   bRGB_LED_Enable();
   bRGB_LED_SetGroupLevel(255);
-  bRGB_LED_SetLevel(0,0,0);
+  bRGB_LED_SetLevel(0, 0, 0);
   bRGB_LED_On();
 
   /* Make sensor active for measuring */
   SENSORS_ACTIVATE(light_sensor);
   SENSORS_ACTIVATE(ht_sensor);
-  
+
   /* Start net stack */
   if(is_coordinator) {
     uip_ipaddr_t prefix;
@@ -361,26 +347,25 @@ PROCESS_THREAD(start_app, ev, data)
     rpl_tools_init(&prefix);
   } else {
     rpl_tools_init(NULL);
-  }
-  printf("Starting RPL node\n");
+  } printf("Starting RPL node\n");
 
   rest_init_engine();
-  rest_activate_resource(&resource_light_sensor_value,  "DR1175/LightSensor/Value");
-  rest_activate_resource(&resource_light_sensor_unit,   "DR1175/LightSensor/Unit");
-  rest_activate_resource(&resource_temperature_unit,    "DR1175/Temperature/Unit");
-  rest_activate_resource(&resource_temperature_value,   "DR1175/Temperature/Value");
-  rest_activate_resource(&resource_humidity_unit,       "DR1175/Humidity/Unit");
-  rest_activate_resource(&resource_humidity_value,      "DR1175/Humidity/Value");
-  rest_activate_resource(&resource_white_led,           "DR1175/WhiteLED");
-  rest_activate_resource(&resource_rgb_led,             "DR1175/ColorLED/RGBValue");
-  rest_activate_resource(&resource_scale_rgb,           "DR1175/ColorLED/ScaleRGB");
-  rest_activate_resource(&resource_sensors_dr1175,      "DR1175/AllSensors");
+  rest_activate_resource(&resource_light_sensor_value, "DR1175/LightSensor/Value");
+  rest_activate_resource(&resource_light_sensor_unit, "DR1175/LightSensor/Unit");
+  rest_activate_resource(&resource_temperature_unit, "DR1175/Temperature/Unit");
+  rest_activate_resource(&resource_temperature_value, "DR1175/Temperature/Value");
+  rest_activate_resource(&resource_humidity_unit, "DR1175/Humidity/Unit");
+  rest_activate_resource(&resource_humidity_value, "DR1175/Humidity/Value");
+  rest_activate_resource(&resource_white_led, "DR1175/WhiteLED");
+  rest_activate_resource(&resource_rgb_led, "DR1175/ColorLED/RGBValue");
+  rest_activate_resource(&resource_scale_rgb, "DR1175/ColorLED/ScaleRGB");
+  rest_activate_resource(&resource_sensors_dr1175, "DR1175/AllSensors");
 
   /* If sensor process generates an event, call event_handler of resource.
-     This will make this resource observable by the client */ 
+     This will make this resource observable by the client */
   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL( (ev == sensors_event) && 
-                              ((data == &light_sensor)|| (data == &ht_sensor)) );
+    PROCESS_WAIT_EVENT_UNTIL((ev == sensors_event) &&
+                             ((data == &light_sensor) || (data == &ht_sensor)));
     event_sensors_dr1175_handler();
   }
 

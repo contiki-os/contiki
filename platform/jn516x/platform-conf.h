@@ -74,44 +74,44 @@
 
 #if TSCH_DEBUG
 #define TSCH_DEBUG_INIT() do { \
-  vAHI_DioSetDirection(0, (1<<DR_11744_DIO2) | (1<<DR_11744_DIO3) | (1<<DR_11744_DIO4) | (1<<DR_11744_DIO5) | (1<<DR_11744_DIO6) | (1<<DR_11744_DIO7)); \
-  vAHI_DioSetOutput(0, (1<<DR_11744_DIO2) | (1<<DR_11744_DIO3) | (1<<DR_11744_DIO4) | (1<<DR_11744_DIO5) | (1<<DR_11744_DIO6) | (1<<DR_11744_DIO7)); } while(0);
+    vAHI_DioSetDirection(0, (1 << DR_11744_DIO2) | (1 << DR_11744_DIO3) | (1 << DR_11744_DIO4) | (1 << DR_11744_DIO5) | (1 << DR_11744_DIO6) | (1 << DR_11744_DIO7)); \
+    vAHI_DioSetOutput(0, (1 << DR_11744_DIO2) | (1 << DR_11744_DIO3) | (1 << DR_11744_DIO4) | (1 << DR_11744_DIO5) | (1 << DR_11744_DIO6) | (1 << DR_11744_DIO7)); } while(0);
 #define TSCH_DEBUG_INTERRUPT() do { \
-  static dio_state = 0; \
-  dio_state = !dio_state; \
-  if(dio_state) { \
-    vAHI_DioSetOutput((1<<DR_11744_DIO2), 0); \
-  } else { \
-    vAHI_DioSetOutput(0, (1<<DR_11744_DIO2)); \
-  } \
-  } while(0);
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      vAHI_DioSetOutput((1 << DR_11744_DIO2), 0); \
+    } else { \
+      vAHI_DioSetOutput(0, (1 << DR_11744_DIO2)); \
+    } \
+} while(0);
 #define TSCH_DEBUG_RX_EVENT() do { \
-  static dio_state = 0; \
-  dio_state = !dio_state; \
-  if(dio_state) { \
-    vAHI_DioSetOutput((1<<DR_11744_DIO4), 0); \
-  } else { \
-    vAHI_DioSetOutput(0, (1<<DR_11744_DIO4)); \
-  } \
-  } while(0);
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      vAHI_DioSetOutput((1 << DR_11744_DIO4), 0); \
+    } else { \
+      vAHI_DioSetOutput(0, (1 << DR_11744_DIO4)); \
+    } \
+} while(0);
 #define TSCH_DEBUG_TX_EVENT() do { \
-  static dio_state = 0; \
-  dio_state = !dio_state; \
-  if(dio_state) { \
-    vAHI_DioSetOutput((1<<DR_11744_DIO5), 0); \
-  } else { \
-    vAHI_DioSetOutput(0, (1<<DR_11744_DIO5)); \
-  } \
-  } while(0);
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      vAHI_DioSetOutput((1 << DR_11744_DIO5), 0); \
+    } else { \
+      vAHI_DioSetOutput(0, (1 << DR_11744_DIO5)); \
+    } \
+} while(0);
 #define TSCH_DEBUG_SLOT_START() do { \
-  static dio_state = 0; \
-  dio_state = !dio_state; \
-  if(dio_state) { \
-    vAHI_DioSetOutput((1<<DR_11744_DIO3), 0); \
-  } else { \
-    vAHI_DioSetOutput(0, (1<<DR_11744_DIO3)); \
-  } \
-  } while(0);
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      vAHI_DioSetOutput((1 << DR_11744_DIO3), 0); \
+    } else { \
+      vAHI_DioSetOutput(0, (1 << DR_11744_DIO3)); \
+    } \
+} while(0);
 #define TSCH_DEBUG_SLOT_END()
 #endif /* TSCH_DEBUG */
 
@@ -146,13 +146,13 @@
 
 /* LED ports */
 /*
-#define LEDS_PxDIR P5DIR
-#define LEDS_PxOUT P5OUT
-#define LEDS_CONF_RED    0x10
-#define LEDS_CONF_GREEN  0x20
-#define LEDS_CONF_YELLOW 0x40
-#define JENNIC_CONF_BUTTON_PIN (IRQ_DIO9|IRQ_DIO10)
-*/
+   #define LEDS_PxDIR P5DIR
+   #define LEDS_PxOUT P5OUT
+   #define LEDS_CONF_RED    0x10
+   #define LEDS_CONF_GREEN  0x20
+   #define LEDS_CONF_YELLOW 0x40
+   #define JENNIC_CONF_BUTTON_PIN (IRQ_DIO9|IRQ_DIO10)
+ */
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
@@ -167,14 +167,14 @@
 #include <stdint.h>
 #else
 #ifndef uint8_t
-typedef unsigned char   uint8_t;
+typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
-typedef unsigned long  uint32_t;
-typedef   signed char    int8_t;
-typedef          short  int16_t;
-typedef          long   int32_t;
+typedef unsigned long uint32_t;
+typedef   signed char int8_t;
+typedef          short int16_t;
+typedef          long int32_t;
 typedef unsigned long long uint64_t;
-typedef long long          int64_t;
+typedef long long int64_t;
 #endif
 #endif /* !HAVE_STDINT_H */
 
@@ -184,7 +184,7 @@ typedef uint32_t clock_time_t;
 
 /* Core rtimer.h defaults to 16 bit timer unless RTIMER_CLOCK_LT is defined */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
+#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
 /* 10ms timer tick */
 #define CLOCK_CONF_SECOND 100
 
@@ -195,7 +195,7 @@ typedef uint32_t rtimer_clock_t;
  * PS: It should be calibrated upon temperature changes,
  * but the naive approach of periodic calibration is fine too */
 #ifndef DCOSYNCH_PERIOD
-#define DCOSYNCH_PERIOD (5*60)
+#define DCOSYNCH_PERIOD (5 * 60)
 #endif /* VCO_CALIBRATION_INTERVAL */
 
 /* Disable UART HW flow control */

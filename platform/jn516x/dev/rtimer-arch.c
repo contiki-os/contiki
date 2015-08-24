@@ -64,7 +64,6 @@ rtimer_arch_run_next(uint32 u32DeviceId, uint32 u32ItemBitmap)
   if(u32DeviceId != RTIMER_TIMER_ISR_DEV) {
     return;
   }
-
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   vAHI_TickTimerIntPendClr();
   vAHI_TickTimerIntEnable(0);
@@ -74,21 +73,21 @@ rtimer_arch_run_next(uint32 u32DeviceId, uint32 u32ItemBitmap)
    */
   delta = u32AHI_TickTimerRead() - compare_time;
   if(0 == (delta >> 28)) {
-      /* compare_time might change after executing rtimer_run_next()
-       * as some process might schedule the timer
-       */
-      temp = compare_time;
+    /* compare_time might change after executing rtimer_run_next()
+     * as some process might schedule the timer
+     */
+    temp = compare_time;
 
-      /* run scheduled */
-      watchdog_start();
-      rtimer_run_next();
+    /* run scheduled */
+    watchdog_start();
+    rtimer_run_next();
 
-      if(process_nevents() > 0) {
-        /* TODO exit low-power mode */
-      }
+    if(process_nevents() > 0) {
+      /* TODO exit low-power mode */
+    }
 
-      watchdog_stop();
-      last_expired_time = temp;
+    watchdog_stop();
+    last_expired_time = temp;
   } else {
     /* No match. Schedule again. */
     vAHI_TickTimerIntEnable(1);
@@ -107,7 +106,6 @@ rtimer_arch_init(void)
   vAHI_TickTimerWrite(0);
   vAHI_TickTimerRegisterCallback(rtimer_arch_run_next);
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
-
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
@@ -133,8 +131,8 @@ rtimer_arch_get_time_until_next_wakeup(void)
   rtimer_clock_t next_wakeup = compare_time;
   if(bAHI_TickTimerIntStatus()) {
     return next_wakeup >= now ? next_wakeup - now : 0;
+    /* if no wakeup is scheduled yet return maximum time */
   }
-  /* if no wakeup is scheduled yet return maximum time */
   return (rtimer_clock_t)-1;
 }
 /*---------------------------------------------------------------------------*/

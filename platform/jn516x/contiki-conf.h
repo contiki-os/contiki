@@ -74,11 +74,9 @@
 #define PROCESS_CONF_NUMEVENTS 8
 #define PROCESS_CONF_STATS 1
 
-
 #if !defined NETSTACK_CONF_WITH_IPV6 && !defined NETSTACK_CONF_WITH_IPV4 && !defined NETSTACK_CONF_WITH_RIME
 #define NETSTACK_CONF_WITH_IPV6 1
 #endif /* NETSTACK_CONF_ not defined */
-
 
 /* Network setup for IP */
 #if NETSTACK_CONF_WITH_IPV4 || NETSTACK_CONF_WITH_IPV6
@@ -103,7 +101,6 @@
 #endif /* QUEUEBUF_CONF_NUM */
 
 #endif /* NETSTACK_CONF_WITH_IPV4 || NETSTACK_CONF_WITH_IPV6 */
-
 
 /* Network setup for IPv6 */
 #if NETSTACK_CONF_WITH_IPV6
@@ -133,7 +130,7 @@
 #define UIP_CONF_MAX_ROUTES   20
 #endif /* UIP_CONF_MAX_ROUTES */
 
-#define UIP_CONF_ND6_SEND_RA		        0
+#define UIP_CONF_ND6_SEND_RA            0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
@@ -147,7 +144,7 @@
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
 #ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE		       1280
+#define UIP_CONF_BUFFER_SIZE           1280
 #endif
 
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
@@ -176,8 +173,8 @@
 #define UIP_CONF_UDP_CONNS       12
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
-#define UIP_ARCH_CHKSUM 				 0
-#define UIP_ARCH_ADD32					 0
+#define UIP_ARCH_CHKSUM          0
+#define UIP_ARCH_ADD32           0
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_PINGADDRCONF    0

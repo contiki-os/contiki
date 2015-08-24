@@ -70,9 +70,9 @@
 #define CHECKSUM_LEN 2
 
 /* Max packet duration: 5 + 127 + 2 bytes, 32us per byte */
-#define MAX_PACKET_DURATION US_TO_RTIMERTICKS((127+2)*32 + RADIO_DELAY_BEFORE_TX)
+#define MAX_PACKET_DURATION US_TO_RTIMERTICKS((127 + 2) * 32 + RADIO_DELAY_BEFORE_TX)
 /* Max ACK duration: 5 + 3 + 2 bytes */
-#define MAX_ACK_DURATION    US_TO_RTIMERTICKS((3+2)*32 + RADIO_DELAY_BEFORE_TX)
+#define MAX_ACK_DURATION    US_TO_RTIMERTICKS((3 + 2) * 32 + RADIO_DELAY_BEFORE_TX)
 
 /* Test-mode pins output on dev-kit */
 #define RADIO_TEST_MODE_HIGH_PWR 1
@@ -112,10 +112,10 @@ struct output_config {
   uint8_t config;
 };
 static const struct output_config output_power[] = {
-  {  2, 3 }, /* 0xff */
+  { 2, 3 },  /* 0xff */
   { -10, 2 }, /* 0xef */
-  {-22,  1 }, /* 0xe7 */
-  {-34,  0 }, /* 0xe3 */
+  { -22, 1 }, /* 0xe7 */
+  { -34, 0 }, /* 0xe3 */
 };
 
 #define OUTPUT_NUM (sizeof(output_power) / sizeof(struct output_config))
@@ -135,11 +135,11 @@ static const struct output_config output_power[] = {
 #define MICROMAC_CONF_ALWAYS_ON 1
 #endif /* MICROMAC_CONF_ALWAYS_ON */
 
-#define BUSYWAIT_UNTIL(cond, max_time)                                  \
-  do {                                                                  \
-    rtimer_clock_t t0;                                                  \
-    t0 = RTIMER_NOW();                                                  \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time)));   \
+#define BUSYWAIT_UNTIL(cond, max_time) \
+  do { \
+    rtimer_clock_t t0; \
+    t0 = RTIMER_NOW(); \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) ; \
   } while(0)
 
 /* Local variables */
@@ -219,7 +219,6 @@ frame802154_get_pan_id()
 {
   return IEEE802154_PANID;
 }
-
 /*----------------------------------------------------------------------------*/
 static void
 frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest_pan_id)
@@ -230,7 +229,6 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
   if(fcf == NULL) {
     return;
   }
-
   if(fcf->frame_version == FRAME802154_IEEE802154E_2012) {
     if(!fcf->panid_compression) {
       /* Compressed PAN ID == no PAN ID at all */
@@ -249,24 +247,23 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
       /* No address included, include dest PAN ID conditionally */
       if(!fcf->panid_compression) {
         dest_pan_id = 1;
+        /* Remove the following rule the day rows 2 and 3 from table 2a are fixed: */
       }
     }
-    /* Remove the following rule the day rows 2 and 3 from table 2a are fixed: */
     if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 0) {
       /* Not meaningful, we include a PAN ID iff the compress flag is set, but
        * this is what the standard currently stipulates */
       dest_pan_id = fcf->panid_compression;
     }
-  } else {
-    /* No PAN ID in ACK */
-    if(fcf->frame_type != FRAME802154_ACKFRAME) {
-      if(!fcf->panid_compression && fcf->src_addr_mode & 3) {
-        /* If compressed, don't inclue source PAN ID */
-        src_pan_id = 1;
-      }
-      if(fcf->dest_addr_mode & 3) {
-        dest_pan_id = 1;
-      }
+  } else
+  /* No PAN ID in ACK */
+  if(fcf->frame_type != FRAME802154_ACKFRAME) {
+    if(!fcf->panid_compression && fcf->src_addr_mode & 3) {
+      /* If compressed, don't inclue source PAN ID */
+      src_pan_id = 1;
+    }
+    if(fcf->dest_addr_mode & 3) {
+      dest_pan_id = 1;
     }
   }
 
@@ -285,7 +282,7 @@ get_packet_timestamp(void)
 {
   /* Save SFD timestamp, converted from radio timer to RTIMER */
   last_packet_timestamp = RTIMER_NOW() -
-      RADIO_TO_RTIMER((uint32_t )(u32MMAC_GetTime() - u32MMAC_GetRxTime()));
+    RADIO_TO_RTIMER((uint32_t)(u32MMAC_GetTime() - u32MMAC_GetRxTime()));
   return last_packet_timestamp;
 }
 /*---------------------------------------------------------------------------*/
@@ -308,7 +305,6 @@ init(void)
   } else {
     vMMAC_EnableInterrupts(&radio_interrupt_handler);
   }
-
   vMMAC_ConfigureRadio();
   set_channel(MICROMAC_CONF_CHANNEL);
   set_txpower(MICROMAC_CONF_TX_POWER);
@@ -335,7 +331,6 @@ init(void)
   } else {
     rx_frame_buffer = &input_array[put_index];
   }
-
   input_frame_buffer = rx_frame_buffer;
 
   process_start(&micromac_radio_process, NULL);
@@ -346,14 +341,14 @@ init(void)
    * and DIO3 goes high during TX
    **/
   vREG_SysWrite(REG_SYS_PWR_CTRL,
-      u32REG_SysRead(REG_SYS_PWR_CTRL)
-      | REG_SYSCTRL_PWRCTRL_RFRXEN_MASK
-      | REG_SYSCTRL_PWRCTRL_RFTXEN_MASK);
+                u32REG_SysRead(REG_SYS_PWR_CTRL)
+                | REG_SYSCTRL_PWRCTRL_RFRXEN_MASK
+                | REG_SYSCTRL_PWRCTRL_RFTXEN_MASK);
 #elif RADIO_TEST_MODE == RADIO_TEST_MODE_ADVANCED
   /* output internal radio status on IO pins.
    * See Chris@NXP email */
   vREG_SysWrite(REG_SYS_PWR_CTRL,
-      u32REG_SysRead(REG_SYS_PWR_CTRL) | (1UL << 26UL));
+                u32REG_SysRead(REG_SYS_PWR_CTRL) | (1UL << 26UL));
 #endif /* TEST_MODE */
 
   return 1;
@@ -365,13 +360,12 @@ on(void)
   /* No address matching or frame decoding */
   if(rx_frame_buffer != NULL) {
     vMMAC_StartPhyReceive(rx_frame_buffer,
-      (uint16_t) (E_MMAC_RX_START_NOW
-                 | E_MMAC_RX_NO_FCS_ERROR) /* means: reject FCS errors */
-      );
+                          (uint16_t)(E_MMAC_RX_START_NOW
+                                     | E_MMAC_RX_NO_FCS_ERROR) /* means: reject FCS errors */
+                          );
   } else {
     missed_radio_on_request = 1;
-  }
-  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  } ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   listen_on = 1;
   return 1;
 }
@@ -407,7 +401,7 @@ transmit(unsigned short payload_len)
 
   /* Transmit and wait */
   vMMAC_StartPhyTransmit(&tx_frame_buffer,
-      E_MMAC_TX_START_NOW | E_MMAC_TX_NO_CCA);
+                         E_MMAC_TX_START_NOW | E_MMAC_TX_NO_CCA);
 
   if(poll_mode) {
     BUSYWAIT_UNTIL(u32MMAC_PollInterruptSource(E_MMAC_INT_TX_COMPLETE), MAX_PACKET_DURATION);
@@ -426,7 +420,6 @@ transmit(unsigned short payload_len)
   if(listen_on) {
     ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   }
-
   tx_in_progress = 0;
 
   /* Check error code */
@@ -447,7 +440,6 @@ transmit(unsigned short payload_len)
   } else {
     ret = RADIO_TX_ERR;
   }
-
   return ret;
 }
 /*---------------------------------------------------------------------------*/
@@ -465,7 +457,6 @@ prepare(const void *payload, unsigned short payload_len)
   if(payload_len > 127 || payload == NULL) {
     return 1;
   }
-
   /* Copy payload to (soft) Ttx buffer */
   memcpy(tx_frame_buffer.uPayload.au8Byte, payload, payload_len);
   i = payload_len;
@@ -546,9 +537,9 @@ is_packet_for_us(uint8_t *buf, int len, int do_send_ack)
       int has_dest_panid;
       frame802154_has_panid(&frame.fcf, NULL, &has_dest_panid);
       if(has_dest_panid
-          && frame802154_get_pan_id() != FRAME802154_BROADCASTPANDID
-          && frame.dest_pid != frame802154_get_pan_id()
-          && frame.dest_pid != FRAME802154_BROADCASTPANDID) {
+         && frame802154_get_pan_id() != FRAME802154_BROADCASTPANDID
+         && frame.dest_pid != frame802154_get_pan_id()
+         && frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         return 0;
       }
@@ -586,8 +577,8 @@ read(void *buf, unsigned short bufsize)
 #if CRC_SW
     uint16_t checksum = crc16_data(input_frame_buffer->uPayload.au8Byte, len, 0);
     radio_last_rx_crc =
-        (uint16_t) (input_frame_buffer->uPayload.au8Byte[len + 1] << (uint16_t) 8)
-            | input_frame_buffer->uPayload.au8Byte[len];
+      (uint16_t)(input_frame_buffer->uPayload.au8Byte[len + 1] << (uint16_t)8)
+      | input_frame_buffer->uPayload.au8Byte[len];
     radio_last_rx_crc_ok = (checksum == radio_last_rx_crc);
     if(!radio_last_rx_crc_ok) {
       RIMESTATS_ADD(badcrc);
@@ -597,7 +588,7 @@ read(void *buf, unsigned short bufsize)
       /* If we are in poll mode we need to check the frame here */
       if(poll_mode) {
         if(frame_filtering &&
-            !is_packet_for_us(input_frame_buffer->uPayload.au8Byte, len, 0)) {
+           !is_packet_for_us(input_frame_buffer->uPayload.au8Byte, len, 0)) {
           len = 0;
         }
       }
@@ -608,8 +599,8 @@ read(void *buf, unsigned short bufsize)
       }
     } else {
       len = 0;
+      /* Disable further read attempts */
     }
-    /* Disable further read attempts */
     input_frame_buffer->u8PayloadLength = 0;
   }
 
@@ -652,10 +643,10 @@ static int
 pending_packet(void)
 {
   if(!poll_mode) {
-    return (ringbufindex_peek_get(&input_ringbuf) != -1);
+    return ringbufindex_peek_get(&input_ringbuf) != -1;
   } else {
     return u32MMAC_PollInterruptSource(
-        E_MMAC_INT_RX_COMPLETE | E_MMAC_INT_RX_HEADER);
+             E_MMAC_INT_RX_COMPLETE | E_MMAC_INT_RX_HEADER);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -663,8 +654,8 @@ static int
 cca(void)
 {
   bool_t isChannelBusy = bJPT_CCA(current_channel,
-      E_JPT_CCA_MODE_CARRIER_OR_ENERGY,
-      cca_thershold);
+                                  E_JPT_CCA_MODE_CARRIER_OR_ENERGY,
+                                  cca_thershold);
   return isChannelBusy == FALSE;
 }
 /*---------------------------------------------------------------------------*/
@@ -712,7 +703,6 @@ radio_interrupt_handler(uint32 mac_event)
           if((get_index = ringbufindex_peek_get(&input_ringbuf)) != -1) {
             input_frame_buffer = &input_array[get_index];
           }
-
           process_poll(&micromac_radio_process);
 
           /* get pointer to next input slot */
@@ -740,7 +730,7 @@ radio_interrupt_handler(uint32 mac_event)
   if(overflow) {
     off();
   } else if(MICROMAC_CONF_ALWAYS_ON
-      && (mac_event & (E_MMAC_INT_TX_COMPLETE | E_MMAC_INT_RX_COMPLETE))) {
+            && (mac_event & (E_MMAC_INT_TX_COMPLETE | E_MMAC_INT_RX_COMPLETE))) {
     on();
   }
 }
@@ -810,7 +800,7 @@ set_poll_mode(uint8_t enable)
     /* Initialize and enable interrupts */
     /* TODO: enable E_MMAC_INT_RX_HEADER & filter out frames after header rx */
     vMMAC_ConfigureInterruptSources(
-        E_MMAC_INT_RX_COMPLETE | E_MMAC_INT_TX_COMPLETE);
+      E_MMAC_INT_RX_COMPLETE | E_MMAC_INT_TX_COMPLETE);
     vMMAC_EnableInterrupts(&radio_interrupt_handler);
   }
 }
@@ -903,15 +893,13 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RX_MODE:
     if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
-        RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
+                 RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-
     if(((value & RADIO_RX_MODE_AUTOACK) != 0) != MICROMAC_CONF_AUTOACK) {
       /* We do not support runtime enabling/disabling of autoack */
       return RADIO_RESULT_INVALID_VALUE;
     }
-
     set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
     set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
 
@@ -919,8 +907,8 @@ set_value(radio_param_t param, radio_value_t value)
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
+      /* Find the closest higher PA_LEVEL for the desired output power */
     }
-    /* Find the closest higher PA_LEVEL for the desired output power */
     for(i = 1; i < OUTPUT_NUM; i++) {
       if(value > output_power[i].power) {
         break;
@@ -943,8 +931,7 @@ get_object(radio_param_t param, void *dest, size_t size)
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-
-    *(rtimer_clock_t*)dest = get_packet_timestamp();
+    *(rtimer_clock_t *)dest = get_packet_timestamp();
 
     return RADIO_RESULT_OK;
   }

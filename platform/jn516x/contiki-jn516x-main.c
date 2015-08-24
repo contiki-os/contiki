@@ -70,26 +70,25 @@
 #include "MMAC.h"
 /* Includes depending on connected sensor boards */
 #if SENSOR_BOARD_DR1175
-  #include "light-sensor.h"
-  #include "ht-sensor.h"
-  SENSORS(&light_sensor, &ht_sensor);
+#include "light-sensor.h"
+#include "ht-sensor.h"
+SENSORS(&light_sensor, &ht_sensor);
 #elif SENSOR_BOARD_DR1199
-  #include "button-sensor.h"
-  #include "pot-sensor.h"
-  SENSORS(&pot_sensor, &button_sensor);
+#include "button-sensor.h"
+#include "pot-sensor.h"
+SENSORS(&pot_sensor, &button_sensor);
 #else
-  #include "dev/button-sensor.h"	
-  /* #include "dev/pir-sensor.h" */
-  /* #include "dev/vib-sensor.h" */
-  /* &pir_sensor, &vib_sensor */
-  SENSORS(&button_sensor);
- #endif
+#include "dev/button-sensor.h"
+/* #include "dev/pir-sensor.h" */
+/* #include "dev/vib-sensor.h" */
+/* &pir_sensor, &vib_sensor */
+SENSORS(&button_sensor);
+#endif
 unsigned char node_mac[8];
 
 /* Symbol defined by the linker script
  * marks the end of the stack taking into account the used heap  */
 extern uint32_t heap_location;
-
 
 #ifndef NETSTACK_CONF_WITH_IPV4
 #define NETSTACK_CONF_WITH_IPV4 0
@@ -101,9 +100,9 @@ extern uint32_t heap_location;
 #include "net/ipv4/uip-fw-drv.h"
 #include "net/ipv4/uip-over-mesh.h"
 static struct uip_fw_netif slipif =
-  {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+{ UIP_FW_NETIF(192, 168, 1, 2, 255, 255, 255, 255, slip_send) };
 static struct uip_fw_netif meshif =
-  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
+{ UIP_FW_NETIF(172, 16, 0, 0, 255, 255, 0, 0, uip_over_mesh_send) };
 
 #define UIP_OVER_MESH_CHANNEL 8
 static uint8_t is_gateway;
@@ -116,7 +115,7 @@ static uint8_t is_gateway;
 /*---------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
-#define PRINTF(...) do {printf(__VA_ARGS__);} while(0)
+#define PRINTF(...) do { printf(__VA_ARGS__); } while(0)
 #else
 #define PRINTF(...) do {} while(0)
 #endif
@@ -141,7 +140,7 @@ init_node_mac(void)
 /*---------------------------------------------------------------------------*/
 #if !PROCESS_CONF_NO_PROCESS_NAMES
 static void
-print_processes(struct process * const processes[])
+print_processes(struct process *const processes[])
 {
   /*  const struct process * const * p = processes;*/
   PRINTF("Starting");
@@ -160,9 +159,9 @@ set_gateway(void)
   if(!is_gateway) {
     leds_on(LEDS_RED);
     printf("%d.%d: making myself the IP network gateway.\n\n",
-     linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
+           linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
     printf("IPv4 address of the gateway: %d.%d.%d.%d\n\n",
-     uip_ipaddr_to_quad(&uip_hostaddr));
+           uip_ipaddr_to_quad(&uip_hostaddr));
     uip_over_mesh_set_gateway(&linkaddr_node_addr);
     uip_over_mesh_make_announced_gateway();
     is_gateway = 1;
@@ -202,8 +201,8 @@ start_uip6(void)
     for(i = 0; i < 7; ++i) {
       PRINTF("%02x%02x:", lladdr->ipaddr.u8[i * 2],
              lladdr->ipaddr.u8[i * 2 + 1]);
+      /* make it hardcoded... */
     }
-    /* make it hardcoded... */
     lladdr->state = ADDR_AUTOCONF;
 
     PRINTF("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
@@ -278,8 +277,8 @@ init_xosc(void)
   clock_time_t start = clock_time();
   clock_time_t now;
   do {
-      now = clock_time();
-      watchdog_periodic();
+    now = clock_time();
+    watchdog_periodic();
   } while(now - start < CLOCK_SECOND);
   /* switch to the 32.768 kHz crystal */
   return bAHI_Set32KhzClockMode(E_AHI_XTAL);
@@ -339,9 +338,8 @@ main(void)
 
   /* check for reset source */
   if(bAHI_WatchdogResetEvent()) {
-		PRINTF("Init: Watchdog timer has reset device!\r\n");
-	}
-
+    PRINTF("Init: Watchdog timer has reset device!\r\n");
+  }
   process_start(&etimer_process, NULL);
   set_linkaddr();
   netstack_init();
@@ -363,7 +361,6 @@ main(void)
   } else {
     PRINTF("Node id is not set.\n");
   }
-
 #if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
   queuebuf_init();
@@ -393,9 +390,9 @@ main(void)
 
     uip_init();
 
-    uip_ipaddr(&hostaddr, 172,16,
-         linkaddr_node_addr.u8[0],linkaddr_node_addr.u8[1]);
-    uip_ipaddr(&netmask, 255,255,0,0);
+    uip_ipaddr(&hostaddr, 172, 16,
+               linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1]);
+    uip_ipaddr(&netmask, 255, 255, 0, 0);
     uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
 
     uip_sethostaddr(&hostaddr);
@@ -406,7 +403,7 @@ main(void)
     uip_fw_default(&meshif);
     uip_over_mesh_init(UIP_OVER_MESH_CHANNEL);
     PRINTF("uIP started with IP address %d.%d.%d.%d\n",
-     uip_ipaddr_to_quad(&hostaddr));
+           uip_ipaddr_to_quad(&hostaddr));
   }
 #endif /* NETSTACK_CONF_WITH_IPV4 */
 
@@ -418,7 +415,7 @@ main(void)
   while(1) {
     do {
       /* Reset watchdog. */
-    	watchdog_periodic();
+      watchdog_periodic();
       r = process_run();
     } while(r > 0);
     /*
@@ -433,7 +430,7 @@ main(void)
      *  */
     static unsigned long last_dco_calibration_time = 0;
     if(clock_seconds() - last_dco_calibration_time > DCOSYNCH_PERIOD) {
-      if(rtimer_arch_get_time_until_next_wakeup() > RTIMER_SECOND/2000) {
+      if(rtimer_arch_get_time_until_next_wakeup() > RTIMER_SECOND / 2000) {
         /* PRINTF("ContikiMain: Calibrating the DCO\n"); */
         eAHI_AttemptCalibration();
         last_dco_calibration_time = clock_seconds();

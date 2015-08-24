@@ -78,6 +78,6 @@ rpl_tools_init(uip_ipaddr_t *br_prefix)
   }
 
   NETSTACK_MAC.on();
-  
+
   print_local_addresses();
 }

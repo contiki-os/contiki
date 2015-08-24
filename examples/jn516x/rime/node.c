@@ -68,9 +68,9 @@ timedout_runicast(struct runicast_conn *c, const linkaddr_t *to, uint8_t retrans
   printf("runicast message timed out when sending to %d.%d, retransmissions %d\n",
          to->u8[0], to->u8[1], retransmissions);
 }
-static const struct runicast_callbacks runicast_callbacks = {recv_runicast,
-                                                             sent_runicast,
-                                                             timedout_runicast};
+static const struct runicast_callbacks runicast_callbacks = { recv_runicast,
+                                                              sent_runicast,
+                                                              timedout_runicast };
 static struct runicast_conn runicast;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(unicast_test_process, ev, data)
@@ -86,7 +86,6 @@ PROCESS_THREAD(unicast_test_process, ev, data)
      linkaddr_node_addr.u8[1] == RX_ADDR2) {
     puts("wait forever");
   }
-
   while(1) {
     static struct etimer et;
     static int seqno;
@@ -96,13 +95,13 @@ PROCESS_THREAD(unicast_test_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
     if(linkaddr_node_addr.u8[0] == RX_ADDR1 &&
-        linkaddr_node_addr.u8[1] == RX_ADDR2) {
+       linkaddr_node_addr.u8[1] == RX_ADDR2) {
       puts("tick...");
       continue;
     }
 
     if(!runicast_is_transmitting(&runicast)) {
-      linkaddr_t recv = {0};
+      linkaddr_t recv = { 0 };
       static char buffer[100] = "hello";
 
       packetbuf_copyfrom(buffer, sizeof(buffer));

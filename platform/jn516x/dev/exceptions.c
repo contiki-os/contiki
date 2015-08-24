@@ -1,37 +1,37 @@
 /*
-* Copyright (c) 2015 NXP B.V.
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions
-* are met:
-* 1. Redistributions of source code must retain the above copyright
-*    notice, this list of conditions and the following disclaimer.
-* 2. Redistributions in binary form must reproduce the above copyright
-*    notice, this list of conditions and the following disclaimer in the
-*    documentation and/or other materials provided with the distribution.
-* 3. Neither the name of NXP B.V. nor the names of its contributors
-*    may be used to endorse or promote products derived from this software
-*    without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY NXP B.V. AND CONTRIBUTORS ``AS IS'' AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED.  IN NO EVENT SHALL NXP B.V. OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-* OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-* HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-* LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-* OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-* SUCH DAMAGE.
-*
-* This file is part of the Contiki operating system.
-*
-* Author: Thomas Haydon
-* Integrated into Contiki by Beshr Al Nahas 
-*
-*/
+ * Copyright (c) 2015 NXP B.V.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of NXP B.V. nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY NXP B.V. AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL NXP B.V. OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
+ * Author: Thomas Haydon
+ * Integrated into Contiki by Beshr Al Nahas
+ *
+ */
 
 #include <jendefs.h>
 #include <AppHardwareApi.h>
@@ -53,7 +53,7 @@
 
 /** Define to dump registers on exception */
 #ifndef EXC_DUMP_REGS
-//#define EXC_DUMP_REGS
+/* #define EXC_DUMP_REGS */
 #endif /* EXC_DUMP_REGS */
 
 /* Select whether exception vectors should be in RAM or Flash based on chip family */
@@ -95,9 +95,9 @@
 
 /* Chip dependant RAM size */
 #if defined(JENNIC_CHIP_JN5148) || defined(JENNIC_CHIP_JN5148J01)
-  #define EXCEPTION_RAM_TOP 0x04020000
+#define EXCEPTION_RAM_TOP 0x04020000
 #else
-  #define EXCEPTION_RAM_TOP 0x04008000
+#define EXCEPTION_RAM_TOP 0x04008000
 #endif
 
 static void exception_handler(uint32 *pu32Stack, eExceptionType eType);
@@ -116,10 +116,9 @@ static int debug_line = -1;
 void
 debug_file_line(const char *file, int line)
 {
-	debug_filename = file;
-	debug_line = line;
+  debug_filename = file;
+  debug_line = line;
 }
-
 extern uint32 heap_location;
 extern void *(*prHeap_AllocFunc)(void *, uint32, bool_t);
 PRIVATE void *(*prHeap_AllocOrig)(void *, uint32, bool_t);
@@ -177,57 +176,57 @@ printstring(const char *s)
  * None
  *
  ****************************************************************************/
-PUBLIC void vEXC_Register(void)
+PUBLIC void
+vEXC_Register(void)
 {
 #ifdef EXCEPTION_VECTORS_LOCATION_RAM
-	/* Overwrite exception vectors, pointing them all at the generic handler */
-	BUS_ERROR			= (uint32)exception_handler;
-	UNALIGNED_ACCESS	= (uint32)exception_handler;
-	ILLEGAL_INSTRUCTION	= (uint32)exception_handler;
-	SYSCALL				= (uint32)exception_handler;
-	TRAP				= (uint32)exception_handler;
-	GENERIC				= (uint32)exception_handler;
-	STACK_OVERFLOW		= (uint32)exception_handler;
+  /* Overwrite exception vectors, pointing them all at the generic handler */
+  BUS_ERROR = (uint32)exception_handler;
+  UNALIGNED_ACCESS = (uint32)exception_handler;
+  ILLEGAL_INSTRUCTION = (uint32)exception_handler;
+  SYSCALL = (uint32)exception_handler;
+  TRAP = (uint32)exception_handler;
+  GENERIC = (uint32)exception_handler;
+  STACK_OVERFLOW = (uint32)exception_handler;
 #endif /* EXCEPTION_VECTORS_LOCATION */
 
   prHeap_AllocOrig = prHeap_AllocFunc;
   prHeap_AllocFunc = heap_alloc_overflow_protect;
 }
-
 #ifdef EXCEPTION_VECTORS_LOCATION_FLASH
 /* If exception vectors are in flash, define the handler functions here to be linked in */
 /* These function names are defined in the 6x linker script for the various exceptions */
 /* Point them all at the generic handler */
-PUBLIC void vException_BusError(uint32 *pu32Stack, eExceptionType eType)
+PUBLIC void
+vException_BusError(uint32 *pu32Stack, eExceptionType eType)
 {
-    exception_handler(pu32Stack, eType);
+  exception_handler(pu32Stack, eType);
 }
-
-PUBLIC void vException_UnalignedAccess(uint32 *pu32Stack, eExceptionType eType)
+PUBLIC void
+vException_UnalignedAccess(uint32 *pu32Stack, eExceptionType eType)
 {
-    exception_handler(pu32Stack, eType);
+  exception_handler(pu32Stack, eType);
 }
-
-PUBLIC void vException_IllegalInstruction(uint32 *pu32Stack, eExceptionType eType)
+PUBLIC void
+vException_IllegalInstruction(uint32 *pu32Stack, eExceptionType eType)
 {
-    exception_handler(pu32Stack, eType);
+  exception_handler(pu32Stack, eType);
 }
-
-PUBLIC void vException_SysCall(uint32 *pu32Stack, eExceptionType eType)
+PUBLIC void
+vException_SysCall(uint32 *pu32Stack, eExceptionType eType)
 {
-    exception_handler(pu32Stack, eType);
+  exception_handler(pu32Stack, eType);
 }
-
-PUBLIC void vException_Trap(uint32 *pu32Stack, eExceptionType eType)
+PUBLIC void
+vException_Trap(uint32 *pu32Stack, eExceptionType eType)
 {
-    exception_handler(pu32Stack, eType);
+  exception_handler(pu32Stack, eType);
 }
-
-PUBLIC void vException_StackOverflow(uint32 *pu32Stack, eExceptionType eType)
+PUBLIC void
+vException_StackOverflow(uint32 *pu32Stack, eExceptionType eType)
 {
-    exception_handler(pu32Stack, eType);
+  exception_handler(pu32Stack, eType);
 }
-
 #endif /* EXCEPTION_VECTORS_LOCATION_FLASH */
 
 /****************************************************************************
@@ -243,72 +242,73 @@ PUBLIC void vException_StackOverflow(uint32 *pu32Stack, eExceptionType eType)
  * None
  *
  ****************************************************************************/
-static void exception_handler(uint32 *pu32Stack, eExceptionType eType)
+static void
+exception_handler(uint32 *pu32Stack, eExceptionType eType)
 {
 #if (defined EXC_DUMP_STACK) || (defined EXC_DUMP_REGS)
-	int i;
+  int i;
 #endif
-	uint32 u32EPCR, u32EEAR, u32Stack;
-	char *pcString;
+  uint32 u32EPCR, u32EEAR, u32Stack;
+  char *pcString;
 
-	MICRO_DISABLE_INTERRUPTS();
+  MICRO_DISABLE_INTERRUPTS();
 
-	switch(eType) {
-	case E_EXC_BUS_ERROR:
-		pcString = "BUS";
-		break;
+  switch(eType) {
+  case E_EXC_BUS_ERROR:
+    pcString = "BUS";
+    break;
 
-	case E_EXC_UNALIGNED_ACCESS:
-		pcString = "ALIGN";
-		break;
+  case E_EXC_UNALIGNED_ACCESS:
+    pcString = "ALIGN";
+    break;
 
-	case E_EXC_ILLEGAL_INSTRUCTION:
-		pcString = "ILLEGAL";
-		break;
+  case E_EXC_ILLEGAL_INSTRUCTION:
+    pcString = "ILLEGAL";
+    break;
 
-	case E_EXC_SYSCALL:
-		pcString = "SYSCALL";
-		break;
+  case E_EXC_SYSCALL:
+    pcString = "SYSCALL";
+    break;
 
-	case E_EXC_TRAP:
-		pcString = "TRAP";
-		break;
+  case E_EXC_TRAP:
+    pcString = "TRAP";
+    break;
 
-	case E_EXC_GENERIC:
-		pcString = "GENERIC";
-		break;
+  case E_EXC_GENERIC:
+    pcString = "GENERIC";
+    break;
 
-	case E_EXC_STACK_OVERFLOW:
-		pcString = "STACK";
-		break;
+  case E_EXC_STACK_OVERFLOW:
+    pcString = "STACK";
+    break;
 
-	default:
-		pcString = "UNKNOWN";
-		break;
-	}
+  default:
+    pcString = "UNKNOWN";
+    break;
+  }
 
   if(bAHI_WatchdogResetEvent()) {
-  	pcString = "WATCHDOG";
+    pcString = "WATCHDOG";
   }
   vAHI_WatchdogStop();
 
-	/* Pull the EPCR and EEAR values from where they've been saved by the ROM exception handler */
-	u32EPCR = pu32Stack[PROGRAM_COUNTER];
-	u32EEAR = pu32Stack[EFFECTIVE_ADDR];
-	u32Stack = pu32Stack[STACK_REG];
+  /* Pull the EPCR and EEAR values from where they've been saved by the ROM exception handler */
+  u32EPCR = pu32Stack[PROGRAM_COUNTER];
+  u32EEAR = pu32Stack[EFFECTIVE_ADDR];
+  u32Stack = pu32Stack[STACK_REG];
 
-	/* Log the exception */
-	printstring("\n\n\n");
-	printstring(pcString);
-	printstring(" EXCEPTION @ $");
-	hexprint32(u32EPCR);
-	printstring("  EA: ");
-	hexprint32(u32EEAR);
-	printstring("  SK: ");
-	hexprint32(u32Stack);
-	printstring("  HP: ");
-	hexprint32(((uint32 *)&heap_location)[0]);
-	printstring("\n");
+  /* Log the exception */
+  printstring("\n\n\n");
+  printstring(pcString);
+  printstring(" EXCEPTION @ $");
+  hexprint32(u32EPCR);
+  printstring("  EA: ");
+  hexprint32(u32EEAR);
+  printstring("  SK: ");
+  hexprint32(u32Stack);
+  printstring("  HP: ");
+  hexprint32(((uint32 *)&heap_location)[0]);
+  printstring("\n");
   printstring(" File: ");
   printstring(debug_filename);
   printstring(" Line: ");
@@ -316,53 +316,53 @@ static void exception_handler(uint32 *pu32Stack, eExceptionType eType)
   printstring("\n");
 
 #ifdef EXC_DUMP_REGS
-	printstring("\nREGS: ");
-    /* Pull and print the registers from saved locations */
-    for(i = 0; i < REG_COUNT; i += 4) {
-    	printstring("R");
-    	hexprint(i);
-    	printstring("-");
-    	hexprint(i+3);
-    	printstring(": ");
-    	hexprint(pu32Stack[i]);
-    	printstring("  ");
-    	hexprint32(pu32Stack[i+1]);
-    	printstring("  ");
-    	hexprint32(pu32Stack[i+2]);
-    	printstring("  ");
-    	hexprint32(pu32Stack[i+3]);
-    	printstring("\n");
-    }
+  printstring("\nREGS: ");
+  /* Pull and print the registers from saved locations */
+  for(i = 0; i < REG_COUNT; i += 4) {
+    printstring("R");
+    hexprint(i);
+    printstring("-");
+    hexprint(i + 3);
+    printstring(": ");
+    hexprint(pu32Stack[i]);
+    printstring("  ");
+    hexprint32(pu32Stack[i + 1]);
+    printstring("  ");
+    hexprint32(pu32Stack[i + 2]);
+    printstring("  ");
+    hexprint32(pu32Stack[i + 3]);
+    printstring("\n");
+  }
 #endif
 
 #ifdef EXC_DUMP_STACK
-    /* Print the stack */
-  	printstring("\nRAM top: ");
-  	hexprint32(EXCEPTION_RAM_TOP);
-    printstring("\nSTACK: \n");
-    pu32Stack = (uint32 *)(u32Stack & 0xFFFFFFF0);
-	for(i = 0; (pu32Stack + i) < (uint32 *)(EXCEPTION_RAM_TOP); i += 4)
-	{
-  	printstring("@");
-  	hexprint32((uint32)(pu32Stack + i));
-  	printstring(": ");
-  	hexprint32(pu32Stack[i]);
-  	printstring("  ");
-  	hexprint32(pu32Stack[i+1]);
-  	printstring("  ");
-  	hexprint32(pu32Stack[i+2]);
-  	printstring("  ");
-  	hexprint32(pu32Stack[i+3]);
-  	printstring("\n");
-	}
+  /* Print the stack */
+  printstring("\nRAM top: ");
+  hexprint32(EXCEPTION_RAM_TOP);
+  printstring("\nSTACK: \n");
+  pu32Stack = (uint32 *)(u32Stack & 0xFFFFFFF0);
+  for(i = 0; (pu32Stack + i) < (uint32 *)(EXCEPTION_RAM_TOP); i += 4) {
+    printstring("@");
+    hexprint32((uint32)(pu32Stack + i));
+    printstring(": ");
+    hexprint32(pu32Stack[i]);
+    printstring("  ");
+    hexprint32(pu32Stack[i + 1]);
+    printstring("  ");
+    hexprint32(pu32Stack[i + 2]);
+    printstring("  ");
+    hexprint32(pu32Stack[i + 3]);
+    printstring("\n");
+  }
 #endif
 
 #if EXCEPTION_STALLS_SYSTEM
-  while(1) {};
+  while(1) {
+  }
 #else /* EXCEPTION_STALLS_SYSTEM */
-	/* Software reset */
-	vAHI_WatchdogException(0);
-	vAHI_SwReset();
+  /* Software reset */
+  vAHI_WatchdogException(0);
+  vAHI_SwReset();
 #endif /* EXCEPTION_STALLS_SYSTEM */
 }
 

@@ -62,21 +62,18 @@ uart0_active(void)
 {
   return uart_driver_tx_in_progress(E_AHI_UART_0);
 }
-
 void
 uart0_set_input(int
-(*input)(unsigned char c))
+                (*input)(unsigned char c))
 {
   uart0_input = input;
   uart_driver_set_input(E_AHI_UART_0, uart0_input);
 }
-
 void
 uart0_writeb(unsigned char c)
 {
   uart_driver_write_buffered(E_AHI_UART_0, c);
 }
-
 void
 uart0_init(uint8_t br)
 {

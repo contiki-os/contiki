@@ -47,7 +47,7 @@ void
 leds_arch_init(void)
 {
   vGenericLEDInit();
-  leds=0;
+  leds = 0;
 }
 /*---------------------------------------------------------------------------*/
 unsigned char
@@ -60,8 +60,7 @@ void
 leds_arch_set(unsigned char c)
 {
   leds = c;
-  vGenericLEDSetOutput(GEN_BOARD_LED_D1_VAL, leds&LEDS_GREEN);
-  vGenericLEDSetOutput(GEN_BOARD_LED_D2_VAL, leds&LEDS_BLUE);
-  vGenericLEDSetOutput(GEN_BOARD_LED_D3_VAL, leds&LEDS_RED);
+  vGenericLEDSetOutput(GEN_BOARD_LED_D1_VAL, leds & LEDS_GREEN);
+  vGenericLEDSetOutput(GEN_BOARD_LED_D2_VAL, leds & LEDS_BLUE);
+  vGenericLEDSetOutput(GEN_BOARD_LED_D3_VAL, leds & LEDS_RED);
 }
-
