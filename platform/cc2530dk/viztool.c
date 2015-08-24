@@ -127,8 +127,8 @@ process_request() CC_NON_BANKED
       if(rt != NULL) {
         entry_size = sizeof(i) + sizeof(rt->ipaddr)
           + sizeof(rt->length)
-          + sizeof(rt->state.lifetime)
-          + sizeof(rt->state.learned_from);
+          + sizeof(rt->state.lifetime);
+          /* + sizeof(rt->state.learned_from); */
 
         memcpy(buf + len, &i, sizeof(i));
         len += sizeof(i);
@@ -147,11 +147,11 @@ process_request() CC_NON_BANKED
         len += sizeof(flip);
         PRINTF(" - %08lx", rt->state.lifetime);
 
-        memcpy(buf + len, &rt->state.learned_from,
-               sizeof(rt->state.learned_from));
-        len += sizeof(rt->state.learned_from);
+        /* memcpy(buf + len, &rt->state.learned_from, */
+        /*        sizeof(rt->state.learned_from)); */
+        /* len += sizeof(rt->state.learned_from); */
 
-        PRINTF(" - %02x [%u]\n", rt->state.learned_from, entry_size);
+        PRINTF(" - [%u]\n", entry_size);
 
         count++;
         left -= entry_size;
