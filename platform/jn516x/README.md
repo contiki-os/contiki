@@ -1,10 +1,10 @@
 NXP JN516x platform
 ============================================
 
-The JN516x series is a range of ultra low power, high performance wireless microcontrollers from NXP. They feature an enhanced 32-bit RISC processor (256kB/32kB/4kB Flash/RAM/EEPROM for JN5168), and also include a 2.4GHz IEEE802.15.4 compliant transceiver.
+The JN516x series is a range of ultra low power, high performance wireless microcontrollers from NXP. They feature an enhanced 32-bit RISC processor (256kB/32kB/4kB Flash/RAM/EEPROM for JN5168), and also include a 2.4GHz IEEE802.15.4-compliant transceiver.
 These system on chip (SoC) devices have the following main [features][jn516x-datasheet]:
-* 32-bit RISC CPU, 1 to 32MHz clock speed
-* 2.4GHz IEEE802.15.4 compliant transceiver
+* 32-bit RISC CPU (Beyond Architecture -- BA), 1 to 32MHz clock speed
+* 2.4GHz IEEE802.15.4-compliant transceiver
 * 128-bit AES security processor
 * MAC accelerator with packet formatting, CRCs, address check, auto-acks, timers
 * Transmit power 2.5dBm
@@ -20,6 +20,19 @@ These system on chip (SoC) devices have the following main [features][jn516x-dat
 * Infra-red remote control transmitter
 * Peripherals: I2C, SPI, 2x UART, 4-input 10-bit ADC, comparator, 5x PWM
 
+Contact and Maintainers
+============================================
+
+Long-term maintainers:
+* Theo Van Daele, NXP, theo.van.daele@nxp.com, https://github.com/TeVeDe
+* Simon Duquennoy, SICS, simonduq@sics.se, https://github.com/simonduq/
+
+Other contributors:
+* Beshr Al Nahas, Chalmers Univ, beshr@chalmers.se, https://github.com/beshrns
+* Atis Elsts, SICS, atis.elsts@sics.se, https://github.com/atiselsts/
+
+Additional long-term contact:
+* Hugh Maaskan, NXP, hugh.maaskant@nxp.com, https://github.com/hugh-maaskant
 
 Port Features
 =============
@@ -27,13 +40,12 @@ The following features have been implemented:
   * A radio driver with two modes (polling and interrupt based)
   * CCM* driver with HW accelerated AES
   * UART driver (with HW and SW flow control, 1'000'000 baudrate by default)
-  * Contiki system clock and rtimers (16MHz tick frequency)
-  * Periodic DCO recalibration
-  * Random number generator initialization from HW
-  * Watchdog (in watchdog mode)
-  * JN516x HW exception handlers
+  * Contiki system clock and rtimers (16MHz tick frequency based on 32 MHz crystal)
   * 32.768kHz external oscillator
-  * CPU "doze" mode support
+  * Periodic DCO recalibration
+  * CPU "doze" mode
+  * HW random number generator used as a random seed for pseudo-random generator
+  * Watchdog, JN516x HW exception handlers
 
 The following hardware platforms have been tested:
   * USB dongle
@@ -44,16 +56,16 @@ The following hardware platforms have been tested:
 TODO list
 =========
 The following features are planned:
-  * CPU sleep mode support
+  * CPU deeper sleep mode support (where the 32 MHz crystal is turned off)
+  * Time-accurate radio primitives ("send at", "listen until")
   * External storage
 
 Requirements
 ============
 To start using JN516x with Contiki, the following are required:
- * A toolchain to compile Contiki for JN516x.
- * Drivers so that your OS can communicate with your hardware.
- * Software to upload images to the JN516x.
-
+ * A toolchain to compile Contiki for JN516x (`ba-elf-gcc`)
+ * The JN516x Software Development Kit (libraries)
+ * Software to upload images to the JN516x
 
 Install a Toolchain
 -------------------
@@ -67,18 +79,6 @@ The recommended installation locations for the toolchain are:
 * On Windows: `C:/NXP/bstudio_nxp/`
 
 The example applications in this port have been tested with compiler version `gcc-4.7.4-ba-r36379`.
-
-Drivers
--------
-The JN516x platforms feature FTDI serial-to-USB modules. The driver is commonly found in most OS, but if required it can be downloaded from <http://www.ftdichip.com/Drivers/VCP.htm>
- 
-
-### Device Enumerations
-For the UART, serial line settings are 1000000 8N1, no flow control.
-
-Once all drivers have been installed correctly:
-* On Windows, devices will appear as a virtual COM port.
-* On Linux and OS X, devices will appear as `/dev/tty*`.
 
 Software to Program the Nodes
 -----------------------------
