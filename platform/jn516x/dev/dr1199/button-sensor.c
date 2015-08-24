@@ -212,10 +212,10 @@ PROCESS_THREAD(key_sampling, ev, data)
       etimer_reset(&et);
     } else {
       /* ev == PROCESS_EVENT_MSG */
-      if(*(int *)data == BUTTONS_STATUS_NOT_ACTIVE) {
+      if(*(buttons_status_t *)data == BUTTONS_STATUS_NOT_ACTIVE) {
         /* Stop sampling */
         etimer_stop(&et);
-      } else if((*(int *)data == BUTTONS_STATUS_ACTIVE)) {
+      } else if((*(buttons_status_t *)data == BUTTONS_STATUS_ACTIVE)) {
         /* restart sampling */
         etimer_restart(&et);
       }
