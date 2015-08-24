@@ -1,3 +1,4 @@
+<<<<<<< 1d90b9290e293eedcb6451dd86c474ec168f688c
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
   <project EXPORT="discard">[APPS_DIR]/mrm</project>
@@ -7058,4 +7059,3 @@ while(true) {&#xD;
     <location_y>43</location_y>
   </plugin>
 </simconf>
-
