@@ -20,19 +20,19 @@ These system on chip (SoC) devices have the following main [features][jn516x-dat
 * Infra-red remote control transmitter
 * Peripherals: I2C, SPI, 2x UART, 4-input 10-bit ADC, comparator, 5x PWM
 
-Contact and Maintainers
+Maintainers and Contact
 ============================================
 
 Long-term maintainers:
-* Theo Van Daele, NXP, theo.van.daele@nxp.com, https://github.com/TeVeDe
-* Simon Duquennoy, SICS, simonduq@sics.se, https://github.com/simonduq/
+* Theo Van Daele, NXP, theo.van.daele@nxp.com, github user [TeVeDe](https://github.com/TeVeDe)
+* Simon Duquennoy, SICS, simonduq@sics.se, github user [simonduq](https://github.com/simonduq)
 
 Other contributors:
-* Beshr Al Nahas, Chalmers Univ, beshr@chalmers.se, https://github.com/beshrns
-* Atis Elsts, SICS, atis.elsts@sics.se, https://github.com/atiselsts/
+* Beshr Al Nahas, Chalmers Univ, beshr@chalmers.se, github user [beshrns](https://github.com/beshrns)
+* Atis Elsts, SICS, atis.elsts@sics.se, github user [atiselsts](https://github.com/atiselsts)
 
 Additional long-term contact:
-* Hugh Maaskan, NXP, hugh.maaskant@nxp.com, https://github.com/hugh-maaskant
+* Hugh Maaskan, NXP, hugh.maaskant@nxp.com, github user [hugh-maaskant](https://github.com/hugh-maaskant)
 
 Port Features
 =============
@@ -48,10 +48,10 @@ The following features have been implemented:
   * Watchdog, JN516x HW exception handlers
 
 The following hardware platforms have been tested:
-  * USB dongle
   * DR1174 evaluation board (with a button sensor)
   * DR1175 sensor board (with humidity/temperature and light sensors)
   * DR1199 sensor board (with potentiometer and button sensors)
+  * USB dongle
 
 TODO list
 =========
@@ -63,38 +63,31 @@ The following features are planned:
 Requirements
 ============
 To start using JN516x with Contiki, the following are required:
- * A toolchain to compile Contiki for JN516x (`ba-elf-gcc`)
- * The JN516x Software Development Kit (libraries)
+ * The toolchain and Software Development Kit to compile Contiki for JN516x
  * Software to upload images to the JN516x
 
 Install a Toolchain
 -------------------
 
 The toolchain used to build Contiki for JN516x is `ba-elf-gcc`.
-
-The compiler as well as the binary libraries required to link the executables can be downloaded from NXP. To express your interest in obtaining them, go to [NXP 802.15.4 software page][NXP-802.15.4-software], select the required SDK (for example, JN-SW-4163 for Windows development), and contact the NXP support through the web form. The download link is then obtained via e-mail (allow 1+ working day for a reply).
-
-The recommended installation locations for the toolchain are:
-* On Linux: `/usr/jn-toolchain/`
-* On Windows: `C:/NXP/bstudio_nxp/`
-
+The compiler as well as the binary libraries required to link the executables can be downloaded from NXP. To express your interest in obtaining them, go to [NXP 802.15.4 software page][NXP-802.15.4-software], select "JN-SW-4163", and contact the NXP support through the web form. The download link is then obtained via e-mail (allow 1+ working day for a reply).
 The example applications in this port have been tested with compiler version `gcc-4.7.4-ba-r36379`.
+
+Linux and Windows instructions:
+* On Linux: A compiled version for linux 64-bit is available: download [this](http://simonduq.github.io/resources/ba-elf-gcc-4.7.4-part1.tar.bz2) and [this](http://simonduq.github.io/resources/ba-elf-gcc-4.7.4-part2.tar.bz2) file, extract both in `/usr/ba-elf-gcc` such and add `/usr/ba-elf-gcc/bin` to your `$PATH` environment variable. Place the JN516x SDK under `/usr/jn516x-sdk`.
+* On Windows: Run the setup program and select `C:/NXP/bstudio_nxp/` as install directory.
 
 Software to Program the Nodes
 -----------------------------
 The JN516x can be programmed via the serial boot loader on the chip.
-
-* On Windows, nodes are be programmed by using NXP's Flash Programmer. There are two versions of it: GUI and command line. The Contiki make system is configured to use the command line version. By default it looks for the programmer in the SDK base directory under `Tools/flashprogrammer/FlashCLI.exe`. With the default SDK installation path the file should be located under `C:/NXP/bstudio_nxp/sdk/JN-SW-4163/Tools/flashprogrammer/FlashCLI.exe`. Modify `platforms/jn516x/Makefile.common` to change this default location.
-
-* On Linux, nodes can be programmed via the serial boot loader using the [JennicModuleProgrammer] tool. By default, it is assumed to be located in `/usr/jn-toolchain/tools/flashprogrammer/JennicModuleProgrammer`. Modify `platforms/jn516x/Makefile.common` to change this default location.
-
+* On Linux, nodes can be programmed via the serial boot loader using the [JennicModuleProgrammer] tool. It is pre-installed under `tools/jn516x/JennicModuleProgrammer`.
+* On Windows, nodes are programmed using NXP's Flash Programmer. There are two versions of it: GUI and command line. The Contiki make system is configured to use the command line version. By default it looks for the programmer in the SDK base directory under `Tools/flashprogrammer/FlashCLI.exe`. With the default SDK installation path the file should be located under `C:/NXP/bstudio_nxp/sdk/JN-SW-4163/Tools/flashprogrammer/FlashCLI.exe`. Modify `platforms/jn516x/Makefile.common` to change this default location.
 
 Use the Port
 ============
 The following examples are intended to work off-the-shelf:
-
 * Platform-specific examples under `examples/jn516x`
-* All other generic Contiki application examples.
+* All platform-independent Contiki application examples
 
 Building an example
 -------------------
@@ -107,30 +100,22 @@ Then run `make hello-world` to compile the application for JN516x platform.
 Uploading an example
 --------------------
 
-On Linux: if you want to upload the compiled firmware to a node via the serial boot loader you need first to manually enter the boot loader mode by pressing the reset button (active for ~5 seconds, after which the currently uploaded application is executed).
-
-On Windows the bootloader is active by default.
-
-Immediately after the mote has entered the bootloader mode, run the `upload` command to program the binary image on it:
-
+Run the `upload` command to program the binary image on it:
 `make hello-world.upload MOTE=0`
 
 The `MOTE` argument is used to specify to which of the ports the device is connected. For example, if there is a single mote connected to `/dev/ttyUSB3` in Linux (or, alternatively, `COM3` in Windows), the right command would be:
-
 `make hello-world.upload MOTE=3`
 
+Note that on Windows, the FTDI drivers are able to switch the board to programming mode before uploading the image.
+On linux, the drivers are not able to do so yet. We use a modified bootloader for JN516x, available on request, where nodes wait 5s in programming mode after a reset. You simply need to reset them before using `make upload`.
 
 Listening to output
 --------------------
 
 Run the `login` command to start the `serialdump` application.
-
 `make login MOTE=3`
 
-After the application has started, press the reset button on the mote.
-
-*Troubleshooting:* if the serial port application is not starting or terminates with an error, try navigating `tools/sky` and recompiling the executable for your platform with `make`.
-
+On linux: after the application has started, press the reset button on the node.
 
 Platform-specific make targets
 ------------------------------
@@ -142,7 +127,6 @@ Platform-specific make targets
 
 *Troubleshooting:* you need a working Python installation for these commands to work. On Windows, make sure Python executable is in your `PATH`.
 
-
 Compiling for different MCUs and boards
 ---------------------------------------
 
@@ -153,22 +137,18 @@ The following MCU models are supported:
 * `JN5164` - 160kB/32kB/4kB Flash/RAM/EEPROM
 
 Set `JENNIC_CHIP` variable to change this; for example, to select JN5164 use:
-
 `make JENNIC_CHIP=JN5164`
 
 The following platform-specific configurations are supported:
-* USB dongle; enable this with `CFLAGS += -DDONGLE_NODE`
-* DR1175 sensor board; enable this with `CFLAGS += -DSENSOR_BOARD_DR1175`
-* DR1199 sensor board; enable this with `CFLAGS += -DSENSOR_BOARD_DR1199`
-
+* DR1174 with DR1175 sensor board; enable this with `JN516x_WITH_DR1175 = 1` in your makefile
+* DR1174 with DR1199 sensor board; enable this with `JN516x_WITH_DR1199 = 1`
+* USB dongle; enable this with `JN516x_WITH_DONGLE = 1`
 
 Node IEEE/RIME/IPv6 Addresses
 -----------------------------
 
 Nodes will generally autoconfigure their IPv6 address based on their 64-bit IEEE/MAC address. The 64-bit MAC address is read directly from JN516x System on Chip.
-
 The 16-bit RIME address and the Node ID are set from the last 16-bits of the 64-bit MAC address.
-
 
 Additional documentation
 ========================
