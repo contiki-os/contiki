@@ -308,7 +308,6 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
   }
   
  selecting:
-  xid++;
   s.ticks = CLOCK_SECOND;
   do {
     while(ev != tcpip_event) {
@@ -374,7 +373,6 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
   }
 
   /* renewing: */
-  xid++;
   do {
     while(ev != tcpip_event) {
       tcpip_poll_udp(s.conn);
