@@ -267,6 +267,7 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
       } else {
         outbuf[len++] = c;
       } break;
+#if UART_XONXOFF_FLOW_CTRL
     case SLIP_ESC_XON:
       if(state == SLIP_ESC) {
         outbuf[len++] = XON;
@@ -281,6 +282,7 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
       } else {
         outbuf[len++] = c;
       } break;
+#endif /* UART_XONXOFF_FLOW_CTRL */
     default:
       outbuf[len++] = c;
       state = SLIP_NEUTRAL;
