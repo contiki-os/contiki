@@ -93,8 +93,8 @@ static int state;
 #define STRINGIFY(x) XSTR(x)
 #define XSTR(x)      #x
 
-#define RSSI_INT_MAX STRINGIFY(MQTT_CLIENT_RSSI_MEASURE_INTERVAL_MAX)
-#define RSSI_INT_MIN STRINGIFY(MQTT_CLIENT_RSSI_MEASURE_INTERVAL_MIN)
+#define RSSI_INT_MAX STRINGIFY(CC26XX_WEB_DEMO_RSSI_MEASURE_INTERVAL_MAX)
+#define RSSI_INT_MIN STRINGIFY(CC26XX_WEB_DEMO_RSSI_MEASURE_INTERVAL_MIN)
 #define PUB_INT_MAX  STRINGIFY(MQTT_CLIENT_PUBLISH_INTERVAL_MAX)
 #define PUB_INT_MIN  STRINGIFY(MQTT_CLIENT_PUBLISH_INTERVAL_MIN)
 /*---------------------------------------------------------------------------*/
@@ -568,11 +568,53 @@ PT_THREAD(generate_config(struct httpd_state *s))
                                  s->reading->publish ? "" : " Checked",
                                  config_div_close));
   }
+
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
                                "<input type=\"submit\" value=\"Submit\">"));
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "</form>"));
+
+  /* RSSI measurements */
+#if CC26XX_WEB_DEMO_READ_PARENT_RSSI
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "<h1>RSSI Probing</h1>"));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0,
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_dev_cfg_page.filename));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "application/x-www-form-urlencoded\" "));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "accept-charset=\"UTF-8\">"));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "%sPeriod (secs):%s",
+                               config_div_left, config_div_close));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "%s<input type=\"number\" ",
+                               config_div_right));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "value=\"%lu\" ",
+                               (clock_time_t)
+                               (cc26xx_web_demo_config.def_rt_ping_interval
+                                / CLOCK_SECOND)));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0,
+                               "min=\"" RSSI_INT_MIN "\" "
+                               "max=\"" RSSI_INT_MAX "\" "
+                               "name=\"ping_interval\">%s",
+                               config_div_close));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0,
+                               "<input type=\"submit\" value=\"Submit\">"));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "</form>"));
+#endif
 
   /* Actions */
   PT_WAIT_THREAD(&s->generate_pt, enqueue_chunk(s, 0, "<h1>Actions</h1>"));
@@ -730,24 +772,6 @@ PT_THREAD(generate_mqtt_config(struct httpd_state *s))
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "min=\"1\" max=\"65535\" "
                                      "name=\"broker_port\">%s",
-                               config_div_close));
-
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0, "%sRSSI Interval (secs):%s",
-                               config_div_left, config_div_close));
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0, "%s<input type=\"number\" ",
-                               config_div_right));
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0, "value=\"%lu\" ",
-                               (clock_time_t)
-                               (cc26xx_web_demo_config.mqtt_config.def_rt_ping_interval
-                                / CLOCK_SECOND)));
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0,
-                               "min=\"" RSSI_INT_MIN "\" "
-                               "max=\"" RSSI_INT_MAX "\" "
-                               "name=\"ping_interval\">%s",
                                config_div_close));
 
   PT_WAIT_THREAD(&s->generate_pt,

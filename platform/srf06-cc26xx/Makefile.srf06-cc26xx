@@ -6,15 +6,14 @@ endif
 
 ### Board and BSP selection
 ifeq ($(BOARD),)
-  BOARD=srf06
+  BOARD=srf06/cc26xx
 endif
 
-### Configure the build for the board and pull in board-specific sources
-CONTIKI_TARGET_DIRS += . $(BOARD)
-PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
+CONTIKI_TARGET_DIRS += .
 
-### Include the board dir if one exists
--include $(PLATFORM_ROOT_DIR)/$(BOARD)/Makefile.$(BOARD)
+### Include the board-specific makefile
+PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
+-include $(PLATFORM_ROOT_DIR)/$(BOARD)/Makefile.$(notdir $(BOARD))
 
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
 CONTIKI_TARGET_SOURCEFILES += sensors.c leds.c
@@ -29,8 +28,10 @@ ifndef SMALL
   SMALL = 0
 endif
 
-### Define the CPU directory
-CONTIKI_CPU=$(CONTIKI)/cpu/cc26xx
-include $(CONTIKI_CPU)/Makefile.cc26xx
+### Define the CPU directory and pull in the correct CPU makefile. This will
+### be defined by one of the makefiles included above and it can be either
+### Makefile.cc26xx or Makefile.cc13xx
+CONTIKI_CPU=$(CONTIKI)/cpu/cc26xx-cc13xx
+include $(CONTIKI_CPU)/Makefile.$(CPU_FAMILY)
 
 MODULES += core/net core/net/mac core/net/mac/contikimac core/net/llsec

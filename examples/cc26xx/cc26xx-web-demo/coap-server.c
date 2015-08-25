@@ -39,7 +39,7 @@
 #include "contiki-net.h"
 #include "rest-engine.h"
 #include "board-peripherals.h"
-#include "dev/cc26xx-rf.h"
+#include "rf-core/rf-ble.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,7 +56,10 @@ extern resource_t res_device_hw;
 extern resource_t res_device_uptime;
 extern resource_t res_device_cfg_reset;
 
-#if CC26XX_RF_BLE_SUPPORT
+extern resource_t res_parent_rssi;
+extern resource_t res_parent_ip;
+
+#if RF_BLE_ENABLED
 extern resource_t res_ble_advd;
 #endif
 
@@ -138,7 +141,10 @@ PROCESS_THREAD(coap_server_process, ev, data)
   rest_activate_resource(&res_device_uptime, "dev/uptime");
   rest_activate_resource(&res_device_cfg_reset, "dev/cfg_reset");
 
-#if CC26XX_RF_BLE_SUPPORT
+  rest_activate_resource(&res_parent_rssi, "net/parent/RSSI");
+  rest_activate_resource(&res_parent_ip, "net/parent/IPv6");
+
+#if RF_BLE_ENABLED
   rest_activate_resource(&res_ble_advd, "dev/ble_advd");
 #endif
 

@@ -32,11 +32,12 @@
  * \addtogroup cc26xx-platforms
  * @{
  *
- * \defgroup cc26xx-srf-tag SmartRF+CC26xx EM and the CC26xx SensorTag 2.0
+ * \defgroup cc26xx-srf-tag SmartRF+CC13xx/CC26xx EM and the CC2650 SensorTag
  *
- * This platform supports two different boards:
- * 1) A standard TI SmartRF06EB with a CC26xx EM mounted on it and
- * 2) The new TI SensorTag2.0
+ * This platform supports a number of different boards:
+ * - A standard TI SmartRF06EB with a CC26xx EM mounted on it
+ * - A standard TI SmartRF06EB with a CC1310 EM mounted on it
+ * - The new TI SensorTag2.0
  * @{
  */
 #include "ti-lib.h"
@@ -49,10 +50,9 @@
 #include "dev/oscillators.h"
 #include "ieee-addr.h"
 #include "vims.h"
-#include "cc26xx-model.h"
 #include "dev/cc26xx-uart.h"
-#include "dev/cc26xx-rtc.h"
-#include "dev/cc26xx-rf.h"
+#include "dev/soc-rtc.h"
+#include "rf-core/rf-core.h"
 #include "sys_ctrl.h"
 #include "uart.h"
 #include "sys/clock.h"
@@ -65,6 +65,9 @@
 #include "driverlib/driverlib_release.h"
 
 #include <stdio.h>
+/*---------------------------------------------------------------------------*/
+/** \brief Board specific iniatialisation */
+void board_init(void);
 /*---------------------------------------------------------------------------*/
 static void
 fade(unsigned char l)
@@ -102,7 +105,7 @@ set_rf_params(void)
 
   NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
   NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, CC26XX_RF_CHANNEL);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, RF_CORE_CHANNEL);
   NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
 
   NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &val);
@@ -123,7 +126,7 @@ set_rf_params(void)
 /**
  * \brief Main function for CC26xx-based platforms
  *
- * The same main() is used for both Srf+CC26xxEM as well as for the SensorTag
+ * The same main() is used for all supported boards
  */
 int
 main(void)
@@ -157,7 +160,7 @@ main(void)
 
   ti_lib_int_master_enable();
 
-  cc26xx_rtc_init();
+  soc_rtc_init();
   clock_init();
   rtimer_init();
 
@@ -176,7 +179,7 @@ main(void)
   printf("Starting " CONTIKI_VERSION_STRING "\n");
   printf("With DriverLib v%u.%u\n", DRIVERLIB_RELEASE_GROUP,
          DRIVERLIB_RELEASE_BUILD);
-  printf(BOARD_STRING " using CC%u\n", CC26XX_MODEL_CPU_VARIANT);
+  printf(BOARD_STRING "\n");
 
   process_start(&etimer_process, NULL);
   ctimer_init();
