@@ -32,11 +32,9 @@
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
 /* Change to match your configuration */
-#define NETSTACK_CONF_RDC     contikimac_driver
 #define IEEE802154_CONF_PANID            0xABCD
-#define CC26XX_RF_CONF_CHANNEL               25
-#define CC26XX_MODEL_CONF_CPU_VARIANT      2650 /* CC2650 */
-#define CC26XX_RF_CONF_BLE_SUPPORT            1 /* Only available with CC2650 */
+#define RF_CORE_CONF_CHANNEL                 25
+#define RF_BLE_CONF_ENABLED                   1
 /*---------------------------------------------------------------------------*/
 /* Enable/Disable Components of this Demo */
 #define CC26XX_WEB_DEMO_CONF_MQTT_CLIENT      1

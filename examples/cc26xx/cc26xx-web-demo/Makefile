@@ -5,7 +5,7 @@ all: cc26xx-web-demo
 REST_RESOURCES_DIR = ./resources
 
 REST_RESOURCES_FILES += res-leds.c res-toggle-leds.c res-device.c
-REST_RESOURCES_FILES += res-sensors.c res-ble-advd.c
+REST_RESOURCES_FILES += res-sensors.c res-ble-advd.c res-net.c
 
 PROJECTDIRS += $(REST_RESOURCES_DIR)
 PROJECT_SOURCEFILES += $(REST_RESOURCES_FILES)
