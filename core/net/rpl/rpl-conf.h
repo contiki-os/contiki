@@ -118,7 +118,7 @@
 #ifdef RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
 #define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
 #else
-#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    0
+#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    1
 #endif /* RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME */
 
 /*
@@ -200,7 +200,7 @@
  * used in RPL lifetime values, in seconds.
  */
 #ifndef RPL_CONF_DEFAULT_LIFETIME_UNIT
-#define RPL_DEFAULT_LIFETIME_UNIT       0xffff
+#define RPL_DEFAULT_LIFETIME_UNIT       0x60
 #else
 #define RPL_DEFAULT_LIFETIME_UNIT       RPL_CONF_DEFAULT_LIFETIME_UNIT
 #endif
@@ -209,7 +209,7 @@
  * Default route lifetime as a multiple of the lifetime unit.
  */
 #ifndef RPL_CONF_DEFAULT_LIFETIME
-#define RPL_DEFAULT_LIFETIME            0xff
+#define RPL_DEFAULT_LIFETIME            0x30
 #else
 #define RPL_DEFAULT_LIFETIME            RPL_CONF_DEFAULT_LIFETIME
 #endif
