@@ -32,7 +32,7 @@ From a Linux terminal, go to `contiki-private/examples/rich/rpl-border-router` a
 or `make connect-router-sw` if you have **SW flow control**
 
 This will start a tunnel interface (tun0) on the host machine.
-All traffic towards our network (prefix aaaa::1/64) will now be routed to the border router.
+All traffic towards our network (prefix `aaaa::/64`, address on the PC side `aaaa::1/64`) will now be routed to the border router.
 
 ## RICH Node
 
