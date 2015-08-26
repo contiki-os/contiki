@@ -221,7 +221,7 @@ main(int argc, char **argv)
   //ds2411_id[2] &= 0xfe;
 
   leds_on(LEDS_BLUE);
-  //xmem_init();
+  xmem_init();
 
   leds_off(LEDS_RED);
   rtimer_init();
