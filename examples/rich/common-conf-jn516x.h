@@ -79,7 +79,7 @@
 
 /* The neighbor table size */
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS 22
+#define NBR_TABLE_CONF_MAX_NEIGHBORS 16
 
 /* The routing table size */
 #undef UIP_CONF_MAX_ROUTES
