@@ -4,6 +4,9 @@
 [submodule "tools/cc2538-bsl"]
 	path = tools/cc2538-bsl
 	url = https://github.com/JelmerT/cc2538-bsl.git
-[submodule "cpu/cc26xx/lib/cc26xxware"]
-	path = cpu/cc26xx/lib/cc26xxware
+[submodule "cpu/cc26xx-cc13xx/lib/cc26xxware"]
+	path = cpu/cc26xx-cc13xx/lib/cc26xxware
 	url = https://github.com/g-oikonomou/cc26xxware.git
+[submodule "cpu/cc26xx-cc13xx/lib/cc13xxware"]
+	path = cpu/cc26xx-cc13xx/lib/cc13xxware
+	url = https://github.com/g-oikonomou/cc13xxware.git

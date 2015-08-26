@@ -1,0 +1,123 @@
+CC      = arm-none-eabi-gcc
+CPP     = arm-none-eabi-cpp
+LD      = arm-none-eabi-gcc
+AR      = arm-none-eabi-ar
+OBJCOPY = arm-none-eabi-objcopy
+OBJDUMP = arm-none-eabi-objdump
+NM      = arm-none-eabi-nm
+SIZE    = arm-none-eabi-size
+SREC_CAT = srec_cat
+
+CPU_ABS_PATH       = cpu/cc26xx-cc13xx
+TI_XXWARE = $(CONTIKI_CPU)/$(TI_XXWARE_PATH)
+
+### cc26xxware sources under driverlib will be added to the MODULES list
+TI_XXWARE_SRC = $(CPU_ABS_PATH)/$(TI_XXWARE_PATH)/driverlib
+
+### The directory with startup sources will be added to the CONTIKI_CPU_DIRS
+### and the sources therein are added to the sources list explicitly. They are
+### also listed explicitly in the linker command (through TARGET_STARTFILES),
+### to make sure they always get linked in the image
+TI_XXWARE_STARTUP_DIR = $(TI_XXWARE_PATH)/startup_files
+TI_XXWARE_STARTUP_SRCS = ccfg.c startup_gcc.c
+
+### MODULES will add some of these to the include path, but we need to add
+### them earlier to prevent filename clashes with Contiki core files
+CFLAGS += -I$(TI_XXWARE) -I$(CONTIKI)/$(TI_XXWARE_SRC)
+CFLAGS += -I$(TI_XXWARE)/inc
+MODULES += $(TI_XXWARE_SRC)
+
+LDSCRIPT = $(CONTIKI_CPU)/cc26xx.ld
+
+CFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian
+CFLAGS += -ffunction-sections -fdata-sections
+CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
+CFLAGS += -Wall -std=c99
+
+LDFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian -nostartfiles
+LDFLAGS += -T $(LDSCRIPT)
+LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
+LDFLAGS += -Wl,-Map=$(@:.elf=-$(TARGET).map),--cref,--no-warn-mismatch
+OBJCOPY_FLAGS += -O binary --gap-fill 0xff
+OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
+
+### Are we building with code size optimisations?
+ifeq ($(SMALL),1)
+  CFLAGS += -Os
+else
+  CFLAGS += -O2
+endif
+
+### If the user-specified a Node ID, pass a define
+ifdef NODEID
+  CFLAGS += -DIEEE_ADDR_NODE_ID=$(NODEID)
+endif
+
+### CPU-dependent cleanup files
+CLEAN += symbols.c symbols.h *.d *.elf *.hex
+
+### CPU-dependent directories
+CONTIKI_CPU_DIRS = . dev rf-core rf-core/api $(TI_XXWARE_STARTUP_DIR)
+
+### Use the existing debug I/O in cpu/arm/common
+CONTIKI_CPU_DIRS += ../arm/common/dbg-io
+
+### CPU-dependent source files
+CONTIKI_CPU_SOURCEFILES += clock.c rtimer-arch.c soc-rtc.c uart.c
+CONTIKI_CPU_SOURCEFILES += contiki-watchdog.c
+CONTIKI_CPU_SOURCEFILES += putchar.c ieee-addr.c batmon-sensor.c
+CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c cc26xx-uart.c lpm.c
+CONTIKI_CPU_SOURCEFILES += gpio-interrupt.c oscillators.c
+CONTIKI_CPU_SOURCEFILES += rf-core.c rf-ble.c ieee-mode.c
+
+DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
+
+TARGET_START_SOURCEFILES += fault-handlers.c $(TI_XXWARE_STARTUP_SRCS)
+TARGET_STARTFILES = $(addprefix $(OBJECTDIR)/,$(call oname, $(TARGET_START_SOURCEFILES)))
+
+### Don't treat the .elf as intermediate
+.PRECIOUS: %.elf %.hex %.bin
+
+### Always re-build ieee-addr.o in case the command line passes a new NODEID
+FORCE:
+
+$(OBJECTDIR)/ieee-addr.o: ieee-addr.c FORCE | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -c $< -o $@
+
+### Compilation rules
+CUSTOM_RULE_LINK=1
+
+%.elf: $(TARGET_STARTFILES) %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -lm -o $@
+
+%.i16hex: %.elf
+	$(OBJCOPY) -O ihex $< $@
+
+%.hex: %.i16hex
+	$(SREC_CAT) $< -intel -o $@ -intel
+
+%.bin: %.elf
+	$(OBJCOPY) $(OBJCOPY_FLAGS) $< $@
+
+%.lst: %.elf
+	$(OBJDUMP) $(OBJDUMP_FLAGS) $< > $@
+
+### We don't really need the .hex and .bin for the .$(TARGET) but let's make
+### sure they get built
+%.$(TARGET): %.elf %.hex %.bin
+	cp $< $@
+
+# a target that gives a user-friendly memory profile, taking into account the RAM
+# that is statically occupied by the stack as defined in the linker script
+# see $(LDSCRIPT)
+RAM_SIZE = 0x00003E00
+FLASH_SIZE = 0x0001E000
+STACK_SIZE = 0
+%.size: %.$(TARGET)
+	@$(SIZE) -A $< | egrep "data|bss" | awk '{s+=$$2} END {s=s+$(STACK_SIZE); f=$(RAM_SIZE)-s; printf "[RAM]   used %6d, free %6d\n",s,f;}'
+	@$(SIZE) -A $< | egrep "text|isr_vector" | awk '{s+=$$2} END {f=$(FLASH_SIZE)-s; printf "[Flash] used %6d, free %6d\n",s,f;}'
+
