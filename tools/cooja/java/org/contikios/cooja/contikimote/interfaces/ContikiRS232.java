@@ -71,7 +71,7 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
   private ContikiMote mote = null;
   private VarMemory moteMem = null;
 
-  static final int SERIAL_BUF_SIZE = 1024; /* rs232.c:40 */
+  static final int SERIAL_BUF_SIZE = 2048; /* rs232.c:40 */
   
   /**
    * Creates an interface to the RS232 at mote.
