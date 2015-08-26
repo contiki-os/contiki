@@ -7,7 +7,7 @@ allprojects {
 }
 
 // TODO: Currently disable to avoid having too much logs in travis
-//apply plugin: 'checkstyle'
+apply plugin: 'checkstyle'
 apply plugin: 'application'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
@@ -21,6 +21,10 @@ dependencies {
 
 mainClassName = "org.contikios.cooja.Cooja"
 libsDirName = "../dist"
+
+checkstyle {
+  showViolations = false
+}
 
 sourceSets {
   main {

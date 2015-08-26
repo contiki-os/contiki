@@ -167,6 +167,4 @@ env:
   - BUILD_TYPE='compile-nrf52-ports' BUILD_CATEGORY='compile' BUILD_ARCH='nrf52dk'
   - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
   - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
-  - BUILD_TYPE='compile-avr' BUILD_CATEGORY='compile' BUILD_ARCH='avr-rss2'
-  - BUILD_TYPE='ieee802154'
-  - BUILD_TYPE='tsch'
+  - BUILD_TYPE="cooja-checkstyle"
