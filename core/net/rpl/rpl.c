@@ -89,11 +89,17 @@ rpl_set_mode(enum rpl_mode m)
   } else if(m == RPL_MODE_FEATHER) {
 
     PRINTF("RPL: switching to feather mode\n");
-    mode = m;
     if(default_instance != NULL) {
+      PRINTF("rpl_set_mode: RPL sending DAO with zero lifetime\n");
+      if(default_instance->current_dag != NULL) {
+        dao_output(default_instance->current_dag->preferred_parent, RPL_ZERO_LIFETIME);
+      }
       rpl_cancel_dao(default_instance);
+    } else {
+      PRINTF("rpl_set_mode: no default instance\n");
     }
 
+    mode = m;
   } else {
     mode = m;
   }
