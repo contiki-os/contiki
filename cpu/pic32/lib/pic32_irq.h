@@ -69,10 +69,10 @@ do {                       \
 } while(0)
 
 #define TIMER_ISR(v) \
-void __attribute__((vector(v), interrupt(ipl7))) isr_##v(void)
+void __attribute__((vector(v), interrupt(ipl7auto))) isr_##v(void)
 
 #define ISR(v) \
-void __attribute__((vector(v), interrupt(ipl6))) isr_##v(void)
+void __attribute__((vector(v), interrupt(ipl6auto))) isr_##v(void)
 
 #endif /* INCLUDE_PIC32_IRQ_H_ */
 
