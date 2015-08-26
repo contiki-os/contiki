@@ -24,15 +24,20 @@ Maintainers and Contact
 ============================================
 
 Long-term maintainers:
-* Theo Van Daele, NXP, theo.van.daele@nxp.com, github user [TeVeDe](https://github.com/TeVeDe)
-* Simon Duquennoy, SICS, simonduq@sics.se, github user [simonduq](https://github.com/simonduq)
+* Theo Van Daele, NXP, theo.van.daele@nxp.com, github user: [TeVeDe](https://github.com/TeVeDe)
+* Simon Duquennoy, SICS, simonduq@sics.se, github user: [simonduq](https://github.com/simonduq)
 
 Other contributors:
-* Beshr Al Nahas, Chalmers Univ, beshr@chalmers.se, github user [beshrns](https://github.com/beshrns)
-* Atis Elsts, SICS, atis.elsts@sics.se, github user [atiselsts](https://github.com/atiselsts)
+* Beshr Al Nahas, SICS (now Chalmers University), beshr@chalmers.se, github user: [beshrns](https://github.com/beshrns)
+* Atis Elsts, SICS, atis.elsts@sics.se, github user: [atiselsts](https://github.com/atiselsts)
 
 Additional long-term contact:
-* Hugh Maaskan, NXP, hugh.maaskant@nxp.com, github user [hugh-maaskant](https://github.com/hugh-maaskant)
+* Hugh Maaskan, NXP, hugh.maaskant@nxp.com, github user: [hugh-maaskant](https://github.com/hugh-maaskant)
+
+License
+============================================
+
+All files are under BSD license, as described by the copyright statement in every source file.
 
 Port Features
 =============
@@ -64,6 +69,7 @@ Requirements
 ============
 To start using JN516x with Contiki, the following are required:
  * The toolchain and Software Development Kit to compile Contiki for JN516x
+ * Drivers so that your OS can communicate with your hardware
  * Software to upload images to the JN516x
 
 Install a Toolchain
@@ -75,7 +81,18 @@ The example applications in this port have been tested with compiler version `gc
 
 Linux and Windows instructions:
 * On Linux: A compiled version for linux 64-bit is available: download [this](http://simonduq.github.io/resources/ba-elf-gcc-4.7.4-part1.tar.bz2) and [this](http://simonduq.github.io/resources/ba-elf-gcc-4.7.4-part2.tar.bz2) file, extract both in `/usr/ba-elf-gcc` such and add `/usr/ba-elf-gcc/bin` to your `$PATH` environment variable. Place the JN516x SDK under `/usr/jn516x-sdk`.
-* On Windows: Run the setup program and select `C:/NXP/bstudio_nxp/` as install directory.
+* On Windows: Run the setup program and select `C:/NXP/bstudio_nxp/` as install directory. Also make sure your PATH environment variable points to the compiler binaries (by default in `C:/NXP/bstudio_nxp/sdk/Tools/ba-elf-ba2-r36379/bin`).
+
+Drivers
+-------
+The JN516x platforms feature FTDI serial-to-USB modules. The driver is commonly found in most OS, but if required it can be downloaded from <http://www.ftdichip.com/Drivers/VCP.htm>
+ 
+### Device Enumerations
+For the UART, serial line settings are 1000000 8N1, no flow control.
+
+Once all drivers have been installed correctly:
+* On Windows, devices will appear as a virtual COM port.
+* On Linux and OS X, devices will appear as `/dev/tty*`.
 
 Software to Program the Nodes
 -----------------------------
@@ -107,7 +124,8 @@ The `MOTE` argument is used to specify to which of the ports the device is conne
 `make hello-world.upload MOTE=3`
 
 Note that on Windows, the FTDI drivers are able to switch the board to programming mode before uploading the image.
-On linux, the drivers are not able to do so yet. We use a modified bootloader for JN516x, available on request, where nodes wait 5s in programming mode after a reset. You simply need to reset them before using `make upload`.
+
+On linux, the drivers are not able to do so yet. We use a modified bootloader for JN516x, where nodes wait 5s in programming mode after a reset. You simply need to reset them before using `make upload`. The modified bootloader can be downloaded [here](http://simonduq.github.io/resources/BootLoader_JN5168.ba2.bin) and installed using a JTAG programmer, or alternatively, [this image](http://simonduq.github.io/resources/BootLoaderUpdater_JN5168.bin) can be installed as a normal application using the normal Windows tools.  Once the device resets, this application will run and will then install the new boot loader. It generates some status output over UART0 at 115200 baud during this process. **Warning**: use the images above at your risk; NXP does not accept responsibility for any devices that are rendered unusable as a result of using it.
 
 Listening to output
 --------------------
