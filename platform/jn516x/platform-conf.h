@@ -134,10 +134,12 @@
 #define UART_RATE_1000000       11
 
 #define PLATFORM_HAS_LEDS    1
-#define PLATFORM_HAS_BUTTON  0 /* sensor driver not implemented */
-#define PLATFORM_HAS_LIGHT   0 /* sensor driver not implemented */
+#define PLATFORM_HAS_BUTTON  (SENSOR_BOARD_DR1174 == 1)
+#define PLATFORM_HAS_LIGHT   (SENSOR_BOARD_DR1175 == 1)
+#define PLATFORM_HAS_HT      (SENSOR_BOARD_DR1175 == 1)
+#define PLATFORM_HAS_POT     (SENSOR_BOARD_DR1199 == 1)
 #define PLATFORM_HAS_BATTERY 0 /* sensor driver not implemented */
-#define PLATFORM_HAS_SHT11   0 /* sensor driver not implemented */
+#define PLATFORM_HAS_SHT11   0
 #define PLATFORM_HAS_RADIO   1
 
 /* CPU target speed in Hz

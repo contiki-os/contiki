@@ -50,26 +50,34 @@
 
 typedef enum {
   APP_E_BUTTON_SW0 = 0,
+#if SENSOR_BOARD_DR1199
   APP_E_BUTTON_SW1,
   APP_E_BUTTON_SW2,
   APP_E_BUTTON_SW3,
   APP_E_BUTTON_SW4,
+#endif /* SENSOR_BOARD_DR1199 */
   APP_E_BUTTON_NUM    /* Number of buttons */
 } app_e_button_t;
 
 /* Mapping of DIO port connections to buttons. Use as mask to get button value */
 #define APP_PORT_BUTTON_SW0   (8)
+#if SENSOR_BOARD_DR1199
 #define APP_PORT_BUTTON_SW1    (11)
 #define APP_PORT_BUTTON_SW2    (12)
 #define APP_PORT_BUTTON_SW3    (17)
 #define APP_PORT_BUTTON_SW4    (1)
+#endif /* SENSOR_BOARD_DR1199 */
 
 /* Definition of port masks based on button mapping */
+#if SENSOR_BOARD_DR1199
 #define APP_BUTTONS_DIO_MASK  ((1 << APP_PORT_BUTTON_SW0) | \
                                (1 << APP_PORT_BUTTON_SW1) | \
                                (1 << APP_PORT_BUTTON_SW2) | \
                                (1 << APP_PORT_BUTTON_SW3) | \
                                (1 << APP_PORT_BUTTON_SW4))
+#else /* SENSOR_BOARD_DR1199 */
+#define APP_BUTTONS_DIO_MASK  (1 << APP_PORT_BUTTON_SW0)
+#endif /* SENSOR_BOARD_DR1199 */
 
 #define KEY_SAMPLE_TIME (CLOCK_SECOND / 20)
 
@@ -87,10 +95,13 @@ const struct sensors_sensor button_sensor;
 volatile static buttons_status_t buttons_status = BUTTONS_STATUS_NOT_INIT;
 static int key_value = 0;
 static uint8 key_map[] = { APP_PORT_BUTTON_SW0, /* APP_E_BUTTON_SW0 */
+#if SENSOR_BOARD_DR1199
                            APP_PORT_BUTTON_SW1, /* APP_E_BUTTON_SW1 */
                            APP_PORT_BUTTON_SW2, /* APP_E_BUTTON_SW2 */
                            APP_PORT_BUTTON_SW3, /* APP_E_BUTTON_SW3 */
-                           APP_PORT_BUTTON_SW4 }; /* APP_E_BUTTON_SW4 */
+                           APP_PORT_BUTTON_SW4 /* APP_E_BUTTON_SW4 */
+#endif /* SENSOR_BOARD_DR1199 */
+                          }; 
 
 /*---------------------------------------------------------------------------*/
 /* LOCAL FUNCTION PROTOTYPES                                                 */

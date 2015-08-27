@@ -42,14 +42,18 @@
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
-#define CONFIG_VIA_BUTTON 1
+#define CONFIG_VIA_BUTTON PLATFORM_HAS_BUTTON
 #if CONFIG_VIA_BUTTON
 #include "button-sensor.h"
 #endif /* CONFIG_VIA_BUTTON */
 
 /*---------------------------------------------------------------------------*/
 PROCESS(node_process, "RPL Node");
+#if CONFIG_VIA_BUTTON
 AUTOSTART_PROCESSES(&node_process, &sensors_process);
+#else /* CONFIG_VIA_BUTTON */
+AUTOSTART_PROCESSES(&node_process);
+#endif /* CONFIG_VIA_BUTTON */
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(node_process, ev, data)

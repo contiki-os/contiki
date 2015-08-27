@@ -47,17 +47,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define CONFIG_VIA_BUTTON 1
+#define CONFIG_VIA_BUTTON PLATFORM_HAS_BUTTON
 #if CONFIG_VIA_BUTTON
 #include "button-sensor.h"
 #endif /* CONFIG_VIA_BUTTON */
 
 /*---------------------------------------------------------------------------*/
-PROCESS(unicast_sender_process, "RICH Node");
-AUTOSTART_PROCESSES(&unicast_sender_process, &sensors_process);
+PROCESS(node_process, "RICH Node");
+#if CONFIG_VIA_BUTTON
+AUTOSTART_PROCESSES(&node_process, &sensors_process);
+#else /* CONFIG_VIA_BUTTON */
+AUTOSTART_PROCESSES(&node_process);
+#endif /* CONFIG_VIA_BUTTON */
 
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(unicast_sender_process, ev, data)
+PROCESS_THREAD(node_process, ev, data)
 {
   PROCESS_BEGIN();
 
