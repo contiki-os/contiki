@@ -32,7 +32,7 @@ Other contributors:
 * Atis Elsts, SICS, atis.elsts@sics.se, github user: [atiselsts](https://github.com/atiselsts)
 
 Additional long-term contact:
-* Hugh Maaskan, NXP, hugh.maaskant@nxp.com, github user: [hugh-maaskant](https://github.com/hugh-maaskant)
+* Hugh Maaskant, NXP, hugh.maaskant@nxp.com, github user: [hugh-maaskant](https://github.com/hugh-maaskant)
 
 License
 ============================================
@@ -155,11 +155,10 @@ Compiling for different MCUs and boards
 The platforms can selected by using `Makefile` variables.
 
 The following MCU models are supported:
-* `JN5168` - the default one, 256kB/32kB/4kB Flash/RAM/EEPROM
 * `JN5164` - 160kB/32kB/4kB Flash/RAM/EEPROM
+* `JN5168` - 256kB/32kB/4kB Flash/RAM/EEPROM (default MCU)
 * `JN5169` - 512kB/32kB/4kB Flash/RAM/EEPROM
 
-For JN5169, at least version of the tool chain (JN-SW-4163) is required.
 Set `CHIP` variable to change this; for example, to select JN5164 use:
 `make CHIP=JN5164`
 
@@ -171,7 +170,7 @@ The following platform-specific configurations are supported:
 Node IEEE/RIME/IPv6 Addresses
 -----------------------------
 
-Nodes will generally autoconfigure their IPv6 address based on their 64-bit IEEE/MAC address. The 64-bit MAC address is read directly from JN516x System on Chip.
+Nodes will autoconfigure their IPv6 address based on their 64-bit IEEE/MAC address. The 64-bit MAC address is read directly from JN516x System on Chip.
 The 16-bit RIME address and the Node ID are set from the last 16-bits of the 64-bit MAC address.
 
 Additional documentation
