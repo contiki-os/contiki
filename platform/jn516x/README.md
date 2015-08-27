@@ -125,7 +125,7 @@ The `MOTE` argument is used to specify to which of the ports the device is conne
 
 Note that on Windows, the FTDI drivers are able to switch the board to programming mode before uploading the image.
 
-On linux, the drivers are not able to do so yet. We use a modified bootloader for JN516x, where nodes wait 5s in programming mode after a reset. You simply need to reset them before using `make upload`. The modified bootloader can be downloaded [here](http://simonduq.github.io/resources/BootLoader_JN5168.ba2.bin) and installed using a JTAG programmer, or alternatively, [this image](http://simonduq.github.io/resources/BootLoaderUpdater_JN5168.bin) can be installed as a normal application using the normal Windows tools.  Once the device resets, this application will run and will then install the new boot loader. It generates some status output over UART0 at 115200 baud during this process. **Warning**: use the images above at your risk; NXP does not accept responsibility for any devices that are rendered unusable as a result of using it.
+On Linux, the drivers are not able to do so yet. We use a modified bootloader for JN516x, where nodes wait 5s in programming mode after a reset. You simply need to reset them before using `make upload`. The modified bootloader can be downloaded [here](http://simonduq.github.io/resources/BootLoader_JN5168.ba2.bin) and installed using a JTAG programmer, or alternatively, [this image](http://simonduq.github.io/resources/BootLoaderUpdater_JN5168.bin) can be installed as a normal application using the normal Windows tools.  Once the device resets, this application will run and will then install the new boot loader. It generates some status output over UART0 at 115200 baud during this process. **Warning**: use the images above at your risk; NXP does not accept responsibility for any devices that are rendered unusable as a result of using it.
 
 Listening to output
 --------------------
@@ -133,7 +133,7 @@ Listening to output
 Run the `login` command to start the `serialdump` application.
 `make login MOTE=3`
 
-On linux: after the application has started, press the reset button on the node.
+On Linux: after the application has started, press the reset button on the node.
 
 Platform-specific make targets
 ------------------------------
