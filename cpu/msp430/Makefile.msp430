@@ -39,6 +39,10 @@ MSP430     = msp430.c flash.c clock.c leds.c leds-arch.c \
 UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
 ELFLOADER  = elfloader.c elfloader-msp430.c symtab.c
 
+ifeq ($(TARGET_MEMORY_MODEL),large)
+ELFLOADER = elfloader-msp430x.c symtab.c
+endif
+
 CONTIKI_TARGET_SOURCEFILES += $(MSP430) \
                               $(SYSAPPS) $(ELFLOADER) \
                               $(UIPDRIVERS)
@@ -151,10 +155,16 @@ endif
 ifndef IAR
 ifneq (,$(findstring 4.7.,$(shell msp430-gcc -dumpversion)))
 ifdef CPU_HAS_MSP430X
-  TARGET_MEMORY_MODEL ?= medium
+ ifeq ($(TARGET_MEMORY_MODEL),large)
+  CFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL)
+  CFLAGS += -mcode-region=far -mdata-region=far -msr20 -mc20 -md20
+  LDFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL) -mcode-region=far -mdata-region=far -msr20 -mc20 -md20
+ else
+  TARGET_MEMORY_MODEL = medium
   CFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL)
   CFLAGS += -ffunction-sections -fdata-sections -mcode-region=any
   LDFLAGS += -mmemory-model=$(TARGET_MEMORY_MODEL) -Wl,-gc-sections
+ endif
 endif
 endif
 endif
