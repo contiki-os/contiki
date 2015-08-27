@@ -95,7 +95,7 @@ tcpip_input(void)
 	     packetbuf_attr(PACKETBUF_ATTR_LISTEN_TIME));*/
       slip_write(uip_buf, uip_len);
       leds_toggle(LEDS_RED);
-      uip_len = 0;
+      uip_clear_buf();
     }
   }
 }
