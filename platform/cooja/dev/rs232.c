@@ -37,7 +37,7 @@
 
 const struct simInterface rs232_interface;
 
-#define SERIAL_BUF_SIZE 1024
+#define SERIAL_BUF_SIZE 2048
 
 // COOJA variables
 char simSerialReceivingData[SERIAL_BUF_SIZE];
