@@ -1084,6 +1084,7 @@ dao_ack_input(void)
 
   instance = rpl_get_instance(instance_id);
   if(instance == NULL) {
+    uip_clear_buf();
     return;
   }
 
@@ -1092,6 +1093,7 @@ dao_ack_input(void)
     /* not a known instance - did we switch?? */
     //    PRINTF("RPL: Received a DAO ACK from a not joined instance: %d",
     //	   instance_id);
+    uip_clear_buf();
     return;
   }
 
@@ -1099,7 +1101,6 @@ dao_ack_input(void)
 	 sequence, instance->my_dao_seqno, status);
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
-#endif /* DEBUG */
 
   if(sequence == instance->my_dao_seqno) {
     PRINTF("RPL: DAO %s for me!\n", status < 128 ? "ACK" : "NACK");
