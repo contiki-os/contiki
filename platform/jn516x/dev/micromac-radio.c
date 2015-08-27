@@ -662,10 +662,10 @@ pending_packet(void)
 static int
 cca(void)
 {
-  bool_t isChannelBusy = bJPT_CCA(current_channel,
-                                  E_JPT_CCA_MODE_CARRIER_OR_ENERGY,
-                                  cca_thershold);
-  return isChannelBusy == FALSE;
+  bool_t is_channel_busy = bJPT_CCA(current_channel,
+                                    E_JPT_CCA_MODE_CARRIER_OR_ENERGY,
+                                    cca_thershold);
+  return is_channel_busy == FALSE;
 }
 /*---------------------------------------------------------------------------*/
 static void
