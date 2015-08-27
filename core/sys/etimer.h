@@ -115,6 +115,19 @@ CCIF void etimer_set(struct etimer *et, clock_time_t interval);
 CCIF void etimer_reset(struct etimer *et);
 
 /**
+ * \brief      Reset an event timer with a new interval.
+ * \param et   A pointer to the event timer.
+ * \param interval The interval before the timer expires.
+ *
+ *             This function very similar to etimer_reset. Opposed to
+ *             etimer_reset it is possible to change the timout.
+ *             This allows accurate, non-periodic timers without drift.
+ *
+ * \sa etimer_reset()
+ */
+void etimer_reset_with_new_interval(struct etimer *et, clock_time_t interval);
+
+/**
  * \brief      Restart an event timer from the current point in time
  * \param et   A pointer to the event timer.
  *
