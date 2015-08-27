@@ -1,7 +1,7 @@
-dr1199-node is an example of a RICH node containing a JN516x microcontroller on a DR1199 baseboard. 
+dr1199-node is an example of a RICH node containing a JN516x microcontroller on a DR1175 baseboard. 
 A DR1199 shield is mounted on the baseboard. 
 The boards are part of the NXP JN516x Evaluation Kit (see http://www.nxp.com/documents/leaflet/75017368.pdf) 
-The dr1199-node connects to the network in the same way as described in examples\rich\README.md
+The dr1199-node connects to the network in the same way as described in `examples/rich/README.md`
 
 The resources on the DR1199 are available as CoAP resources. They can be accessed via a CoAP client at the IPv6 interface 
 of the border router (e.g. via Copper plug-in on Firefox).
@@ -26,6 +26,3 @@ DR1199\Switch\SW1       This resource shows the status of the SW1 switch
 DR1199\Switch\SW2       This resource shows the status of the SW2 switch
 DR1199\Switch\SW3       This resource shows the status of the SW3 switch
 DR1199\Switch\SW4       This resource shows the status of the SW4 switch
-
-
-

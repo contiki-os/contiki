@@ -137,11 +137,15 @@ On linux: after the application has started, press the reset button on the node.
 
 Platform-specific make targets
 ------------------------------
-* `<application>.uploadall` - upload the application to all all connected JN516x motes
+* `<application>.flash` - flash the (pre-compiled) application to a JN516x mote (specified via the `MOTE` variable)
+* `<application>.flashall` - flash the (pre-compiled) application to all all connected JN516x motes
+* `<application>.upload` - compile and flash the application to a JN516x mote (specified via the `MOTE` variable)
+* `<application>.uploadall` - compile and flash the application to all all connected JN516x motes
+* `login`, `serialview`, `serialdump` - dump serial port output from a JN516x mote (specified via the `MOTE` variable)
 * `serialdumpall` - dump serial port output from all connected JN516x motes
 * `motelist` - list all connected JN516x motes.
-* `motelistmac` - list MAC addresses of all connected JN516x motes. (Note: not implemented on Linux!)
-* `motelistinfo` - list info about all connected JN516x motes. (Note: very limited functionality on Linux!)
+* `motelistmac` - list MAC addresses of all connected JN516x motes (Note: not implemented on Linux!)
+* `motelistinfo` - list info about all connected JN516x motes (Note: very limited functionality on Linux!)
 
 *Troubleshooting:* you need a working Python installation for these commands to work. On Windows, make sure Python executable is in your `PATH`.
 

@@ -30,7 +30,7 @@
 /**
  * \author Atis Elsts <atis.elsts@sics.se>
  * \file
- *         Sensor test for DR1174 evaluation board (light + temp/humidity).
+ *         Sensor test for DR1175 evaluation board (light + temp/humidity).
  */
 
 #include "contiki.h"

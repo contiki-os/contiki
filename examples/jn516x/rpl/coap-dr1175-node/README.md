@@ -1,7 +1,7 @@
 dr1175-node is an example of a RICH node containing a JN516x microcontroller on a DR1174 baseboard. 
 A DR1175 shield is mounted on the baseboard. 
 The boards are part of the NXP JN516x Evaluation Kit (see http://www.nxp.com/documents/leaflet/75017368.pdf) 
-The dr1175-node connects to the network in the same way as described in examples\rich\README.md
+The dr1175-node connects to the network in the same way as described in `examples\jn5168/rpl/README.md`
 
 The resources on the DR1175 are available as CoAP resources. They can be accessed via a CoAP client at the IPv6 interface 
 of the border router (e.g. via Copper plug-in on Firefox).
