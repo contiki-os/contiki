@@ -168,3 +168,4 @@ env:
   - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
   - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
   - BUILD_TYPE="cooja-checkstyle"
+  - BUILD_TYPE="cooja-findbugs"

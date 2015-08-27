@@ -6,7 +6,7 @@ allprojects {
     }
 }
 
-// TODO: Currently disable to avoid having too much logs in travis
+apply plugin: 'findbugs'
 apply plugin: 'checkstyle'
 apply plugin: 'application'
 apply plugin: 'eclipse'
@@ -24,6 +24,11 @@ libsDirName = "../dist"
 
 checkstyle {
   showViolations = false
+}
+
+findbugs {
+  effort = "min"
+  ignoreFailures = true
 }
 
 sourceSets {
