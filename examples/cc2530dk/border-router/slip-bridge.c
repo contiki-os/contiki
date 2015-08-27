@@ -59,7 +59,7 @@ slip_input_callback(void)
   PRINTF("SIN: %u\n", uip_len);
   if((char)uip_buf[0] == '!') {
     PRINTF("Got configuration message of type %c\n", uip_buf[1]);
-    uip_len = 0;
+    uip_clear_buf();
     if((char)uip_buf[1] == 'P') {
       uip_ipaddr_t prefix;
       /* Here we set a prefix !!! */
