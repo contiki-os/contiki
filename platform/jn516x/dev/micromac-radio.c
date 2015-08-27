@@ -98,29 +98,18 @@
 #define MICROMAC_CONF_CCA_THR 39 /* approximately -85 dBm */
 #endif /* MICROMAC_CONF_CCA_THR */
 
-#define RADIO_TXPOWER_MAX  3
-#define RADIO_TXPOWER_MIN  0
-
-/* Default Tx power */
-#ifndef MICROMAC_CONF_TX_POWER
-#define MICROMAC_CONF_TX_POWER RADIO_TXPOWER_MAX
+#if (JENNIC_CHIP == JN5169)
+  #define OUTPUT_POWER_MAX  10
+  #define OUTPUT_POWER_MIN (-32)
+#else
+  #define OUTPUT_POWER_MAX   0
+  #define OUTPUT_POWER_MIN (-32)
 #endif
 
-/* Output power configuration */
-struct output_config {
-  int8_t power;
-  uint8_t config;
-};
-static const struct output_config output_power[] = {
-  { 2, 3 },  /* 0xff */
-  { -10, 2 }, /* 0xef */
-  { -22, 1 }, /* 0xe7 */
-  { -34, 0 }, /* 0xe3 */
-};
-
-#define OUTPUT_NUM (sizeof(output_power) / sizeof(struct output_config))
-#define OUTPUT_POWER_MAX   0
-#define OUTPUT_POWER_MIN -25
+/* Default Tx power [dBm] (between OUTPUT_POWER_MIN and OUTPUT_POWER_MAX) */
+#ifndef MICROMAC_CONF_TX_POWER
+#define MICROMAC_CONF_TX_POWER 0
+#endif
 
 /* Autoack */
 #ifndef MICROMAC_CONF_AUTOACK
@@ -156,6 +145,9 @@ static uint8_t frame_filtering = 1;
 /* Current radio channel */
 static int current_channel;
 
+/* Current tx power */
+static int current_tx_power;
+
 /* an integer between 0 and 255, used only with cca() */
 static uint8_t cca_thershold = MICROMAC_CONF_CCA_THR;
 
@@ -189,11 +181,12 @@ static int off(void);
 static int is_packet_for_us(uint8_t *buf, int len, int do_send_ack);
 static void set_frame_filtering(uint8_t enable);
 static rtimer_clock_t get_packet_timestamp(void);
-static void set_txpower(uint8_t power);
+static void set_txpower(int8_t power);
 void set_channel(int c);
 static void radio_interrupt_handler(uint32 mac_event);
 static int get_detected_energy(void);
 static int get_rssi(void);
+static void get_last_rssi(void);
 
 /*---------------------------------------------------------------------------*/
 PROCESS(micromac_radio_process, "micromac_radio_driver");
@@ -489,6 +482,7 @@ void
 set_channel(int c)
 {
   current_channel = c;
+  /* will fine tune TX power as well */
   vMMAC_SetChannel(current_channel);
 }
 /*---------------------------------------------------------------------------*/
@@ -592,6 +586,7 @@ read(void *buf, unsigned short bufsize)
         bufsize = MIN(len, bufsize);
         memcpy(buf, input_frame_buffer->uPayload.au8Byte, bufsize);
         RIMESTATS_ADD(llrx);
+        get_last_rssi();
       }
     } else {
       len = 0;
@@ -604,15 +599,24 @@ read(void *buf, unsigned short bufsize)
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_txpower(uint8_t power)
+set_txpower(int8_t power)
 {
-  vJPT_RadioSetPower(power);
+  if (power > OUTPUT_POWER_MAX) {
+    current_tx_power = OUTPUT_POWER_MAX;
+  } else {
+    if (power < OUTPUT_POWER_MIN) {
+      current_tx_power = OUTPUT_POWER_MIN;
+    } else {
+      current_tx_power = power;
+    }
+  } 
+  vMMAC_SetChannelAndPower(current_channel, current_tx_power);
 }
-/*---------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
 static int
 get_txpower(void)
 {
-  return u8JPT_RadioGetPower();
+  return current_tx_power;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -627,6 +631,15 @@ get_rssi(void)
 {
   /* this approximate formula for RSSI is taken from NXP internal docs */
   return (7 * get_detected_energy() - 1970) / 20;
+}
+/*---------------------------------------------------------------------------*/
+static void 
+get_last_rssi(void)
+{
+  uint8_t radio_last_rx_energy;
+  uint8_t radio_last_correlation;  /* LQI */
+  radio_last_rx_energy = u8MMAC_GetRxLqi(&radio_last_correlation);
+  radio_last_rssi = i16JPT_ConvertEnergyTodBm(radio_last_rx_energy);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -663,8 +676,6 @@ radio_interrupt_handler(uint32 mac_event)
   int get_index;
   int put_index;
   int packet_for_me = 0;
-  uint8_t radio_last_rx_energy;
-  uint8_t radio_last_correlation; /* LQI (a.k.a. MQI according to NXP) */
 
   if(mac_event & E_MMAC_INT_TX_COMPLETE) {
     /* Transmission attempt has finished */
@@ -690,9 +701,7 @@ radio_interrupt_handler(uint32 mac_event)
           rx_frame_buffer->u8PayloadLength = 0;
         } else {
           /* read and cache RSSI and LQI values */
-          radio_last_rx_energy = u8MMAC_GetRxLqi(&radio_last_correlation);
-          radio_last_rssi = i16JPT_ConvertEnergyTodBm(radio_last_rx_energy);
-
+          get_last_rssi();
           /* Put received frame in queue */
           ringbufindex_put(&input_ringbuf);
 
@@ -829,15 +838,7 @@ get_value(radio_param_t param, radio_value_t *value)
     }
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
-    v = get_txpower();
-    *value = OUTPUT_POWER_MIN;
-    /* Find the actual estimated output power in conversion table */
-    for(i = 0; i < OUTPUT_NUM; i++) {
-      if(v >= output_power[i].config) {
-        *value = output_power[i].power;
-        break;
-      }
-    }
+    *value = get_txpower();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RSSI:
     *value = get_rssi();
@@ -905,12 +906,7 @@ set_value(radio_param_t param, radio_value_t value)
       return RADIO_RESULT_INVALID_VALUE;
       /* Find the closest higher PA_LEVEL for the desired output power */
     }
-    for(i = 1; i < OUTPUT_NUM; i++) {
-      if(value > output_power[i].power) {
-        break;
-      }
-    }
-    set_txpower(output_power[i - 1].config);
+    set_txpower(value);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_CCA_THRESHOLD:
     cca_thershold = value;
