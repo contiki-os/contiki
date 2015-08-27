@@ -28,7 +28,7 @@ endif
 ###############################################################################
 # Include NXP makefiles
 include $(SDK_BASE_DIR)/Chip/Common/Build/config.mk
-include $(SDK_BASE_DIR)/Platform/Common/Build/Config.mk
+include $(SDK_BASE_DIR)/Platform/Common/Build/config.mk
 include $(SDK_BASE_DIR)/Stack/Common/Build/config.mk
 
 # Add missing includes
