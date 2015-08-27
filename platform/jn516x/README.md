@@ -153,9 +153,11 @@ The platforms can selected by using `Makefile` variables.
 The following MCU models are supported:
 * `JN5168` - the default one, 256kB/32kB/4kB Flash/RAM/EEPROM
 * `JN5164` - 160kB/32kB/4kB Flash/RAM/EEPROM
+* `JN5169` - 512kB/32kB/4kB Flash/RAM/EEPROM
 
-Set `JENNIC_CHIP` variable to change this; for example, to select JN5164 use:
-`make JENNIC_CHIP=JN5164`
+For JN5169, at least version of the tool chain (JN-SW-4163) is required.
+Set `CHIP` variable to change this; for example, to select JN5164 use:
+`make CHIP=JN5164`
 
 The following platform-specific configurations are supported:
 * DR1174 with DR1175 sensor board; enable this with `JN516x_WITH_DR1175 = 1` in your makefile

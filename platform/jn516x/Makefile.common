@@ -4,7 +4,11 @@ endif
 
 ##############################################################################
 # User definable make parameters that may be overwritten from the command line
+ifdef CHIP
+  JENNIC_CHIP = $(CHIP)
+else
 JENNIC_CHIP ?= JN5168
+endif
 JENNIC_PCB ?= DEVKIT4
 JENNIC_STACK ?= MAC
 JENNIC_MAC ?= MiniMac
@@ -32,13 +36,16 @@ INCFLAGS += -I$(COMPONENTS_BASE_DIR)/MicroSpecific/Include
 INCFLAGS += -I$(COMPONENTS_BASE_DIR)/Recal/Include
 INCFLAGS += -I$(COMPONENTS_BASE_DIR)/ProductionTestApi/Include
 
-# Add missing libs
+# Add missing libs and
+# do not link with MiniMac nor MiniMacShim (we use MMAC)
 LDLIBS += Recal_$(JENNIC_CHIP_FAMILY)
-LDLIBS += JPT_$(JENNIC_CHIP)
-
-# Do not link with MiniMac nor MiniMacShim (we use MMAC)
-LDLIBS := $(subst MiniMac_JN516x, ,$(LDLIBS))
 LDLIBS := $(subst MiniMacShim_JN516x, ,$(LDLIBS))
+ifeq ($(JENNIC_CHIP),JN5169)
+  LDLIBS := $(subst MiniMac_JN5169, ,$(LDLIBS))
+else
+LDLIBS := $(subst MiniMac_JN516x, ,$(LDLIBS))
+  LDLIBS += JPT_$(JENNIC_CHIP)
+endif
 
 # Pass DEBUG as CFLAG
 ifeq ($(DEBUG),SW)
@@ -63,8 +70,6 @@ ARCH = ccm-star.c exceptions.c leds-arch.c rtimer-arch.c slip_uart0.c clock.c mi
        mtarch.c node-id.c uart0.c uart-driver.c watchdog.c \
        log.c ringbufindex.c slip.c sprintf.c
 
-APPLIBS += MMAC 
-STACKLIBS += JPT
 
 CONTIKI_TARGET_DIRS = . dev lib
 CONTIKI_TARGET_MAIN = contiki-jn516x-main.c
