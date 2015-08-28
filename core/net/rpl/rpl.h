@@ -108,7 +108,6 @@ struct rpl_dag;
 #define RPL_PARENT_FLAG_LINK_METRIC_VALID 0x2
 
 struct rpl_parent {
-  struct rpl_parent *next;
   struct rpl_dag *dag;
 #if RPL_DAG_MC != RPL_DAG_MC_NONE
   rpl_metric_container_t mc;
