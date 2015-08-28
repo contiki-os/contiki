@@ -1,0 +1,33 @@
+# cc2538 base platform makefile
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+### These files must exist for all CC2538 platforms
+CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c platform.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+### Unless the example dictates otherwise, build with code size optimisations
+ifndef SMALL
+  SMALL = 1
+endif
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
+include $(CONTIKI_CPU)/Makefile.cc2538
+
+MODULES += core/net core/net/mac \
+           core/net/mac/contikimac \
+		   core/net/llsec
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
+%.upload: %.bin
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	python $(BSL) -e -w -v $<
+endif

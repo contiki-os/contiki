@@ -32,17 +32,18 @@
  * \addtogroup cc2538-platforms
  * @{
  *
- * \defgroup cc2538dk The cc2538 Development Kit platform
+ * \defgroup cc2538 The cc2538 SoC platform
  *
- * The cc2538DK is a platform by Texas Instruments, based on the
- * cc2538 SoC with an ARM Cortex-M3 core.
+ * SoC from Texas Instruments with an ARM Cortex-M3 core.
+ *
  * @{
  *
  * \file
- *   Main module for the cc2538dk platform
+ *   Main module for the cc2538 platform
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
+#include "platform.h"
 #include "dev/adc.h"
 #include "dev/leds.h"
 #include "dev/sys-ctrl.h"
@@ -51,7 +52,6 @@
 #include "dev/uart.h"
 #include "dev/watchdog.h"
 #include "dev/ioc.h"
-#include "dev/button-sensor.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
 #include "dev/cc2538-rf.h"
@@ -72,10 +72,21 @@
 #include <string.h>
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
+/* Define main() as a weak reference in case a sub-platform wishes to
+ * define a custom main function. */
+#pragma weak main
+int main(void) __attribute__((weak));
+/*---------------------------------------------------------------------------*/
 #if STARTUP_CONF_VERBOSE
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
+#endif
+
+#if STARTUP_CONF_LEDS
+#define FADE(l) fade(l)
+#else
+#define FADE(l)
 #endif
 
 #if UART_CONF_ENABLE
@@ -149,12 +160,13 @@ main(void)
   gpio_init();
 
   leds_init();
-  fade(LEDS_YELLOW);
+  FADE(LEDS_YELLOW);
 
   process_init();
 
   watchdog_init();
-  button_sensor_init();
+
+  platform_init_post_initial();
 
   /*
    * Character I/O Initialisation.
@@ -180,7 +192,7 @@ main(void)
   serial_line_init();
 
   INTERRUPTS_ENABLE();
-  fade(LEDS_GREEN);
+  FADE(LEDS_GREEN);
 
   PUTS(CONTIKI_VERSION_STRING);
   PUTS(BOARD_STRING);
@@ -211,7 +223,7 @@ main(void)
 
   adc_init();
 
-  process_start(&sensors_process, NULL);
+  platform_init_post_networking();
 
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
@@ -219,7 +231,9 @@ main(void)
   autostart_start(autostart_processes);
 
   watchdog_start();
-  fade(LEDS_ORANGE);
+  FADE(LEDS_ORANGE);
+
+  platform_init_end();
 
   while(1) {
     uint8_t r;

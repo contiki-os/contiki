@@ -4,35 +4,16 @@ ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
 
-CONTIKI_TARGET_DIRS = . dev
+### Include the files from the base platform (cc2538)
+CONTIKI_TARGET_DIRS =  ../cc2538
 
-CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c
-CONTIKI_TARGET_SOURCEFILES += contiki-main.c
+### Also include this platform
+CONTIKI_TARGET_DIRS += . dev
+
 CONTIKI_TARGET_SOURCEFILES += sensors.c smartrf-sensors.c
 CONTIKI_TARGET_SOURCEFILES += button-sensor.c als-sensor.c
 
-CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
-
 CLEAN += *.cc2538dk
 
-### Unless the example dictates otherwise, build with code size optimisations
-ifndef SMALL
-  SMALL = 1
-endif
-
-### Define the CPU directory
-CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
-include $(CONTIKI_CPU)/Makefile.cc2538
-
-MODULES += core/net core/net/mac \
-           core/net/mac/contikimac \
-           core/net/llsec
-
-BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
-
-%.upload: %.bin
-ifeq ($(wildcard $(BSL)), )
-	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
-else
-	python $(BSL) -e -w -v $<
-endif
+### Include the base CC2538 platform makefile
+include $(CONTIKI)/platform/cc2538/Makefile.cc2538
