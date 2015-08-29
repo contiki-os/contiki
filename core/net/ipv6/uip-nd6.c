@@ -127,6 +127,8 @@ static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
 #if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
 static uip_ipaddr_t ipaddr;
+#endif
+#if (!UIP_CONF_ROUTER || UIP_ND6_SEND_RA)
 static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #endif
 
@@ -687,7 +689,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   nd6_opt_offset = UIP_ND6_RA_LEN;
 
 
-#if !UIP_CONF_ROUTER
   /* Prefix list */
   for(prefix = uip_ds6_prefix_list;
       prefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; prefix++) {
@@ -704,7 +705,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       uip_len += UIP_ND6_OPT_PREFIX_INFO_LEN;
     }
   }
-#endif /* !UIP_CONF_ROUTER */
 
   /* Source link-layer option */
   create_llao((uint8_t *)UIP_ND6_OPT_HDR_BUF, UIP_ND6_OPT_SLLAO);
