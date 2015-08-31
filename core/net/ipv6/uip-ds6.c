@@ -275,6 +275,7 @@ uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
     PRINTF("Adding prefix ");
     PRINT6ADDR(&locprefix->ipaddr);
     PRINTF("length %u, vlifetime%lu\n", ipaddrlen, interval);
+    return locprefix;
   }
   return NULL;
 }

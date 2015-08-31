@@ -709,7 +709,7 @@ uip_process(uint8_t flag)
     }
 
     /* Reset the length variables. */
-    uip_len = 0;
+    uip_clear_buf();
     uip_slen = 0;
 
 #if UIP_TCP
@@ -1589,7 +1589,7 @@ uip_process(uint8_t flag)
       uip_add_rcv_nxt(1);
       uip_flags = UIP_CONNECTED | UIP_NEWDATA;
       uip_connr->len = 0;
-      uip_len = 0;
+      uip_clear_buf();
       uip_slen = 0;
       UIP_APPCALL();
       goto appsend;
@@ -1934,7 +1934,7 @@ uip_process(uint8_t flag)
   return;
 
  drop:
-  uip_len = 0;
+  uip_clear_buf();
   uip_flags = 0;
   return;
 }
