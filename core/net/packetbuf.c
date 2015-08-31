@@ -150,7 +150,7 @@ packetbuf_copyto(void *to)
     PRINTF("packetbuf_write: header: %s\n", buffer);
     bufferptr = buffer;
     bufferptr[0] = 0;
-    for(i = bufptr; ((i < buflen + bufptr) && (bufferlen < 980)); ++i) {
+    for(i = bufptr; ((i < buflen + bufptr) && (bufferlen < (sizeof(buffer) - 10))); ++i) {
       bufferlen += sprintf(bufferptr + bufferlen, "0x%02x, ", packetbufptr[i]);
     }
     PRINTF("packetbuf_write: data: %s\n", buffer);
