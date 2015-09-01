@@ -805,7 +805,7 @@ transmit(unsigned short transmit_len)
   cmd.pPayload = &tx_buf[TX_BUF_HDR_LEN];
 
   /* Enable the LAST_FG_COMMAND_DONE interrupt, which will wake us up */
-  rf_core_cmd_done_en();
+  rf_core_cmd_done_en(true);
 
   ret = rf_core_send_cmd((uint32_t)&cmd, &cmd_status);
 
