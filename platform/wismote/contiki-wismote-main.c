@@ -257,6 +257,7 @@ main(int argc, char **argv)
   init_platform();
 
   set_rime_addr();
+  random_init(linkaddr_node_addr.u8[6] + linkaddr_node_addr.u8[7]);
 
   cc2520_init();
   {
