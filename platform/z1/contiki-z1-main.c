@@ -268,6 +268,7 @@ main(int argc, char **argv)
   /*
    * Initialize Contiki and our processes.
    */
+  random_init(node_mac[6] + node_mac[7]);
   process_init();
   process_start(&etimer_process, NULL);
 
