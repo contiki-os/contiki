@@ -189,11 +189,6 @@ set_gateway(void)
 }
 #endif /* NETSTACK_CONF_WITH_IPV4 */
 /*---------------------------------------------------------------------------*/
-static void
-llsec_on_bootstrap()
-{
-}
-/*---------------------------------------------------------------------------*/
 int
 main(int argc, char **argv)
 {
@@ -273,7 +268,7 @@ main(int argc, char **argv)
   /*
    * Initialize Contiki and our processes.
    */
-  random_init(node_mac[0] + node_mac[7] + node_id);
+  random_init(node_mac[6] + node_mac[7]);
   process_init();
   process_start(&etimer_process, NULL);
 
@@ -429,9 +424,6 @@ main(int argc, char **argv)
   timer_set(&mgt_timer, DCOSYNCH_PERIOD * CLOCK_SECOND);
 #endif
   watchdog_start();
-
-  NETSTACK_LLSEC.bootstrap(llsec_on_bootstrap);
-
   /*  watchdog_stop();*/
   while(1) {
     int r;

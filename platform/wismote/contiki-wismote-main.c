@@ -33,7 +33,6 @@
 #include <string.h>
 
 #include "dev/cc2520/cc2520.h"
-//#include "dev/ds2411.h"
 #include "dev/leds.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
@@ -134,18 +133,9 @@ set_rime_addr(void)
 
   //	Set node address
 #if NETSTACK_CONF_WITH_IPV6
-  //memcpy(addr.u8, ds2411_id, sizeof(addr.u8));
   n_addr.u8[7] = node_id & 0xff;
   n_addr.u8[6] = node_id >> 8;
 #else
- /* if(node_id == 0) {
-    for(i = 0; i < sizeof(linkaddr_t); ++i) {
-      addr.u8[i] = ds2411_id[7 - i];
-    }
-  } else {
-    addr.u8[0] = node_id & 0xff;
-    addr.u8[1] = node_id >> 8;
-  }*/
   n_addr.u8[0] = node_id & 0xff;
   n_addr.u8[1] = node_id >> 8;
 #endif
@@ -213,12 +203,6 @@ main(int argc, char **argv)
   clock_wait(1);
 
   leds_on(LEDS_GREEN);
-  //ds2411_init();
-
-  /* XXX hack: Fix it so that the 802.15.4 MAC address is compatible
-     with an Ethernet MAC address - byte 0 (byte 2 in the DS ID)
-     cannot be odd. */
-  //ds2411_id[2] &= 0xfe;
 
   leds_on(LEDS_BLUE);
   xmem_init();
@@ -238,12 +222,8 @@ main(int argc, char **argv)
 #ifdef IEEE_802154_MAC_ADDRESS
   {
     uint8_t ieee[] = IEEE_802154_MAC_ADDRESS;
-    //memcpy(ds2411_id, ieee, sizeof(uip_lladdr.addr));
-    //ds2411_id[7] = node_id & 0xff;
   }
 #endif
-
-  //random_init(ds2411_id[0] + node_id);
 
   leds_off(LEDS_BLUE);
   /*
@@ -257,6 +237,7 @@ main(int argc, char **argv)
   init_platform();
 
   set_rime_addr();
+  random_init(linkaddr_node_addr.u8[6] + linkaddr_node_addr.u8[7]);
 
   cc2520_init();
   {
@@ -284,7 +265,6 @@ main(int argc, char **argv)
   }
 
 #if NETSTACK_CONF_WITH_IPV6
-  /* memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr)); */
   memcpy(&uip_lladdr.addr, linkaddr_node_addr.u8,
          UIP_LLADDR_LEN > LINKADDR_SIZE ? LINKADDR_SIZE : UIP_LLADDR_LEN);
 

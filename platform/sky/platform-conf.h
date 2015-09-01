@@ -53,8 +53,6 @@
  * ~50us delay + 129preample + ?? = 183 us */
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(183))
 
-#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 15000
-
 #define PLATFORM_HAS_LEDS    1
 #define PLATFORM_HAS_BUTTON  1
 #define PLATFORM_HAS_LIGHT   1
