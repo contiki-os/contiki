@@ -214,6 +214,9 @@ typedef uint32_t rtimer_clock_t;
 #define UART_BAUD_RATE UART_RATE_1000000
 #endif /* UART_BAUD_RATE */
 
+#ifndef UART1_BAUD_RATE
+#define UART1_BAUD_RATE UART_RATE_1000000
+#endif
 #define ENABLE_ADVANCED_BAUD_SELECTION (UART_BAUD_RATE > UART_RATE_115200)
 
 /* Set this to zero only if we are using SLIP */
