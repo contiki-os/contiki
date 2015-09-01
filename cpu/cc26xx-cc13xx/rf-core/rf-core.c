@@ -378,11 +378,12 @@ rf_core_setup_interrupts()
 }
 /*---------------------------------------------------------------------------*/
 void
-rf_core_cmd_done_en()
+rf_core_cmd_done_en(bool fg)
 {
+  uint32_t irq = fg ? IRQ_LAST_FG_COMMAND_DONE : IRQ_LAST_COMMAND_DONE;
+
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = ENABLED_IRQS;
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = ENABLED_IRQS +
-    IRQ_LAST_COMMAND_DONE;
+  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = ENABLED_IRQS | irq;
 }
 /*---------------------------------------------------------------------------*/
 void
