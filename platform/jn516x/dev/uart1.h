@@ -32,44 +32,46 @@
 
 /**
  * \file
- *         UART0 drivers
+ *          UART1 drivers
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
  *
  */
 
-#include <jendefs.h>
-#include <AppHardwareApi.h>
+#ifndef __UART1_H__
+#define __UART1_H__
+
 #include <PeripheralRegs.h>
 #include "contiki-conf.h"
-#include "dev/uart0.h"
-#include "uart-driver.h"
 
-/* Valid range for TXBUFSIZE and RXBUFSIZE: 16-2047 */
+/* Default buffer sizes
+/* Valid range for TX_BUFFER_SIZE and RX_BUFFER_SIZE: 16-2047 */
+#define UART1_DEFAULT_RX_BUFFER_SIZE 16
+#define UART1_DEFAULT_TX_BUFFER_SIZE 16
 
-static unsigned char txbuf_data[UART_TX_BUFFER_SIZE];
-static unsigned char rxbuf_data[UART_RX_BUFFER_SIZE];
-static int (*uart0_input)(unsigned char c);
+/* Buffer size selection */
+#ifdef UART1_CONF_TX_BUFFER_SIZE
+#define UART1_TX_BUFFER_SIZE UART1_CONF_TX_BUFFER_SIZE
+#else
+#define UART1_TX_BUFFER_SIZE UART1_DEFAULT_TX_BUFFER_SIZE
+#endif
 
-uint8_t
-uart0_active(void)
-{
-  return uart_driver_tx_in_progress(E_AHI_UART_0);
-}
-void
-uart0_set_input(int
-                (*input)(unsigned char c))
-{
-  uart0_input = input;
-  uart_driver_set_input(E_AHI_UART_0, uart0_input);
-}
-void
-uart0_writeb(unsigned char c)
-{
-  uart_driver_write_buffered(E_AHI_UART_0, c);
-}
-void
-uart0_init(uint8_t br)
-{
-  uart_driver_init(E_AHI_UART_0, br, txbuf_data, UART_TX_BUFFER_SIZE, rxbuf_data, UART_RX_BUFFER_SIZE, uart0_input);
-}
+#ifdef UART1_CONF_RX_BUFFER_SIZE
+#define UART1_RX_BUFFER_SIZE UART1_CONF_RX_BUFFER_SIZE
+#else
+#define UART1_RX_BUFFER_SIZE UART1_DEFAULT_RX_BUFFER_SIZE
+#endif
+
+void uart1_set_input(int (*input)(unsigned char c));
+void uart1_writeb(unsigned char c);
+void uart1_init(unsigned char br);
+
+#define uart1_write_direct(c) uart_driver_write_direct(E_AHI_UART_1, (c))
+#define uart1_disable_interrupts() uart_driver_disable_interrupts(E_AHI_UART_1)
+#define uart1_enable_interrupts() uart_driver_enable_interrupts(E_AHI_UART_1)
+#define uart1_restore_interrupts() uart_driver_restore_interrupts(E_AHI_UART_1)
+#define uart1_store_interrupts() uart_driver_store_interrupts(E_AHI_UART_1)
+
+uint8_t uart1_active(void);
+
+#endif

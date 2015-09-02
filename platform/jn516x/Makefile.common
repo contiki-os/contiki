@@ -67,9 +67,23 @@ CFLAGS  := $(subst -Wcast-align,,$(CFLAGS))
 CFLAGS  := $(subst -Wall,,$(CFLAGS))
 
 ARCH = ccm-star.c exceptions.c leds-arch.c rtimer-arch.c slip_uart0.c clock.c micromac-radio.c \
-       mtarch.c node-id.c uart0.c uart-driver.c watchdog.c \
-       log.c ringbufindex.c slip.c sprintf.c
+       mtarch.c node-id.c watchdog.c log.c ringbufindex.c slip.c sprintf.c 
+# Default uart0 for printf and slip
+TARGET_WITH_UART0 ?= 1
+TARGET_WITH_UART1 ?= 0
 
+# Get required uart files         
+ifeq ($(TARGET_WITH_UART0),1)
+WITH_UART = 1
+ARCH += uart0.c
+endif
+ifeq ($(TARGET_WITH_UART1),1)
+WITH_UART = 1
+ARCH += uart1.c
+endif
+ifeq ($(WITH_UART),1)
+ARCH += uart-driver.c
+endif
 
 CONTIKI_TARGET_DIRS = . dev lib
 CONTIKI_TARGET_MAIN = contiki-jn516x-main.c
