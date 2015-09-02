@@ -40,6 +40,18 @@
 #include "lib/list.h"
 #include "net/nbr-table.h"
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#include "sys/ctimer.h"
+static void handle_periodic_timer(void *ptr);
+static struct ctimer periodic_timer;
+static uint8_t initialized = 0;
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /* List of link-layer addresses of the neighbors, used as key in the tables */
 typedef struct nbr_table_key {
   struct nbr_table_key *next;
@@ -143,6 +155,7 @@ static int
 nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item, int value)
 {
   int item_index = index_from_item(table, item);
+
   if(table != NULL && item_index != -1) {
     if(value) {
       bitmap[item_index] |= 1 << table->index;
@@ -229,6 +242,13 @@ nbr_table_allocate(void)
 int
 nbr_table_register(nbr_table_t *table, nbr_table_callback *callback)
 {
+#if DEBUG
+  if(!initialized) {
+    initialized = 1;
+    /* schedule a debug printout per minute */
+    ctimer_set(&periodic_timer, CLOCK_SECOND * 60, handle_periodic_timer, NULL);
+  }
+#endif
   if(num_tables < MAX_NUM_TABLES) {
     table->index = num_tables++;
     table->callback = callback;
@@ -331,6 +351,10 @@ nbr_table_remove(nbr_table_t *table, void *item)
 int
 nbr_table_lock(nbr_table_t *table, void *item)
 {
+#if DEBUG
+  int i = index_from_item(table, item);
+  PRINTF("*** Lock %d\n", i);
+#endif
   return nbr_set_bit(locked_map, table, item, 1);
 }
 /*---------------------------------------------------------------------------*/
@@ -338,6 +362,10 @@ nbr_table_lock(nbr_table_t *table, void *item)
 int
 nbr_table_unlock(nbr_table_t *table, void *item)
 {
+#if DEBUG
+  int i = index_from_item(table, item);
+  PRINTF("*** Unlock %d\n", i);
+#endif
   return nbr_set_bit(locked_map, table, item, 0);
 }
 /*---------------------------------------------------------------------------*/
@@ -348,3 +376,25 @@ nbr_table_get_lladdr(nbr_table_t *table, const void *item)
   nbr_table_key_t *key = key_from_item(table, item);
   return key != NULL ? &key->lladdr : NULL;
 }
+/*---------------------------------------------------------------------------*/
+#if DEBUG
+static void
+handle_periodic_timer(void *ptr)
+{
+  int i, j;
+  /* Printout all neighbors and which tables they are used in */
+  PRINTF("NBR TABLE:\n");
+  for(i = 0; i < NBR_TABLE_MAX_NEIGHBORS; i++) {
+    if(used_map[i] > 0) {
+      PRINTF(" %02d %02d",i , key_from_index(i)->lladdr.u8[LINKADDR_SIZE - 1]);
+      for(j = 0; j < num_tables; j++) {
+        PRINTF(" [%d:%d]", (used_map[i] & (1 << j)) != 0,
+               (locked_map[i] & (1 << j)) != 0);
+      }
+      PRINTF("\n");
+    }
+  }
+  ctimer_reset(&periodic_timer);
+}
+#endif
+
