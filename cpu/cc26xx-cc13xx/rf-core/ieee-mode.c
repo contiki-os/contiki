@@ -853,6 +853,11 @@ transmit(unsigned short transmit_len)
    */
   rf_core_cmd_done_dis();
 
+
+  if(was_off) {
+    off();
+  }
+
   return ret;
 }
 /*---------------------------------------------------------------------------*/
