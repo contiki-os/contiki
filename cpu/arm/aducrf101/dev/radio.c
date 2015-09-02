@@ -190,7 +190,7 @@ prepare(const void *payload, unsigned short payload_len)
 }
 /*---------------------------------------------------------------------------*/
 /** Send the packet that has previously been prepared. */
-static int
+static radio_txresult_t
 transmit(unsigned short transmit_len)
 {
   if(!radio_is_on)
@@ -213,7 +213,7 @@ transmit(unsigned short transmit_len)
 }
 /*---------------------------------------------------------------------------*/
 /** Prepare & transmit a packet. */
-static int
+static radio_txresult_t
 send(const void *payload, unsigned short payload_len)
 {
   prepare(payload, payload_len);

@@ -154,7 +154,7 @@ send_packet(mac_callback_t sent, void *ptr)
   params.payload_len = packetbuf_datalen();
   len = frame802154_hdrlen(&params);
   if(packetbuf_hdralloc(len)) {
-    int ret;
+	radio_txresult_t ret;
     frame802154_create(&params, packetbuf_hdrptr());
 
     PRINTF("6MAC-UT: %2X", params.fcf.frame_type);
