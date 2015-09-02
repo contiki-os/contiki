@@ -1219,6 +1219,12 @@ set_value(radio_param_t param, radio_value_t value)
       return RADIO_RESULT_INVALID_VALUE;
     }
 
+    if(cmd->channel == (uint8_t)value) {
+      /* We already have that very same channel configured.
+       * Nothing to do here. */
+      return RADIO_RESULT_OK;
+    }
+
     cmd->channel = (uint8_t)value;
     break;
   case RADIO_PARAM_PAN_ID:
