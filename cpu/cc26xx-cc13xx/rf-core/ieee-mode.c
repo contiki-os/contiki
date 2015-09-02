@@ -1108,6 +1108,8 @@ off(void)
 
   rf_core_power_down();
 
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+
   /* Switch HF clock source to the RCOSC to preserve power */
   oscillators_switch_to_hf_rc();
 
