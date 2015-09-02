@@ -292,7 +292,7 @@ lpm_drop()
 
     if(next_event) {
       next_event = next_event - clock_time();
-      soc_rtc_schedule_one_shot(AON_RTC_CH1, RTIMER_NOW() +
+      soc_rtc_schedule_one_shot(AON_RTC_CH1, soc_rtc_last_isr_time() +
           (next_event * (RTIMER_SECOND / CLOCK_SECOND)));
     }
 

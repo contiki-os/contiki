@@ -120,31 +120,35 @@ clock_init(void)
         ((TIMER_CFG_B_ONE_SHOT >> 8) & 0xFF) | GPT_TBMR_TBPWMIE;
 }
 /*---------------------------------------------------------------------------*/
+static void
+update_clock_variable(void)
+{
+  uint32_t aon_rtc_secs_now;
+  uint32_t aon_rtc_secs_now2;
+  uint16_t aon_rtc_ticks_now;
+
+  do {
+    aon_rtc_secs_now = HWREG(AON_RTC_BASE + AON_RTC_O_SEC);
+    aon_rtc_ticks_now = HWREG(AON_RTC_BASE + AON_RTC_O_SUBSEC) >> 16;
+    aon_rtc_secs_now2 = HWREG(AON_RTC_BASE + AON_RTC_O_SEC);
+  } while(aon_rtc_secs_now != aon_rtc_secs_now2);
+
+  /* Convert AON RTC ticks to clock tick counter */
+  count = (aon_rtc_secs_now * CLOCK_SECOND) + (aon_rtc_ticks_now >> 9);
+}
+/*---------------------------------------------------------------------------*/
 CCIF clock_time_t
 clock_time(void)
 {
+  update_clock_variable();
+
   return (clock_time_t)(count & 0xFFFFFFFF);
 }
 /*---------------------------------------------------------------------------*/
 void
 clock_update(void)
 {
-  bool interrupts_disabled;
-  uint32_t aon_rtc_secs_now;
-  uint16_t aon_rtc_ticks_now;
-
-  interrupts_disabled = ti_lib_int_master_disable();
-
-  aon_rtc_secs_now = HWREG(AON_RTC_BASE + AON_RTC_O_SEC);
-  aon_rtc_ticks_now = HWREG(AON_RTC_BASE + AON_RTC_O_SUBSEC) >> 16;
-
-  /* Convert AON RTC ticks to clock tick counter */
-  count = (aon_rtc_secs_now * CLOCK_SECOND) + (aon_rtc_ticks_now >> 9);
-
-  /* Re-enable interrupts */
-  if(!interrupts_disabled) {
-    ti_lib_int_master_enable();
-  }
+  update_clock_variable();
 
   if(etimer_pending()) {
     etimer_request_poll();
