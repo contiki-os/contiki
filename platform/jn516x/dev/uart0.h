@@ -44,6 +44,22 @@
 #include <PeripheralRegs.h>
 #include "contiki-conf.h"
 
+#define UART_DEFAULT_RX_BUFFER_SIZE 2047
+#if UART_XONXOFF_FLOW_CTRL
+#define UART_DEFAULT_TX_BUFFER_SIZE 16
+#else
+#define UART_DEFAULT_TX_BUFFER_SIZE 1281
+#endif
+#ifdef UART_CONF_TX_BUFFER_SIZE
+#define UART_TX_BUFFER_SIZE UART_CONF_TX_BUFFER_SIZE
+#else
+#define UART_TX_BUFFER_SIZE UART_DEFAULT_TX_BUFFER_SIZE
+#endif
+#ifdef UART_CONF_RX_BUFFER_SIZE
+#define UART_RX_BUFFER_SIZE UART_CONF_RX_BUFFER_SIZE
+#else
+#define UART_RX_BUFFER_SIZE UART_DEFAULT_RX_BUFFER_SIZE
+#endif
 void uart0_set_input(int (*input)(unsigned char c));
 void uart0_writeb(unsigned char c);
 void uart0_init(unsigned char br);

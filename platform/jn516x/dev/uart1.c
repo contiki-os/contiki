@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         UART0 drivers
+ *         UART1 drivers
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
  *
@@ -42,34 +42,32 @@
 #include <AppHardwareApi.h>
 #include <PeripheralRegs.h>
 #include "contiki-conf.h"
-#include "dev/uart0.h"
+#include "dev/uart1.h"
 #include "uart-driver.h"
 
-/* Valid range for TXBUFSIZE and RXBUFSIZE: 16-2047 */
-
-static unsigned char txbuf_data[UART_TX_BUFFER_SIZE];
-static unsigned char rxbuf_data[UART_RX_BUFFER_SIZE];
-static int (*uart0_input)(unsigned char c);
+static unsigned char txbuf_data[UART1_TX_BUFFER_SIZE];
+static unsigned char rxbuf_data[UART1_RX_BUFFER_SIZE];
+static int (*uart1_input)(unsigned char c);
 
 uint8_t
-uart0_active(void)
+uart1_active(void)
 {
-  return uart_driver_tx_in_progress(E_AHI_UART_0);
+  return uart_driver_tx_in_progress(E_AHI_UART_1);
 }
 void
-uart0_set_input(int
+uart1_set_input(int
                 (*input)(unsigned char c))
 {
-  uart0_input = input;
-  uart_driver_set_input(E_AHI_UART_0, uart0_input);
+  uart1_input = input;
+  uart_driver_set_input(E_AHI_UART_1, uart1_input);
 }
 void
-uart0_writeb(unsigned char c)
+uart1_writeb(unsigned char c)
 {
-  uart_driver_write_buffered(E_AHI_UART_0, c);
+  uart_driver_write_buffered(E_AHI_UART_1, c);
 }
 void
-uart0_init(uint8_t br)
+uart1_init(uint8_t br)
 {
-  uart_driver_init(E_AHI_UART_0, br, txbuf_data, UART_TX_BUFFER_SIZE, rxbuf_data, UART_RX_BUFFER_SIZE, uart0_input);
+  uart_driver_init(E_AHI_UART_1, br, txbuf_data, UART1_TX_BUFFER_SIZE, rxbuf_data, UART1_RX_BUFFER_SIZE, uart1_input);
 }
