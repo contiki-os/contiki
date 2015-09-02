@@ -44,8 +44,8 @@
 #include <PeripheralRegs.h>
 #include "contiki-conf.h"
 
-/* Default buffer sizes
-/* Valid range for TX_BUFFER_SIZE and RX_BUFFER_SIZE: 16-2047 */
+/* Default buffer size
+   Valid range for TX_BUFFER_SIZE and RX_BUFFER_SIZE: 16-2047 */
 #define UART1_DEFAULT_RX_BUFFER_SIZE 16
 #define UART1_DEFAULT_TX_BUFFER_SIZE 16
 
