@@ -19,7 +19,7 @@ timeout_function = function my_fun() {
 
 while (counter<10) {
   counter++;
-  
+
   GENERATE_MSG(1000, "wait");
   YIELD_THEN_WAIT_UNTIL(msg.equals("wait"));
 
