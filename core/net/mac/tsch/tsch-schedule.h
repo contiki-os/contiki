@@ -30,14 +30,6 @@
  *
  */
 
-/**
- * \file
- *         IEEE 802.15.4 TSCH MAC schedule manager.
- * \author
- *         Beshr Al Nahas <beshr@sics.se>
- *         Simon Duquennoy <simonduq@sics.se>
- */
-
 #ifndef __TSCH_SCHEDULE_H__
 #define __TSCH_SCHEDULE_H__
 

@@ -30,14 +30,6 @@
  *
  */
 
-/**
- * \file
- *         TSCH packet format management
- * \author
- *         Beshr Al Nahas <beshr@sics.se>
- *         Simon Duquennoy <simonduq@sics.se>
- */
-
 #ifndef __TSCH_PACKET_H__
 #define __TSCH_PACKET_H__
 

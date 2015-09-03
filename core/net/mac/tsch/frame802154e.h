@@ -30,13 +30,6 @@
  *
  */
 
-/**
- * \file
- *         IEEE 802.15.4e-specific frame creation and parsing
- * \author
- *         Simon Duquennoy <simonduq@sics.se>
- */
-
 #ifndef FRAME_802154E_H
 #define FRAME_802154E_H
 

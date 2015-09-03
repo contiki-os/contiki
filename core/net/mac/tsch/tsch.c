@@ -32,10 +32,12 @@
 
 /**
  * \file
- *         IEEE 802.15.4 TSCH MAC implementation. Must be used with nullmac as NETSTACK_CONF_MAC
+ *         IEEE 802.15.4 TSCH MAC implementation.
+ *         Does not use any RDC layer. Can be configured along
+ *         with tschrdc as RDC layer for convenience.
  * \author
- *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennoy <simonduq@sics.se>
+ *         Beshr Al Nahas <beshr@sics.se>
  *
  */
 

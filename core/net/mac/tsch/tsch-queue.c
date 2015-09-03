@@ -37,8 +37,9 @@
  *				 Read-only operation on neighbor and packets are allowed from interrupts and outside of them.
  *				 *Other operations are allowed outside of interrupt only.*
  * \author
- *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennoy <simonduq@sics.se>
+ *         Beshr Al Nahas <beshr@sics.se>
+ *         Domenico De Guglielmo <d.deguglielmo@iet.unipi.it >
  */
 
 #include "contiki.h"

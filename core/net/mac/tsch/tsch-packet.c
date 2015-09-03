@@ -34,8 +34,8 @@
  * \file
  *         TSCH packet format management
  * \author
- *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennoy <simonduq@sics.se>
+ *         Beshr Al Nahas <beshr@sics.se>
  */
 
 #include "contiki.h"
