@@ -63,7 +63,16 @@ Software Requirements
 The following software are needed:
 
 * ST port of Contiki for STM32 Nucleo and expansion boards. 
- >The port is installed automatically when the Contiki repository is cloned.
+ >The port is installed automatically when both the Contiki and the submodule repository are cloned: the former hosts the Contiki distribution and the ST platform interface, the latter hosts the actual library.
+The following commands are needed to download the full porting:
+
+    git clone https://github.com/STclab/contiki.git (*)
+    cd contiki/
+    git checkout stm32nucleo-spirit1 (*)
+    git submodule init
+    git submodule update
+(*): required only if using the STclab GitHub repository, these steps won't be needed once the Pull Request will be accepted
+
 The platform name is: stm32nucleo-spirit1
 
 * A toolchain to build the firmware: The port has been developed and tested with GNU Tools 
@@ -131,7 +140,6 @@ This jumper provides the required voltage to the devices on the board.
 5. Program the firmware on the STM32 Nucleo board. 
 This can be done by copying the binary file on the USB mass storage that is 
 automatically created when plugging the STM32 Nucleo board to the PC.
-On Linux machines the serial port device is located in /dev/ttyACMx (x depends on the PC).
 
 6. Reset the MCU by using the reset button on the STM32 Nucleo board
 
