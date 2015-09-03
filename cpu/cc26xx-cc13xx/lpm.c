@@ -202,8 +202,7 @@ wake_up(void)
 
   /* Remember IRQ energest for next pass */
   ENERGEST_IRQ_SAVE(irq_energest);
-  ENERGEST_ON(ENERGEST_TYPE_CPU);
-  ENERGEST_OFF(ENERGEST_TYPE_LPM);
+  ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
 
   /* Sync so that we get the latest values before adjusting recharge settings */
   ti_lib_sys_ctrl_aon_sync();
@@ -396,8 +395,7 @@ lpm_drop()
 
     /* We are only interested in IRQ energest while idle or in LPM */
     ENERGEST_IRQ_RESTORE(irq_energest);
-    ENERGEST_OFF(ENERGEST_TYPE_CPU);
-    ENERGEST_ON(ENERGEST_TYPE_LPM);
+    ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
 
     /* Sync the AON interface to ensure all writes have gone through. */
     ti_lib_sys_ctrl_aon_sync();
@@ -429,8 +427,7 @@ lpm_drop()
 void
 lpm_sleep(void)
 {
-  ENERGEST_OFF(ENERGEST_TYPE_CPU);
-  ENERGEST_ON(ENERGEST_TYPE_LPM);
+  ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
 
   /* We are only interested in IRQ energest while idle or in LPM */
   ENERGEST_IRQ_RESTORE(irq_energest);
@@ -443,8 +440,7 @@ lpm_sleep(void)
   /* Remember IRQ energest for next pass */
   ENERGEST_IRQ_SAVE(irq_energest);
 
-  ENERGEST_ON(ENERGEST_TYPE_CPU);
-  ENERGEST_OFF(ENERGEST_TYPE_LPM);
+  ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
 }
 /*---------------------------------------------------------------------------*/
 void
