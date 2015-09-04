@@ -221,7 +221,7 @@ main(int argc, char **argv)
   //ds2411_id[2] &= 0xfe;
 
   leds_on(LEDS_BLUE);
-  //xmem_init();
+  xmem_init();
 
   leds_off(LEDS_RED);
   rtimer_init();
@@ -257,6 +257,7 @@ main(int argc, char **argv)
   init_platform();
 
   set_rime_addr();
+  random_init(linkaddr_node_addr.u8[LINKADDR_SIZE-2] + linkaddr_node_addr.u8[LINKADDR_SIZE-1]);
 
   cc2520_init();
   {

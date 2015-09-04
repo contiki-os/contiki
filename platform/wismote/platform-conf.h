@@ -124,8 +124,10 @@ typedef unsigned long off_t;
 
 /* Enable/disable flash access to the SPI bus (active low). */
 
-#define SPI_FLASH_ENABLE()  //( P4OUT &= ~BV(FLASH_CS) )
-#define SPI_FLASH_DISABLE() //( P4OUT |=  BV(FLASH_CS) )
+ /* ENABLE CSn (active low) */
+#define SPI_FLASH_ENABLE()     do{ UCB0CTL1 &= ~UCSWRST;  clock_delay(5); P4OUT &= ~BIT0;clock_delay(5);}while(0)
+ /* DISABLE CSn (active low) */
+#define SPI_FLASH_DISABLE()    do{clock_delay(5);UCB0CTL1 |= UCSWRST;clock_delay(1); P4OUT |= BIT0;clock_delay(5);}while(0)
 
 #define SPI_FLASH_HOLD()               // ( P4OUT &= ~BV(FLASH_HOLD) )
 #define SPI_FLASH_UNHOLD()              //( P4OUT |=  BV(FLASH_HOLD) )

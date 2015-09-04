@@ -43,8 +43,6 @@
 
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#define CPU_FREQ      48000000ul
-/*---------------------------------------------------------------------------*/
 static bool
 accessible(void)
 {
@@ -62,11 +60,11 @@ accessible(void)
   return true;
 }
 /*---------------------------------------------------------------------------*/
-int
+bool
 board_spi_write(const uint8_t *buf, size_t len)
 {
   if(accessible() == false) {
-    return 0;
+    return false;
   }
 
   while(len > 0) {
@@ -78,14 +76,14 @@ board_spi_write(const uint8_t *buf, size_t len)
     buf++;
   }
 
-  return 0;
+  return true;
 }
 /*---------------------------------------------------------------------------*/
-int
+bool
 board_spi_read(uint8_t *buf, size_t len)
 {
   if(accessible() == false) {
-    return 0;
+    return false;
   }
 
   while(len > 0) {
@@ -93,14 +91,14 @@ board_spi_read(uint8_t *buf, size_t len)
 
     if(!ti_lib_rom_ssi_data_put_non_blocking(SSI0_BASE, 0)) {
       /* Error */
-      return -1;
+      return false;
     }
     ti_lib_rom_ssi_data_get(SSI0_BASE, &ul);
     *buf = (uint8_t)ul;
     len--;
     buf++;
   }
-  return 0;
+  return true;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -132,7 +130,8 @@ board_spi_open(uint32_t bit_rate, uint32_t clk_pin)
   /* SPI configuration */
   ti_lib_ssi_int_disable(SSI0_BASE, SSI_RXOR | SSI_RXFF | SSI_RXTO | SSI_TXFF);
   ti_lib_ssi_int_clear(SSI0_BASE, SSI_RXOR | SSI_RXTO);
-  ti_lib_rom_ssi_config_set_exp_clk(SSI0_BASE, CPU_FREQ, SSI_FRF_MOTO_MODE_0,
+  ti_lib_rom_ssi_config_set_exp_clk(SSI0_BASE, ti_lib_sys_ctrl_clock_get(),
+                                    SSI_FRF_MOTO_MODE_0,
                                     SSI_MODE_MASTER, bit_rate, 8);
   ti_lib_rom_ioc_pin_type_ssi_master(SSI0_BASE, BOARD_IOID_SPI_MISO,
                                      BOARD_IOID_SPI_MOSI, IOID_UNUSED, clk_pin);

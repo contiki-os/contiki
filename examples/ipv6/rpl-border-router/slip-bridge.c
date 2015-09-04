@@ -59,7 +59,7 @@ slip_input_callback(void)
  // PRINTF("SIN: %u\n", uip_len);
   if(uip_buf[0] == '!') {
     PRINTF("Got configuration message of type %c\n", uip_buf[1]);
-    uip_len = 0;
+    uip_clear_buf();
     if(uip_buf[1] == 'P') {
       uip_ipaddr_t prefix;
       /* Here we set a prefix !!! */
@@ -85,7 +85,7 @@ slip_input_callback(void)
       slip_send();
       
     }
-    uip_len = 0;
+    uip_clear_buf();
   }
   /* Save the last sender received over SLIP to avoid bouncing the
      packet back if no route is found */

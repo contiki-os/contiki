@@ -45,16 +45,6 @@
 #endif /* PROJECT_CONF_H */
 /*---------------------------------------------------------------------------*/
 /**
- * \name CC26xx flavour selection
- * @{
- */
-#ifndef CC26XX_MODEL_CONF_CPU_VARIANT
-#define CC26XX_MODEL_CONF_CPU_VARIANT 2650 /**< 2650 => CC2650, 2630 => CC2630 */
-
-#endif
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
  * \name Network Stack Configuration
  *
  * @{
@@ -76,8 +66,7 @@
 #endif
 
 /* Configure NullRDC for when it's selected */
-#define NULLRDC_802154_AUTOACK                  1
-#define NULLRDC_802154_AUTOACK_HW               1
+#define NULLRDC_CONF_802154_AUTOACK             1
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
@@ -92,7 +81,35 @@
 #define NETSTACK_CONF_FRAMER  framer_802154
 #endif
 
-#define NETSTACK_CONF_RADIO   cc26xx_rf_driver
+#if CPU_FAMILY_CC13XX
+#define NETSTACK_CONF_RADIO        prop_mode_driver
+
+#ifndef RF_CORE_CONF_CHANNEL
+#define RF_CORE_CONF_CHANNEL                      0
+#endif
+
+#define NULLRDC_CONF_ACK_WAIT_TIME                (RTIMER_SECOND / 400)
+#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME (RTIMER_SECOND / 1000)
+#define NULLRDC_CONF_802154_AUTOACK_HW            0
+#define NULLRDC_CONF_SEND_802154_ACK              1
+
+#define CONTIKIMAC_CONF_CCA_CHECK_TIME            (RTIMER_ARCH_SECOND / 1600)
+#define CONTIKIMAC_CONF_CCA_SLEEP_TIME            (RTIMER_ARCH_SECOND / 210)
+#define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED  (RTIMER_ARCH_SECOND / 20)
+#define CONTIKIMAC_CONF_SEND_SW_ACK               1
+#define CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME (RTIMER_SECOND / 1000)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 280)
+#else
+#define NETSTACK_CONF_RADIO        ieee_mode_driver
+
+#ifndef RF_CORE_CONF_CHANNEL
+#define RF_CORE_CONF_CHANNEL                     25
+#endif
+
+#define NULLRDC_CONF_802154_AUTOACK_HW            1
+#define NULLRDC_CONF_SEND_802154_ACK              0
+#endif
+
 #define NETSTACK_RADIO_MAX_PAYLOAD_LEN        125
 
 /* 6LoWPAN */
@@ -136,37 +153,20 @@
 #define IEEE802154_CONF_PANID           0xABCD /**< Default PAN ID */
 #endif
 
-#ifndef CC26XX_RF_CONF_CHANNEL
-#define CC26XX_RF_CONF_CHANNEL              25 /**< Default RF channel */
+#ifndef IEEE_MODE_CONF_AUTOACK
+#define IEEE_MODE_CONF_AUTOACK               1 /**< RF H/W generates ACKs */
 #endif
 
-#ifndef CC26XX_RF_CONF_AUTOACK
-#define CC26XX_RF_CONF_AUTOACK               1 /**< RF H/W generates ACKs */
+#ifndef IEEE_MODE_CONF_PROMISCOUS
+#define IEEE_MODE_CONF_PROMISCOUS            0 /**< 1 to enable promiscous mode */
 #endif
 
-#ifndef CC26XX_RF_CONF_PROMISCOUS
-#define CC26XX_RF_CONF_PROMISCOUS            0 /**< 1 to enable promiscous mode */
+#ifndef RF_BLE_CONF_ENABLED
+#define RF_BLE_CONF_ENABLED                  0 /**< 0 to disable BLE support */
 #endif
 
-#ifndef CC26XX_RF_CONF_BLE_SUPPORT
-#define CC26XX_RF_CONF_BLE_SUPPORT           0 /**< 0 to disable BLE support */
-#endif
-
-/*
- * Patch Management for the CPE itself and for BLE and IEEE modes
- *
- * Don't change these unless you know what you're doing
- */
-#ifndef CC26XX_CONF_CPE_HAS_PATCHES
-#define CC26XX_CONF_CPE_HAS_PATCHES          0 /**< 1 to enable patching the CPE */
-#endif
-
-#ifndef CC26XX_CONF_BLE_HAS_PATCHES
-#define CC26XX_CONF_BLE_HAS_PATCHES          0 /**< 1 to enable patching BLE mode */
-#endif
-
-#ifndef CC26XX_CONF_IEEE_HAS_PATCHES
-#define CC26XX_CONF_IEEE_HAS_PATCHES         0 /**< 1 to enable patching IEEE mode */
+#ifndef PROP_MODE_CONF_SNIFFER
+#define PROP_MODE_CONF_SNIFFER               0 /**< 1 to enable sniffer mode */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -201,7 +201,7 @@
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-#define RPL_CONF_MAX_DAG_ENTRIES             1
+
 #ifndef RPL_CONF_OF
 #define RPL_CONF_OF rpl_mrhof
 #endif
@@ -257,6 +257,11 @@
 
 #ifndef CC26XX_UART_CONF_BAUD_RATE
 #define CC26XX_UART_CONF_BAUD_RATE    115200 /**< Default UART0 baud rate */
+#endif
+
+/* Enable I/O over the Debugger Devpack - Only relevant for the SensorTag */
+#ifndef BOARD_CONF_DEBUGGER_DEVPACK
+#define BOARD_CONF_DEBUGGER_DEVPACK        1
 #endif
 
 /* Turn off example-provided putchars */

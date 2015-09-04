@@ -80,6 +80,16 @@
 #define CC26XX_WEB_DEMO_NET_UART 1
 #endif
 /*---------------------------------------------------------------------------*/
+/* Active probing of RSSI from our preferred parent */
+#if (CC26XX_WEB_DEMO_COAP_SERVER || CC26XX_WEB_DEMO_MQTT_CLIENT)
+#define CC26XX_WEB_DEMO_READ_PARENT_RSSI 1
+#else
+#define CC26XX_WEB_DEMO_READ_PARENT_RSSI 0
+#endif
+
+#define CC26XX_WEB_DEMO_RSSI_MEASURE_INTERVAL_MAX 86400 /* secs: 1 day */
+#define CC26XX_WEB_DEMO_RSSI_MEASURE_INTERVAL_MIN     5 /* secs */
+/*---------------------------------------------------------------------------*/
 /* User configuration */
 /* Take a sensor reading on button press */
 #define CC26XX_WEB_DEMO_SENSOR_READING_TRIGGER &button_left_sensor
@@ -91,7 +101,7 @@
 /* Force an MQTT publish on sensor event */
 #define CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER &reed_relay_sensor
 #else
-#define CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER &button_right_sensor
+#define CC26XX_WEB_DEMO_MQTT_PUBLISH_TRIGGER &button_down_sensor
 #endif
 
 #define CC26XX_WEB_DEMO_STATUS_LED LEDS_GREEN
@@ -101,7 +111,11 @@
 /*---------------------------------------------------------------------------*/
 /* Default configuration values */
 #define CC26XX_WEB_DEMO_DEFAULT_ORG_ID              "quickstart"
+#if CPU_FAMILY_CC13XX
+#define CC26XX_WEB_DEMO_DEFAULT_TYPE_ID             "cc13xx"
+#else
 #define CC26XX_WEB_DEMO_DEFAULT_TYPE_ID             "cc26xx"
+#endif
 #define CC26XX_WEB_DEMO_DEFAULT_EVENT_TYPE_ID       "status"
 #define CC26XX_WEB_DEMO_DEFAULT_SUBSCRIBE_CMD_TYPE  "+"
 #define CC26XX_WEB_DEMO_DEFAULT_BROKER_PORT         1883
@@ -165,6 +179,7 @@ typedef struct cc26xx_web_demo_config_s {
   uint32_t magic;
   int len;
   uint32_t sensors_bitmap;
+  int def_rt_ping_interval;
   mqtt_client_config_t mqtt_config;
   net_uart_config_t net_uart;
 } cc26xx_web_demo_config_t;

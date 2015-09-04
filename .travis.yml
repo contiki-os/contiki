@@ -10,14 +10,14 @@ before_script:
 
   ## Install doxygen
   - if [ ${BUILD_CATEGORY:-0} = doxygen ] ; then
-      sudo add-apt-repository ppa:libreoffice/libreoffice-4-3 -y  && sudo apt-get -qq update &&
+      sudo add-apt-repository ppa:libreoffice/libreoffice-4-4 -y && sudo apt-get -qq update &&
       sudo apt-get --no-install-suggests --no-install-recommends -qq install doxygen  &&
       doxygen --version ;
     fi
 
   ## Install msp430 toolchain
   - sudo apt-get -qq install lib32z1
-  - $WGET http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 &&
+  - $WGET http://simonduq.github.io/resources/mspgcc-4.7.2-compiled.tar.bz2 &&
     tar xjf mspgcc*.tar.bz2 -C /tmp/ &&
     sudo cp -f -r /tmp/msp430/* /usr/local/ &&
     rm -rf /tmp/msp430 mspgcc*.tar.bz2 &&
@@ -103,6 +103,7 @@ env:
   - BUILD_TYPE='collect'
   - BUILD_TYPE='collect-lossy'
   - BUILD_TYPE='rpl'
+  - BUILD_TYPE='large-rpl'
   - BUILD_TYPE='rime'
   - BUILD_TYPE='ipv6'
   - BUILD_TYPE='ip64' MAKE_TARGETS='cooja'

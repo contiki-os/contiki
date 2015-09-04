@@ -127,6 +127,8 @@ static uip_ds6_addr_t *addr; /**  Pointer to an interface address */
 #if !UIP_CONF_ROUTER            // TBD see if we move it to ra_input
 static uip_nd6_opt_prefix_info *nd6_opt_prefix_info; /**  Pointer to prefix information option in uip_buf */
 static uip_ipaddr_t ipaddr;
+#endif
+#if (!UIP_CONF_ROUTER || UIP_ND6_SEND_RA)
 static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #endif
 
@@ -321,7 +323,7 @@ create_na:
   return;
 
 discard:
-  uip_len = 0;
+  uip_clear_buf();
   return;
 }
 #endif /* UIP_ND6_SEND_NA */
@@ -360,7 +362,7 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
     }
     if (uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) {
       PRINTF("Dropping NS due to no suitable source address\n");
-      uip_len = 0;
+      uip_clear_buf();
       return;
     }
     UIP_IP_BUF->len[1] =
@@ -557,7 +559,7 @@ na_input(void)
 #endif /*UIP_CONF_IPV6_QUEUE_PKT */
 
 discard:
-  uip_len = 0;
+  uip_clear_buf();
   return;
 }
 #endif /* UIP_ND6_SEND_NA */
@@ -646,7 +648,7 @@ rs_input(void)
   uip_ds6_send_ra_sollicited();
 
 discard:
-  uip_len = 0;
+  uip_clear_buf();
   return;
 }
 
@@ -687,7 +689,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
   nd6_opt_offset = UIP_ND6_RA_LEN;
 
 
-#if !UIP_CONF_ROUTER
   /* Prefix list */
   for(prefix = uip_ds6_prefix_list;
       prefix < uip_ds6_prefix_list + UIP_DS6_PREFIX_NB; prefix++) {
@@ -704,7 +705,6 @@ uip_nd6_ra_output(uip_ipaddr_t * dest)
       uip_len += UIP_ND6_OPT_PREFIX_INFO_LEN;
     }
   }
-#endif /* !UIP_CONF_ROUTER */
 
   /* Source link-layer option */
   create_llao((uint8_t *)UIP_ND6_OPT_HDR_BUF, UIP_ND6_OPT_SLLAO);
@@ -1029,7 +1029,7 @@ ra_input(void)
 #endif /*UIP_CONF_IPV6_QUEUE_PKT */
 
 discard:
-  uip_len = 0;
+  uip_clear_buf();
   return;
 }
 #endif /* !UIP_CONF_ROUTER */

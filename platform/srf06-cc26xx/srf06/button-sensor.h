@@ -29,11 +29,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup srf06-cc26xx-peripherals
+ * \addtogroup srf06-common-peripherals
  * @{
  *
  * \file
- * Header file for the SmartRF06EB + CC26xxEM Button Driver
+ * Header file for the SmartRF06EB + CC13xx/CC26xxEM Button Driver
  */
 /*---------------------------------------------------------------------------*/
 #ifndef BUTTON_SENSOR_H_
