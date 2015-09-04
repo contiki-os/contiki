@@ -816,12 +816,6 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         /* Listen */
         static struct pt slot_rx_pt;
         PT_SPAWN(&slot_operation_pt, &slot_rx_pt, tsch_rx_slot(&slot_rx_pt, t));
-      } else {
-        TSCH_LOG_ADD(tsch_log_message,
-                              snprintf(log->message, sizeof(log->message),
-                                  "!link has no tx nor rx flag %u",
-                                  current_link->link_options);
-              );
       }
       TSCH_DEBUG_SLOT_END();
     }
