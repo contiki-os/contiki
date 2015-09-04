@@ -56,6 +56,10 @@
 #define TSCH_CLOCK_TO_TICKS(c) (((c)*RTIMER_SECOND)/CLOCK_SECOND)
 #define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c)/timeslot_length)
 
+/* Wait for a condition with timeout t0+offset. */
+#define BUSYWAIT_UNTIL_ABS(cond, t0, offset) \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), (t0) + (offset)));
+
 /* 802.15.4 broadcast MAC address */
 extern const linkaddr_t tsch_broadcast_address;
 /* The address we use to identify EB queue */
@@ -95,6 +99,8 @@ int tsch_get_lock();
 void tsch_release_lock();
 /* Returns a 802.15.4 channel from an ASN and channel offset */
 uint8_t tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset);
+/* Set TSCH to send a keepalive message after TSCH_KEEPALIVE_TIMEOUT */
+void tsch_schedule_keepalive(void);
 
 /* TSCH processes */
 PROCESS_NAME(tsch_process);

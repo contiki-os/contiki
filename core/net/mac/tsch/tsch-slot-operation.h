@@ -72,9 +72,13 @@ extern struct tsch_packet *dequeued_array[TSCH_DEQUEUED_ARRAY_SIZE];
 extern struct ringbufindex input_ringbuf;
 extern struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 
+/* Set global time before starting slot operation,
+ * with a rtimer time and an ASN */
+void tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
+    struct asn_t *next_slot_asn);
+/* Start actual slot operation */
 void tsch_slot_operation_start(void);
-void tsch_leave_network();
-/* Protothread for scanning */
-PT_THREAD(tsch_scan(struct pt *pt));
+/* Leave the network */
+void tsch_slot_operation_stop();
 
 #endif /* __TSCH_SLOT_OPERATION_H__ */
