@@ -407,17 +407,22 @@ tsch_tx_process_pending()
 /* The main TSCH process */
 PROCESS_THREAD(tsch_process, ev, data)
 {
-  static struct pt associate_pt;
+  static struct pt scan_pt;
 
   PROCESS_BEGIN();
 
   while(1) {
-    /* Associate:
-     * Try to associate to a network or start one if node is TSCH coordinator */
-    while(!tsch_is_associated) {
-      PROCESS_PT_SPAWN(&associate_pt, tsch_associate(&associate_pt));
-    }
     
+    while(!tsch_is_associated) {
+      if(tsch_is_coordinator) {
+        /* We are coordinator, start operating now */
+        tsch_start_coordinator();
+      } else {
+        /* Start scanning, will attempt to join when receiving an EB */    
+        PROCESS_PT_SPAWN(&scan_pt, tsch_scan(&scan_pt));    
+      }
+    }
+        
     tsch_slot_operation_start();
     
     PROCESS_YIELD_UNTIL(!tsch_is_associated);

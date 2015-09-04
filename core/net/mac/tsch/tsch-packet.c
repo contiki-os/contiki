@@ -118,7 +118,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
 
 /* Parse enhanced ACK packet, extract drift and nack */
 int
-tsch_packet_parse_eack(uint8_t *buf, int buf_size,
+tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
     uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len)
 {
   uint8_t curr_len = 0;
@@ -130,7 +130,7 @@ tsch_packet_parse_eack(uint8_t *buf, int buf_size,
   }
 
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
-  if((ret = frame802154_parse(buf, buf_size, frame)) < 3) {
+  if((ret = frame802154_parse((uint8_t*)buf, buf_size, frame)) < 3) {
     return 0;
   }
   if(hdr_len != NULL) {
@@ -340,7 +340,7 @@ tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)
 
 /* Parse a IEEE 802.15.4e TSCH Enhanced Beacon (EB) */
 int
-tsch_packet_parse_eb(uint8_t *buf, int buf_size,
+tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
     frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len, int frame_without_mic)
 {
   uint8_t curr_len = 0;
@@ -351,7 +351,7 @@ tsch_packet_parse_eb(uint8_t *buf, int buf_size,
   }
 
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
-  if((ret = frame802154_parse(buf, buf_size, frame)) == 0) {
+  if((ret = frame802154_parse((uint8_t*)buf, buf_size, frame)) == 0) {
     LOG("TSCH:! parse_eb: failed to parse frame\n");
     return 0;
   }

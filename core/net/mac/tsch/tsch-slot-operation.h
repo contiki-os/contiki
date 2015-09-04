@@ -74,7 +74,7 @@ extern struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 
 void tsch_slot_operation_start(void);
 void tsch_leave_network();
-/* Protothread for association */
-PT_THREAD(tsch_associate(struct pt *pt));
+/* Protothread for scanning */
+PT_THREAD(tsch_scan(struct pt *pt));
 
 #endif /* __TSCH_SLOT_OPERATION_H__ */

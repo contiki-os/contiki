@@ -457,7 +457,7 @@ frame802154e_parse_mlme_long_ie(uint8_t *buf, int len,
 
 /* Parse all IEEE 802.15.4e Information Elements (IE) from a frame */
 int
-frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
+frame802154e_parse_information_elements(const uint8_t *buf, uint8_t buf_size,
     struct ieee802154_ies *ies)
 {
   uint8_t *start = buf;

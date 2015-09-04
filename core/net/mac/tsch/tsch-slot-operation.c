@@ -128,7 +128,7 @@ static struct tsch_packet *current_packet = NULL;
 static struct tsch_neighbor *current_neighbor = NULL;
 
 /* Protothread for association */
-PT_THREAD(tsch_associate(struct pt *pt));
+PT_THREAD(tsch_scan(struct pt *pt));
 /* Protothread for slot operation, called from rtimer interrupt
  * and scheduled from tsch_schedule_slot_operation */
 static PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr));
@@ -938,12 +938,211 @@ tsch_slot_operation_start(void)
   LOG("TSCH: scheduled initial slot operation: asn-%x.%lx, start: %u, now: %u\n", current_asn.ms1b, current_asn.ls4b, current_slot_start, RTIMER_NOW());
 }
 
+int
+tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
+{
+  frame802154_t frame;
+  struct ieee802154_ies ies;
+  uint8_t hdrlen;
+  
+  if(input_eb == NULL) {
+    return 0;
+  }
+  
+  if(tsch_packet_parse_eb(input_eb->payload, input_eb->len,
+      &frame, &ies, &hdrlen, 0) == 0) {
+    return 0;
+  }
+  
+  current_asn = ies.ie_asn;
+  tsch_join_priority = ies.ie_join_priority + 1;
+  
+  if(input_eb->len == 0) {
+    LOG("TSCH:! failed to parse (len %u)\n", input_eb->len);
+    return 0;
+  }
+  
+#if LLSEC802154_SECURITY_LEVEL
+  if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
+      input_eb->len - hdrlen - tsch_security_mic_len(&frame),
+      &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
+    LOG("TSCH:! parse_eb: failed to authenticate\n");
+    return 0;
+  }
+#endif
+  
+#if TSCH_JOIN_SECURED_ONLY
+  if(frame.fcf.security_enabled == 0) {
+    LOG("TSCH:! parse_eb: EB is not secured\n");
+    return 0;
+  }
+#endif
+  
+#if TSCH_JOIN_ANY_PANID == 0
+  /* Check if the EB comes from the PAN ID we expact */
+  if(frame.src_pid != IEEE802154_PANID) {
+    LOG("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
+    return 0;
+  }
+#endif /* TSCH_JOIN_ANY_PANID == 0 */
+  
+  /* There was no join priority (or 0xff) in the EB, do not join */
+  if(ies.ie_join_priority == 0xff) {
+    LOG("TSCH:! parse_eb: no join priority\n");
+    return 0;
+  }
+  
+  /* TSCH timeslot timing */
+  if(ies.ie_tsch_timeslot_id == 0) {
+    tsch_reset_timeslot_timing();
+  } else {
+    tsch_timing_cca_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca_offset);
+    tsch_timing_cca = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca);
+    tsch_timing_tx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_offset);
+    tsch_timing_rx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_offset);
+    tsch_timing_rx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_ack_delay);
+    tsch_timing_tx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_ack_delay);
+    tsch_timing_rx_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_wait);
+    tsch_timing_ack_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.ack_wait);
+    tsch_timing_rx_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_tx);
+    tsch_timing_max_ack = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_ack);
+    tsch_timing_max_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_tx);
+    tsch_timing_timeslot_length = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.timeslot_length);
+  }
+  
+  /* TSCH hopping sequence */
+  if(ies.ie_channel_hopping_sequence_id == 0) {
+    memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+    ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+  } else {
+    if(ies.ie_hopping_sequence_len <= sizeof(tsch_hopping_sequence)) {
+      memcpy(tsch_hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
+      ASN_DIVISOR_INIT(tsch_hopping_sequence_length, ies.ie_hopping_sequence_len);
+    } else {
+      LOG("TSCH:! parse_eb: hopping sequence too long (%u)\n", ies.ie_hopping_sequence_len);
+      return 0;
+    }
+  }
+  
+#if TSCH_CHECK_TIME_AT_ASSOCIATION > 0
+  /* Divide by 4k and multiply again to avoid integer overflow */
+  uint32_t expected_asn = 4096*TSCH_CLOCK_TO_SLOTS(clock_time()/4096, tsch_timing_timeslot_length); /* Expected ASN based on our current time*/
+  int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION*60ul*TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND, tsch_timing_timeslot_length);
+  int32_t asn_diff = (int32_t)current_asn.ls4b-expected_asn;
+  if(asn_diff > asn_threshold) {
+    LOG("TSCH:! EB ASN rejected %lx %lx %ld\n",
+        current_asn.ls4b, expected_asn, asn_diff);
+    return 0;
+  }
+#endif
+  
+#if TSCH_INIT_SCHEDULE_FROM_EB
+  /* Create schedule */
+  if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
+#if TSCH_WITH_MINIMAL_SCHEDULE
+    LOG("TSCH: parse_eb: no schedule, setting up minimal schedule\n");
+    tsch_schedule_create_minimal();
+#else
+    LOG("TSCH: parse_eb: no schedule\n");
+#endif
+  } else {
+    /* First, empty current schedule */
+    tsch_schedule_remove_all_slotframes();
+    /* We support only 0 or 1 slotframe in this IE */
+    int num_links = ies.ie_tsch_slotframe_and_link.num_links;
+    if(num_links <= FRAME802154E_IE_MAX_LINKS) {
+      int i;
+      struct tsch_slotframe *sf = tsch_schedule_add_slotframe(
+          ies.ie_tsch_slotframe_and_link.slotframe_handle,
+          ies.ie_tsch_slotframe_and_link.slotframe_size);
+      for(i = 0; i < num_links; i++) {
+        tsch_schedule_add_link(sf,
+            ies.ie_tsch_slotframe_and_link.links[i].link_options,
+            LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
+            ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
+      }
+    } else {
+      LOG("TSCH:! parse_eb: too many links in schedule (%u)\n", num_links);
+      return 0;
+    }
+  }
+#endif /* TSCH_INIT_SCHEDULE_FROM_EB */
+  
+  if(tsch_join_priority < TSCH_MAX_JOIN_PRIORITY) {
+    struct tsch_neighbor *n;
+    
+    /* Add coordinator to list of neighbors, lock the entry */
+    n = tsch_queue_add_nbr((linkaddr_t*)&frame.src_addr);
+    
+    if(n != NULL) {
+      tsch_queue_update_time_source((linkaddr_t*)&frame.src_addr);
+      
+      /* Use this ASN as "last synchronization ASN" */
+      last_sync_asn = current_asn;
+      tsch_schedule_keepalive();
+      
+      /* Calculate TSCH slot start from packet timestamp */
+      current_slot_start = timestamp - tsch_timing_tx_offset;
+      
+      /* Update global flags */
+      tsch_is_associated = 1;
+      tsch_is_pan_secured = frame.fcf.security_enabled;
+      
+#ifdef TSCH_CALLBACK_JOINING_NETWORK
+      TSCH_CALLBACK_JOINING_NETWORK();
+#endif
+      
+      /* Association done, schedule keepalive messages */
+      tsch_schedule_keepalive();
+      
+      /* Set PANID */
+      frame802154_set_pan_id(frame.src_pid);
+      
+      LOG("TSCH: association done, sec %u, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe len %u with %u links, from %u\n",
+          tsch_is_pan_secured,
+          frame.src_pid,
+          current_asn.ms1b, current_asn.ls4b, tsch_join_priority,
+          ies.ie_tsch_timeslot_id,
+          ies.ie_channel_hopping_sequence_id,
+          ies.ie_tsch_slotframe_and_link.slotframe_size,
+          ies.ie_tsch_slotframe_and_link.num_links,
+          LOG_NODEID_FROM_LINKADDR((linkaddr_t*)&frame.src_addr));
+      
+      return 1;
+    }
+  }
+  LOG("TSCH:! did not associate.\n");
+  return 0;
+}
+
+void
+tsch_start_coordinator(void)
+{ 
+  frame802154_set_pan_id(IEEE802154_PANID);
+  /* Initialize hopping sequence as default */
+  memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+  ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
+#if TSCH_WITH_MINIMAL_SCHEDULE
+  tsch_schedule_create_minimal();
+#endif
+  
+  tsch_is_associated = 1;
+  tsch_join_priority = 0;
+  
+  LOG("TSCH: starting, asn-%x.%lx\n",
+      current_asn.ms1b, current_asn.ls4b);
+  
+  /* Start only after some initial delay */
+  tsch_time_until_next_active_slot = TSCH_CLOCK_TO_TICKS(CLOCK_SECOND/10);
+  current_slot_start = RTIMER_NOW() + tsch_time_until_next_active_slot;
+}
+
 /*---------------------------------------------------------------------------*/
-/* Association protothread, called by tsch_process:
+/* Scanning protothread, called by tsch_process:
  * If we are a master, start right away.
  * Otherwise, wait for EBs to associate with a master
  */
-PT_THREAD(tsch_associate(struct pt *pt))
+PT_THREAD(tsch_scan(struct pt *pt))
 {
   PT_BEGIN(pt);
   
@@ -951,246 +1150,53 @@ PT_THREAD(tsch_associate(struct pt *pt))
 
   ASN_INIT(current_asn, 0, 0);
 
-  if(tsch_is_coordinator) {
-    /* We are coordinator, start operating now */
+  static struct etimer scan_timer;
+  static uint32_t base_channel_index;
+  base_channel_index = random_rand();
+  etimer_set(&scan_timer, CLOCK_SECOND / TSCH_ASSOCIATION_POLL_FREQUENCY);
 
-    frame802154_set_pan_id(IEEE802154_PANID);
-    /* Initialize hopping sequence as default */
-    memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-    ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-#if TSCH_WITH_MINIMAL_SCHEDULE
-    tsch_schedule_create_minimal();
-#endif
+  while(!tsch_is_associated && !tsch_is_coordinator) {
+    /* We are not coordinator, try to associate */
+    rtimer_clock_t t0;
+    int is_packet_pending = 0;
 
-    tsch_is_associated = 1;
-    tsch_join_priority = 0;
+    /* Hop to any channel offset */
+    uint8_t scan_channel = TSCH_JOIN_HOPPING_SEQUENCE[
+                                (base_channel_index + clock_seconds()) % sizeof(TSCH_JOIN_HOPPING_SEQUENCE)];
+    hop_channel(scan_channel);
 
-    LOG("TSCH: starting, asn-%x.%lx\n",
-                      current_asn.ms1b, current_asn.ls4b);
+    /* Turn radio on and wait for EB */
+    NETSTACK_RADIO.on();
 
-    /* Start only after some initial delay */
-    tsch_time_until_next_active_slot = TSCH_CLOCK_TO_TICKS(CLOCK_SECOND/10);
-    current_slot_start = RTIMER_NOW() + tsch_time_until_next_active_slot;
-  } else {
-    static struct etimer associate_timer;
-    static uint32_t base_channel_index;
-    base_channel_index = random_rand();
-    etimer_set(&associate_timer, CLOCK_SECOND / TSCH_ASSOCIATION_POLL_FREQUENCY);
+    /* Busy wait for a packet for 1 second */
+    t0 = RTIMER_NOW();
 
-    while(!tsch_is_associated && !tsch_is_coordinator) {
-      /* We are not coordinator, try to associate */
-      rtimer_clock_t t0;
-      int is_packet_pending = 0;
+    is_packet_pending = NETSTACK_RADIO.pending_packet();
+    if(!is_packet_pending && NETSTACK_RADIO.receiving_packet()) {
+      /* If we are currently receiving a packet, wait until end of reception */
+      BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0, RTIMER_SECOND / TSCH_ASSOCIATION_POLL_FREQUENCY);
+    }
 
-      /* Hop to any channel offset */
-      uint8_t scan_channel = TSCH_JOIN_HOPPING_SEQUENCE[
-                                  (base_channel_index + clock_seconds()) % sizeof(TSCH_JOIN_HOPPING_SEQUENCE)];
-      hop_channel(scan_channel);
+    if(is_packet_pending) {        
+      /* Save packet timestamp */
+      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
+      
+      /* Read packet */
+      input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_MAX_PACKET_LEN);
+      
+      /* Parse EB and attempt to associate */
+      LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
+      
+      tsch_associate(&input_eb, t0);
+    }
 
-      /* Turn radio on and wait for EB */
-      NETSTACK_RADIO.on();
-
-      /* Busy wait for a packet for 1 second */
-      t0 = RTIMER_NOW();
-
-      is_packet_pending = NETSTACK_RADIO.pending_packet();
-      if(!is_packet_pending && NETSTACK_RADIO.receiving_packet()) {
-        /* If we are currently receiving a packet, wait until end of reception */
-        BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0, RTIMER_SECOND / TSCH_ASSOCIATION_POLL_FREQUENCY);
-      }
-
-      if(is_packet_pending) {
-        frame802154_t frame;
-        struct ieee802154_ies ies;
-        int eb_parsed = 0;
-        uint8_t hdrlen;
-
-        /* Save packet timestamp */
-        NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
-
-        /* Read packet */
-        input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_MAX_PACKET_LEN);
-
-        /* Parse EB and extract ASN and join priority */
-        LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
-
-        eb_parsed = tsch_packet_parse_eb(input_eb.payload, input_eb.len,
-                &frame, &ies, &hdrlen, 0);
-        current_asn = ies.ie_asn;
-        tsch_join_priority = ies.ie_join_priority + 1;
-
-        if(input_eb.len == 0) {
-          LOG("TSCH:! failed to parse (len %u)\n", input_eb.len);
-          eb_parsed = 0;
-        }
-
-#if LLSEC802154_SECURITY_LEVEL
-        if(eb_parsed &&
-            !tsch_security_parse_frame(input_eb.payload, hdrlen,
-                input_eb.len - hdrlen - tsch_security_mic_len(&frame),
-            &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
-          LOG("TSCH:! parse_eb: failed to authenticate\n");
-          eb_parsed = 0;
-        }
-#endif
-
-#if TSCH_JOIN_SECURED_ONLY
-        if(frame.fcf.security_enabled == 0) {
-          LOG("TSCH:! parse_eb: EB is not secured\n");
-          eb_parsed = 0;
-        }
-#endif
-
-#if TSCH_JOIN_ANY_PANID == 0
-        /* Check if the EB comes from the PAN ID we expact */
-        if(eb_parsed && frame.src_pid != IEEE802154_PANID) {
-          LOG("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
-          eb_parsed = 0;
-        }
-#endif /* TSCH_JOIN_ANY_PANID == 0 */
-
-        /* There was no join priority (or 0xff) in the EB, do not join */
-        if(eb_parsed && ies.ie_join_priority == 0xff) {
-          LOG("TSCH:! parse_eb: no join priority\n");
-          eb_parsed = 0;
-        }
-
-        /* TSCH timeslot timing */
-        if(eb_parsed) {
-          if(ies.ie_tsch_timeslot_id == 0) {
-            tsch_reset_timeslot_timing();
-          } else {
-            tsch_timing_cca_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca_offset);
-            tsch_timing_cca = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca);
-            tsch_timing_tx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_offset);
-            tsch_timing_rx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_offset);
-            tsch_timing_rx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_ack_delay);
-            tsch_timing_tx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_ack_delay);
-            tsch_timing_rx_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_wait);
-            tsch_timing_ack_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.ack_wait);
-            tsch_timing_rx_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_tx);
-            tsch_timing_max_ack = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_ack);
-            tsch_timing_max_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_tx);
-            tsch_timing_timeslot_length = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.timeslot_length);
-          }
-        }
-
-        /* TSCH hopping sequence */
-        if(eb_parsed) {
-          if(ies.ie_channel_hopping_sequence_id == 0) {
-            memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-            ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-          } else {
-            if(ies.ie_hopping_sequence_len <= sizeof(tsch_hopping_sequence)) {
-              memcpy(tsch_hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
-              ASN_DIVISOR_INIT(tsch_hopping_sequence_length, ies.ie_hopping_sequence_len);
-            } else {
-              LOG("TSCH:! parse_eb: hopping sequence too long (%u)\n", ies.ie_hopping_sequence_len);
-              eb_parsed = 0;
-            }
-          }
-        }
-
-#if TSCH_CHECK_TIME_AT_ASSOCIATION > 0
-        if(eb_parsed) {
-          /* Divide by 4k and multiply again to avoid integer overflow */
-          uint32_t expected_asn = 4096*TSCH_CLOCK_TO_SLOTS(clock_time()/4096, tsch_timing_timeslot_length); /* Expected ASN based on our current time*/
-          int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION*60ul*TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND, tsch_timing_timeslot_length);
-          int32_t asn_diff = (int32_t)current_asn.ls4b-expected_asn;
-          if(asn_diff > asn_threshold) {
-            LOG("TSCH:! EB ASN rejected %lx %lx %ld\n",
-              current_asn.ls4b, expected_asn, asn_diff);
-            eb_parsed = 0;
-          }
-        }
-#endif
-
-#if TSCH_INIT_SCHEDULE_FROM_EB
-        if(eb_parsed) {
-          /* Create schedule */
-          if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
-#if TSCH_WITH_MINIMAL_SCHEDULE
-            LOG("TSCH: parse_eb: no schedule, setting up minimal schedule\n");
-            tsch_schedule_create_minimal();
-#else
-            LOG("TSCH: parse_eb: no schedule\n");
-#endif
-          } else {
-            /* First, empty current schedule */
-            tsch_schedule_remove_all_slotframes();
-            /* We support only 0 or 1 slotframe in this IE */
-            int num_links = ies.ie_tsch_slotframe_and_link.num_links;
-            if(num_links <= FRAME802154E_IE_MAX_LINKS) {
-              int i;
-              struct tsch_slotframe *sf = tsch_schedule_add_slotframe(
-                  ies.ie_tsch_slotframe_and_link.slotframe_handle,
-                  ies.ie_tsch_slotframe_and_link.slotframe_size);
-              for(i = 0; i < num_links; i++) {
-                tsch_schedule_add_link(sf,
-                    ies.ie_tsch_slotframe_and_link.links[i].link_options,
-                    LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
-                    ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
-              }
-            } else {
-              LOG("TSCH:! parse_eb: too many links in schedule (%u)\n", num_links);
-              eb_parsed = 0;
-            }
-          }
-        }
-#endif /* TSCH_INIT_SCHEDULE_FROM_EB */
-
-        if(eb_parsed != 0 && tsch_join_priority < TSCH_MAX_JOIN_PRIORITY) {
-          struct tsch_neighbor *n;
-
-          /* Add coordinator to list of neighbors, lock the entry */
-          n = tsch_queue_add_nbr((linkaddr_t*)&frame.src_addr);
-
-          if(n != NULL) {
-            tsch_queue_update_time_source((linkaddr_t*)&frame.src_addr);
-
-            /* Use this ASN as "last synchronization ASN" */
-            last_sync_asn = current_asn;
-            tsch_schedule_keepalive();
-
-            /* Calculate TSCH slot start from packet timestamp */
-            current_slot_start = t0 - tsch_timing_tx_offset;
-
-            /* Update global flags */
-            tsch_is_associated = 1;
-            tsch_is_pan_secured = frame.fcf.security_enabled;
-
-#ifdef TSCH_CALLBACK_JOINING_NETWORK
-            TSCH_CALLBACK_JOINING_NETWORK();
-#endif
-
-            /* Association done, schedule keepalive messages */
-            tsch_schedule_keepalive();
-
-            /* Set PANID */
-            frame802154_set_pan_id(frame.src_pid);
-
-            LOG("TSCH: association done, sec %u, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe len %u with %u links, from %u\n",
-                tsch_is_pan_secured,
-                frame.src_pid,
-                current_asn.ms1b, current_asn.ls4b, tsch_join_priority,
-                ies.ie_tsch_timeslot_id,
-                ies.ie_channel_hopping_sequence_id,
-                ies.ie_tsch_slotframe_and_link.slotframe_size,
-                ies.ie_tsch_slotframe_and_link.num_links,
-                LOG_NODEID_FROM_LINKADDR((linkaddr_t*)&frame.src_addr));
-          }
-        } else {
-          LOG("TSCH:! did not associate.\n");
-        }
-      }
-
-      if(tsch_is_associated) {
-        /* End of association turn the radio off */
-        NETSTACK_RADIO.off();
-      } else if(!tsch_is_coordinator) {
-        etimer_reset(&associate_timer);
-        PT_WAIT_UNTIL(pt, etimer_expired(&associate_timer));
-      }
+    if(tsch_is_associated) {
+      /* End of association turn the radio off */
+      NETSTACK_RADIO.off();
+    } else if(!tsch_is_coordinator) {
+      /* Go back to scanning */
+      etimer_reset(&scan_timer);
+      PT_WAIT_UNTIL(pt, etimer_expired(&scan_timer));
     }
   }
 
