@@ -91,14 +91,6 @@ extern rtimer_clock_t tsch_timing_max_ack;
 extern rtimer_clock_t tsch_timing_max_tx;
 extern rtimer_clock_t tsch_timing_timeslot_length;
 
-/* Is TSCH locked? */
-int tsch_is_locked();
-/* Lock TSCH (no link operation) */
-int tsch_get_lock();
-/* Release TSCH lock */
-void tsch_release_lock();
-/* Returns a 802.15.4 channel from an ASN and channel offset */
-uint8_t tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset);
 /* Set TSCH to send a keepalive message after TSCH_KEEPALIVE_TIMEOUT */
 void tsch_schedule_keepalive(void);
 

@@ -246,6 +246,21 @@
 #define TSCH_USE_RADIO_TIMESTAMPS 0
 #endif
 
+/* A callback for upper layers do decide whether to NACK or not */
+#ifdef TSCH_CALLBACK_DO_NACK
+int TSCH_CALLBACK_DO_NACK(struct tsch_link *link, linkaddr_t *src, linkaddr_t *dst);
+#endif
+
+/* Called when joining a TSCH network */
+#ifdef TSCH_CALLBACK_JOINING_NETWORK
+void TSCH_CALLBACK_JOINING_NETWORK();
+#endif
+
+/* Called when leaving a TSCH network */
+#ifdef TSCH_CALLBACK_LEAVING_NETWORK
+void TSCH_CALLBACK_LEAVING_NETWORK();
+#endif
+
 /* Timeslot timing */
 
 #ifndef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH

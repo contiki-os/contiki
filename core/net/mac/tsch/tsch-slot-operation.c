@@ -40,48 +40,25 @@
  */
 
 #include "contiki.h"
-#include "dev/leds.h"
 #include "dev/radio.h"
-#include "net/nbr-table.h"
+#include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/queuebuf.h"
-#include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
-#include "net/mac/tsch/frame802154e.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-slot-operation.h"
 #include "net/mac/tsch/tsch-queue.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-log.h"
 #include "net/mac/tsch/tsch-packet.h"
-#include "net/mac/tsch/tsch-schedule.h"
-#include "net/mac/tsch/tsch-security.h"
-#include "lib/random.h"
-#include "lib/ringbufindex.h"
-#include "sys/process.h"
-#include "sys/rtimer.h"
-#include <stdio.h>
-#include <string.h>
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
 /* Truncate received drift correction information to maximum half
  * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT). */
 #define TRUNCATE_SYNC_IE 1
 #define TRUNCATE_SYNC_IE_BOUND ((int)TSCH_DEFAULT_TS_RX_WAIT/4)
-
-#ifdef TSCH_CALLBACK_DO_NACK
-int TSCH_CALLBACK_DO_NACK(struct tsch_link *link, linkaddr_t *src, linkaddr_t *dst);
-#endif
-
-#ifdef TSCH_CALLBACK_JOINING_NETWORK
-void TSCH_CALLBACK_JOINING_NETWORK();
-#endif
-
-#ifdef TSCH_CALLBACK_LEAVING_NETWORK
-void TSCH_CALLBACK_LEAVING_NETWORK();
-#endif
 
 /* Do not set rtimer less than RTIMER_GUARD ticks in the future */
 #ifdef TSCH_CONF_RTIMER_GUARD
@@ -94,13 +71,17 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #define RTIMER_GUARD (RTIMER_SECOND / 10000)
 #endif
 
+/* A ringbuf storing outgoing packets after they were dequeued.
+ * Will be processed layer by tsch_tx_process_pending */
 struct ringbufindex dequeued_ringbuf;
 struct tsch_packet *dequeued_array[TSCH_DEQUEUED_ARRAY_SIZE];
+/* A ringbuf storing incoming packets.
+ * Will be processed layer by tsch_rx_process_pending */
 struct ringbufindex input_ringbuf;
 struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 
 /* Last time we received Sync-IE (ACK or data packet from a time source) */
-struct asn_t last_sync_asn;
+static struct asn_t last_sync_asn;
 
 /* A global lock for manipulating data structures safely from outside of interrupt */
 static volatile int tsch_locked = 0;
@@ -113,11 +94,13 @@ static int32_t drift_correction = 0;
 static struct tsch_neighbor *drift_neighbor = NULL;
 
 /* Used from tsch_slot_operation and sub-protothreads */
-rtimer_clock_t volatile current_slot_start;
+static rtimer_clock_t volatile current_slot_start;
 
 /* Are we currently inside a slot? */
 static volatile int tsch_in_slot_operation = 0;
 
+/* Info about the link, packet and neighbor of
+ * the current (or next) slot */
 struct tsch_link *current_link = NULL;
 static struct tsch_packet *current_packet = NULL;
 static struct tsch_neighbor *current_neighbor = NULL;
@@ -906,7 +889,7 @@ tsch_slot_operation_start(void)
   do {
     uint16_t timeslot_diff;
     /* Get next active link */
-    current_link = NULL;
+    current_link = tsch_schedule_get_next_active_link(&current_asn, &timeslot_diff);
     if(current_link == NULL) {
       /* There is no next link. Fall back to default
        * behavior: wake up at the next slot. */
@@ -921,7 +904,7 @@ tsch_slot_operation_start(void)
     current_slot_start += time_to_next_active_slot;
   } while(!tsch_schedule_slot_operation(&slot_operation_timer, prev_slot_start, time_to_next_active_slot, 1, "association"));
 
-  LOG("TSCH: scheduled initial slot operation: asn-%x.%lx, start: %u, now: %u\n", current_asn.ms1b, current_asn.ls4b, current_slot_start, RTIMER_NOW());
+  LOG("TSCH: scheduled first slot: asn-%x.%lx, start: %u, now: %u\n", current_asn.ms1b, current_asn.ls4b, current_slot_start, RTIMER_NOW());
 }
 
 /* Start actual slot operation */
@@ -932,6 +915,9 @@ tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
   current_slot_start = next_slot_start;
   current_asn = *next_slot_asn;
   last_sync_asn = current_asn;
+  current_link = NULL;
+  
+  LOG("TSCH: synchronized to: asn-%x.%lx, start: %u, now: %u\n", current_asn.ms1b, current_asn.ls4b, current_slot_start, RTIMER_NOW());
 }
 
 /* Leave the network */

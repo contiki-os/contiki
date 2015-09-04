@@ -42,12 +42,10 @@
  */
 
 #include "contiki.h"
-#include "dev/leds.h"
 #include "dev/radio.h"
-#include "net/nbr-table.h"
+#include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/queuebuf.h"
-#include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-slot-operation.h"
@@ -55,16 +53,9 @@
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-log.h"
 #include "net/mac/tsch/tsch-packet.h"
-#include "net/mac/tsch/tsch-schedule.h"
-#include "net/mac/tsch/tsch-security.h"
-#include "net/mac/frame802154.h"
 #include "lib/random.h"
-#include "lib/ringbufindex.h"
-#include "sys/process.h"
-#include "sys/rtimer.h"
-#include <string.h>
 
-#define DEBUG DEBUG_PRINT
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
 #ifdef TSCH_CONF_TSCH_LINK_NEIGHBOR_CALLBACK
@@ -152,13 +143,8 @@ PROCESS(tsch_process, "TSCH: main process");
 PROCESS(tsch_send_eb_process, "TSCH: send EB process");
 PROCESS(tsch_pending_events_process, "TSCH: pending events process");
 
-/* Other function prototypes */
-static int turn_on(void);
+/* Other function prototypes */;
 static void packet_input(void);
-void tsch_reset_timeslot_timing(void);
-static void tsch_reset(void);
-static void tsch_tx_process_pending(void);
-static void tsch_rx_process_pending(void);
 
 /* Getters and setters */
 
@@ -825,8 +811,6 @@ tsch_init(void)
     printf("TSCH:! radio does not support getting last packet timestamp. Abort init.\n");
     return;
   }
-
-  leds_blink();
 
   TSCH_DEBUG_INIT();
   /* Init TSCH sub-modules */

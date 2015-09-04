@@ -60,17 +60,32 @@
 #error TSCH_MAX_INCOMING_PACKETS must be power of two
 #endif
 
+/* Stores data about an incoming packet */
 struct input_packet {
-  uint8_t payload[TSCH_MAX_PACKET_LEN];
-  struct asn_t rx_asn;
-  int len;
-  uint16_t rssi;
+  uint8_t payload[TSCH_MAX_PACKET_LEN]; /* Packet payload */
+  struct asn_t rx_asn; /* ASN when the packet was received */
+  int len; /* Packet len */
+  uint16_t rssi; /* RSSI for this packet */
 };
 
+/* A ringbuf storing outgoing packets after they were dequeued.
+ * Will be processed layer by tsch_tx_process_pending */
 extern struct ringbufindex dequeued_ringbuf;
 extern struct tsch_packet *dequeued_array[TSCH_DEQUEUED_ARRAY_SIZE];
+/* A ringbuf storing incoming packets.
+ * Will be processed layer by tsch_rx_process_pending */
 extern struct ringbufindex input_ringbuf;
 extern struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
+
+/* Returns a 802.15.4 channel from an ASN and channel offset */
+uint8_t tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset);
+
+/* Is TSCH locked? */
+int tsch_is_locked();
+/* Lock TSCH (no link operation) */
+int tsch_get_lock();
+/* Release TSCH lock */
+void tsch_release_lock();
 
 /* Set global time before starting slot operation,
  * with a rtimer time and an ASN */
