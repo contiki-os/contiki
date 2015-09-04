@@ -34,6 +34,7 @@
 #define FRAME_802154E_H
 
 #include "contiki.h"
+#include "net/mac/tsch/tsch-link-operation.h"
 #include "net/mac/tsch/tsch-private.h"
 
 #define FRAME802154E_IE_MAX_LINKS       4
