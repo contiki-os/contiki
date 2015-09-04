@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, SICS Swedish ICT.
+ * Copyright (c) 2015, SICS Swedish ICT.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,73 +30,51 @@
  *
  */
 
+#ifndef __TSCH_SLOT_OPERATION_H__
+#define __TSCH_SLOT_OPERATION_H__
+
 #include "contiki.h"
-#include "sys/rtimer.h"
+#include "lib/ringbufindex.h"
 #include "net/mac/tsch/tsch-private.h"
 
-#ifndef __TSCH_LOG_H__
-#define __TSCH_LOG_H__
+/* Ringbuf for dequeued outgoing packets */
+#ifdef TSCH_CONF_TSCH_DEQUEUED_ARRAY_SIZE
+#define TSCH_DEQUEUED_ARRAY_SIZE TSCH_CONF_TSCH_DEQUEUED_ARRAY_SIZE
+#else
+#define TSCH_DEQUEUED_ARRAY_SIZE 16
+#endif
+#if TSCH_DEQUEUED_ARRAY_SIZE < QUEUEBUF_NUM
+#error TSCH_DEQUEUED_ARRAY_SIZE must be greater than QUEUEBUF_NUM
+#endif
+#if (TSCH_DEQUEUED_ARRAY_SIZE & (TSCH_DEQUEUED_ARRAY_SIZE-1)) != 0
+#error TSCH_QUEUE_NUM_PER_NEIGHBOR must be power of two
+#endif
 
-#if WITH_TSCH_LOG
+/* Ringbuf for incoming packets: must be power of two for atomic ringbuf operation */
+#ifdef TSCH_CONF_MAX_INCOMING_PACKETS
+#define TSCH_MAX_INCOMING_PACKETS TSCH_CONF_MAX_INCOMING_PACKETS
+#else
+#define TSCH_MAX_INCOMING_PACKETS 4
+#endif
+#if (TSCH_MAX_INCOMING_PACKETS & (TSCH_MAX_INCOMING_PACKETS-1)) != 0
+#error TSCH_MAX_INCOMING_PACKETS must be power of two
+#endif
 
-/* Structure for a log. Union of different types of logs */
-struct tsch_log_t {
-  enum { tsch_log_tx,
-    tsch_log_rx,
-    tsch_log_message
-  } type;
-  struct asn_t asn;
-  struct tsch_link *link;
-  union {
-    char message[64];
-    struct {
-      //struct app_data appdata;
-      int mac_tx_status;
-      int dest;
-      int drift;
-      uint8_t num_tx;
-      uint8_t datalen;
-      uint8_t is_data;
-      uint8_t drift_used;
-    } tx;
-    struct {
-      //struct app_data appdata;
-      int src;
-      int drift;
-      int estimated_drift;
-      uint8_t datalen;
-      uint8_t is_unicast;
-      uint8_t is_data;
-      uint8_t drift_used;
-    } rx;
-  };
+struct input_packet {
+  uint8_t payload[TSCH_MAX_PACKET_LEN];
+  struct asn_t rx_asn;
+  int len;
+  uint16_t rssi;
 };
 
-/* Prepare addition of a new log.
- * Returns pointer to log structure if success, NULL otherwise */
-struct tsch_log_t *tsch_log_prepare_add();
-/* Actually add the previously prepared log */
-void tsch_log_commit();
-/* Initialize log module */
-void tsch_log_init();
-/* Process pending log messages */
-void tsch_log_process_pending();
+extern struct ringbufindex dequeued_ringbuf;
+extern struct tsch_packet *dequeued_array[TSCH_DEQUEUED_ARRAY_SIZE];
+extern struct ringbufindex input_ringbuf;
+extern struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 
-#define TSCH_LOG_ADD(log_type, init_code) do { \
-    struct tsch_log_t *log = tsch_log_prepare_add(); \
-    if(log != NULL) { \
-      log->type = (log_type); \
-      init_code \
-      tsch_log_commit(); \
-    } \
-  } while(0);
+void tsch_slot_operation_start(void);
+void tsch_leave_network();
+/* Protothread for association */
+PT_THREAD(tsch_associate(struct pt *pt));
 
-#else /* WITH_TSCH_LOG */
-
-#define tsch_log_init()
-#define tsch_log_process_pending()
-#define TSCH_LOG_ADD(log_type, init_code)
-
-#endif /* WITH_TSCH_LOG */
-
-#endif /* __TSCH_LOG_H__ */
+#endif /* __TSCH_SLOT_OPERATION_H__ */

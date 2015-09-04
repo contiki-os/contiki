@@ -404,7 +404,7 @@ tsch_queue_get_unicast_packet_for_any(struct tsch_neighbor **n, struct tsch_link
   }
   return NULL;
 }
-/* May the neighbor transmit over a share link? */
+/* May the neighbor transmit over a shared link? */
 int
 tsch_queue_backoff_expired(const struct tsch_neighbor *n)
 {

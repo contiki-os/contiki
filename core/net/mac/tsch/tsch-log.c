@@ -33,7 +33,7 @@
 /**
  * \file
  *         Log functions for TSCH, meant for logging from interrupt
- *         during a link operation. Saves ASN and other link information
+ *         during a timeslot operation. Saves ASN, slot and link information
  *         and adds the log to a ringbuf for later printout.
  * \author
  *         Simon Duquennoy <simonduq@sics.se>

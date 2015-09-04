@@ -50,7 +50,7 @@
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
 #include "net/mac/tsch/tsch.h"
-#include "net/mac/tsch/tsch-link-operation.h"
+#include "net/mac/tsch/tsch-slot-operation.h"
 #include "net/mac/tsch/tsch-queue.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-log.h"
@@ -418,7 +418,7 @@ PROCESS_THREAD(tsch_process, ev, data)
       PROCESS_PT_SPAWN(&associate_pt, tsch_associate(&associate_pt));
     }
     
-    tsch_start_link_operation();
+    tsch_slot_operation_start();
     
     PROCESS_YIELD_UNTIL(!tsch_is_associated);
 
