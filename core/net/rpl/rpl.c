@@ -89,11 +89,17 @@ rpl_set_mode(enum rpl_mode m)
   } else if(m == RPL_MODE_FEATHER) {
 
     PRINTF("RPL: switching to feather mode\n");
-    mode = m;
     if(default_instance != NULL) {
+      PRINTF("rpl_set_mode: RPL sending DAO with zero lifetime\n");
+      if(default_instance->current_dag != NULL) {
+        dao_output(default_instance->current_dag->preferred_parent, RPL_ZERO_LIFETIME);
+      }
       rpl_cancel_dao(default_instance);
+    } else {
+      PRINTF("rpl_set_mode: no default instance\n");
     }
 
+    mode = m;
   } else {
     mode = m;
   }
@@ -277,9 +283,9 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
   rpl_instance_t *instance;
   rpl_instance_t *end;
 
-  PRINTF("RPL: Removing neighbor ");
+  PRINTF("RPL: Neighbor state changed for ");
   PRINT6ADDR(&nbr->ipaddr);
-  PRINTF("\n");
+  PRINTF(", nscount=%u, state=%u\n", nbr->nscount, nbr->state);
   for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES; instance < end; ++instance) {
     if(instance->used == 1 ) {
       p = rpl_find_parent_any_dag(instance, &nbr->ipaddr);

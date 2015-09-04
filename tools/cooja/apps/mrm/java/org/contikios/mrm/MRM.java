@@ -49,6 +49,7 @@ import org.contikios.cooja.interfaces.Position;
 import org.contikios.cooja.interfaces.Radio;
 import org.contikios.cooja.plugins.Visualizer;
 import org.contikios.cooja.radiomediums.AbstractRadioMedium;
+import org.contikios.cooja.util.ScnObservable;
 import org.contikios.mrm.ChannelModel.Parameter;
 import org.contikios.mrm.ChannelModel.RadioPair;
 import org.contikios.mrm.ChannelModel.TxPair;
@@ -91,11 +92,6 @@ public class MRM extends AbstractRadioMedium {
   private ChannelModel currentChannelModel = null;
 
   /**
-   * Notifies observers when this radio medium has changed settings.
-   */
-  private SettingsObservable settingsObservable = new SettingsObservable();
-
-  /**
    * Creates a new Multi-path Ray-tracing Medium (MRM).
    */
   public MRM(Simulation simulation) {
@@ -114,6 +110,9 @@ public class MRM extends AbstractRadioMedium {
         WITH_CAPTURE_EFFECT = currentChannelModel.getParameterBooleanValue(ChannelModel.Parameter.captureEffect);
         CAPTURE_EFFECT_THRESHOLD = currentChannelModel.getParameterDoubleValue(ChannelModel.Parameter.captureEffectSignalTreshold);
         CAPTURE_EFFECT_PREAMBLE_DURATION = currentChannelModel.getParameterDoubleValue(ChannelModel.Parameter.captureEffectPreambleDuration);
+        
+        /* Radio Medium changed here, so notify */
+        radioMediumObservable.setChangedAndNotify();
       }
     });
     
@@ -142,6 +141,9 @@ public class MRM extends AbstractRadioMedium {
   public void registerRadioInterface(Radio radio, Simulation sim) {
         super.registerRadioInterface(radio, sim);
         
+        /* Radio Medium changed here so notify Observers */
+        radioMediumObservable.setChangedAndNotify();
+        
         if (WITH_NOISE && radio instanceof NoiseSourceRadio) {
                 ((NoiseSourceRadio)radio).addNoiseLevelListener(noiseListener);
         }
@@ -149,6 +151,9 @@ public class MRM extends AbstractRadioMedium {
   public void unregisterRadioInterface(Radio radio, Simulation sim) {
         super.unregisterRadioInterface(radio, sim);
 
+        /* Radio Medium changed here so notify Observers */
+        radioMediumObservable.setChangedAndNotify();
+        
         if (WITH_NOISE && radio instanceof NoiseSourceRadio) {
                 ((NoiseSourceRadio)radio).removeNoiseLevelListener(noiseListener);
         }
@@ -403,25 +408,6 @@ public class MRM extends AbstractRadioMedium {
   // -- MRM specific methods --
 
   /**
-   * Adds an observer which is notified when this radio medium has
-   * changed settings, such as added or removed radios.
-   *
-   * @param obs New observer
-   */
-  public void addSettingsObserver(Observer obs) {
-    settingsObservable.addObserver(obs);
-  }
-
-  /**
-   * Deletes an earlier registered setting observer.
-   *
-   * @param obs Earlier registered observer
-   */
-  public void deleteSettingsObserver(Observer obs) {
-    settingsObservable.deleteObserver(obs);
-  }
-
-  /**
    * @return Number of registered radios.
    */
   public int getRegisteredRadioCount() {
@@ -447,13 +433,6 @@ public class MRM extends AbstractRadioMedium {
    */
   public ChannelModel getChannelModel() {
     return currentChannelModel;
-  }
-
-  class SettingsObservable extends Observable {
-    private void notifySettingsChanged() {
-      setChanged();
-      notifyObservers();
-    }
   }
 
   class MRMRadioConnection extends RadioConnection {

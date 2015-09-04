@@ -1408,10 +1408,4 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   p->dtsn = dio->dtsn;
 }
 /*---------------------------------------------------------------------------*/
-void
-rpl_lock_parent(rpl_parent_t *p)
-{
-  nbr_table_lock(rpl_parents, p);
-}
-/*---------------------------------------------------------------------------*/
 /** @} */
