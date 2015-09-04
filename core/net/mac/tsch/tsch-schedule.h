@@ -37,6 +37,7 @@
 #include "lib/list.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-queue.h"
+#include "net/mac/tsch/tsch-slot-operation.h"
 #include "net/linkaddr.h"
 
 /* Link options */
@@ -115,5 +116,7 @@ struct tsch_link *tsch_schedule_get_link_from_asn(struct asn_t *asn);
 struct tsch_link *tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset);
 /* Create a 6TiSCH minimal schedule */
 void tsch_schedule_create_minimal();
+/* Prints out the current schedule */
+void tsch_schedule_print();
 
 #endif /* __TSCH_SCHEDULE_H__ */

@@ -46,6 +46,13 @@
 #include "net/mac/tsch/tsch.h"
 #include "net/netstack.h"
 
+#if TSCH_LOG_LEVEL >= 1
+#define DEBUG DEBUG_PRINT
+#else /* TSCH_LOG_LEVEL */
+#define DEBUG DEBUG_NONE
+#endif /* TSCH_LOG_LEVEL */
+#include "net/ip/uip-debug.h"
+
 /*---------------------------------------------------------------------------*/
 static void
 send_packet(mac_callback_t sent, void *ptr)

@@ -55,7 +55,11 @@
 #include "net/mac/tsch/tsch-packet.h"
 #include "lib/random.h"
 
+#if TSCH_LOG_LEVEL >= 1
+#define DEBUG DEBUG_PRINT
+#else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
+#endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
 #ifdef TSCH_CONF_TSCH_LINK_NEIGHBOR_CALLBACK
@@ -222,8 +226,8 @@ keepalive_packet_sent(void *ptr, int status, int transmissions)
 #ifdef TSCH_LINK_NEIGHBOR_CALLBACK
   TSCH_LINK_NEIGHBOR_CALLBACK(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), status, transmissions);
 #endif
-  LOG("TSCH: KA sent to %u, st %d %d\n",
-      LOG_NODEID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER)), status, transmissions);
+  PRINTF("TSCH: KA sent to %u, st %d %d\n",
+      TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER)), status, transmissions);
   tsch_schedule_keepalive();
 }
 
@@ -238,8 +242,8 @@ keepalive_send()
     packetbuf_clear();
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &n->addr);
     NETSTACK_LLSEC.send(keepalive_packet_sent, NULL);
-    LOG("TSCH: sending KA to %u\n",
-        LOG_NODEID_FROM_LINKADDR(&n->addr));
+    PRINTF("TSCH: sending KA to %u\n",
+        TSCH_LOG_ID_FROM_LINKADDR(&n->addr));
   }
 }
 
@@ -260,7 +264,7 @@ tsch_schedule_keepalive()
 static void
 eb_input(struct input_packet *current_input)
 {
-  /* LOG("TSCH: EB received\n"); */
+  /* PRINTF("TSCH: EB received\n"); */
   frame802154_t frame;
   /* Verify incoming EB (does its ASN match our Rx time?),
    * and update our join priority. */
@@ -310,20 +314,20 @@ eb_input(struct input_packet *current_input)
       int32_t asn_diff = ASN_DIFF(current_input->rx_asn, eb_ies.ie_asn);
       if(asn_diff != 0) {
         /* We disagree with our time source's ASN -- leave the network */
-        LOG("TSCH:! ASN drifted by %ld, leaving the network\n", asn_diff);
-        tsch_slot_operation_stop();
+        PRINTF("TSCH:! ASN drifted by %ld, leaving the network\n", asn_diff);
+        tsch_disassociate();
       }
 
       if(eb_ies.ie_join_priority >= TSCH_MAX_JOIN_PRIORITY) {
         /* Join priority unacceptable. Leave network. */
-        LOG("TSCH:! EB JP too high %u, leaving the network\n",
+        PRINTF("TSCH:! EB JP too high %u, leaving the network\n",
             eb_ies.ie_join_priority);
-        tsch_slot_operation_stop();
+        tsch_disassociate();
       } else {
 #if TSCH_AUTOSELECT_TIME_SOURCE
         /* Update join priority */
         if(tsch_join_priority != eb_ies.ie_join_priority + 1) {
-          LOG("TSCH: update JP from EB %u -> %u\n",
+          PRINTF("TSCH: update JP from EB %u -> %u\n",
               tsch_join_priority, eb_ies.ie_join_priority + 1);
           tsch_join_priority = eb_ies.ie_join_priority + 1;
         }
@@ -402,13 +406,24 @@ tsch_start_coordinator(void)
   tsch_is_associated = 1;
   tsch_join_priority = 0;
   
-  LOG("TSCH: starting as coordinator, asn-%x.%lx\n",
+  PRINTF("TSCH: starting as coordinator, asn-%x.%lx\n",
       current_asn.ms1b, current_asn.ls4b);
   
   /* Start only after some initial delay */
   tsch_slot_operation_sync(
       RTIMER_NOW() + TSCH_CLOCK_TO_TICKS(CLOCK_SECOND/10),
       &current_asn);
+}
+
+/* Leave the TSCH network */
+void
+tsch_disassociate(void)
+{
+  if(tsch_is_associated == 1) {
+    tsch_is_associated = 0;
+    process_post(&tsch_process, PROCESS_EVENT_POLL, NULL);
+    PRINTF("TSCH: leaving the network\n");
+  }
 }
 
 /* Attempt to associate to a network form an incoming EB */
@@ -428,7 +443,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   tsch_join_priority = ies.ie_join_priority + 1;
   
   if(input_eb->len == 0) {
-    LOG("TSCH:! failed to parse (len %u)\n", input_eb->len);
+    PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
     return 0;
   }
   
@@ -436,14 +451,14 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
       input_eb->len - hdrlen - tsch_security_mic_len(&frame),
       &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
-    LOG("TSCH:! parse_eb: failed to authenticate\n");
+    PRINTF("TSCH:! parse_eb: failed to authenticate\n");
     return 0;
   }
 #endif
   
 #if TSCH_JOIN_SECURED_ONLY
   if(frame.fcf.security_enabled == 0) {
-    LOG("TSCH:! parse_eb: EB is not secured\n");
+    PRINTF("TSCH:! parse_eb: EB is not secured\n");
     return 0;
   }
 #endif
@@ -451,14 +466,14 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 #if TSCH_JOIN_ANY_PANID == 0
   /* Check if the EB comes from the PAN ID we expact */
   if(frame.src_pid != IEEE802154_PANID) {
-    LOG("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
+    PRINTF("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
     return 0;
   }
 #endif /* TSCH_JOIN_ANY_PANID == 0 */
   
   /* There was no join priority (or 0xff) in the EB, do not join */
   if(ies.ie_join_priority == 0xff) {
-    LOG("TSCH:! parse_eb: no join priority\n");
+    PRINTF("TSCH:! parse_eb: no join priority\n");
     return 0;
   }
   
@@ -489,7 +504,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       memcpy(tsch_hopping_sequence, ies.ie_hopping_sequence_list, ies.ie_hopping_sequence_len);
       ASN_DIVISOR_INIT(tsch_hopping_sequence_length, ies.ie_hopping_sequence_len);
     } else {
-      LOG("TSCH:! parse_eb: hopping sequence too long (%u)\n", ies.ie_hopping_sequence_len);
+      PRINTF("TSCH:! parse_eb: hopping sequence too long (%u)\n", ies.ie_hopping_sequence_len);
       return 0;
     }
   }
@@ -500,7 +515,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION*60ul*TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND, tsch_timing_timeslot_length);
   int32_t asn_diff = (int32_t)current_asn.ls4b-expected_asn;
   if(asn_diff > asn_threshold) {
-    LOG("TSCH:! EB ASN rejected %lx %lx %ld\n",
+    PRINTF("TSCH:! EB ASN rejected %lx %lx %ld\n",
         current_asn.ls4b, expected_asn, asn_diff);
     return 0;
   }
@@ -510,10 +525,10 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   /* Create schedule */
   if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
 #if TSCH_WITH_MINIMAL_SCHEDULE
-    LOG("TSCH: parse_eb: no schedule, setting up minimal schedule\n");
+    PRINTF("TSCH: parse_eb: no schedule, setting up minimal schedule\n");
     tsch_schedule_create_minimal();
 #else
-    LOG("TSCH: parse_eb: no schedule\n");
+    PRINTF("TSCH: parse_eb: no schedule\n");
 #endif
   } else {
     /* First, empty current schedule */
@@ -532,7 +547,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
             ies.ie_tsch_slotframe_and_link.links[i].timeslot, ies.ie_tsch_slotframe_and_link.links[i].channel_offset);
       }
     } else {
-      LOG("TSCH:! parse_eb: too many links in schedule (%u)\n", num_links);
+      PRINTF("TSCH:! parse_eb: too many links in schedule (%u)\n", num_links);
       return 0;
     }
   }
@@ -546,11 +561,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     
     if(n != NULL) {
       tsch_queue_update_time_source((linkaddr_t*)&frame.src_addr);
-      
-      /* Update global flags */
-      tsch_is_associated = 1;
-      tsch_is_pan_secured = frame.fcf.security_enabled;
-      
+            
 #ifdef TSCH_CALLBACK_JOINING_NETWORK
       TSCH_CALLBACK_JOINING_NETWORK();
 #endif
@@ -561,10 +572,14 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       /* Synchronize on EB */
       tsch_slot_operation_sync(timestamp - tsch_timing_tx_offset, &current_asn);
 
+      /* Update global flags */
+      tsch_is_associated = 1;
+      tsch_is_pan_secured = frame.fcf.security_enabled;
+      
       /* Association done, schedule keepalive messages */
       tsch_schedule_keepalive();
       
-      LOG("TSCH: association done, sec %u, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe len %u with %u links, from %u\n",
+      PRINTF("TSCH: association done, sec %u, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe len %u with %u links, from %u\n",
           tsch_is_pan_secured,
           frame.src_pid,
           current_asn.ms1b, current_asn.ls4b, tsch_join_priority,
@@ -572,12 +587,12 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
           ies.ie_channel_hopping_sequence_id,
           ies.ie_tsch_slotframe_and_link.slotframe_size,
           ies.ie_tsch_slotframe_and_link.num_links,
-          LOG_NODEID_FROM_LINKADDR((linkaddr_t*)&frame.src_addr));
+          TSCH_LOG_ID_FROM_LINKADDR((linkaddr_t*)&frame.src_addr));
       
       return 1;
     }
   }
-  LOG("TSCH:! did not associate.\n");
+  PRINTF("TSCH:! did not associate.\n");
   return 0;
 }
 
@@ -635,7 +650,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_MAX_PACKET_LEN);
       
       /* Parse EB and attempt to associate */
-      LOG("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
+      PRINTF("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, scan_channel);
       
       tsch_associate(&input_eb, t0);
     }
@@ -740,9 +755,9 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
           packetbuf_set_datalen(eb_len);
           /* Enqueue EB packet */
           if(!(p = tsch_queue_add_packet(&tsch_eb_address, NULL, NULL))) {
-            LOG("TSCH:! could not enqueue EB packet\n");
+            PRINTF("TSCH:! could not enqueue EB packet\n");
           } else {
-            LOG("TSCH: enqueue EB packet %u %u\n", eb_len, hdr_len);
+            PRINTF("TSCH: enqueue EB packet %u %u\n", eb_len, hdr_len);
             p->tsch_sync_ie_offset = tsch_sync_ie_offset;
             p->header_len = hdr_len;
           }
@@ -838,7 +853,7 @@ send_packet(mac_callback_t sent, void *ptr)
   const linkaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
   if(!tsch_is_associated) {
-    LOGP("TSCH:! not associated");
+    PRINTF("TSCH:! not associated\n");
     ret = MAC_TX_ERR;
     mac_call_sent_callback(sent, ptr, ret, 1);
     return;
@@ -873,19 +888,19 @@ send_packet(mac_callback_t sent, void *ptr)
   packet_count_before = tsch_queue_packet_count(addr);
 
   if((hdr_len = NETSTACK_FRAMER.create_and_secure()) < 0) {
-    LOGP("TSCH:! can't send packet due to framer error");
+    PRINTF("TSCH:! can't send packet due to framer error\n");
     ret = MAC_TX_ERR;
   } else {
     struct tsch_packet *p;
     /* Enqueue packet */
     p = tsch_queue_add_packet(addr, sent, ptr);
     if(p == NULL) {
-      LOGP("TSCH:! can't send packet !tsch_queue_add_packet");
+      PRINTF("TSCH:! can't send packet !tsch_queue_add_packet\n");
       ret = MAC_TX_ERR;
     } else {
       p->header_len = hdr_len;
-      LOGP("TSCH: send packet to %u with seqno %u, queue %u %u, len %u %u",
-            LOG_NODEID_FROM_LINKADDR(addr), tsch_packet_seqno,
+      PRINTF("TSCH: send packet to %u with seqno %u, queue %u %u, len %u %u\n",
+            TSCH_LOG_ID_FROM_LINKADDR(addr), tsch_packet_seqno,
             packet_count_before,
             tsch_queue_packet_count(addr),
             p->header_len,
@@ -905,13 +920,13 @@ packet_input(void)
   frame_parsed = NETSTACK_FRAMER.parse();
 
   if(frame_parsed < 0) {
-      LOGP("TSCH:! failed to parse %u", packetbuf_datalen());
+      PRINTF("TSCH:! failed to parse %u\n", packetbuf_datalen());
 #if TSCH_ADDRESS_FILTER
   } else if(!linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                           &linkaddr_node_addr)
             && !linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                              &linkaddr_null)) {
-    LOGP("TSCH:! not for us");
+    PRINTF("TSCH:! not for us\n");
 #endif /* TSCH_ADDRESS_FILTER */
   } else {
     int duplicate = 0;
@@ -927,8 +942,8 @@ packet_input(void)
            linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
                         &received_seqnos[i].sender)) {
           /* Drop the packet. */
-          LOGP("TSCH:! drop dup ll from %u seqno %u",
-                 LOG_NODEID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
+          PRINTF("TSCH:! drop dup ll from %u seqno %u\n",
+                 TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
                  packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
           duplicate = 1;
         }
@@ -946,8 +961,8 @@ packet_input(void)
 #endif /* TSCH_802154_DUPLICATE_DETECTION */
 
     if(!duplicate) {
-      LOGP("TSCH: received from %u with seqno %u",
-          LOG_NODEID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
+      PRINTF("TSCH: received from %u with seqno %u\n",
+          TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER)),
           packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
       NETSTACK_LLSEC.input();
     }
@@ -965,7 +980,7 @@ turn_on(void)
     process_start(&tsch_send_eb_process, NULL);
     /* try to associate to a network or start one if setup as coordinator */
     process_start(&tsch_process, NULL);
-    LOG("TSCH: starting as %s\n", tsch_is_coordinator ? "coordinator" : "node");
+    PRINTF("TSCH: starting as %s\n", tsch_is_coordinator ? "coordinator" : "node");
     return 1;
   }
   return 0;

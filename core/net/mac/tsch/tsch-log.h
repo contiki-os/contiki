@@ -37,7 +37,24 @@
 #ifndef __TSCH_LOG_H__
 #define __TSCH_LOG_H__
 
-#if WITH_TSCH_LOG
+/* Returns an integer ID from a link-layer address */
+#ifdef TSCH_LOG_CONF_ID_FROM_LINKADDR
+#define TSCH_LOG_ID_FROM_LINKADDR(addr) TSCH_LOG_CONF_ID_FROM_LINKADDR(addr)
+#else /* TSCH_LOG_ID_FROM_LINKADDR */
+#define TSCH_LOG_ID_FROM_LINKADDR(addr) ((addr) ? (addr)->u8[LINKADDR_SIZE-1] : 0)
+#endif /* TSCH_LOG_ID_FROM_LINKADDR */
+
+/* TSCH log levels:
+ * 0: no log
+ * 1: basic PRINTF enabled
+ * 2: basic PRINTF enabled and tsch-log module enabled */
+#ifdef TSCH_LOG_CONF_LEVEL
+#define TSCH_LOG_LEVEL TSCH_LOG_CONF_LEVEL
+#else /* TSCH_LOG_CONF_LEVEL */
+#define TSCH_LOG_LEVEL 2
+#endif /* TSCH_LOG_CONF_LEVEL */
+
+#if TSCH_LOG_LEVEL >= 2
 
 /* Structure for a log. Union of different types of logs */
 struct tsch_log_t {
@@ -50,7 +67,6 @@ struct tsch_log_t {
   union {
     char message[64];
     struct {
-      //struct app_data appdata;
       int mac_tx_status;
       int dest;
       int drift;
@@ -60,7 +76,6 @@ struct tsch_log_t {
       uint8_t drift_used;
     } tx;
     struct {
-      //struct app_data appdata;
       int src;
       int drift;
       int estimated_drift;
@@ -91,7 +106,7 @@ void tsch_log_process_pending();
     } \
   } while(0);
 
-#else /* WITH_TSCH_LOG */
+#else /* TSCH_LOG_LEVEL */
 
 #define tsch_log_init()
 #define tsch_log_process_pending()

@@ -93,7 +93,5 @@ void tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
     struct asn_t *next_slot_asn);
 /* Start actual slot operation */
 void tsch_slot_operation_start(void);
-/* Leave the network */
-void tsch_slot_operation_stop();
 
 #endif /* __TSCH_SLOT_OPERATION_H__ */

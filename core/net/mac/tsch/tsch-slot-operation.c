@@ -52,7 +52,11 @@
 #include "net/mac/tsch/tsch-log.h"
 #include "net/mac/tsch/tsch-packet.h"
 
+#if TSCH_LOG_LEVEL >= 1
+#define DEBUG DEBUG_PRINT
+#else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
+#endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
 /* Truncate received drift correction information to maximum half
@@ -555,8 +559,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
     log->tx.drift = drift_correction;
     log->tx.drift_used = drift_neighbor != NULL;
     log->tx.is_data = is_data;
-    log->tx.dest = LOG_NODEID_FROM_LINKADDR(queuebuf_addr(current_packet->qb, PACKETBUF_ADDR_RECEIVER));
-    //appdata_copy(&log->tx.appdata, LOG_APPDATAPTR_FROM_BUFFER(queuebuf_dataptr(current_packet->qb), queuebuf_datalen(current_packet->qb)));
+    log->tx.dest = TSCH_LOG_ID_FROM_LINKADDR(queuebuf_addr(current_packet->qb, PACKETBUF_ADDR_RECEIVER));
     );
 
     /* Poll process for later processing of packet sent events and logs */
@@ -728,14 +731,13 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
             /* Log every reception */
             TSCH_LOG_ADD(tsch_log_rx,
-              log->rx.src = LOG_NODEID_FROM_LINKADDR((linkaddr_t*)&frame.src_addr);
+              log->rx.src = TSCH_LOG_ID_FROM_LINKADDR((linkaddr_t*)&frame.src_addr);
               log->rx.is_unicast = frame.fcf.ack_required;
               log->rx.datalen = current_input->len;
               log->rx.drift = drift_correction;
               log->rx.drift_used = drift_neighbor != NULL;
               log->rx.is_data = frame.fcf.frame_type == FRAME802154_DATAFRAME;
               log->rx.estimated_drift = estimated_drift;
-              //appdata_copy(&log->rx.appdata, LOG_APPDATAPTR_FROM_BUFFER(current_input->payload, current_input->len));
             );
           } else {
             TSCH_LOG_ADD(tsch_log_message,
@@ -834,7 +836,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
                 "! leaving the network, last sync %u",
                           (unsigned)ASN_DIFF(current_asn, last_sync_asn));
       );
-      tsch_slot_operation_stop();
+      tsch_disassociate();
     } else {
       /* backup of drift correction for printing debug messages */
       /* int32_t drift_correction_backup = drift_correction; */
@@ -903,8 +905,6 @@ tsch_slot_operation_start(void)
     prev_slot_start = current_slot_start;
     current_slot_start += time_to_next_active_slot;
   } while(!tsch_schedule_slot_operation(&slot_operation_timer, prev_slot_start, time_to_next_active_slot, 1, "association"));
-
-  LOG("TSCH: scheduled first slot: asn-%x.%lx, start: %u, now: %u\n", current_asn.ms1b, current_asn.ls4b, current_slot_start, RTIMER_NOW());
 }
 
 /* Start actual slot operation */
@@ -916,15 +916,4 @@ tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
   current_asn = *next_slot_asn;
   last_sync_asn = current_asn;
   current_link = NULL;
-  
-  LOG("TSCH: synchronized to: asn-%x.%lx, start: %u, now: %u\n", current_asn.ms1b, current_asn.ls4b, current_slot_start, RTIMER_NOW());
-}
-
-/* Leave the network */
-void
-tsch_slot_operation_stop(void)
-{
-  tsch_is_associated = 0;
-  process_post(&tsch_process, PROCESS_EVENT_POLL, NULL);
-  LOG("TSCH: leaving the network\n");
 }

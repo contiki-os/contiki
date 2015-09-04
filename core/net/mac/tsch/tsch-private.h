@@ -44,8 +44,9 @@
 
 #include "contiki.h"
 #include "net/linkaddr.h"
-#include "net/mac/tsch/tsch-conf.h"
 #include "net/mac/tsch/tsch-asn.h"
+#include "net/mac/tsch/tsch-conf.h"
+#include "net/mac/tsch/tsch-log.h"
 
 /* Calculate packet tx/rx duration in rtimer ticks based on sent
  * packet len in bytes with 802.15.4 250kbps data rate.
@@ -93,6 +94,8 @@ extern rtimer_clock_t tsch_timing_timeslot_length;
 
 /* Set TSCH to send a keepalive message after TSCH_KEEPALIVE_TIMEOUT */
 void tsch_schedule_keepalive(void);
+/* Leave the TSCH network */
+void tsch_disassociate(void);
 
 /* TSCH processes */
 PROCESS_NAME(tsch_process);

@@ -54,7 +54,11 @@
 #include "sys/rtimer.h"
 #include <string.h>
 
+#if TSCH_LOG_LEVEL >= 1
+#define DEBUG DEBUG_PRINT
+#else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
+#endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
 /* Do we prioritize links with Tx option or do we only look
@@ -216,7 +220,7 @@ tsch_schedule_add_link(struct tsch_slotframe *slotframe,
         linkaddr_copy(&l->addr, address);
 
         PRINTF("TSCH-schedule: add_link %u %u %u %u %u %u\n",
-            slotframe->handle, link_options, link_type, timeslot, channel_offset, LOG_NODEID_FROM_LINKADDR(address));
+            slotframe->handle, link_options, link_type, timeslot, channel_offset, TSCH_LOG_ID_FROM_LINKADDR(address));
 
         /* Release the lock before we update the neighbor (will take the lock) */
         tsch_release_lock();
@@ -258,7 +262,7 @@ tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
 
       PRINTF("TSCH-schedule: remove_link %u %u %u %u %u\n",
                   slotframe->handle, l->link_options, l->timeslot, l->channel_offset,
-                  LOG_NODEID_FROM_LINKADDR(&l->addr));
+                  TSCH_LOG_ID_FROM_LINKADDR(&l->addr));
 
       list_remove(slotframe->links_list, l);
       memb_free(&link_memb, l);
