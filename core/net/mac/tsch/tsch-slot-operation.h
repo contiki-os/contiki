@@ -38,13 +38,13 @@
 #include "net/mac/tsch/tsch-private.h"
 
 /* Ringbuf for dequeued outgoing packets */
-#ifdef TSCH_CONF_TSCH_DEQUEUED_ARRAY_SIZE
-#define TSCH_DEQUEUED_ARRAY_SIZE TSCH_CONF_TSCH_DEQUEUED_ARRAY_SIZE
+#ifdef TSCH_CONF_DEQUEUED_ARRAY_SIZE
+#define TSCH_DEQUEUED_ARRAY_SIZE TSCH_CONF_DEQUEUED_ARRAY_SIZE
 #else
 #define TSCH_DEQUEUED_ARRAY_SIZE 16
 #endif
 #if TSCH_DEQUEUED_ARRAY_SIZE < QUEUEBUF_NUM
-#error TSCH_DEQUEUED_ARRAY_SIZE must be greater than QUEUEBUF_NUM
+#error TSCH_DEQUEUED_ARRAY_SIZE must be greater or equal to QUEUEBUF_NUM
 #endif
 #if (TSCH_DEQUEUED_ARRAY_SIZE & (TSCH_DEQUEUED_ARRAY_SIZE-1)) != 0
 #error TSCH_QUEUE_NUM_PER_NEIGHBOR must be power of two
