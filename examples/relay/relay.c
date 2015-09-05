@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,76 +28,67 @@
  *
  * This file is part of the Contiki operating system.
  *
- *
- * -----------------------------------------------------------------
- *
+ */
+
+/**
  * \file
- *         Device simple driver for generic relay in phidget port of Zolertia Z1
+ *         A very simple Contiki application showing how Contiki programs look
  * \author
- *         Antonio Lignan, Zolertia <alinan@zolertia.com>
- *
+ *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
-#include "relay.h"
-
-//static uint8_t controlPin;
-
-enum OPENMOTE_RELAY_STATUSTYPES {
-  /* must be a bit and not more, not using 0x00. */
-  INITED = 0x01,
-  RUNNING = 0x02,
-  STOPPED = 0x04,
-};
-
-static enum OPENMOTE_RELAY_STATUSTYPES _RELAY_STATUS = 0x00;
+#include "dev/leds.h"
+#include <stdio.h> /* For printf() */
 
 /*---------------------------------------------------------------------------*/
-
-void
-relay_enable(uint8_t pin)
-{
-
-  if(!(_RELAY_STATUS & INITED)) {
-
-    _RELAY_STATUS |= INITED;
-
-    /* Selects the pin to be configure as the control pin of the relay module */
-    //controlPin = (1 << pin);
-    GPIO_SET_OUTPUT(GPIO_D_BASE,0x03);
-
-    /* Configures the control pin */
-    //P6SEL &= ~controlPin;
-    //P6DIR |= controlPin;
-  }
-}
+PROCESS(relay_process,"Relay process");
+PROCESS(blink_process, "LED blink process");
+AUTOSTART_PROCESSES(&relay_process, &blink_process);
 /*---------------------------------------------------------------------------*/
-
-void
-relay_on()
+PROCESS_THREAD(relay_process, ev, data)
 {
-  if((_RELAY_STATUS & INITED)) {
-    
-    GPIO_SET_PIN(GPIO_D_BASE,0x03);
-    if (GPIO_READ_PIN(GPIO_D_BASE,0x03) == 3)
-    {
-    printf(" Relay_ON value on register is ON" );
+  static struct etimer timer;
+  static int count;
+
+  PROCESS_BEGIN();
+
+  etimer_set(&timer, CLOCK_CONF_SECOND * 10);
+  count = 0;
+//  relay_enable(1);
+
+  while(1) {
+
+    PROCESS_WAIT_EVENT();
+
+    if(ev == PROCESS_EVENT_TIMER) {
+      printf("Sensor says no... #%d\r\n", count);
+      count++;
+      if(count %2 == 0){
+//	relay_on();
+      }
+//      else relay_off();
+      etimer_reset(&timer);
     }
-    //P6OUT |= controlPin;
   }
+  
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-void
-relay_off()
+/* Implementation of the second process */
+PROCESS_THREAD(blink_process, ev, data)
 {
-  if((_RELAY_STATUS & INITED)) {
-  
-     GPIO_CLR_PIN(GPIO_D_BASE,0x03);
-     if ( GPIO_READ_PIN(GPIO_D_BASE,0x03) == 0 )
-     {
-     printf(" Relay_OFF value on register is OFF");
-     }
-    //P6OUT &= ~controlPin;
+  static struct etimer timer;
+  PROCESS_BEGIN();
+
+  while(1) {
+    etimer_set(&timer, CLOCK_CONF_SECOND);
+
+    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+
+    printf("Blink... (state %0.2X).\r\n", leds_get());
+    leds_toggle(LEDS_GREEN);
   }
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
