@@ -40,6 +40,7 @@
 #include "contiki.h"
 
 #include <stdio.h> /* For printf() */
+
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
 AUTOSTART_PROCESSES(&hello_world_process);
