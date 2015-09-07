@@ -49,6 +49,10 @@
 
 #include "dev/button-sensor.h"
 #include "dev/leds.h"
+#include "dev/radio-sensor.h"
+#include "dev/sensor-common.h"
+
+#include "st-lib.h"
 
 #ifdef COMPILE_SENSORS
 #include "dev/temperature-sensor.h"
@@ -72,11 +76,14 @@ PROCESS_THREAD(sensor_demo_process, ev, data)
 {
   static struct etimer etimer;
   static unsigned long _button_pressed;
+  static int  sensor_value = 0;
 
   PROCESS_BEGIN();
   PROCESS_PAUSE();
 
   SENSORS_ACTIVATE(button_sensor);
+
+  SENSORS_ACTIVATE(radio_sensor);
 
 #ifdef COMPILE_SENSORS
   SENSORS_ACTIVATE(temperature_sensor);
@@ -110,13 +117,19 @@ PROCESS_THREAD(sensor_demo_process, ev, data)
     printf("LEDs status:\tRED:%s GREEN:%s\n", leds_get()&LEDS_RED?"on":"off", 
                                               leds_get()&LEDS_GREEN?"on":"off");
 #endif /*COMPILE_SENSORS*/
+    sensor_value = radio_sensor.value(RADIO_SENSOR_LAST_PACKET);
+    printf("Radio (RSSI):\t%d.%d dBm\n", sensor_value/10, ABS_VALUE(sensor_value)%10);
+    printf("Radio (LQI):\t%d\n", radio_sensor.value(RADIO_SENSOR_LAST_VALUE));
 
 #ifdef COMPILE_SENSORS
-    printf("Temperature:\t%d.%d C\n", temperature_sensor.value(0)/10, temperature_sensor.value(0)%10);
+    sensor_value = temperature_sensor.value(0);
+    printf("Temperature:\t%d.%d C\n", sensor_value/10, ABS_VALUE(sensor_value)%10);
 
-    printf("Humidity:\t%d.%d rH\n", humidity_sensor.value(0)/10, humidity_sensor.value(0)%10);
+    sensor_value = humidity_sensor.value(0);
+    printf("Humidity:\t%d.%d rH\n", sensor_value/10, ABS_VALUE(sensor_value)%10);
 
-    printf("Pressure:\t%d.%d mbar\n", pressure_sensor.value(0)/10, pressure_sensor.value(0)%10);
+    sensor_value = pressure_sensor.value(0);
+    printf("Pressure:\t%d.%d mbar\n", sensor_value/10, ABS_VALUE(sensor_value)%10);
 
     printf("Magneto:\t%d/%d/%d (X/Y/Z) mgauss\n", magneto_sensor.value(X_AXIS),
                                                   magneto_sensor.value(Y_AXIS),

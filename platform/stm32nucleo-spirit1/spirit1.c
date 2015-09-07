@@ -81,6 +81,8 @@ extern volatile st_lib_spirit_flag_status rx_timeout;
 /*---------------------------------------------------------------------------*/
 static volatile unsigned int spirit_on = OFF;
 static volatile uint8_t receiving_packet = 0;
+static packetbuf_attr_t last_rssi = 0 ; //MGR
+static packetbuf_attr_t last_lqi = 0 ; //MGR
 /*---------------------------------------------------------------------------*/
 /* 
 * The buffers which hold incoming data.
@@ -407,6 +409,8 @@ static int spirit_radio_read(void *buf, unsigned short bufsize)
     /* Copies the packet received */
     memcpy(buf, spirit_rxbuf + 1, spirit_rxbuf[0]);
 
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, last_rssi);        //MGR
+    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, last_lqi); //MGR
     bufsize = spirit_rxbuf[0];
     CLEAR_RXBUF();
     
@@ -684,6 +688,9 @@ spirit1_interrupt_callback(void)
     INTPRINTF("RECEIVED\n");
 
     process_poll(&spirit_radio_process);
+
+    last_rssi = (packetbuf_attr_t) st_lib_spirit_qi_get_rssi(); //MGR
+    last_lqi  = (packetbuf_attr_t) st_lib_spirit_qi_get_lqi();  //MGR
 
     receiving_packet = 0;
     

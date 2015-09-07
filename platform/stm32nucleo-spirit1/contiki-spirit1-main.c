@@ -67,6 +67,7 @@
 #include "hw-config.h" 
 #include "stdbool.h"
 #include "dev/button-sensor.h"
+#include "dev/radio-sensor.h"
 /*---------------------------------------------------------------------------*/
 #if NETSTACK_CONF_WITH_IPV6
 #include "net/ipv6/uip-ds6.h"
@@ -80,6 +81,7 @@ extern const struct sensors_sensor magneto_sensor;
 extern const struct sensors_sensor acceleration_sensor;
 extern const struct sensors_sensor gyroscope_sensor;
 SENSORS(&button_sensor,
+        &radio_sensor,
         &temperature_sensor,
         &humidity_sensor,
 	&pressure_sensor,
@@ -87,7 +89,8 @@ SENSORS(&button_sensor,
         &acceleration_sensor,
 	&gyroscope_sensor);
 #else /*COMPILE_SENSORS*/
-SENSORS(&button_sensor);
+SENSORS(&button_sensor,
+        &radio_sensor);
 #endif /*COMPILE_SENSORS*/
 /*---------------------------------------------------------------------------*/
 extern unsigned char node_mac[8];
