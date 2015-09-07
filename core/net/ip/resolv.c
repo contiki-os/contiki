@@ -1176,7 +1176,12 @@ PROCESS_THREAD(resolv_process, ev, data)
   /* TODO: Is there anything we need to do here for IPv4 multicast? */
 #endif
 
-  resolv_set_hostname(CONTIKI_CONF_DEFAULT_HOSTNAME);
+  /* Only set a default hostname if there is none. This prevents overwriting
+   * the hostname set by resolv_set_hostname(const char *) by the user on
+   * initialization of resolv */
+  if(0 == strlen(resolv_get_hostname())) {
+    resolv_set_hostname(CONTIKI_CONF_DEFAULT_HOSTNAME);
+  }
 #endif /* RESOLV_CONF_SUPPORTS_MDNS */
 
   while(1) {
