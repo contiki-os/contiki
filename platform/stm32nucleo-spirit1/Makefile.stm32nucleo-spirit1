@@ -48,7 +48,7 @@ CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/sensors/hts221 stm32cube-lib/driver
 endif
 
 
-ARCH_DEV = button-sensor.c leds-arch.c
+ARCH_DEV = button-sensor.c leds-arch.c radio-sensor.c
 
 ARCH_DEV_SENSORS = temperature-sensor.c humidity-sensor.c pressure-sensor.c magneto-sensor.c acceleration-sensor.c gyroscope-sensor.c
 

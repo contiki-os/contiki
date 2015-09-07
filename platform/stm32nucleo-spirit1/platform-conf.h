@@ -56,6 +56,7 @@
 /*---------------------------------------------------------------------------*/
 #define PLATFORM_HAS_LEDS 1
 #define PLATFORM_HAS_BUTTON 1
+#define PLATFORM_HAS_RADIO 1
 
 #define LEDS_GREEN  1 /*Nucleo LED*/
 #define LEDS_RED    2 /*SPIRIT1 LED*/
