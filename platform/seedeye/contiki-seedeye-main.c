@@ -165,15 +165,13 @@ main(int argc, char **argv)
       r = process_run();
     } while(r > 0);
 
-    ENERGEST_OFF(ENERGEST_TYPE_CPU);   
-    ENERGEST_ON(ENERGEST_TYPE_LPM);
+    ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
 
     watchdog_stop();
     asm volatile("wait");
     watchdog_start();
 
-    ENERGEST_OFF(ENERGEST_TYPE_LPM);
-    ENERGEST_ON(ENERGEST_TYPE_CPU);
+    ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
 
   }
 
