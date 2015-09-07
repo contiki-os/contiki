@@ -133,6 +133,7 @@
 
 /* Local variables */
 static volatile signed char radio_last_rssi;
+static volatile uint8_t radio_last_correlation; /* LQI */
 
 /* Did we miss a request to turn the radio on due to overflow? */
 static volatile uint8_t missed_radio_on_request = 0;
@@ -186,7 +187,7 @@ void set_channel(int c);
 static void radio_interrupt_handler(uint32 mac_event);
 static int get_detected_energy(void);
 static int get_rssi(void);
-static void get_last_rssi(void);
+static void read_last_rssi(void);
 
 /*---------------------------------------------------------------------------*/
 PROCESS(micromac_radio_process, "micromac_radio_driver");
@@ -580,13 +581,19 @@ read(void *buf, unsigned short bufsize)
         if(frame_filtering &&
            !is_packet_for_us(input_frame_buffer->uPayload.au8Byte, len, 0)) {
           len = 0;
+        } else {
+          read_last_rssi();
         }
       }
       if(len != 0) {
         bufsize = MIN(len, bufsize);
         memcpy(buf, input_frame_buffer->uPayload.au8Byte, bufsize);
         RIMESTATS_ADD(llrx);
-        get_last_rssi();
+        if(!poll_mode) {
+          /* Not in poll mode: packetbuf should not be accessed in interrupt context */
+          packetbuf_set_attr(PACKETBUF_ATTR_RSSI, radio_last_rssi);
+          packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, radio_last_correlation);
+        }
       }
     } else {
       len = 0;
@@ -634,11 +641,10 @@ get_rssi(void)
 }
 /*---------------------------------------------------------------------------*/
 static void 
-get_last_rssi(void)
+read_last_rssi(void)
 {
   uint8_t radio_last_rx_energy;
-  uint8_t radio_last_correlation;  /* LQI */
-  radio_last_rx_energy = u8MMAC_GetRxLqi(&radio_last_correlation);
+  radio_last_rx_energy = u8MMAC_GetRxLqi((uint8_t*)&radio_last_correlation);
   radio_last_rssi = i16JPT_ConvertEnergyTodBm(radio_last_rx_energy);
 }
 /*---------------------------------------------------------------------------*/
@@ -701,7 +707,7 @@ radio_interrupt_handler(uint32 mac_event)
           rx_frame_buffer->u8PayloadLength = 0;
         } else {
           /* read and cache RSSI and LQI values */
-          get_last_rssi();
+          read_last_rssi();
           /* Put received frame in queue */
           ringbufindex_put(&input_ringbuf);
 

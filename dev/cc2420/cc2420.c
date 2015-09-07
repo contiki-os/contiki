@@ -973,6 +973,7 @@ cc2420_read(void *buf, unsigned short bufsize)
       cc2420_last_rssi = footer[0] + RSSI_OFFSET;
       cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
       if(!poll_mode) {
+        /* Not in poll mode: packetbuf should not be accessed in interrupt context */
         packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
         packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
       }
