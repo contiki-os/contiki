@@ -113,6 +113,8 @@ get_key_id_len(uint8_t key_id_mode)
 }
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
 /*----------------------------------------------------------------------------*/
+/* Tells whether a given Frame Control Field indicates a frame with 
+ * source PANID and/or destination PANID */
 void
 frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest_pan_id)
 {
