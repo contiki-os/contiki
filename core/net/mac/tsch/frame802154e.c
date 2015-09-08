@@ -228,7 +228,8 @@ frame80215e_create_ie_tsch_synchronization(uint8_t *buf, int len,
 }
 
 /* MLME sub-IE. TSCH slotframe and link. Used in EBs: initial schedule */
-int frame80215e_create_ie_tsch_slotframe_and_link(uint8_t *buf, int len,
+int
+frame80215e_create_ie_tsch_slotframe_and_link(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
   if(ies != NULL) {
