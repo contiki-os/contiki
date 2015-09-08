@@ -61,6 +61,24 @@
 #define BUSYWAIT_UNTIL_ABS(cond, t0, offset) \
     while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), (t0) + (offset)));
 
+/* TSCH timeslot timing elements. Used to index timeslot timing
+ * of different units, such as rtimer tick or micro-second */
+enum tsch_timeslot_timing_elements {
+  tsch_ts_cca_offset,
+  tsch_ts_cca,
+  tsch_ts_tx_offset,
+  tsch_ts_rx_offset,
+  tsch_ts_rx_ack_delay,
+  tsch_ts_tx_ack_delay,
+  tsch_ts_rx_wait,
+  tsch_ts_ack_wait,
+  tsch_ts_rx_tx,
+  tsch_ts_max_ack,
+  tsch_ts_max_tx,
+  tsch_ts_timeslot_length,
+  tsch_ts_elements_count, /* Not a timing element */
+};
+
 /* 802.15.4 broadcast MAC address */
 extern const linkaddr_t tsch_broadcast_address;
 /* The address we use to identify EB queue */
@@ -78,19 +96,8 @@ extern int tsch_is_pan_secured;
 /* TSCH channel hopping sequence */
 extern uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
 extern struct asn_divisor_t tsch_hopping_sequence_length;
-/* TSCH timeslot timing */
-extern rtimer_clock_t tsch_timing_cca_offset;
-extern rtimer_clock_t tsch_timing_cca;
-extern rtimer_clock_t tsch_timing_tx_offset;
-extern rtimer_clock_t tsch_timing_rx_offset;
-extern rtimer_clock_t tsch_timing_rx_ack_delay;
-extern rtimer_clock_t tsch_timing_tx_ack_delay;
-extern rtimer_clock_t tsch_timing_rx_wait;
-extern rtimer_clock_t tsch_timing_ack_wait;
-extern rtimer_clock_t tsch_timing_rx_tx;
-extern rtimer_clock_t tsch_timing_max_ack;
-extern rtimer_clock_t tsch_timing_max_tx;
-extern rtimer_clock_t tsch_timing_timeslot_length;
+/* TSCH timeslot timing (in rtimer ticks) */
+extern rtimer_clock_t tsch_timing[tsch_ts_elements_count];
 
 /* Set TSCH to send a keepalive message after TSCH_KEEPALIVE_TIMEOUT */
 void tsch_schedule_keepalive(void);

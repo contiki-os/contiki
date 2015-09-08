@@ -423,16 +423,16 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 #endif /* CCA_ENABLED */
         {
           /* delay before TX */
-          TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start, tsch_timing_tx_offset - RADIO_DELAY_BEFORE_TX, "TxBeforeTx");
+          TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start, tsch_timing[tsch_ts_tx_offset] - RADIO_DELAY_BEFORE_TX, "TxBeforeTx");
           TSCH_DEBUG_TX_EVENT();
           /* send packet already in radio tx buffer */
           mac_tx_status = NETSTACK_RADIO.transmit(packet_len);
           /* Save tx timestamp */
-          tx_start_time = current_slot_start + tsch_timing_tx_offset;
+          tx_start_time = current_slot_start + tsch_timing[tsch_ts_tx_offset];
           /* calculate TX duration based on sent packet len */
           tx_duration = TSCH_PACKET_DURATION(packet_len);
           /* limit tx_time to its max value */
-          tx_duration = MIN(tx_duration, tsch_timing_max_tx);
+          tx_duration = MIN(tx_duration, tsch_timing[tsch_ts_max_tx]);
           /* turn tadio off -- will turn on again to wait for ACK if needed */
           NETSTACK_RADIO.off();;
 
@@ -452,19 +452,19 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode & (~RADIO_RX_MODE_ADDRESS_FILTER));
               /* Unicast: wait for ack after tx: sleep until ack time */
               TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start,
-                  tsch_timing_tx_offset + tx_duration + tsch_timing_rx_ack_delay - RADIO_DELAY_BEFORE_RX, "TxBeforeAck");
+                  tsch_timing[tsch_ts_tx_offset] + tx_duration + tsch_timing[tsch_ts_rx_ack_delay] - RADIO_DELAY_BEFORE_RX, "TxBeforeAck");
               TSCH_DEBUG_TX_EVENT();
               NETSTACK_RADIO.on();;
               /* Wait for ACK to come */
               BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet(),
-                  tx_start_time, tx_duration + tsch_timing_rx_ack_delay + tsch_timing_ack_wait);
+                  tx_start_time, tx_duration + tsch_timing[tsch_ts_rx_ack_delay] + tsch_timing[tsch_ts_ack_wait]);
               TSCH_DEBUG_TX_EVENT();
 
               ack_start_time = RTIMER_NOW();
 
               /* Wait for ACK to finish */
               BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
-                  ack_start_time, tsch_timing_max_ack);
+                  ack_start_time, tsch_timing[tsch_ts_max_ack]);
               TSCH_DEBUG_TX_EVENT();
               NETSTACK_RADIO.off();;
 
@@ -605,14 +605,14 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
     static rtimer_clock_t expected_rx_time;
     static rtimer_clock_t packet_duration;
 
-    expected_rx_time = current_slot_start + tsch_timing_tx_offset;
+    expected_rx_time = current_slot_start + tsch_timing[tsch_ts_tx_offset];
     /* Default start time: expected Rx time */
     rx_start_time = expected_rx_time;
 
     current_input = &input_array[input_index];
 
     /* Wait before starting to listen */
-    TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start, tsch_timing_rx_offset - RADIO_DELAY_BEFORE_RX, "RxBeforeListen");
+    TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start, tsch_timing[tsch_ts_rx_offset] - RADIO_DELAY_BEFORE_RX, "RxBeforeListen");
     TSCH_DEBUG_RX_EVENT();
 
     /* Start radio for at least guard time */
@@ -620,7 +620,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
     if(!NETSTACK_RADIO.receiving_packet()) {
       /* Check if receiving within guard time */
       BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet(),
-          current_slot_start, tsch_timing_rx_offset + tsch_timing_rx_wait);
+          current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait]);
       TSCH_DEBUG_RX_EVENT();
       /* Save packet timestamp */
       rx_start_time = RTIMER_NOW();
@@ -631,7 +631,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
     } else {
       /* Wait until packet is received, turn radio off */
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
-          current_slot_start, tsch_timing_rx_offset + tsch_timing_rx_wait + tsch_timing_max_tx);
+          current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait] + tsch_timing[tsch_ts_max_tx]);
       TSCH_DEBUG_RX_EVENT();
       NETSTACK_RADIO.off();;
 
@@ -710,7 +710,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
               /* Wait for time to ACK and transmit ACK */
               TSCH_SCHEDULE_AND_YIELD(pt, t, rx_start_time,
-                  packet_duration + tsch_timing_tx_ack_delay - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
+                  packet_duration + tsch_timing[tsch_ts_tx_ack_delay] - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
               TSCH_DEBUG_RX_EVENT();
               NETSTACK_RADIO.transmit(ack_len);
             }
@@ -824,7 +824,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
 
     /* Do we need to resynchronize? i.e., wait for EB again */
     if(!tsch_is_coordinator && (ASN_DIFF(current_asn, last_sync_asn) >
-        (100*TSCH_CLOCK_TO_SLOTS(TSCH_DESYNC_THRESHOLD/100, tsch_timing_timeslot_length)))) {
+        (100*TSCH_CLOCK_TO_SLOTS(TSCH_DESYNC_THRESHOLD/100, tsch_timing[tsch_ts_timeslot_length])))) {
       TSCH_LOG_ADD(tsch_log_message,
             snprintf(log->message, sizeof(log->message),
                 "! leaving the network, last sync %u",
@@ -858,7 +858,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         /* Update ASN */
         ASN_INC(current_asn, timeslot_diff);
         /* Time to next wake up */
-        time_to_next_active_slot = timeslot_diff * tsch_timing_timeslot_length + drift_correction;
+        time_to_next_active_slot = timeslot_diff * tsch_timing[tsch_ts_timeslot_length] + drift_correction;
         drift_correction = 0;
         drift_neighbor = NULL;
         /* Update current slot start */
@@ -894,7 +894,7 @@ tsch_slot_operation_start(void)
     /* Update ASN */
     ASN_INC(current_asn, timeslot_diff);
     /* Time to next wake up */
-    time_to_next_active_slot = timeslot_diff * tsch_timing_timeslot_length;
+    time_to_next_active_slot = timeslot_diff * tsch_timing[tsch_ts_timeslot_length];
     /* Update current slot start */
     prev_slot_start = current_slot_start;
     current_slot_start += time_to_next_active_slot;

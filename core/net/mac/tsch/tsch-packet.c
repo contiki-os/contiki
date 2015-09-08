@@ -236,28 +236,24 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   memset(&ies, 0, sizeof(ies));
 
   /* Add TSCH timeslot timing IE. */
-  /* ies.ie_tsch_timeslot_id = 1;
-  ies.ie_tsch_timeslot.cca_offset = RTIMERTICKS_TO_US(tsch_timing_cca_offset);
-  ies.ie_tsch_timeslot.cca = RTIMERTICKS_TO_US(tsch_timing_cca);
-  ies.ie_tsch_timeslot.tx_offset = RTIMERTICKS_TO_US(tsch_timing_tx_offset);
-  ies.ie_tsch_timeslot.rx_offset = RTIMERTICKS_TO_US(tsch_timing_rx_offset);
-  ies.ie_tsch_timeslot.rx_ack_delay = RTIMERTICKS_TO_US(tsch_timing_rx_ack_delay);
-  ies.ie_tsch_timeslot.tx_ack_delay = RTIMERTICKS_TO_US(tsch_timing_tx_ack_delay);
-  ies.ie_tsch_timeslot.rx_wait = RTIMERTICKS_TO_US(tsch_timing_rx_wait);
-  ies.ie_tsch_timeslot.ack_wait = RTIMERTICKS_TO_US(tsch_timing_ack_wait);
-  ies.ie_tsch_timeslot.rx_tx = RTIMERTICKS_TO_US(tsch_timing_rx_tx);
-  ies.ie_tsch_timeslot.max_ack = RTIMERTICKS_TO_US(tsch_timing_max_ack);
-  ies.ie_tsch_timeslot.max_tx = RTIMERTICKS_TO_US(tsch_timing_max_tx);
-  ies.ie_tsch_timeslot.timeslot_length = RTIMERTICKS_TO_US(tsch_timing_timeslot_length);
-  */
-
+#if 0
+  {
+    int i;
+    ies.ie_tsch_timeslot_id = 1;
+    for(i = 0; i < tsch_ts_elements_count; i++) {
+      ies.ie_tsch_timeslot[i] = RTIMERTICKS_TO_US(tsch_timing[i]);
+    }
+  }
+#endif
+  
   /* Add TSCH hopping sequence IE */
-  /* if(tsch_hopping_sequence_length.val <= sizeof(ies.ie_hopping_sequence_list)) {
+#if 0
+  if(tsch_hopping_sequence_length.val <= sizeof(ies.ie_hopping_sequence_list)) {
     ies.ie_channel_hopping_sequence_id = 1;
     ies.ie_hopping_sequence_len = tsch_hopping_sequence_length.val;
     memcpy(ies.ie_hopping_sequence_list, tsch_hopping_sequence, ies.ie_hopping_sequence_len);
   }
-  */
+#endif
 
   /* Add Slotframe and Link IE */
   {

@@ -276,19 +276,10 @@ frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
   if(len >= 2 + ie_len) {
     buf[2] = ies->ie_tsch_timeslot_id;
     if(ies->ie_tsch_timeslot_id != 0) {
-      int i = 3;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.cca_offset); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.cca); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.tx_offset); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.rx_offset); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.rx_ack_delay); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.tx_ack_delay); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.rx_wait); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.ack_wait); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.rx_tx); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.max_ack); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.max_tx); i+=2;
-      WRITE16(buf+i, ies->ie_tsch_timeslot.timeslot_length); i+=2;
+      int i;
+      for(i = 0; i < tsch_ts_elements_count; i++) {
+        WRITE16(buf+3+2*i, ies->ie_tsch_timeslot[i]);
+      }
     }
     create_mlme_short_ie_descriptor(buf, MLME_SHORT_IE_TSCH_TIMESLOT, ie_len);
     return 2 + ie_len;
@@ -408,19 +399,10 @@ frame802154e_parse_mlme_short_ie(const uint8_t *buf, int len,
         if(ies != NULL) {
           ies->ie_tsch_timeslot_id = buf[0];
           if(len == 25) {
-            int i = 1;
-            READ16(buf+i, ies->ie_tsch_timeslot.cca_offset); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.cca); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.tx_offset); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.rx_offset); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.rx_ack_delay); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.tx_ack_delay); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.rx_wait); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.ack_wait); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.rx_tx); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.max_ack); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.max_tx); i+=2;
-            READ16(buf+i, ies->ie_tsch_timeslot.timeslot_length); i+=2;
+            int i;
+            for(i = 0; i < tsch_ts_elements_count; i++) {
+              READ16(buf+1+2*i, ies->ie_tsch_timeslot[i]);
+            }
           }
         }
         return len;

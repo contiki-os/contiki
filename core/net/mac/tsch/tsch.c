@@ -101,19 +101,23 @@ NBR_TABLE(struct eb_stat, eb_stats);
 uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
 struct asn_divisor_t tsch_hopping_sequence_length;
 
-/* TSCH timeslot timing */
-rtimer_clock_t tsch_timing_cca_offset;
-rtimer_clock_t tsch_timing_cca;
-rtimer_clock_t tsch_timing_tx_offset;
-rtimer_clock_t tsch_timing_rx_offset;
-rtimer_clock_t tsch_timing_rx_ack_delay;
-rtimer_clock_t tsch_timing_tx_ack_delay;
-rtimer_clock_t tsch_timing_rx_wait;
-rtimer_clock_t tsch_timing_ack_wait;
-rtimer_clock_t tsch_timing_rx_tx;
-rtimer_clock_t tsch_timing_max_ack;
-rtimer_clock_t tsch_timing_max_tx;
-rtimer_clock_t tsch_timing_timeslot_length;
+/* Default TSCH timeslot timing (in micro-second) */
+static const uint16_t tsch_default_timing_us[tsch_ts_elements_count] = {
+    TSCH_DEFAULT_TS_CCA_OFFSET,
+    TSCH_DEFAULT_TS_CCA,
+    TSCH_DEFAULT_TS_TX_OFFSET,
+    TSCH_DEFAULT_TS_RX_OFFSET,
+    TSCH_DEFAULT_TS_RX_ACK_DELAY,
+    TSCH_DEFAULT_TS_TX_ACK_DELAY,
+    TSCH_DEFAULT_TS_RX_WAIT,
+    TSCH_DEFAULT_TS_ACK_WAIT,
+    TSCH_DEFAULT_TS_RX_TX,
+    TSCH_DEFAULT_TS_MAX_ACK,
+    TSCH_DEFAULT_TS_MAX_TX,
+    TSCH_DEFAULT_TS_TIMESLOT_LENGTH,
+};
+/* TSCH timeslot timing (in rtimer ticks) */
+rtimer_clock_t tsch_timing[tsch_ts_elements_count];
 
 /* 802.15.4 broadcast MAC address  */
 const linkaddr_t tsch_broadcast_address = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
@@ -173,26 +177,10 @@ tsch_set_eb_period(uint32_t period)
   tsch_current_eb_period = period;
 }
 /*---------------------------------------------------------------------------*/
-void
-tsch_reset_timeslot_timing(void)
-{
-  tsch_timing_cca_offset = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_CCA_OFFSET);
-  tsch_timing_cca = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_CCA);
-  tsch_timing_tx_offset = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_TX_OFFSET);
-  tsch_timing_rx_offset = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_OFFSET);
-  tsch_timing_rx_ack_delay = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_ACK_DELAY);
-  tsch_timing_tx_ack_delay = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_TX_ACK_DELAY);
-  tsch_timing_rx_wait = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_WAIT);
-  tsch_timing_ack_wait = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_ACK_WAIT);
-  tsch_timing_rx_tx = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_TX);
-  tsch_timing_max_ack = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_MAX_ACK);
-  tsch_timing_max_tx = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_MAX_TX);
-  tsch_timing_timeslot_length = US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_TIMESLOT_LENGTH);
-}
-/*---------------------------------------------------------------------------*/
 static void
 tsch_reset(void)
 {
+  int i;
   frame802154_set_pan_id(0xffff);
   /* First make sure pending packet callbacks are sent etc */
   process_post_synch(&tsch_pending_events_process, PROCESS_EVENT_POLL, NULL);
@@ -205,7 +193,10 @@ tsch_reset(void)
   tsch_join_priority = 0xff;
   ASN_INIT(current_asn, 0, 0);
   current_link = NULL;
-  tsch_reset_timeslot_timing();
+  /* Reset timeslot timing to defaults */
+  for(i = 0; i < tsch_ts_elements_count; i++) {
+    tsch_timing[i] = US_TO_RTIMERTICKS(tsch_default_timing_us[i]);
+  }
 #ifdef TSCH_CALLBACK_LEAVING_NETWORK
   TSCH_CALLBACK_LEAVING_NETWORK();
 #endif
@@ -433,6 +424,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   frame802154_t frame;
   struct ieee802154_ies ies;
   uint8_t hdrlen;
+  int i;
   
   if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
       &frame, &ies, &hdrlen, 0) == 0) {
@@ -478,21 +470,12 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
   
   /* TSCH timeslot timing */
-  if(ies.ie_tsch_timeslot_id == 0) {
-    tsch_reset_timeslot_timing();
-  } else {
-    tsch_timing_cca_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca_offset);
-    tsch_timing_cca = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.cca);
-    tsch_timing_tx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_offset);
-    tsch_timing_rx_offset = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_offset);
-    tsch_timing_rx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_ack_delay);
-    tsch_timing_tx_ack_delay = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.tx_ack_delay);
-    tsch_timing_rx_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_wait);
-    tsch_timing_ack_wait = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.ack_wait);
-    tsch_timing_rx_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.rx_tx);
-    tsch_timing_max_ack = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_ack);
-    tsch_timing_max_tx = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.max_tx);
-    tsch_timing_timeslot_length = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot.timeslot_length);
+  for(i = 0; i < tsch_ts_elements_count; i++) {
+    if(ies.ie_tsch_timeslot_id == 0) {
+      tsch_timing[i] = US_TO_RTIMERTICKS(tsch_default_timing_us[i]);
+    } else {
+      tsch_timing[i] = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot[i]);
+    }
   }
   
   /* TSCH hopping sequence */
@@ -570,7 +553,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       frame802154_set_pan_id(frame.src_pid);
       
       /* Synchronize on EB */
-      tsch_slot_operation_sync(timestamp - tsch_timing_tx_offset, &current_asn);
+      tsch_slot_operation_sync(timestamp - tsch_timing[tsch_ts_tx_offset], &current_asn);
 
       /* Update global flags */
       tsch_is_associated = 1;

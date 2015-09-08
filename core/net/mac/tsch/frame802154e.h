@@ -51,20 +51,6 @@ struct tsch_slotframe_and_links {
   uint8_t num_links;
   struct tsch_slotframe_and_links_link links[FRAME802154E_IE_MAX_LINKS];
 };
-struct tsch_timeslot_timing_t {
-  uint16_t cca_offset;
-  uint16_t cca;
-  uint16_t tx_offset;
-  uint16_t rx_offset;
-  uint16_t rx_ack_delay;
-  uint16_t tx_ack_delay;
-  uint16_t rx_wait;
-  uint16_t ack_wait;
-  uint16_t rx_tx;
-  uint16_t max_ack;
-  uint16_t max_tx;
-  uint16_t timeslot_length;
-};
 
 /* The information elements that we currently support */
 struct ieee802154_ies {
@@ -79,7 +65,7 @@ struct ieee802154_ies {
   struct asn_t ie_asn;
   uint8_t ie_join_priority;
   uint8_t ie_tsch_timeslot_id;
-  struct tsch_timeslot_timing_t ie_tsch_timeslot;
+  uint16_t ie_tsch_timeslot[tsch_ts_elements_count];
   struct tsch_slotframe_and_links ie_tsch_slotframe_and_link;
   /* Payload Long MLME IEs */
   uint8_t ie_channel_hopping_sequence_id;
