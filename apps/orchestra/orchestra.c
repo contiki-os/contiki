@@ -30,7 +30,8 @@
 
 /**
  * \file
- *         Orchestra
+ *         Orchestra: an autonomous scheduler for TSCH exploiting RPL state.
+ *         See "Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH", ACM SenSys'15
  *
  * \author Simon Duquennoy <simonduq@sics.se>
  */
