@@ -34,8 +34,8 @@
  * \file
  *         TSCH packet format management
  * \author
- *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennoy <simonduq@sics.se>
+ *         Beshr Al Nahas <beshr@sics.se>
  */
 
 #include "contiki.h"
@@ -54,7 +54,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#if TSCH_LOG_LEVEL >= 1
+#define DEBUG DEBUG_PRINT
+#else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
+#endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
 /* Construct enhanced ACK packet and return ACK length */
@@ -118,7 +122,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
 
 /* Parse enhanced ACK packet, extract drift and nack */
 int
-tsch_packet_parse_eack(uint8_t *buf, int buf_size,
+tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
     uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len)
 {
   uint8_t curr_len = 0;
@@ -130,7 +134,7 @@ tsch_packet_parse_eack(uint8_t *buf, int buf_size,
   }
 
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
-  if((ret = frame802154_parse(buf, buf_size, frame)) < 3) {
+  if((ret = frame802154_parse((uint8_t*)buf, buf_size, frame)) < 3) {
     return 0;
   }
   if(hdr_len != NULL) {
@@ -340,7 +344,7 @@ tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)
 
 /* Parse a IEEE 802.15.4e TSCH Enhanced Beacon (EB) */
 int
-tsch_packet_parse_eb(uint8_t *buf, int buf_size,
+tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
     frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len, int frame_without_mic)
 {
   uint8_t curr_len = 0;
@@ -351,13 +355,13 @@ tsch_packet_parse_eb(uint8_t *buf, int buf_size,
   }
 
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
-  if((ret = frame802154_parse(buf, buf_size, frame)) == 0) {
-    LOG("TSCH:! parse_eb: failed to parse frame\n");
+  if((ret = frame802154_parse((uint8_t*)buf, buf_size, frame)) == 0) {
+    PRINTF("TSCH:! parse_eb: failed to parse frame\n");
     return 0;
   }
 
   if(frame->fcf.frame_type != FRAME802154_BEACONFRAME) {
-    LOG("TSCH:! parse_eb: frame is not a beacon. Frame type %u, FCF %02x %02x\n", frame->fcf.frame_type, buf[0], buf[1]);
+    PRINTF("TSCH:! parse_eb: frame is not a beacon. Frame type %u, FCF %02x %02x\n", frame->fcf.frame_type, buf[0], buf[1]);
     return 0;
   }
 
@@ -384,7 +388,7 @@ tsch_packet_parse_eb(uint8_t *buf, int buf_size,
 
     /* Parse information elements. We need to substract the MIC length, as the exact payload len is needed while parsing */
     if((ret = frame802154e_parse_information_elements(buf + curr_len, buf_size - curr_len - mic_len, ies)) == -1) {
-      LOG("TSCH:! parse_eb: failed to parse IEs\n");
+      PRINTF("TSCH:! parse_eb: failed to parse IEs\n");
       return 0;
     }
     curr_len += ret;

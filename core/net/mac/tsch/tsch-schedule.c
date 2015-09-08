@@ -34,8 +34,8 @@
  * \file
  *         IEEE 802.15.4 TSCH MAC schedule manager.
  * \author
- *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennoy <simonduq@sics.se>
+ *         Beshr Al Nahas <beshr@sics.se>
  */
 
 #include "contiki.h"
@@ -54,7 +54,11 @@
 #include "sys/rtimer.h"
 #include <string.h>
 
+#if TSCH_LOG_LEVEL >= 1
+#define DEBUG DEBUG_PRINT
+#else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
+#endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
 /* Do we prioritize links with Tx option or do we only look
@@ -216,7 +220,7 @@ tsch_schedule_add_link(struct tsch_slotframe *slotframe,
         linkaddr_copy(&l->addr, address);
 
         PRINTF("TSCH-schedule: add_link %u %u %u %u %u %u\n",
-            slotframe->handle, link_options, link_type, timeslot, channel_offset, LOG_NODEID_FROM_LINKADDR(address));
+            slotframe->handle, link_options, link_type, timeslot, channel_offset, TSCH_LOG_ID_FROM_LINKADDR(address));
 
         /* Release the lock before we update the neighbor (will take the lock) */
         tsch_release_lock();
@@ -250,7 +254,7 @@ tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
       link_options = l->link_options;
       linkaddr_copy(&addr, &l->addr);
 
-      /* The link to be removed is the scheduled as next, set it to NULL
+      /* The link to be removed is scheduled as next, set it to NULL
        * to abort the next link operation */
       if(l == current_link) {
         current_link = NULL;
@@ -258,7 +262,7 @@ tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
 
       PRINTF("TSCH-schedule: remove_link %u %u %u %u %u\n",
                   slotframe->handle, l->link_options, l->timeslot, l->channel_offset,
-                  LOG_NODEID_FROM_LINKADDR(&l->addr));
+                  TSCH_LOG_ID_FROM_LINKADDR(&l->addr));
 
       list_remove(slotframe->links_list, l);
       memb_free(&link_memb, l);
@@ -411,51 +415,6 @@ tsch_schedule_print()
     printf("Schedule: end of slotframe list\n");
   }
 }
-void
-tsch_schedule_test()
-{
-  static linkaddr_t link_broadcast_address = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
-  static linkaddr_t address1 = { { 0x00, 0x12, 0x74, 01, 00, 01, 01, 01 } };
-  static linkaddr_t address2 = { { 0x00, 0x12, 0x74, 02, 00, 02, 02, 02 } };
-
-  struct tsch_slotframe *sf1 = tsch_schedule_add_slotframe(20, 5);
-  struct tsch_slotframe *sf2 = tsch_schedule_add_slotframe(21, 3);
-
-  tsch_schedule_add_link(sf1,
-                         LINK_OPTION_RX | LINK_OPTION_TX | LINK_OPTION_SHARED | LINK_OPTION_TIME_KEEPING,
-                         LINK_TYPE_ADVERTISING, &link_broadcast_address,
-                         0, 1);
-
-  tsch_schedule_add_link(sf1,
-                         LINK_OPTION_RX,
-                         LINK_TYPE_NORMAL, &address1,
-                         1, 1);
-
-  tsch_schedule_add_link(sf1,
-                         LINK_OPTION_RX,
-                         LINK_TYPE_NORMAL, &address1,
-                         4, 10);
-
-  tsch_schedule_add_link(sf2,
-                         LINK_OPTION_TX,
-                         LINK_TYPE_NORMAL, &address2,
-                         0, 2);
-
-  tsch_schedule_print();
-
-  unsigned asn_val;
-  for(asn_val = 0; asn_val < 20; asn_val++) {
-    struct asn_t asn;
-    ASN_INIT(asn, 0, asn_val);
-    struct tsch_link *l = tsch_schedule_get_link_from_asn(&asn);
-    if(l != NULL) {
-      printf("asn %u: timeslot %u, channel offset %u (schedule handle %u)\n",
-          asn_val, l->timeslot, l->channel_offset, l->slotframe_handle);
-    } else {
-      printf("asn %u: no link\n", asn_val);
-    }
-  }
-}
 /* Initialization. Return 1 is success, 0 if failure. */
 int
 tsch_schedule_init()
@@ -470,7 +429,6 @@ tsch_schedule_init()
     return 0;
   }
 }
-
 /* Create a 6TiSCH minimal schedule */
 void
 tsch_schedule_create_minimal()

@@ -325,7 +325,7 @@ frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
 
 /* Parse a header IE */
 static int
-frame802154e_parse_header_ie(uint8_t *buf, int len,
+frame802154e_parse_header_ie(const uint8_t *buf, int len,
     uint8_t element_id, struct ieee802154_ies *ies)
 {
   switch(element_id) {
@@ -360,7 +360,7 @@ frame802154e_parse_header_ie(uint8_t *buf, int len,
 
 /* Parse a MLME short IE */
 static int
-frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
+frame802154e_parse_mlme_short_ie(const uint8_t *buf, int len,
     uint8_t sub_id, struct ieee802154_ies *ies)
 {
   switch(sub_id) {
@@ -432,7 +432,7 @@ frame802154e_parse_mlme_short_ie(uint8_t *buf, int len,
 
 /* Parse a MLME long IE */
 static int
-frame802154e_parse_mlme_long_ie(uint8_t *buf, int len,
+frame802154e_parse_mlme_long_ie(const uint8_t *buf, int len,
     uint8_t sub_id, struct ieee802154_ies *ies)
 {
   switch(sub_id) {
@@ -457,10 +457,10 @@ frame802154e_parse_mlme_long_ie(uint8_t *buf, int len,
 
 /* Parse all IEEE 802.15.4e Information Elements (IE) from a frame */
 int
-frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
+frame802154e_parse_information_elements(const uint8_t *buf, uint8_t buf_size,
     struct ieee802154_ies *ies)
 {
-  uint8_t *start = buf;
+  const uint8_t *start = buf;
   uint16_t ie_desc;
   uint8_t type;
   uint8_t id;

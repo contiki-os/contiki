@@ -30,13 +30,6 @@
  *
  */
 
-/**
- * \file
- *         IEEE 802.15.4e-specific frame creation and parsing
- * \author
- *         Simon Duquennoy <simonduq@sics.se>
- */
-
 #ifndef FRAME_802154E_H
 #define FRAME_802154E_H
 
@@ -127,7 +120,7 @@ int frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
     struct ieee802154_ies *ies);
 
 /* Parse all Information Elements of a frame */
-int frame802154e_parse_information_elements(uint8_t *buf, uint8_t buf_size,
+int frame802154e_parse_information_elements(const uint8_t *buf, uint8_t buf_size,
     struct ieee802154_ies *ies);
 
 #endif /* FRAME_802154E_H */

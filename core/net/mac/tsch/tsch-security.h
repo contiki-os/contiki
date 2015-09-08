@@ -30,13 +30,6 @@
  *
  */
 
-/**
- * \file
- *         TSCH security header file
- * \author
- *         Simon Duquennoy <simonduq@sics.se>
- */
-
 #ifndef __TSCH_SECURITY_H__
 #define __TSCH_SECURITY_H__
 

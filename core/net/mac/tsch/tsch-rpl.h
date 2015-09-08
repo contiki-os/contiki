@@ -27,12 +27,7 @@
  * SUCH DAMAGE.
  *
  */
-/**
- * \file
- *         Interaction between TSCH and RPL
- *
- * \author Simon Duquennoy <simonduq@sics.se>
- */
+
 
 #ifndef __TSCH_RPL_H__
 #define __TSCH_RPL_H__

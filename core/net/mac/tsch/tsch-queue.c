@@ -37,8 +37,9 @@
  *				 Read-only operation on neighbor and packets are allowed from interrupts and outside of them.
  *				 *Other operations are allowed outside of interrupt only.*
  * \author
- *         Beshr Al Nahas <beshr@sics.se>
  *         Simon Duquennoy <simonduq@sics.se>
+ *         Beshr Al Nahas <beshr@sics.se>
+ *         Domenico De Guglielmo <d.deguglielmo@iet.unipi.it >
  */
 
 #include "contiki.h"
@@ -50,13 +51,18 @@
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-queue.h"
 #include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/tsch/tsch-slot-operation.h"
 #include <string.h>
 
 #ifdef TSCH_CALLBACK_NEW_TIME_SOURCE
 void TSCH_CALLBACK_NEW_TIME_SOURCE(struct tsch_neighbor *old, struct tsch_neighbor *new);
 #endif
 
+#if TSCH_LOG_LEVEL >= 1
+#define DEBUG DEBUG_PRINT
+#else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
+#endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
 /* We have as many packets are there are queuebuf in the system */
@@ -109,15 +115,6 @@ tsch_queue_add_nbr(const linkaddr_t *addr)
       }
       tsch_release_lock();
     }
-    if(n == NULL) {
-      PRINTF("TSCH-queue:! add nbr failed: %p %u ", n, tsch_is_locked());
-      PRINTLLADDR((const void *)addr);
-      PRINTF("\n");
-    } else {
-      PRINTF("TSCH-queue: added nbr %p ", n);
-      PRINTLLADDR((const void *)addr);
-      PRINTF("\n");
-    }
   }
   return n;
 }
@@ -162,9 +159,9 @@ tsch_queue_update_time_source(const linkaddr_t *new_addr)
       struct tsch_neighbor *new_time_src = new_addr ? tsch_queue_add_nbr(new_addr) : NULL;
 
       if(new_time_src != old_time_src) {
-        LOG("TSCH: update time source: %u -> %u\n",
-            LOG_NODEID_FROM_LINKADDR(old_time_src ? &old_time_src->addr : NULL),
-            LOG_NODEID_FROM_LINKADDR(new_time_src ? &new_time_src->addr : NULL));
+        PRINTF("TSCH: update time source: %u -> %u\n",
+            TSCH_LOG_ID_FROM_LINKADDR(old_time_src ? &old_time_src->addr : NULL),
+            TSCH_LOG_ID_FROM_LINKADDR(new_time_src ? &new_time_src->addr : NULL));
 
         /* Update time source */
         if(new_time_src != NULL) {
@@ -194,8 +191,7 @@ tsch_queue_flush_nbr_queue(struct tsch_neighbor *n)
     if(p != NULL) {
       /* Set return status for packet_sent callback */
       p->ret = MAC_TX_ERR;
-      LOGA(LOG_APPDATAPTR_FROM_QUEUEBUF(p->qb),
-          "TSCH-queue:! flushing packet");
+      PRINTF("TSCH-queue:! flushing packet\n");
       /* Call packet_sent callback */
       mac_call_sent_callback(p->sent, p->ptr, p->ret, p->transmissions);
       /* Free packet queuebuf */
@@ -214,10 +210,6 @@ tsch_queue_remove_nbr(struct tsch_neighbor *n)
       list_remove(neighbor_list, n);
 
       tsch_release_lock();
-
-      PRINTF("TSCH-queue: removing nbr: ");
-      PRINTLLADDR((const void *)(&n->addr));
-      PRINTF("\n");
 
       /* Flush queue */
       tsch_queue_flush_nbr_queue(n);
@@ -262,7 +254,7 @@ tsch_queue_add_packet(const linkaddr_t *addr, mac_callback_t sent, void *ptr)
       }
     }
   }
-  LOGP("TSCH-queue:! add packet failed: %u %p %d %p %p", tsch_is_locked(), n, put_index, p, p ? p->qb : NULL);
+  PRINTF("TSCH-queue:! add packet failed: %u %p %d %p %p\n", tsch_is_locked(), n, put_index, p, p ? p->qb : NULL);
   return 0;
 }
 /* Returns the number of packets currently in the queue */
@@ -403,7 +395,7 @@ tsch_queue_get_unicast_packet_for_any(struct tsch_neighbor **n, struct tsch_link
   }
   return NULL;
 }
-/* May the neighbor transmit over a share link? */
+/* May the neighbor transmit over a shared link? */
 int
 tsch_queue_backoff_expired(const struct tsch_neighbor *n)
 {
@@ -457,25 +449,4 @@ tsch_queue_init(void)
   /* Add virtual EB and the broadcast neighbors */
   n_eb = tsch_queue_add_nbr(&tsch_eb_address);
   n_broadcast = tsch_queue_add_nbr(&tsch_broadcast_address);
-}
-
-/* Print nbr table entries (for debugging) */
-void
-tsch_queue_dump_nbrs()
-{
-  if(!tsch_is_locked()) {
-    struct tsch_neighbor *curr_nbr = list_head(neighbor_list);
-    printf("TSCH Queue dump-nbrs: Begin: ---->\n");
-    while(curr_nbr != NULL) {
-      void uip_debug_lladdr_print(const uip_lladdr_t *addr);
-      uip_debug_lladdr_print((uip_lladdr_t *)&curr_nbr->addr);
-      printf(" %u %u %u %u\n", !curr_nbr->is_broadcast, !curr_nbr->is_time_source,
-          tsch_queue_is_empty(curr_nbr), tsch_queue_backoff_expired(curr_nbr));
-      /* Get next in list */
-      curr_nbr = list_item_next(curr_nbr);
-    }
-    printf("TSCH Queue dump-nbrs: Done. <----\n");
-  } else {
-    printf("TSCH Queue dump-nbrs: LOCKED\n");
-  }
 }

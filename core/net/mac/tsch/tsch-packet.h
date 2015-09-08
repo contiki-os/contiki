@@ -30,14 +30,6 @@
  *
  */
 
-/**
- * \file
- *         TSCH packet format management
- * \author
- *         Beshr Al Nahas <beshr@sics.se>
- *         Simon Duquennoy <simonduq@sics.se>
- */
-
 #ifndef __TSCH_PACKET_H__
 #define __TSCH_PACKET_H__
 
@@ -51,7 +43,7 @@ int tsch_packet_create_eack(uint8_t *buf, int buf_size,
     linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack);
 
 /* Parse enhanced ACK packet, extract drift and nack */
-int tsch_packet_parse_eack(uint8_t *buf, int buf_size,
+int tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
     uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len);
 
 /* Create an EB packet */
@@ -62,7 +54,7 @@ int tsch_packet_create_eb(uint8_t *buf, int buf_size,
 int tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset);
 
 /* Parse EB and extract ASN and join priority */
-int tsch_packet_parse_eb(uint8_t *buf, int buf_size,
+int tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
     frame802154_t *frame, struct ieee802154_ies *ies,
     uint8_t *hdrlen, int frame_without_mic);
 
