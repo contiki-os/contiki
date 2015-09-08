@@ -53,7 +53,6 @@ ringbufindex_init(struct ringbufindex *r, uint8_t size)
   r->put_ptr = 0;
   r->get_ptr = 0;
 }
-
 /* Put one element to the ring buffer */
 int
 ringbufindex_put(struct ringbufindex *r)
@@ -66,14 +65,13 @@ ringbufindex_put(struct ringbufindex *r)
      ringbufindex_get() function. To avoid this, access to ->get_ptr must
      be atomic. We use an uint8_t type, which makes access atomic on
      most platforms, but C does not guarantee this.
-  */
+   */
   if(((r->put_ptr - r->get_ptr) & r->mask) == r->mask) {
     return 0;
   }
   r->put_ptr = (r->put_ptr + 1) & r->mask;
   return 1;
 }
-
 /* Check if there is space to put an element.
  * Return the index where the next element is to be added */
 int
@@ -81,19 +79,18 @@ ringbufindex_peek_put(const struct ringbufindex *r)
 {
   /* Check if there are bytes in the buffer. If so, we return the
      first one. If there are no bytes left, we return -1.
-  */
+   */
   if(((r->put_ptr - r->get_ptr) & r->mask) == r->mask) {
     return -1;
   }
   return (r->put_ptr + 1) & r->mask;
 }
-
 /* Remove the first element and return its index */
 int
 ringbufindex_get(struct ringbufindex *r)
 {
   int get_ptr;
-  
+
   /* Check if there are bytes in the buffer. If so, we return the
      first one and increase the pointer. If there are no bytes left, we
      return -1.
@@ -103,7 +100,7 @@ ringbufindex_get(struct ringbufindex *r)
      ringbufindex_put() function. To avoid this, access to ->get_ptr must
      be atomic. We use an uint8_t type, which makes access atomic on
      most platforms, but C does not guarantee this.
-  */
+   */
   if(((r->put_ptr - r->get_ptr) & r->mask) > 0) {
     get_ptr = r->get_ptr;
     r->get_ptr = (r->get_ptr + 1) & r->mask;
@@ -112,7 +109,6 @@ ringbufindex_get(struct ringbufindex *r)
     return -1;
   }
 }
-
 /* Return the index of the first element
  * (which will be removed if calling ringbufindex_peek) */
 int
@@ -120,35 +116,31 @@ ringbufindex_peek_get(const struct ringbufindex *r)
 {
   /* Check if there are bytes in the buffer. If so, we return the
      first one. If there are no bytes left, we return -1.
-  */
+   */
   if(((r->put_ptr - r->get_ptr) & r->mask) > 0) {
     return (r->get_ptr + 1) & r->mask;
   } else {
     return -1;
   }
 }
-
 /* Return the ring buffer size */
 int
 ringbufindex_size(const struct ringbufindex *r)
 {
   return r->mask + 1;
 }
-
 /* Return the number of elements currently in the ring buffer */
 int
 ringbufindex_elements(const struct ringbufindex *r)
 {
   return (r->put_ptr - r->get_ptr) & r->mask;
 }
-
 /* Is the ring buffer full? */
 int
 ringbufindex_full(const struct ringbufindex *r)
 {
   return ((r->put_ptr - r->get_ptr) & r->mask) == r->mask;
 }
-
 /* Is the ring buffer empty? */
 int
 ringbufindex_empty(const struct ringbufindex *r)
