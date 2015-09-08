@@ -38,30 +38,30 @@
  */
 
 #include "contiki.h"
+
 #include <stdio.h> /* For printf() */
 
 /*---------------------------------------------------------------------------*/
-PROCESS(relay_process,"Relay process");
-PROCESS(blink_process, "LED blink process");
-AUTOSTART_PROCESSES(&relay_process, &blink_process);
+PROCESS(hello_world_process, "Hello world process");
+AUTOSTART_PROCESSES(&hello_world_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(relay_process, ev, data)
+PROCESS_THREAD(hello_world_process, ev, data)
 {
+  
   static struct etimer timer;
   static int count;
-
   PROCESS_BEGIN();
 
   etimer_set(&timer, CLOCK_CONF_SECOND * 10);
   count = 0;
   relay_enable(1);
-
-  while(1) {
+ 
+   while(1) {
 
     PROCESS_WAIT_EVENT();
 
     if(ev == PROCESS_EVENT_TIMER) {
-      printf("Sensor says no... #%d\r\n", count);
+      printf("Sensor says count no... #%d\r\n", count);
       count++;
       if(count %2 == 0){
 	relay_on();
@@ -71,23 +71,7 @@ PROCESS_THREAD(relay_process, ev, data)
     }
   }
   
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-/* Implementation of the second process */
-PROCESS_THREAD(blink_process, ev, data)
-{
-  static struct etimer timer;
-  PROCESS_BEGIN();
-
-  while(1) {
-    etimer_set(&timer, CLOCK_CONF_SECOND);
-
-    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
-
-    printf("Blink... (state %0.2X).\r\n", leds_get());
-    leds_toggle(LEDS_GREEN);
-  }
+  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

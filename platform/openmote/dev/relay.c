@@ -81,7 +81,7 @@ relay_on()
     GPIO_SET_PIN(GPIO_D_BASE,0x03);
     if (GPIO_READ_PIN(GPIO_D_BASE,0x03) == 3)
     {
-    printf(" Relay_ON value on register is ON" );
+    printf("Relay_ON value on register is ON\r\n" );
     }
     //P6OUT |= controlPin;
   }
@@ -95,7 +95,7 @@ relay_off()
      GPIO_CLR_PIN(GPIO_D_BASE,0x03);
      if ( GPIO_READ_PIN(GPIO_D_BASE,0x03) == 0 )
      {
-     printf(" Relay_OFF value on register is OFF");
+     printf("Relay_OFF value on register is OFF\r\n");
      }
     //P6OUT &= ~controlPin;
   }
