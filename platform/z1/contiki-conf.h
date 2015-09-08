@@ -73,10 +73,6 @@
 
 #define CC2420_CONF_AUTOACK              1
 
-/* The TSCH default slot length of 10ms is a bit too short for this platform,
- * use 15ms instead. */
-#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 15000
-
 #define COLLECT_CONF_ANNOUNCEMENTS       1
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
 #define CXMAC_CONF_ANNOUNCEMENTS         0
@@ -108,6 +104,10 @@
 #endif /* CC2420_CONF_CCA_THRESH */
 
 #define IEEE802154_CONF_PANID       0xABCD
+
+/* The TSCH default slot length of 10ms is a bit too short for this platform,
+ * use 15ms instead. */
+#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 15000
 
 #define SHELL_VARS_CONF_RAM_BEGIN 0x1100
 #define SHELL_VARS_CONF_RAM_END 0x2000
