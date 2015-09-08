@@ -42,10 +42,6 @@
 
 #include "contiki.h"
 
-#if FRAME802154_VERSION < FRAME802154_IEEE802154E_2012
-#error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154E_2012
-#endif
-
 /* TODO: document */
 #ifndef TSCH_DEBUG_INIT
 #define TSCH_DEBUG_INIT()

@@ -55,6 +55,10 @@
 #include "net/mac/tsch/tsch-packet.h"
 #include "lib/random.h"
 
+#if FRAME802154_VERSION < FRAME802154_IEEE802154E_2012
+#error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154E_2012
+#endif
+
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
