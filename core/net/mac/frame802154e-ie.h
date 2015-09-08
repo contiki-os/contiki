@@ -30,10 +30,18 @@
  *
  */
 
+/**
+ * \file
+ *         IEEE 802.15.4e Information Element (IE) creation and parsing.
+ * \author
+ *         Simon Duquennoy <simonduq@sics.se>
+ */
+
 #ifndef FRAME_802154E_H
 #define FRAME_802154E_H
 
 #include "contiki.h"
+/* We need definitions from tsch-private.h for TSCH-specific information elements */
 #include "net/mac/tsch/tsch-private.h"
 
 #define FRAME802154E_IE_MAX_LINKS       4

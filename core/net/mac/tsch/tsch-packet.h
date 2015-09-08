@@ -36,7 +36,7 @@
 #include "contiki.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/frame802154.h"
-#include "net/mac/tsch/frame802154e.h"
+#include "net/mac/frame802154e-ie.h"
 
 /* Construct enhanced ACK packet and return ACK length */
 int tsch_packet_create_eack(uint8_t *buf, int buf_size,

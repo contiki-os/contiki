@@ -36,7 +36,7 @@
 #include "contiki.h"
 #include "net/mac/tsch/tsch-asn.h"
 #include "net/mac/tsch/tsch-private.h"
-#include "net/mac/tsch/frame802154e.h"
+#include "net/mac/frame802154e-ie.h"
 
 #ifdef TSCH_SECURITY_CONF_KEY_INDEX_EB
 #define TSCH_SECURITY_KEY_INDEX_EB TSCH_SECURITY_CONF_KEY_INDEX_EB

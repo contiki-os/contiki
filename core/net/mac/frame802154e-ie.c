@@ -32,13 +32,13 @@
 
 /**
  * \file
- *         IEEE 802.15.4e-specific frame creation and parsing
+ *         IEEE 802.15.4e Information Element (IE) creation and parsing.
  * \author
  *         Simon Duquennoy <simonduq@sics.se>
  */
 
 #include <string.h>
-#include "net/mac/tsch/frame802154e.h"
+#include "net/mac/frame802154e-ie.h"
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
