@@ -42,7 +42,8 @@
 
 #include "contiki.h"
 
-/* TODO: document */
+/* TSCH debug macros, i.e. to set LEDs or GPIOs on various TSCH 
+ * timeslot events */
 #ifndef TSCH_DEBUG_INIT
 #define TSCH_DEBUG_INIT()
 #endif
