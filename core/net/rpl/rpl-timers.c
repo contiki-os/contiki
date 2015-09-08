@@ -50,6 +50,11 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
+/* A configurable function called after update of the RPL DIO interval */
+#ifdef RPL_CALLBACK_NEW_DIO_INTERVAL
+void RPL_CALLBACK_NEW_DIO_INTERVAL(uint8_t dio_interval);
+#endif /* RPL_CALLBACK_NEW_DIO_INTERVAL */
+
 /*---------------------------------------------------------------------------*/
 static struct ctimer periodic_timer;
 

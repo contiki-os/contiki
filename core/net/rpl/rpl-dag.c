@@ -60,6 +60,11 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
+/* A configurable function called after every RPL parent switch */
+#ifdef RPL_CALLBACK_PARENT_SWITCH
+void RPL_CALLBACK_PARENT_SWITCH(rpl_parent_t *old, rpl_parent_t *new);
+#endif /* RPL_CALLBACK_PARENT_SWITCH */
+
 /*---------------------------------------------------------------------------*/
 extern rpl_of_t RPL_OF;
 static rpl_of_t * const objective_functions[] = {&RPL_OF};
