@@ -221,7 +221,7 @@ keepalive_packet_sent(void *ptr, int status, int transmissions)
 #ifdef TSCH_LINK_NEIGHBOR_CALLBACK
   TSCH_LINK_NEIGHBOR_CALLBACK(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), status, transmissions);
 #endif
-  PRINTF("TSCH: KA sent to %u, st %d %d\n",
+  PRINTF("TSCH: KA sent to %u, st %d-%d\n",
       TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER)), status, transmissions);
   tsch_schedule_keepalive();
 }
