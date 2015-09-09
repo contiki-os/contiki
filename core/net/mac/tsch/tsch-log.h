@@ -112,6 +112,6 @@ void tsch_log_process_pending();
 #define tsch_log_process_pending()
 #define TSCH_LOG_ADD(log_type, init_code)
 
-#endif /* WITH_TSCH_LOG */
+#endif /* TSCH_LOG_LEVEL */
 
 #endif /* __TSCH_LOG_H__ */
