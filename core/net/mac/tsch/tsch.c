@@ -795,8 +795,10 @@ static void
 tsch_init(void)
 {
   radio_value_t radio_rx_mode;
+  radio_value_t radio_tx_mode;
   rtimer_clock_t t;
 
+  /* Radio Rx mode */
   if(NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode) != RADIO_RESULT_OK) {
     printf("TSCH:! radio does not support getting RADIO_PARAM_RX_MODE. Abort init.\n");
     return;
@@ -809,6 +811,18 @@ tsch_init(void)
   radio_rx_mode |= RADIO_RX_MODE_POLL_MODE;
   if(NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode) != RADIO_RESULT_OK) {
     printf("TSCH:! radio does not support setting required RADIO_PARAM_RX_MODE. Abort init.\n");
+    return;
+  }
+  
+  /* Radio Tx mode */
+  if(NETSTACK_RADIO.get_value(RADIO_PARAM_TX_MODE, &radio_tx_mode) != RADIO_RESULT_OK) {
+    printf("TSCH:! radio does not support getting RADIO_PARAM_TX_MODE. Abort init.\n");
+    return;
+  }
+  /* Unset CCA */
+  radio_tx_mode &= ~RADIO_TX_MODE_SEND_ON_CCA;
+  if(NETSTACK_RADIO.set_value(RADIO_PARAM_TX_MODE, radio_tx_mode) != RADIO_RESULT_OK) {
+    printf("TSCH:! radio does not support setting required RADIO_PARAM_TX_MODE. Abort init.\n");
     return;
   }
   /* Test setting channel */
