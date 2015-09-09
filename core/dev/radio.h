@@ -153,6 +153,9 @@ enum {
   /* RSSI of the last received packet */
   RADIO_PARAM_LAST_RSSI,
 
+  /* Link quality of the last received packet */
+  RADIO_PARAM_LAST_LINK_QUALITY,
+
   /*
    * Long (64 bits) address for the radio, which is used by the address filter.
    * The address is specified in network byte order.
