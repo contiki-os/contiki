@@ -47,8 +47,6 @@
 
 #define TSCH_CONFIG TSCH_CONFIG_6TISCH_MINIMAL
 
-#define ANNOTATE_DEFAULT_ROUTE 1
-
 #undef ENABLE_COOJA_DEBUG
 #define ENABLE_COOJA_DEBUG 0
 
@@ -212,15 +210,6 @@
 /* Contiki netstack: RDC */
 #undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC     tschrdc_driver
-
-#undef CC2420_CONF_AUTOACK
-#define CC2420_CONF_AUTOACK 0
-
-#undef CC2420_CONF_SEND_CCA
-#define CC2420_CONF_SEND_CCA 0
-
-#undef MICROMAC_CONF_AUTOACK
-#define MICROMAC_CONF_AUTOACK 0
 
 #else /* No TSCH, use Csma+NullRDC with ACK */
 
