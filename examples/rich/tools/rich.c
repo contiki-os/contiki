@@ -78,8 +78,6 @@ rich_network_init(uip_ipaddr_t *br_prefix)
   if(br_prefix) { /* We are root */
     /* If an RDC layer is used, turn it off (i.e. keep the radio on at the root). */
     NETSTACK_RDC.off(1);
-    /* Set TSCH as coordinator */
-    tsch_set_coordinator(1);
     memcpy(&global_ipaddr, br_prefix, 16);
     uip_ds6_set_addr_iid(&global_ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&global_ipaddr, 0, ADDR_AUTOCONF);

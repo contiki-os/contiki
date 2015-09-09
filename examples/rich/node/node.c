@@ -70,6 +70,7 @@ PROCESS_THREAD(node_process, ev, data)
    * - role_6dg: DAG root, will advertise (unsecured) beacons
    * - role_6dg_sec: DAG root, will advertise secured beacons
    * */
+  static int is_coordinator = 0;
   static enum { role_6ln, role_6dg, role_6dg_sec } node_role;
 
   /* Set node with ID == 1 as coordinator, handy in Cooja. */
@@ -111,9 +112,9 @@ PROCESS_THREAD(node_process, ev, data)
       node_role == role_6ln ? "6ln" : (node_role == role_6dg) ? "6dg" : "6dg-sec");
 
   tsch_is_pan_secured = LLSEC802154_CONF_SECURITY_LEVEL && (node_role == role_6dg_sec);
-  tsch_is_coordinator = node_role > role_6ln;
+  is_coordinator = node_role > role_6ln;
 
-  if(tsch_is_coordinator) {
+  if(is_coordinator) {
     uip_ipaddr_t prefix;
     uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
     rich_init(&prefix);

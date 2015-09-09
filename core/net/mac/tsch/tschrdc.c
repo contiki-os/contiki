@@ -78,13 +78,6 @@ on(void)
 static int
 off(int keep_radio_on)
 {
-  /* We never turn off TSCH.
-   * However, when called with the flag keep_radio_on set,
-   * interpret this as starting as PAN coordinator, as
-   * expected by Contiki's upper layers. */
-  if(keep_radio_on) {
-    tsch_set_coordinator(1);
-  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
