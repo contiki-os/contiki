@@ -120,6 +120,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
     }
 
     moteMem.setByteArray("simCFSData", data);
+    moteMem.setIntValueOf("simCFSSize", data.length);
     return true;
   }
 
@@ -129,7 +130,8 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
    * @return Filesystem data
    */
   public byte[] getFilesystemData() {
-    return moteMem.getByteArray("simCFSData", FILESYSTEM_SIZE);
+    int size = moteMem.getIntValueOf("simCFSSize");
+    return moteMem.getByteArray("simCFSData", size);
   }
 
   /**
