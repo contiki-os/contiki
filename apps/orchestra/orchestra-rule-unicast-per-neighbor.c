@@ -44,9 +44,7 @@
 #include "net/ipv6/uip-ds6-route.h"
 #include "net/packetbuf.h"
 
-#define SENDER_BASED 1 /* Set to 0 for receiver-based unicast slots */
-
-#if SENDER_BASED && ORCHESTRA_COLLISION_FREE_HASH
+#if ORCHESTRA_UNICAST_SENDER_BASED && ORCHESTRA_COLLISION_FREE_HASH
 #define UNICAST_SLOT_SHARED_FLAG    ((ORCHESTRA_UNICAST_PERIOD < ORCHESTRA_MAX_HASH) ? LINK_OPTION_SHARED : 0)
 #else
 #define UNICAST_SLOT_SHARED_FLAG      LINK_OPTION_SHARED
@@ -70,7 +68,7 @@ static int
 neighbor_has_uc_link(const linkaddr_t *linkaddr)
 {
   if(linkaddr != NULL && !linkaddr_cmp(linkaddr, &linkaddr_null)) {
-    if((orchestra_parent_knows_us || !SENDER_BASED)
+    if((orchestra_parent_knows_us || !ORCHESTRA_UNICAST_SENDER_BASED)
       && linkaddr_cmp(&orchestra_parent_linkaddr, linkaddr)) {
       return 1;
     }
@@ -86,7 +84,7 @@ add_uc_link(linkaddr_t *linkaddr) {
   if(linkaddr != NULL) {
     uint16_t timeslot = get_node_timeslot(linkaddr);
     tsch_schedule_add_link(sf_unicast,
-        SENDER_BASED ? LINK_OPTION_RX : LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG,
+        ORCHESTRA_UNICAST_SENDER_BASED ? LINK_OPTION_RX : LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG,
         LINK_TYPE_NORMAL, &tsch_broadcast_address,
         timeslot, channel_offset);
   }
@@ -146,7 +144,7 @@ select_packet(uint16_t *slotframe, uint16_t *timeslot)
       *slotframe = slotframe_handle;
     }
     if(timeslot != NULL) {
-      *timeslot = SENDER_BASED ? get_node_timeslot(&linkaddr_node_addr) : get_node_timeslot(dest);
+      *timeslot = ORCHESTRA_UNICAST_SENDER_BASED ? get_node_timeslot(&linkaddr_node_addr) : get_node_timeslot(dest);
     }
     return 1;
   }
@@ -177,7 +175,7 @@ init(uint16_t sf_handle)
   sf_unicast = tsch_schedule_add_slotframe(slotframe_handle, ORCHESTRA_UNICAST_PERIOD);
   uint16_t timeslot = get_node_timeslot(&linkaddr_node_addr);
   tsch_schedule_add_link(sf_unicast,
-            SENDER_BASED ? LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG: LINK_OPTION_RX,
+            ORCHESTRA_UNICAST_SENDER_BASED ? LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG: LINK_OPTION_RX,
             LINK_TYPE_NORMAL, &tsch_broadcast_address,
             timeslot, channel_offset);
 }

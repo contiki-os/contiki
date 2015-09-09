@@ -55,26 +55,47 @@ struct orchestra_rule eb_per_time_source;
 struct orchestra_rule unicast_per_neighbor;
 struct orchestra_rule default_common;
 
+/* A default configuration with:
+ * - a sender-based slotframe for EB transmission
+ * - a sender-based or receiver-based slotframe for unicast to RPL parents and children
+ * - a common shared slotframe for any other traffic (mostly broadcast)
+ *  */
 #define ORCHESTRA_RULES { &eb_per_time_source, \
                           &unicast_per_neighbor, \
                           &default_common, \
                         }
 
+/* Length of the various slotframes. Tune to balance network capacity,
+ * contention, energy, latency. */
 #define ORCHESTRA_EBSF_PERIOD                     397
 #define ORCHESTRA_COMMON_SHARED_PERIOD            31
 #define ORCHESTRA_UNICAST_PERIOD                  17
+/* Is the per-neighbor unicast slotframe sender-based (if not, it is receiver-based).
+ * Note: sender-based works only with RPL storing mode as it relies on DAO and
+ * routing entries to keep track of children and parents. */
+#define ORCHESTRA_UNICAST_SENDER_BASED            0
 
+/* The hash function used to assign timeslot to a diven node (based on its link-layer address) */
 #define ORCHESTRA_LINKADDR_HASH(addr)             ((addr != NULL) ? (addr)->u8[LINKADDR_SIZE-1] : -1)
+/* The maximum hash */
 #define ORCHESTRA_MAX_HASH                        0x7fff
+/* Is the "hash" function collision-free? (e.g. it maps to unique node-ids) */
 #define ORCHESTRA_COLLISION_FREE_HASH             0 /* Set to 1 if ORCHESTRA_LINKADDR_HASH returns unique hashes */
 
 extern linkaddr_t orchestra_parent_linkaddr;
 extern int orchestra_parent_knows_us;
 
-void orchestra_callback_packet_ready();
-void orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new);
-void orchestra_callback_child_added(linkaddr_t *addr);
-void orchestra_callback_child_removed(linkaddr_t *addr);
+/* Call from application to start Orchestra */
 void orchestra_init();
+
+/* Callbacks requied for Orchestra to operate */
+/* Set with #define TSCH_CALLBACK_PACKET_READY orchestra_callback_packet_ready */
+void orchestra_callback_packet_ready();
+/* Set with #define TSCH_CALLBACK_NEW_TIME_SOURCE orchestra_callback_new_time_source */
+void orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new);
+/* Set with #define NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK orchestra_callback_child_added */
+void orchestra_callback_child_added(linkaddr_t *addr);
+/* Set with #define NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK orchestra_callback_child_removed */
+void orchestra_callback_child_removed(linkaddr_t *addr);
 
 #endif /* __ORCHESTRA_H__ */
