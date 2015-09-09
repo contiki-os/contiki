@@ -168,6 +168,7 @@ static int get_cca_threshold(void);
 static int cc2420_cca(void);
 static void set_frame_filtering(uint8_t enable);
 static void set_poll_mode(uint8_t enable);
+static void set_send_on_cca(uint8_t enable);
 static void set_auto_ack(uint8_t enable);
 static uint16_t getreg(enum cc2420_register regname);
 
@@ -179,6 +180,8 @@ static int channel;
 
 /* Are we currently in poll mode? */
 static uint8_t volatile poll_mode = 0;
+/* Do we send with CCA? */
+static uint8_t send_on_cca = WITH_SEND_CCA;
 
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
@@ -205,6 +208,12 @@ get_value(radio_param_t param, radio_value_t *value)
     }
     if(poll_mode) {
       *value |= RADIO_RX_MODE_POLL_MODE;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    if(send_on_cca) {
+      *value |= RADIO_TX_MODE_SEND_ON_CCA;
     }
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
@@ -273,11 +282,15 @@ set_value(radio_param_t param, radio_value_t value)
         RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-
     set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
     set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
     set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
-
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
@@ -705,13 +718,13 @@ cc2420_transmit(unsigned short payload_len)
 #define LOOP_20_SYMBOLS CC2420_CONF_SYMBOL_LOOP_COUNT
 #endif
 
-#if WITH_SEND_CCA
-  strobe(CC2420_SRXON);
-  wait_for_status(BV(CC2420_RSSI_VALID));
-  strobe(CC2420_STXONCCA);
-#else /* WITH_SEND_CCA */
-  strobe(CC2420_STXON);
-#endif /* WITH_SEND_CCA */
+  if(send_on_cca) {
+    strobe(CC2420_SRXON);
+    wait_for_status(BV(CC2420_RSSI_VALID));
+    strobe(CC2420_STXONCCA);
+  } else {
+    strobe(CC2420_STXON);
+  }
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(CC2420_SFD_IS_1) {
       {
@@ -763,7 +776,7 @@ cc2420_transmit(unsigned short payload_len)
     }
   }
 
-  /* If we are using WITH_SEND_CCA, we get here if the packet wasn't
+  /* If we send with cca (cca_on_send), we get here if the packet wasn't
      transmitted because of other channel activity. */
   RIMESTATS_ADD(contentiondrop);
   PRINTF("cc2420: do_send() transmission never started\n");
@@ -1181,4 +1194,11 @@ set_poll_mode(uint8_t enable)
 	  CC2420_CLEAR_FIFOP_INT();
 	}
 	RELEASE_LOCK();
+}
+
+/* Enable or disable CCA before sending */
+static void
+set_send_on_cca(uint8_t enable)
+{
+  send_on_cca = enable;
 }

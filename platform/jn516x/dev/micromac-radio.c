@@ -143,6 +143,10 @@ static volatile uint8_t missed_radio_on_request = 0;
 static uint8_t poll_mode = 0;
 /* (Software) frame filtering enabled by default */
 static uint8_t frame_filtering = 1;
+/* (Software) autoack */
+static uint8_t autoack_enabled = MICROMAC_CONF_AUTOACK;
+/* CCA before sending? Disabled by default. */
+static uint8_t send_on_cca = 0;
 
 /* Current radio channel */
 static int current_channel;
@@ -393,7 +397,8 @@ transmit(unsigned short payload_len)
 
   /* Transmit and wait */
   vMMAC_StartPhyTransmit(&tx_frame_buffer,
-                         E_MMAC_TX_START_NOW | E_MMAC_TX_NO_CCA);
+                         E_MMAC_TX_START_NOW |
+                         send_on_cca ? E_MMAC_TX_USE_CCA : E_MMAC_TX_NO_CCA);
 
   if(poll_mode) {
     BUSYWAIT_UNTIL(u32MMAC_PollInterruptSource(E_MMAC_INT_TX_COMPLETE), MAX_PACKET_DURATION);
@@ -501,7 +506,6 @@ is_broadcast_addr(uint8_t mode, uint8_t *addr)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-#if MICROMAC_CONF_AUTOACK
 /* Send an ACK */
 static void
 send_ack(const frame802154_t *frame)
@@ -516,7 +520,6 @@ send_ack(const frame802154_t *frame)
   send(&buffer, sizeof(buffer));
   in_ack_transmission = 0;
 }
-#endif /* MICROMAC_CONF_AUTOACK */
 /*---------------------------------------------------------------------------*/
 /* Check if a packet is for us */
 static int
@@ -538,12 +541,10 @@ is_packet_for_us(uint8_t *buf, int len, int do_send_ack)
       }
       if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
         result = linkaddr_cmp((linkaddr_t *)frame.dest_addr, &linkaddr_node_addr);
-#if MICROMAC_CONF_AUTOACK
-        if(result && do_send_ack) {
+        if(autoack_enabled && result && do_send_ack) {
           /* this is a unicast frame and sending ACKs is enabled */
           send_ack(&frame);
         }
-#endif
         return result;
       }
     }
@@ -835,7 +836,13 @@ set_frame_filtering(uint8_t enable)
   frame_filtering = enable;
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
+set_autoack(uint8_t enable)
+{
+  autoack_enabled = enable;
+}
+/*---------------------------------------------------------------------------*/
+static void
 set_poll_mode(uint8_t enable)
 {
   poll_mode = enable;
@@ -850,6 +857,12 @@ set_poll_mode(uint8_t enable)
       E_MMAC_INT_RX_COMPLETE | E_MMAC_INT_TX_COMPLETE);
     vMMAC_EnableInterrupts(&radio_interrupt_handler);
   }
+}
+/* Enable or disable CCA before sending */
+static void
+set_send_on_cca(uint8_t enable)
+{
+  send_on_cca = enable;
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
@@ -872,11 +885,17 @@ get_value(radio_param_t param, radio_value_t *value)
     if(frame_filtering) {
       *value |= RADIO_RX_MODE_ADDRESS_FILTER;
     }
-    if(MICROMAC_CONF_AUTOACK) {
+    if(autoack_enabled) {
       *value |= RADIO_RX_MODE_AUTOACK;
     }
     if(poll_mode) {
       *value |= RADIO_RX_MODE_POLL_MODE;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    if(send_on_cca) {
+      *value |= RADIO_TX_MODE_SEND_ON_CCA;
     }
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
@@ -935,13 +954,15 @@ set_value(radio_param_t param, radio_value_t value)
                  RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    if(((value & RADIO_RX_MODE_AUTOACK) != 0) != MICROMAC_CONF_AUTOACK) {
-      /* We do not support runtime enabling/disabling of autoack */
+    set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
+    set_autoack((value & RADIO_RX_MODE_AUTOACK) != 0);
+    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
-    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
-
+    set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
