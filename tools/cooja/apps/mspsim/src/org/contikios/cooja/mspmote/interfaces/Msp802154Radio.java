@@ -75,6 +75,7 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
   private boolean isInterfered = false;
   private boolean isTransmitting = false;
   private boolean isReceiving = false;
+  private boolean isSynchronized = false;
 
   private byte lastOutgoingByte;
   private byte lastIncomingByte;
@@ -91,22 +92,20 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
 
     radio.addRFListener(new RFListener() {
       int len = 0;
-      int expLen = 0;
-      byte[] buffer = new byte[127 + 15];
+      int expMpduLen = 0;
+      byte[] buffer = new byte[127 + 6];
+      final private byte[] syncSeq = {0,0,0,0,0x7A};
+      
       public void receivedByte(byte data) {
         if (!isTransmitting()) {
           lastEvent = RadioEvent.TRANSMISSION_STARTED;
+          lastOutgoingPacket = null;
           isTransmitting = true;
           len = 0;
-          /*logger.debug("----- 802.15.4 TRANSMISSION STARTED -----");*/
+          expMpduLen = 0;
           setChanged();
           notifyObservers();
-        }
-
-        if (len >= buffer.length) {
-          /* Bad size packet, too large */
-          logger.debug("Error: bad size: " + len + ", dropping outgoing byte: " + data);
-          return;
+          /*logger.debug("----- 802.15.4 TRANSMISSION STARTED -----");*/
         }
 
         /* send this byte to all nodes */
@@ -115,31 +114,42 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
         setChanged();
         notifyObservers();
 
-        buffer[len++] = data;
+        if (len < buffer.length)
+          buffer[len] = data;
 
-        if (len == 6) {
+        len ++;
+
+        if (len == 5) {
+          isSynchronized = true;
+          for (int i=0; i<5; i++) {
+            if (buffer[i] != syncSeq[i]) {
+              // this should never happen, but it happens
+              logger.error(String.format("Bad outgoing sync sequence %x %x %x %x %x", buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]));
+              isSynchronized = false;
+              break;
+            }
+          }
+        }
+        else if (len == 6) {
 //          System.out.println("## CC2420 Packet of length: " + data + " expected...");
-          expLen = data + 6;
+          expMpduLen = data & 0xFF;
+          if ((expMpduLen & 0x80) != 0) {
+            logger.error("Outgoing length field is larger than 127: " + expMpduLen);
+          }
         }
 
-        if (len == expLen) {
-          /*logger.debug("----- 802.15.4 CUSTOM DATA TRANSMITTED -----");*/
-
+        if (((expMpduLen & 0x80) == 0) && len == expMpduLen + 6 && isSynchronized) {
           lastOutgoingPacket = CC2420RadioPacketConverter.fromCC2420ToCooja(buffer);
-          lastEvent = RadioEvent.PACKET_TRANSMITTED;
-          /*logger.debug("----- 802.15.4 PACKET TRANSMITTED -----");*/
-          setChanged();
-          notifyObservers();
-
-          /*logger.debug("----- 802.15.4 TRANSMISSION FINISHED -----");*/
-          isTransmitting = false;
-          lastEvent = RadioEvent.TRANSMISSION_FINISHED;
-          setChanged();
-          notifyObservers();
-          len = 0;
+          if (lastOutgoingPacket != null) {
+            lastEvent = RadioEvent.PACKET_TRANSMITTED;
+            //logger.debug("----- 802.15.4 PACKET TRANSMITTED -----");
+            setChanged();
+            notifyObservers();
+          }
+          finishTransmission();
         }
       }
-    });
+    }); /* addRFListener */
 
     radio.addOperatingModeListener(new OperatingModeListener() {
       public void modeChanged(Chip source, int mode) {
@@ -148,7 +158,7 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
           setChanged();
           notifyObservers();
         } else {
-          radioOff();
+          radioOff(); // actually it is a state change, not necessarily to OFF
         }
       }
     });
@@ -163,32 +173,23 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
     });
   }
 
-  private void radioOff() {
-    /* Radio was turned off during transmission.
-     * May for example happen if watchdog triggers */
+
+  private void finishTransmission()
+  {
     if (isTransmitting()) {
-      logger.warn("Turning off radio while transmitting, ending packet prematurely");
-
-      /* Simulate end of packet */
-      lastOutgoingPacket = new RadioPacket() {
-        public byte[] getPacketData() {
-          return new byte[0];
-        }
-      };
-
-      lastEvent = RadioEvent.PACKET_TRANSMITTED;
-      /*logger.debug("----- 802.15.4 PACKET TRANSMITTED -----");*/
-      setChanged();
-      notifyObservers();
-
-      /* Register that transmission ended in radio medium */
-      /*logger.debug("----- 802.15.4 TRANSMISSION FINISHED -----");*/
+      //logger.debug("----- 802.15.4 TRANSMISSION FINISHED -----");
       isTransmitting = false;
+      isSynchronized = false;
       lastEvent = RadioEvent.TRANSMISSION_FINISHED;
       setChanged();
       notifyObservers();
     }
+  }
 
+  private void radioOff() {
+    if (isSynchronized)
+      logger.warn("Turning off radio while transmitting a packet");
+    finishTransmission();
     lastEvent = RadioEvent.HW_OFF;
     setChanged();
     notifyObservers();
