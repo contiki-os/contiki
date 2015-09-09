@@ -130,6 +130,8 @@ const linkaddr_t tsch_eb_address = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
 
 /* Is TSCH started? */
 int tsch_is_started = 0;
+/* Has TSCH initialization failed? */
+int tsch_is_initialized = 0;
 /* Are we coordinator of the TSCH network? */
 int tsch_is_coordinator = 0;
 /* Are we associated to a TSCH network? */
@@ -845,6 +847,8 @@ tsch_init(void)
   ringbufindex_init(&input_ringbuf, TSCH_MAX_INCOMING_PACKETS);
   ringbufindex_init(&dequeued_ringbuf, TSCH_DEQUEUED_ARRAY_SIZE);
 
+  tsch_is_initialized = 1;
+
 #if TSCH_AUTOSTART
   /* Start TSCH operation.
    * If TSCH_AUTOSTART is not set, one needs to call NETSTACK_MAC.on() to start TSCH. */
@@ -862,7 +866,11 @@ send_packet(mac_callback_t sent, void *ptr)
   const linkaddr_t *addr = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
   if(!tsch_is_associated) {
-    PRINTF("TSCH:! not associated\n");
+    if(!tsch_is_initialized) {
+      PRINTF("TSCH:! not initialized (see earlier logs), drop outgoing packet\n");
+    } else {
+      PRINTF("TSCH:! not associated, drop outgoing packet\n");
+    }
     ret = MAC_TX_ERR;
     mac_call_sent_callback(sent, ptr, ret, 1);
     return;
@@ -981,7 +989,7 @@ packet_input(void)
 static int
 turn_on(void)
 {
-  if(tsch_is_started == 0) {
+  if(tsch_is_initialized == 1 && tsch_is_started == 0) {
     tsch_is_started = 1;
     /* Process tx/rx callback and log messages whenever polled */
     process_start(&tsch_pending_events_process, NULL);
