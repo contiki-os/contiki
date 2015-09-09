@@ -110,6 +110,7 @@ static size_t
 coap_set_option_header(unsigned int delta, size_t length, uint8_t *buffer)
 {
   size_t written = 0;
+  unsigned int length_unsigned = (unsigned int)length;
 
   buffer[0] = coap_option_nibble(delta) << 4 | coap_option_nibble(length);
 
@@ -123,7 +124,7 @@ coap_set_option_header(unsigned int delta, size_t length, uint8_t *buffer)
     } else if(*x > 12) {
       buffer[++written] = (*x - 13);
     }
-  } while(x != &length && (x = &length));
+  } while(x != &length_unsigned && (x = &length_unsigned));
 
   PRINTF("WRITTEN %u B opt header\n", 1 + written);
 
@@ -478,7 +479,7 @@ coap_parse_message(void *packet, uint8_t *data, uint16_t data_len)
 
   unsigned int option_number = 0;
   unsigned int option_delta = 0;
-  size_t option_length = 0;
+  unsigned int option_length = 0;
 
   while(current_option < data + data_len) {
     /* payload marker 0xFF, currently only checking for 0xF* because rest is reserved */
