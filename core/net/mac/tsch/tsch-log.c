@@ -62,12 +62,17 @@ PROCESS_NAME(tsch_pending_events_process);
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
-#define TSCH_MAX_LOGS 16
-#if (TSCH_MAX_LOGS & (TSCH_MAX_LOGS-1)) != 0
-#error TSCH_MAX_LOGS must be power of two
+#ifdef TSCH_LOG_CONF_QUEUE_LEN
+#define TSCH_LOG_QUEUE_LEN TSCH_LOG_CONF_QUEUE_LEN
+#else /* TSCH_LOG_CONF_QUEUE_LEN */
+#define TSCH_LOG_QUEUE_LEN 8
+#endif /* TSCH_LOG_CONF_QUEUE_LEN */
+
+#if (TSCH_LOG_QUEUE_LEN & (TSCH_LOG_QUEUE_LEN-1)) != 0
+#error TSCH_LOG_QUEUE_LEN must be power of two
 #endif
 static struct ringbufindex log_ringbuf;
-static struct tsch_log_t log_array[TSCH_MAX_LOGS];
+static struct tsch_log_t log_array[TSCH_LOG_QUEUE_LEN];
 static int log_dropped = 0;
 
 /* Process pending log messages */
@@ -148,7 +153,7 @@ tsch_log_commit()
 void
 tsch_log_init()
 {
-  ringbufindex_init(&log_ringbuf, TSCH_MAX_LOGS);
+  ringbufindex_init(&log_ringbuf, TSCH_LOG_QUEUE_LEN);
 }
 
 #endif /* TSCH_LOG_LEVEL */
