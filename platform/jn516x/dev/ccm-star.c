@@ -48,7 +48,7 @@ static int current_key_is_new = 1;
 /*---------------------------------------------------------------------------*/
 static void
 mic(const uint8_t *m, uint8_t m_len,
-    const uint8_t *iv,
+    const uint8_t *nonce,
     const uint8_t *a, uint8_t a_len,
     uint8_t *result,
     uint8_t mic_len)
@@ -60,7 +60,7 @@ mic(const uint8_t *m, uint8_t m_len,
     mic_len,
     a_len,
     m_len,
-    (tsReg128 *)iv,
+    (tsReg128 *)nonce,
     (uint8_t *)a,
     (uint8_t *)m,
     NULL,
@@ -71,7 +71,7 @@ mic(const uint8_t *m, uint8_t m_len,
 }
 /*---------------------------------------------------------------------------*/
 static void
-ctr(uint8_t *m, uint8_t m_len, const uint8_t *iv)
+ctr(uint8_t *m, uint8_t m_len, const uint8_t *nonce)
 {
   bACI_CCMstar(
     (tsReg128 *)current_key,
@@ -80,7 +80,7 @@ ctr(uint8_t *m, uint8_t m_len, const uint8_t *iv)
     0,
     0,
     m_len,
-    (tsReg128 *)iv,
+    (tsReg128 *)nonce,
     NULL,
     m,
     m,
@@ -91,13 +91,13 @@ ctr(uint8_t *m, uint8_t m_len, const uint8_t *iv)
 }
 /*---------------------------------------------------------------------------*/
 static void
-ctr_and_mic(uint8_t *m, uint8_t *output, uint8_t m_len,
-            const uint8_t *iv,
-            const uint8_t *a, uint8_t a_len,
-            uint8_t *result,
-            uint8_t mic_len, int encrypt)
+aead(const uint8_t* nonce,
+    uint8_t* m, uint8_t m_len,
+    const uint8_t* a, uint8_t a_len,
+    uint8_t *result, uint8_t mic_len,
+    int forward)
 {
-  if(encrypt) {
+  if(forward) {
     bACI_CCMstar(
       (tsReg128 *)current_key,
       current_key_is_new,
@@ -105,10 +105,10 @@ ctr_and_mic(uint8_t *m, uint8_t *output, uint8_t m_len,
       mic_len,
       a_len,
       m_len,
-      (tsReg128 *)iv,
+      (tsReg128 *)nonce,
       (uint8_t *)a,
       (uint8_t *)m,
-      output,
+      (uint8_t *)m,
       result,
       NULL
       );
@@ -121,10 +121,10 @@ ctr_and_mic(uint8_t *m, uint8_t *output, uint8_t m_len,
       mic_len,
       a_len,
       m_len,
-      (tsReg128 *)iv,
+      (tsReg128 *)nonce,
       (uint8_t *)a,
       (uint8_t *)m,
-      output,
+      (uint8_t *)m,
       (uint8_t *)a + a_len + m_len,
       &auth
       );
