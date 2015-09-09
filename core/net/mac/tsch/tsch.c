@@ -847,8 +847,8 @@ tsch_init(void)
 
 #if TSCH_AUTOSTART
   /* Start TSCH operation.
-   * If TSCH_AUTOSTART is not set, one needs to call NETSTACK_MAC.NETSTACK_RADIO.on() to start TSCH. */
-  NETSTACK_RADIO.on();
+   * If TSCH_AUTOSTART is not set, one needs to call NETSTACK_MAC.on() to start TSCH. */
+  NETSTACK_MAC.on();
 #endif /* TSCH_AUTOSTART */
 }
 /*---------------------------------------------------------------------------*/
