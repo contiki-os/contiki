@@ -82,7 +82,7 @@
 #if TSCH_CONFIG == TSCH_CONFIG_ORCHESTRA
 
 #define TSCH_CONF_WITH_MINIMAL_SCHEDULE 0
-#define WITH_TSCH_SLOTFRAME_SELECTOR 1
+#define TSCH_CONF_WITH_LINK_SELECTOR 1
 #define TSCH_CALLBACK_NEW_TIME_SOURCE orchestra_callback_new_time_source
 #define TSCH_CALLBACK_PACKET_READY orchestra_callback_packet_ready
 #define NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK orchestra_callback_child_added

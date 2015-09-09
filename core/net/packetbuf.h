@@ -55,6 +55,7 @@
 #include "contiki-conf.h"
 #include "net/linkaddr.h"
 #include "net/llsec/llsec802154.h"
+#include "net/mac/tsch/tsch-conf.h"
 
 /**
  * \brief      The size of the packetbuf, in bytes
@@ -313,10 +314,10 @@ enum {
   PACKETBUF_ATTR_MAC_SEQNO,
   PACKETBUF_ATTR_MAC_ACK,
   PACKETBUF_ATTR_IS_CREATED_AND_SECURED,
-#if WITH_TSCH_SLOTFRAME_SELECTOR
+#if TSCH_WITH_LINK_SELECTOR
   PACKETBUF_ATTR_TSCH_SLOTFRAME,
   PACKETBUF_ATTR_TSCH_TIMESLOT,
-#endif /* WITH_TSCH_SLOTFRAME_SELECTOR */
+#endif /* TSCH_WITH_LINK_SELECTOR */
   
   /* Scope 1 attributes: used between two neighbors only. */
 #if PACKETBUF_WITH_PACKET_TYPE
