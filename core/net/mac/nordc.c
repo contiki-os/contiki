@@ -32,26 +32,15 @@
 
 /**
  * \file
- *         Although the TSCH MAC layer (tsch.c) does not use any RDC layer
- *         this RDC layer is a convenient empty one, with one single feature:
- *         set the node as PAN coordinator whenever the RDC is turned off,
- *         which complies with the semantics used in Contiki e.g. to turn
- *         radio duty cycling off at the coordinator.
+ *         This RDC layer does nothing. It is meant for use with MAC
+ *         layers that do not use a RDC at all, such as TSCH.
  * \author
  *         Simon Duquennoy <simonduq@sics.se>
  *
  */
 
 #include "net/mac/rdc.h"
-#include "net/mac/tsch/tsch.h"
 #include "net/netstack.h"
-
-#if TSCH_LOG_LEVEL >= 1
-#define DEBUG DEBUG_PRINT
-#else /* TSCH_LOG_LEVEL */
-#define DEBUG DEBUG_NONE
-#endif /* TSCH_LOG_LEVEL */
-#include "net/ip/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -92,8 +81,8 @@ init(void)
 {
 }
 /*---------------------------------------------------------------------------*/
-const struct rdc_driver tschrdc_driver = {
-  "TSCH-rdc",
+const struct rdc_driver no_driver = {
+  "nordc",
   init,
   send_packet,
   send_list,
@@ -102,6 +91,4 @@ const struct rdc_driver tschrdc_driver = {
   off,
   channel_check_interval,
 };
-/*---------------------------------------------------------------------------*/
-
 /*---------------------------------------------------------------------------*/

@@ -33,8 +33,7 @@
 /**
  * \file
  *         IEEE 802.15.4 TSCH MAC implementation.
- *         Does not use any RDC layer. Can be configured along
- *         with tschrdc as RDC layer for convenience.
+ *         Does not use any RDC layer. Should be used with nordc.
  * \author
  *         Simon Duquennoy <simonduq@sics.se>
  *         Beshr Al Nahas <beshr@sics.se>

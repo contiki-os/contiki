@@ -44,6 +44,6 @@ void tsch_set_eb_period(uint32_t period);
 void tsch_set_coordinator(int enable);
 
 /* The TSCH radio driver */
-extern const struct rdc_driver tschrdc_driver;
+extern const struct rdc_driver no_driver;
 
 #endif /* __TSCH_H__ */
