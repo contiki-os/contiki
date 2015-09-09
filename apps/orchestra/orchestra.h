@@ -51,10 +51,6 @@ struct orchestra_rule {
   void (* child_removed)(linkaddr_t *addr);
 };
 
-struct orchestra_rule eb_per_time_source;
-struct orchestra_rule unicast_per_neighbor;
-struct orchestra_rule default_common;
-
 extern linkaddr_t orchestra_parent_linkaddr;
 extern int orchestra_parent_knows_us;
 

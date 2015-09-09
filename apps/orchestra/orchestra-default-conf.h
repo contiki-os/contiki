@@ -43,6 +43,9 @@
  * - a sender-based or receiver-based slotframe for unicast to RPL parents and children
  * - a common shared slotframe for any other traffic (mostly broadcast)
  *  */
+struct orchestra_rule eb_per_time_source;
+struct orchestra_rule unicast_per_neighbor;
+struct orchestra_rule default_common;
 #define ORCHESTRA_RULES { &eb_per_time_source, \
                           &unicast_per_neighbor, \
                           &default_common, \
