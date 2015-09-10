@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = relay
+CONTIKI_PROJECT = relay-testing
 all: $(CONTIKI_PROJECT)
 
 CONTIKI = ../..

@@ -79,7 +79,7 @@ relay_on()
   if((_RELAY_STATUS & INITED)) {
     
     GPIO_SET_PIN(GPIO_D_BASE,0x03);
-    if (GPIO_READ_PIN(GPIO_D_BASE,0x03) == 3)
+    if (GPIO_READ_PIN(GPIO_D_BASE,0x03) == 1)
     {
     printf("Relay_ON value on register is ON\r\n" );
     }
