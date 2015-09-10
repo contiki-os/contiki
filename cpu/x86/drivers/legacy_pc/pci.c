@@ -234,12 +234,9 @@ pci_pirq_set_irq(PIRQ pirq, uint8_t irq, uint8_t route_to_legacy)
  * \param meta     Base address of optional driver-defined metadata.
  */
 void
-pci_init_bar0(pci_driver_t *c_this,
-              pci_config_addr_t pci_addr,
-              uintptr_t meta)
+pci_init(pci_driver_t *c_this, pci_config_addr_t pci_addr, uintptr_t meta)
 {
-  pci_addr.reg_off = PCI_CONFIG_REG_BAR0;
-  /* The BAR0 value is masked to clear non-address bits. */
+  /* The reg_off (BAR) value is masked to clear non-address bits. */
   c_this->mmio = pci_config_read(pci_addr) & ~0xFFF;
   c_this->meta = meta;
 }

@@ -57,6 +57,7 @@ quarkX1000_uart_init(quarkX1000_uart_dev_t dev)
   /* PCI addresses from section 18.4 of Intel Quark SoC X1000 Datasheet. */
   pci_addr.dev = 20;
   pci_addr.func = (dev == QUARK_X1000_UART_0) ? 1 : 5;
+  pci_addr.reg_off = PCI_CONFIG_REG_BAR0;
 
   uart_16x50_init((dev == QUARK_X1000_UART_0) ? &quarkX1000_uart0 : &quarkX1000_uart1, pci_addr, QUARK_X1000_UART_DL_115200);
 }
