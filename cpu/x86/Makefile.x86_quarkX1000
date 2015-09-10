@@ -2,7 +2,7 @@ include $(CONTIKI)/cpu/x86/Makefile.x86_common
 
 CONTIKI_CPU_DIRS += drivers/legacy_pc drivers/quarkX1000 init/legacy_pc
 
-CONTIKI_SOURCEFILES += bootstrap_quarkX1000.S rtc.c pit.c pic.c irq.c nmi.c pci.c uart-16x50.c uart.c
+CONTIKI_SOURCEFILES += bootstrap_quarkX1000.S rtc.c pit.c pic.c irq.c nmi.c pci.c uart-16x50.c uart.c gpio.c
 
 CFLAGS += -m32 -march=i586 -mtune=i586
 LDFLAGS += -m32 -Xlinker -T -Xlinker $(CONTIKI)/cpu/x86/quarkX1000.ld
