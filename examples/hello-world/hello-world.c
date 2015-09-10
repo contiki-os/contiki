@@ -48,30 +48,9 @@ AUTOSTART_PROCESSES(&hello_world_process);
 PROCESS_THREAD(hello_world_process, ev, data)
 {
   
-  static struct etimer timer;
-  static int count;
   PROCESS_BEGIN();
 
-  etimer_set(&timer, CLOCK_CONF_SECOND * 2);
-  count = 0;
-  relay_enable(1);
- 
-   while(1) {
-
-    PROCESS_WAIT_EVENT();
-
-    if(ev == PROCESS_EVENT_TIMER) {
-        count++; 
-      	if(count %2 == 0){
-		relay_off();
-      	}
-      	else {  
-       		relay_on();
-      	}
-	etimer_reset(&timer);
-    }
-  }
-  
+  printf("Hello World\n"); 
   
   PROCESS_END();
 }
