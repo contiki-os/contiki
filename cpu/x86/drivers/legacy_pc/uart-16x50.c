@@ -79,7 +79,7 @@ uart_16x50_init(uart_16x50_driver_t *c_this,
   /* This assumes that the UART had an MMIO range assigned to it by the
    * firmware during boot.
    */
-  pci_init_bar0(c_this, pci_addr, 0);
+  pci_init(c_this, pci_addr, 0);
 
   uart_16x50_regs_t *regs = (uart_16x50_regs_t *)c_this->mmio;
 

@@ -34,8 +34,9 @@
 #include <stdint.h>
 #include "helpers.h"
 
-/** PCI configuration register identifier for Base Address Register 0 (BAR0) */
+/** PCI configuration register identifier for Base Address Registers */
 #define PCI_CONFIG_REG_BAR0 0x10
+#define PCI_CONFIG_REG_BAR1 0x14
 
 /** PCI Interrupt Routing is mapped using Interrupt Queue Agents */
 typedef enum {
@@ -106,9 +107,7 @@ typedef struct pci_driver {
   uintptr_t meta; /**< Driver-defined metadata base address */
 } pci_driver_t;
 
-void pci_init_bar0(pci_driver_t *c_this,
-                   pci_config_addr_t pci_addr,
-                   uintptr_t meta);
+void pci_init(pci_driver_t *c_this, pci_config_addr_t pci_addr, uintptr_t meta);
 int pci_irq_agent_set_pirq(IRQAGENT agent, INTR_PIN pin, PIRQ pirq);
 void pci_pirq_set_irq(PIRQ pirq, uint8_t irq, uint8_t route_to_legacy);
 
