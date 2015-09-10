@@ -50,6 +50,7 @@ const struct simInterface cfs_interface;
 // COOJA variables
 #define CFS_BUF_SIZE 4000 /* Configure CFS size here and in ContikiCFS.java */
 char simCFSData[CFS_BUF_SIZE] = { 0 };
+int simCFSSize = 0;
 char simCFSChanged = 0;
 int simCFSRead = 0;
 int simCFSWritten = 0;
@@ -61,11 +62,15 @@ cfs_open(const char *n, int f)
   if(file.flag == FLAG_FILE_CLOSED) {
     file.flag = FLAG_FILE_OPEN;
     file.access = f;
-		if(f & CFS_APPEND) {
-			file.fileptr = file.endptr;
-		} else {
-	    file.fileptr = 0;
-		}
+    file.fileptr = 0;
+    file.endptr = simCFSSize;
+    if(f & CFS_WRITE) {
+      if(f & CFS_APPEND) {
+        file.fileptr = file.endptr;
+      } else {
+        file.endptr = 0;
+      }
+    }
     return 0;
   } else {
     return -1;
@@ -109,6 +114,9 @@ cfs_write(int f, const void *buf, unsigned int len)
 		simCFSWritten += len;
 		if(file.fileptr > file.endptr) {
 			file.endptr = file.fileptr;
+		}
+		if(file.fileptr > simCFSSize) {
+			simCFSSize = file.fileptr;
 		}
     return len;
   } else {
