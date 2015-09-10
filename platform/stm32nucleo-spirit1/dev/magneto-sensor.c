@@ -76,6 +76,11 @@ static int value(int type)
   int32_t ret_val = 0;
   volatile st_lib_axes_raw_typedef axes_raw_data;
 
+  /* NOTE: this is a demo of mapping ST Nucleo sensors on Contiki sensor API.
+   * For a real use case of sensors like acceleration, magneto and gyroscope,
+   * it is better to directly call the ST lib to get the three value (X/Y/Z)
+   * at once.
+   */
   st_lib_bsp_magneto_m_get_axes_raw(&axes_raw_data);
 
   switch (type) {

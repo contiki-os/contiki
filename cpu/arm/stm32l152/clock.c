@@ -92,9 +92,7 @@ void clock_delay(unsigned int i)
   }
 }
 /*---------------------------------------------------------------------------*/
-/**
- * Wait for a multiple of clock ticks (7.8 ms at 128 Hz).
- */
+/* Wait for a multiple of clock ticks (7.8 ms at 128 Hz). */
 void clock_wait(clock_time_t t)
 {
   clock_time_t start;
