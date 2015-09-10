@@ -131,6 +131,11 @@ PROCESS_THREAD(sensor_demo_process, ev, data)
     sensor_value = pressure_sensor.value(0);
     printf("Pressure:\t%d.%d mbar\n", sensor_value/10, ABS_VALUE(sensor_value)%10);
 
+  /* NOTE: this demo uses the mapping of ST Nucleo sensors on Contiki sensor API.
+   * For a real use case of sensors like acceleration, magneto and gyroscope,
+   * it is better to directly call the ST lib to get the three value (X/Y/Z)
+   * at once.
+   */
     printf("Magneto:\t%d/%d/%d (X/Y/Z) mgauss\n", magneto_sensor.value(X_AXIS),
                                                   magneto_sensor.value(Y_AXIS),
                                                   magneto_sensor.value(Z_AXIS));
