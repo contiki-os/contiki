@@ -916,15 +916,11 @@ dao_ack_input(void)
 {
 #if DEBUG
   unsigned char *buffer;
-  uint8_t buffer_length;
-  uint8_t instance_id;
   uint8_t sequence;
   uint8_t status;
 
   buffer = UIP_ICMP_PAYLOAD;
-  buffer_length = uip_len - uip_l3_icmp_hdr_len;
 
-  instance_id = buffer[0];
   sequence = buffer[2];
   status = buffer[3];
 
