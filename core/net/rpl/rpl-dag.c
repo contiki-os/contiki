@@ -92,10 +92,10 @@ rpl_print_neighbor_list()
     rpl_parent_t *p = nbr_table_head(rpl_parents);
     clock_time_t now = clock_time();
 
-    printf("RPL: rank %u dioint %u, %u nbr(s)\n", curr_rank, curr_dio_interval, uip_ds6_nbr_num());
+    PRINTF("RPL: rank %u dioint %u, %u nbr(s)\n", curr_rank, curr_dio_interval, uip_ds6_nbr_num());
     while(p != NULL) {
       uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
-      printf("RPL: nbr %3u %5u, %5u => %5u %c (last tx %u min ago)\n",
+      PRINTF("RPL: nbr %3u %5u, %5u => %5u %c (last tx %u min ago)\n",
           nbr_table_get_lladdr(rpl_parents, p)->u8[7],
           p->rank, nbr ? nbr->link_metric : 0,
           default_instance->of->calculate_rank(p, 0),
@@ -103,7 +103,7 @@ rpl_print_neighbor_list()
           (unsigned)((now - p->last_tx_time) / (60 * CLOCK_SECOND)));
       p = nbr_table_next(rpl_parents, p);
     }
-    printf("RPL: end of list\n");
+    PRINTF("RPL: end of list\n");
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -113,7 +113,7 @@ rpl_get_nbr(rpl_parent_t *parent)
   linkaddr_t *lladdr = NULL;
   lladdr = nbr_table_get_lladdr(rpl_parents, parent);
   if(lladdr != NULL) {
-    return nbr_table_get_from_lladdr(ds6_neighbors, lladdr);
+    return uip_ds6_nbr_ll_lookup((uip_lladdr_t*) lladdr);
   } else {
     return NULL;
   }
@@ -153,7 +153,7 @@ uint16_t
 rpl_get_parent_link_metric(const uip_lladdr_t *addr)
 {
   uip_ds6_nbr_t *nbr;
-  nbr = nbr_table_get_from_lladdr(ds6_neighbors, (const linkaddr_t *)addr);
+  nbr = uip_ds6_nbr_ll_lookup(addr);
   
   if(nbr != NULL) {
     return nbr->link_metric;
