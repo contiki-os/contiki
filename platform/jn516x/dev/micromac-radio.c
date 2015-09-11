@@ -398,7 +398,7 @@ transmit(unsigned short payload_len)
   /* Transmit and wait */
   vMMAC_StartPhyTransmit(&tx_frame_buffer,
                          E_MMAC_TX_START_NOW |
-                         send_on_cca ? E_MMAC_TX_USE_CCA : E_MMAC_TX_NO_CCA);
+                         (send_on_cca ? E_MMAC_TX_USE_CCA : E_MMAC_TX_NO_CCA));
 
   if(poll_mode) {
     BUSYWAIT_UNTIL(u32MMAC_PollInterruptSource(E_MMAC_INT_TX_COMPLETE), MAX_PACKET_DURATION);
