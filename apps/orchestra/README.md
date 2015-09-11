@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-Orchestra
-============================================
-=======
 # Orchestra
 
 ## Overview
->>>>>>> wip/readme-orchestra
 
 Orchestra is an autonomous scheduling solution for TSCH, where nodes maintain
 their own schedule solely based on their local RPL state. There is no centralized
@@ -14,23 +9,13 @@ Orchestra rules can be used out-of-box in any RPL network, reducing contention
 to a low level. Orchestra is described and evaluated in
 *Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH*, ACM SenSys'15.
 
-<<<<<<< HEAD
-Requirements
-============================================
-=======
 ## Requirements
->>>>>>> wip/readme-orchestra
 
 Orchestra requires a system running TSCH and RPL.
 For sender-based unicast slots (`ORCHESTRA_UNICAST_SENDER_BASED`), it requires
 RPL with downwards routing enabled (relies on DAO).
 
-<<<<<<< HEAD
-Getting Started
-============================================ 
-=======
 ## Getting Started
->>>>>>> wip/readme-orchestra
 
 To use Orchestra, add a couple global definitions, e.g in your `project-conf.h` file.
 
