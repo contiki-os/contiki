@@ -209,7 +209,7 @@
 
 /* Contiki netstack: RDC */
 #undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     no_driver
+#define NETSTACK_CONF_RDC     nordc_driver
 
 #else /* No TSCH, use Csma+NullRDC with ACK */
 

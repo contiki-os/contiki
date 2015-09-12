@@ -81,7 +81,7 @@ init(void)
 {
 }
 /*---------------------------------------------------------------------------*/
-const struct rdc_driver no_driver = {
+const struct rdc_driver nordc_driver = {
   "nordc",
   init,
   send_packet,
