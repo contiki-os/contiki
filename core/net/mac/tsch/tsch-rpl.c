@@ -97,15 +97,9 @@ void
 tsch_rpl_callback_parent_switch(rpl_parent_t *old, rpl_parent_t *new)
 {
   if(tsch_is_associated == 1) {
-    rpl_dag_t *dag = rpl_get_any_dag();
-    if(dag != NULL) {
-      rpl_parent_t *preferred_parent = dag->preferred_parent;
-      if(preferred_parent != NULL) {
-        tsch_queue_update_time_source(
-            (const linkaddr_t *)uip_ds6_nbr_lladdr_from_ipaddr(
-                rpl_get_parent_ipaddr(preferred_parent)));
-      }
-    }
+    tsch_queue_update_time_source(
+        (const linkaddr_t *)uip_ds6_nbr_lladdr_from_ipaddr(
+            rpl_get_parent_ipaddr(new)));
   }
 }
 
