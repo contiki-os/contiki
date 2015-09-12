@@ -43,7 +43,7 @@ void tsch_set_eb_period(uint32_t period);
 /* Set the node as PAN coordinator */
 void tsch_set_coordinator(int enable);
 
-/* The TSCH radio driver */
-extern const struct rdc_driver no_driver;
+/* The TSCH MAC driver */
+extern const struct mac_driver tschmac_driver;
 
 #endif /* __TSCH_H__ */
