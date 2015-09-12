@@ -52,7 +52,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
   static int count;
   PROCESS_BEGIN();
 
-  etimer_set(&timer, CLOCK_CONF_SECOND * 2);
+  etimer_set(&timer, CLOCK_CONF_SECOND * 10);
   count = 0;
   relay_enable(1);
  
@@ -61,13 +61,15 @@ PROCESS_THREAD(hello_world_process, ev, data)
     PROCESS_WAIT_EVENT();
 
     if(ev == PROCESS_EVENT_TIMER) {
-        count++; 
+        
       	if(count %2 == 0){
-		relay_off();
+		relay_on();
       	}
       	else {  
-       		relay_on();
+       		relay_off();
       	}
+	
+	count ++;
 	etimer_reset(&timer);
     }
   }

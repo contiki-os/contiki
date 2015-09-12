@@ -64,7 +64,7 @@ relay_enable(uint8_t pin)
 
     /* Selects the pin to be configure as the control pin of the relay module */
     //controlPin = (1 << pin);
-    GPIO_SET_OUTPUT(GPIO_D_BASE,0x03);
+    GPIO_SET_OUTPUT(GPIO_D_BASE,0x08);
 
     /* Configures the control pin */
     //P6SEL &= ~controlPin;
@@ -78,8 +78,9 @@ relay_on()
 {
   if((_RELAY_STATUS & INITED)) {
     
-    GPIO_SET_PIN(GPIO_D_BASE,0x03);
-    if (GPIO_READ_PIN(GPIO_D_BASE,0x03) == 1)
+    GPIO_SET_PIN(GPIO_D_BASE,0x08);
+    
+    if (GPIO_READ_PIN(GPIO_D_BASE,0x08) == 0x08)
     {
     printf("Relay_ON value on register is ON\r\n" );
     }
@@ -92,8 +93,8 @@ relay_off()
 {
   if((_RELAY_STATUS & INITED)) {
   
-     GPIO_CLR_PIN(GPIO_D_BASE,0x03);
-     if ( GPIO_READ_PIN(GPIO_D_BASE,0x03) == 0 )
+     GPIO_CLR_PIN(GPIO_D_BASE,0x08);
+     if ( GPIO_READ_PIN(GPIO_D_BASE,0x08) == 0 )
      {
      printf("Relay_OFF value on register is OFF\r\n");
      }
