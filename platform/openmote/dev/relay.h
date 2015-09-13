@@ -31,9 +31,9 @@
  * -----------------------------------------------------------------
  *
  * \file
- *         Device simple driver for generic relay in phidget port of Zolertia Z1
+ *         Device simple driver for generic relay for openmote
  * \author
- *         Antonio Lignan, Zolertia <alinan@zolertia.com>
+ *         Manoj Sony, <manojsony@gmail.com>
  *
  */
 
