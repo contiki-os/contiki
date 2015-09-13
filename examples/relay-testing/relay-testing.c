@@ -32,9 +32,9 @@
 
 /**
  * \file
- *         A very simple Contiki application showing how Contiki programs look
+ *         A very simple Contiki application showing how relay works
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Manoj Sony <manojsony@gmail.com>
  */
 
 #include "contiki.h"
