@@ -41,6 +41,10 @@
 
 #include <stdio.h> /* For printf() */
 
+#define LED_RELAY_PIN 2     /* Relay Pin */
+#define PORT_D GPIO_D_BASE
+
+
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
 AUTOSTART_PROCESSES(&hello_world_process);
@@ -54,7 +58,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
   etimer_set(&timer, CLOCK_CONF_SECOND * 10);
   count = 0;
-  relay_enable(1);
+  relay_enable(PORT_D,LED_RELAY_PIN);
  
    while(1) {
 
@@ -63,10 +67,10 @@ PROCESS_THREAD(hello_world_process, ev, data)
     if(ev == PROCESS_EVENT_TIMER) {
         
       	if(count %2 == 0){
-		relay_on();
+		relay_on(PORT_D,LED_RELAY_PIN);
       	}
       	else {  
-       		relay_off();
+       		relay_off(PORT_D,LED_RELAY_PIN);
       	}
 	
 	count ++;

@@ -52,53 +52,63 @@ enum OPENMOTE_RELAY_STATUSTYPES {
 
 static enum OPENMOTE_RELAY_STATUSTYPES _RELAY_STATUS = 0x00;
 
-/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------
+Function Name : relay_enable
+INPUT Parmaters : port_address  Possible values :  { GPIO_A_BASE , GPIO_B_BASE ,GPIO_C_BASE, GPIO_D_BASE }
+	          pin      	Possible values :  { Pin 0: 0, Pin 1: 1, Pin 2: 2... Pin 7: 7 }
+OUTPUT Paramaters : None
+---------------------------------------------------------------------------*/
 
-void
-relay_enable(uint8_t pin)
+void relay_enable(unsigned long port_addr, unsigned char pin)
 {
 
   if(!(_RELAY_STATUS & INITED)) {
 
     _RELAY_STATUS |= INITED;
-
-    /* Selects the pin to be configure as the control pin of the relay module */
-    //controlPin = (1 << pin);
-    GPIO_SET_OUTPUT(GPIO_D_BASE,0x08);
-
-    /* Configures the control pin */
-    //P6SEL &= ~controlPin;
-    //P6DIR |= controlPin;
+    /* Selects the pin to be configure as the relay pin of the relay module */
+    GPIO_SET_OUTPUT(port_addr,(1<<pin));
+    printf("RELAY PIN INITIALIZED SUCCESSFULLY FOR PORTBASE_ADDR : 0x%x , PIN : %d  \r\n",port_addr,pin );
   }
-}
-/*---------------------------------------------------------------------------*/
 
-void
-relay_on()
+}
+
+/*---------------------------------------------------------------------------
+Function Name : relay_on
+INPUT Parmaters : port_address  Possible values :  { GPIO_A_BASE , GPIO_B_BASE ,GPIO_C_BASE, GPIO_D_BASE }
+	          pin      	Possible values :  { Pin 0: 0, Pin 1: 1, Pin 2: 2... Pin 7: 7 }
+OUTPUT Paramaters : None
+---------------------------------------------------------------------------*/
+void relay_on(unsigned long port_addr, unsigned char pin)
 {
   if((_RELAY_STATUS & INITED)) {
     
-    GPIO_SET_PIN(GPIO_D_BASE,0x08);
+    GPIO_SET_PIN(port_addr,(1<<pin));
     
-    if (GPIO_READ_PIN(GPIO_D_BASE,0x08) == 0x08)
-    {
-    printf("Relay_ON value on register is ON\r\n" );
-    }
-    //P6OUT |= controlPin;
+   if (GPIO_READ_PIN(port_addr,(1<<pin)) == (1<<pin))
+    	printf("relay_on() value for PORTBASE_ADDR : 0x%x , PIN : %d  is ON\r\n",port_addr,pin );
+   else
+	printf("relay_on() value for PORTBASE_ADDR : 0x%x , PIN : %d  mismatch\r\n",port_addr,pin );
   }
+
 }
-/*---------------------------------------------------------------------------*/
-void
-relay_off()
+
+/*---------------------------------------------------------------------------
+Function Name : relay_off     
+INPUT Parmaters : port_address  Possible values :  { GPIO_A_BASE , GPIO_B_BASE ,GPIO_C_BASE, GPIO_D_BASE }
+	          pin      	Possible values :  { Pin 0: 0, Pin 1: 1, Pin 2: 2... Pin 7: 7 }
+OUTPUT Paramaters : None
+---------------------------------------------------------------------------*/
+void relay_off(unsigned long port_addr, unsigned char pin)
 {
   if((_RELAY_STATUS & INITED)) {
   
-     GPIO_CLR_PIN(GPIO_D_BASE,0x08);
-     if ( GPIO_READ_PIN(GPIO_D_BASE,0x08) == 0 )
-     {
-     printf("Relay_OFF value on register is OFF\r\n");
-     }
-    //P6OUT &= ~controlPin;
+     GPIO_CLR_PIN(port_addr,(1<<pin));
+     if ( GPIO_READ_PIN(port_addr,(1<<pin)) == 0 )
+     	printf("relay_off() value for PORTBASE_ADDR : 0x%x , PIN : %d  is OFF\r\n",port_addr,pin );
+     else
+	printf("relay_off() value for PORTBASE_ADDR : 0x%x , PIN : %d  mismatch\r\n",port_addr,pin );    
+    
   }
+  
 }
 /*---------------------------------------------------------------------------*/

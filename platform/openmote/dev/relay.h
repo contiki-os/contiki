@@ -40,10 +40,10 @@
 #ifndef RELAY_OPENMOTE_H_
 #define RELAY_OPENMOTE_H_
 
-void relay_enable(uint8_t pin);
-
-void relay_on();
-void relay_off();
+ 
+void relay_enable(unsigned long port_addr, unsigned char pin);
+void relay_on(unsigned long port_addr, unsigned char pin);
+void relay_off(unsigned long port_addr, unsigned char pin);
 
 #endif /* RELAY_OPENMOTE_H_ */
 
