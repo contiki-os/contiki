@@ -271,19 +271,35 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 10000
 #endif
 
+/* Configurable Rx guard time is micro-seconds */
+#ifndef TSCH_CONF_RX_WAIT
+#define TSCH_CONF_RX_WAIT 800
+#endif /* TSCH_CONF_RX_WAIT */
+
+/* The default timeslot timing in the standard is a guard time of
+ * 2200 us, a Tx offset of 2120 us and a Rx offset of 1120 us.
+ * As a result, the listening device has a guard time not centered
+ * on the expected Tx time. This is to be fixed in the next iteration
+ * of the standard. This can be enabled with:
+ * #define TSCH_DEFAULT_TS_TX_OFFSET          2120
+ * #define TSCH_DEFAULT_TS_RX_OFFSET          1120
+ * #define TSCH_DEFAULT_TS_RX_WAIT            2200
+ * 
+ * Instead, we align the Rx guard time on expected Tx time. The Rx
+ * guard time is user-configurable with TSCH_CONF_RX_WAIT.
+ 
+ * (TS_TX_OFFSET - (TS_RX_WAIT / 2)) instead */
+
 #if TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 10000
 /* Default timeslot timing as per IEEE 802.15.4e */
 
 #define TSCH_DEFAULT_TS_CCA_OFFSET         1800
 #define TSCH_DEFAULT_TS_CCA                128
 #define TSCH_DEFAULT_TS_TX_OFFSET          2120
-/* By standard, TS_RX_OFFSET is 1120us by default. To have the guard time
- * equally spent before and after the expected reception, use
- * (TS_TX_OFFSET - (TS_RX_WAIT / 2)) instead */
-#define TSCH_DEFAULT_TS_RX_OFFSET          1120
+#define TSCH_DEFAULT_TS_RX_OFFSET          (TSCH_DEFAULT_TS_TX_OFFSET - (TSCH_CONF_RX_WAIT / 2))
 #define TSCH_DEFAULT_TS_RX_ACK_DELAY       800
 #define TSCH_DEFAULT_TS_TX_ACK_DELAY       1000
-#define TSCH_DEFAULT_TS_RX_WAIT            2200
+#define TSCH_DEFAULT_TS_RX_WAIT            TSCH_CONF_RX_WAIT
 #define TSCH_DEFAULT_TS_ACK_WAIT           400
 #define TSCH_DEFAULT_TS_RX_TX              192
 #define TSCH_DEFAULT_TS_MAX_ACK            2400
@@ -296,10 +312,10 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #define TSCH_DEFAULT_TS_CCA_OFFSET         1800
 #define TSCH_DEFAULT_TS_CCA                128
 #define TSCH_DEFAULT_TS_TX_OFFSET          4000
-#define TSCH_DEFAULT_TS_RX_OFFSET          2900
+#define TSCH_DEFAULT_TS_RX_OFFSET          (TSCH_DEFAULT_TS_TX_OFFSET - (TSCH_CONF_RX_WAIT / 2))
 #define TSCH_DEFAULT_TS_RX_ACK_DELAY       3600
 #define TSCH_DEFAULT_TS_TX_ACK_DELAY       4000
-#define TSCH_DEFAULT_TS_RX_WAIT            2200
+#define TSCH_DEFAULT_TS_RX_WAIT            TSCH_CONF_RX_WAIT
 #define TSCH_DEFAULT_TS_ACK_WAIT           800
 #define TSCH_DEFAULT_TS_RX_TX              2072
 #define TSCH_DEFAULT_TS_MAX_ACK            2400
@@ -313,10 +329,10 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #define TSCH_DEFAULT_TS_CCA_OFFSET         1800
 #define TSCH_DEFAULT_TS_CCA                128
 #define TSCH_DEFAULT_TS_TX_OFFSET          38000
-#define TSCH_DEFAULT_TS_RX_OFFSET          36900
+#define TSCH_DEFAULT_TS_RX_OFFSET          (TSCH_DEFAULT_TS_TX_OFFSET - (TSCH_CONF_RX_WAIT / 2))
 #define TSCH_DEFAULT_TS_RX_ACK_DELAY       37600
 #define TSCH_DEFAULT_TS_TX_ACK_DELAY       38000
-#define TSCH_DEFAULT_TS_RX_WAIT            2200
+#define TSCH_DEFAULT_TS_RX_WAIT            TSCH_CONF_RX_WAIT
 #define TSCH_DEFAULT_TS_ACK_WAIT           800
 #define TSCH_DEFAULT_TS_RX_TX              2072
 #define TSCH_DEFAULT_TS_MAX_ACK            2400
