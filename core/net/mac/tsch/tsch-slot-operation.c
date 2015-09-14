@@ -62,7 +62,7 @@
 /* Truncate received drift correction information to maximum half
  * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT). */
 #define TRUNCATE_SYNC_IE 1
-#define TRUNCATE_SYNC_IE_BOUND ((int)TSCH_DEFAULT_TS_RX_WAIT/4)
+#define TRUNCATE_SYNC_IE_BOUND ((int32_t)US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_WAIT/4))
 
 /* Do not set rtimer less than RTIMER_GUARD ticks in the future */
 #ifdef TSCH_CONF_RTIMER_GUARD
