@@ -106,6 +106,10 @@ static volatile int tsch_in_slot_operation = 0;
 /* Info about the link, packet and neighbor of
  * the current (or next) slot */
 struct tsch_link *current_link = NULL;
+/* A backup link with Rx flag, overlapping with current_link.
+ * If the current link is Tx-only and the Tx queue
+ * is empty while executing the link, fallback to the backup link. */
+struct tsch_link *backup_link = NULL;
 static struct tsch_packet *current_packet = NULL;
 static struct tsch_neighbor *current_neighbor = NULL;
 
@@ -796,6 +800,20 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
       tsch_in_slot_operation = 1;
       /* Get a packet ready to be sent */
       current_packet = get_packet_and_neighbor_for_link(current_link, &current_neighbor);
+      /* There is no packet to send, and this link does not have Rx flag. Instead of doing
+       * nothing, switch to the backup link (has Rx flag) if any. */
+      if(current_packet == NULL && !(current_link->link_options & LINK_OPTION_RX) && backup_link != NULL) {
+        TSCH_LOG_ADD(tsch_log_message,
+                        snprintf(log->message, sizeof(log->message),
+                            "will use backup link");
+        );
+        current_link = backup_link;
+        current_packet = get_packet_and_neighbor_for_link(current_link, &current_neighbor);
+        TSCH_LOG_ADD(tsch_log_message,
+                        snprintf(log->message, sizeof(log->message),
+                            "used backup link");
+        );
+      }
       /* Hop channel */
       current_channel = tsch_calculate_channel(&current_asn, current_link->channel_offset);
       NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, current_channel);
@@ -849,7 +867,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         }
 
         /* Get next active link */
-        current_link = tsch_schedule_get_next_active_link(&current_asn, &timeslot_diff);
+        current_link = tsch_schedule_get_next_active_link(&current_asn, &timeslot_diff, &backup_link);
         if(current_link == NULL) {
           /* There is no next link. Fall back to default
            * behavior: wake up at the next slot. */
@@ -885,7 +903,7 @@ tsch_slot_operation_start(void)
   do {
     uint16_t timeslot_diff;
     /* Get next active link */
-    current_link = tsch_schedule_get_next_active_link(&current_asn, &timeslot_diff);
+    current_link = tsch_schedule_get_next_active_link(&current_asn, &timeslot_diff, &backup_link);
     if(current_link == NULL) {
       /* There is no next link. Fall back to default
        * behavior: wake up at the next slot. */

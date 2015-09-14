@@ -305,12 +305,16 @@ tsch_schedule_get_link_from_timeslot(struct tsch_slotframe *slotframe, uint16_t 
   }
   return NULL;
 }
-/* Returns the next active link after a given ASN */
+/* Returns the next active link after a given ASN, and a backup link (for the same ASN, with Rx flag) */
 struct tsch_link *
-tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset)
+tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset, struct tsch_link **backup_link)
 {
   uint16_t time_to_curr_best = 0;
   struct tsch_link *curr_best = NULL;
+  struct tsch_link *curr_backup = NULL; /* Keep a back link in case the current link
+  turns out useless when the time comes. For instance, for a Tx-only link, if there is
+  no outgoing packet in queue. In that case, run the backup link instead. The backup link
+  must have Rx flag set. */
   if(!tsch_is_locked()) {
     struct tsch_slotframe *sf = list_head(slotframe_list);
     /* For each slotframe, look for the earliest occurring link */
@@ -323,22 +327,41 @@ tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset)
           l->timeslot > timeslot ?
           l->timeslot - timeslot :
           sf->size.val + l->timeslot - timeslot;
-        if(time_to_curr_best == 0 || time_to_timeslot < time_to_curr_best) {
+        if(curr_best == NULL || time_to_timeslot < time_to_curr_best) {
           time_to_curr_best = time_to_timeslot;
           curr_best = l;
+          curr_backup = NULL;
         } else if(time_to_timeslot == time_to_curr_best) {
+          struct tsch_link *new_best = NULL;
           /* Two links are overlapping, we need to select one of them.
            * By standard: prioritize Tx links first, second by lowest handle */
           if((curr_best->link_options & LINK_OPTION_TX) == (l->link_options & LINK_OPTION_TX)) {
             /* Both or neither links have Tx, select the one with lowest handle */
             if(l->slotframe_handle < curr_best->slotframe_handle) {
-              curr_best = l;
+              new_best = l;
             }
           } else {
             /* Select the link that has the Tx option */
             if(l->link_options & LINK_OPTION_TX) {
-              curr_best = l;
+              new_best = l;
             }
+          }
+
+          /* Maintain backup_link */
+          if(curr_backup == NULL) {
+            /* Check if 'l' best can be used as backup */
+            if(new_best != l && (l->link_options & LINK_OPTION_RX)) { /* Does 'l' have Rx flag? */
+              curr_backup = l;
+            }
+            /* Check if curr_best can be used as backup */
+            if(new_best != curr_best && (curr_best->link_options & LINK_OPTION_RX)) { /* Does curr_best have Rx flag? */
+              curr_backup = curr_best;
+            }
+          }
+
+          /* Maintain curr_best */
+          if(new_best != NULL) {
+            curr_best = new_best;
           }
         }
 
@@ -349,6 +372,9 @@ tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset)
     if(time_offset != NULL) {
       *time_offset = time_to_curr_best;
     }
+  }
+  if(backup_link != NULL) {
+    *backup_link = curr_backup;
   }
   return curr_best;
 }
