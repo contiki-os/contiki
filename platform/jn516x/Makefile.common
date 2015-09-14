@@ -107,6 +107,7 @@ CFLAGS += -DSENSOR_BOARD_DR1174
 CONTIKI_TARGET_DIRS += dev/dr1174
 ARCH += button-sensor.c leds-arch.c
 else
+# Dongle is the default platform
 JN516x_WITH_DONGLE = 1
 endif
 
