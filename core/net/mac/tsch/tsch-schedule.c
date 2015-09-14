@@ -61,15 +61,6 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
-/* Do we prioritize links with Tx option or do we only look
- * at slotframe handle? The standard stipulatez the former.
- * We make it default. */
-#ifdef TSCH_SCHEDULE_CONF_PRIORITIZE_TX
-#define TSCH_SCHEDULE_PRIORITIZE_TX TSCH_SCHEDULE_CONF_PRIORITIZE_TX
-#else
-#define TSCH_SCHEDULE_PRIORITIZE_TX 1
-#endif
-
 /* Max number of TSCH slotframes */
 #ifdef TSCH_CONF_MAX_SLOTFRAMES
 #define TSCH_MAX_SLOTFRAMES TSCH_CONF_MAX_SLOTFRAMES
@@ -336,9 +327,8 @@ tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset)
           time_to_curr_best = time_to_timeslot;
           curr_best = l;
         } else if(time_to_timeslot == time_to_curr_best) {
-          /* Two links are overlapping, we need to select one of them. */
-#if TSCH_SCHEDULE_PRIORITIZE_TX
-          /* By standard: prioritize Tx links first, second by lowest handle */
+          /* Two links are overlapping, we need to select one of them.
+           * By standard: prioritize Tx links first, second by lowest handle */
           if((curr_best->link_options & LINK_OPTION_TX) == (l->link_options & LINK_OPTION_TX)) {
             /* Both or neither links have Tx, select the one with lowest handle */
             if(l->slotframe_handle < curr_best->slotframe_handle) {
@@ -350,14 +340,8 @@ tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset)
               curr_best = l;
             }
           }
-#else /* TSCH_SCHEDULE_PRIORITIZE_TX */
-          /* Simply prioritize by handle */
-          if(curr_best->slotframe_handle > sf->handle) {
-            /* We have a lower handle */
-            curr_best = l;
-          }
-#endif /* TSCH_SCHEDULE_PRIORITIZE_TX */
         }
+
         l = list_item_next(l);
       }
       sf = list_item_next(sf);
