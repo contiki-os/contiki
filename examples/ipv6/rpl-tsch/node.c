@@ -40,7 +40,9 @@
 #include "node-id.h"
 #include "net/rpl/rpl.h"
 #include "net/ipv6/uip-ds6-route.h"
+#if WITH_ORCHESTRA
 #include "orchestra.h"
+#endif /* WITH_ORCHESTRA */
 
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
@@ -168,9 +170,9 @@ PROCESS_THREAD(node_process, ev, data)
     net_init(NULL);
   }
   
-#if MAC_CONFIG == MAC_CONFIG_TSCH_ORCHESTRA
+#if WITH_ORCHESTRA
   orchestra_init();
-#endif
+#endif /* WITH_ORCHESTRA */
   
   /* Print out routing tables every minute */
   etimer_set(&et, CLOCK_SECOND * 60);

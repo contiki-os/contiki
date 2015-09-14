@@ -24,7 +24,7 @@
       org.contikios.cooja.mspmote.Z1MoteType
       <identifier>z11</identifier>
       <description>Z1 Mote Type #z11</description>
-      <firmware EXPORT="copy">[CONTIKI_DIR]-rich/examples/ipv6/rpl-tsch/node.z1</firmware>
+      <firmware EXPORT="copy">[CONFIG_DIR]/node.z1</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
@@ -260,14 +260,6 @@
     <height>311</height>
     <location_x>0</location_x>
     <location_y>412</location_y>
-  </plugin>
-  <plugin>
-    PowerTracker
-    <width>400</width>
-    <z>4</z>
-    <height>400</height>
-    <location_x>30</location_x>
-    <location_y>442</location_y>
   </plugin>
 </simconf>
 
