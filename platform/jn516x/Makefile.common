@@ -66,7 +66,7 @@ OBJDUMP:=$(CROSS_COMPILE)-objdump
 CFLAGS  := $(subst -Wcast-align,,$(CFLAGS))
 CFLAGS  := $(subst -Wall,,$(CFLAGS))
 
-ARCH = ccm-star.c exceptions.c leds-arch.c rtimer-arch.c slip_uart0.c clock.c micromac-radio.c \
+ARCH = ccm-star.c exceptions.c rtimer-arch.c slip_uart0.c clock.c micromac-radio.c \
        mtarch.c node-id.c watchdog.c log.c ringbufindex.c slip.c sprintf.c 
 # Default uart0 for printf and slip
 TARGET_WITH_UART0 ?= 1
@@ -89,27 +89,29 @@ CONTIKI_TARGET_DIRS = . dev lib
 CONTIKI_TARGET_MAIN = contiki-jn516x-main.c
 
 ifeq ($(JN516x_WITH_DR1175),1)
-JN516x_WITH_DR1174 = 1 # DR1175 is an extension board for DR1174
+JN516x_WITH_DR1174 = 1
 CFLAGS += -DSENSOR_BOARD_DR1175
 CONTIKI_TARGET_DIRS += dev/dr1175
-ARCH += ht-sensor.c light-sensor.c
+ARCH += ht-sensor.c light-sensor.c leds_extension.c leds-arch-1175.c
 endif
 
 ifeq ($(JN516x_WITH_DR1199),1)
-JN516x_WITH_DR1174 = 1 # DR1199 is an extension board for DR1174
+JN516x_WITH_DR1174 = 1
 CFLAGS += -DSENSOR_BOARD_DR1199
 CONTIKI_TARGET_DIRS += dev/dr1199
-ARCH += pot-sensor.c
+ARCH += pot-sensor.c leds-arch-1199.c
 endif
 
 ifeq ($(JN516x_WITH_DR1174),1)
 CFLAGS += -DSENSOR_BOARD_DR1174
 CONTIKI_TARGET_DIRS += dev/dr1174
-ARCH += button-sensor.c
+ARCH += button-sensor.c leds-arch.c
 endif
 
 ifeq ($(JN516x_WITH_DONGLE),1)
 CFLAGS += -DDONGLE_NODE
+CONTIKI_TARGET_DIRS += dev/dongle
+ARCH += leds-arch.c
 endif
 
 ifdef nodemac

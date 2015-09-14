@@ -37,6 +37,7 @@
 
 #include "light-sensor.h"
 #include "ht-sensor.h"
+#include "leds.h"
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_process, "Sensor test process");
@@ -53,20 +54,12 @@ PROCESS_THREAD(test_process, ev, data)
 
   puts("initializing sensors...");
 
-  /* White LED initialisation */
-  bWhite_LED_Enable();
-  bWhite_LED_SetLevel(0);
-  bWhite_LED_On();
-
-  /* Coloured LED initialisation */
-  bRGB_LED_Enable();
-  bRGB_LED_SetGroupLevel(255);
-  bRGB_LED_SetLevel(0, 0, 0);
-  bRGB_LED_On();
-
   /* Make sensor active for measuring */
   SENSORS_ACTIVATE(light_sensor);
   SENSORS_ACTIVATE(ht_sensor);
+
+  /* Set level for LEDSs */
+  leds_set_level(255, LEDS_RED | LEDS_GREEN | LEDS_BLUE | LEDS_WHITE);
 
   while(1) {
     etimer_set(&et, CLOCK_SECOND * 1);
@@ -82,15 +75,12 @@ PROCESS_THREAD(test_process, ev, data)
     printf("temperature: %d\n", val);
 
     led_status++;
-    bWhite_LED_SetLevel((led_status & 0x1) ? 255 : 0);
-    bWhite_LED_On();
+    r = ((led_status & 0x1) ? LEDS_RED   : 0);
+    g = ((led_status & 0x2) ? LEDS_GREEN : 0);
+    b = ((led_status & 0x4) ? LEDS_BLUE  : 0);
 
-    r = (led_status & 0x7) & 0x1;
-    g = (led_status & 0x7) & 0x2;
-    b = (led_status & 0x7) & 0x4;
-    bRGB_LED_SetLevel(r ? 255 : 0, g ? 255 : 0, b ? 255 : 0);
-    bRGB_LED_On();
-
+    leds_toggle((leds_get() ^ (r | g | b)) | LEDS_WHITE);
+   
     puts("");
   }
   PROCESS_END();

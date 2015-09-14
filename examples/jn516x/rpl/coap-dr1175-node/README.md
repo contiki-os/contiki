@@ -13,10 +13,6 @@ DR1175\AllSensors          This is an observable resource that shows the status 
                            The resource is automatically updated when a change in the value of the sensor data occurs.
 DR1175\ColorLED\RGBValue   With this resource, the level and color of the RGB LED can be set.
                            The output is set as 3 numbers (R, G and B) from 0..255, separated with a space 
-DR1175\ColorLED\ScaleRGB   This number will scale the light level of the RGB LED. The scaling is identical for R, G and B.
-                           Range is 0..255.
-                           If value = 0, the RGB LED will be off
-                           If value = 255, the RGB LED will have the output level at set with DR1175\ColorLED\RGBValue
 DR1175\Humidity\Unit       This resource will return the unit of the humidity sensor
 DR1175\Humidity\Value      This resource will return the value of the humidity sensor
 DR1175\LightSensor\Unit    This resource will return the unit of the light sensor
@@ -24,3 +20,5 @@ DR1175\LightSensor\Value   This resource will return the value of the light sens
 DR1175\Temperature\Unit    This resource will return the unit of the temperature sensor
 DR1175\Temperature\Value   This resource will return the value of the temperature sensor
 DR1175\WhiteLED            This resource will set the level of 3 white power LEDs. Level is from 0..255
+DR1174\D3On1174            This resource control LED D3 on the base board 
+DR1174\D6On1174            This resource control LED D6 on the base board 

@@ -54,6 +54,8 @@ static void get_pot_handler(void *request, void *response, uint8_t *buffer, uint
 static void put_post_led_d1_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_led_d2_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_led_d3_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_led_d6_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_led_all_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 #define CONTENT_PRINTF(...) { if(content_len < sizeof(content)) { content_len += snprintf(content + content_len, sizeof(content) - content_len, __VA_ARGS__); } }
@@ -282,6 +284,42 @@ put_post_led_d3_handler(void *request, void *response, uint8_t *buffer, uint16_t
     SET_LED(LEDS_RED)
   }
 }
+RESOURCE(resource_led_d3_1174, 
+         "title=\"LED D3 1174<[0,1]>\"",
+         NULL,
+         put_post_led_d3_1174_handler,
+         put_post_led_d3_1174_handler,
+         NULL);
+static void
+put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  const uint8_t *request_content;
+  int request_content_len;
+  unsigned int accept = -1;
+  REST.get_header_accept(request, &accept);
+  if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
+    request_content_len = REST.get_request_payload(request, &request_content);
+    SET_LED(LEDS_GP0);
+  }
+}
+RESOURCE(resource_led_d6_1174, 
+         "title=\"LED D6 1174<[0,1]>\"",
+         NULL,
+         put_post_led_d6_1174_handler,
+         put_post_led_d6_1174_handler,
+         NULL);
+static void
+put_post_led_d6_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  const uint8_t *request_content;
+  int request_content_len;
+  unsigned int accept = -1;
+  REST.get_header_accept(request, &accept);
+  if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
+    request_content_len = REST.get_request_payload(request, &request_content);
+    SET_LED(LEDS_GP1);
+  }
+}
 RESOURCE(resource_led_all,
          "title=\"LED All <[0,1]>\"",
          NULL,
@@ -297,9 +335,11 @@ put_post_led_all_handler(void *request, void *response, uint8_t *buffer, uint16_
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
     request_content_len = REST.get_request_payload(request, &request_content);
-    SET_LED(LEDS_RED)
-    SET_LED(LEDS_GREEN)
-    SET_LED(LEDS_BLUE)
+    if (atoi((const char *)request_content) != 0) { 
+      leds_on(LEDS_ALL);
+    } else {
+      leds_off(LEDS_ALL);
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -314,9 +354,6 @@ PROCESS_THREAD(start_app, ev, data)
   /* Make sensor active for measuring */
   SENSORS_ACTIVATE(button_sensor);
   SENSORS_ACTIVATE(pot_sensor);
-  leds_on(LEDS_RED);
-  leds_on(LEDS_GREEN);
-  leds_on(LEDS_BLUE);
 
   /* Start net stack */
   if(is_coordinator) {
@@ -337,6 +374,8 @@ PROCESS_THREAD(start_app, ev, data)
   rest_activate_resource(&resource_led_d1, "DR1199/LED/D1");
   rest_activate_resource(&resource_led_d2, "DR1199/LED/D2");
   rest_activate_resource(&resource_led_d3, "DR1199/LED/D3");
+  rest_activate_resource(&resource_led_d3_1174, "DR1199/LED/D3On1174");
+  rest_activate_resource(&resource_led_d6_1174, "DR1199/LED/D6On1174");
   rest_activate_resource(&resource_led_all, "DR1199/LED/All");
   rest_activate_resource(&resource_sensors_dr1199, "DR1199/AllSensors");
   /* If sensor process generates an event, call event_handler of resource.

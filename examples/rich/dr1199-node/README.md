@@ -20,6 +20,8 @@ DR1199\LED\D2           When writing a '1', LED D2 will switch ON
                         When writing a '0', LED D2 will switch OFF
 DR1199\LED\D3           When writing a '1', LED D3 will switch ON                                                             
                         When writing a '0', LED D3 will switch OFF
+DR1199\D3On1174         This resource control LED D3 on the base board 
+DR1199\D6On1174         This resource control LED D6 on the base board 
 DR1199\Potentiometer    The resource will show the value of the potentiometer
 DR1199\Switch\DIO8      This resource shows the status of the DIO8 switch (on DR1174)
 DR1199\Switch\SW1       This resource shows the status of the SW1 switch

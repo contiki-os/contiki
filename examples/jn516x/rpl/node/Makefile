@@ -2,7 +2,6 @@ CONTIKI_PROJECT = node
 all: $(CONTIKI_PROJECT)
 
 TARGET ?= jn516x
-JN516x_WITH_DR1174 = 1
 
 CONTIKI=../../../..
 
