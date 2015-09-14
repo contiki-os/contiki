@@ -36,6 +36,7 @@ before_script:
       tar xjf arm-2008q3*.tar.bz2 -C /tmp/ &&
       sudo cp -f -r /tmp/arm-2008q3/* /usr/ &&
       rm -rf /tmp/arm-2008q3 arm-2008q3*.tar.bz2 &&
+      sudo apt-get -qq install libconfig-dev uuid-dev libqrencode-dev &&
       arm-none-eabi-gcc --version ;
     fi
 
