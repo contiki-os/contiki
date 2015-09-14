@@ -158,8 +158,9 @@ Set `CHIP` variable to change this; for example, to select JN5164 use:
 `make CHIP=JN5164`
 
 The following platform-specific configurations are supported:
-* DR1174 with DR1175 sensor board; enable this with `JN516x_WITH_DR1175 = 1` in your makefile
-* DR1174 with DR1199 sensor board; enable this with `JN516x_WITH_DR1199 = 1`
+* DR1174 evaluation kit; enable this with `JN516x_WITH_DR1174 = 1` in your makefile
+* DR1174 with DR1175 sensor board; enable this with `JN516x_WITH_DR1175 = 1` (will set `JN516x_WITH_DR1174` automatically)
+* DR1174 with DR1199 sensor board; enable this with `JN516x_WITH_DR1199 = 1` (will set `JN516x_WITH_DR1174` automatically)
 * USB dongle; enable this with `JN516x_WITH_DONGLE = 1`
 
 ### Node IEEE/RIME/IPv6 Addresses
