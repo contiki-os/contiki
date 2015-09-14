@@ -110,8 +110,6 @@ int tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link
 int tsch_schedule_remove_link_from_timeslot(struct tsch_slotframe *slotframe, uint16_t timeslot);
 /* Looks within a slotframe for a link with a given timeslot */
 struct tsch_link *tsch_schedule_get_link_from_timeslot(struct tsch_slotframe *slotframe, uint16_t timeslot);
-/* Returns the link to be used at a given ASN */
-struct tsch_link *tsch_schedule_get_link_from_asn(struct asn_t *asn);
 /* Returns the next active link after a given ASN */
 struct tsch_link *tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset);
 /* Create a 6TiSCH minimal schedule */

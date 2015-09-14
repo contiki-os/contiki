@@ -314,55 +314,12 @@ tsch_schedule_get_link_from_timeslot(struct tsch_slotframe *slotframe, uint16_t 
   }
   return NULL;
 }
-/* Returns the link to be used at a given ASN */
-struct tsch_link *
-tsch_schedule_get_link_from_asn(struct asn_t *asn)
-{
-  struct tsch_link *curr_best = NULL;
-  struct tsch_slotframe *sf = list_head(slotframe_list);
-  /* For each slotframe, looks for a link matching the asn.
-   * Tx links have priority, then lower handle have priority. */
-  while(sf != NULL) {
-    /* Get timeslot from ASN, given the slotframe length */
-    uint16_t timeslot = ASN_MOD(*asn, sf->size);
-    struct tsch_link *l = tsch_schedule_get_link_from_timeslot(sf, timeslot);
-    /* We have a match */
-    if(l != NULL) {
-      if(curr_best == NULL) {
-        curr_best = l;
-      } else {
-#if TSCH_SCHEDULE_PRIORITIZE_TX
-        /* We already have a current best,
-         * we must check Tx flag and handle to find the highest priority link */
-        if((curr_best->link_options & LINK_OPTION_TX) == (l->link_options & LINK_OPTION_TX)) {
-          /* Both or neither links have Tx, select the one with lowest handle */
-          if(l->slotframe_handle < curr_best->slotframe_handle) {
-            curr_best = l;
-          }
-        } else {
-          /* Select the link that has the Tx option */
-          if(l->link_options & LINK_OPTION_TX) {
-            curr_best = l;
-          }
-        }
-#else /* TSCH_SCHEDULE_PRIORITIZE_TX */
-        if(curr_best->slotframe_handle > sf->handle) {
-          /* We have a lower handle */
-          curr_best = l;
-        }
-#endif /* TSCH_SCHEDULE_PRIORITIZE_TX */
-      }
-    }
-    sf = list_item_next(sf);
-  }
-  return curr_best;
-}
 /* Returns the next active link after a given ASN */
 struct tsch_link *
 tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset)
 {
-  uint16_t curr_earliest = 0;
-  struct tsch_link *curr_earliest_link = NULL;
+  uint16_t time_to_curr_best = 0;
+  struct tsch_link *curr_best = NULL;
   if(!tsch_is_locked()) {
     struct tsch_slotframe *sf = list_head(slotframe_list);
     /* For each slotframe, look for the earliest occurring link */
@@ -375,19 +332,41 @@ tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset)
           l->timeslot > timeslot ?
           l->timeslot - timeslot :
           sf->size.val + l->timeslot - timeslot;
-        if(curr_earliest == 0 || time_to_timeslot < curr_earliest) {
-          curr_earliest = time_to_timeslot;
-          curr_earliest_link = l;
+        if(time_to_curr_best == 0 || time_to_timeslot < time_to_curr_best) {
+          time_to_curr_best = time_to_timeslot;
+          curr_best = l;
+        } else if(time_to_timeslot == time_to_curr_best) {
+          /* Two links are overlapping, we need to select one of them. */
+#if TSCH_SCHEDULE_PRIORITIZE_TX
+          /* By standard: prioritize Tx links first, second by lowest handle */
+          if((curr_best->link_options & LINK_OPTION_TX) == (l->link_options & LINK_OPTION_TX)) {
+            /* Both or neither links have Tx, select the one with lowest handle */
+            if(l->slotframe_handle < curr_best->slotframe_handle) {
+              curr_best = l;
+            }
+          } else {
+            /* Select the link that has the Tx option */
+            if(l->link_options & LINK_OPTION_TX) {
+              curr_best = l;
+            }
+          }
+#else /* TSCH_SCHEDULE_PRIORITIZE_TX */
+          /* Simply prioritize by handle */
+          if(curr_best->slotframe_handle > sf->handle) {
+            /* We have a lower handle */
+            curr_best = l;
+          }
+#endif /* TSCH_SCHEDULE_PRIORITIZE_TX */
         }
         l = list_item_next(l);
       }
       sf = list_item_next(sf);
     }
     if(time_offset != NULL) {
-      *time_offset = curr_earliest;
+      *time_offset = time_to_curr_best;
     }
   }
-  return curr_earliest_link;
+  return curr_best;
 }
 void
 tsch_schedule_print()
