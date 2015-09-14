@@ -1,0 +1,10 @@
+Blaster extends the compiled firmware with additional data for
+storing into flash memory. See examples/econotag-flash-test for
+usage. Its written for Econotag / MC1322X
+
+./blaster <config.cfg> [<config.cfg> <config.cfg> ...]
+To Generate a default configuration file, use blaster without parameter.
+
+Its important to use -l as a flash parameter.
+
+mc1322x-load -f flasher_econotag.bin -s firmware.bin -t /dev/ttyUSB1 -l
