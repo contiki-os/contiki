@@ -147,8 +147,8 @@ uart_driver_init(uint8_t uart_dev, uint8_t br, uint8_t *txbuf_data,
     vAHI_Uart0RegisterCallback((void *)uart_driver_isr);
   } else {
     vAHI_Uart1RegisterCallback((void *)uart_driver_isr);
+    /* Enable RX interrupt */
   }
-  /* Enable RX interrupt */
   uart_driver_enable_interrupts(uart_dev);
   uart_input[uart_dev] = uart_input_function;
   active_uarts[uart_dev] = 1;

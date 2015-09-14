@@ -49,4 +49,3 @@ leds_arch_set_1199(unsigned char c)
   vGenericLEDSetOutput(GEN_BOARD_LED_D2_VAL, c & LEDS_BLUE);
   vGenericLEDSetOutput(GEN_BOARD_LED_D3_VAL, c & LEDS_RED);
 }
-

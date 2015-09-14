@@ -62,11 +62,10 @@ ct_callback(void *ptr)
 {
   static uint8 toggle_status = 0;
   if(toggle_status) {
-      leds_set(LEDS_RED);
+    leds_set(LEDS_RED);
   } else {
-      leds_set(LEDS_GREEN);
-  }
-  ctimer_restart(&ct);
+    leds_set(LEDS_GREEN);
+  } ctimer_restart(&ct);
   toggle_status ^= 0x01;
 }
 /*********** CoAP sensor/ resource ************************************************/
@@ -89,17 +88,17 @@ put_post_led_toggle_handler(void *request, void *response, uint8_t *buffer, uint
   switch(led_state) {
   case (0):
     ctimer_stop(&ct);
-      leds_set(LEDS_GREEN);          /* Only LEDS_GREEN on */
+    leds_set(LEDS_GREEN);            /* Only LEDS_GREEN on */
     CONTENT_PRINTF("Message from resource: Green LED on");
     led_state = 1;
     break;
   case (1):
-      leds_set(LEDS_RED);            /* Only LEDS_RED on */
+    leds_set(LEDS_RED);              /* Only LEDS_RED on */
     CONTENT_PRINTF("Message from resource: Red LED on");
     led_state = 2;
     break;
   case (2):
-      leds_set(0);                    /* All LEDS off */
+    leds_set(0);                      /* All LEDS off */
     CONTENT_PRINTF("Message from resource: All LEDs off");
     led_state = 3;
     break;

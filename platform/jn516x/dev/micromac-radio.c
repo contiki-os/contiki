@@ -99,12 +99,12 @@
 #endif /* MICROMAC_CONF_CCA_THR */
 
 #if (JENNIC_CHIP == JN5169)
-  #define OUTPUT_POWER_MAX      10
-  #define OUTPUT_POWER_MIN      (-32)
-  #define ABS_OUTPUT_POWER_MIN  (32)
+#define OUTPUT_POWER_MAX      10
+#define OUTPUT_POWER_MIN      (-32)
+#define ABS_OUTPUT_POWER_MIN  (32)
 #else
-  #define OUTPUT_POWER_MAX      0
-  #define OUTPUT_POWER_MIN      (-32)
+#define OUTPUT_POWER_MAX      0
+#define OUTPUT_POWER_MIN      (-32)
 #endif
 
 /* Default Tx power [dBm] (between OUTPUT_POWER_MIN and OUTPUT_POWER_MAX) */
@@ -151,7 +151,7 @@ static uint8_t send_on_cca = 0;
 /* Current radio channel */
 static int current_channel;
 
-/* Current set point tx power 
+/* Current set point tx power
    Actual tx power may be different. Use get_txpower() for actual power */
 static int current_tx_power;
 
@@ -300,8 +300,7 @@ init(void)
     vMMAC_ConfigureInterruptSources(0);
   } else {
     vMMAC_EnableInterrupts(&radio_interrupt_handler);
-  }
-  vMMAC_ConfigureRadio();
+  } vMMAC_ConfigureRadio();
   set_channel(MICROMAC_CONF_CHANNEL);
   set_txpower(MICROMAC_CONF_TX_POWER);
 
@@ -326,8 +325,7 @@ init(void)
     return 0;
   } else {
     rx_frame_buffer = &input_array[put_index];
-  }
-  input_frame_buffer = rx_frame_buffer;
+  } input_frame_buffer = rx_frame_buffer;
 
   process_start(&micromac_radio_process, NULL);
 
@@ -436,8 +434,7 @@ transmit(unsigned short payload_len)
     RIMESTATS_ADD(noacktx);
   } else {
     ret = RADIO_TX_ERR;
-  }
-  return ret;
+  } return ret;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -453,8 +450,8 @@ prepare(const void *payload, unsigned short payload_len)
   }
   if(payload_len > 127 || payload == NULL) {
     return 1;
+    /* Copy payload to (soft) Ttx buffer */
   }
-  /* Copy payload to (soft) Ttx buffer */
   memcpy(tx_frame_buffer.uPayload.au8Byte, payload, payload_len);
   i = payload_len;
 #if CRC_SW
@@ -601,8 +598,7 @@ read(void *buf, unsigned short bufsize)
     } else {
       len = 0;
       /* Disable further read attempts */
-    }
-    input_frame_buffer->u8PayloadLength = 0;
+    } input_frame_buffer->u8PayloadLength = 0;
   }
 
   return len;
@@ -611,15 +607,15 @@ read(void *buf, unsigned short bufsize)
 static void
 set_txpower(int8_t power)
 {
-  if (power > OUTPUT_POWER_MAX) {
+  if(power > OUTPUT_POWER_MAX) {
     current_tx_power = OUTPUT_POWER_MAX;
   } else {
-    if (power < OUTPUT_POWER_MIN) {
+    if(power < OUTPUT_POWER_MIN) {
       current_tx_power = OUTPUT_POWER_MIN;
     } else {
       current_tx_power = power;
     }
-  } 
+  }
   vMMAC_SetChannelAndPower(current_channel, current_tx_power);
 }
 /*--------------------------------------------------------------------------*/
@@ -629,38 +625,39 @@ get_txpower(void)
   int actual_tx_power;
 #if (JENNIC_CHIP == JN5169)
   /* Actual tx power value rounded to nearest integer number */
-  const static int8 power_table [] = {
-    -32, -30, -29, -29,   /* -32 .. -29 */ 
+  const static int8 power_table[] = {
+    -32, -30, -29, -29,   /* -32 .. -29 */
     -28, -28, -28, -28,   /* -28 .. -25 */
-    -21, -21, -21,  -2,   /* -24 .. -21 */
+    -21, -21, -21, -2,    /* -24 .. -21 */
     -20, -19, -18, -17,   /* -20 .. -17 */
     -17, -17, -17, -10,   /* -16 .. -13 */
-    -10, -10, -10,  -9,   /* -12 .. -09 */
-     -8,  -7,  -6,  -6,   /* -08 .. -05 */
-     -6,  -6,   1,   1,   /* -04 .. -01 */
-      1,   1,   2,   3,   /*  00 ..  03 */
-      4,   5,   6,   7,   /*  04 ..  07 */
-      9,   9,  10 };      /*  08 ..  10 */
-  if (current_tx_power > OUTPUT_POWER_MAX) {
+    -10, -10, -10, -9,    /* -12 .. -09 */
+    -8, -7, -6, -6,       /* -08 .. -05 */
+    -6, -6, 1, 1,         /* -04 .. -01 */
+    1, 1, 2, 3,           /*  00 ..  03 */
+    4, 5, 6, 7,           /*  04 ..  07 */
+    9, 9, 10
+  };                      /*  08 ..  10 */
+  if(current_tx_power > OUTPUT_POWER_MAX) {
     actual_tx_power = OUTPUT_POWER_MAX;
-  } else if (current_tx_power < OUTPUT_POWER_MIN) {
+  } else if(current_tx_power < OUTPUT_POWER_MIN) {
     actual_tx_power = OUTPUT_POWER_MIN;
   } else {
     actual_tx_power = power_table[current_tx_power + ABS_OUTPUT_POWER_MIN];
-  } 
+  }
 #else
   /* Other JN516x chips */
-  if (current_tx_power < (-24)) {
+  if(current_tx_power < (-24)) {
     actual_tx_power = OUTPUT_POWER_MIN;
-  } else if (current_tx_power < (-12)) {
+  } else if(current_tx_power < (-12)) {
     actual_tx_power = (-20);
-  } else if (current_tx_power < 0) {
+  } else if(current_tx_power < 0) {
     actual_tx_power = (-9);
   } else {
     actual_tx_power = OUTPUT_POWER_MAX;
   }
 #endif
-  return ((int)actual_tx_power);
+  return (int)actual_tx_power;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -677,11 +674,11 @@ get_rssi(void)
   return (7 * get_detected_energy() - 1970) / 20;
 }
 /*---------------------------------------------------------------------------*/
-static void 
+static void
 read_last_rssi(void)
 {
   uint8_t radio_last_rx_energy;
-  radio_last_rx_energy = u8MMAC_GetRxLqi((uint8_t*)&radio_last_correlation);
+  radio_last_rx_energy = u8MMAC_GetRxLqi((uint8_t *)&radio_last_correlation);
   radio_last_rssi = i16JPT_ConvertEnergyTodBm(radio_last_rx_energy);
 }
 /*---------------------------------------------------------------------------*/

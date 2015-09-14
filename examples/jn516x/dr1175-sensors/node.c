@@ -75,12 +75,12 @@ PROCESS_THREAD(test_process, ev, data)
     printf("temperature: %d\n", val);
 
     led_status++;
-    r = ((led_status & 0x1) ? LEDS_RED   : 0);
+    r = ((led_status & 0x1) ? LEDS_RED : 0);
     g = ((led_status & 0x2) ? LEDS_GREEN : 0);
-    b = ((led_status & 0x4) ? LEDS_BLUE  : 0);
+    b = ((led_status & 0x4) ? LEDS_BLUE : 0);
 
     leds_toggle((leds_get() ^ (r | g | b)) | LEDS_WHITE);
-   
+
     puts("");
   }
   PROCESS_END();

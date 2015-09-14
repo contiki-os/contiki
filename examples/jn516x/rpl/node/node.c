@@ -103,7 +103,6 @@ PROCESS_THREAD(node_process, ev, data)
     rpl_tools_init(&prefix);
   } else {
     rpl_tools_init(NULL);
-  }
-  PROCESS_END();
+  } PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

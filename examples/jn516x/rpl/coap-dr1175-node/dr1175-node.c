@@ -52,8 +52,8 @@ static void get_humidity_value_handler(void *request, void *response, uint8_t *b
 static void get_humidity_unit_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_white_led_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_rgb_led_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void put_post_led_d6_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_led_d3_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_led_d6_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 static char content[REST_MAX_CHUNK_SIZE];
 static int content_len = 0;
@@ -63,11 +63,10 @@ static int content_len = 0;
 #define CLIP(value, level) if(value > level) { \
     value = level; \
 }
-#define SET_LED(LED)            if (atoi((const char *)request_content) != 0) { \
-                                  leds_on(LED);                                 \
-                                }                                               \
-                                else {                                          \
-                                  leds_off(LED);                                \
+#define SET_LED(LED)            if(atoi((const char *)request_content) != 0) {   \
+                                  leds_on(LED);                                  \
+                                } else {                                         \
+                                  leds_off(LED);                                 \
                                 }
 /*---------------------------------------------------------------------------*/
 PROCESS(start_app, "START_APP");
@@ -297,16 +296,16 @@ put_post_rgb_led_handler(void *request, void *response, uint8_t *buffer, uint16_
   }
 }
 /************************************************/
-/* Resource and handler to control D3 on DR1174 */ 
+/* Resource and handler to control D3 on DR1174 */
 /************************************************/
-RESOURCE(resource_led_d3_1174, 
+RESOURCE(resource_led_d3_1174,
          "title=\"LED D3 1174<[0,1]>\"",
          NULL,
          put_post_led_d3_1174_handler,
          put_post_led_d3_1174_handler,
          NULL);
 static void
-put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+put_post_led_d3_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
   int request_content_len;
@@ -318,16 +317,16 @@ put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uin
   }
 }
 /************************************************/
-/* Resource and handler to control D6 on DR1174 */ 
+/* Resource and handler to control D6 on DR1174 */
 /************************************************/
-RESOURCE(resource_led_d6_1174, 
+RESOURCE(resource_led_d6_1174,
          "title=\"LED D6 1174<[0,1]>\"",
          NULL,
          put_post_led_d6_1174_handler,
          put_post_led_d6_1174_handler,
          NULL);
 static void
-put_post_led_d6_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+put_post_led_d6_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
   int request_content_len;
@@ -345,7 +344,7 @@ PROCESS_THREAD(start_app, ev, data)
 
   static int is_coordinator = 0;
   static struct etimer et;
-    
+
   /* Make sensor active for measuring */
   SENSORS_ACTIVATE(light_sensor);
   SENSORS_ACTIVATE(ht_sensor);
@@ -373,17 +372,17 @@ PROCESS_THREAD(start_app, ev, data)
   rest_activate_resource(&resource_sensors_dr1175, "DR1175/AllSensors");
 
   /* Level of LEDS=0, so no light after start-up */
-  leds_on(LEDS_WHITE | LEDS_RED | LEDS_GREEN | LEDS_BLUE); 
+  leds_on(LEDS_WHITE | LEDS_RED | LEDS_GREEN | LEDS_BLUE);
 
   /* contiki-jn516x-main switches all leds off after process start-up.
      Switch on required leds after rescheduling, otherwise level change needs to be
      accompanied with leds_on() at least once in resource handler. */
-  etimer_set(&et, CLOCK_SECOND/10);
-  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));     
+  etimer_set(&et, CLOCK_SECOND / 10);
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   /* Level of LEDS=0, so no light after start-up. However, they are enabled
      A level change will directly be visible. */
-  leds_on(LEDS_WHITE | LEDS_RED | LEDS_GREEN | LEDS_BLUE); 
-     
+  leds_on(LEDS_WHITE | LEDS_RED | LEDS_GREEN | LEDS_BLUE);
+
   /* If sensor process generates an event, call event_handler of resource.
      This will make this resource observable by the client */
   while(1) {

@@ -54,25 +54,23 @@ static void get_pot_handler(void *request, void *response, uint8_t *buffer, uint
 static void put_post_led_d1_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_led_d2_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_led_d3_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void put_post_led_d6_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_led_d3_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_led_d6_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_led_all_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 #define CONTENT_PRINTF(...) { if(content_len < sizeof(content)) { content_len += snprintf(content + content_len, sizeof(content) - content_len, __VA_ARGS__); } }
 
 #define PARSE_SWITCH(POSITION)  if(button_sensor.value(0) & (1 << POSITION)) { \
-    CONTENT_PRINTF("PRESSED"); \
-} \
-  else { \
-    CONTENT_PRINTF("RELEASED"); \
-  }
+                                  CONTENT_PRINTF("PRESSED"); \
+                                } else { \
+                                  CONTENT_PRINTF("RELEASED"); \
+                                }
 
-#define SET_LED(LED)            if(atoi((const char *)request_content) != 0) { \
-    leds_on(LED); \
-} \
-  else { \
-    leds_off(LED); \
-  }
+#define SET_LED(LED)            if(atoi((const char *)request_content) != 0) {   \
+                                  leds_on(LED);                                  \
+                                } else {                                         \
+                                  leds_off(LED);                                 \
+                                }
 
 /*---------------------------------------------------------------------------*/
 PROCESS(start_app, "START_APP");
@@ -284,14 +282,14 @@ put_post_led_d3_handler(void *request, void *response, uint8_t *buffer, uint16_t
     SET_LED(LEDS_RED)
   }
 }
-RESOURCE(resource_led_d3_1174, 
+RESOURCE(resource_led_d3_1174,
          "title=\"LED D3 1174<[0,1]>\"",
          NULL,
          put_post_led_d3_1174_handler,
          put_post_led_d3_1174_handler,
          NULL);
 static void
-put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+put_post_led_d3_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
   int request_content_len;
@@ -302,14 +300,14 @@ put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uin
     SET_LED(LEDS_GP0);
   }
 }
-RESOURCE(resource_led_d6_1174, 
+RESOURCE(resource_led_d6_1174,
          "title=\"LED D6 1174<[0,1]>\"",
          NULL,
          put_post_led_d6_1174_handler,
          put_post_led_d6_1174_handler,
          NULL);
 static void
-put_post_led_d6_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+put_post_led_d6_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
   int request_content_len;
@@ -335,7 +333,7 @@ put_post_led_all_handler(void *request, void *response, uint8_t *buffer, uint16_
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
     request_content_len = REST.get_request_payload(request, &request_content);
-    if (atoi((const char *)request_content) != 0) { 
+    if(atoi((const char *)request_content) != 0) {
       leds_on(LEDS_ALL);
     } else {
       leds_off(LEDS_ALL);

@@ -34,7 +34,7 @@
 #include "contiki.h"
 #include "dev/leds.h"
 #include <AppHardwareApi.h>
-#ifdef SENSOR_BOARD_DR1199 
+#ifdef SENSOR_BOARD_DR1199
 #include "dr1199/leds-arch-1199.h"
 #endif
 #ifdef SENSOR_BOARD_DR1175
@@ -42,8 +42,8 @@
 #include "dr1175/leds-arch-1175.h"
 #endif
 
-#define LED_D3  (1<<3)
-#define LED_D6  (1<<2)
+#define LED_D3  (1 << 3)
+#define LED_D6  (1 << 2)
 
 static volatile unsigned char leds;
 
@@ -51,9 +51,9 @@ static volatile unsigned char leds;
 void
 leds_arch_init(void)
 {
-  vAHI_DioSetDirection(0, LED_D3|LED_D6);
-  vAHI_DioSetOutput(LED_D3|LED_D6, 0);     /* Default off */
-#ifdef SENSOR_BOARD_DR1199 
+  vAHI_DioSetDirection(0, LED_D3 | LED_D6);
+  vAHI_DioSetOutput(LED_D3 | LED_D6, 0);     /* Default off */
+#ifdef SENSOR_BOARD_DR1199
   leds_arch_init_1199();
 #endif
 #ifdef SENSOR_BOARD_DR1175
@@ -73,23 +73,21 @@ leds_arch_set(unsigned char c)
 {
   uint32 on_mask = 0;
   uint32 off_mask = 0;
-  
+
   /* LOW level on pins switches ON LED for DR1174 */
-  if (c&LEDS_GP0) {
+  if(c & LEDS_GP0) {
     on_mask |= LED_D3;
   } else {
     off_mask |= LED_D3;
-  }  
-  if (c&LEDS_GP1) {
+  } if(c & LEDS_GP1) {
     on_mask |= LED_D6;
   } else {
     off_mask |= LED_D6;
-  }  
-  vAHI_DioSetOutput(off_mask, on_mask);
-#ifdef SENSOR_BOARD_DR1199  
+  } vAHI_DioSetOutput(off_mask, on_mask);
+#ifdef SENSOR_BOARD_DR1199
   /* DR1174 with DR1199 */
   leds_arch_set_1199(c);
-  if (c == LEDS_ALL) {
+  if(c == LEDS_ALL) {
     leds = LEDS_GP0 | LEDS_GP1 | LEDS_RED | LEDS_BLUE | LEDS_GREEN;
   } else {
     leds = (c & (LEDS_GP0 | LEDS_GP1 | LEDS_RED | LEDS_BLUE | LEDS_GREEN));
@@ -97,28 +95,27 @@ leds_arch_set(unsigned char c)
 #elif SENSOR_BOARD_DR1175
   /* DR1174 with DR1175 */
   leds_arch_set_1175(c);
-  if (c == LEDS_ALL) {
+  if(c == LEDS_ALL) {
     leds = LEDS_GP0 | LEDS_GP1 | LEDS_RED | LEDS_BLUE | LEDS_GREEN | LEDS_WHITE;
   } else {
     leds = (c & (LEDS_GP0 | LEDS_GP1 | LEDS_RED | LEDS_BLUE | LEDS_GREEN | LEDS_WHITE));
+/*  printf("++++++++++++++++++++ leds_arch_set: leds: 0x%x\n", leds); */
   }
-//  printf("++++++++++++++++++++ leds_arch_set: leds: 0x%x\n", leds);
-#else  
+#else
   /* DR1174-only */
-  if (c == LEDS_ALL) {
+  if(c == LEDS_ALL) {
     leds = LEDS_GP0 | LEDS_GP1;
   } else {
     leds = c;
   }
 #endif
 }
-
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_set_level(unsigned char level, unsigned char c)
 {
 #ifdef SENSOR_BOARD_DR1175
   leds_arch_set_level_1175(level, c, leds);
-//  printf("++++++++++++++++++++ leds_arch_set_level: leds: 0x%x\n", leds);
+/*  printf("++++++++++++++++++++ leds_arch_set_level: leds: 0x%x\n", leds); */
 #endif
 }

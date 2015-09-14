@@ -35,9 +35,8 @@
 #include "leds.h"
 #include <AppHardwareApi.h>
 
-
-#define LED_G  (1<<16)
-#define LED_R  (1<<17)
+#define LED_G  (1 << 16)
+#define LED_R  (1 << 17)
 
 static volatile uint8_t leds;
 
@@ -45,8 +44,8 @@ static volatile uint8_t leds;
 void
 leds_arch_init(void)
 {
-  vAHI_DioSetDirection(0, LED_R|LED_G);
-  vAHI_DioSetOutput(0, LED_R|LED_G);     /* Default off */
+  vAHI_DioSetDirection(0, LED_R | LED_G);
+  vAHI_DioSetOutput(0, LED_R | LED_G);     /* Default off */
   leds = 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -61,21 +60,19 @@ leds_arch_set(unsigned char c)
 {
   uint32 on_mask = 0;
   uint32 off_mask = 0;
-  
-  if (c&LEDS_GREEN) {
+
+  if(c & LEDS_GREEN) {
     on_mask |= LED_G;
   } else {
     off_mask |= LED_G;
-  }  
-  if (c&LEDS_RED) {
+  } if(c & LEDS_RED) {
     on_mask |= LED_R;
   } else {
     off_mask |= LED_R;
-  }  
-  vAHI_DioSetOutput(on_mask, off_mask);
-  /* Both LEDs can not be switched on at the same time. 
+  } vAHI_DioSetOutput(on_mask, off_mask);
+  /* Both LEDs can not be switched on at the same time.
      Will result in both leds being OFF */
-  if (on_mask == (LED_R|LED_G)) {
+  if(on_mask == (LED_R | LED_G)) {
     leds = 0;
   } else {
     leds = c;

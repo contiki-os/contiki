@@ -365,7 +365,6 @@ exception_handler(uint32 *pu32Stack, eExceptionType eType)
   vAHI_SwReset();
 #endif /* EXCEPTION_STALLS_SYSTEM */
 }
-
 /****************************************************************************
  *
  * NAME: heap_alloc_overflow_protect
@@ -383,7 +382,8 @@ exception_handler(uint32 *pu32Stack, eExceptionType eType)
  * Pointer to new memory
  *
  ****************************************************************************/
-static void *heap_alloc_overflow_protect(void *pvPointer, uint32 u32Size, bool_t bClear)
+static void *
+heap_alloc_overflow_protect(void *pvPointer, uint32 u32Size, bool_t bClear)
 {
   void *pvAlloc;
   /* Call original heap allocation function */

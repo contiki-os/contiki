@@ -34,7 +34,8 @@
 #include "leds_extension.h"
 #include "dev/leds.h"
 
-void leds_set_level(unsigned char level, unsigned char c)
+void
+leds_set_level(unsigned char level, unsigned char c)
 {
-  leds_arch_set_level(level,c);    
+  leds_arch_set_level(level, c);
 }

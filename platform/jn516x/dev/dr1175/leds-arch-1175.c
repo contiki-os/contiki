@@ -49,44 +49,43 @@ leds_arch_init_1175(void)
   bWhite_LED_Enable();
   bWhite_LED_SetLevel(0);
   bWhite_LED_On();
-  /* Coloured LED initialisation */ 
-  red_level   = 0;
+  /* Coloured LED initialisation */
+  red_level = 0;
   green_level = 0;
-  blue_level  = 0;
+  blue_level = 0;
   bRGB_LED_Enable();
   bRGB_LED_SetGroupLevel(255);
-  bRGB_LED_SetLevel(0,0,0);
+  bRGB_LED_SetLevel(0, 0, 0);
   bRGB_LED_On();
 }
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_set_1175(unsigned char c)
 {
-    bWhite_LED_SetLevel(c & LEDS_WHITE ? white_level : 0);
-    bRGB_LED_SetLevel(c & LEDS_RED   ? red_level   : 0,
-                      c & LEDS_GREEN ? green_level : 0,
-                      c & LEDS_BLUE  ? blue_level  : 0);  
+  bWhite_LED_SetLevel(c & LEDS_WHITE ? white_level : 0);
+  bRGB_LED_SetLevel(c & LEDS_RED ? red_level : 0,
+                    c & LEDS_GREEN ? green_level : 0,
+                    c & LEDS_BLUE ? blue_level : 0);
 }
-
 /*---------------------------------------------------------------------------*/
 void
 leds_arch_set_level_1175(unsigned char level, unsigned char c, unsigned char leds)
 {
-  if (c&LEDS_WHITE) {
-    white_level = level; 
-  }    
-  if (c&LEDS_RED) {
-    red_level = level; 
-  }    
-  if (c&LEDS_GREEN) {
-    green_level = level; 
-  }    
-  if (c&LEDS_BLUE) {
-    blue_level = level; 
-  }    
-  /* Activate level if LED is on */
-  bRGB_LED_SetLevel(leds & LEDS_RED    ? red_level   : 0,
-                    leds & LEDS_GREEN  ? green_level : 0,
-                    leds & LEDS_BLUE   ? blue_level  : 0);  
+  if(c & LEDS_WHITE) {
+    white_level = level;
+  }
+  if(c & LEDS_RED) {
+    red_level = level;
+  }
+  if(c & LEDS_GREEN) {
+    green_level = level;
+  }
+  if(c & LEDS_BLUE) {
+    blue_level = level;
+    /* Activate level if LED is on */
+  }
+  bRGB_LED_SetLevel(leds & LEDS_RED ? red_level : 0,
+                    leds & LEDS_GREEN ? green_level : 0,
+                    leds & LEDS_BLUE ? blue_level : 0);
   bWhite_LED_SetLevel(leds & LEDS_WHITE ? white_level : 0);
 }

@@ -36,10 +36,9 @@
 
 void leds_set_level(unsigned char level, unsigned char c);
 
-
 /**
  * Leds implementation
  */
 void leds_arch_set_level(unsigned char level, unsigned char c);
 
-#endif /* LEDS_EXTENSION_H_ */ 
+#endif /* LEDS_EXTENSION_H_ */
