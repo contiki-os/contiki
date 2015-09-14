@@ -47,7 +47,5 @@ including `#include "orchestra.h"`.
 
 Orchestra comes with a number of pre-installed rules, `orchestra-rule-*.c`.
 You can define your own by using any of these as a template.
-
-Define `ORCHESTRA_CONFIG_FILE` to point to a `.h` file of your own to configure
-the Orchestra rules. The default configuration `orchestra-default-conf.h`
-can be used as an example to start from.
+A default Orchestra configuration is described in `orchestra-conf.h`, define your own
+`ORCHESTRA_CONF_*` macros to override modify the rule set and change rules configuration.

@@ -30,43 +30,76 @@
 
 /**
  * \file
- *         Orchestra default/example configuration
+ *         Orchestra configuration
  *
  * \author Simon Duquennoy <simonduq@sics.se>
  */
 
-#ifndef __ORCHESTRA_DEFAULT_CONF_H__
-#define __ORCHESTRA_DEFAULT_CONF_H__
+#ifndef __ORCHESTRA_CONF_H__
+#define __ORCHESTRA_CONF_H__
 
+#ifdef ORCHESTRA_CONF_RULES
+#define ORCHESTRA_RULES ORCHESTRA_CONF_RULES
+#else /* ORCHESTRA_CONF_RULES */
 /* A default configuration with:
  * - a sender-based slotframe for EB transmission
  * - a sender-based or receiver-based slotframe for unicast to RPL parents and children
  * - a common shared slotframe for any other traffic (mostly broadcast)
  *  */
-struct orchestra_rule eb_per_time_source;
-struct orchestra_rule unicast_per_neighbor;
-struct orchestra_rule default_common;
 #define ORCHESTRA_RULES { &eb_per_time_source, \
                           &unicast_per_neighbor, \
                           &default_common, \
                         }
+#endif /* ORCHESTRA_CONF_RULES */
 
 /* Length of the various slotframes. Tune to balance network capacity,
  * contention, energy, latency. */
+#ifdef ORCHESTRA_CONF_EBSF_PERIOD
+#define ORCHESTRA_EBSF_PERIOD                     ORCHESTRA_CONF_EBSF_PERIOD
+#else /* ORCHESTRA_CONF_EBSF_PERIOD */
 #define ORCHESTRA_EBSF_PERIOD                     397
+#endif /* ORCHESTRA_CONF_EBSF_PERIOD */
+
+#ifdef ORCHESTRA_CONF_COMMON_SHARED_PERIOD
+#define ORCHESTRA_COMMON_SHARED_PERIOD            ORCHESTRA_CONF_COMMON_SHARED_PERIOD
+#else /* ORCHESTRA_CONF_COMMON_SHARED_PERIOD */
 #define ORCHESTRA_COMMON_SHARED_PERIOD            31
+#endif /* ORCHESTRA_CONF_COMMON_SHARED_PERIOD */
+
+#ifdef ORCHESTRA_CONF_EBSF_PERIOD
+#define ORCHESTRA_UNICAST_PERIOD                  ORCHESTRA_CONF_EBSF_PERIOD
+#else /* ORCHESTRA_CONF_COMMON_SHARED_PERIOD */
 #define ORCHESTRA_UNICAST_PERIOD                  17
+#endif /* ORCHESTRA_CONF_COMMON_SHARED_PERIOD */
 
 /* Is the per-neighbor unicast slotframe sender-based (if not, it is receiver-based).
  * Note: sender-based works only with RPL storing mode as it relies on DAO and
  * routing entries to keep track of children and parents. */
+#ifdef ORCHESTRA_CONF_UNICAST_SENDER_BASED
+#define ORCHESTRA_UNICAST_SENDER_BASED            ORCHESTRA_CONF_UNICAST_SENDER_BASED
+#else /* ORCHESTRA_CONF_UNICAST_SENDER_BASED */
 #define ORCHESTRA_UNICAST_SENDER_BASED            0
+#endif /* ORCHESTRA_CONF_UNICAST_SENDER_BASED */
 
 /* The hash function used to assign timeslot to a diven node (based on its link-layer address) */
+#ifdef ORCHESTRA_CONF_LINKADDR_HASH
+#define ORCHESTRA_LINKADDR_HASH                   ORCHESTRA_CONF_LINKADDR_HASH
+#else /* ORCHESTRA_CONF_UNICAST_SENDER_BASED */
 #define ORCHESTRA_LINKADDR_HASH(addr)             ((addr != NULL) ? (addr)->u8[LINKADDR_SIZE-1] : -1)
-/* The maximum hash */
-#define ORCHESTRA_MAX_HASH                        0x7fff
-/* Is the "hash" function collision-free? (e.g. it maps to unique node-ids) */
-#define ORCHESTRA_COLLISION_FREE_HASH             0 /* Set to 1 if ORCHESTRA_LINKADDR_HASH returns unique hashes */
+#endif /* ORCHESTRA_CONF_UNICAST_SENDER_BASED */
 
-#endif /* __ORCHESTRA_DEFAULT_CONF_H__ */
+/* The maximum hash */
+#ifdef ORCHESTRA_CONF_MAX_HASH
+#define ORCHESTRA_MAX_HASH                        ORCHESTRA_CONF_MAX_HASH
+#else /* ORCHESTRA_CONF_MAX_HASH */
+#define ORCHESTRA_MAX_HASH                        0x7fff
+#endif /* ORCHESTRA_CONF_MAX_HASH */
+
+/* Is the "hash" function collision-free? (e.g. it maps to unique node-ids) */
+#ifdef ORCHESTRA_CONF_COLLISION_FREE_HASH
+#define ORCHESTRA_COLLISION_FREE_HASH             ORCHESTRA_CONF_COLLISION_FREE_HASH
+#else /* ORCHESTRA_CONF_MAX_HASH */
+#define ORCHESTRA_CONF_COLLISION_FREE_HASH        0 /* Set to 1 if ORCHESTRA_LINKADDR_HASH returns unique hashes */
+#endif /* ORCHESTRA_CONF_MAX_HASH */
+
+#endif /* __ORCHESTRA_CONF_H__ */
