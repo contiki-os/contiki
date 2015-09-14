@@ -37,7 +37,7 @@
 #include "rest-engine.h"
 #include "sys/ctimer.h"
 #include <stdio.h> 
-#include <AppHardwareApi.h>
+#include "dev/leds.h"
 
 static void ct_callback(void*ptr);
 static void put_post_led_toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
@@ -46,12 +46,7 @@ static char content[REST_MAX_CHUNK_SIZE];
 static int content_len = 0;
 static struct ctimer ct;
 
-
 #define CONTENT_PRINTF(...) { if(content_len < sizeof(content)) content_len += snprintf(content+content_len, sizeof(content)-content_len, __VA_ARGS__); }
-
-/* On dongle, LEDs are connected anti-parallel to DIO pins. */
-#define LED1  16
-#define LED2  17
 
 #define TOGGLE_TIME CLOCK_SECOND
 /*---------------------------------------------------------------------------*/
@@ -64,9 +59,9 @@ static void ct_callback(void*ptr)
 {
   static uint8 toggle_status = 0;
   if (toggle_status) {
-      vAHI_DioSetOutput(1<<LED1, 1<<LED2);            /* Only LED1 on */
+      leds_set(LEDS_RED);
   } else {
-      vAHI_DioSetOutput(1<<LED2, 1<<LED1);            /* Only LED2 on */
+      leds_set(LEDS_GREEN);
   }
   ctimer_restart(&ct);
   toggle_status ^= 0x01;
@@ -93,17 +88,17 @@ put_post_led_toggle_handler(void* request, void* response, uint8_t *buffer, uint
   {
     case(0):
       ctimer_stop(&ct);
-      vAHI_DioSetOutput(1<<LED1, 1<<LED2);            /* Only LED1 on */
+      leds_set(LEDS_GREEN);          /* Only LEDS_GREEN on */
       CONTENT_PRINTF("Message from resource: Green LED on");
       led_state = 1;
       break;
     case(1):
-      vAHI_DioSetOutput(1<<LED2, 1<<LED1);            /* Only LED2 on */
+      leds_set(LEDS_RED);            /* Only LEDS_RED on */
       CONTENT_PRINTF("Message from resource: Red LED on");
       led_state = 2;
       break;
     case(2):
-      vAHI_DioSetOutput(0, (1<<LED1) | (1<< LED2));   /* All LEDS off */
+      leds_set(0);                    /* All LEDS off */
       CONTENT_PRINTF("Message from resource: All LEDs off");
       led_state = 3;
       break;
@@ -129,10 +124,6 @@ PROCESS_THREAD(start_app, ev, data)
   PROCESS_BEGIN();
   static int is_coordinator = 0;
  
-  /* Switch off dongle leds */
-  vAHI_DioSetDirection(0, (1<<LED1) | (1<<LED2));
-  vAHI_DioSetOutput(0, (1<<LED1) | (1<<LED2));  /* Default off */
-  
   /* Initialise ct timer, but don't let it run yet */
   ctimer_set(&ct, TOGGLE_TIME, ct_callback, NULL);
   ctimer_stop(&ct);

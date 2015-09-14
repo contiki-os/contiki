@@ -38,8 +38,9 @@
 #include "rest-engine.h"
 #include "light-sensor.h"
 #include "ht-sensor.h"
+#include "dev/leds.h"
+#include "sys/etimer.h"
 #include <stdio.h>
-#include <LightingBoard.h>
 
 static void event_sensors_dr1175_handler(void);
 static void get_sensors_dr1175_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
@@ -51,7 +52,8 @@ static void get_humidity_value_handler(void *request, void *response, uint8_t *b
 static void get_humidity_unit_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_white_led_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 static void put_post_rgb_led_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void put_post_scale_rgb_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void put_post_led_d6_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 static char content[REST_MAX_CHUNK_SIZE];
 static int content_len = 0;
@@ -61,6 +63,12 @@ static int content_len = 0;
 #define CLIP(value, level) if(value > level) { \
     value = level; \
 }
+#define SET_LED(LED)            if (atoi((const char *)request_content) != 0) { \
+                                  leds_on(LED);                                 \
+                                }                                               \
+                                else {                                          \
+                                  leds_off(LED);                                \
+                                }
 /*---------------------------------------------------------------------------*/
 PROCESS(start_app, "START_APP");
 AUTOSTART_PROCESSES(&start_app, &sensors_process);
@@ -249,11 +257,7 @@ put_post_white_led_handler(void *request, void *response, uint8_t *buffer, uint1
     request_content_len = REST.get_request_payload(request, &request_content);
     level = atoi((const char *)request_content);
     CLIP(level, 255)
-    if(level > 255) {
-      level = 255;
-    }
-    bWhite_LED_SetLevel(level);
-    bWhite_LED_On();
+    leds_set_level(level, LEDS_WHITE);
   }
 }
 /*************************************************/
@@ -287,34 +291,51 @@ put_post_rgb_led_handler(void *request, void *response, uint8_t *buffer, uint16_
       /* Get next token */
       pch = strtok(NULL, " ");
     }
-    bRGB_LED_SetLevel(RGB[0], RGB[1], RGB[2]);
-    bRGB_LED_On();
+    leds_set_level(RGB[0], LEDS_RED);
+    leds_set_level(RGB[1], LEDS_GREEN);
+    leds_set_level(RGB[2], LEDS_BLUE);
   }
 }
-/***************************************************/
-/* Resource and handler to control RGB LED scaling */
-/***************************************************/
-RESOURCE(resource_scale_rgb,
-         "title=\"Scale RGB <[0..255]>\"",
+/************************************************/
+/* Resource and handler to control D3 on DR1174 */ 
+/************************************************/
+RESOURCE(resource_led_d3_1174, 
+         "title=\"LED D3 1174<[0,1]>\"",
          NULL,
-         put_post_scale_rgb_handler,
-         put_post_scale_rgb_handler,
+         put_post_led_d3_1174_handler,
+         put_post_led_d3_1174_handler,
          NULL);
 static void
-put_post_scale_rgb_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+put_post_led_d3_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
-  const uint8_t *request_content = NULL;
+  const uint8_t *request_content;
   int request_content_len;
-  int level;
-
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
     request_content_len = REST.get_request_payload(request, &request_content);
-    level = atoi((const char *)request_content);
-    CLIP(level, 255)
-    bRGB_LED_SetGroupLevel(level);
-    bRGB_LED_On();
+    SET_LED(LEDS_GP0);
+  }
+}
+/************************************************/
+/* Resource and handler to control D6 on DR1174 */ 
+/************************************************/
+RESOURCE(resource_led_d6_1174, 
+         "title=\"LED D6 1174<[0,1]>\"",
+         NULL,
+         put_post_led_d6_1174_handler,
+         put_post_led_d6_1174_handler,
+         NULL);
+static void
+put_post_led_d6_1174_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+  const uint8_t *request_content;
+  int request_content_len;
+  unsigned int accept = -1;
+  REST.get_header_accept(request, &accept);
+  if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
+    request_content_len = REST.get_request_payload(request, &request_content);
+    SET_LED(LEDS_GP1);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -323,19 +344,8 @@ PROCESS_THREAD(start_app, ev, data)
   PROCESS_BEGIN();
 
   static int is_coordinator = 0;
-  /* is_coordinator = node_id == 1; */
-
-  /* White LED initialisation */
-  bWhite_LED_Enable();
-  bWhite_LED_SetLevel(0);
-  bWhite_LED_On();
-
-  /* Coloured LED initialisation */
-  bRGB_LED_Enable();
-  bRGB_LED_SetGroupLevel(255);
-  bRGB_LED_SetLevel(0, 0, 0);
-  bRGB_LED_On();
-
+  static struct etimer et;
+    
   /* Make sensor active for measuring */
   SENSORS_ACTIVATE(light_sensor);
   SENSORS_ACTIVATE(ht_sensor);
@@ -358,9 +368,22 @@ PROCESS_THREAD(start_app, ev, data)
   rest_activate_resource(&resource_humidity_value, "DR1175/Humidity/Value");
   rest_activate_resource(&resource_white_led, "DR1175/WhiteLED");
   rest_activate_resource(&resource_rgb_led, "DR1175/ColorLED/RGBValue");
-  rest_activate_resource(&resource_scale_rgb, "DR1175/ColorLED/ScaleRGB");
+  rest_activate_resource(&resource_led_d3_1174, "DR1175/LED/D3On1174");
+  rest_activate_resource(&resource_led_d6_1174, "DR1175/LED/D6On1174");
   rest_activate_resource(&resource_sensors_dr1175, "DR1175/AllSensors");
 
+  /* Level of LEDS=0, so no light after start-up */
+  leds_on(LEDS_WHITE | LEDS_RED | LEDS_GREEN | LEDS_BLUE); 
+
+  /* contiki-jn516x-main switches all leds off after process start-up.
+     Switch on required leds after rescheduling, otherwise level change needs to be
+     accompanied with leds_on() at least once in resource handler. */
+  etimer_set(&et, CLOCK_SECOND/10);
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));     
+  /* Level of LEDS=0, so no light after start-up. However, they are enabled
+     A level change will directly be visible. */
+  leds_on(LEDS_WHITE | LEDS_RED | LEDS_GREEN | LEDS_BLUE); 
+     
   /* If sensor process generates an event, call event_handler of resource.
      This will make this resource observable by the client */
   while(1) {
