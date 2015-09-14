@@ -105,8 +105,6 @@
 /* Network setup for IPv6 */
 #if NETSTACK_CONF_WITH_IPV6
 
-#define UIP_CONF_IPV6                   1
-
 /* Network setup for IPv6 */
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
 #define UIP_CONF_BROADCAST 1
