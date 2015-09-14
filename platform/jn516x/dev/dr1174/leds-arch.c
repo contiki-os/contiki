@@ -38,7 +38,7 @@
 #include "dr1199/leds-arch-1199.h"
 #endif
 #ifdef SENSOR_BOARD_DR1175
-#include "leds_extension.h"
+#include "leds-extension.h"
 #include "dr1175/leds-arch-1175.h"
 #endif
 

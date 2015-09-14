@@ -31,7 +31,7 @@
  * Author: Theo van Daele <theo.van.daele@nxp.com>
  *
  */
-#include "leds_extension.h"
+#include "leds-extension.h"
 #include "dev/leds.h"
 
 void
