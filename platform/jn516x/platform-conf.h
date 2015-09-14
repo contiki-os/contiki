@@ -229,4 +229,35 @@ typedef uint32_t rtimer_clock_t;
 #define USE_EXTERNAL_OSCILLATOR 0
 #endif /* USE_EXTERNAL_OSCILLATOR */
 
+/* Extension of LED definitions from leds.h for various JN516x dev boards 
+JN516x Dongle:
+    LEDS_RED        Red LED on dongle
+    LEDS_GREEN      Green LED on dongle
+    Note: Only one LED can be switch on at the same time
+      
+DR1174-only:
+    LEDS_GP0        LED D3 on DR1174
+    LEDS_GP1        LED D6 on DR1174
+    
+DR1174+DR1199:
+    LEDS_RED        LED D1 on DR1199                      
+    LEDS_GREEN      LED D2 on DR1199
+    LEDS_BLUE       LED D3 on DR1199
+    LEDS_GP0        LED D3 on DR1174
+    LEDS_GP1        LED D6 on DR1174
+    
+DR1174+DR1175:
+    LEDS_RED        Red led in RGB-led with level control on DR1175    
+    LEDS_GREEN      Green led in RGB-led with level control on DR1175    
+    LEDS_BLUE       Blue led in RGB-led with level control on DR1175    
+    LEDS_WHITE      White power led with level control on DR1175
+    LEDS_GP0        LEDS D3 on DR1174
+    LEDS_GP1        LEDS D6 on DR1174
+*/
+#define LEDS_WHITE    8
+#define LEDS_GP0      16
+#define LEDS_GP1      32 
+#define LEDS_GP2      64
+#define LEDS_GP3      128
+#define LEDS_CONF_ALL 255
 #endif /* PLATFORM_CONF_H */
