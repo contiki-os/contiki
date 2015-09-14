@@ -175,7 +175,8 @@
 #ifdef TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
 #define TSCH_PACKET_DEST_ADDR_IN_ACK TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
 #else
-#define TSCH_PACKET_DEST_ADDR_IN_ACK 0
+#define TSCH_PACKET_DEST_ADDR_IN_ACK 1 /* Include destination address
+by default, useful in case of duplicate seqno */
 #endif
 
 #ifdef TSCH_CONF_AUTOSTART
