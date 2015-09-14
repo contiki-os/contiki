@@ -38,10 +38,10 @@ ArchRock and Sensinode implementations.
 We do not implement mesh under related features, as we target route over
 techniques.
 
-\subsection hc01 draft-hui-6lowpan-hc-01
+\subsection RFC 6282
 
-draft-hui-6lowpan-hc-01 defines a stateful header compression mechanism
-which should soon deprecate the stateless header compression mechanism
+RFC6282 defines a stateful header compression mechanism
+which deprecate the stateless header compression mechanism
 defined in RFC4944. It is much more powerfull and flexible, in
 particular it allows compression of some multicast addresses and of all
 global unicast addresses.
@@ -110,8 +110,8 @@ the link-layer address. The dependency is reflected in the
 
 \subsection io Packet Input/Output
 
-At initialization, the #input function in sicslowpan.c is set as the
-function to be called by the MAC upon packet reception. The #output
+At initialization, the input function in sicslowpan.c is set as the
+function to be called by the MAC upon packet reception. The output
 function is set as the tcpip_output function.<br>
 At packet reception, the link-layer copies the 802.15.4 payload in the
 rime buffer, and sets its length. It also stores the source and
@@ -122,19 +122,19 @@ packetbuf_set_datalen(rx_frame.payload_length);
 packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)&rx_frame.dest_addr);
 packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)&rx_frame.src_addr);
 \endcode
-It then calls the sicslowpan #input function. Similarly, when the IPv6 layer
+It then calls the sicslowpan input function. Similarly, when the IPv6 layer
 has a packet to send over the radio, it puts the packet in uip_buf,
-sets uip_len and calls the sicslowpan #output function.
+sets uip_len and calls the sicslowpan output function.
 
 \subsection frag Fragmentation
 
-\li #output function: When an IP packet, after header compression, is
+\li output function: When an IP packet, after header compression, is
 too big to fit in a 802.15.4 frame, it is fragmented in several packets
 which are sent successively over the radio. The packets are formatted
 as defined in RFC 4944. Only the first fragment contains the IP/UDP
 compressed or uncompressed header fields.
 
-\li #input function: This function takes care of fragment
+\li input function: This function takes care of fragment
 reassembly. We do not assume that the fragments are received in order.
 When reassembly of a packet is ongoing, we discard any non fragmented
 packet or fragment from another packet. Reassembly times out after
@@ -143,8 +143,9 @@ packet or fragment from another packet. Reassembly times out after
 \note Fragmentation support is enabled by setting the #SICSLOWPAN_CONF_FRAG
 compilation option.
 
-\note As we do not support complex buffer allocation mechanism, for now
-we define a new 1280 bytes buffer (#sicslowpan_buf) to reassemble packets.
+\note In order to make it possible to reassemble multiple packets at
+the same time we have a mechanism for storing each fragment per sender
+and tag until it is fully reassembled or the reassemly times out.
 At reception, once all the fragments are received, we copy the packet
 to #uip_buf, set #uip_len, and call #tcpip_input.
 
@@ -157,49 +158,35 @@ the header 25 bytes long).
 
 <b>Compression schemes</b><br>
 The #SICSLOWPAN_CONF_COMPRESSION compilation option defines the
- compression scheme supported. We support HC1, HC06, and IPv6 compression.
-HC1 and IPv6 compression are defined in RFC4944, HC06 in
-draft-hui-6lowpan-hc-06. What we call IPv6 compression means sending packets
+compression scheme supported. We support IPHC, and IPv6 compression.
+IPv6 compression are defined in RFC4944, IPHC in RFC6282.
+What we call IPv6 compression means sending packets
 with no compression, and adding the IPv6 dispatch before the IPv6 header.<br>
 If at compile time IPv6 "compression" is chosen, packets sent will never
 be compressed, and compressed packets will not be processed at reception.<br>
-If at compile time either HC1 or HC06 are chosen, we will try to compress
+
+If at compile time IPHC is chosen, we will try to compress
 all fields at sending, and will accept packets compressed with the
-chosen scheme, as well as uncompressed packets.<br>
-Note that HC1 and HC06 supports are mutually exclusive. HC06 should soon
-deprecate HC1.
+chosen scheme, as well as uncompressed packets.<br>.
 
 <b>Compression related functions</b><br>
-When a packet is received, the #input function is called. Fragmentation
+When a packet is received, the input function is called. Fragmentation
 issues are handled, then we check the dispatch byte: if it is IPv6, we
-treat the packet inline. If it is HC1 or HC06, the corresponding
-decompression function (#uncompress_hdr_hc1 or #uncompress_hdr_hc06)
-is called.<br>
+treat the packet inline. If it is IPHC, the decompression function
+(uncompress_hdr_iphc) is called.<br>
 When a packet needs to be sent, we try to compress it. If only the IPv6
 compression support is enabled, we just add the IPv6 dispatch before the
-802.15.4 payload. If HC1 or HC06 support is enabled, we call the
-corresponding compression function (#compress_hdr_hc1 or #compress_hdr_hc06)
+802.15.4 payload. If IPHC support is enabled, we call the
+corresponding compression function (compress_hdr_iphc)
 to compress the packet as much as possible.
 
-<b>HC1 comments</b><br>
-In HC1, if the IPv6 flow label is not compressed, we would need to copy
-the fields after the flow label starting in the middle of a byte (the
-flow label is 20 bits long). To avoid this, we compress the packets only
-if all fields can be compressed. If we cannot, we use the IPv6 dispatch
-and send all headers fields inline. This behavior is the one defined in
-draft-hui-6lowpan-interop-00.<br>
-In the same way, if the packet is an UDP packet, we compress the UDP
-header only if all fields can be compressed.<br>
-Note that HC1 can only compress unicast link local addresses. For this
-reason, we recommend using HC01.
-
-<b>HC01 comments</b><br>
-HC01 uses address contexts to enable compression of global unicast
+<b>IPHC comments</b><br>
+IPHC uses address contexts to enable compression of global unicast
 addresses. All nodes must share context (namely the global prefixes in
 use) to compress and uncompress such addresses successfully. The context
-number is defined by 2 bits. Context 00 is reserved for the link local
+number is defined by 4 bits. Context 00 is reserved for the link local
 context. Other contexts have to be distributed within the LoWPAN
-dynamically, by means of ND extensions yet to be defined.<br>
+dynamically, by means of ND extensions yet to be implemented.<br>
 Until then, if you want to test global address compression, you need
 to configure the global contexts manually.
 
