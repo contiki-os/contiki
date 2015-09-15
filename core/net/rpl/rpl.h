@@ -139,6 +139,11 @@ struct rpl_dag {
   /* live data for the DAG */
   uint8_t joined;
   rpl_parent_t *preferred_parent;
+#if RPL_DYNAMIC_DIS
+  uint8_t preferred_parent_changed;
+  uint8_t nb_parent_changed;
+  uint8_t nb_same_parent;
+#endif
   rpl_rank_t rank;
   struct rpl_instance *instance;
   rpl_prefix_t prefix_info;
@@ -215,6 +220,9 @@ struct rpl_instance {
   uint8_t dio_intcurrent;
   uint8_t dio_send; /* for keeping track of which mode the timer is in */
   uint8_t dio_counter;
+#if RPL_DYNAMIC_DIS
+  uint8_t dis_period;
+#endif
   rpl_rank_t max_rankinc;
   rpl_rank_t min_hoprankinc;
   uint16_t lifetime_unit; /* lifetime in seconds = l_u * d_l */

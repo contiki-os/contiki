@@ -72,10 +72,37 @@ handle_periodic_timer(void *ptr)
   /* handle DIS */
 #if RPL_DIS_SEND
   next_dis++;
+#if RPL_DYNAMIC_DIS
+  //TODO iterate current DAGs from all instances
+  rpl_dag_t *dag = rpl_get_any_dag();
+  rpl_instance_t *instance = dag->instance;
+  if(dag!=NULL){
+    if(dag->preferred_parent_changed){
+      dag->nb_parent_changed++;
+      if(instance->dis_period >= 2 * RPL_I_DIS_MIN &&
+       dag->nb_parent_changed >= RPL_N_DOWN_DIS){
+        instance->dis_period = instance->dis_period / 2;
+        dag->nb_parent_changed = 0;
+      }
+    }else{
+      dag->nb_same_parent++;
+      if(instance->dis_period <= RPL_I_DIS_MAX / 2 &&
+       dag->nb_same_parent >= RPL_N_UP_DIS){
+         instance->dis_period = instance->dis_period * 2;
+         dag->nb_same_parent = 0;
+       }
+    }
+  }else if(next_dis >= instance->dis_period){
+    next_dis = 0;
+    dis_output(NULL);
+  }
+
+#else
   if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
     next_dis = 0;
     dis_output(NULL);
   }
+#endif
 #endif
   ctimer_reset(&periodic_timer);
 }

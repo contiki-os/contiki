@@ -284,4 +284,43 @@
     + random_rand() % (RPL_PROBING_INTERVAL))
 #endif
 
+
+/*
+ * Use or not of Dynamic DIS timer and Dynamic DIS configurations
+ * */
+#ifdef RPL_CONF_DYNAMIC_DIS
+#define RPL_DYNAMIC_DIS RPL_CONF_DYNAMIC_DIS
+#else
+#define RPL_DYNAMIC_DIS 1
+#endif
+
+#if RPL_DYNAMIC_DIS
+
+#ifdef RPL_CONF_N_DOWN_DIS
+#define RPL_N_DOWN_DIS RPL_CONF_N_DOWN_DIS
+#else
+#define RPL_N_DOWN_DIS 1
+#endif
+
+#ifdef RPL_CONF_N_UP_DIS
+#define RPL_N_UP_DIS RPL_CONF_N_UP_DIS
+#else
+#define RPL_N_UP_DIS 5
+#endif
+
+#ifdef RPL_CONF_I_DIS_MIN
+#define RPL_I_DIS_MIN RPL_CONF_I_DIS_MIN
+#else
+#define RPL_I_DIS_MIN 3
+#endif
+
+#ifdef RPL_CONF_I_DIS_MAX
+#define RPL_I_DIS_MAX RPL_CONF_I_DIS_MAX
+#else
+#define RPL_I_DIS_MAX 60
+#endif
+
+#endif /* RPL_DYNAMIC_DIS */
+
+
 #endif /* RPL_CONF_H */
