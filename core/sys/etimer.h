@@ -245,7 +245,11 @@ int etimer_pending(void);
  */
 clock_time_t etimer_next_expiration_time(void);
 
-
+#define etimer_lt(t0, t1, c)  timer_lt(&(t0->timer), &(t1->timer), c)
+#define etimer_lte(t0, t1, c) timer_lte(&(t0->timer), &(t1->timer), c)
+#define etimer_gt(t0, t1, c)  timer_gt(&(t0->timer), &(t1->timer), c)
+#define etimer_gte(t0, t1, c) timer_gte(&(t0->timer), &(t1->timer), c)
+#define etimer_eq(t0, t1, c)  timer_eq(&(t0->timer), &(t1->timer), c)
 /** @} */
 
 PROCESS_NAME(etimer_process);
