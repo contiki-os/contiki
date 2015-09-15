@@ -24,9 +24,10 @@
       org.contikios.cooja.mspmote.Z1MoteType
       <identifier>z11</identifier>
       <description>Z1 Mote Type #z11</description>
-      <source EXPORT="discard">[CONFIG_DIR]/node.c</source>
-      <commands EXPORT="discard">make node.z1 TARGET=z1</commands>
-      <firmware EXPORT="copy">[CONFIG_DIR]/node.z1</firmware>
+      <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/rpl-tsch/node.c</source>
+      <commands EXPORT="discard">make TARGET=z1 clean
+make node.z1 TARGET=z1 WITH_ORCHESTRA=1</commands>
+      <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/rpl-tsch/node.z1</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.IPAddress</moteinterface>
@@ -206,7 +207,7 @@
   <plugin>
     org.contikios.cooja.plugins.SimControl
     <width>242</width>
-    <z>3</z>
+    <z>4</z>
     <height>160</height>
     <location_x>11</location_x>
     <location_y>241</location_y>
@@ -222,7 +223,7 @@
       <viewport>1.7405603810040515 0.0 0.0 1.7405603810040515 47.95980153208088 -42.576134155447555</viewport>
     </plugin_config>
     <width>236</width>
-    <z>2</z>
+    <z>3</z>
     <height>230</height>
     <location_x>1</location_x>
     <location_y>1</location_y>
@@ -258,10 +259,28 @@
       <zoomfactor>16529.88882215865</zoomfactor>
     </plugin_config>
     <width>1304</width>
-    <z>1</z>
+    <z>2</z>
     <height>311</height>
     <location_x>0</location_x>
     <location_y>412</location_y>
+  </plugin>
+  <plugin>
+    org.contikios.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>TIMEOUT(300000); /* Time out after 5 minutes */&#xD;
+&#xD;
+/* Wait until a node (can only be the DAGRoot) has&#xD;
+ * 8 routing entries (i.e. can reach every node) */&#xD;
+WAIT_UNTIL(msg.endsWith("Routing entries (8 in total):"));&#xD;
+&#xD;
+log.testOK(); /* Report test success and quit */</script>
+      <active>true</active>
+    </plugin_config>
+    <width>764</width>
+    <z>1</z>
+    <height>995</height>
+    <location_x>963</location_x>
+    <location_y>111</location_y>
   </plugin>
 </simconf>
 
