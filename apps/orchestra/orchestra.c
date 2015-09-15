@@ -106,7 +106,7 @@ orchestra_callback_child_removed(linkaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_callback_packet_ready()
+orchestra_callback_packet_ready(void)
 {
   int i;
   /* By default, use any slotframe, any timeslot */
@@ -148,7 +148,7 @@ orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighb
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_init()
+orchestra_init(void)
 {
   int i;
   /* Snoop on packet transmission to know if our parent knows about us
@@ -162,5 +162,5 @@ orchestra_init()
       all_rules[i]->init(i);
     }
   }
-  PRINTF("Orchestra: initialization done\n", i);
+  PRINTF("Orchestra: initialization done\n");
 }

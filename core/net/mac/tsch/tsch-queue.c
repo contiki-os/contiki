@@ -54,6 +54,10 @@
 #include "net/mac/tsch/tsch-slot-operation.h"
 #include <string.h>
 
+#ifdef TSCH_CALLBACK_PACKET_READY
+void TSCH_CALLBACK_PACKET_READY(void);
+#endif
+
 #ifdef TSCH_CALLBACK_NEW_TIME_SOURCE
 void TSCH_CALLBACK_NEW_TIME_SOURCE(struct tsch_neighbor *old, struct tsch_neighbor *new);
 #endif
