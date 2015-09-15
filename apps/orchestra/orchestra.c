@@ -43,6 +43,9 @@
 #include "net/rpl/rpl-private.h"
 #include "net/rime/rime.h" /* Needed for so-called rime-sniffer */
 
+#define DEBUG DEBUG_PRINT
+#include "net/ip/uip-debug.h"
+
 /* A net-layer sniffer for packets sent and received */
 static void orchestra_packet_received(void);
 static void orchestra_packet_sent(int mac_status);
@@ -155,7 +158,9 @@ orchestra_init()
   /* Initialize all Orchestra rules */
   for(i = 0; i < NUM_RULES; i++) {
     if(all_rules[i]->init != NULL) {
+      PRINTF("Orchestra: initializing rule %u\n", i);
       all_rules[i]->init(i);
     }
   }
+  PRINTF("Orchestra: initialization done\n", i);
 }
