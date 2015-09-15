@@ -7,7 +7,7 @@ their own schedule solely based on their local RPL state. There is no centralize
 scheduler nor negociatoin with neighbors, i.e. no traffic overhead. The default
 Orchestra rules can be used out-of-box in any RPL network, reducing contention
 to a low level. Orchestra is described and evaluated in
-*Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH*, ACM SenSys'15.
+[*Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH*](http://www.simonduquennoy.net/papers/duquennoy15orchestra.pdf), ACM SenSys'15.
 
 ## Requirements
 
