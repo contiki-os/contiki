@@ -174,7 +174,6 @@ PROCESS_THREAD(node_process, ev, data)
   is_coordinator = node_role > role_6ln;
 
   if(is_coordinator) {
-    static struct etimer et;
     uip_ipaddr_t prefix;
     uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
     net_init(&prefix);
