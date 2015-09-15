@@ -109,7 +109,7 @@ struct tsch_link *current_link = NULL;
 /* A backup link with Rx flag, overlapping with current_link.
  * If the current link is Tx-only and the Tx queue
  * is empty while executing the link, fallback to the backup link. */
-struct tsch_link *backup_link = NULL;
+static struct tsch_link *backup_link = NULL;
 static struct tsch_packet *current_packet = NULL;
 static struct tsch_neighbor *current_neighbor = NULL;
 
