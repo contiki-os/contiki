@@ -93,7 +93,14 @@ void timer_reset(struct timer *t);
 void timer_restart(struct timer *t);
 CCIF int timer_expired(struct timer *t);
 clock_time_t timer_remaining(struct timer *t);
+int timer_cmp(const struct timer *t0, const struct timer *t1,
+              clock_time_t cmp_pt);
 
+#define timer_lt(t0, t1, c)  (timer_cmp(t0, t1, c) < 0)
+#define timer_lte(t0, t1, c) (timer_cmp(t0, t1, c) <= 0)
+#define timer_gt(t0, t1, c)  (timer_cmp(t0, t1, c) > 0)
+#define timer_gte(t0, t1, c) (timer_cmp(t0, t1, c) >= 0)
+#define timer_eq(t0, t1, c)  (timer_cmp(t0, t1, c) == 0)
 
 #endif /* TIMER_H_ */
 

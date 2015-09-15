@@ -129,6 +129,57 @@ timer_expired(struct timer *t)
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * \brief compare timer expiry times
+ *
+ * Compares the two timers to see which will expire sooner. The cmp_pt time
+ * value is a point in time to compare around. Usually this will just be the
+ * current clock time.
+ *
+ * \param t0 first timer to compare
+ * \param t1 second timer to compare
+ * \param cmp_pt a point in time to compare against. Usually the current time.
+ *
+ * \return less than, equal to, or greater than zero if t0 is less than, equal
+ * to or greater than t1 respectivley
+ */
+int
+timer_cmp(const struct timer *t0, const struct timer *t1, clock_time_t cmp_pt)
+{
+  clock_time_t t0_expiry = t0->start + t0->interval;
+  clock_time_t t1_expiry = t1->start + t1->interval;
+
+  int t0_expired = t0->interval <= (cmp_pt - t0->start);
+  int t1_expired = t1->interval <= (cmp_pt - t1->start);
+
+  if(t0_expired && !t1_expired) {
+    /* t0 expired already but t1 didn't, so it compares less */
+    return -1;
+  } else if(!t0_expired && t1_expired) {
+    /* t0 hasn't expired  but t1 has, so it compares greater */
+    return 1;
+  }
+  /* either, both timers are expired or both aren't */
+
+  if(t0_expiry == t1_expiry) {
+    /* if the expiry time is the same, then they must be equal whether both
+       timers are expired or not expired */
+    return 0;
+  }
+
+  if(!t0_expired) {
+    /* neither are expired, cmp_pt is defined to be less than the expiry
+       times so we compare on that basis. The smallest diff to cmp_pt compares
+       less. */
+    return (t0_expiry - cmp_pt) < (t1_expiry - cmp_pt) ? -1 : 1;
+  } else {
+    /* both are expired, cmp_pt is defined to be greater than the expiry
+       times so we compare on that basis. The largest diff to cmp_pt compares
+       less. */
+    return (cmp_pt - t0_expiry) > (cmp_pt - t1_expiry) ? -1 : 1;
+  }
+}
+/*---------------------------------------------------------------------------*/
+/**
  * The time until the timer expires
  *
  * This function returns the time until the timer expires.
