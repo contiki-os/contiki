@@ -81,7 +81,7 @@
 #if WITH_ORCHESTRA
 /* See apps/orchestra/README.md for more Orchestra configuration options */
 
-#define TSCH_CONF_WITH_MINIMAL_SCHEDULE 0 /* No 6TiSCH minimal schedule */
+#define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0 /* No 6TiSCH minimal schedule */
 #define TSCH_CONF_WITH_LINK_SELECTOR 1 /* Orchestra requires per-packet link selection */
 /* Orchestra callbacks */
 #define TSCH_CALLBACK_NEW_TIME_SOURCE orchestra_callback_new_time_source
@@ -98,10 +98,10 @@
 /* Save some space to fit the limited RAM of the z1 */
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM 4
-#undef TSCH_CONF_QUEUE_NUM_PER_NEIGHBOR
-#define TSCH_CONF_QUEUE_NUM_PER_NEIGHBOR 4
-#undef TSCH_CONF_QUEUE_MAX_NEIGHBOR_QUEUES
-#define TSCH_CONF_QUEUE_MAX_NEIGHBOR_QUEUES 6
+#undef TSCH_QUEUE_CONF_NUM_PER_NEIGHBOR
+#define TSCH_QUEUE_CONF_NUM_PER_NEIGHBOR 4
+#undef TSCH_QUEUE_CONF_MAX_NEIGHBOR_QUEUES
+#define TSCH_QUEUE_CONF_MAX_NEIGHBOR_QUEUES 6
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES  8
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS

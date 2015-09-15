@@ -54,20 +54,17 @@
 #include "net/mac/tsch/tsch-slot-operation.h"
 #include <string.h>
 
-#ifdef TSCH_CALLBACK_PACKET_READY
-void TSCH_CALLBACK_PACKET_READY(void);
-#endif
-
-#ifdef TSCH_CALLBACK_NEW_TIME_SOURCE
-void TSCH_CALLBACK_NEW_TIME_SOURCE(struct tsch_neighbor *old, struct tsch_neighbor *new);
-#endif
-
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
+
+/* Check if TSCH_QUEUE_NUM_PER_NEIGHBOR is power of two */
+#if (TSCH_QUEUE_NUM_PER_NEIGHBOR & (TSCH_QUEUE_NUM_PER_NEIGHBOR-1)) != 0
+#error TSCH_QUEUE_NUM_PER_NEIGHBOR must be power of two
+#endif
 
 /* We have as many packets are there are queuebuf in the system */
 MEMB(packet_memb, struct tsch_packet, QUEUEBUF_NUM);

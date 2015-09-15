@@ -33,40 +33,61 @@
 #ifndef __TSCH_SLOT_OPERATION_H__
 #define __TSCH_SLOT_OPERATION_H__
 
+/********** Includes **********/
+
 #include "contiki.h"
 #include "lib/ringbufindex.h"
+#include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-private.h"
 
-/* Ringbuf for dequeued outgoing packets */
+/******** Configuration *******/
+
+/* Size of the ring buffer storing dequeued outgoing packets (only an array of pointers).
+ * Must be power of two, and greater or equal to QUEUEBUF_NUM */
 #ifdef TSCH_CONF_DEQUEUED_ARRAY_SIZE
 #define TSCH_DEQUEUED_ARRAY_SIZE TSCH_CONF_DEQUEUED_ARRAY_SIZE
 #else
 #define TSCH_DEQUEUED_ARRAY_SIZE 16
 #endif
-#if TSCH_DEQUEUED_ARRAY_SIZE < QUEUEBUF_NUM
-#error TSCH_DEQUEUED_ARRAY_SIZE must be greater or equal to QUEUEBUF_NUM
-#endif
-#if (TSCH_DEQUEUED_ARRAY_SIZE & (TSCH_DEQUEUED_ARRAY_SIZE-1)) != 0
-#error TSCH_QUEUE_NUM_PER_NEIGHBOR must be power of two
-#endif
 
-/* Ringbuf for incoming packets: must be power of two for atomic ringbuf operation */
+/* Size of the ring buffer storing incoming packets.
+ * Must be power of two */
 #ifdef TSCH_CONF_MAX_INCOMING_PACKETS
 #define TSCH_MAX_INCOMING_PACKETS TSCH_CONF_MAX_INCOMING_PACKETS
 #else
 #define TSCH_MAX_INCOMING_PACKETS 4
 #endif
-#if (TSCH_MAX_INCOMING_PACKETS & (TSCH_MAX_INCOMING_PACKETS-1)) != 0
-#error TSCH_MAX_INCOMING_PACKETS must be power of two
+
+/* Use SFD timestamp for synchronization? By default we merely rely on rtimer and busy wait
+ * until SFD is high, which we found to provide greater accuracy on JN516x and CC2420.
+ * Note: for association, however, we always use SFD timestamp to know the time of arrival
+ * of the EB (because we do not busy-wait for the whole scanning process)
+ * */
+#ifdef TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS
+#define TSCH_RESYNC_WITH_SFD_TIMESTAMPS TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS
+#else
+#define TSCH_RESYNC_WITH_SFD_TIMESTAMPS 0
 #endif
+
+/*********** Callbacks *********/
+
+/* Called by TSCH form interrupt after receiving a frame, enabled upper-layer to decide
+ * whether to ACK or NACK */
+#ifdef TSCH_CALLBACK_DO_NACK
+int TSCH_CALLBACK_DO_NACK(struct tsch_link *link, linkaddr_t *src, linkaddr_t *dst);
+#endif
+
+/************ Types ***********/
 
 /* Stores data about an incoming packet */
 struct input_packet {
-  uint8_t payload[TSCH_MAX_PACKET_LEN]; /* Packet payload */
+  uint8_t payload[TSCH_PACKET_MAX_LEN]; /* Packet payload */
   struct asn_t rx_asn; /* ASN when the packet was received */
   int len; /* Packet len */
   uint16_t rssi; /* RSSI for this packet */
 };
+
+/***** External Variables *****/
 
 /* A ringbuf storing outgoing packets after they were dequeued.
  * Will be processed layer by tsch_tx_process_pending */
@@ -77,16 +98,16 @@ extern struct tsch_packet *dequeued_array[TSCH_DEQUEUED_ARRAY_SIZE];
 extern struct ringbufindex input_ringbuf;
 extern struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 
+/********** Functions *********/
+
 /* Returns a 802.15.4 channel from an ASN and channel offset */
 uint8_t tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset);
-
 /* Is TSCH locked? */
 int tsch_is_locked();
 /* Lock TSCH (no link operation) */
 int tsch_get_lock();
 /* Release TSCH lock */
 void tsch_release_lock();
-
 /* Set global time before starting slot operation,
  * with a rtimer time and an ASN */
 void tsch_slot_operation_sync(rtimer_clock_t next_slot_start,

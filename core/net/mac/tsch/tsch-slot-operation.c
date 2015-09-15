@@ -59,21 +59,50 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
+/* TSCH debug macros, i.e. to set LEDs or GPIOs on various TSCH
+ * timeslot events */
+#ifndef TSCH_DEBUG_INIT
+#define TSCH_DEBUG_INIT()
+#endif
+#ifndef TSCH_DEBUG_INTERRUPT
+#define TSCH_DEBUG_INTERRUPT()
+#endif
+#ifndef TSCH_DEBUG_RX_EVENT
+#define TSCH_DEBUG_RX_EVENT()
+#endif
+#ifndef TSCH_DEBUG_TX_EVENT
+#define TSCH_DEBUG_TX_EVENT()
+#endif
+#ifndef TSCH_DEBUG_SLOT_START
+#define TSCH_DEBUG_SLOT_START()
+#endif
+#ifndef TSCH_DEBUG_SLOT_END
+#define TSCH_DEBUG_SLOT_END()
+#endif
+
+/* Check if TSCH_MAX_INCOMING_PACKETS is power of two */
+#if (TSCH_MAX_INCOMING_PACKETS & (TSCH_MAX_INCOMING_PACKETS-1)) != 0
+#error TSCH_MAX_INCOMING_PACKETS must be power of two
+#endif
+
+/* Check if TSCH_DEQUEUED_ARRAY_SIZE is power of two and greater or equal to QUEUEBUF_NUM */
+#if TSCH_DEQUEUED_ARRAY_SIZE < QUEUEBUF_NUM
+#error TSCH_DEQUEUED_ARRAY_SIZE must be greater or equal to QUEUEBUF_NUM
+#endif
+#if (TSCH_DEQUEUED_ARRAY_SIZE & (TSCH_DEQUEUED_ARRAY_SIZE-1)) != 0
+#error TSCH_QUEUE_NUM_PER_NEIGHBOR must be power of two
+#endif
+
 /* Truncate received drift correction information to maximum half
  * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT). */
 #define TRUNCATE_SYNC_IE 1
 #define TRUNCATE_SYNC_IE_BOUND ((int32_t)US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_WAIT/4))
 
-/* Do not set rtimer less than RTIMER_GUARD ticks in the future */
-#ifdef TSCH_CONF_RTIMER_GUARD
-#define RTIMER_GUARD TSCH_CONF_RTIMER_GUARD
-#else
 /* By default: check that rtimer runs at >=32kHz and use a guard time of 100us */
 #if RTIMER_SECOND < 32*1024
 #error "TSCH: RTIMER_SECOND < 32*1024"
 #endif
 #define RTIMER_GUARD (RTIMER_SECOND / 10000)
-#endif
 
 /* A ringbuf storing outgoing packets after they were dequeued.
  * Will be processed layer by tsch_tx_process_pending */
@@ -362,7 +391,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
       static void *packet;
 #if LLSEC802154_SECURITY_LEVEL
       /* encrypted payload */
-      static uint8_t encrypted_packet[TSCH_MAX_PACKET_LEN];
+      static uint8_t encrypted_packet[TSCH_PACKET_MAX_LEN];
 #endif
       /* packet payload length */
       static uint8_t packet_len;
@@ -442,7 +471,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 
           if(mac_tx_status == RADIO_TX_OK) {
             if(!is_broadcast) {
-              uint8_t ackbuf[TSCH_MAX_PACKET_LEN];
+              uint8_t ackbuf[TSCH_PACKET_MAX_LEN];
               int ack_len;
               rtimer_clock_t ack_start_time;
               int is_time_source;
@@ -639,7 +668,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       TSCH_DEBUG_RX_EVENT();
       NETSTACK_RADIO.off();;
 
-#if TSCH_USE_RADIO_TIMESTAMPS
+#if TSCH_RESYNC_WITH_SFD_TIMESTAMPS
       /* At the end of the reception, get an more accurate estimate of SFD arrival time */
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &rx_start_time, sizeof(rtimer_clock_t));
 #endif
@@ -652,7 +681,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
         NETSTACK_RADIO.get_value(RADIO_PARAM_LAST_RSSI, &radio_last_rssi);
         /* Read packet */
-        current_input->len = NETSTACK_RADIO.read((void *)current_input->payload, TSCH_MAX_PACKET_LEN);
+        current_input->len = NETSTACK_RADIO.read((void *)current_input->payload, TSCH_PACKET_MAX_LEN);
         current_input->rx_asn = current_asn;
         current_input->rssi = (signed)radio_last_rssi;
         header_len = frame802154_parse((uint8_t*)current_input->payload, current_input->len, &frame);
@@ -695,7 +724,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 #endif
 
             if(frame.fcf.ack_required) {
-              static uint8_t ack_buf[TSCH_MAX_PACKET_LEN];
+              static uint8_t ack_buf[TSCH_PACKET_MAX_LEN];
               static int ack_len;
 
               /* Build ACK frame */
@@ -892,6 +921,7 @@ tsch_slot_operation_start(void)
   static struct rtimer slot_operation_timer;
   rtimer_clock_t time_to_next_active_slot;
   rtimer_clock_t prev_slot_start;
+  TSCH_DEBUG_INIT();
   do {
     uint16_t timeslot_diff;
     /* Get next active link */

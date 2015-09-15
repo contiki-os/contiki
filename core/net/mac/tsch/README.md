@@ -104,7 +104,7 @@ If you are running with RPL, it is recommended to enable the `tsch-rpl` module w
 #define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
 ```
 
-Finally, on CC2420-based platforms, enable SFD timestamps with:
+On CC2420-based platforms, enable SFD timestamps with:
 
 ```
 /* Needed for CC2420 */
@@ -112,10 +112,13 @@ Finally, on CC2420-based platforms, enable SFD timestamps with:
 #define CC2420_CONF_SFD_TIMESTAMPS       1
 ```
 
+To configure TSCH, see the macros in `.h` files under `core/net/mac/tsch/` and redefine your own in your `project-conf.h`.
+
 ## Porting TSCH to a new platform
 
 Porting TSCH to a new platform requires a few new features in the radio driver, a number of timing-related configuration paramters.
 The easiest is probably to start from one of the existing port: `jn516x`, `sky`, `z1`.
+
 ### Radio features required for TSCH
 
 The main new feature required for TSCH is the so-called *poll mode*, a new Rx mode for Contiki radio drivers.

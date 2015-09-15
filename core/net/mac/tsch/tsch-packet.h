@@ -33,26 +33,49 @@
 #ifndef __TSCH_PACKET_H__
 #define __TSCH_PACKET_H__
 
+/********** Includes **********/
+
 #include "contiki.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/frame802154e-ie.h"
 
+/******** Configuration *******/
+
+/* Include source address in ACK? */
+#ifdef TSCH_CONF_PACKET_SRC_ADDR_IN_ACK
+#define TSCH_PACKET_SRC_ADDR_IN_ACK TSCH_CONF_PACKET_SRC_ADDR_IN_ACK
+#else
+#define TSCH_PACKET_SRC_ADDR_IN_ACK 0
+#endif
+/* Include destination address in ACK? */
+#ifdef TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
+#define TSCH_PACKET_DEST_ADDR_IN_ACK TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
+#else
+#define TSCH_PACKET_DEST_ADDR_IN_ACK 1 /* Include destination address
+by default, useful in case of duplicate seqno */
+#endif
+
+/********** Constants *********/
+
+/* Max TSCH packet lenght */
+#define TSCH_PACKET_MAX_LEN 127
+/* Base length for ACK frames */
+#define TSCH_PACKET_BASE_ACK_LEN 3
+
+/********** Functions *********/
+
 /* Construct enhanced ACK packet and return ACK length */
 int tsch_packet_create_eack(uint8_t *buf, int buf_size,
     linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack);
-
 /* Parse enhanced ACK packet, extract drift and nack */
 int tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
     uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len);
-
 /* Create an EB packet */
 int tsch_packet_create_eb(uint8_t *buf, int buf_size,
     uint8_t seqno, uint8_t *hdr_len, uint8_t *tsch_sync_ie_ptr);
-
 /* Update ASN in EB packet */
 int tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset);
-
 /* Parse EB and extract ASN and join priority */
 int tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
     frame802154_t *frame, struct ieee802154_ies *ies,

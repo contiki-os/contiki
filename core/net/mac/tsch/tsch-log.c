@@ -51,10 +51,6 @@
 #include "net/mac/tsch/tsch-slot-operation.h"
 #include "lib/ringbufindex.h"
 
-#if TSCH_LOG_LEVEL >= 2
-
-PROCESS_NAME(tsch_pending_events_process);
-
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
@@ -62,12 +58,11 @@ PROCESS_NAME(tsch_pending_events_process);
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
-#ifdef TSCH_LOG_CONF_QUEUE_LEN
-#define TSCH_LOG_QUEUE_LEN TSCH_LOG_CONF_QUEUE_LEN
-#else /* TSCH_LOG_CONF_QUEUE_LEN */
-#define TSCH_LOG_QUEUE_LEN 8
-#endif /* TSCH_LOG_CONF_QUEUE_LEN */
+#if TSCH_LOG_LEVEL >= 2 /* Skip this file for log levels 0 or 1 */
 
+PROCESS_NAME(tsch_pending_events_process);
+
+/* Check if TSCH_LOG_QUEUE_LEN is a power of two */
 #if (TSCH_LOG_QUEUE_LEN & (TSCH_LOG_QUEUE_LEN-1)) != 0
 #error TSCH_LOG_QUEUE_LEN must be power of two
 #endif

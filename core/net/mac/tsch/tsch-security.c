@@ -42,6 +42,7 @@
 #include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/tsch/tsch-security.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
 #include "net/netstack.h"
@@ -58,21 +59,10 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
-/* K1, defined in 6TiSCH minimal, is well-known (offers no security) and used for EBs only */
-#ifdef TSCH_CONF_SECURITY_CONF_K1
-#define TSCH_SECURITY_K1 TSCH_SECURITY_CONF_K1
-#else /* TSCH_CONF_SECURITY_CONF_K1 */
-#define TSCH_SECURITY_K1 { 0x36, 0x54, 0x69, 0x53, 0x43, 0x48, 0x20, 0x6D, 0x69, 0x6E, 0x69, 0x6D, 0x61, 0x6C, 0x31, 0x35 }
-#endif /* TSCH_CONF_SECURITY_CONF_K1 */
-
-/* K2, defined in 6TiSCH minimal, is used for all but EB traffic */
-#ifdef TSCH_CONF_SECURITY_CONF_K2
-#define TSCH_SECURITY_K2 TSCH_SECURITY_CONF_K2
-#else /* TSCH_CONF_SECURITY_CONF_K2 */
-#define TSCH_SECURITY_K2 { 0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce, 0xca, 0xfe, 0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce, 0xca, 0xfe }
-#endif /* TSCH_CONF_SECURITY_CONF_K2 */
-
-typedef uint8_t aes_key[16];
+/* The two keys K1 and K2 from 6TiSCH minimal configuration
+ * K1: well-known, used for EBs
+ * K2: secret, used for data and ACK
+ * */
 static aes_key keys[] = {
     TSCH_SECURITY_K1,
     TSCH_SECURITY_K2

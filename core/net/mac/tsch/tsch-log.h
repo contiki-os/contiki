@@ -30,12 +30,23 @@
  *
  */
 
+#ifndef __TSCH_LOG_H__
+#define __TSCH_LOG_H__
+
+/********** Includes **********/
+
 #include "contiki.h"
 #include "sys/rtimer.h"
 #include "net/mac/tsch/tsch-private.h"
 
-#ifndef __TSCH_LOG_H__
-#define __TSCH_LOG_H__
+/******** Configuration *******/
+
+/* The length of the log queue, i.e. maximum number postponed log messages */
+#ifdef TSCH_LOG_CONF_QUEUE_LEN
+#define TSCH_LOG_QUEUE_LEN TSCH_LOG_CONF_QUEUE_LEN
+#else /* TSCH_LOG_CONF_QUEUE_LEN */
+#define TSCH_LOG_QUEUE_LEN 8
+#endif /* TSCH_LOG_CONF_QUEUE_LEN */
 
 /* Returns an integer ID from a link-layer address */
 #ifdef TSCH_LOG_CONF_ID_FROM_LINKADDR
@@ -54,7 +65,15 @@
 #define TSCH_LOG_LEVEL 2
 #endif /* TSCH_LOG_CONF_LEVEL */
 
-#if TSCH_LOG_LEVEL >= 2
+#if TSCH_LOG_LEVEL < 2 /* For log level 0 or 1, the logging functions do nothing */
+
+#define tsch_log_init()
+#define tsch_log_process_pending()
+#define TSCH_LOG_ADD(log_type, init_code)
+
+#else /* TSCH_LOG_LEVEL */
+
+/************ Types ***********/
 
 /* Structure for a log. Union of different types of logs */
 struct tsch_log_t {
@@ -87,6 +106,8 @@ struct tsch_log_t {
   };
 };
 
+/********** Functions *********/
+
 /* Prepare addition of a new log.
  * Returns pointer to log structure if success, NULL otherwise */
 struct tsch_log_t *tsch_log_prepare_add();
@@ -97,6 +118,10 @@ void tsch_log_init();
 /* Process pending log messages */
 void tsch_log_process_pending();
 
+/************ Macros **********/
+
+/* Use this macro to add a log to the queue (will be printed out
+ * later, after leaving interrupt context) */
 #define TSCH_LOG_ADD(log_type, init_code) do { \
     struct tsch_log_t *log = tsch_log_prepare_add(); \
     if(log != NULL) { \
@@ -105,12 +130,6 @@ void tsch_log_process_pending();
       tsch_log_commit(); \
     } \
   } while(0);
-
-#else /* TSCH_LOG_LEVEL */
-
-#define tsch_log_init()
-#define tsch_log_process_pending()
-#define TSCH_LOG_ADD(log_type, init_code)
 
 #endif /* TSCH_LOG_LEVEL */
 

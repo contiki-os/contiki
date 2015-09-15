@@ -32,8 +32,12 @@
 #ifndef __TSCH_RPL_H__
 #define __TSCH_RPL_H__
 
+/********** Includes **********/
+
 #include "net/rpl/rpl.h"
 #include "net/mac/tsch/tsch-queue.h"
+
+/********** Functions *********/
 
 /* To use, set #define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network */
 void tsch_rpl_callback_joining_network();

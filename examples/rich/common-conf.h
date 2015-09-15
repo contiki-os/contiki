@@ -81,7 +81,7 @@
 
 #if TSCH_CONFIG == TSCH_CONFIG_ORCHESTRA
 
-#define TSCH_CONF_WITH_MINIMAL_SCHEDULE 0
+#define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0
 #define TSCH_CONF_WITH_LINK_SELECTOR 1
 #define TSCH_CALLBACK_NEW_TIME_SOURCE orchestra_callback_new_time_source
 #define TSCH_CALLBACK_PACKET_READY orchestra_callback_packet_ready
@@ -94,8 +94,8 @@
 /* For now, defaults used at the 2015 Prague plugtest
  * rather than from WG drafts */
 
-#undef TSCH_CONF_WITH_MINIMAL_SCHEDULE
-#define TSCH_CONF_WITH_MINIMAL_SCHEDULE 1
+#undef TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL
+#define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 1
 
 #define TSCH_HOPPING_SEQUENCE_SINGLE_CHANNEL (uint8_t[]){20}
 

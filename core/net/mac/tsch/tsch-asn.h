@@ -41,6 +41,8 @@
 #ifndef __TSCH_ASN_H__
 #define __TSCH_ASN_H__
 
+/************ Types ***********/
+
 /* The ASN is an absolute slot number over 5 bytes. */
 struct asn_t {
   uint32_t ls4b; /* least significant 4 bytes */
@@ -52,6 +54,8 @@ struct asn_divisor_t {
   uint16_t val; /* Divisor value */
   uint16_t asn_ms1b_remainder; /* Remainder of the operation 0x100000000 / val */
 };
+
+/************ Macros **********/
 
 /* Initialize ASN */
 #define ASN_INIT(asn, ms1b_, ls4b_) do { \

@@ -65,15 +65,14 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
-#ifdef TSCH_CONF_TSCH_LINK_NEIGHBOR_CALLBACK
-#define TSCH_LINK_NEIGHBOR_CALLBACK(dest,status,num) TSCH_CONF_TSCH_LINK_NEIGHBOR_CALLBACK(dest,status,num)
-#else
+/* Use to collect link statistics even on Keep-Alive, even though they were
+ * not sent from an upper layer and don't have a valid packet_sent callback */
+#ifndef TSCH_LINK_NEIGHBOR_CALLBACK
 void uip_ds6_link_neighbor_callback(int status, int numtx);
 #define TSCH_LINK_NEIGHBOR_CALLBACK(dest,status,num) uip_ds6_link_neighbor_callback(status,num)
-#endif /* NEIGHBOR_STATE_CHANGED */
+#endif /* TSCH_LINK_NEIGHBOR_CALLBACK */
 
 /* 802.15.4 duplicate frame detection */
-#if TSCH_802154_DUPLICATE_DETECTION
 struct seqno {
   linkaddr_t sender;
   uint8_t seqno;
@@ -86,8 +85,8 @@ struct seqno {
 #define MAX_SEQNOS 8
 #endif /* NETSTACK_CONF_MAC_SEQNO_HISTORY */
 
+/* Seqno history */
 static struct seqno received_seqnos[MAX_SEQNOS];
-#endif /* TSCH_802154_DUPLICATE_DETECTION */
 
 /* Let TSCH select a time source with no help of an upper layer.
  * We do so using statistics from incoming EBs */
@@ -395,7 +394,7 @@ tsch_start_coordinator(void)
   /* Initialize hopping sequence as default */
   memcpy(tsch_hopping_sequence, TSCH_DEFAULT_HOPPING_SEQUENCE, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
   ASN_DIVISOR_INIT(tsch_hopping_sequence_length, sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE));
-#if TSCH_WITH_MINIMAL_SCHEDULE
+#if TSCH_SCHEDULE_WITH_6TISCH_MINIMAL
   tsch_schedule_create_minimal();
 #endif
   
@@ -512,7 +511,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 #if TSCH_INIT_SCHEDULE_FROM_EB
   /* Create schedule */
   if(ies.ie_tsch_slotframe_and_link.num_slotframes == 0) {
-#if TSCH_WITH_MINIMAL_SCHEDULE
+#if TSCH_SCHEDULE_WITH_6TISCH_MINIMAL
     PRINTF("TSCH: parse_eb: no schedule, setting up minimal schedule\n");
     tsch_schedule_create_minimal();
 #else
@@ -643,7 +642,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
       
       /* Read packet */
-      input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_MAX_PACKET_LEN);
+      input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
       
       /* Parse EB and attempt to associate */
       PRINTF("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, current_channel);
@@ -837,7 +836,6 @@ tsch_init(void)
     return;
   }
 
-  TSCH_DEBUG_INIT();
   /* Init TSCH sub-modules */
   tsch_reset();
   tsch_queue_init();
@@ -937,17 +935,9 @@ packet_input(void)
 
   if(frame_parsed < 0) {
       PRINTF("TSCH:! failed to parse %u\n", packetbuf_datalen());
-#if TSCH_ADDRESS_FILTER
-  } else if(!linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                          &linkaddr_node_addr)
-            && !linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                             &linkaddr_null)) {
-    PRINTF("TSCH:! not for us\n");
-#endif /* TSCH_ADDRESS_FILTER */
   } else {
     int duplicate = 0;
 
-#if TSCH_802154_DUPLICATE_DETECTION
     /* Seqno of 0xffff means no seqno */
     if(packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO) != 0xffff) {
       /* Check for duplicate packet by comparing the sequence number
@@ -974,7 +964,6 @@ packet_input(void)
                       packetbuf_addr(PACKETBUF_ADDR_SENDER));
       }
     }
-#endif /* TSCH_802154_DUPLICATE_DETECTION */
 
     if(!duplicate) {
       PRINTF("TSCH: received from %u with seqno %u\n",

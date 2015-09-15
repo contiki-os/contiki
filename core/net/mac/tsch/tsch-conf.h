@@ -40,28 +40,11 @@
 #ifndef __TSCH_CONF_H__
 #define __TSCH_CONF_H__
 
+/********** Includes **********/
+
 #include "contiki.h"
 
-/* TSCH debug macros, i.e. to set LEDs or GPIOs on various TSCH 
- * timeslot events */
-#ifndef TSCH_DEBUG_INIT
-#define TSCH_DEBUG_INIT()
-#endif
-#ifndef TSCH_DEBUG_INTERRUPT
-#define TSCH_DEBUG_INTERRUPT()
-#endif
-#ifndef TSCH_DEBUG_RX_EVENT
-#define TSCH_DEBUG_RX_EVENT()
-#endif
-#ifndef TSCH_DEBUG_TX_EVENT
-#define TSCH_DEBUG_TX_EVENT()
-#endif
-#ifndef TSCH_DEBUG_SLOT_START
-#define TSCH_DEBUG_SLOT_START()
-#endif
-#ifndef TSCH_DEBUG_SLOT_END
-#define TSCH_DEBUG_SLOT_END()
-#endif
+/******** Configuration *******/
 
 /* Default IEEE 802.15.4e hopping sequences, obtained from https://gist.github.com/twatteyne/2e22ee3c1a802b685695 */
 /* 16 channels, sequence length 16 */
@@ -96,180 +79,11 @@
 #define TSCH_HOPPING_SEQUENCE_MAX_LEN sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE)
 #endif
 
-/* Initializes TSCH with a 6TiSCH minimal schedule */
-#ifdef TSCH_CONF_WITH_MINIMAL_SCHEDULE
-#define TSCH_WITH_MINIMAL_SCHEDULE TSCH_CONF_WITH_MINIMAL_SCHEDULE
-#else
-#define TSCH_WITH_MINIMAL_SCHEDULE 1
-#endif
-
-/* 6TiSCH Minimal schedule slotframe length */
-#ifdef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
-#define TSCH_SCHEDULE_DEFAULT_LENGTH TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
-#else
-#define TSCH_SCHEDULE_DEFAULT_LENGTH 7
-#endif
-
-/* Max time before sending a unicast keep-alive message to the time source */
-#ifdef TSCH_CONF_KEEPALIVE_TIMEOUT
-#define TSCH_KEEPALIVE_TIMEOUT TSCH_CONF_KEEPALIVE_TIMEOUT
-#else
-/* Time to desynch assuming a drift of 40 PPM (80 PPM between two nodes) and guard time of +/-1ms: 12.5s. */
-#define TSCH_KEEPALIVE_TIMEOUT (12 * CLOCK_SECOND)
-#endif
-
-/* Max time without synchronization before leaving the PAN */
-#ifdef TSCH_CONF_DESYNC_THRESHOLD
-#define TSCH_DESYNC_THRESHOLD TSCH_CONF_DESYNC_THRESHOLD
-#else
-#define TSCH_DESYNC_THRESHOLD (4 * TSCH_KEEPALIVE_TIMEOUT)
-#endif
-
-/* Period between two consecutive EBs */
-#ifdef TSCH_CONF_EB_PERIOD
-#define TSCH_EB_PERIOD TSCH_CONF_EB_PERIOD
-#else
-#define TSCH_EB_PERIOD (4 * CLOCK_SECOND)
-#endif
-
-/* Max acceptable join priority */
-#ifdef TSCH_CONF_MAX_JOIN_PRIORITY
-#define TSCH_MAX_JOIN_PRIORITY TSCH_CONF_MAX_JOIN_PRIORITY
-#else
-#define TSCH_MAX_JOIN_PRIORITY 32
-#endif
-
-/* Max number of links */
-#ifdef TSCH_CONF_MAX_LINKS
-#define TSCH_MAX_LINKS TSCH_CONF_MAX_LINKS
-#else
-#define TSCH_MAX_LINKS 32
-#endif
-
-/* TSCH MAC parameters */
-#ifdef TSCH_CONF_MAC_MIN_BE
-#define TSCH_MAC_MIN_BE TSCH_CONF_MAC_MIN_BE
-#else
-#define TSCH_MAC_MIN_BE 1
-#endif
-#ifdef TSCH_CONF_MAC_MAX_BE
-#define TSCH_MAC_MAX_BE TSCH_CONF_MAC_MAX_BE
-#else
-#define TSCH_MAC_MAX_BE 7
-#endif
-#ifdef TSCH_CONF_MAC_MAX_FRAME_RETRIES
-#define TSCH_MAC_MAX_FRAME_RETRIES TSCH_CONF_MAC_MAX_FRAME_RETRIES
-#else
-#define TSCH_MAC_MAX_FRAME_RETRIES 8
-#endif
-
-/* TSCH packet len */
-#define TSCH_MAX_PACKET_LEN 127
-#define TSCH_BASE_ACK_LEN 3
-#define TSCH_SYNC_IE_LEN 4
-#ifdef TSCH_CONF_PACKET_SRC_ADDR_IN_ACK
-#define TSCH_PACKET_SRC_ADDR_IN_ACK TSCH_CONF_PACKET_SRC_ADDR_IN_ACK
-#else
-#define TSCH_PACKET_SRC_ADDR_IN_ACK 0
-#endif
-#ifdef TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
-#define TSCH_PACKET_DEST_ADDR_IN_ACK TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
-#else
-#define TSCH_PACKET_DEST_ADDR_IN_ACK 1 /* Include destination address
-by default, useful in case of duplicate seqno */
-#endif
-
-#ifdef TSCH_CONF_AUTOSTART
-#define TSCH_AUTOSTART TSCH_CONF_AUTOSTART
-#else
-#define TSCH_AUTOSTART 1
-#endif
-
-#ifdef TSCH_CONF_JOIN_SECURED_ONLY
-#define TSCH_JOIN_SECURED_ONLY TSCH_CONF_JOIN_SECURED_ONLY
-#else
-#define TSCH_JOIN_SECURED_ONLY LLSEC802154_SECURITY_LEVEL
-#endif
-
-/* By default, join any PAN ID. Otherwise, wait for an EB from IEEE802154_PANID */
-#ifdef TSCH_CONF_JOIN_ANY_PANID
-#define TSCH_JOIN_ANY_PANID TSCH_CONF_JOIN_ANY_PANID
-#else
-#define TSCH_JOIN_ANY_PANID 1
-#endif
-
-/* The radio polling frequency (in Hz) during association process */
-#ifdef TSCH_CONF_ASSOCIATION_POLL_FREQUENCY
-#define TSCH_ASSOCIATION_POLL_FREQUENCY TSCH_CONF_ASSOCIATION_POLL_FREQUENCY
-#else
-#define TSCH_ASSOCIATION_POLL_FREQUENCY 100
-#endif
-
-/* When associating, check ASN against our own uptime (time in minutes) */
-#ifdef TSCH_CONF_CHECK_TIME_AT_ASSOCIATION
-#define TSCH_CHECK_TIME_AT_ASSOCIATION TSCH_CONF_CHECK_TIME_AT_ASSOCIATION
-#else
-#define TSCH_CHECK_TIME_AT_ASSOCIATION 0
-#endif
-
-#ifdef TSCH_CONF_INIT_SCHEDULE_FROM_EB
-#define TSCH_INIT_SCHEDULE_FROM_EB TSCH_CONF_INIT_SCHEDULE_FROM_EB
-#else
-#define TSCH_INIT_SCHEDULE_FROM_EB 1
-#endif
-
-#ifdef TSCH_CONF_ADDRESS_FILTER
-#define TSCH_ADDRESS_FILTER TSCH_CONF_ADDRESS_FILTER
-#else
-#define TSCH_ADDRESS_FILTER 0
-#endif /* TSCH_CONF_ADDRESS_FILTER */
-
-#ifdef TSCH_CONF_AUTOSELECT_TIME_SOURCE
-#define TSCH_AUTOSELECT_TIME_SOURCE TSCH_CONF_AUTOSELECT_TIME_SOURCE
-#else
-#define TSCH_AUTOSELECT_TIME_SOURCE 0
-#endif /* TSCH_CONF_EB_AUTOSELECT */
-
-#ifndef TSCH_802154_DUPLICATE_DETECTION
-#ifdef TSCH_CONF_802154_DUPLICATE_DETECTION
-#define TSCH_802154_DUPLICATE_DETECTION TSCH_CONF_802154_DUPLICATE_DETECTION
-#else
-#define TSCH_802154_DUPLICATE_DETECTION 1
-#endif /* TSCH_CONF_802154_AUTOACK */
-#endif /* TSCH_802154_AUTOACK */
-
-#ifdef TSCH_CONF_USE_RADIO_TIMESTAMPS
-#define TSCH_USE_RADIO_TIMESTAMPS TSCH_CONF_USE_RADIO_TIMESTAMPS
-#else
-#define TSCH_USE_RADIO_TIMESTAMPS 0
-#endif
-
-/* A callback for upper layers do decide whether to NACK or not */
-#ifdef TSCH_CALLBACK_DO_NACK
-int TSCH_CALLBACK_DO_NACK(struct tsch_link *link, linkaddr_t *src, linkaddr_t *dst);
-#endif
-
-/* Called when joining a TSCH network */
-#ifdef TSCH_CALLBACK_JOINING_NETWORK
-void TSCH_CALLBACK_JOINING_NETWORK();
-#endif
-
-/* Called when leaving a TSCH network */
-#ifdef TSCH_CALLBACK_LEAVING_NETWORK
-void TSCH_CALLBACK_LEAVING_NETWORK();
-#endif
-
-#ifdef TSCH_CONF_WITH_LINK_SELECTOR
-#define TSCH_WITH_LINK_SELECTOR TSCH_CONF_WITH_LINK_SELECTOR
-#else /* TSCH_CONF_WITH_LINK_SELECTOR */
-#define TSCH_WITH_LINK_SELECTOR 0
-#endif /* TSCH_CONF_WITH_LINK_SELECTOR */
-
 /* Timeslot timing */
 
 #ifndef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH
 #define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 10000
-#endif
+#endif /* TSCH_CONF_DEFAULT_TIMESLOT_LENGTH */
 
 /* Configurable Rx guard time is micro-seconds */
 #ifndef TSCH_CONF_RX_WAIT
@@ -342,5 +156,13 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 #else
 #error "TSCH: Unsupported default timeslot length"
 #endif
+
+/* A custom feature allowing upper layers to assign packets to
+ * a specific slotframe and link */
+#ifdef TSCH_CONF_WITH_LINK_SELECTOR
+#define TSCH_WITH_LINK_SELECTOR TSCH_CONF_WITH_LINK_SELECTOR
+#else /* TSCH_CONF_WITH_LINK_SELECTOR */
+#define TSCH_WITH_LINK_SELECTOR 0
+#endif /* TSCH_CONF_WITH_LINK_SELECTOR */
 
 #endif /* __TSCH_CONF_H__ */

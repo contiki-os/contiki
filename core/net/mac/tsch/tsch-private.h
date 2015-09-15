@@ -42,24 +42,15 @@
 #ifndef __TSCH_PRIVATE_H__
 #define __TSCH_PRIVATE_H__
 
+/********** Includes **********/
+
 #include "contiki.h"
 #include "net/linkaddr.h"
 #include "net/mac/tsch/tsch-asn.h"
 #include "net/mac/tsch/tsch-conf.h"
 #include "net/mac/tsch/tsch-log.h"
 
-/* Calculate packet tx/rx duration in rtimer ticks based on sent
- * packet len in bytes with 802.15.4 250kbps data rate.
- * One byte = 32us. Add two bytes for CRC and one for len field */
-#define TSCH_PACKET_DURATION(len) US_TO_RTIMERTICKS(32 * ((len) + 3))
-
-/* Convert rtimer ticks to clock and vice versa */
-#define TSCH_CLOCK_TO_TICKS(c) (((c)*RTIMER_SECOND)/CLOCK_SECOND)
-#define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c)/timeslot_length)
-
-/* Wait for a condition with timeout t0+offset. */
-#define BUSYWAIT_UNTIL_ABS(cond, t0, offset) \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), (t0) + (offset)));
+/************ Types ***********/
 
 /* TSCH timeslot timing elements. Used to index timeslot timing
  * of different units, such as rtimer tick or micro-second */
@@ -78,6 +69,8 @@ enum tsch_timeslot_timing_elements {
   tsch_ts_timeslot_length,
   tsch_ts_elements_count, /* Not a timing element */
 };
+
+/***** External Variables *****/
 
 /* 802.15.4 broadcast MAC address */
 extern const linkaddr_t tsch_broadcast_address;
@@ -99,14 +92,31 @@ extern struct asn_divisor_t tsch_hopping_sequence_length;
 /* TSCH timeslot timing (in rtimer ticks) */
 extern rtimer_clock_t tsch_timing[tsch_ts_elements_count];
 
+/* TSCH processes */
+PROCESS_NAME(tsch_process);
+PROCESS_NAME(tsch_send_eb_process);
+PROCESS_NAME(tsch_pending_events_process);
+
+/********** Functions *********/
+
 /* Set TSCH to send a keepalive message after TSCH_KEEPALIVE_TIMEOUT */
 void tsch_schedule_keepalive(void);
 /* Leave the TSCH network */
 void tsch_disassociate(void);
 
-/* TSCH processes */
-PROCESS_NAME(tsch_process);
-PROCESS_NAME(tsch_send_eb_process);
-PROCESS_NAME(tsch_pending_events_process);
+/************ Macros **********/
+
+/* Calculate packet tx/rx duration in rtimer ticks based on sent
+ * packet len in bytes with 802.15.4 250kbps data rate.
+ * One byte = 32us. Add two bytes for CRC and one for len field */
+#define TSCH_PACKET_DURATION(len) US_TO_RTIMERTICKS(32 * ((len) + 3))
+
+/* Convert rtimer ticks to clock and vice versa */
+#define TSCH_CLOCK_TO_TICKS(c) (((c)*RTIMER_SECOND)/CLOCK_SECOND)
+#define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c)/timeslot_length)
+
+/* Wait for a condition with timeout t0+offset. */
+#define BUSYWAIT_UNTIL_ABS(cond, t0, offset) \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), (t0) + (offset)));
 
 #endif /* __TSCH_PRIVATE_H__ */

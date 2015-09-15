@@ -33,6 +33,8 @@
 #ifndef __TSCH_SCHEDULE_H__
 #define __TSCH_SCHEDULE_H__
 
+/********** Includes **********/
+
 #include "contiki.h"
 #include "lib/list.h"
 #include "net/mac/tsch/tsch-private.h"
@@ -40,11 +42,45 @@
 #include "net/mac/tsch/tsch-slot-operation.h"
 #include "net/linkaddr.h"
 
+/******** Configuration *******/
+
+/* Initializes TSCH with a 6TiSCH minimal schedule */
+#ifdef TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL
+#define TSCH_SCHEDULE_WITH_6TISCH_MINIMAL TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL
+#else
+#define TSCH_SCHEDULE_WITH_6TISCH_MINIMAL 1
+#endif
+
+/* 6TiSCH Minimal schedule slotframe length */
+#ifdef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
+#define TSCH_SCHEDULE_DEFAULT_LENGTH TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
+#else
+#define TSCH_SCHEDULE_DEFAULT_LENGTH 7
+#endif
+
+/* Max number of TSCH slotframes */
+#ifdef TSCH_SCHEDULE_CONF_MAX_SLOTFRAMES
+#define TSCH_SCHEDULE_MAX_SLOTFRAMES TSCH_SCHEDULE_CONF_MAX_SLOTFRAMES
+#else
+#define TSCH_SCHEDULE_MAX_SLOTFRAMES 4
+#endif
+
+/* Max number of links */
+#ifdef TSCH_SCHEDULE_CONF_MAX_LINKS
+#define TSCH_SCHEDULE_MAX_LINKS TSCH_SCHEDULE_CONF_MAX_LINKS
+#else
+#define TSCH_SCHEDULE_MAX_LINKS 32
+#endif
+
+/********** Constants *********/
+
 /* Link options */
 #define LINK_OPTION_TX              1
 #define LINK_OPTION_RX              2
 #define LINK_OPTION_SHARED          4
 #define LINK_OPTION_TIME_KEEPING    8
+
+/************ Types ***********/
 
 /* 802.15.4e link types.
  * LINK_TYPE_ADVERTISING_ONLY is an extra one: for EB-only links. */
@@ -87,6 +123,8 @@ struct tsch_slotframe {
   /* List of links belonging to this slotframe */
   LIST_STRUCT(links_list);
 };
+
+/********** Functions *********/
 
 /* Initialization. Return 1 is success, 0 if failure. */
 int tsch_schedule_init();

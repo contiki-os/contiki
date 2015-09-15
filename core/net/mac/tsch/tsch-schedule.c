@@ -61,17 +61,10 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
-/* Max number of TSCH slotframes */
-#ifdef TSCH_CONF_MAX_SLOTFRAMES
-#define TSCH_MAX_SLOTFRAMES TSCH_CONF_MAX_SLOTFRAMES
-#else
-#define TSCH_MAX_SLOTFRAMES 4
-#endif
-
 /* Pre-allocated space for links */
-MEMB(link_memb, struct tsch_link, TSCH_MAX_LINKS);
+MEMB(link_memb, struct tsch_link, TSCH_SCHEDULE_MAX_LINKS);
 /* Pre-allocated space for slotframes */
-MEMB(slotframe_memb, struct tsch_slotframe, TSCH_MAX_SLOTFRAMES);
+MEMB(slotframe_memb, struct tsch_slotframe, TSCH_SCHEDULE_MAX_SLOTFRAMES);
 /* List of slotframes (each slotframe holds its own list of links) */
 LIST(slotframe_list);
 

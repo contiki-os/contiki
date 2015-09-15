@@ -21,7 +21,7 @@ To use Orchestra, add a couple global definitions, e.g in your `project-conf.h` 
 
 Disable 6TiSCH minimal schedule:
 
-`#define TSCH_CONF_WITH_MINIMAL_SCHEDULE 0`
+`#define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0`
 
 Enable TSCH link selector (allows Orchestra to assign TSCH links to outgoing packets):
 
