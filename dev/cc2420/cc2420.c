@@ -320,9 +320,7 @@ get_object(radio_param_t param, void *dest, size_t size)
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-
     *(rtimer_clock_t*)dest = cc2420_sfd_start_time;
-
     return RADIO_RESULT_OK;
 #else
     return RADIO_RESULT_NOT_SUPPORTED;
@@ -645,12 +643,10 @@ cc2420_init(void)
   /* Turn on/off automatic packet acknowledgment and address decoding. */
   reg = getreg(CC2420_MDMCTRL0);
 
-#if CC2420_CONF_AUTOACK
-  reg |= AUTOACK | ADR_DECODE;
-#else
-  reg &= ~(AUTOACK | ADR_DECODE);
-#endif /* CC2420_CONF_AUTOACK */
-  
+  /* Set auto-ack and frame filtering */
+  set_auto_ack(CC2420_CONF_AUTOACK);
+  set_frame_filtering(CC2420_CONF_AUTOACK);
+
   /* Enabling CRC in hardware; this is required by AUTOACK anyway
      and provides us with RSSI and link quality indication (LQI)
      information. */
