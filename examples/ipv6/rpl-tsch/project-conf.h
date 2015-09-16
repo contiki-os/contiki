@@ -62,7 +62,11 @@
 #define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network
 #define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
 
-/* Needed for CC2420 */
+/* Needed for cc2420 platforms only */
+/* Disable DCO calibration (uses timerB) */
+#undef DCOSYNCH_CONF_ENABLED
+#define DCOSYNCH_CONF_ENABLED            0
+/* Enable SFD timestamps (uses timerB) */
 #undef CC2420_CONF_SFD_TIMESTAMPS
 #define CC2420_CONF_SFD_TIMESTAMPS       1
 

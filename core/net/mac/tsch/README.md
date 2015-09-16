@@ -107,7 +107,11 @@ If you are running with RPL, it is recommended to enable the `tsch-rpl` module w
 On CC2420-based platforms, enable SFD timestamps with:
 
 ```
-/* Needed for CC2420 */
+/* Disable DCO calibration (uses timerB) */
+#undef DCOSYNCH_CONF_ENABLED
+#define DCOSYNCH_CONF_ENABLED			 0
+
+/* Enable SFD timestamps (uses timerB) */
 #undef CC2420_CONF_SFD_TIMESTAMPS
 #define CC2420_CONF_SFD_TIMESTAMPS       1
 ```
