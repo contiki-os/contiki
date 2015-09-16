@@ -84,7 +84,7 @@ PROCESS_THREAD(node_process, ev, data)
                                 (data == &button_sensor) && button_sensor.value(0) > 0)
                                || etimer_expired(&et));
       if(ev == sensors_event && data == &button_sensor && button_sensor.value(0) > 0) {
-        node_role = (node_role + 1) % 3;
+        node_role = (node_role + 1) % 2;
         etimer_restart(&et);
       }
     }
