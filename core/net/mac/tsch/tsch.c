@@ -801,8 +801,8 @@ tsch_init(void)
     printf("TSCH:! radio does not support getting RADIO_PARAM_RX_MODE. Abort init.\n");
     return;
   }
-  /* Set radio in frame filtering */
-  radio_rx_mode |= RADIO_RX_MODE_ADDRESS_FILTER;
+  /* Disable radio in frame filtering */
+  radio_rx_mode &= ~RADIO_RX_MODE_ADDRESS_FILTER;
   /* Unset autoack */
   radio_rx_mode &= ~RADIO_RX_MODE_AUTOACK;
   /* Set radio in poll mode */
