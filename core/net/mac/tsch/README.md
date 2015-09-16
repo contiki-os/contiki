@@ -118,6 +118,29 @@ On CC2420-based platforms, enable SFD timestamps with:
 
 To configure TSCH, see the macros in `.h` files under `core/net/mac/tsch/` and redefine your own in your `project-conf.h`.
 
+## Using TSCH with Security
+
+To compile TSCH with standard security, set the following:
+```
+/* Enable security */
+#undef LLSEC802154_CONF_SECURITY_LEVEL
+#define LLSEC802154_CONF_SECURITY_LEVEL 1
+/* TSCH uses explicit keys to identify k1 and k2 */
+#undef LLSEC802154_CONF_USES_EXPLICIT_KEYS
+#define LLSEC802154_CONF_USES_EXPLICIT_KEYS 1
+/* TSCH uses the ASN rather than frame counter to construct the Nonce */
+#undef LLSEC802154_CONF_USES_FRAME_COUNTER
+#define LLSEC802154_CONF_USES_FRAME_COUNTER 0
+```
+
+The keys can be configured in `net/mac/tsch/tsch-security.h`.
+Nodes handle security level and keys dynamically, i.e. as specified by the frame header rather that compile-time defined.
+By default, when enabling security, the PAN coordinator will transmit secured EBs.
+Use `tsch_set_pan_secured` to explicitly ask the coordinator to secure EBs or not.
+When associating, nodes can with security enabled can join both secured or non-secured networks.
+Set `TSCH_CONF_JOIN_SECURED_ONLY` to force joining secured networks only.
+Likewise, set `TSCH_JOIN_MY_PANID_ONLY` to force joining networks with a specific PANID only.
+
 ## Porting TSCH to a new platform
 
 Porting TSCH to a new platform requires a few new features in the radio driver, a number of timing-related configuration paramters.
