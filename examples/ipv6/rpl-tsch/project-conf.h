@@ -42,7 +42,7 @@
 
 /* Set to enable TSCH security */
 #ifndef WITH_SECURITY
-#define WITH_SECURITY 1
+#define WITH_SECURITY 0
 #endif /* WITH_SECURITY */
 
 /*******************************************************/
