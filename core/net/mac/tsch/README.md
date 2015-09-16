@@ -120,7 +120,7 @@ To configure TSCH, see the macros in `.h` files under `core/net/mac/tsch/` and r
 
 ## Using TSCH with Security
 
-To compile TSCH with standard security, set the following:
+To include TSCH standard-compliant security, set the following:
 ```
 /* Enable security */
 #undef LLSEC802154_CONF_SECURITY_LEVEL
@@ -134,10 +134,12 @@ To compile TSCH with standard security, set the following:
 ```
 
 The keys can be configured in `net/mac/tsch/tsch-security.h`.
-Nodes handle security level and keys dynamically, i.e. as specified by the frame header rather that compile-time defined.
-By default, when enabling security, the PAN coordinator will transmit secured EBs.
+Nodes handle security level and keys dynamically, i.e. as specified by the incoming frame header rather that compile-time defined.
+
+By default, when including security, the PAN coordinator will transmit secured EBs.
 Use `tsch_set_pan_secured` to explicitly ask the coordinator to secure EBs or not.
-When associating, nodes can with security enabled can join both secured or non-secured networks.
+
+When associating, nodes with security included can join both secured or non-secured networks.
 Set `TSCH_CONF_JOIN_SECURED_ONLY` to force joining secured networks only.
 Likewise, set `TSCH_JOIN_MY_PANID_ONLY` to force joining networks with a specific PANID only.
 
