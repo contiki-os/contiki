@@ -67,18 +67,18 @@ PROCESS_THREAD(node_process, ev, data)
 
   /* 3 possible roles:
    * - role_6ln: simple node, will join any network, secured or not
-   * - role_6dg: DAG root, will advertise (unsecured) beacons
-   * - role_6dg_sec: DAG root, will advertise secured beacons
+   * - role_6dr: DAG root, will advertise (unsecured) beacons
+   * - role_6dr_sec: DAG root, will advertise secured beacons
    * */
   static int is_coordinator = 0;
-  static enum { role_6ln, role_6dg, role_6dg_sec } node_role;
+  static enum { role_6ln, role_6dr, role_6dr_sec } node_role;
 
   /* Set node with ID == 1 as coordinator, handy in Cooja. */
   if(node_id == 1) {
     if(LLSEC802154_CONF_SECURITY_LEVEL) {
-      node_role = role_6dg_sec;
+      node_role = role_6dr_sec;
     } else {
-      node_role = role_6dg;
+      node_role = role_6dr;
     }
   } else {
     node_role = role_6ln;
@@ -94,7 +94,7 @@ PROCESS_THREAD(node_process, ev, data)
 
     while(!etimer_expired(&et)) {
       printf("Init: current role: %s. Will start in %u seconds.\n",
-          node_role == role_6ln ? "6ln" : (node_role == role_6dg) ? "6dg" : "6dg-sec",
+          node_role == role_6ln ? "6ln" : (node_role == role_6dr) ? "6dr" : "6dr-sec",
           CONFIG_WAIT_TIME);
       PROCESS_WAIT_EVENT_UNTIL(((ev == sensors_event) &&
                                 (data == &button_sensor) && button_sensor.value(0) > 0)
@@ -109,10 +109,10 @@ PROCESS_THREAD(node_process, ev, data)
 #endif /* CONFIG_VIA_BUTTON */
 
   printf("Init: node starting with role %s\n",
-      node_role == role_6ln ? "6ln" : (node_role == role_6dg) ? "6dg" : "6dg-sec");
+      node_role == role_6ln ? "6ln" : (node_role == role_6dr) ? "6dr" : "6dr-sec");
 
 #if WITH_TSCH
-  tsch_is_pan_secured = LLSEC802154_CONF_SECURITY_LEVEL && (node_role == role_6dg_sec);
+  tsch_is_pan_secured = LLSEC802154_CONF_SECURITY_LEVEL && (node_role == role_6dr_sec);
 #endif /* WITH_TSCH */
   is_coordinator = node_role > role_6ln;
 
