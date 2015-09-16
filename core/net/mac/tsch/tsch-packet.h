@@ -60,8 +60,6 @@ by default, useful in case of duplicate seqno */
 
 /* Max TSCH packet lenght */
 #define TSCH_PACKET_MAX_LEN 127
-/* Base length for ACK frames */
-#define TSCH_PACKET_BASE_ACK_LEN 3
 
 /********** Functions *********/
 
