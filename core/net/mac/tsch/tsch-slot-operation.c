@@ -94,9 +94,8 @@
 #endif
 
 /* Truncate received drift correction information to maximum half
- * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT). */
-#define TRUNCATE_SYNC_IE 1
-#define TRUNCATE_SYNC_IE_BOUND ((int32_t)US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_WAIT/4))
+ * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT) */
+#define SYNC_IE_BOUND ((int32_t)US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_WAIT/4))
 
 /* By default: check that rtimer runs at >=32kHz and use a guard time of 100us */
 #if RTIMER_SECOND < 32*1024
@@ -536,11 +535,10 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               if(ack_len != 0) {
                 if(is_time_source) {
                   int32_t eack_time_correction = US_TO_RTIMERTICKS(ack_ies.ie_time_correction);
-#if TRUNCATE_SYNC_IE
-                  if(eack_time_correction > TRUNCATE_SYNC_IE_BOUND) {
-                    drift_correction = TRUNCATE_SYNC_IE_BOUND;
-                  } else if(eack_time_correction < -TRUNCATE_SYNC_IE_BOUND) {
-                    drift_correction = -TRUNCATE_SYNC_IE_BOUND;
+                  if(eack_time_correction > SYNC_IE_BOUND) {
+                    drift_correction = SYNC_IE_BOUND;
+                  } else if(eack_time_correction < -SYNC_IE_BOUND) {
+                    drift_correction = -SYNC_IE_BOUND;
                   } else {
                     drift_correction = eack_time_correction;
                   }
@@ -550,9 +548,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
                             "!truncated dr %d %d", (int)eack_time_correction, (int)drift_correction);
                     );
                   }
-#else /* TRUNCATE_SYNC_IE */
-                  drift_correction = ack_ies.ie_time_correction;
-#endif /* TRUNCATE_SYNC_IE */
                   drift_neighbor = current_neighbor;
                   /* Keep track of sync time */
                   last_sync_asn = current_asn;
