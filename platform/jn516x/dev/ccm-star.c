@@ -42,7 +42,7 @@
 #include <AHI_AES.h>
 #include <string.h>
 
-static uint8_t current_key[16];
+uint8_t current_key[16];
 static int current_key_is_new = 1;
 
 /*---------------------------------------------------------------------------*/
