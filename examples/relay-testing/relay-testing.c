@@ -66,13 +66,18 @@ PROCESS_THREAD(hello_world_process, ev, data)
 
     if(ev == PROCESS_EVENT_TIMER) {
         
-      	if(count %2 == 0){
+/*      if(count %2 == 0){
 		relay_on(PORT_D,LED_RELAY_PIN);
       	}
       	else {  
        		relay_off(PORT_D,LED_RELAY_PIN);
-      	}
-	
+      	} */
+	if(count %2 == 0)
+	{	
+		relay_toggle(PORT_D,LED_RELAY_PIN);
+		relay_status(PORT_D,LED_RELAY_PIN);
+	}
+
 	count ++;
 	etimer_reset(&timer);
     }

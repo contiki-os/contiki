@@ -112,3 +112,57 @@ void relay_off(unsigned long port_addr, unsigned char pin)
   
 }
 /*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------
+Function Name : relay_status     
+INPUT Parmaters : port_address  Possible values :  { GPIO_A_BASE , GPIO_B_BASE ,GPIO_C_BASE, GPIO_D_BASE }
+	          pin      	Possible values :  { Pin 0: 0, Pin 1: 1, Pin 2: 2... Pin 7: 7 }
+OUTPUT Paramaters : int  < value on pin read >
+---------------------------------------------------------------------------*/
+int relay_status(unsigned long port_addr, unsigned char pin)
+{
+  if((_RELAY_STATUS & INITED)) {
+  
+     if ( GPIO_READ_PIN(port_addr,(1<<pin)) == 0 )
+     {
+     	printf("relay_status()  read value for PORTBASE_ADDR : 0x%x , PIN : %d  is OFF\r\n",port_addr,pin );
+        return 0; 
+     }
+     else {
+	printf("relay_status() read value for PORTBASE_ADDR : 0x%x , PIN : %d  is ON\r\n",port_addr,pin );
+	return 1;    
+     }
+  }
+  
+}
+/*---------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------------------------------------
+Function Name : relay_toggle     
+INPUT Parmaters : port_address  Possible values :  { GPIO_A_BASE , GPIO_B_BASE ,GPIO_C_BASE, GPIO_D_BASE }
+	          pin      	Possible values :  { Pin 0: 0, Pin 1: 1, Pin 2: 2... Pin 7: 7 }
+OUTPUT Paramaters : None
+---------------------------------------------------------------------------*/
+void relay_toggle(unsigned long port_addr, unsigned char pin)
+{
+  if((_RELAY_STATUS & INITED)) {
+  
+     if ( GPIO_READ_PIN(port_addr,(1<<pin)) == 0 )
+     {
+     	GPIO_SET_PIN(port_addr,(1<<pin));
+	printf("relay_toggle() from OFF to ON  for PORTBASE_ADDR : 0x%x , PIN : %d  \r\n",port_addr,pin );
+         
+     }
+     else {
+	GPIO_CLR_PIN(port_addr,(1<<pin));
+	printf("relay_toggle() from ON to OFF  for PORTBASE_ADDR : 0x%x , PIN : %d  \r\n",port_addr,pin );
+	  
+     }
+  }
+}
+/*---------------------------------------------------------------------------*/
+
+
+
+
