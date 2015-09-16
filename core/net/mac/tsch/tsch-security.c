@@ -83,7 +83,7 @@ aead(const uint8_t* nonce,
   }
 
   CCM_STAR.mic(
-    m, m_len,
+    (const uint8_t *)m, m_len,
     nonce,
     a, a_len,
     result,
@@ -186,7 +186,7 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
 }
 
 int
-tsch_security_parse_frame(uint8_t *hdr, int hdrlen, int datalen,
+tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
     frame802154_t *frame, const linkaddr_t *sender, struct asn_t *asn)
 {
   uint8_t generated_mic[16];
@@ -235,8 +235,8 @@ tsch_security_parse_frame(uint8_t *hdr, int hdrlen, int datalen,
   CCM_STAR.set_key(keys[key_index - 1]);
 
   aead(nonce,
-      hdr + a_len, m_len,
-      hdr, a_len,
+      (uint8_t *)hdr + a_len, m_len,
+      (uint8_t *)hdr, a_len,
       generated_mic, mic_len, 0
   );
 

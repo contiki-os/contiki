@@ -37,6 +37,7 @@
 
 #include "contiki.h"
 #include "net/mac/mac.h"
+#include "net/mac/tsch/tsch-security.h"
 
 /******** Configuration *******/
 
@@ -83,15 +84,15 @@
 #ifdef TSCH_CONF_JOIN_SECURED_ONLY
 #define TSCH_JOIN_SECURED_ONLY TSCH_CONF_JOIN_SECURED_ONLY
 #else
-/* By default, set if LLSEC802154_SECURITY_LEVEL is also non-zero */
-#define TSCH_JOIN_SECURED_ONLY LLSEC802154_SECURITY_LEVEL
+/* By default, set if TSCH_SECURITY_ENABLED is also non-zero */
+#define TSCH_JOIN_SECURED_ONLY TSCH_SECURITY_ENABLED
 #endif
 
 /* By default, join any PAN ID. Otherwise, wait for an EB from IEEE802154_PANID */
-#ifdef TSCH_CONF_JOIN_ANY_PANID
-#define TSCH_JOIN_ANY_PANID TSCH_CONF_JOIN_ANY_PANID
+#ifdef TSCH_CONF_JOIN_MY_PANID_ONLY
+#define TSCH_JOIN_MY_PANID_ONLY TSCH_CONF_JOIN_MY_PANID_ONLY
 #else
-#define TSCH_JOIN_ANY_PANID 1
+#define TSCH_JOIN_MY_PANID_ONLY 0
 #endif
 
 /* The radio polling frequency (in Hz) during association process */
@@ -143,6 +144,12 @@ void TSCH_CALLBACK_LEAVING_NETWORK();
 
 /***** External Variables *****/
 
+/* Are we coordinator of the TSCH network? */
+extern int tsch_is_coordinator;
+/* Are we associated to a TSCH network? */
+extern int tsch_is_associated;
+/* Is the PAN running link-layer security? */
+extern int tsch_is_pan_secured;
 /* The TSCH MAC driver */
 extern const struct mac_driver tschmac_driver;
 
@@ -154,5 +161,7 @@ void tsch_set_join_priority(uint8_t jp);
 void tsch_set_eb_period(uint32_t period);
 /* Set the node as PAN coordinator */
 void tsch_set_coordinator(int enable);
+/* Set the pan as secured or not */
+void tsch_set_pan_secured(int enable);
 
 #endif /* __TSCH_H__ */

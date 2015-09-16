@@ -86,7 +86,7 @@ PROCESS_THREAD(node_process, ev, data)
 
 #if CONFIG_VIA_BUTTON
   {
-#define CONFIG_WAIT_TIME 10
+#define CONFIG_WAIT_TIME 5
     static struct etimer et;
 
     SENSORS_ACTIVATE(button_sensor);
@@ -112,7 +112,7 @@ PROCESS_THREAD(node_process, ev, data)
       node_role == role_6ln ? "6ln" : (node_role == role_6dr) ? "6dr" : "6dr-sec");
 
 #if WITH_TSCH
-  tsch_is_pan_secured = LLSEC802154_CONF_SECURITY_LEVEL && (node_role == role_6dr_sec);
+  tsch_set_pan_secured(LLSEC802154_CONF_SECURITY_LEVEL && (node_role == role_6dr_sec));
 #endif /* WITH_TSCH */
   is_coordinator = node_role > role_6ln;
 

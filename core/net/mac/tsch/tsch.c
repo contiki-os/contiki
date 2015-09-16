@@ -52,6 +52,7 @@
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-log.h"
 #include "net/mac/tsch/tsch-packet.h"
+#include "net/mac/tsch/tsch-security.h"
 #include "lib/random.h"
 
 #if FRAME802154_VERSION < FRAME802154_IEEE802154E_2012
@@ -135,7 +136,7 @@ int tsch_is_coordinator = 0;
 /* Are we associated to a TSCH network? */
 int tsch_is_associated = 0;
 /* Is the PAN running link-layer security? */
-int tsch_is_pan_secured = LLSEC802154_SECURITY_LEVEL;
+int tsch_is_pan_secured = TSCH_SECURITY_ENABLED;
 /* The current Absolute Slot Number (ASN) */
 struct asn_t current_asn;
 /* Device rank or join priority:
@@ -161,12 +162,17 @@ static void packet_input(void);
 /* Getters and setters */
 
 /*---------------------------------------------------------------------------*/
-/* Set the node as PAN coordinator */
 void
 tsch_set_coordinator(int enable)
 {
   tsch_is_coordinator = enable;
   tsch_set_eb_period(TSCH_EB_PERIOD);
+}
+/*---------------------------------------------------------------------------*/
+void
+tsch_set_pan_secured(int enable)
+{
+  tsch_is_pan_secured = TSCH_SECURITY_ENABLED && enable;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -443,29 +449,36 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     return 0;
   }
   
-#if LLSEC802154_SECURITY_LEVEL
+#if TSCH_SECURITY_ENABLED
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
       input_eb->len - hdrlen - tsch_security_mic_len(&frame),
       &frame, (linkaddr_t*)&frame.src_addr, &current_asn)) {
     PRINTF("TSCH:! parse_eb: failed to authenticate\n");
     return 0;
   }
-#endif
+#endif /* TSCH_SECURITY_ENABLED */
   
 #if TSCH_JOIN_SECURED_ONLY
   if(frame.fcf.security_enabled == 0) {
     PRINTF("TSCH:! parse_eb: EB is not secured\n");
     return 0;
   }
-#endif
+#endif /* TSCH_JOIN_SECURED_ONLY */
   
-#if TSCH_JOIN_ANY_PANID == 0
+#if !TSCH_SECURITY_ENABLED
+  if(frame.fcf.security_enabled == 1) {
+    PRINTF("TSCH:! parse_eb: EB is secured\n");
+    return 0;
+  }
+#endif /* !TSCH_SECURITY_ENABLED */
+
+#if TSCH_JOIN_MY_PANID_ONLY
   /* Check if the EB comes from the PAN ID we expact */
   if(frame.src_pid != IEEE802154_PANID) {
     PRINTF("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
     return 0;
   }
-#endif /* TSCH_JOIN_ANY_PANID == 0 */
+#endif /* TSCH_JOIN_MY_PANID_ONLY */
   
   /* There was no join priority (or 0xff) in the EB, do not join */
   if(ies.ie_join_priority == 0xff) {
@@ -733,14 +746,14 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         }
         packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
         packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
-#if LLSEC802154_SECURITY_LEVEL
+#if TSCH_SECURITY_ENABLED
         if(tsch_is_pan_secured) {
           /* Set security level, key id and index */
           packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_EB);
           packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
           packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_EB);
         }
-#endif
+#endif /* TSCH_SECURITY_ENABLED */
         eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
             tsch_packet_seqno, &hdr_len, &tsch_sync_ie_offset);
         if(eb_len != 0) {
@@ -888,14 +901,14 @@ send_packet(mac_callback_t sent, void *ptr)
   }
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
 
-#if LLSEC802154_SECURITY_LEVEL
+#if TSCH_SECURITY_ENABLED
   if(tsch_is_pan_secured) {
     /* Set security level, key id and index */
     packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_OTHER);
     packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
     packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_OTHER);
   }
-#endif
+#endif /* TSCH_SECURITY_ENABLED */
 
   packet_count_before = tsch_queue_packet_count(addr);
 

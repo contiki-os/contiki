@@ -40,6 +40,7 @@
 #include "node-id.h"
 #include "net/rpl/rpl.h"
 #include "net/ipv6/uip-ds6-route.h"
+#include "net/mac/tsch/tsch.h"
 #if WITH_ORCHESTRA
 #include "orchestra.h"
 #endif /* WITH_ORCHESTRA */
@@ -114,8 +115,8 @@ net_init(uip_ipaddr_t *br_prefix)
 {
   uip_ipaddr_t global_ipaddr;
 
-  if(br_prefix) { /* We are root */
-    NETSTACK_RDC.off(1);
+  if(br_prefix) { /* We are RPL root. Will be set automatically
+                     as TSCH pan coordinator via the tsch-rpl module */
     memcpy(&global_ipaddr, br_prefix, 16);
     uip_ds6_set_addr_iid(&global_ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&global_ipaddr, 0, ADDR_AUTOCONF);
@@ -133,29 +134,36 @@ PROCESS_THREAD(node_process, ev, data)
   PROCESS_BEGIN();
 
   /* 3 possible roles:
-   * - role_6ln: simple node, will join any network, secured or not
-   * - role_6dg: DAG root, will advertise (unsecured) beacons
-   * */
+     * - role_6ln: simple node, will join any network, secured or not
+     * - role_6dr: DAG root, will advertise (unsecured) beacons
+     * - role_6dr_sec: DAG root, will advertise secured beacons
+     * */
   static int is_coordinator = 0;
-  static enum { role_6ln, role_6dr } node_role;
+  static enum { role_6ln, role_6dr, role_6dr_sec } node_role;
   node_role = role_6ln;
   
-  /* Default configuration for node 1 is DAGRoot, useful in Cooja */
+  /* Set node with ID == 1 as coordinator, convenient in Cooja. */
   if(node_id == 1) {
-    node_role = role_6dr;
+    if(LLSEC802154_CONF_SECURITY_LEVEL) {
+      node_role = role_6dr_sec;
+    } else {
+      node_role = role_6dr;
+    }
+  } else {
+    node_role = role_6ln;
   }
 
 #if CONFIG_VIA_BUTTON
   {
-#define CONFIG_WAIT_TIME 10
+#define CONFIG_WAIT_TIME 5
 
     SENSORS_ACTIVATE(button_sensor);
     etimer_set(&et, CLOCK_SECOND * CONFIG_WAIT_TIME);
 
     while(!etimer_expired(&et)) {
       printf("Init: current role: %s. Will start in %u seconds.\n",
-             node_role == role_6ln ? "6ln" : "6dr",
-             CONFIG_WAIT_TIME);
+                node_role == role_6ln ? "6ln" : (node_role == role_6dr) ? "6dr" : "6dr-sec",
+                CONFIG_WAIT_TIME);
       PROCESS_WAIT_EVENT_UNTIL(((ev == sensors_event) &&
                                 (data == &button_sensor) && button_sensor.value(0) > 0)
                                || etimer_expired(&et));
@@ -169,8 +177,9 @@ PROCESS_THREAD(node_process, ev, data)
 #endif /* CONFIG_VIA_BUTTON */
 
   printf("Init: node starting with role %s\n",
-         node_role == role_6ln ? "6ln" : "6dr");
+      node_role == role_6ln ? "6ln" : (node_role == role_6dr) ? "6dr" : "6dr-sec");
 
+  tsch_set_pan_secured(LLSEC802154_CONF_SECURITY_LEVEL && (node_role == role_6dr_sec));
   is_coordinator = node_role > role_6ln;
 
   if(is_coordinator) {

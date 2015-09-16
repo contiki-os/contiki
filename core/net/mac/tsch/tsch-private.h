@@ -80,12 +80,6 @@ extern const linkaddr_t tsch_eb_address;
 extern struct asn_t current_asn;
 extern uint8_t tsch_join_priority;
 extern struct tsch_link *current_link;
-/* Are we coordinator of the TSCH network? */
-extern int tsch_is_coordinator;
-/* Are we associated to a TSCH network? */
-extern int tsch_is_associated;
-/* Is the PAN running link-layer security? */
-extern int tsch_is_pan_secured;
 /* TSCH channel hopping sequence */
 extern uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];
 extern struct asn_divisor_t tsch_hopping_sequence_length;

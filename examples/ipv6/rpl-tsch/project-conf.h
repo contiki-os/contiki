@@ -40,6 +40,11 @@
 #define WITH_ORCHESTRA 0
 #endif /* WITH_ORCHESTRA */
 
+/* Set to enable TSCH security */
+#ifndef WITH_SECURITY
+#define WITH_SECURITY 1
+#endif /* WITH_SECURITY */
+
 /*******************************************************/
 /********************* Enable TSCH *********************/
 /*******************************************************/
@@ -82,9 +87,33 @@
 #undef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID 0xabcd
 
-#if WITH_ORCHESTRA
-/* See apps/orchestra/README.md for more Orchestra configuration options */
+/* Do not start TSCH at init, wait for NETSTACK_MAC.on() */
+#undef TSCH_CONF_AUTOSTART
+#define TSCH_CONF_AUTOSTART 0
 
+#if WITH_SECURITY
+
+/* Enable security */
+#undef LLSEC802154_CONF_SECURITY_LEVEL
+#define LLSEC802154_CONF_SECURITY_LEVEL 1
+/* TSCH uses explicit keys to identify k1 and k2 */
+#undef LLSEC802154_CONF_USES_EXPLICIT_KEYS
+#define LLSEC802154_CONF_USES_EXPLICIT_KEYS 1
+/* TSCH uses the ASN rather than frame counter to construct the Nonce */
+#undef LLSEC802154_CONF_USES_FRAME_COUNTER
+#define LLSEC802154_CONF_USES_FRAME_COUNTER 0
+
+/* Note: on sky or z1 in cooja, crypto operations are done in S/W and
+ * cannot be accommodated in normal slots. Use 65ms slots instead.
+ * #undef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH
+ * #define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 65000
+ */
+
+#endif /* WITH_SECURITY */
+
+#if WITH_ORCHESTRA
+
+/* See apps/orchestra/README.md for more Orchestra configuration options */
 #define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0 /* No 6TiSCH minimal schedule */
 #define TSCH_CONF_WITH_LINK_SELECTOR 1 /* Orchestra requires per-packet link selection */
 /* Orchestra callbacks */

@@ -51,6 +51,7 @@
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-log.h"
 #include "net/mac/tsch/tsch-packet.h"
+#include "net/mac/tsch/tsch-security.h"
 
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
@@ -388,10 +389,10 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
     } else {
       /* packet payload */
       static void *packet;
-#if LLSEC802154_SECURITY_LEVEL
+#if TSCH_SECURITY_ENABLED
       /* encrypted payload */
       static uint8_t encrypted_packet[TSCH_PACKET_MAX_LEN];
-#endif
+#endif /* TSCH_SECURITY_ENABLED */
       /* packet payload length */
       static uint8_t packet_len;
       /* packet seqno */
@@ -419,19 +420,18 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
         packet_ready = 1;
       }
 
-#if LLSEC802154_SECURITY_LEVEL
+#if TSCH_SECURITY_ENABLED
       if(tsch_is_pan_secured) {
         /* If we are going to encrypt, we need to generate the output in a separate buffer and keep
          * the original untouched. This is to allow for future retransmissions. */
         int with_encryption = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL) & 0x4;
-        with_encryption = 1;
         packet_len += tsch_security_secure_frame(packet, with_encryption ? encrypted_packet : packet, current_packet->header_len,
             packet_len - current_packet->header_len, &current_asn);
         if(with_encryption) {
           packet = encrypted_packet;
         }
       }
-#endif
+#endif /* TSCH_SECURITY_ENABLED */
 
       /* prepare packet to send: copy to radio buffer */
       if(packet_ready && NETSTACK_RADIO.prepare(packet, packet_len) == 0) { /* 0 means success */
@@ -442,13 +442,13 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
         /* delay before CCA */
         TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start, TS_CCA_OFFSET, "cca");
         TSCH_DEBUG_TX_EVENT();
-        NETSTACK_RADIO.on();;
+        NETSTACK_RADIO.on();
         /* CCA */
         BUSYWAIT_UNTIL_ABS(!(cca_status |= NETSTACK_RADIO.channel_clear()),
             current_slot_start, TS_CCA_OFFSET + TS_CCA);
         TSCH_DEBUG_TX_EVENT();
         /* there is not enough time to turn radio off */
-        /*  NETSTACK_RADIO.off();; */
+        /*  NETSTACK_RADIO.off(); */
         if(cca_status == 0) {
           mac_tx_status = MAC_TX_COLLISION;
         } else
@@ -466,7 +466,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
           /* limit tx_time to its max value */
           tx_duration = MIN(tx_duration, tsch_timing[tsch_ts_max_tx]);
           /* turn tadio off -- will turn on again to wait for ACK if needed */
-          NETSTACK_RADIO.off();;
+          NETSTACK_RADIO.off();
 
           if(mac_tx_status == RADIO_TX_OK) {
             if(!is_broadcast) {
@@ -486,7 +486,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start,
                   tsch_timing[tsch_ts_tx_offset] + tx_duration + tsch_timing[tsch_ts_rx_ack_delay] - RADIO_DELAY_BEFORE_RX, "TxBeforeAck");
               TSCH_DEBUG_TX_EVENT();
-              NETSTACK_RADIO.on();;
+              NETSTACK_RADIO.on();
               /* Wait for ACK to come */
               BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet(),
                   tx_start_time, tx_duration + tsch_timing[tsch_ts_rx_ack_delay] + tsch_timing[tsch_ts_ack_wait]);
@@ -498,7 +498,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
                   ack_start_time, tsch_timing[tsch_ts_max_ack]);
               TSCH_DEBUG_TX_EVENT();
-              NETSTACK_RADIO.off();;
+              NETSTACK_RADIO.off();
 
               /* Leaving promiscuous mode */
               NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
@@ -515,7 +515,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
                   ack_len = 0;
                 }
 
-#if LLSEC802154_SECURITY_LEVEL
+#if TSCH_SECURITY_ENABLED
                 if(ack_len != 0) {
                   if(!tsch_security_parse_frame(ackbuf, ack_hdrlen, ack_len - ack_hdrlen - tsch_security_mic_len(&frame),
                       &frame, &current_neighbor->addr, &current_asn)) {
@@ -529,7 +529,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
                       snprintf(log->message, sizeof(log->message),
                       "!failed to parse ACK"););
                 }
-#endif
+#endif /* TSCH_SECURITY_ENABLED */
               }
 
               if(ack_len != 0) {
@@ -644,7 +644,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
     TSCH_DEBUG_RX_EVENT();
 
     /* Start radio for at least guard time */
-    NETSTACK_RADIO.on();;
+    NETSTACK_RADIO.on();
     if(!NETSTACK_RADIO.receiving_packet()) {
       /* Check if receiving within guard time */
       BUSYWAIT_UNTIL_ABS(NETSTACK_RADIO.receiving_packet(),
@@ -654,14 +654,14 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       rx_start_time = RTIMER_NOW();
     }
     if(!NETSTACK_RADIO.receiving_packet() && !NETSTACK_RADIO.pending_packet()) {
-      NETSTACK_RADIO.off();;
+      NETSTACK_RADIO.off();
       /* no packets on air */
     } else {
       /* Wait until packet is received, turn radio off */
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
           current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait] + tsch_timing[tsch_ts_max_tx]);
       TSCH_DEBUG_RX_EVENT();
-      NETSTACK_RADIO.off();;
+      NETSTACK_RADIO.off();
 
 #if TSCH_RESYNC_WITH_SFD_TIMESTAMPS
       /* At the end of the reception, get an more accurate estimate of SFD arrival time */
@@ -684,7 +684,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
         packet_duration = TSCH_PACKET_DURATION(current_input->len);
 
-#if LLSEC802154_SECURITY_LEVEL
+#if TSCH_SECURITY_ENABLED
         /* Decrypt and verify incoming frame */
         if(frame_valid) {
           if(tsch_security_parse_frame(
@@ -703,7 +703,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
               "!failed to parse frame %u %u", header_len, current_input->len););
           frame_valid = 0;
         }
-#endif
+#endif /* TSCH_SECURITY_ENABLED */
 
         if(frame_valid) {
           if(linkaddr_cmp(&destination_address, &linkaddr_node_addr)
@@ -726,12 +726,12 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
               ack_len = tsch_packet_create_eack(ack_buf, sizeof(ack_buf),
                   &source_address, frame.seq, (int16_t)RTIMERTICKS_TO_US(estimated_drift), do_nack);
 
-#if LLSEC802154_SECURITY_LEVEL
+#if TSCH_SECURITY_ENABLED
               if(tsch_is_pan_secured) {
                 /* Secure ACK frame. There is only header and header IEs, therefore data len == 0. */
                 ack_len += tsch_security_secure_frame(ack_buf, ack_buf, ack_len, 0, &current_asn);
               }
-#endif
+#endif /* TSCH_SECURITY_ENABLED */
 
               /* Copy to radio buffer */
               NETSTACK_RADIO.prepare((const void *)ack_buf, ack_len);

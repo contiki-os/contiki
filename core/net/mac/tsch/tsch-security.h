@@ -38,9 +38,23 @@
 #include "contiki.h"
 #include "net/mac/tsch/tsch-asn.h"
 #include "net/mac/tsch/tsch-private.h"
+#include "net/mac/frame802154.h"
 #include "net/mac/frame802154e-ie.h"
 
 /******** Configuration *******/
+
+/* To enable TSCH security:
+ * - set LLSEC802154_CONF_SECURITY_LEVEL
+ * - set LLSEC802154_CONF_USES_EXPLICIT_KEYS
+ * - unset LLSEC802154_CONF_USES_FRAME_COUNTER
+ * */
+#define TSCH_SECURITY_ENABLED (LLSEC802154_CONF_SECURITY_LEVEL != 0)
+#if TSCH_SECURITY_ENABLED && !LLSEC802154_CONF_USES_EXPLICIT_KEYS
+#error TSCH_SECURITY_ENABLED set but LLSEC802154_CONF_USES_EXPLICIT_KEYS unset
+#endif /* TSCH_SECURITY_ENABLED */
+#if TSCH_SECURITY_ENABLED && LLSEC802154_CONF_USES_FRAME_COUNTER
+#error TSCH_SECURITY_ENABLED set but LLSEC802154_CONF_USES_FRAME_COUNTER set
+#endif /* TSCH_SECURITY_ENABLED */
 
 /* K1, defined in 6TiSCH minimal, is well-known (offers no security) and used for EBs only */
 #ifdef TSCH_SECURITY_CONF_K1
@@ -107,7 +121,7 @@ typedef uint8_t aes_key[16];
 int tsch_security_mic_len(frame802154_t *frame);
 int tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
     int hdrlen, int datalen, struct asn_t *asn);
-int tsch_security_parse_frame(uint8_t *hdr, int hdrlen, int datalen,
+int tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
     frame802154_t *frame, const linkaddr_t *sender, struct asn_t *asn);
 
 #endif /* __TSCH_SECURITY_H__ */
