@@ -414,13 +414,15 @@ handle_probing_timer(void *ptr)
 {
   rpl_instance_t *instance = (rpl_instance_t *)ptr;
   rpl_parent_t *probing_target = RPL_PROBING_SELECT_FUNC(instance->current_dag);
+  uip_ipaddr_t *target_ipaddr = rpl_get_parent_ipaddr(probing_target);
 
   /* Perform probing */
-  if(probing_target != NULL && rpl_get_parent_ipaddr(probing_target) != NULL) {
-    PRINTF("RPL: probing %3u\n",
-        nbr_table_get_lladdr(rpl_parents, probing_target)->u8[7]);
-    /* Send probe, e.g. unicast DIO or DIS */
-    RPL_PROBING_SEND_FUNC(instance, rpl_get_parent_ipaddr(probing_target));
+  if(target_ipaddr != NULL) {
+    PRINTF("RPL: probing %u ((last tx %u min ago))\n",
+        nbr_table_get_lladdr(rpl_parents, probing_target)->u8[7],
+        (unsigned)((clock_time() - probing_target->last_tx_time) / (60 * CLOCK_SECOND)));
+    /* Send probe (unicast DIO or DIS) */
+    RPL_PROBING_SEND_FUNC(instance, target_ipaddr);
   }
 
   /* Schedule next probing */
