@@ -327,6 +327,24 @@ rpl_cancel_dao(rpl_instance_t *instance)
   ctimer_stop(&instance->dao_lifetime_timer);
 }
 /*---------------------------------------------------------------------------*/
+static void
+handle_unicast_dio_timer(void *ptr)
+{
+  rpl_instance_t *instance = (rpl_instance_t *)ptr;
+  uip_ipaddr_t *target_ipaddr = rpl_get_parent_ipaddr(instance->unicast_dio_target);
+
+  if(target_ipaddr != NULL) {
+    dio_output(instance, target_ipaddr);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_schedule_unicast_dio_immediately(rpl_instance_t *instance)
+{
+  ctimer_set(&instance->unicast_dio_timer, 0,
+                  handle_unicast_dio_timer, instance);
+}
+/*---------------------------------------------------------------------------*/
 #if RPL_WITH_PROBING
 static rpl_parent_t *
 get_probing_target(rpl_dag_t *dag)
