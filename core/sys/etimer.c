@@ -254,6 +254,12 @@ etimer_next_expiration_time(void)
   return etimer_pending() ? next_expiration : 0;
 }
 /*---------------------------------------------------------------------------*/
+const struct timer *
+etimer_next_to_expire(void)
+{
+  return timerlist ? &(timerlist->timer) : NULL;
+}
+/*---------------------------------------------------------------------------*/
 void
 etimer_stop(struct etimer *et)
 {
