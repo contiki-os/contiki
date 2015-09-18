@@ -213,10 +213,7 @@ static int last_rssi;
 /* ----------------------------------------------------------------- */
 /* Support for reassembling multiple packets                         */
 /* ----------------------------------------------------------------- */
-/* The fragmentation buffer are also possible to use for other
- * temporary memory allocation. In that case the number of available
- * buffers will be lower for a short time.
- **/
+
 #if SICSLOWPAN_CONF_FRAG
 static uint16_t my_tag;
 
@@ -406,13 +403,15 @@ add_fragment(uint16_t tag, uint16_t frag_size, uint8_t offset)
     frag_info[i].reassembled_len += len;
     return i;
   } else {
-    /* should we also clear all fragments since we failed to store this fragment? */
+    /* should we also clear all fragments since we failed to store
+       this fragment? */
     PRINTF("*** Failed to store fragment - packet reassembly will fail tag:%d l\n", frag_info[i].tag);
     return -1;
   }
 }
 /*---------------------------------------------------------------------------*/
-/* Copy all the fragments that are associated with a specific context into uip */
+/* Copy all the fragments that are associated with a specific context
+   into uip */
 static void
 copy_frags2uip(int context)
 {
@@ -501,7 +500,7 @@ static struct sicslowpan_addr_context *context;
 /** pointer to the byte where to write next inline field. */
 static uint8_t *hc06_ptr;
 
-/* ession of linklocal */
+/* Uncompression of linklocal */
 /*   0 -> 16 bytes from packet  */
 /*   1 -> 2 bytes from prefix - bunch of zeroes and 8 from packet */
 /*   2 -> 2 bytes from prefix - 0000::00ff:fe00:XXXX from packet */
@@ -945,6 +944,7 @@ compress_hdr_iphc(linkaddr_t *link_destaddr)
  * At the end of the decompression, packetbuf_hdr_len and uncompressed_hdr_len
  * are set to the appropriate values
  *
+ * \param buf Pointer to the buffer to uncompress the packet into.
  * \param ip_len Equal to 0 if the packet is not a fragment (IP length
  * is then inferred from the L2 length), non 0 if the packet is a 1st
  * fragment.
@@ -1272,13 +1272,13 @@ static uint8_t
 output(const uip_lladdr_t *localdest)
 {
   int framer_hdrlen;
+  int max_payload;
 
   /* The MAC address of the destination of the packet */
   linkaddr_t dest;
 
 #if SICSLOWPAN_CONF_FRAG
   /* Number of bytes processed. */
-#if SICSLOWPAN_CONF_FRAG
   uint16_t processed_ip_out_len;
 #endif /* SICSLOWPAN_CONF_FRAG */
 
@@ -1351,14 +1351,14 @@ output(const uip_lladdr_t *localdest)
   framer_hdrlen = NETSTACK_FRAMER.length();
   if(framer_hdrlen < 0) {
     /* Framing failed, we assume the maximum header length */
-    framer_hdrlen = 23;
+    framer_hdrlen = 21;
   }
 #else /* USE_FRAMER_HDRLEN */
-  framer_hdrlen = 23;
+  framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
-  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen;
 
-  if((int)uip_len - (int)uncomp_hdr_len > (int)max_payload - (int)packetbuf_hdr_len) {
+  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen;
+  if((int)uip_len - (int)uncomp_hdr_len > max_payload - (int)packetbuf_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
     struct queuebuf *q;
     uint16_t frag_tag;
@@ -1402,7 +1402,7 @@ output(const uip_lladdr_t *localdest)
 
     /* Copy payload and send */
     packetbuf_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
-    packetbuf_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - packetbuf_hdr_len) & 0xfffffff8;
+    packetbuf_payload_len = (max_payload - packetbuf_hdr_len) & 0xfffffff8;
     PRINTFO("(len %d, tag %d)\n", packetbuf_payload_len, frag_tag);
     memcpy(packetbuf_ptr + packetbuf_hdr_len,
            (uint8_t *)UIP_IP_BUF + uncomp_hdr_len, packetbuf_payload_len);
@@ -1438,7 +1438,7 @@ output(const uip_lladdr_t *localdest)
 /*       uip_htons((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len); */
     SET16(PACKETBUF_FRAG_PTR, PACKETBUF_FRAG_DISPATCH_SIZE,
           ((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len));
-    packetbuf_payload_len = (MAC_MAX_PAYLOAD - framer_hdrlen - packetbuf_hdr_len) & 0xfffffff8;
+    packetbuf_payload_len = (max_payload - packetbuf_hdr_len) & 0xfffffff8;
     while(processed_ip_out_len < uip_len) {
       PRINTFO("sicslowpan output: fragment ");
       PACKETBUF_FRAG_PTR[PACKETBUF_FRAG_OFFSET] = processed_ip_out_len >> 3;
@@ -1558,7 +1558,9 @@ input(void)
       /* Add the fragment to the fragmentation context */
       frag_context = add_fragment(frag_tag, frag_size, frag_offset);
 
-      if(frag_context == -1) return;
+      if(frag_context == -1) {
+        return;
+      }
 
       buffer = frag_info[frag_context].first_frag;
 
@@ -1581,15 +1583,18 @@ input(void)
       PRINTFI("last_fragment?: processed_ip_in_len %d packetbuf_payload_len %d frag_size %d\n",
               processed_ip_in_len, packetbuf_datalen() - packetbuf_hdr_len, frag_size);
 
-      /* Add the fragment to the fragmentation context  (this will also copy the payload) */
+      /* Add the fragment to the fragmentation context (this will also
+         copy the payload) */
       frag_context = add_fragment(frag_tag, frag_size, frag_offset);
 
-      if(frag_context == -1) return;
+      if(frag_context == -1) {
+        return;
+      }
 
-      /* Ok - add_fragment will store the fragment automatically - so we should not store more */
+      /* Ok - add_fragment will store the fragment automatically - so
+         we should not store more */
       buffer = NULL;
 
-      //      if(processed_ip_in_len + packetbuf_datalen() - packetbuf_hdr_len >= frag_size) {
       if(frag_info[frag_context].reassembled_len >= frag_size) {
         last_fragment = 1;
       }
@@ -1674,7 +1679,7 @@ input(void)
     /* Add the size of the header only for the first fragment. */
     if(first_fragment != 0) {
       frag_info[frag_context].reassembled_len = uncomp_hdr_len + packetbuf_payload_len;
-      frag_info[frag_context].first_frag_len = uncomp_hdr_len + packetbuf_payload_len;;
+      frag_info[frag_context].first_frag_len = uncomp_hdr_len + packetbuf_payload_len;
     }
     /* For the last fragment, we are OK if there is extrenous bytes at
        the end of the packet. */
@@ -1696,10 +1701,11 @@ input(void)
     } else {
       uip_len = packetbuf_payload_len + uncomp_hdr_len;
     }
+#else
+    uip_len = packetbuf_payload_len + uncomp_hdr_len;
+#endif /* SICSLOWPAN_CONF_FRAG */
     PRINTFI("sicslowpan input: IP packet ready (length %d)\n",
 	    uip_len);
-
-#endif /* SICSLOWPAN_CONF_FRAG */
 
 #if DEBUG
     {
@@ -1736,6 +1742,7 @@ sicslowpan_init(void)
    * Set out output function as the function to be called from uIP to
    * send a packet.
    */
+
   tcpip_set_outputfunc(output);
 
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
