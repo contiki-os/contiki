@@ -155,10 +155,13 @@ make_tcp_stats(void *arg)
 {
   struct uip_conn *conn;
   struct httpd_state *s = (struct httpd_state *)arg;
+#if NETSTACK_CONF_WITH_IPV6
+  char buf[48];
+#endif
+
   conn = &uip_conns[s->u.count];
 
 #if NETSTACK_CONF_WITH_IPV6
-  char buf[48];
   httpd_sprint_ip6(conn->ripaddr, buf);
   return snprintf((char *)uip_appdata, uip_mss(),
          "<tr align=\"center\"><td>%d</td><td>%s:%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",

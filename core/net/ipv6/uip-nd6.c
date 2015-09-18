@@ -662,7 +662,8 @@ rs_input(void)
         }
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
             lladdr, UIP_LLADDR_LEN) != 0) {
-          uip_ds6_nbr_t nbr_data = *nbr;
+          uip_ds6_nbr_t nbr_data;
+          nbr_data = *nbr;
           uip_ds6_nbr_rm(nbr);
           nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, &lladdr_aligned,
                                 0, NBR_STALE, NBR_TABLE_REASON_IPV6_ND, NULL);
