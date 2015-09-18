@@ -172,10 +172,6 @@ void uip_log(char *msg);
 /** \name General variables
  *  @{
  */
-#ifdef SICSLOWPAN_NH_COMPRESSOR
-/** A pointer to the additional compressor */
-extern struct sicslowpan_nh_compressor SICSLOWPAN_NH_COMPRESSOR;
-#endif
 
 /**
  * A pointer to the packetbuf buffer.
@@ -929,11 +925,6 @@ compress_hdr_iphc(linkaddr_t *link_destaddr)
   }
 #endif /*UIP_CONF_UDP*/
 
-#ifdef SICSLOWPAN_NH_COMPRESSOR
-  /* if nothing to compress just return zero  */
-  hc06_ptr += SICSLOWPAN_NH_COMPRESSOR.compress(hc06_ptr, &uncomp_hdr_len);
-#endif
-
   /* before the packetbuf_hdr_len operation */
   PACKETBUF_IPHC_BUF[0] = iphc0;
   PACKETBUF_IPHC_BUF[1] = iphc1;
@@ -1168,11 +1159,6 @@ uncompress_hdr_iphc(uint8_t *buf, uint16_t ip_len)
       }
       uncomp_hdr_len += UIP_UDPH_LEN;
     }
-#ifdef SICSLOWPAN_NH_COMPRESSOR
-    else {
-      hc06_ptr += SICSLOWPAN_NH_COMPRESSOR.uncompress(hc06_ptr, sicslowpan_buf, &uncomp_hdr_len);
-    }
-#endif
   }
 
   packetbuf_hdr_len = hc06_ptr - packetbuf_ptr;
@@ -1198,256 +1184,6 @@ uncompress_hdr_iphc(uint8_t *buf, uint16_t ip_len)
 }
 /** @} */
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06 */
-
-
-#if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1
-/*--------------------------------------------------------------------*/
-/** \name HC1 compression and uncompression functions
- *  @{                                                                */
-/*--------------------------------------------------------------------*/
-/**
- * \brief Compress IP/UDP header using HC1 and HC_UDP
- *
- * This function is called by the 6lowpan code to create a compressed
- * 6lowpan packet in the packetbuf buffer from a full IPv6 packet in the
- * uip_buf buffer.
- *
- *
- * If we can compress everything, we use HC1 dispatch, if not we use
- * IPv6 dispatch.\n
- * We can compress everything if:
- *   - IP version is
- *   - Flow label and traffic class are 0
- *   - Both src and dest ip addresses are link local
- *   - Both src and dest interface ID are recoverable from lower layer
- *     header
- *   - Next header is either ICMP, UDP or TCP
- *
- * Moreover, if next header is UDP, we try to compress it using HC_UDP.
- * This is feasible is both ports are between F0B0 and F0B0 + 15.
- *
- *
- * Resulting header structure:
- *   - For ICMP, TCP, non compressed UDP\n
- *     HC1 encoding = 11111010 (UDP) 11111110 (TCP) 11111100 (ICMP)\n
- * \verbatim
- *                      1                   2                   3
- * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * | LoWPAN HC1 Dsp | HC1 encoding  | IPv6 Hop limit| L4 hdr + data|
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * | ...
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * \endverbatim
- *
- *   - For compressed UDP\n
- *     HC1 encoding = 11111011, HC_UDP encoding = 11100000\n
- * \verbatim
- *                      1                   2                   3
- * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * | LoWPAN HC1 Dsp| HC1 encoding  |  HC_UDP encod.| IPv6 Hop limit|
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * | src p.| dst p.| UDP checksum                  | L4 data...
- * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
- * \endverbatim
- *
- * \param link_destaddr L2 destination address, needed to compress the
- * IP destination field
- */
-static void
-compress_hdr_hc1(linkaddr_t *link_destaddr)
-{
-  /*
-   * Check if all the assumptions for full compression
-   * are valid :
-   */
-  if(UIP_IP_BUF->vtc != 0x60 ||
-     UIP_IP_BUF->tcflow != 0 ||
-     UIP_IP_BUF->flow != 0 ||
-     !uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr) ||
-     !uip_is_addr_mac_addr_based(&UIP_IP_BUF->srcipaddr, &uip_lladdr) ||
-     !uip_is_addr_linklocal(&UIP_IP_BUF->destipaddr) ||
-     !uip_is_addr_mac_addr_based(&UIP_IP_BUF->destipaddr,
-                                 (uip_lladdr_t *)link_destaddr) ||
-     (UIP_IP_BUF->proto != UIP_PROTO_ICMP6 &&
-      UIP_IP_BUF->proto != UIP_PROTO_UDP &&
-      UIP_IP_BUF->proto != UIP_PROTO_TCP))
-  {
-    /*
-     * IPV6 DISPATCH
-     * Something cannot be compressed, use IPV6 DISPATCH,
-     * compress nothing, copy IPv6 header in packetbuf buffer
-     */
-    *packetbuf_ptr = SICSLOWPAN_DISPATCH_IPV6;
-    packetbuf_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
-    memcpy(packetbuf_ptr + packetbuf_hdr_len, UIP_IP_BUF, UIP_IPH_LEN);
-    packetbuf_hdr_len += UIP_IPH_LEN;
-    uncomp_hdr_len += UIP_IPH_LEN;
-  } else {
-    /*
-     * HC1 DISPATCH
-     * maximum compresssion:
-     * All fields in the IP header but Hop Limit are elided
-     * If next header is UDP, we compress UDP header using HC2
-     */
-    PACKETBUF_HC1_PTR[PACKETBUF_HC1_DISPATCH] = SICSLOWPAN_DISPATCH_HC1;
-    uncomp_hdr_len += UIP_IPH_LEN;
-    switch(UIP_IP_BUF->proto) {
-      case UIP_PROTO_ICMP6:
-        /* HC1 encoding and ttl */
-        PACKETBUF_HC1_PTR[PACKETBUF_HC1_ENCODING] = 0xFC;
-        PACKETBUF_HC1_PTR[PACKETBUF_HC1_TTL] = UIP_IP_BUF->ttl;
-        packetbuf_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
-        break;
-#if UIP_CONF_TCP
-      case UIP_PROTO_TCP:
-        /* HC1 encoding and ttl */
-        PACKETBUF_HC1_PTR[PACKETBUF_HC1_ENCODING] = 0xFE;
-        PACKETBUF_HC1_PTR[PACKETBUF_HC1_TTL] = UIP_IP_BUF->ttl;
-        packetbuf_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
-        break;
-#endif /* UIP_CONF_TCP */
-#if UIP_CONF_UDP
-      case UIP_PROTO_UDP:
-        /*
-         * try to compress UDP header (we do only full compression).
-         * This is feasible if both src and dest ports are between
-         * SICSLOWPAN_UDP_PORT_MIN and SICSLOWPAN_UDP_PORT_MIN + 15
-         */
-        PRINTF("local/remote port %u/%u\n",UIP_UDP_BUF->srcport,UIP_UDP_BUF->destport);
-        if(UIP_HTONS(UIP_UDP_BUF->srcport)  >= SICSLOWPAN_UDP_PORT_MIN &&
-           UIP_HTONS(UIP_UDP_BUF->srcport)  <  SICSLOWPAN_UDP_PORT_MAX &&
-           UIP_HTONS(UIP_UDP_BUF->destport) >= SICSLOWPAN_UDP_PORT_MIN &&
-           UIP_HTONS(UIP_UDP_BUF->destport) <  SICSLOWPAN_UDP_PORT_MAX) {
-          /* HC1 encoding */
-          PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_HC1_ENCODING] = 0xFB;
-
-          /* HC_UDP encoding, ttl, src and dest ports, checksum */
-          PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_UDP_ENCODING] = 0xE0;
-          PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_TTL] = UIP_IP_BUF->ttl;
-
-          PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_PORTS] =
-               (uint8_t)((UIP_HTONS(UIP_UDP_BUF->srcport) -
-                       SICSLOWPAN_UDP_PORT_MIN) << 4) +
-               (uint8_t)((UIP_HTONS(UIP_UDP_BUF->destport) - SICSLOWPAN_UDP_PORT_MIN));
-          memcpy(&PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_CHKSUM], &UIP_UDP_BUF->udpchksum, 2);
-          packetbuf_hdr_len += SICSLOWPAN_HC1_HC_UDP_HDR_LEN;
-          uncomp_hdr_len += UIP_UDPH_LEN;
-        } else {
-          /* HC1 encoding and ttl */
-          PACKETBUF_HC1_PTR[PACKETBUF_HC1_ENCODING] = 0xFA;
-          PACKETBUF_HC1_PTR[PACKETBUF_HC1_TTL] = UIP_IP_BUF->ttl;
-          packetbuf_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
-        }
-        break;
-#endif /*UIP_CONF_UDP*/
-    }
-  }
-  return;
-}
-
-/*--------------------------------------------------------------------*/
-/**
- * \brief Uncompress HC1 (and HC_UDP) headers and put them in
- * sicslowpan_buf
- *
- * This function is called by the input function when the dispatch is
- * HC1.
- * We %process the packet in the packetbuf buffer, uncompress the header
- * fields, and copy the result in the sicslowpan buffer.
- * At the end of the decompression, packetbuf_hdr_len and uncompressed_hdr_len
- * are set to the appropriate values
- *
- * \param ip_len Equal to 0 if the packet is not a fragment (IP length
- * is then inferred from the L2 length), non 0 if the packet is a 1st
- * fragment.
- */
-static void
-uncompress_hdr_hc1(uint16_t ip_len)
-{
-  /* version, traffic class, flow label */
-  SICSLOWPAN_IP_BUF->vtc = 0x60;
-  SICSLOWPAN_IP_BUF->tcflow = 0;
-  SICSLOWPAN_IP_BUF->flow = 0;
-
-  /* src and dest ip addresses */
-  uip_ip6addr(&SICSLOWPAN_IP_BUF->srcipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->srcipaddr,
-                       (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-  uip_ip6addr(&SICSLOWPAN_IP_BUF->destipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
-  uip_ds6_set_addr_iid(&SICSLOWPAN_IP_BUF->destipaddr,
-                       (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-
-  uncomp_hdr_len += UIP_IPH_LEN;
-
-  /* Next header field */
-  switch(PACKETBUF_HC1_PTR[PACKETBUF_HC1_ENCODING] & 0x06) {
-    case SICSLOWPAN_HC1_NH_ICMP6:
-      SICSLOWPAN_IP_BUF->proto = UIP_PROTO_ICMP6;
-      SICSLOWPAN_IP_BUF->ttl = PACKETBUF_HC1_PTR[PACKETBUF_HC1_TTL];
-      packetbuf_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
-      break;
-#if UIP_CONF_TCP
-    case SICSLOWPAN_HC1_NH_TCP:
-      SICSLOWPAN_IP_BUF->proto = UIP_PROTO_TCP;
-      SICSLOWPAN_IP_BUF->ttl = PACKETBUF_HC1_PTR[PACKETBUF_HC1_TTL];
-      packetbuf_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
-      break;
-#endif/* UIP_CONF_TCP */
-#if UIP_CONF_UDP
-    case SICSLOWPAN_HC1_NH_UDP:
-      SICSLOWPAN_IP_BUF->proto = UIP_PROTO_UDP;
-      if(PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_HC1_ENCODING] & 0x01) {
-        /* UDP header is compressed with HC_UDP */
-        if(PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_UDP_ENCODING] !=
-           SICSLOWPAN_HC_UDP_ALL_C) {
-          PRINTF("sicslowpan (uncompress_hdr), packet not supported");
-          return;
-        }
-        /* IP TTL */
-        SICSLOWPAN_IP_BUF->ttl = PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_TTL];
-        /* UDP ports, len, checksum */
-        SICSLOWPAN_UDP_BUF->srcport =
-          UIP_HTONS(SICSLOWPAN_UDP_PORT_MIN +
-                (PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_PORTS] >> 4));
-        SICSLOWPAN_UDP_BUF->destport =
-          UIP_HTONS(SICSLOWPAN_UDP_PORT_MIN +
-                (PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_PORTS] & 0x0F));
-        memcpy(&SICSLOWPAN_UDP_BUF->udpchksum, &PACKETBUF_HC1_HC_UDP_PTR[PACKETBUF_HC1_HC_UDP_CHKSUM], 2);
-        uncomp_hdr_len += UIP_UDPH_LEN;
-        packetbuf_hdr_len += SICSLOWPAN_HC1_HC_UDP_HDR_LEN;
-      } else {
-        packetbuf_hdr_len += SICSLOWPAN_HC1_HDR_LEN;
-      }
-      break;
-#endif/* UIP_CONF_UDP */
-    default:
-      /* this shouldn't happen, drop */
-      return;
-  }
-
-  /* IP length field. */
-  if(ip_len == 0) {
-    int len = packetbuf_datalen() - packetbuf_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
-    /* This is not a fragmented packet */
-    SICSLOWPAN_IP_BUF->len[0] = len >> 8;
-    SICSLOWPAN_IP_BUF->len[1] = len & 0x00FF;
-  } else {
-    /* This is a 1st fragment */
-    SICSLOWPAN_IP_BUF->len[0] = (ip_len - UIP_IPH_LEN) >> 8;
-    SICSLOWPAN_IP_BUF->len[1] = (ip_len - UIP_IPH_LEN) & 0x00FF;
-  }
-  /* length field in UDP header */
-  if(SICSLOWPAN_IP_BUF->proto == UIP_PROTO_UDP) {
-    memcpy(&SICSLOWPAN_UDP_BUF->udplen, &SICSLOWPAN_IP_BUF->len[0], 2);
-  }
-  return;
-}
-/** @} */
-#endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1 */
-
-
 
 /*--------------------------------------------------------------------*/
 /** \name IPv6 dispatch "compression" function
@@ -1595,9 +1331,6 @@ output(const uip_lladdr_t *localdest)
 
   if(uip_len >= COMPRESSION_THRESHOLD) {
     /* Try to compress the headers */
-#if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1
-    compress_hdr_hc1(&dest);
-#endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1 */
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_IPV6
     compress_hdr_ipv6(&dest);
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_IPV6 */
@@ -1880,12 +1613,6 @@ input(void)
   } else
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06 */
     switch(PACKETBUF_HC1_PTR[PACKETBUF_HC1_DISPATCH]) {
-#if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1
-    case SICSLOWPAN_DISPATCH_HC1:
-      PRINTFI("sicslowpan input: HC1\n");
-      uncompress_hdr_hc1(frag_size);
-      break;
-#endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1 */
     case SICSLOWPAN_DISPATCH_IPV6:
       PRINTFI("sicslowpan input: IPV6\n");
       packetbuf_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
