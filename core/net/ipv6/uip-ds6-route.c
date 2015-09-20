@@ -348,7 +348,8 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
          initialize this pointer with the list of routing entries that
          are attached to this neighbor. */
       routes = nbr_table_add_lladdr(nbr_routes,
-                                    (linkaddr_t *)nexthop_lladdr);
+                                    (linkaddr_t *)nexthop_lladdr,
+                                    NBR_TABLE_REASON_ROUTE, NULL);
       if(routes == NULL) {
         /* This should not happen, as we explicitly deallocated one
            route table entry above. */

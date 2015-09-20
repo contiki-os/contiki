@@ -188,7 +188,7 @@ parse(void)
   
   info = nbr_table_get_from_lladdr(anti_replay_table, sender);
   if(!info) {
-    info = nbr_table_add_lladdr(anti_replay_table, sender);
+    info = nbr_table_add_lladdr(anti_replay_table, sender, NBR_TABLE_REASON_LLSEC, NULL);
     if(!info) {
       PRINTF("noncoresec: could not get nbr_table_item\n");
       return FRAMER_FAILED;
