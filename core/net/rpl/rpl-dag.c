@@ -634,8 +634,9 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
   PRINT6ADDR(addr);
   PRINTF("\n");
   if(lladdr != NULL) {
-    /* Add parent in rpl_parents */
-    p = nbr_table_add_lladdr(rpl_parents, (linkaddr_t *)lladdr);
+    /* Add parent in rpl_parents - again this is due to DIO */
+    p = nbr_table_add_lladdr(rpl_parents, (linkaddr_t *)lladdr,
+                             NBR_TABLE_REASON_RPL_DIO, dio);
     if(p == NULL) {
       PRINTF("RPL: rpl_add_parent p NULL\n");
     } else {
@@ -1028,7 +1029,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_set_default_route(instance, from);
 
   if(instance->mop != RPL_MOP_NO_DOWNWARD_ROUTES) {
-    rpl_schedule_dao_immediately(instance);
+    rpl_schedule_dao(instance);
   } else {
     PRINTF("RPL: The DIO does not meet the prerequisites for sending a DAO\n");
   }
@@ -1255,18 +1256,14 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 static int
 add_nbr_from_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
-  /* check if it is ok to add this nbr based on this DIO */
-  if(RPL_NBR_POLICY.check_add_from_dio(from, dio)) {
-    /* add this to the neighbor cache if not already there */
-    if(rpl_icmp6_update_nbr_table(from) == NULL) {
-      PRINTF("RPL: Out of memory, dropping DIO from ");
-      PRINT6ADDR(from);
-      PRINTF("\n");
-      return 0;
-    }
-    return 1;
+  /* add this to the neighbor cache if not already there */
+  if(rpl_icmp6_update_nbr_table(from, NBR_TABLE_REASON_RPL_DIO, dio) == NULL) {
+    PRINTF("RPL: Out of memory, dropping DIO from ");
+    PRINT6ADDR(from);
+    PRINTF("\n");
+    return 0;
   }
-  return 0;
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 void
