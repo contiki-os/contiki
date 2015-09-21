@@ -1157,38 +1157,38 @@ set_auto_ack(uint8_t enable)
 static void
 set_frame_filtering(uint8_t enable)
 {
-	GET_LOCK();
-
-	/* Turn on/off address decoding. */
-	uint16_t reg = getreg(CC2420_MDMCTRL0);
-	if(enable) {
-	  reg |= ADR_DECODE;
-	} else {
-	  reg &= ~(ADR_DECODE);
-	}
+  GET_LOCK();
+  
+  /* Turn on/off address decoding. */
+  uint16_t reg = getreg(CC2420_MDMCTRL0);
+  if(enable) {
+    reg |= ADR_DECODE;
+  } else {
+    reg &= ~(ADR_DECODE);
+  }
   /* Writing RAM requires crystal oscillator to be stable. */
-	wait_for_status(BV(CC2420_XOSC16M_STABLE));
-	setreg(CC2420_MDMCTRL0, reg);
-	RELEASE_LOCK();
+  wait_for_status(BV(CC2420_XOSC16M_STABLE));
+  setreg(CC2420_MDMCTRL0, reg);
+  RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
 /* Enable or disable radio interrupts (both FIFOP and SFD timer capture) */
 static void
 set_poll_mode(uint8_t enable)
 {
-	GET_LOCK();
-	poll_mode = enable;
-	if(enable) {
-	  /* Disable FIFOP interrupt */
-	  CC2420_CLEAR_FIFOP_INT();
-	  CC2420_DISABLE_FIFOP_INT();
-	} else {
-	  /* Initialize and enable FIFOP interrupt */
-	  CC2420_FIFOP_INT_INIT();
-	  CC2420_ENABLE_FIFOP_INT();
-	  CC2420_CLEAR_FIFOP_INT();
-	}
-	RELEASE_LOCK();
+  GET_LOCK();
+  poll_mode = enable;
+  if(enable) {
+    /* Disable FIFOP interrupt */
+    CC2420_CLEAR_FIFOP_INT();
+    CC2420_DISABLE_FIFOP_INT();
+  } else {
+    /* Initialize and enable FIFOP interrupt */
+    CC2420_FIFOP_INT_INIT();
+    CC2420_ENABLE_FIFOP_INT();
+    CC2420_CLEAR_FIFOP_INT();
+  }
+  RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
 /* Enable or disable CCA before sending */
