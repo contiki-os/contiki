@@ -42,6 +42,7 @@
 #include "contiki.h"
 #include "contiki-net.h"
 #include "rest-engine.h"
+#include "relay.h"
 
 #if PLATFORM_HAS_BUTTON
 #include "dev/button-sensor.h"
@@ -71,7 +72,7 @@ extern resource_t
   res_push,
   res_event,
   res_sub,
-  //res_relay /* add relay resource to the resource directory */ 
+  res_relay, /* add relay resource to the resource directory */ 
   res_b1_sep_b2;
 #if PLATFORM_HAS_LEDS
 extern resource_t res_leds, res_toggle;
@@ -134,7 +135,9 @@ PROCESS_THREAD(er_example_server, ev, data)
 /*  rest_activate_resource(&res_event, "sensors/button"); */
 /*  rest_activate_resource(&res_sub, "test/sub"); */
 /*  rest_activate_resource(&res_b1_sep_b2, "test/b1sepb2"); */
-  //rest_activate_resource(&res_relay, "actuators/relay"); /* relay resource is added to actuators */
+  
+/* RELAY RESOURCE to be placed here */
+  rest_activate_resource(&res_relay, "actuators/relay"); /* relay resource is added to actuators */
 #if PLATFORM_HAS_LEDS
 /*  rest_activate_resource(&res_leds, "actuators/leds"); */
   rest_activate_resource(&res_toggle, "actuators/toggle");

@@ -42,7 +42,9 @@
 
 #include <string.h>
 #include "rest-engine.h"
-#include "dev/leds.h"
+
+#define RELAY_PIN 2     /* Relay Pin */
+#define PORT_D GPIO_D_BASE
 
 #define DEBUG 0
 #if DEBUG
@@ -59,7 +61,7 @@
 static void res_post_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 /*A simple actuator example, depending on the color query parameter and post variable mode, corresponding led is activated or deactivated*/
-RESOURCE(res_leds,
+RESOURCE(res_relay,
          "title=\"Relay\";rt=\"Control\"",
          NULL,
          res_post_put_handler,
@@ -73,35 +75,10 @@ res_post_put_handler(void *request, void *response, uint8_t *buffer, uint16_t pr
   unsigned char ledv;
   printf("%d\n", method);
   PRINTF("%d\n", method);
-  if (method & METHOD_GET)
-  {
-    PRINTF("GET ", method);
-    if (leds_get()==4)
-    {
-    char const * const message = "LED ON";
-     int length = 6;
-     memcpy(buffer, message, length);
-        REST.set_header_content_type(response, REST.type.TEXT_PLAIN); /* text/plain is the default, hence this option could be       omitted. */
-        REST.set_header_etag(response, (uint8_t *) &length, 1);
-        REST.set_response_payload(response, buffer, length);  
-    printf("status ON\n", leds_get());
-    PRINTF("status ON\n", leds_get());
-     }
-     else 
-     {
-     char const * const message = "LED OFF";
-     int length = 7;
-     memcpy(buffer, message, length);
-        REST.set_header_content_type(response, REST.type.TEXT_PLAIN); /* text/plain is the default, hence this option could be       omitted. */
-        REST.set_header_etag(response, (uint8_t *) &length, 1);
-        REST.set_response_payload(response, buffer, length); 
-        printf("status OFF\n", leds_get());
-        PRINTF("status OFF\n", leds_get());
-     } 
-    }
-   
-   else if (method & METHOD_PUT)
+  relay_enable(PORT_D, RELAY_PIN); // PUT the right relay pin here
+ 
+  if (method & METHOD_PUT)
   {   
-  leds_toggle(LEDS_RED);
+  relay_on(PORT_D, RELAY_PIN);
   }
 }
