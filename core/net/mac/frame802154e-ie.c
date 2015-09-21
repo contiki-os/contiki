@@ -269,11 +269,12 @@ int
 frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
+  int ie_len;
   if(ies == NULL) {
     return -1;
   }
   /* Only ID if ID == 0, else full timing description */
-  int ie_len = ies->ie_tsch_timeslot_id == 0 ? 1 : 25;
+  ie_len = ies->ie_tsch_timeslot_id == 0 ? 1 : 25;
   if(len >= 2 + ie_len) {
     buf[2] = ies->ie_tsch_timeslot_id;
     if(ies->ie_tsch_timeslot_id != 0) {
@@ -294,10 +295,11 @@ int
 frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
     struct ieee802154_ies *ies)
 {
+  int ie_len;
   if(ies == NULL || ies->ie_hopping_sequence_len > sizeof(ies->ie_hopping_sequence_list)) {
     return -1;
   }
-  int ie_len = ies->ie_channel_hopping_sequence_id == 0 ? 1 : 12 + ies->ie_hopping_sequence_len;
+  ie_len = ies->ie_channel_hopping_sequence_id == 0 ? 1 : 12 + ies->ie_hopping_sequence_len;
   if(len >= 2 + ie_len && ies != NULL) {
     buf[2] = ies->ie_channel_hopping_sequence_id;
     buf[3] = 0; /* channel page */
