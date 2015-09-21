@@ -40,6 +40,7 @@
 #ifndef UIP_DS6_ROUTE_H
 #define UIP_DS6_ROUTE_H
 
+#include "net/ip/uip.h"
 #include "net/nbr-table.h"
 #include "sys/stimer.h"
 #include "lib/list.h"
