@@ -45,7 +45,7 @@
 /* The maximum number of outgoing packets towards each neighbor
  * Must be power of two to enable atomic ringbuf operations.
  * Note: the total number of outgoing packets in the system (for
- * all neighbors is defined via QUEUEBUF_CONF_NUM */
+ * all neighbors) is defined via QUEUEBUF_CONF_NUM */
 #ifdef TSCH_QUEUE_CONF_NUM_PER_NEIGHBOR
 #define TSCH_QUEUE_NUM_PER_NEIGHBOR TSCH_QUEUE_CONF_NUM_PER_NEIGHBOR
 #else
