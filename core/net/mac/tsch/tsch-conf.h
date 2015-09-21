@@ -137,15 +137,19 @@
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    15000
 
 #elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 65000
-/* Default timeslot timing for platfroms requiring 65ms slots
- * (e.g. sky/z1 with security enabled) */
+/* 65ms timeslot, i.e. nearly the max length allowed by standard (16-bit unsigned in micro-seconds).
+ * Useful for running link-layer security on sky or z1 in Cooja, where only S/W security is supported.
+ * Note: this slot timing would require a total of 120ms. If a slot overlaps with the next active slot,
+ * the latter will be skipped.
+ * This configuration is mostly a work-around to test link-layer security in Cooja, it is recommended
+ * to use it with a 6TiSCH minimal schedule of length >= 2. */
 
 #define TSCH_DEFAULT_TS_CCA_OFFSET         1800
 #define TSCH_DEFAULT_TS_CCA                128
-#define TSCH_DEFAULT_TS_TX_OFFSET          38000
+#define TSCH_DEFAULT_TS_TX_OFFSET          52000
 #define TSCH_DEFAULT_TS_RX_OFFSET          (TSCH_DEFAULT_TS_TX_OFFSET - (TSCH_CONF_RX_WAIT / 2))
-#define TSCH_DEFAULT_TS_RX_ACK_DELAY       37600
-#define TSCH_DEFAULT_TS_TX_ACK_DELAY       38000
+#define TSCH_DEFAULT_TS_RX_ACK_DELAY       58600
+#define TSCH_DEFAULT_TS_TX_ACK_DELAY       59000
 #define TSCH_DEFAULT_TS_RX_WAIT            TSCH_CONF_RX_WAIT
 #define TSCH_DEFAULT_TS_ACK_WAIT           800
 #define TSCH_DEFAULT_TS_RX_TX              2072

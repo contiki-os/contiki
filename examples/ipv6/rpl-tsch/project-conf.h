@@ -81,6 +81,7 @@
 
 /* TSCH logging. 0: disabled. 1: basic log. 2: with delayed
  * log messages from interrupt */
+#undef TSCH_LOG_CONF_LEVEL
 #define TSCH_LOG_CONF_LEVEL 2
 
 /* IEEE802.15.4 PANID */
@@ -103,12 +104,6 @@
 #undef LLSEC802154_CONF_USES_FRAME_COUNTER
 #define LLSEC802154_CONF_USES_FRAME_COUNTER 0
 
-/* Note: on sky or z1 in cooja, crypto operations are done in S/W and
- * cannot be accommodated in normal slots. Use 65ms slots instead.
- * #undef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH
- * #define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 65000
- */
-
 #endif /* WITH_SECURITY */
 
 #if WITH_ORCHESTRA
@@ -128,7 +123,10 @@
 /************* Other system configuration **************/
 /*******************************************************/
 
+#if CONTIKI_TARGET_Z1
 /* Save some space to fit the limited RAM of the z1 */
+#undef UIP_CONF_TCP
+#define UIP_CONF_TCP 0
 #undef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM 4
 #undef TSCH_QUEUE_CONF_NUM_PER_NEIGHBOR
@@ -139,12 +137,24 @@
 #define UIP_CONF_MAX_ROUTES  8
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 8
-
-#if CONTIKI_TARGET_Z1
 /* On Z1, force the CPU speed to 3.9 MHz, as 8 MHz is
  * not supported in Cooja */
 #undef F_CPU
 #define F_CPU 3900000uL
-#endif /* TARGET_Z1 */
+
+#if WITH_SECURITY
+/* Note: on sky or z1 in cooja, crypto operations are done in S/W and
+ * cannot be accommodated in normal slots. Use 65.535ms slots instead, and
+ * a very short 6TiSCH minimal schedule length */
+#undef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH
+#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 65000
+#undef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
+#define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 2
+/* Reduce log level to make space for security on z1 */
+#undef TSCH_LOG_CONF_LEVEL
+#define TSCH_LOG_CONF_LEVEL 1
+#endif /* WITH_SECURITY */
+
+#endif /* CONTIKI_TARGET_Z1 */
 
 #endif /* __PROJECT_CONF_H__ */
