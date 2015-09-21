@@ -42,7 +42,7 @@
 #include <AHI_AES.h>
 #include <string.h>
 
-uint8_t current_key[16];
+static tsReg128 current_key;
 static int current_key_is_new = 1;
 
 /*---------------------------------------------------------------------------*/
@@ -53,14 +53,16 @@ mic(const uint8_t *m, uint8_t m_len,
     uint8_t *result,
     uint8_t mic_len)
 {
+  tsReg128 nonce_aligned;
+  memcpy(&nonce_aligned, nonce, sizeof(nonce_aligned));
   bACI_CCMstar(
-    (tsReg128 *)current_key,
+    &current_key,
     current_key_is_new,
     XCV_REG_AES_SET_MODE_CCM,
     mic_len,
     a_len,
     m_len,
-    (tsReg128 *)nonce,
+    &nonce_aligned,
     (uint8_t *)a,
     (uint8_t *)m,
     NULL,
@@ -73,14 +75,16 @@ mic(const uint8_t *m, uint8_t m_len,
 static void
 ctr(uint8_t *m, uint8_t m_len, const uint8_t *nonce)
 {
+  tsReg128 nonce_aligned;
+  memcpy(&nonce_aligned, nonce, sizeof(nonce_aligned));
   bACI_CCMstar(
-    (tsReg128 *)current_key,
+    &current_key,
     current_key_is_new,
     XCV_REG_AES_SET_MODE_CCM,
     0,
     0,
     m_len,
-    (tsReg128 *)nonce,
+    &nonce_aligned,
     NULL,
     m,
     m,
@@ -97,15 +101,17 @@ aead(const uint8_t *nonce,
      uint8_t *result, uint8_t mic_len,
      int forward)
 {
+  tsReg128 nonce_aligned;
+  memcpy(&nonce_aligned, nonce, sizeof(nonce_aligned));
   if(forward) {
     bACI_CCMstar(
-      (tsReg128 *)current_key,
+      &current_key,
       current_key_is_new,
       XCV_REG_AES_SET_MODE_CCM,
       mic_len,
       a_len,
       m_len,
-      (tsReg128 *)nonce,
+      &nonce_aligned,
       (uint8_t *)a,
       (uint8_t *)m,
       (uint8_t *)m,
@@ -115,13 +121,13 @@ aead(const uint8_t *nonce,
   } else {
     bool_t auth;
     bACI_CCMstar(
-      (tsReg128 *)current_key,
+      &current_key,
       current_key_is_new,
       XCV_REG_AES_SET_MODE_CCM_D,
       mic_len,
       a_len,
       m_len,
-      (tsReg128 *)nonce,
+      &nonce_aligned,
       (uint8_t *)a,
       (uint8_t *)m,
       (uint8_t *)m,
@@ -146,10 +152,10 @@ aead(const uint8_t *nonce,
 static void
 set_key(const uint8_t *key)
 {
-  if(memcmp(current_key, key, 16) == 0) {
+  if(memcmp(&current_key, key, sizeof(current_key)) == 0) {
     current_key_is_new = 0;
   } else {
-    memcpy(current_key, key, 16);
+    memcpy(&current_key, key, sizeof(current_key));
     current_key_is_new = 1;
   }
 }
