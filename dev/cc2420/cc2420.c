@@ -1144,8 +1144,7 @@ set_auto_ack(uint8_t enable)
   } else {
     reg &= ~(AUTOACK);
   }
-  /* Writing RAM requires crystal oscillator to be stable. */
-  wait_for_status(BV(CC2420_XOSC16M_STABLE));
+
   setreg(CC2420_MDMCTRL0, reg);
   RELEASE_LOCK();
 }
@@ -1163,8 +1162,7 @@ set_frame_filtering(uint8_t enable)
   } else {
     reg &= ~(ADR_DECODE);
   }
-  /* Writing RAM requires crystal oscillator to be stable. */
-  wait_for_status(BV(CC2420_XOSC16M_STABLE));
+
   setreg(CC2420_MDMCTRL0, reg);
   RELEASE_LOCK();
 }
