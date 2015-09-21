@@ -25,6 +25,7 @@
 *.c64
 *.cc2538dk
 *.remote
+*.jn516x
 *.srf06-cc26xx
 *.ev-aducrf101mkxz
 *.report
