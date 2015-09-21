@@ -70,13 +70,12 @@
 #define TSCH_JOIN_HOPPING_SEQUENCE TSCH_DEFAULT_HOPPING_SEQUENCE
 #endif
 
-/* Maximum length of the TSCH channel hopping sequence.
- * Set to a larger value to support joining a network with a hopping sequence
- * longer than the default sequence TSCH_DEFAULT_HOPPING_SEQUENCE */
+/* Maximum length of the TSCH channel hopping sequence. Must be greater or
+ * equal to the length of TSCH_DEFAULT_HOPPING_SEQUENCE. */
 #ifdef TSCH_CONF_HOPPING_SEQUENCE_MAX_LEN
 #define TSCH_HOPPING_SEQUENCE_MAX_LEN TSCH_CONF_HOPPING_SEQUENCE_MAX_LEN
 #else
-#define TSCH_HOPPING_SEQUENCE_MAX_LEN sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE)
+#define TSCH_HOPPING_SEQUENCE_MAX_LEN 16
 #endif
 
 /* Timeslot timing */
