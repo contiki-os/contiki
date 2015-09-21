@@ -139,10 +139,10 @@ ifndef NOAVRSIZE
 	avr-size -C --mcu=$(MCU) $@
 endif
 
-%.hex: %.out
+%.hex: %.$(TARGET)
 	$(OBJCOPY) $^ -j .text -j .data -O ihex $@
 
-%.ihex: %.out
+%.ihex: %.$(TARGET)
 	$(OBJCOPY) $^ -O ihex $@
 
 # Add a namelist to the kernel
@@ -160,7 +160,7 @@ endif
 #%.hex: %.elf
 #	$(OBJCOPY) -R .eeprom -R .fuse -R .signature $^ -O ihex $@
 
-%.eep: %.out
+%.eep: %.$(TARGET)
 	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
 	--change-section-lma .eeprom=0 -O ihex $^ $@
 
