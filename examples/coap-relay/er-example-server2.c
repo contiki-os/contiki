@@ -243,8 +243,20 @@ leds_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_
 
     if (strncmp(mode, "on", len)==0) {
       leds_on(led);
+       if (leds_get()==4)
+            {
+                 printf("RED_LED status ON\n");
+                 PRINTF("RED_LED status ON\n");
+            }
+        else if (leds_get()==1)
+            {
+                 printf("GREEN_LED status ON\n");
+                 PRINTF("GREEN_LED status ON\n");
+            }
     } else if (strncmp(mode, "off", len)==0) {
       leds_off(led);
+      printf("LEDs status OFF\n");
+      PRINTF("LEDs status OFF\n");
     } else {
       success = 0;
     }
@@ -261,12 +273,11 @@ leds_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_
 /******************************************************************************/
 #if REST_RES_TOGGLE
 /* A simple actuator example. Toggles the red led */
-RESOURCE(toggle, METHOD_PUT| METHOD_GET, "actuators/toggle", "title=\"RED LED\";rt=\"Control\"");
+RESOURCE(toggle, METHOD_PUT| METHOD_GET, "actuators/toggle", "title=\"LEDs: ?color=r|g|b, POST/PUT mode=on|off\";rt=\"Control\"");
 void
 toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   uint8_t method = REST.get_method_type(request);
-  unsigned char ledv;
   printf("%d\n", method);
   PRINTF("%d\n", method);
   if (method & METHOD_GET)
@@ -274,8 +285,19 @@ toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
     PRINTF("GET ", method);
     if (leds_get()==4)
     {
-    char const * const message = "LED ON";
-     int length = 6;
+    char const * const message = "RED LED ON";
+     int length = 10;
+     memcpy(buffer, message, length);
+        REST.set_header_content_type(response, REST.type.TEXT_PLAIN); /* text/plain is the default, hence this option could be       omitted. */
+        REST.set_header_etag(response, (uint8_t *) &length, 1);
+        REST.set_response_payload(response, buffer, length);  
+    printf("status ON\n", leds_get());
+    PRINTF("status ON\n", leds_get());
+     }
+    else if (leds_get()==1)
+    {
+    char const * const message = "GREEN LED ON";
+     int length = 13;
      memcpy(buffer, message, length);
         REST.set_header_content_type(response, REST.type.TEXT_PLAIN); /* text/plain is the default, hence this option could be       omitted. */
         REST.set_header_etag(response, (uint8_t *) &length, 1);
@@ -297,8 +319,24 @@ toggle_handler(void* request, void* response, uint8_t *buffer, uint16_t preferre
     }
    
    else if (method & METHOD_PUT)
+   //PRINTF("PUT", method);
   {   
-  leds_toggle(LEDS_RED);
+    leds_toggle(LEDS_ALL);
+        if (leds_get()==4)
+            {
+                 printf("RED_LED status ON\n");
+                 PRINTF("RED_LED status ON\n");
+            }
+        else if (leds_get()==1)
+            {
+                 printf("GREEN_LED status ON\n");
+                 PRINTF("GREEN_LED status ON\n");
+            }
+        else
+            {
+                printf("LEDs status OFF\n");
+                PRINTF("LEDs status OFF\n");
+            }
   }
 
 }
