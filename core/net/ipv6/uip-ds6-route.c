@@ -47,6 +47,16 @@
 
 #include <string.h>
 
+/* A configurable function called after adding a new neighbor as next hop */
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK
+void NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(linkaddr_t *addr);
+#endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK */
+
+/* A configurable function called after removing a next hop neighbor */
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
+void NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(linkaddr_t *addr);
+#endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK */
+
 /* The nbr_routes holds a neighbor table to be able to maintain
    information about what routes go through what neighbor. This
    neighbor table is registered with the central nbr-table repository
