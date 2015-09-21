@@ -47,7 +47,6 @@
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
 #include "net/netstack.h"
-#include "net/packetbuf.h"
 #include "net/llsec/anti-replay.h"
 #include "lib/ccm-star.h"
 #include "lib/aes-128.h"
@@ -194,7 +193,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   frame802154_t p;
   struct ieee802154_ies ies;
 
-  if(buf_size < PACKETBUF_SIZE) {
+  if(buf_size < TSCH_PACKET_MAX_LEN) {
     return 0;
   }
 
@@ -219,12 +218,12 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
 
 #if TSCH_SECURITY_ENABLED
   if(tsch_is_pan_secured) {
-    p.fcf.security_enabled = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) > 0;
-    p.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-    p.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
+    p.fcf.security_enabled = TSCH_SECURITY_KEY_SEC_LEVEL_EB > 0;
+    p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_EB;
+    p.aux_hdr.security_control.key_id_mode = 1;
     p.aux_hdr.security_control.frame_counter_suppression = 1;
     p.aux_hdr.security_control.frame_counter_size = 1;
-    p.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
+    p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_EB;
   }
 #endif /* TSCH_SECURITY_ENABLED */
 

@@ -744,16 +744,6 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         if(++tsch_packet_seqno == 0) {
           tsch_packet_seqno++;
         }
-        packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_BEACONFRAME);
-        packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
-#if TSCH_SECURITY_ENABLED
-        if(tsch_is_pan_secured) {
-          /* Set security level, key id and index */
-          packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_EB);
-          packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
-          packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_EB);
-        }
-#endif /* TSCH_SECURITY_ENABLED */
         eb_len = tsch_packet_create_eb(packetbuf_dataptr(), PACKETBUF_SIZE,
             tsch_packet_seqno, &hdr_len, &tsch_sync_ie_offset);
         if(eb_len != 0) {
