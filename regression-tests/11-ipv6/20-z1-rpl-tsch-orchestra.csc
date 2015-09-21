@@ -26,7 +26,7 @@
       <description>Z1 Mote Type #z11</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/rpl-tsch/node.c</source>
       <commands EXPORT="discard">make TARGET=z1 clean
-make node.z1 TARGET=z1 MAKE_WITH_ORCHESTRA=1=1</commands>
+make node.z1 TARGET=z1 MAKE_WITH_ORCHESTRA=1 MAKE_WITH_SECURITY=0</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/rpl-tsch/node.z1</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>

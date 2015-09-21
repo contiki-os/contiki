@@ -12,11 +12,11 @@ APPS += orchestra
 MODULES += core/net/mac/tsch
 
 ifeq ($(MAKE_WITH_ORCHESTRA),1)
-CFLAGS += -DWITH_ORCHESTRA = 1
+CFLAGS += -DWITH_ORCHESTRA=1
 endif
 
 ifeq ($(MAKE_WITH_SECURITY),1)
-CFLAGS += -DWITH_SECURITY = 1
+CFLAGS += -DWITH_SECURITY=1
 endif
 
 include $(CONTIKI)/Makefile.include
