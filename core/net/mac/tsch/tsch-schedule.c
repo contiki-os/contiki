@@ -49,6 +49,7 @@
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/tsch/tsch-log.h"
 #include "net/mac/frame802154.h"
 #include "sys/process.h"
 #include "sys/rtimer.h"

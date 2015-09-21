@@ -48,7 +48,6 @@
 #include "net/linkaddr.h"
 #include "net/mac/tsch/tsch-asn.h"
 #include "net/mac/tsch/tsch-conf.h"
-#include "net/mac/tsch/tsch-log.h"
 
 /************ Types ***********/
 

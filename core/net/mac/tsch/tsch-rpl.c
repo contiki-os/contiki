@@ -43,6 +43,7 @@
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/tsch/tsch-log.h"
 #include "tsch-rpl.h"
 
 #if TSCH_LOG_LEVEL >= 1

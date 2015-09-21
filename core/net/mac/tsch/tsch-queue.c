@@ -52,6 +52,7 @@
 #include "net/mac/tsch/tsch-queue.h"
 #include "net/mac/tsch/tsch-schedule.h"
 #include "net/mac/tsch/tsch-slot-operation.h"
+#include "net/mac/tsch/tsch-log.h"
 #include <string.h>
 
 #if TSCH_LOG_LEVEL >= 1
