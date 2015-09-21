@@ -140,4 +140,11 @@
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 8
 
+#if CONTIKI_TARGET_Z1
+/* On Z1, force the CPU speed to 3.9 MHz, as 8 MHz is
+ * not supported in Cooja */
+#undef F_CPU
+#define F_CPU 3900000uL
+#endif /* TARGET_Z1 */
+
 #endif /* __PROJECT_CONF_H__ */
