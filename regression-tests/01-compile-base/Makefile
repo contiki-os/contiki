@@ -34,6 +34,7 @@ wget/minimal-net \
 zolertia/z1/z1 \
 settings-example/avr-raven \
 ipv6/multicast/sky \
+ipv6/rpl-tsch/z1 \
 
 
 TOOLS=
