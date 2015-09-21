@@ -640,9 +640,6 @@ cc2420_init(void)
   /* And wait until it stabilizes */
   wait_for_status(BV(CC2420_XOSC16M_STABLE));
 
-  /* Turn on/off automatic packet acknowledgment and address decoding. */
-  reg = getreg(CC2420_MDMCTRL0);
-
   /* Set auto-ack and frame filtering */
   set_auto_ack(CC2420_CONF_AUTOACK);
   set_frame_filtering(CC2420_CONF_AUTOACK);
@@ -650,8 +647,8 @@ cc2420_init(void)
   /* Enabling CRC in hardware; this is required by AUTOACK anyway
      and provides us with RSSI and link quality indication (LQI)
      information. */
+  reg = getreg(CC2420_MDMCTRL0);
   reg |= AUTOCRC;
-
   setreg(CC2420_MDMCTRL0, reg);
 
   /* Set transmission turnaround time to the lower setting (8 symbols
