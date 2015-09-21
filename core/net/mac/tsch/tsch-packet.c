@@ -80,13 +80,13 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   p.fcf.panid_compression = 0;
   p.dest_pid = IEEE802154_PANID;
   p.seq = seqno;
-#if TSCH_PACKET_DEST_ADDR_IN_ACK
+#if TSCH_PACKET_EACK_WITH_DEST_ADDR
   if(dest_addr != NULL) {
     p.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
     linkaddr_copy((linkaddr_t*)&p.dest_addr, dest_addr);
   }
 #endif
-#if TSCH_PACKET_SRC_ADDR_IN_ACK
+#if TSCH_PACKET_EACK_WITH_SRC_ADDR
   p.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
   p.src_pid = IEEE802154_PANID;
   linkaddr_copy((linkaddr_t*)&p.src_addr, &linkaddr_node_addr);
@@ -235,7 +235,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   memset(&ies, 0, sizeof(ies));
 
   /* Add TSCH timeslot timing IE. */
-#if 0
+#if TSCH_PACKET_EB_WITH_TIMESLOT_TIMING
   {
     int i;
     ies.ie_tsch_timeslot_id = 1;
@@ -243,18 +243,19 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
       ies.ie_tsch_timeslot[i] = RTIMERTICKS_TO_US(tsch_timing[i]);
     }
   }
-#endif
+#endif /* TSCH_PACKET_EB_WITH_TIMESLOT_TIMING */
   
   /* Add TSCH hopping sequence IE */
-#if 0
+#if TSCH_PACKET_EB_WITH_HOPPING_SEQUENCE
   if(tsch_hopping_sequence_length.val <= sizeof(ies.ie_hopping_sequence_list)) {
     ies.ie_channel_hopping_sequence_id = 1;
     ies.ie_hopping_sequence_len = tsch_hopping_sequence_length.val;
     memcpy(ies.ie_hopping_sequence_list, tsch_hopping_sequence, ies.ie_hopping_sequence_len);
   }
-#endif
+#endif /* TSCH_PACKET_EB_WITH_HOPPING_SEQUENCE */
 
   /* Add Slotframe and Link IE */
+#if TSCH_PACKET_EB_WITH_SLOTFRAME_AND_LINK
   {
     /* Send slotframe 0 with link at timeslot 0 */
     struct tsch_slotframe *sf0 = tsch_schedule_get_slotframe_from_handle(0);
@@ -269,6 +270,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
       ies.ie_tsch_slotframe_and_link.links[0].link_options = link0->link_options;
     }
   }
+#endif /* TSCH_PACKET_EB_WITH_SLOTFRAME_AND_LINK */
 
   /* First add header-IE termination IE to stipulate that next come payload IEs */
   if((ret = frame80215e_create_ie_header_list_termination_1(buf+curr_len, buf_size-curr_len, &ies)) == -1) {

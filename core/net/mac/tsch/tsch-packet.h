@@ -42,17 +42,39 @@
 
 /******** Configuration *******/
 
-/* Include source address in ACK? */
-#ifdef TSCH_CONF_PACKET_SRC_ADDR_IN_ACK
-#define TSCH_PACKET_SRC_ADDR_IN_ACK TSCH_CONF_PACKET_SRC_ADDR_IN_ACK
+/* TSCH EB: include timeslot timing Information Element? */
+#ifdef TSCH_PACKET_CONF_EB_WITH_TIMESLOT_TIMING
+#define TSCH_PACKET_EB_WITH_TIMESLOT_TIMING TSCH_PACKET_CONF_EB_WITH_TIMESLOT_TIMING
 #else
-#define TSCH_PACKET_SRC_ADDR_IN_ACK 0
+#define TSCH_PACKET_EB_WITH_TIMESLOT_TIMING 0
 #endif
-/* Include destination address in ACK? */
-#ifdef TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
-#define TSCH_PACKET_DEST_ADDR_IN_ACK TSCH_CONF_PACKET_DEST_ADDR_IN_ACK
+
+/* TSCH EB: include hopping sequence Information Element? */
+#ifdef TSCH_PACKET_CONF_EB_WITH_HOPPING_SEQUENCE
+#define TSCH_PACKET_EB_WITH_HOPPING_SEQUENCE TSCH_PACKET_CONF_EB_WITH_HOPPING_SEQUENCE
 #else
-#define TSCH_PACKET_DEST_ADDR_IN_ACK 1 /* Include destination address
+#define TSCH_PACKET_EB_WITH_HOPPING_SEQUENCE 0
+#endif
+
+/* TSCH EB: include slotframe and link Information Element? */
+#ifdef TSCH_PACKET_CONF_EB_WITH_SLOTFRAME_AND_LINK
+#define TSCH_PACKET_EB_WITH_SLOTFRAME_AND_LINK TSCH_PACKET_CONF_EB_WITH_SLOTFRAME_AND_LINK
+#else
+#define TSCH_PACKET_EB_WITH_SLOTFRAME_AND_LINK 0
+#endif
+
+/* Include source address in ACK? */
+#ifdef TSCH_PACKET_CONF_EACK_WITH_SRC_ADDR
+#define TSCH_PACKET_EACK_WITH_SRC_ADDR TSCH_PACKET_CONF_EACK_WITH_SRC_ADDR
+#else
+#define TSCH_PACKET_EACK_WITH_SRC_ADDR 0
+#endif
+
+/* Include destination address in ACK? */
+#ifdef TSCH_PACKET_CONF_EACK_WITH_DEST_ADDR
+#define TSCH_PACKET_EACK_WITH_DEST_ADDR TSCH_PACKET_CONF_EACK_WITH_DEST_ADDR
+#else
+#define TSCH_PACKET_EACK_WITH_DEST_ADDR 1 /* Include destination address
 by default, useful in case of duplicate seqno */
 #endif
 
