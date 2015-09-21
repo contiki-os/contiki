@@ -1158,7 +1158,7 @@ static void
 set_frame_filtering(uint8_t enable)
 {
   GET_LOCK();
-  
+
   /* Turn on/off address decoding. */
   uint16_t reg = getreg(CC2420_MDMCTRL0);
   if(enable) {
