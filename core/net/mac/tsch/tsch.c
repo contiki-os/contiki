@@ -836,6 +836,10 @@ tsch_init(void)
     printf("TSCH:! radio does not support getting last packet timestamp. Abort init.\n");
     return;
   }
+  /* Check max hopping sequence length vs default sequence length */
+  if(TSCH_HOPPING_SEQUENCE_MAX_LEN < sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE)) {
+    printf("TSCH:! TSCH_HOPPING_SEQUENCE_MAX_LEN < sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE). Abort init.\n");
+  }
 
   /* Init TSCH sub-modules */
   tsch_reset();
