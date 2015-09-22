@@ -197,7 +197,8 @@ public class SensorData implements SensorInfo {
   }
 
   public double getTemperature() {
-    return -39.6 + 0.01 * values[TEMPERATURE];
+//    return -39.6 + 0.01 * values[TEMPERATURE];
+    return values[TEMPERATURE];
   }
 
   public double getBatteryVoltage() {
@@ -217,11 +218,12 @@ public class SensorData implements SensorInfo {
   }
 
   public double getHumidity() {
-    double v = -4.0 + 405.0 * values[HUMIDITY] / 10000.0;
-    if(v > 100) {
-      return 100;
-    }
-    return v;
+//    double v = -4.0 + 405.0 * values[HUMIDITY] / 10000.0;
+//    if(v > 100) {
+//      return 100;
+//    }
+//    return v;
+      return values[HUMIDITY];
   }
 
   public double getLight1() {

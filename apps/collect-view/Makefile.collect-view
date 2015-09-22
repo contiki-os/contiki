@@ -6,6 +6,10 @@ else
 ifeq ($(TARGET), z1)
 collect-view_src += collect-view-z1.c
 else
+ifeq ($(TARGET), openmote)
+collect-view_src += collect-view-openmote.c
+else
 collect-view_src += collect-view-template.c
+endif
 endif
 endif

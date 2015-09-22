@@ -38,6 +38,7 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+//#define CC2538_RF_CONF_SNIFFER_USB 1
 #define CC2538_RF_CONF_SNIFFER 1
 #define CC2538_RF_CONF_AUTOACK 0
 #define NETSTACK_CONF_RDC      stub_rdc_driver

@@ -108,7 +108,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef ENERGEST_CONF_ON
-#define ENERGEST_CONF_ON            0 /**< Energest Module */
+#define ENERGEST_CONF_ON            1 /**< Energest Module */
 #endif
 
 #ifndef STARTUP_CONF_VERBOSE
