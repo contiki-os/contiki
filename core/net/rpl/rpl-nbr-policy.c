@@ -49,7 +49,7 @@
 #include "net/ipv6/uip-ds6-nbr.h"
 #include "net/ipv6/uip-ds6-route.h"
 
-#define DEBUG DEBUG_FULL
+#define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
 /*
@@ -63,7 +63,7 @@
  * neighbors and are not only MAC neighbors.
  */
 
-#define MAX_CHILDREN (NBR_TABLE_MAX_NEIGHBORS - 3)
+#define MAX_CHILDREN (NBR_TABLE_MAX_NEIGHBORS - 2)
 #define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 static int num_parents; /* any node that are possible parents */
