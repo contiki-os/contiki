@@ -87,7 +87,11 @@ rpl_print_neighbor_list()
 {
   if(default_instance != NULL && default_instance->current_dag != NULL &&
       default_instance->of != NULL && default_instance->of->calculate_rank != NULL) {
+#if RPL_FIXED_DIO
+    int curr_dio_interval = default_instance->dio_interval;
+#else
     int curr_dio_interval = default_instance->dio_intcurrent;
+#endif
     int curr_rank = default_instance->current_dag->rank;
     rpl_parent_t *p = nbr_table_head(rpl_parents);
     clock_time_t now = clock_time();
@@ -338,12 +342,16 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
 
   memcpy(&dag->dag_id, dag_id, sizeof(dag->dag_id));
 
+#if RPL_FIXED_DIO
+  instance->dio_interval = RPL_DIO_INTERVAL;
+#else
   instance->dio_intdoubl = RPL_DIO_INTERVAL_DOUBLINGS;
   instance->dio_intmin = RPL_DIO_INTERVAL_MIN;
   /* The current interval must differ from the minimum interval in order to
      trigger a DIO timer reset. */
   instance->dio_intcurrent = RPL_DIO_INTERVAL_MIN +
     RPL_DIO_INTERVAL_DOUBLINGS;
+#endif
   instance->dio_redundancy = RPL_DIO_REDUNDANCY;
   instance->max_rankinc = RPL_MAX_RANKINC;
   instance->min_hoprankinc = RPL_MIN_HOPRANKINC;
@@ -990,9 +998,13 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   instance->max_rankinc = dio->dag_max_rankinc;
   instance->min_hoprankinc = dio->dag_min_hoprankinc;
+#if RPL_FIXED_DIO
+  instance->dio_interval = dio->dag_interval;
+#else
   instance->dio_intdoubl = dio->dag_intdoubl;
   instance->dio_intmin = dio->dag_intmin;
   instance->dio_intcurrent = instance->dio_intmin + instance->dio_intdoubl;
+#endif
   instance->dio_redundancy = dio->dag_redund;
   instance->default_lifetime = dio->default_lifetime;
   instance->lifetime_unit = dio->lifetime_unit;
@@ -1073,8 +1085,10 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
      instance->mop != dio->mop ||
      instance->max_rankinc != dio->dag_max_rankinc ||
      instance->min_hoprankinc != dio->dag_min_hoprankinc ||
+#if !RPL_FIXED_DIO
      instance->dio_intdoubl != dio->dag_intdoubl ||
      instance->dio_intmin != dio->dag_intmin ||
+#endif
      instance->dio_redundancy != dio->dag_redund ||
      instance->default_lifetime != dio->default_lifetime ||
      instance->lifetime_unit != dio->lifetime_unit) {
@@ -1121,8 +1135,12 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
   dag->version = dio->version;
 
   /* copy parts of the configuration so that it propagates in the network */
+#if RPL_FIXED_DIO
+  dag->instance->dio_interval = dio->dag_interval;
+#else
   dag->instance->dio_intdoubl = dio->dag_intdoubl;
   dag->instance->dio_intmin = dio->dag_intmin;
+#endif
   dag->instance->dio_redundancy = dio->dag_redund;
   dag->instance->default_lifetime = dio->default_lifetime;
   dag->instance->lifetime_unit = dio->lifetime_unit;

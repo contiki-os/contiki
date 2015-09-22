@@ -134,6 +134,27 @@
   #define RPL_DAO_SPECIFY_DAG RPL_CONF_DAO_SPECIFY_DAG
 #endif /* RPL_CONF_DAO_SPECIFY_DAG */
 
+
+/*
+ * Use or not of a Fixed DIO timer
+ * */
+
+#ifdef RPL_CONF_FIXED_DIO
+#define RPL_FIXED_DIO RPL_CONF_FIXED_DIO
+#else
+#define RPL_FIXED_DIO 0
+#endif 
+
+#if RPL_FIXED_DIO
+
+#ifdef RPL_CONF_DIO_INTERVAL
+#define RPL_DIO_INTERVAL RPL_CONF_DIO_INTERVAL
+#else
+#define RPL_DIO_INTERVAL 10
+#endif 
+
+#else
+
 /*
  * The DIO interval (n) represents 2^n ms.
  *
@@ -160,6 +181,8 @@
 #else
 #define RPL_DIO_INTERVAL_DOUBLINGS  8
 #endif
+
+#endif /* RPL_FIXED_DIO */
 
 /*
  * DIO redundancy. To learn more about this, see RFC 6206.
@@ -321,6 +344,5 @@
 #endif
 
 #endif /* RPL_DYNAMIC_DIS */
-
 
 #endif /* RPL_CONF_H */

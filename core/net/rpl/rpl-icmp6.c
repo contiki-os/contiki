@@ -118,6 +118,12 @@ get_global_addr(uip_ipaddr_t *addr)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t round_pow2(uint8_t n){
+  int i;
+  for(i = 0; n != 1; i++) n = n >> 1;
+  return i;
+}
+/*---------------------------------------------------------------------------*/
 static uint32_t
 get32(uint8_t *buffer, int pos)
 {
@@ -223,8 +229,12 @@ dio_input(void)
   memset(&dio, 0, sizeof(dio));
 
   /* Set default values in case the DIO configuration option is missing. */
+#if RPL_FIXED_DIO
+  dio.dag_interval = RPL_DIO_INTERVAL;
+#else
   dio.dag_intdoubl = RPL_DIO_INTERVAL_DOUBLINGS;
   dio.dag_intmin = RPL_DIO_INTERVAL_MIN;
+#endif
   dio.dag_redund = RPL_DIO_REDUNDANCY;
   dio.dag_min_hoprankinc = RPL_MIN_HOPRANKINC;
   dio.dag_max_rankinc = RPL_MAX_RANKINC;
@@ -378,8 +388,10 @@ dio_input(void)
       }
 
       /* Path control field not yet implemented - at i + 2 */
+#if !RPL_FIXED_DIO
       dio.dag_intdoubl = buffer[i + 3];
       dio.dag_intmin = buffer[i + 4];
+#endif /* RPL_FIXED_DIO */
       dio.dag_redund = buffer[i + 5];
       dio.dag_max_rankinc = get16(buffer, i + 6);
       dio.dag_min_hoprankinc = get16(buffer, i + 8);
@@ -387,10 +399,17 @@ dio_input(void)
       /* buffer + 12 is reserved */
       dio.default_lifetime = buffer[i + 13];
       dio.lifetime_unit = get16(buffer, i + 14);
+#if RPL_FIXED_DIO
+      PRINTF("RPL: DAG conf:red=%d maxinc=%d mininc=%d ocp=%d d_l=%u l_u=%u\n",
+             dio.dag_redund,
+             dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp,
+             dio.default_lifetime, dio.lifetime_unit);
+#else
       PRINTF("RPL: DAG conf:dbl=%d, min=%d red=%d maxinc=%d mininc=%d ocp=%d d_l=%u l_u=%u\n",
              dio.dag_intdoubl, dio.dag_intmin, dio.dag_redund,
              dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp,
              dio.default_lifetime, dio.lifetime_unit);
+#endif
       break;
     case RPL_OPTION_PREFIX_INFO:
       if(len != 32) {
@@ -512,8 +531,14 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   buffer[pos++] = RPL_OPTION_DAG_CONF;
   buffer[pos++] = 14;
   buffer[pos++] = 0; /* No Auth, PCS = 0 */
+#if RPL_FIXED_DIO
+  /*implement reverse compatibility*/
+  buffer[pos++] = round_pow2(instance->dio_interval);
+  buffer[pos++] = 0;
+#else
   buffer[pos++] = instance->dio_intdoubl;
   buffer[pos++] = instance->dio_intmin;
+#endif /* RPL_FIXED_DIO*/
   buffer[pos++] = instance->dio_redundancy;
   set16(buffer, pos, instance->max_rankinc);
   pos += 2;
