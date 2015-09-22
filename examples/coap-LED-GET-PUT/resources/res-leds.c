@@ -56,27 +56,28 @@
 #define PRINTLLADDR(addr)
 #endif
 
-static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+#define LEDS_GREEN                    1
+#define LEDS_YELLOW                   2
+#define LEDS_RED                      4
+#define LEDS_ALL                      7
 
+static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
+static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 /*A simple actuator example, depending on the color query parameter and post variable mode, corresponding led is activated or deactivated*/
 RESOURCE(res_leds,
-         "title=\"LEDs: ?color=r|g|b, POST/PUT mode=on|off\";rt=\"Control\"",
-         NULL,
+         "title=\"LEDs: ?color=r|g|b, PUT mode=on|off\";rt=\"Control\"",
          res_get_handler,
+         NULL,
          res_put_handler,
          NULL);
-         
-static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
-static void res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
-//static void method = REST.get_method_type(request);
-//printf("%d\n", method);
-  //PRINTF("%d\n", method);
-  if (res_get_handler)
-   {
-    PRINTF("GET ", method);
-    if (leds_get()==4)
+
+
+static void
+res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
+{
+
+if (leds_get()==4)
     {
     char const * const message = "RED LED ON";
      int length = 10;
@@ -86,9 +87,10 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
         REST.set_response_payload(response, buffer, length);  
     printf("status ON\n", leds_get());
     PRINTF("status ON\n", leds_get());
-     }
-    else if (leds_get()==1)
-    {
+}
+
+else if (leds_get()==1)
+ {   
     char const * const message = "GREEN LED ON";
      int length = 13;
      memcpy(buffer, message, length);
@@ -97,9 +99,21 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
         REST.set_response_payload(response, buffer, length);  
     printf("status ON\n", leds_get());
     PRINTF("status ON\n", leds_get());
-     }
-     else 
-     {
+}
+
+else if ((leds_get()==1) && (leds_get()==4))
+ {
+    char const * const message = "R&G LED ON";
+     int length = 10;
+     memcpy(buffer, message, length);
+        REST.set_header_content_type(response, REST.type.TEXT_PLAIN); /* text/plain is the default, hence this option could be       omitted. */
+        REST.set_header_etag(response, (uint8_t *) &length, 1);
+        REST.set_response_payload(response, buffer, length);  
+    printf("status ON\n", leds_get());
+    PRINTF("status ON\n", leds_get());
+}
+else 
+{
      char const * const message = "LED OFF";
      int length = 7;
      memcpy(buffer, message, length);
@@ -108,10 +122,11 @@ static void res_put_handler(void *request, void *response, uint8_t *buffer, uint
         REST.set_response_payload(response, buffer, length); 
         printf("status OFF\n", leds_get());
         PRINTF("status OFF\n", leds_get());
-     } 
-    }
-  
-else if (res_put_handler)  
+}
+}
+
+static void
+res_put_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   size_t len = 0;
   const char *color = NULL;
@@ -119,11 +134,28 @@ else if (res_put_handler)
   uint8_t led = 0;
   int success = 1;
 
-   if (success && (len=REST.get_post_variable(request, "mode", &mode))) {
+  if((len = REST.get_query_variable(request, "color", &color))) {
+    PRINTF("color %.*s\n", len, color);
+
+    if(strncmp(color, "r", len) == 0) {
+      led = LEDS_RED;
+    } else if(strncmp(color, "g", len) == 0) {
+      led = LEDS_GREEN;
+    } else if(strncmp(color, "b", len) == 0) {
+      led = LEDS_BLUE;
+    } else {
+      success = 0;
+    }
+  } else {
+    success = 0;
+} 
+  
+    if(success && (len = REST.get_post_variable(request, "mode", &mode))) {
     PRINTF("mode %s\n", mode);
 
-    if (strncmp(mode, "on", len)==0) {
+    if(strncmp(mode, "on", len) == 0) {
       leds_on(led);
+      
       if (leds_get()==4)
             {
                  printf("RED_LED status ON\n");
@@ -134,20 +166,31 @@ else if (res_put_handler)
                  printf("GREEN_LED status ON\n");
                  PRINTF("GREEN_LED status ON\n");
             }
-    } else if (strncmp(mode, "off", len)==0) {
+       
+        }
+     /*if(strncmp(mode, "on", len) == 0) {
+      leds_on(LEDS_GREEN);
+      printf("GREEN_LED status ON\n");
+      PRINTF("GREEN_LED status ON\n");
+        }
+        
+      if((strncmp(mode, "ron", len) == 0) && (strncmp(mode, "gon", len) == 0)) {
+      leds_on(LEDS_RED);
+      leds_on(LEDS_GREEN);
+      printf("RED_GREEN_LED status ON\n");
+      PRINTF("RED_GREEN_LED status ON\n");
+            }*/
+      
+      else if(strncmp(mode, "off", len) == 0) {
       leds_off(led);
       printf("LEDs status OFF\n");
       PRINTF("LEDs status OFF\n");
-    } else if (strncmp(mode, "off", len)==0) {
-      leds_off(led);
     } else {
       success = 0;
     }
   } else {
     success = 0;
-  }
-
-  if (!success) {
+  } if(!success) {
     REST.set_response_status(response, REST.status.BAD_REQUEST);
   }
 }

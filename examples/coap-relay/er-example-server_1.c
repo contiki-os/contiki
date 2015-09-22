@@ -42,8 +42,6 @@
 #include "contiki.h"
 #include "contiki-net.h"
 #include "rest-engine.h"
-#include "er-coap.h"
-#include "er-plugtest.h"
 
 #if PLATFORM_HAS_BUTTON
 #include "dev/button-sensor.h"
@@ -65,18 +63,22 @@
  * Resources to be activated need to be imported through the extern keyword.
  * The build system automatically compiles the resources in the corresponding sub-directory.
  */
-//extern resource_t
-  //res_hello,
-  //res_separate,
-  //res_event;
-  //res_mirror;
+extern resource_t
+  res_hello,
+  res_mirror,
+  res_chunks,
+  res_separate,
+  res_push,
+  res_event,
+  res_sub,
+  res_b1_sep_b2;
 #if PLATFORM_HAS_LEDS
 extern resource_t res_leds, res_toggle;
 #endif
-//#if PLATFORM_HAS_LIGHT
-//#include "dev/light-sensor.h"
-//extern resource_t res_light;
-//#endif
+#if PLATFORM_HAS_LIGHT
+#include "dev/light-sensor.h"
+extern resource_t res_light;
+#endif
 /*
 #if PLATFORM_HAS_BATTERY
 #include "dev/battery-sensor.h"
@@ -123,23 +125,23 @@ PROCESS_THREAD(er_example_server, ev, data)
    * WARNING: Activating twice only means alternate path, not two instances!
    * All static variables are the same for each URI path.
    */
- //rest_activate_resource(&res_hello, "test/hello");
-//rest_activate_resource(&res_mirror, "debug/mirror"); 
+  rest_activate_resource(&res_hello, "test/hello");
+/*  rest_activate_resource(&res_mirror, "debug/mirror"); */
 /*  rest_activate_resource(&res_chunks, "test/chunks"); */
-//rest_activate_resource(&res_separate, "test/separate"); 
-//rest_activate_resource(&res_push, "test/push");
-//rest_activate_resource(&res_event, "sensors/button"); 
+/*  rest_activate_resource(&res_separate, "test/separate"); */
+  rest_activate_resource(&res_push, "test/push");
+/*  rest_activate_resource(&res_event, "sensors/button"); */
 /*  rest_activate_resource(&res_sub, "test/sub"); */
 /*  rest_activate_resource(&res_b1_sep_b2, "test/b1sepb2"); */
 #if PLATFORM_HAS_LEDS
-rest_activate_resource(&res_leds, "actuators/leds");
-rest_activate_resource(&res_toggle, "actuators/toggle");
+/*  rest_activate_resource(&res_leds, "actuators/leds"); */
+  rest_activate_resource(&res_toggle, "actuators/toggle");
+#endif
+#if PLATFORM_HAS_LIGHT
+  rest_activate_resource(&res_light, "sensors/light"); 
+  SENSORS_ACTIVATE(light_sensor);  
 #endif
 /*
-#if PLATFORM_HAS_LIGHT
- rest_activate_resource(&res_light, "sensors/light"); 
- SENSORS_ACTIVATE(light_sensor);  
-#endif
 #if PLATFORM_HAS_BATTERY
   rest_activate_resource(&res_battery, "sensors/battery");  
   SENSORS_ACTIVATE(battery_sensor);  
@@ -155,21 +157,20 @@ rest_activate_resource(&res_toggle, "actuators/toggle");
 */
 
   /* Define application-specific events here. */
-/*  while(1) {
+  while(1) {
     PROCESS_WAIT_EVENT();
 #if PLATFORM_HAS_BUTTON
     if(ev == sensors_event && data == &button_sensor) {
       PRINTF("*******BUTTON*******\n");
 
-      /* Call the event_handler for this application-specific event. 
+      /* Call the event_handler for this application-specific event. */
       res_event.trigger();
 
-      /* Also call the separate response example handler.
+      /* Also call the separate response example handler. */
       res_separate.resume();
     }
-    
 #endif /* PLATFORM_HAS_BUTTON */
- // }                             /* while (1) */
+  }                             /* while (1) */
 
   PROCESS_END();
 }
