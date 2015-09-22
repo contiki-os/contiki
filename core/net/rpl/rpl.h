@@ -300,5 +300,13 @@ enum rpl_mode rpl_set_mode(enum rpl_mode mode);
  */
 enum rpl_mode rpl_get_mode(void);
 
+
+/**
+ * Get the RPL's best guess on if we have downward link or not.
+ *
+ * \retval 1 if we have a downward link, 0 if not.
+ */
+int rpl_has_downward_link(void);
+
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */

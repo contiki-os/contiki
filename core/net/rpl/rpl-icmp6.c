@@ -89,6 +89,7 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 #endif
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
+static uint8_t downward = 0;
 
 extern rpl_of_t RPL_OF;
 
@@ -102,6 +103,19 @@ UIP_ICMP6_HANDLER(dio_handler, ICMP6_RPL, RPL_CODE_DIO, dio_input);
 UIP_ICMP6_HANDLER(dao_handler, ICMP6_RPL, RPL_CODE_DAO, dao_input);
 UIP_ICMP6_HANDLER(dao_ack_handler, ICMP6_RPL, RPL_CODE_DAO_ACK, dao_ack_input);
 /*---------------------------------------------------------------------------*/
+
+void
+rpl_set_downward_link(uint8_t link)
+{
+  downward = link;
+}
+
+int
+rpl_has_downward_link()
+{
+  return downward;
+}
+
 #if RPL_WITH_DAO_ACK
 static uip_ds6_route_t *
 find_route_entry_by_dao_ack(uint8_t seq)
@@ -967,6 +981,13 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
   instance->my_dao_transmissions = 1;
   ctimer_set(&instance->dao_retransmit_timer, RPL_DAO_RETRANSMISSION_TIMEOUT,
 	     handle_dao_retransmission, parent);
+  if(lifetime == RPL_ZERO_LIFETIME) {
+    rpl_set_downward_link(0);
+  }
+#else
+  /* We know that we have tried to register so now we are assuming
+     that we have a down-link - unless this is a zero lifetime one */
+  rpl_set_downward_link(lifetime != RPL_ZERO_LIFETIME);
 #endif /* RPL_WITH_DAO_ACK */
 }
 /*---------------------------------------------------------------------------*/
@@ -1107,6 +1128,8 @@ dao_ack_input(void)
   if(sequence == instance->my_dao_seqno) {
     PRINTF("RPL: DAO %s for me!\n", status < 128 ? "ACK" : "NACK");
 
+    rpl_set_downward_link(status < 128);
+
     /* always stop the retransmit timer when the ACK arrived */
     ctimer_stop(&instance->dao_retransmit_timer);
 
@@ -1115,11 +1138,14 @@ dao_ack_input(void)
       instance->of->dao_ack_callback(parent, status);
     }
 
+#if RPL_REPAIR_ON_DAO_NACK
     if(status >= RPL_DAO_ACK_UNABLE_TO_ACCEPT) {
       /* failed the DAO transmission - need to remove the default route. */
       /* Trigger a local repair since we can not get our DAO in... */
       rpl_local_repair(instance);
     }
+#endif
+
   } else {
     /* this DAO should be forwarded to another recently registered route */
     uip_ds6_route_t *re;

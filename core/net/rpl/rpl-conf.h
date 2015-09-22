@@ -246,6 +246,17 @@
 #endif /* RPL_CONF_WITH_DAO_ACK */
 
 /*
+ * RPL REPAIR ON DAO NACK. When enabled, DAO NACK will trigger a local
+ * repair in order to quickly find a new parent to send DAO's to.
+ * NOTE: this is too agressive in some cases so use with care.
+ * */
+#ifdef RPL_CONF_RPL_REPAIR_ON_DAO_NACK
+#define RPL_REPAIR_ON_DAO_NACK RPL_CONF_RPL_REPAIR_ON_DAO_NACK
+#else
+#define RPL_REPAIR_ON_DAO_NACK 0
+#endif /* RPL_CONF_RPL_REPAIR_ON_DAO_NACK */
+
+/*
  * Setting the DIO_REFRESH_DAO_ROUTES will make RPL always increase
  * the DTSN (Destination Advertisement Trigger Sequence Number) when
  * sending broadcast DIO. This is to get all children to re-register

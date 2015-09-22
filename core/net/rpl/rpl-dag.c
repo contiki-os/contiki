@@ -1156,6 +1156,9 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
 
   RPL_STAT(rpl_stats.global_repairs++);
 }
+
+void rpl_set_downward_link(uint8_t link);
+
 /*---------------------------------------------------------------------------*/
 void
 rpl_local_repair(rpl_instance_t *instance)
@@ -1173,6 +1176,9 @@ rpl_local_repair(rpl_instance_t *instance)
       nullify_parents(&instance->dag_table[i], 0);
     }
   }
+
+  /* no downward link anymore */
+  rpl_set_downward_link(0);
 
   rpl_reset_dio_timer(instance);
   /* Request refresh of DAO registrations next DIO */
