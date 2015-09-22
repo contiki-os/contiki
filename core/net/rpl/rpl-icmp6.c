@@ -820,7 +820,7 @@ dao_input(void)
   PRINTF("RPL: adding DAO route\n");
 
   /* Update and add neighbor - if no room - fail. */
-  if((nbr = rpl_icmp6_update_nbr_table(&dao_sender_addr, NBR_TABLE_REASON_RPL_DAO, NULL)) == NULL) {
+  if((nbr = rpl_icmp6_update_nbr_table(&dao_sender_addr, NBR_TABLE_REASON_RPL_DAO, instance)) == NULL) {
     PRINTF("RPL: Out of Memory, dropping DAO from ");
     PRINT6ADDR(&dao_sender_addr);
     PRINTF(", ");

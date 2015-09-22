@@ -62,7 +62,6 @@
  * NOTE: this policy assumes that all neighbors end up being IPv6
  * neighbors and are not only MAC neighbors.
  */
-
 #define MAX_CHILDREN (NBR_TABLE_MAX_NEIGHBORS - 2)
 #define UIP_IP_BUF       ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
@@ -212,13 +211,21 @@ find_removable_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 }
 /*---------------------------------------------------------------------------*/
 const linkaddr_t *
-find_removable_dao(uip_ipaddr_t *from)
+find_removable_dao(uip_ipaddr_t *from, rpl_instance_t *instance)
 {
+  int max = MAX_CHILDREN;
   update_nbr();
 
+  if(instance != NULL) {
+    /* No need to reserve space for parents for RPL ROOT */
+    if(instance->current_dag->rank == ROOT_RANK(instance)) {
+      max = NBR_TABLE_MAX_NEIGHBORS;
+    }
+  }
+  
   /* Check if this DAO sender is not yet neighbor and there is already too
      many children. */
-  if(num_children >= MAX_CHILDREN) {
+  if(num_children >= max) {
     PRINTF("Can not add another child - already at max.\n");
     return NULL;
   }
@@ -234,7 +241,7 @@ rpl_nbr_policy_find_removable(nbr_table_reason_t reason,void * data) {
   case NBR_TABLE_REASON_RPL_DIO:
     return find_removable_dio(&UIP_IP_BUF->srcipaddr, data);
   case NBR_TABLE_REASON_RPL_DAO:
-    return find_removable_dao(&UIP_IP_BUF->srcipaddr);
+    return find_removable_dao(&UIP_IP_BUF->srcipaddr, data);
   case NBR_TABLE_REASON_RPL_DIS:
     return find_removable_dis(&UIP_IP_BUF->srcipaddr);
   default:
