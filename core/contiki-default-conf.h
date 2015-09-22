@@ -178,13 +178,19 @@
 #define UIP_CONF_MAX_CONNECTIONS 8
 #endif /* UIP_CONF_MAX_CONNECTIONS */
 
-
 /* UIP_CONF_TCP_SPLIT enables a performance optimization hack, where
    each maximum-sized TCP segment is split into two, to avoid the
    performance degradation that is caused by delayed ACKs. */
 #ifndef UIP_CONF_TCP_SPLIT
 #define UIP_CONF_TCP_SPLIT 0
 #endif /* UIP_CONF_TCP_SPLIT */
+
+/* UIP_CONF_NETFILTER_ENABLE specifies if the netfilter is enabled
+   on the platform and therefore if the incoming packets should be
+   pre- processed before delivering them to the IP stack. */
+#ifndef UIP_CONF_NETFILTER_ENABLE
+#define UIP_CONF_NETFILTER_ENABLE 0
+#endif /* UIP_CONF_NETFILTER_ENABLE */
 
 /* NBR_TABLE_CONF_MAX_NEIGHBORS specifies the maximum number of neighbors
    that each node will be able to handle. */
@@ -255,6 +261,5 @@
 #ifndef CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION
 #define CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION 0
 #endif /* CONTIKIMAC_CONF_WITH_PHASE_OPTIMIZATION */
-
 
 #endif /* CONTIKI_DEFAULT_CONF_H */
