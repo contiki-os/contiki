@@ -350,6 +350,9 @@ tsch_rx_process_pending()
     frame802154_t frame;
     uint8_t ret = frame802154_parse(current_input->payload, current_input->len, &frame);
     int is_data = ret && frame.fcf.frame_type == FRAME802154_DATAFRAME;
+    int is_eb = ret
+        && frame.fcf.frame_version == FRAME802154_IEEE802154E_2012
+        && frame.fcf.frame_type == FRAME802154_BEACONFRAME;
 
     if(is_data) {
       /* Skip EBs and other control messages */
@@ -364,7 +367,7 @@ tsch_rx_process_pending()
     if(is_data) {
       /* Pass to upper layers */
       packet_input();
-    } else {
+    } else if(is_eb) {
       eb_input(current_input);
     }
   }
@@ -889,6 +892,8 @@ send_packet(mac_callback_t sent, void *ptr)
      * to tsch_eb_address */
     addr = &tsch_broadcast_address;
   }
+
+  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, tsch_packet_seqno);
 
 #if TSCH_SECURITY_ENABLED

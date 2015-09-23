@@ -227,8 +227,9 @@ int
 puts(const char *s)
 {
   char c;
-  while(c = *s++)
+  while(c = *s++) {
     putchar(c);
+  }
   putchar('\n');
   return strlen(s);
 }
