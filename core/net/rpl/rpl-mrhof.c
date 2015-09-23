@@ -122,8 +122,11 @@ reset(rpl_dag_t *dag)
 static void
 dao_ack_callback(rpl_parent_t *p, int status)
 {
+  if(status == RPL_DAO_ACK_UNABLE_TO_ACCEPT_ROOT) {
+    return;
+  }
   /* here we need to handle failed DAO's and other stuff */
-  PRINTF("RPL: MRHOF - DAO ACK received with status: %d", status);
+  PRINTF("RPL: MRHOF - DAO ACK received with status: %d\n", status);
   if(status >= RPL_DAO_ACK_UNABLE_TO_ACCEPT) {
     /* punish the ETX as if this was 10 packets lost */
     neighbor_link_callback(p, MAC_TX_OK, 10);
