@@ -438,16 +438,12 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   
   if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
       &frame, &ies, &hdrlen, 0) == 0) {
+    PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
     return 0;
   }
   
   current_asn = ies.ie_asn;
   tsch_join_priority = ies.ie_join_priority + 1;
-  
-  if(input_eb->len == 0) {
-    PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
-    return 0;
-  }
   
 #if TSCH_SECURITY_ENABLED
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
@@ -473,7 +469,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 #endif /* !TSCH_SECURITY_ENABLED */
 
 #if TSCH_JOIN_MY_PANID_ONLY
-  /* Check if the EB comes from the PAN ID we expact */
+  /* Check if the EB comes from the PAN ID we expect */
   if(frame.src_pid != IEEE802154_PANID) {
     PRINTF("TSCH:! parse_eb: PAN ID %x != %x\n", frame.src_pid, IEEE802154_PANID);
     return 0;
