@@ -231,7 +231,6 @@ int
 frame802154_extract_linkaddr(frame802154_t *frame,
     linkaddr_t *source_address, linkaddr_t *dest_address)
 {
-  int has_dest_panid;
   int src_addr_len;
   int dest_addr_len;
 
