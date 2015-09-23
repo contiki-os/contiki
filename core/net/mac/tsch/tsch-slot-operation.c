@@ -587,6 +587,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
     log->tx.drift = drift_correction;
     log->tx.drift_used = drift_neighbor != NULL;
     log->tx.is_data = is_data;
+    log->tx.sec_level = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL);
     log->tx.dest = TSCH_LOG_ID_FROM_LINKADDR(queuebuf_addr(current_packet->qb, PACKETBUF_ADDR_RECEIVER));
     );
 
@@ -680,7 +681,9 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         current_input->rx_asn = current_asn;
         current_input->rssi = (signed)radio_last_rssi;
         header_len = frame802154_parse((uint8_t*)current_input->payload, current_input->len, &frame);
-        frame_valid = header_len > 0 && frame802154_packet_extract_addresses(&frame, &source_address, &destination_address);
+        frame_valid = header_len > 0 &&
+            frame802154_check_dest_panid(&frame) &&
+            frame802154_extract_linkaddr(&frame, &source_address, &destination_address);
 
         packet_duration = TSCH_PACKET_DURATION(current_input->len);
 
@@ -765,6 +768,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
               log->rx.drift = drift_correction;
               log->rx.drift_used = drift_neighbor != NULL;
               log->rx.is_data = frame.fcf.frame_type == FRAME802154_DATAFRAME;
+              log->rx.sec_level = frame.aux_hdr.security_control.security_level;
               log->rx.estimated_drift = estimated_drift;
             );
           } else {

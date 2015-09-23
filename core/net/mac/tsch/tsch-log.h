@@ -92,6 +92,7 @@ struct tsch_log_t {
       uint8_t num_tx;
       uint8_t datalen;
       uint8_t is_data;
+      uint8_t sec_level;
       uint8_t drift_used;
     } tx;
     struct {
@@ -101,6 +102,7 @@ struct tsch_log_t {
       uint8_t datalen;
       uint8_t is_unicast;
       uint8_t is_data;
+      uint8_t sec_level;
       uint8_t drift_used;
     } rx;
   };

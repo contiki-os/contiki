@@ -67,6 +67,7 @@
 #define FRAME_802154_H
 
 #include "contiki-conf.h"
+#include "net/linkaddr.h"
 
 #ifdef IEEE802154_CONF_PANID
 #define IEEE802154_PANID           IEEE802154_CONF_PANID
@@ -206,10 +207,23 @@ typedef struct {
 
 /* Prototypes */
 
-void frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest_pan_id);
 int frame802154_hdrlen(frame802154_t *p);
 int frame802154_create(frame802154_t *p, uint8_t *buf);
 int frame802154_parse(uint8_t *data, int length, frame802154_t *pf);
+
+/* Get current PAN ID */
+uint16_t frame802154_get_pan_id();
+/* Set current PAN ID */
+void frame802154_set_pan_id(uint16_t pan_id);
+/* Tells whether a given Frame Control Field indicates a frame with
+ * source PANID and/or destination PANID */
+void frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest_pan_id);
+/* Check if the destination PAN ID, if any, matches ours */
+int frame802154_check_dest_panid(frame802154_t *frame);
+/* Check is the address is a broadcast address, whatever its size */
+int frame802154_is_broadcast_addr(uint8_t mode, uint8_t *addr);
+/* Check and extract source and destination linkaddr from frame */
+int frame802154_extract_linkaddr(frame802154_t *frame, linkaddr_t *source_address, linkaddr_t *dest_address);
 
 /** @} */
 #endif /* FRAME_802154_H */

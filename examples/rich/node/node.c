@@ -93,7 +93,7 @@ PROCESS_THREAD(node_process, ev, data)
     etimer_set(&et, CLOCK_SECOND * CONFIG_WAIT_TIME);
 
     while(!etimer_expired(&et)) {
-      printf("Init: current role: %s. Will start in %u seconds.\n",
+      printf("Init: current role: %s. Will start in %u seconds. Press user button to toggle mode.\n",
           node_role == role_6ln ? "6ln" : (node_role == role_6dr) ? "6dr" : "6dr-sec",
           CONFIG_WAIT_TIME);
       PROCESS_WAIT_EVENT_UNTIL(((ev == sensors_event) &&
@@ -101,6 +101,9 @@ PROCESS_THREAD(node_process, ev, data)
                                 || etimer_expired(&et));
       if(ev == sensors_event && data == &button_sensor && button_sensor.value(0) > 0) {
         node_role = (node_role + 1) % 3;
+        if(LLSEC802154_CONF_SECURITY_LEVEL == 0 && node_role == role_6dr_sec) {
+          node_role = (node_role + 1) % 3;
+        }
         etimer_restart(&et);
       }
     }

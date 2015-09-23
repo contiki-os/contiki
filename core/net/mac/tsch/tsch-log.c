@@ -90,8 +90,8 @@ tsch_log_process_pending()
         tsch_calculate_channel(&log->asn, log->link->channel_offset));
     switch(log->type) {
       case tsch_log_tx:
-        printf("%s-%u %u tx %d, st %d-%d",
-            log->tx.dest == 0 ? "bc" : "uc", log->tx.is_data,
+        printf("%s-%u-%u %u tx %d, st %d-%d",
+            log->tx.dest == 0 ? "bc" : "uc", log->tx.is_data, log->tx.sec_level,
                 log->tx.datalen,
                 log->tx.dest,
                 log->tx.mac_tx_status, log->tx.num_tx);
@@ -101,8 +101,8 @@ tsch_log_process_pending()
         printf("\n");
         break;
       case tsch_log_rx:
-        printf("%s-%u %u rx %d",
-            log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data,
+        printf("%s-%u-%u %u rx %d",
+            log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data, log->tx.sec_level,
                 log->rx.datalen,
                 log->rx.src);
         if(log->rx.drift_used) {

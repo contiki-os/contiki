@@ -39,6 +39,7 @@
  */
 
 #include "contiki.h"
+#include "net/packetbuf.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-packet.h"
 #include "net/mac/tsch/tsch-private.h"
@@ -147,9 +148,13 @@ tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
     return 0;
   }
 
+  /* Check destination PAN ID */
+  if(frame802154_check_dest_panid(frame) == 0) {
+    return 0;
+  }
+
   /* Check destination address (if any) */
-  ret = frame802154_packet_extract_addresses(frame, NULL, &dest);
-  if(ret == 0 ||
+  if(frame802154_extract_linkaddr(frame, NULL, &dest) == 0 ||
       (!linkaddr_cmp(&dest, &linkaddr_node_addr)
           && !linkaddr_cmp(&dest, &linkaddr_null))) {
     return 0;
@@ -219,12 +224,12 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
 
 #if TSCH_SECURITY_ENABLED
   if(tsch_is_pan_secured) {
-    p.fcf.security_enabled = TSCH_SECURITY_KEY_SEC_LEVEL_EB > 0;
-    p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_EB;
-    p.aux_hdr.security_control.key_id_mode = 1;
+    p.fcf.security_enabled = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) > 0;
+    p.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
+    p.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
     p.aux_hdr.security_control.frame_counter_suppression = 1;
     p.aux_hdr.security_control.frame_counter_size = 1;
-    p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_EB;
+    p.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
   }
 #endif /* TSCH_SECURITY_ENABLED */
 

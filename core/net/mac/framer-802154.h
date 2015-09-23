@@ -39,14 +39,8 @@
 #ifndef FRAMER_802154_H_
 #define FRAMER_802154_H_
 
-#include "contiki.h"
-#include "net/linkaddr.h"
 #include "net/mac/framer.h"
-#include "net/mac/frame802154.h"
 
 extern const struct framer framer_802154;
-int frame802154_packet_extract_addresses(frame802154_t *frame, linkaddr_t *source_address, linkaddr_t *dest_address);
-uint16_t frame802154_get_pan_id();
-void frame802154_set_pan_id(uint16_t pan_id);
 
 #endif /* FRAMER_802154_H_ */

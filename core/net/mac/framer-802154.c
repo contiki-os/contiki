@@ -62,36 +62,6 @@ static uint8_t mac_dsn;
 
 static uint8_t initialized = 0;
 
-/**  \brief The 16-bit identifier of the PAN on which the device is
- *   operating.  If this value is 0xffff, the device is not
- *   associated.
- */
-static uint16_t mac_pan_id = IEEE802154_PANID;
-
-/*---------------------------------------------------------------------------*/
-uint16_t
-frame802154_get_pan_id()
-{
-  return mac_pan_id;
-}
-/*---------------------------------------------------------------------------*/
-void
-frame802154_set_pan_id(uint16_t pan_id)
-{
-  mac_pan_id = pan_id;
-}
-/*---------------------------------------------------------------------------*/
-static int
-is_broadcast_addr(uint8_t mode, uint8_t *addr)
-{
-  int i = mode == FRAME802154_SHORTADDRMODE ? 2 : 8;
-  while(i-- > 0) {
-    if(addr[i] != 0xff) {
-      return 0;
-    }
-  }
-  return 1;
-}
 /*---------------------------------------------------------------------------*/
 static int
 create_frame(int type, int do_create)
@@ -99,7 +69,7 @@ create_frame(int type, int do_create)
   frame802154_t params;
   int hdr_len;
 
-  if(mac_pan_id == 0xffff) {
+  if(frame802154_get_pan_id() == 0xffff) {
    return -1;
   }
 
@@ -176,7 +146,7 @@ create_frame(int type, int do_create)
   } else {
     params.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
   }
-  params.dest_pid = mac_pan_id;
+  params.dest_pid = frame802154_get_pan_id();
 
   if(packetbuf_holds_broadcast()) {
     /* Broadcast requires short address mode. */
@@ -196,7 +166,7 @@ create_frame(int type, int do_create)
   }
 
   /* Set the source PAN ID to the global variable. */
-  params.src_pid = mac_pan_id;
+  params.src_pid = frame802154_get_pan_id();
 
   /*
    * Set up the source address using only the long address mode for
@@ -249,13 +219,13 @@ parse(void)
     packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, frame.fcf.frame_type);
     
     if(frame.fcf.dest_addr_mode) {
-      if(frame.dest_pid != mac_pan_id &&
+      if(frame.dest_pid != frame802154_get_pan_id() &&
           frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         PRINTF("15.4: for another pan %u\n", frame.dest_pid);
         return FRAMER_FAILED;
       }
-      if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
+      if(!frame802154_is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
         packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&frame.dest_addr);
       }
     }
@@ -293,38 +263,6 @@ parse(void)
     return hdr_len;
   }
   return FRAMER_FAILED;
-}
-/*---------------------------------------------------------------------------*/
-/* Extract addresses from raw packet */
-int
-frame802154_packet_extract_addresses(frame802154_t *frame,
-    linkaddr_t *source_address, linkaddr_t *dest_address)
-{
-  if(frame != NULL) {
-    if(dest_address != NULL) {
-      linkaddr_copy(dest_address, &linkaddr_null);
-    }
-    if(frame->fcf.dest_addr_mode) {
-      int has_dest_panid;
-      frame802154_has_panid(&frame->fcf, NULL, &has_dest_panid);
-      if(has_dest_panid
-          && frame->dest_pid != mac_pan_id
-          && frame->dest_pid != FRAME802154_BROADCASTPANDID) {
-        /* Packet to another PAN */
-        return 0;
-      }
-      if(!is_broadcast_addr(frame->fcf.dest_addr_mode, frame->dest_addr)) {
-        if(dest_address != NULL) {
-          linkaddr_copy(dest_address, (linkaddr_t *)frame->dest_addr);
-        }
-      }
-    }
-
-    if(source_address != NULL) {
-      linkaddr_copy(source_address, (linkaddr_t *)frame->src_addr);
-    }
-  }
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 const struct framer framer_802154 = {
