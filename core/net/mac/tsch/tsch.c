@@ -447,6 +447,13 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   
   current_asn = ies.ie_asn;
   tsch_join_priority = ies.ie_join_priority + 1;
+
+#if TSCH_JOIN_SECURED_ONLY
+  if(frame.fcf.security_enabled == 0) {
+    PRINTF("TSCH:! parse_eb: EB is not secured\n");
+    return 0;
+  }
+#endif /* TSCH_JOIN_SECURED_ONLY */
   
 #if TSCH_SECURITY_ENABLED
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
@@ -456,13 +463,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     return 0;
   }
 #endif /* TSCH_SECURITY_ENABLED */
-  
-#if TSCH_JOIN_SECURED_ONLY
-  if(frame.fcf.security_enabled == 0) {
-    PRINTF("TSCH:! parse_eb: EB is not secured\n");
-    return 0;
-  }
-#endif /* TSCH_JOIN_SECURED_ONLY */
 
 #if !TSCH_SECURITY_ENABLED
   if(frame.fcf.security_enabled == 1) {
@@ -750,7 +750,7 @@ PROCESS_THREAD(tsch_send_eb_process, ev, data)
         if(tsch_is_pan_secured) {
           /* Set security level, key id and index */
           packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_EB);
-          packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
+          packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, FRAME802154_1_BYTE_KEY_ID_MODE); /* Use 1-byte key index */
           packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_EB);
         }
 #endif /* TSCH_SECURITY_ENABLED */
@@ -911,7 +911,7 @@ send_packet(mac_callback_t sent, void *ptr)
   if(tsch_is_pan_secured) {
     /* Set security level, key id and index */
     packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, TSCH_SECURITY_KEY_SEC_LEVEL_OTHER);
-    packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, 1); /* Use key index */
+    packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, FRAME802154_1_BYTE_KEY_ID_MODE); /* Use 1-byte key index */
     packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, TSCH_SECURITY_KEY_INDEX_OTHER);
   }
 #endif /* TSCH_SECURITY_ENABLED */

@@ -97,7 +97,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   if(tsch_is_pan_secured) {
     p.fcf.security_enabled = 1;
     p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_ACK;
-    p.aux_hdr.security_control.key_id_mode = 1;
+    p.aux_hdr.security_control.key_id_mode = FRAME802154_1_BYTE_KEY_ID_MODE;
     p.aux_hdr.security_control.frame_counter_suppression = 1;
     p.aux_hdr.security_control.frame_counter_size = 1;
     p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_ACK;

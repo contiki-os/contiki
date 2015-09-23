@@ -118,10 +118,10 @@ typedef uint8_t aes_key[16];
 
 /********** Functions *********/
 
-int tsch_security_mic_len(frame802154_t *frame);
+int tsch_security_mic_len(const frame802154_t *frame);
 int tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
     int hdrlen, int datalen, struct asn_t *asn);
 int tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
-    frame802154_t *frame, const linkaddr_t *sender, struct asn_t *asn);
+    const frame802154_t *frame, const linkaddr_t *sender, struct asn_t *asn);
 
 #endif /* __TSCH_SECURITY_H__ */
