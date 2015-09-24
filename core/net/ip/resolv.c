@@ -123,6 +123,27 @@ strcasecmp(const char *s1, const char *s2)
 #define RESOLV_CONF_SUPPORTS_MDNS 1
 #endif
 
+/**
+ * Probe for duplicate names in mDNS startup.
+ *
+ * By default mDNS hosts are asked to query for the name they want to announce
+ * in order to detect duplicate names in a network. See [1] for the exact
+ * specification. However in administered networks where mDNS names are
+ * guaranteed to be unique this leads to unnecessary radio transimissions that
+ * drain the battery. Therefore the feature can be disabled at compile time.
+ * This is in compliance with the mDNS RFC 6762:
+ *
+ *      If a responder knows by other means that its unique resource
+ *      record set name, rrtype, and rrclass cannot already be in
+ *      use by any other responder on the network, then it SHOULD
+ *      skip the probing step for that resource record set.
+ *
+ * [1] https://tools.ietf.org/html/rfc6762#section-8
+ */
+#ifndef RESOLV_CONF_MDNS_PROBING
+#define RESOLV_CONF_MDNS_PROBING 1
+#endif /* RESOLV_CONF_MDNS_PROBING */
+
 #ifndef RESOLV_CONF_MDNS_INCLUDE_GLOBAL_V6_ADDRS
 #define RESOLV_CONF_MDNS_INCLUDE_GLOBAL_V6_ADDRS 0
 #endif
@@ -1114,9 +1135,13 @@ resolv_get_hostname(void)
  */
 PROCESS_THREAD(mdns_probe_process, ev, data)
 {
+#if RESOLV_CONF_MDNS_PROBING
   static struct etimer delay;
+#endif /* RESOLV_CONF_MDNS_PROBING */
 
   PROCESS_BEGIN();
+
+#if RESOLV_CONF_MDNS_PROBING
   mdns_state = MDNS_STATE_WAIT_BEFORE_PROBE;
 
   PRINTF("mdns-probe: Process (re)started.\n");
@@ -1141,11 +1166,14 @@ PROCESS_THREAD(mdns_probe_process, ev, data)
   do {
     PROCESS_WAIT_EVENT_UNTIL(ev == resolv_event_found);
   } while(strcasecmp(resolv_hostname, data) != 0);
+#endif /* RESOLV_CONF_MDNS_PROBING */
 
   mdns_state = MDNS_STATE_READY;
-  mdns_announce_requested();
 
+#if RESOLV_CONF_MDNS_PROBING
+  mdns_announce_requested();
   PRINTF("mdns-probe: Finished probing.\n");
+#endif /* RESOLV_CONF_MDNS_PROBING */
 
   PROCESS_END();
 }
