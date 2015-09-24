@@ -1446,6 +1446,26 @@ resolv_clear_cache(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Check if the ipaddr is mine
+ * \param ipaddr The IP address to check
+ * \return `true` if it is my address, `false` otherwise
+ *
+ * This will return `false` if `ipaddr` is `NULL`.
+ */
+static bool
+is_my_addr(uip_ipaddr_t *ipaddr)
+{
+  if(NULL != ipaddr) {
+#if NETSTACK_CONF_WITH_IPV6
+    return uip_ds6_is_my_addr(ipaddr);
+#else
+    return uip_ipaddr_cmp(&uip_hostaddr, ipaddr) == 0;
+#endif
+  }
+  return false;
+}
+/*---------------------------------------------------------------------------*/
 /** \internal
  * Callback function which is called when a hostname is found.
  *
@@ -1454,14 +1474,8 @@ static void
 resolv_found(char *name, uip_ipaddr_t * ipaddr)
 {
 #if RESOLV_CONF_SUPPORTS_MDNS
-  if(strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0 &&
-     ipaddr
-#if NETSTACK_CONF_WITH_IPV6
-     && !uip_ds6_is_my_addr(ipaddr)
-#else
-     && uip_ipaddr_cmp(&uip_hostaddr, ipaddr) != 0
-#endif
-    ) {
+  bool is_my_hostname = strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0;
+  if(is_my_hostname && ipaddr && !is_my_addr(ipaddr)) {
     uint8_t i;
 
     if(mdns_state == MDNS_STATE_PROBING) {
