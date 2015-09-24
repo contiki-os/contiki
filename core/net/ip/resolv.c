@@ -1446,6 +1446,7 @@ resolv_clear_cache(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING
 /**
  * \brief Check if the ipaddr is mine
  * \param ipaddr The IP address to check
@@ -1465,6 +1466,7 @@ is_my_addr(uip_ipaddr_t *ipaddr)
   }
   return false;
 }
+#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING */
 /*---------------------------------------------------------------------------*/
 /** \internal
  * Callback function which is called when a hostname is found.
@@ -1473,7 +1475,7 @@ is_my_addr(uip_ipaddr_t *ipaddr)
 static void
 resolv_found(char *name, uip_ipaddr_t * ipaddr)
 {
-#if RESOLV_CONF_SUPPORTS_MDNS
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING
   bool is_my_hostname = strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0;
   if(is_my_hostname && ipaddr && !is_my_addr(ipaddr)) {
     uint8_t i;
@@ -1514,7 +1516,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
     }
 
   } else
-#endif /* RESOLV_CONF_SUPPORTS_MDNS */
+#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING */
 
 #if VERBOSE_DEBUG
   if(ipaddr) {
