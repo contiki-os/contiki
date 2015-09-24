@@ -115,52 +115,6 @@ strcasecmp(const char *s1, const char *s2)
 
 #define UIP_UDP_BUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-/* If RESOLV_CONF_SUPPORTS_MDNS is set, then queries
- * for domain names in the local TLD will use mDNS as
- * described by draft-cheshire-dnsext-multicastdns.
- */
-#ifndef RESOLV_CONF_SUPPORTS_MDNS
-#define RESOLV_CONF_SUPPORTS_MDNS 1
-#endif
-
-/**
- * Probe for duplicate names in mDNS startup.
- *
- * By default mDNS hosts are asked to query for the name they want to announce
- * in order to detect duplicate names in a network. See [1] for the exact
- * specification. However in administered networks where mDNS names are
- * guaranteed to be unique this leads to unnecessary radio transimissions that
- * drain the battery. Therefore the feature can be disabled at compile time.
- * This is in compliance with the mDNS RFC 6762:
- *
- *      If a responder knows by other means that its unique resource
- *      record set name, rrtype, and rrclass cannot already be in
- *      use by any other responder on the network, then it SHOULD
- *      skip the probing step for that resource record set.
- *
- * [1] https://tools.ietf.org/html/rfc6762#section-8
- */
-#ifndef RESOLV_CONF_MDNS_PROBING
-#define RESOLV_CONF_MDNS_PROBING 1
-#endif /* RESOLV_CONF_MDNS_PROBING */
-
-#ifndef RESOLV_CONF_MDNS_INCLUDE_GLOBAL_V6_ADDRS
-#define RESOLV_CONF_MDNS_INCLUDE_GLOBAL_V6_ADDRS 0
-#endif
-
-/** The maximum number of retries when asking for a name. */
-#ifndef RESOLV_CONF_MAX_RETRIES
-#define RESOLV_CONF_MAX_RETRIES 4
-#endif
-
-#ifndef RESOLV_CONF_MAX_MDNS_RETRIES
-#define RESOLV_CONF_MAX_MDNS_RETRIES 3
-#endif
-
-#ifndef RESOLV_CONF_MAX_DOMAIN_NAME_SIZE
-#define RESOLV_CONF_MAX_DOMAIN_NAME_SIZE 32
-#endif
-
 #ifdef RESOLV_CONF_AUTO_REMOVE_TRAILING_DOTS
 #define RESOLV_AUTO_REMOVE_TRAILING_DOTS RESOLV_CONF_AUTO_REMOVE_TRAILING_DOTS
 #else
