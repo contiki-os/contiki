@@ -219,25 +219,48 @@ struct dns_answer {
 };
 
 struct namemap {
+/** The entry in the name map table is not in use */
 #define STATE_UNUSED 0
+/**
+ * The name could not be resolved, either because the DNS could not be reached
+ * or because the DNS server responded with an error code
+ */
 #define STATE_ERROR  1
+/** This name will be queried with the next DNS query sent to the server */
 #define STATE_NEW    2
+/** A DNS query has been sent to the DNS server, response awaiting */
 #define STATE_ASKING 3
+/**
+ * This name was once successfully resolved, however it could have expired by
+ * now
+ */
 #define STATE_DONE   4
+  /**
+   * The state of the name map entry
+   *
+   * This must be either: STATE_UNUSED, STATE_ERROR, STATE_NEW, STATE_ASKING or
+   * STATE_DONE
+   */
   uint8_t state;
   uint8_t tmr;
+  /** The DNS request ID */
   uint16_t id;
+  /** How often it was already tried to resolve this name */
   uint8_t retries;
   uint8_t seqno;
 #if RESOLV_SUPPORTS_RECORD_EXPIRATION
   unsigned long expiration;
 #endif /* RESOLV_SUPPORTS_RECORD_EXPIRATION */
+  /** The resolved IP address */
   uip_ipaddr_t ipaddr;
+  /** The DNS error response codes */
   uint8_t err;
+  /** Index of the DNS Server to query, see \ref uip_nameserver_get */
   uint8_t server;
 #if RESOLV_CONF_SUPPORTS_MDNS
   int is_mdns:1, is_probe:1;
 #endif
+  /** The name to resolve */
   char name[RESOLV_CONF_MAX_DOMAIN_NAME_SIZE + 1];
 };
 
