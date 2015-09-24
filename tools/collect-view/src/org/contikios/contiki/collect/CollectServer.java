@@ -313,6 +313,21 @@ public class CollectServer implements SerialConnectionListener {
             return data.getLight2();
           }
         },
+        new TimeChartPanel(this, SENSORS, "X", "X", "Time", "-") {
+          protected double getSensorDataValue(SensorData data) {
+            return data.getX();
+          }
+        },
+        new TimeChartPanel(this, SENSORS, "Y", "Y", "Time", "-") {
+          protected double getSensorDataValue(SensorData data) {
+            return data.getY();
+          }
+        },
+        new TimeChartPanel(this, SENSORS, "Z", "Z", "Time", "-") {
+          protected double getSensorDataValue(SensorData data) {
+            return data.getZ();
+          }
+        },
         new TimeChartPanel(this, NETWORK, "Neighbors", "Neighbor Count", "Time", "Neighbors") {
           {
             ValueAxis axis = chart.getXYPlot().getRangeAxis();

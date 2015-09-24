@@ -198,6 +198,7 @@ public class SensorData implements SensorInfo {
 
   public double getTemperature() {
 //    return -39.6 + 0.01 * values[TEMPERATURE];
+//    For OpenMote-CC2538 using the given number directly
     return values[TEMPERATURE];
   }
 
@@ -223,6 +224,7 @@ public class SensorData implements SensorInfo {
 //      return 100;
 //    }
 //    return v;
+//    For OpenMote-CC2538 using the given number directly
       return values[HUMIDITY];
   }
 
@@ -231,7 +233,24 @@ public class SensorData implements SensorInfo {
   }
 
   public double getLight2() {
-    return 46.0 * values[LIGHT2] / 10.0;
+    // Using this for SKY mote
+    //return 46.0 * values[LIGHT2] / 10.0;
+
+    // For OpenMote-CC2538, the value is converted before transmitting
+    return values[LIGHT2];
+
+  }
+
+  public double getX() {
+    return values[X];
+  }
+
+  public double getY() {
+    return values[Y];
+  }
+
+  public double getZ() {
+    return values[Z];
   }
 
   public String getBestNeighborID() {

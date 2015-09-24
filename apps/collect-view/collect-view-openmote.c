@@ -25,6 +25,9 @@ collect_view_arch_read_sensors(struct collect_view_data_msg *msg)
   msg->sensors[LIGHT_SENSOR] = max44009_convert_light(tem);
 //  msg->sensors[ACCELERATION_SENSOR] = ue(SHT11_SENSOR_TEMP);
 //  msg->sensors[HUMIDITY_SENSOR] = sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
+  msg->sensors[ETX1_SENSOR] = adxl346_read_x();
+  msg->sensors[ETX2_SENSOR] = adxl346_read_y();
+  msg->sensors[ETX3_SENSOR] = adxl346_read_z();
 #else
   msg->sensors[BUTTON_USER_SENSOR] = 1;
   msg->sensors[CC2538_TEMP_SENSOR] = 2;

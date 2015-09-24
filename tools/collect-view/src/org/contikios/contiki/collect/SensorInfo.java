@@ -79,6 +79,9 @@ public interface SensorInfo {
   public static final int TEMPERATURE = 24;
   public static final int HUMIDITY = 25;
   public static final int RSSI = 26;
+  public static final int X = 27;
+  public static final int Y = 28;
+  public static final int Z = 29;
 
   public static final int VALUES_COUNT = 30;
 
