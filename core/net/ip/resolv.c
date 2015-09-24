@@ -618,6 +618,28 @@ try_next_server(struct namemap *namemapptr)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Returns the maximum amount of retries allowed for this entry
+ *
+ * \param namemapptr A pointer to the name map entry to check
+ *
+ * \return The maximum retries allowed for this entry
+ *
+ * The maximum amount of retries can be different for mDNS and regular DNS
+ * queries. See `RESOLV_CONF_MAX_RETRIES` and `RESOLV_CONF_MAX_MDNS_RETRIES`.
+ */
+static uint8_t
+get_max_retries(struct namemap *namemapptr)
+{
+  uint8_t max_retries = RESOLV_CONF_MAX_RETRIES;
+#if RESOLV_CONF_SUPPORTS_MDNS
+  if(namemapptr->is_mdns) {
+    max_retries = RESOLV_CONF_MAX_MDNS_RETRIES;
+  }
+#endif /* RESOLV_CONF_SUPPORTS_MDNS */
+  return max_retries;
+}
+/*---------------------------------------------------------------------------*/
 /** \internal
  * Runs through the list of names to see if there are any that have
  * not yet been queried and, if so, sends out a query.
@@ -639,14 +661,7 @@ check_entries(void)
       etimer_set(&retry, CLOCK_SECOND / 4);
       if(namemapptr->state == STATE_ASKING) {
         if(--namemapptr->tmr == 0) {
-#if RESOLV_CONF_SUPPORTS_MDNS
-          if(++namemapptr->retries ==
-             (namemapptr->is_mdns ? RESOLV_CONF_MAX_MDNS_RETRIES :
-              RESOLV_CONF_MAX_RETRIES))
-#else /* RESOLV_CONF_SUPPORTS_MDNS */
-          if(++namemapptr->retries == RESOLV_CONF_MAX_RETRIES)
-#endif /* RESOLV_CONF_SUPPORTS_MDNS */
-          {
+          if(++namemapptr->retries == get_max_retries(namemapptr)) {
             /* Try the next server (if possible) before failing. Otherwise
                simply mark the entry as failed. */
             if(try_next_server(namemapptr) == 0) {
