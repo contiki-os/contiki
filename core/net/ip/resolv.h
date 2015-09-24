@@ -92,7 +92,12 @@ typedef uint8_t resolv_status_t;
 
 /* Functions. */
 CCIF resolv_status_t resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr);
-
+/**
+ * Clear the resolv cache.
+ *
+ * Any previously resolved name will be forgotten and has to be resolved again.
+ */
+CCIF void resolv_clear_cache(void);
 CCIF void resolv_query(const char *name);
 
 #if RESOLV_CONF_SUPPORTS_MDNS

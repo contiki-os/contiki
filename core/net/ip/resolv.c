@@ -1440,6 +1440,15 @@ resolv_lookup(const char *name, uip_ipaddr_t ** ipaddr)
   return ret;
 }
 /*---------------------------------------------------------------------------*/
+void
+resolv_clear_cache(void)
+{
+  uint32_t i;
+  for(i = 0; i < RESOLV_ENTRIES; ++i) {
+    names[i].state = STATE_UNUSED;
+  }
+}
+/*---------------------------------------------------------------------------*/
 /** \internal
  * Callback function which is called when a hostname is found.
  *
