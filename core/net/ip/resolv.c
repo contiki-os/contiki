@@ -1208,7 +1208,16 @@ PROCESS_THREAD(mdns_probe_process, ev, data)
   /* We need to wait a random (0-250ms) period of time before
    * probing to be in compliance with the MDNS spec. */
   etimer_set(&delay, CLOCK_SECOND * (random_rand() & 0xFF) / 1024);
-  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
+  do {
+    PROCESS_WAIT_EVENT();
+    switch(ev) {
+      case PROCESS_EVENT_TIMER:
+        break;
+      case PROCESS_EVENT_EXIT:
+        etimer_stop(&delay);
+        PROCESS_EXIT();
+    }
+  } while (true);
 
   /* Begin searching for our name. */
   mdns_state = MDNS_STATE_PROBING;
