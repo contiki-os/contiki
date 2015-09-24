@@ -1455,27 +1455,31 @@ resolv_clear_cache(void)
  * This will return `false` if `ipaddr` is `NULL`.
  */
 static bool
-is_my_addr(uip_ipaddr_t *ipaddr)
+is_my_addr(const uip_ipaddr_t *ipaddr)
 {
   if(NULL != ipaddr) {
 #if NETSTACK_CONF_WITH_IPV6
-    return uip_ds6_is_my_addr(ipaddr);
+    return uip_ds6_is_my_addr((uip_ipaddr_t *) ipaddr);
 #else
     return uip_ipaddr_cmp(&uip_hostaddr, ipaddr) == 0;
 #endif
   }
   return false;
 }
-#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING */
 /*---------------------------------------------------------------------------*/
-/** \internal
- * Callback function which is called when a hostname is found.
+/**
+ * \brief Check for mDNS name collisions
+ * \param name The newly resolved name
+ * \param ipaddr The IP address of the newly resolved name
+ * \return `true` if a collision has been detected `false` otherwise
  *
+ * The collision will automatically re-start the name check. If the collision
+ * has been detected during probing the hostname will be extended by parts of
+ * the link layer address to create a unique address.
  */
-static void
-resolv_found(char *name, uip_ipaddr_t * ipaddr)
+static bool
+mdns_detect_collision(const char *name, const uip_ipaddr_t *ipaddr)
 {
-#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING
   bool is_my_hostname = strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0;
   if(is_my_hostname && ipaddr && !is_my_addr(ipaddr)) {
     uint8_t i;
@@ -1506,6 +1510,7 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
       strncat(resolv_hostname, ".local", RESOLV_CONF_MAX_DOMAIN_NAME_SIZE);
 
       start_name_collision_check(CLOCK_SECOND * 5);
+      return true;
     } else if(mdns_state == MDNS_STATE_READY) {
       /* We found a collision after we had already asserted
        * that we owned this name. We need to immediately
@@ -1513,9 +1518,22 @@ resolv_found(char *name, uip_ipaddr_t * ipaddr)
        */
       PRINTF("resolver: Possible name collision, probing...\n");
       start_name_collision_check(0);
+      return true;
     }
-
-  } else
+  }
+  return false;
+}
+#endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING */
+/*---------------------------------------------------------------------------*/
+/** \internal
+ * Callback function which is called when a hostname is found.
+ *
+ */
+static void
+resolv_found(char *name, uip_ipaddr_t * ipaddr)
+{
+#if RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING
+  mdns_detect_collision(name, ipaddr);
 #endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING */
 
 #if VERBOSE_DEBUG
