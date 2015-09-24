@@ -182,6 +182,16 @@ strcasecmp(const char *s1, const char *s2)
 #define MDNS_RESPONDER_PORT 5354
 #endif
 
+/**
+ * The interval after which \ref check_entries is being called to check the
+ * state in the current name map and send out new requests if required
+ *
+ * Measured in clock_time_t ticks
+ */
+#ifndef RESOLV_CHECK_ENTRIES_INTERVAL
+  #define RESOLV_CHECK_ENTRIES_INTERVAL (CLOCK_SECOND / 4)
+#endif
+
 /** \internal The DNS message header. */
 struct dns_hdr {
   uint16_t id;
@@ -242,6 +252,10 @@ struct namemap {
    * STATE_DONE
    */
   uint8_t state;
+  /**
+   * How often must RESOLV_CHECK_ENTRIES_INTERVAL elapse until this entry is
+   * being queried again against the DNS server
+   */
   uint8_t tmr;
   /** The DNS request ID */
   uint16_t id;
@@ -663,6 +677,58 @@ get_max_retries(struct namemap *namemapptr)
   return max_retries;
 }
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Update the tmr for an entry in the name map
+ * \param namemapptr The entry in the name map to update
+ *
+ * This will schedule the retransmission is compliance to the mDNS RFC 6762 [1]
+ * where probing will be done within 250 msec and regular (m)DNS request will
+ * have at least 1 sec interval between subsequent queries. In case the query
+ * fails, the next request will be scheduled with an exponential backoff.
+ *
+ * Please note that this will check the namemapptr->state therefore it must be
+ * ensured that the state information is correct.
+ *
+ * [1] https://tools.ietf.org/html/rfc6762
+ */
+static void
+update_tmr(struct namemap *namemapptr)
+{
+#if RESOLV_CONF_SUPPORTS_MDNS
+  if(namemapptr->is_probe) {
+    /* Probing retries are much more aggressive, 250ms */
+    namemapptr->tmr = 1;
+    return;
+  }
+#endif /* RESOLV_CONF_SUPPORTS_MDNS */
+
+  /*
+   * Initial retransmission interval is 1 second. Increase exponentially,
+   * depending on how often it was tried to resolve the given entry
+   */
+  if(STATE_NEW == namemapptr->state) {
+    namemapptr->tmr = 4;
+  } else {
+    /*
+     * Note that
+     *
+     *     9 * 9 * 3 = 243 < UINT8_MAX (OK)
+     *
+     * whereas
+     *
+     *     10 * 10 * 3 = 300 > UINT_MAX (ERROR)
+     *
+     * Therefore check the current amount of retries to prevent overflows
+     */
+    if(namemapptr->retries <= 9) {
+      namemapptr->tmr = namemapptr->retries * namemapptr->retries * 3;
+    } else {
+      namemapptr->tmr = UINT8_MAX;
+    }
+  }
+  return;
+}
+/*---------------------------------------------------------------------------*/
 /** \internal
  * Runs through the list of names to see if there are any that have
  * not yet been queried and, if so, sends out a query.
@@ -681,7 +747,7 @@ check_entries(void)
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
     namemapptr = &names[i];
     if(namemapptr->state == STATE_NEW || namemapptr->state == STATE_ASKING) {
-      etimer_set(&retry, CLOCK_SECOND / 4);
+      etimer_set(&retry, RESOLV_CHECK_ENTRIES_INTERVAL);
       if(namemapptr->state == STATE_ASKING) {
         if(--namemapptr->tmr == 0) {
           if(++namemapptr->retries == get_max_retries(namemapptr)) {
@@ -700,14 +766,7 @@ check_entries(void)
               continue;
             }
           }
-          namemapptr->tmr = namemapptr->retries * namemapptr->retries * 3;
-
-#if RESOLV_CONF_SUPPORTS_MDNS
-          if(namemapptr->is_probe) {
-            /* Probing retries are much more aggressive, 250ms */
-            namemapptr->tmr = 2;
-          }
-#endif /* RESOLV_CONF_SUPPORTS_MDNS */
+          update_tmr(namemapptr);
         } else {
           /* Its timer has not run out, so we move on to next
            * entry.
@@ -715,9 +774,9 @@ check_entries(void)
           continue;
         }
       } else {
-        namemapptr->state = STATE_ASKING;
-        namemapptr->tmr = 1;
+        update_tmr(namemapptr);
         namemapptr->retries = 0;
+        namemapptr->state = STATE_ASKING;
       }
       hdr = (struct dns_hdr *)uip_appdata;
       memset(hdr, 0, sizeof(struct dns_hdr));
