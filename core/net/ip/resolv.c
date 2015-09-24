@@ -1217,7 +1217,7 @@ PROCESS_THREAD(mdns_probe_process, ev, data)
         etimer_stop(&delay);
         PROCESS_EXIT();
     }
-  } while (true);
+  } while(1);
 
   /* Begin searching for our name. */
   mdns_state = MDNS_STATE_PROBING;
@@ -1541,11 +1541,11 @@ resolv_clear_cache(void)
 /**
  * \brief Check if the ipaddr is mine
  * \param ipaddr The IP address to check
- * \return `true` if it is my address, `false` otherwise
+ * \return 1 if it is my address, 0 otherwise
  *
- * This will return `false` if `ipaddr` is `NULL`.
+ * This will return 0 if `ipaddr` is `NULL`.
  */
-static bool
+static int
 is_my_addr(const uip_ipaddr_t *ipaddr)
 {
   if(NULL != ipaddr) {
@@ -1555,23 +1555,23 @@ is_my_addr(const uip_ipaddr_t *ipaddr)
     return uip_ipaddr_cmp(&uip_hostaddr, ipaddr) == 0;
 #endif
   }
-  return false;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Check for mDNS name collisions
  * \param name The newly resolved name
  * \param ipaddr The IP address of the newly resolved name
- * \return `true` if a collision has been detected `false` otherwise
+ * \return 1 if a collision has been detected 0 otherwise
  *
  * The collision will automatically re-start the name check. If the collision
  * has been detected during probing the hostname will be extended by parts of
  * the link layer address to create a unique address.
  */
-static bool
+static int
 mdns_detect_collision(const char *name, const uip_ipaddr_t *ipaddr)
 {
-  bool is_my_hostname = strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0;
+  int is_my_hostname = strncasecmp(resolv_hostname, name, strlen(resolv_hostname)) == 0;
   if(is_my_hostname && ipaddr && !is_my_addr(ipaddr)) {
     uint8_t i;
 
@@ -1601,7 +1601,7 @@ mdns_detect_collision(const char *name, const uip_ipaddr_t *ipaddr)
       strncat(resolv_hostname, ".local", RESOLV_CONF_MAX_DOMAIN_NAME_SIZE);
 
       start_name_collision_check(CLOCK_SECOND * 5);
-      return true;
+      return 1;
     } else if(mdns_state == MDNS_STATE_READY) {
       /* We found a collision after we had already asserted
        * that we owned this name. We need to immediately
@@ -1609,10 +1609,10 @@ mdns_detect_collision(const char *name, const uip_ipaddr_t *ipaddr)
        */
       PRINTF("resolver: Possible name collision, probing...\n");
       start_name_collision_check(0);
-      return true;
+      return 1;
     }
   }
-  return false;
+  return 0;
 }
 #endif /* RESOLV_CONF_SUPPORTS_MDNS && RESOLV_CONF_MDNS_PROBING */
 /*---------------------------------------------------------------------------*/
