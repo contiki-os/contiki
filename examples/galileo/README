@@ -1,0 +1,25 @@
+Galileo Specific Examples
+=======================
+
+This directory contains galileo-specific example applications to illustrate
+how to use galileo APIs.
+
+In order to build a application, you should set the EXAMPLE environment
+variable to the name of the application you want to build. For instance, if
+you want to build gpio-output application, run the following command:
+$ make TARGET=galileo EXAMPLE=gpio-output
+
+============
+=   GPIO   =
+============
+
+GPIO Output
+===========
+
+This application shows how to use the GPIO driver APIs to manipulate output
+pins. This application sets the GPIO 4 pin as output pin and toggles its
+state at every half second.
+
+For a visual effect, you should wire shield pin IO1 to a led in a protoboard.
+Once the application is running, you should see a blinking LED.
+
