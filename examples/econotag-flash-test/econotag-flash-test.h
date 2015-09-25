@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Thingsquare, http://www.thingsquare.com/.
+ * Copyright (c) 2014, Lars Schmertmann <SmallLars@t-online.de>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,36 +28,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
-#ifndef IP64_ADDR_H
-#define IP64_ADDR_H
-
-#include "net/ip/uip.h"
-
 
 /**
- * \brief Is IPv4-mapped Address
+ * \file
+ *      Flash Management
  *
- * See https://tools.ietf.org/html/rfc6890#page-14
+ *      This file contains Pointers for manual flash management.
+ *
+ * \author
+ *      Lars Schmertmann <SmallLars@t-online.de>
  */
-#define ip64_addr_is_ipv4_mapped_addr(a) \
-  ((((a)->u16[0])  == 0) &&              \
-   (((a)->u16[1])  == 0) &&              \
-   (((a)->u16[2])  == 0) &&              \
-   (((a)->u16[3])  == 0) &&              \
-   (((a)->u16[4])  == 0) &&              \
-   (((a)->u16[5])  == 0xFFFF))
 
-void ip64_addr_copy4(uip_ip4addr_t *dest, const uip_ip4addr_t *src);
+#ifndef ECONOTAG_FLASH_TEST_H_
+#define ECONOTAG_FLASH_TEST_H_
 
-void ip64_addr_copy6(uip_ip6addr_t *dest, const uip_ip6addr_t *src);
+/* Pointer for Block 1 --------------- */
 
-int ip64_addr_6to4(const uip_ip6addr_t *ipv6addr,
-		   uip_ip4addr_t *ipv4addr);
+#define RES_DONTCLEAR          1
+#define LEN_DONTCLEAR          1
 
-int ip64_addr_4to6(const uip_ip4addr_t *ipv4addr,
-		   uip_ip6addr_t *ipv6addr);
+#define RES_MY_STRING_1        2
+#define LEN_MY_STRING_1       12
 
+#define RES_MY_STRING_2       14
+#define LEN_MY_STRING_2        8
 
-#endif /* IP64_ADDR_H */
+/* Pointer for Block 2 --------------- */
 
+#define RES_MY_INTEGER     (4096 + 1)
+#define LEN_MY_INTEGER         4
+
+/* ------------------------------------ */
+
+#endif /* ECONOTAG_FLASH_TEST_H_ */
