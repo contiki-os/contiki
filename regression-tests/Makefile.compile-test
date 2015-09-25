@@ -25,6 +25,8 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
+ENFORCE_WARNING_COUNT ?= 0
+
 all: summary
 
 build: examples tools
@@ -43,14 +45,37 @@ define dooneexample
  export STM32W_CPUREV=CC; \
  make TARGET=$(2) clean && make TARGET=$(2)) > \
       $(3)-$(subst /,-,$(1))$(2).report 2>&1 && \
- (echo $(1) $(2): OK | tee $(3)-$(subst /,-,$(1))$(2).summary) || \
- (echo $(1) $(2): FAIL ಠ.ಠ | tee $(3)-$(subst /,-,$(1))$(2).summary ; \
+ (echo $(1) $(2) compilation: OK | tee $(3)-$(subst /,-,$(1))$(2).summary) || \
+ (echo $(1) $(2) compilation: FAIL ಠ.ಠ | tee $(3)-$(subst /,-,$(1))$(2).summary ; \
   tail -10 $(3)-$(subst /,-,$(1))$(2).report | tee $(3)-$(subst /,-,$(1))$(2).faillog))
+@(if [ $(ENFORCE_WARNING_COUNT) = 1 ] ; then \
+    if [ -z $(4) ] ; then warnings=0; else warnings=$(4); fi; \
+    new_warnings=`cat $(3)-$(subst /,-,$(1))$(2).report | grep -i warning | wc -l`; \
+    delta=`expr $$new_warnings - $$warnings`; \
+    if [ $$delta -eq 0 ] ; then \
+      echo "$(1) $(2) warnings (old: $$warnings new: $$new_warnings): OK" | tee -a $(3)-$(subst /,-,$(1))$(2).summary ; \
+    else \
+      echo "$(1) $(2) warnings (old: $$warnings new: $$new_warnings): FAIL ಠ_ಠ" | tee -a $(3)-$(subst /,-,$(1))$(2).summary ; \
+      if [ $$delta -lt 0 ] ; then \
+        if [ $$new_warnings -eq 0 ] ; then \
+          echo "Congratulations, you fixed all warnings! Please adjust the makefile variable EXAMPLES with the line '$(1):$(2)'"; \
+        else \
+          echo "Congratulations, you fixed `expr $$delta \"*\" -1 ` warnings. Please adjust the makefile variable EXAMPLES with the line '$(1):$(2):$$new_warnings'"; \
+        fi ; \
+      else \
+        echo "You increased the number of warnings by $$delta. Please fix these."; \
+      fi ; \
+    fi ; \
+  fi ; \
+)
 endef
 
 define doexample
 $(eval i+=x)
-$(call dooneexample,$(dir ${1}),$(notdir ${1}),$(call addzero,${i}))
+$(eval example = $(word 1, $(subst :, ,${1})))
+$(eval target = $(word 2, $(subst :, ,${1})))
+$(eval warnings = $(word 3, $(subst :, ,${1})))
+$(call dooneexample,${example},${target},$(call addzero,${i}),${warnings})
 endef
 #end of GNU make magic
 
