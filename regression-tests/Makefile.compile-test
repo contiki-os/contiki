@@ -41,7 +41,7 @@ define dooneexample
 @echo Building example $(3): $(1) for target $(2)
 @((cd $(EXAMPLESDIR)/$(1); \
  export STM32W_CPUREV=CC; \
- make TARGET=$(2) clean && make TARGET=$(2)) > \
+ make TARGET=$(2) clean && make TARGET=$(2) WERROR=1) > \
       $(3)-$(subst /,-,$(1))$(2).report 2>&1 && \
  (echo $(1) $(2): OK | tee $(3)-$(subst /,-,$(1))$(2).summary) || \
  (echo $(1) $(2): FAIL ಠ.ಠ | tee $(3)-$(subst /,-,$(1))$(2).summary ; \
