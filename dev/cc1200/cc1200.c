@@ -57,8 +57,7 @@
  * - 3: Print errors + warnings + information (what's going on...)
  */
 #define DEBUG_LEVEL                     2
-/* If set to 1, we use a timer to poll RX mode inside the cc1200 process */
-#define USE_RX_WATCHDOG                 1
+
 /*
  * RF test mode. Blocks inside "configure()".
  * - Set this parameter to 1 in order to produce an modulated carrier (PN9)
@@ -66,14 +65,16 @@
  * - Set this parameter to 3 in order to switch to rx synchronous mode
  * The channel is set according to CC1200_DEFAULT_CHANNEL
  */
-#define RF_TESTMODE                     0
-#if RF_TESTMODE
+#ifndef CC1200_RF_TESTMODE
+#define CC1200_RF_TESTMODE              0
+#endif
+#if CC1200_RF_TESTMODE
 #undef CC1200_RF_CFG
-#if RF_TESTMODE == 1
+#if CC1200_RF_TESTMODE == 1
 #define CC1200_RF_CFG                   cc1200_802154g_863_870_fsk_50kbps
-#elif RF_TESTMODE == 2
+#elif CC1200_RF_TESTMODE == 2
 #define CC1200_RF_CFG                   cc1200_802154g_863_870_fsk_50kbps
-#elif RF_TESTMODE == 3
+#elif CC1200_RF_TESTMODE == 3
 #define CC1200_RF_CFG                   cc1200_802154g_863_870_fsk_50kbps
 #endif
 #endif
@@ -1442,7 +1443,7 @@ configure(void)
 {
 
   uint8_t reg;
-#if RF_TESTMODE
+#if CC1200_RF_TESTMODE
   uint32_t freq;
 #endif
 
@@ -1471,7 +1472,7 @@ configure(void)
    * RF test modes needed during hardware development
    **************************************************************************/
 
-#if (RF_TESTMODE == 1) || (RF_TESTMODE == 2)
+#if (CC1200_RF_TESTMODE == 1) || (CC1200_RF_TESTMODE == 2)
 
   strobe(CC1200_SFTX);
   single_write(CC1200_TXFIRST, 0);
@@ -1487,7 +1488,7 @@ configure(void)
   printf("RF: Freq1 0x%02x\n",  ((uint8_t *)&freq)[1]);
   printf("RF: Freq2 0x%02x\n",  ((uint8_t *)&freq)[2]);
 
-#if (RF_TESTMODE == 1)
+#if (CC1200_RF_TESTMODE == 1)
   single_write(CC1200_SYNC_CFG1, 0xE8);
   single_write(CC1200_PREAMBLE_CFG1, 0x00);
   single_write(CC1200_MDMCFG1, 0x46);
@@ -1498,7 +1499,7 @@ configure(void)
   single_write(CC1200_FS_DVC0, 0x17);
 #endif
 
-#if (RF_TESTMODE == 2)
+#if (CC1200_RF_TESTMODE == 2)
   single_write(CC1200_SYNC_CFG1, 0xE8);
   single_write(CC1200_PREAMBLE_CFG1, 0x00);
   single_write(CC1200_MDMCFG1, 0x06);
@@ -1513,7 +1514,7 @@ configure(void)
   strobe(CC1200_STX);
 
   while(1) {
-#if (RF_TESTMODE == 1)
+#if (CC1200_RF_TESTMODE == 1)
     watchdog_periodic();
     BUSYWAIT_UNTIL(0, RTIMER_SECOND / 10);
     leds_off(LEDS_YELLOW);
@@ -1534,7 +1535,7 @@ configure(void)
 #endif
   }
 
-#elif (RF_TESTMODE == 3)
+#elif (CC1200_RF_TESTMODE == 3)
 
   /* CS on GPIO3 */
   single_write(CC1200_IOCFG3, CC1200_IOCFG_CARRIER_SENSE);
@@ -1568,7 +1569,7 @@ configure(void)
 
   }
 
-#endif /* #if RF_TESTMODE == ... */
+#endif /* #if CC1200_RF_TESTMODE == ... */
 
   /***************************************************************************
    * Set the stuff we need for this driver to work. Don't touch!
