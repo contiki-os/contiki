@@ -33,6 +33,7 @@ Device drivers:
   * I2C
   * GPIO (default pinmux configuration is listed in
     platform/galileo/drivers/galileo-pinmux.c)
+  * Intel Quark X1000 SoC message bus
 
 Contiki APIs:
   * Clock module
