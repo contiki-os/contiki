@@ -100,7 +100,7 @@ remove_uc_link(linkaddr_t *linkaddr) {
   }
 
   timeslot = get_node_timeslot(linkaddr);
-  l = tsch_schedule_get_link_from_timeslot(sf_unicast, timeslot);
+  l = tsch_schedule_get_link_by_timeslot(sf_unicast, timeslot);
   if(l == NULL) {
     return;
   }

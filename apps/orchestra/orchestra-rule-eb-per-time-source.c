@@ -82,7 +82,7 @@ new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new)
 
   if(old_ts != 0xffff) {
     /* Stop listening to the old time source's EBs */
-    tsch_schedule_remove_link_from_timeslot(sf_eb, old_ts);
+    tsch_schedule_remove_link_by_timeslot(sf_eb, old_ts);
   }
   if(new_ts != 0xffff) {
     /* Listen to the time source's EBs */

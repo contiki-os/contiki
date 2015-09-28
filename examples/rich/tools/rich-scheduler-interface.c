@@ -399,7 +399,7 @@ celllist_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
            case '}': { /* End of current element */
              struct tsch_slotframe *slotframe;
              struct tsch_link *link;
-             slotframe = tsch_schedule_get_slotframe_from_handle(fd);
+             slotframe = tsch_schedule_get_slotframe_by_handle(fd);
              if(slotframe) {
                /* Add link */
                if((link = tsch_schedule_add_link(slotframe, lo, lt, &na, so, co))) {
@@ -477,9 +477,9 @@ celllist_handler(void* request, void* response, uint8_t *buffer, uint16_t prefer
         /* Check convertion */
         if(end != uri_subresource && *end == '\0' && errno != ERANGE) {
           /* Actually remove the link */
-          struct tsch_link *link = tsch_schedule_get_link_from_handle(cd);
+          struct tsch_link *link = tsch_schedule_get_link_by_handle(cd);
           if(link) {
-            struct tsch_slotframe *sf = tsch_schedule_get_slotframe_from_handle(link->slotframe_handle);
+            struct tsch_slotframe *sf = tsch_schedule_get_slotframe_by_handle(link->slotframe_handle);
             if(sf && tsch_schedule_remove_link(sf, link)) {
               PRINTF("RICH: deleted link %u\n", cd);
               CONTENT_PRINTF("{\"cd\":%u}", cd);
@@ -502,7 +502,7 @@ int
 get_next_fd() {
   int i;
   for(i=0; i<65536; i++) {
-    if(tsch_schedule_get_slotframe_from_handle(i) == NULL) {
+    if(tsch_schedule_get_slotframe_by_handle(i) == NULL) {
       /* Return first unused slotframe handle */
       return i;
     }
@@ -612,7 +612,7 @@ slotframe_handler(void* request, void* response, uint8_t *buffer, uint16_t prefe
         if(end != uri_subresource && *end == '\0' && errno != ERANGE) {
           /* Actually remove the slotframe */
         }
-        struct tsch_slotframe *sf = tsch_schedule_get_slotframe_from_handle(fd);
+        struct tsch_slotframe *sf = tsch_schedule_get_slotframe_by_handle(fd);
         if(sf && tsch_schedule_remove_slotframe(sf)) {
           PRINTF("RICH: deleted slotframe %u\n", fd);
           CONTENT_PRINTF("{\"fd\":%u}", fd);
