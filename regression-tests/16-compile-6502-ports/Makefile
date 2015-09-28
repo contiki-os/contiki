@@ -2,6 +2,7 @@ EXAMPLESDIR=../../examples
 TOOLSDIR=../../tools
 
 EXAMPLES = \
+hello-world/c64 \
 email/c64 \
 ftp/c64 \
 irc/c64 \
