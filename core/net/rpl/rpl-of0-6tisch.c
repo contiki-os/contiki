@@ -160,7 +160,6 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
 {
   rpl_rank_t new_rank;
   rpl_rank_t rank_increase;
-  rpl_rank_t min_hoprankinc;
   rpl_rank_t p_link_metric;
   rpl_rank_t step_of_rank;
   uip_ds6_nbr_t *nbr;
@@ -181,10 +180,8 @@ calculate_rank(rpl_parent_t *p, rpl_rank_t base_rank)
     if(base_rank == 0) {
       return INFINITE_RANK;
     }
-    min_hoprankinc = RPL_MIN_HOPRANKINC;
     p_link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
   } else {
-    min_hoprankinc = p->dag->instance->min_hoprankinc;
     p_link_metric = nbr->link_metric;
     if(base_rank == 0) {
       base_rank = p->rank;
