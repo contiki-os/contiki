@@ -101,7 +101,7 @@ tsch_schedule_add_slotframe(uint16_t handle, uint16_t size)
 }
 /* Removes all slotframes, resulting in an empty schedule */
 int
-tsch_schedule_remove_all_slotframes()
+tsch_schedule_remove_all_slotframes(void)
 {
   struct tsch_slotframe *sf;
   while((sf = list_head(slotframe_list))) {
@@ -373,7 +373,7 @@ tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset, str
   return curr_best;
 }
 void
-tsch_schedule_print()
+tsch_schedule_print(void)
 {
   if(!tsch_is_locked()) {
     struct tsch_slotframe *sf = list_head(slotframe_list);
@@ -400,7 +400,7 @@ tsch_schedule_print()
 }
 /* Initialization. Return 1 is success, 0 if failure. */
 int
-tsch_schedule_init()
+tsch_schedule_init(void)
 {
   if(tsch_get_lock()) {
     memb_init(&link_memb);
@@ -414,7 +414,7 @@ tsch_schedule_init()
 }
 /* Create a 6TiSCH minimal schedule */
 void
-tsch_schedule_create_minimal()
+tsch_schedule_create_minimal(void)
 {
   struct tsch_slotframe *sf_min;
   /* First, empty current schedule */

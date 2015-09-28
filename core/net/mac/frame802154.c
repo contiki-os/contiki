@@ -121,7 +121,7 @@ get_key_id_len(uint8_t key_id_mode)
 /*---------------------------------------------------------------------------*/
 /* Get current PAN ID */
 uint16_t
-frame802154_get_pan_id()
+frame802154_get_pan_id(void)
 {
   return mac_pan_id;
 }

@@ -137,7 +137,7 @@ tsch_queue_get_nbr(const linkaddr_t *addr)
 }
 /* Get a TSCH time source (we currently assume there is only one) */
 struct tsch_neighbor *
-tsch_queue_get_time_source()
+tsch_queue_get_time_source(void)
 {
   if(!tsch_is_locked()) {
     struct tsch_neighbor *curr_nbr = list_head(neighbor_list);
@@ -300,7 +300,7 @@ tsch_queue_free_packet(struct tsch_packet *p)
 }
 /* Flush all neighbor queues */
 void
-tsch_queue_flush_all()
+tsch_queue_flush_all(void)
 {
   /* Deallocate unneeded neighbors */
   if(!tsch_is_locked()) {
@@ -314,7 +314,7 @@ tsch_queue_flush_all()
 }
 /* Deallocate neighbors with empty queue */
 void
-tsch_queue_free_unused_neighbors()
+tsch_queue_free_unused_neighbors(void)
 {
   /* Deallocate unneeded neighbors */
   if(!tsch_is_locked()) {

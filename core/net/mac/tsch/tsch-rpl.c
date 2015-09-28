@@ -55,7 +55,7 @@
 
 /* To use, set #define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network */
 void
-tsch_rpl_callback_joining_network()
+tsch_rpl_callback_joining_network(void)
 {
 }
 
@@ -63,7 +63,7 @@ tsch_rpl_callback_joining_network()
  * (cleanup neighbor state, reset Trickle timer etc)
  * To use, set #define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network */
 void
-tsch_rpl_callback_leaving_network()
+tsch_rpl_callback_leaving_network(void)
 {
   rpl_dag_t *dag = rpl_get_any_dag();
   if(dag != NULL) {

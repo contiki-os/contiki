@@ -103,11 +103,11 @@ extern struct input_packet input_array[TSCH_MAX_INCOMING_PACKETS];
 /* Returns a 802.15.4 channel from an ASN and channel offset */
 uint8_t tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset);
 /* Is TSCH locked? */
-int tsch_is_locked();
+int tsch_is_locked(void);
 /* Lock TSCH (no link operation) */
-int tsch_get_lock();
+int tsch_get_lock(void);
 /* Release TSCH lock */
-void tsch_release_lock();
+void tsch_release_lock(void);
 /* Set global time before starting slot operation,
  * with a rtimer time and an ASN */
 void tsch_slot_operation_sync(rtimer_clock_t next_slot_start,

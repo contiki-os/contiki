@@ -72,7 +72,7 @@ static int log_dropped = 0;
 
 /* Process pending log messages */
 void
-tsch_log_process_pending()
+tsch_log_process_pending(void)
 {
   static int last_log_dropped = 0;
   int16_t log_index;
@@ -122,7 +122,7 @@ tsch_log_process_pending()
 /* Prepare addition of a new log.
  * Returns pointer to log structure if success, NULL otherwise */
 struct tsch_log_t *
-tsch_log_prepare_add()
+tsch_log_prepare_add(void)
 {
   int log_index = ringbufindex_peek_put(&log_ringbuf);
   if(log_index != -1) {
@@ -138,7 +138,7 @@ tsch_log_prepare_add()
 
 /* Actually add the previously prepared log */
 void
-tsch_log_commit()
+tsch_log_commit(void)
 {
   ringbufindex_put(&log_ringbuf);
   process_poll(&tsch_pending_events_process);
@@ -146,7 +146,7 @@ tsch_log_commit()
 
 /* Initialize log module */
 void
-tsch_log_init()
+tsch_log_init(void)
 {
   ringbufindex_init(&log_ringbuf, TSCH_LOG_QUEUE_LEN);
 }

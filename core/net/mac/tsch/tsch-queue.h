@@ -138,7 +138,7 @@ struct tsch_neighbor *tsch_queue_add_nbr(const linkaddr_t *addr);
 /* Get a TSCH neighbor */
 struct tsch_neighbor *tsch_queue_get_nbr(const linkaddr_t *addr);
 /* Get a TSCH time source (we currently assume there is only one) */
-struct tsch_neighbor *tsch_queue_get_time_source();
+struct tsch_neighbor *tsch_queue_get_time_source(void);
 /* Update TSCH time source */
 int tsch_queue_update_time_source(const linkaddr_t *new_addr);
 /* Add packet to neighbor queue. Use same lockfree implementation as ringbuf.c (put is atomic) */
@@ -151,9 +151,9 @@ struct tsch_packet *tsch_queue_remove_packet_from_queue(struct tsch_neighbor *n)
 /* Free a packet */
 void tsch_queue_free_packet(struct tsch_packet *p);
 /* Flush all neighbor queues */
-void tsch_queue_flush_all();
+void tsch_queue_flush_all(void);
 /* Deallocate neighbors with empty queue */
-void tsch_queue_free_unused_neighbors();
+void tsch_queue_free_unused_neighbors(void);
 /* Is the neighbor queue empty? */
 int tsch_queue_is_empty(const struct tsch_neighbor *n);
 /* Returns the first packet from a neighbor queue */

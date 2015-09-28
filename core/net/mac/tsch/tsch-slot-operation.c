@@ -155,12 +155,16 @@ static PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t));
 /* TSCH locking system. TSCH is locked during slot operations */
 
 /* Is TSCH locked? */
-int tsch_is_locked() {
+int
+tsch_is_locked(void)
+{
   return tsch_locked;
 }
 
 /* Lock TSCH (no slot operation) */
-int tsch_get_lock() {
+int
+tsch_get_lock(void)
+{
   if(!tsch_locked) {
     rtimer_clock_t busy_wait_time;
     int busy_wait = 0; /* Flag used for logging purposes */
@@ -195,7 +199,9 @@ int tsch_get_lock() {
 }
 
 /* Release TSCH lock */
-void tsch_release_lock() {
+void
+tsch_release_lock(void)
+{
   tsch_locked = 0;
 }
 

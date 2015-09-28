@@ -212,7 +212,7 @@ int frame802154_create(frame802154_t *p, uint8_t *buf);
 int frame802154_parse(uint8_t *data, int length, frame802154_t *pf);
 
 /* Get current PAN ID */
-uint16_t frame802154_get_pan_id();
+uint16_t frame802154_get_pan_id(void);
 /* Set current PAN ID */
 void frame802154_set_pan_id(uint16_t pan_id);
 /* Tells whether a given Frame Control Field indicates a frame with

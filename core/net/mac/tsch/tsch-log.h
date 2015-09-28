@@ -112,13 +112,13 @@ struct tsch_log_t {
 
 /* Prepare addition of a new log.
  * Returns pointer to log structure if success, NULL otherwise */
-struct tsch_log_t *tsch_log_prepare_add();
+struct tsch_log_t *tsch_log_prepare_add(void);
 /* Actually add the previously prepared log */
-void tsch_log_commit();
+void tsch_log_commit(void);
 /* Initialize log module */
-void tsch_log_init();
+void tsch_log_init(void);
 /* Process pending log messages */
-void tsch_log_process_pending();
+void tsch_log_process_pending(void);
 
 /************ Macros **********/
 
