@@ -143,6 +143,17 @@ When associating, nodes with security included can join both secured or non-secu
 Set `TSCH_CONF_JOIN_SECURED_ONLY` to force joining secured networks only.
 Likewise, set `TSCH_JOIN_MY_PANID_ONLY` to force joining networks with a specific PANID only.
 
+## TSCH Scheduling
+
+By default (see `TSCH_SCHEDULE_WITH_6TISCH_MINIMAL`), our implementation runs a 6TiSCH minimal schedule, which emulates an always-on link on top of TSCH.
+The schedule consists in a single shared slot for all transmissions and receptions, in a slotframe of length `TSCH_SCHEDULE_DEFAULT_LENGTH`.
+
+As an alternative, we provide Orchestra (under `apps/orchestra`), an autonomous scheduling solution for TSCH where nodes maintain their own schedule locally, solely based on their local RPL state.
+Orchestra can be simply enabled and should work out-of-the-box with its default settings as long as RPL is also enabled.
+See `apps/orchestra/README.md` for more information.
+
+Finally, one can also implement his own scheduler, centralized or distributed, based on the scheduling API provides in `core/net/mac/tsch/tsch-schedule.h`.
+
 ## Porting TSCH to a new platform
 
 Porting TSCH to a new platform requires a few new features in the radio driver, a number of timing-related configuration paramters.
