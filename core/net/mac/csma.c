@@ -123,6 +123,7 @@ LIST(neighbor_list);
 
 static void packet_sent(void *ptr, int status, int num_transmissions);
 static void transmit_packet_list(void *ptr);
+static volatile uint8_t csma_on = 0;
 
 /*---------------------------------------------------------------------------*/
 static struct neighbor_queue *
@@ -164,8 +165,14 @@ transmit_packet_list(void *ptr)
     if(q != NULL) {
       PRINTF("csma: preparing number %d %p, queue len %d\n", n->transmissions, q,
           list_length(n->queued_packet_list));
-      /* Send packets in the neighbor's list */
-      NETSTACK_RDC.send_list(packet_sent, n, q);
+      // This allows a clean shut down of the CSMA
+      if(csma_on == 1) {
+        /* Send packets in the neighbor's list */
+        NETSTACK_RDC.send_list(packet_sent, n, q);
+      } else {
+        PRINTF("csma: dropping list\n");
+        mac_call_sent_callback(packet_sent, n, MAC_TX_ERR_FATAL, 1);
+      }
     }
   }
 }
@@ -328,6 +335,15 @@ send_packet(mac_callback_t sent, void *ptr)
     seqno = random_rand();
   }
 
+  if(csma_on == 0) {
+	/* Ignore absolutely everything if the CSMA is off */
+    PRINTF("csma: module off, dropping pkt\n");
+    mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
+    return;
+  } else {
+    PRINTF("csma: send pkt\n");
+  }
+
   if(seqno == 0) {
     /* PACKETBUF_ATTR_MAC_SEQNO cannot be zero, due to a pecuilarity
        in framer-802154.c. */
@@ -421,12 +437,35 @@ input_packet(void)
 static int
 on(void)
 {
+  csma_on = 1;
   return NETSTACK_RDC.on();
 }
 /*---------------------------------------------------------------------------*/
 static int
 off(int keep_radio_on)
 {
+  /* Clean the pkt queue to avoid issues when disabling the MAC */
+  register struct neighbor_queue *n = list_head(neighbor_list);
+  struct rdc_buf_list *q;
+  struct qbuf_metadata *metadata;
+  mac_callback_t sent;
+  void *cptr;
+
+  csma_on = 0;
+
+  while((n = list_head(neighbor_list)) != NULL) {
+    PRINTF("csma off: n: %p\n", n);
+    while((q = list_head(n->queued_packet_list)) != NULL) {
+      metadata = (struct qbuf_metadata *)q->ptr;
+      cptr = sent = NULL;
+      if(metadata != NULL) {
+        sent = metadata->sent;
+        cptr = metadata->cptr;
+      }
+      free_packet(n, q);
+      mac_call_sent_callback(sent, cptr, MAC_TX_ERR_FATAL, 0);
+    }
+  }
   return NETSTACK_RDC.off(keep_radio_on);
 }
 /*---------------------------------------------------------------------------*/
@@ -445,6 +484,7 @@ init(void)
   memb_init(&packet_memb);
   memb_init(&metadata_memb);
   memb_init(&neighbor_memb);
+  csma_on = 1;
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver csma_driver = {
