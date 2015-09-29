@@ -12,6 +12,8 @@ It was developped by:
 * Simon Duquennoy, SICS, simonduq@sics.se, github user: [simonduq](https://github.com/simonduq)
 * Beshr Al Nahas, SICS (now Chalmers University), beshr@chalmers.se, github user: [beshrns](https://github.com/beshrns)
 
+You can find an extensive evaluation of this implementation in our paper [*Orchestra: Robust Mesh Networks Through Autonomously Scheduled TSCH*](http://www.simonduquennoy.net/papers/duquennoy15orchestra.pdf), ACM SenSys'15.
+
 ## Features
 
 This implementation includes:
@@ -28,6 +30,7 @@ This implementation includes:
   * Standard 6TiSCH TSCH-RPL interaction (6TiSCH Minimal Configuration and Minimal Schedule)
   * A scheduling API to add/remove slotframes and links
   * A system for logging from TSCH timeslot operation interrupt, with postponed printout
+  * Orchestra: an autonomous scheduler for TSCH+RPL networks
 
 It has been tested on the following platforms:
   * NXP JN516x (`jn516x`, tested on hardware)
@@ -36,8 +39,7 @@ It has been tested on the following platforms:
 
 This implementation was present at the ETSI Plugtest
 event in Prague in July 2015, and did successfully inter-operate with all
-four implementations it was tested against, including OpenWSN, the current
-reference implementation.
+four implementations it was tested against.
 
 We have designed this implementation with IPv6 and RPL in mind, but the code is fully independent
 from upper layers (with the exception of the optional `tsch-rpl.[ch]`), and has been
@@ -66,6 +68,9 @@ Implements the 6TiSCH minimal configuration K1-K2 keys pair.
 * `tsch-rpl.[ch]`: used for TSCH+RPL networks, to align TSCH and RPL states (preferred parent -> time source,
 rank -> join priority) as defined in the 6TiSCH minimal configuration.
 * `tsch-log.[ch]`: logging system for TSCH, including delayed messages for logging from slot operation interrupt.
+
+Orchestra is implemented in:
+* `apps/orchestra`: see `apps/orchestra/README.md` for more information.
 
 ## Using TSCH
 
