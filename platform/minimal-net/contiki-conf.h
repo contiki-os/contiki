@@ -35,7 +35,7 @@
 
 #include <inttypes.h>
 #include <limits.h>
-#ifndef WIN32_LEAN_AND_MEAN
+#ifndef _WIN32
 #include <sys/select.h>
 #endif
 
