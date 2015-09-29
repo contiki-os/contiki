@@ -85,13 +85,13 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
 #if TSCH_PACKET_EACK_WITH_DEST_ADDR
   if(dest_addr != NULL) {
     p.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
-    linkaddr_copy((linkaddr_t*)&p.dest_addr, dest_addr);
+    linkaddr_copy((linkaddr_t *)&p.dest_addr, dest_addr);
   }
 #endif
 #if TSCH_PACKET_EACK_WITH_SRC_ADDR
   p.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
   p.src_pid = IEEE802154_PANID;
-  linkaddr_copy((linkaddr_t*)&p.src_addr, &linkaddr_node_addr);
+  linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
 #endif
 #if TSCH_SECURITY_ENABLED
   if(tsch_is_pan_secured) {
@@ -133,9 +133,8 @@ tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
   if(frame == NULL || buf_size < 0) {
     return 0;
   }
-
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
-  if((ret = frame802154_parse((uint8_t*)buf, buf_size, frame)) < 3) {
+  if((ret = frame802154_parse((uint8_t *)buf, buf_size, frame)) < 3) {
     return 0;
   }
   if(hdr_len != NULL) {
@@ -218,7 +217,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
 
   p.src_pid = frame802154_get_pan_id();
   p.dest_pid = frame802154_get_pan_id();
-  linkaddr_copy((linkaddr_t*)&p.src_addr, &linkaddr_node_addr);
+  linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
   p.dest_addr[0] = 0xff;
   p.dest_addr[1] = 0xff;
 
@@ -250,7 +249,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
     }
   }
 #endif /* TSCH_PACKET_EB_WITH_TIMESLOT_TIMING */
-  
+
   /* Add TSCH hopping sequence IE */
 #if TSCH_PACKET_EB_WITH_HOPPING_SEQUENCE
   if(tsch_hopping_sequence_length.val <= sizeof(ies.ie_hopping_sequence_list)) {
@@ -279,7 +278,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
 #endif /* TSCH_PACKET_EB_WITH_SLOTFRAME_AND_LINK */
 
   /* First add header-IE termination IE to stipulate that next come payload IEs */
-  if((ret = frame80215e_create_ie_header_list_termination_1(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+  if((ret = frame80215e_create_ie_header_list_termination_1(buf + curr_len, buf_size - curr_len, &ies)) == -1) {
     return -1;
   }
   curr_len += ret;
@@ -298,34 +297,34 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   if(tsch_sync_ie_offset != NULL) {
     *tsch_sync_ie_offset = curr_len;
   }
-  if((ret = frame80215e_create_ie_tsch_synchronization(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+  if((ret = frame80215e_create_ie_tsch_synchronization(buf + curr_len, buf_size - curr_len, &ies)) == -1) {
     return -1;
   }
   curr_len += ret;
 
-  if((ret = frame80215e_create_ie_tsch_timeslot(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+  if((ret = frame80215e_create_ie_tsch_timeslot(buf + curr_len, buf_size - curr_len, &ies)) == -1) {
     return -1;
   }
   curr_len += ret;
 
-  if((ret = frame80215e_create_ie_tsch_channel_hopping_sequence(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+  if((ret = frame80215e_create_ie_tsch_channel_hopping_sequence(buf + curr_len, buf_size - curr_len, &ies)) == -1) {
     return -1;
   }
   curr_len += ret;
 
-  if((ret = frame80215e_create_ie_tsch_slotframe_and_link(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+  if((ret = frame80215e_create_ie_tsch_slotframe_and_link(buf + curr_len, buf_size - curr_len, &ies)) == -1) {
     return -1;
   }
   curr_len += ret;
 
   ies.ie_mlme_len = curr_len - mlme_ie_offset - 2;
-  if((ret = frame80215e_create_ie_mlme(buf+mlme_ie_offset, buf_size-mlme_ie_offset, &ies)) == -1) {
+  if((ret = frame80215e_create_ie_mlme(buf + mlme_ie_offset, buf_size - mlme_ie_offset, &ies)) == -1) {
     return -1;
   }
 
   /* Payload IE list termination: optional */
   /*
-  if((ret = frame80215e_create_ie_payload_list_termination(buf+curr_len, buf_size-curr_len, &ies)) == -1) {
+  if((ret = frame80215e_create_ie_payload_list_termination(buf + curr_len, buf_size - curr_len, &ies)) == -1) {
     return -1;
   }
   curr_len += ret;
@@ -358,15 +357,15 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
   }
 
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
-  if((ret = frame802154_parse((uint8_t*)buf, buf_size, frame)) == 0) {
+  if((ret = frame802154_parse((uint8_t *)buf, buf_size, frame)) == 0) {
     PRINTF("TSCH:! parse_eb: failed to parse frame\n");
     return 0;
   }
 
   if(frame->fcf.frame_version < FRAME802154_IEEE802154E_2012
-      || frame->fcf.frame_type != FRAME802154_BEACONFRAME) {
+     || frame->fcf.frame_type != FRAME802154_BEACONFRAME) {
     PRINTF("TSCH:! parse_eb: frame is not a valid TSCH beacon. Frame version %u, type %u, FCF %02x %02x\n",
-        frame->fcf.frame_version, frame->fcf.frame_type, buf[0], buf[1]);
+           frame->fcf.frame_version, frame->fcf.frame_type, buf[0], buf[1]);
     PRINTF("TSCH:! parse_eb: frame was from 0x%x/", frame->src_pid);
     PRINTLLADDR((const uip_lladdr_t *)&frame->src_addr);
     PRINTF(" to 0x%x/", frame->dest_pid);

@@ -65,24 +65,23 @@
  * K2: secret, used for data and ACK
  * */
 static aes_key keys[] = {
-    TSCH_SECURITY_K1,
-    TSCH_SECURITY_K2
+  TSCH_SECURITY_K1,
+  TSCH_SECURITY_K2
 };
-#define N_KEYS (sizeof(keys)/sizeof(aes_key))
+#define N_KEYS (sizeof(keys) / sizeof(aes_key))
 
 /*---------------------------------------------------------------------------*/
 static void
-aead(const uint8_t* nonce,
-    uint8_t* m, uint8_t m_len,
-    const uint8_t* a, uint8_t a_len,
-    uint8_t *result, uint8_t mic_len,
-    int forward)
+aead(const uint8_t *nonce,
+     uint8_t *m, uint8_t m_len,
+     const uint8_t *a, uint8_t a_len,
+     uint8_t *result, uint8_t mic_len,
+     int forward)
 {
   if(!forward) {
     /* decrypt */
     CCM_STAR.ctr(m, m_len, nonce);
   }
-
   CCM_STAR.mic(
     (const uint8_t *)m, m_len,
     nonce,
@@ -146,7 +145,7 @@ tsch_security_check_level(const frame802154_t *frame)
       break;
   }
   return frame->aux_hdr.security_control.security_level == required_security_level
-      && frame->aux_hdr.key_index == required_key_index;
+         && frame->aux_hdr.key_index == required_key_index;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -178,7 +177,7 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
   }
 
   /* Parse the frame header to extract security settings */
-  if(frame802154_parse(hdr, hdrlen+datalen, &frame) < 3) {
+  if(frame802154_parse(hdr, hdrlen + datalen, &frame) < 3) {
     return 0;
   }
 
@@ -273,10 +272,10 @@ tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
   CCM_STAR.set_key(keys[key_index - 1]);
 
   aead(nonce,
-      (uint8_t *)hdr + a_len, m_len,
-      (uint8_t *)hdr, a_len,
-      generated_mic, mic_len, 0
-  );
+       (uint8_t *)hdr + a_len, m_len,
+       (uint8_t *)hdr, a_len,
+       generated_mic, mic_len, 0
+       );
 
   if(mic_len > 0 && memcmp(generated_mic, hdr + hdrlen + datalen, mic_len) != 0) {
     return 0;

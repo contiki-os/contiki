@@ -105,11 +105,11 @@ void tsch_disassociate(void);
 #define TSCH_PACKET_DURATION(len) US_TO_RTIMERTICKS(32 * ((len) + 3))
 
 /* Convert rtimer ticks to clock and vice versa */
-#define TSCH_CLOCK_TO_TICKS(c) (((c)*RTIMER_SECOND)/CLOCK_SECOND)
-#define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c)/timeslot_length)
+#define TSCH_CLOCK_TO_TICKS(c) (((c) * RTIMER_SECOND) / CLOCK_SECOND)
+#define TSCH_CLOCK_TO_SLOTS(c, timeslot_length) (TSCH_CLOCK_TO_TICKS(c) / timeslot_length)
 
 /* Wait for a condition with timeout t0+offset. */
 #define BUSYWAIT_UNTIL_ABS(cond, t0, offset) \
-    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), (t0) + (offset)));
+  while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), (t0) + (offset))) ;
 
 #endif /* __TSCH_PRIVATE_H__ */

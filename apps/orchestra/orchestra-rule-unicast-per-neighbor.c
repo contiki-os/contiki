@@ -56,7 +56,8 @@ static struct tsch_slotframe *sf_unicast;
 
 /*---------------------------------------------------------------------------*/
 static uint16_t
-get_node_timeslot(const linkaddr_t *addr) {
+get_node_timeslot(const linkaddr_t *addr)
+{
   if(addr != NULL && ORCHESTRA_UNICAST_PERIOD > 0) {
     return ORCHESTRA_LINKADDR_HASH(addr) % ORCHESTRA_UNICAST_PERIOD;
   } else {
@@ -69,7 +70,7 @@ neighbor_has_uc_link(const linkaddr_t *linkaddr)
 {
   if(linkaddr != NULL && !linkaddr_cmp(linkaddr, &linkaddr_null)) {
     if((orchestra_parent_knows_us || !ORCHESTRA_UNICAST_SENDER_BASED)
-      && linkaddr_cmp(&orchestra_parent_linkaddr, linkaddr)) {
+       && linkaddr_cmp(&orchestra_parent_linkaddr, linkaddr)) {
       return 1;
     }
     if(nbr_table_get_from_lladdr(nbr_routes, (linkaddr_t *)linkaddr) != NULL) {
@@ -80,7 +81,8 @@ neighbor_has_uc_link(const linkaddr_t *linkaddr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-add_uc_link(linkaddr_t *linkaddr) {
+add_uc_link(linkaddr_t *linkaddr)
+{
   if(linkaddr != NULL) {
     uint16_t timeslot = get_node_timeslot(linkaddr);
     tsch_schedule_add_link(sf_unicast,
@@ -91,7 +93,8 @@ add_uc_link(linkaddr_t *linkaddr) {
 }
 /*---------------------------------------------------------------------------*/
 static void
-remove_uc_link(linkaddr_t *linkaddr) {
+remove_uc_link(linkaddr_t *linkaddr)
+{
   uint16_t timeslot;
   struct tsch_link *l;
 
@@ -124,12 +127,14 @@ remove_uc_link(linkaddr_t *linkaddr) {
 }
 /*---------------------------------------------------------------------------*/
 static void
-child_added(linkaddr_t *linkaddr) {
+child_added(linkaddr_t *linkaddr)
+{
   add_uc_link(linkaddr);
 }
 /*---------------------------------------------------------------------------*/
 static void
-child_removed(linkaddr_t *linkaddr) {
+child_removed(linkaddr_t *linkaddr)
+{
   remove_uc_link(linkaddr);
 }
 /*---------------------------------------------------------------------------*/
@@ -139,7 +144,7 @@ select_packet(uint16_t *slotframe, uint16_t *timeslot)
   /* Select data packets we have a unicast link to */
   const linkaddr_t *dest = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
   if(packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE) == FRAME802154_DATAFRAME
-      && neighbor_has_uc_link(dest)) {
+     && neighbor_has_uc_link(dest)) {
     if(slotframe != NULL) {
       *slotframe = slotframe_handle;
     }

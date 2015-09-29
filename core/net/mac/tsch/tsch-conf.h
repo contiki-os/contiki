@@ -48,13 +48,13 @@
 
 /* Default IEEE 802.15.4e hopping sequences, obtained from https://gist.github.com/twatteyne/2e22ee3c1a802b685695 */
 /* 16 channels, sequence length 16 */
-#define TSCH_HOPPING_SEQUENCE_16_16 (uint8_t[]){16, 17, 23, 18, 26, 15, 25, 22, 19, 11, 12, 13, 24, 14, 20, 21}
+#define TSCH_HOPPING_SEQUENCE_16_16 (uint8_t[]){ 16, 17, 23, 18, 26, 15, 25, 22, 19, 11, 12, 13, 24, 14, 20, 21 }
 /* 4 channels, sequence length 16 */
-#define TSCH_HOPPING_SEQUENCE_4_16 (uint8_t[]){20, 26, 25, 26, 15, 15, 25, 20, 26, 15, 26, 25, 20, 15, 20, 25}
+#define TSCH_HOPPING_SEQUENCE_4_16 (uint8_t[]){ 20, 26, 25, 26, 15, 15, 25, 20, 26, 15, 26, 25, 20, 15, 20, 25 }
 /* 4 channels, sequence length 4 */
-#define TSCH_HOPPING_SEQUENCE_4_4 (uint8_t[]){15, 25, 26, 20}
+#define TSCH_HOPPING_SEQUENCE_4_4 (uint8_t[]){ 15, 25, 26, 20 }
 /* 1 channel, sequence length 1 */
-#define TSCH_HOPPING_SEQUENCE_1_1 (uint8_t[]){20}
+#define TSCH_HOPPING_SEQUENCE_1_1 (uint8_t[]){ 20 }
 
 /* Default hopping sequence, used in case hopping sequence ID == 0 */
 #ifdef TSCH_CONF_DEFAULT_HOPPING_SEQUENCE
@@ -97,10 +97,10 @@
  * #define TSCH_DEFAULT_TS_TX_OFFSET          2120
  * #define TSCH_DEFAULT_TS_RX_OFFSET          1120
  * #define TSCH_DEFAULT_TS_RX_WAIT            2200
- * 
+ *
  * Instead, we align the Rx guard time on expected Tx time. The Rx
  * guard time is user-configurable with TSCH_CONF_RX_WAIT.
- 
+
  * (TS_TX_OFFSET - (TS_RX_WAIT / 2)) instead */
 
 #if TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 10000

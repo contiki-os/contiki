@@ -70,7 +70,7 @@ create_frame(int type, int do_create)
   int hdr_len;
 
   if(frame802154_get_pan_id() == 0xffff) {
-   return -1;
+    return -1;
   }
 
   /* init to zeros */
@@ -139,7 +139,7 @@ create_frame(int type, int do_create)
   /**
      \todo For phase 1 the addresses are all long. We'll need a mechanism
      in the rime attributes to tell the mac to use long or short for phase 2.
-  */
+   */
   if(LINKADDR_SIZE == 2) {
     /* Use short address mode if linkaddr size is short. */
     params.fcf.src_addr_mode = FRAME802154_SHORTADDRMODE;
@@ -153,7 +153,6 @@ create_frame(int type, int do_create)
     params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
     params.dest_addr[0] = 0xFF;
     params.dest_addr[1] = 0xFF;
-
   } else {
     linkaddr_copy((linkaddr_t *)&params.dest_addr,
                   packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
@@ -180,7 +179,6 @@ create_frame(int type, int do_create)
   if(!do_create) {
     /* Only calculate header length */
     return hdr_len;
-
   } else if(packetbuf_hdralloc(hdr_len)) {
     frame802154_create(&params, packetbuf_hdrptr());
 
@@ -212,15 +210,15 @@ parse(void)
 {
   frame802154_t frame;
   int hdr_len;
-  
+
   hdr_len = frame802154_parse(packetbuf_dataptr(), packetbuf_datalen(), &frame);
-  
+
   if(hdr_len && packetbuf_hdrreduce(hdr_len)) {
     packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, frame.fcf.frame_type);
-    
+
     if(frame.fcf.dest_addr_mode) {
       if(frame.dest_pid != frame802154_get_pan_id() &&
-          frame.dest_pid != FRAME802154_BROADCASTPANDID) {
+         frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         PRINTF("15.4: for another pan %u\n", frame.dest_pid);
         return FRAMER_FAILED;
@@ -239,7 +237,7 @@ parse(void)
 #if NETSTACK_CONF_WITH_RIME
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
 #endif
-    
+
 #if LLSEC802154_SECURITY_LEVEL
     if(frame.fcf.security_enabled) {
       packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, frame.aux_hdr.security_control.security_level);
@@ -259,7 +257,7 @@ parse(void)
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     PRINTF("%d %u (%u)\n", hdr_len, packetbuf_datalen(), packetbuf_totlen());
-    
+
     return hdr_len;
   }
   return FRAMER_FAILED;

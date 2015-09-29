@@ -63,7 +63,7 @@
 PROCESS_NAME(tsch_pending_events_process);
 
 /* Check if TSCH_LOG_QUEUE_LEN is a power of two */
-#if (TSCH_LOG_QUEUE_LEN & (TSCH_LOG_QUEUE_LEN-1)) != 0
+#if (TSCH_LOG_QUEUE_LEN & (TSCH_LOG_QUEUE_LEN - 1)) != 0
 #error TSCH_LOG_QUEUE_LEN must be power of two
 #endif
 static struct ringbufindex log_ringbuf;

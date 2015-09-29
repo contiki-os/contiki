@@ -80,11 +80,11 @@ enum ieee802154e_mlme_long_subie_id {
 };
 
 #define WRITE16(buf, val) \
-  do { ((uint8_t*)(buf))[0] = (val) & 0xff; \
-  ((uint8_t*)(buf))[1] = ((val) >> 8) & 0xff; } while(0);
+  do { ((uint8_t *)(buf))[0] = (val) & 0xff; \
+       ((uint8_t *)(buf))[1] = ((val) >> 8) & 0xff; } while(0);
 
 #define READ16(buf, var) \
-  (var) = ((uint8_t*)(buf))[0] | ((uint8_t*)(buf))[1] << 8
+  (var) = ((uint8_t *)(buf))[0] | ((uint8_t *)(buf))[1] << 8
 
 /* Create a header IE 2-byte descriptor */
 static void
@@ -238,7 +238,7 @@ frame80215e_create_ie_tsch_slotframe_and_link(uint8_t *buf, int len,
     int num_links = ies->ie_tsch_slotframe_and_link.num_links;
     int ie_len = 1 + num_slotframes * (4 + 5 * num_links);
     if(num_slotframes > 1 || num_links > FRAME802154E_IE_MAX_LINKS
-        || len < 2 + ie_len) {
+       || len < 2 + ie_len) {
       /* We support only 0 or 1 slotframe in this IE and a predefined maximum number of links */
       return -1;
     }
@@ -280,7 +280,7 @@ frame80215e_create_ie_tsch_timeslot(uint8_t *buf, int len,
     if(ies->ie_tsch_timeslot_id != 0) {
       int i;
       for(i = 0; i < tsch_ts_elements_count; i++) {
-        WRITE16(buf+3+2*i, ies->ie_tsch_timeslot[i]);
+        WRITE16(buf + 3 + 2 * i, ies->ie_tsch_timeslot[i]);
       }
     }
     create_mlme_short_ie_descriptor(buf, MLME_SHORT_IE_TSCH_TIMESLOT, ie_len);
@@ -303,13 +303,13 @@ frame80215e_create_ie_tsch_channel_hopping_sequence(uint8_t *buf, int len,
   if(len >= 2 + ie_len && ies != NULL) {
     buf[2] = ies->ie_channel_hopping_sequence_id;
     buf[3] = 0; /* channel page */
-    WRITE16(buf+4, 0); /* number of channels */
-    WRITE16(buf+6, 0); /* phy configuration */
-    WRITE16(buf+8, 0);
+    WRITE16(buf + 4, 0); /* number of channels */
+    WRITE16(buf + 6, 0); /* phy configuration */
+    WRITE16(buf + 8, 0);
     /* Extended bitmap. Size: 0 */
-    WRITE16(buf+10, ies->ie_hopping_sequence_len); /* sequence len */
-    memcpy(buf+12, ies->ie_hopping_sequence_list, ies->ie_hopping_sequence_len); /* sequence list */
-    WRITE16(buf+12 + ies->ie_hopping_sequence_len, 0); /* current hop */
+    WRITE16(buf + 10, ies->ie_hopping_sequence_len); /* sequence len */
+    memcpy(buf + 12, ies->ie_hopping_sequence_list, ies->ie_hopping_sequence_len); /* sequence list */
+    WRITE16(buf + 12 + ies->ie_hopping_sequence_len, 0); /* current hop */
     create_mlme_long_ie_descriptor(buf, MLME_LONG_IE_TSCH_CHANNEL_HOPPING_SEQUENCE, ie_len);
     return 2 + ie_len;
   } else {

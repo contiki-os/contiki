@@ -99,9 +99,8 @@ tsch_rpl_callback_parent_switch(rpl_parent_t *old, rpl_parent_t *new)
 {
   if(tsch_is_associated == 1) {
     tsch_queue_update_time_source(
-        (const linkaddr_t *)uip_ds6_nbr_lladdr_from_ipaddr(
-            rpl_get_parent_ipaddr(new)));
+      (const linkaddr_t *)uip_ds6_nbr_lladdr_from_ipaddr(
+        rpl_get_parent_ipaddr(new)));
   }
 }
-
 #endif /* UIP_CONF_IPV6_RPL */

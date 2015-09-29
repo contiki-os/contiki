@@ -82,7 +82,7 @@
 #endif
 
 /* Check if TSCH_MAX_INCOMING_PACKETS is power of two */
-#if (TSCH_MAX_INCOMING_PACKETS & (TSCH_MAX_INCOMING_PACKETS-1)) != 0
+#if (TSCH_MAX_INCOMING_PACKETS & (TSCH_MAX_INCOMING_PACKETS - 1)) != 0
 #error TSCH_MAX_INCOMING_PACKETS must be power of two
 #endif
 
@@ -90,17 +90,17 @@
 #if TSCH_DEQUEUED_ARRAY_SIZE < QUEUEBUF_NUM
 #error TSCH_DEQUEUED_ARRAY_SIZE must be greater or equal to QUEUEBUF_NUM
 #endif
-#if (TSCH_DEQUEUED_ARRAY_SIZE & (TSCH_DEQUEUED_ARRAY_SIZE-1)) != 0
+#if (TSCH_DEQUEUED_ARRAY_SIZE & (TSCH_DEQUEUED_ARRAY_SIZE - 1)) != 0
 #error TSCH_QUEUE_NUM_PER_NEIGHBOR must be power of two
 #endif
 
 /* Truncate received drift correction information to maximum half
  * of the guard time (one fourth of TSCH_DEFAULT_TS_RX_WAIT) */
-#define SYNC_IE_BOUND ((int32_t)US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_WAIT/4))
+#define SYNC_IE_BOUND ((int32_t)US_TO_RTIMERTICKS(TSCH_DEFAULT_TS_RX_WAIT / 4))
 
 /* By default: check that rtimer runs at >=32kHz and use a guard time of 10us */
-#if RTIMER_SECOND < 32*1024
-#error "TSCH: RTIMER_SECOND < 32*1024"
+#if RTIMER_SECOND < (32 * 1024)
+#error "TSCH: RTIMER_SECOND < (32 * 1024)"
 #endif
 #define RTIMER_GUARD (RTIMER_SECOND / 100000)
 
@@ -451,7 +451,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
         NETSTACK_RADIO.on();
         /* CCA */
         BUSYWAIT_UNTIL_ABS(!(cca_status |= NETSTACK_RADIO.channel_clear()),
-            current_slot_start, TS_CCA_OFFSET + TS_CCA);
+                           current_slot_start, TS_CCA_OFFSET + TS_CCA);
         TSCH_DEBUG_TX_EVENT();
         /* there is not enough time to turn radio off */
         /*  NETSTACK_RADIO.off(); */
@@ -502,7 +502,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 
               /* Wait for ACK to finish */
               BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
-                  ack_start_time, tsch_timing[tsch_ts_max_ack]);
+                                 ack_start_time, tsch_timing[tsch_ts_max_ack]);
               TSCH_DEBUG_TX_EVENT();
               NETSTACK_RADIO.off();
 
@@ -686,10 +686,10 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         current_input->len = NETSTACK_RADIO.read((void *)current_input->payload, TSCH_PACKET_MAX_LEN);
         current_input->rx_asn = current_asn;
         current_input->rssi = (signed)radio_last_rssi;
-        header_len = frame802154_parse((uint8_t*)current_input->payload, current_input->len, &frame);
+        header_len = frame802154_parse((uint8_t *)current_input->payload, current_input->len, &frame);
         frame_valid = header_len > 0 &&
-            frame802154_check_dest_panid(&frame) &&
-            frame802154_extract_linkaddr(&frame, &source_address, &destination_address);
+          frame802154_check_dest_panid(&frame) &&
+          frame802154_extract_linkaddr(&frame, &source_address, &destination_address);
 
         packet_duration = TSCH_PACKET_DURATION(current_input->len);
 
@@ -697,8 +697,8 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
         /* Decrypt and verify incoming frame */
         if(frame_valid) {
           if(tsch_security_parse_frame(
-              current_input->payload, header_len, current_input->len - header_len - tsch_security_mic_len(&frame),
-              &frame, &source_address, &current_asn)) {
+               current_input->payload, header_len, current_input->len - header_len - tsch_security_mic_len(&frame),
+               &frame, &source_address, &current_asn)) {
             current_input->len -= tsch_security_mic_len(&frame);
           } else {
             TSCH_LOG_ADD(tsch_log_message,
@@ -716,7 +716,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
         if(frame_valid) {
           if(linkaddr_cmp(&destination_address, &linkaddr_node_addr)
-              || linkaddr_cmp(&destination_address, &linkaddr_null)) {
+             || linkaddr_cmp(&destination_address, &linkaddr_null)) {
             int do_nack = 0;
             estimated_drift = ((int32_t)expected_rx_time - (int32_t)rx_start_time);
 
@@ -868,7 +868,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
 
     /* Do we need to resynchronize? i.e., wait for EB again */
     if(!tsch_is_coordinator && (ASN_DIFF(current_asn, last_sync_asn) >
-        (100*TSCH_CLOCK_TO_SLOTS(TSCH_DESYNC_THRESHOLD/100, tsch_timing[tsch_ts_timeslot_length])))) {
+        (100 * TSCH_CLOCK_TO_SLOTS(TSCH_DESYNC_THRESHOLD / 100, tsch_timing[tsch_ts_timeslot_length])))) {
       TSCH_LOG_ADD(tsch_log_message,
             snprintf(log->message, sizeof(log->message),
                 "! leaving the network, last sync %u",

@@ -93,7 +93,7 @@ tsch_schedule_add_slotframe(uint16_t handle, uint16_t size)
       list_add(slotframe_list, sf);
     }
     PRINTF("TSCH-schedule: add_slotframe %u %u\n",
-        handle, size);
+           handle, size);
     tsch_release_lock();
     return sf;
   }
@@ -205,7 +205,7 @@ tsch_schedule_add_link(struct tsch_slotframe *slotframe,
         linkaddr_copy(&l->addr, address);
 
         PRINTF("TSCH-schedule: add_link %u %u %u %u %u %u\n",
-            slotframe->handle, link_options, link_type, timeslot, channel_offset, TSCH_LOG_ID_FROM_LINKADDR(address));
+               slotframe->handle, link_options, link_type, timeslot, channel_offset, TSCH_LOG_ID_FROM_LINKADDR(address));
 
         /* Release the lock before we update the neighbor (will take the lock) */
         tsch_release_lock();
@@ -244,10 +244,9 @@ tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
       if(l == current_link) {
         current_link = NULL;
       }
-
       PRINTF("TSCH-schedule: remove_link %u %u %u %u %u\n",
-                  slotframe->handle, l->link_options, l->timeslot, l->channel_offset,
-                  TSCH_LOG_ID_FROM_LINKADDR(&l->addr));
+             slotframe->handle, l->link_options, l->timeslot, l->channel_offset,
+             TSCH_LOG_ID_FROM_LINKADDR(&l->addr));
 
       list_remove(slotframe->links_list, l);
       memb_free(&link_memb, l);
@@ -278,7 +277,7 @@ int
 tsch_schedule_remove_link_by_timeslot(struct tsch_slotframe *slotframe, uint16_t timeslot)
 {
   return slotframe != NULL &&
-      tsch_schedule_remove_link(slotframe, tsch_schedule_get_link_by_timeslot(slotframe, timeslot));
+         tsch_schedule_remove_link(slotframe, tsch_schedule_get_link_by_timeslot(slotframe, timeslot));
 }
 /* Looks within a slotframe for a link with a given timeslot */
 struct tsch_link *

@@ -85,7 +85,7 @@
 #ifdef ORCHESTRA_CONF_LINKADDR_HASH
 #define ORCHESTRA_LINKADDR_HASH                   ORCHESTRA_CONF_LINKADDR_HASH
 #else /* ORCHESTRA_CONF_UNICAST_SENDER_BASED */
-#define ORCHESTRA_LINKADDR_HASH(addr)             ((addr != NULL) ? (addr)->u8[LINKADDR_SIZE-1] : -1)
+#define ORCHESTRA_LINKADDR_HASH(addr)             ((addr != NULL) ? (addr)->u8[LINKADDR_SIZE - 1] : -1)
 #endif /* ORCHESTRA_CONF_UNICAST_SENDER_BASED */
 
 /* The maximum hash */
