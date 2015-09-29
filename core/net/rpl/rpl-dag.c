@@ -357,6 +357,9 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   instance->min_hoprankinc = RPL_MIN_HOPRANKINC;
   instance->default_lifetime = RPL_DEFAULT_LIFETIME;
   instance->lifetime_unit = RPL_DEFAULT_LIFETIME_UNIT;
+#if RPL_DYNAMIC_DIS
+  instance->dis_period = RPL_I_DIS_MAX;
+#endif
 
   dag->rank = ROOT_RANK(instance);
 
@@ -1008,6 +1011,9 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   instance->dio_redundancy = dio->dag_redund;
   instance->default_lifetime = dio->default_lifetime;
   instance->lifetime_unit = dio->lifetime_unit;
+#if RPL_DYNAMIC_DIS
+  instance->dis_period = RPL_I_DIS_MAX;
+#endif
 
   memcpy(&dag->dag_id, &dio->dag_id, sizeof(dio->dag_id));
 

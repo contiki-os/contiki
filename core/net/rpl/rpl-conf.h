@@ -314,7 +314,7 @@
 #ifdef RPL_CONF_DYNAMIC_DIS
 #define RPL_DYNAMIC_DIS RPL_CONF_DYNAMIC_DIS
 #else
-#define RPL_DYNAMIC_DIS 1
+#define RPL_DYNAMIC_DIS 0
 #endif
 
 #if RPL_DYNAMIC_DIS
@@ -322,13 +322,13 @@
 #ifdef RPL_CONF_N_DOWN_DIS
 #define RPL_N_DOWN_DIS RPL_CONF_N_DOWN_DIS
 #else
-#define RPL_N_DOWN_DIS 1
+#define RPL_N_DOWN_DIS 1 //1
 #endif
 
 #ifdef RPL_CONF_N_UP_DIS
 #define RPL_N_UP_DIS RPL_CONF_N_UP_DIS
 #else
-#define RPL_N_UP_DIS 5
+#define RPL_N_UP_DIS 5 //5
 #endif
 
 #ifdef RPL_CONF_I_DIS_MIN

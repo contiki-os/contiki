@@ -84,6 +84,7 @@ handle_periodic_timer(void *ptr)
         instance->dis_period = instance->dis_period / 2;
         dag->nb_parent_changed = 0;
       }
+      dag->preferred_parent_changed--;
     }else{
       dag->nb_same_parent++;
       if(instance->dis_period <= RPL_I_DIS_MAX / 2 &&
