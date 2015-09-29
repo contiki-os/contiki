@@ -42,6 +42,7 @@
  *  driver chip (ATMega3290P) on the Raven.
  *
  *  \author Blake Leverett <bleverett@gmail.com>
+ *  \author Cristiano De Alti <cristiano_dealti@hotmail.com>
  *
  * @{
  */
@@ -69,6 +70,7 @@
 #endif
 
 #include "raven-lcd.h"
+#include "lib/sensors.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -93,6 +95,9 @@ static struct{
 #define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define PING6_DATALEN 16
+
+static int battery_value;
+static int temperature_value;
 
 void rs232_send(uint8_t port, unsigned char c);
 
@@ -306,12 +311,14 @@ raven_gui_loop(process_event_t ev, process_data_t data)
                 /* Set temperature string in web server */
                 web_set_temp((char *)cmd.frame);
 #endif
+                temperature_value = atoi((char *)cmd.frame);
                 break;
             case SEND_ADC2:
 #if AVR_WEBSERVER
                 /* Set ext voltage string in web server */
                 web_set_voltage((char *)cmd.frame);
 #endif
+				battery_value = atoi((char *)cmd.frame);
                 break;
             case SEND_SLEEP:
                 /* Sleep radio and 1284p. */
@@ -458,6 +465,42 @@ char buf[sizeof(eemem_server_name)+1];
     raven_lcd_show_text(buf);  //must fit in all the buffers or it will be truncated!
 }
 #endif
+
+/*---------------------------------------------------------------------------*/
+int
+value_temperature(int type) {
+    return temperature_value;
+}
+
+int
+value_battery(int type) {
+    return battery_value;
+}
+
+/*---------------------------------------------------------------------------*/  
+int
+configure(int type, int value) {
+    /* prevent compiler warnings */
+    return type = value = 1;
+}
+
+/*---------------------------------------------------------------------------*/
+int
+status(int type) {
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return 1;
+  }
+  return 0;
+}
+
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(temperature_sensor, "Temperature",
+               value_temperature, configure, status);
+SENSORS_SENSOR(battery_sensor, "Battery",
+               value_battery, configure, status);
+
 /*---------------------------------------------------------------------------*/
 PROCESS(raven_lcd_process, "Raven LCD interface process");
 PROCESS_THREAD(raven_lcd_process, ev, data)
