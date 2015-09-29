@@ -432,6 +432,33 @@ void rf_core_primary_mode_abort(void);
  * \brief Abort the currently running primary radio op
  */
 uint8_t rf_core_primary_mode_restore(void);
+
+/**
+ * \brief powers on rf-core power domains and clocks (using PRCM interface)
+ */
+void rf_core_poweron_pcrm(void);
+
+/**
+ * \brief powers off rf-core power domains and clocks (using PRCM interface)
+ */
+void rf_core_poweroff_prcm(void);
+
+/**
+ * \brief Sets a function to run from the isr cpe0
+ *
+ * This function will run at the top of the ISR, only a sanity check of
+ * rf_core_is_accessible runs first.
+ *
+ * \warning Unsafe to call from ISR context
+ *
+ * \param f - function pointer which will be called in the ISR
+ */
+void rf_core_set_cep0_isr_func(void (*f)(uint32_t flags));
+/**
+ * \brief Clears the cpe0 isr function so that it will no longer run
+ * \warning Unsafe to call from ISR context
+ */
+void rf_core_clear_cep0_isr_func(void);
 /*---------------------------------------------------------------------------*/
 #endif /* RF_CORE_H_ */
 /*---------------------------------------------------------------------------*/

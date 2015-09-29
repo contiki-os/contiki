@@ -73,6 +73,7 @@ CONTIKI_CPU_SOURCEFILES += putchar.c ieee-addr.c batmon-sensor.c adc-sensor.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c cc26xx-uart.c lpm.c
 CONTIKI_CPU_SOURCEFILES += gpio-interrupt.c oscillators.c
 CONTIKI_CPU_SOURCEFILES += rf-core.c rf-ble.c ieee-mode.c ieee-common.c
+CONTIKI_CPU_SOURCEFILES += rf-async.c ieee-async.c
 CONTIKI_CPU_SOURCEFILES += random.c soc-trng.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c

@@ -117,6 +117,8 @@
 /*---------------------------------------------------------------------------*/
 #define IEEE_RX_BUF_SIZE 144
 /*---------------------------------------------------------------------------*/
+#define IEEE_ACK_LEN 3
+/*---------------------------------------------------------------------------*/
 /* TX Power dBm lookup table - values from SmartRF Studio */
 typedef struct output_config {
   radio_value_t dbm;
@@ -205,6 +207,11 @@ void ieee_common_set_rx_pending_if_busy(void);
 int ieee_common_frame_wait(rtimer_clock_t max_wait);
 /*---------------------------------------------------------------------------*/
 /**
+ * \brief return true iff an IEEE ack packet with given seqno is pending
+ */
+int ieee_common_have_ack(uint8_t seqno);
+/*---------------------------------------------------------------------------*/
+/**
  * \brief reads data into the buffer (if any available)
  * \param buf buffer to read data into
  * \param buf_len the size of buf
@@ -244,6 +251,21 @@ void ieee_common_init_data_queue(void);
  * finished.
  */
 volatile rfc_dataEntry_t *ieee_common_last_data_entry(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief return true iff given packet is done
+ */
+int ieee_common_packet_finished(volatile rfc_dataEntry_t *entry);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief return true iff given packet has it's pending bit set
+ */
+int ieee_common_pending_is_set(volatile rfc_dataEntry_t *entry);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief return true if given packet is an ACK packet with given sequence #
+ */
+int ieee_common_is_ack(volatile rfc_dataEntry_t *entry, uint8_t seqno);
 /*---------------------------------------------------------------------------*/
 #endif /* IEEE_COMMON_H_ */
 /*---------------------------------------------------------------------------*/
