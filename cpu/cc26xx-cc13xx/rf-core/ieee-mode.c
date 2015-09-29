@@ -56,6 +56,7 @@
 #include "lpm.h"
 #include "ti-lib.h"
 #include "rf-core/rf-core.h"
+#include "rf-core/ieee-common.h"
 #include "rf-core/rf-ble.h"
 /*---------------------------------------------------------------------------*/
 /* RF core and RF HAL API */
@@ -82,42 +83,9 @@
 #else
 #define PRINTF(...)
 #endif
-
-/* Configuration to enable/disable auto ACKs in IEEE mode */
-#ifdef IEEE_MODE_CONF_AUTOACK
-#define IEEE_MODE_AUTOACK IEEE_MODE_CONF_AUTOACK
-#else
-#define IEEE_MODE_AUTOACK 1
-#endif /* IEEE_MODE_CONF_AUTOACK */
-
-/* Configuration to enable/disable frame filtering in IEEE mode */
-#ifdef IEEE_MODE_CONF_PROMISCOUS
-#define IEEE_MODE_PROMISCOUS IEEE_MODE_CONF_PROMISCOUS
-#else
-#define IEEE_MODE_PROMISCOUS 0
-#endif /* IEEE_MODE_CONF_PROMISCOUS */
-
-#ifdef IEEE_MODE_CONF_RSSI_THRESHOLD
-#define IEEE_MODE_RSSI_THRESHOLD IEEE_MODE_CONF_RSSI_THRESHOLD
-#else
-#define IEEE_MODE_RSSI_THRESHOLD 0xA6
-#endif /* IEEE_MODE_CONF_RSSI_THRESHOLD */
 /*---------------------------------------------------------------------------*/
-#define STATUS_CRC_OK      0x80
-#define STATUS_CORRELATION 0x7f
-/*---------------------------------------------------------------------------*/
-/* Data entry status field constants */
-#define DATA_ENTRY_STATUS_PENDING    0x00 /* Not in use by the Radio CPU */
-#define DATA_ENTRY_STATUS_ACTIVE     0x01 /* Open for r/w by the radio CPU */
-#define DATA_ENTRY_STATUS_BUSY       0x02 /* Ongoing r/w */
-#define DATA_ENTRY_STATUS_FINISHED   0x03 /* Free to use and to free */
-#define DATA_ENTRY_STATUS_UNFINISHED 0x04 /* Partial RX entry */
-/*---------------------------------------------------------------------------*/
-/* RF stats data structure */
-static uint8_t rf_stats[16] = { 0 };
-/*---------------------------------------------------------------------------*/
-/* The size of the RF commands buffer */
-#define RF_CMD_BUFFER_SIZE             128
+#define OUTPUT_POWER_MAX() (ieee_common_get_power_config_max()->dbm)
+#define OUTPUT_POWER_MIN() (ieee_common_get_power_config_min()->dbm)
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Returns the current status of a running Radio Op command
@@ -129,24 +97,6 @@ static uint8_t rf_stats[16] = { 0 };
  */
 #define RF_RADIO_OP_GET_STATUS(a) (((rfc_radioOp_t *)a)->status)
 /*---------------------------------------------------------------------------*/
-/* Special value returned by CMD_IEEE_CCA_REQ when an RSSI is not available */
-#define RF_CMD_CCA_REQ_RSSI_UNKNOWN     -128
-
-/* Used for the return value of channel_clear */
-#define RF_CCA_CLEAR                       1
-#define RF_CCA_BUSY                        0
-
-/* Used as an error return value for get_cca_info */
-#define RF_GET_CCA_INFO_ERROR           0xFF
-
-/*
- * Values of the individual bits of the ccaInfo field in CMD_IEEE_CCA_REQ's
- * status struct
- */
-#define RF_CMD_CCA_REQ_CCA_STATE_IDLE      0 /* 00 */
-#define RF_CMD_CCA_REQ_CCA_STATE_BUSY      1 /* 01 */
-#define RF_CMD_CCA_REQ_CCA_STATE_INVALID   2 /* 10 */
-
 #define RF_CMD_CCA_REQ_CCA_CORR_IDLE       (0 << 4)
 #define RF_CMD_CCA_REQ_CCA_CORR_BUSY       (1 << 4)
 #define RF_CMD_CCA_REQ_CCA_CORR_INVALID    (3 << 4)
@@ -154,48 +104,8 @@ static uint8_t rf_stats[16] = { 0 };
 
 #define RF_CMD_CCA_REQ_CCA_SYNC_BUSY       (1 << 6)
 /*---------------------------------------------------------------------------*/
-#define IEEE_MODE_CHANNEL_MIN            11
-#define IEEE_MODE_CHANNEL_MAX            26
-/*---------------------------------------------------------------------------*/
-/* How long to wait for an ongoing ACK TX to finish before starting frame TX */
-#define TX_WAIT_TIMEOUT       (RTIMER_SECOND >> 11)
-
-/* How long to wait for the RF to enter RX in rf_cmd_ieee_rx */
-#define ENTER_RX_WAIT_TIMEOUT (RTIMER_SECOND >> 10)
-/*---------------------------------------------------------------------------*/
-/* TX Power dBm lookup table - values from SmartRF Studio */
-typedef struct output_config {
-  radio_value_t dbm;
-  uint8_t register_ib;
-  uint8_t register_gc;
-  uint8_t temp_coeff;
-} output_config_t;
-
-static const output_config_t output_power[] = {
-  {  5, 0x30, 0x00, 0x93 },
-  {  4, 0x24, 0x00, 0x93 },
-  {  3, 0x1c, 0x00, 0x5a },
-  {  2, 0x18, 0x00, 0x4e },
-  {  1, 0x14, 0x00, 0x42 },
-  {  0, 0x21, 0x01, 0x31 },
-  { -3, 0x18, 0x01, 0x25 },
-  { -6, 0x11, 0x01, 0x1d },
-  { -9, 0x0e, 0x01, 0x19 },
-  {-12, 0x0b, 0x01, 0x14 },
-  {-15, 0x0b, 0x03, 0x0c },
-  {-18, 0x09, 0x03, 0x0c },
-  {-21, 0x07, 0x03, 0x0c },
-};
-
-#define OUTPUT_CONFIG_COUNT (sizeof(output_power) / sizeof(output_config_t))
-
-/* Max and Min Output Power in dBm */
-#define OUTPUT_POWER_MIN     (output_power[OUTPUT_CONFIG_COUNT - 1].dbm)
-#define OUTPUT_POWER_MAX     (output_power[0].dbm)
-#define OUTPUT_POWER_UNKNOWN 0xFFFF
-
 /* Default TX Power - position in output_power[] */
-const output_config_t *tx_power_current = &output_power[0];
+const output_config_t *tx_power_current;
 /*---------------------------------------------------------------------------*/
 static volatile int8_t last_rssi = 0;
 static volatile uint8_t last_corr_lqi = 0;
@@ -237,46 +147,7 @@ static rfc_CMD_IEEE_MOD_FILT_t filter_cmd;
  * Do not use this buffer for any commands other than CMD_IEEE_RX
  */
 static uint8_t cmd_ieee_rx_buf[RF_CMD_BUFFER_SIZE] CC_ALIGN(4);
-/*---------------------------------------------------------------------------*/
-#define DATA_ENTRY_LENSZ_NONE 0
-#define DATA_ENTRY_LENSZ_BYTE 1
-#define DATA_ENTRY_LENSZ_WORD 2 /* 2 bytes */
-
-#define RX_BUF_SIZE 144
-/* Four receive buffers entries with room for 1 IEEE802.15.4 frame in each */
-static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN(4);
-static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN(4);
-static uint8_t rx_buf_2[RX_BUF_SIZE] CC_ALIGN(4);
-static uint8_t rx_buf_3[RX_BUF_SIZE] CC_ALIGN(4);
-
-/* The RX Data Queue */
-static dataQueue_t rx_data_queue = { 0 };
-
-/* Receive entry pointer to keep track of read items */
-volatile static uint8_t *rx_read_entry;
-/*---------------------------------------------------------------------------*/
-/* The outgoing frame buffer */
-#define TX_BUF_PAYLOAD_LEN 180
-#define TX_BUF_HDR_LEN       2
-
-static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN(4);
-/*---------------------------------------------------------------------------*/
-/* Overrides for IEEE 802.15.4, differential mode */
-static uint32_t ieee_overrides[] = {
-  0x00354038, /* Synth: Set RTRIM (POTAILRESTRIM) to 5 */
-  0x4001402D, /* Synth: Correct CKVD latency setting (address) */
-  0x00608402, /* Synth: Correct CKVD latency setting (value) */
-//  0x4001405D, /* Synth: Set ANADIV DIV_BIAS_MODE to PG1 (address) */
-//  0x1801F800, /* Synth: Set ANADIV DIV_BIAS_MODE to PG1 (value) */
-  0x000784A3, /* Synth: Set FREF = 3.43 MHz (24 MHz / 7) */
-  0xA47E0583, /* Synth: Set loop bandwidth after lock to 80 kHz (K2) */
-  0xEAE00603, /* Synth: Set loop bandwidth after lock to 80 kHz (K3, LSB) */
-  0x00010623, /* Synth: Set loop bandwidth after lock to 80 kHz (K3, MSB) */
-  0x002B50DC, /* Adjust AGC DC filter */
-  0x05000243, /* Increase synth programming timeout */
-  0x002082C3, /* Increase synth programming timeout */
-  0xFFFFFFFF, /* End of override list */
-};
+static uint8_t tx_buf[IEEE_TX_BUF_MAX_LEN] CC_ALIGN(4);
 /*---------------------------------------------------------------------------*/
 static int on(void);
 static int off(void);
@@ -292,7 +163,7 @@ rf_is_on(void)
     return 0;
   }
 
-  return RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) == RF_CORE_RADIO_OP_STATUS_ACTIVE;
+  return ieee_common_rf_is_on((rfc_CMD_IEEE_RX_t *)cmd_ieee_rx_buf);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -432,16 +303,15 @@ static void
 set_tx_power(radio_value_t power)
 {
   uint32_t cmd_status;
-  int i;
   rfc_CMD_SET_TX_POWER_t cmd;
+  const output_config_t *pow_conf;
 
-  /* First, find the correct setting and save it */
-  for(i = OUTPUT_CONFIG_COUNT - 1; i >= 0; --i) {
-    if(power <= output_power[i].dbm) {
-      tx_power_current = &output_power[i];
-      break;
-    }
+  pow_conf = ieee_common_get_power_config(power);
+  if(pow_conf == NULL) {
+    return;
   }
+
+  tx_power_current = pow_conf;
 
   /*
    * If the core is not accessible, the new setting will be applied next
@@ -453,11 +323,12 @@ set_tx_power(radio_value_t power)
     return;
   }
 
+  /* Send a CMD_SET_TX_POWER command to the RF */
   memset(&cmd, 0x00, sizeof(cmd));
   cmd.commandNo = CMD_SET_TX_POWER;
-  cmd.txPower.IB = output_power[i].register_ib;
-  cmd.txPower.GC = output_power[i].register_gc;
-  cmd.txPower.tempCoeff = output_power[i].temp_coeff;
+  cmd.txPower.IB = tx_power_current->register_ib;
+  cmd.txPower.GC = tx_power_current->register_gc;
+  cmd.txPower.tempCoeff = tx_power_current->temp_coeff;
 
   if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
     PRINTF("set_tx_power: CMDSTA=0x%08lx\n", cmd_status);
@@ -476,7 +347,7 @@ rf_radio_setup()
   cmd.txPower.IB = tx_power_current->register_ib;
   cmd.txPower.GC = tx_power_current->register_gc;
   cmd.txPower.tempCoeff = tx_power_current->temp_coeff;
-  cmd.pRegOverride = ieee_overrides;
+  cmd.pRegOverride = (uint32_t *)ieee_common_get_overrides();
   cmd.mode = 1;
 
   /* Send Radio setup to RF Core */
@@ -534,115 +405,6 @@ rf_cmd_ieee_rx()
   }
 
   return ret;
-}
-/*---------------------------------------------------------------------------*/
-static void
-init_rx_buffers(void)
-{
-  rfc_dataEntry_t *entry;
-
-  entry = (rfc_dataEntry_t *)rx_buf_0;
-  entry->pNextEntry = rx_buf_1;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_BYTE;
-  entry->length = sizeof(rx_buf_0) - 8;
-
-  entry = (rfc_dataEntry_t *)rx_buf_1;
-  entry->pNextEntry = rx_buf_2;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_BYTE;
-  entry->length = sizeof(rx_buf_0) - 8;
-
-  entry = (rfc_dataEntry_t *)rx_buf_2;
-  entry->pNextEntry = rx_buf_3;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_BYTE;
-  entry->length = sizeof(rx_buf_0) - 8;
-
-  entry = (rfc_dataEntry_t *)rx_buf_3;
-  entry->pNextEntry = rx_buf_0;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_BYTE;
-  entry->length = sizeof(rx_buf_0) - 8;
-}
-/*---------------------------------------------------------------------------*/
-static void
-init_rf_params(void)
-{
-  rfc_CMD_IEEE_RX_t *cmd = (rfc_CMD_IEEE_RX_t *)cmd_ieee_rx_buf;
-
-  memset(cmd_ieee_rx_buf, 0x00, RF_CMD_BUFFER_SIZE);
-
-  cmd->commandNo = CMD_IEEE_RX;
-  cmd->status = RF_CORE_RADIO_OP_STATUS_IDLE;
-  cmd->pNextOp = NULL;
-  cmd->startTime = 0x00000000;
-  cmd->startTrigger.triggerType = TRIG_NOW;
-  cmd->condition.rule = COND_NEVER;
-  cmd->channel = RF_CORE_CHANNEL;
-
-  cmd->rxConfig.bAutoFlushCrc = 1;
-  cmd->rxConfig.bAutoFlushIgn = 0;
-  cmd->rxConfig.bIncludePhyHdr = 0;
-  cmd->rxConfig.bIncludeCrc = 1;
-  cmd->rxConfig.bAppendRssi = 1;
-  cmd->rxConfig.bAppendCorrCrc = 1;
-  cmd->rxConfig.bAppendSrcInd = 0;
-  cmd->rxConfig.bAppendTimestamp = 1;
-
-  cmd->pRxQ = &rx_data_queue;
-  cmd->pOutput = (rfc_ieeeRxOutput_t *)rf_stats;
-
-#if IEEE_MODE_PROMISCOUS
-  cmd->frameFiltOpt.frameFiltEn = 0;
-#else
-  cmd->frameFiltOpt.frameFiltEn = 1;
-#endif
-
-  cmd->frameFiltOpt.frameFiltStop = 1;
-
-#if IEEE_MODE_AUTOACK
-  cmd->frameFiltOpt.autoAckEn = 1;
-#else
-  cmd->frameFiltOpt.autoAckEn = 0;
-#endif
-
-  cmd->frameFiltOpt.slottedAckEn = 0;
-  cmd->frameFiltOpt.autoPendEn = 0;
-  cmd->frameFiltOpt.defaultPend = 0;
-  cmd->frameFiltOpt.bPendDataReqOnly = 0;
-  cmd->frameFiltOpt.bPanCoord = 0;
-  cmd->frameFiltOpt.maxFrameVersion = 2;
-  cmd->frameFiltOpt.bStrictLenFilter = 0;
-
-  /* Receive all frame types */
-  cmd->frameTypes.bAcceptFt0Beacon = 1;
-  cmd->frameTypes.bAcceptFt1Data = 1;
-  cmd->frameTypes.bAcceptFt2Ack = 1;
-  cmd->frameTypes.bAcceptFt3MacCmd = 1;
-  cmd->frameTypes.bAcceptFt4Reserved = 1;
-  cmd->frameTypes.bAcceptFt5Reserved = 1;
-  cmd->frameTypes.bAcceptFt6Reserved = 1;
-  cmd->frameTypes.bAcceptFt7Reserved = 1;
-
-  /* Configure CCA settings */
-  cmd->ccaOpt.ccaEnEnergy = 1;
-  cmd->ccaOpt.ccaEnCorr = 1;
-  cmd->ccaOpt.ccaEnSync = 1;
-  cmd->ccaOpt.ccaCorrOp = 1;
-  cmd->ccaOpt.ccaSyncOp = 0;
-  cmd->ccaOpt.ccaCorrThr = 3;
-
-  cmd->ccaRssiThr = IEEE_MODE_RSSI_THRESHOLD;
-
-  cmd->numExtEntries = 0x00;
-  cmd->numShortEntries = 0x00;
-  cmd->pExtEntryList = 0;
-  cmd->pShortEntryList = 0;
-
-  cmd->endTrigger.triggerType = TRIG_NEVER;
-  cmd->endTime = 0x00000000;
-
-  /* set address filter command */
-  filter_cmd.commandNo = CMD_IEEE_MOD_FILT;
-  memcpy(&filter_cmd.newFrameFiltOpt, &cmd->frameFiltOpt, sizeof(cmd->frameFiltOpt));
-  memcpy(&filter_cmd.newFrameTypes, &cmd->frameTypes, sizeof(cmd->frameTypes));
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -810,26 +572,22 @@ handle_rat_overflow(void *unused)
 static int
 init(void)
 {
+	rfc_CMD_IEEE_RX_t *cmd = (rfc_CMD_IEEE_RX_t *)cmd_ieee_rx_buf;
+
   lpm_register_module(&cc26xx_rf_lpm_module);
+  tx_power_current = ieee_common_get_power_config_max();
 
   rf_core_set_modesel();
 
-  /* Initialise RX buffers */
-  memset(rx_buf_0, 0, RX_BUF_SIZE);
-  memset(rx_buf_1, 0, RX_BUF_SIZE);
-  memset(rx_buf_2, 0, RX_BUF_SIZE);
-  memset(rx_buf_3, 0, RX_BUF_SIZE);
-
-  /* Set of RF Core data queue. Circular buffer, no last entry */
-  rx_data_queue.pCurrEntry = rx_buf_0;
-
-  rx_data_queue.pLastEntry = NULL;
-
-  /* Initialize current read pointer to first element (used in ISR) */
-  rx_read_entry = rx_buf_0;
+  ieee_common_init_data_queue();
 
   /* Populate the RF parameters data structure with default values */
-  init_rf_params();
+  ieee_common_init_rf_params(cmd);
+  /* set address filter command */
+  filter_cmd.commandNo = CMD_IEEE_MOD_FILT;
+  memcpy(&filter_cmd.newFrameFiltOpt, &cmd->frameFiltOpt, sizeof(cmd->frameFiltOpt));
+  memcpy(&filter_cmd.newFrameTypes, &cmd->frameTypes, sizeof(cmd->frameTypes));
+
 
   if(on() != RF_CORE_CMD_OK) {
     PRINTF("init: on() failed\n");
@@ -851,9 +609,9 @@ init(void)
 static int
 prepare(const void *payload, unsigned short payload_len)
 {
-  int len = MIN(payload_len, TX_BUF_PAYLOAD_LEN);
+  int len = MIN(payload_len, IEEE_TX_BUF_PAYLOAD_LEN);
 
-  memcpy(&tx_buf[TX_BUF_HDR_LEN], payload, len);
+  memcpy(&tx_buf[IEEE_TX_BUF_HDR_LEN], payload, len);
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -902,7 +660,7 @@ transmit(unsigned short transmit_len)
   rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_IEEE_TX);
 
   cmd.payloadLen = transmit_len;
-  cmd.pPayload = &tx_buf[TX_BUF_HDR_LEN];
+  cmd.pPayload = &tx_buf[IEEE_TX_BUF_HDR_LEN];
 
   cmd.startTime = 0;
   cmd.startTrigger.triggerType = TRIG_NOW;
@@ -977,19 +735,6 @@ send(const void *payload, unsigned short payload_len)
   return transmit(payload_len);
 }
 /*---------------------------------------------------------------------------*/
-static void
-release_data_entry(void)
-{
-  rfc_dataEntryGeneral_t *entry = (rfc_dataEntryGeneral_t *)rx_read_entry;
-
-  /* Clear the length byte */
-  rx_read_entry[8] = 0;
-
-  /* Set status to 0 "Pending" in element */
-  entry->status = DATA_ENTRY_STATUS_PENDING;
-  rx_read_entry = entry->pNextEntry;
-}
-/*---------------------------------------------------------------------------*/
 static uint32_t
 calc_last_packet_timestamp(uint32_t rat_timestamp)
 {
@@ -1018,49 +763,27 @@ calc_last_packet_timestamp(uint32_t rat_timestamp)
 static int
 read_frame(void *buf, unsigned short buf_len)
 {
-  int len = 0;
-  rfc_dataEntryGeneral_t *entry = (rfc_dataEntryGeneral_t *)rx_read_entry;
-  uint32_t rat_timestamp;
+	int8_t rssi;
+	uint8_t lqi;
+	uint32_t rat_timestamp;
+	int len;
 
   if(rf_is_on()) {
     check_rat_overflow(false);
   }
 
-  /* wait for entry to become finished */
-  rtimer_clock_t t0 = RTIMER_NOW();
-  while(entry->status == DATA_ENTRY_STATUS_BUSY
-      && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (RTIMER_SECOND / 250)));
-
-  if(entry->status != DATA_ENTRY_STATUS_FINISHED) {
-    /* No available data */
-    return 0;
+  if(!ieee_common_frame_wait(RTIMER_SECOND / 250)) {
+  	return 0;
   }
 
-  if(rx_read_entry[8] < 4) {
-    PRINTF("RF: too short\n");
-    RIMESTATS_ADD(tooshort);
+  len = ieee_common_read_frame(buf, buf_len, &rssi, &lqi, &rat_timestamp);
 
-    release_data_entry();
-    return 0;
+  last_rssi = rssi;
+  last_corr_lqi = lqi;
+
+  if(len == 0) {
+  	return 0;
   }
-
-  len = rx_read_entry[8] - 8;
-
-  if(len > buf_len) {
-    PRINTF("RF: too long\n");
-    RIMESTATS_ADD(toolong);
-
-    release_data_entry();
-    return 0;
-  }
-
-  memcpy(buf, (char *)&rx_read_entry[9], len);
-
-  last_rssi = (int8_t)rx_read_entry[9 + len + 2];
-  last_corr_lqi = (uint8_t)rx_read_entry[9 + len + 2] & STATUS_CORRELATION;
-
-  /* get the timestamp */
-  memcpy(&rat_timestamp, (char *)rx_read_entry + 9 + len + 4, 4);
 
   last_packet_timestamp = calc_last_packet_timestamp(rat_timestamp);
 
@@ -1072,8 +795,6 @@ read_frame(void *buf, unsigned short buf_len)
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, last_corr_lqi);
   }
   RIMESTATS_ADD(llrx);
-
-  release_data_entry();
 
   return len;
 }
@@ -1179,24 +900,14 @@ receiving_packet(void)
 static int
 pending_packet(void)
 {
-  volatile rfc_dataEntry_t *entry = (rfc_dataEntry_t *)rx_data_queue.pCurrEntry;
-  int rv = 0;
-
-  /* Go through all RX buffers and check their status */
-  do {
-    if(entry->status == DATA_ENTRY_STATUS_FINISHED
-        || entry->status == DATA_ENTRY_STATUS_BUSY) {
-      rv = 1;
-      if(!poll_mode) {
-        process_poll(&rf_core_process);
-      }
-    }
-
-    entry = (rfc_dataEntry_t *)entry->pNextEntry;
-  } while(entry != (rfc_dataEntry_t *)rx_data_queue.pCurrEntry);
-
-  /* If we didn't find an entry at status finished, no frames are pending */
-  return rv;
+	if(ieee_common_incoming_packet()) {
+		if(!poll_mode) {
+			process_poll(&rf_core_process);
+		}
+		return 1;
+	} else {
+		return 0;
+	}
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -1223,7 +934,7 @@ on(void)
     return RF_CORE_CMD_OK;
   }
 
-  init_rx_buffers();
+  ieee_common_init_rx_buffers();
 
   /*
    * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
@@ -1282,18 +993,7 @@ off(void)
    * Just in case there was an ongoing RX (which started after we begun the
    * shutdown sequence), we don't want to leave the buffer in state == ongoing
    */
-  if(((rfc_dataEntry_t *)rx_buf_0)->status == DATA_ENTRY_STATUS_BUSY) {
-    ((rfc_dataEntry_t *)rx_buf_0)->status = DATA_ENTRY_STATUS_PENDING;
-  }
-  if(((rfc_dataEntry_t *)rx_buf_1)->status == DATA_ENTRY_STATUS_BUSY) {
-    ((rfc_dataEntry_t *)rx_buf_1)->status = DATA_ENTRY_STATUS_PENDING;
-  }
-  if(((rfc_dataEntry_t *)rx_buf_2)->status == DATA_ENTRY_STATUS_BUSY) {
-    ((rfc_dataEntry_t *)rx_buf_2)->status = DATA_ENTRY_STATUS_PENDING;
-  }
-  if(((rfc_dataEntry_t *)rx_buf_3)->status == DATA_ENTRY_STATUS_BUSY) {
-    ((rfc_dataEntry_t *)rx_buf_3)->status = DATA_ENTRY_STATUS_PENDING;
-  }
+	ieee_common_set_rx_pending_if_busy();
 
   return RF_CORE_CMD_OK;
 }
@@ -1369,10 +1069,10 @@ get_value(radio_param_t param, radio_value_t *value)
     *value = IEEE_MODE_CHANNEL_MAX;
     return RADIO_RESULT_OK;
   case RADIO_CONST_TXPOWER_MIN:
-    *value = OUTPUT_POWER_MIN;
+    *value = OUTPUT_POWER_MIN();
     return RADIO_RESULT_OK;
   case RADIO_CONST_TXPOWER_MAX:
-    *value = OUTPUT_POWER_MAX;
+    *value = OUTPUT_POWER_MAX();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_LAST_RSSI:
     *value = last_rssi;
@@ -1468,7 +1168,7 @@ set_value(radio_param_t param, radio_value_t value)
     return set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
 
   case RADIO_PARAM_TXPOWER:
-    if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
+    if(value < OUTPUT_POWER_MIN() || value > OUTPUT_POWER_MAX()) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
