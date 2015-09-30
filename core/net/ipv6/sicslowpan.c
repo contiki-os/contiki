@@ -1455,7 +1455,7 @@ output(const uip_lladdr_t *localdest)
      * IPv6/HC1/HC06/HC_UDP dispatchs/headers.
      * The following fragments contain only the fragn dispatch.
      */
-    int estimated_fragments = ((int)uip_len) / ((int)MAC_MAX_PAYLOAD - SICSLOWPAN_FRAGN_HDR_LEN) + 1;
+    int estimated_fragments = ((int)uip_len) / (max_payload - SICSLOWPAN_FRAGN_HDR_LEN) + 1;
     int freebuf = queuebuf_numfree() - 1;
     PRINTFO("uip_len: %d, fragments: %d, free bufs: %d\n", uip_len, estimated_fragments, freebuf);
     if(freebuf < estimated_fragments) {
