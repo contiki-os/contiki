@@ -1334,6 +1334,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
+  /* The DIO comes from a valid DAG, we can refresh its lifetime */
+  dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) / 1000;
+  PRINTF("Set dag ");
+  PRINT6ADDR(&dag->dag_id);
+  PRINTF(" lifetime to %ld\n", dag->lifetime);
+
   /*
    * At this point, we know that this DIO pertains to a DAG that
    * we are already part of. We consider the sender of the DIO to be
