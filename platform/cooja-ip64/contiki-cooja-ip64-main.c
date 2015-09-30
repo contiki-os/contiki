@@ -217,7 +217,7 @@ contiki_init(void)
   printf("%02x%02x\n", lladdr->ipaddr.u8[14],
          lladdr->ipaddr.u8[15]);
 
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
   printf("Tentative global IPv6 address ");

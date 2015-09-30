@@ -84,7 +84,7 @@ join_mcast_group(void)
   uip_ds6_maddr_t *rv;
 
   /* First, set our v6 global */
-  uip_ip6addr(&addr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&addr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&addr, &uip_lladdr);
   uip_ds6_addr_add(&addr, 0, ADDR_AUTOCONF);
 
