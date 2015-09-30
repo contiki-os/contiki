@@ -1060,6 +1060,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
       rpl_move_parent(previous_dag, dag, p);
     }
   }
+  p->rank = dio->rank;
 
   /* Determine the objective function by using the
      objective code point of the DIO. */
@@ -1374,10 +1375,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       if(dag->joined) {
         instance->dio_counter++;
       }
-    } else {
-      p->rank=dio->rank;
     }
   }
+  p->rank = dio->rank;
 
   /* Parent info has been updated, trigger rank recalculation */
   p->flags |= RPL_PARENT_FLAG_UPDATED;
