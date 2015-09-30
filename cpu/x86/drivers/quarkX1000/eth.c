@@ -32,6 +32,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "contiki-net.h"
+#include "dma.h"
 #include "eth.h"
 #include "helpers.h"
 #include "net/ip/uip.h"
@@ -188,7 +189,7 @@ typedef struct quarkX1000_eth_meta {
 #define REG_ADDR_DMA_OPERATION         0x1018
 
 static quarkX1000_eth_driver_t drv;
-static quarkX1000_eth_meta_t meta;
+static quarkX1000_eth_meta_t ATTR_BSS_DMA meta;
 
 /*---------------------------------------------------------------------------*/
 /**

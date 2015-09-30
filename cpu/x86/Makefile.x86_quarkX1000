@@ -9,6 +9,12 @@ CFLAGS += -m32 -march=i586 -mtune=i586
 LDFLAGS += -m32 -Xlinker -T -Xlinker $(CONTIKI)/cpu/x86/quarkX1000.ld
 ASFLAGS += --32 -march=i586 -mtune=i586
 
+ifeq ($(X86_CONF_RESTRICT_DMA),1)
+CONTIKI_SOURCEFILES += imr-conf.c
+CFLAGS += -DX86_CONF_RESTRICT_DMA
+LDFLAGS += -Xlinker -T -Xlinker $(CONTIKI)/cpu/x86/quarkX1000_dma.ld
+endif
+
 ### UEFI support
 
 UEFI_DIR = $(CONTIKI_CPU)/uefi
