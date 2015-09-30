@@ -137,10 +137,6 @@
 #define UIP_CONF_MAX_ROUTES  8
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 8
-/* On Z1, force the CPU speed to 3.9 MHz, as 8 MHz is
- * not supported in Cooja */
-#undef F_CPU
-#define F_CPU 3900000uL
 
 #if WITH_SECURITY
 /* Note: on sky or z1 in cooja, crypto operations are done in S/W and
