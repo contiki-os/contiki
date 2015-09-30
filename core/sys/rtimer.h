@@ -57,7 +57,7 @@
 
 #ifndef RTIMER_CLOCK_DIFF
 typedef unsigned short rtimer_clock_t;
-#define RTIMER_CLOCK_DIFF(a,b)     ((signed short)((a)-(b)))
+#define RTIMER_CLOCK_DIFF(a,b)     ((signed short)((a) - (b)))
 #endif /* RTIMER_CLOCK_DIFF */
 
 #define RTIMER_CLOCK_LT(a, b)      (RTIMER_CLOCK_DIFF((a),(b)) < 0)
@@ -74,7 +74,7 @@ typedef unsigned short rtimer_clock_t;
 void rtimer_init(void);
 
 struct rtimer;
-typedef void (* rtimer_callback_t)(struct rtimer *t, void *ptr);
+typedef void (*rtimer_callback_t)(struct rtimer *t, void *ptr);
 
 /**
  * \brief      Representation of a real-time task
@@ -111,7 +111,7 @@ enum {
  *
  */
 int rtimer_set(struct rtimer *task, rtimer_clock_t time,
-	       rtimer_clock_t duration, rtimer_callback_t func, void *ptr);
+               rtimer_clock_t duration, rtimer_callback_t func, void *ptr);
 
 /**
  * \brief      Execute the next real-time task and schedule the next task, if any

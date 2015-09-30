@@ -65,8 +65,7 @@ rtimer_init(void)
 /*---------------------------------------------------------------------------*/
 int
 rtimer_set(struct rtimer *rtimer, rtimer_clock_t time,
-	   rtimer_clock_t duration,
-	   rtimer_callback_t func, void *ptr)
+           rtimer_clock_t duration, rtimer_callback_t func, void *ptr)
 {
   int first = 0;
 
