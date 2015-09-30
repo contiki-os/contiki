@@ -17,8 +17,8 @@ To test the example in COOJA under Linux
     make connect-router-cooja
 
 3. You should now be able to browse to the nodes using your web browser:
-   Router: http://[aaaa::0212:7401:0001:0101]/
-   Node 2: http://[aaaa::0212:7402:0002:0202]/
+   Router: http://[fd00::0212:7401:0001:0101]/
+   Node 2: http://[fd00::0212:7402:0002:0202]/
 
 
 To run the example on real nodes under Linux

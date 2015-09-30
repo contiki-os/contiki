@@ -45,13 +45,13 @@
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
 /* The address of the server to register the services for this node */
-#define SERVER       "aaaa::1"
+#define SERVER       "fd00::1"
 
 /* This command registers two services (/0 and /1) to turn the leds on or off */
 #define REGISTER_COMMAND "/r?p=0&d=Turn%20off%20leds&p=1&d=Turn%20on%20leds"
 
 /* The address of the other node to control */
-#define OTHER_NODE   "aaaa::212:7403:3:303"
+#define OTHER_NODE   "fd00::212:7403:3:303"
 
 /* The commands to send to the other node */
 #define SET_LEDS_ON  "/1"

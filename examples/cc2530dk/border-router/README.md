@@ -15,6 +15,6 @@ The node will use this address to obtain the network prefix
 
 For example:
 
-    sudo ./tunslip6 aaaa::1/64
+    sudo ./tunslip6 fd00::1/64
 
-This will use aaaa:: / 64 as the prefix for the 15.4 network.
+This will use fd00:: / 64 as the prefix for the 15.4 network.

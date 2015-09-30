@@ -78,7 +78,7 @@
 static const char http_content_type_json[] = "application/json";
 
 /* Maximum 40 chars in host name?: 5 x 8 */
-static char callback_host[40] = "[aaaa::1]";
+static char callback_host[40] = "[fd00::1]";
 static uint16_t callback_port = CALLBACK_PORT;
 static uint16_t callback_interval = SEND_INTERVAL;
 static char callback_path[80] = "/debug/";
