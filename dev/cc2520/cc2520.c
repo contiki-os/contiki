@@ -217,6 +217,7 @@ flushrx(void)
   uint8_t dummy;
 
   CC2520_READ_FIFO_BYTE(dummy);
+  (void)dummy;
   CC2520_STROBE(CC2520_INS_SFLUSHRX);
   CC2520_STROBE(CC2520_INS_SFLUSHRX);
 }
