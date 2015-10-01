@@ -173,7 +173,7 @@ main(void)
 
   set_rime_addr();
 
-  printf("%s %s, channel check rate %lu Hz\n",
+  printf("%s %s, channel check rate %d Hz\n",
          NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
                                   NETSTACK_RDC.channel_check_interval()));
