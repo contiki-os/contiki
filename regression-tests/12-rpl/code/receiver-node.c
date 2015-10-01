@@ -92,7 +92,7 @@ set_global_address(void)
 /*---------------------------------------------------------------------------*/
 uint8_t should_blink = 1;
 static void
-route_callback(int event, uip_ipaddr_t *route, uip_ipaddr_t *ipaddr)
+route_callback(int event, uip_ipaddr_t *route, uip_ipaddr_t *ipaddr, int num_routes)
 {
   if(event == UIP_DS6_NOTIFICATION_DEFRT_ADD) {
     should_blink = 0;
