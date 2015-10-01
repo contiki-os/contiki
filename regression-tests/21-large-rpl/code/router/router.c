@@ -2,6 +2,7 @@
 #include "contiki-net.h"
 #include "ip64.h"
 #include "net/netstack.h"
+#include "net/rpl/rpl-dag-root.h"
 
 /*---------------------------------------------------------------------------*/
 PROCESS(router_node_process, "Router node");
