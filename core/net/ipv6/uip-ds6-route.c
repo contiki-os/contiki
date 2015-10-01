@@ -49,12 +49,12 @@
 
 /* A configurable function called after adding a new neighbor as next hop */
 #ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK
-void NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(linkaddr_t *addr);
+void NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(const linkaddr_t *addr);
 #endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK */
 
 /* A configurable function called after removing a next hop neighbor */
 #ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
-void NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(linkaddr_t *addr);
+void NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(const linkaddr_t *addr);
 #endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK */
 
 /* The nbr_routes holds a neighbor table to be able to maintain
@@ -346,7 +346,7 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
       }
       LIST_STRUCT_INIT(routes, route_list);
 #ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK
-      NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(nexthop_lladdr);
+      NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK((const linkaddr_t *)nexthop_lladdr);
 #endif
     }
 
@@ -444,7 +444,7 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
       nbr_table_remove(nbr_routes, route->neighbor_routes->route_list);
 #ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
       NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(
-          (uip_lladdr_t *)nbr_table_get_lladdr(nbr_routes, route->neighbor_routes->route_list));
+          (const linkaddr_t *)nbr_table_get_lladdr(nbr_routes, route->neighbor_routes->route_list));
 #endif
     }
     memb_free(&routememb, route);

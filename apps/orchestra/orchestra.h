@@ -46,10 +46,10 @@
 /* The structure of an Orchestra rule */
 struct orchestra_rule {
   void (* init)(uint16_t slotframe_handle);
-  void (* new_time_source)(struct tsch_neighbor *old, struct tsch_neighbor *new);
+  void (* new_time_source)(const struct tsch_neighbor *old, const struct tsch_neighbor *new);
   int  (* select_packet)(uint16_t *slotframe, uint16_t *timeslot);
-  void (* child_added)(linkaddr_t *addr);
-  void (* child_removed)(linkaddr_t *addr);
+  void (* child_added)(const linkaddr_t *addr);
+  void (* child_removed)(const linkaddr_t *addr);
 };
 
 struct orchestra_rule eb_per_time_source;
@@ -65,10 +65,10 @@ void orchestra_init(void);
 /* Set with #define TSCH_CALLBACK_PACKET_READY orchestra_callback_packet_ready */
 void orchestra_callback_packet_ready(void);
 /* Set with #define TSCH_CALLBACK_NEW_TIME_SOURCE orchestra_callback_new_time_source */
-void orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new);
+void orchestra_callback_new_time_source(const struct tsch_neighbor *old, const struct tsch_neighbor *new);
 /* Set with #define NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK orchestra_callback_child_added */
-void orchestra_callback_child_added(linkaddr_t *addr);
+void orchestra_callback_child_added(const linkaddr_t *addr);
 /* Set with #define NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK orchestra_callback_child_removed */
-void orchestra_callback_child_removed(linkaddr_t *addr);
+void orchestra_callback_child_removed(const linkaddr_t *addr);
 
 #endif /* __ORCHESTRA_H__ */

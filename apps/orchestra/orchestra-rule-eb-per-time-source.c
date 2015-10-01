@@ -72,7 +72,7 @@ select_packet(uint16_t *slotframe, uint16_t *timeslot)
 }
 /*---------------------------------------------------------------------------*/
 static void
-new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new)
+new_time_source(const struct tsch_neighbor *old, const struct tsch_neighbor *new)
 {
   uint16_t old_ts = get_node_timeslot(&old->addr);
   uint16_t new_ts = get_node_timeslot(&new->addr);

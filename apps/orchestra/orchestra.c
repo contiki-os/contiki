@@ -82,7 +82,7 @@ orchestra_packet_sent(int mac_status)
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_callback_child_added(linkaddr_t *addr)
+orchestra_callback_child_added(const linkaddr_t *addr)
 {
   /* Notify all Orchestra rules that a child was added */
   int i;
@@ -94,7 +94,7 @@ orchestra_callback_child_added(linkaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_callback_child_removed(linkaddr_t *addr)
+orchestra_callback_child_removed(const linkaddr_t *addr)
 {
   /* Notify all Orchestra rules that a child was removed */
   int i;
@@ -129,7 +129,7 @@ orchestra_callback_packet_ready(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-orchestra_callback_new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new)
+orchestra_callback_new_time_source(const struct tsch_neighbor *old, const struct tsch_neighbor *new)
 {
   /* Orchestra assumes that the time source is also the RPL parent.
    * This is the case if the following is set:

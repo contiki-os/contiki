@@ -81,7 +81,7 @@ neighbor_has_uc_link(const linkaddr_t *linkaddr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-add_uc_link(linkaddr_t *linkaddr)
+add_uc_link(const linkaddr_t *linkaddr)
 {
   if(linkaddr != NULL) {
     uint16_t timeslot = get_node_timeslot(linkaddr);
@@ -93,7 +93,7 @@ add_uc_link(linkaddr_t *linkaddr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-remove_uc_link(linkaddr_t *linkaddr)
+remove_uc_link(const linkaddr_t *linkaddr)
 {
   uint16_t timeslot;
   struct tsch_link *l;
@@ -127,13 +127,13 @@ remove_uc_link(linkaddr_t *linkaddr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-child_added(linkaddr_t *linkaddr)
+child_added(const linkaddr_t *linkaddr)
 {
   add_uc_link(linkaddr);
 }
 /*---------------------------------------------------------------------------*/
 static void
-child_removed(linkaddr_t *linkaddr)
+child_removed(const linkaddr_t *linkaddr)
 {
   remove_uc_link(linkaddr);
 }
@@ -157,10 +157,10 @@ select_packet(uint16_t *slotframe, uint16_t *timeslot)
 }
 /*---------------------------------------------------------------------------*/
 static void
-new_time_source(struct tsch_neighbor *old, struct tsch_neighbor *new)
+new_time_source(const struct tsch_neighbor *old, const struct tsch_neighbor *new)
 {
   if(new != old) {
-    linkaddr_t *new_addr = new != NULL ? &new->addr : NULL;
+    const linkaddr_t *new_addr = new != NULL ? &new->addr : NULL;
     if(new_addr != NULL) {
       linkaddr_copy(&orchestra_parent_linkaddr, new_addr);
     } else {
