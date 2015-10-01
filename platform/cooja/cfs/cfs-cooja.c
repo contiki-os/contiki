@@ -29,6 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
+#include <stdio.h>
 #include <string.h>
 #include "lib/simEnvChange.h"
 #include "cfs/cfs.h"
