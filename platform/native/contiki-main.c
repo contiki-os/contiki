@@ -84,7 +84,9 @@ static int select_max = 0;
 SENSORS(&pir_sensor, &vib_sensor, &button_sensor);
 
 static uint8_t serial_id[] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08};
+#if !NETSTACK_CONF_WITH_IPV6
 static uint16_t node_id = 0x0102;
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
 int
 select_set_callback(int fd, const struct select_callback *callback)
