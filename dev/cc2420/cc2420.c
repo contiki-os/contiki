@@ -497,7 +497,7 @@ init_security(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_key(uint8_t *key)
+set_key(const uint8_t *key)
 {
   GET_LOCK();
   
