@@ -288,7 +288,10 @@ struct uip_icmp6_conn uip_icmp6_conns;
 /*---------------------------------------------------------------------------*/
 /* Functions                                                                 */
 /*---------------------------------------------------------------------------*/
-#if (!UIP_ARCH_ADD32 && UIP_TCP)
+#if UIP_TCP
+#if UIP_ARCH_ADD32
+void uip_add32(uint8_t *op32, uint16_t op16);
+#else /* UIP_ARCH_ADD32 */
 void
 uip_add32(uint8_t *op32, uint16_t op16)
 {
@@ -315,8 +318,8 @@ uip_add32(uint8_t *op32, uint16_t op16)
     }
   }
 }
-
-#endif /* UIP_ARCH_ADD32 && UIP_TCP */
+#endif /* UIP_ARCH_ADD32 */
+#endif /* UIP_TCP */
 
 #if ! UIP_ARCH_CHKSUM
 /*---------------------------------------------------------------------------*/
