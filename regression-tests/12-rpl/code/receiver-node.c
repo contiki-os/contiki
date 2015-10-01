@@ -105,11 +105,10 @@ PROCESS_THREAD(receiver_node_process, ev, data)
 {
   static struct etimer et;
   static struct uip_ds6_notification n;
-  uip_ipaddr_t *ipaddr;
 
   PROCESS_BEGIN();
 
-  ipaddr = set_global_address();
+  set_global_address();
 
   uip_ds6_notification_add(&n, route_callback);
 
