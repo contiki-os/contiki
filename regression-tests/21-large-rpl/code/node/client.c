@@ -105,6 +105,13 @@ PROCESS_THREAD(http_example_process, ev, data)
       http_socket_get(&s, "http://www.contiki-os.org/", 0, 0,
 		      callback, NULL);
       connect = 0;
+    } else if(connect) {
+      connect++;
+      /* If connect have been "tried" 5 timer we quit trying now... */
+      if(connect > 5)  {
+	restart();
+	connect = 0;
+      }
     }
   }
 
