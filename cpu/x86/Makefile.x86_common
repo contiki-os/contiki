@@ -18,9 +18,10 @@ ifeq ($(BUILD_RELEASE),1)
 # binary seems to be broken, check if removing this option fixes the issue.
 	LDFLAGS += -Wl,--strip-all,--gc-sections
 else
+  CFLAGS  += -O0
 	ifeq ($(findstring clang,$(CC)),clang)
-		CFLAGS  += -O0 -g
+		CFLAGS  += -g
 	else
-		CFLAGS  += -Og -ggdb3
+		CFLAGS  += -ggdb3
 	endif
 endif
