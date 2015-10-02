@@ -106,6 +106,9 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 #define RPL_ROUTE_SET_NOPATH_RECEIVED(route) do {                       \
     (route)->state.state_flags |= RPL_ROUTE_ENTRY_NOPATH_RECEIVED;      \
   } while(0)
+#define RPL_ROUTE_CLEAR_NOPATH_RECEIVED(route) do {                       \
+    (route)->state.state_flags &= ~RPL_ROUTE_ENTRY_NOPATH_RECEIVED;      \
+  } while(0)
 
 #define RPL_ROUTE_IS_DAO_PENDING(route)                                 \
   ((route->state.state_flags & RPL_ROUTE_ENTRY_DAO_PENDING) != 0)

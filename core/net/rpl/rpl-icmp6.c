@@ -53,6 +53,7 @@
 #include "net/rpl/rpl-private.h"
 #include "net/packetbuf.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
+#include "random.h"
 
 #include <limits.h>
 #include <string.h>
@@ -811,11 +812,12 @@ dao_input(void)
         uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
                        ICMP6_RPL, RPL_CODE_DAO, buffer_length);
       }
-      if(flags & RPL_DAO_K_FLAG) {
-        /* indicate that we accepted the no-path DAO */
-        dao_ack_output(instance, &dao_sender_addr, sequence,
-               RPL_DAO_ACK_UNCONDITIONAL_ACCEPT);
-      }
+    } 
+    /* independent if we remove or not - ACK the request */
+    if(flags & RPL_DAO_K_FLAG) {
+      /* indicate that we accepted the no-path DAO */
+      dao_ack_output(instance, &dao_sender_addr, sequence,
+                     RPL_DAO_ACK_UNCONDITIONAL_ACCEPT);
     }
     goto discard;
   }
@@ -851,8 +853,9 @@ dao_input(void)
     goto discard;
   }
 
-  /* State is all zeroes, set lifetime but no need for other initialization. */
+  /* set lifetime and clear NOPATH bit */
   rep->state.lifetime = RPL_LIFETIME(instance, lifetime);
+  RPL_ROUTE_CLEAR_NOPATH_RECEIVED(rep);
 
 #if RPL_CONF_MULTICAST
 fwd_dao:
@@ -978,15 +981,13 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
 
   /* Sending a DAO with own prefix as target */
   dao_output_target(parent, &prefix, lifetime);
-  /* keep track of my own sending of DAO for handling ack and loss of ack */
-  instance->my_dao_seqno = dao_sequence;
-
 #if RPL_WITH_DAO_ACK
-  instance->my_dao_transmissions = 1;
-  ctimer_set(&instance->dao_retransmit_timer, RPL_DAO_RETRANSMISSION_TIMEOUT,
-	     handle_dao_retransmission, parent);
-  if(lifetime == RPL_ZERO_LIFETIME) {
-    rpl_set_downward_link(0);
+  /* keep track of my own sending of DAO for handling ack and loss of ack */
+  if(lifetime != RPL_ZERO_LIFETIME) {
+    instance->my_dao_seqno = dao_sequence;
+    instance->my_dao_transmissions = 1;
+    ctimer_set(&instance->dao_retransmit_timer, RPL_DAO_RETRANSMISSION_TIMEOUT,
+	       handle_dao_retransmission, parent);
   }
 #else
   /* We know that we have tried to register so now we are assuming
