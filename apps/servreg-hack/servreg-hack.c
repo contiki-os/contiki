@@ -332,12 +332,12 @@ static void
 parse_incoming_packet(const uint8_t *buf, int len)
 {
   int numregs;
-  int flags;
+  /*int flags;*/
   int i;
   int bufptr;
 
   numregs = buf[MSG_NUMREGS_OFFSET];
-  flags   = buf[MSG_FLAGS_OFFSET];
+  /*flags   = buf[MSG_FLAGS_OFFSET];*/
 
   /*  printf("parse_incoming_packet Numregs %d flags %d\n", numregs, flags);*/
 
