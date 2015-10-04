@@ -128,8 +128,8 @@ memcpy_misaligned(void *dest, const void *source, int len)
   int i;
   uint8_t *destptr;
   const uint8_t *sourceptr;
-  if(((int)dest & 1) == 1 ||
-     ((int)source & 1) == 1) {
+  if(((uintptr_t)dest & 1) == 1 ||
+     ((uintptr_t)source & 1) == 1) {
     destptr = dest;
     sourceptr = source;
     for(i = 0; i < len; ++i) {
