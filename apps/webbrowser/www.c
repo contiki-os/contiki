@@ -864,6 +864,7 @@ htmlparser_newline(void)
 
   wptr = webpageptr - WWW_CONF_WEBPAGE_WIDTH;
   petsciiconv_topetscii(wptr, WWW_CONF_WEBPAGE_WIDTH);
+  (void)wptr;
 
   if(y == WWW_CONF_WEBPAGE_HEIGHT) {
     loading = 0;
