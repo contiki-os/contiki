@@ -48,6 +48,11 @@ LDLIBS := $(subst MiniMac_JN516x, ,$(LDLIBS))
   LDLIBS += JPT_$(JENNIC_CHIP)
 endif
 
+# Warings as error
+ifdef WERROR
+CFLAGS += -Werror
+endif
+
 # Pass DEBUG as CFLAG
 ifeq ($(DEBUG),SW)
 CFLAGS += -DDEBUG=1
