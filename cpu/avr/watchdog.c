@@ -67,7 +67,7 @@
 /* MCUSR is a deprecated name but older avr-libc versions may define it */
 #if !defined (MCUCSR)
 # if defined (MCUSR)
-#  warning *** MCUCSR not defined, using MCUSR instead ***
+/*#  warning *** MCUCSR not defined, using MCUSR instead ****/
 #  define MCUCSR MCUSR
 # endif
 #endif
