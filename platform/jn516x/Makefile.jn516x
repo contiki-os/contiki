@@ -48,6 +48,12 @@ LDLIBS := $(subst MiniMac_JN516x, ,$(LDLIBS))
   LDLIBS += JPT_$(JENNIC_CHIP)
 endif
 
+# Enable all warnings
+CFLAGS += -Wall
+# Disable warnings that result many false positives with the Contiki core
+CFLAGS += -Wno-strict-aliasing
+CFLAGS += -Wno-cast-align
+
 # Warings as error
 ifdef WERROR
 CFLAGS += -Werror
@@ -68,9 +74,6 @@ STRIP:=$(CROSS_COMPILE)-strip
 SIZE:=$(CROSS_COMPILE)-size
 OBJCOPY:=$(CROSS_COMPILE)-objcopy
 OBJDUMP:=$(CROSS_COMPILE)-objdump
-
-CFLAGS  := $(subst -Wcast-align,,$(CFLAGS))
-CFLAGS  := $(subst -Wall,,$(CFLAGS))
 
 ARCH = ccm-star.c exceptions.c rtimer-arch.c slip_uart0.c clock.c micromac-radio.c \
        mtarch.c node-id.c watchdog.c log.c ringbufindex.c slip.c sprintf.c 
