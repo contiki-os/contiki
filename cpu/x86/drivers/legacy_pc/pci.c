@@ -28,6 +28,8 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <assert.h>
+
 #include "pci.h"
 #include "helpers.h"
 
@@ -59,6 +61,137 @@ pci_config_read(pci_config_addr_t addr)
   set_addr(addr);
 
   return inl(PCI_CONFIG_DATA_PORT);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief       Set current PIRQ to interrupt queue agent. PCI based interrupts
+ *              PIRQ[A:H] are then available for consumption by either the 8259
+ *              PICs or the IO-APIC depending on configuration of the 8 PIRQx
+ *              Routing Control Registers PIRQ[A:H]. See also pci_pirq_set_irq().
+ * \param agent Interrupt Queue Agent to be used, IRQAGENT[0:3].
+ * \param pin   Interrupt Pin Route to be used, INT[A:D].
+ * \param pirq  PIRQ to be used, PIRQ[A:H].
+ * \return      Returns 0 on success and a negative number otherwise.
+ */
+int
+pci_irq_agent_set_pirq(IRQAGENT agent, INTR_PIN pin, PIRQ pirq)
+{
+  pci_config_addr_t pci;
+  uint16_t value;
+  uint32_t rcba_addr, offset = 0;
+
+  assert(agent >= IRQAGENT0 && agent <= IRQAGENT3);
+  assert(pin >= INTA && pin <= INTD);
+  assert(pirq >= PIRQA && pirq <= PIRQH);
+
+  pci.raw = 0;
+  pci.bus = 0;
+  pci.dev = 31;
+  pci.func = 0;
+  pci.reg_off = 0xF0; /* Root Complex Base Address Register */
+
+  /* masked to clear non-address bits. */
+  rcba_addr = pci_config_read(pci) & ~0x3FFF;
+
+  switch(agent) {
+  case IRQAGENT0:
+    if (pin != INTA)
+      return -1;
+    offset = 0x3140;
+    break;
+  case IRQAGENT1:
+    offset = 0x3142;
+    break;
+  case IRQAGENT2:
+    if (pin != INTA)
+      return -1;
+    offset = 0x3144;
+    break;
+  case IRQAGENT3:
+    offset = 0x3146;
+  }
+
+  value = *(uint16_t*)(rcba_addr + offset);
+
+  /* clear interrupt pin route and set corresponding pirq. */
+  switch(pin) {
+  case INTA:
+    value &= ~0xF;
+    value |= pirq;
+    break;
+  case INTB:
+    value &= ~0xF0;
+    value |= (pirq << 4);
+    break;
+  case INTC:
+    value &= ~0xF00;
+    value |= (pirq << 8);
+    break;
+  case INTD:
+    value &= ~0xF000;
+    value |= (pirq << 12);
+  }
+
+  *(uint16_t*)(rcba_addr + offset) = value;
+
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief                 Set current IRQ to PIRQ. The interrupt router can be
+ *                        programmed to allow PIRQ[A:H] to be routed internally
+ *                        to the 8259 as ISA compatible interrupts. See also
+ *                        pci_irq_agent_set_pirq().
+ * \param pirq            PIRQ to be used, PIRQ[A:H].
+ * \param pin             IRQ to be used, IRQ[0:15].
+ * \param route_to_legacy Whether or not the interrupt should be routed to PIC 8259.
+ */
+void
+pci_pirq_set_irq(PIRQ pirq, uint8_t irq, uint8_t route_to_legacy)
+{
+  pci_config_addr_t pci;
+  uint32_t value;
+
+  assert(pirq >= PIRQA && pirq <= PIRQH);
+  assert(irq >= 0 && irq <= 0xF);
+  assert(route_to_legacy == 0 || route_to_legacy == 1);
+
+  pci.raw = 0;
+  pci.bus = 0;
+  pci.dev = 31;
+  pci.func = 0;
+  pci.reg_off = (pirq <= PIRQD) ? 0x60 : 0x64; /* PABCDRC and PEFGHRC Registers */
+
+  value = pci_config_read(pci);
+
+  switch(pirq) {
+  case PIRQA:
+  case PIRQE:
+    value &= ~0x8F;
+    value |= irq;
+    value |= (!route_to_legacy << 7);
+    break;
+  case PIRQB:
+  case PIRQF:
+    value &= ~0x8F00;
+    value |= (irq << 8);
+    value |= (!route_to_legacy << 15);
+    break;
+  case PIRQC:
+  case PIRQG:
+    value &= ~0x8F0000;
+    value |= (irq << 16);
+    value |= (!route_to_legacy << 23);
+    break;
+  case PIRQD:
+  case PIRQH:
+    value &= ~0x8F000000;
+    value |= (irq << 24);
+    value |= (!route_to_legacy << 31);
+  }
+
+  set_addr(pci);
+  outl(PCI_CONFIG_DATA_PORT, value);
 }
 /*---------------------------------------------------------------------------*/
 /**

@@ -36,6 +36,37 @@
 /** PCI configuration register identifier for Base Address Register 0 (BAR0) */
 #define PCI_CONFIG_REG_BAR0 0x10
 
+/** PCI Interrupt Routing is mapped using Interrupt Queue Agents */
+typedef enum {
+  IRQAGENT0,
+  IRQAGENT1,
+  IRQAGENT2,
+  IRQAGENT3
+} IRQAGENT;
+
+/** PCI Interupt Pins */
+typedef enum {
+  INTA,
+  INTB,
+  INTC,
+  INTD
+} INTR_PIN;
+
+/**
+ * PCI based interrupts PIRQ[A:H] are then available for consumption by either
+ * the 8259  PICs or the IO-APIC.
+ */
+typedef enum {
+  PIRQA,
+  PIRQB,
+  PIRQC,
+  PIRQD,
+  PIRQE,
+  PIRQF,
+  PIRQG,
+  PIRQH,
+} PIRQ;
+
 /**
  * PCI configuration address
  *
@@ -66,5 +97,7 @@ typedef struct pci_driver {
 } pci_driver_t;
 
 void pci_init_bar0(pci_driver_t *c_this, pci_config_addr_t pci_addr);
+int pci_irq_agent_set_pirq(IRQAGENT agent, INTR_PIN pin, PIRQ pirq);
+void pci_pirq_set_irq(PIRQ pirq, uint8_t irq, uint8_t route_to_legacy);
 
 #endif /* CPU_X86_DRIVERS_LEGACY_PC_PCI_H_ */
