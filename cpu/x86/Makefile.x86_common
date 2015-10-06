@@ -9,7 +9,7 @@ OBJCOPY  = objcopy
 SIZE     = size
 STRIP    = strip
 
-CFLAGS  += -Wall
+CFLAGS  += -Wall -fno-asynchronous-unwind-tables
 LDFLAGS += -Wl,-Map=contiki-$(TARGET).map,--build-id=none
 
 ifeq ($(BUILD_RELEASE),1)
