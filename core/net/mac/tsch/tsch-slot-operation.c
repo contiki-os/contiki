@@ -518,6 +518,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               ack_len = NETSTACK_RADIO.read((void *)ackbuf, sizeof(ackbuf));
 
               is_time_source = 0;
+              /* The radio driver should return 0 if no valid packets are in the rx buffer */
               if(ack_len > 0) {
                 is_time_source = current_neighbor != NULL && current_neighbor->is_time_source;
                 if(tsch_packet_parse_eack(ackbuf, ack_len, seqno,
