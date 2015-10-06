@@ -76,6 +76,7 @@ LIST(neighbor_list);
 struct tsch_neighbor *n_broadcast;
 struct tsch_neighbor *n_eb;
 
+/*---------------------------------------------------------------------------*/
 /**
  *  A pseudo-random generator with better properties than msp430-libc's default
  **/
@@ -91,7 +92,7 @@ static uint8_t
 tsch_random_byte(uint8_t window)
 {
   tsch_random_seed = tsch_random_seed * 1103515245 + 12345;
-  return ((uint32_t)(tsch_random_seed / 65536) % 32768) & window;
+  return (tsch_random_seed / 65536) & window;
 }
 /*---------------------------------------------------------------------------*/
 /* Add a TSCH neighbor */
