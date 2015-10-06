@@ -102,7 +102,11 @@
 #if RTIMER_SECOND < (32 * 1024)
 #error "TSCH: RTIMER_SECOND < (32 * 1024)"
 #endif
+#if RTIMER_SECOND >= 200000
 #define RTIMER_GUARD (RTIMER_SECOND / 100000)
+#else
+#define RTIMER_GUARD 2u
+#endif
 
 /* A ringbuf storing outgoing packets after they were dequeued.
  * Will be processed layer by tsch_tx_process_pending */
