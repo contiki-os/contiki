@@ -531,13 +531,13 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
                       &frame, &current_neighbor->addr, &current_asn)) {
                     TSCH_LOG_ADD(tsch_log_message,
                         snprintf(log->message, sizeof(log->message),
-                        "!failed to authenticate ACK"););
+                        "!failed to authenticate ACK"));
                     ack_len = 0;
                   }
                 } else {
                   TSCH_LOG_ADD(tsch_log_message,
                       snprintf(log->message, sizeof(log->message),
-                      "!failed to parse ACK"););
+                      "!failed to parse ACK"));
                 }
 #endif /* TSCH_SECURITY_ENABLED */
               }
@@ -707,13 +707,13 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
           } else {
             TSCH_LOG_ADD(tsch_log_message,
                 snprintf(log->message, sizeof(log->message),
-                "!failed to authenticate frame %u", current_input->len););
+                "!failed to authenticate frame %u", current_input->len));
             frame_valid = 0;
           }
         } else {
           TSCH_LOG_ADD(tsch_log_message,
               snprintf(log->message, sizeof(log->message),
-              "!failed to parse frame %u %u", header_len, current_input->len););
+              "!failed to parse frame %u %u", header_len, current_input->len));
           frame_valid = 0;
         }
 #endif /* TSCH_SECURITY_ENABLED */
