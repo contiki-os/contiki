@@ -70,6 +70,7 @@ static struct ringbufindex log_ringbuf;
 static struct tsch_log_t log_array[TSCH_LOG_QUEUE_LEN];
 static int log_dropped = 0;
 
+/*---------------------------------------------------------------------------*/
 /* Process pending log messages */
 void
 tsch_log_process_pending(void)
@@ -118,7 +119,7 @@ tsch_log_process_pending(void)
     ringbufindex_get(&log_ringbuf);
   }
 }
-
+/*---------------------------------------------------------------------------*/
 /* Prepare addition of a new log.
  * Returns pointer to log structure if success, NULL otherwise */
 struct tsch_log_t *
@@ -135,7 +136,7 @@ tsch_log_prepare_add(void)
     return NULL;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 /* Actually add the previously prepared log */
 void
 tsch_log_commit(void)
@@ -143,7 +144,7 @@ tsch_log_commit(void)
   ringbufindex_put(&log_ringbuf);
   process_poll(&tsch_pending_events_process);
 }
-
+/*---------------------------------------------------------------------------*/
 /* Initialize log module */
 void
 tsch_log_init(void)
