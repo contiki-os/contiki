@@ -287,16 +287,8 @@ output_sniffer(int mac_status)
 static void
 sniffprint(char *prefix, int seqno)
 {
-  /* const linkaddr_t *sender; */
-  /* const linkaddr_t *receiver; */
   const linkaddr_t *esender;
-  /* const linkaddr_t *ereceiver; */
-
-  /* sender = packetbuf_addr(PACKETBUF_ADDR_SENDER); */
-  /* receiver = packetbuf_addr(PACKETBUF_ADDR_RECEIVER); */
   esender = packetbuf_addr(PACKETBUF_ADDR_ESENDER);
-  /* ereceiver = packetbuf_addr(PACKETBUF_ADDR_ERECEIVER); */
-
 
   printf("%lu %s %d %u %d %d %d.%d %u %u\n",
          clock_time(),
