@@ -33,7 +33,7 @@
 /**
  * \file
  *         Per-neighbor packet queues for TSCH MAC.
- *         The list of neighbor uses the TSCH lock lock, but per-neighbor packet array are lockfree.
+ *         The list of neighbors uses the TSCH lock, but per-neighbor packet array are lock-free.
  *				 Read-only operation on neighbor and packets are allowed from interrupts and outside of them.
  *				 *Other operations are allowed outside of interrupt only.*
  * \author
