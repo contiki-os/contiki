@@ -183,7 +183,7 @@ strcasecmp(const char *s1, const char *s2)
 #endif
 
 /**
- * The interval after which \ref check_entries is being called to check the
+ * The interval after which check_entries is being called to check the
  * state in the current name map and send out new requests if required
  *
  * Measured in clock_time_t ticks
