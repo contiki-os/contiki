@@ -1,0 +1,100 @@
+#!/usr/bin/perl
+@rime = ( "abc", "collect", "ctimer", "ibc", "ipolite", "mesh", "meshconn",
+	  "mh", "neighbor-discovery", "neighbor", "nf", "polite", "queuebuf",
+	  "rime", "rimeaddr", "packetbuf", "rimestats", "rmesh", "rmh",
+	  "route-discovery", "route", "ruc", "rucb",
+	  "rudolph0", "rudolph1", "rudolph2", "sabc", "sibc", "suc",
+	  "trickle", "uc", "timesynch", "nullmac", "xmac"  );
+@{$rime{$_}} = (0, 0) foreach (@rime);
+
+@sky = ( "battery-sensor", "button-sensor", "cfs-xmem", "clock",
+	 "contiki-sky-main", "ds2411", "flash", "msp430",
+	 "mtarch",
+	 "i2c", "leds-arch", "light", "radio-sensor", "sht11",
+	 "simple-cc2420-arch", "simple-cc2420", "spi", "slip",
+	 "uart1", "watchdog", "xmem", "rtimer-arch" );
+@{$sky{$_}} = (0, 0) foreach (@sky);
+
+@elfloader = ( "elfloader", "elfloader-msp430" );
+@{$elfloader{$_}} = (0, 0) foreach (@elfloader);
+
+@core = ( "autostart", "energest", "etimer", "irq", "leds", "list",
+	  "memb", "mt", "print-stats", "process", "procinit",
+	  "profile-aggregates", "profile", "random", "sensors",
+	  "serial", "timer", "timetable", "timetable-aggregate",
+	  "rtimer");
+@{$core{$_}} = (0, 0) foreach (@core);
+
+@uip = ( "hc", "psock", "resolv", "slip", "tcpdump", "tcpip", "uaodv-rt", "uaodv",
+	 "uip-fw-drv", "uip-ipchksum", "uip-neighbor", "uip-over-mesh",
+	 "uip-split", "uip-udp-packet", "uip", "uip_arp", "uiplib", "uip-fw");
+@{$uip{$_}} = (0, 0) foreach (@uip);
+
+while(<>) {
+    if(/(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+\w+\s+\w+\/([\w\-]+).o/) {
+	$filerom = $1;
+	$fileram = $2 + $3;
+	$file = $5;
+
+	if(defined $rime{$file}) {
+	    @{$rime{$file}} = ($filerom, $fileram);
+	    $rom{"rime"} += $filerom;
+	    $ram{"rime"} += $fileram;
+	} elsif(defined $sky{$file}) {
+	    @{$sky{$file}} = ($filerom, $fileram);
+	    $rom{"sky"} += $filerom;
+	    $ram{"sky"} += $fileram;
+	} elsif(defined $elfloader{$file}) {
+	    @{$elfloader{$file}} = ($filerom, $fileram);
+	    $rom{"elfloader"} += $filerom;
+	    $ram{"elfloader"} += $fileram;
+	} elsif(defined $core{$file}) {
+	    @{$core{$file}} = ($filerom, $fileram);
+	    $rom{"core"} += $filerom;
+	    $ram{"core"} += $fileram;
+	} elsif(defined $uip{$file}) {
+	    @{$uip{$file}} = ($filerom, $fileram);
+	    $rom{"uip"} += $filerom;
+	    $ram{"uip"} += $fileram;
+	} else {
+	    @{$other{$file}} = ($filerom, $fileram);
+	    $rom{"other"} += $filerom;
+	    $ram{"other"} += $fileram;
+	}
+    }
+}
+
+foreach $f (sort keys %rom) {
+    print "$f $rom{$f} $ram{$f}\n";
+}
+
+print "\n\n# core\n";
+foreach $f (sort keys %core) {
+    print "$f $core{$f}[0] $core{$f}[1]\n";
+}
+
+print "\n\n# elfloader\n";
+foreach $f (sort keys %elfloader) {
+    print "$f $elfloader{$f}[0] $elfloader{$f}[1]\n";
+}
+
+print "\n\n# other\n";
+foreach $f (sort keys %other) {
+    print "$f $other{$f}[0] $other{$f}[1]\n";
+}
+
+print "\n\n# rime\n";
+foreach $f (sort keys %rime) {
+    print "$f $rime{$f}[0] $rime{$f}[1]\n";
+}
+
+print "\n\n# sky\n";
+foreach $f (sort keys %sky) {
+    print "$f $sky{$f}[0] $sky{$f}[1]\n";
+}
+
+print "\n\n# uip\n";
+foreach $f (sort keys %uip) {
+    print "$f $uip{$f}[0] $uip{$f}[1]\n";
+}
+

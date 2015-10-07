@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+
+<project name="Sensor Data Collect with Contiki" default="dist" basedir=".">
+  <property name="java" location="src"/>
+  <property name="build" location="build"/>
+  <property name="lib" location="lib"/>
+  <property name="dist" location="dist"/>
+  <property name="contiki" location="../.."/>
+  <property name="archive" value="collect-view.jar"/>
+  <property name="main" value="org.contikios.contiki.collect.CollectServer"/>
+  <property name="args" value="" />
+
+  <path id="classpath">
+    <fileset dir="${lib}" includes="**/*.jar"/>
+  </path>
+
+  <manifestclasspath property="jar.classpath" jarfile="${archive}">
+    <classpath refid="classpath" />
+  </manifestclasspath>
+
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+    <mkdir dir="${dist}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir="${java}" destdir="${build}" classpathref="classpath"
+           debug="true" includeantruntime="false" />
+  </target>
+
+  <target name="jar" depends="compile">
+    <jar destfile="${dist}/${archive}" basedir="${build}">
+      <manifest>
+        <attribute name="Main-Class" value="${main}"/>
+        <attribute name="Class-Path" value="${jar.classpath}" />
+      </manifest>
+    </jar>
+    <mkdir dir="${dist}/lib"/>
+    <copy todir="${dist}/lib">
+      <fileset dir="${lib}"/>
+    </copy>
+  </target>
+
+  <condition property="collect-view-shell.exists">
+    <available file="${dist}/collect-view-shell.ihex"/>
+  </condition>
+
+  <target name="collect-view-shell.ihex" unless="collect-view-shell.exists" depends="init">
+    <exec dir="${contiki}/examples/collect" executable="make">
+      <arg value="TARGET=sky"/>
+      <arg value="collect-view-shell.ihex"/>
+    </exec>
+    <copy todir="${dist}" file="${contiki}/examples/collect/collect-view-shell.ihex"/>
+  </target>
+
+  <target name="dist" depends="jar,collect-view-shell.ihex">
+    <copy todir="${dist}" file="collect-init.script"/>
+    <mkdir dir="${dist}/tools"/>
+    <copy todir="${dist}/tools">
+      <fileset dir="${contiki}/tools/sky"/>
+    </copy>
+    <copy file="${contiki}/tools/cygwin/cygwin1.dll" todir="${dist}/tools"/>
+    <chmod dir="${dist}/tools" perm="a+x" includes="**/*"/>
+  </target>
+
+  <target name="run" depends="dist">
+    <java fork="yes" dir="${dist}" jar="${dist}/${archive}">
+      <arg line="${args}"/>
+    </java>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+
+</project>

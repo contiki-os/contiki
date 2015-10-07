@@ -1,0 +1,6 @@
+echo ~K
+echo killall
+sleep 2
+echo mac 0
+sleep 2
+echo time %TIME% | null

@@ -63,7 +63,8 @@
 /* For projects, optimize memory and enable RDC and CSMA again. */
 
 #undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC              nullrdc_driver
+//#define NETSTACK_CONF_RDC              nullrdc_driver
+#define NETSTACK_CONF_RDC sbmac_driver
 
 /* Disabling TCP on CoAP nodes. */
 #undef UIP_CONF_TCP

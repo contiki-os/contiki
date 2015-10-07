@@ -1,0 +1,42 @@
+#set terminal x11 persist 
+#set terminal postscript "Helvetica" 6
+set terminal pdf font "Helvetica,5" size 19cm,26cm
+set output "size.pdf"
+unset xlabel 
+set ylabel "Bytes"
+set boxwidth 0.6
+set style fill pattern
+#unset xtics
+#set key top left Left
+
+set multiplot
+set size 1, 0.20
+set origin 0, 0.80
+set xlabel "Total"
+plot \
+'size-data' index 0 using :2:xticlabels(1) with boxes title "ROM", \
+'size-data' index 0 using :3:xticlabels(1) with boxes title "RAM"
+
+set origin 0, 0.60
+set xlabel "Core"
+plot \
+'size-data' index 1 using :2:xticlabels(1) with boxes title "ROM", \
+'size-data' index 1 using :3:xticlabels(1) with boxes title "RAM"
+
+set origin 0, 0.40
+set xlabel "Other"
+plot \
+'size-data' index 3 using :2:xticlabels(1) with boxes title "ROM", \
+'size-data' index 3 using :3:xticlabels(1) with boxes title "RAM"
+
+set origin 0, 0.20
+set xlabel "Rime"
+plot \
+'size-data' index 4 using :2:xticlabels(1) with boxes title "ROM", \
+'size-data' index 4 using :3:xticlabels(1) with boxes title "RAM"
+
+set origin 0, 0.00
+set xlabel "Sky"
+plot \
+'size-data' index 5 using :2:xticlabels(1) with boxes title "ROM", \
+'size-data' index 5 using :3:xticlabels(1) with boxes title "RAM"
