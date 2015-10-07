@@ -1,4 +1,6 @@
-KNOWN_EXAMPLES = gpio-output
+TARGET=galileo
+
+KNOWN_EXAMPLES = gpio-output i2c-LSM9DS0
 
 ifneq ($(filter $(EXAMPLE),$(KNOWN_EXAMPLES)),)
   CONTIKI_PROJECT = $(EXAMPLE)
