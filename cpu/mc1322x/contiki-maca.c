@@ -73,8 +73,8 @@ int contiki_maca_on_request(void);
 int contiki_maca_off_request(void);
 int contiki_maca_read(void *buf, unsigned short bufsize);
 int contiki_maca_prepare(const void *payload, unsigned short payload_len);
-int contiki_maca_transmit(unsigned short transmit_len);
-int contiki_maca_send(const void *payload, unsigned short payload_len);
+radio_txresult_t contiki_maca_transmit(unsigned short transmit_len);
+radio_txresult_t contiki_maca_send(const void *payload, unsigned short payload_len);
 int contiki_maca_channel_clear(void);
 int contiki_maca_receiving_packet(void);
 int contiki_maca_pending_packet(void);
@@ -273,7 +273,7 @@ int contiki_maca_prepare(const void *payload, unsigned short payload_len) {
 /* gets a packet from the radio (if available), */
 /* copies the prepared packet prepped_p */
 /* and transmits it */
-int contiki_maca_transmit(unsigned short transmit_len) {
+radio_txresult_t contiki_maca_transmit(unsigned short transmit_len) {
 	volatile packet_t *p;
 
 	PRINTF("contiki maca transmit\n\r");
@@ -298,7 +298,7 @@ int contiki_maca_transmit(unsigned short transmit_len) {
 #endif
 }
 
-int contiki_maca_send(const void *payload, unsigned short payload_len) {
+radio_txresult_t contiki_maca_send(const void *payload, unsigned short payload_len) {
 	contiki_maca_prepare(payload, payload_len);
 	contiki_maca_transmit(payload_len);
 	switch(tx_status) {

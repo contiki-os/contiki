@@ -212,12 +212,12 @@ typedef enum {
 } radio_result_t;
 
 /* Radio return values for transmissions. */
-enum {
+typedef enum {
   RADIO_TX_OK,
   RADIO_TX_ERR,
   RADIO_TX_COLLISION,
   RADIO_TX_NOACK,
-};
+} radio_txresult_t;
 
 /**
  * The structure of a device driver for a radio in Contiki.
@@ -230,10 +230,10 @@ struct radio_driver {
   int (* prepare)(const void *payload, unsigned short payload_len);
 
   /** Send the packet that has previously been prepared. */
-  int (* transmit)(unsigned short transmit_len);
+  radio_txresult_t (* transmit)(unsigned short transmit_len);
 
   /** Prepare & transmit a packet. */
-  int (* send)(const void *payload, unsigned short payload_len);
+  radio_txresult_t (* send)(const void *payload, unsigned short payload_len);
 
   /** Read a received packet into a buffer. */
   int (* read)(void *buf, unsigned short buf_len);

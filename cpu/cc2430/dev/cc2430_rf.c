@@ -410,7 +410,7 @@ prepare(const void *payload, unsigned short payload_len)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static radio_txresult_t
 transmit(unsigned short transmit_len)
 {
   uint8_t counter;
@@ -469,7 +469,7 @@ transmit(unsigned short transmit_len)
   return ret;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static radio_txresult_t
 send(void *payload, unsigned short payload_len)
 {
   prepare(payload, payload_len);

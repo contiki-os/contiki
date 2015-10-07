@@ -243,8 +243,8 @@ static int rf230_off(void);
 static int rf230_read(void *buf, unsigned short bufsize);
 
 static int rf230_prepare(const void *data, unsigned short len);
-static int rf230_transmit(unsigned short len);
-static int rf230_send(const void *data, unsigned short len);
+static radio_txresult_t rf230_transmit(unsigned short len);
+static radio_txresult_t rf230_send(const void *data, unsigned short len);
 
 static int rf230_receiving_packet(void);
 static int rf230_pending_packet(void);
@@ -922,7 +922,7 @@ void rf230_warm_reset(void) {
 /*---------------------------------------------------------------------------*/
 static uint8_t buffer[RF230_MAX_TX_FRAME_LENGTH+AUX_LEN];
 
-static int
+static radio_txresult_t
 rf230_transmit(unsigned short payload_len)
 {
   int txpower;
@@ -1183,7 +1183,7 @@ bail:
   return ret;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static radio_txresult_t
 rf230_send(const void *payload, unsigned short payload_len)
 {
 	int ret = 0;

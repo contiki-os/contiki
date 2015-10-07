@@ -11,16 +11,16 @@ init(void)
 static int
 prepare(const void *payload, unsigned short payload_len)
 {
-  return 1;
+  return RADIO_RESULT_OK;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static radio_txresult_t
 transmit(unsigned short transmit_len)
 {
   return RADIO_TX_OK;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static radio_txresult_t
 send(const void *payload, unsigned short payload_len)
 {
   prepare(payload, payload_len);

@@ -147,8 +147,8 @@ int cc2420_off(void);
 static int cc2420_read(void *buf, unsigned short bufsize);
 
 static int cc2420_prepare(const void *data, unsigned short len);
-static int cc2420_transmit(unsigned short len);
-static int cc2420_send(const void *data, unsigned short len);
+static radio_txresult_t cc2420_transmit(unsigned short len);
+static radio_txresult_t cc2420_send(const void *data, unsigned short len);
 
 static int cc2420_receiving_packet(void);
 static int pending_packet(void);
@@ -618,7 +618,7 @@ cc2420_init(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int
+radio_txresult_t
 cc2420_transmit(unsigned short payload_len)
 {
   int i, txpower;
@@ -743,7 +743,7 @@ cc2420_prepare(const void *payload, unsigned short payload_len)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static radio_txresult_t
 cc2420_send(const void *payload, unsigned short payload_len)
 {
   cc2420_prepare(payload, payload_len);
