@@ -3,9 +3,9 @@ LIBC_PATH=$(BSP_PATH)/libc
 LIBC=$(LIBC_PATH)/i586-elf
 LIBGCC_PATH = /usr/lib/gcc/$(shell gcc -dumpmachine)/$(shell gcc -dumpversion)
 
-CONTIKI_TARGET_DIRS = . core/sys/
+CONTIKI_TARGET_DIRS = . core/sys/ drivers/
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
-CONTIKI_SOURCEFILES += contiki-main.c clock.c rtimer-arch.c
+CONTIKI_SOURCEFILES += contiki-main.c clock.c rtimer-arch.c gpio-pcal9535a.c
 
 PROJECT_SOURCEFILES += newlib-syscalls.c
 

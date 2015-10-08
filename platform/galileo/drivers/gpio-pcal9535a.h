@@ -28,43 +28,38 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CPU_X86_DRIVERS_QUARKX1000_GPIO_H_
-#define CPU_X86_DRIVERS_QUARKX1000_GPIO_H_
+#ifndef CPU_X86_DRIVERS_GPIO_PCAL9535A_H_
+#define CPU_X86_DRIVERS_GPIO_PCAL9535A_H_
 
 #include <stdint.h>
 
-#include "pci.h"
+union gpio_pcal9535a_port_data {
+  uint16_t all;
+  uint8_t port[2];
+  uint8_t byte[2];
+};
 
-#define QUARKX1000_GPIO_IN            (0 << 0)
-#define QUARKX1000_GPIO_OUT           (1 << 0)
-#define QUARKX1000_GPIO_INT           (1 << 1)
-#define QUARKX1000_GPIO_ACTIVE_LOW    (0 << 2)
-#define QUARKX1000_GPIO_ACTIVE_HIGH   (1 << 2)
-#define QUARKX1000_GPIO_LEVEL         (0 << 3)
-#define QUARKX1000_GPIO_EDGE          (1 << 3)
-#define QUARKX1000_GPIO_DEBOUNCE      (1 << 4)
-#define QUARKX1000_GPIO_CLOCK_SYNC    (1 << 5)
-#define QUARKX1000_GPIO_POL_NORMAL    (0 << 6)
-#define QUARKX1000_GPIO_POL_INV       (1 << 6)
-#define QUARKX1000_GPIO_PUD_NORMAL    (0 << 7)
-#define QUARKX1000_GPIO_PUD_PULL_UP   (1 << 7)
-#define QUARKX1000_GPIO_PUD_PULL_DOWN (2 << 7)
+struct gpio_pcal9535a_data {
+  uint16_t i2c_slave_addr;
+  uint32_t out_pol_inv;
 
-#define QUARKX1000_GPIO_DIR_MASK        (1 << 0)
-#define QUARKX1000_GPIO_POL_MASK        (1 << 6)
-#define QUARKX1000_GPIO_PUD_MASK        (3 << 7)
+  struct {
+    union gpio_pcal9535a_port_data output;
+    union gpio_pcal9535a_port_data pol_inv;
+    union gpio_pcal9535a_port_data dir;
+    union gpio_pcal9535a_port_data pud_en;
+    union gpio_pcal9535a_port_data pud_sel;
+  } reg_cache;
+};
 
-int quarkX1000_gpio_init(void);
+int gpio_pcal9535a_init(struct gpio_pcal9535a_data *data, uint16_t i2c_slave_addr);
 
-int quarkX1000_gpio_config(uint8_t pin, int flags);
-int quarkX1000_gpio_read(uint8_t pin, uint8_t *value);
-int quarkX1000_gpio_write(uint8_t pin, uint8_t value);
+int gpio_pcal9535a_config(struct gpio_pcal9535a_data *data, uint32_t pin, int flags);
+int gpio_pcal9535a_read(struct gpio_pcal9535a_data *data, uint32_t pin, uint32_t *value);
+int gpio_pcal9535a_write(struct gpio_pcal9535a_data *data, uint32_t pin, uint32_t value);
 
-int quarkX1000_gpio_config_port(int flags);
-int quarkX1000_gpio_read_port(uint8_t *value);
-int quarkX1000_gpio_write_port(uint8_t value);
+int gpio_pcal9535a_config_port(struct gpio_pcal9535a_data *data, uint32_t pin, int flags);
+int gpio_pcal9535a_read_port(struct gpio_pcal9535a_data *data, uint32_t pin, uint32_t *value);
+int gpio_pcal9535a_write_port(struct gpio_pcal9535a_data *data, uint32_t pin, uint32_t value);
 
-void quarkX1000_gpio_clock_enable(void);
-void quarkX1000_gpio_clock_disable(void);
-
-#endif /* CPU_X86_DRIVERS_QUARKX1000_GPIO_H_ */
+#endif /* CPU_X86_DRIVERS_GPIO_PCAL9535A_H_ */
