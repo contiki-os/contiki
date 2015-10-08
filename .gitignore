@@ -93,3 +93,8 @@ contiki-cc2530dk.lib
 # rl78 build artifacts
 *.eval-adf7xxxmb4z
 *.eval-adf7xxxmb4z.srec
+
+#eclipse artifacts
+*.settings
+*.cproject
+*.project
