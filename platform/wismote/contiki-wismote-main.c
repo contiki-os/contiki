@@ -229,10 +229,12 @@ main(int argc, char **argv)
    * Hardware initialization done!
    */
 
-  node_id = NODE_ID;
-
   /* Restore node id if such has been stored in external mem */
-  //node_id_restore();
+  node_id_restore();
+
+  if(!node_id) {
+    node_id = NODE_ID;
+  }
 
   /* for setting "hardcoded" IEEE 802.15.4 MAC addresses */
 #ifdef IEEE_802154_MAC_ADDRESS
