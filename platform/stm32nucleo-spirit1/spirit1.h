@@ -38,7 +38,7 @@
 #include "spirit1-config.h"
 #include "spirit1_appli.h"
 #include "spirit1-const.h"
-/*---------------------------------------------------------------------------*/   
+/*---------------------------------------------------------------------------*/
 extern const struct radio_driver spirit_radio_driver;
 void spirit1_interrupt_callback(void);
 /*---------------------------------------------------------------------------*/

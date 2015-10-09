@@ -1,39 +1,34 @@
-/**
-******************************************************************************
-* @file    contiki-spirit1-main.c
-* @author  System LAB
-* @version V1.0.0
-* @date    17-June-2015
-* @brief   Contiki main file for stm32nucleo-spirit1 platform
-******************************************************************************
-* @attention
-*
-* <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
-*
-* Redistribution and use in source and binary forms, with or without modification,
-* are permitted provided that the following conditions are met:
-*   1. Redistributions of source code must retain the above copyright notice,
-*      this list of conditions and the following disclaimer.
-*   2. Redistributions in binary form must reproduce the above copyright notice,
-*      this list of conditions and the following disclaimer in the documentation
-*      and/or other materials provided with the distribution.
-*   3. Neither the name of STMicroelectronics nor the names of its contributors
-*      may be used to endorse or promote products derived from this software
-*      without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*
-******************************************************************************
-*/
+/*
+ * Copyright (c) 2012, STMicroelectronics.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ *
+ */
+/*---------------------------------------------------------------------------*/
 /**
  * \addtogroup stm32nucleo-spirit1
  * @{
@@ -64,7 +59,7 @@
 #include "spirit1.h"
 #include "spirit1-arch.h"
 #include "node-id.h"
-#include "hw-config.h" 
+#include "hw-config.h"
 #include "stdbool.h"
 #include "dev/button-sensor.h"
 #include "dev/radio-sensor.h"
@@ -84,10 +79,10 @@ SENSORS(&button_sensor,
         &radio_sensor,
         &temperature_sensor,
         &humidity_sensor,
-	&pressure_sensor,
-	&magneto_sensor,
+        &pressure_sensor,
+        &magneto_sensor,
         &acceleration_sensor,
-	&gyroscope_sensor);
+        &gyroscope_sensor);
 #else /*COMPILE_SENSORS*/
 SENSORS(&button_sensor,
         &radio_sensor);
@@ -97,11 +92,11 @@ extern unsigned char node_mac[8];
 /*---------------------------------------------------------------------------*/
 #ifdef __GNUC__
 /* With GCC/RAISONANCE, small printf (option LD Linker->Libraries->Small printf
-set to 'Yes') calls __io_putchar() */
+   set to 'Yes') calls __io_putchar() */
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 #else
-#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#endif /* __GNUC__ */  
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE * f)
+#endif /* __GNUC__ */
 /*---------------------------------------------------------------------------*/
 #if NETSTACK_CONF_WITH_IPV6
 PROCINIT(&etimer_process, &tcpip_process);
@@ -110,28 +105,31 @@ PROCINIT(&etimer_process);
 #warning "No TCP/IP process!"
 #endif /*NETSTACK_CONF_WITH_IPV6*/
 /*---------------------------------------------------------------------------*/
-#define BUSYWAIT_UNTIL(cond, max_time)                                  \
-do {                                                                    \
-  rtimer_clock_t t0;                                                    \
-    t0 = RTIMER_NOW();                                                  \
-      while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))); \
-} while(0)
+#define BUSYWAIT_UNTIL(cond, max_time) \
+  do { \
+    rtimer_clock_t t0; \
+    t0 = RTIMER_NOW(); \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time))) ; \
+  } while(0)
 /*---------------------------------------------------------------------------*/
 static void set_rime_addr(void);
 void stm32cube_hal_init();
 /*---------------------------------------------------------------------------*/
 #if 0
-static void panic_main(void)
+static void
+panic_main(void)
 {
   volatile uint16_t k;
   while(1) {
     leds_toggle(LEDS_ALL);
-    for(k = 0; k < 0xffff/8; k += 1) { }
+    for(k = 0; k < 0xffff / 8; k += 1) {
+    }
   }
 }
 #endif
 /*---------------------------------------------------------------------------*/
-int main (int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
   stm32cube_hal_init();
 
@@ -146,7 +144,6 @@ int main (int argc, char *argv[])
   process_init();
   process_start(&etimer_process, NULL);
 
-  
   /* Restore node id if such has been stored in external mem */
   node_id_restore(); /* also configures node_mac[] */
 
@@ -158,17 +155,16 @@ int main (int argc, char *argv[])
 
   energest_init();
 
-    
 #if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, node_mac, sizeof(uip_lladdr.addr));
-  
+
   queuebuf_init();
   process_start(&tcpip_process, NULL);
 
   uip_ipaddr_t ipaddr;
   uip_ip6addr(&ipaddr, 0xfc00, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
-  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);  
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 #endif /* NETSTACK_CONF_WITH_IPV6*/
 
   process_start(&sensors_process, NULL);
@@ -176,19 +172,20 @@ int main (int argc, char *argv[])
   autostart_start(autostart_processes);
 
   watchdog_start();
-    
+
   while(1) {
     int r = 0;
     do {
-      r = process_run();        
+      r = process_run();
     } while(r > 0);
   }
 }
 /*---------------------------------------------------------------------------*/
-static void set_rime_addr(void)
+static void
+set_rime_addr(void)
 {
   linkaddr_t addr;
-  
+
   memset(&addr, 0, sizeof(linkaddr_t));
   memcpy(addr.u8, node_mac, sizeof(addr.u8));
 
