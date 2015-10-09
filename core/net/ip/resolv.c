@@ -1220,12 +1220,11 @@ PROCESS_THREAD(mdns_probe_process, ev, data)
   etimer_set(&delay, CLOCK_SECOND * (random_rand() & 0xFF) / 1024);
   do {
     PROCESS_WAIT_EVENT();
-    switch(ev) {
-      case PROCESS_EVENT_TIMER:
-        break;
-      case PROCESS_EVENT_EXIT:
-        etimer_stop(&delay);
-        PROCESS_EXIT();
+    if(PROCESS_EVENT_TIMER == ev) {
+      break;
+    } else if(PROCESS_EVENT_EXIT == ev) {
+      etimer_stop(&delay);
+      PROCESS_EXIT();
     }
   } while(1);
 
