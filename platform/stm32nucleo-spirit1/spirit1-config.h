@@ -38,19 +38,19 @@
 #include "spirit1-const.h"
 /*---------------------------------------------------------------------------*/
 #define CCA_THRESHOLD               -98.0   /* dBm */
-#define XTAL_FREQUENCY              50000000    /* Hz */ 
+#define XTAL_FREQUENCY              50000000    /* Hz */
 #define SPIRIT_MAX_FIFO_LEN         96
 /*---------------------------------------------------------------------------*/
 
-/**    
+/**
  * The MAX_PACKET_LEN is an arbitrary value used to define the two array
  * spirit_txbuf and spirit_rxbuf.
  * The SPIRIT1 supports with its packet handler a length of 65,535 bytes,
  * and in direct mode (without packet handler) there is no limit of data.
- */  
+ */
 #define MAX_PACKET_LEN              SPIRIT_MAX_FIFO_LEN
 /*---------------------------------------------------------------------------*/
-/**    
+/**
  * Spirit1 IC version
  */
 #define SPIRIT1_VERSION             SPIRIT_VERSION_3_0

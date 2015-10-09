@@ -39,8 +39,8 @@
 #include "radio_spi.h"
 #include "st-lib.h"
 /*---------------------------------------------------------------------------*/
-#define IRQ_ENABLE()             st_lib_radio_gpio_interrupt_cmd(RADIO_GPIO_IRQ,0x0F,0x0F,ENABLE);
-#define IRQ_DISABLE()            st_lib_radio_gpio_interrupt_cmd(RADIO_GPIO_IRQ,0x0F,0x0F,DISABLE); 
+#define IRQ_ENABLE()             st_lib_radio_gpio_interrupt_cmd(RADIO_GPIO_IRQ, 0x0F, 0x0F, ENABLE);
+#define IRQ_DISABLE()            st_lib_radio_gpio_interrupt_cmd(RADIO_GPIO_IRQ, 0x0F, 0x0F, DISABLE);
 #define spirit_spi_busy()        (!(RADIO_SPI_CS_PORT->IDR & RADIO_SPI_CS_PIN))
 #define SPIRIT1_STATUS()       (spirit1_arch_refresh_status() & SPIRIT1_STATE_STATEBITS)
 /*---------------------------------------------------------------------------*/

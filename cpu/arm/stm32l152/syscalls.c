@@ -29,59 +29,38 @@
  *
  */
 /*---------------------------------------------------------------------------*/
+/*
+ * Function implementation taken and adapted from:
+ * cpu/stm32w108/e_stdio/src/syscalls.c
+ */
+/*---------------------------------------------------------------------------*/
+#include <errno.h>
 #include <stdio.h>
-#include <sys/stat.h>
 /*---------------------------------------------------------------------------*/
-int
-_lseek(int file,
-       int ptr,
-       int dir)
-{
-  return 0;
-}
+extern int errno;
 /*---------------------------------------------------------------------------*/
-int
-_close(int file)
-{
-  return -1;
-}
+/* Register name faking - works in collusion with the linker.  */
+register char *stack_ptr asm ("sp");
 /*---------------------------------------------------------------------------*/
-void
-_exit(int n)
+caddr_t
+_sbrk(int incr)
 {
-  /* FIXME: return code is thrown away.  */
-  while(1) ;
-}
-/*---------------------------------------------------------------------------*/
-int
-_kill(int n, int m)
-{
-  return -1;
-}
-/*---------------------------------------------------------------------------*/
-int
-_fstat(int file, struct stat *st)
-{
-  st->st_mode = S_IFCHR;
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-int
-_isatty(int fd)
-{
-  return 1;
-  fd = fd;
-}
-/*---------------------------------------------------------------------------*/
-int
-_getpid(int n)
-{
-  return -1;
-}
-/*---------------------------------------------------------------------------*/
-int
-_open(const char *path, int flags, ...)
-{
-  return -1;
+  extern char end;  /* Defined by the linker */
+  static char *heap_end;
+  char *prev_heap_end;
+
+  if(heap_end == 0) {
+    heap_end = &end;
+  }
+  prev_heap_end = heap_end;
+  if(heap_end + incr > stack_ptr) {
+    _write(1, "Heap and stack collision\n", 25);
+    /*abort ();*/
+    errno = ENOMEM;
+    return (caddr_t)-1;
+  }
+
+  heap_end += incr;
+  return (caddr_t)prev_heap_end;
 }
 /*---------------------------------------------------------------------------*/
