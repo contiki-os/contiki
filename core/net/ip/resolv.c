@@ -1150,6 +1150,16 @@ newdata(void)
 
 }
 /*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+  static uint8_t initialized = 0;
+  if(!initialized) {
+    process_start(&resolv_process, NULL);
+	initialized = 1;
+  }
+}
+/*---------------------------------------------------------------------------*/
 #if RESOLV_CONF_SUPPORTS_MDNS
 /**
  * \brief           Changes the local hostname advertised by MDNS.
@@ -1226,6 +1236,12 @@ PROCESS_THREAD(mdns_probe_process, ev, data)
   do {
     PROCESS_WAIT_EVENT_UNTIL(ev == resolv_event_found);
   } while(strcasecmp(resolv_hostname, data) != 0);
+#else /* RESOLV_CONF_MDNS_PROBING */
+  // The probing starts the resolv_process, if we are not probing we have to
+  // start manually.
+  if(!process_is_running(&resolv_process)) {
+    init();
+  }
 #endif /* RESOLV_CONF_MDNS_PROBING */
 
   mdns_state = MDNS_STATE_READY;
@@ -1320,16 +1336,6 @@ PROCESS_THREAD(resolv_process, ev, data)
   }
 
   PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  static uint8_t initialized = 0;
-  if(!initialized) {
-    process_start(&resolv_process, NULL);
-    initialized = 1;
-  }
 }
 /*---------------------------------------------------------------------------*/
 #if RESOLV_AUTO_REMOVE_TRAILING_DOTS
