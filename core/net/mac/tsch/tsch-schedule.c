@@ -99,6 +99,7 @@ tsch_schedule_add_slotframe(uint16_t handle, uint16_t size)
   }
   return NULL;
 }
+/*---------------------------------------------------------------------------*/
 /* Removes all slotframes, resulting in an empty schedule */
 int
 tsch_schedule_remove_all_slotframes(void)
@@ -111,6 +112,7 @@ tsch_schedule_remove_all_slotframes(void)
   }
   return 1;
 }
+/*---------------------------------------------------------------------------*/
 /* Removes a slotframe Return 1 if success, 0 if failure */
 int
 tsch_schedule_remove_slotframe(struct tsch_slotframe *slotframe)
@@ -133,6 +135,7 @@ tsch_schedule_remove_slotframe(struct tsch_slotframe *slotframe)
   }
   return 0;
 }
+/*---------------------------------------------------------------------------*/
 /* Looks for a slotframe from a handle */
 struct tsch_slotframe *
 tsch_schedule_get_slotframe_by_handle(uint16_t handle)
@@ -148,6 +151,7 @@ tsch_schedule_get_slotframe_by_handle(uint16_t handle)
   }
   return NULL;
 }
+/*---------------------------------------------------------------------------*/
 /* Looks for a link from a handle */
 struct tsch_link *
 tsch_schedule_get_link_by_handle(uint16_t handle)
@@ -168,6 +172,7 @@ tsch_schedule_get_link_by_handle(uint16_t handle)
   }
   return NULL;
 }
+/*---------------------------------------------------------------------------*/
 /* Adds a link to a slotframe, return a pointer to it (NULL if failure) */
 struct tsch_link *
 tsch_schedule_add_link(struct tsch_slotframe *slotframe,
@@ -225,6 +230,7 @@ tsch_schedule_add_link(struct tsch_slotframe *slotframe,
   }
   return l;
 }
+/*---------------------------------------------------------------------------*/
 /* Removes a link from slotframe. Return 1 if success, 0 if failure */
 int
 tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
@@ -272,6 +278,7 @@ tsch_schedule_remove_link(struct tsch_slotframe *slotframe, struct tsch_link *l)
   }
   return 0;
 }
+/*---------------------------------------------------------------------------*/
 /* Removes a link from slotframe and timeslot. Return a 1 if success, 0 if failure */
 int
 tsch_schedule_remove_link_by_timeslot(struct tsch_slotframe *slotframe, uint16_t timeslot)
@@ -279,6 +286,7 @@ tsch_schedule_remove_link_by_timeslot(struct tsch_slotframe *slotframe, uint16_t
   return slotframe != NULL &&
          tsch_schedule_remove_link(slotframe, tsch_schedule_get_link_by_timeslot(slotframe, timeslot));
 }
+/*---------------------------------------------------------------------------*/
 /* Looks within a slotframe for a link with a given timeslot */
 struct tsch_link *
 tsch_schedule_get_link_by_timeslot(struct tsch_slotframe *slotframe, uint16_t timeslot)
@@ -298,6 +306,7 @@ tsch_schedule_get_link_by_timeslot(struct tsch_slotframe *slotframe, uint16_t ti
   }
   return NULL;
 }
+/*---------------------------------------------------------------------------*/
 /* Returns the next active link after a given ASN, and a backup link (for the same ASN, with Rx flag) */
 struct tsch_link *
 tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset,
@@ -372,6 +381,7 @@ tsch_schedule_get_next_active_link(struct asn_t *asn, uint16_t *time_offset,
   }
   return curr_best;
 }
+/*---------------------------------------------------------------------------*/
 /* Module initialization, call only once at startup. Returns 1 is success, 0 if failure. */
 int
 tsch_schedule_init(void)
@@ -386,6 +396,7 @@ tsch_schedule_init(void)
     return 0;
   }
 }
+/*---------------------------------------------------------------------------*/
 /* Create a 6TiSCH minimal schedule */
 void
 tsch_schedule_create_minimal(void)
@@ -405,6 +416,7 @@ tsch_schedule_create_minimal(void)
       LINK_TYPE_ADVERTISING, &tsch_broadcast_address,
       0, 0);
 }
+/*---------------------------------------------------------------------------*/
 /* Prints out the current schedule (all slotframes and links) */
 void
 tsch_schedule_print(void)
@@ -432,3 +444,4 @@ tsch_schedule_print(void)
     printf("Schedule: end of slotframe list\n");
   }
 }
+/*---------------------------------------------------------------------------*/

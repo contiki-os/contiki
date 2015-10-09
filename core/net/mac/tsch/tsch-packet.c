@@ -62,6 +62,7 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
+/*---------------------------------------------------------------------------*/
 /* Construct enhanced ACK packet and return ACK length */
 int
 tsch_packet_create_eack(uint8_t *buf, int buf_size,
@@ -120,7 +121,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
 
   return curr_len;
 }
-
+/*---------------------------------------------------------------------------*/
 /* Parse enhanced ACK packet, extract drift and nack */
 int
 tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
@@ -185,7 +186,7 @@ tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
 
   return curr_len;
 }
-
+/*---------------------------------------------------------------------------*/
 /* Create an EB packet */
 int
 tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
@@ -332,7 +333,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
 
   return curr_len;
 }
-
+/*---------------------------------------------------------------------------*/
 /* Update ASN in EB packet */
 int
 tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)
@@ -343,7 +344,7 @@ tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)
   frame80215e_create_ie_tsch_synchronization(buf+tsch_sync_ie_offset, buf_size-tsch_sync_ie_offset, &ies);
   return 1;
 }
-
+/*---------------------------------------------------------------------------*/
 /* Parse a IEEE 802.15.4e TSCH Enhanced Beacon (EB) */
 int
 tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
@@ -409,3 +410,4 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
 
   return curr_len;
 }
+/*---------------------------------------------------------------------------*/

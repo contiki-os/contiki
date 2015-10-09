@@ -156,6 +156,7 @@ static struct pt slot_operation_pt;
 static PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t));
 static PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t));
 
+/*---------------------------------------------------------------------------*/
 /* TSCH locking system. TSCH is locked during slot operations */
 
 /* Is TSCH locked? */
@@ -209,6 +210,7 @@ tsch_release_lock(void)
   tsch_locked = 0;
 }
 
+/*---------------------------------------------------------------------------*/
 /* Channel hopping utility functions */
 
 /* Return channel from ASN and channel offset */
@@ -220,6 +222,7 @@ tsch_calculate_channel(struct asn_t *asn, uint8_t channel_offset)
   return tsch_hopping_sequence[index_of_offset];
 }
 
+/*---------------------------------------------------------------------------*/
 /* Timing utility functions */
 
 /* Checks if the current time has passed a ref time + offset. Assumes
@@ -242,7 +245,7 @@ check_timer_miss(rtimer_clock_t ref_time, rtimer_clock_t offset, rtimer_clock_t 
     return now_has_overflowed;
   }
 }
-
+/*---------------------------------------------------------------------------*/
 /* Schedule a wakeup at a specified offset from a reference time.
  * Provides basic protection against missed deadlines and timer overflows
  * A non-zero return value signals to tsch_slot_operation a missed deadline.
@@ -275,7 +278,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
   }
   return 1;
 }
-
+/*---------------------------------------------------------------------------*/
 /* Schedule slot operation conditionally, and YIELD if success only */
 #define TSCH_SCHEDULE_AND_YIELD(pt, tm, ref_time, offset, str) \
   do { \
@@ -284,6 +287,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
     } \
   } while(0);
 
+/*---------------------------------------------------------------------------*/
 /* Get EB, broadcast or unicast packet to be sent, and target neighbor. */
 static struct tsch_packet *
 get_packet_and_neighbor_for_link(struct tsch_link *link, struct tsch_neighbor **target_neighbor)
@@ -319,7 +323,7 @@ get_packet_and_neighbor_for_link(struct tsch_link *link, struct tsch_neighbor **
 
   return p;
 }
-
+/*---------------------------------------------------------------------------*/
 /* Post TX: Update neighbor state after a transmission */
 static int
 update_neighbor_state(struct tsch_neighbor *n, struct tsch_packet *p,
@@ -362,7 +366,7 @@ update_neighbor_state(struct tsch_neighbor *n, struct tsch_packet *p,
 
   return in_queue;
 }
-
+/*---------------------------------------------------------------------------*/
 static
 PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 {
@@ -518,6 +522,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               ack_len = NETSTACK_RADIO.read((void *)ackbuf, sizeof(ackbuf));
 
               is_time_source = 0;
+              /* The radio driver should return 0 if no valid packets are in the rx buffer */
               if(ack_len > 0) {
                 is_time_source = current_neighbor != NULL && current_neighbor->is_time_source;
                 if(tsch_packet_parse_eack(ackbuf, ack_len, seqno,
@@ -531,13 +536,13 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
                       &frame, &current_neighbor->addr, &current_asn)) {
                     TSCH_LOG_ADD(tsch_log_message,
                         snprintf(log->message, sizeof(log->message),
-                        "!failed to authenticate ACK"););
+                        "!failed to authenticate ACK"));
                     ack_len = 0;
                   }
                 } else {
                   TSCH_LOG_ADD(tsch_log_message,
                       snprintf(log->message, sizeof(log->message),
-                      "!failed to parse ACK"););
+                      "!failed to parse ACK"));
                 }
 #endif /* TSCH_SECURITY_ENABLED */
               }
@@ -609,7 +614,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 
   PT_END(pt);
 }
-
+/*---------------------------------------------------------------------------*/
 static
 PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 {
@@ -707,13 +712,13 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
           } else {
             TSCH_LOG_ADD(tsch_log_message,
                 snprintf(log->message, sizeof(log->message),
-                "!failed to authenticate frame %u", current_input->len););
+                "!failed to authenticate frame %u", current_input->len));
             frame_valid = 0;
           }
         } else {
           TSCH_LOG_ADD(tsch_log_message,
               snprintf(log->message, sizeof(log->message),
-              "!failed to parse frame %u %u", header_len, current_input->len););
+              "!failed to parse frame %u %u", header_len, current_input->len));
           frame_valid = 0;
         }
 #endif /* TSCH_SECURITY_ENABLED */
@@ -809,7 +814,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
   PT_END(pt);
 }
-
+/*---------------------------------------------------------------------------*/
 /* Protothread for slot operation, called from rtimer interrupt
  * and scheduled from tsch_schedule_slot_operation */
 static
@@ -921,7 +926,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
 
   PT_END(&slot_operation_pt);
 }
-
+/*---------------------------------------------------------------------------*/
 /* Set global time before starting slot operation,
  * with a rtimer time and an ASN */
 void
@@ -949,7 +954,7 @@ tsch_slot_operation_start(void)
     current_slot_start += time_to_next_active_slot;
   } while(!tsch_schedule_slot_operation(&slot_operation_timer, prev_slot_start, time_to_next_active_slot, 1, "association"));
 }
-
+/*---------------------------------------------------------------------------*/
 /* Start actual slot operation */
 void
 tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
@@ -960,3 +965,4 @@ tsch_slot_operation_sync(rtimer_clock_t next_slot_start,
   last_sync_asn = current_asn;
   current_link = NULL;
 }
+/*---------------------------------------------------------------------------*/

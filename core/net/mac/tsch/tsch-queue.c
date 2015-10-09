@@ -76,6 +76,7 @@ LIST(neighbor_list);
 struct tsch_neighbor *n_broadcast;
 struct tsch_neighbor *n_eb;
 
+/*---------------------------------------------------------------------------*/
 /**
  *  A pseudo-random generator with better properties than msp430-libc's default
  **/
@@ -91,8 +92,9 @@ static uint8_t
 tsch_random_byte(uint8_t window)
 {
   tsch_random_seed = tsch_random_seed * 1103515245 + 12345;
-  return ((uint32_t)(tsch_random_seed / 65536) % 32768) & window;
+  return (tsch_random_seed / 65536) & window;
 }
+/*---------------------------------------------------------------------------*/
 /* Add a TSCH neighbor */
 struct tsch_neighbor *
 tsch_queue_add_nbr(const linkaddr_t *addr)
@@ -120,6 +122,7 @@ tsch_queue_add_nbr(const linkaddr_t *addr)
   }
   return n;
 }
+/*---------------------------------------------------------------------------*/
 /* Get a TSCH neighbor */
 struct tsch_neighbor *
 tsch_queue_get_nbr(const linkaddr_t *addr)
@@ -135,6 +138,7 @@ tsch_queue_get_nbr(const linkaddr_t *addr)
   }
   return NULL;
 }
+/*---------------------------------------------------------------------------*/
 /* Get a TSCH time source (we currently assume there is only one) */
 struct tsch_neighbor *
 tsch_queue_get_time_source(void)
@@ -150,7 +154,7 @@ tsch_queue_get_time_source(void)
   }
   return NULL;
 }
-
+/*---------------------------------------------------------------------------*/
 /* Update TSCH time source */
 int
 tsch_queue_update_time_source(const linkaddr_t *new_addr)
@@ -184,6 +188,7 @@ tsch_queue_update_time_source(const linkaddr_t *new_addr)
   }
   return 0;
 }
+/*---------------------------------------------------------------------------*/
 /* Flush a neighbor queue */
 static void
 tsch_queue_flush_nbr_queue(struct tsch_neighbor *n)
@@ -201,6 +206,7 @@ tsch_queue_flush_nbr_queue(struct tsch_neighbor *n)
     }
   }
 }
+/*---------------------------------------------------------------------------*/
 /* Remove TSCH neighbor queue */
 static void
 tsch_queue_remove_nbr(struct tsch_neighbor *n)
@@ -221,6 +227,7 @@ tsch_queue_remove_nbr(struct tsch_neighbor *n)
     }
   }
 }
+/*---------------------------------------------------------------------------*/
 /* Add packet to neighbor queue. Use same lockfree implementation as ringbuf.c (put is atomic) */
 struct tsch_packet *
 tsch_queue_add_packet(const linkaddr_t *addr, mac_callback_t sent, void *ptr)
@@ -259,6 +266,7 @@ tsch_queue_add_packet(const linkaddr_t *addr, mac_callback_t sent, void *ptr)
   PRINTF("TSCH-queue:! add packet failed: %u %p %d %p %p\n", tsch_is_locked(), n, put_index, p, p ? p->qb : NULL);
   return 0;
 }
+/*---------------------------------------------------------------------------*/
 /* Returns the number of packets currently in the queue */
 int
 tsch_queue_packet_count(const linkaddr_t *addr)
@@ -272,6 +280,7 @@ tsch_queue_packet_count(const linkaddr_t *addr)
   }
   return -1;
 }
+/*---------------------------------------------------------------------------*/
 /* Remove first packet from a neighbor queue */
 struct tsch_packet *
 tsch_queue_remove_packet_from_queue(struct tsch_neighbor *n)
@@ -289,6 +298,7 @@ tsch_queue_remove_packet_from_queue(struct tsch_neighbor *n)
   }
   return NULL;
 }
+/*---------------------------------------------------------------------------*/
 /* Free a packet */
 void
 tsch_queue_free_packet(struct tsch_packet *p)
@@ -298,6 +308,7 @@ tsch_queue_free_packet(struct tsch_packet *p)
     memb_free(&packet_memb, p);
   }
 }
+/*---------------------------------------------------------------------------*/
 /* Flush all neighbor queues */
 void
 tsch_queue_flush_all(void)
@@ -312,6 +323,7 @@ tsch_queue_flush_all(void)
     }
   }
 }
+/*---------------------------------------------------------------------------*/
 /* Deallocate neighbors with empty queue */
 void
 tsch_queue_free_unused_neighbors(void)
@@ -331,12 +343,14 @@ tsch_queue_free_unused_neighbors(void)
     }
   }
 }
+/*---------------------------------------------------------------------------*/
 /* Is the neighbor queue empty? */
 int
 tsch_queue_is_empty(const struct tsch_neighbor *n)
 {
   return !tsch_is_locked() && n != NULL && ringbufindex_empty(&n->tx_ringbuf);
 }
+/*---------------------------------------------------------------------------*/
 /* Returns the first packet from a neighbor queue */
 struct tsch_packet *
 tsch_queue_get_packet_for_nbr(const struct tsch_neighbor *n, struct tsch_link *link)
@@ -364,6 +378,7 @@ tsch_queue_get_packet_for_nbr(const struct tsch_neighbor *n, struct tsch_link *l
   }
   return NULL;
 }
+/*---------------------------------------------------------------------------*/
 /* Returns the head packet from a neighbor queue (from neighbor address) */
 struct tsch_packet *
 tsch_queue_get_packet_for_dest_addr(const linkaddr_t *addr, struct tsch_link *link)
@@ -397,12 +412,14 @@ tsch_queue_get_unicast_packet_for_any(struct tsch_neighbor **n, struct tsch_link
   }
   return NULL;
 }
+/*---------------------------------------------------------------------------*/
 /* May the neighbor transmit over a shared link? */
 int
 tsch_queue_backoff_expired(const struct tsch_neighbor *n)
 {
   return n->backoff_window == 0;
 }
+/*---------------------------------------------------------------------------*/
 /* Reset neighbor backoff */
 void
 tsch_queue_backoff_reset(struct tsch_neighbor *n)
@@ -410,6 +427,7 @@ tsch_queue_backoff_reset(struct tsch_neighbor *n)
   n->backoff_window = 0;
   n->backoff_exponent = TSCH_MAC_MIN_BE;
 }
+/*---------------------------------------------------------------------------*/
 /* Increment backoff exponent, pick a new window */
 void
 tsch_queue_backoff_inc(struct tsch_neighbor *n)
@@ -422,6 +440,7 @@ tsch_queue_backoff_inc(struct tsch_neighbor *n)
    * through tsch_queue_update_all_backoff_windows */
   n->backoff_window++;
 }
+/*---------------------------------------------------------------------------*/
 /* Decrement backoff window for all queues directed at dest_addr */
 void
 tsch_queue_update_all_backoff_windows(const linkaddr_t *dest_addr)
@@ -439,6 +458,7 @@ tsch_queue_update_all_backoff_windows(const linkaddr_t *dest_addr)
     }
   }
 }
+/*---------------------------------------------------------------------------*/
 /* Initialize TSCH queue module */
 void
 tsch_queue_init(void)
@@ -452,3 +472,4 @@ tsch_queue_init(void)
   n_eb = tsch_queue_add_nbr(&tsch_eb_address);
   n_broadcast = tsch_queue_add_nbr(&tsch_broadcast_address);
 }
+/*---------------------------------------------------------------------------*/

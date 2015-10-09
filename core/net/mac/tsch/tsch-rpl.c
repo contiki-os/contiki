@@ -53,12 +53,13 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
+/*---------------------------------------------------------------------------*/
 /* To use, set #define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network */
 void
 tsch_rpl_callback_joining_network(void)
 {
 }
-
+/*---------------------------------------------------------------------------*/
 /* Upon leaving a TSCH network, perform a local repair
  * (cleanup neighbor state, reset Trickle timer etc)
  * To use, set #define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network */
@@ -70,7 +71,7 @@ tsch_rpl_callback_leaving_network(void)
     rpl_local_repair(dag->instance);
   }
 }
-
+/*---------------------------------------------------------------------------*/
 /* Set TSCH EB period based on current RPL DIO period.
  * To use, set #define RPL_CALLBACK_PARENT_SWITCH tsch_rpl_callback_new_dio_interval */
 void
@@ -91,7 +92,7 @@ tsch_rpl_callback_new_dio_interval(uint8_t dio_interval)
     tsch_set_eb_period(0);
   }
 }
-
+/*---------------------------------------------------------------------------*/
 /* Set TSCH time source based on current RPL preferred parent.
  * To use, set #define RPL_CALLBACK_PARENT_SWITCH tsch_rpl_callback_parent_switch */
 void

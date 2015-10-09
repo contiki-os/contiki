@@ -128,7 +128,7 @@ void tsch_log_process_pending(void);
     struct tsch_log_t *log = tsch_log_prepare_add(); \
     if(log != NULL) { \
       log->type = (log_type); \
-      init_code \
+      init_code; \
       tsch_log_commit(); \
     } \
 } while(0);
