@@ -137,6 +137,8 @@
 #define UIP_CONF_MAX_ROUTES  8
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
 #define NBR_TABLE_CONF_MAX_NEIGHBORS 8
+#undef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA 0
 
 #if WITH_SECURITY
 /* Note: on sky or z1 in cooja, crypto operations are done in S/W and
