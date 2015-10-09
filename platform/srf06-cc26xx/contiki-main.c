@@ -72,6 +72,12 @@
 /*---------------------------------------------------------------------------*/
 unsigned short node_id = 0;
 /*---------------------------------------------------------------------------*/
+#if NETSTACK_USE_RFASYNC
+#define RADIO_DRIVER NETSTACK_RFASYNC
+#else
+#define RADIO_DRIVER NETSTACK_RADIO
+#endif
+/*---------------------------------------------------------------------------*/
 /** \brief Board specific iniatialisation */
 void board_init(void);
 /*---------------------------------------------------------------------------*/
@@ -109,12 +115,12 @@ set_rf_params(void)
   /* Populate linkaddr_node_addr. Maintain endianness */
   memcpy(&linkaddr_node_addr, &ext_addr[8 - LINKADDR_SIZE], LINKADDR_SIZE);
 
-  NETSTACK_RADIO.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
-  NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, RF_CORE_CHANNEL);
-  NETSTACK_RADIO.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
+  RADIO_DRIVER.set_value(RADIO_PARAM_PAN_ID, IEEE802154_PANID);
+  RADIO_DRIVER.set_value(RADIO_PARAM_16BIT_ADDR, short_addr);
+  RADIO_DRIVER.set_value(RADIO_PARAM_CHANNEL, RF_CORE_CHANNEL);
+  RADIO_DRIVER.set_object(RADIO_PARAM_64BIT_ADDR, ext_addr, 8);
 
-  NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &val);
+  RADIO_DRIVER.get_value(RADIO_PARAM_CHANNEL, &val);
   printf(" RF: Channel %d\n", val);
 
 #if STARTUP_CONF_VERBOSE

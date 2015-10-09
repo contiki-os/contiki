@@ -62,7 +62,11 @@
 #endif
 
 #ifndef NETSTACK_CONF_RDC
+#if NETSTACK_CONF_USE_RFASYNC
+#define NETSTACK_CONF_RDC       contikimac_async_driver
+#else
 #define NETSTACK_CONF_RDC     contikimac_driver
+#endif
 #endif
 
 /*
@@ -108,6 +112,12 @@
 #define CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME (RTIMER_SECOND / 1000)
 #define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 250)
 #else
+
+#if NETSTACK_CONF_USE_RFASYNC
+#define NETSTACK_CONF_RFASYNC ieee_async_driver
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL ((RTIMER_ARCH_SECOND / 2500) - 8)
+#endif
+
 #define NETSTACK_CONF_RADIO        ieee_mode_driver
 
 #ifndef RF_CORE_CONF_CHANNEL
