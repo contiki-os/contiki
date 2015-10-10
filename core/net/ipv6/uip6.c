@@ -1745,10 +1745,10 @@ uip_process(uint8_t flag)
   uip_connr->len = 1;
 
   /* rcv_nxt should be the seqno from the incoming packet + 1. */
-  uip_connr->rcv_nxt[3] = UIP_TCP_BUF->seqno[3];
-  uip_connr->rcv_nxt[2] = UIP_TCP_BUF->seqno[2];
-  uip_connr->rcv_nxt[1] = UIP_TCP_BUF->seqno[1];
   uip_connr->rcv_nxt[0] = UIP_TCP_BUF->seqno[0];
+  uip_connr->rcv_nxt[1] = UIP_TCP_BUF->seqno[1];
+  uip_connr->rcv_nxt[2] = UIP_TCP_BUF->seqno[2];
+  uip_connr->rcv_nxt[3] = UIP_TCP_BUF->seqno[3];
   uip_add_rcv_nxt(1);
 
   /* Parse the TCP MSS option, if present. */
