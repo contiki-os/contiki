@@ -103,7 +103,7 @@ pollhandler(void)
        }
 #endif /* !NETSTACK_CONF_WITH_IPV6 */
     } else {
-      uip_len = 0;
+      uip_clear_buf();
     }
   }
 #endif
@@ -146,7 +146,7 @@ pollhandler(void)
 #endif /* !NETSTACK_CONF_WITH_IPV6 */
     } else {
 bail:
-      uip_len = 0;
+      uip_clear_buf();
     }
   }
 #endif

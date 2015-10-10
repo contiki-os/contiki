@@ -132,11 +132,11 @@ beep(void)
 
 
 static uint8_t tuneindex=0;
-static uint8_t pictures[] PROGMEM = {G4,4, F4,4, AS4,4, C5,2, F5,2, D5,4, C5,2, F5,2, D5,4, AS4,4, C5,4, G4,4, F4,4, 0xff};
-static uint8_t     axel[] PROGMEM = {FS4,2, NONE,2, A4,3, FS4,2, FS4,1, B4,2, FS4,2, E4,2, FS4,2, NONE,2, CS5,3, FS4,2, FS4,1, D5,2, CS5,2, A4,2, FS4,2, CS5,2, FS5,2, FS4,1, E4,2, E4,1, CS4,2, GS4,2, FS4,6, 0xff};
-static uint8_t sandman1[] PROGMEM = {F4,2, G4,2, B4,4, A4,10, B4,2, B4,2, A4,2, B4,12, 0xff};
-static uint8_t sandman2[] PROGMEM = {C4,2, E4,2, G4,2, B4,2, A4,2, G4,2, E4,2, C4,2, D4,2, F4,2, A4,2, C5,2, B4,8, 0xff};
-static uint8_t furelise[] PROGMEM = {E5,1, DS5,1, E5,1, DS5,1, E5,1, B4,1, D5,1, E5,1, A4,2, NONE,1, C4,1, E4,1, A4,1, B4,2, NONE,1, E4,1, GS4,1, B4,1, C5,2, 0xff};
+static const uint8_t pictures[] PROGMEM = {G4,4, F4,4, AS4,4, C5,2, F5,2, D5,4, C5,2, F5,2, D5,4, AS4,4, C5,4, G4,4, F4,4, 0xff};
+static const uint8_t     axel[] PROGMEM = {FS4,2, NONE,2, A4,3, FS4,2, FS4,1, B4,2, FS4,2, E4,2, FS4,2, NONE,2, CS5,3, FS4,2, FS4,1, D5,2, CS5,2, A4,2, FS4,2, CS5,2, FS5,2, FS4,1, E4,2, E4,1, CS4,2, GS4,2, FS4,6, 0xff};
+static const uint8_t sandman1[] PROGMEM = {F4,2, G4,2, B4,4, A4,10, B4,2, B4,2, A4,2, B4,12, 0xff};
+static const uint8_t sandman2[] PROGMEM = {C4,2, E4,2, G4,2, B4,2, A4,2, G4,2, E4,2, C4,2, D4,2, F4,2, A4,2, C5,2, B4,8, 0xff};
+static const uint8_t furelise[] PROGMEM = {E5,1, DS5,1, E5,1, DS5,1, E5,1, B4,1, D5,1, E5,1, A4,2, NONE,1, C4,1, E4,1, A4,1, B4,2, NONE,1, E4,1, GS4,1, B4,1, C5,2, 0xff};
 
 static volatile uint8_t icnt,tone;
 
@@ -153,7 +153,8 @@ ISR(TIMER0_OVF_vect)
 
 void play_ringtone(void)
 {
-uint8_t i,*noteptr;
+uint8_t i;
+const uint8_t *noteptr;
 
     /* What's next on the playlist? */
     switch (tuneindex++) {

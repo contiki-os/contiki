@@ -76,7 +76,8 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
         if (radio.getLastPacketReceived() != null)
             receivedPacket(radio.getLastPacketReceived());
       } else if (radio.getLastEvent() == Radio.RadioEvent.TRANSMISSION_FINISHED) {
-        sentPacket(radio.getLastPacketTransmitted());
+        if (radio.getLastPacketTransmitted() != null)
+            sentPacket(radio.getLastPacketTransmitted());
       }
     }
   };

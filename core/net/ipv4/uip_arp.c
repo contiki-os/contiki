@@ -284,10 +284,10 @@ uip_arp_arpin(void)
 {
   
   if(uip_len < sizeof(struct arp_hdr)) {
-    uip_len = 0;
+    uip_clear_buf();
     return;
   }
-  uip_len = 0;
+  uip_clear_buf();
   
   switch(BUF->opcode) {
   case UIP_HTONS(ARP_REQUEST):

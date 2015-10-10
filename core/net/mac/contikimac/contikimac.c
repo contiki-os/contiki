@@ -507,14 +507,16 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 #endif
   int strobes;
   uint8_t got_strobe_ack = 0;
-  int len;
   uint8_t is_broadcast = 0;
   uint8_t is_known_receiver = 0;
   uint8_t collisions;
   int transmit_len;
   int ret;
   uint8_t contikimac_was_on;
+#if !RDC_CONF_HARDWARE_ACK
+  int len;
   uint8_t seqno;
+#endif
   
   /* Exit if RDC and radio were explicitly turned off */
    if(!contikimac_is_on && !contikimac_keep_radio_on) {
@@ -655,11 +657,11 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
        or rx cycle */
      on();
   }
+  seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
 #endif
 
   watchdog_periodic();
   t0 = RTIMER_NOW();
-  seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
   for(strobes = 0, collisions = 0;
       got_strobe_ack == 0 && collisions == 0 &&
       RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + STROBE_TIME); strobes++) {
@@ -672,7 +674,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
       break;
     }
 
+#if !RDC_CONF_HARDWARE_ACK
     len = 0;
+#endif
 
     {
       rtimer_clock_t wt;

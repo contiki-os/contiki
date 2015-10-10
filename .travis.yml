@@ -17,7 +17,7 @@ before_script:
 
   ## Install msp430 toolchain
   - sudo apt-get -qq install lib32z1
-  - $WGET http://adamdunkels.github.io/contiki-fork/mspgcc-4.7.0-compiled.tar.bz2 &&
+  - $WGET http://simonduq.github.io/resources/mspgcc-4.7.2-compiled.tar.bz2 &&
     tar xjf mspgcc*.tar.bz2 -C /tmp/ &&
     sudo cp -f -r /tmp/msp430/* /usr/local/ &&
     rm -rf /tmp/msp430 mspgcc*.tar.bz2 &&
@@ -36,6 +36,7 @@ before_script:
       tar xjf arm-2008q3*.tar.bz2 -C /tmp/ &&
       sudo cp -f -r /tmp/arm-2008q3/* /usr/ &&
       rm -rf /tmp/arm-2008q3 arm-2008q3*.tar.bz2 &&
+      sudo apt-get -qq install libconfig-dev uuid-dev libqrencode-dev &&
       arm-none-eabi-gcc --version ;
     fi
 
@@ -73,6 +74,22 @@ before_script:
       cc65 --version ;
     fi
 
+  ## Install NXP toolchain
+  - if [ ${BUILD_ARCH:-0} = jn516x ] ; then
+      $WGET http://simonduq.github.io/resources/ba-elf-gcc-4.7.4-part1.tar.bz2 &&
+      $WGET http://simonduq.github.io/resources/ba-elf-gcc-4.7.4-part2.tar.bz2 &&
+      $WGET http://simonduq.github.io/resources/jn516x-sdk-4163.tar.bz2 &&
+      mkdir /tmp/jn516x-sdk /tmp/ba-elf-gcc &&
+      tar xjf jn516x-sdk-*.tar.bz2 -C /tmp/jn516x-sdk &&
+      tar xjf ba-elf-gcc-*part1.tar.bz2 -C /tmp/ba-elf-gcc &&
+      tar xjf ba-elf-gcc-*part2.tar.bz2 -C /tmp/ba-elf-gcc &&
+      sudo cp -f -r /tmp/jn516x-sdk /usr/ &&
+      sudo cp -f -r /tmp/ba-elf-gcc /usr/ &&
+      export PATH=/usr/ba-elf-gcc/bin:$PATH &&
+      rm -rf /tmp/ba-elf-gcc* /tmp/jn516x-sdk* &&
+      ba-elf-gcc --version ;
+    fi
+
   ## Compile cooja.jar only when it's going to be needed
   - if [ ${BUILD_CATEGORY:-sim} = sim ] ; then
       java -version &&
@@ -103,6 +120,7 @@ env:
   - BUILD_TYPE='collect'
   - BUILD_TYPE='collect-lossy'
   - BUILD_TYPE='rpl'
+  - BUILD_TYPE='large-rpl'
   - BUILD_TYPE='rime'
   - BUILD_TYPE='ipv6'
   - BUILD_TYPE='ip64' MAKE_TARGETS='cooja'
@@ -119,5 +137,6 @@ env:
   - BUILD_TYPE='compile-arm-apcs-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-apcs'
   - BUILD_TYPE='compile-6502-ports' BUILD_CATEGORY='compile' BUILD_ARCH='6502'
   - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-aapcs'
+  - BUILD_TYPE='compile-nxp-ports' BUILD_CATEGORY='compile' BUILD_ARCH='jn516x'
   - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
   - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
