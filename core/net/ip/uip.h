@@ -1326,6 +1326,22 @@ extern uint8_t uip_ext_len;
 extern uint16_t uip_urglen, uip_surglen;
 #endif /* UIP_URGDATA > 0 */
 
+/*
+ * Clear uIP buffer
+ *
+ * This function clears the uIP buffer by reseting the uip_len and
+ * uip_ext_len pointers.
+ */
+#if NETSTACK_CONF_WITH_IPV6
+#define uip_clear_buf() { \
+  uip_len = 0; \
+  uip_ext_len = 0; \
+}
+#else /*NETSTACK_CONF_WITH_IPV6*/
+#define uip_clear_buf() { \
+  uip_len = 0; \
+}
+#endif /*NETSTACK_CONF_WITH_IPV6*/
 
 /**
  * Representation of a uIP TCP connection.

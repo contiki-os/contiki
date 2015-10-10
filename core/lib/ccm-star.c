@@ -114,7 +114,6 @@ mic(const uint8_t *m,  uint8_t m_len,
   }
   
   if(m_len > 0) {
-    m = a + a_len;
     pos = 0;
     while(pos < m_len) {
       for(i = 0; (pos + i < m_len) && (i < AES_128_BLOCK_SIZE); i++) {

@@ -36,12 +36,12 @@
 
 void ip64_init(void);
 int ip64_6to4(const uint8_t *ipv6packet, const uint16_t ipv6len,
-	      uint8_t *resultpacket);
+              uint8_t *resultpacket);
 int ip64_4to6(const uint8_t *ipv4packet, const uint16_t ipv4len,
-	      uint8_t *resultpacket);
+              uint8_t *resultpacket);
 
 void ip64_set_ipv4_address(const uip_ip4addr_t *ipv4addr,
-			   const uip_ip4addr_t *netmask);
+                           const uip_ip4addr_t *netmask);
 void ip64_set_ipv6_address(const uip_ip6addr_t *ipv6addr);
 
 const uip_ip4addr_t *ip64_get_hostaddr(void);
@@ -71,7 +71,18 @@ extern uint16_t ip64_packet_buffer_maxlen;
 #define IP64_INPUT IP64_CONF_INPUT
 #endif /* IP64_CONF_INPUT */
 
+#ifndef IP64_CONF_UIP_FALLBACK_INTERFACE
+#error IP64_CONF_UIP_FALLBACK_INTERFACE must be #defined in ip64-conf.h
+#else /* IP64_CONF_UIP_FALLBACK_INTERFACE */
+#define IP64_UIP_FALLBACK_INTERFACE IP64_CONF_UIP_FALLBACK_INTERFACE
+#endif /* IP64_CONF_UIP_FALLBACK_INTERFACE */
 
+#ifdef IP64_CONF_DHCP
+#define IP64_DHCP IP64_CONF_DHCP
+#else /* IP64_CONF_DHCP */
+/* Enable DHCP per default */
+#define IP64_DHCP 1
+#endif /* IP64_CONF_DHCP */
 
 #endif /* IP64_H */
 

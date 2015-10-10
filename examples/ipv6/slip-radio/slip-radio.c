@@ -162,7 +162,7 @@ slip_input_callback(void)
 {
   PRINTF("SR-SIN: %u '%c%c'\n", uip_len, uip_buf[0], uip_buf[1]);
   cmd_input(uip_buf, uip_len);
-  uip_len = 0;
+  uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
 static void

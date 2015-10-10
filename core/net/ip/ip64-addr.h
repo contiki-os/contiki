@@ -34,6 +34,20 @@
 
 #include "net/ip/uip.h"
 
+
+/**
+ * \brief Is IPv4-mapped Address
+ *
+ * See https://tools.ietf.org/html/rfc6890#page-14
+ */
+#define ip64_addr_is_ipv4_mapped_addr(a) \
+  ((((a)->u16[0])  == 0) &&              \
+   (((a)->u16[1])  == 0) &&              \
+   (((a)->u16[2])  == 0) &&              \
+   (((a)->u16[3])  == 0) &&              \
+   (((a)->u16[4])  == 0) &&              \
+   (((a)->u16[5])  == 0xFFFF))
+
 void ip64_addr_copy4(uip_ip4addr_t *dest, const uip_ip4addr_t *src);
 
 void ip64_addr_copy6(uip_ip6addr_t *dest, const uip_ip6addr_t *src);

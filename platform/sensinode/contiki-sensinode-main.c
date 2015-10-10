@@ -346,8 +346,7 @@ main(void)
     if(SLEEP & SLEEP_MODE0) {
 #endif /* LPM_MODE==LPM_MODE_PM2 */
 
-      ENERGEST_OFF(ENERGEST_TYPE_CPU);
-      ENERGEST_ON(ENERGEST_TYPE_LPM);
+      ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
 
       /* We are only interested in IRQ energest while idle or in LPM */
       ENERGEST_IRQ_RESTORE(irq_energest);
@@ -363,8 +362,7 @@ main(void)
       /* Remember energest IRQ for next pass */
       ENERGEST_IRQ_SAVE(irq_energest);
 
-      ENERGEST_ON(ENERGEST_TYPE_CPU);
-      ENERGEST_OFF(ENERGEST_TYPE_LPM);
+      ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
 
 #if (LPM_MODE==LPM_MODE_PM2)
       SLEEP &= ~OSC_PD;            /* Make sure both HS OSCs are on */

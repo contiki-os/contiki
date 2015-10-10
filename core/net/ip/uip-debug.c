@@ -38,6 +38,7 @@
  */
 
 #include "net/ip/uip-debug.h"
+#include "net/ip/ip64-addr.h"
 
 /*---------------------------------------------------------------------------*/
 void
@@ -53,20 +54,38 @@ uip_debug_ipaddr_print(const uip_ipaddr_t *addr)
     return;
   }
 #if NETSTACK_CONF_WITH_IPV6
-  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
-    a = (addr->u8[i] << 8) + addr->u8[i + 1];
-    if(a == 0 && f >= 0) {
-      if(f++ == 0) {
-        PRINTA("::");
+  if(ip64_addr_is_ipv4_mapped_addr(addr)) {
+    /*
+     * Printing IPv4-mapped addresses is done according to RFC 3513 [1]
+     *
+     *     "An alternative form that is sometimes more
+     *     convenient when dealing with a mixed environment
+     *     of IPv4 and IPv6 nodes is x:x:x:x:x:x:d.d.d.d,
+     *     where the 'x's are the hexadecimal values of the
+     *     six high-order 16-bit pieces of the address, and
+     *     the 'd's are the decimal values of the four
+     *     low-order 8-bit pieces of the address (standard
+     *     IPv4 representation)."
+     *
+     * [1] https://tools.ietf.org/html/rfc3513#page-5
+     */
+    PRINTA("::FFFF:%u.%u.%u.%u", addr->u8[12], addr->u8[13], addr->u8[14], addr->u8[15]);
+  } else {
+    for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
+      a = (addr->u8[i] << 8) + addr->u8[i + 1];
+      if(a == 0 && f >= 0) {
+        if(f++ == 0) {
+          PRINTA("::");
+        }
+      } else {
+        if(f > 0) {
+          f = -1;
+        } else if(i > 0) {
+          PRINTA(":");
+        }
+        PRINTA("%x", a);
       }
-    } else {
-      if(f > 0) {
-        f = -1;
-      } else if(i > 0) {
-        PRINTA(":");
-      }
-      PRINTA("%x", a);
-    }
+	}
   }
 #else /* NETSTACK_CONF_WITH_IPV6 */
   PRINTA("%u.%u.%u.%u", addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);

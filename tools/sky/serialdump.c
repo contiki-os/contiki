@@ -164,13 +164,21 @@ main(int argc, char **argv)
   }
   fprintf(stderr, "connecting to %s (%s)", device, speedname);
 
-#ifdef O_SYNC
+
+
+#ifndef O_SYNC
+#define O_SYNC 0
+#endif
+#ifdef O_DIRECT
   fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_DIRECT | O_SYNC);
-  if(fd < 0 && errno == EINVAL){ // O_SYNC not supported (e.g. raspberian)
-    fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_DIRECT);
+  /* Some systems do not support certain parameters (e.g. raspbian)
+   * Just do some random testing. Not sure  whether there is a better way
+   * of doing this. */
+  if(fd < 0 && errno == EINVAL){
+    fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   }
 #else
-  fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC );
+  fd = open(device, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
 #endif
   if(fd < 0) {
     fprintf(stderr, "\n");
