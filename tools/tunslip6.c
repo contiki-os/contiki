@@ -753,7 +753,7 @@ main(int argc, char **argv)
   const char *port = NULL;
   const char *prog;
   int baudrate = -2;
-  int ipa_enable = 1;
+  int ipa_enable = 0;
   int tap = 0;
   slipfd = 0;
 
@@ -797,8 +797,8 @@ main(int argc, char **argv)
       break;
 
     case 'I':
-      ipa_enable = 0;
-      fprintf(stderr, "Will not inquire about IP address using IPA=\n");
+      ipa_enable = 1;
+      fprintf(stderr, "Will inquire about IP address using IPA=\n");
       break;
 
     case 't':
@@ -844,6 +844,7 @@ fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default),230400\n
 #endif
 fprintf(stderr," -H             Hardware CTS/RTS flow control (default disabled)\n");
 fprintf(stderr," -X             Software XON/XOFF flow control (default disabled)\n");
+fprintf(stderr," -I             Inquire IP address\n");
 fprintf(stderr," -L             Log output format (adds time stamps)\n");
 fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
 fprintf(stderr," -M             Interface MTU (default and min: 1280)\n");
