@@ -238,21 +238,13 @@ serial_to_tun(FILE *inslip, int outfd)
 	  slip_send(slipfd, SLIP_END);
         }
 #define DEBUG_LINE_MARKER '\r'
-	if(uip.inbuf[0] == DEBUG_LINE_MARKER ||
-           is_sensible_string(uip.inbuf, inbufptr)) {
-          unsigned char *out = uip.inbuf;
-          unsigned int   len = inbufptr;
-          if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
-            out++;
-            len--;
-          }
-          fprintf(stderr, "\n***");
-	  fwrite(out, len, 1, stderr);
-          fprintf(stderr, "***\n");
-	} else {
-	  fprintf(stderr,
-		  "serial_to_tun: drop packet len=%d\n", inbufptr);
-	}
+      } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
+	fwrite(uip.inbuf + 1, inbufptr - 1, 1, stdout);
+      } else if(is_sensible_string(uip.inbuf, inbufptr)) {
+        if(verbose==1) {   /* strings already echoed below for verbose>1 */
+          if (timestamp) stamptime();
+          fwrite(uip.inbuf, inbufptr, 1, stdout);
+        }
       } else {
         if(verbose>2) {
           if (timestamp) stamptime();
