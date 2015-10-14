@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
+		<item value="312" key="DIALOG_WIDTH"/>
+		<item value="187" key="DIALOG_Y_ORIGIN"/>
+		<item value="437" key="DIALOG_HEIGHT"/>
+		<item value="1353" key="DIALOG_X_ORIGIN"/>
+		<item value="1|Ubuntu|11.0|0|GTK|1|" key="DIALOG_FONT_NAME"/>
+	</section>
+	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
+		<item value="true" key="wrap"/>
+		<item value="false" key="isRegEx"/>
+		<item value="false" key="casesensitive"/>
+		<item value="false" key="incremental"/>
+		<item value="false" key="wholeword"/>
+		<item value="serialClose" key="selection"/>
+		<list key="findhistory">
+			<item value="serialClose"/>
+			<item value="not connected"/>
+			<item value="Thread"/>
+			<item value="runTCPClient"/>
+			<item value="sendDataToServer"/>
+			<item value="in"/>
+			<item value="main"/>
+			<item value="..."/>
+		</list>
+		<list key="replacehistory">
+		</list>
+	</section>
+</section>

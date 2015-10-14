@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<libraryInfos>
+<libraryInfo home="/usr/lib/jvm/java-7-openjdk-i386" version="1.7.0_79">
+<bootpath>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/resources.jar"/>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/rt.jar"/>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/sunrsasign.jar"/>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/jsse.jar"/>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/jce.jar"/>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/charsets.jar"/>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/rhino.jar"/>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/jfr.jar"/>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/classes"/>
+</bootpath>
+<extensionDirs>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/ext"/>
+<entry path="/usr/java/packages/lib/ext"/>
+</extensionDirs>
+<endorsedDirs>
+<entry path="/usr/lib/jvm/java-7-openjdk-i386/jre/lib/endorsed"/>
+</endorsedDirs>
+</libraryInfo>
+</libraryInfos>

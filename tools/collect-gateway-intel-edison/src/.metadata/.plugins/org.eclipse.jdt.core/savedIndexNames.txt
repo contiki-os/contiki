@@ -1,0 +1,11 @@
+INDEX VERSION 1.126+/home/user/OpenMote/contiki/tools/collectViewIntelEdison/src/.metadata/.plugins/org.eclipse.jdt.core
+1540734665.index
+3398030233.index
+1995225448.index
+2699160914.index
+1413546982.index
+1105509322.index
+1542821143.index
+3363717047.index
+572045917.index
+2383804137.index
