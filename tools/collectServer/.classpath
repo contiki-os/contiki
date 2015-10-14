@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="dist/collect-view.jar"/>
+	<classpathentry kind="lib" path="dist/lib/jcommon-1.0.13.jar"/>
+	<classpathentry kind="lib" path="dist/lib/jfreechart-1.0.10.jar"/>
+	<classpathentry kind="lib" path="lib/jcommon-1.0.13.jar"/>
+	<classpathentry kind="lib" path="lib/jfreechart-1.0.10.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>

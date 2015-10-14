@@ -84,7 +84,7 @@ public class CollectServer implements SerialConnectionListener {
   private Hashtable<String,Node> nodeTable = new Hashtable<String,Node>();
   private Node[] nodeCache;
   private SerialConnection serialConnection;
-  private SerialConnection tcpClientConnection = new TCPClientReport(this, "localhost", 6789);
+  private SerialConnection tcpClientConnection;
   private boolean hasSerialOpened;
   /* Do not auto send init script at startup */
   private boolean doSendInitAtStartup = false;
@@ -126,7 +126,11 @@ public class CollectServer implements SerialConnectionListener {
     if (serialConnection != null && serialConnection.isOpen()) {
       
     	System.out.println("Connect this SBAN to sever");
-        runTCPClient(serverAddr, serverPort); 
+    	tcpClientConnection = new TCPClientReport(this, serverAddr, serverPort);
+    	System.out.println("Start new thread runTCPClient to " + serverAddr + " at port:" + serverPort);
+        tcpClientConnection.open(null);
+        System.out.println(tcpClientConnection.getConnectionName());
+        
     	// Wait a short time before running the init script     
         sleep(3000);
         System.out.println("Start runInitScript()");
@@ -158,17 +162,6 @@ public class CollectServer implements SerialConnectionListener {
     //sendDataToServer("=========SystemTime=========" + System.currentTimeMillis());
 
   }
-
-  protected void runTCPClient(final String host, final int port) {
-    new Thread("runTCPClient") {
-      public void run() {
-         System.out.println("Start new thread runTCPClient to " + host + " at port:" + port);
-         tcpClientConnection.open(null);
-         System.out.println(tcpClientConnection.getConnectionName());
-      }    
-    }.start();
-  }
-
 
 
   private final static String SET_TIME_COMMAND = "time %TIME% | null";
@@ -393,10 +386,6 @@ public class CollectServer implements SerialConnectionListener {
 	  System.out.println("Started new thread handleInputCommand");
 	  while ((line = in.nextLine()) != null) {
 	    System.out.println("input command is: " + line);
-            if (line.equals("connect")) {
-              System.out.println("Connect this SBAN to sever");
-              runTCPClient("localhost", 6789); 	      
-	    }
 
 	    if (line.equals("retry")) {
 	      System.out.println("Retry to connect serial port");
