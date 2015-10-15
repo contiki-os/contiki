@@ -228,17 +228,6 @@ start_uip6(void)
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
 static void
-start_network_layer(void)
-{
-#if NETSTACK_CONF_WITH_IPV6
-  start_uip6();
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-  start_autostart_processes();
-  /* To support link layer security in combination with NETSTACK_CONF_WITH_IPV4 and
-   * TIMESYNCH_CONF_ENABLED further things may need to be moved here */
-}
-/*--------------------------------------------------------------------------*/
-static void
 set_linkaddr(void)
 {
   int i;
@@ -409,7 +398,12 @@ main(void)
 #endif /* NETSTACK_CONF_WITH_IPV4 */
 
   watchdog_start();
-  NETSTACK_LLSEC.bootstrap(start_network_layer);
+  NETSTACK_LLSEC.init();
+
+#if NETSTACK_CONF_WITH_IPV6
+  start_uip6();
+#endif /* NETSTACK_CONF_WITH_IPV6 */
+  start_autostart_processes();
 
   leds_off(LEDS_ALL);
   int r;
