@@ -65,13 +65,15 @@ test_aes_128()
                          0x6A , 0x7B , 0x04 , 0x30 ,
                          0xD8 , 0xCD , 0xB7 , 0x80 ,
                          0x70 , 0xB4 , 0xC5 , 0x5A };
+  uint8_t result[16];
   
   printf("Testing AES-128 ... ");
+
+  AES_128.init();
+  AES_128.set_key(key, 16);
+  AES_128.encrypt(result, data);
   
-  AES_128.set_key(key);
-  AES_128.encrypt(data);
-  
-  if(memcmp(data, oracle, 16) == 0) {
+  if(memcmp(result, oracle, 16) == 0) {
     printf("Success\n");
   } else {
     printf("Failure\n");

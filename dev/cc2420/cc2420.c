@@ -488,17 +488,24 @@ static void RELEASE_LOCK(void) {
   locked--;
 }
 /*---------------------------------------------------------------------------*/
-static void
+static aes_128_state_t
 init_security(void)
 {
   /* only use key 0 */
   setreg(CC2420_SECCTRL0, 0);
   setreg(CC2420_SECCTRL1, 0);
+  return AES_128_OK;
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_key(uint8_t *key)
+set_key(const uint8_t *key, size_t key_len)
 {
+  if(key_len < 16) {
+    /* AES needs a minimum key length of 16 byte */
+    /* TODO Maybe hardware specific efficient zero padding */
+    return;
+  }
+
   GET_LOCK();
   
   write_ram(key, CC2420RAM_KEY0, 16, WRITE_RAM_REVERSE);
@@ -507,26 +514,35 @@ set_key(uint8_t *key)
 }
 /*---------------------------------------------------------------------------*/
 static void
-encrypt(uint8_t *plaintext_and_result)
+encrypt(uint8_t *result, const uint8_t *plaintext)
 {
   GET_LOCK();
   
-  write_ram(plaintext_and_result,
-      CC2420RAM_SABUF,
-      16,
-      WRITE_RAM_IN_ORDER);
+  write_ram(plaintext,
+            CC2420RAM_SABUF,
+            16,
+            WRITE_RAM_IN_ORDER);
   
   strobe(CC2420_SAES);
-  while(get_status() & BV(CC2420_ENC_BUSY));
+  while(get_status() & BV(CC2420_ENC_BUSY)) ;
   
-  read_ram(plaintext_and_result, CC2420RAM_SABUF, 16);
+  read_ram(result, CC2420RAM_SABUF, 16);
   
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
+static void
+clear(void)
+{
+  /* TODO hardware specific clear/reset */
+}
+/*---------------------------------------------------------------------------*/
 const struct aes_128_driver cc2420_aes_128_driver = {
+  init_security,
   set_key,
-  encrypt
+  encrypt,
+  NULL,     /* not suported */
+  clear
 };
 /*---------------------------------------------------------------------------*/
 static void

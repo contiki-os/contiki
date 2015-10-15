@@ -37,9 +37,10 @@
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef AES_H_
-#define AES_H_
+#ifndef AES_128_H_
+#define AES_128_H_
 
+#include <stddef.h>
 #include "contiki.h"
 
 #define AES_128_BLOCK_SIZE 16
@@ -51,32 +52,51 @@
 #define AES_128            aes_128_driver
 #endif /* AES_128_CONF */
 
+/* Return values for init. */
+typedef enum {
+  AES_128_OK,
+  AES_128_ERROR
+} aes_128_state_t;
+
 /**
  * Structure of AES drivers.
  */
 struct aes_128_driver {
-  
+
   /**
-   * \brief Sets the current key.
+   * \brief  Initialisation of AES-Module
+   *
+   *         Initialisation of the AES-Module.
+   *         Must be called once before the module is used.
+   *
+   * \return  OK_128     if initialisation was successful
+   *          ERROR_128  if initialisation failed
    */
-  void (* set_key)(const uint8_t *key);
-  
+  aes_128_state_t (*init)(void);
+
   /**
-   * \brief Encrypts.
+   * \brief Sets the current key. If needed its zero padded.
    */
-  void (* encrypt)(uint8_t *plaintext_and_result);
+  void (*set_key)(const uint8_t *key, size_t key_len);
+
+  /**
+   * \brief Encrypts. Works on 16 Byte blocks.
+   */
+  void (*encrypt)(uint8_t *result, const uint8_t *plaintext);
+
+  /**
+   * \brief Decrypts. Works on 16 Byte blocks.
+   */
+  void (*decrypt)(uint8_t *result, const uint8_t *ciphertext);
+
+  /**
+   * \brief  Clear memory of AES-Module
+   *
+   *         Fills the values of AES-Module with zeros.
+   */
+  void (*clear)(void);
 };
-
-/**
- * \brief Pads the plaintext with zeroes before calling AES_128.encrypt
- */
-void aes_128_padded_encrypt(uint8_t *plaintext_and_result, uint8_t plaintext_len);
-
-/**
- * \brief Pads the key with zeroes before calling AES_128.set_key
- */
-void aes_128_set_padded_key(uint8_t *key, uint8_t key_len);
 
 extern const struct aes_128_driver AES_128;
 
-#endif /* AES_H_ */
+#endif /* AES_128_H_ */

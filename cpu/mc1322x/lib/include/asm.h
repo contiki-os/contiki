@@ -36,6 +36,8 @@
 #ifndef ASM_H
 #define ASM_H
 
+#define ASM_BASE 0x80008000
+
 /* Structure-based register definitions */
 /* Example use:
         ASM->KEY0 = 0xaabbccdd;
@@ -111,6 +113,6 @@ struct ASM_struct {
 	uint32_t MAC3;
 };
 
-static volatile struct ASM_struct * const ASM = (void *) (0x80008000);
+static volatile struct ASM_struct * const ASM = (void *) (ASM_BASE);
 
 #endif

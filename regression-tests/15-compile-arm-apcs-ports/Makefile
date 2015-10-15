@@ -10,6 +10,7 @@ webserver-ipv6/econotag \
 ipv6/multicast/econotag \
 econotag-flash-test/econotag \
 econotag-ecc-test/econotag \
+aes-test/econotag \
 
 TOOLS=
 
