@@ -88,6 +88,10 @@
 #define STATUS_CRC_OK      0x80
 #define STATUS_CORRELATION 0x7f
 /*---------------------------------------------------------------------------*/
+#if (IEEE_RX_BUF_SIZE % 4)
+#error IEEE_RX_BUF_SIZE must be a multiple of 4
+#endif
+/*---------------------------------------------------------------------------*/
 /**
  * \brief Returns the current status of a running Radio Op command
  * \param a A pointer with the buffer used to initiate the command
@@ -150,11 +154,9 @@ static uint32_t ieee_overrides[] = {
 #define DATA_ENTRY_LENSZ_BYTE 1
 #define DATA_ENTRY_LENSZ_WORD 2 /* 2 bytes */
 
-/* Four receive buffers entries with room for 1 IEEE802.15.4 frame in each */
-static uint8_t rx_buf_0[IEEE_RX_BUF_SIZE] CC_ALIGN(4);
-static uint8_t rx_buf_1[IEEE_RX_BUF_SIZE] CC_ALIGN(4);
-static uint8_t rx_buf_2[IEEE_RX_BUF_SIZE] CC_ALIGN(4);
-static uint8_t rx_buf_3[IEEE_RX_BUF_SIZE] CC_ALIGN(4);
+#define RX_BUF_COUNT 4
+
+static uint8_t rx_buf[RX_BUF_COUNT][IEEE_RX_BUF_SIZE] CC_ALIGN(4);
 
 /* The RX Data Queue */
 static dataQueue_t rx_data_queue = { 0 };
@@ -164,6 +166,22 @@ volatile static uint8_t *rx_read_entry;
 /*---------------------------------------------------------------------------*/
 /* RF stats data structure */
 static uint8_t rf_stats[16] = { 0 };
+/*---------------------------------------------------------------------------*/
+volatile rfc_dataEntry_t *
+ieee_common_last_data_entry(void)
+{
+  volatile uint8_t *ret;
+
+  volatile uint8_t *curr = rx_data_queue.pCurrEntry;
+
+  if(curr == rx_buf[0]) {
+    ret = rx_buf[RX_BUF_COUNT - 1];
+  } else {
+    ret = curr - IEEE_RX_BUF_SIZE;
+  }
+
+  return (volatile rfc_dataEntry_t *)ret;
+}
 /*---------------------------------------------------------------------------*/
 const output_config_t *
 ieee_common_get_power_config(radio_value_t power)
@@ -287,51 +305,36 @@ void
 ieee_common_init_rx_buffers(void)
 {
   rfc_dataEntry_t *entry;
-
-  entry = (rfc_dataEntry_t *)rx_buf_0;
-  entry->pNextEntry = rx_buf_1;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_BYTE;
-  entry->length = sizeof(rx_buf_0) - 8;
-
-  entry = (rfc_dataEntry_t *)rx_buf_1;
-  entry->pNextEntry = rx_buf_2;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_BYTE;
-  entry->length = sizeof(rx_buf_0) - 8;
-
-  entry = (rfc_dataEntry_t *)rx_buf_2;
-  entry->pNextEntry = rx_buf_3;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_BYTE;
-  entry->length = sizeof(rx_buf_0) - 8;
-
-  entry = (rfc_dataEntry_t *)rx_buf_3;
-  entry->pNextEntry = rx_buf_0;
-  entry->config.lenSz = DATA_ENTRY_LENSZ_BYTE;
-  entry->length = sizeof(rx_buf_0) - 8;
+  int i;
+  for(i = 0; i < RX_BUF_COUNT; i++) {
+    entry = (rfc_dataEntry_t *)(&rx_buf[i]);
+    entry->pNextEntry = rx_buf[(i + 1) % RX_BUF_COUNT];
+    entry->config.lenSz = DATA_ENTRY_LENSZ_BYTE;
+    entry->length = IEEE_RX_BUF_SIZE - 8;
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
 ieee_common_set_rx_buffers_pending(void)
 {
-  ((rfc_dataEntry_t *)rx_buf_0)->status = DATA_ENTRY_STATUS_PENDING;
-  ((rfc_dataEntry_t *)rx_buf_1)->status = DATA_ENTRY_STATUS_PENDING;
-  ((rfc_dataEntry_t *)rx_buf_2)->status = DATA_ENTRY_STATUS_PENDING;
-  ((rfc_dataEntry_t *)rx_buf_3)->status = DATA_ENTRY_STATUS_PENDING;
+  int i;
+  rfc_dataEntry_t *entry;
+  for(i = 0; i < RX_BUF_COUNT; i++) {
+    entry = (rfc_dataEntry_t *)(&rx_buf[i]);
+    entry->status = DATA_ENTRY_STATUS_PENDING;
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
 ieee_common_set_rx_pending_if_busy(void)
 {
-  if(((rfc_dataEntry_t *)rx_buf_0)->status == DATA_ENTRY_STATUS_BUSY) {
-    ((rfc_dataEntry_t *)rx_buf_0)->status = DATA_ENTRY_STATUS_PENDING;
-  }
-  if(((rfc_dataEntry_t *)rx_buf_1)->status == DATA_ENTRY_STATUS_BUSY) {
-    ((rfc_dataEntry_t *)rx_buf_1)->status = DATA_ENTRY_STATUS_PENDING;
-  }
-  if(((rfc_dataEntry_t *)rx_buf_2)->status == DATA_ENTRY_STATUS_BUSY) {
-    ((rfc_dataEntry_t *)rx_buf_2)->status = DATA_ENTRY_STATUS_PENDING;
-  }
-  if(((rfc_dataEntry_t *)rx_buf_3)->status == DATA_ENTRY_STATUS_BUSY) {
-    ((rfc_dataEntry_t *)rx_buf_3)->status = DATA_ENTRY_STATUS_PENDING;
+  int i;
+  rfc_dataEntry_t *entry;
+  for(i = 0; i < RX_BUF_COUNT; i++) {
+    entry = (rfc_dataEntry_t *)(&rx_buf[i]);
+    if(entry->status == DATA_ENTRY_STATUS_BUSY) {
+    	entry->status = DATA_ENTRY_STATUS_PENDING;
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -410,21 +413,19 @@ int ieee_common_frame_wait(rtimer_clock_t max_wait)
 int
 ieee_common_pending_packet(void)
 {
-  volatile rfc_dataEntry_t *entry = (rfc_dataEntry_t *)rx_data_queue.pCurrEntry;
-  int rv = 0;
+  volatile rfc_dataEntry_t *entry = ieee_common_last_data_entry();
 
   /* Go through all RX buffers and check their status */
   do {
     if(entry->status == DATA_ENTRY_STATUS_FINISHED) {
-      rv = 1;
       process_poll(&rf_core_process);
+      return 1;
     }
 
     entry = (rfc_dataEntry_t *)entry->pNextEntry;
   } while(entry != (rfc_dataEntry_t *)rx_data_queue.pCurrEntry);
 
-  /* If we didn't find an entry at status finished, no frames are pending */
-  return rv;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -452,18 +453,18 @@ ieee_common_incoming_packet(void)
 void
 ieee_common_init_data_queue(void)
 {
-  memset(rx_buf_0, 0, IEEE_RX_BUF_SIZE);
-  memset(rx_buf_1, 0, IEEE_RX_BUF_SIZE);
-  memset(rx_buf_2, 0, IEEE_RX_BUF_SIZE);
-  memset(rx_buf_3, 0, IEEE_RX_BUF_SIZE);
+  int i;
+  for(i = 0; i < RX_BUF_COUNT; i++) {
+    memset(rx_buf[i], 0, IEEE_RX_BUF_SIZE);
+  }
 
   /* Set of RF Core data queue. Circular buffer, no last entry */
-  rx_data_queue.pCurrEntry = rx_buf_0;
+  rx_data_queue.pCurrEntry = rx_buf[0];
 
   rx_data_queue.pLastEntry = NULL;
 
   /* Initialize current read pointer to first element (used in ISR) */
-  rx_read_entry = rx_buf_0;
+  rx_read_entry = rx_buf[0];
 
   /* Populate the RF parameters data structure with default values */
   ieee_common_init_rx_buffers();
