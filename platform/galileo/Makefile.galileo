@@ -5,7 +5,7 @@ LIBGCC_PATH = /usr/lib/gcc/$(shell gcc -dumpmachine)/$(shell gcc -dumpversion)
 
 CONTIKI_TARGET_DIRS = . core/sys/ drivers/
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
-CONTIKI_SOURCEFILES += contiki-main.c clock.c rtimer-arch.c gpio-pcal9535a.c pwm-pca9685.c
+CONTIKI_SOURCEFILES += contiki-main.c clock.c rtimer-arch.c gpio-pcal9535a.c pwm-pca9685.c galileo-pinmux.c
 
 PROJECT_SOURCEFILES += newlib-syscalls.c
 
