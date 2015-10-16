@@ -23,6 +23,14 @@ state at every half second.
 For a visual effect, you should wire shield pin IO1 to a led in a protoboard.
 Once the application is running, you should see a blinking LED.
 
+GPIO Input
+==========
+
+This application shows how to use the GPIO driver APIs to manipulate input
+pins. This application uses default galileo pinmux initialization and sets
+the GPIO 5 (IO2) as output pin and GPIO 6 (IO3) as input. It toggles the
+output pin state at every half second and checks the value on input pin.
+
 =======
 = I2C =
 =======
