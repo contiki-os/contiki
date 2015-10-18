@@ -1060,6 +1060,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
       rpl_move_parent(previous_dag, dag, p);
     }
   }
+  p->rank = dio->rank;
 
   /* Determine the objective function by using the
      objective code point of the DIO. */
@@ -1334,6 +1335,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
+  /* The DIO comes from a valid DAG, we can refresh its lifetime */
+  dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) / 1000;
+  PRINTF("Set dag ");
+  PRINT6ADDR(&dag->dag_id);
+  PRINTF(" lifetime to %ld\n", dag->lifetime);
+
   /*
    * At this point, we know that this DIO pertains to a DAG that
    * we are already part of. We consider the sender of the DIO to be
@@ -1368,10 +1375,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       if(dag->joined) {
         instance->dio_counter++;
       }
-    } else {
-      p->rank=dio->rank;
     }
   }
+  p->rank = dio->rank;
 
   /* Parent info has been updated, trigger rank recalculation */
   p->flags |= RPL_PARENT_FLAG_UPDATED;
