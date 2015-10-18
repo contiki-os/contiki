@@ -125,7 +125,7 @@ public class AvrMoteMemory implements MemoryInterface {
   public void clearMemory() {
     setMemorySegment(0L, new byte[avrProperties.sram_size]);
   }
-  
+
   private boolean accessInRange(long address, int size) {
     return (address >= 0) && (address + size <= avrProperties.sram_size);
   }
