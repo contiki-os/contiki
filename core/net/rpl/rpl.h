@@ -142,6 +142,7 @@ struct rpl_dag {
   rpl_rank_t rank;
   struct rpl_instance *instance;
   rpl_prefix_t prefix_info;
+  uint32_t lifetime;
 };
 typedef struct rpl_dag rpl_dag_t;
 typedef struct rpl_instance rpl_instance_t;

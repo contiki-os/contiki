@@ -300,6 +300,34 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
 }
 /*---------------------------------------------------------------------------*/
 void
+rpl_purge_dags(void)
+{
+  rpl_instance_t *instance;
+  rpl_instance_t *end;
+  int i;
+
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
+    if(instance->used) {
+      for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; i++) {
+        if(instance->dag_table[i].used) {
+          if(instance->dag_table[i].lifetime == 0) {
+            if(!instance->dag_table[i].joined) {
+              PRINTF("Removing dag ");
+              PRINT6ADDR(&instance->dag_table[i].dag_id);
+              PRINTF("\n");
+              rpl_free_dag(&instance->dag_table[i]);
+            }
+          } else {
+            instance->dag_table[i].lifetime--;
+          }
+        }
+      }
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
 rpl_init(void)
 {
   uip_ipaddr_t rplmaddr;
