@@ -560,7 +560,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
   if(!packetbuf_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED)) {
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
-    if(NETSTACK_FRAMER.create_and_secure() < 0) {
+    if(NETSTACK_FRAMER.create() < 0) {
       PRINTF("contikimac: framer failed\n");
       return MAC_TX_ERR_FATAL;
     }
@@ -829,7 +829,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
         packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 1);
       }
       packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
-      if(NETSTACK_FRAMER.create_and_secure() < 0) {
+      if(NETSTACK_FRAMER.create() < 0) {
         PRINTF("contikimac: framer failed\n");
         mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
         return;
@@ -915,8 +915,6 @@ input_packet(void)
          broadcast address. */
 
       /* If FRAME_PENDING is set, we are receiving a packets in a burst */
-      /* TODO To prevent denial-of-sleep attacks, the transceiver should
-         be disabled upon receipt of an unauthentic frame. */
       we_are_receiving_burst = packetbuf_attr(PACKETBUF_ATTR_PENDING);
       if(we_are_receiving_burst) {
         on();
