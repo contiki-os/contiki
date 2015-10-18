@@ -120,7 +120,7 @@ send_one_packet(mac_callback_t sent, void *ptr)
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 #endif /* NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW */
 
-  if(NETSTACK_FRAMER.create_and_secure() < 0) {
+  if(NETSTACK_FRAMER.create() < 0) {
     /* Failed to allocate space for headers */
     PRINTF("nullrdc: send failed, too large header\n");
     ret = MAC_TX_ERR_FATAL;
@@ -302,8 +302,7 @@ packet_input(void)
     }
 #endif /* RDC_WITH_DUPLICATE_DETECTION */
 #endif /* NULLRDC_802154_AUTOACK */
-
-/* TODO We may want to acknowledge only authentic frames */ 
+ 
 #if NULLRDC_SEND_802154_ACK
     {
       frame802154_t info154;

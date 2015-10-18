@@ -47,54 +47,6 @@ static int current_key_is_new = 1;
 
 /*---------------------------------------------------------------------------*/
 static void
-mic(const uint8_t *m, uint8_t m_len,
-    const uint8_t *nonce,
-    const uint8_t *a, uint8_t a_len,
-    uint8_t *result,
-    uint8_t mic_len)
-{
-  tsReg128 nonce_aligned;
-  memcpy(&nonce_aligned, nonce, sizeof(nonce_aligned));
-  bACI_CCMstar(
-    &current_key,
-    current_key_is_new,
-    XCV_REG_AES_SET_MODE_CCM,
-    mic_len,
-    a_len,
-    m_len,
-    &nonce_aligned,
-    (uint8_t *)a,
-    (uint8_t *)m,
-    NULL,
-    result,
-    NULL
-    );
-  current_key_is_new = 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-ctr(uint8_t *m, uint8_t m_len, const uint8_t *nonce)
-{
-  tsReg128 nonce_aligned;
-  memcpy(&nonce_aligned, nonce, sizeof(nonce_aligned));
-  bACI_CCMstar(
-    &current_key,
-    current_key_is_new,
-    XCV_REG_AES_SET_MODE_CCM,
-    0,
-    0,
-    m_len,
-    &nonce_aligned,
-    NULL,
-    m,
-    m,
-    NULL,
-    NULL
-    );
-  current_key_is_new = 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
 aead(const uint8_t *nonce,
      uint8_t *m, uint8_t m_len,
      const uint8_t *a, uint8_t a_len,
@@ -161,8 +113,7 @@ set_key(const uint8_t *key)
 }
 /*---------------------------------------------------------------------------*/
 const struct ccm_star_driver ccm_star_driver_jn516x = {
-  mic,
-  ctr,
-  set_key
+  set_key,
+  aead
 };
 /*---------------------------------------------------------------------------*/
