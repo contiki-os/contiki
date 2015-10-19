@@ -296,4 +296,22 @@
     + random_rand() % (RPL_PROBING_INTERVAL))
 #endif
 
+/*
+ * Interval of DIS transmission
+ */
+#ifdef  RPL_CONF_DIS_INTERVAL
+#define RPL_DIS_INTERVAL                RPL_CONF_DIS_INTERVAL
+#else
+#define RPL_DIS_INTERVAL                60
+#endif
+
+/*
+ * Added delay of first DIS transmission after boot
+ */
+#ifdef  RPL_CONF_DIS_START_DELAY
+#define RPL_DIS_START_DELAY             RPL_CONF_DIS_START_DELAY
+#else
+#define RPL_DIS_START_DELAY             5
+#endif
+
 #endif /* RPL_CONF_H */
