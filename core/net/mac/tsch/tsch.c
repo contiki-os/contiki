@@ -915,7 +915,7 @@ send_packet(mac_callback_t sent, void *ptr)
 
   packet_count_before = tsch_queue_packet_count(addr);
 
-  if((hdr_len = NETSTACK_FRAMER.create_and_secure()) < 0) {
+  if((hdr_len = NETSTACK_FRAMER.create()) < 0) {
     PRINTF("TSCH:! can't send packet due to framer error\n");
     ret = MAC_TX_ERR;
   } else {

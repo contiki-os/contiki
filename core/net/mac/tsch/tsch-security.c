@@ -72,30 +72,6 @@ static aes_key keys[] = {
 
 /*---------------------------------------------------------------------------*/
 static void
-aead(const uint8_t *nonce,
-     uint8_t *m, uint8_t m_len,
-     const uint8_t *a, uint8_t a_len,
-     uint8_t *result, uint8_t mic_len,
-     int forward)
-{
-  if(!forward) {
-    /* decrypt */
-    CCM_STAR.ctr(m, m_len, nonce);
-  }
-  CCM_STAR.mic(
-    (const uint8_t *)m, m_len,
-    nonce,
-    a, a_len,
-    result,
-    mic_len);
-
-  if(forward) {
-    /* encrypt */
-    CCM_STAR.ctr(m, m_len, nonce);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static void
 tsch_security_init_nonce(uint8_t *nonce,
     const linkaddr_t *sender, struct asn_t *asn)
 {
@@ -213,7 +189,7 @@ tsch_security_secure_frame(uint8_t *hdr, uint8_t *outbuf,
 
   CCM_STAR.set_key(keys[key_index - 1]);
 
-  aead(nonce,
+  CCM_STAR.aead(nonce,
       outbuf + a_len, m_len,
       outbuf, a_len,
       outbuf + hdrlen + datalen, mic_len, 1
@@ -271,7 +247,7 @@ tsch_security_parse_frame(const uint8_t *hdr, int hdrlen, int datalen,
 
   CCM_STAR.set_key(keys[key_index - 1]);
 
-  aead(nonce,
+  CCM_STAR.aead(nonce,
        (uint8_t *)hdr + a_len, m_len,
        (uint8_t *)hdr, a_len,
        generated_mic, mic_len, 0
