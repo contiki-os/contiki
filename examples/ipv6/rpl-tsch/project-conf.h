@@ -149,7 +149,7 @@
 
 #if WITH_SECURITY
 /* Note: on sky or z1 in cooja, crypto operations are done in S/W and
- * cannot be accommodated in normal slots. Use 65.535ms slots instead, and
+ * cannot be accommodated in normal slots. Use 65ms slots instead, and
  * a very short 6TiSCH minimal schedule length */
 #undef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH
 #define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 65000
