@@ -86,7 +86,7 @@
 
 /* Configurable Rx guard time is micro-seconds */
 #ifndef TSCH_CONF_RX_WAIT
-#define TSCH_CONF_RX_WAIT 800
+#define TSCH_CONF_RX_WAIT 2200
 #endif /* TSCH_CONF_RX_WAIT */
 
 /* The default timeslot timing in the standard is a guard time of
