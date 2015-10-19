@@ -54,6 +54,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -88,6 +89,7 @@ import org.contikios.contiki.collect.gui.NodeControl;
 import org.contikios.contiki.collect.gui.NodeInfoPanel;
 import org.contikios.contiki.collect.gui.SerialConsole;
 import org.contikios.contiki.collect.gui.TimeChartPanel;
+import java.net.Socket;
 
 /**
  *
@@ -108,6 +110,9 @@ public class CollectServer implements SerialConnectionListener {
   private static final String NETWORK = "Network";
   private static final String SENSORS = "Sensors";
   private static final String POWER = "Power";
+  
+  private static String sensor_data_file = "";
+  private static int sbanId = 0; 
 
   private Properties config = new Properties();
 
@@ -125,7 +130,6 @@ public class CollectServer implements SerialConnectionListener {
   private JTabbedPane mainPanel;
   private HashMap<String,JTabbedPane> categoryTable = new HashMap<String,JTabbedPane>();
   private JMenuItem runInitScriptItem;
-  private JMenuItem startTCPServerItem;
 
   private final Visualizer[] visualizers;
   private final MapPanel mapPanel;
@@ -139,7 +143,6 @@ public class CollectServer implements SerialConnectionListener {
   private Node[] selectedNodes;
 
   private SerialConnection serialConnection;
-  private SerialConnection tcpConnection = new TCPServerConnection(this, 5009);
   private boolean hasSerialOpened;
   /* Do not auto send init script at startup */
   private boolean doSendInitAtStartup = false;
@@ -155,6 +158,8 @@ public class CollectServer implements SerialConnectionListener {
   @SuppressWarnings("serial")
   public CollectServer() {
     loadConfig(config, CONFIG_FILE);
+    sbanId++;
+    System.out.println("Prepare new SBAN CollecServer with ID = " + sbanId);
 
     this.configFile = config.getProperty("config.datafile", CONFIG_DATA_FILE);
     if (this.configFile != null) {
@@ -251,18 +256,18 @@ public class CollectServer implements SerialConnectionListener {
         nodeControl,
         mapPanel,
         new MapPanel(this, "Network Graph", MAIN, false),
-        new BarChartPanel(this, SENSORS, "Average Temperature", "Temperature", "Nodes", "Celsius",
-            new String[] { "Celsius" }) {
-          {
-            chart.getCategoryPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-          }
-          protected void addSensorData(SensorData data) {
-            Node node = data.getNode();
-            String nodeName = node.getName();
-            SensorDataAggregator aggregator = node.getSensorDataAggregator();
-            dataset.addValue(aggregator.getAverageTemperature(), categories[0], nodeName);
-          }
-        },
+//        new BarChartPanel(this, SENSORS, "Average Temperature", "Temperature", "Nodes", "Celsius",
+//            new String[] { "Celsius" }) {
+//          {
+//            chart.getCategoryPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+//          }
+//          protected void addSensorData(SensorData data) {
+//            Node node = data.getNode();
+//            String nodeName = node.getName();
+//            SensorDataAggregator aggregator = node.getSensorDataAggregator();
+//            dataset.addValue(aggregator.getAverageTemperature(), categories[0], nodeName);
+//          }
+//        },
         new TimeChartPanel(this, SENSORS, "Temperature", "Temperature", "Time", "Celsius") {
           {
             chart.getXYPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
@@ -274,29 +279,29 @@ public class CollectServer implements SerialConnectionListener {
             return data.getTemperature();
           }
         },
-        new TimeChartPanel(this, SENSORS, "Battery Voltage", "Battery Voltage",
-			   "Time", "Volt") {
-          {
-            setRangeTick(1);
-	    setRangeMinimumSize(4.0);
-	    setGlobalRange(true);
-          }
-          protected double getSensorDataValue(SensorData data) {
-            return data.getBatteryVoltage();
-          }
-        },
-        new TimeChartPanel(this, SENSORS, "Battery Indicator", "Battery Indicator",
-			   "Time", "Indicator") {
-          {
-            chart.getXYPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
-            setRangeTick(5);
-            setRangeMinimumSize(10.0);
-            setGlobalRange(true);
-          }
-          protected double getSensorDataValue(SensorData data) {
-            return data.getBatteryIndicator();
-          }
-        },
+//        new TimeChartPanel(this, SENSORS, "Battery Voltage", "Battery Voltage",
+//			   "Time", "Volt") {
+//          {
+//           setRangeTick(1);
+//	    		setRangeMinimumSize(4.0);
+//	    setGlobalRange(true);
+//          }
+//          protected double getSensorDataValue(SensorData data) {
+//            return data.getBatteryVoltage();
+//          }
+//        },
+//        new TimeChartPanel(this, SENSORS, "Battery Indicator", "Battery Indicator",
+//			   "Time", "Indicator") {
+//          {
+//            chart.getXYPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+//            setRangeTick(5);
+//            setRangeMinimumSize(10.0);
+//            setGlobalRange(true);
+//          }
+//          protected double getSensorDataValue(SensorData data) {
+//            return data.getBatteryIndicator();
+//          }
+//        },
         new TimeChartPanel(this, SENSORS, "Relative Humidity", "Humidity", "Time", "%") {
           {
             chart.getXYPlot().getRangeAxis().setRange(0.0, 100.0);
@@ -305,12 +310,12 @@ public class CollectServer implements SerialConnectionListener {
             return data.getHumidity();
           }
         },
-        new TimeChartPanel(this, SENSORS, "Light 1", "Light 1", "Time", "-") {
-          protected double getSensorDataValue(SensorData data) {
-            return data.getLight1();
-          }
-        },
-        new TimeChartPanel(this, SENSORS, "Light 2", "Light 2", "Time", "-") {
+//        new TimeChartPanel(this, SENSORS, "Light 1", "Light 1", "Time", "-") {
+//          protected double getSensorDataValue(SensorData data) {
+//            return data.getLight1();
+//          }
+//        },
+        new TimeChartPanel(this, SENSORS, "Light", "Light", "Time", "-") {
           protected double getSensorDataValue(SensorData data) {
             return data.getLight2();
           }
@@ -729,17 +734,6 @@ public class CollectServer implements SerialConnectionListener {
     toolsMenu.setMnemonic(KeyEvent.VK_T);
     menuBar.add(toolsMenu);
 
-    startTCPServerItem = new JMenuItem("Start TCP Server");
-    startTCPServerItem.addActionListener(new ActionListener() {
-
-      public void actionPerformed(ActionEvent e) {
-	System.out.println("Starting TCP Server");
-        runTCPServer(5009);
-      }
-    });
-    startTCPServerItem.setEnabled(true);
-    toolsMenu.add(startTCPServerItem);
-    toolsMenu.addSeparator();
 
 
     runInitScriptItem = new JMenuItem("Run Init Script");
@@ -839,15 +833,23 @@ public class CollectServer implements SerialConnectionListener {
     }
     hasStarted = true;
     this.serialConnection = connection;
-    if (isSensorLogUsed) {
-      initSensorData();
-    }
+//    if (isSensorLogUsed) {
+//      initSensorData();
+//    }
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        window.setVisible(true);
+    	window.setVisible(serialConnection.isOpen());
       }
     });
     connectToSerial();
+  }
+  
+  protected void setVisble() {
+    SwingUtilities.invokeLater(new Runnable() {
+    public void run() {
+  	window.setVisible(true);
+    }
+  });
   }
 
   protected void connectToSerial() {
@@ -910,8 +912,6 @@ public class CollectServer implements SerialConnectionListener {
     new Thread("runTCPServer") {
       public void run() {
          System.out.println("Start new thread runTCPServer at port:" + port);
-         tcpConnection.open(null);
-         System.out.println(tcpConnection.getConnectionName());
       }
     }.start();
   }
@@ -1237,9 +1237,15 @@ public class CollectServer implements SerialConnectionListener {
       link.setLastActive(sensorData.getNodeTime());
     }
   }
+  
+  private void setSbanIP() {
+	  sensor_data_file = "sensordata_" + serialConnection.getConnectionName() + ".log";
+	  System.out.println("sensor data file namse: " + sensor_data_file);
+  }
 
   private void initSensorData() {
-    loadSensorData(SENSORDATA_FILE, true);
+    //loadSensorData(SENSORDATA_FILE, true);
+	loadSensorData(sensor_data_file, true);
   }
 
   private boolean loadSensorData(String filename, boolean isStrict) {
@@ -1282,9 +1288,11 @@ public class CollectServer implements SerialConnectionListener {
     PrintWriter output = this.sensorDataOutput;
     if (output == null && isSensorLogUsed) {
       try {
-        output = sensorDataOutput = new PrintWriter(new FileWriter(SENSORDATA_FILE, true));
+        //output = sensorDataOutput = new PrintWriter(new FileWriter(SENSORDATA_FILE, true));
+    	  output = sensorDataOutput = new PrintWriter(new FileWriter(sensor_data_file, true));
       } catch (IOException e) {
-        System.err.println("Failed to add sensor data to log '" + SENSORDATA_FILE + '\'');
+        // System.err.println("Failed to add sensor data to log '" + SENSORDATA_FILE + '\'');
+    	System.err.println("Failed to add sensor data to log '" + sensor_data_file + '\'');
         e.printStackTrace();
       }
     }
@@ -1332,7 +1340,8 @@ public class CollectServer implements SerialConnectionListener {
       output.close();
     }
     // Remove the sensor data log
-    new File(SENSORDATA_FILE).delete();
+    // new File(SENSORDATA_FILE).delete();
+    new File(sensor_data_file).delete();
     this.sensorDataOutput = null;
   }
 
@@ -1519,6 +1528,7 @@ public class CollectServer implements SerialConnectionListener {
     String logFileToLoad = null;
     String comPort = null;
     int port = -1;
+    port = 6789; // TODO: remove later
     for(int i = 0, n = args.length; i < n; i++) {
       String arg = args[i];
       if (arg.length() == 2 && arg.charAt(0) == '-') {
@@ -1577,38 +1587,65 @@ public class CollectServer implements SerialConnectionListener {
         usage(arg);
       }
     }
-
-    CollectServer server = new CollectServer();
-    SerialConnection serialConnection;
-    port = 6789; //TODO: open later
-    if (port > 0) {
-    	serialConnection = new TCPServerConnection(server, port);
-    } else if (command == null) {
-      serialConnection = new SerialDumpConnection(server);
-    } else if (command == STDIN_COMMAND) {
-      serialConnection = new StdinConnection(server);
-    } else {
-      serialConnection = new CommandConnection(server, command);
-    }
     
-    if (comPort == null) {
-        comPort = server.getConfig("collect.serialport");
-    }
-    if (comPort != null) {
-      serialConnection.setComPort(comPort);
-    }
-    if (!useSerialOutput) {
-      serialConnection.setSerialOutputSupported(false);
-    }
+    ServerSocket serverSk;
+    CollectServer[] server = new CollectServer[5];
+    SerialConnection[] serialConnection = new SerialConnection[5];
+    int index = 0;
+    boolean isNewSBAN = true;
+    
+    if (port > 0) {
+    	try {
+    		serverSk = new ServerSocket(port);
+    		System.out.println("Opened TCP server in the port:" + port);    	    
+    	    while (index < 5) {    	
+	        	if (isNewSBAN){
+	        		server[index] = new CollectServer();
+    	        	serialConnection[index] = new TCPServerConnection(server[index], serverSk); 
+    	        	if (comPort == null) {
+    	                comPort = server[index].getConfig("collect.serialport");
+    	            }
+    	            
+    	        	if (comPort != null) {
+    	              serialConnection[index].setComPort(comPort);
+    	            }
+    	            
+    	            if (!useSerialOutput) {
+    	              serialConnection[index].setSerialOutputSupported(false);
+    	            }
 
-    server.isSensorLogUsed = useSensorLog;
-    if (useSensorLog && resetSensorLog) {
-      server.clearSensorDataLog();
-    }
-    if (logFileToLoad != null) {
-      server.loadSensorData(logFileToLoad, false);
-    }
-    server.start(serialConnection);
+    	            server[index].isSensorLogUsed = useSensorLog;
+    	            if (useSensorLog && resetSensorLog) {
+    	              server[index].clearSensorDataLog();
+    	            }
+    	            
+    	            if (logFileToLoad != null) {
+    	              server[index].loadSensorData(logFileToLoad, false);
+    	            }
+    	            
+    	        	server[index].start(serialConnection[index]);
+    	        	isNewSBAN = false;
+    	        	
+	    		   	if (serialConnection[index].isOpen())
+	    		   	{
+	    		   		server[index].setVisble();
+	    		   		// change the sban id
+	    		   		server[index].sleep(200);
+	    		   		server[index].setSbanIP();
+	    		   		server[index].initSensorData();
+	    		   		index++;
+	    		   		isNewSBAN = true;
+	    		   	}
+	        	}
+    	    }    
+    	   
+    	} catch (Exception e) {
+            System.err.println("Failed to open TCP server at port: " + port + ": " + e);
+            e.printStackTrace();
+        }    	
+    } else {
+    	System.out.println("invalid port!!!!");
+    }    
   }
 
   private static void usage(String arg) {

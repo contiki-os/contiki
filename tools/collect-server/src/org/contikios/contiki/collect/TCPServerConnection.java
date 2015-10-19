@@ -47,43 +47,44 @@ import java.net.ServerSocket;
  */
 public class TCPServerConnection extends SerialConnection {
 
-    private final int port;
-
     private ServerSocket serverSk;
     private Socket clientSk;
+    private String clientSbanIP = "";
+
     private BufferedReader in;
     private PrintStream out;
 
-    public TCPServerConnection(SerialConnectionListener listener, int port) {
+    public TCPServerConnection(SerialConnectionListener listener, ServerSocket socket) {
         super(listener);
-        this.port = port;
+        this.serverSk = socket;
         isMultiplePorts = true; //support both serial and Server 
-        System.out.println("TCPServerConnection constructor");
     }
 
-    public int getPort(){
-    	return port;
-    }
     @Override
     public String getConnectionName() {
-        return "<tcp://localhost:" + port + '>';
+        if (clientSbanIP.length() > 1) {
+        	int colon = clientSbanIP.lastIndexOf(':');
+        	return clientSbanIP.substring(1,colon); // + "_" + System.currentTimeMillis();
+        }
+        else {
+        	return clientSbanIP;
+        }
     }
+    
 
     @Override
     public void open(String comPort) {
         close();
         this.comPort = comPort == null ? "" : comPort;
-
-        System.out.println("Opening TCP server in the port:" + port);
+        System.out.println("Ready for listening for a comming SBAN");
         isClosed = false;      
         try {
-        	serverSk = new ServerSocket(port);      	
-            System.out.println("Opened TCP server in the port:" + port);
-            isOpen = true;
-            
-            while (isOpen) {
-            	new MultiServerThread(serverSk.accept()).start();
-            }
+        	new MultiServerThread(serverSk.accept()).start();
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        isOpen =true;
+
 //            /* Start thread listening on UDP */
 //            Thread readInput = new Thread(new Runnable() {
 //                public void run() {
@@ -120,13 +121,6 @@ public class TCPServerConnection extends SerialConnection {
 //               readInput.start();
 //            }
             
-
-        } catch (Exception e) {
-            lastError = "Failed to open TCP server at port: " + port + ": " + e;
-            System.err.println(lastError);
-            e.printStackTrace();
-            closeConnection();
-        }
     }
     
 
@@ -142,10 +136,6 @@ public class TCPServerConnection extends SerialConnection {
             if (out != null) {
                 out.close();
                 out = null;
-            }
-            if (serverSk != null) {
-                serverSk.close();
-                serverSk = null;
             }
             if (clientSk != null) {
                 clientSk.close();
@@ -165,14 +155,14 @@ public class TCPServerConnection extends SerialConnection {
 
         public void run() {
 
-            try (
+            try {
 //            	PrintStream out = new PrintStream(socket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(
-                    new InputStreamReader(
-                        socket.getInputStream()));
-            ) {
-                System.out.println("Create new thread to handle new client...");
-                String inputLine, outputLine;
+            	clientSbanIP = socket.getRemoteSocketAddress().toString();
+            	BufferedReader in = new BufferedReader(
+                        				new InputStreamReader(
+                        						socket.getInputStream()));
+            	System.out.println("Create new thread to handle new client...");
+                String inputLine;// , outputLine;
                 //KnockKnockProtocol kkp = new KnockKnockProtocol();
                 //outputLine = kkp.processInput(null);
                 //out.println(outputLine);

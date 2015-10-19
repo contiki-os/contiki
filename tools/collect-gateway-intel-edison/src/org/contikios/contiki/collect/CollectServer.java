@@ -113,7 +113,8 @@ public class CollectServer implements SerialConnectionListener {
   }
 
 
-  public void start(SerialConnection connection, String serverAddr, int serverPort) {
+  public void start(SerialConnection connection, String serverAddr, int serverPort, 
+		            int interval, int random, int reports, int rexmits) {
     if (hasStarted) {
       throw new IllegalStateException("already started");
     }
@@ -145,10 +146,10 @@ public class CollectServer implements SerialConnectionListener {
       // send command by netcmd to sensor nodes
       sleep(10000);      
       System.out.println("Starting send netcmd"); 
-      int interval = 60; 
-      int random = 60;
-      int reports = 0; // 0-report forever 
-      int rexmits = 31; // 0-31     
+//      int interval = 60; 
+//      int random = 60;
+//      int reports = 0; // 0-report forever 
+//      int rexmits = 31; // 0-31     
       sendCommand("netcmd { repeat " + reports + " " + interval 
               + " { randwait " + random + " collect-view-data | send " + rexmits + " } }");
       System.out.println("After sending command");    
@@ -593,6 +594,12 @@ public class CollectServer implements SerialConnectionListener {
     String host = null;
     String command = null;
     int port = -1;
+    // parameter for shell command 
+    int interval = 60; 
+    int random = 60;
+    int reports = 0; // 0-report forever 
+    int rexmits = 31; // 0-31  
+    
     for(int i = 0, n = args.length; i < n; i++) {
       String arg = args[i];
       if (arg.length() == 2 && arg.charAt(0) == '-') {
@@ -615,7 +622,42 @@ public class CollectServer implements SerialConnectionListener {
           } else {
             usage(arg);
           }
+          break;        
+        case 'h':
+            usage(null);
+            break;        
+        case 'i':
+          if (i + 1 < n) {
+            interval = Integer.parseInt(args[++i]);
+          } else {
+            usage(arg);
+          }
           break;
+        case 'k':
+        	if (i + 1 < n) {
+        		random = Integer.parseInt(args[++i]);
+            } else {
+               usage(arg);
+            }
+        	break;
+        case 'l':
+        	if (i + 1 < n) {
+        		reports = Integer.parseInt(args[++i]);
+            } else {
+               usage(arg);
+            }
+        	break;
+        case 'm':
+        	if (i + 1 < n) {
+        		rexmits = Integer.parseInt(args[++i]);
+            } else {
+               usage(arg);
+            }
+        	break;
+        case 'n':
+            useSensorLog = false;
+            break;
+        
         case 'p':
             if (i + 1 < n) {
               port = Integer.parseInt(args[++i]);
@@ -624,17 +666,8 @@ public class CollectServer implements SerialConnectionListener {
             }
             break;
         case 'r':
-          resetSensorLog = true;
-          break;
-        case 'n':
-          useSensorLog = false;
-          break;
-        case 'i':
-          useSerialOutput = false;
-          break;
-        case 'h':
-          usage(null);
-          break;
+            resetSensorLog = true;
+            break;
         default:
           usage(arg);
           break;
@@ -668,15 +701,12 @@ public class CollectServer implements SerialConnectionListener {
     } else {
       serialConnection = new CommandConnection(server, command);
     }
-    if (!useSerialOutput) {
-      serialConnection.setSerialOutputSupported(false);
-    }
 
     server.isSensorLogUsed = useSensorLog;
     if (useSensorLog && resetSensorLog) {
       server.clearSensorDataLog();
     }
-    server.start(serialConnection, host, port);
+    server.start(serialConnection, host, port, interval, random, reports, rexmits);
 
 //    Scanner scanKey = new Scanner(System.in); 
 //    System.out.println("input the command");
@@ -691,14 +721,20 @@ public class CollectServer implements SerialConnectionListener {
     if (arg != null) {
       System.err.println("Unknown argument '" + arg + '\'');
     }
-    System.err.println("Usage: java CollectServer [-n] [-i] [-r] [-f [file]] [-a host:port] [-p port] [-c command] [COMPORT]");
+    System.err.println("Usage: java CollectServer [-n] [-i] [-k] [-l] [-m] [-r] [-a host:port] [-p port] [-c command] [COMPORT]");
     System.err.println("       -n : Do not read or save sensor data log");
     System.err.println("       -r : Clear any existing sensor data log at startup");
-    System.err.println("       -i : Do not allow serial output");
+    System.err.println("       -i : interval value in seconds");
+    System.err.println("       -k : random value in seconds");
+    System.err.println("       -l : reports value in seconds. reports = 0 means infinite.");
+    System.err.println("       -m : rexmits value in seconds");
     System.err.println("       -a : Connect to specified host:port");
     System.err.println("       -p : Read data from specified UDP port");
     System.err.println("       -c : Use specified command for serial data input/output");
     System.err.println("   COMPORT: The serial port to connect to");
+    System.err.println("Example: java -jar collect-view.jar -a 10.11.1.208:6789 -i 60 -k 60 -l 0 -m 31 \n");
+    System.err.println("Starting SBAN and report sensor data to server at 10.11.1.208:6789.");
+    System.err.println("Sensor data will be collected randomly with interval 60 seconds, radom 60 seconds, retransmit 31 and nonstop.");
     System.exit(arg != null ? 1 : 0);
   }
 }
