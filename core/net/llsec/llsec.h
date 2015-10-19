@@ -48,10 +48,6 @@
  * for incoming packets. Likewise, all NETSTACK_NETWORK protocols
  * invoke NETSTACK_LLSEC.send(...) for outgoing packets.
  * 
- * The bootstrap function of llsec_drivers can be used to defer the start
- * of upper layers so as to bootstrap pairwise keys. Only contiki-sky-main.c
- * supports this at the moment.
- * 
  * @{
  */
 
@@ -60,35 +56,23 @@
 
 #include "net/mac/mac.h"
 
-typedef void (* llsec_on_bootstrapped_t)(void);
-
 /**
  * The structure of a link layer security driver.
  */
 struct llsec_driver {
   char *name;
   
-  /** Bootstraps link layer security and thereafter starts upper layers. */
-  void (* bootstrap)(llsec_on_bootstrapped_t on_bootstrapped);
+  /** Inits link layer security. */
+  void (* init)(void);
   
   /** Secures outgoing frames before passing them to NETSTACK_MAC. */
   void (* send)(mac_callback_t sent_callback, void *ptr);
-  
-  /**
-   * Once the NETSTACK_FRAMER wrote the headers, the LLSEC driver
-   * can generate a MIC over the entire frame.
-   * \return Returns != 0 <-> success
-   */
-  int (* on_frame_created)(void);
   
   /**
    * Decrypts incoming frames;
    * filters out injected or replayed frames.
    */
   void (* input)(void);
-  
-  /** Returns the security-related overhead per frame in bytes */
-  uint8_t (* get_overhead)(void);
 };
 
 #endif /* LLSEC_H_ */

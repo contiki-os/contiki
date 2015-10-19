@@ -284,6 +284,7 @@ rpl_dag_t *rpl_alloc_dag(uint8_t, uip_ipaddr_t *);
 rpl_instance_t *rpl_alloc_instance(uint8_t);
 void rpl_free_dag(rpl_dag_t *);
 void rpl_free_instance(rpl_instance_t *);
+void rpl_purge_dags(void);
 
 /* DAG parent management function. */
 rpl_parent_t *rpl_add_parent(rpl_dag_t *, rpl_dio_t *dio, uip_ipaddr_t *);

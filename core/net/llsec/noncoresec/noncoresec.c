@@ -47,6 +47,7 @@
 #include "net/llsec/llsec802154.h"
 #include "net/llsec/ccm-star-packetbuf.h"
 #include "net/mac/frame802154.h"
+#include "net/mac/framer-802154.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/nbr-table.h"
@@ -80,81 +81,109 @@ static uint8_t key[16] = NONCORESEC_KEY;
 NBR_TABLE(struct anti_replay_info, anti_replay_table);
 
 /*---------------------------------------------------------------------------*/
-static const uint8_t *
-get_extended_address(const linkaddr_t *addr)
-#if LINKADDR_SIZE == 2
+static int
+aead(uint8_t hdrlen, int forward)
 {
-  /* workaround for short addresses: derive EUI64 as in RFC 6282 */
-  static linkaddr_extended_t template = { { 0x00 , 0x00 , 0x00 ,
-                                            0xFF , 0xFE , 0x00 , 0x00 , 0x00 } };
+  uint8_t totlen;
+  uint8_t nonce[CCM_STAR_NONCE_LENGTH];
+  uint8_t *m;
+  uint8_t m_len;
+  uint8_t *a;
+  uint8_t a_len;
+  uint8_t *result;
+  uint8_t generated_mic[LLSEC802154_MIC_LENGTH];
+  uint8_t *mic;
   
-  template.u16[3] = LLSEC802154_HTONS(addr->u16);
+  ccm_star_packetbuf_set_nonce(nonce, forward);
+  totlen = packetbuf_totlen();
+  a = packetbuf_hdrptr();
+#if WITH_ENCRYPTION
+  a_len = hdrlen;
+  m = a + a_len;
+  m_len = totlen - hdrlen;
+#else /* WITH_ENCRYPTION */
+  a_len = totlen;
+  m = NULL;
+  m_len = 0;
+#endif /* WITH_ENCRYPTION */
   
-  return template.u8;
+  mic = a + totlen;
+  result = forward ? mic : generated_mic;
+  
+  CCM_STAR.aead(nonce,
+      m, m_len,
+      a, a_len,
+      result, LLSEC802154_MIC_LENGTH,
+      forward);
+  
+  if(forward) {
+    packetbuf_set_datalen(packetbuf_datalen() + LLSEC802154_MIC_LENGTH);
+    return 1;
+  } else {
+    return (memcmp(generated_mic, mic, LLSEC802154_MIC_LENGTH) == 0);
+  }
 }
-#else /* LINKADDR_SIZE == 2 */
+/*---------------------------------------------------------------------------*/
+static void
+add_security_header(void)
 {
-  return addr->u8;
+  if(!packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
+    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
+    packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
+    anti_replay_set_counter();
+  }
 }
-#endif /* LINKADDR_SIZE == 2 */
 /*---------------------------------------------------------------------------*/
 static void
 send(mac_callback_t sent, void *ptr)
 {
-  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
-  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
-  anti_replay_set_counter();
   NETSTACK_MAC.send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/
 static int
-on_frame_created(void)
+create(void)
 {
-  uint8_t *dataptr = packetbuf_dataptr();
-  uint8_t data_len = packetbuf_datalen();
-
-  ccm_star_mic_packetbuf(get_extended_address(&linkaddr_node_addr), dataptr + data_len, LLSEC802154_MIC_LENGTH);
-#if WITH_ENCRYPTION
-  ccm_star_ctr_packetbuf(get_extended_address(&linkaddr_node_addr));
-#endif /* WITH_ENCRYPTION */
-  packetbuf_set_datalen(data_len + LLSEC802154_MIC_LENGTH);
+  int result;
   
-  return 1;
+  add_security_header();
+  result = framer_802154.create();
+  if(result == FRAMER_FAILED) {
+    return result;
+  }
+
+  aead(result, 1);
+  
+  return result;
 }
 /*---------------------------------------------------------------------------*/
-static void
-input(void)
+static int
+parse(void)
 {
-  uint8_t generated_mic[LLSEC802154_MIC_LENGTH];
-  uint8_t *received_mic;
+  int result;
   const linkaddr_t *sender;
   struct anti_replay_info* info;
-  uint8_t *dataptr = packetbuf_dataptr();
-  uint8_t data_len = packetbuf_datalen();
+  
+  result = framer_802154.parse();
+  if(result == FRAMER_FAILED) {
+    return result;
+  }
   
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) != LLSEC802154_SECURITY_LEVEL) {
     PRINTF("noncoresec: received frame with wrong security level\n");
-    return;
+    return FRAMER_FAILED;
   }
   sender = packetbuf_addr(PACKETBUF_ADDR_SENDER);
   if(linkaddr_cmp(sender, &linkaddr_node_addr)) {
     PRINTF("noncoresec: frame from ourselves\n");
-    return;
+    return FRAMER_FAILED;
   }
   
-  data_len -= LLSEC802154_MIC_LENGTH;
-  packetbuf_set_datalen(data_len);
+  packetbuf_set_datalen(packetbuf_datalen() - LLSEC802154_MIC_LENGTH);
   
-#if WITH_ENCRYPTION
-  ccm_star_ctr_packetbuf(get_extended_address(sender));
-#endif /* WITH_ENCRYPTION */
-  ccm_star_mic_packetbuf(get_extended_address(sender), generated_mic, LLSEC802154_MIC_LENGTH);
-  
-  received_mic = dataptr + data_len;
-  if(memcmp(generated_mic, received_mic, LLSEC802154_MIC_LENGTH) != 0) {
-    PRINTF("noncoresec: received nonauthentic frame %"PRIu32"\n",
+  if(!aead(result, 0)) {
+    PRINTF("noncoresec: received unauthentic frame %"PRIu32"\n",
         anti_replay_get_counter());
-    return;
+    return FRAMER_FAILED;
   }
   
   info = nbr_table_get_from_lladdr(anti_replay_table, sender);
@@ -162,7 +191,7 @@ input(void)
     info = nbr_table_add_lladdr(anti_replay_table, sender);
     if(!info) {
       PRINTF("noncoresec: could not get nbr_table_item\n");
-      return;
+      return FRAMER_FAILED;
     }
     
     /*
@@ -179,7 +208,7 @@ input(void)
     if(!nbr_table_lock(anti_replay_table, info)) {
       nbr_table_remove(anti_replay_table, info);
       PRINTF("noncoresec: could not lock\n");
-      return;
+      return FRAMER_FAILED;
     }
     
     anti_replay_init_info(info);
@@ -187,34 +216,44 @@ input(void)
     if(anti_replay_was_replayed(info)) {
        PRINTF("noncoresec: received replayed frame %"PRIu32"\n",
            anti_replay_get_counter());
-       return;
+       return FRAMER_FAILED;
     }
   }
   
-  NETSTACK_NETWORK.input();
-}
-/*---------------------------------------------------------------------------*/
-static uint8_t
-get_overhead(void)
-{
-  return SECURITY_HEADER_LENGTH + LLSEC802154_MIC_LENGTH;
+  return result;
 }
 /*---------------------------------------------------------------------------*/
 static void
-bootstrap(llsec_on_bootstrapped_t on_bootstrapped)
+input(void)
+{
+  NETSTACK_NETWORK.input();
+}
+/*---------------------------------------------------------------------------*/
+static int
+length(void)
+{
+  add_security_header();
+  return framer_802154.length() + LLSEC802154_MIC_LENGTH;
+}
+/*---------------------------------------------------------------------------*/
+static void
+init(void)
 {
   CCM_STAR.set_key(key);
   nbr_table_register(anti_replay_table, NULL);
-  on_bootstrapped();
 }
 /*---------------------------------------------------------------------------*/
 const struct llsec_driver noncoresec_driver = {
   "noncoresec",
-  bootstrap,
+  init,
   send,
-  on_frame_created,
-  input,
-  get_overhead
+  input
+};
+/*---------------------------------------------------------------------------*/
+const struct framer noncoresec_framer = {
+  length,
+  create,
+  parse
 };
 /*---------------------------------------------------------------------------*/
 

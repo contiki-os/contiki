@@ -36,26 +36,39 @@ import java.util.Random;
  * This ensures that the functions of the random number generator are
  * only called by the the thread initializing a simulation or the
  * simulation thread itself.
- * Rationale: By allowing another thread to use the random number 
- * generator concurrency is intruduced, thus it can not be guaranteed 
- * that simulations are reproduceable.
+ * Rationale: By allowing another thread to use the random number
+ * generator concurrency is introduced, thus it can not be guaranteed
+ * that simulations are reproducible.
  *
  */
 public class SafeRandom extends Random {
   
   Simulation sim = null;
   Thread initThread = null;
+  Boolean simStarted = false;
   
   private void assertSimThread() {
-    // It we are in the simulation thread everything is fine (the default)
     // sim can be null, because setSeed is called by the super-constructor.
-    if(sim != null && !sim.isSimulationThread()) {
-      // The thread initializing the simulation might differ from the simulation thread.
-      // If they are the same that is ok, too.
+    if(sim == null) return;
+    
+    // If we are in the simulation thread, everything is fine (the default)
+    if(sim.isSimulationThread()) {
+      simStarted = true;
+      return;
+    }
+    
+    // Simulation has not started yet. Allow one initialisation thread.
+    if(!simStarted) {
       if(initThread == null) initThread = Thread.currentThread();
       if(Thread.currentThread() == initThread ) return;
-      throw new RuntimeException("A random-function was not called from the simulation thread. This can break things!");
     }
+    
+    //This is done via the GUI - reproducibility is lost anyway!
+    if(javax.swing.SwingUtilities.isEventDispatchThread()) return;
+    
+    // Some other threads seems to access the PNRG. This must not happen.
+    throw new RuntimeException("A random-function was not called from the simulation thread. This can break things!");
+    
   }
   
   public SafeRandom(Simulation sim) {
