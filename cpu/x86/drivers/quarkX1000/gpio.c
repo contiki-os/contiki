@@ -30,6 +30,8 @@
 
 #include "gpio.h"
 #include "helpers.h"
+#include "interrupt.h"
+#include "pic.h"
 
 /* GPIO Controler Registers */
 #define SWPORTA_DR    0x00
@@ -47,8 +49,12 @@
 
 #define PINS 8
 
+#define GPIO_IRQ 10
+#define GPIO_INT PIC_INT(GPIO_IRQ)
+
 struct gpio_internal_data {
   pci_driver_t pci;
+  quarkX1000_gpio_callback callback;
 };
 
 static struct gpio_internal_data data;
@@ -79,6 +85,44 @@ set_bit(uint32_t base_addr, uint32_t offset, uint32_t bit, uint32_t value)
   write(base_addr, offset, reg);
 }
 
+static void
+gpio_isr(void)
+{
+  uint32_t int_status;
+
+  int_status = read(data.pci.mmio, INTSTATUS);
+
+  if (data.callback)
+    data.callback(int_status);
+
+  write(data.pci.mmio, PORTA_EOI, -1);
+}
+
+static void
+gpio_interrupt_config(uint8_t pin, int flags)
+{
+  /* set as input */
+  set_bit(data.pci.mmio, SWPORTA_DDR, pin, 0);
+
+  /* set interrupt enabled */
+  set_bit(data.pci.mmio, INTEN, pin, 1);
+
+  /* unmask interrupt */
+  set_bit(data.pci.mmio, INTMASK, pin, 0);
+
+  /* set active high/low */
+  set_bit(data.pci.mmio, INT_POLARITY, pin, !!(flags & QUARKX1000_GPIO_ACTIVE_HIGH));
+
+  /* set level/edge */
+  set_bit(data.pci.mmio, INTTYPE_LEVEL, pin, !!(flags & QUARKX1000_GPIO_EDGE));
+
+  /* set debounce */
+  set_bit(data.pci.mmio, DEBOUNCE, pin, !!(flags & QUARKX1000_GPIO_DEBOUNCE));
+
+  /* set clock synchronous */
+  set_bit(data.pci.mmio, LS_SYNC, 0, !!(flags & QUARKX1000_GPIO_CLOCK_SYNC));
+}
+
 int
 quarkX1000_gpio_config(uint8_t pin, int flags)
 {
@@ -87,15 +131,15 @@ quarkX1000_gpio_config(uint8_t pin, int flags)
     return -1;
   }
 
-  /* interrupts are not supported yet */
-  if (flags & QUARKX1000_GPIO_INT)
-    return -1;
+  if (flags & QUARKX1000_GPIO_INT) {
+    gpio_interrupt_config(pin, flags);
+  } else {
+    /* set direction */
+    set_bit(data.pci.mmio, SWPORTA_DDR, pin, !!(flags & QUARKX1000_GPIO_OUT));
 
-  /* set direction */
-  set_bit(data.pci.mmio, SWPORTA_DDR, pin, !!(flags & QUARKX1000_GPIO_OUT));
-
-  /* set interrupt disabled */
-  set_bit(data.pci.mmio, INTEN, pin, 0);
+    /* set interrupt disabled */
+    set_bit(data.pci.mmio, INTEN, pin, 0);
+  }
 
   return 0;
 }
@@ -146,6 +190,13 @@ quarkX1000_gpio_write_port(uint8_t value)
   return 0;
 }
 
+int
+quarkX1000_gpio_set_callback(quarkX1000_gpio_callback callback)
+{
+  data.callback = callback;
+  return 0;
+}
+
 void
 quarkX1000_gpio_clock_enable(void)
 {
@@ -156,6 +207,14 @@ void
 quarkX1000_gpio_clock_disable(void)
 {
   set_bit(data.pci.mmio, LS_SYNC, 0, 0);
+}
+
+static void
+gpio_handler(void)
+{
+  gpio_isr();
+
+  pic_eoi(GPIO_IRQ);
 }
 
 int
@@ -171,7 +230,16 @@ quarkX1000_gpio_init(void)
 
   pci_command_enable(pci_addr, PCI_CMD_1_MEM_SPACE_EN);
 
+  SET_INTERRUPT_HANDLER(GPIO_INT, 0, gpio_handler);
+
+  if (pci_irq_agent_set_pirq(IRQAGENT3, INTA, PIRQC) < 0)
+    return -1;
+
+  pci_pirq_set_irq(PIRQC, GPIO_IRQ, 1);
+
   pci_init(&data.pci, pci_addr, 0);
+
+  data.callback = 0;
 
   quarkX1000_gpio_clock_enable();
 
@@ -179,6 +247,8 @@ quarkX1000_gpio_init(void)
   write(data.pci.mmio, INTEN, 0);
   write(data.pci.mmio, INTMASK, 0);
   write(data.pci.mmio, PORTA_EOI, 0);
+
+  pic_unmask_irq(GPIO_IRQ);
 
   return 0;
 }
