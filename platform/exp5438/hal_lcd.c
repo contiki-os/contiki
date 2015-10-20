@@ -117,8 +117,6 @@ void halLcdSendCommand(unsigned char Data[])
 
 void halLcdInit(void)
 {
-    volatile unsigned int i = 0;
-
     LCD_CS_RST_OUT |= LCD_CS_PIN | LCD_RESET_PIN;
     LCD_CS_RST_DIR |= LCD_CS_PIN | LCD_RESET_PIN;
 
