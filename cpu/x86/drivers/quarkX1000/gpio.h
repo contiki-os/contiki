@@ -54,6 +54,8 @@
 #define QUARKX1000_GPIO_POL_MASK        (1 << 6)
 #define QUARKX1000_GPIO_PUD_MASK        (3 << 7)
 
+typedef void (*quarkX1000_gpio_callback)(uint32_t);
+
 int quarkX1000_gpio_init(void);
 
 int quarkX1000_gpio_config(uint8_t pin, int flags);
@@ -63,6 +65,8 @@ int quarkX1000_gpio_write(uint8_t pin, uint8_t value);
 int quarkX1000_gpio_config_port(int flags);
 int quarkX1000_gpio_read_port(uint8_t *value);
 int quarkX1000_gpio_write_port(uint8_t value);
+
+int quarkX1000_gpio_set_callback(quarkX1000_gpio_callback callback);
 
 void quarkX1000_gpio_clock_enable(void);
 void quarkX1000_gpio_clock_disable(void);
