@@ -53,6 +53,19 @@ endif
 
 all: apple2 atari c64 c128
 
+ifeq ($(shell echo),)
+  NULLDEV = /dev/null
+else
+  NULLDEV = nul:
+endif
+
+ZIPCOMMENT := $(shell git rev-parse --short HEAD 2>$(NULLDEV))
+ifeq ($(words $(ZIPCOMMENT)),1)
+  ZIPCOMMENT := https://github.com/contiki-os/contiki/commits/$(ZIPCOMMENT)
+else
+  ZIPCOMMENT := N/A
+endif
+
 define makes
 $1-makes:
 	$(MAKE) -C ../../cpu/6502/ethconfig     TARGET=$1
@@ -66,7 +79,13 @@ endef
 
 $(eval $(call makes,apple2enh))
 
-apple2: contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.dsk contiki-apple2.po
+%.zip:
+	zip $@ $^
+	echo $(ZIPCOMMENT) | zip -z $@
+
+apple2: contiki-apple2.zip
+
+contiki-apple2.zip: contiki-apple2-1.dsk contiki-apple2-2.dsk contiki-apple2-3.dsk contiki-apple2.po
 
 contiki-apple2-1.dsk: apple2enh-makes
 	cp ../apple2enh/prodos.dsk $@
@@ -150,7 +169,9 @@ contiki-apple2.po: apple2enh-makes
 
 $(eval $(call makes,atarixl))
 
-atari: contiki-atari-1.atr contiki-atari-2.atr contiki-atari-3.atr contiki-atari.atr
+atari: contiki-atari.zip
+
+contiki-atari.zip: contiki-atari-1.atr contiki-atari-2.atr contiki-atari-3.atr contiki-atari.atr
 
 contiki-atari-1.atr: atarixl-makes
 	mkdir atr
@@ -232,7 +253,9 @@ contiki-atari.atr: atarixl-makes
 
 $(eval $(call makes,c64))
 
-c64: contiki-c64-1.d64 contiki-c64-2.d64 contiki-c64.d71 contiki-c64.d81
+c64: contiki-c64.zip
+
+contiki-c64.zip: contiki-c64-1.d64 contiki-c64-2.d64 contiki-c64.d71 contiki-c64.d81
 
 contiki-c64-1.d64: c64-makes
 	$(C1541) -format contiki-1,00 d64 $@
@@ -311,7 +334,9 @@ contiki-c64.d81: c64-makes
 
 $(eval $(call makes,c128))
 
-c128: contiki-c128-1.d64 contiki-c128-2.d64 contiki-c128.d71 contiki-c128.d81
+c128: contiki-c128.zip
+
+contiki-c128.zip: contiki-c128-1.d64 contiki-c128-2.d64 contiki-c128.d71 contiki-c128.d81
 
 contiki-c128-1.d64: c128-makes
 	$(C1541) -format contiki-1,00 d64 $@
