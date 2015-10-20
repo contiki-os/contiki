@@ -855,9 +855,9 @@ public class CollectServer implements SerialConnectionListener {
   protected void connectToSerial() {
     if (serialConnection != null && !serialConnection.isOpen()) {
     	String comPort = serialConnection.getComPort();
-        if (comPort == null && serialConnection.isMultiplePortsSupported()) {
-          comPort = MoteFinder.selectComPort(window);
-        }
+//        if (comPort == null && serialConnection.isMultiplePortsSupported()) {
+//          comPort = MoteFinder.selectComPort(window);
+//        }
     	if (comPort != null || !serialConnection.isMultiplePortsSupported()) {
     		serialConnection.open(comPort);
     	}
@@ -1497,7 +1497,7 @@ public class CollectServer implements SerialConnectionListener {
           String comPort = connection.getComPort();
           if (value == 1) {
             // Select new serial port
-            comPort = MoteFinder.selectComPort(window);
+            //comPort = MoteFinder.selectComPort(window);
             if (comPort == null) {
 //              exit();
             }
