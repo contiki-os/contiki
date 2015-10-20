@@ -132,7 +132,7 @@ init(void)
 {
 }
 void mac_LowpanToEthernet(void);
-static void
+static int
 output(void)
 {
 //  if(uip_ipaddr_cmp(&last_sender, &UIP_IP_BUF->srcipaddr)) {
@@ -142,6 +142,7 @@ output(void)
     PRINTD("SUT: %u\n", uip_len);
     mac_LowpanToEthernet();  //bounceback trap is done in lowpanToEthernet
 //  }
+    return 0;
 }
 const struct uip_fallback_interface rpl_interface = {
   init, output

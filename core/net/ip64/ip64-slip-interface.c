@@ -115,7 +115,7 @@ init(void)
   slip_set_input_callback(input_callback);
 }
 /*---------------------------------------------------------------------------*/
-static void
+static int
 output(void)
 {
   int len;
@@ -138,8 +138,10 @@ output(void)
       memcpy(&uip_buf[UIP_LLH_LEN], ip64_packet_buffer, len);
       uip_len = len;
       slip_send();
+      return len;
     }
   }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 const struct uip_fallback_interface ip64_slip_interface = {
