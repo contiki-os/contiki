@@ -71,7 +71,7 @@ get_global_address(void)
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        state == ADDR_PREFERRED &&
-       !uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
+       !uip_is_addr_linklocal(&uip_ds6_if.addr_list[i].ipaddr)) {
       ipaddr = &uip_ds6_if.addr_list[i].ipaddr;
     }
   }
@@ -190,7 +190,7 @@ rpl_dag_root_init_dag_immediately(void)
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        state == ADDR_PREFERRED &&
-       !uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
+       !uip_is_addr_linklocal(&uip_ds6_if.addr_list[i].ipaddr)) {
       ipaddr = &uip_ds6_if.addr_list[i].ipaddr;
     }
   }
