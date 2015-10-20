@@ -43,6 +43,7 @@
 
 #include <PeripheralRegs.h>
 #include "contiki-conf.h"
+#include "uart-driver.h"
 
 #define UART_DEFAULT_RX_BUFFER_SIZE 2047
 #if UART_XONXOFF_FLOW_CTRL

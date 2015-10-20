@@ -39,6 +39,7 @@
 
 #include "sys/rtimer.h"
 #include "sys/clock.h"
+#include "sys/process.h"
 #include <AppHardwareApi.h>
 #include <PeripheralRegs.h>
 #include "dev/watchdog.h"
