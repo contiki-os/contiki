@@ -35,6 +35,7 @@
  ******************************************************************************/
 
 #include "contiki-conf.h"
+#include "core/sys/cc.h"
 
 #include "hal_MSP-EXP430F5438.h"
 #include "hal_lcd_fonts.h"
