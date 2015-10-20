@@ -79,8 +79,6 @@ static void
 put_post_led_toggle_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   static int led_state = 0;
-  const uint8_t *request_content;
-  int request_content_len;
   unsigned int accept = -1;
 
   /* Given the way the LEDs are connected to the DIO ports, the LEDs are controlled via direct DIO access. */

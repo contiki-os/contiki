@@ -101,9 +101,10 @@ PROCESS_THREAD(unicast_test_process, ev, data)
     }
 
     if(!runicast_is_transmitting(&runicast)) {
-      linkaddr_t recv = { 0 };
       static char buffer[100] = "hello";
+      linkaddr_t recv;
 
+      memset(&recv, 0, LINKADDR_SIZE);
       packetbuf_copyfrom(buffer, sizeof(buffer));
       recv.u8[0] = RX_ADDR1;
       recv.u8[1] = RX_ADDR2;
