@@ -28,6 +28,7 @@
  */
 
 #include "contiki.h"
+#include "dev/slip.h"
 #include "net/rpl/rpl.h"
 #include "tools/rpl-tools.h"
 
