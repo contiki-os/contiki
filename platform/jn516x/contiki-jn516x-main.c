@@ -232,13 +232,13 @@ set_linkaddr(void)
 {
   int i;
   linkaddr_t addr;
-  memset(&addr, 0, sizeof(linkaddr_t));
+  memset(&addr, 0, LINKADDR_SIZE);
 #if NETSTACK_CONF_WITH_IPV6
   memcpy(addr.u8, node_mac, sizeof(addr.u8));
 #else
   if(node_id == 0) {
-    for(i = 0; i < sizeof(linkaddr_t); ++i) {
-      addr.u8[i] = node_mac[7 - i];
+    for(i = 0; i < LINKADDR_SIZE; ++i) {
+      addr.u8[i] = node_mac[LINKADDR_SIZE - 1 - i];
     }
   } else {
     addr.u8[0] = node_id & 0xff;

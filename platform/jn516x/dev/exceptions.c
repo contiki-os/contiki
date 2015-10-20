@@ -66,7 +66,6 @@
 #endif /* JENNIC_CHIP_FAMILY */
 
 #if (defined EXCEPTION_VECTORS_LOCATION_RAM)
-#pragma "EXCEPTION_VECTORS_LOCATION_RAM"
 /* RAM exception vectors are set up at run time */
 /* Addresses of exception vectors in RAM */
 #define BUS_ERROR                   *((volatile uint32 *)(0x4000000))
@@ -79,7 +78,6 @@
 #define GENERIC                     *((volatile uint32 *)(0x400001c))
 #define STACK_OVERFLOW              *((volatile uint32 *)(0x4000020))
 #elif (defined EXCEPTION_VECTORS_LOCATION_FLASH)
-#pragma "EXCEPTION_VECTORS_LOCATION_FLASH"
 /* Flash exception vectors are set up at compile time */
 #else
 #error Unknown exception vector location
