@@ -1203,8 +1203,8 @@ uip_process(uint8_t flag)
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
      !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr)) {
     if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) &&
-       !uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) &&
-       !uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) &&
+       !uip_is_addr_linklocal(&UIP_IP_BUF->destipaddr) &&
+       !uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr) &&
        !uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr) &&
        !uip_is_addr_loopback(&UIP_IP_BUF->destipaddr)) {
 
@@ -1238,7 +1238,7 @@ uip_process(uint8_t flag)
       UIP_STAT(++uip_stat.ip.forwarded);
       goto send;
     } else {
-      if((uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) &&
+      if((uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr)) &&
          (!uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) &&
          (!uip_is_addr_loopback(&UIP_IP_BUF->destipaddr)) &&
          (!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) &&
