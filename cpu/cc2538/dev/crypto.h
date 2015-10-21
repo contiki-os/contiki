@@ -44,6 +44,8 @@
 #define CRYPTO_H_
 
 #include "contiki.h"
+#include "dev/sys-ctrl.h"
+#include "reg.h"
 /*---------------------------------------------------------------------------*/
 /** \name Crypto drivers return codes
  * @{
@@ -54,6 +56,18 @@
 #define CRYPTO_NULL_ERROR             2
 #define CRYPTO_RESOURCE_IN_USE        3
 #define CRYPTO_DMA_BUS_ERROR          4
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name Crypto macros
+ * @{
+ */
+
+/** \brief Indicates whether the AES/SHA cryptoprocessor is enabled
+ * \return Boolean value indicating whether the AES/SHA cryptoprocessor is
+ * enabled
+ */
+#define CRYPTO_IS_ENABLED() (!!(REG(SYS_CTRL_RCGCSEC) & SYS_CTRL_RCGCSEC_AES))
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name Crypto functions
