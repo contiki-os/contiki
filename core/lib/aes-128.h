@@ -37,8 +37,8 @@
  *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
-#ifndef AES_H_
-#define AES_H_
+#ifndef AES_128_H_
+#define AES_128_H_
 
 #include "contiki.h"
 
@@ -74,4 +74,4 @@ void aes_128_set_padded_key(uint8_t *key, uint8_t key_len);
 
 extern const struct aes_128_driver AES_128;
 
-#endif /* AES_H_ */
+#endif /* AES_128_H_ */
