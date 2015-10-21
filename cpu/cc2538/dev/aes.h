@@ -50,6 +50,7 @@
 
 #include "contiki.h"
 #include "dev/crypto.h"
+#include "lib/aes-128.h"
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -486,6 +487,13 @@ uint8_t aes_load_keys(const void *keys, uint8_t key_size, uint8_t count,
                       uint8_t start_area);
 
 /** @} */
+/*---------------------------------------------------------------------------*/
+/** \name AES-128 driver
+ * @{
+ */
+extern const struct aes_128_driver aes_128_cc2538_driver;
+/** @} */
+/*---------------------------------------------------------------------------*/
 
 #endif /* AES_H_ */
 
