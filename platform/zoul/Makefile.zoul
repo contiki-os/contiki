@@ -45,7 +45,7 @@ include $(CONTIKI_CPU)/Makefile.cc2538
 
 MODULES += core/net core/net/mac \
            core/net/mac/contikimac \
-           core/net/llsec dev/cc1200
+           core/net/llsec core/net/llsec/noncoresec dev/cc1200
 
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
 
