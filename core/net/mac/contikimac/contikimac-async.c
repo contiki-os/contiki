@@ -45,6 +45,7 @@
 #include "contiki-conf.h"
 #include "net/mac/contikimac/contikimac.h"
 #include "net/mac/mac-sequence.h"
+#include "net/mac/phase.h"
 #include "net/netstack.h"
 #include "dev/radio-async.h"
 #include "net/queuebuf.h"
@@ -87,6 +88,8 @@ enum cm_event {
 
 enum tx_state {
   TX_STATE_IDLE,
+  TX_STATE_PHASE_PENDING,
+  TX_STATE_PHASE_WAIT,
   TX_STATE_PENDING,
   TX_STATE_RUNNING,
   TX_STATE_ACK_WAIT,
@@ -288,6 +291,10 @@ static void input_packet(void);
 static int turn_on(void);
 static int turn_off(int keep_radio_on);
 static unsigned short duty_cycle(void);
+
+/* Phase Optimization Functions */
+static void schedule_phase(void);
+static void phase_wait_done(struct rtimer *t, void *ptr);
 
 /* Driver Process */
 PROCESS(contikmac_async_process, "cm async process");
@@ -1285,8 +1292,13 @@ init_send(struct mac_info info, bool receiver_awake)
    that the flags variable can be written from a periodic CCA ISR. Therefore
    we do this last. */
 
-  strobe_state.tx_state = TX_STATE_PENDING;
-  start_strobes();
+  if(receiver_awake || !WITH_PHASE_OPTIMIZATION) {
+    strobe_state.tx_state = TX_STATE_PENDING;
+    start_strobes();
+  } else {
+    strobe_state.tx_state = TX_STATE_PHASE_PENDING;
+    schedule_phase();
+  }
 
   return 0;
 }
@@ -1313,6 +1325,8 @@ finish_strobes(void)
   struct mac_info info = strobe_state.info;
   struct rdc_buf_list *curr = strobe_state.info.buf_list;
   struct rdc_buf_list *next = list_item_next(curr);
+  rtimer_clock_t t_last = strobe_state.t_last;
+  bool was_awake = strobe_state.flags & TX_FLAG_RCVR_AWAKE;
 
   if(tx_keep_going()) {
     info.buf_list = next;
@@ -1338,6 +1352,11 @@ finish_strobes(void)
   }
 
   queuebuf_to_packetbuf(curr->buf);
+
+  if(WITH_PHASE_OPTIMIZATION && !was_awake) {
+    phase_update(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), t_last, mac_ret);
+  }
+
   mac_call_sent_callback(info.mac_cb, info.mac_ptr, mac_ret, 1);
 
   if(next_failed) {
@@ -1366,6 +1385,40 @@ static void
 set_tx_state(enum tx_state state)
 {
   strobe_state.tx_state = state;
+}
+/*---------------------------------------------------------------------------*/
+/*----------------------------PHASE OPTIMIZATION-----------------------------*/
+/*---------------------------------------------------------------------------*/
+static void
+schedule_phase(void)
+{
+  phase_status_t phase_status;
+  rtimer_clock_t wait;
+  int rt_ret;
+
+  set_tx_state(TX_STATE_PHASE_WAIT);
+
+  phase_status = phase_wait_rtime(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                                  CYCLE_TIME, GUARD_TIME, &wait);
+
+  if(phase_status == PHASE_UNKNOWN) {
+    phase_wait_done(NULL, NULL);
+    return;
+  }
+
+  rt_ret = rtimer_set(&strobe_state.rt, RTIMER_NOW() + wait,
+                      0, phase_wait_done, NULL);
+
+  if(rt_ret != RTIMER_OK) {
+    phase_wait_done(NULL, NULL);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+phase_wait_done(struct rtimer *t, void *ptr)
+{
+  set_tx_state(TX_STATE_PENDING);
+  start_strobes();
 }
 /*---------------------------------------------------------------------------*/
 /*-------------------------------DRIVER STRUCT-------------------------------*/

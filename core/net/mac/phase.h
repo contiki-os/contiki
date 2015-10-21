@@ -51,6 +51,7 @@ typedef enum {
   PHASE_UNKNOWN,
   PHASE_SEND_NOW,
   PHASE_DEFERRED,
+  PHASE_OK,
 } phase_status_t;
 
 
@@ -59,6 +60,12 @@ phase_status_t phase_wait(const linkaddr_t *neighbor,
                           rtimer_clock_t cycle_time, rtimer_clock_t wait_before,
                           mac_callback_t mac_callback, void *mac_callback_ptr,
                           struct rdc_buf_list *buf_list);
+
+phase_status_t phase_wait_rtime(const linkaddr_t *neighbor,
+	                        rtimer_clock_t cycle_time,
+	                        rtimer_clock_t guard_time,
+	                        rtimer_clock_t* wait);
+
 void phase_update(const linkaddr_t *neighbor,
                   rtimer_clock_t time, int mac_status);
 void phase_remove(const linkaddr_t *neighbor);
