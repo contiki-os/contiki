@@ -2022,8 +2022,9 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u8[15]) == 0x02))
 
 /**
- * \brief Checks whether the address a is link local.
- * a is of type uip_ipaddr_t
+ * \brief is addr (a) a link local unicast address, see RFC3513
+ *  i.e. is (a) on prefix FE80::/10
+ *  a is of type uip_ipaddr_t*
  */
 #define uip_is_addr_linklocal(a)                 \
   ((a)->u8[0] == 0xfe &&                         \
@@ -2075,15 +2076,6 @@ CCIF extern uip_lladdr_t uip_lladdr;
   (((b)->u8[12]) = 0xFF);                       \
   (((b)->u8[13]) = ((a)->u8[13]));              \
   (((b)->u16[7]) = ((a)->u16[7]))
-
-/**
- * \brief is addr (a) a link local unicast address, see RFC3513
- *  i.e. is (a) on prefix FE80::/10
- *  a is of type uip_ipaddr_t*
- */
-#define uip_is_addr_link_local(a) \
-  ((((a)->u8[0]) == 0xFE) && \
-  (((a)->u8[1]) == 0x80))
 
 /**
  * \brief was addr (a) forged based on the mac address m

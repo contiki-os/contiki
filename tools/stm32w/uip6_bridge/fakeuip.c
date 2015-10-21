@@ -55,7 +55,7 @@ uip_ds6_get_link_local(int8_t state) {
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
     if((locaddr->isused) && (state == - 1 || locaddr->state == state)
-       && (uip_is_addr_link_local(&locaddr->ipaddr))) {
+       && (uip_is_addr_linklocal(&locaddr->ipaddr))) {
       return locaddr;
     }
   }
