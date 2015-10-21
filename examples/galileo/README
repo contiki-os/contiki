@@ -31,6 +31,16 @@ pins. This application uses default galileo pinmux initialization and sets
 the GPIO 5 (IO2) as output pin and GPIO 6 (IO3) as input. It toggles the
 output pin state at every half second and checks the value on input pin.
 
+GPIO Interrupt
+==============
+
+This application shows how to use the GPIO driver APIs to manipulate interrupt
+pins. This application uses default galileo pinmux initialization and sets
+the GPIO 5 (IO2) as output pin and GPIO 6 (IO3) as interrupt. It toggles the
+output pin stat at every half second in order to emulate an interrupt. This
+triggers an interrupt and the application callback is called. You can confirm
+that though the UART output.
+
 =======
 = I2C =
 =======
