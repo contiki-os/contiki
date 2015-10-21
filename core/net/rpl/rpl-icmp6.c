@@ -109,7 +109,7 @@ get_global_addr(uip_ipaddr_t *addr)
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      if(!uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
+      if(!uip_is_addr_linklocal(&uip_ds6_if.addr_list[i].ipaddr)) {
         memcpy(addr, &uip_ds6_if.addr_list[i].ipaddr, sizeof(uip_ipaddr_t));
         return 1;
       }

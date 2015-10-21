@@ -832,7 +832,7 @@ ra_input(void)
 
 #if UIP_CONF_IPV6_CHECKS
   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
-     (!uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) ||
+     (!uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr)) ||
      (UIP_ICMP_BUF->icode != 0)) {
     PRINTF("RA received is bad");
     goto discard;
@@ -895,7 +895,7 @@ ra_input(void)
       nd6_opt_prefix_info = (uip_nd6_opt_prefix_info *) UIP_ND6_OPT_HDR_BUF;
       if((uip_ntohl(nd6_opt_prefix_info->validlt) >=
           uip_ntohl(nd6_opt_prefix_info->preferredlt))
-         && (!uip_is_addr_link_local(&nd6_opt_prefix_info->prefix))) {
+         && (!uip_is_addr_linklocal(&nd6_opt_prefix_info->prefix))) {
         /* on-link flag related processing */
         if(nd6_opt_prefix_info->flagsreserved1 & UIP_ND6_RA_FLAG_ONLINK) {
           prefix =
