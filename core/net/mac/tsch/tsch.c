@@ -407,8 +407,8 @@ tsch_start_coordinator(void)
   tsch_is_associated = 1;
   tsch_join_priority = 0;
 
-  PRINTF("TSCH: starting as coordinator, asn-%x.%lx\n",
-         current_asn.ms1b, current_asn.ls4b);
+  PRINTF("TSCH: starting as coordinator, PAN ID %x, asn-%x.%lx\n",
+      frame802154_get_pan_id(), current_asn.ms1b, current_asn.ls4b);
 
   /* Start only after some initial delay */
   tsch_slot_operation_sync(
