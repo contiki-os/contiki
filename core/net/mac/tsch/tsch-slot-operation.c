@@ -248,28 +248,24 @@ check_timer_miss(rtimer_clock_t ref_time, rtimer_clock_t offset, rtimer_clock_t 
 /*---------------------------------------------------------------------------*/
 /* Schedule a wakeup at a specified offset from a reference time.
  * Provides basic protection against missed deadlines and timer overflows
- * A non-zero return value signals to tsch_slot_operation a missed deadline.
- * If conditional: schedule only if the deadline is not missed, else busy wait.
- * If not conditional: schedule regardless of deadline miss. */
+ * A return value of zero signals a missed deadline: no rtimer was scheduled. */
 static uint8_t
-tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_clock_t offset, int conditional, const char *str)
+tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_clock_t offset, const char *str)
 {
   rtimer_clock_t now = RTIMER_NOW();
   int r;
+  /* Subtract RTIMER_GUARD before checking for deadline miss
+   * because we can not schedule rtimer less than RTIMER_GUARD in the future */
   int missed = check_timer_miss(ref_time, offset - RTIMER_GUARD, now);
 
   if(missed) {
     TSCH_LOG_ADD(tsch_log_message,
                 snprintf(log->message, sizeof(log->message),
-                    "!dl-miss-%d %s %d %d",
-                        conditional, str,
-                        (int)(now-ref_time), (int)offset);
+                    "!dl-miss %s %d %d",
+                        str, (int)(now-ref_time), (int)offset);
     );
 
-    if(conditional) {
-      BUSYWAIT_UNTIL_ABS(0, ref_time, offset);
-      return 0;
-    }
+    return 0;
   }
   ref_time += offset;
   r = rtimer_set(tm, ref_time, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
@@ -279,14 +275,16 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-/* Schedule slot operation conditionally, and YIELD if success only */
+/* Schedule slot operation conditionally, and YIELD if success only.
+ * Always attempt to schedule RTIMER_GUARD before the target to make sure to wake up
+ * ahead of time and then busy wait to exactly hit the target. */
 #define TSCH_SCHEDULE_AND_YIELD(pt, tm, ref_time, offset, str) \
   do { \
-    if(tsch_schedule_slot_operation(tm, ref_time, offset, 1, str)) { \
+    if(tsch_schedule_slot_operation(tm, ref_time, offset - RTIMER_GUARD, str)) { \
       PT_YIELD(pt); \
     } \
+    BUSYWAIT_UNTIL_ABS(0, ref_time, offset); \
   } while(0);
-
 /*---------------------------------------------------------------------------*/
 /* Get EB, broadcast or unicast packet to be sent, and target neighbor. */
 static struct tsch_packet *
@@ -917,7 +915,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
         /* Update current slot start */
         prev_slot_start = current_slot_start;
         current_slot_start += time_to_next_active_slot;
-      } while(!tsch_schedule_slot_operation(t, prev_slot_start, time_to_next_active_slot, 1, "main"));
+      } while(!tsch_schedule_slot_operation(t, prev_slot_start, time_to_next_active_slot, "main"));
     }
 
     tsch_in_slot_operation = 0;
@@ -952,7 +950,7 @@ tsch_slot_operation_start(void)
     /* Update current slot start */
     prev_slot_start = current_slot_start;
     current_slot_start += time_to_next_active_slot;
-  } while(!tsch_schedule_slot_operation(&slot_operation_timer, prev_slot_start, time_to_next_active_slot, 1, "association"));
+  } while(!tsch_schedule_slot_operation(&slot_operation_timer, prev_slot_start, time_to_next_active_slot, "association"));
 }
 /*---------------------------------------------------------------------------*/
 /* Start actual slot operation */
