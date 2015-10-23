@@ -60,29 +60,31 @@ struct gpio_internal_data {
 static struct gpio_internal_data data;
 
 static inline uint32_t
-read(uint32_t base_addr, uint32_t offset)
+read(uint32_t offset)
 {
-  return *(uint32_t*)(base_addr + offset);
+  uint32_t res;
+  PCI_MMIO_READL(data.pci, res, offset);
+  return res;
 }
 
 static inline void
-write(uint32_t base_addr, uint32_t offset, uint32_t val)
+write(uint32_t offset, uint32_t val)
 {
-  *(uint32_t*)(base_addr + offset) = val;
+  PCI_MMIO_WRITEL(data.pci, offset, val);
 }
 
 /* value must be 0x0 or 0x1 */
 static void
-set_bit(uint32_t base_addr, uint32_t offset, uint32_t bit, uint32_t value)
+set_bit(uint32_t offset, uint32_t bit, uint32_t value)
 {
   uint32_t reg;
 
-  reg = read(base_addr, offset);
+  reg = read(offset);
 
   reg &= ~BIT(bit);
   reg |= value << bit;
 
-  write(base_addr, offset, reg);
+  write(offset, reg);
 }
 
 static void
@@ -90,37 +92,37 @@ gpio_isr(void)
 {
   uint32_t int_status;
 
-  int_status = read(data.pci.mmio, INTSTATUS);
+  int_status = read(INTSTATUS);
 
   if (data.callback)
     data.callback(int_status);
 
-  write(data.pci.mmio, PORTA_EOI, -1);
+  write(PORTA_EOI, -1);
 }
 
 static void
 gpio_interrupt_config(uint8_t pin, int flags)
 {
   /* set as input */
-  set_bit(data.pci.mmio, SWPORTA_DDR, pin, 0);
+  set_bit(SWPORTA_DDR, pin, 0);
 
   /* set interrupt enabled */
-  set_bit(data.pci.mmio, INTEN, pin, 1);
+  set_bit(INTEN, pin, 1);
 
   /* unmask interrupt */
-  set_bit(data.pci.mmio, INTMASK, pin, 0);
+  set_bit(INTMASK, pin, 0);
 
   /* set active high/low */
-  set_bit(data.pci.mmio, INT_POLARITY, pin, !!(flags & QUARKX1000_GPIO_ACTIVE_HIGH));
+  set_bit(INT_POLARITY, pin, !!(flags & QUARKX1000_GPIO_ACTIVE_HIGH));
 
   /* set level/edge */
-  set_bit(data.pci.mmio, INTTYPE_LEVEL, pin, !!(flags & QUARKX1000_GPIO_EDGE));
+  set_bit(INTTYPE_LEVEL, pin, !!(flags & QUARKX1000_GPIO_EDGE));
 
   /* set debounce */
-  set_bit(data.pci.mmio, DEBOUNCE, pin, !!(flags & QUARKX1000_GPIO_DEBOUNCE));
+  set_bit(DEBOUNCE, pin, !!(flags & QUARKX1000_GPIO_DEBOUNCE));
 
   /* set clock synchronous */
-  set_bit(data.pci.mmio, LS_SYNC, 0, !!(flags & QUARKX1000_GPIO_CLOCK_SYNC));
+  set_bit(LS_SYNC, 0, !!(flags & QUARKX1000_GPIO_CLOCK_SYNC));
 }
 
 int
@@ -135,10 +137,10 @@ quarkX1000_gpio_config(uint8_t pin, int flags)
     gpio_interrupt_config(pin, flags);
   } else {
     /* set direction */
-    set_bit(data.pci.mmio, SWPORTA_DDR, pin, !!(flags & QUARKX1000_GPIO_OUT));
+    set_bit(SWPORTA_DDR, pin, !!(flags & QUARKX1000_GPIO_OUT));
 
     /* set interrupt disabled */
-    set_bit(data.pci.mmio, INTEN, pin, 0);
+    set_bit(INTEN, pin, 0);
   }
 
   return 0;
@@ -161,7 +163,7 @@ quarkX1000_gpio_config_port(int flags)
 int
 quarkX1000_gpio_read(uint8_t pin, uint8_t *value)
 {
-  uint32_t value32 = read(data.pci.mmio, EXT_PORTA);
+  uint32_t value32 = read(EXT_PORTA);
   *value = !!(value32 & BIT(pin));
 
   return 0;
@@ -170,14 +172,14 @@ quarkX1000_gpio_read(uint8_t pin, uint8_t *value)
 int
 quarkX1000_gpio_write(uint8_t pin, uint8_t value)
 {
-  set_bit(data.pci.mmio, SWPORTA_DR, pin, !!value);
+  set_bit(SWPORTA_DR, pin, !!value);
   return 0;
 }
 
 int
 quarkX1000_gpio_read_port(uint8_t *value)
 {
-  uint32_t value32 = read(data.pci.mmio, EXT_PORTA);
+  uint32_t value32 = read(EXT_PORTA);
   *value = value32 & ~0xFFFFFF00;
 
   return 0;
@@ -186,7 +188,7 @@ quarkX1000_gpio_read_port(uint8_t *value)
 int
 quarkX1000_gpio_write_port(uint8_t value)
 {
-  write(data.pci.mmio, SWPORTA_DR, value);
+  write(SWPORTA_DR, value);
   return 0;
 }
 
@@ -200,13 +202,13 @@ quarkX1000_gpio_set_callback(quarkX1000_gpio_callback callback)
 void
 quarkX1000_gpio_clock_enable(void)
 {
-  set_bit(data.pci.mmio, LS_SYNC, 0, 1);
+  set_bit(LS_SYNC, 0, 1);
 }
 
 void
 quarkX1000_gpio_clock_disable(void)
 {
-  set_bit(data.pci.mmio, LS_SYNC, 0, 0);
+  set_bit(LS_SYNC, 0, 0);
 }
 
 static void
@@ -244,9 +246,9 @@ quarkX1000_gpio_init(void)
   quarkX1000_gpio_clock_enable();
 
   /* clear registers */
-  write(data.pci.mmio, INTEN, 0);
-  write(data.pci.mmio, INTMASK, 0);
-  write(data.pci.mmio, PORTA_EOI, 0);
+  write(INTEN, 0);
+  write(INTMASK, 0);
+  write(PORTA_EOI, 0);
 
   pic_unmask_irq(GPIO_IRQ);
 

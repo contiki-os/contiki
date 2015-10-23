@@ -75,21 +75,23 @@ struct i2c_internal_data {
 static struct i2c_internal_data device;
 
 static uint32_t
-read(uint32_t base_addr, uint32_t offset)
+read(uint32_t offset)
 {
-  return *(uint32_t*)(base_addr + offset);
+  uint32_t res;
+  PCI_MMIO_READL(device.pci, res, offset);
+  return res;
 }
 
 static void
-write(uint32_t base_addr, uint32_t offset, uint32_t val)
+write(uint32_t offset, uint32_t val)
 {
-  *(uint32_t*)(base_addr + offset) = val;
+  PCI_MMIO_WRITEL(device.pci, offset, val);
 }
 
 static uint32_t
-get_value(uint32_t base_addr, uint32_t offset, uint32_t mask, uint32_t shift)
+get_value(uint32_t offset, uint32_t mask, uint32_t shift)
 {
-  uint32_t register_value = *(uint32_t*)(base_addr + offset);
+  uint32_t register_value = read(offset);
 
   register_value &= ~(0xFFFFFFFF - mask);
 
@@ -97,12 +99,14 @@ get_value(uint32_t base_addr, uint32_t offset, uint32_t mask, uint32_t shift)
 }
 
 static void
-set_value(uint32_t base_addr, uint32_t offset, uint32_t mask, uint32_t shift, uint32_t value)
+set_value(uint32_t offset, uint32_t mask, uint32_t shift, uint32_t value)
 {
-  volatile uint32_t *register_value = (volatile uint32_t*)(base_addr + offset);
+  uint32_t register_value = read(offset);
 
-  *register_value &= ~mask;
-  *register_value |= value << shift;
+  register_value &= ~mask;
+  register_value |= value << shift;
+
+  write(offset, register_value);
 }
 
 static void
@@ -113,14 +117,14 @@ i2c_data_read(void)
   if (device.rx_len == 0)
     return;
 
-  rx_cnt = get_value(device.pci.mmio, QUARKX1000_IC_RXFLR,
+  rx_cnt = get_value(QUARKX1000_IC_RXFLR,
     QUARKX1000_IC_RXFLR_MASK, QUARKX1000_IC_RXFLR_SHIFT);
 
   if (rx_cnt > device.rx_len)
     rx_cnt = device.rx_len;
 
   for (i = 0; i < rx_cnt; i++) {
-    device.rx_buffer[i] = get_value(device.pci.mmio, QUARKX1000_IC_DATA_CMD,
+    device.rx_buffer[i] = get_value(QUARKX1000_IC_DATA_CMD,
       QUARKX1000_IC_DATA_CMD_DAT_MASK, QUARKX1000_IC_DATA_CMD_DAT_SHIFT);
   }
 
@@ -137,7 +141,7 @@ i2c_data_send(void)
   if (device.rx_tx_len == 0)
     return;
 
-  tx_cnt = I2C_FIFO_DEPTH - get_value(device.pci.mmio, QUARKX1000_IC_TXFLR,
+  tx_cnt = I2C_FIFO_DEPTH - get_value(QUARKX1000_IC_TXFLR,
     QUARKX1000_IC_TXFLR_MASK, QUARKX1000_IC_TXFLR_SHIFT);
 
   if (tx_cnt > device.rx_tx_len)
@@ -158,7 +162,7 @@ i2c_data_send(void)
         data |= QUARKX1000_IC_DATA_CMD_STOP_MASK;
     }
 
-    write(device.pci.mmio, QUARKX1000_IC_DATA_CMD, data);
+    write(QUARKX1000_IC_DATA_CMD, data);
     device.rx_tx_len -= 1;
   }
 
@@ -168,11 +172,11 @@ i2c_data_send(void)
 static void
 i2c_isr(void)
 {
-  if (read(device.pci.mmio, QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_STOP_DET_MASK) {
+  if (read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_STOP_DET_MASK) {
     i2c_data_read();
 
-    write(device.pci.mmio, QUARKX1000_IC_INTR_MASK, 0);
-    read(device.pci.mmio, QUARKX1000_IC_CLR_INTR);
+    write(QUARKX1000_IC_INTR_MASK, 0);
+    read(QUARKX1000_IC_CLR_INTR);
 
     if (device.direction == I2C_DIRECTION_WRITE) {
       if (device.config.cb_tx)
@@ -183,24 +187,24 @@ i2c_isr(void)
     }
   }
 
-  if (read(device.pci.mmio, QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_TX_EMPTY_MASK) {
+  if (read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_TX_EMPTY_MASK) {
     i2c_data_send();
     if (device.rx_tx_len <= 0) {
-      set_value(device.pci.mmio, QUARKX1000_IC_INTR_MASK,
+      set_value(QUARKX1000_IC_INTR_MASK,
         QUARKX1000_IC_INTR_STAT_TX_EMPTY_MASK, QUARKX1000_IC_INTR_STAT_TX_EMPTY_SHIFT, 0);
-      set_value(device.pci.mmio, QUARKX1000_IC_INTR_MASK,
+      set_value(QUARKX1000_IC_INTR_MASK,
         QUARKX1000_IC_INTR_STAT_STOP_DET_MASK, QUARKX1000_IC_INTR_STAT_STOP_DET_SHIFT, 1);
     }
   }
 
-  if (read(device.pci.mmio, QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_RX_FULL_MASK)
+  if (read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_RX_FULL_MASK)
     i2c_data_read();
 
-  if (read(device.pci.mmio, QUARKX1000_IC_INTR_STAT) & (QUARKX1000_IC_INTR_STAT_TX_ABRT_MASK
+  if (read(QUARKX1000_IC_INTR_STAT) & (QUARKX1000_IC_INTR_STAT_TX_ABRT_MASK
     | QUARKX1000_IC_INTR_STAT_TX_OVER_MASK | QUARKX1000_IC_INTR_STAT_RX_OVER_MASK
     | QUARKX1000_IC_INTR_STAT_RX_UNDER_MASK)) {
-    write(device.pci.mmio, QUARKX1000_IC_INTR_MASK, 0);
-    read(device.pci.mmio, QUARKX1000_IC_CLR_INTR);
+    write(QUARKX1000_IC_INTR_MASK, 0);
+    read(QUARKX1000_IC_CLR_INTR);
 
     if (device.config.cb_err)
       device.config.cb_err();
@@ -227,7 +231,7 @@ quarkX1000_i2c_configure(struct quarkX1000_i2c_config *config)
     hcnt = I2C_FS_HCNT;
   }
 
-  ic_fs_spklen = get_value(device.pci.mmio, QUARKX1000_IC_FS_SPKLEN,
+  ic_fs_spklen = get_value(QUARKX1000_IC_FS_SPKLEN,
     QUARKX1000_IC_FS_SPKLEN_MASK, QUARKX1000_IC_FS_SPKLEN_SHIFT);
 
   /* We adjust the Low Count and High Count based on the Spike Suppression Limit */
@@ -235,7 +239,7 @@ quarkX1000_i2c_configure(struct quarkX1000_i2c_config *config)
   device.hcnt = (hcnt < (ic_fs_spklen + I2C_FS_SPKLEN_HCNT_OFFSET)) ? ic_fs_spklen + I2C_FS_SPKLEN_HCNT_OFFSET : hcnt;
 
   /* Clear interrupts. */
-  read(device.pci.mmio, QUARKX1000_IC_CLR_INTR);
+  read(QUARKX1000_IC_CLR_INTR);
 
   return 0;
 }
@@ -244,38 +248,38 @@ static int
 i2c_setup(void)
 {
   /* Clear all values */
-  write(device.pci.mmio, QUARKX1000_IC_CON, 0);
+  write(QUARKX1000_IC_CON, 0);
 
   /* Clear interrupts */
-  read(device.pci.mmio, QUARKX1000_IC_CLR_INTR);
+  read(QUARKX1000_IC_CLR_INTR);
 
   /* Quark X1000 SoC I2C only supports master mode. */
-  set_value(device.pci.mmio, QUARKX1000_IC_CON,
+  set_value(QUARKX1000_IC_CON,
     QUARKX1000_IC_CON_MASTER_MODE_MASK, QUARKX1000_IC_CON_MASTER_MODE_SHIFT, 1);
 
   /* Set restart enable */
-  set_value(device.pci.mmio, QUARKX1000_IC_CON,
+  set_value(QUARKX1000_IC_CON,
     QUARKX1000_IC_CON_RESTART_EN_MASK, QUARKX1000_IC_CON_RESTART_EN_SHIFT, 1);
 
   /* Set addressing mode */
   if (device.config.addressing_mode == QUARKX1000_I2C_ADDR_MODE_10BIT) {
-    set_value(device.pci.mmio, QUARKX1000_IC_CON,
+    set_value(QUARKX1000_IC_CON,
       QUARKX1000_IC_CON_10BITADDR_MASTER_MASK, QUARKX1000_IC_CON_10BITADDR_MASTER_SHIFT, 1);
   }
 
   if (device.config.speed == QUARKX1000_I2C_SPEED_STANDARD) {
-    set_value(device.pci.mmio, QUARKX1000_IC_SS_SCL_LCNT,
+    set_value(QUARKX1000_IC_SS_SCL_LCNT,
       QUARKX1000_IC_SS_SCL_LCNT_MASK, QUARKX1000_IC_SS_SCL_LCNT_SHIFT, device.lcnt);
-    set_value(device.pci.mmio, QUARKX1000_IC_SS_SCL_HCNT,
+    set_value(QUARKX1000_IC_SS_SCL_HCNT,
       QUARKX1000_IC_SS_SCL_HCNT_MASK, QUARKX1000_IC_SS_SCL_HCNT_SHIFT, device.hcnt);
-    set_value(device.pci.mmio, QUARKX1000_IC_CON,
+    set_value(QUARKX1000_IC_CON,
       QUARKX1000_IC_CON_SPEED_MASK, QUARKX1000_IC_CON_SPEED_SHIFT, 0x1);
   } else {
-    set_value(device.pci.mmio, QUARKX1000_IC_FS_SCL_LCNT,
+    set_value(QUARKX1000_IC_FS_SCL_LCNT,
       QUARKX1000_IC_FS_SCL_LCNT_MASK, QUARKX1000_IC_FS_SCL_LCNT_SHIFT, device.lcnt);
-    set_value(device.pci.mmio, QUARKX1000_IC_FS_SCL_HCNT,
+    set_value(QUARKX1000_IC_FS_SCL_HCNT,
       QUARKX1000_IC_FS_SCL_HCNT_MASK, QUARKX1000_IC_FS_SCL_HCNT_SHIFT, device.hcnt);
-    set_value(device.pci.mmio, QUARKX1000_IC_CON,
+    set_value(QUARKX1000_IC_CON,
       QUARKX1000_IC_CON_SPEED_MASK, QUARKX1000_IC_CON_SPEED_SHIFT, 0x2);
   }
 
@@ -293,19 +297,19 @@ i2c_operation_setup(uint8_t *write_buf, uint8_t write_len,
   device.rx_tx_len = device.rx_len + device.tx_len;
 
   /* Disable controller */
-  set_value(device.pci.mmio, QUARKX1000_IC_ENABLE,
+  set_value(QUARKX1000_IC_ENABLE,
     QUARKX1000_IC_ENABLE_MASK, QUARKX1000_IC_ENABLE_SHIFT, 0);
 
   i2c_setup();
 
   /* Disable interrupts */
-  write(device.pci.mmio, QUARKX1000_IC_INTR_MASK, 0);
+  write(QUARKX1000_IC_INTR_MASK, 0);
 
   /* Clear interrupts */
-  read(device.pci.mmio, QUARKX1000_IC_CLR_INTR);
+  read(QUARKX1000_IC_CLR_INTR);
 
   /* Set address of target slave */
-  set_value(device.pci.mmio, QUARKX1000_IC_TAR,
+  set_value(QUARKX1000_IC_TAR,
     QUARKX1000_IC_TAR_MASK, QUARKX1000_IC_TAR_SHIFT, addr);
 }
 
@@ -314,29 +318,29 @@ static int
 i2c_operation(uint8_t *write_buf, uint8_t write_len,
   uint8_t *read_buf,  uint8_t read_len, uint16_t addr)
 {
-  if (read(device.pci.mmio, QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_ACTIVITY_MASK)
+  if (read(QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_ACTIVITY_MASK)
     return -1;
 
   i2c_operation_setup(write_buf, write_len, read_buf, read_len, addr);
 
   /* Enable master TX and RX interrupts */
-  set_value(device.pci.mmio, QUARKX1000_IC_INTR_MASK,
+  set_value(QUARKX1000_IC_INTR_MASK,
     QUARKX1000_IC_INTR_STAT_TX_OVER_MASK, QUARKX1000_IC_INTR_STAT_TX_OVER_SHIFT, 1);
-  set_value(device.pci.mmio, QUARKX1000_IC_INTR_MASK,
+  set_value(QUARKX1000_IC_INTR_MASK,
     QUARKX1000_IC_INTR_STAT_TX_EMPTY_MASK, QUARKX1000_IC_INTR_STAT_TX_EMPTY_SHIFT, 1);
-  set_value(device.pci.mmio, QUARKX1000_IC_INTR_MASK,
+  set_value(QUARKX1000_IC_INTR_MASK,
     QUARKX1000_IC_INTR_STAT_TX_ABRT_MASK, QUARKX1000_IC_INTR_STAT_TX_ABRT_SHIFT, 1);
-  set_value(device.pci.mmio, QUARKX1000_IC_INTR_MASK,
+  set_value(QUARKX1000_IC_INTR_MASK,
     QUARKX1000_IC_INTR_STAT_RX_UNDER_MASK, QUARKX1000_IC_INTR_STAT_RX_UNDER_SHIFT, 1);
-  set_value(device.pci.mmio, QUARKX1000_IC_INTR_MASK,
+  set_value(QUARKX1000_IC_INTR_MASK,
     QUARKX1000_IC_INTR_STAT_RX_OVER_MASK, QUARKX1000_IC_INTR_STAT_RX_OVER_SHIFT, 1);
-  set_value(device.pci.mmio, QUARKX1000_IC_INTR_MASK,
+  set_value(QUARKX1000_IC_INTR_MASK,
     QUARKX1000_IC_INTR_STAT_RX_FULL_MASK, QUARKX1000_IC_INTR_STAT_RX_FULL_SHIFT, 1);
-  set_value(device.pci.mmio, QUARKX1000_IC_INTR_MASK,
+  set_value(QUARKX1000_IC_INTR_MASK,
     QUARKX1000_IC_INTR_STAT_STOP_DET_MASK, QUARKX1000_IC_INTR_STAT_STOP_DET_SHIFT, 1);
 
   /* Enable controller */
-  set_value(device.pci.mmio, QUARKX1000_IC_ENABLE,
+  set_value(QUARKX1000_IC_ENABLE,
     QUARKX1000_IC_ENABLE_MASK, QUARKX1000_IC_ENABLE_SHIFT, 1);
 
   return 0;
@@ -364,33 +368,33 @@ i2c_polling_operation(uint8_t *write_buf, uint8_t write_len,
 {
   uint32_t start_time, intr_mask_stat;
 
-  if (!(read(device.pci.mmio, QUARKX1000_IC_CON) & QUARKX1000_IC_CON_MASTER_MODE_MASK))
+  if (!(read(QUARKX1000_IC_CON) & QUARKX1000_IC_CON_MASTER_MODE_MASK))
     return -1;
 
   /* Wait i2c idle */
   start_time = clock_seconds();
-  while (read(device.pci.mmio, QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_ACTIVITY_MASK) {
+  while (read(QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_ACTIVITY_MASK) {
     if ((clock_seconds() - start_time) > I2C_POLLING_TIMEOUT) {
       return -1;
     }
   }
 
   /* Get interrupt mask to restore in the end of polling operation */
-  intr_mask_stat = read(device.pci.mmio, QUARKX1000_IC_INTR_MASK);
+  intr_mask_stat = read(QUARKX1000_IC_INTR_MASK);
 
   i2c_operation_setup(write_buf, write_len, read_buf, read_len, addr);
 
   /* Enable controller */
-  set_value(device.pci.mmio, QUARKX1000_IC_ENABLE,
+  set_value(QUARKX1000_IC_ENABLE,
     QUARKX1000_IC_ENABLE_MASK, QUARKX1000_IC_ENABLE_SHIFT, 1);
 
   /* Transmit */
   if (device.tx_len != 0) {
     while (device.tx_len > 0) {
       start_time = clock_seconds();
-      while (!(read(device.pci.mmio, QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_TFNF_MASK)) {
+      while (!(read(QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_TFNF_MASK)) {
         if ((clock_seconds() - start_time) > I2C_POLLING_TIMEOUT) {
-          set_value(device.pci.mmio, QUARKX1000_IC_ENABLE,
+          set_value(QUARKX1000_IC_ENABLE,
             QUARKX1000_IC_ENABLE_MASK, QUARKX1000_IC_ENABLE_SHIFT, 0);
           return -1;
         }
@@ -399,9 +403,9 @@ i2c_polling_operation(uint8_t *write_buf, uint8_t write_len,
     }
 
     start_time = clock_seconds();
-    while (!(read(device.pci.mmio, QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_TFE_MASK)) {
+    while (!(read(QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_TFE_MASK)) {
       if ((clock_seconds() - start_time) > I2C_POLLING_TIMEOUT) {
-        set_value(device.pci.mmio, QUARKX1000_IC_ENABLE,
+        set_value(QUARKX1000_IC_ENABLE,
           QUARKX1000_IC_ENABLE_MASK, QUARKX1000_IC_ENABLE_SHIFT, 0);
         return -1;
       }
@@ -414,9 +418,9 @@ i2c_polling_operation(uint8_t *write_buf, uint8_t write_len,
   if (device.rx_len != 0) {
     while (device.rx_len > 0) {
       start_time = clock_seconds();
-      while (!(read(device.pci.mmio, QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_RFNE_MASK)) {
+      while (!(read(QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_RFNE_MASK)) {
         if ((clock_seconds() - start_time) > I2C_POLLING_TIMEOUT) {
-          set_value(device.pci.mmio, QUARKX1000_IC_ENABLE,
+          set_value(QUARKX1000_IC_ENABLE,
             QUARKX1000_IC_ENABLE_MASK, QUARKX1000_IC_ENABLE_SHIFT, 0);
           return -1;
         }
@@ -427,31 +431,31 @@ i2c_polling_operation(uint8_t *write_buf, uint8_t write_len,
 
   /* Stop Det */
   start_time = clock_seconds();
-  while (!(read(device.pci.mmio, QUARKX1000_IC_RAW_INTR_STAT) & QUARKX1000_IC_INTR_STAT_STOP_DET_MASK)) {
+  while (!(read(QUARKX1000_IC_RAW_INTR_STAT) & QUARKX1000_IC_INTR_STAT_STOP_DET_MASK)) {
     if ((clock_seconds() - start_time) > I2C_POLLING_TIMEOUT) {
-      set_value(device.pci.mmio, QUARKX1000_IC_ENABLE,
+      set_value(QUARKX1000_IC_ENABLE,
         QUARKX1000_IC_ENABLE_MASK, QUARKX1000_IC_ENABLE_SHIFT, 0);
       return -1;
     }
   }
-  read(device.pci.mmio, QUARKX1000_IC_CLR_STOP_DET);
+  read(QUARKX1000_IC_CLR_STOP_DET);
 
   /* Wait i2c idle */
   start_time = clock_seconds();
-  while (read(device.pci.mmio, QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_ACTIVITY_MASK) {
+  while (read(QUARKX1000_IC_STATUS) & QUARKX1000_IC_STATUS_ACTIVITY_MASK) {
     if ((clock_seconds() - start_time) > I2C_POLLING_TIMEOUT) {
-      set_value(device.pci.mmio, QUARKX1000_IC_ENABLE,
+      set_value(QUARKX1000_IC_ENABLE,
         QUARKX1000_IC_ENABLE_MASK, QUARKX1000_IC_ENABLE_SHIFT, 0);
       return -1;
     }
   }
 
   /* Disable controller */
-  set_value(device.pci.mmio, QUARKX1000_IC_ENABLE,
+  set_value(QUARKX1000_IC_ENABLE,
     QUARKX1000_IC_ENABLE_MASK, QUARKX1000_IC_ENABLE_SHIFT, 0);
 
   /* Restore interrupt mask */
-  write(device.pci.mmio, QUARKX1000_IC_INTR_MASK, intr_mask_stat);
+  write(QUARKX1000_IC_INTR_MASK, intr_mask_stat);
 
   return 0;
 }
