@@ -171,8 +171,10 @@ transmit_packet_list(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-free_packet(struct neighbor_queue *n, struct rdc_buf_list *p)
+free_packet(struct neighbor_queue *n, struct rdc_buf_list *p, int status)
 {
+  clock_time_t tx_delay;
+
   if(p != NULL) {
     /* Remove packet from list and deallocate */
     list_remove(n->queued_packet_list, p);
@@ -188,8 +190,8 @@ free_packet(struct neighbor_queue *n, struct rdc_buf_list *p)
       n->collisions = 0;
       n->deferrals = 0;
       /* Set a timer for next transmissions */
-      ctimer_set(&n->transmit_timer, default_timebase(),
-                 transmit_packet_list, n);
+      tx_delay = (status == MAC_TX_OK) ? 0 : default_timebase();
+      ctimer_set(&n->transmit_timer, tx_delay, transmit_packet_list, n);
     } else {
       /* This was the last packet in the queue, we free the neighbor */
       ctimer_stop(&n->transmit_timer);
@@ -293,7 +295,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
         } else {
           PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
                  status, n->transmissions, n->collisions);
-          free_packet(n, q);
+          free_packet(n, q, status);
           mac_call_sent_callback(sent, cptr, status, num_tx);
         }
       } else {
@@ -302,7 +304,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
         } else {
           PRINTF("csma: rexmit failed %d: %d\n", n->transmissions, status);
         }
-        free_packet(n, q);
+        free_packet(n, q, status);
         mac_call_sent_callback(sent, cptr, status, num_tx);
       }
     } else {
