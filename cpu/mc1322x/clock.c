@@ -91,6 +91,12 @@ clock_seconds(void)
 }
 
 void
+clock_set_seconds(unsigned long sec)
+{
+	seconds = sec;
+}
+
+void
 clock_wait(clock_time_t t)
 {
 	clock_time_t endticks = current_clock + t;

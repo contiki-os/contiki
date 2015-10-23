@@ -83,7 +83,7 @@ pollhandler(void)
        }
 #endif              
     } else {
-      uip_len = 0;
+      uip_clear_buf();
     }
   }
 }

@@ -1100,7 +1100,7 @@ icmp_input()
   uint16_t val;
 
 #if UIP_CONF_IPV6_CHECKS
-  if(!uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) {
+  if(!uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr)) {
     PRINTF("ROLL TM: ICMPv6 In, bad source ");
     PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
     PRINTF(" to ");
@@ -1383,8 +1383,7 @@ out()
 
 drop:
   uip_slen = 0;
-  uip_len = 0;
-  uip_ext_len = 0;
+  uip_clear_buf();
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t

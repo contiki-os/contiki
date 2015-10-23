@@ -66,6 +66,7 @@ static uint8_t dio_send_ok;
 static void
 handle_periodic_timer(void *ptr)
 {
+  rpl_purge_dags();
   rpl_purge_routes();
   rpl_recalculate_ranks();
 

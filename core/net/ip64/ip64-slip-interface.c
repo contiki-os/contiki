@@ -59,7 +59,7 @@ input_callback(void)
   /*PRINTF("SIN: %u\n", uip_len);*/
   if(uip_buf[0] == '!') {
     PRINTF("Got configuration message of type %c\n", uip_buf[1]);
-    uip_len = 0;
+    uip_clear_buf();
 #if 0
     if(uip_buf[1] == 'P') {
       uip_ipaddr_t prefix;
@@ -87,7 +87,7 @@ input_callback(void)
       slip_send();
       
     }
-    uip_len = 0;
+    uip_clear_buf();
   } else {
     
     /* Save the last sender received over SLIP to avoid bouncing the
@@ -101,7 +101,7 @@ input_callback(void)
       uip_len = len;
       /*      PRINTF("send len %d\n", len); */
     } else {
-      uip_len = 0;
+      uip_clear_buf();
     }
   }
 }
@@ -115,7 +115,7 @@ init(void)
   slip_set_input_callback(input_callback);
 }
 /*---------------------------------------------------------------------------*/
-static void
+static int
 output(void)
 {
   int len;
@@ -138,8 +138,10 @@ output(void)
       memcpy(&uip_buf[UIP_LLH_LEN], ip64_packet_buffer, len);
       uip_len = len;
       slip_send();
+      return len;
     }
   }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 const struct uip_fallback_interface ip64_slip_interface = {

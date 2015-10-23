@@ -34,20 +34,6 @@
 #include "shell.h"
 #include "serial-shell.h"
 
-#include "dev/watchdog.h"
-
-#include "net/rime/rime.h"
-#include "cc2420.h"
-#include "dev/leds.h"
-#include "dev/light.h"
-#include "dev/sht11/sht11.h"
-#include "dev/battery-sensor.h"
-
-#include "net/rime/timesynch.h"
-
-#include <stdio.h>
-#include <string.h>
-
 /*---------------------------------------------------------------------------*/
 PROCESS(sky_shell_process, "Sky Contiki shell");
 AUTOSTART_PROCESSES(&sky_shell_process);

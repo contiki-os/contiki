@@ -552,7 +552,19 @@ rf230_is_ready_to_send() {
 static void
 flushrx(void)
 {
+  /* Clear the length field to allow buffering of the next packet */
   rxframe[rxframe_head].length=0;
+  rxframe_head++;
+  if (rxframe_head >= RF230_CONF_RX_BUFFERS) {
+    rxframe_head=0;
+  }
+  /* If another packet has been buffered, schedule another receive poll */
+  if (rxframe[rxframe_head].length) {
+    rf230_interrupt();
+  }
+  else {
+    rf230_pending = 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -1434,6 +1446,7 @@ rf230_read(void *buf, unsigned short bufsize)
 #if RADIOALWAYSON && DEBUGFLOWSIZE
    if (RF230_receive_on==0) {if (debugflow[debugflowsize-1]!='z') DEBUGFLOW('z');} //cxmac calls with radio off?
 #endif
+    flushrx();
     return 0;
   }
 
@@ -1476,19 +1489,8 @@ rf230_read(void *buf, unsigned short bufsize)
   memcpy(buf,framep,len-AUX_LEN+CHECKSUM_LEN);
   rf230_last_correlation = rxframe[rxframe_head].lqi;
 
-  /* Clear the length field to allow buffering of the next packet */
-  rxframe[rxframe_head].length=0;
-  rxframe_head++;
-  if (rxframe_head >= RF230_CONF_RX_BUFFERS) {
-    rxframe_head=0;
-  }
-  /* If another packet has been buffered, schedule another receive poll */
-  if (rxframe[rxframe_head].length) {
-    rf230_interrupt();
-  }
-  else {
-    rf230_pending = 0;
-  }
+ /* Prepare to receive another packet */
+  flushrx();
   
  /* Point to the checksum */
   framep+=len-AUX_LEN; 

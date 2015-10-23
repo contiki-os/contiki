@@ -938,6 +938,15 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   rpl_parent_t *p;
   rpl_of_t *of;
 
+  /* Determine the objective function by using the
+     objective code point of the DIO. */
+  of = rpl_find_of(dio->ocp);
+  if(of == NULL) {
+    PRINTF("RPL: DIO for DAG instance %u does not specify a supported OF: %u\n",
+           dio->instance_id, dio->ocp);
+    return;
+  }
+
   dag = rpl_alloc_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG object!\n");
@@ -957,17 +966,6 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
   p->dtsn = dio->dtsn;
   PRINTF("succeeded\n");
-
-  /* Determine the objective function by using the
-     objective code point of the DIO. */
-  of = rpl_find_of(dio->ocp);
-  if(of == NULL) {
-    PRINTF("RPL: DIO for DAG instance %u does not specify a supported OF\n",
-        dio->instance_id);
-    rpl_remove_parent(p);
-    instance->used = 0;
-    return;
-  }
 
   /* Autoconfigure an address if this node does not already have an address
      with this prefix. */
@@ -1062,6 +1060,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
       rpl_move_parent(previous_dag, dag, p);
     }
   }
+  p->rank = dio->rank;
 
   /* Determine the objective function by using the
      objective code point of the DIO. */
@@ -1336,6 +1335,12 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return;
   }
 
+  /* The DIO comes from a valid DAG, we can refresh its lifetime */
+  dag->lifetime = (1UL << (instance->dio_intmin + instance->dio_intdoubl)) / 1000;
+  PRINTF("Set dag ");
+  PRINT6ADDR(&dag->dag_id);
+  PRINTF(" lifetime to %ld\n", dag->lifetime);
+
   /*
    * At this point, we know that this DIO pertains to a DAG that
    * we are already part of. We consider the sender of the DIO to be
@@ -1370,10 +1375,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       if(dag->joined) {
         instance->dio_counter++;
       }
-    } else {
-      p->rank=dio->rank;
     }
   }
+  p->rank = dio->rank;
 
   /* Parent info has been updated, trigger rank recalculation */
   p->flags |= RPL_PARENT_FLAG_UPDATED;
@@ -1406,12 +1410,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     uip_ds6_defrt_add(from, RPL_DEFAULT_ROUTE_INFINITE_LIFETIME ? 0 : RPL_LIFETIME(instance, instance->default_lifetime));
   }
   p->dtsn = dio->dtsn;
-}
-/*---------------------------------------------------------------------------*/
-void
-rpl_lock_parent(rpl_parent_t *p)
-{
-  nbr_table_lock(rpl_parents, p);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

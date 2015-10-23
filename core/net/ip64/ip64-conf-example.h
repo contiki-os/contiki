@@ -35,9 +35,14 @@
 #include "ip64-tap-driver.h"
 #include "ip64-eth-interface.h"
 
-#define IP64_CONF_UIP_FALLBACK_INTERFACE ip64_eth_interface
-#define IP64_CONF_INPUT                  ip64_eth_interface_input
+#define IP64_CONF_UIP_FALLBACK_INTERFACE    ip64_eth_interface
+#define IP64_CONF_INPUT                     ip64_eth_interface_input
 
-#define IP64_CONF_ETH_DRIVER             ip64_tap_driver
+#define IP64_CONF_ETH_DRIVER                ip64_tap_driver
 
+/* 
+ * In contrast to the mandatory parameters above, IP64_CONF_DHCP is an 
+ * optional configuration parameter. The default value is set in ip64.h 
+ */
+/* #define IP64_CONF_DHCP                      1 */
 #endif /* IP64_CONF_H */

@@ -436,6 +436,11 @@ uip_connect(const uip_ipaddr_t *ripaddr, uint16_t rport)
   conn->snd_nxt[2] = iss[2];
   conn->snd_nxt[3] = iss[3];
 
+  conn->rcv_nxt[0] = 0;
+  conn->rcv_nxt[1] = 0;
+  conn->rcv_nxt[2] = 0;
+  conn->rcv_nxt[3] = 0;
+
   conn->initialmss = conn->mss = UIP_TCP_MSS;
 
   conn->len = 1;   /* TCP length of the SYN is one. */
@@ -709,7 +714,7 @@ uip_process(uint8_t flag)
     }
 
     /* Reset the length variables. */
-    uip_len = 0;
+    uip_clear_buf();
     uip_slen = 0;
 
 #if UIP_TCP
@@ -1367,10 +1372,10 @@ uip_process(uint8_t flag)
   uip_connr->len = 1;
 
   /* rcv_nxt should be the seqno from the incoming packet + 1. */
-  uip_connr->rcv_nxt[3] = BUF->seqno[3];
-  uip_connr->rcv_nxt[2] = BUF->seqno[2];
-  uip_connr->rcv_nxt[1] = BUF->seqno[1];
   uip_connr->rcv_nxt[0] = BUF->seqno[0];
+  uip_connr->rcv_nxt[1] = BUF->seqno[1];
+  uip_connr->rcv_nxt[2] = BUF->seqno[2];
+  uip_connr->rcv_nxt[3] = BUF->seqno[3];
   uip_add_rcv_nxt(1);
 
   /* Parse the TCP MSS option, if present. */
@@ -1589,7 +1594,7 @@ uip_process(uint8_t flag)
       uip_add_rcv_nxt(1);
       uip_flags = UIP_CONNECTED | UIP_NEWDATA;
       uip_connr->len = 0;
-      uip_len = 0;
+      uip_clear_buf();
       uip_slen = 0;
       UIP_APPCALL();
       goto appsend;
@@ -1934,7 +1939,7 @@ uip_process(uint8_t flag)
   return;
 
  drop:
-  uip_len = 0;
+  uip_clear_buf();
   uip_flags = 0;
   return;
 }

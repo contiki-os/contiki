@@ -275,6 +275,7 @@ uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
     PRINTF("Adding prefix ");
     PRINT6ADDR(&locprefix->ipaddr);
     PRINTF("length %u, vlifetime%lu\n", ipaddrlen, interval);
+    return locprefix;
   }
   return NULL;
 }
@@ -388,7 +389,7 @@ uip_ds6_get_link_local(int8_t state)
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
     if(locaddr->isused && (state == -1 || locaddr->state == state)
-       && (uip_is_addr_link_local(&locaddr->ipaddr))) {
+       && (uip_is_addr_linklocal(&locaddr->ipaddr))) {
       return locaddr;
     }
   }
@@ -407,7 +408,7 @@ uip_ds6_get_global(int8_t state)
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
     if(locaddr->isused && (state == -1 || locaddr->state == state)
-       && !(uip_is_addr_link_local(&locaddr->ipaddr))) {
+       && !(uip_is_addr_linklocal(&locaddr->ipaddr))) {
       return locaddr;
     }
   }
@@ -498,13 +499,13 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
   uint8_t n = 0;
   uip_ds6_addr_t *matchaddr = NULL;
 
-  if(!uip_is_addr_link_local(dst) && !uip_is_addr_mcast(dst)) {
+  if(!uip_is_addr_linklocal(dst) && !uip_is_addr_mcast(dst)) {
     /* find longest match */
     for(locaddr = uip_ds6_if.addr_list;
         locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
       /* Only preferred global (not link-local) addresses */
       if(locaddr->isused && locaddr->state == ADDR_PREFERRED &&
-         !uip_is_addr_link_local(&locaddr->ipaddr)) {
+         !uip_is_addr_linklocal(&locaddr->ipaddr)) {
         n = get_match_length(dst, &locaddr->ipaddr);
         if(n >= best) {
           best = n;
@@ -607,7 +608,7 @@ uip_ds6_dad(uip_ds6_addr_t *addr)
 int
 uip_ds6_dad_failed(uip_ds6_addr_t *addr)
 {
-  if(uip_is_addr_link_local(&addr->ipaddr)) {
+  if(uip_is_addr_linklocal(&addr->ipaddr)) {
     PRINTF("Contiki shutdown, DAD for link local address failed\n");
     return 0;
   }

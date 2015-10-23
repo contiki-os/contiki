@@ -89,11 +89,17 @@ rpl_set_mode(enum rpl_mode m)
   } else if(m == RPL_MODE_FEATHER) {
 
     PRINTF("RPL: switching to feather mode\n");
-    mode = m;
     if(default_instance != NULL) {
+      PRINTF("rpl_set_mode: RPL sending DAO with zero lifetime\n");
+      if(default_instance->current_dag != NULL) {
+        dao_output(default_instance->current_dag->preferred_parent, RPL_ZERO_LIFETIME);
+      }
       rpl_cancel_dao(default_instance);
+    } else {
+      PRINTF("rpl_set_mode: no default instance\n");
     }
 
+    mode = m;
   } else {
     mode = m;
   }
@@ -288,6 +294,34 @@ rpl_ipv6_neighbor_callback(uip_ds6_nbr_t *nbr)
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_ipv6_neighbor_callback infinite rank\n");
         p->flags |= RPL_PARENT_FLAG_UPDATED;
+      }
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_purge_dags(void)
+{
+  rpl_instance_t *instance;
+  rpl_instance_t *end;
+  int i;
+
+  for(instance = &instance_table[0], end = instance + RPL_MAX_INSTANCES;
+      instance < end; ++instance) {
+    if(instance->used) {
+      for(i = 0; i < RPL_MAX_DAG_PER_INSTANCE; i++) {
+        if(instance->dag_table[i].used) {
+          if(instance->dag_table[i].lifetime == 0) {
+            if(!instance->dag_table[i].joined) {
+              PRINTF("Removing dag ");
+              PRINT6ADDR(&instance->dag_table[i].dag_id);
+              PRINTF("\n");
+              rpl_free_dag(&instance->dag_table[i]);
+            }
+          } else {
+            instance->dag_table[i].lifetime--;
+          }
+        }
       }
     }
   }

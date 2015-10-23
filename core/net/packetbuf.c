@@ -141,6 +141,7 @@ packetbuf_copyto(void *to)
     int i;
     char buffer[1000];
     char *bufferptr = buffer;
+    int  bufferlen = 0;
     
     bufferptr[0] = 0;
     for(i = hdrptr; i < PACKETBUF_HDR_SIZE; ++i) {
@@ -149,8 +150,8 @@ packetbuf_copyto(void *to)
     PRINTF("packetbuf_write: header: %s\n", buffer);
     bufferptr = buffer;
     bufferptr[0] = 0;
-    for(i = bufptr; i < buflen + bufptr; ++i) {
-      bufferptr += sprintf(bufferptr, "0x%02x, ", packetbufptr[i]);
+    for(i = bufptr; ((i < buflen + bufptr) && (bufferlen < (sizeof(buffer) - 10))); ++i) {
+      bufferlen += sprintf(bufferptr + bufferlen, "0x%02x, ", packetbufptr[i]);
     }
     PRINTF("packetbuf_write: data: %s\n", buffer);
   }

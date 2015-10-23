@@ -122,6 +122,18 @@
 #endif /* RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME */
 
 /*
+ * Maximum lifetime of a DAG
+ * When a DODAG is not updated since RPL_CONF_DAG_LIFETIME times the DODAG
+ * maximum DIO interval the DODAG is removed from the list of DODAGS of the
+ * related instance, except if it is the currently joined DODAG.
+ */
+#ifdef RPL_CONF_DAG_LIFETIME
+#define RPL_DAG_LIFETIME                    RPL_CONF_DAG_LIFETIME
+#else
+#define RPL_DAG_LIFETIME                    3
+#endif /* RPL_CONF_DAG_LIFETIME */
+
+/*
  * 
  */
 #ifndef RPL_CONF_DAO_SPECIFY_DAG

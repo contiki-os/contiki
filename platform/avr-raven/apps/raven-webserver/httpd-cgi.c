@@ -368,7 +368,7 @@ make_routes(void *p)
     j++;
     numprinted += httpd_cgi_sprint_ip6(r->ipaddr, uip_appdata + numprinted);
     numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes1, r->length);
-    numprinted += httpd_cgi_sprint_ip6(uip_ds6_route_nexthop(r), uip_appdata + numprinted);
+    numprinted += httpd_cgi_sprint_ip6(*uip_ds6_route_nexthop(r), uip_appdata + numprinted);
     if(r->state.lifetime < 3600) {
       numprinted += httpd_snprintf((char *)uip_appdata+numprinted, uip_mss()-numprinted, httpd_cgi_rtes2, r->state.lifetime);
     } else {

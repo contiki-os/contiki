@@ -45,8 +45,6 @@
 #define MQTT_CLIENT_CONFIG_CMD_TYPE_LEN       8
 #define MQTT_CLIENT_CONFIG_IP_ADDR_STR_LEN   64
 /*---------------------------------------------------------------------------*/
-#define MQTT_CLIENT_RSSI_MEASURE_INTERVAL_MAX 86400 /* secs: 1 day */
-#define MQTT_CLIENT_RSSI_MEASURE_INTERVAL_MIN     5 /* secs */
 #define MQTT_CLIENT_PUBLISH_INTERVAL_MAX      86400 /* secs: 1 day */
 #define MQTT_CLIENT_PUBLISH_INTERVAL_MIN          5 /* secs */
 /*---------------------------------------------------------------------------*/
@@ -63,7 +61,6 @@ typedef struct mqtt_client_config {
   char broker_ip[MQTT_CLIENT_CONFIG_IP_ADDR_STR_LEN];
   char cmd_type[MQTT_CLIENT_CONFIG_CMD_TYPE_LEN];
   clock_time_t pub_interval;
-  int def_rt_ping_interval;
   uint16_t broker_port;
 } mqtt_client_config_t;
 /*---------------------------------------------------------------------------*/

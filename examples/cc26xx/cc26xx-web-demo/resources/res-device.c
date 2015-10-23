@@ -40,37 +40,65 @@
 #include "rest-engine.h"
 #include "er-coap.h"
 #include "sys/clock.h"
-#include "cc26xx-model.h"
 #include "coap-server.h"
 #include "cc26xx-web-demo.h"
 
+#include "ti-lib.h"
+
 #include <string.h>
+/*---------------------------------------------------------------------------*/
+static uint16_t
+detect_chip(void)
+{
+  if(ti_lib_chipinfo_chip_family_is_cc26xx()) {
+    if(ti_lib_chipinfo_supports_ieee_802_15_4() == true) {
+      if(ti_lib_chipinfo_supports_ble() == true) {
+        return 2650;
+      } else {
+        return 2630;
+      }
+    } else {
+      return 2640;
+    }
+  } else if(ti_lib_chipinfo_chip_family_is_cc13xx()) {
+    if(ti_lib_chipinfo_supports_ble() == false &&
+       ti_lib_chipinfo_supports_ieee_802_15_4() == false) {
+      return 1310;
+    } else if(ti_lib_chipinfo_supports_ble() == true &&
+        ti_lib_chipinfo_supports_ieee_802_15_4() == true) {
+      return 1350;
+    }
+  }
+
+  return 0;
+}
 /*---------------------------------------------------------------------------*/
 static void
 res_get_handler_hw(void *request, void *response, uint8_t *buffer,
                    uint16_t preferred_size, int32_t *offset)
 {
   unsigned int accept = -1;
+  uint16_t chip = detect_chip();
 
   REST.get_header_accept(request, &accept);
 
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
     REST.set_header_content_type(response, REST.type.TEXT_PLAIN);
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "%s on CC%u", BOARD_STRING,
-             CC26XX_MODEL_CPU_VARIANT);
+             chip);
 
     REST.set_response_payload(response, (uint8_t *)buffer, strlen((char *)buffer));
   } else if(accept == REST.type.APPLICATION_JSON) {
     REST.set_header_content_type(response, REST.type.APPLICATION_JSON);
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE, "{\"HW Ver\":\"%s on CC%u\"}",
-             BOARD_STRING, CC26XX_MODEL_CPU_VARIANT);
+             BOARD_STRING, chip);
 
     REST.set_response_payload(response, buffer, strlen((char *)buffer));
   } else if(accept == REST.type.APPLICATION_XML) {
     REST.set_header_content_type(response, REST.type.APPLICATION_XML);
     snprintf((char *)buffer, REST_MAX_CHUNK_SIZE,
              "<hw-ver val=\"%s on CC%u\"/>", BOARD_STRING,
-             CC26XX_MODEL_CPU_VARIANT);
+             chip);
 
     REST.set_response_payload(response, buffer, strlen((char *)buffer));
   } else {
