@@ -61,11 +61,34 @@ struct aes_128_driver {
    */
   void (* set_key)(const uint8_t *key);
   
-  /**
-   * \brief Encrypts.
+
+    /**
+   * \brief AES-128 bits block encryption.
    */
   void (* encrypt)(uint8_t *plaintext_and_result);
+
+
+  /**
+   * \brief AES-128 bits block decryption.
+   */
+  void (* decrypt)(uint8_t *plaintext_and_result);
+  
+    /**
+   * \brief AES-128 bits Encryption of Data.
+   */
+  void (* data_encrypt)(uint8_t *data, int len);
+  
+    /**
+   * \brief AES-128 bits Decryption of Data.
+   */
+  void (* data_decrypt)(uint8_t *data, int len);
+  
+
+
+  
 };
+
+
 
 /**
  * \brief Pads the plaintext with zeroes before calling AES_128.encrypt
