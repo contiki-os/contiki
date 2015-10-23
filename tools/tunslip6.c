@@ -238,21 +238,13 @@ serial_to_tun(FILE *inslip, int outfd)
 	  slip_send(slipfd, SLIP_END);
         }
 #define DEBUG_LINE_MARKER '\r'
-	if(uip.inbuf[0] == DEBUG_LINE_MARKER ||
-           is_sensible_string(uip.inbuf, inbufptr)) {
-          unsigned char *out = uip.inbuf;
-          unsigned int   len = inbufptr;
-          if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
-            out++;
-            len--;
-          }
-          fprintf(stderr, "\n***");
-	  fwrite(out, len, 1, stderr);
-          fprintf(stderr, "***\n");
-	} else {
-	  fprintf(stderr,
-		  "serial_to_tun: drop packet len=%d\n", inbufptr);
-	}
+      } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
+	fwrite(uip.inbuf + 1, inbufptr - 1, 1, stdout);
+      } else if(is_sensible_string(uip.inbuf, inbufptr)) {
+        if(verbose==1) {   /* strings already echoed below for verbose>1 */
+          if (timestamp) stamptime();
+          fwrite(uip.inbuf, inbufptr, 1, stdout);
+        }
       } else {
         if(verbose>2) {
           if (timestamp) stamptime();
@@ -709,7 +701,7 @@ main(int argc, char **argv)
   const char *port = NULL;
   const char *prog;
   int baudrate = -2;
-  int ipa_enable = 1;
+  int ipa_enable = 0;
   int tap = 0;
   slipfd = 0;
 
@@ -743,8 +735,8 @@ main(int argc, char **argv)
       break;
 
     case 'I':
-      ipa_enable = 0;
-      fprintf(stderr, "Will not inquire about IP address using IPA=\n");
+      ipa_enable = 1;
+      fprintf(stderr, "Will inquire about IP address using IPA=\n");
       break;
 
     case 't':
@@ -789,6 +781,7 @@ fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default),230400,4
 fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default),230400\n");
 #endif
 fprintf(stderr," -H             Hardware CTS/RTS flow control (default disabled)\n");
+fprintf(stderr," -I             Inquire IP address\n");
 fprintf(stderr," -L             Log output format (adds time stamps)\n");
 fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
 fprintf(stderr," -T             Make tap interface (default is tun interface)\n");
