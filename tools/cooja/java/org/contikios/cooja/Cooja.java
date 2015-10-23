@@ -3480,7 +3480,9 @@ public class Cooja extends Observable {
       }
 
       XMLOutputter outputter = new XMLOutputter();
-      outputter.setFormat(Format.getPrettyFormat());
+      Format fmt = Format.getPrettyFormat();
+      fmt.setLineSeparator("\n");
+      outputter.setFormat(fmt);
       outputter.output(doc, out);
       out.close();
 
