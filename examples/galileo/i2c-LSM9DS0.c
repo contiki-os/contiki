@@ -34,6 +34,7 @@
 #include "contiki.h"
 #include "sys/ctimer.h"
 
+#include "galileo-pinmux.h"
 #include "i2c.h"
 
 #define LSM9DS0_I2C_ADDR 0x6A
@@ -85,11 +86,16 @@ PROCESS_THREAD(i2c_lsm9ds0_process, ev, data)
 
   cfg.speed = QUARKX1000_I2C_SPEED_STANDARD;
   cfg.addressing_mode = QUARKX1000_I2C_ADDR_MODE_7BIT;
+
+  quarkX1000_i2c_init();
+  quarkX1000_i2c_configure(&cfg);
+
+  galileo_pinmux_initialize();
+
   cfg.cb_rx = rx;
   cfg.cb_tx = tx;
   cfg.cb_err = err;
 
-  quarkX1000_i2c_init();
   quarkX1000_i2c_configure(&cfg);
 
   ctimer_set(&timer, CLOCK_SECOND * 5, timeout, NULL);
