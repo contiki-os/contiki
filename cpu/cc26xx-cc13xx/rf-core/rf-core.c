@@ -114,9 +114,7 @@ PROCESS(rf_core_process, "CC13xx / CC26xx RF driver");
 uint8_t
 rf_core_is_accessible()
 {
-  if(ti_lib_prcm_rf_ready() &&
-     ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE) ==
-     PRCM_DOMAIN_POWER_ON) {
+  if(ti_lib_prcm_rf_ready()) {
     return RF_CORE_ACCESSIBLE;
   }
   return RF_CORE_NOT_ACCESSIBLE;
@@ -220,10 +218,6 @@ rf_core_power_up()
   ti_lib_prcm_domain_enable(PRCM_DOMAIN_RFCORE);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
-
-  while(!rf_core_is_accessible()) {
-    PRINTF("rf_core_power_up: Not ready\n");
-  }
 
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
