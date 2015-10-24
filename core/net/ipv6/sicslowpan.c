@@ -169,6 +169,14 @@ void uip_log(char *msg);
 #define COMPRESSION_THRESHOLD 0
 #endif
 
+/** \brief Fixed size of a frame header. This value is
+ * used in case framer returns an error or if SICSLOWPAN_USE_FIXED_HDRLEN
+ * is defined.
+ */
+#ifndef SICSLOWPAN_FIXED_HDRLEN
+#define SICSLOWPAN_FIXED_HDRLEN 21
+#endif
+
 /** \name General variables
  *  @{
  */
@@ -1345,16 +1353,15 @@ output(const uip_lladdr_t *localdest)
   /* Calculate NETSTACK_FRAMER's header length, that will be added in the NETSTACK_RDC.
    * We calculate it here only to make a better decision of whether the outgoing packet
    * needs to be fragmented or not. */
-#define USE_FRAMER_HDRLEN 1
-#if USE_FRAMER_HDRLEN
+#ifndef SICSLOWPAN_USE_FIXED_HDRLEN
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &dest);
   framer_hdrlen = NETSTACK_FRAMER.length();
   if(framer_hdrlen < 0) {
     /* Framing failed, we assume the maximum header length */
-    framer_hdrlen = 21;
+    framer_hdrlen = SICSLOWPAN_FIXED_HDRLEN;
   }
 #else /* USE_FRAMER_HDRLEN */
-  framer_hdrlen = 21;
+  framer_hdrlen = SICSLOWPAN_FIXED_HDRLEN;
 #endif /* USE_FRAMER_HDRLEN */
 
   max_payload = MAC_MAX_PAYLOAD - framer_hdrlen;
