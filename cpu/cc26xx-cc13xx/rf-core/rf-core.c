@@ -478,8 +478,8 @@ cc26xx_rf_cpe1_isr(void)
     }
   }
 
-  /* Clear interrupt flags */
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
+  /* Clear INTERNAL_ERROR interrupt flag */
+  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x7FFFFFFF;
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
@@ -500,17 +500,25 @@ cc26xx_rf_cpe0_isr(void)
   ti_lib_int_master_disable();
 
   if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & RX_FRAME_IRQ) {
+    /* Clear the RX_ENTRY_DONE interrupt flag */
+    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0xFF7FFFFF;
     process_poll(&rf_core_process);
   }
 
   if(RF_CORE_DEBUG_CRC) {
     if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & RX_NOK_IRQ) {
+      /* Clear the RX_NOK interrupt flag */
+      HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0xFFFDFFFF;
       rx_nok_isr();
     }
   }
 
-  /* Clear interrupt flags */
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
+  if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) &
+     (IRQ_LAST_FG_COMMAND_DONE | IRQ_LAST_COMMAND_DONE)) {
+    /* Clear the two TX-related interrupt flags */
+    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0xFFFFFFF5;
+  }
+
   ti_lib_int_master_enable();
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
