@@ -32,40 +32,49 @@
 
 /**
  * \file
- *         Utility to store a node id in the external flash
+ *         A program for burning a node ID into the external flash of a Wismote.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include "dev/leds.h"
+#include "dev/watchdog.h"
 #include "sys/node-id.h"
-#include "contiki-conf.h"
-#include "dev/xmem.h"
+#include "contiki.h"
+#include "sys/etimer.h"
 
-unsigned short node_id = 0;
+#include <stdio.h>
 
+static struct etimer etimer;
+
+PROCESS(burn_process, "Burn node id");
+AUTOSTART_PROCESSES(&burn_process);
 /*---------------------------------------------------------------------------*/
-void
-node_id_restore(void)
+PROCESS_THREAD(burn_process, ev, data)
 {
-  unsigned char buf[4];
-  xmem_pread(buf, 4, NODE_ID_XMEM_OFFSET);
-  if(buf[0] == 0xad &&
-     buf[1] == 0xde) {
-    node_id = (buf[2] << 8) | buf[3];
-  } else {
-    node_id = 0;
+  PROCESS_BEGIN();
+
+  etimer_set(&etimer, 5 * CLOCK_SECOND);
+  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
+
+  watchdog_stop();
+  leds_on(LEDS_RED);
+#if NODEID
+  printf("Burning node id %d\n", NODEID);
+  node_id_burn(NODEID);
+  leds_on(LEDS_BLUE);
+  node_id_restore();
+  printf("Restored node id %d\n", node_id);
+#else
+#error "burn-nodeid must be compiled with nodeid=<the ID of the node>"
+  node_id_restore();
+  printf("Restored node id %d\n", node_id);
+#endif
+  leds_off(LEDS_RED + LEDS_BLUE);
+  watchdog_start();
+  while(1) {
+    PROCESS_WAIT_EVENT();
   }
-}
-/*---------------------------------------------------------------------------*/
-void
-node_id_burn(unsigned short id)
-{
-  unsigned char buf[4];
-  buf[0] = 0xad;
-  buf[1] = 0xde;
-  buf[2] = id >> 8;
-  buf[3] = id & 0xff;
-  xmem_erase(XMEM_ERASE_UNIT_SIZE, NODE_ID_XMEM_OFFSET);
-  xmem_pwrite(buf, 4, NODE_ID_XMEM_OFFSET);
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
