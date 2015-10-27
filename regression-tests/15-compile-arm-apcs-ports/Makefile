@@ -3,7 +3,7 @@ TOOLSDIR=../../tools
 
 EXAMPLES = \
 hello-world/econotag \
-hello-world/mbxxx \
+hello-world/mbxxx:STM32W_CPUREV=CC \
 ipv6/rpl-border-router/econotag \
 er-rest-example/econotag \
 webserver-ipv6/econotag \

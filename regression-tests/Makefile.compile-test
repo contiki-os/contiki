@@ -42,7 +42,6 @@ get_target_vars = $(wordlist 2,15,$(subst :, ,$1))
 define dooneexample
 @echo Building example $(3): $(1) for target $(2)
 @((cd $(EXAMPLESDIR)/$(1); \
- export STM32W_CPUREV=CC; \
  make $(4) TARGET=$(2) clean && make $(4) TARGET=$(2) WERROR=1) > \
       $(3)-$(subst /,-,$(1))$(2).report 2>&1 && \
  (echo $(1) $(2): OK | tee $(3)-$(subst /,-,$(1))$(2).summary) || \
