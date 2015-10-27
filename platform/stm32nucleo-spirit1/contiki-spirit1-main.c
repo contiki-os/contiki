@@ -68,7 +68,7 @@
 #include "net/ipv6/uip-ds6.h"
 #endif /*NETSTACK_CONF_WITH_IPV6*/
 /*---------------------------------------------------------------------------*/
-#if COMPILE_SENSORS
+#ifdef X_NUCLEO_IKS01A1
 extern const struct sensors_sensor temperature_sensor;
 extern const struct sensors_sensor humidity_sensor;
 extern const struct sensors_sensor pressure_sensor;
@@ -83,10 +83,10 @@ SENSORS(&button_sensor,
         &magneto_sensor,
         &acceleration_sensor,
         &gyroscope_sensor);
-#else /*COMPILE_SENSORS*/
+#else /*X_NUCLEO_IKS01A1*/
 SENSORS(&button_sensor,
         &radio_sensor);
-#endif /*COMPILE_SENSORS*/
+#endif /*X_NUCLEO_IKS01A1*/
 /*---------------------------------------------------------------------------*/
 extern unsigned char node_mac[8];
 /*---------------------------------------------------------------------------*/

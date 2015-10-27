@@ -55,11 +55,11 @@
 #define LEDS_GREEN  1 /*Nucleo LED*/
 #define LEDS_RED    2 /*SPIRIT1 LED*/
 
-#ifdef COMPILE_SENSORS
+#ifdef X_NUCLEO_IKS01A1
 #define LEDS_CONF_ALL 1 /*Can't use SPIRIT1 LED in this case*/
 #else
 #define LEDS_CONF_ALL 3 /*No sensors -> we can use SPIRIT1 LED in this case*/
-#endif /*COMPILE_SENSORS*/
+#endif /*X_NUCLEO_IKS01A1*/
 /*---------------------------------------------------------------------------*/
 #define F_CPU                   32000000ul
 #define RTIMER_ARCH_SECOND              32768
