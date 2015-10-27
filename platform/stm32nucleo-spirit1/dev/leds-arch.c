@@ -41,13 +41,13 @@
 #include "dev/leds.h"
 #include "st-lib.h"
 /*---------------------------------------------------------------------------*/
-#ifndef COMPILE_SENSORS
-/* The Red LED (on SPIRIT1 exp board) is exposed only if the sensor board is NOT
- * used, becasue of a pin conflict.
+#ifndef X_NUCLEO_IKS01A1
+/* The Red LED (on SPIRIT1 exp board) is exposed only if the
+ * X-NUCLEO-IKS01A1 sensor board is NOT used, becasue of a pin conflict.
  */
 extern st_lib_gpio_typedef *st_lib_a_led_gpio_port[];
 extern const uint16_t st_lib_a_led_gpio_pin[];
-#endif /*COMPILE_SENSORS*/
+#endif /*X_NUCLEO_IKS01A1*/
 
 extern st_lib_gpio_typedef *st_lib_gpio_port[];
 extern const uint16_t st_lib_gpio_pin[];
@@ -59,13 +59,13 @@ leds_arch_init(void)
   st_lib_bsp_led_init(LED2);
   st_lib_bsp_led_off(LED2);
 
-#ifndef COMPILE_SENSORS
-/* The Red LED (on SPIRIT1 exp board) is exposed only if the sensor board is NOT
- * used, becasue of a pin conflict.
+#ifndef X_NUCLEO_IKS01A1
+/* The Red LED (on SPIRIT1 exp board) is exposed only if the
+ * X-NUCLEO-IKS01A1 sensor board is NOT used, becasue of a pin conflict.
  */
   st_lib_radio_shield_led_init(RADIO_SHIELD_LED);
   st_lib_radio_shield_led_off(RADIO_SHIELD_LED);
-#endif /*COMPILE_SENSORS*/
+#endif /*X_NUCLEO_IKS01A1*/
 }
 /*---------------------------------------------------------------------------*/
 unsigned char
@@ -76,15 +76,15 @@ leds_arch_get(void)
     ret |= LEDS_GREEN;
   }
 
-#ifndef COMPILE_SENSORS
-/* The Red LED (on SPIRIT1 exp board) is exposed only if the sensor board is NOT
- * used, becasue of a pin conflict.
+#ifndef X_NUCLEO_IKS01A1
+/* The Red LED (on SPIRIT1 exp board) is exposed only if the
+ * X-NUCLEO-IKS01A1 sensor board is NOT used, becasue of a pin conflict.
  */
   if(st_lib_hal_gpio_read_pin(st_lib_a_led_gpio_port[RADIO_SHIELD_LED],
                               st_lib_a_led_gpio_pin[RADIO_SHIELD_LED])) {
     ret |= LEDS_RED;
   }
-#endif /*COMPILE_SENSORS*/
+#endif /*X_NUCLEO_IKS01A1*/
 
   return ret;
 }
@@ -98,16 +98,16 @@ leds_arch_set(unsigned char leds)
     st_lib_bsp_led_off(LED2);
   }
 
-#ifndef COMPILE_SENSORS
-/* The Red LED (on SPIRIT1 exp board) is exposed only if the sensor board is NOT
- * used, becasue of a pin conflict.
+#ifndef X_NUCLEO_IKS01A1
+/* The Red LED (on SPIRIT1 exp board) is exposed only if the
+ * X-NUCLEO-IKS01A1 sensor board is NOT used, becasue of a pin conflict.
  */
   if(leds & LEDS_RED) {
     st_lib_radio_shield_led_on(RADIO_SHIELD_LED);
   } else {
     st_lib_radio_shield_led_off(RADIO_SHIELD_LED);
   }
-#endif /*COMPILE_SENSORS*/
+#endif /*X_NUCLEO_IKS01A1*/
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

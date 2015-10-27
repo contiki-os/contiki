@@ -9,9 +9,9 @@ must be used. It needs to be connected on top of the NUCLEO-L152RE (MCU) and the
 
 To build the example type: 
 
-	make TARGET=stm32nucleo-spirit1 USE_SUBGHZ_BOARD=IDS01A4 USE_SENSOR_BOARD=1
+	make TARGET=stm32nucleo-spirit1 BOARD=ids01a4 SENSORBOARD=iks01a1
 or
 
-	make TARGET=stm32nucleo-spirit1 USE_SUBGHZ_BOARD=IDS01A5 USE_SENSOR_BOARD=1
+	make TARGET=stm32nucleo-spirit1 BOARD=ids01a5 SENSORBOARD=iks01a1
 
-depending on the sub GHz board you have.
+depending on the X-NUCLEO-IDS01Ax expansion board for sub GHz radio connectivity you have.

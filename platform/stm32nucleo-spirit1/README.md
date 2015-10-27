@@ -7,7 +7,7 @@ Port Feature
 ============
 
 The port supports the following boards from ST:
--    NUCLEO-L152RE board, based on the STM32L152RET6 ultra-low power microcontroller
+-   NUCLEO-L152RE board, based on the STM32L152RET6 ultra-low power microcontroller
 -	X-NUCLEO-IDS01A4 based on sub-1GHz SPSGRF-868 SPIRIT1 module (operating at 868 MHz)
 -	X-NUCLEO-IDS01A5 based on sub-1GHz SPSGRF-915 SPIRIT1 module (operating at 915 MHz)
 -   X-NUCLEO-IKS01A1 featuring motion MEMS and environmental sensors (optional)
@@ -102,13 +102,13 @@ For example, go to examples/ipv6/simple-udp-rpl directory.
 	
 If the X-NUCLEO-IDS01A4 sub-1GHz RF expansion board is used, the following must be run:
 
-	make TARGET=stm32nucleo-spirit1 USE_SUBGHZ_BOARD=IDS01A4 clean
-	make TARGET=stm32nucleo-spirit1 USE_SUBGHZ_BOARD=IDS01A4
+	make TARGET=stm32nucleo-spirit1 BOARD=ids01a4 clean
+	make TARGET=stm32nucleo-spirit1 BOARD=ids01a4
 
 If the X-NUCLEO-IDS01A5 sub-1GHz RF expansion board is used, the following must be run:
 
-	make TARGET=stm32nucleo-spirit1 USE_SUBGHZ_BOARD=IDS01A5 clean
-	make TARGET=stm32nucleo-spirit1 USE_SUBGHZ_BOARD=IDS01A5
+	make TARGET=stm32nucleo-spirit1 BOARD=ids01a5 clean
+	make TARGET=stm32nucleo-spirit1 BOARD=ids01a5
 	
 	
 This will create executables for UDP sender and receiver nodes.
@@ -125,7 +125,7 @@ In case you need to build an example that uses the additional sensors expansion 
 (for example, considering a system made of NUCLEO-L152RE, X-NUCLEO-IDS01A4 and X-NUCLEO-IKS01A1)
 then the command to be run would be:
 
-	make TARGET=stm32nucleo-spirit1 USE_SUBGHZ_BOARD=IDS01A4 USE_SENSOR_BOARD=1
+	make TARGET=stm32nucleo-spirit1 BOARD=ids01a4 SENSORBOARD=iks01a1
 
 System setup
 ============ 

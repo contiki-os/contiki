@@ -37,7 +37,7 @@
  * Driver for the stm32nucleo-spirit1 Temperature sensor (on expansion board)
  */
 /*---------------------------------------------------------------------------*/
-#if COMPILE_SENSORS
+#ifdef X_NUCLEO_IKS01A1
 /*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "acceleration-sensor.h"
@@ -137,6 +137,6 @@ status(int type)
 SENSORS_SENSOR(acceleration_sensor, ACCELERATION_SENSOR,
                value, configure, status);
 /*---------------------------------------------------------------------------*/
-#endif /*COMPILE_SENSORS*/
+#endif /*X_NUCLEO_IKS01A1*/
 /*---------------------------------------------------------------------------*/
 /** @} */

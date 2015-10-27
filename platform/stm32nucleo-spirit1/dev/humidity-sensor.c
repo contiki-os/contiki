@@ -37,7 +37,7 @@
  * Driver for the stm32nucleo-spirit1 Humidity sensor (on expansion board)
  */
 /*---------------------------------------------------------------------------*/
-#if COMPILE_SENSORS
+#ifdef X_NUCLEO_IKS01A1
 /*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "humidity-sensor.h"
@@ -117,6 +117,6 @@ status(int type)
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(humidity_sensor, HUMIDITY_SENSOR, value, configure, status);
 /*---------------------------------------------------------------------------*/
-#endif /*COMPILE_SENSORS*/
+#endif /*X_NUCLEO_IKS01A1*/
 /*---------------------------------------------------------------------------*/
 /** @} */

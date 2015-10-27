@@ -37,7 +37,7 @@
  * Driver for the stm32nucleo-spirit1 Magneto sensor (on expansion board)
  */
 /*---------------------------------------------------------------------------*/
-#if COMPILE_SENSORS
+#ifdef X_NUCLEO_IKS01A1
 /*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "magneto-sensor.h"
@@ -132,6 +132,6 @@ status(int type)
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(magneto_sensor, MAGNETO_SENSOR, value, configure, status);
 /*---------------------------------------------------------------------------*/
-#endif /*COMPILE_SENSORS*/
+#endif /*X_NUCLEO_IKS01A1*/
 /*---------------------------------------------------------------------------*/
 /** @} */

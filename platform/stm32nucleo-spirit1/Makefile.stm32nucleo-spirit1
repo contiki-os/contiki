@@ -1,29 +1,31 @@
 
 CONTIKI_TARGET_DIRS = .
 
-
-ifeq ($(USE_SENSOR_BOARD),1)
- COMPILE_SENSORS=TRUE
- CFLAGS += -DCOMPILE_SENSORS
- ${info Compiling with Sensor Files}
-else
- COMPILE_SENSORS=FALSE
- ${info NOT compiling Sensor Files}
-endif
-
-
-ifeq ($(USE_SUBGHZ_BOARD),IDS01A4)
-  CFLAGS += -DX_NUCLEO_IDS01A4
+ifeq ($(BOARD),ids01a4)
   ${info Using 868 MHz SPIRIT1 Board}
-else ifeq  ($(USE_SUBGHZ_BOARD),IDS01A5)
-  CFLAGS += -DX_NUCLEO_IDS01A5
+else ifeq  ($(BOARD),ids01a5)
   ${info Using 915 MHz SPIRIT1 Board}
 else
   ${info You must specify which SPIRIT1 board you use:}
-  ${info make USE_SUBGHZ_BOARD=IDS01A4 for 868 MHz}
-  ${info make USE_SUBGHZ_BOARD=IDS01A5 for 915 MHz}
+  ${info make BOARD=ids01a4 for X-NUCLEO-IDS01A4 (868 MHz)}
+  ${info make BOARD=ids01a5 for X-NUCLEO-IDS01A5 (915 MHz)}
   ${error }
 endif
+
+### Include the board-specific makefile
+PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
+-include $(PLATFORM_ROOT_DIR)/Makefile.$(BOARD)
+
+ifeq ($(SENSORBOARD),iks01a1)
+ ${info Compiling with X-NUCLEO-IKS01A1 sensors files}
+ -include $(PLATFORM_ROOT_DIR)/Makefile.$(SENSORBOARD)
+else ifeq ($(SENSORBOARD),)
+ ${info NOT compiling files for any sensors expansion board}
+else
+  ${info Error: SENSORBOARD can be: iks01a1}
+  ${error }
+endif
+
 
 
 #Currently we support only GCC
@@ -41,16 +43,7 @@ CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/STM32L1xx_HAL_Driver/Src
 CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/STM32L1xx_HAL_Driver/Inc
 
 
-ifeq ($(COMPILE_SENSORS),TRUE)
-CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/x_nucleo_iks01a1
-CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/sensors/hts221 stm32cube-lib/drivers/sensors/lps25h stm32cube-lib/drivers/sensors/lps25hb\
-                       stm32cube-lib/drivers/sensors/lsm6ds0 stm32cube-lib/drivers/sensors/lsm6ds3 stm32cube-lib/drivers/sensors/lis3mdl
-endif
-
-
 ARCH_DEV = button-sensor.c leds-arch.c radio-sensor.c
-
-ARCH_DEV_SENSORS = temperature-sensor.c humidity-sensor.c pressure-sensor.c magneto-sensor.c acceleration-sensor.c gyroscope-sensor.c
 
 ARCH_NUCLEOSPIRIT1 = contiki-spirit1-main.c  uart-msg.c  spirit1-arch.c  spirit1.c node-id.c
 
@@ -80,16 +73,6 @@ ARCH_DRIVERS_SPIRIT1 = \
 				SPIRIT_Radio.c \
 				SPIRIT_Timer.c \
 				SPIRIT_Types.c
-
-ARCH_DRIVERS_IKS01A1 =  x_nucleo_iks01a1.c  x_nucleo_iks01a1_hum_temp.c  x_nucleo_iks01a1_imu_6axes.c \
-		x_nucleo_iks01a1_magneto.c  x_nucleo_iks01a1_pressure.c 
-
-ARCH_DRIVERS_SENSORS =	hts221.c  \
-			lis3mdl.c \
-			lps25h.c  \
-			lps25hb.c \
-			lsm6ds0.c \
-			lsm6ds3.c
 
 STM32L1XX_HAL =\
 	stm32l1xx_hal.c\
@@ -143,12 +126,6 @@ ARCH+=$(ARCH_DRIVERS_STM32L1xx)
 ARCH+=$(ARCH_DRIVERS_IDS01AX)
 ARCH+=$(ARCH_DRIVERS_SPIRIT1)
 ARCH+=$(STM32L1XX_HAL)
-
-ifeq ($(COMPILE_SENSORS),TRUE)
-  ARCH+=$(ARCH_DEV_SENSORS)
-  ARCH+=$(ARCH_DRIVERS_IKS01A1)
-  ARCH+=$(ARCH_DRIVERS_SENSORS)
-endif
 
 CFLAGS += -DUSE_STM32L152_EVAL \
 		-DSTM32L152xE \
