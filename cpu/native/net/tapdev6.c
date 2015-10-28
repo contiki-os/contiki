@@ -114,10 +114,10 @@ tapdev_poll(void)
   fd_set fdset;
   struct timeval tv;
   int ret;
-  
+
   tv.tv_sec = 0;
   tv.tv_usec = 0;
-  
+
   FD_ZERO(&fdset);
   if(fd > 0) {
     FD_SET(fd, &fdset);
@@ -131,7 +131,7 @@ tapdev_poll(void)
   ret = read(fd, uip_buf, UIP_BUFSIZE);
 
   PRINTF("tapdev6: read %d bytes (max %d)\n", ret, UIP_BUFSIZE);
-  
+
   if(ret == -1) {
     perror("tapdev_poll: read");
   }
@@ -295,7 +295,8 @@ void
 tapdev_init(void)
 {
   char buf[1024];
-  
+  char tapname[IFNAMSIZ] = "tap0";
+
   fd = open(DEVTAP, O_RDWR);
   if(fd == -1) {
     perror("tapdev: tapdev_init: open");
@@ -311,6 +312,8 @@ tapdev_init(void)
       perror(buf);
       exit(1);
     }
+    /* Save the actually created tap name */
+    strncpy(tapname, ifr.ifr_name, IFNAMSIZ);
   }
 #endif /* Linux */
 
@@ -330,13 +333,13 @@ tapdev_init(void)
      PRINTF("%s\n", buf);
   */
   /* freebsd */
-  snprintf(buf, sizeof(buf), "ifconfig tap0 up");
+  snprintf(buf, sizeof(buf), "ifconfig %s up", tapname);
   system(buf);
   printf("%s\n", buf);
-  
+
   /*  */
   lasttime = 0;
-  
+
   /*  gdk_input_add(fd, GDK_INPUT_READ,
       read_callback, NULL);*/
 
@@ -352,7 +355,7 @@ do_send(void)
     return;
   }
 
- 
+
   PRINTF("tapdev_send: sending %d bytes\n", uip_len);
   /*  check_checksum(uip_buf, size);*/
 #if DROP
@@ -392,7 +395,7 @@ tapdev_send(const uip_lladdr_t *lladdr)
   }
   memcpy(&BUF->src, &uip_lladdr, UIP_LLADDR_LEN);
   BUF->type = UIP_HTONS(UIP_ETHTYPE_IPV6); //math tmp
-   
+
   uip_len += sizeof(struct uip_eth_hdr);
   do_send();
   return 0;
