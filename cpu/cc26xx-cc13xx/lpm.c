@@ -130,8 +130,10 @@ lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
   }
 
   /* Configure the wakeup trigger */
-  ti_lib_gpio_dir_mode_set((1 << wakeup_pin), GPIO_DIR_MODE_IN);
-  ti_lib_ioc_port_configure_set(wakeup_pin, IOC_PORT_GPIO, io_cfg);
+  if(wakeup_pin != IOID_UNUSED) {
+    ti_lib_gpio_dir_mode_set((1 << wakeup_pin), GPIO_DIR_MODE_IN);
+    ti_lib_ioc_port_configure_set(wakeup_pin, IOC_PORT_GPIO, io_cfg);
+  }
 
   /* Freeze I/O latches in AON */
   ti_lib_aon_ioc_freeze_enable();
