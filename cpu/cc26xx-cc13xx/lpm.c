@@ -84,7 +84,7 @@ void
 lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
 {
   lpm_registered_module_t *module;
-  int i, j;
+  int i;
   uint32_t io_cfg = (IOC_STD_INPUT & ~IOC_IOPULL_M) | io_pull |
     wake_on;
 
@@ -108,18 +108,6 @@ lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
   ti_lib_sys_ctrl_aon_sync();
 
   watchdog_periodic();
-
-  /* fade away....... */
-  j = 1000;
-
-  for(i = j; i > 0; --i) {
-    leds_on(LEDS_ALL);
-    clock_delay_usec(i);
-    leds_off(LEDS_ALL);
-    clock_delay_usec(j - i);
-  }
-
-  leds_off(LEDS_ALL);
 
   /* Notify all modules that we're shutting down */
   for(module = list_head(modules_list); module != NULL;
