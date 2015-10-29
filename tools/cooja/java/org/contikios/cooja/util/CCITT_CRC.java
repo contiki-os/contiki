@@ -46,7 +46,7 @@ public class CCITT_CRC {
   public void setCRC(int val) {
     crc = val;
   }
-  
+
   public void clr() {
     crc = 0xffff;
   }
@@ -54,7 +54,7 @@ public class CCITT_CRC {
   public void addBitrev(int data) {
       add(bitrev(data));
   }
-  
+
   public int getCRCLow() {
       return bitrev(crc & 0xff);
   }
@@ -63,7 +63,6 @@ public class CCITT_CRC {
       return bitrev(crc >> 8);
   }
 
-  
   public int add(int data) {
     int newCrc = ((crc >> 8) & 0xff) | (crc << 8) & 0xffff;
     newCrc ^= (data & 0xff);
@@ -77,7 +76,7 @@ public class CCITT_CRC {
   public int getCRCBitrev() {
       return getCRCLow() + (getCRCHi() << 8);
   }
-  
+
   public static final String hex = "0123456789abcdef";
 
   private static int bitrev(int data) {
