@@ -169,11 +169,11 @@ struct elfloader_output {
   const struct elfloader_output_ops *ops;
 };
 /**
- * \brief	Allocate a new segment
- * \param input The output object
- * \param type	Type of segment
- * \param size	Size of segment in bytes
- * \return	A pointer to the start of the segment.
+ * \brief Allocate a new segment
+ * \param output The output object
+ * \param type   Type of segment
+ * \param size   Size of segment in bytes
+ * \return A pointer to the start of the segment.
  *
  * The returned address doesn't need to correspond to any real memory,
  * since it's only used for calculating the relocations.
@@ -183,41 +183,41 @@ void *elfloader_allocate_segment(struct elfloader_output *output,
 				 unsigned int type, int size);
 
 /**
- * \brief	Start writing to a new segment
- * \param input The output object
- * \param type	Type of segment
- * \param addr  Address of segment from elfloader_allocate_segment
- * \param size	Size of segment in bytes
- * \return	Returns ELFLOADER_OK if successful, otherwise an error code
+ * \brief Start writing to a new segment
+ * \param output The output object
+ * \param type   Type of segment
+ * \param addr   Address of segment from elfloader_allocate_segment
+ * \param size   Size of segment in bytes
+ * \return Returns ELFLOADER_OK if successful, otherwise an error code
  *
  */
 
 int elfloader_start_segment(struct elfloader_output *output,
 			      unsigned int type, void *addr, int size);
 /**
- * \brief	Mark end of segment
- * \param input The output object
- * \return	Zero if successful
+ * \brief Mark end of segment
+ * \param output The output object
+ * \return Zero if successful
  */
 
 int elfloader_end_segment(struct elfloader_output *output);
 
 /**
- * \brief	Write data to a segment
- * \param input The output object
- * \param buf	Data to be written
- * \param len	Length of data
- * \return	The number of bytes actually written, or negative if failed.
+ * \brief Write data to a segment
+ * \param output The output object
+ * \param buf    Data to be written
+ * \param len    Length of data
+ * \return The number of bytes actually written, or negative if failed.
  */
 
 int elfloader_write_segment(struct elfloader_output *output, const char *buf,
 			    unsigned int len);
 
 /**
- * \brief	Get the current offset in the file where the next data will
- *		be written.
- * \param input The output object
- * \return	The current offset.
+ * \brief Get the current offset in the file where the next data will
+ * be written.
+ * \param output The output object
+ * \return The current offset.
  */
 
 unsigned int elfloader_segment_offset(struct elfloader_output *output);
@@ -259,8 +259,8 @@ void elfloader_init(void);
 
 /**
  * \brief      Load and relocate an ELF file.
- * \param input Input object defining how to read from the ELF file
- * \param output Output object defining how to create and write to seegments.
+ * \param input_fd Input object defining how to read from the ELF file
+ * \param output   Output object defining how to create and write to seegments.
  * \return     ELFLOADER_OK if loading and relocation worked.
  *             Otherwise an error value.
  *

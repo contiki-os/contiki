@@ -10,7 +10,7 @@
  * @addtogroup stm32w-cpu
  * @{ */
 
-/** @defgroup system_timer
+/** @defgroup system_timer System Timer
  * @brief Functions that provide access to the system clock.
  *
  * A single system tick (as returned by ::halCommonGetInt16uMillisecondTick() and

@@ -14,8 +14,7 @@
  * @addtogroup stm32w-cpu
  * @{ */
 
-/** @defgroup nvm
- * @brief Cortex-M3 Non-Volatile Memory data storage system.
+/** @defgroup nvm Cortex-M3 Non-Volatile Memory data storage system.
  *
  * This header defines the API for NVM data storage.  This header also
  * describes the algorithm behind the NVM data storage system with notes

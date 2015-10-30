@@ -231,10 +231,10 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
 
 }
 /*---------------------------------------------------------------------------*/
+/** Periodic processing on neighbors */
 void
 uip_ds6_neighbor_periodic(void)
 {
-  /* Periodic processing on neighbors */
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   while(nbr != NULL) {
     switch(nbr->state) {

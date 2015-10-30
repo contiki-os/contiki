@@ -27,6 +27,7 @@
  * SUCH DAMAGE. 
  *
  *
+ */
  /**
  * \file
  *         Dummy implementation of minileds module

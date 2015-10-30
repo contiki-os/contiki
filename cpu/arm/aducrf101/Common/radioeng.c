@@ -1292,7 +1292,6 @@ static RIE_Responses  RadioWaitOnState(RadioState FinalState)
 /** 
     @fn      RIE_Responses  RadioWaitOnCmdLdr(void)
     @brief   Wait for Final State to be reached
-    @param   FinalState    State to wait on
     @return  RIE_Responses  Error code
 **/
 static RIE_Responses  RadioWaitOnCmdLdr(void)

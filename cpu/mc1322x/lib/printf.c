@@ -34,7 +34,7 @@
  */
 
 /**
- * \file printf-stdarg.c
+ * \file lib/printf.c
  *
  * \brief sprintf functions to replace newlib for AVR32 UC3.
  *
