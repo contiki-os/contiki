@@ -142,15 +142,18 @@ typedef struct uip_eth_addr {
 typedef uip_802154_longaddr uip_lladdr_t;
 #define UIP_802154_SHORTADDR_LEN 2
 #define UIP_802154_LONGADDR_LEN  8
+/** \brief Link layer address length */
 #define UIP_LLADDR_LEN UIP_802154_LONGADDR_LEN
 #else /*UIP_CONF_LL_802154*/
 #if UIP_CONF_LL_80211
 /** \brief 802.11 address */
 typedef uip_80211_addr uip_lladdr_t;
+/** \brief Link layer address length */
 #define UIP_LLADDR_LEN 6
 #else /*UIP_CONF_LL_80211*/
 /** \brief Ethernet address */
 typedef uip_eth_addr uip_lladdr_t;
+/** \brief Link layer address length */
 #define UIP_LLADDR_LEN 6
 #endif /*UIP_CONF_LL_80211*/
 #endif /*UIP_CONF_LL_802154*/
@@ -1379,8 +1382,7 @@ struct uip_conn {
   uint8_t nrtx;          /**< The number of retransmissions for the last
 			 segment sent. */
 
-  /** The application state. */
-  uip_tcp_appstate_t appstate;
+  uip_tcp_appstate_t appstate; /** The application state. */
 };
 
 

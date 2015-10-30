@@ -32,7 +32,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
-@file     system_ADUCRF101.h
+@file     system_ADuCRF101.h
 @brief:   CMSIS Cortex-M3 Device Peripheral Access Layer Header File
           for the ADuCRF101
 @version  v0.2
@@ -51,7 +51,6 @@
 /**
  * @brief  Initialize the system
  *
- * @param  none
  * @return none
  *
  * Setup the microcontroller system.
@@ -62,7 +61,6 @@ extern void SystemInit (void);
 /**
  * @brief  Update internal SystemCoreClock variable
  *
- * @param  none
  * @return none
  *
  * Updates the internal SystemCoreClock with current core

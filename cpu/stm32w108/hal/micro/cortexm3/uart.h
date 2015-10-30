@@ -32,8 +32,8 @@ typedef enum
  * 
  * @param parity    The type of parity used for communication.  
  *                  See the SerialParity enum for possible values
- * 
- * @return stopbits The number of stop bits used for communication.
+ *
+ * @param stopbits  The number of stop bits used for communication.
  *                  Valid values are 1 or 2
  */
 void uartInit(uint32_t baudrate, uint8_t databits, SerialParity parity, uint8_t stopbits);

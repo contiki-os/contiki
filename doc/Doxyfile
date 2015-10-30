@@ -1959,6 +1959,11 @@ PREDEFINED             = CC_FUNCTION_POINTER_ARGS:=1 \
                          UIP_TCP:=1 \
                          UIP_UDP:=1 \
                          UIP_CONF_ICMP6:=1 \
+                         UIP_ND6_DEF_MAXDADNS:=1 \
+                         UIP_CONF_IPV6_REASSEMBLY:=1 \
+                         RNG_CONF_USE_ADC:=0 \
+                         RNG_CONF_USE_RADIO_CLOCK:=1 \
+                         CLOCK_SECOND:=128 \
                          WITH_LOADER_ARCH:=1 \
                          __attribute__(x):= \
                          CC_ALIGN_ATTR(n):= \

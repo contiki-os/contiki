@@ -71,7 +71,8 @@
 
 /**
  * \brief      Perform a relocation.
- * \param output   The output object for the segment.
+ * \param input_fd The file descriptor for the ELF file.
+ * \param output The output object for the segment.
  * \param sectionoffset The file offset at which the relocation can be found.
  * \param sectionaddr The section start address (absolute runtime).
  * \param rela A pointer to an ELF32 rela structure (struct elf32_rela).

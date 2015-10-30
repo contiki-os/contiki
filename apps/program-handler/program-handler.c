@@ -246,6 +246,7 @@ program_handler_load(char *name, char *arg)
 #else /* WITH_LOADER_ARCH */
 #define RUN(prg, process, arg) process_start(process, arg)
 #endif /* WITH_LOADER_ARCH */
+#if CTK_CONF_SCREENSAVER
 /*-----------------------------------------------------------------------------------*/
 /**
  * Configures the name of the screensaver to be loaded when
@@ -255,7 +256,6 @@ program_handler_load(char *name, char *arg)
  * should be used.
  */
 /*-----------------------------------------------------------------------------------*/
-#if CTK_CONF_SCREENSAVER
 void
 program_handler_setscreensaver(char *name)
 {

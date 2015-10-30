@@ -53,23 +53,23 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-struct etimer uip_ds6_timer_periodic;                           /** \brief Timer for maintenance of data structures */
+struct etimer uip_ds6_timer_periodic;                           /**< Timer for maintenance of data structures */
 
 #if UIP_CONF_ROUTER
-struct stimer uip_ds6_timer_ra;                                 /** \brief RA timer, to schedule RA sending */
+struct stimer uip_ds6_timer_ra;                                 /**< RA timer, to schedule RA sending */
 #if UIP_ND6_SEND_RA
-static uint8_t racount;                                         /** \brief number of RA already sent */
-static uint16_t rand_time;                                      /** \brief random time value for timers */
+static uint8_t racount;                                         /**< number of RA already sent */
+static uint16_t rand_time;                                      /**< random time value for timers */
 #endif
 #else /* UIP_CONF_ROUTER */
-struct etimer uip_ds6_timer_rs;                                 /** \brief RS timer, to schedule RS sending */
-static uint8_t rscount;                                         /** \brief number of rs already sent */
+struct etimer uip_ds6_timer_rs;                                 /**< RS timer, to schedule RS sending */
+static uint8_t rscount;                                         /**< number of rs already sent */
 #endif /* UIP_CONF_ROUTER */
 
 /** \name "DS6" Data structures */
 /** @{ */
-uip_ds6_netif_t uip_ds6_if;                                       /** \brief The single interface */
-uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
+uip_ds6_netif_t uip_ds6_if;                                     /**< The single interface */
+uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];        /**< Prefix list */
 
 /* Used by Cooja to enable extraction of addresses from memory.*/
 uint8_t uip_ds6_addr_size;
