@@ -257,24 +257,38 @@ $(eval $(call makes,c64))
 
 c64: contiki-c64.zip
 
-contiki-c64.zip: contiki-c64-1.d64 contiki-c64-2.d64 contiki-c64.d71 contiki-c64.d81
+contiki-c64.zip: contiki-c64-1.d64 contiki-c64-2.d64 contiki-c64-3.d64 contiki-c64.d71 contiki-c64.d81
 
 contiki-c64-1.d64: c64-makes
 	$(C1541) -format contiki-1,00 d64 $@
-	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64   ethconfig,p
-	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64     ipconfig,p
-	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c64 webbrowser,p
-	$(C1541) -attach $@ -write ../../examples/wget/wget.c64             wget,p
-	$(C1541) -attach $@ -write ../../examples/irc/irc-client.c64        irc,p
-	$(C1541) -attach $@ -write ../c64/default.cfg                       contiki.cfg,s
-	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth     cs8900a.eth,s
-	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth    lan91c96.eth,s
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou            contiki.mou,s
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-inkwell.mou         inkwell.mou,s
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-joy.mou             joy.mou,s
-	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-pot.mou             pot.mou,s
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64         ethconfig,p
+	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64           ipconfig,p
+	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c64       webbrowser,p
+	$(C1541) -attach $@ -write ../../examples/webbrowser-80col/webbrowser.c64 webbrowser80,p
+	$(C1541) -attach $@ -write ../../examples/wget/wget.c64                   wget,p
+	$(C1541) -attach $@ -write ../c64/default.cfg                             contiki.cfg,s
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth           cs8900a.eth,s
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth          lan91c96.eth,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou                  contiki.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-inkwell.mou               inkwell.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-joy.mou                   joy.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-pot.mou                   pot.mou,s
 
 contiki-c64-2.d64: c64-makes
+	$(C1541) -format contiki-2,00 d64 $@
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64  ethconfig,p
+	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64    ipconfig,p
+	$(C1541) -attach $@ -write ../../examples/irc/irc-client.c64       irc,p
+	$(C1541) -attach $@ -write ../../examples/irc-80col/irc-client.c64 irc80,p
+	$(C1541) -attach $@ -write ../c64/default.cfg                      contiki.cfg,s
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/cs8900a.eth    cs8900a.eth,s
+	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/lan91c96.eth   lan91c96.eth,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-1351.mou           contiki.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-inkwell.mou        inkwell.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-joy.mou            joy.mou,s
+	$(C1541) -attach $@ -write $(CC65_HOME)/mou/c64-pot.mou            pot.mou,s
+
+contiki-c64-3.d64: c64-makes
 	$(C1541) -format contiki-3,00 d64 $@
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64          ethconfig,p
 	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64            ipconfig,p
@@ -297,8 +311,10 @@ contiki-c64.d71: c64-makes
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64          ethconfig,p
 	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64            ipconfig,p
 	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c64        webbrowser,p
+	$(C1541) -attach $@ -write ../../examples/webbrowser-80col/webbrowser.c64  webbrowser80,p
 	$(C1541) -attach $@ -write ../../examples/wget/wget.c64                    wget,p
 	$(C1541) -attach $@ -write ../../examples/irc/irc-client.c64               irc,p
+	$(C1541) -attach $@ -write ../../examples/irc-80col/irc-client.c64         irc80,p
 	$(C1541) -attach $@ -write ../../examples/webserver/webserver-example.c64  webserver,p
 	$(C1541) -attach $@ -write ../../examples/telnet-server/telnet-server.c64  telnetd,p
 	$(C1541) -attach $@ -write ../c64/default.cfg                              contiki.cfg,s
@@ -318,8 +334,10 @@ contiki-c64.d81: c64-makes
 	$(C1541) -attach $@ -write ../../cpu/6502/ethconfig/ethconfig.c64          ethconfig,p
 	$(C1541) -attach $@ -write ../../cpu/6502/ipconfig/ipconfig.c64            ipconfig,p
 	$(C1541) -attach $@ -write ../../examples/webbrowser/webbrowser.c64        webbrowser,p
+	$(C1541) -attach $@ -write ../../examples/webbrowser-80col/webbrowser.c64  webbrowser80,p
 	$(C1541) -attach $@ -write ../../examples/wget/wget.c64                    wget,p
 	$(C1541) -attach $@ -write ../../examples/irc/irc-client.c64               irc,p
+	$(C1541) -attach $@ -write ../../examples/irc-80col/irc-client.c64         irc80,p
 	$(C1541) -attach $@ -write ../../examples/webserver/webserver-example.c64  webserver,p
 	$(C1541) -attach $@ -write ../../examples/telnet-server/telnet-server.c64  telnetd,p
 	$(C1541) -attach $@ -write ../c64/default.cfg                              contiki.cfg,s
