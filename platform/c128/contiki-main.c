@@ -32,8 +32,6 @@
  *
  */
 
-#include <string.h>
-
 #include "contiki-net.h"
 #include "ctk/ctk.h"
 #include "sys/log.h"
