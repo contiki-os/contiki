@@ -55,13 +55,6 @@
 #define WIDGETCOLOR_FWIN  COLOR_GRAY3
 #define WIDGETCOLOR_HLINK COLOR_CYAN
 
-#define EMAIL_CONF_WIDTH  39
-#define EMAIL_CONF_HEIGHT 20
-#define EMAIL_CONF_ERASE   0
-
-#define FTP_CONF_WIDTH  18
-#define FTP_CONF_HEIGHT 22
-
 #define IRC_CONF_WIDTH  40
 #define IRC_CONF_HEIGHT 24
 
@@ -70,6 +63,7 @@
 #endif
 
 #define WWW_CONF_WEBPAGE_WIDTH  40
+#define WWW_CONF_WEBPAGE_HEIGHT 20
 #define WWW_CONF_HISTORY_SIZE    4
 #define WWW_CONF_WGET_EXEC(url) exec("wget", url)
 
