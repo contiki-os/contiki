@@ -93,7 +93,7 @@ void uip_log(char *msg);
 /** \name Pointers to the header structures.
  *  All pointers except UIP_IP_BUF depend on uip_ext_len, which at
  *  packet reception, is the total length of the extension headers.
- *  
+ *
  *  The pointer to ND6 options header also depends on nd6_opt_offset,
  *  which we set in each function.
  *
@@ -143,7 +143,7 @@ extract_lladdr_aligned(uip_lladdr_t *dest) {
 }
 #endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
 /*------------------------------------------------------------------*/
-/* create a llao */ 
+/* create a llao */
 static void
 create_llao(uint8_t *llao, uint8_t type) {
   llao[UIP_ND6_OPT_TYPE_OFFSET] = type;
@@ -361,7 +361,7 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
   UIP_IP_BUF->len[0] = 0;       /* length will not be more than 255 */
   /*
    * check if we add a SLLAO option: for DAD, MUST NOT, for NUD, MAY
-   * (here yes), for Address resolution , MUST 
+   * (here yes), for Address resolution , MUST
    */
   if(!(uip_ds6_is_my_addr(tgt))) {
     if(src != NULL) {
@@ -378,7 +378,7 @@ uip_nd6_ns_output(uip_ipaddr_t * src, uip_ipaddr_t * dest, uip_ipaddr_t * tgt)
       UIP_ICMPH_LEN + UIP_ND6_NS_LEN + UIP_ND6_OPT_LLAO_LEN;
 
     create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_NS_LEN],
-		UIP_ND6_OPT_SLLAO);
+                UIP_ND6_OPT_SLLAO);
 
     uip_len =
       UIP_IPH_LEN + UIP_ICMPH_LEN + UIP_ND6_NS_LEN + UIP_ND6_OPT_LLAO_LEN;
@@ -437,9 +437,9 @@ na_input(void)
   PRINTF("\n");
   UIP_STAT(++uip_stat.nd6.recv);
 
-  /* 
+  /*
    * booleans. the three last one are not 0 or 1 but 0 or 0x80, 0x40, 0x20
-   * but it works. Be careful though, do not use tests such as is_router == 1 
+   * but it works. Be careful though, do not use tests such as is_router == 1
    */
   is_llchange = 0;
   is_router = ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_ROUTER));
@@ -505,7 +505,7 @@ na_input(void)
         goto discard;
       }
       memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-	     UIP_LLADDR_LEN);
+             UIP_LLADDR_LEN);
       if(is_solicited) {
         nbr->state = NBR_REACHABLE;
         nbr->nscount = 0;
@@ -528,7 +528,7 @@ na_input(void)
            || nd6_opt_llao == 0) {
           if(nd6_opt_llao != 0) {
             memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		   UIP_LLADDR_LEN);
+                   UIP_LLADDR_LEN);
           }
           if(is_solicited) {
             nbr->state = NBR_REACHABLE;
@@ -564,7 +564,7 @@ na_input(void)
     uip_packetqueue_free(&nbr->packethandle);
     return;
   }
-  
+
 #endif /*UIP_CONF_IPV6_QUEUE_PKT */
 
 discard:
@@ -590,7 +590,7 @@ rs_input(void)
 
 #if UIP_CONF_IPV6_CHECKS
   /*
-   * Check hop limit / icmp code 
+   * Check hop limit / icmp code
    * target address must not be multicast
    * if the NA is solicited, dest must not be multicast
    */
@@ -796,7 +796,7 @@ uip_nd6_rs_output(void)
       UIP_ICMPH_LEN + UIP_ND6_RS_LEN + UIP_ND6_OPT_LLAO_LEN;
 
     create_llao(&uip_buf[uip_l2_l3_icmp_hdr_len + UIP_ND6_RS_LEN],
-		UIP_ND6_OPT_SLLAO);
+                UIP_ND6_OPT_SLLAO);
   }
 
   UIP_ICMP_BUF->icmpchksum = 0;
@@ -877,9 +877,9 @@ ra_input(void)
           nbr->state = NBR_STALE;
         }
         if(memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		  lladdr, UIP_LLADDR_LEN) != 0) {
+                  lladdr, UIP_LLADDR_LEN) != 0) {
           memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-		 UIP_LLADDR_LEN);
+                 UIP_LLADDR_LEN);
           nbr->state = NBR_STALE;
         }
         nbr->isrouter = 1;
@@ -937,7 +937,7 @@ ra_input(void)
         if((nd6_opt_prefix_info->flagsreserved1 & UIP_ND6_RA_FLAG_AUTONOMOUS)
            && (nd6_opt_prefix_info->validlt != 0)
            && (nd6_opt_prefix_info->preflen == UIP_DEFAULT_PREFIX_LEN)) {
-	  
+
           uip_ipaddr_copy(&ipaddr, &nd6_opt_prefix_info->prefix);
           uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
           addr = uip_ds6_addr_lookup(&ipaddr);

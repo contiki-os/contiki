@@ -149,4 +149,3 @@ StStatus halBootloaderStart(uint8_t mode, uint8_t channel, uint16_t panId);
 
 /** @} END micro group  */
 /** @} */
-
