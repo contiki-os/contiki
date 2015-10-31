@@ -42,23 +42,29 @@
 #define CTK_CONF_WIDGETUP_KEY     0x01  /* Ctrl-A */
 #define CTK_CONF_WIDGETDOWN_KEY   '\t'  /* Tab or Ctrl-I */
 
+#if WITH_80COL
 #define MOUSE_CONF_XTOC(x) ((x) * 2 / 7)
+#else
+#define MOUSE_CONF_XTOC(x) ((x) / 7)
+#endif
 #define MOUSE_CONF_YTOC(y) ((y) / 8)
 
-#define EMAIL_CONF_WIDTH  79
-#define EMAIL_CONF_HEIGHT 19
-#define EMAIL_CONF_ERASE   0
-
-#define FTP_CONF_WIDTH  38
-#define FTP_CONF_HEIGHT 21
-
+#if WITH_80COL
 #define IRC_CONF_WIDTH  80
+#else
+#define IRC_CONF_WIDTH  40
+#endif
 #define IRC_CONF_HEIGHT 23
 
 #ifndef TELNETD_CONF_MAX_IDLE_TIME
 #define TELNETD_CONF_MAX_IDLE_TIME 300
 #endif
 
+#if WITH_80COL
+#define WWW_CONF_WEBPAGE_WIDTH  80
+#else
+#define WWW_CONF_WEBPAGE_WIDTH  40
+#endif
 #define WWW_CONF_WEBPAGE_HEIGHT 19
 #define WWW_CONF_HISTORY_SIZE    4
 #define WWW_CONF_WGET_EXEC(url) exec("wget", url)
