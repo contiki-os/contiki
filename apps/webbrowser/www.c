@@ -292,6 +292,15 @@ show_statustext(char *text)
   CTK_WIDGET_REDRAW(&statustext);
 }
 /*-----------------------------------------------------------------------------------*/
+static void
+end_page(char *status, void *focus)
+{
+  show_statustext(status);
+  petsciiconv_topetscii(webpageptr - x, x);
+  CTK_WIDGET_FOCUS(&mainwindow, focus);
+  redraw_window();
+}
+/*-----------------------------------------------------------------------------------*/
 /* open_url():
  *
  * Called when the URL present in the global "url" variable should be
@@ -660,10 +669,7 @@ webclient_timedout(void)
 void
 webclient_closed(void)
 {
-  show_statustext("Stopped");
-  petsciiconv_topetscii(webpageptr - x, x);
-  CTK_WIDGET_FOCUS(&mainwindow, &downbutton);
-  redraw_window();
+  end_page("Stopped", &downbutton);
 }
 /*-----------------------------------------------------------------------------------*/
 /* webclient_connected():
@@ -710,6 +716,7 @@ webclient_datahandler(char *data, uint16_t len)
 	     "                       Would you like to download instead?");
       CTK_WIDGET_ADD(&mainwindow, &wgetnobutton);
       CTK_WIDGET_ADD(&mainwindow, &wgetyesbutton);
+      CTK_WIDGET_FOCUS(&mainwindow, &wgetyesbutton);
       redraw_window();
 #endif /* CTK_CONF_WINDOWS */
 #endif /* WWW_CONF_WITH_WGET || WWW_CONF_WGET_EXEC */
@@ -721,10 +728,7 @@ webclient_datahandler(char *data, uint16_t len)
 
   if(data == NULL) {
     loading = 0;
-    show_statustext("Done");
-    petsciiconv_topetscii(webpageptr - x, x);
-    CTK_WIDGET_FOCUS(&mainwindow, &urlentry);
-    redraw_window();
+    end_page("Done", &urlentry);
   }
 }
 /*-----------------------------------------------------------------------------------*/
