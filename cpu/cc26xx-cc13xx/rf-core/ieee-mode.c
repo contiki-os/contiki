@@ -401,25 +401,32 @@ set_tx_power(radio_value_t power)
   int i;
   rfc_CMD_SET_TX_POWER_t cmd;
 
-  /* Send a CMD_SET_TX_POWER command to the RF */
-  memset(&cmd, 0x00, sizeof(cmd));
-
-  cmd.commandNo = CMD_SET_TX_POWER;
-
+  /* First, find the correct setting and save it */
   for(i = OUTPUT_CONFIG_COUNT - 1; i >= 0; --i) {
     if(power <= output_power[i].dbm) {
-      cmd.txPower.IB = output_power[i].register_ib;
-      cmd.txPower.GC = output_power[i].register_gc;
-      cmd.txPower.tempCoeff = output_power[i].temp_coeff;
-
-      if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_OK) {
-        /* Success: Remember the new setting */
-        tx_power_current = &output_power[i];
-      } else {
-        PRINTF("set_tx_power: CMDSTA=0x%08lx\n", cmd_status);
-      }
-      return;
+      tx_power_current = &output_power[i];
+      break;
     }
+  }
+
+  /*
+   * If the core is not accessible, the new setting will be applied next
+   * time we send CMD_RADIO_SETUP, so we don't need to do anything further.
+   * If the core is accessible, we can apply the new setting immediately with
+   * CMD_SET_TX_POWER
+   */
+  if(rf_core_is_accessible() == RF_CORE_NOT_ACCESSIBLE) {
+    return;
+  }
+
+  memset(&cmd, 0x00, sizeof(cmd));
+  cmd.commandNo = CMD_SET_TX_POWER;
+  cmd.txPower.IB = output_power[i].register_ib;
+  cmd.txPower.GC = output_power[i].register_gc;
+  cmd.txPower.tempCoeff = output_power[i].temp_coeff;
+
+  if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
+    PRINTF("set_tx_power: CMDSTA=0x%08lx\n", cmd_status);
   }
 }
 /*---------------------------------------------------------------------------*/
