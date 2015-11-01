@@ -6,8 +6,7 @@
 #endif
 
 #define CC_CONF_REGISTER_ARGS 1
-#define CC_CONF_FASTCALL __fastcall
-#define CC_CONF_INLINE   __inline
+#define CC_CONF_INLINE        __inline
 
 #define ARCH_DOESNT_NEED_ALIGNED_STRUCTS 1
 

@@ -47,7 +47,6 @@ int select_set_callback(int fd, const struct select_callback *callback);
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
-#define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
 
 #define CCIF

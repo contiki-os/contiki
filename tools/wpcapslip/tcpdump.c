@@ -156,7 +156,7 @@ tcpflags(unsigned char flags, char *flagsstr)
   *flagsstr = 0;
 }
 /*---------------------------------------------------------------------------*/
-static char * CC_FASTCALL
+static char *
 n(uint16_t num, char *ptr)
 {
   uint16_t d;
@@ -179,14 +179,14 @@ n(uint16_t num, char *ptr)
   return ptr;
 }
 /*---------------------------------------------------------------------------*/
-static char * CC_FASTCALL
+static char *
 d(char *ptr)
 {
   *ptr = '.';
   return ptr + 1;
 }
 /*---------------------------------------------------------------------------*/
-static char * CC_FASTCALL
+static char *
 s(char *str, char *ptr)
 {
   strcpy(ptr, str);
