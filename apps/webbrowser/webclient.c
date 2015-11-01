@@ -479,6 +479,11 @@ webclient_appcall(void *state)
 
   if(uip_closed()) {
     tcp_markconn(uip_conn, NULL);
+    /* Client requested close takes precedence over server initiated close. */
+    if(s.state == WEBCLIENT_STATE_CLOSE) {
+      webclient_closed();
+      return;
+    }
     switch(s.httpflag) {
     case HTTPFLAG_HTTPS:
       /* Send some info to the user. */
