@@ -384,9 +384,8 @@ static radio_value_t
 get_rssi(void)
 {
   uint32_t cmd_status;
-  int8_t rssi;
   uint8_t was_off = 0;
-  rfc_CMD_GET_RSSI_t cmd;
+  rfc_CMD_IEEE_CCA_REQ_t cmd;
 
   /* If we are off, turn on first */
   if(!rf_is_on()) {
@@ -398,13 +397,19 @@ get_rssi(void)
   }
 
   memset(&cmd, 0x00, sizeof(cmd));
-  cmd.commandNo = CMD_GET_RSSI;
+  cmd.ccaInfo.ccaEnergy = RF_CMD_CCA_REQ_CCA_STATE_INVALID;
 
-  rssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
+  while(cmd.ccaInfo.ccaEnergy == RF_CMD_CCA_REQ_CCA_STATE_INVALID) {
+    memset(&cmd, 0x00, sizeof(cmd));
+    cmd.commandNo = CMD_IEEE_CCA_REQ;
 
-  if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_OK) {
-    /* Current RSSI in bits 23:16 of cmd_status */
-    rssi = (cmd_status >> 16) & 0xFF;
+    if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
+      PRINTF("get_rssi: CMDSTA=0x%08lx\n", cmd_status);
+
+      /* Make sure to return RSSI unknown */
+      cmd.currentRssi = RF_CMD_CCA_REQ_RSSI_UNKNOWN;
+      break;
+    }
   }
 
   /* If we were off, turn back off */
@@ -412,7 +417,7 @@ get_rssi(void)
     off();
   }
 
-  return rssi;
+  return cmd.currentRssi;
 }
 /*---------------------------------------------------------------------------*/
 /* Returns the current TX power in dBm */
