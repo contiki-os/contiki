@@ -159,7 +159,7 @@ rf_core_send_cmd(uint32_t cmd, uint32_t *status)
 
   HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDR) = cmd;
   do {
-    *status = HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDSTA);
+    *status = HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDSTA) & 0xFF;
     if(++timeout_count > 50000) {
       PRINTF("rf_core_send_cmd: 0x%08lx Timeout\n", cmd);
       if(!interrupts_disabled) {
