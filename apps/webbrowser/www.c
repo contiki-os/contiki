@@ -34,12 +34,14 @@
 
 #include <string.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "ctk/ctk.h"
 #include "ctk/ctk-textentry-cmdline.h"
 #include "contiki-net.h"
 #include "lib/petsciiconv.h"
 #include "sys/arg.h"
+#include "sys/log.h"
 #if WWW_CONF_WITH_WGET
 #include "program-handler.h"
 #endif /* WWW_CONF_WITH_WGET */
@@ -49,13 +51,6 @@
 #include "http-strings.h"
 
 #include "www.h"
-
-#if 1
-#define PRINTF(x)
-#else
-#include <stdio.h>
-#define PRINTF(x) printf x
-#endif
 
 
 /* The array that holds the current URL. */
@@ -299,6 +294,8 @@ end_page(char *status, void *focus)
   petsciiconv_topetscii(webpageptr - x, x);
   CTK_WIDGET_FOCUS(&mainwindow, focus);
   redraw_window();
+  log_message("Page attribs free: ", itoa(pageattribs + sizeof(pageattribs) - pageattribptr,
+                                          pageattribs + sizeof(pageattribs) - 4, 10));
 }
 /*-----------------------------------------------------------------------------------*/
 /* open_url():
