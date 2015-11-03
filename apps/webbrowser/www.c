@@ -295,7 +295,7 @@ end_page(char *status, void *focus)
   CTK_WIDGET_FOCUS(&mainwindow, focus);
   redraw_window();
   log_message("Page attribs free: ", itoa(pageattribs + sizeof(pageattribs) - pageattribptr,
-                                          pageattribs + sizeof(pageattribs) - 4, 10));
+                                          pageattribs + sizeof(pageattribs) - 5, 10));
 }
 /*-----------------------------------------------------------------------------------*/
 /* open_url():
