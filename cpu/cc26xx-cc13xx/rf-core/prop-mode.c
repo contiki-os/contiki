@@ -968,6 +968,7 @@ off(void)
     return RF_CORE_CMD_OK;
   }
 
+  rx_off_prop();
   rf_core_power_down();
 
   /* Switch HF clock source to the RCOSC to preserve power */
