@@ -1101,6 +1101,8 @@ off(void)
 
   while(transmitting());
 
+  /* stopping the rx explicitly results in lower sleep-mode power usage */
+  rx_off();
   rf_core_power_down();
 
   /* Switch HF clock source to the RCOSC to preserve power */
