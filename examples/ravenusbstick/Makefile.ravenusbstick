@@ -6,6 +6,8 @@ all: ravenusbstick
 CONTIKI_NO_NET=1
 CONTIKI_WITH_IPV6=0
 
+CFLAGS += -DJACKDAW_CONF_RAW_MODE_ZEP=1 -DRF230_CONF_RX_BUFFERS=5 -DRF230_CONF_PRECISE_TIMESTAMP_SECONDS=1000000
+
 CONTIKI = ../..
 
 MODULES+=core/net/mac/sicslowmac core/net/mac core/net/llsec

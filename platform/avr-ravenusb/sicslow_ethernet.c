@@ -15,6 +15,7 @@
  * Mike Vidales mavida404@gmail.com
  * Kevin Brown kbrown3@uccs.edu
  * Nate Bohlmann nate@elfwerks.com
+ * Cristiano De Alti cristiano_dealti@hotmail.com
  *
  * All rights reserved.
  *
@@ -295,9 +296,6 @@ extern void (*sicslowmac_snifferhook)(const struct mac_driver *r);
 uint8_t prefixCounter;
 uint8_t prefixBuffer[PREFIX_BUFFER_SIZE][3];
 
-/* 6lowpan max size + ethernet header size + 1 */
-uint8_t raw_buf[127+ UIP_LLH_LEN +1];
-
 /**
  * \brief   Perform any setup needed
  */
@@ -322,6 +320,53 @@ void mac_ethernetSetup(void)
 #endif
 }
 
+#if JACKDAW_CONF_RAW_MODE_ZEP
+/*
+ * ZEP is encapsulated in UDP. We could use IPv6, however IPv4
+ * has a shorter header and allows UDP to omit the checksum (special value 0x0000).
+ */
+struct uip_ip4_hdr {
+  /* IPV4 header */
+  uint8_t vhl,
+    tos,
+    len[2],
+    ipid[2],
+    ipoffset[2],
+    ttl,
+    proto;
+  uint16_t ipchksum;
+  uip_ip4addr_t srcipaddr, destipaddr;
+};
+
+struct zep2_hdr {
+  uint8_t preamble[2],
+    version, /* set to 2 */
+    type, /* set to 1 */
+    chanid,
+    devid[2],
+    crclqi,
+    lqival,
+    tstamp[8],
+    seqnum[4],
+    rsvd[10],
+    len;
+};
+
+#define UIP_IP4H_LEN 20
+#define UIP_IP4UDPH_LEN (UIP_IP4H_LEN + UIP_UDPH_LEN)
+#define ZEP2H_LEN 32
+
+static uint8_t raw_buf[UIP_LLH_LEN + UIP_IP4UDPH_LEN + ZEP2H_LEN + 127];
+
+#define IP4HBUF ((struct uip_ip4_hdr *)&raw_buf[UIP_LLH_LEN])
+#define UDPHBUF ((struct uip_udp_hdr *)&raw_buf[UIP_LLH_LEN + UIP_IP4H_LEN])
+#define ZEP2HBUF ((struct zep2_hdr *)&raw_buf[UIP_LLH_LEN + UIP_IP4UDPH_LEN])
+
+uint8_t rf230_get_channel(void);
+#else
+/* 6lowpan max size + ethernet header size + 1 */
+static uint8_t raw_buf[127 + UIP_LLH_LEN + 1];
+#endif /* JACKDAW_CONF_RAW_MODE_ZEP */
 
 /**
  * \brief   Take a packet received over the ethernet link, and send it
@@ -960,7 +1005,7 @@ void slide(uint8_t * data, uint8_t length, int16_t slide)
 //#define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 void
-mac_log_802_15_4_tx(const uint8_t* buffer, size_t total_len) {
+mac_log_802_15_4_tx(const uint8_t* buffer, uint8_t total_len) {
   if (usbstick_mode.raw != 0) {
     uint8_t sendlen;
 
@@ -1002,10 +1047,148 @@ mac_log_802_15_4_tx(const uint8_t* buffer, size_t total_len) {
   }
 }
 
+#if JACKDAW_CONF_RAW_MODE_ZEP
 void
-mac_log_802_15_4_rx(const uint8_t* buf, size_t len) {
+mac_log_802_15_4_rx(const uint8_t* buffer, uint8_t len,
+                    uint8_t lqi, uint8_t rssi, uint32_t timestamp) {
+  if (usbstick_mode.raw != 0) {
+    static uint32_t seqnum = 0; /* ZEPv2 sequence number */
+    /* 
+     * ZEP encapsulates a full PSDU including the 2 FCS octets.
+     * The 2 FCS octets are in Chipcon format:
+     * 1st octet: RSSI in dBm
+     * 2nd octet: FCS valid bit (MSb) and correlation
+     *
+     * Note: len already accounts for the 2 FCS octets.
+     */
+
+    uint32_t ntpseconds;
+    uint32_t ntpfractions;
+
+    /* This will take some cycles */
+    ntpseconds = timestamp / RF230_CONF_PRECISE_TIMESTAMP_SECONDS;
+    ntpfractions = (1ULL << 32) / RF230_CONF_PRECISE_TIMESTAMP_SECONDS;
+    ntpfractions *= (timestamp % RF230_CONF_PRECISE_TIMESTAMP_SECONDS);
+
+    /* Many fields will be zero */
+    memset(raw_buf, 0, sizeof(raw_buf));
+
+    /* 
+     * Write IP header
+     */
+    IP4HBUF->vhl = 0x45;
+    /* IP4HBUF->tos = 0; */
+    /* IP4HBUF->len[0] = 0; */
+    IP4HBUF->len[1] = UIP_IP4UDPH_LEN + ZEP2H_LEN + len;
+
+    /* IP4HBUF->ipid[0] = 0; */
+    /* IP4HBUF->ipid[1] = 0; */
+    /* IP4HBUF->ipoffset[0] = 0; */
+    /* IP4HBUF->ipoffset[1] = 0; */
+    IP4HBUF->ttl = 64;
+    
+    IP4HBUF->proto = UIP_PROTO_UDP;
+    
+    /* RFC 1624 - Incremental Updating of the Internet Checksum */
+    IP4HBUF->ipchksum = uip_htons(0x7ab2 - len);
+    
+    /* Ubisys uses 0.0.0.0 */
+    /* IP4HBUF->srcipaddr.u8[0] = 0; */
+    /* IP4HBUF->srcipaddr.u8[1] = 0; */
+    /* IP4HBUF->srcipaddr.u8[2] = 0; */
+    /* IP4HBUF->srcipaddr.u8[3] = 0; */
+
+    /* Ubisys uses broadcast address */
+    IP4HBUF->destipaddr.u8[0] = 255;
+    IP4HBUF->destipaddr.u8[1] = 255;
+    IP4HBUF->destipaddr.u8[2] = 255;
+    IP4HBUF->destipaddr.u8[3] = 255;
+
+    /* 
+     * Write UDP header
+     */
+    /* UDPHBUF->srcport = 0; */ /* Source port omitted */
+    UDPHBUF->destport = uip_htons(17754);
+    UDPHBUF->udplen = uip_htons(UIP_UDPH_LEN + ZEP2H_LEN + len);
+    /* UDPHBUF->udpchksum = 0; */ /* Checksum omitted */
+
+    /* 
+     * Write ZEP header
+     */
+    ZEP2HBUF->preamble[0] = 'E';
+    ZEP2HBUF->preamble[1] = 'X';
+    ZEP2HBUF->version = 2;
+    ZEP2HBUF->type = 1;
+    ZEP2HBUF->chanid = rf230_get_channel();
+
+    /* ZEP2HBUF->devid[0] = 0; */ /* Zero for now */
+    /* ZEP2HBUF->devid[1] = 0; */
+
+    /* ZEP2HBUF->crclqi = 0; */ /* 0: lqi mode */
+
+    ZEP2HBUF->lqival = lqi;
+
+    ZEP2HBUF->tstamp[0] = (uint8_t)(ntpseconds >> 24);
+    ZEP2HBUF->tstamp[1] = (uint8_t)(ntpseconds >> 16);
+    ZEP2HBUF->tstamp[2] = (uint8_t)(ntpseconds >> 8);
+    ZEP2HBUF->tstamp[3] = (uint8_t)ntpseconds;
+    ZEP2HBUF->tstamp[4] = (uint8_t)(ntpfractions >> 24);
+    ZEP2HBUF->tstamp[5] = (uint8_t)(ntpfractions >> 16);
+    ZEP2HBUF->tstamp[6] = (uint8_t)(ntpfractions >> 8);
+    ZEP2HBUF->tstamp[7] = (uint8_t)ntpfractions;
+
+    ZEP2HBUF->seqnum[0] = (uint8_t)(seqnum >> 24);
+    ZEP2HBUF->seqnum[1] = (uint8_t)(seqnum >> 16);
+    ZEP2HBUF->seqnum[2] = (uint8_t)(seqnum >> 8);
+    ZEP2HBUF->seqnum[3] = (uint8_t)seqnum++;
+
+    /* ZEP2HBUF->rsvd[0] = 0; */ /* Reserved. Set to 0 */
+	/* ZEP2HBUF->rsvd[1] = 0; */
+	/* ZEP2HBUF->rsvd[2] = 0; */
+	/* ZEP2HBUF->rsvd[3] = 0; */
+	/* ZEP2HBUF->rsvd[4] = 0; */
+	/* ZEP2HBUF->rsvd[5] = 0; */
+	/* ZEP2HBUF->rsvd[6] = 0; */
+	/* ZEP2HBUF->rsvd[7] = 0; */
+	/* ZEP2HBUF->rsvd[8] = 0; */
+	/* ZEP2HBUF->rsvd[9] = 0; */
+
+    ZEP2HBUF->len = len;
+
+    /* Get the raw frame */
+    memcpy(&raw_buf[UIP_LLH_LEN + UIP_IP4UDPH_LEN + ZEP2H_LEN], buffer, len);
+
+    /* Replace FCS with FCS in Chipcon format */
+    *((uint8_t*)ZEP2HBUF + ZEP2H_LEN + len - 2) = (uint8_t)(-91 + rssi);
+    *((uint8_t*)ZEP2HBUF + ZEP2H_LEN + len - 1) = 0x80 | 0x00; /* FCS valid, correlation not available */
+
+    /* Setup generic ethernet stuff */
+    ETHBUF(raw_buf)->type = uip_htons(UIP_ETHTYPE_IP);
+ 
+    /* Ubisys sends to broadcast */
+    ETHBUF(raw_buf)->dest.addr[0] = 0xff;
+    ETHBUF(raw_buf)->dest.addr[1] = 0xff;
+    ETHBUF(raw_buf)->dest.addr[2] = 0xff;
+    ETHBUF(raw_buf)->dest.addr[3] = 0xff;
+    ETHBUF(raw_buf)->dest.addr[4] = 0xff;
+    ETHBUF(raw_buf)->dest.addr[5] = 0xff;
+
+	mac_createDefaultEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]));
+
+    usb_eth_send(raw_buf, UIP_LLH_LEN + UIP_IP4UDPH_LEN + ZEP2H_LEN + len, 0);
+  }
+}
+#else
+void
+mac_log_802_15_4_rx(const uint8_t* buf, uint8_t len,
+                    uint8_t lqi, uint8_t rssi, uint32_t timestamp) {
   if (usbstick_mode.raw != 0) {
     uint8_t sendlen;
+
+  /* Prevent compiler warnings */
+    (void)lqi;
+    (void)rssi;
+    (void)timestamp;
 
   /* Get the raw frame */
     memcpy(&raw_buf[UIP_LLH_LEN], buf, len);
@@ -1041,6 +1224,8 @@ mac_log_802_15_4_rx(const uint8_t* buf, size_t len) {
     usb_eth_send(raw_buf, sendlen, 0);
   }
 }
+#endif /* JACKDAW_CONF_RAW_MODE_ZEP */
+
 /* The rf230bb send driver may call this routine via  RF230BB_HOOK_IS_SEND_ENABLED */
 bool
 mac_is_send_enabled(void) {

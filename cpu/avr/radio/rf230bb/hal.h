@@ -11,6 +11,7 @@
  *	Nate Bohlmann nate@elfwerks.com
  *  David Kopf dak664@embarqmail.com
  *  Ivan Delamer delamer@ieee.com
+ *  Cristiano De Alti cristiano_dealti@hotmail.com
  *
  *   All rights reserved.
  *
@@ -292,8 +293,18 @@
 #else
 #define RADIO_VECT TIMER1_CAPT_vect
 // Raven and Jackdaw
+#if PLATFORM_TYPE == RAVENUSB_C
+/* Extern clock source on T1 pin. Clock on falling edge */
+#define HAL_ENABLE_RADIO_INTERRUPT( ) { TCCR1B = ( 1 << ICES1 ) | ( 1 << CS11 ) | ( 1 << CS12 ); TIFR1 |= (1 << ICF1); TIMSK1 |= ( 1 << ICIE1 ) ; }
+#else
 #define HAL_ENABLE_RADIO_INTERRUPT( ) { TCCR1B = ( 1 << ICES1 ) | ( 1 << CS10 ); TIFR1 |= (1 << ICF1); TIMSK1 |= ( 1 << ICIE1 ) ; }
+#endif
 #define HAL_DISABLE_RADIO_INTERRUPT( ) ( TIMSK1 &= ~( 1 << ICIE1 ) )
+
+#define HAL_READ_TIMER_COUNTER( ) TCNT1
+#define HAL_TIMER_OVERFLOW_PENDING( ) ( TIFR1 & ( 1 << TOV1 ) )
+#define HAL_CLEAR_TIMER_OVERFLOW( ) ( TIFR1 &= ~( 1 << TOV1 ) )
+#define TIMER_VECT TIMER1_OVF_vect
 #endif
 
 #define HAL_ENABLE_OVERFLOW_INTERRUPT( ) ( TIMSK1 |= ( 1 << TOIE1 ) )
@@ -359,6 +370,8 @@ typedef struct{
     uint8_t length;                       /**< Length of frame. */
     uint8_t data[ HAL_MAX_FRAME_LENGTH ]; /**< Actual frame data. */
     uint8_t lqi;                          /**< LQI value for received frame. */
+    uint8_t rssi;                         /**< RSSI value for received frame as an offset in dB from the minimum RSSI (-91dBm). */
+    uint32_t timestamp;                   /**< High precision timestamp (1/RF230_CONF_PRECISE_TIMESTAMP_SECONDS). */
     bool crc;                             /**< Flag - did CRC pass for received frame? */
 } hal_rx_frame_t;
 

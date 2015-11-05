@@ -19,7 +19,7 @@ struct uip_stats uip_stat;
 
 uip_lladdr_t uip_lladdr;
 
-static uint8_t (* output)(uip_lladdr_t *);
+static uint8_t (* output)(const uip_lladdr_t *);
 extern void mac_LowpanToEthernet(void);
 void tcpip_input( void )
 {
