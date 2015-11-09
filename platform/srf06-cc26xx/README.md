@@ -107,9 +107,9 @@ To use the port you need:
   GNU Tools for ARM Embedded Processors <https://launchpad.net/gcc-arm-embedded>.
   The port was developed and tested using this version:
 
-    $ arm-none-eabi-gcc -v
-    [...]
-    gcc version 4.9.3 20141119 (release) [ARM/embedded-4_9-branch revision 218278] (GNU Tools for ARM Embedded Processors)
+        $ arm-none-eabi-gcc -v
+        [...]
+        gcc version 4.9.3 20141119 (release) [ARM/embedded-4_9-branch revision 218278] (GNU Tools for ARM Embedded Processors)
 
 * srecord (http://srecord.sourceforge.net/)
 * You may also need other drivers so that the SmartRF can communicate with your
