@@ -102,7 +102,10 @@ To use the port you need:
   as a submodule when you clone Contiki.
 * TI's CC13xxware sources. The correct version will be installed automatically
   as a submodule when you clone Contiki.
-* Software to program the nodes. Use TI's SmartRF Flash Programmer
+* Contiki can automatically upload firmware to the nodes over serial with the
+  included [cc2538-bsl script](https://github.com/JelmerT/cc2538-bsl).
+  Note that uploading over serial doesn't work for the Sensortag, you can use
+  TI's SmartRF Flash Programmer in this case.
 * A toolchain to build firmware: The port has been developed and tested with
   GNU Tools for ARM Embedded Processors <https://launchpad.net/gcc-arm-embedded>.
   The port was developed and tested using this version:
