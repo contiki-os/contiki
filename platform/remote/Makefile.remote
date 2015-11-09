@@ -5,7 +5,7 @@ ifndef CONTIKI
 endif
 
 PYTHON = python
-BSL_FLAGS += -e -w -v -b 115200
+BSL_FLAGS += -e -w -v
 
 ifdef PORT
   BSL_FLAGS += -p $(PORT)
