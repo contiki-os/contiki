@@ -52,6 +52,8 @@
 
 #include "www.h"
 
+/* Explicitly declare itoa as it is non-standard and not necessarily in stdlib.h */
+char *itoa(int value, char *str, int base);
 
 /* The array that holds the current URL. */
 static char url[WWW_CONF_MAX_URLLEN + 1];
