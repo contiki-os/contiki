@@ -44,6 +44,7 @@
 #include "contiki-conf.h"
 #include "uart-driver.h"
 #include "sys/rtimer.h"
+#include "watchdog.h"
 #include <math.h>
 #include <AppHardwareApi.h>
 
@@ -79,7 +80,9 @@ extern volatile unsigned char xonxoff_state;
 
 /***        Local Function Prototypes                                     ***/
 static void uart_driver_isr(uint32_t device_id, uint32_t item_bitmap);
+#if !UART_XONXOFF_FLOW_CTRL
 static int16_t uart_driver_get_tx_fifo_available_space(uint8_t uart_dev);
+#endif /* !UART_XONXOFF_FLOW_CTRL */
 static void uart_driver_set_baudrate(uint8_t uart_dev, uint8_t br);
 static void uart_driver_set_high_baudrate(uint8_t uart_dev, uint32_t baud_rate);
 
@@ -352,12 +355,14 @@ uart_driver_rx_handler(uint8_t uart_dev)
 /***        Local Functions                                               ***/
 /****************************************************************************/
 
+#if !UART_XONXOFF_FLOW_CTRL
 /* Returns the free space in tx fifo, i.e., how many characters we can put */
 static int16_t
 uart_driver_get_tx_fifo_available_space(uint8_t uart_dev)
 {
   return tx_fifo_size[uart_dev] - u16AHI_UartReadTxFifoLevel(uart_dev);
 }
+#endif /* !UART_XONXOFF_FLOW_CTRL */
 /* Initializes the specified UART with auto-selection of
    baudrate tuning method */
 static void
@@ -459,7 +464,7 @@ uart_driver_set_high_baudrate(uint8_t uart_dev, uint32_t baud_rate)
   DBG_vPrintf(DEBUG_UART_BUFFERED, "Config uart=%d, baud=%d\n", uart_dev,
               baud_rate);
 
-  while(abs(i32BaudError) > (int32)(baud_rate >> 4)) { /* 6.25% (100/16) error */
+  while(ABS(i32BaudError) > (int32)(baud_rate >> 4)) { /* 6.25% (100/16) error */
     if(--u8ClocksPerBit < 3) {
       DBG_vPrintf(DEBUG_UART_BUFFERED,
                   "Could not calculate UART settings for target baud!");

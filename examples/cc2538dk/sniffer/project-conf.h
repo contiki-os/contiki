@@ -40,6 +40,7 @@
 
 #define CC2538_RF_CONF_SNIFFER 1
 #define CC2538_RF_CONF_AUTOACK 0
+#undef NETSTACK_CONF_RDC
 #define NETSTACK_CONF_RDC      stub_rdc_driver
 
 #define UART0_CONF_BAUD_RATE   460800
