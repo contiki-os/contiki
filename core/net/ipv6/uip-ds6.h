@@ -216,9 +216,15 @@ typedef struct uip_ds6_netif {
   uint32_t reachable_time;      /* in msec */
   uint32_t retrans_timer;       /* in msec */
   uint8_t maxdadns;
+#if UIP_DS6_ADDR_NB
   uip_ds6_addr_t addr_list[UIP_DS6_ADDR_NB];
+#endif /* UIP_DS6_ADDR_NB */
+#if UIP_DS6_AADDR_NB
   uip_ds6_aaddr_t aaddr_list[UIP_DS6_AADDR_NB];
+#endif /* UIP_DS6_AADDR_NB */
+#if UIP_DS6_MADDR_NB
   uip_ds6_maddr_t maddr_list[UIP_DS6_MADDR_NB];
+#endif /* UIP_DS6_MADDR_NB */
 } uip_ds6_netif_t;
 
 /** \brief Generic type for a DS6, to use a common loop though all DS */

@@ -227,7 +227,7 @@ int
 puts(const char *s)
 {
   char c;
-  while(c = *s++) {
+  while((c = *s++) != '\0') {
     putchar(c);
   }
   putchar('\n');

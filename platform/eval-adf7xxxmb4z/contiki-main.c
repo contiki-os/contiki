@@ -66,7 +66,9 @@ SENSORS(&button_sensor);
 #endif
 
 static uint8_t serial_id[] = SERIAL_ID;
+#if !NETSTACK_CONF_WITH_IPV6
 static uint16_t node_id = 0x0102;
+#endif /* !NETSTACK_CONF_WITH_IPV6 */
 
 /*---------------------------------------------------------------------------*/
 static void

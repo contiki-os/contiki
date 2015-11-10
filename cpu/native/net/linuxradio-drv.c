@@ -43,6 +43,8 @@
 #include "net/packetbuf.h"
 #include "net/netstack.h"
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <sys/ioctl.h>
 #include <string.h>
 #include <sys/types.h>

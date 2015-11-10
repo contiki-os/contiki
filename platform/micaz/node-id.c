@@ -33,6 +33,7 @@
 
 #include "contiki-conf.h"
 #include "sys/node-id.h"
+#include "dev/eeprom.h"
 
 unsigned short node_id = 0;
 

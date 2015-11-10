@@ -67,9 +67,9 @@ res_post_handler(void *request, void *response, uint8_t *buffer, uint16_t prefer
     coap_separate_accept(request, &request_metadata);
 
     /* Need Time for calculation now */
-    uint32_t i;
+    unsigned i;
     for(i = 0; i <= 4096; i++) {
-      printf("\r% 4u\r", i);
+      printf("\r%4u\r", i);
     }
     printf("\n");
 

@@ -57,6 +57,8 @@
 #include "JPT.h"
 #include "PeripheralRegs.h"
 
+void vMMAC_SetChannelAndPower(uint8 u8Channel, int8 i8power);
+
 /* This driver configures the radio in PHY mode and does address decoding
  * and acknowledging in software. */
 
@@ -864,8 +866,6 @@ set_send_on_cca(uint8_t enable)
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
 {
-  int i, v;
-
   if(!value) {
     return RADIO_RESULT_INVALID_VALUE;
   }
@@ -926,8 +926,6 @@ get_value(radio_param_t param, radio_value_t *value)
 static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
-  int i;
-
   switch(param) {
   case RADIO_PARAM_POWER_MODE:
     if(value == RADIO_POWER_MODE_ON) {

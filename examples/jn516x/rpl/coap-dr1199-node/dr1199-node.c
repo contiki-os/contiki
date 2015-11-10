@@ -39,6 +39,7 @@
 #include "button-sensor.h"
 #include "pot-sensor.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 static char content[REST_MAX_CHUNK_SIZE];
 static int content_len = 0;
@@ -238,11 +239,10 @@ static void
 put_post_led_d1_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
-  int request_content_len;
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
-    request_content_len = REST.get_request_payload(request, &request_content);
+    REST.get_request_payload(request, &request_content);
     SET_LED(LEDS_GREEN)
   }
 }
@@ -256,11 +256,10 @@ static void
 put_post_led_d2_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
-  int request_content_len;
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
-    request_content_len = REST.get_request_payload(request, &request_content);
+    REST.get_request_payload(request, &request_content);
     SET_LED(LEDS_BLUE)
   }
 }
@@ -274,11 +273,10 @@ static void
 put_post_led_d3_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
-  int request_content_len;
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
-    request_content_len = REST.get_request_payload(request, &request_content);
+    REST.get_request_payload(request, &request_content);
     SET_LED(LEDS_RED)
   }
 }
@@ -292,11 +290,10 @@ static void
 put_post_led_d3_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
-  int request_content_len;
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
-    request_content_len = REST.get_request_payload(request, &request_content);
+    REST.get_request_payload(request, &request_content);
     SET_LED(LEDS_GP0);
   }
 }
@@ -310,11 +307,10 @@ static void
 put_post_led_d6_1174_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
-  int request_content_len;
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
-    request_content_len = REST.get_request_payload(request, &request_content);
+    REST.get_request_payload(request, &request_content);
     SET_LED(LEDS_GP1);
   }
 }
@@ -328,11 +324,10 @@ static void
 put_post_led_all_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content;
-  int request_content_len;
   unsigned int accept = -1;
   REST.get_header_accept(request, &accept);
   if(accept == -1 || accept == REST.type.TEXT_PLAIN) {
-    request_content_len = REST.get_request_payload(request, &request_content);
+    REST.get_request_payload(request, &request_content);
     if(atoi((const char *)request_content) != 0) {
       leds_on(LEDS_ALL);
     } else {

@@ -51,7 +51,7 @@
 #define SHELL_VARS_RAM_END   SHELL_VARS_CONF_RAM_END
 #else /* SHELL_VARS_CONF_RAM_BEGIN */
 #define SHELL_VARS_RAM_BEGIN 0
-#define SHELL_VARS_RAM_END (unsigned int)-1
+#define SHELL_VARS_RAM_END (uintptr_t)-1
 #endif /* SHELL_VARS_CONF_RAM_BEGIN */
 
 /*---------------------------------------------------------------------------*/
@@ -77,8 +77,8 @@ PROCESS_THREAD(shell_vars_process, ev, data)
   
   for(i = 0; i < symbols_nelts; ++i) {
     if(symbols[i].name != NULL &&
-       (unsigned int)symbols[i].value >= SHELL_VARS_RAM_BEGIN &&
-       (unsigned int)symbols[i].value <= SHELL_VARS_RAM_END) {
+       (uintptr_t)symbols[i].value >= SHELL_VARS_RAM_BEGIN &&
+       (uintptr_t)symbols[i].value <= SHELL_VARS_RAM_END) {
       shell_output_str(&vars_command, (char *)symbols[i].name, "");
     }
   }
