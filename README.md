@@ -1,4 +1,4 @@
-# RICH Contiki Code
+# EIT Digital RICH Contiki Contributions
 
 [![Build Status](https://travis-ci.org/EIT-ICT-RICH/contiki.svg?branch=rich-3.x)](https://travis-ci.org/EIT-ICT-RICH/contiki/branches)
 
