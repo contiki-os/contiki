@@ -3,11 +3,10 @@
 [![Build Status](https://travis-ci.org/EIT-ICT-RICH/contiki.svg?branch=rich-3.x)](https://travis-ci.org/EIT-ICT-RICH/contiki/branches)
 
 This repository contains open source contributions to the Conitki OS developped in the framework of the EIT Digital **RICH** Activity.
-
 It features a **TSCH** implementation with 6TiSCH minimal and Orchestra support, and a port to NXP's **JN516X** platform.
 See `examples/rich` for application examples.
 
-## JN516x
+## jn516x Port
 
 This repository includes a comprehensive port of the
 [jn516x chip family](http://www.nxp.com/products/microcontrollers/product_series/jn516x)
@@ -42,7 +41,7 @@ We also provide our autonomous scheduler for TSCH + RPL networks,
 More information, documentation on how to use and port TSCH to your own platform are available in
 [`core/net/mac/tsch/README.md`](https://github.com/EIT-ICT-RICH/contiki/blob/rich-3.x/core/net/mac/tsch/README.md)
 . Likewise, Orchestra is documented in
-[`/apps/orchestra/README.md`](https://github.com/EIT-ICT-RICH/contiki/blob/rich-3.x/apps/orchestra/README.md)
+[`apps/orchestra/README.md`](https://github.com/EIT-ICT-RICH/contiki/blob/rich-3.x/apps/orchestra/README.md)
 .
 
 TSCH is currently being considered for inclusion in the official Contiki repository through
