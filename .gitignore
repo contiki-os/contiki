@@ -4,6 +4,7 @@
 *.png
 *.log
 *.elf
+*.zip
 *.d
 *.ihex
 *.pyc

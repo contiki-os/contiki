@@ -45,7 +45,11 @@
 
 /*--------------------------------------------------------------------*/
 uint8_t
+#if NETSTACK_CONF_WITH_IPV6
+uip_driver_send(const uip_lladdr_t *addr)
+#else
 uip_driver_send(void)
+#endif
 {
   packetbuf_copyfrom(&uip_buf[UIP_LLH_LEN], uip_len);
 

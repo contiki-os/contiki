@@ -56,6 +56,13 @@
 
 #include <err.h>
 
+#include "tools-utils.h"
+
+#ifndef BAUDRATE
+#define BAUDRATE B115200
+#endif
+speed_t b_rate = BAUDRATE;
+
 int verbose = 1;
 const char *ipaddr;
 const char *netmask;
@@ -488,11 +495,6 @@ tun_to_serial(int infd, int outfd)
   return size;
 }
 
-#ifndef BAUDRATE
-#define BAUDRATE B115200
-#endif
-speed_t b_rate = BAUDRATE;
-
 void
 stty_telos(int fd)
 {
@@ -843,8 +845,8 @@ fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default),230400,4
 fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default),230400\n");
 #endif
 fprintf(stderr," -H             Hardware CTS/RTS flow control (default disabled)\n");
-fprintf(stderr," -X             Software XON/XOFF flow control (default disabled)\n");
 fprintf(stderr," -I             Inquire IP address\n");
+fprintf(stderr," -X             Software XON/XOFF flow control (default disabled)\n");
 fprintf(stderr," -L             Log output format (adds time stamps)\n");
 fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
 fprintf(stderr," -M             Interface MTU (default and min: 1280)\n");
@@ -875,47 +877,11 @@ exit(1);
   }
   ipaddr = argv[1];
 
-  switch(baudrate) {
-  case -2:
-    break;			/* Use default. */
-  case 9600:
-    b_rate = B9600;
-    break;
-  case 19200:
-    b_rate = B19200;
-    break;
-  case 38400:
-    b_rate = B38400;
-    break;
-  case 57600:
-    b_rate = B57600;
-    break;
-  case 115200:
-    b_rate = B115200;
-    break;
-  case 230400:
-    b_rate = B230400;
-    break;
-#ifndef __APPLE__
-  case 460800:
-    b_rate = B460800;
-    break;
-  case 500000:
-    b_rate = B500000;
-    break;
-  case 576000:
-    b_rate = B576000;
-    break;
-  case 921600:
-    b_rate = B921600;
-    break;
-  case 1000000:
-    b_rate = B1000000;
-    break;
-#endif
-  default:
-    err(1, "unknown baudrate %d", baudrate);
-    break;
+  if(baudrate != -2) { /* -2: use default baudrate */
+    b_rate = select_baudrate(baudrate);
+    if(b_rate == 0) {
+      err(1, "unknown baudrate %d", baudrate);
+    }
   }
 
   if(*tundev == '\0') {

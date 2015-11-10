@@ -201,6 +201,28 @@ rf_core_wait_cmd_done(void *cmd)
          == RF_CORE_RADIO_OP_STATUS_DONE_OK;
 }
 /*---------------------------------------------------------------------------*/
+static int
+fs_powerdown(void)
+{
+  rfc_CMD_FS_POWERDOWN_t cmd;
+  uint32_t cmd_status;
+
+  rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_FS_POWERDOWN);
+
+  if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) != RF_CORE_CMD_OK) {
+    PRINTF("fs_powerdown: CMDSTA=0x%08lx\n", cmd_status);
+    return RF_CORE_CMD_ERROR;
+  }
+
+  if(rf_core_wait_cmd_done(&cmd) != RF_CORE_CMD_OK) {
+    PRINTF("fs_powerdown: CMDSTA=0x%08lx, status=0x%04x\n",
+           cmd_status, cmd.status);
+    return RF_CORE_CMD_ERROR;
+  }
+
+  return RF_CORE_CMD_OK;
+}
+/*---------------------------------------------------------------------------*/
 int
 rf_core_power_up()
 {
@@ -256,6 +278,9 @@ rf_core_power_down()
   if(rf_core_is_accessible()) {
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
+
+    /* need to send FS_POWERDOWN or analog components will use power */
+    fs_powerdown();
   }
 
   /* Shut down the RFCORE clock domain in the MCU VD */

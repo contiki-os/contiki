@@ -32,7 +32,7 @@
  *
  */
 
-#include <string.h>
+#include <stdlib.h>
 
 #include "contiki-net.h"
 #include "ctk/ctk.h"
@@ -78,6 +78,10 @@ main(void)
 {
 
 #endif /* WITH_ARGS */
+
+#if WITH_80COL
+  _heapadd((void *)0x0400, 0x0400);
+#endif /* WITH_80COL */
 
   process_init();
 

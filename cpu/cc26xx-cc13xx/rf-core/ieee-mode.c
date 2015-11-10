@@ -853,6 +853,11 @@ transmit(unsigned short transmit_len)
    */
   rf_core_cmd_done_dis();
 
+
+  if(was_off) {
+    off();
+  }
+
   return ret;
 }
 /*---------------------------------------------------------------------------*/
@@ -1101,7 +1106,11 @@ off(void)
 
   while(transmitting());
 
+  /* stopping the rx explicitly results in lower sleep-mode power usage */
+  rx_off();
   rf_core_power_down();
+
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 
   /* Switch HF clock source to the RCOSC to preserve power */
   oscillators_switch_to_hf_rc();
@@ -1210,6 +1219,12 @@ set_value(radio_param_t param, radio_value_t value)
     if(value < IEEE_MODE_CHANNEL_MIN ||
        value > IEEE_MODE_CHANNEL_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    if(cmd->channel == (uint8_t)value) {
+      /* We already have that very same channel configured.
+       * Nothing to do here. */
+      return RADIO_RESULT_OK;
     }
 
     cmd->channel = (uint8_t)value;

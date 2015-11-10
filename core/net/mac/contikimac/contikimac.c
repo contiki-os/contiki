@@ -816,6 +816,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   struct rdc_buf_list *next;
   int ret;
   int is_receiver_awake;
+  int pending;
   
   if(buf_list == NULL) {
     return;
@@ -860,7 +861,9 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 
     /* Prepare the packetbuf */
     queuebuf_to_packetbuf(curr->buf);
-    
+
+    pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
+
     /* Send the current packet */
     ret = send_packet(sent, ptr, curr, is_receiver_awake);
     if(ret != MAC_TX_DEFERRED) {
@@ -877,7 +880,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
       /* The transmission failed, we stop the burst */
       next = NULL;
     }
-  } while((next != NULL) && packetbuf_attr(PACKETBUF_ATTR_PENDING));
+  } while((next != NULL) && pending);
 }
 /*---------------------------------------------------------------------------*/
 /* Timer callback triggered when receiving a burst, after having

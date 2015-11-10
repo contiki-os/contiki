@@ -107,7 +107,7 @@ init(void)
   slip_set_input_callback(slip_input_callback);
 }
 /*---------------------------------------------------------------------------*/
-static void
+static int
 output(void)
 {
   if(uip_ipaddr_cmp(&last_sender, &UIP_IP_BUF->srcipaddr)) {
@@ -122,6 +122,7 @@ output(void)
     PRINTF("SUT: %u\n", uip_len);
     slip_send();
   }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 #if !SLIP_BRIDGE_CONF_NO_PUTCHAR

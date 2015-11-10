@@ -34,12 +34,14 @@
 
 #include <string.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "ctk/ctk.h"
 #include "ctk/ctk-textentry-cmdline.h"
 #include "contiki-net.h"
 #include "lib/petsciiconv.h"
 #include "sys/arg.h"
+#include "sys/log.h"
 #if WWW_CONF_WITH_WGET
 #include "program-handler.h"
 #endif /* WWW_CONF_WITH_WGET */
@@ -50,13 +52,8 @@
 
 #include "www.h"
 
-#if 1
-#define PRINTF(x)
-#else
-#include <stdio.h>
-#define PRINTF(x) printf x
-#endif
-
+/* Explicitly declare itoa as it is non-standard and not necessarily in stdlib.h */
+char *itoa(int value, char *str, int base);
 
 /* The array that holds the current URL. */
 static char url[WWW_CONF_MAX_URLLEN + 1];
@@ -196,7 +193,7 @@ PROCESS(www_process, "Web browser");
 
 AUTOSTART_PROCESSES(&www_process);
 
-static void CC_FASTCALL formsubmit(struct inputattrib *trigger);
+static void formsubmit(struct inputattrib *trigger);
 
 /*-----------------------------------------------------------------------------------*/
 /* make_window()
@@ -232,7 +229,7 @@ redraw_window(void)
   ctk_window_redraw(&mainwindow);
 }
 /*-----------------------------------------------------------------------------------*/
-static char * CC_FASTCALL
+static char *
 add_pageattrib(unsigned size)
 {
   char *ptr;
@@ -246,7 +243,7 @@ add_pageattrib(unsigned size)
 }
 /*-----------------------------------------------------------------------------------*/
 #if WWW_CONF_FORMS
-static void CC_FASTCALL
+static void
 add_forminput(struct inputattrib *inputptr)
 {
   inputptr->nextptr = NULL;
@@ -285,11 +282,22 @@ start_loading(void)
   clear_page();
 }
 /*-----------------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 show_statustext(char *text)
 {
   ctk_label_set_text(&statustext, text);
   CTK_WIDGET_REDRAW(&statustext);
+}
+/*-----------------------------------------------------------------------------------*/
+static void
+end_page(char *status, void *focus)
+{
+  show_statustext(status);
+  petsciiconv_topetscii(webpageptr - x, x);
+  CTK_WIDGET_FOCUS(&mainwindow, focus);
+  redraw_window();
+  log_message("Page attribs free: ", itoa(pageattribs + sizeof(pageattribs) - pageattribptr,
+                                          pageattribs + sizeof(pageattribs) - 5, 10));
 }
 /*-----------------------------------------------------------------------------------*/
 /* open_url():
@@ -389,7 +397,7 @@ open_url(void)
  * Will format a link from the current web pages so that it suits the
  * open_url() function.
  */
-static void CC_FASTCALL
+static void
 set_link(char *link)
 {
   register char *urlptr;
@@ -609,7 +617,7 @@ PROCESS_THREAD(www_process, ev, data)
  * "url" variable and the visible "editurl" (which is shown in the URL
  * text entry widget in the browser window).
  */
-static void CC_FASTCALL
+static void
 set_url(char *host, uint16_t port, char *file)
 {
   char *urlptr;
@@ -660,10 +668,7 @@ webclient_timedout(void)
 void
 webclient_closed(void)
 {
-  show_statustext("Stopped");
-  petsciiconv_topetscii(webpageptr - x, x);
-  CTK_WIDGET_FOCUS(&mainwindow, &downbutton);
-  redraw_window();
+  end_page("Stopped", &downbutton);
 }
 /*-----------------------------------------------------------------------------------*/
 /* webclient_connected():
@@ -710,6 +715,7 @@ webclient_datahandler(char *data, uint16_t len)
 	     "                       Would you like to download instead?");
       CTK_WIDGET_ADD(&mainwindow, &wgetnobutton);
       CTK_WIDGET_ADD(&mainwindow, &wgetyesbutton);
+      CTK_WIDGET_FOCUS(&mainwindow, &wgetyesbutton);
       redraw_window();
 #endif /* CTK_CONF_WINDOWS */
 #endif /* WWW_CONF_WITH_WGET || WWW_CONF_WGET_EXEC */
@@ -721,14 +727,11 @@ webclient_datahandler(char *data, uint16_t len)
 
   if(data == NULL) {
     loading = 0;
-    show_statustext("Done");
-    petsciiconv_topetscii(webpageptr - x, x);
-    CTK_WIDGET_FOCUS(&mainwindow, &urlentry);
-    redraw_window();
+    end_page("Done", &urlentry);
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
 	       unsigned char border)
 {
@@ -842,7 +845,9 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
 void
 htmlparser_newline(void)
 {
+#ifdef WITH_PETSCII
   char *wptr;
+#endif /* WITH_PETSCII */
 
   if(++newlines > 2) {
     return;
@@ -862,8 +867,10 @@ htmlparser_newline(void)
   ++y;
   x = 0;
 
+#ifdef WITH_PETSCII
   wptr = webpageptr - WWW_CONF_WEBPAGE_WIDTH;
   petsciiconv_topetscii(wptr, WWW_CONF_WEBPAGE_WIDTH);
+#endif /* WITH_PETSCII */
 
   if(y == WWW_CONF_WEBPAGE_HEIGHT) {
     loading = 0;
@@ -935,7 +942,7 @@ htmlparser_inputfield(unsigned char type, unsigned char size, char *text, char *
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 add_query(char delimiter, char *string)
 {
   static char *query;
@@ -963,7 +970,7 @@ add_query(char delimiter, char *string)
   query += length;
 }
 /*-----------------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 formsubmit(struct inputattrib *trigger)
 {
   struct inputattrib *input;

@@ -42,7 +42,11 @@
 #define CTK_CONF_WIDGETUP_KEY     CH_F5
 #define CTK_CONF_WIDGETDOWN_KEY   CH_F7
 
+#if WITH_80COL
+#define MOUSE_CONF_XTOC(x) ((x) / 4)
+#else
 #define MOUSE_CONF_XTOC(x) ((x) / 8)
+#endif
 #define MOUSE_CONF_YTOC(y) ((y) / 8)
 
 #define BORDERCOLOR       COLOR_BLACK
@@ -55,21 +59,23 @@
 #define WIDGETCOLOR_FWIN  COLOR_GRAY3
 #define WIDGETCOLOR_HLINK COLOR_CYAN
 
-#define EMAIL_CONF_WIDTH  39
-#define EMAIL_CONF_HEIGHT 20
-#define EMAIL_CONF_ERASE   0
-
-#define FTP_CONF_WIDTH  18
-#define FTP_CONF_HEIGHT 22
-
+#if WITH_80COL
+#define IRC_CONF_WIDTH  80
+#else
 #define IRC_CONF_WIDTH  40
+#endif
 #define IRC_CONF_HEIGHT 24
 
 #ifndef TELNETD_CONF_MAX_IDLE_TIME
 #define TELNETD_CONF_MAX_IDLE_TIME 300
 #endif
 
+#if WITH_80COL
+#define WWW_CONF_WEBPAGE_WIDTH  80
+#else
 #define WWW_CONF_WEBPAGE_WIDTH  40
+#endif
+#define WWW_CONF_WEBPAGE_HEIGHT 20
 #define WWW_CONF_HISTORY_SIZE    4
 #define WWW_CONF_WGET_EXEC(url) exec("wget", url)
 
