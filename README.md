@@ -16,11 +16,12 @@ It supports all Contiki networking stacks (MAC and NET) and was tested at scale 
 several testbeds including a 25 node testbed running our 6TiSCH stack
 (also part of this repository).
 
-More information on how to get started with the port at:
-https://github.com/EIT-ICT-RICH/contiki/blob/rich-3.x/platform/jn516x/README.md
+More information on how to get started available in
+[`platform/jn516x/README.md`](https://github.com/EIT-ICT-RICH/contiki/blob/rich-3.x/platform/jn516x/README.md)
+.
 
-The jn516x port was merged in the official Contiki repository via this pull request:
-https://github.com/contiki-os/contiki/pull/1219
+The jn516x port was merged in the official Contiki repository via
+[this pull request](https://github.com/contiki-os/contiki/pull/1219).
 
 ## TSCH, 6TiSCH, and Orchestra
 
@@ -38,8 +39,11 @@ runtime dissemination of hopping sequence and timing settings, and a scheduling 
 We also provide our autonomous scheduler for TSCH + RPL networks,
 [Orchestra](http://www.simonduquennoy.net/papers/duquennoy15orchestra.pdf).
 
-More information, documentation on how to use and port to your own platform are available at:
-https://github.com/EIT-ICT-RICH/contiki/blob/rich-3.x/core/net/mac/tsch/README.md
+More information, documentation on how to use and port TSCH to your own platform are available in
+[`core/net/mac/tsch/README.md`](https://github.com/EIT-ICT-RICH/contiki/blob/rich-3.x/core/net/mac/tsch/README.md)
+. Likewise, Orchestra is documented in
+[`/apps/orchestra/README.md`](https://github.com/EIT-ICT-RICH/contiki/blob/rich-3.x/apps/orchestra/README.md)
+.
 
-TSCH is currently being considered for inclusion in the official Contiki repository through this PR:
-https://github.com/contiki-os/contiki/pull/1285
+TSCH is currently being considered for inclusion in the official Contiki repository through
+[this pull request](https://github.com/contiki-os/contiki/pull/1285).
