@@ -74,17 +74,6 @@
 #define TSCH_MAX_INCOMING_PACKETS 4
 #endif
 
-/* Use SFD timestamp for synchronization? By default we merely rely on rtimer and busy wait
- * until SFD is high, which we found to provide greater accuracy on JN516x and CC2420.
- * Note: for association, however, we always use SFD timestamp to know the time of arrival
- * of the EB (because we do not busy-wait for the whole scanning process)
- * */
-#ifdef TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS
-#define TSCH_RESYNC_WITH_SFD_TIMESTAMPS TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS
-#else
-#define TSCH_RESYNC_WITH_SFD_TIMESTAMPS 0
-#endif
-
 /*********** Callbacks *********/
 
 /* Called by TSCH form interrupt after receiving a frame, enabled upper-layer to decide
