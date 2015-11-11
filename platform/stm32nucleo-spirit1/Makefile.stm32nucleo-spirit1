@@ -1,14 +1,25 @@
 
 CONTIKI_TARGET_DIRS = .
 
-ifeq ($(BOARD),ids01a4)
-  ${info Using 868 MHz SPIRIT1 Board}
+ifeq ($(BOARD),)
+ BOARD=ids01a4
+ ${info ***************************************************}
+ ${info BOARD not specified, default to ids01a4 (868 MHz)!}
+ ${info ***************************************************}
+else ifeq ($(BOARD),ids01a4)
+ ${info ***************************************************}
+ ${info Using ids01a4 SPIRIT1 expansion board (868 MHz)}
+ ${info ***************************************************}
 else ifeq  ($(BOARD),ids01a5)
-  ${info Using 915 MHz SPIRIT1 Board}
+ ${info ***************************************************}
+ ${info Using ids01a5 SPIRIT1 expansion board (915 MHz)}
+ ${info ***************************************************}
 else
-  ${info You must specify which SPIRIT1 board you use:}
-  ${info make BOARD=ids01a4 for X-NUCLEO-IDS01A4 (868 MHz)}
-  ${info make BOARD=ids01a5 for X-NUCLEO-IDS01A5 (915 MHz)}
+ ${info ***************************************************}
+ ${info You must specify a valid SPIRIT1 board to use:}
+ ${info make BOARD=ids01a4 for X-NUCLEO-IDS01A4 (868 MHz)}
+ ${info make BOARD=ids01a5 for X-NUCLEO-IDS01A5 (915 MHz)}
+ ${info ***************************************************}
   ${error }
 endif
 
@@ -18,11 +29,14 @@ PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
 
 ifeq ($(SENSORBOARD),iks01a1)
  ${info Compiling with X-NUCLEO-IKS01A1 sensors files}
+ ${info ***************************************************}
  -include $(PLATFORM_ROOT_DIR)/Makefile.$(SENSORBOARD)
 else ifeq ($(SENSORBOARD),)
  ${info NOT compiling files for any sensors expansion board}
+ ${info ***************************************************}
 else
   ${info Error: SENSORBOARD can be: iks01a1}
+ ${info ***************************************************}
   ${error }
 endif
 
