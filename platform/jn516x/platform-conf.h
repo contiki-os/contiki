@@ -44,6 +44,8 @@
 /* Delay between GO signal and start listening
  * Measured 104us: between GO signal and start listening */
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(104))
+/* Delay between the SFD finishes arriving and it is detected in software */
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(14))
 
 /* Micromac configuration */
 
@@ -190,7 +192,9 @@ typedef uint32_t rtimer_clock_t;
 #define CLOCK_CONF_SECOND 100
 
 /* Shall we calibrate the DCO periodically? */
+#ifndef DCOSYNCH_CONF_ENABLED
 #define DCOSYNCH_CONF_ENABLED 1
+#endif
 
 /* How often shall we attempt to calibrate DCO?
  * PS: It should be calibrated upon temperature changes,

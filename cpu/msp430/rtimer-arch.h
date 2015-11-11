@@ -62,6 +62,9 @@
    Intended only for positive values of T. */
 #define RTIMERTICKS_TO_US_64(T)  ((uint32_t)(((uint64_t)(T) * 1000000 + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)))
 
+/* ~30.5 microsecond error */
+#define RTIMER_ARCH_MEASUREMENT_ERROR   US_TO_RTIMERTICKS(30)
+
 rtimer_clock_t rtimer_arch_now(void);
 
 #endif /* RTIMER_ARCH_H_ */
