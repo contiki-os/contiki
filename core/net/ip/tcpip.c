@@ -155,6 +155,7 @@ unsigned char tcpip_is_forwarding; /* Forwarding right now? */
 PROCESS(tcpip_process, "TCP/IP stack");
 
 /*---------------------------------------------------------------------------*/
+#if UIP_TCP || UIP_CONF_IP_FORWARD
 static void
 start_periodic_tcp_timer(void)
 {
@@ -162,6 +163,7 @@ start_periodic_tcp_timer(void)
     etimer_restart(&periodic);
   }
 }
+#endif /* UIP_TCP || UIP_CONF_IP_FORWARD */
 /*---------------------------------------------------------------------------*/
 static void
 check_for_tcp_syn(void)
@@ -183,30 +185,17 @@ check_for_tcp_syn(void)
 static void
 packet_input(void)
 {
-#if UIP_CONF_IP_FORWARD
   if(uip_len > 0) {
+
+#if UIP_CONF_IP_FORWARD
     tcpip_is_forwarding = 1;
-    if(uip_fw_forward() == UIP_FW_LOCAL) {
+    if(uip_fw_forward() != UIP_FW_LOCAL) {
       tcpip_is_forwarding = 0;
-      check_for_tcp_syn();
-      uip_input();
-      if(uip_len > 0) {
-#if UIP_CONF_TCP_SPLIT
-        uip_split_output();
-#else /* UIP_CONF_TCP_SPLIT */
-#if NETSTACK_CONF_WITH_IPV6
-        tcpip_ipv6_output();
-#else
-	PRINTF("tcpip packet_input forward output len %d\n", uip_len);
-        tcpip_output();
-#endif
-#endif /* UIP_CONF_TCP_SPLIT */
-      }
+      return;
     }
     tcpip_is_forwarding = 0;
-  }
-#else /* UIP_CONF_IP_FORWARD */
-  if(uip_len > 0) {
+#endif /* UIP_CONF_IP_FORWARD */
+
     check_for_tcp_syn();
     uip_input();
     if(uip_len > 0) {
@@ -215,14 +204,13 @@ packet_input(void)
 #else /* UIP_CONF_TCP_SPLIT */
 #if NETSTACK_CONF_WITH_IPV6
       tcpip_ipv6_output();
-#else
+#else /* NETSTACK_CONF_WITH_IPV6 */
       PRINTF("tcpip packet_input output len %d\n", uip_len);
       tcpip_output();
-#endif
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* UIP_CONF_TCP_SPLIT */
     }
   }
-#endif /* UIP_CONF_IP_FORWARD */
 }
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP
@@ -584,7 +572,16 @@ tcpip_ipv6_output(void)
 	    /* This should be copied from the ext header... */
 	    UIP_IP_BUF->proto = proto;
 	  }
-	  UIP_FALLBACK_INTERFACE.output();
+	  /* Inform the other end that the destination is not reachable. If it's
+	   * not informed routes might get lost unexpectedly until there's a need
+	   * to send a new packet to the peer */
+	  if(UIP_FALLBACK_INTERFACE.output() < 0) {
+	    PRINTF("FALLBACK: output error. Reporting DST UNREACH\n");
+	    uip_icmp6_error_output(ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_ADDR, 0);
+	    uip_flags = 0;
+	    tcpip_ipv6_output();
+	    return;
+	  }
 #else
           PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
 #endif /* !UIP_FALLBACK_INTERFACE */
@@ -672,7 +669,11 @@ tcpip_ipv6_output(void)
 
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
         nbr->nscount = 1;
+        /* Send the first NS try from here (multicast destination IP address). */
       }
+#else /* UIP_ND6_SEND_NA */
+      uip_len = 0;
+      return;  
 #endif /* UIP_ND6_SEND_NA */
     } else {
 #if UIP_ND6_SEND_NA
@@ -719,7 +720,6 @@ tcpip_ipv6_output(void)
       uip_clear_buf();
       return;
     }
-    return;
   }
   /* Multicast IP destination address. */
   tcpip_output(NULL);

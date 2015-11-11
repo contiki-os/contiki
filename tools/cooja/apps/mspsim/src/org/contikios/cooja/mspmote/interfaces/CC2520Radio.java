@@ -95,16 +95,16 @@ public class CC2520Radio extends Radio implements CustomDataRadio {
 
         if (len == expLen) {
           /*logger.debug("----- CC2520 CUSTOM DATA TRANSMITTED -----");*/
-        	len -= 4; /* preamble */
-        	len -= 1; /* synch */
-        	len -= radio.getFooterLength(); /* footer */
-        	final byte[] packetdata = new byte[len];
-        	System.arraycopy(buffer, 4+1, packetdata, 0, len);
-        	lastOutgoingPacket =  new RadioPacket() {
-        		public byte[] getPacketData() {
-        			return packetdata;
-        		}
-        	};
+		len -= 4; /* preamble */
+		len -= 1; /* synch */
+		len -= radio.getFooterLength(); /* footer */
+		final byte[] packetdata = new byte[len];
+		System.arraycopy(buffer, 4+1, packetdata, 0, len);
+		lastOutgoingPacket =  new RadioPacket() {
+			public byte[] getPacketData() {
+				return packetdata;
+			}
+		};
 
           /*logger.debug("----- CC2520 PACKET TRANSMITTED -----");*/
           setChanged();
@@ -330,8 +330,8 @@ public class CC2520Radio extends Radio implements CustomDataRadio {
     }
     rssiLastCounter = 8;
   }
-  
-  
+
+
   public void setLQI(int lqi){
 	  radio.setLQI(lqi);
   }
@@ -339,8 +339,8 @@ public class CC2520Radio extends Radio implements CustomDataRadio {
   public int getLQI(){
 	  return radio.getLQI();
   }
-  
-  
+
+
   public Mote getMote() {
     return mote;
   }
@@ -368,7 +368,7 @@ public class CC2520Radio extends Radio implements CustomDataRadio {
     }
     return true;
   }
-  
+
   public boolean canReceiveFrom(CustomDataRadio radio) {
     if (radio.getClass().equals(this.getClass())) {
       return true;

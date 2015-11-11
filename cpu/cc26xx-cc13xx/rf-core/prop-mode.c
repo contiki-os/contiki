@@ -687,7 +687,7 @@ transmit(unsigned short transmit_len)
   rx_off_prop();
 
   /* Enable the LAST_COMMAND_DONE interrupt to wake us up */
-  rf_core_cmd_done_en();
+  rf_core_cmd_done_en(false);
 
   ret = rf_core_send_cmd((uint32_t)cmd_tx_adv, &cmd_status);
 
@@ -968,6 +968,7 @@ off(void)
     return RF_CORE_CMD_OK;
   }
 
+  rx_off_prop();
   rf_core_power_down();
 
   /* Switch HF clock source to the RCOSC to preserve power */

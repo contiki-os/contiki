@@ -57,7 +57,7 @@ PROCESS_THREAD(test_sht25_process, ev, data)
     temperature = sht25.value(SHT25_VAL_TEMP);
     printf("Temperature %d.%d ºC\n", temperature / 100, temperature % 100);
     humidity = sht25.value(SHT25_VAL_HUM);
-    printf("Humidity %d.%d %RH\n", humidity / 100, humidity % 100);
+    printf("Humidity %d.%d %%RH\n", humidity / 100, humidity % 100);
   }
   PROCESS_END();
 }

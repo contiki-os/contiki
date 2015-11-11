@@ -507,14 +507,16 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 #endif
   int strobes;
   uint8_t got_strobe_ack = 0;
-  int len;
   uint8_t is_broadcast = 0;
   uint8_t is_known_receiver = 0;
   uint8_t collisions;
   int transmit_len;
   int ret;
   uint8_t contikimac_was_on;
+#if !RDC_CONF_HARDWARE_ACK
+  int len;
   uint8_t seqno;
+#endif
   
   /* Exit if RDC and radio were explicitly turned off */
    if(!contikimac_is_on && !contikimac_keep_radio_on) {
@@ -558,7 +560,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
 
   if(!packetbuf_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED)) {
     packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
-    if(NETSTACK_FRAMER.create_and_secure() < 0) {
+    if(NETSTACK_FRAMER.create() < 0) {
       PRINTF("contikimac: framer failed\n");
       return MAC_TX_ERR_FATAL;
     }
@@ -655,11 +657,11 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
        or rx cycle */
      on();
   }
+  seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
 #endif
 
   watchdog_periodic();
   t0 = RTIMER_NOW();
-  seqno = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
   for(strobes = 0, collisions = 0;
       got_strobe_ack == 0 && collisions == 0 &&
       RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + STROBE_TIME); strobes++) {
@@ -672,7 +674,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr,
       break;
     }
 
+#if !RDC_CONF_HARDWARE_ACK
     len = 0;
+#endif
 
     {
       rtimer_clock_t wt;
@@ -801,6 +805,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
   struct rdc_buf_list *next;
   int ret;
   int is_receiver_awake;
+  int pending;
   
   if(buf_list == NULL) {
     return;
@@ -825,7 +830,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
         packetbuf_set_attr(PACKETBUF_ATTR_PENDING, 1);
       }
       packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
-      if(NETSTACK_FRAMER.create_and_secure() < 0) {
+      if(NETSTACK_FRAMER.create() < 0) {
         PRINTF("contikimac: framer failed\n");
         mac_call_sent_callback(sent, ptr, MAC_TX_ERR_FATAL, 1);
         return;
@@ -845,7 +850,9 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 
     /* Prepare the packetbuf */
     queuebuf_to_packetbuf(curr->buf);
-    
+
+    pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
+
     /* Send the current packet */
     ret = send_packet(sent, ptr, curr, is_receiver_awake);
     if(ret != MAC_TX_DEFERRED) {
@@ -862,7 +869,7 @@ qsend_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
       /* The transmission failed, we stop the burst */
       next = NULL;
     }
-  } while((next != NULL) && packetbuf_attr(PACKETBUF_ATTR_PENDING));
+  } while((next != NULL) && pending);
 }
 /*---------------------------------------------------------------------------*/
 /* Timer callback triggered when receiving a burst, after having
@@ -911,8 +918,6 @@ input_packet(void)
          broadcast address. */
 
       /* If FRAME_PENDING is set, we are receiving a packets in a burst */
-      /* TODO To prevent denial-of-sleep attacks, the transceiver should
-         be disabled upon receipt of an unauthentic frame. */
       we_are_receiving_burst = packetbuf_attr(PACKETBUF_ATTR_PENDING);
       if(we_are_receiving_burst) {
         on();

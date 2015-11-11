@@ -35,10 +35,18 @@
 
 #include <inttypes.h>
 #include <limits.h>
+#ifndef _WIN32
+#include <sys/select.h>
+#endif
+
+struct select_callback {
+  int  (* set_fd)(fd_set *fdr, fd_set *fdw);
+  void (* handle_fd)(fd_set *fdr, fd_set *fdw);
+};
+int select_set_callback(int fd, const struct select_callback *callback);
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
-#define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
 
 #define CCIF
@@ -88,9 +96,9 @@ typedef unsigned short uip_stats_t;
  */
 #define WEBSERVER_CONF_STATUSPAGE   1
 
-/* RPL currently works only on Windows. *nix would require converting the tun interface to two pcap tees. */ 
+/* RPL currently works only on Windows. *nix would require converting the tun interface to two pcap tees. */
 //#define RPL_BORDER_ROUTER           0
-#endif   
+#endif
 
 #if UIP_CONF_IPV6_RPL
 /* RPL motes use the uip.c link layer address or optionally the harded coded address (but without the prefix!)
@@ -121,7 +129,7 @@ typedef unsigned short uip_stats_t;
  * e.g. the jackdaw RNDIS <->  repeater. Then RPL will configure on the radio network and the RF motes will
  * be reached through bbbb::<mote link layer address>.
  * Possibly minimal-net RPL motes could also be added to this interface?
- * 
+ *
  */
 #undef UIP_CONF_ROUTER
 #define UIP_CONF_ROUTER             1
@@ -150,6 +158,8 @@ typedef unsigned short uip_stats_t;
 
 /* Not used but avoids compile errors while sicslowpan.c is being developed */
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
+
+#define NETSTACK_CONF_LINUXRADIO_DEV "wpan0"
 
 #define UIP_CONF_UDP                  1
 #define UIP_CONF_TCP                  1

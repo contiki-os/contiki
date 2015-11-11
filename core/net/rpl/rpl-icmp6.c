@@ -109,7 +109,7 @@ get_global_addr(uip_ipaddr_t *addr)
     state = uip_ds6_if.addr_list[i].state;
     if(uip_ds6_if.addr_list[i].isused &&
        (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      if(!uip_is_addr_link_local(&uip_ds6_if.addr_list[i].ipaddr)) {
+      if(!uip_is_addr_linklocal(&uip_ds6_if.addr_list[i].ipaddr)) {
         memcpy(addr, &uip_ds6_if.addr_list[i].ipaddr, sizeof(uip_ipaddr_t));
         return 1;
       }
@@ -916,15 +916,11 @@ dao_ack_input(void)
 {
 #if DEBUG
   unsigned char *buffer;
-  uint8_t buffer_length;
-  uint8_t instance_id;
   uint8_t sequence;
   uint8_t status;
 
   buffer = UIP_ICMP_PAYLOAD;
-  buffer_length = uip_len - uip_l3_icmp_hdr_len;
 
-  instance_id = buffer[0];
   sequence = buffer[2];
   status = buffer[3];
 

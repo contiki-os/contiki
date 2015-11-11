@@ -50,6 +50,8 @@
 /*---------------------------------------------------------------------------*/
 /* Prototype of a function in clock.c. Called every time the handler fires */
 void clock_update(void);
+
+static rtimer_clock_t last_isr_time;
 /*---------------------------------------------------------------------------*/
 #define COMPARE_INCREMENT (RTIMER_SECOND / CLOCK_SECOND)
 #define MULTIPLE_512_MASK 0xFFFFFE00
@@ -130,6 +132,12 @@ soc_rtc_schedule_one_shot(uint32_t channel, uint32_t ticks)
   ti_lib_aon_rtc_channel_enable(channel);
 }
 /*---------------------------------------------------------------------------*/
+rtimer_clock_t
+soc_rtc_last_isr_time(void)
+{
+  return last_isr_time;
+}
+/*---------------------------------------------------------------------------*/
 /* The AON RTC interrupt handler */
 void
 soc_rtc_isr(void)
@@ -137,6 +145,8 @@ soc_rtc_isr(void)
   uint32_t now, next;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  last_isr_time = RTIMER_NOW();
 
   now = ti_lib_aon_rtc_current_compare_value_get();
 

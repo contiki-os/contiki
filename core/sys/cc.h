@@ -68,23 +68,13 @@
 #endif /* CC_CONF_FUNCTION_POINTER_ARGS */
 
 /**
- * Configure if the C compiler supports fastcall function
- * declarations.
- */
-#ifdef CC_CONF_FASTCALL
-#define CC_FASTCALL CC_CONF_FASTCALL
-#else /* CC_CONF_FASTCALL */
-#define CC_FASTCALL
-#endif /* CC_CONF_FASTCALL */
-
-/**
  * Configure if the C compiler have problems with const function pointers
  */
 #ifdef CC_CONF_CONST_FUNCTION_BUG
 #define CC_CONST_FUNCTION
-#else /* CC_CONF_FASTCALL */
+#else /* CC_CONF_CONST_FUNCTION_BUG */
 #define CC_CONST_FUNCTION const
-#endif /* CC_CONF_FASTCALL */
+#endif /* CC_CONF_CONST_FUNCTION_BUG */
 
 /**
  * Configure work-around for unsigned char bugs with sdcc.
@@ -122,6 +112,17 @@
 #if CC_CONF_NO_VA_ARGS
 #define CC_NO_VA_ARGS CC_CONF_VA_ARGS
 #endif
+
+/** \def CC_ACCESS_NOW(x)
+ * This macro ensures that the access to a non-volatile variable can
+ * not be reordered or optimized by the compiler.
+ * See also https://lwn.net/Articles/508991/ - In Linux the macro is
+ * called ACCESS_ONCE
+ * The type must be passed, because the typeof-operator is a gcc
+ * extension
+ */
+
+#define CC_ACCESS_NOW(type, variable) (*(volatile type *)&(variable))
 
 #ifndef NULL
 #define NULL 0

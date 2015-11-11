@@ -13,7 +13,7 @@ hello-world/wismote \
 hello-world/z1 \
 eeprom-test/native \
 collect/sky \
-er-rest-example/sky \
+er-rest-example/wismote \
 example-shell/native \
 netperf/sky \
 powertrace/sky \

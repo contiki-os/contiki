@@ -45,6 +45,7 @@ In terms of hardware support, the following drivers have been implemented:
     * General-Purpose Timers. NB: GPT0 is in use by the platform code, the remaining GPTs are available for application development.
     * ADC
     * Cryptoprocessor (AES-CCM-256, SHA-256)
+    * Public Key Accelerator (ECDH, ECDSA)
     * LEDs
     * Buttons
     * Internal/external 2.4GHz antenna switch controllable by SW.

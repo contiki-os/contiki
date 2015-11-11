@@ -46,7 +46,6 @@ int select_set_callback(int fd, const struct select_callback *callback);
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
-#define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
 /*#define CC_CONF_INLINE                 inline*/
 
@@ -100,6 +99,8 @@ typedef unsigned short uip_stats_t;
 #endif /* NETSTACK_CONF_FRAMER */
 
 #define NETSTACK_CONF_NETWORK sicslowpan_driver
+
+#define NETSTACK_CONF_LINUXRADIO_DEV "wpan0"
 
 #define UIP_CONF_ROUTER                 1
 

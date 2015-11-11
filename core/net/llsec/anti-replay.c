@@ -55,7 +55,8 @@ anti_replay_set_counter(void)
 {
   frame802154_frame_counter_t reordered_counter;
   
-  reordered_counter.u32 = LLSEC802154_HTONL(++counter);
+  ++counter;
+  reordered_counter.u32 = LLSEC802154_HTONL(counter);
   
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, reordered_counter.u16[0]);
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, reordered_counter.u16[1]);
