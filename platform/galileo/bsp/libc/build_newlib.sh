@@ -31,8 +31,8 @@ prepare() {
     fi
 
     # Clean up the previous install dir, if any.
-    if [[ -d ./${VERSION} ]]; then
-        rm -rf ./${VERSION}
+    if [[ -d ./${TARGET} ]]; then
+        rm -rf ./${TARGET}
     fi
 
     tar xf ${TARBALL}
