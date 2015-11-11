@@ -37,7 +37,7 @@
 #include "SPIRIT_Config.h"
 #include "spirit1-const.h"
 /*---------------------------------------------------------------------------*/
-#define CCA_THRESHOLD               -98.0   /* dBm */
+#define CCA_THRESHOLD               -120.0   /* dBm */
 #define XTAL_FREQUENCY              50000000    /* Hz */
 #define SPIRIT_MAX_FIFO_LEN         96
 /*---------------------------------------------------------------------------*/
