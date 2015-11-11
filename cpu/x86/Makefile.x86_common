@@ -2,7 +2,12 @@ CONTIKI_CPU_DIRS += . init/common
 
 CONTIKI_SOURCEFILES += gdt.c helpers.S idt.c cpu.c
 
-CC       = gcc
+ifeq ($(BUILT_LIBC),musl)
+	CC       = clang
+	CFLAGS   += -Wno-macro-redefined -Wno-bitfield-constant-conversion -Wno-address-of-packed-member
+else
+	CC       = gcc
+endif
 LD       = $(CC)
 # Use gcc to invoke the assembler so that the preprocessor will be run on each
 # file first, enabling us to use macros within assembly language files:

@@ -33,7 +33,8 @@ prepare() {
 
 
 build() {
-    export CFLAGS="-m32 -march=i586 -mtune=i586 -fno-omit-frame-pointer"
+    export CC=clang
+    export CFLAGS="-m32 -march=i586 -mtune=i586 -fno-omit-frame-pointer -Qunused-arguments"
 
     mkdir -p install
     ./configure --target=${TARGET} \

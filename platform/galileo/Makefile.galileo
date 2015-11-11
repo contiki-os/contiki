@@ -43,11 +43,14 @@ CONTIKI_CPU=$(CONTIKI)/cpu/x86
 include $(CONTIKI)/cpu/x86/Makefile.x86_quarkX1000
 
 CFLAGS += -fno-stack-protector -I$(LIBC)/include
+TARGET_LIBFILES += -lm -lc
 ifeq (clang,$(findstring clang,$(CC)))
         CFLAGS += -nostdlibinc
+        TARGET_LIBFILES += $(shell find `llvm-config --libdir` -name libclang_rt.builtins-i386.a)
 else
         CFLAGS += -nostdinc -isystem $(LIBGCC_PATH)/include -isystem $(LIBGCC_PATH)/include-fixed
+        LDFLAGS += -L$(LIBGCC_PATH)/32
+        TARGET_LIBFILES += -lgcc
 endif
-LDFLAGS += -nostdlib -L$(LIBC)/lib -L$(LIBGCC_PATH)/32
+LDFLAGS += -nostdlib -L$(LIBC)/lib
 
-TARGET_LIBFILES += -lm -lc -lgcc
