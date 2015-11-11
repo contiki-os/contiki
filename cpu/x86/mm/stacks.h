@@ -87,7 +87,8 @@
  * protection domains are in use.  The stacks are arranged contiguously by
  * the linker scripts.  See those and README.md for more details.
  */
-#define STACKS_SIZE_MAIN (8192 - (STACKS_SIZE_INT + STACKS_SIZE_EXC))
+/* STACKS_SIZE_TOTAL is defined in platform/galileo/Makefile.galileo */
+#define STACKS_SIZE_MAIN (STACKS_SIZE_TOTAL - (STACKS_SIZE_INT + STACKS_SIZE_EXC))
 
 #if !__ASSEMBLER__
 /**

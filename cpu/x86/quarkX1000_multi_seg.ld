@@ -191,4 +191,10 @@ SECTIONS {
 
     /* .bss.meta may be empty, so this uses .bss.kern_priv as a base instead: */
     _ebss_pre_dma_addr = ALIGN(ALIGN(_ebss_kern_addr, 32) + SIZEOF(.bss.meta), 32);
+
+    /DISCARD/ :
+    {
+        *(.eh_frame)
+        *(.eh_frame_hdr)
+    }
 }

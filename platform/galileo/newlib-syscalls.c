@@ -172,3 +172,7 @@ _sbrk_r(struct _reent *ptr, int incr)
 
   return prev_prog_break;
 }
+/*---------------------------------------------------------------------------*/
+void libc_init(void)
+{
+}

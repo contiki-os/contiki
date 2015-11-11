@@ -21,7 +21,23 @@ ifeq ($(CONTIKI_WITH_IPV6),1)
 	CONTIKI_SOURCEFILES += nbr-table.c packetbuf.c linkaddr.c link-stats.c
 endif
 
-PROJECT_SOURCEFILES += newlib-syscalls.c
+-include $(LIBC_PATH)/Makefile.libc
+
+ifndef BUILT_LIBC
+  $(error Build the C library by executing $(LIBC_PATH)/build_newlib.sh or $(LIBC_PATH)/build_musl.sh)
+endif
+
+ifeq ($(BUILT_LIBC),musl)
+  PROJECT_SOURCEFILES += musl-syscalls.c musl-syscalls-asm.S
+  CFLAGS += -DSTACKS_SIZE_TOTAL=16384
+else
+  ifeq ($(BUILT_LIBC),newlib)
+    PROJECT_SOURCEFILES += newlib-syscalls.c
+    CFLAGS += -DSTACKS_SIZE_TOTAL=8192
+  else
+    $(error Unrecognized value for BUILT_LIBC: $(BUILT_LIBC))
+  endif
+endif
 
 CONTIKI_CPU=$(CONTIKI)/cpu/x86
 include $(CONTIKI)/cpu/x86/Makefile.x86_quarkX1000
@@ -35,9 +51,3 @@ endif
 LDFLAGS += -nostdlib -L$(LIBC)/lib -L$(LIBGCC_PATH)/32
 
 TARGET_LIBFILES += -lm -lc -lgcc
-
--include $(LIBC_PATH)/Makefile.libc
-
-ifndef BUILT_LIBC
-  $(error Build the C library by executing $(LIBC_PATH)/build_newlib.sh)
-endif
