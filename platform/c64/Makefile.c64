@@ -38,6 +38,10 @@ include $(CONTIKI_CPU)/Makefile.6502
 
 CFLAGS += -DWITH_PETSCII
 
+ifeq ($(findstring WITH_80COL,$(DEFINES)),WITH_80COL)
+  LDFLAGS += c64-soft80.o
+endif
+
 ifeq ($(MAKECMDGOALS),disk)
   ifndef C1541
     ${error C1541 not defined! You must specify where VICE c1541 resides}

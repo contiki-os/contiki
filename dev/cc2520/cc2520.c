@@ -217,6 +217,8 @@ flushrx(void)
   uint8_t dummy;
 
   CC2520_READ_FIFO_BYTE(dummy);
+  /* read and discard dummy to avoid "variable set but not used" warning */
+  (void)dummy;
   CC2520_STROBE(CC2520_INS_SFLUSHRX);
   CC2520_STROBE(CC2520_INS_SFLUSHRX);
 }
@@ -435,17 +437,17 @@ cc2520_transmit(unsigned short payload_len)
 #endif /* WITH_SEND_CCA */
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(CC2520_SFD_IS_1) {
+#if PACKETBUF_WITH_PACKET_TYPE
       {
         rtimer_clock_t sfd_timestamp;
         sfd_timestamp = cc2520_sfd_start_time;
-#if PACKETBUF_WITH_PACKET_TYPE
         if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
            PACKETBUF_ATTR_PACKET_TYPE_TIMESTAMP) {
           /* Write timestamp to last two bytes of packet in TXFIFO. */
           CC2520_WRITE_RAM(&sfd_timestamp, CC2520RAM_TXFIFO + payload_len - 1, 2);
         }
-#endif
       }
+#endif /* PACKETBUF_WITH_PACKET_TYPE */
 
       if(!(status() & BV(CC2520_TX_ACTIVE))) {
         /* SFD went high but we are not transmitting. This means that

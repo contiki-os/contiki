@@ -92,6 +92,8 @@ rtimer_clock_t soc_rtc_get_next_trigger(void);
  * instead use Contiki's timer-related libraries
  */
 void soc_rtc_schedule_one_shot(uint32_t channel, uint32_t t);
+
+rtimer_clock_t soc_rtc_last_isr_time(void);
 /*---------------------------------------------------------------------------*/
 #endif /* SOC_RTC_H_ */
 /*---------------------------------------------------------------------------*/

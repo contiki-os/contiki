@@ -22,6 +22,10 @@ LDFLAGS += -Wl,-Map=$(@:.elf=-$(TARGET).map),--cref,--no-warn-mismatch
 OBJCOPY_FLAGS += -O binary --gap-fill 0xff
 OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 
+ifdef WERROR
+CFLAGS += -Werror
+endif
+
 ### Are we building with code size optimisations?
 ifeq ($(SMALL),1)
   CFLAGS += -Os
@@ -51,6 +55,8 @@ CONTIKI_CPU_SOURCEFILES += clock.c rtimer-arch.c uart.c watchdog.c
 CONTIKI_CPU_SOURCEFILES += nvic.c cpu.c sys-ctrl.c gpio.c ioc.c spi.c adc.c
 CONTIKI_CPU_SOURCEFILES += crypto.c aes.c ccm.c sha256.c
 CONTIKI_CPU_SOURCEFILES += cc2538-rf.c udma.c lpm.c
+CONTIKI_CPU_SOURCEFILES += pka.c bignum-driver.c ecc-driver.c ecc-algorithm.c
+CONTIKI_CPU_SOURCEFILES += ecc-curve.c
 CONTIKI_CPU_SOURCEFILES += dbg.c ieee-addr.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c
 CONTIKI_CPU_SOURCEFILES += i2c.c cc2538-temp-sensor.c vdd3-sensor.c

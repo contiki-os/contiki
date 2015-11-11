@@ -64,7 +64,7 @@ Revision History:
 	08/09/06	awm		Added FT_W32_GetCommMask.
 	11/09/06	awm		Added FT_Rescan.
 
-	
+
 --*/
 
 
@@ -248,7 +248,7 @@ FT_STATUS WINAPI FT_OpenEx(
     FT_HANDLE *pHandle
     );
 
-FTD2XX_API 
+FTD2XX_API
 FT_STATUS WINAPI FT_ListDevices(
 	PVOID pArg1,
 	PVOID pArg2,
@@ -268,7 +268,7 @@ FT_STATUS WINAPI FT_Read(
     LPDWORD lpBytesReturned
     );
 
-FTD2XX_API 
+FTD2XX_API
 FT_STATUS WINAPI FT_Write(
     FT_HANDLE ftHandle,
     LPVOID lpBuffer,
@@ -276,7 +276,7 @@ FT_STATUS WINAPI FT_Write(
     LPDWORD lpBytesWritten
     );
 
-FTD2XX_API 
+FTD2XX_API
 FT_STATUS WINAPI FT_IoCtl(
     FT_HANDLE ftHandle,
     DWORD dwIoControlCode,
@@ -442,7 +442,7 @@ FT_STATUS WINAPI FT_EraseEE(
 //
 typedef struct ft_program_data {
 
-	DWORD Signature1;			// Header - must be 0x00000000 
+	DWORD Signature1;			// Header - must be 0x00000000
 	DWORD Signature2;			// Header - must be 0xffffffff
 	DWORD Version;				// Header - FT_PROGRAM_DATA version
 								//          0 = original
@@ -920,4 +920,3 @@ FT_STATUS WINAPI FT_Reload(
 
 
 #endif  /* FTD2XX_H */
-

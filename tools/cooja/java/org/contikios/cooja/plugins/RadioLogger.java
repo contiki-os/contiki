@@ -517,10 +517,12 @@ public class RadioLogger extends VisPlugin {
           return;
         }
         final RadioConnectionLog loggedConn = new RadioConnectionLog();
+        loggedConn.packet = conn.getSource().getLastPacketTransmitted();
+        if (loggedConn.packet == null)
+          return;
         loggedConn.startTime = conn.getStartTime();
         loggedConn.endTime = simulation.getSimulationTime();
         loggedConn.connection = conn;
-        loggedConn.packet = conn.getSource().getLastPacketTransmitted();
         java.awt.EventQueue.invokeLater(new Runnable() {
           @Override
           public void run() {

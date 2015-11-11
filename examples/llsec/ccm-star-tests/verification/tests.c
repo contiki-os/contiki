@@ -86,8 +86,8 @@ test_sec_lvl_2()
                       0xC4 , 0xC5 , 0xC6 , 0xC7 ,
                       0xC8 , 0xC9 , 0xCA , 0xCB ,
                       0xCC , 0xCD , 0xCE , 0xCF };
-  uint8_t extended_source_address[8] = { 0xAC , 0xDE , 0x48 , 0x00 ,
-                                         0x00 , 0x00 , 0x00 , 0x01 };
+  linkaddr_t source_address = {{ 0xAC , 0xDE , 0x48 , 0x00 ,
+                                 0x00 , 0x00 , 0x00 , 0x01 }};
   uint8_t data[26] = { 0x08 , 0xD0 , 0x84 , 0x21 , 0x43 ,
                        /* Source Address */
                        0x01 , 0x00 , 0x00 , 0x00 , 0x00 , 0x48 , 0xDE , 0xAC ,
@@ -101,9 +101,11 @@ test_sec_lvl_2()
                                              0x84 , 0x1A , 0xB5 , 0x53 };
   frame802154_frame_counter_t counter;
   uint8_t mic[LLSEC802154_MIC_LENGTH];
+  uint8_t nonce[13];
   
   printf("Testing verification ... ");
   
+  linkaddr_copy(&linkaddr_node_addr, &source_address);
   packetbuf_clear();
   packetbuf_set_datalen(26);
   memcpy(packetbuf_hdrptr(), data, 26);
@@ -114,9 +116,14 @@ test_sec_lvl_2()
   packetbuf_hdrreduce(18);
   
   CCM_STAR.set_key(key);
-  ccm_star_mic_packetbuf(extended_source_address,mic, LLSEC802154_MIC_LENGTH);
+  ccm_star_packetbuf_set_nonce(nonce, 1);
+  CCM_STAR.aead(nonce,
+      NULL, 0,
+      packetbuf_hdrptr(), packetbuf_totlen(),
+      ((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen(), LLSEC802154_MIC_LENGTH,
+      1);
   
-  if(memcmp(mic, oracle, LLSEC802154_MIC_LENGTH) == 0) {
+  if(memcmp(((uint8_t *) packetbuf_dataptr()) + packetbuf_datalen(), oracle, LLSEC802154_MIC_LENGTH) == 0) {
     printf("Success\n");
   } else {
     printf("Failure\n");

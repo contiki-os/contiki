@@ -67,6 +67,27 @@ bool auto_temp=true;
 /*---------------------------------------------------------------------------*/
 
 /**
+ *   \brief This will reliably set or clear the JTD bit of the MCUCR register.
+ *
+ *   \param x True to set the JTD bit disabling JTAG.
+*/
+#define jtd_set(x)\
+{\
+    __asm__ __volatile__ (\
+    "in __tmp_reg__,__SREG__" "\n\t"\
+    "cli" "\n\t"\
+    "out %1, %0" "\n\t"\
+    "out __SREG__, __tmp_reg__" "\n\t"\
+    "out %1, %0" "\n\t"\
+    : /* no outputs */\
+    : "r" ((uint8_t)(x ? (1<<JTD) : 0)),\
+    "M" (_SFR_IO_ADDR(MCUCR))\
+    : "r0");\
+} 
+
+/*---------------------------------------------------------------------------*/
+
+/**
  *   \brief This function will convert decimal to ascii.
  *
  *   \param val Decimal value to convert.
@@ -322,25 +343,18 @@ menu_stop_ping(void)
 void
 menu_debug_mode(uint8_t *val)
 {
-    uint8_t sreg = SREG;
-    cli();
-    if(*val){
-        /* Disable - Could use inline ASM to meet timing requirements. */
-        MCUCR |= (1 << JTD);
-        MCUCR |= (1 << JTD);
-        /* Needed for timing critical JTD disable. */
+    if(val){
+	jtd_set(true);
         temp_init();
         /* Store setting in EEPROM. */
         eeprom_write_byte(EEPROM_DEBUG_ADDR, 0xFF);
     }
     else{
-        /* Enable - Could use inline ASM to meet timing requirements. */
-        MCUCR &= ~(1 << JTD);
-        MCUCR &= ~(1 << JTD);
+	jtd_set(false);
         /* Store setting in EEPROM. */
         eeprom_write_byte(EEPROM_DEBUG_ADDR, 0x01);
     }
-    SREG = sreg;
+    //SREG = sreg;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -353,7 +367,7 @@ menu_debug_mode(uint8_t *val)
 void
 menu_read_temp(uint8_t *val)
 {
-    if(*val){
+    if(val){
         temp_mode = TEMP_UNIT_CELCIUS;
     }
     else{

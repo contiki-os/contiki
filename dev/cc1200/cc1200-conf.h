@@ -73,6 +73,17 @@
 #define CC1200_MAX_PAYLOAD_LEN           127
 #endif
 /*---------------------------------------------------------------------------*/
+/* 
+ * The RX watchdog is used to check whether the radio is in RX mode at regular
+ * intervals (once per second). Can be used to improve reliability especially
+ * if NullRDC is used. Turned of by default. 
+ */ 
+#ifdef CC1200_CONF_USE_RX_WATCHDOG
+#define CC1200_USE_RX_WATCHDOG CC1200_CONF_USE_RX_WATCHDOG
+#else
+#define CC1200_USE_RX_WATCHDOG 0 
+#endif
+/*---------------------------------------------------------------------------*/
 /*
  * Use 802.15.4g frame format? Supports frame lenghts up to 2047 bytes!
  */

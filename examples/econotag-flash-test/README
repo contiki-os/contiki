@@ -1,0 +1,6 @@
+Its important to use -l as a flash parameter for mc1322xload.
+
+Use "make flash" to start upload. Maybe u need
+to change the location of libmc1322x in Makefile.
+
+With "make clear" you can erase all flash data.

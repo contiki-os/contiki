@@ -42,8 +42,61 @@
  * \file
  * Implementation of the CC13xx/CC26xx watchdog driver.
  */
-#include "watchdog.h"
+#include "contiki.h"
+#include "dev/watchdog.h"
 #include "ti-lib.h"
+
+#include <stdbool.h>
+#include <stdint.h>
+/*---------------------------------------------------------------------------*/
+#ifdef CONTIKI_WATCHDOG_CONF_TIMER_TOP
+#define CONTIKI_WATCHDOG_TIMER_TOP CONTIKI_WATCHDOG_CONF_TIMER_TOP
+#else
+#define CONTIKI_WATCHDOG_TIMER_TOP 0xFFFFF
+#endif
+
+#ifdef  CONTIKI_WATCHDOG_CONF_LOCK_CONFIG
+#define CONTIKI_WATCHDOG_LOCK_CONFIG CONTIKI_WATCHDOG_CONF_LOCK_CONFIG
+#else
+#define CONTIKI_WATCHDOG_LOCK_CONFIG 1
+#endif
+
+#define LOCK_INTERRUPTS_DISABLED 0x01
+#define LOCK_REGISTERS_UNLOCKED  0x02
+/*---------------------------------------------------------------------------*/
+static uint32_t
+unlock_config(void)
+{
+  uint32_t ret = 0;
+  bool int_status;
+
+  if(CONTIKI_WATCHDOG_LOCK_CONFIG) {
+    int_status = ti_lib_int_master_disable();
+
+    if(ti_lib_watchdog_lock_state()) {
+      ret |= LOCK_REGISTERS_UNLOCKED;
+      ti_lib_watchdog_unlock();
+    }
+
+    ret |= (int_status) ? (0) : (LOCK_INTERRUPTS_DISABLED);
+  }
+
+  return ret;
+}
+/*---------------------------------------------------------------------------*/
+static void
+lock_config(uint32_t status)
+{
+  if(CONTIKI_WATCHDOG_LOCK_CONFIG) {
+
+    if(status & LOCK_REGISTERS_UNLOCKED) {
+      ti_lib_watchdog_lock();
+    }
+    if(status & LOCK_INTERRUPTS_DISABLED) {
+      ti_lib_int_master_enable();
+    }
+  }
+}
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Initialises the CC26xx WDT
@@ -54,7 +107,8 @@
 void
 watchdog_init(void)
 {
-  ti_lib_watchdog_reload_set(0xFFFFF);
+  ti_lib_watchdog_reload_set(CONTIKI_WATCHDOG_TIMER_TOP);
+  lock_config(LOCK_REGISTERS_UNLOCKED);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -63,7 +117,12 @@ watchdog_init(void)
 void
 watchdog_start(void)
 {
+  uint32_t lock_status = unlock_config();
+
+  watchdog_periodic();
   ti_lib_watchdog_reset_enable();
+
+  lock_config(lock_status);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -72,7 +131,21 @@ watchdog_start(void)
 void
 watchdog_periodic(void)
 {
+  ti_lib_watchdog_reload_set(CONTIKI_WATCHDOG_TIMER_TOP);
   ti_lib_watchdog_int_clear();
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Stops the WDT such that it won't timeout and cause MCU reset
+ */
+void
+watchdog_stop(void)
+{
+  uint32_t lock_status = unlock_config();
+
+  ti_lib_watchdog_reset_disable();
+
+  lock_config(lock_status);
 }
 /*---------------------------------------------------------------------------*/
 /**

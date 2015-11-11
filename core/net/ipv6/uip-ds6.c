@@ -83,7 +83,9 @@ static uip_ipaddr_t loc_fipaddr;
 /* Pointers used in this file */
 static uip_ds6_addr_t *locaddr;
 static uip_ds6_maddr_t *locmaddr;
+#if UIP_DS6_AADDR_NB
 static uip_ds6_aaddr_t *locaaddr;
+#endif /* UIP_DS6_AADDR_NB */
 static uip_ds6_prefix_t *locprefix;
 
 /*---------------------------------------------------------------------------*/
@@ -389,7 +391,7 @@ uip_ds6_get_link_local(int8_t state)
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
     if(locaddr->isused && (state == -1 || locaddr->state == state)
-       && (uip_is_addr_link_local(&locaddr->ipaddr))) {
+       && (uip_is_addr_linklocal(&locaddr->ipaddr))) {
       return locaddr;
     }
   }
@@ -408,7 +410,7 @@ uip_ds6_get_global(int8_t state)
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
     if(locaddr->isused && (state == -1 || locaddr->state == state)
-       && !(uip_is_addr_link_local(&locaddr->ipaddr))) {
+       && !(uip_is_addr_linklocal(&locaddr->ipaddr))) {
       return locaddr;
     }
   }
@@ -458,6 +460,7 @@ uip_ds6_maddr_lookup(const uip_ipaddr_t *ipaddr)
 uip_ds6_aaddr_t *
 uip_ds6_aaddr_add(uip_ipaddr_t *ipaddr)
 {
+#if UIP_DS6_AADDR_NB
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *)uip_ds6_if.aaddr_list, UIP_DS6_AADDR_NB,
       sizeof(uip_ds6_aaddr_t), ipaddr, 128,
@@ -466,6 +469,7 @@ uip_ds6_aaddr_add(uip_ipaddr_t *ipaddr)
     uip_ipaddr_copy(&locaaddr->ipaddr, ipaddr);
     return locaaddr;
   }
+#endif /* UIP_DS6_AADDR_NB */
   return NULL;
 }
 
@@ -483,11 +487,13 @@ uip_ds6_aaddr_rm(uip_ds6_aaddr_t *aaddr)
 uip_ds6_aaddr_t *
 uip_ds6_aaddr_lookup(uip_ipaddr_t *ipaddr)
 {
+#if UIP_DS6_AADDR_NB
   if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_if.aaddr_list,
 		       UIP_DS6_AADDR_NB, sizeof(uip_ds6_aaddr_t), ipaddr, 128,
 		       (uip_ds6_element_t **)&locaaddr) == FOUND) {
     return locaaddr;
   }
+#endif /* UIP_DS6_AADDR_NB */
   return NULL;
 }
 
@@ -499,13 +505,13 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
   uint8_t n = 0;
   uip_ds6_addr_t *matchaddr = NULL;
 
-  if(!uip_is_addr_link_local(dst) && !uip_is_addr_mcast(dst)) {
+  if(!uip_is_addr_linklocal(dst) && !uip_is_addr_mcast(dst)) {
     /* find longest match */
     for(locaddr = uip_ds6_if.addr_list;
         locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
       /* Only preferred global (not link-local) addresses */
       if(locaddr->isused && locaddr->state == ADDR_PREFERRED &&
-         !uip_is_addr_link_local(&locaddr->ipaddr)) {
+         !uip_is_addr_linklocal(&locaddr->ipaddr)) {
         n = get_match_length(dst, &locaddr->ipaddr);
         if(n >= best) {
           best = n;
@@ -608,7 +614,7 @@ uip_ds6_dad(uip_ds6_addr_t *addr)
 int
 uip_ds6_dad_failed(uip_ds6_addr_t *addr)
 {
-  if(uip_is_addr_link_local(&addr->ipaddr)) {
+  if(uip_is_addr_linklocal(&addr->ipaddr)) {
     PRINTF("Contiki shutdown, DAD for link local address failed\n");
     return 0;
   }
