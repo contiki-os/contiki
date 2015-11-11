@@ -1363,8 +1363,10 @@ output(const uip_lladdr_t *localdest)
   /* The MAC address of the destination of the packet */
   linkaddr_t dest;
 
+#if SICSLOWPAN_CONF_FRAG
   /* Number of bytes processed. */
   uint16_t processed_ip_out_len;
+#endif /* SICSLOWPAN_CONF_FRAG */
 
   /* init */
   uncomp_hdr_len = 0;
@@ -1593,8 +1595,8 @@ input(void)
   uint16_t frag_size = 0;
   /* offset of the fragment in the IP packet */
   uint8_t frag_offset = 0;
-  uint8_t is_fragment = 0;
 #if SICSLOWPAN_CONF_FRAG
+  uint8_t is_fragment = 0;
   /* tag of the fragment */
   uint16_t frag_tag = 0;
   uint8_t first_fragment = 0, last_fragment = 0;
