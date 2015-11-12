@@ -35,6 +35,7 @@
  *         Header file for NXP jn516x-specific rtimer code
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
+ *         Atis Elsts <atis.elsts@sics.se>
  */
 
 #ifndef RTIMER_ARCH_H_
@@ -45,16 +46,66 @@
 #ifdef RTIMER_CONF_SECOND
 #define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
 #else
+#if RTIMER_USE_SLOW
+#define RTIMER_ARCH_SECOND 32768
+#else
 /* 32MHz CPU clock => 16MHz timer */
 #define RTIMER_ARCH_SECOND (F_CPU / 2)
 #endif
+#endif
 
-#define US_TO_RTIMERTICKS(D)     ((int64_t)(D) << 4)
-#define RTIMERTICKS_TO_US(T)     ((int64_t)(T) >> 4)
-#define RTIMERTICKS_TO_US_64(T)  RTIMERTICKS_TO_US(T)
+#if RTIMER_USE_SLOW
+#define US_TO_RTIMERTICKS(US)  ((US) >= 0 ?                        \
+                               (((int32_t)(US) * (RTIMER_ARCH_SECOND) + 500000) / 1000000L) :      \
+                               ((int32_t)(US) * (RTIMER_ARCH_SECOND) - 500000) / 1000000L)
+
+#define RTIMERTICKS_TO_US(T)   ((T) >= 0 ?                     \
+                               (((int32_t)(T) * 1000000L + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)) : \
+                               ((int32_t)(T) * 1000000L - ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND))
+
+/* A 64-bit version because the 32-bit one cannot handle T >= 4295 ticks.
+   Intended only for positive values of T. */
+#define RTIMERTICKS_TO_US_64(T)  ((uint32_t)(((uint64_t)(T) * 1000000 + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)))
+
+#else
+
+#define US_TO_RTIMERTICKS(D)    ((int64_t)(D) << 4)
+#define RTIMERTICKS_TO_US(T)    ((int64_t)(T) >> 4)
+#define RTIMERTICKS_TO_US_64(T) RTIMERTICKS_TO_US(T)
+
+#endif
 
 rtimer_clock_t rtimer_arch_now(void);
 
 rtimer_clock_t rtimer_arch_get_time_until_next_wakeup(void);
+
+void rtimer_arch_reinit(rtimer_clock_t wakeup_time);
+
+void clock_calibrate(void);
+
+void clock_reinit(uint32_t sleep_ticks);
+
+/* Use 20 ms: enough for TSCH with 100 ms slot interval to sleep */
+#define JN516X_MIN_SLEEP_TIME (RTIMER_SECOND / 50)
+/* Assume 10 ms maximal system wakeup time */
+#define JN516X_SLEEP_GUARD_TIME (RTIMER_ARCH_SECOND / 100)
+
+#define TICK_TIMER        E_AHI_WAKE_TIMER_0
+#define TICK_TIMER_MASK   E_AHI_SYSCTRL_WK0_MASK
+
+#define WAKEUP_TIMER      E_AHI_WAKE_TIMER_1
+#define WAKEUP_TIMER_MASK E_AHI_SYSCTRL_WK1_MASK
+
+/* in 16 MHz ticks */
+#define JN516X_WAKEUP_PROCESSING_TIME 42
+
+#define RTIMER_ARCH_MEASUREMENT_ERROR US_TO_RTIMERTICKS(16)
+
+#define WAIT_FOR_EDGE(edge_t) do {                            \
+    uint64_t start_t = u64AHI_WakeTimerReadLarge(TICK_TIMER); \
+    do {                                                      \
+      edge_t = u64AHI_WakeTimerReadLarge(TICK_TIMER);         \
+    } while(edge_t == start_t);                               \
+  } while(0)
 
 #endif /* RTIMER_ARCH_H_ */
