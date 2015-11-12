@@ -46,7 +46,7 @@
 #include "sys/energest.h"
 #include "sys/process.h"
 
-#if RTIMER_USE_SLOW
+#if RTIMER_USE_32KHZ
 
 #define DEBUG 0
 #if DEBUG
@@ -135,7 +135,7 @@ rtimer_arch_reinit(rtimer_clock_t wakeup_time)
   /* call pending interrupts */
   (void)u32AHI_Init();
 
-  if (has_next) {
+  if(has_next) {
     /* reschedule the timer */
     rtimer_arch_schedule(scheduled_time);
   }
@@ -168,4 +168,4 @@ rtimer_arch_get_time_until_next_wakeup(void)
   return (rtimer_clock_t)-1;
 }
 /*---------------------------------------------------------------------------*/
-#endif /* RTIMER_USE_SLOW */
+#endif /* RTIMER_USE_32KHZ */

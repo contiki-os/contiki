@@ -44,17 +44,21 @@
 #include "sys/rtimer.h"
 
 #ifdef RTIMER_CONF_SECOND
-#define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
+# define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
 #else
-#if RTIMER_USE_SLOW
-#define RTIMER_ARCH_SECOND 32768
+#if RTIMER_USE_32KHZ
+# if JN516X_EXTERNAL_CRYSTAL_OSCILLATOR
+#  define RTIMER_ARCH_SECOND 32768
+# else
+#  define RTIMER_ARCH_SECOND 32000
+#endif
 #else
 /* 32MHz CPU clock => 16MHz timer */
-#define RTIMER_ARCH_SECOND (F_CPU / 2)
+# define RTIMER_ARCH_SECOND (F_CPU / 2)
 #endif
 #endif
 
-#if RTIMER_USE_SLOW
+#if RTIMER_USE_32KHZ
 #define US_TO_RTIMERTICKS(US)  ((US) >= 0 ?                        \
                                (((int32_t)(US) * (RTIMER_ARCH_SECOND) + 500000) / 1000000L) :      \
                                ((int32_t)(US) * (RTIMER_ARCH_SECOND) - 500000) / 1000000L)
@@ -85,21 +89,16 @@ void clock_calibrate(void);
 
 void clock_reinit(uint32_t sleep_ticks);
 
-/* Use 20 ms: enough for TSCH with 100 ms slot interval to sleep */
+/* Use 20 ms: enough for TSCH with the default schedule to sleep */
 #define JN516X_MIN_SLEEP_TIME (RTIMER_SECOND / 50)
-/* Assume 10 ms maximal system wakeup time */
+/* Assume conservative 10 ms maximal system wakeup time */
 #define JN516X_SLEEP_GUARD_TIME (RTIMER_ARCH_SECOND / 100)
 
-#define TICK_TIMER        E_AHI_WAKE_TIMER_0
-#define TICK_TIMER_MASK   E_AHI_SYSCTRL_WK0_MASK
+#define WAKEUP_TIMER      E_AHI_WAKE_TIMER_0
+#define WAKEUP_TIMER_MASK E_AHI_SYSCTRL_WK0_MASK
 
-#define WAKEUP_TIMER      E_AHI_WAKE_TIMER_1
-#define WAKEUP_TIMER_MASK E_AHI_SYSCTRL_WK1_MASK
-
-/* in 16 MHz ticks */
-#define JN516X_WAKEUP_PROCESSING_TIME 42
-
-#define RTIMER_ARCH_MEASUREMENT_ERROR US_TO_RTIMERTICKS(16)
+#define TICK_TIMER        E_AHI_WAKE_TIMER_1
+#define TICK_TIMER_MASK   E_AHI_SYSCTRL_WK1_MASK
 
 #define WAIT_FOR_EDGE(edge_t) do {                            \
     uint64_t start_t = u64AHI_WakeTimerReadLarge(TICK_TIMER); \

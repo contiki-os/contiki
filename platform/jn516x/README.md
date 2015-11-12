@@ -163,6 +163,16 @@ The following platform-specific configurations are supported:
 * DR1174 with DR1199 sensor board; enable this with `JN516x_WITH_DR1199 = 1` (will set `JN516x_WITH_DR1174` automatically)
 * USB dongle; enable this with `JN516x_WITH_DONGLE = 1`
 
+### Enabling specific hardware features
+
+The JN516X Contiki platform supports sleep mode (with RAM retention and keeping external oscillator on). To enable sleeping, configure `JN516X_SLEEP_CONF_ENABLED=1`.
+
+Sleeping will only happen if there at least 50 ms until the next rtimer or rtimer. Also, the system will wake up ~10 ms before the next timer should fire in order to reininitialize all hardware peripherals.
+
+The JN516X Contiki platform also supports rtimers at two different speeds: 16 MHz and 32 kHz. By default, the high-speed timer is used. The two timers have similar expected accuracy (drift ppm), but 16 MHz has higher precision. However, the low-speed timers are also kept running during sleeping. 
+
+To enable low-speed timers, set `RTIMER_USE_32KHZ=1`. An external crystal oscillator is required to achieve reasonable accuracy in this case. Tthis oscilator is present on most platforms and is enabled depending on whether 32kHz timers or sleeping are enabled.
+
 ### Node IEEE/RIME/IPv6 Addresses
 
 Nodes will autoconfigure their IPv6 address based on their 64-bit IEEE/MAC address. The 64-bit MAC address is read directly from JN516x System on Chip.

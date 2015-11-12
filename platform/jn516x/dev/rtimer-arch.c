@@ -47,7 +47,7 @@
 #include "sys/energest.h"
 #include "sys/process.h"
 
-#if !RTIMER_USE_SLOW
+#if !RTIMER_USE_32KHZ
 
 #define DEBUG 0
 #if DEBUG
@@ -115,12 +115,14 @@ rtimer_arch_init(void)
 void
 rtimer_arch_reinit(rtimer_clock_t wakeup_time)
 {
+  uint64_t t;
   /* Initialise tick timer to run continuously */
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
   vAHI_TickTimerIntEnable(0);
   /* set the highest priority for the rtimer interrupt */
   vAHI_InterruptSetPriority(MICRO_ISR_MASK_TICK_TMR, 15);
   vAHI_TickTimerRegisterCallback(rtimer_arch_run_next);
+  WAIT_FOR_EDGE(t);
   vAHI_TickTimerWrite(wakeup_time);
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
 
@@ -159,4 +161,4 @@ rtimer_arch_get_time_until_next_wakeup(void)
   return (rtimer_clock_t)-1;
 }
 /*---------------------------------------------------------------------------*/
-#endif /* !RTIMER_USE_SLOW */
+#endif /* !RTIMER_USE_32KHZ */
