@@ -107,7 +107,9 @@ command:
 $ ./platform/galileo/bsp/libc/build_newlib.sh
 ```
 
-Alternatively, you can run the following command to build musl libc:
+Alternatively, you can run the following command to build musl libc if
+you have a version of LLVM Clang that supports the SafeStack feature
+with single-threaded storage for the unsafe stack pointer for Contiki:
 ```
 $ ./platform/galileo/bsp/libc/build_musl.sh
 ```
@@ -117,7 +119,10 @@ default, the following steps will use gcc as the C compiler and to
 invoke the linker if newlib was built.  To use LLVM Clang instead,
 change the values for both the CC and LD variables in
 cpu/x86/Makefile.x86_common to 'clang'.  LLVM Clang will be used by
-default if musl libc was built.
+default if musl libc was built.  Furthermore, musl libc is built with
+the SafeStack mitigation against stack corruption, and building musl
+libc causes the rest of the image to be built by default with
+SafeStack.  See cpu/x86/mm/README.md for more details.
 
 To build applications for the Galileo platform you should set the TARGET
 variable to 'galileo'.  For instance, building the hello-world application

@@ -88,6 +88,7 @@
  * the linker scripts.  See those and README.md for more details.
  */
 /* STACKS_SIZE_TOTAL is defined in platform/galileo/Makefile.galileo */
+#define STACKS_SIZE_UNSAFE STACKS_SIZE_TOTAL
 #define STACKS_SIZE_MAIN (STACKS_SIZE_TOTAL - (STACKS_SIZE_INT + STACKS_SIZE_EXC))
 
 #if !__ASSEMBLER__

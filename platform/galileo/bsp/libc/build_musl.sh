@@ -34,7 +34,7 @@ prepare() {
 
 build() {
     export CC=clang
-    export CFLAGS="-m32 -march=i586 -mtune=i586 -fno-omit-frame-pointer -Qunused-arguments"
+    export CFLAGS="-target i586-contiki-unknown -march=i586 -mtune=i586 -fno-omit-frame-pointer -Qunused-arguments -fsanitize=safe-stack"
 
     mkdir -p install
     ./configure --target=${TARGET} \

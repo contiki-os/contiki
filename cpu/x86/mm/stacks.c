@@ -38,3 +38,12 @@ uint8_t stacks_int[STACKS_SIZE_INT]
 uint8_t stacks_exc[STACKS_SIZE_EXC]
   __attribute__((section(".exc_stack"), aligned(4)));
 #endif
+
+#ifdef __has_feature
+#if __has_feature(safe_stack)
+/** Unsafe stack (see http://clang.llvm.org/docs/SafeStack.html). */
+uint8_t stacks_unsafe[STACKS_SIZE_UNSAFE] __attribute__((aligned(4)));
+
+uint32_t __safestack_unsafe_stack_ptr;
+#endif
+#endif

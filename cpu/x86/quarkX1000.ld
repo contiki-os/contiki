@@ -79,8 +79,8 @@ SECTIONS {
 
     .bss ALIGN (32) :
     {
-        *(COMMON)
         *(.main_stack)
+        *(COMMON)
         *(.bss*)
 
         *(.gdt_bss_start)

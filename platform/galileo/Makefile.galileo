@@ -30,6 +30,7 @@ endif
 ifeq ($(BUILT_LIBC),musl)
   PROJECT_SOURCEFILES += musl-syscalls.c musl-syscalls-asm.S
   CFLAGS += -DSTACKS_SIZE_TOTAL=16384
+  X86_CONF_SAFE_STACK = 1
 else
   ifeq ($(BUILT_LIBC),newlib)
     PROJECT_SOURCEFILES += newlib-syscalls.c

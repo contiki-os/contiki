@@ -45,6 +45,11 @@
 .global start
 start:
         cli
+#ifdef __has_feature
+#if __has_feature(safe_stack)
+        movl $(stacks_unsafe + STACKS_SIZE_UNSAFE), __safestack_unsafe_stack_ptr
+#endif
+#endif
 #if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__TSS
         /* TSS-based protection domains use a multi-segment model that defines
          * tight bounds around stacks.  That means that the bottom of the stack

@@ -41,6 +41,11 @@ void start(void);
  * To avoid that, we avoid including prot-domains.h from this file.
  */
 EFI_STATUS EFIAPI __attribute__((section(".boot_text")))
+#ifdef __has_feature
+#if __has_feature(safe_stack)
+__attribute__((no_sanitize("safe-stack")))
+#endif
+#endif
 uefi_start(IN EFI_HANDLE ImageHandle, IN EFI_SYSTEM_TABLE *SystemTable)
 {
   EFI_MEMORY_DESCRIPTOR mem_map[MAX_MEM_DESC];
