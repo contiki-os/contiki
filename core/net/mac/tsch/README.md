@@ -43,7 +43,7 @@ four implementations it was tested against.
 
 We have designed this implementation with IPv6 and RPL in mind, but the code is fully independent
 from upper layers (with the exception of the optional `tsch-rpl.[ch]`), and has been
-also tested with Rime (currently only with 64-bit link-later addresses).
+also tested with Rime (currently only with 64-bit link-layer addresses).
 
 ## Code structure
 
