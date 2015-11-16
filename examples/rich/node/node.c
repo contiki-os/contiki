@@ -36,6 +36,7 @@
 
 #include "contiki-conf.h"
 #include "net/netstack.h"
+#include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-schedule.h"
 #include "net/rpl/rpl-private.h"
 #include "net/mac/tsch/tsch-schedule.h"
