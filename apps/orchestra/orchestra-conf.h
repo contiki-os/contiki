@@ -66,11 +66,11 @@
 #define ORCHESTRA_COMMON_SHARED_PERIOD            31
 #endif /* ORCHESTRA_CONF_COMMON_SHARED_PERIOD */
 
-#ifdef ORCHESTRA_CONF_EBSF_PERIOD
-#define ORCHESTRA_UNICAST_PERIOD                  ORCHESTRA_CONF_EBSF_PERIOD
-#else /* ORCHESTRA_CONF_COMMON_SHARED_PERIOD */
+#ifdef ORCHESTRA_CONF_UNICAST_PERIOD
+#define ORCHESTRA_UNICAST_PERIOD                  ORCHESTRA_CONF_UNICAST_PERIOD
+#else /* ORCHESTRA_CONF_UNICAST_PERIOD */
 #define ORCHESTRA_UNICAST_PERIOD                  17
-#endif /* ORCHESTRA_CONF_COMMON_SHARED_PERIOD */
+#endif /* ORCHESTRA_CONF_UNICAST_PERIOD */
 
 /* Is the per-neighbor unicast slotframe sender-based (if not, it is receiver-based).
  * Note: sender-based works only with RPL storing mode as it relies on DAO and
@@ -81,12 +81,12 @@
 #define ORCHESTRA_UNICAST_SENDER_BASED            0
 #endif /* ORCHESTRA_CONF_UNICAST_SENDER_BASED */
 
-/* The hash function used to assign timeslot to a diven node (based on its link-layer address) */
+/* The hash function used to assign timeslot to a given node (based on its link-layer address) */
 #ifdef ORCHESTRA_CONF_LINKADDR_HASH
 #define ORCHESTRA_LINKADDR_HASH                   ORCHESTRA_CONF_LINKADDR_HASH
-#else /* ORCHESTRA_CONF_UNICAST_SENDER_BASED */
+#else /* ORCHESTRA_CONF_LINKADDR_HASH */
 #define ORCHESTRA_LINKADDR_HASH(addr)             ((addr != NULL) ? (addr)->u8[LINKADDR_SIZE - 1] : -1)
-#endif /* ORCHESTRA_CONF_UNICAST_SENDER_BASED */
+#endif /* ORCHESTRA_CONF_LINKADDR_HASH */
 
 /* The maximum hash */
 #ifdef ORCHESTRA_CONF_MAX_HASH
