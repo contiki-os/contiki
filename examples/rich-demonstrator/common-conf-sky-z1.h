@@ -58,15 +58,9 @@
 #define TSCH_QUEUE_CONF_NUM_PER_NEIGHBOR 4
 
 #undef TSCH_QUEUE_CONF_MAX_NEIGHBOR_QUEUES
-#define TSCH_QUEUE_CONF_MAX_NEIGHBOR_QUEUES 4
-
-/* The routing table size */
-#undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES  0
+#define TSCH_QUEUE_CONF_MAX_NEIGHBOR_QUEUES 8
 
 /* Network config */
-#undef SICSLOWPAN_CONF_FRAG
-#define SICSLOWPAN_CONF_FRAG     1
 #undef UIP_CONF_BUFFER_SIZE
 //#define UIP_CONF_BUFFER_SIZE   (REST_MAX_CHUNK_SIZE + UIP_LLH_LEN + UIP_IPUDPH_LEN + COAP_MAX_HEADER_SIZE)
 #define UIP_CONF_BUFFER_SIZE   (REST_MAX_CHUNK_SIZE + 0 + 48 + 70)
@@ -75,11 +69,11 @@
 
 /* The neighbor table size */
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS 4
+#define NBR_TABLE_CONF_MAX_NEIGHBORS 12
 
 /* The routing table size */
 #undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES  4
+#define UIP_CONF_MAX_ROUTES  12
 
 /* Radio */
 
@@ -93,5 +87,13 @@
 /* NullRDC: check for autoack in S/W */
 #undef NULLRDC_CONF_802154_AUTOACK
 #define NULLRDC_CONF_802154_AUTOACK 1
+
+/* Save some space to fit the limited RAM of the z1 */
+#undef UIP_CONF_TCP
+#define UIP_CONF_TCP 0
+#undef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA 0
+#undef SICSLOWPAN_CONF_FRAG
+#define SICSLOWPAN_CONF_FRAG 0
 
 #endif /* __COMMON_CONF_SKY_Z1_H__ */

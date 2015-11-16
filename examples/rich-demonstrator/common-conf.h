@@ -45,7 +45,7 @@
 #define TSCH_CONFIG_6TISCH_MINIMAL           1
 #define TSCH_CONFIG_ORCHESTRA                2
 
-#define TSCH_CONFIG TSCH_CONFIG_6TISCH_MINIMAL
+#define TSCH_CONFIG TSCH_CONFIG_ORCHESTRA
 
 #undef ENABLE_COOJA_DEBUG
 #define ENABLE_COOJA_DEBUG 0
@@ -77,7 +77,7 @@
 
 #define TSCH_CONF_EB_PERIOD (10 * CLOCK_SECOND)
 #define TSCH_CONF_KEEPALIVE_TIMEOUT (12 * CLOCK_SECOND)
-#define RPL_CONF_OF rpl_mrhof
+#define RPL_CONF_OF rpl_hardcoded_of
 
 #if TSCH_CONFIG == TSCH_CONFIG_ORCHESTRA
 
@@ -87,6 +87,28 @@
 #define TSCH_CALLBACK_PACKET_READY orchestra_callback_packet_ready
 #define NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK orchestra_callback_child_added
 #define NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK orchestra_callback_child_removed
+
+/* Dimensioning */
+#define ORCHESTRA_CONF_EBSF_PERIOD                     397
+#define ORCHESTRA_CONF_COMMON_SHARED_PERIOD             17
+#define ORCHESTRA_CONF_UNICAST_PERIOD                   13
+
+/* Use sender-based slots */
+#define ORCHESTRA_CONF_UNICAST_SENDER_BASED 1
+/* Our "hash" is collision-free */
+#define ORCHESTRA_CONF_COLLISION_FREE_HASH 1
+/* Max hash value */
+#define ORCHESTRA_CONF_MAX_HASH (ORCHESTRA_CONF_UNICAST_PERIOD - 1)
+/* Custom hash function that uniquely maps all known MAC addresses to a number less than ORCHESTRA_MAX_HASH */
+unsigned toplogy_orchestra_hash(const void *addr);
+#define ORCHESTRA_CONF_LINKADDR_HASH(addr) toplogy_orchestra_hash(addr)
+
+/* RPL probing */
+#define RPL_CONF_PROBING_INTERVAL (30 * CLOCK_SECOND)
+#define RPL_CONF_PROBING_EXPIRATION_TIME (2 * 60 * CLOCK_SECOND)
+ /* Extra probing of our hardcoded preferred parent */
+void *toplogy_probing_func(void *dag);
+#define RPL_CONF_PROBING_SELECT_FUNC(dag) toplogy_probing_func((dag))
 
 #endif /* TSCH_CONFIG == TSCH_CONFIG_ORCHESTRA */
 
