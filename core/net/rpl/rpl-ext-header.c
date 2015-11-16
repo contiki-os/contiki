@@ -135,7 +135,7 @@ rpl_verify_header(int uip_ext_opt_offset)
 
   sender = nbr_table_get_from_lladdr(rpl_parents, packetbuf_addr(PACKETBUF_ADDR_SENDER));
 
-  if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
+  if(sender != NULL && (UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR)) {
     /* A rank error was signalled, attempt to repair it by updating
      * the sender's rank from ext header */
     sender->rank = sender_rank;
