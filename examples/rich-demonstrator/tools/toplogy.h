@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,5 +32,7 @@
  * \author Simon Duquennoy <simonduq@sics.se>
  */
 
-void rich_init(uip_ipaddr_t *br_prefix);
-unsigned rich_orchestra_hash(const linkaddr_t *addr);
+unsigned toplogy_orchestra_hash(const void *addr);
+const linkaddr_t *toplogy_hardcoded_parent(const linkaddr_t *addr);
+void *toplogy_probing_func(void *dag);
+
