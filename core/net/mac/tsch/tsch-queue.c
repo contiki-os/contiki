@@ -45,6 +45,7 @@
 #include "contiki.h"
 #include "lib/list.h"
 #include "lib/memb.h"
+#include "lib/random.h"
 #include "net/queuebuf.h"
 #include "net/mac/rdc.h"
 #include "net/mac/tsch/tsch.h"
@@ -464,7 +465,8 @@ void
 tsch_queue_init(void)
 {
   list_init(neighbor_list);
-  tsch_random_init(*((uint32_t *)&linkaddr_node_addr) +
+  tsch_random_init(random_rand() +
+                   *((uint32_t *)&linkaddr_node_addr) +
                    *((uint32_t *)&linkaddr_node_addr + 1));
   memb_init(&neighbor_memb);
   memb_init(&packet_memb);
