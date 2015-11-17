@@ -410,10 +410,8 @@ tsch_start_coordinator(void)
   PRINTF("TSCH: starting as coordinator, PAN ID %x, asn-%x.%lx\n",
       frame802154_get_pan_id(), current_asn.ms1b, current_asn.ls4b);
 
-  /* Start only after some initial delay */
-  tsch_slot_operation_sync(
-    RTIMER_NOW() + TSCH_CLOCK_TO_TICKS(CLOCK_SECOND / 10),
-    &current_asn);
+  /* Start slot operation */
+  tsch_slot_operation_sync(RTIMER_NOW(), &current_asn);
 }
 
 /* Leave the TSCH network */
