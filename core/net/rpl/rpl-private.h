@@ -184,12 +184,7 @@
 
 /* DIS related */
 #define RPL_DIS_SEND                    1
-#ifdef  RPL_DIS_INTERVAL_CONF
-#define RPL_DIS_INTERVAL                RPL_DIS_INTERVAL_CONF
-#else
-#define RPL_DIS_INTERVAL                60
-#endif
-#define RPL_DIS_START_DELAY             5
+
 /*---------------------------------------------------------------------------*/
 /* Lollipop counters */
 
