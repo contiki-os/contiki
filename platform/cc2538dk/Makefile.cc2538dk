@@ -30,9 +30,9 @@ MODULES += core/net core/net/mac \
 
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
 
-%.upload: %.bin
+%.upload: %.bin %.elf
 ifeq ($(wildcard $(BSL)), )
 	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
 else
-	python $(BSL) -e -w -v $<
+	python $(BSL) -e -w -v -a $$($(OBJDUMP) -h $*.elf | sed -n '/\<LOAD\>/{g;1!p;};h' | awk '{print "0x" $$5}' | sort -g | head -1) $<
 endif
