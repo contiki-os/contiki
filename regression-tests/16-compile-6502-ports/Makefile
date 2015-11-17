@@ -7,7 +7,7 @@ irc-80col/c64 \
 telnet-server/c64 \
 webbrowser/c64 \
 webbrowser-80col/c64 \
-webserver/c64 \
+webserver/c64:HTTPD-CFS=1 \
 wget/c64 \
 telnet-server/apple2enh \
 telnet-server/atarixl \
