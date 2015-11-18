@@ -163,7 +163,15 @@ tsch_queue_update_time_source(const linkaddr_t *new_addr)
   if(!tsch_is_locked()) {
     if(!tsch_is_coordinator) {
       struct tsch_neighbor *old_time_src = tsch_queue_get_time_source();
-      struct tsch_neighbor *new_time_src = new_addr ? tsch_queue_add_nbr(new_addr) : NULL;
+      struct tsch_neighbor *new_time_src = NULL;
+
+      if(new_addr != NULL) {
+        /* Get/add neighbor, return 0 in case of failure */
+        new_time_src = tsch_queue_add_nbr(new_addr);
+        if(new_time_src == NULL) {
+          return 0;
+        }
+      }
 
       if(new_time_src != old_time_src) {
         PRINTF("TSCH: update time source: %u -> %u\n",
@@ -182,9 +190,9 @@ tsch_queue_update_time_source(const linkaddr_t *new_addr)
 #ifdef TSCH_CALLBACK_NEW_TIME_SOURCE
         TSCH_CALLBACK_NEW_TIME_SOURCE(old_time_src, new_time_src);
 #endif
-
-        return 1;
       }
+
+      return 1;
     }
   }
   return 0;
