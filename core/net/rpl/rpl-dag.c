@@ -849,7 +849,7 @@ rpl_nullify_parent(rpl_parent_t *parent)
         uip_ds6_defrt_rm(dag->instance->def_route);
         dag->instance->def_route = NULL;
       }
-      /* Send no-path DAO only to preferred parent, if any */
+      /* Send No-Path DAO only to preferred parent, if any */
       if(parent == dag->preferred_parent) {
         dao_output(parent, RPL_ZERO_LIFETIME);
         rpl_set_preferred_parent(dag, NULL);
