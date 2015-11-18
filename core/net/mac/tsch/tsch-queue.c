@@ -78,24 +78,6 @@ struct tsch_neighbor *n_broadcast;
 struct tsch_neighbor *n_eb;
 
 /*---------------------------------------------------------------------------*/
-/**
- *  A pseudo-random generator with better properties than msp430-libc's default
- **/
-
-static uint32_t tsch_random_seed;
-
-static void
-tsch_random_init(uint32_t x)
-{
-  tsch_random_seed = x;
-}
-static uint8_t
-tsch_random_byte(uint8_t window)
-{
-  tsch_random_seed = tsch_random_seed * 1103515245 + 12345;
-  return (tsch_random_seed / 65536) & window;
-}
-/*---------------------------------------------------------------------------*/
 /* Add a TSCH neighbor */
 struct tsch_neighbor *
 tsch_queue_add_nbr(const linkaddr_t *addr)
@@ -443,8 +425,10 @@ tsch_queue_backoff_inc(struct tsch_neighbor *n)
 {
   /* Increment exponent */
   n->backoff_exponent = MIN(n->backoff_exponent + 1, TSCH_MAC_MAX_BE);
-  /* Pick a window (number of shared slots to skip) */
-  n->backoff_window = tsch_random_byte((1 << n->backoff_exponent) - 1);
+  /* Pick a window (number of shared slots to skip). Ignore least significant
+   * few bits, which, on some embedded implementations of rand (e.g. msp430-libc),
+   * are known to have poor pseudo-random properties. */
+  n->backoff_window = (random_rand() >> 6) % (1 << n->backoff_exponent);
   /* Add one to the window as we will decrement it at the end of the current slot
    * through tsch_queue_update_all_backoff_windows */
   n->backoff_window++;
@@ -473,9 +457,6 @@ void
 tsch_queue_init(void)
 {
   list_init(neighbor_list);
-  tsch_random_init(random_rand() +
-                   *((uint32_t *)&linkaddr_node_addr) +
-                   *((uint32_t *)&linkaddr_node_addr + 1));
   memb_init(&neighbor_memb);
   memb_init(&packet_memb);
   /* Add virtual EB and the broadcast neighbors */
