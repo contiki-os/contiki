@@ -91,7 +91,7 @@
 #error TSCH_DEQUEUED_ARRAY_SIZE must be greater or equal to QUEUEBUF_NUM
 #endif
 #if (TSCH_DEQUEUED_ARRAY_SIZE & (TSCH_DEQUEUED_ARRAY_SIZE - 1)) != 0
-#error TSCH_QUEUE_NUM_PER_NEIGHBOR must be power of two
+#error TSCH_DEQUEUED_ARRAY_SIZE must be power of two
 #endif
 
 /* Truncate received drift correction information to maximum half

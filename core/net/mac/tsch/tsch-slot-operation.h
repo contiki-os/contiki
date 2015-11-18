@@ -47,7 +47,23 @@
 #ifdef TSCH_CONF_DEQUEUED_ARRAY_SIZE
 #define TSCH_DEQUEUED_ARRAY_SIZE TSCH_CONF_DEQUEUED_ARRAY_SIZE
 #else
+/* By default, round QUEUEBUF_CONF_NUM to next power of two
+ * (in the range [4;256]) */
+#if QUEUEBUF_CONF_NUM <= 4
+#define TSCH_DEQUEUED_ARRAY_SIZE 4
+#elif QUEUEBUF_CONF_NUM <= 8
+#define TSCH_DEQUEUED_ARRAY_SIZE 8
+#elif QUEUEBUF_CONF_NUM <= 16
 #define TSCH_DEQUEUED_ARRAY_SIZE 16
+#elif QUEUEBUF_CONF_NUM <= 32
+#define TSCH_DEQUEUED_ARRAY_SIZE 32
+#elif QUEUEBUF_CONF_NUM <= 64
+#define TSCH_DEQUEUED_ARRAY_SIZE 64
+#elif QUEUEBUF_CONF_NUM <= 128
+#define TSCH_DEQUEUED_ARRAY_SIZE 128
+#else
+#define TSCH_DEQUEUED_ARRAY_SIZE 256
+#endif
 #endif
 
 /* Size of the ring buffer storing incoming packets.

@@ -391,7 +391,7 @@ tsch_tx_process_pending()
     ringbufindex_get(&dequeued_ringbuf);
   }
 }
-
+/*---------------------------------------------------------------------------*/
 /* Setup TSCH as a coordinator */
 static void
 tsch_start_coordinator(void)
@@ -413,7 +413,7 @@ tsch_start_coordinator(void)
   /* Start slot operation */
   tsch_slot_operation_sync(RTIMER_NOW(), &current_asn);
 }
-
+/*---------------------------------------------------------------------------*/
 /* Leave the TSCH network */
 void
 tsch_disassociate(void)
@@ -424,7 +424,7 @@ tsch_disassociate(void)
     PRINTF("TSCH: leaving the network\n");
   }
 }
-
+/*---------------------------------------------------------------------------*/
 /* Attempt to associate to a network form an incoming EB */
 static int
 tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
