@@ -47,7 +47,7 @@ The following features have been implemented:
   * Contiki system clock and rtimers (16MHz tick frequency based on 32 MHz crystal)
   * 32.768kHz external oscillator
   * Periodic DCO recalibration
-  * CPU "doze" mode
+  * CPU "doze" and "sleep" modes
   * HW random number generator used as a random seed for pseudo-random generator
   * Watchdog, JN516x HW exception handlers
 
@@ -60,7 +60,6 @@ The following hardware platforms have been tested:
 ## TODO list
 
 The following features are planned:
-  * CPU deeper sleep mode support (where the 32 MHz crystal is turned off)
   * Time-accurate radio primitives ("send at", "listen until")
   * External storage
 
@@ -165,13 +164,13 @@ The following platform-specific configurations are supported:
 
 ### Enabling specific hardware features
 
-The JN516X Contiki platform supports sleep mode (with RAM retention and keeping external oscillator on). To enable sleeping, configure `JN516X_SLEEP_CONF_ENABLED=1`.
+The JN516X Contiki platform supports sleep mode (with RAM retention and keeping the external oscillator on). To enable sleeping, configure `JN516X_SLEEP_CONF_ENABLED=1`.
 
-Sleeping will only happen if there at least 50 ms until the next rtimer or rtimer. Also, the system will wake up ~10 ms before the next timer should fire in order to reininitialize all hardware peripherals.
+Sleeping will only happen if there at least 50 ms until the next rtimer or etimer. Also, the system will wake up ~10 ms before the next timer should fire in order to reininitialize all hardware peripherals.
 
-The JN516X Contiki platform also supports rtimers at two different speeds: 16 MHz and 32 kHz. By default, the high-speed timer is used. The two timers have similar expected accuracy (drift ppm), but 16 MHz has higher precision. However, the low-speed timers are also kept running during sleeping. 
+The JN516X Contiki platform also supports rtimers at two different speeds: 16 MHz and 32 kHz. By default, the high-speed timer is used. The two timers have similar expected accuracy (drift ppm), but the 16 MHz one has higher precision. However, the low-speed timers are also kept running during sleeping. 
 
-To enable low-speed timers, set `RTIMER_USE_32KHZ=1`. An external crystal oscillator is required to achieve reasonable accuracy in this case. Tthis oscilator is present on most platforms and is enabled depending on whether 32kHz timers or sleeping are enabled.
+To enable the low-frequency timer option, set `RTIMER_USE_32KHZ=1`. An external crystal oscillator is required to achieve reasonable accuracy in this case. This oscilator is present on most platforms, and is enabled automatically if either 32kHz timers or sleeping are enabled.
 
 ### Node IEEE/RIME/IPv6 Addresses
 
