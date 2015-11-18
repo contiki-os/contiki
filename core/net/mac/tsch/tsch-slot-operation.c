@@ -394,8 +394,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
    * successful Tx or Drop) */
   dequeued_index = ringbufindex_peek_put(&dequeued_ringbuf);
   if(dequeued_index != -1) {
-    /* is this a data packet? */
-    static uint8_t is_data;
     if(current_packet == NULL || current_packet->qb == NULL) {
       mac_tx_status = MAC_TX_ERR_FATAL;
     } else {
@@ -422,7 +420,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
       packet_len = queuebuf_datalen(current_packet->qb);
       /* is this a broadcast packet? (wait for ack?) */
       is_broadcast = current_neighbor->is_broadcast;
-      is_data = ((((uint8_t *)(packet))[0]) & 7) == FRAME802154_DATAFRAME;
       /* read seqno from payload */
       seqno = ((uint8_t *)(packet))[2];
       /* if this is an EB, then update its Sync-IE */
@@ -599,7 +596,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
     log->tx.datalen = queuebuf_datalen(current_packet->qb);
     log->tx.drift = drift_correction;
     log->tx.drift_used = drift_neighbor != NULL;
-    log->tx.is_data = is_data;
+    log->tx.is_data = ((((uint8_t *)(queuebuf_dataptr(current_packet->qb)))[0]) & 7) == FRAME802154_DATAFRAME;
     log->tx.sec_level = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL);
     log->tx.dest = TSCH_LOG_ID_FROM_LINKADDR(queuebuf_addr(current_packet->qb, PACKETBUF_ADDR_RECEIVER));
     );
