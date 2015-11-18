@@ -729,7 +729,7 @@ dao_input(void)
       PRINT6ADDR(&prefix);
       PRINTF("\n");
       rep->state.nopath_received = 1;
-      rep->state.lifetime = DAO_EXPIRATION_TIMEOUT;
+      rep->state.lifetime = RPL_NOPATH_REMOVAL_DELAY;
 
       /* We forward the incoming no-path DAO to our parent, if we have
          one. */
