@@ -190,7 +190,7 @@ tsch_get_lock(void)
         /* Issue a log whenever we had to busy wait until getting the lock */
         TSCH_LOG_ADD(tsch_log_message,
             snprintf(log->message, sizeof(log->message),
-                "!get lock delay %u", busy_wait_time);
+                "!get lock delay %u", (unsigned)busy_wait_time);
         );
       }
       return 1;
