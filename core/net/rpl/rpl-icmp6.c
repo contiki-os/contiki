@@ -802,7 +802,7 @@ dao_input(void)
         uint8_t out_seq;
         out_seq = prepare_for_dao_fwd(sequence, rep);
 
-        PRINTF("RPL: Forwarding no-path DAO to parent - out_seq:%d",
+        PRINTF("RPL: Forwarding No-path DAO to parent - out_seq:%d",
 	       out_seq);
         PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
         PRINTF("\n");
