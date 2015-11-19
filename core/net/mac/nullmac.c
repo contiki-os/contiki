@@ -48,13 +48,15 @@
 static void
 send_packet(mac_callback_t sent, void *ptr)
 {
+  /* Frames are of type DATA by default */
+  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
   NETSTACK_RDC.send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/
 static void
 packet_input(void)
 {
-  NETSTACK_LLSEC.input();
+  NETSTACK_NETWORK.input();
 }
 /*---------------------------------------------------------------------------*/
 static int

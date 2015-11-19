@@ -55,7 +55,7 @@ uip_driver_send(void)
 
   /* XXX we should provide a callback function that is called when the
      packet is sent. For now, we just supply a NULL pointer. */
-  NETSTACK_LLSEC.send(NULL, NULL);
+  NETSTACK_MAC.send(NULL, NULL);
   return 1;
 }
 /*--------------------------------------------------------------------*/
