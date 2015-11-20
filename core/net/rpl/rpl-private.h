@@ -370,7 +370,7 @@ void rpl_nullify_parent(rpl_parent_t *);
 void rpl_remove_parent(rpl_parent_t *);
 void rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent);
 rpl_parent_t *rpl_select_parent(rpl_dag_t *dag);
-rpl_dag_t *rpl_select_dag(rpl_instance_t *instance,rpl_parent_t *parent);
+rpl_dag_t *rpl_select_dag(rpl_instance_t *instance, rpl_dag_t *dag);
 void rpl_recalculate_ranks(void);
 
 /* RPL routing table functions. */

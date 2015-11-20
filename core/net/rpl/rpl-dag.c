@@ -748,8 +748,10 @@ rpl_find_parent_any_dag(rpl_instance_t *instance, uip_ipaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 rpl_dag_t *
-rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
+rpl_select_dag(rpl_instance_t *instance, rpl_dag_t *current_dag)
 {
+  /* This function (1) updates 'dag' (2) chooses a new current DAG in 'instance'
+   * and (3) updates the current DAG. */
   rpl_parent_t *last_parent;
   rpl_dag_t *dag, *end, *best_dag;
   rpl_rank_t old_rank;
@@ -759,11 +761,11 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
 
   best_dag = instance->current_dag;
   if(best_dag->rank != ROOT_RANK(instance)) {
-    if(rpl_select_parent(p->dag) != NULL) {
-      if(p->dag != best_dag) {
-        best_dag = instance->of->best_dag(best_dag, p->dag);
+    if(rpl_select_parent(current_dag) != NULL) {
+      if(current_dag != best_dag) {
+        best_dag = instance->of->best_dag(best_dag, current_dag);
       }
-    } else if(p->dag == best_dag) {
+    } else if(current_dag == best_dag) {
       best_dag = NULL;
       for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
         if(dag->used && dag->preferred_parent != NULL && dag->preferred_parent->rank != INFINITE_RANK) {
@@ -1382,7 +1384,7 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
     }
   }
 
-  if(rpl_select_dag(instance, p) == NULL) {
+  if(rpl_select_dag(instance, p->dag) == NULL) {
     if(last_parent != NULL) {
       /* No suitable parent anymore; trigger a local repair. */
       PRINTF("RPL: No parents found in any DAG\n");
