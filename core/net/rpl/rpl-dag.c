@@ -1352,15 +1352,12 @@ rpl_recalculate_ranks(void)
 int
 rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 {
-  int return_value;
   rpl_parent_t *last_parent = instance->current_dag->preferred_parent;
 
 #if DEBUG
   rpl_rank_t old_rank;
   old_rank = instance->current_dag->rank;
 #endif /* DEBUG */
-
-  return_value = 1;
 
   if(RPL_IS_STORING(instance)
       && uip_ds6_route_is_nexthop(rpl_get_parent_ipaddr(p))
@@ -1369,19 +1366,6 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
     PRINT6ADDR(rpl_get_parent_ipaddr(p));
     PRINTF("\n");
     rpl_remove_routes_by_nexthop(rpl_get_parent_ipaddr(p), p->dag);
-  }
-
-  if(!acceptable_rank(p->dag, p->rank)) {
-    /* The candidate parent is no longer valid: the rank increase resulting
-       from the choice of it as a parent would be too high. */
-    PRINTF("RPL: Unacceptable rank %u (Current min %u, MaxRankInc %u)\n", (unsigned)p->rank,
-        p->dag->min_rank, p->dag->instance->max_rankinc);
-    rpl_nullify_parent(p);
-    if(p != instance->current_dag->preferred_parent) {
-      return 0;
-    } else {
-      return_value = 0;
-    }
   }
 
   if(rpl_select_dag(instance, p->dag) == NULL) {
@@ -1408,7 +1392,7 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
   }
 #endif /* DEBUG */
 
-  return return_value;
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
