@@ -49,15 +49,31 @@
 #ifdef TSCH_QUEUE_CONF_NUM_PER_NEIGHBOR
 #define TSCH_QUEUE_NUM_PER_NEIGHBOR TSCH_QUEUE_CONF_NUM_PER_NEIGHBOR
 #else
+/* By default, round QUEUEBUF_CONF_NUM to next power of two
+ * (in the range [4;256]) */
+#if QUEUEBUF_CONF_NUM <= 4
+#define TSCH_QUEUE_NUM_PER_NEIGHBOR 4
+#elif QUEUEBUF_CONF_NUM <= 8
 #define TSCH_QUEUE_NUM_PER_NEIGHBOR 8
+#elif QUEUEBUF_CONF_NUM <= 16
+#define TSCH_QUEUE_NUM_PER_NEIGHBOR 16
+#elif QUEUEBUF_CONF_NUM <= 32
+#define TSCH_QUEUE_NUM_PER_NEIGHBOR 32
+#elif QUEUEBUF_CONF_NUM <= 64
+#define TSCH_QUEUE_NUM_PER_NEIGHBOR 64
+#elif QUEUEBUF_CONF_NUM <= 128
+#define TSCH_QUEUE_NUM_PER_NEIGHBOR 128
+#else
+#define TSCH_QUEUE_NUM_PER_NEIGHBOR 256
+#endif
 #endif
 
-/* The number of neighbor queues. There two queues allocated for
- * one EBs, one for broadcasts. Other queues are real neighbors */
+/* The number of neighbor queues. There are two queues allocated at all times:
+ * one for EBs, one for broadcasts. Other queues are for unicast to neighbors */
 #ifdef TSCH_QUEUE_CONF_MAX_NEIGHBOR_QUEUES
 #define TSCH_QUEUE_MAX_NEIGHBOR_QUEUES TSCH_QUEUE_CONF_MAX_NEIGHBOR_QUEUES
 #else
-#define TSCH_QUEUE_MAX_NEIGHBOR_QUEUES 8
+#define TSCH_QUEUE_MAX_NEIGHBOR_QUEUES ((NBR_TABLE_CONF_MAX_NEIGHBORS) + 2)
 #endif
 
 /* TSCH CSMA-CA parameters, see IEEE 802.15.4e-2012 */
