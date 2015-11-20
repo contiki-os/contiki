@@ -134,7 +134,7 @@ typedef struct rpl_prefix rpl_prefix_t;
 /* Directed Acyclic Graph */
 struct rpl_dag {
   uip_ipaddr_t dag_id;
-  rpl_rank_t min_rank; /* should be reset per DAG iteration! */
+  rpl_rank_t min_rank; /* is reset at every DAG iteration */
   uint8_t version;
   uint8_t grounded;
   uint8_t preference;
