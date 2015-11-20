@@ -24,15 +24,16 @@ debug: $(MULTIBOOT)
 	@$(GDB) $< -ex "target remote :3333"
 
 CUSTOM_RULE_LINK=1
-define LINK_template =
-%.$(1): %.co $$(PROJECT_OBJECTFILES) $$(PROJECT_LIBRARIES) contiki-$$(TARGET).a
-	$$(TRACE_LD)
-	$$(Q)$$(LD) $$(LDFLAGS) $(2) $$(TARGET_STARTFILES) $${filter-out %.a,$$^} \
-	    $${filter %.a,$$^} $$(TARGET_LIBFILES) -o $$@
-endef
 
-$(eval $(call LINK_template,$(MULTIBOOT_SFX),$(MULTIBOOT_LDFLAGS)))
-$(eval $(call LINK_template,$(UEFI_DLL_SFX),$(UEFI_LDFLAGS)))
+%.$(MULTIBOOT_SFX): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(MULTIBOOT_LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+
+%.$(UEFI_DLL_SFX): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(UEFI_LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 
 %.$(UEFI_SFX): %.$(UEFI_DLL_SFX)
 	$(Q)$(GEN_FW) -o $@ -e UEFI_APPLICATION $^
