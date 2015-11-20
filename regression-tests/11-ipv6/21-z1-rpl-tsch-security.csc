@@ -269,12 +269,16 @@ make node.z1 TARGET=z1 MAKE_WITH_ORCHESTRA=0 MAKE_WITH_SECURITY=1</commands>
     <plugin_config>
       <script>TIMEOUT(300000); /* Time out after 5 minutes */&#xD;
 &#xD;
+log.log("Waiting for association with security\n");&#xD;
 /* Check that nodes associate with security */&#xD;
 WAIT_UNTIL(msg.startsWith("TSCH: association done, sec 1,"));&#xD;
+log.log("Association with security done\n");&#xD;
 &#xD;
 /* Wait until a node (can only be the DAGRoot) has&#xD;
  * 8 routing entries (i.e. can reach every node) */&#xD;
+log.log("Waiting for routing tables to fill\n");&#xD;
 WAIT_UNTIL(msg.endsWith("Routing entries (8 in total):"));&#xD;
+log.log("Root routing table ready\n");&#xD;
 &#xD;
 log.testOK(); /* Report test success and quit */</script>
       <active>true</active>
