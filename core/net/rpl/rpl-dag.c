@@ -325,6 +325,7 @@ acceptable_rank(rpl_dag_t *dag, rpl_rank_t rank)
 {
   return rank != INFINITE_RANK &&
     ((dag->instance->max_rankinc == 0) ||
+     (dag->min_rank == INFINITE_RANK)  ||
      DAG_RANK(rank, dag->instance) <= DAG_RANK(dag->min_rank + dag->instance->max_rankinc, dag->instance));
 }
 /*---------------------------------------------------------------------------*/
