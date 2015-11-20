@@ -40,6 +40,7 @@ obj_*
 symbols.*
 Makefile.target
 doc/html
+doc/latex
 patches-*
 tools/tunslip
 tools/tunslip6
@@ -88,8 +89,14 @@ contiki-cc2530dk.lib
 *.d71
 *.d81
 
+# Cooja Build Artifacts
+*.cooja
+
 #regression tests artifacts
 *.testlog
+*.log.prog
+regression-tests/[0-9][0-9]-*/report
+regression-tests/[0-9][0-9]-*/org/
 
 # rl78 build artifacts
 *.eval-adf7xxxmb4z
