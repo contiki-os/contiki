@@ -49,8 +49,9 @@
 #define RTIMER_ARCH_SECOND (F_CPU / 2)
 #endif
 
-#define US_TO_RTIMERTICKS(D) ((int64_t)(D) << 4)
-#define RTIMERTICKS_TO_US(T)   ((int64_t)(T) >> 4)
+#define US_TO_RTIMERTICKS(D)     ((int64_t)(D) << 4)
+#define RTIMERTICKS_TO_US(T)     ((int64_t)(T) >> 4)
+#define RTIMERTICKS_TO_US_64(T)  RTIMERTICKS_TO_US(T)
 
 rtimer_clock_t rtimer_arch_now(void);
 
