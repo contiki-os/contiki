@@ -31,6 +31,7 @@ In terms of hardware support, the following drivers have been implemented:
     * ADC
     * Cryptoprocessor (AES-CCM-256, SHA-256)
     * Public Key Accelerator (ECDH, ECDSA)
+    * Flash-based port of Coffee
   * SmartRF06 EB and BB peripherals
     * LEDs
     * Buttons

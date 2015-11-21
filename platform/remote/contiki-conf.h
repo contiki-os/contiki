@@ -57,21 +57,6 @@ typedef uint32_t rtimer_clock_t;
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH 0 /**< A logic low level activates the boot loader */
 #endif
 /** @} */
-
-/*---------------------------------------------------------------------------*/
-/**
- * \name Flash Memory configuration
- *
- * @{
- */
-#ifndef FLASH_CONF_ORIGIN
-#define FLASH_CONF_ORIGIN  0x00200000
-#endif
-
-#ifndef FLASH_CONF_SIZE
-#define FLASH_CONF_SIZE    0x00080000 /* 512 KiB */
-#endif
-/** @} */
 /*---------------------------------------------------------------------------*/
 /**
  * \name Watchdog Timer configuration
