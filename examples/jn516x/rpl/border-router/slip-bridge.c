@@ -121,7 +121,6 @@ output(void)
   } else {
     PRINTF("SUT: %u\n", uip_len);
     slip_send();
-    printf("\n");
   }
   return 0;
 }

@@ -327,7 +327,8 @@ init(void)
     return 0;
   } else {
     rx_frame_buffer = &input_array[put_index];
-  } input_frame_buffer = rx_frame_buffer;
+  }
+  input_frame_buffer = rx_frame_buffer;
 
   process_start(&micromac_radio_process, NULL);
 
@@ -361,7 +362,8 @@ on(void)
                           );
   } else {
     missed_radio_on_request = 1;
-  } ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  }
+  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   listen_on = 1;
   return 1;
 }
@@ -436,7 +438,8 @@ transmit(unsigned short payload_len)
     RIMESTATS_ADD(noacktx);
   } else {
     ret = RADIO_TX_ERR;
-  } return ret;
+  }
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -452,8 +455,8 @@ prepare(const void *payload, unsigned short payload_len)
   }
   if(payload_len > 127 || payload == NULL) {
     return 1;
-    /* Copy payload to (soft) Ttx buffer */
   }
+  /* Copy payload to (soft) Ttx buffer */
   memcpy(tx_frame_buffer.uPayload.au8Byte, payload, payload_len);
   i = payload_len;
 #if CRC_SW
@@ -563,6 +566,7 @@ read(void *buf, unsigned short bufsize)
   len = input_frame_buffer->u8PayloadLength;
 
   if(len <= CHECKSUM_LEN) {
+    input_frame_buffer->u8PayloadLength = 0;
     return 0;
   } else {
     len -= CHECKSUM_LEN;
@@ -599,8 +603,9 @@ read(void *buf, unsigned short bufsize)
       }
     } else {
       len = 0;
-      /* Disable further read attempts */
-    } input_frame_buffer->u8PayloadLength = 0;
+    }
+    /* Disable further read attempts */
+    input_frame_buffer->u8PayloadLength = 0;
   }
 
   return len;
