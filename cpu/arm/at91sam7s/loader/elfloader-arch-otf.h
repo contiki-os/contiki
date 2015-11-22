@@ -89,10 +89,10 @@
  *             processor.
  */
 int elfloader_arch_relocate(int input_fd,
-			    struct elfloader_output *output,
-			    unsigned int sectionoffset,
-			    char *sectionaddr,
-			    struct elf32_rela *rela, char *addr);
+                            struct elfloader_output *output,
+                            unsigned int sectionoffset,
+                            char *sectionaddr,
+                            struct elf32_rela *rela, char *addr);
 
 #endif /* ELFLOADER_ARCH_H_ */
 

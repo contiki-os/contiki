@@ -122,5 +122,4 @@ status(int type)
   }
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(acc_sensor, ACC_SENSOR,
-	       value, configure, status);
+SENSORS_SENSOR(acc_sensor, ACC_SENSOR, value, configure, status);
