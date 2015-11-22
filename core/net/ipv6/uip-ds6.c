@@ -297,9 +297,9 @@ uip_ds6_prefix_t *
 uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen)
 {
   if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_prefix_list,
-		       UIP_DS6_PREFIX_NB, sizeof(uip_ds6_prefix_t),
-		       ipaddr, ipaddrlen,
-		       (uip_ds6_element_t **)&locprefix) == FOUND) {
+                       UIP_DS6_PREFIX_NB, sizeof(uip_ds6_prefix_t),
+                       ipaddr, ipaddrlen,
+                       (uip_ds6_element_t **)&locprefix) == FOUND) {
     return locprefix;
   }
   return NULL;
@@ -489,8 +489,8 @@ uip_ds6_aaddr_lookup(uip_ipaddr_t *ipaddr)
 {
 #if UIP_DS6_AADDR_NB
   if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_if.aaddr_list,
-		       UIP_DS6_AADDR_NB, sizeof(uip_ds6_aaddr_t), ipaddr, 128,
-		       (uip_ds6_element_t **)&locaaddr) == FOUND) {
+                       UIP_DS6_AADDR_NB, sizeof(uip_ds6_aaddr_t), ipaddr, 128,
+                       (uip_ds6_element_t **)&locaaddr) == FOUND) {
     return locaaddr;
   }
 #endif /* UIP_DS6_AADDR_NB */

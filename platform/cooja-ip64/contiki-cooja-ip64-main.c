@@ -191,7 +191,7 @@ contiki_init(void)
   /* Initialize communication stack */
   netstack_init();
   printf("%s/%s/%s, channel check rate %lu Hz\n",
-	 NETSTACK_NETWORK.name, NETSTACK_MAC.name, NETSTACK_RDC.name,
+         NETSTACK_NETWORK.name, NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
                          NETSTACK_RDC.channel_check_interval()));
 
