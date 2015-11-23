@@ -28,11 +28,18 @@ MODULES += core/net core/net/mac \
            core/net/mac/contikimac \
            core/net/llsec
 
+PYTHON = python
+BSL_FLAGS += -e -w -v -a $$($(OBJDUMP) -h $*.elf | grep -B1 LOAD | grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$5}' | sort -g | head -1)
+
+ifdef PORT
+  BSL_FLAGS += -p $(PORT)
+endif
+
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
 
 %.upload: %.bin %.elf
 ifeq ($(wildcard $(BSL)), )
 	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
 else
-	python $(BSL) -e -w -v -a $$($(OBJDUMP) -h $*.elf | sed -n '/\<LOAD\>/{g;1!p;};h' | awk '{print "0x" $$5}' | sort -g | head -1) $<
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $<
 endif
