@@ -80,7 +80,11 @@ static rpl_of_t * const objective_functions[] = RPL_SUPPORTED_OFS;
 #endif /* !RPL_CONF_GROUNDED */
 
 /*---------------------------------------------------------------------------*/
-/* Per-parent RPL information */
+/* A table containing information about all nodes in our candidate neighbor set,
+ * as defined in https://tools.ietf.org/html/rfc6550#section-8.2.1
+ * In this implementation, nodes have a single parent in their parent set at all
+ * times, always used as preferred parent. This table contains the preferred parent,
+ * possible future preferred parents, siblings and children. */
 NBR_TABLE_GLOBAL(rpl_parent_t, rpl_parents);
 /*---------------------------------------------------------------------------*/
 /* Allocate instance table. */
