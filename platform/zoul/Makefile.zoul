@@ -69,11 +69,12 @@ else
 endif
 
 
-+%.upload: %.bin %.elf
+
+%.upload: %.bin %.elf
 ifeq ($(wildcard $(BSL)), )
 	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
 else
-	$(PYTHON) $(BSL) $(BSL_FLAGS) -a $$($(OBJDUMP) -h $*.elf | sed -n '/\<LOAD\>/{g;1!p;};h' | awk '{print "0x" $$5}' | sort -g | head -1) 
+	$(PYTHON) $(BSL) $(BSL_FLAGS) -a $$($(OBJDUMP) -h $*.elf | sed -n '/\<LOAD\>/{g;1!p;};h' | awk '{print "0x" $$5}' | sort -g | head -1) $<
 endif
 
 motelist:
