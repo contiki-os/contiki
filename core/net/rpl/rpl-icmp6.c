@@ -966,7 +966,6 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
 {
   /* Destination Advertisement Object */
   uip_ipaddr_t prefix;
-  rpl_instance_t *instance;
 
   if(get_global_addr(&prefix) == 0) {
     PRINTF("RPL: No global address set for this node - suppressing DAO\n");
@@ -976,23 +975,9 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
   if(parent == NULL || parent->dag == NULL || parent->dag->instance == NULL) {
     return;
   }
-  instance = parent->dag->instance;
 
   /* Sending a DAO with own prefix as target */
   dao_output_target(parent, &prefix, lifetime);
-#if RPL_WITH_DAO_ACK
-  /* keep track of my own sending of DAO for handling ack and loss of ack */
-  if(lifetime != RPL_ZERO_LIFETIME) {
-    instance->my_dao_seqno = dao_sequence;
-    instance->my_dao_transmissions = 1;
-    ctimer_set(&instance->dao_retransmit_timer, RPL_DAO_RETRANSMISSION_TIMEOUT,
-	       handle_dao_retransmission, parent);
-  }
-#else
-  /* We know that we have tried to register so now we are assuming
-     that we have a down-link - unless this is a zero lifetime one */
-  rpl_set_downward_link(lifetime != RPL_ZERO_LIFETIME);
-#endif /* RPL_WITH_DAO_ACK */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -1089,6 +1074,19 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
 
   if(rpl_get_parent_ipaddr(parent) != NULL) {
     uip_icmp6_send(rpl_get_parent_ipaddr(parent), ICMP6_RPL, RPL_CODE_DAO, pos);
+#if RPL_WITH_DAO_ACK
+    if(lifetime != RPL_ZERO_LIFETIME) {
+      /* keep track of my own sending of DAO for handling ack and loss of ack */
+      instance->my_dao_seqno = dao_sequence;
+      instance->my_dao_transmissions = 1;
+      ctimer_set(&instance->dao_retransmit_timer, RPL_DAO_RETRANSMISSION_TIMEOUT,
+          handle_dao_retransmission, parent);
+    }
+#else /* RPL_WITH_DAO_ACK */
+    /* We know that we have tried to register so now we are assuming
+    that we have a down-link - unless this is a zero lifetime one */
+    rpl_set_downward_link(lifetime != RPL_ZERO_LIFETIME);
+#endif /* RPL_WITH_DAO_ACK */
   }
 }
 /*---------------------------------------------------------------------------*/
