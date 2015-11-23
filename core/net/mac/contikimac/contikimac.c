@@ -106,7 +106,11 @@ static int we_are_receiving_burst = 0;
 
 /* INTER_PACKET_DEADLINE is the maximum time a receiver waits for the
    next packet of a burst when FRAME_PENDING is set. */
+#ifdef CONTIKIMAC_CONF_INTER_PACKET_DEADLINE
+#define INTER_PACKET_DEADLINE  		 		CONTIKIMAC_CONF_INTER_PACKET_DEADLINE
+#else
 #define INTER_PACKET_DEADLINE               CLOCK_SECOND / 32
+#endif
 
 /* ContikiMAC performs periodic channel checks. Each channel check
    consists of two or more CCA checks. CCA_COUNT_MAX is the number of
@@ -166,12 +170,21 @@ static int we_are_receiving_burst = 0;
 /* MAX_SILENCE_PERIODS is the maximum amount of periods (a period is
    CCA_CHECK_TIME + CCA_SLEEP_TIME) that we allow to be silent before
    we turn of the radio. */
+#ifdef CONTIKIMAC_CONF_MAX_SILENCE_PERIODS
+#define MAX_SILENCE_PERIODS                CONTIKIMAC_CONF_MAX_SILENCE_PERIODS
+#else
 #define MAX_SILENCE_PERIODS                5
+#endif
 
 /* MAX_NONACTIVITY_PERIODS is the maximum number of periods we allow
    the radio to be turned on without any packet being received, when
    WITH_FAST_SLEEP is enabled. */
+#ifdef CONTIKIMAC_CONF_MAX_NONACTIVITY_PERIODS
+#define MAX_NONACTIVITY_PERIODS            CONTIKIMAC_CONF_MAX_NONACTIVITY_PERIODS
+#else
 #define MAX_NONACTIVITY_PERIODS            10
+#endif
+
 
 
 
@@ -181,7 +194,11 @@ static int we_are_receiving_burst = 0;
 
 /* GUARD_TIME is the time before the expected phase of a neighbor that
    a transmitted should begin transmitting packets. */
+#ifdef CONTIKIMAC_CONF_GUARD_TIME
+#define GUARD_TIME                         CONTIKIMAC_CONF_GUARD_TIME
+#else
 #define GUARD_TIME                         10 * CHECK_TIME + CHECK_TIME_TX
+#endif
 
 /* INTER_PACKET_INTERVAL is the interval between two successive packet transmissions */
 #ifdef CONTIKIMAC_CONF_INTER_PACKET_INTERVAL
@@ -201,7 +218,11 @@ static int we_are_receiving_burst = 0;
 
 /* MAX_PHASE_STROBE_TIME is the time that we transmit repeated packets
    to a neighbor for which we have a phase lock. */
+#ifdef CONTIKIMAC_CONF_MAX_PHASE_STROBE_TIME
+#define MAX_PHASE_STROBE_TIME              CONTIKIMAC_CONF_MAX_PHASE_STROBE_TIME
+#else
 #define MAX_PHASE_STROBE_TIME              RTIMER_ARCH_SECOND / 60
+#endif
 
 #ifdef CONTIKIMAC_CONF_SEND_SW_ACK
 #define CONTIKIMAC_SEND_SW_ACK CONTIKIMAC_CONF_SEND_SW_ACK
