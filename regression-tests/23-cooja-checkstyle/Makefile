@@ -4,7 +4,7 @@ LOGDIR=$(COOJADIR)/build/reports/checkstyle/
 all: summary
 
 checkstyle:
-	@gradle -b $(COOJADIR)/build.gradle clean check
+	@$(COOJADIR)/gradlew -b $(COOJADIR)/build.gradle clean check
 
 summary: checkstyle
 	@( chkerr=`cat checkstyle_errors.cnt`; curerr=`cat $(LOGDIR)/main.xml | grep "error" | wc -l` ; delta=`expr $$curerr - $$chkerr`;  \
@@ -15,4 +15,4 @@ summary: checkstyle
 	)
 
 clean:
-	@gradle -b $(COOJADIR) clean
+	@$(COOJADIR)/gradlew -b $(COOJADIR) clean

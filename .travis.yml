@@ -113,12 +113,9 @@ before_script:
 
   ## Compile cooja.jar only when it's going to be needed
   - if [ ${BUILD_CATEGORY:-sim} = sim ] ; then
-      sudo add-apt-repository -y ppa:cwchien/gradle &&
-      sudo apt-get -qq update &&
-      sudo apt-get -qq install gradle &&
-      gradle -version &&
+      ./tools/cooja/gradlew -version &&
       java -version &&
-      gradle --no-color -b tools/cooja/build.gradle build &&
+      ./tools/cooja/gradlew --console=plain -b tools/cooja/build.gradle build &&
       sudo java -Xshare:dump -version ;
     fi
 

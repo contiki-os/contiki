@@ -4,7 +4,7 @@ LOGDIR=$(COOJADIR)/build/reports/findbugs/
 all: summary
 
 findbugs:
-	@gradle -b $(COOJADIR)/build.gradle clean check
+	@$(COOJADIR)/gradlew -b $(COOJADIR)/build.gradle clean check
 
 summary: findbugs
 	@( chkerr=`cat findbugs_errors.cnt`; curerr=`cat $(LOGDIR)/main.xml | grep "</BugInstance>" | wc -l` ; delta=`expr $$curerr - $$chkerr`;  \
@@ -15,4 +15,4 @@ summary: findbugs
 	)
 
 clean:
-	@gradle -b $(COOJADIR) clean
+	@$(COOJADIR)/gradlew -b $(COOJADIR) clean
