@@ -45,16 +45,64 @@ In terms of hardware support, the following drivers have been implemented:
   * Buzzer
   * External SPI flash
 
+Requirements
+============
+To use the port you need:
+
+* TI's CC26xxware sources. The correct version will be installed automatically
+  as a submodule when you clone Contiki.
+* TI's CC13xxware sources. The correct version will be installed automatically
+  as a submodule when you clone Contiki.
+* Contiki can automatically upload firmware to the nodes over serial with the
+  included [cc2538-bsl script](https://github.com/JelmerT/cc2538-bsl).
+  Note that uploading over serial doesn't work for the Sensortag, you can use
+  TI's SmartRF Flash Programmer in this case.
+* A toolchain to build firmware: The port has been developed and tested with
+  GNU Tools for ARM Embedded Processors <https://launchpad.net/gcc-arm-embedded>.
+  The port was developed and tested using this version:
+
+        $ arm-none-eabi-gcc -v
+        [...]
+        gcc version 4.9.3 20141119 (release) [ARM/embedded-4_9-branch revision 218278] (GNU Tools for ARM Embedded Processors)
+
+* srecord (http://srecord.sourceforge.net/)
+* You may also need other drivers so that the SmartRF can communicate with your
+operating system and so that you can use the chip's UART for I/O. Please read
+the section ["Drivers" in the CC2538DK readme](https://github.com/contiki-os/contiki/tree/master/platform/cc2538dk#drivers).
+
 Examples
 ========
-The port comes with two examples: A very basic example and a mode advanced one
-(web demo). The former demonstrates how to read sensors and how to use board
-peripherals. It also demonstrates how to send out BLE advertisements.
-The latter includes a CoAP server, an MQTT client which connects and publishes
-to the IBM quickstart service, a net-based UART and lastly a web server that
-can be used to configure the rest of the example.
+The port comes with three examples:
+- A very basic example which demonstrates how to read sensors and how to use board peripherals. It also demonstrates how to send out BLE advertisements.
+- A more advanced one (web demo) which includes a CoAP server, an MQTT client which connects and publishes to the IBM quickstart service, a net-based UART and lastly a web server that can be used to configure the rest of the example.
+- An example demonstrating a very sleepy node.
 
-More details about those two examples can be found in their respective READMEs.
+More details about those three examples can be found in their respective READMEs.
+
+Build your First Example
+------------------------
+It is recommended to start with the `cc26xx-demo` example under `examples/cc26xx/`. This is a very simple example which will help you get familiar with the hardware and the environment. This example can be used for the Sensortag and SmartRF06 EB.
+
+Strictly speaking, to build it you need to run `make TARGET=srf06-cc26xx BOARD=srf06/cc26xx`. However, the example directories contain a `Makefile.target` which is automatically included and specifies the correct `TARGET=` argument. The `BOARD=` environment variable defaults to `srf06/cc26xx` (which is the SmartRF06 EB + CC26XXEM). Thus, for examples under the `cc26xx` directory, and when using the SmartRF06 EB, you can simply run `make`.
+
+Other options for the `BOARD` make variable are:
+
+* Srf06+CC26xxEM: Set `BOARD=srf06/cc26xx`
+* Srf06+CC13xxEM: Set `BOARD=srf06/cc13xx`
+* CC2650 tag: Set `BOARD=sensortag/cc2650`
+
+If the `BOARD` variable is unspecified, an image for the Srf06 CC26XXEM will be built.
+
+If you want to switch between building for one platform to the other, make certain to `make clean` before building for the new one, or you will get linker
+errors.
+
+If you want to upload the compiled firmware to a node via the serial boot loader you need to manually enable the boot loader and then use `make cc26xx-demo.upload`. On the SmartRF06 board you enable the boot loader by resetting the board (EM RESET button) while holding the `select` button. (The boot loader backdoor needs to be enabled on the chip, and the chip needs to be configured correctly, for this to work. See README in the `tools/cc2538-bsl` directory for more info). The serial uploader script will automatically pick the first available serial port. If this is not the port where your node is connected, you can force the script to use a specific port by defining the `PORT` argument eg. `make cc26xx-demo.upload PORT=/dev/tty.usbserial`
+
+Note that uploading over serial doesn't work for the Sensortag, you can use TI's SmartRF Flash Programmer in this case.
+
+For the `cc26xx-demo`, the included readme describes in detail what the example does.
+
+To generate an assembly listing of the compiled firmware, run `make cc26xx-demo.lst`. This may be useful for debugging or optimizing your application code. To intersperse the C source code within the assembly listing, you must instruct the compiler to include debugging information by adding `CFLAGS += -g` to the project Makefile and rebuild by running `make clean cc26xx-demo.lst`.
 
 CC13xx/CC26xx Border Router over UART
 =====================================
@@ -94,28 +142,6 @@ that limit the size of the uIP buffer. Removing the two lines below from
 Do not forget to set the correct channel by defining `RF_CORE_CONF_CHANNEL` as
 required.
 
-Requirements
-============
-To use the port you need:
-
-* TI's CC26xxware sources. The correct version will be installed automatically
-  as a submodule when you clone Contiki.
-* TI's CC13xxware sources. The correct version will be installed automatically
-  as a submodule when you clone Contiki.
-* Software to program the nodes. Use TI's SmartRF Flash Programmer
-* A toolchain to build firmware: The port has been developed and tested with
-  GNU Tools for ARM Embedded Processors <https://launchpad.net/gcc-arm-embedded>.
-  The port was developed and tested using this version:
-
-        $ arm-none-eabi-gcc -v
-        [...]
-        gcc version 4.9.3 20141119 (release) [ARM/embedded-4_9-branch revision 218278] (GNU Tools for ARM Embedded Processors)
-
-* srecord (http://srecord.sourceforge.net/)
-* You may also need other drivers so that the SmartRF can communicate with your
-operating system and so that you can use the chip's UART for I/O. Please read
-the section ["Drivers" in the CC2538DK readme](https://github.com/contiki-os/contiki/tree/master/platform/cc2538dk#drivers).
-
 Filename conflicts between Contiki and CC26xxware
 =================================================
 There is a file called `timer.c` both in Contiki as well as in CC26xxware. The
@@ -123,25 +149,6 @@ way things are configured now, we don't use the latter. However, if you need to
 start using it at some point, you will need to rename it:
 
 From `cpu/cc26xx/lib/cc26xxware/driverlib/timer.c` to `driverlib-timer.c`
-
-Sensortag vs Srf06
-==================
-To build for the sensortag, you will need to set the `BOARD` make variable as
-follows:
-
-* Srf06+CC26xxEM: Set `BOARD=srf06/cc26xx`
-* Srf06+CC13xxEM: Set `BOARD=srf06/cc13xx`
-* CC2650 tag: Set `BOARD=sensortag/cc2650`
-
-You can do that by exporting `BOARD` as an environment variable, by adding it
-to your Makefile or by adding it to your make command as an argument.
-
-If the `BOARD` variable is unspecified, an image for the Srf06 CC26XXEM will be
-built.
-
-If you want to switch between building for one platform to the other, make
-certain to `make clean` before building for the new one, or you will get linker
-errors.
 
 Sensortag UART usage (with or without the Debugger Devpack)
 ===========================================================

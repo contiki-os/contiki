@@ -3,3 +3,19 @@ CFLAGS += -DBOARD_SMARTRF06EB=1
 CONTIKI_TARGET_DIRS += srf06
 
 BOARD_SOURCEFILES += leds-arch.c srf06-sensors.c button-sensor.c board.c
+
+PYTHON = python
+BSL_FLAGS += -e -w -v
+
+ifdef PORT
+  BSL_FLAGS += -p $(PORT)
+endif
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
+%.upload: %.bin
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $<
+endif
