@@ -490,16 +490,16 @@ na_input(void)
     PRINTF("NA received is bad\n");
     goto discard;
   } else {
-    uip_lladdr_t *lladdr;
+    uip_lladdr_t lladdr_aligned;
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
     if(nbr == NULL) {
       goto discard;
     }
-    lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
+    extract_lladdr_aligned(&lladdr_aligned);
 
     if(nd6_opt_llao != 0) {
       is_llchange =
-        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)lladdr,
+        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)&lladdr_aligned,
                UIP_LLADDR_LEN);
     }
     if(nbr->state == NBR_INCOMPLETE) {
@@ -511,7 +511,7 @@ na_input(void)
       uip_ds6_nbr_rm(nbr);
       /* Re-add this neighbor - now with a correct MAC address */
       nbr = uip_ds6_nbr_add(&UIP_ND6_NA_BUF->tgtipaddr,
-                            (const uip_lladdr_t *) &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+                            &lladdr_aligned,
                             is_router, NBR_STALE);
       if(nbr == NULL) {
         goto discard;
@@ -537,8 +537,15 @@ na_input(void)
         if(is_override || (!is_override && nd6_opt_llao != 0 && !is_llchange)
            || nd6_opt_llao == 0) {
           if(nd6_opt_llao != 0) {
-            memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-                   UIP_LLADDR_LEN);
+            /* Remove this neighbor - since it has updated its MAC address */
+            uip_ds6_nbr_rm(nbr);
+            /* Re-add this neighbor - now with a correct (new) MAC address */
+            nbr = uip_ds6_nbr_add(&UIP_ND6_NA_BUF->tgtipaddr,
+                                  &lladdr_aligned,
+                                  is_router, NBR_STALE);
+            if(nbr == NULL) {
+              goto discard;
+            }
           }
           if(is_solicited) {
             nbr->state = NBR_REACHABLE;
