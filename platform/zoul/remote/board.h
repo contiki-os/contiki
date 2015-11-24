@@ -192,7 +192,7 @@
  * \name ADC configuration
  *
  * These values configure which CC2538 pins and ADC channels to use for the ADC
- * inputs. By default the RE-Mote allows two out-of-the-box ADC ports with a 
+ * inputs. By default the RE-Mote allows two out-of-the-box ADC ports with a
  * phidget-like 3-pin connector (GND/VDD/ADC)
  *
  * The RE-Mote allows both 3.3V and 5V analogue sensors as follow:
@@ -201,15 +201,15 @@
  * - ADC2: up to 3.3V, shared with RTC_INT
  * - ADC3: up to 5V, by means of a 2/3 voltage divider.
  *
- * ADC inputs can only be on port A.  
- * All ADCx are exposed in JP5 connector, but only ADC1 and ADC3 have GND and 
- * VDD (3/5V) pins next to it, so these can be exposed into a 3-pin phidget-like 
- * connector, for ADC2 either solder a wire to connect, or use a 4-pin connector 
- * to expose both ADC1 and ADC2 in a single connector, but this will leave no 
+ * ADC inputs can only be on port A.
+ * All ADCx are exposed in JP5 connector, but only ADC1 and ADC3 have GND and
+ * VDD (3/5V) pins next to it, so these can be exposed into a 3-pin phidget-like
+ * connector, for ADC2 either solder a wire to connect, or use a 4-pin connector
+ * to expose both ADC1 and ADC2 in a single connector, but this will leave no
  * space for a ADC3 connector.
- * The internal ADC reference is 1190mV, use either a voltage divider as input, 
+ * The internal ADC reference is 1190mV, use either a voltage divider as input,
  * or a different voltage reference, like AVDD5 or other externally (AIN7), but
- * note the PA7 is shared with the Micro-SD CSn pin, likewise for PA6 (AIN6) 
+ * note the PA7 is shared with the Micro-SD CSn pin, likewise for PA6 (AIN6)
  * shared witht the Micro-SD select pin
  * To use the ADC2 pin, remove the resistor on the Zoul's PA4 pin (JP1, pin 10)
  * and enable below (replace -1 with 4).
@@ -272,8 +272,8 @@
 /**
  * \name Antenna switch configuration
  *
- * These values configure the required pin to drive the RF antenna switch, to 
- * either enable the sub-1Ghz RF interface (power-up the CC1200) or the 2.4GHz 
+ * These values configure the required pin to drive the RF antenna switch, to
+ * either enable the sub-1Ghz RF interface (power-up the CC1200) or the 2.4GHz
  * RF interface of the CC2538, both alternatively routed to a RP-SMA connector
  * to allow using an external antenna for both cases.
  *
@@ -295,7 +295,7 @@
  * \name Dual RF interface support
  *
  * Enables support for dual band operation (both CC1200 and 2.4GHz enabled).
- * The driver checks the selected Radio stack, and forces the antenna switch to 
+ * The driver checks the selected Radio stack, and forces the antenna switch to
  * either position.  Enabling the definition below forces to skip this check.
  * @{
  */
@@ -331,7 +331,7 @@
 /**
  * \name microSD configuration
  *
- * These values configure the required pins to drive the built-in microSD 
+ * These values configure the required pins to drive the built-in microSD
  * external module, to be used with SSI1
  * @{
  */
@@ -356,13 +356,13 @@
  * an ultra-low power consumption MCU (PIC12F635).  The Shutdown mode allows:
  *
  * - Put the RE-Mote in an ultra-low power sleep (shutdown) drawing 350nA avg.
- * - Periodically awake and execute tasks, being the shutdown period selectable 
+ * - Periodically awake and execute tasks, being the shutdown period selectable
  *   via R47 resistor value (22KOhm as default for 1 minute shutdown period).
  * - Enter shutdown mode before the shutdown period expiration, by sending a
  *   pulse to SHUTDOWN_DONE.
  *
  * To enable or disable the shutdown mode a well-known sequence has to be sent
- * to the PIC12F635 via its 1-Wire pin, when the shutdown mode is enabled, 
+ * to the PIC12F635 via its 1-Wire pin, when the shutdown mode is enabled,
  * confirmation is done by the PIC echoing-back the command to the CC2538.
  *
  * The shutdown mode can be disabled by hardware by short-circuiting or placing
@@ -378,7 +378,7 @@
 /**
  * \name On-board RTC
  *
- * The Abracon AB0805 RTC is used by both the 
+ * The Abracon AB0805 RTC is used by both the
  * The shutdown mode can be disabled by hardware by short-circuiting or placing
  * an 0Ohm resistor across W1 pad.  As the RTC_INT1 pin is also shared with the
  * BUTTON_USER, so either disable or not use the user button, or upon receiving

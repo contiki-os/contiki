@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** 
+/**
  * \addtogroup zoul-platforms
  * @{
  *
@@ -70,7 +70,7 @@
  * -----------------------------+---+---+--------------------------------------
  * PB5/CC1200.CS                |-01|01-|   LED1/PD5
  * PB2/SPI0.SCLK/CC1200.SCLK    |-02|02-|   LED2/PD4
- * PB1/SPIO0.MOSI/CC1200.MOSI   |-03|03-|   LED3/PD3 
+ * PB1/SPIO0.MOSI/CC1200.MOSI   |-03|03-|   LED3/PD3
  * PB3/SPIO0.MISO/CC1200.MISO   |-04|04-|   PD2
  * PB3/CC1200.GPIO0             |-05|05-|   PD1
  * PC0/UART1.TX                 |-06|06-|   PD0
@@ -193,8 +193,8 @@
  *
  * The Firefly, as it is, only allows 3.3VDC sensors.
  *
- * The internal ADC reference is 1190mV, use either a voltage divider as input, 
- * or a different voltage reference, like AVDD5 or other externally (AIN7 or 
+ * The internal ADC reference is 1190mV, use either a voltage divider as input,
+ * or a different voltage reference, like AVDD5 or other externally (AIN7 or
  * AIN6).
  * @{
  */
@@ -208,8 +208,8 @@
  * \name SPI (SSI0) configuration
  *
  * These values configure which CC2538 pins to use for the SPI (SSI0) lines,
- * reserved exclusively for the CC1200 RF transceiver.  These pins are exposed 
- * to the JP3 connector.  To disable the CC1200 and use these pins, just 
+ * reserved exclusively for the CC1200 RF transceiver.  These pins are exposed
+ * to the JP3 connector.  To disable the CC1200 and use these pins, just
  * remove the R10 resistor (0 ohm), which powers both the CC2538 and CC1200 to
  * only power the SoC.
  * TX -> MOSI, RX -> MISO

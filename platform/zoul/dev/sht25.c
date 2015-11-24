@@ -55,7 +55,7 @@ configure(int type, int value)
     return SHT25_ERROR;
   }
   if(value) {
-    i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN, 
+    i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN,
              I2C_SCL_NORMAL_BUS_SPEED);
   }
   enabled = value;
@@ -113,7 +113,7 @@ sht25_read(uint8_t variable, uint16_t *rd)
     return SHT25_ERROR;
   }
 
-  if (sht25_read_reg(variable, buf, 2) == SHT25_SUCCESS){
+  if(sht25_read_reg(variable, buf, 2) == SHT25_SUCCESS) {
     raw = (buf[0] << 8) + buf[1];
     *rd = sht25_convert(variable, raw);
     return SHT25_SUCCESS;
@@ -125,7 +125,7 @@ static int
 value(int type)
 {
   uint16_t val;
-  if (sht25_read(type, &val) == SHT25_SUCCESS){
+  if(sht25_read(type, &val) == SHT25_SUCCESS) {
     return val;
   }
   return SHT25_ERROR;

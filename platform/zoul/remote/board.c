@@ -45,7 +45,7 @@
 static void
 configure_unused_pins(void)
 {
-  // FIXME
+  /* FIXME */
 }
 /*---------------------------------------------------------------------------*/
 void

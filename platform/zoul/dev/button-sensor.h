@@ -39,7 +39,7 @@
  *
  * Driver for the Zoul user button
  *
- * The user button (on Zoul-based platforms like the RE-Mote and the Firefly) 
+ * The user button (on Zoul-based platforms like the RE-Mote and the Firefly)
  *  will generate a sensors_changed event on press as well as on release.
  *
  * Unlike many other platforms, the user button has the ability to
