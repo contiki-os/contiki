@@ -99,7 +99,7 @@ cc1200_arch_spi_select(void)
   /* The MISO pin should go low before chip is fully enabled. */
   BUSYWAIT_UNTIL(
     GPIO_READ_PIN(CC1200_SPI_MISO_PORT_BASE, CC1200_SPI_MISO_PIN_MASK) == 0,
-    RTIMER_SECOND/100);
+    RTIMER_SECOND / 100);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -129,7 +129,6 @@ cc1200_arch_spi_rw(uint8_t *inbuf, const uint8_t *write_buf, uint16_t len)
 
   if((inbuf == NULL && write_buf == NULL) || len <= 0) {
     return 1;
-
   } else if(inbuf == NULL) {
     for(i = 0; i < len; i++) {
       SPI_WAITFORTx_BEFORE();
@@ -140,7 +139,6 @@ cc1200_arch_spi_rw(uint8_t *inbuf, const uint8_t *write_buf, uint16_t len)
       /* read and discard to avoid "variable set but not used" warning */
       (void)c;
     }
-
   } else if(write_buf == NULL) {
     for(i = 0; i < len; i++) {
       SPI_WAITFORTx_BEFORE();
@@ -149,7 +147,6 @@ cc1200_arch_spi_rw(uint8_t *inbuf, const uint8_t *write_buf, uint16_t len)
       SPIX_WAITFOREORx(CC1200_SPI_INSTANCE);
       inbuf[i] = SPIX_BUF(CC1200_SPI_INSTANCE);
     }
-
   } else {
     for(i = 0; i < len; i++) {
       SPI_WAITFORTx_BEFORE();
@@ -171,7 +168,7 @@ cc1200_arch_gpio0_setup_irq(int rising)
   GPIO_DETECT_EDGE(CC1200_GDO0_PORT_BASE, CC1200_GDO0_PIN_MASK);
   GPIO_TRIGGER_SINGLE_EDGE(CC1200_GDO0_PORT_BASE, CC1200_GDO0_PIN_MASK);
 
-  if (rising){
+  if(rising) {
     GPIO_DETECT_RISING(CC1200_GDO0_PORT_BASE, CC1200_GDO0_PIN_MASK);
   } else {
     GPIO_DETECT_FALLING(CC1200_GDO0_PORT_BASE, CC1200_GDO0_PIN_MASK);
@@ -180,7 +177,7 @@ cc1200_arch_gpio0_setup_irq(int rising)
   GPIO_ENABLE_INTERRUPT(CC1200_GDO0_PORT_BASE, CC1200_GDO0_PIN_MASK);
   ioc_set_over(CC1200_GDO0_PORT, CC1200_GDO0_PIN, IOC_OVERRIDE_PUE);
   nvic_interrupt_enable(CC1200_GPIOx_VECTOR);
-  gpio_register_callback(cc1200_rx_interrupt, CC1200_GDO0_PORT, 
+  gpio_register_callback(cc1200_rx_interrupt, CC1200_GDO0_PORT,
                          CC1200_GDO0_PIN);
 }
 /*---------------------------------------------------------------------------*/
@@ -193,7 +190,7 @@ cc1200_arch_gpio2_setup_irq(int rising)
   GPIO_DETECT_EDGE(CC1200_GDO2_PORT_BASE, CC1200_GDO2_PIN_MASK);
   GPIO_TRIGGER_SINGLE_EDGE(CC1200_GDO2_PORT_BASE, CC1200_GDO2_PIN_MASK);
 
-  if (rising){
+  if(rising) {
     GPIO_DETECT_RISING(CC1200_GDO2_PORT_BASE, CC1200_GDO2_PIN_MASK);
   } else {
     GPIO_DETECT_FALLING(CC1200_GDO2_PORT_BASE, CC1200_GDO2_PIN_MASK);
@@ -202,7 +199,7 @@ cc1200_arch_gpio2_setup_irq(int rising)
   GPIO_ENABLE_INTERRUPT(CC1200_GDO2_PORT_BASE, CC1200_GDO2_PIN_MASK);
   ioc_set_over(CC1200_GDO2_PORT, CC1200_GDO2_PIN, IOC_OVERRIDE_PUE);
   nvic_interrupt_enable(CC1200_GPIOx_VECTOR);
-  gpio_register_callback(cc1200_rx_interrupt, CC1200_GDO2_PORT, 
+  gpio_register_callback(cc1200_rx_interrupt, CC1200_GDO2_PORT,
                          CC1200_GDO2_PIN);
 }
 /*---------------------------------------------------------------------------*/
@@ -279,7 +276,7 @@ cc1200_arch_init(void)
   /* Ensure MISO is high */
   BUSYWAIT_UNTIL(
     GPIO_READ_PIN(CC1200_SPI_MISO_PORT_BASE, CC1200_SPI_MISO_PIN_MASK),
-    RTIMER_SECOND/10);
+    RTIMER_SECOND / 10);
 }
 /*---------------------------------------------------------------------------*/
 /**

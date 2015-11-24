@@ -34,7 +34,7 @@
  *
  * \defgroup zoul-platforms Zolertia platforms based on the Zoul core module
  *
- * The Zoul allows a fast reuse and easy integration to most applications and 
+ * The Zoul allows a fast reuse and easy integration to most applications and
  * products.  Its small size and module format eases to place in different PCB
  * designs and to integrate in existing products.  The Zoul-based platforms
  * share most of the Zoul core implementation.
@@ -74,7 +74,7 @@ typedef uint32_t uip_stats_t;
  * RTIMER_CLOCK_LT to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
+#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -83,7 +83,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR
-#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR	1 /**<Enable the boot loader backdoor */
+#define FLASH_CCA_CONF_BOOTLDR_BACKDOOR 1 /**<Enable the boot loader backdoor */
 #endif
 
 #ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_PORT_A_PIN
@@ -110,7 +110,7 @@ typedef uint32_t rtimer_clock_t;
  * @{
  */
 #ifndef WATCHDOG_CONF_ENABLE
-#define WATCHDOG_CONF_ENABLE	      1 /**< Enable the watchdog timer */
+#define WATCHDOG_CONF_ENABLE        1 /**< Enable the watchdog timer */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -225,7 +225,7 @@ typedef uint32_t rtimer_clock_t;
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
  * keep using SLIP
  */
-#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
+#if defined(UIP_FALLBACK_INTERFACE) || defined(CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED      1
 #endif
 #endif
@@ -359,7 +359,7 @@ typedef uint32_t rtimer_clock_t;
 #define NETSTACK_CONF_RADIO         cc2538_rf_driver
 #endif
 
-/* 
+/*
  * RE-Mote specific:
  * If dual RF enabled, we set the RF switch to enable the CC1200 and use 2.4GHz
  * on the available uFl/chip antenna (not mounted as default).  In contiki main
@@ -369,10 +369,10 @@ typedef uint32_t rtimer_clock_t;
  */
 #if REMOTE_DUAL_RF_ENABLED
 #define ANTENNA_SW_SELECT_DEFAULT ANTENNA_SW_SELECT_SUBGHZ
-#else  /* REMOTE_DUAL_RF_ENABLED */
+#else /* REMOTE_DUAL_RF_ENABLED */
 #ifndef ANTENNA_SW_SELECT_DEF_CONF
 #define ANTENNA_SW_SELECT_DEFAULT ANTENNA_SW_SELECT_2_4GHZ
-#else  /* ANTENNA_SW_SELECT_DEF_CONF */
+#else /* ANTENNA_SW_SELECT_DEF_CONF */
 #define ANTENNA_SW_SELECT_DEFAULT ANTENNA_SW_SELECT_DEF_CONF
 #endif /* ANTENNA_SW_SELECT_DEF_CONF */
 #endif /* REMOTE_DUAL_RF_ENABLED */

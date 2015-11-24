@@ -36,9 +36,9 @@
  * interface of the CC2538, or the CC1200 Sub-1GHz RF interface, both routed to
  * the RP-SMA connector for an external antenna.
  * When the 2.4GHz RF interface is enabled, the CC1200 is powered down.
- * When the CC1200 is enabled, alternatively the 2.4GHz can be also used if 
+ * When the CC1200 is enabled, alternatively the 2.4GHz can be also used if
  * placing an 0Ohm resistor (R19), to connect either via a non-mounted chip
- * antenna, or with an external antenna connected to a non-mounted U.Fl 
+ * antenna, or with an external antenna connected to a non-mounted U.Fl
  * connector with a pigtail.
  *
  * RF switch state:
@@ -72,7 +72,7 @@ antenna_sw_config(void)
   GPIO_SET_OUTPUT(ANTENNA_RF_SW_PORT_BASE, ANTENNA_RF_SW_PIN_MASK);
 
   /* Set the antenna selector to a default position */
-  GPIO_WRITE_PIN(ANTENNA_RF_SW_PORT_BASE, ANTENNA_RF_SW_PIN_MASK, 
+  GPIO_WRITE_PIN(ANTENNA_RF_SW_PORT_BASE, ANTENNA_RF_SW_PIN_MASK,
                  ANTENNA_SW_SELECT_DEFAULT);
 
   initialized = 1;

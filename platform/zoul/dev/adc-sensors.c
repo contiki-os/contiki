@@ -114,9 +114,9 @@ configure(int type, int value)
       return ZOUL_SENSORS_ERROR;
     }
 
-    if((value != ZOUL_SENSORS_ADC1) && (value != ZOUL_SENSORS_ADC2)  &&
-      (value != ZOUL_SENSORS_ADC3) && (value != ZOUL_SENSORS_ADC12) &&
-      (value != ZOUL_SENSORS_ADC13) && (value != ZOUL_SENSORS_ADC23)) {
+    if((value != ZOUL_SENSORS_ADC1) && (value != ZOUL_SENSORS_ADC2) &&
+       (value != ZOUL_SENSORS_ADC3) && (value != ZOUL_SENSORS_ADC12) &&
+       (value != ZOUL_SENSORS_ADC13) && (value != ZOUL_SENSORS_ADC23)) {
       return ZOUL_SENSORS_ERROR;
     }
 

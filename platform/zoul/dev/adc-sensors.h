@@ -45,7 +45,7 @@
  * - ZOUL_SENSORS_ADC2
  * - ZOUL_SENSORS_ADC3
  *
- * To initialize the ADC sensors use the configure() function, using as first 
+ * To initialize the ADC sensors use the configure() function, using as first
  * argument SENSORS_HW_INIT, and choose which ADC channels to enable passing as
  * second argument any single or combined (sum) values as below:
  * - ZOUL_SENSORS_ADC1
@@ -83,7 +83,7 @@
 #define ADC_SENSORS_PORT_BASE    GPIO_PORT_TO_BASE(ADC_SENSORS_PORT)
 
 /*
- * PA0-PA3 are hardcoded to UART0 and the user button for most Zolertia 
+ * PA0-PA3 are hardcoded to UART0 and the user button for most Zolertia
  * platforms, the following assumes PA0 shall not be used as ADC input, else
  * re-write the below definitions
  */
@@ -107,7 +107,7 @@
 #define ZOUL_SENSORS_ADC3        0
 #endif
 
-/* 
+/*
  * This is safe as the disabled sensors should have a zero value thus not
  * affecting the mask operations
  */
