@@ -492,10 +492,11 @@ na_input(void)
   } else {
     uip_lladdr_t *lladdr;
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
-    lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
     if(nbr == NULL) {
       goto discard;
     }
+    lladdr = (uip_lladdr_t *)uip_ds6_nbr_get_ll(nbr);
+
     if(nd6_opt_llao != 0) {
       is_llchange =
         memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)lladdr,
@@ -505,8 +506,16 @@ na_input(void)
       if(nd6_opt_llao == NULL) {
         goto discard;
       }
-      memcpy(lladdr, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
-             UIP_LLADDR_LEN);
+
+      /* Remove this neighbor - since it has a NULL MAC address */
+      uip_ds6_nbr_rm(nbr);
+      /* Re-add this neighbor - now with a correct MAC address */
+      nbr = uip_ds6_nbr_add(&UIP_ND6_NA_BUF->tgtipaddr,
+                            (const uip_lladdr_t *) &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET],
+                            is_router, NBR_STALE);
+      if(nbr == NULL) {
+        goto discard;
+      }
       if(is_solicited) {
         nbr->state = NBR_REACHABLE;
         nbr->nscount = 0;
