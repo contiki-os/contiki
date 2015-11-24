@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         A quick program for testing a generic relay device connected in the
@@ -37,25 +37,19 @@
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
  */
-
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "contiki.h"
 #include "dev/relay-phidget.h"
-
-#if 1
+/*---------------------------------------------------------------------------*/
+#if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
-
-#if 0
-#define PRINTFDEBUG(...) printf(__VA_ARGS__)
-#else
-#define PRINTFDEBUG(...)
-#endif
-
+/*---------------------------------------------------------------------------*/
 #define RELAY_INTERVAL (CLOCK_SECOND)
-
+/*---------------------------------------------------------------------------*/
 PROCESS(test_process, "Relay test process");
 AUTOSTART_PROCESSES(&test_process);
 /*---------------------------------------------------------------------------*/
@@ -78,3 +72,4 @@ PROCESS_THREAD(test_process, ev, data)
   }
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/

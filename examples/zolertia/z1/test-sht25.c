@@ -29,21 +29,23 @@
  * This file is part of the Contiki operating system.
  *
  */
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         A quick program for testing the SHT25 temperature and humidity sensor
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
  */
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "contiki.h"
 #include "dev/sht25.h"
-
+/*---------------------------------------------------------------------------*/
 PROCESS(test_sht25_process, "SHT25 test");
 AUTOSTART_PROCESSES(&test_sht25_process);
-
+/*---------------------------------------------------------------------------*/
 static struct etimer et;
-
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_sht25_process, ev, data)
 {
   int16_t temperature, humidity;
@@ -61,3 +63,4 @@ PROCESS_THREAD(test_sht25_process, ev, data)
   }
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/

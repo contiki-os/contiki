@@ -29,41 +29,32 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         A quick program for testing the tmp102 driver in the Z1 platform
  * \author
  *         Enric M. Calvo <ecalvo@zolertia.com>
  */
-
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "contiki.h"
 #include "dev/i2cmaster.h"
 #include "dev/tmp102.h"
-
-
-#if 1
+/*---------------------------------------------------------------------------*/
+#if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
-
-
-#if 0
-#define PRINTFDEBUG(...) printf(__VA_ARGS__)
-#else
-#define PRINTFDEBUG(...)
-#endif
-
-
-#define TMP102_READ_INTERVAL (CLOCK_SECOND/2)
-
+/*---------------------------------------------------------------------------*/
+#define TMP102_READ_INTERVAL (CLOCK_SECOND / 2)
+/*---------------------------------------------------------------------------*/
 PROCESS(temp_process, "Test Temperature process");
 AUTOSTART_PROCESSES(&temp_process);
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
-
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(temp_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -86,14 +77,15 @@ PROCESS_THREAD(temp_process, ev, data)
     PRINTFDEBUG("Reading Temp...\n");
     raw = tmp102_read_temp_raw();
     absraw = raw;
-    if(raw < 0) {		// Perform 2C's if sensor returned negative data
+    if(raw < 0) {   /* Perform 2C's if sensor returned negative data */
       absraw = (raw ^ 0xFFFF) + 1;
       sign = -1;
     }
     tempint = (absraw >> 8) * sign;
-    tempfrac = ((absraw >> 4) % 16) * 625;	// Info in 1/10000 of degree
+    tempfrac = ((absraw >> 4) % 16) * 625;  /* Info in 1/10000 of degree */
     minus = ((tempint == 0) & (sign == -1)) ? '-' : ' ';
     PRINTF("Temp = %c%d.%04d\n", minus, tempint, tempfrac);
   }
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
