@@ -107,7 +107,7 @@ static int we_are_receiving_burst = 0;
 /* INTER_PACKET_DEADLINE is the maximum time a receiver waits for the
    next packet of a burst when FRAME_PENDING is set. */
 #ifdef CONTIKIMAC_CONF_INTER_PACKET_DEADLINE
-#define INTER_PACKET_DEADLINE  		 		CONTIKIMAC_CONF_INTER_PACKET_DEADLINE
+#define INTER_PACKET_DEADLINE               CONTIKIMAC_CONF_INTER_PACKET_DEADLINE
 #else
 #define INTER_PACKET_DEADLINE               CLOCK_SECOND / 32
 #endif
