@@ -68,13 +68,14 @@ else
             perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
 endif
 
-
-
 %.upload: %.bin %.elf
 ifeq ($(wildcard $(BSL)), )
 	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
 else
-	$(PYTHON) $(BSL) $(BSL_FLAGS) -a $$($(OBJDUMP) -h $*.elf | sed -n '/\<LOAD\>/{g;1!p;};h' | awk '{print "0x" $$5}' | sort -g | head -1) $<
+	$(eval BSL_ADDRESS_ARG := -a $(shell $(OBJDUMP) -h $*.elf | grep -B1 LOAD | \
+	                               grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$5}' | \
+	                               sort -g | head -1))
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) $<
 endif
 
 motelist:
