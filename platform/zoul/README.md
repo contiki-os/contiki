@@ -128,7 +128,7 @@ Use the Port
 ============
 The following examples are intended to work off-the-shelf:
 
-* Examples under `examples/remote`
+* Examples under `examples/zolertia/zoul`
 * MQTT example `examples/cc2538dk/mqtt-demo`
 * Border router: `examples/ipv6/rpl-border-router`
 * Webserver: `examples/webserver-ipv6`
@@ -159,6 +159,8 @@ Then use `make zoul-demo.upload`.
 The `PORT` argument could be used to specify in which port the device is connected, in case we have multiple devices connected at the same time.
 
 To generate an assembly listing of the compiled firmware, run `make zoul-demo.lst`. This may be useful for debugging or optimizing your application code. To intersperse the C source code within the assembly listing, you must instruct the compiler to include debugging information by adding `CFLAGS += -g` to the project Makefile and rebuild by running `make clean zoul-demo.lst`.
+
+To enable printing debug output to your console, use the `make login` to get the information over the USB programming/debugging port, or alternatively use `make serialview` to also add a timestamp in each print.
 
 Node IEEE/RIME/IPv6 Addresses
 -----------------------------
@@ -231,7 +233,7 @@ Setting this define to 1 will automatically set the following to 0:
 
 Code Size Optimisations
 -----------------------
-The build system currently uses optimization level `-Os`, which is controlled indirectly through the value of the `SMALL` make variable. This value can be overridden by example makefiles, or it can be changed directly in `platform/remote/Makefile.remote`.
+The build system currently uses optimization level `-Os`, which is controlled indirectly through the value of the `SMALL` make variable. This value can be overridden by example makefiles, or it can be changed directly in `platform/zoul/Makefile.zoul`.
 
 Historically, the `-Os` flag has caused problems with some toolchains. If you are using one of the toolchains documented in this README, you should be able to use it without issues. If for whatever reason you do come across problems, try setting `SMALL=0` or replacing `-Os` with `-O2` in `cpu/cc2538/Makefile.cc2538`.
 
@@ -241,7 +243,7 @@ This port's code has been documented with doxygen. To build the documentation, n
 
 If you want to build this platform's documentation only and skip the remaining platforms, run this:
 
-    make basedirs="platform/zoul core cpu/cc2538 examples/remote examples/cc2538dk"
+    make basedirs="platform/zoul core cpu/cc2538 examples/zolertia/zoul examples/cc2538dk"
 
 Once you've built the docs, open `$(CONTIKI)/doc/html/index.html` and enjoy.
 
@@ -258,6 +260,12 @@ More Reading
 2. [CC2538 System-on-Chip Solution][cc2538]
 3. [CC1200 sub-1GHz RF transceiver][cc1200]
 4. [Zolertia Hackster channel][hackster]
+5. [IoT in five days open source and online book][IoT5days]
+
+Maintainers
+===========
+The Zoul and derived platforms (as well as the Z1 mote) are maintained by Zolertia.
+Main contributor: Antonio Lignan <alignan@zolertia.com>
 
 [zolertia-site]: http://www.zolertia.io/products "Zolertia"
 [cc1200]: http://www.ti.com/product/cc1200 "CC1200"
@@ -270,3 +278,4 @@ More Reading
 [zoul]: images/zoul-front.png "Zolertia Zoul Module"
 [zoul-pinout-front]: images/zoul-pinout-front.png "Zoul pin-out (front)"
 [zoul-pinout-back]: images/zoul-pinout-back.png "Zoul pin-out (back)"
+[IoT5days]: https://github.com/alignan/IPv6-WSN-book "IoT in Five days online book"
