@@ -27,7 +27,7 @@
  * SUCH DAMAGE.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         Battery and Temperature IPv6 Demo for Zolertia Z1
@@ -37,7 +37,7 @@
  *         Joel Hoglund    <joel@sics.se>
  *         Enric M. Calvo  <ecalvo@zolertia.com>
  */
-
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "httpd-simple.h"
 #include "webserver-nogui.h"
@@ -46,22 +46,23 @@
 #include "cc2420.h"
 #include "dev/leds.h"
 #include <stdio.h>
-
-
-float floor(float x){ 
-  if(x>=0.0f) return (float) ((int)x);
-  else        return (float) ((int)x-1);
+/*---------------------------------------------------------------------------*/
+float
+floor(float x)
+{
+  if(x >= 0.0f) {
+    return (float)((int)x);
+  } else { return (float)((int)x - 1);
+  }
 }
-
+/*---------------------------------------------------------------------------*/
 PROCESS(web_sense_process, "Sense Web Demo");
-
 AUTOSTART_PROCESSES(&web_sense_process);
-
+/*---------------------------------------------------------------------------*/
 #define HISTORY 16
 static int temperature[HISTORY];
 static int battery1[HISTORY];
 static int sensors_pos;
-
 /*---------------------------------------------------------------------------*/
 static int
 get_battery(void)
@@ -74,10 +75,16 @@ get_temp(void)
 {
   return temperature_sensor.value(0);
 }
-
-static float get_mybatt(void){ return (float) ((get_battery()*2.500*2)/4096);}
-static float get_mytemp(void){ return (float) (((get_temp()*2.500)/4096)-0.986)*282;}
-
+static float
+get_mybatt(void)
+{
+  return (float)((get_battery() * 2.500 * 2) / 4096);
+}
+static float
+get_mytemp(void)
+{
+  return (float)(((get_temp() * 2.500) / 4096) - 0.986) * 282;
+}
 /*---------------------------------------------------------------------------*/
 static const char *TOP = "<html><head><title>Contiki Web Sense</title></head><body>\n";
 static const char *BOTTOM = "</body></html>\n";
@@ -85,11 +92,13 @@ static const char *BOTTOM = "</body></html>\n";
 /* Only one single request at time */
 static char buf[256];
 static int blen;
-#define ADD(...) do {                                                   \
-    blen += snprintf(&buf[blen], sizeof(buf) - blen, __VA_ARGS__);      \
-  } while(0)
+#define ADD(...) do { \
+    blen += snprintf(&buf[blen], sizeof(buf) - blen, __VA_ARGS__); \
+} while(0)
+/*---------------------------------------------------------------------------*/
 static void
-generate_chart(const char *title, const char *unit, int min, int max, int *values)
+generate_chart(const char *title, const char *unit, int min, int max,
+               int *values)
 {
   int i;
   blen = 0;
@@ -103,6 +112,7 @@ generate_chart(const char *title, const char *unit, int min, int max, int *value
   }
   ADD("\">");
 }
+/*---------------------------------------------------------------------------*/
 static
 PT_THREAD(send_values(struct httpd_state *s))
 {
@@ -120,20 +130,17 @@ PT_THREAD(send_values(struct httpd_state *s))
     ADD("<h1>Current readings</h1>\n"
         "Battery: %ld.%03d V<br>"
         "Temperature: %ld.%03d &deg; C",
-        (long) mybatt, (unsigned) ((mybatt-floor(mybatt))*1000), 
-        (long) mytemp, (unsigned) ((mytemp-floor(mytemp))*1000)); 
+        (long)mybatt, (unsigned)((mybatt - floor(mybatt)) * 1000),
+        (long)mytemp, (unsigned)((mytemp - floor(mytemp)) * 1000));
     SEND_STRING(&s->sout, buf);
-
   } else if(s->filename[1] == '0') {
     /* Turn off leds */
     leds_off(LEDS_ALL);
     SEND_STRING(&s->sout, "Turned off leds!");
-
   } else if(s->filename[1] == '1') {
     /* Turn on leds */
     leds_on(LEDS_ALL);
     SEND_STRING(&s->sout, "Turned on leds!");
-
   } else {
     if(s->filename[1] != 't') {
       generate_chart("Battery", "mV", 0, 4000, battery1);
@@ -173,7 +180,7 @@ PROCESS_THREAD(web_sense_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&timer));
     etimer_reset(&timer);
 
-    battery1[sensors_pos] = get_mybatt()*1000;
+    battery1[sensors_pos] = get_mybatt() * 1000;
     temperature[sensors_pos] = get_mytemp();
     sensors_pos = (sensors_pos + 1) % HISTORY;
   }

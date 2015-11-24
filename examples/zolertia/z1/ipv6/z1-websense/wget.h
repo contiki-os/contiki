@@ -42,8 +42,8 @@
 #include "contiki.h"
 
 struct wget_callbacks {
-  void (* data)(const char *data, uint16_t len);
-  void (* done)(int status);
+  void (*data)(const char *data, uint16_t len);
+  void (*done)(int status);
 };
 
 void wget_init(void);

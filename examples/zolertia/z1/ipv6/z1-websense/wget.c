@@ -27,7 +27,7 @@
  * SUCH DAMAGE.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         A simple wget implementation
@@ -35,28 +35,29 @@
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  */
-
+/*---------------------------------------------------------------------------*/
 #include "webclient.h"
 #include "wget.h"
 #include "dev/leds.h"
-
+/*---------------------------------------------------------------------------*/
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
-
+/*---------------------------------------------------------------------------*/
 #define DEBUG_LEDS 0
 #undef LEDS_ON
 #undef LEDS_OFF
+
 #if DEBUG_LEDS
 #define LEDS_ON(led) leds_on(led)
 #define LEDS_OFF(led) leds_off(led)
 #else
 #define LEDS_ON(led)
 #define LEDS_OFF(led)
-#endif /* DEBUG */
-
+#endif /* DEBUG_LEDS */
+/*---------------------------------------------------------------------------*/
 static int fetch_running;
 
-#define STATS ((DEBUG) & DEBUG_PRINT) && 1
+#define STATS ((DEBUG)&DEBUG_PRINT) && 1
 #if STATS
 static clock_time_t fetch_started;
 static unsigned long fetch_counter;
@@ -66,9 +67,8 @@ static const char *server;
 static const char *file;
 static uint16_t port;
 static const struct wget_callbacks *callbacks;
-
+/*---------------------------------------------------------------------------*/
 PROCESS(wget_process, "wget");
-
 /*---------------------------------------------------------------------------*/
 static void
 call_done(int status)
@@ -115,11 +115,11 @@ webclient_datahandler(char *data, uint16_t len)
     PRINTF("wget: recv %lu bytes during %lu sec (",
            fetch_counter, (elapsed / CLOCK_SECOND));
 #if CLOCK_SECOND == 128
-    PRINTF("%lu.%02lus, ", (unsigned long) elapsed >> 7,
+    PRINTF("%lu.%02lus, ", (unsigned long)elapsed >> 7,
            (unsigned long)((elapsed & 127) * 100) / 128);
     PRINTF("%lu byte/sec ", (fetch_counter * 128L) / elapsed);
 #endif
-    PRINTF("%lu tick): ", (unsigned long) elapsed);
+    PRINTF("%lu tick): ", (unsigned long)elapsed);
     if(elapsed > CLOCK_SECOND) {
       PRINTF("%lu", fetch_counter / (elapsed / CLOCK_SECOND));
     } else {
@@ -132,7 +132,7 @@ webclient_datahandler(char *data, uint16_t len)
 
     fetch_running = 0;
     call_done(WGET_OK);
-    LEDS_OFF(LEDS_RED|LEDS_YELLOW);
+    LEDS_OFF(LEDS_RED | LEDS_YELLOW);
   } else {
 #if STATS
     fetch_counter += len;
@@ -156,7 +156,7 @@ void
 webclient_timedout(void)
 {
   PRINTF("wget: timedout\n");
-  LEDS_OFF(LEDS_RED|LEDS_YELLOW);
+  LEDS_OFF(LEDS_RED | LEDS_YELLOW);
   fetch_running = 0;
   call_done(WGET_TIMEDOUT);
 }
@@ -165,7 +165,7 @@ void
 webclient_aborted(void)
 {
   PRINTF("wget: aborted\n");
-  LEDS_OFF(LEDS_RED|LEDS_YELLOW);
+  LEDS_OFF(LEDS_RED | LEDS_YELLOW);
   fetch_running = 0;
   call_done(WGET_ABORTED);
 }
@@ -175,7 +175,7 @@ webclient_closed(void)
 {
   PRINTF("wget: closed\n");
   fetch_running = 0;
-  LEDS_OFF(LEDS_RED|LEDS_YELLOW);
+  LEDS_OFF(LEDS_RED | LEDS_YELLOW);
   call_done(WGET_CLOSED);
 }
 /*---------------------------------------------------------------------------*/
