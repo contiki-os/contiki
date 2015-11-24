@@ -32,8 +32,7 @@
 /*---------------------------------------------------------------------------*/
 /**
  * \file
- *         An example of how to use the button and light sensor on
- *         the Z1 platform.
+ *         An example of how to use the button and read the ADC ports
  * \author
  *         Joakim Eriksson <joakime@sics.se>
  */
@@ -44,7 +43,7 @@
 #include "dev/leds.h"
 #include "dev/z1-phidgets.h"
 /*---------------------------------------------------------------------------*/
-PROCESS(test_button_process, "Test Button & Phidgets");
+PROCESS(test_button_process, "Test Button & ADC");
 AUTOSTART_PROCESSES(&test_button_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_button_process, ev, data)
