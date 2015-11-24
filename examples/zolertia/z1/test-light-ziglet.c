@@ -29,32 +29,32 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         A quick program for testing the light ziglet driver in the Z1 platform
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
  */
-
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "contiki.h"
 #include "dev/i2cmaster.h"
 #include "dev/light-ziglet.h"
-
-#if 1
+/*---------------------------------------------------------------------------*/
+#if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
-
+/*---------------------------------------------------------------------------*/
 #define SENSOR_READ_INTERVAL (CLOCK_SECOND / 2)
-
+/*---------------------------------------------------------------------------*/
 PROCESS(test_process, "Test light ziglet process");
 AUTOSTART_PROCESSES(&test_process);
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
-
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -75,3 +75,4 @@ PROCESS_THREAD(test_process, ev, data)
   }
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
