@@ -92,6 +92,13 @@
 extern int cc1200_rx_interrupt(void);
 /*---------------------------------------------------------------------------*/
 void
+cc1200_int_handler(uint8_t port, uint8_t pin)
+{
+  /* To keep the gpio_register_callback happy */
+  cc1200_rx_interrupt();
+}
+/*---------------------------------------------------------------------------*/
+void
 cc1200_arch_spi_select(void)
 {
   /* Set CSn to low (0) */
@@ -177,7 +184,7 @@ cc1200_arch_gpio0_setup_irq(int rising)
   GPIO_ENABLE_INTERRUPT(CC1200_GDO0_PORT_BASE, CC1200_GDO0_PIN_MASK);
   ioc_set_over(CC1200_GDO0_PORT, CC1200_GDO0_PIN, IOC_OVERRIDE_PUE);
   nvic_interrupt_enable(CC1200_GPIOx_VECTOR);
-  gpio_register_callback(cc1200_rx_interrupt, CC1200_GDO0_PORT,
+  gpio_register_callback(cc1200_int_handler, CC1200_GDO0_PORT,
                          CC1200_GDO0_PIN);
 }
 /*---------------------------------------------------------------------------*/
@@ -199,7 +206,7 @@ cc1200_arch_gpio2_setup_irq(int rising)
   GPIO_ENABLE_INTERRUPT(CC1200_GDO2_PORT_BASE, CC1200_GDO2_PIN_MASK);
   ioc_set_over(CC1200_GDO2_PORT, CC1200_GDO2_PIN, IOC_OVERRIDE_PUE);
   nvic_interrupt_enable(CC1200_GPIOx_VECTOR);
-  gpio_register_callback(cc1200_rx_interrupt, CC1200_GDO2_PORT,
+  gpio_register_callback(cc1200_int_handler, CC1200_GDO2_PORT,
                          CC1200_GDO2_PIN);
 }
 /*---------------------------------------------------------------------------*/
