@@ -42,12 +42,6 @@
 #include "dev/i2cmaster.h"
 #include "dev/tmp102.h"
 /*---------------------------------------------------------------------------*/
-#if DEBUG
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
-/*---------------------------------------------------------------------------*/
 #define TMP102_READ_INTERVAL (CLOCK_SECOND / 2)
 /*---------------------------------------------------------------------------*/
 PROCESS(temp_process, "Test Temperature process");
@@ -59,32 +53,15 @@ PROCESS_THREAD(temp_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  int16_t tempint;
-  uint16_t tempfrac;
-  int16_t raw;
-  uint16_t absraw;
-  int16_t sign;
-  char minus = ' ';
+  int16_t temp;
 
   tmp102_init();
 
   while(1) {
     etimer_set(&et, TMP102_READ_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-
-    sign = 1;
-
-    PRINTFDEBUG("Reading Temp...\n");
-    raw = tmp102_read_temp_raw();
-    absraw = raw;
-    if(raw < 0) {   /* Perform 2C's if sensor returned negative data */
-      absraw = (raw ^ 0xFFFF) + 1;
-      sign = -1;
-    }
-    tempint = (absraw >> 8) * sign;
-    tempfrac = ((absraw >> 4) % 16) * 625;  /* Info in 1/10000 of degree */
-    minus = ((tempint == 0) & (sign == -1)) ? '-' : ' ';
-    PRINTF("Temp = %c%d.%04d\n", minus, tempint, tempfrac);
+    temp = tmp102_read_temp_x100();
+    printf("Temp = %d\n", temp);
   }
   PROCESS_END();
 }
