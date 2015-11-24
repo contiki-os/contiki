@@ -18,6 +18,11 @@ cc2538dk/udp-ipv6-echo-server/cc2538dk \
 cc2538dk/sniffer/cc2538dk \
 cc2538dk/mqtt-demo/cc2538dk \
 ipv6/multicast/cc2538dk \
+zolertia/zoul/zoul \
+zolertia/zoul/cc1200-demo/zoul \
+er-rest-example/zoul \
+hello-world/zoul \
+cc2538dk/mqtt-demo/zoul \
 
 TOOLS=
 
