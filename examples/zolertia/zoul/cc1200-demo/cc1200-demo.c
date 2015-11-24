@@ -64,8 +64,8 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
   printf("*** Received %u bytes from %u:%u: '0x%04u' ", packetbuf_datalen(),
          from->u8[0], from->u8[1], *(uint16_t *)packetbuf_dataptr());
-  printf("%d - %u\n", (int8_t) packetbuf_attr(PACKETBUF_ATTR_RSSI), 
-                      packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY));
+  printf("%d - %u\n", (int8_t)packetbuf_attr(PACKETBUF_ATTR_RSSI),
+         packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY));
   leds_toggle(LEDS_GREEN);
 }
 /*---------------------------------------------------------------------------*/

@@ -154,7 +154,7 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
              adc_sensors.value(ZOUL_SENSORS_ADC1));
 
       printf("ADC3 = %d raw\n",
-    		  adc_sensors.value(ZOUL_SENSORS_ADC3));
+             adc_sensors.value(ZOUL_SENSORS_ADC3));
 
       etimer_set(&et, LOOP_INTERVAL);
       rtimer_set(&rt, RTIMER_NOW() + LEDS_OFF_HYSTERISIS, 1,
