@@ -103,7 +103,7 @@ void menu_process(char c);
 extern char usb_busy;
 
 //! Counter for USB Serial port
-extern U8    tx_counter;
+extern U8 tx_counter;
 
 //! Timers for LEDs
 uint8_t led3_timer;

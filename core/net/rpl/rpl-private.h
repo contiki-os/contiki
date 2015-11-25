@@ -103,12 +103,19 @@
 /*---------------------------------------------------------------------------*/
 /* Default values for RPL constants and variables. */
 
-/* The default value for the DAO timer. */
-#ifdef RPL_CONF_DAO_LATENCY
-#define RPL_DAO_LATENCY                 RPL_CONF_DAO_LATENCY
-#else /* RPL_CONF_DAO_LATENCY */
-#define RPL_DAO_LATENCY                 (CLOCK_SECOND * 4)
-#endif /* RPL_DAO_LATENCY */
+/* DAO transmissions are always delayed by RPL_DAO_DELAY +/- RPL_DAO_DELAY/2 */
+#ifdef RPL_CONF_DAO_DELAY
+#define RPL_DAO_DELAY                 RPL_CONF_DAO_DELAY
+#else /* RPL_CONF_DAO_DELAY */
+#define RPL_DAO_DELAY                 (CLOCK_SECOND * 4)
+#endif /* RPL_CONF_DAO_DELAY */
+
+/* Delay between reception of a no-path DAO and actual route removal */
+#ifdef RPL_CONF_NOPATH_REMOVAL_DELAY
+#define RPL_NOPATH_REMOVAL_DELAY          RPL_CONF_NOPATH_REMOVAL_DELAY
+#else /* RPL_CONF_NOPATH_REMOVAL_DELAY */
+#define RPL_NOPATH_REMOVAL_DELAY          60
+#endif /* RPL_CONF_NOPATH_REMOVAL_DELAY */
 
 /* Special value indicating immediate removal. */
 #define RPL_ZERO_LIFETIME               0
@@ -134,9 +141,6 @@
 
 #define INFINITE_RANK                   0xffff
 
-
-/* Expire DAOs from neighbors that do not respond in this time. (seconds) */
-#define DAO_EXPIRATION_TIMEOUT          60
 /*---------------------------------------------------------------------------*/
 #define RPL_INSTANCE_LOCAL_FLAG         0x80
 #define RPL_INSTANCE_D_FLAG             0x40
@@ -184,12 +188,7 @@
 
 /* DIS related */
 #define RPL_DIS_SEND                    1
-#ifdef  RPL_DIS_INTERVAL_CONF
-#define RPL_DIS_INTERVAL                RPL_DIS_INTERVAL_CONF
-#else
-#define RPL_DIS_INTERVAL                60
-#endif
-#define RPL_DIS_START_DELAY             5
+
 /*---------------------------------------------------------------------------*/
 /* Lollipop counters */
 

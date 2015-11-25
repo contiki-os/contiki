@@ -57,7 +57,7 @@ nvic_init()
   interrupt_unpend = (uint32_t *)NVIC_UNPEND0;
 
   /* Provide our interrupt table to the NVIC */
-  REG(SCB_VTABLE) = (NVIC_CONF_VTABLE_BASE + NVIC_CONF_VTABLE_OFFSET);
+  REG(SCB_VTABLE) = NVIC_VTABLE_ADDRESS;
 }
 /*---------------------------------------------------------------------------*/
 void
