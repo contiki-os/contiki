@@ -3,6 +3,18 @@ Getting Started with Contiki for STM32 Nucleo equipped with sub-1GHz SPIRIT1 exp
 
 This guide explains how to get started with the STM32 Nucleo and expansion boards port to Contiki.
 
+Maintainers and Contacts
+========================
+
+Long-term maintainers:
+* Marco Grella, marco.grella@st.com, github user: [STclab](https://github.com/STclab)
+* Alok Mittal, alok.mittal@st.com, github user: [STclab](https://github.com/STclab)
+* Indar Prakash Singhal, indar.singhal@st.com, github user: [STclab](https://github.com/STclab)
+
+Contributors:
+* David Siorpaes, david.siorpaes@st.com, github user: [siorpaes](https://github.com/siorpaes)
+* Luca Celetto, luca.celetto@st.com
+
 Port Feature
 ============
 
