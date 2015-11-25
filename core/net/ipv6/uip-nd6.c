@@ -490,22 +490,22 @@ na_input(void)
     PRINTF("NA received is bad\n");
     goto discard;
   } else {
-    uip_lladdr_t lladdr_aligned;
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
     if(nbr == NULL) {
       goto discard;
     }
-    extract_lladdr_aligned(&lladdr_aligned);
 
-    if(nd6_opt_llao != 0) {
+    if(nd6_opt_llao != NULL) {
       is_llchange =
-        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], (void *)&lladdr_aligned,
+        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], uip_ds6_nbr_get_ll(nbr),
                UIP_LLADDR_LEN);
     }
     if(nbr->state == NBR_INCOMPLETE) {
+      uip_lladdr_t lladdr_aligned;
       if(nd6_opt_llao == NULL) {
         goto discard;
       }
+      extract_lladdr_aligned(&lladdr_aligned);
 
       /* Remove this neighbor - since it has a NULL MAC address */
       uip_ds6_nbr_rm(nbr);
@@ -534,9 +534,12 @@ na_input(void)
         }
         goto discard;
       } else {
-        if(is_override || (!is_override && nd6_opt_llao != 0 && !is_llchange)
-           || nd6_opt_llao == 0) {
-          if(nd6_opt_llao != 0) {
+        if(is_override || (!is_override && nd6_opt_llao != NULL && !is_llchange)
+           || nd6_opt_llao == NULL) {
+          if(nd6_opt_llao != NULL) {
+            uip_lladdr_t lladdr_aligned;
+            extract_lladdr_aligned(&lladdr_aligned);
+
             /* Remove this neighbor - since it has updated its MAC address */
             uip_ds6_nbr_rm(nbr);
             /* Re-add this neighbor - now with a correct (new) MAC address */
@@ -552,7 +555,7 @@ na_input(void)
             /* reachable time is stored in ms */
             stimer_set(&(nbr->reachable), uip_ds6_if.reachable_time / 1000);
           } else {
-            if(nd6_opt_llao != 0 && is_llchange) {
+            if(nd6_opt_llao != NULL && is_llchange) {
               nbr->state = NBR_STALE;
             }
           }
