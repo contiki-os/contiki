@@ -100,5 +100,4 @@ configure(int type, int c)
   }
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(ext_sensor, "Ext",
-         value, configure, status);
+SENSORS_SENSOR(ext_sensor, "Ext", value, configure, status);
