@@ -23,6 +23,14 @@ zolertia/zoul/cc1200-demo/zoul \
 er-rest-example/zoul \
 hello-world/zoul \
 cc2538dk/mqtt-demo/zoul \
+er-rest-example/stm32nucleo-spirit1 \
+ipv6/rpl-border-router/stm32nucleo-spirit1 \
+ipv6/rpl-udp/stm32nucleo-spirit1 \
+ipv6/simple-udp-rpl/stm32nucleo-spirit1 \
+stm32nucleo-spirit1/sensor-demo/stm32nucleo-spirit1 \
+ipv6/multicast/stm32nucleo-spirit1 \
+udp-ipv6/stm32nucleo-spirit1 \
+hello-world/stm32nucleo-spirit1 \
 
 TOOLS=
 
