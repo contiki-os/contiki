@@ -37,7 +37,7 @@
 
 /* Set to run orchestra */
 #ifndef WITH_ORCHESTRA
-#define WITH_ORCHESTRA 1
+#define WITH_ORCHESTRA 0
 #endif /* WITH_ORCHESTRA */
 
 /* Set to enable TSCH security */
