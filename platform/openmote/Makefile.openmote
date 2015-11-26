@@ -15,6 +15,8 @@ CONTIKI_TARGET_SOURCEFILES += adxl346.c max44009.c sht21.c
 CONTIKI_TARGET_SOURCEFILES += sensors.c
 CONTIKI_TARGET_SOURCEFILES += button-sensor.c
 
+CONTIKI_TARGET_SOURCEFILES += node-id.c
+
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
 CLEAN += *.openmote
@@ -29,7 +31,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
 include $(CONTIKI_CPU)/Makefile.cc2538
 
 MODULES += core/net core/net/mac \
-           core/net/mac/contikimac core/net/mac/cxmac core/net/mac/sbmac \
+           core/net/mac/contikimac core/net/mac/cxmac \
            core/net/mac/tsch \
            core/net/llsec
 

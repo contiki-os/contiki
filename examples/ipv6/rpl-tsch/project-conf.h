@@ -75,6 +75,9 @@
 #undef CC2420_CONF_SFD_TIMESTAMPS
 #define CC2420_CONF_SFD_TIMESTAMPS       1
 
+#undef CC2538_CONF_SFD_TIMESTAMPS 
+#define CC2538_CONF_SFD_TIMESTAMPS       1
+
 /*******************************************************/
 /******************* Configure TSCH ********************/
 /*******************************************************/
@@ -82,7 +85,7 @@
 /* TSCH logging. 0: disabled. 1: basic log. 2: with delayed
  * log messages from interrupt */
 #undef TSCH_LOG_CONF_LEVEL
-#define TSCH_LOG_CONF_LEVEL 0
+#define TSCH_LOG_CONF_LEVEL 2
 
 /* IEEE802.15.4 PANID */
 #undef IEEE802154_CONF_PANID
@@ -157,5 +160,11 @@
 #endif /* WITH_SECURITY */
 
 #endif /* CONTIKI_TARGET_Z1 */
+
+/* OpenMote testing */
+//#undef TSCH_DEFAULT_HOPPING_SEQUENCE 
+//#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
+
+
 
 #endif /* __PROJECT_CONF_H__ */
