@@ -322,6 +322,20 @@ uip_ds6_neighbor_periodic(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+#if UIP_ND6_SEND_NA
+void
+uip_ds6_nbr_refresh_reachable_state(const uip_ipaddr_t *ipaddr)
+{
+  uip_ds6_nbr_t *nbr;
+  nbr = uip_ds6_nbr_lookup(ipaddr);
+  if(nbr != NULL) {
+    nbr->state = NBR_REACHABLE;
+    nbr->nscount = 0;
+    stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+  }
+}
+#endif /* UIP_ND6_SEND_NA */
+/*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 uip_ds6_get_least_lifetime_neighbor(void)
 {
