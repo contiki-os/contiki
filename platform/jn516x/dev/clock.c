@@ -61,17 +61,26 @@
 #endif
 
 static volatile unsigned long seconds = 0;
-static volatile uint8_t ticking = 0;
 static volatile clock_time_t clock_ticks = 0;
 /* last_tar is used for calculating clock_fine */
 
 #define CLOCK_TIMER           E_AHI_TIMER_1
-#define CLOCK_TIMER_ISR_DEV    E_AHI_DEVICE_TIMER1
+#define CLOCK_TIMER_ISR_DEV   E_AHI_DEVICE_TIMER1
 /* 16Mhz / 2^7 = 125Khz */
 #define CLOCK_PRESCALE 7
+#define CLOCK_TIMER_FREQ 125000
 /* 10ms tick --> overflow after ~981/2 days */
 #define CLOCK_INTERVAL (125 * 10)
 #define MAX_TICKS (CLOCK_INTERVAL)
+/*---------------------------------------------------------------------------*/
+static void
+check_etimers(void)
+{
+  if(etimer_pending() && (etimer_next_expiration_time() - clock_ticks - 1) > MAX_TICKS) {
+    etimer_request_poll();
+  }
+  process_nevents();
+}
 /*---------------------------------------------------------------------------*/
 void
 clockTimerISR(uint32 u32Device, uint32 u32ItemBitmap)
@@ -88,13 +97,8 @@ clockTimerISR(uint32 u32Device, uint32 u32ItemBitmap)
     ++seconds;
     energest_flush();
   }
-  if(etimer_pending() && (etimer_next_expiration_time() - clock_ticks - 1) > MAX_TICKS) {
-    etimer_request_poll();
-    /* TODO exit low-power mode */
-  }
-  if(process_nevents() >= 0) {
-    /* TODO exit low-power mode */
-  }
+
+  check_etimers();
 
   watchdog_stop();
 
@@ -115,9 +119,7 @@ clock_timer_init(void)
 #elif (CLOCK_TIMER == E_AHI_TIMER_1)
   vAHI_Timer1RegisterCallback(clockTimerISR);
 #endif
-  clock_ticks = 0;
   vAHI_TimerStartRepeat(CLOCK_TIMER, 0, CLOCK_INTERVAL);
-  ticking = 1;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -128,16 +130,16 @@ clock_init(void)
   /* Turn off debugger */
   *(volatile uint32 *)0x020000a0 = 0;
 #endif
-  /* system controller interrupts callback is disabled
-   * -- Only wake Interrupts --
-   */
-  vAHI_SysCtrlRegisterCallback(0);
 
   /* schedule clock tick interrupt */
   clock_timer_init();
-  rtimer_init();
-  (void)u32AHI_Init();
 
+  clock_calibrate();
+}
+/*---------------------------------------------------------------------------*/
+void
+clock_calibrate(void)
+{
   bAHI_SetClockRate(E_AHI_XTAL_32MHZ);
 
   /* Wait for oscillator to stabilise */
@@ -248,3 +250,25 @@ clock_counter(void)
 {
   return rtimer_arch_now();
 }
+/*---------------------------------------------------------------------------*/
+void
+clock_reinit(uint32_t sleep_ticks)
+{
+  static uint32_t remainder;
+  uint64_t mult = (uint64_t)sleep_ticks * CLOCK_TIMER_FREQ + remainder;
+  uint32_t ct = (uint32_t)(mult / (JN516X_XOSC_SECOND * CLOCK_INTERVAL));
+  /* avoid accumulating loss of precision */
+  remainder = (uint32_t)(mult - ct * (JN516X_XOSC_SECOND * CLOCK_INTERVAL));
+
+  while(ct-->0) {
+    clock_ticks++;
+    if(clock_ticks % CLOCK_CONF_SECOND == 0) {
+      ++seconds;
+    }
+  }
+
+  clock_timer_init();
+
+  check_etimers();
+}
+/*---------------------------------------------------------------------------*/
