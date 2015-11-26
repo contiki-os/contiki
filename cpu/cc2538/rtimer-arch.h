@@ -65,9 +65,26 @@
 
 #define RTIMER_ARCH_SECOND 32768
 
-#define US_TO_RTIMERTICKS(D)     ((int64_t)(D) << 4)
-#define RTIMERTICKS_TO_US(T)     ((int64_t)(T) >> 4)
-#define RTIMERTICKS_TO_US_64(T)  RTIMERTICKS_TO_US(T)
+#if SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define US_TO_RTIMERTICKS(US)  ((US) >= 0 ?                        \
+                               (((int32_t)(US) * (RTIMER_ARCH_SECOND) + 500000) / 1000000L) :      \
+                               ((int32_t)(US) * (RTIMER_ARCH_SECOND) - 500000) / 1000000L)
+
+#define RTIMERTICKS_TO_US(T)   ((T) >= 0 ?                     \
+                               (((int32_t)(T) * 1000000L + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)) : \
+                               ((int32_t)(T) * 1000000L - ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND))
+
+/* A 64-bit version because the 32-bit one cannot handle T >= 4295 ticks.
+   Intended only for positive values of T. */
+#define RTIMERTICKS_TO_US_64(T)  ((uint32_t)(((uint64_t)(T) * 1000000 + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)))
+
+#else
+
+#define US_TO_RTIMERTICKS(D)    ((int64_t)(D) << 4)
+#define RTIMERTICKS_TO_US(T)    ((int64_t)(T) >> 4)
+#define RTIMERTICKS_TO_US_64(T) RTIMERTICKS_TO_US(T)
+
+#endif
 
 
 /** \sa RTIMER_NOW() */
