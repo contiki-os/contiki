@@ -490,14 +490,16 @@ na_input(void)
     PRINTF("NA received is bad\n");
     goto discard;
   } else {
+    const uip_lladdr_t *lladdr;
     nbr = uip_ds6_nbr_lookup(&UIP_ND6_NA_BUF->tgtipaddr);
     if(nbr == NULL) {
       goto discard;
     }
 
+    lladdr = uip_ds6_nbr_get_ll(nbr);
     if(nd6_opt_llao != NULL) {
-      is_llchange =
-        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], uip_ds6_nbr_get_ll(nbr),
+      is_llchange = lladdr == NULL ||
+        memcmp(&nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], lladdr,
                UIP_LLADDR_LEN);
     }
     if(nbr->state == NBR_INCOMPLETE) {
