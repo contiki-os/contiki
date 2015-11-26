@@ -52,6 +52,8 @@
 /* Delay between GO signal and start listening
  * ~50us delay + 129preample + ?? = 183 us */
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(183))
+/* Delay between the SFD finishes arriving and it is detected in software */
+#define RADIO_DELAY_BEFORE_DETECT 0
 
 #define PLATFORM_HAS_LEDS    1
 #define PLATFORM_HAS_BUTTON  1
