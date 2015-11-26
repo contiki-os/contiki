@@ -534,9 +534,12 @@ na_input(void)
         }
         goto discard;
       } else {
-        if(is_override || (!is_override && nd6_opt_llao != NULL && !is_llchange)
-           || nd6_opt_llao == NULL) {
-          if(nd6_opt_llao != NULL) {
+        /**
+         *  If this is an cache override, or same lladdr, or no llao -
+         *  do updates of nbr states.
+         */
+        if(is_override || !is_llchange || nd6_opt_llao == NULL) {
+          if(nd6_opt_llao != NULL && is_llchange) {
             uip_lladdr_t lladdr_aligned;
             extract_lladdr_aligned(&lladdr_aligned);
 
@@ -554,10 +557,6 @@ na_input(void)
             nbr->state = NBR_REACHABLE;
             /* reachable time is stored in ms */
             stimer_set(&(nbr->reachable), uip_ds6_if.reachable_time / 1000);
-          } else {
-            if(nd6_opt_llao != NULL && is_llchange) {
-              nbr->state = NBR_STALE;
-            }
           }
         }
       }
