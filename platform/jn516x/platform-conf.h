@@ -84,8 +84,8 @@
 typedef uint32_t rtimer_clock_t;
 #define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
 
-/* 10ms timer tick */
-#define CLOCK_CONF_SECOND 100
+/* 8ms timer tick */
+#define CLOCK_CONF_SECOND 125
 
 #if JN516X_EXTERNAL_CRYSTAL_OSCILLATOR
 #define JN516X_XOSC_SECOND 32768

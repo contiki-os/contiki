@@ -81,16 +81,24 @@
 
 rtimer_clock_t rtimer_arch_now(void);
 
-rtimer_clock_t rtimer_arch_get_time_until_next_wakeup(void);
+rtimer_clock_t rtimer_arch_time_to_rtimer(void);
 
-void rtimer_arch_reinit(rtimer_clock_t wakeup_time);
+void rtimer_arch_reinit(rtimer_clock_t sleep_start, rtimer_clock_t wakeup_time);
 
-void clock_calibrate(void);
+void clock_arch_init(void);
 
-void clock_reinit(uint32_t sleep_ticks);
+void clock_arch_calibrate(void);
+
+void clock_arch_reinit(void);
+
+void clock_arch_schedule_interrupt(clock_t time_to_etimer, rtimer_clock_t ticks_to_rtimer);
+
+clock_t clock_arch_time_to_etimer(void);
 
 /* Use 20 ms: enough for TSCH with the default schedule to sleep */
 #define JN516X_MIN_SLEEP_TIME (RTIMER_SECOND / 50)
+/* 1 second by default: arbitrary picked value which could be increased */
+#define JN516X_MAX_SLEEP_TIME RTIMER_SECOND
 /* Assume conservative 10 ms maximal system wakeup time */
 #define JN516X_SLEEP_GUARD_TIME (RTIMER_ARCH_SECOND / 100)
 
