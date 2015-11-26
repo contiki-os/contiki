@@ -44,6 +44,36 @@ static int (*uart1_input_handler)(unsigned char c);
 
 static volatile uint8_t transmitting;
 
+#ifdef UART1_CONF_RX_WITH_DMA
+#define RX_WITH_DMA UART1_CONF_RX_WITH_DMA
+#else /* UART1_CONF_RX_WITH_DMA */
+#define RX_WITH_DMA 1
+#endif /* UART1_CONF_RX_WITH_DMA */
+
+#if RX_WITH_DMA
+#define RXBUFSIZE 128
+
+static uint8_t rxbuf[RXBUFSIZE];
+static uint16_t last_size;
+static struct ctimer rxdma_timer;
+
+static void
+handle_rxdma_timer(void *ptr)
+{
+  uint16_t size;
+  size = DMA0SZ; /* Note: loop requires that size is less or eq to RXBUFSIZE */
+  while(last_size != size) {
+    uart1_input_handler((unsigned char)rxbuf[RXBUFSIZE - last_size]);
+    last_size--;
+    if(last_size == 0) {
+      last_size = RXBUFSIZE;
+    }
+  }
+
+  ctimer_reset(&rxdma_timer);
+}
+#endif /* RX_WITH_DMA */
+
 /*---------------------------------------------------------------------------*/
 uint8_t
 uart1_active(void)
@@ -54,6 +84,9 @@ uart1_active(void)
 void
 uart1_set_input(int (*input)(unsigned char c))
 {
+#if RX_WITH_DMA /* This needs to be called after ctimer process is started */
+  ctimer_set(&rxdma_timer, CLOCK_SECOND / 64, handle_rxdma_timer, NULL);
+#endif
   uart1_input_handler = input;
 }
 /*---------------------------------------------------------------------------*/
@@ -86,8 +119,8 @@ uart1_init(unsigned long ubr)
   UCA1MCTL = UCBRS_3;             /* Modulation UCBRSx = 3 */
 
   P4DIR |= BIT5;
-  P4OUT |= BIT5 ;
-  P5SEL |= BIT6|BIT7;  // P5.6,7 = USCI_A1 TXD/RXD
+  P4OUT |= BIT5;
+  P5SEL |= BIT6 | BIT7;  /* P5.6,7 = USCI_A1 TXD/RXD */
 
   P4SEL |= BIT7;
   P4DIR |= BIT7;
@@ -102,14 +135,30 @@ uart1_init(unsigned long ubr)
 
   UCA1CTL1 &= ~UCSWRST;                   /* Initialize USCI state machine **before** enabling interrupts */
   UCA1IE |= UCRXIE;                        /* Enable UCA1 RX interrupt */
+
+#if RX_WITH_DMA
+  UCA1IE &= ~UCRXIE; /* disable USART1 RX interrupt  */
+  /* UART1_RX trigger */
+  DMACTL0 = DMA0TSEL_20;
+
+  /* source address = RXBUF1 */
+  DMA0SA = (unsigned int)&UCA1RXBUF;
+  DMA0DA = (unsigned int)&rxbuf;
+  DMA0SZ = RXBUFSIZE;
+  last_size = RXBUFSIZE;
+  DMA0CTL = DMADT_4 + DMASBDB + DMADSTINCR_3 + DMAEN + DMAREQ;
+
+  msp430_add_lpm_req(MSP430_REQUIRE_LPM1);
+#endif /* RX_WITH_DMA */
 }
 /*---------------------------------------------------------------------------*/
+#if !RX_WITH_DMA
 ISR(USCI_A1, uart1_rx_interrupt)
 {
   uint8_t c;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  if (UCA1IV == 2) {
+  if(UCA1IV == 2) {
     if(UCA1STAT & UCRXERR) {
       c = UCA1RXBUF;   /* Clear error flags by forcing a dummy read. */
     } else {
@@ -123,4 +172,5 @@ ISR(USCI_A1, uart1_rx_interrupt)
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+#endif /* !RX_WITH_DMA */
 /*---------------------------------------------------------------------------*/

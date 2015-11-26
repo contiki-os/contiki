@@ -107,7 +107,6 @@
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x800
 #endif /* ELFLOADER_CONF_TEXTMEMORY_SIZE */
 
-
 #define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32
 
@@ -116,6 +115,8 @@
 #define PROCESS_CONF_NUMEVENTS 8
 #define PROCESS_CONF_STATS 1
 /*#define PROCESS_CONF_FASTPOLL    4*/
+
+#define UART1_CONF_RX_WITH_DMA 0
 
 #ifdef NETSTACK_CONF_WITH_IPV6
 
@@ -134,7 +135,7 @@
 #define UIP_CONF_MAX_ROUTES   30
 #endif /* UIP_CONF_MAX_ROUTES */
 
-#define UIP_CONF_ND6_SEND_RA		0
+#define UIP_CONF_ND6_SEND_RA    0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
@@ -147,7 +148,7 @@
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_IP_FORWARD             0
 #ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE		240
+#define UIP_CONF_BUFFER_SIZE    240
 #endif
 
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
@@ -186,8 +187,6 @@
 #define UIP_CONF_LOGGING         0
 
 #define UIP_CONF_TCP_SPLIT       0
-
-
 
 /* include the project config */
 /* PROJECT_CONF_H might be defined in the project Makefile */
