@@ -1,0 +1,141 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+DEBUG	packetbuf.c	67;"	d	file:
+DEBUG	queuebuf.c	132;"	d	file:
+IN_CFS	queuebuf.c	/^  enum {IN_RAM, IN_CFS} location;$/;"	e	enum:queuebuf::__anon1	file:
+IN_RAM	queuebuf.c	/^  enum {IN_RAM, IN_CFS} location;$/;"	e	enum:queuebuf::__anon1	file:
+MAX_NUM_TABLES	nbr-table.c	55;"	d	file:
+NQBUF_FILES	queuebuf.c	103;"	d	file:
+NQBUF_ID	queuebuf.c	106;"	d	file:
+NQBUF_PER_FILE	queuebuf.c	104;"	d	file:
+PRINTF	packetbuf.c	70;"	d	file:
+PRINTF	packetbuf.c	72;"	d	file:
+PRINTF	queuebuf.c	135;"	d	file:
+PRINTF	queuebuf.c	137;"	d	file:
+QBUF_FILE_SIZE	queuebuf.c	105;"	d	file:
+QUEUEBUF_REF_NUM	queuebuf.c	53;"	d	file:
+QUEUEBUF_REF_NUM	queuebuf.c	55;"	d	file:
+QUEUEBUF_STATS	queuebuf.c	141;"	d	file:
+QUEUEBUF_STATS	queuebuf.c	143;"	d	file:
+addrs	queuebuf.c	/^  struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];$/;"	m	struct:queuebuf_data	typeref:struct:queuebuf_data::packetbuf_addr	file:
+all_tables	nbr-table.c	/^static struct nbr_table *all_tables[MAX_NUM_TABLES];$/;"	v	typeref:struct:nbr_table	file:
+attrs	queuebuf.c	/^  struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];$/;"	m	struct:queuebuf_data	typeref:struct:queuebuf_data::packetbuf_attr	file:
+buflen	packetbuf.c	/^static uint16_t buflen, bufptr;$/;"	v	file:
+bufptr	packetbuf.c	/^static uint16_t buflen, bufptr;$/;"	v	file:
+data	queuebuf.c	/^  uint8_t data[PACKETBUF_SIZE];$/;"	m	struct:queuebuf_data	file:
+fd	queuebuf.c	/^  int fd;$/;"	m	struct:qbuf_file	file:
+file	queuebuf.c	/^  const char *file;$/;"	m	struct:queuebuf	file:
+get_new_swap_id	queuebuf.c	/^get_new_swap_id(void)$/;"	f	file:
+hdr	queuebuf.c	/^  uint8_t hdr[PACKETBUF_HDR_SIZE];$/;"	m	struct:queuebuf_ref	file:
+hdrlen	queuebuf.c	/^  uint8_t hdrlen;$/;"	m	struct:queuebuf_ref	file:
+hdrptr	packetbuf.c	/^static uint8_t hdrptr;$/;"	v	file:
+index_from_item	nbr-table.c	/^index_from_item(nbr_table_t *table, const nbr_table_item_t *item)$/;"	f	file:
+index_from_key	nbr-table.c	/^index_from_key(nbr_table_key_t *key)$/;"	f	file:
+index_from_lladdr	nbr-table.c	/^index_from_lladdr(const linkaddr_t *lladdr)$/;"	f	file:
+item_from_index	nbr-table.c	/^item_from_index(nbr_table_t *table, int index)$/;"	f	file:
+item_from_key	nbr-table.c	/^item_from_key(nbr_table_t *table, nbr_table_key_t *key)$/;"	f	file:
+key_from_index	nbr-table.c	/^key_from_index(int index)$/;"	f	file:
+key_from_item	nbr-table.c	/^key_from_item(nbr_table_t *table, const nbr_table_item_t *item)$/;"	f	file:
+len	queuebuf.c	/^  uint16_t len;$/;"	m	struct:queuebuf_data	file:
+len	queuebuf.c	/^  uint16_t len;$/;"	m	struct:queuebuf_ref	file:
+line	queuebuf.c	/^  int line;$/;"	m	struct:queuebuf	file:
+linkaddr_cmp	linkaddr.c	/^linkaddr_cmp(const linkaddr_t *addr1, const linkaddr_t *addr2)$/;"	f
+linkaddr_copy	linkaddr.c	/^linkaddr_copy(linkaddr_t *dest, const linkaddr_t *src)$/;"	f
+linkaddr_node_addr	linkaddr.c	/^linkaddr_t linkaddr_node_addr;$/;"	v
+linkaddr_null	linkaddr.c	/^const linkaddr_t linkaddr_null = { { 0, 0 } };$/;"	v
+linkaddr_null	linkaddr.c	/^const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };$/;"	v
+linkaddr_set_node_addr	linkaddr.c	/^linkaddr_set_node_addr(linkaddr_t *t)$/;"	f
+lladdr	nbr-table.c	/^  linkaddr_t lladdr;$/;"	m	struct:nbr_table_key	file:
+location	queuebuf.c	/^  enum {IN_RAM, IN_CFS} location;$/;"	m	struct:queuebuf	typeref:enum:queuebuf::__anon1	file:
+locked_map	nbr-table.c	/^static uint8_t locked_map[NBR_TABLE_MAX_NEIGHBORS];$/;"	v	file:
+nbr_get_bit	nbr-table.c	/^nbr_get_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item)$/;"	f	file:
+nbr_set_bit	nbr-table.c	/^nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item, int value)$/;"	f	file:
+nbr_table_add_lladdr	nbr-table.c	/^nbr_table_add_lladdr(nbr_table_t *table, const linkaddr_t *lladdr)$/;"	f
+nbr_table_allocate	nbr-table.c	/^nbr_table_allocate(void)$/;"	f	file:
+nbr_table_get_from_lladdr	nbr-table.c	/^nbr_table_get_from_lladdr(nbr_table_t *table, const linkaddr_t *lladdr)$/;"	f
+nbr_table_get_lladdr	nbr-table.c	/^nbr_table_get_lladdr(nbr_table_t *table, const void *item)$/;"	f
+nbr_table_head	nbr-table.c	/^nbr_table_head(nbr_table_t *table)$/;"	f
+nbr_table_key	nbr-table.c	/^typedef struct nbr_table_key {$/;"	s	file:
+nbr_table_key_t	nbr-table.c	/^} nbr_table_key_t;$/;"	t	typeref:struct:nbr_table_key	file:
+nbr_table_keys	nbr-table.c	/^LIST(nbr_table_keys);$/;"	v
+nbr_table_lock	nbr-table.c	/^nbr_table_lock(nbr_table_t *table, void *item)$/;"	f
+nbr_table_next	nbr-table.c	/^nbr_table_next(nbr_table_t *table, nbr_table_item_t *item)$/;"	f
+nbr_table_register	nbr-table.c	/^nbr_table_register(nbr_table_t *table, nbr_table_callback *callback)$/;"	f
+nbr_table_remove	nbr-table.c	/^nbr_table_remove(nbr_table_t *table, void *item)$/;"	f
+nbr_table_unlock	nbr-table.c	/^nbr_table_unlock(nbr_table_t *table, void *item)$/;"	f
+netstack_init	netstack.c	/^netstack_init(void)$/;"	f
+next	nbr-table.c	/^  struct nbr_table_key *next;$/;"	m	struct:nbr_table_key	typeref:struct:nbr_table_key::nbr_table_key	file:
+next	queuebuf.c	/^  struct queuebuf *next;$/;"	m	struct:queuebuf	typeref:struct:queuebuf::queuebuf	file:
+next_swap_id	queuebuf.c	/^static int next_swap_id = 0;$/;"	v	file:
+num_tables	nbr-table.c	/^static unsigned num_tables;$/;"	v	file:
+packetbuf	packetbuf.c	/^static uint8_t *packetbuf = (uint8_t *)packetbuf_aligned;$/;"	v	file:
+packetbuf_addr	packetbuf.c	/^packetbuf_addr(uint8_t type)$/;"	f
+packetbuf_addrs	packetbuf.c	/^struct packetbuf_addr packetbuf_addrs[PACKETBUF_NUM_ADDRS];$/;"	v	typeref:struct:packetbuf_addr
+packetbuf_aligned	packetbuf.c	/^static uint32_t packetbuf_aligned[(PACKETBUF_SIZE + PACKETBUF_HDR_SIZE + 3) \/ 4];$/;"	v	file:
+packetbuf_attr	packetbuf.c	/^packetbuf_attr(uint8_t type)$/;"	f
+packetbuf_attr_clear	packetbuf.c	/^packetbuf_attr_clear(void)$/;"	f
+packetbuf_attr_copyfrom	packetbuf.c	/^packetbuf_attr_copyfrom(struct packetbuf_attr *attrs,$/;"	f
+packetbuf_attr_copyto	packetbuf.c	/^packetbuf_attr_copyto(struct packetbuf_attr *attrs,$/;"	f
+packetbuf_attrs	packetbuf.c	/^struct packetbuf_attr packetbuf_attrs[PACKETBUF_NUM_ATTRS];$/;"	v	typeref:struct:packetbuf_attr
+packetbuf_clear	packetbuf.c	/^packetbuf_clear(void)$/;"	f
+packetbuf_clear_hdr	packetbuf.c	/^packetbuf_clear_hdr(void)$/;"	f
+packetbuf_compact	packetbuf.c	/^packetbuf_compact(void)$/;"	f
+packetbuf_copyfrom	packetbuf.c	/^packetbuf_copyfrom(const void *from, uint16_t len)$/;"	f
+packetbuf_copyto	packetbuf.c	/^packetbuf_copyto(void *to)$/;"	f
+packetbuf_copyto_hdr	packetbuf.c	/^packetbuf_copyto_hdr(uint8_t *to)$/;"	f
+packetbuf_datalen	packetbuf.c	/^packetbuf_datalen(void)$/;"	f
+packetbuf_dataptr	packetbuf.c	/^packetbuf_dataptr(void)$/;"	f
+packetbuf_hdr_remove	packetbuf.c	/^packetbuf_hdr_remove(int size)$/;"	f
+packetbuf_hdralloc	packetbuf.c	/^packetbuf_hdralloc(int size)$/;"	f
+packetbuf_hdrlen	packetbuf.c	/^packetbuf_hdrlen(void)$/;"	f
+packetbuf_hdrptr	packetbuf.c	/^packetbuf_hdrptr(void)$/;"	f
+packetbuf_hdrreduce	packetbuf.c	/^packetbuf_hdrreduce(int size)$/;"	f
+packetbuf_holds_broadcast	packetbuf.c	/^packetbuf_holds_broadcast(void)$/;"	f
+packetbuf_is_reference	packetbuf.c	/^packetbuf_is_reference(void)$/;"	f
+packetbuf_reference	packetbuf.c	/^packetbuf_reference(void *ptr, uint16_t len)$/;"	f
+packetbuf_reference_ptr	packetbuf.c	/^packetbuf_reference_ptr(void)$/;"	f
+packetbuf_set_addr	packetbuf.c	/^packetbuf_set_addr(uint8_t type, const linkaddr_t *addr)$/;"	f
+packetbuf_set_attr	packetbuf.c	/^packetbuf_set_attr(uint8_t type, const packetbuf_attr_t val)$/;"	f
+packetbuf_set_datalen	packetbuf.c	/^packetbuf_set_datalen(uint16_t len)$/;"	f
+packetbuf_totlen	packetbuf.c	/^packetbuf_totlen(void)$/;"	f
+packetbufptr	packetbuf.c	/^static uint8_t *packetbufptr;$/;"	v	file:
+qbuf_file	queuebuf.c	/^struct qbuf_file {$/;"	s	file:
+qbuf_files	queuebuf.c	/^static struct qbuf_file qbuf_files[NQBUF_FILES];$/;"	v	typeref:struct:qbuf_file	file:
+qbuf_renew_all	queuebuf.c	/^qbuf_renew_all(void *unused)$/;"	f	file:
+qbuf_renew_file	queuebuf.c	/^qbuf_renew_file(int file)$/;"	f	file:
+queuebuf	queuebuf.c	/^struct queuebuf {$/;"	s	file:
+queuebuf_addr	queuebuf.c	/^queuebuf_addr(struct queuebuf *b, uint8_t type)$/;"	f
+queuebuf_attr	queuebuf.c	/^queuebuf_attr(struct queuebuf *b, uint8_t type)$/;"	f
+queuebuf_data	queuebuf.c	/^struct queuebuf_data {$/;"	s	file:
+queuebuf_datalen	queuebuf.c	/^queuebuf_datalen(struct queuebuf *b)$/;"	f
+queuebuf_dataptr	queuebuf.c	/^queuebuf_dataptr(struct queuebuf *b)$/;"	f
+queuebuf_debug_print	queuebuf.c	/^queuebuf_debug_print(void)$/;"	f
+queuebuf_flush_tmpdata	queuebuf.c	/^queuebuf_flush_tmpdata(void)$/;"	f	file:
+queuebuf_free	queuebuf.c	/^queuebuf_free(struct queuebuf *buf)$/;"	f
+queuebuf_init	queuebuf.c	/^queuebuf_init(void)$/;"	f
+queuebuf_len	queuebuf.c	/^uint8_t queuebuf_len, queuebuf_ref_len, queuebuf_max_len;$/;"	v
+queuebuf_list	queuebuf.c	/^LIST(queuebuf_list);$/;"	v
+queuebuf_load_to_ram	queuebuf.c	/^queuebuf_load_to_ram(struct queuebuf *b)$/;"	f	file:
+queuebuf_max_len	queuebuf.c	/^uint8_t queuebuf_len, queuebuf_ref_len, queuebuf_max_len;$/;"	v
+queuebuf_new_from_packetbuf_debug	queuebuf.c	/^queuebuf_new_from_packetbuf_debug(const char *file, int line)$/;"	f
+queuebuf_numfree	queuebuf.c	/^queuebuf_numfree(void)$/;"	f
+queuebuf_ref	queuebuf.c	/^struct queuebuf_ref {$/;"	s	file:
+queuebuf_ref_len	queuebuf.c	/^uint8_t queuebuf_len, queuebuf_ref_len, queuebuf_max_len;$/;"	v
+queuebuf_remove_from_file	queuebuf.c	/^queuebuf_remove_from_file(int swap_id)$/;"	f	file:
+queuebuf_to_packetbuf	queuebuf.c	/^queuebuf_to_packetbuf(struct queuebuf *b)$/;"	f
+queuebuf_update_attr_from_packetbuf	queuebuf.c	/^queuebuf_update_attr_from_packetbuf(struct queuebuf *buf)$/;"	f
+queuebuf_update_from_packetbuf	queuebuf.c	/^queuebuf_update_from_packetbuf(struct queuebuf *buf)$/;"	f
+ram_ptr	queuebuf.c	/^    struct queuebuf_data *ram_ptr;$/;"	m	union:queuebuf::__anon2	typeref:struct:queuebuf::__anon2::queuebuf_data	file:
+ref	queuebuf.c	/^  uint8_t *ref;$/;"	m	struct:queuebuf_ref	file:
+renew_timer	queuebuf.c	/^static struct ctimer renew_timer;$/;"	v	typeref:struct:ctimer	file:
+renewable	queuebuf.c	/^  int renewable;$/;"	m	struct:qbuf_file	file:
+swap_id	queuebuf.c	/^    int swap_id;$/;"	m	union:queuebuf::__anon2	file:
+time	queuebuf.c	/^  clock_time_t time;$/;"	m	struct:queuebuf	file:
+tmpdata	queuebuf.c	/^static struct queuebuf_data tmpdata;$/;"	v	typeref:struct:queuebuf_data	file:
+tmpdata_qbuf	queuebuf.c	/^static struct queuebuf *tmpdata_qbuf = NULL;$/;"	v	typeref:struct:queuebuf	file:
+usage	queuebuf.c	/^  int usage;$/;"	m	struct:qbuf_file	file:
+used_map	nbr-table.c	/^static uint8_t used_map[NBR_TABLE_MAX_NEIGHBORS];$/;"	v	file:

@@ -219,6 +219,11 @@ phase_wait(const linkaddr_t *neighbor, rtimer_clock_t cycle_time,
         if(buf_list == NULL) {
           packetbuf_set_attr(PACKETBUF_ATTR_IS_CREATED_AND_SECURED, 1);
           p->q = queuebuf_new_from_packetbuf();
+          if(p->q == NULL) {
+            /* memory allocation failed */
+            memb_free(&queued_packets_memb, p);
+            return PHASE_UNKNOWN;
+          }
         }
         p->mac_callback = mac_callback;
         p->mac_callback_ptr = mac_callback_ptr;

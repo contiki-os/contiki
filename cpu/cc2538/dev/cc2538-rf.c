@@ -123,6 +123,9 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 static uint8_t rf_flags;
 static uint8_t rf_channel = CC2538_RF_CHANNEL;
 
+/* Are we currently in poll mode? */
+static uint8_t volatile poll_mode = 0;
+
 static int on(void);
 static int off(void);
 /*---------------------------------------------------------------------------*/
@@ -337,6 +340,24 @@ set_auto_ack(uint8_t enable)
     REG(RFCORE_XREG_FRMCTRL0) &= ~RFCORE_XREG_FRMCTRL0_AUTOACK;
   }
 }
+/*---------------------------------------------------------------------------*/
+/* Enable or disable radio interrupts (both FIFOP and SFD timer capture) */
+#if 1
+static void
+set_poll_mode(uint8_t enable)
+{
+  poll_mode = enable;
+  if(enable) {
+    /* Disable FIFOP interrupt */
+    REG(RFCORE_XREG_FRMCTRL0) &= ~RFCORE_XREG_RFIRQM0_FIFOP;
+    nvic_interrupt_disable(NVIC_INT_RF_RXTX);
+  } else {
+    /* Initialize and enable FIFOP interrupt */
+    REG(RFCORE_XREG_FRMCTRL0) |= RFCORE_XREG_RFIRQM0_FIFOP;    
+    nvic_interrupt_enable(NVIC_INT_RF_RXTX);
+  }
+}
+#endif 
 /*---------------------------------------------------------------------------*/
 /* Netstack API radio driver functions */
 /*---------------------------------------------------------------------------*/
@@ -860,7 +881,7 @@ set_value(radio_param_t param, radio_value_t value)
 
     set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
     set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
-
+    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {

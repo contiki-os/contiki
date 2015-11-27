@@ -101,7 +101,7 @@ public class CollectServer implements SerialConnectionListener {
 
   public static final String CONFIG_FILE = "collect.conf";
   public static final String SENSORDATA_FILE = "sensordata.log";
-  public static final String CONFIG_DATA_FILE = "collect-data.conf";
+ // public static final String CONFIG_DATA_FILE = "collect-data.conf";
   public static final String INIT_SCRIPT = "collect-init.script";
   public static final String FIRMWARE_FILE = "collect-view-shell.ihex";
 
@@ -112,7 +112,10 @@ public class CollectServer implements SerialConnectionListener {
   private static final String POWER = "Power";
   
   private static String sensor_data_file = "";
-  private static int sbanId = 0; 
+  private static int sbanId = 0;
+  private static int sbanCount = 0; 
+  private String sban_IP;
+  private static String config_data_file;
 
   private Properties config = new Properties();
 
@@ -159,12 +162,13 @@ public class CollectServer implements SerialConnectionListener {
   public CollectServer() {
     loadConfig(config, CONFIG_FILE);
     sbanId++;
+    sbanCount++; // TODO: will merge two id and count into 1
     System.out.println("Prepare new SBAN CollecServer with ID = " + sbanId);
 
-    this.configFile = config.getProperty("config.datafile", CONFIG_DATA_FILE);
-    if (this.configFile != null) {
-      loadConfig(configTable, this.configFile);
-    }
+//    this.configFile = config.getProperty("config.datafile", CONFIG_DATA_FILE);
+//    if (this.configFile != null) {
+//      loadConfig(configTable, this.configFile);
+//    }
     this.initScript = config.getProperty("init.script", INIT_SCRIPT);
 
     /* Make sure we have nice window decorations */
@@ -851,6 +855,15 @@ public class CollectServer implements SerialConnectionListener {
     }
   });
   }
+  
+  protected void loadConfigData(){
+	  config_data_file = "collect-data-" + sban_IP + ".conf";
+	  this.configFile = config.getProperty("config.datafile", config_data_file);
+	  if (this.configFile != null) {
+		  loadConfig(configTable, this.configFile);
+	  }	  
+  }
+
 
   protected void connectToSerial() {
     if (serialConnection != null && !serialConnection.isOpen()) {
@@ -858,9 +871,9 @@ public class CollectServer implements SerialConnectionListener {
 //        if (comPort == null && serialConnection.isMultiplePortsSupported()) {
 //          comPort = MoteFinder.selectComPort(window);
 //        }
-    	if (comPort != null || !serialConnection.isMultiplePortsSupported()) {
+    	//if (comPort != null || !serialConnection.isMultiplePortsSupported()) {
     		serialConnection.open(comPort);
-    	}
+//    	}
     }
   }
 
@@ -893,8 +906,11 @@ public class CollectServer implements SerialConnectionListener {
 
   private void exit() {
     if (doExitOnRequest) {
+      sbanCount--;
+      System.out.println("Closing the window of SBAN " + sbanId );
       stop();
-      System.exit(0);
+      System.out.println("Total running SBAN = " + sbanCount);
+      //System.exit(0);
     } else {
       Toolkit.getDefaultToolkit().beep();
     }
@@ -1239,7 +1255,10 @@ public class CollectServer implements SerialConnectionListener {
   }
   
   private void setSbanIP() {
-	  sensor_data_file = "sensordata_" + serialConnection.getConnectionName() + ".log";
+	  sban_IP = serialConnection.getConnectionName();
+	  
+	  //sensor_data_file = "sensordata_" + sban_IP + "_"+ System.currentTimeMillis()+ ".log";
+	  sensor_data_file = "sensordata_" + sban_IP + ".log";
 	  System.out.println("sensor data file namse: " + sensor_data_file);
   }
 
@@ -1503,9 +1522,9 @@ public class CollectServer implements SerialConnectionListener {
             }
           }
           // Try to open com port again
-          if (comPort != null) {
+//          if (comPort != null) {
             connection.open(comPort);
-          }
+//          }
         }
       } else {
 //        JOptionPane.showMessageDialog(window,
@@ -1598,7 +1617,7 @@ public class CollectServer implements SerialConnectionListener {
     	try {
     		serverSk = new ServerSocket(port);
     		System.out.println("Opened TCP server in the port:" + port);    	    
-    	    while (index < 5) {    	
+    	    while (index < 50) {    	
 	        	if (isNewSBAN){
 	        		server[index] = new CollectServer();
     	        	serialConnection[index] = new TCPServerConnection(server[index], serverSk); 
@@ -1632,6 +1651,7 @@ public class CollectServer implements SerialConnectionListener {
 	    		   		// change the sban id
 	    		   		server[index].sleep(200);
 	    		   		server[index].setSbanIP();
+	    		   		server[index].loadConfigData();
 	    		   		server[index].initSensorData();
 	    		   		index++;
 	    		   		isNewSBAN = true;

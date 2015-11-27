@@ -52,8 +52,8 @@ PROCESS_THREAD(collect_view_shell_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  serial_shell_init();
-  shell_blink_init();
+  //serial_shell_init();
+  //shell_blink_init();
 
 #if WITH_COFFEE
   shell_file_init();
@@ -63,23 +63,23 @@ PROCESS_THREAD(collect_view_shell_process, ev, data)
   /* shell_download_init(); */
   /* shell_rime_sendcmd_init(); */
   /* shell_ps_init(); */
-  shell_reboot_init();
-  shell_rime_init();
-  shell_rime_netcmd_init();
+  //shell_reboot_init();
+  //shell_rime_init();
+  //shell_rime_netcmd_init();
   /* shell_rime_ping_init(); */
   /* shell_rime_debug_init(); */
   /* shell_rime_debug_runicast_init(); */
-  shell_powertrace_init();
+  //shell_powertrace_init();
   /* shell_base64_init(); */
-  shell_text_init();
-  shell_time_init();
+  //shell_text_init();
+  //shell_time_init();
   /* shell_sendtest_init(); */
 
 #if CONTIKI_TARGET_SKY
   shell_sky_init();
 #endif /* CONTIKI_TARGET_SKY */
 
-  shell_collect_view_init();
+  //shell_collect_view_init();
 
   PROCESS_END();
 }

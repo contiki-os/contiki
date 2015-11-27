@@ -48,6 +48,7 @@
 
 #if CONTIKI_TARGET_COOJA
 #include "lib/simEnvChange.h"
+#include "sys/cooja_mt.h"
 #endif /* CONTIKI_TARGET_COOJA */
 
 #define DEBUG 0
@@ -120,7 +121,7 @@ send_one_packet(mac_callback_t sent, void *ptr)
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, 1);
 #endif /* NULLRDC_802154_AUTOACK || NULLRDC_802154_AUTOACK_HW */
 
-  if(NETSTACK_FRAMER.create_and_secure() < 0) {
+  if(NETSTACK_FRAMER.create() < 0) {
     /* Failed to allocate space for headers */
     PRINTF("nullrdc: send failed, too large header\n");
     ret = MAC_TX_ERR_FATAL;
@@ -264,11 +265,13 @@ send_list(mac_callback_t sent, void *ptr, struct rdc_buf_list *buf_list)
 static void
 packet_input(void)
 {
+#if NULLRDC_SEND_802154_ACK
   int original_datalen;
   uint8_t *original_dataptr;
 
   original_datalen = packetbuf_datalen();
   original_dataptr = packetbuf_dataptr();
+#endif
 
 #if NULLRDC_802154_AUTOACK
   if(packetbuf_datalen() == ACK_LEN) {
@@ -294,14 +297,13 @@ packet_input(void)
     if(duplicate) {
       /* Drop the packet. */
       PRINTF("nullrdc: drop duplicate link layer packet %u\n",
-             packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
+             packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
     } else {
       mac_sequence_register_seqno();
     }
 #endif /* RDC_WITH_DUPLICATE_DETECTION */
 #endif /* NULLRDC_802154_AUTOACK */
-
-/* TODO We may want to acknowledge only authentic frames */ 
+ 
 #if NULLRDC_SEND_802154_ACK
     {
       frame802154_t info154;

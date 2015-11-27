@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Fraunhofer Heinrich-Hertz-Institut.
+ * Copyright (c) 2015, SICS Swedish ICT.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,56 @@
  * SUCH DAMAGE.
  *
  */
+/**
+ * \author Atis Elsts <atis.elsts@sics.se>
+ */
 
-#include "net/mac/framer.h"
-#include "net/packetbuf.h"
-#include "net/netstack.h"
+#ifndef __PROJECT_CONF_H__
+#define __PROJECT_CONF_H__
 
-/*---------------------------------------------------------------------------*/
-int
-framer_canonical_create_and_secure(void)
-{
-  int hdr_len;
-  
-  hdr_len = NETSTACK_FRAMER.create();
-  if(hdr_len >= 0) {
-    packetbuf_compact();
-    if(!NETSTACK_LLSEC.on_frame_created()) {
-      return FRAMER_FAILED;
-    }
-  }
-  return hdr_len;
-}
-/*---------------------------------------------------------------------------*/
+#undef   NETSTACK_CONF_RDC
+#undef   NETSTACK_CONF_FRAMER
+#undef   NETSTACK_CONF_MAC
+#undef   NETSTACK_CONF_NETWORK
+
+#if 0
+#define  NETSTACK_CONF_RDC     contikimac_driver
+#define  NETSTACK_CONF_FRAMER  contikimac_framer
+#else
+#if 0
+#define  NETSTACK_CONF_RDC     nullrdc_driver
+#define  NETSTACK_CONF_FRAMER  framer_802154
+#endif //0
+#endif
+
+/* Netstack layers for TSCH protocol */
+#if 1
+#define NETSTACK_CONF_MAC     tschmac_driver
+#define NETSTACK_CONF_RDC     nordc_driver
+#define NETSTACK_CONF_FRAMER  framer_802154
+#endif 
+
+//#define  NETSTACK_CONF_MAC     csma_driver
+#define  NETSTACK_CONF_NETWORK rime_driver
+
+#undef   UIP_CONF_IPV6
+#define  UIP_CONF_IPV6                   0
+
+#undef   RF_CHANNEL
+#define  RF_CHANNEL             25
+
+#undef   MICROMAC_CONF_CHANNEL
+#define  MICROMAC_CONF_CHANNEL  RF_CHANNEL
+
+#undef   CC2420_CONF_CHANNEL
+#define  CC2420_CONF_CHANNEL    RF_CHANNEL
+
+#undef   MICROMAC_CONF_AUTOACK
+#define  MICROMAC_CONF_AUTOACK   1
+
+/* IEEE802.15.4 frame version */
+#undef FRAME802154_CONF_VERSION
+#define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
+
+
+#endif /* __PROJECT_CONF_H__ */

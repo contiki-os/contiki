@@ -43,17 +43,12 @@
  */
 
 #include "contiki-net.h"
+
 #if WITH_SWAP
 #include "cfs/cfs.h"
 #endif
 
 #include <string.h> /* for memcpy() */
-
-#ifdef QUEUEBUF_CONF_REF_NUM
-#define QUEUEBUF_REF_NUM QUEUEBUF_CONF_REF_NUM
-#else
-#define QUEUEBUF_REF_NUM 2
-#endif
 
 /* Structure pointing to a buffer either stored
    in RAM or swapped in CFS */
@@ -83,15 +78,7 @@ struct queuebuf_data {
   struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
 };
 
-struct queuebuf_ref {
-  uint16_t len;
-  uint8_t *ref;
-  uint8_t hdr[PACKETBUF_HDR_SIZE];
-  uint8_t hdrlen;
-};
-
 MEMB(bufmem, struct queuebuf, QUEUEBUF_NUM);
-MEMB(refbufmem, struct queuebuf_ref, QUEUEBUF_REF_NUM);
 MEMB(buframmem, struct queuebuf_data, QUEUEBUFRAM_NUM);
 
 #if WITH_SWAP
@@ -144,7 +131,7 @@ LIST(queuebuf_list);
 #endif /* QUEUEBUF_CONF_STATS */
 
 #if QUEUEBUF_STATS
-uint8_t queuebuf_len, queuebuf_ref_len, queuebuf_max_len;
+uint8_t queuebuf_len, queuebuf_max_len;
 #endif /* QUEUEBUF_STATS */
 
 #if WITH_SWAP
@@ -301,20 +288,15 @@ queuebuf_init(void)
 #endif
   memb_init(&buframmem);
   memb_init(&bufmem);
-  memb_init(&refbufmem);
 #if QUEUEBUF_STATS
-  queuebuf_max_len = QUEUEBUF_NUM;
+  queuebuf_max_len = 0;
 #endif /* QUEUEBUF_STATS */
 }
 /*---------------------------------------------------------------------------*/
 int
 queuebuf_numfree(void)
 {
-  if(packetbuf_is_reference()) {
-    return memb_numfree(&refbufmem);
-  } else {
-    return memb_numfree(&bufmem);
-  }
+  return memb_numfree(&bufmem);
 }
 /*---------------------------------------------------------------------------*/
 #if QUEUEBUF_DEBUG
@@ -326,81 +308,62 @@ queuebuf_new_from_packetbuf(void)
 #endif /* QUEUEBUF_DEBUG */
 {
   struct queuebuf *buf;
-  struct queuebuf_ref *rbuf;
 
-  if(packetbuf_is_reference()) {
-    rbuf = memb_alloc(&refbufmem);
-    if(rbuf != NULL) {
-#if QUEUEBUF_STATS
-      ++queuebuf_ref_len;
-#endif /* QUEUEBUF_STATS */
-      rbuf->len = packetbuf_datalen();
-      rbuf->ref = packetbuf_reference_ptr();
-      rbuf->hdrlen = packetbuf_copyto_hdr(rbuf->hdr);
-    } else {
-      PRINTF("queuebuf_new_from_packetbuf: could not allocate a reference queuebuf\n");
-    }
-    return (struct queuebuf *)rbuf;
-  } else {
-    struct queuebuf_data *buframptr;
-    buf = memb_alloc(&bufmem);
-    if(buf != NULL) {
+  struct queuebuf_data *buframptr;
+  buf = memb_alloc(&bufmem);
+  if(buf != NULL) {
 #if QUEUEBUF_DEBUG
-      list_add(queuebuf_list, buf);
-      buf->file = file;
-      buf->line = line;
-      buf->time = clock_time();
+    list_add(queuebuf_list, buf);
+    buf->file = file;
+    buf->line = line;
+    buf->time = clock_time();
 #endif /* QUEUEBUF_DEBUG */
-      buf->ram_ptr = memb_alloc(&buframmem);
+    buf->ram_ptr = memb_alloc(&buframmem);
 #if WITH_SWAP
-      /* If the allocation failed, store the qbuf in swap files */
-      if(buf->ram_ptr != NULL) {
-        buf->location = IN_RAM;
-        buframptr = buf->ram_ptr;
-      } else {
-        buf->location = IN_CFS;
-        buf->swap_id = -1;
-        tmpdata_qbuf = buf;
-        buframptr = &tmpdata;
-      }
+    /* If the allocation failed, store the qbuf in swap files */
+    if(buf->ram_ptr != NULL) {
+      buf->location = IN_RAM;
+      buframptr = buf->ram_ptr;
+    } else {
+      buf->location = IN_CFS;
+      buf->swap_id = -1;
+      tmpdata_qbuf = buf;
+      buframptr = &tmpdata;
+    }
 #else
-      if(buf->ram_ptr == NULL) {
-        PRINTF("queuebuf_new_from_packetbuf: could not queuebuf data\n");
+    if(buf->ram_ptr == NULL) {
+      PRINTF("queuebuf_new_from_packetbuf: could not queuebuf data\n");
+      memb_free(&bufmem, buf);
+      return NULL;
+    }
+    buframptr = buf->ram_ptr;
+#endif
+
+    buframptr->len = packetbuf_copyto(buframptr->data);
+    packetbuf_attr_copyto(buframptr->attrs, buframptr->addrs);
+
+#if WITH_SWAP
+    if(buf->location == IN_CFS) {
+      if(queuebuf_flush_tmpdata() == -1) {
+        /* We were unable to write the data in the swap */
         memb_free(&bufmem, buf);
         return NULL;
       }
-      buframptr = buf->ram_ptr;
-#endif
-
-      buframptr->len = packetbuf_copyto(buframptr->data);
-      packetbuf_attr_copyto(buframptr->attrs, buframptr->addrs);
-
-#if WITH_SWAP
-      if(buf->location == IN_CFS) {
-        if(queuebuf_flush_tmpdata() == -1) {
-          /* We were unable to write the data in the swap */
-          memb_free(&bufmem, buf);
-          return NULL;
-        }
-      }
+    }
 #endif
 
 #if QUEUEBUF_STATS
-      ++queuebuf_len;
-      PRINTF("queuebuf len %d\n", queuebuf_len);
-      printf("#A q=%d\n", queuebuf_len);
-      if(queuebuf_len == queuebuf_max_len + 1) {
-        queuebuf_free(buf);
-        queuebuf_len--;
-        return NULL;
-      }
+    ++queuebuf_len;
+    PRINTF("#A q=%d\n", queuebuf_len);
+    if(queuebuf_len > queuebuf_max_len) {
+      queuebuf_max_len = queuebuf_len;
+    }
 #endif /* QUEUEBUF_STATS */
 
-    } else {
-      PRINTF("queuebuf_new_from_packetbuf: could not allocate a queuebuf\n");
-    }
-    return buf;
+  } else {
+    PRINTF("queuebuf_new_from_packetbuf: could not allocate a queuebuf\n");
   }
+  return buf;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -444,47 +407,30 @@ queuebuf_free(struct queuebuf *buf)
     memb_free(&bufmem, buf);
 #if QUEUEBUF_STATS
     --queuebuf_len;
-    printf("#A q=%d\n", queuebuf_len);
+    PRINTF("#A q=%d\n", queuebuf_len);
 #endif /* QUEUEBUF_STATS */
 #if QUEUEBUF_DEBUG
     list_remove(queuebuf_list, buf);
 #endif /* QUEUEBUF_DEBUG */
-  } else if(memb_inmemb(&refbufmem, buf)) {
-    memb_free(&refbufmem, buf);
-#if QUEUEBUF_STATS
-    --queuebuf_ref_len;
-#endif /* QUEUEBUF_STATS */
   }
 }
 /*---------------------------------------------------------------------------*/
 void
 queuebuf_to_packetbuf(struct queuebuf *b)
 {
-  struct queuebuf_ref *r;
   if(memb_inmemb(&bufmem, b)) {
     struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
     packetbuf_copyfrom(buframptr->data, buframptr->len);
     packetbuf_attr_copyfrom(buframptr->attrs, buframptr->addrs);
-  } else if(memb_inmemb(&refbufmem, b)) {
-    r = (struct queuebuf_ref *)b;
-    packetbuf_clear();
-    packetbuf_copyfrom(r->ref, r->len);
-    packetbuf_hdralloc(r->hdrlen);
-    memcpy(packetbuf_hdrptr(), r->hdr, r->hdrlen);
   }
 }
 /*---------------------------------------------------------------------------*/
 void *
 queuebuf_dataptr(struct queuebuf *b)
 {
-  struct queuebuf_ref *r;
-
   if(memb_inmemb(&bufmem, b)) {
     struct queuebuf_data *buframptr = queuebuf_load_to_ram(b);
     return buframptr->data;
-  } else if(memb_inmemb(&refbufmem, b)) {
-    r = (struct queuebuf_ref *)b;
-    return r->ref;
   }
   return NULL;
 }

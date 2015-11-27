@@ -54,9 +54,9 @@ uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
   if(data != NULL) {
     uip_udp_conn = c;
     uip_slen = len;
-    memcpy(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data,
-           len > UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN?
-           UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN: len);
+    memmove(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data,
+            len > UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN?
+            UIP_BUFSIZE - UIP_LLH_LEN - UIP_IPUDPH_LEN: len);
     uip_process(UIP_UDP_SEND_CONN);
 
 #if UIP_CONF_IPV6_MULTICAST

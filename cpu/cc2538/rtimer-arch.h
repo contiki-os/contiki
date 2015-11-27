@@ -65,6 +65,11 @@
 
 #define RTIMER_ARCH_SECOND 32768
 
+#define US_TO_RTIMERTICKS(D)     ((int64_t)(D) << 4)
+#define RTIMERTICKS_TO_US(T)     ((int64_t)(T) >> 4)
+#define RTIMERTICKS_TO_US_64(T)  RTIMERTICKS_TO_US(T)
+
+
 /** \sa RTIMER_NOW() */
 rtimer_clock_t rtimer_arch_now(void);
 

@@ -76,7 +76,7 @@ PROCESS_THREAD(example_broadcast_process, ev, data)
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    packetbuf_copyfrom("Hello", 6);
+    packetbuf_copyfrom("Hello Mao Ngo", 6);
     broadcast_send(&broadcast);
     printf("broadcast message sent\n");
   }

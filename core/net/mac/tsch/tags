@@ -1,0 +1,94 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ANNOTATE	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	65;"	d
+ANNOTATE	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	67;"	d
+ANNOTATE	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	70;"	d
+DEBUG	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/mac/tsch/tsch-packet.c	59;"	d	file:
+DEBUG	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/mac/tsch/tsch-packet.c	61;"	d	file:
+DEBUG	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	63;"	d	file:
+DEBUG	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	65;"	d	file:
+DEBUG_ANNOTATE	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	52;"	d
+DEBUG_FULL	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	53;"	d
+DEBUG_NONE	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	50;"	d
+DEBUG_PRINT	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	51;"	d
+MAX_SEQNOS	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	84;"	d	file:
+MAX_SEQNOS	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	86;"	d	file:
+PRINT6ADDR	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	79;"	d
+PRINT6ADDR	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	83;"	d
+PRINTA	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	58;"	d
+PRINTA	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	60;"	d
+PRINTF	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	75;"	d
+PRINTF	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	77;"	d
+PRINTF	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	82;"	d
+PRINTLLADDR	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	80;"	d
+PRINTLLADDR	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	84;"	d
+PRINTLLADDR	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/mac/tsch/tsch-packet.c	64;"	d	file:
+PROCESS_THREAD	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^PROCESS_THREAD(tsch_pending_events_process, ev, data)$/;"	f
+PROCESS_THREAD	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^PROCESS_THREAD(tsch_process, ev, data)$/;"	f
+PROCESS_THREAD	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^PROCESS_THREAD(tsch_send_eb_process, ev, data)$/;"	f
+TSCH_LINK_NEIGHBOR_CALLBACK	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	73;"	d	file:
+UIP_DEBUG_H	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	42;"	d
+best_neighbor_eb_count	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^int best_neighbor_eb_count;$/;"	v
+channel_check_interval	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^channel_check_interval(void)$/;"	f	file:	signature:(void)
+current_asn	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^struct asn_t current_asn;$/;"	v	typeref:struct:asn_t
+eb_input	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^eb_input(struct input_packet *current_input)$/;"	f	file:	signature:(struct input_packet *current_input)
+eb_stat	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^struct eb_stat {$/;"	s	file:
+eb_stat::jp	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^  int jp;$/;"	m	struct:eb_stat	file:	access:public
+eb_stat::rx_count	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^  int rx_count;$/;"	m	struct:eb_stat	file:	access:public
+jp	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^  int jp;$/;"	m	struct:eb_stat	file:	access:public
+keepalive_packet_sent	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^keepalive_packet_sent(void *ptr, int status, int transmissions)$/;"	f	file:	signature:(void *ptr, int status, int transmissions)
+keepalive_send	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^keepalive_send()$/;"	f	file:
+keepalive_timer	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^static struct ctimer keepalive_timer;$/;"	v	typeref:struct:ctimer	file:
+packet_input	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^packet_input(void)$/;"	f	file:	signature:(void)
+packet_input	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^static void packet_input(void);$/;"	p	file:	signature:(void)
+received_seqnos	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^static struct seqno received_seqnos[MAX_SEQNOS];$/;"	v	typeref:struct:seqno	file:
+rx_count	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^  int rx_count;$/;"	m	struct:eb_stat	file:	access:public
+send_packet	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^send_packet(mac_callback_t sent, void *ptr)$/;"	f	file:	signature:(mac_callback_t sent, void *ptr)
+sender	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^  linkaddr_t sender;$/;"	m	struct:seqno	file:	access:public
+seqno	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^  uint8_t seqno;$/;"	m	struct:seqno	file:	access:public
+seqno	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^struct seqno {$/;"	s	file:
+seqno::sender	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^  linkaddr_t sender;$/;"	m	struct:seqno	file:	access:public
+seqno::seqno	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^  uint8_t seqno;$/;"	m	struct:seqno	file:	access:public
+tsch_associate	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)$/;"	f	file:	signature:(const struct input_packet *input_eb, rtimer_clock_t timestamp)
+tsch_broadcast_address	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^const linkaddr_t tsch_broadcast_address = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };$/;"	v
+tsch_current_eb_period	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^static clock_time_t tsch_current_eb_period;$/;"	v	file:
+tsch_default_timing_us	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^static const uint16_t tsch_default_timing_us[tsch_ts_elements_count] = {$/;"	v	file:
+tsch_disassociate	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_disassociate(void)$/;"	f	signature:(void)
+tsch_eb_address	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^const linkaddr_t tsch_eb_address = { { 0, 0, 0, 0, 0, 0, 0, 0 } };$/;"	v
+tsch_hopping_sequence	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^uint8_t tsch_hopping_sequence[TSCH_HOPPING_SEQUENCE_MAX_LEN];$/;"	v
+tsch_hopping_sequence_length	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^struct asn_divisor_t tsch_hopping_sequence_length;$/;"	v	typeref:struct:asn_divisor_t
+tsch_init	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_init(void)$/;"	f	file:	signature:(void)
+tsch_is_associated	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^int tsch_is_associated = 0;$/;"	v
+tsch_is_coordinator	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^int tsch_is_coordinator = 0;$/;"	v
+tsch_is_initialized	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^int tsch_is_initialized = 0;$/;"	v
+tsch_is_pan_secured	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^int tsch_is_pan_secured = TSCH_SECURITY_ENABLED;$/;"	v
+tsch_is_started	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^int tsch_is_started = 0;$/;"	v
+tsch_join_priority	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^uint8_t tsch_join_priority;$/;"	v
+tsch_packet_create_eack	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/mac/tsch/tsch-packet.c	/^tsch_packet_create_eack(uint8_t *buf, int buf_size,$/;"	f	signature:(uint8_t *buf, int buf_size, linkaddr_t *dest_addr, uint8_t seqno, int16_t drift, int nack)
+tsch_packet_create_eb	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/mac/tsch/tsch-packet.c	/^tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,$/;"	f	signature:(uint8_t *buf, int buf_size, uint8_t seqno, uint8_t *hdr_len, uint8_t *tsch_sync_ie_offset)
+tsch_packet_parse_eack	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/mac/tsch/tsch-packet.c	/^tsch_packet_parse_eack(const uint8_t *buf, int buf_size,$/;"	f	signature:(const uint8_t *buf, int buf_size, uint8_t seqno, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len)
+tsch_packet_parse_eb	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/mac/tsch/tsch-packet.c	/^tsch_packet_parse_eb(const uint8_t *buf, int buf_size,$/;"	f	signature:(const uint8_t *buf, int buf_size, frame802154_t *frame, struct ieee802154_ies *ies, uint8_t *hdr_len, int frame_without_mic)
+tsch_packet_seqno	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^static uint8_t tsch_packet_seqno = 0;$/;"	v	file:
+tsch_packet_update_eb	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/mac/tsch/tsch-packet.c	/^tsch_packet_update_eb(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)$/;"	f	signature:(uint8_t *buf, int buf_size, uint8_t tsch_sync_ie_offset)
+tsch_reset	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_reset(void)$/;"	f	file:	signature:(void)
+tsch_rx_process_pending	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_rx_process_pending()$/;"	f	file:
+tsch_scan	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^PT_THREAD(tsch_scan(struct pt *pt))$/;"	f	signature:(struct pt *pt)
+tsch_scan	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^PT_THREAD(tsch_scan(struct pt *pt));$/;"	p	file:	signature:(struct pt *pt)
+tsch_schedule_keepalive	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_schedule_keepalive()$/;"	f
+tsch_set_coordinator	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_set_coordinator(int enable)$/;"	f	signature:(int enable)
+tsch_set_eb_period	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_set_eb_period(uint32_t period)$/;"	f	signature:(uint32_t period)
+tsch_set_join_priority	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_set_join_priority(uint8_t jp)$/;"	f	signature:(uint8_t jp)
+tsch_set_pan_secured	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_set_pan_secured(int enable)$/;"	f	signature:(int enable)
+tsch_start_coordinator	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_start_coordinator(void)$/;"	f	file:	signature:(void)
+tsch_timing	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^rtimer_clock_t tsch_timing[tsch_ts_elements_count];$/;"	v
+tsch_tx_process_pending	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^tsch_tx_process_pending()$/;"	f	file:
+tschmac_driver	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^const struct mac_driver tschmac_driver = {$/;"	v	typeref:struct:mac_driver
+turn_off	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^turn_off(int keep_radio_on)$/;"	f	file:	signature:(int keep_radio_on)
+turn_on	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^turn_on(void)$/;"	f	file:	signature:(void)
+uip_debug_ipaddr_print	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	/^void uip_debug_ipaddr_print(const uip_ipaddr_t *addr);$/;"	p	signature:(const uip_ipaddr_t *addr)
+uip_debug_lladdr_print	/home/user/EIT-ICT-RICH-contiki/contiki/core/net/ip/uip-debug.h	/^void uip_debug_lladdr_print(const uip_lladdr_t *addr);$/;"	p	signature:(const uip_lladdr_t *addr)
+uip_ds6_link_neighbor_callback	/home/user/OpenMote/contiki/core/net/mac/tsch/tsch.c	/^void uip_ds6_link_neighbor_callback(int status, int numtx);$/;"	p	file:	signature:(int status, int numtx)

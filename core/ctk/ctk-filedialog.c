@@ -155,14 +155,14 @@ ctk_filedialog_eventhandler(struct ctk_filedialog_state *s,
       }
       return 1; 
     } else if(ev == ctk_signal_keypress) {
-      if((ctk_arch_key_t)data == CH_CURS_UP) {
+      if((char)(size_t)data == CH_CURS_UP) {
 	clearptr();
 	if(fileptr > 0) {
 	  --fileptr;
 	}
 	showptr();
 	return 1;
-      } else if((ctk_arch_key_t)data == CH_CURS_DOWN) {
+      } else if((char)(size_t)data == CH_CURS_DOWN) {
 	clearptr();
 	if(fileptr < FILES_HEIGHT - 1) {
 	  ++fileptr;

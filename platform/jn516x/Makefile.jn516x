@@ -1,0 +1,308 @@
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+##############################################################################
+# User definable make parameters that may be overwritten from the command line
+ifdef CHIP
+  JENNIC_CHIP = $(CHIP)
+else
+JENNIC_CHIP ?= JN5168
+endif
+JENNIC_PCB ?= DEVKIT4
+JENNIC_STACK ?= MAC
+JENNIC_MAC ?= MiniMac
+DISABLE_LTO ?= 1
+# can be set to SW or HW
+DEBUG ?= None
+
+ifeq ($(HOST_OS),Windows)     
+  SDK_BASE_DIR ?= C:/NXP/bstudio_nxp/sdk/JN-SW-4163
+  FLASH_PROGRAMMER ?= ${SDK_BASE_DIR}/Tools/flashprogrammer/FlashCLI.exe
+else
+  # Assume Linux
+  SDK_BASE_DIR ?= /usr/jn516x-sdk/JN-SW-4163
+  FLASH_PROGRAMMER ?= $(CONTIKI)/tools/jn516x/JennicModuleProgrammer
+endif
+
+###############################################################################
+# Include NXP makefiles
+include $(SDK_BASE_DIR)/Chip/Common/Build/config.mk
+include $(SDK_BASE_DIR)/Platform/Common/Build/config.mk
+include $(SDK_BASE_DIR)/Stack/Common/Build/config.mk
+
+# Add missing includes
+INCFLAGS += -I$(COMPONENTS_BASE_DIR)/MicroSpecific/Include
+INCFLAGS += -I$(COMPONENTS_BASE_DIR)/Recal/Include
+INCFLAGS += -I$(COMPONENTS_BASE_DIR)/ProductionTestApi/Include
+INCFLAGS += -I$(COMPONENTS_BASE_DIR)/Xcv/Include
+
+# Add missing libs and
+# do not link with MiniMac nor MiniMacShim (we use MMAC)
+LDLIBS += Recal_$(JENNIC_CHIP_FAMILY)
+LDLIBS := $(subst MiniMacShim_JN516x, ,$(LDLIBS))
+ifeq ($(JENNIC_CHIP),JN5169)
+  LDLIBS := $(subst MiniMac_JN5169, ,$(LDLIBS))
+else
+LDLIBS := $(subst MiniMac_JN516x, ,$(LDLIBS))
+  LDLIBS += JPT_$(JENNIC_CHIP)
+endif
+
+# Enable all warnings
+CFLAGS += -Wall
+# Disable warnings that result many false positives with the Contiki core
+CFLAGS += -Wno-strict-aliasing
+CFLAGS += -Wno-cast-align
+
+# Warings as error
+ifdef WERROR
+CFLAGS += -Werror
+endif
+
+# Pass DEBUG as CFLAG
+ifeq ($(DEBUG),SW)
+CFLAGS += -DDEBUG=1
+endif
+
+# Path-independent cross-compiler
+CC:=$(CROSS_COMPILE)-gcc
+AS:=$(CROSS_COMPILE)-as
+LD:=$(CROSS_COMPILE)-ls
+AR:=$(CROSS_COMPILE)-ar
+NM:=$(CROSS_COMPILE)-nm
+STRIP:=$(CROSS_COMPILE)-strip
+SIZE:=$(CROSS_COMPILE)-size
+OBJCOPY:=$(CROSS_COMPILE)-objcopy
+OBJDUMP:=$(CROSS_COMPILE)-objdump
+
+ARCH = ccm-star.c exceptions.c rtimer-arch.c slip_uart0.c clock.c micromac-radio.c \
+       mtarch.c node-id.c watchdog.c log.c ringbufindex.c slip.c sprintf.c 
+# Default uart0 for printf and slip
+TARGET_WITH_UART0 ?= 1
+TARGET_WITH_UART1 ?= 0
+
+# Get required uart files         
+ifeq ($(TARGET_WITH_UART0),1)
+WITH_UART = 1
+ARCH += uart0.c
+endif
+ifeq ($(TARGET_WITH_UART1),1)
+WITH_UART = 1
+ARCH += uart1.c
+endif
+ifeq ($(WITH_UART),1)
+ARCH += uart-driver.c
+endif
+
+CONTIKI_TARGET_DIRS = . dev lib
+CONTIKI_TARGET_MAIN = contiki-jn516x-main.c
+
+ifeq ($(JN516x_WITH_DR1175),1)
+JN516x_WITH_DR1174 = 1
+CFLAGS += -DSENSOR_BOARD_DR1175
+CONTIKI_TARGET_DIRS += dev/dr1175
+ARCH += ht-sensor.c light-sensor.c leds-extension.c leds-arch-1175.c
+endif
+
+ifeq ($(JN516x_WITH_DR1199),1)
+JN516x_WITH_DR1174 = 1
+CFLAGS += -DSENSOR_BOARD_DR1199
+CONTIKI_TARGET_DIRS += dev/dr1199
+ARCH += pot-sensor.c leds-arch-1199.c
+endif
+
+ifeq ($(JN516x_WITH_DR1174),1)
+CFLAGS += -DSENSOR_BOARD_DR1174
+CONTIKI_TARGET_DIRS += dev/dr1174
+ARCH += button-sensor.c leds-arch.c
+else
+# Dongle is the default platform
+JN516x_WITH_DONGLE = 1
+endif
+
+ifeq ($(JN516x_WITH_DONGLE),1)
+CFLAGS += -DDONGLE_NODE
+CONTIKI_TARGET_DIRS += dev/dongle
+ARCH += leds-arch.c
+endif
+
+ifdef nodemac
+CFLAGS += -DMACID=$(nodemac)
+endif
+
+CLEAN += *.jn516x 
+CLEAN += *.jn516x.bin
+
+MODULES += core/net \
+           core/net/mac \
+           core/net/mac/contikimac \
+           core/net/llsec core/net/llsec/noncoresec 
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH)
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
+CFLAGS += $(INCFLAGS)
+
+# Library search paths
+LDFLAGS += -L$(CHIP_BASE_DIR)/Build
+LDFLAGS += -L$(CHIP_BASE_DIR)/Library
+
+LDLIBS := $(addsuffix _$(JENNIC_CHIP_FAMILY),$(APPLIBS)) $(LDLIBS)
+
+ifeq ($(HOST_OS),Windows)
+# Windows assumes Cygwin. Substitute all paths in CFLAGS and LDFLAGS with Windows paths.
+CFLAGS := $(patsubst -I/cygdrive/c/%,-Ic:/%,$(CFLAGS))
+LDFLAGS := $(patsubst -L/cygdrive/c/%,-Lc:/%,$(LDFLAGS))
+endif 
+
+########################################################################
+
+MOTELIST = python $(CONTIKI)/tools/jn516x/mote-list.py
+
+# Check if we are running under Windows
+ifeq ($(HOST_OS),Windows)
+  USBDEVPREFIX=/dev/com
+  USBDEVBASENAME=COM
+  SERIALDUMP ?= $(CONTIKI)/tools/jn516x/serialdump-windows
+else
+ifeq ($(HOST_OS),Darwin)
+  USBDEVPREFIX=
+  USBDEVBASENAME=/dev/tty.usbserial-
+  SERIALDUMP ?= $(CONTIKI)/tools/jn516x/serialdump-macos
+else
+  # Else we assume Linux
+  USBDEVPREFIX=
+  USBDEVBASENAME=/dev/ttyUSB
+  SERIALDUMP ?= $(CONTIKI)/tools/jn516x/serialdump-linux
+endif
+endif
+
+# Note: this logic is different from Sky
+ifneq ("", "$(filter-out %all,$(filter %.upload serial% login, $(MAKECMDGOALS)))")
+ifndef MOTE
+  $(error MOTE not defined! You must specify which MOTE (serial port) to use)
+endif
+endif
+PORT = $(USBDEVBASENAME)$(MOTE)
+
+#### make targets
+
+########################################################################
+# Dependency, compilation and flash-programming rules
+
+.PHONY: all clean
+
+.PRECIOUS: %.elf
+
+%.d: clean
+
+%.nm: %.$(TARGET)
+	$(Q)$(NM) -nS $< > $@
+
+%.dmp: %.$(TARGET) 
+	$(Q)$(OBJDUMP) -d $< > $@
+
+define FINALIZE_DEPENDENCY_
+# hack: subsitute windows path back to cygwin path
+sed -e 's/c:\//\/cygdrive\/c\//' $(@:.o=.d) > $(@:.o=.$$$$); \
+cp $(@:.o=.$$$$) $(@:.o=.d); \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+    -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.$$$$) >> $(@:.o=.d); \
+rm -f $(@:.o=.$$$$)
+endef
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) -MMD -c $< -o $@
+	@$(FINALIZE_DEPENDENCY_)
+
+CUSTOM_RULE_LINK = 1
+ALLLIBS = $(addprefix -l,$(LDLIBS)) $(addprefix -l,$(LDSTACKLIBS)) $(addprefix -l,$(LDMYLIBS))
+ABS_APPLIBS = $(addsuffix _$(JENNIC_CHIP_FAMILY).a,$(addprefix $(COMPONENTS_BASE_DIR)/Library/lib,$(APPLIBS)))
+
+ifneq ($(wildcard $(SDK_BASE_DIR)/Components/Library/*),)
+# The SDK is fully installed, proceed to linking and objcopy to ready-to-upload .jn516x.bin file
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(ABS_APPLIBS)
+	echo  ${filter %.a,$^}
+	$(Q)$(CC) -Wl,--gc-sections $(LDFLAGS) -T$(LINKCMD) -o $@ -Wl,--start-group \
+	  $(patsubst /cygdrive/c/%,c:/%,${filter-out %.a,$^}) \
+	  $(patsubst /cygdrive/c/%,c:/%,${filter %.a,$^}) \
+	  $(ALLLIBS) -Wl,--end-group -Wl,-Map,contiki-$(TARGET).map
+	$(OBJCOPY) -S -O binary $@ $@.bin
+else
+# The SDK does not include libraries, only build objects and libraries, skip linking
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	echo Creating empty $@
+	touch $@
+endif
+
+%.$(TARGET).bin: %.$(TARGET) 
+	$(Q)$(OBJCOPY) -S -O binary $< $@
+
+symbols.c symbols.h:
+	@${CONTIKI}/tools/make-empty-symbols
+
+### Upload target to one jn516x mote specified by MOTE=portNumber
+ifeq ($(HOST_OS),Windows)
+%.upload: %.$(TARGET).bin
+	${FLASH_PROGRAMMER} -a -c $(PORT) -B 1000000 -s -w -f $<
+else
+%.upload: %.$(TARGET).bin
+	${FLASH_PROGRAMMER} -V 10 -v -s $(PORT) -I 38400 -P 1000000 -f $<
+endif
+
+### Flash the given file
+ifeq ($(HOST_OS),Windows)
+%.flash: ${FLASH_PROGRAMMER}
+	${FLASH_PROGRAMMER} -a -c $(PORT) -B 1000000 -s -w -f $*.$(TARGET).bin
+else
+%.flash: ${FLASH_PROGRAMMER}
+	${FLASH_PROGRAMMER} -V 10 -v -s $(PORT) -I 38400 -P 1000000 -s -f $*.$(TARGET).bin
+endif
+
+### List the ports with connected jn516x motes	
+motelist:
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} \#
+
+motelistmac:
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} \!
+	
+motelistinfo:
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} \?
+
+### Upload target to all connected jn516x motes
+%.uploadall: %.$(TARGET).bin
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} $<
+
+### Flash the given file to all connected jn516x motes
+%.flashall:
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} $*
+
+### Dump output from all connected jn516x motes
+serialdumpall:
+	$(Q)$(MOTELIST) ${FLASH_PROGRAMMER} \% $(SERIALDUMP)
+	
+########### login: read serial line ##############
+### USAGE: make TARGET=jn516x login UART_BAUDRATE={baudrate} {serial device}
+### UART_BAUDRATE: i.e., 115200. default is 1000000
+### example: make TARGET=jn516x UART_BAUDRATE=115200 login MOTE=1
+
+UART_BAUDRATE ?= 1000000
+
+$(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
+	($(MAKE) -C $(CONTIKI)/tools tunslip6 CFLAGS= LDFLAGS= LDLIBS= INCFLAGS=)
+
+$(SERIALDUMP): $(CONTIKI)/tools/jn516x/serialdump.c
+	(cd $(CONTIKI)/tools/jn516x; ${MAKE} $(notdir $(SERIALDUMP)))
+
+login: $(SERIALDUMP)
+	$(SERIALDUMP) -b${UART_BAUDRATE} $(USBDEVPREFIX)$(PORT)
+
+serialview: $(SERIALDUMP)	
+	$(SERIALDUMP) -b${UART_BAUDRATE} $(USBDEVPREFIX)$(PORT) | $(CONTIKI)/tools/timestamp
+		
+serialdump: $(SERIALDUMP)	
+	$(SERIALDUMP) -b${UART_BAUDRATE} $(USBDEVPREFIX)$(PORT) | $(CONTIKI)/tools/timestamp | tee serialdump-$(notdir $(PORT))-`date +%Y%m%d-%H%M`

@@ -64,7 +64,7 @@ public class TCPServerConnection extends SerialConnection {
     public String getConnectionName() {
         if (clientSbanIP.length() > 1) {
         	int colon = clientSbanIP.lastIndexOf(':');
-        	return clientSbanIP.substring(1,colon); // + "_" + System.currentTimeMillis();
+        	return clientSbanIP.substring(1,colon) + "_" + System.currentTimeMillis();
         }
         else {
         	return clientSbanIP;

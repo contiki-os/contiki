@@ -124,11 +124,11 @@ sht25_read(uint8_t variable)
   return rd;
 }
 /*---------------------------------------------------------------------------*/
-static int16_t
-value(uint8_t type)
+static int
+value(int type)
 {
   return sht25_read(type);
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(sht25, "SHT25", value, configure, status);
+SENSORS_SENSOR(sht25, SHT25_SENSOR, value, configure, status);
 /*---------------------------------------------------------------------------*/

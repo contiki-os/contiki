@@ -73,6 +73,8 @@ extern const struct framer DECORATED_FRAMER;
 #define PRINTF(...)
 #endif
 
+static void pad(void);
+
 /* 2-byte header for recovering padded packets.
    Wireshark will not understand such packets at present. */
 struct hdr {
@@ -99,13 +101,16 @@ create(void)
   }
   chdr = packetbuf_hdrptr();
   chdr->id = CONTIKIMAC_ID;
-  chdr->len = 0;
+  chdr->len = packetbuf_datalen();
+  pad();
   
   hdr_len = DECORATED_FRAMER.create();
   if(hdr_len < 0) {
     PRINTF("contikimac-framer: decorated framer failed\n");
     return FRAMER_FAILED;
   }
+  
+  packetbuf_compact();
   
   return hdr_len + sizeof(struct hdr);
 }
@@ -117,7 +122,7 @@ pad(void)
   uint8_t *ptr;
   uint8_t zeroes_count;
   
-  transmit_len = packetbuf_totlen();
+  transmit_len = packetbuf_totlen() + hdr_length();
   if(transmit_len < SHORTEST_PACKET_SIZE) {
     /* Padding required */
     zeroes_count = SHORTEST_PACKET_SIZE - transmit_len;
@@ -125,30 +130,6 @@ pad(void)
     memset(ptr + packetbuf_datalen(), 0, zeroes_count);
     packetbuf_set_datalen(packetbuf_datalen() + zeroes_count);
   }
-}
-/*---------------------------------------------------------------------------*/
-static int
-create_and_secure(void)
-{
-  struct hdr *chdr;
-  int hdr_len;
-  
-  hdr_len = create();
-  if(hdr_len < 0) {
-    return FRAMER_FAILED;
-  }
-  
-  packetbuf_compact();
-  if(!NETSTACK_LLSEC.on_frame_created()) {
-    PRINTF("contikimac-framer: securing failed\n");
-    return FRAMER_FAILED;
-  }
-  
-  chdr = (struct hdr *)(((uint8_t *) packetbuf_dataptr()) - sizeof(struct hdr));
-  chdr->len = packetbuf_datalen();
-  pad();
-  
-  return hdr_len;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -174,7 +155,6 @@ parse(void)
   }
   
   packetbuf_set_datalen(chdr->len);
-  chdr->len = 0;
   
   return hdr_len + sizeof(struct hdr);
 }
@@ -182,7 +162,6 @@ parse(void)
 const struct framer contikimac_framer = {
   hdr_length,
   create,
-  create_and_secure,
   parse
 };
 /*---------------------------------------------------------------------------*/

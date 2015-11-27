@@ -635,7 +635,7 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
     iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_SAM_BIT,
                               &UIP_IP_BUF->srcipaddr, &uip_lladdr);
     /* No context found for this address */
-  } else if(uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) &&
+  } else if(uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr) &&
 	    UIP_IP_BUF->destipaddr.u16[1] == 0 &&
 	    UIP_IP_BUF->destipaddr.u16[2] == 0 &&
 	    UIP_IP_BUF->destipaddr.u16[3] == 0) {
@@ -686,7 +686,7 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
       iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_DAM_BIT,
 	       &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)link_destaddr);
       /* No context found for this address */
-    } else if(uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) &&
+    } else if(uip_is_addr_linklocal(&UIP_IP_BUF->destipaddr) &&
 	      UIP_IP_BUF->destipaddr.u16[1] == 0 &&
 	      UIP_IP_BUF->destipaddr.u16[2] == 0 &&
 	      UIP_IP_BUF->destipaddr.u16[3] == 0) {
@@ -1087,9 +1087,9 @@ compress_hdr_hc1(linkaddr_t *link_destaddr)
   if(UIP_IP_BUF->vtc != 0x60 ||
      UIP_IP_BUF->tcflow != 0 ||
      UIP_IP_BUF->flow != 0 ||
-     !uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) ||
+     !uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr) ||
      !uip_is_addr_mac_addr_based(&UIP_IP_BUF->srcipaddr, &uip_lladdr) ||
-     !uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) ||
+     !uip_is_addr_linklocal(&UIP_IP_BUF->destipaddr) ||
      !uip_is_addr_mac_addr_based(&UIP_IP_BUF->destipaddr,
                                  (uip_lladdr_t *)link_destaddr) ||
      (UIP_IP_BUF->proto != UIP_PROTO_ICMP6 &&
@@ -1336,11 +1336,6 @@ send_packet(linkaddr_t *dest)
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER,(void*)&uip_lladdr);
 #endif
 
-  /* Force acknowledge from sender (test hardware autoacks) */
-#if SICSLOWPAN_CONF_ACK_ALL
-    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
-#endif
-
   /* Provide a callback function to receive the result of
      a packet transmission. */
   NETSTACK_LLSEC.send(&packet_sent, NULL);
@@ -1368,8 +1363,10 @@ output(const uip_lladdr_t *localdest)
   /* The MAC address of the destination of the packet */
   linkaddr_t dest;
 
+#if SICSLOWPAN_CONF_FRAG
   /* Number of bytes processed. */
   uint16_t processed_ip_out_len;
+#endif /* SICSLOWPAN_CONF_FRAG */
 
   /* init */
   uncomp_hdr_len = 0;
@@ -1388,6 +1385,7 @@ output(const uip_lladdr_t *localdest)
     set_packet_attrs();
   }
 
+#if PACKETBUF_WITH_PACKET_TYPE
 #define TCP_FIN 0x01
 #define TCP_ACK 0x10
 #define TCP_CTL 0x3f
@@ -1402,6 +1400,7 @@ output(const uip_lladdr_t *localdest)
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
                        PACKETBUF_ATTR_PACKET_TYPE_STREAM_END);
   }
+#endif
 
   /*
    * The destination address will be tagged to each outbound
@@ -1446,7 +1445,7 @@ output(const uip_lladdr_t *localdest)
 #else /* USE_FRAMER_HDRLEN */
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
-  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen - NETSTACK_LLSEC.get_overhead();
+  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen;
 
   if((int)uip_len - (int)uncomp_hdr_len > max_payload - (int)packetbuf_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
@@ -1458,7 +1457,7 @@ output(const uip_lladdr_t *localdest)
      * IPv6/HC1/HC06/HC_UDP dispatchs/headers.
      * The following fragments contain only the fragn dispatch.
      */
-    int estimated_fragments = ((int)uip_len) / ((int)MAC_MAX_PAYLOAD - SICSLOWPAN_FRAGN_HDR_LEN) + 1;
+    int estimated_fragments = ((int)uip_len) / (max_payload - SICSLOWPAN_FRAGN_HDR_LEN) + 1;
     int freebuf = queuebuf_numfree() - 1;
     PRINTFO("uip_len: %d, fragments: %d, free bufs: %d\n", uip_len, estimated_fragments, freebuf);
     if(freebuf < estimated_fragments) {
@@ -1596,8 +1595,8 @@ input(void)
   uint16_t frag_size = 0;
   /* offset of the fragment in the IP packet */
   uint8_t frag_offset = 0;
-  uint8_t is_fragment = 0;
 #if SICSLOWPAN_CONF_FRAG
+  uint8_t is_fragment = 0;
   /* tag of the fragment */
   uint16_t frag_tag = 0;
   uint8_t first_fragment = 0, last_fragment = 0;
