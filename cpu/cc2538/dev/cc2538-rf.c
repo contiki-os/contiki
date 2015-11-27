@@ -53,6 +53,7 @@
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 #define CHECKSUM_LEN 2
+#define WITH_SEND_CCA 1
 
 /* uDMA channel control persistent flags */
 #define UDMA_TX_FLAGS (UDMA_CHCTL_ARBSIZE_128 | UDMA_CHCTL_XFERMODE_AUTO \
@@ -125,6 +126,8 @@ static uint8_t rf_channel = CC2538_RF_CHANNEL;
 
 /* Are we currently in poll mode? */
 static uint8_t volatile poll_mode = 0;
+/* Do we perform a CCA before sending? */
+static uint8_t send_on_cca = WITH_SEND_CCA;
 
 static int on(void);
 static int off(void);
@@ -817,6 +820,15 @@ get_value(radio_param_t param, radio_value_t *value)
     if(REG(RFCORE_XREG_FRMCTRL0) & RFCORE_XREG_FRMCTRL0_AUTOACK) {
       *value |= RADIO_RX_MODE_AUTOACK;
     }
+    if(poll_mode) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    if (send_on_cca) {
+      *value |= RADIO_TX_MODE_SEND_ON_CCA;
+    }
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     *value = get_tx_power();
@@ -826,6 +838,10 @@ get_value(radio_param_t param, radio_value_t *value)
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RSSI:
     *value = get_rssi();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_LINK_QUALITY:
+    /* TODO: */
+    //*value = cc2538_last_correlation;
     return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = CC2538_RF_CHANNEL_MIN;
@@ -882,6 +898,10 @@ set_value(radio_param_t param, radio_value_t value)
     set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
     set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
     set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    if (send_on_cca) {
+    }
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
