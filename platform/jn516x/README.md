@@ -156,6 +156,15 @@ The following MCU models are supported:
 Set `CHIP` variable to change this; for example, to select JN5164 use:
 `make CHIP=JN5164`
 
+The JN5168 has four module variants available:
+* `M00` - Standard power, integrated antenna (default module)
+* `M03` - Standard power, uFL connector
+* `M05` - Medium power, uFL connector
+* `M06` - High power, uFL connector
+
+The `M05` and `M06` need to control the internal power amplifier. Set the `MODULE` variable to select the module, for example:
+`make CHIP=JN5168 MODULE=M05`
+
 The following platform-specific configurations are supported:
 * DR1174 evaluation kit; enable this with `JN516x_WITH_DR1174 = 1` in your makefile
 * DR1174 with DR1175 sensor board; enable this with `JN516x_WITH_DR1175 = 1` (will set `JN516x_WITH_DR1174` automatically)
