@@ -268,10 +268,6 @@ rpl_link_neighbor_callback(const linkaddr_t *addr, int status, int numtx)
         /* Trigger DAG rank recalculation. */
         PRINTF("RPL: rpl_link_neighbor_callback triggering update\n");
         parent->flags |= RPL_PARENT_FLAG_UPDATED;
-        if(instance->of->neighbor_link_callback != NULL) {
-          instance->of->neighbor_link_callback(parent, status, numtx);
-          parent->last_tx_time = clock_time();
-        }
       }
     }
   }
@@ -350,8 +346,6 @@ rpl_init(void)
 #if RPL_CONF_STATS
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
-
-  RPL_OF.reset(NULL);
 }
 /*---------------------------------------------------------------------------*/
 

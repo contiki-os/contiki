@@ -113,11 +113,10 @@ struct rpl_dag;
 
 struct rpl_parent {
   struct rpl_dag *dag;
-#if RPL_DAG_MC != RPL_DAG_MC_NONE
+#if RPL_WITH_MC
   rpl_metric_container_t mc;
-#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
+#endif /* RPL_WITH_MC */
   rpl_rank_t rank;
-  clock_time_t last_tx_time;
   uint8_t dtsn;
   uint8_t flags;
 };
@@ -159,11 +158,21 @@ typedef struct rpl_instance rpl_instance_t;
  *  Resets the objective function state for a specific DAG. This function is
  *  called when doing a global repair on the DAG.
  *
- * neighbor_link_callback(parent, known, etx)
+ * parent_link_metric(parent)
  *
- *  Receives link-layer neighbor information. The parameter "known" is set
- *  either to 0 or 1. The "etx" parameter specifies the current
- *  ETX(estimated transmissions) for the neighbor.
+ *  Returns the link metric of a parent
+ *
+ * parent_path_cost(parent)
+ *
+ *  Returns the path cost of a parent
+ *
+ * rank_via_parent(parent)
+ *
+ *  Returns our rank if we select a given parent as preferred parent
+ *
+ * parent_is_acceptable
+ *
+ *  Returns 1 if a parent is usable as preferred parent, 0 otherwise
  *
  * best_parent(parent1, parent2)
  *
@@ -172,13 +181,6 @@ typedef struct rpl_instance rpl_instance_t;
  * best_dag(dag1, dag2)
  *
  *  Compares two DAGs and returns the best one, according to the OF.
- *
- * calculate_rank(parent, base_rank)
- *
- *  Calculates a rank value using the parent rank and a base rank.
- *  If "parent" is NULL, the objective function selects a default increment
- *  that is adds to the "base_rank". Otherwise, the OF uses information known
- *  about "parent" to select an increment to the "base_rank".
  *
  * update_metric_container(dag)
  *
@@ -194,20 +196,19 @@ typedef struct rpl_instance rpl_instance_t;
  */
 struct rpl_of {
   void (*reset)(struct rpl_dag *);
-  void (*neighbor_link_callback)(rpl_parent_t *, int, int);
 #if RPL_WITH_DAO_ACK
   void (*dao_ack_callback)(rpl_parent_t *, int status);
 #endif
+  uint16_t (*parent_link_metric)(rpl_parent_t *);
+  uint16_t (*parent_path_cost)(rpl_parent_t *);
+  rpl_rank_t (*rank_via_parent)(rpl_parent_t *);
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
   rpl_dag_t *(*best_dag)(rpl_dag_t *, rpl_dag_t *);
-  rpl_rank_t (*calculate_rank)(rpl_parent_t *, rpl_rank_t);
   void (*update_metric_container)( rpl_instance_t *);
   rpl_ocp_t ocp;
 };
 typedef struct rpl_of rpl_of_t;
 
-/* Declare the selected objective function. */
-extern rpl_of_t RPL_OF;
 /*---------------------------------------------------------------------------*/
 /* Instance */
 struct rpl_instance {
@@ -272,10 +273,14 @@ int rpl_verify_header(int);
 void rpl_insert_header(void);
 void rpl_remove_header(void);
 uint8_t rpl_invert_header(void);
+const struct link_stats *rpl_get_parent_link_stats(rpl_parent_t *p);
+int rpl_parent_is_fresh(rpl_parent_t *p);
+uint16_t rpl_get_parent_link_metric(rpl_parent_t *p);
+rpl_rank_t rpl_rank_via_parent(rpl_parent_t *p);
+const linkaddr_t *rpl_get_parent_lladdr(rpl_parent_t *p);
 uip_ipaddr_t *rpl_get_parent_ipaddr(rpl_parent_t *nbr);
 rpl_parent_t *rpl_get_parent(uip_lladdr_t *addr);
 rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
-uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
 uip_ds6_nbr_t *rpl_get_nbr(rpl_parent_t *parent);
 void rpl_print_neighbor_list(void);

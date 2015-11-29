@@ -44,6 +44,7 @@
  */
 
 #include "contiki.h"
+#include "net/link-stats.h"
 #include "net/rpl/rpl-private.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-nd6.h"
@@ -91,22 +92,25 @@ void
 rpl_print_neighbor_list(void)
 {
   if(default_instance != NULL && default_instance->current_dag != NULL &&
-      default_instance->of != NULL && default_instance->of->calculate_rank != NULL) {
+      default_instance->of != NULL) {
     int curr_dio_interval = default_instance->dio_intcurrent;
     int curr_rank = default_instance->current_dag->rank;
     rpl_parent_t *p = nbr_table_head(rpl_parents);
-    clock_time_t now = clock_time();
+    const struct link_stats *stats = rpl_get_parent_link_stats(p);
 
-    printf("RPL: rank %u dioint %u, %u nbr(s)\n", curr_rank, curr_dio_interval, uip_ds6_nbr_num());
+    printf("RPL: OCP %u rank %u dioint %u, nbr count %u\n",
+        default_instance->of->ocp, curr_rank, curr_dio_interval, uip_ds6_nbr_num());
     while(p != NULL) {
-      uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
-      printf("RPL: nbr %3u %5u, %5u => %5u %c%c (last tx %u min ago)\n",
-          nbr_table_get_lladdr(rpl_parents, p)->u8[7],
-          p->rank, nbr ? nbr->link_metric : 0,
-          default_instance->of->calculate_rank(p, 0),
-          default_instance->current_dag == p->dag ? 'd' : ' ',
-          p == default_instance->current_dag->preferred_parent ? '*' : ' ',
-          (unsigned)((now - p->last_tx_time) / (60 * CLOCK_SECOND)));
+      printf("RPL: nbr %3u %5u, %5u => %5u -- %5u %c%c (last tx %u min ago)\n",
+          rpl_get_parent_ipaddr(p)->u8[15],
+          p->rank,
+          rpl_get_parent_link_metric(p),
+          rpl_rank_via_parent(p),
+          stats != NULL ? stats->freshness : 0,
+          link_stats_is_fresh(stats) ? 'f' : ' ',
+          p == default_instance->current_dag->preferred_parent ? 'p' : ' ',
+          (unsigned)((now - p->last_tx_time) / (60 * CLOCK_SECOND))
+      );
       p = nbr_table_next(rpl_parents, p);
     }
     printf("RPL: end of list\n");
@@ -151,28 +155,59 @@ rpl_get_parent_rank(uip_lladdr_t *addr)
   if(p != NULL) {
     return p->rank;
   } else {
-    return 0;
+    return INFINITE_RANK;
   }
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
-rpl_get_parent_link_metric(const uip_lladdr_t *addr)
+rpl_get_parent_link_metric(rpl_parent_t *p)
 {
-  uip_ds6_nbr_t *nbr;
-  nbr = nbr_table_get_from_lladdr(ds6_neighbors, (const linkaddr_t *)addr);
-
-  if(nbr != NULL) {
-    return nbr->link_metric;
-  } else {
-    return 0;
+  if(p != NULL && p->dag != NULL) {
+    rpl_instance_t *instance = p->dag->instance;
+    if(instance != NULL && instance->of != NULL && instance->of->parent_link_metric != NULL) {
+      return instance->of->parent_link_metric(p);
+    }
   }
+  return 0xffff;
+}
+/*---------------------------------------------------------------------------*/
+rpl_rank_t
+rpl_rank_via_parent(rpl_parent_t *p)
+{
+  if(p != NULL && p->dag != NULL) {
+    rpl_instance_t *instance = p->dag->instance;
+    if(instance != NULL && instance->of != NULL && instance->of->rank_via_parent != NULL) {
+      return instance->of->rank_via_parent(p);
+    }
+  }
+  return INFINITE_RANK;
+}
+/*---------------------------------------------------------------------------*/
+const linkaddr_t *
+rpl_get_parent_lladdr(rpl_parent_t *p)
+{
+  return nbr_table_get_lladdr(rpl_parents, p);
 }
 /*---------------------------------------------------------------------------*/
 uip_ipaddr_t *
 rpl_get_parent_ipaddr(rpl_parent_t *p)
 {
-  linkaddr_t *lladdr = nbr_table_get_lladdr(rpl_parents, p);
+  const linkaddr_t *lladdr = rpl_get_parent_lladdr(p);
   return uip_ds6_nbr_ipaddr_from_lladdr((uip_lladdr_t *)lladdr);
+}
+/*---------------------------------------------------------------------------*/
+const struct link_stats *
+rpl_get_parent_link_stats(rpl_parent_t *p)
+{
+  const linkaddr_t *lladdr = rpl_get_parent_lladdr(p);
+  return link_stats_from_lladdr(lladdr);
+}
+/*---------------------------------------------------------------------------*/
+int
+rpl_parent_is_fresh(rpl_parent_t *p)
+{
+  const struct link_stats *stats = rpl_get_parent_link_stats(p);
+  return link_stats_is_fresh(stats);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -640,20 +675,12 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
     if(p == NULL) {
       PRINTF("RPL: rpl_add_parent p NULL\n");
     } else {
-      uip_ds6_nbr_t *nbr;
-      nbr = rpl_get_nbr(p);
-
       p->dag = dag;
       p->rank = dio->rank;
       p->dtsn = dio->dtsn;
-
-      /* Check whether we have a neighbor that has not gotten a link metric yet */
-      if(nbr != NULL && nbr->link_metric == 0) {
-	nbr->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
-      }
-#if RPL_DAG_MC != RPL_DAG_MC_NONE
+#if RPL_WITH_MC
       memcpy(&p->mc, &dio->mc, sizeof(p->mc));
-#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
+#endif /* RPL_WITH_MC */
     }
   }
 
@@ -757,7 +784,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
 
   instance->of->update_metric_container(instance);
   /* Update the DAG rank. */
-  best_dag->rank = instance->of->calculate_rank(best_dag->preferred_parent, 0);
+  best_dag->rank = rpl_rank_via_parent(best_dag->preferred_parent);
   if(last_parent == NULL || best_dag->rank < best_dag->min_rank) {
     best_dag->min_rank = best_dag->rank;
   } else if(!acceptable_rank(best_dag, best_dag->rank)) {
@@ -798,20 +825,35 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
 static rpl_parent_t *
 best_parent(rpl_dag_t *dag)
 {
-  rpl_parent_t *p, *best;
+  rpl_parent_t *p;
+  rpl_of_t *of;
+  rpl_parent_t *best = NULL;
 
-  best = NULL;
+  if(dag == NULL || dag->instance == NULL || dag->instance->of == NULL) {
+    return NULL;
+  }
 
-  p = nbr_table_head(rpl_parents);
-  while(p != NULL) {
+  of = dag->instance->of;
+  /* Search for the best parent according to the OF */
+  for(p = nbr_table_head(rpl_parents); p != NULL; p = nbr_table_next(rpl_parents, p)) {
+
+    /* Exclude parents from other DAGs or announcing an infinite rank */
     if(p->dag != dag || p->rank == INFINITE_RANK) {
-      /* ignore this neighbor */
-    } else if(best == NULL) {
-      best = p;
-    } else {
-      best = dag->instance->of->best_parent(best, p);
+      continue;
     }
-    p = nbr_table_next(rpl_parents, p);
+
+#ifndef UIP_CONF_ND6_SEND_NA
+    {
+    uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
+    /* Exclude links to a neighbor that is not reachable at a NUD level */
+    if(nbr == NULL || nbr->state != NBR_REACHABLE) {
+      continue;
+    }
+    }
+#endif /* UIP_CONF_ND6_SEND_NA */
+
+    /* Now we have an acceptable parent, check if it is the new best */
+    best = of->best_parent(best, p);
   }
 
   return best;
@@ -823,9 +865,12 @@ rpl_select_parent(rpl_dag_t *dag)
   rpl_parent_t *best = best_parent(dag);
 
   if(best != NULL) {
-    rpl_set_preferred_parent(dag, best);
-    dag->rank = dag->instance->of->calculate_rank(dag->preferred_parent, 0);
+    if(rpl_parent_is_fresh(best)) {
+      rpl_set_preferred_parent(dag, best);
+      dag->rank = rpl_rank_via_parent(dag->preferred_parent);
+    }
   } else {
+    rpl_set_preferred_parent(dag, best);
     dag->rank = INFINITE_RANK;
   }
 
@@ -1003,6 +1048,10 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   instance->of = of;
   instance->mop = dio->mop;
+  instance->mc.type = dio->mc.type;
+  instance->mc.flags = dio->mc.flags;
+  instance->mc.aggr = dio->mc.aggr;
+  instance->mc.prec = dio->mc.prec;
   instance->current_dag = dag;
   instance->dtsn_out = RPL_LOLLIPOP_INIT;
 
@@ -1022,7 +1071,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   rpl_set_preferred_parent(dag, p);
   instance->of->update_metric_container(instance);
-  dag->rank = instance->of->calculate_rank(p, 0);
+  dag->rank = rpl_rank_via_parent(p);
   /* So far this is the lowest rank we are aware of. */
   dag->min_rank = dag->rank;
 
@@ -1045,6 +1094,8 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
   } else {
     PRINTF("RPL: The DIO does not meet the prerequisites for sending a DAO\n");
   }
+
+  instance->of->reset(dag);
 }
 
 #if RPL_MAX_DAG_PER_INSTANCE > 1
@@ -1115,7 +1166,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   memcpy(&dag->prefix_info, &dio->prefix_info, sizeof(rpl_prefix_t));
 
   rpl_set_preferred_parent(dag, p);
-  dag->rank = instance->of->calculate_rank(p, 0);
+  dag->rank = rpl_rank_via_parent(p);
   dag->min_rank = dag->rank; /* So far this is the lowest rank we know of. */
 
   PRINTF("RPL: Joined DAG with instance ID %u, rank %hu, DAG ID ",
@@ -1157,7 +1208,7 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
     PRINTF("RPL: Failed to add a parent during the global repair\n");
     dag->rank = INFINITE_RANK;
   } else {
-    dag->rank = dag->instance->of->calculate_rank(p, 0);
+    dag->rank = rpl_rank_via_parent(p);
     dag->min_rank = dag->rank;
     PRINTF("RPL: rpl_process_parent_event global repair\n");
     rpl_process_parent_event(dag->instance, p);
@@ -1446,14 +1497,14 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   PRINT6ADDR(&instance->current_dag->dag_id);
   PRINTF(", rank %u, min_rank %u, ",
 	 instance->current_dag->rank, instance->current_dag->min_rank);
-  PRINTF("parent rank %u, parent etx %u, link metric %u, instance etx %u\n",
-	 p->rank, -1/*p->mc.obj.etx*/, rpl_get_nbr(p)->link_metric, instance->mc.obj.etx);
+  PRINTF("parent rank %u, link metric %u\n",
+	 p->rank, rpl_get_parent_link_metric(p));
 
   /* We have allocated a candidate parent; process the DIO further. */
 
-#if RPL_DAG_MC != RPL_DAG_MC_NONE
+#if RPL_WITH_MC
   memcpy(&p->mc, &dio->mc, sizeof(p->mc));
-#endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
+#endif /* RPL_WITH_MC */
   if(rpl_process_parent_event(instance, p) == 0) {
     PRINTF("RPL: The candidate parent is rejected\n");
     return;
