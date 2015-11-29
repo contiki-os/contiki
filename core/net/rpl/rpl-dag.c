@@ -96,12 +96,13 @@ rpl_print_neighbor_list(void)
     int curr_dio_interval = default_instance->dio_intcurrent;
     int curr_rank = default_instance->current_dag->rank;
     rpl_parent_t *p = nbr_table_head(rpl_parents);
-    const struct link_stats *stats = rpl_get_parent_link_stats(p);
+    clock_time_t clock_now = clock_time();
 
     printf("RPL: OCP %u rank %u dioint %u, nbr count %u\n",
         default_instance->of->ocp, curr_rank, curr_dio_interval, uip_ds6_nbr_num());
     while(p != NULL) {
-      printf("RPL: nbr %3u %5u, %5u => %5u -- %5u %c%c (last tx %u min ago)\n",
+      const struct link_stats *stats = rpl_get_parent_link_stats(p);
+      printf("RPL: nbr %3u %5u, %5u => %5u -- %2u %c%c (last tx %u min ago)\n",
           rpl_get_parent_ipaddr(p)->u8[15],
           p->rank,
           rpl_get_parent_link_metric(p),
@@ -109,7 +110,7 @@ rpl_print_neighbor_list(void)
           stats != NULL ? stats->freshness : 0,
           link_stats_is_fresh(stats) ? 'f' : ' ',
           p == default_instance->current_dag->preferred_parent ? 'p' : ' ',
-          (unsigned)((now - p->last_tx_time) / (60 * CLOCK_SECOND))
+          (unsigned)((clock_now - stats->last_tx_time) / (60 * CLOCK_SECOND))
       );
       p = nbr_table_next(rpl_parents, p);
     }
@@ -868,6 +869,10 @@ rpl_select_parent(rpl_dag_t *dag)
     if(rpl_parent_is_fresh(best)) {
       rpl_set_preferred_parent(dag, best);
       dag->rank = rpl_rank_via_parent(dag->preferred_parent);
+    } else {
+      /* Probe the new best parent shortly in order to get a fresh estimate */
+      dag->instance->urgent_probing_target = best;
+      rpl_schedule_probing(dag->instance);
     }
   } else {
     rpl_set_preferred_parent(dag, best);
