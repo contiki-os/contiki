@@ -1,0 +1,23 @@
+CFLAGS += -DX_NUCLEO_IKS01A1
+
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/x_nucleo_iks01a1
+CONTIKI_TARGET_DIRS += stm32cube-lib/drivers/sensors/hts221 stm32cube-lib/drivers/sensors/lps25h stm32cube-lib/drivers/sensors/lps25hb\
+                       stm32cube-lib/drivers/sensors/lsm6ds0 stm32cube-lib/drivers/sensors/lsm6ds3 stm32cube-lib/drivers/sensors/lis3mdl
+
+ARCH_DEV_SENSORS = temperature-sensor.c humidity-sensor.c pressure-sensor.c magneto-sensor.c acceleration-sensor.c gyroscope-sensor.c
+
+ARCH_DRIVERS_IKS01A1 =  x_nucleo_iks01a1.c  x_nucleo_iks01a1_hum_temp.c  x_nucleo_iks01a1_imu_6axes.c \
+		x_nucleo_iks01a1_magneto.c  x_nucleo_iks01a1_pressure.c 
+
+
+ARCH_DRIVERS_SENSORS =	hts221.c  \
+			lis3mdl.c \
+			lps25h.c  \
+			lps25hb.c \
+			lsm6ds0.c \
+			lsm6ds3.c
+
+ARCH+=$(ARCH_DEV_SENSORS)
+ARCH+=$(ARCH_DRIVERS_IKS01A1)
+ARCH+=$(ARCH_DRIVERS_SENSORS)
+

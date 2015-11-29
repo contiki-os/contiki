@@ -1001,11 +1001,11 @@ static NETBUF *NicGetPacket(void)
          * Hack alert: Rev A chips never set the odd frame indicator.
          */
         fbc -= 3;
-	/*        nb = NutNetBufAlloc(0, NBAF_DATALINK, fbc);*/
+        /*        nb = NutNetBufAlloc(0, NBAF_DATALINK, fbc);*/
 
         /* Perform the read. */
-/*	        if (nb)
-		NicRead(nb->nb_dl.vp, fbc);*/
+        /* if (nb)
+         NicRead(nb->nb_dl.vp, fbc);*/
     }
 
     /* Release the packet. */
@@ -1191,12 +1191,12 @@ PROCESS_THREAD(lanc111_process, ev, data)
          */
         imsk = nic_inlb(NIC_MSK);
         nic_outlb(NIC_MSK, 0);
-	/*	while ((nb = NicGetPacket()) != 0) {
-            if (nb != (NETBUF *) 0xFFFF) {
-	      ni->ni_rx_packets++;
-	      (*ifn->if_recv) (dev, nb);
-            }
-	    }*/
+        /*  while ((nb = NicGetPacket()) != 0) {
+          if (nb != (NETBUF *) 0xFFFF) {
+            ni->ni_rx_packets++;
+            (*ifn->if_recv) (dev, nb);
+          }
+        }*/
         nic_outlb(NIC_MSK, imsk | INT_RCV | INT_ERCV);
     }
 
@@ -1351,7 +1351,7 @@ lanc111_init(void)
 
     /* Register interrupt handler and enable interrupts. */
     /*    if (NutRegisterIrqHandler(&LANC111_SIGNAL, NicInterrupt, dev))
-	  return -1;*/
+          return -1;*/
 
     /*
      * Start the receiver thread.
