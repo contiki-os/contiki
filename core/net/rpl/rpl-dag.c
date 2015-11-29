@@ -67,8 +67,8 @@ void RPL_CALLBACK_PARENT_SWITCH(rpl_parent_t *old, rpl_parent_t *new);
 #endif /* RPL_CALLBACK_PARENT_SWITCH */
 
 /*---------------------------------------------------------------------------*/
-extern rpl_of_t RPL_OF;
-static rpl_of_t * const objective_functions[] = {&RPL_OF};
+extern rpl_of_t rpl_of0, rpl_mrhof;
+static rpl_of_t * const objective_functions[] = RPL_SUPPORTED_OFS;
 
 /*---------------------------------------------------------------------------*/
 /* RPL definitions. */
@@ -376,7 +376,12 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
   dag->grounded = RPL_GROUNDED;
   dag->preference = RPL_PREFERENCE;
   instance->mop = RPL_MOP_DEFAULT;
-  instance->of = &RPL_OF;
+  instance->of = rpl_find_of(RPL_OF_OCP);
+  if(instance->of == NULL) {
+    PRINTF("RPL: OF with OCP %u not supported\n", RPL_OF_OCP);
+    return NULL;
+  }
+
   rpl_set_preferred_parent(dag, NULL);
 
   memcpy(&dag->dag_id, dag_id, sizeof(dag->dag_id));

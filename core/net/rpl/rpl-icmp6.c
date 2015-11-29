@@ -91,8 +91,6 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
 
-extern rpl_of_t RPL_OF;
-
 #if RPL_CONF_MULTICAST
 static uip_mcast6_route_t *mcast_group;
 #endif
@@ -302,7 +300,7 @@ dio_input(void)
   dio.dag_redund = RPL_DIO_REDUNDANCY;
   dio.dag_min_hoprankinc = RPL_MIN_HOPRANKINC;
   dio.dag_max_rankinc = RPL_MAX_RANKINC;
-  dio.ocp = RPL_OF.ocp;
+  dio.ocp = RPL_OF_OCP;
   dio.default_lifetime = RPL_DEFAULT_LIFETIME;
   dio.lifetime_unit = RPL_DEFAULT_LIFETIME_UNIT;
 
