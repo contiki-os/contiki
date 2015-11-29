@@ -291,7 +291,7 @@
 #ifdef RPL_CONF_PROBING_SELECT_FUNC
 #define RPL_PROBING_SELECT_FUNC RPL_CONF_PROBING_SELECT_FUNC
 #else
-#define RPL_PROBING_SELECT_FUNC(dag) get_probing_target((dag))
+#define RPL_PROBING_SELECT_FUNC get_probing_target
 #endif
 
 /*
@@ -314,8 +314,7 @@
 #ifdef RPL_CONF_PROBING_DELAY_FUNC
 #define RPL_PROBING_DELAY_FUNC RPL_CONF_PROBING_DELAY_FUNC
 #else
-#define RPL_PROBING_DELAY_FUNC() ((RPL_PROBING_INTERVAL / 2) \
-    + random_rand() % (RPL_PROBING_INTERVAL))
+#define RPL_PROBING_DELAY_FUNC get_probing_delay
 #endif
 
 /*

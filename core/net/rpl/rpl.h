@@ -246,6 +246,7 @@ struct rpl_instance {
   clock_time_t dio_next_delay; /* delay for completion of dio interval */
 #if RPL_WITH_PROBING
   struct ctimer probing_timer;
+  rpl_parent_t *urgent_probing_target;
 #endif /* RPL_WITH_PROBING */
   struct ctimer dio_timer;
   struct ctimer dao_timer;
