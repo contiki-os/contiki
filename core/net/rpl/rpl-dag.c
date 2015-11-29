@@ -791,8 +791,12 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   /* Update the DAG rank. */
   best_dag->rank = rpl_rank_via_parent(best_dag->preferred_parent);
   if(last_parent == NULL || best_dag->rank < best_dag->min_rank) {
+    /* This is a slight departure from RFC6550: if we had no preferred parent before,
+     * reset min_rank. This helps recovering from temporary bad link conditions. */
     best_dag->min_rank = best_dag->rank;
-  } else if(!acceptable_rank(best_dag, best_dag->rank)) {
+  }
+
+  if(!acceptable_rank(best_dag, best_dag->rank)) {
     PRINTF("RPL: New rank unacceptable!\n");
     rpl_set_preferred_parent(instance->current_dag, NULL);
     if(instance->mop != RPL_MOP_NO_DOWNWARD_ROUTES && last_parent != NULL) {
