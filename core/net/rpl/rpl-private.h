@@ -199,13 +199,6 @@
 #define RPL_MCAST_LIFETIME 3
 #endif
 
-/*
- * The ETX in the metric container is expressed as a fixed-point value 
- * whose integer part can be obtained by dividing the value by 
- * RPL_DAG_MC_ETX_DIVISOR.
- */
-#define RPL_DAG_MC_ETX_DIVISOR		256
-
 /* DIS related */
 #define RPL_DIS_SEND                    1
 
