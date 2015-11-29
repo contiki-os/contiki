@@ -49,8 +49,8 @@
 typedef uint16_t rpl_rank_t;
 typedef uint16_t rpl_ocp_t;
 /*---------------------------------------------------------------------------*/
-/* DAG Metric Container Object Types, to be confirmed by IANA. */
-#define RPL_DAG_MC_NONE			0 /* Local identifier for empty MC */
+/* IANA Routing Metric/Constraint Type as defined in RFC6551 */
+#define RPL_DAG_MC_NONE			            0 /* Local identifier for empty MC */
 #define RPL_DAG_MC_NSA                  1 /* Node State and Attributes */
 #define RPL_DAG_MC_ENERGY               2 /* Node Energy */
 #define RPL_DAG_MC_HOPCOUNT             3 /* Hop Count */
@@ -60,27 +60,31 @@ typedef uint16_t rpl_ocp_t;
 #define RPL_DAG_MC_ETX                  7 /* Expected Transmission Count */
 #define RPL_DAG_MC_LC                   8 /* Link Color */
 
-/* DAG Metric Container flags. */
-#define RPL_DAG_MC_FLAG_P               0x8
-#define RPL_DAG_MC_FLAG_C               0x4
-#define RPL_DAG_MC_FLAG_O               0x2
-#define RPL_DAG_MC_FLAG_R               0x1
+/* IANA Routing Metric/Constraint Common Header Flag field as defined in RFC6551 (bit indexes) */
+#define RPL_DAG_MC_FLAG_P               5
+#define RPL_DAG_MC_FLAG_C               6
+#define RPL_DAG_MC_FLAG_O               7
+#define RPL_DAG_MC_FLAG_R               8
 
-/* DAG Metric Container aggregation mode. */
+/* IANA Routing Metric/Constraint Common Header A Field as defined in RFC6551 */
 #define RPL_DAG_MC_AGGR_ADDITIVE        0
 #define RPL_DAG_MC_AGGR_MAXIMUM         1
 #define RPL_DAG_MC_AGGR_MINIMUM         2
 #define RPL_DAG_MC_AGGR_MULTIPLICATIVE  3
 
-/* The bit index within the flags field of
-   the rpl_metric_object_energy structure. */
-#define RPL_DAG_MC_ENERGY_INCLUDED	3
-#define RPL_DAG_MC_ENERGY_TYPE		1
-#define RPL_DAG_MC_ENERGY_ESTIMATION	0
+/* The bit index within the flags field of the rpl_metric_object_energy structure. */
+#define RPL_DAG_MC_ENERGY_INCLUDED	    3
+#define RPL_DAG_MC_ENERGY_TYPE		      1
+#define RPL_DAG_MC_ENERGY_ESTIMATION	  0
 
-#define RPL_DAG_MC_ENERGY_TYPE_MAINS		0
-#define RPL_DAG_MC_ENERGY_TYPE_BATTERY		1
-#define RPL_DAG_MC_ENERGY_TYPE_SCAVENGING	2
+/* IANA Node Type Field as defined in RFC6551 */
+#define RPL_DAG_MC_ENERGY_TYPE_MAINS		   0
+#define RPL_DAG_MC_ENERGY_TYPE_BATTERY		 1
+#define RPL_DAG_MC_ENERGY_TYPE_SCAVENGING	 2
+
+/* IANA Objective Code Point as defined in RFC6550 */
+#define RPL_OCP_OF0     0
+#define RPL_OCP_MRHOF   1
 
 struct rpl_metric_object_energy {
   uint8_t flags;
