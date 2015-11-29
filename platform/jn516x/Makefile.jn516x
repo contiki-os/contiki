@@ -9,6 +9,11 @@ ifdef CHIP
 else
 JENNIC_CHIP ?= JN5168
 endif
+ifdef MODULE
+  JN5168_MODULE = $(MODULE)
+else
+  JN5168_MODULE ?= M00
+endif
 JENNIC_PCB ?= DEVKIT4
 JENNIC_STACK ?= MAC
 JENNIC_MAC ?= MiniMac
@@ -125,6 +130,10 @@ ifeq ($(JN516x_WITH_DONGLE),1)
 CFLAGS += -DDONGLE_NODE
 CONTIKI_TARGET_DIRS += dev/dongle
 ARCH += leds-arch.c
+endif
+
+ifeq ($(JENNIC_CHIP),JN5168)
+CFLAGS += -DJN5168_$(JN5168_MODULE)
 endif
 
 ifdef nodemac
