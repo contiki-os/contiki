@@ -98,8 +98,8 @@
 /* Is the "hash" function collision-free? (e.g. it maps to unique node-ids) */
 #ifdef ORCHESTRA_CONF_COLLISION_FREE_HASH
 #define ORCHESTRA_COLLISION_FREE_HASH             ORCHESTRA_CONF_COLLISION_FREE_HASH
-#else /* ORCHESTRA_CONF_MAX_HASH */
-#define ORCHESTRA_CONF_COLLISION_FREE_HASH        0 /* Set to 1 if ORCHESTRA_LINKADDR_HASH returns unique hashes */
-#endif /* ORCHESTRA_CONF_MAX_HASH */
+#else /* ORCHESTRA_CONF_COLLISION_FREE_HASH */
+#define ORCHESTRA_COLLISION_FREE_HASH             0 /* Set to 1 if ORCHESTRA_LINKADDR_HASH returns unique hashes */
+#endif /* ORCHESTRA_CONF_COLLISION_FREE_HASH */
 
 #endif /* __ORCHESTRA_CONF_H__ */

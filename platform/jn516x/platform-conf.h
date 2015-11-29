@@ -116,6 +116,13 @@ typedef uint32_t rtimer_clock_t;
 #define DR_11744_DIO6 16
 #define DR_11744_DIO7 17
 
+/* Enable power amplifier of JN5168 M05 and M06 modules */
+#if defined(JN5168_M05) || defined(JN5168_M06)
+#define RADIO_TEST_MODE RADIO_TEST_MODE_HIGH_PWR
+#else
+#define RADIO_TEST_MODE RADIO_TEST_MODE_DISABLED
+#endif
+
 #define TSCH_DEBUG 0
 
 #if TSCH_DEBUG
