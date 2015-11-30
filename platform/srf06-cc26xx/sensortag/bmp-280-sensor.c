@@ -286,7 +286,7 @@ convert(uint8_t *data, int32_t *temp, uint32_t *press)
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Returns a reading from the sensor
- * \param BMP_280_SENSOR_TYPE_TEMP or BMP_280_SENSOR_TYPE_PRESS
+ * \param type BMP_280_SENSOR_TYPE_TEMP or BMP_280_SENSOR_TYPE_PRESS
  * \return Temperature (centi degrees C) or Pressure (Pascal).
  */
 static int
