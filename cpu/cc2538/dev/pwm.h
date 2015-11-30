@@ -43,8 +43,12 @@
  * easily changed (see PWM_FREQ_MIN and PWM_FREQ_MAX values).  The reason it is
  * fixed to these frequencies is to have a consistent duty cycle
  * implementation.
+ *
  * Depending on the specific needs these limits can be changed to meet a given
  * duty cycle and lower frequencies by using the prescaler (GPTIMER_TnPR).
+ *
+ * The PWM timer is stopped when dropping below PM0, alternatively you can set
+ * LPM_CONF_MAX_PM to zero, or call lpm_max_pm(0)
  *
  * @{
  *
