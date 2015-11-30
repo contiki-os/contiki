@@ -33,7 +33,7 @@
  */
 
 /****************************************************************************************************//**
- * @file     ADUCRF101.h
+ * @file     ADuCRF101.h
  *
  * @brief    CMSIS Cortex-M3 Core Peripheral Access Layer Header File for
  *           default ADUCRF101 Device Series

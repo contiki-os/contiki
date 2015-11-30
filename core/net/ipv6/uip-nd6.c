@@ -811,7 +811,7 @@ uip_nd6_rs_output(void)
   return;
 }
 /*---------------------------------------------------------------------------*/
-/*
+/**
  * Process a Router Advertisement
  *
  * - Possible actions when receiving a RA: add router to router list,
