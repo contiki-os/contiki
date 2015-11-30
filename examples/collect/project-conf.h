@@ -37,7 +37,7 @@
 
 /* Set to run orchestra */
 #ifndef WITH_ORCHESTRA
-#define WITH_ORCHESTRA 0
+#define WITH_ORCHESTRA 1
 #endif /* WITH_ORCHESTRA */
 
 /* Set to enable TSCH security */
@@ -63,7 +63,7 @@
 
 /* TSCH and RPL callbacks */
 //#define RPL_CALLBACK_PARENT_SWITCH tsch_rpl_callback_parent_switch
-//#define RPL_CALLBACK_NEW_DIO_INTERVAL tsch_rpl_callback_new_dio_interval
+#define RPL_CALLBACK_NEW_DIO_INTERVAL tsch_rpl_callback_new_dio_interval
 //#define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network
 //#define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
 
@@ -75,6 +75,8 @@
 #undef CC2420_CONF_SFD_TIMESTAMPS
 #define CC2420_CONF_SFD_TIMESTAMPS       1
 
+#undef CC2538_CONF_SFD_TIMESTAMPS
+#define CC2538_CONF_SFD_TIMESTAMPS       1
 /*******************************************************/
 /******************* Configure TSCH ********************/
 /*******************************************************/
@@ -82,15 +84,15 @@
 /* TSCH logging. 0: disabled. 1: basic log. 2: with delayed
  * log messages from interrupt */
 #undef TSCH_LOG_CONF_LEVEL
-#define TSCH_LOG_CONF_LEVEL 0
+#define TSCH_LOG_CONF_LEVEL 1
 
 /* IEEE802.15.4 PANID */
 #undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID 0xabcd
+#define IEEE802154_CONF_PANID 0xabc1
 
 /* Do not start TSCH at init, wait for NETSTACK_MAC.on() */
 #undef TSCH_CONF_AUTOSTART
-#define TSCH_CONF_AUTOSTART 0
+#define TSCH_CONF_AUTOSTART 1
 
 /* 6TiSCH minimal schedule length.
  * Larger values result in less frequent active slots: reduces capacity and saves energy. */

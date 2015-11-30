@@ -45,6 +45,7 @@
 #include "dev/crypto.h"
 #include "dev/sha256.h"
 #include "reg.h"
+#include "sys/cc.h"
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -53,8 +54,6 @@
 /*---------------------------------------------------------------------------*/
 #define BLOCK_SIZE      64
 #define OUTPUT_LEN      32
-/*---------------------------------------------------------------------------*/
-#define MIN(a, b)       ((a) < (b) ? (a) : (b))
 /*---------------------------------------------------------------------------*/
 /** \brief Starts a new hash session in hardware
  * \param state Hash state

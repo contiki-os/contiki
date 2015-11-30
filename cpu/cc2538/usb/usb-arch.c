@@ -412,7 +412,7 @@ usb_submit_xmit_buffer(uint8_t addr, usb_buffer *buffer)
 {
   usb_buffer **tailp;
   uint8_t flag;
-  uint8_t res;
+  uint8_t res = 0;
   usb_endpoint_t *ep = EP_STRUCT(addr);
 
   if(!(ep->flags & USB_EP_FLAGS_ENABLED)) {
@@ -872,7 +872,7 @@ fill_buffers(usb_buffer *buffer, uint8_t hw_ep, unsigned int len,
 static uint8_t
 ep0_get_setup_pkt(void)
 {
-  uint8_t res;
+  uint8_t res = 0;
   usb_buffer *buffer =
     skip_buffers_until(usb_endpoints[0].buffer, USB_BUFFER_SETUP,
                        USB_BUFFER_SETUP, &res);
@@ -916,7 +916,6 @@ ep0_get_data_pkt(void)
   }
 
   if(buffer->flags & (USB_BUFFER_SETUP | USB_BUFFER_IN)) {
-    uint8_t temp;
 
     buffer->flags |= USB_BUFFER_FAILED;
     buffer->flags &= ~USB_BUFFER_SUBMITTED;
@@ -925,7 +924,7 @@ ep0_get_data_pkt(void)
     }
     /* Flush the fifo */
     while(len--) {
-      temp = REG(USB_F0);
+      REG(USB_F0);
     }
     usb_endpoints[0].buffer = buffer->next;
     /* Force data stage end */
@@ -1033,7 +1032,7 @@ static void
 ep0_interrupt_handler(void)
 {
   uint8_t cs0;
-  uint8_t res;
+  uint8_t res = 0;
 
   REG(USB_INDEX) = 0;
   cs0 = REG(USB_CS0);

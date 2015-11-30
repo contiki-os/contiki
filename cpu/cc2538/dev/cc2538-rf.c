@@ -71,7 +71,7 @@
 #define UDMA_RX_SIZE_THRESHOLD 3
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -160,6 +160,15 @@ static const output_config_t output_power[] = {
 /* Max and Min Output Power in dBm */
 #define OUTPUT_POWER_MIN    (output_power[OUTPUT_CONFIG_COUNT - 1].power)
 #define OUTPUT_POWER_MAX    (output_power[0].power)
+
+/* TODO: XXX hack: these will be made as chameleon xxx */
+//rtimer_clock_t cc2538_time_of_arrival, cc2538_time_of_departure;
+
+//volatile uint8_t cc2538_sfd_counter;
+//volatile uint16_t cc2538_sfd_start_time;
+//volatile uint16_t cc2538_sfd_end_time;
+
+//static volatile uint16_t last_packet_timestamp;
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2538_rf_process, "cc2538 RF driver");
 /*---------------------------------------------------------------------------*/
@@ -345,7 +354,6 @@ set_auto_ack(uint8_t enable)
 }
 /*---------------------------------------------------------------------------*/
 /* Enable or disable radio interrupts (both FIFOP and SFD timer capture) */
-#if 1
 static void
 set_poll_mode(uint8_t enable)
 {
@@ -360,7 +368,13 @@ set_poll_mode(uint8_t enable)
     nvic_interrupt_enable(NVIC_INT_RF_RXTX);
   }
 }
-#endif 
+/*---------------------------------------------------------------------------*/
+/* Enable or disable CCA before sending */
+static void 
+set_send_on_cca(uint8_t enable)
+{
+  send_on_cca = enable;
+}
 /*---------------------------------------------------------------------------*/
 /* Netstack API radio driver functions */
 /*---------------------------------------------------------------------------*/
@@ -891,7 +905,8 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RX_MODE:
     if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
-                 RADIO_RX_MODE_AUTOACK)) {
+                 RADIO_RX_MODE_AUTOACK |
+                 RADIO_RX_MODE_POLL_MODE)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
@@ -900,8 +915,10 @@ set_value(radio_param_t param, radio_value_t value)
     set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TX_MODE:
-    if (send_on_cca) {
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
+      return RADIO_RESULT_INVALID_VALUE;
     }
+    set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
@@ -923,6 +940,19 @@ get_object(radio_param_t param, void *dest, size_t size)
 {
   uint8_t *target;
   int i;
+
+  if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+#if CC2538_CONF_SFD_TIMESTAMPS
+    if(size != sizeof(rtimer_clock_t) || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    *(rtimer_clock_t*)dest = REG(RFCORE_SFR_MTM1) << 8 | REG(RFCORE_SFR_MTM0);
+    PRINTF("Mao get_obj: %d", dest);
+    return RADIO_RESULT_OK;
+#else
+    return RADIO_RESULT_NOT_SUPPORTED;
+#endif
+  }
 
   if(param == RADIO_PARAM_64BIT_ADDR) {
     if(size != 8 || !dest) {

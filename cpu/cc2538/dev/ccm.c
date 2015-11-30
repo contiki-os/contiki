@@ -46,13 +46,14 @@
 #include "dev/ccm.h"
 #include "dev/nvic.h"
 #include "reg.h"
+#include "sys/cc.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
 /*---------------------------------------------------------------------------*/
-#define MAX(a, b)       ((a) > (b) ? (a) : (b))
+//#define MAX(a, b)       ((a) > (b) ? (a) : (b))
 /*---------------------------------------------------------------------------*/
 uint8_t
 ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
