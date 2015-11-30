@@ -95,10 +95,11 @@ rpl_print_neighbor_list()
     printf("RPL: rank %u dioint %u, %u nbr(s)\n", curr_rank, curr_dio_interval, uip_ds6_nbr_num());
     while(p != NULL) {
       uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
-      printf("RPL: nbr %3u %5u, %5u => %5u %c (last tx %u min ago)\n",
+      printf("RPL: nbr %3u %5u, %5u => %5u %c%c (last tx %u min ago)\n",
           nbr_table_get_lladdr(rpl_parents, p)->u8[7],
           p->rank, nbr ? nbr->link_metric : 0,
           default_instance->of->calculate_rank(p, 0),
+          default_instance->current_dag == p->dag ? 'd' : ' ',
           p == default_instance->current_dag->preferred_parent ? '*' : ' ',
           (unsigned)((now - p->last_tx_time) / (60 * CLOCK_SECOND)));
       p = nbr_table_next(rpl_parents, p);
@@ -1026,7 +1027,7 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
 #if RPL_MAX_DAG_PER_INSTANCE > 1
 /*---------------------------------------------------------------------------*/
-void
+rpl_dag_t *
 rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
   rpl_instance_t *instance;
@@ -1037,7 +1038,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
   dag = rpl_alloc_dag(dio->instance_id, &dio->dag_id);
   if(dag == NULL) {
     PRINTF("RPL: Failed to allocate a DAG object!\n");
-    return;
+    return NULL;
   }
 
   instance = dag->instance;
@@ -1051,7 +1052,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
     if(p == NULL) {
       PRINTF("failed\n");
       dag->used = 0;
-      return;
+      return NULL;
     }
     PRINTF("succeeded\n");
   } else {
@@ -1078,7 +1079,7 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 	   dio->instance_id);
     rpl_remove_parent(p);
     dag->used = 0;
-    return;
+    return NULL;
   }
 
   dag->used = 1;
@@ -1104,6 +1105,8 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   rpl_process_parent_event(instance, p);
   p->dtsn = dio->dtsn;
+
+  return dag;
 }
 #endif /* RPL_MAX_DAG_PER_INSTANCE > 1 */
 
@@ -1303,8 +1306,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(dag == NULL) {
 #if RPL_MAX_DAG_PER_INSTANCE > 1
     PRINTF("RPL: Adding new DAG to known instance.\n");
-    rpl_add_dag(from, dio);
-    return;
+    dag = rpl_add_dag(from, dio);
+    if(dag == NULL) {
+      PRINTF("RPL: Failed to add DAG.\n");
+      return;
+    }
 #else /* RPL_MAX_DAG_PER_INSTANCE > 1 */
     PRINTF("RPL: Only one instance supported.\n");
     return;
