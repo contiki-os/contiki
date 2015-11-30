@@ -169,14 +169,14 @@ PROCESS_THREAD(wget_process, ev, data)
     strcpy(url, contiki_argv[1]);
     puts(url);
   } else {
-    gets(url);
+    fgets(url, sizeof(url), stdin);
   }
   fputs("Save as:", stdout);
   if(contiki_argc > 2) {
     strcpy(name, contiki_argv[2]);
     puts(name);
   } else {
-    gets(name);
+    fgets(name, sizeof(name), stdin);
   }
   file = cfs_open(name, CFS_WRITE);
   if(file == -1) {

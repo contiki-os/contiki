@@ -83,7 +83,9 @@ static uip_ipaddr_t loc_fipaddr;
 /* Pointers used in this file */
 static uip_ds6_addr_t *locaddr;
 static uip_ds6_maddr_t *locmaddr;
+#if UIP_DS6_AADDR_NB
 static uip_ds6_aaddr_t *locaaddr;
+#endif /* UIP_DS6_AADDR_NB */
 static uip_ds6_prefix_t *locprefix;
 
 /*---------------------------------------------------------------------------*/
@@ -274,7 +276,7 @@ uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
     }
     PRINTF("Adding prefix ");
     PRINT6ADDR(&locprefix->ipaddr);
-    PRINTF("length %u, vlifetime%lu\n", ipaddrlen, interval);
+    PRINTF("length %u, vlifetime %lu\n", ipaddrlen, interval);
     return locprefix;
   }
   return NULL;
@@ -295,9 +297,9 @@ uip_ds6_prefix_t *
 uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen)
 {
   if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_prefix_list,
-		       UIP_DS6_PREFIX_NB, sizeof(uip_ds6_prefix_t),
-		       ipaddr, ipaddrlen,
-		       (uip_ds6_element_t **)&locprefix) == FOUND) {
+                       UIP_DS6_PREFIX_NB, sizeof(uip_ds6_prefix_t),
+                       ipaddr, ipaddrlen,
+                       (uip_ds6_element_t **)&locprefix) == FOUND) {
     return locprefix;
   }
   return NULL;
@@ -458,6 +460,7 @@ uip_ds6_maddr_lookup(const uip_ipaddr_t *ipaddr)
 uip_ds6_aaddr_t *
 uip_ds6_aaddr_add(uip_ipaddr_t *ipaddr)
 {
+#if UIP_DS6_AADDR_NB
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *)uip_ds6_if.aaddr_list, UIP_DS6_AADDR_NB,
       sizeof(uip_ds6_aaddr_t), ipaddr, 128,
@@ -466,6 +469,7 @@ uip_ds6_aaddr_add(uip_ipaddr_t *ipaddr)
     uip_ipaddr_copy(&locaaddr->ipaddr, ipaddr);
     return locaaddr;
   }
+#endif /* UIP_DS6_AADDR_NB */
   return NULL;
 }
 
@@ -483,11 +487,13 @@ uip_ds6_aaddr_rm(uip_ds6_aaddr_t *aaddr)
 uip_ds6_aaddr_t *
 uip_ds6_aaddr_lookup(uip_ipaddr_t *ipaddr)
 {
+#if UIP_DS6_AADDR_NB
   if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_if.aaddr_list,
-		       UIP_DS6_AADDR_NB, sizeof(uip_ds6_aaddr_t), ipaddr, 128,
-		       (uip_ds6_element_t **)&locaaddr) == FOUND) {
+                       UIP_DS6_AADDR_NB, sizeof(uip_ds6_aaddr_t), ipaddr, 128,
+                       (uip_ds6_element_t **)&locaaddr) == FOUND) {
     return locaaddr;
   }
+#endif /* UIP_DS6_AADDR_NB */
   return NULL;
 }
 
@@ -592,7 +598,7 @@ uip_ds6_dad(uip_ds6_addr_t *addr)
    * If we arrive here it means DAD succeeded, otherwise the dad process
    * would have been interrupted in ds6_dad_ns/na_input
    */
-  PRINTF("DAD succeeded, ipaddr:");
+  PRINTF("DAD succeeded, ipaddr: ");
   PRINT6ADDR(&addr->ipaddr);
   PRINTF("\n");
 

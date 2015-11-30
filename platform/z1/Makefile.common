@@ -57,12 +57,11 @@ ifeq ($(HOST_OS),Darwin)
   ifndef MOTELIST
       USBDEVPREFIX=
       SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
-      MOTELIST = $(CONTIKI)/tools/z1/motelist-z1-macos
-      BSL = $(CONTIKI)/tools/z1/z1-bsl-nopic --z1
+      MOTELIST = $(CONTIKI)/tools/zolertia/motelist-zolertia-macos
+      BSL = $(CONTIKI)/tools/zolertia/z1-bsl-nopic --z1
       BSL_FILETYPE = -I
-      MOTES = $(shell $(MOTELIST) -c 2>&- | \
+      MOTES = $(shell $(MOTELIST) -b z1 -c 2>&- | \
               cut -f 2 -d ,)
-      CMOTES=$(MOTES)
       REFNUM = $(shell $(MOTELIST) -c 2>&- | \
                cut -f 1 -d , | tail -c5 | sed 's/^0*//')
       ifneq (,$(REFNUM))
@@ -77,10 +76,10 @@ else
     ifndef MOTELIST
       USBDEVPREFIX=
       SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
-      MOTELIST = $(CONTIKI)/tools/z1/motelist-z1
-      BSL = $(CONTIKI)/tools/z1/z1-bsl-nopic --z1
+      MOTELIST = $(CONTIKI)/tools/zolertia/motelist-zolertia
+      BSL = $(CONTIKI)/tools/zolertia/z1-bsl-nopic --z1
       BSL_FILETYPE = -I
-      MOTES = $(shell $(MOTELIST) -c 2>&- | \
+      MOTES = $(shell $(MOTELIST) -b z1 -c 2>&- | \
               cut -f 2 -d , | \
               perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
       CMOTES=$(MOTES)
@@ -95,12 +94,10 @@ else
     endif
 endif
 
-
-
-motelist: z1-motelist
-
-z1-motelist:
+motelist:
 	$(MOTELIST)
+z1-motelist:
+	$(MOTELIST) -b z1
 z1-motes:
 	@echo $(MOTES)
 

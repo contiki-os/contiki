@@ -497,7 +497,7 @@ init_security(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_key(uint8_t *key)
+set_key(const uint8_t *key)
 {
   GET_LOCK();
   
@@ -655,17 +655,17 @@ cc2420_transmit(unsigned short payload_len)
 #endif /* WITH_SEND_CCA */
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(CC2420_SFD_IS_1) {
+#if PACKETBUF_WITH_PACKET_TYPE
       {
         rtimer_clock_t sfd_timestamp;
         sfd_timestamp = cc2420_sfd_start_time;
-#if PACKETBUF_WITH_PACKET_TYPE
         if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
            PACKETBUF_ATTR_PACKET_TYPE_TIMESTAMP) {
           /* Write timestamp to last two bytes of packet in TXFIFO. */
           write_ram((uint8_t *) &sfd_timestamp, CC2420RAM_TXFIFO + payload_len - 1, 2, WRITE_RAM_IN_ORDER);
         }
-#endif
       }
+#endif /* PACKETBUF_WITH_PACKET_TYPE */
 
       if(!(get_status() & BV(CC2420_TX_ACTIVE))) {
         /* SFD went high but we are not transmitting. This means that

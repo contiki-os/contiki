@@ -48,6 +48,7 @@
 
 #if CONTIKI_TARGET_COOJA
 #include "lib/simEnvChange.h"
+#include "sys/cooja_mt.h"
 #endif /* CONTIKI_TARGET_COOJA */
 
 #define DEBUG 0

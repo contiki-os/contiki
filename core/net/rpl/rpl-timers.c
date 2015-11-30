@@ -312,7 +312,7 @@ schedule_dao(rpl_instance_t *instance, clock_time_t latency)
 void
 rpl_schedule_dao(rpl_instance_t *instance)
 {
-  schedule_dao(instance, RPL_DAO_LATENCY);
+  schedule_dao(instance, RPL_DAO_DELAY);
 }
 /*---------------------------------------------------------------------------*/
 void

@@ -50,6 +50,7 @@
 #define HAVE_ALLOCA 0
 #else
 #define HAVE_ALLOCA 1
+#include <alloca.h>
 #endif
 
 #define DEBUG 0

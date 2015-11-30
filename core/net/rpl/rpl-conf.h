@@ -238,7 +238,7 @@
 /*
  * RPL probing. When enabled, probes will be sent periodically to keep
  * parent link estimates up to date.
- * */
+ */
 #ifdef RPL_CONF_WITH_PROBING
 #define RPL_WITH_PROBING RPL_CONF_WITH_PROBING
 #else
@@ -247,7 +247,7 @@
 
 /*
  * RPL probing interval.
- * */
+ */
 #ifdef RPL_CONF_PROBING_INTERVAL
 #define RPL_PROBING_INTERVAL RPL_CONF_PROBING_INTERVAL
 #else
@@ -256,7 +256,7 @@
 
 /*
  * RPL probing expiration time.
- * */
+ */
 #ifdef RPL_CONF_PROBING_EXPIRATION_TIME
 #define RPL_PROBING_EXPIRATION_TIME RPL_CONF_PROBING_EXPIRATION_TIME
 #else
@@ -265,7 +265,7 @@
 
 /*
  * Function used to select the next parent to be probed.
- * */
+ */
 #ifdef RPL_CONF_PROBING_SELECT_FUNC
 #define RPL_PROBING_SELECT_FUNC RPL_CONF_PROBING_SELECT_FUNC
 #else
@@ -279,7 +279,7 @@
  * To probe with DIS, use:
  * #define RPL_CONF_PROBING_SEND_FUNC(instance, addr) dis_output((addr))
  * Any other custom probing function is also acceptable.
- * */
+ */
 #ifdef RPL_CONF_PROBING_SEND_FUNC
 #define RPL_PROBING_SEND_FUNC RPL_CONF_PROBING_SEND_FUNC
 #else
@@ -288,12 +288,30 @@
 
 /*
  * Function used to calculate next RPL probing interval
- * */
+ */
 #ifdef RPL_CONF_PROBING_DELAY_FUNC
 #define RPL_PROBING_DELAY_FUNC RPL_CONF_PROBING_DELAY_FUNC
 #else
 #define RPL_PROBING_DELAY_FUNC() ((RPL_PROBING_INTERVAL / 2) \
     + random_rand() % (RPL_PROBING_INTERVAL))
+#endif
+
+/*
+ * Interval of DIS transmission
+ */
+#ifdef  RPL_CONF_DIS_INTERVAL
+#define RPL_DIS_INTERVAL                RPL_CONF_DIS_INTERVAL
+#else
+#define RPL_DIS_INTERVAL                60
+#endif
+
+/*
+ * Added delay of first DIS transmission after boot
+ */
+#ifdef  RPL_CONF_DIS_START_DELAY
+#define RPL_DIS_START_DELAY             RPL_CONF_DIS_START_DELAY
+#else
+#define RPL_DIS_START_DELAY             5
 #endif
 
 #endif /* RPL_CONF_H */

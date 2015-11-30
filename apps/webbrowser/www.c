@@ -52,6 +52,8 @@
 
 #include "www.h"
 
+/* Explicitly declare itoa as it is non-standard and not necessarily in stdlib.h */
+char *itoa(int value, char *str, int base);
 
 /* The array that holds the current URL. */
 static char url[WWW_CONF_MAX_URLLEN + 1];
@@ -843,7 +845,9 @@ add_pagewidget(char *text, unsigned char size, char *attrib, unsigned char type,
 void
 htmlparser_newline(void)
 {
+#ifdef WITH_PETSCII
   char *wptr;
+#endif /* WITH_PETSCII */
 
   if(++newlines > 2) {
     return;
@@ -863,8 +867,10 @@ htmlparser_newline(void)
   ++y;
   x = 0;
 
+#ifdef WITH_PETSCII
   wptr = webpageptr - WWW_CONF_WEBPAGE_WIDTH;
   petsciiconv_topetscii(wptr, WWW_CONF_WEBPAGE_WIDTH);
+#endif /* WITH_PETSCII */
 
   if(y == WWW_CONF_WEBPAGE_HEIGHT) {
     loading = 0;

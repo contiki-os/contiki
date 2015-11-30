@@ -38,6 +38,7 @@
 #include "light-sensor.h"
 #include "ht-sensor.h"
 #include "leds.h"
+#include "leds-extension.h"
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_process, "Sensor test process");

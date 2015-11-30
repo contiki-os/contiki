@@ -808,7 +808,8 @@ EXCLUDE_SYMLINKS       = NO
 # exclude all test directories for example use the pattern */test/*
 
 EXCLUDE_PATTERNS       = */cpu/cc26xx-cc13xx/lib/* \
-                         */cpu/cc26xx-cc13xx/rf-core/api/*
+                         */cpu/cc26xx-cc13xx/rf-core/api/* \
+			 */platform/stm32nucleo-spirit1/stm32cube-lib/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
