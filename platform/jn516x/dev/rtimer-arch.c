@@ -113,7 +113,7 @@ rtimer_arch_init(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-rtimer_arch_reinit(rtimer_clock_t wakeup_time)
+rtimer_arch_reinit(rtimer_clock_t sleep_start, rtimer_clock_t sleep_ticks)
 {
   uint64_t t;
   /* Initialise tick timer to run continuously */
@@ -123,7 +123,7 @@ rtimer_arch_reinit(rtimer_clock_t wakeup_time)
   vAHI_InterruptSetPriority(MICRO_ISR_MASK_TICK_TMR, 15);
   vAHI_TickTimerRegisterCallback(rtimer_arch_run_next);
   WAIT_FOR_EDGE(t);
-  vAHI_TickTimerWrite(wakeup_time);
+  vAHI_TickTimerWrite(sleep_start + sleep_ticks);
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
 
   if(has_next) {
@@ -151,7 +151,7 @@ rtimer_arch_schedule(rtimer_clock_t t)
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
-rtimer_arch_get_time_until_next_wakeup(void)
+rtimer_arch_time_to_rtimer(void)
 {
   rtimer_clock_t now = RTIMER_NOW();
   if(has_next) {

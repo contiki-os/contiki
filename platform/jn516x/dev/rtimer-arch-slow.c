@@ -111,9 +111,11 @@ timerISR(uint32 u32Device, uint32 u32ItemBitmap)
 void
 rtimer_arch_init(void)
 {
-  /* disable the tick timer */
+  /* Initialise tick timer to run continuously */
   vAHI_TickTimerIntEnable(0);
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
+  vAHI_TickTimerWrite(0);
+  vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
 
   vAHI_SysCtrlRegisterCallback(timerISR);
   /* set the highest priority for the rtimer interrupt */
@@ -129,9 +131,19 @@ rtimer_arch_init(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-rtimer_arch_reinit(rtimer_clock_t wakeup_time)
+rtimer_arch_reinit(rtimer_clock_t sleep_start, rtimer_clock_t sleep_ticks)
 {
-  (void)wakeup_time;
+  uint64_t t;
+
+  uint32_t wakeup_time = sleep_start + (uint64_t)sleep_ticks * (F_CPU / 2) / RTIMER_SECOND;
+
+  /* Initialise tick timer to run continuously */
+  vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
+  vAHI_TickTimerIntEnable(0);
+  WAIT_FOR_EDGE(t);
+  vAHI_TickTimerWrite(wakeup_time);
+  vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
+
   /* call pending interrupts */
   (void)u32AHI_Init();
 
@@ -158,7 +170,7 @@ rtimer_arch_schedule(rtimer_clock_t t)
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
-rtimer_arch_get_time_until_next_wakeup(void)
+rtimer_arch_time_to_rtimer(void)
 {
   rtimer_clock_t now = RTIMER_NOW();
   if(has_next) {

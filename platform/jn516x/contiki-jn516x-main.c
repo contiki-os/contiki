@@ -124,7 +124,7 @@ static void main_loop(void);
 static unsigned long last_dco_calibration_time;
 #endif
 static uint64_t sleep_start;
-static uint64_t sleep_start_rtimer;
+static uint32_t sleep_start_ticks;
 
 /*---------------------------------------------------------------------------*/
 #define DEBUG 1
@@ -430,6 +430,9 @@ static void
 main_loop(void)
 {
   int r;
+  clock_t time_to_etimer;
+  rtimer_clock_t ticks_to_rtimer;
+
   while(1) {
     do {
       /* Reset watchdog. */
@@ -447,7 +450,7 @@ main_loop(void)
      * PS: Calibration disables interrupts and blocks for 200uSec.
      *  */
     if(clock_seconds() - last_dco_calibration_time > DCOSYNCH_PERIOD) {
-      if(rtimer_arch_get_time_until_next_wakeup() > RTIMER_SECOND / 2000) {
+      if(rtimer_arch_time_to_rtimer() > RTIMER_SECOND / 2000) {
         /* PRINTF("ContikiMain: Calibrating the DCO\n"); */
         eAHI_AttemptCalibration();
         /* Patch to allow CpuDoze after calibration */
@@ -457,35 +460,26 @@ main_loop(void)
     }
 #endif /* DCOSYNCH_CONF_ENABLED */
 
-#if JN516X_SLEEP_ENABLED
     /* flush standard output before sleeping */
     uart_driver_flush(E_AHI_UART_0);
 
+    /* calculate the time to the next etimer and rtimer */
+    time_to_etimer = clock_arch_time_to_etimer();
+    ticks_to_rtimer = rtimer_arch_time_to_rtimer();
+
+#if JN516X_SLEEP_ENABLED
     /* we can sleep only up to the next rtimer/etimer */
-    rtimer_clock_t max_sleep_time = rtimer_arch_get_time_until_next_wakeup();
+    rtimer_clock_t max_sleep_time = ticks_to_rtimer;
     if(max_sleep_time >= JN516X_MIN_SLEEP_TIME) {
       /* also take into account etimers */
-      clock_t etimer_expiration = etimer_next_expiration_time();
-      if(etimer_expiration != 0) {
-       clock_t diff = etimer_expiration - clock_time();
-        if((int32_t)diff <= 0) {
-          max_sleep_time = 0;
-        } else {
-          uint64_t until_etimer = (uint64_t)diff * RTIMER_SECOND / CLOCK_SECOND;
-          if(until_etimer < max_sleep_time) {
-            max_sleep_time = until_etimer;
-          }
-        }
-      }
+      uint64_t ticks_to_etimer = ((uint64_t)time_to_etimer * RTIMER_SECOND) / CLOCK_SECOND;
+      max_sleep_time = MIN(ticks_to_etimer, ticks_to_rtimer);
     }
 
     if(max_sleep_time >= JN516X_MIN_SLEEP_TIME) {
-      if(max_sleep_time == (rtimer_clock_t)-1) {
-        /* use a default maximal time: 1 second */
-        max_sleep_time = RTIMER_SECOND;
-      } else {
-        max_sleep_time -= JN516X_SLEEP_GUARD_TIME;
-      }
+      max_sleep_time -= JN516X_SLEEP_GUARD_TIME;
+      /* bound the sleep time to 1 second */
+      max_sleep_time = MIN(max_sleep_time, JN516X_MAX_SLEEP_TIME);
 
 #if !RTIMER_USE_32KHZ
       /* convert to 32.768 kHz oscillator ticks */
@@ -494,11 +488,7 @@ main_loop(void)
       vAHI_WakeTimerEnable(WAKEUP_TIMER, TRUE);
       /* sync with the tick timer */
       WAIT_FOR_EDGE(sleep_start);
-#if RTIMER_USE_32KHZ
-      sleep_start_rtimer = sleep_start;
-#else
-      sleep_start_rtimer = u32AHI_TickTimerRead();
-#endif
+      sleep_start_ticks = u32AHI_TickTimerRead();
 
       vAHI_WakeTimerStartLarge(WAKEUP_TIMER, max_sleep_time);
       ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_EXTRA_LPM);
@@ -507,6 +497,7 @@ main_loop(void)
 #else
     {
 #endif /* JN516X_SLEEP_ENABLED */
+      clock_arch_schedule_interrupt(time_to_etimer, ticks_to_rtimer);
       ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
       vAHI_CpuDoze();
       u32AHI_Init();
@@ -535,7 +526,7 @@ AppWarmStart(void)
   uint64_t sleep_end;
   rtimer_clock_t sleep_ticks_rtimer;
 
-  clock_calibrate();
+  clock_arch_calibrate();
   leds_init();
   uart0_init(UART_BAUD_RATE); /* Must come before first PRINTF */
   NETSTACK_RADIO.init();
@@ -557,17 +548,16 @@ AppWarmStart(void)
 #endif
 
   /* reinitialize rtimers */
-  rtimer_arch_reinit(sleep_start_rtimer + sleep_ticks_rtimer);
+  rtimer_arch_reinit(sleep_start_ticks, sleep_ticks_rtimer);
 
   ENERGEST_SWITCH(ENERGEST_TYPE_EXTRA_LPM, ENERGEST_TYPE_CPU);
 
   watchdog_start();
 
-  /* some ticks may have passed; record the time again */
-  WAIT_FOR_EDGE(sleep_end);
-  sleep_ticks = (uint32_t)(sleep_start - sleep_end);
-  /* reinitialize clock  */
-  clock_reinit(sleep_ticks);
+  /* reinitialize clock */
+  clock_arch_init();
+  /* schedule etimer interrupt */
+  clock_arch_schedule_interrupt(clock_arch_time_to_etimer(), rtimer_arch_time_to_rtimer());
 
 #if DCOSYNCH_CONF_ENABLED
   /* The radio is recalibrated on wakeup */
