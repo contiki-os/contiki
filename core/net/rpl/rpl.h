@@ -162,6 +162,10 @@ typedef struct rpl_instance rpl_instance_t;
  *
  *  Returns the link metric of a parent
  *
+ * parent_has_usable_link(parent)
+ *
+ *  Returns 1 iff we have a usable link to this parent
+ *
  * parent_path_cost(parent)
  *
  *  Returns the path cost of a parent
@@ -200,6 +204,7 @@ struct rpl_of {
   void (*dao_ack_callback)(rpl_parent_t *, int status);
 #endif
   uint16_t (*parent_link_metric)(rpl_parent_t *);
+  int (*parent_has_usable_link)(rpl_parent_t *);
   uint16_t (*parent_path_cost)(rpl_parent_t *);
   rpl_rank_t (*rank_via_parent)(rpl_parent_t *);
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
@@ -276,6 +281,7 @@ void rpl_remove_header(void);
 uint8_t rpl_invert_header(void);
 const struct link_stats *rpl_get_parent_link_stats(rpl_parent_t *p);
 int rpl_parent_is_fresh(rpl_parent_t *p);
+int rpl_parent_is_reachable(rpl_parent_t *p);
 uint16_t rpl_get_parent_link_metric(rpl_parent_t *p);
 rpl_rank_t rpl_rank_via_parent(rpl_parent_t *p);
 const linkaddr_t *rpl_get_parent_lladdr(rpl_parent_t *p);
