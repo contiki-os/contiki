@@ -185,6 +185,14 @@ parent_is_acceptable(rpl_parent_t *p)
   return link_metric <= MAX_LINK_METRIC && path_cost <= MAX_PATH_COST;
 }
 /*---------------------------------------------------------------------------*/
+static int
+parent_has_usable_link(rpl_parent_t *p)
+{
+  uint16_t link_metric = parent_link_metric(p);
+  /* Exclude links with too high link metrics  */
+  return link_metric <= MAX_LINK_METRIC;
+}
+/*---------------------------------------------------------------------------*/
 static rpl_parent_t *
 best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 {
@@ -296,6 +304,7 @@ rpl_of_t rpl_mrhof = {
   dao_ack_callback,
 #endif
   parent_link_metric,
+  parent_has_usable_link,
   parent_path_cost,
   rank_via_parent,
   best_parent,
