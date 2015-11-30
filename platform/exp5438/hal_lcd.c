@@ -1195,4 +1195,3 @@ void halLcdScrollLine(int Line)
     for (i = Row; i < Row + FONT_HEIGHT; i++)
         halLcdScrollRow(i);
 }
-

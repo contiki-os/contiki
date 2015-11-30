@@ -51,7 +51,6 @@ typedef uint32_t u32_t;
 typedef int32_t  s32_t;
 
 #define CC_CONF_REGISTER_ARGS 1
-#define CC_CONF_FASTCALL      __fastcall__
 
 #define ARCH_DOESNT_NEED_ALIGNED_STRUCTS 1
 

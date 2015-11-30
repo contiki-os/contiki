@@ -1203,8 +1203,8 @@ uip_process(uint8_t flag)
   if(!uip_ds6_is_my_addr(&UIP_IP_BUF->destipaddr) &&
      !uip_ds6_is_my_maddr(&UIP_IP_BUF->destipaddr)) {
     if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) &&
-       !uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) &&
-       !uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) &&
+       !uip_is_addr_linklocal(&UIP_IP_BUF->destipaddr) &&
+       !uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr) &&
        !uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr) &&
        !uip_is_addr_loopback(&UIP_IP_BUF->destipaddr)) {
 
@@ -1238,7 +1238,7 @@ uip_process(uint8_t flag)
       UIP_STAT(++uip_stat.ip.forwarded);
       goto send;
     } else {
-      if((uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr)) &&
+      if((uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr)) &&
          (!uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)) &&
          (!uip_is_addr_loopback(&UIP_IP_BUF->destipaddr)) &&
          (!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) &&
@@ -1745,10 +1745,10 @@ uip_process(uint8_t flag)
   uip_connr->len = 1;
 
   /* rcv_nxt should be the seqno from the incoming packet + 1. */
-  uip_connr->rcv_nxt[3] = UIP_TCP_BUF->seqno[3];
-  uip_connr->rcv_nxt[2] = UIP_TCP_BUF->seqno[2];
-  uip_connr->rcv_nxt[1] = UIP_TCP_BUF->seqno[1];
   uip_connr->rcv_nxt[0] = UIP_TCP_BUF->seqno[0];
+  uip_connr->rcv_nxt[1] = UIP_TCP_BUF->seqno[1];
+  uip_connr->rcv_nxt[2] = UIP_TCP_BUF->seqno[2];
+  uip_connr->rcv_nxt[3] = UIP_TCP_BUF->seqno[3];
   uip_add_rcv_nxt(1);
 
   /* Parse the TCP MSS option, if present. */

@@ -572,7 +572,16 @@ tcpip_ipv6_output(void)
 	    /* This should be copied from the ext header... */
 	    UIP_IP_BUF->proto = proto;
 	  }
-	  UIP_FALLBACK_INTERFACE.output();
+	  /* Inform the other end that the destination is not reachable. If it's
+	   * not informed routes might get lost unexpectedly until there's a need
+	   * to send a new packet to the peer */
+	  if(UIP_FALLBACK_INTERFACE.output() < 0) {
+	    PRINTF("FALLBACK: output error. Reporting DST UNREACH\n");
+	    uip_icmp6_error_output(ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_ADDR, 0);
+	    uip_flags = 0;
+	    tcpip_ipv6_output();
+	    return;
+	  }
 #else
           PRINTF("tcpip_ipv6_output: Destination off-link but no route\n");
 #endif /* !UIP_FALLBACK_INTERFACE */

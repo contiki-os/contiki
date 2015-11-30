@@ -635,7 +635,7 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
     iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_SAM_BIT,
                               &UIP_IP_BUF->srcipaddr, &uip_lladdr);
     /* No context found for this address */
-  } else if(uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) &&
+  } else if(uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr) &&
 	    UIP_IP_BUF->destipaddr.u16[1] == 0 &&
 	    UIP_IP_BUF->destipaddr.u16[2] == 0 &&
 	    UIP_IP_BUF->destipaddr.u16[3] == 0) {
@@ -686,7 +686,7 @@ compress_hdr_hc06(linkaddr_t *link_destaddr)
       iphc1 |= compress_addr_64(SICSLOWPAN_IPHC_DAM_BIT,
 	       &UIP_IP_BUF->destipaddr, (uip_lladdr_t *)link_destaddr);
       /* No context found for this address */
-    } else if(uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) &&
+    } else if(uip_is_addr_linklocal(&UIP_IP_BUF->destipaddr) &&
 	      UIP_IP_BUF->destipaddr.u16[1] == 0 &&
 	      UIP_IP_BUF->destipaddr.u16[2] == 0 &&
 	      UIP_IP_BUF->destipaddr.u16[3] == 0) {
@@ -1087,9 +1087,9 @@ compress_hdr_hc1(linkaddr_t *link_destaddr)
   if(UIP_IP_BUF->vtc != 0x60 ||
      UIP_IP_BUF->tcflow != 0 ||
      UIP_IP_BUF->flow != 0 ||
-     !uip_is_addr_link_local(&UIP_IP_BUF->srcipaddr) ||
+     !uip_is_addr_linklocal(&UIP_IP_BUF->srcipaddr) ||
      !uip_is_addr_mac_addr_based(&UIP_IP_BUF->srcipaddr, &uip_lladdr) ||
-     !uip_is_addr_link_local(&UIP_IP_BUF->destipaddr) ||
+     !uip_is_addr_linklocal(&UIP_IP_BUF->destipaddr) ||
      !uip_is_addr_mac_addr_based(&UIP_IP_BUF->destipaddr,
                                  (uip_lladdr_t *)link_destaddr) ||
      (UIP_IP_BUF->proto != UIP_PROTO_ICMP6 &&
@@ -1443,7 +1443,7 @@ output(const uip_lladdr_t *localdest)
 #else /* USE_FRAMER_HDRLEN */
   framer_hdrlen = 21;
 #endif /* USE_FRAMER_HDRLEN */
-  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen - NETSTACK_LLSEC.get_overhead();
+  max_payload = MAC_MAX_PAYLOAD - framer_hdrlen;
 
   if((int)uip_len - (int)uncomp_hdr_len > max_payload - (int)packetbuf_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG

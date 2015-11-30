@@ -31,7 +31,6 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-
 #include "platform-conf.h"
 
 #define XMAC_CONF_COMPOWER          1
@@ -58,8 +57,7 @@
 #define CXMAC_CONF_ANNOUNCEMENTS         0
 #define XMAC_CONF_ANNOUNCEMENTS          0
 
-#define QUEUEBUF_CONF_NUM                4 
-
+#define QUEUEBUF_CONF_NUM                4
 
 #else /* NETSTACK_CONF_WITH_IPV6 */
 
@@ -108,8 +106,7 @@
 #define SHELL_VARS_CONF_RAM_BEGIN 0x1100
 #define SHELL_VARS_CONF_RAM_END 0x2000
 
-
-#define CFS_CONF_OFFSET_TYPE	long
+#define CFS_CONF_OFFSET_TYPE  long
 
 #define PROFILE_CONF_ON 0
 #define ENERGEST_CONF_ON 1
@@ -127,8 +124,9 @@
 #define PROCESS_CONF_STATS 1
 /*#define PROCESS_CONF_FASTPOLL    4*/
 
+#define UART0_CONF_TX_WITH_INTERRUPT 0 /* So far, printfs without interrupt. */
 
-#define UART0_CONF_TX_WITH_INTERRUPT 0 // So far, printfs without interrupt.
+#define UART0_CONF_RX_WITH_DMA 0
 
 #ifdef NETSTACK_CONF_WITH_IPV6
 
@@ -144,7 +142,7 @@
 /* Handle 10 routes    */
 #define UIP_CONF_MAX_ROUTES   15
 
-#define UIP_CONF_ND6_SEND_RA		0
+#define UIP_CONF_ND6_SEND_RA    0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
 #define UIP_CONF_ND6_RETRANS_TIMER      10000
 
@@ -154,7 +152,7 @@
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_IP_FORWARD             0
-#define UIP_CONF_BUFFER_SIZE		140
+#define UIP_CONF_BUFFER_SIZE    140
 
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
 #ifndef SICSLOWPAN_CONF_FRAG
@@ -186,11 +184,8 @@
 
 #define UIP_CONF_TCP_SPLIT       0
 
-
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */
-
-
 
 #endif /* CONTIKI_CONF_H */

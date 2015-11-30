@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Fraunhofer Heinrich-Hertz-Institut.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,25 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
 
-#include "net/mac/framer.h"
-#include "net/packetbuf.h"
-#include "net/netstack.h"
+#include "contiki-net.h"
+#include "www.h"
 
 /*---------------------------------------------------------------------------*/
-int
-framer_canonical_create_and_secure(void)
-{
-  int hdr_len;
-  
-  hdr_len = NETSTACK_FRAMER.create();
-  if(hdr_len >= 0) {
-    packetbuf_compact();
-    if(!NETSTACK_LLSEC.on_frame_created()) {
-      return FRAMER_FAILED;
-    }
-  }
-  return hdr_len;
-}
+AUTOSTART_PROCESSES(&www_process);
 /*---------------------------------------------------------------------------*/

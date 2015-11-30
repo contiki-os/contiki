@@ -161,7 +161,7 @@ uart_driver_init(uint8_t uart_dev, uint8_t br, uint8_t *txbuf_data,
                            TRUE /* bool_t const bAutoCts */);
 #endif
 
-  printf("UART %d init: using %s buffers %d\n", uart_dev,
+  DBG_vPrintf("UART %d init: using %s buffers %d\n", uart_dev,
          uart_enabled ? "external" : "internal", tx_fifo_size[uart_dev]);
 }
 void

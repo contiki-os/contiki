@@ -1,5 +1,7 @@
 all: tunslip
 
+tunslip6: tools-utils.c tunslip6.c
+
 gitclean:
 	@git clean -d -x -n ..
 	@echo "Enter yes to delete these files";
