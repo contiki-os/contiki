@@ -414,12 +414,14 @@ main(void)
 #if NETSTACK_CONF_WITH_IPV6
   start_uip6();
 #endif /* NETSTACK_CONF_WITH_IPV6 */
+
+  /* need this to reliably generate the first rtimer callback and callbacks in other 
+     auto-start processes */
+  (void)u32AHI_Init();
+
   start_autostart_processes();
 
   leds_off(LEDS_ALL);
-
-  /* need this to reliably generate the first rtimer callback */
-  (void)u32AHI_Init();
 
   main_loop();
 
