@@ -502,7 +502,6 @@ main_loop(void)
       clock_arch_schedule_interrupt(time_to_etimer, ticks_to_rtimer);
       ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
       vAHI_CpuDoze();
-      u32AHI_Init();
       watchdog_start();
       ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
     }
