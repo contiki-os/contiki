@@ -524,6 +524,11 @@ typedef uint32_t rtimer_clock_t;
  *  * ~50us delay + 129preample + ?? = 183 us */
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(183))
 
+/* Enable this to get the 32.768kHz oscillator */
+#ifndef SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL        1
+#endif
+
 #endif /* CONTIKI_CONF_H_ */
 
 /** @} */
