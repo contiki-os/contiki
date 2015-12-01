@@ -126,6 +126,9 @@ rtimer_arch_reinit(rtimer_clock_t sleep_start, rtimer_clock_t sleep_ticks)
   vAHI_TickTimerWrite(sleep_start + sleep_ticks);
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
 
+  /* call pending interrupts */
+  u32AHI_Init();
+
   if(has_next) {
     vAHI_TickTimerIntPendClr();
     vAHI_TickTimerIntEnable(1);
