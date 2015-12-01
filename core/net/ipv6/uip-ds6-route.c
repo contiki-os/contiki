@@ -427,6 +427,12 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
     if(list_head(route->neighbor_routes->route_list) == NULL) {
       /* If this was the only route using this neighbor, remove the
          neighbor from the table - this implicitly unlocks nexthop */
+#if (DEBUG) & DEBUG_ANNOTATE
+      uip_ipaddr_t *nexthop = uip_ds6_route_nexthop(route);
+      if(nexthop != NULL) {
+        ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+      }
+#endif /* (DEBUG) & DEBUG_ANNOTATE */
       PRINTF("uip_ds6_route_rm: removing neighbor too\n");
       nbr_table_remove(nbr_routes, route->neighbor_routes->route_list);
     }
@@ -440,25 +446,6 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
 #if UIP_DS6_NOTIFICATIONS
     call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
         &route->ipaddr, uip_ds6_route_nexthop(route));
-#endif
-#if 0 //(DEBUG & DEBUG_ANNOTATE) == DEBUG_ANNOTATE
-    /* we need to check if this was the last route towards "nexthop" */
-    /* if so - remove that link (annotation) */
-    uip_ds6_route_t *r;
-    for(r = uip_ds6_route_head();
-        r != NULL;
-        r = uip_ds6_route_next(r)) {
-      uip_ipaddr_t *nextr, *nextroute;
-      nextr = uip_ds6_route_nexthop(r);
-      nextroute = uip_ds6_route_nexthop(route);
-      if(nextr != NULL &&
-         nextroute != NULL &&
-         uip_ipaddr_cmp(nextr, nextroute)) {
-        /* we found another link using the specific nexthop, so keep the #L */
-        return;
-      }
-    }
-    ANNOTATE("#L %u 0\n", uip_ds6_route_nexthop(route)->u8[sizeof(uip_ipaddr_t) - 1]);
 #endif
   }
 
