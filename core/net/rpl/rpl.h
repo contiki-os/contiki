@@ -231,6 +231,8 @@ struct rpl_instance {
   struct ctimer dio_timer;
   struct ctimer dao_timer;
   struct ctimer dao_lifetime_timer;
+  struct ctimer unicast_dio_timer;
+  rpl_parent_t *unicast_dio_target;
 };
 
 /*---------------------------------------------------------------------------*/

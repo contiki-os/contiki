@@ -73,6 +73,7 @@ rpl_verify_header(int uip_ext_opt_offset)
   uint16_t sender_rank;
   uint8_t sender_closer;
   uip_ds6_route_t *route;
+  rpl_parent_t *sender = NULL;
 
   if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
     PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
@@ -132,10 +133,25 @@ rpl_verify_header(int uip_ext_opt_offset)
 	 instance->current_dag->rank
 	 );
 
+  sender = nbr_table_get_from_lladdr(rpl_parents, packetbuf_addr(PACKETBUF_ADDR_SENDER));
+
+  if(sender != NULL && (UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR)) {
+    /* A rank error was signalled, attempt to repair it by updating
+     * the sender's rank from ext header */
+    sender->rank = sender_rank;
+    rpl_select_dag(instance, sender);
+  }
+
   if((down && !sender_closer) || (!down && sender_closer)) {
     PRINTF("RPL: Loop detected - senderrank: %d my-rank: %d sender_closer: %d\n",
 	   sender_rank, instance->current_dag->rank,
 	   sender_closer);
+    /* Attempt to repair the loop by sending a unicast DIO back to the sender
+     * so that it gets a fresh update of our rank. */
+    if(sender != NULL) {
+      instance->unicast_dio_target = sender;
+      rpl_schedule_unicast_dio_immediately(instance);
+    }
     if(UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR) {
       RPL_STAT(rpl_stats.loop_errors++);
       PRINTF("RPL: Rank error signalled in RPL option!\n");
