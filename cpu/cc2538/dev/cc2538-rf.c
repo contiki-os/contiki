@@ -477,13 +477,6 @@ init(void)
    */
   REG(RFCORE_XREG_FRMCTRL0) = RFCORE_XREG_FRMCTRL0_AUTOCRC;
 
-  /* Duong: Configure Mac timer to capture input mode */
-#if CC2538_CONF_SFD_TIMESTAMPS
-  REG(RFCORE_SFR_MTMSEL)     &= ~RFCORE_SFR_MTMSEL_MTMSEL ;
-  REG(RFCORE_SFR_MTMSEL)     |= 0x0001 ;
-
-#endif
-
 #if CC2538_RF_AUTOACK
   REG(RFCORE_XREG_FRMCTRL0) |= RFCORE_XREG_FRMCTRL0_AUTOACK;
 #endif
@@ -503,6 +496,16 @@ init(void)
   REG(RFCORE_XREG_TXPOWER) = CC2538_RF_TX_POWER;
 
   set_channel(rf_channel);
+
+  /* Duong: Configure read start time of SFD */
+  /* Acknowledge RF interrupts, SFD only */
+  REG(RFCORE_SFR_MTMSEL)   |= RFCORE_SFR_MTMSEL_MTMSEL ; // select Counter up
+  REG(RFCORE_SFR_MTCTRL)   |= RFCORE_SFR_MTCTRL_RUN ;  // MAC timer run
+  REG(RFCORE_SFR_MTM0)      = (uint8_t)RTIMER_NOW();   // 8 high bits 
+  REG(RFCORE_SFR_MTM1)      = ((uint16_t)RTIMER_NOW() ) >>8 ; // 8 low bits
+  REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;
+  nvic_interrupt_enable(NVIC_INT_RF_RXTX);
+  
 
   /* Acknowledge RF interrupts, FIFOP only */
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;
@@ -542,6 +545,8 @@ init(void)
 
   return 1;
 }
+
+
 /*---------------------------------------------------------------------------*/
 static int
 prepare(const void *payload, unsigned short payload_len)
@@ -1080,12 +1085,25 @@ PROCESS_THREAD(cc2538_rf_process, ev, data)
 void
 cc2538_rf_rx_tx_isr(void)
 {
+  uint16_t temp=0x0F;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  process_poll(&cc2538_rf_process);
+  if( REG(RFCORE_SFR_RFIRQF0) & RFCORE_SFR_RFIRQF0_FIFOP ) { 
 
-  /* We only acknowledge FIFOP so we can safely wipe out the entire SFR */
-  REG(RFCORE_SFR_RFIRQF0) = 0;
+    process_poll(&cc2538_rf_process);
+
+    /* Clear RFCORE_SFR_RFIRQF0_FIFOP flag */
+    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_FIFOP;
+  
+  } 
+  if( REG(RFCORE_SFR_RFIRQF0) & RFCORE_SFR_RFIRQF0_SFD ) {
+    REG(RFCORE_SFR_MTCTRL)  &= ~RFCORE_SFR_MTCTRL_LATCH_MODE ; // LATCH_MODE = 0
+    temp    &= (uint16_t)REG(RFCORE_SFR_MTM0);
+    REG(RFCORE_SFR_MTCTRL)  |= RFCORE_SFR_MTCTRL_LATCH_MODE ; // LATCH_MODE = 1 
+    cc2538_sfd_start_time    = temp | (REG(RFCORE_SFR_MTM1) << 8) ; 
+    /* Clear RFCORE_SFR_RFIRQF0_SFD flag */
+    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
+  }
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }

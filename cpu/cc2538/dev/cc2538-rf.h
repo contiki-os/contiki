@@ -154,6 +154,15 @@ void cc2538_rf_set_addr(uint16_t pan);
  * address as the receive address are returned from the RF core.
  */
 void cc2538_rf_set_promiscous_mode(char p);
+
+/**
+ * \brief Init to read SFD start time
+ * \param none
+ *
+ * This function init interrupt when SFD =1.
+ */
+
+void cc2538_arch_sfd_init(void);
 /*---------------------------------------------------------------------------*/
 #endif /* CC2538_RF_H__ */
 
