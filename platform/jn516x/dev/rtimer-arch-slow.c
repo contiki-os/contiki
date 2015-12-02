@@ -32,9 +32,8 @@
 
 /**
  * \file
- *         RTIMER for NXP jn516x
+ *         RTIMER for NXP jn516x: 32 kHz mode
  * \author
- *         Beshr Al Nahas <beshr@sics.se>
  *         Atis Elsts <atis.elsts@sics.se>
  */
 
@@ -47,7 +46,7 @@
 #include "sys/energest.h"
 #include "sys/process.h"
 
-#if !RTIMER_USE_32KHZ
+#if RTIMER_USE_32KHZ
 
 #define DEBUG 0
 #if DEBUG
@@ -57,39 +56,55 @@
 #define PRINTF(...)
 #endif
 
-#define RTIMER_TIMER_ISR_DEV  E_AHI_DEVICE_TICK_TIMER
+#define RTIMER_TIMER_ISR_DEV  E_AHI_DEVICE_SYSCTRL
+/* 1.5 days wraparound time */
+#define MAX_VALUE         0xFFFFFFFF
+/* make this small to more easily detect wraparound bugs */
+#define START_VALUE       (60 * RTIMER_ARCH_SECOND)
+#define WRAPAROUND_VALUE  ((uint64_t)0x1FFFFFFFFFF)
 
 static volatile rtimer_clock_t scheduled_time;
 static volatile uint8_t has_next;
 
-void
-rtimer_arch_run_next(uint32 u32DeviceId, uint32 u32ItemBitmap)
+/*---------------------------------------------------------------------------*/
+static void
+timerISR(uint32 u32Device, uint32 u32ItemBitmap)
 {
-  uint32_t delta;
-
-  if(u32DeviceId != RTIMER_TIMER_ISR_DEV) {
+  PRINTF("\ntimer isr %u %u\n", u32Device, u32ItemBitmap);
+  if(u32Device != RTIMER_TIMER_ISR_DEV) {
     return;
   }
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  vAHI_TickTimerIntPendClr();
-  vAHI_TickTimerIntEnable(0);
-  /*
-   * compare register is only 28bits wide so make sure the upper 4bits match
-   * the set compare point
-   */
-  delta = u32AHI_TickTimerRead() - scheduled_time;
-  if(delta >> 28 == 0) {
-    /* run scheduled */
-    has_next = 0;
-    watchdog_start();
-    rtimer_run_next();
-    process_nevents();
-  } else {
-    /* No match. Schedule again. */
-    vAHI_TickTimerIntEnable(1);
-    vAHI_TickTimerInterval(scheduled_time);
+
+  if(u32ItemBitmap & TICK_TIMER_MASK) {
+    /* 32-bit overflow happened; restart the timer */
+    uint32_t ticks_late = WRAPAROUND_VALUE - u64AHI_WakeTimerReadLarge(TICK_TIMER);
+
+    PRINTF("\nrtimer oflw, missed ticks %u\n", ticks_late);
+    
+    vAHI_WakeTimerStartLarge(TICK_TIMER, MAX_VALUE - ticks_late);
   }
+
+  if(u32ItemBitmap & WAKEUP_TIMER_MASK) {
+    PRINTF("\nrtimer fire @ %u\n", rtimer_arch_now());
+
+    /* Compare with the current time, as after sleep there is
+     * a fake interrupt generated 10ms earlier to wake up & reinitialize
+     * the system before the actual rtimer fires.
+     */
+    rtimer_clock_t now = rtimer_arch_now();
+    if(RTIMER_CLOCK_LT(now + 1, scheduled_time)) {
+      vAHI_WakeTimerEnable(WAKEUP_TIMER, TRUE);
+      vAHI_WakeTimerStartLarge(WAKEUP_TIMER, scheduled_time - now);
+    } else {
+      has_next = 0;
+      watchdog_start();
+      rtimer_run_next();
+      process_nevents();
+    }
+  }
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
@@ -97,17 +112,20 @@ void
 rtimer_arch_init(void)
 {
   /* Initialise tick timer to run continuously */
-  vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
   vAHI_TickTimerIntEnable(0);
-  vAHI_TickTimerRegisterCallback(rtimer_arch_run_next);
+  vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
   vAHI_TickTimerWrite(0);
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
 
-  /* enable wakeup timers, but keep interrupts disabled */
-  vAHI_WakeTimerEnable(WAKEUP_TIMER, FALSE);
-  vAHI_WakeTimerEnable(TICK_TIMER, FALSE);
-  /* count down from zero (2, as values 0 and 1 must not be used) */
-  vAHI_WakeTimerStartLarge(TICK_TIMER, 2);
+  vAHI_SysCtrlRegisterCallback(timerISR);
+  /* set the highest priority for the rtimer interrupt */
+  vAHI_InterruptSetPriority(MICRO_ISR_MASK_SYSCTRL, 15);
+  /* enable interrupt on a rtimer */
+  vAHI_WakeTimerEnable(WAKEUP_TIMER, TRUE);
+  /* enable interrupt on 32-bit overflow */
+  vAHI_WakeTimerEnable(TICK_TIMER, TRUE);
+  /* count down from START_VALUE */
+  vAHI_WakeTimerStartLarge(TICK_TIMER, START_VALUE);
 
   (void)u32AHI_Init();
 }
@@ -116,41 +134,39 @@ void
 rtimer_arch_reinit(rtimer_clock_t sleep_start, rtimer_clock_t sleep_ticks)
 {
   uint64_t t;
+
+  uint32_t wakeup_time = sleep_start + (uint64_t)sleep_ticks * (F_CPU / 2) / RTIMER_SECOND;
+
   /* Initialise tick timer to run continuously */
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
   vAHI_TickTimerIntEnable(0);
-  /* set the highest priority for the rtimer interrupt */
-  vAHI_InterruptSetPriority(MICRO_ISR_MASK_TICK_TMR, 15);
-  vAHI_TickTimerRegisterCallback(rtimer_arch_run_next);
   WAIT_FOR_EDGE(t);
-  vAHI_TickTimerWrite(sleep_start + sleep_ticks);
+  vAHI_TickTimerWrite(wakeup_time);
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
 
   /* call pending interrupts */
-  u32AHI_Init();
+  (void)u32AHI_Init();
 
   if(has_next) {
-    vAHI_TickTimerIntPendClr();
-    vAHI_TickTimerIntEnable(1);
-    vAHI_TickTimerInterval(scheduled_time);
+    /* reschedule the timer */
+    rtimer_arch_schedule(scheduled_time);
   }
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
 rtimer_arch_now(void)
 {
-  return u32AHI_TickTimerRead();
+  return START_VALUE - (rtimer_clock_t)u64AHI_WakeTimerReadLarge(TICK_TIMER);
 }
 /*---------------------------------------------------------------------------*/
 void
 rtimer_arch_schedule(rtimer_clock_t t)
 {
   PRINTF("rtimer_arch_schedule time %lu\n", t);
-  vAHI_TickTimerIntPendClr();
-  vAHI_TickTimerIntEnable(1);
-  vAHI_TickTimerInterval(t);
-  has_next = 1;
+  vAHI_WakeTimerEnable(WAKEUP_TIMER, TRUE);
+  vAHI_WakeTimerStartLarge(WAKEUP_TIMER, t - rtimer_arch_now());
   scheduled_time = t;
+  has_next = 1;
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
@@ -164,4 +180,4 @@ rtimer_arch_time_to_rtimer(void)
   return (rtimer_clock_t)-1;
 }
 /*---------------------------------------------------------------------------*/
-#endif /* !RTIMER_USE_32KHZ */
+#endif /* RTIMER_USE_32KHZ */
