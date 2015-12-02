@@ -47,7 +47,7 @@
  
  
  
-
+#include <stdbool.h>
 #include <_ansi.h>
 #include <stdlib.h>
 
@@ -323,11 +323,13 @@ _Bigint tab_blshift[BUF_LSHIFT_SIZE],tab_Slshift[BUF_LSHIFT_SIZE],tab_mhilshift[
     *sign = 0;
 
 #if defined(IEEE_Arith) + defined(VAX)
+  bool test;
 #ifdef IEEE_Arith
-  if ((word0 (d) & Exp_mask) == Exp_mask)
+  test = (word0 (d) & Exp_mask) == Exp_mask;
 #else
-  if (word0 (d) == 0x8000)
+  test = word0 (d) == 0x8000;
 #endif
+    if (test) 
     {
       /* Infinity or NaN */
       *decpt = 9999;

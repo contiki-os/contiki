@@ -193,6 +193,7 @@ static char *sccsid = "from: @(#)vfprintf.c	5.50 (Berkeley) 12/16/92";
 #include <wchar.h>
 #include <string.h>
 #include <sys/lock.h>
+#include <stdbool.h>
 
 #ifdef _HAVE_STDC
 #include <stdarg.h>
@@ -825,12 +826,14 @@ reswitch:	switch (ch) {
 			/*FALLTHROUGH*/
 		case 'd':
 		case 'i':
+		    bool test;
 			_uquad = SARG();
 #ifndef _NO_LONGLONG
-			if ((quad_t)_uquad < 0)
+			test = (quad_t)_uquad < 0;
 #else
-			if ((long) _uquad < 0)
+			test = (long) _uquad < 0;
 #endif
+            if (test)
 			{
 
 				_uquad = -_uquad;

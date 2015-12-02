@@ -113,6 +113,7 @@ Supporting OS subroutines required: <<close>>, <<fstat>>, <<isatty>>,
 #include <_ansi.h>
 #include <reent.h>
 #include <string.h>
+#include <stdbool.h>
 #include "small-mprec.h"
 
 double
@@ -691,12 +692,14 @@ dig_done:
 	      /* boundary case -- decrement exponent */
 #ifdef Sudden_Underflow
 	      L = word0 (rv) & Exp_mask;
+	      bool test;
 #ifdef IBM
-	      if (L < Exp_msk1)
+	      test = L < Exp_msk1;
 #else
-	      if (L <= Exp_msk1)
+	      test = L <= Exp_msk1;
 #endif
-		goto undfl;
+          if (test)
+		    goto undfl;
 	      L -= Exp_msk1;
 #else
 	      L = (word0 (rv) & Exp_mask) - Exp_msk1;
@@ -830,11 +833,13 @@ dig_done:
 	  		adj = aadj1 * small_ulp (rv.d);
 	  		#endif
 	      rv.d += adj;
+	      bool test;
 	#ifdef IBM
-	      if ((word0 (rv) & Exp_mask) < P * Exp_msk1)
+	      test = (word0 (rv) & Exp_mask) < P * Exp_msk1
 	#else
-	      if ((word0 (rv) & Exp_mask) <= P * Exp_msk1)
+	      test = (word0 (rv) & Exp_mask) <= P * Exp_msk1;
 	#endif
+	    if (test)
 		{
 		  if (word0 (rv0) == Tiny0
 		      && word1 (rv0) == Tiny1)
