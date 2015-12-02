@@ -54,6 +54,7 @@ In terms of hardware support, the following drivers have been implemented for th
     * Cryptoprocessor (AES-CCM-256, SHA-256)
     * Public Key Accelerator (ECDH, ECDSA)
     * Flash-based port of Coffee
+    * PWM
     * LEDs
     * Buttons
     * Built-in core temperature and battery sensor.
