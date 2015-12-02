@@ -147,6 +147,7 @@ void
 uip_ds6_route_init(void)
 {
   memb_init(&routememb);
+  memb_init(&neighborroutememb);
   list_init(routelist);
   nbr_table_register(nbr_routes,
                      (nbr_table_callback *)rm_routelist_callback);
@@ -420,8 +421,7 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
 
     if(neighbor_route == NULL) {
       PRINTF("uip_ds6_route_rm: neighbor_route was NULL for ");
-      uip_debug_ipaddr_print(&route->ipaddr);
-      PRINTF("\n");
+      PRINT6ADDR(&route->ipaddr);
     }
     list_remove(route->neighbor_routes->route_list, neighbor_route);
     if(list_head(route->neighbor_routes->route_list) == NULL) {
