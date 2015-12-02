@@ -168,4 +168,11 @@
 #define TSCH_WITH_LINK_SELECTOR 0
 #endif /* TSCH_CONF_WITH_LINK_SELECTOR */
 
+/* Estimate the drift of the time-source neighbor and compensate for it? */
+#ifdef TSCH_CONF_ADAPTIVE_TIMESYNC
+#define TSCH_ADAPTIVE_TIMESYNC TSCH_CONF_ADAPTIVE_TIMESYNC
+#else
+#define TSCH_ADAPTIVE_TIMESYNC 0
+#endif
+
 #endif /* __TSCH_CONF_H__ */

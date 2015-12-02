@@ -529,6 +529,8 @@ typedef uint32_t rtimer_clock_t;
 #define SYS_CTRL_CONF_OSC32K_USE_XTAL        1
 #endif
 
+#define RADIO_DELAY_BEFORE_DETECT 0
+
 #endif /* CONTIKI_CONF_H_ */
 
 /** @} */

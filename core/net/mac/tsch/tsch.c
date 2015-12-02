@@ -65,6 +65,7 @@
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
+#include "net/ipv6/uip-ds6-nbr.h"
 
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
@@ -225,7 +226,7 @@ static void
 keepalive_packet_sent(void *ptr, int status, int transmissions)
 {
 #ifdef TSCH_LINK_NEIGHBOR_CALLBACK
-//  TSCH_LINK_NEIGHBOR_CALLBACK(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), status, transmissions);
+  //TSCH_LINK_NEIGHBOR_CALLBACK(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), status, transmissions);
 #endif
   PRINTF("TSCH: KA sent to %u, st %d-%d\n",
          TSCH_LOG_ID_FROM_LINKADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER)), status, transmissions);

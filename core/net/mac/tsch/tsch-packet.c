@@ -61,7 +61,6 @@
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
-#define PRINTLLADDR(lladdr) uip_debug_lladdr_print// (lladdr)
 
 /*---------------------------------------------------------------------------*/
 /* Construct enhanced ACK packet and return ACK length */

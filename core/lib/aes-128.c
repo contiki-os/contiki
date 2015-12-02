@@ -71,16 +71,12 @@ static uint8_t round_keys[11][AES_128_KEY_LENGTH];
 static uint8_t
 galois_mul2(uint8_t value)
 {
-  if(value >> 7) {
-    value = value << 1;
-    return value ^ 0x1b;
-  } else {
-    return value << 1;
-  }
+  uint8_t xor_val = (value >> 7) * 0x1b;
+  return ((value << 1) ^ xor_val);
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_key(uint8_t *key)
+set_key(const uint8_t *key)
 {
   uint8_t i;
   uint8_t j;

@@ -105,3 +105,4 @@ regression-tests/[0-9][0-9]-*/org/
 
 tags
 *.bak
+.gdbinit

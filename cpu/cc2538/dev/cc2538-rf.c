@@ -745,8 +745,14 @@ read(void *buf, unsigned short bufsize)
 
   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
   if(crc_corr & CRC_BIT_MASK) {
-    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
-    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, crc_corr & LQI_BIT_MASK);
+    if(!poll_mode) {
+      /* Not in poll mode: packetbuf should not be accessed in interrupt context.
+       * In poll mode, the last packet RSSI and link quality can be obtained through
+       * RADIO_PARAM_LAST_RSSI and RADIO_PARAM_LAST_LINK_QUALITY */
+      packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+      packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, crc_corr & LQI_BIT_MASK);
+    }
+
     RIMESTATS_ADD(llrx);
   } else {
     RIMESTATS_ADD(badcrc);
@@ -947,7 +953,9 @@ get_object(radio_param_t param, void *dest, size_t size)
       return RADIO_RESULT_INVALID_VALUE;
     }
     *(rtimer_clock_t*)dest = REG(RFCORE_SFR_MTM1) << 8 | REG(RFCORE_SFR_MTM0);
-    PRINTF("Mao get_obj: %d", dest);
+    PRINTF("Mao get_obj *(int*): %d\n", *(int*)dest);
+    PRINTF("Mao get_obj (int): %d\n", (int)dest);
+
     return RADIO_RESULT_OK;
 #else
     return RADIO_RESULT_NOT_SUPPORTED;
