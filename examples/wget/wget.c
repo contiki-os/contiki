@@ -170,6 +170,7 @@ PROCESS_THREAD(wget_process, ev, data)
     puts(url);
   } else {
     fgets(url, sizeof(url), stdin);
+    name[strlen(url) - 1] = 0;
   }
   fputs("Save as:", stdout);
   if(contiki_argc > 2) {
@@ -177,6 +178,7 @@ PROCESS_THREAD(wget_process, ev, data)
     puts(name);
   } else {
     fgets(name, sizeof(name), stdin);
+    name[strlen(name) - 1] = 0;
   }
   file = cfs_open(name, CFS_WRITE);
   if(file == -1) {
