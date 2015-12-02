@@ -44,6 +44,8 @@
 /* Delay between GO signal and start listening
  * Measured 104us: between GO signal and start listening */
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(104))
+/* Delay between the SFD finishes arriving and it is detected in software */
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(14))
 
 /* Micromac configuration */
 
@@ -59,9 +61,57 @@
 #define MICROMAC_CONF_CHANNEL RF_CHANNEL
 #endif
 
-/* Timer conversion
- * RTIMER 16M = 256 * 62500(RADIO)  == 2^8 * 62500 */
-#define RADIO_TO_RTIMER(X)                      ((rtimer_clock_t)((X) << (int32_t)8L))
+/* 32kHz or 16MHz rtimers? */
+#ifdef RTIMER_CONF_USE_32KHZ
+#define RTIMER_USE_32KHZ  RTIMER_CONF_USE_32KHZ
+#else
+#define RTIMER_USE_32KHZ  0
+#endif
+
+/* Put the device in a sleep mode in idle periods?
+ * If RTIMER_USE_32KHZ is set, the device runs all the time on the 32 kHz oscillator.
+ * If RTIMER_USE_32KHZ is not set, the device runs on the 32 kHz oscillator during sleep,
+ * and switches back to the 32 MHz oscillator (16 MHz rtimer) at wakeup.
+ *  */
+#ifdef JN516X_SLEEP_CONF_ENABLED
+#define JN516X_SLEEP_ENABLED JN516X_SLEEP_CONF_ENABLED
+#else
+#define JN516X_SLEEP_ENABLED 0
+#endif
+
+/* Enable this to get the 32.768kHz oscillator */
+#ifndef JN516X_EXTERNAL_CRYSTAL_OSCILLATOR
+#define JN516X_EXTERNAL_CRYSTAL_OSCILLATOR (RTIMER_USE_32KHZ || JN516X_SLEEP_ENABLED)
+#endif /* JN516X_EXTERNAL_CRYSTAL_OSCILLATOR */
+
+/* Core rtimer.h defaults to 16 bit timer unless RTIMER_CLOCK_LT is defined */
+typedef uint32_t rtimer_clock_t;
+#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
+
+/* 8ms timer tick */
+#define CLOCK_CONF_SECOND 125
+
+#if JN516X_EXTERNAL_CRYSTAL_OSCILLATOR
+#define JN516X_XOSC_SECOND 32768
+#else
+#define JN516X_XOSC_SECOND 32000
+#endif
+
+/* Timer conversion*/
+#if RTIMER_USE_32KHZ
+#define RADIO_TO_RTIMER(X)  ((X) * (JN516X_XOSC_SECOND) / 62500)
+#else
+ /* RTIMER 16M = 256 * 62500(RADIO)  == 2^8 * 62500 */
+#define RADIO_TO_RTIMER(X)  ((rtimer_clock_t)((X) << (int32_t)8L))
+#endif
+
+/* If the timer base a binary 32kHz clock, compensate for this base drift */
+#if RTIMER_USE_32KHZ && JN516X_EXTERNAL_CRYSTAL_OSCILLATOR
+/* Drift calculated using this formula:
+*    ((US_TO_TICKS(10000) * 100) - RTIMER_SECOND) * 1e6 = 976.5625 ppm
+*/
+#define TSCH_CONF_BASE_DRIFT_PPM -977
+#endif
 
 #define DR_11744_DIO2 12
 #define DR_11744_DIO3 13
@@ -69,6 +119,13 @@
 #define DR_11744_DIO5 15
 #define DR_11744_DIO6 16
 #define DR_11744_DIO7 17
+
+/* Enable power amplifier of JN5168 M05 and M06 modules */
+#if defined(JN5168_M05) || defined(JN5168_M06)
+#define RADIO_TEST_MODE RADIO_TEST_MODE_HIGH_PWR
+#else
+#define RADIO_TEST_MODE RADIO_TEST_MODE_DISABLED
+#endif
 
 #define TSCH_DEBUG 0
 
@@ -183,14 +240,10 @@ typedef long long int64_t;
 typedef uint16_t uip_stats_t;
 typedef uint32_t clock_time_t;
 
-/* Core rtimer.h defaults to 16 bit timer unless RTIMER_CLOCK_LT is defined */
-typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
-/* 10ms timer tick */
-#define CLOCK_CONF_SECOND 100
-
 /* Shall we calibrate the DCO periodically? */
+#ifndef DCOSYNCH_CONF_ENABLED
 #define DCOSYNCH_CONF_ENABLED 1
+#endif
 
 /* How often shall we attempt to calibrate DCO?
  * PS: It should be calibrated upon temperature changes,
@@ -222,11 +275,6 @@ typedef uint32_t rtimer_clock_t;
 #ifndef SLIP_BRIDGE_CONF_NO_PUTCHAR
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR 1
 #endif /* SLIP_BRIDGE_CONF_NO_PUTCHAR */
-
-/* Enable this to get the 32.768kHz oscillator */
-#ifndef USE_EXTERNAL_OSCILLATOR
-#define USE_EXTERNAL_OSCILLATOR 0
-#endif /* USE_EXTERNAL_OSCILLATOR */
 
 /* Extension of LED definitions from leds.h for various JN516x dev boards 
 JN516x Dongle:
