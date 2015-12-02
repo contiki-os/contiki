@@ -64,6 +64,7 @@ AUTOSTART_PROCESSES(&node_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(node_process, ev, data)
 {
+  static struct etimer et;
   PROCESS_BEGIN();
 
   /* 3 possible roles:
@@ -88,7 +89,6 @@ PROCESS_THREAD(node_process, ev, data)
 #if CONFIG_VIA_BUTTON
   {
 #define CONFIG_WAIT_TIME 5
-    static struct etimer et;
 
     SENSORS_ACTIVATE(button_sensor);
     etimer_set(&et, CLOCK_SECOND * CONFIG_WAIT_TIME);
@@ -126,6 +126,14 @@ PROCESS_THREAD(node_process, ev, data)
     rich_init(&prefix);
   } else {
     rich_init(NULL);
+  }
+
+  /* Print out routing tables every minute */
+  etimer_set(&et, CLOCK_SECOND * 60);
+  while(1) {
+    print_network_status();
+    PROCESS_YIELD_UNTIL(etimer_expired(&et));
+    etimer_reset(&et);
   }
 
   PROCESS_END();
