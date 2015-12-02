@@ -93,6 +93,14 @@ PROCESS_THREAD(border_router_process, ev, data)
 
   rpl_tools_init(&prefix);
 
+  /* Print out routing tables every minute */
+  etimer_set(&et, CLOCK_SECOND * 60);
+  while(1) {
+    print_network_status();
+    PROCESS_YIELD_UNTIL(etimer_expired(&et));
+    etimer_reset(&et);
+  }
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
