@@ -44,10 +44,14 @@ The following features have been implemented:
   * A radio driver with two modes (polling and interrupt based)
   * CCM* driver with HW accelerated AES
   * UART driver (with HW and SW flow control, 1'000'000 baudrate by default)
-  * Contiki system clock and rtimers (16MHz tick frequency based on 32 MHz crystal)
-  * 32.768kHz external oscillator
+  * Contiki tickless clock
+  * Contiki rtimers based on either
+    * the 32 kHz external oscillator
+    * or the internal 32 MHz oscillator (which gives a 16 MHz rtimer)
+  * CPU low-power mdoes
+    * doze mode: shallow sleep, 32 MHz oscillator (source of rtimer and radio clock) keeps running
+    * sleep mode: deeper sleep, 32 MHz oscillator turned off, next wakeup set on 32 kHz oscillator
   * Periodic DCO recalibration
-  * CPU "doze" and "sleep" modes
   * HW random number generator used as a random seed for pseudo-random generator
   * Watchdog, JN516x HW exception handlers
 

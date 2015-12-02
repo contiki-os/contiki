@@ -68,7 +68,11 @@
 #define RTIMER_USE_32KHZ  0
 #endif
 
-/* Put the device in a sleep mode in idle periods? */
+/* Put the device in a sleep mode in idle periods?
+ * If RTIMER_USE_32KHZ is set, the device runs all the time on the 32 kHz oscillator.
+ * If RTIMER_USE_32KHZ is not set, the device runs on the 32 kHz oscillator during sleep,
+ * and switches back to the 32 MHz oscillator (16 MHz rtimer) at wakeup.
+ *  */
 #ifdef JN516X_SLEEP_CONF_ENABLED
 #define JN516X_SLEEP_ENABLED JN516X_SLEEP_CONF_ENABLED
 #else
