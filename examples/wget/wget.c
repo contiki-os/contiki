@@ -170,7 +170,7 @@ PROCESS_THREAD(wget_process, ev, data)
     puts(url);
   } else {
     fgets(url, sizeof(url), stdin);
-    name[strlen(url) - 1] = 0;
+    url[strlen(url) - 1] = 0;
   }
   fputs("Save as:", stdout);
   if(contiki_argc > 2) {
