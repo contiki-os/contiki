@@ -296,14 +296,18 @@ static void
 schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
 {
   int r;
+  rtimer_clock_t now;
 
   if(contikimac_is_on) {
 
-    if(RTIMER_CLOCK_LT(RTIMER_TIME(t) + time, RTIMER_NOW() + 2)) {
-      time = RTIMER_NOW() - RTIMER_TIME(t) + 2;
+    time += RTIMER_TIME(t);
+    now = RTIMER_NOW();
+    if(RTIMER_CLOCK_LT(time, now + RTIMER_GUARD_TIME)) {
+      time = now + RTIMER_GUARD_TIME;
     }
 
-    r = rtimer_set(t, RTIMER_TIME(t) + time, 1, powercycle_wrapper, NULL);
+    r = rtimer_set(t, time, 1, powercycle_wrapper, NULL);
+
     if(r != RTIMER_OK) {
       PRINTF("schedule_powercycle: could not set rtimer\n");
     }
@@ -314,11 +318,13 @@ static void
 schedule_powercycle_fixed(struct rtimer *t, rtimer_clock_t fixed_time)
 {
   int r;
+  rtimer_clock_t now;
 
   if(contikimac_is_on) {
 
-    if(RTIMER_CLOCK_LT(fixed_time, RTIMER_NOW() + 1)) {
-      fixed_time = RTIMER_NOW() + 1;
+    now = RTIMER_NOW();
+    if(RTIMER_CLOCK_LT(fixed_time, now + RTIMER_GUARD_TIME)) {
+      fixed_time = now + RTIMER_GUARD_TIME;
     }
 
     r = rtimer_set(t, fixed_time, 1, powercycle_wrapper, NULL);
