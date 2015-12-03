@@ -119,8 +119,6 @@ void vMMAC_SetChannelAndPower(uint8 u8Channel, int8 i8power);
 #define MICROMAC_CONF_AUTOACK 1
 #endif /* MICROMAC_CONF_AUTOACK */
 
-#define RADIO_TO_RTIMER(X) ((rtimer_clock_t)((X) << (int32_t)8L))
-
 /* Set radio always on for now because this is what Contiki MAC layers
  * expect. */
 #ifndef MICROMAC_CONF_ALWAYS_ON
@@ -151,11 +149,11 @@ static uint8_t autoack_enabled = MICROMAC_CONF_AUTOACK;
 static uint8_t send_on_cca = 0;
 
 /* Current radio channel */
-static int current_channel;
+static int current_channel = MICROMAC_CONF_CHANNEL;
 
 /* Current set point tx power
    Actual tx power may be different. Use get_txpower() for actual power */
-static int current_tx_power;
+static int current_tx_power = MICROMAC_CONF_TX_POWER;
 
 /* an integer between 0 and 255, used only with cca() */
 static uint8_t cca_thershold = MICROMAC_CONF_CCA_THR;
@@ -278,44 +276,22 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
 static rtimer_clock_t
 get_packet_timestamp(void)
 {
+  /* Wait for an edge */
+  uint32_t t = u32MMAC_GetTime();
+  while(u32MMAC_GetTime() == t);
   /* Save SFD timestamp, converted from radio timer to RTIMER */
   last_packet_timestamp = RTIMER_NOW() -
-    RADIO_TO_RTIMER((uint32_t)(u32MMAC_GetTime() - u32MMAC_GetRxTime()));
+    RADIO_TO_RTIMER((uint32_t)(u32MMAC_GetTime() - (u32MMAC_GetRxTime() - 1)));
+  /* The remaining measured error is typically in range 0..16 usec.
+   * Center it around zero, in the -8..+8 usec range. */
+  last_packet_timestamp -= US_TO_RTIMERTICKS(8);
   return last_packet_timestamp;
 }
 /*---------------------------------------------------------------------------*/
 static int
-init(void)
+init_software(void)
 {
   int put_index;
-  tsExtAddr node_long_address;
-  uint16_t node_short_address;
-
-  tx_in_progress = 0;
-
-  u32JPT_Init();
-  vMMAC_Enable();
-
-  /* Enable/disable interrupts */
-  if(poll_mode) {
-    vMMAC_EnableInterrupts(NULL);
-    vMMAC_ConfigureInterruptSources(0);
-  } else {
-    vMMAC_EnableInterrupts(&radio_interrupt_handler);
-  } vMMAC_ConfigureRadio();
-  set_channel(MICROMAC_CONF_CHANNEL);
-  set_txpower(MICROMAC_CONF_TX_POWER);
-
-  vMMAC_GetMacAddress(&node_long_address);
-
-  /* Short addresses are disabled by default */
-  node_short_address = (uint16_t)node_long_address.u32L;
-  vMMAC_SetRxAddress(frame802154_get_pan_id(), node_short_address, &node_long_address);
-
-  /* Disable hardware backoff */
-  vMMAC_SetTxParameters(1, 0, 0, 0);
-  vMMAC_SetCutOffTimer(0, FALSE);
-
   /* Initialize ring buffer and first input packet pointer */
   ringbufindex_init(&input_ringbuf, MIRCOMAC_CONF_BUF_NUM);
   /* get pointer to next input slot */
@@ -331,6 +307,42 @@ init(void)
   input_frame_buffer = rx_frame_buffer;
 
   process_start(&micromac_radio_process, NULL);
+
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+static int
+init(void)
+{
+  int ret = 1;
+  tsExtAddr node_long_address;
+  uint16_t node_short_address;
+  static uint8_t is_initialized;
+
+  tx_in_progress = 0;
+
+  u32JPT_Init();
+  vMMAC_Enable();
+
+  /* Enable/disable interrupts */
+  if(poll_mode) {
+    vMMAC_EnableInterrupts(NULL);
+    vMMAC_ConfigureInterruptSources(0);
+  } else {
+    vMMAC_EnableInterrupts(&radio_interrupt_handler);
+  }
+  vMMAC_ConfigureRadio();
+  set_channel(current_channel);
+  set_txpower(current_tx_power);
+
+  vMMAC_GetMacAddress(&node_long_address);
+  /* Short addresses are disabled by default */
+  node_short_address = (uint16_t)node_long_address.u32L;
+  vMMAC_SetRxAddress(frame802154_get_pan_id(), node_short_address, &node_long_address);
+
+  /* Disable hardware backoff */
+  vMMAC_SetTxParameters(1, 0, 0, 0);
+  vMMAC_SetCutOffTimer(0, FALSE);
 
 #if RADIO_TEST_MODE == RADIO_TEST_MODE_HIGH_PWR
   /* Enable high power mode.
@@ -348,7 +360,12 @@ init(void)
                 u32REG_SysRead(REG_SYS_PWR_CTRL) | (1UL << 26UL));
 #endif /* TEST_MODE */
 
-  return 1;
+  if(!is_initialized) {
+    is_initialized = 1;
+    ret = init_software();
+  }
+
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 static int
