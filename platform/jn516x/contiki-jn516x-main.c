@@ -37,6 +37,7 @@
  *
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
+ *         Atis Elsts <atis.elsts@sics.se>
  */
 
 #include <stdio.h>
@@ -48,6 +49,7 @@
 #include <BbcAndPhyRegs.h>
 #include <recal.h>
 #include "dev/uart0.h"
+#include "dev/uart-driver.h"
 
 #include "contiki.h"
 #include "net/netstack.h"
@@ -112,6 +114,17 @@ static uint8_t is_gateway;
 #ifdef EXPERIMENT_SETUP
 #include "experiment-setup.h"
 #endif
+
+/* _EXTRA_LPM is the sleep mode, _LPM is the doze mode */
+#define ENERGEST_TYPE_EXTRA_LPM ENERGEST_TYPE_LPM
+
+static void main_loop(void);
+
+#if DCOSYNCH_CONF_ENABLED
+static unsigned long last_dco_calibration_time;
+#endif
+static uint64_t sleep_start;
+static uint32_t sleep_start_ticks;
 
 /*---------------------------------------------------------------------------*/
 #define DEBUG 1
@@ -255,25 +268,17 @@ set_linkaddr(void)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-#if USE_EXTERNAL_OSCILLATOR
-static bool_t
-init_xosc(void)
+bool_t
+xosc_init(void)
 {
   /* The internal 32kHz RC oscillator is used by default;
    * Initialize and enable the external 32.768kHz crystal.
    */
   vAHI_Init32KhzXtal();
-  /* wait for 1.0 seconds for the crystal to stabilize */
-  clock_time_t start = clock_time();
-  clock_time_t now;
-  do {
-    now = clock_time();
-    watchdog_periodic();
-  } while(now - start < CLOCK_SECOND);
-  /* switch to the 32.768 kHz crystal */
+  /* Switch to the 32.768kHz crystal.
+   * This will block and wait up to 1 sec for it to stabilize. */
   return bAHI_Set32KhzClockMode(E_AHI_XTAL);
 }
-#endif
 /*---------------------------------------------------------------------------*/
 #if WITH_TINYOS_AUTO_IDS
 uint16_t TOS_NODE_ID = 0x1234; /* non-zero */
@@ -285,7 +290,23 @@ main(void)
   /* Set stack overflow address for detecting overflow in runtime */
   vAHI_SetStackOverflow(TRUE, ((uint32_t *)&heap_location)[0]);
 
+  /* Initialize random with a seed from the SoC random generator.
+   * This must be done before selecting the high-precision external oscillator.
+   */
+  vAHI_StartRandomNumberGenerator(E_AHI_RND_SINGLE_SHOT, E_AHI_INTS_DISABLED);
+  random_init(u16AHI_ReadRandomNumber());
+
   clock_init();
+  rtimer_init();
+
+#if JN516X_EXTERNAL_CRYSTAL_OSCILLATOR
+  /* initialize the 32kHz crystal and wait for ready */
+  xosc_init();
+  /* need to reinitialize because the wait-for-ready process uses system timers */
+  clock_init();
+  rtimer_init();
+#endif
+
   watchdog_init();
   leds_init();
   leds_on(LEDS_ALL);
@@ -308,19 +329,9 @@ main(void)
   }
 #endif
 
-  /* Initialize random with a seed from the SoC random generator.
-   * This must be done before selecting the high-precision external oscillator.
-   */
-  vAHI_StartRandomNumberGenerator(E_AHI_RND_SINGLE_SHOT, E_AHI_INTS_DISABLED);
-  random_init(u16AHI_ReadRandomNumber());
-
   process_init();
   ctimer_init();
   uart0_init(UART_BAUD_RATE); /* Must come before first PRINTF */
-
-#if USE_EXTERNAL_OSCILLATOR
-  init_xosc();
-#endif
 
 #if NETSTACK_CONF_WITH_IPV4
   slip_arch_init(UART_BAUD_RATE);
@@ -403,10 +414,27 @@ main(void)
 #if NETSTACK_CONF_WITH_IPV6
   start_uip6();
 #endif /* NETSTACK_CONF_WITH_IPV6 */
+
+  /* need this to reliably generate the first rtimer callback and callbacks in other 
+     auto-start processes */
+  (void)u32AHI_Init();
+
   start_autostart_processes();
 
   leds_off(LEDS_ALL);
+
+  main_loop();
+
+  return -1;
+}
+
+static void
+main_loop(void)
+{
   int r;
+  clock_time_t time_to_etimer;
+  rtimer_clock_t ticks_to_rtimer;
+
   while(1) {
     do {
       /* Reset watchdog. */
@@ -423,9 +451,8 @@ main(void)
      * if we have more than 500uSec until next rtimer
      * PS: Calibration disables interrupts and blocks for 200uSec.
      *  */
-    static unsigned long last_dco_calibration_time = 0;
     if(clock_seconds() - last_dco_calibration_time > DCOSYNCH_PERIOD) {
-      if(rtimer_arch_get_time_until_next_wakeup() > RTIMER_SECOND / 2000) {
+      if(rtimer_arch_time_to_rtimer() > RTIMER_SECOND / 2000) {
         /* PRINTF("ContikiMain: Calibrating the DCO\n"); */
         eAHI_AttemptCalibration();
         /* Patch to allow CpuDoze after calibration */
@@ -434,15 +461,51 @@ main(void)
       }
     }
 #endif /* DCOSYNCH_CONF_ENABLED */
-    ENERGEST_OFF(ENERGEST_TYPE_CPU);
-    ENERGEST_ON(ENERGEST_TYPE_LPM);
-    vAHI_CpuDoze();
-    watchdog_start();
-    ENERGEST_OFF(ENERGEST_TYPE_LPM);
-    ENERGEST_ON(ENERGEST_TYPE_CPU);
-  }
 
-  return 0;
+    /* flush standard output before sleeping */
+    uart_driver_flush(E_AHI_UART_0);
+
+    /* calculate the time to the next etimer and rtimer */
+    time_to_etimer = clock_arch_time_to_etimer();
+    ticks_to_rtimer = rtimer_arch_time_to_rtimer();
+
+#if JN516X_SLEEP_ENABLED
+    /* we can sleep only up to the next rtimer/etimer */
+    rtimer_clock_t max_sleep_time = ticks_to_rtimer;
+    if(max_sleep_time >= JN516X_MIN_SLEEP_TIME) {
+      /* also take into account etimers */
+      uint64_t ticks_to_etimer = ((uint64_t)time_to_etimer * RTIMER_SECOND) / CLOCK_SECOND;
+      max_sleep_time = MIN(ticks_to_etimer, ticks_to_rtimer);
+    }
+
+    if(max_sleep_time >= JN516X_MIN_SLEEP_TIME) {
+      max_sleep_time -= JN516X_SLEEP_GUARD_TIME;
+      /* bound the sleep time to 1 second */
+      max_sleep_time = MIN(max_sleep_time, JN516X_MAX_SLEEP_TIME);
+
+#if !RTIMER_USE_32KHZ
+      /* convert to 32.768 kHz oscillator ticks */
+      max_sleep_time = (uint64_t)max_sleep_time * JN516X_XOSC_SECOND / RTIMER_SECOND;
+#endif
+      vAHI_WakeTimerEnable(WAKEUP_TIMER, TRUE);
+      /* sync with the tick timer */
+      WAIT_FOR_EDGE(sleep_start);
+      sleep_start_ticks = u32AHI_TickTimerRead();
+
+      vAHI_WakeTimerStartLarge(WAKEUP_TIMER, max_sleep_time);
+      ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_EXTRA_LPM);
+      vAHI_Sleep(E_AHI_SLEEP_OSCON_RAMON);
+    } else {
+#else
+    {
+#endif /* JN516X_SLEEP_ENABLED */
+      clock_arch_schedule_interrupt(time_to_etimer, ticks_to_rtimer);
+      ENERGEST_SWITCH(ENERGEST_TYPE_CPU, ENERGEST_TYPE_LPM);
+      vAHI_CpuDoze();
+      watchdog_start();
+      ENERGEST_SWITCH(ENERGEST_TYPE_LPM, ENERGEST_TYPE_CPU);
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -456,7 +519,52 @@ void
 AppWarmStart(void)
 {
   /* Wakeup after sleep with memory on.
-   * TODO: Need to initialize devices but not the application state */
-  main();
+   * Need to initialize devices but not the application state.
+   * Note: the actual time this function is called is
+   * ~8 ticks (32kHz timer) later than the scheduled sleep end time.
+   */
+  uint32_t sleep_ticks;
+  uint64_t sleep_end;
+  rtimer_clock_t sleep_ticks_rtimer;
+
+  clock_arch_calibrate();
+  leds_init();
+  uart0_init(UART_BAUD_RATE); /* Must come before first PRINTF */
+  NETSTACK_RADIO.init();
+  watchdog_init();
+  watchdog_stop();
+
+  WAIT_FOR_EDGE(sleep_end);
+  sleep_ticks = (uint32_t)(sleep_start - sleep_end) + 1;
+
+#if RTIMER_USE_32KHZ
+  sleep_ticks_rtimer = sleep_ticks;
+#else
+  {
+    static uint32_t remainder;
+    uint64_t t = (uint64_t)sleep_ticks * RTIMER_SECOND + remainder;
+    sleep_ticks_rtimer = (uint32_t)(t / JN516X_XOSC_SECOND);
+    remainder = t - sleep_ticks_rtimer * JN516X_XOSC_SECOND;
+  }
+#endif
+
+  /* reinitialize rtimers */
+  rtimer_arch_reinit(sleep_start_ticks, sleep_ticks_rtimer);
+
+  ENERGEST_SWITCH(ENERGEST_TYPE_EXTRA_LPM, ENERGEST_TYPE_CPU);
+
+  watchdog_start();
+
+  /* reinitialize clock */
+  clock_arch_init(1);
+  /* schedule etimer interrupt */
+  clock_arch_schedule_interrupt(clock_arch_time_to_etimer(), rtimer_arch_time_to_rtimer());
+
+#if DCOSYNCH_CONF_ENABLED
+  /* The radio is recalibrated on wakeup */
+  last_dco_calibration_time = clock_seconds();
+#endif
+
+  main_loop();
 }
 /*---------------------------------------------------------------------------*/

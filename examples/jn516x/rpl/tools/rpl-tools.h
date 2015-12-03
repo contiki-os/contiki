@@ -33,3 +33,4 @@
  */
 
 void rpl_tools_init(uip_ipaddr_t *br_prefix);
+void print_network_status(void);
