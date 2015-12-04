@@ -808,9 +808,8 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
           } else {
             TSCH_LOG_ADD(tsch_log_message,
                   snprintf(log->message, sizeof(log->message),
-                      "!not for us %x:%x:%x:%x",
-                      destination_address.u8[4], destination_address.u8[5],
-                      destination_address.u8[6], destination_address.u8[7]);
+                      "!not for us %x:%x",
+                      destination_address.u8[LINKADDR_SIZE - 2], destination_address.u8[LINKADDR_SIZE - 1]);
             );
           }
 
