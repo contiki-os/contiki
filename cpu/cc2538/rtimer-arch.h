@@ -60,12 +60,26 @@
 #ifndef RTIMER_ARCH_H_
 #define RTIMER_ARCH_H_
 
-#include "contiki.h"
-#include "dev/gptimer.h"
+//#include "contiki.h"
+//#include "dev/gptimer.h"
+#include "sys/rtimer.h"
 
-#define RTIMER_ARCH_SECOND 32768
+#ifdef RTIMER_CONF_SECOND
+# define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
+#else
+#if RTIMER_USE_32KHZ
+# if CC2538_EXTERNAL_CRYSTAL_OSCILLATOR
+#  define RTIMER_ARCH_SECOND 32768
+# else
+#  define RTIMER_ARCH_SECOND 32000
+# endif //CC2538_EXTERNAL_CRYSTAL_OSCILLATOR
+#else
+/* 32MHz CPU clock => 16MHz timer */
+# define RTIMER_ARCH_SECOND  (F_CPU / 2)
+#endif // RTIMER_USE_32KHZ
+#endif // RTIMER_CONF_SECOND
 
-#if SYS_CTRL_CONF_OSC32K_USE_XTAL
+#if RTIMER_USE_32KHZ
 #define US_TO_RTIMERTICKS(US)  ((US) >= 0 ?                        \
                                (((int32_t)(US) * (RTIMER_ARCH_SECOND) + 500000) / 1000000L) :      \
                                ((int32_t)(US) * (RTIMER_ARCH_SECOND) - 500000) / 1000000L)

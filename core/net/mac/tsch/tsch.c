@@ -59,6 +59,9 @@
 #error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154E_2012
 #endif
 
+#undef TSCH_LOG_LEVEL
+#define TSCH_LOG_LEVEL 2
+
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
@@ -67,6 +70,8 @@
 #include "net/ip/uip-debug.h"
 #include "net/ipv6/uip-ds6-nbr.h"
 
+#undef PRINTF
+#define PRINTF(...) printf(__VA_ARGS__)
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
 #ifndef TSCH_LINK_NEIGHBOR_CALLBACK
@@ -207,6 +212,7 @@ tsch_reset(void)
   /* Reset timeslot timing to defaults */
   for(i = 0; i < tsch_ts_elements_count; i++) {
     tsch_timing[i] = US_TO_RTIMERTICKS(tsch_default_timing_us[i]);
+    PRINTF("TSCH: reset tsch_timing[%d] = %d\n", i, tsch_timing[i]);
   }
 #ifdef TSCH_CALLBACK_LEAVING_NETWORK
   TSCH_CALLBACK_LEAVING_NETWORK();
@@ -435,6 +441,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   uint8_t hdrlen;
   int i;
 
+  PRINTF("TSCH: tsch_assiciate timestamp = %d\n", timestamp);
   if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
                                               &frame, &ies, &hdrlen, 0) == 0) {
     PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
@@ -442,6 +449,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 
   current_asn = ies.ie_asn;
+  PRINTF("TSCH: tsch_associate current_asn = %d\n", current_asn);
   tsch_join_priority = ies.ie_join_priority + 1;
 
 #if TSCH_JOIN_SECURED_ONLY
@@ -488,6 +496,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     } else {
       tsch_timing[i] = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot[i]);
     }
+    PRINTF("Mao inside association, tsch_timing[%d] = %d\n", i, tsch_timing[i]); 
   }
 
   /* TSCH hopping sequence */
@@ -548,11 +557,13 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 #endif /* TSCH_INIT_SCHEDULE_FROM_EB */
 
+  PRINTF("tsch_join_priority  = %d\n", tsch_join_priority);
   if(tsch_join_priority < TSCH_MAX_JOIN_PRIORITY) {
     struct tsch_neighbor *n;
 
     /* Add coordinator to list of neighbors, lock the entry */
     n = tsch_queue_add_nbr((linkaddr_t *)&frame.src_addr);
+    PRINTF("n = tsch_queue_add_nbr = %d\n", n);
 
     if(n != NULL) {
       tsch_queue_update_time_source((linkaddr_t *)&frame.src_addr);
@@ -810,6 +821,8 @@ tsch_init(void)
     printf("TSCH:! radio does not support getting RADIO_PARAM_RX_MODE. Abort init.\n");
     return;
   }
+    PRINTF("TSCH:! radio does support getting RADIO_PARAM_RX_MODE. Abort init.\n");
+    printf("TSCH:! radio does support getting RADIO_PARAM_RX_MODE. Abort init.\n");
   /* Disable radio in frame filtering */
   radio_rx_mode &= ~RADIO_RX_MODE_ADDRESS_FILTER;
   /* Unset autoack */
