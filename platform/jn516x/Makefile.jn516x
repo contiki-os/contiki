@@ -82,7 +82,7 @@ OBJDUMP:=$(CROSS_COMPILE)-objdump
 
 ARCH = ccm-star.c exceptions.c rtimer-arch.c rtimer-arch-slow.c \
        slip_uart0.c clock.c micromac-radio.c \
-       mtarch.c node-id.c watchdog.c log.c ringbufindex.c slip.c sprintf.c 
+       mtarch.c node-id.c watchdog.c log.c slip.c sprintf.c
 # Default uart0 for printf and slip
 TARGET_WITH_UART0 ?= 1
 TARGET_WITH_UART1 ?= 0
@@ -145,7 +145,7 @@ CLEAN += *.jn516x.bin
 
 MODULES += core/net \
            core/net/mac \
-           core/net/mac/contikimac \
+           core/net/mac/contikimac core/net/mac/tsch \
            core/net/llsec core/net/llsec/noncoresec 
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH)
