@@ -309,6 +309,7 @@ rpl_of_t *rpl_find_of(rpl_ocp_t);
 /* Timer functions. */
 void rpl_schedule_dao(rpl_instance_t *);
 void rpl_schedule_dao_immediately(rpl_instance_t *);
+void rpl_schedule_unicast_dio_immediately(rpl_instance_t *instance);
 void rpl_cancel_dao(rpl_instance_t *instance);
 void rpl_schedule_probing(rpl_instance_t *instance);
 

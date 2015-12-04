@@ -216,12 +216,6 @@ static int we_are_receiving_burst = 0;
 #define AFTER_ACK_DETECTECT_WAIT_TIME      RTIMER_ARCH_SECOND / 1500
 #endif
 
-#if RTIMER_ARCH_SECOND < (1 << 15)
-#define CONTIKIMAC_RTIMER_GUARD_TIME       1
-#else
-#define CONTIKIMAC_RTIMER_GUARD_TIME       (RTIMER_ARCH_SECOND >> 15)
-#endif
-
 /* MAX_PHASE_STROBE_TIME is the time that we transmit repeated packets
    to a neighbor for which we have a phase lock. */
 #ifdef CONTIKIMAC_CONF_MAX_PHASE_STROBE_TIME
@@ -296,6 +290,7 @@ off(void)
 }
 /*---------------------------------------------------------------------------*/
 static volatile rtimer_clock_t cycle_start;
+static void powercycle_wrapper(struct rtimer *t, void *ptr);
 static char powercycle(struct rtimer *t, void *ptr);
 static void
 schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
@@ -307,12 +302,12 @@ schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
 
     time += RTIMER_TIME(t);
     now = RTIMER_NOW();
-    if(RTIMER_CLOCK_LT(time, now + CONTIKIMAC_RTIMER_GUARD_TIME)) {
-      time = now + CONTIKIMAC_RTIMER_GUARD_TIME;
+    if(RTIMER_CLOCK_LT(time, now + RTIMER_GUARD_TIME)) {
+      time = now + RTIMER_GUARD_TIME;
     }
 
-    r = rtimer_set(t, time, 1,
-                   (void (*)(struct rtimer *, void *))powercycle, NULL);
+    r = rtimer_set(t, time, 1, powercycle_wrapper, NULL);
+
     if(r != RTIMER_OK) {
       PRINTF("schedule_powercycle: could not set rtimer\n");
     }
@@ -328,12 +323,11 @@ schedule_powercycle_fixed(struct rtimer *t, rtimer_clock_t fixed_time)
   if(contikimac_is_on) {
 
     now = RTIMER_NOW();
-    if(RTIMER_CLOCK_LT(fixed_time, now + CONTIKIMAC_RTIMER_GUARD_TIME)) {
-      fixed_time = now + CONTIKIMAC_RTIMER_GUARD_TIME;
+    if(RTIMER_CLOCK_LT(fixed_time, now + RTIMER_GUARD_TIME)) {
+      fixed_time = now + RTIMER_GUARD_TIME;
     }
 
-    r = rtimer_set(t, fixed_time, 1,
-                   (void (*)(struct rtimer *, void *))powercycle, NULL);
+    r = rtimer_set(t, fixed_time, 1, powercycle_wrapper, NULL);
     if(r != RTIMER_OK) {
       PRINTF("schedule_powercycle: could not set rtimer\n");
     }
@@ -363,6 +357,12 @@ powercycle_turn_radio_on(void)
   if(we_are_sending == 0 && we_are_receiving_burst == 0) {
     on();
   }
+}
+/*---------------------------------------------------------------------------*/
+static void
+powercycle_wrapper(struct rtimer *t, void *ptr)
+{
+  powercycle(t, ptr);
 }
 /*---------------------------------------------------------------------------*/
 static char
@@ -1026,8 +1026,7 @@ init(void)
   radio_is_on = 0;
   PT_INIT(&pt);
 
-  rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1,
-             (void (*)(struct rtimer *, void *))powercycle, NULL);
+  rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1, powercycle_wrapper, NULL);
 
   contikimac_is_on = 1;
 
@@ -1043,8 +1042,7 @@ turn_on(void)
   if(contikimac_is_on == 0) {
     contikimac_is_on = 1;
     contikimac_keep_radio_on = 0;
-    rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1,
-               (void (*)(struct rtimer *, void *))powercycle, NULL);
+    rtimer_set(&rt, RTIMER_NOW() + CYCLE_TIME, 1, powercycle_wrapper, NULL);
   }
   return 1;
 }

@@ -33,22 +33,25 @@ doxygen:
 	@make -C $(DOCDIR) doxygen.log 2> doxygen.runerr > doxygen.runlog
 
 summary: doxygen
-	@( doxyerr=`cat doxyerrors.cnt`; curerr=`cat $(DOCDIR)/doxygen.log | grep ": warning: " | wc -l` ; delta=`expr $$curerr - $$doxyerr`;  \
-		if [ $$delta -lt 0 ] ; then  echo "doxygen: FAIL ಠ_ಠ\nCongratulations you fixed `expr $$delta \"*\" -1 ` of doxyen's warnings (old: $$doxyerr new: $$curerr). Please adjust regression-tests/00-doxygen/doxyerrors.cnt accordingly." > summary; fi ;\
-		if [ $$delta -gt 0 ] ; then  echo "doxygen: FAIL ಠ_ಠ\nYou increased the number of warnings caused by doxygen by $$delta (old: $$doxyerr new: $$curerr). Please fix these." > summary; fi ; \
-		if [ $$delta -eq 0 ] ; then  echo "doxygen: OK\nDoxygen found $$doxyerr errors" > summary ; fi ; \
+	@( \
+		1> summary; \
 		if [ -s doxygen.runerr ] ; then \
+			echo "doxygen: FAIL ಠ_ಠ\nDoxygen caused some runtime warnings. Please fix these." >> summary; \
 			echo "Runtime warnings:" >> summary; \
 			cat doxygen.runerr >> summary; \
 			echo >> summary; \
 		fi ; \
 		if [ -s $(DOCDIR)/doxygen.log ] ; then \
+			echo "doxygen: FAIL ಠ_ಠ\nDoxygen caused some warnings. Please fix these." >> summary; \
 			echo "Warnings:" >> summary; \
 			cat $(DOCDIR)/doxygen.log >> summary; \
+		fi ; \
+		if [ ! -s summary ] ; then \
+			echo "doxygen: OK\nDoxygen found no warnings" >> summary; \
 		fi ; \
 		cat summary \
 	)
 
-
 clean:
+	@rm -f summary doxygen.runlog doxygen.runerr
 	@make -C $(DOCDIR) clean

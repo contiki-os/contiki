@@ -151,6 +151,16 @@ void rtimer_arch_schedule(rtimer_clock_t t);
 
 #define RTIMER_SECOND RTIMER_ARCH_SECOND
 
+/* RTIMER_GUARD_TIME is the minimum amount of rtimer ticks between
+   the current time and the future time when a rtimer is scheduled.
+   Necessary to avoid accidentally scheduling a rtimer in the past
+   on platforms with fast rtimer ticks. Should be >= 2. */
+#ifdef RTIMER_CONF_GUARD_TIME
+#define RTIMER_GUARD_TIME RTIMER_CONF_GUARD_TIME
+#else /* RTIMER_CONF_GUARD_TIME */
+#define RTIMER_GUARD_TIME (RTIMER_ARCH_SECOND >> 14)
+#endif /* RTIMER_CONF_GUARD_TIME */
+
 #endif /* RTIMER_H_ */
 
 /** @} */

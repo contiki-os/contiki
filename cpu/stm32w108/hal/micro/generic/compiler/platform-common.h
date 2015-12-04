@@ -15,7 +15,7 @@
  * @{ */
 
 /** \file hal/micro/generic/compiler/platform-common.h
- * See \ref platform_common for detailed documentation.
+ * See platform_common.h for detailed documentation.
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
