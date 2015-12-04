@@ -82,7 +82,7 @@ timesync_entry_add(int32_t val, uint32_t time_delta)
 /*---------------------------------------------------------------------------*/
 /* Learn the neighbor drift rate at ppm */
 static void
-timesync_learn_drift_ticks(uint32_t time_delta_asn, int32_t drift_ticks)
+timesync_learn_drift_ticks(uint16_t time_delta_asn, int32_t drift_ticks)
 {
   /* should fit in 32-bit unsigned integer */
   uint32_t time_delta_ticks = time_delta_asn * tsch_timing[tsch_ts_timeslot_length];
@@ -94,7 +94,7 @@ timesync_learn_drift_ticks(uint32_t time_delta_asn, int32_t drift_ticks)
 /*---------------------------------------------------------------------------*/
 /* Either reset or update the neighbor's drift */
 void
-tsch_timesync_update(struct tsch_neighbor *n, int32_t time_delta_asn, int32_t drift_correction)
+tsch_timesync_update(struct tsch_neighbor *n, uint16_t time_delta_asn, int32_t drift_correction)
 {
   /* Account the drift if either this is a new timesource,
    * or the timedelta is not too small, as smaller timedelta
@@ -162,7 +162,7 @@ tsch_timesync_adaptive_compensate(rtimer_clock_t time_delta_ticks)
 #else /* TSCH_ADAPTIVE_TIMESYNC */
 /*---------------------------------------------------------------------------*/
 void
-tsch_timesync_update(struct tsch_neighbor *n, int32_t delta_asn, int32_t drift_correction)
+tsch_timesync_update(struct tsch_neighbor *n, uint16_t time_delta_asn, int32_t drift_correction)
 {
 }
 /*---------------------------------------------------------------------------*/
