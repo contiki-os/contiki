@@ -3,6 +3,7 @@ TOOLSDIR=../../tools
 
 # build jn516x examples, covering IPv6, RPL, CoAP, Rime, Nullrdc, Contikimac
 EXAMPLES = \
+hello-world/jn516x \
 jn516x/dr1175-sensors/jn516x \
 jn516x/rime/jn516x \
 jn516x/rpl/border-router/jn516x \
