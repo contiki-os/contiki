@@ -39,6 +39,7 @@
 #include "contiki-conf.h"
 #include "sys/process.h"
 #include "sys/clock.h"
+#include "sys/cc.h"
 #include "sys/etimer.h"
 #include "net/netstack.h"
 #include "net/linkaddr.h"
@@ -52,12 +53,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
-/*---------------------------------------------------------------------------*/
-#ifdef __GNUC__
-#define CC_ALIGN_ATTR(n) __attribute__ ((aligned(n)))
-#else
-#define CC_ALIGN_ATTR(n)
-#endif
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
@@ -79,7 +74,7 @@
 #define BLE_ADV_PAYLOAD_BUF_LEN     64
 #define BLE_UUID_SIZE               16
 /*---------------------------------------------------------------------------*/
-static unsigned char ble_params_buf[32] CC_ALIGN_ATTR(4);
+static unsigned char ble_params_buf[32] CC_ALIGN(4);
 static uint8_t ble_mode_on = RF_BLE_IDLE;
 static struct etimer ble_adv_et;
 static uint8_t payload[BLE_ADV_PAYLOAD_BUF_LEN];
