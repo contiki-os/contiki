@@ -432,7 +432,7 @@ static void
 main_loop(void)
 {
   int r;
-  clock_t time_to_etimer;
+  clock_time_t time_to_etimer;
   rtimer_clock_t ticks_to_rtimer;
 
   while(1) {
@@ -556,7 +556,7 @@ AppWarmStart(void)
   watchdog_start();
 
   /* reinitialize clock */
-  clock_arch_init();
+  clock_arch_init(1);
   /* schedule etimer interrupt */
   clock_arch_schedule_interrupt(clock_arch_time_to_etimer(), rtimer_arch_time_to_rtimer());
 
