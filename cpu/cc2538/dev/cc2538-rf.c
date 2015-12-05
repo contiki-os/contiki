@@ -77,6 +77,8 @@
 #else
 #define PRINTF(...)
 #endif
+
+#define DPRINTF(...) printf(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* Local RF Flags */
 #define RX_ACTIVE     0x80
@@ -128,6 +130,12 @@ static uint8_t rf_channel = CC2538_RF_CHANNEL;
 static uint8_t volatile poll_mode = 0;
 /* Do we perform a CCA before sending? */
 static uint8_t send_on_cca = WITH_SEND_CCA;
+
+volatile uint8_t cc2538_sfd_counter;
+volatile uint16_t cc2538_sfd_start_time;
+volatile uint16_t cc2538_sfd_end_time;
+
+static volatile uint16_t last_packet_timestamp;
 
 static int on(void);
 static int off(void);
@@ -469,14 +477,6 @@ init(void)
    */
   REG(RFCORE_XREG_FRMCTRL0) = RFCORE_XREG_FRMCTRL0_AUTOCRC;
 
-  /* Duong: Configure Mac timer to capture input mode */
-#if CC2538_CONF_SFD_TIMESTAMPS
-  REG(RFCORE_SFR_MTCTRL)     |= RFCORE_SFR_MTCTRL_RUN;
-  REG(RFCORE_SFR_MTMSEL)     &= ~RFCORE_SFR_MTMSEL_MTMSEL ;
-  REG(RFCORE_SFR_MTMSEL)     |= 0x0001 ;
-
-#endif
-
 #if CC2538_RF_AUTOACK
   REG(RFCORE_XREG_FRMCTRL0) |= RFCORE_XREG_FRMCTRL0_AUTOACK;
 #endif
@@ -499,13 +499,12 @@ init(void)
 
   /* Duong: Configure read start time of SFD */
   /* Acknowledge RF interrupts, SFD only */
-  REG(RFCORE_SFR_MTMSEL)   |= RFCORE_SFR_MTMSEL_MTMSEL ; // select Counter up
-  REG(RFCORE_SFR_MTCTRL)   |= RFCORE_SFR_MTCTRL_RUN ;  // MAC timer run
-  REG(RFCORE_SFR_MTM0)      = (uint8_t)RTIMER_NOW();   // 8 high bits 
-  REG(RFCORE_SFR_MTM1)      = ((uint16_t)RTIMER_NOW() ) >>8 ; // 8 low bits
+  REG(RFCORE_SFR_MTMSEL) |= RFCORE_SFR_MTMSEL_MTMSEL; // select Counter up
+  REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_RUN;  // MAC timer run
+  REG(RFCORE_SFR_MTM0) = (uint8_t)RTIMER_NOW();   // 8 high bits 
+  REG(RFCORE_SFR_MTM1) = ((uint16_t)RTIMER_NOW()) >>8 ; // 8 low bits
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;
   nvic_interrupt_enable(NVIC_INT_RF_RXTX);
-  
 
   /* Acknowledge RF interrupts, FIFOP only */
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;
@@ -964,11 +963,13 @@ get_object(radio_param_t param, void *dest, size_t size)
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    *(rtimer_clock_t*)dest = (uint16_t)(REG(RFCORE_SFR_MTM1) << 8 | REG(RFCORE_SFR_MTM0));
-    PRINTF("Mao get_obj *(int*): %d\n", &dest);
-    PRINTF("Mao get_obj (uint16_t): %d\n", (uint16_t)dest);
-    PRINTF("REG(RFCORE_SFR_MTCTRL_RUN) = %x\n", REG(RFCORE_SFR_MTCTRL_RUN));
-    PRINTF("REG(RFCORE_SFR_MTCTRL) = %x\n", REG(RFCORE_SFR_MTCTRL));
+    // (uint16_t)(REG(RFCORE_SFR_MTM1) << 8 | REG(RFCORE_SFR_MTM0));    
+    *(rtimer_clock_t*)dest = cc2538_sfd_start_time;
+     
+    DPRINTF("Mao get_obj *(int*): %d\n", &dest);
+    DPRINTF("Mao get_obj (uint16_t): %d\n", (uint16_t)dest);
+    DPRINTF("REG(RFCORE_SFR_MTCTRL_RUN) = %x\n", REG(RFCORE_SFR_MTCTRL_RUN));
+    DPRINTF("REG(RFCORE_SFR_MTCTRL) = %x\n", REG(RFCORE_SFR_MTCTRL));
 
     return RADIO_RESULT_OK;
 #else
@@ -1046,6 +1047,7 @@ PROCESS_THREAD(cc2538_rf_process, ev, data)
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 
     packetbuf_clear();
+    packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, last_packet_timestamp);
     len = read(packetbuf_dataptr(), PACKETBUF_SIZE);
 
     if(len > 0) {
@@ -1087,22 +1089,24 @@ PROCESS_THREAD(cc2538_rf_process, ev, data)
 void
 cc2538_rf_rx_tx_isr(void)
 {
-  uint16_t temp=0x0F;
+  uint16_t temp=0x00FF;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  if( REG(RFCORE_SFR_RFIRQF0) & RFCORE_SFR_RFIRQF0_FIFOP ) { 
+  if(REG(RFCORE_SFR_RFIRQF0) & RFCORE_SFR_RFIRQF0_FIFOP) { 
 
     process_poll(&cc2538_rf_process);
 
     /* Clear RFCORE_SFR_RFIRQF0_FIFOP flag */
     REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_FIFOP;
+    
+    last_packet_timestamp = cc2538_sfd_start_time;
   
   } 
   if( REG(RFCORE_SFR_RFIRQF0) & RFCORE_SFR_RFIRQF0_SFD ) {
-    REG(RFCORE_SFR_MTCTRL)  &= ~RFCORE_SFR_MTCTRL_LATCH_MODE ; // LATCH_MODE = 0
-    temp    &= (uint16_t)REG(RFCORE_SFR_MTM0);
-    REG(RFCORE_SFR_MTCTRL)  |= RFCORE_SFR_MTCTRL_LATCH_MODE ; // LATCH_MODE = 1 
-    cc2538_sfd_start_time    = temp | (REG(RFCORE_SFR_MTM1) << 8) ; 
+    REG(RFCORE_SFR_MTCTRL) &= ~RFCORE_SFR_MTCTRL_LATCH_MODE; // LATCH_MODE = 0
+    temp &= (uint16_t)REG(RFCORE_SFR_MTM0);
+    REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_LATCH_MODE; // LATCH_MODE = 1 
+    cc2538_sfd_start_time = temp | (REG(RFCORE_SFR_MTM1) << 8) ; 
     /* Clear RFCORE_SFR_RFIRQF0_SFD flag */
     REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
   }
