@@ -117,6 +117,7 @@ net_init(uip_ipaddr_t *br_prefix)
 
   if(br_prefix) { /* We are RPL root. Will be set automatically
                      as TSCH pan coordinator via the tsch-rpl module */
+    printf("We are RPL root\n");
     memcpy(&global_ipaddr, br_prefix, 16);
     uip_ds6_set_addr_iid(&global_ipaddr, &uip_lladdr);
     uip_ds6_addr_add(&global_ipaddr, 0, ADDR_AUTOCONF);
@@ -187,10 +188,12 @@ PROCESS_THREAD(node_process, ev, data)
   is_coordinator = node_role > role_6ln;
 
   if(is_coordinator) {
+    PRINTF("start coordinator \n");
     uip_ipaddr_t prefix;
     uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
     net_init(&prefix);
   } else {
+    PRINTF("start normal node \n");
     net_init(NULL);
   }
   

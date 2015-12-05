@@ -71,7 +71,7 @@
 #define UDMA_RX_SIZE_THRESHOLD 3
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -161,14 +161,6 @@ static const output_config_t output_power[] = {
 #define OUTPUT_POWER_MIN    (output_power[OUTPUT_CONFIG_COUNT - 1].power)
 #define OUTPUT_POWER_MAX    (output_power[0].power)
 
-/* TODO: XXX hack: these will be made as chameleon xxx */
-//rtimer_clock_t cc2538_time_of_arrival, cc2538_time_of_departure;
-
-//volatile uint8_t cc2538_sfd_counter;
-//volatile uint16_t cc2538_sfd_start_time;
-//volatile uint16_t cc2538_sfd_end_time;
-
-//static volatile uint16_t last_packet_timestamp;
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2538_rf_process, "cc2538 RF driver");
 /*---------------------------------------------------------------------------*/
@@ -476,6 +468,14 @@ init(void)
    * RX and TX modes with FIFOs
    */
   REG(RFCORE_XREG_FRMCTRL0) = RFCORE_XREG_FRMCTRL0_AUTOCRC;
+
+  /* Duong: Configure Mac timer to capture input mode */
+#if CC2538_CONF_SFD_TIMESTAMPS
+  REG(RFCORE_SFR_MTCTRL)     |= RFCORE_SFR_MTCTRL_RUN;
+  REG(RFCORE_SFR_MTMSEL)     &= ~RFCORE_SFR_MTMSEL_MTMSEL ;
+  REG(RFCORE_SFR_MTMSEL)     |= 0x0001 ;
+
+#endif
 
 #if CC2538_RF_AUTOACK
   REG(RFCORE_XREG_FRMCTRL0) |= RFCORE_XREG_FRMCTRL0_AUTOACK;
@@ -964,9 +964,11 @@ get_object(radio_param_t param, void *dest, size_t size)
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    *(rtimer_clock_t*)dest = REG(RFCORE_SFR_MTM1) << 8 | REG(RFCORE_SFR_MTM0);
-    PRINTF("Mao get_obj *(int*): %d\n", *(int*)dest);
-    PRINTF("Mao get_obj (int): %d\n", (int)dest);
+    *(rtimer_clock_t*)dest = (uint16_t)(REG(RFCORE_SFR_MTM1) << 8 | REG(RFCORE_SFR_MTM0));
+    PRINTF("Mao get_obj *(int*): %d\n", &dest);
+    PRINTF("Mao get_obj (uint16_t): %d\n", (uint16_t)dest);
+    PRINTF("REG(RFCORE_SFR_MTCTRL_RUN) = %x\n", REG(RFCORE_SFR_MTCTRL_RUN));
+    PRINTF("REG(RFCORE_SFR_MTCTRL) = %x\n", REG(RFCORE_SFR_MTCTRL));
 
     return RADIO_RESULT_OK;
 #else

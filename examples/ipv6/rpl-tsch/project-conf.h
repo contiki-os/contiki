@@ -37,7 +37,7 @@
 
 /* Set to run orchestra */
 #ifndef WITH_ORCHESTRA
-#define WITH_ORCHESTRA 0
+#define WITH_ORCHESTRA 1
 #endif /* WITH_ORCHESTRA */
 
 /* Set to enable TSCH security */
@@ -75,8 +75,6 @@
 #undef CC2420_CONF_SFD_TIMESTAMPS
 #define CC2420_CONF_SFD_TIMESTAMPS       1
 
-#undef CC2538_CONF_SFD_TIMESTAMPS 
-#define CC2538_CONF_SFD_TIMESTAMPS       1
 
 /*******************************************************/
 /******************* Configure TSCH ********************/
@@ -84,8 +82,8 @@
 
 /* TSCH logging. 0: disabled. 1: basic log. 2: with delayed
  * log messages from interrupt */
-#undef TSCH_LOG_CONF_LEVEL
-#define TSCH_LOG_CONF_LEVEL 2
+//#undef TSCH_LOG_CONF_LEVEL
+//#define TSCH_LOG_CONF_LEVEL 2
 
 /* IEEE802.15.4 PANID */
 #undef IEEE802154_CONF_PANID
@@ -165,6 +163,11 @@
 //#undef TSCH_DEFAULT_HOPPING_SEQUENCE 
 //#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
 
+/* Enable SFD timestamps (uses timerB) */
+#undef CC2538_CONF_SFD_TIMESTAMPS 
+#define CC2538_CONF_SFD_TIMESTAMPS       1
 
-
+//#define SYS_CTRL_CONF_OSC32K_USE_XTAL 1
+#define RTIMER_CONF_USE_32KHZ  1
+//#define TSCH_CONF_AUTOSELECT_TIME_SOURCE 1
 #endif /* __PROJECT_CONF_H__ */
