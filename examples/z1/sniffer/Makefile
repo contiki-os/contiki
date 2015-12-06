@@ -1,0 +1,15 @@
+#DEFINES+=PROJECT_CONF_H
+PROJECT_SOURCEFILES += stub-rdc.c
+
+WITH_UIP6=1
+UIP_CONF_IPV6=1
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+CFLAGS+= -DUIP_CONF_IPV6
+
+CONTIKI_PROJECT = sniffer
+
+all: $(CONTIKI_PROJECT) 
+
+CONTIKI = ../../..
+
+include $(CONTIKI)/Makefile.include

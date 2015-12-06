@@ -102,6 +102,11 @@ enum write_ram_order {
 #define LEDS_OFF(x)
 #endif
 
+#if CC2420_CONF_HEXDUMP
+#include "uart0.h"
+static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 }; /* Snif */
+#endif
+
 /* Conversion map between PA_LEVEL and output power in dBm
    (from table 9 in CC2420 specification).
 */
@@ -899,6 +904,15 @@ cc2420_read(void *buf, unsigned short bufsize)
 
   getrxdata(&len, 1);
 
+#if CC2420_CONF_HEXDUMP
+  /* If we reach here, chances are the FIFO is holding a valid frame */
+  uart0_writeb(magic[0]);
+  uart0_writeb(magic[1]);
+  uart0_writeb(magic[2]);
+  uart0_writeb(magic[3]);
+  uart0_writeb(len);
+#endif
+
   if(len > CC2420_MAX_PACKET_LEN) {
     /* Oops, we must be out of sync. */
     RIMESTATS_ADD(badsynch);
@@ -907,6 +921,14 @@ cc2420_read(void *buf, unsigned short bufsize)
   } else if(len - FOOTER_LEN > bufsize) {
     RIMESTATS_ADD(toolong);
   } else {
+
+#if CC2420_CONF_HEXDUMP
+    int i;
+    for(i = 0; i < len ; ++i) {
+        uart0_writeb(((unsigned char*)(buf))[i]);
+    }
+#endif
+
     getrxdata((uint8_t *) buf, len - FOOTER_LEN);
     getrxdata(footer, FOOTER_LEN);
     
@@ -916,7 +938,7 @@ cc2420_read(void *buf, unsigned short bufsize)
       
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
       packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
-  
+
       RIMESTATS_ADD(llrx);
     } else {
       RIMESTATS_ADD(badcrc);
@@ -934,7 +956,12 @@ cc2420_read(void *buf, unsigned short bufsize)
         process_poll(&cc2420_process);
       }
     }
-    
+ 
+#if CC2420_CONF_HEXDUMP
+    uart0_writeb(cc2420_last_rssi);
+    uart0_writeb(cc2420_last_correlation);
+#endif   
+
     RELEASE_LOCK();
     return len - FOOTER_LEN;
   }
