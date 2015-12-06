@@ -5,7 +5,6 @@
  *
  * Port to Contiki:
  * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
- * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538-crypto
+ * \addtogroup cc2538-aes
  * @{
  *
  * \defgroup cc2538-ccm cc2538 AES-CCM
@@ -50,10 +49,16 @@
 #define CCM_H_
 
 #include "contiki.h"
-#include "dev/crypto.h"
+#include "dev/aes.h"
 
 #include <stdbool.h>
 #include <stdint.h>
+/*---------------------------------------------------------------------------*/
+/** \name AES-CCM driver return codes
+ * @{
+ */
+#define CCM_AUTHENTICATION_FAILED     7
+/** @} */
 /*---------------------------------------------------------------------------*/
 /** \name AES-CCM functions
  * @{
@@ -69,7 +74,7 @@
  * \param pdata_len Length of message to authenticate and encrypt in octets, or \c 0
  * \param mic_len Number of octets in authentication field (even value between 0 and 16)
  * \param process Process to be polled upon completion of the operation, or \c NULL
- * \return \c AES_SUCCESS if successful, or AES / CCM error code
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES/CCM error code
  */
 uint8_t ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area,
                                const void *nonce, const void *adata,
@@ -86,7 +91,7 @@ uint8_t ccm_auth_encrypt_check_status(void);
 /** \brief Gets the result of the CCM authentication and encryption operation
  * \param mic Pointer to authentication field, or \c NULL
  * \param mic_len Number of octets in authentication field (even value between 0 and 16)
- * \return \c AES_SUCCESS if successful, or AES / CCM error code
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES/CCM error code
  * \note This function must be called only after \c ccm_auth_encrypt_start().
  */
 uint8_t ccm_auth_encrypt_get_result(void *mic, uint8_t mic_len);
@@ -101,7 +106,7 @@ uint8_t ccm_auth_encrypt_get_result(void *mic, uint8_t mic_len);
  * \param cdata_len Length of encrypted and authenticated message in octets
  * \param mic_len Number of octets in authentication field (even value between 0 and 16)
  * \param process Process to be polled upon completion of the operation, or \c NULL
- * \return \c AES_SUCCESS if successful, or AES / CCM error code
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES/CCM error code
  */
 uint8_t ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area,
                                const void *nonce, const void *adata,
@@ -120,7 +125,7 @@ uint8_t ccm_auth_decrypt_check_status(void);
  * \param cdata_len Length of encrypted and authenticated message in octets
  * \param mic Pointer to authentication field, or \c NULL
  * \param mic_len Number of octets in authentication field (even value between 0 and 16)
- * \return \c AES_SUCCESS if successful, or AES / CCM error code
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES/CCM error code
  * \note This function must be called only after \c ccm_auth_decrypt_start().
  */
 uint8_t ccm_auth_decrypt_get_result(const void *cdata, uint16_t cdata_len,

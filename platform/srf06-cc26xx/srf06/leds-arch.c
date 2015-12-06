@@ -29,11 +29,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup srf06-cc26xx-peripherals
+ * \addtogroup srf06-common-peripherals
  * @{
  *
  * \file
- * Driver for the SmartRF06EB LEDs when a CC26xx is mounted on the board
+ * Driver for the SmartRF06EB LEDs when a CC13xx/CC26xx EM is mounted on it
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"

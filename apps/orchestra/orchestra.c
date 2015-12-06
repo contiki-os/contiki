@@ -49,7 +49,7 @@
 /* A net-layer sniffer for packets sent and received */
 static void orchestra_packet_received(void);
 static void orchestra_packet_sent(int mac_status);
-RIME_SNIFFER(orhcestra_sniffer, orchestra_packet_received, orchestra_packet_sent);
+RIME_SNIFFER(orchestra_sniffer, orchestra_packet_received, orchestra_packet_sent);
 
 /* The current RPL preferred parent's link-layer address */
 linkaddr_t orchestra_parent_linkaddr;
@@ -153,7 +153,7 @@ orchestra_init(void)
   int i;
   /* Snoop on packet transmission to know if our parent knows about us
    * (i.e. has ACKed at one of our DAOs since we decided to use it as a parent) */
-  rime_sniffer_add(&orhcestra_sniffer);
+  rime_sniffer_add(&orchestra_sniffer);
   linkaddr_copy(&orchestra_parent_linkaddr, &linkaddr_null);
   /* Initialize all Orchestra rules */
   for(i = 0; i < NUM_RULES; i++) {

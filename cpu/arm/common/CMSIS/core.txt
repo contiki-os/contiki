@@ -34,17 +34,17 @@
  */
 
 /**
- * @defgroup Cortex_M0
+ * @defgroup Cortex_M0 Cortex-M0
  * @ingroup cmsis
  */
 
 /**
- * @defgroup Cortex_M3
+ * @defgroup Cortex_M3 Cortex-M3
  * @ingroup cmsis
  */
 
 /**
- * @defgroup Cortex_M4
+ * @defgroup Cortex_M4 Cortex-M4
  * @ingroup cmsis
  */
 

@@ -136,7 +136,7 @@
  * Baud rate defines used in uart_init() to set the values of UART_IBRD and
  * UART_FBRD in order to achieve the configured baud rates.
  */
-#define UART_CLOCK_RATE       16000000 /* 16 MHz */
+#define UART_CLOCK_RATE       SYS_CTRL_SYS_CLOCK
 #define UART_CTL_HSE_VALUE    0
 #define UART_CTL_VALUE        (UART_CTL_RXE | UART_CTL_TXE | (UART_CTL_HSE_VALUE << 5))
 
@@ -206,22 +206,22 @@ reset(uint32_t uart_base)
   uint32_t lchr;
 
   /* Make sure the UART is disabled before trying to configure it */
-  REG(uart_base | UART_CTL) = UART_CTL_VALUE;
+  REG(uart_base + UART_CTL) = UART_CTL_VALUE;
 
   /* Clear error status */
-  REG(uart_base | UART_ECR) = 0xFF;
+  REG(uart_base + UART_ECR) = 0xFF;
 
   /* Store LCHR configuration */
-  lchr = REG(uart_base | UART_LCRH);
+  lchr = REG(uart_base + UART_LCRH);
 
   /* Flush FIFOs by clearing LCHR.FEN */
-  REG(uart_base | UART_LCRH) = 0;
+  REG(uart_base + UART_LCRH) = 0;
 
   /* Restore LCHR configuration */
-  REG(uart_base | UART_LCRH) = lchr;
+  REG(uart_base + UART_LCRH) = lchr;
 
   /* UART Enable */
-  REG(uart_base | UART_CTL) |= UART_CTL_UARTEN;
+  REG(uart_base + UART_CTL) |= UART_CTL_UARTEN;
 }
 /*---------------------------------------------------------------------------*/
 static bool
@@ -232,7 +232,7 @@ permit_pm1(void)
   for(regs = &uart_regs[0]; regs < &uart_regs[UART_INSTANCE_COUNT]; regs++) {
     /* Note: UART_FR.TXFE reads 0 if the UART clock is gated. */
     if((REG(SYS_CTRL_RCGCUART) & regs->sys_ctrl_rcgcuart_uart) != 0 &&
-       (REG(regs->base | UART_FR) & UART_FR_TXFE) == 0) {
+       (REG(regs->base + UART_FR) & UART_FR_TXFE) == 0) {
       return false;
     }
   }
@@ -261,7 +261,7 @@ uart_init(uint8_t uart)
   REG(SYS_CTRL_DCGCUART) |= regs->sys_ctrl_dcgcuart_uart;
 
   /* Run on SYS_DIV */
-  REG(regs->base | UART_CC) = 0;
+  REG(regs->base + UART_CC) = 0;
 
   /*
    * Select the UARTx RX pin by writing to the IOC_UARTRXD_UARTn register
@@ -292,21 +292,21 @@ uart_init(uint8_t uart)
    * Acknowledge RX and RX Timeout
    * Acknowledge Framing, Overrun and Break Errors
    */
-  REG(regs->base | UART_IM) = UART_IM_RXIM | UART_IM_RTIM;
-  REG(regs->base | UART_IM) |= UART_IM_OEIM | UART_IM_BEIM | UART_IM_FEIM;
+  REG(regs->base + UART_IM) = UART_IM_RXIM | UART_IM_RTIM;
+  REG(regs->base + UART_IM) |= UART_IM_OEIM | UART_IM_BEIM | UART_IM_FEIM;
 
-  REG(regs->base | UART_IFLS) =
+  REG(regs->base + UART_IFLS) =
     UART_IFLS_RXIFLSEL_1_8 | UART_IFLS_TXIFLSEL_1_2;
 
   /* Make sure the UART is disabled before trying to configure it */
-  REG(regs->base | UART_CTL) = UART_CTL_VALUE;
+  REG(regs->base + UART_CTL) = UART_CTL_VALUE;
 
   /* Baud Rate Generation */
-  REG(regs->base | UART_IBRD) = regs->ibrd;
-  REG(regs->base | UART_FBRD) = regs->fbrd;
+  REG(regs->base + UART_IBRD) = regs->ibrd;
+  REG(regs->base + UART_FBRD) = regs->fbrd;
 
   /* UART Control: 8N1 with FIFOs */
-  REG(regs->base | UART_LCRH) = UART_LCRH_WLEN_8 | UART_LCRH_FEN;
+  REG(regs->base + UART_LCRH) = UART_LCRH_WLEN_8 | UART_LCRH_FEN;
 
   /*
    * Enable hardware flow control (RTS/CTS) if requested.
@@ -316,18 +316,18 @@ uart_init(uint8_t uart)
     REG(IOC_UARTCTS_UART1) = ioc_input_sel(regs->cts.port, regs->cts.pin);
     GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->cts.port), GPIO_PIN_MASK(regs->cts.pin));
     ioc_set_over(regs->cts.port, regs->cts.pin, IOC_OVERRIDE_DIS);
-    REG(UART_1_BASE | UART_CTL) |= UART_CTL_CTSEN;
+    REG(UART_1_BASE + UART_CTL) |= UART_CTL_CTSEN;
   }
 
   if(regs->rts.port >= 0) {
     ioc_set_sel(regs->rts.port, regs->rts.pin, IOC_PXX_SEL_UART1_RTS);
     GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->rts.port), GPIO_PIN_MASK(regs->rts.pin));
     ioc_set_over(regs->rts.port, regs->rts.pin, IOC_OVERRIDE_OE);
-    REG(UART_1_BASE | UART_CTL) |= UART_CTL_RTSEN;
+    REG(UART_1_BASE + UART_CTL) |= UART_CTL_RTSEN;
   }
 
   /* UART Enable */
-  REG(regs->base | UART_CTL) |= UART_CTL_UARTEN;
+  REG(regs->base + UART_CTL) |= UART_CTL_UARTEN;
 
   /* Enable UART0 Interrupts */
   nvic_interrupt_enable(regs->nvic_int);
@@ -354,12 +354,12 @@ uart_write_byte(uint8_t uart, uint8_t b)
   uart_base = uart_regs[uart].base;
 
   /* Block if the TX FIFO is full */
-  while(REG(uart_base | UART_FR) & UART_FR_TXFF);
+  while(REG(uart_base + UART_FR) & UART_FR_TXFF);
 
-  REG(uart_base | UART_DR) = b;
+  REG(uart_base + UART_DR) = b;
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 uart_isr(uint8_t uart)
 {
   uint32_t uart_base;
@@ -371,18 +371,18 @@ uart_isr(uint8_t uart)
 
   /* Store the current MIS and clear all flags early, except the RTM flag.
    * This will clear itself when we read out the entire FIFO contents */
-  mis = REG(uart_base | UART_MIS) & 0x0000FFFF;
+  mis = REG(uart_base + UART_MIS) & 0x0000FFFF;
 
-  REG(uart_base | UART_ICR) = 0x0000FFBF;
+  REG(uart_base + UART_ICR) = 0x0000FFBF;
 
   if(mis & (UART_MIS_RXMIS | UART_MIS_RTMIS)) {
-    while(!(REG(uart_base | UART_FR) & UART_FR_RXFE)) {
+    while(!(REG(uart_base + UART_FR) & UART_FR_RXFE)) {
       if(input_handler[uart] != NULL) {
-        input_handler[uart]((unsigned char)(REG(uart_base | UART_DR) & 0xFF));
+        input_handler[uart]((unsigned char)(REG(uart_base + UART_DR) & 0xFF));
       } else {
         /* To prevent an Overrun Error, we need to flush the FIFO even if we
          * don't have an input_handler. Use mis as a data trash can */
-        mis = REG(uart_base | UART_DR);
+        mis = REG(uart_base + UART_DR);
       }
     }
   } else if(mis & (UART_MIS_OEMIS | UART_MIS_BEMIS | UART_MIS_FEMIS)) {

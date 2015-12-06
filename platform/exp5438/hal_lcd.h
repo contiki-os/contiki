@@ -37,18 +37,6 @@
 #ifndef HAL_LCD_H
 #define HAL_LCD_H
 
-#ifndef MIN
-#    define MIN(n, m)   (((n) < (m)) ? (n) : (m))
-#endif
-
-#ifndef MAX
-#    define MAX(n, m)   (((n) < (m)) ? (m) : (n))
-#endif
-
-#ifndef ABS
-#    define ABS(n)     (((n) < 0) ? -(n) : (n))
-#endif
-
 #define LCD_BACKLT_OUT      P8OUT
 #define LCD_BACKLT_DIR      P8DIR
 #define LCD_BACKLT_SEL      P8SEL

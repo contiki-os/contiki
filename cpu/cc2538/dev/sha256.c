@@ -5,7 +5,6 @@
  *
  * Port to Contiki:
  * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
- * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,15 +41,14 @@
  * Implementation of the cc2538 SHA-256 driver
  */
 #include "contiki.h"
-#include "dev/crypto.h"
+#include "sys/cc.h"
+#include "dev/rom-util.h"
+#include "dev/aes.h"
 #include "dev/sha256.h"
 #include "reg.h"
-#include "sys/cc.h"
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
-
 /*---------------------------------------------------------------------------*/
 #define BLOCK_SIZE      64
 #define OUTPUT_LEN      32
@@ -59,7 +57,7 @@
  * \param state Hash state
  * \param data Pointer to input message
  * \param hash Destination of the hash (32 bytes)
- * \return \c SHA256_SUCCESS if successful, or AES / SHA-256 error code
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/SHA256 error code
  */
 static uint8_t
 new_hash(sha256_state_t *state, const void *data, void *hash)
@@ -118,7 +116,7 @@ new_hash(sha256_state_t *state, const void *data, void *hash)
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
     /* Disable master control / DMA clock */
     REG(AES_CTRL_ALG_SEL) = 0x00000000;
-    return AES_DMA_BUS_ERROR;
+    return CRYPTO_DMA_BUS_ERROR;
   }
 
   /* Clear the interrupt */
@@ -129,14 +127,14 @@ new_hash(sha256_state_t *state, const void *data, void *hash)
   /* Clear mode */
   REG(AES_AES_CTRL) = 0x00000000;
 
-  return SHA256_SUCCESS;
+  return CRYPTO_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 /** \brief Resumes an already started hash session in hardware
  * \param state Hash state
  * \param data Pointer to the input message
  * \param hash Pointer to the destination of the hash (32 bytes)
- * \return \c SHA256_SUCCESS if successful, or AES / SHA-256 error code
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/SHA256 error code
  */
 static uint8_t
 resume_hash(sha256_state_t *state, const void *data, void *hash)
@@ -200,7 +198,7 @@ resume_hash(sha256_state_t *state, const void *data, void *hash)
     REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
     /* Disable master control / DMA clock */
     REG(AES_CTRL_ALG_SEL) = 0x00000000;
-    return AES_DMA_BUS_ERROR;
+    return CRYPTO_DMA_BUS_ERROR;
   }
 
   /* Read digest */
@@ -224,21 +222,21 @@ resume_hash(sha256_state_t *state, const void *data, void *hash)
   /* Clear mode */
   REG(AES_AES_CTRL) = 0x00000000;
 
-  return SHA256_SUCCESS;
+  return CRYPTO_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
 sha256_init(sha256_state_t *state)
 {
   if(state == NULL) {
-    return SHA256_NULL_ERROR;
+    return CRYPTO_NULL_ERROR;
   }
 
   state->curlen = 0;
   state->length = 0;
   state->new_digest = true;
   state->final_digest = false;
-  return SHA256_SUCCESS;
+  return CRYPTO_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -248,22 +246,22 @@ sha256_process(sha256_state_t *state, const void *data, uint32_t len)
   uint8_t ret;
 
   if(state == NULL || data == NULL) {
-    return SHA256_NULL_ERROR;
+    return CRYPTO_NULL_ERROR;
   }
 
   if(state->curlen > sizeof(state->buf)) {
-    return SHA256_INVALID_PARAM;
+    return CRYPTO_INVALID_PARAM;
   }
 
   if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
-    return AES_RESOURCE_IN_USE;
+    return CRYPTO_RESOURCE_IN_USE;
   }
 
   if(len > 0 && state->new_digest) {
     if(state->curlen == 0 && len > BLOCK_SIZE) {
-      memcpy(state->buf, data, BLOCK_SIZE);
+      rom_util_memcpy(state->buf, data, BLOCK_SIZE);
       ret = new_hash(state, state->buf, state->state);
-      if(ret != SHA256_SUCCESS) {
+      if(ret != CRYPTO_SUCCESS) {
         return ret;
       }
       state->new_digest = false;
@@ -272,13 +270,13 @@ sha256_process(sha256_state_t *state, const void *data, uint32_t len)
       len -= BLOCK_SIZE;
     } else {
       n = MIN(len, BLOCK_SIZE - state->curlen);
-      memcpy(&state->buf[state->curlen], data, n);
+      rom_util_memcpy(&state->buf[state->curlen], data, n);
       state->curlen += n;
       data += n;
       len -= n;
       if(state->curlen == BLOCK_SIZE && len > 0) {
         ret = new_hash(state, state->buf, state->state);
-        if(ret != SHA256_SUCCESS) {
+        if(ret != CRYPTO_SUCCESS) {
           return ret;
         }
         state->new_digest = false;
@@ -290,9 +288,9 @@ sha256_process(sha256_state_t *state, const void *data, uint32_t len)
 
   while(len > 0 && !state->new_digest) {
     if(state->curlen == 0 && len > BLOCK_SIZE) {
-      memcpy(state->buf, data, BLOCK_SIZE);
+      rom_util_memcpy(state->buf, data, BLOCK_SIZE);
       ret = resume_hash(state, state->buf, state->state);
-      if(ret != SHA256_SUCCESS) {
+      if(ret != CRYPTO_SUCCESS) {
         return ret;
       }
       state->length += BLOCK_SIZE << 3;
@@ -300,13 +298,13 @@ sha256_process(sha256_state_t *state, const void *data, uint32_t len)
       len -= BLOCK_SIZE;
     } else {
       n = MIN(len, BLOCK_SIZE - state->curlen);
-      memcpy(&state->buf[state->curlen], data, n);
+      rom_util_memcpy(&state->buf[state->curlen], data, n);
       state->curlen += n;
       data += n;
       len -= n;
       if(state->curlen == BLOCK_SIZE && len > 0) {
         ret = resume_hash(state, state->buf, state->state);
-        if(ret != SHA256_SUCCESS) {
+        if(ret != CRYPTO_SUCCESS) {
           return ret;
         }
         state->length += BLOCK_SIZE << 3;
@@ -315,7 +313,7 @@ sha256_process(sha256_state_t *state, const void *data, uint32_t len)
     }
   }
 
-  return SHA256_SUCCESS;
+  return CRYPTO_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -324,15 +322,15 @@ sha256_done(sha256_state_t *state, void *hash)
   uint8_t ret;
 
   if(state == NULL || hash == NULL) {
-    return SHA256_NULL_ERROR;
+    return CRYPTO_NULL_ERROR;
   }
 
   if(state->curlen > sizeof(state->buf)) {
-    return SHA256_INVALID_PARAM;
+    return CRYPTO_INVALID_PARAM;
   }
 
   if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
-    return AES_RESOURCE_IN_USE;
+    return CRYPTO_RESOURCE_IN_USE;
   }
 
   /* Increase the length of the message */
@@ -340,19 +338,19 @@ sha256_done(sha256_state_t *state, void *hash)
   state->final_digest = true;
   if(state->new_digest) {
     ret = new_hash(state, state->buf, hash);
-    if(ret != SHA256_SUCCESS) {
+    if(ret != CRYPTO_SUCCESS) {
       return ret;
     }
   } else {
     ret = resume_hash(state, state->buf, hash);
-    if(ret != SHA256_SUCCESS) {
+    if(ret != CRYPTO_SUCCESS) {
       return ret;
     }
   }
   state->new_digest = false;
   state->final_digest = false;
 
-  return SHA256_SUCCESS;
+  return CRYPTO_SUCCESS;
 }
 
 /** @} */

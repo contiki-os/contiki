@@ -1,9 +1,5 @@
 DEFINES=PROJECT_CONF_H=\"project-conf.h\"
 
-ifndef TARGET
-TARGET = openmote
-endif
-
 CONTIKI_PROJECT = collect-view-shell
 all: $(CONTIKI_PROJECT)
 

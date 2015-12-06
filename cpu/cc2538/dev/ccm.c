@@ -5,7 +5,6 @@
  *
  * Port to Contiki:
  * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
- * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,18 +41,14 @@
  * Implementation of the cc2538 AES-CCM driver
  */
 #include "contiki.h"
-#include "dev/crypto.h"
-#include "dev/ccm.h"
-#include "dev/nvic.h"
-#include "reg.h"
 #include "sys/cc.h"
+#include "dev/rom-util.h"
+#include "dev/nvic.h"
+#include "dev/ccm.h"
+#include "reg.h"
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
-
-/*---------------------------------------------------------------------------*/
-//#define MAX(a, b)       ((a) > (b) ? (a) : (b))
 /*---------------------------------------------------------------------------*/
 uint8_t
 ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
@@ -64,7 +59,7 @@ ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
   uint32_t iv[4];
 
   if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
-    return AES_RESOURCE_IN_USE;
+    return CRYPTO_RESOURCE_IN_USE;
   }
 
   /* Workaround for AES registers not retained after PM2 */
@@ -90,10 +85,13 @@ ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
     return AES_KEYSTORE_READ_ERROR;
   }
 
-  /* Prepare the encryption initialization vector */
-  ((uint8_t *)iv)[0] = len_len - 1;                   /* Flags: L' = L - 1 */
-  memcpy(&((uint8_t *)iv)[1], nonce, 15 - len_len);   /* Nonce */
-  memset(&((uint8_t *)iv)[16 - len_len], 0, len_len); /* Initialize counter to 0 */
+  /* Prepare the encryption initialization vector
+   * Flags: L' = L - 1 */
+  ((uint8_t *)iv)[0] = len_len - 1;
+  /* Nonce */
+  rom_util_memcpy(&((uint8_t *)iv)[1], nonce, 15 - len_len);
+  /* Initialize counter to 0 */
+  rom_util_memset(&((uint8_t *)iv)[16 - len_len], 0, len_len);
 
   /* Write initialization vector */
   REG(AES_AES_IV_0) = iv[0];
@@ -136,7 +134,7 @@ ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
       REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
       /* Disable the master control / DMA clock */
       REG(AES_CTRL_ALG_SEL) = 0x00000000;
-      return AES_DMA_BUS_ERROR;
+      return CRYPTO_DMA_BUS_ERROR;
     }
   }
 
@@ -170,7 +168,7 @@ ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
     REG(AES_DMAC_CH1_DMALENGTH) = pdata_len;
   }
 
-  return AES_SUCCESS;
+  return CRYPTO_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -200,7 +198,7 @@ ccm_auth_encrypt_get_result(void *mic, uint8_t mic_len)
   REG(AES_CTRL_ALG_SEL) = 0x00000000;
 
   if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
-    return AES_DMA_BUS_ERROR;
+    return CRYPTO_DMA_BUS_ERROR;
   }
   if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_KEY_ST_WR_ERR) {
     return AES_KEYSTORE_WRITE_ERROR;
@@ -224,9 +222,9 @@ ccm_auth_encrypt_get_result(void *mic, uint8_t mic_len)
                           AES_CTRL_INT_CLR_RESULT_AV;
 
   /* Copy tag to MIC */
-  memcpy(mic, tag, mic_len);
+  rom_util_memcpy(mic, tag, mic_len);
 
-  return AES_SUCCESS;
+  return CRYPTO_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -239,7 +237,7 @@ ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
   uint32_t iv[4];
 
   if(REG(AES_CTRL_ALG_SEL) != 0x00000000) {
-    return AES_RESOURCE_IN_USE;
+    return CRYPTO_RESOURCE_IN_USE;
   }
 
   /* Workaround for AES registers not retained after PM2 */
@@ -265,10 +263,13 @@ ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
     return AES_KEYSTORE_READ_ERROR;
   }
 
-  /* Prepare the decryption initialization vector */
-  ((uint8_t *)iv)[0] = len_len - 1;                   /* Flags: L' = L - 1 */
-  memcpy(&((uint8_t *)iv)[1], nonce, 15 - len_len);   /* Nonce */
-  memset(&((uint8_t *)iv)[16 - len_len], 0, len_len); /* Initialize counter to 0 */
+  /* Prepare the decryption initialization vector
+   * Flags: L' = L - 1 */
+  ((uint8_t *)iv)[0] = len_len - 1;
+  /* Nonce */
+  rom_util_memcpy(&((uint8_t *)iv)[1], nonce, 15 - len_len);
+  /* Initialize counter to 0 */
+  rom_util_memset(&((uint8_t *)iv)[16 - len_len], 0, len_len);
 
   /* Write initialization vector */
   REG(AES_AES_IV_0) = iv[0];
@@ -310,7 +311,7 @@ ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
       REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_DMA_BUS_ERR;
       /* Disable the master control / DMA clock */
       REG(AES_CTRL_ALG_SEL) = 0x00000000;
-      return AES_DMA_BUS_ERROR;
+      return CRYPTO_DMA_BUS_ERROR;
     }
   }
 
@@ -344,7 +345,7 @@ ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
     REG(AES_DMAC_CH1_DMALENGTH) = pdata_len;
   }
 
-  return AES_SUCCESS;
+  return CRYPTO_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -375,7 +376,7 @@ ccm_auth_decrypt_get_result(const void *cdata, uint16_t cdata_len,
   REG(AES_CTRL_ALG_SEL) = 0x00000000;
 
   if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
-    return AES_DMA_BUS_ERROR;
+    return CRYPTO_DMA_BUS_ERROR;
   }
   if(aes_ctrl_int_stat & AES_CTRL_INT_STAT_KEY_ST_WR_ERR) {
     return AES_KEYSTORE_WRITE_ERROR;
@@ -399,14 +400,14 @@ ccm_auth_decrypt_get_result(const void *cdata, uint16_t cdata_len,
                           AES_CTRL_INT_CLR_RESULT_AV;
 
   /* Check MIC */
-  if(memcmp(tag, &((const uint8_t *)cdata)[pdata_len], mic_len)) {
+  if(rom_util_memcmp(tag, &((const uint8_t *)cdata)[pdata_len], mic_len)) {
     return CCM_AUTHENTICATION_FAILED;
   }
 
   /* Copy tag to MIC */
-  memcpy(mic, tag, mic_len);
+  rom_util_memcpy(mic, tag, mic_len);
 
-  return AES_SUCCESS;
+  return CRYPTO_SUCCESS;
 }
 
 /** @} */

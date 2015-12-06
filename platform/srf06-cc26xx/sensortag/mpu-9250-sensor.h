@@ -86,8 +86,6 @@
 #define MPU_9250_SENSOR_TYPE_NONE        0
 #define MPU_9250_SENSOR_TYPE_ALL      (MPU_9250_SENSOR_TYPE_ACC | \
                                        MPU_9250_SENSOR_TYPE_GYRO)
-
-#define MPU_9250_SENSOR_SHUTDOWN      0xFF
 /*---------------------------------------------------------------------------*/
 /* Accelerometer range */
 #define MPU_9250_SENSOR_ACC_RANGE_2G     0

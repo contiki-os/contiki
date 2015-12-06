@@ -9,7 +9,7 @@
  * @addtogroup stm32w-cpu
  * @{ */
 
-/** @defgroup micro
+/** @defgroup micro Micro
  * Many of the supplied example applications use these microcontroller functions.
  * See hal/micro/micro-common.h for source code.
  *
@@ -149,4 +149,3 @@ StStatus halBootloaderStart(uint8_t mode, uint8_t channel, uint16_t panId);
 
 /** @} END micro group  */
 /** @} */
-

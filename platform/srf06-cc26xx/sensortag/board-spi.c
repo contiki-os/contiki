@@ -40,12 +40,33 @@
 #include "ti-lib.h"
 #include "board-spi.h"
 #include "board.h"
+
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#define CPU_FREQ      48000000ul
+static bool
+accessible(void)
+{
+  /* First, check the PD */
+  if(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_SERIAL)
+     != PRCM_DOMAIN_POWER_ON) {
+    return false;
+  }
+
+  /* Then check the 'run mode' clock gate */
+  if(!(HWREG(PRCM_BASE + PRCM_O_SSICLKGR) & PRCM_SSICLKGR_CLK_EN_SSI0)) {
+    return false;
+  }
+
+  return true;
+}
 /*---------------------------------------------------------------------------*/
-int
+bool
 board_spi_write(const uint8_t *buf, size_t len)
 {
+  if(accessible() == false) {
+    return false;
+  }
+
   while(len > 0) {
     uint32_t ul;
 
@@ -55,30 +76,38 @@ board_spi_write(const uint8_t *buf, size_t len)
     buf++;
   }
 
-  return 0;
+  return true;
 }
 /*---------------------------------------------------------------------------*/
-int
+bool
 board_spi_read(uint8_t *buf, size_t len)
 {
+  if(accessible() == false) {
+    return false;
+  }
+
   while(len > 0) {
     uint32_t ul;
 
     if(!ti_lib_rom_ssi_data_put_non_blocking(SSI0_BASE, 0)) {
       /* Error */
-      return -1;
+      return false;
     }
     ti_lib_rom_ssi_data_get(SSI0_BASE, &ul);
     *buf = (uint8_t)ul;
     len--;
     buf++;
   }
-  return 0;
+  return true;
 }
 /*---------------------------------------------------------------------------*/
 void
 board_spi_flush()
 {
+  if(accessible() == false) {
+    return;
+  }
+
   uint32_t ul;
   while(ti_lib_rom_ssi_data_get_non_blocking(SSI0_BASE, &ul));
 }
@@ -88,7 +117,12 @@ board_spi_open(uint32_t bit_rate, uint32_t clk_pin)
 {
   uint32_t buf;
 
-  /* SPI power */
+  /* First, make sure the SERIAL PD is on */
+  ti_lib_prcm_power_domain_on(PRCM_DOMAIN_SERIAL);
+  while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_SERIAL)
+        != PRCM_DOMAIN_POWER_ON));
+
+  /* Enable clock in active mode */
   ti_lib_rom_prcm_peripheral_run_enable(PRCM_PERIPH_SSI0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
@@ -96,7 +130,8 @@ board_spi_open(uint32_t bit_rate, uint32_t clk_pin)
   /* SPI configuration */
   ti_lib_ssi_int_disable(SSI0_BASE, SSI_RXOR | SSI_RXFF | SSI_RXTO | SSI_TXFF);
   ti_lib_ssi_int_clear(SSI0_BASE, SSI_RXOR | SSI_RXTO);
-  ti_lib_rom_ssi_config_set_exp_clk(SSI0_BASE, CPU_FREQ, SSI_FRF_MOTO_MODE_0,
+  ti_lib_rom_ssi_config_set_exp_clk(SSI0_BASE, ti_lib_sys_ctrl_clock_get(),
+                                    SSI_FRF_MOTO_MODE_0,
                                     SSI_MODE_MASTER, bit_rate, 8);
   ti_lib_rom_ioc_pin_type_ssi_master(SSI0_BASE, BOARD_IOID_SPI_MISO,
                                      BOARD_IOID_SPI_MOSI, IOID_UNUSED, clk_pin);
@@ -113,6 +148,16 @@ board_spi_close()
   ti_lib_rom_prcm_peripheral_run_disable(PRCM_PERIPH_SSI0);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
+
+  /* Restore pins to a low-consumption state */
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SPI_MISO);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SPI_MISO, IOC_IOPULL_DOWN);
+
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SPI_MOSI);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SPI_MOSI, IOC_IOPULL_DOWN);
+
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_SPI_CLK_FLASH);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_SPI_CLK_FLASH, IOC_IOPULL_DOWN);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

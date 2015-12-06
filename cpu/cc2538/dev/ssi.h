@@ -46,6 +46,12 @@
 #define SSI_H_
 
 /*---------------------------------------------------------------------------*/
+/** \name Number of SSI instances supported by this CPU.
+ * @{
+ */
+#define SSI_INSTANCE_COUNT  2
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name Base register memory locations.
  * @{
  */

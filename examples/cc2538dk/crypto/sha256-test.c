@@ -5,7 +5,6 @@
  *
  * Port to Contiki:
  * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
- * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +51,7 @@
  */
 #include "contiki.h"
 #include "sys/rtimer.h"
-#include "dev/crypto.h"
+#include "dev/rom-util.h"
 #include "dev/sha256.h"
 
 #include <stddef.h>
@@ -67,13 +66,10 @@ PROCESS_THREAD(sha256_test_process, ev, data)
 {
   static const char *const str_res[] = {
     "success",
-    "resource in use",
-    "keystore read error",
-    "keystore write error",
-    "DMA bus error",
-    "authentication failed",
     "invalid param",
-    "NULL error"
+    "NULL error",
+    "resource in use",
+    "DMA bus error"
   };
   static const struct {
     const char *data[3];
@@ -183,12 +179,12 @@ PROCESS_THREAD(sha256_test_process, ev, data)
     }
   };
   static sha256_state_t state;
+  static uint8_t sha256[32];
   static int i, j;
   static uint8_t ret;
   static rtimer_clock_t total_time;
   rtimer_clock_t time;
   size_t len;
-  uint8_t sha256[32];
 
   PROCESS_BEGIN();
 
@@ -207,7 +203,7 @@ PROCESS_THREAD(sha256_test_process, ev, data)
     printf("sha256_init(): %s, %lu us\n", str_res[ret],
            (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
     PROCESS_PAUSE();
-    if(ret != SHA256_SUCCESS) {
+    if(ret != CRYPTO_SUCCESS) {
       continue;
     }
 
@@ -222,11 +218,11 @@ PROCESS_THREAD(sha256_test_process, ev, data)
       printf("sha256_process(): %s, %lu us\n", str_res[ret],
              (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
       PROCESS_PAUSE();
-      if(ret != SHA256_SUCCESS) {
+      if(ret != CRYPTO_SUCCESS) {
         break;
       }
     }
-    if(ret != SHA256_SUCCESS) {
+    if(ret != CRYPTO_SUCCESS) {
       continue;
     }
 
@@ -237,11 +233,11 @@ PROCESS_THREAD(sha256_test_process, ev, data)
     printf("sha256_done(): %s, %lu us\n", str_res[ret],
            (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
     PROCESS_PAUSE();
-    if(ret != SHA256_SUCCESS) {
+    if(ret != CRYPTO_SUCCESS) {
       continue;
     }
 
-    if(memcmp(sha256, vectors[i].sha256, sizeof(sha256))) {
+    if(rom_util_memcmp(sha256, vectors[i].sha256, sizeof(sha256))) {
       puts("Computed SHA-256 hash does not match expected hash");
     } else {
       puts("Computed SHA-256 hash OK");

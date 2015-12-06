@@ -32,13 +32,14 @@
 ;
 ;---------------------------------------------------------------------
 	.constructor init_pfs
-        .destructor  done_pfs
+	.destructor  done_pfs
 	.importzp    ptr1
-	.import	     popax, _uip_aligned_buf
-	.export	     _pfs_open, _pfs_read, _pfs_close
+	.import      popax, _uip_aligned_buf
+	.export      _pfs_open, _pfs_read, _pfs_close
 ;---------------------------------------------------------------------
 pathname	:= $0280
 mli		:= $BF00
+level		:= $BF94
 
 OPEN_CALL	= $C8
 READ_CALL	= $CA
@@ -68,8 +69,11 @@ close_fd:	.byte	$00		    ;REF_NUM
 	.segment	"INIT"
 
 init_pfs:
-        ; Get prefix len of path used to load binary
-        ldx pathname
+	; Allow exec() to keep file open
+	inc level
+
+	; Get prefix len of path used to load binary
+	ldx pathname
 :	lda pathname,x
 	cmp #'/'
 	beq :+
@@ -79,6 +83,15 @@ init_pfs:
 	rts
 ;---------------------------------------------------------------------
 	.code
+
+done_pfs:
+	; Close all file
+	lda #$00
+	jsr _pfs_close
+
+	; Allow exec() to keep file open
+	dec level
+	rts
 
 _pfs_open:
 	; Pop and store name
@@ -131,11 +144,8 @@ _pfs_read:
 	ldx read_count_out+1
 	rts
 
-done_pfs:
-	lda #$00
-
 _pfs_close:
-	; Store	fd
+	; Store fd
 	sta close_fd
 
 	jsr mli
@@ -147,6 +157,6 @@ _pfs_close:
 error:
 	; Return -1
 	lda #$FF
-        tax
-        rts
+	tax
+	rts
 ;---------------------------------------------------------------------

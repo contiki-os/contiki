@@ -29,11 +29,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup srf06-cc26xx-peripherals
+ * \addtogroup srf06-common-peripherals
  * @{
  *
  * \file
- * Header file for the SmartRF06EB + CC26xxEM Button Driver
+ * Header file for the SmartRF06EB + CC13xx/CC26xxEM Button Driver
  */
 /*---------------------------------------------------------------------------*/
 #ifndef BUTTON_SENSOR_H_
@@ -49,7 +49,6 @@
 #define BUTTON_SENSOR_VALUE_RELEASED 0
 #define BUTTON_SENSOR_VALUE_PRESSED  1
 /*---------------------------------------------------------------------------*/
-#define button_sensor button_select_sensor
 extern const struct sensors_sensor button_select_sensor;
 extern const struct sensors_sensor button_left_sensor;
 extern const struct sensors_sensor button_right_sensor;

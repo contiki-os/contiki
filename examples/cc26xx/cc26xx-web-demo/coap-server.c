@@ -39,7 +39,7 @@
 #include "contiki-net.h"
 #include "rest-engine.h"
 #include "board-peripherals.h"
-#include "dev/cc26xx-rf.h"
+#include "rf-core/rf-ble.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,7 +56,10 @@ extern resource_t res_device_hw;
 extern resource_t res_device_uptime;
 extern resource_t res_device_cfg_reset;
 
-#if CC26XX_RF_BLE_SUPPORT
+extern resource_t res_parent_rssi;
+extern resource_t res_parent_ip;
+
+#if RF_BLE_ENABLED
 extern resource_t res_ble_advd;
 #endif
 
@@ -66,8 +69,8 @@ extern resource_t res_bmp280_temp;
 extern resource_t res_bmp280_press;
 extern resource_t res_tmp007_amb;
 extern resource_t res_tmp007_obj;
-extern resource_t res_sht21_temp;
-extern resource_t res_sht21_hum;
+extern resource_t res_hdc1000_temp;
+extern resource_t res_hdc1000_hum;
 extern resource_t res_opt3001_light;
 extern resource_t res_mpu_acc_x;
 extern resource_t res_mpu_acc_y;
@@ -98,8 +101,8 @@ start_board_resources(void)
   rest_activate_resource(&res_bmp280_press, "sen/bar/pres");
   rest_activate_resource(&res_tmp007_amb, "sen/tmp/amb");
   rest_activate_resource(&res_tmp007_obj, "sen/tmp/obj");
-  rest_activate_resource(&res_sht21_temp, "sen/sht/t");
-  rest_activate_resource(&res_sht21_hum, "sen/sht/h");
+  rest_activate_resource(&res_hdc1000_temp, "sen/hdc/t");
+  rest_activate_resource(&res_hdc1000_hum, "sen/hdc/h");
   rest_activate_resource(&res_opt3001_light, "sen/opt/light");
   rest_activate_resource(&res_mpu_acc_x, "sen/mpu/acc/x");
   rest_activate_resource(&res_mpu_acc_y, "sen/mpu/acc/y");
@@ -138,7 +141,10 @@ PROCESS_THREAD(coap_server_process, ev, data)
   rest_activate_resource(&res_device_uptime, "dev/uptime");
   rest_activate_resource(&res_device_cfg_reset, "dev/cfg_reset");
 
-#if CC26XX_RF_BLE_SUPPORT
+  rest_activate_resource(&res_parent_rssi, "net/parent/RSSI");
+  rest_activate_resource(&res_parent_ip, "net/parent/IPv6");
+
+#if RF_BLE_ENABLED
   rest_activate_resource(&res_ble_advd, "dev/ble_advd");
 #endif
 

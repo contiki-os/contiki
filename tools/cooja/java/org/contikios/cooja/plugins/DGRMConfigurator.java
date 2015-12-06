@@ -111,7 +111,7 @@ public class DGRMConfigurator extends VisPlugin {
     radioMedium = (DirectedGraphMedium) sim.getRadioMedium();
 
     /* Listen for graph updates */
-    radioMedium.addRadioMediumObserver(radioMediumObserver = new Observer() {
+    radioMedium.addRadioTransmissionObserver(radioMediumObserver = new Observer() {
       public void update(Observable obs, Object obj) {
         model.fireTableDataChanged();
       }
@@ -500,7 +500,7 @@ public class DGRMConfigurator extends VisPlugin {
   };
 
   public void closePlugin() {
-    radioMedium.deleteRadioMediumObserver(radioMediumObserver);
+    radioMedium.deleteRadioTransmissionObserver(radioMediumObserver);
   }
 
 }

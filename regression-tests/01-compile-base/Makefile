@@ -13,7 +13,7 @@ hello-world/wismote \
 hello-world/z1 \
 eeprom-test/native \
 collect/sky \
-er-rest-example/sky \
+er-rest-example/wismote \
 example-shell/native \
 netperf/sky \
 powertrace/sky \
@@ -29,12 +29,15 @@ sky-shell-webserver/sky \
 tcp-socket/minimal-net \
 telnet-server/minimal-net \
 webserver/minimal-net \
-webserver-ipv6/exp5438 \
 webserver-ipv6/eval-adf7xxxmb4z \
 wget/minimal-net \
-z1/z1 \
+zolertia/z1/z1 \
 settings-example/avr-raven \
 ipv6/multicast/sky \
+ipv6/rpl-tsch/z1 \
+ipv6/rpl-tsch/z1:MAKE_WITH_ORCHESTRA=1 \
+ipv6/rpl-tsch/z1:MAKE_WITH_SECURITY=1
+
 
 TOOLS=
 

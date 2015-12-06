@@ -38,7 +38,7 @@
 #include "contiki.h"
 #include "rest-engine.h"
 #include "er-coap.h"
-#include "dev/cc26xx-rf.h"
+#include "rf-core/rf-ble.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -64,7 +64,7 @@ res_ble_post_put_handler(void *request, void *response, uint8_t *buffer,
 
   if(len > 0 && len < BLE_NAME_BUF_LEN) {
     memcpy(name, text, len);
-    cc26xx_rf_ble_beacond_config(0, name);
+    rf_ble_beacond_config(0, name);
     success = 1;
   }
 
@@ -73,7 +73,7 @@ res_ble_post_put_handler(void *request, void *response, uint8_t *buffer,
   rv = atoi(text);
 
   if(rv > 0) {
-    cc26xx_rf_ble_beacond_config((clock_time_t)(rv * CLOCK_SECOND), NULL);
+    rf_ble_beacond_config((clock_time_t)(rv * CLOCK_SECOND), NULL);
     success = 1;
   }
 
@@ -81,7 +81,7 @@ res_ble_post_put_handler(void *request, void *response, uint8_t *buffer,
 
   if(len) {
     if(strncmp(text, "on", len) == 0) {
-      if(cc26xx_rf_ble_beacond_start()) {
+      if(rf_ble_beacond_start()) {
         success = 1;
       } else {
         REST.set_response_status(response, REST.status.FORBIDDEN);
@@ -90,7 +90,7 @@ res_ble_post_put_handler(void *request, void *response, uint8_t *buffer,
         return;
       }
     } else if(strncmp(text, "off", len) == 0) {
-      cc26xx_rf_ble_beacond_stop();
+      rf_ble_beacond_stop();
       success = 1;
     } else {
       success = 0;

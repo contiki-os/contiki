@@ -916,7 +916,6 @@ ep0_get_data_pkt(void)
   }
 
   if(buffer->flags & (USB_BUFFER_SETUP | USB_BUFFER_IN)) {
-
     buffer->flags |= USB_BUFFER_FAILED;
     buffer->flags &= ~USB_BUFFER_SUBMITTED;
     if(buffer->flags & USB_BUFFER_NOTIFY) {

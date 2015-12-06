@@ -37,6 +37,7 @@
  */
 
 #include <string.h>
+#include "sys/cc.h"
 #include "rest-engine.h"
 #include "er-coap.h"
 #include "er-plugtest.h"

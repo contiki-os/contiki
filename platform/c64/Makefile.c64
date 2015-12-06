@@ -31,12 +31,16 @@
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
 
-CONTIKI_TARGET_SOURCEFILES += pfs.S pfs_write.S
+CONTIKI_TARGET_SOURCEFILES += lseek.c pfs.S pfs_write.S
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
 
 CFLAGS += -DWITH_PETSCII
+
+ifeq ($(findstring WITH_80COL,$(DEFINES)),WITH_80COL)
+  LDFLAGS += c64-soft80.o
+endif
 
 ifeq ($(MAKECMDGOALS),disk)
   ifndef C1541

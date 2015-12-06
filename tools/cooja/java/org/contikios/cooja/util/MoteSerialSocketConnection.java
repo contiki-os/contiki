@@ -44,7 +44,7 @@ import org.contikios.cooja.interfaces.SerialPort;
 
 /**
  * Help class for forwarding serial data between a mote and a socket.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class MoteSerialSocketConnection {

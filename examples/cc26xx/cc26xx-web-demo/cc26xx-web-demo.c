@@ -44,6 +44,7 @@
 #include "lib/sensors.h"
 #include "lib/list.h"
 #include "sys/process.h"
+#include "net/ipv6/sicslowpan.h"
 #include "button-sensor.h"
 #include "batmon-sensor.h"
 #include "httpd-simple.h"
@@ -68,7 +69,7 @@ PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
 struct ctimer batmon_timer;
 
 #if BOARD_SENSORTAG
-struct ctimer bmp_timer, sht_timer, tmp_timer, opt_timer, mpu_timer;
+struct ctimer bmp_timer, hdc_timer, tmp_timer, opt_timer, mpu_timer;
 #endif
 /*---------------------------------------------------------------------------*/
 /* Provide visible feedback via LEDS while searching for a network */
@@ -77,13 +78,20 @@ struct ctimer bmp_timer, sht_timer, tmp_timer, opt_timer, mpu_timer;
 static struct etimer et;
 static struct ctimer ct;
 /*---------------------------------------------------------------------------*/
+/* Parent RSSI functionality */
+#if CC26XX_WEB_DEMO_READ_PARENT_RSSI
+static struct uip_icmp6_echo_reply_notification echo_reply_notification;
+static struct etimer echo_request_timer;
+int def_rt_rssi = 0;
+#endif
+/*---------------------------------------------------------------------------*/
 process_event_t cc26xx_web_demo_publish_event;
 process_event_t cc26xx_web_demo_config_loaded_event;
 process_event_t cc26xx_web_demo_load_config_defaults;
 /*---------------------------------------------------------------------------*/
 /* Saved settings on flash: store, offset, magic */
 #define CONFIG_FLASH_OFFSET        0
-#define CONFIG_MAGIC      0xCC265001
+#define CONFIG_MAGIC      0xCC265002
 
 cc26xx_web_demo_config_t cc26xx_web_demo_config;
 /*---------------------------------------------------------------------------*/
@@ -111,11 +119,11 @@ DEMO_SENSOR(bmp_pres, CC26XX_WEB_DEMO_SENSOR_BMP_PRES,
 DEMO_SENSOR(bmp_temp, CC26XX_WEB_DEMO_SENSOR_BMP_TEMP,
             "Air Temp", "air-temp", "bmp_temp",
             CC26XX_WEB_DEMO_UNIT_TEMP);
-DEMO_SENSOR(sht_temp, CC26XX_WEB_DEMO_SENSOR_SHT_TEMP,
-            "SHT Temp", "sht-temp", "sht_temp",
+DEMO_SENSOR(hdc_temp, CC26XX_WEB_DEMO_SENSOR_HDC_TEMP,
+            "HDC Temp", "hdc-temp", "hdc_temp",
             CC26XX_WEB_DEMO_UNIT_TEMP);
-DEMO_SENSOR(sht_hum, CC26XX_WEB_DEMO_SENSOR_SHT_HUMIDITY,
-            "SHT Humidity", "sht-humidity", "sht_hum",
+DEMO_SENSOR(hdc_hum, CC26XX_WEB_DEMO_SENSOR_HDC_HUMIDITY,
+            "HDC Humidity", "hdc-humidity", "hdc_hum",
             CC26XX_WEB_DEMO_UNIT_HUMIDITY);
 DEMO_SENSOR(tmp_amb, CC26XX_WEB_DEMO_SENSOR_TMP_AMBIENT,
             "Ambient Temp", "ambient-temp", "tmp_amb",
@@ -152,7 +160,7 @@ DEMO_SENSOR(mpu_gyro_z, CC26XX_WEB_DEMO_SENSOR_MPU_GYRO_Z,
 #if BOARD_SENSORTAG
 static void init_bmp_reading(void *data);
 static void init_light_reading(void *data);
-static void init_sht_reading(void *data);
+static void init_hdc_reading(void *data);
 static void init_tmp_reading(void *data);
 static void init_mpu_reading(void *data);
 #endif
@@ -374,8 +382,57 @@ sensor_readings_handler(char *key, int key_len, char *val, int val_len)
   return HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
 }
 /*---------------------------------------------------------------------------*/
+#if CC26XX_WEB_DEMO_READ_PARENT_RSSI
+static int
+ping_interval_post_handler(char *key, int key_len, char *val, int val_len)
+{
+  int rv = 0;
+
+  if(key_len != strlen("ping_interval") ||
+     strncasecmp(key, "ping_interval", strlen("ping_interval")) != 0) {
+    /* Not ours */
+    return HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
+  }
+
+  rv = atoi(val);
+
+  if(rv < CC26XX_WEB_DEMO_RSSI_MEASURE_INTERVAL_MIN ||
+     rv > CC26XX_WEB_DEMO_RSSI_MEASURE_INTERVAL_MAX) {
+    return HTTPD_SIMPLE_POST_HANDLER_ERROR;
+  }
+
+  cc26xx_web_demo_config.def_rt_ping_interval = rv * CLOCK_SECOND;
+
+  return HTTPD_SIMPLE_POST_HANDLER_OK;
+}
+#endif
+/*---------------------------------------------------------------------------*/
 HTTPD_SIMPLE_POST_HANDLER(sensor, sensor_readings_handler);
 HTTPD_SIMPLE_POST_HANDLER(defaults, defaults_post_handler);
+
+#if CC26XX_WEB_DEMO_READ_PARENT_RSSI
+HTTPD_SIMPLE_POST_HANDLER(ping_interval, ping_interval_post_handler);
+/*---------------------------------------------------------------------------*/
+static void
+echo_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data,
+                   uint16_t datalen)
+{
+  if(uip_ip6addr_cmp(source, uip_ds6_defrt_choose())) {
+    def_rt_rssi = sicslowpan_get_last_rssi();
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+ping_parent(void)
+{
+  if(uip_ds6_get_global(ADDR_PREFERRED) == NULL) {
+    return;
+  }
+
+  uip_icmp6_send(uip_ds6_defrt_choose(), ICMP6_ECHO_REQUEST, 0,
+                 CC26XX_WEB_DEMO_ECHO_REQ_PAYLOAD_LEN);
+}
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 get_batmon_reading(void *data)
@@ -392,8 +449,7 @@ get_batmon_reading(void *data)
 
       buf = batmon_temp_reading.converted;
       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-      snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value >> 2,
-               (value & 0x00000003) * 25);
+      snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d", value);
     }
   }
 
@@ -526,42 +582,42 @@ get_tmp_reading()
 }
 /*---------------------------------------------------------------------------*/
 static void
-get_sht_reading()
+get_hdc_reading()
 {
   int value;
   char *buf;
   clock_time_t next = SENSOR_READING_PERIOD +
     (random_rand() % SENSOR_READING_RANDOM);
 
-  if(sht_temp_reading.publish) {
-    value = sht_21_sensor.value(SHT_21_SENSOR_TYPE_TEMP);
+  if(hdc_temp_reading.publish) {
+    value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_TEMP);
     if(value != CC26XX_SENSOR_READING_ERROR) {
-      sht_temp_reading.raw = value;
+      hdc_temp_reading.raw = value;
 
-      compare_and_update(&sht_temp_reading);
+      compare_and_update(&hdc_temp_reading);
 
-      buf = sht_temp_reading.converted;
+      buf = hdc_temp_reading.converted;
       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
       snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
                value % 100);
     }
   }
 
-  if(sht_hum_reading.publish) {
-    value = sht_21_sensor.value(SHT_21_SENSOR_TYPE_HUMIDITY);
+  if(hdc_hum_reading.publish) {
+    value = hdc_1000_sensor.value(HDC_1000_SENSOR_TYPE_HUMIDITY);
     if(value != CC26XX_SENSOR_READING_ERROR) {
-      sht_hum_reading.raw = value;
+      hdc_hum_reading.raw = value;
 
-      compare_and_update(&sht_hum_reading);
+      compare_and_update(&hdc_hum_reading);
 
-      buf = sht_hum_reading.converted;
+      buf = hdc_hum_reading.converted;
       memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
       snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
                value % 100);
     }
   }
 
-  ctimer_set(&sht_timer, next, init_sht_reading, NULL);
+  ctimer_set(&hdc_timer, next, init_hdc_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -574,8 +630,6 @@ get_light_reading()
 
   value = opt_3001_sensor.value(0);
 
-  SENSORS_DEACTIVATE(opt_3001_sensor);
-
   if(value != CC26XX_SENSOR_READING_ERROR) {
     opt_reading.raw = value;
 
@@ -587,6 +641,7 @@ get_light_reading()
              value % 100);
   }
 
+  /* The OPT will turn itself off, so we don't need to call its DEACTIVATE */
   ctimer_set(&opt_timer, next, init_light_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
@@ -702,12 +757,12 @@ init_bmp_reading(void *data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-init_sht_reading(void *data)
+init_hdc_reading(void *data)
 {
-  if(sht_hum_reading.publish || sht_temp_reading.publish) {
-    SENSORS_ACTIVATE(sht_21_sensor);
+  if(hdc_hum_reading.publish || hdc_temp_reading.publish) {
+    SENSORS_ACTIVATE(hdc_1000_sensor);
   } else {
-    ctimer_set(&sht_timer, CLOCK_SECOND, init_sht_reading, NULL);
+    ctimer_set(&hdc_timer, CLOCK_SECOND, init_hdc_reading, NULL);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -756,7 +811,7 @@ init_sensor_readings(void)
 #if BOARD_SENSORTAG
   init_bmp_reading(NULL);
   init_light_reading(NULL);
-  init_sht_reading(NULL);
+  init_hdc_reading(NULL);
   init_tmp_reading(NULL);
   init_mpu_reading(NULL);
 #endif /* BOARD_SENSORTAG */
@@ -781,8 +836,8 @@ init_sensors(void)
 
   list_add(sensor_list, &opt_reading);
 
-  list_add(sensor_list, &sht_hum_reading);
-  list_add(sensor_list, &sht_temp_reading);
+  list_add(sensor_list, &hdc_hum_reading);
+  list_add(sensor_list, &hdc_temp_reading);
 
   list_add(sensor_list, &mpu_acc_x_reading);
   list_add(sensor_list, &mpu_acc_y_reading);
@@ -830,6 +885,8 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
    * own defaults and restore saved config from flash...
    */
   cc26xx_web_demo_config.sensors_bitmap = 0xFFFFFFFF; /* all on by default */
+  cc26xx_web_demo_config.def_rt_ping_interval =
+      CC26XX_WEB_DEMO_DEFAULT_RSSI_MEAS_INTERVAL;
   load_config();
 
   /*
@@ -843,6 +900,15 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
   httpd_simple_register_post_handler(&sensor_handler);
   httpd_simple_register_post_handler(&defaults_handler);
 
+#if CC26XX_WEB_DEMO_READ_PARENT_RSSI
+  httpd_simple_register_post_handler(&ping_interval_handler);
+
+  def_rt_rssi = 0x8000000;
+  uip_icmp6_echo_reply_callback_add(&echo_reply_notification,
+                                    echo_reply_handler);
+  etimer_set(&echo_request_timer, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
+#endif
+
   etimer_set(&et, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
 
   /*
@@ -850,21 +916,34 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
    * (e.g a button press / or reed trigger)
    */
   while(1) {
+    if(ev == PROCESS_EVENT_TIMER && etimer_expired(&et)) {
+      if(uip_ds6_get_global(ADDR_PREFERRED) == NULL) {
+        leds_on(CC26XX_WEB_DEMO_STATUS_LED);
+        ctimer_set(&ct, NO_NET_LED_DURATION, publish_led_off, NULL);
+        etimer_set(&et, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
+      }
+    }
+
+#if CC26XX_WEB_DEMO_READ_PARENT_RSSI
+    if(ev == PROCESS_EVENT_TIMER && etimer_expired(&echo_request_timer)) {
+      if(uip_ds6_get_global(ADDR_PREFERRED) == NULL) {
+        etimer_set(&echo_request_timer, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
+      } else {
+        ping_parent();
+        etimer_set(&echo_request_timer, cc26xx_web_demo_config.def_rt_ping_interval);
+      }
+    }
+#endif
+
     if(ev == sensors_event && data == CC26XX_WEB_DEMO_SENSOR_READING_TRIGGER) {
       if((CC26XX_WEB_DEMO_SENSOR_READING_TRIGGER)->value(
-          BUTTON_SENSOR_VALUE_DURATION) > CLOCK_SECOND * 5) {
+           BUTTON_SENSOR_VALUE_DURATION) > CLOCK_SECOND * 5) {
         printf("Restoring defaults!\n");
         cc26xx_web_demo_restore_defaults();
       } else {
         init_sensor_readings();
 
         process_post(PROCESS_BROADCAST, cc26xx_web_demo_publish_event, NULL);
-      }
-    } else if(ev == PROCESS_EVENT_TIMER && etimer_expired(&et)) {
-      if(uip_ds6_get_global(ADDR_PREFERRED) == NULL) {
-        leds_on(CC26XX_WEB_DEMO_STATUS_LED);
-        ctimer_set(&ct, NO_NET_LED_DURATION, publish_led_off, NULL);
-        etimer_set(&et, CC26XX_WEB_DEMO_NET_CONNECT_PERIODIC);
       }
     } else if(ev == httpd_simple_event_new_config) {
       save_config();
@@ -873,8 +952,8 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
       get_bmp_reading();
     } else if(ev == sensors_event && data == &opt_3001_sensor) {
       get_light_reading();
-    } else if(ev == sensors_event && data == &sht_21_sensor) {
-      get_sht_reading();
+    } else if(ev == sensors_event && data == &hdc_1000_sensor) {
+      get_hdc_reading();
     } else if(ev == sensors_event && data == &tmp_007_sensor) {
       get_tmp_reading();
     } else if(ev == sensors_event && data == &mpu_9250_sensor) {

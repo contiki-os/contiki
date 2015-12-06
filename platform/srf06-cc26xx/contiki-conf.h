@@ -45,16 +45,6 @@
 #endif /* PROJECT_CONF_H */
 /*---------------------------------------------------------------------------*/
 /**
- * \name CC26xx flavour selection
- * @{
- */
-#ifndef CC26XX_MODEL_CONF_CPU_VARIANT
-#define CC26XX_MODEL_CONF_CPU_VARIANT 2650 /**< 2650 => CC2650, 2630 => CC2630 */
-
-#endif
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
  * \name Network Stack Configuration
  *
  * @{
@@ -76,8 +66,7 @@
 #endif
 
 /* Configure NullRDC for when it's selected */
-#define NULLRDC_802154_AUTOACK                  1
-#define NULLRDC_802154_AUTOACK_HW               1
+#define NULLRDC_CONF_802154_AUTOACK             1
 
 /* Configure ContikiMAC for when it's selected */
 #define CONTIKIMAC_CONF_WITH_CONTIKIMAC_HEADER  0
@@ -92,7 +81,35 @@
 #define NETSTACK_CONF_FRAMER  framer_802154
 #endif
 
-#define NETSTACK_CONF_RADIO   cc26xx_rf_driver
+#if CPU_FAMILY_CC13XX
+#define NETSTACK_CONF_RADIO        prop_mode_driver
+
+#ifndef RF_CORE_CONF_CHANNEL
+#define RF_CORE_CONF_CHANNEL                      0
+#endif
+
+#define NULLRDC_CONF_ACK_WAIT_TIME                (RTIMER_SECOND / 400)
+#define NULLRDC_CONF_AFTER_ACK_DETECTED_WAIT_TIME (RTIMER_SECOND / 1000)
+#define NULLRDC_CONF_802154_AUTOACK_HW            0
+#define NULLRDC_CONF_SEND_802154_ACK              1
+
+#define CONTIKIMAC_CONF_CCA_CHECK_TIME            (RTIMER_ARCH_SECOND / 1600)
+#define CONTIKIMAC_CONF_CCA_SLEEP_TIME            (RTIMER_ARCH_SECOND / 210)
+#define CONTIKIMAC_CONF_LISTEN_TIME_AFTER_PACKET_DETECTED  (RTIMER_ARCH_SECOND / 20)
+#define CONTIKIMAC_CONF_SEND_SW_ACK               1
+#define CONTIKIMAC_CONF_AFTER_ACK_DETECTECT_WAIT_TIME (RTIMER_SECOND / 1000)
+#define CONTIKIMAC_CONF_INTER_PACKET_INTERVAL     (RTIMER_SECOND / 250)
+#else
+#define NETSTACK_CONF_RADIO        ieee_mode_driver
+
+#ifndef RF_CORE_CONF_CHANNEL
+#define RF_CORE_CONF_CHANNEL                     25
+#endif
+
+#define NULLRDC_CONF_802154_AUTOACK_HW            1
+#define NULLRDC_CONF_SEND_802154_ACK              0
+#endif
+
 #define NETSTACK_RADIO_MAX_PAYLOAD_LEN        125
 
 /* 6LoWPAN */
@@ -136,37 +153,20 @@
 #define IEEE802154_CONF_PANID           0xABCD /**< Default PAN ID */
 #endif
 
-#ifndef CC26XX_RF_CONF_CHANNEL
-#define CC26XX_RF_CONF_CHANNEL              25 /**< Default RF channel */
+#ifndef IEEE_MODE_CONF_AUTOACK
+#define IEEE_MODE_CONF_AUTOACK               1 /**< RF H/W generates ACKs */
 #endif
 
-#ifndef CC26XX_RF_CONF_AUTOACK
-#define CC26XX_RF_CONF_AUTOACK               1 /**< RF H/W generates ACKs */
+#ifndef IEEE_MODE_CONF_PROMISCOUS
+#define IEEE_MODE_CONF_PROMISCOUS            0 /**< 1 to enable promiscous mode */
 #endif
 
-#ifndef CC26XX_RF_CONF_PROMISCOUS
-#define CC26XX_RF_CONF_PROMISCOUS            0 /**< 1 to enable promiscous mode */
+#ifndef RF_BLE_CONF_ENABLED
+#define RF_BLE_CONF_ENABLED                  0 /**< 0 to disable BLE support */
 #endif
 
-#ifndef CC26XX_RF_CONF_BLE_SUPPORT
-#define CC26XX_RF_CONF_BLE_SUPPORT           0 /**< 0 to disable BLE support */
-#endif
-
-/*
- * Patch Management for the CPE itself and for BLE and IEEE modes
- *
- * Don't change these unless you know what you're doing
- */
-#ifndef CC26XX_CONF_CPE_HAS_PATCHES
-#define CC26XX_CONF_CPE_HAS_PATCHES          0 /**< 1 to enable patching the CPE */
-#endif
-
-#ifndef CC26XX_CONF_BLE_HAS_PATCHES
-#define CC26XX_CONF_BLE_HAS_PATCHES          0 /**< 1 to enable patching BLE mode */
-#endif
-
-#ifndef CC26XX_CONF_IEEE_HAS_PATCHES
-#define CC26XX_CONF_IEEE_HAS_PATCHES         0 /**< 1 to enable patching IEEE mode */
+#ifndef PROP_MODE_CONF_SNIFFER
+#define PROP_MODE_CONF_SNIFFER               0 /**< 1 to enable sniffer mode */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -201,7 +201,7 @@
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-#define RPL_CONF_MAX_DAG_ENTRIES             1
+
 #ifndef RPL_CONF_OF
 #define RPL_CONF_OF rpl_mrhof
 #endif
@@ -220,7 +220,7 @@
 #define UIP_CONF_TCP                         1
 #endif
 #ifndef UIP_CONF_TCP_MSS
-#define UIP_CONF_TCP_MSS                   128
+#define UIP_CONF_TCP_MSS                    64
 #endif
 
 #define UIP_CONF_UDP                         1
@@ -244,10 +244,6 @@
 #ifndef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON            0 /**< Energest Module */
 #endif
-
-#ifndef STARTUP_CONF_VERBOSE
-#define STARTUP_CONF_VERBOSE        1 /**< Set to 0 to decrease startup verbosity */
-#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -263,6 +259,11 @@
 #define CC26XX_UART_CONF_BAUD_RATE    115200 /**< Default UART0 baud rate */
 #endif
 
+/* Enable I/O over the Debugger Devpack - Only relevant for the SensorTag */
+#ifndef BOARD_CONF_DEBUGGER_DEVPACK
+#define BOARD_CONF_DEBUGGER_DEVPACK        1
+#endif
+
 /* Turn off example-provided putchars */
 #define SLIP_BRIDGE_CONF_NO_PUTCHAR        1
 #define SLIP_RADIO_CONF_NO_PUTCHAR         1
@@ -273,29 +274,10 @@
  * This will keep working while UIP_FALLBACK_INTERFACE and CMD_CONF_OUTPUT
  * keep using SLIP
  */
-#if defined (UIP_FALLBACK_INTERFACE) || defined (CMD_CONF_OUTPUT)
+#if defined(UIP_FALLBACK_INTERFACE) || defined(CMD_CONF_OUTPUT)
 #define SLIP_ARCH_CONF_ENABLED             1
 #endif
 #endif
-
-/**
- * \brief Define this as 1 to build a headless node.
- *
- * The UART will not be initialised its clock will be gated, offering some
- * energy savings. The USB will not be initialised either
- */
-#ifndef CC26XX_CONF_QUIET
-#define CC26XX_CONF_QUIET                  0
-#endif
-
-/* CC26XX_CONF_QUIET is hard and overrides all other related defines */
-#if CC26XX_CONF_QUIET
-#undef CC26XX_UART_CONF_ENABLE
-#define CC26XX_UART_CONF_ENABLE            0
-
-#undef STARTUP_CONF_VERBOSE
-#define STARTUP_CONF_VERBOSE               0
-#endif /* CC26XX_CONF_QUIET */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -310,6 +292,13 @@
 
 /* Notify various examples that we have Buttons */
 #define PLATFORM_HAS_BUTTON      1
+
+/*
+ * Override button symbols from dev/button-sensor.h, for the examples that
+ * include it
+ */
+#define button_sensor button_left_sensor
+#define button_sensor2 button_right_sensor
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* Platform-specific define to signify sensor reading failure */
@@ -332,14 +321,14 @@ typedef uint32_t clock_time_t;
 typedef uint32_t uip_stats_t;
 
 /* Clock (time) comparison macro */
-#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
+#define CLOCK_LT(a, b)  ((signed long)((a) - (b)) < 0)
 
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
  * RTIMER_CLOCK_LT to override this
  */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
+#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* board.h assumes that basic configuration is done */

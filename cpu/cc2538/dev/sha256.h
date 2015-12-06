@@ -5,7 +5,6 @@
  *
  * Port to Contiki:
  * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
- * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +72,7 @@ typedef struct {
 
 /** \brief Initializes the hash state
  * \param state Pointer to hash state to initialize
- * \return \c SHA256_SUCCESS if successful, or AES / SHA-256 error code
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/SHA256 error code
  */
 uint8_t sha256_init(sha256_state_t *state);
 
@@ -81,7 +80,7 @@ uint8_t sha256_init(sha256_state_t *state);
  * \param state Pointer to hash state
  * \param data Pointer to the data to hash
  * \param len Length of the data to hash in bytes (octets)
- * \return \c SHA256_SUCCESS if successful, or AES / SHA-256 error code
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/SHA256 error code
  * \note This function must be called only after \c sha256_init().
  */
 uint8_t sha256_process(sha256_state_t *state, const void *data, uint32_t len);
@@ -89,7 +88,7 @@ uint8_t sha256_process(sha256_state_t *state, const void *data, uint32_t len);
 /** \brief Terminates hash session to get the digest
  * \param state Pointer to hash state
  * \param hash Pointer to hash
- * \return \c SHA256_SUCCESS if successful, or AES / SHA-256 error code
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/SHA256 error code
  * \note This function must be called only after \c sha256_process().
  */
 uint8_t sha256_done(sha256_state_t *state, void *hash);

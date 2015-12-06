@@ -5,7 +5,6 @@
  *
  * Port to Contiki:
  * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
- * Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,13 +51,12 @@
  */
 #include "contiki.h"
 #include "sys/rtimer.h"
-#include "dev/crypto.h"
+#include "dev/rom-util.h"
 #include "dev/ccm.h"
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 /*---------------------------------------------------------------------------*/
 PROCESS(ccm_test_process, "ccm test process");
 AUTOSTART_PROCESSES(&ccm_test_process);
@@ -67,13 +65,13 @@ PROCESS_THREAD(ccm_test_process, ev, data)
 {
   static const char *const str_res[] = {
     "success",
+    "invalid param",
+    "NULL error",
     "resource in use",
+    "DMA bus error",
     "keystore read error",
     "keystore write error",
-    "DMA bus error",
-    "authentication failed",
-    "invalid param",
-    "NULL error"
+    "authentication failed"
   };
   static const uint8_t keys128[][16] = {
     { 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0xde, 0xf0,
@@ -611,7 +609,7 @@ PROCESS_THREAD(ccm_test_process, ev, data)
       printf("aes_load_keys(): %s, %lu us\n", str_res[ret],
              (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
       PROCESS_PAUSE();
-      if(ret != AES_SUCCESS) {
+      if(ret != CRYPTO_SUCCESS) {
         break;
       }
     }
@@ -634,14 +632,14 @@ PROCESS_THREAD(ccm_test_process, ev, data)
       time2 = RTIMER_NOW();
       time = time2 - time;
       total_time = time;
-      if(ret == AES_SUCCESS) {
+      if(ret == CRYPTO_SUCCESS) {
         PROCESS_WAIT_EVENT_UNTIL(ccm_auth_encrypt_check_status());
         time2 = RTIMER_NOW() - time2;
         total_time += time2;
       }
       printf("ccm_auth_encrypt_start(): %s, %lu us\n", str_res[ret],
              (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
-      if(ret != AES_SUCCESS) {
+      if(ret != CRYPTO_SUCCESS) {
         PROCESS_PAUSE();
         continue;
       }
@@ -655,18 +653,20 @@ PROCESS_THREAD(ccm_test_process, ev, data)
       printf("ccm_auth_encrypt_get_result(): %s, %lu us\n", str_res[ret],
              (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
       PROCESS_PAUSE();
-      if(ret != AES_SUCCESS) {
+      if(ret != CRYPTO_SUCCESS) {
         continue;
       }
 
-      if(memcmp(vectors[i].mdata, vectors[i].expected, vectors[i].mdata_len)) {
+      if(rom_util_memcmp(vectors[i].mdata, vectors[i].expected,
+                         vectors[i].mdata_len)) {
         puts("Encrypted message does not match expected one");
       } else {
         puts("Encrypted message OK");
       }
 
-      if(memcmp(vectors[i].mic, vectors[i].expected + vectors[i].mdata_len,
-                vectors[i].mic_len)) {
+      if(rom_util_memcmp(vectors[i].mic,
+                         vectors[i].expected + vectors[i].mdata_len,
+                         vectors[i].mic_len)) {
         puts("MIC does not match expected one");
       } else {
         puts("MIC OK");
@@ -680,14 +680,14 @@ PROCESS_THREAD(ccm_test_process, ev, data)
       time2 = RTIMER_NOW();
       time = time2 - time;
       total_time = time;
-      if(ret == AES_SUCCESS) {
+      if(ret == CRYPTO_SUCCESS) {
         PROCESS_WAIT_EVENT_UNTIL(ccm_auth_decrypt_check_status());
         time2 = RTIMER_NOW() - time2;
         total_time += time2;
       }
       printf("ccm_auth_decrypt_start(): %s, %lu us\n", str_res[ret],
              (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
-      if(ret != AES_SUCCESS) {
+      if(ret != CRYPTO_SUCCESS) {
         PROCESS_PAUSE();
         continue;
       }
@@ -702,12 +702,12 @@ PROCESS_THREAD(ccm_test_process, ev, data)
       printf("ccm_auth_decrypt_get_result(): %s, %lu us\n", str_res[ret],
              (uint32_t)((uint64_t)time * 1000000 / RTIMER_SECOND));
       PROCESS_PAUSE();
-      if(ret != AES_SUCCESS) {
+      if(ret != CRYPTO_SUCCESS) {
         continue;
       }
 
-      if(memcmp(vectors[i].mdata, vectors[i].expected,
-                vectors[i].mdata_len - vectors[i].mic_len)) {
+      if(rom_util_memcmp(vectors[i].mdata, vectors[i].expected,
+                         vectors[i].mdata_len - vectors[i].mic_len)) {
         puts("Decrypted message does not match expected one");
       } else {
         puts("Decrypted message OK");

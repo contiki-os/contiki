@@ -50,8 +50,8 @@
 #define BLS_CODE_SECTOR_ERASE     0x20 /**< Sector Erase */
 #define BLS_CODE_MDID             0x90 /**< Manufacturer Device ID */
 
-#define BLS_CODE_DP               0xB9 /**< Power down */
-#define BLS_CODE_RDP              0xAB /**< Power standby */
+#define BLS_CODE_PD               0xB9 /**< Power down */
+#define BLS_CODE_RPD              0xAB /**< Release Power-Down */
 /*---------------------------------------------------------------------------*/
 /* Erase instructions */
 
@@ -70,12 +70,17 @@
 #define BLS_STATUS_BIT_BUSY       0x01 /**< Busy bit of the status register */
 /*---------------------------------------------------------------------------*/
 /* Part specific constants */
+#define BLS_DEVICE_ID_W25X20CL    0x11
+#define BLS_DEVICE_ID_W25X40CL    0x12
 
 #define BLS_MANUFACTURER_ID       0xEF
-#define BLS_DEVICE_ID             0x11
 
 #define BLS_PROGRAM_PAGE_SIZE      256
 #define BLS_ERASE_SECTOR_SIZE     4096
+/*---------------------------------------------------------------------------*/
+#define VERIFY_PART_ERROR           -1
+#define VERIFY_PART_POWERED_DOWN     0
+#define VERIFY_PART_OK               1
 /*---------------------------------------------------------------------------*/
 /**
  * Clear external flash CSN line
@@ -97,11 +102,12 @@ deselect(void)
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Wait till previous erase/program operation completes.
- * \return Zero when successful.
+ * \return True when successful.
  */
-static int
+static bool
 wait_ready(void)
 {
+  bool ret;
   const uint8_t wbuf[1] = { BLS_CODE_READ_STATUS };
 
   select();
@@ -109,11 +115,11 @@ wait_ready(void)
   /* Throw away all garbages */
   board_spi_flush();
 
-  int ret = board_spi_write(wbuf, sizeof(wbuf));
+  ret = board_spi_write(wbuf, sizeof(wbuf));
 
-  if(ret) {
+  if(ret == false) {
     deselect();
-    return -2;
+    return false;
   }
 
   for(;;) {
@@ -125,10 +131,10 @@ wait_ready(void)
      */
     ret = board_spi_read(&buf, sizeof(buf));
 
-    if(ret) {
+    if(ret == false) {
       /* Error */
       deselect();
-      return -2;
+      return false;
     }
     if(!(buf & BLS_STATUS_BIT_BUSY)) {
       /* Now ready */
@@ -136,26 +142,78 @@ wait_ready(void)
     }
   }
   deselect();
-  return 0;
+  return true;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Verify the flash part.
+ * \retval VERIFY_PART_OK The part was identified successfully
+ * \retval VERIFY_PART_ERROR There was an error communicating with the part
+ * \retval VERIFY_PART_POWERED_DOWN Communication was successful, but the part
+ *         was powered down
+ */
+static uint8_t
+verify_part(void)
+{
+  const uint8_t wbuf[] = { BLS_CODE_MDID, 0xFF, 0xFF, 0x00 };
+  uint8_t rbuf[2] = {0, 0};
+  bool ret;
+
+  select();
+
+  ret = board_spi_write(wbuf, sizeof(wbuf));
+
+  if(ret == false) {
+    deselect();
+    return VERIFY_PART_ERROR;
+  }
+
+  ret = board_spi_read(rbuf, sizeof(rbuf));
+  deselect();
+
+  if(ret == false) {
+    return VERIFY_PART_ERROR;
+  }
+
+  if(rbuf[0] != BLS_MANUFACTURER_ID ||
+     (rbuf[1] != BLS_DEVICE_ID_W25X20CL && rbuf[1] != BLS_DEVICE_ID_W25X40CL)) {
+    return VERIFY_PART_POWERED_DOWN;
+  }
+  return VERIFY_PART_OK;
 }
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Put the device in power save mode. No access to data; only
  *        the status register is accessible.
- * \return True when SPI transactions succeed
  */
-static bool
+static void
 power_down(void)
 {
   uint8_t cmd;
-  bool success;
+  uint8_t i;
 
-  cmd = BLS_CODE_DP;
+  /* First, wait for the device to be ready */
+  if(wait_ready() == false) {
+    /* Entering here will leave the device in standby instead of powerdown */
+    return;
+  }
+
+  cmd = BLS_CODE_PD;
   select();
-  success = board_spi_write(&cmd, sizeof(cmd));
+  board_spi_write(&cmd, sizeof(cmd));
   deselect();
 
-  return success;
+  i = 0;
+  while(i < 10) {
+    if(verify_part() == VERIFY_PART_POWERED_DOWN) {
+      /* Device is powered down */
+      return;
+    }
+    i++;
+  }
+
+  /* Should not be required */
+  deselect();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -168,12 +226,12 @@ power_standby(void)
   uint8_t cmd;
   bool success;
 
-  cmd = BLS_CODE_RDP;
+  cmd = BLS_CODE_RPD;
   select();
   success = board_spi_write(&cmd, sizeof(cmd));
 
   if(success) {
-    success = wait_ready() == 0;
+    success = wait_ready() == true ? true : false;
   }
 
   deselect();
@@ -182,57 +240,29 @@ power_standby(void)
 }
 /*---------------------------------------------------------------------------*/
 /**
- * Verify the flash part.
- * @return True when successful.
+ * \brief Enable write.
+ * \return True when successful.
  */
 static bool
-verify_part(void)
+write_enable(void)
 {
-  const uint8_t wbuf[] = { BLS_CODE_MDID, 0xFF, 0xFF, 0x00 };
-  uint8_t rbuf[2];
-  int ret;
+  bool ret;
+  const uint8_t wbuf[] = { BLS_CODE_WRITE_ENABLE };
 
   select();
-
   ret = board_spi_write(wbuf, sizeof(wbuf));
-
-  if(ret) {
-    deselect();
-    return false;
-  }
-
-  ret = board_spi_read(rbuf, sizeof(rbuf));
   deselect();
 
-  if(ret || rbuf[0] != BLS_MANUFACTURER_ID || rbuf[1] != BLS_DEVICE_ID) {
+  if(ret == false) {
     return false;
   }
   return true;
 }
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Enable write.
- * \return Zero when successful.
- */
-static int
-write_enable(void)
-{
-  const uint8_t wbuf[] = { BLS_CODE_WRITE_ENABLE };
-
-  select();
-  int ret = board_spi_write(wbuf, sizeof(wbuf));
-  deselect();
-
-  if(ret) {
-    return -3;
-  }
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
 bool
 ext_flash_open()
 {
-  board_spi_open(4000000, BOARD_SPI_CLK_FLASH);
+  board_spi_open(4000000, BOARD_IOID_SPI_CLK_FLASH);
 
   /* GPIO pin configuration */
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_FLASH_CS);
@@ -243,7 +273,7 @@ ext_flash_open()
   /* Put the part is standby mode */
   power_standby();
 
-  return verify_part();
+  return verify_part() == VERIFY_PART_OK ? true : false;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -261,8 +291,8 @@ ext_flash_read(size_t offset, size_t length, uint8_t *buf)
   uint8_t wbuf[4];
 
   /* Wait till previous erase/program operation completes */
-  int ret = wait_ready();
-  if(ret) {
+  bool ret = wait_ready();
+  if(ret == false) {
     return false;
   }
 
@@ -277,7 +307,7 @@ ext_flash_read(size_t offset, size_t length, uint8_t *buf)
 
   select();
 
-  if(board_spi_write(wbuf, sizeof(wbuf))) {
+  if(board_spi_write(wbuf, sizeof(wbuf)) == false) {
     /* failure */
     deselect();
     return false;
@@ -287,25 +317,25 @@ ext_flash_read(size_t offset, size_t length, uint8_t *buf)
 
   deselect();
 
-  return ret == 0;
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 bool
 ext_flash_write(size_t offset, size_t length, const uint8_t *buf)
 {
   uint8_t wbuf[4];
-  int ret;
+  bool ret;
   size_t ilen; /* interim length per instruction */
 
   while(length > 0) {
     /* Wait till previous erase/program operation completes */
     ret = wait_ready();
-    if(ret) {
+    if(ret == false) {
       return false;
     }
 
     ret = write_enable();
-    if(ret) {
+    if(ret == false) {
       return false;
     }
 
@@ -329,13 +359,13 @@ ext_flash_write(size_t offset, size_t length, const uint8_t *buf)
      * as much. */
     select();
 
-    if(board_spi_write(wbuf, sizeof(wbuf))) {
+    if(board_spi_write(wbuf, sizeof(wbuf)) == false) {
       /* failure */
       deselect();
       return false;
     }
 
-    if(board_spi_write(buf, ilen)) {
+    if(board_spi_write(buf, ilen) == false) {
       /* failure */
       deselect();
       return false;
@@ -356,6 +386,7 @@ ext_flash_erase(size_t offset, size_t length)
    * sector erase is used blindly.
    */
   uint8_t wbuf[4];
+  bool ret;
   size_t i, numsectors;
   size_t endoffset = offset + length - 1;
 
@@ -366,13 +397,13 @@ ext_flash_erase(size_t offset, size_t length)
 
   for(i = 0; i < numsectors; i++) {
     /* Wait till previous erase/program operation completes */
-    int ret = wait_ready();
-    if(ret) {
+    ret = wait_ready();
+    if(ret == false) {
       return false;
     }
 
     ret = write_enable();
-    if(ret) {
+    if(ret == false) {
       return false;
     }
 
@@ -382,7 +413,7 @@ ext_flash_erase(size_t offset, size_t length)
 
     select();
 
-    if(board_spi_write(wbuf, sizeof(wbuf))) {
+    if(board_spi_write(wbuf, sizeof(wbuf)) == false) {
       /* failure */
       deselect();
       return false;
@@ -404,6 +435,13 @@ ext_flash_test(void)
   ext_flash_close();
 
   return ret;
+}
+/*---------------------------------------------------------------------------*/
+void
+ext_flash_init()
+{
+  ext_flash_open();
+  ext_flash_close();
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

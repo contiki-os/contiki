@@ -37,7 +37,7 @@
 
 /* Set to run orchestra */
 #ifndef WITH_ORCHESTRA
-#define WITH_ORCHESTRA 1
+#define WITH_ORCHESTRA 0
 #endif /* WITH_ORCHESTRA */
 
 /* Set to enable TSCH security */
@@ -75,15 +75,14 @@
 #undef CC2420_CONF_SFD_TIMESTAMPS
 #define CC2420_CONF_SFD_TIMESTAMPS       1
 
-
 /*******************************************************/
 /******************* Configure TSCH ********************/
 /*******************************************************/
 
 /* TSCH logging. 0: disabled. 1: basic log. 2: with delayed
  * log messages from interrupt */
-//#undef TSCH_LOG_CONF_LEVEL
-//#define TSCH_LOG_CONF_LEVEL 2
+#undef TSCH_LOG_CONF_LEVEL
+#define TSCH_LOG_CONF_LEVEL 1
 
 /* IEEE802.15.4 PANID */
 #undef IEEE802154_CONF_PANID
@@ -138,7 +137,7 @@
 #undef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES  8
 #undef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS 4
+#define NBR_TABLE_CONF_MAX_NEIGHBORS 8
 #undef UIP_CONF_ND6_SEND_NA
 #define UIP_CONF_ND6_SEND_NA 0
 #undef SICSLOWPAN_CONF_FRAG
@@ -159,6 +158,9 @@
 
 #endif /* CONTIKI_TARGET_Z1 */
 
+
+// CC2538 
+
 /* OpenMote testing */
 //#undef TSCH_DEFAULT_HOPPING_SEQUENCE 
 //#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
@@ -170,4 +172,7 @@
 //#define SYS_CTRL_CONF_OSC32K_USE_XTAL 1
 #define RTIMER_CONF_USE_32KHZ  1
 //#define TSCH_CONF_AUTOSELECT_TIME_SOURCE 1
+
+#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
+
 #endif /* __PROJECT_CONF_H__ */

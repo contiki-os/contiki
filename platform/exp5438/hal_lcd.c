@@ -35,6 +35,7 @@
  ******************************************************************************/
 
 #include "contiki-conf.h"
+#include "core/sys/cc.h"
 
 #include "hal_MSP-EXP430F5438.h"
 #include "hal_lcd_fonts.h"
@@ -116,8 +117,6 @@ void halLcdSendCommand(unsigned char Data[])
 
 void halLcdInit(void)
 {
-    volatile unsigned int i = 0;
-
     LCD_CS_RST_OUT |= LCD_CS_PIN | LCD_RESET_PIN;
     LCD_CS_RST_DIR |= LCD_CS_PIN | LCD_RESET_PIN;
 
@@ -793,7 +792,7 @@ void halLcdPrint(char String[], unsigned char TextStyle)
 
     while (String[i] != 0)                  // Stop on null character
     {
-        LookUpChar = fonts_lookup[String[i]];
+        LookUpChar = fonts_lookup[(unsigned char)String[i]];
 
         for (j = 0; j < FONT_HEIGHT; j++)
         {
@@ -1195,4 +1194,3 @@ void halLcdScrollLine(int Line)
     for (i = Row; i < Row + FONT_HEIGHT; i++)
         halLcdScrollRow(i);
 }
-

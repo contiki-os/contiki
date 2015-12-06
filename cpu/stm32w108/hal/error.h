@@ -52,5 +52,3 @@ enum {
 
 /**@} // End of addtogroup
  */
-
-

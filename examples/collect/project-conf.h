@@ -62,10 +62,10 @@
 #define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
 
 /* TSCH and RPL callbacks */
-//#define RPL_CALLBACK_PARENT_SWITCH tsch_rpl_callback_parent_switch
+#define RPL_CALLBACK_PARENT_SWITCH tsch_rpl_callback_parent_switch
 #define RPL_CALLBACK_NEW_DIO_INTERVAL tsch_rpl_callback_new_dio_interval
-//#define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network
-//#define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
+#define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network
+#define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
 
 /* Needed for cc2420 platforms only */
 /* Disable DCO calibration (uses timerB) */
@@ -92,7 +92,7 @@
 
 /* Do not start TSCH at init, wait for NETSTACK_MAC.on() */
 #undef TSCH_CONF_AUTOSTART
-#define TSCH_CONF_AUTOSTART 1
+#define TSCH_CONF_AUTOSTART 0
 
 /* 6TiSCH minimal schedule length.
  * Larger values result in less frequent active slots: reduces capacity and saves energy. */
