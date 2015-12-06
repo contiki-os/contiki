@@ -1,3 +1,5 @@
+DEFINES=PROJECT_CONF_H=\"project-conf.h\"
+
 CONTIKI_PROJECT = collect-view-shell
 all: $(CONTIKI_PROJECT)
 

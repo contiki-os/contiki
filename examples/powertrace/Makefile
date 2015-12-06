@@ -1,3 +1,5 @@
+DEFINES=PROJECT_CONF_H=\"project-conf.h\"
+
 CONTIKI_PROJECT = example-powertrace
 APPS+=powertrace
 all: $(CONTIKI_PROJECT)

@@ -568,6 +568,54 @@ typedef uint32_t rtimer_clock_t;
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 /** @} */
 /*---------------------------------------------------------------------------*/
+// XMAONGO start
+#if 0
+/* Delay between GO signal and SFD: radio fixed delay + 4Bytes preample + 1B SFD -- 1Byte time is 32us
+ *  * ~327us + 129preample = 456 us */
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(456))
+/* Delay between GO signal and start listening
+ *  * ~50us delay + 129preample + ?? = 183 us */
+#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(183))
+#else 
+// XMAONGO from NXP:
+/* Delay between GO signal and SFD
+ *  * Measured 153us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 153+5*32 = 313 */
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(313))
+/* Delay between GO signal and start listening
+ *  * Measured 104us: between GO signal and start listening */
+#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(104))
+/* Delay between the SFD finishes arriving and it is detected in software */
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(14))
+#endif // 0 or 1
+
+/* CPU target speed in Hz
+ *  * RTIMER and peripherals clock is F_CPU/2 */
+#define F_CPU 32000000UL
+
+/* 32kHz or 16MHz rtimers? */
+#ifdef RTIMER_CONF_USE_32KHZ
+#define RTIMER_USE_32KHZ  RTIMER_CONF_USE_32KHZ
+#else
+#define RTIMER_USE_32KHZ  0
+#endif
+
+/* Put the device in a sleep mode in idle periods?
+ *  * If RTIMER_USE_32KHZ is set, the device runs all the time on the 32 kHz oscillator.
+ *  * If RTIMER_USE_32KHZ is not set, the device runs on the 32 kHz oscillator during sleep,
+ *  * and switches back to the 32 MHz oscillator (16 MHz rtimer) at wakeup.
+ *  *  */
+#ifdef CC2538_SLEEP_CONF_ENABLED
+#define CC2538_SLEEP_ENABLED CC2538_SLEEP_CONF_ENABLED
+#else
+#define CC2538_SLEEP_ENABLED 0
+#endif
+
+/* Enable this to get the 32.768kHz oscillator */
+#ifndef CC2538_EXTERNAL_CRYSTAL_OSCILLATOR
+#define CC2538_EXTERNAL_CRYSTAL_OSCILLATOR (RTIMER_USE_32KHZ || CC2538_SLEEP_ENABLED)
+#endif /* JN516X_EXTERNAL_CRYSTAL_OSCILLATOR */
+
+// XMAONGO end
 
 #endif /* CONTIKI_CONF_H_ */
 
