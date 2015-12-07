@@ -92,7 +92,7 @@ le16_read(const void *ptr)
   return ((uint16_t)p[1] << 8) | p[0];
 }
 /*---------------------------------------------------------------------------*/
-uint8_t CC_INLINE
+static uint8_t CC_INLINE
 get_bits_in_byte(uint8_t *from, int bitpos, int vallen)
 {
   uint16_t shifted_val;
