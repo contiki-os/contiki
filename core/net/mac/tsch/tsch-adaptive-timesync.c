@@ -51,9 +51,11 @@ static int32_t drift_ppm;
 static int32_t compensated_ticks;
 /* Number of already recorded timesync history entries */
 static uint8_t timesync_entry_count;
+/* Since last learning of the  drift; may be more than time since last timesync */
+static uint32_t asn_since_last_learning;
 
 /* Units in which drift is stored: ppm * 256 */
-#define TSCH_DRIFT_UNIT (1000ul * 1000 * 256)
+#define TSCH_DRIFT_UNIT (1000L * 1000 * 256)
 
 /*---------------------------------------------------------------------------*/
 /* Add a value to a moving average estimator */
@@ -82,7 +84,7 @@ timesync_entry_add(int32_t val, uint32_t time_delta)
 /*---------------------------------------------------------------------------*/
 /* Learn the neighbor drift rate at ppm */
 static void
-timesync_learn_drift_ticks(uint16_t time_delta_asn, int32_t drift_ticks)
+timesync_learn_drift_ticks(uint32_t time_delta_asn, int32_t drift_ticks)
 {
   /* should fit in 32-bit unsigned integer */
   uint32_t time_delta_ticks = time_delta_asn * tsch_timing[tsch_ts_timeslot_length];
@@ -103,10 +105,19 @@ tsch_timesync_update(struct tsch_neighbor *n, uint16_t time_delta_asn, int32_t d
     last_timesource_neighbor = n;
     drift_ppm = 0;
     timesync_entry_count = 0;
-  } else if(time_delta_asn > TSCH_SLOTS_PER_SECOND / 2) {
-    timesync_learn_drift_ticks(time_delta_asn, drift_correction);
+    compensated_ticks = 0;
+    asn_since_last_learning = 0;
+  } else {
+    asn_since_last_learning += time_delta_asn;
+    if(asn_since_last_learning >= 4 * TSCH_SLOTS_PER_SECOND) {
+      timesync_learn_drift_ticks(asn_since_last_learning, drift_correction);
+      compensated_ticks = 0;
+      asn_since_last_learning = 0;
+    } else {
+      /* Too small timedelta, do not recalculate the drift to avoid introducing error. instead account for the corrected ticks */
+      compensated_ticks += drift_correction;
+    }
   }
-  compensated_ticks = 0;
 }
 /*---------------------------------------------------------------------------*/
 /* Error-accumulation free compensation algorithm */
