@@ -1967,7 +1967,7 @@ PREDEFINED             = CC_FUNCTION_POINTER_ARGS:=1 \
                          CLOCK_SECOND:=128 \
                          WITH_LOADER_ARCH:=1 \
                          __attribute__(x):= \
-                         CC_ALIGN_ATTR(n):= \
+                         CC_ALIGN(n):= \
                          HTTPD_STRING_ATTR:= \
                          PROGMEM:= \
                          EEMEM:= \
