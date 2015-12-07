@@ -731,11 +731,11 @@ dao_input(void)
       rep->state.nopath_received = 1;
       rep->state.lifetime = RPL_NOPATH_REMOVAL_DELAY;
 
-      /* We forward the incoming no-path DAO to our parent, if we have
+      /* We forward the incoming No-Path DAO to our parent, if we have
          one. */
       if(dag->preferred_parent != NULL &&
          rpl_get_parent_ipaddr(dag->preferred_parent) != NULL) {
-        PRINTF("RPL: Forwarding no-path DAO to parent ");
+        PRINTF("RPL: Forwarding No-Path DAO to parent ");
         PRINT6ADDR(rpl_get_parent_ipaddr(dag->preferred_parent));
         PRINTF("\n");
         uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
@@ -900,7 +900,7 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
   buffer[pos++] = 0; /* path seq - ignored */
   buffer[pos++] = lifetime;
 
-  PRINTF("RPL: Sending DAO with prefix ");
+  PRINTF("RPL: Sending %sDAO with prefix ", lifetime == RPL_ZERO_LIFETIME ? "No-Path " : "");
   PRINT6ADDR(prefix);
   PRINTF(" to ");
   PRINT6ADDR(rpl_get_parent_ipaddr(parent));

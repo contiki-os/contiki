@@ -100,8 +100,8 @@ the link-layer addresses.
 
 <b>Address Autoconfiguration</b><br>
 The address autoconfiguration mechanism also depends on the format of
-the link-layer address. The dependency is reflected in the 
-#uip_netif_addr_autoconf_set function in #uip-netif.c.
+the link-layer address. The dependency is reflected in the
+#uip_ds6_set_addr_iid function in uip-ds6.c.
 \code
 #if (UIP_LLADDR_LEN == 8)
   memcpy(ipaddr->u8 + 8, lladdr, UIP_LLADDR_LEN);
@@ -157,28 +157,28 @@ the header 25 bytes long).
 
 <b>Compression schemes</b><br>
 The #SICSLOWPAN_CONF_COMPRESSION compilation option defines the
- compression scheme supported. We support HC1, HC01, and IPv6 compression.
-HC1 and IPv6 compression are defined in RFC4944, HC01 in 
-draft-hui-6lowpan-hc. What we call IPv6 compression means sending packets
+ compression scheme supported. We support HC1, HC06, and IPv6 compression.
+HC1 and IPv6 compression are defined in RFC4944, HC06 in
+draft-hui-6lowpan-hc-06. What we call IPv6 compression means sending packets
 with no compression, and adding the IPv6 dispatch before the IPv6 header.<br>
 If at compile time IPv6 "compression" is chosen, packets sent will never
 be compressed, and compressed packets will not be processed at reception.<br>
-If at compile time either HC1 or HC01 are chosen, we will try to compress
-all fields at sending, and will accept packets compressed with the 
+If at compile time either HC1 or HC06 are chosen, we will try to compress
+all fields at sending, and will accept packets compressed with the
 chosen scheme, as well as uncompressed packets.<br>
-Note that HC1 and HC01 supports are mutually exclusive. HC01 should soon
-deprecate HC1. 
+Note that HC1 and HC06 supports are mutually exclusive. HC06 should soon
+deprecate HC1.
 
 <b>Compression related functions</b><br>
 When a packet is received, the #input function is called. Fragmentation
 issues are handled, then we check the dispatch byte: if it is IPv6, we
-treat the packet inline. If it is HC1 or HC01, the corresponding 
-decompression function (#uncompress_hdr_hc1 or #uncompress_hdr_hc01)
+treat the packet inline. If it is HC1 or HC06, the corresponding
+decompression function (#uncompress_hdr_hc1 or #uncompress_hdr_hc06)
 is called.<br>
 When a packet needs to be sent, we try to compress it. If only the IPv6
-compression support is enabled, we just add the IPv6 dispatch before the 
-802.15.4 payload. If HC1 or HC01 support is enabled, we call the
-corresponding compression function (#compress_hdr_hc1 or #compress_hdr_hc01)
+compression support is enabled, we just add the IPv6 dispatch before the
+802.15.4 payload. If HC1 or HC06 support is enabled, we call the
+corresponding compression function (#compress_hdr_hc1 or #compress_hdr_hc06)
 to compress the packet as much as possible.
 
 <b>HC1 comments</b><br>

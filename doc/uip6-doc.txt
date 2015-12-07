@@ -36,7 +36,7 @@ are part of the uIP IPv6 stack. A complete description can be found in the
 corresponding IETF standards which are available at
 http://www.ietf.org/rfc.html.
 
-\note The #NETSTACK_CONF_WITH_IPV6 compilation flag is used to enable IPv6.
+\note The NETSTACK_CONF_WITH_IPV6 compilation flag is used to enable IPv6.
 It is also recommended to set #UIP_CONF_IPV6_CHECKS to 1
 if one cannot guarantee that the incoming packets are correctly formed.
 
@@ -144,10 +144,10 @@ messages are also described in uip-nd6.h although the actual code is in
 uip-nd6-io.c.
 
 <b>Neighbor discovery structures </b><br>
-We use the following %neighbor discovery structures (declared in uip-nd6.c):
-\li A <em>%neighbor cache</em> with entries of type #uip_nd6_neighbor
-\li A <em>prefix list</em> with entries of type #uip_nd6_prefix
-\li A <em>default router list</em> with entries of type #uip_nd6_defrouter 
+We use the following %neighbor discovery structures:
+\li A <em>%neighbor cache</em> with entries of type #uip_ds6_nbr_t declared in uip-ds6-nbr.c.
+\li A <em>prefix list</em> with entries of type #uip_ds6_prefix_t declared in uip-ds6.c.
+\li A <em>default router list</em> with entries of type #uip_ds6_defrt_t declared in uip-ds6-route.c.
 
 Each of this structure has its own add, remove and lookup
 functions. To update an entry in a ND structure, we first do a lookup
@@ -161,7 +161,7 @@ Determine the link-layer address of a %neighbor given its IPv6 address.\n
 \li Neighbor unreachability detection\n
 Verify that a neighbor is still reachable via a cached link-layer
 address.\n
--> send a NS (done in #uip_nd6_periodic). 
+-> send a NS (done in #uip_ds6_neighbor_periodic).
 \li Next-hop determination\n
 Map an IPv6 destination address into the IPv6 address of the %neighbor
 to which traffic for the destination should be sent.\n
@@ -170,18 +170,18 @@ choose a default router, else send directly (done in #tcpip_ipv6_output).
 \li Router, prefix, and parameter discovery\n
 Update the list of default routers, on-link prefixes, and the network
 parameters.\n
--> receive a RA (see #uip_nd6_io_ra_input).
+-> receive a RA (see #ra_input).
 
 \subsection autoconf Stateless Address Autoconfiguration (RFC 4862)
 RFC 4862 defines two main processes:
 \li Duplicate Address Detection (DAD)\n
 Make sure that an address the node wished to use is not already in use
 by another node.\n
--> send a NS (done in #uip_netif_dad)
+-> send a NS (done in #uip_ds6_dad)
 \li Address Autoconfiguration\n
 Configure an address for an interface by combining a received prefix
-and the interface ID (see #uip_netif_addr_add). The interface ID is
-obtained from the link-layer address using #uip_netif_get_interface_id.\n
+and the interface ID (see #uip_ds6_addr_add). The interface ID is
+obtained from the link-layer address using #uip_ds6_set_addr_iid.\n
 -> Receive a RA with a prefix information option that has the
 autonomous flag set.
 
@@ -191,7 +191,7 @@ performed for this link-local address. Available routers are
 discovered by sending up to #UIP_ND6_MAX_RTR_SOLICITATIONS RS
 packets. Address autoconfiguration is then performed based on the
 prefix information received in the RA. The interface initialization is
-performed in #uip_netif_init.
+performed in #uip_ds6_init.
 
 \subsection icmpv6 ICMPv6 (RFC 4443)
 We support ICMPv6 Error messages as well as Echo Reply and Echo Request
@@ -213,21 +213,17 @@ The IPv6 stack (like the IPv4 stack) is a Contiki process
 PROCESS(tcpip_process, "TCP/IP stack");
 \endcode
 In addition to the \ref mainloop "periodic timer" that is used by TCP,
-five IPv6 specific timers are attached to this %process:
-\li The #uip_nd6_timer_periodic is used for periodic checking of the
-%neighbor discovery structures. 
-\li The #uip_netif_timer_dad is used to properly paced the Neighbor
-Solicitation packets sent for Duplicate Address Detection.
-\li The #uip_netif_timer_rs is use to delay the sending of Router Solicitations
+three IPv6 specific timers are attached to this %process:
+\li The #uip_ds6_timer_rs is use to delay the sending of Router Solicitations
 packets in particular during the router discovery %process.
-\li The #uip_netif_timer_periodic is used to periodically check the
-validity of the addresses attached to the network interface. 
+\li The #uip_ds6_timer_periodic is used to periodically check the
+validity of the addresses attached to the network interface, to
+properly paced the Neighbor Solicitation packets sent for
+Duplicate Address Detection and for periodic checking of the
+%neighbor discovery structures.
 \li The #uip_reass_timer is used to time-out the fragment reassembly
 %process.
 \n
-
-Both #uip_nd6_timer_periodic and #uip_netif_timer_periodic run continuously. 
-This could be avoided by using callback timers to handle ND and Netif structures timeouts.
 
 <HR>
 
@@ -249,8 +245,8 @@ NBR_TABLE_CONF_MAX_NEIGHBORS
 
 \section buffers IPv6 Buffers
 The IPv6 code uses the same \ref memory "single global buffer" as the
-IPv4 code. This buffer should be large enough to contain one 
-packet of maximum size, i.e., #UIP_LINK_MTU = 1280 bytes. When \ref
+IPv4 code. This buffer should be large enough to contain one
+packet of maximum size, i.e., #UIP_LINK_MTU = 1280 bytes. When
 reass "fragment reassembly" is enabled an additional buffer of the
 same size is used.
 
@@ -258,7 +254,7 @@ The only difference with the IPv4 code is the per %neighbor buffering
 that is available when  #UIP_CONF_IPV6_QUEUE_PKT is set to 1. This
 additional buffering is used to queue one packet per %neighbor while
 performing address resolution for it. This is a very costly feature as
-it increases the RAM usage by approximately #NBR_TABLE_CONF_MAX_NEIGHBORS *
+it increases the RAM usage by approximately NBR_TABLE_CONF_MAX_NEIGHBORS *
 #UIP_LINK_MTU bytes.
 
 <HR>
@@ -314,7 +310,7 @@ link-layer function used to send a packet. Similarly, the link-layer
 should call #tcpip_input when an IP packet is received.
 
 The code corresponding to the desired link layer is selected at
-compilation time (see for example the #UIP_LL_802154 flag).
+compilation time (see for example the UIP_CONF_LL_802154 flag).
 
 <HR>
 

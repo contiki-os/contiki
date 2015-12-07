@@ -60,7 +60,7 @@ CONTIKI_CPU_SOURCEFILES += ecc-curve.c
 CONTIKI_CPU_SOURCEFILES += dbg.c ieee-addr.c
 CONTIKI_CPU_SOURCEFILES += slip-arch.c slip.c
 CONTIKI_CPU_SOURCEFILES += i2c.c cc2538-temp-sensor.c vdd3-sensor.c
-CONTIKI_CPU_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c
+CONTIKI_CPU_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c pwm.c
 
 DEBUG_IO_SOURCEFILES += dbg-printf.c dbg-snprintf.c dbg-sprintf.c strformat.c
 
@@ -77,6 +77,8 @@ CPU_STARTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CPU_START_SOURCEFILES
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 CONTIKI_SOURCEFILES += $(USB_CORE_SOURCEFILES) $(USB_ARCH_SOURCEFILES)
 
+.SECONDEXPANSION:
+
 ### Don't treat the .elf as intermediate
 .PRECIOUS: %.elf %.hex %.bin
 
@@ -90,7 +92,7 @@ $(OBJECTDIR)/ieee-addr.o: ieee-addr.c FORCE | $(OBJECTDIR)
 ### Compilation rules
 CUSTOM_RULE_LINK=1
 
-%.elf: $(CPU_STARTFILES) %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a $(LDSCRIPT)
+%.elf: $(CPU_STARTFILES) $$(CONTIKI_OBJECTFILES) %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) $(LDSCRIPT)
 	$(TRACE_LD)
 	$(Q)$(LD) $(LDFLAGS) ${filter-out $(LDSCRIPT) %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 

@@ -122,10 +122,15 @@ static const uint16_t tsch_default_timing_us[tsch_ts_elements_count] = {
 /* TSCH timeslot timing (in rtimer ticks) */
 rtimer_clock_t tsch_timing[tsch_ts_elements_count];
 
+#if LINKADDR_SIZE == 8
 /* 802.15.4 broadcast MAC address  */
 const linkaddr_t tsch_broadcast_address = { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
 /* Address used for the EB virtual neighbor queue */
 const linkaddr_t tsch_eb_address = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
+#else /* LINKADDR_SIZE == 8 */
+const linkaddr_t tsch_broadcast_address = { { 0xff, 0xff } };
+const linkaddr_t tsch_eb_address = { { 0, 0 } };
+#endif /* LINKADDR_SIZE == 8 */
 
 /* Is TSCH started? */
 int tsch_is_started = 0;

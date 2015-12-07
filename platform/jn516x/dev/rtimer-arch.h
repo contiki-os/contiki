@@ -85,13 +85,13 @@ rtimer_clock_t rtimer_arch_time_to_rtimer(void);
 
 void rtimer_arch_reinit(rtimer_clock_t sleep_start, rtimer_clock_t wakeup_time);
 
-void clock_arch_init(void);
+void clock_arch_init(int is_reinitialization);
 
 void clock_arch_calibrate(void);
 
 void clock_arch_reinit(void);
 
-void clock_arch_schedule_interrupt(clock_t time_to_etimer, rtimer_clock_t ticks_to_rtimer);
+void clock_arch_schedule_interrupt(clock_time_t time_to_etimer, rtimer_clock_t ticks_to_rtimer);
 
 clock_t clock_arch_time_to_etimer(void);
 

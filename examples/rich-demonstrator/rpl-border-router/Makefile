@@ -8,7 +8,7 @@ CONTIKI=../../..
 CONTIKI_WITH_IPV6 = 1
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-PROJECT_SOURCEFILES += slip-bridge.c slip.c
+PROJECT_SOURCEFILES += slip-bridge.c slip.c rpl-of0-6tisch.c
 
 PROJECTDIRS += .. ../tools
 PROJECT_SOURCEFILES += rich.c toplogy.c rpl-hardcoded-of.c #rich-scheduler-interface.c
