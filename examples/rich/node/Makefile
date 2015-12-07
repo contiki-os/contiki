@@ -7,7 +7,7 @@ TARGET ?= jn516x
 CONTIKI_WITH_IPV6 = 1
 
 PROJECTDIRS += .. ../tools
-PROJECT_SOURCEFILES += rich.c #rich-scheduler-interface.c 
+PROJECT_SOURCEFILES += rich.c rpl-of0-6tisch.c #rich-scheduler-interface.c
 
 CFLAGS += -DWITH_COAP
 CFLAGS += -DREST=coap_rest_implementation
