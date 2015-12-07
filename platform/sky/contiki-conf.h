@@ -37,6 +37,10 @@
 #define CC2420_CONF_AUTOACK              1
 #endif /* CC2420_CONF_AUTOACK */
 
+/* The TSCH default slot length of 10ms is a bit too short for this platform,
+ * use 15ms instead. */
+#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 15000
+
 /* Specify whether the RDC layer should enable
    per-packet power profiling. */
 #define CONTIKIMAC_CONF_COMPOWER         1

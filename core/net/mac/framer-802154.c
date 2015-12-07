@@ -62,36 +62,16 @@ static uint8_t mac_dsn;
 
 static uint8_t initialized = 0;
 
-/**  \brief The 16-bit identifier of the PAN on which the device is
- *   sending to.  If this value is 0xffff, the device is not
- *   associated.
- */
-static const uint16_t mac_dst_pan_id = IEEE802154_PANID;
-
-/**  \brief The 16-bit identifier of the PAN on which the device is
- *   operating.  If this value is 0xffff, the device is not
- *   associated.
- */
-static const uint16_t mac_src_pan_id = IEEE802154_PANID;
-
-/*---------------------------------------------------------------------------*/
-static int
-is_broadcast_addr(uint8_t mode, uint8_t *addr)
-{
-  int i = mode == FRAME802154_SHORTADDRMODE ? 2 : 8;
-  while(i-- > 0) {
-    if(addr[i] != 0xff) {
-      return 0;
-    }
-  }
-  return 1;
-}
 /*---------------------------------------------------------------------------*/
 static int
 create_frame(int type, int do_create)
 {
   frame802154_t params;
   int hdr_len;
+
+  if(frame802154_get_pan_id() == 0xffff) {
+    return -1;
+  }
 
   /* init to zeros */
   memset(&params, 0, sizeof(params));
@@ -109,10 +89,14 @@ create_frame(int type, int do_create)
   } else {
     params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
   }
+  /* We do not compress PAN ID in outgoing frames, i.e. include one PAN ID (dest by default)
+   * There is one exception, seemingly a typo in Table 2a: rows 2 and 3: when there is no
+   * source nor destination address, we have dest PAN ID iff compression is *set*. */
   params.fcf.panid_compression = 0;
+  params.fcf.sequence_number_suppression = FRAME802154_SUPPR_SEQNO;
 
-  /* Insert IEEE 802.15.4 (2006) version bits. */
-  params.fcf.frame_version = FRAME802154_IEEE802154_2006;
+  /* Insert IEEE 802.15.4 version bits. */
+  params.fcf.frame_version = FRAME802154_VERSION;
   
 #if LLSEC802154_SECURITY_LEVEL
   if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
@@ -120,8 +104,13 @@ create_frame(int type, int do_create)
   }
   /* Setting security-related attributes */
   params.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
+#if LLSEC802154_USES_FRAME_COUNTER
   params.aux_hdr.frame_counter.u16[0] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1);
   params.aux_hdr.frame_counter.u16[1] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3);
+#else /* LLSEC802154_USES_FRAME_COUNTER */
+  params.aux_hdr.security_control.frame_counter_suppression = 1;
+  params.aux_hdr.security_control.frame_counter_size = 1;
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
 #if LLSEC802154_USES_EXPLICIT_KEYS
   params.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
   params.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
@@ -150,21 +139,20 @@ create_frame(int type, int do_create)
   /**
      \todo For phase 1 the addresses are all long. We'll need a mechanism
      in the rime attributes to tell the mac to use long or short for phase 2.
-  */
+   */
   if(LINKADDR_SIZE == 2) {
     /* Use short address mode if linkaddr size is short. */
     params.fcf.src_addr_mode = FRAME802154_SHORTADDRMODE;
   } else {
     params.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
   }
-  params.dest_pid = mac_dst_pan_id;
+  params.dest_pid = frame802154_get_pan_id();
 
   if(packetbuf_holds_broadcast()) {
     /* Broadcast requires short address mode. */
     params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
     params.dest_addr[0] = 0xFF;
     params.dest_addr[1] = 0xFF;
-
   } else {
     linkaddr_copy((linkaddr_t *)&params.dest_addr,
                   packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
@@ -177,7 +165,7 @@ create_frame(int type, int do_create)
   }
 
   /* Set the source PAN ID to the global variable. */
-  params.src_pid = mac_src_pan_id;
+  params.src_pid = frame802154_get_pan_id();
 
   /*
    * Set up the source address using only the long address mode for
@@ -191,7 +179,6 @@ create_frame(int type, int do_create)
   if(!do_create) {
     /* Only calculate header length */
     return hdr_len;
-
   } else if(packetbuf_hdralloc(hdr_len)) {
     frame802154_create(&params, packetbuf_hdrptr());
 
@@ -223,35 +210,41 @@ parse(void)
 {
   frame802154_t frame;
   int hdr_len;
-  
+
   hdr_len = frame802154_parse(packetbuf_dataptr(), packetbuf_datalen(), &frame);
-  
+
   if(hdr_len && packetbuf_hdrreduce(hdr_len)) {
     packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, frame.fcf.frame_type);
-    
+
     if(frame.fcf.dest_addr_mode) {
-      if(frame.dest_pid != mac_src_pan_id &&
-          frame.dest_pid != FRAME802154_BROADCASTPANDID) {
+      if(frame.dest_pid != frame802154_get_pan_id() &&
+         frame.dest_pid != FRAME802154_BROADCASTPANDID) {
         /* Packet to another PAN */
         PRINTF("15.4: for another pan %u\n", frame.dest_pid);
         return FRAMER_FAILED;
       }
-      if(!is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
+      if(!frame802154_is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
         packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&frame.dest_addr);
       }
     }
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&frame.src_addr);
     packetbuf_set_attr(PACKETBUF_ATTR_PENDING, frame.fcf.frame_pending);
-    packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, frame.seq);
+    if(frame.fcf.sequence_number_suppression == 0) {
+      packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, frame.seq);
+    } else {
+      packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, 0xffff);
+    }
 #if NETSTACK_CONF_WITH_RIME
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
 #endif
-    
+
 #if LLSEC802154_SECURITY_LEVEL
     if(frame.fcf.security_enabled) {
       packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, frame.aux_hdr.security_control.security_level);
+#if LLSEC802154_USES_FRAME_COUNTER
       packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, frame.aux_hdr.frame_counter.u16[0]);
       packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, frame.aux_hdr.frame_counter.u16[1]);
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
 #if LLSEC802154_USES_EXPLICIT_KEYS
       packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, frame.aux_hdr.security_control.key_id_mode);
       packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, frame.aux_hdr.key_index);
@@ -264,7 +257,7 @@ parse(void)
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));
     PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
     PRINTF("%d %u (%u)\n", hdr_len, packetbuf_datalen(), packetbuf_totlen());
-    
+
     return hdr_len;
   }
   return FRAMER_FAILED;
