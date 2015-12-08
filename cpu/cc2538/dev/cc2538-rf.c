@@ -132,13 +132,16 @@ static uint8_t volatile poll_mode = 0;
 static uint8_t send_on_cca = WITH_SEND_CCA;
 
 volatile uint8_t cc2538_sfd_counter;
-volatile uint16_t cc2538_sfd_start_time;
+static volatile uint16_t cc2538_sfd_start_time = 0;
 volatile uint16_t cc2538_sfd_end_time;
 
 static volatile uint16_t last_packet_timestamp;
 
 static int on(void);
 static int off(void);
+
+
+uint8_t cc2538_last_correlation;
 /*---------------------------------------------------------------------------*/
 /* TX Power dBm lookup table. Values from SmartRF Studio v1.16.0 */
 typedef struct output_config {
@@ -499,12 +502,16 @@ init(void)
 
   /* Duong: Configure read start time of SFD */
   /* Acknowledge RF interrupts, SFD only */
-  REG(RFCORE_SFR_MTMSEL) |= RFCORE_SFR_MTMSEL_MTMSEL; // select Counter up
+  REG(RFCORE_SFR_MTMSEL) |= ~RFCORE_SFR_MTMSEL_MTMSEL; // select Counter up
   REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_RUN;  // MAC timer run
   REG(RFCORE_SFR_MTM0) = (uint8_t)RTIMER_NOW();   // 8 high bits 
-  REG(RFCORE_SFR_MTM1) = ((uint16_t)RTIMER_NOW()) >>8 ; // 8 low bits
+  REG(RFCORE_SFR_MTM1) = ((uint16_t)RTIMER_NOW()) >> 8 ; // 8 low bits
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;
+  //DPRINTF("RTIMENOW = %d\n", RTIMER_NOW()); 
   nvic_interrupt_enable(NVIC_INT_RF_RXTX);
+  //DPRINTF("Mao time = %d\n", ((REG(RFCORE_SFR_MTM1) << 8) | REG(RFCORE_SFR_MTM0))); 
+  //DPRINTF("REG(RFCORE_SFR_MTCTRL) = %d\n", REG(RFCORE_SFR_MTCTRL));
+
 
   /* Acknowledge RF interrupts, FIFOP only */
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;
@@ -690,6 +697,7 @@ read(void *buf, unsigned short bufsize)
 
   /* Check the length */
   len = REG(RFCORE_SFR_RFDATA);
+  DPRINTF("radio read len = %d\n", len);
 
   /* Check for validity */
   if(len > CC2538_RF_MAX_PACKET_LEN) {
@@ -723,7 +731,7 @@ read(void *buf, unsigned short bufsize)
 
   /* Don't bother with uDMA for short frames (e.g. ACKs) */
   if(CC2538_RF_CONF_RX_USE_DMA && len > UDMA_RX_SIZE_THRESHOLD) {
-    PRINTF("<uDMA payload>");
+    DPRINTF("<uDMA payload>");
 
     /* Set the transfer destination's end address */
     udma_set_channel_dst(CC2538_RF_CONF_RX_DMA_CHAN,
@@ -746,13 +754,16 @@ read(void *buf, unsigned short bufsize)
       ((unsigned char *)(buf))[i] = REG(RFCORE_SFR_RFDATA);
       PRINTF("%02x", ((unsigned char *)(buf))[i]);
     }
+    DPRINTF("NOT uDMA payload\n");
   }
+  DPRINTF("len = %d\n", len);
 
   /* Read the RSSI and CRC/Corr bytes */
   rssi = ((int8_t)REG(RFCORE_SFR_RFDATA)) - RSSI_OFFSET;
   crc_corr = REG(RFCORE_SFR_RFDATA);
+  cc2538_last_correlation = crc_corr & LQI_BIT_MASK;
 
-  PRINTF("%02x%02x\n", (uint8_t)rssi, crc_corr);
+  DPRINTF("%02x%02x\n", (uint8_t)rssi, crc_corr);
 
   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
   if(crc_corr & CRC_BIT_MASK) {
@@ -761,13 +772,14 @@ read(void *buf, unsigned short bufsize)
        * In poll mode, the last packet RSSI and link quality can be obtained through
        * RADIO_PARAM_LAST_RSSI and RADIO_PARAM_LAST_LINK_QUALITY */
       packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
-      packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, crc_corr & LQI_BIT_MASK);
+      //packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, crc_corr & LQI_BIT_MASK);
+      packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2538_last_correlation);
     }
 
     RIMESTATS_ADD(llrx);
   } else {
     RIMESTATS_ADD(badcrc);
-    PRINTF("RF: Bad CRC\n");
+    DPRINTF("RF: Bad CRC\n");
     CC2538_RF_CSP_ISFLUSHRX();
     return 0;
   }
@@ -786,12 +798,14 @@ read(void *buf, unsigned short bufsize)
   flush();
 #endif
 
-  /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
-  if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP) {
-    if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFO) {
-      process_poll(&cc2538_rf_process);
-    } else {
-      CC2538_RF_CSP_ISFLUSHRX();
+  if(!poll_mode) {
+    /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
+    if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP) {
+      if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFO) {
+        process_poll(&cc2538_rf_process);
+      } else {
+        CC2538_RF_CSP_ISFLUSHRX();
+      }
     }
   }
 
@@ -857,7 +871,7 @@ get_value(radio_param_t param, radio_value_t *value)
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TX_MODE:
     *value = 0;
-    if (send_on_cca) {
+    if(send_on_cca) {
       *value |= RADIO_TX_MODE_SEND_ON_CCA;
     }
     return RADIO_RESULT_OK;
@@ -871,8 +885,8 @@ get_value(radio_param_t param, radio_value_t *value)
     *value = get_rssi();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_LAST_LINK_QUALITY:
-    /* TODO: */
-    //*value = cc2538_last_correlation;
+    /* LQI of the last packet received */
+    *value = cc2538_last_correlation;
     return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = CC2538_RF_CHANNEL_MIN;
@@ -926,7 +940,6 @@ set_value(radio_param_t param, radio_value_t value)
                  RADIO_RX_MODE_POLL_MODE)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-
     set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
     set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
     set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
@@ -956,6 +969,7 @@ static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
   uint8_t *target;
+  uint16_t temp=0x00FF;
   int i;
 
   if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
@@ -963,14 +977,14 @@ get_object(radio_param_t param, void *dest, size_t size)
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    // (uint16_t)(REG(RFCORE_SFR_MTM1) << 8 | REG(RFCORE_SFR_MTM0));    
+    REG(RFCORE_SFR_MTCTRL) &= ~RFCORE_SFR_MTCTRL_LATCH_MODE; // LATCH_MODE = 0
+    temp &= (uint16_t)REG(RFCORE_SFR_MTM0);
+    REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_LATCH_MODE; // LATCH_MODE = 1 
+    cc2538_sfd_start_time = temp | (REG(RFCORE_SFR_MTM1) << 8) ; 
+    /* Clear RFCORE_SFR_RFIRQF0_SFD flag */
+    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
     *(rtimer_clock_t*)dest = cc2538_sfd_start_time;
-     
-    DPRINTF("Mao get_obj *(int*): %d\n", &dest);
-    DPRINTF("Mao get_obj (uint16_t): %d\n", (uint16_t)dest);
-    DPRINTF("REG(RFCORE_SFR_MTCTRL_RUN) = %x\n", REG(RFCORE_SFR_MTCTRL_RUN));
-    DPRINTF("REG(RFCORE_SFR_MTCTRL) = %x\n", REG(RFCORE_SFR_MTCTRL));
-
+    //DPRINTF("Mao get_obj cc2538_sfd_start_time = %d\n", cc2538_sfd_start_time);
     return RADIO_RESULT_OK;
 #else
     return RADIO_RESULT_NOT_SUPPORTED;
@@ -1105,8 +1119,10 @@ cc2538_rf_rx_tx_isr(void)
   if( REG(RFCORE_SFR_RFIRQF0) & RFCORE_SFR_RFIRQF0_SFD ) {
     REG(RFCORE_SFR_MTCTRL) &= ~RFCORE_SFR_MTCTRL_LATCH_MODE; // LATCH_MODE = 0
     temp &= (uint16_t)REG(RFCORE_SFR_MTM0);
+    //DPRINTF("temp = %d, REG(RFCORE_SFR_MTM0) = %d", temp, REG(RFCORE_SFR_MTM0));
     REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_LATCH_MODE; // LATCH_MODE = 1 
     cc2538_sfd_start_time = temp | (REG(RFCORE_SFR_MTM1) << 8) ; 
+    //DPRINTF("cc2538_sfd_start_time = %d\n", cc2538_sfd_start_time);
     /* Clear RFCORE_SFR_RFIRQF0_SFD flag */
     REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
   }

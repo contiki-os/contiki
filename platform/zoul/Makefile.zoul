@@ -76,7 +76,7 @@ else
 	$(eval BSL_ADDRESS_ARG := -a $(shell $(OBJDUMP) -h $*.elf | grep -B1 LOAD | \
 	                               grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$5}' | \
 	                               sort -g | head -1))
-	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) $<
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) -b115200 $<
 endif
 
 motelist:
