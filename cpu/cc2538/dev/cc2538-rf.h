@@ -129,6 +129,8 @@
   REG(RFCORE_SFR_RFST) = CC2538_RF_CSP_OP_ISFLUSHTX; \
   REG(RFCORE_SFR_RFST) = CC2538_RF_CSP_OP_ISFLUSHTX; \
 } while(0)
+
+#define radio_timer_t uint32_t
 /*---------------------------------------------------------------------------*/
 /** The NETSTACK data structure for the cc2538 RF driver */
 extern const struct radio_driver cc2538_rf_driver;
