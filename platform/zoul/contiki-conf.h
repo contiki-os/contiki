@@ -510,7 +510,7 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_RETRANS_TIMER       10000
 
 #ifndef NBR_TABLE_CONF_MAX_NEIGHBORS
-#define NBR_TABLE_CONF_MAX_NEIGHBORS                20
+#define NBR_TABLE_CONF_MAX_NEIGHBORS        20
 #endif
 #ifndef UIP_CONF_MAX_ROUTES
 #define UIP_CONF_MAX_ROUTES                 20
@@ -579,13 +579,21 @@ typedef uint32_t rtimer_clock_t;
 #else 
 // XMAONGO from NXP:
 /* Delay between GO signal and SFD
- *  * Measured 153us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 153+5*32 = 313 */
-#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(313))
+ *  * Measured (153)us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 153+5*32 = 313
+ *  * CC2538
+ *  * Measured 192us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 192+5*32 = 352
+ *  * */
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(352)) 
 /* Delay between GO signal and start listening
- *  * Measured 104us: between GO signal and start listening */
-#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(104))
+ *  * Measured 104us: between GO signal and start listening 
+ *  * CC2538
+ *  * Measured 176us: between GO signal and start listening */
+#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(176))
+// see 23.9.6.6 Tips and Tricks in UG cc2538
+// (104))
 /* Delay between the SFD finishes arriving and it is detected in software */
-#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(14))
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(2))
+//(14))
 #endif // 0 or 1
 
 /* CPU target speed in Hz

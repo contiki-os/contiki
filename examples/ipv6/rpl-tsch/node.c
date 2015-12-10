@@ -153,7 +153,6 @@ PROCESS_THREAD(node_process, ev, data)
   } else {
     node_role = role_6ln;
   }
-  // node_role = role_6dr;
 
 #if CONFIG_VIA_BUTTON
   {

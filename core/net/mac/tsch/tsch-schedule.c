@@ -430,7 +430,7 @@ tsch_schedule_print(void)
       struct tsch_link *l = list_head(sf->links_list);
 
       printf("[Slotframe] Handle %u, size %u\n", sf->handle, sf->size.val);
-      printf("List of links:\n");
+     // printf("List of links:\n");
 
       while(l != NULL) {
         printf("[Link] Options %02x, type %u, timeslot %u, channel offset %u, address %u\n",
@@ -441,7 +441,7 @@ tsch_schedule_print(void)
       sf = list_item_next(sf);
     }
 
-    printf("Schedule: end of slotframe list\n");
+    //printf("Schedule: end of slotframe list\n");
   }
 }
 /*---------------------------------------------------------------------------*/

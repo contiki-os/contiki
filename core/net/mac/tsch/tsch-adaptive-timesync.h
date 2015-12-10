@@ -82,7 +82,7 @@ extern struct tsch_neighbor *last_timesource_neighbor;
 
 /********** Functions *********/
 
-void tsch_timesync_update(struct tsch_neighbor *n, rtimer_clock_t delta_ticks, rtimer_clock_t drift_correction);
+void tsch_timesync_update(struct tsch_neighbor *n, uint16_t delta_ticks, int32_t drift_correction);
 
 rtimer_clock_t tsch_timesync_adaptive_compensate(rtimer_clock_t delta_ticks);
 

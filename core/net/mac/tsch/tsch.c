@@ -59,9 +59,7 @@
 #error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154E_2012
 #endif
 
-#undef TSCH_LOG_LEVEL
-#define TSCH_LOG_LEVEL 2
-
+#if 0
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
@@ -69,9 +67,20 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 #include "net/ipv6/uip-ds6-nbr.h"
-
-#undef PRINTF
+#else
+#define DEBUG 1
+#if DEBUG
+#include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#define PRINTLLADDR(addr)
+#endif
+#endif
+
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
 #ifndef TSCH_LINK_NEIGHBOR_CALLBACK
@@ -212,7 +221,7 @@ tsch_reset(void)
   /* Reset timeslot timing to defaults */
   for(i = 0; i < tsch_ts_elements_count; i++) {
     tsch_timing[i] = US_TO_RTIMERTICKS(tsch_default_timing_us[i]);
-    PRINTF("TSCH: reset tsch_timing[%d] = %d\n", i, tsch_timing[i]);
+    //PRINTF("TSCH: reset tsch_timing[%d] = %d\n", i, tsch_timing[i]);
   }
 #ifdef TSCH_CALLBACK_LEAVING_NETWORK
   TSCH_CALLBACK_LEAVING_NETWORK();
@@ -248,6 +257,7 @@ keepalive_send()
     /* Simply send an empty packet */
     packetbuf_clear();
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &n->addr);
+    PRINTF("NETSTACK_LLSEC.send...keepalive_packet_sent\n");
     NETSTACK_LLSEC.send(keepalive_packet_sent, NULL);
     PRINTF("TSCH: sending KA to %u\n",
            TSCH_LOG_ID_FROM_LINKADDR(&n->addr));
@@ -313,6 +323,8 @@ eb_input(struct input_packet *current_input)
 #endif
 
     struct tsch_neighbor *n = tsch_queue_get_time_source();
+    PRINT6ADDR(&n->addr);
+    PRINTF("Mao ===xxx===\n");
     /* Did the EB come from our time source? */
     if(n != NULL && linkaddr_cmp((linkaddr_t *)&frame.src_addr, &n->addr)) {
       /* Check for ASN drift */
@@ -354,6 +366,7 @@ tsch_rx_process_pending()
     frame802154_t frame;
     uint8_t ret = frame802154_parse(current_input->payload, current_input->len, &frame);
     int is_data = ret && frame.fcf.frame_type == FRAME802154_DATAFRAME;
+    PRINTF("tsch_rx_process_pending: is_data=%d\n", is_data);
     int is_eb = ret
       && frame.fcf.frame_version == FRAME802154_IEEE802154E_2012
       && frame.fcf.frame_type == FRAME802154_BEACONFRAME;
@@ -444,7 +457,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   PRINTF("TSCH: tsch_assiciate timestamp = %d\n", timestamp);
   if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
                                               &frame, &ies, &hdrlen, 0) == 0) {
-    PRINTF("TSCH:! failed to parse EB (len %u)\n", input_eb->len);
+    PRINTF("TSCH:! failed to parse EB (len %u) input_eb = %d\n", input_eb->len, input_eb);
     return 0;
   }
 
@@ -496,7 +509,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     } else {
       tsch_timing[i] = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot[i]);
     }
-    PRINTF("Mao inside association, tsch_timing[%d] = %d\n", i, tsch_timing[i]); 
+    //PRINTF("Mao inside association, tsch_timing[%d] = %d\n", i, tsch_timing[i]); 
   }
 
   /* TSCH hopping sequence */
@@ -563,7 +576,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 
     /* Add coordinator to list of neighbors, lock the entry */
     n = tsch_queue_add_nbr((linkaddr_t *)&frame.src_addr);
-    PRINTF("n = tsch_queue_add_nbr = %d\n", n);
+    PRINTF("tsch_queue_add_nbr: is_time_source = %d, tx_links_count = %d, dedicated_tx_links_count=%d\n", n->is_time_source, n->tx_links_count, n->dedicated_tx_links_count);
 
     if(n != NULL) {
       tsch_queue_update_time_source((linkaddr_t *)&frame.src_addr);
@@ -644,6 +657,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
       }
       current_channel_since = now_seconds;
     }
+    PRINTF("TSCH: scanning on channel %u\n", scan_channel);
 
     /* Turn radio on and wait for EB */
     NETSTACK_RADIO.on();
@@ -658,6 +672,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
     if(is_packet_pending) {
       /* Save packet timestamp */
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
+      //PRINTF("TSCH: NETSTACK_RADIO.get_object t0 = %d\n", t0); 
 
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
@@ -821,8 +836,6 @@ tsch_init(void)
     printf("TSCH:! radio does not support getting RADIO_PARAM_RX_MODE. Abort init.\n");
     return;
   }
-    PRINTF("TSCH:! radio does support getting RADIO_PARAM_RX_MODE. Abort init.\n");
-    printf("TSCH:! radio does support getting RADIO_PARAM_RX_MODE. Abort init.\n");
   /* Disable radio in frame filtering */
   radio_rx_mode &= ~RADIO_RX_MODE_ADDRESS_FILTER;
   /* Unset autoack */
@@ -855,6 +868,7 @@ tsch_init(void)
     printf("TSCH:! radio does not support getting last packet timestamp. Abort init.\n");
     return;
   }
+  //printf("TSCH: init at t=%d\n", t);
   /* Check max hopping sequence length vs default sequence length */
   if(TSCH_HOPPING_SEQUENCE_MAX_LEN < sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE)) {
     printf("TSCH:! TSCH_HOPPING_SEQUENCE_MAX_LEN < sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE). Abort init.\n");

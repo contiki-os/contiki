@@ -82,7 +82,8 @@
 /* TSCH logging. 0: disabled. 1: basic log. 2: with delayed
  * log messages from interrupt */
 #undef TSCH_LOG_CONF_LEVEL
-#define TSCH_LOG_CONF_LEVEL 1
+#define TSCH_LOG_CONF_LEVEL 2
+#define TSCH_LOG_CONF_QUEUE_LEN 2
 
 /* IEEE802.15.4 PANID */
 #undef IEEE802154_CONF_PANID
@@ -127,7 +128,7 @@
 /*******************************************************/
 /************* Other system configuration **************/
 /*******************************************************/
-
+/*========================Z1===========================*/
 #if CONTIKI_TARGET_Z1
 /* Save some space to fit the limited RAM of the z1 */
 #undef UIP_CONF_TCP
@@ -153,14 +154,17 @@
 #define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 2
 /* Reduce log level to make space for security on z1 */
 #undef TSCH_LOG_CONF_LEVEL
-#define TSCH_LOG_CONF_LEVEL 1
+#define TSCH_LOG_CONF_LEVEL 0
 #endif /* WITH_SECURITY */
 
 #endif /* CONTIKI_TARGET_Z1 */
+/*========================Z1===========================*/
 
 
+/*==========================OpenMote-CC2538=================================*/
 // CC2538 
 
+#if 1
 /* OpenMote testing */
 //#undef TSCH_DEFAULT_HOPPING_SEQUENCE 
 //#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
@@ -173,6 +177,9 @@
 #define RTIMER_CONF_USE_32KHZ  1
 //#define TSCH_CONF_AUTOSELECT_TIME_SOURCE 1
 
-#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
+//#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
+//#define LINKADDR_CONF_SIZE 8
+#endif /* CONTIKI_TARGET_OPENMOTE */
+/*==========================OpenMote-CC2538=================================*/
 
 #endif /* __PROJECT_CONF_H__ */
