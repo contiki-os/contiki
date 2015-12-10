@@ -1001,7 +1001,7 @@ get_object(radio_param_t param, void *dest, size_t size)
     /* Clear RFCORE_SFR_RFIRQF0_SFD flag */
     REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
     *(rtimer_clock_t*)dest = cc2538_sfd_start_time;
-    //DPRINTF("Mao get_obj cc2538_sfd_start_time = %d\n", cc2538_sfd_start_time);
+    // DPRINTF("Mao get_obj cc2538_sfd_start_time = %d\n", cc2538_sfd_start_time);
     return RADIO_RESULT_OK;
 #else
     return RADIO_RESULT_NOT_SUPPORTED;
@@ -1143,7 +1143,7 @@ cc2538_rf_rx_tx_isr(void)
     process_poll(&cc2538_rf_process);
     cc2538_sfd_start_time = captured_time;
     REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
-    DPRINTF("===cc2538_sfd_start_time: %d\n", (uint16_t)cc2538_sfd_start_time);
+    //DPRINTF("===cc2538_sfd_start_time: %d\n", (uint16_t)cc2538_sfd_start_time);
   }   
   
   //or RXDONE is full -- we have a packet.
