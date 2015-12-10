@@ -1257,7 +1257,7 @@ get_captured_time() {
 
 #define RFCORE_SFR_MTM0_MTM0_S  0
 #define RFCORE_SFR_MTM1_MTM1_S  0
-#define RADIOTIMER_32MHZ_TICS_PER_32KHZ_TIC     ( 976 ) // 32 MHz to 32 kHz ratio
+#define RADIOTIMER_32MHZ_TICS_PER_32KHZ_TIC     ( 488 ) // 32 MHz to 32 kHz ratio
 
 void
 radiotimer_start() 

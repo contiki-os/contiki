@@ -657,7 +657,6 @@ PT_THREAD(tsch_scan(struct pt *pt))
       }
       current_channel_since = now_seconds;
     }
-    PRINTF("TSCH: scanning on channel %u\n", scan_channel);
 
     /* Turn radio on and wait for EB */
     NETSTACK_RADIO.on();
