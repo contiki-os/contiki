@@ -92,7 +92,11 @@
 #define RSSI_OFFSET    73
 
 /* 192 usec off -> on interval (RX Callib -> SFD Wait). We wait a bit more */
+#if 0
 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
+#else
+#define ONOFF_TIME                    US_TO_RTIMERTICKS(192)
+#endif
 /*---------------------------------------------------------------------------*/
 /* Sniffer configuration */
 #ifndef CC2538_RF_CONF_SNIFFER_USB
@@ -527,13 +531,13 @@ init(void)
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;
   nvic_interrupt_enable(NVIC_INT_RF_RXTX);
 
- // REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;
- // nvic_interrupt_enable(NVIC_INT_RF_RXTX);
+  REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;
+  nvic_interrupt_enable(NVIC_INT_RF_RXTX);
 
   radiotimer_start();
 #endif // CC2538_CONF_SFD_TIMESTAMPS
-  //enable_radio_interrupts();
-  //nvic_interrupt_enable(NVIC_INT_RF_RXTX);
+ // enable_radio_interrupts();
+ // nvic_interrupt_enable(NVIC_INT_RF_RXTX);
 
   /* Acknowledge all RF Error interrupts */
   REG(RFCORE_XREG_RFERRM) = RFCORE_XREG_RFERRM_RFERRM;

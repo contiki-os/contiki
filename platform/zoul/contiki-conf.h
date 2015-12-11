@@ -592,8 +592,8 @@ typedef uint32_t rtimer_clock_t;
 // see 23.9.6.6 Tips and Tricks in UG cc2538
 // (104))
 /* Delay between the SFD finishes arriving and it is detected in software */
-#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(2))
-//(14))
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(16))
+//(14)) cc2538 16 or 2?
 #endif // 0 or 1
 
 /* CPU target speed in Hz
@@ -622,6 +622,49 @@ typedef uint32_t rtimer_clock_t;
 #ifndef CC2538_EXTERNAL_CRYSTAL_OSCILLATOR
 #define CC2538_EXTERNAL_CRYSTAL_OSCILLATOR (RTIMER_USE_32KHZ || CC2538_SLEEP_ENABLED)
 #endif /* JN516X_EXTERNAL_CRYSTAL_OSCILLATOR */
+
+/* TSCH_DEBUG */
+#define TSCH_DEBUG 1
+#include "led-strip.h"
+#include "dev/gpio.h"
+#include "reg.h"
+#include "board.h"
+
+#if TSCH_DEBUG
+#if 1
+#define TSCH_DEBUG_INTERRUPT() do { \
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_GREEN); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, 0); \
+    } \
+} while(0);
+
+#define TSCH_DEBUG_TX_EVENT() do { \
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_RED); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, 0); \
+    } \
+} while(0);
+#endif
+#define TSCH_DEBUG_RX_EVENT() do { \
+    static dio_state = 0 ; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_BLUE); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, 0); \
+    } \
+  } while(0);
+
+#define TSCH_DEBUG_SLOT_START() 
+#define TSCH_DEBUG_SLOT_END()
+#endif /* TSCH_DEBUG */
 
 // XMAONGO end
 
