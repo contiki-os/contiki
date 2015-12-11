@@ -130,7 +130,6 @@
   REG(RFCORE_SFR_RFST) = CC2538_RF_CSP_OP_ISFLUSHTX; \
 } while(0)
 
-#define radio_timer_t uint32_t
 /*---------------------------------------------------------------------------*/
 /** The NETSTACK data structure for the cc2538 RF driver */
 extern const struct radio_driver cc2538_rf_driver;
@@ -156,15 +155,6 @@ void cc2538_rf_set_addr(uint16_t pan);
  * address as the receive address are returned from the RF core.
  */
 void cc2538_rf_set_promiscous_mode(char p);
-
-/**
- * \brief Init to read SFD start time
- * \param none
- *
- * This function init interrupt when SFD =1.
- */
-
-void cc2538_arch_sfd_init(void);
 /*---------------------------------------------------------------------------*/
 #endif /* CC2538_RF_H__ */
 
