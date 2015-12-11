@@ -37,11 +37,11 @@ sky-webserver.$(TARGET): $(OBJECTDIR)/ajax-cgi.o
 
 # ifeq ($(HTTPD-CFS),1)
 #   ifneq (${wildcard $(OBJECTDIR)/httpd.o},)
-#   DUMMY := ${shell rm -f contiki-$(TARGET).a $(OBJECTDIR)/httpd.o}
+#   DUMMY := ${shell rm -f $(CONTIKI_LIB) $(OBJECTDIR)/httpd.o}
 #   endif
 # else
 #   ifneq (${wildcard $(OBJECTDIR)/httpd-cfs.o},)
-#   DUMMY := ${shell rm -f contiki-$(TARGET).a $(OBJECTDIR)/httpd-cfs.o}
+#   DUMMY := ${shell rm -f $(CONTIKI_LIB) $(OBJECTDIR)/httpd-cfs.o}
 #   endif
 # endif
 

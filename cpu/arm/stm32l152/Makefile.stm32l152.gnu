@@ -15,7 +15,7 @@ STRIP    = arm-none-eabi-strip
 	$(OBJCOPY) -O ihex $^ $@
 %.bin: %.$(TARGET)
 	$(OBJCOPY) -O binary $^ $@
-%.co: %.c
+$(BUILDDIR)/%.co: %.c | $(BUILDDIR)
 	$(CC) $(CFLAGS) -c -DAUTOSTART_ENABLE $< -o $@
 
 

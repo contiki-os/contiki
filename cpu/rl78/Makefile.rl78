@@ -94,13 +94,13 @@ $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 	$(Q)$(CC) $(CFLAGS) $< --dependencies=m $(@:.o=.P) -o $@
 
 CUSTOM_RULE_C_TO_CO = 1
-%.co: %.c
+$(BUILDDIR)/%.co: %.c | $(BUILDDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
 
 # The only reason we use a custom link rule here is to simultaneously produce an srec file.
 CUSTOM_RULE_LINK = 1
-%.$(TARGET) %.$(TARGET).srec: %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+%.$(TARGET) %.$(TARGET).srec: %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) $(CONTIKI_LIB)
 	$(TRACE_LD)
 	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
 	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@ -Omotorola=$@.srec
@@ -186,7 +186,7 @@ symbols.c symbols.h:
 	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
 endif
 
-contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+$(CONTIKI_LIB): ${addprefix $(OBJECTDIR)/,symbols.o}
 
 %.srec: %
 	$(OBJCOPY) -O srec $^ $@

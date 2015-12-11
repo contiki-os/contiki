@@ -57,7 +57,7 @@ CPU_HAS_MSP430X=1
 
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
-contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+$(CONTIKI_LIB): ${addprefix $(OBJECTDIR)/,symbols.o}
 #	$(AR) rcf $@ $^
 
 

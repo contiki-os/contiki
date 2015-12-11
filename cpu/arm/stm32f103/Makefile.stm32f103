@@ -108,12 +108,12 @@ $(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
 
 CUSTOM_RULE_C_TO_CO=yes
 
-%.co: %.c
+$(BUILDDIR)/%.co: %.c | $(BUILDDIR)
 	$(CC) $(CFLAGS) $< -c -o $@
 
 CUSTOM_RULE_C_TO_CE=yes
 
-%.ce: %.o
+$(BUILDDIR)/%.ce: %.o | $(BUILDDIR)
 	$(LD) $(LDFLAGS) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@
 	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
 
@@ -129,7 +129,7 @@ CUSTOM_RULE_LINK=yes
 %.o: ${CONTIKI_TARGET}/loader/%.S
 	$(AS) -o $(notdir $(<:.S=.o)) $<
 
-%-nosyms.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) # $(OBJECTDIR)/empty-symbols.o
+%-nosyms.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(CONTIKI_LIB) $(STARTUP) # $(OBJECTDIR)/empty-symbols.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
 
 
@@ -141,7 +141,7 @@ CUSTOM_RULE_LINK=yes
  
 .PHONY: symbols.c
 ifdef CORE
-%.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/symbols.o
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(CONTIKI_LIB) $(STARTUP) $(OBJECTDIR)/symbols.o
 	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
 
 symbols.c: $(CORE)

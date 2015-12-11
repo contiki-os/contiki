@@ -85,4 +85,4 @@ symbols.c symbols.h:
 	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
 endif
 
-contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+$(CONTIKI_LIB): ${addprefix $(OBJECTDIR)/,symbols.o}

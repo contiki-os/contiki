@@ -105,7 +105,7 @@ $(OBJECTDIR)/%.o: %.S | $(OBJECTDIR)
 
 CUSTOM_RULE_C_TO_CO=yes
 
-%.co: %.c
+$(BUILDDIR)/%.co: %.c | $(BUILDDIR)
 	$(TRACE_CC)
 	$(Q)$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $(THUMB_FLAGS) $< -c -o $@
 
@@ -120,7 +120,7 @@ CUSTOM_RULE_C_TO_CO=yes
 %.$(TARGET): %_$(TARGET).bin
 	@
 
-%.elf: $(OBJECTDIR)/board.h  %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/mc1322x.lds
+%.elf: $(OBJECTDIR)/board.h  %.co $(PROJECT_OBJECTFILES) $(CONTIKI_LIB) $(STARTUP) $(OBJECTDIR)/mc1322x.lds
 	$(TRACE_CC)
 	$(Q)$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a %.lds,$^) $(filter %.a,$^) $(filter %.a,$^)
 

@@ -132,7 +132,7 @@ $(OBJECTDIR)/%.o: %.c | $(OBJECTDIR)
 %.ko: %.o
 	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $< -o $@
 
-%.elf:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a symbols.o
+%.elf:	%.co $(PROJECT_OBJECTFILES) $(CONTIKI_LIB) symbols.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
 #Allow top-level makefile to always show size even when build is up to date
 ifndef NOAVRSIZE
@@ -146,7 +146,7 @@ endif
 	$(OBJCOPY) $^ -O ihex $@
 
 # Add a namelist to the kernel
-%.out: %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+%.out: %.co $(PROJECT_OBJECTFILES) $(CONTIKI_LIB)
 	cp ${CONTIKI}/tools/empty-symbols.c symbols.c
 	cp ${CONTIKI}/tools/empty-symbols.h symbols.h
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
@@ -177,7 +177,7 @@ endif
 #	$(LD) -i -r --unresolved-symbols=ignore-in-object-files -mavr5 -o $@ $^
 #	$(STRIP) --strip-unneeded -g -x $@
 
-%.co: %.c
+$(BUILDDIR)/%.co: %.c | $(BUILDDIR)
 	cp $(CONTIKI)/tools/empty-symbols.c symbols.c
 	cp $(CONTIKI)/tools/empty-symbols.h symbols.h
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@

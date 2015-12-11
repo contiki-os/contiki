@@ -187,7 +187,7 @@ MODULES+=core/net \
 
 CLEAN += *.stm32nucleo-spirit1 symbols.c symbols.h contiki-stm32nucleo-spirit1.log 
 
-contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+$(CONTIKI_LIB): ${addprefix $(OBJECTDIR)/,symbols.o}
 
 help:
 	@echo A few useful make commands:
