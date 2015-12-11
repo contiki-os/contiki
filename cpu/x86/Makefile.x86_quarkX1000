@@ -28,10 +28,6 @@ ifeq ($(EN_UEFI),1)
 	CFLAGS += -I$(EDK2_DIR)/MdePkg/Include -I$(EDK2_DIR)/MdePkg/Include/Ia32
 else
     $(info Note: UEFI support is disabled.)
-    ifndef EN_UEFI
-        $(info To enable UEFI support, run $(CONTIKI_CPU)/uefi/build_uefi.sh prior)
-        $(info to building Contiki.)
-    else
-        $(info LTO and UEFI support are mututally-exclusive.)
-    endif
+    $(info To enable UEFI support, run $(CONTIKI_CPU)/uefi/build_uefi.sh prior)
+    $(info to building Contiki.)
 endif
