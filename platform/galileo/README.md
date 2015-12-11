@@ -42,6 +42,10 @@ Standard APIs:
 Building
 --------
 
+Prerequisites on all Ubuntu Linux systems include texinfo and uuid-dev.
+Additional prerequisites on 64-bit Ubuntu Linux systems include
+gcc-multilib and g++-multilib.
+
 To build applications for this platform you should first build newlib (in
 case it wasn't already built). To build newlib you can run the following
 command:
