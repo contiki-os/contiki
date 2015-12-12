@@ -135,10 +135,10 @@ pwm_enable(uint32_t freq, uint8_t duty, uint8_t timer, uint8_t ab)
   }
 
   /* Get the peripheral clock and equivalent deassert count */
-  interval_load = sys_ctrl_get_io_clock() / freq;
+  interval_load = sys_ctrl_get_sys_clock() / freq;
   duty_count = ((interval_load * duty) + 1) / 100;
 
-  PRINTF("PWM: IO %luHz: %lu %lu\n", sys_ctrl_get_io_clock(),
+  PRINTF("PWM: sys %luHz: %lu %lu\n", sys_ctrl_get_sys_clock(),
          interval_load, duty_count);
 
   /* Set the start value (period), count down */
