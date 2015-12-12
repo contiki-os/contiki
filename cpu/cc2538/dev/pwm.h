@@ -78,15 +78,15 @@
 /** \name PWM recommended values respect to peripheral clock frequency
  * @{
  */
-/* Roughly 244 Hz with a 16 MHz IO clock, no prescaler */
-#define PWM_SYS_IO_16MHZ_NO_PRES_MIN         0xFFFF
-#define PWM_SYS_IO_16MHZ_NO_PRES_MIN_FREQ    244
-/* Roughly 1 Hz with a 16 MHz IO clock, to keep frequency parameter in Hz */
-#define PWM_SYS_IO_16MHZ_PRES_MIN            0x00F42400
-#define PWM_SYS_IO_16MHZ_PRES_MIN_FREQ       1
+/* Roughly 244 Hz with a 16-MHz system clock, no prescaler */
+#define PWM_SYS_16MHZ_NO_PRES_MIN            0xFFFF
+#define PWM_SYS_16MHZ_NO_PRES_MIN_FREQ       244
+/* Roughly 1 Hz with a 16-MHz system clock, to keep frequency parameter in Hz */
+#define PWM_SYS_16MHZ_PRES_MIN               0x00F42400
+#define PWM_SYS_16MHZ_PRES_MIN_FREQ          1
 /* Yields 160 KHz at 16 MHz and allows down to 1% (integer) duty cycles */
-#define PWM_SYS_IO_16MHZ_NO_PRES_MAX         100
-#define PWM_SYS_IO_16MHZ_NO_PRES_MAX_FREQ    160000
+#define PWM_SYS_16MHZ_NO_PRES_MAX            100
+#define PWM_SYS_16MHZ_NO_PRES_MAX_FREQ       160000
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name PWM driver definitions and configuration values
@@ -107,8 +107,8 @@
 #define PWM_GPTIMER_CFG_SPLIT_MODE           0x04
 #define PWM_DUTY_MAX                         100
 #define PWM_DUTY_MIN                         0
-#define PWM_FREQ_MIN                         PWM_SYS_IO_16MHZ_PRES_MIN_FREQ
-#define PWM_FREQ_MAX                         PWM_SYS_IO_16MHZ_NO_PRES_MAX_FREQ
+#define PWM_FREQ_MIN                         PWM_SYS_16MHZ_PRES_MIN_FREQ
+#define PWM_FREQ_MAX                         PWM_SYS_16MHZ_NO_PRES_MAX_FREQ
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name PWM functions
