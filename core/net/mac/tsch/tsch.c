@@ -257,7 +257,6 @@ keepalive_send()
     /* Simply send an empty packet */
     packetbuf_clear();
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &n->addr);
-    PRINTF("NETSTACK_LLSEC.send...keepalive_packet_sent\n");
     NETSTACK_LLSEC.send(keepalive_packet_sent, NULL);
     PRINTF("TSCH: sending KA to %u\n",
            TSCH_LOG_ID_FROM_LINKADDR(&n->addr));
@@ -279,7 +278,7 @@ tsch_schedule_keepalive()
 static void
 eb_input(struct input_packet *current_input)
 {
-  /* PRINTF("TSCH: EB received\n"); */
+  PRINTF("TSCH: EB received\n");
   frame802154_t frame;
   /* Verify incoming EB (does its ASN match our Rx time?),
    * and update our join priority. */
@@ -371,6 +370,7 @@ tsch_rx_process_pending()
       && frame.fcf.frame_version == FRAME802154_IEEE802154E_2012
       && frame.fcf.frame_type == FRAME802154_BEACONFRAME;
 
+    PRINTF("is eb = %d\n", is_eb);
     if(is_data) {
       /* Skip EBs and other control messages */
       /* Copy to packetbuf for processing */
@@ -454,15 +454,15 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   uint8_t hdrlen;
   int i;
 
-  PRINTF("TSCH: tsch_assiciate timestamp = %d\n", timestamp);
+  PRINTF("ASSOCIATE===TSCH: tsch_assiciate timestamp = 0x%x\n", timestamp);
   if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
                                               &frame, &ies, &hdrlen, 0) == 0) {
-    PRINTF("TSCH:! failed to parse EB (len %u) input_eb = %d\n", input_eb->len, input_eb);
+    PRINTF("TSCH:! failed to parse EB (len %u) ies.ie_asn.ls4b = 0x%lx\n", input_eb->len, ies.ie_asn.ls4b);
     return 0;
   }
 
   current_asn = ies.ie_asn;
-  PRINTF("TSCH: tsch_associate current_asn = %d\n", current_asn);
+  PRINTF("TSCH: parse eb OK with ies.ie_asn.ls4b = 0x%lx\n", current_asn.ls4b);
   tsch_join_priority = ies.ie_join_priority + 1;
 
 #if TSCH_JOIN_SECURED_ONLY
@@ -528,13 +528,15 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
 
 #if TSCH_CHECK_TIME_AT_ASSOCIATION > 0
   /* Divide by 4k and multiply again to avoid integer overflow */
-  uint32_t expected_asn = 4096 * TSCH_CLOCK_TO_SLOTS(clock_time() / 4096, tsch_timing_timeslot_length); /* Expected ASN based on our current time*/
-  int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION * 60ul * TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND, tsch_timing_timeslot_length);
+  uint32_t expected_asn = 4096 * TSCH_CLOCK_TO_SLOTS(clock_time() / 4096, tsch_ts_timeslot_length); /* Expected ASN based on our current time*/
+  int32_t asn_threshold = TSCH_CHECK_TIME_AT_ASSOCIATION * 60ul * TSCH_CLOCK_TO_SLOTS(CLOCK_SECOND, tsch_ts_timeslot_length);
   int32_t asn_diff = (int32_t)current_asn.ls4b - expected_asn;
+    PRINTF("TSCH:! EB ASN current  0x%lx expected 0x%lx\n",
+           current_asn.ls4b, expected_asn);
   if(asn_diff > asn_threshold) {
     PRINTF("TSCH:! EB ASN rejected %lx %lx %ld\n",
            current_asn.ls4b, expected_asn, asn_diff);
-    return 0;
+    //return 0;
   }
 #endif
 
@@ -671,7 +673,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
     if(is_packet_pending) {
       /* Save packet timestamp */
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
-      //PRINTF("TSCH: NETSTACK_RADIO.get_object t0 = %d\n", t0); 
+      //PRINTF("TSCH: NETSTACK_RADIO.get_object t0 = 0x%x\n", t0); 
 
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);

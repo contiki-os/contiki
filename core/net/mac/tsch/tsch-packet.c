@@ -86,6 +86,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   uint8_t curr_len = 0;
   frame802154_t p;
   struct ieee802154_ies ies;
+  PRINTF("++++starting create eack\n");
 
   memset(&p, 0, sizeof(p));
   p.fcf.frame_type = FRAME802154_ACKFRAME;
@@ -132,6 +133,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
     return -1;
   }
   curr_len += ret;
+  PRINTF("+++++++created eack with len = %d\n", curr_len);
 
   return curr_len;
 }
@@ -232,7 +234,6 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
 
   p.src_pid = frame802154_get_pan_id();
   p.dest_pid = frame802154_get_pan_id();
-  PRINTF("p.src_pid = %x , p.dest_pid = %x \n", p.src_pid, p.dest_pid);
   linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
   p.dest_addr[0] = 0xff;
   p.dest_addr[1] = 0xff;

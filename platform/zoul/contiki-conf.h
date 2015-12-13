@@ -576,6 +576,7 @@ typedef uint32_t rtimer_clock_t;
 /* Delay between GO signal and start listening
  *  * ~50us delay + 129preample + ?? = 183 us */
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(183))
+#define RADIO_DELAY_BEFORE_DETECT  0
 #else 
 // XMAONGO from NXP:
 /* Delay between GO signal and SFD
@@ -592,7 +593,7 @@ typedef uint32_t rtimer_clock_t;
 // see 23.9.6.6 Tips and Tricks in UG cc2538
 // (104))
 /* Delay between the SFD finishes arriving and it is detected in software */
-#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(16))
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(2))
 //(14)) cc2538 16 or 2?
 #endif // 0 or 1
 
@@ -651,7 +652,7 @@ typedef uint32_t rtimer_clock_t;
       GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, 0); \
     } \
 } while(0);
-#endif
+#else
 #define TSCH_DEBUG_RX_EVENT() do { \
     static dio_state = 0 ; \
     dio_state = !dio_state; \
@@ -661,7 +662,7 @@ typedef uint32_t rtimer_clock_t;
       GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, 0); \
     } \
   } while(0);
-
+#endif
 #define TSCH_DEBUG_SLOT_START() 
 #define TSCH_DEBUG_SLOT_END()
 #endif /* TSCH_DEBUG */

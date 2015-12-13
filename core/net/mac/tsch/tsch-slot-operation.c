@@ -280,8 +280,8 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
   if(missed) {
     TSCH_LOG_ADD(tsch_log_message,
                 snprintf(log->message, sizeof(log->message),
-                    "!dl-miss %s %d %d %d",
-                        str, (int)(now-ref_time), (int)offset - RTIMER_GUARD, (int)now);
+                    "!dl-miss %s 0x%lx 0x%lx 0x%lx",
+                        str, (int)(ref_time), (int)offset - RTIMER_GUARD, (int)now);
     );
 
     return 0;
@@ -290,6 +290,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
   r = rtimer_set(tm, ref_time, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
   if(r != RTIMER_OK) {
     return 0;
+    PRINTF("Failed rtimer_set %d", r);
   }
   return 1;
 }
@@ -534,6 +535,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 
               /* Read ack frame */
               ack_len = NETSTACK_RADIO.read((void *)ackbuf, sizeof(ackbuf));
+              PRINTF("ack_len = %d\n", ack_len);
 
               is_time_source = 0;
               /* The radio driver should return 0 if no valid packets are in the rx buffer */
@@ -652,6 +654,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
   PT_BEGIN(pt);
 
   TSCH_DEBUG_RX_EVENT();
+  //PRINTF("rx_loop start at 0x%x\n", RTIMER_NOW());
 
   input_index = ringbufindex_peek_put(&input_ringbuf);
   if(input_index == -1) {
@@ -684,20 +687,27 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       BUSYWAIT_UNTIL_ABS((packet_seen = NETSTACK_RADIO.receiving_packet()),
           current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait]);
     }
+    //PRINTF("current_slot_start = %x, RTIMER_NOW = %x", current_slot_start, RTIMER_NOW());
+    //PRINTF("packet seen is %x\n", packet_seen);
     if(packet_seen) {
       TSCH_DEBUG_RX_EVENT();
       /* Save packet timestamp */
       rx_start_time = RTIMER_NOW() - RADIO_DELAY_BEFORE_DETECT;
+      PRINTF("packet_seen at rtimernow = %x\n", RTIMER_NOW());
     }
     if(!NETSTACK_RADIO.receiving_packet() && !NETSTACK_RADIO.pending_packet()) {
       NETSTACK_RADIO.off();
+      // measured 90 ticks from begin this program.
+      //PRINTF("OFF, packet_seen = %d, no thing to receive at 0x%x\n", packet_seen, RTIMER_NOW());
       /* no packets on air */
     } else {
       /* Wait until packet is received, turn radio off */
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
           current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait] + tsch_timing[tsch_ts_max_tx]);
       TSCH_DEBUG_RX_EVENT();
+      PRINTF("waiting done after %x plus \n", current_slot_start);
       NETSTACK_RADIO.off();
+      PRINTF("off done at rtimernow = %x\n", RTIMER_NOW());
 
 #if TSCH_RESYNC_WITH_SFD_TIMESTAMPS
       /* At the end of the reception, get an more accurate estimate of SFD arrival time */
@@ -705,6 +715,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 #endif
 
       if(NETSTACK_RADIO.pending_packet()) {
+        PRINTF("===Mao radio is still pending? \n");
         static int frame_valid;
         static int header_len;
         static frame802154_t frame;
@@ -767,6 +778,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
             }
 #endif
 
+            PRINTF("frame.fcf.ack_required = %d\n", frame.fcf.ack_required);
             if(frame.fcf.ack_required) {
               static uint8_t ack_buf[TSCH_PACKET_MAX_LEN];
               static int ack_len;
@@ -982,6 +994,10 @@ tsch_slot_operation_start(void)
     }
     /* Update ASN */
     ASN_INC(current_asn, timeslot_diff);
+#if 0
+    PRINTF("RTIMER_NOW= 0x%x, current_asn = 0x%x, timeslot_diff=%d\n", 
+             RTIMER_NOW(), current_asn, timeslot_diff);
+#endif
     /* Time to next wake up */
     time_to_next_active_slot = timeslot_diff * tsch_timing[tsch_ts_timeslot_length];
     /* Update current slot start */
