@@ -135,7 +135,7 @@ static uint8_t volatile poll_mode = 0;
 /* Do we perform a CCA before sending? */
 static uint8_t send_on_cca = WITH_SEND_CCA;
 
-static volatile uint16_t cc2538_sfd_start_time = 0;
+static volatile rtimer_clock_t cc2538_sfd_start_time = 0;
 static volatile uint16_t cc2538_received_packet_time = 0;
 static volatile uint16_t cc2538_end_tx_timestamp = 0;
 static volatile uint16_t cc2538_last_packet_timestamp = 0;
@@ -1015,7 +1015,7 @@ static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
   uint8_t *target;
-  uint16_t temp=0x00FF;
+  //uint16_t temp=0x00FF;
   int i;
 
   if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
@@ -1026,7 +1026,7 @@ get_object(radio_param_t param, void *dest, size_t size)
     /* Clear RFCORE_SFR_RFIRQF0_SFD flag */
     //REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
     *(rtimer_clock_t*)dest = cc2538_sfd_start_time;
-    // DPRINTF("Mao get_obj cc2538_sfd_start_time = %d\n", cc2538_sfd_start_time);
+     DPRINTF("Mao get_obj cc2538_sfd_start_time = 0x%lx\n", cc2538_sfd_start_time);
     return RADIO_RESULT_OK;
 #else
     return RADIO_RESULT_NOT_SUPPORTED;
@@ -1164,8 +1164,11 @@ cc2538_rf_rx_tx_isr(void)
   //if ((irq_status0 & RFCORE_SFR_RFIRQF0_SFD) == RFCORE_SFR_RFIRQF0_SFD) {
   if ((REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_SFD)) {
     //cc2538_sfd_start_time = captured_time;
-    cc2538_sfd_start_time = get_captured_time();
-    //cc2538_sfd_start_time = RTIMER_NOW();
+    //cc2538_sfd_start_time = get_captured_time();
+    cc2538_sfd_start_time = RTIMER_NOW();
+    if(cc2538_sfd_start_time - RTIMER_NOW() > 5){
+      DPRINTF("Too late hehe, sfd=0x%lx, now=0x%lx\n", cc2538_sfd_start_time, RTIMER_NOW());
+    }
     //REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
     //DPRINTF("===cc2538_sfd_start_time: %d\n", (uint16_t)cc2538_sfd_start_time);
   }   
