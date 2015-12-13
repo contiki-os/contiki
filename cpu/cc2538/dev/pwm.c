@@ -46,6 +46,7 @@
 #include "dev/gpio.h"
 #include "dev/sys-ctrl.h"
 #include "dev/pwm.h"
+#include "lpm.h"
 #include <stdio.h>
 #include <stdlib.h>
 /*---------------------------------------------------------------------------*/
@@ -73,6 +74,21 @@ pwm_configured(uint8_t timer, uint8_t ab)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static bool
+permit_pm1(void)
+{
+  uint8_t timer, ab;
+
+  for(timer = PWM_TIMER_0; timer <= PWM_TIMER_3; timer++)
+    for(ab = PWM_TIMER_A; ab <= PWM_TIMER_B; ab++)
+      if(pwm_configured(timer, ab) &&
+         REG(PWM_GPTIMER_NUM_TO_BASE(timer) + GPTIMER_CTL) &
+           (ab == PWM_TIMER_A ? GPTIMER_CTL_TAEN : GPTIMER_CTL_TBEN))
+        return false;
+
+  return true;
+}
+/*---------------------------------------------------------------------------*/
 int8_t
 pwm_enable(uint32_t freq, uint8_t duty, uint8_t timer, uint8_t ab)
 {
@@ -94,6 +110,8 @@ pwm_enable(uint32_t freq, uint8_t duty, uint8_t timer, uint8_t ab)
   }
 
   PRINTF("PWM: F%08luHz: %u%% on GPT%u-%u\n", freq, duty, timer, ab);
+
+  lpm_register_peripheral(permit_pm1);
 
   gpt_base = PWM_GPTIMER_NUM_TO_BASE(timer);
   gpt_en = GPTIMER_CTL_TAEN;
