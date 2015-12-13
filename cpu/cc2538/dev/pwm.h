@@ -47,8 +47,7 @@
  * Depending on the specific needs these limits can be changed to meet a given
  * duty cycle and lower frequencies by using the prescaler (GPTIMER_TnPR).
  *
- * The PWM timer is stopped when dropping below PM0, alternatively you can set
- * LPM_CONF_MAX_PM to zero, or call lpm_max_pm(0)
+ * Running a PWM timer prevents the LPM driver from dropping to PM1+.
  *
  * @{
  *

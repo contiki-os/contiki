@@ -101,7 +101,7 @@ static uint8_t max_pm;
 #ifdef LPM_CONF_PERIPH_PERMIT_PM1_FUNCS_MAX
 #define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX LPM_CONF_PERIPH_PERMIT_PM1_FUNCS_MAX
 #else
-#define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX 4
+#define LPM_PERIPH_PERMIT_PM1_FUNCS_MAX 5
 #endif
 
 static lpm_periph_permit_pm1_func_t
