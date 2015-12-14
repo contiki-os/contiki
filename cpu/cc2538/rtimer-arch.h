@@ -79,9 +79,6 @@
 #endif // RTIMER_USE_32KHZ
 #endif // RTIMER_CONF_SECOND
 
-#undef RTIMER_ARCH_SECOND 
-#define RTIMER_ARCH_SECOND 32768
-
 #if RTIMER_USE_32KHZ
 #define US_TO_RTIMERTICKS(US)  ((US) >= 0 ?                        \
                                (((int32_t)(US) * (RTIMER_ARCH_SECOND) + 500000) / 1000000L) :      \

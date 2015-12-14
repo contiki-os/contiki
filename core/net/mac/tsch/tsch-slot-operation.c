@@ -284,7 +284,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
                         str, (int)(ref_time), (int)offset - RTIMER_GUARD, (int)now);
     );
 
-    return 0;
+    return 0; 
   }
   ref_time += offset;
   r = rtimer_set(tm, ref_time, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
@@ -693,7 +693,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       TSCH_DEBUG_RX_EVENT();
       /* Save packet timestamp */
       rx_start_time = RTIMER_NOW() - RADIO_DELAY_BEFORE_DETECT;
-      PRINTF("packet_seen at rtimernow = %lx\n", RTIMER_NOW());
+      PRINTF("packet_seen at rtimernow = 0x%lx\n", RTIMER_NOW());
     }
     if(!NETSTACK_RADIO.receiving_packet() && !NETSTACK_RADIO.pending_packet()) {
       NETSTACK_RADIO.off();
@@ -705,9 +705,9 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
           current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait] + tsch_timing[tsch_ts_max_tx]);
       TSCH_DEBUG_RX_EVENT();
-      PRINTF("waiting done after %lx plus \n", current_slot_start);
+      PRINTF("waiting done after 0x%lx plus \n", current_slot_start);
       NETSTACK_RADIO.off();
-      PRINTF("off done at rtimernow = %lx\n", RTIMER_NOW());
+      PRINTF("off done at rtimernow = 0x%lx\n", RTIMER_NOW());
 
 #if TSCH_RESYNC_WITH_SFD_TIMESTAMPS
       /* At the end of the reception, get an more accurate estimate of SFD arrival time */

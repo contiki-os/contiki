@@ -124,7 +124,7 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 #ifdef CC2538_RF_CONF_AUTOACK
 #define CC2538_RF_AUTOACK CC2538_RF_CONF_AUTOACK
 #else
-#define CC2538_RF_AUTOACK 1
+#define CC2538_RF_AUTOACK 0
 #endif
 /*---------------------------------------------------------------------------*/
 static uint8_t rf_flags;
@@ -196,7 +196,7 @@ disable_radio_interrupts(void)
   /* Enable RF interrupts 0, RXPKTDONE,SFD,FIFOP only -- see page 751  */
   REG(RFCORE_XREG_RFIRQM0) = 0;
   /* Enable RF interrupts 1, TXDONE only */
-  REG(RFCORE_XREG_RFIRQM1) = 0;
+  //REG(RFCORE_XREG_RFIRQM1) = 0;
 }
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2538_rf_process, "cc2538 RF driver");
@@ -464,7 +464,9 @@ off(void)
   /* Wait for ongoing TX to complete (e.g. this could be an outgoing ACK) */
   while(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
 
-  CC2538_RF_CSP_ISFLUSHRX();
+  if (!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP)) {
+    CC2538_RF_CSP_ISFLUSHRX();
+  }
 
   /* Don't turn off if we are off as this will trigger a Strobe Error */
   if(REG(RFCORE_XREG_RXENABLE) != 0) {
@@ -509,14 +511,8 @@ init(void)
    */
   REG(RFCORE_XREG_FRMCTRL0) = RFCORE_XREG_FRMCTRL0_AUTOCRC;
 
-#if CC2538_RF_AUTOACK
-  REG(RFCORE_XREG_FRMCTRL0) |= RFCORE_XREG_FRMCTRL0_AUTOACK;
-#endif
-
-  /* If we are a sniffer, turn off frame filtering */
-#if CC2538_RF_CONF_SNIFFER
-  REG(RFCORE_XREG_FRMFILT0) &= ~RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
-#endif
+  set_auto_ack(CC2538_RF_AUTOACK);
+  set_frame_filtering(CC2538_RF_AUTOACK);
 
   /* Disable source address matching and autopend */
   REG(RFCORE_XREG_SRCMATCH) = 0;
@@ -530,6 +526,7 @@ init(void)
   set_channel(rf_channel);
 
 #ifdef CC2538_CONF_SFD_TIMESTAMPS
+  radiotimer_start();
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;
   nvic_interrupt_enable(NVIC_INT_RF_RXTX);
 
@@ -538,10 +535,9 @@ init(void)
     nvic_interrupt_enable(NVIC_INT_RF_RXTX);
   }
 
-  radiotimer_start();
 #endif // CC2538_CONF_SFD_TIMESTAMPS
- // enable_radio_interrupts();
- // nvic_interrupt_enable(NVIC_INT_RF_RXTX);
+  enable_radio_interrupts();
+  nvic_interrupt_enable(NVIC_INT_RF_RXTX);
 
   /* Acknowledge all RF Error interrupts */
   REG(RFCORE_XREG_RFERRM) = RFCORE_XREG_RFERRM_RFERRM;
@@ -646,20 +642,18 @@ transmit(unsigned short transmit_len)
 
   PRINTF("RF: Transmit\n");
 
-  //if(!poll_mode){
+  if(!poll_mode){
     if(!(rf_flags & RX_ACTIVE)) {
       t0 = RTIMER_NOW();
       on();
       was_off = 1;
       while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
     }
-  //}
+  }
 
-  if(send_on_cca) {
-    if(channel_clear() == CC2538_RF_CCA_BUSY) {
-      RIMESTATS_ADD(contentiondrop);
-      return RADIO_TX_COLLISION;
-    }
+  if(channel_clear() == CC2538_RF_CCA_BUSY) {
+    RIMESTATS_ADD(contentiondrop);
+    return RADIO_TX_COLLISION;
   }
 
   /*
@@ -671,7 +665,7 @@ transmit(unsigned short transmit_len)
     return RADIO_TX_COLLISION;
   }
 
-#if 1 //TODO: XXX
+#if 0 //TODO: XXX
   //enable radio interrupts
   enable_radio_interrupts();
 #endif 
@@ -760,12 +754,12 @@ read(void *buf, unsigned short bufsize)
   }
 
   /* If we reach here, chances are the FIFO is holding a valid frame */
-  DPRINTF("RF: read (0x%02x bytes) = ", len);
+  //DPRINTF("RF: read (0x%02x bytes) = ", len);
   len -= CHECKSUM_LEN;
 
   /* Don't bother with uDMA for short frames (e.g. ACKs) */
   if(CC2538_RF_CONF_RX_USE_DMA && len > UDMA_RX_SIZE_THRESHOLD) {
-    DPRINTF("<uDMA payload>");
+    PRINTF("<uDMA payload>");
 
     /* Set the transfer destination's end address */
     udma_set_channel_dst(CC2538_RF_CONF_RX_DMA_CHAN,
@@ -788,7 +782,7 @@ read(void *buf, unsigned short bufsize)
       ((unsigned char *)(buf))[i] = REG(RFCORE_SFR_RFDATA);
       PRINTF("%02x", ((unsigned char *)(buf))[i]);
     }
-    DPRINTF("NOT uDMA payload\n");
+    PRINTF("NOT uDMA payload\n");
   }
 
   /* Read the RSSI and CRC/Corr bytes */
@@ -796,7 +790,7 @@ read(void *buf, unsigned short bufsize)
   crc_corr = REG(RFCORE_SFR_RFDATA);
   cc2538_last_correlation = crc_corr & LQI_BIT_MASK;
 
-  DPRINTF("%02x%02x\n", (uint8_t)rssi, crc_corr);
+  PRINTF("len=%d,fcf=%02x%02x\n", len, (uint8_t)rssi, crc_corr);
 
   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
   if(crc_corr & CRC_BIT_MASK) {
@@ -868,7 +862,7 @@ receiving_packet(void)
            & (RFCORE_XREG_FSMSTAT1_TX_ACTIVE | RFCORE_XREG_FSMSTAT1_SFD))
           == RFCORE_XREG_FSMSTAT1_SFD);
   if (ret != 0) {
-    DPRINTF("return = %x, REG = %x\n", ret, REG(RFCORE_XREG_FSMSTAT1));
+    DPRINTF("return = %x, REG = %lx\n", ret, (uint32_t)REG(RFCORE_XREG_FSMSTAT1));
   }
   return ret;
 #endif
@@ -1156,20 +1150,25 @@ cc2538_rf_rx_tx_isr(void)
   //irq_status0 = REG(RFCORE_SFR_RFIRQF0);
   //irq_status1 = REG(RFCORE_SFR_RFIRQF1);
    
-  //nvic_interrupt_unpend(NVIC_INT_RF_RXTX);
    
-
+  //TSCH_DEBUG_RF_RX_TX_EVENT();
   //STATUS0 Register
   // start of frame event
-  //if ((irq_status0 & RFCORE_SFR_RFIRQF0_SFD) == RFCORE_SFR_RFIRQF0_SFD) {
-  if ((REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_SFD)) {
+  if ((REG(RFCORE_SFR_RFIRQF0) & RFCORE_SFR_RFIRQF0_SFD) == RFCORE_SFR_RFIRQF0_SFD) {
+  //if ((REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_SFD)) {
     //cc2538_sfd_start_time = captured_time;
     //cc2538_sfd_start_time = get_captured_time();
+    TSCH_DEBUG_SFD_EVENT();
     cc2538_sfd_start_time = RTIMER_NOW();
-    if(cc2538_sfd_start_time - RTIMER_NOW() > 5){
+#if 0
+    //DPRINTF("REG(RFCORE_SFR_RFIRQF0) = 0x%x\n", (int)REG(RFCORE_SFR_RFIRQF0));
+    if(RTIMER_NOW() - cc2538_sfd_start_time > 5){
       DPRINTF("Too late hehe, sfd=0x%lx, now=0x%lx\n", cc2538_sfd_start_time, RTIMER_NOW());
     }
-    //REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
+    //REG(RFCORE_XREG_FSMSTAT1) &= ~RFCORE_XREG_FSMSTAT1_SFD;
+#endif
+    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
+    nvic_interrupt_unpend(NVIC_INT_RF_RXTX);
     //DPRINTF("===cc2538_sfd_start_time: %d\n", (uint16_t)cc2538_sfd_start_time);
   }   
   process_poll(&cc2538_rf_process);
@@ -1274,12 +1273,12 @@ rtimer_clock_t
 get_captured_time() {
   volatile rtimer_clock_t value=0;
   //select period register in the selector so it can be read
-  REG(RFCORE_SFR_MTMSEL) = (0x00 << RFCORE_SFR_MTMSEL_MTMOVFSEL_S) & RFCORE_SFR_MTMSEL_MTMOVFSEL;
-  //REG(RFCORE_SFR_MTMSEL) |= 0x001 & RFCORE_SFR_MTMSEL_MTMSEL; 
+  //REG(RFCORE_SFR_MTMSEL) = (0x00 << RFCORE_SFR_MTMSEL_MTMOVFSEL_S) & RFCORE_SFR_MTMSEL_MTMOVFSEL;
+  REG(RFCORE_SFR_MTMSEL) |= 0x001 & RFCORE_SFR_MTMSEL_MTMSEL; 
   // compute value by adding m0 and m1 registers
   value = REG(RFCORE_SFR_MTMOVF0);
   value+=(REG(RFCORE_SFR_MTMOVF1)<<8);
-  //value+=(REG(RFCORE_SFR_MTMOVF2)<<16);
+  value+=(REG(RFCORE_SFR_MTMOVF2)<<16);
 
   return value;
 }
@@ -1291,7 +1290,7 @@ get_captured_time() {
 
 #define RFCORE_SFR_MTM0_MTM0_S  0
 #define RFCORE_SFR_MTM1_MTM1_S  0
-#define RADIOTIMER_32MHZ_TICS_PER_32KHZ_TIC     ( 976 ) // 32 MHz to 32 kHz ratio
+#define RADIOTIMER_32MHZ_TICS_PER_32KHZ_TIC    (488) // ( 976 ) // 32 MHz to 32 kHz ratio
 
 void
 radiotimer_start() 
@@ -1329,14 +1328,14 @@ radiotimer_start()
 //
   //select counter register in the selector so it can be modified 
   //-- use OVF version so we can have 24bit register
-  value = RTIMER_NOW()+1;
+  value = RTIMER_NOW() + 1;
   REG(RFCORE_SFR_MTMSEL) = (0x00<< RFCORE_SFR_MTMSEL_MTMOVFSEL_S) & RFCORE_SFR_MTMSEL_MTMOVFSEL;
   //set the period now -- low 8bits
   REG(RFCORE_SFR_MTMOVF0) = (value << RFCORE_SFR_MTMOVF0_MTMOVF0_S) & RFCORE_SFR_MTMOVF0_MTMOVF0;
   //set the period now -- middle 8bits
-  REG(RFCORE_SFR_MTMOVF1) = ((value >> 8)  << RFCORE_SFR_MTMOVF1_MTMOVF1_S) & RFCORE_SFR_MTMOVF1_MTMOVF1;
+  REG(RFCORE_SFR_MTMOVF1) = ((value >> 8) << RFCORE_SFR_MTMOVF1_MTMOVF1_S) & RFCORE_SFR_MTMOVF1_MTMOVF1;
   //set the period now -- high 8bits
-  REG(RFCORE_SFR_MTMOVF2) = (0x00 << RFCORE_SFR_MTMOVF2_MTMOVF2_S) & RFCORE_SFR_MTMOVF2_MTMOVF2;
+  REG(RFCORE_SFR_MTMOVF2) = ((value >>16) << RFCORE_SFR_MTMOVF2_MTMOVF2_S) & RFCORE_SFR_MTMOVF2_MTMOVF2;
 
   //enable period interrupt - ovf
   //RFCORE_SFR_MTIRQM_MACTIMER_OVF_PERM|RFCORE_SFR_MTIRQM_MACTIMER_PERM
