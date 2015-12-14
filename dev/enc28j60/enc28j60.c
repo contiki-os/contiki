@@ -84,7 +84,6 @@
 #define MACONX_BANK 0x02
 
 #define MACON1  0x00
-#define MACON2  0x01
 #define MACON3  0x02
 #define MACON4  0x03
 #define MABBIPG 0x04
@@ -96,8 +95,6 @@
 #define MACON1_TXPAUS 0x08
 #define MACON1_RXPAUS 0x04
 #define MACON1_MARXEN 0x01
-
-#define MACON2_MARST  0x80
 
 #define MACON3_PADCFG_FULL 0xe0
 #define MACON3_TXCRCEN     0x10
@@ -113,6 +110,8 @@
 #define MAADR4 0x03 /* MAADR<23:16> */
 #define MAADR5 0x00 /* MAADR<15:8> */
 #define MAADR6 0x01 /* MAADR<7:0> */
+#define MISTAT 0x0a
+#define EREVID 0x12
 
 #define EPKTCNT_BANK 0x01
 #define ERXFCON 0x18
@@ -128,10 +127,27 @@
 PROCESS(enc_watchdog_process, "Enc28j60 watchdog");
 
 static uint8_t initialized = 0;
+static uint8_t bank = ERXTX_BANK;
 static uint8_t enc_mac_addr[6];
 static int received_packets = 0;
 static int sent_packets = 0;
 
+/*---------------------------------------------------------------------------*/
+static uint8_t
+is_mac_mii_reg(uint8_t reg)
+{
+  /* MAC or MII register (otherwise, ETH register)? */
+  switch(bank) {
+  case MACONX_BANK:
+    return reg < EIE;
+  case MAADRX_BANK:
+    return reg <= MAADR2 || reg == MISTAT;
+  case ERXTX_BANK:
+  case EPKTCNT_BANK:
+  default:
+    return 0;
+  }
+}
 /*---------------------------------------------------------------------------*/
 static uint8_t
 readreg(uint8_t reg)
@@ -139,6 +155,10 @@ readreg(uint8_t reg)
   uint8_t r;
   enc28j60_arch_spi_select();
   enc28j60_arch_spi_write(0x00 | (reg & 0x1f));
+  if(is_mac_mii_reg(reg)) {
+    /* MAC and MII registers require that a dummy byte be read first. */
+    enc28j60_arch_spi_read();
+  }
   r = enc28j60_arch_spi_read();
   enc28j60_arch_spi_deselect();
   return r;
@@ -154,19 +174,36 @@ writereg(uint8_t reg, uint8_t data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-setregbank(uint8_t bank)
+setregbitfield(uint8_t reg, uint8_t mask)
 {
-  writereg(ECON1, (readreg(ECON1) & 0xfc) | (bank & 0x03));
+  if(is_mac_mii_reg(reg)) {
+    writereg(reg, readreg(reg) | mask);
+  } else {
+    enc28j60_arch_spi_select();
+    enc28j60_arch_spi_write(0x80 | (reg & 0x1f));
+    enc28j60_arch_spi_write(mask);
+    enc28j60_arch_spi_deselect();
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
-writedatabyte(uint8_t byte)
+clearregbitfield(uint8_t reg, uint8_t mask)
 {
-  enc28j60_arch_spi_select();
-  /* The Write Buffer Memory (WBM) command is 0 1 1 1 1 0 1 0  */
-  enc28j60_arch_spi_write(0x7a);
-  enc28j60_arch_spi_write(byte);
-  enc28j60_arch_spi_deselect();
+  if(is_mac_mii_reg(reg)) {
+    writereg(reg, readreg(reg) & ~mask);
+  } else {
+    enc28j60_arch_spi_select();
+    enc28j60_arch_spi_write(0xa0 | (reg & 0x1f));
+    enc28j60_arch_spi_write(mask);
+    enc28j60_arch_spi_deselect();
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+setregbank(uint8_t new_bank)
+{
+  writereg(ECON1, (readreg(ECON1) & 0xfc) | (new_bank & 0x03));
+  bank = new_bank;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -182,16 +219,10 @@ writedata(uint8_t *data, int datalen)
   enc28j60_arch_spi_deselect();
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t
-readdatabyte(void)
+static void
+writedatabyte(uint8_t byte)
 {
-  uint8_t r;
-  enc28j60_arch_spi_select();
-  /* THe Read Buffer Memory (RBM) command is 0 0 1 1 1 0 1 0 */
-  enc28j60_arch_spi_write(0x3a);
-  r = enc28j60_arch_spi_read();
-  enc28j60_arch_spi_deselect();
-  return r;
+  writedata(&byte, 1);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -208,6 +239,14 @@ readdata(uint8_t *buf, int len)
   return i;
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t
+readdatabyte(void)
+{
+  uint8_t r;
+  readdata(&r, 1);
+  return r;
+}
+/*---------------------------------------------------------------------------*/
 static void
 softreset(void)
 {
@@ -215,7 +254,26 @@ softreset(void)
   /* The System Command (soft reset) is 1 1 1 1 1 1 1 1 */
   enc28j60_arch_spi_write(0xff);
   enc28j60_arch_spi_deselect();
+  bank = ERXTX_BANK;
 }
+/*---------------------------------------------------------------------------*/
+#if DEBUG
+static uint8_t
+readrev(void)
+{
+  uint8_t rev;
+  setregbank(MAADRX_BANK);
+  rev = readreg(EREVID);
+  switch(rev) {
+  case 2:
+    return 1;
+  case 6:
+    return 7;
+  default:
+    return rev;
+  }
+}
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 reset(void)
@@ -282,10 +340,13 @@ reset(void)
     see Section 2.2 “Oscillator Start-up Timer.
   */
 
+  softreset();
+
+  /* Workaround for erratum #2. */
+  clock_delay_usec(1000);
+
   /* Wait for OST */
   while((readreg(ESTAT) & ESTAT_CLKRDY) == 0);
-
-  softreset();
 
   setregbank(ERXTX_BANK);
   /* Set up receive buffer */
@@ -295,16 +356,12 @@ reset(void)
   writereg(ERXNDH, RX_BUF_END >> 8);
   writereg(ERDPTL, RX_BUF_START & 0xff);
   writereg(ERDPTH, RX_BUF_START >> 8);
-  writereg(ERXRDPTL, RX_BUF_START & 0xff);
-  writereg(ERXRDPTH, RX_BUF_START >> 8);
+  writereg(ERXRDPTL, RX_BUF_END & 0xff);
+  writereg(ERXRDPTH, RX_BUF_END >> 8);
 
   /* Receive filters */
   setregbank(EPKTCNT_BANK);
-  /*  writereg(ERXFCON, ERXFCON_UCEN | ERXFCON_CRCEN |
-      ERXFCON_MCEN | ERXFCON_BCEN);*/
-  /* XXX: can't seem to get the unicast filter to work right now,
-     using promiscous mode for now. */
-  writereg(ERXFCON, 0);
+  writereg(ERXFCON, ERXFCON_UCEN | ERXFCON_CRCEN | ERXFCON_BCEN);
 
   /*
     6.5 MAC Initialization Settings
@@ -313,13 +370,11 @@ reset(void)
     initialization. This only needs to be done once; the order of
     programming is unimportant.
 
-    1. Clear the MARST bit in MACON2 to pull the MAC out of Reset.
-
-    2. Set the MARXEN bit in MACON1 to enable the MAC to receive
+    1. Set the MARXEN bit in MACON1 to enable the MAC to receive
     frames. If using full duplex, most applications should also set
     TXPAUS and RXPAUS to allow IEEE defined flow control to function.
 
-    3. Configure the PADCFG, TXCRCEN and FULDPX bits of MACON3. Most
+    2. Configure the PADCFG, TXCRCEN and FULDPX bits of MACON3. Most
     applications should enable automatic padding to at least 60 bytes
     and always append a valid CRC. For convenience, many applications
     may wish to set the FRMLNEN bit as well to enable frame length
@@ -327,48 +382,43 @@ reset(void)
     will be connected to a full-duplex configured remote node;
     otherwise, it should be left clear.
 
-    4. Configure the bits in MACON4. Many applications may not need to
-    modify the Reset default.
+    3. Configure the bits in MACON4. For conformance to the IEEE 802.3
+    standard, set the DEFER bit.
 
-    5. Program the MAMXFL registers with the maximum frame length to
+    4. Program the MAMXFL registers with the maximum frame length to
     be permitted to be received or transmitted. Normal network nodes
     are designed to handle packets that are 1518 bytes or less.
 
-    6. Configure the Back-to-Back Inter-Packet Gap register,
+    5. Configure the Back-to-Back Inter-Packet Gap register,
     MABBIPG. Most applications will program this register with 15h
     when Full-Duplex mode is used and 12h when Half-Duplex mode is
     used.
 
-    7. Configure the Non-Back-to-Back Inter-Packet Gap register low
+    6. Configure the Non-Back-to-Back Inter-Packet Gap register low
     byte, MAIPGL. Most applications will program this register with
     12h.
 
-    8. If half duplex is used, the Non-Back-to-Back Inter-Packet Gap
+    7. If half duplex is used, the Non-Back-to-Back Inter-Packet Gap
     register high byte, MAIPGH, should be programmed. Most
     applications will program this register to 0Ch.
 
-    9. If Half-Duplex mode is used, program the Retransmission and
+    8. If Half-Duplex mode is used, program the Retransmission and
     Collision Window registers, MACLCON1 and MACLCON2. Most
     applications will not need to change the default Reset values.  If
     the network is spread over exceptionally long cables, the default
     value of MACLCON2 may need to be increased.
 
-    10. Program the local MAC address into the
-    MAADR0:MAADR5 registers.
+    9. Program the local MAC address into the MAADR1:MAADR6 registers.
   */
 
   setregbank(MACONX_BANK);
 
-  /* Pull MAC out of reset */
-  writereg(MACON2, 0);//readreg(MACON2) & (~MACON2_MARST));
-
   /* Turn on reception and IEEE-defined flow control */
-  writereg(MACON1, readreg(MACON1) | (MACON1_MARXEN + MACON1_TXPAUS +
-                                      MACON1_RXPAUS));
+  setregbitfield(MACON1, MACON1_MARXEN | MACON1_TXPAUS | MACON1_RXPAUS);
 
   /* Set padding, crc, full duplex */
-  writereg(MACON3, readreg(MACON3) | (MACON3_PADCFG_FULL + MACON3_TXCRCEN +
-                                      MACON3_FULDPX + MACON3_FRMLNEN));
+  setregbitfield(MACON3, MACON3_PADCFG_FULL | MACON3_TXCRCEN | MACON3_FULDPX |
+                         MACON3_FRMLNEN);
 
   /* Don't modify MACON4 */
 
@@ -381,7 +431,6 @@ reset(void)
 
   /* Set non-back-to-back packet gap */
   writereg(MAIPGL, 0x12);
-  writereg(MAIPGH, 0x0c);
 
   /* Set MAC address */
   setregbank(MAADRX_BANK);
@@ -391,10 +440,6 @@ reset(void)
   writereg(MAADR3, enc_mac_addr[2]);
   writereg(MAADR2, enc_mac_addr[1]);
   writereg(MAADR1, enc_mac_addr[0]);
-
-  /* Receive filters */
-  setregbank(EPKTCNT_BANK);
-  writereg(ERXFCON, ERXFCON_UCEN | ERXFCON_CRCEN | ERXFCON_BCEN);
 
   /*
     6.6 PHY Initialization Settings
@@ -425,7 +470,7 @@ reset(void)
   /* Don't worry about PHY configuration for now */
 
   /* Turn on autoincrement for buffer access */
-  writereg(ECON2, readreg(ECON2) | ECON2_AUTOINC);
+  setregbitfield(ECON2, ECON2_AUTOINC);
 
   /* Turn on reception */
   writereg(ECON1, ECON1_RXEN);
@@ -445,13 +490,15 @@ enc28j60_init(uint8_t *mac_addr)
 
   reset();
 
+  PRINTF("ENC28J60 rev. B%d\n", readrev());
+
   initialized = 1;
 }
 /*---------------------------------------------------------------------------*/
 int
 enc28j60_send(uint8_t *data, uint16_t datalen)
 {
-  int padding = 0;
+  uint16_t dataend;
 
   if(!initialized) {
     return -1;
@@ -488,49 +535,46 @@ enc28j60_send(uint8_t *data, uint16_t datalen)
   /* Write the transmission control register as the first byte of the
      output packet. We write 0x00 to indicate that the default
      configuration (the values in MACON3) will be used.  */
-#define WITH_MANUAL_PADDING 1
-#if WITH_MANUAL_PADDING
-#define PADDING_MIN_SIZE 60
-  writedatabyte(0x0B); /* POVERRIDE, PCRCEN, PHUGEEN. Not PPADEN */
-  if(datalen < PADDING_MIN_SIZE) {
-    padding = PADDING_MIN_SIZE - datalen;
-  } else {
-    padding = 0;
-  }
-#else /* WITH_MANUAL_PADDING */
   writedatabyte(0x00); /* MACON3 */
-  padding = 0;
-#endif /* WITH_MANUAL_PADDING */
-
-  /* Write a pointer to the last data byte. */
-  writereg(ETXNDL, (TX_BUF_START + datalen + 0 + padding) & 0xff);
-  writereg(ETXNDH, (TX_BUF_START + datalen + 0 + padding) >> 8);
 
   writedata(data, datalen);
-  if(padding > 0) {
-    uint8_t padding_buf[60];
-    memset(padding_buf, 0, padding);
-    writedata(padding_buf, padding);
-  }
+
+  /* Write a pointer to the last data byte. */
+  dataend = TX_BUF_START + datalen;
+  writereg(ETXNDL, dataend & 0xff);
+  writereg(ETXNDH, dataend >> 8);
 
   /* Clear EIR.TXIF */
-  writereg(EIR, readreg(EIR) & (~EIR_TXIF));
+  clearregbitfield(EIR, EIR_TXIF);
 
   /* Don't care about interrupts for now */
 
   /* Send the packet */
-  writereg(ECON1, readreg(ECON1) | ECON1_TXRTS);
+  setregbitfield(ECON1, ECON1_TXRTS);
   while((readreg(ECON1) & ECON1_TXRTS) > 0);
 
+#if DEBUG
   if((readreg(ESTAT) & ESTAT_TXABRT) != 0) {
-    PRINTF("enc28j60: tx err: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
+    uint16_t erdpt;
+    uint8_t tsv[7];
+    erdpt = (readreg(ERDPTH) << 8) | readreg(ERDPTL);
+    writereg(ERDPTL, (dataend + 1) & 0xff);
+    writereg(ERDPTH, (dataend + 1) >> 8);
+    readdata(tsv, sizeof(tsv));
+    writereg(ERDPTL, erdpt & 0xff);
+    writereg(ERDPTH, erdpt >> 8);
+    PRINTF("enc28j60: tx err: %d: %02x:%02x:%02x:%02x:%02x:%02x\n"
+           "                  tsv: %02x%02x%02x%02x%02x%02x%02x\n", datalen,
            0xff & data[0], 0xff & data[1], 0xff & data[2],
-           0xff & data[3], 0xff & data[4], 0xff & data[5]);
+           0xff & data[3], 0xff & data[4], 0xff & data[5],
+           tsv[6], tsv[5], tsv[4], tsv[3], tsv[2], tsv[1], tsv[0]);
   } else {
     PRINTF("enc28j60: tx: %d: %02x:%02x:%02x:%02x:%02x:%02x\n", datalen,
            0xff & data[0], 0xff & data[1], 0xff & data[2],
            0xff & data[3], 0xff & data[4], 0xff & data[5]);
   }
+#endif
+
   sent_packets++;
   PRINTF("enc28j60: sent_packets %d\n", sent_packets);
   return datalen;
@@ -544,6 +588,10 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
   uint8_t nxtpkt[2];
   uint8_t status[2];
   uint8_t length[2];
+
+  if(!initialized) {
+    return -1;
+  }
 
   err = 0;
 
@@ -604,7 +652,7 @@ enc28j60_read(uint8_t *buffer, uint16_t bufsize)
   writereg(ERXRDPTL, next & 0xff);
   writereg(ERXRDPTH, next >> 8);
 
-  writereg(ECON2, readreg(ECON2) | ECON2_PKTDEC);
+  setregbitfield(ECON2, ECON2_PKTDEC);
 
   if(err) {
     PRINTF("enc28j60: rx err: flushed %d\n", len);
