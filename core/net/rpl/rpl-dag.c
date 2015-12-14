@@ -199,6 +199,10 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
 #if RPL_DYNAMIC_DIS
     dag->preferred_parent_changed = 1;
 #endif
+#if RPL_DIO_DAO_ON_NEW_PARENT
+    schedule_dao_immediately(dag->instance);
+    dio_output(dag->instance,NULL);
+#endif
   }
 }
 /*---------------------------------------------------------------------------*/

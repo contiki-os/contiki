@@ -345,4 +345,11 @@
 
 #endif /* RPL_DYNAMIC_DIS */
 
+
+#ifdef RPL_CONF_DIO_DAO_ON_NEW_PARENT
+#define RPL_DIO_DAO_ON_NEW_PARENT RPL_CONF_DIO_DAO_ON_NEW_PARENT
+#else
+#define RPL_DIO_DAO_ON_NEW_PARENT 0
+#endif
+
 #endif /* RPL_CONF_H */
