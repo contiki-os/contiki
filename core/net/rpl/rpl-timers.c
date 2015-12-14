@@ -76,7 +76,7 @@ handle_periodic_timer(void *ptr)
   //TODO iterate current DAGs from all instances
   rpl_dag_t *dag = rpl_get_any_dag();
   rpl_instance_t *instance = dag->instance;
-  if(dag!=NULL){
+  if(dag!=NULL && dag->preferred_parent != NULL){
     if(dag->preferred_parent_changed){
       dag->nb_parent_changed++;
       if(instance->dis_period >= 2 * RPL_I_DIS_MIN &&
@@ -93,13 +93,16 @@ handle_periodic_timer(void *ptr)
          dag->nb_same_parent = 0;
        }
     }
-  }else if(next_dis >= instance->dis_period){
+  }else if((instance->dis_period && next_dis >= instance->dis_period) || 
+           next_dis >= RPL_I_DIS_MAX){
     next_dis = 0;
     dis_output(NULL);
   }
 
 #else
-  if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
+  rpl_dag_t *dag = rpl_get_any_dag();
+  if((dag == NULL || dag->preferred_parent == NULL ) && 
+        next_dis >= RPL_DIS_INTERVAL) {
     next_dis = 0;
     dis_output(NULL);
   }
