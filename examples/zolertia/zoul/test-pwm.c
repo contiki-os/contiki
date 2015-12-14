@@ -35,10 +35,6 @@
  * \defgroup remote-test-pwm Test the CC2538 PWM driver
  *
  * Demonstrates the use of the CC2538 PWM driver for the Zolertia's Zoul boards
- * The PWM timer is stopped when dropping below PM0, alternatively you can set
- * LPM_CONF_MAX_PM to zero, or call lpm_max_pm(0).  In this example is not 
- * needed as we disable RDC in the Makefile, and the CC2538 never drops below
- * PM0
  *
  * @{
  *
