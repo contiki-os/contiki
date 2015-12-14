@@ -95,8 +95,8 @@
 
 /* 6TiSCH minimal schedule length.
  * Larger values result in less frequent active slots: reduces capacity and saves energy. */
-//#undef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
-//#define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 3
+#undef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
+#define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 3
 
 #if WITH_SECURITY
 
@@ -191,7 +191,7 @@
 //#define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 11
 //#define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0
 //#define LPM_CONF_ENABLE 0
-//#define TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS 1
+
 #endif /* CONTIKI_TARGET_OPENMOTE */
 /*==========================OpenMote-CC2538=================================*/
 

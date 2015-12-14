@@ -705,7 +705,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
           current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait] + tsch_timing[tsch_ts_max_tx]);
       TSCH_DEBUG_RX_EVENT();
-      PRINTF("waiting done after 0x%lx plus \n", current_slot_start);
+      //PRINTF("waiting done after 0x%lx plus \n", current_slot_start);
       NETSTACK_RADIO.off();
       PRINTF("off done at rtimernow = 0x%lx\n", RTIMER_NOW());
 
@@ -808,6 +808,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
             n = tsch_queue_get_nbr(&source_address);
             if(n != NULL && n->is_time_source) {
               int32_t since_last_timesync = ASN_DIFF(current_asn, last_sync_asn);
+              PRINTF("TSCH: slot-operation since_last_timesync=0x%lx\n", since_last_timesync);
               /* Keep track of last sync time */
               last_sync_asn = current_asn;
               /* Save estimated drift */

@@ -86,7 +86,6 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   uint8_t curr_len = 0;
   frame802154_t p;
   struct ieee802154_ies ies;
-  PRINTF("++++starting create eack\n");
 
   memset(&p, 0, sizeof(p));
   p.fcf.frame_type = FRAME802154_ACKFRAME;

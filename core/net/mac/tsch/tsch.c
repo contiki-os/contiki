@@ -322,12 +322,13 @@ eb_input(struct input_packet *current_input)
 #endif
 
     struct tsch_neighbor *n = tsch_queue_get_time_source();
-    PRINT6ADDR(&n->addr);
+    //PRINT6ADDR(&n->addr);
     PRINTF("Mao ===xxx===\n");
     /* Did the EB come from our time source? */
     if(n != NULL && linkaddr_cmp((linkaddr_t *)&frame.src_addr, &n->addr)) {
       /* Check for ASN drift */
       int32_t asn_diff = ASN_DIFF(current_input->rx_asn, eb_ies.ie_asn);
+      PRINTF("*****MAO asn_diff = %d\n", asn_diff);
       if(asn_diff != 0) {
         /* We disagree with our time source's ASN -- leave the network */
         PRINTF("TSCH:! ASN drifted by %ld, leaving the network\n", asn_diff);
@@ -365,12 +366,10 @@ tsch_rx_process_pending()
     frame802154_t frame;
     uint8_t ret = frame802154_parse(current_input->payload, current_input->len, &frame);
     int is_data = ret && frame.fcf.frame_type == FRAME802154_DATAFRAME;
-    PRINTF("tsch_rx_process_pending: is_data=%d\n", is_data);
     int is_eb = ret
       && frame.fcf.frame_version == FRAME802154_IEEE802154E_2012
       && frame.fcf.frame_type == FRAME802154_BEACONFRAME;
-
-    PRINTF("is eb = %d\n", is_eb);
+    PRINTF("tsch_rx_pending: is_data=%d eb=%d\n", is_data, is_eb);
     if(is_data) {
       /* Skip EBs and other control messages */
       /* Copy to packetbuf for processing */
