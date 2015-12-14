@@ -62,8 +62,44 @@
 
 #include "contiki.h"
 #include "dev/gptimer.h"
+#include "sys/rtimer.h"
 
-#define RTIMER_ARCH_SECOND 32768
+#ifdef RTIMER_CONF_SECOND
+# define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
+#else
+#if RTIMER_USE_32KHZ
+# if CC2538_EXTERNAL_CRYSTAL_OSCILLATOR
+#  define RTIMER_ARCH_SECOND 32768
+# else
+#  define RTIMER_ARCH_SECOND 32000
+# endif //CC2538_EXTERNAL_CRYSTAL_OSCILLATOR
+#else
+/* 32MHz CPU clock => 16MHz timer */
+# define RTIMER_ARCH_SECOND  (F_CPU / 2)
+#endif // RTIMER_USE_32KHZ
+#endif // RTIMER_CONF_SECOND
+
+#if RTIMER_USE_32KHZ
+#define US_TO_RTIMERTICKS(US)  ((US) >= 0 ?                        \
+                               (((int32_t)(US) * (RTIMER_ARCH_SECOND) + 500000) / 1000000L) :      \
+                               ((int32_t)(US) * (RTIMER_ARCH_SECOND) - 500000) / 1000000L)
+
+#define RTIMERTICKS_TO_US(T)   ((T) >= 0 ?                     \
+                               (((int32_t)(T) * 1000000L + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)) : \
+                               ((int32_t)(T) * 1000000L - ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND))
+
+/* A 64-bit version because the 32-bit one cannot handle T >= 4295 ticks.
+   Intended only for positive values of T. */
+#define RTIMERTICKS_TO_US_64(T)  ((uint32_t)(((uint64_t)(T) * 1000000 + ((RTIMER_ARCH_SECOND) / 2)) / (RTIMER_ARCH_SECOND)))
+
+#else
+
+#define US_TO_RTIMERTICKS(D)    ((int64_t)(D) << 4)
+#define RTIMERTICKS_TO_US(T)    ((int64_t)(T) >> 4)
+#define RTIMERTICKS_TO_US_64(T) RTIMERTICKS_TO_US(T)
+
+#endif
+
 
 /** \sa RTIMER_NOW() */
 rtimer_clock_t rtimer_arch_now(void);

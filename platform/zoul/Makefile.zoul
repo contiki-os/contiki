@@ -28,6 +28,7 @@ PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
 CONTIKI_TARGET_SOURCEFILES += contiki-main.c
 CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c cc1200-zoul-arch.c
 CONTIKI_TARGET_SOURCEFILES += adc-sensors.c button-sensor.c zoul-sensors.c
+CONTIKI_TARGET_SOURCEFILES += node-id.c
 CONTIKI_TARGET_SOURCEFILES += $(BOARD_SOURCEFILES)
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
@@ -75,7 +76,7 @@ else
 	$(eval BSL_ADDRESS_ARG := -a $(shell $(OBJDUMP) -h $*.elf | grep -B1 LOAD | \
 	                               grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$5}' | \
 	                               sort -g | head -1))
-	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) $<
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) -b115200 $<
 endif
 
 motelist:

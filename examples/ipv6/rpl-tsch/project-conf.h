@@ -83,10 +83,11 @@
  * log messages from interrupt */
 #undef TSCH_LOG_CONF_LEVEL
 #define TSCH_LOG_CONF_LEVEL 2
+#define TSCH_LOG_CONF_QUEUE_LEN 2
 
 /* IEEE802.15.4 PANID */
 #undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID 0xabcd
+#define IEEE802154_CONF_PANID 0xbabe
 
 /* Do not start TSCH at init, wait for NETSTACK_MAC.on() */
 #undef TSCH_CONF_AUTOSTART
@@ -127,7 +128,7 @@
 /*******************************************************/
 /************* Other system configuration **************/
 /*******************************************************/
-
+/*========================Z1===========================*/
 #if CONTIKI_TARGET_Z1
 /* Save some space to fit the limited RAM of the z1 */
 #undef UIP_CONF_TCP
@@ -153,9 +154,45 @@
 #define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 2
 /* Reduce log level to make space for security on z1 */
 #undef TSCH_LOG_CONF_LEVEL
-#define TSCH_LOG_CONF_LEVEL 1
+#define TSCH_LOG_CONF_LEVEL 0
 #endif /* WITH_SECURITY */
 
 #endif /* CONTIKI_TARGET_Z1 */
+/*========================Z1===========================*/
+
+
+/*==========================OpenMote-CC2538=================================*/
+// CC2538 
+
+#if 1
+/* OpenMote testing */
+//#undef TSCH_DEFAULT_HOPPING_SEQUENCE 
+//#define TSCH_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
+
+/* Enable SFD timestamps (uses timerB) */
+#undef CC2538_CONF_SFD_TIMESTAMPS 
+#define CC2538_CONF_SFD_TIMESTAMPS       1
+
+//#define SYS_CTRL_CONF_OSC32K_USE_XTAL 1
+#define RTIMER_CONF_USE_32KHZ  1
+#define CC2538_EXTERNAL_CRYSTAL_OSCILLATOR 1
+//#define TSCH_CONF_AUTOSELECT_TIME_SOURCE 1
+
+#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
+//#undef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 
+//#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 65000
+//#define TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS 1
+//#define LINKADDR_CONF_SIZE 8
+
+// check asn number before proceeding process packet
+//#define TSCH_CONF_CHECK_TIME_AT_ASSOCIATION 1
+//#define TSCH_CONF_KEEPALIVE_TIMEOUT (5 * CLOCK_SECOND)
+//#undef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 
+//#define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 11
+//#define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0
+//#define LPM_CONF_ENABLE 0
+
+#endif /* CONTIKI_TARGET_OPENMOTE */
+/*==========================OpenMote-CC2538=================================*/
 
 #endif /* __PROJECT_CONF_H__ */
