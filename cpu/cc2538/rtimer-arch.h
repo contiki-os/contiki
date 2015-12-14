@@ -62,8 +62,8 @@
 
 #include "contiki.h"
 #include "dev/gptimer.h"
+#include "sys/rtimer.h"
 
-//#define RTIMER_ARCH_SECOND 32768
 #ifdef RTIMER_CONF_SECOND
 # define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND
 #else
@@ -99,6 +99,7 @@
 #define RTIMERTICKS_TO_US_64(T) RTIMERTICKS_TO_US(T)
 
 #endif
+
 
 /** \sa RTIMER_NOW() */
 rtimer_clock_t rtimer_arch_now(void);
