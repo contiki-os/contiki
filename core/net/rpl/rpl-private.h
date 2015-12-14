@@ -282,6 +282,7 @@ void rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio);
 void rpl_local_repair(rpl_instance_t *instance);
 void rpl_process_dio(uip_ipaddr_t *, rpl_dio_t *);
 int rpl_process_parent_event(rpl_instance_t *, rpl_parent_t *);
+void rpl_process_inconsistency(rpl_instance_t *);
 
 /* DAG object management. */
 rpl_dag_t *rpl_alloc_dag(uint8_t, uip_ipaddr_t *);

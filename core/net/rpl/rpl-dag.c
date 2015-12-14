@@ -791,7 +791,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
       RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
       rpl_schedule_dao(instance);
     }
-    rpl_reset_dio_timer(instance);
+    rpl_process_inconsistency(instance);
 #if DEBUG
     rpl_print_neighbor_list();
 #endif
@@ -1041,7 +1041,8 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   ANNOTATE("#A join=%u\n", dag->dag_id.u8[sizeof(dag->dag_id) - 1]);
 
-  rpl_reset_dio_timer(instance);
+  //Join new instance -> inconsistency
+  rpl_process_inconsistency(instance);
   rpl_set_default_route(instance, from);
 
   if(instance->mop != RPL_MOP_NO_DOWNWARD_ROUTES) {
@@ -1193,7 +1194,7 @@ rpl_local_repair(rpl_instance_t *instance)
     }
   }
 
-  rpl_reset_dio_timer(instance);
+  rpl_process_inconsistency(instance);
 
   RPL_STAT(rpl_stats.local_repairs++);
 }
@@ -1310,7 +1311,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 	PRINTF("RPL: Root received inconsistent DIO version number\n");
 	dag->version = dio->version;
 	RPL_LOLLIPOP_INCREMENT(dag->version);
-	rpl_reset_dio_timer(instance);
+  //New version -> insconsistency
+	rpl_process_inconsistency(instance);
       } else {
         PRINTF("RPL: Global repair\n");
         if(dio->prefix_info.length != 0) {
@@ -1328,7 +1330,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       /* The DIO sender is on an older version of the DAG. */
       PRINTF("RPL: old version received => inconsistency detected\n");
       if(dag->joined) {
-        rpl_reset_dio_timer(instance);
+        //Different version -> insconsistency
+        rpl_process_inconsistency(instance);
         return;
       }
     }
@@ -1362,7 +1365,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
            (unsigned)dio->rank);
     return;
   } else if(dio->rank == INFINITE_RANK && dag->joined) {
-    rpl_reset_dio_timer(instance);
+    rpl_process_inconsistency(instance);
   }
 
   /* Prefix Information Option treated to add new prefix */
@@ -1452,4 +1455,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   p->dtsn = dio->dtsn;
 }
 /*---------------------------------------------------------------------------*/
+void rpl_process_inconsistency(rpl_instance_t *instance){
+  rpl_reset_dio_timer(instance);
+  #if RPL_DIO_ON_INCONSISTENCY
+    dio_output(instance, NULL);
+  #endif
+}
 /** @} */
