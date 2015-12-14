@@ -32,7 +32,7 @@
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
-@file     system_ADUCRF101.c
+@file     system_ADuCRF101.c
 @brief    CMSIS Cortex-M3 Device Peripheral Access Layer Implementation File
           for the ADuCRF101
 @version  v1.0
@@ -106,7 +106,6 @@ void SystemCoreClockUpdate (void)            /* Get Core Clock Frequency     */
 /**
  * Initialize the system
  *
- * @param  none
  * @return none
  *
  * @brief  Setup the microcontroller system.

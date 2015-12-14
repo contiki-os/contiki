@@ -1046,12 +1046,14 @@ uncompress_hdr_hc06(uint16_t ip_len)
  *   - Both src and dest interface ID are recoverable from lower layer
  *     header
  *   - Next header is either ICMP, UDP or TCP
+ *
  * Moreover, if next header is UDP, we try to compress it using HC_UDP.
- * This is feasible is both ports are between F0B0 and F0B0 + 15\n\n
+ * This is feasible is both ports are between F0B0 and F0B0 + 15.
+ *
  *
  * Resulting header structure:
- * - For ICMP, TCP, non compressed UDP\n
- *   HC1 encoding = 11111010 (UDP) 11111110 (TCP) 11111100 (ICMP)\n
+ *   - For ICMP, TCP, non compressed UDP\n
+ *     HC1 encoding = 11111010 (UDP) 11111110 (TCP) 11111100 (ICMP)\n
  * \verbatim
  *                      1                   2                   3
  * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1062,8 +1064,8 @@ uncompress_hdr_hc06(uint16_t ip_len)
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  * \endverbatim
  *
- * - For compressed UDP
- *   HC1 encoding = 11111011, HC_UDP encoding = 11100000\n
+ *   - For compressed UDP\n
+ *     HC1 encoding = 11111011, HC_UDP encoding = 11100000\n
  * \verbatim
  *                      1                   2                   3
  * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1577,7 +1579,6 @@ output(const uip_lladdr_t *localdest)
 
 /*--------------------------------------------------------------------*/
 /** \brief Process a received 6lowpan packet.
- *  \param r The MAC layer
  *
  *  The 6lowpan packet is put in packetbuf by the MAC. If its a frag1 or
  *  a non-fragmented packet we first uncompress the IP header. The

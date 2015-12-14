@@ -654,7 +654,7 @@ static uint8_t uip_reassflags;
  */
 
 
-struct etimer uip_reass_timer; /* timer for reassembly */
+struct etimer uip_reass_timer; /**< Timer for reassembly */
 uint8_t uip_reass_on; /* equal to 1 if we are currently reassembling a packet */
 
 static uint32_t uip_id; /* For every packet that is to be fragmented, the source

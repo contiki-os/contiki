@@ -179,7 +179,7 @@ The following platform-specific configurations are supported:
 
 The JN516X Contiki platform supports sleep mode (with RAM retention and keeping the external oscillator on). To enable sleeping, configure `JN516X_SLEEP_CONF_ENABLED=1`.
 
-Sleeping will only happen if there at least 50 ms until the next rtimer or etimer. Also, the system will wake up ~10 ms before the next timer should fire in order to reininitialize all hardware peripherals.
+Sleeping will only happen if there at least 50 ms until the next rtimer or etimer. Also, the system will wake up ~10 ms before the next timer should fire in order to reinitialize all hardware peripherals.
 
 The JN516X Contiki platform also supports rtimers at two different speeds: 16 MHz and 32 kHz. By default, the high-speed timer is used. The two timers have similar expected accuracy (drift ppm), but the 16 MHz one has higher precision. However, the low-speed timers are also kept running during sleeping. 
 

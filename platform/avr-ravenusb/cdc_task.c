@@ -75,6 +75,13 @@
 #include <avr/wdt.h>
 #include <util/delay.h>
 
+#if UIP_CONF_IPV6_RPL
+// Include needs to be up here instead of embedded in the other
+// UIP_CONF_IPV6_RPL block, as doxygen seems not to be compatible with
+// #includes embedded in other functions and spits out a warning.
+#include "rpl.h"
+#endif
+
 #if JACKDAW_CONF_USE_SETTINGS
 #include "settings.h"
 #endif
@@ -579,7 +586,6 @@ void menu_process(char c)
 
 
 #if UIP_CONF_IPV6_RPL
-#include "rpl.h"
 extern uip_ds6_netif_t uip_ds6_if;
 			case 'N':
 			{	uint8_t i,j;

@@ -33,6 +33,8 @@
 *.report
 summary
 *.summary
+*.runerr
+*.runlog
 *.faillog
 *.orig
 *~

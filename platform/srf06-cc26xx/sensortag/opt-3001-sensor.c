@@ -223,7 +223,7 @@ read_data(uint16_t *raw_data)
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Convert raw data to a value in lux
- * \param data Pointer to a buffer with a raw sensor reading
+ * \param raw_data data Pointer to a buffer with a raw sensor reading
  * \return Converted value (lux)
  */
 static float
