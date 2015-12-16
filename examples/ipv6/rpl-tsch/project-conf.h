@@ -62,10 +62,10 @@
 #define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
 
 /* TSCH and RPL callbacks */
-//#define RPL_CALLBACK_PARENT_SWITCH tsch_rpl_callback_parent_switch
+#define RPL_CALLBACK_PARENT_SWITCH tsch_rpl_callback_parent_switch
 #define RPL_CALLBACK_NEW_DIO_INTERVAL tsch_rpl_callback_new_dio_interval
-//#define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network
-//#define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
+#define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network
+#define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
 
 /* Needed for cc2420 platforms only */
 /* Disable DCO calibration (uses timerB) */
@@ -82,7 +82,7 @@
 /* TSCH logging. 0: disabled. 1: basic log. 2: with delayed
  * log messages from interrupt */
 #undef TSCH_LOG_CONF_LEVEL
-#define TSCH_LOG_CONF_LEVEL 2
+#define TSCH_LOG_CONF_LEVEL 0
 #define TSCH_LOG_CONF_QUEUE_LEN 2
 
 /* IEEE802.15.4 PANID */
@@ -171,8 +171,9 @@
 #undef CC2538_CONF_SFD_TIMESTAMPS 
 #define CC2538_CONF_SFD_TIMESTAMPS       1
 
-//#define SYS_CTRL_CONF_OSC32K_USE_XTAL 1
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL 1
 #define RTIMER_CONF_USE_32KHZ  1
+#define SYS_CTRL_CONF_SYS_DIV SYS_CTRL_CLOCK_CTRL_SYS_DIV_32MHZ
 //#define TSCH_CONF_AUTOSELECT_TIME_SOURCE 1
 
 #define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
@@ -185,7 +186,8 @@
 
 // check asn number before proceeding process packet
 //#define TSCH_CONF_CHECK_TIME_AT_ASSOCIATION 1
-#define TSCH_CONF_KEEPALIVE_TIMEOUT (5 * CLOCK_SECOND)
+//#define TSCH_CONF_KEEPALIVE_TIMEOUT (5 * CLOCK_SECOND)
+//#define TSCH_CONF_KEEPALIVE_TIMEOUT (24 * CLOCK_SECOND)
 //#undef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 
 //#define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 11
 //#define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0

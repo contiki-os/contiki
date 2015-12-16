@@ -59,7 +59,7 @@
 #error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154E_2012
 #endif
 
-#if 0
+#if 1
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
@@ -72,14 +72,16 @@
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
+//#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
+//#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
 #else
 #define PRINTF(...)
 #define PRINT6ADDR(addr)
 #define PRINTLLADDR(addr)
 #endif
 #endif
+
+//#define PRINTF(...) printf(__VA_ARGS__)
 
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
@@ -223,6 +225,7 @@ tsch_reset(void)
   tsch_join_priority = 0xff;
   ASN_INIT(current_asn, 0, 0);
   current_link = NULL;
+  PRINTF("TSCH resetXXXX\n");
   /* Reset timeslot timing to defaults */
   for(i = 0; i < tsch_ts_elements_count; i++) {
     tsch_timing[i] = US_TO_RTIMERTICKS(tsch_default_timing_us[i]);
@@ -467,8 +470,8 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 
   current_asn = ies.ie_asn;
-  PRINTF("TSCH: parse eb OK timestampe=0x%lx, with ies.ie_asn.ls4b = 0x%lx\n", 
-                                                 timestamp, current_asn.ls4b);
+  PRINTF("TSCH: parse eb OK timestampe=0x%lx, with ies.ie_asn.ls4b = 0x%lx NOW=0x%lx\n", 
+                                                 timestamp, current_asn.ls4b,RTIMER_NOW());
   tsch_join_priority = ies.ie_join_priority + 1;
 
 #if TSCH_JOIN_SECURED_ONLY
@@ -687,6 +690,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
 
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
+      PRINTF("TSCH: time after reading packet=0x%lx\n", RTIMER_NOW());
 
       /* Parse EB and attempt to associate */
       PRINTF("TSCH: association: received packet (%u bytes) at t0=0x%lx on channel %u\n", input_eb.len, t0, current_channel);

@@ -54,7 +54,7 @@
 #include "net/mac/tsch/tsch-security.h"
 #include "net/mac/tsch/tsch-adaptive-timesync.h"
 
-#if 0
+#if 1
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
@@ -1000,10 +1000,15 @@ tsch_slot_operation_start(void)
        * behavior: wake up at the next slot. */
       timeslot_diff = 1;
     }
+    if(timeslot_diff == 0) {
+      timeslot_diff = 1;
+      PRINTF("LLLAAA RTIMER_NOW= 0x%lx, current_asn = 0x%lx, timeslot_diff=%d\n",
+               RTIMER_NOW(), current_asn, timeslot_diff);
+    }
     /* Update ASN */
     ASN_INC(current_asn, timeslot_diff);
 #if 1
-    PRINTF("RTIMER_NOW= 0x%x, current_asn = 0x%x, timeslot_diff=%d\n", 
+    PRINTF("RTIMER_NOW= 0x%lx, current_asn = 0x%lx, timeslot_diff=%d\n", 
              RTIMER_NOW(), current_asn, timeslot_diff);
 #endif
     /* Time to next wake up */

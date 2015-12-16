@@ -55,7 +55,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#if 0
+#if 1
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
@@ -375,13 +375,14 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
   if(frame == NULL || buf_size < 0) {
     return 0;
   }
-  PRINTF("===================parse_eb==============\n");
+  PRINTF("===================parse_eb==============NOW=0x%lx\n",RTIMER_NOW());
 
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
   if((ret = frame802154_parse((uint8_t *)buf, buf_size, frame)) == 0) {
     PRINTF("TSCH:! parse_eb: failed to parse frame\n");
     return 0;
   }
+  PRINTF("parse frame802154_parse, NOW=0x%lx\n", RTIMER_NOW());
 
   if(frame->fcf.frame_version < FRAME802154_IEEE802154E_2012
      || frame->fcf.frame_type != FRAME802154_BEACONFRAME) {
@@ -417,10 +418,12 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
 #endif /* TSCH_SECURITY_ENABLED */
 
     /* Parse information elements. We need to substract the MIC length, as the exact payload len is needed while parsing */
+    PRINTF("Start parse IE, NOW=0x%lx", RTIMER_NOW());
     if((ret = frame802154e_parse_information_elements(buf + curr_len, buf_size - curr_len - mic_len, ies)) == -1) {
       PRINTF("TSCH:! parse_eb: failed to parse IEs\n");
       return 0;
     }
+    PRINTF("END parse IE, NOW=0x%lx", RTIMER_NOW());
     curr_len += ret;
   }
 
