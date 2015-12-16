@@ -693,7 +693,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       TSCH_DEBUG_RX_EVENT();
       /* Save packet timestamp */
       rx_start_time = RTIMER_NOW() - RADIO_DELAY_BEFORE_DETECT;
-      PRINTF("packet_seen at rtimernow = 0x%lx\n", RTIMER_NOW());
+      PRINTF("packet_seen at rtimernow = 0x%lx\n", rx_start_time);
     }
     if(!NETSTACK_RADIO.receiving_packet() && !NETSTACK_RADIO.pending_packet()) {
       NETSTACK_RADIO.off();
@@ -712,6 +712,13 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 #if TSCH_RESYNC_WITH_SFD_TIMESTAMPS
       /* At the end of the reception, get an more accurate estimate of SFD arrival time */
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &rx_start_time, sizeof(rtimer_clock_t));
+      PRINTF("PACKET SFD at 0x%lx\n", rx_start_time);
+#endif
+
+#if DEBUG
+      rtimer_clock_t temp;
+      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &temp, sizeof(rtimer_clock_t));
+      PRINTF("PACKET SFD at 0x%lx\n", temp);
 #endif
 
       if(NETSTACK_RADIO.pending_packet()) {
@@ -802,6 +809,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
                   packet_duration + tsch_timing[tsch_ts_tx_ack_delay] - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
               TSCH_DEBUG_RX_EVENT();
               NETSTACK_RADIO.transmit(ack_len);
+              //PRINTF("TSCH: RxBeforeAck transmitted at 0x%lx\n", RTIMER_NOW());
             }
 
             /* If the sender is a time source, proceed to clock drift compensation */
@@ -994,7 +1002,7 @@ tsch_slot_operation_start(void)
     }
     /* Update ASN */
     ASN_INC(current_asn, timeslot_diff);
-#if 0
+#if 1
     PRINTF("RTIMER_NOW= 0x%x, current_asn = 0x%x, timeslot_diff=%d\n", 
              RTIMER_NOW(), current_asn, timeslot_diff);
 #endif

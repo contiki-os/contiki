@@ -333,7 +333,8 @@ eb_input(struct input_packet *current_input)
     if(n != NULL && linkaddr_cmp((linkaddr_t *)&frame.src_addr, &n->addr)) {
       /* Check for ASN drift */
       int32_t asn_diff = ASN_DIFF(current_input->rx_asn, eb_ies.ie_asn);
-      PRINTF("*****MAO asn_diff = %d\n", asn_diff);
+      PRINTF("*****MAO curr_asn= 0x%lx, eb_asn=0x%lx, asn_diff = 0x%lx\n", 
+               current_input->rx_asn.ls4b, eb_ies.ie_asn.ls4b, asn_diff);
       if(asn_diff != 0) {
         /* We disagree with our time source's ASN -- leave the network */
         PRINTF("TSCH:! ASN drifted by %ld, leaving the network\n", asn_diff);
@@ -458,7 +459,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   uint8_t hdrlen;
   int i;
 
-  PRINTF("ASSOCIATE===TSCH: tsch_assiciate timestamp = 0x%x\n", timestamp);
+//  PRINTF("ASSOCIATE===TSCH: tsch_assiciate timestamp = 0x%x\n", timestamp);
   if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
                                               &frame, &ies, &hdrlen, 0) == 0) {
     PRINTF("TSCH:! failed to parse EB (len %u) ies.ie_asn.ls4b = 0x%lx\n", input_eb->len, ies.ie_asn.ls4b);
@@ -466,7 +467,8 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 
   current_asn = ies.ie_asn;
-  PRINTF("TSCH: parse eb OK with ies.ie_asn.ls4b = 0x%lx\n", current_asn.ls4b);
+  PRINTF("TSCH: parse eb OK timestampe=0x%lx, with ies.ie_asn.ls4b = 0x%lx\n", 
+                                                 timestamp, current_asn.ls4b);
   tsch_join_priority = ies.ie_join_priority + 1;
 
 #if TSCH_JOIN_SECURED_ONLY
@@ -614,6 +616,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
              ies.ie_tsch_slotframe_and_link.num_links);
       PRINTLLADDR((const uip_lladdr_t *)&frame.src_addr);
       PRINTF("\n");
+      PRINTF("timenow=0x%lx\n", RTIMER_NOW());
 
       return 1;
     }
@@ -666,11 +669,13 @@ PT_THREAD(tsch_scan(struct pt *pt))
 
     /* Turn radio on and wait for EB */
     NETSTACK_RADIO.on();
+    //PRINTF("Start radio on at 0x%lx\n", RTIMER_NOW());
 
     is_packet_pending = NETSTACK_RADIO.pending_packet();
     if(!is_packet_pending && NETSTACK_RADIO.receiving_packet()) {
       /* If we are currently receiving a packet, wait until end of reception */
       t0 = RTIMER_NOW();
+      PRINTF("Receiving packet at 0x%lx\n", t0);
       BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0, RTIMER_SECOND / 100);
     }
 
@@ -678,12 +683,13 @@ PT_THREAD(tsch_scan(struct pt *pt))
       /* Save packet timestamp */
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
       //PRINTF("TSCH: NETSTACK_RADIO.get_object t0 = 0x%x\n", t0); 
+      PRINTF("TSCH:is packet pending at 0x%lx\n", RTIMER_NOW());
 
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
 
       /* Parse EB and attempt to associate */
-      PRINTF("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, current_channel);
+      PRINTF("TSCH: association: received packet (%u bytes) at t0=0x%lx on channel %u\n", input_eb.len, t0, current_channel);
 
       tsch_associate(&input_eb, t0);
     }
