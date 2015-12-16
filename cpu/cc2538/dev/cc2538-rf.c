@@ -473,13 +473,15 @@ off(void)
   PRINTF("RF: Off\n");
 
   /* Wait for ongoing TX to complete (e.g. this could be an outgoing ACK) */
+  if(!poll_mode) {
   rtimer_clock_t t0 = RTIMER_NOW();
   while((REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE)
           && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (RTIMER_SECOND / 10)));
-
+  }
   // Don't flush when RX data available
   //if(!poll_mode){
-    if (!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP)) {
+    //if (!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP)) {
+    if (!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFO)) {
       CC2538_RF_CSP_ISFLUSHRX();
     }
   //}
@@ -545,6 +547,13 @@ init(void)
 
 #ifdef CC2538_CONF_SFD_TIMESTAMPS
   //radiotimer_start();
+  //This CORR_THR value should be changed to 0x14 before attempting RX...
+  REG(RFCORE_XREG_MDMCTRL1)    = 0x14;
+  REG(RFCORE_XREG_RXCTRL)      = 0x3F;
+  REG(RFCORE_XREG_FSCTRL)      = 0x55;
+  REG(RFCORE_XREG_MDMCTRL0)    = 0x85;
+  //REG(RFCORE_XREG_CSPT)        = 0xFFUL; MAC overflow
+
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;
   nvic_interrupt_enable(NVIC_INT_RF_RXTX);
 
@@ -560,7 +569,7 @@ init(void)
   REG(RFCORE_XREG_RFERRM) = RFCORE_XREG_RFERRM_RFERRM;
   nvic_interrupt_enable(NVIC_INT_RF_ERR);
   
-  CC2538_RF_CSP_ISFLUSHRX();
+  //CC2538_RF_CSP_ISFLUSHRX();
 
   if(CC2538_RF_CONF_TX_USE_DMA) {
     /* Disable peripheral triggers for the channel */
@@ -584,8 +593,8 @@ init(void)
     udma_set_channel_src(CC2538_RF_CONF_RX_DMA_CHAN, RFCORE_SFR_RFDATA);
   }
 
-  //set_poll_mode(0);
-  //process_start(&cc2538_rf_process, NULL);
+  set_poll_mode(1);//XXX: change later
+  process_start(&cc2538_rf_process, NULL);
 
   rf_flags |= RF_ON;
 
@@ -607,7 +616,9 @@ prepare(const void *payload, unsigned short payload_len)
    * When we transmit in very quick bursts, make sure previous transmission
    * is not still in progress before re-writing to the TX FIFO
    */
-  while(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
+  if(!poll_mode) {
+    while(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
+  }
 
   if((rf_flags & RX_ACTIVE) == 0) {
     on();
@@ -652,6 +663,7 @@ prepare(const void *payload, unsigned short payload_len)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static int is_transmitting = 0;
 static int
 transmit(unsigned short transmit_len)
 {
@@ -667,6 +679,7 @@ transmit(unsigned short transmit_len)
     t0 = RTIMER_NOW();
     on();
     was_off = 1;
+    DPRINTF("+============LALALALALA============\n");
     if(!poll_mode) {
       while(!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE)
              && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
@@ -693,9 +706,10 @@ transmit(unsigned short transmit_len)
   /* Start the transmission */
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+  is_transmitting = 1; // Starting
 
   //make sure we are not transmitting already
-  while(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
+  //while(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
 
   CC2538_RF_CSP_ISTXON();
 #if 0 // TODO: 
@@ -735,6 +749,7 @@ transmit(unsigned short transmit_len)
   }
   
   RIMESTATS_ADD(lltx);
+  is_transmitting = 0; // transmitted
 
   return ret;
 }
@@ -860,16 +875,17 @@ read(void *buf, unsigned short bufsize)
   flush();
 #endif
 
-  if(!poll_mode) {
+  //if(!poll_mode) {
     /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
     if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP) {
       if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFO) {
+        DPRINTF("OVERFLOW RX\n");
         process_poll(&cc2538_rf_process);
       } else {
         CC2538_RF_CSP_ISFLUSHRX();
       }
     }
-  }
+  //}
   
   //CC2538_RF_CSP_ISFLUSHRX();
 
@@ -1055,7 +1071,6 @@ static radio_result_t
 get_object(radio_param_t param, void *dest, size_t size)
 {
   uint8_t *target;
-  //uint16_t temp=0x00FF;
   int i;
 
   if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
@@ -1063,8 +1078,6 @@ get_object(radio_param_t param, void *dest, size_t size)
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    /* Clear RFCORE_SFR_RFIRQF0_SFD flag */
-    //REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
     *(rtimer_clock_t*)dest = cc2538_sfd_start_time;
      PRINTF("Mao get_obj cc2538_sfd_start_time = 0x%lx\n", cc2538_sfd_start_time);
     return RADIO_RESULT_OK;
@@ -1203,14 +1216,22 @@ cc2538_rf_rx_tx_isr(void)
   // start of frame event
   if ((REG(RFCORE_SFR_RFIRQF0) & RFCORE_SFR_RFIRQF0_SFD) == RFCORE_SFR_RFIRQF0_SFD) {
     //if (REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_SFD) {
-    if(!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE)) {
+#if 0 
+   if ((REG(RFCORE_XREG_FSMSTAT1)
+           & (RFCORE_XREG_FSMSTAT1_TX_ACTIVE | RFCORE_XREG_FSMSTAT1_SFD))
+          == RFCORE_XREG_FSMSTAT1_SFD) 
+#endif
+    //if(!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE)) {
+    if(!(is_transmitting || (REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE))) {
       //cc2538_sfd_start_time = captured_time;
       //cc2538_sfd_start_time = get_captured_time();
-      TSCH_DEBUG_SFD_EVENT();
+      //TSCH_DEBUG_SFD_EVENT();
       //cc2538_sfd_start_time = RTIMER_NOW() -2;
       cc2538_sfd_start_time = RTIMER_NOW();
       REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
-    }
+      TSCH_DEBUG_SFD_EVENT();
+    } 
+    is_transmitting = 0;
 #if 0
     //DPRINTF("REG(RFCORE_SFR_RFIRQF0) = 0x%x\n", (int)REG(RFCORE_SFR_RFIRQF0));
     if(RTIMER_NOW() - cc2538_sfd_start_time > 5){

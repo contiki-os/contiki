@@ -707,7 +707,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       TSCH_DEBUG_RX_EVENT();
       //PRINTF("waiting done after 0x%lx plus \n", current_slot_start);
       NETSTACK_RADIO.off();
-      PRINTF("off done at rtimernow = 0x%lx\n", RTIMER_NOW());
+      //PRINTF("off done at rtimernow = 0x%lx\n", RTIMER_NOW());
 
 #if TSCH_RESYNC_WITH_SFD_TIMESTAMPS
       /* At the end of the reception, get an more accurate estimate of SFD arrival time */
@@ -718,11 +718,11 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 #if DEBUG
       rtimer_clock_t temp;
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &temp, sizeof(rtimer_clock_t));
-      PRINTF("PACKET SFD at 0x%lx\n", temp);
+      PRINTF("PACKET SFD at 0x%lx, now=0x%lx\n", temp, RTIMER_NOW());
 #endif
 
       if(NETSTACK_RADIO.pending_packet()) {
-        PRINTF("===Mao radio is still pending? \n");
+        //PRINTF("===Mao radio is still pending? \n");
         static int frame_valid;
         static int header_len;
         static frame802154_t frame;
@@ -785,7 +785,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
             }
 #endif
 
-            PRINTF("frame.fcf.ack_required = %d\n", frame.fcf.ack_required);
+            PRINTF("=====Got pending packet&frame.fcf.ack_required = %d\n", frame.fcf.ack_required);
             if(frame.fcf.ack_required) {
               static uint8_t ack_buf[TSCH_PACKET_MAX_LEN];
               static int ack_len;

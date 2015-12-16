@@ -328,7 +328,7 @@ eb_input(struct input_packet *current_input)
 
     struct tsch_neighbor *n = tsch_queue_get_time_source();
     //PRINT6ADDR(&n->addr);
-    PRINTF("Mao ===xxx===\n");
+    //PRINTF("Mao ===xxx===\n");
     /* Did the EB come from our time source? */
     if(n != NULL && linkaddr_cmp((linkaddr_t *)&frame.src_addr, &n->addr)) {
       /* Check for ASN drift */
