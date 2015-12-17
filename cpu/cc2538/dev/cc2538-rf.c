@@ -439,8 +439,6 @@ on(void)
     CC2538_RF_CSP_ISRXON();
     while(!((REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE)));
 
-    //enable_radio_interrupts();
-
     rf_flags |= RX_ACTIVE;
   }
   // TODO: add enable FIFOP interupt with !poll_mode
@@ -462,7 +460,7 @@ off(void)
            && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (RTIMER_SECOND / 10)));
   }
   // Don't flush when RX data available
-  if (!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFO)) {
+  if (!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP)) {
       CC2538_RF_CSP_ISFLUSHRX();
   }
 

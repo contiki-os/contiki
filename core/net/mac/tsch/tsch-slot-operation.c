@@ -272,7 +272,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
                         str, (int)(ref_time), (int)offset - RTIMER_GUARD, (int)now);
     );
 
-    return 0; 
+    return 0;
   }
   ref_time += offset;
   r = rtimer_set(tm, ref_time, 1, (void (*)(struct rtimer *, void *))tsch_slot_operation, NULL);
@@ -910,6 +910,7 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
                 "! leaving the network, last sync %u",
                           (unsigned)ASN_DIFF(current_asn, last_sync_asn));
       );
+      printf("MAO leaving the network, last sync %u\n", (unsigned)ASN_DIFF(current_asn, last_sync_asn));
       last_timesource_neighbor = NULL;
       tsch_disassociate();
     } else {
@@ -976,15 +977,9 @@ tsch_slot_operation_start(void)
     }
     if(timeslot_diff == 0) {
       timeslot_diff = 1;
-      PRINTF("LLLAAA RTIMER_NOW= 0x%lx, current_asn = 0x%lx, timeslot_diff=%d\n",
-               RTIMER_NOW(), current_asn, timeslot_diff);
     }
     /* Update ASN */
     ASN_INC(current_asn, timeslot_diff);
-#if 1
-    PRINTF("RTIMER_NOW= 0x%lx, current_asn = 0x%lx, timeslot_diff=%d\n", 
-             RTIMER_NOW(), current_asn, timeslot_diff);
-#endif
     /* Time to next wake up */
     time_to_next_active_slot = timeslot_diff * tsch_timing[tsch_ts_timeslot_length];
     /* Update current slot start */
