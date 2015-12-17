@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
@@ -34,6 +34,7 @@
  * \author
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
 #include "net/mac/framer-802154.h"
@@ -41,6 +42,7 @@
 #include "net/llsec/llsec802154.h"
 #include "net/packetbuf.h"
 #include "lib/random.h"
+#include "net/llsec/anti-replay.h"
 #include <string.h>
 
 #if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
@@ -59,15 +61,37 @@
 #define SUPPRESS_BROADCAST_SEQNO 0
 #endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
 
-#define DEBUG 0
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+/* Include destination address in ACK? */
+#ifdef FRAMER_802154_CONF_ACK_WITH_DST_ADDR
+#define ACK_WITH_DST_ADDR FRAMER_802154_CONF_ACK_WITH_DST_ADDR
+#else /* FRAMER_802154_CONF_ACK_WITH_DST_ADDR */
+/* Include destination address by default, useful in case of duplicate seqno */
+#define ACK_WITH_DST_ADDR 1
+#endif /* FRAMER_802154_CONF_ACK_WITH_DST_ADDR */
+/* Include source address in ACK? */
+#ifdef FRAMER_802154_CONF_ACK_WITH_SRC_ADDR
+#define ACK_WITH_SRC_ADDR FRAMER_802154_CONF_ACK_WITH_SRC_ADDR
+#else /* FRAMER_802154_CONF_ACK_WITH_SRC_ADDR */
+#define ACK_WITH_SRC_ADDR 0
+#endif /* FRAMER_802154_CONF_ACK_WITH_SRC_ADDR */
+#else /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+#define ACK_WITH_DST_ADDR 0
+#define ACK_WITH_SRC_ADDR 0
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
 
+#if LINKADDR_SIZE == 2
+#define LINKADDR_ADDR_MODE FRAME802154_SHORTADDRMODE
+#else /* LINKADDR_SIZE == 2 */
+#define LINKADDR_ADDR_MODE FRAME802154_LONGADDRMODE
+#endif /* LINKADDR_SIZE == 2 */
+
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
-#define PRINTADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7])
 #else
 #define PRINTF(...)
-#define PRINTADDR(addr)
 #endif
 
 /**  \brief The sequence number (0x00 - 0xff) added to the transmitted
@@ -77,6 +101,59 @@
 static uint8_t mac_dsn;
 static int is_mac_dsn_initialized;
 
+/*---------------------------------------------------------------------------*/
+static int
+has_dst_pid(uint8_t dst_addr_mode, uint8_t src_addr_mode, int panid_compressed)
+{
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  if(dst_addr_mode) {
+    if(src_addr_mode) {
+      if((dst_addr_mode == FRAME802154_LONGADDRMODE)
+          && (src_addr_mode == FRAME802154_LONGADDRMODE)
+          && panid_compressed) {
+        return 0;
+      }
+      return 1;
+    } else {
+      return !panid_compressed;
+    }
+  } else {
+    if(src_addr_mode) {
+      return 0;
+    } else {
+      return panid_compressed;
+    }
+  }
+#else /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+  return dst_addr_mode;
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+}
+/*---------------------------------------------------------------------------*/
+static int
+has_src_pid(uint8_t dst_addr_mode, uint8_t src_addr_mode, int panid_compressed)
+{
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  if(dst_addr_mode) {
+    if(src_addr_mode) {
+      if((dst_addr_mode == FRAME802154_LONGADDRMODE)
+          && (src_addr_mode == FRAME802154_LONGADDRMODE)) {
+        return 0;
+      }
+      return !panid_compressed;
+    } else {
+      return 0;
+    }
+  } else {
+    if(src_addr_mode) {
+      return !panid_compressed;
+    } else {
+      return 0;
+    }
+  }
+#else /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+  return !panid_compressed;
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+}
 /*---------------------------------------------------------------------------*/
 void
 framer_802154_set_seqno(void)
@@ -92,185 +169,452 @@ framer_802154_set_seqno(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
-create_frame(int type, int do_create)
+#if LLSEC802154_USES_AUX_HEADER && LLSEC802154_USES_EXPLICIT_KEYS
+static uint8_t
+get_key_id_len(uint8_t key_id_mode)
 {
-  frame802154_t params;
-  int hdr_len;
-
-  if(frame802154_get_pan_id() == 0xffff) {
-    return -1;
-  }
-
-  /* init to zeros */
-  memset(&params, 0, sizeof(params));
-
-  /* Build the FCF. */
-  params.fcf.frame_type = packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE);
-  params.fcf.frame_pending = packetbuf_attr(PACKETBUF_ATTR_PENDING);
-  if(packetbuf_holds_broadcast()) {
-    params.fcf.ack_required = 0;
-    params.fcf.sequence_number_suppression = SUPPRESS_BROADCAST_SEQNO;
-  } else {
-    params.fcf.ack_required = packetbuf_attr(PACKETBUF_ATTR_MAC_ACK);
-    params.fcf.sequence_number_suppression = SUPPRESS_UNICAST_SEQNO;
-  }
-  /* We do not compress PAN ID in outgoing frames, i.e. include one PAN ID (dest by default)
-   * There is one exception, seemingly a typo in Table 2a: rows 2 and 3: when there is no
-   * source nor destination address, we have dest PAN ID iff compression is *set*. */
-  params.fcf.panid_compression = 0;
-
-  /* Insert IEEE 802.15.4 version bits. */
-  params.fcf.frame_version = FRAME802154_VERSION;
-  
-#if LLSEC802154_USES_AUX_HEADER
-  if(packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
-    params.fcf.security_enabled = 1;
-  }
-  /* Setting security-related attributes */
-  params.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
-#if LLSEC802154_USES_FRAME_COUNTER
-  params.aux_hdr.frame_counter.u16[0] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1);
-  params.aux_hdr.frame_counter.u16[1] = packetbuf_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3);
-#else /* LLSEC802154_USES_FRAME_COUNTER */
-  params.aux_hdr.security_control.frame_counter_suppression = 1;
-  params.aux_hdr.security_control.frame_counter_size = 1;
-#endif /* LLSEC802154_USES_FRAME_COUNTER */
-#if LLSEC802154_USES_EXPLICIT_KEYS
-  params.aux_hdr.security_control.key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
-  params.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
-#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
-#endif /* LLSEC802154_USES_AUX_HEADER */
-
-  /* sequence number. */
-  params.seq = packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
-
-  /* Complete the addressing fields. */
-  /**
-     \todo For phase 1 the addresses are all long. We'll need a mechanism
-     in the rime attributes to tell the mac to use long or short for phase 2.
-   */
-  if(LINKADDR_SIZE == 2) {
-    /* Use short address mode if linkaddr size is short. */
-    params.fcf.src_addr_mode = FRAME802154_SHORTADDRMODE;
-  } else {
-    params.fcf.src_addr_mode = FRAME802154_LONGADDRMODE;
-  }
-  params.dest_pid = frame802154_get_pan_id();
-
-  if(packetbuf_holds_broadcast()) {
-    /* Broadcast requires short address mode. */
-    params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
-    params.dest_addr[0] = 0xFF;
-    params.dest_addr[1] = 0xFF;
-  } else {
-    linkaddr_copy((linkaddr_t *)&params.dest_addr,
-                  packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-    /* Use short address mode if linkaddr size is small */
-    if(LINKADDR_SIZE == 2) {
-      params.fcf.dest_addr_mode = FRAME802154_SHORTADDRMODE;
-    } else {
-      params.fcf.dest_addr_mode = FRAME802154_LONGADDRMODE;
-    }
-  }
-
-  /* Set the source PAN ID to the global variable. */
-  params.src_pid = frame802154_get_pan_id();
-
-  /*
-   * Set up the source address using only the long address mode for
-   * phase 1.
-   */
-  linkaddr_copy((linkaddr_t *)&params.src_addr,
-                packetbuf_addr(PACKETBUF_ADDR_SENDER));
-
-  params.payload = packetbuf_dataptr();
-  params.payload_len = packetbuf_datalen();
-  hdr_len = frame802154_hdrlen(&params);
-  if(!do_create) {
-    /* Only calculate header length */
-    return hdr_len;
-  } else if(packetbuf_hdralloc(hdr_len)) {
-    frame802154_create(&params, packetbuf_hdrptr());
-
-    PRINTF("15.4-OUT: %2X", params.fcf.frame_type);
-    PRINTADDR(params.dest_addr);
-    PRINTF("%d %u (%u)\n", hdr_len, packetbuf_datalen(), packetbuf_totlen());
-
-    return hdr_len;
-  } else {
-    PRINTF("15.4-OUT: too large header: %u\n", hdr_len);
-    return FRAMER_FAILED;
+  switch(key_id_mode) {
+  case FRAME802154_1_BYTE_KEY_ID_MODE:
+    return 1;
+  case FRAME802154_5_BYTE_KEY_ID_MODE:
+    return 5;
+  case FRAME802154_9_BYTE_KEY_ID_MODE:
+    return 9;
+  default:
+    return 0;
   }
 }
+#endif /* LLSEC802154_USES_AUX_HEADER && LLSEC802154_USES_EXPLICIT_KEYS */
 /*---------------------------------------------------------------------------*/
 static int
 hdr_length(void)
 {
-  return create_frame(FRAME802154_DATAFRAME, 0);
+  int is_ack;
+  int is_broadcast;
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  int seqno_suppressed;
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+
+  is_ack = packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE) == FRAME802154_ACKFRAME;
+  is_broadcast = packetbuf_holds_broadcast();
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  seqno_suppressed = is_broadcast
+      ? SUPPRESS_BROADCAST_SEQNO
+      : SUPPRESS_UNICAST_SEQNO;
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+
+  return
+      /* Frame Control */
+      2
+      /* Sequence Number */
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+      + (seqno_suppressed ? 0 : 1) /* Sequence Number */
+#else /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+      + 1
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+      /* Destination PAN Identifier */
+      + ((!is_ack || ACK_WITH_DST_ADDR)
+          ? 2
+          : 0)
+      /* Destination Address */
+      + (is_broadcast
+          ? 2
+          : ((!is_ack || ACK_WITH_DST_ADDR)
+              ? LINKADDR_SIZE
+              : 0))
+      /* Source PAN Identifier */
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+      + (is_ack ? 0 : 2)
+#else /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+      + ((is_ack && !ACK_WITH_DST_ADDR && ACK_WITH_SRC_ADDR) ? 2 : 0)
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+      /* Source Address */
+      + ((!is_ack || ACK_WITH_SRC_ADDR)
+          ? LINKADDR_SIZE
+          : 0)
+#if LLSEC802154_USES_AUX_HEADER
+      + (packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)
+          ? 1
+#if LLSEC802154_USES_FRAME_COUNTER
+              + 4
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
+#if LLSEC802154_USES_EXPLICIT_KEYS
+              + get_key_id_len(packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE))
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+          : 0)
+#endif /* LLSEC802154_USES_AUX_HEADER */
+      ;
+}
+/*---------------------------------------------------------------------------*/
+static void
+create_addr(uint8_t *p, const linkaddr_t *addr)
+{
+  uint8_t i;
+
+  for(i = 0; i < LINKADDR_SIZE; i++) {
+    p[i] = addr->u8[LINKADDR_SIZE - 1 - i];
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
 create(void)
 {
-  return create_frame(FRAME802154_DATAFRAME, 1);
+  uint8_t *hdrptr;
+  uint8_t *p;
+  int is_ack;
+  int panid_compressed;
+  uint8_t dst_addr_mode;
+  uint8_t src_addr_mode;
+  int is_broadcast;
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  int seqno_suppressed;
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+  uint16_t dst_pid;
+#if LLSEC802154_USES_AUX_HEADER
+  uint8_t security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
+#if LLSEC802154_USES_EXPLICIT_KEYS
+  uint8_t key_id_mode = packetbuf_attr(PACKETBUF_ATTR_KEY_ID_MODE);
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+#endif /* LLSEC802154_USES_AUX_HEADER */
+
+  if(!packetbuf_hdralloc(hdr_length())) {
+    PRINTF("framer-802154: hdralloc failed\n");
+    return FRAMER_FAILED;
+  }
+
+  hdrptr = p = packetbuf_hdrptr();
+  is_ack = packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE) == FRAME802154_ACKFRAME;
+  is_broadcast = packetbuf_holds_broadcast();
+
+  /*
+   * Frame Type | Security Enabled | Frame Pending
+   * | Acknowledgment Request | PAN ID Compression
+   */
+  panid_compressed = (FRAME802154_VERSION < FRAME802154_IEEE802154E_2012)
+      && (!is_ack || ACK_WITH_DST_ADDR || !ACK_WITH_SRC_ADDR);
+  p[0] = (packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE) & 7)
+#if LLSEC802154_USES_AUX_HEADER
+      | (security_level ? 1 << 3 : 0)
+#endif /* LLSEC802154_USES_AUX_HEADER */
+      | (packetbuf_attr(PACKETBUF_ATTR_PENDING) ? 1 << 4 : 0)
+      | (packetbuf_attr(PACKETBUF_ATTR_MAC_ACK)
+          && !is_broadcast ? 1 << 5 : 0)
+      | (panid_compressed ? (1 << 6) : 0);
+
+  /*
+   * Sequence Number Suppression | IE List Present
+   * | Destination Addressing Mode | Frame Version | Source Addressing Mode
+   */
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  seqno_suppressed = is_broadcast
+      ? SUPPRESS_BROADCAST_SEQNO
+      : SUPPRESS_UNICAST_SEQNO;
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+  dst_addr_mode = is_ack
+      ? (ACK_WITH_DST_ADDR
+          ? LINKADDR_ADDR_MODE
+          : FRAME802154_NOADDR)
+      : (is_broadcast
+          ? FRAME802154_SHORTADDRMODE
+          : LINKADDR_ADDR_MODE);
+  src_addr_mode = is_ack
+      ? (ACK_WITH_SRC_ADDR
+          ? LINKADDR_ADDR_MODE
+          : FRAME802154_NOADDR)
+      : LINKADDR_ADDR_MODE;
+  p[1] = 0
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+      | (seqno_suppressed ? 1 : 0)
+      | (packetbuf_attr(PACKETBUF_ATTR_IE_LIST_PRESENT) ? (1 << 1) : 0)
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+      | (dst_addr_mode << 2)
+      | (FRAME802154_VERSION << 4)
+      | (src_addr_mode << 6);
+  p += 2;
+
+  /* Sequence Number */
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  if(!seqno_suppressed)
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+  {
+    p[0] = (uint8_t)packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO);
+    p += 1;
+  }
+
+  /* Destination PAN ID */
+  if(has_dst_pid(dst_addr_mode, src_addr_mode, panid_compressed)) {
+    dst_pid = frame802154_get_pan_id();
+    p[0] = dst_pid & 0xff;
+    p[1] = (dst_pid >> 8) & 0xff;
+    p += 2;
+  }
+
+  /* Destination address */
+  if(dst_addr_mode) {
+    if(is_broadcast) {
+      p[0] = 0xFF;
+      p[1] = 0xFF;
+      p += 2;
+    } else {
+      create_addr(p, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+      p += LINKADDR_SIZE;
+    }
+  }
+
+  /* Source PAN ID */
+  if(has_src_pid(dst_addr_mode, src_addr_mode, panid_compressed)) {
+    dst_pid = frame802154_get_pan_id();
+    p[0] = dst_pid & 0xff;
+    p[1] = (dst_pid >> 8) & 0xff;
+    p += 2;
+  }
+
+  /* Source address */
+  if(src_addr_mode) {
+    create_addr(p,
+        linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER), &linkaddr_null)
+        ? &linkaddr_node_addr
+        : packetbuf_addr(PACKETBUF_ADDR_SENDER));
+    p += LINKADDR_SIZE;
+  }
+
+#if LLSEC802154_USES_AUX_HEADER
+  /* Auxiliary Security Header */
+  if(security_level) {
+    p[0] = security_level
+#if LLSEC802154_USES_EXPLICIT_KEYS
+        | (key_id_mode << 3)
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+#if !LLSEC802154_USES_FRAME_COUNTER
+        | (1 << 5) /* frame counter suppressed */
+        | (1 << 6) /* 5-byte frame counter */
+#endif /* !LLSEC802154_USES_FRAME_COUNTER */
+    ;
+    p += 1;
+#if LLSEC802154_USES_FRAME_COUNTER
+    anti_replay_write_counter(p);
+    p += 4;
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
+
+#if LLSEC802154_USES_EXPLICIT_KEYS
+    if(key_id_mode) {
+      p += get_key_id_len(key_id_mode);
+      p[-1] = (uint8_t)packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
+    }
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+  }
+#endif /* LLSEC802154_USES_AUX_HEADER */
+
+  return p - hdrptr;
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+parse_addr(uint8_t *p, uint8_t addr_mode, uint8_t type)
+{
+  linkaddr_t addr;
+#if LINKADDR_SIZE == 8
+  uint8_t i;
+#endif /* LINKADDR_SIZE == 8 */
+
+  switch(addr_mode) {
+  case FRAME802154_SHORTADDRMODE:
+    if((p[0] == 0xFF) && (p[1] == 0xFF)) {
+      if(type == PACKETBUF_ADDR_SENDER) {
+        /* the source address is 0xFFFF */
+        return 0;
+      }
+      packetbuf_set_addr(type, &linkaddr_null);
+    } else {
+#if LINKADDR_SIZE == 2
+      addr.u8[1] = p[0];
+      addr.u8[0] = p[1];
+      packetbuf_set_addr(type, &addr);
+#else /* LINKADDR_SIZE == 2 */
+      return 0;
+#endif /* LINKADDR_SIZE == 2 */
+    }
+    return 2;
+#if LINKADDR_SIZE == 8
+  case FRAME802154_LONGADDRMODE:
+    for(i = 0; i < 8; i++) {
+      addr.u8[LINKADDR_SIZE - i - 1] = p[i];
+    }
+    packetbuf_set_addr(type, &addr);
+    return 8;
+#endif /* LINKADDR_SIZE == 8 */
+  default:
+    return 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
 parse(void)
 {
-  frame802154_t frame;
-  int hdr_len;
-
-  hdr_len = frame802154_parse(packetbuf_dataptr(), packetbuf_datalen(), &frame);
-
-  if(hdr_len && packetbuf_hdrreduce(hdr_len)) {
-    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, frame.fcf.frame_type);
-
-    if(frame.fcf.dest_addr_mode) {
-      if(frame.dest_pid != frame802154_get_pan_id() &&
-         frame.dest_pid != FRAME802154_BROADCASTPANDID) {
-        /* Packet to another PAN */
-        PRINTF("15.4: for another pan %u\n", frame.dest_pid);
-        return FRAMER_FAILED;
-      }
-      if(!frame802154_is_broadcast_addr(frame.fcf.dest_addr_mode, frame.dest_addr)) {
-        packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (linkaddr_t *)&frame.dest_addr);
-      }
-    }
-    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (linkaddr_t *)&frame.src_addr);
-    packetbuf_set_attr(PACKETBUF_ATTR_PENDING, frame.fcf.frame_pending);
-    if(frame.fcf.sequence_number_suppression == 0) {
-      packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, frame.seq);
-    } else {
-      packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, 0xffff);
-    }
-#if NETSTACK_CONF_WITH_RIME
-    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, frame.seq);
-#endif
-
+  uint8_t *hdrptr;
+  uint8_t *p;
+  int panid_compressed;
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  int seqno_suppressed;
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+  uint8_t dst_addr_mode;
+  uint8_t src_addr_mode;
+  uint16_t dst_pid;
+  uint16_t src_pid;
+  uint8_t addr_len;
 #if LLSEC802154_USES_AUX_HEADER
-    if(frame.fcf.security_enabled) {
-      packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, frame.aux_hdr.security_control.security_level);
-#if LLSEC802154_USES_FRAME_COUNTER
-      packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, frame.aux_hdr.frame_counter.u16[0]);
-      packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, frame.aux_hdr.frame_counter.u16[1]);
-#endif /* LLSEC802154_USES_FRAME_COUNTER */
+  int security_enabled;
 #if LLSEC802154_USES_EXPLICIT_KEYS
-      packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, frame.aux_hdr.security_control.key_id_mode);
-      packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, frame.aux_hdr.key_index);
+  uint8_t key_id_mode;
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
-    }
 #endif /* LLSEC802154_USES_AUX_HEADER */
 
-    PRINTF("15.4-IN: %2X", frame.fcf.frame_type);
-    PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_SENDER));
-    PRINTADDR(packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-    PRINTF("%d %u (%u)\n", hdr_len, packetbuf_datalen(), packetbuf_totlen());
-
-    return hdr_len;
+  if(packetbuf_datalen() < 3) {
+    PRINTF("framer-802154: frame too short\n");
+    return FRAMER_FAILED;
   }
-  return FRAMER_FAILED;
+
+  hdrptr = p = packetbuf_hdrptr();
+
+  /*
+   * Frame Type | Security Enabled | Frame Pending
+   * | Acknowledgment Request | PAN ID Compression
+   */
+  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, p[0] & 7);
+#if LLSEC802154_USES_AUX_HEADER
+  security_enabled = (p[0] >> 3) & 1;
+#else /* LLSEC802154_USES_AUX_HEADER */
+  if((p[0] >> 3) & 1) {
+    PRINTF("framer-802154: no support for auxiliary security headers\n");
+    return FRAMER_FAILED;
+  }
+#endif /* LLSEC802154_USES_AUX_HEADER */
+  packetbuf_set_attr(PACKETBUF_ATTR_PENDING, (p[0] >> 4) & 1);
+  packetbuf_set_attr(PACKETBUF_ATTR_MAC_ACK, (p[0] >> 5) & 1);
+  panid_compressed = (p[0] >> 6) & 1;
+
+  /*
+   * Sequence Number Suppression | IE List Present
+   * | Destination Addressing Mode | Frame Version | Source Addressing Mode
+   */
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  seqno_suppressed = p[1] & 1;
+  packetbuf_set_attr(PACKETBUF_ATTR_IE_LIST_PRESENT, (p[1] >> 1) & 1);
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+  dst_addr_mode = (p[1] >> 2) & 3;
+  /* TODO ignoring Frame Version because a TRAVIS test fails otherwise */
+  src_addr_mode = (p[1] >> 6) & 3;
+
+  /* Sequence Number */
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+  if(seqno_suppressed) {
+    packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, 0xFFFF);
+    p += 2;
+  } else
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+  {
+    packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, p[2]);
+    p += 3;
+  }
+#if NETSTACK_CONF_WITH_RIME
+  packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+#endif
+
+  /* Destination PAN ID */
+  if(has_dst_pid(dst_addr_mode, src_addr_mode, panid_compressed)) {
+    dst_pid = p[0] + (p[1] << 8);
+    if((packetbuf_attr(PACKETBUF_ATTR_FRAME_TYPE) != FRAME802154_BEACONFRAME)
+        && (dst_pid != frame802154_get_pan_id())
+        && (dst_pid != FRAME802154_BROADCASTPANDID)) {
+      PRINTF("framer-802154: for another PAN\n");
+      return FRAMER_FAILED;
+    }
+    p += 2;
+  } else {
+    dst_pid = FRAME802154_BROADCASTPANDID;
+  }
+
+  /* Destination address */
+  if(dst_addr_mode) {
+    addr_len = parse_addr(p, dst_addr_mode, PACKETBUF_ADDR_RECEIVER);
+    if(!addr_len) {
+      PRINTF("framer-802154: no destination address\n");
+      return FRAMER_FAILED;
+    }
+    if(!linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &linkaddr_node_addr)
+        && !packetbuf_holds_broadcast()) {
+      PRINTF("framer-802154: not for us\n");
+      return FRAMER_FAILED;
+    }
+    p += addr_len;
+  }
+
+  /* Source PAN ID */
+  if(has_src_pid(dst_addr_mode, src_addr_mode, panid_compressed)) {
+    src_pid = p[0] + (p[1] << 8);
+    p += 2;
+  } else {
+    src_pid = dst_pid;
+  }
+  packetbuf_set_attr(PACKETBUF_ATTR_SOURCE_PANID, src_pid);
+
+  /* Source address */
+  if(src_addr_mode) {
+    addr_len = parse_addr(p, src_addr_mode, PACKETBUF_ADDR_SENDER);
+    if(!addr_len) {
+      PRINTF("framer-802154: no source address\n");
+      return FRAMER_FAILED;
+    }
+    if(linkaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER), &linkaddr_node_addr)) {
+      PRINTF("framer-802154: frame from ourselves\n");
+      return FRAMER_FAILED;
+    }
+    p += addr_len;
+  }
+
+#if LLSEC802154_USES_AUX_HEADER
+  if(security_enabled) {
+    /* Security Control */
+    packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, p[0] & 7);
+#if LLSEC802154_USES_EXPLICIT_KEYS
+    key_id_mode = (p[0] >> 3) & 3;
+    packetbuf_set_attr(PACKETBUF_ATTR_KEY_ID_MODE, key_id_mode);
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+
+    /* Frame Counter */
+#if FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012
+    if((p[0] >> 5) & 1) {
+      /* frame counter suppressed */
+      p += 1;
+    } else if((p[0] >> 6) & 1) {
+      /* 5-byte frame counter */
+      p += 6;
+    } else
+#endif /* FRAME802154_VERSION >= FRAME802154_IEEE802154E_2012 */
+    {
+      /* 4-byte frame counter */
+      p += 1;
+#if LLSEC802154_USES_FRAME_COUNTER
+      anti_replay_parse_counter(p);
+#endif /* LLSEC802154_USES_FRAME_COUNTER */
+      p += 4;
+    }
+
+#if LLSEC802154_USES_EXPLICIT_KEYS
+    /* Key Identifier */
+    if(key_id_mode) {
+      p += get_key_id_len(key_id_mode);
+      packetbuf_set_attr(PACKETBUF_ATTR_KEY_INDEX, p[-1]);
+    }
+#endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+  }
+#endif /* LLSEC802154_USES_AUX_HEADER */
+
+  if(!packetbuf_hdrreduce(p - hdrptr)) {
+    PRINTF("framer-802154: hdrreduce failed\n");
+    return FRAMER_FAILED;
+  }
+
+  return p - hdrptr;
 }
 /*---------------------------------------------------------------------------*/
 const struct framer framer_802154 = {

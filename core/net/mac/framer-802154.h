@@ -34,6 +34,7 @@
  * \author
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         Konrad Krentz <konrad.krentz@gmail.com>
  */
 
 #ifndef FRAMER_802154_H_
