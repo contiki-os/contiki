@@ -196,8 +196,10 @@ main(void)
   PRINTF("%s\n", NETSTACK_MAC.name);
   PRINTF(" RDC: ");
   PRINTF("%s\n", NETSTACK_RDC.name);
+#if 0
   PRINTF(" Channel: ");
   PRINTF("%d\n", CC2538_RF_CHANNEL);
+#endif
   PRINTF(" PAN-ID: ");
   PRINTF("%x\n", IEEE802154_PANID);
 

@@ -97,7 +97,7 @@ btn_callback(uint8_t port, uint8_t pin)
   }
   timer_set(&debouncetimer, CLOCK_SECOND / 8);
   if(port == GPIO_C_NUM) {
-    sensors_changed(&button_user_sensor);
+    sensors_changed(&button_sensor);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -131,6 +131,6 @@ button_sensor_init()
   timer_set(&debouncetimer, 0);
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(button_user_sensor, BUTTON_SENSOR, NULL, config_user, NULL);
+SENSORS_SENSOR(button_sensor, BUTTON_SENSOR, NULL, config_user, NULL);
 /*---------------------------------------------------------------------------*/
 /** @} */

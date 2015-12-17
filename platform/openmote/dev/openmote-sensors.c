@@ -37,8 +37,8 @@
  *
  * \file
  * Implementation of a generic module controlling OpenMote-CC2538 sensors.
- * 
- * \author 
+ *
+ * \author
  * Johan Bregell <johan_bregell@hotmail.com>
  */
 #ifndef OPENMOTE_SENSORS_H_
@@ -55,7 +55,7 @@
 /**
    *\brief Exports a global symbol to be used by the sensor API
  */
-SENSORS(&button_user_sensor, &cc2538_temp_sensor, &vdd3_sensor, &temp_sensor, &humidity_sensor, &light_sensor, &acceleration_sensor);
+SENSORS(&button_sensor, &cc2538_temp_sensor, &vdd3_sensor, &temp_sensor, &humidity_sensor, &light_sensor, &acceleration_sensor);
 /*---------------------------------------------------------------------------*/
 /** @} */
 #endif

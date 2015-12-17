@@ -516,25 +516,15 @@ typedef uint32_t rtimer_clock_t;
 /** @} */
 /*---------------------------------------------------------------------------*/
 
-// XMAONGO ... 2015-11-6 TODO: wrong here XXX 
-#if 0
-/* Delay between GO signal and SFD: radio fixed delay + 4Bytes preample + 1B SFD -- 1Byte time is 32us
- *  * ~327us + 129preample = 456 us */
-#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(456))
-/* Delay between GO signal and start listening
- *  * ~50us delay + 129preample + ?? = 183 us */
-#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(183))
-#else 
-// XMAONGO from NXP:
+// XMAONGO ... 2015-11-6 TODO: wrong here XXX
 /* Delay between GO signal and SFD
  *  * Measured 153us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 153+5*32 = 313 */
-#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(313))
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(368))
 /* Delay between GO signal and start listening
  *  * Measured 104us: between GO signal and start listening */
-#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(104))
+#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(176))
 /* Delay between the SFD finishes arriving and it is detected in software */
-#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(14))
-#endif // 0 or 1
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(16))
 
 /* CPU target speed in Hz
  *  * RTIMER and peripherals clock is F_CPU/2 */
@@ -562,6 +552,78 @@ typedef uint32_t rtimer_clock_t;
 #ifndef CC2538_EXTERNAL_CRYSTAL_OSCILLATOR
 #define CC2538_EXTERNAL_CRYSTAL_OSCILLATOR (RTIMER_USE_32KHZ || CC2538_SLEEP_ENABLED)
 #endif /* JN516X_EXTERNAL_CRYSTAL_OSCILLATOR */
+
+/* TSCH_DEBUG */
+#define TSCH_DEBUG 0
+
+#if TSCH_DEBUG
+#include "led-strip.h"
+#include "dev/gpio.h"
+#include "reg.h"
+#include "board.h"
+
+#define TSCH_DEBUG_INTERRUPT() do { \
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_GREEN); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, 0); \
+    } \
+} while(0);
+
+#define TSCH_DEBUG_TX_EVENT() do { \
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_RED); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, 0); \
+    } \
+} while(0);
+
+#define TSCH_DEBUG_SFD_EVENT() do { \
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_ORANGE); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, 0); \
+    } \
+} while(0);
+
+#define TSCH_DEBUG_SLOT_START() do { \
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_GREEN); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, 0); \
+    } \
+} while(0);
+
+#define TSCH_DEBUG_RX_EVENT() do { \
+    static dio_state = 0 ; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_YELLOW); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, 0); \
+    } \
+  } while(0);
+#define TSCH_DEBUG_SLOT_END()
+#endif /* TSCH_DEBUG */
+
+// TODO: remove this later and remove in cc2538-rf.c
+#define TSCH_DEBUG_SFD_EVENT() do { \
+    static dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_ORANGE); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, 0); \
+    } \
+} while(0);
 
 #endif /* CONTIKI_CONF_H_ */
 

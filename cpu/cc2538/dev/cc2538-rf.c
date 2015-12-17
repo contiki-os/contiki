@@ -1149,10 +1149,8 @@ cc2538_rf_rx_tx_isr(void)
       //cc2538_sfd_start_time = get_captured_time();
       cc2538_sfd_start_time = RTIMER_NOW();
       REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
-#if DEBUG
 #ifdef CC2538_CONF_SFD_TIMESTAMPS
       TSCH_DEBUG_SFD_EVENT();
-#endif
 #endif
     }
     is_transmitting = 0;
