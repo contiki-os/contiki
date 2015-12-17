@@ -604,7 +604,11 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
     log->tx.drift = drift_correction;
     log->tx.drift_used = is_drift_correction_used;
     log->tx.is_data = ((((uint8_t *)(queuebuf_dataptr(current_packet->qb)))[0]) & 7) == FRAME802154_DATAFRAME;
+#if TSCH_SECURITY_ENABLED
     log->tx.sec_level = queuebuf_attr(current_packet->qb, PACKETBUF_ATTR_SECURITY_LEVEL);
+#else /* TSCH_SECURITY_ENABLED */
+    log->tx.sec_level = 0;
+#endif /* TSCH_SECURITY_ENABLED */
     log->tx.dest = TSCH_LOG_ID_FROM_LINKADDR(queuebuf_addr(current_packet->qb, PACKETBUF_ADDR_RECEIVER));
     );
 
