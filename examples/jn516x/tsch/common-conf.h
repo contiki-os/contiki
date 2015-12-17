@@ -142,7 +142,7 @@
 
 #if WITH_TSCH_SECURITY
 /* Set security level to the maximum, even if unused, to all crypto code */
-#define LLSEC802154_CONF_SECURITY_LEVEL 7
+#define LLSEC802154_CONF_ENABLED 1
 /* Attempt to associate from both secured and non-secured EBs */
 #define TSCH_CONF_JOIN_SECURED_ONLY 0
 /* We need explicit keys to identify k1 and k2 */

@@ -44,7 +44,7 @@
 #include "net/llsec/llsec802154.h"
 #include <string.h>
 
-#if LLSEC802154_SECURITY_LEVEL && LLSEC802154_USES_FRAME_COUNTER
+#if LLSEC802154_USES_AUX_HEADER && LLSEC802154_USES_FRAME_COUNTER
 
 /*---------------------------------------------------------------------------*/
 static const uint8_t *
@@ -79,4 +79,4 @@ ccm_star_packetbuf_set_nonce(uint8_t *nonce, int forward)
   nonce[12] = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
 }
 /*---------------------------------------------------------------------------*/
-#endif /* LLSEC802154_SECURITY_LEVEL && LLSEC802154_USES_FRAME_COUNTER */
+#endif /* LLSEC802154_USES_AUX_HEADER && LLSEC802154_USES_FRAME_COUNTER */

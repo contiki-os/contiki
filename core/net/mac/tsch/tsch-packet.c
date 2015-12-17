@@ -94,7 +94,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
   p.src_pid = IEEE802154_PANID;
   linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
 #endif
-#if TSCH_SECURITY_ENABLED
+#if LLSEC802154_ENABLED
   if(tsch_is_pan_secured) {
     p.fcf.security_enabled = 1;
     p.aux_hdr.security_control.security_level = TSCH_SECURITY_KEY_SEC_LEVEL_ACK;
@@ -103,7 +103,7 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
     p.aux_hdr.security_control.frame_counter_size = 1;
     p.aux_hdr.key_index = TSCH_SECURITY_KEY_INDEX_ACK;
   }
-#endif /* TSCH_SECURITY_ENABLED */
+#endif /* LLSEC802154_ENABLED */
 
   if((curr_len = frame802154_create(&p, buf)) == 0) {
     return 0;
@@ -166,13 +166,13 @@ tsch_packet_parse_eack(const uint8_t *buf, int buf_size,
 
   if(frame->fcf.ie_list_present) {
     int mic_len = 0;
-#if TSCH_SECURITY_ENABLED
+#if LLSEC802154_ENABLED
     /* Check if there is space for the security MIC (if any) */
     mic_len = tsch_security_mic_len(frame);
     if(buf_size < curr_len + mic_len) {
       return 0;
     }
-#endif /* TSCH_SECURITY_ENABLED */
+#endif /* LLSEC802154_ENABLED */
     /* Parse information elements. We need to substract the MIC length, as the exact payload len is needed while parsing */
     if((ret = frame802154e_parse_information_elements(buf + curr_len, buf_size - curr_len - mic_len, ies)) == -1) {
       return 0;
@@ -222,7 +222,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   p.dest_addr[0] = 0xff;
   p.dest_addr[1] = 0xff;
 
-#if TSCH_SECURITY_ENABLED
+#if LLSEC802154_ENABLED
   if(tsch_is_pan_secured) {
     p.fcf.security_enabled = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL) > 0;
     p.aux_hdr.security_control.security_level = packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL);
@@ -231,7 +231,7 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
     p.aux_hdr.security_control.frame_counter_size = 1;
     p.aux_hdr.key_index = packetbuf_attr(PACKETBUF_ATTR_KEY_INDEX);
   }
-#endif /* TSCH_SECURITY_ENABLED */
+#endif /* LLSEC802154_ENABLED */
 
   if((curr_len = frame802154_create(&p, buf)) == 0) {
     return 0;
@@ -387,14 +387,14 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
   if(frame->fcf.ie_list_present) {
     /* Calculate space needed for the security MIC, if any, before attempting to parse IEs */
     int mic_len = 0;
-#if TSCH_SECURITY_ENABLED
+#if LLSEC802154_ENABLED
     if(!frame_without_mic) {
       mic_len = tsch_security_mic_len(frame);
       if(buf_size < curr_len + mic_len) {
         return 0;
       }
     }
-#endif /* TSCH_SECURITY_ENABLED */
+#endif /* LLSEC802154_ENABLED */
 
     /* Parse information elements. We need to substract the MIC length, as the exact payload len is needed while parsing */
     if((ret = frame802154e_parse_information_elements(buf + curr_len, buf_size - curr_len - mic_len, ies)) == -1) {
