@@ -102,6 +102,9 @@ SECTIONS
         *(.stack)
     } > FRSRAM
 
+    _heap = .;
+    _eheap = ORIGIN(FRSRAM) + LENGTH(FRSRAM);
+
     .nrdata (NOLOAD) :
     {
         _nrdata = .;
