@@ -43,7 +43,7 @@
 #include "net/netstack.h"
 #include "dev/slip.h"
 #include "rest-engine.h"
-#include "rich.h"
+#include "rpl-tools.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -109,8 +109,6 @@ get_last_rssi_handler(void *request, void *response, uint8_t *buffer, uint16_t p
   }
 }
 
-
-
 /*---------------------------------------------------------------------------*/
 void
 request_prefix(void)
@@ -159,7 +157,7 @@ PROCESS_THREAD(border_router_process, ev, data)
   uip_debug_ipaddr_print(&prefix);
   PRINTF("\n");
 
-  rich_init(&prefix);
+  rpl_tools_init(&prefix);
 
   rest_init_engine();
   rest_activate_resource(&resource_get_rssi, "Get-RSSI");

@@ -10,7 +10,7 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 PROJECT_SOURCEFILES += slip-bridge.c slip.c
 
 PROJECTDIRS += .. ../../tools
-PROJECT_SOURCEFILES += rich.c
+PROJECT_SOURCEFILES += rpl-tools.c
 
 CFLAGS += -DWITH_COAP
 CFLAGS += -DREST=coap_rest_implementation
