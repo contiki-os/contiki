@@ -60,9 +60,8 @@
 #ifndef RTIMER_ARCH_H_
 #define RTIMER_ARCH_H_
 
-//#include "contiki.h"
+#include "contiki.h"
 #include "dev/gptimer.h"
-//#include "sys/rtimer.h"
 
 #ifdef RTIMER_CONF_SECOND
 # define RTIMER_ARCH_SECOND RTIMER_CONF_SECOND

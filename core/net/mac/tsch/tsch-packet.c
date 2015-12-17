@@ -55,26 +55,14 @@
 #include <stdio.h>
 #include <string.h>
 
-#if 1
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
-#else
-#define DEBUG 1
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(addr)
-#endif
-#endif
+
+//#define PRINTF(...) printf(__VA_ARGS__)
 
 /*---------------------------------------------------------------------------*/
 /* Construct enhanced ACK packet and return ACK length */
@@ -132,7 +120,6 @@ tsch_packet_create_eack(uint8_t *buf, int buf_size,
     return -1;
   }
   curr_len += ret;
-  PRINTF("+++++++created eack with len = %d\n", curr_len);
 
   return curr_len;
 }
@@ -236,9 +223,6 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   linkaddr_copy((linkaddr_t *)&p.src_addr, &linkaddr_node_addr);
   p.dest_addr[0] = 0xff;
   p.dest_addr[1] = 0xff;
-  //PRINT6ADDR(p.src_addr);
-  //PRINT6ADDR(p.dest_addr);
-  //PRINTF("\n");
 
 #if TSCH_SECURITY_ENABLED
   if(tsch_is_pan_secured) {
@@ -340,7 +324,6 @@ tsch_packet_create_eb(uint8_t *buf, int buf_size, uint8_t seqno,
   if((ret = frame80215e_create_ie_mlme(buf + mlme_ie_offset, buf_size - mlme_ie_offset, &ies)) == -1) {
     return -1;
   }
-  //PRINTF("curr_len = %d\n", curr_len);
 
   /* Payload IE list termination: optional */
   /*
@@ -375,14 +358,12 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
   if(frame == NULL || buf_size < 0) {
     return 0;
   }
-  PRINTF("===================parse_eb==============NOW=0x%lx\n",RTIMER_NOW());
 
   /* Parse 802.15.4-2006 frame, i.e. all fields before Information Elements */
   if((ret = frame802154_parse((uint8_t *)buf, buf_size, frame)) == 0) {
     PRINTF("TSCH:! parse_eb: failed to parse frame\n");
     return 0;
   }
-  PRINTF("parse frame802154_parse, NOW=0x%lx\n", RTIMER_NOW());
 
   if(frame->fcf.frame_version < FRAME802154_IEEE802154E_2012
      || frame->fcf.frame_type != FRAME802154_BEACONFRAME) {

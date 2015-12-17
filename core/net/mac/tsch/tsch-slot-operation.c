@@ -54,26 +54,14 @@
 #include "net/mac/tsch/tsch-security.h"
 #include "net/mac/tsch/tsch-adaptive-timesync.h"
 
-#if 1
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
-#else
-#define DEBUG 1
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(addr)
-#endif
-#endif
+
+//#define PRINTF(...) printf(__VA_ARGS__)
 
 /* TSCH debug macros, i.e. to set LEDs or GPIOs on various TSCH
  * timeslot events */
@@ -654,7 +642,6 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
   PT_BEGIN(pt);
 
   TSCH_DEBUG_RX_EVENT();
-  //PRINTF("rx_loop start at 0x%x\n", RTIMER_NOW());
 
   input_index = ringbufindex_peek_put(&input_ringbuf);
   if(input_index == -1) {
@@ -687,8 +674,6 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       BUSYWAIT_UNTIL_ABS((packet_seen = NETSTACK_RADIO.receiving_packet()),
           current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait]);
     }
-    //PRINTF("current_slot_start = %x, RTIMER_NOW = %x", current_slot_start, RTIMER_NOW());
-    //PRINTF("packet seen is %x\n", packet_seen);
     if(packet_seen) {
       TSCH_DEBUG_RX_EVENT();
       /* Save packet timestamp */
@@ -697,15 +682,12 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
     }
     if(!NETSTACK_RADIO.receiving_packet() && !NETSTACK_RADIO.pending_packet()) {
       NETSTACK_RADIO.off();
-      // measured 90 ticks from begin this program.
-      //PRINTF("OFF, packet_seen = %d, no thing to receive at 0x%x\n", packet_seen, RTIMER_NOW());
       /* no packets on air */
     } else {
       /* Wait until packet is received, turn radio off */
       BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
           current_slot_start, tsch_timing[tsch_ts_rx_offset] + tsch_timing[tsch_ts_rx_wait] + tsch_timing[tsch_ts_max_tx]);
       TSCH_DEBUG_RX_EVENT();
-      //PRINTF("waiting done after 0x%lx plus \n", current_slot_start);
       NETSTACK_RADIO.off();
       //PRINTF("off done at rtimernow = 0x%lx\n", RTIMER_NOW());
 
@@ -715,14 +697,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       PRINTF("PACKET SFD at 0x%lx\n", rx_start_time);
 #endif
 
-#if DEBUG
-      rtimer_clock_t temp;
-      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &temp, sizeof(rtimer_clock_t));
-      PRINTF("PACKET SFD at 0x%lx, now=0x%lx\n", temp, RTIMER_NOW());
-#endif
-
       if(NETSTACK_RADIO.pending_packet()) {
-        //PRINTF("===Mao radio is still pending? \n");
         static int frame_valid;
         static int header_len;
         static frame802154_t frame;
@@ -809,7 +784,6 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
                   packet_duration + tsch_timing[tsch_ts_tx_ack_delay] - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
               TSCH_DEBUG_RX_EVENT();
               NETSTACK_RADIO.transmit(ack_len);
-              //PRINTF("TSCH: RxBeforeAck transmitted at 0x%lx\n", RTIMER_NOW());
             }
 
             /* If the sender is a time source, proceed to clock drift compensation */

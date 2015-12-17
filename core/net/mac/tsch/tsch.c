@@ -59,7 +59,6 @@
 #error TSCH: FRAME802154_VERSION must be at least FRAME802154_IEEE802154E_2012
 #endif
 
-#if 1
 #if TSCH_LOG_LEVEL >= 1
 #define DEBUG DEBUG_PRINT
 #else /* TSCH_LOG_LEVEL */
@@ -67,19 +66,6 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 #include "net/ipv6/uip-ds6-nbr.h"
-#else
-#define DEBUG 1
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-//#define PRINT6ADDR(addr) PRINTF("[%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x]", ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3], ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7], ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11], ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15])
-//#define PRINTLLADDR(lladdr) PRINTF("[%02x:%02x:%02x:%02x:%02x:%02x]", (lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3], (lladdr)->addr[4], (lladdr)->addr[5])
-#else
-#define PRINTF(...)
-#define PRINT6ADDR(addr)
-#define PRINTLLADDR(addr)
-#endif
-#endif
 
 //#define PRINTF(...) printf(__VA_ARGS__)
 
@@ -225,11 +211,9 @@ tsch_reset(void)
   tsch_join_priority = 0xff;
   ASN_INIT(current_asn, 0, 0);
   current_link = NULL;
-  PRINTF("TSCH resetXXXX\n");
   /* Reset timeslot timing to defaults */
   for(i = 0; i < tsch_ts_elements_count; i++) {
     tsch_timing[i] = US_TO_RTIMERTICKS(tsch_default_timing_us[i]);
-    //PRINTF("TSCH: reset tsch_timing[%d] = %d\n", i, tsch_timing[i]);
   }
 #ifdef TSCH_CALLBACK_LEAVING_NETWORK
   TSCH_CALLBACK_LEAVING_NETWORK();
@@ -330,8 +314,6 @@ eb_input(struct input_packet *current_input)
 #endif
 
     struct tsch_neighbor *n = tsch_queue_get_time_source();
-    //PRINT6ADDR(&n->addr);
-    //PRINTF("Mao ===xxx===\n");
     /* Did the EB come from our time source? */
     if(n != NULL && linkaddr_cmp((linkaddr_t *)&frame.src_addr, &n->addr)) {
       /* Check for ASN drift */
@@ -462,7 +444,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   uint8_t hdrlen;
   int i;
 
-//  PRINTF("ASSOCIATE===TSCH: tsch_assiciate timestamp = 0x%x\n", timestamp);
   if(input_eb == NULL || tsch_packet_parse_eb(input_eb->payload, input_eb->len,
                                               &frame, &ies, &hdrlen, 0) == 0) {
     PRINTF("TSCH:! failed to parse EB (len %u) ies.ie_asn.ls4b = 0x%lx\n", input_eb->len, ies.ie_asn.ls4b);
@@ -518,7 +499,6 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     } else {
       tsch_timing[i] = US_TO_RTIMERTICKS(ies.ie_tsch_timeslot[i]);
     }
-    //PRINTF("Mao inside association, tsch_timing[%d] = %d\n", i, tsch_timing[i]); 
   }
 
   /* TSCH hopping sequence */
@@ -545,7 +525,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   if(asn_diff > asn_threshold) {
     PRINTF("TSCH:! EB ASN rejected %lx %lx %ld\n",
            current_asn.ls4b, expected_asn, asn_diff);
-    //return 0;
+    return 0;
   }
 #endif
 
@@ -672,7 +652,6 @@ PT_THREAD(tsch_scan(struct pt *pt))
 
     /* Turn radio on and wait for EB */
     NETSTACK_RADIO.on();
-    //PRINTF("Start radio on at 0x%lx\n", RTIMER_NOW());
 
     is_packet_pending = NETSTACK_RADIO.pending_packet();
     if(!is_packet_pending && NETSTACK_RADIO.receiving_packet()) {
@@ -685,7 +664,6 @@ PT_THREAD(tsch_scan(struct pt *pt))
     if(is_packet_pending) {
       /* Save packet timestamp */
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
-      //PRINTF("TSCH: NETSTACK_RADIO.get_object t0 = 0x%x\n", t0); 
       PRINTF("TSCH:is packet pending at 0x%lx\n", RTIMER_NOW());
 
       /* Read packet */
@@ -883,7 +861,6 @@ tsch_init(void)
     printf("TSCH:! radio does not support getting last packet timestamp. Abort init.\n");
     return;
   }
-  //printf("TSCH: init at t=%d\n", t);
   /* Check max hopping sequence length vs default sequence length */
   if(TSCH_HOPPING_SEQUENCE_MAX_LEN < sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE)) {
     printf("TSCH:! TSCH_HOPPING_SEQUENCE_MAX_LEN < sizeof(TSCH_DEFAULT_HOPPING_SEQUENCE). Abort init.\n");
