@@ -76,6 +76,8 @@
 #define PRINTF(...)
 #endif /* DEBUG */
 
+#if LLSEC802154_SECURITY_LEVEL && LLSEC802154_USES_FRAME_COUNTER
+
 /* network-wide CCM* key */
 static uint8_t key[16] = NONCORESEC_KEY;
 NBR_TABLE(struct anti_replay_info, anti_replay_table);
@@ -256,5 +258,6 @@ const struct framer noncoresec_framer = {
   parse
 };
 /*---------------------------------------------------------------------------*/
+#endif /* LLSEC802154_SECURITY_LEVEL && LLSEC802154_USES_FRAME_COUNTER */
 
 /** @} */
