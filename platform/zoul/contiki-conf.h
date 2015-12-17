@@ -585,7 +585,7 @@ typedef uint32_t rtimer_clock_t;
  *  * Measured 192us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 192+5*32 = 352
  *    368 is working OK
  *  * */
-#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(352)) 
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(368)) 
 /* Delay between GO signal and start listening
  *  * Measured 104us: between GO signal and start listening 
  *  * CC2538
@@ -594,7 +594,7 @@ typedef uint32_t rtimer_clock_t;
 // see 23.9.6.6 Tips and Tricks in UG cc2538
 // (104))
 /* Delay between the SFD finishes arriving and it is detected in software */
-#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(2))
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(16))
 //(14)) cc2538 16 or 2?
 #endif // 0 or 1
 
