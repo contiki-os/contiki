@@ -35,7 +35,7 @@
 #include "net/netstack.h"
 #include "net/ip/uip.h"
 #include "net/linkaddr.h"
-#include "rich.h"
+#include "rpl-tools.h"
 #include "rest-engine.h"
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -54,7 +54,7 @@ PROCESS(start_app, "START_APP");
 AUTOSTART_PROCESSES(&start_app);
 /*---------------------------------------------------------------------------*/
 
-/*********** RICH sensor/ resource ************************************************/
+/*********** sensor/ resource ************************************************/
 RESOURCE(resource_set_tx_power, 
          "title=\"Set TX Power\"",
          NULL,
@@ -65,7 +65,6 @@ static void
 set_tx_power_handler(void* request, void* response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset)
 {
   const uint8_t *request_content = NULL;
-//  int request_content_len;
   int tx_level;
 
   unsigned int accept = -1;
@@ -103,13 +102,13 @@ PROCESS_THREAD(start_app, ev, data)
   PROCESS_BEGIN();
   static int is_coordinator = 0;
  
-  /* Start RICH stack */
+  /* Start network stack */
   if(is_coordinator) {
     uip_ipaddr_t prefix;
     uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-    rich_init(&prefix);
+    rpl_tools_init(&prefix);
   } else {
-    rich_init(NULL);
+    rpl_tools_init(NULL);
   }
   printf("Starting RPL node\n");
   

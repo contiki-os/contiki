@@ -33,7 +33,7 @@
 */
 #include "net/ip/uip.h"
 #include "net/linkaddr.h"
-#include "rich.h"
+#include "rpl-tools.h"
 #include "rest-engine.h"
 #include "sys/ctimer.h"
 #include "dev/uart-driver.h"
@@ -137,20 +137,18 @@ PROCESS_THREAD(start_app, ev, data)
   memset(rx_buf, '\0', sizeof(rx_buf));
   /* Define process that handles data */
   process_start(&rx_data_process ,NULL);
-  /* Define ringbuffer control */
-//  ringbufindex_init(&ringbuf,RX_BUFFER_SIZE);
   /* Initialise UART1 */
   uart1_init(UART1_BAUD_RATE); 
   /* Callback received byte */
   uart1_set_input(handleRxChar);
 
-  /* Start RICH stack */
+  /* Start network stack */
   if(is_coordinator) {
     uip_ipaddr_t prefix;
     uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-    rich_init(&prefix);
+    rpl_tools_init(&prefix);
   } else {
-    rich_init(NULL);
+    rpl_tools_init(NULL);
   }
   printf("Starting RPL node\n");
   
@@ -200,7 +198,8 @@ PROCESS_THREAD(rx_data_process, ev, data)
 /* Local test functions                                                  */
 /*************************************************************************/
 /* TX function for UART1 */
-static void string2uart1(uint8_t *c)
+static void 
+string2uart1(uint8_t *c)
 {
   while (*c!= '\0') {
     uart1_writeb(*c);
@@ -209,7 +208,8 @@ static void string2uart1(uint8_t *c)
 }
 
 /* handleRxChar runs on uart isr */
-static int handleRxChar(uint8_t c)
+static int 
+handleRxChar(uint8_t c)
 {
   if (put_ringbuf(c) == -1) {
     printf("Ringbuf full. Skip char\n");
@@ -223,7 +223,8 @@ static int handleRxChar(uint8_t c)
 /* Simple ringbuffer
    if tail==head, no data has been written yet on that position. So, empty buffer
    is also initial state */
-static int get_ringbuf(uint8_t *c)
+static int 
+get_ringbuf(uint8_t *c)
 {
   int return_val = 0;
 
@@ -238,7 +239,8 @@ static int get_ringbuf(uint8_t *c)
   return return_val;
 }
 
-static int put_ringbuf(uint8_t c)
+static int 
+put_ringbuf(uint8_t c)
 {
   int return_val = 0;
 

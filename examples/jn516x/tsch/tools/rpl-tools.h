@@ -32,5 +32,5 @@
  * \author Simon Duquennoy <simonduq@sics.se>
  */
 
-void rich_init(uip_ipaddr_t *br_prefix);
-unsigned rich_orchestra_hash(const linkaddr_t *addr);
+void rpl_tools_init(uip_ipaddr_t *br_prefix);
+void print_network_status(void);

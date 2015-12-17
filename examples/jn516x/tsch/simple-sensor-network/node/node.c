@@ -41,7 +41,7 @@
 #include "net/mac/tsch/tsch-schedule.h"
 #include "net/ip/uip-debug.h"
 #include "lib/random.h"
-#include "rich.h"
+#include "rpl-tools.h"
 #include "node-id.h"
 #include "waveform.h"
 #include "leds.h"
@@ -82,7 +82,6 @@ static int selected_waveform = 0;
 
 static void udp_rx_handler(void);
 static void my_sprintf(char * udp_buf, int8_t value);
-static void print_network_status(void);
 
 static struct uip_udp_conn *udp_conn_rx;
 static struct uip_udp_conn *udp_conn_tx;
@@ -94,54 +93,6 @@ static char *post_mssg = "Trigger";
 /*******************************************************************************/
 /* Local functions */
 /*******************************************************************************/
-static void
-print_network_status(void)
-{
-  int i;
-  uint8_t state;
-  uip_ds6_defrt_t *default_route;
-  uip_ds6_route_t *route;
-
-  printf("--- Network status ---\n");
-
-  /* Our IPv6 addresses */
-  printf("- Server IPv6 addresses:\n");
-  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
-    state = uip_ds6_if.addr_list[i].state;
-    if(uip_ds6_if.addr_list[i].isused &&
-       (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
-      PRINTA("-- ");
-      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
-      PRINTA("\n");
-    }
-  }
-
-  /* Our default route */
-  printf("- Default route:\n");
-  default_route = uip_ds6_defrt_lookup(uip_ds6_defrt_choose());
-  if(default_route != NULL) {
-    printf("-- ");
-    uip_debug_ipaddr_print(&default_route->ipaddr);;
-   printf(" (lifetime: %lu seconds)\n", (unsigned long)default_route->lifetime.interval);
-  } else {
-    printf("-- None\n");
-  }
-
-  /* Our routing entries */
-  printf("- Routing entries (%u in total):\n", uip_ds6_route_num_routes());
-  route = uip_ds6_route_head();
-  while(route != NULL) {
-    printf("-- ");
-    uip_debug_ipaddr_print(&route->ipaddr);
-    printf(" via ");
-    uip_debug_ipaddr_print(uip_ds6_route_nexthop(route));
-    printf(" (lifetime: %lu seconds)\n", (unsigned long)route->state.lifetime);
-    route = uip_ds6_route_next(route);
-  }
-
-  printf("----------------------\n");
-}
-
 static void 
 udp_rx_handler(void)
 {
@@ -176,7 +127,7 @@ my_sprintf(char * udp_buf, int8_t value)
 }
 
 /*---------------------------------------------------------------------------*/
-PROCESS(node_process, "RICH Node");
+PROCESS(node_process, "Node");
 PROCESS(led_process, "LED");
 AUTOSTART_PROCESSES(&node_process);
 
@@ -221,9 +172,9 @@ PROCESS_THREAD(node_process, ev, data)
   if(is_coordinator) {
     uip_ipaddr_t prefix;
     uip_ip6addr(&prefix, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
-    rich_init(&prefix);
+    rpl_tools_init(&prefix);
   } else {
-    rich_init(NULL);
+    rpl_tools_init(NULL);
   }
   
   /* Selected waveform depends on LS byte of MAC  */

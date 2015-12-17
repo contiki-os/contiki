@@ -37,22 +37,55 @@
 #include "contiki-net.h"
 #include "net/ip/uip.h"
 #include "net/rpl/rpl.h"
-#include "net/mac/tsch/tsch.h"
-#include "net/mac/tsch/tsch-schedule.h"
-#include "node-id.h"
 #include "orchestra.h"
-#if WITH_COAP_RESOURCES
-#include "tools/plexi.h"
-#endif
-#if CONTIKI_TARGET_SKY || CONTIKI_TARGET_Z1
-#include "cc2420.h"
-#endif
 #include <string.h>
 #include <stdio.h>
 
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 
+void
+print_network_status(void)
+{
+  int i;
+  uint8_t state;
+  uip_ds6_defrt_t *default_route;
+  uip_ds6_route_t *route;
+  PRINTA("--- Network status ---\n");
+  /* Our IPv6 addresses */
+  PRINTA("- Server IPv6 addresses:\n");
+  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
+    state = uip_ds6_if.addr_list[i].state;
+    if(uip_ds6_if.addr_list[i].isused &&
+       (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
+      PRINTA("-- ");
+      uip_debug_ipaddr_print(&uip_ds6_if.addr_list[i].ipaddr);
+      PRINTA("\n");
+    }
+  }
+  /* Our default route */
+  PRINTA("- Default route:\n");
+  default_route = uip_ds6_defrt_lookup(uip_ds6_defrt_choose());
+  if(default_route != NULL) {
+    PRINTA("-- ");
+    uip_debug_ipaddr_print(&default_route->ipaddr);;
+    PRINTA(" (lifetime: %lu seconds)\n", (unsigned long)default_route->lifetime.interval);
+  } else {
+    PRINTA("-- None\n");
+  }
+  /* Our routing entries */
+  PRINTA("- Routing entries (%u in total):\n", uip_ds6_route_num_routes());
+  route = uip_ds6_route_head();
+  while(route != NULL) {
+    PRINTA("-- ");
+    uip_debug_ipaddr_print(&route->ipaddr);
+    PRINTA(" via ");
+    uip_debug_ipaddr_print(uip_ds6_route_nexthop(route));
+    PRINTA(" (lifetime: %lu seconds)\n", (unsigned long)route->state.lifetime);
+    route = uip_ds6_route_next(route);
+  }
+  PRINTA("----------------------\n");
+}
 /*---------------------------------------------------------------------------*/
 static void
 print_local_addresses(void)
@@ -72,11 +105,14 @@ print_local_addresses(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-rich_network_init(uip_ipaddr_t *br_prefix)
+void
+rpl_tools_init(uip_ipaddr_t *br_prefix)
 {
   uip_ipaddr_t global_ipaddr;
 
+#if TSCH_CONFIG == TSCH_CONFIG_ORCHESTRA
+  orchestra_init();
+#endif
   if(br_prefix) { /* We are root */
     /* If an RDC layer is used, turn it off (i.e. keep the radio on at the root). */
     NETSTACK_RDC.off(1);
@@ -90,22 +126,5 @@ rich_network_init(uip_ipaddr_t *br_prefix)
 
   /* Start TSCH */
   NETSTACK_MAC.on();
-}
-/*---------------------------------------------------------------------------*/
-void
-rich_init(uip_ipaddr_t *br_prefix)
-{
-#if TSCH_CONFIG == TSCH_CONFIG_ORCHESTRA
-  orchestra_init();
-#endif
-
-  rich_network_init(br_prefix);
-
-#if WITH_COAP_RESOURCES
-  plexi_init();
-#endif
-
-  PRINTF("App: %u starting\n", node_id);
-
   print_local_addresses();
 }
