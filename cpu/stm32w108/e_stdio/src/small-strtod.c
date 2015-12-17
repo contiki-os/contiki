@@ -113,7 +113,6 @@ Supporting OS subroutines required: <<close>>, <<fstat>>, <<isatty>>,
 #include <_ansi.h>
 #include <reent.h>
 #include <string.h>
-#include <stdbool.h>
 #include "small-mprec.h"
 
 double
@@ -692,7 +691,7 @@ dig_done:
 	      /* boundary case -- decrement exponent */
 #ifdef Sudden_Underflow
 	      L = word0 (rv) & Exp_mask;
-	      bool test;
+	      int test;
 #ifdef IBM
 	      test = L < Exp_msk1;
 #else
@@ -833,9 +832,9 @@ dig_done:
 	  		adj = aadj1 * small_ulp (rv.d);
 	  		#endif
 	      rv.d += adj;
-	      bool test;
+	      int test;
 	#ifdef IBM
-	      test = (word0 (rv) & Exp_mask) < P * Exp_msk1
+	      test = (word0 (rv) & Exp_mask) < P * Exp_msk1;
 	#else
 	      test = (word0 (rv) & Exp_mask) <= P * Exp_msk1;
 	#endif
