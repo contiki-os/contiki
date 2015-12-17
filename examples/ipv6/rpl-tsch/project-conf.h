@@ -161,12 +161,8 @@
 /*========================Z1===========================*/
 
 
-/*==========================OpenMote-CC2538=================================*/
-// CC2538
-
-#if 1
-/* OpenMote testing */
-
+/*==========================CC2538=================================*/
+#if CONTIKI_TARGET_OPENMOTE || CONTIKI_TARGET_ZOUL
 /* Enable SFD timestamps */
 #undef CC2538_CONF_SFD_TIMESTAMPS
 #define CC2538_CONF_SFD_TIMESTAMPS       1
@@ -176,27 +172,14 @@
 #define SYS_CTRL_CONF_SYS_DIV SYS_CTRL_CLOCK_CTRL_SYS_DIV_32MHZ
 //#define TSCH_CONF_AUTOSELECT_TIME_SOURCE 1
 
-#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
-//#undef TSCH_CONF_DEFAULT_TIMESLOT_LENGTH
-//#define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 65000
-
+//#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
 //#define TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS 1
-
-//#define LINKADDR_CONF_SIZE 8
-
-// check asn number before proceeding process packet
-//#define TSCH_CONF_CHECK_TIME_AT_ASSOCIATION 1
 //#define TSCH_CONF_KEEPALIVE_TIMEOUT (5 * CLOCK_SECOND)
-//#define TSCH_CONF_KEEPALIVE_TIMEOUT (24 * CLOCK_SECOND)
 //#undef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
 //#define TSCH_SCHEDULE_CONF_DEFAULT_LENGTH 11
 //#define TSCH_SCHEDULE_CONF_WITH_6TISCH_MINIMAL 0
-//#define LPM_CONF_ENABLE 1
-
-
-
-#endif /* CONTIKI_TARGET_OPENMOTE */
-/*==========================OpenMote-CC2538=================================*/
+#endif /* CONTIKI_TARGET_OPENMOTE || CONTIKI_TARGET_ZOUL */
+/*==========================CC2538=================================*/
 
 
 #endif /* __PROJECT_CONF_H__ */

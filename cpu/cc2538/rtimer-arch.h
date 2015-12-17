@@ -1,5 +1,7 @@
 /*
  * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2015, Singapore University of Technology and Design (SUTD)
+ *                     - http://www.sutd.edu.sg/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
