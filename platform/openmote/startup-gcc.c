@@ -62,7 +62,6 @@ void gpio_port_d_isr(void);
 void rtimer_isr(void);
 void cc2538_rf_rx_tx_isr(void);
 void cc2538_rf_err_isr(void);
-void cc2538_mac_timer_isr(void);
 void udma_isr(void);
 void udma_err_isr(void);
 void usb_isr(void) WEAK_ALIAS(default_handler);
@@ -147,11 +146,7 @@ void(*const vectors[])(void) =
   default_handler,            /* 46 AES (Alternate) */
   default_handler,            /* 47 PKA (Alternate) */
   default_handler,            /* 48 SM Timer (Alternate) */
-#if 0
   default_handler,            /* 49 MacTimer (Alternate) */
-#else
-  cc2538_mac_timer_isr,       /* 49 MacTimer (Alternate) */
-#endif
   default_handler,            /* 50 SSI1 Rx and Tx */
   default_handler,            /* 51 Timer 3 subtimer A */
   default_handler,            /* 52 Timer 3 subtimer B */

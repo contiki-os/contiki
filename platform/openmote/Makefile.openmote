@@ -32,14 +32,38 @@ include $(CONTIKI_CPU)/Makefile.cc2538
 
 MODULES += core/net core/net/mac \
            core/net/mac/contikimac core/net/mac/cxmac \
-           core/net/mac/tsch \
            core/net/llsec
 
+PYTHON = python
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+BSL_FLAGS += -e -w -v
 
-%.upload: %.bin
+ifdef PORT
+  BSL_FLAGS += -p $(PORT)
+endif
+SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+
+%.upload: %.bin %.elf
 ifeq ($(wildcard $(BSL)), )
 	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
 else
-	python $(BSL) -e -w -v $<
+	$(eval BSL_ADDRESS_ARG := -a $(shell $(OBJDUMP) -h $*.elf | grep -B1 LOAD | \
+	                               grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$5}' | \
+	                               sort -g | head -1))
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) -b115200 $<
 endif
+
+ifdef PORT
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX) $(PORT) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX) $(PORT)
+else
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(MOTES)) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(MOTES))
+endif
+
