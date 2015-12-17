@@ -47,13 +47,20 @@
 #include "net/llsec/llsec802154.h"
 #include "net/llsec/ccm-star-packetbuf.h"
 #include "net/mac/frame802154.h"
-#include "net/mac/framer-802154.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/nbr-table.h"
 #include "net/linkaddr.h"
 #include "lib/ccm-star.h"
 #include <string.h>
+
+#ifdef NONCORESEC_CONF_DECORATED_FRAMER
+#define DECORATED_FRAMER NONCORESEC_CONF_DECORATED_FRAMER
+#else /* NONCORESEC_CONF_DECORATED_FRAMER */
+#define DECORATED_FRAMER framer_802154
+#endif /* NONCORESEC_CONF_DECORATED_FRAMER */
+
+extern const struct framer DECORATED_FRAMER;
 
 #ifdef NONCORESEC_CONF_SEC_LVL
 #define SEC_LVL         NONCORESEC_CONF_SEC_LVL
@@ -155,7 +162,7 @@ create(void)
   int result;
   
   add_security_header();
-  result = framer_802154.create();
+  result = DECORATED_FRAMER.create();
   if(result == FRAMER_FAILED) {
     return result;
   }
@@ -172,7 +179,7 @@ parse(void)
   const linkaddr_t *sender;
   struct anti_replay_info* info;
   
-  result = framer_802154.parse();
+  result = DECORATED_FRAMER.parse();
   if(result == FRAMER_FAILED) {
     return result;
   }
@@ -242,7 +249,7 @@ static int
 length(void)
 {
   add_security_header();
-  return framer_802154.length() + MIC_LEN;
+  return DECORATED_FRAMER.length() + MIC_LEN;
 }
 /*---------------------------------------------------------------------------*/
 static void
