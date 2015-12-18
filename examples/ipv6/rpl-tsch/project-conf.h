@@ -100,8 +100,6 @@
 #if WITH_SECURITY
 
 /* Enable security */
-#undef TSCH_SECURITY_CONF_LEVEL
-#define TSCH_SECURITY_CONF_LEVEL 1
 #undef LLSEC802154_CONF_ENABLED
 #define LLSEC802154_CONF_ENABLED 1
 /* TSCH uses explicit keys to identify k1 and k2 */
