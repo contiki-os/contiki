@@ -74,6 +74,13 @@
 #ifndef TSCH_LINK_NEIGHBOR_CALLBACK
 void uip_ds6_link_neighbor_callback(int status, int numtx);
 #define TSCH_LINK_NEIGHBOR_CALLBACK(dest, status, num) uip_ds6_link_neighbor_callback(status, num)
+#else
+#if 0
+#include "net/rime/rime.h"
+#include "net/rime/neighbor-discovery.h"
+void adv_packet_sent(struct broadcast_conn *bc, int status, int num_tx);
+#define TSCH_LINK_NEIGHBOR_CALLBACK(dest, status, num) adv_packet_sent(NULL, status, num)
+#endif
 #endif /* TSCH_LINK_NEIGHBOR_CALLBACK */
 
 /* 802.15.4 duplicate frame detection */
@@ -289,7 +296,7 @@ eb_input(struct input_packet *current_input)
       }
       if(stat != NULL) {
         stat->rx_count++;
-        stat->jp = eb_ies.join_priority;
+        stat->jp = eb_ies.ie_join_priority;
         best_neighbor_eb_count = MAX(best_neighbor_eb_count, stat->rx_count);
       }
       /* Select best time source */
@@ -318,8 +325,6 @@ eb_input(struct input_packet *current_input)
     if(n != NULL && linkaddr_cmp((linkaddr_t *)&frame.src_addr, &n->addr)) {
       /* Check for ASN drift */
       int32_t asn_diff = ASN_DIFF(current_input->rx_asn, eb_ies.ie_asn);
-      PRINTF("*****MAO curr_asn= 0x%lx, eb_asn=0x%lx, asn_diff = 0x%lx\n", 
-               current_input->rx_asn.ls4b, eb_ies.ie_asn.ls4b, asn_diff);
       if(asn_diff != 0) {
         /* We disagree with our time source's ASN -- leave the network */
         PRINTF("TSCH:! ASN drifted by %ld, leaving the network\n", asn_diff);
@@ -451,7 +456,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 
   current_asn = ies.ie_asn;
-  PRINTF("TSCH: parse eb OK timestampe=0x%lx, with ies.ie_asn.ls4b = 0x%lx NOW=0x%lx\n", 
+  PRINTF("TSCH: parse eb OK timestampe=0x%lx, with ies.ie_asn.ls4b = 0x%lx NOW=0x%lx\n",
                                                  timestamp, current_asn.ls4b,RTIMER_NOW());
   tsch_join_priority = ies.ie_join_priority + 1;
 
@@ -461,7 +466,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
     return 0;
   }
 #endif /* TSCH_JOIN_SECURED_ONLY */
-  
+
 #if TSCH_SECURITY_ENABLED
   if(!tsch_security_parse_frame(input_eb->payload, hdrlen,
       input_eb->len - hdrlen - tsch_security_mic_len(&frame),
