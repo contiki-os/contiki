@@ -59,6 +59,7 @@ In terms of hardware support, the following drivers have been implemented for th
     * Buttons
     * Built-in core temperature and battery sensor.
   * CC1200 sub-1GHz radio interface.
+  * Real Time Clock Calendar (on the RE-Mote platform).
 
 There is a Zoul powering the RE-Mote and Firefly platforms, check out its specific README files for more information about on-board features.
 
@@ -218,7 +219,7 @@ LPM is highly related to the operations of the Radio Duty Cycling (RDC) driver o
 * When NullRDC is in use, the radio will be always on. As a result, the algorithm discussed above will always choose PM0 and will never attempt to drop to PM1/2.
 
 ### Shutdown Mode
-The RE-Mote has a built-in shutdown mode which effectively reduces the power consumption down to 300nA.  Check its specific README file for more information.
+The RE-Mote has a built-in shutdown mode which effectively reduces the power consumption down to 150nA.  Check its specific README file for more information.
 
 Build headless nodes
 --------------------
