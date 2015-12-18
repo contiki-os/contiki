@@ -13,6 +13,9 @@ jn516x/rpl/coap-dr1175-node/jn516x \
 jn516x/rpl/coap-dr1199-node/jn516x \
 jn516x/tsch/simple-sensor-network/node/jn516x \
 jn516x/tsch/simple-sensor-network/node/jn516x \
+jn516x/tsch/xy-test-setup/coordinator-client/jn516x \
+jn516x/tsch/xy-test-setup/xy-server/jn516x \
+jn516x/tsch/xy-test-setup/sink-server/jn516x \
 ipv6/rpl-tsch/jn516x \
 ipv6/rpl-tsch/jn516x:MAKE_WITH_ORCHESTRA=1 \
 ipv6/rpl-tsch/jn516x:MAKE_WITH_SECURITY=1
