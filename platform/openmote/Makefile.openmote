@@ -31,7 +31,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
 include $(CONTIKI_CPU)/Makefile.cc2538
 
 MODULES += core/net core/net/mac \
-           core/net/mac/contikimac core/net/mac/cxmac \
+           core/net/mac/contikimac core/net/mac/cxmac core/net/mac/tsch\
            core/net/llsec
 
 PYTHON = python

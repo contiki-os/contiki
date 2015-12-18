@@ -67,6 +67,9 @@ PROCESS_THREAD(sniffer_process, ev, data)
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
   /* Turn off RF Address Recognition - We need to accept all frames */
   //FRMFILT0 &= ~0x01;
+  radio_value_t radio_rx_mode;
+  NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
+  NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode & (~RADIO_RX_MODE_ADDRESS_FILTER));
 #endif
 
   PROCESS_EXIT();
