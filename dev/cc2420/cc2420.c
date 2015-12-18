@@ -76,6 +76,14 @@
 #define RSSI_OFFSET -45
 #endif /* CC2420_CONF_RSSI_OFFSET */
 
+/*---------------------------------------------------------------------------*/
+/* Sniffer configuration */
+#if CC2420_CONF_RF_SNIFFER
+static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
+#include "dev/uart0.h"
+#endif //CC2420_CONF_RF_SNIFFER
+/*---------------------------------------------------------------------------*/
+
 enum write_ram_order {
   /* Begin with writing the first given byte */
   WRITE_RAM_IN_ORDER,
@@ -368,7 +376,7 @@ static uint16_t
 getreg(enum cc2420_register regname)
 {
   uint16_t value;
-  
+
   CC2420_SPI_ENABLE();
   SPI_WRITE(regname | 0x40);
   value = (uint8_t)SPI_RXBUF;
@@ -379,11 +387,11 @@ getreg(enum cc2420_register regname)
   SPI_WAITFOREORx();
   value |= SPI_RXBUF;
   CC2420_SPI_DISABLE();
-  
+
   return value;
 }
 /*---------------------------------------------------------------------------*/
-/** 
+/**
  * Writes to a register.
  * Note: the SPI_WRITE(0) seems to be needed for getting the
  * write reg working on the Z1 / MSP430X platform
@@ -404,7 +412,7 @@ static void
 read_ram(uint8_t *buffer, uint16_t adr, uint16_t count)
 {
   uint8_t i;
-  
+
   CC2420_SPI_ENABLE();
   SPI_WRITE(0x80 | ((adr) & 0x7f));
   SPI_WRITE((((adr) >> 1) & 0xc0) | 0x20);
@@ -423,7 +431,7 @@ write_ram(const uint8_t *buffer,
     enum write_ram_order order)
 {
   uint8_t i;
-  
+
   CC2420_SPI_ENABLE();
   SPI_WRITE_FAST(0x80 | (adr & 0x7f));
   SPI_WRITE_FAST((adr >> 1) & 0xc0);
@@ -444,7 +452,7 @@ static void
 write_fifo_buf(const uint8_t *buffer, uint16_t count)
 {
   uint8_t i;
-  
+
   CC2420_SPI_ENABLE();
   SPI_WRITE_FAST(CC2420_TXFIFO);
   for(i = 0; i < count; i++) {
@@ -459,12 +467,12 @@ static uint8_t
 get_status(void)
 {
   uint8_t status;
-  
+
   CC2420_SPI_ENABLE();
   SPI_WRITE(CC2420_SNOP);
   status = SPI_RXBUF;
   CC2420_SPI_DISABLE();
-  
+
   return status;
 }
 /*---------------------------------------------------------------------------*/
@@ -472,7 +480,7 @@ static void
 getrxdata(uint8_t *buffer, int count)
 {
   uint8_t i;
-  
+
   CC2420_SPI_ENABLE();
   SPI_WRITE(CC2420_RXFIFO | 0x40);
   (void) SPI_RXBUF;
@@ -575,9 +583,9 @@ static void
 set_key(const uint8_t *key)
 {
   GET_LOCK();
-  
+
   write_ram(key, CC2420RAM_KEY0, 16, WRITE_RAM_REVERSE);
-  
+
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
@@ -585,17 +593,17 @@ static void
 encrypt(uint8_t *plaintext_and_result)
 {
   GET_LOCK();
-  
+
   write_ram(plaintext_and_result,
       CC2420RAM_SABUF,
       16,
       WRITE_RAM_IN_ORDER);
-  
+
   strobe(CC2420_SAES);
   while(get_status() & BV(CC2420_ENC_BUSY));
-  
+
   read_ram(plaintext_and_result, CC2420RAM_SABUF, 16);
-  
+
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
@@ -657,7 +665,7 @@ cc2420_init(void)
   reg &= ~(1 << 13);
   setreg(CC2420_TXCTRL, reg);*/
 
-  
+
   /* Change default values as recomended in the data sheet, */
   /* correlation threshold = 20, RX bandpass filter = 1.3uA. */
   setreg(CC2420_MDMCTRL1, CORR_THR(20));
@@ -686,7 +694,7 @@ static int
 cc2420_transmit(unsigned short payload_len)
 {
   int i, txpower;
-  
+
   GET_LOCK();
 
   txpower = 0;
@@ -786,7 +794,7 @@ static int
 cc2420_prepare(const void *payload, unsigned short payload_len)
 {
   uint8_t total_len;
-  
+
   GET_LOCK();
 
   PRINTF("cc2420: sending %d bytes\n", payload_len);
@@ -802,7 +810,7 @@ cc2420_prepare(const void *payload, unsigned short payload_len)
   total_len = payload_len + CHECKSUM_LEN;
   write_fifo_buf(&total_len, 1);
   write_fifo_buf(payload, payload_len);
-  
+
   RELEASE_LOCK();
   return 0;
 }
@@ -880,7 +888,7 @@ cc2420_set_channel(int c)
   channel = c;
 
   f = 5 * (c - 11) + 357 + 0x4000;
-  
+
   /* Wait for any transmission to end. */
   wait_for_transmission();
 
@@ -902,10 +910,10 @@ cc2420_set_pan_addr(unsigned pan,
                     const uint8_t *ieee_addr)
 {
   GET_LOCK();
-  
+
   write_ram((uint8_t *) &pan, CC2420RAM_PANID, 2, WRITE_RAM_IN_ORDER);
   write_ram((uint8_t *) &addr, CC2420RAM_SHORTADDR, 2, WRITE_RAM_IN_ORDER);
-  
+
   if(ieee_addr != NULL) {
     write_ram(ieee_addr, CC2420RAM_IEEEADDR, 8, WRITE_RAM_REVERSE);
   }
@@ -940,9 +948,9 @@ PROCESS_THREAD(cc2420_process, ev, data)
     packetbuf_clear();
     packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, last_packet_timestamp);
     len = cc2420_read(packetbuf_dataptr(), PACKETBUF_SIZE);
-    
+
     packetbuf_set_datalen(len);
-    
+
     NETSTACK_RDC.input();
   }
 
@@ -958,7 +966,7 @@ cc2420_read(void *buf, unsigned short bufsize)
   if(!CC2420_FIFOP_IS_1) {
     return 0;
   }
-  
+
   GET_LOCK();
 
   getrxdata(&len, 1);
@@ -971,9 +979,24 @@ cc2420_read(void *buf, unsigned short bufsize)
   } else if(len - FOOTER_LEN > bufsize) {
     RIMESTATS_ADD(toolong);
   } else {
+#if CC2420_CONF_RF_SNIFFER
+    uart0_writeb(magic[0]);
+    uart0_writeb(magic[1]);
+    uart0_writeb(magic[2]);
+    uart0_writeb(magic[3]);
+    uart0_writeb(len);
+#endif // CC2420_CONF_RF_SNIFFER
     getrxdata((uint8_t *) buf, len - FOOTER_LEN);
     getrxdata(footer, FOOTER_LEN);
-    
+#if CC2420_CONF_RF_SNIFFER
+    int i;
+    for(i = 0; i < len - FOOTER_LEN; ++i) {
+      uart0_writeb(((unsigned char *)(buf))[i]);
+    }
+    for(i = 0; i < FOOTER_LEN; ++i) {
+      uart0_writeb(((unsigned char *)(footer))[i]);
+    }
+#endif // CC2420_CONF_RF_SNIFFER
     if(footer[1] & FOOTER1_CRC_OK) {
       cc2420_last_rssi = footer[0] + RSSI_OFFSET;
       cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
@@ -1004,11 +1027,12 @@ cc2420_read(void *buf, unsigned short bufsize)
         }
       }
     }
-    
+
     RELEASE_LOCK();
     return len - FOOTER_LEN;
   }
-  
+
+
   flushrx();
   RELEASE_LOCK();
   return 0;
@@ -1041,7 +1065,7 @@ cc2420_rssi(void)
   if(locked) {
     return 0;
   }
-  
+
   GET_LOCK();
 
   if(!receive_on) {

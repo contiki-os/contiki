@@ -1,16 +1,17 @@
-ifndef TARGET
-TARGET=sensinode
-endif
-
 # Make absolutely certain that you specify your device here
-DEFINES+=MODEL_N601,PROJECT_CONF_H
+#DEFINES+=MODEL_N601,PROJECT_CONF_H
 
 PROJECT_SOURCEFILES += stub-rdc.c
+
+WITH_UIP6=1
+UIP_CONF_IPV6=1
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+CFLAGS+= -DUIP_CONF_IPV6
 
 CONTIKI_PROJECT = sniffer
 
 all: $(CONTIKI_PROJECT) 
 
 CONTIKI = ../../..
-CONTIKI_WITH_RIME = 1
+#CONTIKI_WITH_RIME = 1
 include $(CONTIKI)/Makefile.include

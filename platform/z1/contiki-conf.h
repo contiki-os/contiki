@@ -45,6 +45,10 @@
 #define NETSTACK_CONF_RADIO   cc2420_driver
 #define NETSTACK_CONF_FRAMER  framer_802154
 
+/* IEEE802.15.4 frame version */
+#undef FRAME802154_CONF_VERSION
+#define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
+
 /* Specify a minimum packet size for 6lowpan compression to be
    enabled. This is needed for ContikiMAC, which needs packets to be
    larger than a specified size, if no ContikiMAC header should be
@@ -188,6 +192,10 @@
 
 #define UIP_CONF_TCP_SPLIT       0
 
+#if CC2420_CONF_RF_SNIFFER
+#define UART0_CONF_HIGH_SPEED  1
+#define UART0_CONF_RX_WITH_DMA 1
+#endif //CC2420_CONF_RF_SNIFFER
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H
 #endif /* PROJECT_CONF_H */

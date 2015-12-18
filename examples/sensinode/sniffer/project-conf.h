@@ -43,10 +43,42 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+#undef CC2420_CONF_RF_SNIFFER
+#define CC2420_CONF_RF_SNIFFER 1
+
+#undef CC2538_RF_CONF_SNIFFER
+#define CC2538_RF_CONF_SNIFFER 1
+
+#undef RF_CHANNEL
+#define RF_CHANNEL      20
+#undef CC2420_CONF_CHANNEL
+#define CC2420_CONF_CHANNEL 20
+
+#if 1
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC      nullrdc_driver
+#undef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC      nullmac_driver
+#else
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC      stub_rdc_driver
+#endif //0
+
+/* IEEE802.15.4 frame version */
+#undef FRAME802154_CONF_VERSION
+#define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
+
+#undef ADC_SENSOR_CONF_ON
+#define ADC_SENSOR_CONF_ON     0
+#undef LPM_CONF_MODE
+#define LPM_CONF_MODE          0
+#undef UART0_CONF_HIGH_SPEED
+#define UART0_CONF_HIGH_SPEED  1
+
+#undef UART0_CONF_RX_WITH_DMA
+#define UART0_CONF_RX_WITH_DMA 1
+#if 0 // for sensinode only
 #define CC2430_RF_CONF_HEXDUMP 1
 #define CC2430_RF_CONF_AUTOACK 0
-#define NETSTACK_CONF_RDC      stub_rdc_driver
-#define ADC_SENSOR_CONF_ON     0
-#define LPM_CONF_MODE          0
-
+#endif
 #endif /* PROJECT_CONF_H_ */

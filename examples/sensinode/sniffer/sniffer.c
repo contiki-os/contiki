@@ -28,9 +28,19 @@
  */
 
 #include "contiki.h"
-#include "cc2430_sfr.h"
 
-#define DEBUG DEBUG_NONE
+#if CC2430_RF_CONF_HEXDUMP
+#include "cc2430_sfr.h"
+#endif
+
+#if CC2420_CONF_RF_SNIFFER
+#include "cc2420.h"
+#endif
+
+//#define DEBUG DEBUG_NONE
+#define DEBUG DEBUG_PRINT
+#include "net/ip/uip.h"
+#include "net/ipv6/uip-ds6.h"
 #include "net/ip/uip-debug.h"
 
 /*---------------------------------------------------------------------------*/
@@ -44,8 +54,20 @@ PROCESS_THREAD(sniffer_process, ev, data)
 
   PRINTF("Sniffer started\n");
 
+#if CC2430_RF_CONF_HEXDUMP
   /* Turn off cc2430 Address Recognition - We need to accept all frames */
   MDMCTRL0H &= ~0x08;
+#endif
+
+#if CC2420_CONF_RF_SNIFFER
+  static uip_ipaddr_t ipaddr;
+
+  uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
+  uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+  uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
+  /* Turn off RF Address Recognition - We need to accept all frames */
+  //FRMFILT0 &= ~0x01;
+#endif
 
   PROCESS_EXIT();
 
