@@ -124,7 +124,7 @@ set_rf_params(void)
 #if STARTUP_CONF_VERBOSE
   {
     int i;
-    printf("Rime configured with address ");
+    printf("Link Address: ");
     for(i = 0; i < LINKADDR_SIZE - 1; i++) {
       printf("%02x:", linkaddr_node_addr.u8[i]);
     }
@@ -151,7 +151,7 @@ main(void)
   lpm_init();
   rtimer_init();
   gpio_init();
-  //i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN, I2C_SCL_FAST_BUS_SPEED);
+  i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN, I2C_SCL_FAST_BUS_SPEED);
 
   leds_init();
   fade(LEDS_YELLOW);

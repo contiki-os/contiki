@@ -77,7 +77,7 @@
 
 /* IEEE802.15.4 PANID */
 #undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID 0xBABE
+#define IEEE802154_CONF_PANID 0xCAFE
 
 /* Do not start TSCH at init, wait for NETSTACK_MAC.on() */
 #undef TSCH_CONF_AUTOSTART
@@ -165,7 +165,9 @@
 #define SYS_CTRL_CONF_SYS_DIV SYS_CTRL_CLOCK_CTRL_SYS_DIV_32MHZ
 #define TSCH_CONF_AUTOSELECT_TIME_SOURCE 1
 
-#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
+// For testing purpose, we should use single channel for sniffering.
+//#define TSCH_CONF_DEFAULT_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
+
 //#define TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS 1
 //#define TSCH_CONF_KEEPALIVE_TIMEOUT (5 * CLOCK_SECOND)
 //#undef TSCH_SCHEDULE_CONF_DEFAULT_LENGTH
@@ -175,11 +177,11 @@
 
 /*==========================CC2538=================================*/
 
+// Set  some parameter for this applications
+#define PERIOD 5
+
 #ifndef ENERGEST_CONF_ON
 #define ENERGEST_CONF_ON 1
 #endif
-
-#define WITH_COMPOWER 1
-#define SERVER_REPLY 1
 
 #endif /* __PROJECT_CONF_H__ */

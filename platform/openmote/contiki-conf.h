@@ -324,6 +324,9 @@ typedef uint32_t rtimer_clock_t;
 #endif /* NETSTACK_CONF_FRAMER */
 
 #define NETSTACK_CONF_RADIO   cc2538_rf_driver
+
+#define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -563,7 +566,7 @@ typedef uint32_t rtimer_clock_t;
 #include "board.h"
 
 #define TSCH_DEBUG_INTERRUPT() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_GREEN); \
@@ -573,7 +576,7 @@ typedef uint32_t rtimer_clock_t;
 } while(0);
 
 #define TSCH_DEBUG_TX_EVENT() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_RED); \
@@ -583,7 +586,7 @@ typedef uint32_t rtimer_clock_t;
 } while(0);
 
 #define TSCH_DEBUG_SFD_EVENT() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_ORANGE); \
@@ -593,7 +596,7 @@ typedef uint32_t rtimer_clock_t;
 } while(0);
 
 #define TSCH_DEBUG_SLOT_START() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_GREEN); \
@@ -603,7 +606,7 @@ typedef uint32_t rtimer_clock_t;
 } while(0);
 
 #define TSCH_DEBUG_RX_EVENT() do { \
-    static dio_state = 0 ; \
+    static uint8_t dio_state = 0 ; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_YELLOW); \
@@ -616,7 +619,7 @@ typedef uint32_t rtimer_clock_t;
 
 // TODO: remove this later and remove in cc2538-rf.c
 #define TSCH_DEBUG_SFD_EVENT() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_ORANGE); \

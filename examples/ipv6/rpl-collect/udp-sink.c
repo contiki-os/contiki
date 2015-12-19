@@ -142,7 +142,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
   SENSORS_ACTIVATE(button_sensor);
 
-  PRINTF("UDP server started\n");
+  PRINTF("=====UDP server started=====\n");
 
 #if UIP_CONF_ROUTER
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 1);
@@ -154,7 +154,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
     dag = rpl_set_root(RPL_DEFAULT_INSTANCE,(uip_ip6addr_t *)&ipaddr);
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
     rpl_set_prefix(dag, &ipaddr, 64);
-    PRINTF("created a new RPL dag\n");
+    PRINTF("=====created a new RPL dag=====\n");
   } else {
     PRINTF("failed to create a new RPL DAG\n");
   }
@@ -167,12 +167,19 @@ PROCESS_THREAD(udp_server_process, ev, data)
   NETSTACK_RDC.off(1);
 
   server_conn = udp_new(NULL, UIP_HTONS(UDP_CLIENT_PORT), NULL);
-  udp_bind(server_conn, UIP_HTONS(UDP_SERVER_PORT));
+  if(server_conn != NULL) {
+    udp_bind(server_conn, UIP_HTONS(UDP_SERVER_PORT));
 
-  PRINTF("Created a server connection with remote address ");
-  PRINT6ADDR(&server_conn->ripaddr);
-  PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
-         UIP_HTONS(server_conn->rport));
+    PRINTF("Created a server connection with remote address ");
+    PRINT6ADDR(&server_conn->ripaddr);
+    PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
+           UIP_HTONS(server_conn->rport));
+  } else {
+    PRINTF("!!!Failed to created a server connection with remote address ");
+    PRINT6ADDR(&server_conn->ripaddr);
+    PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
+           UIP_HTONS(server_conn->rport));
+  }
 
   while(1) {
     PROCESS_YIELD();

@@ -50,9 +50,9 @@
 #define CC2538_RF_CONF_SNIFFER 1
 
 #undef RF_CHANNEL
-#define RF_CHANNEL      20
+#define RF_CHANNEL      26
 #undef CC2420_CONF_CHANNEL
-#define CC2420_CONF_CHANNEL 20
+#define CC2420_CONF_CHANNEL 26
 
 #if 1
 #undef NETSTACK_CONF_RDC

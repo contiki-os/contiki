@@ -212,18 +212,26 @@ PROCESS_THREAD(udp_client_process, ev, data)
 
   set_global_address();
 
-  PRINTF("UDP client process started\n");
+  PRINTF("=======UDP client process started=======\n");
 
   print_local_addresses();
 
   /* new connection with remote host */
   client_conn = udp_new(NULL, UIP_HTONS(UDP_SERVER_PORT), NULL);
-  udp_bind(client_conn, UIP_HTONS(UDP_CLIENT_PORT));
+  if(client_conn != NULL) {
+    udp_bind(client_conn, UIP_HTONS(UDP_CLIENT_PORT));
 
-  PRINTF("Created a connection with the server ");
-  PRINT6ADDR(&client_conn->ripaddr);
-  PRINTF(" local/remote port %u/%u\n",
-        UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
+    PRINTF("Created a connection with the server ");
+    PRINT6ADDR(&client_conn->ripaddr);
+    PRINTF(" local/remote port %u/%u\n",
+          UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
+  } else {
+    PRINTF("!!!Cannot create a connection to the server ");
+    PRINT6ADDR(&client_conn->ripaddr);
+    PRINTF(" local/remote port %u/%u\n",
+          UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
+    PRINTF("Please make sure udp_server mote is running!\n");
+  }
 
   while(1) {
     PROCESS_YIELD();
