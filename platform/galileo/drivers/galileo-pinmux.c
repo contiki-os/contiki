@@ -535,70 +535,83 @@ galileo_pinmux_set_pin(uint8_t pin, GALILEO_PINMUX_FUNC func)
   struct mux_path *mux_path;
   uint8_t index, i;
 
-  if (pin > PINMUX_NUM_PINS)
+  if(pin > PINMUX_NUM_PINS) {
     return -1;
+  }
 
   index = PINMUX_NUM_FUNCS * pin;
   index += func;
 
   mux_path = &galileo_pinmux_paths[index];
 
-  for (i = 0; i < PINMUX_NUM_PATHS; i++) {
+  for(i = 0; i < PINMUX_NUM_PATHS; i++) {
     switch(mux_path->path[i].chip) {
-      case EXP0:
-        if (gpio_pcal9535a_write(&data.exp0, mux_path->path[i].pin, mux_path->path[i].level) < 0)
-          return -1;
-        if (gpio_pcal9535a_config(&data.exp0, mux_path->path[i].pin, mux_path->path[i].cfg) < 0)
-          return -1;
-        break;
-      case EXP1:
-        if (gpio_pcal9535a_write(&data.exp1, mux_path->path[i].pin, mux_path->path[i].level) < 0)
-          return -1;
-        if (gpio_pcal9535a_config(&data.exp1, mux_path->path[i].pin, mux_path->path[i].cfg) < 0)
-          return -1;
-        break;
-      case EXP2:
-        if (gpio_pcal9535a_write(&data.exp2, mux_path->path[i].pin, mux_path->path[i].level) < 0)
-          return -1;
-        if (gpio_pcal9535a_config(&data.exp2, mux_path->path[i].pin, mux_path->path[i].cfg) < 0)
-          return -1;
-        break;
-      case PWM0:
-        if (pwm_pca9685_set_duty_cycle(&data.pwm0, mux_path->path[i].pin, mux_path->path[i].level ? 100 : 0) < 0)
-          return -1;
-        break;
-      case NONE:
-        break;
+    case EXP0:
+      if(gpio_pcal9535a_write(&data.exp0, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
+        return -1;
+      }
+      if(gpio_pcal9535a_config(&data.exp0, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
+        return -1;
+      }
+      break;
+    case EXP1:
+      if(gpio_pcal9535a_write(&data.exp1, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
+        return -1;
+      }
+      if(gpio_pcal9535a_config(&data.exp1, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
+        return -1;
+      }
+      break;
+    case EXP2:
+      if(gpio_pcal9535a_write(&data.exp2, mux_path->path[i].pin, mux_path->path[i].level) < 0) {
+        return -1;
+      }
+      if(gpio_pcal9535a_config(&data.exp2, mux_path->path[i].pin, mux_path->path[i].cfg) < 0) {
+        return -1;
+      }
+      break;
+    case PWM0:
+      if(pwm_pca9685_set_duty_cycle(&data.pwm0, mux_path->path[i].pin, mux_path->path[i].level ? 100 : 0) < 0) {
+        return -1;
+      }
+      break;
+    case NONE:
+      break;
     }
   }
 
   return 0;
 }
-
 int
 galileo_pinmux_initialize(void)
 {
   uint8_t i;
 
   /* has to init after I2C master */
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
-  if (gpio_pcal9535a_init(&data.exp0, GPIO_PCAL9535A_0_I2C_ADDR) < 0)
+  if(gpio_pcal9535a_init(&data.exp0, GPIO_PCAL9535A_0_I2C_ADDR) < 0) {
     return -1;
+  }
 
-  if (gpio_pcal9535a_init(&data.exp1, GPIO_PCAL9535A_1_I2C_ADDR) < 0)
+  if(gpio_pcal9535a_init(&data.exp1, GPIO_PCAL9535A_1_I2C_ADDR) < 0) {
     return -1;
+  }
 
-  if (gpio_pcal9535a_init(&data.exp2, GPIO_PCAL9535A_2_I2C_ADDR) < 0)
+  if(gpio_pcal9535a_init(&data.exp2, GPIO_PCAL9535A_2_I2C_ADDR) < 0) {
     return -1;
+  }
 
-  if (pwm_pca9685_init(&data.pwm0, PWM_PCA9685_0_I2C_ADDR) < 0)
+  if(pwm_pca9685_init(&data.pwm0, PWM_PCA9685_0_I2C_ADDR) < 0) {
     return -1;
+  }
 
-  for (i = 0; i < PINMUX_NUM_PINS; i++) {
-    if (galileo_pinmux_set_pin(default_pinmux_config[i].pin_num, default_pinmux_config[i].func) < 0)
+  for(i = 0; i < PINMUX_NUM_PINS; i++) {
+    if(galileo_pinmux_set_pin(default_pinmux_config[i].pin_num, default_pinmux_config[i].func) < 0) {
       return -1;
+    }
   }
 
   return 0;

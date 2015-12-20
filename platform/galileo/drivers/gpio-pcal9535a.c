@@ -70,34 +70,36 @@ read_port_regs(struct gpio_pcal9535a_data *data, uint8_t reg, union gpio_pcal953
   buf->byte[0] = reg;
   buf->byte[1] = 0;
 
-  if (quarkX1000_i2c_write(buf->byte, 1, data->i2c_slave_addr) < 0)
+  if(quarkX1000_i2c_write(buf->byte, 1, data->i2c_slave_addr) < 0) {
     return -1;
+  }
 
   do {
     clock_wait(READ_PORT_TIMEOUT);
 
     r = quarkX1000_i2c_read(buf->byte, 2, data->i2c_slave_addr);
-    if (r == 0)
+    if(r == 0) {
       break;
-  } while (tries--);
+    }
+  } while(tries--);
 
-  if (r < 0)
+  if(r < 0) {
     return -1;
+  }
 
   return 0;
 }
-
 static int
 write_port_regs(struct gpio_pcal9535a_data *data, uint8_t reg, union gpio_pcal9535a_port_data *buf)
 {
-  uint8_t cmd[] = {reg, buf->byte[0], buf->byte[1]};
+  uint8_t cmd[] = { reg, buf->byte[0], buf->byte[1] };
 
-  if (quarkX1000_i2c_polling_write(cmd, sizeof(cmd), data->i2c_slave_addr) < 0)
+  if(quarkX1000_i2c_polling_write(cmd, sizeof(cmd), data->i2c_slave_addr) < 0) {
     return -1;
+  }
 
   return 0;
 }
-
 static int
 setup_pin_dir(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 {
@@ -106,47 +108,49 @@ setup_pin_dir(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 
   bit_mask = 1 << pin;
 
-  if ((flags & QUARKX1000_GPIO_DIR_MASK) == QUARKX1000_GPIO_IN)
+  if((flags & QUARKX1000_GPIO_DIR_MASK) == QUARKX1000_GPIO_IN) {
     new_value = 1 << pin;
+  }
 
   port->all &= ~bit_mask;
   port->all |= new_value;
 
   return write_port_regs(data, REG_CONF_PORT0, port);
 }
-
 static int
 setup_pin_pullupdown(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 {
   union gpio_pcal9535a_port_data *port;
   uint16_t bit_mask, new_value = 0;
 
-  if ((flags & QUARKX1000_GPIO_PUD_MASK) != QUARKX1000_GPIO_PUD_NORMAL) {
+  if((flags & QUARKX1000_GPIO_PUD_MASK) != QUARKX1000_GPIO_PUD_NORMAL) {
     port = &data->reg_cache.pud_sel;
     bit_mask = 1 << pin;
 
-    if ((flags & QUARKX1000_GPIO_PUD_MASK) == QUARKX1000_GPIO_PUD_PULL_UP)
+    if((flags & QUARKX1000_GPIO_PUD_MASK) == QUARKX1000_GPIO_PUD_PULL_UP) {
       new_value = 1 << pin;
+    }
 
     port->all &= ~bit_mask;
     port->all |= new_value;
 
-    if (write_port_regs(data, REG_PUD_SEL_PORT0, port) < 0)
+    if(write_port_regs(data, REG_PUD_SEL_PORT0, port) < 0) {
       return -1;
+    }
   }
 
   port = &data->reg_cache.pud_en;
   bit_mask = 1 << pin;
 
-  if ((flags & QUARKX1000_GPIO_PUD_MASK) != QUARKX1000_GPIO_PUD_NORMAL)
+  if((flags & QUARKX1000_GPIO_PUD_MASK) != QUARKX1000_GPIO_PUD_NORMAL) {
     new_value = 1 << pin;
+  }
 
   port->all &= ~bit_mask;
   port->all |= new_value;
 
   return write_port_regs(data, REG_PUD_EN_PORT0, port);
 }
-
 static int
 setup_pin_polarity(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 {
@@ -155,28 +159,30 @@ setup_pin_polarity(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 
   bit_mask = 1 << pin;
 
-  if ((flags & QUARKX1000_GPIO_POL_MASK) == QUARKX1000_GPIO_POL_INV)
+  if((flags & QUARKX1000_GPIO_POL_MASK) == QUARKX1000_GPIO_POL_INV) {
     new_value = 1 << pin;
+  }
 
   port->all &= ~bit_mask;
   port->all |= new_value;
 
-  if (write_port_regs(data, REG_POL_INV_PORT0, port) < 0)
+  if(write_port_regs(data, REG_POL_INV_PORT0, port) < 0) {
     return -1;
+  }
 
   data->out_pol_inv = port->all;
 
   return 0;
 }
-
 int
 gpio_pcal9535a_write(struct gpio_pcal9535a_data *data, uint32_t pin, uint32_t value)
 {
   union gpio_pcal9535a_port_data *port = &data->reg_cache.output;
   uint16_t bit_mask, new_value;
 
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
   bit_mask = 1 << pin;
 
@@ -189,41 +195,44 @@ gpio_pcal9535a_write(struct gpio_pcal9535a_data *data, uint32_t pin, uint32_t va
 
   return write_port_regs(data, REG_OUTPUT_PORT0, port);
 }
-
 int
 gpio_pcal9535a_read(struct gpio_pcal9535a_data *data, uint32_t pin, uint32_t *value)
 {
   union gpio_pcal9535a_port_data buf;
 
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
-  if (read_port_regs(data, REG_INPUT_PORT0, &buf) < 0)
+  if(read_port_regs(data, REG_INPUT_PORT0, &buf) < 0) {
     return -1;
+  }
 
   *value = (buf.all >> pin) & 0x01;
 
   return 0;
 }
-
 int
 gpio_pcal9535a_config(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 {
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
-  if (setup_pin_dir(data, pin, flags) < 0)
+  if(setup_pin_dir(data, pin, flags) < 0) {
     return -1;
+  }
 
-  if (setup_pin_polarity(data, pin, flags) < 0)
+  if(setup_pin_polarity(data, pin, flags) < 0) {
     return -1;
+  }
 
-  if (setup_pin_pullupdown(data, pin, flags) < 0)
+  if(setup_pin_pullupdown(data, pin, flags) < 0) {
     return -1;
+  }
 
   return 0;
 }
-
 static int
 setup_port_dir(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 {
@@ -233,18 +242,18 @@ setup_port_dir(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 
   return write_port_regs(data, REG_CONF_PORT0, port);
 }
-
 static int
 setup_port_pullupdown(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 {
   union gpio_pcal9535a_port_data *port;
 
-  if ((flags & QUARKX1000_GPIO_PUD_MASK) != QUARKX1000_GPIO_PUD_NORMAL) {
+  if((flags & QUARKX1000_GPIO_PUD_MASK) != QUARKX1000_GPIO_PUD_NORMAL) {
     port = &data->reg_cache.pud_sel;
     port->all = ((flags & QUARKX1000_GPIO_PUD_MASK) == QUARKX1000_GPIO_PUD_PULL_UP) ? 0xFFFF : 0x0;
 
-    if (write_port_regs(data, REG_PUD_SEL_PORT0, port) < 0)
+    if(write_port_regs(data, REG_PUD_SEL_PORT0, port) < 0) {
       return -1;
+    }
   }
 
   port = &data->reg_cache.pud_en;
@@ -252,7 +261,6 @@ setup_port_pullupdown(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 
   return write_port_regs(data, REG_PUD_EN_PORT0, port);
 }
-
 static int
 setup_port_polarity(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 {
@@ -260,22 +268,23 @@ setup_port_polarity(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 
   port->all = ((flags & QUARKX1000_GPIO_POL_MASK) == QUARKX1000_GPIO_POL_INV) ? 0xFFFF : 0x0;
 
-  if (write_port_regs(data, REG_POL_INV_PORT0, port) < 0)
+  if(write_port_regs(data, REG_POL_INV_PORT0, port) < 0) {
     return -1;
+  }
 
   data->out_pol_inv = port->all;
 
   return 0;
 }
-
 int
 gpio_pcal9535a_write_port(struct gpio_pcal9535a_data *data, uint32_t pin, uint32_t value)
 {
   union gpio_pcal9535a_port_data *port = &data->reg_cache.output;
   uint16_t bit_mask, new_value;
 
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
   port->all = value;
   bit_mask = data->out_pol_inv;
@@ -289,47 +298,51 @@ gpio_pcal9535a_write_port(struct gpio_pcal9535a_data *data, uint32_t pin, uint32
 
   return write_port_regs(data, REG_OUTPUT_PORT0, port);
 }
-
 int
 gpio_pcal9535a_read_port(struct gpio_pcal9535a_data *data, uint32_t pin, uint32_t *value)
 {
   union gpio_pcal9535a_port_data buf;
 
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
-  if (read_port_regs(data, REG_INPUT_PORT0, &buf) < 0)
+  if(read_port_regs(data, REG_INPUT_PORT0, &buf) < 0) {
     return -1;
+  }
 
   *value = buf.all;
 
   return 0;
 }
-
 int
 gpio_pcal9535a_config_port(struct gpio_pcal9535a_data *data, uint32_t pin, int flags)
 {
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
-  if (setup_port_dir(data, pin, flags) < 0)
+  if(setup_port_dir(data, pin, flags) < 0) {
     return -1;
+  }
 
-  if (setup_port_polarity(data, pin, flags) < 0)
+  if(setup_port_polarity(data, pin, flags) < 0) {
     return -1;
+  }
 
-  if (setup_port_pullupdown(data, pin, flags) < 0)
+  if(setup_port_pullupdown(data, pin, flags) < 0) {
     return -1;
+  }
 
   return 0;
 }
-
 int
 gpio_pcal9535a_init(struct gpio_pcal9535a_data *data, uint16_t i2c_slave_addr)
 {
   /* has to init after I2C master */
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
   data->i2c_slave_addr = i2c_slave_addr;
 

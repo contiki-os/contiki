@@ -47,21 +47,23 @@ pwm_pca9685_set_values(struct pwm_pca9685_data *data, uint32_t pwm, uint32_t on,
 {
   uint8_t buf[5] = { 0 };
 
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
-  if (pwm > MAX_PWM_OUT)
+  if(pwm > MAX_PWM_OUT) {
     return -1;
+  }
 
   buf[0] = REG_LED_ON_L(pwm);
 
-  if ((on >= PWM_ONE_PERIOD_TICKS) || (off >= PWM_ONE_PERIOD_TICKS)) {
+  if((on >= PWM_ONE_PERIOD_TICKS) || (off >= PWM_ONE_PERIOD_TICKS)) {
     /* Treat as 100% */
     buf[1] = 0x0;
     buf[2] = (1 << 4);
     buf[3] = 0x0;
     buf[4] = 0x0;
-  } else if (off == 0) {
+  } else if(off == 0) {
     /* Treat it as 0% */
     buf[1] = 0x0;
     buf[2] = 0x0;
@@ -77,16 +79,15 @@ pwm_pca9685_set_values(struct pwm_pca9685_data *data, uint32_t pwm, uint32_t on,
 
   return quarkX1000_i2c_polling_write(buf, sizeof(buf), data->i2c_slave_addr);
 }
-
 int
 pwm_pca9685_set_duty_cycle(struct pwm_pca9685_data *data, uint32_t pwm, uint8_t duty)
 {
   uint32_t on, off;
 
-  if (duty == 0) {
+  if(duty == 0) {
     on = 0;
     off = 0;
-  } else if (duty >= 100) {
+  } else if(duty >= 100) {
     on = PWM_ONE_PERIOD_TICKS + 1;
     off = PWM_ONE_PERIOD_TICKS + 1;
   } else {
@@ -96,23 +97,24 @@ pwm_pca9685_set_duty_cycle(struct pwm_pca9685_data *data, uint32_t pwm, uint8_t 
 
   return pwm_pca9685_set_values(data, pwm, on, off);
 }
-
 int
 pwm_pca9685_init(struct pwm_pca9685_data *data, uint16_t i2c_slave_addr)
 {
   uint8_t buf[2] = { 0 };
 
   /* has to init after I2C master */
-  if (!quarkX1000_i2c_is_available())
+  if(!quarkX1000_i2c_is_available()) {
     return -1;
+  }
 
   data->i2c_slave_addr = i2c_slave_addr;
 
   buf[0] = REG_MODE1;
   buf[1] = (1 << 5);
 
-  if (quarkX1000_i2c_polling_write(buf, 2, i2c_slave_addr) < 0)
+  if(quarkX1000_i2c_polling_write(buf, 2, i2c_slave_addr) < 0) {
     return -1;
+  }
 
   return 0;
 }
