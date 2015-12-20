@@ -205,7 +205,7 @@ References
 
 [1] https://communities.intel.com/message/211778
 
-[2] http://www.intel.com/support/galileo/sb/CS-035124.htm
+[2] https://software.intel.com/en-us/articles/intel-galileo-gen-2-board-assembly-using-eclipse-and-intel-xdk-iot-edition
 
 [3] https://www.gnu.org/software/grub/manual/multiboot/multiboot.html
 
