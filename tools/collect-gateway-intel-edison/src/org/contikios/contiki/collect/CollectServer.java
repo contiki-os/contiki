@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Singapore University of Technology and Design
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +34,9 @@
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
  *
- * Modifier: Ngo Van Mao
+ * Update by: Ngo Van Mao
  * Date: 1/10/2015
+ * Email: vanmao_ngo@sutd.edu.sg
  */
 
 package org.contikios.contiki.collect;
@@ -68,9 +70,8 @@ public class CollectServer implements SerialConnectionListener {
   public static final String CONFIG_DATA_FILE = "collect-data.conf";
   public static final String INIT_SCRIPT = "collect-init.script";
   public static final String FIRMWARE_FILE = "collect-view-shell.ihex";
-  public static final String COMPORT = "/dev/ttyUSB0"; // for Intel Edison purpose
-
-  /* Categories for the tab pane */
+  public static final String COMPORT = "/dev/ttyUSB0";
+  public static final String RIMESTACK = "RIME";
 
   private Properties config = new Properties();
 
@@ -113,73 +114,69 @@ public class CollectServer implements SerialConnectionListener {
   }
 
 
-  public void start(SerialConnection connection, String serverAddr, int serverPort, 
-		            int interval, int random, int reports, int rexmits) {
+  public void start(SerialConnection connection, String serverAddr, int serverPort,
+		            String stack, String comPort,
+		     	    int interval, int random, int reports, int rexmits) {
     if (hasStarted) {
       throw new IllegalStateException("already started");
     }
     hasStarted = true;
     this.serialConnection = connection;
     System.out.println("==================Start Collector Sensor data=================");
-    connectToSerial();
-   
-  	
+    connectToSerial(comPort);
+
     if (serialConnection != null && serialConnection.isOpen()) {
-      
+
     	System.out.println("Connect this SBAN to sever");
     	tcpClientConnection = new TCPClientReport(this, serverAddr, serverPort);
     	System.out.println("Start new thread runTCPClient to " + serverAddr + " at port:" + serverPort);
         tcpClientConnection.open(null);
         System.out.println(tcpClientConnection.getConnectionName());
-        
-    	// Wait a short time before running the init script     
-        sleep(3000);
-        System.out.println("Start runInitScript()");
-        runInitScript();
-      
-        sleep(5000);
-        System.out.println("starting collect");
-        sendMultipleCommands("Start Collect", "~K", "killall",
-                           "mac 0", SET_TIME_COMMAND,
-                           "collect | timestamp | binprint &");    
-      
-      // send command by netcmd to sensor nodes
-      sleep(10000);      
-      System.out.println("Starting send netcmd"); 
-//      int interval = 60; 
-//      int random = 60;
-//      int reports = 0; // 0-report forever 
-//      int rexmits = 31; // 0-31     
-      sendCommand("netcmd { repeat " + reports + " " + interval 
-              + " { randwait " + random + " collect-view-data | send " + rexmits + " } }");
-      System.out.println("After sending command");    
+
+    	if (stack.equals(RIMESTACK)) {
+        	// Wait a short time before running the init script
+            sleep(3000);
+            System.out.println("Start runInitScript()");
+            runInitScript();
+
+            sleep(5000);
+            System.out.println("starting collect");
+            sendMultipleCommands("Start Collect", "~K", "killall",
+                               "mac 0", SET_TIME_COMMAND,
+                               "collect | timestamp | binprint &");
+
+            // send command by netcmd to sensor nodes
+            sleep(10000);
+            System.out.println("Starting send netcmd");
+            sendCommand("netcmd { repeat " + reports + " " + interval
+                  + " { randwait " + random + " collect-view-data | send " + rexmits + " } }");
+            System.out.println("After sending command");
+            //handleInputCommand();
+            //sendDataToServer("=========SystemTime=========" + System.currentTimeMillis());
+    	} else { //RPL stack
+    		System.out.println("OK for RPL receiving");
+    	}
     } else {
-      System.out.println("No serial port connection. No connected node");
-    }  
-    	      
-    //sleep(300);
-
-    //handleInputCommand();
-    //sendDataToServer("=========SystemTime=========" + System.currentTimeMillis());
-
+        System.out.println("No serial port connection. No connected node");
+    }
   }
 
 
   private final static String SET_TIME_COMMAND = "time %TIME% | null";
-  
+
   private void  sendMultipleCommands(final String... command) {
     System.out.println("Start sending multiple commands");
-    for(int i = 0, n = command.length; i < n; i++) {     
+    for(int i = 0, n = command.length; i < n; i++) {
       if (i > 0) {
         try {
-          // Do not send multiple commands too fast          
+          // Do not send multiple commands too fast
           Thread.sleep(1000);
         } catch (InterruptedException e1) {
         }
       }
       String cmd = command[i];
       if (cmd == SET_TIME_COMMAND) {
-        cmd = "time " + (System.currentTimeMillis() / 1000) + " | null";                                                                                                                                      
+        cmd = "time " + (System.currentTimeMillis() / 1000) + " | null";
       }
       if (!sendCommand(cmd)) {
         break;
@@ -198,9 +195,9 @@ public class CollectServer implements SerialConnectionListener {
   }
 
 
-  protected void connectToSerial() {
+  protected void connectToSerial(String comPort) {
     if (serialConnection != null && !serialConnection.isOpen()) {
-      serialConnection.open(COMPORT);
+      serialConnection.open(comPort);
     }
   }
 
@@ -287,11 +284,11 @@ public class CollectServer implements SerialConnectionListener {
   public String getConfig(String property, String defaultValue) {
     return configTable.getProperty(property, config.getProperty(property, defaultValue));
   }
-  
 
-  // -------------------------------------------------------------------
-  // Node Handling
-  // -------------------------------------------------------------------
+
+  /* -------------------------------------------------------------------
+   * Node Handling
+   * -------------------------------------------------------------------*/
 
   public synchronized Node[] getNodes() {
     if (nodeCache == null) {
@@ -301,24 +298,24 @@ public class CollectServer implements SerialConnectionListener {
     }
     return nodeCache;
   }
-  
+
   // This method cannot be deleted. Why not I don't know?
-  // Exception in thread "read input stream thread" java.lang.NoSuchMethodError: 
+  // Exception in thread "read input stream thread" java.lang.NoSuchMethodError:
   // org.contikios.contiki.collect.CollectServer.addNode(Ljava/lang/String;)Lorg/contikios/contiki/collect/Node;
-  public Node addNode(String nodeID) {
+  /*public Node addNode(String nodeID) {
     return getNode(nodeID, true);
-  }
+  }*/
 
    private Node getNode(final String nodeID, boolean notify) {
      Node node = nodeTable.get(nodeID);
      if (node == null) {
        node = new Node(nodeID);
        nodeTable.put(nodeID, node);
- 
+
        synchronized (this) {
          nodeCache = null;
        }
- 
+
        if (notify) {
          final Node newNode = node;
        }
@@ -373,13 +370,13 @@ public class CollectServer implements SerialConnectionListener {
   }
 
   // ------------------------------------------------------------------
-  // Handle Input Command 
+  // Handle Input Command
   // Function:
   // Input:
   // Output:
   // ------------------------------------------------------------------
   protected void handleInputCommand() {
-    new Thread("handle input command") { 
+    new Thread("handle input command") {
       public void run() {
         try {
 	  Scanner in = new Scanner(System.in);
@@ -402,14 +399,14 @@ public class CollectServer implements SerialConnectionListener {
       	    }
 	    if (line.equals("send")) {
 	      System.out.println("Before sending command");
-              // send command by netcmd to sensor nodes 
-              System.out.println("Start send netcmd"); 
-              int interval = 60; 
+              // send command by netcmd to sensor nodes
+              System.out.println("Start send netcmd");
+              int interval = 60;
               int random = 60;
-              int reports = 0; // 0-report forever 
-              int rexmits = 31; // 0-31 
-             
-              sendCommand("netcmd { repeat " + reports + " " + interval 
+              int reports = 0; // 0-report forever
+              int rexmits = 31; // 0-31
+
+              sendCommand("netcmd { repeat " + reports + " " + interval
                       + " { randwait " + random + " collect-view-data | send " + rexmits + " } }");
 	      System.out.println("After sending command");
 	    }
@@ -419,9 +416,6 @@ public class CollectServer implements SerialConnectionListener {
 		                   "mac 0", SET_TIME_COMMAND,
                                    "collect | timestamp | binprint &");
 	      System.out.println("After starting collect");
-	    }
-	    if(line.equals("server")) {
-	      sendDataToServer("Ngo Van Mao");
 	    }
 	    if(line.equals("exit")) {
 	      exit();
@@ -434,7 +428,7 @@ public class CollectServer implements SerialConnectionListener {
 	}
       }
     }.start();
-  }      
+  }
 
   // -------------------------------------------------------------------
   // Serial communication
@@ -464,21 +458,18 @@ public class CollectServer implements SerialConnectionListener {
 
   // -------------------------------------------------------------------
   // SensorData handling
+  // Function:
+  //    + Save collected data to a local file
+  //    + Send these data to the server for further processing
   // -------------------------------------------------------------------
 
   private void handleSensorData(final SensorData sensorData) {
     System.out.println("SENSOR DATA: " + sensorData);
     saveSensorData(sensorData);
     sendDataToServer(sensorData.toString());
-//    if (sensorData.getNode().addSensorData(sensorData)) {
-//      updateNodeTime(sensorData);
-//      sensorDataList.add(sensorData);
-//      handleLinks(sensorData);
-//    }
   }
 
   private void sendDataToServer(String data) {
-    //System.out.println("CollectorServer is sending data to server");    
     tcpClientConnection.writeSerialData(data.toString());
   }
 
@@ -530,8 +521,6 @@ public class CollectServer implements SerialConnectionListener {
   }
 
 
-
-
   // -------------------------------------------------------------------
   // SerialConnection Listener
   // -------------------------------------------------------------------
@@ -549,7 +538,7 @@ public class CollectServer implements SerialConnectionListener {
     System.out.println("connected to " + connectionName);
 
     if (!connection.isSerialOutputSupported()) {
-        System.out.println("*** Serial output not supported ***"); 
+        System.out.println("*** Serial output not supported ***");
     } else if (doSendInitAtStartup) {
       // Send any initial commands
       doSendInitAtStartup = false;
@@ -575,11 +564,6 @@ public class CollectServer implements SerialConnectionListener {
     } else {
       prefix = "Failed to connect to " + connection.getConnectionName() + '\n';
     }
-//    if (!connection.isClosed()) {
-//      System.out.println("The first connection to serial is failed. Will try another automatically!");
-//      // Try to open com port again
-//      connection.open(COMPORT);
-//    }
   }
 
 
@@ -590,16 +574,18 @@ public class CollectServer implements SerialConnectionListener {
   public static void main(String[] args) {
     boolean resetSensorLog = false;
     boolean useSensorLog = true;
-    boolean useSerialOutput = true;
-    String host = null;
+    String host = "localhost";
     String command = null;
-    int port = -1;
-    // parameter for shell command 
-    int interval = 60; 
+    String comPort = COMPORT;
+    String stack = RIMESTACK;
+    int port = 6789;
+
+    // parameters for shell command
+    int interval = 60;
     int random = 60;
-    int reports = 0; // 0-report forever 
-    int rexmits = 31; // 0-31  
-    
+    int reports = 0; // 0-report forever
+    int rexmits = 31; // 0-31
+
     for(int i = 0, n = args.length; i < n; i++) {
       String arg = args[i];
       if (arg.length() == 2 && arg.charAt(0) == '-') {
@@ -622,10 +608,17 @@ public class CollectServer implements SerialConnectionListener {
           } else {
             usage(arg);
           }
-          break;        
+          break;
+        case 'd':
+            if (i + 1 < n) {
+            	comPort = args[++i];
+            } else {
+            	usage(arg);
+            }
+            System.out.println("Mao Com port " + comPort);
         case 'h':
             usage(null);
-            break;        
+            break;
         case 'i':
           if (i + 1 < n) {
             interval = Integer.parseInt(args[++i]);
@@ -657,7 +650,7 @@ public class CollectServer implements SerialConnectionListener {
         case 'n':
             useSensorLog = false;
             break;
-        
+
         case 'p':
             if (i + 1 < n) {
               port = Integer.parseInt(args[++i]);
@@ -665,6 +658,12 @@ public class CollectServer implements SerialConnectionListener {
               usage(arg);
             }
             break;
+        case 's':
+        	if (i+1 < n) {
+        		stack = args[++i];
+        	} else {
+        		usage(arg);
+        	}
         case 'r':
             resetSensorLog = true;
             break;
@@ -679,21 +678,7 @@ public class CollectServer implements SerialConnectionListener {
 
     CollectServer server = new CollectServer();
     SerialConnection serialConnection;
-    
-//    if (host != null) {
-//        if (port <= 0) {
-//            port = 60001;
-//        }
-//        serialConnection = new TCPClientConnection(server, host, port);
-//    } else if (port > 0) {
-//      serialConnection = new UDPConnection(server, port);
-//   } else if (command == null) {
-    if (host == null) {
-    	host = "localhost";
-    }
-    if (port == -1)
-    	port = 6789;
-    
+
     if (command == null) {
       serialConnection = new SerialDumpConnection(server);
     } else if (command == STDIN_COMMAND) {
@@ -706,35 +691,34 @@ public class CollectServer implements SerialConnectionListener {
     if (useSensorLog && resetSensorLog) {
       server.clearSensorDataLog();
     }
-    server.start(serialConnection, host, port, interval, random, reports, rexmits);
-
-//    Scanner scanKey = new Scanner(System.in); 
-//    System.out.println("input the command");
-//    String scanStr = scanKey.nextLine();
-//    if (scanStr == "C"){
-//      server.runInitScript();
-//      System.out.println("Connect to Serial lalal");
-//    } 
+    server.start(serialConnection, host, port, stack, comPort, interval, random, reports, rexmits);
   }
 
   private static void usage(String arg) {
     if (arg != null) {
       System.err.println("Unknown argument '" + arg + '\'');
     }
-    System.err.println("Usage: java CollectServer [-n] [-i] [-k] [-l] [-m] [-r] [-a host:port] [-p port] [-c command] [COMPORT]");
+    System.err.println("Usage: java CollectServer [-a host:port] [-c command] [-d COMPORT] [-i] [-k] [-l] [-m] [-n] [-r] [-s stack] ");
     System.err.println("       -n : Do not read or save sensor data log");
     System.err.println("       -r : Clear any existing sensor data log at startup");
     System.err.println("       -i : interval value in seconds");
     System.err.println("       -k : random value in seconds");
     System.err.println("       -l : reports value in seconds. reports = 0 means infinite.");
     System.err.println("       -m : rexmits value in seconds");
-    System.err.println("       -a : Connect to specified host:port");
+    System.err.println("       -a : Connect to specified host:port. Default value is localhost:6789.");
     System.err.println("       -p : Read data from specified UDP port");
     System.err.println("       -c : Use specified command for serial data input/output");
-    System.err.println("   COMPORT: The serial port to connect to");
-    System.err.println("Example: java -jar collect-view.jar -a 10.11.1.208:6789 -i 60 -k 60 -l 0 -m 31 \n");
-    System.err.println("Starting SBAN and report sensor data to server at 10.11.1.208:6789.");
-    System.err.println("Sensor data will be collected randomly with interval 60 seconds, radom 60 seconds, retransmit 31 and nonstop.");
+    System.err.println("       -d : The serial port to connect to, default is /dev/ttyUSB0");
+    System.err.println("       -s : Network Stack will be used. stack is either RIME or RPL. RIME is default value.\n");
+    System.err.println("Example for RIME netstack:");
+    System.err.println("java -jar collect-view.jar -a 10.11.1.208:6789 -i 60 -k 60 -l 0 -m 31 \n");
+    System.err.println("Start SBAN and report sensor data to server at 10.11.1.208:6789.");
+    System.err.println("Sensor data will be collected randomly with interval 60 seconds, radom 60 seconds, retransmit 31 and nonstop.\n");
+    System.err.println("Example for RPL netstack:");
+    System.err.println("java -jar collect-view.jar -a 10.11.1.208:6789 -s RPL -d /dev/ttyUSB1\n");
+    System.err.println("Start SBAN gateway in RPL stack at comport=/dev/ttyUSB1.");
+    System.err.println("And transmit collected data to the server 10.11.1.208:6789.\n");
+
     System.exit(arg != null ? 1 : 0);
   }
 }
