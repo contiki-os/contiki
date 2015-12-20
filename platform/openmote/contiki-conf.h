@@ -325,6 +325,7 @@ typedef uint32_t rtimer_clock_t;
 
 #define NETSTACK_CONF_RADIO   cc2538_rf_driver
 
+/* IEEE802.15.4 frame version */
 #define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
 
 /** @} */
@@ -519,12 +520,12 @@ typedef uint32_t rtimer_clock_t;
 /** @} */
 /*---------------------------------------------------------------------------*/
 
-// XMAONGO ... 2015-11-6 TODO: wrong here XXX
 /* Delay between GO signal and SFD
- *  * Measured 153us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 153+5*32 = 313 */
+ *  * Measured 192us between GO and preamble. Add 5 bytes (preamble + SFD) air time: ~192+5*32 = 352
+ *  * Tested with 368 is better??? Need to verify by logic analizer */
 #define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(368))
 /* Delay between GO signal and start listening
- *  * Measured 104us: between GO signal and start listening */
+ *  * Measured 176us: between GO signal and start listening */
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(176))
 /* Delay between the SFD finishes arriving and it is detected in software */
 #define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(16))
@@ -563,7 +564,6 @@ typedef uint32_t rtimer_clock_t;
 #include "led-strip.h"
 #include "dev/gpio.h"
 #include "reg.h"
-#include "board.h"
 
 #define TSCH_DEBUG_INTERRUPT() do { \
     static uint8_t dio_state = 0; \

@@ -302,9 +302,9 @@ public class CollectServer implements SerialConnectionListener {
   // This method cannot be deleted. Why not I don't know?
   // Exception in thread "read input stream thread" java.lang.NoSuchMethodError:
   // org.contikios.contiki.collect.CollectServer.addNode(Ljava/lang/String;)Lorg/contikios/contiki/collect/Node;
-  /*public Node addNode(String nodeID) {
+  public Node addNode(String nodeID) {
     return getNode(nodeID, true);
-  }*/
+  }
 
    private Node getNode(final String nodeID, boolean notify) {
      Node node = nodeTable.get(nodeID);

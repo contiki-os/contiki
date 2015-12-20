@@ -359,6 +359,9 @@ typedef uint32_t rtimer_clock_t;
 #define NETSTACK_CONF_RADIO         cc2538_rf_driver
 #endif
 
+/* IEEE802.15.4 frame version */
+#define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
+
 /*
  * RE-Mote specific:
  * If dual RF enabled, we set the RF switch to enable the CC1200 and use 2.4GHz
@@ -567,25 +570,19 @@ typedef uint32_t rtimer_clock_t;
 
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 /** @} */
+
 /*---------------------------------------------------------------------------*/
-// XMAONGO start
 /* Delay between GO signal and SFD
- *  * Measured (153)us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 153+5*32 = 313
- *  * CC2538
  *  * Measured 192us between GO and preamble. Add 5 bytes (preamble + SFD) air time: 192+5*32 = 352
  *    368 is working OK
  *  * */
 #define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(368))
 /* Delay between GO signal and start listening
- *  * Measured 104us: between GO signal and start listening
- *  * CC2538
  *  * Measured 176us: between GO signal and start listening 176 is perfect number after some times modification*/
 #define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(176))
 // see 23.9.6.6 Tips and Tricks in UG cc2538
-// (104))
 /* Delay between the SFD finishes arriving and it is detected in software */
 #define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(16))
-// cc2538 16 or 2?
 
 /* CPU target speed in Hz
  *  * RTIMER and peripherals clock is F_CPU/2 */
@@ -621,10 +618,9 @@ typedef uint32_t rtimer_clock_t;
 #include "led-strip.h"
 #include "dev/gpio.h"
 #include "reg.h"
-#include "board.h"
 
 #define TSCH_DEBUG_INTERRUPT() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_GREEN); \
@@ -634,7 +630,7 @@ typedef uint32_t rtimer_clock_t;
 } while(0);
 
 #define TSCH_DEBUG_TX_EVENT() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_RED); \
@@ -644,7 +640,7 @@ typedef uint32_t rtimer_clock_t;
 } while(0);
 
 #define TSCH_DEBUG_SFD_EVENT() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_PURPLE); \
@@ -654,7 +650,7 @@ typedef uint32_t rtimer_clock_t;
 } while(0);
 
 #define TSCH_DEBUG_SLOT_START() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_GREEN); \
@@ -664,7 +660,7 @@ typedef uint32_t rtimer_clock_t;
 } while(0);
 
 #define TSCH_DEBUG_RX_EVENT() do { \
-    static dio_state = 0 ; \
+    static uint8_t dio_state = 0 ; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_BLUE); \
@@ -677,7 +673,7 @@ typedef uint32_t rtimer_clock_t;
 
 // TODO: remove this later and remove in cc2538-rf.c
 #define TSCH_DEBUG_SFD_EVENT() do { \
-    static dio_state = 0; \
+    static uint8_t dio_state = 0; \
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_PURPLE); \

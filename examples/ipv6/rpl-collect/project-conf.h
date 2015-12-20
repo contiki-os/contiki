@@ -35,6 +35,25 @@
 #ifndef __PROJECT_CONF_H__
 #define __PROJECT_CONF_H__
 
+// Set  some parameter for this applications
+#define PERIOD 5
+
+#ifndef ENERGEST_CONF_ON
+#define ENERGEST_CONF_ON 1
+#endif
+
+#undef CC2538_RF_CONF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL              22
+
+/* IEEE802.15.4 PANID for CSMA or contikiMac*/
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID 0xBABE
+
+#if CONF_RUN_TSCH
+/* IEEE802.15.4 PANID */
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID 0xCAFE
+
 /* Set to run orchestra */
 #ifndef WITH_ORCHESTRA
 #define WITH_ORCHESTRA 0
@@ -75,9 +94,6 @@
 /* Reduce queue length for Zoul limitted ram */
 #define TSCH_LOG_CONF_QUEUE_LEN 2
 
-/* IEEE802.15.4 PANID */
-#undef IEEE802154_CONF_PANID
-#define IEEE802154_CONF_PANID 0xCAFE
 
 /* Do not start TSCH at init, wait for NETSTACK_MAC.on() */
 #undef TSCH_CONF_AUTOSTART
@@ -176,12 +192,6 @@
 #endif /* CONTIKI_TARGET_OPENMOTE || CONTIKI_TARGET_ZOUL */
 
 /*==========================CC2538=================================*/
-
-// Set  some parameter for this applications
-#define PERIOD 5
-
-#ifndef ENERGEST_CONF_ON
-#define ENERGEST_CONF_ON 1
-#endif
+#endif /* CONF_RUN_TSCH */
 
 #endif /* __PROJECT_CONF_H__ */
