@@ -268,7 +268,7 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
   if(missed) {
     TSCH_LOG_ADD(tsch_log_message,
                 snprintf(log->message, sizeof(log->message),
-                    "!dl-miss %s 0x%lx 0x%lx 0x%lx",
+                    "!dl-miss %s 0x%lx 0x%x 0x%lx",
                         str, (int)(ref_time), (int)offset - RTIMER_GUARD, (int)now);
     );
 

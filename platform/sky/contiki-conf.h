@@ -41,6 +41,9 @@
  * use 15ms instead. */
 #define TSCH_CONF_DEFAULT_TIMESLOT_LENGTH 15000
 
+/* IEEE802.15.4 frame version */
+#define FRAME802154_CONF_VERSION FRAME802154_IEEE802154E_2012
+
 /* Specify whether the RDC layer should enable
    per-packet power profiling. */
 #define CONTIKIMAC_CONF_COMPOWER         1
