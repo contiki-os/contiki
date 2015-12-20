@@ -54,12 +54,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-/** \name AES-CCM driver return codes
- * @{
- */
-#define CCM_AUTHENTICATION_FAILED     7
-/** @} */
-/*---------------------------------------------------------------------------*/
 /** \name AES-CCM functions
  * @{
  */
@@ -86,7 +80,7 @@ uint8_t ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area,
  * \retval false Result not yet available, and no error occurred
  * \retval true Result available, or error occurred
  */
-uint8_t ccm_auth_encrypt_check_status(void);
+#define ccm_auth_encrypt_check_status aes_auth_crypt_check_status
 
 /** \brief Gets the result of the CCM authentication and encryption operation
  * \param mic Pointer to authentication field, or \c NULL
@@ -118,7 +112,7 @@ uint8_t ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area,
  * \retval false Result not yet available, and no error occurred
  * \retval true Result available, or error occurred
  */
-uint8_t ccm_auth_decrypt_check_status(void);
+#define ccm_auth_decrypt_check_status aes_auth_crypt_check_status
 
 /** \brief Gets the result of the CCM authentication checking and decryption operation
  * \param cdata Pointer to encrypted and authenticated message

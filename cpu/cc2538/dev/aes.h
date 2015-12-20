@@ -51,6 +51,7 @@
 #include "contiki.h"
 #include "dev/crypto.h"
 
+#include <stdbool.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
 /** \name AES register offsets
@@ -464,6 +465,16 @@
  */
 #define AES_KEYSTORE_READ_ERROR       5
 #define AES_KEYSTORE_WRITE_ERROR      6
+#define AES_AUTHENTICATION_FAILED     7
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name AES constants
+ * @{
+ */
+#define AES_KEY_AREAS   8
+#define AES_BLOCK_LEN   (128 / 8)
+#define AES_IV_LEN      AES_BLOCK_LEN
+#define AES_TAG_LEN     AES_BLOCK_LEN
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name AES functions
@@ -473,10 +484,11 @@
 /** \brief Writes keys into the Key RAM
  * \param keys Pointer to AES Keys
  * \param key_size Key size: \c AES_KEY_STORE_SIZE_KEY_SIZE_x
- * \param count Number of keys (1 to 8 - \p start_area for 128-bit keys, 1 to
- * (8 - \p start_area) / 2 for 192- and 256-bit keys)
- * \param start_area Start area in Key RAM where to store the key (0 to 7, must
- * be even for 192- and 256-bit keys)
+ * \param count Number of keys (1 to \c AES_KEY_AREAS - \p start_area for
+ * 128-bit keys, 1 to (\c AES_KEY_AREAS - \p start_area) / 2 for 192- and
+ * 256-bit keys)
+ * \param start_area Start area in Key RAM where to store the keys (0 to
+ * \c AES_KEY_AREAS - 1, must be even for 192- and 256-bit keys)
  * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES error code
  * \note Calling this function with a value of \p key_size different from the
  * one passed for the previous calls causes the deletion of all previously
@@ -484,6 +496,43 @@
  */
 uint8_t aes_load_keys(const void *keys, uint8_t key_size, uint8_t count,
                       uint8_t start_area);
+
+/** \brief Starts an AES authentication/crypto operation
+ * \param ctrl Contents of the \c AES_AES_CTRL register
+ * \param key_area Area in Key RAM where the key is stored (0 to
+ * \c AES_KEY_AREAS - 1)
+ * \param iv Pointer to 128-bit initialization vector, or \c NULL
+ * \param adata Pointer to additional authenticated data in SRAM, or \c NULL
+ * \param adata_len Length of additional authenticated data in octets, or \c 0
+ * \param data_in Pointer to input payload data in SRAM, or \c NULL
+ * \param data_out Pointer to output payload data in SRAM (may be \p data_in),
+ * or \c NULL
+ * \param data_len Length of payload data in octets, or \c 0
+ * \param process Process to be polled upon completion of the operation, or
+ * \c NULL
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES error code
+ * \note This function is only supposed to be called by the AES drivers.
+ */
+uint8_t aes_auth_crypt_start(uint32_t ctrl, uint8_t key_area, const void *iv,
+                             const void *adata, uint16_t adata_len,
+                             const void *data_in, void *data_out,
+                             uint16_t data_len, struct process *process);
+
+/** \brief Checks the status of the AES authentication/crypto operation
+ * \retval false Result not yet available, and no error occurred
+ * \retval true Result available, or error occurred
+ * \note This function is only supposed to be called by the AES drivers.
+ */
+uint8_t aes_auth_crypt_check_status(void);
+
+/** \brief Gets the result of the AES authentication/crypto operation
+ * \param iv Pointer to 128-bit result initialization vector, or \c NULL
+ * \param tag Pointer to 128-bit result tag, or \c NULL
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES error code
+ * \note This function must be called only after \c aes_auth_crypt_start().
+ * \note This function is only supposed to be called by the AES drivers.
+ */
+uint8_t aes_auth_crypt_get_result(void *iv, void *tag);
 
 /** @} */
 
