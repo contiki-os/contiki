@@ -14,6 +14,7 @@ hello-world/z1 \
 eeprom-test/native \
 collect/sky \
 er-rest-example/wismote \
+ipso-objects/wismote \
 example-shell/native \
 netperf/sky \
 powertrace/sky \
