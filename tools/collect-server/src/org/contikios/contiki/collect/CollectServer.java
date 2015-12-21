@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, Singapore University of Technology and Design (STUD)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +33,9 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
+ * 
+ * Modifier: Ngo Van Mao, 2015/12/21
+ * 
  */
 
 package org.contikios.contiki.collect;
@@ -1257,8 +1261,8 @@ public class CollectServer implements SerialConnectionListener {
   private void setSbanIP() {
 	  sban_IP = serialConnection.getConnectionName();
 	  
-	  //sensor_data_file = "sensordata_" + sban_IP + "_"+ System.currentTimeMillis()+ ".log";
-	  sensor_data_file = "sensordata_" + sban_IP + ".log";
+	  sensor_data_file = "sensordata_" + sban_IP + "_"+ System.currentTimeMillis()+ ".log";
+	  //sensor_data_file = "sensordata_" + sban_IP + ".log";
 	  System.out.println("sensor data file namse: " + sensor_data_file);
   }
 
