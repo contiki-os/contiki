@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015, SICS Swedish ICT.
+ * Copyright (c) 2015, Singapore University of Technology and Design
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +31,7 @@
 
 /**
  * \author Simon Duquennoy <simonduq@sics.se>
+ *         Ngo Van Mao <vanmao_ngo@sutd.edu.sg>
  */
 
 #ifndef __PROJECT_CONF_H__
@@ -49,6 +51,11 @@
 #undef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID 0xBABE
 
+// TODO: should put in platform. If not, we have to put it everywhere to get RTIMER 32768
+#define RTIMER_CONF_USE_32KHZ  1
+
+// In order to make with TSCH mode, just run below command:
+// make TARGET=<target> DEFINES=CONF_RUN_TSCH=1 ...
 #if CONF_RUN_TSCH
 /* IEEE802.15.4 PANID */
 #undef IEEE802154_CONF_PANID

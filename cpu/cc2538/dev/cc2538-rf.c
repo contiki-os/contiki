@@ -552,9 +552,9 @@ init(void)
    * FIFOP can be disable later by upper layer in case polling in higher layer.
    */
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;
+#endif // CC2538_CONF_SFD_TIMESTAMPS
   REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;
   nvic_interrupt_enable(NVIC_INT_RF_RXTX);
-#endif // CC2538_CONF_SFD_TIMESTAMPS
 
   /* Acknowledge all RF Error interrupts */
   REG(RFCORE_XREG_RFERRM) = RFCORE_XREG_RFERRM_RFERRM;
@@ -1163,6 +1163,7 @@ cc2538_rf_rx_tx_isr(void)
     process_poll(&cc2538_rf_process);
     /* We only acknowledge FIFOP so we can safely wipe out the entire SFR */
     REG(RFCORE_SFR_RFIRQF0) = 0;
+    FIFO_DEBUG_INTR_EVENT();
   }
 #if 0
   // or FIFOP is full -- we have a packet.

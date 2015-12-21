@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010, Loughborough University - Computer Science
+ * Copyright (c) 2015, Singapore University of Technology and Design (SUTD)
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +39,7 @@
  *
  * \author
  *         George Oikonomou - <oikonomou@users.sourceforge.net>
+ *         Ngo Van Mao      - <vanmao_ngo@sutd.edu.sg>
  */
 
 #ifndef PROJECT_CONF_H_
@@ -49,10 +51,14 @@
 #undef CC2538_RF_CONF_SNIFFER
 #define CC2538_RF_CONF_SNIFFER 1
 
+// Inorder to build with differrent channel, e.g. 22, please use the following make:
+// make TARGET=<target> DEINFES=CONF_SNIFFER_CHANNEL=22 ...
+#if CONF_SNIFFER_CHANNEL
 #undef RF_CHANNEL
-#define RF_CHANNEL      26
+#define RF_CHANNEL          CONF_SNIFFER_CHANNEL
 #undef CC2420_CONF_CHANNEL
-#define CC2420_CONF_CHANNEL 26
+#define CC2420_CONF_CHANNEL CONF_SNIFFER_CHANNEL
+#endif // CONF_SNIFFER_CHANNEL
 
 #if 1
 #undef NETSTACK_CONF_RDC

@@ -555,7 +555,7 @@ typedef uint32_t rtimer_clock_t;
 /* Enable this to get the 32.768kHz oscillator */
 #ifndef CC2538_EXTERNAL_CRYSTAL_OSCILLATOR
 #define CC2538_EXTERNAL_CRYSTAL_OSCILLATOR (RTIMER_USE_32KHZ || CC2538_SLEEP_ENABLED)
-#endif /* JN516X_EXTERNAL_CRYSTAL_OSCILLATOR */
+#endif /* CC2538_EXTERNAL_CRYSTAL_OSCILLATOR */
 
 /* TSCH_DEBUG */
 #define TSCH_DEBUG 0
@@ -623,6 +623,16 @@ typedef uint32_t rtimer_clock_t;
     dio_state = !dio_state; \
     if(dio_state) { \
       GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_ORANGE); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, 0); \
+    } \
+} while(0);
+
+#define FIFO_DEBUG_INTR_EVENT() do { \
+    static uint8_t dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, LEDS_GREEN); \
     } else { \
       GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_CONF_ALL, 0); \
     } \
