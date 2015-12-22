@@ -29,10 +29,8 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup remote-examples
+ * \addtogroup remote-power-management-test
  * @{
- *
- * \defgroup remote-power-management-test RE-Mote power management example
  *
  * Test the RE-Mote's power management features, shutdown mode and battery
  * management
@@ -53,6 +51,8 @@
 #include "dev/gpio.h"
 #include "lib/list.h"
 #include "power-mgmt.h"
+#include "net/rime/broadcast.h"
+
 #include <stdio.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -64,6 +64,17 @@ PROCESS(test_remote_pm, "RE-Mote Power Management Test");
 AUTOSTART_PROCESSES(&test_remote_pm);
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
+/*---------------------------------------------------------------------------*/
+static void
+broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
+{
+  leds_toggle(LEDS_BLUE);
+  printf("*** Received %u bytes from %u:%u: '0x%04x'\n", packetbuf_datalen(),
+         from->u8[0], from->u8[1], *(uint16_t *)packetbuf_dataptr());
+}
+/*---------------------------------------------------------------------------*/
+static const struct broadcast_callbacks bc_rx = { broadcast_recv };
+static struct broadcast_conn bc;
 /*---------------------------------------------------------------------------*/
 static char *
 print_pm(uint8_t state)
@@ -173,23 +184,37 @@ PROCESS_THREAD(test_remote_pm, ev, data)
    * disconnect the USB cable and power only with the external battery.  If
    * something fails, then you should not see the red LED blinking
    */
-  aux = 0;
+  aux = ENTER_SHUTDOWN_COUNT;
 
+  /* Open the broadcast channel */
+  broadcast_open(&bc, BROADCAST_CHANNEL, &bc_rx);
+
+  /* Send a message */
+  packetbuf_copyfrom(&aux, sizeof(aux));
+  broadcast_send(&bc);
+
+  /* And wait a few seconds before going to sleep */
   while(1){
     etimer_set(&et, CLOCK_SECOND);
     PROCESS_WAIT_EVENT();
-    aux++;
 
-    /* Enter shutdown mode before the shutdown period (1 min) expires */
-    if((aux % ENTER_SHUTDOWN_COUNT) == 0) {
+    /* Enter shutdown mode before the shutdown period (1 min default) expires */
+    if(!aux) {
       /* Say goodnight */
       PM_SHUTDOWN_NOW;
       printf("Goodnight!\n");
+      PROCESS_EXIT();
     }
 
+    aux--;
     leds_toggle(LEDS_RED);
   }
 
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */
 
