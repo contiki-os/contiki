@@ -73,6 +73,7 @@
 #include "dev/watchdog.h"
 #include "dev/serial-line.h"
 #include "dev/sys-ctrl.h"
+#include "net/netstack.h"
 #include "net/rime/broadcast.h"
 
 #include <stdio.h>
@@ -86,8 +87,6 @@
 #define LEDS_SERIAL_IN      LEDS_GREEN
 #define LEDS_REBOOT         LEDS_ALL
 #define LEDS_RF_RX          (LEDS_YELLOW | LEDS_RED)
-#define BROADCAST_CHANNEL   129
-
 #define BUTTON_PRESS_EVENT_INTERVAL (CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
@@ -121,6 +120,10 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
   PROCESS_BEGIN();
 
   counter = 0;
+
+  /* Disable the radio duty cycle and keep the radio on */
+  NETSTACK_MAC.off(1);
+
   broadcast_open(&bc, BROADCAST_CHANNEL, &bc_rx);
 
   /* Configure the user button */

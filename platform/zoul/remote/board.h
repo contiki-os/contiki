@@ -348,31 +348,27 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \name Shutdown Mode
+ * \name Power management and shutdown mode
  *
  * The shutdown mode is an ultra-low power operation mode that effectively
  * powers-down the entire RE-Mote (CC2538, CC1200, attached sensors, etc) and
  * only keeps running a power gating timer (NanoTimer), the on-board RTC and
  * an ultra-low power consumption MCU (PIC12F635).  The Shutdown mode allows:
  *
- * - Put the RE-Mote in an ultra-low power sleep (shutdown) drawing 350nA avg.
+ * - Put the RE-Mote in an ultra-low power sleep (shutdown) drawing <200nA avg.
  * - Periodically awake and execute tasks, being the shutdown period selectable
  *   via R47 resistor value (22KOhm as default for 1 minute shutdown period).
- * - Enter shutdown mode before the shutdown period expiration, by sending a
- *   pulse to SHUTDOWN_DONE.
- *
- * To enable or disable the shutdown mode a well-known sequence has to be sent
- * to the PIC12F635 via its 1-Wire pin, when the shutdown mode is enabled,
- * confirmation is done by the PIC echoing-back the command to the CC2538.
+ * - Enter shutdown mode before the shutdown period expiration, by invoking the
+ *   PM_SHUTDOWN_NOW macrp
  *
  * The shutdown mode can be disabled by hardware by short-circuiting or placing
  * an 0Ohm resistor across W1 pad.
  * @{
  */
-#define SHUTDOWN_DONE_PORT       GPIO_D_NUM
-#define SHUTDOWN_DONE_PIN        0
-#define SHUTDOWN_ENABLE_PORT     GPIO_D_NUM
-#define SHUTDOWN_ENABLE_PIN      1
+#define PM_DONE_PORT                GPIO_D_NUM
+#define PM_DONE_PIN                 0
+#define PM_CMD_PORT                 GPIO_D_NUM
+#define PM_CMD_PIN                  1
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
