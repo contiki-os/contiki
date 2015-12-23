@@ -51,11 +51,11 @@
 static uint8_t
 ccm_auth_crypt_start(uint8_t encrypt, uint8_t len_len, uint8_t key_area,
                      const void *nonce, const void *adata, uint16_t adata_len,
-                     void *data, uint16_t data_len, uint8_t mic_len,
-                     struct process *process)
+                     const void *data_in, void *data_out, uint16_t data_len,
+                     uint8_t mic_len, struct process *process)
 {
   uint32_t ctrl;
-  uint32_t iv[4];
+  uint32_t iv[AES_IV_LEN / sizeof(uint32_t)];
 
   /* Program AES-CCM authentication/crypto operation */
   ctrl = AES_AES_CTRL_SAVE_CONTEXT |                         /* Save context */
@@ -70,19 +70,20 @@ ccm_auth_crypt_start(uint8_t encrypt, uint8_t len_len, uint8_t key_area,
    * Flags: L' = L - 1 */
   ((uint8_t *)iv)[0] = len_len - 1;
   /* Nonce */
-  rom_util_memcpy(&((uint8_t *)iv)[1], nonce, 15 - len_len);
+  rom_util_memcpy(&((uint8_t *)iv)[CCM_FLAGS_LEN], nonce,
+                  CCM_NONCE_LEN_LEN - len_len);
   /* Initialize counter to 0 */
-  rom_util_memset(&((uint8_t *)iv)[16 - len_len], 0, len_len);
+  rom_util_memset(&((uint8_t *)iv)[AES_IV_LEN - len_len], 0, len_len);
 
   return aes_auth_crypt_start(ctrl, key_area, iv, adata, adata_len,
-                              data, data, data_len, process);
+                              data_in, data_out, data_len, process);
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
 ccm_auth_crypt_get_result(const void *cdata, uint16_t cdata_len,
                           void *mic, uint8_t mic_len)
 {
-  uint32_t tag[4];
+  uint32_t tag[AES_TAG_LEN / sizeof(uint32_t)];
   uint16_t data_len;
   uint8_t ret;
 
@@ -107,12 +108,12 @@ ccm_auth_crypt_get_result(const void *cdata, uint16_t cdata_len,
 /*---------------------------------------------------------------------------*/
 uint8_t
 ccm_auth_encrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
-                       const void *adata, uint16_t adata_len, void *pdata,
-                       uint16_t pdata_len, uint8_t mic_len,
+                       const void *adata, uint16_t adata_len, const void *pdata,
+                       uint16_t pdata_len, void *cdata, uint8_t mic_len,
                        struct process *process)
 {
   return ccm_auth_crypt_start(true, len_len, key_area, nonce, adata, adata_len,
-                              pdata, pdata_len, mic_len, process);
+                              pdata, cdata, pdata_len, mic_len, process);
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -123,14 +124,14 @@ ccm_auth_encrypt_get_result(void *mic, uint8_t mic_len)
 /*---------------------------------------------------------------------------*/
 uint8_t
 ccm_auth_decrypt_start(uint8_t len_len, uint8_t key_area, const void *nonce,
-                       const void *adata, uint16_t adata_len, void *cdata,
-                       uint16_t cdata_len, uint8_t mic_len,
+                       const void *adata, uint16_t adata_len, const void *cdata,
+                       uint16_t cdata_len, void *pdata, uint8_t mic_len,
                        struct process *process)
 {
   uint16_t data_len = cdata_len - mic_len;
 
   return ccm_auth_crypt_start(false, len_len, key_area, nonce, adata, adata_len,
-                              cdata, data_len, mic_len, process);
+                              cdata, pdata, data_len, mic_len, process);
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
