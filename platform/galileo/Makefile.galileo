@@ -1,0 +1,28 @@
+BSP_PATH=$(CONTIKI)/platform/galileo/bsp
+LIBC_PATH=$(BSP_PATH)/libc
+LIBC=$(LIBC_PATH)/i586-elf
+LIBGCC_PATH = /usr/lib/gcc/$(shell gcc -dumpmachine)/$(shell gcc -dumpversion)
+
+CONTIKI_TARGET_DIRS = . core/sys/ drivers/ net/
+CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
+CONTIKI_SOURCEFILES += contiki-main.c clock.c rtimer-arch.c gpio-pcal9535a.c pwm-pca9685.c galileo-pinmux.c eth-proc.c eth-conf.c
+
+ifeq ($(CONTIKI_WITH_IPV6),1)
+	CONTIKI_SOURCEFILES += nbr-table.c packetbuf.c linkaddr.c
+endif
+
+PROJECT_SOURCEFILES += newlib-syscalls.c
+
+CONTIKI_CPU=$(CONTIKI)/cpu/x86
+include $(CONTIKI)/cpu/x86/Makefile.x86_quarkX1000
+
+CFLAGS += -fno-stack-protector -nostdinc -I$(LIBC)/include -isystem $(LIBGCC_PATH)/include -isystem $(LIBGCC_PATH)/include-fixed
+LDFLAGS += -nostdlib -L$(LIBC)/lib -L$(LIBGCC_PATH)/32
+
+TARGET_LIBFILES += -lm -lc -lgcc
+
+-include $(LIBC_PATH)/Makefile.libc
+
+ifndef BUILT_LIBC
+  $(error Build the C library by executing $(LIBC_PATH)/build_newlib.sh)
+endif
