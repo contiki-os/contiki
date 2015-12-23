@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
+ * Copyright (c) 2015, Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,60 +29,55 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538
+ * \addtogroup cc2538-aes
  * @{
  *
- * \defgroup cc2538-crypto cc2538 AES/SHA cryptoprocessor
+ * \defgroup cc2538-ecb cc2538 AES-ECB
  *
- * Driver for the cc2538 AES/SHA cryptoprocessor
+ * Driver for the cc2538 AES-ECB mode of the security core
  * @{
  *
  * \file
- * Header file for the cc2538 AES/SHA cryptoprocessor driver
+ * Header file for the cc2538 AES-ECB driver
  */
-#ifndef CRYPTO_H_
-#define CRYPTO_H_
+#ifndef ECB_H_
+#define ECB_H_
 
 #include "contiki.h"
+#include "dev/aes.h"
+
+#include <stdbool.h>
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
-/** \name Crypto drivers return codes
- * @{
- */
-#define CRYPTO_PENDING                (-1)
-#define CRYPTO_SUCCESS                0
-#define CRYPTO_INVALID_PARAM          1
-#define CRYPTO_NULL_ERROR             2
-#define CRYPTO_RESOURCE_IN_USE        3
-#define CRYPTO_DMA_BUS_ERROR          4
-/** @} */
-/*---------------------------------------------------------------------------*/
-/** \name Crypto functions
+/** \name AES-ECB functions
  * @{
  */
 
-/** \brief Enables and resets the AES/SHA cryptoprocessor
+/** \brief Starts an ECB crypto operation
+ * \param encrypt \c true to encrypt, or \c false to decrypt
+ * \param key_area Area in Key RAM where the key is stored (0 to
+ * \c AES_KEY_AREAS - 1)
+ * \param mdata_in Pointer to input message in SRAM
+ * \param mdata_out Pointer to output message in SRAM (may be \p mdata_in)
+ * \param mdata_len Length of message in octets
+ * \param process Process to be polled upon completion of the operation, or
+ * \c NULL
+ * \return \c CRYPTO_SUCCESS if successful, or CRYPTO/AES/ECB error code
  */
-void crypto_init(void);
+uint8_t ecb_crypt_start(uint8_t encrypt, uint8_t key_area, const void *mdata_in,
+                        void *mdata_out, uint16_t mdata_len,
+                        struct process *process);
 
-/** \brief Enables the AES/SHA cryptoprocessor
+/** \brief Checks the status of the ECB crypto operation
+ * \return \c CRYPTO_PENDING if operation still pending, \c CRYPTO_SUCCESS if
+ * successful, or CRYPTO/AES/ECB error code
+ * \note This function must be called only after \c ecb_crypt_start().
  */
-void crypto_enable(void);
-
-/** \brief Disables the AES/SHA cryptoprocessor
- * \note Call this function to save power when the cryptoprocessor is unused.
- */
-void crypto_disable(void);
-
-/** \brief Registers a process to be notified of the completion of a crypto
- * operation
- * \param p Process to be polled upon IRQ
- * \note This function is only supposed to be called by the crypto drivers.
- */
-void crypto_register_process_notification(struct process *p);
+int8_t ecb_crypt_check_status(void);
 
 /** @} */
 
-#endif /* CRYPTO_H_ */
+#endif /* ECB_H_ */
 
 /**
  * @}

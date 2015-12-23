@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, ADVANSEE - http://www.advansee.com/
+ * Copyright (c) 2015, Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,62 +29,36 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup cc2538
- * @{
- *
- * \defgroup cc2538-crypto cc2538 AES/SHA cryptoprocessor
- *
- * Driver for the cc2538 AES/SHA cryptoprocessor
+ * \addtogroup cc2538-ecb
  * @{
  *
  * \file
- * Header file for the cc2538 AES/SHA cryptoprocessor driver
+ * Implementation of the cc2538 AES-ECB driver
  */
-#ifndef CRYPTO_H_
-#define CRYPTO_H_
-
 #include "contiki.h"
+#include "dev/ecb.h"
+
+#include <stdbool.h>
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
-/** \name Crypto drivers return codes
- * @{
- */
-#define CRYPTO_PENDING                (-1)
-#define CRYPTO_SUCCESS                0
-#define CRYPTO_INVALID_PARAM          1
-#define CRYPTO_NULL_ERROR             2
-#define CRYPTO_RESOURCE_IN_USE        3
-#define CRYPTO_DMA_BUS_ERROR          4
-/** @} */
+uint8_t
+ecb_crypt_start(uint8_t encrypt, uint8_t key_area, const void *mdata_in,
+                void *mdata_out, uint16_t mdata_len, struct process *process)
+{
+  uint32_t ctrl;
+
+  /* Program AES-ECB crypto operation */
+  ctrl = encrypt ? AES_AES_CTRL_DIRECTION_ENCRYPT : 0; /* En/decryption */
+
+  return aes_auth_crypt_start(ctrl, key_area, NULL, NULL, 0,
+                              mdata_in, mdata_out, mdata_len, process);
+}
 /*---------------------------------------------------------------------------*/
-/** \name Crypto functions
- * @{
- */
-
-/** \brief Enables and resets the AES/SHA cryptoprocessor
- */
-void crypto_init(void);
-
-/** \brief Enables the AES/SHA cryptoprocessor
- */
-void crypto_enable(void);
-
-/** \brief Disables the AES/SHA cryptoprocessor
- * \note Call this function to save power when the cryptoprocessor is unused.
- */
-void crypto_disable(void);
-
-/** \brief Registers a process to be notified of the completion of a crypto
- * operation
- * \param p Process to be polled upon IRQ
- * \note This function is only supposed to be called by the crypto drivers.
- */
-void crypto_register_process_notification(struct process *p);
+int8_t
+ecb_crypt_check_status(void)
+{
+  return aes_auth_crypt_check_status() ? aes_auth_crypt_get_result(NULL, NULL) :
+                                         CRYPTO_PENDING;
+}
 
 /** @} */
-
-#endif /* CRYPTO_H_ */
-
-/**
- * @}
- * @}
- */
