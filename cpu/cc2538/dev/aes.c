@@ -44,8 +44,20 @@
 #include "dev/rom-util.h"
 #include "dev/aes.h"
 #include "reg.h"
+#include "dev/crypto.h"
 
 #include <stdint.h>
+
+#define KEY_AREA 0
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else /* DEBUG */
+#define PRINTF(...)
+#endif /* DEBUG */
+
 /*---------------------------------------------------------------------------*/
 uint8_t
 aes_load_keys(const void *keys, uint8_t key_size, uint8_t count,
@@ -148,5 +160,66 @@ aes_load_keys(const void *keys, uint8_t key_size, uint8_t count,
 
   return CRYPTO_SUCCESS;
 }
+/*---------------------------------------------------------------------------*/
+static void
+set_key(const uint8_t *key)
+{
+  if(aes_load_keys(key, AES_KEY_STORE_SIZE_KEY_SIZE_128, 1, KEY_AREA) != CRYPTO_SUCCESS) {
+    PRINTF("aes: set_key error\n");
+    /* TODO error handling */
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+encrypt(uint8_t *plaintext_and_result)
+{
+  REG(AES_CTRL_INT_CFG) = AES_CTRL_INT_CFG_LEVEL;
+  REG(AES_CTRL_INT_EN) = AES_CTRL_INT_EN_DMA_IN_DONE | AES_CTRL_INT_EN_RESULT_AV;
+
+  /* configure the master control module */
+  REG(AES_CTRL_ALG_SEL) = AES_CTRL_ALG_SEL_AES;
+  REG(AES_CTRL_INT_CLR) = AES_CTRL_INT_CLR_RESULT_AV;
+
+  /* configure the key store to provide pre-loaded AES key */
+  REG(AES_KEY_STORE_READ_AREA) = KEY_AREA;
+
+  /* wait until the key is loaded to the AES module */
+  while(REG(AES_KEY_STORE_READ_AREA) & AES_KEY_STORE_READ_AREA_BUSY);
+  /* check that the key is loaded without errors */
+  if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_KEY_ST_RD_ERR) {
+    PRINTF("aes: AES_KEYSTORE_READ_ERROR\n");
+    /* TODO error handling */
+  }
+
+  /* configure AES engine */
+  REG(AES_AES_CTRL) = AES_AES_CTRL_SAVE_CONTEXT
+      | AES_AES_CTRL_KEY_SIZE_128
+      | AES_AES_CTRL_DIRECTION_ENCRYPT;
+  REG(AES_AES_C_LENGTH_0) = AES_128_BLOCK_SIZE;
+  REG(AES_AES_C_LENGTH_1) = 0;
+
+  REG(AES_DMAC_CH0_CTRL) = AES_DMAC_CH_CTRL_EN;
+  REG(AES_DMAC_CH0_EXTADDR) = (uint32_t) plaintext_and_result;
+  REG(AES_DMAC_CH0_DMALENGTH) = AES_128_BLOCK_SIZE;
+  REG(AES_DMAC_CH1_CTRL) = AES_DMAC_CH_CTRL_EN;
+  REG(AES_DMAC_CH1_EXTADDR) = (uint32_t) plaintext_and_result;
+  REG(AES_DMAC_CH1_DMALENGTH) = AES_128_BLOCK_SIZE;
+
+  /* wait for completion */
+  while(!(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_RESULT_AV));
+  /* check for absence of errors */
+  if(REG(AES_CTRL_INT_STAT) & AES_CTRL_INT_STAT_DMA_BUS_ERR) {
+    PRINTF("aes: CRYPTO_DMA_BUS_ERROR\n");
+    /* TODO error handling */
+  }
+  /* disable master control/DMA clock */
+  REG(AES_CTRL_ALG_SEL) = 0x00000000;
+}
+/*---------------------------------------------------------------------------*/
+const struct aes_128_driver aes_128_cc2538_driver = {
+  set_key,
+  encrypt
+};
+/*---------------------------------------------------------------------------*/
 
 /** @} */

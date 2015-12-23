@@ -500,6 +500,22 @@ typedef uint32_t rtimer_clock_t;
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 /** @} */
 /*---------------------------------------------------------------------------*/
+/**
+ * \name Security
+ *
+ * @{
+ */
+
+#ifndef AES_128_CONF
+#define AES_128_CONF aes_128_cc2538_driver
+#endif /* AES_128_CONF */
+
+#ifndef CC2538_CONF_WITH_CRYPTO
+#define CC2538_CONF_WITH_CRYPTO 1
+#endif /* CC2538_CONF_WITH_CRYPTO */
+
+/** @} */
+/*---------------------------------------------------------------------------*/
 
 #endif /* CONTIKI_CONF_H_ */
 
