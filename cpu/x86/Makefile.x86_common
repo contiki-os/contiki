@@ -1,0 +1,42 @@
+CONTIKI_CPU_DIRS += . init/common
+
+CONTIKI_SOURCEFILES += gdt.c helpers.S idt.c cpu.c
+
+CC       = gcc
+LD       = gcc
+AS       = as
+OBJCOPY  = objcopy
+SIZE     = size
+STRIP    = strip
+
+# Omit exception handling unwind tables (see
+# http://wiki.dwarfstd.org/index.php?title=Exception_Handling).  Removing these
+# tables saves space and has not caused any readily-apparent functional
+# changes.
+#
+# Furthermore, the .eh_frame and .eh_frame_hdr sections that are otherwise
+# generated are treated as code sections by the UEFI GenFw program, since they
+# are read-only alloc sections.  They get grouped with the actual code
+# sections, ahead of the data sections.  This perturbs symbols and complicates
+# debugging.
+#
+# Synchronize the unwind table options here with the CFLAGS and CXXFLAGS in
+# ./bsp/libc/build_newlib.sh.
+CFLAGS  += -Wall -fno-asynchronous-unwind-tables -fno-unwind-tables
+LDFLAGS += -Wl,-Map=contiki-$(TARGET).map,--build-id=none
+
+ifeq ($(BUILD_RELEASE),1)
+	CFLAGS  += -Os -fno-strict-aliasing -ffunction-sections -fdata-sections
+# XXX: --gc-sections can be very tricky sometimes. If somehow the release
+# binary seems to be broken, check if removing this option fixes the issue.
+# Applying the --strip-all option to the UEFI build may induce an "Invalid operation" error.
+# The UEFI GenFw program strips symbols.
+	MULTIBOOT_LDFLAGS += -Wl,--strip-all,--gc-sections
+else
+  CFLAGS  += -O0
+	ifeq ($(findstring clang,$(CC)),clang)
+		CFLAGS  += -g
+	else
+		CFLAGS  += -ggdb3
+	endif
+endif
