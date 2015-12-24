@@ -196,7 +196,7 @@ RELSTR:=${shell git --git-dir ${CONTIKI}/.git describe --tags --always}
 endif
 
 ifneq ($(RELSTR),)
-CFLAGS += -DCONTIKI_VERSION_STRING=\"Contiki-$(RELSTR)\"
+CFLAGS += -DCONTIKI_VERSION_STRING=\"RICH-Contiki-$(RELSTR)\"
 endif
 
 ### Automatic dependency generation
