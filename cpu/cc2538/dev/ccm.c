@@ -96,14 +96,14 @@ ccm_auth_crypt_get_result(const void *cdata, uint16_t cdata_len,
     /* Check MIC */
     data_len = cdata_len - mic_len;
     if(rom_util_memcmp(tag, &((const uint8_t *)cdata)[data_len], mic_len)) {
-      return AES_AUTHENTICATION_FAILED;
+      ret = AES_AUTHENTICATION_FAILED;
     }
   }
 
   /* Copy tag to MIC */
   rom_util_memcpy(mic, tag, mic_len);
 
-  return CRYPTO_SUCCESS;
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
