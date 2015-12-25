@@ -580,6 +580,10 @@ typedef uint32_t rtimer_clock_t;
 #ifndef AES_128_CONF
 #define AES_128_CONF            cc2538_aes_128_driver /**< AES-128 driver */
 #endif
+
+#ifndef CCM_STAR_CONF
+#define CCM_STAR_CONF           cc2538_ccm_star_driver /**< AES-CCM* driver */
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 
