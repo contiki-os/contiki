@@ -51,7 +51,7 @@ In terms of hardware support, the following drivers have been implemented for th
     * Low Power Modes
     * General-Purpose Timers. NB: GPT0 is in use by the platform code, the remaining GPTs are available for application development.
     * ADC
-    * Cryptoprocessor (AES-ECB/CBC/CCM-128/192/256, SHA-256)
+    * Cryptoprocessor (AES-ECB/CBC/CTR/CCM-128/192/256, SHA-256)
     * Public Key Accelerator (ECDH, ECDSA)
     * Flash-based port of Coffee
     * PWM
