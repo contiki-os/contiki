@@ -54,7 +54,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-/** \name CCM constants
+/** \name AES-CCM constants
  * @{
  */
 #define CCM_FLAGS_LEN           1
