@@ -132,7 +132,7 @@ static struct ctimer startup_timer;
  * \brief Select the sensor on the I2C bus
  */
 static void
-select(void)
+select_on_bus(void)
 {
   /* Select slave and set clock rate */
   board_i2c_select(BOARD_I2C_INTERFACE_0, OPT3001_I2C_ADDRESS);
@@ -148,7 +148,7 @@ notify_ready(void *not_used)
    */
   uint16_t val;
 
-  select();
+  select_on_bus();
 
   sensor_common_read_reg(REG_CONFIGURATION, (uint8_t *)&val, REGISTER_LENGTH);
 
@@ -170,7 +170,7 @@ enable_sensor(bool enable)
   uint16_t val;
   uint16_t had_data_ready = state & SENSOR_STATE_DATA_READY;
 
-  select();
+  select_on_bus();
 
   if(enable) {
     val = CONFIG_ENABLE_SINGLE_SHOT;
@@ -202,7 +202,7 @@ read_data(uint16_t *raw_data)
     return false;
   }
 
-  select();
+  select_on_bus();
 
   success = sensor_common_read_reg(REG_CONFIGURATION, (uint8_t *)&val,
                                    REGISTER_LENGTH);

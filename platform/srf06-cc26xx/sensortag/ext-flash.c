@@ -86,7 +86,7 @@
  * Clear external flash CSN line
  */
 static void
-select(void)
+select_on_bus(void)
 {
   ti_lib_gpio_pin_write(BOARD_FLASH_CS, 0);
 }
@@ -110,7 +110,7 @@ wait_ready(void)
   bool ret;
   const uint8_t wbuf[1] = { BLS_CODE_READ_STATUS };
 
-  select();
+  select_on_bus();
 
   /* Throw away all garbages */
   board_spi_flush();
@@ -159,7 +159,7 @@ verify_part(void)
   uint8_t rbuf[2] = {0, 0};
   bool ret;
 
-  select();
+  select_on_bus();
 
   ret = board_spi_write(wbuf, sizeof(wbuf));
 
@@ -199,7 +199,7 @@ power_down(void)
   }
 
   cmd = BLS_CODE_PD;
-  select();
+  select_on_bus();
   board_spi_write(&cmd, sizeof(cmd));
   deselect();
 
@@ -227,7 +227,7 @@ power_standby(void)
   bool success;
 
   cmd = BLS_CODE_RPD;
-  select();
+  select_on_bus();
   success = board_spi_write(&cmd, sizeof(cmd));
 
   if(success) {
@@ -249,7 +249,7 @@ write_enable(void)
   bool ret;
   const uint8_t wbuf[] = { BLS_CODE_WRITE_ENABLE };
 
-  select();
+  select_on_bus();
   ret = board_spi_write(wbuf, sizeof(wbuf));
   deselect();
 
@@ -305,7 +305,7 @@ ext_flash_read(size_t offset, size_t length, uint8_t *buf)
   wbuf[2] = (offset >> 8) & 0xff;
   wbuf[3] = offset & 0xff;
 
-  select();
+  select_on_bus();
 
   if(board_spi_write(wbuf, sizeof(wbuf)) == false) {
     /* failure */
@@ -357,7 +357,7 @@ ext_flash_write(size_t offset, size_t length, const uint8_t *buf)
      * is not imposed here since above instructions
      * should be enough to delay
      * as much. */
-    select();
+    select_on_bus();
 
     if(board_spi_write(wbuf, sizeof(wbuf)) == false) {
       /* failure */
@@ -411,7 +411,7 @@ ext_flash_erase(size_t offset, size_t length)
     wbuf[2] = (offset >> 8) & 0xff;
     wbuf[3] = offset & 0xff;
 
-    select();
+    select_on_bus();
 
     if(board_spi_write(wbuf, sizeof(wbuf)) == false) {
       /* failure */
