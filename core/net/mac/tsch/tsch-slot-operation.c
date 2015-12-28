@@ -61,8 +61,6 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
-//#define PRINTF(...) printf(__VA_ARGS__)
-
 /* TSCH debug macros, i.e. to set LEDs or GPIOs on various TSCH
  * timeslot events */
 #ifndef TSCH_DEBUG_INIT
@@ -271,6 +269,8 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
                     "!dl-miss %s %d %d",
                         str, (int)(now-ref_time), (int)offset);
     );
+    printf("!dl-miss %s %d %d",
+              str, (int)(now-ref_time), (int)offset);
 
     return 0;
   }

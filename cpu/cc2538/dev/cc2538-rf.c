@@ -95,6 +95,15 @@
 
 /* 192 usec off -> on interval (RX Callib -> SFD Wait). We wait a bit more */
 #define ONOFF_TIME                    RTIMER_ARCH_SECOND / 3125
+
+#ifndef TSCH_DEBUG_SFD_EVENT
+#define TSCH_DEBUG_SFD_EVENT();
+#endif
+
+#ifndef FIFO_DEBUG_INTR_EVENT
+#define FIFO_DEBUG_INTR_EVENT();
+#endif
+
 /*---------------------------------------------------------------------------*/
 /* Sniffer configuration */
 #ifndef CC2538_RF_CONF_SNIFFER_USB
@@ -134,10 +143,12 @@ static uint8_t volatile poll_mode = 0;
 static uint8_t send_on_cca = WITH_SEND_CCA;
 
 static volatile rtimer_clock_t cc2538_sfd_start_time = 0;
+static volatile rtimer_clock_t cc2538_last_packet_timestamp = 0;
+static volatile rtimer_clock_t cc2538_last_correlation = 0;
+
 static uint8_t is_transmitting = 0;
-static volatile uint16_t cc2538_received_packet_time = 0;
-static volatile uint16_t cc2538_last_packet_timestamp = 0;
-static volatile uint8_t cc2538_last_correlation = 0;
+/* Are we currently listening? */
+static uint8_t listen_on = 0;
 
 static int on(void);
 static int off(void);
@@ -382,6 +393,8 @@ set_poll_mode(uint8_t enable)
     /* Disable FIFOP interrupt */
     REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_FIFOP;
     nvic_interrupt_disable(NVIC_INT_RF_RXTX);
+    REG(RFCORE_XREG_RFERRM) &= ~RFCORE_XREG_RFERRM_RFERRM;
+    nvic_interrupt_disable(NVIC_INT_RF_ERR);
     REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;
     nvic_interrupt_enable(NVIC_INT_RF_RXTX);
   } else {
@@ -447,6 +460,7 @@ on(void)
 
 
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  listen_on = 1;
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -472,6 +486,7 @@ off(void)
   }
 
   rf_flags &= ~RX_ACTIVE;
+  listen_on = 0;
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   return 1;
@@ -606,10 +621,9 @@ prepare(const void *payload, unsigned short payload_len)
    */
   if(!poll_mode) {
     while(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
-  }
-
-  if((rf_flags & RX_ACTIVE) == 0) {
-    on();
+    if((rf_flags & RX_ACTIVE) == 0) {
+      on();
+    }
   }
 
   CC2538_RF_CSP_ISFLUSHTX();
@@ -688,7 +702,9 @@ transmit(unsigned short transmit_len)
   }
 
   /* Start the transmission */
-  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  if(listen_on) {
+    ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  }
   ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
 
   /* This flag indicates the transmitting process.
@@ -716,7 +732,9 @@ transmit(unsigned short transmit_len)
     ret = RADIO_TX_OK;
   }
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  if(listen_on) {
+    ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  }
 
   if(was_off) {
     off();
@@ -844,13 +862,14 @@ read(void *buf, unsigned short bufsize)
   flush();
 #endif
 
-  /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
-  if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP) {
-    if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFO) {
-      DPRINTF("OVERFLOW RX\n");
-      process_poll(&cc2538_rf_process);
-    } else {
-      CC2538_RF_CSP_ISFLUSHRX();
+  if(!poll_mode) {
+    /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
+    if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP) {
+      if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFO) {
+        process_poll(&cc2538_rf_process);
+      } else {
+        CC2538_RF_CSP_ISFLUSHRX();
+      }
     }
   }
 
@@ -1099,7 +1118,7 @@ PROCESS_THREAD(cc2538_rf_process, ev, data)
     PROCESS_YIELD_UNTIL(!poll_mode && ev == PROCESS_EVENT_POLL);
 
     packetbuf_clear();
-    packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, cc2538_sfd_start_time);
+    packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, cc2538_last_packet_timestamp);
     len = read(packetbuf_dataptr(), PACKETBUF_SIZE);
 
     if(len > 0) {
@@ -1151,9 +1170,7 @@ cc2538_rf_rx_tx_isr(void)
       //cc2538_sfd_start_time = get_captured_time();
       cc2538_sfd_start_time = RTIMER_NOW();
       REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;
-#ifdef CC2538_CONF_SFD_TIMESTAMPS
       TSCH_DEBUG_SFD_EVENT();
-#endif
     }
     is_transmitting = 0;
   }
@@ -1165,6 +1182,7 @@ cc2538_rf_rx_tx_isr(void)
     REG(RFCORE_SFR_RFIRQF0) = 0;
     FIFO_DEBUG_INTR_EVENT();
   }
+
 #if 0
   // or FIFOP is full -- we have a packet.
   if(REG(RFCORE_SFR_RFIRQF0) & RFCORE_SFR_RFIRQF0_FIFOP) {

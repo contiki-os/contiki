@@ -65,9 +65,6 @@
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
-#include "net/ipv6/uip-ds6-nbr.h"
-
-//#define PRINTF(...) printf(__VA_ARGS__)
 
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
@@ -669,11 +666,13 @@ PT_THREAD(tsch_scan(struct pt *pt))
     if(is_packet_pending) {
       /* Save packet timestamp */
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
+      // TODO: remove later
       PRINTF("TSCH:is packet pending at 0x%lx\n", RTIMER_NOW());
 
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
-      PRINTF("TSCH: time after reading packet=0x%lx\n", RTIMER_NOW());
+      // TODO: remove later
+      //PRINTF("TSCH: time after reading packet=0x%lx\n", RTIMER_NOW());
 
       /* Parse EB and attempt to associate */
       PRINTF("TSCH: association: received packet (%u bytes) at t0=0x%lx on channel %u\n", input_eb.len, t0, current_channel);

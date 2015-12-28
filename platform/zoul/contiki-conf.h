@@ -682,6 +682,16 @@ typedef uint32_t rtimer_clock_t;
     } \
 } while(0);
 
+#define FIFO_DEBUG_INTR_EVENT() do { \
+    static uint8_t dio_state = 0; \
+    dio_state = !dio_state; \
+    if(dio_state) { \
+      GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, LEDS_GREEN); \
+    } else { \
+      GPIO_WRITE_PIN(GPIO_D_BASE, LEDS_CONF_ALL, 0); \
+    } \
+} while(0);
+
 #endif /* CONTIKI_CONF_H_ */
 
 /** @} */

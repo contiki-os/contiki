@@ -38,7 +38,6 @@
 #include "contiki.h"
 #include "net/mac/mac.h"
 #include "net/mac/tsch/tsch-security.h"
-#include "net/ip/uip-debug.h"
 /******** Configuration *******/
 
 /* Max time before sending a unicast keep-alive message to the time source */

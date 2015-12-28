@@ -616,6 +616,7 @@ public class CollectServer implements SerialConnectionListener {
             	usage(arg);
             }
             System.out.println("Mao Com port " + comPort);
+            break;
         case 'h':
             usage(null);
             break;

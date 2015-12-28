@@ -176,6 +176,21 @@
 #endif /* CONTIKI_TARGET_Z1 */
 /*========================Z1===========================*/
 
+// reduce RAM for zoul
+#if CONTIKI_TARGET_ZOUL
+#undef UIP_CONF_TCP
+#define UIP_CONF_TCP 0
+#undef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM 4
+#undef UIP_CONF_MAX_ROUTES
+#define UIP_CONF_MAX_ROUTES  8
+#undef NBR_TABLE_CONF_MAX_NEIGHBORS
+#define NBR_TABLE_CONF_MAX_NEIGHBORS 8
+#undef UIP_CONF_ND6_SEND_NA
+#define UIP_CONF_ND6_SEND_NA 0
+#undef SICSLOWPAN_CONF_FRAG
+#define SICSLOWPAN_CONF_FRAG 0
+#endif
 
 /*==========================CC2538=================================*/
 #if CONTIKI_TARGET_OPENMOTE || CONTIKI_TARGET_ZOUL

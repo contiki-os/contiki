@@ -62,7 +62,6 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
-//#define PRINTF(...) printf(__VA_ARGS__)
 
 /*---------------------------------------------------------------------------*/
 /* Construct enhanced ACK packet and return ACK length */
@@ -356,6 +355,7 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
   int ret;
 
   if(frame == NULL || buf_size < 0) {
+    PRINTF("TSCH:! parse_eb: failed frame == NULL || buf_size =%d\n", buf_size);
     return 0;
   }
 
