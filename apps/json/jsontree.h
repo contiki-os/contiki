@@ -49,6 +49,12 @@
 #define JSONTREE_MAX_DEPTH 10
 #endif /* JSONTREE_CONF_MAX_DEPTH */
 
+#ifdef JSONTREE_CONF_PRETTY
+#define JSONTREE_PRETTY JSONTREE_CONF_PRETTY
+#else
+#define JSONTREE_PRETTY 0
+#endif /* JSONTREE_CONF_PRETTY */
+
 struct jsontree_context {
   struct jsontree_value *values[JSONTREE_MAX_DEPTH];
   uint16_t index[JSONTREE_MAX_DEPTH];

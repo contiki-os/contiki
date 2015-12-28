@@ -132,6 +132,9 @@ jsontree_print_next(struct jsontree_context *js_ctx)
 {
   struct jsontree_value *v;
   int index;
+#if JSONTREE_PRETTY
+  int indent;
+#endif
 
   v = js_ctx->values[js_ctx->depth];
 
@@ -145,10 +148,19 @@ jsontree_print_next(struct jsontree_context *js_ctx)
     index = js_ctx->index[js_ctx->depth];
     if(index == 0) {
       js_ctx->putchar(v->type);
+#if JSONTREE_PRETTY
       js_ctx->putchar('\n');
+#endif
     }
     if(index >= o->count) {
+#if JSONTREE_PRETTY
       js_ctx->putchar('\n');
+      indent = js_ctx->depth;
+      while (indent--) {
+        js_ctx->putchar(' ');
+        js_ctx->putchar(' ');
+      }
+#endif
       js_ctx->putchar(v->type + 2);
       /* Default operation: back up one level! */
       break;
@@ -156,12 +168,26 @@ jsontree_print_next(struct jsontree_context *js_ctx)
 
     if(index > 0) {
       js_ctx->putchar(',');
+#if JSONTREE_PRETTY
       js_ctx->putchar('\n');
+#endif
     }
+
+#if JSONTREE_PRETTY
+    indent = js_ctx->depth + 1;
+    while (indent--) {
+      js_ctx->putchar(' ');
+      js_ctx->putchar(' ');
+    }
+#endif
+
     if(v->type == JSON_TYPE_OBJECT) {
       jsontree_write_string(js_ctx,
                             ((struct jsontree_object *)o)->pairs[index].name);
       js_ctx->putchar(':');
+#if JSONTREE_PRETTY
+      js_ctx->putchar(' ');
+#endif
       ov = ((struct jsontree_object *)o)->pairs[index].value;
     } else {
       ov = o->values[index];
