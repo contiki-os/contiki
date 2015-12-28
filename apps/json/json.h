@@ -45,6 +45,7 @@
 #define JSON_TYPE_PAIR ':'
 #define JSON_TYPE_PAIR_NAME 'N' /* for N:V pairs */
 #define JSON_TYPE_STRING '"'
+#define JSON_TYPE_UINT 'U'
 #define JSON_TYPE_INT 'I'
 #define JSON_TYPE_NUMBER '0'
 #define JSON_TYPE_ERROR 0

@@ -74,6 +74,11 @@ struct jsontree_string {
   const char *value;
 };
 
+struct jsontree_uint {
+  uint8_t type;
+  unsigned int value;
+};
+
 struct jsontree_int {
   uint8_t type;
   int value;
@@ -136,6 +141,8 @@ void jsontree_reset(struct jsontree_context *js_ctx);
 const char *jsontree_path_name(const struct jsontree_context *js_ctx,
                                int depth);
 
+void jsontree_write_uint(const struct jsontree_context *js_ctx,
+                         unsigned int value);
 void jsontree_write_int(const struct jsontree_context *js_ctx, int value);
 void jsontree_write_atom(const struct jsontree_context *js_ctx,
                          const char *text);
