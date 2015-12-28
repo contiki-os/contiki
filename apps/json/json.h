@@ -57,6 +57,14 @@
 
 #define JSON_TYPE_CALLBACK 'C'
 
+/* integer pointer types */
+#define JSON_TYPE_S8PTR 'b'
+#define JSON_TYPE_U8PTR 'B'
+#define JSON_TYPE_S16PTR 'w'
+#define JSON_TYPE_U16PTR 'W'
+#define JSON_TYPE_S32PTR 'd'
+#define JSON_TYPE_U32PTR 'D'
+
 enum {
   JSON_ERROR_OK,
   JSON_ERROR_SYNTAX,
