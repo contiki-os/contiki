@@ -109,6 +109,11 @@ struct jsontree_array {
   struct jsontree_value **values;
 };
 
+struct jsontree_ptr {
+  uint8_t type;
+  const void *value;
+};
+
 #define JSONTREE_STRING(text) {JSON_TYPE_STRING, (text)}
 #define JSONTREE_PAIR(name, value) {(name), (struct jsontree_value *)(value)}
 #define JSONTREE_CALLBACK(output, set) {JSON_TYPE_CALLBACK, (output), (set)}

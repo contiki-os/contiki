@@ -234,6 +234,30 @@ jsontree_print_next(struct jsontree_context *js_ctx)
     }
     /* Default operation: back up one level! */
     break;
+  case JSON_TYPE_S8PTR:
+    jsontree_write_int(js_ctx, *((int8_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_U8PTR:
+    jsontree_write_uint(js_ctx, *((uint8_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_S16PTR:
+    jsontree_write_int(js_ctx, *((int16_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_U16PTR:
+    jsontree_write_uint(js_ctx, *((uint16_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_S32PTR:
+    jsontree_write_int(js_ctx, *((int32_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_U32PTR:
+    jsontree_write_uint(js_ctx, *((uint32_t *)((struct jsontree_ptr *)v)->value));
+    /* Default operation: back up one level! */
+    break;
   }
   default:
     PRINTF("\nError: Illegal json type:'%c'\n", v->type);
