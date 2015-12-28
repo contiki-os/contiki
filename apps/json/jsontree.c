@@ -79,15 +79,10 @@ jsontree_write_string(const struct jsontree_context *js_ctx, const char *text)
 }
 /*---------------------------------------------------------------------------*/
 void
-jsontree_write_int(const struct jsontree_context *js_ctx, int value)
+jsontree_write_uint(const struct jsontree_context *js_ctx, unsigned int value)
 {
   char buf[10];
   int l;
-
-  if(value < 0) {
-    js_ctx->putchar('-');
-    value = -value;
-  }
 
   l = sizeof(buf) - 1;
   do {
@@ -98,6 +93,17 @@ jsontree_write_int(const struct jsontree_context *js_ctx, int value)
   while(++l < sizeof(buf)) {
     js_ctx->putchar(buf[l]);
   }
+}
+/*---------------------------------------------------------------------------*/
+void
+jsontree_write_int(const struct jsontree_context *js_ctx, int value)
+{
+  if(value < 0) {
+    js_ctx->putchar('-');
+    value = -value;
+  }
+
+  jsontree_write_uint(js_ctx, value);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -201,6 +207,10 @@ jsontree_print_next(struct jsontree_context *js_ctx)
   }
   case JSON_TYPE_STRING:
     jsontree_write_string(js_ctx, ((struct jsontree_string *)v)->value);
+    /* Default operation: back up one level! */
+    break;
+  case JSON_TYPE_UINT:
+    jsontree_write_uint(js_ctx, ((struct jsontree_uint *)v)->value);
     /* Default operation: back up one level! */
     break;
   case JSON_TYPE_INT:
