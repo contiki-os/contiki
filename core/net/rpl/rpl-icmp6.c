@@ -189,6 +189,7 @@ dis_output(uip_ipaddr_t *addr)
 {
   unsigned char *buffer;
   uip_ipaddr_t tmpaddr;
+  uip_ipaddr_t *uc_addr;
 
   /*
    * DAG Information Solicitation  - 2 bytes reserved
@@ -202,6 +203,7 @@ dis_output(uip_ipaddr_t *addr)
   buffer = UIP_ICMP_PAYLOAD;
   buffer[0] = buffer[1] = 0;
 
+  uc_addr = addr;
   if(addr == NULL) {
     uip_create_linklocal_rplnodes_mcast(&tmpaddr);
     addr = &tmpaddr;
@@ -210,6 +212,8 @@ dis_output(uip_ipaddr_t *addr)
   PRINTF("RPL: Sending a DIS to ");
   PRINT6ADDR(addr);
   PRINTF("\n");
+
+  printf("{type: 'Control', action: 'DIS', dst: %d}\n",uc_addr? uc_addr->u8[sizeof(uc_addr->u8)-1]: 0);
 
   uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2);
 }
@@ -603,6 +607,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     PRINTF("\n");
     uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos);
   }
+  printf("{type: 'Control', action: 'DIO', dst: %d}\n",uc_addr? uc_addr->u8[sizeof(uc_addr->u8)-1]: 0);
 #endif /* RPL_LEAF_ONLY */
 }
 /*---------------------------------------------------------------------------*/
@@ -938,8 +943,10 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
   PRINT6ADDR(rpl_get_parent_ipaddr(parent));
   PRINTF("\n");
 
-  if(rpl_get_parent_ipaddr(parent) != NULL) {
-    uip_icmp6_send(rpl_get_parent_ipaddr(parent), ICMP6_RPL, RPL_CODE_DAO, pos);
+  uip_ipaddr_t *addr = rpl_get_parent_ipaddr(parent);
+  if(addr != NULL) {
+    uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DAO, pos);
+    printf("{type: 'Control', action: 'DAO', dst: %d}\n",addr? addr->u8[sizeof(addr->u8)-1]: 0);
   }
 }
 /*---------------------------------------------------------------------------*/
