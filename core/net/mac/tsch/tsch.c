@@ -66,6 +66,9 @@
 #endif /* TSCH_LOG_LEVEL */
 #include "net/ip/uip-debug.h"
 
+#if TSCH_AUTOSELECT_TIME_SOURCE
+#include "net/nbr-table.h"
+#endif
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
 #ifndef TSCH_LINK_NEIGHBOR_CALLBACK
