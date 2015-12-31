@@ -452,7 +452,8 @@ on(void)
   if(!(rf_flags & RX_ACTIVE)) {
     CC2538_RF_CSP_ISFLUSHRX();
     CC2538_RF_CSP_ISRXON();
-    while(!((REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE)));
+    // Mao comment out in order to roll-back debug.
+    //while(!((REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE)));
 
     rf_flags |= RX_ACTIVE;
   }
@@ -470,11 +471,15 @@ off(void)
   PRINTF("RF: Off\n");
 
   /* Wait for ongoing TX to complete (e.g. this could be an outgoing ACK) */
+#if 0
   if(!poll_mode) {
     rtimer_clock_t t0 = RTIMER_NOW();
     while((REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE)
            && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (RTIMER_SECOND / 10)));
   }
+#else
+  while(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
+#endif
   // Don't flush when RX data available
   if (!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP)) {
       CC2538_RF_CSP_ISFLUSHRX();

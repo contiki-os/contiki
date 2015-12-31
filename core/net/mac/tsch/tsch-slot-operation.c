@@ -269,8 +269,10 @@ tsch_schedule_slot_operation(struct rtimer *tm, rtimer_clock_t ref_time, rtimer_
                     "!dl-miss %s %d %d",
                         str, (int)(now-ref_time), (int)offset);
     );
-    printf("!dl-miss %s %d %d",
+#ifndef DEBUG
+    printf("\n==========Mao !dl-miss %s %d %d=============\n",
               str, (int)(now-ref_time), (int)offset);
+#endif //DEBUG
 
     return 0;
   }
@@ -523,7 +525,6 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
 
               /* Read ack frame */
               ack_len = NETSTACK_RADIO.read((void *)ackbuf, sizeof(ackbuf));
-              PRINTF("ack_len = %d\n", ack_len);
 
               is_time_source = 0;
               /* The radio driver should return 0 if no valid packets are in the rx buffer */
@@ -678,7 +679,8 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       TSCH_DEBUG_RX_EVENT();
       /* Save packet timestamp */
       rx_start_time = RTIMER_NOW() - RADIO_DELAY_BEFORE_DETECT;
-      PRINTF("packet_seen at rtimernow = 0x%lx\n", rx_start_time);
+      // TODO: remove later
+      //PRINTF("packet_seen at rtimernow = 0x%lx\n", rx_start_time);
     }
     if(!NETSTACK_RADIO.receiving_packet() && !NETSTACK_RADIO.pending_packet()) {
       NETSTACK_RADIO.off();
@@ -760,7 +762,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
             }
 #endif
 
-            PRINTF("=====Got pending packet&frame.fcf.ack_required = %d\n", frame.fcf.ack_required);
+            //PRINTF("=====Got pending packet&frame.fcf.ack_required = %d\n", frame.fcf.ack_required);
             if(frame.fcf.ack_required) {
               static uint8_t ack_buf[TSCH_PACKET_MAX_LEN];
               static int ack_len;
@@ -790,7 +792,8 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
             n = tsch_queue_get_nbr(&source_address);
             if(n != NULL && n->is_time_source) {
               int32_t since_last_timesync = ASN_DIFF(current_asn, last_sync_asn);
-              PRINTF("TSCH: slot-operation since_last_timesync=0x%lx\n", since_last_timesync);
+              // Mao TODO: delete
+              // PRINTF("TSCH: slot-operation since_last_timesync=0x%lx\n", since_last_timesync);
               /* Keep track of last sync time */
               last_sync_asn = current_asn;
               /* Save estimated drift */
@@ -910,7 +913,9 @@ PT_THREAD(tsch_slot_operation(struct rtimer *t, void *ptr))
                 "! leaving the network, last sync %u",
                           (unsigned)ASN_DIFF(current_asn, last_sync_asn));
       );
+#ifndef DEBUG
       printf("MAO leaving the network, last sync %u\n", (unsigned)ASN_DIFF(current_asn, last_sync_asn));
+#endif
       last_timesource_neighbor = NULL;
       tsch_disassociate();
     } else {

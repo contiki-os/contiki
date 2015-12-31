@@ -362,7 +362,6 @@ tsch_rx_process_pending()
     int is_eb = ret
       && frame.fcf.frame_version == FRAME802154_IEEE802154E_2012
       && frame.fcf.frame_type == FRAME802154_BEACONFRAME;
-    PRINTF("tsch_rx_pending: is_data=%d eb=%d\n", is_data, is_eb);
     if(is_data) {
       /* Skip EBs and other control messages */
       /* Copy to packetbuf for processing */
@@ -453,8 +452,8 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 
   current_asn = ies.ie_asn;
-  PRINTF("TSCH: parse eb OK timestampe=0x%lx, with ies.ie_asn.ls4b = 0x%lx NOW=0x%lx\n",
-                                                 timestamp, current_asn.ls4b,RTIMER_NOW());
+  //PRINTF("TSCH: parse eb OK timestampe=0x%lx, with ies.ie_asn.ls4b = 0x%lx NOW=0x%lx\n",
+  //                                               timestamp, current_asn.ls4b,RTIMER_NOW());
   tsch_join_priority = ies.ie_join_priority + 1;
 
 #if TSCH_JOIN_SECURED_ONLY
@@ -563,13 +562,11 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
   }
 #endif /* TSCH_INIT_SCHEDULE_FROM_EB */
 
-  PRINTF("tsch_join_priority  = %d\n", tsch_join_priority);
   if(tsch_join_priority < TSCH_MAX_JOIN_PRIORITY) {
     struct tsch_neighbor *n;
 
     /* Add coordinator to list of neighbors, lock the entry */
     n = tsch_queue_add_nbr((linkaddr_t *)&frame.src_addr);
-    PRINTF("tsch_queue_add_nbr: is_time_source = %d, tx_links_count = %d, dedicated_tx_links_count=%d\n", n->is_time_source, n->tx_links_count, n->dedicated_tx_links_count);
 
     if(n != NULL) {
       tsch_queue_update_time_source((linkaddr_t *)&frame.src_addr);
@@ -591,6 +588,8 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
       /* Association done, schedule keepalive messages */
       tsch_schedule_keepalive();
 
+      // Mao TODO:
+      /*
       PRINTF("TSCH: association done, sec %u, PAN ID %x, asn-%x.%lx, jp %u, timeslot id %u, hopping id %u, slotframe len %u with %u links, from ",
              tsch_is_pan_secured,
              frame.src_pid,
@@ -601,7 +600,7 @@ tsch_associate(const struct input_packet *input_eb, rtimer_clock_t timestamp)
              ies.ie_tsch_slotframe_and_link.num_links);
       PRINTLLADDR((const uip_lladdr_t *)&frame.src_addr);
       PRINTF("\n");
-      PRINTF("timenow=0x%lx\n", RTIMER_NOW());
+      */
 
       return 1;
     }
@@ -659,23 +658,19 @@ PT_THREAD(tsch_scan(struct pt *pt))
     if(!is_packet_pending && NETSTACK_RADIO.receiving_packet()) {
       /* If we are currently receiving a packet, wait until end of reception */
       t0 = RTIMER_NOW();
-      PRINTF("Receiving packet at 0x%lx\n", t0);
+      //PRINTF("Receiving packet at 0x%lx\n", t0);
       BUSYWAIT_UNTIL_ABS((is_packet_pending = NETSTACK_RADIO.pending_packet()), t0, RTIMER_SECOND / 100);
     }
 
     if(is_packet_pending) {
       /* Save packet timestamp */
       NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
-      // TODO: remove later
-      PRINTF("TSCH:is packet pending at 0x%lx\n", RTIMER_NOW());
 
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
-      // TODO: remove later
-      //PRINTF("TSCH: time after reading packet=0x%lx\n", RTIMER_NOW());
 
       /* Parse EB and attempt to associate */
-      PRINTF("TSCH: association: received packet (%u bytes) at t0=0x%lx on channel %u\n", input_eb.len, t0, current_channel);
+      //PRINTF("TSCH: association: received packet (%u bytes) at t0=0x%lx on channel %u\n", input_eb.len, t0, current_channel);
 
       tsch_associate(&input_eb, t0);
     }

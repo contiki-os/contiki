@@ -399,12 +399,15 @@ tsch_packet_parse_eb(const uint8_t *buf, int buf_size,
 #endif /* TSCH_SECURITY_ENABLED */
 
     /* Parse information elements. We need to substract the MIC length, as the exact payload len is needed while parsing */
-    PRINTF("Start parse IE, NOW=0x%lx", RTIMER_NOW());
+    //Mao TODO: delete later
+    //PRINTF("Start parse IE, NOW=0x%lx\n", RTIMER_NOW());
     if((ret = frame802154e_parse_information_elements(buf + curr_len, buf_size - curr_len - mic_len, ies)) == -1) {
       PRINTF("TSCH:! parse_eb: failed to parse IEs\n");
       return 0;
     }
-    PRINTF("END parse IE, NOW=0x%lx", RTIMER_NOW());
+    // TODO: delete later
+    //PRINTF("END parse IE, NOW=0x%lx\n", RTIMER_NOW());
+    // Tested, this parsing process cost 77 ticks.
     curr_len += ret;
   }
 
