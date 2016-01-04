@@ -50,13 +50,8 @@
 #include "dev/i2c.h"
 #include "dev/tsl2563.h"
 /*---------------------------------------------------------------------------*/
-#if 1
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
-/*---------------------------------------------------------------------------*/
-#define SENSOR_READ_INTERVAL (CLOCK_SECOND / 2)
+/* Default sensor's integration cycle is 402ms */
+#define SENSOR_READ_INTERVAL (CLOCK_SECOND/2)
 /*---------------------------------------------------------------------------*/
 PROCESS(remote_tsl2563_process, "TSL2563 test process");
 AUTOSTART_PROCESSES(&remote_tsl2563_process);
@@ -66,14 +61,21 @@ static struct etimer et;
 PROCESS_THREAD(remote_tsl2563_process, ev, data)
 {
   PROCESS_BEGIN();
-  int light;
+  static uint16_t light;
+
+  /* Use Contiki's sensor macro to enable the sensor */
   SENSORS_ACTIVATE(tsl2563);
+
+  /* Default integration time is 402ms with 1x gain, use the below call to 
+   * change the gain and timming, see tsl2563.h for more options
+   */
+  // tsl2563.configure(TSL2563_TIMMING_CFG, TSL2563_G16X_402MS);
 
   while(1) {
     etimer_set(&et, SENSOR_READ_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     light = tsl2563.value(TSL2563_VAL_READ);
-    PRINTF("Light = %u\n", light);
+    printf("Light = %u\n", (uint16_t) light);
   }
   PROCESS_END();
 }
