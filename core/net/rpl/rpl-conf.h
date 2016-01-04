@@ -146,6 +146,27 @@
   #define RPL_DAO_SPECIFY_DAG RPL_CONF_DAO_SPECIFY_DAG
 #endif /* RPL_CONF_DAO_SPECIFY_DAG */
 
+
+/*
+ * Use or not of a Fixed DIO timer
+ * */
+
+#ifdef RPL_CONF_FIXED_DIO
+#define RPL_FIXED_DIO RPL_CONF_FIXED_DIO
+#else
+#define RPL_FIXED_DIO 0
+#endif 
+
+#if RPL_FIXED_DIO
+
+#ifdef RPL_CONF_DIO_INTERVAL
+#define RPL_DIO_INTERVAL RPL_CONF_DIO_INTERVAL
+#else
+#define RPL_DIO_INTERVAL 10
+#endif 
+
+#else
+
 /*
  * The DIO interval (n) represents 2^n ms.
  *
@@ -172,6 +193,8 @@
 #else
 #define RPL_DIO_INTERVAL_DOUBLINGS  8
 #endif
+
+#endif /* RPL_FIXED_DIO */
 
 /*
  * DIO redundancy. To learn more about this, see RFC 6206.
@@ -313,5 +336,65 @@
 #else
 #define RPL_DIS_START_DELAY             5
 #endif
+
+/*
+ * Use or not of Dynamic DIS timer and Dynamic DIS configurations
+ * */
+#ifdef RPL_CONF_DYNAMIC_DIS
+#define RPL_DYNAMIC_DIS RPL_CONF_DYNAMIC_DIS
+#else
+#define RPL_DYNAMIC_DIS 0
+#endif
+
+#if RPL_DYNAMIC_DIS
+
+#ifdef RPL_CONF_N_DOWN_DIS
+#define RPL_N_DOWN_DIS RPL_CONF_N_DOWN_DIS
+#else
+#define RPL_N_DOWN_DIS 1 //1
+#endif
+
+#ifdef RPL_CONF_N_UP_DIS
+#define RPL_N_UP_DIS RPL_CONF_N_UP_DIS
+#else
+#define RPL_N_UP_DIS 5 //5
+#endif
+
+#ifdef RPL_CONF_I_DIS_MIN
+#define RPL_I_DIS_MIN RPL_CONF_I_DIS_MIN
+#else
+#define RPL_I_DIS_MIN 3
+#endif
+
+#ifdef RPL_CONF_I_DIS_MAX
+#define RPL_I_DIS_MAX RPL_CONF_I_DIS_MAX
+#else
+#define RPL_I_DIS_MAX 60
+#endif
+
+#endif /* RPL_DYNAMIC_DIS */
+
+#ifdef RPL_CONF_DIO_ON_INCONSISTENCY
+#define RPL_DIO_ON_INCONSISTENCY RPL_CONF_DIO_ON_INCONSISTENCY
+#else
+#define RPL_DIO_ON_INCONSISTENCY 0
+#endif
+
+#ifdef RPL_CONF_DIO_DAO_ON_NEW_PARENT
+#define RPL_DIO_DAO_ON_NEW_PARENT RPL_CONF_DIO_DAO_ON_NEW_PARENT
+#else
+#define RPL_DIO_DAO_ON_NEW_PARENT 0
+#endif
+
+
+#if RPL_WITH_PROBING
+#ifdef RPL_CONF_PROBE_ON_NEW_NEIGHBOR
+#define RPL_PROBE_ON_NEW_NEIGHBOR RPL_CONF_PROBE_ON_NEW_NEIGHBOR
+#else
+#define RPL_PROBE_ON_NEW_NEIGHBOR 0
+#endif
+#else /* RPL_WITH_PROBING */
+#define RPL_PROBE_ON_NEW_NEIGHBOR 0
+#endif /* RPL_WITH_PROBING */
 
 #endif /* RPL_CONF_H */

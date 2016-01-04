@@ -118,6 +118,12 @@ get_global_addr(uip_ipaddr_t *addr)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t round_pow2(uint8_t n){
+  int i;
+  for(i = 0; n != 1; i++) n = n >> 1;
+  return i;
+}
+/*---------------------------------------------------------------------------*/
 static uint32_t
 get32(uint8_t *buffer, int pos)
 {
@@ -167,7 +173,7 @@ dis_input(void)
 #else /* !RPL_LEAF_ONLY */
       if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
         PRINTF("RPL: Multicast DIS => reset DIO timer\n");
-        rpl_reset_dio_timer(instance);
+        rpl_process_inconsistency(instance);
       } else {
 #endif /* !RPL_LEAF_ONLY */
         PRINTF("RPL: Unicast DIS, reply to sender\n");
@@ -183,6 +189,7 @@ dis_output(uip_ipaddr_t *addr)
 {
   unsigned char *buffer;
   uip_ipaddr_t tmpaddr;
+  uip_ipaddr_t *uc_addr;
 
   /*
    * DAG Information Solicitation  - 2 bytes reserved
@@ -196,6 +203,7 @@ dis_output(uip_ipaddr_t *addr)
   buffer = UIP_ICMP_PAYLOAD;
   buffer[0] = buffer[1] = 0;
 
+  uc_addr = addr;
   if(addr == NULL) {
     uip_create_linklocal_rplnodes_mcast(&tmpaddr);
     addr = &tmpaddr;
@@ -204,6 +212,8 @@ dis_output(uip_ipaddr_t *addr)
   PRINTF("RPL: Sending a DIS to ");
   PRINT6ADDR(addr);
   PRINTF("\n");
+
+  printf("{type: 'Control', action: 'DIS', dst: %d}\n",uc_addr? uc_addr->u8[sizeof(uc_addr->u8)-1]: 0);
 
   uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DIS, 2);
 }
@@ -223,8 +233,12 @@ dio_input(void)
   memset(&dio, 0, sizeof(dio));
 
   /* Set default values in case the DIO configuration option is missing. */
+#if RPL_FIXED_DIO
+  dio.dag_interval = RPL_DIO_INTERVAL;
+#else
   dio.dag_intdoubl = RPL_DIO_INTERVAL_DOUBLINGS;
   dio.dag_intmin = RPL_DIO_INTERVAL_MIN;
+#endif
   dio.dag_redund = RPL_DIO_REDUNDANCY;
   dio.dag_min_hoprankinc = RPL_MIN_HOPRANKINC;
   dio.dag_max_rankinc = RPL_MAX_RANKINC;
@@ -243,6 +257,10 @@ dio_input(void)
     if((nbr = uip_ds6_nbr_add(&from, (uip_lladdr_t *)
                               packetbuf_addr(PACKETBUF_ADDR_SENDER),
                               0, NBR_REACHABLE)) != NULL) {
+#if RPL_PROBE_ON_NEW_NEIGHBOR
+      if(rpl_get_instance(((unsigned char*)UIP_ICMP_PAYLOAD)[0]) != NULL)
+        RPL_PROBING_SEND_FUNC(rpl_get_instance(((unsigned char*)UIP_ICMP_PAYLOAD)[0]),&from);
+#endif
       /* set reachable timer */
       stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
       PRINTF("RPL: Neighbor added to neighbor cache ");
@@ -378,8 +396,10 @@ dio_input(void)
       }
 
       /* Path control field not yet implemented - at i + 2 */
+#if !RPL_FIXED_DIO
       dio.dag_intdoubl = buffer[i + 3];
       dio.dag_intmin = buffer[i + 4];
+#endif /* RPL_FIXED_DIO */
       dio.dag_redund = buffer[i + 5];
       dio.dag_max_rankinc = get16(buffer, i + 6);
       dio.dag_min_hoprankinc = get16(buffer, i + 8);
@@ -387,10 +407,17 @@ dio_input(void)
       /* buffer + 12 is reserved */
       dio.default_lifetime = buffer[i + 13];
       dio.lifetime_unit = get16(buffer, i + 14);
+#if RPL_FIXED_DIO
+      PRINTF("RPL: DAG conf:red=%d maxinc=%d mininc=%d ocp=%d d_l=%u l_u=%u\n",
+             dio.dag_redund,
+             dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp,
+             dio.default_lifetime, dio.lifetime_unit);
+#else
       PRINTF("RPL: DAG conf:dbl=%d, min=%d red=%d maxinc=%d mininc=%d ocp=%d d_l=%u l_u=%u\n",
              dio.dag_intdoubl, dio.dag_intmin, dio.dag_redund,
              dio.dag_max_rankinc, dio.dag_min_hoprankinc, dio.ocp,
              dio.default_lifetime, dio.lifetime_unit);
+#endif
       break;
     case RPL_OPTION_PREFIX_INFO:
       if(len != 32) {
@@ -512,8 +539,14 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   buffer[pos++] = RPL_OPTION_DAG_CONF;
   buffer[pos++] = 14;
   buffer[pos++] = 0; /* No Auth, PCS = 0 */
+#if RPL_FIXED_DIO
+  /*implement reverse compatibility*/
+  buffer[pos++] = round_pow2(instance->dio_interval);
+  buffer[pos++] = 0;
+#else
   buffer[pos++] = instance->dio_intdoubl;
   buffer[pos++] = instance->dio_intmin;
+#endif /* RPL_FIXED_DIO*/
   buffer[pos++] = instance->dio_redundancy;
   set16(buffer, pos, instance->max_rankinc);
   pos += 2;
@@ -574,6 +607,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     PRINTF("\n");
     uip_icmp6_send(uc_addr, ICMP6_RPL, RPL_CODE_DIO, pos);
   }
+  printf("{type: 'Control', action: 'DIO', dst: %d}\n",uc_addr? uc_addr->u8[sizeof(uc_addr->u8)-1]: 0);
 #endif /* RPL_LEAF_ONLY */
 }
 /*---------------------------------------------------------------------------*/
@@ -754,6 +788,9 @@ dao_input(void)
     if((nbr = uip_ds6_nbr_add(&dao_sender_addr,
                               (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER),
                               0, NBR_REACHABLE)) != NULL) {
+#if RPL_PROBE_ON_NEW_NEIGHBOR
+      RPL_PROBING_SEND_FUNC(instance,&dao_sender_addr);
+#endif
       /* set reachable timer */
       stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
       PRINTF("RPL: Neighbor added to neighbor cache ");
@@ -906,8 +943,10 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
   PRINT6ADDR(rpl_get_parent_ipaddr(parent));
   PRINTF("\n");
 
-  if(rpl_get_parent_ipaddr(parent) != NULL) {
-    uip_icmp6_send(rpl_get_parent_ipaddr(parent), ICMP6_RPL, RPL_CODE_DAO, pos);
+  uip_ipaddr_t *addr = rpl_get_parent_ipaddr(parent);
+  if(addr != NULL) {
+    uip_icmp6_send(addr, ICMP6_RPL, RPL_CODE_DAO, pos);
+    printf("{type: 'Control', action: 'DAO', dst: %d}\n",addr? addr->u8[sizeof(addr->u8)-1]: 0);
   }
 }
 /*---------------------------------------------------------------------------*/

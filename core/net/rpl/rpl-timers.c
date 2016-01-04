@@ -73,10 +73,41 @@ handle_periodic_timer(void *ptr)
   /* handle DIS */
 #if RPL_DIS_SEND
   next_dis++;
-  if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
+#if RPL_DYNAMIC_DIS
+  //TODO iterate current DAGs from all instances
+  rpl_dag_t *dag = rpl_get_any_dag();
+  rpl_instance_t *instance = dag->instance;
+  if(dag!=NULL && dag->preferred_parent != NULL){
+    if(dag->preferred_parent_changed){
+      dag->nb_parent_changed++;
+      if(instance->dis_period >= 2 * RPL_I_DIS_MIN &&
+       dag->nb_parent_changed >= RPL_N_DOWN_DIS){
+        instance->dis_period = instance->dis_period / 2;
+        dag->nb_parent_changed = 0;
+      }
+      dag->preferred_parent_changed--;
+    }else{
+      dag->nb_same_parent++;
+      if(instance->dis_period <= RPL_I_DIS_MAX / 2 &&
+       dag->nb_same_parent >= RPL_N_UP_DIS){
+         instance->dis_period = instance->dis_period * 2;
+         dag->nb_same_parent = 0;
+       }
+    }
+  }else if((instance->dis_period && next_dis >= instance->dis_period) || 
+           next_dis >= RPL_I_DIS_MAX){
     next_dis = 0;
     dis_output(NULL);
   }
+
+#else
+  rpl_dag_t *dag = rpl_get_any_dag();
+  if((dag == NULL || dag->preferred_parent == NULL ) && 
+        next_dis >= RPL_DIS_INTERVAL) {
+    next_dis = 0;
+    dis_output(NULL);
+  }
+#endif
 #endif
   ctimer_reset(&periodic_timer);
 }
@@ -86,6 +117,12 @@ new_dio_interval(rpl_instance_t *instance)
 {
   uint32_t time;
   clock_time_t ticks;
+  
+#if RPL_FIXED_DIO
+  ticks = (instance->dio_interval * CLOCK_SECOND) ;
+  PRINTF("RPL interval: %d\n",instance->dio_interval);
+
+#else
 
   /* TODO: too small timer intervals for many cases */
   time = 1UL << instance->dio_intcurrent;
@@ -104,6 +141,8 @@ new_dio_interval(rpl_instance_t *instance)
    */
   instance->dio_next_delay -= ticks;
   instance->dio_send = 1;
+
+#endif /* RPL_FIXED_DIO */
 
 #if RPL_CONF_STATS
   /* keep some stats */
@@ -143,7 +182,15 @@ handle_dio_timer(void *ptr)
       return;
     }
   }
+  
+#if RPL_FIXED_DIO
+  dio_output(instance, NULL);
+  ctimer_reset(&instance->dio_timer);
+#if RPL_CONF_STATS
+  instance->dio_totsend++;
+#endif /* RPL_CONF_STATS */
 
+#else /* RPL_FIXED_DIO */
   if(instance->dio_send) {
     /* send DIO if counter is less than desired redundancy */
     if(instance->dio_redundancy != 0 && instance->dio_counter < instance->dio_redundancy) {
@@ -160,13 +207,15 @@ handle_dio_timer(void *ptr)
            instance->dio_next_delay);
     ctimer_set(&instance->dio_timer, instance->dio_next_delay, handle_dio_timer, instance);
   } else {
-    /* check if we need to double interval */
+    /* check if we need to double interval */    
     if(instance->dio_intcurrent < instance->dio_intmin + instance->dio_intdoubl) {
       instance->dio_intcurrent++;
       PRINTF("RPL: DIO Timer interval doubled %d\n", instance->dio_intcurrent);
     }
+
     new_dio_interval(instance);
   }
+#endif /* RPL_FIXED_DIO */
 
 #if DEBUG
   rpl_print_neighbor_list();
@@ -186,7 +235,7 @@ rpl_reset_periodic_timer(void)
 void
 rpl_reset_dio_timer(rpl_instance_t *instance)
 {
-#if !RPL_LEAF_ONLY
+#if !RPL_LEAF_ONLY && !RPL_FIXED_DIO
   /* Do not reset if we are already on the minimum interval,
      unless forced to do so. */
   if(instance->dio_intcurrent > instance->dio_intmin) {
@@ -197,7 +246,11 @@ rpl_reset_dio_timer(rpl_instance_t *instance)
 #if RPL_CONF_STATS
   rpl_stats.resets++;
 #endif /* RPL_CONF_STATS */
-#endif /* RPL_LEAF_ONLY */
+#endif /* RPL_LEAF_ONLY && !RPL_FIXED_DIO */
+#if RPL_FIXED_DIO
+  /* Do not create interval if timer is being used */
+  if(ctimer_expired(&instance->dio_timer)) new_dio_interval(instance);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 static void handle_dao_timer(void *ptr);

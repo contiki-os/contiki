@@ -219,8 +219,12 @@ struct rpl_dio {
   uint8_t version;
   uint8_t instance_id;
   uint8_t dtsn;
+#if RPL_FIXED_DIO
+  uint8_t dag_interval;
+#else
   uint8_t dag_intdoubl;
   uint8_t dag_intmin;
+#endif
   uint8_t dag_redund;
   uint8_t default_lifetime;
   uint16_t lifetime_unit;
@@ -277,6 +281,7 @@ void rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio);
 void rpl_local_repair(rpl_instance_t *instance);
 void rpl_process_dio(uip_ipaddr_t *, rpl_dio_t *);
 int rpl_process_parent_event(rpl_instance_t *, rpl_parent_t *);
+void rpl_process_inconsistency(rpl_instance_t *);
 
 /* DAG object management. */
 rpl_dag_t *rpl_alloc_dag(uint8_t, uip_ipaddr_t *);

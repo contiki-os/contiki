@@ -87,7 +87,11 @@ rpl_print_neighbor_list()
 {
   if(default_instance != NULL && default_instance->current_dag != NULL &&
       default_instance->of != NULL && default_instance->of->calculate_rank != NULL) {
+#if RPL_FIXED_DIO
+    int curr_dio_interval = default_instance->dio_interval;
+#else
     int curr_dio_interval = default_instance->dio_intcurrent;
+#endif
     int curr_rank = default_instance->current_dag->rank;
     rpl_parent_t *p = nbr_table_head(rpl_parents);
     clock_time_t now = clock_time();
@@ -192,6 +196,13 @@ rpl_set_preferred_parent(rpl_dag_t *dag, rpl_parent_t *p)
     nbr_table_unlock(rpl_parents, dag->preferred_parent);
     nbr_table_lock(rpl_parents, p);
     dag->preferred_parent = p;
+#if RPL_DYNAMIC_DIS
+    dag->preferred_parent_changed = 1;
+#endif
+#if RPL_DIO_DAO_ON_NEW_PARENT
+    rpl_schedule_dao_immediately(dag->instance);
+    dio_output(dag->instance,NULL);
+#endif
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -335,17 +346,24 @@ rpl_set_root(uint8_t instance_id, uip_ipaddr_t *dag_id)
 
   memcpy(&dag->dag_id, dag_id, sizeof(dag->dag_id));
 
+#if RPL_FIXED_DIO
+  instance->dio_interval = RPL_DIO_INTERVAL;
+#else
   instance->dio_intdoubl = RPL_DIO_INTERVAL_DOUBLINGS;
   instance->dio_intmin = RPL_DIO_INTERVAL_MIN;
   /* The current interval must differ from the minimum interval in order to
      trigger a DIO timer reset. */
   instance->dio_intcurrent = RPL_DIO_INTERVAL_MIN +
     RPL_DIO_INTERVAL_DOUBLINGS;
+#endif
   instance->dio_redundancy = RPL_DIO_REDUNDANCY;
   instance->max_rankinc = RPL_MAX_RANKINC;
   instance->min_hoprankinc = RPL_MIN_HOPRANKINC;
   instance->default_lifetime = RPL_DEFAULT_LIFETIME;
   instance->lifetime_unit = RPL_DEFAULT_LIFETIME_UNIT;
+#if RPL_DYNAMIC_DIS
+  instance->dis_period = RPL_I_DIS_MAX;
+#endif
 
   dag->rank = ROOT_RANK(instance);
 
@@ -773,7 +791,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
       RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
       rpl_schedule_dao(instance);
     }
-    rpl_reset_dio_timer(instance);
+    rpl_process_inconsistency(instance);
 #if DEBUG
     rpl_print_neighbor_list();
 #endif
@@ -985,12 +1003,19 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   instance->max_rankinc = dio->dag_max_rankinc;
   instance->min_hoprankinc = dio->dag_min_hoprankinc;
+#if RPL_FIXED_DIO
+  instance->dio_interval = dio->dag_interval;
+#else
   instance->dio_intdoubl = dio->dag_intdoubl;
   instance->dio_intmin = dio->dag_intmin;
   instance->dio_intcurrent = instance->dio_intmin + instance->dio_intdoubl;
+#endif
   instance->dio_redundancy = dio->dag_redund;
   instance->default_lifetime = dio->default_lifetime;
   instance->lifetime_unit = dio->lifetime_unit;
+#if RPL_DYNAMIC_DIS
+  instance->dis_period = RPL_I_DIS_MAX;
+#endif
 
   memcpy(&dag->dag_id, &dio->dag_id, sizeof(dio->dag_id));
 
@@ -1014,7 +1039,8 @@ rpl_join_instance(uip_ipaddr_t *from, rpl_dio_t *dio)
 
   ANNOTATE("#A join=%u\n", dag->dag_id.u8[sizeof(dag->dag_id) - 1]);
 
-  rpl_reset_dio_timer(instance);
+  //Join new instance -> inconsistency
+  rpl_process_inconsistency(instance);
   rpl_set_default_route(instance, from);
 
   if(instance->mop != RPL_MOP_NO_DOWNWARD_ROUTES) {
@@ -1069,8 +1095,10 @@ rpl_add_dag(uip_ipaddr_t *from, rpl_dio_t *dio)
      instance->mop != dio->mop ||
      instance->max_rankinc != dio->dag_max_rankinc ||
      instance->min_hoprankinc != dio->dag_min_hoprankinc ||
+#if !RPL_FIXED_DIO
      instance->dio_intdoubl != dio->dag_intdoubl ||
      instance->dio_intmin != dio->dag_intmin ||
+#endif
      instance->dio_redundancy != dio->dag_redund ||
      instance->default_lifetime != dio->default_lifetime ||
      instance->lifetime_unit != dio->lifetime_unit) {
@@ -1117,8 +1145,12 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
   dag->version = dio->version;
 
   /* copy parts of the configuration so that it propagates in the network */
+#if RPL_FIXED_DIO
+  dag->instance->dio_interval = dio->dag_interval;
+#else
   dag->instance->dio_intdoubl = dio->dag_intdoubl;
   dag->instance->dio_intmin = dio->dag_intmin;
+#endif
   dag->instance->dio_redundancy = dio->dag_redund;
   dag->instance->default_lifetime = dio->default_lifetime;
   dag->instance->lifetime_unit = dio->lifetime_unit;
@@ -1161,7 +1193,7 @@ rpl_local_repair(rpl_instance_t *instance)
     }
   }
 
-  rpl_reset_dio_timer(instance);
+  rpl_process_inconsistency(instance);
 
   RPL_STAT(rpl_stats.local_repairs++);
 }
@@ -1200,6 +1232,19 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 #endif /* DEBUG */
 
   return_value = 1;
+
+  uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
+
+  if(nbr == NULL || nbr->state != NBR_REACHABLE){
+    /*Parent is not a reachable neighbor*/
+    printf("RPL: Parent not reachable.\n");
+    rpl_nullify_parent(p);
+    if(p != instance->current_dag->preferred_parent) {
+      return 0;
+    } else {
+      return_value = 0;
+    }
+  }
 
   if(!acceptable_rank(p->dag, p->rank)) {
     /* The candidate parent is no longer valid: the rank increase resulting
@@ -1265,7 +1310,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 	PRINTF("RPL: Root received inconsistent DIO version number\n");
 	dag->version = dio->version;
 	RPL_LOLLIPOP_INCREMENT(dag->version);
-	rpl_reset_dio_timer(instance);
+  //New version -> insconsistency
+	rpl_process_inconsistency(instance);
       } else {
         PRINTF("RPL: Global repair\n");
         if(dio->prefix_info.length != 0) {
@@ -1283,7 +1329,8 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
       /* The DIO sender is on an older version of the DAG. */
       PRINTF("RPL: old version received => inconsistency detected\n");
       if(dag->joined) {
-        rpl_reset_dio_timer(instance);
+        //Different version -> insconsistency
+        rpl_process_inconsistency(instance);
         return;
       }
     }
@@ -1317,7 +1364,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
            (unsigned)dio->rank);
     return;
   } else if(dio->rank == INFINITE_RANK && dag->joined) {
-    rpl_reset_dio_timer(instance);
+    rpl_process_inconsistency(instance);
   }
 
   /* Prefix Information Option treated to add new prefix */
@@ -1412,4 +1459,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   p->dtsn = dio->dtsn;
 }
 /*---------------------------------------------------------------------------*/
+void rpl_process_inconsistency(rpl_instance_t *instance){
+  rpl_reset_dio_timer(instance);
+  #if RPL_DIO_ON_INCONSISTENCY
+    dio_output(instance, NULL);
+  #endif
+}
 /** @} */

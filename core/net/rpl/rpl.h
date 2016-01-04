@@ -139,6 +139,11 @@ struct rpl_dag {
   /* live data for the DAG */
   uint8_t joined;
   rpl_parent_t *preferred_parent;
+#if RPL_DYNAMIC_DIS
+  uint8_t preferred_parent_changed;
+  uint8_t nb_parent_changed;
+  uint8_t nb_same_parent;
+#endif
   rpl_rank_t rank;
   struct rpl_instance *instance;
   rpl_prefix_t prefix_info;
@@ -209,13 +214,20 @@ struct rpl_instance {
   uint8_t used;
   uint8_t dtsn_out;
   uint8_t mop;
+#if RPL_FIXED_DIO
+  uint8_t dio_interval;
+#else
   uint8_t dio_intdoubl;
   uint8_t dio_intmin;
+  uint8_t dio_intcurrent;
+#endif /* RPL_FIXED_DIO */
   uint8_t dio_redundancy;
   uint8_t default_lifetime;
-  uint8_t dio_intcurrent;
   uint8_t dio_send; /* for keeping track of which mode the timer is in */
   uint8_t dio_counter;
+#if RPL_DYNAMIC_DIS
+  uint8_t dis_period;
+#endif
   rpl_rank_t max_rankinc;
   rpl_rank_t min_hoprankinc;
   uint16_t lifetime_unit; /* lifetime in seconds = l_u * d_l */
@@ -224,7 +236,9 @@ struct rpl_instance {
   uint16_t dio_totsend;
   uint16_t dio_totrecv;
 #endif /* RPL_CONF_STATS */
+#if !RPL_FIXED_DIO
   clock_time_t dio_next_delay; /* delay for completion of dio interval */
+#endif /* RPL_FIXED_DIO */
 #if RPL_WITH_PROBING
   struct ctimer probing_timer;
 #endif /* RPL_WITH_PROBING */
