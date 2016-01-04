@@ -55,9 +55,12 @@
  * \name Zoul sensor constants
  *
  * These constants are used by various sensors on the Zoul. They can be used
- * to configure ADC decimation rate (where applicable).
+ * to configure ADC decimation rate (where applicable), enable interrupts, etc.
  * @{
  */
+#define HW_INT_OVER_THRS                              0x01
+#define HW_INT_BELOW_THRS                             0x02
+#define HW_INT_DISABLE                                0x03
 #define ZOUL_SENSORS_CONFIGURE_TYPE_DECIMATION_RATE   0x0100
 #define ZOUL_SENSORS_ERROR                            CC2538_SENSORS_ERROR
 /** @} */
