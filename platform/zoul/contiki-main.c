@@ -57,6 +57,7 @@
 #include "dev/slip.h"
 #include "dev/cc2538-rf.h"
 #include "dev/udma.h"
+#include "dev/crypto.h"
 #include "usb/usb-serial.h"
 #include "lib/random.h"
 #include "net/netstack.h"
@@ -194,6 +195,11 @@ main(void)
   ctimer_init();
 
   board_init();
+
+#if CRYPTO_CONF_INIT
+  crypto_init();
+  crypto_disable();
+#endif
 
   netstack_init();
   set_rf_params();

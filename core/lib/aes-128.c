@@ -167,17 +167,6 @@ encrypt(uint8_t *state)
 }
 /*---------------------------------------------------------------------------*/
 void
-aes_128_padded_encrypt(uint8_t *plaintext_and_result, uint8_t plaintext_len)
-{
-  uint8_t block[AES_128_BLOCK_SIZE];
-  
-  memset(block, 0, AES_128_BLOCK_SIZE);
-  memcpy(block, plaintext_and_result, plaintext_len);
-  AES_128.encrypt(block);
-  memcpy(plaintext_and_result, block, plaintext_len);
-}
-/*---------------------------------------------------------------------------*/
-void
 aes_128_set_padded_key(uint8_t *key, uint8_t key_len)
 {
   uint8_t block[AES_128_BLOCK_SIZE];
