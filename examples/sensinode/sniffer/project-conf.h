@@ -45,19 +45,27 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+#if CONTIKI_TARGET_Z1 || CONTIKI_TARGET_SKY
 #undef CC2420_CONF_RF_SNIFFER
 #define CC2420_CONF_RF_SNIFFER 1
+#endif
 
-#undef CC2538_RF_CONF_SNIFFER
+#if CONTIKI_TARGET_OPENMOTE || CONTIKI_TARGET_ZOUL
+#undef C2538_RF_CONF_SNIFFER
 #define CC2538_RF_CONF_SNIFFER 1
+#endif
 
 // Inorder to build with differrent channel, e.g. 22, please use the following make:
-// make TARGET=<target> DEINFES=CONF_SNIFFER_CHANNEL=22 ...
+// make TARGET=<target> DEFINES=CONF_SNIFFER_CHANNEL=22 ...
 #if CONF_SNIFFER_CHANNEL
 #undef RF_CHANNEL
 #define RF_CHANNEL          CONF_SNIFFER_CHANNEL
+
 #undef CC2420_CONF_CHANNEL
 #define CC2420_CONF_CHANNEL CONF_SNIFFER_CHANNEL
+
+#undef CC2538_RF_CONF_CHANNEL
+#define CC2538_RF_CONF_CHANNEL CONF_SNIFFER_CHANNEL
 #endif // CONF_SNIFFER_CHANNEL
 
 #if 1
@@ -83,8 +91,10 @@
 
 #undef UART0_CONF_RX_WITH_DMA
 #define UART0_CONF_RX_WITH_DMA 1
-#if 0 // for sensinode only
+
+#if CONTIKI_TARGET_SENSINODE // for sensinode only
 #define CC2430_RF_CONF_HEXDUMP 1
 #define CC2430_RF_CONF_AUTOACK 0
 #endif
+
 #endif /* PROJECT_CONF_H_ */

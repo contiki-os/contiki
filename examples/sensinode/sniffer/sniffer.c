@@ -37,6 +37,10 @@
 #include "cc2420.h"
 #endif
 
+#if CC2538_RF_CONF_SNIFFER
+#include "dev/cc2538-rf.h"
+#endif
+
 //#define DEBUG DEBUG_NONE
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip.h"
@@ -59,7 +63,7 @@ PROCESS_THREAD(sniffer_process, ev, data)
   MDMCTRL0H &= ~0x08;
 #endif
 
-#if CC2420_CONF_RF_SNIFFER
+#if CC2420_CONF_RF_SNIFFER || CC2538_RF_CONF_SNIFFER
   static uip_ipaddr_t ipaddr;
 
   uip_ip6addr(&ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0);
@@ -70,6 +74,7 @@ PROCESS_THREAD(sniffer_process, ev, data)
   radio_value_t radio_rx_mode;
   NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
   NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode & (~RADIO_RX_MODE_ADDRESS_FILTER));
+  NETSTACK_RADIO.on();
 #endif
 
   PROCESS_EXIT();
