@@ -1,0 +1,10 @@
+In the final step of the README, paste this into your .CSC in the obvious place:
+
+    <plugin>
+      be.cetic.cooja.plugins.RadioLoggerHeadless
+      <width>150</width>
+      <z>0</z>
+      <height>300</height>
+      <location_x>1</location_x>
+      <location_y>403</location_y>
+    </plugin>

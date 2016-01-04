@@ -1,0 +1,13 @@
+Name: COOJA Headless Radio Logger
+Contact: Laurent Deru <laurent.deru@cetic.be>, Sébastien Dawans <sebastien.dawans@cetic.be>
+URL:
+License: BSD http://www.opensource.org/licenses/bsd-license.php
+Screenshot:
+Contiki version: 2.6+
+Intended platforms: Any platform supported by COOJA
+Tested platforms: Sky
+Description:
+This is a standalone plugin for COOJA to log the radio packets
+in headless mode. It is a stripped-down version of COOJA's 
+graphical Radio Logger. It allows to generate PCAPs while 
+executing COOJA from the command line with the --no-gui option.
