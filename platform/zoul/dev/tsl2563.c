@@ -47,7 +47,7 @@
 #include "lib/sensors.h"
 #include "tsl2563.h"
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -66,9 +66,9 @@ void (*tsl2563_int_callback)(uint8_t value);
 static uint16_t
 calculate_lux(uint8_t *buf)
 {
-  uint32_t ch0, ch1 = 0;
-  uint32_t chscale;
-  uint32_t ratio, lratio, tmp = 0;
+  uint32_t ch0, ch1, chscale = 0;
+  uint32_t ratio = 0;
+  uint32_t lratio, tmp = 0;
   uint16_t buffer[2];
 
   /* The calculations below assume the integration time is 402ms and the gain
@@ -80,15 +80,15 @@ calculate_lux(uint8_t *buf)
   buffer[1] = (buf[3] << 8 | (buf[2]));
 
   switch(timming) {
-    case TSL2563_TIMMING_INTEG_402MS:
-      chscale = (1 << CH_SCALE);
-      break;
-    case TSL2563_TIMMING_INTEG_101MS:
-      chscale = CHSCALE_TINT1;
-      break;
-    case TSL2563_TIMMING_INTEG_13_7MS:
-      chscale = CHSCALE_TINT0;
-      break;
+  case TSL2563_TIMMING_INTEG_402MS:
+    chscale = (1 << CH_SCALE);
+    break;
+  case TSL2563_TIMMING_INTEG_101MS:
+    chscale = CHSCALE_TINT1;
+    break;
+  case TSL2563_TIMMING_INTEG_13_7MS:
+    chscale = CHSCALE_TINT0;
+    break;
   }
 
   if(!gain) {
@@ -183,7 +183,7 @@ static int
 tsl2563_id_register(uint8_t *buf)
 {
   if(tsl2563_read_reg((TSL2563_COMMAND + TSL2563_ID_REG),
-                       buf, 1) == TSL2563_SUCCESS) {
+                      buf, 1) == TSL2563_SUCCESS) {
     PRINTF("TSL2563: partnum/revnum 0x%02X\n", *buf);
     return TSL2563_SUCCESS;
   }
@@ -208,6 +208,17 @@ tsl2563_off(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
+tsl2563_clear_interrupt(void)
+{
+  uint8_t buf = (TSL2563_COMMAND + TSL2563_CLEAR_INTERRUPT);
+  if(tsl2563_write_reg(&buf, 1) != I2C_MASTER_ERR_NONE) {
+    PRINTF("TSL2563: failed to clear the interrupt\n");
+    return TSL2563_ERROR;
+  }
+  return TSL2563_SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
+static int
 tsl2563_read_sensor(uint16_t *lux)
 {
   uint8_t buf[4];
@@ -217,6 +228,9 @@ tsl2563_read_sensor(uint16_t *lux)
                       &buf[0], 2) == TSL2563_SUCCESS) {
     if(tsl2563_read_reg((TSL2563_COMMAND + TSL2563_D1LOW),
                         &buf[2], 2) == TSL2563_SUCCESS) {
+
+      PRINTF("TSL2563: CH0 0x%02X%02X CH1 0x%02X%02X\n", buf[1], buf[0],
+             buf[3], buf[2]);
       *lux = calculate_lux(buf);
       return TSL2563_SUCCESS;
     }
@@ -231,31 +245,32 @@ PROCESS_THREAD(tsl2563_int_process, ev, data)
 {
   PROCESS_EXITHANDLER();
   PROCESS_BEGIN();
+
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-
-    /* FIXME: Read interrupt source and clear */
+    tsl2563_clear_interrupt();
     tsl2563_int_callback(0);
   }
   PROCESS_END();
 }
-
 /*---------------------------------------------------------------------------*/
 static void
 tsl2563_interrupt_handler(uint8_t port, uint8_t pin)
 {
-  /* FIXME: Check if the interrupt is ours */
+  /* There's no alert/interruption flag to check, clear the interruption by
+   * writting to the CLEAR bit in the COMMAND register
+   */
   process_poll(&tsl2563_int_process);
 }
 /*---------------------------------------------------------------------------*/
 static int
 configure(int type, int value)
 {
-  uint8_t buf[2];
+  uint8_t buf[3];
 
   if((type != TSL2563_ACTIVE) && (type != TSL2563_INT_OVER) &&
-    (type != TSL2563_INT_BELOW) && (type != TSL2563_INT_DISABLE) && 
-    (type != TSL2563_TIMMING_CFG)) {
+     (type != TSL2563_INT_BELOW) && (type != TSL2563_INT_DISABLE) &&
+     (type != TSL2563_TIMMING_CFG)) {
     PRINTF("TSL2563: invalid start value\n");
     return TSL2563_ERROR;
   }
@@ -264,10 +279,13 @@ configure(int type, int value)
    * time (not nominal), with manual control disabled
    */
 
-  if(type == TSL2563_ACTIVE) {   
+  if(type == TSL2563_ACTIVE) {
     if(value) {
       i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN,
                I2C_SCL_NORMAL_BUS_SPEED);
+
+      /*  Initialize interrupts handlers */
+      tsl2563_int_callback = NULL;
 
       /* Power on the sensor and check for the part number */
       if(tsl2563_on() == TSL2563_SUCCESS) {
@@ -276,17 +294,20 @@ configure(int type, int value)
 
             /* Read the timming/gain configuration */
             if(tsl2563_read_reg((TSL2563_COMMAND + TSL2563_TIMMING),
-                      &buf[0], 1) == TSL2563_SUCCESS) {
+                                &buf[0], 1) == TSL2563_SUCCESS) {
               gain = buf[0] & TSL2563_TIMMING_GAIN;
               timming = buf[0] & TSL2563_TIMMING_INTEG_MASK;
               PRINTF("TSL2563: enabled, timming %u gain %u\n", timming, gain);
-              return TSL2563_SUCCESS;
+
+              /* Clear any pending interrupt */
+              if(tsl2563_clear_interrupt() == TSL2563_SUCCESS) {
+                return TSL2563_SUCCESS;
+              }
             }
           }
         }
       }
       return TSL2563_ERROR;
-
     } else {
       if(tsl2563_off() == TSL2563_SUCCESS) {
         PRINTF("TSL2563: stopped\n");
@@ -297,15 +318,30 @@ configure(int type, int value)
   }
 
   if(type == TSL2563_INT_DISABLE) {
-    /* FIXME: disable interrupt */
+
+    /* Ensure the GPIO doesn't generate more interrupts, this may affect others
+     * I2C digital sensors using the bus and sharing this pin, so an user may
+     * comment the line below
+     */
     GPIO_DISABLE_INTERRUPT(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
+
+    /* This also wipes out the persistance value, to be reconfigured when
+     * enabling back the interruption
+     */
+    buf[0] = (TSL2563_COMMAND + TSL2563_INTERRUPT);
+    buf[1] = TSL2563_INTR_DISABLED;
+
+    if(tsl2563_write_reg(buf, 2) != TSL2563_SUCCESS) {
+      PRINTF("TSL2563: failed to disable the interrupt\n");
+      return TSL2563_ERROR;
+    }
     return TSL2563_SUCCESS;
   }
 
   /* Configure the timming and gain */
   if(type == TSL2563_TIMMING_CFG) {
     if((value != TSL2563_G16X_402MS) && (value != TSL2563_G1X_402MS) &&
-      (value != TSL2563_G1X_101MS) && (value != TSL2563_G1X_13_7MS)) {
+       (value != TSL2563_G1X_101MS) && (value != TSL2563_G1X_13_7MS)) {
       PRINTF("TSL2563: invalid timming configuration values\n");
       return TSL2563_ERROR;
     }
@@ -319,16 +355,16 @@ configure(int type, int value)
       }
 
       switch(value) {
-        case TSL2563_G16X_402MS:
-        case TSL2563_G1X_402MS:
-          timming = TSL2563_TIMMING_INTEG_402MS;
-          break;
-        case TSL2563_G1X_101MS:
-          timming = TSL2563_TIMMING_INTEG_101MS;
-          break;
-        case TSL2563_G1X_13_7MS:
-          timming = TSL2563_TIMMING_INTEG_13_7MS;
-          break;
+      case TSL2563_G16X_402MS:
+      case TSL2563_G1X_402MS:
+        timming = TSL2563_TIMMING_INTEG_402MS;
+        break;
+      case TSL2563_G1X_101MS:
+        timming = TSL2563_TIMMING_INTEG_101MS;
+        break;
+      case TSL2563_G1X_13_7MS:
+        timming = TSL2563_TIMMING_INTEG_13_7MS;
+        break;
       }
 
       PRINTF("TSL2563: new timming %u gain %u\n", timming, gain);
@@ -338,8 +374,36 @@ configure(int type, int value)
     return TSL2563_ERROR;
   }
 
-  /*  Configure interrupt pins and initialize interrupts handlers */
-  tsl2563_int_callback = NULL;
+  /* From here we handle the interrupt configuration, it requires the interrupt
+   * callback handler to have been previously set using the TSL2563_REGISTER_INT
+   * macro
+   */
+
+  buf[1] = ((uint8_t *)&value)[0];
+  buf[2] = ((uint8_t *)&value)[1];
+
+  if(type == TSL2563_INT_OVER) {
+    buf[0] = (TSL2563_COMMAND + TSL2563_THRHIGHLOW);
+  } else if(type == TSL2563_INT_BELOW) {
+    buf[0] = (TSL2563_COMMAND + TSL2563_THRLOWLOW);
+  }
+
+  if(tsl2563_write_reg(buf, 3) != TSL2563_SUCCESS) {
+    PRINTF("TSL2563: failed to set interrupt level\n");
+    return TSL2563_ERROR;
+  }
+
+  /* Now configure the interruption register (level interrupt, 2 integration
+   * cycles after threshold has been reached (roughly 804ms if timming is 402ms)
+   */
+  buf[0] = (TSL2563_COMMAND + TSL2563_INTERRUPT);
+  buf[1] = (TSL2563_INTR_LEVEL << TSL2563_INTR_SHIFT);
+  buf[1] += TSL2563_INT_PERSIST_2_CYCLES;
+
+  if(tsl2563_write_reg(buf, 2) != TSL2563_SUCCESS) {
+    PRINTF("TSL2563: failed to enable interrupt\n");
+    return TSL2563_ERROR;
+  }
 
   /* Configure the interrupts pins */
   GPIO_SOFTWARE_CONTROL(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
@@ -354,17 +418,17 @@ configure(int type, int value)
   /* Spin process until an interrupt is received */
   process_start(&tsl2563_int_process, NULL);
 
-  if(type == TSL2563_INT_OVER) {
-    /* FIXME: add code */
-  } else if(type == TSL2563_INT_BELOW) {
-    /* FIXME: add code */
-  }
-
   /* Enable interrupts */
   GPIO_ENABLE_INTERRUPT(TSL2563_INT_PORT_BASE, TSL2563_INT_PIN_MASK);
+
+  /* The RE-Mote revision A has this pin shared and with a pull-down resistor,
+   * for other platforms (like the firefly), change to enable pull-up internal
+   * resistor instead if no external pull-up is present.
+   */
   ioc_set_over(I2C_INT_PORT, I2C_INT_PIN, IOC_OVERRIDE_PUE);
   nvic_interrupt_enable(I2C_INT_VECTOR);
 
+  PRINTF("TSL2563: Interrupt configured\n");
   return TSL2563_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/

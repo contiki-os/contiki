@@ -79,6 +79,7 @@
 /* -------------------------------------------------------------------------- */
 /* Uses the word read/write operation protocol */
 #define TSL2563_COMMAND               0xA0
+#define TSL2563_CLEAR_INTERRUPT       0x40
 /* -------------------------------------------------------------------------- */
 #define TSL2563_CONTROL_POWER_ON      0x03
 #define TSL2563_CONTROL_POWER_OFF     0x00
@@ -90,7 +91,7 @@
 #define TSL2563_TIMMING_INTEG_13_7MS  0x00
 #define TSL2563_TIMMING_INTEG_MASK    0x03
 
-#define TSL2563_G16X_402MS (TSL2563_TIMMING_INTEG_402MS +  TSL2563_TIMMING_GAIN)        
+#define TSL2563_G16X_402MS (TSL2563_TIMMING_INTEG_402MS + TSL2563_TIMMING_GAIN)
 #define TSL2563_G1X_402MS                            TSL2563_TIMMING_INTEG_402MS
 #define TSL2563_G1X_101MS                            TSL2563_TIMMING_INTEG_101MS
 #define TSL2563_G1X_13_7MS                          TSL2563_TIMMING_INTEG_13_7MS

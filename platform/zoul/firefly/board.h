@@ -250,6 +250,9 @@
 #define I2C_SCL_PIN              3
 #define I2C_SDA_PORT             GPIO_C_NUM
 #define I2C_SDA_PIN              2
+#define I2C_INT_PORT             GPIO_D_NUM
+#define I2C_INT_PIN              1
+#define I2C_INT_VECTOR           NVIC_INT_GPIO_PORT_D
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
