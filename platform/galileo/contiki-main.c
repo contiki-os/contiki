@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +34,9 @@
 #include "contiki-net.h"
 #include "cpu.h"
 #include "eth-conf.h"
+#include "galileo-pinmux.h"
+#include "gpio.h"
+#include "i2c.h"
 #include "interrupt.h"
 #include "shared-isr.h"
 #include "uart.h"
@@ -55,6 +58,15 @@ main(void)
   rtimer_init();
 
   printf("Starting Contiki\n");
+
+  quarkX1000_i2c_init();
+  quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED_STANDARD,
+                           QUARKX1000_I2C_ADDR_MODE_7BIT);
+  /* use default pinmux configuration */
+  if(galileo_pinmux_initialize() < 0) {
+    fprintf(stderr, "Failed to initialize pinmux\n");
+  }
+  quarkX1000_gpio_init();
 
   ENABLE_IRQ();
 

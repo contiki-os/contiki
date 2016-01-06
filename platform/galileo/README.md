@@ -30,6 +30,9 @@ Device drivers:
   * Real-Time Clock (RTC)
   * UART
   * Ethernet
+  * I2C
+  * GPIO (default pinmux configuration is listed in
+    platform/galileo/drivers/galileo-pinmux.c)
 
 Contiki APIs:
   * Clock module

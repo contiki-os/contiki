@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,6 @@
 #include "contiki.h"
 #include "sys/ctimer.h"
 
-#include "galileo-pinmux.h"
 #include "i2c.h"
 
 #define LSM9DS0_I2C_ADDR 0x6A
@@ -44,7 +43,6 @@
 static uint8_t tx_data = WHO_AM_I_ADDR;
 static uint8_t rx_data = 0;
 static struct ctimer timer;
-static struct quarkX1000_i2c_config cfg;
 
 PROCESS(i2c_lsm9ds0_process, "I2C LSM9DS0 Who Am I Process");
 AUTOSTART_PROCESSES(&i2c_lsm9ds0_process);
@@ -84,19 +82,7 @@ PROCESS_THREAD(i2c_lsm9ds0_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  cfg.speed = QUARKX1000_I2C_SPEED_STANDARD;
-  cfg.addressing_mode = QUARKX1000_I2C_ADDR_MODE_7BIT;
-
-  quarkX1000_i2c_init();
-  quarkX1000_i2c_configure(&cfg);
-
-  galileo_pinmux_initialize();
-
-  cfg.cb_rx = rx;
-  cfg.cb_tx = tx;
-  cfg.cb_err = err;
-
-  quarkX1000_i2c_configure(&cfg);
+  quarkX1000_i2c_set_callbacks(rx, tx, err);
 
   ctimer_set(&timer, CLOCK_SECOND * 5, timeout, NULL);
 
