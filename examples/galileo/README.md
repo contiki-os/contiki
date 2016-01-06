@@ -21,10 +21,10 @@ GPIO
 ### GPIO Output (EXAMPLE=gpio-output)
 
 This application shows how to use the GPIO driver APIs to manipulate output
-pins. This application sets the GPIO 4 pin as output pin and toggles its
+pins. This application sets the GPIO 5 pin as output pin and toggles its
 state at every half second.
 
-For a visual effect, you should wire shield pin IO1 to a led in a protoboard.
+For a visual effect, you should wire shield pin IO2 to a led in a protoboard.
 Once the application is running, you should see a blinking LED.
 
 ### GPIO Input (EXAMPLE=gpio-input)

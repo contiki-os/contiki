@@ -54,6 +54,15 @@ typedef enum {
   I2C_DIRECTION_WRITE
 } I2C_DIRECTION;
 
+struct quarkX1000_i2c_config {
+  QUARKX1000_I2C_SPEED speed;
+  QUARKX1000_I2C_ADDR_MODE addressing_mode;
+
+  quarkX1000_i2c_callback cb_rx;
+  quarkX1000_i2c_callback cb_tx;
+  quarkX1000_i2c_callback cb_err;
+};
+
 struct i2c_internal_data {
   struct quarkX1000_i2c_config config;
 
@@ -223,17 +232,15 @@ i2c_isr(void)
   return handled;
 }
 
-int
-quarkX1000_i2c_configure(struct quarkX1000_i2c_config *config)
+void
+quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED speed,
+                         QUARKX1000_I2C_ADDR_MODE addressing_mode)
 {
   uint32_t hcnt, lcnt;
   uint8_t ic_fs_spklen;
 
-  device.config.speed = config->speed;
-  device.config.addressing_mode = config->addressing_mode;
-  device.config.cb_rx = config->cb_rx;
-  device.config.cb_tx = config->cb_tx;
-  device.config.cb_err = config->cb_err;
+  device.config.speed = speed;
+  device.config.addressing_mode = addressing_mode;
 
   if (device.config.speed == QUARKX1000_I2C_SPEED_STANDARD) {
     lcnt = I2C_STD_LCNT;
@@ -252,8 +259,16 @@ quarkX1000_i2c_configure(struct quarkX1000_i2c_config *config)
 
   /* Clear interrupts. */
   read(QUARKX1000_IC_CLR_INTR);
+}
 
-  return 0;
+void
+quarkX1000_i2c_set_callbacks(quarkX1000_i2c_callback rx,
+                             quarkX1000_i2c_callback tx,
+                             quarkX1000_i2c_callback err)
+{
+  device.config.cb_rx = rx;
+  device.config.cb_tx = tx;
+  device.config.cb_err = err;
 }
 
 static int
