@@ -1,0 +1,1 @@
+awk '{cnt[$3]+=1;t[$3]+=$2;cpu[$3]+=$4;lmp[$3]+=$5;tx[$3]+=$6;rx[$3]+=$7;itx[$3]+=$8;irx[$3]+=$9}END{for (i in cnt) print i,t[i]/cnt[i],cpu[i]/cnt[i],lmp[i]/cnt[i],tx[i]/cnt[i],rx[i]/cnt[i],itx[i]/cnt[i],irx[i]/cnt[i]}' log_energy.log | sort -n
