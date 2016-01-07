@@ -71,6 +71,18 @@ The wiring setup is as follows (left column from Galileo and right column from L
 - SDA  and SDA
 - SCL  and SCL
 
+### I2C Callbacks (EXAMPLE=i2c-callbacks)
+
+This application is very similar to the previous one in that it also
+shows how to use I2C callback functionality, but it can be run without
+attaching any additional sensors to the platform since it simply
+communicates with a built-in PWM controller.
+
+Every five seconds, the application reads the current value of the
+MODE1 register, which should have previously been initialized to the
+value 0x20. The test verifies that this expected value is returned by
+the read.
+
 References
 ----------
 
