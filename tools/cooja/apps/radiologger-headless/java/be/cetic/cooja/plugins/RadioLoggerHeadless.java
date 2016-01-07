@@ -105,7 +105,7 @@ public class RadioLoggerHeadless extends VisPlugin {
         }
         try {
           if(!(lastPacket.containsKey(moteId) && Arrays.equals(data,lastPacket.get(moteId)))){
-            pcapExporter.exportPacketData(data);
+            pcapExporter.exportPacketDataWithTimestamp((long)(conn.getStartTime()/1000),data);
             lastPacket.put(moteId,data);
           }
         } catch (IOException e) {

@@ -59,5 +59,24 @@ public class PcapExporter {
       logger.error(e);
     }
   }
+  
+  public void exportPacketDataWithTimestamp(long time,byte[] data) throws IOException {
+    if (out == null) {
+      /* pcap file never set, open default */
+      openPcap(null);
+    }
+    try {
+      /* pcap packet header */
+      out.writeInt((int) (time / 1000));
+      out.writeInt((int) ((time % 1000) * 1000));
+      out.writeInt(data.length);
+      out.writeInt(data.length);
+      /* and the data */
+      out.write(data);
+      out.flush();
+    } catch (Exception e) {
+      logger.error(e);
+    }
+  }
 
 }
