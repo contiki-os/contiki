@@ -46,7 +46,7 @@ public class MobileMote{
       public void run() {
         //long periodStart = ctx.getSimulation().getSimulationTime();
         /*logger.debug("periodStart: " + periodStart);*/
-        NextMove nextMove = new NextMove(0,Integer.toString(m.getID()));
+        NextMove nextMove = new NextMove(0,Integer.toString(mote.getID()));
         nextMove.execute(MobileMote.this.context.getSimulation().getSimulationTime());
       }
     });
