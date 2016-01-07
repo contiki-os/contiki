@@ -12,10 +12,13 @@ you want to build gpio-output application, run the following command:
 $ make TARGET=galileo EXAMPLE=gpio-output
 ```
 
+The corresponding EXAMPLE variable setting for each application is
+listed to the right of its heading.
+
 GPIO
 ----
 
-### GPIO Output
+### GPIO Output (EXAMPLE=gpio-output)
 
 This application shows how to use the GPIO driver APIs to manipulate output
 pins. This application sets the GPIO 4 pin as output pin and toggles its
@@ -24,31 +27,36 @@ state at every half second.
 For a visual effect, you should wire shield pin IO1 to a led in a protoboard.
 Once the application is running, you should see a blinking LED.
 
-### GPIO Input
+### GPIO Input (EXAMPLE=gpio-input)
 
-This application shows how to use the GPIO driver APIs to manipulate input
-pins. This application uses default galileo pinmux initialization and sets
-the GPIO 5 (IO2) as output pin and GPIO 6 (IO3) as input. It toggles the
-output pin state at every half second and checks the value on input pin.
+This application shows how to use the GPIO driver APIs to manipulate
+input pins. This application uses default galileo pinmux
+initialization and sets the GPIO 5 (shield pin IO2) as output pin and
+GPIO 6 (shield pin IO3) as input. A jumper should be used to connect
+the two pins. The application toggles the output pin state at every
+half second and checks the value on input pin.
 
-### GPIO Interrupt
+### GPIO Interrupt (EXAMPLE=gpio-interrupt)
 
-This application shows how to use the GPIO driver APIs to manipulate interrupt
-pins. This application uses default galileo pinmux initialization and sets
-the GPIO 5 (IO2) as output pin and GPIO 6 (IO3) as interrupt. It toggles the
-output pin stat at every half second in order to emulate an interrupt. This
-triggers an interrupt and the application callback is called. You can confirm
-that though the UART output.
+This application shows how to use the GPIO driver APIs to manipulate
+interrupt pins. This application uses default galileo pinmux
+initialization and sets the GPIO 5 (shield pin IO2) as output pin and
+GPIO 6 (shield pin IO3) as interrupt. A jumper should be used to
+connect the two pins. It toggles the output pin stat at every half
+second in order to emulate an interrupt. This triggers an interrupt
+and the application callback is called. You can confirm that though
+the UART output.
 
 I2C
 ---
 
-### I2C LSM9DS0
+### I2C LSM9DS0 (EXAMPLE=i2c-LSM9DS0)
 
-This application shows how to use I2C driver APIs to configure I2C Master
-controller and communicate with LSM9DS0 sensor. At every 5 seconds, the
-application reads the "who am I" register from gyroscope sensor and prints if
-the register value matches the expected value described in the spec [1].
+This application shows how to use I2C driver APIs to configure I2C
+Master controller and communicate with an LSM9DS0 sensor if one has
+been connected as described below. At every 5 seconds, the application
+reads the "who am I" register from gyroscope sensor and prints if the
+register value matches the expected value described in the spec [1].
 
 According to the sensor spec, to read the value in "who am I" register, we
 should first perform an i2c write operation to select the register we want
