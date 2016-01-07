@@ -1,5 +1,5 @@
 Galileo Specific Examples
-=======================
+=========================
 
 This directory contains galileo-specific example applications to illustrate
 how to use galileo APIs.
@@ -7,14 +7,15 @@ how to use galileo APIs.
 In order to build a application, you should set the EXAMPLE environment
 variable to the name of the application you want to build. For instance, if
 you want to build gpio-output application, run the following command:
+
+```
 $ make TARGET=galileo EXAMPLE=gpio-output
+```
 
-============
-=   GPIO   =
-============
+GPIO
+----
 
-GPIO Output
-===========
+### GPIO Output
 
 This application shows how to use the GPIO driver APIs to manipulate output
 pins. This application sets the GPIO 4 pin as output pin and toggles its
@@ -23,16 +24,14 @@ state at every half second.
 For a visual effect, you should wire shield pin IO1 to a led in a protoboard.
 Once the application is running, you should see a blinking LED.
 
-GPIO Input
-==========
+### GPIO Input
 
 This application shows how to use the GPIO driver APIs to manipulate input
 pins. This application uses default galileo pinmux initialization and sets
 the GPIO 5 (IO2) as output pin and GPIO 6 (IO3) as input. It toggles the
 output pin state at every half second and checks the value on input pin.
 
-GPIO Interrupt
-==============
+### GPIO Interrupt
 
 This application shows how to use the GPIO driver APIs to manipulate interrupt
 pins. This application uses default galileo pinmux initialization and sets
@@ -41,12 +40,11 @@ output pin stat at every half second in order to emulate an interrupt. This
 triggers an interrupt and the application callback is called. You can confirm
 that though the UART output.
 
-=======
-= I2C =
-=======
+I2C
+---
 
-I2C LSM9DS0
-===========
+### I2C LSM9DS0
+
 This application shows how to use I2C driver APIs to configure I2C Master
 controller and communicate with LSM9DS0 sensor. At every 5 seconds, the
 application reads the "who am I" register from gyroscope sensor and prints if
@@ -65,9 +63,8 @@ The wiring setup is as follows (left column from Galileo and right column from L
 - SDA  and SDA
 - SCL  and SCL
 
-==============
-= References =
-==============
+References
+----------
 
 [1] http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/DM00087365.pdf
 
