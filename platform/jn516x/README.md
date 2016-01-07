@@ -24,15 +24,12 @@ These system on chip (SoC) devices have the following main [features][jn516x-dat
 ## Maintainers and Contact
 
 Long-term maintainers:
-* Theo Van Daele, NXP, theo.van.daele@nxp.com, github user: [TeVeDe](https://github.com/TeVeDe)
+* Chris Gray, NXP, christopher.gray@nxp.com, github user: [NxpChrisGray](https://github.com/NxpChrisGray)
 * Simon Duquennoy, SICS, simonduq@sics.se, github user: [simonduq](https://github.com/simonduq)
 
 Other contributors:
 * Beshr Al Nahas, SICS (now Chalmers University), beshr@chalmers.se, github user: [beshrns](https://github.com/beshrns)
 * Atis Elsts, SICS, atis.elsts@sics.se, github user: [atiselsts](https://github.com/atiselsts)
-
-Additional long-term contact:
-* Hugh Maaskant, NXP, hugh.maaskant@nxp.com, github user: [hugh-maaskant](https://github.com/hugh-maaskant)
 
 ## License
 
