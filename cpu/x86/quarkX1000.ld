@@ -61,6 +61,10 @@ SECTIONS {
     .rodata ALIGN (32) :
     {
         *(.rodata*)
+
+        _sdata_shared_isr = .;
+        KEEP(*(.shared_isr_data*))
+        _edata_shared_isr = .;
     }
 
     .data ALIGN (32) :

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,48 +28,40 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
+#ifndef CPU_X86_DRIVERS_LEGACY_PC_SHARED_ISR_H_
+#define CPU_X86_DRIVERS_LEGACY_PC_SHARED_ISR_H_
 
-#include "contiki.h"
-#include "contiki-net.h"
-#include "cpu.h"
-#include "eth-conf.h"
-#include "interrupt.h"
-#include "shared-isr.h"
-#include "uart.h"
+#include <stdbool.h>
+#include "pci.h"
 
-PROCINIT(  &etimer_process
-         , &tcpip_process
-#if WITH_DNS
-         , &resolv_process
-#endif
-         );
+/**
+ * The handler function should return true if and only if it handled the
+ * interrupt.
+ */
+typedef bool (*shared_isr_handler_t)(void);
 
-int
-main(void)
-{
-  cpu_init();
-  /* Initialize UART connected to Galileo Gen2 FTDI header */
-  quarkX1000_uart_init(QUARK_X1000_UART_1);
-  clock_init();
-  rtimer_init();
+typedef struct shared_isr_client {
+  uint8_t irq;
+  IRQAGENT agent;
+  INTR_PIN pin;
+  PIRQ pirq;
+  shared_isr_handler_t handler;
+} shared_isr_client_t;
 
-  printf("Starting Contiki\n");
-
-  ENABLE_IRQ();
-
-  process_init();
-  procinit_init();
-  ctimer_init();
-  autostart_start(autostart_processes);
-
-  eth_init();
-
-  shared_isr_init();
-
-  while(1) {
-    process_run();
-  }
-
-  return 0;
+/* Unlike a non-shared interrupt handler function, an individual interrupt
+ * handler for a shared interrupt must not issue an EOI. The EOI is issued by
+ * the shared-isr subsystem.
+ */
+#define DEFINE_SHARED_IRQ(irq_, agent_, pin_, pirq_, handler_)                \
+static struct shared_isr_client                                               \
+  __attribute__((used, section(".shared_isr_data"))) _shared_irq_##irq_ = {   \
+  .irq = irq_,                                                                \
+  .agent = agent_,                                                            \
+  .pin = pin_,                                                                \
+  .pirq = pirq_,                                                              \
+  .handler = handler_                                                         \
 }
+
+void shared_isr_init(void);
+
+#endif /* CPU_X86_DRIVERS_LEGACY_PC_SHARED_ISR_H_ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,9 +29,9 @@
  */
 
 #include "gpio.h"
+
 #include "helpers.h"
-#include "interrupt.h"
-#include "pic.h"
+#include "shared-isr.h"
 
 /* GPIO Controler Registers */
 #define SWPORTA_DR    0x00
@@ -49,8 +49,7 @@
 
 #define PINS 8
 
-#define GPIO_IRQ 10
-#define GPIO_INT PIC_INT(GPIO_IRQ)
+#define GPIO_IRQ 9
 
 struct gpio_internal_data {
   pci_driver_t pci;
@@ -87,17 +86,23 @@ set_bit(uint32_t offset, uint32_t bit, uint32_t value)
   write(offset, reg);
 }
 
-static void
+static bool
 gpio_isr(void)
 {
   uint32_t int_status;
 
   int_status = read(INTSTATUS);
 
+  if(int_status == 0) {
+    return false;
+  }
+
   if (data.callback)
     data.callback(int_status);
 
   write(PORTA_EOI, -1);
+
+  return true;
 }
 
 static void
@@ -211,13 +216,7 @@ quarkX1000_gpio_clock_disable(void)
   set_bit(LS_SYNC, 0, 0);
 }
 
-static void
-gpio_handler(void)
-{
-  gpio_isr();
-
-  pic_eoi(GPIO_IRQ);
-}
+DEFINE_SHARED_IRQ(GPIO_IRQ, IRQAGENT3, INTC, PIRQC, gpio_isr);
 
 int
 quarkX1000_gpio_init(void)
@@ -232,13 +231,6 @@ quarkX1000_gpio_init(void)
 
   pci_command_enable(pci_addr, PCI_CMD_1_MEM_SPACE_EN);
 
-  SET_INTERRUPT_HANDLER(GPIO_INT, 0, gpio_handler);
-
-  if (pci_irq_agent_set_pirq(IRQAGENT3, INTA, PIRQC) < 0)
-    return -1;
-
-  pci_pirq_set_irq(PIRQC, GPIO_IRQ, 1);
-
   pci_init(&data.pci, pci_addr, 0);
 
   data.callback = 0;
@@ -249,8 +241,6 @@ quarkX1000_gpio_init(void)
   write(INTEN, 0);
   write(INTMASK, 0);
   write(PORTA_EOI, 0);
-
-  pic_unmask_irq(GPIO_IRQ);
 
   return 0;
 }
