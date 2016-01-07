@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Random;
 
 import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
@@ -48,6 +49,9 @@ public class NodeGenerator extends VisPlugin {
   private String mote_type_1;
   private String mote_type_2;
   private double mote_type_ratio;
+  private long generation_seed;
+  
+  private Random generator;
   
   private ArrayList<MobileMote> mobile_motes;
   
@@ -68,9 +72,16 @@ public class NodeGenerator extends VisPlugin {
     mote_type_2 = "sky2";
     mote_type_ratio = 0.1;
     random_offset = 20;
+    generation_seed = 0;
   }
   
   private void generateNodes(){
+    
+    if(generation_seed == 0){
+      generator = new Random();
+    }else{
+      generator = new Random(generation_seed);
+    }
     
     //remove existing Motes before creating new ones
     Mote[] motes = simulation.getMotes();
@@ -102,13 +113,13 @@ public class NodeGenerator extends VisPlugin {
     for(int i = 0; i < radius.size(); i++){
       double r = radius.get(i);
       double angle_increment = angles.get(i);
-      double angle_offset = Math.random()*angle_increment - angle_increment/2;
+      double angle_offset = generator.nextDouble()*angle_increment - angle_increment/2;
       for(double phi = angle_offset; phi <= 360 - angle_increment + angle_offset; phi += angle_increment){
         double posX = r * Math.cos(Math.toRadians(phi));
         double posY = r * Math.sin(Math.toRadians(phi));
         MoteType mt = null;
         boolean mobility;
-        if(mob_mote_mt == null || Math.random() >= mote_type_ratio){ 
+        if(mob_mote_mt == null || generator.nextDouble() > mote_type_ratio){ 
           mt = mote_mt;
           mobility = false;
         }else{ 
@@ -121,8 +132,8 @@ public class NodeGenerator extends VisPlugin {
   }
   
   private void createNodeAtPosition(MoteType mt, double posX, double posY, boolean is_mobile){
-    double x = posX + Math.random()*random_offset - random_offset/2;
-    double y = posY + Math.random()*random_offset - random_offset/2;
+    double x = posX + generator.nextDouble()*random_offset - random_offset/2;
+    double y = posY + generator.nextDouble()*random_offset - random_offset/2;
     Mote m = mt.generateMote(this.simulation);
     Position pos = m.getInterfaces().getPosition();
     pos.setCoordinates( x, y, pos.getZCoordinate());
@@ -133,6 +144,10 @@ public class NodeGenerator extends VisPlugin {
       mobile_motes.add(mm);
     }
     return;
+  }
+  
+  public Random getGenerator(){
+    return generator;
   }
   
   public double getBoundary(){
@@ -176,6 +191,8 @@ public class NodeGenerator extends VisPlugin {
         mote_type_ratio = Double.parseDouble(element.getText());
       }else if(name.equals("random_offset")){
         random_offset = Double.parseDouble(element.getText());
+      }else if(name.equals("generation_seed")){
+        generation_seed = Long.valueOf(element.getText()).longValue();
       }
     }
     

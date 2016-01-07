@@ -1,6 +1,7 @@
 package pt.inescid.cnm.nodegenerator;
 
 import java.lang.Math;
+import java.util.Random;
 
 import org.apache.log4j.Logger;
 
@@ -66,8 +67,8 @@ public class MobileMote{
   }
   
   private double[] getNextDestination(){
-    double r = Math.random()*(context.getBoundary() + 50);
-    double a = Math.random()*2*Math.PI;
+    double r = context.getGenerator().nextDouble()*(context.getBoundary() + 50);
+    double a = context.getGenerator().nextDouble()*2*Math.PI;
     double[] destiny = new double[2];
     destiny[0] = r * Math.cos(a);
     destiny[1] = r * Math.sin(a);
@@ -75,7 +76,7 @@ public class MobileMote{
   }
   
   private double[] getStepSumToDestination(double[] dst){
-    double v = Math.random()*(velocity_max-velocity_min) + velocity_min;
+    double v = context.getGenerator().nextDouble()*(velocity_max-velocity_min) + velocity_min;
     double[] curr = getMotePosition();
     double direction = Math.atan2(dst[1]-curr[1],dst[0]-curr[0]);
     double length = Math.hypot(Math.abs(dst[0]-curr[0]),Math.abs(dst[1]-curr[1]));
@@ -128,7 +129,7 @@ public class MobileMote{
           context.getSimulation().scheduleEvent(this,t+(long)(step*1000.0*Simulation.MILLISECOND));
         }else {
           moving = false;
-          double pause = Math.random() * (pause_max - pause_min) + pause_min;
+          double pause = context.getGenerator().nextDouble() * (pause_max - pause_min) + pause_min;
           context.getSimulation().scheduleEvent(this,t+(long)(pause*1000.0*Simulation.MILLISECOND));
         }
       }else{
