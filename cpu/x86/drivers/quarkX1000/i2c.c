@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,9 +30,9 @@
 
 #include "contiki.h"
 #include "i2c.h"
+
 #include "i2c-registers.h"
-#include "interrupt.h"
-#include "pic.h"
+#include "shared-isr.h"
 
 #define I2C_CLOCK_SPEED 25 /* kHz */
 #define I2C_FIFO_DEPTH  16
@@ -48,7 +48,6 @@
 #define I2C_POLLING_TIMEOUT (CLOCK_SECOND / 10)
 
 #define I2C_IRQ 9
-#define I2C_INT PIC_INT(I2C_IRQ)
 
 typedef enum {
   I2C_DIRECTION_READ,
@@ -169,9 +168,11 @@ i2c_data_send(void)
   device.tx_buffer += i;
 }
 
-static void
+static bool
 i2c_isr(void)
 {
+  bool handled = false;
+
   if (read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_STOP_DET_MASK) {
     i2c_data_read();
 
@@ -185,6 +186,8 @@ i2c_isr(void)
       if (device.config.cb_rx)
         device.config.cb_rx();
     }
+
+    handled = true;
   }
 
   if (read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_TX_EMPTY_MASK) {
@@ -195,10 +198,15 @@ i2c_isr(void)
       set_value(QUARKX1000_IC_INTR_MASK,
         QUARKX1000_IC_INTR_STAT_STOP_DET_MASK, QUARKX1000_IC_INTR_STAT_STOP_DET_SHIFT, 1);
     }
+
+    handled = true;
   }
 
-  if (read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_RX_FULL_MASK)
+  if(read(QUARKX1000_IC_INTR_STAT) & QUARKX1000_IC_INTR_STAT_RX_FULL_MASK) {
     i2c_data_read();
+
+    handled = true;
+  }
 
   if (read(QUARKX1000_IC_INTR_STAT) & (QUARKX1000_IC_INTR_STAT_TX_ABRT_MASK
     | QUARKX1000_IC_INTR_STAT_TX_OVER_MASK | QUARKX1000_IC_INTR_STAT_RX_OVER_MASK
@@ -208,7 +216,11 @@ i2c_isr(void)
 
     if (device.config.cb_err)
       device.config.cb_err();
+
+    handled = true;
   }
+
+  return handled;
 }
 
 int
@@ -480,13 +492,7 @@ quarkX1000_i2c_is_available(void)
   return device.pci.mmio ? 1 : 0;
 }
 
-static void
-i2c_handler()
-{
-  i2c_isr();
-
-  pic_eoi(I2C_IRQ);
-}
+DEFINE_SHARED_IRQ(I2C_IRQ, IRQAGENT3, INTC, PIRQC, i2c_isr);
 
 int
 quarkX1000_i2c_init(void)
@@ -501,16 +507,7 @@ quarkX1000_i2c_init(void)
 
   pci_command_enable(pci_addr, PCI_CMD_1_MEM_SPACE_EN);
 
-  SET_INTERRUPT_HANDLER(I2C_INT, 0, i2c_handler);
-
-  if (pci_irq_agent_set_pirq(IRQAGENT3, INTC, PIRQC) < 0)
-    return -1;
-
-  pci_pirq_set_irq(PIRQC, I2C_IRQ, 1);
-
   pci_init(&device.pci, pci_addr, 0);
-
-  pic_unmask_irq(I2C_IRQ);
 
   return 0;
 }
