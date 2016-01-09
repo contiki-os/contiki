@@ -122,10 +122,18 @@ rf_core_send_cmd(uint32_t cmd, uint32_t *status)
   bool interrupts_disabled;
   bool is_radio_op = false;
 
-  /* If cmd is 4-byte aligned, then it's a radio OP. Clear the status field */
+  /*
+   * If cmd is 4-byte aligned, then it's either a radio OP or an immediate
+   * command. Clear the status field if it's a radio OP
+   */
   if((cmd & 0x03) == 0) {
-    is_radio_op = true;
-    ((rfc_radioOp_t *)cmd)->status = RF_CORE_RADIO_OP_STATUS_IDLE;
+    uint32_t cmd_type;
+    cmd_type = ((rfc_command_t *)cmd)->commandNo & RF_CORE_COMMAND_TYPE_MASK;
+    if(cmd_type == RF_CORE_COMMAND_TYPE_IEEE_FG_RADIO_OP ||
+       cmd_type == RF_CORE_COMMAND_TYPE_RADIO_OP) {
+      is_radio_op = true;
+      ((rfc_radioOp_t *)cmd)->status = RF_CORE_RADIO_OP_STATUS_IDLE;
+    }
   }
 
   /*
@@ -152,7 +160,7 @@ rf_core_send_cmd(uint32_t cmd, uint32_t *status)
 
   HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDR) = cmd;
   do {
-    *status = HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDSTA);
+    *status = HWREG(RFC_DBELL_BASE + RFC_DBELL_O_CMDSTA) & 0xFF;
     if(++timeout_count > 50000) {
       PRINTF("rf_core_send_cmd: 0x%08lx Timeout\n", cmd);
       if(!interrupts_disabled) {
