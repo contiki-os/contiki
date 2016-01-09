@@ -244,8 +244,18 @@ lpm_drop()
 
   uint32_t domains = LOCKABLE_DOMAINS;
 
+  /* Critical. Don't get interrupted! */
+  ti_lib_int_master_disable();
+
+  /* Check if any events fired before we turned interrupts off. If so, abort */
+  if(process_nevents()) {
+    ti_lib_int_master_enable();
+    return;
+  }
+
   if(RTIMER_CLOCK_LT(soc_rtc_get_next_trigger(),
                      RTIMER_NOW() + STANDBY_MIN_DURATION)) {
+    ti_lib_int_master_enable();
     lpm_sleep();
     return;
   }
@@ -261,30 +271,20 @@ lpm_drop()
     }
   }
 
-  /* Check if any events fired during this process. Last chance to abort */
-  if(process_nevents()) {
-    return;
+  /* Reschedule AON RTC CH1 to fire just in time for the next etimer event */
+  next_event = etimer_next_expiration_time();
+
+  if(etimer_pending()) {
+    next_event = next_event - clock_time();
+    soc_rtc_schedule_one_shot(AON_RTC_CH1, soc_rtc_last_isr_time() +
+                              (next_event * (RTIMER_SECOND / CLOCK_SECOND)));
   }
 
   /* Drop */
   if(max_pm == LPM_MODE_SLEEP) {
+    ti_lib_int_master_enable();
     lpm_sleep();
   } else {
-    /* Critical. Don't get interrupted! */
-    ti_lib_int_master_disable();
-
-    /*
-     * Reschedule AON RTC CH1 to fire an event N ticks before the next etimer
-     * event
-     */
-    next_event = etimer_next_expiration_time();
-
-    if(next_event) {
-      next_event = next_event - clock_time();
-      soc_rtc_schedule_one_shot(AON_RTC_CH1, soc_rtc_last_isr_time() +
-          (next_event * (RTIMER_SECOND / CLOCK_SECOND)));
-    }
-
     /*
      * Notify all registered modules that we are dropping to mode X. We do not
      * need to do this for simple sleep.
