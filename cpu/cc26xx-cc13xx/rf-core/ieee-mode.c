@@ -767,7 +767,7 @@ transmit(unsigned short transmit_len)
   uint16_t stat;
   uint8_t tx_active = 0;
   rtimer_clock_t t0;
-  rfc_CMD_IEEE_TX_t cmd;
+  volatile rfc_CMD_IEEE_TX_t cmd;
 
   if(!rf_is_on()) {
     was_off = 1;
