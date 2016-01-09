@@ -39,7 +39,7 @@
  * \file
  * Implementation of the cc2538 ECC driver
  */
-#include "ecc-driver.h"
+#include "dev/ecc-driver.h"
 #include "reg.h"
 #include "dev/nvic.h"
 

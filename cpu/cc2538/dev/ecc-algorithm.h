@@ -49,8 +49,8 @@
 #ifndef ECC_ALGORITHM_H_
 #define ECC_ALGORITHM_H_
 
-#include "bignum-driver.h"
-#include "ecc-driver.h"
+#include "dev/bignum-driver.h"
+#include "dev/ecc-driver.h"
 
 typedef struct  {
   /* Containers for the State */

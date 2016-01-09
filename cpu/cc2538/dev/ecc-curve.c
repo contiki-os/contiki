@@ -32,8 +32,8 @@
  * \addtogroup c2538-ecc-curves
  * @{
  */
-#include <contiki.h>
-#include <ecc-driver.h>
+#include "contiki.h"
+#include "dev/ecc-driver.h"
 
 /* [NIST P-256, X9.62 prime256v1] */
 static const uint32_t nist_p_256_p[8] = { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000,
