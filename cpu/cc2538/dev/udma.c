@@ -56,7 +56,7 @@ static volatile struct channel_ctrl channel_config[UDMA_CONF_MAX_CHANNEL + 1]
 void
 udma_init()
 {
-  memset(&channel_config, 0, sizeof(channel_config));
+  memset((void *)&channel_config, 0, sizeof(channel_config));
 
   REG(UDMA_CFG) = UDMA_CFG_MASTEN;
 
