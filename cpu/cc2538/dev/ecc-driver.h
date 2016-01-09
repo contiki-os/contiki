@@ -48,7 +48,7 @@
 #define ECC_DRIVER_H_
 
 #include "contiki.h"
-#include "pka.h"
+#include "dev/pka.h"
 
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/

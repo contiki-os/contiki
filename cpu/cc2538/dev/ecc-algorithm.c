@@ -35,15 +35,15 @@
  * \file
  * Implementation of the cc2538 ECC Algorithms
  */
-#include <contiki.h>
-#include <process.h>
+#include "contiki.h"
+#include "sys/process.h"
 
 #include <limits.h>
 #include <stdio.h>
 
-#include "ecc-algorithm.h"
-#include "ecc-driver.h"
-#include "pka.h"
+#include "dev/ecc-algorithm.h"
+#include "dev/ecc-driver.h"
+#include "dev/pka.h"
 
 #define CHECK_RESULT(...)                                                  \
   state->result = __VA_ARGS__;                                             \

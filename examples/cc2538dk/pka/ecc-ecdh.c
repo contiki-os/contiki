@@ -45,11 +45,11 @@
  *     Example demonstrating ECDH on the cc2538dk platform
  */
 #include "contiki.h"
-#include "ecc-algorithm.h"
-#include "ecc-curve.h"
-#include "random.h"
-#include "rtimer.h"
-#include "pt.h"
+#include "dev/ecc-algorithm.h"
+#include "dev/ecc-curve.h"
+#include "lib/random.h"
+#include "sys/rtimer.h"
+#include "sys/pt.h"
 
 #include <string.h>
 #include <stdio.h>
