@@ -44,34 +44,43 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
-
+/* -------------------------------------------------------------------------- */
 #ifndef SHT25_H_
 #define SHT25_H_
+/* -------------------------------------------------------------------------- */
+#define SHT25_ADDR              0x40
+#define SHT25_TEMP_HOLD         0xE3
+#define SHT25_HUM_HOLD          0xE5
+#define SHT25_TEMP_NO_HOLD      0xF3
+#define SHT25_HUM_NO_HOLD       0xF5
+#define SHT2X_UREG_WRITE        0xE6
+#define SHT2X_UREG_READ         0xE7
+#define SHT2X_SOFT_RESET        0XFE
+#define SHT2X_NULL              0x00
+/* -------------------------------------------------------------------------- */
+#define SHT2X_RES_14T_12RH      0x00
+#define SHT2X_RES_12T_08RH      0x01
+#define SHT2X_RES_13T_10RH      0x80
+#define SHT2X_RES_11T_11RH      0x81
+#define SHT2X_HEATER_ON         0x04
+#define SHT2X_HEATER_OFF        0x00
+#define SHT2X_OTP_RELOAD_EN     0x00
+#define SHT2X_OTP_RELOAD_DIS    0x02
+#define SHT2x_LOW_VOLTAGE_MASK  0x40
+#define SHT2x_LOW_VOLTAGE_SHIFT 0x06
+/* -------------------------------------------------------------------------- */
+#define SHT25_ACTIVE            SENSORS_ACTIVE
+#define SHT25_SOFT_RESET        0x01
+#define SHT25_RESOLUTION        0x02
 
-/* -------------------------------------------------------------------------- */
-#define SHT25_ADDR            0x40
-#define SHT25_TEMP_HOLD       0xE3
-#define SHT25_HUM_HOLD        0xE5
-#define SHT25_TEMP_NO_HOLD    0xF3
-#define SHT25_HUM_NO_HOLD     0xF5
-#define SHT2X_UREG_WRITE      0xE6
-#define SHT2X_UREG_READ       0xE7
-#define SHT2X_SOFT_RESET      0XFE
-#define SHT2X_NULL            0x00
-/* -------------------------------------------------------------------------- */
-#define SHT2X_RES_14T_12RH    0x00
-#define SHT2X_RES_12T_08RH    0x01
-#define SHT2X_RES_13T_10RH    0x80
-#define SHT2X_RES_11T_11RH    0x81
-#define SHT2X_HEATER_ON       0x04
-#define SHT2X_HEATER_OFF      0x00
-#define SHT2X_OTP_RELOAD_EN   0x00
-#define SHT2X_OTP_RELOAD_DIS  0x02
-/* -------------------------------------------------------------------------- */
-#define SHT25_VAL_TEMP        SHT25_TEMP_HOLD
-#define SHT25_VAL_HUM         SHT25_HUM_HOLD
-#define SHT25_ERROR           -1
-#define SHT25_SUCCESS         0x00
+#define SHT25_VAL_TEMP          SHT25_TEMP_HOLD
+#define SHT25_VAL_HUM           SHT25_HUM_HOLD
+#define SHT25_VOLTAGE_ALARM     0x01
+
+#define SHT25_ERROR             (-1)
+#define SHT25_SUCCESS           0x00
+#define SHT25_RESET_DELAY       15000
+#define SHT25_STATUS_BITS_MASK  0x0003
 /* -------------------------------------------------------------------------- */
 #define SHT25_SENSOR "SHT25 Sensor"
 /* -------------------------------------------------------------------------- */
