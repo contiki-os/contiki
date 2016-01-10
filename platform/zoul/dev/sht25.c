@@ -46,20 +46,30 @@
 #include "dev/sht25.h"
 #include "lib/sensors.h"
 /*---------------------------------------------------------------------------*/
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+/*---------------------------------------------------------------------------*/
 static uint8_t enabled;
 /*---------------------------------------------------------------------------*/
 static int
 configure(int type, int value)
 {
   if(type != SENSORS_ACTIVE) {
+    PRINTF("SHT25: option not supported\n");
     return SHT25_ERROR;
   }
+
   if(value) {
     i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN,
              I2C_SCL_NORMAL_BUS_SPEED);
   }
+
   enabled = value;
-  return 0;
+  return SHT25_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -76,6 +86,7 @@ status(int type)
 static uint16_t
 sht25_read_reg(uint8_t reg, uint8_t *buf, uint8_t regNum)
 {
+  i2c_master_enable();
   if(i2c_single_send(SHT25_ADDR, reg) == I2C_MASTER_ERR_NONE) {
     if(i2c_burst_receive(SHT25_ADDR, buf, regNum) == I2C_MASTER_ERR_NONE) {
       return SHT25_SUCCESS;
@@ -110,6 +121,7 @@ sht25_read(uint8_t variable, uint16_t *rd)
   uint16_t raw;
 
   if((variable != SHT25_VAL_TEMP) && (variable != SHT25_VAL_HUM)) {
+    PRINTF("SHT25: invalid sensor requested\n");
     return SHT25_ERROR;
   }
 
@@ -118,6 +130,8 @@ sht25_read(uint8_t variable, uint16_t *rd)
     *rd = sht25_convert(variable, raw);
     return SHT25_SUCCESS;
   }
+
+  PRINTF("SHT25: failed to read sensor\n");
   return SHT25_ERROR;
 }
 /*---------------------------------------------------------------------------*/
@@ -125,6 +139,12 @@ static int
 value(int type)
 {
   uint16_t val;
+
+  if(!enabled) {
+    PRINTF("SHT25: sensor not started\n");
+    return SHT25_ERROR;
+  }
+
   if(sht25_read(type, &val) == SHT25_SUCCESS) {
     return val;
   }
