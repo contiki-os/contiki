@@ -90,8 +90,8 @@
  * settles down, the code compensates the offsets.
  *
  * We consider 125, 250ms etc because they are nice divisors of 1 sec
- * (quotient is power of two). For some machines (e.g sky/msp430,
- * sensinode/cc243x), this is also a nice number of clock ticks
+ * (quotient is power of two). For some machines (e.g sky/msp430),
+ * this is also a nice number of clock ticks
  *
  * After experimentation, the values of Imin leading to best performance are:
  * ContikiMAC: Imin=64 (500ms)
