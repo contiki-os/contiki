@@ -32,7 +32,7 @@
 
 /**
  * \file
- *         Header file for debugging functions used by the sensinode port.
+ *         Header file for debugging functions used by the CC2530DK port.
  *
  *         putstring() and puthex() are from msp430/watchdog.c
  *
