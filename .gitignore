@@ -61,7 +61,6 @@ tools/cooja/apps/avrora/lib/cooja_avrora.jar
 tools/cooja/apps/collect-view/cooja-collect-view.jar
 
 # sdcc build artifacts
-contiki-sensinode.lib
 contiki-cc2530dk.lib
 *.ihx
 *.hex
@@ -70,7 +69,6 @@ contiki-cc2530dk.lib
 *.omf
 *.cdb
 *.banks
-*.sensinode
 *.cc2530dk
 
 # VC++ build artifacts
