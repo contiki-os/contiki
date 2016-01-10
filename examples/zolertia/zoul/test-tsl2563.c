@@ -102,6 +102,7 @@ PROCESS_THREAD(remote_tsl2563_process, ev, data)
     } else {
       printf("Error, enable the DEBUG flag in the tsl2563 driver for info, ");
       printf("or check if the sensor is properly connected\n");
+      PROCESS_EXIT();
     }
   }
   PROCESS_END();
