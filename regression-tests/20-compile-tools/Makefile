@@ -25,8 +25,8 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 
-TOOLS=sky  tools  stm32w  z80=hex2bin  sensinode=nano_programmer
-FAILTOOLS=stm32w=uip6_bridge sky=uip6-bridge  sensinode=nano_usb_programmer
+TOOLS=sky  tools  stm32w  z80=hex2bin
+FAILTOOLS=stm32w=uip6_bridge sky=uip6-bridge
 
 
 TOOLSDIR=../../tools
