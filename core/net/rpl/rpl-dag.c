@@ -1235,9 +1235,9 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
   return_value = 1;
 
   uip_ds6_nbr_t *nbr = rpl_get_nbr(p);
-
+/*
   if(nbr == NULL || nbr->state != NBR_REACHABLE){
-    /*Parent is not a reachable neighbor*/
+    
     printf("RPL: Parent not reachable.\n");
     rpl_nullify_parent(p);
     if(p != instance->current_dag->preferred_parent) {
@@ -1245,7 +1245,7 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
     } else {
       return_value = 0;
     }
-  }
+  }*/
 
   if(!acceptable_rank(p->dag, p->rank)) {
     /* The candidate parent is no longer valid: the rank increase resulting
