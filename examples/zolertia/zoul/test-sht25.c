@@ -62,7 +62,7 @@ PROCESS_THREAD(remote_sht25_process, ev, data)
 
   /* Check if the sensor voltage operation is over 2.25V */
   if(sht25.value(SHT25_VOLTAGE_ALARM)) {
-    printf("Voltage is lower than recommended for the sensor operation\n"); 
+    printf("Voltage is lower than recommended for the sensor operation\n");
     PROCESS_EXIT();
   }
 
