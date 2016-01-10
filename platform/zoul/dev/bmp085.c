@@ -73,6 +73,7 @@ typedef struct {
 
 typedef struct {
   uint8_t oversampling_mode;
+  int32_t b5;
   bmp085_calibration_values calib;
 } bmp085_config;
 
@@ -201,7 +202,7 @@ static int
 bmp085_read_temperature(int16_t *temp)
 {
   int32_t ut = 0;
-  int32_t x1, x2, b5;
+  int32_t x1, x2;
 
   if(bmp085_read_uncompensated_temperature(&ut) == BMP085_ERROR) {
     return BMP085_ERROR;
@@ -210,8 +211,8 @@ bmp085_read_temperature(int16_t *temp)
   x1 = ((int32_t)ut - (int32_t)bmp085_values.calib.ac6)
     * (int32_t)bmp085_values.calib.ac5 >> 15;
   x2 = ((int32_t)bmp085_values.calib.mc << 11) / (x1 + bmp085_values.calib.md);
-  b5 = x1 + x2;
-  *temp = (int16_t)((b5 + 8) >> 4);
+  bmp085_values.b5 = x1 + x2;
+  *temp = (int16_t)((bmp085_values.b5 + 8) >> 4);
   return BMP085_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
@@ -220,7 +221,7 @@ bmp085_read_pressure(int32_t *pressure)
 {
   int32_t ut = 0;
   int32_t up = 0;
-  int32_t x1, x2, b5, b6, x3, b3, p;
+  int32_t x1, x2, b6, x3, b3, p;
   uint32_t b4, b7;
 
   if(bmp085_read_uncompensated_pressure(&up) == BMP085_ERROR) {
@@ -231,7 +232,7 @@ bmp085_read_pressure(int32_t *pressure)
     return BMP085_ERROR;
   }
 
-  b6 = b5 - 4000;
+  b6 = bmp085_values.b5 - 4000;
   x1 = (bmp085_values.calib.b2 * (b6 * b6 >> 12)) >> 11;
   x2 = bmp085_values.calib.ac2 * b6 >> 11;
   x3 = x1 + x2;
@@ -312,11 +313,20 @@ status(int type)
 static int
 bmp085_read_sensor(int32_t *value, uint8_t type)
 {
+  int16_t temp = 0;
+
+  /* The temperature is required to compensate the pressure value */
+  if(bmp085_read_temperature(&temp) != BMP085_SUCCESS) {
+    return BMP085_ERROR;
+  }
+
   switch(type) {
   case BMP085_READ_PRESSURE:
     return bmp085_read_pressure(value);
+
   case BMP085_READ_TEMP:
-    return bmp085_read_temperature((int16_t *)value);
+    *value = (int16_t) temp;
+    return BMP085_SUCCESS;
   }
 
   return BMP085_ERROR;
