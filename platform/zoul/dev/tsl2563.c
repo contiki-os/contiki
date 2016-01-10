@@ -299,8 +299,29 @@ configure(int type, int value)
               timming = buf[0] & TSL2563_TIMMING_INTEG_MASK;
               PRINTF("TSL2563: enabled, timming %u gain %u\n", timming, gain);
 
+              /* Restart the over interrupt threshold */
+              buf[0] = (TSL2563_COMMAND + TSL2563_THRHIGHLOW);
+              buf[1] = 0xFF;
+              buf[2] = 0xFF;
+
+              if(tsl2563_write_reg(buf, 3) != TSL2563_SUCCESS) {
+                PRINTF("TSL2563: failed to clear over interrupt\n");
+                return TSL2563_ERROR;
+              }
+
+              /* Restart the below interrupt threshold */
+              buf[0] = (TSL2563_COMMAND + TSL2563_THRLOWLOW);
+              buf[1] = 0x00;
+              buf[2] = 0x00;
+
+              if(tsl2563_write_reg(buf, 3) != TSL2563_SUCCESS) {
+                PRINTF("TSL2563: failed to clear below interrupt\n");
+                return TSL2563_ERROR;
+              }
+
               /* Clear any pending interrupt */
               if(tsl2563_clear_interrupt() == TSL2563_SUCCESS) {
+                enabled = 1;
                 return TSL2563_SUCCESS;
               }
             }
@@ -311,10 +332,16 @@ configure(int type, int value)
     } else {
       if(tsl2563_off() == TSL2563_SUCCESS) {
         PRINTF("TSL2563: stopped\n");
+        enabled = 0;
         return TSL2563_SUCCESS;
       }
       return TSL2563_ERROR;
     }
+  }
+
+  if(!enabled) {
+    PRINTF("TSL2563: sensor not started\n");
+    return TSL2563_ERROR;
   }
 
   if(type == TSL2563_INT_DISABLE) {
@@ -447,6 +474,12 @@ static int
 value(int type)
 {
   uint16_t lux;
+
+  if(!enabled) {
+    PRINTF("TSL2563: sensor not started\n");
+    return TSL2563_ERROR;
+  }
+
   if(type == TSL2563_VAL_READ) {
     if(tsl2563_read_sensor(&lux) != TSL2563_ERROR) {
       return lux;
