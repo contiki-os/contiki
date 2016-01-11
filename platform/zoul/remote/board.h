@@ -261,12 +261,18 @@
  * These values configure which CC2538 pins to use for the I2C lines, exposed
  * over JP6 connector, also available as testpoints T2 (PC2) and T3 (PC3).
  * The I2C bus is shared with the on-board RTC.
+ * The I2C is exposed over the JP6 header, using a 5-pin connector with 2.54 mm
+ * spacing, providing also D+3.3V, GND and a generic pin that can be used as an
+ * interrupt pin
  * @{
  */
 #define I2C_SCL_PORT             GPIO_C_NUM
 #define I2C_SCL_PIN              3
 #define I2C_SDA_PORT             GPIO_C_NUM
 #define I2C_SDA_PIN              2
+#define I2C_INT_PORT             GPIO_D_NUM
+#define I2C_INT_PIN              1
+#define I2C_INT_VECTOR           NVIC_INT_GPIO_PORT_D
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -374,7 +380,6 @@
 /**
  * \name On-board RTC
  *
- * The Abracon AB0805 RTC is used by both the
  * The shutdown mode can be disabled by hardware by short-circuiting or placing
  * an 0Ohm resistor across W1 pad.  As the RTC_INT1 pin is also shared with the
  * BUTTON_USER, so either disable or not use the user button, or upon receiving
