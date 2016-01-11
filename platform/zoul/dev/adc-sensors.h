@@ -87,7 +87,7 @@
  * platforms, the following assumes PA0 shall not be used as ADC input, else
  * re-write the below definitions
  */
-#define ZOUL_SENSORS_ADC_MIN     4
+#define ZOUL_SENSORS_ADC_MIN     2
 /* ADC phidget-like connector ADC1 */
 #if ADC_SENSORS_ADC1_PIN >= ZOUL_SENSORS_ADC_MIN
 #define ZOUL_SENSORS_ADC1        GPIO_PIN_MASK(ADC_SENSORS_ADC1_PIN)
