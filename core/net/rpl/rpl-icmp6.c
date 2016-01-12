@@ -678,6 +678,15 @@ dao_input(void)
     pos += 16;
   }
 
+  #if RPL_REVERSE_TRICKLE && !RPL_MOBILE
+  if((flags & RPL_DAO_MOBILITY_FLAG) && uip_ipaddr_cmp(dao_sender_addr, addr2)){
+    if(!instance->current_dag->has_mobile_child){
+      instance->current_dag->has_mobile_child = 1;
+      rpl_start_reverse_trickle(instance);
+    }
+  }
+  #endif
+
   learned_from = uip_is_addr_mcast(&dao_sender_addr) ?
                  RPL_ROUTE_FROM_MULTICAST_DAO : RPL_ROUTE_FROM_UNICAST_DAO;
 
@@ -912,6 +921,10 @@ dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
 #if RPL_CONF_DAO_ACK
   buffer[pos] |= RPL_DAO_K_FLAG;
 #endif /* RPL_CONF_DAO_ACK */
+#if RPL_REVERSE_TRICKLE && RPL_MOBILE
+  /*If mobile node and using reverse trickle, DAO must inform of node mobility*/
+  buffer[pos] |= RPL_DAO_MOBILITY_FLAG;
+#endif
   ++pos;
   buffer[pos++] = 0; /* reserved */
   buffer[pos++] = dao_sequence;

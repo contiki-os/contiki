@@ -144,6 +144,12 @@ struct rpl_dag {
   uint8_t nb_parent_changed;
   uint8_t nb_same_parent;
 #endif
+#if RPL_REVERSE_TRICKLE && !RPL_MOBILE
+  uint8_t has_mobile_child;
+#endif
+#if RPL_REVERSE_TRICKLE && RPL_MOBILE
+  uint8_t dthresh_counter;
+#endif
   rpl_rank_t rank;
   struct rpl_instance *instance;
   rpl_prefix_t prefix_info;
