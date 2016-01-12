@@ -319,6 +319,12 @@ void rpl_schedule_probing(rpl_instance_t *instance);
 
 void rpl_reset_dio_timer(rpl_instance_t *);
 void rpl_reset_periodic_timer(void);
+#if RPL_REVERSE_TRICKLE && !RPL_MOBILE
+void rpl_start_reverse_trickle(rpl_instance_t *);
+#elif RPL_REVERSE_TRICKLE && RPL_MOBILE
+void rpl_reset_dthresh_timer(rpl_instance_t *instance);
+#endif
+
 
 /* Route poisoning. */
 void rpl_poison_routes(rpl_dag_t *, rpl_parent_t *);

@@ -56,6 +56,10 @@ static struct ctimer periodic_timer;
 static void handle_periodic_timer(void *ptr);
 static void new_dio_interval(rpl_instance_t *instance);
 static void handle_dio_timer(void *ptr);
+#if RPL_REVERSE_TRICKLE && RPL_MOBILE
+static void handle_dthresh_timer(void *ptr);
+static struct ctimer dthresh_timer;
+#endif
 
 static uint16_t next_dis;
 
@@ -182,6 +186,10 @@ handle_dio_timer(void *ptr)
     }
   }
   
+#if RPL_REVERSE_TRICKLE && !RPL_MOBILE
+  if(!(instance->current_dag->has_mobile_child)){
+#endif
+
 #if RPL_FIXED_DIO
   dio_output(instance, NULL);
   ctimer_reset(&instance->dio_timer);
@@ -215,6 +223,22 @@ handle_dio_timer(void *ptr)
     new_dio_interval(instance);
   }
 #endif /* RPL_FIXED_DIO */
+
+#if RPL_REVERSE_TRICKLE && !RPL_MOBILE
+}else{
+  if(instance->dio_intcurrent - 1 > instance->dio_intmin ) {
+    instance->dio_intcurrent--;
+    printf("DAO: Sent DIO in Reverse Trickle\n");
+    new_dio_interval(instance);
+  }else{
+    RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
+    instance->current_dag->has_mobile_child = 0;
+    printf("DAO: Reset DIO to normal\n");
+    rpl_reset_dio_timer(instance);
+  }
+  dio_output(instance, NULL);
+}
+#endif
 
 #if DEBUG
   rpl_print_neighbor_list();
@@ -251,6 +275,17 @@ rpl_reset_dio_timer(rpl_instance_t *instance)
   if(ctimer_expired(&instance->dio_timer)) new_dio_interval(instance);
 #endif
 }
+/*---------------------------------------------------------------------------*/
+#if RPL_REVERSE_TRICKLE && !RPL_MOBILE
+void
+rpl_start_reverse_trickle(rpl_instance_t *instance)
+{
+#if !RPL_LEAF_ONLY
+  instance->dio_intcurrent = instance->dio_intmin + instance->dio_intdoubl;
+  new_dio_interval(instance);
+#endif
+}
+#endif
 /*---------------------------------------------------------------------------*/
 static void handle_dao_timer(void *ptr);
 static void
@@ -379,6 +414,40 @@ rpl_cancel_dao(rpl_instance_t *instance)
   ctimer_stop(&instance->dao_timer);
   ctimer_stop(&instance->dao_lifetime_timer);
 }
+/*---------------------------------------------------------------------------*/
+#if RPL_REVERSE_TRICKLE && RPL_MOBILE
+void
+new_dthresh_interval(rpl_instance_t *instance)
+{
+  uint32_t time;
+  clock_time_t ticks;
+  uint8_t dio_max = RPL_DIO_INTERVAL_MIN + RPL_DIO_INTERVAL_DOUBLINGS;
+
+  time = 1UL << (dio_max - instance->current_dag->dthresh_counter);
+  ticks = (time * CLOCK_SECOND) / 1000;
+
+  ctimer_set(&dthresh_timer,ticks,&handle_dthresh_timer,instance);
+}
+
+static void
+handle_dthresh_timer(void *ptr)
+{
+  rpl_instance_t *instance = (rpl_instance_t *)ptr;
+  instance->current_dag->dthresh_counter += 1;
+  if(instance->current_dag->dthresh_counter >= RPL_REVERSE_DTHRESH){
+    rpl_remove_parent(instance->current_dag->preferred_parent);
+  }else{
+    new_dthresh_interval(instance);
+  }
+}
+
+void
+rpl_reset_dthresh_timer(rpl_instance_t *instance)
+{
+  instance->current_dag->dthresh_counter = 0;
+  new_dthresh_interval(instance);
+}
+#endif
 /*---------------------------------------------------------------------------*/
 #if RPL_WITH_PROBING
 static rpl_parent_t *

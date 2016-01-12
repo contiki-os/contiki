@@ -1420,6 +1420,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     } else {
       p->rank=dio->rank;
     }
+#if RPL_REVERSE_TRICKLE && RPL_MOBILE
+    instance->current_dag->dthresh_counter += 1;
+#endif
   }
 
   /* Parent info has been updated, trigger rank recalculation */
@@ -1447,6 +1450,9 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     if(should_send_dao(instance, dio, p)) {
       RPL_LOLLIPOP_INCREMENT(instance->dtsn_out);
       rpl_schedule_dao(instance);
+#if RPL_REVERSE_TRICKLE && RPL_MOBILE
+      rpl_reset_dthresh_timer(instance);
+#endif
     }
     /* We received a new DIO from our preferred parent.
      * Call uip_ds6_defrt_add to set a fresh value for the lifetime counter */

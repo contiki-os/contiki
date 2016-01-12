@@ -78,16 +78,6 @@
 #endif /* RPL_CONF_DEFAULT_INSTANCE */
 
 /*
- * This value decides if this node must stay as a leaf or not
- * as allowed by draft-ietf-roll-rpl-19#section-8.5
- */
-#ifdef RPL_CONF_LEAF_ONLY
-#define RPL_LEAF_ONLY RPL_CONF_LEAF_ONLY
-#else
-#define RPL_LEAF_ONLY 0
-#endif
-
-/*
  * Maximum of concurent RPL instances.
  */
 #ifdef RPL_CONF_MAX_INSTANCES
@@ -356,6 +346,48 @@
 #else
 #define RPL_DIO_DAO_ON_NEW_PARENT 0
 #endif
+
+#ifdef RPL_CONF_REVERSE_TRICKLE
+#define RPL_REVERSE_TRICKLE RPL_CONF_REVERSE_TRICKLE
+#else
+#define RPL_REVERSE_TRICKLE 0
+#endif
+
+
+#if RPL_REVERSE_TRICKLE
+#define RPL_DAO_MOBILITY_FLAG 4
+#endif
+
+
+#ifdef RPL_CONF_MOBILE
+#define RPL_MOBILE RPL_CONF_MOBILE
+#else
+#define RPL_MOBILE 0
+#endif
+
+
+#if RPL_REVERSE_TRICKLE && RPL_MOBILE
+#define RPL_LEAF_ONLY 1
+
+#ifdef RPL_CONF_REVERSE_DTHRESH
+#define RPL_REVERSE_DTHRESH  RPL_CONF_REVERSE_DTHRESH
+#else
+#define RPL_REVERSE_DTHRESH 3
+#endif/* RPL_CONF_REVERSE_DTHRESH */
+
+#else /* RPL_REVERSE_TRICKLE && RPL_MOBILE */
+
+/*
+ * This value decides if this node must stay as a leaf or not
+ * as allowed by draft-ietf-roll-rpl-19#section-8.5
+ */
+#ifdef RPL_CONF_LEAF_ONLY
+#define RPL_LEAF_ONLY RPL_CONF_LEAF_ONLY
+#else
+#define RPL_LEAF_ONLY 0
+#endif
+
+#endif/* RPL_REVERSE_TRICKLE && RPL_MOBILE */
 
 
 #if RPL_WITH_PROBING
