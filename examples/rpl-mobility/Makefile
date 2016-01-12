@@ -39,19 +39,29 @@ ifdef RPL_CONF_MOBILE
 CFLAGS+=-DRPL_CONF_MOBILE=$(RPL_CONF_MOBILE)
 endif
 
+
+CONTIKI_WITH_IPV6 = 1
+include $(CONTIKI)/Makefile.include
+
+
 #touch rpl-conf.h to recompile dependant files with new conf values
 touch:
 	touch $(CONTIKI)/core/net/rpl/*
 	
-udp-client-static.sky: touch udp-client.sky
+udp-client-static.sky: lock touch udp-client.sky
 	mv udp-client.sky udp-client-static.sky
+	sh unlock.sh
 	
-udp-client-mobile.sky: touch udp-client.sky
+udp-client-mobile.sky: lock touch udp-client.sky
 	mv udp-client.sky udp-client-mobile.sky
+	sh unlock.sh
 	
-udp-server-custom.sky: touch udp-server.sky touch
+udp-server-custom.sky: lock touch udp-server.sky touch
 	mv udp-server.sky udp-server-custom.sky
+	sh unlock.sh
 
-
-CONTIKI_WITH_IPV6 = 1
-include $(CONTIKI)/Makefile.include
+lock:
+	sh lock.sh
+	
+unlock:
+	sh unlock.sh
