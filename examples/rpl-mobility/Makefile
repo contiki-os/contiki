@@ -1,6 +1,10 @@
-all: udp-client udp-server upd-client-31 udp-client-27 udp-client-19 udp-client-15 udp-client-11 udp-client-7 udp-client-3
+all: udp-client udp-server
+
+
+#CFLAGS+=-DPROJECT_CONF_H=\"project-conf.h\"
 APPS=servreg-hack
 CONTIKI=../..
+
 
 ifdef WITH_COMPOWER
 APPS+=powertrace
@@ -28,6 +32,25 @@ endif
 ifdef RPL_CONF_PROBE_ON_NEW_NEIGHBOR
 CFLAGS+=-DRPL_CONF_PROBE_ON_NEW_NEIGHBOR=$(RPL_CONF_PROBE_ON_NEW_NEIGHBOR)
 endif
+ifdef RPL_CONF_REVERSE_TRICKLE
+CFLAGS+=-DRPL_CONF_REVERSE_TRICKLE=$(RPL_CONF_REVERSE_TRICKLE)
+endif
+ifdef RPL_CONF_MOBILE
+CFLAGS+=-DRPL_CONF_MOBILE=$(RPL_CONF_MOBILE)
+endif
+
+#touch rpl-conf.h to recompile dependant files with new conf values
+touch:
+	touch $(CONTIKI)/core/net/rpl/*
+	
+udp-client-static.sky: touch udp-client.sky
+	mv udp-client.sky udp-client-static.sky
+	
+udp-client-mobile.sky: touch udp-client.sky
+	mv udp-client.sky udp-client-mobile.sky
+	
+udp-server-custom.sky: touch udp-server.sky touch
+	mv udp-server.sky udp-server-custom.sky
 
 
 CONTIKI_WITH_IPV6 = 1
