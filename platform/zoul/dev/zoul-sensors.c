@@ -43,12 +43,11 @@
 #include "contiki.h"
 #include "dev/cc2538-sensors.h"
 #include "dev/button-sensor.h"
-#include "adc-sensors.h"
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 /** \brief Exports global symbols for the sensor API */
-SENSORS(&button_sensor, &vdd3_sensor, &cc2538_temp_sensor, &adc_sensors);
+SENSORS(&button_sensor, &vdd3_sensor, &cc2538_temp_sensor);
 /*---------------------------------------------------------------------------*/
 /**
  * @}

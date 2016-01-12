@@ -31,42 +31,55 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup zoul
+ * \addtogroup zoul-sensors
  * @{
  *
- * \defgroup zoul-sensors Zoul Sensors
+ * \defgroup zoul-adc-wrapper Zoul adc wrapper to use analogue sensors
  *
- * Generic module controlling sensors on the Zoul platform
+ * The ADC wrapper allows to use analogue sensors on top of the ADC interface,
+ * obscuring the ADC configuration and required calculations to obtain actual
+ * sensor values.  The driver allows to reuse the adc-wrapper implementation and
+ * add sensors easily, without duplicating code, providing also a simplified
+ * interface and exposing the available ADC assigned channels by a given
+ * platform.
+ *
+ * To use a given sensor simply use: adc_wrapper.configure(SENSOR_NAME, pin_no),
+ * where pin_no is a given pin in the PA port, check out the board.h for more
+ * information on available pins.  To read a value just use
+ * adc_wrapper.value(SENSOR_NAME), the expected result would be the sensor value
+ * already converted to the sensor variable type, check the adc-wrapper file
+ * for more information.
+ *
  * @{
  *
  * \file
- * Implementation of a generic module controlling Zoul sensors
+ * Header file for the Zoul ADC wrapper
  */
 /*---------------------------------------------------------------------------*/
-#ifndef ZOUL_SENSORS_H_
-#define ZOUL_SENSORS_H_
+#ifndef ADC_WRAPPER_H_
+#define ADC_WRAPPER_H_
 /*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
-#include "dev/cc2538-sensors.h"
-#include "dev/button-sensor.h"
+#include "dev/soc-adc.h"
+#include "dev/adc-sensors.h"
 /*---------------------------------------------------------------------------*/
-/**
- * \name Zoul sensor constants
- *
- * These constants are used by various sensors on the Zoul. They can be used
- * to configure ADC decimation rate (where applicable), enable interrupts, etc.
- * @{
- */
-#define HW_INT_OVER_THRS                              0x01
-#define HW_INT_BELOW_THRS                             0x02
-#define HW_INT_DISABLE                                0x03
-#define ZOUL_SENSORS_CONFIGURE_TYPE_DECIMATION_RATE   0x0100
-#define ZOUL_SENSORS_ERROR                            CC2538_SENSORS_ERROR
-/** @} */
+#define ADC_WRAPPER_SUCCESS                 0x00
+#define ADC_WRAPPER_ERROR                   (-1)
+#define ADC_WRAPPER_EXTERNAL_VREF           5000
+#define ADC_WRAPPER_EXTERNAL_VREF_CROSSVAL  3300
 /*---------------------------------------------------------------------------*/
-#endif /* ZOUL_SENSORS_H_ */
+#define ANALOG_GROVE_LIGHT                  0x01
+#define ANALOG_PHIDGET_ROTATION_1109        0x02
+#define ANALOG_GROVE_LOUDNESS               0x03
+/* -------------------------------------------------------------------------- */
+#define ADC_WRAPPER "ADC wrapper API"
+/* -------------------------------------------------------------------------- */
+extern const struct sensors_sensor adc_wrapper;
+/*---------------------------------------------------------------------------*/
+#endif /* ADC_WRAPPER_H_ */
 /*---------------------------------------------------------------------------*/
 /**
  * @}
  * @}
  */
+
