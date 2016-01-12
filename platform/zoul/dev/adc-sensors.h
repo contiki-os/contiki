@@ -82,12 +82,19 @@
 #define ADC_SENSORS "ADC sensors"
 #define ADC_SENSORS_PORT_BASE    GPIO_PORT_TO_BASE(ADC_SENSORS_PORT)
 
+#ifdef ADC_SENSORS_CONF_REFERENCE
+#define ADC_SENSORS_REFERENCE ADC_SENSORS_CONF_REFERENCE
+#else
+#define ADC_SENSORS_REFERENCE SOC_ADC_ADCCON_REF_AVDD5
+#endif
+
 /*
  * PA0-PA3 are hardcoded to UART0 and the user button for most Zolertia
- * platforms, the following assumes PA0 shall not be used as ADC input, else
+ * platforms, the following assumes PA0-1 shall not be used as ADC input, else
  * re-write the below definitions
  */
-#define ZOUL_SENSORS_ADC_MIN     2
+#define ZOUL_SENSORS_ADC_MIN     2  /**< PA1 pin mask */
+
 /* ADC phidget-like connector ADC1 */
 #if ADC_SENSORS_ADC1_PIN >= ZOUL_SENSORS_ADC_MIN
 #define ZOUL_SENSORS_ADC1        GPIO_PIN_MASK(ADC_SENSORS_ADC1_PIN)
@@ -106,20 +113,25 @@
 #else
 #define ZOUL_SENSORS_ADC3        0
 #endif
-
+/* ADC phidget-like connector ADC4 */
+#if ADC_SENSORS_ADC4_PIN >= ZOUL_SENSORS_ADC_MIN
+#define ZOUL_SENSORS_ADC4        GPIO_PIN_MASK(ADC_SENSORS_ADC4_PIN)
+#else
+#define ZOUL_SENSORS_ADC4        0
+#endif
+/* ADC phidget-like connector ADC5 */
+#if ADC_SENSORS_ADC5_PIN >= ZOUL_SENSORS_ADC_MIN
+#define ZOUL_SENSORS_ADC5        GPIO_PIN_MASK(ADC_SENSORS_ADC5_PIN)
+#else
+#define ZOUL_SENSORS_ADC5        0
+#endif
 /*
  * This is safe as the disabled sensors should have a zero value thus not
  * affecting the mask operations
  */
-
-/* Enable all channels */
 #define ZOUL_SENSORS_ADC_ALL     (ZOUL_SENSORS_ADC1 + ZOUL_SENSORS_ADC2 + \
-                                  ZOUL_SENSORS_ADC3)
-/* Other allowed combinations */
-#define ZOUL_SENSORS_ADC12       (ZOUL_SENSORS_ADC1 + ZOUL_SENSORS_ADC2)
-#define ZOUL_SENSORS_ADC13       (ZOUL_SENSORS_ADC1 + ZOUL_SENSORS_ADC3)
-#define ZOUL_SENSORS_ADC23       (ZOUL_SENSORS_ADC2 + ZOUL_SENSORS_ADC3)
-
+                                  ZOUL_SENSORS_ADC3 + ZOUL_SENSORS_ADC4 + \
+                                  ZOUL_SENSORS_ADC5)
 /** @} */
 /*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor adc_sensors;

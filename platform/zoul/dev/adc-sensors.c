@@ -45,8 +45,15 @@
 #include "dev/adc.h"
 #include "adc-sensors.h"
 #include "zoul-sensors.h"
-
+#include <stdio.h>
 #include <stdint.h>
+/*---------------------------------------------------------------------------*/
+#define DEBUG 1
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 /*---------------------------------------------------------------------------*/
 static uint8_t decimation_rate;
 static uint8_t enabled_channels;
@@ -80,6 +87,12 @@ get_channel_pin(int type)
   if((ZOUL_SENSORS_ADC3) && (type == ZOUL_SENSORS_ADC3)) {
     return SOC_ADC_ADCCON_CH_AIN0 + ADC_SENSORS_ADC3_PIN;
   }
+  if((ZOUL_SENSORS_ADC4) && (type == ZOUL_SENSORS_ADC4)) {
+    return SOC_ADC_ADCCON_CH_AIN0 + ADC_SENSORS_ADC4_PIN;
+  }
+  if((ZOUL_SENSORS_ADC5) && (type == ZOUL_SENSORS_ADC5)) {
+    return SOC_ADC_ADCCON_CH_AIN0 + ADC_SENSORS_ADC5_PIN;
+  }
   return ZOUL_SENSORS_ERROR;
 }
 /*---------------------------------------------------------------------------*/
@@ -90,16 +103,24 @@ value(int type)
   int16_t res;
 
   if(!(type & enabled_channels)) {
+    PRINTF("ADC: channel not enabled\n");
     return ZOUL_SENSORS_ERROR;
   }
 
   channel = get_channel_pin(type);
 
   if(channel == ZOUL_SENSORS_ERROR) {
+    PRINTF("ADC: pin not active\n");
     return ZOUL_SENSORS_ERROR;
   }
 
-  res = adc_get(channel, SOC_ADC_ADCCON_REF_AVDD5, decimation_rate);
+  res = adc_get(channel, ADC_SENSORS_REFERENCE, decimation_rate);
+
+  /* Only allow negative values if using differential input */
+  if((ADC_SENSORS_REFERENCE != SOC_ADC_ADCCON_REF_EXT_DIFF) && (res < 0)) {
+    res = 0;
+  }
+
   return res;
 }
 /*---------------------------------------------------------------------------*/
@@ -111,12 +132,14 @@ configure(int type, int value)
 
     /* This should filter out disabled sensors as its value should be zero */
     if((value < ZOUL_SENSORS_ADC_MIN) || (value > ZOUL_SENSORS_ADC_ALL)) {
+      PRINTF("ADC: invalid adc pin mask (0x%02X)\n", value);
       return ZOUL_SENSORS_ERROR;
     }
 
     if((value != ZOUL_SENSORS_ADC1) && (value != ZOUL_SENSORS_ADC2) &&
-       (value != ZOUL_SENSORS_ADC3) && (value != ZOUL_SENSORS_ADC12) &&
-       (value != ZOUL_SENSORS_ADC13) && (value != ZOUL_SENSORS_ADC23)) {
+       (value != ZOUL_SENSORS_ADC3) && (value != ZOUL_SENSORS_ADC4) &&
+       (value != ZOUL_SENSORS_ADC5)) {
+      PRINTF("ADC: invalid adc pin mask\n");
       return ZOUL_SENSORS_ERROR;
     }
 
@@ -131,6 +154,12 @@ configure(int type, int value)
     }
     if(value & ZOUL_SENSORS_ADC3) {
       ioc_set_over(GPIO_A_NUM, ADC_SENSORS_ADC3_PIN, IOC_OVERRIDE_ANA);
+    }
+    if(value & ZOUL_SENSORS_ADC4) {
+      ioc_set_over(GPIO_A_NUM, ADC_SENSORS_ADC4_PIN, IOC_OVERRIDE_ANA);
+    }
+    if(value & ZOUL_SENSORS_ADC5) {
+      ioc_set_over(GPIO_A_NUM, ADC_SENSORS_ADC5_PIN, IOC_OVERRIDE_ANA);
     }
     adc_init();
     set_decimation_rate(SOC_ADC_ADCCON_DIV_512);
