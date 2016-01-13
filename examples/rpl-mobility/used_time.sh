@@ -1,0 +1,1 @@
+awk '{cpu[$1]=$4;lpm[$1]=$5;tx[$1]=$6;rx[$1]=$7}END{OFMT="%f";for (i in cpu) {scpu+=cpu[i];slpm+=lpm[i];stx+=tx[i];srx+=rx[i];}; print "CPUUsage",100*scpu/(scpu+slpm);print "RadioUsage",100*(stx+srx)/(scpu+slpm);}' < log_energy.log >> final.log
