@@ -49,15 +49,15 @@ touch:
 	touch $(CONTIKI)/core/net/rpl/*
 	
 udp-client-static.sky: lock touch udp-client.sky
-	mv udp-client.sky udp-client-static.sky
+	mv udp-client.sky $(PROJ_DIR)/udp-client-static.sky
 	sh unlock.sh
 	
 udp-client-mobile.sky: lock touch udp-client.sky
-	mv udp-client.sky udp-client-mobile.sky
+	mv udp-client.sky $(PROJ_DIR)/udp-client-mobile.sky
 	sh unlock.sh
 	
 udp-server-custom.sky: lock touch udp-server.sky touch
-	mv udp-server.sky udp-server-custom.sky
+	mv udp-server.sky $(PROJ_DIR)/udp-server-custom.sky
 	sh unlock.sh
 
 lock:
