@@ -101,7 +101,9 @@ PROCESS_THREAD(udp_server_process, ev, data)
   uip_ipaddr_t ipaddr;
   struct uip_ds6_addr *root_if;
   
-//  random_init(1);
+#ifdef SEED
+  random_init(SEED);
+#endif
 
   PROCESS_BEGIN();
 

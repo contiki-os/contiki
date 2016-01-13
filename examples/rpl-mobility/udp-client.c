@@ -218,7 +218,9 @@ PROCESS_THREAD(udp_client_process, ev, data)
 #if WITH_COMPOWER
   static int print = 0;
 #endif
-//random_init(1);
+#ifdef SEED
+  random_init(SEED);
+#endif
 
   PROCESS_BEGIN();
 

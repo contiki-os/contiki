@@ -17,6 +17,9 @@ endif
 ifdef PERIOD
 CFLAGS+=-DPERIOD=$(PERIOD)
 endif
+ifdef SEED
+CFLAGS+=-DSEED=$(SEED)
+endif
 ifdef SIM_POWER
 CFLAGS+=-DSIM_POWER=$(SIM_POWER)
 endif
