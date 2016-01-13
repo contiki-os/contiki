@@ -28,7 +28,7 @@
       <identifier>sky1</identifier>
       <description>Sink Node</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/rpl-mobility/udp-server.c</source>
-      <commands EXPORT="discard">make udp-server-custom.sky TARGET=sky WITH_COMPOWER=1 SEED=SCRIPT_SEED RPL_CONF_FIXED_DIO=SCRIPT_RPL_CONF_FIXED_DIO RPL_CONF_DIO_ON_INCONSISTENCY=SCRIPT_RPL_CONF_DIO_ON_INCONSISTENCY RPL_CONF_PROBE_ON_NEW_NEIGHBOR=SCRIPT_RPL_CONF_PROBE_ON_NEW_NEIGHBOR PROJ_DIR=SCRIPT_SIMULATION_NAME</commands>
+      <commands EXPORT="discard">make udp-server-custom.sky TARGET=sky WITH_COMPOWER=1 SEED=SCRIPT_SEED RPL_CONF_FIXED_DIO=SCRIPT_RPL_CONF_FIXED_DIO RPL_CONF_DIO_ON_INCONSISTENCY=SCRIPT_RPL_CONF_DIO_ON_INCONSISTENCY RPL_CONF_PROBE_ON_NEW_NEIGHBOR=SCRIPT_RPL_CONF_PROBE_ON_NEW_NEIGHBOR RPL_CONF_REVERSE_TRICKLE=SCRIPT_RPL_CONF_REVERSE_TRICKLE PROJ_DIR=SCRIPT_SIMULATION_NAME</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rpl-mobility/SCRIPT_SIMULATION_NAME/udp-server-custom.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
@@ -51,7 +51,7 @@
       <identifier>sky2</identifier>
       <description>Static Node</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/rpl-mobility/udp-client.c</source>
-      <commands EXPORT="discard">make udp-client-static.sky TARGET=sky WITH_COMPOWER=1 SEED=SCRIPT_SEED PERIOD=SCRIPT_PERIOD RPL_CONF_FIXED_DIO=SCRIPT_RPL_CONF_FIXED_DIO RPL_CONF_DIO_ON_INCONSISTENCY=SCRIPT_RPL_CONF_DIO_ON_INCONSISTENCY RPL_CONF_DIO_DAO_ON_NEW_PARENT=SCRIPT_RPL_CONF_DIO_DAO_ON_NEW_PARENT RPL_CONF_PROBE_ON_NEW_NEIGHBOR=SCRIPT_RPL_CONF_PROBE_ON_NEW_NEIGHBOR PROJ_DIR=SCRIPT_SIMULATION_NAME </commands>
+      <commands EXPORT="discard">make udp-client-static.sky TARGET=sky WITH_COMPOWER=1 SEED=SCRIPT_SEED PERIOD=SCRIPT_PERIOD RPL_CONF_FIXED_DIO=SCRIPT_RPL_CONF_FIXED_DIO RPL_CONF_DIO_ON_INCONSISTENCY=SCRIPT_RPL_CONF_DIO_ON_INCONSISTENCY RPL_CONF_DIO_DAO_ON_NEW_PARENT=SCRIPT_RPL_CONF_DIO_DAO_ON_NEW_PARENT RPL_CONF_PROBE_ON_NEW_NEIGHBOR=SCRIPT_RPL_CONF_PROBE_ON_NEW_NEIGHBOR RPL_CONF_REVERSE_TRICKLE=SCRIPT_RPL_CONF_REVERSE_TRICKLE PROJ_DIR=SCRIPT_SIMULATION_NAME </commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rpl-mobility/SCRIPT_SIMULATION_NAME/udp-client-static.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
@@ -74,7 +74,7 @@
       <identifier>sky3</identifier>
       <description>Mobile Node</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/rpl-mobility/udp-client.c</source>
-      <commands EXPORT="discard">make udp-client-mobile.sky TARGET=sky WITH_COMPOWER=1 SEED=SCRIPT_SEED PERIOD=SCRIPT_PERIOD RPL_CONF_FIXED_DIO=SCRIPT_RPL_CONF_FIXED_DIO RPL_CONF_DIO_ON_INCONSISTENCY=SCRIPT_RPL_CONF_DIO_ON_INCONSISTENCY RPL_CONF_DIO_DAO_ON_NEW_PARENT=SCRIPT_RPL_CONF_DIO_DAO_ON_NEW_PARENT RPL_CONF_PROBE_ON_NEW_NEIGHBOR=SCRIPT_RPL_CONF_PROBE_ON_NEW_NEIGHBOR PROJ_DIR=SCRIPT_SIMULATION_NAME</commands>
+      <commands EXPORT="discard">make udp-client-mobile.sky TARGET=sky WITH_COMPOWER=1 SEED=SCRIPT_SEED PERIOD=SCRIPT_PERIOD RPL_CONF_FIXED_DIO=SCRIPT_RPL_CONF_FIXED_DIO RPL_CONF_DIO_ON_INCONSISTENCY=SCRIPT_RPL_CONF_DIO_ON_INCONSISTENCY RPL_CONF_DIO_DAO_ON_NEW_PARENT=SCRIPT_RPL_CONF_DIO_DAO_ON_NEW_PARENT RPL_CONF_PROBE_ON_NEW_NEIGHBOR=SCRIPT_RPL_CONF_PROBE_ON_NEW_NEIGHBOR RPL_CONF_REVERSE_TRICKLE=SCRIPT_RPL_CONF_REVERSE_TRICKLE RPL_CONF_MOBILE=1 PROJ_DIR=SCRIPT_SIMULATION_NAME</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/rpl-mobility/SCRIPT_SIMULATION_NAME/udp-client-mobile.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
