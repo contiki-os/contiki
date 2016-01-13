@@ -679,7 +679,7 @@ dao_input(void)
   }
 
   #if RPL_REVERSE_TRICKLE && !RPL_MOBILE
-  if((flags & RPL_DAO_MOBILITY_FLAG) && uip_ipaddr_cmp(dao_sender_addr, addr2)){
+  if(flags & RPL_DAO_MOBILITY_FLAG){
     if(!instance->current_dag->has_mobile_child){
       instance->current_dag->has_mobile_child = 1;
       rpl_start_reverse_trickle(instance);
