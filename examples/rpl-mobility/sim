@@ -1,0 +1,1 @@
+screen -S $1 -dm sh org_simulations.sh "$@"
