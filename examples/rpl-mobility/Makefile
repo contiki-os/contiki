@@ -51,15 +51,15 @@ include $(CONTIKI)/Makefile.include
 touch:
 	touch $(CONTIKI)/core/net/rpl/*
 	
-udp-client-static.sky: lock touch udp-client.sky
+udp-client-static.sky: lock clean touch udp-client.sky
 	mv udp-client.sky $(PROJ_DIR)/udp-client-static.sky
 	sh unlock.sh
 	
-udp-client-mobile.sky: lock touch udp-client.sky
+udp-client-mobile.sky: lock clean touch udp-client.sky
 	mv udp-client.sky $(PROJ_DIR)/udp-client-mobile.sky
 	sh unlock.sh
 	
-udp-server-custom.sky: lock touch udp-server.sky touch
+udp-server-custom.sky: lock clean touch udp-server.sky touch
 	mv udp-server.sky $(PROJ_DIR)/udp-server-custom.sky
 	sh unlock.sh
 
