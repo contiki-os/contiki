@@ -15,7 +15,7 @@ sh ../traffic_volume.sh
 sh ../used_time.sh
 eval `echo rename "'s/log_([A-Za-z0-9]*).log/log_"'$1'"_$i.log/'" *.log`
 eval `echo rename "'s/([A-Za-z]*).pcap/"'$1'"_$i.pcap/'" *.pcap`
-sed -e "s/<generation_seed>.*<\/generation_seed>/<generation_seed>$((${15}+10))<\/generation_seed>/g" -i ${1}.csc
+sed -e "s/<generation_seed>.*<\/generation_seed>/<generation_seed>$((${16}+10))<\/generation_seed>/g" -i ${1}.csc
 i=$((i+1))
 done
 awk -f ../final.awk final.log > ../results/$1.log
