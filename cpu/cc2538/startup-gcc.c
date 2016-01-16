@@ -52,6 +52,7 @@ void nmi_handler(void);
 void default_handler(void);
 
 /* System Handler and ISR prototypes implemented elsewhere */
+void pend_sv_isr(void); /* PendSV Handler, see mtarch.c */
 void clock_isr(void); /* SysTick Handler */
 void gpio_port_a_isr(void);
 void gpio_port_b_isr(void);
@@ -122,7 +123,7 @@ void(*const vectors[])(void) =
   default_handler,            /* 11 SVCall handler */
   default_handler,            /* 12 Debug monitor handler */
   0,                          /* 13 Reserved */
-  default_handler,            /* 14 The PendSV handler */
+  pend_sv_isr,                /* 14 The PendSV handler */
   clock_isr,                  /* 15 The SysTick handler */
   gpio_port_a_isr,            /* 16 GPIO Port A */
   gpio_port_b_isr,            /* 17 GPIO Port B */
