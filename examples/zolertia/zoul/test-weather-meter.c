@@ -56,8 +56,8 @@
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
 #define READ_SENSOR_PERIOD          CLOCK_SECOND
-#define ANEMOMETER_THRESHOLD_TICK   8
-#define RAIN_GAUGE_THRESHOLD_TICK   15
+#define ANEMOMETER_THRESHOLD_TICK   13  /**< 16 Km/h */
+#define RAIN_GAUGE_THRESHOLD_TICK   15  /**< each increment of 4.19 mm */
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 /*---------------------------------------------------------------------------*/
@@ -67,6 +67,7 @@ AUTOSTART_PROCESSES(&test_weather_meter_sensors);
 static void
 rain_callback(uint16_t value)
 {
+  /* To calculate ticks from mm of rain, divide by 0.2794 mm */
   printf("*** Rain gauge over threshold (%u ticks)\n", value);
   weather_meter.configure(WEATHER_METER_RAIN_GAUGE_INT_OVER,
                           (value + RAIN_GAUGE_THRESHOLD_TICK));
@@ -75,6 +76,12 @@ rain_callback(uint16_t value)
 static void
 wind_speed_callback(uint16_t value)
 {
+  /* This checks for instant wind speed values (over a second), the minimum
+   * value is 1.2 Km/h (one tick), as the reference is 2.4KM/h per rotation, and
+   * the anemometer makes 2 ticks per rotation.  Instant speed is calculated as
+   * multiples of this, so if you want to check for 16Km/h, then it would be 13
+   * ticks
+   */
   printf("*** Wind speed over threshold (%u ticks)\n", value);
 }
 /*---------------------------------------------------------------------------*/
@@ -85,6 +92,9 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
   static uint32_t rain;
   static uint16_t wind_speed;
   static uint16_t wind_dir;
+  static uint16_t wind_speed_avg;
+  static uint16_t wind_speed_avg_2m;
+  static uint16_t wind_speed_max;
 
   /* Register the callback handler when thresholds are met */
   WEATHER_METER_REGISTER_ANEMOMETER_INT(wind_speed_callback);
@@ -109,6 +119,9 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
     rain = weather_meter.value(WEATHER_METER_RAIN_GAUGE);
     wind_speed = weather_meter.value(WEATHER_METER_ANEMOMETER);
     wind_dir = weather_meter.value(WEATHER_METER_WIND_VANE);
+    wind_speed_avg = weather_meter.value(WEATHER_METER_ANEMOMETER_AVG);
+    wind_speed_avg_2m = weather_meter.value(WEATHER_METER_ANEMOMETER_AVG_2M);
+    wind_speed_max = weather_meter.value(WEATHER_METER_ANEMOMETER_MAX);
 
     #if WEATHER_METER_RAIN_RETURN_TICKS
       rain *= WEATHER_METER_AUX_RAIN_MM;
@@ -122,8 +135,12 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
       printf("Rain: 0.%lu mm, ", rain);
     }
 
-    printf("Wind (dir: %u deg, ", wind_dir); 
-    printf("speed %u m/h)\n", wind_speed); 
+    printf("Wind dir: %u deg,\n", wind_dir); 
+    printf("Wind speed: %u m/h ", wind_speed);
+    printf("(%u m/h avg, %u m/h 2m avg, %u m/h max)\n\n", wind_speed_avg,
+                                                          wind_speed_avg_2m,
+                                                          wind_speed_max);
+
     etimer_reset(&et);
   }
 

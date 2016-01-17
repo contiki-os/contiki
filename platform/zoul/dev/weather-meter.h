@@ -53,9 +53,12 @@
  * \name Weather meter sensor return and operation values
  * @{
  */
-#define WEATHER_METER_ANEMOMETER          0x00
 #define WEATHER_METER_RAIN_GAUGE          0x01
 #define WEATHER_METER_WIND_VANE           0x02
+#define WEATHER_METER_ANEMOMETER          0x03
+#define WEATHER_METER_ANEMOMETER_AVG      0x04
+#define WEATHER_METER_ANEMOMETER_AVG_2M   0x05
+#define WEATHER_METER_ANEMOMETER_MAX      0x06
 
 #define WEATHER_METER_ACTIVE              SENSORS_ACTIVE
 #define WEATHER_METER_ANEMOMETER_INT_OVER HW_INT_OVER_THRS
@@ -66,11 +69,11 @@
 #define WEATHER_METER_SUCCESS              0
 #define WEATHER_METER_ERROR                (-1)
 
-#define WEATHER_METER_ANEMOMETER_RADIUS    65  /**< 65.2 mm pin to cup centre */
-#define WEATHER_METER_AUX_CAL              377 /**< 2*pi*60 (376.992 rounded) */
-#define WEATHER_METER_AUX_ANGULAR          (WEATHER_METER_ANEMOMETER_RADIUS * \
-                                           WEATHER_METER_AUX_CAL)
-#define WEATHER_METER_AUX_RAIN_MM          2794 /**< 0.2794mm per tick */
+/* 2.4Km/h per tick, 2 per rotation */
+#define WEATHER_METER_ANEMOMETER_SPEED_1S  (1200)
+
+/* 0.2794mm per tick */
+#define WEATHER_METER_AUX_RAIN_MM          2794
 
 #ifdef WEATHER_METER_RAIN_CONF_RETURN
 #define WEATHER_METER_RAIN_RETURN_TICKS    WEATHER_METER_RAIN_CONF_RETURN

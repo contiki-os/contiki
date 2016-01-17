@@ -53,7 +53,7 @@
 #include "dev/gpio.h"
 #include "dev/ioc.h"
 #include "sys/timer.h"
-#include "sys/etimer.h"
+#include "sys/rtimer.h"
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
@@ -62,7 +62,7 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
-#define DEBOUNCE_DURATION  (CLOCK_SECOND >> 4)
+#define DEBOUNCE_DURATION  (CLOCK_SECOND >> 6)
 /*---------------------------------------------------------------------------*/
 #define ANEMOMETER_SENSOR_PORT_BASE  GPIO_PORT_TO_BASE(ANEMOMETER_SENSOR_PORT)
 #define ANEMOMETER_SENSOR_PIN_MASK   GPIO_PIN_MASK(ANEMOMETER_SENSOR_PIN)
@@ -77,7 +77,7 @@ static uint8_t enabled;
 process_event_t anemometer_int_event;
 process_event_t rain_gauge_int_event;
 /*---------------------------------------------------------------------------*/
-static struct etimer et;
+static struct rtimer rt;
 static struct timer debouncetimer;
 /*---------------------------------------------------------------------------*/
 typedef struct {
@@ -88,11 +88,64 @@ typedef struct {
 } weather_meter_sensors_t;
 
 typedef struct {
+  uint16_t value_max;
+  uint64_t ticks_avg;
+  uint64_t value_avg;
+  uint32_t value_buf_2m;
+  uint16_t value_avg_2m;
+} weather_meter_ext_t;
+
+typedef struct {
   uint16_t wind_vane;
   weather_meter_sensors_t rain_gauge;
   weather_meter_sensors_t anemometer;
 } weather_meter_sensors;
+
 static weather_meter_sensors weather_sensors;
+static weather_meter_ext_t anemometer;
+/*---------------------------------------------------------------------------*/
+void
+rt_callback(struct rtimer *t, void *ptr)
+{
+  uint32_t wind_speed;
+
+  /* Disable to make the calculations in an interrupt-safe context */
+  GPIO_DISABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
+                         ANEMOMETER_SENSOR_PIN_MASK);
+  wind_speed = weather_sensors.anemometer.ticks;
+  wind_speed *= WEATHER_METER_ANEMOMETER_SPEED_1S;
+  weather_sensors.anemometer.value = (uint16_t)wind_speed;
+  anemometer.ticks_avg++;
+  anemometer.value_avg += weather_sensors.anemometer.value;
+  anemometer.value_buf_2m += weather_sensors.anemometer.value;
+
+  /* Take maximum value */
+  if(weather_sensors.anemometer.value > anemometer.value_max) {
+    anemometer.value_max = weather_sensors.anemometer.value;
+  }
+
+  /* Average every 2 minutes */
+  if(!(anemometer.ticks_avg % 120)) {
+    if(anemometer.value_buf_2m) {
+      anemometer.value_avg_2m = anemometer.value_buf_2m / 120;
+      anemometer.value_buf_2m = 0;
+    } else {
+      anemometer.value_avg_2m = 0;
+    }
+  }
+
+  /* Check for roll-over */
+  if(!anemometer.ticks_avg) {
+    anemometer.value_avg = 0;
+  }
+
+  weather_sensors.anemometer.ticks = 0;
+
+  /* Enable the interrupt again */
+  GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
+                        ANEMOMETER_SENSOR_PIN_MASK);
+  rtimer_set(&rt, RTIMER_NOW() + RTIMER_SECOND, 1, rt_callback, NULL);
+}
 /*---------------------------------------------------------------------------*/
 PROCESS(weather_meter_int_process, "Weather meter interrupt process handler");
 /*---------------------------------------------------------------------------*/
@@ -100,10 +153,6 @@ PROCESS_THREAD(weather_meter_int_process, ev, data)
 {
   PROCESS_EXITHANDLER();
   PROCESS_BEGIN();
-  static uint32_t mph;
-  static uint16_t rpm;
-
-  etimer_set(&et, CLOCK_SECOND);
 
   while(1) {
     PROCESS_YIELD();
@@ -119,33 +168,6 @@ PROCESS_THREAD(weather_meter_int_process, ev, data)
       if(weather_sensors.rain_gauge.ticks >=
         weather_sensors.rain_gauge.int_thres) {
         rain_gauge_int_callback(weather_sensors.rain_gauge.ticks);
-      }
-    }
-
-    if(ev == PROCESS_EVENT_TIMER) {
-      if(weather_sensors.anemometer.ticks) {
-
-        /* Disable to make the calculations in an interrupt-safe context */
-        GPIO_DISABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
-                               ANEMOMETER_SENSOR_PIN_MASK);
-
-        /* The anemometer ticks twice per rotation, and a wind speed of 2.4 km/h
-         * makes the switch close every second, convert RPM to linear velocity
-         */
-        rpm = weather_sensors.anemometer.ticks * 30;
-        mph = rpm * WEATHER_METER_AUX_ANGULAR;
-        mph /= 1000;
-
-        /* This will return values in metres per hour */
-        weather_sensors.anemometer.value = (uint16_t)mph;
-
-        /* Restart the counter */
-        weather_sensors.anemometer.ticks = 0;
-
-        /* Enable the interrupt again */
-        GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
-                              ANEMOMETER_SENSOR_PIN_MASK);      
-        etimer_restart(&et);
       }
     }
   }
@@ -184,8 +206,14 @@ weather_meter_interrupt_handler(uint8_t port, uint8_t pin)
 static int
 value(int type)
 {
-  if((type != WEATHER_METER_ANEMOMETER) && (type != WEATHER_METER_RAIN_GAUGE) &&
-    (type != WEATHER_METER_WIND_VANE)) {
+  uint64_t aux;
+
+  if((type != WEATHER_METER_ANEMOMETER) &&
+    (type != WEATHER_METER_RAIN_GAUGE) &&
+    (type != WEATHER_METER_WIND_VANE) &&
+    (type != WEATHER_METER_ANEMOMETER_AVG) &&
+    (type != WEATHER_METER_ANEMOMETER_AVG_2M) &&
+    (type != WEATHER_METER_ANEMOMETER_MAX)) {
     PRINTF("Weather: requested an invalid sensor value\n");
     return WEATHER_METER_ERROR;
   }
@@ -203,6 +231,19 @@ value(int type)
 
   case WEATHER_METER_ANEMOMETER:
     return weather_sensors.anemometer.value;
+
+  case WEATHER_METER_ANEMOMETER_AVG:
+    if(anemometer.value_avg <= 0) {
+      return (uint16_t)anemometer.value_avg;
+    }
+    aux = anemometer.value_avg / anemometer.ticks_avg;
+    return (uint16_t)aux;
+
+  case WEATHER_METER_ANEMOMETER_AVG_2M:
+    return anemometer.value_avg_2m;
+
+  case WEATHER_METER_ANEMOMETER_MAX:
+    return anemometer.value_max;
 
   /* as the default return type is int, we have a lower resolution if returning
    * the calculated value as it is truncated, an alternative is returning the
@@ -233,6 +274,9 @@ configure(int type, int value)
   }
 
   if(type == WEATHER_METER_ACTIVE) {
+
+    anemometer.value_avg = 0;
+    anemometer.ticks_avg = 0;
 
     weather_sensors.anemometer.int_en = 0;
     weather_sensors.rain_gauge.int_en = 0;
@@ -278,6 +322,7 @@ configure(int type, int value)
                            RAIN_GAUGE_SENSOR_PIN);
 
     process_start(&weather_meter_int_process, NULL);
+    rtimer_set(&rt, RTIMER_NOW() + RTIMER_SECOND, 1, rt_callback, NULL);
 
     GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
     GPIO_ENABLE_INTERRUPT(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
