@@ -38,7 +38,7 @@
  * @{
  *
  * \file
- *  Grove's loudness sensor example using the ADC wrapper
+ *  Grove's loudness sensor example using the ADC sensors wrapper
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
@@ -47,7 +47,7 @@
 #include <stdio.h>
 #include "contiki.h"
 #include "dev/leds.h"
-#include "dev/adc-wrapper.h"
+#include "dev/adc-sensors.h"
 /*---------------------------------------------------------------------------*/
 #define ADC_PIN              5
 #define SENSOR_READ_INTERVAL (CLOCK_SECOND / 8)
@@ -64,7 +64,7 @@ PROCESS_THREAD(remote_grove_loudness_process, ev, data)
   uint16_t loudness;
 
   /* Use pin number not mask, for example if using the PA5 pin then use 5 */
-  adc_wrapper.configure(ANALOG_GROVE_LOUDNESS, ADC_PIN);
+  adc_sensors.configure(ANALOG_GROVE_LOUDNESS, ADC_PIN);
 
   /* And periodically poll the sensor */
 
@@ -72,7 +72,7 @@ PROCESS_THREAD(remote_grove_loudness_process, ev, data)
     etimer_set(&et, SENSOR_READ_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    loudness = adc_wrapper.value(ANALOG_GROVE_LOUDNESS);
+    loudness = adc_sensors.value(ANALOG_GROVE_LOUDNESS);
 
     if(loudness != ADC_WRAPPER_ERROR) {
       printf("%u\n", loudness);

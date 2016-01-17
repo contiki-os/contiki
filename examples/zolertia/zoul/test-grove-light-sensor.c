@@ -38,7 +38,7 @@
  * @{
  *
  * \file
- *  Grove's LDR sensor example using the ADC wrapper
+ *  Grove's LDR sensor example using the ADC sensors wrapper
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
@@ -47,7 +47,7 @@
 #include <stdio.h>
 #include "contiki.h"
 #include "dev/leds.h"
-#include "dev/adc-wrapper.h"
+#include "dev/adc-sensors.h"
 /*---------------------------------------------------------------------------*/
 #define ADC_PIN              5
 #define SENSOR_READ_INTERVAL (CLOCK_SECOND / 4)
@@ -64,7 +64,7 @@ PROCESS_THREAD(remote_grove_light_process, ev, data)
   uint16_t ldr;
 
   /* Use pin number not mask, for example if using the PA5 pin then use 5 */
-  adc_wrapper.configure(ANALOG_GROVE_LIGHT, 5);
+  adc_sensors.configure(ANALOG_GROVE_LIGHT, 5);
 
   /* And periodically poll the sensor */
 
@@ -72,7 +72,7 @@ PROCESS_THREAD(remote_grove_light_process, ev, data)
     etimer_set(&et, SENSOR_READ_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    ldr = adc_wrapper.value(ANALOG_GROVE_LIGHT);
+    ldr = adc_sensors.value(ANALOG_GROVE_LIGHT);
 
     if(ldr != ADC_WRAPPER_ERROR) {
       printf("LDR (resistor) = %u\n", ldr);
