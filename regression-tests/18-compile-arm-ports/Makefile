@@ -15,6 +15,7 @@ cc26xx/very-sleepy-demo/srf06-cc26xx \
 hello-world/cc2538dk \
 ipv6/rpl-border-router/cc2538dk \
 er-rest-example/cc2538dk \
+ipso-objects/cc2538dk \
 webserver-ipv6/cc2538dk \
 cc2538dk/cc2538dk \
 cc2538dk/udp-ipv6-echo-server/cc2538dk \
@@ -26,6 +27,7 @@ ipv6/multicast/cc2538dk \
 zolertia/zoul/zoul \
 zolertia/zoul/cc1200-demo/zoul \
 er-rest-example/zoul \
+ipso-objects/zoul \
 hello-world/zoul \
 cc2538dk/mqtt-demo/zoul \
 er-rest-example/stm32nucleo-spirit1 \
