@@ -38,7 +38,7 @@
  * @{
  *
  * \file
- *         SHT25 temperature and humidity sensor driver
+ *         SHT25 temperature and humidity sensor driver header file
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
  */
