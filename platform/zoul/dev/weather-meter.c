@@ -47,6 +47,7 @@
 #include "contiki.h"
 #include "dev/adc-sensors.h"
 #include "dev/weather-meter.h"
+#include "dev/zoul-sensors.h"
 #include "lib/sensors.h"
 #include "dev/sys-ctrl.h"
 #include "dev/gpio.h"
@@ -54,22 +55,24 @@
 #include "sys/timer.h"
 #include "sys/etimer.h"
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
-#define DEBOUNCE_DURATION  (CLOCK_SECOND >> 6)
+#define DEBOUNCE_DURATION  (CLOCK_SECOND >> 4)
 /*---------------------------------------------------------------------------*/
 #define ANEMOMETER_SENSOR_PORT_BASE  GPIO_PORT_TO_BASE(ANEMOMETER_SENSOR_PORT)
 #define ANEMOMETER_SENSOR_PIN_MASK   GPIO_PIN_MASK(ANEMOMETER_SENSOR_PIN)
 #define RAIN_GAUGE_SENSOR_PORT_BASE  GPIO_PORT_TO_BASE(RAIN_GAUGE_SENSOR_PORT)
 #define RAIN_GAUGE_SENSOR_PIN_MASK   GPIO_PIN_MASK(RAIN_GAUGE_SENSOR_PIN)
 /*---------------------------------------------------------------------------*/
-void (*rain_gauge_int_callback)(uint8_t value);
-void (*anemometer_int_callback)(uint8_t value);
+void (*rain_gauge_int_callback)(uint16_t value);
+void (*anemometer_int_callback)(uint16_t value);
+/*---------------------------------------------------------------------------*/
+static uint8_t enabled;
 /*---------------------------------------------------------------------------*/
 process_event_t anemometer_int_event;
 process_event_t rain_gauge_int_event;
@@ -80,12 +83,14 @@ static struct timer debouncetimer;
 typedef struct {
   uint16_t ticks;
   uint16_t value;
-} a_ticking_sensor_t;
+  uint8_t  int_en;
+  uint16_t int_thres;
+} weather_meter_sensors_t;
 
 typedef struct {
   uint16_t wind_vane;
-  a_ticking_sensor_t rain_gauge;
-  a_ticking_sensor_t anemometer;
+  weather_meter_sensors_t rain_gauge;
+  weather_meter_sensors_t anemometer;
 } weather_meter_sensors;
 static weather_meter_sensors weather_sensors;
 /*---------------------------------------------------------------------------*/
@@ -103,9 +108,19 @@ PROCESS_THREAD(weather_meter_int_process, ev, data)
   while(1) {
     PROCESS_YIELD();
 
-    /* The anemometer ticks twice per rotation, and a wind speed of 2.4 km/h
-     * makes the switch close every second, convert RPM to linear velocity
-     */
+    if((ev == anemometer_int_event) && (weather_sensors.anemometer.int_en)) {
+      if(weather_sensors.anemometer.ticks >=
+        weather_sensors.anemometer.int_thres) {
+        anemometer_int_callback(weather_sensors.anemometer.ticks);
+      }
+    }
+
+    if((ev == rain_gauge_int_event) && (weather_sensors.rain_gauge.int_en)) {
+      if(weather_sensors.rain_gauge.ticks >=
+        weather_sensors.rain_gauge.int_thres) {
+        rain_gauge_int_callback(weather_sensors.rain_gauge.ticks);
+      }
+    }
 
     if(ev == PROCESS_EVENT_TIMER) {
 
@@ -113,9 +128,10 @@ PROCESS_THREAD(weather_meter_int_process, ev, data)
       GPIO_DISABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
                              ANEMOMETER_SENSOR_PIN_MASK);
 
-      /* Two ticks per rotation  */
+      /* The anemometer ticks twice per rotation, and a wind speed of 2.4 km/h
+       * makes the switch close every second, convert RPM to linear velocity
+       */
       rpm = weather_sensors.anemometer.ticks * 30;
-
       mph = rpm * WEATHER_METER_AUX_ANGULAR;
       mph /= 1000;
 
@@ -130,9 +146,6 @@ PROCESS_THREAD(weather_meter_int_process, ev, data)
                             ANEMOMETER_SENSOR_PIN_MASK);      
       etimer_restart(&et);
     }
-
-    // anemometer_int_callback(0);
-    // rain_gauge_int_callback(0);
   }
   PROCESS_END();
 }
@@ -175,6 +188,11 @@ value(int type)
     return WEATHER_METER_ERROR;
   }
 
+  if(!enabled) {
+    PRINTF("Weather: module is not configured\n");
+    return WEATHER_METER_ERROR;
+  }
+
   switch(type) {
   case WEATHER_METER_WIND_VANE:
     /* FIXME: return the values in degrees */
@@ -203,56 +221,92 @@ value(int type)
 static int
 configure(int type, int value)
 {
-  if(type != WEATHER_METER_ACTIVE) {
+  if((type != WEATHER_METER_ACTIVE) && 
+    (type != WEATHER_METER_ANEMOMETER_INT_OVER) &&
+    (type != WEATHER_METER_RAIN_GAUGE_INT_OVER) &&
+    (type != WEATHER_METER_ANEMOMETER_INT_DIS) &&
+    (type != WEATHER_METER_RAIN_GAUGE_INT_DIS)) {
     PRINTF("Weather: invalid configuration option\n");
     return WEATHER_METER_ERROR;
   }
 
-  weather_sensors.wind_vane  = 0;
-  weather_sensors.anemometer.ticks = 0;
-  weather_sensors.anemometer.value = 0;
-  weather_sensors.rain_gauge.ticks = 0;
-  weather_sensors.rain_gauge.value = 0;
+  if(type == WEATHER_METER_ACTIVE) {
 
-  if(!value) {
-    anemometer_int_callback = NULL;
-    rain_gauge_int_callback = NULL;
-    GPIO_DISABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
-                           ANEMOMETER_SENSOR_PIN_MASK);
-    GPIO_DISABLE_INTERRUPT(RAIN_GAUGE_SENSOR_PORT_BASE,
-                           RAIN_GAUGE_SENSOR_PIN_MASK);
+    weather_sensors.anemometer.int_en = 0;
+    weather_sensors.rain_gauge.int_en = 0;
+    weather_sensors.anemometer.ticks = 0;
+    weather_sensors.rain_gauge.ticks = 0;
+
+    if(!value) {
+      anemometer_int_callback = NULL;
+      rain_gauge_int_callback = NULL;
+      GPIO_DISABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
+                             ANEMOMETER_SENSOR_PIN_MASK);
+      GPIO_DISABLE_INTERRUPT(RAIN_GAUGE_SENSOR_PORT_BASE,
+                             RAIN_GAUGE_SENSOR_PIN_MASK);
+      process_exit(&weather_meter_int_process);
+      enabled = 0;
+      PRINTF("Weather: disabled\n");
+      return WEATHER_METER_SUCCESS;
+    }
+
+    /* Configure the wind vane */
+    adc_sensors.configure(SENSORS_HW_INIT, WIND_VANE_ADC);
+
+    /* Configure anemometer interruption */
+    GPIO_SOFTWARE_CONTROL(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
+    GPIO_SET_INPUT(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
+    GPIO_DETECT_RISING(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
+    GPIO_TRIGGER_SINGLE_EDGE(ANEMOMETER_SENSOR_PORT_BASE,
+                             ANEMOMETER_SENSOR_PIN_MASK);
+    ioc_set_over(ANEMOMETER_SENSOR_PORT, ANEMOMETER_SENSOR_PIN, IOC_OVERRIDE_DIS);
+    gpio_register_callback(weather_meter_interrupt_handler, ANEMOMETER_SENSOR_PORT,
+                           ANEMOMETER_SENSOR_PIN);
+
+    /* Configure rain gauge interruption */
+    GPIO_SOFTWARE_CONTROL(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
+    GPIO_SET_INPUT(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
+    GPIO_DETECT_RISING(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
+    GPIO_TRIGGER_SINGLE_EDGE(RAIN_GAUGE_SENSOR_PORT_BASE,
+                             RAIN_GAUGE_SENSOR_PIN_MASK);
+    ioc_set_over(RAIN_GAUGE_SENSOR_PORT, RAIN_GAUGE_SENSOR_PIN, IOC_OVERRIDE_DIS);
+    gpio_register_callback(weather_meter_interrupt_handler, RAIN_GAUGE_SENSOR_PORT,
+                           RAIN_GAUGE_SENSOR_PIN);
+
+    process_start(&weather_meter_int_process, NULL);
+
+    GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
+    GPIO_ENABLE_INTERRUPT(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
+    nvic_interrupt_enable(ANEMOMETER_SENSOR_VECTOR);
+    nvic_interrupt_enable(RAIN_GAUGE_SENSOR_VECTOR);
+
+    enabled = 1;
+    PRINTF("Weather: started\n");
     return WEATHER_METER_SUCCESS;
   }
 
-  /* Configure the wind vane */
-  adc_sensors.configure(SENSORS_HW_INIT, WIND_VANE_ADC);
-
-  /* Configure anemometer interruption */
-  GPIO_SOFTWARE_CONTROL(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
-  GPIO_SET_INPUT(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
-  GPIO_DETECT_RISING(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
-  GPIO_TRIGGER_SINGLE_EDGE(ANEMOMETER_SENSOR_PORT_BASE,
-                           ANEMOMETER_SENSOR_PIN_MASK);
-  ioc_set_over(ANEMOMETER_SENSOR_PORT, ANEMOMETER_SENSOR_PIN, IOC_OVERRIDE_DIS);
-  gpio_register_callback(weather_meter_interrupt_handler, ANEMOMETER_SENSOR_PORT,
-                         ANEMOMETER_SENSOR_PIN);
-
-  /* Configure rain gauge interruption */
-  GPIO_SOFTWARE_CONTROL(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
-  GPIO_SET_INPUT(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
-  GPIO_DETECT_RISING(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
-  GPIO_TRIGGER_SINGLE_EDGE(RAIN_GAUGE_SENSOR_PORT_BASE,
-                           RAIN_GAUGE_SENSOR_PIN_MASK);
-  ioc_set_over(RAIN_GAUGE_SENSOR_PORT, RAIN_GAUGE_SENSOR_PIN, IOC_OVERRIDE_DIS);
-  gpio_register_callback(weather_meter_interrupt_handler, RAIN_GAUGE_SENSOR_PORT,
-                         RAIN_GAUGE_SENSOR_PIN);
-
-  process_start(&weather_meter_int_process, NULL);
-
-  GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
-  GPIO_ENABLE_INTERRUPT(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
-  nvic_interrupt_enable(ANEMOMETER_SENSOR_VECTOR);
-  nvic_interrupt_enable(RAIN_GAUGE_SENSOR_VECTOR);
+  switch(type) {
+  case WEATHER_METER_ANEMOMETER_INT_OVER:
+    weather_sensors.anemometer.int_en = 1;
+    weather_sensors.anemometer.int_thres = value;
+    PRINTF("Weather: anemometer threshold %u\n", value);
+    break;
+  case WEATHER_METER_RAIN_GAUGE_INT_OVER:
+    weather_sensors.rain_gauge.int_en = 1;
+    weather_sensors.rain_gauge.int_thres = value;
+    PRINTF("Weather: rain gauge threshold %u\n", value);
+    break;
+  case WEATHER_METER_ANEMOMETER_INT_DIS:
+    PRINTF("Weather: anemometer int disabled\n");
+    weather_sensors.anemometer.int_en = 0;
+    break;
+  case WEATHER_METER_RAIN_GAUGE_INT_DIS:
+    PRINTF("Weather: rain gauge int disabled\n");
+    weather_sensors.rain_gauge.int_en = 0;
+    break;
+  default:
+    return WEATHER_METER_ERROR;
+  }
 
   return WEATHER_METER_SUCCESS;
 }

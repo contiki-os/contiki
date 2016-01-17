@@ -55,7 +55,9 @@
 #include <stdio.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-#define READ_SENSOR_PERIOD      CLOCK_SECOND
+#define READ_SENSOR_PERIOD          CLOCK_SECOND
+#define ANEMOMETER_THRESHOLD_TICK   8
+#define RAIN_GAUGE_THRESHOLD_TICK   15
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 /*---------------------------------------------------------------------------*/
@@ -63,15 +65,17 @@ PROCESS(test_weather_meter_sensors, "Test Weather meter sensors");
 AUTOSTART_PROCESSES(&test_weather_meter_sensors);
 /*---------------------------------------------------------------------------*/
 static void
-rain_callback(uint8_t value)
+rain_callback(uint16_t value)
 {
-  printf("*** Rain\n");
+  printf("*** Rain gauge over threshold (%u ticks)\n", value);
+  weather_meter.configure(WEATHER_METER_RAIN_GAUGE_INT_OVER,
+                          (value + RAIN_GAUGE_THRESHOLD_TICK));
 }
 /*---------------------------------------------------------------------------*/
 static void
-wind_speed_callback(uint8_t value)
+wind_speed_callback(uint16_t value)
 {
-  printf("*** Wind speed\n");
+  printf("*** Wind speed over threshold (%u ticks)\n", value);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_weather_meter_sensors, ev, data)
@@ -86,7 +90,16 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
   WEATHER_METER_REGISTER_ANEMOMETER_INT(wind_speed_callback);
   WEATHER_METER_REGISTER_RAIN_GAUGE_INT(rain_callback);
 
+  /* Enable the sensors, this has to be called before any of the interrupt calls
+   * like the ones below
+   */
   SENSORS_ACTIVATE(weather_meter);
+
+  /* And the upper threshold value to compare and generate an interrupt */
+  weather_meter.configure(WEATHER_METER_ANEMOMETER_INT_OVER,
+                          ANEMOMETER_THRESHOLD_TICK);
+  weather_meter.configure(WEATHER_METER_RAIN_GAUGE_INT_OVER,
+                          RAIN_GAUGE_THRESHOLD_TICK);
 
   etimer_set(&et, READ_SENSOR_PERIOD);
 
@@ -100,17 +113,17 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
     #if WEATHER_METER_RAIN_RETURN_TICKS
       rain *= WEATHER_METER_AUX_RAIN_MM;
       if(rain > (WEATHER_METER_AUX_RAIN_MM * 3)) {
-        printf("Rain: %lu.%lu mm\n", (rain / 10000), (rain % 10000));
+        printf("Rain: %lu.%lu mm, ", (rain / 10000), (rain % 10000));
     #else
       if(rain >= 10) {
-        printf("Rain: %u.%u mm\n", (rain / 10), (rain % 10));
+        printf("Rain: %u.%u mm, ", (rain / 10), (rain % 10));
     #endif
     } else {
-      printf("Rain: 0.%lu mm\n", rain);
+      printf("Rain: 0.%lu mm, ", rain);
     }
 
-    printf("Wind direction: %u metres/hour\n", wind_dir); 
-    printf("Wind speed %u\n", wind_speed); 
+    printf("Wind (dir: %u deg, ", wind_dir); 
+    printf("speed %u m/h)\n", wind_speed); 
     etimer_reset(&et);
   }
 

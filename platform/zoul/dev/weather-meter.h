@@ -44,6 +44,7 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
+#include "dev/zoul-sensors.h"
 /* -------------------------------------------------------------------------- */
 #ifndef WEATHER_METER_H_
 #define WEATHER_METER_H_
@@ -52,24 +53,29 @@
  * \name Weather meter sensor return and operation values
  * @{
  */
-#define WEATHER_METER_ANEMOMETER 0x00
-#define WEATHER_METER_RAIN_GAUGE 0x01
-#define WEATHER_METER_WIND_VANE  0x02
+#define WEATHER_METER_ANEMOMETER          0x00
+#define WEATHER_METER_RAIN_GAUGE          0x01
+#define WEATHER_METER_WIND_VANE           0x02
 
-#define WEATHER_METER_ACTIVE     SENSORS_ACTIVE
-#define WEATHER_METER_SUCCESS    0
-#define WEATHER_METER_ERROR      (-1)
+#define WEATHER_METER_ACTIVE              SENSORS_ACTIVE
+#define WEATHER_METER_ANEMOMETER_INT_OVER HW_INT_OVER_THRS
+#define WEATHER_METER_ANEMOMETER_INT_DIS  HW_INT_DISABLE
+#define WEATHER_METER_RAIN_GAUGE_INT_OVER (HW_INT_OVER_THRS << 1)
+#define WEATHER_METER_RAIN_GAUGE_INT_DIS  (HW_INT_DISABLE << 1)
 
-#define WEATHER_METER_ANEMOMETER_RADIUS  65  /**< 65.2 mm pin to cup centre */
-#define WEATHER_METER_AUX_CAL            377 /**< 2*pi*60 (376.992 rounded) */
-#define WEATHER_METER_AUX_ANGULAR        (WEATHER_METER_ANEMOMETER_RADIUS * \
-                                         WEATHER_METER_AUX_CAL)
-#define WEATHER_METER_AUX_RAIN_MM        2794 /**< 0.2794mm per tick */
+#define WEATHER_METER_SUCCESS              0
+#define WEATHER_METER_ERROR                (-1)
+
+#define WEATHER_METER_ANEMOMETER_RADIUS    65  /**< 65.2 mm pin to cup centre */
+#define WEATHER_METER_AUX_CAL              377 /**< 2*pi*60 (376.992 rounded) */
+#define WEATHER_METER_AUX_ANGULAR          (WEATHER_METER_ANEMOMETER_RADIUS * \
+                                           WEATHER_METER_AUX_CAL)
+#define WEATHER_METER_AUX_RAIN_MM          2794 /**< 0.2794mm per tick */
 
 #ifdef WEATHER_METER_RAIN_CONF_RETURN
-#define WEATHER_METER_RAIN_RETURN_TICKS  WEATHER_METER_RAIN_CONF_RETURN
+#define WEATHER_METER_RAIN_RETURN_TICKS    WEATHER_METER_RAIN_CONF_RETURN
 #else
-#define WEATHER_METER_RAIN_RETURN_TICKS  1
+#define WEATHER_METER_RAIN_RETURN_TICKS    1
 #endif
 /** @} */
 /* -------------------------------------------------------------------------- */
@@ -79,8 +85,8 @@
  */
 #define WEATHER_METER_REGISTER_ANEMOMETER_INT(ptr) anemometer_int_callback = ptr;
 #define WEATHER_METER_REGISTER_RAIN_GAUGE_INT(ptr) rain_gauge_int_callback = ptr;
-extern void (*anemometer_int_callback)(uint8_t value);
-extern void (*rain_gauge_int_callback)(uint8_t value);
+extern void (*anemometer_int_callback)(uint16_t value);
+extern void (*rain_gauge_int_callback)(uint16_t value);
 /** @} */
 /* -------------------------------------------------------------------------- */
 /**
