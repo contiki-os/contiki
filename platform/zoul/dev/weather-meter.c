@@ -123,28 +123,30 @@ PROCESS_THREAD(weather_meter_int_process, ev, data)
     }
 
     if(ev == PROCESS_EVENT_TIMER) {
+      if(weather_sensors.anemometer.ticks) {
 
-      /* Disable to make the calculations in an interrupt-safe context */
-      GPIO_DISABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
-                             ANEMOMETER_SENSOR_PIN_MASK);
+        /* Disable to make the calculations in an interrupt-safe context */
+        GPIO_DISABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
+                               ANEMOMETER_SENSOR_PIN_MASK);
 
-      /* The anemometer ticks twice per rotation, and a wind speed of 2.4 km/h
-       * makes the switch close every second, convert RPM to linear velocity
-       */
-      rpm = weather_sensors.anemometer.ticks * 30;
-      mph = rpm * WEATHER_METER_AUX_ANGULAR;
-      mph /= 1000;
+        /* The anemometer ticks twice per rotation, and a wind speed of 2.4 km/h
+         * makes the switch close every second, convert RPM to linear velocity
+         */
+        rpm = weather_sensors.anemometer.ticks * 30;
+        mph = rpm * WEATHER_METER_AUX_ANGULAR;
+        mph /= 1000;
 
-      /* This will return values in metres per hour */
-      weather_sensors.anemometer.value = (uint16_t)mph;
+        /* This will return values in metres per hour */
+        weather_sensors.anemometer.value = (uint16_t)mph;
 
-      /* Restart the counter */
-      weather_sensors.anemometer.ticks = 0;
+        /* Restart the counter */
+        weather_sensors.anemometer.ticks = 0;
 
-      /* Enable the interrupt again */
-      GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
-                            ANEMOMETER_SENSOR_PIN_MASK);      
-      etimer_restart(&et);
+        /* Enable the interrupt again */
+        GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
+                              ANEMOMETER_SENSOR_PIN_MASK);      
+        etimer_restart(&et);
+      }
     }
   }
   PROCESS_END();
@@ -236,6 +238,8 @@ configure(int type, int value)
     weather_sensors.rain_gauge.int_en = 0;
     weather_sensors.anemometer.ticks = 0;
     weather_sensors.rain_gauge.ticks = 0;
+    weather_sensors.anemometer.value = 0;
+    weather_sensors.rain_gauge.value = 0;
 
     if(!value) {
       anemometer_int_callback = NULL;
