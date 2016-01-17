@@ -92,6 +92,7 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
   static uint32_t rain;
   static uint16_t wind_speed;
   static uint16_t wind_dir;
+  static uint16_t wind_dir_avg_2m;
   static uint16_t wind_speed_avg;
   static uint16_t wind_speed_avg_2m;
   static uint16_t wind_speed_max;
@@ -119,6 +120,7 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
     rain = weather_meter.value(WEATHER_METER_RAIN_GAUGE);
     wind_speed = weather_meter.value(WEATHER_METER_ANEMOMETER);
     wind_dir = weather_meter.value(WEATHER_METER_WIND_VANE);
+    wind_dir_avg_2m = weather_meter.value(WEATHER_METER_WIND_VANE_AVG_2M);
     wind_speed_avg = weather_meter.value(WEATHER_METER_ANEMOMETER_AVG);
     wind_speed_avg_2m = weather_meter.value(WEATHER_METER_ANEMOMETER_AVG_2M);
     wind_speed_max = weather_meter.value(WEATHER_METER_ANEMOMETER_MAX);
@@ -135,12 +137,12 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
       printf("Rain: 0.%lu mm, ", rain);
     }
 
-    printf("Wind dir: %u deg,\n", wind_dir); 
+    printf("Wind dir: %u.%01u deg, ", (wind_dir / 10), (wind_dir % 10));
+    printf("(%u.%01u deg avg)\n", (wind_dir_avg_2m / 10), (wind_dir_avg_2m % 10));
     printf("Wind speed: %u m/h ", wind_speed);
     printf("(%u m/h avg, %u m/h 2m avg, %u m/h max)\n\n", wind_speed_avg,
                                                           wind_speed_avg_2m,
                                                           wind_speed_max);
-
     etimer_reset(&et);
   }
 
