@@ -101,13 +101,96 @@ typedef struct {
   weather_meter_sensors_t anemometer;
 } weather_meter_sensors;
 
+typedef struct {
+  uint32_t value_buf_2m;
+  uint16_t value_prev;
+  uint16_t value_avg_2m;
+} weather_meter_wind_vane_ext_t;
+
 static weather_meter_sensors weather_sensors;
 static weather_meter_ext_t anemometer;
+static weather_meter_wind_vane_ext_t wind_vane;
+/*---------------------------------------------------------------------------*/
+typedef struct {
+  uint16_t mid_point;
+  uint16_t degree;
+} wind_vane_mid_point_t;
+
+  /* From the datasheet we adjusted the values for a 3V divider, using a 10K
+   * resistor, the check values are the following:
+   * --------------------+------------------+-------------------------------
+   * Direction (Degrees)  Resistance (Ohms)  Voltage (mV)
+   *     0                   33k                 2532.55  *
+   *     22.5                6.57k               1308.44  *
+   *     45                  8.2k                1486.81  *
+   *     67.5                891                 269.97   *
+   *     90                  1k                  300.00   *
+   *     112.5               688                 212.42   *
+   *     135                 2.2k                595.08   *
+   *     157.5               1.41k               407.80   *
+   *     180                 3.9k                925.89   *
+   *     202.5               3.14k               788.58   *
+   *     225                 16k                 2030.76  *
+   *     247.5               14.12k              1930.84  *
+   *     270                 120k                3046.15  *
+   *     292.5               42.12k              2666.84  *
+   *     315                 64.9k               2859.41  *
+   *     337.5               21.88k              2264.86  *
+   * --------------------+------------------+-------------------------------
+   */
+static const wind_vane_mid_point_t wind_vane_table[16] = {
+  { 2124,   1125  },
+  { 2699,   675   },
+  { 3000,   900   },
+  { 4078,   1575  },
+  { 5950,   1350  },
+  { 7885,   2025  },
+  { 9258,   1800  },
+  { 13084,  225   },
+  { 14868,  450   },
+  { 19308,  2475  },
+  { 20307,  2250  },
+  { 22648,  3375  },
+  { 25325,  0     },
+  { 26668,  2925  },
+  { 28594,  3150  },
+  { 30461,  2700  },
+};
+/*---------------------------------------------------------------------------*/
+static int
+weather_meter_wind_vane_degrees(uint16_t value)
+{
+  uint8_t i;
+  for(i=0; i<16; i++) {
+    if(value <= wind_vane_table[i].mid_point) {
+      return (int)wind_vane_table[i].degree;
+    } else {
+      if(i == 15) {
+        return (int)wind_vane_table[i].degree;
+      }
+    }
+  }
+
+  PRINTF("Weather: invalid wind vane value\n");
+  return WEATHER_METER_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+static int
+weather_meter_get_wind_dir(void)
+{
+  weather_sensors.wind_vane = adc_sensors.value(WIND_VANE_ADC);
+  if((int16_t)weather_sensors.wind_vane < 0) {
+    weather_sensors.wind_vane = 0;
+  }
+  return weather_meter_wind_vane_degrees(weather_sensors.wind_vane);
+}
 /*---------------------------------------------------------------------------*/
 void
 rt_callback(struct rtimer *t, void *ptr)
 {
   uint32_t wind_speed;
+  int16_t wind_dir;
+  int16_t wind_dir_delta;
 
   /* Disable to make the calculations in an interrupt-safe context */
   GPIO_DISABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
@@ -124,14 +207,43 @@ rt_callback(struct rtimer *t, void *ptr)
     anemometer.value_max = weather_sensors.anemometer.value;
   }
 
-  /* Average every 2 minutes */
+  /* Mitsuta method to get the wind direction average */
+  wind_dir = weather_meter_get_wind_dir();
+  wind_dir_delta = wind_dir - wind_vane.value_prev;
+
+  if(wind_dir_delta < -1800) {
+    wind_vane.value_prev += wind_dir_delta + 3600;
+  } else if(wind_dir_delta > 1800) {
+    wind_vane.value_prev += wind_dir_delta - 3600;
+  } else {
+    wind_vane.value_prev += wind_dir_delta;
+  }
+
+  wind_vane.value_buf_2m += wind_vane.value_prev;
+
+  /* Calculate the 2 minute average */
   if(!(anemometer.ticks_avg % 120)) {
+    PRINTF("Weather: calculate the 2m averages ***\n");
+
     if(anemometer.value_buf_2m) {
       anemometer.value_avg_2m = anemometer.value_buf_2m / 120;
       anemometer.value_buf_2m = 0;
     } else {
       anemometer.value_avg_2m = 0;
     }
+
+	wind_vane.value_buf_2m = wind_vane.value_buf_2m / 120;
+    wind_vane.value_avg_2m = (uint16_t)wind_vane.value_buf_2m;
+	if(wind_vane.value_avg_2m >= 3600) {
+      wind_vane.value_avg_2m -= 3600;
+    }
+
+	if(wind_vane.value_avg_2m < 0) {
+      wind_vane.value_avg_2m += 3600;
+    }
+
+    wind_vane.value_buf_2m = 0;
+    wind_vane.value_prev = wind_dir;
   }
 
   /* Check for roll-over */
@@ -211,6 +323,7 @@ value(int type)
   if((type != WEATHER_METER_ANEMOMETER) &&
     (type != WEATHER_METER_RAIN_GAUGE) &&
     (type != WEATHER_METER_WIND_VANE) &&
+    (type != WEATHER_METER_WIND_VANE_AVG_2M) &&
     (type != WEATHER_METER_ANEMOMETER_AVG) &&
     (type != WEATHER_METER_ANEMOMETER_AVG_2M) &&
     (type != WEATHER_METER_ANEMOMETER_MAX)) {
@@ -225,9 +338,10 @@ value(int type)
 
   switch(type) {
   case WEATHER_METER_WIND_VANE:
-    /* FIXME: return the values in degrees */
-    weather_sensors.wind_vane = adc_sensors.value(WIND_VANE_ADC);
-    return weather_sensors.wind_vane;
+    return weather_meter_get_wind_dir();
+
+  case WEATHER_METER_WIND_VANE_AVG_2M:
+    return wind_vane.value_avg_2m;
 
   case WEATHER_METER_ANEMOMETER:
     return weather_sensors.anemometer.value;
@@ -322,6 +436,10 @@ configure(int type, int value)
                            RAIN_GAUGE_SENSOR_PIN);
 
     process_start(&weather_meter_int_process, NULL);
+
+    /* Initialize here prior the first second tick */
+    wind_vane.value_prev = weather_meter_get_wind_dir();
+
     rtimer_set(&rt, RTIMER_NOW() + RTIMER_SECOND, 1, rt_callback, NULL);
 
     GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
