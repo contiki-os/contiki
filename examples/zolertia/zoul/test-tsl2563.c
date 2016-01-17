@@ -38,7 +38,7 @@
  * @{
  *
  * \file
- *  Driver for the external TSL2563 light sensor
+ *  Test file for the external TSL2563 light sensor
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>

@@ -38,7 +38,7 @@
  * @{
  *
  * \file
- *  Driver for the external BMP085 digital pressure and temperature sensor
+ *  Test file for the BMP085 digital pressure and temperature sensor
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
