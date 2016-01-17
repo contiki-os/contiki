@@ -38,7 +38,7 @@
  * @{
  *
  * \file
- *  Phidget analog rotation sensor example using the ADC wrapper
+ *  Phidget analog rotation sensor example using the ADC sensor wrapper
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
@@ -47,7 +47,7 @@
 #include <stdio.h>
 #include "contiki.h"
 #include "dev/leds.h"
-#include "dev/adc-wrapper.h"
+#include "dev/adc-sensors.h"
 /*---------------------------------------------------------------------------*/
 #define ADC_PIN              5
 #define SENSOR_READ_INTERVAL (CLOCK_SECOND / 4)
@@ -64,7 +64,7 @@ PROCESS_THREAD(remote_rotation_process, ev, data)
   uint16_t rotation;
 
   /* Use pin number not mask, for example if using the PA5 pin then use 5 */
-  adc_wrapper.configure(ANALOG_PHIDGET_ROTATION_1109, 5);
+  adc_sensors.configure(ANALOG_PHIDGET_ROTATION_1109, 5);
 
   /* And periodically poll the sensor */
 
@@ -72,7 +72,7 @@ PROCESS_THREAD(remote_rotation_process, ev, data)
     etimer_set(&et, SENSOR_READ_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    rotation = adc_wrapper.value(ANALOG_PHIDGET_ROTATION_1109);
+    rotation = adc_sensors.value(ANALOG_PHIDGET_ROTATION_1109);
 
     if(rotation != ADC_WRAPPER_ERROR) {
       printf("Rotation = %u\n", rotation);

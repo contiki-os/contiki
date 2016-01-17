@@ -69,7 +69,7 @@
 #include "dev/leds.h"
 #include "dev/uart.h"
 #include "dev/button-sensor.h"
-#include "dev/adc-sensors.h"
+#include "dev/adc-zoul.h"
 #include "dev/zoul-sensors.h"
 #include "dev/watchdog.h"
 #include "dev/serial-line.h"
@@ -132,7 +132,7 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
                           BUTTON_PRESS_EVENT_INTERVAL);
 
   /* Configure the ADC ports */
-  adc_sensors.configure(SENSORS_HW_INIT, ZOUL_SENSORS_ADC_ALL);
+  adc_zoul.configure(SENSORS_HW_INIT, ZOUL_SENSORS_ADC_ALL);
 
   printf("Zoul test application\n");
 
@@ -155,15 +155,16 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
              cc2538_temp_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED));
 
       printf("ADC1 = %d raw\n",
-             adc_sensors.value(ZOUL_SENSORS_ADC1));
+             adc_zoul.value(ZOUL_SENSORS_ADC1));
 
       printf("ADC3 = %d raw\n",
-             adc_sensors.value(ZOUL_SENSORS_ADC3));
+             adc_zoul.value(ZOUL_SENSORS_ADC3));
 
       etimer_set(&et, LOOP_INTERVAL);
       rtimer_set(&rt, RTIMER_NOW() + LEDS_OFF_HYSTERISIS, 1,
                  rt_callback, NULL);
       counter++;
+
     } else if(ev == sensors_event) {
       if(data == &button_sensor) {
         if(button_sensor.value(BUTTON_SENSOR_VALUE_TYPE_LEVEL) ==
@@ -175,6 +176,7 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
           printf("...and released!\n");
         }
       }
+
     } else if(ev == serial_line_event_message) {
       leds_toggle(LEDS_SERIAL_IN);
     } else if(ev == button_press_duration_exceeded) {
