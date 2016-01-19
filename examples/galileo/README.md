@@ -83,6 +83,16 @@ MODE1 register, which should have previously been initialized to the
 value 0x20. The test verifies that this expected value is returned by
 the read.
 
+Isolated Memory Regions
+-----------------------
+
+### Print IMR info (EXAMPLE=print-imr)
+
+This application prints out information about the configuration of the
+Intel Quark X1000 SoC Isolated Memory Regions (IMRs), the Host System
+Management Mode Controls register, and the Host Memory I/O Boundary
+register.
+
 References
 ----------
 
