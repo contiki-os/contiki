@@ -97,6 +97,9 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
   static uint16_t wind_speed_avg_2m;
   static uint16_t wind_speed_max;
 
+  printf("Weather meter test example, integration period %u\n",
+         WEATHER_METER_AVG_PERIOD);
+
   /* Register the callback handler when thresholds are met */
   WEATHER_METER_REGISTER_ANEMOMETER_INT(wind_speed_callback);
   WEATHER_METER_REGISTER_RAIN_GAUGE_INT(rain_callback);
@@ -120,9 +123,9 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
     rain = weather_meter.value(WEATHER_METER_RAIN_GAUGE);
     wind_speed = weather_meter.value(WEATHER_METER_ANEMOMETER);
     wind_dir = weather_meter.value(WEATHER_METER_WIND_VANE);
-    wind_dir_avg_2m = weather_meter.value(WEATHER_METER_WIND_VANE_AVG_2M);
+    wind_dir_avg_2m = weather_meter.value(WEATHER_METER_WIND_VANE_AVG_X);
     wind_speed_avg = weather_meter.value(WEATHER_METER_ANEMOMETER_AVG);
-    wind_speed_avg_2m = weather_meter.value(WEATHER_METER_ANEMOMETER_AVG_2M);
+    wind_speed_avg_2m = weather_meter.value(WEATHER_METER_ANEMOMETER_AVG_X);
     wind_speed_max = weather_meter.value(WEATHER_METER_ANEMOMETER_MAX);
 
     #if WEATHER_METER_RAIN_RETURN_TICKS

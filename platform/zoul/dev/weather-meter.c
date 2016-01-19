@@ -91,8 +91,8 @@ typedef struct {
   uint16_t value_max;
   uint64_t ticks_avg;
   uint64_t value_avg;
-  uint32_t value_buf_2m;
-  uint16_t value_avg_2m;
+  uint32_t value_buf_xm;
+  uint16_t value_avg_xm;
 } weather_meter_ext_t;
 
 typedef struct {
@@ -102,9 +102,9 @@ typedef struct {
 } weather_meter_sensors;
 
 typedef struct {
-  uint32_t value_buf_2m;
+  uint32_t value_buf_xm;
   uint16_t value_prev;
-  uint16_t value_avg_2m;
+  uint16_t value_avg_xm;
 } weather_meter_wind_vane_ext_t;
 
 static weather_meter_sensors weather_sensors;
@@ -200,7 +200,7 @@ rt_callback(struct rtimer *t, void *ptr)
   weather_sensors.anemometer.value = (uint16_t)wind_speed;
   anemometer.ticks_avg++;
   anemometer.value_avg += weather_sensors.anemometer.value;
-  anemometer.value_buf_2m += weather_sensors.anemometer.value;
+  anemometer.value_buf_xm += weather_sensors.anemometer.value;
 
   /* Take maximum value */
   if(weather_sensors.anemometer.value > anemometer.value_max) {
@@ -219,30 +219,30 @@ rt_callback(struct rtimer *t, void *ptr)
     wind_vane.value_prev += wind_dir_delta;
   }
 
-  wind_vane.value_buf_2m += wind_vane.value_prev;
+  wind_vane.value_buf_xm += wind_vane.value_prev;
 
   /* Calculate the 2 minute average */
-  if(!(anemometer.ticks_avg % 120)) {
-    PRINTF("Weather: calculate the 2m averages ***\n");
+  if(!(anemometer.ticks_avg % WEATHER_METER_AVG_PERIOD)) {
+    PRINTF("Weather: calculate the %u averages ***\n", WEATHER_METER_AVG_PERIOD);
 
-    if(anemometer.value_buf_2m) {
-      anemometer.value_avg_2m = anemometer.value_buf_2m / 120;
-      anemometer.value_buf_2m = 0;
+    if(anemometer.value_buf_xm) {
+      anemometer.value_avg_xm = anemometer.value_buf_xm / WEATHER_METER_AVG_PERIOD;
+      anemometer.value_buf_xm = 0;
     } else {
-      anemometer.value_avg_2m = 0;
+      anemometer.value_avg_xm = 0;
     }
 
-	wind_vane.value_buf_2m = wind_vane.value_buf_2m / 120;
-    wind_vane.value_avg_2m = (uint16_t)wind_vane.value_buf_2m;
-	if(wind_vane.value_avg_2m >= 3600) {
-      wind_vane.value_avg_2m -= 3600;
+	wind_vane.value_buf_xm = wind_vane.value_buf_xm / WEATHER_METER_AVG_PERIOD;
+    wind_vane.value_avg_xm = (uint16_t)wind_vane.value_buf_xm;
+	if(wind_vane.value_avg_xm >= 3600) {
+      wind_vane.value_avg_xm -= 3600;
     }
 
-	if(wind_vane.value_avg_2m < 0) {
-      wind_vane.value_avg_2m += 3600;
+	if(wind_vane.value_avg_xm < 0) {
+      wind_vane.value_avg_xm += 3600;
     }
 
-    wind_vane.value_buf_2m = 0;
+    wind_vane.value_buf_xm = 0;
     wind_vane.value_prev = wind_dir;
   }
 
@@ -323,9 +323,9 @@ value(int type)
   if((type != WEATHER_METER_ANEMOMETER) &&
     (type != WEATHER_METER_RAIN_GAUGE) &&
     (type != WEATHER_METER_WIND_VANE) &&
-    (type != WEATHER_METER_WIND_VANE_AVG_2M) &&
+    (type != WEATHER_METER_WIND_VANE_AVG_X) &&
     (type != WEATHER_METER_ANEMOMETER_AVG) &&
-    (type != WEATHER_METER_ANEMOMETER_AVG_2M) &&
+    (type != WEATHER_METER_ANEMOMETER_AVG_X) &&
     (type != WEATHER_METER_ANEMOMETER_MAX)) {
     PRINTF("Weather: requested an invalid sensor value\n");
     return WEATHER_METER_ERROR;
@@ -340,8 +340,8 @@ value(int type)
   case WEATHER_METER_WIND_VANE:
     return weather_meter_get_wind_dir();
 
-  case WEATHER_METER_WIND_VANE_AVG_2M:
-    return wind_vane.value_avg_2m;
+  case WEATHER_METER_WIND_VANE_AVG_X:
+    return wind_vane.value_avg_xm;
 
   case WEATHER_METER_ANEMOMETER:
     return weather_sensors.anemometer.value;
@@ -353,8 +353,8 @@ value(int type)
     aux = anemometer.value_avg / anemometer.ticks_avg;
     return (uint16_t)aux;
 
-  case WEATHER_METER_ANEMOMETER_AVG_2M:
-    return anemometer.value_avg_2m;
+  case WEATHER_METER_ANEMOMETER_AVG_X:
+    return anemometer.value_avg_xm;
 
   case WEATHER_METER_ANEMOMETER_MAX:
     return anemometer.value_max;
