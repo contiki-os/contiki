@@ -185,7 +185,7 @@ weather_meter_get_wind_dir(void)
   return weather_meter_wind_vane_degrees(weather_sensors.wind_vane);
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 rt_callback(struct rtimer *t, void *ptr)
 {
   uint32_t wind_speed;
@@ -223,7 +223,7 @@ rt_callback(struct rtimer *t, void *ptr)
 
   /* Calculate the 2 minute average */
   if(!(anemometer.ticks_avg % WEATHER_METER_AVG_PERIOD)) {
-    PRINTF("Weather: calculate the %u averages ***\n", WEATHER_METER_AVG_PERIOD);
+    PRINTF("\nWeather: calculate the %u averages ***\n", WEATHER_METER_AVG_PERIOD);
 
     if(anemometer.value_buf_xm) {
       anemometer.value_avg_xm = anemometer.value_buf_xm / WEATHER_METER_AVG_PERIOD;
