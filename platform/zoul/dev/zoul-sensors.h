@@ -49,7 +49,6 @@
 #include "lib/sensors.h"
 #include "dev/cc2538-sensors.h"
 #include "dev/button-sensor.h"
-#include "adc-sensors.h"
 /*---------------------------------------------------------------------------*/
 /**
  * \name Zoul sensor constants

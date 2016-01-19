@@ -34,39 +34,26 @@
  * \addtogroup zoul-sensors
  * @{
  *
- * \defgroup zoul-adc-sensors Zoul Generic ADC sensor
+ * \defgroup zoul-adc-sensors Zoul adc wrapper to use analogue sensors
  *
- * Driver for the Zoul ADC sensors
+ * The ADC wrapper implement analogue sensors on top of the ADC interface,
+ * obscuring the ADC configuration and required calculations to obtain actual
+ * sensor values.  The driver allows to reuse the adc-wrapper implementation and
+ * add sensors easily, without duplicating code, providing also a simplified
+ * interface and exposing the available ADC assigned channels by a given
+ * platform.
  *
- * This driver supports analogue sensors connected to ADC1, ADC2 and AND3 inputs
- * This is controlled by the type argument of the value() function. Possible
- * choices are:
- * - ZOUL_SENSORS_ADC1
- * - ZOUL_SENSORS_ADC2
- * - ZOUL_SENSORS_ADC3
+ * To use a given sensor simply use: adc_sensors.configure(SENSOR_NAME, pin_no),
+ * where pin_no is a given pin in the PA port, check out the board.h for more
+ * information on available pins.  To read a value just use
+ * adc_sensors.value(SENSOR_NAME), the expected result would be the sensor value
+ * already converted to the sensor variable type, check the adc-wrapper file
+ * for more information.
  *
- * To initialize the ADC sensors use the configure() function, using as first
- * argument SENSORS_HW_INIT, and choose which ADC channels to enable passing as
- * second argument any single or combined (sum) values as below:
- * - ZOUL_SENSORS_ADC1
- * - ZOUL_SENSORS_ADC2
- * - ZOUL_SENSORS_ADC3
- * - ZOUL_SENSORS_ADC_ALL (all channels above)
- *
- * Using an invalid combination will return ZOUL_SENSORS_ERROR.
- *
- * The decimation rate can be set by passing
- * ZOUL_SENSORS_CONFIGURE_TYPE_DECIMATION_RATE as the type argument to the
- * configure() function and then specifying the rate through the value
- * argument. Valid values are:
- * - SOC_ADC_ADCCON_DIV_64 (64 bit rate)
- * - SOC_ADC_ADCCON_DIV_128 (128 bit rate)
- * - SOC_ADC_ADCCON_DIV_256 (256 bit rate)
- * - SOC_ADC_ADCCON_DIV_512 (512 bit rate)
  * @{
  *
  * \file
- * Header file for the Zoul Generic Driver for ADC sensors
+ * Header file for the Zoul ADC sensors API
  */
 /*---------------------------------------------------------------------------*/
 #ifndef ADC_SENSORS_H_
@@ -74,54 +61,19 @@
 /*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
 #include "dev/soc-adc.h"
+#include "dev/adc-zoul.h"
 /*---------------------------------------------------------------------------*/
-/**
- * \name Generic ADC sensors
- * @{
- */
-#define ADC_SENSORS "ADC sensors"
-#define ADC_SENSORS_PORT_BASE    GPIO_PORT_TO_BASE(ADC_SENSORS_PORT)
-
-/*
- * PA0-PA3 are hardcoded to UART0 and the user button for most Zolertia
- * platforms, the following assumes PA0 shall not be used as ADC input, else
- * re-write the below definitions
- */
-#define ZOUL_SENSORS_ADC_MIN     2
-/* ADC phidget-like connector ADC1 */
-#if ADC_SENSORS_ADC1_PIN >= ZOUL_SENSORS_ADC_MIN
-#define ZOUL_SENSORS_ADC1        GPIO_PIN_MASK(ADC_SENSORS_ADC1_PIN)
-#else
-#define ZOUL_SENSORS_ADC1        0
-#endif
-/* ADC phidget-like connector ADC2 */
-#if ADC_SENSORS_ADC2_PIN >= ZOUL_SENSORS_ADC_MIN
-#define ZOUL_SENSORS_ADC2        GPIO_PIN_MASK(ADC_SENSORS_ADC2_PIN)
-#else
-#define ZOUL_SENSORS_ADC2        0
-#endif
-/* ADC phidget-like connector ADC3 */
-#if ADC_SENSORS_ADC3_PIN >= ZOUL_SENSORS_ADC_MIN
-#define ZOUL_SENSORS_ADC3        GPIO_PIN_MASK(ADC_SENSORS_ADC3_PIN)
-#else
-#define ZOUL_SENSORS_ADC3        0
-#endif
-
-/*
- * This is safe as the disabled sensors should have a zero value thus not
- * affecting the mask operations
- */
-
-/* Enable all channels */
-#define ZOUL_SENSORS_ADC_ALL     (ZOUL_SENSORS_ADC1 + ZOUL_SENSORS_ADC2 + \
-                                  ZOUL_SENSORS_ADC3)
-/* Other allowed combinations */
-#define ZOUL_SENSORS_ADC12       (ZOUL_SENSORS_ADC1 + ZOUL_SENSORS_ADC2)
-#define ZOUL_SENSORS_ADC13       (ZOUL_SENSORS_ADC1 + ZOUL_SENSORS_ADC3)
-#define ZOUL_SENSORS_ADC23       (ZOUL_SENSORS_ADC2 + ZOUL_SENSORS_ADC3)
-
-/** @} */
+#define ADC_WRAPPER_SUCCESS                 0x00
+#define ADC_WRAPPER_ERROR                   (-1)
+#define ADC_WRAPPER_EXTERNAL_VREF           5000
+#define ADC_WRAPPER_EXTERNAL_VREF_CROSSVAL  3300
 /*---------------------------------------------------------------------------*/
+#define ANALOG_GROVE_LIGHT                  0x01
+#define ANALOG_PHIDGET_ROTATION_1109        0x02
+#define ANALOG_GROVE_LOUDNESS               0x03
+/* -------------------------------------------------------------------------- */
+#define ADC_SENSORS "ADC sensors API"
+/* -------------------------------------------------------------------------- */
 extern const struct sensors_sensor adc_sensors;
 /*---------------------------------------------------------------------------*/
 #endif /* ADC_SENSORS_H_ */
