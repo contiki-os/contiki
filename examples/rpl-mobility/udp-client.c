@@ -34,6 +34,7 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/ip/uip-udp-packet.h"
 #include "sys/ctimer.h"
+#include "sys/node-id.h"
 #include "dev/cc2420/cc2420.h"
 #ifdef WITH_COMPOWER
 #include "powertrace.h"
@@ -219,7 +220,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
   static int print = 0;
 #endif
 #ifdef SEED
-  random_init(SEED);
+  random_init(SEED+node_id);
 #endif
 
   PROCESS_BEGIN();
