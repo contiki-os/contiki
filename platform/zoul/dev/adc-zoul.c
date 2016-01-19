@@ -48,7 +48,7 @@
 #include <stdio.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -133,13 +133,6 @@ configure(int type, int value)
     /* This should filter out disabled sensors as its value should be zero */
     if((value < ZOUL_SENSORS_ADC_MIN) || (value > ZOUL_SENSORS_ADC_ALL)) {
       PRINTF("ADC: invalid adc pin mask (0x%02X)\n", value);
-      return ZOUL_SENSORS_ERROR;
-    }
-
-    if((value != ZOUL_SENSORS_ADC1) && (value != ZOUL_SENSORS_ADC2) &&
-       (value != ZOUL_SENSORS_ADC3) && (value != ZOUL_SENSORS_ADC4) &&
-       (value != ZOUL_SENSORS_ADC5)) {
-      PRINTF("ADC: invalid adc pin mask\n");
       return ZOUL_SENSORS_ERROR;
     }
 
