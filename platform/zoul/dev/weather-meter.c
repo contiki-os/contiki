@@ -83,7 +83,7 @@ static struct timer debouncetimer;
 typedef struct {
   uint16_t ticks;
   uint16_t value;
-  uint8_t  int_en;
+  uint8_t int_en;
   uint16_t int_thres;
 } weather_meter_sensors_t;
 
@@ -116,28 +116,28 @@ typedef struct {
   uint16_t degree;
 } wind_vane_mid_point_t;
 
-  /* From the datasheet we adjusted the values for a 3V divider, using a 10K
-   * resistor, the check values are the following:
-   * --------------------+------------------+-------------------------------
-   * Direction (Degrees)  Resistance (Ohms)  Voltage (mV)
-   *     0                   33k                 2532.55  *
-   *     22.5                6.57k               1308.44  *
-   *     45                  8.2k                1486.81  *
-   *     67.5                891                 269.97   *
-   *     90                  1k                  300.00   *
-   *     112.5               688                 212.42   *
-   *     135                 2.2k                595.08   *
-   *     157.5               1.41k               407.80   *
-   *     180                 3.9k                925.89   *
-   *     202.5               3.14k               788.58   *
-   *     225                 16k                 2030.76  *
-   *     247.5               14.12k              1930.84  *
-   *     270                 120k                3046.15  *
-   *     292.5               42.12k              2666.84  *
-   *     315                 64.9k               2859.41  *
-   *     337.5               21.88k              2264.86  *
-   * --------------------+------------------+-------------------------------
-   */
+/* From the datasheet we adjusted the values for a 3V divider, using a 10K
+ * resistor, the check values are the following:
+ * --------------------+------------------+-------------------------------
+ * Direction (Degrees)  Resistance (Ohms)  Voltage (mV)
+ *     0                   33k                 2532.55  *
+ *     22.5                6.57k               1308.44  *
+ *     45                  8.2k                1486.81  *
+ *     67.5                891                 269.97   *
+ *     90                  1k                  300.00   *
+ *     112.5               688                 212.42   *
+ *     135                 2.2k                595.08   *
+ *     157.5               1.41k               407.80   *
+ *     180                 3.9k                925.89   *
+ *     202.5               3.14k               788.58   *
+ *     225                 16k                 2030.76  *
+ *     247.5               14.12k              1930.84  *
+ *     270                 120k                3046.15  *
+ *     292.5               42.12k              2666.84  *
+ *     315                 64.9k               2859.41  *
+ *     337.5               21.88k              2264.86  *
+ * --------------------+------------------+-------------------------------
+ */
 static const wind_vane_mid_point_t wind_vane_table[16] = {
   { 2124,   1125  },
   { 2699,   675   },
@@ -161,7 +161,7 @@ static int
 weather_meter_wind_vane_degrees(uint16_t value)
 {
   uint8_t i;
-  for(i=0; i<16; i++) {
+  for(i = 0; i < 16; i++) {
     if(value <= wind_vane_table[i].mid_point) {
       return (int)wind_vane_table[i].degree;
     } else {
@@ -232,13 +232,13 @@ rt_callback(struct rtimer *t, void *ptr)
       anemometer.value_avg_xm = 0;
     }
 
-	wind_vane.value_buf_xm = wind_vane.value_buf_xm / WEATHER_METER_AVG_PERIOD;
+    wind_vane.value_buf_xm = wind_vane.value_buf_xm / WEATHER_METER_AVG_PERIOD;
     wind_vane.value_avg_xm = (uint16_t)wind_vane.value_buf_xm;
-	if(wind_vane.value_avg_xm >= 3600) {
+    if(wind_vane.value_avg_xm >= 3600) {
       wind_vane.value_avg_xm -= 3600;
     }
 
-	if(wind_vane.value_avg_xm < 0) {
+    if(wind_vane.value_avg_xm < 0) {
       wind_vane.value_avg_xm += 3600;
     }
 
@@ -271,14 +271,14 @@ PROCESS_THREAD(weather_meter_int_process, ev, data)
 
     if((ev == anemometer_int_event) && (weather_sensors.anemometer.int_en)) {
       if(weather_sensors.anemometer.ticks >=
-        weather_sensors.anemometer.int_thres) {
+         weather_sensors.anemometer.int_thres) {
         anemometer_int_callback(weather_sensors.anemometer.ticks);
       }
     }
 
     if((ev == rain_gauge_int_event) && (weather_sensors.rain_gauge.int_en)) {
       if(weather_sensors.rain_gauge.ticks >=
-        weather_sensors.rain_gauge.int_thres) {
+         weather_sensors.rain_gauge.int_thres) {
         rain_gauge_int_callback(weather_sensors.rain_gauge.ticks);
       }
     }
@@ -305,7 +305,6 @@ weather_meter_interrupt_handler(uint8_t port, uint8_t pin)
   if((port == ANEMOMETER_SENSOR_PORT) && (pin == ANEMOMETER_SENSOR_PIN)) {
     weather_sensors.anemometer.ticks++;
     process_post(&weather_meter_int_process, anemometer_int_event, NULL);
-
   } else if((port == RAIN_GAUGE_SENSOR_PORT) && (pin == RAIN_GAUGE_SENSOR_PIN)) {
     weather_sensors.rain_gauge.ticks++;
     aux = weather_sensors.rain_gauge.ticks * WEATHER_METER_AUX_RAIN_MM;
@@ -321,12 +320,12 @@ value(int type)
   uint64_t aux;
 
   if((type != WEATHER_METER_ANEMOMETER) &&
-    (type != WEATHER_METER_RAIN_GAUGE) &&
-    (type != WEATHER_METER_WIND_VANE) &&
-    (type != WEATHER_METER_WIND_VANE_AVG_X) &&
-    (type != WEATHER_METER_ANEMOMETER_AVG) &&
-    (type != WEATHER_METER_ANEMOMETER_AVG_X) &&
-    (type != WEATHER_METER_ANEMOMETER_MAX)) {
+     (type != WEATHER_METER_RAIN_GAUGE) &&
+     (type != WEATHER_METER_WIND_VANE) &&
+     (type != WEATHER_METER_WIND_VANE_AVG_X) &&
+     (type != WEATHER_METER_ANEMOMETER_AVG) &&
+     (type != WEATHER_METER_ANEMOMETER_AVG_X) &&
+     (type != WEATHER_METER_ANEMOMETER_MAX)) {
     PRINTF("Weather: requested an invalid sensor value\n");
     return WEATHER_METER_ERROR;
   }
@@ -364,11 +363,11 @@ value(int type)
    * ticks and calculating on your own with WEATHER_METER_AUX_RAIN_MM
    */
   case WEATHER_METER_RAIN_GAUGE:
-    #if WEATHER_METER_RAIN_RETURN_TICKS
-      return weather_sensors.rain_gauge.ticks;
-    #else
-      return weather_sensors.rain_gauge.value;
-    #endif
+#if WEATHER_METER_RAIN_RETURN_TICKS
+    return weather_sensors.rain_gauge.ticks;
+#else
+    return weather_sensors.rain_gauge.value;
+#endif
 
   default:
     return WEATHER_METER_ERROR;
@@ -378,11 +377,11 @@ value(int type)
 static int
 configure(int type, int value)
 {
-  if((type != WEATHER_METER_ACTIVE) && 
-    (type != WEATHER_METER_ANEMOMETER_INT_OVER) &&
-    (type != WEATHER_METER_RAIN_GAUGE_INT_OVER) &&
-    (type != WEATHER_METER_ANEMOMETER_INT_DIS) &&
-    (type != WEATHER_METER_RAIN_GAUGE_INT_DIS)) {
+  if((type != WEATHER_METER_ACTIVE) &&
+     (type != WEATHER_METER_ANEMOMETER_INT_OVER) &&
+     (type != WEATHER_METER_RAIN_GAUGE_INT_OVER) &&
+     (type != WEATHER_METER_ANEMOMETER_INT_DIS) &&
+     (type != WEATHER_METER_RAIN_GAUGE_INT_DIS)) {
     PRINTF("Weather: invalid configuration option\n");
     return WEATHER_METER_ERROR;
   }

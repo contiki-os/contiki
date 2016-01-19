@@ -128,14 +128,14 @@ PROCESS_THREAD(test_weather_meter_sensors, ev, data)
     wind_speed_avg_2m = weather_meter.value(WEATHER_METER_ANEMOMETER_AVG_X);
     wind_speed_max = weather_meter.value(WEATHER_METER_ANEMOMETER_MAX);
 
-    #if WEATHER_METER_RAIN_RETURN_TICKS
-      rain *= WEATHER_METER_AUX_RAIN_MM;
-      if(rain > (WEATHER_METER_AUX_RAIN_MM * 3)) {
-        printf("Rain: %lu.%lu mm, ", (rain / 10000), (rain % 10000));
-    #else
-      if(rain >= 10) {
-        printf("Rain: %u.%u mm, ", (rain / 10), (rain % 10));
-    #endif
+#if WEATHER_METER_RAIN_RETURN_TICKS
+    rain *= WEATHER_METER_AUX_RAIN_MM;
+    if(rain > (WEATHER_METER_AUX_RAIN_MM * 3)) {
+      printf("Rain: %lu.%lu mm, ", (rain / 10000), (rain % 10000));
+#else
+    if(rain >= 10) {
+      printf("Rain: %u.%u mm, ", (rain / 10), (rain % 10));
+#endif
     } else {
       printf("Rain: 0.%lu mm, ", rain);
     }
