@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2015, Zolertia - http://www.zolertia.com
- * Copyright (c) 2015, University of Bristol - http://www.bristol.ac.uk
+ * Copyright (c) 2016, Zolertia - http://www.zolertia.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +34,7 @@
  * @{
  *
  * \file
- * Generic driver for the Zoul ADC sensors
+ * Generic driver for the Zoul ADC wrapper for analogue sensors
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -44,115 +43,166 @@
 #include "dev/gpio.h"
 #include "dev/adc.h"
 #include "adc-sensors.h"
+#include "adc-zoul.h"
 #include "zoul-sensors.h"
 
+#include <stdio.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-static uint8_t decimation_rate;
-static uint8_t enabled_channels;
+#define DEBUG 1
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 /*---------------------------------------------------------------------------*/
-static int
-set_decimation_rate(uint8_t rate)
-{
-  switch(rate) {
-  case SOC_ADC_ADCCON_DIV_64:
-  case SOC_ADC_ADCCON_DIV_128:
-  case SOC_ADC_ADCCON_DIV_256:
-  case SOC_ADC_ADCCON_DIV_512:
-    decimation_rate = rate;
-    break;
-  default:
-    return ZOUL_SENSORS_ERROR;
-  }
+typedef struct {
+  int type;
+  uint8_t pin_mask;
+  uint8_t vdd3;
+} adc_info_t;
 
-  return decimation_rate;
-}
+typedef struct {
+  uint8_t sensors_num;
+  uint8_t sensors_ports;
+  adc_info_t sensor[ADC_SENSORS_MAX];
+} adc_wrapper_t;
+
+static adc_wrapper_t sensors;
 /*---------------------------------------------------------------------------*/
-static int
-get_channel_pin(int type)
+static uint16_t
+convert_to_value(uint8_t index)
 {
-  if((ZOUL_SENSORS_ADC1) && (type == ZOUL_SENSORS_ADC1)) {
-    return SOC_ADC_ADCCON_CH_AIN0 + ADC_SENSORS_ADC1_PIN;
-  }
-  if((ZOUL_SENSORS_ADC2) && (type == ZOUL_SENSORS_ADC2)) {
-    return SOC_ADC_ADCCON_CH_AIN0 + ADC_SENSORS_ADC2_PIN;
-  }
-  if((ZOUL_SENSORS_ADC3) && (type == ZOUL_SENSORS_ADC3)) {
-    return SOC_ADC_ADCCON_CH_AIN0 + ADC_SENSORS_ADC3_PIN;
-  }
-  return ZOUL_SENSORS_ERROR;
-}
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  int channel;
-  int16_t res;
+  uint32_t value;
+  value = adc_zoul.value(sensors.sensor[index].pin_mask);
 
-  if(!(type & enabled_channels)) {
-    return ZOUL_SENSORS_ERROR;
+  if(value == ZOUL_SENSORS_ERROR) {
+    PRINTF("ADC sensors: failed retrieving data\n");
+    return ADC_WRAPPER_ERROR;
   }
 
-  channel = get_channel_pin(type);
+  /* Default voltage divisor relation is 5/3 aprox, change at adc_wrapper.h,
+   * calculations below assume a decimation rate of 512 (12 bits ENOB) and
+   * AVVD5 voltage reference of 3.3V
+   */
 
-  if(channel == ZOUL_SENSORS_ERROR) {
-    return ZOUL_SENSORS_ERROR;
+  if(!sensors.sensor[index].vdd3) {
+    value *= ADC_WRAPPER_EXTERNAL_VREF;
+    value /= ADC_WRAPPER_EXTERNAL_VREF_CROSSVAL;
   }
 
-  res = adc_get(channel, SOC_ADC_ADCCON_REF_AVDD5, decimation_rate);
-  return res;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int value)
-{
-  switch(type) {
-  case SENSORS_HW_INIT:
+  switch(sensors.sensor[index].type) {
+  case ANALOG_GROVE_LIGHT:
+    /* Light dependant resistor (LDR) resistance value*/
+    value = (10230 - (value * 10)) / value;
+    /* TODO: With the resistance we could calculate the lux as 63*R^(-0.7) */
+    return (uint16_t)value;
 
-    /* This should filter out disabled sensors as its value should be zero */
-    if((value < ZOUL_SENSORS_ADC_MIN) || (value > ZOUL_SENSORS_ADC_ALL)) {
-      return ZOUL_SENSORS_ERROR;
-    }
+  case ANALOG_GROVE_LOUDNESS:
+    /* Based on the LM2904 amplifier (blue version with potentiometer) */
+    return (uint16_t)value;
 
-    if((value != ZOUL_SENSORS_ADC1) && (value != ZOUL_SENSORS_ADC2) &&
-       (value != ZOUL_SENSORS_ADC3) && (value != ZOUL_SENSORS_ADC12) &&
-       (value != ZOUL_SENSORS_ADC13) && (value != ZOUL_SENSORS_ADC23)) {
-      return ZOUL_SENSORS_ERROR;
-    }
-
-    GPIO_SOFTWARE_CONTROL(GPIO_A_BASE, value);
-    GPIO_SET_INPUT(GPIO_A_BASE, value);
-
-    if(value & ZOUL_SENSORS_ADC1) {
-      ioc_set_over(GPIO_A_NUM, ADC_SENSORS_ADC1_PIN, IOC_OVERRIDE_ANA);
-    }
-    if(value & ZOUL_SENSORS_ADC2) {
-      ioc_set_over(GPIO_A_NUM, ADC_SENSORS_ADC2_PIN, IOC_OVERRIDE_ANA);
-    }
-    if(value & ZOUL_SENSORS_ADC3) {
-      ioc_set_over(GPIO_A_NUM, ADC_SENSORS_ADC3_PIN, IOC_OVERRIDE_ANA);
-    }
-    adc_init();
-    set_decimation_rate(SOC_ADC_ADCCON_DIV_512);
-    enabled_channels = value;
-    break;
-
-  case ZOUL_SENSORS_CONFIGURE_TYPE_DECIMATION_RATE:
-    return set_decimation_rate((uint8_t)value);
+  case ANALOG_PHIDGET_ROTATION_1109:
+    /* Linear sensor with 0-300º, 300/33000 = 0.00909 */
+    value *= 909;
+    value /= 100000;
+    return (uint16_t)value;
 
   default:
-    return ZOUL_SENSORS_ERROR;
+    return ADC_WRAPPER_ERROR;
+  }
+
+  return ADC_WRAPPER_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+is_sensor_in_list(int type)
+{
+  uint8_t i;
+
+  for(i = 0; i <= sensors.sensors_num; i++) {
+    if(sensors.sensor[i].type == type) {
+      return i + 1;
+    }
   }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
-status(int type)
+value(int type)
 {
-  return 1;
+  uint8_t index;
+  uint16_t sensor_value;
+
+  index = is_sensor_in_list(type);
+
+  if(!index) {
+    PRINTF("ADC sensors: sensor not registered\n");
+    return ADC_WRAPPER_SUCCESS;
+  }
+
+  /* Restore index value after the check */
+  index -= 1;
+  sensor_value = convert_to_value(index);
+
+  return sensor_value;
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(adc_sensors, ADC_SENSORS, value, configure, status);
+static int
+configure(int type, int value)
+{
+  uint8_t pin_mask = GPIO_PIN_MASK(value);
+
+  if((type != ANALOG_GROVE_LIGHT) && (type != ANALOG_PHIDGET_ROTATION_1109) &&
+     (type != ANALOG_GROVE_LOUDNESS)) {
+    PRINTF("ADC sensors: sensor not supported, check adc_wrapper.h header\n");
+    return ADC_WRAPPER_ERROR;
+  }
+
+  if(sensors.sensors_num >= ADC_SENSORS_MAX) {
+    PRINTF("ADC sensors: all adc channels available have been assigned\n");
+    return ADC_WRAPPER_ERROR;
+  }
+
+  if((value < 0x01) || (value > 0x07) || (value == BUTTON_USER_PIN)) {
+    PRINTF("ADC sensors: invalid pin value, (PA0-PA1, PA3) are reserved\n");
+    return ADC_WRAPPER_ERROR;
+  }
+
+  if(sensors.sensors_ports & pin_mask) {
+    PRINTF("ADC sensors: a sensor has been already assigned to this pin\n");
+    return ADC_WRAPPER_ERROR;
+  }
+
+  switch(type) {
+  /* V+3.3 sensors */
+  case ANALOG_GROVE_LIGHT:
+  case ANALOG_GROVE_LOUDNESS:
+  case ANALOG_PHIDGET_ROTATION_1109:
+    if(adc_zoul.configure(SENSORS_HW_INIT, pin_mask) == ZOUL_SENSORS_ERROR) {
+      return ADC_WRAPPER_ERROR;
+    }
+    sensors.sensor[sensors.sensors_num].type = type;
+    sensors.sensor[sensors.sensors_num].pin_mask = pin_mask;
+    sensors.sensor[sensors.sensors_num].vdd3 = 1;
+    break;
+
+  default:
+    return ADC_WRAPPER_ERROR;
+  }
+
+  PRINTF("ADC sensors: type %u mask 0x%02X vdd3 %u\n",
+         sensors.sensor[sensors.sensors_num].type,
+         sensors.sensor[sensors.sensors_num].pin_mask,
+         sensors.sensor[sensors.sensors_num].vdd3);
+
+  sensors.sensors_num++;
+  sensors.sensors_ports |= pin_mask;
+
+  return ADC_WRAPPER_SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(adc_sensors, ADC_SENSORS, value, configure, NULL);
 /*---------------------------------------------------------------------------*/
 /** @} */
 
