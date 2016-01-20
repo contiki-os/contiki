@@ -108,6 +108,18 @@ convert_to_value(uint8_t index)
     value /= 100000;
     return (uint16_t)value;
 
+  case ANALOG_VAC_SENSOR:
+    /* Linear sensor from 0 to 5 V; 0.0088 resolution*/
+    value *= 88;
+    value /= 10000;
+    return (uint16_t)value;
+
+  case ANALOG_PM10_SENSOR:
+    /* PM10 sensor from 0 to 5 V; 0.0088 resolution*/
+    value *= 88;
+    value /= 10000;
+    return (uint16_t)value;
+
   default:
     return ADC_WRAPPER_ERROR;
   }
@@ -154,7 +166,8 @@ configure(int type, int value)
   uint8_t pin_mask = GPIO_PIN_MASK(value);
 
   if((type != ANALOG_GROVE_LIGHT) && (type != ANALOG_PHIDGET_ROTATION_1109) &&
-     (type != ANALOG_GROVE_LOUDNESS)) {
+     (type != ANALOG_GROVE_LOUDNESS) && (type != ANALOG_PM10_SENSOR) &&
+     (type != ANALOG_VAC_SENSOR) ) {
     PRINTF("ADC sensors: sensor not supported, check adc_wrapper.h header\n");
     return ADC_WRAPPER_ERROR;
   }
@@ -179,6 +192,7 @@ configure(int type, int value)
   case ANALOG_GROVE_LIGHT:
   case ANALOG_GROVE_LOUDNESS:
   case ANALOG_PHIDGET_ROTATION_1109:
+  case ANALOG_VAC_SENSOR:
     if(adc_zoul.configure(SENSORS_HW_INIT, pin_mask) == ZOUL_SENSORS_ERROR) {
       return ADC_WRAPPER_ERROR;
     }
