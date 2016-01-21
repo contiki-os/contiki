@@ -100,10 +100,10 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
       printf("-----------------------------------------\n"
              "Counter = 0x%08x\n", counter);
 
-      printf("ADC3 = %d V\n", adc_sensors.value(ANALOG_VAC_SENSOR));
-      uint32_t as = (adc_sensors.value(ANALOG_VAC_SENSOR) * 0.176);
-      printf("ADC5V = %ld V\n", as);
-      //printf("AC voltage = %d V\n", vac.value(VAC_VAL));
+      //Value in raw after voltage divisor 
+      printf("ADC3 = %d V\n", (adc_sensors.value(ANALOG_VAC_SENSOR)/0.0088));
+      //AC voltage value, with applied corresponding sensor algorithm
+      printf("AC voltage = %d V\n", adc_sensors.value(VAC_VAL));
      
       etimer_set(&et, LOOP_INTERVAL);
       counter++;
