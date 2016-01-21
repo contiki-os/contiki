@@ -46,7 +46,7 @@
 #include "dev/grove-gyro.h"
 #include "lib/sensors.h"
 /*---------------------------------------------------------------------------*/
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -110,10 +110,19 @@ grove_gyro_sampdiv(uint8_t value)
   return GROVE_GYRO_ERROR;
 }
 /*---------------------------------------------------------------------------*/
-static void
+static uint8_t
 grove_gyro_clear_interrupt(void)
 {
-  /* FIXME */
+  uint8_t aux = 0;
+
+  /* Clear interrupt */
+  grove_gyro_read_reg(GROVE_GYRO_INT_STATUS, &aux, 1);
+  
+  if(aux & GROVE_GYRO_INT_STATUS_DATA_RDY_MASK) {
+    return GROVE_GYRO_INT_STATUS_DATA_RDY_MASK;
+  }
+
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -199,7 +208,7 @@ grove_gyro_power_mgmt(uint8_t value, uint8_t type)
 
       /* Power-up delay */
       if(type == GROVE_GYRO_POWER_ON) {
-        // clock_delay_usec(50000);
+        clock_delay_usec(25000);
       }
 
       return GROVE_GYRO_SUCCESS;
@@ -345,10 +354,20 @@ PROCESS_THREAD(grove_gyro_int_process, ev, data)
   PROCESS_EXITHANDLER();
   PROCESS_BEGIN();
 
+  static uint8_t axis_to_read = 0;
+
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-    grove_gyro_clear_interrupt();
-    grove_gyro_int_callback(0);
+    if(grove_gyro_clear_interrupt() == GROVE_GYRO_INT_STATUS_DATA_RDY_MASK) {
+
+      axis_to_read += (power_mgmt & GROVE_GYRO_X) ? 0: GROVE_GYRO_X;
+      axis_to_read += (power_mgmt & GROVE_GYRO_Y) ? 0: GROVE_GYRO_Y;
+      axis_to_read += (power_mgmt & GROVE_GYRO_Z) ? 0: GROVE_GYRO_Z;
+
+      if(grove_gyro_read(axis_to_read) == GROVE_GYRO_SUCCESS) {
+        grove_gyro_int_callback(GROVE_GYRO_SUCCESS);
+      }
+    }
   }
   PROCESS_END();
 }
@@ -466,7 +485,6 @@ configure(int type, int value)
 
     /* Enable interrupt and latch the pin until cleared */
     if(grove_gyro_interrupt(GROVE_GYRO_INT_CFG_RAW_READY_EN +
-                            GROVE_GYRO_INT_CFG_LATCH_CLR_ANY +
                             GROVE_GYRO_INT_CFG_LATCH_EN) == GROVE_GYRO_ERROR) {
       PRINTF("Gyro: failed to enable the interrupt\n");
       return GROVE_GYRO_ERROR;

@@ -98,6 +98,9 @@ PROCESS_THREAD(remote_grove_gyro_process, ev, data)
     PROCESS_EXIT();
   }
 
+  /* Register the interrupt handler */
+  GROVE_GYRO_REGISTER_INT(gyro_interrupt_callback);
+
   /* The gyroscope sensor should be on now but the three gyroscope axis should
    * be off, to enable a single axis or any combination of the 3 you can use as
    * argument either GROVE_GYRO_X, GROVE_GYRO_Y, GROVE_GYRO_Z.  To enable or
@@ -105,8 +108,12 @@ PROCESS_THREAD(remote_grove_gyro_process, ev, data)
    */
   grove_gyro.configure(GROVE_GYRO_POWER_ON, GROVE_GYRO_XYZ);
 
-  /* Register the interrupt handler */
-  GROVE_GYRO_REGISTER_INT(gyro_interrupt_callback);
+  /* Enabling the data interrupt will feed data directly to the extern data
+   * structure and notify us about it, depending on the sampling rate and
+   * divisor this could generate many interrupts/second.  A zero argument would
+   * disable the interrupts
+   */
+  grove_gyro.configure(GROVE_GYRO_DATA_INTERRUPT, 1);
 
   /* And periodically poll the sensor, values are in º/s */
 
@@ -124,12 +131,12 @@ PROCESS_THREAD(remote_grove_gyro_process, ev, data)
     if(grove_gyro.value(GROVE_GYRO_XYZ) == GROVE_GYRO_SUCCESS) {
 
       /* Converted values with a 2-digit precision */
-      printf("Gyro: X %u.%u, Y %u.%u, Z %u.%u\n", gyro_values.x / 100,
-                                                  gyro_values.x % 100,
-                                                  gyro_values.y / 100,
-                                                  gyro_values.y % 100,
-                                                  gyro_values.z / 100,
-                                                  gyro_values.z % 100);
+      printf("Gyro: X: %u.%u, Y: %u.%u, Z: %u.%u\n", gyro_values.x / 100,
+                                                     gyro_values.x % 100,
+                                                     gyro_values.y / 100,
+                                                     gyro_values.y % 100,
+                                                     gyro_values.z / 100,
+                                                     gyro_values.z % 100);
     } else {
       printf("Error, enable the DEBUG flag in the grove-gyro driver for info,");
       printf(" or check if the sensor is properly connected\n");
