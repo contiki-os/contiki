@@ -64,6 +64,9 @@ typedef struct {
   uint16_t x;
   uint16_t y;
   uint16_t z;
+  uint16_t x_offset;
+  uint16_t y_offset;
+  uint16_t z_offset;
   int16_t temp;
 } grove_gyro_values_t;
 
@@ -149,6 +152,7 @@ extern grove_gyro_values_t gyro_values;
 #define GROVE_GYRO_SAMPLE_RATE_DIVIDER  0x03
 #define GROVE_GYRO_POWER_ON             0x04
 #define GROVE_GYRO_POWER_OFF            0x05
+#define GROVE_GYRO_CALIBRATE_ZERO       0x06
 
 /* Sensor value request type, match to the stand-by mask to check if enabled */
 #define GROVE_GYRO_X                    GROVE_GYRO_PWR_MGMT_STBY_XG
@@ -163,6 +167,10 @@ extern grove_gyro_values_t gyro_values;
 /* Return types */
 #define GROVE_GYRO_ERROR                (-1)
 #define GROVE_GYRO_SUCCESS              0x00
+
+/* Calibration constants */
+#define GROVE_GYRO_CALIB_SAMPLES        200
+#define GROVE_GYRO_CALIB_TIME_US        5000
 /** @} */
 /* -------------------------------------------------------------------------- */
 #define GROVE_GYRO_STRING "Grove 3-axis gyroscope Sensor"

@@ -45,6 +45,7 @@
 #include "dev/i2c.h"
 #include "dev/grove-gyro.h"
 #include "lib/sensors.h"
+#include "dev/watchdog.h"
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
@@ -58,6 +59,7 @@
 /*---------------------------------------------------------------------------*/
 static uint8_t enabled;
 static uint8_t power_mgmt;
+static uint8_t int_en;
 /*---------------------------------------------------------------------------*/
 grove_gyro_values_t gyro_values;
 /*---------------------------------------------------------------------------*/
@@ -347,6 +349,89 @@ grove_gyro_read(int type)
   return GROVE_GYRO_ERROR;
 }
 /*---------------------------------------------------------------------------*/
+static int
+grove_gyro_calibrate(void)
+{
+  uint8_t i;
+  uint8_t buf[GROVE_GYRO_MAX_DATA];
+  uint8_t power_mgmt_backup;
+  uint32_t x, y, z;
+
+  /* Disable interrupts */
+  if(int_en) {
+    if(grove_gyro_interrupt(GROVE_GYRO_INT_CFG_DISABLE) == GROVE_GYRO_ERROR) {
+      PRINTF("Gyro: failed to disable the interrupts\n");
+      return GROVE_GYRO_ERROR;
+    }
+    GPIO_DISABLE_INTERRUPT(GROVE_GYRO_INT_PORT_BASE, GROVE_GYRO_INT_PIN_MASK);
+  }
+
+  /* Turn on the 3-axis, save the current config */
+  if(grove_gyro_read_reg(GROVE_GYRO_PWR_MGMT, &power_mgmt_backup, 1) ==
+    GROVE_GYRO_ERROR) {
+    PRINTF("Gyro: failed to read power mgmt config\n");
+    return GROVE_GYRO_ERROR;
+  }
+
+  if(grove_gyro_power_mgmt(GROVE_GYRO_ALL, GROVE_GYRO_POWER_ON) ==
+    GROVE_GYRO_ERROR) {
+    PRINTF("Gyro: failed to bring sensor up\n");
+    return GROVE_GYRO_ERROR;
+  }
+
+  x = 0;
+  y = 0;
+  z = 0;
+
+  for (i = 0; i < GROVE_GYRO_CALIB_SAMPLES; i++){
+    clock_delay_usec(GROVE_GYRO_CALIB_TIME_US);
+    watchdog_periodic();
+    if(grove_gyro_read_reg(GROVE_GYRO_XOUT_H, buf, GROVE_GYRO_MAX_DATA) ==
+      GROVE_GYRO_SUCCESS) {
+      x += (buf[0] << 8) + buf[1];
+      y += (buf[2] << 8) + buf[3];
+      z += (buf[4] << 8) + buf[5];
+    }
+  }
+
+  gyro_values.x_offset = ABS(x)/GROVE_GYRO_CALIB_SAMPLES;
+  gyro_values.y_offset = ABS(y)/GROVE_GYRO_CALIB_SAMPLES;
+  gyro_values.z_offset = ABS(z)/GROVE_GYRO_CALIB_SAMPLES;
+
+  PRINTF("Gyro: x_offset (RAW) 0x%02X\n", gyro_values.x_offset);
+  PRINTF("Gyro: y_offset (RAW) 0x%02X\n", gyro_values.y_offset);
+  PRINTF("Gyro: z_offset (RAW) 0x%02X\n", gyro_values.z_offset);
+
+  gyro_values.x_offset = grove_gyro_convert_to_value(gyro_values.x_offset);
+  gyro_values.y_offset = grove_gyro_convert_to_value(gyro_values.y_offset);
+  gyro_values.z_offset = grove_gyro_convert_to_value(gyro_values.z_offset);
+
+  PRINTF("Gyro: x_offset (converted) %d\n", gyro_values.x_offset);
+  PRINTF("Gyro: y_offset (converted) %d\n", gyro_values.y_offset);
+  PRINTF("Gyro: z_offset (converted) %d\n", gyro_values.z_offset);
+
+  /* Cleaning up */
+  buf[0] = GROVE_GYRO_PWR_MGMT;
+  buf[1] = power_mgmt_backup;
+
+  if(grove_gyro_write_reg(&buf[0], 2) != GROVE_GYRO_SUCCESS) {
+    PRINTF("Gyro: failed restoring power mgmt (0x%02X)\n", power_mgmt_backup);
+    return GROVE_GYRO_ERROR;
+  }
+
+  if(int_en) {
+    if(grove_gyro_interrupt(GROVE_GYRO_INT_CFG_RAW_READY_EN +
+                            GROVE_GYRO_INT_CFG_LATCH_EN) == GROVE_GYRO_ERROR) {
+      PRINTF("Gyro: failed to enable the interrupt\n");
+      return GROVE_GYRO_ERROR;
+    }
+
+    GPIO_ENABLE_INTERRUPT(GROVE_GYRO_INT_PORT_BASE, GROVE_GYRO_INT_PIN_MASK);
+  }
+
+  return GROVE_GYRO_SUCCESS;
+}
+/*---------------------------------------------------------------------------*/
 PROCESS(grove_gyro_int_process, "Grove gyroscope interrupt process handler");
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(grove_gyro_int_process, ev, data)
@@ -407,7 +492,8 @@ configure(int type, int value)
 {
   if((type != GROVE_GYRO_ACTIVE) && (type != GROVE_GYRO_SAMPLE_RATE) &&
     (type != GROVE_GYRO_SAMPLE_RATE_DIVIDER) && (type != GROVE_GYRO_POWER_ON) &&
-    (type != GROVE_GYRO_POWER_OFF) && (type != GROVE_GYRO_DATA_INTERRUPT)) {
+    (type != GROVE_GYRO_POWER_OFF) && (type != GROVE_GYRO_DATA_INTERRUPT) &&
+    (type != GROVE_GYRO_CALIBRATE_ZERO)) {
     PRINTF("Gyro: option not supported\n");
     return GROVE_GYRO_ERROR;
   }
@@ -417,6 +503,15 @@ configure(int type, int value)
     if(value) {
       i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN,
                I2C_SCL_FAST_BUS_SPEED);
+
+       /* Initialize the data structure values */
+       gyro_values.x = 0;
+       gyro_values.y = 0;
+       gyro_values.z = 0;
+       gyro_values.temp = 0;
+       gyro_values.x_offset = 0;
+       gyro_values.y_offset = 0;
+       gyro_values.z_offset = 0;
 
        /* Make sure the sensor is on */
        if(grove_gyro_power_mgmt(GROVE_GYRO_ALL, GROVE_GYRO_POWER_ON) !=
@@ -456,6 +551,7 @@ configure(int type, int value)
 
     } else {
       enabled = 0;
+      int_en = 0;
       GPIO_DISABLE_INTERRUPT(GROVE_GYRO_INT_PORT_BASE, GROVE_GYRO_INT_PIN_MASK);
       grove_gyro_int_callback = NULL;
       if(grove_gyro_interrupt(GROVE_GYRO_INT_CFG_DISABLE) ==
@@ -479,6 +575,7 @@ configure(int type, int value)
        * I2C digital sensors using the bus and sharing this pin, so an user may
        * comment the line below
        */
+      int_en = 0;
       GPIO_DISABLE_INTERRUPT(GROVE_GYRO_INT_PORT_BASE, GROVE_GYRO_INT_PIN_MASK);
       return grove_gyro_interrupt(GROVE_GYRO_INT_CFG_DISABLE);
     }
@@ -503,6 +600,7 @@ configure(int type, int value)
     process_start(&grove_gyro_int_process, NULL);
 
     /* Enable interrupts */
+    int_en = 1;
     GPIO_ENABLE_INTERRUPT(GROVE_GYRO_INT_PORT_BASE, GROVE_GYRO_INT_PIN_MASK);
     ioc_set_over(I2C_INT_PORT, I2C_INT_PIN, IOC_OVERRIDE_PUE);
     nvic_interrupt_enable(I2C_INT_VECTOR);
@@ -533,6 +631,9 @@ configure(int type, int value)
       return GROVE_GYRO_ERROR;
     }
     return grove_gyro_power_mgmt(value, type);
+
+  case GROVE_GYRO_CALIBRATE_ZERO:
+    return grove_gyro_calibrate();
 
   default:
     return GROVE_GYRO_ERROR;

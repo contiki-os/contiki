@@ -108,6 +108,11 @@ PROCESS_THREAD(remote_grove_gyro_process, ev, data)
    */
   grove_gyro.configure(GROVE_GYRO_POWER_ON, GROVE_GYRO_XYZ);
 
+  /* Calibrate the sensor taking 200 samples every 5ms for the zero-point offset
+   * value, this has to be done manually and is up to the user
+   */
+  grove_gyro.configure(GROVE_GYRO_CALIBRATE_ZERO, 1);
+
   /* Enabling the data interrupt will feed data directly to the extern data
    * structure and notify us about it, depending on the sampling rate and
    * divisor this could generate many interrupts/second.  A zero argument would
