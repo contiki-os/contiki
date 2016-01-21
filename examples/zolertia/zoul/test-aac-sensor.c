@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
  * Copyright (c) 2015, Zolertia - http://www.zolertia.com
- * Copyright (c) 2015, University of Bristol - http://www.bristol.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,60 +29,92 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/*---------------------------------------------------------------------------*/
-/**
- * \addtogroup zoul-sensors
- * @{
+/*
  *
- * \defgroup zoul-adc-sensors Zoul adc wrapper to use analogue sensors
- *
- * The ADC wrapper implement analogue sensors on top of the ADC interface,
- * obscuring the ADC configuration and required calculations to obtain actual
- * sensor values.  The driver allows to reuse the adc-wrapper implementation and
- * add sensors easily, without duplicating code, providing also a simplified
- * interface and exposing the available ADC assigned channels by a given
- * platform.
- *
- * To use a given sensor simply use: adc_sensors.configure(SENSOR_NAME, pin_no),
- * where pin_no is a given pin in the PA port, check out the board.h for more
- * information on available pins.  To read a value just use
- * adc_sensors.value(SENSOR_NAME), the expected result would be the sensor value
- * already converted to the sensor variable type, check the adc-wrapper file
- * for more information.
  *
  * @{
  *
  * \file
- * Header file for the Zoul ADC sensors API
+ *     Example demonstrating the Zoul module on the RE-Mote & AAC sensor 0-5V 50Amps AC
  */
+#include "contiki.h"
+#include "cpu.h"
+#include "sys/etimer.h"
+#include "sys/rtimer.h"
+#include "dev/leds.h"
+#include "dev/uart.h"
+#include "dev/button-sensor.h"
+#include "dev/zoul-sensors.h"
+#include "dev/watchdog.h"
+#include "dev/serial-line.h"
+#include "dev/sys-ctrl.h"
+#include "net/rime/broadcast.h"
+#include "dev/adc-sensors.h"
+
+
+#include <stdio.h>
+#include <stdint.h>
 /*---------------------------------------------------------------------------*/
-#ifndef ADC_SENSORS_H_
-#define ADC_SENSORS_H_
+#define ADC_PIN             2
+#define LOOP_PERIOD         2
+#define LOOP_INTERVAL       (CLOCK_SECOND * LOOP_PERIOD)
+#define LEDS_PERIODIC       LEDS_GREEN
+#define BUTTON_PRESS_EVENT_INTERVAL (CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
-#include "lib/sensors.h"
-#include "dev/soc-adc.h"
-#include "dev/adc-zoul.h"
+static struct etimer et;
+
+static uint16_t counter;
 /*---------------------------------------------------------------------------*/
-#define ADC_WRAPPER_SUCCESS                 0x00
-#define ADC_WRAPPER_ERROR                   (-1)
-#define ADC_WRAPPER_EXTERNAL_VREF           5000
-#define ADC_WRAPPER_EXTERNAL_VREF_CROSSVAL  3300
+PROCESS(zoul_demo_process, "Zoul demo process");
+AUTOSTART_PROCESSES(&zoul_demo_process);
 /*---------------------------------------------------------------------------*/
-#define ANALOG_GROVE_LIGHT                  0x01
-#define ANALOG_PHIDGET_ROTATION_1109        0x02
-#define ANALOG_GROVE_LOUDNESS               0x03
-#define ANALOG_VAC_SENSOR                   0x04
-#define ANALOG_AAC_SENSOR                   0x05
-#define ANALOG_PM10_SENSOR                  0x06
-/* -------------------------------------------------------------------------- */
-#define ADC_SENSORS "ADC sensors API"
-/* -------------------------------------------------------------------------- */
-extern const struct sensors_sensor adc_sensors;
+
 /*---------------------------------------------------------------------------*/
-#endif /* ADC_SENSORS_H_ */
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(zoul_demo_process, ev, data)
+{
+  
+  PROCESS_BEGIN();
+
+  counter = 0;
+
+  /* Configure the user button */
+  button_sensor.configure(BUTTON_SENSOR_CONFIG_TYPE_INTERVAL,
+                          BUTTON_PRESS_EVENT_INTERVAL);
+
+  /* Configure the ADC ports */
+  /* Use pin number not mask, for example if using the PA5 pin then use 5 */
+  printf("return configure, %d \n", adc_sensors.configure(ANALOG_AAC_SENSOR, ADC_PIN));
+
+  printf("AAC test application\n");
+  leds_on(LEDS_PERIODIC);
+  etimer_set(&et, LOOP_INTERVAL);
+
+  while(1) {
+
+    PROCESS_YIELD();
+
+    if(ev == PROCESS_EVENT_TIMER) {
+      leds_toggle(LEDS_PERIODIC);
+
+      printf("-----------------------------------------\n"
+             "Counter = 0x%08x\n", counter);
+
+      //printf("ADC3 = %d raw\n", (adc_sensors.value(ANALOG_AAC_SENSOR)/1.76));
+      
+      printf("AC Amps = %d mA\n", adc_sensors.value(ANALOG_AAC_SENSOR));
+     
+      etimer_set(&et, LOOP_INTERVAL);
+      counter++;
+    }   
+  }
+
+  PROCESS_END();
+}
 /*---------------------------------------------------------------------------*/
 /**
  * @}
  * @}
+ * @}
  */
-
