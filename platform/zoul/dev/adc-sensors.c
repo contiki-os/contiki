@@ -45,7 +45,6 @@
 #include "adc-sensors.h"
 #include "adc-zoul.h"
 #include "zoul-sensors.h"
-
 #include <stdio.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -108,6 +107,7 @@ convert_to_value(uint8_t index)
     value /= 100000;
     return (uint16_t)value;
 
+   /* VDD+5 sensors */ 
   case ANALOG_VAC_SENSOR:
     /* Linear sensor from 0 to 5 V; 0.0088 resolution*/
     value *= 88;
@@ -116,13 +116,10 @@ convert_to_value(uint8_t index)
 
   case ANALOG_AAC_SENSOR:
     /* Linear sensor from 0 to 5 V;*/
-    value *= 1.2;
     return (uint16_t)value;
 
   case ANALOG_PM10_SENSOR:
-    /* PM10 sensor from 0 to 5 V; 0.0088 resolution*/
-    value *= 88;
-    value /= 10000;
+    /* PM10 sensor from 0 to 3.9 V;*/
     return (uint16_t)value;
 
   default:
@@ -205,6 +202,7 @@ configure(int type, int value)
     sensors.sensor[sensors.sensors_num].vdd3 = 1;
     break;
 
+  /*V+5 sensors*/
   case ANALOG_VAC_SENSOR:
   case ANALOG_AAC_SENSOR:
   case ANALOG_PM10_SENSOR:

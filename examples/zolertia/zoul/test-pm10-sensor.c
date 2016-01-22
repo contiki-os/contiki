@@ -36,7 +36,7 @@
  * @{
  *
  * \file
- * GP2Y1010AU0F  PM10 sensor example using the ADC sensors wrapper   
+ * GP2Y1010AU0F PM10 sensor example using the ADC sensors wrapper   
  *
  * \author
  *         Toni Lozano <tlozano@zolertia.com>
@@ -46,23 +46,28 @@
 #include "contiki.h"
 #include "dev/leds.h"
 #include "dev/adc-sensors.h"
+#include "dev/zoul-sensors.h"
+#include "lib/sensors.h"
+#include "dev/pm10-sensor.h"
 /*---------------------------------------------------------------------------*/
 #define ADC_PIN              2
-#define SENSOR_READ_INTERVAL (CLOCK_SECOND / 8)
+#define SENSOR_READ_INTERVAL (CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
-PROCESS(remote_pm10_sensor_process, "PM10 sensor test process");
-AUTOSTART_PROCESSES(&remote_grove_loudness_process);
+PROCESS(test_pm10_sensor_process, "Test PM10 sensor process");
+AUTOSTART_PROCESSES(&test_pm10_sensor_process);
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(remote_pm10_sensor_process, ev, data)
+PROCESS_THREAD(test_pm10_sensor_process, ev, data)
 {
   PROCESS_BEGIN();
+  SENSORS_ACTIVATE(pm10);
 
-  uint16_t pm10_value;
+  static uint16_t pm10_value;
 
+  /* Configure the ADC ports */
   /* Use pin number not mask, for example if using the PA5 pin then use 2 */
-  adc_sensors.configure(ANALOG_PM10_SENSOR, ADC_PIN);
+  printf("return configure, %d \n", pm10.configure(SENSORS_ACTIVE, ADC_PIN));
 
   /* And periodically poll the sensor */
 
@@ -72,10 +77,10 @@ PROCESS_THREAD(remote_pm10_sensor_process, ev, data)
 
     leds_toggle(LEDS_GREEN);
 
-    pm10_value = adc_sensors.value(ANALOG_PM10_SENSOR);
+    pm10_value = pm10.value(NULL);
 
     if(pm10_value != ADC_WRAPPER_ERROR) {
-      printf("%u\n", pm10_value);
+      printf("PM10 value = %u ppm\n", pm10_value);
     } else {
       printf("Error, enable the DEBUG flag in adc-wrapper.c for info\n");
       PROCESS_EXIT();

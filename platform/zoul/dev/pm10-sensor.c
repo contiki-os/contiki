@@ -1,5 +1,5 @@
 	/*
- * Copyright (c) 2015, Zolertia <http://www.zolertia.com>
+ * Copyright (c) 2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- *
+ * \addtogroup zoul-pm10-sensor
  * @{
  *
  * \file
- *      GP2Y1010AU0F  PM10 sensor example using the ADC sensors wrapper  
+ *      GP2Y1010AU0F PM10 sensor example using the ADC sensors wrapper  
  * \author
  *      Toni Lozano <tlozano@zolertia.com>
  */
@@ -44,26 +44,58 @@
 #include "contiki.h"
 #include "adc-sensors.h"
 #include "dev/pm10-sensor.h"
+#include "dev/sys-ctrl.h"
 #include "lib/sensors.h"
+#include "dev/gpio.h"
+#include "dev/ioc.h"
 /*---------------------------------------------------------------------------*/
 static uint8_t enabled;
 /*---------------------------------------------------------------------------*/
+#ifdef PM10_SENSOR_CONF_CTRL_PIN
+#define PM10_SENSOR_CTRL_PIN PM10_SENSOR_CONF_CTRL_PIN
+#else
+#define PM10_SENSOR_CTRL_PIN 0x07
+#endif
+
+#define PM10_SENSOR_PORT GPIO_A_BASE
+
 static int
-configure(int value)
+configure(int type, int value)
 {
   int error;
+  if(type != SENSORS_ACTIVE) {
+    return PM10_ERROR;
+  }
+  /*Set PA7 as output, used as pulse-driven wave*/
+  ioc_set_over(PM10_SENSOR_PORT, PM10_SENSOR_CTRL_PIN, IOC_OVERRIDE_DIS); 
+  GPIO_SOFTWARE_CONTROL(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
+  GPIO_SET_OUTPUT(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
+
+  GPIO_CLR_PIN(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
+
   /* Use pin number not mask, for example if using the PA5 pin then use 5 */
-  error = adc_sensors.configure(ANALOG_PM10_SENSORS, value);
+  error = adc_sensors.configure(ANALOG_PM10_SENSOR, value);
 
   return error;
 }
 /*---------------------------------------------------------------------------*/
 static int
-value(void)
+value(int type)
 {
   uint16_t val;
-  //TODO: Add here GPIO pulses before measuring
+  /*Set Pulse Wave pin before measure*/
+  GPIO_SET_PIN(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
+  /*Pulse wave delay*/
+  clock_delay_usec(280);
+  /*Data acquisition*/  
   val = adc_sensors.value(ANALOG_PM10_SENSOR); 
+  /*Clear pulse wave pin*/
+  GPIO_CLR_PIN(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
+  
+  /*Applied constant conversion from UAir project*/
+  /*to obtain value in ppm (value in mV * 0.28)*/
+  val *= 28;
+  val /= 1000;
 
   return val;
 }
