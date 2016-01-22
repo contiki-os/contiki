@@ -108,7 +108,7 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 static const struct broadcast_callbacks bc_rx = { broadcast_recv };
 static struct broadcast_conn bc;
 /*---------------------------------------------------------------------------*/
-void
+static void
 rt_callback(struct rtimer *t, void *ptr)
 {
   leds_off(LEDS_PERIODIC);
