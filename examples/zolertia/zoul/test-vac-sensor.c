@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
- * Copyright (c) 2015, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2016, Zolertia - http://www.zolertia.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +29,17 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *
- *
+ * \addtogroup zoul-examples
  * @{
  *
  * \file
  *     Example demonstrating the Zoul module on the RE-Mote & VAC sensor
  */
 #include "contiki.h"
-#include "cpu.h"
 #include "sys/etimer.h"
 #include "sys/rtimer.h"
 #include "dev/leds.h"
-#include "dev/uart.h"
-#include "dev/button-sensor.h"
-#include "dev/zoul-sensors.h"
-#include "dev/watchdog.h"
-#include "dev/serial-line.h"
-#include "dev/sys-ctrl.h"
-#include "net/rime/broadcast.h"
 #include "dev/adc-sensors.h"
-
 #include <stdio.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -64,23 +53,15 @@ static struct etimer et;
 
 static uint16_t counter;
 /*---------------------------------------------------------------------------*/
-PROCESS(zoul_demo_process, "Zoul demo process");
-AUTOSTART_PROCESSES(&zoul_demo_process);
+PROCESS(test_vac_sensor_process, "test VAC sensor process");
+AUTOSTART_PROCESSES(&test_vac_sensor_process);
 /*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(zoul_demo_process, ev, data)
+PROCESS_THREAD(test_vac_sensor_process, ev, data)
 {
   
   PROCESS_BEGIN();
 
   counter = 0;
-
-  /* Configure the user button */
-  button_sensor.configure(BUTTON_SENSOR_CONFIG_TYPE_INTERVAL,
-                          BUTTON_PRESS_EVENT_INTERVAL);
 
   /* Configure the ADC ports */
   /* Use pin number not mask, for example if using the PA5 pin then use 5 */
@@ -100,10 +81,8 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
       printf("-----------------------------------------\n"
              "Counter = 0x%08x\n", counter);
 
-      //Value in raw after voltage divisor 
-      printf("ADC3 = %d V\n", (adc_sensors.value(ANALOG_VAC_SENSOR)/0.0088));
-      //AC voltage value, with applied corresponding sensor algorithm
-      printf("AC voltage = %d V\n", adc_sensors.value(VAC_VAL));
+      /*AC voltage value, with applied corresponding sensor algorithm*/
+      printf("AC voltage = %d V\n", adc_sensors.value(ANALOG_VAC_SENSOR));
      
       etimer_set(&et, LOOP_INTERVAL);
       counter++;
@@ -114,7 +93,6 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 /**
- * @}
  * @}
  * @}
  */

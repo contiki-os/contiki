@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Zolertia <http://www.zolertia.com>
+ * Copyright (c) 2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,8 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * 
- *
- *
  * \file
- *         GP2Y1010AU0F PM-10 sensor driver
+ *         GP2Y1010AU0F PM10 sensor driver
  * \author
  *         Toni Lozano <tlozano@zolertia.com>
  */
@@ -47,11 +44,9 @@
 
 /* -------------------------------------------------------------------------- */
 #define PM10_ERROR	-1
-#define PM10_PORT	ZOUL_SENSORS_ADC3
-#define PM10_VAL		0x00
 #define PM10_SENSOR "PM10 Sensor"
 /* -------------------------------------------------------------------------- */
-extern const struct sensors_sensor vac;
+extern const struct sensors_sensor pm10;
 /* -------------------------------------------------------------------------- */
 #endif /* ifndef VAC_SENSOR_H_ */
 /**

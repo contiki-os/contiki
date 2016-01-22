@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
- * Copyright (c) 2015, Zolertia - http://www.zolertia.com
+ * Copyright (c) 2016, Zolertia - http://www.zolertia.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,28 +29,17 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *
- *
+ * \addtogroup zoul-examples
  * @{
  *
  * \file
  *     Example demonstrating the Zoul module on the RE-Mote & AAC sensor 0-5V 50Amps AC
  */
 #include "contiki.h"
-#include "cpu.h"
 #include "sys/etimer.h"
 #include "sys/rtimer.h"
 #include "dev/leds.h"
-#include "dev/uart.h"
-#include "dev/button-sensor.h"
-#include "dev/zoul-sensors.h"
-#include "dev/watchdog.h"
-#include "dev/serial-line.h"
-#include "dev/sys-ctrl.h"
-#include "net/rime/broadcast.h"
 #include "dev/adc-sensors.h"
-
-
 #include <stdio.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
@@ -65,23 +53,15 @@ static struct etimer et;
 
 static uint16_t counter;
 /*---------------------------------------------------------------------------*/
-PROCESS(zoul_demo_process, "Zoul demo process");
-AUTOSTART_PROCESSES(&zoul_demo_process);
+PROCESS(test_aac_sensor_process, "Test AAC sensor process");
+AUTOSTART_PROCESSES(&test_aac_sensor_process);
 /*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(zoul_demo_process, ev, data)
+PROCESS_THREAD(test_aac_sensor_process, ev, data)
 {
   
   PROCESS_BEGIN();
 
   counter = 0;
-
-  /* Configure the user button */
-  button_sensor.configure(BUTTON_SENSOR_CONFIG_TYPE_INTERVAL,
-                          BUTTON_PRESS_EVENT_INTERVAL);
 
   /* Configure the ADC ports */
   /* Use pin number not mask, for example if using the PA5 pin then use 5 */
@@ -100,8 +80,6 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
 
       printf("-----------------------------------------\n"
              "Counter = 0x%08x\n", counter);
-
-      //printf("ADC3 = %d raw\n", (adc_sensors.value(ANALOG_AAC_SENSOR)/1.76));
       
       printf("AC Amps = %d mA\n", adc_sensors.value(ANALOG_AAC_SENSOR));
      
@@ -114,7 +92,6 @@ PROCESS_THREAD(zoul_demo_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 /**
- * @}
  * @}
  * @}
  */
