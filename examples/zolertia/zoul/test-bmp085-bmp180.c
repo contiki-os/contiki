@@ -32,13 +32,13 @@
  * \addtogroup zoul-examples
  * @{
  *
- * \defgroup zoul-bmp085-test BMP085 pressure and temperature sensor test
+ * \defgroup zoul-bmpx8x-test BMP085/BMP180 pressure and temperature sensor test
  *
- * Demonstrates the use of the BMP085 digital pressure and temperature sensor
+ * Demonstrates the use of the BMP085/BMP180 pressure and temperature sensor
  * @{
  *
  * \file
- *  Test file for the BMP085 digital pressure and temperature sensor
+ *  Test file for the BMP085/BMP180 digital pressure and temperature sensor
  *
  * \author
  *         Antonio Lignan <alinan@zolertia.com>
@@ -48,23 +48,23 @@
 #include "contiki.h"
 #include "dev/i2c.h"
 #include "dev/leds.h"
-#include "dev/bmp085.h"
+#include "dev/bmpx8x.h"
 /*---------------------------------------------------------------------------*/
 #define SENSOR_READ_INTERVAL (CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
-PROCESS(remote_bmp085_process, "BMP085 test process");
-AUTOSTART_PROCESSES(&remote_bmp085_process);
+PROCESS(remote_bmpx8x_process, "BMP085/BMP180 test process");
+AUTOSTART_PROCESSES(&remote_bmpx8x_process);
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(remote_bmp085_process, ev, data)
+PROCESS_THREAD(remote_bmpx8x_process, ev, data)
 {
   PROCESS_BEGIN();
   static uint16_t pressure;
   static int16_t temperature;
 
   /* Use Contiki's sensor macro to enable the sensor */
-  SENSORS_ACTIVATE(bmp085);
+  SENSORS_ACTIVATE(bmpx8x);
 
   /* And periodically poll the sensor */
 
@@ -72,14 +72,14 @@ PROCESS_THREAD(remote_bmp085_process, ev, data)
     etimer_set(&et, SENSOR_READ_INTERVAL);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    pressure = bmp085.value(BMP085_READ_PRESSURE);
-    temperature = bmp085.value(BMP085_READ_TEMP);
+    pressure = bmpx8x.value(BMPx8x_READ_PRESSURE);
+    temperature = bmpx8x.value(BMPx8x_READ_TEMP);
 
-    if((pressure != BMP085_ERROR) && (temperature != BMP085_ERROR)) {
+    if((pressure != BMPx8x_ERROR) && (temperature != BMPx8x_ERROR)) {
       printf("Pressure = %u.%u(hPa), ", pressure / 10, pressure % 10);
       printf("Temperature = %d.%u(ºC)\n", temperature / 10, temperature % 10);
     } else {
-      printf("Error, enable the DEBUG flag in the BMP085 driver for info, ");
+      printf("Error, enable the DEBUG flag in the BMPx8x driver for info, ");
       printf("or check if the sensor is properly connected\n");
       PROCESS_EXIT();
     }
