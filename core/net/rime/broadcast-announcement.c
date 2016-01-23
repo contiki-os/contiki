@@ -134,7 +134,7 @@ adv_packet_received(struct broadcast_conn *ibc, const linkaddr_t *from)
   ptr = packetbuf_dataptr();
 
   /* Copy number of announcements */
-  if(strlen(ptr)>=sizeof(announcement_msg)){
+  if(strlen(ptr)>=sizeof(struct announcement_msg)){
   memcpy(&adata, ptr, sizeof(struct announcement_msg));
   }
   PRINTF("%d.%d: adv_packet_received from %d.%d with %d announcements\n",
@@ -151,7 +151,7 @@ adv_packet_received(struct broadcast_conn *ibc, const linkaddr_t *from)
   ptr += ANNOUNCEMENT_MSG_HEADERLEN;
   for(i = 0; i < adata.num; ++i) {
     /* Copy announcements */
-    if(strlen(ptr)>=sizeof(srtuct announcement_data)){
+    if(strlen(ptr)>=sizeof(struct announcement_data)){
     memcpy(&data, ptr, sizeof(struct announcement_data));
     }
     announcement_heard(from, data.id, data.value);
