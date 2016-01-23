@@ -129,7 +129,7 @@ adv_packet_received(struct ipolite_conn *ipolite, const linkaddr_t *from)
   ptr = packetbuf_dataptr();
 
   /* Copy number of announcements */
-  if(strlen(ptr)>sizeof(struct announcement_msg)){
+  if(strlen(ptr)>=sizeof(struct announcement_msg)){
   memcpy(&adata, ptr, sizeof(struct announcement_msg));
   }
   PRINTF("%d.%d: adv_packet_received from %d.%d with %d announcements\n",
