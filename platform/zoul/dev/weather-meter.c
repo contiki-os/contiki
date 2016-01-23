@@ -45,7 +45,7 @@
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
 #include "contiki.h"
-#include "dev/adc-sensors.h"
+#include "dev/adc-zoul.h"
 #include "dev/weather-meter.h"
 #include "dev/zoul-sensors.h"
 #include "lib/sensors.h"
@@ -178,7 +178,7 @@ weather_meter_wind_vane_degrees(uint16_t value)
 static int
 weather_meter_get_wind_dir(void)
 {
-  weather_sensors.wind_vane = adc_sensors.value(WIND_VANE_ADC);
+  weather_sensors.wind_vane = adc_zoul.value(WIND_VANE_ADC);
   if((int16_t)weather_sensors.wind_vane < 0) {
     weather_sensors.wind_vane = 0;
   }
@@ -412,7 +412,7 @@ configure(int type, int value)
     }
 
     /* Configure the wind vane */
-    adc_sensors.configure(SENSORS_HW_INIT, WIND_VANE_ADC);
+    adc_zoul.configure(SENSORS_HW_INIT, WIND_VANE_ADC);
 
     /* Configure anemometer interruption */
     GPIO_SOFTWARE_CONTROL(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
