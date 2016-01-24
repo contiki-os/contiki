@@ -386,29 +386,4 @@ process_is_running(struct process *p)
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
- //shaves off any leading  space 
-char* process_space_begin(char *input){
-	while(*input==' '){
-		input++;
-	}
-	return input;
-}
 
-//replace non-spcae charater with 0
-char* replace_nonsapce_with_zero(){
-	char *cptr;
- 	for(cptr=input; *cptr != ' ' && *cptr !=0; ++cptr)
-        *cptr=0;
-      
-    return input;
-}
-
-static int is_broadcast_addr(uint_t mode, uint_t *addr){
-	int i=mode==FRAME802154_SHORTADDRMODE ? 2 : 8;
-	while(i-->0){
-		if(addr[i] != oxff){
-			return 0;
-		}
-	}
-	return 1;
-}
