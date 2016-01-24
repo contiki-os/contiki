@@ -1,0 +1,6 @@
+CFLAGS += -DBOARD_LAUNCHPAD=1
+
+CONTIKI_TARGET_DIRS += launchpad common
+
+BOARD_SOURCEFILES += board.c launchpad-sensors.c leds-arch.c button-sensor.c
+BOARD_SOURCEFILES += ext-flash.c board-spi.c
