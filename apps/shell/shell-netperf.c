@@ -573,9 +573,7 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
 
   /* Parse the number of packets to send */
   args = nextptr;
-  while(*args == ' ') {
-    ++args;
-  }
+  args=process_space_begin(args);
   num_packets = shell_strtolong(args, &nextptr);  
   if(nextptr == data || num_packets == 0) {
     print_usage();
