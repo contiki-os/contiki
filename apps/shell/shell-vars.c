@@ -90,8 +90,7 @@ PROCESS_THREAD(shell_var_process, ev, data)
 {
   int i;
   int j;
-  char numbuf[32];
-  
+  char numbuf[40];
   PROCESS_BEGIN();
 
   if(data == NULL) {
@@ -105,8 +104,9 @@ PROCESS_THREAD(shell_var_process, ev, data)
 	shell_output_str(&var_command, (char *)symbols[i].name, numbuf);
 
 	static char hexmap[]={'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+	char *p;
 	for(j = 0; j < 8 * 8; j += 8) {
-		char *p=numbuf;
+		p=numbuf;
 		int cnti;
 		for(cnti=j;cnti<j+8;cnti++){
 			(*p++)='0';
