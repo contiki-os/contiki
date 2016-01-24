@@ -66,21 +66,15 @@ The platform has been developed and tested under Windows XP, Mac OS X 10.9.1 and
 
 Install a Toolchain
 -------------------
-The toolchain used to build contiki is arm-gcc, also used by other arm-based Contiki ports. If you are using Instant Contiki, you will have a version pre-installed in your system. To find out if this is the case, try this:
+The toolchain used to build contiki is arm-gcc, also used by other arm-based Contiki ports. If you are using Instant Contiki, you may have a version pre-installed in your system.
 
-    $ arm-none-eabi-gcc -v
-    Using built-in specs.
-    Target: arm-none-eabi
-    Configured with: /scratch/julian/lite-respin/eabi/src/gcc-4.3/configure
-    ...
-    (skip)
-    ...
-    Thread model: single
-    gcc version 4.3.2 (Sourcery G++ Lite 2008q3-66)
+The platform is currently being used/tested with "GNU Tools for ARM Embedded Processors" (<https://launchpad.net/gcc-arm-embedded>). The current recommended version and the one being used by Contiki's regression tests on Travis is shown below.
 
-The platform is currently being used/tested with "GNU Tools for ARM Embedded Processors". This is the recommended version and the one being used by Contiki's regression tests on Travis. <https://launchpad.net/gcc-arm-embedded>
-
-The older version (Sourcery G++ Lite 2008q3-66) shown above should still work, but the port is no longer being tested with it. <http://sourcery.mentor.com/public/gnu_toolchain/arm-none-eabi>
+    $ arm-none-eabi-gcc --version
+    arm-none-eabi-gcc (GNU Tools for ARM Embedded Processors) 5.2.1 20151202 (release) [ARM/embedded-5-branch revision 231848]
+    Copyright (C) 2015 Free Software Foundation, Inc.
+    This is free software; see the source for copying conditions.  There is NO
+    warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 Drivers
 -------
