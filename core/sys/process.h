@@ -529,7 +529,7 @@ CCIF extern struct process *process_list;
 
 /** @} */
 /** @} */
- //shaves off any leading  space 
+ //Shaves off any leading  space 
 char* process_space_begin(char *input){
 	while(*input==' '){
 		input++;
@@ -546,7 +546,7 @@ void nullterminate(char *cptr){
 static int is_broadcast_addr(uint_t mode, uint_t *addr){
 	int i=mode==FRAME802154_SHORTADDRMODE ? 2 : 8;
 	while(i-->0){
-		if(addr[i] != oxff){
+		if(addr[i] != 0xff){
 			return 0;
 		}
 	}
