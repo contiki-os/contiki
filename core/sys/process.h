@@ -537,13 +537,10 @@ char* process_space_begin(char *input){
 	return input;
 }
 
-//replace non-spcae charater with 0
-char* replace_nonsapce_with_zero(char *input){
-	char *cptr;
- 	for(cptr=input; *cptr != ' ' && *cptr !=0; ++cptr)
+//Find first space in a string, then replace the space with zero.
+void nullterminate(char *cptr){
+ 	for(; *cptr != ' ' && *cptr !=0; ++cptr)
         *cptr=0;
-      
-    return input;
 }
 
 static int is_broadcast_addr(uint_t mode, uint_t *addr){
