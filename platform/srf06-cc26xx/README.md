@@ -7,6 +7,7 @@ platform supports two different boards:
 * SmartRF 06 Evaluation Board with a CC26xx or CC13xx Evaluation Module
   (relevant files and drivers are under `srf06/`)
 * CC2650 SensorTag 2.0 (relevant drivers under `sensortag/cc2650`)
+* CC2650 LaunchPad (relevant drivers under `launchpad/cc2650`)
 
 The CPU code, common for both platforms, can be found under `$(CONTIKI)/cpu/cc26xx-cc13xx`.
 The port was developed and tested with CC2650s, but the intention is for it to
@@ -43,6 +44,10 @@ In terms of hardware support, the following drivers have been implemented:
   * HDC1000 sensor
   * OPT3001 sensor
   * Buzzer
+  * External SPI flash
+* Launchpad
+  * LEDs
+  * Buttons
   * External SPI flash
 
 Requirements
@@ -93,6 +98,7 @@ Other options for the `BOARD` make variable are:
 * Srf06+CC26xxEM: Set `BOARD=srf06/cc26xx`
 * Srf06+CC13xxEM: Set `BOARD=srf06/cc13xx`
 * CC2650 tag: Set `BOARD=sensortag/cc2650`
+* CC2650 Launchpad: Set `BOARD=launchpad/cc2650`
 
 If the `BOARD` variable is unspecified, an image for the Srf06 CC26XXEM will be built.
 
