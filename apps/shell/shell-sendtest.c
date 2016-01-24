@@ -143,9 +143,7 @@ PROCESS_THREAD(shell_sendtest_process, ev, data)
   }
 
   args = nextptr;
-  while(*args == ' ') {
-    ++args;
-  }
+  args=process_space_begin(args);
   packetsize = 64;
   packetsize = shell_strtolong(args, &nextptr);  
   if(packetsize == 0) {
