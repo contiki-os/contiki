@@ -185,7 +185,7 @@ applyconfig(void)
   uip_ipaddr_t *addrptr;
   char *cptr;
 
-  smtpserver=replace_nonspace_with_zero(smtpserver);
+  nullterminate(smtpserver);
   
   addrptr = &addr;
 #if UIP_UDP
