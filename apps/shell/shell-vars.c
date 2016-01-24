@@ -111,8 +111,8 @@ PROCESS_THREAD(shell_var_process, ev, data)
 		for(cnti=j;cnti<j+8;cnti++){
 			(*p++)='0';
            		(*p++)='x';
-           		(*p++)=hexmap[(unsigned char *)symbols[i].value)[cnti]>>4];
-        		(*p++)=hexmap[(unsigned char *)symbols[i].value)[cnti]&15];
+           		(*p++)=hexmap[((unsigned char *)symbols[i].value)[cnti]>>4];
+        		(*p++)=hexmap[((unsigned char *)symbols[i].value)[cnti]&15];
            		(*p++)=' ';
 		}
 	  shell_output_str(&var_command, numbuf, "");
