@@ -539,7 +539,7 @@ char* process_space_begin(char *input){
 
 //Find first space in a string, then replace the space with zero.
 void nullterminate(char *cptr){
- 	for(; *cptr != ' ' && *cptr !=0; ++cptr)
+ 	for(; *cptr != ' ' && *cptr !=0; ++cptr);
         *cptr=0;
 }
 
