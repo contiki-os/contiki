@@ -90,7 +90,8 @@ PROCESS_THREAD(shell_var_process, ev, data)
 {
   int i;
   int j;
-  char numbuf[32];
+  
+  char numbuf[39];
   
   PROCESS_BEGIN();
 
