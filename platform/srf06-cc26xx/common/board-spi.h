@@ -29,14 +29,22 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-cc26xx-peripherals
+ * \addtogroup cc26xx-srf-tag
  * @{
  *
- * \defgroup sensortag-cc26xx-spi SensorTag 2.0 SPI functions
+ * \defgroup common-cc26xx-peripherals CC13xx/CC26xx peripheral driver pool
+ *
+ * Drivers for peripherals present on more than one CC13xx/CC26xx board. For
+ * example, the same external flash driver is used for both the part found on
+ * the Sensortag as well as the part on the LaunchPad.
+ *
+ * @{
+ *
+ * \defgroup sensortag-cc26xx-spi SensorTag/LaunchPad SPI functions
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx SPI Driver
+ * Header file for the Sensortag/LaunchPad SPI Driver
  */
 /*---------------------------------------------------------------------------*/
 #ifndef BOARD_SPI_H_
@@ -100,6 +108,7 @@ bool board_spi_write(const uint8_t *buf, size_t length);
 #endif /* BOARD_SPI_H_ */
 /*---------------------------------------------------------------------------*/
 /**
+ * @}
  * @}
  * @}
  */

@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26xx WinBond W25X20CL Flash
+ *  Driver for the LaunchPad Flash and the Sensortag WinBond W25X20CL/W25X40CL
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -158,7 +158,7 @@ static uint8_t
 verify_part(void)
 {
   const uint8_t wbuf[] = { BLS_CODE_MDID, 0xFF, 0xFF, 0x00 };
-  uint8_t rbuf[2] = {0, 0};
+  uint8_t rbuf[2] = { 0, 0 };
   bool ret;
 
   select_on_bus();

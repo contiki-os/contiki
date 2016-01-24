@@ -29,14 +29,14 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-cc26xx-peripherals
+ * \addtogroup common-cc26xx-peripherals
  * @{
  *
- * \defgroup sensortag-cc26xx-ext-flash SensorTag 2.0 External Flash
+ * \defgroup sensortag-cc26xx-ext-flash SensorTag/LaunchPad External Flash
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx External Flash Driver
+ * Header file for the Sensortag/LaunchPad External Flash Driver
  */
 /*---------------------------------------------------------------------------*/
 #ifndef EXT_FLASH_H_

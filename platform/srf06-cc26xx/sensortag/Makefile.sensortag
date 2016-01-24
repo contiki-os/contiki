@@ -1,7 +1,7 @@
 CFLAGS += -DBOARD_SENSORTAG=1
 CFLAGS += -DBACKDOOR_IOID=0x00000000
 
-CONTIKI_TARGET_DIRS += sensortag
+CONTIKI_TARGET_DIRS += sensortag common
 
 BOARD_SOURCEFILES += sensortag-sensors.c  sensor-common.c
 BOARD_SOURCEFILES += bmp-280-sensor.c tmp-007-sensor.c opt-3001-sensor.c
