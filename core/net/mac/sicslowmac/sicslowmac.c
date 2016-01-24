@@ -80,7 +80,6 @@ static uint16_t mac_dst_pan_id = IEEE802154_PANID;
  */
 static uint16_t mac_src_pan_id = IEEE802154_PANID;
 
-
 /*---------------------------------------------------------------------------*/
 static void
 send_packet(mac_callback_t sent, void *ptr)
