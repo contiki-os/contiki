@@ -119,7 +119,6 @@ makestrings(void)
   }
 #endif /* UIP_UDP */
 }
-
 static void
 apply_tcpipconfig(void)
 {
