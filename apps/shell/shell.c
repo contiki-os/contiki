@@ -242,8 +242,7 @@ start_command(char *commandline, struct shell_command *child)
   char *next, *args;
   int command_len;
   struct shell_command *c;
-
-commandline=process_space_begin(commandline);
+  commandline=process_space_begin(commandline);
   /* Find the next command in a pipeline and start it. */
   next = find_pipe(commandline);
   if(next != NULL) {
