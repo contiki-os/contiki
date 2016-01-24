@@ -62,7 +62,6 @@ static const uint16_t mac_dst_pan_id = IEEE802154_PANID;
  *   associated.
  */
 static const uint16_t mac_src_pan_id = IEEE802154_PANID;
-
 static int
 hdr_length(void)
 {
