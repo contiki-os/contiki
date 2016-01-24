@@ -242,11 +242,7 @@ PROCESS_THREAD(shell_repeat_process, ev, data)
   }
 
   args = next;
-
-  while(*args == ' ') {
-    args++;
-  }
-
+  args=process_space_begin(args);
   strncpy(command, args, MAX_COMMANDLENGTH);
   if(strlen(command) == 0) {
     repeat_print_usage();
@@ -316,9 +312,7 @@ PROCESS_THREAD(shell_randwait_process, ev, data)
   }
   args = next;
 
-  while(*args == ' ') {
-    args++;
-  }
+  args=process_space_begin(args);
   
   strncpy(command, args, MAX_COMMANDLENGTH);
   if(strlen(command) == 0) {
