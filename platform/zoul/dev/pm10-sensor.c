@@ -66,6 +66,7 @@ configure(int type, int value)
   if(type != SENSORS_ACTIVE) {
     return PM10_ERROR;
   }
+
   /*Set PA7 as output, used as pulse-driven wave*/
   ioc_set_over(PM10_SENSOR_PORT, PM10_SENSOR_CTRL_PIN, IOC_OVERRIDE_DIS); 
   GPIO_SOFTWARE_CONTROL(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));

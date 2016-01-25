@@ -31,9 +31,16 @@
 /*
  * \addtogroup zoul-examples
  * @{
+ * \defgroup zoul-aac-sensor-test Test AAC sensor
+ *
+ * Demonstrates the operation of the current AAC analog sensor
+ * @{
  *
  * \file
- *     Example demonstrating the Zoul module on the RE-Mote & AAC sensor 0-5V 50Amps AC
+ *  Example demonstrating the Zoul module on the RE-Mote & AAC sensor 0-5V 50Amps AC
+ *
+ * \author
+ *         Javier Sánchez <asanchez@zolertia.com>
  */
 #include "contiki.h"
 #include "sys/etimer.h"
@@ -87,7 +94,6 @@ PROCESS_THREAD(test_aac_sensor_process, ev, data)
       counter++;
     }   
   }
-
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

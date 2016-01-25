@@ -31,9 +31,16 @@
 /*
  * \addtogroup zoul-examples
  * @{
+ * \defgroup zoul-vac-sensor-test Test VAC sensor
+ *
+ * Demonstrates the operation of the voltage VAC analog sensor
+ * @{
  *
  * \file
- *     Example demonstrating the Zoul module on the RE-Mote & VAC sensor
+ *  Example demonstrating the Zoul module on the RE-Mote & VAC sensor 0-5V 250V AC
+ *
+ * \author
+ *         Javier Sánchez <asanchez@zolertia.com>
  */
 #include "contiki.h"
 #include "sys/etimer.h"
@@ -88,7 +95,6 @@ PROCESS_THREAD(test_vac_sensor_process, ev, data)
       counter++;
     }   
   }
-
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

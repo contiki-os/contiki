@@ -31,6 +31,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
+ * \addtogroup zoul-sensors
+ * @{
+ *
+ * \defgroup zoul-pm10-sensor Analog PM10 sensor
+ * @{
  * \file
  *         GP2Y1010AU0F PM10 sensor driver
  * \author
