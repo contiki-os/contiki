@@ -31,23 +31,26 @@
 /**
  * \addtogroup zoul-examples
  * @{
+ * \defgroup zoul-pm10-sensor-test Test PM10 sensor
  *
  * Demonstrates the operation of the Sharp PM10 analog sensor
  * @{
  *
  * \file
- * GP2Y1010AU0F PM10 sensor example using the ADC sensors wrapper   
+ *  GP2Y1010AU0F PM10 sensor example using the ADC sensors wrapper   
  *
  * \author
  *         Toni Lozano <tlozano@zolertia.com>
  */
 /*---------------------------------------------------------------------------*/
 #include <stdio.h>
+#include "cpu.h"
 #include "contiki.h"
 #include "dev/leds.h"
 #include "dev/adc-sensors.h"
 #include "dev/zoul-sensors.h"
 #include "lib/sensors.h"
+#include "dev/sys-ctrl.h"
 #include "dev/pm10-sensor.h"
 /*---------------------------------------------------------------------------*/
 #define ADC_PIN              2
@@ -76,16 +79,14 @@ PROCESS_THREAD(test_pm10_sensor_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
     leds_toggle(LEDS_GREEN);
-
-    pm10_value = pm10.value(NULL);
-
+    printf("PM10 value\n");
+    pm10_value = pm10.value(1);
     if(pm10_value != ADC_WRAPPER_ERROR) {
       printf("PM10 value = %u ppm\n", pm10_value);
     } else {
       printf("Error, enable the DEBUG flag in adc-wrapper.c for info\n");
       PROCESS_EXIT();
     }
-
   }
   PROCESS_END();
 }
@@ -94,4 +95,3 @@ PROCESS_THREAD(test_pm10_sensor_process, ev, data)
  * @}
  * @}
  */
-
