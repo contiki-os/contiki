@@ -90,8 +90,7 @@ PROCESS_THREAD(shell_var_process, ev, data)
 {
   int i;
   int j;
-  char numbuf[32];
-  
+  char numbuf[40];
   PROCESS_BEGIN();
 
   if(data == NULL) {
@@ -104,16 +103,18 @@ PROCESS_THREAD(shell_var_process, ev, data)
 	sprintf(numbuf, " %d", *((int *)symbols[i].value));
 	shell_output_str(&var_command, (char *)symbols[i].name, numbuf);
 
+	static char hexmap[]={'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+	char *p;
 	for(j = 0; j < 8 * 8; j += 8) {
-	  sprintf(numbuf, "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",
-		  ((unsigned char *)symbols[i].value)[j],
-		  ((unsigned char *)symbols[i].value)[j + 1],
-		  ((unsigned char *)symbols[i].value)[j + 2],
-		  ((unsigned char *)symbols[i].value)[j + 3],
-		  ((unsigned char *)symbols[i].value)[j + 4],
-		  ((unsigned char *)symbols[i].value)[j + 5],
-		  ((unsigned char *)symbols[i].value)[j + 6],
-		  ((unsigned char *)symbols[i].value)[j + 7]);
+		p=numbuf;
+		int cnti;
+		for(cnti=j;cnti<j+8;cnti++){
+			(*p++)='0';
+           		(*p++)='x';
+           		(*p++)=hexmap[((unsigned char *)symbols[i].value)[cnti]>>4];
+        		(*p++)=hexmap[((unsigned char *)symbols[i].value)[cnti]&15];
+           		(*p++)=' ';
+		}
 	  shell_output_str(&var_command, numbuf, "");
 	}
 	PROCESS_EXIT();
