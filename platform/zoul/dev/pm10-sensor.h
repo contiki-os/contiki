@@ -43,17 +43,29 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "lib/sensors.h"
-
+/*---------------------------------------------------------------------------*/
 #ifndef PM10_SENSOR_H_
 #define PM10_SENSOR_H_
-
 /* -------------------------------------------------------------------------- */
-#define PM10_ERROR	-1
-#define PM10_SENSOR "PM10 Sensor"
+#define PM10_ERROR 	                 (-1)
+#define PM10_SUCCESS                 0
+#define PM10_SENSOR                  "PM10 Sensor"
+#define PM10_SENSOR_PULSE_DELAY      280
+/* -------------------------------------------------------------------------- */
+#ifdef PM10_SENSOR_CONF_CTRL_PIN
+#define PM10_SENSOR_CTRL_PIN         PM10_SENSOR_CONF_CTRL_PIN
+#else
+#define PM10_SENSOR_CTRL_PIN         7
+#endif
+#ifdef PM10_SENSOR_CONF_CTRL_PORT
+#define PM10_SENSOR_CTRL_PORT        PM10_SENSOR_CONF_CTRL_PORT
+#else
+#define PM10_SENSOR_CTRL_PORT        GPIO_A_NUM
+#endif
 /* -------------------------------------------------------------------------- */
 extern const struct sensors_sensor pm10;
 /* -------------------------------------------------------------------------- */
-#endif /* ifndef VAC_SENSOR_H_ */
+#endif /* ifndef PM10_SENSOR_H_ */
 /**
  * @}
  * @}
