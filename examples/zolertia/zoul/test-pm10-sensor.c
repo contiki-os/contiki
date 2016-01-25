@@ -64,13 +64,11 @@ static struct etimer et;
 PROCESS_THREAD(test_pm10_sensor_process, ev, data)
 {
   PROCESS_BEGIN();
-  SENSORS_ACTIVATE(pm10);
 
   static uint16_t pm10_value;
 
-  /* Configure the ADC ports */
   /* Use pin number not mask, for example if using the PA5 pin then use 2 */
-  printf("return configure, %d \n", pm10.configure(SENSORS_ACTIVE, ADC_PIN));
+  pm10.configure(SENSORS_ACTIVE, ADC_PIN);
 
   /* And periodically poll the sensor */
 
@@ -79,8 +77,8 @@ PROCESS_THREAD(test_pm10_sensor_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
     leds_toggle(LEDS_GREEN);
-    printf("PM10 value\n");
     pm10_value = pm10.value(1);
+
     if(pm10_value != ADC_WRAPPER_ERROR) {
       printf("PM10 value = %u ppm\n", pm10_value);
     } else {

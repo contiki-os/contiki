@@ -49,52 +49,54 @@
 #include "dev/gpio.h"
 #include "dev/ioc.h"
 /*---------------------------------------------------------------------------*/
+#define PM10_SENSOR_PORT_BASE   GPIO_PORT_TO_BASE(PM10_SENSOR_CTRL_PORT)
+#define PM10_SENSOR_PIN_MASK    GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN)
+/*---------------------------------------------------------------------------*/
 static uint8_t enabled;
 /*---------------------------------------------------------------------------*/
-#ifdef PM10_SENSOR_CONF_CTRL_PIN
-#define PM10_SENSOR_CTRL_PIN PM10_SENSOR_CONF_CTRL_PIN
-#else
-#define PM10_SENSOR_CTRL_PIN 0x07
-#endif
-
-#define PM10_SENSOR_PORT GPIO_A_BASE
-
 static int
 configure(int type, int value)
 {
-  int error;
   if(type != SENSORS_ACTIVE) {
     return PM10_ERROR;
   }
 
-  /*Set PA7 as output, used as pulse-driven wave*/
-  ioc_set_over(PM10_SENSOR_PORT, PM10_SENSOR_CTRL_PIN, IOC_OVERRIDE_DIS); 
-  GPIO_SOFTWARE_CONTROL(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
-  GPIO_SET_OUTPUT(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
+  if(value) {
+    /* Set as output, used as pulse-driven wave */
+    GPIO_SOFTWARE_CONTROL(PM10_SENSOR_PORT_BASE, PM10_SENSOR_PIN_MASK);
+    ioc_set_over(PM10_SENSOR_CTRL_PORT, PM10_SENSOR_CTRL_PIN, IOC_OVERRIDE_DIS); 
+    GPIO_SET_OUTPUT(PM10_SENSOR_PORT_BASE, PM10_SENSOR_PIN_MASK);
+    GPIO_CLR_PIN(PM10_SENSOR_PORT_BASE, PM10_SENSOR_PIN_MASK);
 
-  GPIO_CLR_PIN(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
+    enabled = 1;
+    return adc_sensors.configure(ANALOG_PM10_SENSOR, value);
+  }
 
-  /* Use pin number not mask, for example if using the PA5 pin then use 5 */
-  error = adc_sensors.configure(ANALOG_PM10_SENSOR, value);
-
-  return error;
+  enabled = 0;
+  return PM10_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
   uint16_t val;
-  /*Set Pulse Wave pin before measure*/
-  GPIO_SET_PIN(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
-  /*Pulse wave delay*/
-  clock_delay_usec(280);
-  /*Data acquisition*/  
+
+  if(!enabled) {
+    return PM10_ERROR;
+  }
+
+  /* Set Pulse Wave pin before measure */
+  GPIO_SET_PIN(PM10_SENSOR_PORT_BASE, PM10_SENSOR_PIN_MASK);
+  /* Pulse wave delay */
+  clock_delay_usec(PM10_SENSOR_PULSE_DELAY);
+  /* Data acquisition */  
   val = adc_sensors.value(ANALOG_PM10_SENSOR); 
-  /*Clear pulse wave pin*/
-  GPIO_CLR_PIN(PM10_SENSOR_PORT, GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN));
+  /* Clear pulse wave pin */
+  GPIO_CLR_PIN(PM10_SENSOR_PORT_BASE, PM10_SENSOR_PIN_MASK);
   
-  /*Applied constant conversion from UAir project*/
-  /*to obtain value in ppm (value in mV * 0.28)*/
+  /* Applied constant conversion from UAir project
+   * to obtain value in ppm (value in mV * 0.28)
+   */
   val *= 28;
   val /= 1000;
 
