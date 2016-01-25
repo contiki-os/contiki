@@ -58,12 +58,15 @@ To use the port you need:
   Note that uploading over serial doesn't work for the Sensortag, you can use
   TI's SmartRF Flash Programmer in this case.
 * A toolchain to build firmware: The port has been developed and tested with
-  GNU Tools for ARM Embedded Processors <https://launchpad.net/gcc-arm-embedded>.
-  The port was developed and tested using this version:
+  GNU Tools for ARM Embedded Processors (<https://launchpad.net/gcc-arm-embedded>).
+  The current recommended version and the one being used by Contiki's regression
+  tests on Travis is shown below.
 
-        $ arm-none-eabi-gcc -v
-        [...]
-        gcc version 4.9.3 20141119 (release) [ARM/embedded-4_9-branch revision 218278] (GNU Tools for ARM Embedded Processors)
+        $ arm-none-eabi-gcc --version
+        arm-none-eabi-gcc (GNU Tools for ARM Embedded Processors) 5.2.1 20151202 (release) [ARM/embedded-5-branch revision 231848]
+        Copyright (C) 2015 Free Software Foundation, Inc.
+        This is free software; see the source for copying conditions.  There is NO
+        warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 * srecord (http://srecord.sourceforge.net/)
 * You may also need other drivers so that the SmartRF can communicate with your
