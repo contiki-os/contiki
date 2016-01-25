@@ -56,4 +56,11 @@
 
 #define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME 1
 
+/* Save some ROM */
+#undef UIP_CONF_TCP
+#define UIP_CONF_TCP                   0
+
+#undef SICSLOWPAN_CONF_FRAG
+#define SICSLOWPAN_CONF_FRAG           0
+
 #endif /* PROJECT_CONF_H_ */
