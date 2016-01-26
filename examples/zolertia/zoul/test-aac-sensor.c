@@ -54,7 +54,6 @@
 #define LOOP_PERIOD         2
 #define LOOP_INTERVAL       (CLOCK_SECOND * LOOP_PERIOD)
 #define LEDS_PERIODIC       LEDS_GREEN
-#define BUTTON_PRESS_EVENT_INTERVAL (CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
 static struct etimer et;
 
@@ -72,7 +71,7 @@ PROCESS_THREAD(test_aac_sensor_process, ev, data)
 
   /* Configure the ADC ports */
   /* Use pin number not mask, for example if using the PA5 pin then use 5 */
-  printf("return configure, %d \n", adc_sensors.configure(ANALOG_AAC_SENSOR, ADC_PIN));
+  adc_sensors.configure(ANALOG_AAC_SENSOR, ADC_PIN);
 
   printf("AAC test application\n");
   leds_on(LEDS_PERIODIC);

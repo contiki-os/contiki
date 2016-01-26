@@ -51,6 +51,8 @@
 #define PM10_SUCCESS                 0
 #define PM10_SENSOR                  "PM10 Sensor"
 #define PM10_SENSOR_PULSE_DELAY      280
+#define PM10_EXTERNAL_VREF           5000
+#define PM10_EXTERNAL_VREF_CROSSVAL  3300
 /* -------------------------------------------------------------------------- */
 #ifdef PM10_SENSOR_CONF_CTRL_PIN
 #define PM10_SENSOR_CTRL_PIN         PM10_SENSOR_CONF_CTRL_PIN
