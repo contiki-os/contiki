@@ -1,4 +1,4 @@
-	/*
+/*
  * Copyright (c) 2016, Zolertia <http://www.zolertia.com>
  * All rights reserved.
  *
@@ -43,6 +43,8 @@
 #include <stdio.h>
 #include "contiki.h"
 #include "adc-sensors.h"
+#include "adc-zoul.h"
+#include "zoul-sensors.h"
 #include "dev/pm10-sensor.h"
 #include "dev/sys-ctrl.h"
 #include "lib/sensors.h"
@@ -52,7 +54,7 @@
 #define PM10_SENSOR_PORT_BASE   GPIO_PORT_TO_BASE(PM10_SENSOR_CTRL_PORT)
 #define PM10_SENSOR_PIN_MASK    GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN)
 /*---------------------------------------------------------------------------*/
-static uint8_t enabled;
+static int pm10_channel;
 /*---------------------------------------------------------------------------*/
 static int
 configure(int type, int value)
@@ -68,20 +70,20 @@ configure(int type, int value)
     GPIO_SET_OUTPUT(PM10_SENSOR_PORT_BASE, PM10_SENSOR_PIN_MASK);
     GPIO_CLR_PIN(PM10_SENSOR_PORT_BASE, PM10_SENSOR_PIN_MASK);
 
-    enabled = 1;
-    return adc_sensors.configure(ANALOG_PM10_SENSOR, value);
+    pm10_channel = (1 << value);
+    return adc_zoul.configure(SENSORS_HW_INIT, pm10_channel);
   }
 
-  enabled = 0;
+  pm10_channel = 0;
   return PM10_SUCCESS;
 }
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-  uint16_t val;
+  uint32_t val;
 
-  if(!enabled) {
+  if(!pm10_channel) {
     return PM10_ERROR;
   }
 
@@ -90,17 +92,30 @@ value(int type)
   /* Pulse wave delay */
   clock_delay_usec(PM10_SENSOR_PULSE_DELAY);
   /* Data acquisition */  
-  val = adc_sensors.value(ANALOG_PM10_SENSOR); 
-  /* Clear pulse wave pin */
-  GPIO_CLR_PIN(PM10_SENSOR_PORT_BASE, PM10_SENSOR_PIN_MASK);
-  
+  val = (uint32_t)adc_zoul.value(pm10_channel); 
+
+  if(val == ZOUL_SENSORS_ERROR) {
+    printf("PM10 sensor: failed retrieving data\n");
+    return PM10_ERROR;
+  }
+
+  /* Default voltage divisor relation is 5/3 aprox, change at adc_wrapper.h,
+   * calculations below assume a decimation rate of 512 (12 bits ENOB) and
+   * AVVD5 voltage reference of 3.3V
+   */
+  val *= PM10_EXTERNAL_VREF;
+  val /= PM10_EXTERNAL_VREF_CROSSVAL;
+
   /* Applied constant conversion from UAir project
    * to obtain value in ppm (value in mV * 0.28)
    */
   val *= 28;
   val /= 1000;
 
-  return val;
+  /* Clear pulse wave pin */
+  GPIO_CLR_PIN(PM10_SENSOR_PORT_BASE, PM10_SENSOR_PIN_MASK);
+  
+  return (uint16_t)val;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(pm10, PM10_SENSOR, value, configure, NULL);
