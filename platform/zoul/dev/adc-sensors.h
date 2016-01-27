@@ -71,6 +71,9 @@
 #define ANALOG_GROVE_LIGHT                  0x01
 #define ANALOG_PHIDGET_ROTATION_1109        0x02
 #define ANALOG_GROVE_LOUDNESS               0x03
+#define ANALOG_VAC_SENSOR                   0x04
+#define ANALOG_AAC_SENSOR                   0x05
+#define ANALOG_PM10_SENSOR                  0x06
 /* -------------------------------------------------------------------------- */
 #define ADC_SENSORS "ADC sensors API"
 /* -------------------------------------------------------------------------- */
