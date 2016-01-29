@@ -102,9 +102,9 @@ typedef struct {
 } weather_meter_sensors;
 
 typedef struct {
-  uint32_t value_buf_xm;
-  uint16_t value_prev;
-  uint16_t value_avg_xm;
+  int32_t value_buf_xm;
+  int16_t value_prev;
+  int16_t value_avg_xm;
 } weather_meter_wind_vane_ext_t;
 
 static weather_meter_sensors weather_sensors;
@@ -232,13 +232,18 @@ rt_callback(struct rtimer *t, void *ptr)
       anemometer.value_avg_xm = 0;
     }
 
-    wind_vane.value_buf_xm = wind_vane.value_buf_xm / WEATHER_METER_AVG_PERIOD;
-    wind_vane.value_avg_xm = (uint16_t)wind_vane.value_buf_xm;
-    if(wind_vane.value_avg_xm >= 3600) {
-      wind_vane.value_avg_xm -= 3600;
+    if(wind_vane.value_buf_xm >= 0) {
+      wind_vane.value_buf_xm = wind_vane.value_buf_xm / WEATHER_METER_AVG_PERIOD;
+      wind_vane.value_avg_xm = wind_vane.value_buf_xm;
+    } else {
+      wind_vane.value_buf_xm = ABS(wind_vane.value_buf_xm) / WEATHER_METER_AVG_PERIOD;
+      wind_vane.value_avg_xm = wind_vane.value_buf_xm;
+      wind_vane.value_avg_xm = ~wind_vane.value_avg_xm + 1;
     }
 
-    if(wind_vane.value_avg_xm < 0) {
+    if(wind_vane.value_avg_xm >= 3600) {
+      wind_vane.value_avg_xm -= 3600;
+    } else if(wind_vane.value_avg_xm < 0) {
       wind_vane.value_avg_xm += 3600;
     }
 
