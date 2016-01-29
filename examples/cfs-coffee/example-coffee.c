@@ -37,7 +37,7 @@
  */
 
 #include <stdio.h>
-
+#include <string.h>
 #include "contiki.h"
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
