@@ -29,12 +29,12 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /**
- * \addtogroup remote-examples
+ * \addtogroup cc2538-examples
  * @{
  *
- * \defgroup remote-test-pwm Test the CC2538 PWM driver
+ * \defgroup cc2538-test-pwm Test the CC2538 PWM driver
  *
- * Demonstrates the use of the CC2538 PWM driver for the Zolertia's Zoul boards
+ * Demonstrates the use of the CC2538 PWM driver
  *
  * @{
  *

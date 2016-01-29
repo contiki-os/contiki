@@ -32,9 +32,9 @@
  * \addtogroup cc2538-examples
  * @{
  *
- * \defgroup cc2538-ecdh-test cc2538dk ECDH Test Project
+ * \defgroup cc2538-ecdh-test cc2538 ECDH Test Project
  *
- *   ECDH example for CC2538 on SmartRF06EB.
+ *   ECDH example for CC2538-based platforms
  *
  *   This example shows how ECDH should be used. The example also verifies
  *   the ECDH functionality.
@@ -42,7 +42,7 @@
  * @{
  *
  * \file
- *     Example demonstrating ECDH on the cc2538dk platform
+ *     Example demonstrating ECDH
  */
 #include "contiki.h"
 #include "dev/ecc-algorithm.h"

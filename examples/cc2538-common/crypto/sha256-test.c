@@ -37,9 +37,9 @@
  * \addtogroup cc2538-examples
  * @{
  *
- * \defgroup cc2538-sha256-test cc2538dk SHA-256 Test Project
+ * \defgroup cc2538-sha256-test cc2538 SHA-256 Test Project
  *
- *   SHA-256 access example for CC2538 on SmartRF06EB.
+ *   SHA-256 access example for CC2538-based platforms
  *
  *   This example shows how SHA-256 should be used. The example also verifies
  *   the SHA-256 functionality.
@@ -47,7 +47,7 @@
  * @{
  *
  * \file
- *     Example demonstrating SHA-256 on the cc2538dk platform
+ *     Example demonstrating SHA-256
  */
 #include "contiki.h"
 #include "sys/rtimer.h"

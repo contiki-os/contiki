@@ -32,7 +32,7 @@
  * \addtogroup cc2538-examples
  * @{
  *
- * \defgroup cc2538-timers cc2538dk Timer Test Project
+ * \defgroup cc2538-timers cc2538 Timer Test Project
  *
  *    This example tests the correct functionality of clocks and timers.
  *
