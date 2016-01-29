@@ -38,6 +38,8 @@ stm32nucleo-spirit1/sensor-demo/stm32nucleo-spirit1 \
 ipv6/multicast/stm32nucleo-spirit1 \
 udp-ipv6/stm32nucleo-spirit1 \
 hello-world/stm32nucleo-spirit1 \
+coffee/zoul \
+coffee/cc2538dk \
 
 TOOLS=
 

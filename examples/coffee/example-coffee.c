@@ -28,23 +28,23 @@
  *
  * This file is part of the Contiki operating system.
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         Example on how to use CFS/Coffee.
  * \author
  *         Nicolas Tsiftes <nvt@sics.se>
  */
-
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
-
+#include <string.h>
 #include "contiki.h"
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
-
+/*---------------------------------------------------------------------------*/
 PROCESS(example_coffee_process, "Coffee example");
 AUTOSTART_PROCESSES(&example_coffee_process);
-
+/*---------------------------------------------------------------------------*/
 #define FILENAME "test"
 
 /* Formatting is needed if the storage device is in an unknown state; 
@@ -52,7 +52,7 @@ AUTOSTART_PROCESSES(&example_coffee_process);
 #ifndef NEED_FORMATTING
 #define NEED_FORMATTING 0
 #endif
-
+/*---------------------------------------------------------------------------*/
 static int
 file_test(const char *filename, char *msg)
 {
@@ -133,7 +133,7 @@ file_test(const char *filename, char *msg)
 
   return 1;
 }
-
+/*---------------------------------------------------------------------------*/
 static int
 dir_test(void)
 {
@@ -156,7 +156,7 @@ dir_test(void)
 
   return 1;
 }
-
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(example_coffee_process, ev, data)
 {
   PROCESS_BEGIN();

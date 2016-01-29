@@ -29,19 +29,18 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         A quick program for testing the CFS xmem driver
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
-
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "cfs/cfs.h"
-
 #include <stdio.h>
-
+/*---------------------------------------------------------------------------*/
 PROCESS(cfs_process, "Test CFS process");
 AUTOSTART_PROCESSES(&cfs_process);
 /*---------------------------------------------------------------------------*/
