@@ -29,14 +29,14 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         Basic test for CFS/Coffee.
  * \author
  *         Nicolas Tsiftes <nvt@sics.se>
  */
-
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
@@ -45,14 +45,12 @@
 
 #include <stdio.h>
 #include <string.h>
-
+/*---------------------------------------------------------------------------*/
 PROCESS(testcoffee_process, "Test CFS/Coffee process");
 AUTOSTART_PROCESSES(&testcoffee_process);
-
+/*---------------------------------------------------------------------------*/
 #define TEST_FAIL(x) 	error = (x); goto end;
-
 #define FILE_SIZE	4096
-
 /*---------------------------------------------------------------------------*/
 static int
 coffee_test_basic(void)
@@ -220,7 +218,7 @@ coffee_test_append(void)
     cfs_close(afd);
   }
 
-  /* Test 3-6: Read back the data written previously and verify that it 
+  /* Test 3-6: Read back the data written previously and verify that it
      is correct. */
   afd = cfs_open("T3", CFS_READ);
   if(afd < 0) {
@@ -376,7 +374,7 @@ PROCESS_THREAD(testcoffee_process, ev, data)
   result = coffee_test_gc();
   print_result("Garbage collection", result);
 
-  printf("Coffee test finished. Duration: %d seconds\n", 
+  printf("Coffee test finished. Duration: %d seconds\n",
          (int)(clock_seconds() - start));
 
   PROCESS_END();
