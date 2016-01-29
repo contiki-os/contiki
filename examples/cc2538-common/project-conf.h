@@ -32,41 +32,14 @@
  * \addtogroup cc2538-examples
  * @{
  *
- * \defgroup cc2538-sniffer cc2538dk Sniffer
- *
- * Sniffer for the cc2538dk platform. Originally based on the sensinode
- * and cc2530dk sniffers.
- *
- * This example is to be used combined with the sensniff host-side tool,
- * which can be downloaded from: https://github.com/g-oikonomou/sensniff
- *
- * @{
- *
  * \file
- * Implementation of a Sniffer Process Thread
+ * Project specific configuration defines for the basic cc2538dk examples
  */
-#include "contiki.h"
+#ifndef PROJECT_CONF_H_
+#define PROJECT_CONF_H_
 
-#define DEBUG DEBUG_NONE
-#include "net/ip/uip-debug.h"
-/*---------------------------------------------------------------------------*/
-PROCESS(sniffer_process, "Sniffer process");
-AUTOSTART_PROCESSES(&sniffer_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(sniffer_process, ev, data)
-{
+#define NETSTACK_CONF_RDC     nullrdc_driver
 
-  PROCESS_BEGIN();
+#endif /* PROJECT_CONF_H_ */
 
-  PRINTF("Sniffer started\n");
-
-  PROCESS_EXIT();
-
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-
-/**
- * @}
- * @}
- */
+/** @} */

@@ -6,5 +6,5 @@ CONTIKI_WITH_IPV6 = 1
 
 APPS += mqtt
 
-CONTIKI=../../..
+CONTIKI = ../../..
 include $(CONTIKI)/Makefile.include
