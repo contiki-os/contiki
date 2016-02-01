@@ -71,7 +71,7 @@ PROCESS_THREAD(node_process, ev, data)
 
 #if CONFIG_VIA_BUTTON
   {
-#define CONFIG_WAIT_TIME 10
+#define CONFIG_WAIT_TIME 5
     SENSORS_ACTIVATE(button_sensor);
     etimer_set(&et, CLOCK_SECOND * CONFIG_WAIT_TIME);
 
