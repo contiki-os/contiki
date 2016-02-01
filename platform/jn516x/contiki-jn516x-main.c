@@ -463,7 +463,7 @@ main_loop(void)
 #endif /* DCOSYNCH_CONF_ENABLED */
 
     /* flush standard output before sleeping */
-    uart_driver_flush(E_AHI_UART_0);
+    uart_driver_flush(E_AHI_UART_0, TRUE, FALSE);
 
     /* calculate the time to the next etimer and rtimer */
     time_to_etimer = clock_arch_time_to_etimer();
