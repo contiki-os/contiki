@@ -236,16 +236,25 @@
 #endif
 
 /*
- * Hop-by-hop option
- * This option control the insertion of the RPL Hop-by-Hop extension header
- * into packets originating from this node. Incoming Hop-by-hop extension
- * header are still processed and forwarded.
+ * Embed support for storing mode
  */
-#ifdef RPL_CONF_INSERT_HBH_OPTION
-#define RPL_INSERT_HBH_OPTION       RPL_CONF_INSERT_HBH_OPTION
-#else
-#define RPL_INSERT_HBH_OPTION       1
-#endif
+#ifdef RPL_CONF_WITH_STORING
+#define RPL_WITH_STORING RPL_CONF_WITH_STORING
+#else /* RPL_CONF_WITH_STORING */
+#define RPL_WITH_STORING 1
+#endif /* RPL_CONF_WITH_STORING */
+
+/*
+ * Embed support for non-storing mode
+ */
+#ifdef RPL_CONF_WITH_NON_STORING
+#define RPL_WITH_NON_STORING RPL_CONF_WITH_NON_STORING
+#else /* RPL_CONF_WITH_NON_STORING */
+#define RPL_WITH_NON_STORING 0
+#endif /* RPL_CONF_WITH_NON_STORING */
+
+#define RPL_IS_STORING(instance) (RPL_WITH_STORING && ((instance) != NULL) && ((instance)->mop > RPL_MOP_NON_STORING))
+#define RPL_IS_NON_STORING(instance) (RPL_WITH_NON_STORING && ((instance) != NULL) && ((instance)->mop == RPL_MOP_NON_STORING))
 
 /*
  * RPL DAO ACK support. When enabled, DAO ACK will be sent and requested.

@@ -43,7 +43,9 @@
 
 #define RPL_DAG_GRACE_PERIOD (CLOCK_SECOND * 20 * 1)
 
+#if (UIP_CONF_MAX_ROUTES != 0)
 static struct uip_ds6_notification n;
+#endif /* (UIP_CONF_MAX_ROUTES != 0) */
 static uint8_t to_become_root;
 static struct ctimer c;
 /*---------------------------------------------------------------------------*/
@@ -121,6 +123,7 @@ create_dag_callback(void *ptr)
     ctimer_set(&c, RPL_DAG_GRACE_PERIOD, create_dag_callback, NULL);
   }
 }
+#if (UIP_CONF_MAX_ROUTES != 0)
 /*---------------------------------------------------------------------------*/
 static void
 route_callback(int event, uip_ipaddr_t *route, uip_ipaddr_t *ipaddr,
@@ -136,6 +139,7 @@ route_callback(int event, uip_ipaddr_t *route, uip_ipaddr_t *ipaddr,
     }
   }
 }
+#endif /* (UIP_CONF_MAX_ROUTES != 0) */
 /*---------------------------------------------------------------------------*/
 static uip_ipaddr_t *
 set_global_address(void)
@@ -171,7 +175,9 @@ rpl_dag_root_init(void)
   if(!initialized) {
     to_become_root = 0;
     set_global_address();
+#if (UIP_CONF_MAX_ROUTES != 0)
     uip_ds6_notification_add(&n, route_callback);
+#endif /* (UIP_CONF_MAX_ROUTES != 0) */
     initialized = 1;
   }
 }
@@ -206,7 +212,9 @@ rpl_dag_root_init_dag_immediately(void)
 
       /* If there are routes in this dag, we remove them all as we are
          from now on the new dag root and the old routes are wrong */
-      rpl_remove_routes(dag);
+      if(RPL_IS_STORING(dag->instance)) {
+        rpl_remove_routes(dag);
+      }
       if(dag->instance != NULL &&
          dag->instance->def_route != NULL) {
 	uip_ds6_defrt_rm(dag->instance->def_route);
