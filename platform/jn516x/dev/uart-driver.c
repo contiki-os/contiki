@@ -589,19 +589,21 @@ uart_driver_tx_in_progress(uint8_t uart_dev)
  *
  * PARAMETERS:      Name            RW  Usage
  *                  uart_dev        R   UART to disable, eg, E_AHI_UART_0
+ *                  reset_tx        R   to reset the transmit FIFO
+ *                  reset_rx        R   to reset the receive FIFO
  *
  * RETURNS:
  * void
  *
  ****************************************************************************/
 void
-uart_driver_flush(uint8_t uart_dev)
+uart_driver_flush(uint8_t uart_dev, bool_t reset_tx, bool_t reset_rx)
 {
   /* Disable TX Fifo empty and Rx data interrupts */
   uart_driver_disable_interrupts(uart_dev);
 
   /* flush hardware buffer */
-  vAHI_UartReset(uart_dev, TRUE, TRUE);
+  vAHI_UartReset(uart_dev, reset_tx, reset_rx);
   vAHI_UartReset(uart_dev, FALSE, FALSE);
 
   /* Re-enable TX Fifo empty and Rx data interrupts */
