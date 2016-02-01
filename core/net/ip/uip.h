@@ -1801,6 +1801,13 @@ typedef struct uip_routing_hdr {
   uint8_t seg_left;
 } uip_routing_hdr;
 
+/* RPL Source Routing Header */
+typedef struct uip_rpl_srh_hdr {
+  uint8_t cmpr; /* CmprI and CmprE */
+  uint8_t pad;
+  uint8_t reserved[2];
+} uip_rpl_srh_hdr;
+
 /* fragmentation header */
 typedef struct uip_frag_hdr {
   uint8_t next;

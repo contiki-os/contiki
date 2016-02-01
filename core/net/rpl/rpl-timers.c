@@ -43,6 +43,7 @@
 
 #include "contiki-conf.h"
 #include "net/rpl/rpl-private.h"
+#include "net/rpl/rpl-ns.h"
 #include "net/link-stats.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "lib/random.h"
@@ -80,14 +81,21 @@ static uint8_t dio_send_ok;
 static void
 handle_periodic_timer(void *ptr)
 {
+  rpl_dag_t *dag = rpl_get_any_dag();
+
   rpl_purge_dags();
-  rpl_purge_routes();
+  if(dag != NULL && RPL_IS_STORING(dag->instance)) {
+    rpl_purge_routes();
+  }
+  if(dag != NULL && RPL_IS_NON_STORING(dag->instance)) {
+    rpl_ns_periodic();
+  }
   rpl_recalculate_ranks();
 
   /* handle DIS */
 #if RPL_DIS_SEND
   next_dis++;
-  if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
+  if(dag == NULL && next_dis >= RPL_DIS_INTERVAL) {
     next_dis = 0;
     dis_output(NULL);
   }

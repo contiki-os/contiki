@@ -79,6 +79,11 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 
+#if UIP_CONF_IPV6_RPL
+#include "rpl/rpl.h"
+#include "rpl/rpl-private.h"
+#endif
+
 #include <string.h>
 
 /*---------------------------------------------------------------------------*/
@@ -87,10 +92,6 @@
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
-
-#if UIP_CONF_IPV6_RPL
-#include "rpl/rpl.h"
-#endif /* UIP_CONF_IPV6_RPL */
 
 #if UIP_LOGGING == 1
 #include <stdio.h>
@@ -889,7 +890,7 @@ ext_hdr_options_process(void)
        */
 #if UIP_CONF_IPV6_RPL
       PRINTF("Processing RPL option\n");
-      if(rpl_verify_header(uip_ext_opt_offset)) {
+      if(rpl_verify_hbh_header(uip_ext_opt_offset)) {
         PRINTF("RPL Option Error: Dropping Packet\n");
         return 1;
       }
@@ -1228,9 +1229,9 @@ uip_process(uint8_t flag)
       }
 
 #if UIP_CONF_IPV6_RPL
-      if(rpl_update_header_empty()) {
+      if(!rpl_update_header()) {
         /* Packet can not be forwarded */
-        PRINTF("RPL Forward Option Error\n");
+        PRINTF("RPL header update error\n");
         goto drop;
       }
 #endif /* UIP_CONF_IPV6_RPL */
@@ -1368,6 +1369,11 @@ uip_process(uint8_t flag)
 
           PRINTF("Processing Routing header\n");
           if(UIP_ROUTING_BUF->seg_left > 0) {
+#if UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING
+            if(rpl_process_srh_header()) {
+              goto send; /* Proceed to forwarding */
+            }
+#endif /* UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING */
             uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_HEADER, UIP_IPH_LEN + uip_ext_len + 2);
             UIP_STAT(++uip_stat.ip.drop);
             UIP_LOG("ip6: unrecognized routing type");
