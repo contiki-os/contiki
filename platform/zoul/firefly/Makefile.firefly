@@ -1,2 +1,6 @@
 MOTELIST_ZOLERTIA = firefly
+
+### The firefly has both RF interfaces enabled, notify even if this is not used
+CFLAGS += -DREMOTE_DUAL_RF_ENABLED=1
+
 BOARD_SOURCEFILES += board.c

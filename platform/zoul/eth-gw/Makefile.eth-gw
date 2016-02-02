@@ -1,0 +1,11 @@
+MOTELIST_ZOLERTIA = eth-gw
+
+### Pull-in the ENC28J60 module and IP64 support
+MODULES += dev/enc28j60
+CC2538_ENC28J60_ARCH ?= gpio
+CFLAGS += -DUIP_FALLBACK_INTERFACE=ip64_uip_fallback_interface
+
+### The eth-gw has both RF interfaces enabled, notify even if this is not used
+CFLAGS += -DREMOTE_DUAL_RF_ENABLED=1
+
+BOARD_SOURCEFILES += board.c enc28j60-arch-$(CC2538_ENC28J60_ARCH).c

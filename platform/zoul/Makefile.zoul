@@ -16,6 +16,10 @@ ifdef PORT
   BSL_FLAGS += -p $(PORT)
 endif
 
+ifeq ($(WITH_IP64),1)
+  DEFINES += WITH_IP64=1
+endif
+
 ### Configure the build for the board and pull in board-specific sources
 CONTIKI_TARGET_DIRS += . dev
 CONTIKI_TARGET_DIRS += . $(BOARD)
@@ -46,6 +50,10 @@ include $(CONTIKI_CPU)/Makefile.cc2538
 MODULES += core/net core/net/mac \
            core/net/mac/contikimac \
            core/net/llsec core/net/llsec/noncoresec dev/cc1200
+
+ifeq ($(WITH_IP64),1)
+  MODULES += core/net/ip64
+endif
 
 BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
 
