@@ -456,10 +456,13 @@ handle_probing_timer(void *ptr)
 
   /* Perform probing */
   if(target_ipaddr != NULL) {
+    const struct link_stats *stats = rpl_get_parent_link_stats(probing_target);
+    (void)stats;
     PRINTF("RPL: probing %u %s last tx %u min ago\n",
         rpl_get_parent_llpaddr(probing_target)->u8[7],
         instance->urgent_probing_target != NULL ? "(urgent)" : "",
-        (unsigned)((clock_time() - probing_target->last_tx_time) / (60 * CLOCK_SECOND)),
+        probing_target != NULL ?
+        (unsigned)((clock_time() - stats->last_tx_time) / (60 * CLOCK_SECOND)) : 0
         );
     /* Send probe, e.g. unicast DIO or DIS */
     RPL_PROBING_SEND_FUNC(instance, target_ipaddr);
