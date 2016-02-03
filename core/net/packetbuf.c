@@ -61,7 +61,7 @@ static uint8_t hdrlen;
    msp430 or OpenRISC), having a potentially misaligned packet buffer may lead to
    problems when accessing words. */
 static uint32_t packetbuf_aligned[(PACKETBUF_SIZE + 3) / 4];
-static uint8_t *packetbuf = (uint8_t *)packetbuf_aligned;
+static uint8_t *pb = (uint8_t *)packetbuf_aligned;
 
 #define DEBUG 0
 #if DEBUG
@@ -88,7 +88,7 @@ packetbuf_copyfrom(const void *from, uint16_t len)
 
   packetbuf_clear();
   l = MIN(PACKETBUF_SIZE, len);
-  memcpy(packetbuf, from, l);
+  memcpy(pb, from, l);
   buflen = l;
   return l;
 }
@@ -101,7 +101,7 @@ packetbuf_compact(void)
   if(bufptr) {
     /* shift data to the left */
     for(i = 0; i < buflen; i++) {
-      packetbuf[hdrlen + i] = packetbuf[packetbuf_hdrlen() + i];
+      pb[hdrlen + i] = pb[packetbuf_hdrlen() + i];
     }
     bufptr = 0;
   }
@@ -129,7 +129,7 @@ packetbuf_hdralloc(int size)
 
   /* shift data to the right */
   for(i = packetbuf_totlen() - 1; i >= 0; i--) {
-    packetbuf[i + size] = packetbuf[i];
+    pb[i + size] = pb[i];
   }
   hdrlen += size;
   return 1;
@@ -157,13 +157,13 @@ packetbuf_set_datalen(uint16_t len)
 void *
 packetbuf_dataptr(void)
 {
-  return packetbuf + packetbuf_hdrlen();
+  return pb + packetbuf_hdrlen();
 }
 /*---------------------------------------------------------------------------*/
 void *
 packetbuf_hdrptr(void)
 {
-  return packetbuf;
+  return pb;
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
