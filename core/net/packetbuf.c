@@ -52,9 +52,6 @@
 struct packetbuf temp;
 struct packetbuf *packetbuf = &temp;
 
-static uint16_t buflen, bufptr;
-static uint8_t hdrlen;
-
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -67,9 +64,9 @@ static uint8_t hdrlen;
 void
 packetbuf_clear(void)
 {
-  buflen = bufptr = 0;
-  hdrlen = 0;
-
+  packetbuf->datalen = 0;
+  packetbuf->bufptr = 0;
+  packetbuf->hdrlen = 0;
   packetbuf_attr_clear();
 }
 /*---------------------------------------------------------------------------*/
@@ -81,7 +78,7 @@ packetbuf_copyfrom(const void *from, uint16_t len)
   packetbuf_clear();
   l = MIN(PACKETBUF_SIZE, len);
   memcpy(packetbuf->data, from, l);
-  buflen = l;
+  packetbuf->datalen = l;
   return l;
 }
 /*---------------------------------------------------------------------------*/
@@ -90,24 +87,24 @@ packetbuf_compact(void)
 {
   int16_t i;
 
-  if(bufptr) {
+  if(packetbuf->bufptr) {
     /* shift data to the left */
-    for(i = 0; i < buflen; i++) {
-      packetbuf->data[hdrlen + i] = packetbuf->data[packetbuf_hdrlen() + i];
+    for(i = 0; i < packetbuf->datalen; i++) {
+      packetbuf->data[packetbuf->hdrlen + i] = packetbuf->data[packetbuf_hdrlen() + i];
     }
-    bufptr = 0;
+    packetbuf->bufptr = 0;
   }
 }
 /*---------------------------------------------------------------------------*/
 int
 packetbuf_copyto(void *to)
 {
-  if(hdrlen + buflen > PACKETBUF_SIZE) {
+  if(packetbuf->hdrlen + packetbuf->datalen > PACKETBUF_SIZE) {
     return 0;
   }
-  memcpy(to, packetbuf_hdrptr(), hdrlen);
-  memcpy((uint8_t *)to + hdrlen, packetbuf_dataptr(), buflen);
-  return hdrlen + buflen;
+  memcpy(to, packetbuf_hdrptr(), packetbuf->hdrlen);
+  memcpy((uint8_t *)to + packetbuf->hdrlen, packetbuf_dataptr(), packetbuf->datalen);
+  return packetbuf->hdrlen + packetbuf->datalen;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -123,19 +120,19 @@ packetbuf_hdralloc(int size)
   for(i = packetbuf_totlen() - 1; i >= 0; i--) {
     packetbuf->data[i + size] = packetbuf->data[i];
   }
-  hdrlen += size;
+  packetbuf->hdrlen += size;
   return 1;
 }
 /*---------------------------------------------------------------------------*/
 int
 packetbuf_hdrreduce(int size)
 {
-  if(buflen < size) {
+  if(size > packetbuf->datalen) {
     return 0;
   }
 
-  bufptr += size;
-  buflen -= size;
+  packetbuf->bufptr += size;
+  packetbuf->datalen -= size;
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -143,7 +140,7 @@ void
 packetbuf_set_datalen(uint16_t len)
 {
   PRINTF("packetbuf_set_len: len %d\n", len);
-  buflen = len;
+  packetbuf->datalen = len;
 }
 /*---------------------------------------------------------------------------*/
 void *
@@ -161,13 +158,13 @@ packetbuf_hdrptr(void)
 uint16_t
 packetbuf_datalen(void)
 {
-  return buflen;
+  return packetbuf->datalen;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
 packetbuf_hdrlen(void)
 {
-  return bufptr + hdrlen;
+  return packetbuf->bufptr + packetbuf->hdrlen;
 }
 /*---------------------------------------------------------------------------*/
 uint16_t

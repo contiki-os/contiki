@@ -335,6 +335,10 @@ struct packetbuf {
     uint32_t aligned[(PACKETBUF_SIZE + 3) / 4];
     uint8_t data[PACKETBUF_SIZE];
   };
+
+  uint16_t datalen;
+  uint8_t hdrlen;
+  uint16_t bufptr;
 };
 extern struct packetbuf *packetbuf;
 
