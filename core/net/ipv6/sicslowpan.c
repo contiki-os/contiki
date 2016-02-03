@@ -1580,8 +1580,8 @@ input(void)
 
       /* If this is the last fragment, we may shave off any extrenous
          bytes at the end. We must be liberal in what we accept. */
-      PRINTFI("last_fragment?: processed_ip_in_len %d packetbuf_payload_len %d frag_size %d\n",
-              processed_ip_in_len, packetbuf_datalen() - packetbuf_hdr_len, frag_size);
+      PRINTFI("last_fragment?: packetbuf_payload_len %d frag_size %d\n",
+              packetbuf_datalen() - packetbuf_hdr_len, frag_size);
 
       /* Add the fragment to the fragmentation context (this will also
          copy the payload) */
@@ -1661,7 +1661,7 @@ input(void)
       PRINTF(
           "SICSLOWPAN: packet dropped, minimum required IP_BUF size: %d+%d+%d+%d=%d (current size: %u)\n",
           UIP_LLH_LEN, uncomp_hdr_len, (uint16_t)(frag_offset << 3),
-          packetbuf_payload_len, req_size, sizeof(uip_buf));
+          packetbuf_payload_len, req_size, (unsigned)sizeof(uip_buf));
       return;
     }
   }
