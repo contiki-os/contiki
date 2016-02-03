@@ -63,4 +63,15 @@
 #undef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG           0
 
+#ifndef RPL_CONF_WITH_NON_STORING
+#define RPL_CONF_WITH_NON_STORING 0 /* Set this to run with non-storing mode */
+#endif /* RPL_CONF_WITH_NON_STORING */
+
+#if RPL_CONF_WITH_NON_STORING
+#undef RPL_CONF_WITH_STORING
+#define RPL_CONF_WITH_STORING 0
+#undef RPL_CONF_MOP
+#define RPL_CONF_MOP RPL_MOP_NON_STORING
+#endif /* RPL_CONF_WITH_NON_STORING */
+
 #endif /* PROJECT_CONF_H_ */
