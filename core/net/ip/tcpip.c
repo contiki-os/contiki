@@ -548,6 +548,10 @@ tcpip_ipv6_output(void)
     return;
   }
 
+#if UIP_CONF_IPV6_RPL
+  rpl_insert_header();
+#endif /* UIP_CONF_IPV6_RPL */
+
   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     /* Next hop determination */
 
