@@ -113,26 +113,6 @@ packetbuf_compact(void)
 int
 packetbuf_copyto(void *to)
 {
-#if DEBUG_LEVEL > 0
-  {
-    int i;
-    char buffer[1000];
-    char *bufferptr = buffer;
-    int  bufferlen = 0;
-    
-    bufferptr[0] = 0;
-    for(i = hdrptr; i < PACKETBUF_HDR_SIZE; ++i) {
-      bufferptr += sprintf(bufferptr, "0x%02x, ", packetbuf[i]);
-    }
-    PRINTF("packetbuf_write: header: %s\n", buffer);
-    bufferptr = buffer;
-    bufferptr[0] = 0;
-    for(i = bufptr; ((i < buflen + bufptr) && (bufferlen < (sizeof(buffer) - 10))); ++i) {
-      bufferlen += sprintf(bufferptr + bufferlen, "0x%02x, ", packetbufptr[i]);
-    }
-    PRINTF("packetbuf_write: data: %s\n", buffer);
-  }
-#endif /* DEBUG_LEVEL */
   if(PACKETBUF_HDR_SIZE - hdrptr + buflen > PACKETBUF_SIZE) {
     /* Too large packet */
     return 0;
