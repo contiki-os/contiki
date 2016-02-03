@@ -57,10 +57,6 @@
 #define MICROMAC_CONF_CHANNEL 26
 #endif
 
-#ifdef RF_CHANNEL
-#define MICROMAC_CONF_CHANNEL RF_CHANNEL
-#endif
-
 /* 32kHz or 16MHz rtimers? */
 #ifdef RTIMER_CONF_USE_32KHZ
 #define RTIMER_USE_32KHZ  RTIMER_CONF_USE_32KHZ

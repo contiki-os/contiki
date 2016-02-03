@@ -53,14 +53,8 @@
 #undef   UIP_CONF_IPV6
 #define  UIP_CONF_IPV6                   0
 
-#undef   RF_CHANNEL
-#define  RF_CHANNEL             25
-
 #undef   MICROMAC_CONF_CHANNEL
-#define  MICROMAC_CONF_CHANNEL  RF_CHANNEL
-
-#undef   CC2420_CONF_CHANNEL
-#define  CC2420_CONF_CHANNEL    RF_CHANNEL
+#define  MICROMAC_CONF_CHANNEL  25
 
 #undef   MICROMAC_CONF_AUTOACK
 #define  MICROMAC_CONF_AUTOACK   1
