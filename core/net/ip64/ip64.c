@@ -897,11 +897,13 @@ interface_init(void)
   IP64_UIP_FALLBACK_INTERFACE.init();
 }
 /*---------------------------------------------------------------------------*/
-static void
+static int
 interface_output(void)
 {
   PRINTF("ip64: interface_output len %d\n", uip_len);
   IP64_UIP_FALLBACK_INTERFACE.output();
+
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 const struct uip_fallback_interface ip64_uip_fallback_interface = {
