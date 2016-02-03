@@ -321,34 +321,36 @@ enum {
 
 #define PACKETBUF_IS_ADDR(type) ((type) >= PACKETBUF_ADDR_FIRST)
 
+struct packetbuf {
+  struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
+  struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
+};
+extern struct packetbuf *packetbuf;
+
 #if PACKETBUF_CONF_ATTRS_INLINE
-
-extern struct packetbuf_attr packetbuf_attrs[];
-extern struct packetbuf_addr packetbuf_addrs[];
-
 static inline int
 packetbuf_set_attr(uint8_t type, const packetbuf_attr_t val)
 {
-  packetbuf_attrs[type].val = val;
+  packetbuf->attrs[type].val = val;
   return 1;
 }
 static inline packetbuf_attr_t
 packetbuf_attr(uint8_t type)
 {
-  return packetbuf_attrs[type].val;
+  return packetbuf->attrs[type].val;
 }
 
 static inline int
 packetbuf_set_addr(uint8_t type, const linkaddr_t *addr)
 {
-  linkaddr_copy(&packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
+  linkaddr_copy(&packetbuf->addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
   return 1;
 }
 
 static inline const linkaddr_t *
 packetbuf_addr(uint8_t type)
 {
-  return &packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr;
+  return &packetbuf->addrs[type - PACKETBUF_ADDR_FIRST].addr;
 }
 #else /* PACKETBUF_CONF_ATTRS_INLINE */
 int               packetbuf_set_attr(uint8_t type, const packetbuf_attr_t val);
