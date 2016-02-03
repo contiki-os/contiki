@@ -137,8 +137,8 @@
 #undef IEEE802154_CONF_PANID
 #define IEEE802154_CONF_PANID 0xabcd
 
-#undef RF_CHANNEL
-#define RF_CHANNEL 26
+#undef MICROMAC_CONF_CHANNEL
+#define MICROMAC_CONF_CHANNEL 26
 
 /* UART Configuration */
 
