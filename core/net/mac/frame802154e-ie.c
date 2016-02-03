@@ -237,9 +237,9 @@ frame80215e_create_ie_tsch_slotframe_and_link(uint8_t *buf, int len,
     int num_slotframes = ies->ie_tsch_slotframe_and_link.num_slotframes;
     int num_links = ies->ie_tsch_slotframe_and_link.num_links;
     int ie_len = 1 + num_slotframes * (4 + 5 * num_links);
-    if(num_slotframes > 1 || num_links > FRAME802154E_IE_MAX_LINKS
+    if(num_slotframes != 1 || num_links > FRAME802154E_IE_MAX_LINKS
        || len < 2 + ie_len) {
-      /* We support only 0 or 1 slotframe in this IE and a predefined maximum number of links */
+      /* We support only 1 slotframe in this IE and a predefined maximum number of links */
       return -1;
     }
     /* Insert IE */
