@@ -195,9 +195,7 @@ void
 packetbuf_attr_clear(void)
 {
   int i;
-  for(i = 0; i < PACKETBUF_NUM_ATTRS; ++i) {
-    packetbuf_attrs[i].val = 0;
-  }
+  memset(packetbuf_attrs, 0, sizeof(packetbuf_attrs));
   for(i = 0; i < PACKETBUF_NUM_ADDRS; ++i) {
     linkaddr_copy(&packetbuf_addrs[i].addr, &linkaddr_null);
   }
