@@ -693,14 +693,13 @@ rpl_remove_header(void)
 void
 rpl_insert_header(void)
 {
-  if(default_instance == NULL) {
+  if(default_instance == NULL || default_instance->current_dag == NULL
+      || uip_is_addr_linklocal(&UIP_IP_BUF->destipaddr) || uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     return;
   }
 
   if(RPL_IS_STORING(default_instance)) {
-    if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
-      insert_hbh_header();
-    }
+    insert_hbh_header();
   }
 
   if(RPL_IS_NON_STORING(default_instance)) {
