@@ -324,6 +324,17 @@ enum {
 struct packetbuf {
   struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
   struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
+
+  union {
+    /**
+     * The declarations below ensure that the packet buffer is aligned on
+     * an even 32-bit boundary. On some platforms (most notably the
+     * msp430 or OpenRISC), having a potentially misaligned packet buffer may lead to
+     * problems when accessing words.
+     */
+    uint32_t aligned[(PACKETBUF_SIZE + 3) / 4];
+    uint8_t data[PACKETBUF_SIZE];
+  };
 };
 extern struct packetbuf *packetbuf;
 
