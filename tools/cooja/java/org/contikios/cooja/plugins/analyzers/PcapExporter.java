@@ -41,15 +41,15 @@ public class PcapExporter {
     out = null;
   }
 
-  public void exportPacketData(byte[] data) throws IOException {
+  public void exportPacketData(byte[] data, long ts) throws IOException {
     if (out == null) {
       /* pcap file never set, open default */
       openPcap(null);
     }
     try {
       /* pcap packet header */
-      out.writeInt((int) (System.currentTimeMillis() / 1000));
-      out.writeInt((int) ((System.currentTimeMillis() % 1000) * 1000));
+      out.writeInt((int) (ts / 1000000));
+      out.writeInt((int) (ts % 1000000));
       out.writeInt(data.length);
       out.writeInt(data.length);
       /* and the data */

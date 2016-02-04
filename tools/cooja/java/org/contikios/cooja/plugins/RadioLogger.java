@@ -694,8 +694,8 @@ public class RadioLogger extends VisPlugin {
     StringBuilder verbose = new StringBuilder();
 
     /* default analyzer */
-    PacketAnalyzer.Packet packet = new PacketAnalyzer.Packet(data, PacketAnalyzer.MAC_LEVEL);
-
+    PacketAnalyzer.Packet packet = new PacketAnalyzer.Packet(data, PacketAnalyzer.MAC_LEVEL,
+                                                             simulation.convertSimTimeToActualTime(conn.startTime));
     if (analyzePacket(packet, brief, verbose)) {
       if (packet.hasMoreData()) {
         byte[] payload = packet.getPayload();

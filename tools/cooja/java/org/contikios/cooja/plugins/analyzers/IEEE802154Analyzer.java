@@ -69,7 +69,7 @@ public class IEEE802154Analyzer extends PacketAnalyzer {
 
     if (pcapExporter != null) {
       try {
-        pcapExporter.exportPacketData(packet.getPayload());
+        pcapExporter.exportPacketData(packet.getPayload(), packet.getTimestamp());
       } catch (IOException e) {
         logger.error("Could not export PCap data", e);
       }
