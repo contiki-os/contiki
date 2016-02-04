@@ -1441,8 +1441,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     PRINTF("RPL: Ignoring DIO with too low rank: %u\n",
            (unsigned)dio->rank);
     return;
-  } else if(dio->rank == INFINITE_RANK && dag->joined) {
-    rpl_reset_dio_timer(instance);
   }
 
   /* Prefix Information Option treated to add new prefix */
@@ -1508,6 +1506,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
   }
   p->rank = dio->rank;
+
+  if(dio->rank == INFINITE_RANK && p == dag->preferred_parent) {
+    /* Our preferred parent advertised an infinite rank, reset DIO timer */
+    rpl_reset_dio_timer(instance);
+  }
 
   /* Parent info has been updated, trigger rank recalculation */
   p->flags |= RPL_PARENT_FLAG_UPDATED;
