@@ -1274,10 +1274,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   if(dag != NULL && instance != NULL) {
     if(lollipop_greater_than(dio->version, dag->version)) {
       if(dag->rank == ROOT_RANK(instance)) {
-	PRINTF("RPL: Root received inconsistent DIO version number\n");
-	dag->version = dio->version;
-	RPL_LOLLIPOP_INCREMENT(dag->version);
-	rpl_reset_dio_timer(instance);
+        PRINTF("RPL: Root received inconsistent DIO version number (current: %u, received: %u)\n", dag->version, dio->version);
+        dag->version = dio->version;
+        RPL_LOLLIPOP_INCREMENT(dag->version);
+        rpl_reset_dio_timer(instance);
       } else {
         PRINTF("RPL: Global repair\n");
         if(dio->prefix_info.length != 0) {
@@ -1286,7 +1286,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
             rpl_set_prefix(dag, &dio->prefix_info.prefix, dio->prefix_info.length);
           }
         }
-	global_repair(from, dag, dio);
+        global_repair(from, dag, dio);
       }
       return;
     }
@@ -1302,7 +1302,7 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   if(instance == NULL) {
-    PRINTF("RPL: New instance detected: Joining...\n");
+    PRINTF("RPL: New instance detected (ID=%u): Joining...\n", dio->instance_id);
     rpl_join_instance(from, dio);
     return;
   }
