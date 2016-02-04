@@ -1290,6 +1290,7 @@ int
 rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 {
   int return_value;
+  rpl_parent_t *last_parent = instance->current_dag->preferred_parent;
 
 #if DEBUG
   rpl_rank_t old_rank;
@@ -1312,10 +1313,12 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
   }
 
   if(rpl_select_dag(instance, p) == NULL) {
-    /* No suitable parent; trigger a local repair. */
-    PRINTF("RPL: No parents found in any DAG\n");
-    rpl_local_repair(instance);
-    return 0;
+    if(last_parent != NULL) {
+      /* No suitable parent anymore; trigger a local repair. */
+      PRINTF("RPL: No parents found in any DAG\n");
+      rpl_local_repair(instance);
+      return 0;
+    }
   }
 
 #if DEBUG
