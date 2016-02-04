@@ -32,9 +32,9 @@
  * \addtogroup cc2538-examples
  * @{
  *
- * \defgroup cc2538-ctr-test cc2538dk AES-CTR Test Project
+ * \defgroup cc2538-ctr-test cc2538d AES-CTR Test Project
  *
- *   AES-CTR access example for CC2538 on SmartRF06EB.
+ *   AES-CTR access example for CC2538-based platforms
  *
  *   This example shows how AES-CTR should be used. The example also verifies
  *   the AES-CTR functionality.
@@ -42,7 +42,7 @@
  * @{
  *
  * \file
- *     Example demonstrating AES-CTR on the cc2538dk platform
+ *     Example demonstrating AES-CTR
  */
 #include "contiki.h"
 #include "sys/rtimer.h"

@@ -32,9 +32,9 @@
  * \addtogroup cc2538-examples
  * @{
  *
- * \defgroup cc2538-ecb-test cc2538dk AES-ECB Test Project
+ * \defgroup cc2538-ecb-test cc2538 AES-ECB Test Project
  *
- *   AES-ECB access example for CC2538 on SmartRF06EB.
+ *   AES-ECB access example for CC2538-based platforms
  *
  *   This example shows how AES-ECB should be used. The example also verifies
  *   the AES-ECB functionality.
@@ -42,7 +42,7 @@
  * @{
  *
  * \file
- *     Example demonstrating AES-ECB on the cc2538dk platform
+ *     Example demonstrating AES-ECB
  */
 #include "contiki.h"
 #include "sys/rtimer.h"

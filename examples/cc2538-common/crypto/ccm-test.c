@@ -37,9 +37,9 @@
  * \addtogroup cc2538-examples
  * @{
  *
- * \defgroup cc2538-ccm-test cc2538dk AES-CCM Test Project
+ * \defgroup cc2538-ccm-test cc2538 AES-CCM Test Project
  *
- *   AES-CCM access example for CC2538 on SmartRF06EB.
+ *   AES-CCM access example for CC2538-based platforms
  *
  *   This example shows how AES-CCM should be used. The example also verifies
  *   the AES-CCM functionality.
@@ -47,7 +47,7 @@
  * @{
  *
  * \file
- *     Example demonstrating AES-CCM on the cc2538dk platform
+ *     Example demonstrating AES-CCM
  */
 #include "contiki.h"
 #include "sys/rtimer.h"
