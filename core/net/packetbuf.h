@@ -66,15 +66,6 @@
 #define PACKETBUF_SIZE 128
 #endif
 
-/**
- * \brief      The size of the packetbuf header, in bytes
- */
-#ifdef PACKETBUF_CONF_HDR_SIZE
-#define PACKETBUF_HDR_SIZE PACKETBUF_CONF_HDR_SIZE
-#else
-#define PACKETBUF_HDR_SIZE 48
-#endif
-
 #ifdef PACKETBUF_CONF_WITH_PACKET_TYPE
 #define PACKETBUF_WITH_PACKET_TYPE PACKETBUF_CONF_WITH_PACKET_TYPE
 #else
@@ -100,26 +91,12 @@ void packetbuf_clear(void);
  *             the packetbuf. The data is either stored in the packetbuf,
  *             or referenced to an external location.
  *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. The header is accessed with the
- *             packetbuf_hdrptr() function.
- *
- *             For incoming packets, both the packet header and the
- *             packet data is stored in the data portion of the
- *             packetbuf. Thus this function is used to get a pointer to
- *             the header for incoming packets.
- *
  */
 void *packetbuf_dataptr(void);
 
 /**
  * \brief      Get a pointer to the header in the packetbuf, for outbound packets
  * \return     Pointer to the packetbuf header
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to get a
- *             pointer to the header in the packetbuf. The header is
- *             stored in the packetbuf.
  *
  */
 void *packetbuf_hdrptr(void);
@@ -128,12 +105,6 @@ void *packetbuf_hdrptr(void);
  * \brief      Get the length of the header in the packetbuf
  * \return     Length of the header in the packetbuf
  *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to get
- *             the length of the header in the packetbuf. The header is
- *             stored in the packetbuf and accessed via the
- *             packetbuf_hdrptr() function.
- *
  */
 uint8_t packetbuf_hdrlen(void);
 
@@ -141,17 +112,6 @@ uint8_t packetbuf_hdrlen(void);
 /**
  * \brief      Get the length of the data in the packetbuf
  * \return     Length of the data in the packetbuf
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to get
- *             the length of the data in the packetbuf. The data is
- *             stored in the packetbuf and accessed via the
- *             packetbuf_dataptr() function.
- *
- *             For incoming packets, both the packet header and the
- *             packet data is stored in the data portion of the
- *             packetbuf. This function is then used to get the total
- *             length of the packet - both header and data.
  *
  */
 uint16_t packetbuf_datalen(void);
@@ -166,10 +126,6 @@ uint16_t packetbuf_totlen(void);
 /**
  * \brief      Set the length of the data in the packetbuf
  * \param len  The length of the data
- *
- *             For outbound packets, the packetbuf consists of two
- *             parts: header and data. This function is used to set
- *             the length of the data in the packetbuf.
  */
 void packetbuf_set_datalen(uint16_t len);
 
@@ -213,7 +169,7 @@ int packetbuf_copyfrom(const void *from, uint16_t len);
  *
  *             The external buffer to which the packetbuf is to be
  *             copied must be able to accomodate at least
- *             (PACKETBUF_SIZE + PACKETBUF_HDR_SIZE) bytes. The number of
+ *             PACKETBUF_SIZE bytes. The number of
  *             bytes that was copied to the external buffer is
  *             returned.
  *
