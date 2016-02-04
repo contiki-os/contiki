@@ -878,9 +878,11 @@ rpl_select_parent(rpl_dag_t *dag)
       rpl_set_preferred_parent(dag, best);
       dag->rank = rpl_rank_via_parent(dag->preferred_parent);
     } else {
+#if RPL_WITH_PROBING
       /* Probe the new best parent shortly in order to get a fresh estimate */
       dag->instance->urgent_probing_target = best;
       rpl_schedule_probing(dag->instance);
+#endif /* RPL_WITH_PROBING */
     }
   } else {
     rpl_set_preferred_parent(dag, best);
