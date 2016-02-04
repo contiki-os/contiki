@@ -369,10 +369,10 @@ main(void)
 
   PRINTF("%s %s %s\n", NETSTACK_LLSEC.name, NETSTACK_MAC.name, NETSTACK_RDC.name);
 
-#if !NETSTACK_CONF_WITH_IPV4 && !NETSTACK_CONF_WITH_IPV6
+#ifndef UIP_FALLBACK_INTERFACE
   uart0_set_input(serial_line_input_byte);
   serial_line_init();
-#endif
+#endif /* UIP_FALLBACK_INTERFACE */
 
 #if TIMESYNCH_CONF_ENABLED
   timesynch_init();
