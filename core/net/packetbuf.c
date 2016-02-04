@@ -54,16 +54,14 @@ struct packetbuf_addr packetbuf_addrs[PACKETBUF_NUM_ADDRS];
 
 
 static uint16_t buflen, bufptr;
-static uint8_t hdrptr;
+static uint8_t hdrlen;
 
 /* The declarations below ensure that the packet buffer is aligned on
    an even 32-bit boundary. On some platforms (most notably the
    msp430 or OpenRISC), having a potentially misaligned packet buffer may lead to
    problems when accessing words. */
-static uint32_t packetbuf_aligned[(PACKETBUF_SIZE + PACKETBUF_HDR_SIZE + 3) / 4];
+static uint32_t packetbuf_aligned[(PACKETBUF_SIZE + 3) / 4];
 static uint8_t *packetbuf = (uint8_t *)packetbuf_aligned;
-
-static uint8_t *packetbufptr;
 
 #define DEBUG 0
 #if DEBUG
@@ -78,9 +76,8 @@ void
 packetbuf_clear(void)
 {
   buflen = bufptr = 0;
-  hdrptr = PACKETBUF_HDR_SIZE;
+  hdrlen = 0;
 
-  packetbufptr = &packetbuf[PACKETBUF_HDR_SIZE];
   packetbuf_attr_clear();
 }
 /*---------------------------------------------------------------------------*/
@@ -91,7 +88,7 @@ packetbuf_copyfrom(const void *from, uint16_t len)
 
   packetbuf_clear();
   l = MIN(PACKETBUF_SIZE, len);
-  memcpy(packetbufptr, from, l);
+  memcpy(packetbuf, from, l);
   buflen = l;
   return l;
 }
@@ -99,14 +96,13 @@ packetbuf_copyfrom(const void *from, uint16_t len)
 void
 packetbuf_compact(void)
 {
-  int i, len;
+  int16_t i;
 
-  if(bufptr > 0) {
-    len = packetbuf_datalen() + PACKETBUF_HDR_SIZE;
-    for(i = PACKETBUF_HDR_SIZE; i < len; i++) {
-      packetbuf[i] = packetbuf[bufptr + i];
+  if(bufptr) {
+    /* shift data to the left */
+    for(i = 0; i < buflen; i++) {
+      packetbuf[hdrlen + i] = packetbuf[packetbuf_hdrlen() + i];
     }
-
     bufptr = 0;
   }
 }
@@ -114,24 +110,29 @@ packetbuf_compact(void)
 int
 packetbuf_copyto(void *to)
 {
-  if(PACKETBUF_HDR_SIZE - hdrptr + buflen > PACKETBUF_SIZE) {
-    /* Too large packet */
+  if(hdrlen + buflen > PACKETBUF_SIZE) {
     return 0;
   }
-  memcpy(to, packetbuf + hdrptr, PACKETBUF_HDR_SIZE - hdrptr);
-  memcpy((uint8_t *)to + PACKETBUF_HDR_SIZE - hdrptr, packetbufptr + bufptr,
-	 buflen);
-  return PACKETBUF_HDR_SIZE - hdrptr + buflen;
+  memcpy(to, packetbuf_hdrptr(), hdrlen);
+  memcpy((uint8_t *)to + hdrlen, packetbuf_dataptr(), buflen);
+  return hdrlen + buflen;
 }
 /*---------------------------------------------------------------------------*/
 int
 packetbuf_hdralloc(int size)
 {
-  if(hdrptr >= size && packetbuf_totlen() + size <= PACKETBUF_SIZE) {
-    hdrptr -= size;
-    return 1;
+  int16_t i;
+
+  if(size + packetbuf_totlen() > PACKETBUF_SIZE) {
+    return 0;
   }
-  return 0;
+
+  /* shift data to the right */
+  for(i = packetbuf_totlen() - 1; i >= 0; i--) {
+    packetbuf[i + size] = packetbuf[i];
+  }
+  hdrlen += size;
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -156,13 +157,13 @@ packetbuf_set_datalen(uint16_t len)
 void *
 packetbuf_dataptr(void)
 {
-  return (void *)(&packetbuf[bufptr + PACKETBUF_HDR_SIZE]);
+  return packetbuf + packetbuf_hdrlen();
 }
 /*---------------------------------------------------------------------------*/
 void *
 packetbuf_hdrptr(void)
 {
-  return (void *)(&packetbuf[hdrptr]);
+  return packetbuf;
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
@@ -174,16 +175,7 @@ packetbuf_datalen(void)
 uint8_t
 packetbuf_hdrlen(void)
 {
-  uint8_t hdrlen;
-  
-  hdrlen = PACKETBUF_HDR_SIZE - hdrptr;
-  if(hdrlen) {
-    /* outbound packet */
-    return hdrlen;
-  } else {
-    /* inbound packet */
-    return bufptr;
-  }
+  return bufptr + hdrlen;
 }
 /*---------------------------------------------------------------------------*/
 uint16_t

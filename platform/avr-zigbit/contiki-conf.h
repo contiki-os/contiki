@@ -88,7 +88,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 #endif
 
 #define LINKADDR_CONF_SIZE       8
-#define PACKETBUF_CONF_HDR_SIZE    0
 
 //define NETSTACK_CONF_WITH_IPV6            1 //Let the makefile do this, allows hello-world to compile
 #if NETSTACK_CONF_WITH_IPV6
@@ -100,7 +99,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 /* The new NETSTACK interface requires RF230BB */
 #if RF230BB
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
-#undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
 #define UIP_CONF_LLH_LEN         0
 
 /* No radio cycling */
@@ -126,7 +124,6 @@ void clock_adjust_ticks(clock_time_t howmany);
 
 #else
 /* Original combined RF230/mac code will not compile with current contiki stack */
-//#define PACKETBUF_CONF_HDR_SIZE    0            //RF230 handles headers internally
 //FTH081105
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_COMPRESSION_HC06
 #define SICSLOWPAN_CONF_MAXAGE 5
