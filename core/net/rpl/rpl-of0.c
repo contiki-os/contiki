@@ -145,19 +145,14 @@ best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
   int p1_is_acceptable;
   int p2_is_acceptable;
 
-  if(p1 == NULL || p2 == NULL) {
-    /* Return non-null parent if any */
-    return p1 == NULL ? p2 : p1;
-  }
+  p1_is_acceptable = p1 != NULL && parent_is_acceptable(p1);
+  p2_is_acceptable = p2 != NULL && parent_is_acceptable(p2);
 
-  p1_is_acceptable = parent_is_acceptable(p1);
-  p2_is_acceptable = parent_is_acceptable(p2);
-  /* Is only one parent is acceptable, select it. If both are acceptable, or
-   * both non-acceptable, proceed to traditional parent comparison. This is a
-   * slight departure from the standard but allows to keep connectivity even
-   * all neighbors appear to have a bad link. */
-  if(p1_is_acceptable != p2_is_acceptable) {
-    return p1_is_acceptable ? p1 : p2;
+  if(!p1_is_acceptable) {
+    return p2_is_acceptable ? p2 : NULL;
+  }
+  if(!p2_is_acceptable) {
+    return p1_is_acceptable ? p1 : NULL;
   }
 
   dag = p1->dag; /* Both parents are in the same DAG. */
