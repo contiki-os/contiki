@@ -35,6 +35,7 @@
 
 #include "ip64.h"
 #include "ip64-eth.h"
+#include "rime.h"
 
 #include <string.h>
 #include <stdio.h>
