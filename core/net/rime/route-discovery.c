@@ -271,7 +271,7 @@ static const struct unicast_callbacks rrep_callbacks = {rrep_packet_received};
 static const struct netflood_callbacks rreq_callbacks = {rreq_packet_received, NULL, NULL};
 /*---------------------------------------------------------------------------*/
 void
-route_discovery_expicit_open(struct route_discovery_conn *c,
+route_discovery_explicit_open(struct route_discovery_conn *c,
 			     clock_time_t time,
 			     uint16_t netflood_channel,
 			     uint16_t unicast_channel,
@@ -288,7 +288,7 @@ route_discovery_open(struct route_discovery_conn *c,
 		     uint16_t channels,
 		     const struct route_discovery_callbacks *callbacks)
 {
-  route_discovery_expicit_open(c, time, channels + 0, channels + 1, callbacks);
+  route_discovery_explicit_open(c, time, channels + 0, channels + 1, callbacks);
 }
 /*---------------------------------------------------------------------------*/
 void
