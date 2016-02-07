@@ -32,8 +32,6 @@
  *
  */
 
-#include <string.h>
-
 #include "contiki-net.h"
 #include "ctk/ctk.h"
 #include "sys/log.h"
@@ -79,7 +77,9 @@ main(void)
 
 #endif /* WITH_ARGS */
 
+#if WITH_80COL
   videomode(VIDEOMODE_80COL);
+#endif /* WITH_80COL */
 
   process_init();
 

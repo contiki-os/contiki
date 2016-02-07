@@ -200,7 +200,7 @@ window_copy(int curptr, const char *data, unsigned char datalen)
     len = windowend - windowstart;
   }
 
-  strncpy(windowptr + windowstart, data, len);
+  strncpy((char *)(windowptr + windowstart), data, len);
   windowstart += len;
 
   return curptr + datalen;
@@ -217,7 +217,7 @@ senddata(void)
     windowstart = s.getrequestptr;
     curptr = 0;
     windowend = windowstart + uip_mss();
-    windowptr = (char *)uip_appdata - windowstart;
+    windowptr = (unsigned char *)uip_appdata - windowstart;
 
     curptr = window_copy(curptr, http_get, sizeof(http_get) - 1);
     curptr = window_copy(curptr, s.file, (unsigned char)strlen(s.file));
@@ -479,6 +479,11 @@ webclient_appcall(void *state)
 
   if(uip_closed()) {
     tcp_markconn(uip_conn, NULL);
+    /* Client requested close takes precedence over server initiated close. */
+    if(s.state == WEBCLIENT_STATE_CLOSE) {
+      webclient_closed();
+      return;
+    }
     switch(s.httpflag) {
     case HTTPFLAG_HTTPS:
       /* Send some info to the user. */

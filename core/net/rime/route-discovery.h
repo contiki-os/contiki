@@ -83,6 +83,10 @@ struct route_discovery_conn {
 void route_discovery_open(struct route_discovery_conn *c, clock_time_t time,
 			  uint16_t channels,
 			  const struct route_discovery_callbacks *callbacks);
+void route_discovery_explicit_open(struct route_discovery_conn *c, clock_time_t time,
+				   uint16_t netflood_channel,
+				   uint16_t unicast_channel,
+				   const struct route_discovery_callbacks *callbacks);
 int route_discovery_discover(struct route_discovery_conn *c, const linkaddr_t *dest,
 			     clock_time_t timeout);
 

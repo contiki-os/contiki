@@ -33,70 +33,61 @@
  * stage. Rather, it is used as input for the auto-generation of the actual
  * ld script, which is called cc2538.ld and will be in the project directory
  */
-#if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
-#define NRSRAM_START    0x20000000
-#define NRSRAM_LEN      0x00004000
-#define SRAM_START      0x20004000
-#define SRAM_LEN        0x00004000
-#else
-#define SRAM_START      0x20000000
-#define SRAM_LEN        0x00008000
-#endif
-
-#ifdef FLASH_CONF_ORIGIN
-#define FLASH_ORIGIN    FLASH_CONF_ORIGIN
-#else
-#error FLASH_CONF_ORIGIN is not specified. Please define FLASH_CONF_ORIGIN in contiki-conf.h.
-#endif
-
-#ifdef FLASH_CONF_SIZE
-#define FLASH_SIZE      FLASH_CONF_SIZE
-#else
-#error FLASH_CONF_SIZE is not specified. Please define FLASH_CONF_SIZE in contiki-conf.h.
-#endif
-
-#define FLASH_CCA_LENGTH 44
-#define FLASH_LENGTH     (FLASH_SIZE - FLASH_CCA_LENGTH)
-#define FLASH_CCA_ORIGIN (FLASH_ORIGIN + FLASH_LENGTH)
-
 MEMORY
 {
-    FLASH (rx) : ORIGIN = FLASH_ORIGIN, LENGTH = FLASH_LENGTH
-    FLASH_CCA (RX) : ORIGIN = FLASH_CCA_ORIGIN, LENGTH = FLASH_CCA_LENGTH
-#if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
-    NRSRAM (RWX) : ORIGIN = NRSRAM_START, LENGTH = NRSRAM_LEN
+    FLASH_FW (rx) : ORIGIN = COFFEE_START + COFFEE_SIZE,
+                    LENGTH = FLASH_CCA_ADDR - (COFFEE_START + COFFEE_SIZE)
+    FLASH_CCA (RX) : ORIGIN = FLASH_CCA_ADDR, LENGTH = FLASH_CCA_SIZE
+
+    /*
+     * If PM2 is enabled, then the PM2 SRAM limitations apply, i.e. the
+     * regular-leakage SRAM is a non-retention SRAM and the low-leakage SRAM is
+     * a full-retention SRAM.
+     * Else, the data in the regular-leakage SRAM is always retained, so there
+     * are virtually a non-retention SRAM with a size of 0 bytes and a
+     * full-retention SRAM spanning the whole SRAM, which is more convenient to
+     * use.
+     */
+#if LPM_CONF_ENABLE && LPM_CONF_MAX_PM >= 2
+    NRSRAM (RWX) : ORIGIN = CC2538_DEV_RLSRAM_ADDR,
+                   LENGTH = CC2538_DEV_RLSRAM_SIZE
+    FRSRAM (RWX) : ORIGIN = CC2538_DEV_LLSRAM_ADDR,
+                   LENGTH = CC2538_DEV_LLSRAM_SIZE
+#else
+    NRSRAM (RWX) : ORIGIN = CC2538_DEV_RLSRAM_ADDR, LENGTH = 0
+    FRSRAM (RWX) : ORIGIN = CC2538_DEV_SRAM_ADDR, LENGTH = CC2538_DEV_SRAM_SIZE
 #endif
-    SRAM (RWX) : ORIGIN = SRAM_START, LENGTH = SRAM_LEN
 }
 
+ENTRY(flash_cca_lock_page)
 SECTIONS
 {
     .text :
     {
         _text = .;
-        KEEP(*(.vectors))
+        *(.vectors)
         *(.text*)
         *(.rodata*)
         _etext = .;
-    } > FLASH= 0
+    } > FLASH_FW= 0
 
     .socdata (NOLOAD) :
     {
         *(.udma_channel_control_table)
-    } > SRAM
+    } > FRSRAM
 
     .data : ALIGN(4)
     {
         _data = .;
         *(.data*)
         _edata = .;
-    } > SRAM AT > FLASH
+    } > FRSRAM AT > FLASH_FW
     _ldata = LOADADDR(.data);
 
     .ARM.exidx :
     {
         *(.ARM.exidx*)
-    } > FLASH
+    } > FLASH_FW
 
     .bss :
     {
@@ -104,24 +95,25 @@ SECTIONS
         *(.bss*)
         *(COMMON)
         _ebss = .;
-    } > SRAM
+    } > FRSRAM
 
     .stack (NOLOAD) :
     {
         *(.stack)
-    } > SRAM
+    } > FRSRAM
 
-#if (LPM_CONF_MAX_PM==2) && (LPM_CONF_ENABLE != 0)
+    _heap = .;
+    _eheap = ORIGIN(FRSRAM) + LENGTH(FRSRAM);
+
     .nrdata (NOLOAD) :
     {
         _nrdata = .;
         *(.nrdata*)
         _enrdata = .;
     } > NRSRAM
-#endif
 
     .flashcca :
     {
-        KEEP(*(.flashcca))
+        *(.flashcca)
     } > FLASH_CCA
 }

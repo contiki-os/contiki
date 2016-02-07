@@ -80,12 +80,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#ifdef __GNUC__
-#define CC_ALIGN_ATTR(n) __attribute__ ((aligned(n)))
-#else
-#define CC_ALIGN_ATTR(n)
-#endif
-/*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -241,8 +235,8 @@ const output_config_t *tx_power_current = &output_power[1];
 
 #define RX_BUF_SIZE 140
 /* Receive buffers: 1 frame in each */
-static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN_ATTR(4);
-static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN_ATTR(4);
+static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN(4);
+static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN(4);
 
 /* The RX Data Queue */
 static dataQueue_t rx_data_queue = { 0 };
@@ -254,7 +248,7 @@ volatile static uint8_t *rx_read_entry;
 #define TX_BUF_PAYLOAD_LEN 180
 #define TX_BUF_HDR_LEN       2
 
-static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN_ATTR(4);
+static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN(4);
 /*---------------------------------------------------------------------------*/
 static uint8_t
 rf_is_on(void)
@@ -647,6 +641,7 @@ static int
 transmit(unsigned short transmit_len)
 {
   int ret;
+  uint8_t was_off = 0;
   uint32_t cmd_status;
   volatile rfc_CMD_PROP_TX_ADV_t *cmd_tx_adv;
 
@@ -654,6 +649,7 @@ transmit(unsigned short transmit_len)
   uint16_t total_length;
 
   if(!rf_is_on()) {
+    was_off = 1;
     if(on() != RF_CORE_CMD_OK) {
       PRINTF("transmit: on() failed\n");
       return RADIO_TX_ERR;
@@ -738,6 +734,10 @@ transmit(unsigned short transmit_len)
   cmd_tx_adv->status = RF_CORE_RADIO_OP_STATUS_IDLE;
 
   rx_on_prop();
+
+  if(was_off) {
+    off();
+  }
 
   return ret;
 }
@@ -968,7 +968,10 @@ off(void)
     return RF_CORE_CMD_OK;
   }
 
+  rx_off_prop();
   rf_core_power_down();
+
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 
   /* Switch HF clock source to the RCOSC to preserve power */
   oscillators_switch_to_hf_rc();
@@ -1055,6 +1058,12 @@ set_value(radio_param_t param, radio_value_t value)
     if(value < 0 ||
        value > DOT_15_4G_CHANNEL_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    if(get_channel() == (uint8_t)value) {
+      /* We already have that very same channel configured.
+       * Nothing to do here. */
+      return RADIO_RESULT_OK;
     }
 
     set_channel((uint8_t)value);

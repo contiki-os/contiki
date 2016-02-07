@@ -218,7 +218,6 @@ typedef struct rf_core_primary_mode_s {
 /*---------------------------------------------------------------------------*/
 /* Command Types */
 #define RF_CORE_COMMAND_TYPE_MASK                        0x0C00
-#define RF_CORE_COMMAND_TYPE_IMMEDIATE                   0x0000
 #define RF_CORE_COMMAND_TYPE_RADIO_OP                    0x0800
 #define RF_CORE_COMMAND_TYPE_IEEE_BG_RADIO_OP            0x0800
 #define RF_CORE_COMMAND_TYPE_IEEE_FG_RADIO_OP            0x0C00

@@ -146,7 +146,7 @@ app_quit(void)
   if(file != -1) {
     cfs_close(file);
   }
-  puts("Press any key to continue...");
+  puts("Press <enter> to continue...");
   getchar();
   process_exit(&wget_process);
   LOADER_UNLOAD();
@@ -169,14 +169,16 @@ PROCESS_THREAD(wget_process, ev, data)
     strcpy(url, contiki_argv[1]);
     puts(url);
   } else {
-    gets(url);
+    fgets(url, sizeof(url), stdin);
+    url[strlen(url) - 1] = 0;
   }
   fputs("Save as:", stdout);
   if(contiki_argc > 2) {
     strcpy(name, contiki_argv[2]);
     puts(name);
   } else {
-    gets(name);
+    fgets(name, sizeof(name), stdin);
+    name[strlen(name) - 1] = 0;
   }
   file = cfs_open(name, CFS_WRITE);
   if(file == -1) {

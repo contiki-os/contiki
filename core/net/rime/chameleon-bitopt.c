@@ -57,6 +57,8 @@ struct bitopt_hdr {
   uint8_t channel[2];
 };
 
+#define BITOPT_HDR_SIZE 2
+
 static const uint8_t bitmask[9] = { 0x00, 0x80, 0xc0, 0xe0, 0xf0,
 				 0xf8, 0xfc, 0xfe, 0xff };
 
@@ -69,7 +71,28 @@ static const uint8_t bitmask[9] = { 0x00, 0x80, 0xc0, 0xe0, 0xf0,
 #endif
 
 /*---------------------------------------------------------------------------*/
-uint8_t CC_INLINE
+/* For get_bits/set_bits functions in this file to work correctly,
+ * the values contained in packetbuf_attr_t variables (uint16_t internally)
+ * must be in little endian byte order.
+ */
+/* Write little endian 16 bit value */
+static void CC_INLINE
+le16_write(void *ptr, uint16_t v)
+{
+  uint8_t *p = (uint8_t *)ptr;
+  p[0] = v & 0xff;
+  p[1] = v >> 8;
+}
+/*---------------------------------------------------------------------------*/
+/* Read little endian 16 bit value */
+static uint16_t CC_INLINE
+le16_read(const void *ptr)
+{
+  const uint8_t *p = (const uint8_t *)ptr;
+  return ((uint16_t)p[1] << 8) | p[0];
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t CC_INLINE
 get_bits_in_byte(uint8_t *from, int bitpos, int vallen)
 {
   uint16_t shifted_val;
@@ -243,7 +266,7 @@ pack_header(struct channel *c)
      all attributes that are used on this channel. */
 
   hdrbytesize = c->hdrsize / 8 + ((c->hdrsize & 7) == 0? 0: 1);
-  if(packetbuf_hdralloc(hdrbytesize + sizeof(struct bitopt_hdr)) == 0) {
+  if(packetbuf_hdralloc(hdrbytesize + BITOPT_HDR_SIZE) == 0) {
     PRINTF("chameleon-bitopt: insufficient space for headers\n");
     return 0;
   }
@@ -251,7 +274,7 @@ pack_header(struct channel *c)
   hdr->channel[0] = c->channelno & 0xff;
   hdr->channel[1] = (c->channelno >> 8) & 0xff;
 
-  hdrptr = ((uint8_t *)packetbuf_hdrptr()) + sizeof(struct bitopt_hdr);
+  hdrptr = ((uint8_t *)packetbuf_hdrptr()) + BITOPT_HDR_SIZE;
   memset(hdrptr, 0, hdrbytesize);
   
   byteptr = bitptr = 0;
@@ -279,10 +302,10 @@ pack_header(struct channel *c)
 	    ((uint8_t *)packetbuf_addr(a->type))[0],
 	    ((uint8_t *)packetbuf_addr(a->type))[1]);
     } else {
-      packetbuf_attr_t val;
-      val = packetbuf_attr(a->type);
-      set_bits(&hdrptr[byteptr], bitptr & 7,
-	       (uint8_t *)&val, len);
+      uint8_t buffer[2];
+      packetbuf_attr_t val = packetbuf_attr(a->type);
+      le16_write(buffer, val);
+      set_bits(&hdrptr[byteptr], bitptr & 7, buffer, len);
       PRINTF("value %d\n",
 	    /*linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],*/
 	    val);
@@ -309,7 +332,7 @@ unpack_header(void)
   /* The packet has a header that tells us what channel the packet is
      for. */
   hdr = (struct bitopt_hdr *)packetbuf_dataptr();
-  if(packetbuf_hdrreduce(sizeof(struct bitopt_hdr)) == 0) {
+  if(packetbuf_hdrreduce(BITOPT_HDR_SIZE) == 0) {
     PRINTF("chameleon-bitopt: too short packet\n");
     return NULL;
   }
@@ -349,9 +372,10 @@ unpack_header(void)
 	     a->type, addr.u8[0], addr.u8[1]);
       packetbuf_set_addr(a->type, &addr);
     } else {
-      packetbuf_attr_t val = 0;
-      get_bits((uint8_t *)&val, &hdrptr[byteptr], bitptr & 7, len);
-
+      packetbuf_attr_t val;
+      uint8_t buffer[2] = {0};
+      get_bits(buffer, &hdrptr[byteptr], bitptr & 7, len);
+      val = le16_read(buffer);
       packetbuf_set_attr(a->type, val);
       PRINTF("%d.%d: unpack_header type %d, val %d\n",
 	     linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],

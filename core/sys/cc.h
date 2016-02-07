@@ -46,6 +46,7 @@
 #define CC_H_
 
 #include "contiki-conf.h"
+#include "sys/cc-gcc.h"
 
 /**
  * Configure if the C compiler supports the "register" keyword for
@@ -68,23 +69,13 @@
 #endif /* CC_CONF_FUNCTION_POINTER_ARGS */
 
 /**
- * Configure if the C compiler supports fastcall function
- * declarations.
- */
-#ifdef CC_CONF_FASTCALL
-#define CC_FASTCALL CC_CONF_FASTCALL
-#else /* CC_CONF_FASTCALL */
-#define CC_FASTCALL
-#endif /* CC_CONF_FASTCALL */
-
-/**
  * Configure if the C compiler have problems with const function pointers
  */
 #ifdef CC_CONF_CONST_FUNCTION_BUG
 #define CC_CONST_FUNCTION
-#else /* CC_CONF_FASTCALL */
+#else /* CC_CONF_CONST_FUNCTION_BUG */
 #define CC_CONST_FUNCTION const
-#endif /* CC_CONF_FASTCALL */
+#endif /* CC_CONF_CONST_FUNCTION_BUG */
 
 /**
  * Configure work-around for unsigned char bugs with sdcc.
@@ -108,6 +99,10 @@
 #define CC_INLINE CC_CONF_INLINE
 #else /* CC_CONF_INLINE */
 #define CC_INLINE
+#endif /* CC_CONF_INLINE */
+
+#ifdef CC_CONF_ALIGN
+#define CC_ALIGN(n) CC_CONF_ALIGN(n)
 #endif /* CC_CONF_INLINE */
 
 /**

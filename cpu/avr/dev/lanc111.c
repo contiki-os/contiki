@@ -271,6 +271,9 @@
  */
 #define NIC_MMUCR       (LANC111_BASE_ADDR + 0x00)
 
+/*!
+ * \brief MMU command register busy flag.
+ */
 #define MMUCR_BUSY      0x0001
 
 #define MMU_NOP         0
@@ -292,7 +295,7 @@
 /*!
  * \brief Bank 2 - Allocation result register.
  *
- * This byte register is updated upon a \ref MMU_ALO command.
+ * This byte register is updated upon a MMU_ALO command.
  */
 #define NIC_ARR         (LANC111_BASE_ADDR + 0x03)
 
@@ -334,14 +337,14 @@
  */
 #define NIC_MSK         (LANC111_BASE_ADDR + 0x0D)
 
-#define INT_MD          0x80    /*!< \ref PHY state change interrupt bit mask. */
-#define INT_ERCV        0x40    /*!< \ref Early receive interrupt bit mask. */
-#define INT_EPH         0x20    /*!< \ref Ethernet protocol interrupt bit mask. */
-#define INT_RX_OVRN     0x10    /*!< \ref Receive overrun interrupt bit mask. */
-#define INT_ALLOC       0x08    /*!< \ref Transmit allocation interrupt bit mask. */
-#define INT_TX_EMPTY    0x04    /*!< \ref Transmitter empty interrupt bit mask. */
-#define INT_TX          0x02    /*!< \ref Transmit complete interrupt bit mask. */
-#define INT_RCV         0x01    /*!< \ref Receive interrupt bit mask. */
+#define INT_MD          0x80    /*!< PHY state change interrupt bit mask. */
+#define INT_ERCV        0x40    /*!< Early receive interrupt bit mask. */
+#define INT_EPH         0x20    /*!< Ethernet protocol interrupt bit mask. */
+#define INT_RX_OVRN     0x10    /*!< Receive overrun interrupt bit mask. */
+#define INT_ALLOC       0x08    /*!< Transmit allocation interrupt bit mask. */
+#define INT_TX_EMPTY    0x04    /*!< Transmitter empty interrupt bit mask. */
+#define INT_TX          0x02    /*!< Transmit complete interrupt bit mask. */
+#define INT_RCV         0x01    /*!< Receive interrupt bit mask. */
 
 /*!
  * \brief Bank 3 - Multicast table register.
@@ -492,12 +495,6 @@
 #define nic_inw(addr) (*(volatile uint16_t *)(addr))
 
 #define nic_bs(bank)    nic_outlb(NIC_BSR, bank)
-
-/*!
- * \struct _NICINFO lanc111.h dev/lanc111.h
- * \brief Network interface controller information structure.
- */
-/*@}*/
 
 /*!
  * \addtogroup xgNicLanc111
@@ -840,10 +837,10 @@ static int NicStart(CONST uint8_t * mac)
     return 0;
 }
 
+#if 0
 /*
  * NIC interrupt entry.
  */
-#if 0
 static void NicInterrupt(void *arg)
 {
     uint8_t isr;
@@ -955,7 +952,7 @@ static void NicRead(uint8_t * buf, uint16_t len)
  *
  * Nic interrupts must be disabled when calling this funtion.
  *
- * \return Pointer to an allocated ::NETBUF. If there is no
+ * \return Pointer to an allocated NETBUF. If there is no
  *         no data available, then the function returns a
  *         null pointer. If the NIC's buffer seems to be
  *         corrupted, a pointer to 0xFFFF is returned.
@@ -1001,11 +998,11 @@ static NETBUF *NicGetPacket(void)
          * Hack alert: Rev A chips never set the odd frame indicator.
          */
         fbc -= 3;
-	/*        nb = NutNetBufAlloc(0, NBAF_DATALINK, fbc);*/
+        /*        nb = NutNetBufAlloc(0, NBAF_DATALINK, fbc);*/
 
         /* Perform the read. */
-/*	        if (nb)
-		NicRead(nb->nb_dl.vp, fbc);*/
+        /* if (nb)
+         NicRead(nb->nb_dl.vp, fbc);*/
     }
 
     /* Release the packet. */
@@ -1014,6 +1011,7 @@ static NETBUF *NicGetPacket(void)
     return nb;
 }
 
+#if 0
 /*!
  * \brief Load a packet into the nic's transmit ring buffer.
  *
@@ -1028,7 +1026,6 @@ static NETBUF *NicGetPacket(void)
  *         will automatically release the network buffer
  *         structure.
  */
-#if 0
 static int NicPutPacket(NETBUF * nb)
 {
     uint16_t sz;
@@ -1119,13 +1116,12 @@ static int NicPutPacket(NETBUF * nb)
 
     return 0;
 }
-#endif
+#endif /* 0 */
 
-/*! \fn NicRxLanc(void *arg)
- * \brief NIC receiver thread.
- *
- */
 #if 1
+/*!
+ * \brief NIC receiver thread.
+ */
 PROCESS_THREAD(lanc111_process, ev, data)
      /*THREAD(NicRxLanc, arg)*/
 {
@@ -1191,18 +1187,18 @@ PROCESS_THREAD(lanc111_process, ev, data)
          */
         imsk = nic_inlb(NIC_MSK);
         nic_outlb(NIC_MSK, 0);
-	/*	while ((nb = NicGetPacket()) != 0) {
-            if (nb != (NETBUF *) 0xFFFF) {
-	      ni->ni_rx_packets++;
-	      (*ifn->if_recv) (dev, nb);
-            }
-	    }*/
+        /*  while ((nb = NicGetPacket()) != 0) {
+          if (nb != (NETBUF *) 0xFFFF) {
+            ni->ni_rx_packets++;
+            (*ifn->if_recv) (dev, nb);
+          }
+        }*/
         nic_outlb(NIC_MSK, imsk | INT_RCV | INT_ERCV);
     }
 
     PROCESS_END();
 }
-#endif  /* 0 */
+#endif  /* 1 */
 #if 0
 /*!
  * \brief Send Ethernet packet.
@@ -1245,7 +1241,7 @@ int LancOutput(NUTDEVICE * dev, NETBUF * nb)
     }
     return rc;
 }
-#endif
+#endif /* 0 */
 #if 0
 /*!
  * \brief Initialize Ethernet hardware.
@@ -1340,7 +1336,7 @@ NUTDEVICE devSmsc111 = {
 };
 
 /*@}*/
-#endif
+#endif /* 0 */
 
 
 int
@@ -1351,7 +1347,7 @@ lanc111_init(void)
 
     /* Register interrupt handler and enable interrupts. */
     /*    if (NutRegisterIrqHandler(&LANC111_SIGNAL, NicInterrupt, dev))
-	  return -1;*/
+          return -1;*/
 
     /*
      * Start the receiver thread.

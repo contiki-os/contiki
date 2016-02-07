@@ -1,0 +1,101 @@
+### Zoul Makefile
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+### If no board is specified the default option is the RE-Mote
+ifeq ($(BOARD),)
+  BOARD=remote
+endif
+
+PYTHON = python
+BSL_FLAGS += -e -w -v
+
+ifdef PORT
+  BSL_FLAGS += -p $(PORT)
+endif
+
+### Configure the build for the board and pull in board-specific sources
+CONTIKI_TARGET_DIRS += . dev
+CONTIKI_TARGET_DIRS += . $(BOARD)
+PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
+
+### Include the board dir if one exists
+-include $(PLATFORM_ROOT_DIR)/$(BOARD)/Makefile.$(BOARD)
+
+### Include
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c
+CONTIKI_TARGET_SOURCEFILES += leds.c leds-arch.c cc1200-zoul-arch.c
+CONTIKI_TARGET_SOURCEFILES += adc-zoul.c button-sensor.c zoul-sensors.c
+CONTIKI_TARGET_SOURCEFILES += $(BOARD_SOURCEFILES)
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.zoul
+
+### Unless the example dictates otherwise, build with code size optimisations
+ifndef SMALL
+  SMALL = 1
+endif
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/cc2538
+include $(CONTIKI_CPU)/Makefile.cc2538
+
+MODULES += core/net core/net/mac \
+           core/net/mac/contikimac \
+           core/net/llsec core/net/llsec/noncoresec dev/cc1200
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
+### USe the specific Zoul subplatform to query for connected devices
+ifdef MOTELIST_ZOLERTIA
+  MOTELIST_FLAGS += -b $(MOTELIST_ZOLERTIA)
+endif
+
+### Detect if a mote is connected over serial port
+ifeq ($(HOST_OS),Darwin)
+  USBDEVPREFIX=
+  MOTELIST = $(CONTIKI)/tools/zolertia/motelist-zolertia-macos
+  MOTES = $(shell $(MOTELIST) -c 2>&- | cut -f 2 -d ,)
+  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-macos
+else
+### If we are not running under Mac, we assume Linux
+  USBDEVPREFIX=
+  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+  MOTELIST = $(CONTIKI)/tools/zolertia/motelist-zolertia
+  MOTES = $(shell $(MOTELIST) -b $(MOTELIST_ZOLERTIA) -c 2>&- | cut -f 2 -d , | \
+            perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+endif
+
+%.upload: %.bin %.elf
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	$(eval BSL_ADDRESS_ARG := -a $(shell $(OBJDUMP) -h $*.elf | grep -B1 LOAD | \
+	                               grep -Ev 'LOAD|\-\-' | awk '{print "0x" $$5}' | \
+	                               sort -g | head -1))
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $(BSL_ADDRESS_ARG) $<
+endif
+
+motelist:
+	$(MOTELIST)
+zoul-motelist:
+	$(MOTELIST) $(MOTELIST_FLAGS)
+zoul-motes:
+	@echo $(MOTES)
+
+ifdef PORT
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX) $(PORT) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX) $(PORT)
+else
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(MOTES)) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(MOTES))
+endif

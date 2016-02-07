@@ -44,11 +44,11 @@
 #endif /* CCM_STAR_CONF */
 
 #ifndef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     tschmac_driver
+#define NETSTACK_CONF_MAC     csma_driver
 #endif /* NETSTACK_CONF_MAC */
 
 #ifndef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nordc_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
 #endif /* NETSTACK_CONF_RDC */
 
 #ifndef NETSTACK_CONF_RADIO

@@ -222,7 +222,7 @@ static const char *tags[] = {
 };
 
 /*-----------------------------------------------------------------------------------*/
-static unsigned char CC_FASTCALL
+static unsigned char
 iswhitespace(char c)
 {
   return (c == ISO_space ||
@@ -255,7 +255,7 @@ htmlparser_init(void)
 #endif /* WWW_CONF_FORMS */
 }
 /*-----------------------------------------------------------------------------------*/
-static char CC_FASTCALL
+static char
 lowercase(char c)
 {
   /* XXX: This is a *brute force* approach to lower-case
@@ -276,7 +276,7 @@ endtagfound(void)
   s.tagattrparam[s.tagattrparamptr] = 0;
 }
 /*-----------------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 switch_majorstate(unsigned char newstate)
 {
   if(s.majorstate != newstate) {
@@ -286,7 +286,7 @@ switch_majorstate(unsigned char newstate)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 add_char(unsigned char c)
 {
   if(s.wordlen < WWW_CONF_WEBPAGE_WIDTH - 1 && c < 0x80) {
@@ -320,7 +320,7 @@ newline(void)
   htmlparser_newline();
 }
 /*-----------------------------------------------------------------------------------*/
-static unsigned char CC_FASTCALL
+static unsigned char
 find_tag(char *tag)
 {
   static unsigned char first, last, i, tabi;
@@ -521,7 +521,7 @@ parse_tag(void)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static uint16_t CC_FASTCALL
+static uint16_t
 parse_word(char *data, uint8_t dlen)
 {
   static uint8_t i;

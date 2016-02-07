@@ -228,7 +228,7 @@ contiki_init()
   set_rime_addr();
   {
     uint8_t longaddr[8];
-    
+
     memset(longaddr, 0, sizeof(longaddr));
     linkaddr_copy((linkaddr_t *)&longaddr, &linkaddr_node_addr);
     printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
@@ -241,7 +241,7 @@ contiki_init()
   /* Initialize communication stack */
   netstack_init();
   printf("%s/%s/%s, channel check rate %lu Hz\n",
-	 NETSTACK_NETWORK.name, NETSTACK_MAC.name, NETSTACK_RDC.name,
+         NETSTACK_NETWORK.name, NETSTACK_MAC.name, NETSTACK_RDC.name,
          CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
                          NETSTACK_RDC.channel_check_interval()));
 
@@ -294,11 +294,11 @@ contiki_init()
       int i;
       lladdr = uip_ds6_get_link_local(-1);
       for(i = 0; i < 7; ++i) {
-	printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
-	       lladdr->ipaddr.u8[i * 2 + 1]);
+        printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
+               lladdr->ipaddr.u8[i * 2 + 1]);
       }
       printf("%02x%02x\n", lladdr->ipaddr.u8[14],
-	     lladdr->ipaddr.u8[15]);
+             lladdr->ipaddr.u8[15]);
     }
 
     if(1) {
@@ -320,7 +320,7 @@ contiki_init()
 
   /* Initialize eeprom */
   eeprom_init();
-  
+
   /* Start serial process */
   serial_line_init();
 
@@ -359,6 +359,8 @@ process_run_thread_loop(void *data)
 /*---------------------------------------------------------------------------*/
 /**
  * \brief      Initialize a mote by starting processes etc.
+ * \param env  JNI Environment interface pointer
+ * \param obj  unused
  *
  *             This function initializes a mote by starting certain
  *             processes and setting up the environment.
@@ -376,12 +378,15 @@ Java_org_contikios_cooja_corecomm_CLASSNAME_init(JNIEnv *env, jobject obj)
 /*---------------------------------------------------------------------------*/
 /**
  * \brief      Get a segment from the process memory.
- * \param start Start address of segment
- * \param length Size of memory segment
+ * \param env      JNI Environment interface pointer
+ * \param obj      unused
+ * \param rel_addr Start address of segment
+ * \param length   Size of memory segment
+ * \param mem_arr  Byte array destination for the fetched memory segment
  * \return     Java byte array containing a copy of memory segment.
  *
  *             Fetches a memory segment from the process memory starting at
- *             (start), with size (length). This function does not perform
+ *             (rel_addr), with size (length). This function does not perform
  *             ANY error checking, and the process may crash if addresses are
  *             not available/readable.
  *
@@ -402,9 +407,11 @@ Java_org_contikios_cooja_corecomm_CLASSNAME_getMemory(JNIEnv *env, jobject obj, 
 /*---------------------------------------------------------------------------*/
 /**
  * \brief      Replace a segment of the process memory with given byte array.
- * \param start Start address of segment
- * \param length Size of memory segment
- * \param mem_arr Byte array contaning new memory
+ * \param env      JNI Environment interface pointer
+ * \param obj      unused
+ * \param rel_addr Start address of segment
+ * \param length   Size of memory segment
+ * \param mem_arr  Byte array contaning new memory
  *
  *             Replaces a process memory segment with given byte array.
  *             This function does not perform ANY error checking, and the
@@ -417,15 +424,16 @@ JNIEXPORT void JNICALL
 Java_org_contikios_cooja_corecomm_CLASSNAME_setMemory(JNIEnv *env, jobject obj, jint rel_addr, jint length, jbyteArray mem_arr)
 {
   jbyte *mem = (*env)->GetByteArrayElements(env, mem_arr, 0);
-  memcpy(
-      (char*) (((long)rel_addr) + referenceVar),
-      mem,
-      length);
+  memcpy((char*) (((long)rel_addr) + referenceVar),
+         mem,
+         length);
   (*env)->ReleaseByteArrayElements(env, mem_arr, mem, 0);
 }
 /*---------------------------------------------------------------------------*/
 /**
  * \brief      Let mote execute one "block" of code (tick mote).
+ * \param env  JNI Environment interface pointer
+ * \param obj  unused
  *
  *             Let mote defined by the active contiki processes and current
  *             process memory execute some program code. This code must not block
@@ -453,7 +461,7 @@ Java_org_contikios_cooja_corecomm_CLASSNAME_tick(JNIEnv *env, jobject obj)
   doActionsBeforeTick();
 
   /* Poll etimer process */
-  if (etimer_pending()) {
+  if(etimer_pending()) {
     etimer_request_poll();
   }
 
@@ -481,16 +489,18 @@ Java_org_contikios_cooja_corecomm_CLASSNAME_tick(JNIEnv *env, jobject obj)
   nextRtimer = rtimer_arch_next() - (rtimer_clock_t) simCurrentTime;
   if(etimer_pending() && rtimer_arch_pending()) {
     simNextExpirationTime = MIN(nextEtimer, nextRtimer);
-  } else if (etimer_pending()) {
+  } else if(etimer_pending()) {
     simNextExpirationTime = nextEtimer;
-  } else if (rtimer_arch_pending()) {
+  } else if(rtimer_arch_pending()) {
     simNextExpirationTime = nextRtimer;
   }
 }
 /*---------------------------------------------------------------------------*/
 /**
  * \brief      Set the relative memory address of the reference variable.
- * \return     Relative memory address.
+ * \param env  JNI Environment interface pointer
+ * \param obj  unused
+ * \param addr Relative memory address
  *
  *             This is a JNI function and should only be called via the
  *             responsible Java part (MoteType.java).

@@ -36,12 +36,13 @@ nine := x x x x x x x x x
 max = $(subst xx,x,$(join ${1},${2}))
 gt = $(filter-out $(words ${1}),$(words $(call max,${1},${2})))
 addzero = $(if $(call gt,${nine},$(1)),$(words ${1}),0$(words ${1}))
+get_target = $(firstword $(subst :, ,$1))
+get_target_vars = $(wordlist 2,15,$(subst :, ,$1))
 
 define dooneexample
-@echo Building example $(3): $(1) for target $(2)
+@echo Building example $(3): $(1) $(4) for target $(2)
 @((cd $(EXAMPLESDIR)/$(1); \
- export STM32W_CPUREV=CC; \
- make TARGET=$(2) clean && make TARGET=$(2)) > \
+ make $(4) TARGET=$(2) clean && make $(4) TARGET=$(2) WERROR=1) > \
       $(3)-$(subst /,-,$(1))$(2).report 2>&1 && \
  (echo $(1) $(2): OK | tee $(3)-$(subst /,-,$(1))$(2).summary) || \
  (echo $(1) $(2): FAIL ಠ.ಠ | tee $(3)-$(subst /,-,$(1))$(2).summary ; \
@@ -50,7 +51,7 @@ endef
 
 define doexample
 $(eval i+=x)
-$(call dooneexample,$(dir ${1}),$(notdir ${1}),$(call addzero,${i}))
+$(call dooneexample,$(dir $(call get_target,${1})),$(notdir $(call get_target,${1})),$(call addzero,${i}),$(call get_target_vars,${1}))
 endef
 #end of GNU make magic
 

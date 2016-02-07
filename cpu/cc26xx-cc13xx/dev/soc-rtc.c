@@ -50,6 +50,8 @@
 /*---------------------------------------------------------------------------*/
 /* Prototype of a function in clock.c. Called every time the handler fires */
 void clock_update(void);
+
+static rtimer_clock_t last_isr_time;
 /*---------------------------------------------------------------------------*/
 #define COMPARE_INCREMENT (RTIMER_SECOND / CLOCK_SECOND)
 #define MULTIPLE_512_MASK 0xFFFFFE00
@@ -130,15 +132,21 @@ soc_rtc_schedule_one_shot(uint32_t channel, uint32_t ticks)
   ti_lib_aon_rtc_channel_enable(channel);
 }
 /*---------------------------------------------------------------------------*/
+rtimer_clock_t
+soc_rtc_last_isr_time(void)
+{
+  return last_isr_time;
+}
+/*---------------------------------------------------------------------------*/
 /* The AON RTC interrupt handler */
 void
 soc_rtc_isr(void)
 {
-  uint32_t now, next;
+  uint32_t next;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  now = ti_lib_aon_rtc_current_compare_value_get();
+  last_isr_time = RTIMER_NOW();
 
   /* Adjust the s/w tick counter irrespective of which event trigger this */
   clock_update();
@@ -151,7 +159,8 @@ soc_rtc_isr(void)
      * event on the next 512 tick boundary. If we drop to deep sleep before it
      * happens, lpm_drop() will reschedule us in the 'distant' future
      */
-    next = (now + COMPARE_INCREMENT) & MULTIPLE_512_MASK;
+    next = ((ti_lib_aon_rtc_current_compare_value_get() + 5) +
+            COMPARE_INCREMENT) & MULTIPLE_512_MASK;
     ti_lib_aon_rtc_compare_value_set(AON_RTC_CH1, next);
   }
 

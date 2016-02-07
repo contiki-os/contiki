@@ -203,18 +203,18 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
 #if UIP_DS6_LL_NUD
   /* From RFC4861, page 72, last paragraph of section 7.3.3:
    *
-   * 	"In some cases, link-specific information may indicate that a path to
-   * 	a neighbor has failed (e.g., the resetting of a virtual circuit). In
-   * 	such cases, link-specific information may be used to purge Neighbor
-   * 	Cache entries before the Neighbor Unreachability Detection would do
-   * 	so. However, link-specific information MUST NOT be used to confirm
-   * 	the reachability of a neighbor; such information does not provide
-   * 	end-to-end confirmation between neighboring IP layers."
+   *         "In some cases, link-specific information may indicate that a path to
+   *         a neighbor has failed (e.g., the resetting of a virtual circuit). In
+   *         such cases, link-specific information may be used to purge Neighbor
+   *         Cache entries before the Neighbor Unreachability Detection would do
+   *         so. However, link-specific information MUST NOT be used to confirm
+   *         the reachability of a neighbor; such information does not provide
+   *         end-to-end confirmation between neighboring IP layers."
    *
    * However, we assume that receiving a link layer ack ensures the delivery
-   * of the transmitted packed to the IP stack of the neighbour. This is a 
-   * fair assumption and allows battery powered nodes save some battery by 
-   * not re-testing the state of a neighbour periodically if it 
+   * of the transmitted packed to the IP stack of the neighbour. This is a
+   * fair assumption and allows battery powered nodes save some battery by
+   * not re-testing the state of a neighbour periodically if it
    * acknowledges link packets. */
   if(status == MAC_TX_OK) {
     uip_ds6_nbr_t *nbr;
@@ -231,10 +231,10 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
 
 }
 /*---------------------------------------------------------------------------*/
+/** Periodic processing on neighbors */
 void
 uip_ds6_neighbor_periodic(void)
 {
-  /* Periodic processing on neighbors */
   uip_ds6_nbr_t *nbr = nbr_table_head(ds6_neighbors);
   while(nbr != NULL) {
     switch(nbr->state) {

@@ -10,3 +10,7 @@
 [submodule "cpu/cc26xx-cc13xx/lib/cc13xxware"]
 	path = cpu/cc26xx-cc13xx/lib/cc13xxware
 	url = https://github.com/g-oikonomou/cc13xxware.git
+[submodule "platform/stm32nucleo-spirit1/stm32cube-lib"]
+	path = platform/stm32nucleo-spirit1/stm32cube-lib
+	url = https://github.com/STclab/stm32nucleo-spirit1-lib
+

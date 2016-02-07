@@ -70,38 +70,43 @@ void halInternalDisableWatchDog(uint8_t magicKey);
  */
 boolean halInternalWatchDogEnabled( void );
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
 /** @brief Enumerations for the possible microcontroller sleep modes.
- * - SLEEPMODE_RUNNING
- *     Everything is active and running.  In practice this mode is not
- *     used, but it is defined for completeness of information.
- * - SLEEPMODE_IDLE
- *     Only the CPU is idled.  The rest of the chip continues runing
- *     normally.  The chip will wake from any interrupt.
- * - SLEEPMODE_WAKETIMER
- *     The sleep timer clock sources remain running.  The RC is always
- *     running and the 32kHz XTAL depends on the board header.  Wakeup
- *     is possible from both GPIO and the sleep timer.  System time
- *     is maintained.  The sleep timer is assumed to be configured
- *     properly for wake events.
- * - SLEEPMODE_MAINTAINTIMER
- *     The sleep timer clock sources remain running.  The RC is always
- *     running and the 32kHz XTAL depends on the board header.  Wakeup
- *     is possible from only GPIO.  System time is maintained.
- * - SLEEPMODE_NOTIMER
- *     The sleep timer clock sources (both RC and XTAL) are turned off.
- *     Wakeup is possible from only GPIO.  System time is lost.
  */
+#ifdef DOXYGEN_SHOULD_SKIP_THIS
 enum SleepModes
 #else
 typedef uint8_t SleepModes;
 enum
 #endif
 {
+  /**
+   * Everything is active and running.  In practice this mode is not
+   * used, but it is defined for completeness of information.
+   */
   SLEEPMODE_RUNNING = 0,
+  /**
+   * Oly the CPU is idled.  The rest of the chip continues runing
+   * normally.  The chip will wake from any interrupt.
+   */
   SLEEPMODE_IDLE = 1,
+  /**
+   * The sleep timer clock sources remain running.  The RC is always
+   * running and the 32kHz XTAL depends on the board header.  Wakeup
+   * is possible from both GPIO and the sleep timer.  System time
+   * is maintained.  The sleep timer is assumed to be configured
+   * properly for wake events.
+   */
   SLEEPMODE_WAKETIMER = 2,
+  /**
+   * The sleep timer clock sources remain running.  The RC is always
+   * running and the 32kHz XTAL depends on the board header.  Wakeup
+   * is possible from only GPIO.  System time is maintained.
+   */
   SLEEPMODE_MAINTAINTIMER = 3,
+  /**
+   * The sleep timer clock sources (both RC and XTAL) are turned off.
+   * Wakeup is possible from only GPIO.  System time is lost.
+   */
   SLEEPMODE_NOTIMER = 4,
 };
 
@@ -128,15 +133,15 @@ void halCommonDelayMicroseconds(uint16_t us);
  * and if yes it will jump into it according to the user parameters.
  *
  *
- * @param mode  The bootloader mode, 0 UART mode, 1 RF mode. All other
- * values are reserved
+ * @param mode     The bootloader mode, 0 UART mode, 1 RF mode. All other
+ *                 values are reserved
  * @param channel  The channel where the booloader will operate. 0 means
- * default channel (only vaild for RF mode).
- * @param panID  The panID where the booloader will operate. 0xFFFF means
- * default panID (only vaild for RF mode).
+ *                 default channel (only vaild for RF mode).
+ * @param panID    The panID where the booloader will operate. 0xFFFF means
+ *                 default panID (only vaild for RF mode).
  * @return An error code or it will never return.
  */
-StStatus halBootloaderStart(uint8_t mode, uint8_t channel, uint16_t panId);
+StStatus halBootloaderStart(uint8_t mode, uint8_t channel, uint16_t panID);
 
 #ifdef CORTEXM3_STM32F103
 #include "micro/cortexm3/stm32f103ret/micro-specific.h"
@@ -149,4 +154,3 @@ StStatus halBootloaderStart(uint8_t mode, uint8_t channel, uint16_t panId);
 
 /** @} END micro group  */
 /** @} */
-

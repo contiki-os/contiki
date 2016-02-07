@@ -57,6 +57,8 @@
 #include "JPT.h"
 #include "PeripheralRegs.h"
 
+void vMMAC_SetChannelAndPower(uint8 u8Channel, int8 i8power);
+
 /* This driver configures the radio in PHY mode and does address decoding
  * and acknowledging in software. */
 
@@ -117,8 +119,6 @@
 #define MICROMAC_CONF_AUTOACK 1
 #endif /* MICROMAC_CONF_AUTOACK */
 
-#define RADIO_TO_RTIMER(X) ((rtimer_clock_t)((X) << (int32_t)8L))
-
 /* Set radio always on for now because this is what Contiki MAC layers
  * expect. */
 #ifndef MICROMAC_CONF_ALWAYS_ON
@@ -149,11 +149,11 @@ static uint8_t autoack_enabled = MICROMAC_CONF_AUTOACK;
 static uint8_t send_on_cca = 0;
 
 /* Current radio channel */
-static int current_channel;
+static int current_channel = MICROMAC_CONF_CHANNEL;
 
 /* Current set point tx power
    Actual tx power may be different. Use get_txpower() for actual power */
-static int current_tx_power;
+static int current_tx_power = MICROMAC_CONF_TX_POWER;
 
 /* an integer between 0 and 255, used only with cca() */
 static uint8_t cca_thershold = MICROMAC_CONF_CCA_THR;
@@ -206,88 +206,52 @@ PROCESS(micromac_radio_process, "micromac_radio_driver");
 #define RADIO_RX_MODE_POLL_MODE        (1 << 2)
 #endif /* RADIO_RX_MODE_POLL_MODE */
 
-#ifndef FRAME802154_IEEE802154E_2012
-/* We define here the missing few features this driver needs from IEEE802.15.4e */
-#define FRAME802154_IEEE802154E_2012      (0x02)
-/*----------------------------------------------------------------------------*/
-uint16_t
-frame802154_get_pan_id()
-{
-  return IEEE802154_PANID;
-}
-/*----------------------------------------------------------------------------*/
-static void
-frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest_pan_id)
-{
-  int src_pan_id = 0;
-  int dest_pan_id = 0;
-
-  if(fcf == NULL) {
-    return;
-  }
-  if(fcf->frame_version == FRAME802154_IEEE802154E_2012) {
-    if(!fcf->panid_compression) {
-      /* Compressed PAN ID == no PAN ID at all */
-      if(fcf->dest_addr_mode == fcf->dest_addr_mode) {
-        /* No address or both addresses: include destination PAN ID */
-        dest_pan_id = 1;
-      } else if(fcf->dest_addr_mode) {
-        /* Only dest address, include dest PAN ID */
-        dest_pan_id = 1;
-      } else if(fcf->src_addr_mode) {
-        /* Only src address, include src PAN ID */
-        src_pan_id = 1;
-      }
-    }
-    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 1) {
-      /* No address included, include dest PAN ID conditionally */
-      if(!fcf->panid_compression) {
-        dest_pan_id = 1;
-        /* Remove the following rule the day rows 2 and 3 from table 2a are fixed: */
-      }
-    }
-    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 0) {
-      /* Not meaningful, we include a PAN ID iff the compress flag is set, but
-       * this is what the standard currently stipulates */
-      dest_pan_id = fcf->panid_compression;
-    }
-  } else
-  /* No PAN ID in ACK */
-  if(fcf->frame_type != FRAME802154_ACKFRAME) {
-    if(!fcf->panid_compression && fcf->src_addr_mode & 3) {
-      /* If compressed, don't inclue source PAN ID */
-      src_pan_id = 1;
-    }
-    if(fcf->dest_addr_mode & 3) {
-      dest_pan_id = 1;
-    }
-  }
-
-  if(has_src_pan_id != NULL) {
-    *has_src_pan_id = src_pan_id;
-  }
-  if(has_dest_pan_id != NULL) {
-    *has_dest_pan_id = dest_pan_id;
-  }
-}
-#endif /* FRAME802154_IEEE802154E_2012 */
-
 /*---------------------------------------------------------------------------*/
 static rtimer_clock_t
 get_packet_timestamp(void)
 {
+  /* Wait for an edge */
+  uint32_t t = u32MMAC_GetTime();
+  while(u32MMAC_GetTime() == t);
   /* Save SFD timestamp, converted from radio timer to RTIMER */
   last_packet_timestamp = RTIMER_NOW() -
-    RADIO_TO_RTIMER((uint32_t)(u32MMAC_GetTime() - u32MMAC_GetRxTime()));
+    RADIO_TO_RTIMER((uint32_t)(u32MMAC_GetTime() - (u32MMAC_GetRxTime() - 1)));
+  /* The remaining measured error is typically in range 0..16 usec.
+   * Center it around zero, in the -8..+8 usec range. */
+  last_packet_timestamp -= US_TO_RTIMERTICKS(8);
   return last_packet_timestamp;
+}
+/*---------------------------------------------------------------------------*/
+static int
+init_software(void)
+{
+  int put_index;
+  /* Initialize ring buffer and first input packet pointer */
+  ringbufindex_init(&input_ringbuf, MIRCOMAC_CONF_BUF_NUM);
+  /* get pointer to next input slot */
+  put_index = ringbufindex_peek_put(&input_ringbuf);
+  if(put_index == -1) {
+    rx_frame_buffer = NULL;
+    printf("micromac_radio init:! no buffer available. Abort init.\n");
+    off();
+    return 0;
+  } else {
+    rx_frame_buffer = &input_array[put_index];
+  }
+  input_frame_buffer = rx_frame_buffer;
+
+  process_start(&micromac_radio_process, NULL);
+
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
 init(void)
 {
-  int put_index;
+  int ret = 1;
   tsExtAddr node_long_address;
   uint16_t node_short_address;
+  static uint8_t is_initialized;
 
   tx_in_progress = 0;
 
@@ -300,12 +264,12 @@ init(void)
     vMMAC_ConfigureInterruptSources(0);
   } else {
     vMMAC_EnableInterrupts(&radio_interrupt_handler);
-  } vMMAC_ConfigureRadio();
-  set_channel(MICROMAC_CONF_CHANNEL);
-  set_txpower(MICROMAC_CONF_TX_POWER);
+  }
+  vMMAC_ConfigureRadio();
+  set_channel(current_channel);
+  set_txpower(current_tx_power);
 
   vMMAC_GetMacAddress(&node_long_address);
-
   /* Short addresses are disabled by default */
   node_short_address = (uint16_t)node_long_address.u32L;
   vMMAC_SetRxAddress(frame802154_get_pan_id(), node_short_address, &node_long_address);
@@ -313,21 +277,6 @@ init(void)
   /* Disable hardware backoff */
   vMMAC_SetTxParameters(1, 0, 0, 0);
   vMMAC_SetCutOffTimer(0, FALSE);
-
-  /* Initialize ring buffer and first input packet pointer */
-  ringbufindex_init(&input_ringbuf, MIRCOMAC_CONF_BUF_NUM);
-  /* get pointer to next input slot */
-  put_index = ringbufindex_peek_put(&input_ringbuf);
-  if(put_index == -1) {
-    rx_frame_buffer = NULL;
-    printf("micromac_radio init:! no buffer available. Abort init.\n");
-    off();
-    return 0;
-  } else {
-    rx_frame_buffer = &input_array[put_index];
-  } input_frame_buffer = rx_frame_buffer;
-
-  process_start(&micromac_radio_process, NULL);
 
 #if RADIO_TEST_MODE == RADIO_TEST_MODE_HIGH_PWR
   /* Enable high power mode.
@@ -345,7 +294,12 @@ init(void)
                 u32REG_SysRead(REG_SYS_PWR_CTRL) | (1UL << 26UL));
 #endif /* TEST_MODE */
 
-  return 1;
+  if(!is_initialized) {
+    is_initialized = 1;
+    ret = init_software();
+  }
+
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -359,7 +313,8 @@ on(void)
                           );
   } else {
     missed_radio_on_request = 1;
-  } ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+  }
+  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   listen_on = 1;
   return 1;
 }
@@ -434,7 +389,8 @@ transmit(unsigned short payload_len)
     RIMESTATS_ADD(noacktx);
   } else {
     ret = RADIO_TX_ERR;
-  } return ret;
+  }
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -450,8 +406,8 @@ prepare(const void *payload, unsigned short payload_len)
   }
   if(payload_len > 127 || payload == NULL) {
     return 1;
-    /* Copy payload to (soft) Ttx buffer */
   }
+  /* Copy payload to (soft) Ttx buffer */
   memcpy(tx_frame_buffer.uPayload.au8Byte, payload, payload_len);
   i = payload_len;
 #if CRC_SW
@@ -561,6 +517,7 @@ read(void *buf, unsigned short bufsize)
   len = input_frame_buffer->u8PayloadLength;
 
   if(len <= CHECKSUM_LEN) {
+    input_frame_buffer->u8PayloadLength = 0;
     return 0;
   } else {
     len -= CHECKSUM_LEN;
@@ -597,8 +554,9 @@ read(void *buf, unsigned short bufsize)
       }
     } else {
       len = 0;
-      /* Disable further read attempts */
-    } input_frame_buffer->u8PayloadLength = 0;
+    }
+    /* Disable further read attempts */
+    input_frame_buffer->u8PayloadLength = 0;
   }
 
   return len;
@@ -864,8 +822,6 @@ set_send_on_cca(uint8_t enable)
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
 {
-  int i, v;
-
   if(!value) {
     return RADIO_RESULT_INVALID_VALUE;
   }
@@ -926,8 +882,6 @@ get_value(radio_param_t param, radio_value_t *value)
 static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
-  int i;
-
   switch(param) {
   case RADIO_PARAM_POWER_MODE:
     if(value == RADIO_POWER_MODE_ON) {

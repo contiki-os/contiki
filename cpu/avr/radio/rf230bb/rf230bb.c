@@ -237,6 +237,8 @@ typedef enum{
 PROCESS(rf230_process, "RF230 driver");
 /*---------------------------------------------------------------------------*/
 
+int rf230_interrupt(void);
+
 static int rf230_on(void);
 static int rf230_off(void);
 

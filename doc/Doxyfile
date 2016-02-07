@@ -427,7 +427,7 @@ EXTRACT_PACKAGE        = NO
 # included in the documentation.
 # The default value is: NO.
 
-EXTRACT_STATIC         = NO
+EXTRACT_STATIC         = YES
 
 # If the EXTRACT_LOCAL_CLASSES tag is set to YES classes (and structs) defined
 # locally in source files will be included in the documentation. If set to NO
@@ -808,7 +808,8 @@ EXCLUDE_SYMLINKS       = NO
 # exclude all test directories for example use the pattern */test/*
 
 EXCLUDE_PATTERNS       = */cpu/cc26xx-cc13xx/lib/* \
-                         */cpu/cc26xx-cc13xx/rf-core/api/*
+                         */cpu/cc26xx-cc13xx/rf-core/api/* \
+			 */platform/stm32nucleo-spirit1/stm32cube-lib/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -1959,9 +1960,14 @@ PREDEFINED             = CC_FUNCTION_POINTER_ARGS:=1 \
                          UIP_TCP:=1 \
                          UIP_UDP:=1 \
                          UIP_CONF_ICMP6:=1 \
+                         UIP_ND6_DEF_MAXDADNS:=1 \
+                         UIP_CONF_IPV6_REASSEMBLY:=1 \
+                         RNG_CONF_USE_ADC:=0 \
+                         RNG_CONF_USE_RADIO_CLOCK:=1 \
+                         CLOCK_SECOND:=128 \
                          WITH_LOADER_ARCH:=1 \
                          __attribute__(x):= \
-                         CC_ALIGN_ATTR(n):= \
+                         CC_ALIGN(n):= \
                          HTTPD_STRING_ATTR:= \
                          PROGMEM:= \
                          EEMEM:= \

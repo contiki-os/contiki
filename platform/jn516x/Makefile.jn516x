@@ -9,6 +9,11 @@ ifdef CHIP
 else
 JENNIC_CHIP ?= JN5168
 endif
+ifdef MODULE
+  JN5168_MODULE = $(MODULE)
+else
+  JN5168_MODULE ?= M00
+endif
 JENNIC_PCB ?= DEVKIT4
 JENNIC_STACK ?= MAC
 JENNIC_MAC ?= MiniMac
@@ -48,6 +53,17 @@ LDLIBS := $(subst MiniMac_JN516x, ,$(LDLIBS))
   LDLIBS += JPT_$(JENNIC_CHIP)
 endif
 
+# Enable all warnings
+CFLAGS += -Wall
+# Disable warnings that result many false positives with the Contiki core
+CFLAGS += -Wno-strict-aliasing
+CFLAGS += -Wno-cast-align
+
+# Warings as error
+ifdef WERROR
+CFLAGS += -Werror
+endif
+
 # Pass DEBUG as CFLAG
 ifeq ($(DEBUG),SW)
 CFLAGS += -DDEBUG=1
@@ -64,11 +80,9 @@ SIZE:=$(CROSS_COMPILE)-size
 OBJCOPY:=$(CROSS_COMPILE)-objcopy
 OBJDUMP:=$(CROSS_COMPILE)-objdump
 
-CFLAGS  := $(subst -Wcast-align,,$(CFLAGS))
-CFLAGS  := $(subst -Wall,,$(CFLAGS))
-
-ARCH = ccm-star.c exceptions.c rtimer-arch.c slip_uart0.c clock.c micromac-radio.c \
-       mtarch.c node-id.c watchdog.c log.c ringbufindex.c slip.c sprintf.c 
+ARCH = ccm-star.c exceptions.c rtimer-arch.c rtimer-arch-slow.c \
+       slip_uart0.c clock.c micromac-radio.c \
+       mtarch.c node-id.c watchdog.c log.c slip.c sprintf.c
 # Default uart0 for printf and slip
 TARGET_WITH_UART0 ?= 1
 TARGET_WITH_UART1 ?= 0
@@ -116,6 +130,10 @@ ifeq ($(JN516x_WITH_DONGLE),1)
 CFLAGS += -DDONGLE_NODE
 CONTIKI_TARGET_DIRS += dev/dongle
 ARCH += leds-arch.c
+endif
+
+ifeq ($(JENNIC_CHIP),JN5168)
+CFLAGS += -DJN5168_$(JN5168_MODULE)
 endif
 
 ifdef nodemac

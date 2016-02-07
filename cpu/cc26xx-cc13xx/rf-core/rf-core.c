@@ -40,6 +40,7 @@
 #include "dev/watchdog.h"
 #include "sys/process.h"
 #include "sys/energest.h"
+#include "sys/cc.h"
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
@@ -71,12 +72,6 @@
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
-#endif
-/*---------------------------------------------------------------------------*/
-#ifdef __GNUC__
-#define CC_ALIGN_ATTR(n) __attribute__ ((aligned(n)))
-#else
-#define CC_ALIGN_ATTR(n)
 #endif
 /*---------------------------------------------------------------------------*/
 #ifdef RF_CORE_CONF_DEBUG_CRC
@@ -114,9 +109,7 @@ PROCESS(rf_core_process, "CC13xx / CC26xx RF driver");
 uint8_t
 rf_core_is_accessible()
 {
-  if(ti_lib_prcm_rf_ready() &&
-     ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE) ==
-     PRCM_DOMAIN_POWER_ON) {
+  if(ti_lib_prcm_rf_ready()) {
     return RF_CORE_ACCESSIBLE;
   }
   return RF_CORE_NOT_ACCESSIBLE;
@@ -129,10 +122,18 @@ rf_core_send_cmd(uint32_t cmd, uint32_t *status)
   bool interrupts_disabled;
   bool is_radio_op = false;
 
-  /* If cmd is 4-byte aligned, then it's a radio OP. Clear the status field */
+  /*
+   * If cmd is 4-byte aligned, then it's either a radio OP or an immediate
+   * command. Clear the status field if it's a radio OP
+   */
   if((cmd & 0x03) == 0) {
-    is_radio_op = true;
-    ((rfc_radioOp_t *)cmd)->status = RF_CORE_RADIO_OP_STATUS_IDLE;
+    uint32_t cmd_type;
+    cmd_type = ((rfc_command_t *)cmd)->commandNo & RF_CORE_COMMAND_TYPE_MASK;
+    if(cmd_type == RF_CORE_COMMAND_TYPE_IEEE_FG_RADIO_OP ||
+       cmd_type == RF_CORE_COMMAND_TYPE_RADIO_OP) {
+      is_radio_op = true;
+      ((rfc_radioOp_t *)cmd)->status = RF_CORE_RADIO_OP_STATUS_IDLE;
+    }
   }
 
   /*
@@ -167,7 +168,7 @@ rf_core_send_cmd(uint32_t cmd, uint32_t *status)
       }
       return RF_CORE_CMD_ERROR;
     }
-  } while(*status == RF_CORE_CMDSTA_PENDING);
+  } while((*status & RF_CORE_CMDSTA_RESULT_MASK) == RF_CORE_CMDSTA_PENDING);
 
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
@@ -201,6 +202,28 @@ rf_core_wait_cmd_done(void *cmd)
          == RF_CORE_RADIO_OP_STATUS_DONE_OK;
 }
 /*---------------------------------------------------------------------------*/
+static int
+fs_powerdown(void)
+{
+  rfc_CMD_FS_POWERDOWN_t cmd;
+  uint32_t cmd_status;
+
+  rf_core_init_radio_op((rfc_radioOp_t *)&cmd, sizeof(cmd), CMD_FS_POWERDOWN);
+
+  if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) != RF_CORE_CMD_OK) {
+    PRINTF("fs_powerdown: CMDSTA=0x%08lx\n", cmd_status);
+    return RF_CORE_CMD_ERROR;
+  }
+
+  if(rf_core_wait_cmd_done(&cmd) != RF_CORE_CMD_OK) {
+    PRINTF("fs_powerdown: CMDSTA=0x%08lx, status=0x%04x\n",
+           cmd_status, cmd.status);
+    return RF_CORE_CMD_ERROR;
+  }
+
+  return RF_CORE_CMD_OK;
+}
+/*---------------------------------------------------------------------------*/
 int
 rf_core_power_up()
 {
@@ -220,10 +243,6 @@ rf_core_power_up()
   ti_lib_prcm_domain_enable(PRCM_DOMAIN_RFCORE);
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
-
-  while(!rf_core_is_accessible()) {
-    PRINTF("rf_core_power_up: Not ready\n");
-  }
 
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
@@ -256,6 +275,9 @@ rf_core_power_down()
   if(rf_core_is_accessible()) {
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
+
+    /* need to send FS_POWERDOWN or analog components will use power */
+    fs_powerdown();
   }
 
   /* Shut down the RFCORE clock domain in the MCU VD */
@@ -478,8 +500,8 @@ cc26xx_rf_cpe1_isr(void)
     }
   }
 
-  /* Clear interrupt flags */
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
+  /* Clear INTERNAL_ERROR interrupt flag */
+  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x7FFFFFFF;
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
@@ -500,17 +522,25 @@ cc26xx_rf_cpe0_isr(void)
   ti_lib_int_master_disable();
 
   if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & RX_FRAME_IRQ) {
+    /* Clear the RX_ENTRY_DONE interrupt flag */
+    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0xFF7FFFFF;
     process_poll(&rf_core_process);
   }
 
   if(RF_CORE_DEBUG_CRC) {
     if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & RX_NOK_IRQ) {
+      /* Clear the RX_NOK interrupt flag */
+      HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0xFFFDFFFF;
       rx_nok_isr();
     }
   }
 
-  /* Clear interrupt flags */
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
+  if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) &
+     (IRQ_LAST_FG_COMMAND_DONE | IRQ_LAST_COMMAND_DONE)) {
+    /* Clear the two TX-related interrupt flags */
+    HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0xFFFFFFF5;
+  }
+
   ti_lib_int_master_enable();
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);

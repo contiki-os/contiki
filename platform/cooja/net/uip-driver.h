@@ -41,7 +41,11 @@
 
 #include "net/netstack.h"
 
+#if NETSTACK_CONF_WITH_IPV6
+uint8_t uip_driver_send(const uip_lladdr_t *);
+#else
 uint8_t uip_driver_send(void);
+#endif
 
 extern const struct network_driver uip_driver;
 

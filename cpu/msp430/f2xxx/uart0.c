@@ -51,6 +51,11 @@ static volatile uint8_t transmitting;
 #define TX_WITH_INTERRUPT 1
 #endif /* UART0_CONF_TX_WITH_INTERRUPT */
 
+#ifdef UART0_CONF_RX_WITH_DMA
+#define RX_WITH_DMA UART0_CONF_RX_WITH_DMA
+#else /* UART0_CONF_RX_WITH_DMA */
+#define RX_WITH_DMA 1
+#endif /* UART0_CONF_RX_WITH_DMA */
 
 #if TX_WITH_INTERRUPT
 #define TXBUFSIZE 64
@@ -58,6 +63,30 @@ static volatile uint8_t transmitting;
 static struct ringbuf txbuf;
 static uint8_t txbuf_data[TXBUFSIZE];
 #endif /* TX_WITH_INTERRUPT */
+
+#if RX_WITH_DMA
+#define RXBUFSIZE 128
+
+static uint8_t rxbuf[RXBUFSIZE];
+static uint16_t last_size;
+static struct ctimer rxdma_timer;
+
+static void
+handle_rxdma_timer(void *ptr)
+{
+  uint16_t size;
+  size = DMA0SZ; /* Note: loop requires that size is less or eq to RXBUFSIZE */
+  while(last_size != size) {
+    uart0_input_handler((unsigned char)rxbuf[RXBUFSIZE - last_size]);
+    last_size--;
+    if(last_size == 0) {
+      last_size = RXBUFSIZE;
+    }
+  }
+
+  ctimer_reset(&rxdma_timer);
+}
+#endif /* RX_WITH_DMA */
 
 /*---------------------------------------------------------------------------*/
 uint8_t
@@ -69,6 +98,9 @@ uart0_active(void)
 void
 uart0_set_input(int (*input)(unsigned char c))
 {
+#if RX_WITH_DMA /* This needs to be called after ctimer process is started */
+  ctimer_set(&rxdma_timer, CLOCK_SECOND / 64, handle_rxdma_timer, NULL);
+#endif
   uart0_input_handler = input;
 }
 /*---------------------------------------------------------------------------*/
@@ -100,7 +132,7 @@ uart0_writeb(unsigned char c)
 #endif /* TX_WITH_INTERRUPT */
 }
 /*---------------------------------------------------------------------------*/
-#if ! NETSTACK_CONF_WITH_IPV4 /* If NETSTACK_CONF_WITH_IPV4 is defined, putchar() is defined by the SLIP driver */
+#if !NETSTACK_CONF_WITH_IPV4  /* If NETSTACK_CONF_WITH_IPV4 is defined, putchar() is defined by the SLIP driver */
 #endif /* ! NETSTACK_CONF_WITH_IPV4 */
 /*---------------------------------------------------------------------------*/
 /**
@@ -135,8 +167,24 @@ uart0_init(unsigned long ubr)
   ringbuf_init(&txbuf, txbuf_data, sizeof(txbuf_data));
   IE2 |= UCA0TXIE;                        /* Enable UCA0 TX interrupt */
 #endif /* TX_WITH_INTERRUPT */
+
+#if RX_WITH_DMA
+  IE2 &= ~UCA0RXIE; /* disable USART0 RX interrupt  */
+  /* UART0_RX trigger */
+  DMACTL0 = DMA0TSEL_3;
+
+  /* source address = UCA0RXBUF */
+  DMA0SA = (unsigned int)&UCA0RXBUF;
+  DMA0DA = (unsigned int)&rxbuf;
+  DMA0SZ = RXBUFSIZE;
+  last_size = RXBUFSIZE;
+  DMA0CTL = DMADT_4 + DMASBDB + DMADSTINCR_3 + DMAEN + DMAREQ;
+
+  msp430_add_lpm_req(MSP430_REQUIRE_LPM1);
+#endif /* RX_WITH_DMA */
 }
 /*---------------------------------------------------------------------------*/
+#if !RX_WITH_DMA
 ISR(USCIAB0RX, uart0_rx_interrupt)
 {
   uint8_t c;
@@ -148,18 +196,19 @@ ISR(USCIAB0RX, uart0_rx_interrupt)
     c = UCA0RXBUF;
     if(uart0_input_handler != NULL) {
       if(uart0_input_handler(c)) {
-	LPM4_EXIT;
+        LPM4_EXIT;
       }
     }
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+#endif /* !RX_WITH_DMA */
 /*---------------------------------------------------------------------------*/
 #if TX_WITH_INTERRUPT
 ISR(USCIAB0TX, uart0_tx_interrupt)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  if((IFG2 & UCA0TXIFG)){
+  if((IFG2 & UCA0TXIFG)) {
 
     if(ringbuf_elements(&txbuf) == 0) {
       transmitting = 0;

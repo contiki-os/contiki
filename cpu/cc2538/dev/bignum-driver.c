@@ -50,12 +50,12 @@
  * bignum_divide_start    bignum_divide_get_result   (division)
  * bignum_cmp_start       bignum_cmp_get_result      (comparison)
  */
-#include "bignum-driver.h"
+#include "dev/bignum-driver.h"
 
-#include "stdio.h"
+#include <stdio.h>
 
 #include "reg.h"
-#include "nvic.h"
+#include "dev/nvic.h"
 
 #define ASSERT(IF) if(!(IF)) { return PKA_STATUS_INVALID_PARAM; }
 

@@ -47,12 +47,22 @@
 
 #include <string.h>
 
+/* A configurable function called after adding a new neighbor as next hop */
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK
+void NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK(const linkaddr_t *addr);
+#endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK */
+
+/* A configurable function called after removing a next hop neighbor */
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
+void NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(const linkaddr_t *addr);
+#endif /* NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK */
+
 /* The nbr_routes holds a neighbor table to be able to maintain
    information about what routes go through what neighbor. This
    neighbor table is registered with the central nbr-table repository
    so that it will be maintained along with the rest of the neighbor
    tables in the system. */
-NBR_TABLE(struct uip_ds6_route_neighbor_routes, nbr_routes);
+NBR_TABLE_GLOBAL(struct uip_ds6_route_neighbor_routes, nbr_routes);
 MEMB(neighborroutememb, struct uip_ds6_route_neighbor_route, UIP_DS6_ROUTE_NB);
 
 /* Each route is repressented by a uip_ds6_route_t structure and
@@ -335,6 +345,9 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
         return NULL;
       }
       LIST_STRUCT_INIT(routes, route_list);
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK
+      NETSTACK_CONF_ROUTING_NEIGHBOR_ADDED_CALLBACK((const linkaddr_t *)nexthop_lladdr);
+#endif
     }
 
     /* Allocate a routing entry and populate it. */
@@ -427,8 +440,18 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
     if(list_head(route->neighbor_routes->route_list) == NULL) {
       /* If this was the only route using this neighbor, remove the
          neighbor from the table - this implicitly unlocks nexthop */
+#if (DEBUG) & DEBUG_ANNOTATE
+      uip_ipaddr_t *nexthop = uip_ds6_route_nexthop(route);
+      if(nexthop != NULL) {
+        ANNOTATE("#L %u 0\n", nexthop->u8[sizeof(uip_ipaddr_t) - 1]);
+      }
+#endif /* (DEBUG) & DEBUG_ANNOTATE */
       PRINTF("uip_ds6_route_rm: removing neighbor too\n");
       nbr_table_remove(nbr_routes, route->neighbor_routes->route_list);
+#ifdef NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK
+      NETSTACK_CONF_ROUTING_NEIGHBOR_REMOVED_CALLBACK(
+          (const linkaddr_t *)nbr_table_get_lladdr(nbr_routes, route->neighbor_routes->route_list));
+#endif
     }
     memb_free(&routememb, route);
     memb_free(&neighborroutememb, neighbor_route);
@@ -440,25 +463,6 @@ uip_ds6_route_rm(uip_ds6_route_t *route)
 #if UIP_DS6_NOTIFICATIONS
     call_route_callback(UIP_DS6_NOTIFICATION_ROUTE_RM,
         &route->ipaddr, uip_ds6_route_nexthop(route));
-#endif
-#if 0 //(DEBUG & DEBUG_ANNOTATE) == DEBUG_ANNOTATE
-    /* we need to check if this was the last route towards "nexthop" */
-    /* if so - remove that link (annotation) */
-    uip_ds6_route_t *r;
-    for(r = uip_ds6_route_head();
-        r != NULL;
-        r = uip_ds6_route_next(r)) {
-      uip_ipaddr_t *nextr, *nextroute;
-      nextr = uip_ds6_route_nexthop(r);
-      nextroute = uip_ds6_route_nexthop(route);
-      if(nextr != NULL &&
-         nextroute != NULL &&
-         uip_ipaddr_cmp(nextr, nextroute)) {
-        /* we found another link using the specific nexthop, so keep the #L */
-        return;
-      }
-    }
-    ANNOTATE("#L %u 0\n", uip_ds6_route_nexthop(route)->u8[sizeof(uip_ipaddr_t) - 1]);
 #endif
   }
 
