@@ -53,7 +53,7 @@
 #include "dev/gpio.h"
 #include "dev/ioc.h"
 #include "sys/timer.h"
-#include "sys/rtimer.h"
+#include "sys/ctimer.h"
 /*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
@@ -77,7 +77,7 @@ static uint8_t enabled;
 process_event_t anemometer_int_event;
 process_event_t rain_gauge_int_event;
 /*---------------------------------------------------------------------------*/
-static struct rtimer rt;
+static struct ctimer ct;
 static struct timer debouncetimer;
 /*---------------------------------------------------------------------------*/
 typedef struct {
@@ -186,7 +186,7 @@ weather_meter_get_wind_dir(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-rt_callback(struct rtimer *t, void *ptr)
+ct_callback(void *ptr)
 {
   uint32_t wind_speed;
   int16_t wind_dir;
@@ -261,7 +261,8 @@ rt_callback(struct rtimer *t, void *ptr)
   /* Enable the interrupt again */
   GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE,
                         ANEMOMETER_SENSOR_PIN_MASK);
-  rtimer_set(&rt, RTIMER_NOW() + RTIMER_SECOND, 1, rt_callback, NULL);
+
+  ctimer_set(&ct, CLOCK_SECOND, ct_callback, NULL);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS(weather_meter_int_process, "Weather meter interrupt process handler");
@@ -444,7 +445,7 @@ configure(int type, int value)
     /* Initialize here prior the first second tick */
     wind_vane.value_prev = weather_meter_get_wind_dir();
 
-    rtimer_set(&rt, RTIMER_NOW() + RTIMER_SECOND, 1, rt_callback, NULL);
+    ctimer_set(&ct, CLOCK_SECOND, ct_callback, NULL);
 
     GPIO_ENABLE_INTERRUPT(ANEMOMETER_SENSOR_PORT_BASE, ANEMOMETER_SENSOR_PIN_MASK);
     GPIO_ENABLE_INTERRUPT(RAIN_GAUGE_SENSOR_PORT_BASE, RAIN_GAUGE_SENSOR_PIN_MASK);
@@ -485,3 +486,4 @@ configure(int type, int value)
 SENSORS_SENSOR(weather_meter, WEATHER_METER_SENSOR, value, configure, NULL);
 /*---------------------------------------------------------------------------*/
 /** @} */
+
