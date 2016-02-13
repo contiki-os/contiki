@@ -1,14 +1,14 @@
 all: z1-websense
 
-CONTIKI=../../../../..
+CONTIKI = ../../../../..
 
-SMALL=1
+SMALL = 1
 
 APPS += webserver webbrowser
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 CONTIKI_SOURCEFILES += wget.c
-PROJECTDIRS += ../../../ipv6/rpl-border-router
+PROJECTDIRS += ../../../../ipv6/rpl-border-router
 PROJECT_SOURCEFILES += httpd-simple.c
 
 CONTIKI_WITH_IPV6 = 1
