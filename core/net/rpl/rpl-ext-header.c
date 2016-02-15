@@ -180,9 +180,11 @@ rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr)
 {
   uint8_t *uip_next_hdr;
   int last_uip_ext_len = uip_ext_len;
+  rpl_dag_t *dag;
 
   uip_ext_len = 0;
   uip_next_hdr = &UIP_IP_BUF->proto;
+  dag = rpl_get_dag(&UIP_IP_BUF->destipaddr);
 
   /* Look for routing header */
   while(uip_next_hdr != NULL && *uip_next_hdr != UIP_PROTO_ROUTING) {
@@ -207,8 +209,10 @@ rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr)
     }
   }
 
-  if(uip_next_hdr != NULL && *uip_next_hdr == UIP_PROTO_ROUTING
-      && UIP_RH_BUF->routing_type == RPL_RH_TYPE_SRH) {
+  if((uip_next_hdr != NULL && *uip_next_hdr == UIP_PROTO_ROUTING
+      && UIP_RH_BUF->routing_type == RPL_RH_TYPE_SRH) ||
+     (default_instance->current_dag->rank == ROOT_RANK(default_instance) &&
+      rpl_ns_get_node(dag, &UIP_IP_BUF->destipaddr) != NULL)) {
     /* Routing header found. The next hop should be already copied as the IPv6 destination
      * address, via rpl_process_srh_header. We turn this address into a link-local to enable
      * forwarding to next hop */
@@ -371,6 +375,12 @@ insert_srh_header(void)
   /* For simplicity, we use cmpri = cmpre */
   cmpri = 15;
   cmpre = 15;
+
+  if(node != NULL && node == root_node) {
+    PRINTF("RPL: SRH no need to insert SRH\n");
+    return 0;
+  }
+
   while(node != NULL && node != root_node) {
 
     rpl_ns_get_node_global_addr(&node_addr, node);
@@ -379,18 +389,18 @@ insert_srh_header(void)
     cmpri = MIN(cmpri, count_matching_bytes(&node_addr, &UIP_IP_BUF->destipaddr, 16));
     cmpre = cmpri;
 
-    PRINTF("RPL: SRH Hop ");
-    PRINT6ADDR(&node_addr);
-    PRINTF("\n");
+    if(node->parent != root_node) {
+      PRINTF("RPL: SRH Hop ");
+      PRINT6ADDR(&node_addr);
+      PRINTF("\n");
+    } else if(((DEBUG) & DEBUG_PRINT)) {
+      rpl_ns_get_node_global_addr(&node_addr, node);
+      PRINTF("RPL: SRH Next Hop ");
+      PRINT6ADDR(&node_addr);
+      PRINTF("\n");
+    }
     node = node->parent;
     path_len++;
-  }
-
-  if(((DEBUG) & DEBUG_PRINT) && node != NULL) {
-    rpl_ns_get_node_global_addr(&node_addr, node);
-    PRINTF("RPL: SRH Next Hop ");
-    PRINT6ADDR(&node_addr);
-    PRINTF("\n");
   }
 
   /* Extension header length: fixed headers + (n-1) * (16-ComprI) + (16-ComprE)*/
