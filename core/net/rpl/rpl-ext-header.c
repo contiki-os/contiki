@@ -394,16 +394,9 @@ insert_srh_header(void)
     cmpri = MIN(cmpri, count_matching_bytes(&node_addr, &UIP_IP_BUF->destipaddr, 16));
     cmpre = cmpri;
 
-    if(node->parent != root_node) {
-      PRINTF("RPL: SRH Hop ");
-      PRINT6ADDR(&node_addr);
-      PRINTF("\n");
-    } else if(((DEBUG) & DEBUG_PRINT)) {
-      rpl_ns_get_node_global_addr(&node_addr, node);
-      PRINTF("RPL: SRH Next Hop ");
-      PRINT6ADDR(&node_addr);
-      PRINTF("\n");
-    }
+    PRINTF("RPL: SRH Hop ");
+    PRINT6ADDR(&node_addr);
+    PRINTF("\n");
     node = node->parent;
     path_len++;
   }
