@@ -361,9 +361,30 @@ PROCESS_THREAD(coap_engine, ev, data)
 void
 coap_blocking_request_callback(void *callback_data, void *response)
 {
+  uint32_t res_block = 0;
   struct request_state_t *state = (struct request_state_t *)callback_data;
 
   state->response = (coap_packet_t *)response;
+
+  coap_get_header_block2(state->response, &res_block, &state->more, NULL, NULL);
+
+  PRINTF("Received #%lu%s (%u bytes)\n", res_block, state->more ? "+" : "",
+         state->response->payload_len);
+
+  if(res_block == state->block_num) {
+      /* switch process context to calling process */
+      PROCESS_CONTEXT_BEGIN(state->process);
+      /* call original CoAP callback of blocking request */
+      state->transaction->blocking_callback(state->response);
+      /* switch back */
+      PROCESS_CONTEXT_END(state->process);
+      ++(state->block_num);
+  } else {
+      PRINTF("block mismatch response #%lu - requested #%lu\n", res_block,
+        state->block_num);
+      ++(state->block_error_count);
+  }
+
   process_poll(state->process);
 }
 /*---------------------------------------------------------------------------*/
@@ -375,17 +396,10 @@ PT_THREAD(coap_blocking_request
 {
   PT_BEGIN(&state->pt);
 
-  static uint8_t more;
-  static uint32_t res_block;
-  static uint8_t block_error;
-
   state->block_num = 0;
   state->response = NULL;
   state->process = PROCESS_CURRENT();
-
-  more = 0;
-  res_block = 0;
-  block_error = 0;
+  state->block_error_count = 0;
 
   do {
     request->mid = coap_get_mid();
@@ -393,6 +407,7 @@ PT_THREAD(coap_blocking_request
                                                   remote_port))) {
       state->transaction->callback = coap_blocking_request_callback;
       state->transaction->callback_data = state;
+      state->transaction->blocking_callback = request_callback;
 
       if(state->block_num > 0) {
         coap_set_header_block2(request, state->block_num, 0,
@@ -412,24 +427,11 @@ PT_THREAD(coap_blocking_request
         PRINTF("Server not responding\n");
         PT_EXIT(&state->pt);
       }
-
-      coap_get_header_block2(state->response, &res_block, &more, NULL, NULL);
-
-      PRINTF("Received #%lu%s (%u bytes)\n", res_block, more ? "+" : "",
-             state->response->payload_len);
-
-      if(res_block == state->block_num) {
-        request_callback(state->response);
-        ++(state->block_num);
-      } else {
-        PRINTF("WRONG BLOCK %lu/%lu\n", res_block, state->block_num);
-        ++block_error;
-      }
     } else {
       PRINTF("Could not allocate transaction buffer");
       PT_EXIT(&state->pt);
     }
-  } while(more && block_error < COAP_MAX_ATTEMPTS);
+  } while(state->more && state->block_error_count < COAP_MAX_ATTEMPTS);
 
   PT_END(&state->pt);
 }

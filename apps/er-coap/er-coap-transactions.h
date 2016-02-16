@@ -48,6 +48,8 @@
 #define COAP_RESPONSE_TIMEOUT_TICKS         (CLOCK_SECOND * COAP_RESPONSE_TIMEOUT)
 #define COAP_RESPONSE_TIMEOUT_BACKOFF_MASK  (long)((CLOCK_SECOND * COAP_RESPONSE_TIMEOUT * ((float)COAP_RESPONSE_RANDOM_FACTOR - 1.0)) + 0.5) + 1
 
+typedef void (*blocking_response_handler)(void *response);
+
 /* container for transactions with message buffer and retransmission info */
 typedef struct coap_transaction {
   struct coap_transaction *next;        /* for LIST */
@@ -60,6 +62,7 @@ typedef struct coap_transaction {
   uint16_t port;
 
   restful_response_handler callback;
+  blocking_response_handler blocking_callback;
   void *callback_data;
 
   uint16_t packet_len;
