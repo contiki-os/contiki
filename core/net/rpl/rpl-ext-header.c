@@ -381,7 +381,7 @@ insert_srh_header(void)
   cmpri = 15;
   cmpre = 15;
 
-  if(node != NULL && node == root_node) {
+  if(node == root_node) {
     PRINTF("RPL: SRH no need to insert SRH\n");
     return 0;
   }
