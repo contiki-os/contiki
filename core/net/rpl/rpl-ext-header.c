@@ -210,13 +210,14 @@ rpl_srh_get_next_hop(uip_ipaddr_t *ipaddr)
     }
   }
 
-  dag = rpl_get_dag(&IP_IP_BUF->destipaddr);
+  dag = rpl_get_dag(&UIP_IP_BUF->destipaddr);
   root_node = rpl_ns_get_node(dag, &dag->dag_id);
   dest_node = rpl_ns_get_node(dag, &UIP_IP_BUF->destipaddr);
 
   if((uip_next_hdr != NULL && *uip_next_hdr == UIP_PROTO_ROUTING
       && UIP_RH_BUF->routing_type == RPL_RH_TYPE_SRH) ||
-     (dest_node != NULL && root_node != NULL && node->parent == root_node)) {
+     (dest_node != NULL && root_node != NULL &&
+      dest_node->parent == root_node)) {
     /* Routing header found or the packet destined for a direct child of the root.
      * The next hop should be already copied as the IPv6 destination
      * address, via rpl_process_srh_header. We turn this address into a link-local to enable
