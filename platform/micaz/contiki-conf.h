@@ -125,10 +125,11 @@
 #define UIP_CONF_ROUTER                 0
 
 /* configure number of neighbors and routes */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     5
-#define UIP_CONF_MAX_ROUTES   5
+#define NBR_TABLE_CONF_MAX_NEIGHBORS    5
+#define UIP_CONF_MAX_ROUTES             5
 
-#define RPL_CONF_MAX_PARENTS         4
+#define RPL_CONF_MAX_PARENTS            4
+#define RPL_CONF_MAX_DAG_PER_INSTANCE   1
 
 #define UIP_CONF_ND6_SEND_RA		0
 #define UIP_CONF_ND6_REACHABLE_TIME     600000
@@ -140,12 +141,12 @@
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
 #define UIP_CONF_IP_FORWARD             0
-#define UIP_CONF_BUFFER_SIZE		    240
+#define UIP_CONF_BUFFER_SIZE            200
 
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
 #ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    1
-#define SICSLOWPAN_CONF_FRAGMENT_BUFFERS        4
+#define SICSLOWPAN_CONF_FRAGMENT_BUFFERS        3
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
