@@ -199,7 +199,7 @@ nbr_table_allocate(nbr_table_reason_t reason, void *data)
     } else {
       /* used least_used_key to indicate what is the least useful entry */
       int index;
-      int locked;
+      int locked = 0;
       if((index = index_from_lladdr(lladdr)) != -1) {
         least_used_key = key_from_index(index);
         locked = locked_map[index];
