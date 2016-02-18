@@ -111,36 +111,33 @@ update_nbr(void)
     linkaddr_t *lladdr = nbr_table_get_lladdr(ds6_neighbors, nbr);
     is_used = 0;
 
+    /* Check if this neighbor is used as nexthop and therefor being a
+       RPL child. */
+    if(uip_ds6_route_is_nexthop((uip_lladdr_t *)lladdr) != 0) {
+      is_used++;
+      num_children++;
+    }
+
     parent = rpl_get_parent((uip_lladdr_t *)lladdr);
     if(parent != NULL) {
       num_parents++;
-      is_used++;
 
       if(parent->dag != NULL && parent->dag->preferred_parent == parent) {
         /* This is the preferred parent for the DAG and must not be removed */
 
         /* Note: this assumes that only RPL adds default routes. */
 
-      } else if(worst_rank < INFINITE_RANK &&
+      } else if(is_used == 0 && worst_rank < INFINITE_RANK &&
                 parent->rank > 0 &&
                 parent->dag != NULL &&
                 parent->dag->instance != NULL &&
                 (rank = parent->dag->instance->of->calculate_rank(parent, 0)) > worst_rank) {
         /* This is the worst-rank neighbor - this is a good candidate for removal */
-        if(uip_ds6_route_is_nexthop((uip_lladdr_t *)lladdr) == 0) {
-          worst_rank = rank;
-          worst_rank_nbr = lladdr;
-        } else {
-          printf("*** Can not use this as worst rank as it is a next hop\n");
-        }
+        worst_rank = rank;
+        worst_rank_nbr = lladdr;
       }
-    }
-
-    /* Check if this neighbor is used as nexthop and therefor being a
-       RPL child. */
-    if(uip_ds6_route_is_nexthop((uip_lladdr_t *)lladdr) != 0) {
+      /* add to is_used after evaluation of is_used above */
       is_used++;
-      num_children++;
     }
 
     if(is_used == 0) {
