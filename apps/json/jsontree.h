@@ -49,6 +49,12 @@
 #define JSONTREE_MAX_DEPTH 10
 #endif /* JSONTREE_CONF_MAX_DEPTH */
 
+#ifdef JSONTREE_CONF_PRETTY
+#define JSONTREE_PRETTY JSONTREE_CONF_PRETTY
+#else
+#define JSONTREE_PRETTY 0
+#endif /* JSONTREE_CONF_PRETTY */
+
 struct jsontree_context {
   struct jsontree_value *values[JSONTREE_MAX_DEPTH];
   uint16_t index[JSONTREE_MAX_DEPTH];
@@ -66,6 +72,11 @@ struct jsontree_value {
 struct jsontree_string {
   uint8_t type;
   const char *value;
+};
+
+struct jsontree_uint {
+  uint8_t type;
+  unsigned int value;
 };
 
 struct jsontree_int {
@@ -96,6 +107,11 @@ struct jsontree_array {
   uint8_t type;
   uint8_t count;
   struct jsontree_value **values;
+};
+
+struct jsontree_ptr {
+  uint8_t type;
+  const void *value;
 };
 
 #define JSONTREE_STRING(text) {JSON_TYPE_STRING, (text)}
@@ -130,6 +146,8 @@ void jsontree_reset(struct jsontree_context *js_ctx);
 const char *jsontree_path_name(const struct jsontree_context *js_ctx,
                                int depth);
 
+void jsontree_write_uint(const struct jsontree_context *js_ctx,
+                         unsigned int value);
 void jsontree_write_int(const struct jsontree_context *js_ctx, int value);
 void jsontree_write_atom(const struct jsontree_context *js_ctx,
                          const char *text);
