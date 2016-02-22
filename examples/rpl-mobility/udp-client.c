@@ -68,7 +68,11 @@
 
 #define START_INTERVAL		(15 * CLOCK_SECOND)
 #define SEND_INTERVAL		(PERIOD * CLOCK_SECOND)
+#ifdef BACKOFF
 #define SEND_TIME		(random_rand() % (SEND_INTERVAL))
+#else
+#define SEND_TIME		SEND_INTERVAL
+#endif
 #define MAX_PAYLOAD_LEN		30
 
 static struct uip_udp_conn *client_conn;
