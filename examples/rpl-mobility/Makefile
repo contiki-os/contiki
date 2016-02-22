@@ -5,10 +5,11 @@ all: udp-client udp-server
 APPS=servreg-hack
 CONTIKI=../..
 
-
 ifdef WITH_COMPOWER
+ifeq ($(WITH_COMPOWER),1)
 APPS+=powertrace
 CFLAGS+= -DCONTIKIMAC_CONF_COMPOWER=1 -DWITH_COMPOWER=1 -DQUEUEBUF_CONF_NUM=4
+endif
 endif
 
 ifdef SERVER_REPLY
