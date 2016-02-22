@@ -42,10 +42,7 @@
 
 #include <stdio.h>
 #include "contiki.h"
-#include "serial-shell.h"
-#include "shell-ps.h"
-#include "shell-file.h"
-#include "shell-text.h"
+#include "dev/leds.h"
 #include "dev/adxl345.h"
 /*---------------------------------------------------------------------------*/
 #define LED_INT_ONTIME        (CLOCK_SECOND / 2)
@@ -91,7 +88,7 @@ print_int(uint16_t reg)
 void
 accm_ff_cb(uint8_t reg)
 {
-  L_ON(LEDS_B);
+  leds_on(LEDS_BLUE);
   process_post(&led_process, led_off_event, NULL);
   printf("~~[%u] Freefall detected! (0x%02X) -- ",
          ((uint16_t)clock_time()) / 128, reg);
@@ -105,11 +102,11 @@ accm_tap_cb(uint8_t reg)
 {
   process_post(&led_process, led_off_event, NULL);
   if(reg & ADXL345_INT_DOUBLETAP) {
-    L_ON(LEDS_G);
+    leds_on(LEDS_GREEN);
     printf("~~[%u] DoubleTap detected! (0x%02X) -- ",
            ((uint16_t)clock_time()) / 128, reg);
   } else {
-    L_ON(LEDS_R);
+    leds_on(LEDS_RED);
     printf("~~[%u] Tap detected! (0x%02X) -- ",
            ((uint16_t)clock_time()) / 128, reg);
   }
@@ -122,7 +119,7 @@ PROCESS_THREAD(led_process, ev, data) {
     PROCESS_WAIT_EVENT_UNTIL(ev == led_off_event);
     etimer_set(&led_etimer, LED_INT_ONTIME);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&led_etimer));
-    L_OFF(LEDS_R + LEDS_G + LEDS_B);
+    leds_off(LEDS_RED + LEDS_GREEN + LEDS_BLUE);
   }
   PROCESS_END();
 }
@@ -132,11 +129,6 @@ PROCESS_THREAD(accel_process, ev, data) {
   PROCESS_BEGIN();
   {
     int16_t x, y, z;
-
-    serial_shell_init();
-    shell_ps_init();
-    shell_file_init();  /* for printing out files */
-    shell_text_init();  /* for binprint */
 
     /* Register the event used for lighting up an LED when interrupt strikes. */
     led_off_event = process_alloc_event();
