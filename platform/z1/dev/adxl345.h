@@ -44,6 +44,7 @@
 #define ADXL345_H_
 #include <stdio.h>
 #include "dev/i2cmaster.h"
+#include "lib/sensors.h"
 /*---------------------------------------------------------------------------*/
 /* Used in accm_read_axis(), eg accm_read_axis(X_AXIS) */
 enum ADXL345_AXIS {
@@ -72,13 +73,13 @@ int16_t accm_read_axis(enum ADXL345_AXIS axis);
  * - ADXL345_RANGE_8G
  * - ADXL345_RANGE_16G
  */
-void accm_set_grange(uint8_t grange);
+int accm_set_grange(uint8_t grange);
 
 /* Map interrupt (FF, tap, dbltap etc) to interrupt pin (IRQ_INT1, IRQ_INT2).
  * This must come after accm_init() as the registers will otherwise be
  * overwritten.
  */
-void accm_set_irq(uint8_t int1, uint8_t int2);
+int accm_set_irq(uint8_t int1, uint8_t int2);
 
 /* Macros for setting the pointers to callback functions from the interrupts.
  * The function will be called with an uint8_t as parameter, containing the
@@ -227,12 +228,19 @@ void accm_set_irq(uint8_t int1, uint8_t int2);
 #define ADXL345_SRATE_0_39    0x02  /* when I2C data rate >= 100 kHz */
 #define ADXL345_SRATE_0_20    0x01  /* when I2C data rate >= 100 kHz */
 #define ADXL345_SRATE_0_10    0x00  /* 0.10 Hz, when I2C data rate >= 100 kHz */
-
+/* -------------------------------------------------------------------------- */
 /* Callback pointers for the interrupts */
 extern void (*accm_int1_cb)(uint8_t reg);
 extern void (*accm_int2_cb)(uint8_t reg);
-
-#define ACCM_INT1    0x01
-#define ACCM_INT2    0x02
+/* -------------------------------------------------------------------------- */
+#define ACCM_INT1              0x01
+#define ACCM_INT2              0x02
+#define ADXL345_SUCCESS        0x00
+#define ADXL345_ERROR          (-1)
+/* -------------------------------------------------------------------------- */
+#define ADXL345_SENSOR         "ADXL345 sensor"
+/* -------------------------------------------------------------------------- */
+extern const struct sensors_sensor adxl345;
+/* -------------------------------------------------------------------------- */
 /* -------------------------------------------------------------------------- */
 #endif /* ifndef ADXL345_H_ */
