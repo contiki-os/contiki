@@ -124,8 +124,8 @@ new_dio_interval(rpl_instance_t *instance)
   
 #if RPL_FIXED_DIO
   ticks = (instance->dio_interval * CLOCK_SECOND) ;
+  ticks = ticks / 2 + (ticks  * (uint32_t)random_rand()) / RANDOM_RAND_MAX;
   PRINTF("RPL interval: %d\n",instance->dio_interval);
-
 #else
 
   /* TODO: too small timer intervals for many cases */
