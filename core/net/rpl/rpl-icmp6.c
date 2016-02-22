@@ -434,6 +434,11 @@ dio_input(void)
       PRINTF("RPL: Copying prefix information\n");
       memcpy(&dio.prefix_info.prefix, &buffer[i + 16], 16);
       break;
+#if RPL_AVOID_MOBILE
+    case RPL_OPTION_MOBILITY:
+      dio.mobility = buffer[i + 2];
+      break;
+#endif
     default:
       PRINTF("RPL: Unsupported suboption type in DIO: %u\n",
 	(unsigned)subopt_type);
@@ -581,6 +586,13 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
     PRINTF("RPL: No prefix to announce (len %d)\n",
            dag->prefix_info.length);
   }
+ 
+#if RPL_MOBILE && RPL_AVOID_MOBILE
+/*ME-RPL suggests passing mobility information as a option. Assume type: 0x10*/
+  buffer[pos++] = RPL_OPTION_MOBILITY;
+  buffer[pos++] = 0x01;
+  buffer[pos++] = 0x01;
+#endif
 
 #if RPL_LEAF_ONLY
 #if (DEBUG) & DEBUG_PRINT

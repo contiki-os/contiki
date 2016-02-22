@@ -116,6 +116,9 @@ struct rpl_parent {
   clock_time_t last_tx_time;
   uint8_t dtsn;
   uint8_t flags;
+#if RPL_AVOID_MOBILE
+  uint8_t mobility;
+#endif
 };
 typedef struct rpl_parent rpl_parent_t;
 /*---------------------------------------------------------------------------*/

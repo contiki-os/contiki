@@ -816,7 +816,18 @@ best_parent(rpl_dag_t *dag)
     } else if(best == NULL) {
       best = p;
     } else {
-      best = dag->instance->of->best_parent(best, p);
+/*Authors of ME-RPL do not specify a similarity threshold. Assume:
+   - choose parent as mobile node if no other solution exists.
+*/
+#if RPL_AVOID_MOBILE
+      if((!p->mobility && !best->mobility) || (p->mobility && best->mobility)){
+#endif
+        best = dag->instance->of->best_parent(best, p);
+#if RPL_AVOID_MOBILE
+      }else if(!p->mobility && best->mobility){
+        best = p;
+      }
+#endif
     }
     p = nbr_table_next(rpl_parents, p);
   }
@@ -1433,6 +1444,10 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 #endif
   }
   p->rank = dio->rank;
+ 
+#if RPL_AVOID_MOBILE
+  p->mobility = dio->mobility;
+#endif
 
   /* Parent info has been updated, trigger rank recalculation */
   p->flags |= RPL_PARENT_FLAG_UPDATED;

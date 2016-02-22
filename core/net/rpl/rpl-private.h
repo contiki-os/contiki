@@ -233,6 +233,9 @@ struct rpl_dio {
   rpl_prefix_t destination_prefix;
   rpl_prefix_t prefix_info;
   struct rpl_metric_container mc;
+#if RPL_AVOID_MOBILE
+  uint8_t mobility;
+#endif
 };
 typedef struct rpl_dio rpl_dio_t;
 
