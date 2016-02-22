@@ -125,35 +125,40 @@ PROCESS_THREAD(led_process, ev, data) {
 }
 /*---------------------------------------------------------------------------*/
 /* Main process, setups  */
-PROCESS_THREAD(accel_process, ev, data) {
+PROCESS_THREAD(accel_process, ev, data)
+{
   PROCESS_BEGIN();
-  {
-    int16_t x, y, z;
 
-    /* Register the event used for lighting up an LED when interrupt strikes. */
-    led_off_event = process_alloc_event();
+  int16_t x, y, z;
 
-    /* Start and setup the accelerometer with default values, eg no interrupts enabled. */
-    accm_init();
+  /* Register the event used for lighting up an LED when interrupt strikes. */
+  led_off_event = process_alloc_event();
 
-    /* Register the callback functions for each interrupt */
-    ACCM_REGISTER_INT1_CB(accm_ff_cb);
-    ACCM_REGISTER_INT2_CB(accm_tap_cb);
+  /* Start and setup the accelerometer with default values, eg no interrupts
+   * enabled.
+   */
+  SENSORS_ACTIVATE(adxl345);
 
-    /* Set what strikes the corresponding interrupts. Several interrupts per pin is
-       possible. For the eight possible interrupts, see adxl345.h and adxl345 datasheet. */
-    accm_set_irq(ADXL345_INT_FREEFALL, ADXL345_INT_TAP + ADXL345_INT_DOUBLETAP);
+  /* Register the callback functions for each interrupt */
+  ACCM_REGISTER_INT1_CB(accm_ff_cb);
+  ACCM_REGISTER_INT2_CB(accm_tap_cb);
 
-    while(1) {
-      x = accm_read_axis(X_AXIS);
-      y = accm_read_axis(Y_AXIS);
-      z = accm_read_axis(Z_AXIS);
-      printf("x: %d y: %d z: %d\n", x, y, z);
+  /* Set what strikes the corresponding interrupts. Several interrupts per
+   * pin is possible. For the eight possible interrupts, see adxl345.h and
+   * adxl345 datasheet.
+   */
+  accm_set_irq(ADXL345_INT_FREEFALL, ADXL345_INT_TAP + ADXL345_INT_DOUBLETAP);
 
-      etimer_set(&et, ACCM_READ_INTERVAL);
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    }
+  while(1) {
+    x = adxl345.value(X_AXIS);
+    y = adxl345.value(Y_AXIS);
+    z = adxl345.value(Z_AXIS);
+    printf("x: %d y: %d z: %d\n", x, y, z);
+
+    etimer_set(&et, ACCM_READ_INTERVAL);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
   }
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
