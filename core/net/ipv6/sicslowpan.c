@@ -663,7 +663,7 @@ uncompress_addr(uip_ipaddr_t *ipaddr, uint8_t const prefix[],
  * dest
  */
 static void
-compress_hdr_iphc(linkaddr_t *link_destaddr)
+compress_hdr_iphc(const linkaddr_t *link_destaddr)
 {
   uint8_t tmp, iphc0, iphc1;
 #if DEBUG
@@ -1202,7 +1202,7 @@ uncompress_hdr_iphc(uint8_t *buf, uint16_t ip_len)
  * \endverbatim
  */
 static void
-compress_hdr_ipv6(linkaddr_t *link_destaddr)
+compress_hdr_ipv6(const linkaddr_t *link_destaddr)
 {
   *packetbuf_ptr = SICSLOWPAN_DISPATCH_IPV6;
   packetbuf_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
@@ -1237,7 +1237,7 @@ packet_sent(void *ptr, int status, int transmissions)
  * \param dest the link layer destination address of the packet
  */
 static void
-send_packet(linkaddr_t *dest)
+send_packet(const linkaddr_t *dest)
 {
   /* Set the link layer destination address for the packet as a
    * packetbuf attribute. The MAC layer can access the destination
@@ -1261,7 +1261,7 @@ send_packet(linkaddr_t *dest)
 /*--------------------------------------------------------------------*/
 /** \brief Take an IP packet and format it to be sent on an 802.15.4
  *  network using 6lowpan.
- *  \param localdest The MAC address of the destination
+ *  \param dest The MAC address of the destination
  *
  *  The IP packet is initially in uip_buf. Its header is compressed
  *  and if necessary it is fragmented. The resulting
@@ -1269,13 +1269,10 @@ send_packet(linkaddr_t *dest)
  *  MAC.
  */
 static uint8_t
-output(const uip_lladdr_t *localdest)
+output(const linkaddr_t *dest)
 {
   int framer_hdrlen;
   int max_payload;
-
-  /* The MAC address of the destination of the packet */
-  linkaddr_t dest;
 
 #if SICSLOWPAN_CONF_FRAG
   /* Number of bytes processed. */
@@ -1321,10 +1318,8 @@ output(const uip_lladdr_t *localdest)
    * packet. If the argument localdest is NULL, we are sending a
    * broadcast packet.
    */
-  if(localdest == NULL) {
-    linkaddr_copy(&dest, &linkaddr_null);
-  } else {
-    linkaddr_copy(&dest, (const linkaddr_t *)localdest);
+  if(dest == NULL) {
+    dest = &linkaddr_null;
   }
 
   PRINTFO("sicslowpan output: sending packet len %d\n", uip_len);
@@ -1332,13 +1327,13 @@ output(const uip_lladdr_t *localdest)
   if(uip_len >= COMPRESSION_THRESHOLD) {
     /* Try to compress the headers */
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_IPV6
-    compress_hdr_ipv6(&dest);
+    compress_hdr_ipv6(dest);
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_IPV6 */
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
-    compress_hdr_iphc(&dest);
+    compress_hdr_iphc(dest);
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06 */
   } else {
-    compress_hdr_ipv6(&dest);
+    compress_hdr_ipv6(dest);
   }
   PRINTFO("sicslowpan output: header of len %d\n", packetbuf_hdr_len);
 
@@ -1347,7 +1342,7 @@ output(const uip_lladdr_t *localdest)
    * needs to be fragmented or not. */
 #define USE_FRAMER_HDRLEN 1
 #if USE_FRAMER_HDRLEN
-  packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &dest);
+  packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest);
   framer_hdrlen = NETSTACK_FRAMER.length();
   if(framer_hdrlen < 0) {
     /* Framing failed, we assume the maximum header length */
@@ -1412,7 +1407,7 @@ output(const uip_lladdr_t *localdest)
       PRINTFO("could not allocate queuebuf for first fragment, dropping packet\n");
       return 0;
     }
-    send_packet(&dest);
+    send_packet(dest);
     queuebuf_to_packetbuf(q);
     queuebuf_free(q);
     q = NULL;
@@ -1458,7 +1453,7 @@ output(const uip_lladdr_t *localdest)
         PRINTFO("could not allocate queuebuf, dropping fragment\n");
         return 0;
       }
-      send_packet(&dest);
+      send_packet(dest);
       queuebuf_to_packetbuf(q);
       queuebuf_free(q);
       q = NULL;
@@ -1485,7 +1480,7 @@ output(const uip_lladdr_t *localdest)
     memcpy(packetbuf_ptr + packetbuf_hdr_len, (uint8_t *)UIP_IP_BUF + uncomp_hdr_len,
            uip_len - uncomp_hdr_len);
     packetbuf_set_datalen(uip_len - uncomp_hdr_len + packetbuf_hdr_len);
-    send_packet(&dest);
+    send_packet(dest);
   }
   return 1;
 }
@@ -1738,12 +1733,6 @@ input(void)
 void
 sicslowpan_init(void)
 {
-  /*
-   * Set out output function as the function to be called from uIP to
-   * send a packet.
-   */
-
-  tcpip_set_outputfunc(output);
 
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
 /* Preinitialize any address contexts for better header compression
@@ -1799,7 +1788,8 @@ sicslowpan_get_last_rssi(void)
 const struct network_driver sicslowpan_driver = {
   "sicslowpan",
   sicslowpan_init,
-  input
+  input,
+  output
 };
 /*--------------------------------------------------------------------*/
 /** @} */

@@ -109,25 +109,18 @@ enum {
 /* Called on IP packet output. */
 #if NETSTACK_CONF_WITH_IPV6
 
-static uint8_t (* outputfunc)(const uip_lladdr_t *a);
-
 uint8_t
 tcpip_output(const uip_lladdr_t *a)
 {
   int ret;
-  if(outputfunc != NULL) {
-    ret = outputfunc(a);
+  if(NETSTACK_NETWORK.output != NULL) {
+    ret = NETSTACK_NETWORK.output((const linkaddr_t *) a);
     return ret;
   }
-  UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
+  UIP_LOG("tcpip_output: add NETSTACK_NETWORK.output to set an output function");
   return 0;
 }
 
-void
-tcpip_set_outputfunc(uint8_t (*f)(const uip_lladdr_t *))
-{
-  outputfunc = f;
-}
 #else
 
 static uint8_t (* outputfunc)(void);
