@@ -230,13 +230,13 @@ while(1) {
         packetsReceived[senderID]++;
         packetsTime[senderID][packetID].recv = sim.getSimulationTime();
         diff = packetsTime[senderID][packetID].recv - packetsTime[senderID][packetID].sent;
-        packetsRecvFile.write(time+"\t"+senderID+"\t"+packetID+"\t"+id+"\t"+diff+"\n");
+        packetsRecvFile.write(sim.getSimulationTime()+"\t"+senderID+"\t"+packetID+"\t"+id+"\t"+diff+"\n");
       }else if(pinfo.type == 'Data' &amp;&amp; pinfo.action == 'Send'){
         senderID = id;
         packetID = pinfo.object.id;
         packetsTime[senderID] = packetsTime[senderID] || new Object();
         packetsTime[senderID][packetID] = {sent: sim.getSimulationTime()};
-        packetsSentFile.write(time+"\t"+senderID+"\t"+packetID+"\n");
+        packetsSentFile.write(sim.getSimulationTime()+"\t"+senderID+"\t"+packetID+"\n");
         packetsSent[senderID]++;
       }
     }else if(msg.startsWith("#P")){
