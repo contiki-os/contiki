@@ -80,6 +80,14 @@ struct tcpip_uipstate {
 #define UIP_UDP_APPCALL tcpip_uipcall
 #define UIP_ICMP6_APPCALL tcpip_icmp6_call
 
+#define TCPIP_SUCCESS       0
+#define TCPIP_ERR_SIZE      1
+#define TCPIP_ERR_ADDR      2
+#define TCPIP_ERR_NOROUTE   3
+#define TCPIP_ERR_RPL       4
+#define TCPIP_ERR_ND6       5
+#define TCPIP_ERR_NEXTLAYER 6
+
 /*#define UIP_APPSTATE_SIZE sizeof(struct tcpip_uipstate)*/
 
 typedef struct tcpip_uipstate uip_udp_appstate_t;
@@ -352,7 +360,7 @@ void tcpip_set_outputfunc(uint8_t (* f)(void));
  * \brief This function does address resolution and then calls tcpip_output
  */
 #if NETSTACK_CONF_WITH_IPV6
-void tcpip_ipv6_output(void);
+int tcpip_ipv6_output(void);
 #endif
 
 /**

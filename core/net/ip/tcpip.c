@@ -718,25 +718,28 @@ send_nd6_ns(uip_ipaddr_t *nexthop)
   return err;
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 tcpip_ipv6_output(void)
 {
   uip_ipaddr_t ipaddr;
+  int err = TCPIP_SUCCESS;
   uip_ds6_nbr_t *nbr = NULL;
   const uip_lladdr_t *linkaddr;
   uip_ipaddr_t *nexthop;
 
   if(uip_len == 0) {
-    return;
+    return TCPIP_ERR_SIZE;
   }
 
   if(uip_len > UIP_LINK_MTU) {
     UIP_LOG("tcpip_ipv6_output: Packet to big");
+    err = TCPIP_ERR_SIZE;
     goto exit;
   }
 
   if(uip_is_addr_unspecified(&UIP_IP_BUF->destipaddr)){
     UIP_LOG("tcpip_ipv6_output: Destination address unspecified");
+    err = TCPIP_ERR_ADDR;
     goto exit;
   }
 
@@ -746,12 +749,14 @@ tcpip_ipv6_output(void)
   }
 
   if((nexthop = get_nexthop(&ipaddr)) == NULL) {
+    err = TCPIP_ERR_NOROUTE;
     goto exit;
   }
   annotate_transmission(nexthop);
 
 #if UIP_CONF_IPV6_RPL
   if(!rpl_finalize_header(nexthop)) {
+    err = TCPIP_ERR_RPL;
     goto exit;
   }
 #endif /* UIP_CONF_IPV6_RPL */
@@ -759,6 +764,7 @@ tcpip_ipv6_output(void)
   nbr = uip_ds6_nbr_lookup(nexthop);
   if(nbr == NULL) {
     if(send_nd6_ns(nexthop)) {
+      err = TCPIP_ERR_ND6;
       PRINTF("tcpip_ipv6_output: failed to add neighbor to cache\n");
       goto exit;
     } else {
@@ -770,6 +776,7 @@ tcpip_ipv6_output(void)
   if(nbr->state == NBR_INCOMPLETE) {
     PRINTF("tcpip_ipv6_output: nbr cache entry incomplete\n");
     queue_packet(nbr);
+    err = TCPIP_ERR_ND6;
     goto exit;
   }
   /* Send in parallel if we are running NUD (nbc state is either STALE,
@@ -789,7 +796,9 @@ send_packet:
     linkaddr = NULL;
   }
 
-  tcpip_output(linkaddr);
+  if(tcpip_output(linkaddr)) {
+    err = TCPIP_ERR_NEXTLAYER;
+  }
 
   if(nbr) {
     send_queued(nbr);
@@ -797,7 +806,7 @@ send_packet:
 
 exit:
   uip_clear_buf();
-  return;
+  return err;
 }
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 /*---------------------------------------------------------------------------*/
