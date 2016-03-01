@@ -49,6 +49,11 @@ public class NodeGenerator extends VisPlugin {
   private String mote_type_1;
   private String mote_type_2;
   private double mote_type_ratio;
+
+  private double velocity_min = 1.4;
+  private double velocity_max = 5.5;
+  private double velocity_min_ratio = 0.8;
+
   private long generation_seed;
   
   private Random generator;
@@ -140,7 +145,10 @@ public class NodeGenerator extends VisPlugin {
     m.getInterfaces().getMoteID().setMoteID(++id_counter);
     this.simulation.addMote(m);
     if(is_mobile){
-      MobileMote mm = new MobileMote(m,this);
+      double v;
+      if(generator.nextDouble() < velocity_min_ratio) v = velocity_min;
+      else v = velocity_max;
+      MobileMote mm = new MobileMote(m,this,v);
       mobile_motes.add(mm);
     }
     return;

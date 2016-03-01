@@ -20,8 +20,7 @@ public class MobileMote{
   private double step;
   private double pause_min;
   private double pause_max;
-  private double velocity_min;
-  private double velocity_max;
+  private double velocity;
   
   private double[] current_destination;
   private double[] current_step;
@@ -31,16 +30,14 @@ public class MobileMote{
   
   private NextMove nextMove;
   
-  public MobileMote(Mote m, NodeGenerator ctx){
+  public MobileMote(Mote m, NodeGenerator ctx, double velocity){
     this.mote = m;
     this.context = ctx;
     this.step = 0.1;
+    this.velocity = velocity;
     
     this.pause_min = 10;
     this.pause_max = 30;
-    
-    this.velocity_min = 1;
-    this.velocity_max = 10; 
     
     ctx.getSimulation().invokeSimulationThread(new Runnable() {
       public void run() {
@@ -76,7 +73,7 @@ public class MobileMote{
   }
   
   private double[] getStepSumToDestination(double[] dst){
-    double v = context.getGenerator().nextDouble()*(velocity_max-velocity_min) + velocity_min;
+    double v = this.velocity;
     double[] curr = getMotePosition();
     double direction = Math.atan2(dst[1]-curr[1],dst[0]-curr[0]);
     double length = Math.hypot(Math.abs(dst[0]-curr[0]),Math.abs(dst[1]-curr[1]));
