@@ -79,7 +79,7 @@ static void double_interval(void *ptr);
 #if TRICKLE_TIMER_WIDE_RAND
 /* Returns a 4-byte wide, unsigned random number */
 static uint32_t
-wide_rand()
+wide_rand(void)
 {
   return ((uint32_t)random_rand() << 16 | random_rand());
 }
