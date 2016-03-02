@@ -143,16 +143,15 @@ aead(uint8_t hdrlen, int forward)
 static void
 add_security_header(void)
 {
-  if(!packetbuf_attr(PACKETBUF_ATTR_SECURITY_LEVEL)) {
-    packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
-    packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, SEC_LVL);
-    anti_replay_set_counter();
-  }
+  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
+  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, SEC_LVL);
 }
 /*---------------------------------------------------------------------------*/
 static void
 send(mac_callback_t sent, void *ptr)
 {
+  add_security_header();
+  anti_replay_set_counter();
   NETSTACK_MAC.send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/
@@ -161,7 +160,6 @@ create(void)
 {
   int result;
   
-  add_security_header();
   result = DECORATED_FRAMER.create();
   if(result == FRAMER_FAILED) {
     return result;
