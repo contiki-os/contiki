@@ -452,7 +452,7 @@ rime_sniffer_remove(struct rime_sniffer *s)
 }
 
 static void
-set_packet_attrs()
+set_packet_attrs(void)
 {
   int c = 0;
   /* set protocol in NETWORK_ID */
