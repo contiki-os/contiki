@@ -186,7 +186,7 @@ extern settings_status_t settings_delete(settings_key_t key, uint8_t index);
 typedef eeprom_addr_t settings_iter_t;
 
 /** Will return \ref SETTINGS_INVALID_ITER if the settings store is empty. */
-extern settings_iter_t settings_iter_begin();
+extern settings_iter_t settings_iter_begin(void);
 
 /** Will return \ref SETTINGS_INVALID_ITER if at the end of settings list. */
 extern settings_iter_t settings_iter_next(settings_iter_t iter);

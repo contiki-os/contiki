@@ -88,7 +88,7 @@ rpl_instance_t *default_instance;
 
 /*---------------------------------------------------------------------------*/
 void
-rpl_print_neighbor_list()
+rpl_print_neighbor_list(void)
 {
   if(default_instance != NULL && default_instance->current_dag != NULL &&
       default_instance->of != NULL && default_instance->of->calculate_rank != NULL) {
@@ -160,7 +160,7 @@ rpl_get_parent_link_metric(const uip_lladdr_t *addr)
 {
   uip_ds6_nbr_t *nbr;
   nbr = nbr_table_get_from_lladdr(ds6_neighbors, (const linkaddr_t *)addr);
-  
+
   if(nbr != NULL) {
     return nbr->link_metric;
   } else {
@@ -645,7 +645,7 @@ rpl_add_parent(rpl_dag_t *dag, rpl_dio_t *dio, uip_ipaddr_t *addr)
       p->dag = dag;
       p->rank = dio->rank;
       p->dtsn = dio->dtsn;
-      
+
       /* Check whether we have a neighbor that has not gotten a link metric yet */
       if(nbr != NULL && nbr->link_metric == 0) {
 	nbr->link_metric = RPL_INIT_LINK_METRIC * RPL_DAG_MC_ETX_DIVISOR;
