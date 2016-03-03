@@ -38,7 +38,7 @@ prepare() {
     tar xf ${TARBALL}
     cd ${SRC_DIR}
 
-    for i in  `ls ${PATCH_DIR}`; do patch -p0 < ${PATCH_DIR}/${i}; done
+    for i in  `ls ${PATCH_DIR}/*.patch`; do patch -p0 < ${i}; done
 }
 
 
