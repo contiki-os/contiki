@@ -36,6 +36,7 @@
 /********** Includes **********/
 
 #include "contiki.h"
+#include "net/packetbuf.h"
 #include "net/mac/tsch/tsch-private.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/frame802154e-ie.h"
@@ -81,7 +82,7 @@ by default, useful in case of duplicate seqno */
 /********** Constants *********/
 
 /* Max TSCH packet lenght */
-#define TSCH_PACKET_MAX_LEN 127
+#define TSCH_PACKET_MAX_LEN MIN(127,PACKETBUF_SIZE)
 
 /********** Functions *********/
 
