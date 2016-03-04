@@ -153,13 +153,23 @@ bail:
 
 }
 /*---------------------------------------------------------------------------*/
+static uint8_t
+output(const linkaddr_t *dest)
+{
+  wpcap_send((const uip_lladdr_t *)dest);
+}
+/*---------------------------------------------------------------------------*/
+static void
+input(void)
+{
+  /* This should not happen as this should be the "lowest" in the stack.*/
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(wpcap_process, ev, data)
 {
   PROCESS_POLLHANDLER(pollhandler());
 
   PROCESS_BEGIN();
-
-  wpcap_init();
 
 #if !NETSTACK_CONF_WITH_IPV6
   tcpip_set_outputfunc(wpcap_output);
@@ -177,4 +187,11 @@ PROCESS_THREAD(wpcap_process, ev, data)
 
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
+const struct network_driver eth_driver = {
+  "wpcapdev",
+  wpcap_init,
+  input,
+  output,
+};
 /*---------------------------------------------------------------------------*/

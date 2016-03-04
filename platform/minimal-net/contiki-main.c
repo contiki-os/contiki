@@ -245,6 +245,8 @@ main(int argc, char **argv)
   process_start(&etimer_process, NULL);
   ctimer_init();
 
+  NETSTACK_NETWORK.init();
+
 #if RPL_BORDER_ROUTER
   process_start(&border_router_process, NULL);
   printf("Border Router Process started\n");
