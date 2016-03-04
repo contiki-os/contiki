@@ -135,11 +135,13 @@ static uip_ds6_prefix_t *prefix; /**  Pointer to a prefix list entry */
 #if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
 /*------------------------------------------------------------------*/
 /* Copy link-layer address from LLAO option to a word-aligned uip_lladdr_t */
-static void
+static int
 extract_lladdr_from_llao_aligned(uip_lladdr_t *dest) {
   if(dest != NULL && nd6_opt_llao != NULL) {
     memcpy(dest, &nd6_opt_llao[UIP_ND6_OPT_DATA_OFFSET], UIP_LLADDR_LEN);
+    return 1;
   }
+  return 0;
 }
 #endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
 /*------------------------------------------------------------------*/
@@ -203,14 +205,8 @@ ns_input(void)
         extract_lladdr_from_llao_aligned(&lladdr_aligned);
         nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
         if(nbr == NULL) {
-<<<<<<< 2e852f758b3fbc18ad30ec75d8c62b5d5238e70a
-          uip_lladdr_t lladdr_aligned;
-          extract_lladdr_aligned(&lladdr_aligned);
           uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, &lladdr_aligned,
 			  0, NBR_STALE, NBR_TABLE_REASON_IPV6_ND, NULL);
-=======
-          uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, &lladdr_aligned, 0, NBR_STALE);
->>>>>>> replaced add/remove ds6-nbr with an nbr-module controlled update of lladdress to avoid loss of other state information
         } else {
           const uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
           if(lladdr == NULL) {
@@ -440,6 +436,7 @@ na_input(void)
   uint8_t is_router;
   uint8_t is_solicited;
   uint8_t is_override;
+  uip_lladdr_t lladdr_aligned;
 
   PRINTF("Received NA from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
@@ -517,12 +514,9 @@ na_input(void)
                UIP_LLADDR_LEN);
     }
     if(nbr->state == NBR_INCOMPLETE) {
-      uip_lladdr_t lladdr_aligned;
-      if(nd6_opt_llao == NULL) {
+      if(nd6_opt_llao == NULL || !extract_lladdr_from_llao_aligned(&lladdr_aligned)) {
         goto discard;
       }
-
-      extract_lladdr_from_llao_aligned(&lladdr_aligned);
       if(nbr_table_update_lladdr((const linkaddr_t *)lladdr, (const linkaddr_t *)&lladdr_aligned, 1) == 0) {
         /* failed to update the lladdr */
         goto discard;
@@ -552,9 +546,8 @@ na_input(void)
          */
         if(is_override || !is_llchange || nd6_opt_llao == NULL) {
           if(nd6_opt_llao != NULL && is_llchange) {
-            uip_lladdr_t lladdr_aligned;
-            extract_lladdr_from_llao_aligned(&lladdr_aligned);
-            if(nbr_table_update_lladdr((const linkaddr_t *) lladdr, (const linkaddr_t *) &lladdr_aligned, 1) == 0) {
+            if(!extract_lladdr_from_llao_aligned(&lladdr_aligned) ||
+               nbr_table_update_lladdr((const linkaddr_t *) lladdr, (const linkaddr_t *) &lladdr_aligned, 1) == 0) {
               /* failed to update the lladdr */
               goto discard;
             }
@@ -854,6 +847,8 @@ uip_nd6_rs_output(void)
 void
 ra_input(void)
 {
+  uip_lladdr_t lladdr_aligned;
+
   PRINTF("Received RA from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF(" to ");
@@ -898,19 +893,14 @@ ra_input(void)
       PRINTF("Processing SLLAO option in RA\n");
       nd6_opt_llao = (uint8_t *) UIP_ND6_OPT_HDR_BUF;
       nbr = uip_ds6_nbr_lookup(&UIP_IP_BUF->srcipaddr);
+      if(!extract_lladdr_from_llao_aligned(&lladdr_aligned)) {
+        /* failed to extract llao - discard packet */
+        goto discard;
+      }
       if(nbr == NULL) {
-        uip_lladdr_t lladdr_aligned;
-<<<<<<< 2e852f758b3fbc18ad30ec75d8c62b5d5238e70a
-        extract_lladdr_aligned(&lladdr_aligned);
         nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, &lladdr_aligned,
                               1, NBR_STALE, NBR_TABLE_REASON_IPV6_ND, NULL);
-=======
-        extract_lladdr_from_llao_aligned(&lladdr_aligned);
-        nbr = uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, &lladdr_aligned, 1, NBR_STALE);
->>>>>>> replaced add/remove ds6-nbr with an nbr-module controlled update of lladdress to avoid loss of other state information
       } else {
-        uip_lladdr_t lladdr_aligned;
-        extract_lladdr_from_llao_aligned(&lladdr_aligned);
         const uip_lladdr_t *lladdr = uip_ds6_nbr_get_ll(nbr);
         if(lladdr == NULL) {
           goto discard;
