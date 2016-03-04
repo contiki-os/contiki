@@ -80,7 +80,7 @@ serial_line_input_byte(unsigned char c)
   }
 
   /* Wake up consumer process */
-  process_poll(&serial_line_process);
+  process_post(&serial_line_process, 0, 0);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
