@@ -87,6 +87,9 @@
 #define RF230_CONF_AUTOACK        1
 #endif
 
+#define TIMESYNCH_CONF_ENABLED 1
+#define RF230_CONF_TIMESTAMPS 1
+
 #define MCUCSR  MCUSR
 
 /* The AVR tick interrupt usually is done with an 8 bit counter around 128 Hz.

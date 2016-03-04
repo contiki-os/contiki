@@ -68,6 +68,8 @@
 #include "net/netstack.h"
 
 #define WITH_SEND_CCA 0
+/* Nonzero FOOTER_LEN has not been tested */
+#define FOOTER_LEN 2
 
 /* Timestamps have not been tested */
 #if RF230_CONF_TIMESTAMPS
@@ -76,8 +78,6 @@
 #else /* RF230_CONF_TIMESTAMPS */
 #define TIMESTAMP_LEN 0
 #endif /* RF230_CONF_TIMESTAMPS */
-/* Nonzero FOOTER_LEN has not been tested */
-#define FOOTER_LEN 0
 
 /* RF230_CONF_CHECKSUM=0 for automatic hardware checksum */
 #ifndef RF230_CONF_CHECKSUM
@@ -90,9 +90,7 @@
 #endif
 
 /* We need to turn off autoack in promiscuous mode */
-#if RF230_CONF_AUTOACK
 static bool is_promiscuous;
-#endif
 
 /* RF230_CONF_FRAME_RETRIES is 1 plus the number written to the hardware. */
 /* Valid range 1-16, zero disables extended mode. */
@@ -1600,6 +1598,11 @@ rf230_read(void *buf, unsigned short bufsize)
   }
 #endif
 #endif
+
+  /* Atis add*/
+  packetbuf_set_attr32(PACKETBUF_ATTR_TIMESTAMP, t.time);
+  packetbuf_set_attr(PACKETBUF_ATTR_CRC_OK, footer[1] & FOOTER1_CRC_OK);
+  /* Atis add end*/
 
 #ifdef RF230BB_HOOK_RX_PACKET
   RF230BB_HOOK_RX_PACKET(buf,len);

@@ -52,10 +52,11 @@
 #ifndef PACKETBUF_H_
 #define PACKETBUF_H_
 
+#define PACKETBUF_CONF_ATTRS_INLINE 1
+
 #include "contiki-conf.h"
 #include "net/linkaddr.h"
 #include "net/llsec/llsec802154.h"
-#include "net/mac/tsch/tsch-conf.h"
 
 /**
  * \brief      The size of the packetbuf, in bytes
@@ -307,6 +308,7 @@ enum {
   PACKETBUF_ATTR_LINK_QUALITY,
   PACKETBUF_ATTR_RSSI,
   PACKETBUF_ATTR_TIMESTAMP,
+  PACKETBUF_ATTR_TIMESTAMP_HIGHWORD,
   PACKETBUF_ATTR_RADIO_TXPOWER,
   PACKETBUF_ATTR_LISTEN_TIME,
   PACKETBUF_ATTR_TRANSMIT_TIME,
@@ -314,10 +316,11 @@ enum {
   PACKETBUF_ATTR_MAC_SEQNO,
   PACKETBUF_ATTR_MAC_ACK,
   PACKETBUF_ATTR_IS_CREATED_AND_SECURED,
-#if TSCH_WITH_LINK_SELECTOR
-  PACKETBUF_ATTR_TSCH_SLOTFRAME,
-  PACKETBUF_ATTR_TSCH_TIMESLOT,
-#endif /* TSCH_WITH_LINK_SELECTOR */
+  PACKETBUF_ATTR_CRC_OK,
+  PACKETBUF_ATTR_NUM_TRANSMISSIONS,
+  PACKETBUF_ATTR_RF_CHANNEL,
+  PACKETBUF_ATTR_IS_DUPLICATE,
+  PACKETBUF_ATTR_APPLICATION_SEQNUM,
   
   /* Scope 1 attributes: used between two neighbors only. */
 #if PACKETBUF_WITH_PACKET_TYPE
@@ -329,21 +332,21 @@ enum {
   PACKETBUF_ATTR_REXMIT,
   PACKETBUF_ATTR_MAX_REXMIT,
   PACKETBUF_ATTR_NUM_REXMIT,
+  PACKETBUF_ATTR_FORWARDING_TIME,
+  PACKETBUF_ATTR_FORWARDING_TIME_HIGHWORD,
 #endif /* NETSTACK_CONF_WITH_RIME */
   PACKETBUF_ATTR_PENDING,
   PACKETBUF_ATTR_FRAME_TYPE,
 #if LLSEC802154_SECURITY_LEVEL
   PACKETBUF_ATTR_SECURITY_LEVEL,
-#endif /* LLSEC802154_SECURITY_LEVEL */
-#if LLSEC802154_USES_FRAME_COUNTER
   PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1,
   PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3,
-#endif /* LLSEC802154_USES_FRAME_COUNTER */
 #if LLSEC802154_USES_EXPLICIT_KEYS
   PACKETBUF_ATTR_KEY_ID_MODE,
   PACKETBUF_ATTR_KEY_INDEX,
   PACKETBUF_ATTR_KEY_SOURCE_BYTES_0_1,
 #endif /* LLSEC802154_USES_EXPLICIT_KEYS */
+#endif /* LLSEC802154_SECURITY_LEVEL */
   
   /* Scope 2 attributes: used between end-to-end nodes. */
 #if NETSTACK_CONF_WITH_RIME
@@ -352,6 +355,10 @@ enum {
   PACKETBUF_ATTR_EPACKET_ID,
   PACKETBUF_ATTR_EPACKET_TYPE,
   PACKETBUF_ATTR_ERELIABLE,
+  PACKETBUF_ATTR_ORIGINATION_TIME,
+  PACKETBUF_ATTR_ORIGINATION_TIME_HIGHWORD,
+  PACKETBUF_ATTR_NUM_ETRANSMISSIONS,
+  PACKETBUF_ATTR_ENUM_CHANNELS,
 #endif /* NETSTACK_CONF_WITH_RIME */
 
   /* These must be last */
@@ -369,15 +376,10 @@ enum {
 #if !LLSEC802154_SECURITY_LEVEL
 enum {
   PACKETBUF_ATTR_SECURITY_LEVEL,
-};
-#endif /* LLSEC802154_SECURITY_LEVEL */
-
-#if !LLSEC802154_USES_FRAME_COUNTER
-enum {
   PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1,
   PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3
 };
-#endif /* LLSEC802154_USES_FRAME_COUNTER */
+#endif /* LLSEC802154_SECURITY_LEVEL */
 
 /* Define surrogates when not using explicit keys */
 #if !LLSEC802154_USES_EXPLICIT_KEYS
@@ -415,10 +417,23 @@ packetbuf_set_attr(uint8_t type, const packetbuf_attr_t val)
   packetbuf_attrs[type].val = val;
   return 1;
 }
+static inline int
+packetbuf_set_attr32(uint8_t type, const uint32_t val)
+{
+  packetbuf_attrs[type].val = val & 0xffff;
+  packetbuf_attrs[type + 1].val = val >> 16;
+  return 1;
+}
 static inline packetbuf_attr_t
 packetbuf_attr(uint8_t type)
 {
   return packetbuf_attrs[type].val;
+}
+static inline uint32_t
+packetbuf_attr32(uint8_t type)
+{
+  return packetbuf_attrs[type].val
+          + ((uint32_t) packetbuf_attrs[type + 1].val << 16);
 }
 
 static inline int
