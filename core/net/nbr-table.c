@@ -195,9 +195,8 @@ remove_key(nbr_table_key_t *least_used_key)
   used_map[index_from_key(least_used_key)] = 0;
   /* Remove neighbor from list */
   list_remove(nbr_table_keys, least_used_key);
-  /* Return associated key */
 }
-
+/*---------------------------------------------------------------------------*/
 static nbr_table_key_t *
 nbr_table_allocate(nbr_table_reason_t reason, void *data)
 {
