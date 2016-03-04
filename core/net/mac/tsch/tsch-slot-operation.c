@@ -776,6 +776,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
                   packet_duration + tsch_timing[tsch_ts_tx_ack_delay] - RADIO_DELAY_BEFORE_TX, "RxBeforeAck");
               TSCH_DEBUG_RX_EVENT();
               NETSTACK_RADIO.transmit(ack_len);
+              NETSTACK_RADIO.off();
             }
 
             /* If the sender is a time source, proceed to clock drift compensation */
