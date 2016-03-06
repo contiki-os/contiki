@@ -1,6 +1,6 @@
-/** 
+/**
  * \brief Compiler and Platform specific definitions and typedefs common to
- * all platforms.  
+ * all platforms.
  *
  * platform-common.h provides PLATFORM_HEADER defaults and common definitions.
  * This head should never be included directly, it should only be included
@@ -15,12 +15,12 @@
  * @{ */
 
 /** \file hal/micro/generic/compiler/platform-common.h
- * See \ref platform_common for detailed documentation.
+ * See platform_common.h for detailed documentation.
  *
  * <!--(C) COPYRIGHT 2010 STMicroelectronics. All rights reserved.        -->
  */
 
- 
+
 #ifndef PLATCOMMONOKTOINCLUDE
   //  This header should only be included by a PLATFORM_HEADER
   #error  platform-common.h should not be included directly
@@ -29,7 +29,7 @@
 #ifndef PLATFORMCOMMON_H_
 #define PLATFORMCOMMON_H_
 ////////////////////////////////////////////////////////////////////////////////
-// Many of the common definitions must be explicitly enabled by the 
+// Many of the common definitions must be explicitly enabled by the
 //  particular PLATFORM_HEADER being used
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -69,16 +69,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef _HAL_USE_COMMON_DIVMOD_
   /** \name Divide and Modulus Operations
-   * Some platforms can perform divide and modulus operations on 32 bit 
+   * Some platforms can perform divide and modulus operations on 32 bit
    * quantities more efficiently when the divisor is only a 16 bit quantity.
    * C compilers will always promote the divisor to 32 bits before performing the
-   * operation, so the following utility functions are instead required to take 
+   * operation, so the following utility functions are instead required to take
    * advantage of this optimisation.
    */
   //@{
   /**
    * \brief Provide a portable name for the uint32_t by uint16_t division
-   * library function (which can perform the division with only a single 
+   * library function (which can perform the division with only a single
    * assembly instruction on some platforms)
    */
   #define halCommonUDiv32By16(x, y) ((uint16_t) (((uint32_t) (x)) / ((uint16_t) (y))))
@@ -111,12 +111,12 @@
 #ifdef _HAL_USE_COMMON_MEMUTILS_
   /** \name C Standard Library Memory Utilities
    * These should be used in place of the standard library functions.
-   * 
+   *
    * These functions have the same parameters and expected results as their C
    * Standard Library equivalents but may take advantage of certain implementation
    * optimizations.
-   * 
-   * Unless otherwise noted, these functions are utilized by the StStack and are 
+   *
+   * Unless otherwise noted, these functions are utilized by the StStack and are
    * therefore required to be implemented in the HAL. Additionally, unless otherwise
    * noted, applications that find these functions useful may utilze them.
    */
@@ -212,22 +212,22 @@
 #define SETBIT(reg, bit)      reg |= BIT(bit)
 
 /**
- * \brief Sets the bits in the \c reg register or the byte 
- * as specified in the bitmask \c bits. 
+ * \brief Sets the bits in the \c reg register or the byte
+ * as specified in the bitmask \c bits.
  * @note This is never a single atomic operation.
  */
 #define SETBITS(reg, bits)    reg |= (bits)
 
 /**
- * \brief Clears a bit in the \c reg register or byte. 
- * @note Assuming \c reg is an IO register, some platforms (such as the AVR) 
+ * \brief Clears a bit in the \c reg register or byte.
+ * @note Assuming \c reg is an IO register, some platforms (such as the AVR)
  * can implement this in a single atomic operation.
  */
 #define CLEARBIT(reg, bit)    reg &= ~(BIT(bit))
 
 /**
- * \brief Clears the bits in the \c reg register or byte 
- * as specified in the bitmask \c bits. 
+ * \brief Clears the bits in the \c reg register or byte
+ * as specified in the bitmask \c bits.
  * @note This is never a single atomic operation.
  */
 #define CLEARBITS(reg, bits)  reg &= ~(bits)
@@ -238,7 +238,7 @@
 #define READBIT(reg, bit)     (reg & (BIT(bit)))
 
 /**
- * \brief Returns the value of the bitmask \c bits within 
+ * \brief Returns the value of the bitmask \c bits within
  * the register or byte \c reg.
  */
 #define READBITS(reg, bits)   (reg & (bits))
@@ -263,13 +263,13 @@
 #define HIGH_BYTE(n)                    ((uint8_t)(LOW_BYTE((n) >> 8)))
 
 /**
- * \brief Returns the value built from the two \c uint8_t 
+ * \brief Returns the value built from the two \c uint8_t
  * values \c high and \c low.
  */
 #define HIGH_LOW_TO_INT(high, low) (                              \
                                     (( (uint16_t) (high) ) << 8) +  \
                                     (  (uint16_t) ( (low) & 0xFF))  \
-                                   )                                
+                                   )
 
 /**
  * \brief Returns the low byte of the 32-bit value \c n as an \c uint8_t.
@@ -301,21 +301,21 @@
 //@{
 
 /**
- * \brief Returns the elapsed time between two 8 bit values.  
+ * \brief Returns the elapsed time between two 8 bit values.
  *        Result may not be valid if the time samples differ by more than 127
  */
 #define elapsedTimeInt8u(oldTime, newTime)       \
   ((uint8_t) ((uint8_t)(newTime) - (uint8_t)(oldTime)))
 
 /**
- * \brief Returns the elapsed time between two 16 bit values.  
+ * \brief Returns the elapsed time between two 16 bit values.
  *        Result may not be valid if the time samples differ by more than 32767
  */
 #define elapsedTimeInt16u(oldTime, newTime)      \
   ((uint16_t) ((uint16_t)(newTime) - (uint16_t)(oldTime)))
 
 /**
- * \brief Returns the elapsed time between two 32 bit values.  
+ * \brief Returns the elapsed time between two 32 bit values.
  *   Result may not be valid if the time samples differ by more than 2147483647
  */
 #define elapsedTimeInt32u(oldTime, newTime)      \

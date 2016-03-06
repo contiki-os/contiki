@@ -29,11 +29,23 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+/**
+ * \addtogroup uip6
+ * @{
+ */
+/**
+ * \file
+ *    Header file for routing table manipulation
+ */
 #ifndef UIP_DS6_ROUTE_H
 #define UIP_DS6_ROUTE_H
 
+#include "net/ip/uip.h"
+#include "net/nbr-table.h"
 #include "sys/stimer.h"
 #include "lib/list.h"
+
+NBR_TABLE_DECLARE(nbr_routes);
 
 void uip_ds6_route_init(void);
 
@@ -158,3 +170,4 @@ uip_ds6_route_t *uip_ds6_route_next(uip_ds6_route_t *);
 /** @} */
 
 #endif /* UIP_DS6_ROUTE_H */
+/** @} */

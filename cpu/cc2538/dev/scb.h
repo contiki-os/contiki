@@ -32,7 +32,9 @@
  * \addtogroup cc2538
  * @{
  *
- * \defgroup cc2538-scb cc2538 System Control Block
+ * \defgroup cc2538-scb cc2538 System Control Block (SCB)
+ *
+ * Offsets and bit definitions for SCB registers
  * @{
  *
  * \file

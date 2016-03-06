@@ -1,0 +1,49 @@
+GDB ?= gdb
+OPENOCD_SCRIPTS = $(CONTIKI)/platform/galileo/bsp/openocd-scripts
+
+.PHONY: debug $(CONTIKI_PROJECT)
+
+# Multiboot ELF binary
+MULTIBOOT_SFX = $(TARGET)
+MULTIBOOT = $(CONTIKI_PROJECT).$(MULTIBOOT_SFX)
+# UEFI binary
+UEFI_DLL_SFX = $(TARGET).dll
+UEFI_DLL = $(CONTIKI_PROJECT).$(UEFI_SFX)
+UEFI_LDFLAGS += -Xlinker --emit-relocs -Xlinker --entry=uefi_start
+UEFI_SFX = $(TARGET).efi
+UEFI = $(CONTIKI_PROJECT).$(UEFI_SFX)
+
+# Suffixes for final (non-intermediate) files to be built
+FINAL_SFXS = $(MULTIBOOT_SFX)
+ifeq ($(EN_UEFI),1)
+FINAL_SFXS += $(UEFI_SFX)
+endif
+
+debug: $(MULTIBOOT)
+	@openocd -s $(OPENOCD_SCRIPTS) -f debug.cfg &> $(shell pwd)/LOG_OPENOCD &
+	@$(GDB) $< -ex "target remote :3333"
+
+CUSTOM_RULE_LINK=1
+
+%.$(MULTIBOOT_SFX): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(MULTIBOOT_LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+
+%.$(UEFI_DLL_SFX): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(TRACE_LD)
+	$(Q)$(LD) $(LDFLAGS) $(UEFI_LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+
+%.$(UEFI_SFX): %.$(UEFI_DLL_SFX)
+	$(Q)$(GEN_FW) -o $@ -e UEFI_APPLICATION $^
+    # The Intel Galileo firmware has been observed to not relocate the image
+    # if its base is set to the 1M boundary.  This makes debugging easier,
+    # since the symbols in the intermediate DLL then correspond to the load
+    # addresses.
+	$(Q)$(GEN_FW) -o $@ --rebase 0x100000 $@
+
+$(CONTIKI_PROJECT): $(addprefix $(CONTIKI_PROJECT).,$(FINAL_SFXS))
+	@$(SIZE) $^
+
+CLEAN += $(addprefix $(CONTIKI_PROJECT).,$(FINAL_SFXS))

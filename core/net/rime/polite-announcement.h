@@ -50,7 +50,7 @@
  * announcement. THe module announces the announcements that have been
  * registered with the \ref rimeannouncement "announcement module".
  *
- * \section channels Channels
+ * \section polite-announcement-channels Channels
  *
  * The polite announcement module uses 1 channel.
  *

@@ -92,8 +92,6 @@ static struct broadcast_announcement_state {
 #define PRINTF(...)
 #endif
 
-#define MIN(a, b) ((a)<(b)?(a):(b))
-
 /*---------------------------------------------------------------------------*/
 static void
 send_adv(void *ptr)

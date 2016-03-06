@@ -30,17 +30,17 @@
  */
 
 /**
+ * \addtogroup uip6
+ * @{
+ */
+
+/**
  * \file
- *         IPv6 Neighbor cache (link-layer/IPv6 address mapping)
+ *    IPv6 Neighbor cache (link-layer/IPv6 address mapping)
  * \author Mathilde Durvy <mdurvy@cisco.com>
  * \author Julien Abeille <jabeille@cisco.com>
  * \author Simon Duquennoy <simonduq@sics.se>
  *
- */
-
-/**
- * \addtogroup uip6
- * @{
  */
 
 #ifndef UIP_DS6_NEIGHBOR_H_
@@ -74,6 +74,7 @@ typedef struct uip_ds6_nbr {
   uint8_t nscount;
   uint8_t isrouter;
   uint8_t state;
+  uint16_t link_metric;
 #if UIP_CONF_IPV6_QUEUE_PKT
   struct uip_packetqueue_handle packethandle;
 #define UIP_DS6_NBR_PACKET_LIFETIME CLOCK_SECOND * 4
@@ -98,12 +99,12 @@ int uip_ds6_nbr_num(void);
 
 /**
  * \brief
- *     This searches inside the neighbor table for the neighbor that is about to
- *     expire the next.
+ *    This searches inside the neighbor table for the neighbor that is about to
+ *    expire the next.
  *
  * \return
- *     A reference to the neighbor about to expire the next or NULL if
- *     table is empty.
+ *    A reference to the neighbor about to expire the next or NULL if
+ *    table is empty.
  */
 uip_ds6_nbr_t *uip_ds6_get_least_lifetime_neighbor(void);
 

@@ -23,17 +23,17 @@ typedef enum
 
 /**
  * @brief Initialize the UART
- * 
+ *
  * @param baudrate  The baudrate which will be used for communication.
  *                  Ex: 115200
- *  
+ *
  * @param databits  The number of data bits used for communication.
  *                  Valid values are 7 or 8
- * 
- * @param parity    The type of parity used for communication.  
+ *
+ * @param parity    The type of parity used for communication.
  *                  See the SerialParity enum for possible values
- * 
- * @return stopbits The number of stop bits used for communication.
+ *
+ * @param stopbits  The number of stop bits used for communication.
  *                  Valid values are 1 or 2
  */
 void uartInit(uint32_t baudrate, uint8_t databits, SerialParity parity, uint8_t stopbits);
@@ -45,9 +45,9 @@ void uartInit(uint32_t baudrate, uint8_t databits, SerialParity parity, uint8_t 
  * instead which does not define fflush().  Therefore, we manually define
  * fflush() in the low level UART driver.  This function simply redirects
  * to the __write() function with a NULL buffer, triggering a flush.
- * 
+ *
  * @param handle  The output stream.  Should be set to 'stdout' like normal.
- *  
+ *
  * @return Zero, indicating success.
  */
 size_t fflush(int handle);
@@ -61,7 +61,7 @@ size_t fflush(int handle);
 #define stdout _LLIO_STDOUT
 #endif
 /**
- * @brief Read the input byte if any. 
+ * @brief Read the input byte if any.
  */
 boolean __io_getcharNonBlocking(uint8_t *data);
 void __io_putchar( char c );

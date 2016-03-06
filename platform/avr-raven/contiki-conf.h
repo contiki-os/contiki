@@ -68,18 +68,10 @@
  */
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 128
-#if 1
-/* 16 bit counter overflows every ~10 minutes */
-typedef unsigned short clock_time_t;
-#define CLOCK_LT(a,b)  ((signed short)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffff
-#define RIME_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#define COLLECT_CONF_BROADCAST_ANNOUNCEMENT_MAX_TIME INFINITE_TIME/CLOCK_CONF_SECOND /* Default uses 600 */
-#else
-typedef unsigned long clock_time_t;
-#define CLOCK_LT(a,b)  ((signed long)((a)-(b)) < 0)
-#define INFINITE_TIME 0xffffffff
-#endif
+
+typedef uint32_t clock_time_t;
+#define CLOCK_LT(a,b)  ((int32_t)((a)-(b)) < 0)
+
 /* These routines are not part of the contiki core but can be enabled in cpu/avr/clock.c */
 void clock_delay_msec(uint16_t howlong);
 void clock_adjust_ticks(clock_time_t howmany);
@@ -162,6 +154,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_ICMP6            1
 #define UIP_CONF_UDP              1
 #define UIP_CONF_TCP              1
+#define UIP_CONF_BUFFER_SIZE      1300
 #define NETSTACK_CONF_NETWORK       sicslowpan_driver
 #define SICSLOWPAN_CONF_COMPRESSION SICSLOWPAN_COMPRESSION_HC06
 #else
@@ -206,8 +199,6 @@ typedef unsigned short uip_stats_t;
 #define RADIO_CONF_CALIBRATE_INTERVAL 256
 /* AUTOACK receive mode gives better rssi measurements, even if ACK is never requested */
 #define RF230_CONF_AUTOACK        1
-/* Request 802.15.4 ACK on all packets sent (else autoretry). This is primarily for testing. */
-#define SICSLOWPAN_CONF_ACK_ALL   0
 /* Number of auto retry attempts+1, 1-16. Set zero to disable extended TX_ARET_ON mode with CCA) */
 #define RF230_CONF_FRAME_RETRIES    3
 /* Number of CSMA attempts 0-7. 802.15.4 2003 standard max is 5. */

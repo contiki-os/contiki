@@ -7,7 +7,7 @@ CONTIKI_TARGET_SOURCEFILES += contiki-wismote-platform.c \
      sky-sensors.c uip-ipchksum.c \
      uart1.c slip_uart1.c uart1-putchar.c
 
-ARCH=spi.c i2c.c node-id.c sensors.c cfs-coffee.c sht15.c \
+ARCH=spi.c xmem.c i2c.c node-id.c sensors.c cfs-coffee.c sht15.c \
      cc2520.c cc2520-arch.c cc2520-arch-sfd.c \
      sky-sensors.c uip-ipchksum.c \
      uart1.c slip_uart1.c uart1-putchar.c

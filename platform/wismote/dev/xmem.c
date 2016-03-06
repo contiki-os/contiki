@@ -32,13 +32,17 @@
  * \file
  *         Device driver for the ST M25P80 40MHz 1Mbyte external memory.
  * \author
- *         Björn Grönvall <bg@sics.se>
+ *         BjÃ¶rn GrÃ¶nvall <bg@sics.se>
+ *         Sumankumar Panchal <suman@ece.iisc.ernet.in>
+ *         
  *
  *         Data is written bit inverted (~-operator) to flash so that
  *         unwritten data will read as zeros (UNIX style).
  */
 
+
 #include "contiki.h"
+#include <stdio.h>
 #include <string.h>
 
 #include "dev/spi.h"
@@ -46,7 +50,6 @@
 #include "dev/watchdog.h"
 
 #if 0
-#include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...) do {} while (0)
@@ -72,8 +75,7 @@ write_enable(void)
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  //FASTSPI_TX(SPI_FLASH_INS_WREN);
-  //SPI_WAITFORTx_ENDED();
+  SPI_WRITE(SPI_FLASH_INS_WREN);
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -89,11 +91,10 @@ read_status_register(void)
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  //FASTSPI_TX(SPI_FLASH_INS_RDSR);
-  //SPI_WAITFORTx_ENDED();
+  SPI_WRITE(SPI_FLASH_INS_RDSR);
 
-  //FASTSPI_CLEAR_RX();
-  //FASTSPI_RX(u);
+  SPI_FLUSH();
+  SPI_READ(u);
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -110,6 +111,7 @@ wait_ready(void)
   unsigned u;
   do {
     u = read_status_register();
+    watchdog_periodic();
   } while(u & 0x01);		/* WIP=1, write in progress */
   return u;
 }
@@ -121,18 +123,18 @@ static void
 erase_sector(unsigned long offset)
 {
   int s;
-  wait_ready();
 
+  wait_ready();
   write_enable();
 
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  //FASTSPI_TX(SPI_FLASH_INS_SE);
-  //FASTSPI_TX(offset >> 16);	/* MSB */
-  //FASTSPI_TX(offset >> 8);
-  //FASTSPI_TX(offset >> 0);	/* LSB */
-  //SPI_WAITFORTx_ENDED();
+  SPI_WRITE_FAST(SPI_FLASH_INS_SE);
+  SPI_WRITE_FAST(offset >> 16);	/* MSB */
+  SPI_WRITE_FAST(offset >> 8);
+  SPI_WRITE_FAST(offset >> 0);	/* LSB */
+  SPI_WAITFORTx_ENDED();
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -144,12 +146,20 @@ erase_sector(unsigned long offset)
 void
 xmem_init(void)
 {
+  int s;
   spi_init();
 
-  P4DIR |= BV(FLASH_CS) | BV(FLASH_HOLD) | BV(FLASH_PWR);
-  P4OUT |= BV(FLASH_PWR);       /* P4.3 Output, turn on power! */
+  
+  P4DIR |= BIT0;
 
+  /* Release from Deep Power-down */
+  s = splhigh();
+  SPI_FLASH_ENABLE();
+  SPI_WRITE_FAST(SPI_FLASH_INS_RES);
+  SPI_WAITFORTx_ENDED();
   SPI_FLASH_DISABLE();		/* Unselect flash. */
+  splx(s);
+
   SPI_FLASH_UNHOLD();
 }
 /*---------------------------------------------------------------------------*/
@@ -159,6 +169,7 @@ xmem_pread(void *_p, int size, unsigned long offset)
   unsigned char *p = _p;
   const unsigned char *end = p + size;
   int s;
+
   wait_ready();
 
   ENERGEST_ON(ENERGEST_TYPE_FLASH_READ);
@@ -166,16 +177,16 @@ xmem_pread(void *_p, int size, unsigned long offset)
   s = splhigh();
   SPI_FLASH_ENABLE();
 
-  //FASTSPI_TX(SPI_FLASH_INS_READ);
-  //FASTSPI_TX(offset >> 16);	/* MSB */
-  //FASTSPI_TX(offset >> 8);
-  //FASTSPI_TX(offset >> 0);	/* LSB */
-  //SPI_WAITFORTx_ENDED();
+  SPI_WRITE_FAST(SPI_FLASH_INS_READ);
+  SPI_WRITE_FAST(offset >> 16);	/* MSB */
+  SPI_WRITE_FAST(offset >> 8);
+  SPI_WRITE_FAST(offset >> 0);	/* LSB */
+  SPI_WAITFORTx_ENDED();
   
-  //FASTSPI_CLEAR_RX();
+  SPI_FLUSH();
   for(; p < end; p++) {
     unsigned char u;
-    //FASTSPI_RX(u);
+    SPI_READ(u);
     *p = ~u;
   }
 
@@ -187,28 +198,27 @@ xmem_pread(void *_p, int size, unsigned long offset)
   return size;
 }
 /*---------------------------------------------------------------------------*/
-static const char *
+static const unsigned char *
 program_page(unsigned long offset, const unsigned char *p, int nbytes)
 {
   const unsigned char *end = p + nbytes;
   int s;
 
   wait_ready();
-
   write_enable();
 
   s = splhigh();
   SPI_FLASH_ENABLE();
   
- // FASTSPI_TX(SPI_FLASH_INS_PP);
-  //FASTSPI_TX(offset >> 16);	/* MSB */
-  //FASTSPI_TX(offset >> 8);
-  //FASTSPI_TX(offset >> 0);	/* LSB */
+  SPI_WRITE_FAST(SPI_FLASH_INS_PP);
+  SPI_WRITE_FAST(offset >> 16);	/* MSB */
+  SPI_WRITE_FAST(offset >> 8);
+  SPI_WRITE_FAST(offset >> 0);	/* LSB */
 
   for(; p < end; p++) {
-    //FASTSPI_TX(~*p);
+    SPI_WRITE_FAST(~*p);
   }
-  //SPI_WAITFORTx_ENDED();
+  SPI_WAITFORTx_ENDED();
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -224,7 +234,7 @@ xmem_pwrite(const void *_buf, int size, unsigned long addr)
   unsigned long i, next_page;
 
   ENERGEST_ON(ENERGEST_TYPE_FLASH_WRITE);
-  
+
   for(i = addr; i < end;) {
     next_page = (i | 0xff) + 1;
     if(next_page > end) {
@@ -254,13 +264,9 @@ xmem_erase(long size, unsigned long addr)
     return -1;
   }
 
-  watchdog_stop();
-
   for (; addr < end; addr += XMEM_ERASE_UNIT_SIZE) {
     erase_sector(addr);
   }
-
-  watchdog_start();
 
   return size;
 }

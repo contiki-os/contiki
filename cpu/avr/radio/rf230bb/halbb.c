@@ -544,6 +544,7 @@ hal_frame_write(uint8_t *write_buffer, uint8_t length)
 }
 
 /*----------------------------------------------------------------------------*/
+#if 0  //Uses 80 bytes (on Raven) omit unless needed
 /** \brief Read SRAM
  *
  * This function reads from the SRAM of the radio transceiver.
@@ -552,7 +553,6 @@ hal_frame_write(uint8_t *write_buffer, uint8_t length)
  * \param length Length of the read burst
  * \param data Pointer to buffer where data is stored.
  */
-#if 0  //Uses 80 bytes (on Raven) omit unless needed
 void
 hal_sram_read(uint8_t address, uint8_t length, uint8_t *data)
 {
@@ -576,6 +576,7 @@ hal_sram_read(uint8_t address, uint8_t length, uint8_t *data)
 }
 #endif
 /*----------------------------------------------------------------------------*/
+#if 0  //omit unless needed
 /** \brief Write SRAM
  *
  * This function writes into the SRAM of the radio transceiver. It can reduce
@@ -585,7 +586,6 @@ hal_sram_read(uint8_t address, uint8_t length, uint8_t *data)
  * \param length  Length of the write burst
  * \param data    Pointer to an array of bytes that should be written
  */
-#if 0  //omit unless needed
 void
 hal_sram_write(uint8_t address, uint8_t length, uint8_t *data)
 {
@@ -751,7 +751,8 @@ HAL_RF230_ISR()
 #endif
 #endif
 
-    } else if (interrupt_source & HAL_TRX_END_MASK){
+    }
+    if (interrupt_source & HAL_TRX_END_MASK){
 	   INTERRUPTDEBUG(11);	    	    
         
        state = hal_subregister_read(SR_TRX_STATUS);
@@ -778,16 +779,20 @@ HAL_RF230_ISR()
 
        }
               
-    } else if (interrupt_source & HAL_TRX_UR_MASK){
+    }
+    if (interrupt_source & HAL_TRX_UR_MASK){
         INTERRUPTDEBUG(13);
         ;
-    } else if (interrupt_source & HAL_PLL_UNLOCK_MASK){
+    }
+    if (interrupt_source & HAL_PLL_UNLOCK_MASK){
         INTERRUPTDEBUG(14);
 	    ;
-    } else if (interrupt_source & HAL_PLL_LOCK_MASK){
+    }
+    if (interrupt_source & HAL_PLL_LOCK_MASK){
         INTERRUPTDEBUG(15);
         ;
-    } else if (interrupt_source & HAL_BAT_LOW_MASK){
+    }
+    if (interrupt_source & HAL_BAT_LOW_MASK){
         /*  Disable BAT_LOW interrupt to prevent endless interrupts. The interrupt */
         /*  will continously be asserted while the supply voltage is less than the */
         /*  user-defined voltage threshold. */
@@ -796,9 +801,6 @@ HAL_RF230_ISR()
         hal_register_write(RG_IRQ_MASK, trx_isr_mask);
         INTERRUPTDEBUG(16);
         ;
-     } else {
-        INTERRUPTDEBUG(99);
-	    ;
     }
 }
 #endif /* defined(__AVR_ATmega128RFA1__) */ 

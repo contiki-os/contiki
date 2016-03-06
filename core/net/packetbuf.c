@@ -56,10 +56,10 @@ static uint16_t buflen, bufptr;
 static uint8_t hdrptr;
 
 /* The declarations below ensure that the packet buffer is aligned on
-   an even 16-bit boundary. On some platforms (most notably the
-   msp430), having apotentially misaligned packet buffer may lead to
-   problems when accessing 16-bit values. */
-static uint16_t packetbuf_aligned[(PACKETBUF_SIZE + PACKETBUF_HDR_SIZE) / 2 + 1];
+   an even 32-bit boundary. On some platforms (most notably the
+   msp430 or OpenRISC), having a potentially misaligned packet buffer may lead to
+   problems when accessing words. */
+static uint32_t packetbuf_aligned[(PACKETBUF_SIZE + PACKETBUF_HDR_SIZE + 3) / 4];
 static uint8_t *packetbuf = (uint8_t *)packetbuf_aligned;
 
 static uint8_t *packetbufptr;
@@ -106,10 +106,7 @@ packetbuf_compact(void)
 {
   int i, len;
 
-  if(packetbuf_is_reference()) {
-    memcpy(&packetbuf[PACKETBUF_HDR_SIZE], packetbuf_reference_ptr(),
-	   packetbuf_datalen());
-  } else if(bufptr > 0) {
+  if(bufptr > 0) {
     len = packetbuf_datalen() + PACKETBUF_HDR_SIZE;
     for(i = PACKETBUF_HDR_SIZE; i < len; i++) {
       packetbuf[i] = packetbuf[bufptr + i];
@@ -144,6 +141,7 @@ packetbuf_copyto(void *to)
     int i;
     char buffer[1000];
     char *bufferptr = buffer;
+    int  bufferlen = 0;
     
     bufferptr[0] = 0;
     for(i = hdrptr; i < PACKETBUF_HDR_SIZE; ++i) {
@@ -152,8 +150,8 @@ packetbuf_copyto(void *to)
     PRINTF("packetbuf_write: header: %s\n", buffer);
     bufferptr = buffer;
     bufferptr[0] = 0;
-    for(i = bufptr; i < buflen + bufptr; ++i) {
-      bufferptr += sprintf(bufferptr, "0x%02x, ", packetbufptr[i]);
+    for(i = bufptr; ((i < buflen + bufptr) && (bufferlen < (sizeof(buffer) - 10))); ++i) {
+      bufferlen += sprintf(bufferptr + bufferlen, "0x%02x, ", packetbufptr[i]);
     }
     PRINTF("packetbuf_write: data: %s\n", buffer);
   }
@@ -213,26 +211,6 @@ void *
 packetbuf_hdrptr(void)
 {
   return (void *)(&packetbuf[hdrptr]);
-}
-/*---------------------------------------------------------------------------*/
-void
-packetbuf_reference(void *ptr, uint16_t len)
-{
-  packetbuf_clear();
-  packetbufptr = ptr;
-  buflen = len;
-}
-/*---------------------------------------------------------------------------*/
-int
-packetbuf_is_reference(void)
-{
-  return packetbufptr != &packetbuf[PACKETBUF_HDR_SIZE];
-}
-/*---------------------------------------------------------------------------*/
-void *
-packetbuf_reference_ptr(void)
-{
-  return packetbufptr;
 }
 /*---------------------------------------------------------------------------*/
 uint16_t

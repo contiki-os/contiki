@@ -34,7 +34,7 @@
  *
  * \defgroup cc2538-char-io cc2538 Character I/O
  *
- * cc2538 CPU-specific functions for debugging and SLIP I/O
+ * CPU-specific functions for debugging and SLIP I/O
  *
  * On the cc2538, character I/O can be directed over USB or UART. This is
  * controlled by a series of configuration directives:

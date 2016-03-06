@@ -42,6 +42,7 @@
 #include "sys/energest.h"
 
 #include <stdio.h>
+#include "sys/cc.h"
 
 struct power_msg {
   uint16_t len;

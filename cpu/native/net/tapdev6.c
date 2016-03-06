@@ -331,7 +331,10 @@ tapdev_init(void)
   */
   /* freebsd */
   snprintf(buf, sizeof(buf), "ifconfig tap0 up");
-  system(buf);
+  if(system(buf) == -1) {
+    perror("tapdev: system: ifconfig");
+    return;
+  }
   printf("%s\n", buf);
   
   /*  */

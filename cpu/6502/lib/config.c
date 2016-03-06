@@ -43,7 +43,7 @@
 
 /*-----------------------------------------------------------------------------------*/
 #if LOG_CONF_ENABLED
-static char * CC_FASTCALL
+static char *
 ipaddrtoa(uip_ipaddr_t *ipaddr, char *buffer)
 {
   char *ptr = buffer;
@@ -59,7 +59,7 @@ ipaddrtoa(uip_ipaddr_t *ipaddr, char *buffer)
 }
 #endif /* LOG_CONF_ENABLED */
 /*-----------------------------------------------------------------------------------*/
-struct ethernet_config * CC_FASTCALL
+struct ethernet_config *
 config_read(char *filename)
 {
   static struct {
@@ -105,7 +105,7 @@ config_read(char *filename)
   uip_setnetmask(&config.netmask);
   uip_setdraddr(&config.draddr);
 #if WITH_DNS
-  resolv_conf(&config.resolvaddr);
+  uip_nameserver_update(&config.resolvaddr, UIP_NAMESERVER_INFINITE_LIFETIME);
 #endif /* WITH_DNS */
 
   return &config.ethernetcfg;

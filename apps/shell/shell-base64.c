@@ -86,7 +86,7 @@ base64_decode_char(char c)
 static int
 base64_add_char(struct base64_decoder_state *s, char c)
 {
-  if(isspace(c)) {
+  if(isspace((int)c)) {
     return 0;
   }
 

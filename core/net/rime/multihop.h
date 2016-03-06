@@ -61,7 +61,7 @@
  * process.
  *
  *
- * \section channels Channels
+ * \section multihop-channels Channels
  *
  * The multihop module uses 1 channel.
  *

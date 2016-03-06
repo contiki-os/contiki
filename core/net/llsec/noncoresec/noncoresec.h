@@ -43,7 +43,7 @@
  */
 
 /**
- * \defgroup noncoresec
+ * \defgroup noncoresec LLSEC driver using a network-wide key (NONCORESEC)
  * 
  * Noncompromise-resilient 802.15.4 security
  * 
@@ -56,6 +56,7 @@
 #include "net/llsec/llsec.h"
 
 extern const struct llsec_driver noncoresec_driver;
+extern const struct framer noncoresec_framer;
 
 #endif /* NONCORESEC_H_ */
 

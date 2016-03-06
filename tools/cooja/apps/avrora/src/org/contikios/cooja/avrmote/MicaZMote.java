@@ -44,6 +44,7 @@ import org.contikios.cooja.MoteType;
 import org.contikios.cooja.Simulation;
 import org.contikios.cooja.mote.memory.MemoryInterface;
 import org.contikios.cooja.motes.AbstractEmulatedMote;
+
 import avrora.arch.avr.AVRProperties;
 import avrora.core.LoadableProgram;
 import avrora.sim.AtmelInterpreter;
@@ -53,6 +54,8 @@ import avrora.sim.mcu.AtmelMicrocontroller;
 import avrora.sim.mcu.EEPROM;
 import avrora.sim.platform.MicaZ;
 import avrora.sim.platform.PlatformFactory;
+
+import org.contikios.cooja.avrmote.interfaces.MicaClock;
 
 /**
  * @author Joakim Eriksson, Fredrik Osterlind
@@ -73,6 +76,10 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   private MicaZMoteType myMoteType = null;
 
   private EEPROM eeprom = null;
+  
+  private long executed = 0;
+  private long skipped = 0;
+  
   
   /* Stack monitoring variables */
   private boolean stopNextInstruction = false;
@@ -184,6 +191,10 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   private long cyclesExecuted = 0;
   private long cyclesUntil = 0;
   public void execute(long t) {
+    MicaClock clock = ((MicaClock) (myMoteInterfaceHandler.getClock()));
+    double deviation = clock.getDeviation();
+    long drift = clock.getDrift();
+    
     /* Wait until mote boots */
     if (myMoteInterfaceHandler.getClock().getTime() < 0) {
       scheduleNextWakeup(t - myMoteInterfaceHandler.getClock().getTime());
@@ -196,13 +207,22 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
     } 
 
     /* TODO Poll mote interfaces? */
-
+    
+    /* skip if necessary */
+    if (((1-deviation) * executed) > skipped) {
+      skipped += 1;
+      scheduleNextWakeup(t + Simulation.MILLISECOND);
+    }
+    
     /* Execute one millisecond */
     cyclesUntil += NR_CYCLES_PER_MSEC;
     while (cyclesExecuted < cyclesUntil) {
       cyclesExecuted += interpreter.step();
     }
 
+     /* book keeping */
+    executed += 1;
+    
     /* TODO Poll mote interfaces? */
 
     /* Schedule wakeup every millisecond */

@@ -78,7 +78,7 @@ struct packetqueue {
  *             This structure holds the state of a packet queue. It is
  *             an opaque structure with no user-visible elements. The
  *             function packetqueue_queuebuf() is used to extract a
- *             \ref queuebuf "queubuf" from the item. The function
+ *             "queubuf" from the item. The function
  *             packetqueue_ptr() is used to extract the opaque pointer
  *             that was registered with the
  *             packetqueue_enqueue_packetbuf() function.

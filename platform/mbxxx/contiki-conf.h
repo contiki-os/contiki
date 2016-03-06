@@ -128,12 +128,6 @@
 
 #define UIP_CONF_UDP                				1
 
-#if (WITH_COAP==7) || (WITH_COAP==6) || (WITH_COAP==3)
-#define UIP_CONF_TCP						0
-#else
-#define UIP_CONF_TCP						1
-#endif /* WITH_COAP */
-
 #define UIP_CONF_ROUTER						1
 #define UIP_CONF_ND6_SEND_RA					0
 
@@ -141,8 +135,6 @@
 #define UIP_CONF_IPV6_QUEUE_PKT					0
 #define UIP_CONF_IPV6_CHECKS					1
 #define UIP_CONF_IPV6_REASSEMBLY				0
-#define UIP_CONF_ND6_MAX_PREFIXES				2
-#define UIP_CONF_ND6_MAX_DEFROUTERS				1
 #define UIP_CONF_IP_FORWARD					0
 #define UIP_CONF_BUFFER_SIZE					140
 #define UIP_CONF_MAX_CONNECTIONS				4

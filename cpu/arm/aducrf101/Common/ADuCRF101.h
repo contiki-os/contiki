@@ -33,7 +33,7 @@
  */
 
 /****************************************************************************************************//**
- * @file     ADUCRF101.h
+ * @file     ADuCRF101.h
  *
  * @brief    CMSIS Cortex-M3 Core Peripheral Access Layer Header File for
  *           default ADUCRF101 Device Series
@@ -61,7 +61,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 
 /* -------------------------  Interrupt Number Definition  ------------------------ */
@@ -827,7 +827,7 @@ typedef struct {                            /*!< pADI_ADC0 Structure            
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for ADCCFG*/
-#define ADCCFG_RVAL                    0xA00 
+#define ADCCFG_RVAL                    0xA00
 
 /* ADCCFG[REF] - Reference select */
 #define ADCCFG_REF_BBA                 (*(volatile unsigned long *) 0x42A00034)
@@ -870,7 +870,7 @@ typedef struct {                            /*!< pADI_ADC0 Structure            
 #define ADCCFG_CHSEL_AGND              (0xD   << 0  ) /* AGND. Internal ADC ground input for offset calibration. */
 
 /* Reset Value for ADCCON*/
-#define ADCCON_RVAL                    0x90 
+#define ADCCON_RVAL                    0x90
 
 /* ADCCON[REFBUF] - Reference buffer enable bit. */
 #define ADCCON_REFBUF_BBA              (*(volatile unsigned long *) 0x42A0009C)
@@ -916,7 +916,7 @@ typedef struct {                            /*!< pADI_ADC0 Structure            
 #define ADCCON_START_EN                (0x1   << 0  ) /* EN. Start conversion when SOFT conversion mode is selected. This bit does not clear after a single software conversion. */
 
 /* Reset Value for ADCSTA*/
-#define ADCSTA_RVAL                    0x0 
+#define ADCSTA_RVAL                    0x0
 
 /* ADCSTA[READY] - ADC Ready bit */
 #define ADCSTA_READY_BBA               (*(volatile unsigned long *) 0x42A00100)
@@ -926,7 +926,7 @@ typedef struct {                            /*!< pADI_ADC0 Structure            
 #define ADCSTA_READY_EN                (0x1   << 0  ) /* EN. Set by the ADC when a conversion is complete. This bit generates an interrupt if enabled (IEN set in ADCCON). */
 
 /* Reset Value for ADCDAT*/
-#define ADCDAT_RVAL                    0x0 
+#define ADCDAT_RVAL                    0x0
 
 /* ADCDAT[VALUE] - ADC result */
 #define ADCDAT_VALUE_MSK               (0xFFF << 2  )
@@ -935,13 +935,13 @@ typedef struct {                            /*!< pADI_ADC0 Structure            
 #define ADCDAT_Value_Reserved_MSK      (0x3   << 0  )
 
 /* Reset Value for ADCGN*/
-#define ADCGN_RVAL                     0x0 
+#define ADCGN_RVAL                     0x0
 
 /* ADCGN[VALUE] - Gain */
 #define ADCGN_VALUE_MSK                (0xFFFF << 0  )
 
 /* Reset Value for ADCOF*/
-#define ADCOF_RVAL                     0x0 
+#define ADCOF_RVAL                     0x0
 
 /* ADCOF[VALUE] - Offset */
 #define ADCOF_VALUE_MSK                (0xFFFF << 0  )
@@ -972,7 +972,7 @@ typedef struct {                            /*!< pADI_CLKCTL Structure          
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for CLKCON*/
-#define CLKCON_RVAL                    0x0 
+#define CLKCON_RVAL                    0x0
 
 /* CLKCON[CLKOUT] - GPIO output clock multiplexer select bits. */
 #define CLKCON_CLKOUT_MSK              (0x7   << 5  )
@@ -1002,7 +1002,7 @@ typedef struct {                            /*!< pADI_CLKCTL Structure          
 #define CLKCON_CD_DIV128               (0x7   << 0  ) /* DIV128.                  */
 
 /* Reset Value for XOSCCON*/
-#define XOSCCON_RVAL                   0x0 
+#define XOSCCON_RVAL                   0x0
 
 /* XOSCCON[ENABLE] - Crystal oscillator circuit enable bit. */
 #define XOSCCON_ENABLE_BBA             (*(volatile unsigned long *) 0x42048200)
@@ -1012,7 +1012,7 @@ typedef struct {                            /*!< pADI_CLKCTL Structure          
 #define XOSCCON_ENABLE_EN              (0x1   << 0  ) /* EN. Enables the watch crystal circuitry.(LFXTAL) */
 
 /* Reset Value for CLKACT*/
-#define CLKACT_RVAL                    0x3FFF 
+#define CLKACT_RVAL                    0x3FFF
 
 /* CLKACT[T1] - T1 clocks enable bit. */
 #define CLKACT_T1_BBA                  (*(volatile unsigned long *) 0x4204902C)
@@ -1099,7 +1099,7 @@ typedef struct {                            /*!< pADI_CLKCTL Structure          
 #define CLKACT_DMA_EN                  (0x1   << 0  ) /* EN. Enable DMA clock.    */
 
 /* Reset Value for CLKPD*/
-#define CLKPD_RVAL                     0x3FFF 
+#define CLKPD_RVAL                     0x3FFF
 
 /* CLKPD[T1] - T1 clocks enable bit. */
 #define CLKPD_T1_BBA                   (*(volatile unsigned long *) 0x420490AC)
@@ -1231,7 +1231,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for DMASTA*/
-#define DMASTA_RVAL                    0xD0000 
+#define DMASTA_RVAL                    0xD0000
 
 /* DMASTA[CHNLSMINUS1] - Number of available DMA channels minus 1. For example, if there are 14 channels available, the register reads back 0xD for these bits. */
 #define DMASTA_CHNLSMINUS1_MSK         (0x1F  << 16 )
@@ -1259,7 +1259,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMASTA_ENABLE_SET              (0x1   << 0  ) /* SET. Controller is enabled. */
 
 /* Reset Value for DMACFG*/
-#define DMACFG_RVAL                    0x0 
+#define DMACFG_RVAL                    0x0
 
 /* DMACFG[ENABLE] - Controller enable. */
 #define DMACFG_ENABLE_BBA              (*(volatile unsigned long *) 0x42200080)
@@ -1269,19 +1269,19 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMACFG_ENABLE_EN               (0x1   << 0  ) /* EN. Controller is enabled. */
 
 /* Reset Value for DMAPDBPTR*/
-#define DMAPDBPTR_RVAL                 0x0 
+#define DMAPDBPTR_RVAL                 0x0
 
 /* DMAPDBPTR[CTRLBASEPTR] - Pointer to the base address of the primary data structure. 5 + log (2)M LSBs are reserved and must be written 0. M is the number of channels. */
 #define DMAPDBPTR_CTRLBASEPTR_MSK      (0xFFFFFFFF << 0  )
 
 /* Reset Value for DMAADBPTR*/
-#define DMAADBPTR_RVAL                 0x100 
+#define DMAADBPTR_RVAL                 0x100
 
 /* DMAADBPTR[ALTCBPTR] - Base address of the alternate data structure. */
 #define DMAADBPTR_ALTCBPTR_MSK         (0xFFFFFFFF << 0  )
 
 /* Reset Value for DMASWREQ*/
-#define DMASWREQ_RVAL                  0x0 
+#define DMASWREQ_RVAL                  0x0
 
 /* DMASWREQ[SPI0RX] - DMA SPI0 RX. */
 #define DMASWREQ_SPI0RX_BBA            (*(volatile unsigned long *) 0x422002B4)
@@ -1361,7 +1361,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMASWREQ_SPI1TX_EN             (0x1   << 0  ) /* EN. Generates a DMA request for SPI1TX. */
 
 /* Reset Value for DMARMSKSET*/
-#define DMARMSKSET_RVAL                0x0 
+#define DMARMSKSET_RVAL                0x0
 
 /* DMARMSKSET[SPI0RX] - DMA SPI0 RX. */
 #define DMARMSKSET_SPI0RX_BBA          (*(volatile unsigned long *) 0x42200434)
@@ -1441,7 +1441,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMARMSKSET_SPI1TX_EN           (0x1   << 0  ) /* EN.  When read: Requests are disabled for SPI1TX When written: Disables peripheral associated with SPI1TX from generating DMA requests. */
 
 /* Reset Value for DMARMSKCLR*/
-#define DMARMSKCLR_RVAL                0x0 
+#define DMARMSKCLR_RVAL                0x0
 
 /* DMARMSKCLR[SPI0RX] - DMA SPI0 RX. */
 #define DMARMSKCLR_SPI0RX_BBA          (*(volatile unsigned long *) 0x422004B4)
@@ -1521,7 +1521,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMARMSKCLR_SPI1TX_EN           (0x1   << 0  ) /* EN. Enables peripheral associated with SPI1TX to generate DMA requests. */
 
 /* Reset Value for DMAENSET*/
-#define DMAENSET_RVAL                  0x0 
+#define DMAENSET_RVAL                  0x0
 
 /* DMAENSET[SPI0RX] - DMA SPI0 RX */
 #define DMAENSET_SPI0RX_BBA            (*(volatile unsigned long *) 0x42200534)
@@ -1601,7 +1601,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMAENSET_SPI1TX_EN             (0x1   << 0  ) /* EN. Enables SPI1TX.      */
 
 /* Reset Value for DMAENCLR*/
-#define DMAENCLR_RVAL                  0x0 
+#define DMAENCLR_RVAL                  0x0
 
 /* DMAENCLR[SPI0RX] - DMA SPI0 RX */
 #define DMAENCLR_SPI0RX_BBA            (*(volatile unsigned long *) 0x422005B4)
@@ -1681,7 +1681,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMAENCLR_SPI1TX_EN             (0x1   << 0  ) /* EN. Disables SPI1TX.     */
 
 /* Reset Value for DMAALTSET*/
-#define DMAALTSET_RVAL                 0x0 
+#define DMAALTSET_RVAL                 0x0
 
 /* DMAALTSET[SPI0RX] - DMA SPI0 RX. */
 #define DMAALTSET_SPI0RX_BBA           (*(volatile unsigned long *) 0x42200634)
@@ -1761,7 +1761,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMAALTSET_SPI1TX_EN            (0x1   << 0  ) /* EN. When read: DMA SPI1TX is using the alternate data structure. When written: Selects the alternate data structure for SPI1TX. */
 
 /* Reset Value for DMAALTCLR*/
-#define DMAALTCLR_RVAL                 0x0 
+#define DMAALTCLR_RVAL                 0x0
 
 /* DMAALTCLR[SPI0RX] - DMA SPI0 RX. */
 #define DMAALTCLR_SPI0RX_BBA           (*(volatile unsigned long *) 0x422006B4)
@@ -1841,7 +1841,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMAALTCLR_SPI1TX_EN            (0x1   << 0  ) /* EN. Selects the primary data structure for SPI1TX. */
 
 /* Reset Value for DMAPRISET*/
-#define DMAPRISET_RVAL                 0x0 
+#define DMAPRISET_RVAL                 0x0
 
 /* DMAPRISET[SPI0RX] - DMA SPI0 RX. */
 #define DMAPRISET_SPI0RX_BBA           (*(volatile unsigned long *) 0x42200734)
@@ -1921,7 +1921,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMAPRISET_SPI1TX_EN            (0x1   << 0  ) /* EN. When read: DMA SPI1TX is using a high priority level. When written: SPI1TX uses the high priority level. */
 
 /* Reset Value for DMAPRICLR*/
-#define DMAPRICLR_RVAL                 0x0 
+#define DMAPRICLR_RVAL                 0x0
 
 /* DMAPRICLR[SPI0RX] - DMA SPI0 RX. */
 #define DMAPRICLR_SPI0RX_BBA           (*(volatile unsigned long *) 0x422007B4)
@@ -2001,7 +2001,7 @@ typedef struct {                            /*!< pADI_DMA Structure             
 #define DMAPRICLR_SPI1TX_EN            (0x1   << 0  ) /* EN. SPI1TX uses the default priority level. */
 
 /* Reset Value for DMAERRCLR*/
-#define DMAERRCLR_RVAL                 0x0 
+#define DMAERRCLR_RVAL                 0x0
 
 /* DMAERRCLR[ERROR] - DMA Bus Error status. */
 #define DMAERRCLR_ERROR_BBA            (*(volatile unsigned long *) 0x42200980)
@@ -2078,7 +2078,7 @@ typedef struct {                            /*!< pADI_FEE Structure             
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for FEESTA*/
-#define FEESTA_RVAL                    0x0 
+#define FEESTA_RVAL                    0x0
 
 /* FEESTA[SIGNERR] - Kernel space signature check on reset error */
 #define FEESTA_SIGNERR_BBA             (*(volatile unsigned long *) 0x42050018)
@@ -2123,7 +2123,7 @@ typedef struct {                            /*!< pADI_FEE Structure             
 #define FEESTA_CMDBUSY_SET             (0x1   << 0  ) /* SET. Set when the flash block is executing any command entered via the command register. */
 
 /* Reset Value for FEECON0*/
-#define FEECON0_RVAL                   0x0 
+#define FEECON0_RVAL                   0x0
 
 /* FEECON0[WREN] - Write enable bit. */
 #define FEECON0_WREN_BBA               (*(volatile unsigned long *) 0x42050088)
@@ -2147,7 +2147,7 @@ typedef struct {                            /*!< pADI_FEE Structure             
 #define FEECON0_IENCMD_EN              (0x1   << 0  ) /* EN. An interrupt is generated when a command or flash write completes. */
 
 /* Reset Value for FEECMD*/
-#define FEECMD_RVAL                    0x0 
+#define FEECMD_RVAL                    0x0
 
 /* FEECMD[CMD] - Commands supported by the flash controller. */
 #define FEECMD_CMD_MSK                 (0xF   << 0  )
@@ -2158,31 +2158,31 @@ typedef struct {                            /*!< pADI_FEE Structure             
 #define FEECMD_CMD_ABORT               (0x4   << 0  ) /* ABORT. If this command is issued, then any command currently in progress is stopped. The status indicates command completed with an error status in FEESTA[5:4]. Note that this is the only command that can be issued while another command is already in progress. This command can also be used to stop a write that may be in progress. If a write is aborted, the address of the location being written can be read via the FEEADRAL/FEEADRAH register. While the flash controller is writing one longword, another longword write may be in the pipeline from the Cortex-M3 or DMA engine (depending on how the software implements writes). Therefore, both writes may need to be aborted. If a write or erase is aborted, then the flash timing is violated and it is not possible to determine if the write or erase completed successfully. To enable this operation, 0xF456 followed by 0xF123 must first be written to FEEKEY (this is to prevent accidental aborts). */
 
 /* Reset Value for FEEADR0L*/
-#define FEEADR0L_RVAL                  0x0 
+#define FEEADR0L_RVAL                  0x0
 
 /* FEEADR0L[VALUE] - Used in conjunction with FEEADR0H, to indicate the page to be erased, or the start of a section to be signed. The address of a memory location inside the page should be stored in FEEADR0L/H, bits[15:0] in FEEADR0L, and bits[17:16] in FEEADR0H. The 9 LSBs of the address are ignored. */
 #define FEEADR0L_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for FEEADR0H*/
-#define FEEADR0H_RVAL                  0x0 
+#define FEEADR0H_RVAL                  0x0
 
 /* FEEADR0H[VALUE] - Used in conjunction with FEEADR0L, to indicate the page to be erased, or the start of a section to be signed. The address of a memory location inside the page should be stored in FEEADR0L/H, bits[15:0] in FEEADR0L, and bits[17:16] in FEEADR0H. */
 #define FEEADR0H_VALUE_MSK             (0x3   << 0  )
 
 /* Reset Value for FEEADR1L*/
-#define FEEADR1L_RVAL                  0x0 
+#define FEEADR1L_RVAL                  0x0
 
 /* FEEADR1L[VALUE] - Used in conjunction with FEEADR1H, to identify the last page used by the Sign command. The address of a memory location inside the page should be stored in FEEADR1L/H, bits[15:0] in FEEADR1L, and bits[17:16] in FEEADR1H. The 9 LSBs of the address are ignored. */
 #define FEEADR1L_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for FEEADR1H*/
-#define FEEADR1H_RVAL                  0x0 
+#define FEEADR1H_RVAL                  0x0
 
 /* FEEADR1H[VALUE] - Used in conjunction with FEEADR1L, to identify the last page used by the Sign command. The address of a memory location inside the page should be stored in FEEADR1L/H, bits[15:0] in FEEADR1L, and bits[17:16] in FEEADR1H. */
 #define FEEADR1H_VALUE_MSK             (0x3   << 0  )
 
 /* Reset Value for FEEKEY*/
-#define FEEKEY_RVAL                    0x0 
+#define FEEKEY_RVAL                    0x0
 
 /* FEEKEY[VALUE] - Enter 0xF456 followed by 0xF123. Returns 0x0 if read. */
 #define FEEKEY_VALUE_MSK               (0xFFFF << 0  )
@@ -2190,31 +2190,31 @@ typedef struct {                            /*!< pADI_FEE Structure             
 #define FEEKEY_VALUE_USERKEY2          (0xF123 << 0  ) /* USERKEY2                 */
 
 /* Reset Value for FEEPROL*/
-#define FEEPROL_RVAL                   0xFFFF 
+#define FEEPROL_RVAL                   0xFFFF
 
 /* FEEPROL[VALUE] - Lower 16 bits of the write protection. This register is read only if the write protection in flash has been programmed, i.e. FEEPROH/L have previously been configured to protect pages. */
 #define FEEPROL_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for FEEPROH*/
-#define FEEPROH_RVAL                   0xFFFF 
+#define FEEPROH_RVAL                   0xFFFF
 
 /* FEEPROH[VALUE] - Upper 16 bits of the write protection. This register is read only if the write protection in flash has been programmed, i.e. FEEPROH/L have previously been configured to protect pages. */
 #define FEEPROH_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for FEESIGL*/
-#define FEESIGL_RVAL                   0xFFFF 
+#define FEESIGL_RVAL                   0xFFFF
 
 /* FEESIGL[VALUE] - Lower 16 bits of the signature. Signature[15:0]. */
 #define FEESIGL_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for FEESIGH*/
-#define FEESIGH_RVAL                   0xFFFF 
+#define FEESIGH_RVAL                   0xFFFF
 
 /* FEESIGH[VALUE] - Upper eight bits of the signature. Signature[23:16]. */
 #define FEESIGH_VALUE_MSK              (0xFF  << 0  )
 
 /* Reset Value for FEECON1*/
-#define FEECON1_RVAL                   0x1 
+#define FEECON1_RVAL                   0x1
 
 /* FEECON1[DBG] - Serial Wire debug enable. */
 #define FEECON1_DBG_BBA                (*(volatile unsigned long *) 0x42050700)
@@ -2224,19 +2224,19 @@ typedef struct {                            /*!< pADI_FEE Structure             
 #define FEECON1_DBG_EN                 (0x1   << 0  ) /* EN. Enable access via the serial wire debug interface. */
 
 /* Reset Value for FEEADRAL*/
-#define FEEADRAL_RVAL                  0x800 
+#define FEEADRAL_RVAL                  0x800
 
 /* FEEADRAL[VALUE] - Lower 16 bits of the FEEADRA register. If a write is aborted then this will contain the address of the location been written when the write was aborted. */
 #define FEEADRAL_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for FEEADRAH*/
-#define FEEADRAH_RVAL                  0x2 
+#define FEEADRAH_RVAL                  0x2
 
 /* FEEADRAH[VALUE] - Upper 16 bits of the FEEADRA register. */
 #define FEEADRAH_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for FEEAEN0*/
-#define FEEAEN0_RVAL                   0x0 
+#define FEEAEN0_RVAL                   0x0
 
 /* FEEAEN0[FEE] - Flash controller interrupt abort enable bit */
 #define FEEAEN0_FEE_BBA                (*(volatile unsigned long *) 0x42050F3C)
@@ -2344,7 +2344,7 @@ typedef struct {                            /*!< pADI_FEE Structure             
 #define FEEAEN0_T2_EN                  (0x1   << 0  ) /* EN. Timer2 interrupt abort enabled */
 
 /* Reset Value for FEEAEN1*/
-#define FEEAEN1_RVAL                   0x0 
+#define FEEAEN1_RVAL                   0x0
 
 /* FEEAEN1[DMAI2CMRX] - I2C master RX DMA interrupt abort enable bit */
 #define FEEAEN1_DMAI2CMRX_BBA          (*(volatile unsigned long *) 0x42050FBC)
@@ -2445,7 +2445,7 @@ typedef struct {                            /*!< pADI_FEE Structure             
 #define FEEAEN1_UART_EN                (0x1   << 0  ) /* EN. UART interrupt abort enabled. */
 
 /* Reset Value for FEEAEN2*/
-#define FEEAEN2_RVAL                   0x0 
+#define FEEAEN2_RVAL                   0x0
 
 /* FEEAEN2[PWM3] - PWM3 interrupt abort enable bit */
 #define FEEAEN2_PWM3_BBA               (*(volatile unsigned long *) 0x42051028)
@@ -2544,7 +2544,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for GP0CON*/
-#define GP0CON_RVAL                    0x0 
+#define GP0CON_RVAL                    0x0
 
 /* GP0CON[CON7] - Configuration bits for Px.7 (not available for port 1). */
 #define GP0CON_CON7_MSK                (0x3   << 14 )
@@ -2595,7 +2595,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP0CON_CON0_SPI1MISO           (0x1   << 0  ) /* SPI1MISO. SPI MISO (SPI1) */
 
 /* Reset Value for GP0OEN*/
-#define GP0OEN_RVAL                    0x0 
+#define GP0OEN_RVAL                    0x0
 
 /* GP0OEN[OEN7] - Port pin direction. */
 #define GP0OEN_OEN7_BBA                (*(volatile unsigned long *) 0x420C009C)
@@ -2654,7 +2654,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP0OEN_OEN0_OUT                (0x1   << 0  ) /* OUT. Enables the output on corresponding port pin.. */
 
 /* Reset Value for GP0PUL*/
-#define GP0PUL_RVAL                    0xFF 
+#define GP0PUL_RVAL                    0xFF
 
 /* GP0PUL[PUL7] - Pull Up Enable for port pin. */
 #define GP0PUL_PUL7_BBA                (*(volatile unsigned long *) 0x420C011C)
@@ -2713,7 +2713,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP0PUL_PUL0_EN                 (0x1   << 0  ) /* EN. Enables the internal pull up on corresponding port pin. */
 
 /* Reset Value for GP0OCE*/
-#define GP0OCE_RVAL                    0x0 
+#define GP0OCE_RVAL                    0x0
 
 /* GP0OCE[OCE7] - Output enable. Sets the GPIO pads on corresponding port to open circuit  mode. */
 #define GP0OCE_OCE7_BBA                (*(volatile unsigned long *) 0x420C019C)
@@ -2772,7 +2772,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP0OCE_OCE0_EN                 (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for GP0IN*/
-#define GP0IN_RVAL                     0xFF 
+#define GP0IN_RVAL                     0xFF
 
 /* GP0IN[IN7] - Reflects the level on the corresponding GPIO pins except when in configured in open circuit. */
 #define GP0IN_IN7_BBA                  (*(volatile unsigned long *) 0x420C029C)
@@ -2831,7 +2831,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP0IN_IN0_HIGH                 (0x1   << 0  ) /* HIGH                     */
 
 /* Reset Value for GP0OUT*/
-#define GP0OUT_RVAL                    0x0 
+#define GP0OUT_RVAL                    0x0
 
 /* GP0OUT[OUT7] - Data out register. */
 #define GP0OUT_OUT7_BBA                (*(volatile unsigned long *) 0x420C031C)
@@ -2890,7 +2890,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP0OUT_OUT0_HIGH               (0x1   << 0  ) /* HIGH. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP0SET*/
-#define GP0SET_RVAL                    0x0 
+#define GP0SET_RVAL                    0x0
 
 /* GP0SET[SET7] - Set output high for corresponding port pin. */
 #define GP0SET_SET7_BBA                (*(volatile unsigned long *) 0x420C039C)
@@ -2941,7 +2941,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP0SET_SET0_SET                (0x1   << 0  ) /* SET. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP0CLR*/
-#define GP0CLR_RVAL                    0x0 
+#define GP0CLR_RVAL                    0x0
 
 /* GP0CLR[CLR7] - Set by user code to drive the corresponding GPIO low. */
 #define GP0CLR_CLR7_BBA                (*(volatile unsigned long *) 0x420C041C)
@@ -2992,7 +2992,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP0CLR_CLR0_CLR                (0x1   << 0  ) /* CLR                      */
 
 /* Reset Value for GP0TGL*/
-#define GP0TGL_RVAL                    0x0 
+#define GP0TGL_RVAL                    0x0
 
 /* GP0TGL[TGL7] - Toggle for corresponding port pin. */
 #define GP0TGL_TGL7_BBA                (*(volatile unsigned long *) 0x420C049C)
@@ -3055,7 +3055,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #endif // (__NO_MMR_STRUCTS__==1)
 
 /* Reset Value for GP1CON*/
-#define GP1CON_RVAL                    0x0 
+#define GP1CON_RVAL                    0x0
 
 /* GP1CON[CON6] - Configuration bits for P1.6 */
 #define GP1CON_CON6_MSK                (0x3   << 12 )
@@ -3100,7 +3100,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP1CON_CON0_PWM2               (0x3   << 0  ) /* PWM2                     */
 
 /* Reset Value for GP1OEN*/
-#define GP1OEN_RVAL                    0x0 
+#define GP1OEN_RVAL                    0x0
 
 /* GP1OEN[OEN6] - Port pin direction. */
 #define GP1OEN_OEN6_BBA                (*(volatile unsigned long *) 0x420C0698)
@@ -3152,7 +3152,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP1OEN_OEN0_OUT                (0x1   << 0  ) /* OUT. Enables the output on corresponding port pin.. */
 
 /* Reset Value for GP1PUL*/
-#define GP1PUL_RVAL                    0x7F 
+#define GP1PUL_RVAL                    0x7F
 
 /* GP1PUL[PUL6] - Pull Up Enable for port pin. */
 #define GP1PUL_PUL6_BBA                (*(volatile unsigned long *) 0x420C0718)
@@ -3204,7 +3204,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP1PUL_PUL0_EN                 (0x1   << 0  ) /* EN. Enables the internal pull up on corresponding port pin. */
 
 /* Reset Value for GP1OCE*/
-#define GP1OCE_RVAL                    0x0 
+#define GP1OCE_RVAL                    0x0
 
 /* GP1OCE[OCE6] - Output enable. Sets the GPIO pads on corresponding port to open circuit  mode. */
 #define GP1OCE_OCE6_BBA                (*(volatile unsigned long *) 0x420C0798)
@@ -3256,7 +3256,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP1OCE_OCE0_EN                 (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for GP1IN*/
-#define GP1IN_RVAL                     0x7F 
+#define GP1IN_RVAL                     0x7F
 
 /* GP1IN[IN6] - Reflects the level on the corresponding GPIO pins except when in configured in open circuit. */
 #define GP1IN_IN6_BBA                  (*(volatile unsigned long *) 0x420C0898)
@@ -3308,7 +3308,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP1IN_IN0_HIGH                 (0x1   << 0  ) /* HIGH                     */
 
 /* Reset Value for GP1OUT*/
-#define GP1OUT_RVAL                    0x0 
+#define GP1OUT_RVAL                    0x0
 
 /* GP1OUT[OUT6] - Output for port pin. */
 #define GP1OUT_OUT6_BBA                (*(volatile unsigned long *) 0x420C0918)
@@ -3360,7 +3360,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP1OUT_OUT0_HIGH               (0x1   << 0  ) /* HIGH. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP1SET*/
-#define GP1SET_RVAL                    0x0 
+#define GP1SET_RVAL                    0x0
 
 /* GP1SET[SET6] - Set output high for corresponding port pin. */
 #define GP1SET_SET6_BBA                (*(volatile unsigned long *) 0x420C0998)
@@ -3405,7 +3405,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP1SET_SET0_SET                (0x1   << 0  ) /* SET. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP1CLR*/
-#define GP1CLR_RVAL                    0x0 
+#define GP1CLR_RVAL                    0x0
 
 /* GP1CLR[CLR6] - Set by user code to drive the corresponding GPIO low. */
 #define GP1CLR_CLR6_BBA                (*(volatile unsigned long *) 0x420C0A18)
@@ -3450,7 +3450,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP1CLR_CLR0_CLR                (0x1   << 0  ) /* CLR. Set by user code to drive the corresponding GPIO low. */
 
 /* Reset Value for GP1TGL*/
-#define GP1TGL_RVAL                    0x0 
+#define GP1TGL_RVAL                    0x0
 
 /* GP1TGL[TGL6] - Toggle for corresponding port pin. */
 #define GP1TGL_TGL6_BBA                (*(volatile unsigned long *) 0x420C0A98)
@@ -3507,7 +3507,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #endif // (__NO_MMR_STRUCTS__==1)
 
 /* Reset Value for GP2CON*/
-#define GP2CON_RVAL                    0x0 
+#define GP2CON_RVAL                    0x0
 
 /* GP2CON[CON7] - Configuration bits for P2.7 */
 #define GP2CON_CON7_MSK                (0x3   << 14 )
@@ -3548,7 +3548,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP2CON_CON0_GPIO               (0x1   << 0  ) /* GPIO                     */
 
 /* Reset Value for GP2OEN*/
-#define GP2OEN_RVAL                    0x0 
+#define GP2OEN_RVAL                    0x0
 
 /* GP2OEN[OEN7] - Port pin direction. */
 #define GP2OEN_OEN7_BBA                (*(volatile unsigned long *) 0x420C0C9C)
@@ -3607,7 +3607,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP2OEN_OEN0_OUT                (0x1   << 0  ) /* OUT. Enables the output on corresponding port pin. */
 
 /* Reset Value for GP2PUL*/
-#define GP2PUL_RVAL                    0xFF 
+#define GP2PUL_RVAL                    0xFF
 
 /* GP2PUL[PUL7] - Pull Up Enable for port pin. */
 #define GP2PUL_PUL7_BBA                (*(volatile unsigned long *) 0x420C0D1C)
@@ -3666,7 +3666,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP2PUL_PUL0_EN                 (0x1   << 0  ) /* EN. Enables the internal pull up on corresponding port pin. */
 
 /* Reset Value for GP2OCE*/
-#define GP2OCE_RVAL                    0x0 
+#define GP2OCE_RVAL                    0x0
 
 /* GP2OCE[OCE7] - Output enable. Sets the GPIO pads on corresponding port to open circuit  mode. */
 #define GP2OCE_OCE7_BBA                (*(volatile unsigned long *) 0x420C0D9C)
@@ -3725,7 +3725,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP2OCE_OCE0_EN                 (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for GP2IN*/
-#define GP2IN_RVAL                     0xFF 
+#define GP2IN_RVAL                     0xFF
 
 /* GP2IN[IN7] - Reflects the level on the corresponding GPIO pins except when in configured in open circuit. */
 #define GP2IN_IN7_BBA                  (*(volatile unsigned long *) 0x420C0E9C)
@@ -3784,7 +3784,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP2IN_IN0_HIGH                 (0x1   << 0  ) /* HIGH                     */
 
 /* Reset Value for GP2OUT*/
-#define GP2OUT_RVAL                    0x0 
+#define GP2OUT_RVAL                    0x0
 
 /* GP2OUT[OUT7] - Output for port pin. */
 #define GP2OUT_OUT7_BBA                (*(volatile unsigned long *) 0x420C0F1C)
@@ -3843,7 +3843,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP2OUT_OUT0_HIGH               (0x1   << 0  ) /* HIGH. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP2SET*/
-#define GP2SET_RVAL                    0x0 
+#define GP2SET_RVAL                    0x0
 
 /* GP2SET[SET7] - Set output high for corresponding port pin. */
 #define GP2SET_SET7_BBA                (*(volatile unsigned long *) 0x420C0F9C)
@@ -3894,7 +3894,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP2SET_SET0_SET                (0x1   << 0  ) /* SET. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP2CLR*/
-#define GP2CLR_RVAL                    0x0 
+#define GP2CLR_RVAL                    0x0
 
 /* GP2CLR[CLR7] - Set by user code to drive the corresponding GPIO low. */
 #define GP2CLR_CLR7_BBA                (*(volatile unsigned long *) 0x420C101C)
@@ -3945,7 +3945,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP2CLR_CLR0_CLR                (0x1   << 0  ) /* CLR. Set by user code to drive the corresponding GPIO low. */
 
 /* Reset Value for GP2TGL*/
-#define GP2TGL_RVAL                    0x0 
+#define GP2TGL_RVAL                    0x0
 
 /* GP2TGL[TGL7] - Toggle for corresponding port pin. */
 #define GP2TGL_TGL7_BBA                (*(volatile unsigned long *) 0x420C109C)
@@ -4008,7 +4008,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #endif // (__NO_MMR_STRUCTS__==1)
 
 /* Reset Value for GP3CON*/
-#define GP3CON_RVAL                    0x0 
+#define GP3CON_RVAL                    0x0
 
 /* GP3CON[CON7] - Configuration bits for P3.7 */
 #define GP3CON_CON7_MSK                (0x3   << 14 )
@@ -4049,7 +4049,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP3CON_CON0_PWMTRIP            (0x3   << 0  ) /* PWMTRIP                  */
 
 /* Reset Value for GP3OEN*/
-#define GP3OEN_RVAL                    0x0 
+#define GP3OEN_RVAL                    0x0
 
 /* GP3OEN[OEN7] - Port pin direction. */
 #define GP3OEN_OEN7_BBA                (*(volatile unsigned long *) 0x420C129C)
@@ -4108,7 +4108,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP3OEN_OEN0_OUT                (0x1   << 0  ) /* OUT. Enables the output on corresponding port pin. */
 
 /* Reset Value for GP3PUL*/
-#define GP3PUL_RVAL                    0xFF 
+#define GP3PUL_RVAL                    0xFF
 
 /* GP3PUL[PUL7] - Pull Up Enable for port pin. */
 #define GP3PUL_PUL7_BBA                (*(volatile unsigned long *) 0x420C131C)
@@ -4167,7 +4167,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP3PUL_PUL0_EN                 (0x1   << 0  ) /* EN. Enables the internal pull up on corresponding port pin. */
 
 /* Reset Value for GP3OCE*/
-#define GP3OCE_RVAL                    0x0 
+#define GP3OCE_RVAL                    0x0
 
 /* GP3OCE[OCE7] - Output enable. Sets the GPIO pads on corresponding port to open circuit  mode. */
 #define GP3OCE_OCE7_BBA                (*(volatile unsigned long *) 0x420C139C)
@@ -4226,7 +4226,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP3OCE_OCE0_EN                 (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for GP3IN*/
-#define GP3IN_RVAL                     0xFF 
+#define GP3IN_RVAL                     0xFF
 
 /* GP3IN[IN7] - Reflects the level on the corresponding GPIO pins except when in configured in open circuit. */
 #define GP3IN_IN7_BBA                  (*(volatile unsigned long *) 0x420C149C)
@@ -4285,7 +4285,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP3IN_IN0_HIGH                 (0x1   << 0  ) /* HIGH                     */
 
 /* Reset Value for GP3OUT*/
-#define GP3OUT_RVAL                    0x0 
+#define GP3OUT_RVAL                    0x0
 
 /* GP3OUT[OUT7] - Output for port pin. */
 #define GP3OUT_OUT7_BBA                (*(volatile unsigned long *) 0x420C151C)
@@ -4344,7 +4344,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP3OUT_OUT0_HIGH               (0x1   << 0  ) /* HIGH. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP3SET*/
-#define GP3SET_RVAL                    0x0 
+#define GP3SET_RVAL                    0x0
 
 /* GP3SET[SET7] - Set output high for corresponding port pin. */
 #define GP3SET_SET7_BBA                (*(volatile unsigned long *) 0x420C159C)
@@ -4395,7 +4395,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP3SET_SET0_SET                (0x1   << 0  ) /* SET. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP3CLR*/
-#define GP3CLR_RVAL                    0x0 
+#define GP3CLR_RVAL                    0x0
 
 /* GP3CLR[CLR7] - Set by user code to drive the corresponding GPIO low. */
 #define GP3CLR_CLR7_BBA                (*(volatile unsigned long *) 0x420C161C)
@@ -4446,7 +4446,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP3CLR_CLR0_CLR                (0x1   << 0  ) /* CLR. Set by user code to drive the corresponding GPIO low. */
 
 /* Reset Value for GP3TGL*/
-#define GP3TGL_RVAL                    0x0 
+#define GP3TGL_RVAL                    0x0
 
 /* GP3TGL[TGL7] - Toggle for corresponding port pin. */
 #define GP3TGL_TGL7_BBA                (*(volatile unsigned long *) 0x420C169C)
@@ -4509,7 +4509,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #endif // (__NO_MMR_STRUCTS__==1)
 
 /* Reset Value for GP4CON*/
-#define GP4CON_RVAL                    0x0 
+#define GP4CON_RVAL                    0x0
 
 /* GP4CON[CON7] - Configuration bits for P4.7 */
 #define GP4CON_CON7_MSK                (0x3   << 14 )
@@ -4553,7 +4553,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP4CON_CON0_PWM0               (0x2   << 0  ) /* PWM0                     */
 
 /* Reset Value for GP4OEN*/
-#define GP4OEN_RVAL                    0x0 
+#define GP4OEN_RVAL                    0x0
 
 /* GP4OEN[OEN7] - Port pin direction. */
 #define GP4OEN_OEN7_BBA                (*(volatile unsigned long *) 0x420C189C)
@@ -4612,7 +4612,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP4OEN_OEN0_OUT                (0x1   << 0  ) /* OUT. Enables the output on corresponding port pin. */
 
 /* Reset Value for GP4PUL*/
-#define GP4PUL_RVAL                    0xFF 
+#define GP4PUL_RVAL                    0xFF
 
 /* GP4PUL[PUL7] - Pull Up Enable for port pin. */
 #define GP4PUL_PUL7_BBA                (*(volatile unsigned long *) 0x420C191C)
@@ -4671,7 +4671,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP4PUL_PUL0_EN                 (0x1   << 0  ) /* EN. Enables the internal pull up on corresponding port pin. */
 
 /* Reset Value for GP4OCE*/
-#define GP4OCE_RVAL                    0x0 
+#define GP4OCE_RVAL                    0x0
 
 /* GP4OCE[OCE7] - Output enable. Sets the GPIO pads on corresponding port to open circuit  mode. */
 #define GP4OCE_OCE7_BBA                (*(volatile unsigned long *) 0x420C199C)
@@ -4730,7 +4730,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP4OCE_OCE0_EN                 (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for GP4IN*/
-#define GP4IN_RVAL                     0xFF 
+#define GP4IN_RVAL                     0xFF
 
 /* GP4IN[IN7] - Reflects the level on the corresponding GPIO pins except when in configured in open circuit. */
 #define GP4IN_IN7_BBA                  (*(volatile unsigned long *) 0x420C1A9C)
@@ -4789,7 +4789,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP4IN_IN0_HIGH                 (0x1   << 0  ) /* HIGH                     */
 
 /* Reset Value for GP4OUT*/
-#define GP4OUT_RVAL                    0x0 
+#define GP4OUT_RVAL                    0x0
 
 /* GP4OUT[OUT7] - Output for port pin. */
 #define GP4OUT_OUT7_BBA                (*(volatile unsigned long *) 0x420C1B1C)
@@ -4848,7 +4848,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP4OUT_OUT0_HIGH               (0x1   << 0  ) /* HIGH. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP4SET*/
-#define GP4SET_RVAL                    0x0 
+#define GP4SET_RVAL                    0x0
 
 /* GP4SET[SET7] - Set output high for corresponding port pin. */
 #define GP4SET_SET7_BBA                (*(volatile unsigned long *) 0x420C1B9C)
@@ -4899,7 +4899,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP4SET_SET0_SET                (0x1   << 0  ) /* SET. Set by user code to drive the corresponding GPIO high. */
 
 /* Reset Value for GP4CLR*/
-#define GP4CLR_RVAL                    0x0 
+#define GP4CLR_RVAL                    0x0
 
 /* GP4CLR[CLR7] - Set by user code to drive the corresponding GPIO low. */
 #define GP4CLR_CLR7_BBA                (*(volatile unsigned long *) 0x420C1C1C)
@@ -4950,7 +4950,7 @@ typedef struct {                            /*!< pADI_GP0 Structure             
 #define GP4CLR_CLR0_CLR                (0x1   << 0  ) /* CLR. Set by user code to drive the corresponding GPIO low. */
 
 /* Reset Value for GP4TGL*/
-#define GP4TGL_RVAL                    0x0 
+#define GP4TGL_RVAL                    0x0
 
 /* GP4TGL[TGL7] - Toggle for corresponding port pin. */
 #define GP4TGL_TGL7_BBA                (*(volatile unsigned long *) 0x420C1C9C)
@@ -5017,7 +5017,7 @@ typedef struct {                            /*!< pADI_GPIOCMN Structure         
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for GPDWN*/
-#define GPDWN_RVAL                     0x1 
+#define GPDWN_RVAL                     0x1
 
 /* GPDWN[DWN1] - Pull down resistor control bit */
 #define GPDWN_DWN1_BBA                 (*(volatile unsigned long *) 0x420C1E04)
@@ -5047,7 +5047,7 @@ typedef struct {                            /*!< pADI_MISC Structure            
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for RFTST*/
-#define RFTST_RVAL                     0x0 
+#define RFTST_RVAL                     0x0
 
 /* RFTST[DIR] - Controls the pin direction in RF test mode. */
 #define RFTST_DIR_MSK                  (0x7FF << 5  )
@@ -5081,7 +5081,7 @@ typedef struct {                            /*!< pADI_MISC Structure            
 #define RFTST_GPX_EN                   (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for SWACT*/
-#define SWACT_RVAL                     0x0 
+#define SWACT_RVAL                     0x0
 
 /* SWACT[ACT] - Serial Wire Activity */
 #define SWACT_ACT_BBA                  (*(volatile unsigned long *) 0x42110600)
@@ -5161,7 +5161,7 @@ typedef struct {                            /*!< pADI_I2C Structure             
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for I2CMCON*/
-#define I2CMCON_RVAL                   0x0 
+#define I2CMCON_RVAL                   0x0
 
 /* I2CMCON[TXDMA] - Enable master Tx DMA request. */
 #define I2CMCON_TXDMA_BBA              (*(volatile unsigned long *) 0x4206002C)
@@ -5241,7 +5241,7 @@ typedef struct {                            /*!< pADI_I2C Structure             
 #define I2CMCON_MAS_EN                 (0x1   << 0  ) /* EN. Enable master.       */
 
 /* Reset Value for I2CMSTA*/
-#define I2CMSTA_RVAL                   0x0 
+#define I2CMSTA_RVAL                   0x0
 
 /* I2CMSTA[TXUR] - Master transmit FIFO underrun. */
 #define I2CMSTA_TXUR_BBA               (*(volatile unsigned long *) 0x420600B0)
@@ -5327,19 +5327,19 @@ typedef struct {                            /*!< pADI_I2C Structure             
 #define I2CMSTA_TXFSTA_FULL            (0x3   << 0  ) /* FULL. FIFO full.         */
 
 /* Reset Value for I2CMRX*/
-#define I2CMRX_RVAL                    0x0 
+#define I2CMRX_RVAL                    0x0
 
 /* I2CMRX[VALUE] - Receive register. This register allows access to the receive data FIFO.  The FIFO can hold two bytes. */
 #define I2CMRX_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for I2CMTX*/
-#define I2CMTX_RVAL                    0x0 
+#define I2CMTX_RVAL                    0x0
 
 /* I2CMTX[VALUE] - Transmit register. This register allows access to the transmit data FIFO.  The FIFO can hold two bytes. */
 #define I2CMTX_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for I2CMRXCNT*/
-#define I2CMRXCNT_RVAL                 0x0 
+#define I2CMRXCNT_RVAL                 0x0
 
 /* I2CMRXCNT[EXTEND] - Extended read: Use this bit if greater than 256 bytes are required on a read.  For example: To receive 412 bytes, write 0x100 (EXTEND = 1) to this register (I2CMRXCNT).  Wait for the first byte to be received, then check the I2CMCRXCNT register for every byte received thereafter.  When I2CMCRXCNT returns to 0, 256 bytes have been received.  Then, write 0x09C (412 - 256 = 156 decimal (equal to 0x9C)  with the EXTEND bit set to 0) to this register (I2CMRXCNT). */
 #define I2CMRXCNT_EXTEND_BBA           (*(volatile unsigned long *) 0x42060220)
@@ -5352,25 +5352,25 @@ typedef struct {                            /*!< pADI_I2C Structure             
 #define I2CMRXCNT_COUNT_MSK            (0xFF  << 0  )
 
 /* Reset Value for I2CMCRXCNT*/
-#define I2CMCRXCNT_RVAL                0x0 
+#define I2CMCRXCNT_RVAL                0x0
 
 /* I2CMCRXCNT[VALUE] - Current receive count. This register gives the total number of bytes received so far. If 256 bytes are requested, then this register reads 0 when the transaction has completed. */
 #define I2CMCRXCNT_VALUE_MSK           (0xFF  << 0  )
 
 /* Reset Value for I2CADR0*/
-#define I2CADR0_RVAL                   0x0 
+#define I2CADR0_RVAL                   0x0
 
 /* I2CADR0[VALUE] - Address byte. If a 7-bit address is required, then I2CADR0[7:1] is programmed with the address and I2CADR0[0] is programmed with the direction (read or write). If a 10-bit address is required then I2CADR0[7:3] is programmed with '11110', I2CADR0[2:1] is programmed with the two MSBs of the address, and, again, I2CADR0[0] is programmed with the direction bit (read or write). */
 #define I2CADR0_VALUE_MSK              (0xFF  << 0  )
 
 /* Reset Value for I2CADR1*/
-#define I2CADR1_RVAL                   0x0 
+#define I2CADR1_RVAL                   0x0
 
 /* I2CADR1[VALUE] - Address byte. This register is only required when addressing a slave with 10-bit addressing.  I2CADR1[7:0] is programmed with the lower eight bits of the address. */
 #define I2CADR1_VALUE_MSK              (0xFF  << 0  )
 
 /* Reset Value for I2CDIV*/
-#define I2CDIV_RVAL                    0x1F1F 
+#define I2CDIV_RVAL                    0x1F1F
 
 /* I2CDIV[HIGH] - Serial clock high time. This register controls the clock high time. See the serial clock generation section for more details. */
 #define I2CDIV_HIGH_MSK                (0xFF  << 8  )
@@ -5379,7 +5379,7 @@ typedef struct {                            /*!< pADI_I2C Structure             
 #define I2CDIV_LOW_MSK                 (0xFF  << 0  )
 
 /* Reset Value for I2CSCON*/
-#define I2CSCON_RVAL                   0x0 
+#define I2CSCON_RVAL                   0x0
 
 /* I2CSCON[TXDMA] - Enable slave Tx DMA request. */
 #define I2CSCON_TXDMA_BBA              (*(volatile unsigned long *) 0x42060538)
@@ -5479,7 +5479,7 @@ typedef struct {                            /*!< pADI_I2C Structure             
 #define I2CSCON_SLV_EN                 (0x1   << 0  ) /* EN. Enable slave.        */
 
 /* Reset Value for I2CSSTA*/
-#define I2CSSTA_RVAL                   0x1 
+#define I2CSSTA_RVAL                   0x1
 
 /* I2CSSTA[START] - Start and matching address. */
 #define I2CSSTA_START_BBA              (*(volatile unsigned long *) 0x420605B8)
@@ -5565,49 +5565,49 @@ typedef struct {                            /*!< pADI_I2C Structure             
 #define I2CSSTA_TXFSEREQ_SET           (0x1   << 0  ) /* SET. Set whenever the slave Tx FIFO is empty. */
 
 /* Reset Value for I2CSRX*/
-#define I2CSRX_RVAL                    0x0 
+#define I2CSRX_RVAL                    0x0
 
 /* I2CSRX[VALUE] - Receive register. */
 #define I2CSRX_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for I2CSTX*/
-#define I2CSTX_RVAL                    0x0 
+#define I2CSTX_RVAL                    0x0
 
 /* I2CSTX[VALUE] - Transmit register. */
 #define I2CSTX_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for I2CALT*/
-#define I2CALT_RVAL                    0x0 
+#define I2CALT_RVAL                    0x0
 
 /* I2CALT[VALUE] - ALT register.This register is used in conjunction with HGC (I2CSCON[3]) to match a master generating a hardware general call. It is used in the case where a master device cannot be programmed with a slaves address and, instead, the slave must recognize the masters address. */
 #define I2CALT_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for I2CID0*/
-#define I2CID0_RVAL                    0x0 
+#define I2CID0_RVAL                    0x0
 
 /* I2CID0[VALUE] - Slave ID. */
 #define I2CID0_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for I2CID1*/
-#define I2CID1_RVAL                    0x0 
+#define I2CID1_RVAL                    0x0
 
 /* I2CID1[VALUE] - Slave ID. */
 #define I2CID1_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for I2CID2*/
-#define I2CID2_RVAL                    0x0 
+#define I2CID2_RVAL                    0x0
 
 /* I2CID2[VALUE] - Slave ID. */
 #define I2CID2_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for I2CID3*/
-#define I2CID3_RVAL                    0x0 
+#define I2CID3_RVAL                    0x0
 
 /* I2CID3[VALUE] - Slave ID. */
 #define I2CID3_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for I2CFSTA*/
-#define I2CFSTA_RVAL                   0x0 
+#define I2CFSTA_RVAL                   0x0
 
 /* I2CFSTA[MFLUSH] - Master Transmit FIFO Flush. */
 #define I2CFSTA_MFLUSH_BBA             (*(volatile unsigned long *) 0x420609A4)
@@ -5676,7 +5676,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for EI0CFG*/
-#define EI0CFG_RVAL                    0x0 
+#define EI0CFG_RVAL                    0x0
 
 /* EI0CFG[IRQ3EN] - External interrupt 3 enable bit. */
 #define EI0CFG_IRQ3EN_BBA              (*(volatile unsigned long *) 0x4204843C)
@@ -5739,7 +5739,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define EI0CFG_IRQ0MDE_LOWLEVEL        (0x4   << 0  ) /* LOWLEVEL. Low level.     */
 
 /* Reset Value for EI1CFG*/
-#define EI1CFG_RVAL                    0x0 
+#define EI1CFG_RVAL                    0x0
 
 /* EI1CFG[IRQ7EN] - External interrupt 7 enable bit. */
 #define EI1CFG_IRQ7EN_BBA              (*(volatile unsigned long *) 0x420484BC)
@@ -5802,7 +5802,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define EI1CFG_IRQ4MDE_LOWLEVEL        (0x4   << 0  ) /* LOWLEVEL. Low Level.     */
 
 /* Reset Value for EI2CFG*/
-#define EI2CFG_RVAL                    0x0 
+#define EI2CFG_RVAL                    0x0
 
 /* EI2CFG[IRQ8EN] - RF transceiver IRQ enable bit. */
 #define EI2CFG_IRQ8EN_BBA              (*(volatile unsigned long *) 0x4204850C)
@@ -5820,7 +5820,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define EI2CFG_IRQ8MDE_LOWLEVEL        (0x4   << 0  ) /* LOWLEVEL. Low level.     */
 
 /* Reset Value for EICLR*/
-#define EICLR_RVAL                     0x0 
+#define EICLR_RVAL                     0x0
 
 /* EICLR[IRQ8] - External interrupt 8 (RF transceiver) clear bit. */
 #define EICLR_IRQ8_BBA                 (*(volatile unsigned long *) 0x42048620)
@@ -5877,7 +5877,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define EICLR_IRQ0_CLR                 (0x1   << 0  ) /* CLR. Clear an internal interrupt flag. */
 
 /* Reset Value for NMICLR*/
-#define NMICLR_RVAL                    0x0 
+#define NMICLR_RVAL                    0x0
 
 /* NMICLR[CLEAR] - NMI clear bit. */
 #define NMICLR_CLEAR_BBA               (*(volatile unsigned long *) 0x42048680)
@@ -5939,13 +5939,13 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for ICTR*/
-#define ICTR_RVAL                      0x1 
+#define ICTR_RVAL                      0x1
 
 /* ICTR[INTLINESNUM] - Total number of interrupt lines in groups of 32 */
 #define ICTR_INTLINESNUM_MSK           (0xF   << 0  )
 
 /* Reset Value for STCSR*/
-#define STCSR_RVAL                     0x0 
+#define STCSR_RVAL                     0x0
 
 /* STCSR[COUNTFLAG] - Returns 1 if timer counted to 0 since last time this register was read */
 #define STCSR_COUNTFLAG_MSK            (0x1   << 16 )
@@ -5972,19 +5972,19 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define STCSR_ENABLE_EN                (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for STRVR*/
-#define STRVR_RVAL                     0x0 
+#define STRVR_RVAL                     0x0
 
 /* STRVR[RELOAD] - Value to load into the Current Value register when the counter reaches 0 */
 #define STRVR_RELOAD_MSK               (0xFFFFFF << 0  )
 
 /* Reset Value for STCVR*/
-#define STCVR_RVAL                     0x0 
+#define STCVR_RVAL                     0x0
 
 /* STCVR[CURRENT] - Current counter value */
 #define STCVR_CURRENT_MSK              (0xFFFFFFFF << 0  )
 
 /* Reset Value for STCR*/
-#define STCR_RVAL                      0x0 
+#define STCR_RVAL                      0x0
 
 /* STCR[NOREF] - If reads as 1, the Reference clock is not provided */
 #define STCR_NOREF_MSK                 (0x1   << 31 )
@@ -6002,7 +6002,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define STCR_TENMS_MSK                 (0xFFFFFF << 0  )
 
 /* Reset Value for ISER0*/
-#define ISER0_RVAL                     0x0 
+#define ISER0_RVAL                     0x0
 
 /* ISER0[DMAI2CMRX] -  */
 #define ISER0_DMAI2CMRX_MSK            (0x1   << 30 )
@@ -6179,7 +6179,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define ISER0_T2_EN                    (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for ISER1*/
-#define ISER1_RVAL                     0x0 
+#define ISER1_RVAL                     0x0
 
 /* ISER1[PWM3] -  */
 #define ISER1_PWM3_MSK                 (0x1   << 9  )
@@ -6230,7 +6230,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define ISER1_DMAADC_EN                (0x1   << 2  ) /* EN                       */
 
 /* Reset Value for ICER0*/
-#define ICER0_RVAL                     0x0 
+#define ICER0_RVAL                     0x0
 
 /* ICER0[DMAI2CMRX] -  */
 #define ICER0_DMAI2CMRX_MSK            (0x1   << 30 )
@@ -6407,7 +6407,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define ICER0_T2_EN                    (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for ICER1*/
-#define ICER1_RVAL                     0x0 
+#define ICER1_RVAL                     0x0
 
 /* ICER1[PWM3] -  */
 #define ICER1_PWM3_MSK                 (0x1   << 9  )
@@ -6458,7 +6458,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define ICER1_DMAADC_EN                (0x1   << 2  ) /* EN                       */
 
 /* Reset Value for ISPR0*/
-#define ISPR0_RVAL                     0x0 
+#define ISPR0_RVAL                     0x0
 
 /* ISPR0[DMAI2CMRX] -  */
 #define ISPR0_DMAI2CMRX_MSK            (0x1   << 30 )
@@ -6635,7 +6635,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define ISPR0_T2_EN                    (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for ISPR1*/
-#define ISPR1_RVAL                     0x0 
+#define ISPR1_RVAL                     0x0
 
 /* ISPR1[PWM3] -  */
 #define ISPR1_PWM3_MSK                 (0x1   << 9  )
@@ -6686,7 +6686,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define ISPR1_DMAADC_EN                (0x1   << 2  ) /* EN                       */
 
 /* Reset Value for ICPR0*/
-#define ICPR0_RVAL                     0x0 
+#define ICPR0_RVAL                     0x0
 
 /* ICPR0[DMAI2CMRX] -  */
 #define ICPR0_DMAI2CMRX_MSK            (0x1   << 30 )
@@ -6863,7 +6863,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define ICPR0_T2_EN                    (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for ICPR1*/
-#define ICPR1_RVAL                     0x0 
+#define ICPR1_RVAL                     0x0
 
 /* ICPR1[PWM3] -  */
 #define ICPR1_PWM3_MSK                 (0x1   << 9  )
@@ -6914,7 +6914,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define ICPR1_DMAADC_EN                (0x1   << 2  ) /* EN                       */
 
 /* Reset Value for IABR0*/
-#define IABR0_RVAL                     0x0 
+#define IABR0_RVAL                     0x0
 
 /* IABR0[DMAI2CMRX] -  */
 #define IABR0_DMAI2CMRX_MSK            (0x1   << 30 )
@@ -7091,7 +7091,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IABR0_T2_EN                    (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for IABR1*/
-#define IABR1_RVAL                     0x0 
+#define IABR1_RVAL                     0x0
 
 /* IABR1[PWM3] -  */
 #define IABR1_PWM3_MSK                 (0x1   << 9  )
@@ -7142,7 +7142,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IABR1_DMAADC_EN                (0x1   << 2  ) /* EN                       */
 
 /* Reset Value for IPR0*/
-#define IPR0_RVAL                      0x0 
+#define IPR0_RVAL                      0x0
 
 /* IPR0[EXTINT2] -  */
 #define IPR0_EXTINT2_MSK               (0xFF  << 24 )
@@ -7157,7 +7157,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR0_T2_MSK                    (0xFF  << 0  )
 
 /* Reset Value for IPR1*/
-#define IPR1_RVAL                      0x0 
+#define IPR1_RVAL                      0x0
 
 /* IPR1[EXTINT6] -  */
 #define IPR1_EXTINT6_MSK               (0xFF  << 24 )
@@ -7172,7 +7172,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR1_EXTINT3_MSK               (0xFF  << 0  )
 
 /* Reset Value for IPR2*/
-#define IPR2_RVAL                      0x0 
+#define IPR2_RVAL                      0x0
 
 /* IPR2[T3] -  */
 #define IPR2_T3_MSK                    (0xFF  << 16 )
@@ -7184,7 +7184,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR2_EXTINT7_MSK               (0xFF  << 0  )
 
 /* Reset Value for IPR3*/
-#define IPR3_RVAL                      0x0 
+#define IPR3_RVAL                      0x0
 
 /* IPR3[FEE] -  */
 #define IPR3_FEE_MSK                   (0xFF  << 24 )
@@ -7199,7 +7199,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR3_T0_MSK                    (0xFF  << 0  )
 
 /* Reset Value for IPR4*/
-#define IPR4_RVAL                      0x0 
+#define IPR4_RVAL                      0x0
 
 /* IPR4[I2CS] -  */
 #define IPR4_I2CS_MSK                  (0xFF  << 24 )
@@ -7214,7 +7214,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR4_UART_MSK                  (0xFF  << 0  )
 
 /* Reset Value for IPR5*/
-#define IPR5_RVAL                      0x0 
+#define IPR5_RVAL                      0x0
 
 /* IPR5[DMASPI1TX] -  */
 #define IPR5_DMASPI1TX_MSK             (0xFF  << 24 )
@@ -7226,7 +7226,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR5_I2CM_MSK                  (0xFF  << 0  )
 
 /* Reset Value for IPR6*/
-#define IPR6_RVAL                      0x0 
+#define IPR6_RVAL                      0x0
 
 /* IPR6[DMAI2CSTX] -  */
 #define IPR6_DMAI2CSTX_MSK             (0xFF  << 24 )
@@ -7241,7 +7241,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR6_DMASPI1RX_MSK             (0xFF  << 0  )
 
 /* Reset Value for IPR7*/
-#define IPR7_RVAL                      0x0 
+#define IPR7_RVAL                      0x0
 
 /* IPR7[DMAI2CMRX] -  */
 #define IPR7_DMAI2CMRX_MSK             (0xFF  << 16 )
@@ -7253,7 +7253,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR7_DMAI2CSRX_MSK             (0xFF  << 0  )
 
 /* Reset Value for IPR8*/
-#define IPR8_RVAL                      0x0 
+#define IPR8_RVAL                      0x0
 
 /* IPR8[DMASPI0TX] -  */
 #define IPR8_DMASPI0TX_MSK             (0xFF  << 24 )
@@ -7262,7 +7262,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR8_DMAADC_MSK                (0xFF  << 16 )
 
 /* Reset Value for IPR9*/
-#define IPR9_RVAL                      0x0 
+#define IPR9_RVAL                      0x0
 
 /* IPR9[PWM1] -  */
 #define IPR9_PWM1_MSK                  (0xFF  << 24 )
@@ -7277,7 +7277,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR9_DMASPI0RX_MSK             (0xFF  << 0  )
 
 /* Reset Value for IPR10*/
-#define IPR10_RVAL                     0x0 
+#define IPR10_RVAL                     0x0
 
 /* IPR10[PWM3] -  */
 #define IPR10_PWM3_MSK                 (0xFF  << 8  )
@@ -7286,7 +7286,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define IPR10_PWM2_MSK                 (0xFF  << 0  )
 
 /* Reset Value for CPUID*/
-#define CPUID_RVAL                     0x412FC230 
+#define CPUID_RVAL                     0x412FC230
 
 /* CPUID[IMPLEMENTER] - Indicates implementor */
 #define CPUID_IMPLEMENTER_MSK          (0xFF  << 24 )
@@ -7301,7 +7301,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define CPUID_REVISION_MSK             (0xF   << 0  )
 
 /* Reset Value for ICSR*/
-#define ICSR_RVAL                      0x0 
+#define ICSR_RVAL                      0x0
 
 /* ICSR[NMIPENDSET] - Setting this bit will activate an NMI */
 #define ICSR_NMIPENDSET_MSK            (0x1   << 31 )
@@ -7358,7 +7358,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define ICSR_VECTACTIVE_MSK            (0x1FF << 0  )
 
 /* Reset Value for VTOR*/
-#define VTOR_RVAL                      0x0 
+#define VTOR_RVAL                      0x0
 
 /* VTOR[TBLBASE] -  */
 #define VTOR_TBLBASE_MSK               (0x1   << 29 )
@@ -7370,7 +7370,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define VTOR_TBLOFF_MSK                (0x3FFFFF << 7  )
 
 /* Reset Value for AIRCR*/
-#define AIRCR_RVAL                     0xFA050000 
+#define AIRCR_RVAL                     0xFA050000
 
 /* AIRCR[VECTKEYSTAT] - Reads as 0xFA05 */
 #define AIRCR_VECTKEYSTAT_MSK          (0xFFFF << 16 )
@@ -7403,7 +7403,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define AIRCR_VECTRESET_EN             (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for SCR*/
-#define SCR_RVAL                       0x0 
+#define SCR_RVAL                       0x0
 
 /* SCR[SEVONPEND] -  */
 #define SCR_SEVONPEND_MSK              (0x1   << 4  )
@@ -7424,7 +7424,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define SCR_SLEEPONEXIT_EN             (0x1   << 1  ) /* EN                       */
 
 /* Reset Value for CCR*/
-#define CCR_RVAL                       0x200 
+#define CCR_RVAL                       0x200
 
 /* CCR[STKALIGN] -  */
 #define CCR_STKALIGN_MSK               (0x1   << 9  )
@@ -7463,7 +7463,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define CCR_NONBASETHRDENA_EN          (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for SHPR1*/
-#define SHPR1_RVAL                     0x0 
+#define SHPR1_RVAL                     0x0
 
 /* SHPR1[PRI7] - Priority of system handler 7 - reserved */
 #define SHPR1_PRI7_MSK                 (0xFF  << 24 )
@@ -7478,7 +7478,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define SHPR1_PRI4_MSK                 (0xFF  << 0  )
 
 /* Reset Value for SHPR2*/
-#define SHPR2_RVAL                     0x0 
+#define SHPR2_RVAL                     0x0
 
 /* SHPR2[PRI11] - Priority of system handler 11 - SVCall */
 #define SHPR2_PRI11_MSK                (0xFF  << 24 )
@@ -7493,7 +7493,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define SHPR2_PRI8_MSK                 (0xFF  << 0  )
 
 /* Reset Value for SHPR3*/
-#define SHPR3_RVAL                     0x0 
+#define SHPR3_RVAL                     0x0
 
 /* SHPR3[PRI15] - Priority of system handler 15 - SysTick */
 #define SHPR3_PRI15_MSK                (0xFF  << 24 )
@@ -7508,7 +7508,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define SHPR3_PRI12_MSK                (0xFF  << 0  )
 
 /* Reset Value for SHCSR*/
-#define SHCSR_RVAL                     0x0 
+#define SHCSR_RVAL                     0x0
 
 /* SHCSR[USGFAULTENA] - Enable for UsageFault */
 #define SHCSR_USGFAULTENA_MSK          (0x1   << 18 )
@@ -7595,7 +7595,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define SHCSR_MEMFAULTACT_EN           (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for CFSR*/
-#define CFSR_RVAL                      0x0 
+#define CFSR_RVAL                      0x0
 
 /* CFSR[DIVBYZERO] - Divide by zero error */
 #define CFSR_DIVBYZERO_MSK             (0x1   << 25 )
@@ -7700,7 +7700,7 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define CFSR_IACCVIOL_EN               (0x1   << 0  ) /* EN                       */
 
 /* Reset Value for HFSR*/
-#define HFSR_RVAL                      0x0 
+#define HFSR_RVAL                      0x0
 
 /* HFSR[DEBUGEVT] - Debug event, and the Debug Fault Status Register has been updated. */
 #define HFSR_DEBUGEVT_MSK              (0x1   << 31 )
@@ -7721,19 +7721,19 @@ typedef struct {                            /*!< pADI_INTERRUPT Structure       
 #define HFSR_VECTTBL_EN                (0x1   << 1  ) /* EN                       */
 
 /* Reset Value for MMFAR*/
-#define MMFAR_RVAL                     0x0 
+#define MMFAR_RVAL                     0x0
 
 /* MMFAR[ADDRESS] - Data address MPU faulted. */
 #define MMFAR_ADDRESS_MSK              (0xFFFFFFFF << 0  )
 
 /* Reset Value for BFAR*/
-#define BFAR_RVAL                      0x0 
+#define BFAR_RVAL                      0x0
 
 /* BFAR[ADDRESS] - Updated on precise data access faults */
 #define BFAR_ADDRESS_MSK               (0xFFFFFFFF << 0  )
 
 /* Reset Value for STIR*/
-#define STIR_RVAL                      0x0 
+#define STIR_RVAL                      0x0
 
 /* STIR[INTID] - The value written in this field is the interrupt to be triggered. */
 #define STIR_INTID_MSK                 (0x3FF << 0  )
@@ -7767,7 +7767,7 @@ typedef struct {                            /*!< pADI_PWRCTL Structure          
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for PWRMOD*/
-#define PWRMOD_RVAL                    0x100 
+#define PWRMOD_RVAL                    0x100
 
 /* PWRMOD[WICENACK] - WIC Acknowledge, for cortex M3 deep sleep mode */
 #define PWRMOD_WICENACK_BBA            (*(volatile unsigned long *) 0x4204800C)
@@ -7783,7 +7783,7 @@ typedef struct {                            /*!< pADI_PWRCTL Structure          
 #define PWRMOD_MOD_SHUTDOWN            (0x6   << 0  ) /* SHUTDOWN.                */
 
 /* Reset Value for PWRKEY*/
-#define PWRKEY_RVAL                    0x0 
+#define PWRKEY_RVAL                    0x0
 
 /* PWRKEY[VALUE] -  */
 #define PWRKEY_VALUE_MSK               (0xFFFF << 0  )
@@ -7791,7 +7791,7 @@ typedef struct {                            /*!< pADI_PWRCTL Structure          
 #define PWRKEY_VALUE_KEY2              (0xF27B << 0  ) /* KEY2                     */
 
 /* Reset Value for PSMCON*/
-#define PSMCON_RVAL                    0x3 
+#define PSMCON_RVAL                    0x3
 
 /* PSMCON[PD] - Power Supply Monitor power down bit. */
 #define PSMCON_PD_BBA                  (*(volatile unsigned long *) 0x42048104)
@@ -7801,7 +7801,7 @@ typedef struct {                            /*!< pADI_PWRCTL Structure          
 #define PSMCON_PD_EN                   (0x1   << 1  ) /* EN. Power down the PSM.  */
 
 /* Reset Value for SRAMRET*/
-#define SRAMRET_RVAL                   0x1 
+#define SRAMRET_RVAL                   0x1
 
 /* SRAMRET[RETAIN] - SRAM retention enable bit */
 #define SRAMRET_RETAIN_BBA             (*(volatile unsigned long *) 0x42048F00)
@@ -7811,7 +7811,7 @@ typedef struct {                            /*!< pADI_PWRCTL Structure          
 #define SRAMRET_RETAIN_EN              (0x1   << 0  ) /* EN. To retain contents of the entire 16 kB of SRAM */
 
 /* Reset Value for SHUTDOWN*/
-#define SHUTDOWN_RVAL                  0x0 
+#define SHUTDOWN_RVAL                  0x0
 
 /* SHUTDOWN[EINT8] - External Interrupt 8 detected during SHUTDOWN mode */
 #define SHUTDOWN_EINT8_BBA             (*(volatile unsigned long *) 0x42048F88)
@@ -7905,7 +7905,7 @@ typedef struct {                            /*!< pADI_PWM Structure             
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for PWMCON0*/
-#define PWMCON0_RVAL                   0x12 
+#define PWMCON0_RVAL                   0x12
 
 /* PWMCON0[SYNC] - PWM Synchronization. */
 #define PWMCON0_SYNC_BBA               (*(volatile unsigned long *) 0x4202003C)
@@ -8010,7 +8010,7 @@ typedef struct {                            /*!< pADI_PWM Structure             
 #define PWMCON0_PWMEN_EN               (0x1   << 0  ) /* EN. Enables all PWM outputs. */
 
 /* Reset Value for PWMCON1*/
-#define PWMCON1_RVAL                   0x0 
+#define PWMCON1_RVAL                   0x0
 
 /* PWMCON1[TRIPEN] - Enable PWM trip functionality. */
 #define PWMCON1_TRIPEN_BBA             (*(volatile unsigned long *) 0x42020098)
@@ -8020,7 +8020,7 @@ typedef struct {                            /*!< pADI_PWM Structure             
 #define PWMCON1_TRIPEN_EN              (0x1   << 6  ) /* EN. Enable PWM trip functionality. */
 
 /* Reset Value for PWMCLRI*/
-#define PWMCLRI_RVAL                   0x0 
+#define PWMCLRI_RVAL                   0x0
 
 /* PWMCLRI[TRIP] - Clear the latched trip interrupt. This bit always reads 0. */
 #define PWMCLRI_TRIP_BBA               (*(volatile unsigned long *) 0x42020110)
@@ -8053,97 +8053,97 @@ typedef struct {                            /*!< pADI_PWM Structure             
 #define PWMCLRI_IRQPWM0_EN             (0x1   << 0  ) /* EN. Clear the latched IRQPWM0 interrupt. */
 
 /* Reset Value for PWM0COM0*/
-#define PWM0COM0_RVAL                  0x0 
+#define PWM0COM0_RVAL                  0x0
 
 /* PWM0COM0[VALUE] -  */
 #define PWM0COM0_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM0COM1*/
-#define PWM0COM1_RVAL                  0x0 
+#define PWM0COM1_RVAL                  0x0
 
 /* PWM0COM1[VALUE] -  */
 #define PWM0COM1_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM0COM2*/
-#define PWM0COM2_RVAL                  0x0 
+#define PWM0COM2_RVAL                  0x0
 
 /* PWM0COM2[VALUE] -  */
 #define PWM0COM2_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM0LEN*/
-#define PWM0LEN_RVAL                   0x0 
+#define PWM0LEN_RVAL                   0x0
 
 /* PWM0LEN[VALUE] -  */
 #define PWM0LEN_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for PWM1COM0*/
-#define PWM1COM0_RVAL                  0x0 
+#define PWM1COM0_RVAL                  0x0
 
 /* PWM1COM0[VALUE] -  */
 #define PWM1COM0_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM1COM1*/
-#define PWM1COM1_RVAL                  0x0 
+#define PWM1COM1_RVAL                  0x0
 
 /* PWM1COM1[VALUE] -  */
 #define PWM1COM1_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM1COM2*/
-#define PWM1COM2_RVAL                  0x0 
+#define PWM1COM2_RVAL                  0x0
 
 /* PWM1COM2[VALUE] -  */
 #define PWM1COM2_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM1LEN*/
-#define PWM1LEN_RVAL                   0x0 
+#define PWM1LEN_RVAL                   0x0
 
 /* PWM1LEN[VALUE] -  */
 #define PWM1LEN_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for PWM2COM0*/
-#define PWM2COM0_RVAL                  0x0 
+#define PWM2COM0_RVAL                  0x0
 
 /* PWM2COM0[VALUE] -  */
 #define PWM2COM0_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM2COM1*/
-#define PWM2COM1_RVAL                  0x0 
+#define PWM2COM1_RVAL                  0x0
 
 /* PWM2COM1[VALUE] -  */
 #define PWM2COM1_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM2COM2*/
-#define PWM2COM2_RVAL                  0x0 
+#define PWM2COM2_RVAL                  0x0
 
 /* PWM2COM2[VALUE] -  */
 #define PWM2COM2_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM2LEN*/
-#define PWM2LEN_RVAL                   0x0 
+#define PWM2LEN_RVAL                   0x0
 
 /* PWM2LEN[VALUE] -  */
 #define PWM2LEN_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for PWM3COM0*/
-#define PWM3COM0_RVAL                  0x0 
+#define PWM3COM0_RVAL                  0x0
 
 /* PWM3COM0[VALUE] -  */
 #define PWM3COM0_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM3COM1*/
-#define PWM3COM1_RVAL                  0x0 
+#define PWM3COM1_RVAL                  0x0
 
 /* PWM3COM1[VALUE] -  */
 #define PWM3COM1_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM3COM2*/
-#define PWM3COM2_RVAL                  0x0 
+#define PWM3COM2_RVAL                  0x0
 
 /* PWM3COM2[VALUE] -  */
 #define PWM3COM2_VALUE_MSK             (0xFFFF << 0  )
 
 /* Reset Value for PWM3LEN*/
-#define PWM3LEN_RVAL                   0x0 
+#define PWM3LEN_RVAL                   0x0
 
 /* PWM3LEN[VALUE] -  */
 #define PWM3LEN_VALUE_MSK              (0xFFFF << 0  )
@@ -8158,7 +8158,7 @@ typedef struct {                            /*!< pADI_PWM Structure             
 
 #if (__NO_MMR_STRUCTS__==0)
 typedef struct {                            /*!< pADI_RESET Structure                   */
-  
+
   union {
     __IO uint8_t   RSTSTA;                  /*!< Reset Status                          */
     __IO uint8_t   RSTCLR;                  /*!< Reset Status Clear                    */
@@ -8170,7 +8170,7 @@ typedef struct {                            /*!< pADI_RESET Structure           
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for RSTSTA*/
-#define RSTSTA_RVAL                    0x3 
+#define RSTSTA_RVAL                    0x3
 
 /* RSTSTA[SWRST] - Software reset status bit */
 #define RSTSTA_SWRST_BBA               (*(volatile unsigned long *) 0x42048810)
@@ -8208,7 +8208,7 @@ typedef struct {                            /*!< pADI_RESET Structure           
 #define RSTSTA_PORLV_SET               (0x1   << 0  ) /* SET. This bit indicates that the AVDD supply has dropped below the POR trip point, causing a Power On Reset. It is also set when waking up from SHUTDOWN mode. */
 
 /* Reset Value for RSTCLR*/
-#define RSTCLR_RVAL                    0x3 
+#define RSTCLR_RVAL                    0x3
 
 /* RSTCLR[SWRST] - Software reset clear status bit */
 #define RSTCLR_SWRST_BBA               (*(volatile unsigned long *) 0x42048810)
@@ -8280,7 +8280,7 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for SPI0STA*/
-#define SPI0STA_RVAL                   0x0 
+#define SPI0STA_RVAL                   0x0
 
 /* SPI0STA[CSERR] - CS error status bit. This bit generates an interrupt when detecting an abrupt CS desassertion before the full byte of data is transmitted completely. */
 #define SPI0STA_CSERR_BBA              (*(volatile unsigned long *) 0x42080030)
@@ -8348,19 +8348,19 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #define SPI0STA_IRQ_SET                (0x1   << 0  ) /* SET. Set to 1 when an SPI0 based interrupt occurs. */
 
 /* Reset Value for SPI0RX*/
-#define SPI0RX_RVAL                    0x0 
+#define SPI0RX_RVAL                    0x0
 
 /* SPI0RX[VALUE] - 8-bit receive register. A read of the RX FIFO returns the next byte to be read from the FIFO. A read of the FIFO when it is empty returns zero. */
 #define SPI0RX_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for SPI0TX*/
-#define SPI0TX_RVAL                    0x0 
+#define SPI0TX_RVAL                    0x0
 
 /* SPI0TX[VALUE] - 8-bit transmit register. A write to the Tx FIFO address space writes data to the next available location in the Tx FIFO. If the FIFO is full, the oldest byte of data in the FIFO is overwritten. A read from this address location return zero. */
 #define SPI0TX_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for SPI0DIV*/
-#define SPI0DIV_RVAL                   0x0 
+#define SPI0DIV_RVAL                   0x0
 
 /* SPI0DIV[BCRST] - Configures the behavior of SPI communication after an abrupt deassertion of CS.  This bit should be set in slave and master mode. */
 #define SPI0DIV_BCRST_BBA              (*(volatile unsigned long *) 0x4208019C)
@@ -8373,7 +8373,7 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #define SPI0DIV_DIV_MSK                (0x3F  << 0  )
 
 /* Reset Value for SPI0CON*/
-#define SPI0CON_RVAL                   0x0 
+#define SPI0CON_RVAL                   0x0
 
 /* SPI0CON[MOD] - IRQ mode bits. When TIM is set these bits configure when the Tx/Rx interrupts occur in a transfer. For a DMA Rx transfer, these bits should be 00. */
 #define SPI0CON_MOD_MSK                (0x3   << 14 )
@@ -8481,7 +8481,7 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #define SPI0CON_ENABLE_EN              (0x1   << 0  ) /* EN. Enable the SPI.      */
 
 /* Reset Value for SPI0DMA*/
-#define SPI0DMA_RVAL                   0x0 
+#define SPI0DMA_RVAL                   0x0
 
 /* SPI0DMA[IENRXDMA] - Receive DMA request enable bit. */
 #define SPI0DMA_IENRXDMA_BBA           (*(volatile unsigned long *) 0x42080288)
@@ -8505,7 +8505,7 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #define SPI0DMA_ENABLE_EN              (0x1   << 0  ) /* EN. Enable a DMA transfer. Starts the transfer of a master configured to initiate transfer on transmit. */
 
 /* Reset Value for SPI0CNT*/
-#define SPI0CNT_RVAL                   0x0 
+#define SPI0CNT_RVAL                   0x0
 
 /* SPI0CNT[VALUE] - Number of bytes requested by the SPI master during DMA transfer, when configured to initiate a transfer on a read of SPI0RX. This register is only used in DMA, master, Rx mode. */
 #define SPI0CNT_VALUE_MSK              (0xFF  << 0  )
@@ -8521,7 +8521,7 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #endif // (__NO_MMR_STRUCTS__==1)
 
 /* Reset Value for SPI1STA*/
-#define SPI1STA_RVAL                   0x0 
+#define SPI1STA_RVAL                   0x0
 
 /* SPI1STA[CSERR] - CS error status bit. This bit generates an interrupt when detecting an abrupt CS desassertion before the full byte of data is transmitted completely. */
 #define SPI1STA_CSERR_BBA              (*(volatile unsigned long *) 0x42088030)
@@ -8589,19 +8589,19 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #define SPI1STA_IRQ_SET                (0x1   << 0  ) /* SET. Set to 1 when an SPI1 based interrupt occurs. */
 
 /* Reset Value for SPI1RX*/
-#define SPI1RX_RVAL                    0x0 
+#define SPI1RX_RVAL                    0x0
 
 /* SPI1RX[VALUE] - 8-bit receive register. A read of the RX FIFO returns the next byte to be read from the FIFO. A read of the FIFO when it is empty returns zero. */
 #define SPI1RX_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for SPI1TX*/
-#define SPI1TX_RVAL                    0x0 
+#define SPI1TX_RVAL                    0x0
 
 /* SPI1TX[VALUE] - 8-bit transmit register. A write to the Tx FIFO address space writes data to the next available location in the Tx FIFO. If the FIFO is full, the oldest byte of data in the FIFO is overwritten. A read from this address location return zero. */
 #define SPI1TX_VALUE_MSK               (0xFF  << 0  )
 
 /* Reset Value for SPI1DIV*/
-#define SPI1DIV_RVAL                   0x0 
+#define SPI1DIV_RVAL                   0x0
 
 /* SPI1DIV[BCRST] - Configures the behavior of SPI communication after an abrupt deassertion of CS.  This bit should be set in slave and master mode. */
 #define SPI1DIV_BCRST_BBA              (*(volatile unsigned long *) 0x4208819C)
@@ -8614,7 +8614,7 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #define SPI1DIV_DIV_MSK                (0x3F  << 0  )
 
 /* Reset Value for SPI1CON*/
-#define SPI1CON_RVAL                   0x0 
+#define SPI1CON_RVAL                   0x0
 
 /* SPI1CON[MOD] - IRQ mode bits. When TIM is set these bits configure when the Tx/Rx interrupts occur in a transfer. For a DMA Rx transfer, these bits should be 00. */
 #define SPI1CON_MOD_MSK                (0x3   << 14 )
@@ -8722,7 +8722,7 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #define SPI1CON_ENABLE_EN              (0x1   << 0  ) /* EN. Enable the SPI.      */
 
 /* Reset Value for SPI1DMA*/
-#define SPI1DMA_RVAL                   0x0 
+#define SPI1DMA_RVAL                   0x0
 
 /* SPI1DMA[IENRXDMA] - Receive DMA request enable bit. */
 #define SPI1DMA_IENRXDMA_BBA           (*(volatile unsigned long *) 0x42088288)
@@ -8746,7 +8746,7 @@ typedef struct {                            /*!< pADI_SPI0 Structure            
 #define SPI1DMA_ENABLE_EN              (0x1   << 0  ) /* EN. Enable a DMA transfer. Starts the transfer of a master configured to initiate transfer on transmit. */
 
 /* Reset Value for SPI1CNT*/
-#define SPI1CNT_RVAL                   0x0 
+#define SPI1CNT_RVAL                   0x0
 
 /* SPI1CNT[VALUE] - Number of bytes requested by the SPI master during DMA transfer, when configured to initiate a transfer on a read of SPI0RX. This register is only used in DMA, master, Rx mode.. */
 #define SPI1CNT_VALUE_MSK              (0xFF  << 0  )
@@ -8783,19 +8783,19 @@ typedef struct {                            /*!< pADI_TM0 Structure             
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for T0LD*/
-#define T0LD_RVAL                      0x0 
+#define T0LD_RVAL                      0x0
 
 /* T0LD[VALUE] - Load value. */
 #define T0LD_VALUE_MSK                 (0xFFFF << 0  )
 
 /* Reset Value for T0VAL*/
-#define T0VAL_RVAL                     0x0 
+#define T0VAL_RVAL                     0x0
 
 /* T0VAL[VALUE] - Current counter value. */
 #define T0VAL_VALUE_MSK                (0xFFFF << 0  )
 
 /* Reset Value for T0CON*/
-#define T0CON_RVAL                     0xA 
+#define T0CON_RVAL                     0xA
 
 /* T0CON[EVENTEN] - Enable event bit. */
 #define T0CON_EVENTEN_BBA              (*(volatile unsigned long *) 0x42000130)
@@ -8865,7 +8865,7 @@ typedef struct {                            /*!< pADI_TM0 Structure             
 #define T0CON_PRE_DIV32768             (0x3   << 0  ) /* DIV32768. Source clock/32768. */
 
 /* Reset Value for T0CLRI*/
-#define T0CLRI_RVAL                    0x0 
+#define T0CLRI_RVAL                    0x0
 
 /* T0CLRI[CAP] - Clear captured event interrupt. */
 #define T0CLRI_CAP_BBA                 (*(volatile unsigned long *) 0x42000184)
@@ -8880,13 +8880,13 @@ typedef struct {                            /*!< pADI_TM0 Structure             
 #define T0CLRI_TMOUT_CLR               (0x1   << 0  ) /* CLR. Clear a timeout interrupt. This bit always reads 0. */
 
 /* Reset Value for T0CAP*/
-#define T0CAP_RVAL                     0x0 
+#define T0CAP_RVAL                     0x0
 
 /* T0CAP[VALUE] - Capture value. */
 #define T0CAP_VALUE_MSK                (0xFFFF << 0  )
 
 /* Reset Value for T0STA*/
-#define T0STA_RVAL                     0x0 
+#define T0STA_RVAL                     0x0
 
 /* T0STA[CLRI] - T0CLRI write sync in progress.. */
 #define T0STA_CLRI_BBA                 (*(volatile unsigned long *) 0x4200039C)
@@ -8926,19 +8926,19 @@ typedef struct {                            /*!< pADI_TM0 Structure             
 #endif // (__NO_MMR_STRUCTS__==1)
 
 /* Reset Value for T1LD*/
-#define T1LD_RVAL                      0x0 
+#define T1LD_RVAL                      0x0
 
 /* T1LD[VALUE] - Load value. */
 #define T1LD_VALUE_MSK                 (0xFFFF << 0  )
 
 /* Reset Value for T1VAL*/
-#define T1VAL_RVAL                     0x0 
+#define T1VAL_RVAL                     0x0
 
 /* T1VAL[VALUE] - Current counter value. */
 #define T1VAL_VALUE_MSK                (0xFFFF << 0  )
 
 /* Reset Value for T1CON*/
-#define T1CON_RVAL                     0xA 
+#define T1CON_RVAL                     0xA
 
 /* T1CON[EVENTEN] - Enable event bit. */
 #define T1CON_EVENTEN_BBA              (*(volatile unsigned long *) 0x42008130)
@@ -9008,7 +9008,7 @@ typedef struct {                            /*!< pADI_TM0 Structure             
 #define T1CON_PRE_DIV32768             (0x3   << 0  ) /* DIV32768. Source clock/32768. */
 
 /* Reset Value for T1CLRI*/
-#define T1CLRI_RVAL                    0x0 
+#define T1CLRI_RVAL                    0x0
 
 /* T1CLRI[CAP] - Clear captured event interrupt. */
 #define T1CLRI_CAP_BBA                 (*(volatile unsigned long *) 0x42008184)
@@ -9023,13 +9023,13 @@ typedef struct {                            /*!< pADI_TM0 Structure             
 #define T1CLRI_TMOUT_CLR               (0x1   << 0  ) /* CLR. Clear a timeout interrupt. This bit always reads 0. */
 
 /* Reset Value for T1CAP*/
-#define T1CAP_RVAL                     0x0 
+#define T1CAP_RVAL                     0x0
 
 /* T1CAP[VALUE] - Capture value. */
 #define T1CAP_VALUE_MSK                (0xFFFF << 0  )
 
 /* Reset Value for T1STA*/
-#define T1STA_RVAL                     0x0 
+#define T1STA_RVAL                     0x0
 
 /* T1STA[CLRI] - T1CLRI write sync in progress. */
 #define T1STA_CLRI_BBA                 (*(volatile unsigned long *) 0x4200839C)
@@ -9069,7 +9069,7 @@ typedef struct {                            /*!< pADI_TM0 Structure             
 
 #if (__NO_MMR_STRUCTS__==0)
 typedef struct {                            /*!< pADI_UART Structure                    */
-  
+
   union {
     __IO uint8_t   COMTX;                   /*!< Transmit Holding Register             */
     __IO uint8_t   COMRX;                   /*!< Receive Buffer Register               */
@@ -9105,19 +9105,19 @@ typedef struct {                            /*!< pADI_UART Structure            
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for COMTX*/
-#define COMTX_RVAL                     0x0 
+#define COMTX_RVAL                     0x0
 
 /* COMTX[VALUE] - Transmit Holding Register */
 #define COMTX_VALUE_MSK                (0xFF  << 0  )
 
 /* Reset Value for COMRX*/
-#define COMRX_RVAL                     0x0 
+#define COMRX_RVAL                     0x0
 
 /* COMRX[VALUE] - Receive Buffer Register */
 #define COMRX_VALUE_MSK                (0xFF  << 0  )
 
 /* Reset Value for COMIEN*/
-#define COMIEN_RVAL                    0x0 
+#define COMIEN_RVAL                    0x0
 
 /* COMIEN[EDMAR] - DMA requests in transmit mode */
 #define COMIEN_EDMAR_BBA               (*(volatile unsigned long *) 0x420A0094)
@@ -9162,7 +9162,7 @@ typedef struct {                            /*!< pADI_UART Structure            
 #define COMIEN_ERBFI_EN                (0x1   << 0  ) /* EN. Enable the receive interrupt. An interrupt is generated when the COMRX register is loaded with the received data. Note that if the COMRX is already full when enabling this bit, an interrupt is generated immediately. */
 
 /* Reset Value for COMIIR*/
-#define COMIIR_RVAL                    0x1 
+#define COMIIR_RVAL                    0x1
 
 /* COMIIR[STA] - Status bits. */
 #define COMIIR_STA_MSK                 (0x3   << 1  )
@@ -9179,7 +9179,7 @@ typedef struct {                            /*!< pADI_UART Structure            
 #define COMIIR_NINT_SET                (0x1   << 0  ) /* SET. There is no interrupt (default). */
 
 /* Reset Value for COMLCR*/
-#define COMLCR_RVAL                    0x0 
+#define COMLCR_RVAL                    0x0
 
 /* COMLCR[BRK] - Set Break. */
 #define COMLCR_BRK_BBA                 (*(volatile unsigned long *) 0x420A0198)
@@ -9224,7 +9224,7 @@ typedef struct {                            /*!< pADI_UART Structure            
 #define COMLCR_WLS_8BITS               (0x3   << 0  ) /* 8BITS. 8 bits.           */
 
 /* Reset Value for COMMCR*/
-#define COMMCR_RVAL                    0x0 
+#define COMMCR_RVAL                    0x0
 
 /* COMMCR[LOOPBACK] - Loop Back. */
 #define COMMCR_LOOPBACK_BBA            (*(volatile unsigned long *) 0x420A0210)
@@ -9241,7 +9241,7 @@ typedef struct {                            /*!< pADI_UART Structure            
 #define COMMCR_RTS_EN                  (0x1   << 1  ) /* EN. Force the RTS output to 0. */
 
 /* Reset Value for COMLSR*/
-#define COMLSR_RVAL                    0x60 
+#define COMLSR_RVAL                    0x60
 
 /* COMLSR[TEMT] - COMTX and Shift Register Empty Status Bit. */
 #define COMLSR_TEMT_BBA                (*(volatile unsigned long *) 0x420A0298)
@@ -9293,7 +9293,7 @@ typedef struct {                            /*!< pADI_UART Structure            
 #define COMLSR_DR_SET                  (0x1   << 0  ) /* SET. Set automatically when COMRX is full. */
 
 /* Reset Value for COMMSR*/
-#define COMMSR_RVAL                    0x0 
+#define COMMSR_RVAL                    0x0
 
 /* COMMSR[CTS] - Clear To Send signal status bit. */
 #define COMMSR_CTS_BBA                 (*(volatile unsigned long *) 0x420A0310)
@@ -9310,7 +9310,7 @@ typedef struct {                            /*!< pADI_UART Structure            
 #define COMMSR_DCTS_EN                 (0x1   << 0  ) /* EN. Set automatically if CTS changed state since COMMSR last read. */
 
 /* Reset Value for COMFBR*/
-#define COMFBR_RVAL                    0x0 
+#define COMFBR_RVAL                    0x0
 
 /* COMFBR[ENABLE] - Fractional baud rate generator enable bit. Used for more accurate baud rate generation. */
 #define COMFBR_ENABLE_BBA              (*(volatile unsigned long *) 0x420A04BC)
@@ -9326,7 +9326,7 @@ typedef struct {                            /*!< pADI_UART Structure            
 #define COMFBR_DIVN_MSK                (0x7FF << 0  )
 
 /* Reset Value for COMDIV*/
-#define COMDIV_RVAL                    0x1 
+#define COMDIV_RVAL                    0x1
 
 /* COMDIV[VALUE] - Sets the baud rate. The COMDIV register should not be 0. */
 #define COMDIV_VALUE_MSK               (0xFFFF << 0  )
@@ -9390,19 +9390,19 @@ typedef struct {                            /*!< pADI_WUT Structure             
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for T2VAL0*/
-#define T2VAL0_RVAL                    0x0 
+#define T2VAL0_RVAL                    0x0
 
 /* T2VAL0[VALUE] - Current Wake-Up timer value (bits 15 to 0). */
 #define T2VAL0_VALUE_MSK               (0xFFFF << 0  )
 
 /* Reset Value for T2VAL1*/
-#define T2VAL1_RVAL                    0x0 
+#define T2VAL1_RVAL                    0x0
 
 /* T2VAL1[VALUE] - Current Wake-Up timer value (bits 31 to 16). */
 #define T2VAL1_VALUE_MSK               (0xFFFF << 0  )
 
 /* Reset Value for T2CON*/
-#define T2CON_RVAL                     0x40 
+#define T2CON_RVAL                     0x40
 
 /* T2CON[STOPINC] - Allows the user to update the interval register safely. */
 #define T2CON_STOPINC_BBA              (*(volatile unsigned long *) 0x4204A12C)
@@ -9454,49 +9454,49 @@ typedef struct {                            /*!< pADI_WUT Structure             
 #define T2CON_PRE_DIV32768             (0x3   << 0  ) /* DIV32768. Source clock/32768. */
 
 /* Reset Value for T2INC*/
-#define T2INC_RVAL                     0xC8 
+#define T2INC_RVAL                     0xC8
 
 /* T2INC[VALUE] - Wake-up interval */
 #define T2INC_VALUE_MSK                (0xFFF << 0  )
 
 /* Reset Value for T2WUFB0*/
-#define T2WUFB0_RVAL                   0x1FFF 
+#define T2WUFB0_RVAL                   0x1FFF
 
 /* T2WUFB0[VALUE] - Lower 16 bits of Wake-Up Field B */
 #define T2WUFB0_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for T2WUFB1*/
-#define T2WUFB1_RVAL                   0x0 
+#define T2WUFB1_RVAL                   0x0
 
 /* T2WUFB1[VALUE] - Upper 16 bits of Wake-Up Field B */
 #define T2WUFB1_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for T2WUFC0*/
-#define T2WUFC0_RVAL                   0x2FFF 
+#define T2WUFC0_RVAL                   0x2FFF
 
 /* T2WUFC0[VALUE] - Lower 16 bits of Wake-Up Field C */
 #define T2WUFC0_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for T2WUFC1*/
-#define T2WUFC1_RVAL                   0x0 
+#define T2WUFC1_RVAL                   0x0
 
 /* T2WUFC1[VALUE] - Upper 16 bits of Wake-Up Field C */
 #define T2WUFC1_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for T2WUFD0*/
-#define T2WUFD0_RVAL                   0x3FFF 
+#define T2WUFD0_RVAL                   0x3FFF
 
 /* T2WUFD0[VALUE] - Lower 16 bits of Wake-Up Field D */
 #define T2WUFD0_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for T2WUFD1*/
-#define T2WUFD1_RVAL                   0x0 
+#define T2WUFD1_RVAL                   0x0
 
 /* T2WUFD1[VALUE] - Upper 16 bits of Wake-Up Field D */
 #define T2WUFD1_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for T2IEN*/
-#define T2IEN_RVAL                     0x0 
+#define T2IEN_RVAL                     0x0
 
 /* T2IEN[ROLL] - Interrupt enable bit when the counter rolls over. Only occurs in free running mode. */
 #define T2IEN_ROLL_BBA                 (*(volatile unsigned long *) 0x4204A510)
@@ -9534,7 +9534,7 @@ typedef struct {                            /*!< pADI_WUT Structure             
 #define T2IEN_WUFA_EN                  (0x1   << 0  ) /* EN. Generate an interrupt when T2VAL reaches T2WUFA. */
 
 /* Reset Value for T2STA*/
-#define T2STA_RVAL                     0x0 
+#define T2STA_RVAL                     0x0
 
 /* T2STA[CON] - Indicates when a change in the enable bit is synchronized to the 32 kHz clock domain (Done automatically) */
 #define T2STA_CON_BBA                  (*(volatile unsigned long *) 0x4204A5A0)
@@ -9586,7 +9586,7 @@ typedef struct {                            /*!< pADI_WUT Structure             
 #define T2STA_WUFA_SET                 (0x1   << 0  ) /* SET. Indicates that a comparator interrupt has occurred. */
 
 /* Reset Value for T2CLRI*/
-#define T2CLRI_RVAL                    0x0 
+#define T2CLRI_RVAL                    0x0
 
 /* T2CLRI[ROLL] - Clear interrupt on Rollover.  Only occurs in free running mode. */
 #define T2CLRI_ROLL_BBA                (*(volatile unsigned long *) 0x4204A610)
@@ -9619,13 +9619,13 @@ typedef struct {                            /*!< pADI_WUT Structure             
 #define T2CLRI_WUFA_CLR                (0x1   << 0  ) /* CLR. Clear the T2WUFA interrupt flag. */
 
 /* Reset Value for T2WUFA0*/
-#define T2WUFA0_RVAL                   0x1900 
+#define T2WUFA0_RVAL                   0x1900
 
 /* T2WUFA0[VALUE] - Lower 16 bits of Compare Register A */
 #define T2WUFA0_VALUE_MSK              (0xFFFF << 0  )
 
 /* Reset Value for T2WUFA1*/
-#define T2WUFA1_RVAL                   0x0 
+#define T2WUFA1_RVAL                   0x0
 
 /* T2WUFA1[VALUE] - Upper 16 bits of Compare Register A */
 #define T2WUFA1_VALUE_MSK              (0xFFFF << 0  )
@@ -9659,19 +9659,19 @@ typedef struct {                            /*!< pADI_WDT Structure             
 #endif // (__NO_MMR_STRUCTS__==0)
 
 /* Reset Value for T3LD*/
-#define T3LD_RVAL                      0x1000 
+#define T3LD_RVAL                      0x1000
 
 /* T3LD[VALUE] - Load value. */
 #define T3LD_VALUE_MSK                 (0xFFFF << 0  )
 
 /* Reset Value for T3VAL*/
-#define T3VAL_RVAL                     0x1000 
+#define T3VAL_RVAL                     0x1000
 
 /* T3VAL[VALUE] - Current counter value. */
 #define T3VAL_VALUE_MSK                (0xFFFF << 0  )
 
 /* Reset Value for T3CON*/
-#define T3CON_RVAL                     0xE9 
+#define T3CON_RVAL                     0xE9
 
 /* T3CON[MOD] - Timer Mode */
 #define T3CON_MOD_BBA                  (*(volatile unsigned long *) 0x4204B118)
@@ -9709,13 +9709,13 @@ typedef struct {                            /*!< pADI_WDT Structure             
 #define T3CON_PD_EN                    (0x1   << 0  ) /* EN. The timer stops counting when in hibernate mode. */
 
 /* Reset Value for T3CLRI*/
-#define T3CLRI_RVAL                    0x0 
+#define T3CLRI_RVAL                    0x0
 
 /* T3CLRI[VALUE] - Clear watchdog. */
 #define T3CLRI_VALUE_MSK               (0xFFFF << 0  )
 
 /* Reset Value for T3STA*/
-#define T3STA_RVAL                     0x20 
+#define T3STA_RVAL                     0x20
 
 /* T3STA[LOCK] - Lock status bit. */
 #define T3STA_LOCK_BBA                 (*(volatile unsigned long *) 0x4204B310)
@@ -9772,36 +9772,36 @@ typedef struct {                            /*!< pADI_WDT Structure             
 *********************************************/
 
 //iEiNr in EiCfg()
-#define EXTINT0 0x0 
-#define EXTINT1 0x1 
-#define EXTINT2 0x2 
-#define EXTINT3 0x3 
-#define EXTINT4 0x4 
-#define EXTINT5 0x5 
-#define EXTINT6 0x6 
-#define EXTINT7 0x7 
-#define EXTINT8 0x8 
+#define EXTINT0   0x0
+#define EXTINT1   0x1
+#define EXTINT2   0x2
+#define EXTINT3   0x3
+#define EXTINT4   0x4
+#define EXTINT5   0x5
+#define EXTINT6   0x6
+#define EXTINT7   0x7
+#define EXTINT8   0x8
 
-//iEnable in EiCfg()	
-#define INT_DIS	0x0	
-#define INT_EN 0x1
+//iEnable in EiCfg()
+#define INT_DIS   0x0
+#define INT_EN    0x1
 
-//iMode in EiCfg()	
-#define INT_RISE 0x0	
-#define INT_FALL 0x1
+//iMode in EiCfg()
+#define INT_RISE  0x0
+#define INT_FALL  0x1
 #define INT_EDGES 0x2
-#define INT_HIGH 0x3
-#define INT_LOW	0x4	
+#define INT_HIGH  0x3
+#define INT_LOW   0x4
 
 //Bit values.
-#define	BIT0		1
-#define	BIT1		2
-#define	BIT2		4
-#define	BIT3		8
-#define	BIT4		0x10
-#define	BIT5		0x20
-#define	BIT6		0x40
-#define	BIT7		0x80
+#define BIT0      1
+#define BIT1      2
+#define BIT2      4
+#define BIT3      8
+#define BIT4      0x10
+#define BIT5      0x20
+#define BIT6      0x40
+#define BIT7      0x80
 
 
 /* ================================================================================ */
@@ -9868,7 +9868,7 @@ typedef struct {                            /*!< pADI_WDT Structure             
 
 #ifdef __cplusplus
 }
-#endif 
+#endif
 
 
 #endif  // __ADUCRF101_H__

@@ -142,7 +142,7 @@ int simple_udp_sendto(struct simple_udp_connection *c,
  * \param data A pointer to the data to be sent
  * \param datalen The length of the data
  * \param to   The IP address of the receiver
- * \param port   The UDP port of the receiver, in host byte order
+ * \param to_port   The UDP port of the receiver, in host byte order
  *
  *     This function sends a UDP packet to a specified IP
  *     address and UDP port. The packet will be sent with the

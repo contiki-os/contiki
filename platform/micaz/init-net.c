@@ -50,6 +50,7 @@
 #include "net/netstack.h"
 #include "net/mac/frame802154.h"
 #include "net/linkaddr.h"
+#include "net/queuebuf.h"
 
 #include "dev/ds2401.h"
 #include "sys/node-id.h"

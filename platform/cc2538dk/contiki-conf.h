@@ -1,5 +1,5 @@
 /**
- * \addtogroup cc2538
+ * \addtogroup cc2538dk
  * @{
  *
  * \file
@@ -55,21 +55,6 @@ typedef uint32_t rtimer_clock_t;
 
 #ifndef FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH
 #define FLASH_CCA_CONF_BOOTLDR_BACKDOOR_ACTIVE_HIGH 0 /**< A logic low level activates the boot loader */
-#endif
-/** @} */
-
-/*---------------------------------------------------------------------------*/
-/**
- * \name Flash Memory configuration
- *
- * @{
- */
-#ifndef FLASH_CONF_ORIGIN
-#define FLASH_CONF_ORIGIN  0x00200000
-#endif
-
-#ifndef FLASH_CONF_SIZE
-#define FLASH_CONF_SIZE    0x00080000 /* 512 KiB */
 #endif
 /** @} */
 /*---------------------------------------------------------------------------*/
@@ -448,7 +433,7 @@ typedef uint32_t rtimer_clock_t;
 #define UIP_CONF_ND6_SEND_RA                 0
 #define UIP_CONF_IP_FORWARD                  0
 #define RPL_CONF_STATS                       0
-#define RPL_CONF_MAX_DAG_ENTRIES             1
+
 #ifndef RPL_CONF_OF
 #define RPL_CONF_OF rpl_mrhof
 #endif
@@ -513,6 +498,24 @@ typedef uint32_t rtimer_clock_t;
 #endif
 
 #endif /* NETSTACK_CONF_WITH_IPV6 */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name Security
+ *
+ * @{
+ */
+#ifndef CRYPTO_CONF_INIT
+#define CRYPTO_CONF_INIT        1 /**< Whether to init cryptoprocessor */
+#endif
+
+#ifndef AES_128_CONF
+#define AES_128_CONF            cc2538_aes_128_driver /**< AES-128 driver */
+#endif
+
+#ifndef CCM_STAR_CONF
+#define CCM_STAR_CONF           cc2538_ccm_star_driver /**< AES-CCM* driver */
+#endif
 /** @} */
 /*---------------------------------------------------------------------------*/
 

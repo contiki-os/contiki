@@ -237,6 +237,8 @@ typedef enum{
 PROCESS(rf230_process, "RF230 driver");
 /*---------------------------------------------------------------------------*/
 
+int rf230_interrupt(void);
+
 static int rf230_on(void);
 static int rf230_off(void);
 
@@ -552,7 +554,19 @@ rf230_is_ready_to_send() {
 static void
 flushrx(void)
 {
+  /* Clear the length field to allow buffering of the next packet */
   rxframe[rxframe_head].length=0;
+  rxframe_head++;
+  if (rxframe_head >= RF230_CONF_RX_BUFFERS) {
+    rxframe_head=0;
+  }
+  /* If another packet has been buffered, schedule another receive poll */
+  if (rxframe[rxframe_head].length) {
+    rf230_interrupt();
+  }
+  else {
+    rf230_pending = 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -1073,8 +1087,10 @@ rf230_transmit(unsigned short payload_len)
 
   if (tx_result==RADIO_TX_OK) {
     RIMESTATS_ADD(lltx);
+#if NETSTACK_CONF_WITH_RIME
     if(packetbuf_attr(PACKETBUF_ATTR_RELIABLE))
       RIMESTATS_ADD(ackrx);		//ack was requested and received
+#endif
 #if RF230_INSERTACK
   /* Not PAN broadcast to FFFF, and ACK was requested and received */
   if (!((buffer[5]==0xff) && (buffer[6]==0xff)) && (buffer[0]&(1<<6)))
@@ -1432,6 +1448,7 @@ rf230_read(void *buf, unsigned short bufsize)
 #if RADIOALWAYSON && DEBUGFLOWSIZE
    if (RF230_receive_on==0) {if (debugflow[debugflowsize-1]!='z') DEBUGFLOW('z');} //cxmac calls with radio off?
 #endif
+    flushrx();
     return 0;
   }
 
@@ -1474,19 +1491,8 @@ rf230_read(void *buf, unsigned short bufsize)
   memcpy(buf,framep,len-AUX_LEN+CHECKSUM_LEN);
   rf230_last_correlation = rxframe[rxframe_head].lqi;
 
-  /* Clear the length field to allow buffering of the next packet */
-  rxframe[rxframe_head].length=0;
-  rxframe_head++;
-  if (rxframe_head >= RF230_CONF_RX_BUFFERS) {
-    rxframe_head=0;
-  }
-  /* If another packet has been buffered, schedule another receive poll */
-  if (rxframe[rxframe_head].length) {
-    rf230_interrupt();
-  }
-  else {
-    rf230_pending = 0;
-  }
+ /* Prepare to receive another packet */
+  flushrx();
   
  /* Point to the checksum */
   framep+=len-AUX_LEN; 

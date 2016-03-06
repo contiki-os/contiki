@@ -37,7 +37,7 @@
  *         Header file for the Contiki ELF loader.
  * \author
  *         Adam Dunkels <adam@sics.se>
- *	   Simon Berg <ksb@users.sourceforge.net>
+ *         Simon Berg <ksb@users.sourceforge.net>
  *
  */
 
@@ -132,7 +132,7 @@
  * Return value from elfloader_load() indicating that the offset for
  * a relative addressing mode was too big.
  */
-#define ELFLOADER_OUTOF_RANGE	      9
+#define ELFLOADER_OUTOF_RANGE         9
 
 /**
  * Return value from elfloader_load() indicating that the relocations
@@ -144,13 +144,13 @@
  * Return value from elfloader_load() indicating that reading from the
  * ELF file failed in some way.
  */
-#define ELFLOADER_INPUT_ERROR	      11
+#define ELFLOADER_INPUT_ERROR         11
 
 /**
  * Return value from elfloader_load() indicating that writing to a segment
  * failed.
  */
-#define ELFLOADER_OUTPUT_ERROR	      12
+#define ELFLOADER_OUTPUT_ERROR        12
 
 
 #define ELFLOADER_SEG_TEXT 1
@@ -164,62 +164,58 @@
  * This object defines methods (callbacks) for writing the segments to memory.
  * It can be extended by the user to include any necessary state.
  */
-
 struct elfloader_output {
   const struct elfloader_output_ops *ops;
 };
+
 /**
- * \brief	Allocate a new segment
- * \param input The output object
- * \param type	Type of segment
- * \param size	Size of segment in bytes
- * \return	A pointer to the start of the segment.
+ * \brief Allocate a new segment
+ * \param output The output object
+ * \param type   Type of segment
+ * \param size   Size of segment in bytes
+ * \return A pointer to the start of the segment.
  *
  * The returned address doesn't need to correspond to any real memory,
  * since it's only used for calculating the relocations.
  */
-
 void *elfloader_allocate_segment(struct elfloader_output *output,
-				 unsigned int type, int size);
+                                 unsigned int type, int size);
 
 /**
- * \brief	Start writing to a new segment
- * \param input The output object
- * \param type	Type of segment
- * \param addr  Address of segment from elfloader_allocate_segment
- * \param size	Size of segment in bytes
- * \return	Returns ELFLOADER_OK if successful, otherwise an error code
+ * \brief Start writing to a new segment
+ * \param output The output object
+ * \param type   Type of segment
+ * \param addr   Address of segment from elfloader_allocate_segment
+ * \param size   Size of segment in bytes
+ * \return Returns ELFLOADER_OK if successful, otherwise an error code
  *
  */
-
 int elfloader_start_segment(struct elfloader_output *output,
-			      unsigned int type, void *addr, int size);
-/**
- * \brief	Mark end of segment
- * \param input The output object
- * \return	Zero if successful
- */
+                            unsigned int type, void *addr, int size);
 
+/**
+ * \brief Mark end of segment
+ * \param output The output object
+ * \return Zero if successful
+ */
 int elfloader_end_segment(struct elfloader_output *output);
 
 /**
- * \brief	Write data to a segment
- * \param input The output object
- * \param buf	Data to be written
- * \param len	Length of data
- * \return	The number of bytes actually written, or negative if failed.
+ * \brief Write data to a segment
+ * \param output The output object
+ * \param buf    Data to be written
+ * \param len    Length of data
+ * \return The number of bytes actually written, or negative if failed.
  */
-
 int elfloader_write_segment(struct elfloader_output *output, const char *buf,
-			    unsigned int len);
+                            unsigned int len);
 
 /**
- * \brief	Get the current offset in the file where the next data will
- *		be written.
- * \param input The output object
- * \return	The current offset.
+ * \brief Get the current offset in the file where the next data will
+ * be written.
+ * \param output The output object
+ * \return The current offset.
  */
-
 unsigned int elfloader_segment_offset(struct elfloader_output *output);
 
 #define elfloader_output_alloc_segment(output, type, size) \
@@ -240,12 +236,12 @@ unsigned int elfloader_segment_offset(struct elfloader_output *output);
 
 struct elfloader_output_ops {
   void * (*allocate_segment)(struct elfloader_output *output,
-			   unsigned int type, int size);
+                             unsigned int type, int size);
   int (*start_segment)(struct elfloader_output *output,
-		       unsigned int type, void *addr, int size);
+                       unsigned int type, void *addr, int size);
   int (*end_segment)(struct elfloader_output *output);
   int (*write_segment)(struct elfloader_output *output, const char *buf,
-		       unsigned int len);
+                       unsigned int len);
   unsigned int (*segment_offset)(struct elfloader_output *output);
 };
 
@@ -259,8 +255,8 @@ void elfloader_init(void);
 
 /**
  * \brief      Load and relocate an ELF file.
- * \param input Input object defining how to read from the ELF file
- * \param output Output object defining how to create and write to seegments.
+ * \param input_fd Input object defining how to read from the ELF file
+ * \param output   Output object defining how to create and write to seegments.
  * \return     ELFLOADER_OK if loading and relocation worked.
  *             Otherwise an error value.
  *
@@ -269,8 +265,7 @@ void elfloader_init(void);
  *             elfloader_loaded_process variable.
  *
  */
-int elfloader_load(int input_fd,
-		   struct elfloader_output *output);
+int elfloader_load(int input_fd, struct elfloader_output *output);
 
 /**
  * A pointer to the processes loaded with elfloader_load().

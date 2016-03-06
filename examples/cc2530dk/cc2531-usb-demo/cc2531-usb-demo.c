@@ -35,7 +35,7 @@
  *         USB (CDC_ACM) functionality.
  *
  *         It will print out periodically. Anything you type in the dongle's
- *         serial console will be echoed back
+ *         serial console will be echoed back after a newline.
  *
  * \author
  *         George Oikonomou - <oikonomou@users.sourceforge.net>

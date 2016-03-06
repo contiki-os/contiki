@@ -29,17 +29,17 @@
  */
 
 /**
- * \file
- *         IPv6 data structures handling functions.
- *         Comprises part of the Neighbor discovery (RFC 4861)
- *         and auto configuration (RFC 4862) state machines.
- * \author Mathilde Durvy <mdurvy@cisco.com>
- * \author Julien Abeille <jabeille@cisco.com>
+ * \addtogroup uip6
+ * @{
  */
 
 /**
- * \addtogroup uip6
- * @{
+ * \file
+ *    IPv6 data structure manipulation.
+ *    Comprises part of the Neighbor discovery (RFC 4861)
+ *    and auto configuration (RFC 4862) state machines.
+ * \author Mathilde Durvy <mdurvy@cisco.com>
+ * \author Julien Abeille <jabeille@cisco.com>
  */
 
 #include <string.h>
@@ -53,23 +53,23 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
-struct etimer uip_ds6_timer_periodic;                           /** \brief Timer for maintenance of data structures */
+struct etimer uip_ds6_timer_periodic;                           /**< Timer for maintenance of data structures */
 
 #if UIP_CONF_ROUTER
-struct stimer uip_ds6_timer_ra;                                 /** \brief RA timer, to schedule RA sending */
+struct stimer uip_ds6_timer_ra;                                 /**< RA timer, to schedule RA sending */
 #if UIP_ND6_SEND_RA
-static uint8_t racount;                                         /** \brief number of RA already sent */
-static uint16_t rand_time;                                      /** \brief random time value for timers */
+static uint8_t racount;                                         /**< number of RA already sent */
+static uint16_t rand_time;                                      /**< random time value for timers */
 #endif
 #else /* UIP_CONF_ROUTER */
-struct etimer uip_ds6_timer_rs;                                 /** \brief RS timer, to schedule RS sending */
-static uint8_t rscount;                                         /** \brief number of rs already sent */
+struct etimer uip_ds6_timer_rs;                                 /**< RS timer, to schedule RS sending */
+static uint8_t rscount;                                         /**< number of rs already sent */
 #endif /* UIP_CONF_ROUTER */
 
 /** \name "DS6" Data structures */
 /** @{ */
-uip_ds6_netif_t uip_ds6_if;                                       /** \brief The single interface */
-uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];          /** \brief Prefix list */
+uip_ds6_netif_t uip_ds6_if;                                     /**< The single interface */
+uip_ds6_prefix_t uip_ds6_prefix_list[UIP_DS6_PREFIX_NB];        /**< Prefix list */
 
 /* Used by Cooja to enable extraction of addresses from memory.*/
 uint8_t uip_ds6_addr_size;
@@ -83,7 +83,9 @@ static uip_ipaddr_t loc_fipaddr;
 /* Pointers used in this file */
 static uip_ds6_addr_t *locaddr;
 static uip_ds6_maddr_t *locmaddr;
+#if UIP_DS6_AADDR_NB
 static uip_ds6_aaddr_t *locaaddr;
+#endif /* UIP_DS6_AADDR_NB */
 static uip_ds6_prefix_t *locprefix;
 
 /*---------------------------------------------------------------------------*/
@@ -274,7 +276,8 @@ uip_ds6_prefix_add(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen,
     }
     PRINTF("Adding prefix ");
     PRINT6ADDR(&locprefix->ipaddr);
-    PRINTF("length %u, vlifetime%lu\n", ipaddrlen, interval);
+    PRINTF("length %u, vlifetime %lu\n", ipaddrlen, interval);
+    return locprefix;
   }
   return NULL;
 }
@@ -294,9 +297,9 @@ uip_ds6_prefix_t *
 uip_ds6_prefix_lookup(uip_ipaddr_t *ipaddr, uint8_t ipaddrlen)
 {
   if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_prefix_list,
-		       UIP_DS6_PREFIX_NB, sizeof(uip_ds6_prefix_t),
-		       ipaddr, ipaddrlen,
-		       (uip_ds6_element_t **)&locprefix) == FOUND) {
+                       UIP_DS6_PREFIX_NB, sizeof(uip_ds6_prefix_t),
+                       ipaddr, ipaddrlen,
+                       (uip_ds6_element_t **)&locprefix) == FOUND) {
     return locprefix;
   }
   return NULL;
@@ -388,7 +391,7 @@ uip_ds6_get_link_local(int8_t state)
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
     if(locaddr->isused && (state == -1 || locaddr->state == state)
-       && (uip_is_addr_link_local(&locaddr->ipaddr))) {
+       && (uip_is_addr_linklocal(&locaddr->ipaddr))) {
       return locaddr;
     }
   }
@@ -407,7 +410,7 @@ uip_ds6_get_global(int8_t state)
   for(locaddr = uip_ds6_if.addr_list;
       locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
     if(locaddr->isused && (state == -1 || locaddr->state == state)
-       && !(uip_is_addr_link_local(&locaddr->ipaddr))) {
+       && !(uip_is_addr_linklocal(&locaddr->ipaddr))) {
       return locaddr;
     }
   }
@@ -457,6 +460,7 @@ uip_ds6_maddr_lookup(const uip_ipaddr_t *ipaddr)
 uip_ds6_aaddr_t *
 uip_ds6_aaddr_add(uip_ipaddr_t *ipaddr)
 {
+#if UIP_DS6_AADDR_NB
   if(uip_ds6_list_loop
      ((uip_ds6_element_t *)uip_ds6_if.aaddr_list, UIP_DS6_AADDR_NB,
       sizeof(uip_ds6_aaddr_t), ipaddr, 128,
@@ -465,6 +469,7 @@ uip_ds6_aaddr_add(uip_ipaddr_t *ipaddr)
     uip_ipaddr_copy(&locaaddr->ipaddr, ipaddr);
     return locaaddr;
   }
+#endif /* UIP_DS6_AADDR_NB */
   return NULL;
 }
 
@@ -482,11 +487,13 @@ uip_ds6_aaddr_rm(uip_ds6_aaddr_t *aaddr)
 uip_ds6_aaddr_t *
 uip_ds6_aaddr_lookup(uip_ipaddr_t *ipaddr)
 {
+#if UIP_DS6_AADDR_NB
   if(uip_ds6_list_loop((uip_ds6_element_t *)uip_ds6_if.aaddr_list,
-		       UIP_DS6_AADDR_NB, sizeof(uip_ds6_aaddr_t), ipaddr, 128,
-		       (uip_ds6_element_t **)&locaaddr) == FOUND) {
+                       UIP_DS6_AADDR_NB, sizeof(uip_ds6_aaddr_t), ipaddr, 128,
+                       (uip_ds6_element_t **)&locaaddr) == FOUND) {
     return locaaddr;
   }
+#endif /* UIP_DS6_AADDR_NB */
   return NULL;
 }
 
@@ -498,13 +505,13 @@ uip_ds6_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
   uint8_t n = 0;
   uip_ds6_addr_t *matchaddr = NULL;
 
-  if(!uip_is_addr_link_local(dst) && !uip_is_addr_mcast(dst)) {
+  if(!uip_is_addr_linklocal(dst) && !uip_is_addr_mcast(dst)) {
     /* find longest match */
     for(locaddr = uip_ds6_if.addr_list;
         locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
       /* Only preferred global (not link-local) addresses */
       if(locaddr->isused && locaddr->state == ADDR_PREFERRED &&
-         !uip_is_addr_link_local(&locaddr->ipaddr)) {
+         !uip_is_addr_linklocal(&locaddr->ipaddr)) {
         n = get_match_length(dst, &locaddr->ipaddr);
         if(n >= best) {
           best = n;
@@ -591,7 +598,7 @@ uip_ds6_dad(uip_ds6_addr_t *addr)
    * If we arrive here it means DAD succeeded, otherwise the dad process
    * would have been interrupted in ds6_dad_ns/na_input
    */
-  PRINTF("DAD succeeded, ipaddr:");
+  PRINTF("DAD succeeded, ipaddr: ");
   PRINT6ADDR(&addr->ipaddr);
   PRINTF("\n");
 
@@ -607,7 +614,7 @@ uip_ds6_dad(uip_ds6_addr_t *addr)
 int
 uip_ds6_dad_failed(uip_ds6_addr_t *addr)
 {
-  if(uip_is_addr_link_local(&addr->ipaddr)) {
+  if(uip_is_addr_linklocal(&addr->ipaddr)) {
     PRINTF("Contiki shutdown, DAD for link local address failed\n");
     return 0;
   }

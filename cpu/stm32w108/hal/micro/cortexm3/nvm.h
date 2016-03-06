@@ -2,7 +2,7 @@
  * @brief Cortex-M3 Non-Volatile Memory data storage system.
  * See @ref nvm for documentation.
  *
- * The functions in this file return an ::StStatus value. 
+ * The functions in this file return an ::StStatus value.
  * See error-def.h for definitions of all ::StStatus return values.
  *
  * See hal/micro/cortexm3/nvm.h for source code.
@@ -14,8 +14,7 @@
  * @addtogroup stm32w-cpu
  * @{ */
 
-/** @defgroup nvm
- * @brief Cortex-M3 Non-Volatile Memory data storage system.
+/** @defgroup nvm Cortex-M3 Non-Volatile Memory data storage system.
  *
  * This header defines the API for NVM data storage.  This header also
  * describes the algorithm behind the NVM data storage system with notes
@@ -27,7 +26,7 @@
  *       that is a multiple of physical flash pages.  There are two pages: LEFT
  *       and RIGHT.  The term "flash page" is used to refer to a page of
  *       physical flash.
- * 
+ *
  * NVM data storage works by alternating between two pages: LEFT and RIGHT.
  * The basic algorithm is driven by a call to halCommonSaveToNvm().  It will:
  * - erase the inactive page
@@ -58,35 +57,35 @@
  * is LEFT then the state machine will advance until state 7 and then exit.
  * If "Read from" is RIGHT, then the state machine will advance until
  * state 3 and then exit.
- * 
+ *
  * @code
  * Starting from erased or invalid mgmt, write to LEFT
- * State #       0     0         1      2      3  
- * Reads from:   x     x   e w   L      L      L  
+ * State #       0     0         1      2      3
+ * Reads from:   x     x   e w   L      L      L
  * Valid       xx|xx FF|FF r r 00|FF  00|FF  00|00
  * Active      xx|xx FF|FF a i 00|FF  00|FF  00|00
  * Dead        xx|xx FF|FF s t FF|FF  FF|00  FF|00
  * Spare       xx|xx FF|FF e e FF|FF  FF|FF  FF|FF
- * 
- * 
+ *
+ *
  * Starting from LEFT page, transition to RIGHT page:
- * State #      3       4       5      6      7  
- * Reads from:  L   e   L   w   R      R      R  
+ * State #      3       4       5      6      7
+ * Reads from:  L   e   L   w   R      R      R
  * Valid      00|00 r 00|FF r 00|00  00|00  00|00
  * Active     00|00 a 00|FF i 00|FF  00|FF  00|00
  * Dead       FF|00 s FF|FF t FF|FF  00|FF  00|FF
  * Spare      FF|FF e FF|FF e FF|FF  FF|FF  FF|FF
- * 
- * 
+ *
+ *
  * Starting from RIGHT page, transition to LEFT page:
- * State #      7       8       9     10      3  
- * Reads from:  R   e   R   w   L      L      L  
+ * State #      7       8       9     10      3
+ * Reads from:  R   e   R   w   L      L      L
  * Valid      00|00 r FF|00 r 00|00  00|00  00|00
  * Active     00|00 a FF|00 i FF|00  FF|00  00|00
  * Dead       00|FF s FF|FF t FF|FF  FF|00  FF|00
  * Spare      FF|FF e FF|FF e FF|FF  FF|FF  FF|FF
  * @endcode
- * 
+ *
  * Based on the 10 possible states, there are 5 valid 32bit mgmt words:
  * - 0xFFFFFFFF
  * - 0xFFFFFF00
@@ -95,7 +94,7 @@
  * - 0xFF00FFFF
  * The algorithm determines the current state by using these 5 mgmt words
  * with the 10 possible combinations of LEFT mgmt and RIGHT mgmt.
- * 
+ *
  * Detailed State Description:
  * - State 0:
  *   In this state the mgmt bytes do not conform to any of the other states
@@ -135,8 +134,8 @@
  *   Once at these states, the current page is marked Valid and Active and
  *   the old page is marked as Dead.  The algorithm knows which page to
  *   read from and which page needs to be erased on the next write to the NVM.
- *   
- * 
+ *
+ *
  * Notes on algorithm behavior:
  * - Refer to nvm-def.h for a list of offset/length that define the data
  *   stored in NVM storage space.
@@ -189,14 +188,14 @@
 /**
  * @brief Copy the NVM data from flash into the provided RAM location.
  * It is illegal for the offset to be greater than NVM_DATA_SIZE_B.
- * 
+ *
  * @param data    A (RAM) pointer to where the data should be copied.
- *  
+ *
  * @param offset  The location from which the data should be copied.  Must be
  *                16bit aligned.
- * 
+ *
  * @param length  The length of the data in bytes.  Must be 16bit aligned.
- * 
+ *
  * @return An StStatus value indicating the success of the function.
  *  - ST_SUCCESS if the read completed cleanly.
  *  - ST_ERR_FATAL if the NVM storage management indicated an invalid
@@ -206,10 +205,10 @@ StStatus halCommonReadFromNvm(void *data, uint32_t offset, uint16_t length);
 
 /**
  * @brief Return the address of the token in NVM
- * 
+ *
  * @param offset  The location offset from which the address should be returned
- * 
- * 
+ *
+ *
  * @return The address requested
  */
 uint16_t *halCommonGetAddressFromNvm(uint32_t offset);
@@ -217,14 +216,14 @@ uint16_t *halCommonGetAddressFromNvm(uint32_t offset);
 /**
  * @brief Write the NVM data from the provided location RAM into flash.
  * It is illegal for the offset to be greater than NVM_DATA_SIZE_B.
- * 
+ *
  * @param data    A (RAM) pointer from where the data should be taken.
- *  
+ *
  * @param offset  The location to which the data should be written.  Must be
  *                16bit aligned.
- * 
+ *
  * @param length  The length of the data in bytes.  Must be 16bit aligned.
- * 
+ *
  * @return An StStatus value indicating the success of the function.
  *  - ST_SUCCESS if the write completed cleanly.
  *  - Any other status value is an error code generated by the low level

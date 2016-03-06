@@ -108,13 +108,12 @@ struct rpl_dag;
 #define RPL_PARENT_FLAG_LINK_METRIC_VALID 0x2
 
 struct rpl_parent {
-  struct rpl_parent *next;
   struct rpl_dag *dag;
 #if RPL_DAG_MC != RPL_DAG_MC_NONE
   rpl_metric_container_t mc;
 #endif /* RPL_DAG_MC != RPL_DAG_MC_NONE */
   rpl_rank_t rank;
-  uint16_t link_metric;
+  clock_time_t last_tx_time;
   uint8_t dtsn;
   uint8_t flags;
 };
@@ -143,6 +142,7 @@ struct rpl_dag {
   rpl_rank_t rank;
   struct rpl_instance *instance;
   rpl_prefix_t prefix_info;
+  uint32_t lifetime;
 };
 typedef struct rpl_dag rpl_dag_t;
 typedef struct rpl_instance rpl_instance_t;
@@ -179,7 +179,7 @@ typedef struct rpl_instance rpl_instance_t;
  * update_metric_container(dag)
  *
  *  Updates the metric container for outgoing DIOs in a certain DAG.
- *  If the objective function of the DAG does not use metric containers, 
+ *  If the objective function of the DAG does not use metric containers,
  *  the function should set the object type to RPL_DAG_MC_NONE.
  */
 struct rpl_of {
@@ -225,9 +225,14 @@ struct rpl_instance {
   uint16_t dio_totrecv;
 #endif /* RPL_CONF_STATS */
   clock_time_t dio_next_delay; /* delay for completion of dio interval */
+#if RPL_WITH_PROBING
+  struct ctimer probing_timer;
+#endif /* RPL_WITH_PROBING */
   struct ctimer dio_timer;
   struct ctimer dao_timer;
   struct ctimer dao_lifetime_timer;
+  struct ctimer unicast_dio_timer;
+  rpl_parent_t *unicast_dio_target;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -251,7 +256,11 @@ rpl_parent_t *rpl_get_parent(uip_lladdr_t *addr);
 rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
 uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
+uip_ds6_nbr_t *rpl_get_nbr(rpl_parent_t *parent);
+void rpl_print_neighbor_list(void);
 
+/* Per-parent RPL information */
+NBR_TABLE_DECLARE(rpl_parents);
 
 /**
  * RPL modes

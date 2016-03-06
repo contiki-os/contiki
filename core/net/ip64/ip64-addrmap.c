@@ -10,6 +10,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
+ *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -148,6 +149,7 @@ ip64_addrmap_lookup(const uip_ip6addr_t *ip6addr,
        m->ip6port == ip6port &&
        uip_ip4addr_cmp(&m->ip4addr, ip4addr) &&
        uip_ip6addr_cmp(&m->ip6addr, ip6addr)) {
+      m->ip6to4++;
       return m;
     }
   }
@@ -166,6 +168,7 @@ ip64_addrmap_lookup_port(uint16_t mapped_port, uint8_t protocol)
 	   m->protocol, protocol);
     if(m->mapped_port == mapped_port &&
        m->protocol == protocol) {
+      m->ip4to6++;
       return m;
     }
   }
@@ -204,6 +207,8 @@ ip64_addrmap_create(const uip_ip6addr_t *ip6addr,
     m->ip6port = ip6port;
     m->protocol = protocol;
     m->flags = FLAGS_NONE;
+    m->ip6to4 = 1;
+    m->ip4to6 = 0;
     timer_set(&m->timer, 0);
 
     /* Pick a new, unused local port. First make sure that the

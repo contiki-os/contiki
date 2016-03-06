@@ -743,8 +743,8 @@ void ctk_icon_add(struct ctk_widget *icon, struct process *p);
  */
 #define CTK_WIDGET_ADD(win, widg) \
  ctk_widget_add(win, (struct ctk_widget *)widg)
-CCIF void CC_FASTCALL ctk_widget_add(struct ctk_window *window,
-				     struct ctk_widget *widget);
+CCIF void ctk_widget_add(struct ctk_window *window,
+			 struct ctk_widget *widget);
 
 /**
  * Set focus to a widget.

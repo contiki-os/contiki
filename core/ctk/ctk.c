@@ -185,7 +185,7 @@ unsigned short ctk_screensaver_timeout = (5*60);
 static struct timer timer;
 #endif /* CTK_CONF_SCREENSAVER */
 
-static void CC_FASTCALL
+static void
 textentry_input(ctk_arch_key_t c,
 		CC_REGISTER_ARG struct ctk_textentry *t);
 
@@ -555,7 +555,7 @@ ctk_menu_remove(struct ctk_menu *menu)
  * \param clipy2 The lower bound of the clip interval
  */
 /*---------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 do_redraw_all(unsigned char clipy1, unsigned char clipy2)
 {
 #if CTK_CONF_WINDOWS
@@ -818,7 +818,7 @@ ctk_menuitem_add(CC_REGISTER_ARG struct ctk_menu *menu, char *name)
  * \param w The widget that should be redrawn.
  */
 /*---------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 add_redrawwidget(struct ctk_widget *w)
 {
   static unsigned char i;
@@ -852,7 +852,9 @@ add_redrawwidget(struct ctk_widget *w)
 static void
 widget_redraw(struct ctk_widget *widget)
 {
+#if CTK_CONF_WINDOWS
   struct ctk_window *window;
+#endif /* CTK_CONF_WINDOWS */
 
   if(mode != CTK_MODE_NORMAL || widget == NULL) {
     return;
@@ -870,8 +872,8 @@ widget_redraw(struct ctk_widget *widget)
   if(menus.open == NULL)
 #endif /* CTK_CONF_MENUS */
   {
-    window = widget->window;
 #if CTK_CONF_WINDOWS
+    window = widget->window;
     if(window == dialog) {
       ctk_draw_widget(widget, CTK_FOCUS_DIALOG, 0, height);
     } else if(dialog == NULL &&
@@ -921,7 +923,7 @@ ctk_widget_redraw(struct ctk_widget *widget)
  * \param widget The widget to be added.
  */
 /*---------------------------------------------------------------------------*/
-void CC_FASTCALL
+void
 ctk_widget_add(CC_REGISTER_ARG struct ctk_window *window,
 	       CC_REGISTER_ARG struct ctk_widget *widget)
 {
@@ -973,7 +975,7 @@ ctk_desktop_height(struct ctk_desktop *d)
  * \param focus The widget to be focused.
  */
 /*---------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 select_widget(struct ctk_widget *focus)
 {
   struct ctk_window *window;
@@ -1001,7 +1003,7 @@ select_widget(struct ctk_widget *focus)
 #define DOWN 1
 #define LEFT 2
 #define RIGHT 3
-static void CC_FASTCALL
+static void
 switch_focus_widget(unsigned char direction)
 {
 #if CTK_CONF_WINDOWS
@@ -1126,7 +1128,7 @@ switch_menu_item(unsigned char updown)
 }
 #endif /* CTK_CONF_MENUS */
 /*---------------------------------------------------------------------------*/
-static unsigned char CC_FASTCALL
+static unsigned char
 activate(CC_REGISTER_ARG struct ctk_widget *w)
 {
   if(w->type == CTK_WIDGET_BUTTON) {
@@ -1183,7 +1185,7 @@ ctk_textentry_input_null(ctk_arch_key_t c, struct ctk_textentry *t)
 }
 #endif /* SDCC */
 /*---------------------------------------------------------------------------*/
-static void CC_FASTCALL
+static void
 textentry_input(ctk_arch_key_t c, CC_REGISTER_ARG struct ctk_textentry *t)
 {
   register char *cptr, *cptr2;

@@ -52,9 +52,11 @@ public class MspClock extends Clock {
   private Simulation simulation;
   
   private long timeDrift; /* Microseconds */
+  private double deviation;
 
   public MspClock(Mote mote) {
     simulation = mote.getSimulation();
+    deviation = 1.0;
   }
 
   public void setTime(long newTime) {
@@ -72,20 +74,13 @@ public class MspClock extends Clock {
   public long getDrift() {
     return timeDrift;
   }
-
-  public JPanel getInterfaceVisualizer() {
-    /* TODO Show current CPU speed */
-    return null;
+  
+  public void setDeviation(double deviation) {
+    assert (deviation>0.0) && (deviation<=1.0);
+    this.deviation = deviation;
   }
 
-  public void releaseInterfaceVisualizer(JPanel panel) {
+  public double getDeviation() {
+    return deviation;
   }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-  }
-
 }

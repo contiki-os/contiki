@@ -31,15 +31,15 @@
  */
 
 /**
- * \file
- *         ICMPv6 echo request and error messages (RFC 4443)
- * \author Julien Abeille <jabeille@cisco.com> 
- * \author Mathilde Durvy <mdurvy@cisco.com>
+ * \addtogroup uip6
+ * @{
  */
 
 /**
- * \addtogroup uip6
- * @{
+ * \file
+ *    ICMPv6 (RFC 4443) implementation, with message and error handling
+ * \author Julien Abeille <jabeille@cisco.com>
+ * \author Mathilde Durvy <mdurvy@cisco.com>
  */
 
 #include <string.h>
@@ -128,9 +128,9 @@ echo_request_input(void)
    * headers in the request otherwise we need to remove the extension
    * headers and change a few fields
    */
-  PRINTF("Received Echo Request from");
+  PRINTF("Received Echo Request from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("to");
+  PRINTF(" to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   PRINTF("\n");
 
@@ -195,9 +195,9 @@ echo_request_input(void)
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
-  PRINTF("Sending Echo Reply to");
+  PRINTF("Sending Echo Reply to ");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("from");
+  PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
   UIP_STAT(++uip_stat.icmp.sent);
@@ -210,12 +210,12 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
  /* check if originating packet is not an ICMP error*/
   if (uip_ext_len) {
     if(UIP_EXT_BUF->next == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type < 128){
-      uip_len = 0;
+      uip_clear_buf();
       return;
     }
   } else {
     if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type < 128){
-      uip_len = 0;
+      uip_clear_buf();
       return;
     }
   }
@@ -250,7 +250,7 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
   /* the source should not be unspecified nor multicast, the check for
      multicast is done in uip_process */
   if(uip_is_addr_unspecified(&UIP_IP_BUF->srcipaddr)){
-    uip_len = 0;
+    uip_clear_buf();
     return;
   }
 
@@ -260,7 +260,7 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
     if(type == ICMP6_PARAM_PROB && code == ICMP6_PARAMPROB_OPTION){
       uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
     } else {
-      uip_len = 0;
+      uip_clear_buf();
       return;
     }
   } else {
@@ -282,9 +282,9 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
 
   UIP_STAT(++uip_stat.icmp.sent);
 
-  PRINTF("Sending ICMPv6 ERROR message type %d code %d to", type, code);
+  PRINTF("Sending ICMPv6 ERROR message type %d code %d to ", type, code);
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("from");
+  PRINTF(" from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("\n");
   return;
@@ -313,6 +313,10 @@ uip_icmp6_send(const uip_ipaddr_t *dest, int type, int code, int payload_len)
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
 
   uip_len = UIP_IPH_LEN + UIP_ICMPH_LEN + payload_len;
+
+  UIP_STAT(++uip_stat.icmp.sent);
+  UIP_STAT(++uip_stat.ip.sent);
+
   tcpip_ipv6_output();
 }
 /*---------------------------------------------------------------------------*/
@@ -385,7 +389,7 @@ echo_reply_input(void)
     }
   }
 
-  uip_len = 0;
+  uip_clear_buf();
   return;
 }
 /*---------------------------------------------------------------------------*/

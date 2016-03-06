@@ -1,19 +1,19 @@
 /*
  * Copyright (c) 2003, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
- *    with the distribution. 
+ *    with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -25,7 +25,7 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the Contiki desktop OS
  *
@@ -35,7 +35,7 @@
 /**
  * \file
  * The program handler, used for loading programs and starting the
- * screensaver. 
+ * screensaver.
  * \author Adam Dunkels <adam@dunkels.com>
  *
  * The Contiki program handler is responsible for the Contiki menu and
@@ -45,7 +45,7 @@
  * The program handler also is responsible for starting the
  * screensaver when the CTK detects that it should be started.
  */
- 
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -161,7 +161,7 @@ char program_handler_screensaver[20];
 /*-----------------------------------------------------------------------------------*/
 void
 program_handler_add(struct dsc *dsc, char *menuname,
-		    unsigned char desktop)
+                    unsigned char desktop)
 {
   contikidsc[contikidsclast++] = dsc;
   ctk_menuitem_add(&contikimenu, menuname);
@@ -228,7 +228,7 @@ program_handler_load(char *name, char *arg)
 {
 #ifdef WITH_LOADER_ARCH
   struct pnarg *pnarg;
-  
+
   pnarg = pnarg_copy(name, arg);
   if(pnarg != NULL) {
     process_post(&program_handler_process, LOADER_EVENT_DISPLAY_NAME, pnarg);
@@ -246,6 +246,7 @@ program_handler_load(char *name, char *arg)
 #else /* WITH_LOADER_ARCH */
 #define RUN(prg, process, arg) process_start(process, arg)
 #endif /* WITH_LOADER_ARCH */
+#if CTK_CONF_SCREENSAVER
 /*-----------------------------------------------------------------------------------*/
 /**
  * Configures the name of the screensaver to be loaded when
@@ -255,7 +256,6 @@ program_handler_load(char *name, char *arg)
  * should be used.
  */
 /*-----------------------------------------------------------------------------------*/
-#if CTK_CONF_SCREENSAVER
 void
 program_handler_setscreensaver(char *name)
 {
@@ -272,17 +272,17 @@ static void
 make_windows(void)
 {
   ctk_window_new(&runwindow, 16, 3, "Run");
-  
+
   CTK_WIDGET_ADD(&runwindow, &namelabel);
   CTK_WIDGET_ADD(&runwindow, &nameentry);
   CTK_WIDGET_ADD(&runwindow, &loadbutton);
-  
+
   CTK_WIDGET_FOCUS(&runwindow, &nameentry);
-  
+
   ctk_dialog_new(&loadingdialog, 25, 1);
   CTK_WIDGET_ADD(&loadingdialog, &loadingmsg);
   CTK_WIDGET_ADD(&loadingdialog, &loadingname);
-  
+
   ctk_dialog_new(&errordialog, 22, 8);
   CTK_WIDGET_ADD(&errordialog, &errormsg);
   CTK_WIDGET_ADD(&errordialog, &errorfilelabel);
@@ -302,20 +302,20 @@ PROCESS_THREAD(program_handler_process, ev, data)
   struct dsc **dscp;
 
   PROCESS_BEGIN();
-  
+
   /* Create the menus */
   ctk_menu_add(&contikimenu);
 #if WITH_LOADER_ARCH
   runmenuitem = ctk_menuitem_add(&contikimenu, "Run program...");
-  
+
   make_windows();
 #endif /* WITH_LOADER_ARCH */
 #if QUIT_MENU
   quitmenuitem = ctk_menuitem_add(&contikimenu, "Quit");
 #endif /* QUIT_MENU */
-  
+
   displayname = NULL;
-  
+
 #if CTK_CONF_SCREENSAVER
   program_handler_screensaver[0] = 0;
 #endif /* CTK_CONF_SCREENSAVER */
@@ -325,106 +325,106 @@ PROCESS_THREAD(program_handler_process, ev, data)
     if(ev == ctk_signal_button_activate) {
 #ifdef WITH_LOADER_ARCH
       if(data == (process_data_t)&loadbutton) {
-	ctk_window_close(&runwindow);
-	program_handler_load(name, NULL);
+        ctk_window_close(&runwindow);
+        program_handler_load(name, NULL);
       } else if(data == (process_data_t)&errorokbutton) {
-	ctk_dialog_close();
+        ctk_dialog_close();
       }
 #endif /* WITH_LOADER_ARCH */
 #if QUIT_MENU
       if(data == (process_data_t)&quityesbutton) {
-	ctk_draw_init();
-	exit(EXIT_SUCCESS);
+        ctk_draw_init();
+        exit(EXIT_SUCCESS);
       } else if(data == (process_data_t)&quitnobutton) {
-	ctk_dialog_close();
+        ctk_dialog_close();
       }
 #endif /* QUIT_MENU */
       dscp = &contikidsc[0];
-      for(i = 0; i < CTK_MAXMENUITEMS; ++i) {    
-	if(*dscp != NULL
+      for(i = 0; i < CTK_MAXMENUITEMS; ++i) {
+        if(*dscp != NULL
 #if CTK_CONF_ICONS
-	  && data == (process_data_t)(*dscp)->icon
+           && data == (process_data_t)(*dscp)->icon
 #endif /* CTK_CONF_ICONS */
-	  ) {
-	  RUN((*dscp)->prgname, (*dscp)->process, NULL);
-	  break;
-	}
-	++dscp;
+           ) {
+          RUN((*dscp)->prgname, (*dscp)->process, NULL);
+          break;
+        }
+        ++dscp;
       }
     } else if(ev == ctk_signal_menu_activate) {
       if((struct ctk_menu *)data == &contikimenu) {
 #if WITH_LOADER_ARCH
-	dsc = contikidsc[contikimenu.active];
-	if(dsc != NULL) {
-	  RUN(dsc->prgname, dsc->process, NULL);
-	} else if(contikimenu.active == runmenuitem) {
-	  make_windows();
-	  ctk_window_close(&runwindow);
-	  ctk_window_open(&runwindow);
-	  CTK_WIDGET_FOCUS(&runwindow, &nameentry);
-	}
+        dsc = contikidsc[contikimenu.active];
+        if(dsc != NULL) {
+          RUN(dsc->prgname, dsc->process, NULL);
+        } else if(contikimenu.active == runmenuitem) {
+          make_windows();
+          ctk_window_close(&runwindow);
+          ctk_window_open(&runwindow);
+          CTK_WIDGET_FOCUS(&runwindow, &nameentry);
+        }
 #else /* WITH_LOADER_ARCH */
-	if(contikidsc[contikimenu.active] != NULL) {
-	  RUN(contikidsc[contikimenu.active]->prgname,
-	      contikidsc[contikimenu.active]->process,
-	      NULL);
-	}
+        if(contikidsc[contikimenu.active] != NULL) {
+          RUN(contikidsc[contikimenu.active]->prgname,
+              contikidsc[contikimenu.active]->process,
+              NULL);
+        }
 #endif /* WITH_LOADER_ARCH */
 #if QUIT_MENU
-	if(contikimenu.active == quitmenuitem) {
-	  ctk_dialog_new(&quitdialog, 24, 5);
-	  CTK_WIDGET_ADD(&quitdialog, &quitdialoglabel);
-	  CTK_WIDGET_ADD(&quitdialog, &quityesbutton);
-	  CTK_WIDGET_ADD(&quitdialog, &quitnobutton);
-	  CTK_WIDGET_FOCUS(&quitdialog, &quitnobutton);
-	  ctk_dialog_open(&quitdialog);      
-	}
+        if(contikimenu.active == quitmenuitem) {
+          ctk_dialog_new(&quitdialog, 24, 5);
+          CTK_WIDGET_ADD(&quitdialog, &quitdialoglabel);
+          CTK_WIDGET_ADD(&quitdialog, &quityesbutton);
+          CTK_WIDGET_ADD(&quitdialog, &quitnobutton);
+          CTK_WIDGET_FOCUS(&quitdialog, &quitnobutton);
+          ctk_dialog_open(&quitdialog);
+        }
 #endif /* QUIT_MENU */
       }
 #if CTK_CONF_SCREENSAVER
     } else if(ev == ctk_signal_screensaver_start) {
 #if WITH_LOADER_ARCH
       if(program_handler_screensaver[0] != 0) {
-	program_handler_load(program_handler_screensaver, NULL);
+        program_handler_load(program_handler_screensaver, NULL);
       }
 #endif /* WITH_LOADER_ARCH */
 #endif /* CTK_CONF_SCREENSAVER */
     } else if(ev == LOADER_EVENT_DISPLAY_NAME) {
 #if WITH_LOADER_ARCH
       if(displayname == NULL) {
-	make_windows();
-	
-	ctk_label_set_text(&loadingname, ((struct pnarg *)data)->name);
-	ctk_dialog_open(&loadingdialog);
-	process_post(&program_handler_process, LOADER_EVENT_LOAD, data);
-	displayname = data;
+        make_windows();
+
+        ctk_label_set_text(&loadingname, ((struct pnarg *)data)->name);
+        ctk_dialog_open(&loadingdialog);
+        process_post(&program_handler_process, LOADER_EVENT_LOAD, data);
+        displayname = data;
       } else {
-	/* Try again. */
-	process_post(&program_handler_process, LOADER_EVENT_DISPLAY_NAME, data);
+        /* Try again. */
+        process_post(&program_handler_process, LOADER_EVENT_DISPLAY_NAME, data);
       }
 #endif /* WITH_LOADER_ARCH */
     } else if(ev == LOADER_EVENT_LOAD) {
 #if WITH_LOADER_ARCH
       if(displayname == data) {
-	ctk_dialog_close();
-	displayname = NULL;
-	log_message("Loading ", ((struct pnarg *)data)->name);
-	err = LOADER_LOAD(((struct pnarg *)data)->name,
-			  ((struct pnarg *)data)->arg);
-	if(err != LOADER_OK) {
-	  make_windows();
-	  errorfilename[0] = '"';
-	  strncpy(errorfilename + 1, ((struct pnarg *)data)->name,
-		  sizeof(errorfilename) - 2);
-	  errorfilename[1 + strlen(((struct pnarg *)data)->name)] = '"';
-	  ctk_label_set_text(&errortype, (char *)errormsgs[err]);
-	  ctk_dialog_open(&errordialog);
-	  log_message((char *)errormsgs[err], errorfilename);
-	}
-	pnarg_free(data);
+        ctk_dialog_close();
+        displayname = NULL;
+        log_message("Loading ", ((struct pnarg *)data)->name);
+        err = LOADER_LOAD(((struct pnarg *)data)->name,
+                          ((struct pnarg *)data)->arg);
+        if(err != LOADER_OK) {
+          make_windows();
+          errorfilename[0] = '"';
+          strncpy(errorfilename + 1, ((struct pnarg *)data)->name,
+                  sizeof(errorfilename) - 2);
+          errorfilename[1 + strlen(((struct pnarg *)data)->name)] = '"';
+          ctk_label_set_text(&errortype, (char *)errormsgs[err]);
+          ctk_dialog_open(&errordialog);
+          log_message((char *)errormsgs[err], errorfilename);
+        }
+        pnarg_free(data);
       } else {
-	/* Try again. */
-	process_post(&program_handler_process, LOADER_EVENT_DISPLAY_NAME, data);
+        /* Try again. */
+        process_post(&program_handler_process, LOADER_EVENT_DISPLAY_NAME, data);
       }
 #endif /* WITH_LOADEER_ARCH */
     }
