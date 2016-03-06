@@ -72,7 +72,7 @@ pw:	.byte	$2C, $50, $2C, $57	;,p,w
 cmdc:	.byte	0
 flags:	.res	10
 ;---------------------------------------------------------------------
-	.segment	"INIT"
+	.segment	"ONCE"
 
 init_pfs:
 	ldy	#F_MAXLEN+8
