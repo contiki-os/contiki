@@ -66,7 +66,7 @@ read_count_out:	.word	$0000		    ;TRANS_COUNT
 close_param:	.byte	$01		    ;PARAM_COUNT
 close_fd:	.byte	$00		    ;REF_NUM
 ;---------------------------------------------------------------------
-	.segment	"INIT"
+	.segment	"ONCE"
 
 init_pfs:
 	; Allow exec() to keep file open
