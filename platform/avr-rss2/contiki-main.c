@@ -193,9 +193,9 @@ initialize(void)
 
 #if 0
   /* Do it my way... */
-  UBRR0L = 25;
-  UBRR0H = 0;
-  UCSR0A = (1 << U2X0);  /*Double */
+  //UBRR0L =  8; UBRR0H = 0; UCSR0A = (0 << U2X0);  // 115.2k  err=-3.5%  
+  //UBRR0L = 16; UBRR0H = 0; UCSR0A = (1 << U2X0);  // 115.2k     2.1%  
+  //UBRR0L =  3; UBRR0H = 0; UCSR0A = (1 << U2X0);  // 500k         0%
 #endif
 
   rs232_set_input(RS232_PORT_0, serial_line_input_byte);
@@ -277,17 +277,18 @@ initialize(void)
   /* Set addresses BEFORE starting tcpip process */
 
   linkaddr_t addr;
+  char eui64[8];
 
   printf("I2C: ");
   i2c_probed = i2c_probe();
   printf("\n");
   
   if( i2c_probed & I2C_AT24MAC ) {
-    i2c_at24mac_read((char *)&addr.u8, 1);
-    linkaddr_set_node_addr(&addr);
+    i2c_at24mac_read((char *)&eui64, 1);
+    linkaddr_set_node_addr((linkaddr_t *) &eui64);
+    node_id = (eui64[1] << 8) + eui64[7];
   }
   else {
-    char eui64[8];
     printf("Random EUI64 address generated\n");
     eui64[0] = 0xfc; /* Atmels OUI */
     eui64[1] = 0xc2; 
@@ -297,7 +298,7 @@ initialize(void)
     eui64[5] = 0;
     eui64[6] = node_id >> 8;
     eui64[7] = node_id & 0xff;
-    linkaddr_set_node_addr(&eui64);
+    linkaddr_set_node_addr((linkaddr_t *)&eui64);
   }
 
   /* memcpy(&uip_lladdr.addr, &addr.u8, sizeof(linkaddr_t)); */
@@ -315,6 +316,9 @@ initialize(void)
 #else
   PRINTA("MAC address ");
   uint8_t i;
+  addr.u8[0] = eui64[1] ; 
+  addr.u8[1] = eui64[7];
+
   for(i = sizeof(linkaddr_t); i > 0; i--) {
     PRINTA("%x:", addr.u8[i - 1]);
   }
