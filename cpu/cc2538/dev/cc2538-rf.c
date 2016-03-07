@@ -120,6 +120,17 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 #define CC2538_RF_AUTOACK 1
 #endif
 /*---------------------------------------------------------------------------*/
+#if CC2538_RF_CONF_SFD_TIMESTAMPS
+static rtimer_clock_t cc2538_sfd_rtime;
+#endif
+
+/* Are we currently in poll mode? Disabled by default */
+static uint8_t volatile poll_mode = 0;
+/* Do we perform a CCA before sending? Enabled by default. */
+static uint8_t send_on_cca = 1;
+static int8_t cc2538_last_rssi;
+static uint8_t cc2538_last_crc_corr_lqi;
+/*---------------------------------------------------------------------------*/
 static uint8_t rf_flags;
 static uint8_t rf_channel = CC2538_RF_CHANNEL;
 
@@ -329,6 +340,29 @@ set_frame_filtering(uint8_t enable)
 }
 /*---------------------------------------------------------------------------*/
 static void
+set_poll_mode(uint8_t enable)
+{
+  poll_mode = enable;
+  
+  if(enable) {
+    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_FIFOP;	// mask out FIFOP interrupt source
+    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_FIFOP;	// clear pending FIFOP interrupt
+    REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;	// enable SFD interrupt source
+  } else {
+    REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;	// enable FIFOP interrupt source
+    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_SFD;	// mask out SFD interrupt source
+    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;		// clear pending SFD interrupt
+  }
+  nvic_interrupt_enable(NVIC_INT_RF_RXTX);			        // enable RF interrupts
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_send_on_cca(uint8_t enable)
+{
+  send_on_cca = enable;
+}
+/*---------------------------------------------------------------------------*/
+static void
 set_auto_ack(uint8_t enable)
 {
   if(enable) {
@@ -395,7 +429,9 @@ off(void)
   /* Wait for ongoing TX to complete (e.g. this could be an outgoing ACK) */
   while(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
 
-  CC2538_RF_CSP_ISFLUSHRX();
+  if (!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP)) {
+    CC2538_RF_CSP_ISFLUSHRX();
+  }
 
   /* Don't turn off if we are off as this will trigger a Strobe Error */
   if(REG(RFCORE_XREG_RXENABLE) != 0) {
@@ -459,10 +495,6 @@ init(void)
 
   set_channel(rf_channel);
 
-  /* Acknowledge RF interrupts, FIFOP only */
-  REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;
-  nvic_interrupt_enable(NVIC_INT_RF_RXTX);
-
   /* Acknowledge all RF Error interrupts */
   REG(RFCORE_XREG_RFERRM) = RFCORE_XREG_RFERRM_RFERRM;
   nvic_interrupt_enable(NVIC_INT_RF_ERR);
@@ -488,6 +520,8 @@ init(void)
      */
     udma_set_channel_src(CC2538_RF_CONF_RX_DMA_CHAN, RFCORE_SFR_RFDATA);
   }
+  
+  set_poll_mode(poll_mode);
 
   process_start(&cc2538_rf_process, NULL);
 
@@ -700,15 +734,15 @@ read(void *buf, unsigned short bufsize)
   }
 
   /* Read the RSSI and CRC/Corr bytes */
-  rssi = ((int8_t)REG(RFCORE_SFR_RFDATA)) - RSSI_OFFSET;
-  crc_corr = REG(RFCORE_SFR_RFDATA);
+  cc2538_last_rssi = ((int8_t)REG(RFCORE_SFR_RFDATA)) - RSSI_OFFSET;
+  cc2538_last_crc_corr_lqi = REG(RFCORE_SFR_RFDATA);
 
-  PRINTF("%02x%02x\n", (uint8_t)rssi, crc_corr);
+  PRINTF("%02x%02x\n", (uint8_t)cc2538_last_rssi, cc2538_last_crc_corr_lqi);
 
   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
-  if(crc_corr & CRC_BIT_MASK) {
-    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
-    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, crc_corr & LQI_BIT_MASK);
+  if(cc2538_last_crc_corr_lqi & CRC_BIT_MASK) {
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2538_last_rssi);
+    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2538_last_crc_corr_lqi & LQI_BIT_MASK);
     RIMESTATS_ADD(llrx);
   } else {
     RIMESTATS_ADD(badcrc);
@@ -731,14 +765,18 @@ read(void *buf, unsigned short bufsize)
   flush();
 #endif
 
-  /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
-  if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP) {
-    if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFO) {
-      process_poll(&cc2538_rf_process);
-    } else {
-      CC2538_RF_CSP_ISFLUSHRX();
+  if(!poll_mode) {
+    /* If FIFOP==1 and FIFO==0 then we had a FIFO overflow at some point. */
+    if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP) {
+      if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFO) {
+        process_poll(&cc2538_rf_process);
+      } else {
+        CC2538_RF_CSP_ISFLUSHRX();
+      }
     }
   }
+  
+  CC2538_RF_CSP_ISFLUSHRX();
 
   return (len);
 }
@@ -796,6 +834,15 @@ get_value(radio_param_t param, radio_value_t *value)
     if(REG(RFCORE_XREG_FRMCTRL0) & RFCORE_XREG_FRMCTRL0_AUTOACK) {
       *value |= RADIO_RX_MODE_AUTOACK;
     }
+    if(poll_mode) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    if(send_on_cca) {
+      *value |= RADIO_TX_MODE_SEND_ON_CCA;
+    }
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     *value = get_tx_power();
@@ -805,6 +852,12 @@ get_value(radio_param_t param, radio_value_t *value)
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RSSI:
     *value = get_rssi();
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_RSSI:
+    *value = cc2538_last_rssi;
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_LINK_QUALITY:
+    *value = cc2538_last_crc_corr_lqi & LQI_BIT_MASK;
     return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = CC2538_RF_CHANNEL_MIN;
@@ -854,13 +907,21 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_OK;
   case RADIO_PARAM_RX_MODE:
     if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
-                 RADIO_RX_MODE_AUTOACK)) {
+                 RADIO_RX_MODE_AUTOACK |
+                 RADIO_RX_MODE_POLL_MODE)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
     set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
     set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
+    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
 
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
@@ -895,6 +956,19 @@ get_object(radio_param_t param, void *dest, size_t size)
 
     return RADIO_RESULT_OK;
   }
+  
+  if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+#if CC2538_RF_CONF_SFD_TIMESTAMPS
+    if(size != sizeof(rtimer_clock_t) || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    *(rtimer_clock_t*)dest = cc2538_sfd_rtime;
+    return RADIO_RESULT_OK;
+#else
+    return RADIO_RESULT_NOT_SUPPORTED;
+#endif
+  }
+  
   return RADIO_RESULT_NOT_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
@@ -950,15 +1024,18 @@ PROCESS_THREAD(cc2538_rf_process, ev, data)
   PROCESS_BEGIN();
 
   while(1) {
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+    /* Only if we are not in poll mode oder we are in poll mode and transceiver has to be reset */
+    PROCESS_YIELD_UNTIL((!poll_mode || (poll_mode && (rf_flags & RF_MUST_RESET))) && (ev == PROCESS_EVENT_POLL));
 
-    packetbuf_clear();
-    len = read(packetbuf_dataptr(), PACKETBUF_SIZE);
+    if(!poll_mode) {
+      packetbuf_clear();
+      len = read(packetbuf_dataptr(), PACKETBUF_SIZE);
 
-    if(len > 0) {
-      packetbuf_set_datalen(len);
+      if(len > 0) {
+        packetbuf_set_datalen(len);
 
-      NETSTACK_RDC.input();
+        NETSTACK_RDC.input();
+      }
     }
 
     /* If we were polled due to an RF error, reset the transceiver */
@@ -995,10 +1072,18 @@ void
 cc2538_rf_rx_tx_isr(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
+  
+#if CC2538_RF_CONF_SFD_TIMESTAMPS
+  if(poll_mode) {
+    cc2538_sfd_rtime = RTIMER_NOW();
+  }
+#endif
 
-  process_poll(&cc2538_rf_process);
+  if(!poll_mode) {
+    process_poll(&cc2538_rf_process);
+  }
 
-  /* We only acknowledge FIFOP so we can safely wipe out the entire SFR */
+  /* We only acknowledge FIFOP or SFD so we can safely wipe out the entire SFR */
   REG(RFCORE_SFR_RFIRQF0) = 0;
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
