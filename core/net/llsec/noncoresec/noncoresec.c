@@ -134,12 +134,6 @@ add_security_header(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-send(mac_callback_t sent, void *ptr)
-{
-  NETSTACK_MAC.send(sent, ptr);
-}
-/*---------------------------------------------------------------------------*/
 static int
 create(void)
 {
@@ -223,12 +217,6 @@ parse(void)
   return result;
 }
 /*---------------------------------------------------------------------------*/
-static void
-input(void)
-{
-  NETSTACK_NETWORK.input();
-}
-/*---------------------------------------------------------------------------*/
 static int
 length(void)
 {
@@ -245,9 +233,7 @@ init(void)
 /*---------------------------------------------------------------------------*/
 const struct llsec_driver noncoresec_driver = {
   "noncoresec",
-  init,
-  send,
-  input
+  init
 };
 /*---------------------------------------------------------------------------*/
 const struct framer noncoresec_framer = {

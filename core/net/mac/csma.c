@@ -337,6 +337,9 @@ send_packet(mac_callback_t sent, void *ptr)
   }
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, seqno++);
 
+  /* Frames are of type DATA by default */
+  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
+
   /* Look for the neighbor entry */
   n = neighbor_queue_from_addr(addr);
   if(n == NULL) {
@@ -417,7 +420,7 @@ send_packet(mac_callback_t sent, void *ptr)
 static void
 input_packet(void)
 {
-  NETSTACK_LLSEC.input();
+  NETSTACK_NETWORK.input();
 }
 /*---------------------------------------------------------------------------*/
 static int

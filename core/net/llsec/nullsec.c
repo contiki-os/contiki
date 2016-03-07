@@ -54,24 +54,9 @@ init(void)
 
 }
 /*---------------------------------------------------------------------------*/
-static void
-send(mac_callback_t sent, void *ptr)
-{
-  packetbuf_set_attr(PACKETBUF_ATTR_FRAME_TYPE, FRAME802154_DATAFRAME);
-  NETSTACK_MAC.send(sent, ptr);
-}
-/*---------------------------------------------------------------------------*/
-static void
-input(void)
-{
-  NETSTACK_NETWORK.input();
-}
-/*---------------------------------------------------------------------------*/
 const struct llsec_driver nullsec_driver = {
   "nullsec",
-  init,
-  send,
-  input
+  init
 };
 /*---------------------------------------------------------------------------*/
 

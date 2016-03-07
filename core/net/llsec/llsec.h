@@ -41,12 +41,7 @@
  * \ingroup net
  * \defgroup llsec Link Layer Security
  * 
- * Layer for implementing link layer security.
- *         
- * NETSTACK_LLSEC sits in between NETSTACK_MAC and NETSTACK_NETWORK
- * protocols. All NETSTACK_MAC protocols invoke NETSTACK_LLSEC.input()
- * for incoming packets. Likewise, all NETSTACK_NETWORK protocols
- * invoke NETSTACK_LLSEC.send(...) for outgoing packets.
+ * Link layer security driver interface.
  * 
  * @{
  */
@@ -64,15 +59,7 @@ struct llsec_driver {
   
   /** Inits link layer security. */
   void (* init)(void);
-  
-  /** Secures outgoing frames before passing them to NETSTACK_MAC. */
-  void (* send)(mac_callback_t sent_callback, void *ptr);
-  
-  /**
-   * Decrypts incoming frames;
-   * filters out injected or replayed frames.
-   */
-  void (* input)(void);
+
 };
 
 #endif /* LLSEC_H_ */
