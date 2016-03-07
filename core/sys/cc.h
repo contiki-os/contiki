@@ -103,6 +103,8 @@
 
 #ifdef CC_CONF_ALIGN
 #define CC_ALIGN(n) CC_CONF_ALIGN(n)
+#else
+#define CC_ALIGN(n)
 #endif /* CC_CONF_INLINE */
 
 /**
