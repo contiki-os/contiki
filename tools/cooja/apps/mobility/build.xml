@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<project name="COOJA: Mobility" default="jar" basedir=".">
+  <property name="src" location="java"/>
+  <property name="build" location="build"/>
+  <property name="lib" location="lib"/>
+  <property name="cooja_jar" value="../../dist/cooja.jar"/>
+
+  <condition property="cooja_jar_exists">
+    <available file="${cooja_jar}"/>
+  </condition>
+
+  <target name="check_jar" unless="cooja_jar_exists">
+    <echo message="Contiki's cooja.jar not found! Edit build.xml, and update the cooja_jar property"/>
+    <fail/>
+  </target>
+  
+  <target name="init" depends="check_jar">
+    <tstamp/>
+  </target>
+
+  <target name="compile" depends="init">
+    <mkdir dir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" debug="on">
+      <classpath>
+        <pathelement path="."/>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="clean" depends="init">
+    <delete dir="${build}"/>
+    <delete dir="${lib}"/>
+  </target>
+
+  <target name="jar" depends="init, compile, copy">
+    <mkdir dir="${lib}"/>
+    <jar destfile="${lib}/mobility.jar" basedir="${build}">
+      <manifest>
+        <attribute name="Class-Path" value="."/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="copy" depends="init">
+    <mkdir dir="${build}"/>
+  </target>
+
+</project>

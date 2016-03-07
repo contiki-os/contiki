@@ -1,0 +1,6 @@
+Mobility COOJA plugin
+
+Contributors:
+Fredrik Osterlind, SICS, fros@sics.se (mobility plugin)
+Marcus Lunden, SICS, mlunden@sics.se (movement data file, RWMMSim, this file)
+

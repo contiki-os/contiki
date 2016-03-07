@@ -1,0 +1,17 @@
+Name: Mobility COOJA plugin
+Contact:
+Marcus Lunden, SICS, mlunden@sics.se
+License: BSD
+Contiki: CVS 2009-08-30
+Intended platforms:
+Tested platforms:
+URL:
+Screenshot:
+Description:
+The Mobility plugin for COOJA allows using a data file with positions over time
+for the nodes in the simulation. This way, it is easy to make the nodes move.
+It has been used for e.g. evaluating a neighbor discovery application. The
+project includes a large data file for 15 nodes moving in a 150 m * 150 m large
+area over 600 seconds, with speeds corresponding to slow walking to fast running,
+following the random waypoint mobility model. Later, a Python script for genera-
+ting RWMM positions is to be added to this project.
