@@ -67,6 +67,11 @@
 #define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network
 #define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
 
+/* Needed for cc2538 platform only */
+/* Enable SFD timestamp (uses SFD interrupt) */
+#undef CC2538_RF_CONF_SFD_TIMESTAMPS
+#define CC2538_RF_CONF_SFD_TIMESTAMPS		1
+
 /* Needed for cc2420 platforms only */
 /* Disable DCO calibration (uses timerB) */
 #undef DCOSYNCH_CONF_ENABLED
