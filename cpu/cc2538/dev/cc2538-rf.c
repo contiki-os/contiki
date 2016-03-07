@@ -1075,7 +1075,9 @@ cc2538_rf_rx_tx_isr(void)
   
 #if CC2538_RF_CONF_SFD_TIMESTAMPS
   if(poll_mode) {
-    cc2538_sfd_rtime = RTIMER_NOW();
+    if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE) {
+      cc2538_sfd_rtime = RTIMER_NOW();
+    }
   }
 #endif
 
