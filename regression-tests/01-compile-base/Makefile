@@ -14,6 +14,7 @@ hello-world/z1 \
 eeprom-test/native \
 collect/sky \
 er-rest-example/wismote \
+ipso-objects/wismote \
 example-shell/native \
 netperf/sky \
 powertrace/sky \
@@ -34,6 +35,9 @@ wget/minimal-net \
 zolertia/z1/z1 \
 settings-example/avr-raven \
 ipv6/multicast/sky \
+ipv6/rpl-tsch/z1 \
+ipv6/rpl-tsch/z1:MAKE_WITH_ORCHESTRA=1 \
+ipv6/rpl-tsch/z1:MAKE_WITH_SECURITY=1
 
 
 TOOLS=

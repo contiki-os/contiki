@@ -39,6 +39,8 @@
 #include <jendefs.h>
 #include "contiki-conf.h"
 
+#define UART_EXTRAS 1
+
 void uart_driver_init(uint8_t uart_dev, uint8_t br, uint8_t * txbuf_data, uint16_t txbuf_size, uint8_t * rxbuf_data, uint16_t rxbuf_size, int (*uart_input_function)(unsigned char c));
 void uart_driver_write_buffered(uint8_t uart_dev, uint8_t ch);
 void uart_driver_write_with_deadline(uint8_t uart_dev, uint8_t c);
@@ -56,7 +58,7 @@ void uart_driver_restore_interrupts(uint8_t uart_dev);
 uint8_t uart_driver_tx_in_progress(uint8_t uart_dev);
 
 #ifdef UART_EXTRAS
-void uart_driver_flush(uint8_t uart_dev);
+void uart_driver_flush(uint8_t uart_dev, bool_t reset_tx, bool_t reset_rx);
 #endif
 
 #endif /* UARTDRIVER_H */

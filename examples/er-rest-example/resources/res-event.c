@@ -53,7 +53,7 @@
 #endif
 
 static void res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
-static void res_event_handler();
+static void res_event_handler(void);
 
 /*
  * Example for an event resource.
@@ -86,7 +86,7 @@ res_get_handler(void *request, void *response, uint8_t *buffer, uint16_t preferr
  * It is called through <res_name>.trigger(), usually from the server process.
  */
 static void
-res_event_handler()
+res_event_handler(void)
 {
   /* Do the update triggered by the event here, e.g., sampling a sensor. */
   ++event_counter;

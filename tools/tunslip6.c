@@ -884,14 +884,6 @@ exit(1);
     }
   }
 
-  if(*tundev == '\0') {
-    /* Use default. */
-    if(tap) {
-      strcpy(tundev, "tap0");
-    } else {
-      strcpy(tundev, "tun0");
-    }
-  }
   if(host != NULL) {
     struct addrinfo hints, *servinfo, *p;
     int rv;

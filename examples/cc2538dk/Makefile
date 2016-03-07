@@ -1,5 +1,5 @@
 DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
-CONTIKI_PROJECT = cc2538-demo timer-test
+CONTIKI_PROJECT = cc2538-demo
 
 all: $(CONTIKI_PROJECT)
 

@@ -75,12 +75,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-#ifdef __GNUC__
-#define CC_ALIGN_ATTR(n) __attribute__ ((aligned(n)))
-#else
-#define CC_ALIGN_ATTR(n)
-#endif
-/*---------------------------------------------------------------------------*/
 #define DEBUG 0
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -202,7 +196,7 @@ const output_config_t *tx_power_current = &output_power[0];
  * A buffer to send a CMD_IEEE_RX and to subsequently monitor its status
  * Do not use this buffer for any commands other than CMD_IEEE_RX
  */
-static uint8_t cmd_ieee_rx_buf[RF_CMD_BUFFER_SIZE] CC_ALIGN_ATTR(4);
+static uint8_t cmd_ieee_rx_buf[RF_CMD_BUFFER_SIZE] CC_ALIGN(4);
 /*---------------------------------------------------------------------------*/
 #define DATA_ENTRY_LENSZ_NONE 0
 #define DATA_ENTRY_LENSZ_BYTE 1
@@ -210,10 +204,10 @@ static uint8_t cmd_ieee_rx_buf[RF_CMD_BUFFER_SIZE] CC_ALIGN_ATTR(4);
 
 #define RX_BUF_SIZE 140
 /* Four receive buffers entries with room for 1 IEEE802.15.4 frame in each */
-static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN_ATTR(4);
-static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN_ATTR(4);
-static uint8_t rx_buf_2[RX_BUF_SIZE] CC_ALIGN_ATTR(4);
-static uint8_t rx_buf_3[RX_BUF_SIZE] CC_ALIGN_ATTR(4);
+static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN(4);
+static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN(4);
+static uint8_t rx_buf_2[RX_BUF_SIZE] CC_ALIGN(4);
+static uint8_t rx_buf_3[RX_BUF_SIZE] CC_ALIGN(4);
 
 /* The RX Data Queue */
 static dataQueue_t rx_data_queue = { 0 };
@@ -225,7 +219,7 @@ volatile static uint8_t *rx_read_entry;
 #define TX_BUF_PAYLOAD_LEN 180
 #define TX_BUF_HDR_LEN       2
 
-static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN_ATTR(4);
+static uint8_t tx_buf[TX_BUF_HDR_LEN + TX_BUF_PAYLOAD_LEN] CC_ALIGN(4);
 /*---------------------------------------------------------------------------*/
 /* Overrides for IEEE 802.15.4, differential mode */
 static uint32_t ieee_overrides[] = {
@@ -401,25 +395,32 @@ set_tx_power(radio_value_t power)
   int i;
   rfc_CMD_SET_TX_POWER_t cmd;
 
-  /* Send a CMD_SET_TX_POWER command to the RF */
-  memset(&cmd, 0x00, sizeof(cmd));
-
-  cmd.commandNo = CMD_SET_TX_POWER;
-
+  /* First, find the correct setting and save it */
   for(i = OUTPUT_CONFIG_COUNT - 1; i >= 0; --i) {
     if(power <= output_power[i].dbm) {
-      cmd.txPower.IB = output_power[i].register_ib;
-      cmd.txPower.GC = output_power[i].register_gc;
-      cmd.txPower.tempCoeff = output_power[i].temp_coeff;
-
-      if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_OK) {
-        /* Success: Remember the new setting */
-        tx_power_current = &output_power[i];
-      } else {
-        PRINTF("set_tx_power: CMDSTA=0x%08lx\n", cmd_status);
-      }
-      return;
+      tx_power_current = &output_power[i];
+      break;
     }
+  }
+
+  /*
+   * If the core is not accessible, the new setting will be applied next
+   * time we send CMD_RADIO_SETUP, so we don't need to do anything further.
+   * If the core is accessible, we can apply the new setting immediately with
+   * CMD_SET_TX_POWER
+   */
+  if(rf_core_is_accessible() == RF_CORE_NOT_ACCESSIBLE) {
+    return;
+  }
+
+  memset(&cmd, 0x00, sizeof(cmd));
+  cmd.commandNo = CMD_SET_TX_POWER;
+  cmd.txPower.IB = output_power[i].register_ib;
+  cmd.txPower.GC = output_power[i].register_gc;
+  cmd.txPower.tempCoeff = output_power[i].temp_coeff;
+
+  if(rf_core_send_cmd((uint32_t)&cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
+    PRINTF("set_tx_power: CMDSTA=0x%08lx\n", cmd_status);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -766,7 +767,7 @@ transmit(unsigned short transmit_len)
   uint16_t stat;
   uint8_t tx_active = 0;
   rtimer_clock_t t0;
-  rfc_CMD_IEEE_TX_t cmd;
+  volatile rfc_CMD_IEEE_TX_t cmd;
 
   if(!rf_is_on()) {
     was_off = 1;

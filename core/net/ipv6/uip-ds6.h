@@ -282,6 +282,7 @@ uint8_t uip_ds6_is_addr_onlink(uip_ipaddr_t *ipaddr);
 
 /** \name Unicast address list basic routines */
 /** @{ */
+/** \brief Add a unicast address to the interface */
 uip_ds6_addr_t *uip_ds6_addr_add(uip_ipaddr_t *ipaddr,
                                  unsigned long vlifetime, uint8_t type);
 void uip_ds6_addr_rm(uip_ds6_addr_t *addr);

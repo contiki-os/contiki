@@ -57,6 +57,8 @@ struct bitopt_hdr {
   uint8_t channel[2];
 };
 
+#define BITOPT_HDR_SIZE 2
+
 static const uint8_t bitmask[9] = { 0x00, 0x80, 0xc0, 0xe0, 0xf0,
 				 0xf8, 0xfc, 0xfe, 0xff };
 
@@ -90,7 +92,7 @@ le16_read(const void *ptr)
   return ((uint16_t)p[1] << 8) | p[0];
 }
 /*---------------------------------------------------------------------------*/
-uint8_t CC_INLINE
+static uint8_t CC_INLINE
 get_bits_in_byte(uint8_t *from, int bitpos, int vallen)
 {
   uint16_t shifted_val;
@@ -264,7 +266,7 @@ pack_header(struct channel *c)
      all attributes that are used on this channel. */
 
   hdrbytesize = c->hdrsize / 8 + ((c->hdrsize & 7) == 0? 0: 1);
-  if(packetbuf_hdralloc(hdrbytesize + sizeof(struct bitopt_hdr)) == 0) {
+  if(packetbuf_hdralloc(hdrbytesize + BITOPT_HDR_SIZE) == 0) {
     PRINTF("chameleon-bitopt: insufficient space for headers\n");
     return 0;
   }
@@ -272,7 +274,7 @@ pack_header(struct channel *c)
   hdr->channel[0] = c->channelno & 0xff;
   hdr->channel[1] = (c->channelno >> 8) & 0xff;
 
-  hdrptr = ((uint8_t *)packetbuf_hdrptr()) + sizeof(struct bitopt_hdr);
+  hdrptr = ((uint8_t *)packetbuf_hdrptr()) + BITOPT_HDR_SIZE;
   memset(hdrptr, 0, hdrbytesize);
   
   byteptr = bitptr = 0;
@@ -330,7 +332,7 @@ unpack_header(void)
   /* The packet has a header that tells us what channel the packet is
      for. */
   hdr = (struct bitopt_hdr *)packetbuf_dataptr();
-  if(packetbuf_hdrreduce(sizeof(struct bitopt_hdr)) == 0) {
+  if(packetbuf_hdrreduce(BITOPT_HDR_SIZE) == 0) {
     PRINTF("chameleon-bitopt: too short packet\n");
     return NULL;
   }

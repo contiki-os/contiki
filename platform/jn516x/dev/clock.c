@@ -32,9 +32,10 @@
 
 /**
  * \file
- *         Clock implementation for NXP jn516x.
+ *         Tickless clock implementation for NXP jn516x.
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
+ *         Atis Elsts <atis.elsts@sics.se>
  *
  */
 
@@ -47,10 +48,6 @@
 #include "rtimer-arch.h"
 #include "dev/watchdog.h"
 
-/**
- * TickTimer will be used for RTIMER
- * E_AHI_TIMER_1 will be used for ticking
- **/
 
 #define DEBUG 0
 #if DEBUG
@@ -60,84 +57,95 @@
 #define PRINTF(...)
 #endif
 
-static volatile unsigned long seconds = 0;
-static volatile uint8_t ticking = 0;
-static volatile clock_time_t clock_ticks = 0;
-/* last_tar is used for calculating clock_fine */
-
 #define CLOCK_TIMER           E_AHI_TIMER_1
-#define CLOCK_TIMER_ISR_DEV    E_AHI_DEVICE_TIMER1
-/* 16Mhz / 2^7 = 125Khz */
-#define CLOCK_PRESCALE 7
-/* 10ms tick --> overflow after ~981/2 days */
-#define CLOCK_INTERVAL (125 * 10)
-#define MAX_TICKS (CLOCK_INTERVAL)
+#define CLOCK_TIMER_ISR_DEV   E_AHI_DEVICE_TIMER1
+
+#define OVERFLOW_TIMER           E_AHI_TIMER_0
+#define OVERFLOW_TIMER_ISR_DEV   E_AHI_DEVICE_TIMER0
+
+/* 16Mhz / 2^10 = 15.625 kHz */
+#define CLOCK_PRESCALE 10
+#define PRESCALED_TICKS_PER_SECOND 15625
+/* 8ms tick --> overflow after ~397.7 days */
+#define CLOCK_INTERVAL 125
+/* Max schedulable number of ticks.
+ * Must not be more than:
+ *   0xffff / (16'000'000 / (1 << CLOCK_PRESCALE) / CLOCK_SECOND)
+ */
+#define CLOCK_MAX_SCHEDULABLE_TICKS 520
+/* Min guard time an etimer can be scheduled before an rtimer */
+#define CLOCK_RTIMER_GUARD_TIME US_TO_RTIMERTICKS(16)
+/* Clock tick expressed as rtimer ticks */
+#define CLOCK_TICK ((1 << CLOCK_PRESCALE) * CLOCK_INTERVAL)
+
+#define RTIMER_OVERFLOW_PRESCALED 4194304  /* = 0x100000000 / (2^CLOCK_PRESCALE) */
+#define RTIMER_OVERFLOW_REMAINDER 54  /* in prescaled ticks, per one overflow */
+
+
+#define CLOCK_LT(a, b) ((int32_t)((a)-(b)) < 0)
+
+/*---------------------------------------------------------------------------*/
+static uint32_t
+clock(void)
+{
+  /* same as rtimer_arch_now() */
+  return u32AHI_TickTimerRead();
+}
+/*---------------------------------------------------------------------------*/
+static uint32_t
+check_rtimer_overflow(rtimer_clock_t now)
+{
+  static rtimer_clock_t last_rtimer_ticks;
+  static uint32_t clock_ticks_remainder;
+  static uint32_t clock_ticks_base;
+
+  if(last_rtimer_ticks > now) {
+    clock_ticks_base += RTIMER_OVERFLOW_PRESCALED / CLOCK_INTERVAL;
+    clock_ticks_remainder += RTIMER_OVERFLOW_REMAINDER;
+    if(clock_ticks_remainder > CLOCK_INTERVAL) {
+      clock_ticks_remainder -= CLOCK_INTERVAL;
+      clock_ticks_base += 1;
+    }
+  }
+  last_rtimer_ticks = now;
+  return clock_ticks_base;
+}
+/*---------------------------------------------------------------------------*/
+static void
+check_etimers(void)
+{
+  if(etimer_pending()) {
+    clock_time_t now = clock_time();
+    if(!CLOCK_LT(now, etimer_next_expiration_time())) {
+      etimer_request_poll();
+    }
+  }
+  process_nevents();
+}
 /*---------------------------------------------------------------------------*/
 void
 clockTimerISR(uint32 u32Device, uint32 u32ItemBitmap)
 {
-  if(u32Device != CLOCK_TIMER_ISR_DEV) {
+  if(u32Device != CLOCK_TIMER_ISR_DEV && u32Device != OVERFLOW_TIMER_ISR_DEV) {
     return;
   }
+
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  watchdog_start();
-
-  clock_ticks++;
-  if(clock_ticks % CLOCK_CONF_SECOND == 0) {
-    ++seconds;
-    energest_flush();
-  }
-  if(etimer_pending() && (etimer_next_expiration_time() - clock_ticks - 1) > MAX_TICKS) {
-    etimer_request_poll();
-    /* TODO exit low-power mode */
-  }
-  if(process_nevents() >= 0) {
-    /* TODO exit low-power mode */
+  if(u32Device == CLOCK_TIMER_ISR_DEV) {
+    check_etimers();
   }
 
-  watchdog_stop();
+  if(u32Device == OVERFLOW_TIMER_ISR_DEV) {
+    check_rtimer_overflow(clock());
+  }
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-static void
-clock_timer_init(void)
-{
-  vAHI_TimerEnable(CLOCK_TIMER, CLOCK_PRESCALE, 0, 1, 0);
-  vAHI_TimerClockSelect(CLOCK_TIMER, 0, 0);
-
-  vAHI_TimerConfigureOutputs(CLOCK_TIMER, 0, 1);
-  vAHI_TimerDIOControl(CLOCK_TIMER, 0);
-
-#if (CLOCK_TIMER == E_AHI_TIMER_0)
-  vAHI_Timer0RegisterCallback(clockTimerISR);
-#elif (CLOCK_TIMER == E_AHI_TIMER_1)
-  vAHI_Timer1RegisterCallback(clockTimerISR);
-#endif
-  clock_ticks = 0;
-  vAHI_TimerStartRepeat(CLOCK_TIMER, 0, CLOCK_INTERVAL);
-  ticking = 1;
-}
-/*---------------------------------------------------------------------------*/
 void
-clock_init(void)
+clock_arch_calibrate(void)
 {
-  /* gMAC_u8MaxBuffers = 2; */
-#ifdef JENNIC_CHIP_FAMILY_JN516x
-  /* Turn off debugger */
-  *(volatile uint32 *)0x020000a0 = 0;
-#endif
-  /* system controller interrupts callback is disabled
-   * -- Only wake Interrupts --
-   */
-  vAHI_SysCtrlRegisterCallback(0);
-
-  /* schedule clock tick interrupt */
-  clock_timer_init();
-  rtimer_init();
-  (void)u32AHI_Init();
-
   bAHI_SetClockRate(E_AHI_XTAL_32MHZ);
 
   /* Wait for oscillator to stabilise */
@@ -151,27 +159,55 @@ clock_init(void)
                 | REG_SYSCTRL_PWRCTRL_SPIMEN_MASK);
 }
 /*---------------------------------------------------------------------------*/
-clock_time_t
-clock_time(void)
+void
+clock_arch_init(int is_reinitialization)
 {
-  clock_time_t t1, t2;
-  do {
-    t1 = clock_ticks;
-    t2 = clock_ticks;
-  } while(t1 != t2);
-  return t1;
+  /* initialize etimer interrupt timer */
+  vAHI_TimerEnable(CLOCK_TIMER, CLOCK_PRESCALE, 0, 1, 0);
+  vAHI_TimerClockSelect(CLOCK_TIMER, 0, 0);
+
+  vAHI_TimerConfigureOutputs(CLOCK_TIMER, 0, 1);
+  vAHI_TimerDIOControl(CLOCK_TIMER, 0);
+
+  vAHI_Timer1RegisterCallback(clockTimerISR);
+
+  /* initialize and start rtimer overflow timer */
+  vAHI_TimerEnable(OVERFLOW_TIMER, CLOCK_PRESCALE, 0, 1, 0);
+  vAHI_TimerClockSelect(OVERFLOW_TIMER, 0, 0);
+
+  vAHI_TimerConfigureOutputs(OVERFLOW_TIMER, 0, 1);
+  vAHI_TimerDIOControl(OVERFLOW_TIMER, 0);
+
+  vAHI_Timer0RegisterCallback(clockTimerISR);
+  vAHI_TimerStartRepeat(OVERFLOW_TIMER, 0, PRESCALED_TICKS_PER_SECOND * 4);
+
+  if(is_reinitialization) {
+    /* check if the etimer has overflowed (useful when this is executed after sleep */
+    check_rtimer_overflow(clock());
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
-clock_set(clock_time_t clock, clock_time_t fclock)
+clock_init(void)
 {
-  clock_ticks = clock;
+  /* gMAC_u8MaxBuffers = 2; */
+#ifdef JENNIC_CHIP_FAMILY_JN516x
+  /* Turn off debugger */
+  *(volatile uint32 *)0x020000a0 = 0;
+#endif
+
+  clock_arch_calibrate();
+
+  /* setup clock mode and interrupt handler */
+  clock_arch_init(0);
 }
 /*---------------------------------------------------------------------------*/
-int
-clock_fine_max(void)
+clock_time_t
+clock_time(void)
 {
-  return CLOCK_INTERVAL;
+  uint32_t now = clock();
+  clock_time_t base = check_rtimer_overflow(now);
+  return base + now / CLOCK_TICK;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -180,33 +216,19 @@ clock_fine_max(void)
 void
 clock_delay_usec(uint16_t dt)
 {
-  volatile uint32_t t = u32AHI_TickTimerRead();
-#define RTIMER_MAX_TICKS 0xffffffff
-  /* beware of wrapping */
-  if(RTIMER_MAX_TICKS - t < dt) {
-    while(u32AHI_TickTimerRead() < RTIMER_MAX_TICKS && u32AHI_TickTimerRead() != 0) ;
-    dt -= RTIMER_MAX_TICKS - t;
-    t = 0;
-  }
-  while(u32AHI_TickTimerRead() - t < dt) {
-    watchdog_periodic();
-  }
+  uint32_t end = clock() + dt;
+  /* Note: this does not call watchdog periodic() */
+  while(CLOCK_LT(clock(), end));
 }
 /*---------------------------------------------------------------------------*/
 /**
  * Delay the CPU for a multiple of 8 us.
  */
 void
-clock_delay(unsigned int i)
+clock_delay(unsigned int dt)
 {
-  volatile uint32_t t = u16AHI_TimerReadCount(CLOCK_TIMER);
-  /* beware of wrapping */
-  if(MAX_TICKS - t < i) {
-    while(u16AHI_TimerReadCount(CLOCK_TIMER) < MAX_TICKS && u16AHI_TimerReadCount(CLOCK_TIMER) != 0) ;
-    i -= MAX_TICKS - t;
-    t = 0;
-  }
-  while(u16AHI_TimerReadCount(CLOCK_TIMER) - t < i) {
+  uint32_t end = clock() + dt * 128;
+  while(CLOCK_LT(clock(), end)) {
     watchdog_periodic();
   }
 }
@@ -218,33 +240,63 @@ clock_delay(unsigned int i)
 void
 clock_wait(clock_time_t t)
 {
-  clock_time_t start;
-
-  start = clock_time();
-  while(clock_time() - start < (clock_time_t)t) {
+  clock_time_t end = clock_time() + t;
+  while(CLOCK_LT(clock_time(), end)) {
     watchdog_periodic();
   }
-}
-/*---------------------------------------------------------------------------*/
-void
-clock_set_seconds(unsigned long sec)
-{
-  seconds = sec;
 }
 /*---------------------------------------------------------------------------*/
 unsigned long
 clock_seconds(void)
 {
-  unsigned long t1, t2;
-  do {
-    t1 = seconds;
-    t2 = seconds;
-  } while(t1 != t2);
-  return t1;
+  return clock_time() / CLOCK_SECOND;
 }
 /*---------------------------------------------------------------------------*/
-rtimer_clock_t
-clock_counter(void)
+clock_time_t
+clock_arch_time_to_etimer(void)
 {
-  return rtimer_arch_now();
+  clock_time_t time_to_etimer;
+  if(etimer_pending()) {
+    time_to_etimer = etimer_next_expiration_time() - clock_time();
+    if(time_to_etimer < 0) {
+      time_to_etimer = 0;
+    }
+  } else {
+    /* no active etimers */
+    time_to_etimer = (clock_time_t)-1;
+  }
+  return time_to_etimer;
 }
+/*---------------------------------------------------------------------------*/
+void
+clock_arch_schedule_interrupt(clock_time_t time_to_etimer, rtimer_clock_t ticks_to_rtimer)
+{
+  if(time_to_etimer > CLOCK_MAX_SCHEDULABLE_TICKS) {
+    time_to_etimer = CLOCK_MAX_SCHEDULABLE_TICKS;
+  }
+
+  time_to_etimer *= CLOCK_INTERVAL;
+
+  if(ticks_to_rtimer != (rtimer_clock_t)-1) {
+    /* if the next rtimer is close enough to the etimer... */
+    rtimer_clock_t ticks_to_etimer = time_to_etimer * (1 << CLOCK_PRESCALE);
+
+#if RTIMER_USE_32KHZ
+    ticks_to_rtimer = (uint64_t)ticks_to_rtimer * (F_CPU / 2) / RTIMER_SECOND;
+#endif
+
+    if(!CLOCK_LT(ticks_to_rtimer, ticks_to_etimer)
+        && CLOCK_LT(ticks_to_rtimer, ticks_to_etimer + CLOCK_RTIMER_GUARD_TIME)) {
+      /* ..then schedule the etimer after the rtimer */
+      time_to_etimer += 2;
+    }
+  }
+
+  /* interrupt will not be generated if 0 is passed as the parameter */
+  if(time_to_etimer == 0) {
+    time_to_etimer = 1;
+  }
+
+  vAHI_TimerStartSingleShot(CLOCK_TIMER, 0, time_to_etimer);
+}
+/*---------------------------------------------------------------------------*/

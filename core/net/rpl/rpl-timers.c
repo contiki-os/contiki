@@ -50,6 +50,11 @@
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
 
+/* A configurable function called after update of the RPL DIO interval */
+#ifdef RPL_CALLBACK_NEW_DIO_INTERVAL
+void RPL_CALLBACK_NEW_DIO_INTERVAL(uint8_t dio_interval);
+#endif /* RPL_CALLBACK_NEW_DIO_INTERVAL */
+
 /*---------------------------------------------------------------------------*/
 static struct ctimer periodic_timer;
 
@@ -124,6 +129,10 @@ new_dio_interval(rpl_instance_t *instance)
   /* schedule the timer */
   PRINTF("RPL: Scheduling DIO timer %lu ticks in future (Interval)\n", ticks);
   ctimer_set(&instance->dio_timer, ticks, &handle_dio_timer, instance);
+
+#ifdef RPL_CALLBACK_NEW_DIO_INTERVAL
+  RPL_CALLBACK_NEW_DIO_INTERVAL(instance->dio_intcurrent);
+#endif /* RPL_CALLBACK_NEW_DIO_INTERVAL */
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -328,6 +337,24 @@ rpl_cancel_dao(rpl_instance_t *instance)
   ctimer_stop(&instance->dao_lifetime_timer);
 }
 /*---------------------------------------------------------------------------*/
+static void
+handle_unicast_dio_timer(void *ptr)
+{
+  rpl_instance_t *instance = (rpl_instance_t *)ptr;
+  uip_ipaddr_t *target_ipaddr = rpl_get_parent_ipaddr(instance->unicast_dio_target);
+
+  if(target_ipaddr != NULL) {
+    dio_output(instance, target_ipaddr);
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+rpl_schedule_unicast_dio_immediately(rpl_instance_t *instance)
+{
+  ctimer_set(&instance->unicast_dio_timer, 0,
+                  handle_unicast_dio_timer, instance);
+}
+/*---------------------------------------------------------------------------*/
 #if RPL_WITH_PROBING
 static rpl_parent_t *
 get_probing_target(rpl_dag_t *dag)
@@ -397,13 +424,15 @@ handle_probing_timer(void *ptr)
 {
   rpl_instance_t *instance = (rpl_instance_t *)ptr;
   rpl_parent_t *probing_target = RPL_PROBING_SELECT_FUNC(instance->current_dag);
+  uip_ipaddr_t *target_ipaddr = rpl_get_parent_ipaddr(probing_target);
 
   /* Perform probing */
-  if(probing_target != NULL && rpl_get_parent_ipaddr(probing_target) != NULL) {
-    PRINTF("RPL: probing %3u\n",
-        nbr_table_get_lladdr(rpl_parents, probing_target)->u8[7]);
-    /* Send probe, e.g. unicast DIO or DIS */
-    RPL_PROBING_SEND_FUNC(instance, rpl_get_parent_ipaddr(probing_target));
+  if(target_ipaddr != NULL) {
+    PRINTF("RPL: probing %u ((last tx %u min ago))\n",
+        nbr_table_get_lladdr(rpl_parents, probing_target)->u8[7],
+        (unsigned)((clock_time() - probing_target->last_tx_time) / (60 * CLOCK_SECOND)));
+    /* Send probe (unicast DIO or DIS) */
+    RPL_PROBING_SEND_FUNC(instance, target_ipaddr);
   }
 
   /* Schedule next probing */

@@ -142,13 +142,11 @@ soc_rtc_last_isr_time(void)
 void
 soc_rtc_isr(void)
 {
-  uint32_t now, next;
+  uint32_t next;
 
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   last_isr_time = RTIMER_NOW();
-
-  now = ti_lib_aon_rtc_current_compare_value_get();
 
   /* Adjust the s/w tick counter irrespective of which event trigger this */
   clock_update();
@@ -161,7 +159,8 @@ soc_rtc_isr(void)
      * event on the next 512 tick boundary. If we drop to deep sleep before it
      * happens, lpm_drop() will reschedule us in the 'distant' future
      */
-    next = (now + COMPARE_INCREMENT) & MULTIPLE_512_MASK;
+    next = ((ti_lib_aon_rtc_current_compare_value_get() + 5) +
+            COMPARE_INCREMENT) & MULTIPLE_512_MASK;
     ti_lib_aon_rtc_compare_value_set(AON_RTC_CH1, next);
   }
 

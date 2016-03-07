@@ -23,13 +23,13 @@ The RE-Mote features a Zoul as its core module and it is bundled with the follow
 * Power input with wide range 3.7-26VDC.
 * On-board micro USB connector for USB 2.0 applications.
 * RGB LED to allow more than 7 colour combinations.
-* On-board nano-watt RTC.
+* On-board nano-watt Real Time Clock Calendar (RTCC).
 * User and Reset buttons.
 * On-board Micro-SD for external storage.
 * On-board external Watchdog Timer (WDT) for resilient operation.
 * Small form-factor of 73x40 mm.
 
-The most prominent feature of the RE-Mote is its ultra low-power implementation, allowing a flexible and time/date-aware control of the platform operation modes by introducing a real-time clock (RTC), nanowatt external timer, ultra-low power PIC governing the battery manager, etc.
+The most prominent feature of the RE-Mote is its ultra low-power implementation, allowing a flexible and time/date-aware control of the platform operation modes by introducing a real-time clock (RTCC), nanowatt external timer, ultra-low power PIC governing the battery manager, etc.
 
 The RE-Mote features an optional custom-made enclosure to fit most scenarios, allowing to easily connect sensors, actuators and rechargeable LiPo batteries.  Its on-board RP-SMA antenna eliminates the need to mechanize an external antenna, allowing to alternatively use either a sub-1GHz or 2.4GHz antenna, or a multiband one.
 

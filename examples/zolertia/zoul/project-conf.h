@@ -38,7 +38,15 @@
 #ifndef PROJECT_CONF_H_
 #define PROJECT_CONF_H_
 
+#define BROADCAST_CHANNEL     129
 #define NETSTACK_CONF_RDC     nullrdc_driver
+
+/* Pin definition for the test-motion example, for the RE-Mote it uses the
+ * ADC1 pin
+ */
+#define MOTION_SENSOR_PORT       GPIO_A_NUM
+#define MOTION_SENSOR_PIN        5
+#define MOTION_SENSOR_VECTOR     NVIC_INT_GPIO_PORT_A
 
 #endif /* PROJECT_CONF_H_ */
 

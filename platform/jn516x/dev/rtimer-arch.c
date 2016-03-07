@@ -35,17 +35,19 @@
  *         RTIMER for NXP jn516x
  * \author
  *         Beshr Al Nahas <beshr@sics.se>
+ *         Atis Elsts <atis.elsts@sics.se>
  */
 
 #include "sys/rtimer.h"
 #include "sys/clock.h"
-#include "sys/process.h"
 #include <AppHardwareApi.h>
 #include <PeripheralRegs.h>
+#include <MicroSpecific.h>
 #include "dev/watchdog.h"
 #include "sys/energest.h"
+#include "sys/process.h"
 
-#define RTIMER_TIMER_ISR_DEV  E_AHI_DEVICE_TICK_TIMER
+#if !RTIMER_USE_32KHZ
 
 #define DEBUG 0
 #if DEBUG
@@ -55,16 +57,20 @@
 #define PRINTF(...)
 #endif
 
-static volatile uint32_t compare_time;
-static volatile uint32_t last_expired_time;
+#define RTIMER_TIMER_ISR_DEV  E_AHI_DEVICE_TICK_TIMER
+
+static volatile rtimer_clock_t scheduled_time;
+static volatile uint8_t has_next;
 
 void
 rtimer_arch_run_next(uint32 u32DeviceId, uint32 u32ItemBitmap)
 {
-  uint32_t delta, temp;
+  uint32_t delta;
+
   if(u32DeviceId != RTIMER_TIMER_ISR_DEV) {
     return;
   }
+
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   vAHI_TickTimerIntPendClr();
   vAHI_TickTimerIntEnable(0);
@@ -72,27 +78,17 @@ rtimer_arch_run_next(uint32 u32DeviceId, uint32 u32ItemBitmap)
    * compare register is only 28bits wide so make sure the upper 4bits match
    * the set compare point
    */
-  delta = u32AHI_TickTimerRead() - compare_time;
-  if(0 == (delta >> 28)) {
-    /* compare_time might change after executing rtimer_run_next()
-     * as some process might schedule the timer
-     */
-    temp = compare_time;
-
+  delta = u32AHI_TickTimerRead() - scheduled_time;
+  if(delta >> 28 == 0) {
     /* run scheduled */
+    has_next = 0;
     watchdog_start();
     rtimer_run_next();
-
-    if(process_nevents() > 0) {
-      /* TODO exit low-power mode */
-    }
-
-    watchdog_stop();
-    last_expired_time = temp;
+    process_nevents();
   } else {
     /* No match. Schedule again. */
     vAHI_TickTimerIntEnable(1);
-    vAHI_TickTimerInterval(compare_time);
+    vAHI_TickTimerInterval(scheduled_time);
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
@@ -101,12 +97,43 @@ void
 rtimer_arch_init(void)
 {
   /* Initialise tick timer to run continuously */
-  vAHI_TickTimerIntEnable(0);
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
-  last_expired_time = compare_time = 0;
-  vAHI_TickTimerWrite(0);
+  vAHI_TickTimerIntEnable(0);
   vAHI_TickTimerRegisterCallback(rtimer_arch_run_next);
+  vAHI_TickTimerWrite(0);
   vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
+
+  /* enable wakeup timers, but keep interrupts disabled */
+  vAHI_WakeTimerEnable(WAKEUP_TIMER, FALSE);
+  vAHI_WakeTimerEnable(TICK_TIMER, FALSE);
+  /* count down from zero (2, as values 0 and 1 must not be used) */
+  vAHI_WakeTimerStartLarge(TICK_TIMER, 2);
+
+  (void)u32AHI_Init();
+}
+/*---------------------------------------------------------------------------*/
+void
+rtimer_arch_reinit(rtimer_clock_t sleep_start, rtimer_clock_t sleep_ticks)
+{
+  uint64_t t;
+  /* Initialise tick timer to run continuously */
+  vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_DISABLE);
+  vAHI_TickTimerIntEnable(0);
+  /* set the highest priority for the rtimer interrupt */
+  vAHI_InterruptSetPriority(MICRO_ISR_MASK_TICK_TMR, 15);
+  vAHI_TickTimerRegisterCallback(rtimer_arch_run_next);
+  WAIT_FOR_EDGE(t);
+  vAHI_TickTimerWrite(sleep_start + sleep_ticks);
+  vAHI_TickTimerConfigure(E_AHI_TICK_TIMER_CONT);
+
+  /* call pending interrupts */
+  u32AHI_Init();
+
+  if(has_next) {
+    vAHI_TickTimerIntPendClr();
+    vAHI_TickTimerIntEnable(1);
+    vAHI_TickTimerInterval(scheduled_time);
+  }
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
@@ -122,18 +149,19 @@ rtimer_arch_schedule(rtimer_clock_t t)
   vAHI_TickTimerIntPendClr();
   vAHI_TickTimerIntEnable(1);
   vAHI_TickTimerInterval(t);
-  compare_time = t;
+  has_next = 1;
+  scheduled_time = t;
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
-rtimer_arch_get_time_until_next_wakeup(void)
+rtimer_arch_time_to_rtimer(void)
 {
   rtimer_clock_t now = RTIMER_NOW();
-  rtimer_clock_t next_wakeup = compare_time;
-  if(bAHI_TickTimerIntStatus()) {
-    return next_wakeup >= now ? next_wakeup - now : 0;
-    /* if no wakeup is scheduled yet return maximum time */
+  if(has_next) {
+    return scheduled_time >= now ? scheduled_time - now : 0;
   }
+  /* if no wakeup is scheduled yet return maximum time */
   return (rtimer_clock_t)-1;
 }
 /*---------------------------------------------------------------------------*/
+#endif /* !RTIMER_USE_32KHZ */

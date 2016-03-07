@@ -89,7 +89,6 @@ output(void)
 {
   int len, ret;
 
-
   printf("ip64-interface: output source ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF(" destination ");
@@ -117,6 +116,8 @@ output(void)
       return IP64_ETH_DRIVER.output(ip64_packet_buffer, len);
     }
   }
+
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 const struct uip_fallback_interface ip64_eth_interface = {

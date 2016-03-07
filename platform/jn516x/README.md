@@ -24,15 +24,12 @@ These system on chip (SoC) devices have the following main [features][jn516x-dat
 ## Maintainers and Contact
 
 Long-term maintainers:
-* Theo Van Daele, NXP, theo.van.daele@nxp.com, github user: [TeVeDe](https://github.com/TeVeDe)
+* Chris Gray, NXP, christopher.gray@nxp.com, github user: [NxpChrisGray](https://github.com/NxpChrisGray)
 * Simon Duquennoy, SICS, simonduq@sics.se, github user: [simonduq](https://github.com/simonduq)
 
 Other contributors:
 * Beshr Al Nahas, SICS (now Chalmers University), beshr@chalmers.se, github user: [beshrns](https://github.com/beshrns)
 * Atis Elsts, SICS, atis.elsts@sics.se, github user: [atiselsts](https://github.com/atiselsts)
-
-Additional long-term contact:
-* Hugh Maaskant, NXP, hugh.maaskant@nxp.com, github user: [hugh-maaskant](https://github.com/hugh-maaskant)
 
 ## License
 
@@ -44,10 +41,14 @@ The following features have been implemented:
   * A radio driver with two modes (polling and interrupt based)
   * CCM* driver with HW accelerated AES
   * UART driver (with HW and SW flow control, 1'000'000 baudrate by default)
-  * Contiki system clock and rtimers (16MHz tick frequency based on 32 MHz crystal)
-  * 32.768kHz external oscillator
+  * Contiki tickless clock
+  * Contiki rtimers based on either
+    * the 32 kHz external oscillator
+    * or the internal 32 MHz oscillator (which gives a 16 MHz rtimer)
+  * CPU low-power mdoes
+    * doze mode: shallow sleep, 32 MHz oscillator (source of rtimer and radio clock) keeps running
+    * sleep mode: deeper sleep, 32 MHz oscillator turned off, next wakeup set on 32 kHz oscillator
   * Periodic DCO recalibration
-  * CPU "doze" mode
   * HW random number generator used as a random seed for pseudo-random generator
   * Watchdog, JN516x HW exception handlers
 
@@ -60,7 +61,6 @@ The following hardware platforms have been tested:
 ## TODO list
 
 The following features are planned:
-  * CPU deeper sleep mode support (where the 32 MHz crystal is turned off)
   * Time-accurate radio primitives ("send at", "listen until")
   * External storage
 
@@ -157,11 +157,30 @@ The following MCU models are supported:
 Set `CHIP` variable to change this; for example, to select JN5164 use:
 `make CHIP=JN5164`
 
+The JN5168 has four module variants available:
+* `M00` - Standard power, integrated antenna (default module)
+* `M03` - Standard power, uFL connector
+* `M05` - Medium power, uFL connector
+* `M06` - High power, uFL connector
+
+The `M05` and `M06` need to control the internal power amplifier. Set the `MODULE` variable to select the module, for example:
+`make CHIP=JN5168 MODULE=M05`
+
 The following platform-specific configurations are supported:
 * DR1174 evaluation kit; enable this with `JN516x_WITH_DR1174 = 1` in your makefile
 * DR1174 with DR1175 sensor board; enable this with `JN516x_WITH_DR1175 = 1` (will set `JN516x_WITH_DR1174` automatically)
 * DR1174 with DR1199 sensor board; enable this with `JN516x_WITH_DR1199 = 1` (will set `JN516x_WITH_DR1174` automatically)
 * USB dongle; enable this with `JN516x_WITH_DONGLE = 1`
+
+### Enabling specific hardware features
+
+The JN516X Contiki platform supports sleep mode (with RAM retention and keeping the external oscillator on). To enable sleeping, configure `JN516X_SLEEP_CONF_ENABLED=1`.
+
+Sleeping will only happen if there at least 50 ms until the next rtimer or etimer. Also, the system will wake up ~10 ms before the next timer should fire in order to reinitialize all hardware peripherals.
+
+The JN516X Contiki platform also supports rtimers at two different speeds: 16 MHz and 32 kHz. By default, the high-speed timer is used. The two timers have similar expected accuracy (drift ppm), but the 16 MHz one has higher precision. However, the low-speed timers are also kept running during sleeping. 
+
+To enable the low-frequency timer option, set `RTIMER_USE_32KHZ=1`. An external crystal oscillator is required to achieve reasonable accuracy in this case. This oscilator is present on most platforms, and is enabled automatically if either 32kHz timers or sleeping are enabled.
 
 ### Node IEEE/RIME/IPv6 Addresses
 

@@ -654,7 +654,7 @@ static uint8_t uip_reassflags;
  */
 
 
-struct etimer uip_reass_timer; /* timer for reassembly */
+struct etimer uip_reass_timer; /**< Timer for reassembly */
 uint8_t uip_reass_on; /* equal to 1 if we are currently reassembling a packet */
 
 static uint32_t uip_id; /* For every packet that is to be fragmented, the source
@@ -1428,7 +1428,7 @@ uip_process(uint8_t flag)
     UIP_STAT(++uip_stat.icmp.drop);
     UIP_STAT(++uip_stat.icmp.chkerr);
     UIP_LOG("icmpv6: bad checksum.");
-    PRINTF("icmpv6: bad checksum.");
+    PRINTF("icmpv6: bad checksum.\n");
     goto drop;
   }
 #endif /*UIP_CONF_IPV6_CHECKS*/

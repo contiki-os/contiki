@@ -46,8 +46,6 @@
 /*---------------------------------------------------------------------------*/
 extern int main(void);
 /*---------------------------------------------------------------------------*/
-#define WEAK_ALIAS(x) __attribute__ ((weak, alias(#x)))
-/*---------------------------------------------------------------------------*/
 /* System handlers provided here */
 void reset_handler(void);
 void nmi_handler(void);
@@ -64,11 +62,24 @@ void cc2538_rf_rx_tx_isr(void);
 void cc2538_rf_err_isr(void);
 void udma_isr(void);
 void udma_err_isr(void);
-void usb_isr(void) WEAK_ALIAS(default_handler);
-void uart0_isr(void) WEAK_ALIAS(default_handler);
-void uart1_isr(void) WEAK_ALIAS(default_handler);
 void crypto_isr(void);
 void pka_isr(void);
+
+/* Link in the USB ISR only if USB is enabled */
+#if USB_SERIAL_CONF_ENABLE
+void usb_isr(void);
+#else
+#define usb_isr default_handler
+#endif
+
+/* Likewise for the UART[01] ISRs */
+#if UART_CONF_ENABLE
+void uart0_isr(void);
+void uart1_isr(void);
+#else /* UART_CONF_ENABLE */
+#define uart0_isr default_handler
+#define uart1_isr default_handler
+#endif /* UART_CONF_ENABLE */
 
 /* Boot Loader Backdoor selection */
 #if FLASH_CCA_CONF_BOOTLDR_BACKDOOR
@@ -92,7 +103,7 @@ void pka_isr(void);
 #endif
 /*---------------------------------------------------------------------------*/
 /* Allocate stack space */
-static unsigned long stack[512] __attribute__ ((section(".stack")));
+static uint64_t stack[256] __attribute__ ((section(".stack")));
 /*---------------------------------------------------------------------------*/
 __attribute__((__section__(".vectors")))
 void(*const vectors[])(void) =

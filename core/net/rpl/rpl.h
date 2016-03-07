@@ -179,7 +179,7 @@ typedef struct rpl_instance rpl_instance_t;
  * update_metric_container(dag)
  *
  *  Updates the metric container for outgoing DIOs in a certain DAG.
- *  If the objective function of the DAG does not use metric containers, 
+ *  If the objective function of the DAG does not use metric containers,
  *  the function should set the object type to RPL_DAG_MC_NONE.
  */
 struct rpl_of {
@@ -231,6 +231,8 @@ struct rpl_instance {
   struct ctimer dio_timer;
   struct ctimer dao_timer;
   struct ctimer dao_lifetime_timer;
+  struct ctimer unicast_dio_timer;
+  rpl_parent_t *unicast_dio_target;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -255,7 +257,7 @@ rpl_rank_t rpl_get_parent_rank(uip_lladdr_t *addr);
 uint16_t rpl_get_parent_link_metric(const uip_lladdr_t *addr);
 void rpl_dag_init(void);
 uip_ds6_nbr_t *rpl_get_nbr(rpl_parent_t *parent);
-void rpl_print_neighbor_list();
+void rpl_print_neighbor_list(void);
 
 /* Per-parent RPL information */
 NBR_TABLE_DECLARE(rpl_parents);
