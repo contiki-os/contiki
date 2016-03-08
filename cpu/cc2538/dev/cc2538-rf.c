@@ -121,7 +121,7 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 #endif
 /*---------------------------------------------------------------------------*/
 #if CC2538_RF_CONF_SFD_TIMESTAMPS
-static rtimer_clock_t cc2538_sfd_rtime;
+static rtimer_clock_t volatile cc2538_sfd_rtime;
 #endif
 
 /* Are we currently in poll mode? Disabled by default */
