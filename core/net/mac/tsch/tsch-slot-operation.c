@@ -506,7 +506,7 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
                   tx_start_time, tx_duration + tsch_timing[tsch_ts_rx_ack_delay] + tsch_timing[tsch_ts_ack_wait]);
               TSCH_DEBUG_TX_EVENT();
 
-              ack_start_time = RTIMER_NOW();
+              ack_start_time = RTIMER_NOW() - RADIO_DELAY_BEFORE_DETECT;
 
               /* Wait for ACK to finish */
               BUSYWAIT_UNTIL_ABS(!NETSTACK_RADIO.receiving_packet(),
