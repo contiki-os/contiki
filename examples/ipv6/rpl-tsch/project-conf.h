@@ -71,6 +71,10 @@
 /* Enable SFD timestamp (uses SFD interrupt) */
 #undef CC2538_RF_CONF_SFD_TIMESTAMPS
 #define CC2538_RF_CONF_SFD_TIMESTAMPS		1
+/* For TSCH we have to use the more accurate crystal oscillator
+ * by default the RC oscillator is activated */
+#undef SYS_CTRL_CONF_OSC32K_USE_XTAL
+#define SYS_CTRL_CONF_OSC32K_USE_XTAL			1
 
 /* Needed for cc2420 platforms only */
 /* Disable DCO calibration (uses timerB) */
