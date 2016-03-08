@@ -175,4 +175,11 @@
 #define TSCH_ADAPTIVE_TIMESYNC 0
 #endif
 
+/* HW frame filtering enabled */
+#ifdef TSCH_CONF_HW_FRAME_FILTERING
+#define TSCH_HW_FRAME_FILTERING	TSCH_CONF_HW_FRAME_FILTERING
+#else /* TSCH_CONF_HW_FRAME_FILTERING */
+#define TSCH_HW_FRAME_FILTERING	1
+#endif
+
 #endif /* __TSCH_CONF_H__ */
