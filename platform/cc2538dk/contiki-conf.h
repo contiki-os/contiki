@@ -40,7 +40,7 @@ typedef uint32_t rtimer_clock_t;
 #define RTIMER_CLOCK_LT(a,b)     ((int32_t)((a)-(b)) < 0)
 /** @} */
 /*---------------------------------------------------------------------------*/
-#define SYS_CTRL_CONF_OSC32K_USE_XTAL	1
+#define TSCH_CONF_HW_FRAME_FILTERING	0
 
 #define RADIO_DELAY_BEFORE_TX     ((unsigned)US_TO_RTIMERTICKS(300))
 #define RADIO_DELAY_BEFORE_RX     ((unsigned)US_TO_RTIMERTICKS(100))
