@@ -161,7 +161,7 @@ handle_dio_timer(void *ptr)
 #endif /* RPL_CONF_STATS */
       dio_output(instance, NULL);
     } else {
-      PRINTF("RPL: Supressing DIO transmission (%d >= %d)\n",
+      PRINTF("RPL: Suppressing DIO transmission (%d >= %d)\n",
              instance->dio_counter, instance->dio_redundancy);
     }
     instance->dio_send = 0;
