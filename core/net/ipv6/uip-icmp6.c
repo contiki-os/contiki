@@ -220,8 +220,8 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
   }
 
 #if UIP_CONF_IPV6_RPL
-  uip_ext_len = rpl_invert_header();
-#else /* UIP_CONF_IPV6_RPL */
+  rpl_remove_header();
+#else
   uip_ext_len = 0;
 #endif /* UIP_CONF_IPV6_RPL */
 
@@ -279,6 +279,10 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
   UIP_IP_BUF->len[1] = ((uip_len - UIP_IPH_LEN) & 0xff);
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
+
+#if UIP_CONF_IPV6_RPL
+  rpl_insert_header();
+#endif /* UIP_CONF_IPV6_RPL */
 
   UIP_STAT(++uip_stat.icmp.sent);
 
