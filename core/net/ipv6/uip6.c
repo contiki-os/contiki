@@ -1529,12 +1529,8 @@ uip_process(uint8_t flag)
   PRINTF("udp: no matching connection found\n");
   UIP_STAT(++uip_stat.udp.drop);
 
-#if UIP_UDP_SEND_UNREACH_NOPORT
   uip_icmp6_error_output(ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_NOPORT, 0);
   goto send;
-#else
-  goto drop;
-#endif
 
  udp_found:
   PRINTF("In udp_found\n");
