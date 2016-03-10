@@ -1473,6 +1473,7 @@ uip_process(uint8_t flag)
  udp_input:
 
   remove_ext_hdr();
+  UIP_IP_BUF->proto = UIP_PROTO_UDP;
 
   PRINTF("Receiving UDP packet\n");
 
@@ -1593,6 +1594,7 @@ uip_process(uint8_t flag)
  tcp_input:
 
   remove_ext_hdr();
+  UIP_IP_BUF->proto = UIP_PROTO_TCP;
 
   UIP_STAT(++uip_stat.tcp.recv);
   PRINTF("Receiving TCP packet\n");
