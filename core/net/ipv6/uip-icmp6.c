@@ -206,15 +206,14 @@ echo_request_input(void)
 /*---------------------------------------------------------------------------*/
 void
 uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
-
- /* check if originating packet is not an ICMP error*/
-  if (uip_ext_len) {
-    if(UIP_EXT_BUF->next == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type < 128){
+  /* check if originating packet is not an ICMP error */
+  if(uip_ext_len) {
+    if(UIP_EXT_BUF->next == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type < 128) {
       uip_clear_buf();
       return;
     }
   } else {
-    if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type < 128){
+    if(UIP_IP_BUF->proto == UIP_PROTO_ICMP6 && UIP_ICMP_BUF->type < 128) {
       uip_clear_buf();
       return;
     }
@@ -231,8 +230,9 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
 
   uip_len += UIP_IPICMPH_LEN + UIP_ICMP6_ERROR_LEN;
 
-  if(uip_len > UIP_LINK_MTU)
+  if(uip_len > UIP_LINK_MTU) {
     uip_len = UIP_LINK_MTU;
+  }
 
   memmove((uint8_t *)UIP_ICMP6_ERROR_BUF + uip_ext_len + UIP_ICMP6_ERROR_LEN,
           (void *)UIP_IP_BUF, uip_len - UIP_IPICMPH_LEN - uip_ext_len - UIP_ICMP6_ERROR_LEN);
