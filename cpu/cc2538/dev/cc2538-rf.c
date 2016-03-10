@@ -664,8 +664,6 @@ read(void *buf, unsigned short bufsize)
 {
   uint8_t i;
   uint8_t len;
-  uint8_t crc_corr;
-  int8_t rssi;
 
   PRINTF("RF: Read\n");
 
