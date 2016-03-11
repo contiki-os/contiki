@@ -1473,6 +1473,7 @@ uip_process(uint8_t flag)
  udp_input:
 
   remove_ext_hdr();
+  UIP_IP_BUF->proto = UIP_PROTO_UDP;
 
   PRINTF("Receiving UDP packet\n");
 
@@ -1481,8 +1482,6 @@ uip_process(uint8_t flag)
      work. If the application sets uip_slen, it has a packet to
      send. */
 #if UIP_UDP_CHECKSUMS
-  uip_len = uip_len - UIP_IPUDPH_LEN;
-  uip_appdata = &uip_buf[UIP_IPUDPH_LEN + UIP_LLH_LEN];
   /* XXX hack: UDP/IPv6 receivers should drop packets with UDP
      checksum 0. Here, we explicitly receive UDP packets with checksum
      0. This is to be able to debug code that for one reason or
@@ -1495,8 +1494,6 @@ uip_process(uint8_t flag)
            uip_udpchksum());
     goto drop;
   }
-#else /* UIP_UDP_CHECKSUMS */
-  uip_len = uip_len - UIP_IPUDPH_LEN;
 #endif /* UIP_UDP_CHECKSUMS */
 
   /* Make sure that the UDP destination port number is not zero. */
@@ -1528,17 +1525,15 @@ uip_process(uint8_t flag)
   PRINTF("udp: no matching connection found\n");
   UIP_STAT(++uip_stat.udp.drop);
 
-#if UIP_UDP_SEND_UNREACH_NOPORT
   uip_icmp6_error_output(ICMP6_DST_UNREACH, ICMP6_DST_UNREACH_NOPORT, 0);
   goto send;
-#else
-  goto drop;
-#endif
 
  udp_found:
   PRINTF("In udp_found\n");
   UIP_STAT(++uip_stat.udp.recv);
 
+  uip_len = uip_len - UIP_IPUDPH_LEN;
+  uip_appdata = &uip_buf[UIP_IPUDPH_LEN + UIP_LLH_LEN];
   uip_conn = NULL;
   uip_flags = UIP_NEWDATA;
   uip_sappdata = uip_appdata = &uip_buf[UIP_IPUDPH_LEN + UIP_LLH_LEN];
@@ -1593,6 +1588,7 @@ uip_process(uint8_t flag)
  tcp_input:
 
   remove_ext_hdr();
+  UIP_IP_BUF->proto = UIP_PROTO_TCP;
 
   UIP_STAT(++uip_stat.tcp.recv);
   PRINTF("Receiving TCP packet\n");
