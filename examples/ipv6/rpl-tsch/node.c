@@ -38,7 +38,6 @@
 
 #include "contiki.h"
 #include "node-id.h"
-#include "linkaddr.h"
 #include "net/rpl/rpl.h"
 #include "net/ipv6/uip-ds6-route.h"
 #include "net/mac/tsch/tsch.h"
@@ -132,7 +131,6 @@ net_init(uip_ipaddr_t *br_prefix)
 PROCESS_THREAD(node_process, ev, data)
 {
   static struct etimer et;
-  static unsigned short node_id;
   PROCESS_BEGIN();
 
   /* 3 possible roles:
@@ -143,8 +141,6 @@ PROCESS_THREAD(node_process, ev, data)
   static int is_coordinator = 0;
   static enum { role_6ln, role_6dr, role_6dr_sec } node_role;
   node_role = role_6ln;
-  
-  node_id = linkaddr_node_addr.u8[LINKADDR_SIZE - 2] | linkaddr_node_addr.u8[LINKADDR_SIZE - 1];
   
   /* Set node with ID == 1 as coordinator, convenient in Cooja. */
   if(node_id == 1) {
