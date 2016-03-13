@@ -45,7 +45,7 @@
 #define MQTT_DEMO_PUBLISH_TRIGGER &button_right_sensor
 
 /* If undefined, the demo will attempt to connect to IBM's quickstart */
-#define MQTT_DEMO_BROKER_IP_ADDR "aaaa::1"
+#define MQTT_DEMO_BROKER_IP_ADDR "fd00::1"
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/

@@ -340,7 +340,7 @@ uint8_t i;
 #if 0
 {  
   uip_ip6addr_t ipaddr;
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 //  uip_ds6_prefix_add(&ipaddr,64,0);
 }

@@ -308,14 +308,14 @@ Start by building a border router from `examples/ipv6/rpl-border-router`
   * Connect device to Linux or OS X over its XDS port.
   * `cd $(CONTIKI)/tools`
   * `make tunslip6`
-  * `sudo $(CONTIKI)/tools/tunslip6 -s /dev/<device> aaaa::1/64`
+  * `sudo $(CONTIKI)/tools/tunslip6 -s /dev/<device> fd00::1/64`
   * The router will print its own IPv6 address. Use it below.
 
         Got configuration message of type P
-        Setting prefix aaaa::
+        Setting prefix fd00::
         created a new RPL dag
         Server IPv6 addresses:
-         aaaa::212:4b00:89ab:cdef
+         fd00::212:4b00:89ab:cdef
          fe80::212:4b00:89ab:cdef
 
   * `ping6 <address>`

@@ -72,7 +72,7 @@ set_global_address(void)
   int i;
   uint8_t state;
 
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 
@@ -109,7 +109,7 @@ PROCESS_THREAD(sender_node_process, ev, data)
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&send_timer));
 
-    uip_ip6addr(&addr, 0xaaaa, 0, 0, 0, 0x0201, 0x001, 0x001, 0x001);
+    uip_ip6addr(&addr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0x0201, 0x001, 0x001, 0x001);
 
     {
       static unsigned int message_number;

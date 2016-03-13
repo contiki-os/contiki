@@ -126,7 +126,7 @@ create_dag()
 {
   rpl_dag_t *dag;
 
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
   uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
   uip_ds6_addr_add(&ipaddr, 0, ADDR_AUTOCONF);
 
@@ -135,7 +135,7 @@ create_dag()
   dag = rpl_set_root(RPL_DEFAULT_INSTANCE,
                      &uip_ds6_get_global(ADDR_PREFERRED)->ipaddr);
   if(dag != NULL) {
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
     rpl_set_prefix(dag, &ipaddr, 64);
     PRINTF("Created a new RPL dag with ID: ");
     PRINT6ADDR(&dag->dag_id);

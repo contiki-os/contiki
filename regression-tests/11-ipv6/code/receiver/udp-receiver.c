@@ -39,7 +39,7 @@ PROCESS_THREAD(udp_process, ev, data)
 
   PROCESS_BEGIN();
 
-  uip_ip6addr(&addr, 0xaaaa, 0, 0, 0, 0, 0, 0, 2);
+  uip_ip6addr(&addr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 2);
   uip_ds6_addr_add(&addr, 0, ADDR_AUTOCONF);
 
   simple_udp_register(&broadcast_connection, UDP_PORT,

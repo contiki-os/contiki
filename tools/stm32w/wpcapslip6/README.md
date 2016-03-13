@@ -14,9 +14,9 @@ rpl-border-router (the latter on Windows Vista and later only).
 
 An example of usage with the RPL border router:
 
-    wpcapslip6 -s COMXX -b aaaa:: -a aaaa:1::1/128 02-00-00-00-00-01
+    wpcapslip6 -s COMXX -b fd00:: -a fd00:1::1/128 02-00-00-00-00-01
 
 where 02-00-00-00-00-01 is the MAC address of the local network adapter.
 
--a aaaa:1::1/128 can be omitted if an IP address is already set to the network
+-a fd00:1::1/128 can be omitted if an IP address is already set to the network
 adapter.

@@ -145,14 +145,14 @@ PROCESS_THREAD(udp_server_process, ev, data)
   PRINTF("UDP server started\n");
 
 #if UIP_CONF_ROUTER
-  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 1);
+  uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 1);
   /* uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr); */
   uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);
   root_if = uip_ds6_addr_lookup(&ipaddr);
   if(root_if != NULL) {
     rpl_dag_t *dag;
     dag = rpl_set_root(RPL_DEFAULT_INSTANCE,(uip_ip6addr_t *)&ipaddr);
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
     rpl_set_prefix(dag, &ipaddr, 64);
     PRINTF("created a new RPL dag\n");
   } else {
