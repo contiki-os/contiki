@@ -28,7 +28,7 @@ From a Linux terminal, go to `contiki/examples/jn516x/rpl/border-router` and do 
 or `make connect-router-sw` if you have **SW flow control**
 
 This will start a tunnel interface (tun0) on the host machine.
-All traffic towards our network (prefix aaaa::1/64) will now be routed to the border router.
+All traffic towards our network (prefix fd00::1/64) will now be routed to the border router.
 
 ## RPL Node
 

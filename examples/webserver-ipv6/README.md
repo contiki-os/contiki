@@ -41,7 +41,7 @@ On linux you can set up router advertisements as follows:
 
 - You might need to add a route:
 
-        ip -6 route add aaaa:0000:0000:0000:0206:98ff:fe00:0232/64 dev tap0
+        ip -6 route add fd00:0000:0000:0000:0206:98ff:fe00:0232/64 dev tap0
 
 - Then configure a global address by sending a router advertisement (RA) with a
   prefix option. You can use radvd for example to generate such a packet.

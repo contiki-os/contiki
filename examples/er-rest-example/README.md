@@ -23,8 +23,8 @@ PRELIMINARIES
     #define NETSTACK_CONF_RDC     nullrdc_driver
 - Alternatively, you can use the native-border-router together with the slip-radio.
 - For convenience, define the Cooja addresses in /etc/hosts
-      aaaa::0212:7401:0001:0101 cooja1
-      aaaa::0212:7402:0002:0202 cooja2
+      fd00::0212:7401:0001:0101 cooja1
+      fd00::0212:7402:0002:0202 cooja2
       ...
 - Get the Copper (Cu) CoAP user-agent from
   [https://addons.mozilla.org/en-US/firefox/addon/copper-270430](https://addons.mozilla.org/en-US/firefox/addon/copper-270430)
@@ -82,11 +82,11 @@ TMOTES HOWTO
 
 3. Start Copper and discover resources at:
 
-        coap://[aaaa::____:____:____:____]:5683/
+        coap://[fd00::____:____:____:____]:5683/
 
 ### Add a client:
 
-1. Change the hard-coded server address in er-example-client.c to aaaa::____:____:____:____
+1. Change the hard-coded server address in er-example-client.c to fd00::____:____:____:____
 2. Connect a third Tmote Sky
 
         make TARGET=sky er-example-client.upload MOTE=3
