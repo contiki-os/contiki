@@ -243,8 +243,10 @@ dio_input(void)
     if((nbr = uip_ds6_nbr_add(&from, (uip_lladdr_t *)
                               packetbuf_addr(PACKETBUF_ADDR_SENDER),
                               0, NBR_REACHABLE)) != NULL) {
+#if UIP_ND6_SEND_NA
       /* set reachable timer */
       stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+#endif /* UIP_ND6_SEND_NA */
       PRINTF("RPL: Neighbor added to neighbor cache ");
       PRINT6ADDR(&from);
       PRINTF(", ");
@@ -754,8 +756,10 @@ dao_input(void)
     if((nbr = uip_ds6_nbr_add(&dao_sender_addr,
                               (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER),
                               0, NBR_REACHABLE)) != NULL) {
+#if UIP_ND6_SEND_NA
       /* set reachable timer */
       stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+#endif /* UIP_ND6_SEND_NA */
       PRINTF("RPL: Neighbor added to neighbor cache ");
       PRINT6ADDR(&dao_sender_addr);
       PRINTF(", ");
