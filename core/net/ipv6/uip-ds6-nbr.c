@@ -84,15 +84,19 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
   uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr);
   if(nbr) {
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
+#if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
     nbr->isrouter = isrouter;
+#endif /* UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER */
     nbr->state = state;
-  #if UIP_CONF_IPV6_QUEUE_PKT
+#if UIP_CONF_IPV6_QUEUE_PKT
     uip_packetqueue_new(&nbr->packethandle);
-  #endif /* UIP_CONF_IPV6_QUEUE_PKT */
+#endif /* UIP_CONF_IPV6_QUEUE_PKT */
+#if UIP_ND6_SEND_NA
     /* timers are set separately, for now we put them in expired state */
     stimer_set(&nbr->reachable, 0);
     stimer_set(&nbr->sendns, 0);
     nbr->nscount = 0;
+#endif /* UIP_ND6_SEND_NA */
     PRINTF("Adding neighbor with ip addr ");
     PRINT6ADDR(ipaddr);
     PRINTF(" link addr ");
@@ -230,6 +234,7 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
 #endif /* UIP_DS6_LL_NUD */
 
 }
+#if UIP_ND6_SEND_NA
 /*---------------------------------------------------------------------------*/
 /** Periodic processing on neighbors */
 void
@@ -241,7 +246,7 @@ uip_ds6_neighbor_periodic(void)
     case NBR_REACHABLE:
       if(stimer_expired(&nbr->reachable)) {
 #if UIP_CONF_IPV6_RPL
-        /* when a neighbor leave it's REACHABLE state and is a default router,
+        /* when a neighbor leave its REACHABLE state and is a default router,
            instead of going to STALE state it enters DELAY state in order to
            force a NUD on it. Otherwise, if there is no upward traffic, the
            node never knows if the default router is still reachable. This
@@ -268,7 +273,6 @@ uip_ds6_neighbor_periodic(void)
 #endif /* UIP_CONF_IPV6_RPL */
       }
       break;
-#if UIP_ND6_SEND_NA
     case NBR_INCOMPLETE:
       if(nbr->nscount >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
         uip_ds6_nbr_rm(nbr);
@@ -304,7 +308,6 @@ uip_ds6_neighbor_periodic(void)
         stimer_set(&nbr->sendns, uip_ds6_if.retrans_timer / 1000);
       }
       break;
-#endif /* UIP_ND6_SEND_NA */
     default:
       break;
     }
@@ -330,5 +333,6 @@ uip_ds6_get_least_lifetime_neighbor(void)
   }
   return nbr_expiring;
 }
+#endif /* UIP_ND6_SEND_NA */
 /*---------------------------------------------------------------------------*/
 /** @} */
