@@ -48,6 +48,19 @@ struct interrupt_context {
   uint32_t eip;
 };
 
+#define ISR_STUB(label_str, has_error_code, handler_str)         \
+  "jmp 2f\n\t"                                                   \
+  ".align 4\n\t"                                                 \
+  label_str ":\n\t"                                              \
+  "         pushal\n\t"                                          \
+  "         call " handler_str "\n\t"                            \
+  "         popal\n\t"                                           \
+  "         .if " #has_error_code "\n\t"                         \
+  "         add $4, %%esp\n\t"                                   \
+  "         .endif\n\t"                                          \
+  "         iret\n\t"                                            \
+  "2:\n\t"
+
 /* Helper macro to register interrupt handler function.
  *
  * num:             Interrupt number (0-255)
@@ -75,17 +88,7 @@ struct interrupt_context {
       "push %0\n\t"                                              \
       "call %P1\n\t"                                             \
       "add $8, %%esp\n\t"                                        \
-      "jmp 2f\n\t"                                               \
-      ".align 4\n\t"                                             \
-      "1:\n\t"                                                   \
-      "         pushal\n\t"                                      \
-      "         call %P2\n\t"                                    \
-      "         popal\n\t"                                       \
-      "         .if " #has_error_code "\n\t"                     \
-      "         add $4, %%esp\n\t"                               \
-      "         .endif\n\t"                                      \
-      "         iret\n\t"                                        \
-      "2:\n\t"                                                   \
+      ISR_STUB("1", has_error_code, "%P2")                       \
       :: "g" (num), "i" (idt_set_intr_gate_desc), "i" (handler)  \
       : "eax", "ecx", "edx"                                      \
     );                                                           \

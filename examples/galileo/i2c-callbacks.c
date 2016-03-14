@@ -36,24 +36,23 @@
 
 #include "i2c.h"
 
-#define LSM9DS0_I2C_ADDR 0x6A
-#define WHO_AM_I_ADDR    0x0F
-#define WHO_AM_I_ANSWER  0xD4
+#define PWM_PCA9685_0_I2C_ADDR 0x47
+#define MODE1_ADDR             0x00
 
-static uint8_t tx_data = WHO_AM_I_ADDR;
+static uint8_t tx_data = MODE1_ADDR;
 static uint8_t rx_data = 0;
 static struct ctimer timer;
 
-PROCESS(i2c_lsm9ds0_process, "I2C LSM9DS0 Who Am I Process");
-AUTOSTART_PROCESSES(&i2c_lsm9ds0_process);
+PROCESS(i2c_callbacks_process, "I2C Callbacks Example Process");
+AUTOSTART_PROCESSES(&i2c_callbacks_process);
 /*---------------------------------------------------------------------------*/
 static void
 rx(void)
 {
-  if (rx_data == WHO_AM_I_ANSWER)
-    printf("Who am I register value match!\n");
-  else
-    printf("Who am I register value DOESN'T match! %u\n", rx_data);
+  /* The value below is programmed into this register in pwm_pca9685_init(). */
+  printf("%s expected value: %x\n",
+         (rx_data == (1 << 5)) ? "Received" : "Did not receive",
+         (unsigned)rx_data);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -61,7 +60,7 @@ tx(void)
 {
   rx_data = 0;
 
-  quarkX1000_i2c_read(&rx_data, sizeof(rx_data), LSM9DS0_I2C_ADDR);
+  quarkX1000_i2c_read(&rx_data, sizeof(rx_data), PWM_PCA9685_0_I2C_ADDR);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -73,12 +72,12 @@ err(void)
 static void
 timeout(void *data)
 {
-  quarkX1000_i2c_write(&tx_data, sizeof(tx_data), LSM9DS0_I2C_ADDR);
+  quarkX1000_i2c_write(&tx_data, sizeof(tx_data), PWM_PCA9685_0_I2C_ADDR);
 
   ctimer_reset(&timer);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(i2c_lsm9ds0_process, ev, data)
+PROCESS_THREAD(i2c_callbacks_process, ev, data)
 {
   PROCESS_BEGIN();
 
@@ -86,7 +85,7 @@ PROCESS_THREAD(i2c_lsm9ds0_process, ev, data)
 
   ctimer_set(&timer, CLOCK_SECOND * 5, timeout, NULL);
 
-  printf("I2C LSM9DS0 example is running\n");
+  printf("I2C callbacks example is running\n");
 
   PROCESS_YIELD();
 

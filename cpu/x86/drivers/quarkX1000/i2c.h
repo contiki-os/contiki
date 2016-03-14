@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,17 +45,12 @@ typedef enum {
 
 typedef void (*quarkX1000_i2c_callback)(void);
 
-struct quarkX1000_i2c_config {
-  QUARKX1000_I2C_SPEED speed;
-  QUARKX1000_I2C_ADDR_MODE addressing_mode;
-
-  quarkX1000_i2c_callback cb_rx;
-  quarkX1000_i2c_callback cb_tx;
-  quarkX1000_i2c_callback cb_err;
-};
-
 int quarkX1000_i2c_init(void);
-int quarkX1000_i2c_configure(struct quarkX1000_i2c_config *config);
+void quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED speed,
+                              QUARKX1000_I2C_ADDR_MODE addressing_mode);
+void quarkX1000_i2c_set_callbacks(quarkX1000_i2c_callback rx,
+                                  quarkX1000_i2c_callback tx,
+                                  quarkX1000_i2c_callback err);
 int quarkX1000_i2c_is_available(void);
 
 int quarkX1000_i2c_read(uint8_t *buf, uint8_t len, uint16_t addr);
