@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
+ * Copyright (C) 2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,54 +28,40 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
+#ifndef CPU_X86_DRIVERS_LEGACY_PC_SHARED_ISR_H_
+#define CPU_X86_DRIVERS_LEGACY_PC_SHARED_ISR_H_
 
-#include "contiki.h"
-#include "sys/ctimer.h"
+#include <stdbool.h>
+#include "pci.h"
 
-#include "gpio.h"
+/**
+ * The handler function should return true if and only if it handled the
+ * interrupt.
+ */
+typedef bool (*shared_isr_handler_t)(void);
 
-#define PIN_OUTPUT 5
-#define PIN_INTR 6
+typedef struct shared_isr_client {
+  uint8_t irq;
+  IRQAGENT agent;
+  INTR_PIN pin;
+  PIRQ pirq;
+  shared_isr_handler_t handler;
+} shared_isr_client_t;
 
-static struct ctimer timer;
-
-PROCESS(gpio_interrupt_process, "GPIO Interrupt Process");
-AUTOSTART_PROCESSES(&gpio_interrupt_process);
-/*---------------------------------------------------------------------------*/
-static void
-timeout(void *data)
-{
-  /* emulate an interrupt */
-  quarkX1000_gpio_write(PIN_OUTPUT, 0);
-  quarkX1000_gpio_write(PIN_OUTPUT, 1);
-
-  ctimer_reset(&timer);
+/* Unlike a non-shared interrupt handler function, an individual interrupt
+ * handler for a shared interrupt must not issue an EOI. The EOI is issued by
+ * the shared-isr subsystem.
+ */
+#define DEFINE_SHARED_IRQ(irq_, agent_, pin_, pirq_, handler_)                \
+static struct shared_isr_client                                               \
+  __attribute__((used, section(".shared_isr_data"))) _shared_irq_##irq_ = {   \
+  .irq = irq_,                                                                \
+  .agent = agent_,                                                            \
+  .pin = pin_,                                                                \
+  .pirq = pirq_,                                                              \
+  .handler = handler_                                                         \
 }
-/*---------------------------------------------------------------------------*/
-static void
-callback(uint32_t status)
-{
-  printf("GPIO interrupt callback called, status: %d\n", status);
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(gpio_interrupt_process, ev, data)
-{
-  PROCESS_BEGIN();
 
-  quarkX1000_gpio_config(PIN_OUTPUT, QUARKX1000_GPIO_OUT);
-  quarkX1000_gpio_config(PIN_INTR, QUARKX1000_GPIO_INT | QUARKX1000_GPIO_ACTIVE_HIGH | QUARKX1000_GPIO_EDGE);
+void shared_isr_init(void);
 
-  quarkX1000_gpio_set_callback(callback);
-
-  quarkX1000_gpio_clock_enable();
-
-  ctimer_set(&timer, CLOCK_SECOND / 2, timeout, NULL);
-
-  printf("GPIO interrupt example is running\n");
-  PROCESS_YIELD();
-
-  quarkX1000_gpio_clock_disable();
-
-  PROCESS_END();
-}
+#endif /* CPU_X86_DRIVERS_LEGACY_PC_SHARED_ISR_H_ */

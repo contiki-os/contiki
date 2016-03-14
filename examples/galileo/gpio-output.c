@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@
 
 #include "gpio.h"
 
-#define PIN 4 /* IO1 */
+#define PIN 5 /* IO2 */
 
 static uint32_t value;
 static struct ctimer timer;
@@ -57,7 +57,6 @@ PROCESS_THREAD(gpio_output_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  quarkX1000_gpio_init();
   quarkX1000_gpio_config(PIN, QUARKX1000_GPIO_OUT);
 
   quarkX1000_gpio_clock_enable();
