@@ -1028,18 +1028,16 @@ ra_input(void)
       break;
 #if UIP_ND6_RA_RDNSS
     case UIP_ND6_OPT_RDNSS:
-      if(UIP_ND6_RA_BUF->flags_reserved & (UIP_ND6_O_FLAG << 6)) {
-        PRINTF("Processing RDNSS option\n");
-        uint8_t naddr = (UIP_ND6_OPT_RDNSS_BUF->len - 1) / 2;
-        uip_ipaddr_t *ip = (uip_ipaddr_t *)(&UIP_ND6_OPT_RDNSS_BUF->ip);
-        PRINTF("got %d nameservers\n", naddr);
-        while(naddr-- > 0) {
-          PRINTF(" nameserver: ");
-          PRINT6ADDR(ip);
-          PRINTF(" lifetime: %lx\n", uip_ntohl(UIP_ND6_OPT_RDNSS_BUF->lifetime));
-          uip_nameserver_update(ip, uip_ntohl(UIP_ND6_OPT_RDNSS_BUF->lifetime));
-          ip++;
-        }
+      PRINTF("Processing RDNSS option\n");
+      uint8_t naddr = (UIP_ND6_OPT_RDNSS_BUF->len - 1) / 2;
+      uip_ipaddr_t *ip = (uip_ipaddr_t *)(&UIP_ND6_OPT_RDNSS_BUF->ip);
+      PRINTF("got %d nameservers\n", naddr);
+      while(naddr-- > 0) {
+        PRINTF(" nameserver: ");
+        PRINT6ADDR(ip);
+        PRINTF(" lifetime: %lx\n", uip_ntohl(UIP_ND6_OPT_RDNSS_BUF->lifetime));
+        uip_nameserver_update(ip, uip_ntohl(UIP_ND6_OPT_RDNSS_BUF->lifetime));
+        ip++;
       }
       break;
 #endif /* UIP_ND6_RA_RDNSS */
