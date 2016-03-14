@@ -187,7 +187,7 @@ PROCESS_THREAD(node_process, ev, data)
 
   if(is_coordinator) {
     uip_ipaddr_t prefix;
-    uip_ip6addr(&prefix, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_ip6addr(&prefix, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0, 0, 0);
     net_init(&prefix);
   } else {
     net_init(NULL);
