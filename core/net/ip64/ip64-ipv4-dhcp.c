@@ -88,8 +88,15 @@ ip64_dhcpc_configured(const struct ip64_dhcpc_state *s)
   ip64_set_hostaddr((uip_ip4addr_t *)&s->ipaddr);
   ip64_set_netmask((uip_ip4addr_t *)&s->netmask);
   ip64_set_draddr((uip_ip4addr_t *)&s->default_router);
-  ip64_addr_4to6((uip_ip4addr_t *)&s->dnsaddr, &ip6dnsaddr);
-  //  mdns_conf(&ip6dnsaddr);
+  if(!uip_ip4addr_cmp((uip_ip4addr_t *)&s->dnsaddr, &uip_all_zeroes_addr)) {
+    /* Note: Currently we assume only one DNS server */
+    uip_ipaddr_t * dns = uip_nameserver_get(0);
+    /* Only update DNS entry if it is empty or already IPv4 */
+    if(uip_is_addr_unspecified(dns) || ip64_addr_is_ip64(dns)) {
+      ip64_addr_4to6((uip_ip4addr_t *)&s->dnsaddr, &ip6dnsaddr);
+      uip_nameserver_update(&ip6dnsaddr, uip_ntohs(s->lease_time[0])*65536ul + uip_ntohs(s->lease_time[1]));
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
