@@ -161,7 +161,7 @@ Determine the link-layer address of a %neighbor given its IPv6 address.\n
 \li Neighbor unreachability detection\n
 Verify that a neighbor is still reachable via a cached link-layer
 address.\n
--> send a NS (done in #uip_ds6_neighbor_periodic).
+-> send a NS (done in uip_ds6_neighbor_periodic).
 \li Next-hop determination\n
 Map an IPv6 destination address into the IPv6 address of the %neighbor
 to which traffic for the destination should be sent.\n
