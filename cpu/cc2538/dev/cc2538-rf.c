@@ -128,8 +128,8 @@ static rtimer_clock_t volatile cc2538_sfd_rtime;
 static uint8_t volatile poll_mode = 0;
 /* Do we perform a CCA before sending? Enabled by default. */
 static uint8_t send_on_cca = 1;
-static int8_t cc2538_last_rssi;
-static uint8_t cc2538_last_crc_corr_lqi;
+static int8_t rssi;
+static uint8_t crc_corr;
 /*---------------------------------------------------------------------------*/
 static uint8_t rf_flags;
 static uint8_t rf_channel = CC2538_RF_CHANNEL;
@@ -732,15 +732,15 @@ read(void *buf, unsigned short bufsize)
   }
 
   /* Read the RSSI and CRC/Corr bytes */
-  cc2538_last_rssi = ((int8_t)REG(RFCORE_SFR_RFDATA)) - RSSI_OFFSET;
-  cc2538_last_crc_corr_lqi = REG(RFCORE_SFR_RFDATA);
+  rssi = ((int8_t)REG(RFCORE_SFR_RFDATA)) - RSSI_OFFSET;
+  crc_corr = REG(RFCORE_SFR_RFDATA);
 
-  PRINTF("%02x%02x\n", (uint8_t)cc2538_last_rssi, cc2538_last_crc_corr_lqi);
+  PRINTF("%02x%02x\n", (uint8_t)rssi, crc_corr);
 
   /* MS bit CRC OK/Not OK, 7 LS Bits, Correlation value */
-  if(cc2538_last_crc_corr_lqi & CRC_BIT_MASK) {
-    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2538_last_rssi);
-    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2538_last_crc_corr_lqi & LQI_BIT_MASK);
+  if(crc_corr & CRC_BIT_MASK) {
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, crc_corr & LQI_BIT_MASK);
     RIMESTATS_ADD(llrx);
   } else {
     RIMESTATS_ADD(badcrc);
@@ -852,10 +852,10 @@ get_value(radio_param_t param, radio_value_t *value)
     *value = get_rssi();
     return RADIO_RESULT_OK;
   case RADIO_PARAM_LAST_RSSI:
-    *value = cc2538_last_rssi;
+    *value = rssi;
     return RADIO_RESULT_OK;
   case RADIO_PARAM_LAST_LINK_QUALITY:
-    *value = cc2538_last_crc_corr_lqi & LQI_BIT_MASK;
+    *value = crc_corr & LQI_BIT_MASK;
     return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = CC2538_RF_CHANNEL_MIN;
