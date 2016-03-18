@@ -71,6 +71,7 @@
 #define RG_PHY_ED_LEVEL       PHY_ED_LEVEL
 #define RG_RX_SYN             RX_SYN
 #define SR_RSSI               0x146, 0x1f, 0
+#define SR_RX_CRC_VALID       0x146, 0x80, 7
 #define SR_PLL_CF_START       0x15a, 0x80, 7
 #define SR_PLL_DCU_START      0x15b, 0x80, 7
 #define SR_MAX_CSMA_RETRIES   0x16c, 0x0e, 1
