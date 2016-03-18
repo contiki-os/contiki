@@ -631,7 +631,7 @@ radio_on(void)
   }
 
 #if RF230_CONF_AUTOACK
- // radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
+// radio_set_trx_state(is_promiscuous?RX_ON:RX_AACK_ON);
   radio_set_trx_state(RX_AACK_ON);
 #else
   radio_set_trx_state(RX_ON);
@@ -1428,7 +1428,6 @@ PROCESS_THREAD(rf230_process, ev, data)
       }
 #endif
 
-
     RF230PROCESSFLAG(1);
     if(len > 0) {
       packetbuf_set_datalen(len);
@@ -1456,6 +1455,7 @@ static int
 rf230_read(void *buf, unsigned short bufsize)
 {
   uint8_t len,*framep;
+  uint8_t rx_crc_valid;
 #if FOOTER_LEN
   uint8_t footer[FOOTER_LEN];
 #endif
@@ -1496,6 +1496,13 @@ rf230_read(void *buf, unsigned short bufsize)
   }
   rf230_time_of_departure = 0;
 #endif /* RF230_CONF_TIMESTAMPS */
+
+  rx_crc_valid = hal_subregister_read(SR_RX_CRC_VALID);
+  if(! rx_crc_valid) {
+    flushrx();
+    RIMESTATS_ADD(badcrc);
+    return 0;
+  }
 
   if(len > RF230_MAX_TX_FRAME_LENGTH) {
     /* Oops, we must be out of sync. */
@@ -1599,10 +1606,14 @@ rf230_read(void *buf, unsigned short bufsize)
 #endif
 #endif
 
-  /* Atis add*/
   packetbuf_set_attr32(PACKETBUF_ATTR_TIMESTAMP, t.time);
+#if RF230_CONF_CHECKSUM
   packetbuf_set_attr(PACKETBUF_ATTR_CRC_OK, footer[1] & FOOTER1_CRC_OK);
-  /* Atis add end*/
+#else
+  /* We've automatic FCS on and we've already verfied FCS bit in RSSI 
+     register -- just return true  */
+  packetbuf_set_attr(PACKETBUF_ATTR_CRC_OK, 1);
+#endif
 
 #ifdef RF230BB_HOOK_RX_PACKET
   RF230BB_HOOK_RX_PACKET(buf,len);
