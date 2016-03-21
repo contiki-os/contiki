@@ -11,7 +11,7 @@ ifeq ($(BOARD),)
   BOARD=attom
 endif
 
-CONTIKI_TARGET_DIRS += . dev
+CONTIKI_TARGET_DIRS += . dev common
 
 ### Include the board-specific makefile
 PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
