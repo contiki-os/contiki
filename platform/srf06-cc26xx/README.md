@@ -107,6 +107,8 @@ errors.
 
 If you want to upload the compiled firmware to a node via the serial boot loader you need to manually enable the boot loader and then use `make cc26xx-demo.upload`. On the SmartRF06 board you enable the boot loader by resetting the board (EM RESET button) while holding the `select` button. (The boot loader backdoor needs to be enabled on the chip, and the chip needs to be configured correctly, for this to work. See README in the `tools/cc2538-bsl` directory for more info). The serial uploader script will automatically pick the first available serial port. If this is not the port where your node is connected, you can force the script to use a specific port by defining the `PORT` argument eg. `make cc26xx-demo.upload PORT=/dev/tty.usbserial`
 
+The serial bootloader can also be used with the LaunchPad and the changes required to achieve this are the same as those required for the SmartRF. The only difference is that you will need to map `BL_PIN_NUMBER` to either the left or right user button (values to be used for `BL_PIN_NUMBER` in `ccfg.c` are `0x0D` and `0x0E` respectively).
+
 Note that uploading over serial doesn't work for the Sensortag, you can use TI's SmartRF Flash Programmer in this case.
 
 For the `cc26xx-demo`, the included readme describes in detail what the example does.
