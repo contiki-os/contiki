@@ -28,64 +28,46 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
+#include "imr.h"
 
-#include "contiki.h"
-#include "contiki-net.h"
-#include "cpu.h"
-#include "eth-conf.h"
-#include "galileo-pinmux.h"
-#include "gpio.h"
-#include "i2c.h"
-#include "imr-conf.h"
-#include "interrupt.h"
-#include "shared-isr.h"
-#include "uart.h"
+extern int _sbss_dma_addr, _ebss_dma_addr;
 
-PROCINIT(  &etimer_process
-         , &tcpip_process
-#if WITH_DNS
-         , &resolv_process
-#endif
-         );
-
-int
-main(void)
+/*---------------------------------------------------------------------------*/
+void
+quarkX1000_imr_conf(void)
 {
-  cpu_init();
-#ifdef X86_CONF_RESTRICT_DMA
-  quarkX1000_imr_conf();
-#endif
-  /* Initialize UART connected to Galileo Gen2 FTDI header */
-  quarkX1000_uart_init(QUARK_X1000_UART_1);
-  clock_init();
-  rtimer_init();
+  quarkX1000_imr_t imr;
+  int imr_idx = 0;
 
-  printf("Starting Contiki\n");
+  imr.lo.raw = 0;
+  imr.hi.raw = 0;
+  imr.rdmsk.raw = 0;
+  imr.wrmsk.raw = 0;
 
-  quarkX1000_i2c_init();
-  quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED_STANDARD,
-                           QUARKX1000_I2C_ADDR_MODE_7BIT);
-  /* use default pinmux configuration */
-  if(galileo_pinmux_initialize() < 0) {
-    fprintf(stderr, "Failed to initialize pinmux\n");
+  imr.lo.lock = 1;
+
+  imr.rdmsk.cpu0 = imr.rdmsk.cpu_0 = 1;
+  imr.wrmsk.cpu0 = imr.wrmsk.cpu_0 = 1;
+
+  imr.lo.addr = 0;
+  imr.hi.addr = (((uint32_t)&_sbss_dma_addr) - 1) >> QUARKX1000_IMR_SHAMT;
+  quarkX1000_imr_write(imr_idx, imr);
+  imr_idx++;
+
+  imr.lo.addr = ((uint32_t)&_ebss_dma_addr) >> QUARKX1000_IMR_SHAMT;
+  imr.hi.addr = ~0;
+  quarkX1000_imr_write(imr_idx, imr);
+  imr_idx++;
+
+  imr.lo.addr = 0;
+  imr.hi.addr = 0;
+  imr.rdmsk.raw = ~0;
+  imr.wrmsk.raw = ~0;
+
+  /* Lock the other IMRs open */
+  while(imr_idx < QUARKX1000_IMR_CNT) {
+    quarkX1000_imr_write(imr_idx, imr);
+    imr_idx++;
   }
-  quarkX1000_gpio_init();
-
-  ENABLE_IRQ();
-
-  process_init();
-  procinit_init();
-  ctimer_init();
-  autostart_start(autostart_processes);
-
-  eth_init();
-
-  shared_isr_init();
-
-  while(1) {
-    process_run();
-  }
-
-  return 0;
 }
+/*---------------------------------------------------------------------------*/

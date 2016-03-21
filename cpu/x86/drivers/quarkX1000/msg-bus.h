@@ -28,64 +28,23 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
+#ifndef CPU_X86_DRIVERS_QUARKX1000_MSG_BUS_H_
+#define CPU_X86_DRIVERS_QUARKX1000_MSG_BUS_H_
 
-#include "contiki.h"
-#include "contiki-net.h"
-#include "cpu.h"
-#include "eth-conf.h"
-#include "galileo-pinmux.h"
-#include "gpio.h"
-#include "i2c.h"
-#include "imr-conf.h"
-#include "interrupt.h"
-#include "shared-isr.h"
-#include "uart.h"
+#include <stdint.h>
 
-PROCINIT(  &etimer_process
-         , &tcpip_process
-#if WITH_DNS
-         , &resolv_process
-#endif
-         );
+/* Routines for accessing the message bus.
+ *
+ * The Intel Quark X1000 SoC includes a message bus that is accessible
+ * via PCI configuration registers.  It communicates to various SoC
+ * components such as the Isolated Memory Region (IMR) registers and the
+ * Remote Management Unit.
+ *
+ * Refer to Intel Quark SoC X1000 Datasheet, Section 12.5 for more details on
+ * the message bus.
+ */
 
-int
-main(void)
-{
-  cpu_init();
-#ifdef X86_CONF_RESTRICT_DMA
-  quarkX1000_imr_conf();
-#endif
-  /* Initialize UART connected to Galileo Gen2 FTDI header */
-  quarkX1000_uart_init(QUARK_X1000_UART_1);
-  clock_init();
-  rtimer_init();
+void quarkX1000_msg_bus_read(uint8_t port, uint32_t reg_off, uint32_t *val);
+void quarkX1000_msg_bus_write(uint8_t port, uint32_t reg_off, uint32_t val);
 
-  printf("Starting Contiki\n");
-
-  quarkX1000_i2c_init();
-  quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED_STANDARD,
-                           QUARKX1000_I2C_ADDR_MODE_7BIT);
-  /* use default pinmux configuration */
-  if(galileo_pinmux_initialize() < 0) {
-    fprintf(stderr, "Failed to initialize pinmux\n");
-  }
-  quarkX1000_gpio_init();
-
-  ENABLE_IRQ();
-
-  process_init();
-  procinit_init();
-  ctimer_init();
-  autostart_start(autostart_processes);
-
-  eth_init();
-
-  shared_isr_init();
-
-  while(1) {
-    process_run();
-  }
-
-  return 0;
-}
+#endif /* CPU_X86_DRIVERS_QUARKX1000_MSG_BUS_H_ */

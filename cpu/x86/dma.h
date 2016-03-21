@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
+ * Copyright (C) 2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,64 +28,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
+#ifndef CPU_X86_DMA_H_
+#define CPU_X86_DMA_H_
 
-#include "contiki.h"
-#include "contiki-net.h"
-#include "cpu.h"
-#include "eth-conf.h"
-#include "galileo-pinmux.h"
-#include "gpio.h"
-#include "i2c.h"
-#include "imr-conf.h"
-#include "interrupt.h"
-#include "shared-isr.h"
-#include "uart.h"
-
-PROCINIT(  &etimer_process
-         , &tcpip_process
-#if WITH_DNS
-         , &resolv_process
-#endif
-         );
-
-int
-main(void)
-{
-  cpu_init();
 #ifdef X86_CONF_RESTRICT_DMA
-  quarkX1000_imr_conf();
+#define ATTR_BSS_DMA __attribute__((section(".dma_bss")))
+#else
+#define ATTR_BSS_DMA
 #endif
-  /* Initialize UART connected to Galileo Gen2 FTDI header */
-  quarkX1000_uart_init(QUARK_X1000_UART_1);
-  clock_init();
-  rtimer_init();
 
-  printf("Starting Contiki\n");
-
-  quarkX1000_i2c_init();
-  quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED_STANDARD,
-                           QUARKX1000_I2C_ADDR_MODE_7BIT);
-  /* use default pinmux configuration */
-  if(galileo_pinmux_initialize() < 0) {
-    fprintf(stderr, "Failed to initialize pinmux\n");
-  }
-  quarkX1000_gpio_init();
-
-  ENABLE_IRQ();
-
-  process_init();
-  procinit_init();
-  ctimer_init();
-  autostart_start(autostart_processes);
-
-  eth_init();
-
-  shared_isr_init();
-
-  while(1) {
-    process_run();
-  }
-
-  return 0;
-}
+#endif /* CPU_X86_DMA_H_ */
