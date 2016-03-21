@@ -33,7 +33,7 @@
 
 #define PATTERN_FILL  FILL_SEQUENTIAL
 
-#if 1
+#if 0
 // good for Z1 and sky
 #define PACKET_SEND_INTERVAL      (RTIMER_ARCH_SECOND/200) 
 #define PREAMBLE_SEND_INTERVAL      (RTIMER_ARCH_SECOND/512)

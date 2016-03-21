@@ -35,7 +35,7 @@ PROCESS_NAME(samplingProcess);
 
 #define READY_PRINT_INTERVAL (CLOCK_SECOND * 5)
 
-#if 1
+#if 0
 
 // FOR SIMULATOR
 const uint16_t SCHEDULE[] = {
@@ -64,23 +64,9 @@ const uint16_t SCHEDULE[] = {
 
 // The first 4 elements define the relay nodes.
 const uint16_t SCHEDULE[] = {
-    138,   //    0x7a8c, // ok
+  49605,   //    0x7a8c, // ok
     28473, //    0xbcde,
     0x85bf,
-    0x2108, // 36, // 0x24, // 0xb54f,  // RS2 FTF66YX5
-
-    38, // 0x26, // 0x8ab7,
-    0x8d7e,
-    37, // 0x25, // 0x8e50,
-    0x9755, // ok
-    33, // 0x21, // 0xa191,
-    0xa4c5,
-    54, // 0x36, // 0x6c0c,
-    34, // 0x22, // 0xaf14,
-    0xc2b5,
-    0xc087,
-    45, //0x2d, // 0xc400,
-    0x2335 //124 //0x7c, // 0xc75d     // RS2 AI02DVJ2
 };
 
 #endif
@@ -116,16 +102,16 @@ static struct etimer periodic;
 
 struct {
     uint16_t fine;
-    // uint16_t zeroLength; // usually signal errors at radio driver level
-    // uint16_t tooShort;
-    // uint16_t tooLong;
-    // uint16_t badHeader;
-    // uint16_t badContents;
+#if TRACK_ERRORS
+    uint16_t zeroLength; // usually signal errors at radio driver level
+    uint16_t tooShort;
+    uint16_t tooLong;
+    uint16_t badHeader;
+    uint16_t badContents;
     // // set only when badContents=false, but the PHY level reports a CRC error
-    // uint16_t badPHYCrcGoodContents;
-
+    uint16_t badPHYCrcGoodContents;
+#endif
     uint16_t total;
-
     // set by radio driver, not included in the total count
     uint16_t phyCrcErrors;
 
@@ -240,7 +226,8 @@ void printStats(void)
         lqi = lqiSum / errors.fine;
     }
 //    printfCrc("> %u %d %u %u %u",
-    printfCrc("%u %u %d %u %u %u",
+//    printfCrc("%u %u %d %u %u %u",
+    printf("%u %u %d %u %u %u\n",
             errors.fine, errors.total, rssi, lqi,
             SCHEDULE[currentScheduleNr],
             testChannel);
@@ -259,7 +246,8 @@ void printStats(void)
   
 #if TRACK_ERRORS
     puts("Error statistics:");
-    printfCrc(" %u total packets, %u/%u/%u length errors, %u/%u corrupt packets",
+    //printfCrc(" %u total packets, %u/%u/%u length errors, %u/%u corrupt packets",
+    printf(" %u total packets, %u/%u/%u length errors, %u/%u corrupt packets\n",
             errors.fine + errors.zeroLength +
             errors.tooShort + errors.tooLong +
             errors.badHeader + errors.badContents +
@@ -269,10 +257,12 @@ void printStats(void)
             errors.badHeader,
             errors.badContents);
     if (errors.phyCrcErrors) {
-        printfCrc(" %u bad PHY CRC",  errors.phyCrcErrors);
+      //printfCrc(" %u bad PHY CRC",  errors.phyCrcErrors);
+      printf(" %u bad PHY CRC\n",  errors.phyCrcErrors);
     }
     if (errors.badPHYCrcGoodContents) {
-        printfCrc(" %u bad PHY CRC with corruption undetected", errors.badPHYCrcGoodContents);
+      //printfCrc(" %u bad PHY CRC with corruption undetected", errors.badPHYCrcGoodContents);
+      printf(" %u bad PHY CRC with corruption undetected\n", errors.badPHYCrcGoodContents);
     }
 #endif
     clearErrors();
@@ -308,7 +298,6 @@ uint8_t selectNextState(void)
         process_poll(&samplingProcess);
         radio_set_channel(DEFAULT_CHANNEL);
         //radio_set_txpower(DEFAULT_TXPOWER);
-
         printf("ns=%d\n", numTestsInSenderRole);
 	numTestsInSenderRole = 0;
         return currentState;
@@ -531,6 +520,7 @@ static void inputPacket(void)
         return;
     }
 
+    cli();
     uint16_t numNibbleErrors = patternCheck(
             (uint16_t *)packetbuf_hdrptr(),
             TEST_PACKET_SIZE,
@@ -544,6 +534,7 @@ static void inputPacket(void)
             NULL, NULL, NULL
 #endif
         );
+    sei();
 
     if (numNibbleErrors) {
 #if DEBUG
@@ -631,6 +622,7 @@ static void handle_serial_input(const char *line)
         //     for (;;);
         // }
 
+	printf("node_id=%u\n", node_id);
         if (IS_INITIATOR(node_id)) {
             currentState = STATE_PREAMBLE_PREPARE;
             numTestsInSenderRole = 0;
@@ -652,12 +644,14 @@ static void handle_serial_input(const char *line)
         //radio_set_txpower(DEFAULT_TXPOWER);
         etimer_set(&periodic, READY_PRINT_INTERVAL);
     }
+#ifdef CONTIKI_TARGET_AVR_RSS2
     else if (!strcmp(line, "upgr") || !strcmp(line, "upgrade")) {
         puts("command accepted");
 	cli();
 	wdt_enable(WDTO_15MS);
 	while(1);
     }
+#endif
 }
 
 //-------------------------------------------------------------
@@ -679,6 +673,12 @@ PROCESS_THREAD(controlProcess, ev, data)
     SENSORS_ACTIVATE(button_sensor);
 #endif
 
+#if 1
+    NETSTACK_RADIO.off();
+    rf230_set_rpc(0x0); /* Disbable all RPC features */
+    NETSTACK_RADIO.on();
+#endif
+
     radio_set_channel(DEFAULT_CHANNEL);
     //radio_set_txpower(TEST_TXPOWER);
 
@@ -691,7 +691,7 @@ PROCESS_THREAD(controlProcess, ev, data)
     for(;;) {
         PROCESS_WAIT_EVENT();
 
-        printf("event %u (%u) at %u, data %p\n", (uint16_t)ev, (uint16_t)serial_line_event_message, currentState, data);
+        //printf("event %u (%u) at %u, data %p\n", (uint16_t)ev, (uint16_t)serial_line_event_message, currentState, data);
 
         switch(currentState) {
         case STATE_IDLE:
@@ -716,8 +716,7 @@ PROCESS_THREAD(controlProcess, ev, data)
                 puts("click accepted!");
                 currentState = STATE_PREAMBLE_PREPARE;
                 radio_set_channel(DEFAULT_CHANNEL);
-                //radio_set_txpower(DEFAULT_TXPOWER);
-
+		//radio_set_txpower(DEFAULT_TXPOWER);
                 // do the selection here, as it may be time consuming
                 testChannel = selectNextChannel();
 
