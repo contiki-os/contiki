@@ -1,6 +1,6 @@
 TARGET=galileo
 
-KNOWN_EXAMPLES = gpio-input gpio-output gpio-interrupt i2c-LSM9DS0 i2c-callbacks
+KNOWN_EXAMPLES = gpio-input gpio-output gpio-interrupt i2c-LSM9DS0 i2c-callbacks print-imr
 
 ifeq ($(filter $(EXAMPLE),$(KNOWN_EXAMPLES)),)
     $(info Set the variable EXAMPLE to one of the following Galileo-specific examples:)

@@ -33,6 +33,8 @@ Device drivers:
   * I2C
   * GPIO (default pinmux configuration is listed in
     platform/galileo/drivers/galileo-pinmux.c)
+  * Intel Quark X1000 SoC message bus
+  * Isolated Memory Regions (IMRs)
 
 Contiki APIs:
   * Clock module
@@ -83,6 +85,12 @@ you can run the following command prior to building applications:
 ```
 $ cpu/x86/uefi/build_uefi.sh
 ```
+
+To restrict DMA so that peripherals are blocked from accessing memory
+regions that do not contain any data that needs to be DMA-accessible,
+specify X86_CONF_RESTRICT_DMA=1 as a command-line argument to the make
+command that is used to build the image.  This will configure and lock
+the IMRs.
 
 Running
 -------
