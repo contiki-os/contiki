@@ -222,6 +222,26 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name ENC28J60 SPI ETHERNET IOID mapping
+ *
+ * Those values are not meant to be modified by the user, for now using
+ * same LCD configuration
+ * @{
+ */
+
+#define BOARD_IOID_SPI_ETHERNET_CS       IOID_14
+#define BOARD_IOID_SPI_ETHERNET_RST      IOID_5
+#define BOARD_IOID_SPI_ETHERNET_MISO     BOARD_IOID_SPI_MISO
+#define BOARD_IOID_SPI_ETHERNET_MOSI     BOARD_IOID_SPI_MOSI
+#define BOARD_IOID_SPI_ETHERNET_SCK      BOARD_IOID_SPI_SCK
+#define BOARD_SPI_ETHERNET_CS            (1 << BOARD_IOID_SPI_ETHERNET_CS)
+#define BOARD_SPI_ETHERNET_RST           (1 << BOARD_IOID_SPI_ETHERNET_RST)
+#define BOARD_SPI_ETHERNET_MISO          BOARD_SPI_MISO
+#define BOARD_SPI_ETHERNET_MOSI          BOARD_SPI_MOSI
+#define BOARD_SPI_ETHERNET_SCK           BOARD_SPI_SCK
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name Device string used on startup
  * @{
  */
