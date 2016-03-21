@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, Atto Engenharia de Sistemas - http://attosistemas.com.br/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc26xx-srf-tag
+ * \addtogroup cc13xx-attom-tag
  * @{
  *
  * \file
- *  Configuration for the srf06-cc26xx platform
+ *  Configuration for the attom-cc13xx platform
  */
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H

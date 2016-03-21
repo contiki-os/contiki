@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, Atto Engenharia de Sistemas - http://attosistemas.com.br/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +28,19 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-/** \addtogroup cc26xx-srf-tag
+/** \addtogroup cc13xx-attom-tag
  * @{
  *
- * \defgroup srf06-cc13xx-peripherals Peripherals for the SmartRF06EB + CC1310EM
+ * \defgroup attom-cc13xx-peripherals Peripherals for the AttoM + CC1310
  *
- * Defines related to the SmartRF06 Evaluation Board with a CC1310EM
- *
- * This file provides connectivity information on LEDs, Buttons, UART and
- * other peripherals
- *
- * This file can be used as the basis to configure other boards using the
- * CC13xx/CC26xx code as their basis.
+ * Defines related to the AttoM Board with a TI CC1310.
  *
  * This file is not meant to be modified by the user.
  * @{
  *
  * \file
- * Header file with definitions related to the I/O connections on the TI
- * SmartRF06 Evaluation Board with a CC1310EM
+ * Header file with definitions related to the I/O connections on the AttoM
+ * Board with a TI CC1310.
  *
  * \note   Do not include this file directly. It gets included by contiki-conf
  *         after all relevant directives have been set.
@@ -231,7 +225,7 @@
  * \name Device string used on startup
  * @{
  */
-#define BOARD_STRING "TI SmartRF06EB + CC13xx EM"
+#define BOARD_STRING "AttoM CC1310"
 /** @} */
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_H_ */

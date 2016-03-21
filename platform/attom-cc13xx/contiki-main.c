@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, Atto Engenharia de Sistemas - http://attosistemas.com.br/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,13 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc26xx-platforms
+ * \addtogroup cc13xx-platforms
  * @{
  *
- * \defgroup cc26xx-srf-tag SmartRF+CC13xx/CC26xx EM and the CC2650 SensorTag
+ * \defgroup cc13xx-attom-tag AttoM+CC1310
  *
- * This platform supports a number of different boards:
- * - A standard TI SmartRF06EB with a CC26xx EM mounted on it
- * - A standard TI SmartRF06EB with a CC1310 EM mounted on it
- * - The new TI SensorTag2.0
+ * This platform supports:
+ * - A AttoM board with a CC1310 mounted on it
  * @{
  */
 #include "ti-lib.h"

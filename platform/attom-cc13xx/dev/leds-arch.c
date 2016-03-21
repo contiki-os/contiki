@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, Atto Engenharia de Sistemas - http://attosistemas.com.br/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,11 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup srf06-common-peripherals
+ * \addtogroup attom-cc13xx-peripherals
  * @{
  *
  * \file
- * Driver for the SmartRF06EB LEDs when a CC13xx/CC26xx EM is mounted on it
+ * Driver for the AttoM LEDs when a CC1310 is mounted on it.
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
