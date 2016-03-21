@@ -2,7 +2,7 @@ CFLAGS += -DBOARD_SMARTRF06EB=1
 
 CONTIKI_TARGET_DIRS += attom
 
-BOARD_SOURCEFILES += leds-arch.c board.c
+BOARD_SOURCEFILES += leds-arch.c button-sensor.c attom-sensors.c board.c
 
 PYTHON = python
 BSL_FLAGS += -e -w -v

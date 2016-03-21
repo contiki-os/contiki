@@ -30,9 +30,7 @@ ifndef SMALL
   SMALL = 0
 endif
 
-### Define the CPU directory and pull in the correct CPU makefile. This will
-### be defined by one of the makefiles included above and it can be either
-### Makefile.cc26xx or Makefile.cc13xx
+### Define the CPU directory and pull in the correct CPU makefile.
 CONTIKI_CPU=$(CONTIKI)/cpu/cc26xx-cc13xx
 include $(CONTIKI_CPU)/Makefile.$(CPU_FAMILY)
 
