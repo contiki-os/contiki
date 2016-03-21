@@ -35,4 +35,3 @@ CONTIKI_CPU=$(CONTIKI)/cpu/cc26xx-cc13xx
 include $(CONTIKI_CPU)/Makefile.$(CPU_FAMILY)
 
 MODULES += core/net core/net/mac core/net/mac/contikimac core/net/llsec
-MODULES += core/net/ip64 dev/enc28j60

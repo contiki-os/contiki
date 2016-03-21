@@ -1,8 +1,9 @@
 CFLAGS += -DBOARD_SMARTRF06EB=1
+CFLAGS += -DUIP_FALLBACK_INTERFACE=ip64_uip_fallback_interface
 
-CONTIKI_TARGET_DIRS += attom
+CONTIKI_TARGET_DIRS += eth-router
 
-BOARD_SOURCEFILES += leds-arch.c button-sensor.c attom-sensors.c board.c
+BOARD_SOURCEFILES += leds-arch.c button-sensor.c attom-sensors.c board.c enc28j60-gpio-arch.c
 
 PYTHON = python
 BSL_FLAGS += -e -w -v
@@ -19,3 +20,5 @@ ifeq ($(wildcard $(BSL)), )
 else
 	$(PYTHON) $(BSL) $(BSL_FLAGS) $<
 endif
+
+MODULES += core/net/ip64 dev/enc28j60

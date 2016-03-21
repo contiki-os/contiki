@@ -31,7 +31,7 @@
 /** \addtogroup cc13xx-attom-tag
  * @{
  *
- * \defgroup attom-cc13xx-ip64-router
+ * \defgroup attom-gateway-cc13xx-ip64-router
  *
  * Defines related to the AttoM Board with a TI CC1310.
  *
@@ -40,7 +40,7 @@
  *
  * \file
  * Header file with definitions related to the I/O connections on the AttoM
- * Board with a TI CC1310.
+ * Gateway Board with a TI CC1310.
  *
  * \note   Do not include this file directly. It gets included by contiki-conf
  *         after all relevant directives have been set.
