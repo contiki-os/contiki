@@ -37,20 +37,20 @@ SECTIONS {
        OS-Dev Wiki says it is common for kernels to start at 1M. Addresses before that
        are used by BIOS/EFI, the bootloader and memory-mapped I/O.
 
-       The UEFI GenFw program inserts a 0x240-byte offset between the image base and
+       The UEFI GenFw program inserts a 0x220-byte offset between the image base and
        the .text section.  We add that same offset here to align the symbols in the
        UEFI DLL with those in the final UEFI binary to make debugging easier.  We also
        apply 32-byte alignments to sections rather than more conventional 4K-byte
        alignments to avoid symbols being shifted from the intermediate DLL to the
        final UEFI image as would occur if the GenFw program shifted the .text section
-       from a higher, 4K-aligned offset to the 0x240-byte offset from the image base.
+       from a higher, 4K-aligned offset to the 0x220-byte offset from the image base.
        Such shifting may make debugging more difficult by preventing the DLL from
        being a directly-useful source of symbol information.  The debugging symbols
        are not included in the final UEFI image.  The GenFw program uses a minimum
        section alignment of 32 bytes, so smaller alignment granularities may also
        result in symbol perturbation.
     */
-    . = 1M + 0x240;
+    . = 1M + 0x220;
 
     .text ALIGN (32) :
     {
