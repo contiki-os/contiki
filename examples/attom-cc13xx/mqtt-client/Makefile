@@ -3,5 +3,5 @@ all: $(CONTIKI_PROJECT)
 
 APPS = mqtt
 
-CONTIKI=../..
+CONTIKI=../../..
 include $(CONTIKI)/Makefile.include
