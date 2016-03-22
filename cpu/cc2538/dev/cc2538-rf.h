@@ -129,6 +129,15 @@
   REG(RFCORE_SFR_RFST) = CC2538_RF_CSP_OP_ISFLUSHTX; \
   REG(RFCORE_SFR_RFST) = CC2538_RF_CSP_OP_ISFLUSHTX; \
 } while(0)
+/*---------------------------------------------------------------------------
+ * MAC timer
+ *---------------------------------------------------------------------------*/
+/* Timer conversion */
+#define RADIO_TO_RTIMER(X) ((X) * RTIMER_ARCH_SECOND / SYS_CTRL_32MHZ)
+
+#define CLOCK_STABLE() do {															\
+			while ( !(REG(SYS_CTRL_CLOCK_STA) & (SYS_CTRL_CLOCK_STA_XOSC_STB)));	\
+		} while(0)
 /*---------------------------------------------------------------------------*/
 /** The NETSTACK data structure for the cc2538 RF driver */
 extern const struct radio_driver cc2538_rf_driver;
