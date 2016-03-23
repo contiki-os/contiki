@@ -961,7 +961,7 @@ get_object(radio_param_t param, void *dest, size_t size)
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
-    *(rtimer_clock_t*)dest = cc2538_sfd_rtime;
+    *(rtimer_clock_t*)dest = get_sfd_timestamp();
     return RADIO_RESULT_OK;
   }
   
