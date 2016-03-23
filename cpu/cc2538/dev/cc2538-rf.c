@@ -120,16 +120,15 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 #define CC2538_RF_AUTOACK 1
 #endif
 /*---------------------------------------------------------------------------*/
-#if CC2538_RF_CONF_SFD_TIMESTAMPS
-static rtimer_clock_t volatile cc2538_sfd_rtime;
-#endif
-
 /* Are we currently in poll mode? Disabled by default */
 static uint8_t volatile poll_mode = 0;
 /* Do we perform a CCA before sending? Enabled by default. */
 static uint8_t send_on_cca = 1;
 static int8_t rssi;
 static uint8_t crc_corr;
+
+void mac_timer_init(void);
+uint32_t get_sfd_timestamp(void);
 /*---------------------------------------------------------------------------*/
 static uint8_t rf_flags;
 static uint8_t rf_channel = CC2538_RF_CHANNEL;
@@ -347,13 +346,14 @@ set_poll_mode(uint8_t enable)
   if(enable) {
     REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_FIFOP;	// mask out FIFOP interrupt source
     REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_FIFOP;	// clear pending FIFOP interrupt
-    REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_SFD;	// enable SFD interrupt source
+    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_SFD;	// disable SFD interrupt source
+    nvic_interrupt_disable(NVIC_INT_RF_RXTX);
   } else {
     REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;	// enable FIFOP interrupt source
-    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_SFD;	// mask out SFD interrupt source
-    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;		// clear pending SFD interrupt
+    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_SFD;   // mask out SFD interrupt source
+    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;	    // clear pending SFD interrupt
+    nvic_interrupt_enable(NVIC_INT_RF_RXTX);			    // enable RF interrupts
   }
-  nvic_interrupt_enable(NVIC_INT_RF_RXTX);			        // enable RF interrupts
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -520,6 +520,8 @@ init(void)
      */
     udma_set_channel_src(CC2538_RF_CONF_RX_DMA_CHAN, RFCORE_SFR_RFDATA);
   }
+  
+  mac_timer_init();
   
   set_poll_mode(poll_mode);
 
@@ -956,15 +958,11 @@ get_object(radio_param_t param, void *dest, size_t size)
   }
   
   if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
-#if CC2538_RF_CONF_SFD_TIMESTAMPS
     if(size != sizeof(rtimer_clock_t) || !dest) {
       return RADIO_RESULT_INVALID_VALUE;
     }
     *(rtimer_clock_t*)dest = cc2538_sfd_rtime;
     return RADIO_RESULT_OK;
-#else
-    return RADIO_RESULT_NOT_SUPPORTED;
-#endif
   }
   
   return RADIO_RESULT_NOT_SUPPORTED;
@@ -1071,14 +1069,6 @@ cc2538_rf_rx_tx_isr(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   
-#if CC2538_RF_CONF_SFD_TIMESTAMPS
-  if(poll_mode) {
-    if(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE) {
-      cc2538_sfd_rtime = RTIMER_NOW();
-    }
-  }
-#endif
-
   if(!poll_mode) {
     process_poll(&cc2538_rf_process);
   }
@@ -1128,6 +1118,41 @@ void
 cc2538_rf_set_promiscous_mode(char p)
 {
   set_frame_filtering(p);
+}
+/*---------------------------------------------------------------------------*/
+uint32_t get_sfd_timestamp(void)
+{
+  uint32_t sfd, timer_val;
+
+  REG(RFCORE_SFR_MTMSEL) = (REG(RFCORE_SFR_MTMSEL) & ~RFCORE_SFR_MTMSEL_MTMSEL) | 0x00000000;
+  REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_LATCH_MODE;
+  timer_val = REG(RFCORE_SFR_MTM0) & RFCORE_SFR_MTM0_MTM0;
+  timer_val |= ((REG(RFCORE_SFR_MTM1) & RFCORE_SFR_MTM1_MTM1) << 8);
+  REG(RFCORE_SFR_MTMSEL) = (REG(RFCORE_SFR_MTMSEL) & ~RFCORE_SFR_MTMSEL_MTMOVFSEL) | 0x00000000;
+  timer_val |= ((REG(RFCORE_SFR_MTMOVF0) & RFCORE_SFR_MTMOVF0_MTMOVF0) << 16);
+  timer_val |= ((REG(RFCORE_SFR_MTMOVF1) & RFCORE_SFR_MTMOVF1_MTMOVF1) << 24);
+
+  REG(RFCORE_SFR_MTMSEL) = (REG(RFCORE_SFR_MTMSEL) & ~RFCORE_SFR_MTMSEL_MTMSEL) | 0x00000001;
+  REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_LATCH_MODE;
+  sfd = REG(RFCORE_SFR_MTM0) & RFCORE_SFR_MTM0_MTM0;
+  sfd |= ((REG(RFCORE_SFR_MTM1) & RFCORE_SFR_MTM1_MTM1) << 8);
+  REG(RFCORE_SFR_MTMSEL) = (REG(RFCORE_SFR_MTMSEL) & ~RFCORE_SFR_MTMSEL_MTMOVFSEL) | 0x00000010;
+  sfd |= ((REG(RFCORE_SFR_MTMOVF0) & RFCORE_SFR_MTMOVF0_MTMOVF0) << 16);
+  sfd |= ((REG(RFCORE_SFR_MTMOVF1) & RFCORE_SFR_MTMOVF1_MTMOVF1) << 24);
+
+  return (RTIMER_NOW() - RADIO_TO_RTIMER(timer_val - sfd));
+}
+/*---------------------------------------------------------------------------*/
+void mac_timer_init(void)
+{
+  CLOCK_STABLE();
+  REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_SYNC;
+  REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_RUN;
+  while(!(REG(RFCORE_SFR_MTCTRL) & RFCORE_SFR_MTCTRL_STATE));
+  REG(RFCORE_SFR_MTCTRL) &= ~RFCORE_SFR_MTCTRL_RUN;
+  while(REG(RFCORE_SFR_MTCTRL) & RFCORE_SFR_MTCTRL_STATE);
+  REG(RFCORE_SFR_MTCTRL) |= (RFCORE_SFR_MTCTRL_RUN | RFCORE_SFR_MTCTRL_SYNC);
+  while(!(REG(RFCORE_SFR_MTCTRL) & RFCORE_SFR_MTCTRL_STATE));
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
