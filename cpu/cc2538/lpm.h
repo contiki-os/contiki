@@ -140,6 +140,11 @@ void lpm_init(void);
 void lpm_enter(void);
 
 /**
+ * Ensure that an interrupt will wake up the device again.
+ */
+void lpm_enter_pm2(void);
+
+/**
  * \brief Perform an 'Exit Deep Sleep' sequence
  *
  * This routine is called from within the context of the ISR that caused us to

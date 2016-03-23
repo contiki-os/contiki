@@ -351,6 +351,14 @@ lpm_enter()
 }
 /*---------------------------------------------------------------------------*/
 void
+lpm_enter_pm2(void)
+{
+  select_16_mhz_rcosc();
+  REG(SYS_CTRL_PMCTL) = SYS_CTRL_PMCTL_PM2;
+  assert_wfi();
+}
+/*---------------------------------------------------------------------------*/
+void
 lpm_set_max_pm(uint8_t pm)
 {
   max_pm = pm > LPM_CONF_MAX_PM ? LPM_CONF_MAX_PM : pm;
