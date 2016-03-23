@@ -67,10 +67,6 @@
 #define TSCH_CALLBACK_JOINING_NETWORK tsch_rpl_callback_joining_network
 #define TSCH_CALLBACK_LEAVING_NETWORK tsch_rpl_callback_leaving_network
 
-/* Needed for cc2538 platform only */
-/* Enable SFD timestamp (uses SFD interrupt) */
-#undef CC2538_RF_CONF_SFD_TIMESTAMPS
-#define CC2538_RF_CONF_SFD_TIMESTAMPS		1
 /* For TSCH we have to use the more accurate crystal oscillator
  * by default the RC oscillator is activated */
 #undef SYS_CTRL_CONF_OSC32K_USE_XTAL
