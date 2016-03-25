@@ -199,8 +199,8 @@ tsch_reset(void)
   frame802154_set_pan_id(0xffff);
   /* First make sure pending packet callbacks are sent etc */
   process_post_synch(&tsch_pending_events_process, PROCESS_EVENT_POLL, NULL);
-  /* Empty all neighbor queues */
-  /* tsch_queue_flush_all(); */
+  /* Reset neighbor queues */
+  tsch_queue_reset();
   /* Remove unused neighbors */
   tsch_queue_free_unused_neighbors();
   tsch_queue_update_time_source(NULL);
