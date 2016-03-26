@@ -100,7 +100,7 @@ PROCESS_THREAD(http_example_process, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     etimer_reset(&et);
-    if(connect && rpl_has_downward_link()) {
+    if(connect && rpl_has_downward_route()) {
       printf("#A color=green\n");
       http_socket_get(&s, "http://www.contiki-os.org/", 0, 0,
 		      callback, NULL);

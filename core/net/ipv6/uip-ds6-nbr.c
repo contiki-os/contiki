@@ -83,7 +83,7 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
                 void *data)
 {
   uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr
-                                            ,reason, data);
+                                            , reason, data);
   if(nbr) {
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
 #if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER

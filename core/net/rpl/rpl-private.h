@@ -94,7 +94,7 @@
 #define RPL_DAO_ACK_UNCONDITIONAL_ACCEPT 0
 #define RPL_DAO_ACK_ACCEPT               1   /* 1 - 127 is OK but not good */
 #define RPL_DAO_ACK_UNABLE_TO_ACCEPT     128 /* >127 is fail */
-#define RPL_DAO_ACK_UNABLE_TO_ACCEPT_ROOT 255 /* root can not accept */
+#define RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT 255 /* root can not accept */
 
 #define RPL_DAO_ACK_TIMEOUT              -1
 
