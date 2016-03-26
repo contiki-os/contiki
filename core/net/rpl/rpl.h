@@ -181,11 +181,19 @@ typedef struct rpl_instance rpl_instance_t;
  *  Updates the metric container for outgoing DIOs in a certain DAG.
  *  If the objective function of the DAG does not use metric containers,
  *  the function should set the object type to RPL_DAG_MC_NONE.
+ *
+ * dao_ack_callback(parent, status)
+ *
+ * A callback on the result of the DAO ACK. Similar to the neighbor link
+ * callback. A failed DAO_ACK (NACK) can be used for switching to another
+ * parent via changed link metric or other mechanisms.
  */
 struct rpl_of {
   void (*reset)(struct rpl_dag *);
   void (*neighbor_link_callback)(rpl_parent_t *, int, int);
+#if RPL_WITH_DAO_ACK
   void (*dao_ack_callback)(rpl_parent_t *, int status);
+#endif
   rpl_parent_t *(*best_parent)(rpl_parent_t *, rpl_parent_t *);
   rpl_dag_t *(*best_dag)(rpl_dag_t *, rpl_dag_t *);
   rpl_rank_t (*calculate_rank)(rpl_parent_t *, rpl_rank_t);
@@ -220,6 +228,8 @@ struct rpl_instance {
   /* my last registered DAO that I might be waiting for ACK on */
   uint8_t my_dao_seqno;
   uint8_t my_dao_transmissions;
+  /* this is intended to keep track if this instance have a route downward */
+  uint8_t has_downward_route;
   rpl_rank_t max_rankinc;
   rpl_rank_t min_hoprankinc;
   uint16_t lifetime_unit; /* lifetime in seconds = l_u * d_l */
@@ -302,11 +312,11 @@ enum rpl_mode rpl_get_mode(void);
 
 
 /**
- * Get the RPL's best guess on if we have downward link or not.
+ * Get the RPL's best guess on if we have downward route or not.
  *
- * \retval 1 if we have a downward link, 0 if not.
+ * \retval 1 if we have a downward route from RPL Root, 0 if not.
  */
-int rpl_has_downward_link(void);
+int rpl_has_downward_route(void);
 
 /*---------------------------------------------------------------------------*/
 #endif /* RPL_H */

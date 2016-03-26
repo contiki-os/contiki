@@ -90,7 +90,6 @@ void RPL_DEBUG_DAO_OUTPUT(rpl_parent_t *);
 #endif
 
 static uint8_t dao_sequence = RPL_LOLLIPOP_INIT;
-static uint8_t downward = 0;
 
 extern rpl_of_t RPL_OF;
 
@@ -104,18 +103,6 @@ UIP_ICMP6_HANDLER(dio_handler, ICMP6_RPL, RPL_CODE_DIO, dio_input);
 UIP_ICMP6_HANDLER(dao_handler, ICMP6_RPL, RPL_CODE_DAO, dao_input);
 UIP_ICMP6_HANDLER(dao_ack_handler, ICMP6_RPL, RPL_CODE_DAO_ACK, dao_ack_input);
 /*---------------------------------------------------------------------------*/
-
-void
-rpl_set_downward_link(uint8_t link)
-{
-  downward = link;
-}
-
-int
-rpl_has_downward_link()
-{
-  return downward;
-}
 
 #if RPL_WITH_DAO_ACK
 static uip_ds6_route_t *
@@ -215,8 +202,10 @@ rpl_icmp6_update_nbr_table(uip_ipaddr_t *from, nbr_table_reason_t reason, void *
 
   if(nbr != NULL) {
 #if UIP_ND6_SEND_NA
-    /* set reachable timer if we added or found the nbr entry */
+    /* set reachable timer if we added or found the nbr entry - and update
+       neighbor entry to reachable to avoid sending NS/NA, etc.  */
     stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+    nbr->state = NBR_REACHABLE;
 #endif /* UIP_ND6_SEND_NA */
   }
   return nbr;
@@ -833,7 +822,7 @@ dao_input(void)
     if(flags & RPL_DAO_K_FLAG) {
       /* signal the failure to add the node */
       dao_ack_output(instance, &dao_sender_addr, sequence,
-		     is_root ? RPL_DAO_ACK_UNABLE_TO_ACCEPT_ROOT :
+		     is_root ? RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT :
 		     RPL_DAO_ACK_UNABLE_TO_ACCEPT);
     }
     goto discard;
@@ -846,7 +835,7 @@ dao_input(void)
     if(flags & RPL_DAO_K_FLAG) {
       /* signal the failure to add the node */
       dao_ack_output(instance, &dao_sender_addr, sequence,
-		     is_root ? RPL_DAO_ACK_UNABLE_TO_ACCEPT_ROOT :
+		     is_root ? RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT :
 		     RPL_DAO_ACK_UNABLE_TO_ACCEPT);
     }
     goto discard;
@@ -864,8 +853,12 @@ fwd_dao:
     int should_ack = 0;
 
     if(flags & RPL_DAO_K_FLAG) {
-      /* check if this route is already installed and we can ack now! */
-      /* not pending - and same seq-no means that we can ack.         */
+      /*
+       * check if this route is already installed and we can ack now!
+       * not pending - and same seq-no means that we can ack.
+       * (e.g. the route is installed already so it will not take any
+       * more room that it already takes - so should be ok!)
+       */
       if((!RPL_ROUTE_IS_DAO_PENDING(rep) &&
           rep->state.dao_seqno_in == sequence) ||
           dag->rank == ROOT_RANK(instance)) {
@@ -992,7 +985,7 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
 #else
    /* We know that we have tried to register so now we are assuming
       that we have a down-link - unless this is a zero lifetime one */
-  rpl_set_downward_link(lifetime != RPL_ZERO_LIFETIME);
+  parent->dag->instance->has_downward_route = lifetime != RPL_ZERO_LIFETIME;
 #endif /* RPL_WITH_DAO_ACK */
 
   /* Sending a DAO with own prefix as target */
@@ -1122,9 +1115,7 @@ dao_ack_input(void)
 
   parent = rpl_find_parent(instance->current_dag, &UIP_IP_BUF->srcipaddr);
   if(parent == NULL) {
-    /* not a known instance - did we switch?? */
-    //    PRINTF("RPL: Received a DAO ACK from a not joined instance: %d",
-    //	   instance_id);
+    /* not a known instance - drop the packet and ignore */
     uip_clear_buf();
     return;
   }
@@ -1136,7 +1127,7 @@ dao_ack_input(void)
   PRINTF("\n");
 
   if(sequence == instance->my_dao_seqno) {
-    rpl_set_downward_link(status < 128);
+    instance->has_downward_route = status < 128;
 
     /* always stop the retransmit timer when the ACK arrived */
     ctimer_stop(&instance->dao_retransmit_timer);
@@ -1148,8 +1139,10 @@ dao_ack_input(void)
 
 #if RPL_REPAIR_ON_DAO_NACK
     if(status >= RPL_DAO_ACK_UNABLE_TO_ACCEPT) {
-      /* failed the DAO transmission - need to remove the default route. */
-      /* Trigger a local repair since we can not get our DAO in... */
+      /*
+       * Failed the DAO transmission - need to remove the default route.
+       * Trigger a local repair since we can not get our DAO in.
+       */
       rpl_local_repair(instance);
     }
 #endif

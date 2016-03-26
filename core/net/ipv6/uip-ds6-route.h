@@ -124,6 +124,9 @@ void uip_ds6_notification_rm(struct uip_ds6_notification *n);
 #define RPL_ROUTE_SET_DAO_NACKED(route) do {                            \
     (route)->state.state_flags |= RPL_ROUTE_ENTRY_DAO_NACK;             \
   } while(0)
+#define RPL_ROUTE_CLEAR_DAO_NACKED(route) do {                          \
+    (route)->state.state_flags &= ~RPL_ROUTE_ENTRY_DAO_NACK;            \
+  } while(0)
 
 #define RPL_ROUTE_CLEAR_DAO(route) do {                                 \
     (route)->state.state_flags &= ~(RPL_ROUTE_ENTRY_DAO_NACK|RPL_ROUTE_ENTRY_DAO_PENDING); \
@@ -200,7 +203,7 @@ uip_ipaddr_t *uip_ds6_route_nexthop(uip_ds6_route_t *);
 int uip_ds6_route_num_routes(void);
 uip_ds6_route_t *uip_ds6_route_head(void);
 uip_ds6_route_t *uip_ds6_route_next(uip_ds6_route_t *);
-int uip_ds6_route_is_nexthop(const uip_lladdr_t *lladdr);
+int uip_ds6_route_is_nexthop(const uip_ipaddr_t *ipaddr);
 /** @} */
 
 #endif /* UIP_DS6_ROUTE_H */

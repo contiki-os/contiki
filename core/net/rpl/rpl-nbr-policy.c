@@ -72,6 +72,10 @@ static linkaddr_t *worst_rank_nbr; /* the parent that has the worst rank */
 static rpl_rank_t worst_rank;
 /*---------------------------------------------------------------------------*/
 #if DEBUG == DEBUG_FULL
+/*
+ * This create a periodic call of the update_nbr function that will print
+ * useful debugging information when in DEBUG_FULL mode
+ */
 static void update_nbr(void);
 static struct ctimer periodic_timer;
 static int timer_init = 0;
@@ -111,9 +115,12 @@ update_nbr(void)
     linkaddr_t *lladdr = nbr_table_get_lladdr(ds6_neighbors, nbr);
     is_used = 0;
 
-    /* Check if this neighbor is used as nexthop and therefor being a
-       RPL child. */
-    if(uip_ds6_route_is_nexthop((uip_lladdr_t *)lladdr) != 0) {
+    /*
+     * Check if this neighbor is used as nexthop and therefor being a
+     * RPL child.
+    */
+
+    if(uip_ds6_route_is_nexthop(&nbr->ipaddr) != 0) {
       is_used++;
       num_children++;
     }
@@ -123,10 +130,10 @@ update_nbr(void)
       num_parents++;
 
       if(parent->dag != NULL && parent->dag->preferred_parent == parent) {
-        /* This is the preferred parent for the DAG and must not be removed */
-
-        /* Note: this assumes that only RPL adds default routes. */
-
+        /*
+         * This is the preferred parent for the DAG and must not be removed
+         * Note: this assumes that only RPL adds default routes.
+         */
       } else if(is_used == 0 && worst_rank < INFINITE_RANK &&
                 parent->rank > 0 &&
                 parent->dag != NULL &&
@@ -168,9 +175,10 @@ find_removable_dis(uip_ipaddr_t *from)
 
   update_nbr();
   if(num_free > 0) {
-    printf("num-free > 0 = %d", num_free);
-    printf("**** Should remove unused elements but can not... \n");
-    /*    return 1; */
+    /* there are free entries (e.g. unsused by RPL and ND6) but since it is
+       used by other modules we can not pick these entries for removal. */
+    PRINTF("Num-free > 0 = %d - Other for RPL/ND6 unused NBR entry exists .",
+           num_free);
   }
   if(num_children < MAX_CHILDREN) {
     return worst_rank_nbr;
@@ -192,7 +200,7 @@ find_removable_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     return NULL;
   }
 
-  /* Add the new neighbor only if it is better than the preferred parent. */
+  /* Add the new neighbor only if it is better than the worst parent. */
   rank = instance->of->calculate_rank(NULL, dio->rank);
   if(rank < worst_rank - instance->min_hoprankinc / 2) {
     /* Found *great* neighbor - add! */
@@ -231,7 +239,8 @@ find_removable_dao(uip_ipaddr_t *from, rpl_instance_t *instance)
 }
 /*---------------------------------------------------------------------------*/
 const linkaddr_t *
-rpl_nbr_policy_find_removable(nbr_table_reason_t reason,void * data) {
+rpl_nbr_policy_find_removable(nbr_table_reason_t reason,void * data)
+{
   /* When we get the DIO/DAO/DIS we know that UIP contains the
      incoming packet */
   switch(reason) {

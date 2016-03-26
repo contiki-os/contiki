@@ -899,6 +899,18 @@ rpl_move_parent(rpl_dag_t *dag_src, rpl_dag_t *dag_dst, rpl_parent_t *parent)
   parent->dag = dag_dst;
 }
 /*---------------------------------------------------------------------------*/
+int
+rpl_has_downward_route(void)
+{
+  int i;
+  for(i = 0; i < RPL_MAX_INSTANCES; ++i) {
+    if(instance_table[i].used && instance_table[i].has_downward_route) {
+      return 1;
+    }
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 rpl_dag_t *
 rpl_get_any_dag(void)
 {
@@ -1157,8 +1169,6 @@ global_repair(uip_ipaddr_t *from, rpl_dag_t *dag, rpl_dio_t *dio)
   RPL_STAT(rpl_stats.global_repairs++);
 }
 
-void rpl_set_downward_link(uint8_t link);
-
 /*---------------------------------------------------------------------------*/
 void
 rpl_local_repair(rpl_instance_t *instance)
@@ -1177,8 +1187,8 @@ rpl_local_repair(rpl_instance_t *instance)
     }
   }
 
-  /* no downward link anymore */
-  rpl_set_downward_link(0);
+  /* no downward route anymore */
+  instance->has_downward_route = 0;
 
   rpl_reset_dio_timer(instance);
   /* Request refresh of DAO registrations next DIO */

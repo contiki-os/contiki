@@ -207,8 +207,15 @@ uip_ds6_route_next(uip_ds6_route_t *r)
 }
 /*---------------------------------------------------------------------------*/
 int
-uip_ds6_route_is_nexthop(const uip_lladdr_t *lladdr)
+uip_ds6_route_is_nexthop(const uip_ipaddr_t *ipaddr)
 {
+  const uip_lladdr_t *lladdr;
+  lladdr = uip_ds6_nbr_lladdr_from_ipaddr(ipaddr);
+
+  if(lladdr == NULL) {
+    return 0;
+  }
+
   return nbr_table_get_from_lladdr(nbr_routes, (linkaddr_t *)lladdr) != NULL;
 }
 /*---------------------------------------------------------------------------*/
