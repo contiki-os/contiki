@@ -80,7 +80,7 @@ contiki-cc2530dk.lib
 *.dsc
 
 #cc65 build artifacts
-*.S
+*.s
 *.eth
 *.dsk
 *.po
