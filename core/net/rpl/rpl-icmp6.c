@@ -797,10 +797,11 @@ dao_input_storing(void)
         uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
                        ICMP6_RPL, RPL_CODE_DAO, buffer_length);
       }
-    } 
+    }
     /* independent if we remove or not - ACK the request */
     if(flags & RPL_DAO_K_FLAG) {
       /* indicate that we accepted the no-path DAO */
+      uip_clear_buf();
       dao_ack_output(instance, &dao_sender_addr, sequence,
                      RPL_DAO_ACK_UNCONDITIONAL_ACCEPT);
     }
@@ -884,9 +885,9 @@ fwd_dao:
       uip_icmp6_send(rpl_get_parent_ipaddr(dag->preferred_parent),
                      ICMP6_RPL, RPL_CODE_DAO, buffer_length);
     }
-
     if(should_ack) {
       PRINTF("RPL: Sending DAO ACK\n");
+      uip_clear_buf();
       dao_ack_output(instance, &dao_sender_addr, sequence,
                      RPL_DAO_ACK_UNCONDITIONAL_ACCEPT);
     }
