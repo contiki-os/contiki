@@ -239,12 +239,8 @@ uip_icmp6_error_output(uint8_t type, uint8_t code, uint32_t param) {
       return;
     }
   } else {
-#if UIP_CONF_ROUTER
     /* need to pick a source that corresponds to this node */
     uip_ds6_select_src(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
-#else
-    uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
-#endif
   }
 
   UIP_ICMP_BUF->type = type;
