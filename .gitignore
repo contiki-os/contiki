@@ -129,3 +129,8 @@ LOG_OPENOCD
 # nRF52 build artifacts
 *.jlink
 *.nrf52dk
+
+# quark d2000 devboard bsp files
+platform/quark-d2000-devboard/bsp/toolchain/iamcu_toolchain_Linux_issm_2016.0.019*
+platform/quark-d2000-devboard/bsp/qmsi/qmsi-1.0.1/
+platform/quark-d2000-devboard/bsp/qmsi/v1.0.1.tar.gz
