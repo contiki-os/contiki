@@ -1,7 +1,3 @@
-CONTIKI_CPU_DIRS += . init/common
-
-CONTIKI_SOURCEFILES += gdt.c helpers.S idt.c cpu.c
-
 CC       = gcc
 LD       = $(CC)
 # Use gcc to invoke the assembler so that the preprocessor will be run on each

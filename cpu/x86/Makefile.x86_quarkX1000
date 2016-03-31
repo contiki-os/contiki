@@ -3,10 +3,10 @@ X86_CONF_PROT_DOMAINS ?= none
 
 include $(CONTIKI)/cpu/x86/Makefile.x86_common
 
-CONTIKI_CPU_DIRS += drivers/legacy_pc drivers/quarkX1000 init/legacy_pc net mm
+CONTIKI_CPU_DIRS += . drivers/legacy_pc drivers/quarkX1000 init/legacy_pc net mm
 
 CONTIKI_SOURCEFILES += bootstrap_quarkX1000.S rtc.c pit.c pic.c irq.c nmi.c pci.c uart-16x50.c uart.c gpio.c i2c.c eth.c shared-isr.c
-CONTIKI_SOURCEFILES += imr.c msg-bus.c
+CONTIKI_SOURCEFILES += imr.c msg-bus.c gdt.c helpers.S idt.c cpu.c
 CONTIKI_SOURCEFILES += stacks.c
 
 ifneq ($(X86_CONF_PROT_DOMAINS),none)
