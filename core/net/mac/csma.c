@@ -123,7 +123,6 @@ LIST(neighbor_list);
 
 static void packet_sent(void *ptr, int status, int num_transmissions);
 static void transmit_packet_list(void *ptr);
-
 /*---------------------------------------------------------------------------*/
 static struct neighbor_queue *
 neighbor_queue_from_addr(const linkaddr_t *addr)
@@ -150,7 +149,7 @@ default_timebase(void)
      does not turn the radio off), we make the retransmission time
      proportional to the configured MAC channel check rate. */
   if(time == 0) {
-    time = CLOCK_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE;
+    time = (CLOCK_SECOND / 3125) ? (CLOCK_SECOND / 3125) : 1;
   }
   return time;
 }
@@ -202,33 +201,115 @@ free_packet(struct neighbor_queue *n, struct rdc_buf_list *p, int status)
 }
 /*---------------------------------------------------------------------------*/
 static void
+tx_done(int status, struct rdc_buf_list *q, struct neighbor_queue *n)
+{
+  mac_callback_t sent;
+  struct qbuf_metadata *metadata;
+  void *cptr;
+
+  metadata = (struct qbuf_metadata *)q->ptr;
+  sent = metadata->sent;
+  cptr = metadata->cptr;
+
+  switch(status) {
+  case MAC_TX_OK:
+    PRINTF("csma: rexmit ok %d\n", n->transmissions);
+    break;
+  case MAC_TX_COLLISION:
+  case MAC_TX_NOACK:
+    PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
+                 status, n->transmissions, n->collisions);
+    break;
+  default:
+    PRINTF("csma: rexmit failed %d: %d\n", n->transmissions, status);
+    break;
+  }
+
+  free_packet(n, q, status);
+  mac_call_sent_callback(sent, cptr, status, n->transmissions);
+}
+/*---------------------------------------------------------------------------*/
+static void
+rexmit(struct rdc_buf_list *q, struct neighbor_queue *n)
+{
+  clock_time_t time;
+  int backoff_exponent;
+  int backoff_transmissions;
+
+  time = default_timebase();
+  backoff_exponent = n->collisions;
+
+  /* Proceed to exponentiation. */
+  backoff_transmissions = 1 << backoff_exponent;
+
+  /* Pick a time for next transmission, within the interval:
+         * [time, time + 2^backoff_exponent * time[ */
+  time = time + (random_rand() % (backoff_transmissions * time));
+
+  PRINTF("csma: retransmitting with time %lu %p\n", time, q);
+  ctimer_set(&n->transmit_timer, time, transmit_packet_list, n);
+  /* This is needed to correctly attribute energy that we spent
+     transmitting this packet. */
+  queuebuf_update_attr_from_packetbuf(q->buf);
+}
+/*---------------------------------------------------------------------------*/
+static void
+collision(struct rdc_buf_list *q, struct neighbor_queue *n,
+          int num_transmissions)
+{
+  struct qbuf_metadata *metadata;
+
+  metadata = (struct qbuf_metadata *)q->ptr;
+
+  n->collisions += num_transmissions;
+
+  if(n->collisions > CSMA_MAX_BACKOFF_EXPONENT) {
+    n->collisions = 0;
+    n->transmissions += num_transmissions;
+  }
+
+  if(n->transmissions >= metadata->max_transmissions) {
+    tx_done(MAC_TX_COLLISION, q, n);
+  } else {
+    PRINTF("csma: rexmit collision %d\n", n->transmissions);
+    rexmit(q, n);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+noack(struct rdc_buf_list *q, struct neighbor_queue *n, int num_transmissions)
+{
+  struct qbuf_metadata *metadata;
+
+  metadata = (struct qbuf_metadata *)q->ptr;
+
+  n->transmissions += num_transmissions;
+  n->collisions = 0;
+
+  if(n->transmissions >= metadata->max_transmissions) {
+    tx_done(MAC_TX_NOACK, q, n);
+  } else {
+    PRINTF("csma: rexmit noack %d\n", n->transmissions);
+    rexmit(q, n);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+tx_ok(struct rdc_buf_list *q, struct neighbor_queue *n, int num_transmissions)
+{
+  n->transmissions += num_transmissions;
+  tx_done(MAC_TX_OK, q, n);
+}
+/*---------------------------------------------------------------------------*/
+static void
 packet_sent(void *ptr, int status, int num_transmissions)
 {
   struct neighbor_queue *n;
   struct rdc_buf_list *q;
-  struct qbuf_metadata *metadata;
-  clock_time_t time = 0;
-  mac_callback_t sent;
-  void *cptr;
-  int num_tx;
-  int backoff_exponent;
-  int backoff_transmissions;
 
   n = ptr;
   if(n == NULL) {
     return;
-  }
-  switch(status) {
-  case MAC_TX_OK:
-  case MAC_TX_NOACK:
-    n->transmissions += num_transmissions;
-    break;
-  case MAC_TX_COLLISION:
-    n->collisions += num_transmissions;
-    break;
-  case MAC_TX_DEFERRED:
-    n->deferrals += num_transmissions;
-    break;
   }
 
   /* Find out what packet this callback refers to */
@@ -240,78 +321,31 @@ packet_sent(void *ptr, int status, int num_transmissions)
     }
   }
 
-  if(q != NULL) {
-    metadata = (struct qbuf_metadata *)q->ptr;
+  if(q == NULL) {
+    PRINTF("csma: seqno %d not found\n",
+           packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+    return;
+  } else if(q->ptr == NULL) {
+    PRINTF("csma: no metadata\n");
+    return;
+  }
 
-    if(metadata != NULL) {
-      sent = metadata->sent;
-      cptr = metadata->cptr;
-      num_tx = n->transmissions;
-      if(status == MAC_TX_COLLISION ||
-         status == MAC_TX_NOACK) {
-
-        /* If the transmission was not performed because of a
-           collision or noack, we must retransmit the packet. */
-
-        switch(status) {
-        case MAC_TX_COLLISION:
-          PRINTF("csma: rexmit collision %d\n", n->transmissions);
-          break;
-        case MAC_TX_NOACK:
-          PRINTF("csma: rexmit noack %d\n", n->transmissions);
-          break;
-        default:
-          PRINTF("csma: rexmit err %d, %d\n", status, n->transmissions);
-        }
-
-        /* The retransmission time must be proportional to the channel
-           check interval of the underlying radio duty cycling layer. */
-        time = default_timebase();
-
-        /* The retransmission time uses a truncated exponential backoff
-         * so that the interval between the transmissions increase with
-         * each retransmit. */
-        backoff_exponent = num_tx;
-
-        /* Truncate the exponent if needed. */
-        if(backoff_exponent > CSMA_MAX_BACKOFF_EXPONENT) {
-          backoff_exponent = CSMA_MAX_BACKOFF_EXPONENT;
-        }
-
-        /* Proceed to exponentiation. */
-        backoff_transmissions = 1 << backoff_exponent;
-
-        /* Pick a time for next transmission, within the interval:
-         * [time, time + 2^backoff_exponent * time[ */
-        time = time + (random_rand() % (backoff_transmissions * time));
-
-        if(n->transmissions < metadata->max_transmissions) {
-          PRINTF("csma: retransmitting with time %lu %p\n", time, q);
-          ctimer_set(&n->transmit_timer, time,
-                     transmit_packet_list, n);
-          /* This is needed to correctly attribute energy that we spent
-             transmitting this packet. */
-          queuebuf_update_attr_from_packetbuf(q->buf);
-        } else {
-          PRINTF("csma: drop with status %d after %d transmissions, %d collisions\n",
-                 status, n->transmissions, n->collisions);
-          free_packet(n, q, status);
-          mac_call_sent_callback(sent, cptr, status, num_tx);
-        }
-      } else {
-        if(status == MAC_TX_OK) {
-          PRINTF("csma: rexmit ok %d\n", n->transmissions);
-        } else {
-          PRINTF("csma: rexmit failed %d: %d\n", n->transmissions, status);
-        }
-        free_packet(n, q, status);
-        mac_call_sent_callback(sent, cptr, status, num_tx);
-      }
-    } else {
-      PRINTF("csma: no metadata\n");
-    }
-  } else {
-    PRINTF("csma: seqno %d not found\n", packetbuf_attr(PACKETBUF_ATTR_MAC_SEQNO));
+  switch(status) {
+  case MAC_TX_OK:
+    tx_ok(q, n, num_transmissions);
+    break;
+  case MAC_TX_NOACK:
+    noack(q, n, num_transmissions);
+    break;
+  case MAC_TX_COLLISION:
+    collision(q, n, num_transmissions);
+    break;
+  case MAC_TX_DEFERRED:
+    n->deferrals += num_transmissions;
+    break;
+  default:
+    tx_done(status, q, n);
+    break;
   }
 }
 /*---------------------------------------------------------------------------*/
