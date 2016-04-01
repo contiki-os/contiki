@@ -9,6 +9,13 @@ MULTIBOOT = $(CONTIKI_PROJECT).$(MULTIBOOT_SFX)
 # UEFI binary
 UEFI_DLL_SFX = $(TARGET).dll
 UEFI_DLL = $(CONTIKI_PROJECT).$(UEFI_SFX)
+
+# Applying the --strip-all and --gc-sections options to the UEFI build may
+# induce an "Invalid operation" error. Since these options are enabled when
+# BUILD_RELEASE=1 we remove it when EN_UEFI=1. By the way, the UEFI GenFw
+# program strips symbols.
+UEFI_LDFLAGS = $(filter-out  $(shell echo "-Wl,--strip-all,--gc-sections"),$(LDFLAGS))
+
 # The GenFw program is unable to process absolute symbols like _stext_addr,
 # etc., that are defined in quarkX1000_dma.ld and quarkX1000_multi_seg.ld
 # and used to configure segments in multi-segment.c, etc.  Furthermore,
@@ -19,7 +26,8 @@ UEFI_DLL = $(CONTIKI_PROJECT).$(UEFI_SFX)
 # relocate the UEFI image, so it may be desirable in the future to revisit
 # this design.  To emit relocation data, '-Xlinker --emit-relocs' should be
 # appended to the following line.
-UEFI_LDFLAGS = -Xlinker --entry=uefi_start
+UEFI_LDFLAGS += -Xlinker --entry=uefi_start
+
 UEFI_SFX = $(TARGET).efi
 UEFI = $(CONTIKI_PROJECT).$(UEFI_SFX)
 
@@ -37,12 +45,12 @@ CUSTOM_RULE_LINK=1
 
 %.$(MULTIBOOT_SFX): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
 	$(TRACE_LD)
-	$(Q)$(LD) $(LDFLAGS) $(MULTIBOOT_LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	$(Q)$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
 	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 
 %.$(UEFI_DLL_SFX): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
 	$(TRACE_LD)
-	$(Q)$(LD) $(LDFLAGS) $(UEFI_LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	$(Q)$(LD) $(UEFI_LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
 	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 
 %.$(UEFI_SFX): %.$(UEFI_DLL_SFX)
