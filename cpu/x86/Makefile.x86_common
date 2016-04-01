@@ -1,11 +1,12 @@
-CC       = gcc
+TOOLCHAIN_PREFIX ?=
+CC       = $(TOOLCHAIN_PREFIX)gcc
 LD       = $(CC)
 # Use gcc to invoke the assembler so that the preprocessor will be run on each
 # file first, enabling us to use macros within assembly language files:
 AS       = $(CC)
-OBJCOPY  = objcopy
-SIZE     = size
-STRIP    = strip
+OBJCOPY  = $(TOOLCHAIN_PREFIX)objcopy
+SIZE     = $(TOOLCHAIN_PREFIX)size
+STRIP    = $(TOOLCHAIN_PREFIX)strip
 
 # Omit exception handling unwind tables (see
 # http://wiki.dwarfstd.org/index.php?title=Exception_Handling).  Removing these
