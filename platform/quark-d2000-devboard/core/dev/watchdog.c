@@ -27,28 +27,48 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "contiki.h"
-#include "dev/watchdog.h"
+#include "qm_wdt.h"
 
-int
-main(void)
+void
+watchdog_init(void)
 {
-  clock_init();
-  rtimer_init();
-  watchdog_init();
-  process_init();
+  qm_wdt_config_t cfg;
 
-  process_start(&etimer_process, NULL);
-  ctimer_init();
+  /* Assuming the system clock is set to 32 MHz, we should configure
+   * watchdog with QM_WDT_2_28_CYCLES in order to get ~ 8 seconds
+   * timeout.
+   */
+  cfg.timeout = QM_WDT_2_POW_28_CYCLES;
+  cfg.mode = QM_WDT_MODE_RESET;
+  cfg.callback = NULL;
 
-  watchdog_start();
-  autostart_start(autostart_processes);
-
-  while(1) {
-    watchdog_periodic();
-
-    process_run();
-  }
-
-  return 0;
+  qm_wdt_set_config(QM_WDT_0, &cfg);
+}
+/*---------------------------------------------------------------------------*/
+void
+watchdog_start(void)
+{
+  qm_wdt_start(QM_WDT_0);
+}
+/*---------------------------------------------------------------------------*/
+void
+watchdog_periodic(void)
+{
+  qm_wdt_reload(QM_WDT_0);
+}
+/*---------------------------------------------------------------------------*/
+void
+watchdog_stop(void)
+{
+  /* XXX: QMSI driver has no API to stop the watchdog. If we really need to
+   * stop the watchdog in future, we can implement a workaround which disables
+   * the watchdog clock gate. This will make the watchdog's internal counter
+   * stop incrementing.
+   */
+}
+/*---------------------------------------------------------------------------*/
+void
+watchdog_reboot(void)
+{
+  /* Stubbed function */
 }

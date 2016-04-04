@@ -54,6 +54,7 @@ follows the devices already used by the OS:
 * UART A
 * PIC timer
 * Real-Time Clock (RTC)
+* Watchdog
 
 Building
 --------
