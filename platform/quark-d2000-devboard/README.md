@@ -53,6 +53,7 @@ use these peripherals otherwise the Contiki OS might not work properly. Below
 follows the devices already used by the OS:
 * UART A
 * PIC timer
+* Real-Time Clock (RTC)
 
 Building
 --------

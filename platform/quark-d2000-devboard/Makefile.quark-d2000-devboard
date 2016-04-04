@@ -6,7 +6,7 @@ CONTIKIFILES += app_entry.c newlib-syscalls.c
 QMSI_CFLAGS += -DPRINTF_ENABLE
 
 CONTIKI_TARGET_DIRS += . core/sys
-CONTIKIFILES += contiki-main.c clock.c
+CONTIKIFILES += contiki-main.c clock.c rtimer-arch.c
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
 CFLAGS += -m32 -march=lakemont -mtune=lakemont -miamcu -msoft-float

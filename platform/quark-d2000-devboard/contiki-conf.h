@@ -35,6 +35,15 @@
 #define CLOCK_CONF_SECOND 128
 typedef unsigned long clock_time_t;
 
+/* XXX: The RTC is used to implement the rtimer library. QMSI RTC driver
+ * configures the frequency to 32 kHz by default. Therefore, changing the
+ * RTIMER_ARCH_SECOND doesn't take any effect on the RTC frequency.
+ *
+ * If you really want to change this value, make sure you also change
+ * QMSI RTC driver according.
+ */
+#define RTIMER_ARCH_SECOND 32768
+
 /* We define the following macros and types otherwise Contiki does not
  * compile.
  */
