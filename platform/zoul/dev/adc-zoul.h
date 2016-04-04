@@ -38,7 +38,9 @@
  *
  * Driver for the Zoul ADC interface
  *
- * This driver supports analogue sensors connected to ADC1, ADC2 and AND3 inputs
+ * This driver supports analogue sensors connected to ADC1, ADC2, ADC3,
+ * ADC4, ADC5 and ADC6 inputs. ADC6 is shared with the user button, so disable
+ * user button if ADC6 is needed.
  * This is controlled by the type argument of the value() function. Possible
  * choices are:
  *
@@ -47,6 +49,7 @@
  * - ZOUL_SENSORS_ADC3
  * - ZOUL_SENSORS_ADC4
  * - ZOUL_SENSORS_ADC5
+ * - ZOUL_SENSORS_ADC6
  *
  * To initialize the ADC sensors use the configure() function, using as first
  * argument SENSORS_HW_INIT, and choose which ADC channels to enable passing as
@@ -128,13 +131,20 @@
 #else
 #define ZOUL_SENSORS_ADC5        0
 #endif
+
+/* ADC phidget-like connector ADC6 */
+#if ADC_SENSORS_ADC6_PIN >= ZOUL_SENSORS_ADC_MIN
+#define ZOUL_SENSORS_ADC6        GPIO_PIN_MASK(ADC_SENSORS_ADC6_PIN)
+#else
+#define ZOUL_SENSORS_ADC6        0
+#endif
 /*
  * This is safe as the disabled sensors should have a zero value thus not
  * affecting the mask operations
  */
 #define ZOUL_SENSORS_ADC_ALL     (ZOUL_SENSORS_ADC1 + ZOUL_SENSORS_ADC2 + \
                                   ZOUL_SENSORS_ADC3 + ZOUL_SENSORS_ADC4 + \
-                                  ZOUL_SENSORS_ADC5)
+                                  ZOUL_SENSORS_ADC5 + ZOUL_SENSORS_ADC6)
 /** @} */
 /*---------------------------------------------------------------------------*/
 extern const struct sensors_sensor adc_zoul;

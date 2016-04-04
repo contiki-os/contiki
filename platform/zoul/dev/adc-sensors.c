@@ -175,7 +175,7 @@ configure(int type, int value)
     return ADC_WRAPPER_ERROR;
   }
 
-  if((value < 0x01) || (value > 0x07) || (value == BUTTON_USER_PIN)) {
+  if((value < 0x01) || (value > 0x07) || ((value == BUTTON_USER_PIN) && (ADC_SENSORS_ADC6_PIN < 0))) {
     PRINTF("ADC sensors: invalid pin value, (PA0-PA1, PA3) are reserved\n");
     return ADC_WRAPPER_ERROR;
   }
