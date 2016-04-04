@@ -35,6 +35,8 @@ main(void)
   clock_init();
   process_init();
 
+  process_start(&etimer_process, NULL);
+  ctimer_init();
   autostart_start(autostart_processes);
 
   while(1) {
