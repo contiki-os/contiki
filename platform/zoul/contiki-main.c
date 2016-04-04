@@ -218,9 +218,9 @@ main(void)
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 
   process_start(&sensors_process, NULL);
-
+#if PLATFOM_HAS_BUTTON
   SENSORS_ACTIVATE(button_sensor);
-
+#endif
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 

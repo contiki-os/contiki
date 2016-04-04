@@ -168,6 +168,92 @@
 #define UART1_RTS_PIN            (-1) /**< 0 */
 /** @} */
 /*---------------------------------------------------------------------------*/
+/**
+ * \name ADC configuration
+ *
+ * These values configure which CC2538 pins and ADC channels to use for the ADC
+ * inputs. There pins are suggested as they can be changed, but note that only
+ * pins from PA can be configured as ADC.
+ *
+ * - ADC1: up to 3.3V.
+ * - ADC2: up to 3.3V.
+ * - ADC3: up to 3.3V.
+ * - ADC4: up to 3.3V.
+ * - ADC5: up to 3.3V.
+ * - ADC6: up to 3.3V, shared with user button.
+ * 
+ * Only ADC1 and ADC3 are enabled as default.
+ *
+ * The internal ADC reference is 1190mV, use either a voltage divider as input,
+ * or a different voltage reference, like AVDD5 or other externally (AIN7 or
+ * AIN6).
+ * @{
+ */
+#define ADC_SENSORS_PORT         GPIO_A_NUM /**< ADC GPIO control port */
+
+#ifndef ADC_SENSORS_CONF_ADC1_PIN
+#define ADC_SENSORS_ADC1_PIN     5             /**< ADC1 to PA5  */
+#else
+#if ((ADC_SENSORS_CONF_ADC1_PIN != -1) && (ADC_SENSORS_CONF_ADC1_PIN != 5))
+#error "ADC1 channel should be mapped to PA5 or disabled with -1"
+#else
+#define ADC_SENSORS_ADC1_PIN ADC_SENSORS_CONF_ADC1_PIN
+#endif
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC2_PIN
+#define ADC_SENSORS_ADC2_PIN     4             /**< ADC2 to PA4  */
+#else
+#if ((ADC_SENSORS_CONF_ADC2_PIN != -1) && (ADC_SENSORS_CONF_ADC2_PIN != 4))
+#error "ADC2 channel should be mapped to PA4 or disabled with -1"
+#else
+#define ADC_SENSORS_ADC2_PIN ADC_SENSORS_CONF_ADC2_PIN
+#endif
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC3_PIN
+#define ADC_SENSORS_ADC3_PIN     2             /**< ADC3 to PA2  */
+#else
+#if ((ADC_SENSORS_CONF_ADC3_PIN != -1) && (ADC_SENSORS_CONF_ADC3_PIN != 2))
+#error "ADC3 channel should be mapped to PA2 or disabled with -1"
+#else
+#define ADC_SENSORS_ADC3_PIN ADC_SENSORS_CONF_ADC3_PIN
+#endif
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC4_PIN
+#define ADC_SENSORS_ADC4_PIN     6             /**< ADC4 to PA6   */
+#else
+#if ((ADC_SENSORS_CONF_ADC4_PIN != -1) && (ADC_SENSORS_CONF_ADC4_PIN != 6))
+#error "ADC4 channel should be mapped to PA6 or disabled with -1"
+#else
+#define ADC_SENSORS_ADC4_PIN ADC_SENSORS_CONF_ADC4_PIN
+#endif
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC5_PIN
+#define ADC_SENSORS_ADC5_PIN     7             /**< ADC5 to PA7   */
+#else
+#if ((ADC_SENSORS_CONF_ADC5_PIN != -1) && (ADC_SENSORS_CONF_ADC5_PIN != 7))
+#error "ADC5 channel should be mapped to PA7 or disabled with -1"
+#else
+#define ADC_SENSORS_ADC5_PIN ADC_SENSORS_CONF_ADC5_PIN
+#endif
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC6_PIN
+#define ADC_SENSORS_ADC6_PIN     (-1)          /**< ADC6 not declared    */
+#else
+#define ADC_SENSORS_ADC6_PIN     3             /**< Hard-coded to PA3    */
+#endif
+
+#ifndef ADC_SENSORS_CONF_MAX
+#define ADC_SENSORS_MAX          5            /**< Maximum sensors       */
+#else
+#define ADC_SENSORS_MAX          ADC_SENSORS_CONF_MAX
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
 /** \name Firefly Button configuration
  *
  * Buttons on the Firefly are connected as follows:
@@ -180,31 +266,19 @@
 #define BUTTON_USER_PIN        3
 #define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_A
 
-/* Notify various examples that we have Buttons */
-#define PLATFORM_HAS_BUTTON      1
-/** @} */
-/*---------------------------------------------------------------------------*/
-/**
- * \name ADC configuration
- *
- * These values configure which CC2538 pins and ADC channels to use for the ADC
- * inputs. There pins are suggested as they can be changed, but note that only
- * pins from PA can be configured as ADC.
- *
- * The Firefly, as it is, only allows 3.3VDC sensors.
- *
- * The internal ADC reference is 1190mV, use either a voltage divider as input,
- * or a different voltage reference, like AVDD5 or other externally (AIN7 or
- * AIN6).
- * @{
+/* Notify various examples that we have an user button.
+ * If ADC6 channel is used, then disable the user button
  */
-#define ADC_SENSORS_PORT         GPIO_A_NUM /**< ADC GPIO control port */
-#define ADC_SENSORS_ADC1_PIN     5          /**< ADC1 to PA5, 3V3    */
-#define ADC_SENSORS_ADC2_PIN     4          /**< ADC2 to PA4, 3V3    */
-#define ADC_SENSORS_ADC3_PIN     2          /**< ADC3 to PA2, 3V3    */
-#define ADC_SENSORS_ADC4_PIN     6          /**< ADC4 to PA6, 3V3    */
-#define ADC_SENSORS_ADC5_PIN     7          /**< ADC5 to PA7, 3V3    */
-#define ADC_SENSORS_MAX          5          /**< PA2, PA4, PA5, PA6, PA7 */
+#ifdef PLATFORM_CONF_WITH_BUTTON
+#if (PLATFORM_CONF_WITH_BUTTON && (ADC_SENSORS_ADC6_PIN == 3))
+#error "The ADC6 (PA3) and user button cannot be enabled at the same time" 
+#else
+#define PLATFORM_HAS_BUTTON  (PLATFORM_CONF_WITH_BUTTON && \
+                              !(ADC_SENSORS_ADC6_PIN == 3))
+#endif /* (PLATFORM_CONF_WITH_BUTTON && (ADC_SENSORS_ADC6_PIN == 3)) */
+#else
+#define PLATFORM_HAS_BUTTON  !(ADC_SENSORS_ADC6_PIN == 3)
+#endif /* PLATFORM_CONF_WITH_BUTTON */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

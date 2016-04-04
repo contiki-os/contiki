@@ -171,23 +171,6 @@
 #define UART1_RTS_PIN            (-1)
 /** @} */
 /*---------------------------------------------------------------------------*/
-/** \name RE-Mote Button configuration
- *
- * Buttons on the RE-Mote are connected as follows:
- * - BUTTON_USER  -> PA3, S1 user button, shared with bootloader and RTC_INT1
- * - BUTTON_RESET -> RESET_N line, S2 reset both CC2538 and CoP
- * - BUTTON_PIC1W -> shared with SHUTDOWN_ENABLE, not mounted.
- * @{
- */
-/** BUTTON_USER -> PA3 */
-#define BUTTON_USER_PORT       GPIO_A_NUM
-#define BUTTON_USER_PIN        3
-#define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_A
-
-/* Notify various examples that we have Buttons */
-#define PLATFORM_HAS_BUTTON      1
-/** @} */
-/*---------------------------------------------------------------------------*/
 /**
  * \name ADC configuration
  *
@@ -200,6 +183,12 @@
  * - ADC1: up to 3.3V.
  * - ADC2: up to 3.3V, shared with RTC_INT
  * - ADC3: up to 5V, by means of a 2/3 voltage divider.
+ *
+ * Also there are other ADC channels shared by default with Micro SD card and
+ * user button implementations: 
+ * - ADC4: up to 3.3V.
+ * - ADC5: up to 3.3V.
+ * - ADC6: up to 3.3V.
  *
  * ADC inputs can only be on port A.
  * All ADCx are exposed in JP5 connector, but only ADC1 and ADC3 have GND and
@@ -216,12 +205,84 @@
  * @{
  */
 #define ADC_SENSORS_PORT         GPIO_A_NUM /**< ADC GPIO control port */
-#define ADC_SENSORS_ADC1_PIN     5          /**< ADC1 to PA5, 3V3    */
-#define ADC_SENSORS_ADC2_PIN     (-1)       /**< ADC2 to PA4, 3V3    */
-#define ADC_SENSORS_ADC3_PIN     2          /**< ADC3 to PA2, 5V0    */
-#define ADC_SENSORS_ADC4_PIN     (-1)       /**< Not present    */
-#define ADC_SENSORS_ADC5_PIN     (-1)       /**< Not present    */
-#define ADC_SENSORS_MAX          2          /**< PA2, PA5 */
+
+#ifndef ADC_SENSORS_CONF_ADC1_PIN
+#define ADC_SENSORS_ADC1_PIN     5             /**< ADC1 to PA5, 3V3    */
+#else
+#if ((ADC_SENSORS_CONF_ADC1_PIN != -1) && (ADC_SENSORS_CONF_ADC1_PIN != 5))
+#error "ADC1 channel should be mapped to PA5 or disabled with -1"
+#else
+#define ADC_SENSORS_ADC1_PIN ADC_SENSORS_CONF_ADC1_PIN
+#endif
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC3_PIN
+#define ADC_SENSORS_ADC3_PIN     2             /**< ADC3 to PA2, 5V     */
+#else
+#if ((ADC_SENSORS_CONF_ADC3_PIN != -1) && (ADC_SENSORS_CONF_ADC3_PIN != 2))
+#error "ADC3 channel should be mapped to PA2 or disabled with -1"
+#else
+#define ADC_SENSORS_ADC3_PIN ADC_SENSORS_CONF_ADC3_PIN
+#endif
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC2_PIN
+#define ADC_SENSORS_ADC2_PIN     (-1)          /**< ADC2 no declared    */
+#else
+#define ADC_SENSORS_ADC2_PIN     4             /**< Hard-coded to PA4    */
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC4_PIN
+#define ADC_SENSORS_ADC4_PIN     (-1)          /**< ADC4 not declared    */
+#else
+#define ADC_SENSORS_ADC4_PIN     6             /**< Hard-coded to PA6    */
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC5_PIN
+#define ADC_SENSORS_ADC5_PIN     (-1)          /**< ADC5 not declared    */
+#else
+#define ADC_SENSORS_ADC5_PIN     7             /**< Hard-coded to PA7    */
+#endif
+
+#ifndef ADC_SENSORS_CONF_ADC6_PIN
+#define ADC_SENSORS_ADC6_PIN     (-1)             /**< ADC6 not declared    */
+#else
+#define ADC_SENSORS_ADC6_PIN     3             /**< Hard-coded to PA3    */
+#endif
+
+#ifndef ADC_SENSORS_CONF_MAX
+#define ADC_SENSORS_MAX          2             /**< Maximum sensors    */
+#else
+#define ADC_SENSORS_MAX          ADC_SENSORS_CONF_MAX
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/** \name RE-Mote Button configuration
+ *
+ * Buttons on the RE-Mote are connected as follows:
+ * - BUTTON_USER  -> PA3, S1 user button, shared with bootloader and RTC_INT1
+ * - BUTTON_RESET -> RESET_N line, S2 reset both CC2538 and CoP
+ * - BUTTON_PIC1W -> shared with SHUTDOWN_ENABLE, not mounted.
+ * @{
+ */
+/** BUTTON_USER -> PA3 */
+#define BUTTON_USER_PORT       GPIO_A_NUM
+#define BUTTON_USER_PIN        3
+#define BUTTON_USER_VECTOR     NVIC_INT_GPIO_PORT_A
+
+/* Notify various examples that we have an user button.
+ * If ADC6 channel is used, then disable the user button
+ */
+#ifdef PLATFORM_CONF_WITH_BUTTON
+#if (PLATFORM_CONF_WITH_BUTTON && (ADC_SENSORS_ADC6_PIN == 3))
+#error "The ADC6 (PA3) and user button cannot be enabled at the same time" 
+#else
+#define PLATFORM_HAS_BUTTON  (PLATFORM_CONF_WITH_BUTTON && \
+                              !(ADC_SENSORS_ADC6_PIN == 3))
+#endif /* (PLATFORM_CONF_WITH_BUTTON && (ADC_SENSORS_ADC6_PIN == 3)) */
+#else
+#define PLATFORM_HAS_BUTTON  !(ADC_SENSORS_ADC6_PIN == 3)
+#endif /* PLATFORM_CONF_WITH_BUTTON */
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
