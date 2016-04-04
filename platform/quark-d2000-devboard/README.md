@@ -52,6 +52,7 @@ Some peripherals are used by the Contiki OS itself. User applications must not
 use these peripherals otherwise the Contiki OS might not work properly. Below
 follows the devices already used by the OS:
 * UART A
+* PIC timer
 
 Building
 --------

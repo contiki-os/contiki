@@ -27,20 +27,69 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CONTIKI_CONF_H
-#define CONTIKI_CONF_H
+#include <stddef.h>
 
-#include <inttypes.h>
+#include "qm_interrupt.h"
+#include "qm_pic_timer.h"
 
-#define CLOCK_CONF_SECOND 128
-typedef unsigned long clock_time_t;
+#include "sys/clock.h"
 
-/* We define the following macros and types otherwise Contiki does not
- * compile.
- */
-#define CCIF
-#define CLIF
+#include "contiki-conf.h"
 
-typedef unsigned short uip_stats_t;
+/* XXX: We assume the default system clock value (32MHz). */
+#define SYSCLK (32 * 1024 * 1024)
 
-#endif /* CONTIKI_CONF_H */
+static volatile clock_time_t tick_count;
+
+static void
+update_ticks(void)
+{
+  tick_count++;
+}
+/*---------------------------------------------------------------------------*/
+void
+clock_init(void)
+{
+  qm_pic_timer_config_t cfg;
+
+  cfg.mode = QM_PIC_TIMER_MODE_PERIODIC;
+  cfg.int_en = true;
+  cfg.callback = update_ticks;
+
+  qm_irq_request(QM_IRQ_PIC_TIMER, qm_pic_timer_isr);
+
+  qm_pic_timer_set_config(&cfg);
+  qm_pic_timer_set(SYSCLK / CLOCK_CONF_SECOND);
+}
+/*---------------------------------------------------------------------------*/
+clock_time_t
+clock_time(void)
+{
+  return tick_count;
+}
+/*---------------------------------------------------------------------------*/
+unsigned long
+clock_seconds(void)
+{
+  return tick_count / CLOCK_CONF_SECOND;
+}
+/*---------------------------------------------------------------------------*/
+void
+clock_wait(clock_time_t t)
+{
+  clock_time_t initial = tick_count;
+
+  while(tick_count < t + initial);
+}
+/*---------------------------------------------------------------------------*/
+void
+clock_set_seconds(unsigned long sec)
+{
+  /* Stubbed function */
+}
+/*---------------------------------------------------------------------------*/
+void
+clock_delay_usec(uint16_t t)
+{
+  /* Stubbed function */
+}

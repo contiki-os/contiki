@@ -32,6 +32,7 @@
 int
 main(void)
 {
+  clock_init();
   process_init();
 
   autostart_start(autostart_processes);
