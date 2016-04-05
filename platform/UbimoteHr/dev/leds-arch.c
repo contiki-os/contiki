@@ -28,91 +28,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/** \addtogroup cc2538-char-io
- * @{ */
 /**
+ * \addtogroup cc2538-smartrf
+ * @{
+ *
+ * \defgroup cc2538dk-leds SmartRF06EB LED driver
+ *
+ * LED driver implementation for the TI SmartRF06EB + cc2538EM
+ * @{
+ *
  * \file
- *     Implementation of arch-specific functions required by the dbg_io API in
- *     cpu/arm/common/dbg-io
+ * LED driver implementation for the TI SmartRF06EB + cc2538EM
  */
 #include "contiki.h"
+#include "reg.h"
+#include "dev/leds.h"
+#include "dev/gpio.h"
 
-#include "dbg.h"
-#include "dev/uart.h"
-#include "usb/usb-serial.h"
-
-#include <stdio.h>
+//#define LEDS_GPIO_PIN_MASK   LEDS_ALL
+#define LEDS_GPIO_PIN_MASK   224
 /*---------------------------------------------------------------------------*/
-#ifndef DBG_CONF_USB
-#define DBG_CONF_USB 0
-#endif
-
-#if DBG_CONF_USB
-#define write_byte(b) usb_serial_writeb(b)
-#define flush()       usb_serial_flush()
-#else
-#define write_byte(b) uart_write_byte(DBG_CONF_UART, b)
-#define flush()
-#endif
-/*---------------------------------------------------------------------------*/
-#undef putchar
-#undef puts
-
-#define SLIP_END     0300
-/*---------------------------------------------------------------------------*/
-int
-putchar(int c)
+void
+leds_arch_init(void)
 {
-#if DBG_CONF_SLIP_MUX
-  static char debug_frame = 0;
-
-  if(!debug_frame) {
-    write_byte(SLIP_END);
-    write_byte('\r');
-    debug_frame = 1;
-  }
-#endif
-
-  write_byte(c);
-
-  if(c == '\n') {
-#if DBG_CONF_SLIP_MUX
-    write_byte(SLIP_END);
-    debug_frame = 0;
-#endif
-    write_byte('\r');
-    dbg_flush();
-  }
-  return c;
+  //printf("leds_arch_init : %d\n",LEDS_GPIO_PIN_MASK);
+  GPIO_SET_OUTPUT(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
+  //GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, LEDS_GPIO_PIN_MASK);
 }
 /*---------------------------------------------------------------------------*/
-unsigned int
-dbg_send_bytes(const unsigned char *s, unsigned int len)
+unsigned char
+leds_arch_get(void)
 {
-  unsigned int i = 0;
-
-  while(s && *s != 0) {
-    if(i >= len) {
-      break;
-    }
-    putchar(*s++);
-    i++;
-  }
-  return i;
+  return GPIO_READ_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
 }
 /*---------------------------------------------------------------------------*/
-int
-puts(const char *s)
+void
+leds_arch_set(unsigned char leds)
 {
-  unsigned int i = 0;
-
-  while(s && *s != 0) {
-    putchar(*s++);
-    i++;
-  }
-  putchar('\n');
-  return i;
+  GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, leds);
 }
 /*---------------------------------------------------------------------------*/
 
-/** @} */
+/**
+ * @}
+ * @}
+ */
