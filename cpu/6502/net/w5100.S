@@ -97,7 +97,8 @@ fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup20-fixup19, fixup21-fixup20, fixup22-fixup21
 	.byte	fixup23-fixup22, fixup24-fixup23, fixup25-fixup24
 	.byte	fixup26-fixup25, fixup27-fixup26, fixup28-fixup27
-	.byte	fixup29-fixup28, fixup30-fixup29
+	.byte	fixup29-fixup28, fixup30-fixup29, fixup31-fixup30
+	.byte	fixup32-fixup31
 
 fixups	= * - fixup
 
@@ -164,44 +165,64 @@ fixup04:eor data
 	sec
 	rts
 
+	; Check for W5100 shared access
+	; RX Memory Size Register: Assign 4+2+1+1KB to socket 0 to 3 ?
+:	; ldx #$00		; Hibyte
+	ldy #$1A		; Lobyte
+	jsr set_addr
+fixup05:lda data
+	cmp #$06
+	beq :+++
+
 	; S/W Reset
-:	lda #$80
-fixup05:sta mode
+	lda #$80
+fixup06:sta mode
 :
-fixup06:lda mode
+fixup07:lda mode
 	bmi :-
 
 	; Indirect Bus I/F mode, Address Auto-Increment, Ping Block
 	lda #$13
-fixup07:sta mode
+fixup08:sta mode
 
 	; Source Hardware Address Register: MAC Address
 	ldx #$00		; Hibyte
 	ldy #$09		; Lobyte
 	jsr set_addr
 :	lda mac,x
-fixup08:sta data
+fixup09:sta data
 	inx
 	cpx #$06
 	bcc :-
 
-	; RX Memory Size Register: Assign 8KB to socket 0
-	; TX Memory Size Register: Assign 8KB to socket 0
+	; RX Memory Size Register: Assign 4KB each to socket 0 and 1
+	; TX Memory Size Register: Assign 4KB each to socket 0 and 1
 	ldx #$00		; Hibyte
 	ldy #$1A		; Lobyte
 	jsr set_addr
-	lda #$03
-fixup09:sta data
+	lda #$0A
 fixup10:sta data
+fixup11:sta data
+
+	; MAC Address: Source Hardware Address Register
+:	; ldx #$00		; Hibyte
+	ldy #$09		; Lobyte
+	jsr set_addr
+:
+fixup12:lda data
+	sta mac,x
+	inx
+	cpx #$06
+	bcc :-
 
 	; Socket 0 Mode Register: MACRAW, MAC Filter
 	; Socket 0 Command Register: OPEN
 	ldy #$00
 	jsr set_addrsocket0
 	lda #$44
-fixup11:sta data
+fixup13:sta data
 	lda #$01
-fixup12:sta data
+fixup14:sta data
 	tya
 	tax
 	clc
@@ -213,7 +234,7 @@ poll:
 	; Check for completion of previous command
 	; Socket 0 Command Register: = 0 ?
 	jsr set_addrcmdreg0
-fixup13:lda data
+fixup15:lda data
 	beq :++
 
 	; No data available
@@ -225,8 +246,8 @@ fixup13:lda data
 	; Socket 0 RX Received Size Register: != 0 ?
 :	ldy #$26		; Socket RX Received Size Register
 	jsr set_addrsocket0
-fixup14:lda data		; Hibyte
-fixup15:ora data		; Lobyte
+fixup16:lda data		; Hibyte
+fixup17:ora data		; Lobyte
 	beq :--
 
 	; Process the incoming data
@@ -243,8 +264,8 @@ fixup15:ora data		; Lobyte
 	; Calculate and set physical address
 	jsr set_addrphysical
 
-	; Move physical address shadow to $E000-$FFFF
-	ora #>$8000
+	; Move physical address shadow to $F000-$FFFF
+	ora #>$F000
 	tax
 
 	; Read MAC raw 2byte packet size header
@@ -292,13 +313,13 @@ common: jsr set_addrsocket0
 	tax
 	lda reg+1
 	adc adv+1
-fixup16:sta data		; Hibyte
-fixup17:stx data		; Lobyte
+fixup18:sta data		; Hibyte
+fixup19:stx data		; Lobyte
 
 	; Set command register
 	tya			; Restore command
 	jsr set_addrcmdreg0
-fixup18:sta data
+fixup20:sta data
 
 	; Return data length (will be ignored for send)
 	lda len
@@ -325,14 +346,14 @@ send:
 	; Wait for completion of previous command
 	; Socket 0 Command Register: = 0 ?
 :	jsr set_addrcmdreg0
-fixup19:lda data
+fixup21:lda data
 	bne :-
 
 	; Socket 0 TX Free Size Register: < length ?
 :	ldy #$20		; Socket TX Free Size Register
 	jsr set_addrsocket0
-fixup20:lda data		; Hibyte
-fixup21:ldx data		; Lobyte
+fixup22:lda data		; Hibyte
+fixup23:ldx data		; Lobyte
 	cpx len
 	sbc len+1
 	bcc :-
@@ -362,16 +383,16 @@ exit:
 ;---------------------------------------------------------------------
 
 set_addrphysical:
-fixup22:lda data		; Hibyte
-fixup23:ldy data		; Lobyte
+fixup24:lda data		; Hibyte
+fixup25:ldy data		; Lobyte
 	sty reg
 	sta reg+1
-	and #>$1FFF		; Socket Mask Address (hibyte)
+	and #>$0FFF		; Socket Mask Address (hibyte)
 	ora bas			; Socket Base Address (hibyte)
 	tax
 set_addr:
-fixup24:stx addr		; Hibyte
-fixup25:sty addr+1		; Lobyte
+fixup26:stx addr		; Hibyte
+fixup27:sty addr+1		; Lobyte
 	rts
 
 set_addrcmdreg0:
@@ -386,7 +407,7 @@ set_addrbase:
 	beq set_addr		; Always
 
 get_datacheckaddr:
-fixup26:lda data
+fixup28:lda data
 	iny			; Physical address shadow (lobyte)
 	bne :+
 	inx			; Physical address shadow (hibyte)
@@ -399,7 +420,7 @@ set_parameters:
 	; Setup variables in zero page
 	sta bas			; Socket Base Address
 	clc
-	adc #>$2000		; Socket memory size
+	adc #>$1000		; Socket memory size
 	sta lim			; Socket memory limit
 	stx dir			; Transfer direction
 
@@ -427,10 +448,10 @@ mov_data:
 	; R/W without address wraparound possible because 
 	; highest R/W address > actual R/W address ?
 	; sec
-fixup27:sbc addr+1		; Lobyte
+fixup29:sbc addr+1		; Lobyte
 	tay
 	txa
-fixup28:sbc addr		; Hibyte
+fixup30:sbc addr		; Hibyte
 	tax
 	tya
 	bcs :+
@@ -491,7 +512,7 @@ rw_data:eor #$FF		; Two's complement part 1
 
 	; Read data
 :
-fixup29:lda data
+fixup31:lda data
 	sta (ptr),y
 	iny
 	bne :-
@@ -502,7 +523,7 @@ fixup29:lda data
 
 	; Write data
 :	lda (ptr),y
-fixup30:sta data
+fixup32:sta data
 	iny
 	bne :-
 	inc ptr+1
