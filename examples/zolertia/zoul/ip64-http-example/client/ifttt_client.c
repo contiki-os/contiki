@@ -115,7 +115,7 @@ callback(struct http_socket *s, void *ptr,
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(http_example_process, ev, data)
 {
-  static uint8_t buf_ptr[64];
+  // static char buf_ptr[64];
   static struct etimer et;
   uip_ip4addr_t ip4addr;
   uip_ip6addr_t ip6addr;
@@ -126,13 +126,20 @@ PROCESS_THREAD(http_example_process, ev, data)
   ip64_addr_4to6(&ip4addr, &ip6addr);
   uip_nameserver_update(&ip6addr, UIP_NAMESERVER_INFINITE_LIFETIME);
 
-  etimer_set(&et, CLOCK_SECOND * 20);
+  leds_on(LEDS_RED);
+
+  etimer_set(&et, CLOCK_SECOND * 35);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+  leds_off(LEDS_RED);
 
   memset(url_buffer, 0, HTTP_CLIENT_BUFFER_LEN);
   snprintf(url_buffer, HTTP_CLIENT_BUFFER_LEN,
            "http://maker.ifttt.com/trigger/%s/with/key/%s",
            IFTTT_EVENT, IFTTT_KEY);
+
+  // memset(buf_ptr, 0, 64);
+  // snprintf(buf_ptr, 64, "{\"value1\":\"%u\"}", 8);
 
   http_socket_init(&s);
 

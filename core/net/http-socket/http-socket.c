@@ -35,8 +35,8 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#define MAX_PATHLEN 240
-#define MAX_HOSTLEN 240
+#define MAX_PATHLEN 320
+#define MAX_HOSTLEN 320
 PROCESS(http_socket_process, "HTTP socket process");
 LIST(socketlist);
 
@@ -395,35 +395,48 @@ event(struct tcp_socket *tcps, void *ptr,
   char host[MAX_HOSTLEN];
   char path[MAX_PATHLEN];
   uint16_t port;
-  char str[42];
+  char str[64];
   int len;
 
   if(e == TCP_SOCKET_CONNECTED) {
     printf("Connected\n");
     if(parse_url(s->url, host, &port, path)) {
       tcp_socket_send_str(tcps, s->postdata != NULL ? "POST " : "GET ");
+      printf("%s", s->postdata != NULL ? "POST " : "GET ");
       if(s->proxy_port != 0) {
         /* If we are configured to route through a proxy, we should
            provide the full URL as the path. */
         tcp_socket_send_str(tcps, s->url);
       } else {
         tcp_socket_send_str(tcps, path);
+        printf("%s", path);
       }
       tcp_socket_send_str(tcps, " HTTP/1.1\r\n");
+      printf("%s", " HTTP/1.1\r\n");
       tcp_socket_send_str(tcps, "Connection: close\r\n");
+      printf("%s", "Connection: close\r\n");
       tcp_socket_send_str(tcps, "Host: ");
+      printf("%s", "Host: ");
       tcp_socket_send_str(tcps, host);
+      printf("%s", host);
       tcp_socket_send_str(tcps, "\r\n");
+      printf("%s", "\r\n");
       if(s->postdata != NULL) {
         if(s->content_type) {
           tcp_socket_send_str(tcps, "Content-Type: ");
+          printf("%s", "Content-Type: ");
           tcp_socket_send_str(tcps, s->content_type);
+          printf("%s", s->content_type);
           tcp_socket_send_str(tcps, "\r\n");
+          printf("%s", "\r\n");
         }
         tcp_socket_send_str(tcps, "Content-Length: ");
+        printf("%s", "Content-Length: ");
         sprintf(str, "%u", s->postdatalen);
         tcp_socket_send_str(tcps, str);
+        printf("%s", str);
         tcp_socket_send_str(tcps, "\r\n");
+        printf("%s", "\r\n");
       } else if(s->length || s->pos > 0) {
         tcp_socket_send_str(tcps, "Range: bytes=");
         if(s->length) {
@@ -436,11 +449,15 @@ event(struct tcp_socket *tcps, void *ptr,
           sprintf(str, "%llu-", s->pos);
         }
         tcp_socket_send_str(tcps, str);
+        printf("%s", str);
         tcp_socket_send_str(tcps, "\r\n");
+        printf("%s", "\r\n");
       }
       tcp_socket_send_str(tcps, "\r\n");
+      printf("%s", "\r\n");
       if(s->postdata != NULL && s->postdatalen) {
         len = tcp_socket_send(tcps, s->postdata, s->postdatalen);
+        printf("%s", s->postdata);
         s->postdata += len;
         s->postdatalen -= len;
       }
@@ -460,6 +477,7 @@ event(struct tcp_socket *tcps, void *ptr,
     printf("Aborted\n");
   } else if(e == TCP_SOCKET_DATA_SENT) {
     if(s->postdata != NULL && s->postdatalen) {
+      printf("%s", s->postdata);
       len = tcp_socket_send(tcps, s->postdata, s->postdatalen);
       s->postdata += len;
       s->postdatalen -= len;

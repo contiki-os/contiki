@@ -47,10 +47,10 @@
 #define UIP_CONF_MAX_ROUTES              3
 #define NBR_TABLE_CONF_MAX_NEIGHBORS     3
 
-#define HTTP_CLIENT_BUFFER_LEN           256
+#define HTTP_CLIENT_BUFFER_LEN           320
 
-#define IFTTT_EVENT   "button"
-#define IFTTT_KEY     "XXXXXX"
+#define IFTTT_EVENT   "test"
+#define IFTTT_KEY     "dwULJ8rhx6GKiwpQNHovK_L2_9JozPmsGF_869wxc6R"
 /*---------------------------------------------------------------------------*/
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/
