@@ -8,10 +8,13 @@ ELF = $(CONTIKI_PROJECT).$(TARGET).elf
 
 	@$(SIZE) $(ELF)
 
-.PHONY: flash flash-firmware
+.PHONY: flash flash-firmware debug
 
 flash: $(CONTIKI_PROJECT)
 	$(BSP)/flasher/flasher.sh --flash $(shell pwd)/$(ELF)
 
 flash-firmware: $(FIRMWARE)
 	$(BSP)/flasher/flasher.sh --rom $(shell pwd)/$<
+
+debug: $(ELF)
+	$(BSP)/flasher/flasher.sh --debug $(shell pwd)/$<

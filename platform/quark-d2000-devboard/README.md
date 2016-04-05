@@ -139,6 +139,22 @@ the console output. Here follows an example using picocom.
 $ picocom -b 115200 --imap lfcrlf /dev/ttyUSB0
 ```
 
+Debugging
+---------
+
+The build system provides the 'debug' rule which setup a debugging section
+with gdb. This rule doesn't build and flash the application so you should
+make your app is flashed (see 'Flashing' section).
+
+The 'debug' rule will run OpenOCD and gdb with the right parameters. OpenOCD
+will run in background and its output will be redirected to a log file in the
+application's path called LOG_OPENOCD.
+
+Below follows an example on how to debug the hello-world application:
+```
+$ make debug TARGET=quark-d2000-devboard -C examples/hello-world/
+```
+
 References
 ----------
 
