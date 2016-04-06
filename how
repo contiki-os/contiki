@@ -1,0 +1,2038 @@
+commit 3ae894f60a7efd3d8bba41d03eb05a50f4994a21
+Author: Hari Krishna <krishna@IoT.(none)>
+Date:   Tue Apr 5 20:12:08 2016 +0530
+
+    For Ubimote-Hr platform
+
+commit fb31d8d641d8fc68d7bfe1ddeffc921484b47d9c
+Merge: 2b04888 1818700
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Fri Apr 1 08:59:36 2016 +0200
+
+    Merge pull request #1576 from mguc/jn516x_clock_module_signfix
+    
+    JN516x clock module sign error fix
+
+commit 1818700bde933c1a61dd27c40b1971614e024a18
+Author: Marko Gucanin <marko.gucanin@soom-it.ch>
+Date:   Thu Mar 31 13:51:03 2016 +0200
+
+    JN516x clock module sign error fix
+
+commit 2b04888f16ae617a99ae5aaa1b8e790ec7e2dcd5
+Merge: 29c9907 855703e
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Thu Mar 31 13:36:40 2016 +0200
+
+    Merge pull request #1574 from warner83/master
+    
+    Fixed a bug into tsch-schedule - tsch_schedule_add_link that causes d…
+
+commit 855703e93627e571f7172085c848ec5abbf2188b
+Author: Carlo Vallati <carlo.vallati@iet.unipi.it>
+Date:   Thu Mar 31 10:09:47 2016 +0200
+
+    Fixed a bug into tsch-schedule - tsch_schedule_add_link that causes deadlock if a new link cannot be created
+
+commit 29c9907c081f559e43ae6242eb191b6d125b71e4
+Merge: 3b9fa19 7a5249b
+Author: Oliver Schmidt <ol.sc@web.de>
+Date:   Mon Mar 28 21:10:44 2016 +0200
+
+    Merge pull request #1570 from oliverschmidt/master
+    
+    Several retrocomputing changes.
+
+commit 7a5249b0666caa6f515502466327f5416b4fdda1
+Author: Oliver Schmidt <ol.sc@web.de>
+Date:   Mon Mar 28 20:03:47 2016 +0200
+
+    Added a Contiki version of the CBM exec() system file; it uses PFS instead of POSIX.
+    
+    It reduces the webbrowsers' size by 735 bytes.
+
+commit b287351d9959dd11956966b547605f02fb363f40
+Author: Oliver Schmidt <ol.sc@web.de>
+Date:   Mon Mar 28 19:43:51 2016 +0200
+
+    Activated CBM PFS for the C64 Telnet server.
+    
+    Now that the CBM PFS supports file removal (and a file seek stub) it is possible to have the Telnet server leverage the IDE64 support of the CBM PFS.
+    
+    Note: Using the CBM PFS for the Telnet server does _not_ reduce the code size since the POSIX I/O functions are additionally still linked in because the POSIX directory functions internally use the POSIX I/O functions. And that's the very reason why the CBM PFS is _not_ activated for the C128 Telnet server: The CBM PFS for the C128 doesn't bring IDE64 support but is supposed to be used to reduce code size - but this isn't possible for the Telnet server.
+
+commit 111a976f1e8ef8f31929184403e63a985db8e645
+Author: Oliver Schmidt <ol.sc@web.de>
+Date:   Mon Mar 28 14:39:16 2016 +0200
+
+    Explicitly mark constant as 'unsigned' to avoid unnecessary promotion to 'long'.
+    
+    Long constants trigger the performance warning "Constant is long" with cc65.
+
+commit 4f28289df2b411154d4f5cf8d3235b54da515d94
+Author: Oliver Schmidt <ol.sc@web.de>
+Date:   Mon Mar 28 14:06:47 2016 +0200
+
+    Added a pfs_remove() function and a pfs_seek() stub to the Commodore platforms.
+    
+    - "Normalized" some Assembly code.
+    - Implemented CFS_APPEND in pfs_open().
+    - Made CFS_WRITE work in VICE's virtual disk/file system.
+
+commit 3b9fa19a662ccab6b00f103e9aac99a32e930e34
+Merge: 40f81a9 3057cb3
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Fri Mar 25 09:18:56 2016 +0100
+
+    Merge pull request #1540 from simonduq/pr/minor-tsch-fixes
+    
+    Minor TSCH fixes
+
+commit 40f81a98c333f7118a1bc4758ed0aa212576cc70
+Merge: f9a3023 93126b5
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Mon Mar 21 17:35:03 2016 +0100
+
+    Merge pull request #1481 from mdlemay/galileo-imr
+    
+    galileo: Isolated Memory Region support
+
+commit 93126b57bb19c92ebe021bae3938005a0f324ca8
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Tue Sep 29 21:29:35 2015 -0700
+
+    x86, galileo: Use IMRs to restrict DMA
+    
+    This patch configures Isolated Memory Regions (IMRs) to block DMA to
+    code and data regions that do not contain any data that needs to be
+    DMA-accessible.
+
+commit e0d124c7c548f916e2b8a7dc68ec8ba7805ef562
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Tue Jan 19 15:08:35 2016 -0800
+
+    galileo: Add example to print out IMR information
+    
+    This patch adds an example program to print out information about the
+    configuration of the Intel Quark X1000 SoC Isolated Memory Regions
+    (IMRs), the Host System Management Mode Controls register, and the
+    Host Memory I/O Boundary register.
+
+commit 58a00b7c233735db3c751df10ec524a09bc7298d
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Sat Sep 26 22:27:42 2015 -0700
+
+    x86, galileo: Add driver for Isolated Memory Regions (IMRs)
+    
+    The Intel Quark X1000 SoC includes support for Isolated Memory Regions
+    (IMRs), which are specified using range registers and associated
+    control registers that are accessible via the message bus.  This patch
+    adds a driver for accessing those registers.
+
+commit 25c07613c254a71d426332b0964ce940e54f3611
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Sat Sep 26 22:15:45 2015 -0700
+
+    x86: Add driver for message bus
+    
+    The Intel Quark X1000 SoC includes a message bus that is accessible
+    via PCI configuration registers.  It communicates to various SoC
+    components such as the Isolated Memory Region (IMR) registers and the
+    Remote Management Unit.  This patch adds a driver for accessing the
+    message bus.
+
+commit f9a30236c87741259542210fc53340c39a7829ca
+Merge: 8f9ff51 60acf7d
+Author: Fredrik Österlind <fros4943@gmail.com>
+Date:   Thu Mar 17 10:00:35 2016 +0100
+
+    Merge pull request #1557 from sieben/patch-1
+    
+    fix SerialSocketServer when run without GUI
+
+commit 60acf7de9817cfd690cd5f1cf6a042d63bfa9c17
+Author: Rémy Léone <remy.leone@gmail.com>
+Date:   Wed Mar 16 18:48:09 2016 +0100
+
+    fix SerialSocketServer when run without GUI
+
+commit 3057cb3363d2456ecd04e61cd4da2ff60b05fe0f
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Tue Mar 15 16:10:01 2016 +0100
+
+    TSCH: reset now also flushes all queues and resets backoff exponents
+
+commit 4b4ea36e9b4e8bd6eef939740aa35c62b74b98c2
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Tue Mar 8 17:11:42 2016 +0100
+
+    TSCH: substract RADIO_DELAY_BEFORE_DETECT from ACK timestamp (more accurate timeout for the following busy wait)
+
+commit 0fd097f8218be2be8b4cd85e1d0c2de1171b4dda
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Fri Mar 4 15:08:51 2016 +0100
+
+    TSCH: bound max packet size to the system's packetbuf size
+
+commit 0aa36eaa0a02e634d17e19be73441477a521cc2c
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Fri Mar 4 15:07:40 2016 +0100
+
+    TSCH: explicitly turn radio off after ACK tx
+
+commit 8f9ff513334bf00e6a2336cbf5f6d6bc3a4448d5
+Merge: 9ab3270 072e416
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Tue Mar 15 16:13:37 2016 +0100
+
+    Merge pull request #1555 from simonduq/pr/doxygen-warning
+    
+    Fix doxygen warning
+
+commit 072e416d4a5cf68c10f406c0c941a44613080d78
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Tue Mar 15 10:00:54 2016 +0100
+
+    Fix doxygen warning
+
+commit 9ab327090c5a2358aba5c7a92a46718464d99f7b
+Merge: 862e43d 1f44517
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Mon Mar 14 20:09:40 2016 +0100
+
+    Merge pull request #1444 from mdlemay/galileo-always-init-gpio
+    
+    galileo: Enable I2C and GPIO interrupt sharing and centralize their initialization
+
+commit 862e43d9b02c3d646ea81661a8f20af4dc8da8de
+Merge: 5e5904d 934cdba
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Mon Mar 14 17:10:46 2016 +0100
+
+    Merge pull request #1523 from Zolertia/pull/z1-apify-sensors
+    
+    Adapt Z1 on-board sensors to Contiki's API
+
+commit 5e5904d10e2129c586d743e149ca2905e5cf10bb
+Merge: 1ffbafe 92840e7
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Mon Mar 14 16:42:45 2016 +0100
+
+    Merge pull request #1387 from simonduq/pr/ndfree-rpl-fix
+    
+    NDP disabled: also disable uip_ds6_neighbor_periodic
+
+commit 1ffbafeaa6f03cc1b26007fb1329ac9ce36adcf0
+Merge: bbefd4a 5a440dd
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Mon Mar 14 16:42:13 2016 +0100
+
+    Merge pull request #1375 from myrfy001/myrfy001-patch-1
+    
+    off_t changed to signed to stay the same as POSIX
+
+commit bbefd4ab4e669eb197fa8c2eb66e1bdee8688b19
+Merge: 364afcf fbc5b53
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Mon Mar 14 16:41:33 2016 +0100
+
+    Merge pull request #1334 from tadodotcom/1333-resolv-fat-camp
+    
+    trims resolv.c by removing unrequired static declarations
+
+commit 364afcf20475442795daa496908f22103a833a42
+Merge: cd981b2 88a0db6
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Mon Mar 14 15:40:14 2016 +0100
+
+    Merge pull request #1553 from simonduq/pr/leftover-aaaa
+    
+    Fix a number of leftover mentions of aaaa as a prefix (now fd00)
+
+commit 88a0db6aeefaa79b5954e2525b5383159be03fe1
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Mon Mar 14 14:52:59 2016 +0100
+
+    Add missing includes
+
+commit 4bf868fd99c948fd9189490e1f5735f4deafa181
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Mon Mar 14 13:56:00 2016 +0100
+
+    Fix a number of leftover mentions of aaaa as a prefix (now fd00)
+
+commit cd981b23d5e104b27dc2e38c982151f17722248e
+Merge: a15be9e dea04c6
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Sun Mar 13 20:39:16 2016 +0100
+
+    Merge pull request #1297 from simonduq/pr/default-prefix
+    
+    Change the default IPv6 prefix from aaaa::/64 to fd00::/64
+
+commit a15be9e518082736b065bd9ce5a754146e72d180
+Merge: c476194 7dc1581
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Fri Mar 11 14:23:17 2016 +0100
+
+    Merge pull request #1438 from jkent/jsonparse
+    
+    jsonparse: multiple improvements
+
+commit c476194004bcce87292028f7d505fb5d617a7eec
+Merge: f5ea8e6 3fa25ea
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Fri Mar 11 14:14:26 2016 +0100
+
+    Merge pull request #1548 from simonduq/pr/traceroute
+    
+    uip6, icmp6 and ext header handling fixes: traceroute now working!
+
+commit 3fa25eac8c8aa787dba4dc92433cfef2eddef856
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Thu Mar 10 11:41:06 2016 +0100
+
+    uip6: fix bug that caused the payload of ICMPv6 messages not to match that of the original packet
+
+commit 06e984a02eb66acf5f5647b73a87bc0721f44f1d
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Thu Mar 10 11:40:30 2016 +0100
+
+    uip6: enable sending of "port unreachable" ICMPv6 message
+
+commit 5886bdea31b065b410e92aa68e113cfde4587f61
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Thu Mar 10 11:35:51 2016 +0100
+
+    uip_icmp6_error_output: remove and add RPL ext header instead of inverting it, so that the payload of the returned ICMP error matches the original packet
+
+commit 9930756d7c5ac0cd38fb0a523c596265ccc7cea6
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Thu Mar 10 11:34:23 2016 +0100
+
+    uip6: restore proto after calling remove_ext_hdr
+
+commit add5a8be6708cafc1bf065f7629e82fdf5707dab
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Thu Mar 10 11:33:40 2016 +0100
+
+    Code style
+
+commit f5ea8e613efc37503dbfb1ca8c2d5f780a001936
+Merge: 8e12074 f83e498
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Wed Mar 9 13:24:52 2016 +0100
+
+    Merge pull request #1547 from yatch/pr-fix-typos-in-prints
+    
+    RPL: fix typos in debug messages
+
+commit f83e4989781a35a51e6c59b6e21570a224bacb4d
+Author: Yasuyuki Tanaka <yasuyuki.tanaka@inf.ethz.ch>
+Date:   Wed Mar 9 11:32:02 2016 +0100
+
+    Fix typos in debug messages
+
+commit 8e120748d300f154b8bf83abf09474b7ff9913ab
+Merge: 8b3d220 8b63b41
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Mon Mar 7 20:25:54 2016 +0100
+
+    Merge pull request #1543 from simonduq/pr/tsch-security-save-space
+    
+    TSCH-Security regression test: save space
+
+commit dea04c67d79e2bec92382340be6df70de90d3210
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Wed Sep 30 16:06:58 2015 +0200
+
+    Change the default IPv6 prefix from aaaa::/64 to fd00::/64
+
+commit 8b63b41b96a0dbcbf78fe3e430ad20f3bfdb51fd
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Mon Mar 7 17:43:25 2016 +0100
+
+    TSCH-security: disable TSCH logs to save ROM, relax checks in 21-z1-rpl-tsch-security.csc accordingly
+
+commit 73fcfa42c259443b015ca81c498dd789179341a8
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Mon Mar 7 17:42:17 2016 +0100
+
+    TSCH: fix compiler warning that shows up when disabling TSCH_LOG_LEVEL
+
+commit 8b3d22076191a7a0a409c3b192f904b5c36299d3
+Merge: fbf3aba 6876b97
+Author: Oliver Schmidt <ol.sc@web.de>
+Date:   Sun Mar 6 21:29:50 2016 +0100
+
+    Merge pull request #1542 from oliverschmidt/master
+    
+    Adjusted segment names to match recent cc65 change.
+
+commit 6876b97466aca2dc1fea0be4b76fd903480fe858
+Author: Oliver Schmidt <ol.sc@web.de>
+Date:   Sun Mar 6 21:11:18 2016 +0100
+
+    Adjusted segment names to match recent cc65 change.
+
+commit fbf3aba152b5a31a4bfeff30356c0b35fec5e6dd
+Merge: da5044a 66629ae
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Thu Mar 3 13:39:27 2016 +0100
+
+    Merge pull request #1513 from mdlemay/check-newlib-conf
+    
+    galileo: build_newlib.sh: Exit on configuration error
+
+commit da5044acb2e6875e3426b018b438529f37fed551
+Merge: df5ff89 16145f6
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Thu Mar 3 13:38:56 2016 +0100
+
+    Merge pull request #1514 from mdlemay/newlib-filter-patches
+    
+    galileo: build_newlib.sh: Only apply patch files with the extension ".patch"
+
+commit df5ff896a8825cbfa7f3139e6f6bf8f73eaf9274
+Merge: c7bb3b7 1219790
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Wed Mar 2 10:29:00 2016 +0100
+
+    Merge pull request #1536 from gebart/pr/function-prototypes
+    
+    fix warning: function declaration isn't a prototype
+
+commit c7bb3b7b9fb410b12d3a90775ac1f3ed010ec716
+Merge: debdc76 e5c7437
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Wed Mar 2 09:53:00 2016 +0100
+
+    Merge pull request #1309 from iot-lab/tunslip_tun_conflict
+    
+    Fix default tun/tap issue with multiple tunslip6
+
+commit 12197903129e2362179bb55e4a8f60602f66d58d
+Author: Joakim Nohlgård <joakim.nohlgard@eistec.se>
+Date:   Wed Mar 2 07:25:19 2016 +0100
+
+    examples/er-rest-example/resources/res-event.c: fix warning: function declaration isn't a prototype
+
+commit 4ff571beb205cb7ccd289ca376fe2746ee0c929c
+Author: Joakim Nohlgård <joakim.nohlgard@eistec.se>
+Date:   Wed Mar 2 07:12:01 2016 +0100
+
+    apps/er-coap/er-coap-separate.h: fix warning: function declaration isn't a prototype
+
+commit 9159903f5a9fbf9ffc22dc8639a7ff3e7d2e837b
+Author: Joakim Nohlgård <joakim.nohlgard@eistec.se>
+Date:   Wed Mar 2 07:12:01 2016 +0100
+
+    apps/er-coap/er-coap-transactions.h: fix warning: function declaration isn't a prototype
+
+commit e32b46a86690448a733d83c5d96de00393b30d0d
+Author: Joakim Nohlgård <joakim.nohlgard@eistec.se>
+Date:   Wed Mar 2 07:04:34 2016 +0100
+
+    core/lib/gcr.c: fix warning: function declaration isn't a prototype
+
+commit d7d836fda0d5299b1a7f03f245b760b09b00fbc2
+Author: Joakim Nohlgård <joakim.nohlgard@eistec.se>
+Date:   Wed Mar 2 07:00:57 2016 +0100
+
+    core/net/rpl/rpl.h: fix warning: function declaration isn't a prototype
+
+commit 52e7ea9cc4d9b414e5d9fce9a9ad4164e43986a9
+Author: Joakim Nohlgård <joakim.nohlgard@eistec.se>
+Date:   Wed Mar 2 07:00:57 2016 +0100
+
+    core/net/rpl/rpl-dag.c: fix warning: function declaration isn't a prototype
+
+commit 2e47bf9cdc3d1c52a0762e7067fb2a61098d192f
+Author: Joakim Nohlgård <joakim.nohlgard@eistec.se>
+Date:   Wed Mar 2 07:00:57 2016 +0100
+
+    core/net/ipv6/sicslowpan.c: fix warning: function declaration isn't a prototype
+
+commit 7c11034ab71cbd8dcd17e4da08485cd6e41da42c
+Author: Joakim Nohlgård <joakim.nohlgard@eistec.se>
+Date:   Wed Mar 2 07:00:57 2016 +0100
+
+    core/lib/trickle-timer.c: fix warning: function declaration isn't a prototype
+
+commit de7850ed5829286cb5fdcabe327a8620d0413274
+Author: Joakim Nohlgård <joakim.nohlgard@eistec.se>
+Date:   Wed Mar 2 07:00:57 2016 +0100
+
+    core/lib/settings.h: fix warning: function declaration isn't a prototype
+
+commit debdc767cc22175d53b020a2ce6bad03912a6833
+Merge: a3e13f1 d7ee563
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Mon Feb 29 22:49:06 2016 +0000
+
+    Merge pull request #1534 from JelmerT/feature/cc2538-bsl_update
+    
+    Update of cc2538-bsl to 4340542
+
+commit d7ee5630237fc6c9e7cd618c59d804b5307e9340
+Author: Jelmer Tiete <jelmer@tiete.be>
+Date:   Mon Feb 29 13:48:24 2016 +0100
+
+    Updates cc2538-bsl to 4340542, main changes are fix for contiki-os/contiki#1533 and an added option to invert the RTS and DTR lines when auto starting the bootloader
+
+commit a3e13f1269124efa1a48947a2015de7f1a46641b
+Merge: 65caef4 56aeb7c
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Fri Feb 26 23:19:38 2016 +0100
+
+    Merge pull request #1525 from Zolertia/remote-zonik
+    
+    Added Zolertia Zonik sound sensor test and drivers
+
+commit 65caef495a62d22405f413a5ac3c8ee3bce46a2f
+Merge: 5c7bc22 0e0bf33
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Fri Feb 26 15:16:35 2016 +0100
+
+    Merge pull request #1354 from tsparber/pr-count-icmp-stats
+    
+    uIP Stats: Count sent ICMP6 packets
+
+commit 5c7bc22321f3366be1b5b8528eb9ee1d49c5250e
+Merge: 93b9089 4d49309
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Fri Feb 26 15:12:44 2016 +0100
+
+    Merge pull request #1526 from alignan/pull/fix-shell-exec-no-process-name
+    
+    Fixes error when processes name are not used
+
+commit 56aeb7cd7e91f7f343e178b44c91f818054656b0
+Author: Aitor Mejias <amejias@zolertia.com>
+Date:   Thu Jan 28 10:12:19 2016 +0100
+
+    Added Zolertia Zonik sound sensor test and drivers
+
+commit 4d4930921ea0c92a2da11a6669cc2d424b5d4e7f
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Mon Feb 22 16:02:06 2016 +0100
+
+    Fixes error when processes name are not used
+
+commit 934cdbacca841e89535090a6c7fcf8c12efac921
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Mon Feb 22 12:06:38 2016 +0100
+
+    Adapted the ADXL345 sensor to Contiki's sensor API
+
+commit 1be30d52dc5ee2d377dcfdfcb3e8bbd946c9aeac
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Mon Feb 22 11:24:50 2016 +0100
+
+    Removed unused blocks and made functions static
+
+commit 151f532225d4ccf1d5618d2112b2b6555d5d144a
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Mon Feb 22 10:34:48 2016 +0100
+
+    Adapted the TMP102 sensor to Contiki's sensor API
+
+commit 93b90891640cc96ba36643dc3a6e6e4b708a883a
+Merge: b53a156 910f7b1
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Sat Feb 20 23:50:17 2016 +0000
+
+    Merge pull request #1504 from bthebaudeau/travis-force-aapcs-toolchain-version
+    
+    travis: Force AAPCS toolchain version
+
+commit b53a1569d9fffbfc7ec2f7ccf199987c536c32a5
+Merge: 0e17b98 a65d566
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Sat Feb 20 12:49:07 2016 +0100
+
+    Merge pull request #1439 from jkent/jsontree
+    
+    jsontree: new features
+
+commit 1f445172ff06e30c8c0f82022817dd94417e6ec4
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Wed Jan 6 20:55:21 2016 -0800
+
+    galileo: Fix build help message in examples
+    
+    This patch fixes examples/galileo/Makefile so that it actually
+    displays the intended help message when an unrecognized EXAMPLE is
+    selected.
+
+commit b82d92e3736b5635da0536deab628935bae9cecb
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Wed Jan 6 17:25:55 2016 -0800
+
+    galileo: Add I2C callbacks example
+    
+    This patch adds an example for I2C callbacks that is very similar to
+    the i2c-LSM9DS0 example except that it uses a PWM device that is built
+    into the platform.
+
+commit 58874ea25df3f5328a4429348a13b2451f9435de
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Tue Jan 5 23:05:09 2016 -0800
+
+    x86, galileo: Refactor I2C and GPIO initialization
+    
+    This patch revises the I2C and GPIO initialization code to always be
+    run during platform boot rather than within each process that requires
+    it.
+    
+    This patch also revises the gpio-output example to use a pin that is
+    set as an output by the default pinmux configuration.  Previously, it
+    used a pin that was set as an output by the pinmux configuration that
+    is in effect when the OS does not change the pinmux configuration.
+
+commit 3e644476319d131782d0112905bc889d164d3af0
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Wed Jan 6 17:21:36 2016 -0800
+
+    galileo: Expand README for examples
+    
+    This patch expands the instructions in examples/galileo/README.md.
+
+commit c9bffe6d5a7780f339ca76617502318d85c54eaa
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Wed Jan 6 17:17:25 2016 -0800
+
+    galileo: Convert README for examples into README.md
+    
+    This patch renames and reformats examples/galileo/README to use
+    Markdown.
+
+commit c815fa451186b4bf06073dbb9b59d7b1e410e213
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Wed Jan 6 17:00:45 2016 -0800
+
+    x86: Use shared ISR for I2C and GPIO
+    
+    This patch permits interrupts to be generated by both the I2C and GPIO
+    controllers for simultaneously-executing applications. The controllers
+    share a single interrupt pin, INTC. Prior to this patch,
+    quarkX1000_gpio_init() routed INTA to PIRQC and IRQ 10 (due to an
+    incorrect assumption that INTA is connected to the GPIO controller),
+    and quarkX1000_i2c_init() routed INTC to PIRQC and IRQ 9. The I2C
+    controller initialization is a prerequisite for GPIO initialization,
+    so the final configuration was that INTA and INTC were both routed to
+    PIRQC and IRQ 10. Thus, only the GPIO ISR was being invoked, even if
+    the I2C controller was actually responsible for the interrupt.
+    
+    This patch refactors the I2C and GPIO ISR setup and handler code so
+    that the shared portions are combined in
+    cpu/x86/drivers/legacy_pc/shared-isr.[ch].  The I2C and GPIO drivers
+    communicate their interrupt information to the shared component by
+    placing structures in a specific section of the binary.
+
+commit 66629ae58f7494eea0cc9f822ca38b7f20c29b5e
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Fri Feb 12 13:49:19 2016 -0800
+
+    galileo: build_newlib.sh: Exit on configuration error
+    
+    This patch adds a check for the result of the newlib configure command
+    and immediately exits the build_newlib.sh script if configure fails.
+
+commit 0e17b98372cd5cdf6340ac228dabd24006d6a1af
+Merge: 0dbed51 2cbde75
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Mon Feb 15 17:38:36 2016 +0100
+
+    Merge pull request #1518 from Zolertia/pm10-remove-issue
+    
+    Removed PM10 code lines from adc-sensors driver
+
+commit 2cbde75b02b33d82183d1785fb2ed349a3f6ed89
+Author: Toni Lozano <tlozano@zolertia.com>
+Date:   Mon Feb 15 14:45:26 2016 +0100
+
+    Removed PM10 code lines from adc-sensors driver
+
+commit 0dbed519a5bd311ea21f5c7bf5f8faa952a1b64d
+Merge: 4cd0e3a cb1e7c2
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Mon Feb 15 12:21:32 2016 +0100
+
+    Merge pull request #1507 from Zolertia/remote-voc-test
+    
+    Added VOC (iAQ-Core) drivers and test application
+
+commit cb1e7c2c4551515c027f88badeb32525036dc14b
+Author: Aitor Mejias <amejias@zolertia.com>
+Date:   Thu Jan 28 10:12:19 2016 +0100
+
+    Added VOC (iAQ-Core) drivers and test application
+
+commit 4cd0e3ad355162fce84a9b674d03bf4a0407c67b
+Merge: c6ded00 25ff850
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Sat Feb 13 23:02:17 2016 +0100
+
+    Merge pull request #1516 from alignan/pull/weather-meter-contikimac
+    
+    Weather meter: replaced rtimer by ctimer as it was breaking contikimac
+
+commit 25ff850a43f22d1cbd5f4117e6308ad98c7d0f3b
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sat Feb 13 20:10:16 2016 +0100
+
+    Weather meter: replaced rtimer by ctimer as it was breaking contikimac
+
+commit c6ded00dc4451251d5db526963f87c91d29116c6
+Merge: 99de563 b2b573e
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Sat Feb 13 16:35:50 2016 +0100
+
+    Merge pull request #1512 from alignan/pull/fix-z1-websense
+    
+    Fix z1-websense example
+
+commit 16145f645a1a48abb865f978ffea847ae7f4b027
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Fri Feb 12 13:45:25 2016 -0800
+
+    galileo: build_newlib.sh: Only apply patch files with the extension ".patch"
+    
+    This avoids treating as patches other files that may happen to be
+    present in the newlib patch directory in a working tree.
+
+commit b2b573e9e7a9c75b7d5c1a6f58ff92f3d15c2f3c
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Fri Feb 12 19:10:02 2016 +0100
+
+    Fix z1-websense example
+
+commit 99de563e8d8537f344fc4abe59bb2ec6a27e5579
+Merge: daa83ee ba6419c
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Mon Feb 8 13:35:03 2016 +0100
+
+    Merge pull request #1503 from amitgeron/route_discovery_typo
+    
+    Typo
+
+commit 910f7b1ac8936de7af08d74deb44ad1ea7c6ff13
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sun Feb 7 18:11:12 2016 +0100
+
+    travis: Force AAPCS toolchain version
+    
+    Make Travis CI use the GNU ARM Embedded toolchain version specified by
+    the READMEs, instead of automatically using the latest version provided
+    by the PPA. In this way, the READMEs will still be correct after a PPA
+    upgrade, and the version used by Contiki is under control.
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit ba6419cc25464262b8f10fee914ce5358627b159
+Author: Amit Geron <amit.geron@gmail.com>
+Date:   Sun Feb 7 11:58:31 2016 +0200
+
+    Typo
+    
+    * route_discovery_expicit_open --> route_discovery_explicit_open
+
+commit daa83ee3ef32f5b48f647e1c614fe6523ab440bb
+Merge: 5afdae1 1b8c889
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Fri Feb 5 23:12:39 2016 +0100
+
+    Merge pull request #1404 from amitgeron/route_discovery_channels
+    
+    Add route_discovery_explicit_open()
+
+commit 5afdae139920ccf40f776078cdbfd3742639cd98
+Merge: 287092d c924567
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Fri Feb 5 23:02:39 2016 +0100
+
+    Merge pull request #1498 from alignan/pull/fix-ip64-warnings
+    
+    Fix ip64 warnings and error
+
+commit 287092db422e03b86bb5827cd12677905db46f93
+Merge: 9b3e334 45c1259
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Thu Feb 4 23:48:35 2016 +0100
+
+    Merge pull request #1486 from alignan/pull/cc2538-common
+    
+    Unified cc2538 examples into single cc2538-common placeholder
+
+commit 45c125949ae64d450b69b533349cae77b29beeca
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Fri Jan 29 23:13:01 2016 +0100
+
+    Unified cc2538 examples into single cc2538-common placeholder
+
+commit 9b3e334c7d67429a75ef355f73f2ba3bc7a56754
+Merge: 4dce5f6 fa07838
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Thu Feb 4 13:14:26 2016 +0100
+
+    Merge pull request #1497 from simonduq/pr/shell-warnings
+    
+    Fix compiler warnings in shell
+
+commit 4dce5f6765c5c4d950876d2c71993edaf2c1ac93
+Merge: ebdc536 521cc76
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Thu Feb 4 13:09:21 2016 +0100
+
+    Merge pull request #1494 from simonduq/pr/uip6-debug
+    
+    Minor debug output fixes
+
+commit ebdc536d61a555bad6fd0ff21983cdbfdfa50ef6
+Merge: 9f383ba f87f7e7
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Thu Feb 4 10:02:15 2016 +0100
+
+    Merge pull request #1496 from simonduq/pr/jn516x-serial-input
+    
+    jn516x enable serial input whenever there is no fallback interface
+
+commit c924567d86bdeed514f127bb74e251467f0a567c
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Thu Feb 4 00:25:53 2016 +0100
+
+    Fix ip64 warnings
+
+commit fa078381cf3efbd2eb5234ca9a97def84affcec6
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Wed Feb 3 18:01:25 2016 +0100
+
+    Fix compiler warnings in shell
+
+commit f87f7e7eddd094e50570799c4d3f02ee42b8fe42
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Wed Feb 3 17:53:29 2016 +0100
+
+    jn516x enable serial input whenever there is no fallback interface
+
+commit 521cc7600d1a06b2bd2104a20a1c6eca08b20212
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Wed Feb 3 17:10:24 2016 +0100
+
+    Minor debug output fixes
+
+commit 9f383ba534bdc7b5bac5b482a9d19d0897386067
+Merge: 79a0709 658cf0d
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Wed Feb 3 11:41:10 2016 +0100
+
+    Merge pull request #1492 from simonduq/pr/jn516x-minor
+    
+    Reworking jn516x default configuration and examples
+
+commit 658cf0d2cc873eea410d1a5f297997af37a72d37
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Wed Feb 3 10:35:48 2016 +0100
+
+    Reworking jn516x default configuration and examples
+
+commit 79a0709cd7fac0a22f76e068c176209e2b29ac35
+Merge: 5d67a61 f0d1b6c
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Wed Feb 3 09:35:05 2016 +0100
+
+    Merge pull request #1491 from simonduq/pr/sicslowpan-printf
+    
+    Fix compiler errors and warnings in sicslowpan.c PRINTF statements
+
+commit f0d1b6c5bb963774371be914eea153cf7321c88a
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Tue Feb 2 17:18:45 2016 +0100
+
+    Fix PRINTF statement in sicslowpan
+
+commit 5d67a612b4241df8c0f5b66f03c1ca98e4c442fa
+Merge: 77fac15 576d04a
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Mon Feb 1 15:30:13 2016 +0100
+
+    Merge pull request #1402 from simonduq/pr/ci-simexec-log-output
+    
+    Travis: improved output for failed Cooja simulation
+
+commit 77fac155c15352c48588926c1361e29ae6da4bf2
+Merge: eef96f3 15a5f27
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Mon Feb 1 15:08:20 2016 +0100
+
+    Merge pull request #1489 from simonduq/pr/jn516x-examples-tsch
+    
+    Adding TSCH to examples/jn516x/rpl
+
+commit eef96f3ba743f660ec9ce24cc359a1088b45db40
+Merge: deb39df 6557194
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Mon Feb 1 14:25:53 2016 +0100
+
+    Merge pull request #1480 from mdlemay/revise-clang-flags
+    
+    galileo: Revise include flags for LLVM Clang
+
+commit deb39df3a3241ccd0ff5fa27588fe733fd25b4f7
+Merge: badc4b7 d36eab3
+Author: Nicolas Tsiftes <nvt@sics.se>
+Date:   Mon Feb 1 14:25:06 2016 +0100
+
+    Merge pull request #1478 from zq301/patch-11
+    
+    a memory overflow in shell-vars.c
+
+commit badc4b77f184594723ff0f7ff446aa852cb7f2d5
+Merge: 4472861 7c3108b
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Mon Feb 1 14:19:44 2016 +0100
+
+    Merge pull request #1488 from simonduq/pr/jn516x-uart
+    
+    jn516x: flush only uart Tx FIFO in main loop, leaving Rx FIFO intact
+
+commit 15a5f27080a1c4c8f8212a636e2959373911afe5
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Mon Feb 1 10:57:49 2016 +0100
+
+    Adding TSCH to examples/jn516x/rpl
+
+commit 7c3108bf3bb1154952eb42cc8af449c4f183e6b2
+Author: Simon Duquennoy <simon.duquennoy@inria.fr>
+Date:   Mon Feb 1 13:36:18 2016 +0100
+
+    jn516x: flush only uart Tx FIFO in main loop, leaving Rx FIFO intact
+
+commit 447286197f444a1b0f5afb81aacd1b87f59458da
+Merge: 7d6966b 35345cd
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Sun Jan 31 23:40:42 2016 +0100
+
+    Merge pull request #1487 from alignan/pull/weather-meter-wind-bane-fix
+    
+    Fixed casts and calculations for the wind direction circular averaging
+
+commit 35345cdb40c89b222eca7796e46c920d1455cbbd
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sat Jan 30 00:15:21 2016 +0100
+
+    Fixed casts and calculations for the wind direction circular averaging
+
+commit 7d6966b22c7b7aef10642a8ab76be1f34c660dbe
+Merge: a2d7b87 1f6dafe
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Wed Jan 27 11:47:07 2016 +0000
+
+    Merge pull request #1483 from Zolertia/pm10-sensor
+    
+    Added PM10, VAC and AAC sensor drivers
+
+commit a2d7b879365adf8aa9749bc0b2dfe216ba045c66
+Merge: 9f1376d d42b1b5
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Wed Jan 27 11:46:01 2016 +0000
+
+    Merge pull request #1479 from g-oikonomou/bugfix/cc13xx/dont-mask-cmdsta
+    
+    Allow the caller to access the entire content of CMDSTA
+
+commit 1f6dafecb097b73c367036df30901259abfaa85f
+Author: Toni Lozano <tlozano@zolertia.com>
+Date:   Tue Jan 26 14:08:17 2016 +0100
+
+    Modified ADC measurement of PM10 driver to include adc-zoul direct access
+
+commit 8337843d691ec9e7fefc60d457024c31059d21b9
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Mon Jan 25 22:58:06 2016 +0100
+
+    Minor fixes
+
+commit 6557194fc5b5708ecc5654fe3a121b8fc4ac012b
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Tue Dec 15 14:10:42 2015 -0800
+
+    galileo: Revise include flags for LLVM Clang
+    
+    This patch revises the compiler flags when LLVM Clang is in use to
+    cause Clang to automatically use its built-in header files rather than
+    those for GCC.
+
+commit 9f1376d37a50a3ddd31e406b7d0a683486ce9482
+Merge: d4251d7 9e9e6d0
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Mon Jan 25 21:32:28 2016 +0100
+
+    Merge pull request #1453 from g-oikonomou/contrib/test-with-arm-gcc-5
+    
+    Change travis arm tests to use gcc-arm-embedded v5
+
+commit 31e6cc48ca0bb37aa7d900d08fd7d987bb4890f5
+Author: Toni Lozano <tlozano@zolertia.com>
+Date:   Mon Jan 25 12:20:36 2016 +0100
+
+    Solved doxygen comments information from VAC, AAC and PM10 sensor files
+
+commit 42e1beb93167e7aa67777e7454f844f3bb03672f
+Author: Toni Lozano <tlozano@zolertia.com>
+Date:   Fri Jan 22 12:15:33 2016 +0100
+
+    Added PM10 GP2Y1010AU0F sensor driver and demo test
+
+commit 490784282133f4327ecfbcc5b96d52dbf073ee01
+Author: Toni Lozano <tlozano@zolertia.com>
+Date:   Thu Jan 21 15:24:47 2016 +0100
+
+    Added parameters of aac-sensor on adc-sensors file and adapted AAC and VAC test files for correct results
+
+commit 1fca3e810a4c4e1d83cc0a2f82f2c3f74f01c8c8
+Author: Toni Lozano <tlozano@zolertia.com>
+Date:   Wed Jan 20 15:50:56 2016 +0100
+
+    Added PM10 and VAC parameters to adc_sensors driver
+
+commit d4251d7c3b303e9128825d019db64f085e6c98d0
+Merge: 9a5682b 246b010
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Mon Jan 25 09:54:25 2016 +0100
+
+    Merge pull request #1470 from alignan/pull/grove-rgb-backlight-lcd
+    
+    Ported Grove LCD with RGB backlight for the Zoul platforms
+
+commit d36eab37506ba4183fbed63013933e195d6e8588
+Author: zq301 <zhaoqian301@gmail.com>
+Date:   Mon Jan 25 09:35:49 2016 +0800
+
+    Update shell-vars.c
+
+commit e7c26c57db37494560c65d5e0d45070021dcc1c4
+Author: zq301 <zhaoqian301@gmail.com>
+Date:   Mon Jan 25 09:35:15 2016 +0800
+
+    Update shell-vars.c
+
+commit 9e9e6d07b060ca3720e3d454bfaeb662c376bbdd
+Author: George Oikonomou <george@contiki-os.org>
+Date:   Sun Jan 24 13:53:54 2016 +0000
+
+    Adjust READMEs to point explicitly to the arm-gcc version used by travis
+
+commit d42b1b50e58cbc9f71da3efd2f387742c6ef94de
+Author: George Oikonomou <george@contiki-os.org>
+Date:   Sun Jan 24 13:39:02 2016 +0000
+
+    Allow the caller to access the entire content of CMDSTA
+    
+    When sending a command to the CC13xx/CC25xx RF core, we wait for command completion by checking the LSB of CMDSTA (correctly so). However, in doing so we also zero out the 3 CMDSTA return bytes. For some commands, those bytes contain useful information (e.g. an RSSI value) and are required by the caller.
+    
+    This problem manifests itself e.g. in PROP mode `channel_clear()`, whereby the caller will always see an RSSI value of 0.
+    
+    This pull therefore fixes the logic in `rf_core_send_cmd()` to check for command completion by blocking on the CMDSTA result byte without zeroing out the 3 return bytes.
+    
+    Fixes #1465
+
+commit 915facad2232ff68b740ad698d9cb2b8c2277f6e
+Author: zq301 <zhaoqian301@gmail.com>
+Date:   Sun Jan 24 14:39:48 2016 +0800
+
+    a memory overflow in shell-vars.c
+    
+    " sprintf(numbuf, "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x",...)" . the formatted data wrote to "numbuf" is 39 bytes, but numbuf is 32 bytes.
+
+commit 9a5682b75b0f11b3da68cf59612d355676c5d635
+Merge: 481bcd9 66ebca3
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Sat Jan 23 16:20:22 2016 +0100
+
+    Merge pull request #1476 from alignan/pull/update-weather-meter
+    
+    Updated to new adc-zoul renaming
+
+commit 246b01095f8d7138e42846e039d2120b6d117807
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Wed Jan 13 18:56:16 2016 +0100
+
+    Ported Grove LCD with RGB backlight for the Zoul platforms
+
+commit 66ebca3ade235f5be042dab691d63aacb9767b39
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sat Jan 23 15:42:13 2016 +0100
+
+    Updated to new adc-zoul renaming
+
+commit 481bcd9e00111184510be9130fa8ea58746acd27
+Merge: 943da6e 9a80c00
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Sat Jan 23 15:08:47 2016 +0100
+
+    Merge pull request #1472 from alignan/pull/grove-gyro
+    
+    Add support for the ITG-3200 3-axis gyroscope
+
+commit 9a80c0098f950fcaa543405e385b8178e4ba63cc
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Thu Jan 21 18:06:51 2016 +0100
+
+    Added zero-calibration function and added offset values to the structure
+
+commit 426fa24e507975f13a1fc8732901beb0b8a03318
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Thu Jan 21 16:21:00 2016 +0100
+
+    Clear interrupt and trigger callback if new data is generated
+
+commit f5b52e8094b7dd877fb820273bd6b49162932dcf
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Wed Jan 20 13:59:57 2016 +0100
+
+    Ported Grove's 3-axis gyroscope sensor (based on ITG-3200)
+
+commit 943da6e014b93a59e6f1b713321bf152c28dd736
+Merge: ec45369 6351462
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Fri Jan 22 16:56:08 2016 +0100
+
+    Merge pull request #1471 from alignan/pull/bmp180-update
+    
+    Unified BMP180 and BMP085 drivers
+
+commit 6351462e89abbbb8b37a7625ccfcee52f7dc2582
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Fri Jan 22 16:11:49 2016 +0100
+
+    Unified BMP180 and BMP085 drivers
+
+commit ec45369d1bfabfdffd9e138fa6576d184a3cb816
+Merge: 7128a6a a6c30b4
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Fri Jan 22 15:18:14 2016 +0100
+
+    Merge pull request #1466 from alignan/pull/weather-meter
+    
+    Add driver for the Sparkfun Weather meter station
+
+commit 7128a6a1789128ad8cccb6ca61923b83e815d5fd
+Merge: 9bdb1f1 6ef8f47
+Author: Adam Dunkels <adam@dunkels.com>
+Date:   Fri Jan 22 07:15:18 2016 +0100
+
+    Merge pull request #1258 from joakimeriksson/multiple-reassembly-fix
+    
+    6LoWPAN - multiple reassembly fix and cleanup
+
+commit 9bdb1f1794a47eebb4644487905bd98123ea8d91
+Merge: 89899c7 c03b05c
+Author: Fredrik Österlind <fros4943@gmail.com>
+Date:   Thu Jan 21 09:39:40 2016 +0100
+
+    Merge pull request #1462 from MichaelKlemm/FixCoojaPluginLoad
+    
+    Fixed loading SerialSocketServer plugin in Cooja using FQDN
+
+commit 89899c79556b828d725771683fc7f4c3625a51b7
+Merge: f6fb554 98ed8a2
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Wed Jan 20 00:40:02 2016 +0100
+
+    Merge pull request #1467 from alignan/pull/fix-adc-zoul
+    
+    Removed harsh restriction on mask values and disabled debug flags
+
+commit 98ed8a29a0b78bdecea3c93c9ac0e032bfb6cd81
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Tue Jan 19 22:28:09 2016 +0100
+
+    Removed harsh restriction on mask values and disabled debug flags
+
+commit a6c30b4e09546686aad1bc9d9f340d77e80a6a0a
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Tue Jan 19 22:23:30 2016 +0100
+
+    Fixed missing static keyword in both zoul-demo and weather meter driver
+
+commit 6ef8f477643345d70c43ecdb30a62718ed41111d
+Author: Joakim Eriksson <joakime@sics.se>
+Date:   Fri Sep 18 14:22:17 2015 +0200
+
+    Style fixes, LLSEC.overhead and MAC_MAX_PAYLOAD
+
+commit 366f11d5df773b3dae5802289520e7bc5056254e
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Tue Jan 19 18:03:16 2016 +0100
+
+    Uncrustified weather meter driver and example
+
+commit 81bec49a40182a6ec1b195aac127c9a17ec2df68
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Tue Jan 19 18:00:18 2016 +0100
+
+    Changed fixed 2 minute integration period to allow overriding
+
+commit 0902e0fc6d413b50fe45f58a7cbfc7076a5b0170
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 17 21:34:52 2016 +0100
+
+    Added degree converted value for the wind vane sensor.
+    Also added a 2-minutes average wind direction value, replaced the 240 bytes buffer from the reference example, but probably there's room for efficiency improvement
+
+commit 61f151636931f71e89d87cd18935d3499db38881
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 17 14:56:12 2016 +0100
+
+    Reworked instant wind speed calculation and extended the available wind speed return values
+
+commit 0cb80b060588ec2947392a2a2ea140fa737bcd60
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 17 02:25:00 2016 +0100
+
+    Prevent calculations if tick is zero
+
+commit aacbcd904fd8fb06ada5e4e5a7e97d3ae899fa94
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 17 02:22:19 2016 +0100
+
+    Added interrupt configuration for the weather meter
+
+commit 103911f619af93cce70749c99b0b6a129b5d4fe0
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 17 00:04:32 2016 +0100
+
+    Added driver for the Sparkfun's weather meter station
+
+commit f6fb5544c7ec0f692487d13b837e1db0cc765c7f
+Merge: 66719ef 2295ecd
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Tue Jan 19 17:40:54 2016 +0100
+
+    Merge pull request #1459 from alignan/pull/adc-sensors
+    
+    ADC wrapper for the Zoul-based platforms
+
+commit 02e07607a705185d7c5f9592973d378c29353e8d
+Author: Joakim Eriksson <joakime@sics.se>
+Date:   Fri Sep 18 09:25:42 2015 +0200
+
+    removed old HC1 code since it is not expected to be used and removed NH_COMPRESSOR
+
+commit d4dc45e09697627f690e17505584dd4e87fcd816
+Author: Joakim Eriksson <joakime@sics.se>
+Date:   Mon Sep 14 17:34:08 2015 +0200
+
+    updated sicslowpan documentation and platform configurations
+
+commit d0448df3b8e2f315c90aeb33379804915f877023
+Author: Joakim Eriksson <joakime@sics.se>
+Date:   Mon Sep 14 15:55:26 2015 +0200
+
+    added support for multiple reassemblies
+
+commit 2295ecdbd949224cfcc034f3e018c27e02c26950
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 17 23:04:34 2016 +0100
+
+    Renamed adc-sensors/adc-wrapper to adc-zoul/adc-sensors, to have a better wording reflecting the intented use
+
+commit 503abb4415fbd538922051dadc4338bceab1ece3
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Tue Jan 12 01:04:21 2016 +0100
+
+    ADC wrapper for the Zoul-based platforms, allows to add analogue sensors over the existing adc interface
+
+commit 66719ef2e20bec37b8a20e98ade29adeb9e8fb61
+Merge: c792f5c ac07e84
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Sun Jan 17 22:38:37 2016 +0100
+
+    Merge pull request #1464 from alignan/pull/minor-fixes
+    
+    Minor fixes to file descriptions and disable DEBUG switches
+
+commit ac07e848b72be1a225cc1784e0ff20dfbe13458c
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 17 21:52:34 2016 +0100
+
+    Minor fixes to file descriptions and disable DEBUG switches
+
+commit c792f5cf4b0a0e1849cc762bf98e1a1ecc82aed0
+Merge: bafabc7 cef3c39
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Sun Jan 17 10:20:33 2016 +0100
+
+    Merge pull request #1409 from nfi/oma-lwm2m-ipso
+    
+    Implementation of OMA LWM2M Engine / IPSO Objects
+
+commit bafabc7795c33d617128bf3468e3367ace1ac318
+Merge: 2bb7ac9 b1c3941
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Sun Jan 17 00:15:54 2016 +0100
+
+    Merge pull request #1452 from g-oikonomou/contrib/travis-test-cc13xx-and-sensortag
+    
+    Compile-test the CC2650 Sensortag and Srf06+CC1310EM code
+
+commit 2bb7ac9cc0de0ec67e94c9f09b13ee504e422365
+Merge: 99f0c9f 6933b35
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Sun Jan 17 00:08:37 2016 +0100
+
+    Merge pull request #1451 from g-oikonomou/bugfix/sensortag/select
+    
+    Rename select() in various sensortag sensor drivers
+
+commit c03b05c702c0f18b9cd0076315db6026bd99f338
+Author: Michael Klemm <michael.klemm@jambit.com>
+Date:   Sat Jan 16 12:25:42 2016 +0100
+
+    Fixed loading SerialSocketServer plugin in Cooja using FQDN
+
+commit 99f0c9f19b4d044c75521c1add3338560deaed28
+Merge: 57f4134 c644a32
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Mon Jan 11 20:30:09 2016 +0100
+
+    Merge pull request #1457 from alignan/pull/motion-sensor
+    
+    Add support for digital motion/presence sensors
+
+commit 57f4134c9e519911c0f351bee74da80dc4da1715
+Merge: 94657b7 48eb2a4
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Mon Jan 11 20:29:14 2016 +0100
+
+    Merge pull request #1454 from alignan/pull/sht25-sensor
+    
+    Fixes and enhancements for the SHT25 sensor
+
+commit 94657b7a72e622421cb1f25f625fd53750dc21e8
+Merge: 4a923df 564c3a9
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Mon Jan 11 20:28:35 2016 +0100
+
+    Merge pull request #1449 from alignan/pull/bmp085-sensor
+    
+    BMP085 barometric sensor for the RE-Mote platform
+
+commit 4a923df0b853feaad58fb67d6b6343ac1cb1b19e
+Merge: c394302 fefb845
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Mon Jan 11 20:27:48 2016 +0100
+
+    Merge pull request #1456 from alignan/pull/fix-zoul-adc
+    
+    Fixed filter value preventing from initializing the ADC
+
+commit c644a32dc7a9a07ba5fd2d0152a4c74ba3f3954b
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Mon Jan 11 18:28:20 2016 +0100
+
+    Added support for digital presence/motion sensors
+
+commit fefb84596e944c75fc6886773a154ec5ccca8ae5
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Mon Jan 11 17:21:23 2016 +0100
+
+    Fixed filter value preventing from initializing the ADC
+
+commit c394302c44568c38fca96b4bfc5da84f024168ae
+Merge: 659d314 7abee39
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Mon Jan 11 11:21:51 2016 +0000
+
+    Merge pull request #1446 from alignan/pull/tsl2563-sensor
+    
+    Enhanced TSL2563 driver for the Zoul module (RE-Mote/Firefly)
+
+commit 48eb2a4fe2dca93a6f27bc909dc3bb50a8c0b9c6
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 10 23:36:00 2016 +0100
+
+    Uncrustify changes
+
+commit d53a62187d1498e837475ec1c4e77db2fa825da8
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 10 21:10:40 2016 +0100
+
+    Added extra features of the SHT25 sensor
+
+commit 97a7e98ac57af272793a0472d0d3e2c5db16806e
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 10 19:37:48 2016 +0100
+
+    Fixed SHT25 sensor
+
+commit 564c3a9d28a290721d677236c99f1460b145767e
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 10 21:37:03 2016 +0100
+
+    Fixed pressure calculation as previous temperature compensation was missing
+
+commit 659d314aa4b0bced4b1c7a34214998a74abba9e0
+Merge: ab59a38 eda5e04
+Author: Adam Dunkels <adam@dunkels.com>
+Date:   Sun Jan 10 17:36:27 2016 +0100
+
+    Merge pull request #1450 from g-oikonomou/contrib/obsolete-sensinode
+    
+    Obsolete the Sensinode Platform
+
+commit 0d0e44036b32a82e6280c4da9bd676e32be497f7
+Author: George Oikonomou <george@contiki-os.org>
+Date:   Sun Jan 10 16:07:38 2016 +0000
+
+    Change travis arm tests to use gcc-arm-embedded v5
+
+commit b1c3941863fec7ae7bcee81362a73720fd5b1f7a
+Author: George Oikonomou <george@contiki-os.org>
+Date:   Sun Jan 10 15:59:47 2016 +0000
+
+    Compile-test the CC2650 Sensortag and Srf06+CC1310EM code
+
+commit 6933b35bb5d9dbbc6d72dc49463bb2126467bcd7
+Author: George Oikonomou <george@contiki-os.org>
+Date:   Sun Dec 27 14:48:26 2015 +0100
+
+    Rename select() in various sensortag sensor drivers
+    
+    This is to prevent a compile error caused by function prototype conflict between a function called `select()` (present in a number of sensortag peripheral drivers) and the one in `sys/select.h`. The error manifests itself with gcc-arm-embedded version 5.2.1 20151202 (2015-q4).
+    
+    To fix the error we simply rename our function.
+    
+    Fixes #1434
+
+commit eda5e0466bb3fd981aa23d210a1bcd04a02089c4
+Author: George Oikonomou <george@contiki-os.org>
+Date:   Sun Jan 10 15:10:51 2016 +0000
+
+    Remove the Sensinode nano_programmer from the tools travis job
+    
+    This is part of a set of commits that will obsolete the Sensinode platform
+
+commit fa40d2b1fcae6922423541462148e759bcad1119
+Author: George Oikonomou <george@contiki-os.org>
+Date:   Sun Jan 10 15:09:31 2016 +0000
+
+    Remove documentation references to the Sensinode platform
+    
+    This is part of a set of commits that will obsolete the Sensinode platform
+
+commit 37682133119026980966ca5f39a31ef4c42944ca
+Author: George Oikonomou <george@contiki-os.org>
+Date:   Sun Jan 10 15:08:55 2016 +0000
+
+    Remove sensinode build artifacts from .gitignore
+    
+    This is part of a set of commits that will obsolete the Sensinode platform
+
+commit 707353f71bb40e1dfc701132ac4a261a079cbc3e
+Author: George Oikonomou <george@contiki-os.org>
+Date:   Sun Jan 10 15:01:58 2016 +0000
+
+    Remove Sensinode platform, cpu, example and tools files
+    
+    This is part of a set of commits that will obsolete the Sensinode platform
+
+commit 7b953091e5d8cfb8f4de9a7ccc1675a7f7b0d91c
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 10 03:11:23 2016 +0100
+
+    Added BMP085 barometric sensor for the Zoul platform
+
+commit 7abee394cb3a5880f0ac3cf04840d182fc76bc49
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Sun Jan 10 04:09:07 2016 +0100
+
+    Initialized interrupt thresholds and added missing check
+
+commit ab59a387b37ee6d3f4770b903e68111ea53dfe00
+Merge: b97a3d1 571cf93
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Sat Jan 9 18:07:47 2016 +0000
+
+    Merge pull request #1371 from g-oikonomou/bugfix/cc26xx/lpm-operation
+    
+    Improve the stability of CC13xx/CC26xx low-power operation
+
+commit b97a3d1049d9bdb38b7714b716bdcfcef9cf9f98
+Merge: 3a831cb 4ce6d21
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Sat Jan 9 18:01:40 2016 +0000
+
+    Merge pull request #1242 from g-oikonomou/contrib/cc26xx-ieee-volatile-cmd-ieee-tx
+    
+    Use volatile access for CMD_IEEE_TX
+
+commit 3a831cbebf20478d086ec9dfcaafc84046b82775
+Merge: 1096961 8636a28
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Sat Jan 9 18:01:15 2016 +0000
+
+    Merge pull request #1322 from g-oikonomou/bugfix/cc26xx/interrupt-flag-management
+    
+    Clear CC26xx/CC13xx interrupt flags selectively
+
+commit 109696174f1abb2faa5d64e23e9dad441d0c6bcc
+Merge: fa002c2 f401c7c
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Sat Jan 9 17:59:24 2016 +0000
+
+    Merge pull request #1350 from g-oikonomou/bugfix/cc26xx/tx-power
+    
+    Correctly set new CC26xx TX power when the RFC is powered off
+
+commit fa002c2d731fac740d32a4bce6e88beb717ddeb5
+Merge: 435d9a7 55b4186
+Author: George Oikonomou <geo-gh@spd.gr>
+Date:   Sat Jan 9 17:52:15 2016 +0000
+
+    Merge pull request #1321 from g-oikonomou/bugfix/cc26xx/remove-redundant-reads
+    
+    Remove redundant function calls in CC13xx/CC26xx RFC code
+
+commit 435d9a71c1d3d63ae3823d8623d693394a180110
+Merge: 0eab95e 3b73a9d
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sat Jan 9 16:37:30 2016 +0100
+
+    Merge pull request #1448 from bthebaudeau/cc2538-fix-build-issues
+    
+    cc2538: Fix build issues
+
+commit 3b73a9de3ed4048edddc9de8ecdce326a1d9e4a3
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sat Jan 9 15:09:02 2016 +0100
+
+    cc2538dk: Fix missing Travis build rules
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit 92d8f95cba6d739d7637459ae02fab297345f292
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sat Jan 9 14:07:47 2016 +0100
+
+    cc2538: Fix GCC 5 warning
+    
+    Fix the following warning issued by GCC ARM Embedded 5-2015-q4-major:
+    
+      ../../cpu/cc2538/dev/udma.c: In function 'udma_init':
+      ../../cpu/cc2538/dev/udma.c:59:10: warning: passing argument 1 of 'memset' discards 'volatile' qualifier from pointer target type [-Wdiscarded-array-qualifiers]
+         memset(&channel_config, 0, sizeof(channel_config));
+                ^
+      In file included from <toolchain-path>/arm-none-eabi/include/string.h:10:0,
+                       from ../../platform/cc2538dk/./contiki-conf.h:12,
+                       from ../../cpu/cc2538/dev/udma.c:38:
+      <toolchain-path>/arm-none-eabi/include/string.h:25:7: note: expected 'void *' but argument is of type 'volatile struct channel_ctrl (*)[4]'
+       _PTR  _EXFUN(memset,(_PTR, int, size_t));
+             ^
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit ada5c6193e3c90464bbdaa2bb8849baaa37c7903
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sat Jan 9 15:03:39 2016 +0100
+
+    cc2538dk: pka: Fix missing Makefile.target
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit f78a1323953a50347eabdd02973d78db0f414aca
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sat Jan 9 15:07:57 2016 +0100
+
+    cc2538: pka: Fix include paths breakage
+    
+    The PKA drivers and examples were full of include paths missing the
+    appropriate prefix, or using angle brackets instead of double quotes or
+    the other way around.
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit a8a1ebf8b5e7a9c0e19f7d6f9e357f717a910ddb
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Thu Jan 7 00:41:14 2016 +0100
+
+    Added interruption feature to the TSL2563 driver
+
+commit 0eab95ec4c73592cb39cc05683df33f9c1a694ad
+Merge: edf85dc ccceb63
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Thu Jan 7 23:27:06 2016 +0100
+
+    Merge pull request #1443 from bthebaudeau/cc2538-new-aes-modes
+    
+    cc2538: Complete support of hardware AES modes of operation
+
+commit edf85dc1f2ff06ec32647c38556ff2a5c797f25a
+Merge: 14be5aa 94143f9
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Thu Jan 7 14:45:24 2016 +0100
+
+    Merge pull request #1445 from TeVeDe/master
+    
+    Changed NXP maintainers for JN516x platform
+
+commit 881e78cb600d3c0a4f73275e14b7cd35ee8b453d
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Mon Jan 4 09:30:25 2016 +0100
+
+    Rewamped TSL2563 light sensor
+
+commit 94143f93fff3964f58c13002ce17f1524fcdde11
+Author: Theo van Daele <theo.van.daele@nxp.com>
+Date:   Thu Jan 7 09:47:29 2016 +0100
+
+    Changed NXP maintainers for JN516x platform
+
+commit ccceb63e88fe8358ad541ed472d884226cd3a399
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sat Jan 2 04:20:16 2016 +0100
+
+    cc2538: Add crypto driver and example for AES-GCM
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit e77e9861fe5826a94dd9f4914e704c8e79325c03
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Wed Jan 6 21:51:40 2016 +0100
+
+    cc2538: Add crypto driver and example for AES-CBC-MAC
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit 47c24cab11889f8092d892f73c494e934611f593
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sun Dec 27 17:56:44 2015 +0100
+
+    cc2538: Add crypto driver and example for AES-CTR
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit cf5e9557f8b30b77131f0391d16f44d8837444f4
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sun Dec 27 01:18:45 2015 +0100
+
+    cc2538: Add crypto driver and example for AES-CBC
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit 14be5aae888c5cb5277403cf7b3cdac276017bc1
+Merge: 626d676 68b2b3d
+Author: Simon Duquennoy <simonduq@sics.se>
+Date:   Tue Jan 5 15:54:04 2016 +0100
+
+    Merge pull request #1423 from TeVeDe/master
+    
+    Add examples for NXP JN516x using TSCH
+
+commit 68b2b3dd1cf673bec960054ca597220027859e2c
+Author: Theo van Daele <theo.van.daele@nxp.com>
+Date:   Thu Dec 17 13:29:42 2015 +0100
+
+    Add examples for NXP JN516x using TSCH
+
+commit 626d676d332531c06073a7cd15a575b3306d550f
+Merge: ca919ab 69eacbd
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Mon Jan 4 21:17:58 2016 +0100
+
+    Merge pull request #1435 from bthebaudeau/cc2538-hw-llsec
+    
+    cc2538: Add support for hardware-accelerated llsec
+
+commit 69eacbddbe7fa5fc24e8400df44aaf538b1a6635
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sat Dec 26 00:42:39 2015 +0100
+
+    cc2538: Add AES-CCM* driver
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit 24cb05059aa2848685a8c626faf8d902c772d8dc
+Author: kkrentz <konrad.krentz@gmail.com>
+Date:   Wed Oct 21 01:18:04 2015 -0700
+
+    CC2538: Add AES-128 driver
+
+commit 81765746add9c2df45645cac92eaeddacb5a38d9
+Author: kkrentz <konrad.krentz@gmail.com>
+Date:   Wed Oct 21 05:51:07 2015 -0700
+
+    AES-128: Resolved #ifdef issue
+
+commit e5babded4bffdf9c17ae39ab5dd5d6f5c35b2239
+Author: kkrentz <konrad.krentz@gmail.com>
+Date:   Wed Oct 21 01:12:29 2015 -0700
+
+    AES-128: Deleted the function aes_128_padded_encrypt
+
+commit 4013cd0f58c0442e5930f975299d86b689db6479
+Author: kkrentz <konrad.krentz@gmail.com>
+Date:   Wed Oct 21 01:18:04 2015 -0700
+
+    netstack: Fix missing llsec init
+
+commit 3dbe4c940308ca2e3bac4c6a4b21c41748092701
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Wed Dec 23 22:05:20 2015 +0100
+
+    cc2538: Add crypto driver and example for AES-ECB
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit 04890b18996f2c244b770f9adbe06dd24a7fb7bd
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Wed Dec 23 01:04:13 2015 +0100
+
+    cc2538: ccm: Allow separate input/output buffers
+    
+    This is supported by the hardware, so give access to this feature in the
+    API.
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit baef75752e2a78011b3e9f10828a635d200db90c
+Author: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+Date:   Sun Dec 20 22:04:49 2015 +0100
+
+    cc2538: aes: Add support for generic operations
+    
+    Add generic AES functions that should be able to support all the modes
+    of operation of the hardware AES crypto engine, i.e. ECB, CBC, CTR,
+    CBC-MAC, GCM, and CCM.
+    
+    This makes it possible to easily implement these modes of operation
+    without duplicating code.
+    
+    Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau.dev@gmail.com>
+
+commit 7dc15816317e75ffe429e0f82f6e3fad990ba7c4
+Author: Jeff Kent <jeff@jkent.net>
+Date:   Mon Dec 28 09:47:12 2015 -0600
+
+    jsonparse: multiple improvements
+    
+    * input string now can be any json value type
+    * syntax handling completed
+    * stack is now used more efficiently for objects
+    * implemented atomic values true, false, and null
+    * jsonparse_copy_value now handles escapes
+
+commit a65d566dee9b4a82dff0969d9e6e7cd91e11183d
+Author: Jeff Kent <jeff@jkent.net>
+Date:   Mon Dec 28 09:45:29 2015 -0600
+
+    jsontree: add int pointer types
+
+commit bcc7d0a1eb7b1ac87ba5f0e0707bdcb6391adfac
+Author: Jeff Kent <jeff@jkent.net>
+Date:   Mon Dec 28 09:45:23 2015 -0600
+
+    jsontree: add uint type
+
+commit fcc87ddce83ce7a78494457f0128b07812fe0ca2
+Author: Jeff Kent <jeff@jkent.net>
+Date:   Mon Dec 28 09:45:09 2015 -0600
+
+    jsontree: add JSONTREE_CONF_PRETTY option
+
+commit ca919ab0b0c140a6f5261a63009e36dec69b1353
+Merge: d954699 b4523b9
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Wed Dec 23 12:33:47 2015 +0100
+
+    Merge pull request #1196 from otcshare/x86
+    
+    New platform: Intel Galileo Board
+
+commit d9546991df279ff88d5d3f1cd8d46bd71f563db0
+Merge: 8218b70 36ddb73
+Author: Antonio Lignan <antonio.lignan@gmail.com>
+Date:   Wed Dec 23 12:27:16 2015 +0100
+
+    Merge pull request #1424 from alignan/pull/remote-power-mgmt
+    
+    RE-Mote power management support
+
+commit 36ddb737e16712e46baa87c56207244ef9b00f72
+Author: Antonio Lignan <alinan@zolertia.com>
+Date:   Tue Dec 22 15:16:55 2015 +0100
+
+    Refactored the example to broadcast a message to the zoul-demo example
+
+commit cef3c39b7cda03c4c8ed2933265c871a67c76d9c
+Author: Niclas Finne <nfi@sics.se>
+Date:   Mon Dec 21 14:57:45 2015 +0100
+
+    Added compilation test of OMA LMW2M to the regression tests
+
+commit 5da887c35f298c32ac95403de580e6707fe9662c
+Author: Joakim Eriksson <joakime@sics.se>
+Date:   Mon Dec 21 14:39:16 2015 +0100
+
+    added readme for ipso-objects
+
+commit a90ff6691aa698fec6c9cbd94c96e1eba0efefa9
+Author: Joakim Eriksson <joakime@sics.se>
+Date:   Mon Dec 21 13:02:34 2015 +0100
+
+    fixed leds control to work with red,green and blue LED - tested with remote.
+
+commit b4523b9130636d5cf25662a0c4e875bdc3fcb3f1
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Sat Dec 19 17:35:58 2015 -0800
+
+    galileo: Fix broken link in README.md
+    
+    This patch fixes a broken link in README.md to serial cable connection
+    instructions.
+
+commit 13be942d408975d0c5665230677019e3e77a472b
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Sat Dec 19 17:28:27 2015 -0800
+
+    galileo: Fix code style violations
+
+commit e14761c26b79a11ee8bf563654e8ae2459da677b
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Fri Dec 11 11:15:37 2015 -0800
+
+    galileo: Document prerequisites for building on Ubuntu Linux
+    
+    This patch documents the prerequisites for building on Ubuntu Linux in
+    the Galileo platform README.
+
+commit 52d75dce0d9dfe2b78af76c2f358e6f467722b15
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Fri Dec 11 11:14:36 2015 -0800
+
+    x86: Remove spurious UEFI-related info message
+    
+    This patch removes a spurious info message in a UEFI-related portion
+    of a Makefile.
+
+commit 09d168da0427977504dd18e7ddd3bb7bda2670f3
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Fri Nov 20 15:07:51 2015 -0800
+
+    galileo: Add support for old versions of GNU Make
+    
+    This patch revises a Makefile to avoid using a feature that is
+    incompatible with GNU Make v.3.81.
+
+commit 0e99ebbded742ba725383b20dda7b7d9b38d4509
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Wed Nov 18 09:19:04 2015 -0800
+
+    x86: Add support for 32-bit build hosts in build_uefi.sh
+    
+    This patch adds support for building the UEFI EDK2 tools on 32-bit
+    hosts.  It also revises the script to support rebuilding the tools
+    when the script is re-invoked after the EDK2 repository has previously
+    been downloaded.
+
+commit c75e9466f6f1eacf45b570b3f9c4974f71af2740
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Wed Nov 11 09:19:17 2015 -0800
+
+    galileo: Fix bug in newlib build script
+    
+    This patch fixes a bug in the newlib build script that causes it to
+    not delete an old source directory as intended prior to rebuilding the
+    library.
+
+commit e297177a69e24b3b28fcd208c3524a4fc9bcb468
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Fri Oct 23 09:34:17 2015 -0700
+
+    x86: Streamline MMIO accesses in GPIO and I2C drivers
+    
+    This patch refactors the MMIO routines in the GPIO and I2C drivers to
+    eliminate the base_addr parameter that specifies the MMIO base
+    address.  Instead, just the MMIO routines themselves retrieve the base
+    address from the driver structure.
+
+commit f85654a82f2b48e3db5b72b2ad02da30bdab6a52
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Fri Jul 10 11:21:00 2015 -0700
+
+    x86, galileo: Add UEFI support
+    
+    This patch adds support for optionally building EFI binaries in
+    addition to Multiboot ELF binaries.  It includes a script,
+    build_uefi.sh, that downloads tool and library sources from the EDK II
+    project, builds the GenFw tool that is used to create UEFI binaries,
+    and creates a makefile that is included from the main x86 common
+    makefile and enables UEFI support in the Contiki build system.  If the
+    script is not run prior to building Contiki, then an informational
+    message will be displayed with instructions for running build_uefi.sh
+    if UEFI support is desired.  This patch also adds the path to the
+    auto-generated makefile to .gitignore.
+    
+    This patch modifies the linker script for the Intel Quark X1000 to
+    account for the output file section offsets and alignment expectations
+    of the EDK II GenFw project.
+    
+    This patch also adds a newlib patch to remove the weak symbol
+    attribute from floating point stdio support routines.  See
+    <newlib>/newlib/README for an explanation of how the newlib developers
+    intended for _printf_float and _scanf_float to be linked.  Newlib
+    declares them as weak symbols with the intention that developers would
+    force them to be linked only when needed using a linker command line
+    option.  However, some but not all Contiki programs require them, so
+    we cannot simply always include or exclude them.  Instead, we remove
+    the weak symbol attributes and rely on the linker to automatically
+    determine whether or not they should be linked.  This avoids an issue
+    in which weak symbols were undefined in the intermediate DLL generated
+    as part of the UEFI build process.  That resulted in the GenFw program
+    emitting "ERROR 3000" messages when it encountered relocations
+    referencing such an undefined symbol.
+    
+    Finally, this patch updates README.md to both make some revisions to
+    account for the UART support introduced in previous patches as well as
+    to provide instructions for using the UEFI support.
+
+commit b915e7d5e3e226fa43ec68417b7cc2a49bf736e8
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Sun Jul 26 19:28:31 2015 -0700
+
+    galileo: Omit exception handling unwind tables
+    
+    This patch modifies the newlib and Contiki C and C++ compiler flags to
+    omit exception handling unwind tables (see
+    http://wiki.dwarfstd.org/index.php?title=Exception_Handling).
+    Removing these tables saves space in debug builds and has not caused
+    any readily-apparent functional changes.
+    
+    Here is the size listing for an example program built without this
+    patch:
+       text	   data	    bss	    dec	    hex	filename
+      76002	   1508	  21224	  98734	  181ae	all-timers.galileo
+    
+    Here is the size listing for the same program with this patch:
+       text	   data	    bss	    dec	    hex	filename
+      72918	   1508	  21224	  95650	  175a2	all-timers.galileo
+    
+    The primary motivation for this patch is to help enable UEFI support.
+    The .eh_frame and .eh_frame_hdr sections that are otherwise generated
+    are treated as code sections by the EDK2 GenFw program, since they are
+    read-only alloc sections.  They get grouped with the actual code
+    sections, ahead of the data sections.  This perturbs symbols and
+    complicates debugging.
+
+commit 38206e398040e834886068fef2b27293ac9577d0
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Tue Jul 7 16:40:21 2015 -0700
+
+    galileo: Add Ethernet support
+    
+    This patch adds support for Ethernet to the Intel Galileo port.  It
+    uses the Intel Quark X1000 Ethernet driver.  It initializes the first
+    Ethernet interface and starts some common network services.  By
+    default, it uses the following addresses:
+     - Host: 192.0.2.2
+     - Netmask: 255.255.255.0
+     - Default gateway: 192.0.2.1
+     - DNS server: (same as default gateway)
+    These settings can be changed by editing eth-conf.c.
+
+commit abeed93da59cc6d182d1852eb03a174331963f4a
+Author: Michael LeMay <michael.lemay@intel.com>
+Date:   Tue Jul 7 16:07:00 2015 -0700
+
+    x86: Add driver for Intel Quark X1000 built-in Ethernet
+    
+    This patch adds a simple, space-efficient driver for the Ethernet
+    interface built into the Intel Quark X1000.  It only allocates a
+    single packet descriptor for each of the transmit and receive
+    directions, computes checksums on the CPU, and enables
+    store-and-forward mode for both transmit and receive directions.
+
+commit ba09b47d65f543f06e7c59f62d6bcbc6f450b79a
+Author: Ricardo de Almeida Gonzaga <ricardo.gonzaga@intel.com>
+Date:   Fri Oct 23 10:41:11 2015 -0200
+
+    galileo: Initialize pinmux in i2c-LSM9DS0 example
+    
+    In order to ensure SCL and SDA are exported in the correct pins.
+
+commit 77327181e0f49ba01d9248330244ec78ae7af6e0
+Author: Ricardo de Almeida Gonzaga <ricardo.gonzaga@intel.com>
+Date:   Wed Oct 21 14:02:50 2015 -0200
+
+    galileo: Add GPIO interrupt example
+    
+    This patch introduces an example application to demonstrate how to use
+    GPIO driver APIs to manipulate interrupt pins.
+    
+    The application uses default galileo pinmux initialization and sets
+    the GPIO 5 (IO2) as output pin and GPIO 6 (IO3) as interrupt. It toggles
+    the output pin stat at every half second in order to emulate an interrupt.
+    This triggers an interrupt and the application callback is called.
+
+commit 4726bc33139016df50411ab850e2044f0f134bf5
+Author: Ricardo de Almeida Gonzaga <ricardo.gonzaga@intel.com>
+Date:   Tue Oct 20 11:28:31 2015 -0200
+
+    x86: Add Intel Quark X1000 GPIO Controller (non-legacy) interrupt support
+    
+    Since Galileo pinmux is available, this patch adds interrupt support
+    for GPIO Controller (non-legacy).
+
+commit 61e06c632a561aa1f3783d8f40a490dd2bfe3129
+Author: Ricardo de Almeida Gonzaga <ricardo.gonzaga@intel.com>
+Date:   Fri Oct 16 11:04:17 2015 -0300
+
+    galileo: Add GPIO input example
+    
+    This patch introduces an example application to demonstrate how to use
+    GPIO driver APIs to manipulate input pins.
+    
+    The application uses default galileo pinmux initialization and sets the
+    GPIO 5 (IO2) as output pin and GPIO 6 (IO3) as input. It toggles the
+    output pin state at every half second and checks the value on input pin.
+
+commit 93c7988069ed4f228f9bc65e74f3c1b54f9b5ef4
+Author: Ricardo de Almeida Gonzaga <ricardo.gonzaga@intel.com>
+Date:   Fri Oct 16 11:13:56 2015 -0300
+
+    x86: Add Galileo pinmux support
+    
+    This patch adds the galileo-pinmux.c and galileo-pinmux.h files,
+    which support access to pinmux configuration through a function
+    interface.
+    
+    This is not 100% supported yet due to some pinmux paths
+    need Quark X1000 GPIO (legacy and non-legacy) configurations.
+    
+    After we finish to implement Quark X1000 GPIO driver we'll add
+    support for this.
+
+commit 781375f1d112876e8c867cb45ba30c936d3d760e
+Author: Ricardo de Almeida Gonzaga <ricardo.gonzaga@intel.com>
+Date:   Thu Oct 8 14:16:11 2015 -0300
+
+    x86: Add PCA9685 support
+    
+    This patch adds pwm-pca9685.c and pwm-pca9685.h files,
+    which support access to I2C-based PCA9685 PWM controller
+    configuration register through a function interface.
+    
+    The PCA9685 is an I2C-bus controlled 16-channel LED controller
+    optimized for Red/Green/Blue/Amber (RGBA) color backlighting
+    applications. Each LED output has its own 12-bit resolution
+    (4096 steps) fixed frequency individual PWM controller that
+    operates at a programmable frequency from a typical of 24 Hz to
+    1526 Hz with a duty cycle that is adjustable from 0 % to 100 %
+    to allow the LED to be set to a specific brightness value.
+    More about PCA9685 can be found in its datasheet[1].
+    
+    This driver is needed in order to configure Galileo pinmux.
+    
+    [1] - http://www.nxp.com/documents/data_sheet/PCA9685.pdf
