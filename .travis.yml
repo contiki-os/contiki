@@ -40,13 +40,13 @@ before_script:
       arm-none-eabi-gcc --version ;
     fi
 
-  ## Install mainline ARM toolchain.  gcc-arm-none-eabi is available
-  ## in Ubuntu >= 14.04, but this external PPA is needed for 12.04.
-  ## Install srecord
+  ## Install mainline ARM toolchain and srecord.
   - if [ ${BUILD_ARCH:-0} = arm-aapcs ] ; then
-      sudo add-apt-repository -y ppa:team-gcc-arm-embedded/ppa &&
-      sudo apt-get -qq update &&
-      sudo apt-get -qq install gcc-arm-embedded=5-2015q4-1~precise1 srecord &&
+      sudo apt-get -qq install srecord &&
+      $WGET https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2 &&
+      tar xjf gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2 -C /tmp/ &&
+      sudo cp -f -r /tmp/gcc-arm-none-eabi-5_2-2015q4/* /usr/local/ &&
+      rm -rf /tmp/gcc-arm-none-eabi-* gcc-arm-none-eabi-*-linux.tar.bz2 &&
       arm-none-eabi-gcc --version ;
     fi
 
