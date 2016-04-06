@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, Zolertia - http://www.zolertia.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +27,27 @@
  * SUCH DAMAGE.
  *
  */
-
-#ifndef PROJECT_ROUTER_CONF_H_
-#define PROJECT_ROUTER_CONF_H_
-
-#ifndef UIP_FALLBACK_INTERFACE
-#define UIP_FALLBACK_INTERFACE rpl_interface
-#endif
-
-/* Use either the cc1200_driver for sub-1GHz, or cc2538_rf_driver (default)
- * for 2.4GHz built-in radio interface
+/**
+ * \author Antonio Lignan <alinan@zolertia.com>
  */
-//#undef  NETSTACK_CONF_RADIO
-//#define NETSTACK_CONF_RADIO              cc2538_rf_driver
 
-/* Alternate between ANTENNA_SW_SELECT_SUBGHZ or ANTENNA_SW_SELECT_2_4GHZ */
-#define ANTENNA_SW_SELECT_DEF_CONF       ANTENNA_SW_SELECT_2_4GHZ
+#ifndef EXAMPLE_H_
+#define EXAMPLE_H
+/*---------------------------------------------------------------------------*/
+/* This is the UDP port used to send and receive data */
+#define UDP_CLIENT_PORT   8765
+#define UDP_SERVER_PORT   5678
 
-#undef  NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC                nullrdc_driver
-
-#ifndef QUEUEBUF_CONF_NUM
-#define QUEUEBUF_CONF_NUM          4
-#endif
-
-#ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    140
-#endif
-
-#ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW  60
-#endif
-
-#ifndef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 2
-#endif
-
-#endif /* PROJECT_ROUTER_CONF_H_ */
+/*---------------------------------------------------------------------------*/
+/* This data structure is used to store the packet content (payload) */
+struct my_msg_t {
+  uint16_t id;
+  uint16_t counter;
+  int16_t  value1;
+  int8_t   value2;
+  int8_t   value3;
+  int8_t   value4;
+  uint16_t battery;
+};
+/*---------------------------------------------------------------------------*/
+#endif /* EXAMPLE_H_ */

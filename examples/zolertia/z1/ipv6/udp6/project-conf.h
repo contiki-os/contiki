@@ -27,40 +27,37 @@
  * SUCH DAMAGE.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 #ifndef PROJECT_ROUTER_CONF_H_
 #define PROJECT_ROUTER_CONF_H_
 
-#ifndef UIP_FALLBACK_INTERFACE
-#define UIP_FALLBACK_INTERFACE rpl_interface
-#endif
+/* Comment this out to use Radio Duty Cycle (RDC) and save energy */
+#undef NETSTACK_CONF_RDC
+#define NETSTACK_CONF_RDC          nullrdc_driver
 
-/* Use either the cc1200_driver for sub-1GHz, or cc2538_rf_driver (default)
- * for 2.4GHz built-in radio interface
- */
-//#undef  NETSTACK_CONF_RADIO
-//#define NETSTACK_CONF_RADIO              cc2538_rf_driver
+#undef RF_CHANNEL
+#define RF_CHANNEL	               26
 
-/* Alternate between ANTENNA_SW_SELECT_SUBGHZ or ANTENNA_SW_SELECT_2_4GHZ */
-#define ANTENNA_SW_SELECT_DEF_CONF       ANTENNA_SW_SELECT_2_4GHZ
+#undef CC2420_CONF_CHANNEL
+#define CC2420_CONF_CHANNEL        26
 
-#undef  NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC                nullrdc_driver
+#undef IEEE802154_CONF_PANID
+#define IEEE802154_CONF_PANID      0xABCD
 
 #ifndef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_CONF_NUM          4
 #endif
 
-#ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE    140
-#endif
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE       140
 
 #ifndef UIP_CONF_RECEIVE_WINDOW
-#define UIP_CONF_RECEIVE_WINDOW  60
+#define UIP_CONF_RECEIVE_WINDOW    60
 #endif
 
 #ifndef WEBSERVER_CONF_CFS_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 2
+#define WEBSERVER_CONF_CFS_CONNS   2
 #endif
 
+/*---------------------------------------------------------------------------*/
 #endif /* PROJECT_ROUTER_CONF_H_ */
