@@ -344,14 +344,12 @@ set_poll_mode(uint8_t enable)
   poll_mode = enable;
   
   if(enable) {
-    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_FIFOP;	// mask out FIFOP interrupt source
-    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_FIFOP;	// clear pending FIFOP interrupt
-    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_SFD;	// disable SFD interrupt source
-    nvic_interrupt_disable(NVIC_INT_RF_RXTX);
+    mac_timer_init();
+    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_FIFOP; // mask out FIFOP interrupt source
+    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_FIFOP;   // clear pending FIFOP interrupt
+    nvic_interrupt_disable(NVIC_INT_RF_RXTX);               // disable RF interrupts
   } else {
-    REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;	// enable FIFOP interrupt source
-    REG(RFCORE_XREG_RFIRQM0) &= ~RFCORE_XREG_RFIRQM0_SFD;   // mask out SFD interrupt source
-    REG(RFCORE_SFR_RFIRQF0) &= ~RFCORE_SFR_RFIRQF0_SFD;	    // clear pending SFD interrupt
+    REG(RFCORE_XREG_RFIRQM0) |= RFCORE_XREG_RFIRQM0_FIFOP;  // enable FIFOP interrupt source
     nvic_interrupt_enable(NVIC_INT_RF_RXTX);			    // enable RF interrupts
   }
 }
@@ -520,8 +518,6 @@ init(void)
      */
     udma_set_channel_src(CC2538_RF_CONF_RX_DMA_CHAN, RFCORE_SFR_RFDATA);
   }
-  
-  mac_timer_init();
   
   set_poll_mode(poll_mode);
 
