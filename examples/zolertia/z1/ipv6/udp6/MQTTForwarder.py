@@ -25,13 +25,14 @@ ENABLE_LOG        = 0
 #------------------------------------------------------------#
 DEBUG_PRINT_JSON  = 1
 #------------------------------------------------------------#
-MQTT_URL          = "iot.eclipse.org"
+
+MQTT_URL          = "mqtt.relayr.io"
 MQTT_PORT         = 1883
 MQTT_KEEPALIVE    = 60
-MQTT_URL_PUB      = "v2/zolertia/tutorialthings/"
-MQTT_URL_TOPIC    = "/cmd"
-MQTT_USER         = ""
-MQTT_PASSWORD     = ""
+MQTT_URL_TOPIC    = "v2/zolertia/tutorialthings/"
+MQTT_URL_PUB      = "/v1/3a0a6fc7-e797-463a-9a5c-a7ce2f81cde4/data"
+MQTT_USER         = "3a0a6fc7-e797-463a-9a5c-a7ce2f81cde4"
+MQTT_PASSWORD     = "s1iLfyEpXzHs"
 #------------------------------------------------------------#
 # Message structure
 #------------------------------------------------------------#
@@ -64,7 +65,7 @@ def print_recv_data(msg):
 # -----------------------------------------------------------#
 def publish_recv_data(data, pubid, conn, addr):
   try:
-    res, mid = conn.publish(MQTT_URL_PUB + str(pubid), payload=data, qos=1)
+    res, mid = conn.publish(MQTT_URL_PUB, payload=data, qos=1)
     print "MQTT: Publishing to {0}... " + "{1} ({2})".format(mid, res, str(pubid))
   except Exception as error:
     print error
@@ -74,29 +75,14 @@ def jsonify(keyval, val):
   return json.dumps(dict(value=val, key=keyval))
 # -----------------------------------------------------------#
 def jsonify_recv_data(msg):
-  sensordata = '{"values":['
-  for f_name, f_type in msg._fields_:
-    sensordata += jsonify(f_name, getattr(msg, f_name)) + ","
-  sensordata = sensordata[:-1]
-  sensordata += ']}'
-  
-  # Paho MQTT client doesn't support sending JSON objects
-  json_parsed = json.loads(sensordata)
-  if DEBUG_PRINT_JSON:
-    print json.dumps(json_parsed, indent=2)
 
+  # [{"meaning":"analog0","value":3},{"meaning":"test_counter","value":5}]
+  sensordata = '[{"meaning":"acceleration","value":{'
+  sensordata += '"x":' + str(msg.x_axis) + ','
+  sensordata += '"y":' + str(msg.y_axis) + ','
+  sensordata += '"z":' + str(msg.z_axis) + '}}]'
   return sensordata
-# -----------------------------------------------------------#
-def send_udp_cmd(addr):
-  client = socket(AF_INET6, SOCK_DGRAM)
-  print "Sending reply to " + addr
 
-  try:
-    client.sendto("Hello from the server", (addr, CMD_PORT))
-  except Exception as error:
-    print error
-
-  client.close()
 # -----------------------------------------------------------#
 # MQTT related functions
 # -----------------------------------------------------------#
@@ -144,7 +130,7 @@ def start_client():
     client.on_publish = on_publish
 
     # Set user and password
-    # client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
+    client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
 
     try:
       client.connect(MQTT_URL, MQTT_PORT, MQTT_KEEPALIVE)
@@ -168,8 +154,6 @@ def start_client():
 
     if ENABLE_MQTT:
       publish_recv_data(sensordata, msg_recv.id, client, addr[0])
-
-    send_udp_cmd(addr[0])
 
   client.loop_stop()
 

@@ -51,7 +51,7 @@
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
 /*---------------------------------------------------------------------------*/
-#define SEND_INTERVAL		(5 * CLOCK_SECOND)
+#define SEND_INTERVAL		(CLOCK_SECOND/4)
 /*---------------------------------------------------------------------------*/
 /* The structure used in the Simple UDP library to create an UDP connection */
 static struct uip_udp_conn *client_conn;
@@ -93,7 +93,7 @@ send_packet(void)
 
   msg.id      = 0xAB;
   msg.counter = counter;
-  msg.value1  = tmp102.value(TMP102_READ);
+  msg.value1  = 2656;
   msg.value2  = adxl345.value(X_AXIS);
   msg.value3  = adxl345.value(Y_AXIS);
   msg.value4  = adxl345.value(Z_AXIS);
@@ -148,7 +148,8 @@ PROCESS_THREAD(udp_client_process, ev, data)
   printf("UDP client process started\n");
 
   /* Set the server address here */ 
-  uip_ip6addr(&server_ipaddr, 0xfd00, 0, 0, 0, 0, 0, 0, 1);
+  /* 2001:5c0:1508:f300:6c3f:cbad:29dd:e678 */
+  uip_ip6addr(&server_ipaddr, 0x2001, 0x5c0, 0x1508, 0xf300, 0x6c3f, 0xcbad, 0x29dd, 0xe678);
 
   printf("Server address: ");
   PRINT6ADDR(&server_ipaddr);
