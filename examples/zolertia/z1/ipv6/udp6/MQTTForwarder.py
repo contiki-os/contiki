@@ -30,6 +30,8 @@ MQTT_PORT         = 1883
 MQTT_KEEPALIVE    = 60
 MQTT_URL_PUB      = "v2/zolertia/tutorialthings/"
 MQTT_URL_TOPIC    = "/cmd"
+MQTT_USER         = ""
+MQTT_PASSWORD     = ""
 #------------------------------------------------------------#
 # Message structure
 #------------------------------------------------------------#
@@ -140,6 +142,9 @@ def start_client():
     client.on_connect = on_connect
     client.on_message = on_message
     client.on_publish = on_publish
+
+    # Set user and password
+    # client.username_pw_set(MQTT_USER, MQTT_PASSWORD)
 
     try:
       client.connect(MQTT_URL, MQTT_PORT, MQTT_KEEPALIVE)
