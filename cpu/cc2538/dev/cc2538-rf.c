@@ -607,9 +607,11 @@ transmit(unsigned short transmit_len)
     while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ONOFF_TIME));
   }
 
-  if(channel_clear() == CC2538_RF_CCA_BUSY) {
-    RIMESTATS_ADD(contentiondrop);
-    return RADIO_TX_COLLISION;
+  if(send_on_cca) {
+    if(channel_clear() == CC2538_RF_CCA_BUSY) {
+      RIMESTATS_ADD(contentiondrop);
+      return RADIO_TX_COLLISION;
+    }
   }
 
   /*
