@@ -48,7 +48,7 @@
 #define DEFAULT_EVENT_TYPE_ID       "status"      /* fridge: periodic pub */
 #define DEFAULT_ALARM_TYPE_ID       "temp"        /* fridge: alarm pub */
 #define DEFAULT_SUBSCRIBE_CMD_TYPE  "temp"        /* fridge: temp threshold */
-#define DEFAULT_TEMP_THRESH         2600          /* in ºmC */
+#define DEFAULT_TEMP_THRESH         3200          /* in ºmC */
 
 #define DEFAULT_BUTTON_TYPE_ID      "button"
 

@@ -1,1 +1,1 @@
-mosquitto_pub -h "test.mosquitto.org"  -t "zolertia/cmd/led" -m "1" -q 1 -r
+mosquitto_pub -h "test.mosquitto.org"  -t "zolertia/thresh/temp" -m "4500" -q 0 -r

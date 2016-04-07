@@ -188,13 +188,7 @@ pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
   printf("Pub Handler: topic='%s' (len=%u), chunk_len=%u\n", topic, topic_len,
       chunk_len);
 
-  /* If we don't like the length, ignore */
-  if(topic_len != 17) {
-    printf("Incorrect topic. Ignored\n");
-    return;
-  }
-
-  if(strncmp(&topic[13], "temp", 4) == 0) {
+  if(strncmp(topic, "zolertia/thresh/temp", 20) == 0) {
     printf("New temperature threshold %s\n", chunk);
     temp_threshold = atoi((const char*) chunk);
     return;
@@ -623,7 +617,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
   def_rt_rssi = 0x8000000;
   uip_icmp6_echo_reply_callback_add(&echo_reply_notification,
                                     echo_reply_handler);
-  etimer_set(&echo_request_timer, conf.def_rt_ping_interval);
+  // etimer_set(&echo_request_timer, conf.def_rt_ping_interval);
 
   while(1) {
 
