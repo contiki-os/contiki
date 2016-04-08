@@ -395,7 +395,12 @@ publish(void)
     return;
   }
 
-  len = snprintf(buf_ptr, remaining, "{""\"d\":{");
+  len = snprintf(buf_ptr, remaining,
+                 "{"
+                 "\"d\":{"
+                 "\"myName\":\"%s\","
+                 "\"Uptime (sec)\":%lu",
+                 BOARD_STRING, clock_seconds());
 
   remaining -= len;
   buf_ptr += len;
