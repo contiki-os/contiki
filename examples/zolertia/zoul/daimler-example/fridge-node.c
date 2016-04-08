@@ -61,6 +61,7 @@ static const char *broker_ip = MQTT_DEMO_BROKER_IP_ADDR;
 #define NET_CONNECT_PERIODIC        (CLOCK_SECOND >> 2)
 #define NO_NET_LED_DURATION         (NET_CONNECT_PERIODIC >> 1)
 static struct timer connection_life;
+static struct etimer alarm_expired;
 static uint8_t connect_attempt;
 /*---------------------------------------------------------------------------*/
 /* Various states */
@@ -188,7 +189,7 @@ pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
   printf("Pub Handler: topic='%s' (len=%u), chunk_len=%u\n", topic, topic_len,
       chunk_len);
 
-  if(strncmp(topic, "zolertia/thresh/temp", 20) == 0) {
+  if(strncmp(topic, "zolertia/thres/temp", 20) == 0) {
     printf("New temperature threshold %s\n", chunk);
     temp_threshold = atoi((const char*) chunk);
     return;
@@ -259,7 +260,7 @@ construct_pub_topic(void)
 static int
 construct_sub_topic(void)
 {
-  int len = snprintf(sub_topic, BUFFER_SIZE, "zolertia/thresh/%s",
+  int len = snprintf(sub_topic, BUFFER_SIZE, "zolertia/thres/%s",
                      conf.cmd_type);
 
   /* len < 0: Error. Len >= BUFFER_SIZE: Buffer too small */
@@ -382,21 +383,19 @@ publish(void)
 
   /* Publish an alarm */
   if(temp >= temp_threshold) {
-
-    printf("*** Alarm! temperature %u over %u\n", temp, temp_threshold);
-    snprintf(buf_ptr, remaining, "{\"alarm\":\"%u\"}", temp);
+    if(etimer_expired(&alarm_expired)) {
+      printf("*** Alarm! temperature %u over %u\n", temp, temp_threshold);
+      snprintf(buf_ptr, remaining, "{\"alarm\":\"%u\"}", temp);
     
-    mqtt_publish(&conn, NULL, pub_alarm, (uint8_t *)app_buffer,
-                 strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+      mqtt_publish(&conn, NULL, pub_alarm, (uint8_t *)app_buffer,
+                   strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+
+      etimer_set(&alarm_expired, (CLOCK_SECOND * 15));
+    }
     return;
   }
 
-  len = snprintf(buf_ptr, remaining,
-                 "{"
-                 "\"d\":{"
-                 "\"myName\":\"%s\","
-                 "\"Uptime (sec)\":%lu",
-                 BOARD_STRING, clock_seconds());
+  len = snprintf(buf_ptr, remaining, "{""\"d\":{");
 
   remaining -= len;
   buf_ptr += len;
