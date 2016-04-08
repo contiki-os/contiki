@@ -35,10 +35,10 @@
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-icmp6.h"
 #include "net/ipv6/sicslowpan.h"
+#include "dev/rgb-bl-lcd.h"
 #include "sys/etimer.h"
 #include "sys/ctimer.h"
 #include "lib/sensors.h"
-#include "dev/button-sensor.h"
 #include "dev/leds.h"
 #include <string.h>
 /*---------------------------------------------------------------------------*/
@@ -78,6 +78,8 @@ static uint8_t state;
 #define CONFIG_BUTTON_TYPE_ID_LEN  32
 #define CONFIG_IP_ADDR_STR_LEN     64
 /*---------------------------------------------------------------------------*/
+#define SCROLL_PERIOD    (CLOCK_SECOND / 6)
+/*---------------------------------------------------------------------------*/
 PROCESS_NAME(mqtt_demo_process);
 AUTOSTART_PROCESSES(&mqtt_demo_process);
 /*---------------------------------------------------------------------------*/
@@ -104,6 +106,8 @@ static struct mqtt_connection conn;
 static struct mqtt_message *msg_ptr = 0;
 static struct etimer publish_periodic_timer;
 static struct ctimer ct;
+static struct ctimer ct_lcd_off;
+static struct etimer et;
 /*---------------------------------------------------------------------------*/
 static mqtt_client_config_t conf;
 /*---------------------------------------------------------------------------*/
@@ -116,28 +120,33 @@ publish_led_off(void *d)
 }
 /*---------------------------------------------------------------------------*/
 static void
+clear_lcd(void *d)
+{
+  lcd_clear_display();
+}
+/*---------------------------------------------------------------------------*/
+static void
 pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
             uint16_t chunk_len)
 {
   printf("Pub Handler: topic='%s' (len=%u), chunk_len=%u\n", topic, topic_len,
       chunk_len);
 
-  /* If we don't like the length, ignore */
-  if(topic_len != 17 || chunk_len != 1) {
-    printf("Incorrect topic or chunk len. Ignored\n");
+  if(strncmp(topic, "zolertia/alarm/button", 21) == 0) {
+
+    lcd_set_cursor(0, LCD_RGB_1ST_ROW);
+    lcd_write("RFID alarm received");
+ 
+  } else if(strncmp(topic, "zolertia/alarm/temp", 19) == 0) {
+
+    lcd_set_cursor(0, LCD_RGB_2ND_ROW);
+    lcd_write("Fridge: door open!");
+
+  } else {
     return;
   }
 
-  if(strncmp(&topic[13], "rssi", 4) == 0) {
-    if(chunk[0] == '1') {
-      leds_on(LEDS_RED);
-      printf("Turning LED RED on!\n");
-    } else if(chunk[0] == '0') {
-      leds_off(LEDS_RED);
-      printf("Turning LED RED off!\n");
-    }
-    return;
-  }
+  ctimer_set(&ct_lcd_off, (CLOCK_SECOND * 10), clear_lcd, NULL);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -278,6 +287,10 @@ connect_to_broker(void)
   mqtt_connect(&conn, conf.broker_ip, conf.broker_port,
                conf.pub_interval * 3);
 
+  lcd_clear_display();
+  lcd_set_cursor(0, LCD_RGB_1ST_ROW);
+  lcd_write("MQTT Connecting...");
+
   state = STATE_CONNECTING;
 }
 /*---------------------------------------------------------------------------*/
@@ -315,6 +328,10 @@ state_machine(void)
     break;
 
   case STATE_CONNECTED:
+
+    lcd_set_cursor(0, LCD_RGB_1ST_ROW);
+    lcd_write("MQTT connected...");
+
     subscribe();
     return;
 
@@ -367,9 +384,30 @@ state_machine(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(mqtt_demo_process, ev, data)
 {
+  static uint8_t i = 0;
+
   PROCESS_BEGIN();
 
   printf("MQTT Demo Process\n");
+
+  SENSORS_ACTIVATE(rgb_bl_lcd);
+
+  /* Set the cursor to column 17 and row 0 to not make it visible yet */
+  lcd_set_cursor(17, LCD_RGB_1ST_ROW);
+  lcd_write("Hello Daimler!");
+
+  /* Now make the text appear from right to left and stay aligned left */
+  while(i < 16) {
+    etimer_set(&et, SCROLL_PERIOD);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    lcd_scroll_display(LCD_RGB_CURSOR_MOVE_LEFT, 1);
+    i++;
+    etimer_restart(&et);
+  }
+
+  /* wait 5 seconds */
+  etimer_set(&et, (CLOCK_SECOND * 5));
+  PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
   if(init_config() != 1) {
     PROCESS_EXIT();

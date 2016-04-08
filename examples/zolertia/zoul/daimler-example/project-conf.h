@@ -50,6 +50,8 @@
 #define DEFAULT_SUBSCRIBE_CMD_TYPE  "temp"        /* fridge: temp threshold */
 #define DEFAULT_TEMP_THRESH         3200          /* in ºmC */
 
+#define DEFAULT_LIGHT_THRESH        300          /* in ºmC */
+
 #define DEFAULT_BUTTON_TYPE_ID      "button"
 
 #define DEFAULT_BROKER_PORT         1883

@@ -41,6 +41,7 @@
 #include "dev/button-sensor.h"
 #include "dev/leds.h"
 #include "dev/sht25.h"
+#include "dev/tsl2563.h"
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 /*
@@ -366,16 +367,23 @@ publish(void)
 {
   int len;
   uint16_t temp;
+  uint16_t light;
   uint16_t hum;
   int remaining = APP_BUFFER_SIZE;
   char def_rt_str[64];
 
   temp = sht25.value(SHT25_VAL_TEMP);
+  light = tsl2563.value(TSL2563_VAL_READ);
+
+  printf("Temperature %u Light %u\n", temp, light);
+
+  /* clever algorithm here */
 
   seq_nr_value++;
 
   /* No alarm and no periodic report event, discard */
-  if((temp < temp_threshold) && (seq_nr_value % DEFAULT_REPORT_INTERVAL)) {
+  if((temp < temp_threshold) && (light < DEFAULT_LIGHT_THRESH) &&
+     (seq_nr_value % DEFAULT_REPORT_INTERVAL)) {
     return;
   }
 
@@ -385,7 +393,20 @@ publish(void)
   if(temp >= temp_threshold) {
     if(etimer_expired(&alarm_expired)) {
       printf("*** Alarm! temperature %u over %u\n", temp, temp_threshold);
-      snprintf(buf_ptr, remaining, "{\"alarm\":\"%u\"}", temp);
+      snprintf(buf_ptr, remaining, "{\"temperature alarm\":\"%u\"}", temp);
+    
+      mqtt_publish(&conn, NULL, pub_alarm, (uint8_t *)app_buffer,
+                   strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+
+      etimer_set(&alarm_expired, (CLOCK_SECOND * 15));
+    }
+    return;
+  }
+
+  if(light >= DEFAULT_LIGHT_THRESH) {
+    if(etimer_expired(&alarm_expired)) {
+      printf("*** Alarm! light %u over %u\n", light, DEFAULT_LIGHT_THRESH);
+      snprintf(buf_ptr, remaining, "{\"light alarm\":\"%u\"}", light);
     
       mqtt_publish(&conn, NULL, pub_alarm, (uint8_t *)app_buffer,
                    strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
@@ -431,6 +452,16 @@ publish(void)
 
   hum = sht25.value(SHT25_VAL_HUM);
   len = snprintf(buf_ptr, remaining, ",\"Hum\":\"%u\"", hum);
+
+  if(len < 0 || len >= remaining) {
+    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
+    return;
+  }
+
+  remaining -= len;
+  buf_ptr += len;
+
+  len = snprintf(buf_ptr, remaining, ",\"light\":\"%u\"", light);
 
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
@@ -611,6 +642,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
   printf("MQTT Demo Process\n");
 
   SENSORS_ACTIVATE(sht25);
+  SENSORS_ACTIVATE(tsl2563);
 
   if(init_config() != 1) {
     PROCESS_EXIT();
