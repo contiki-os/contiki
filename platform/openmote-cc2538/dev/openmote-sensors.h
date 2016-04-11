@@ -35,37 +35,23 @@
  * \addtogroup openmote-cc2538
  * @{
  *
- * \defgroup openmote-leds OpenMote-CC2538 LED driver
+ * \defgroup openmote-sensors OpenMote-CC2538 sensors
+ *
+ * Generic module controlling sensors on the OpenMote-CC2538 platform
  * @{
  *
  * \file
- * LED driver implementation for the OpenMote-CC2538 platform
+ * Implementation of a generic module controlling OpenMote-CC2538 sensors
  */
 /*---------------------------------------------------------------------------*/
-#include "contiki.h"
-#include "reg.h"
-#include "dev/leds.h"
-#include "dev/gpio.h"
+#ifndef OPENMOTE_SENSORS_H_
+#define OPENMOTE_SENSORS_H_
 /*---------------------------------------------------------------------------*/
-#define LEDS_GPIO_PIN_MASK   LEDS_ALL
+#include "lib/sensors.h"
+#include "dev/cc2538-sensors.h"
+#include "dev/button-sensor.h"
 /*---------------------------------------------------------------------------*/
-void
-leds_arch_init(void)
-{
-  GPIO_SET_OUTPUT(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
-}
-/*---------------------------------------------------------------------------*/
-unsigned char
-leds_arch_get(void)
-{
-  return GPIO_READ_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK);
-}
-/*---------------------------------------------------------------------------*/
-void
-leds_arch_set(unsigned char leds)
-{
-  GPIO_WRITE_PIN(GPIO_C_BASE, LEDS_GPIO_PIN_MASK, leds);
-}
+#endif /* OPENMOTE_SENSORS_H_ */
 /*---------------------------------------------------------------------------*/
 /**
  * @}

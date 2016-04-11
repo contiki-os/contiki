@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \addtogroup openmote-cc2538
  * @{
@@ -37,57 +37,34 @@
  * \defgroup openmote-examples OpenMote-CC2538 Example Projects
  * @{
  *
- * \defgroup openmote-demo OpenMote-CC2538 Demo Project
- *
- *   Example project demonstrating the OpenMote-CC2538 functionality
- *
- *   This assumes that you are using an OpenMote-CC2538
- *
- * - Boot sequence: LEDs flashing, LED2 followed by LED3 then LED4
- * - etimer/clock : Every LOOP_INTERVAL clock ticks the LED defined as
- *                  LEDS_PERIODIC will turn on
- * - rtimer       : Exactly LEDS_OFF_HYSTERISIS rtimer ticks later,
- *                  LEDS_PERIODIC will turn back off
- * - UART         : Every LOOP_INTERVAL the EM will print something over the
- *                  UART. Receiving an entire line of text over UART (ending
- *                  in \\r) will cause LEDS_SERIAL_IN to toggle
- * - Radio comms  : BTN_SELECT sends a rime broadcast. Reception of a rime
- *                  packet will toggle LEDs defined as LEDS_RF_RX
+ * Example project demonstrating the OpenMote-CC2538 functionality
  *
  * @{
  *
  * \file
- *     Example demonstrating the OpenMote platform.
+ * Example demonstrating the OpenMote-CC2538 platform
  * \author
- *         Pere Tuset <peretuset@openmote.com>
+ * Pere Tuset <peretuset@openmote.com>
  */
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "cpu.h"
 #include "sys/etimer.h"
-#include "sys/rtimer.h"
 #include "dev/leds.h"
 #include "dev/uart.h"
 #include "dev/button-sensor.h"
-#include "dev/watchdog.h"
 #include "dev/serial-line.h"
 #include "dev/sys-ctrl.h"
 #include "net/rime/broadcast.h"
 
+#include "dev/adxl346.h"
+#include "dev/max44009.h"
+#include "dev/sht21.h"
+
 #include <stdio.h>
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
-#define LOOP_INTERVAL       CLOCK_SECOND
-#define LEDS_OFF_HYSTERISIS (RTIMER_SECOND >> 1)
-#define LEDS_PERIODIC       LEDS_YELLOW
-#define LEDS_BUTTON         LEDS_RED
-#define LEDS_SERIAL_IN      LEDS_ORANGE
-#define LEDS_REBOOT         LEDS_ALL
-#define LEDS_RF_RX          (LEDS_YELLOW | LEDS_ORANGE)
 #define BROADCAST_CHANNEL   129
-/*---------------------------------------------------------------------------*/
-static struct etimer et;
-static struct rtimer rt;
-static uint16_t counter;
 /*---------------------------------------------------------------------------*/
 PROCESS(openmote_demo_process, "OpenMote-CC2538 demo process");
 AUTOSTART_PROCESSES(&openmote_demo_process);
@@ -95,7 +72,7 @@ AUTOSTART_PROCESSES(&openmote_demo_process);
 static void
 broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 {
-  leds_toggle(LEDS_RF_RX);
+  leds_toggle(LEDS_GREEN);
   printf("Received %u bytes: '0x%04x'\n", packetbuf_datalen(),
          *(uint16_t *)packetbuf_dataptr());
 }
@@ -103,21 +80,42 @@ broadcast_recv(struct broadcast_conn *c, const linkaddr_t *from)
 static const struct broadcast_callbacks bc_rx = { broadcast_recv };
 static struct broadcast_conn bc;
 /*---------------------------------------------------------------------------*/
-void
-rt_callback(struct rtimer *t, void *ptr)
-{
-  leds_off(LEDS_PERIODIC);
-}
-/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(openmote_demo_process, ev, data)
 {
+  static struct etimer et;
+  static unsigned int raw, counter;
+  static uint8_t adxl346_present, max44009_present, sht21_present;
+  static float light, temperature, humidity;
 
   PROCESS_EXITHANDLER(broadcast_close(&bc))
 
   PROCESS_BEGIN();
 
+  adxl346_init();
+  adxl346_present = adxl346_is_present();
+  if(!adxl346_present) {
+    printf("ADXL346 sensor is NOT present!\n");
+    leds_on(LEDS_YELLOW);
+  }
+
+  max44009_init();
+  max44009_present = max44009_is_present();
+  if(!max44009_present) {
+    printf("MAX44009 sensor is NOT present!\n");
+    leds_on(LEDS_ORANGE);
+  }
+
+  sht21_init();
+  sht21_present = sht21_is_present();
+  if(!sht21_present) {
+    printf("SHT21 sensor is NOT present!\n");
+    leds_on(LEDS_RED);
+  }
+
   counter = 0;
   broadcast_open(&bc, BROADCAST_CHANNEL, &bc_rx);
+
+  printf("****************************************\n");
 
   while(1) {
     etimer_set(&et, CLOCK_SECOND);
@@ -125,21 +123,49 @@ PROCESS_THREAD(openmote_demo_process, ev, data)
     PROCESS_YIELD();
 
     if(ev == PROCESS_EVENT_TIMER) {
-      leds_on(LEDS_PERIODIC);
-      printf("Counter = 0x%08x\n", counter);
-
-      etimer_set(&et, CLOCK_SECOND);
-      rtimer_set(&rt, RTIMER_NOW() + LEDS_OFF_HYSTERISIS, 1,
-                 rt_callback, NULL);
-    } else if(ev == sensors_event) {
-      if(data == &button_user_sensor) {
-        packetbuf_copyfrom(&counter, sizeof(counter));
-        broadcast_send(&bc);
+      if(adxl346_present) {
+        leds_on(LEDS_YELLOW);
+        raw = adxl346_read_x();
+        printf("X Acceleration: %u\n", raw);
+        raw = adxl346_read_y();
+        printf("Y Acceleration: %u\n", raw);
+        raw = adxl346_read_z();
+        printf("Z Acceleration: %u\n", raw);
+        leds_off(LEDS_YELLOW);
       }
-    } else if(ev == serial_line_event_message) {
-      leds_toggle(LEDS_SERIAL_IN);
+
+      if(max44009_present) {
+        leds_on(LEDS_ORANGE);
+        raw = max44009_read_light();
+        light = max44009_convert_light(raw);
+        printf("Light: %u.%ulux\n", (unsigned int)light, (unsigned int)(light * 100) % 100);
+        leds_off(LEDS_ORANGE);
+      }
+
+      if(sht21_present) {
+        leds_on(LEDS_RED);
+        raw = sht21_read_temperature();
+        temperature = sht21_convert_temperature(raw);
+        printf("Temperature: %u.%uC\n", (unsigned int)temperature, (unsigned int)(temperature * 100) % 100);
+        raw = sht21_read_humidity();
+        humidity = sht21_convert_humidity(raw);
+        printf("Rel. humidity: %u.%u%%\n", (unsigned int)humidity, (unsigned int)(humidity * 100) % 100);
+        leds_off(LEDS_RED);
+      }
+
+      printf("****************************************\n");
     }
-    counter++;
+
+    if(ev == sensors_event) {
+      if(data == &button_sensor) {
+        if(button_sensor.value(BUTTON_SENSOR_VALUE_TYPE_LEVEL) ==
+           BUTTON_SENSOR_PRESSED_LEVEL) {
+          leds_toggle(LEDS_GREEN);
+          packetbuf_copyfrom(&counter, sizeof(counter));
+          broadcast_send(&bc);
+        }
+      }
+    }
   }
 
   PROCESS_END();

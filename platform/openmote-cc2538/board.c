@@ -26,6 +26,9 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
  */
 /*---------------------------------------------------------------------------*/
 /**
@@ -34,7 +37,6 @@
  *
  * \file
  *  Board-initialisation for the OpenMote-CC2538 platform
- *
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
@@ -58,4 +60,3 @@ board_init()
 /**
  * @}
  */
-

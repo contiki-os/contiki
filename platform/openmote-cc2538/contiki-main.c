@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -27,12 +26,16 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
  */
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc2538-platforms
+ * \addtogroup platform
  * @{
  *
- * \defgroup openmote The OpenMote-CC2538 platform
+ * \defgroup openmote-cc2538 OpenMote-CC2538 platform
  *
  * The OpenMote-CC2538 is based on the CC2538, the new platform by Texas Instruments
  * based on an ARM Cortex-M3 core and a IEEE 802.15.4 radio.
@@ -48,6 +51,7 @@
 #include "dev/scb.h"
 #include "dev/nvic.h"
 #include "dev/uart.h"
+#include "dev/i2c.h"
 #include "dev/watchdog.h"
 #include "dev/ioc.h"
 #include "dev/button-sensor.h"
@@ -84,7 +88,9 @@
 #define PUTS(s)
 #endif
 /*---------------------------------------------------------------------------*/
-/** \brief Board specific iniatialisation */
+/**
+ * \brief Board specific iniatialisation
+ */
 void board_init(void);
 /*---------------------------------------------------------------------------*/
 static void
@@ -155,16 +161,6 @@ main(void)
   process_init();
   watchdog_init();
 
-  /*
-   * Character I/O Initialisation.
-   * When the UART receives a character it will call serial_line_input_byte to
-   * notify the core. The same applies for the USB driver.
-   *
-   * If slip-arch is also linked in afterwards (e.g. if we are a border router)
-   * it will overwrite one of the two peripheral input callbacks. Characters
-   * received over the relevant peripheral will be handled by
-   * slip_input_byte instead
-   */
 #if UART_CONF_ENABLE
   uart_init(0);
   uart_init(1);
@@ -176,6 +172,8 @@ main(void)
   usb_serial_set_input(serial_line_input_byte);
 #endif
 
+  i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN, I2C_SCL_NORMAL_BUS_SPEED);
+
   serial_line_init();
 
   INTERRUPTS_ENABLE();
@@ -184,7 +182,6 @@ main(void)
   PUTS(CONTIKI_VERSION_STRING);
   PUTS(BOARD_STRING);
 
-  /* Initialise the H/W RNG engine. */
   random_init(0);
 
   udma_init();
@@ -202,11 +199,11 @@ main(void)
   netstack_init();
   set_rf_params();
 
-  PRINTF(" Net: ");
+  PRINTF("Net: ");
   PRINTF("%s\n", NETSTACK_NETWORK.name);
-  PRINTF(" MAC: ");
+  PRINTF("MAC: ");
   PRINTF("%s\n", NETSTACK_MAC.name);
-  PRINTF(" RDC: ");
+  PRINTF("RDC: ");
   PRINTF("%s\n", NETSTACK_RDC.name);
 
 #if NETSTACK_CONF_WITH_IPV6
@@ -230,18 +227,15 @@ main(void)
   while(1) {
     uint8_t r;
     do {
-      /* Reset watchdog and handle polls and events */
       watchdog_periodic();
 
       r = process_run();
     } while(r > 0);
 
-    /* We have serviced all pending events. Enter a Low-Power mode. */
     lpm_enter();
   }
 }
 /*---------------------------------------------------------------------------*/
-
 /**
  * @}
  * @}
