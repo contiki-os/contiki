@@ -29,29 +29,57 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup platform
+ * \addtogroup openmote-sensors
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote-adxl346-sensor ADXL346 acceleration sensor
+ * @{
  *
  * \file
- * Header for the ADXL346 acceleration sensor in OpenMote-CC2538.
+ * ADXL346 acceleration sensor driver header file
  *
  * \author
  * Pere Tuset <peretuset@openmote.com>
  */
-
-#ifndef __ADXL346_H__
-#define __ADXL346_H__
 /*---------------------------------------------------------------------------*/
+#ifndef ADXL346_H_
+#define ADXL346_H_
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Initialize the ADXL346 sensor
+ */
 void adxl346_init(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Reset the ADXL346 sensor
+ */
 void adxl346_reset(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Check if the ADXL346 sensor is present
+ */
 uint8_t adxl346_is_present(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Read the x-axis from the ADXL346 sensor
+ */
 uint16_t adxl346_read_x(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Read the y-axis from the ADXL346 sensor
+ */
 uint16_t adxl346_read_y(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Read the z-axis from the ADXL346 sensor
+ */
 uint16_t adxl346_read_z(void);
 /*---------------------------------------------------------------------------*/
-#endif /* ifndef __ADXL346_H__ */
-/** @} */
+#endif /* ADXL346_H_ */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

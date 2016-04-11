@@ -27,27 +27,34 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup platform
+ * \addtogroup openmote-sensors
  * @{
  *
- * \defgroup openmote
+ * Generic module controlling sensors on the OpenMote-CC2538 platform
+ * @{
  *
  * \file
- * Implementation of a generic module controlling OpenMote-CC2538 sensors.
+ * Implementation of a generic module controlling OpenMote-CC2538 sensors
  */
-
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
+#include "dev/cc2538-sensors.h"
 #include "dev/button-sensor.h"
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 /**
-   *\brief Exports a global symbol to be used by the sensor API
+ * \brief Exports a global symbol to be used by the sensor API
  */
-SENSORS(&button_user_sensor);
+SENSORS(&button_sensor, &cc2538_temp_sensor);
 /*---------------------------------------------------------------------------*/
-/** @} */
+/**
+ * @}
+ * @}
+ */

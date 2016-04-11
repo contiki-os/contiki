@@ -27,44 +27,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup platform
+ * \addtogroup openmote-antenna
  * @{
  *
- * \defgroup openmote
+ * Driver for the OpenMote-CC2538 RF switch.
+ * INT is the internal antenna (chip) configured through ANT1_SEL (V1)
+ * EXT is the external antenna (connector) configured through ANT2_SEL (V2)
+ * @{
  *
  * \file
- * Driver for the antenna selection on the OpenMote-CC2538 platform.
+ * Driver implementation for the OpenMote-CC2538 antenna switch
  */
-
 /*---------------------------------------------------------------------------*/
 #include "contiki-conf.h"
 #include "dev/gpio.h"
 #include "dev/antenna.h"
 /*---------------------------------------------------------------------------*/
-#define BSP_RADIO_BASE              (GPIO_D_BASE)
-#define BSP_RADIO_INT               (1 << 5)
-#define BSP_RADIO_EXT               (1 << 4)
+#define BSP_RADIO_BASE              GPIO_PORT_TO_BASE(GPIO_D_NUM)
+#define BSP_RADIO_INT               GPIO_PIN_MASK(5)
+#define BSP_RADIO_EXT               GPIO_PIN_MASK(4)
 /*---------------------------------------------------------------------------*/
-static void
-gpio_set(int port, int bit)
-{
-  REG((port | GPIO_DATA) + (bit << 2)) = bit;
-}
-/*---------------------------------------------------------------------------*/
-static void
-gpio_reset(int port, int bit)
-{
-  REG((port | GPIO_DATA) + (bit << 2)) = 0;
-}
-/*---------------------------------------------------------------------------*/
-/**
- * Configure the antenna using the RF switch
- * INT is the internal antenna (chip) configured through ANT1_SEL (V1)
- * EXT is the external antenna (connector) configured through ANT2_SEL (V2)
- */
 void
 antenna_init(void)
 {
@@ -76,24 +63,21 @@ antenna_init(void)
   antenna_external();
 }
 /*---------------------------------------------------------------------------*/
-/**
- * Select the external (connector) antenna
- */
 void
 antenna_external(void)
 {
-  gpio_reset(BSP_RADIO_BASE, BSP_RADIO_INT);
-  gpio_set(BSP_RADIO_BASE, BSP_RADIO_EXT);
+  GPIO_WRITE_PIN(BSP_RADIO_BASE, BSP_RADIO_INT, 0);
+  GPIO_WRITE_PIN(BSP_RADIO_BASE, BSP_RADIO_EXT, 1);
 }
 /*---------------------------------------------------------------------------*/
-/**
- * Select the internal (chip) antenna
- */
 void
 antenna_internal(void)
 {
-  gpio_reset(BSP_RADIO_BASE, BSP_RADIO_EXT);
-  gpio_set(BSP_RADIO_BASE, BSP_RADIO_INT);
+  GPIO_WRITE_PIN(BSP_RADIO_BASE, BSP_RADIO_EXT, 0);
+  GPIO_WRITE_PIN(BSP_RADIO_BASE, BSP_RADIO_INT, 1);
 }
 /*---------------------------------------------------------------------------*/
-/** @} */
+/**
+ * @}
+ * @}
+ */

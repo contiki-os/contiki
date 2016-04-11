@@ -29,29 +29,42 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup platform
+ * \addtogroup openmote-sht21-sensor
  * @{
  *
- * \defgroup openmote
- *
  * \file
- * Driver for the SHT21 temperature and humidity sensor in OpenMote-CC2538.
+ * Driver for the SHT21 temperature and relative humidity sensor
  *
  * \author
  * Pere Tuset <peretuset@openmote.com>
  */
-
 /*---------------------------------------------------------------------------*/
 #include "i2c.h"
 #include "sht21.h"
 /*---------------------------------------------------------------------------*/
+/**
+ * \name SHT21 address
+ */
 #define SHT21_ADDRESS                   (0x40)
-
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name SHT21 register addresses and values
+ * @{
+ */
 #define SHT21_USER_REG_READ             (0xE7)
 #define SHT21_USER_REG_WRITE            (0xE6)
 #define SHT21_USER_REG_RESERVED_BITS    (0x38)
+
+#define SHT21_TEMPERATURE_HM_CMD        (0xE3)
+#define SHT21_HUMIDITY_HM_CMD           (0xE5)
+#define SHT21_TEMPERATURE_NHM_CMD       (0xF3)
+#define SHT21_HUMIDITY_NHM_CMD          (0xF5)
+#define SHT21_RESET_CMD                 (0xFE)
+
+#define SHT21_STATUS_MASK               (0xFC)
 
 #define SHT21_RESOLUTION_12b_14b        ((0 << 7) | (0 << 0))
 #define SHT21_RESOLUTION_8b_12b         ((0 << 7) | (1 << 0))
@@ -63,15 +76,12 @@
 #define SHT21_ONCHIP_HEATER_DISABLE     (0 << 2)
 #define SHT21_OTP_RELOAD_ENABLE         (0 << 1)
 #define SHT21_OTP_RELOAD_DISABLE        (1 << 1)
-
-#define SHT21_TEMPERATURE_HM_CMD        (0xE3)
-#define SHT21_HUMIDITY_HM_CMD           (0xE5)
-#define SHT21_TEMPERATURE_NHM_CMD       (0xF3)
-#define SHT21_HUMIDITY_NHM_CMD          (0xF5)
-#define SHT21_RESET_CMD                 (0xFE)
-
-#define SHT21_STATUS_MASK               ( 0xFC )
-
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name SHT21 configuration values
+ * @{
+ */
 #define SHT21_DEFAULT_CONFIG            (SHT21_RESOLUTION_12b_14b | \
                                          SHT21_ONCHIP_HEATER_DISABLE | \
                                          SHT21_BATTERY_ABOVE_2V25 | \
@@ -81,17 +91,12 @@
                                          SHT21_ONCHIP_HEATER_DISABLE | \
                                          SHT21_BATTERY_ABOVE_2V25 | \
                                          SHT21_OTP_RELOAD_DISABLE)
+/** @} */
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 void
 sht21_init(void)
 {
   uint8_t config[2];
-
-  i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN,
-           I2C_SCL_NORMAL_BUS_SPEED);
 
   /* Setup the configuration vector, the first position holds address */
   /* and the second position holds the actual configuration */
@@ -111,9 +116,6 @@ sht21_init(void)
   i2c_burst_send(SHT21_ADDRESS, config, sizeof(config));
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 void
 sht21_reset(void)
 {
@@ -121,29 +123,25 @@ sht21_reset(void)
   i2c_single_send(SHT21_ADDRESS, SHT21_RESET_CMD);
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 uint8_t
 sht21_is_present(void)
 {
+  uint8_t status;
   uint8_t is_present;
 
   /* Read the current configuration according to the datasheet (pag. 9, fig. 18) */
   i2c_single_send(SHT21_ADDRESS, SHT21_USER_REG_READ);
-  i2c_single_receive(SHT21_ADDRESS, &is_present);
+  status = i2c_single_receive(SHT21_ADDRESS, &is_present);
+  if(status != I2C_MASTER_ERR_NONE) {
+    return 0;
+  }
 
   /* Clear the reserved bits according to the datasheet (pag. 9, tab. 8) */
   is_present &= ~SHT21_USER_REG_RESERVED_BITS;
 
-  is_present = ((is_present == SHT21_USER_CONFIG) || (is_present == SHT21_DEFAULT_CONFIG));
-
-  return is_present;
+  return (is_present == SHT21_USER_CONFIG) || (is_present == SHT21_DEFAULT_CONFIG);
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 uint16_t
 sht21_read_temperature(void)
 {
@@ -159,23 +157,17 @@ sht21_read_temperature(void)
   return temperature;
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 float
 sht21_convert_temperature(uint16_t temperature)
 {
   float result;
 
   result = -46.85;
-  result += 175.72 * (float) temperature / 65536.0;
+  result += 175.72 * (float)temperature / 65536.0;
 
   return result;
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 uint16_t
 sht21_read_humidity(void)
 {
@@ -191,16 +183,13 @@ sht21_read_humidity(void)
   return humidity;
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 float
 sht21_convert_humidity(uint16_t humidity)
 {
   float result;
 
   result = -6.0;
-  result += 125.0 * (float) humidity / 65536.0;
+  result += 125.0 * (float)humidity / 65536.0;
 
   return result;
 }

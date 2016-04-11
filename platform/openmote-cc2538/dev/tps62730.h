@@ -29,26 +29,46 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup platform
+ * \addtogroup openmote-cc2538
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote-tps62730 TPS62730 voltage regulator
+ *
+ * Driver for the TPS62730 voltage regulator, to enable power from
+ * the battery voltage (bypass, Vout=Vin, Iq < 1uA) or through the
+ * buck regulator (on, Vout=2.1V, Iq = 30uA)
+ * @{
  *
  * \file
- * Header for the TPS62730 voltage regulator on the OpenMote-CC2538.
+ * Driver for the TPS62730 voltage regulator
  *
  * \author
  * Pere Tuset <peretuset@openmote.com>
  */
-
+/*---------------------------------------------------------------------------*/
 #ifndef TPS62730_H_
 #define TPS62730_H_
 /*---------------------------------------------------------------------------*/
+/**
+ * \brief Initialize the TPS62730 voltage regulator in bypass mode
+ */
 void tps62730_init(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Set TPS62730 to on, Vout = 2.2V, Iq = 30 uA
+ */
 void tps62730_on(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Set TPS62730 to bypass, Vout = Vin, Iq < 1 uA
+ */
 void tps62730_bypass(void);
 /*---------------------------------------------------------------------------*/
 #endif /* TPS62730_H_ */
-/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

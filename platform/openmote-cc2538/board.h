@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,7 +10,6 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- *
  * 3. Neither the name of the copyright holder nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
@@ -27,22 +26,24 @@
  * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
  */
-
+/* -------------------------------------------------------------------------- */
 /**
- * \addtogroup platform
+ * \addtogroup openmote-cc2538
  * @{
  *
- * \defgroup openmote
- *
  * \file
- * Header file with definitions related to the I/O connections on the
- * OpenMote-CC2538 platform. This file provides connectivity information on
- * LEDs, Buttons, UART and other peripherals.
+ * This file provides connectivity information on LEDs, Buttons, UART and
+ * other OpenMote-CC2538 peripherals.
  *
- * \note
- * Do not include this file directly. It gets included by contiki-conf
- * after all relevant directives have been set.
+ * This file can be used as the basis to configure other platforms using the
+ * cc2538 SoC.
+ *
+ * \note   Do not include this file directly. It gets included by contiki-conf
+ *         after all relevant directives have been set.
  */
 
 #ifndef BOARD_H_
@@ -69,7 +70,7 @@
 #undef LEDS_RED
 #undef LEDS_CONF_ALL
 
-#define LEDS_RED       16  /**< LED1 (Red) -> PC4 */
+#define LEDS_RED       16  /**< LED1 (Red)    -> PC4 */
 #define LEDS_YELLOW    64  /**< LED2 (Yellow) -> PC6 */
 #define LEDS_GREEN     128 /**< LED3 (Green)  -> PC7 */
 #define LEDS_ORANGE    32  /**< LED4 (Orange) -> PC5 */
@@ -102,15 +103,17 @@
  */
 #define UART0_RX_PORT            GPIO_A_NUM
 #define UART0_RX_PIN             0
-
 #define UART0_TX_PORT            GPIO_A_NUM
 #define UART0_TX_PIN             1
 
-#define UART1_CTS_PORT           GPIO_B_NUM
-#define UART1_CTS_PIN            0
-
-#define UART1_RTS_PORT           GPIO_D_NUM
-#define UART1_RTS_PIN            3
+#define UART1_RX_PORT            GPIO_B_NUM
+#define UART1_RX_PIN             0
+#define UART1_TX_PORT            GPIO_D_NUM
+#define UART1_TX_PIN             3
+#define UART1_CTS_PORT           (-1)
+#define UART1_CTS_PIN            (-1)
+#define UART1_RTS_PORT           (-1)
+#define UART1_RTS_PIN            (-1)
 /** @} */
 /*---------------------------------------------------------------------------*/
 /** \name OpenMote-CC2538 Button configuration
@@ -128,9 +131,11 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
- * \name SPI configuration
+ * \name SPI (SSI0) configuration
  *
- * These values configure which CC2538 pins to use for the SPI lines.
+ * These values configure which CC2538 pins to use for the SPI (SSI0) lines.
+ * The SSI0 is currently used to interface with the Ethernet driver (ENC28J60)
+ * on the OpenBase board.
  * @{
  */
 #define SPI_CLK_PORT             GPIO_A_NUM
@@ -139,8 +144,21 @@
 #define SPI_MOSI_PIN             5
 #define SPI_MISO_PORT            GPIO_A_NUM
 #define SPI_MISO_PIN             4
-#define SPI_SEL_PORT             GPIO_A_NUM
-#define SPI_SEL_PIN              3
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name SPI (SSI1) configuration
+ *
+ * These values configure which CC2538 pins to use for the SPI (SSI1) lines.
+ * The SSI1 is currently not used.
+ * @{
+ */
+#define SPI1_CLK_PORT            GPIO_C_NUM
+#define SPI1_CLK_PIN             4
+#define SPI1_TX_PORT             GPIO_C_NUM
+#define SPI1_TX_PIN              5
+#define SPI1_RX_PORT             GPIO_C_NUM
+#define SPI1_RX_PIN              6
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
@@ -163,4 +181,7 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_H_ */
-/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ */

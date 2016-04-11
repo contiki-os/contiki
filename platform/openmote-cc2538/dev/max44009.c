@@ -29,29 +29,33 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup platform
+ * \addtogroup openmote-max44009-sensor
  * @{
  *
- * \defgroup openmote
- *
  * \file
- * Driver for the MAX44009 light sensor in OpenMote-CC2538.
+ * Driver for the MAX44009 light sensor
  *
  * \author
  * Pere Tuset <peretuset@openmote.com>
  */
-
 /*---------------------------------------------------------------------------*/
 #include "dev/i2c.h"
 #include "dev/max44009.h"
 /*---------------------------------------------------------------------------*/
-/* ADDRESS AND NOT_FOUND VALUE */
+/**
+ * \name MAX44009 address and device identifier
+ * @{
+ */
 #define MAX44009_ADDRESS                    (0x4A)
 #define MAX44009_NOT_FOUND                  (0x00)
-
-/* REGISTER ADDRESSES */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name MAX44009 register addresses
+ * @{
+ */
 #define MAX44009_INT_STATUS_ADDR            (0x00)      /* R */
 #define MAX44009_INT_ENABLE_ADDR            (0x01)      /* R/W */
 #define MAX44009_CONFIG_ADDR                (0x02)      /* R/W */
@@ -60,14 +64,17 @@
 #define MAX44009_THR_HIGH_ADDR              (0x05)      /* R/W */
 #define MAX44009_THR_LOW_ADDR               (0x06)      /* R/W */
 #define MAX44009_THR_TIMER_ADDR             (0x07)      /* R/W */
-
-/* INTERRUPT VALUES */
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
+ * \name MAX44009 register values
+ * @{
+ */
 #define MAX44009_INT_STATUS_OFF             (0x00)
 #define MAX44009_INT_STATUS_ON              (0x01)
 #define MAX44009_INT_DISABLED               (0x00)
 #define MAX44009_INT_ENABLED                (0x01)
 
-/* CONFIGURATION VALUES */
 #define MAX44009_CONFIG_DEFAULT             (0 << 7)
 #define MAX44009_CONFIG_CONTINUOUS          (1 << 7)
 #define MAX44009_CONFIG_AUTO                (0 << 6)
@@ -83,15 +90,12 @@
 #define MAX44009_CONFIG_INTEGRATION_12ms    (6 << 0)
 #define MAX44009_CONFIG_INTEGRATION_6ms     (7 << 0)
 
-/* DEFAULT CONFIGURATION */
 #define MAX44009_DEFAULT_CONFIGURATION      (MAX44009_CONFIG_DEFAULT | \
                                              MAX44009_CONFIG_AUTO | \
                                              MAX44009_CONFIG_CDR_NORMAL | \
                                              MAX44009_CONFIG_INTEGRATION_100ms)
+/** @} */
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 void
 max44009_init(void)
 {
@@ -108,19 +112,13 @@ max44009_init(void)
   max44009_value[3] = (0x00);
   max44009_value[4] = (0xFF);
 
-  i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN,
-           I2C_SCL_NORMAL_BUS_SPEED);
-
-  for(i = 0; i < sizeof(max44009_address); i++) {
-    max44009_data[0] = max44009_value[i];
-    max44009_data[1] = max44009_data[i];
+  for(i = 0; i < sizeof(max44009_address) / sizeof(max44009_address[0]); i++) {
+    max44009_data[0] = max44009_address[i];
+    max44009_data[1] = max44009_value[i];
     i2c_burst_send(MAX44009_ADDRESS, max44009_data, 2);
   }
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 void
 max44009_reset(void)
 {
@@ -131,30 +129,28 @@ max44009_reset(void)
   uint8_t max44009_data[2];
   uint8_t i;
 
-  for(i = 0; i < sizeof(max44009_address); i++) {
-    max44009_data[0] = max44009_value[i];
-    max44009_data[1] = max44009_data[i];
+  for(i = 0; i < sizeof(max44009_address) / sizeof(max44009_address[0]); i++) {
+    max44009_data[0] = max44009_address[i];
+    max44009_data[1] = max44009_value[i];
     i2c_burst_send(MAX44009_ADDRESS, max44009_data, 2);
   }
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 uint8_t
 max44009_is_present(void)
 {
+  uint8_t status;
   uint8_t is_present;
 
   i2c_single_send(MAX44009_ADDRESS, MAX44009_CONFIG_ADDR);
-  i2c_single_receive(MAX44009_ADDRESS, &is_present);
+  status = i2c_single_receive(MAX44009_ADDRESS, &is_present);
+  if(status != I2C_MASTER_ERR_NONE) {
+    return 0;
+  }
 
   return is_present != MAX44009_NOT_FOUND;
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 uint16_t
 max44009_read_light(void)
 {
@@ -175,9 +171,6 @@ max44009_read_light(void)
   return result;
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 float
 max44009_convert_light(uint16_t lux)
 {
@@ -186,7 +179,7 @@ max44009_convert_light(uint16_t lux)
 
   exponent = (lux >> 8) & 0xFF;
   exponent = (exponent == 0x0F ? exponent & 0x0E : exponent);
-  
+
   mantissa = (lux >> 0) & 0xFF;
 
   result *= 2 ^ exponent * mantissa;

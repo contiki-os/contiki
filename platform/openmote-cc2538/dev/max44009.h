@@ -29,28 +29,52 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup platform
+ * \addtogroup openmote-sensors
  * @{
  *
- * \defgroup openmote
+ * \defgroup openmote-max44009-sensor MAX4009 light sensor
+ * @{
  *
  * \file
- * Header for the MAX44009 light sensor in OpenMote-CC2538.
+ * Header file for the MAX44009 light sensor driver
  *
  * \author
  * Pere Tuset <peretuset@openmote.com>
  */
-
-#ifndef __MAX44009_H__
-#define __MAX44009_H__
 /*---------------------------------------------------------------------------*/
+#ifndef MAX44009_H_
+#define MAX44009_H_
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Initialize the MAX44009 sensor
+ */
 void max44009_init(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Reset the MAX44009 sensor
+ */
 void max44009_reset(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Check if the MAX44009 sensor is present
+ */
 uint8_t max44009_is_present(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Read the light from the MAX44009 sensor
+ */
 uint16_t max44009_read_light(void);
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Convert the light from the MAX44009 sensor
+ */
 float max44009_convert_light(uint16_t light);
 /*---------------------------------------------------------------------------*/
-#endif /* ifndef __MAX44009_H__ */
-/** @} */
+#endif /* MAX44009_H_ */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

@@ -29,29 +29,33 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
- * \addtogroup platform
+ * \addtogroup openmote-adxl346-sensor
  * @{
  *
- * \defgroup openmote
- *
  * \file
- * Driver for the ADXL346 acceleration sensor in OpenMote-CC2538.
+ * Driver for the ADXL346 acceleration sensor
  *
  * \author
  * Pere Tuset <peretuset@openmote.com>
  */
-
 /*---------------------------------------------------------------------------*/
 #include "dev/i2c.h"
 #include "dev/adxl346.h"
 /*---------------------------------------------------------------------------*/
-/* ADDRESS AND IDENTIFIER */
+/**
+ * \name ADXL346 address and device identifier
+ * @{
+ */
 #define ADXL346_ADDRESS                     (0x53)
 #define ADXL346_DEVID_VALUE                 (0xE6)
-
-/* REGISTER ADDRESSES */
+/** @} */
+/* -------------------------------------------------------------------------- */
+/**
+ * \name ADXL346 register addresses
+ * @{
+ */
 #define ADXL346_DEVID_ADDR                  (0x00)
 #define ADXL346_THRES_TAP_ADDR              (0x1D)
 #define ADXL346_OFSX_ADDR                   (0x1E)
@@ -85,8 +89,12 @@
 #define ADXL346_TAP_SIGN_ADDR               (0x3A)
 #define ADXL346_ORIENT_CONF_ADDR            (0x3B)
 #define ADXL346_ORIENT_ADDR                 (0x3C)
-
-/* INT_ENABLE/INT_MAP/INT_SOURCE */
+/** @} */
+/* -------------------------------------------------------------------------- */
+/**
+ * \name ADXL346 register values
+ * @{
+ */
 #define ADXL346_INT_ENABLE_DATA_READY      (1 << 7)
 #define ADXL346_INT_ENABLE_SINGLE_TAP      (1 << 6)
 #define ADXL346_INT_ENABLE_DOUBLE_TAP      (1 << 5)
@@ -96,7 +104,6 @@
 #define ADXL346_INT_ENABLE_WATERMARK       (1 << 1)
 #define ADXL346_INT_ENABLE_OVERRUN         (1 << 0)
 
-/* ACT_INACT_CONTROL */
 #define ADXL346_ACT_INACT_CTL_ACT_ACDC     (1 << 7)
 #define ADXL346_ACT_INACT_CTL_ACT_X_EN     (1 << 6)
 #define ADXL346_ACT_INACT_CTL_ACT_Y_EN     (1 << 5)
@@ -106,13 +113,11 @@
 #define ADXL346_ACT_INACT_CTL_INACT_Y_EN   (1 << 1)
 #define ADXL346_ACT_INACT_CTL_INACT_Z_EN   (1 << 0)
 
-/* TAP_AXES */
 #define ADXL346_TAP_AXES_SUPPRESS           (1 << 3)
 #define ADXL346_TAP_AXES_TAP_X_EN           (1 << 2)
 #define ADXL346_TAP_AXES_TAP_Y_EN           (1 << 1)
 #define ADXL346_TAP_AXES_TAP_Z_EN           (1 << 0)
 
-/* ACT_TAP_STATUS */
 #define ADXL346_ACT_TAP_STATUS_ACT_X_SRC    (1 << 6)
 #define ADXL346_ACT_TAP_STATUS_ACT_Y_SRC    (1 << 5)
 #define ADXL346_ACT_TAP_STATUS_ACT_Z_SRC    (1 << 4)
@@ -121,18 +126,15 @@
 #define ADXL346_ACT_TAP_STATUS_TAP_Y_SRC    (1 << 1)
 #define ADXL346_ACT_TAP_STATUS_TAP_Z_SRC    (1 << 0)
 
-/* BW_RATE */
 #define ADXL346_BW_RATE_POWER               (1 << 4)
 #define ADXL346_BW_RATE_RATE(x)             ((x) & 0x0F)
 
-/* POWER CONTROL */
 #define ADXL346_POWER_CTL_LINK              (1 << 5)
 #define ADXL346_POWER_CTL_AUTO_SLEEP        (1 << 4)
 #define ADXL346_POWER_CTL_MEASURE           (1 << 3)
 #define ADXL346_POWER_CTL_SLEEP             (1 << 2)
 #define ADXL346_POWER_CTL_WAKEUP(x)         ((x) & 0x03)
 
-/* DATA_FORMAT */
 #define ADXL346_DATA_FORMAT_SELF_TEST       (1 << 7)
 #define ADXL346_DATA_FORMAT_SPI             (1 << 6)
 #define ADXL346_DATA_FORMAT_INT_INVERT      (1 << 5)
@@ -143,17 +145,12 @@
 #define ADXL346_DATA_FORMAT_RANGE_PM_4g     (1)
 #define ADXL346_DATA_FORMAT_RANGE_PM_8g     (2)
 #define ADXL346_DATA_FORMAT_RANGE_PM_16g    (3)
+/** @} */
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 void
 adxl346_init(void)
 {
   uint8_t config[2];
-
-  i2c_init(I2C_SDA_PORT, I2C_SDA_PIN, I2C_SCL_PORT, I2C_SCL_PIN,
-           I2C_SCL_NORMAL_BUS_SPEED);
 
   config[0] = ADXL346_BW_RATE_ADDR;
   config[1] = (ADXL346_BW_RATE_RATE(11));
@@ -170,17 +167,11 @@ adxl346_init(void)
   i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 void
 adxl346_reset(void)
 {
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 uint8_t
 adxl346_is_present(void)
 {
@@ -192,9 +183,6 @@ adxl346_is_present(void)
   return is_present == ADXL346_DEVID_VALUE;
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 uint16_t
 adxl346_read_x(void)
 {
@@ -211,9 +199,6 @@ adxl346_read_x(void)
   return x;
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 uint16_t
 adxl346_read_y(void)
 {
@@ -230,9 +215,6 @@ adxl346_read_y(void)
   return y;
 }
 /*---------------------------------------------------------------------------*/
-/**
- *
- */
 uint16_t
 adxl346_read_z(void)
 {
