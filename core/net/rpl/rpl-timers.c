@@ -224,6 +224,8 @@ set_dao_lifetime_timer(rpl_instance_t *instance)
     expiration_time = (clock_time_t)instance->default_lifetime *
       (clock_time_t)instance->lifetime_unit *
       CLOCK_SECOND / 2;
+    /* make the time for the re registration be betwen 1/2 - 3/4 of lifetime */
+    expiration_time = expiration_time + (random_rand() % (expiration_time / 2));
     PRINTF("RPL: Scheduling DAO lifetime timer %u ticks in the future\n",
            (unsigned)expiration_time);
     ctimer_set(&instance->dao_lifetime_timer, expiration_time,

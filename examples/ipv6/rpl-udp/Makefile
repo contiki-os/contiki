@@ -1,6 +1,7 @@
 all: udp-client udp-server
-APPS=servreg-hack
 CONTIKI=../../..
+
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 ifdef WITH_COMPOWER
 APPS+=powertrace

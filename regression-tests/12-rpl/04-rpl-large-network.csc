@@ -7058,4 +7058,3 @@ while(true) {&#xD;
     <location_y>43</location_y>
   </plugin>
 </simconf>
-

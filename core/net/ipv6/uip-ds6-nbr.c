@@ -79,9 +79,11 @@ uip_ds6_neighbors_init(void)
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
 uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
-                uint8_t isrouter, uint8_t state)
+                uint8_t isrouter, uint8_t state, nbr_table_reason_t reason,
+                void *data)
 {
-  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr);
+  uip_ds6_nbr_t *nbr = nbr_table_add_lladdr(ds6_neighbors, (linkaddr_t*)lladdr
+                                            , reason, data);
   if(nbr) {
     uip_ipaddr_copy(&nbr->ipaddr, ipaddr);
 #if UIP_ND6_SEND_NA || UIP_ND6_SEND_RA || !UIP_CONF_ROUTER
@@ -115,7 +117,7 @@ uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
 }
 
 /*---------------------------------------------------------------------------*/
-void
+int
 uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
 {
   if(nbr != NULL) {
@@ -123,9 +125,9 @@ uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr)
     uip_packetqueue_free(&nbr->packethandle);
 #endif /* UIP_CONF_IPV6_QUEUE_PKT */
     NEIGHBOR_STATE_CHANGED(nbr);
-    nbr_table_remove(ds6_neighbors, nbr);
+    return nbr_table_remove(ds6_neighbors, nbr);
   }
-  return;
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*/

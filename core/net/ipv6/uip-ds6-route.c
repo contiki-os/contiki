@@ -207,6 +207,19 @@ uip_ds6_route_next(uip_ds6_route_t *r)
 }
 /*---------------------------------------------------------------------------*/
 int
+uip_ds6_route_is_nexthop(const uip_ipaddr_t *ipaddr)
+{
+  const uip_lladdr_t *lladdr;
+  lladdr = uip_ds6_nbr_lladdr_from_ipaddr(ipaddr);
+
+  if(lladdr == NULL) {
+    return 0;
+  }
+
+  return nbr_table_get_from_lladdr(nbr_routes, (linkaddr_t *)lladdr) != NULL;
+}
+/*---------------------------------------------------------------------------*/
+int
 uip_ds6_route_num_routes(void)
 {
   return num_routes;
@@ -307,11 +320,16 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
        least recently used one we have. */
 
     if(uip_ds6_route_num_routes() == UIP_DS6_ROUTE_NB) {
+      uip_ds6_route_t *oldest;
+      oldest = NULL;
+#if UIP_DS6_ROUTE_REMOVE_LEAST_RECENTLY_USED
       /* Removing the oldest route entry from the route table. The
          least recently used route is the first route on the list. */
-      uip_ds6_route_t *oldest;
-
-      oldest = list_tail(routelist); /* uip_ds6_route_head(); */
+      oldest = list_tail(routelist);
+#endif
+      if(oldest == NULL) {
+        return NULL;
+      }
       PRINTF("uip_ds6_route_add: dropping route to ");
       PRINT6ADDR(&oldest->ipaddr);
       PRINTF("\n");
@@ -337,7 +355,8 @@ uip_ds6_route_add(uip_ipaddr_t *ipaddr, uint8_t length,
          initialize this pointer with the list of routing entries that
          are attached to this neighbor. */
       routes = nbr_table_add_lladdr(nbr_routes,
-                                    (linkaddr_t *)nexthop_lladdr);
+                                    (linkaddr_t *)nexthop_lladdr,
+                                    NBR_TABLE_REASON_ROUTE, NULL);
       if(routes == NULL) {
         /* This should not happen, as we explicitly deallocated one
            route table entry above. */

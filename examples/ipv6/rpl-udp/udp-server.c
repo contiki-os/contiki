@@ -107,7 +107,8 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
   SENSORS_ACTIVATE(button_sensor);
 
-  PRINTF("UDP server started\n");
+  PRINTF("UDP server started. nbr:%d routes:%d\n",
+         NBR_TABLE_CONF_MAX_NEIGHBORS, UIP_CONF_MAX_ROUTES);
 
 #if UIP_CONF_ROUTER
 /* The choice of server address determines its 6LoPAN header compression.
