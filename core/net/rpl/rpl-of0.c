@@ -55,6 +55,9 @@ static void update_metric_container(rpl_instance_t *);
 rpl_of_t rpl_of0 = {
   reset,
   NULL,
+#if RPL_WITH_DAO_ACK
+  NULL,
+#endif
   best_parent,
   best_dag,
   calculate_rank,

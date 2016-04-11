@@ -86,9 +86,11 @@ typedef struct uip_ds6_nbr {
 void uip_ds6_neighbors_init(void);
 
 /** \brief Neighbor Cache basic routines */
-uip_ds6_nbr_t *uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
-                               uint8_t isrouter, uint8_t state);
-void uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
+uip_ds6_nbr_t *uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr,
+                               const uip_lladdr_t *lladdr,
+                               uint8_t isrouter, uint8_t state,
+                               nbr_table_reason_t reason, void *data);
+int uip_ds6_nbr_rm(uip_ds6_nbr_t *nbr);
 const uip_lladdr_t *uip_ds6_nbr_get_ll(const uip_ds6_nbr_t *nbr);
 const uip_ipaddr_t *uip_ds6_nbr_get_ipaddr(const uip_ds6_nbr_t *nbr);
 uip_ds6_nbr_t *uip_ds6_nbr_lookup(const uip_ipaddr_t *ipaddr);

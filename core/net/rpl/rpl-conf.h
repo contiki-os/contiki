@@ -118,7 +118,7 @@
 #ifdef RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
 #define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME
 #else
-#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    0
+#define RPL_DEFAULT_ROUTE_INFINITE_LIFETIME                    1
 #endif /* RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME */
 
 /*
@@ -200,7 +200,7 @@
  * used in RPL lifetime values, in seconds.
  */
 #ifndef RPL_CONF_DEFAULT_LIFETIME_UNIT
-#define RPL_DEFAULT_LIFETIME_UNIT       0xffff
+#define RPL_DEFAULT_LIFETIME_UNIT       0x60
 #else
 #define RPL_DEFAULT_LIFETIME_UNIT       RPL_CONF_DEFAULT_LIFETIME_UNIT
 #endif
@@ -209,7 +209,7 @@
  * Default route lifetime as a multiple of the lifetime unit.
  */
 #ifndef RPL_CONF_DEFAULT_LIFETIME
-#define RPL_DEFAULT_LIFETIME            0xff
+#define RPL_DEFAULT_LIFETIME            0x30
 #else
 #define RPL_DEFAULT_LIFETIME            RPL_CONF_DEFAULT_LIFETIME
 #endif
@@ -234,6 +234,39 @@
 #else
 #define RPL_INSERT_HBH_OPTION       1
 #endif
+
+/*
+ * RPL DAO ACK support. When enabled, DAO ACK will be sent and requested.
+ * This will also enable retransmission of DAO when no ack is received.
+ * */
+#ifdef RPL_CONF_WITH_DAO_ACK
+#define RPL_WITH_DAO_ACK RPL_CONF_WITH_DAO_ACK
+#else
+#define RPL_WITH_DAO_ACK 1
+#endif /* RPL_CONF_WITH_DAO_ACK */
+
+/*
+ * RPL REPAIR ON DAO NACK. When enabled, DAO NACK will trigger a local
+ * repair in order to quickly find a new parent to send DAO's to.
+ * NOTE: this is too agressive in some cases so use with care.
+ * */
+#ifdef RPL_CONF_RPL_REPAIR_ON_DAO_NACK
+#define RPL_REPAIR_ON_DAO_NACK RPL_CONF_RPL_REPAIR_ON_DAO_NACK
+#else
+#define RPL_REPAIR_ON_DAO_NACK 0
+#endif /* RPL_CONF_RPL_REPAIR_ON_DAO_NACK */
+
+/*
+ * Setting the DIO_REFRESH_DAO_ROUTES will make RPL always increase
+ * the DTSN (Destination Advertisement Trigger Sequence Number) when
+ * sending broadcast DIO. This is to get all children to re-register
+ * their DAO route.
+ * */
+#ifdef RPL_CONF_DIO_REFRESH_DAO_ROUTES
+#define RPL_DIO_REFRESH_DAO_ROUTES RPL_CONF_DIO_REFRESH_DAO_ROUTES
+#else
+#define RPL_DIO_REFRESH_DAO_ROUTES 0
+#endif /* RPL_CONF_DIO_REFRESH_DAO_ROUTES */
 
 /*
  * RPL probing. When enabled, probes will be sent periodically to keep

@@ -238,7 +238,8 @@ rpl_add_route(rpl_dag_t *dag, uip_ipaddr_t *prefix, int prefix_len,
 
   rep->state.dag = dag;
   rep->state.lifetime = RPL_LIFETIME(dag->instance, dag->instance->default_lifetime);
-  rep->state.learned_from = RPL_ROUTE_FROM_INTERNAL;
+  /* always clear state flags for the no-path received when adding/refreshing */
+  RPL_ROUTE_CLEAR_NOPATH_RECEIVED(rep);
 
   PRINTF("RPL: Added a route to ");
   PRINT6ADDR(prefix);

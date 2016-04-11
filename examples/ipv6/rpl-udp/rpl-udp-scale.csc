@@ -7,7 +7,7 @@
   <project EXPORT="discard">[APPS_DIR]/collect-view</project>
   <project EXPORT="discard">[APPS_DIR]/powertracker</project>
   <simulation>
-    <title>Data collection network using IPv6 and RPL</title>
+    <title>RPL up and downstream scaleability test network using IPv6 and RPL</title>
     <randomseed>generated</randomseed>
     <motedelay_us>5000000</motedelay_us>
     <radiomedium>
@@ -25,7 +25,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #sky1</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/rpl-udp/udp-server.c</source>
-      <commands EXPORT="discard">make clean udp-server.sky TARGET=sky DEFINES=TEST_MORE_ROUTES=1</commands>
+      <commands EXPORT="discard">make SERVER_REPLY=1 clean udp-server.sky TARGET=sky DEFINES=TEST_MORE_ROUTES=1</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/rpl-udp/udp-server.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
@@ -48,7 +48,7 @@
       <identifier>sky2</identifier>
       <description>Sky Mote Type #sky2</description>
       <source EXPORT="discard">[CONTIKI_DIR]/examples/ipv6/rpl-udp/udp-client.c</source>
-      <commands EXPORT="discard">make clean udp-client.sky TARGET=sky</commands>
+      <commands EXPORT="discard">make SERVER_REPLY=1 clean udp-client.sky TARGET=sky</commands>
       <firmware EXPORT="copy">[CONTIKI_DIR]/examples/ipv6/rpl-udp/udp-client.sky</firmware>
       <moteinterface>org.contikios.cooja.interfaces.Position</moteinterface>
       <moteinterface>org.contikios.cooja.interfaces.RimeAddress</moteinterface>
@@ -88,8 +88,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>4.049356309774755</x>
-        <y>98.28771308774003</y>
+        <x>-39.78380986481406</x>
+        <y>-48.10655064098382</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -124,8 +124,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>57.897299848739024</x>
-        <y>92.47229665488265</y>
+        <x>154.92605604103275</x>
+        <y>40.97896551774433</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -135,6 +135,10 @@
       <interface_config>
         org.contikios.cooja.mspmote.interfaces.MspMoteID
         <id>4</id>
+      </interface_config>
+      <interface_config>
+        org.contikios.cooja.mspmote.interfaces.MspSerial
+        <history>r~;</history>
       </interface_config>
       <motetype_identifier>sky2</motetype_identifier>
     </mote>
@@ -250,8 +254,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>-18.9555027263478</x>
-        <y>75.14274313304935</y>
+        <x>-13.423161364506493</x>
+        <y>-38.483037144768275</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -268,8 +272,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>29.265863595275306</x>
-        <y>85.6911670159044</y>
+        <x>-9.034961217472201</x>
+        <y>44.411389162165406</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -430,8 +434,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>-40.05235049205791</x>
-        <y>92.47229665488265</y>
+        <x>154.43072661267115</x>
+        <y>-3.279765376986134</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -466,8 +470,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>88.03565379975346</x>
-        <y>-44.657213822233054</y>
+        <x>88.4612185198951</x>
+        <y>-49.763990463932714</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -538,8 +542,8 @@
       <breakpoints />
       <interface_config>
         org.contikios.cooja.interfaces.Position
-        <x>-13.681290784920272</x>
-        <y>-50.684884612435944</y>
+        <x>2.4901685804620115</x>
+        <y>-60.89843789583528</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -627,11 +631,11 @@
   </simulation>
   <plugin>
     org.contikios.cooja.plugins.SimControl
-    <width>259</width>
-    <z>3</z>
+    <width>289</width>
+    <z>1</z>
     <height>184</height>
-    <location_x>3</location_x>
-    <location_y>15</location_y>
+    <location_x>31</location_x>
+    <location_y>41</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.Visualizer
@@ -639,13 +643,13 @@
       <skin>org.contikios.cooja.plugins.skins.IDVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.UDGMVisualizerSkin</skin>
       <skin>org.contikios.cooja.plugins.skins.AttributeVisualizerSkin</skin>
-      <viewport>2.349818846983307 0.0 0.0 2.349818846983307 150.19773526533348 176.95275613586946</viewport>
+      <viewport>2.349818846983307 0.0 0.0 2.349818846983307 187.19773526533345 190.95275613586946</viewport>
     </plugin_config>
-    <width>520</width>
-    <z>2</z>
+    <width>659</width>
+    <z>3</z>
     <height>523</height>
-    <location_x>14</location_x>
-    <location_y>210</location_y>
+    <location_x>296</location_x>
+    <location_y>11</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.LogListener
@@ -655,10 +659,10 @@
       <coloring />
     </plugin_config>
     <width>937</width>
-    <z>0</z>
-    <height>213</height>
-    <location_x>265</location_x>
-    <location_y>16</location_y>
+    <z>4</z>
+    <height>349</height>
+    <location_x>21</location_x>
+    <location_y>464</location_y>
   </plugin>
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
@@ -679,11 +683,16 @@ while(1) {
 	YIELD();
 
 	msgArray = msg.split(' ');
-	if(msgArray[0].equals("DATA")) {
-		if(msgArray.length == 9) {
+	if(msgArray[0].equals("#A")) {
+		if(msgArray[1].charAt(0) == 'r') {
 			// Received packet
-			senderID = parseInt(msgArray[8]);
-			packetsReceived[senderID]++;
+			senderID = id;
+            arr2 = msgArray[1].split(',')[0].slice(2).split('/');
+            recv = parseInt(arr2[0]);
+            sent = parseInt(arr2[1]);
+            log.log("Sent:" + sent + " Recv:" + recv + "\n");
+            packetsSent[senderID] = sent;
+			packetsReceived[senderID] = recv;
 
 			log.log("SenderID " + senderID + " PRR " + packetsReceived[senderID] / packetsSent[senderID] + "\n");
 			totalReceived = totalSent = 0;
@@ -693,19 +702,28 @@ while(1) {
 			}
 			totalPRR = totalReceived / totalSent;
 			log.log("Total PRR " + totalPRR + " recv " + totalReceived + " sent " + totalSent + "\n");
-		} else if(msgArray.length == 6) {
-			// Sent packet
-			packetsSent[id]++;
 		}
 	}
 }</script>
       <active>true</active>
     </plugin_config>
-    <width>651</width>
-    <z>1</z>
-    <height>550</height>
-    <location_x>547</location_x>
-    <location_y>181</location_y>
+    <width>600</width>
+    <z>0</z>
+    <height>700</height>
+    <location_x>946</location_x>
+    <location_y>6</location_y>
+  </plugin>
+  <plugin>
+    org.contikios.cooja.plugins.MoteInterfaceViewer
+    <mote_arg>3</mote_arg>
+    <plugin_config>
+      <interface>Serial port</interface>
+      <scrollpos>0,0</scrollpos>
+    </plugin_config>
+    <width>350</width>
+    <z>2</z>
+    <height>300</height>
+    <location_x>976</location_x>
+    <location_y>36</location_y>
   </plugin>
 </simconf>
-

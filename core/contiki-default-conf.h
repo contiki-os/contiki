@@ -148,6 +148,13 @@
 #define UIP_CONF_IPV6_RPL 1
 #endif /* UIP_CONF_IPV6_RPL */
 
+/* If RPL is enabled also enable the RPL NBR Policy */
+#if UIP_CONF_IPV6_RPL
+#ifndef NBR_TABLE_FIND_REMOVABLE
+#define NBR_TABLE_FIND_REMOVABLE rpl_nbr_policy_find_removable
+#endif /* NBR_TABLE_FIND_REMOVABLE */
+#endif /* UIP_CONF_IPV6_RPL */
+
 /* UIP_CONF_MAX_ROUTES specifies the maximum number of routes that each
    node will be able to handle. */
 #ifndef UIP_CONF_MAX_ROUTES
