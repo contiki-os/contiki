@@ -126,7 +126,6 @@ struct collect_conn {
   struct ctimer retransmission_timer;
   LIST_STRUCT(send_queue_list);
   struct packetqueue send_queue;
-  struct collect_neighbor_list neighbor_list;
 
   struct ctimer keepalive_timer;
   clock_time_t keepalive_period;
