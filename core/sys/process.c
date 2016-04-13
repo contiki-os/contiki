@@ -245,10 +245,10 @@ do_poll(void)
 static void
 do_event(void)
 {
-  static process_event_t ev;
-  static process_data_t data;
-  static struct process *receiver;
-  static struct process *p;
+  process_event_t ev;
+  process_data_t data;
+  struct process *receiver;
+  struct process *p;
   
   /*
    * If there are any events in the queue, take the first one and walk
@@ -321,7 +321,7 @@ process_nevents(void)
 int
 process_post(struct process *p, process_event_t ev, process_data_t data)
 {
-  static process_num_events_t snum;
+  process_num_events_t snum;
 
   if(PROCESS_CURRENT() == NULL) {
     PRINTF("process_post: NULL process posts event %d to process '%s', nevents %d\n",
