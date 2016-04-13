@@ -237,7 +237,7 @@ tcp_connect(const uip_ipaddr_t *ripaddr, uint16_t port, void *appstate)
 void
 tcp_unlisten(uint16_t port)
 {
-  static unsigned char i;
+  unsigned char i;
   struct listenport *l;
 
   l = s.listenports;
@@ -255,7 +255,7 @@ tcp_unlisten(uint16_t port)
 void
 tcp_listen(uint16_t port)
 {
-  static unsigned char i;
+  unsigned char i;
   struct listenport *l;
 
   l = s.listenports;
@@ -359,7 +359,7 @@ static void
 eventhandler(process_event_t ev, process_data_t data)
 {
 #if UIP_TCP
-  static unsigned char i;
+  unsigned char i;
   register struct listenport *l;
 #endif /*UIP_TCP*/
   struct process *p;
@@ -760,9 +760,9 @@ tcpip_uipcall(void)
 
 #if UIP_TCP
  {
-   static unsigned char i;
+   unsigned char i;
    struct listenport *l;
-   
+
    /* If this is a connection request for a listening port, we must
       mark the connection with the right process ID. */
    if(uip_connected()) {
@@ -791,11 +791,11 @@ tcpip_uipcall(void)
 PROCESS_THREAD(tcpip_process, ev, data)
 {
   PROCESS_BEGIN();
-  
+
 #if UIP_TCP
  {
-   static unsigned char i;
-   
+   unsigned char i;
+
    for(i = 0; i < UIP_LISTENPORTS; ++i) {
      s.listenports[i].port = 0;
    }
