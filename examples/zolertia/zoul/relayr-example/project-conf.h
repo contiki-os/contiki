@@ -44,8 +44,17 @@
 #define MQTT_DEMO_STATUS_LED      LEDS_GREEN
 #define MQTT_DEMO_PUBLISH_TRIGGER &button_right_sensor
 
-#define DEFAULT_ORG_ID            "mqtt-demo"
-#define MQTT_DEMO_BROKER_IP_ADDR  "mqtt.relayr.io"
+/* "test.mosquitto.org" is "37.187.106.16", translated to
+ * "0064:ff9b:0000:0000:0000:0000:25bb:6a10"
+ */
+/* "mqtt.relayr.io" */
+#define MQTT_DEMO_BROKER_IP_ADDR  "0064:ff9b:0000:0000:0000:0000:b8ac:7cbd"
+
+
+
+
+
+
 /*---------------------------------------------------------------------------*/
 /* Default configuration values */
 #define DEFAULT_EVENT_TYPE_ID       "2826729f-d677-4425-88d6-78a62ae7061f" /* DEVICE ID same as MQTT USER */
