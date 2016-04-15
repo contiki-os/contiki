@@ -119,6 +119,15 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
 #else
 #define CC2538_RF_AUTOACK 1
 #endif
+/*---------------------------------------------------------------------------
+ * MAC timer
+ *---------------------------------------------------------------------------*/
+/* Timer conversion */
+#define RADIO_TO_RTIMER(X) ((X) * RTIMER_ARCH_SECOND / SYS_CTRL_32MHZ)
+
+#define CLOCK_STABLE() do {															\
+			while ( !(REG(SYS_CTRL_CLOCK_STA) & (SYS_CTRL_CLOCK_STA_XOSC_STB)));	\
+		} while(0)
 /*---------------------------------------------------------------------------*/
 /* Are we currently in poll mode? Disabled by default */
 static uint8_t volatile poll_mode = 0;
@@ -427,7 +436,7 @@ off(void)
   /* Wait for ongoing TX to complete (e.g. this could be an outgoing ACK) */
   while(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
 
-  if (!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP)) {
+  if(!(REG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_FIFOP)) {
     CC2538_RF_CSP_ISFLUSHRX();
   }
 
@@ -1071,7 +1080,7 @@ cc2538_rf_rx_tx_isr(void)
     process_poll(&cc2538_rf_process);
   }
 
-  /* We only acknowledge FIFOP or SFD so we can safely wipe out the entire SFR */
+  /* We only acknowledge FIFOP so we can safely wipe out the entire SFR */
   REG(RFCORE_SFR_RFIRQF0) = 0;
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
@@ -1149,7 +1158,8 @@ void mac_timer_init(void)
   while(!(REG(RFCORE_SFR_MTCTRL) & RFCORE_SFR_MTCTRL_STATE));
   REG(RFCORE_SFR_MTCTRL) &= ~RFCORE_SFR_MTCTRL_RUN;
   while(REG(RFCORE_SFR_MTCTRL) & RFCORE_SFR_MTCTRL_STATE);
-  REG(RFCORE_SFR_MTCTRL) |= (RFCORE_SFR_MTCTRL_RUN | RFCORE_SFR_MTCTRL_SYNC);
+  REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_SYNC;
+  REG(RFCORE_SFR_MTCTRL) |= (RFCORE_SFR_MTCTRL_RUN);
   while(!(REG(RFCORE_SFR_MTCTRL) & RFCORE_SFR_MTCTRL_STATE));
 }
 /*---------------------------------------------------------------------------*/
