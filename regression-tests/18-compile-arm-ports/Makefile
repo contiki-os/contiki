@@ -32,6 +32,7 @@ cc2538-common/crypto/zoul \
 cc2538-common/pka/zoul \
 zolertia/zoul/zoul \
 zolertia/zoul/cc1200-demo/zoul \
+openmote-cc2538/openmote-cc2538 \
 er-rest-example/zoul \
 ipso-objects/zoul \
 hello-world/zoul \
