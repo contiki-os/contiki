@@ -123,7 +123,7 @@ static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };      /** Snif */
  * MAC timer
  *---------------------------------------------------------------------------*/
 /* Timer conversion */
-#define RADIO_TO_RTIMER(X) ((X) * RTIMER_ARCH_SECOND / SYS_CTRL_32MHZ)
+#define RADIO_TO_RTIMER(X) ((uint32_t)((uint64_t)(X) * RTIMER_ARCH_SECOND / SYS_CTRL_32MHZ))
 
 #define CLOCK_STABLE() do {															\
 			while ( !(REG(SYS_CTRL_CLOCK_STA) & (SYS_CTRL_CLOCK_STA_XOSC_STB)));	\
@@ -1129,7 +1129,7 @@ cc2538_rf_set_promiscous_mode(char p)
 /*---------------------------------------------------------------------------*/
 uint32_t get_sfd_timestamp(void)
 {
-  uint32_t sfd, timer_val;
+  uint64_t sfd, timer_val, buffer;
 
   REG(RFCORE_SFR_MTMSEL) = (REG(RFCORE_SFR_MTMSEL) & ~RFCORE_SFR_MTMSEL_MTMSEL) | 0x00000000;
   REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_LATCH_MODE;
@@ -1138,6 +1138,8 @@ uint32_t get_sfd_timestamp(void)
   REG(RFCORE_SFR_MTMSEL) = (REG(RFCORE_SFR_MTMSEL) & ~RFCORE_SFR_MTMSEL_MTMOVFSEL) | 0x00000000;
   timer_val |= ((REG(RFCORE_SFR_MTMOVF0) & RFCORE_SFR_MTMOVF0_MTMOVF0) << 16);
   timer_val |= ((REG(RFCORE_SFR_MTMOVF1) & RFCORE_SFR_MTMOVF1_MTMOVF1) << 24);
+  buffer = REG(RFCORE_SFR_MTMOVF2) & RFCORE_SFR_MTMOVF2_MTMOVF2;
+  timer_val |= (buffer << 32);
 
   REG(RFCORE_SFR_MTMSEL) = (REG(RFCORE_SFR_MTMSEL) & ~RFCORE_SFR_MTMSEL_MTMSEL) | 0x00000001;
   REG(RFCORE_SFR_MTCTRL) |= RFCORE_SFR_MTCTRL_LATCH_MODE;
@@ -1146,6 +1148,8 @@ uint32_t get_sfd_timestamp(void)
   REG(RFCORE_SFR_MTMSEL) = (REG(RFCORE_SFR_MTMSEL) & ~RFCORE_SFR_MTMSEL_MTMOVFSEL) | 0x00000010;
   sfd |= ((REG(RFCORE_SFR_MTMOVF0) & RFCORE_SFR_MTMOVF0_MTMOVF0) << 16);
   sfd |= ((REG(RFCORE_SFR_MTMOVF1) & RFCORE_SFR_MTMOVF1_MTMOVF1) << 24);
+  buffer = REG(RFCORE_SFR_MTMOVF2) & RFCORE_SFR_MTMOVF2_MTMOVF2;
+  sfd |= (buffer << 32);
 
   return (RTIMER_NOW() - RADIO_TO_RTIMER(timer_val - sfd));
 }
