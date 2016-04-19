@@ -47,6 +47,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SEC_LVL 6
+#define MIC_LEN LLSEC802154_MIC_LEN(6)
+
 /*---------------------------------------------------------------------------*/
 /* Test vector C.2.1.2 from IEEE 802.15.4-2006 */
 static void
@@ -70,8 +73,8 @@ test_sec_lvl_6()
                        /* Frame Counter */
                        0x05 , 0x00 , 0x00 , 0x00 ,
                        0x01 , 0xCE };
-  uint8_t oracle[LLSEC802154_MIC_LENGTH] = { 0x4F , 0xDE , 0x52 , 0x90 ,
-                                             0x61 , 0xF9 , 0xC6 , 0xF1 };
+  uint8_t oracle[MIC_LEN] = { 0x4F , 0xDE , 0x52 , 0x90 ,
+                              0x61 , 0xF9 , 0xC6 , 0xF1 };
   uint8_t nonce[13];
   frame802154_frame_counter_t counter;
   
@@ -84,7 +87,7 @@ test_sec_lvl_6()
   counter.u32 = 5;
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_0_1, counter.u16[0]);
   packetbuf_set_attr(PACKETBUF_ATTR_FRAME_COUNTER_BYTES_2_3, counter.u16[1]);
-  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, LLSEC802154_SECURITY_LEVEL);
+  packetbuf_set_attr(PACKETBUF_ATTR_SECURITY_LEVEL, SEC_LVL);
   packetbuf_hdrreduce(29);
   
   CCM_STAR.set_key(key);
@@ -92,10 +95,10 @@ test_sec_lvl_6()
   CCM_STAR.aead(nonce,
       packetbuf_dataptr(), packetbuf_datalen(),
       packetbuf_hdrptr(), packetbuf_hdrlen(),
-      ((uint8_t *) packetbuf_hdrptr()) + 30, LLSEC802154_MIC_LENGTH,
+      ((uint8_t *) packetbuf_hdrptr()) + 30, MIC_LEN,
       1);
   
-  if(memcmp(((uint8_t *) packetbuf_hdrptr()) + 30, oracle, LLSEC802154_MIC_LENGTH) == 0) {
+  if(memcmp(((uint8_t *) packetbuf_hdrptr()) + 30, oracle, MIC_LEN) == 0) {
     printf("Success\n");
   } else {
     printf("Failure\n");
@@ -115,7 +118,7 @@ test_sec_lvl_6()
   CCM_STAR.aead(nonce,
       packetbuf_dataptr(), packetbuf_datalen(),
       packetbuf_hdrptr(), packetbuf_hdrlen(),
-      ((uint8_t *) packetbuf_hdrptr()) + 30, LLSEC802154_MIC_LENGTH,
+      ((uint8_t *) packetbuf_hdrptr()) + 30, MIC_LEN,
       0);
   if(((uint8_t *) packetbuf_hdrptr())[29] == 0xCE) {
     printf("Success\n");

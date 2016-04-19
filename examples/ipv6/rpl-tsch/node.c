@@ -144,7 +144,7 @@ PROCESS_THREAD(node_process, ev, data)
   
   /* Set node with ID == 1 as coordinator, convenient in Cooja. */
   if(node_id == 1) {
-    if(LLSEC802154_CONF_SECURITY_LEVEL) {
+    if(LLSEC802154_ENABLED) {
       node_role = role_6dr_sec;
     } else {
       node_role = role_6dr;
@@ -169,7 +169,7 @@ PROCESS_THREAD(node_process, ev, data)
                                || etimer_expired(&et));
       if(ev == sensors_event && data == &button_sensor && button_sensor.value(0) > 0) {
         node_role = (node_role + 1) % 3;
-        if(LLSEC802154_CONF_SECURITY_LEVEL == 0 && node_role == role_6dr_sec) {
+        if(LLSEC802154_ENABLED == 0 && node_role == role_6dr_sec) {
           node_role = (node_role + 1) % 3;
         }
         etimer_restart(&et);
@@ -182,7 +182,7 @@ PROCESS_THREAD(node_process, ev, data)
   printf("Init: node starting with role %s\n",
       node_role == role_6ln ? "6ln" : (node_role == role_6dr) ? "6dr" : "6dr-sec");
 
-  tsch_set_pan_secured(LLSEC802154_CONF_SECURITY_LEVEL && (node_role == role_6dr_sec));
+  tsch_set_pan_secured(LLSEC802154_ENABLED && (node_role == role_6dr_sec));
   is_coordinator = node_role > role_6ln;
 
   if(is_coordinator) {

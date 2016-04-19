@@ -51,7 +51,7 @@
    frame because it has seen its sequence number already. Replay
    protection should be implemented at the LLSEC layer where the
    authenticity of frames is verified. */
-#define RDC_WITH_DUPLICATE_DETECTION !LLSEC802154_CONF_SECURITY_LEVEL
+#define RDC_WITH_DUPLICATE_DETECTION !LLSEC802154_CONF_ENABLED
 #endif /* RDC_CONF_WITH_DUPLICATE_DETECTION */
 
 /* List of packets to be sent by RDC layer */

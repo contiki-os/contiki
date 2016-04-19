@@ -128,8 +128,8 @@ To configure TSCH, see the macros in `.h` files under `core/net/mac/tsch/` and r
 To include TSCH standard-compliant security, set the following:
 ```
 /* Enable security */
-#undef LLSEC802154_CONF_SECURITY_LEVEL
-#define LLSEC802154_CONF_SECURITY_LEVEL 1
+#undef LLSEC802154_CONF_ENABLED
+#define LLSEC802154_CONF_ENABLED 1
 /* TSCH uses explicit keys to identify k1 and k2 */
 #undef LLSEC802154_CONF_USES_EXPLICIT_KEYS
 #define LLSEC802154_CONF_USES_EXPLICIT_KEYS 1

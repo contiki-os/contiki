@@ -78,13 +78,6 @@
 #define NETSTACK_CONF_LLSEC nullsec_driver
 #endif /* NETSTACK_CONF_LLSEC */
 
-/* To avoid unnecessary complexity, we assume the common case of
-   a constant LoWPAN-wide IEEE 802.15.4 security level, which
-   can be specified by defining LLSEC802154_CONF_SECURITY_LEVEL. */
-#ifndef LLSEC802154_CONF_SECURITY_LEVEL
-#define LLSEC802154_CONF_SECURITY_LEVEL 0
-#endif /* LLSEC802154_CONF_SECURITY_LEVEL */
-
 /* NETSTACK_CONF_NETWORK specifies the network layer and can be either
    sicslowpan_driver, for IPv6 networking, or rime_driver, for the
    custom Rime network stack. */
