@@ -62,11 +62,17 @@ const uint16_t SCHEDULE[] = {
 
 #else
 
-// The first 4 elements define the relay nodes.
 const uint16_t SCHEDULE[] = {
-  49605,   //    0x7a8c, // ok
-    28473, //    0xbcde,
-    0x85bf,
+  49771,
+  49563,
+  49704,
+  49637,
+  49706,
+  49732,
+  49617,
+  49740,
+  49539,
+  49551,
 };
 
 #endif
