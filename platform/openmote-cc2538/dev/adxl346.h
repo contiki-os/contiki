@@ -47,35 +47,17 @@
 #ifndef ADXL346_H_
 #define ADXL346_H_
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Initialize the ADXL346 sensor
- */
-void adxl346_init(void);
+#define ADXL346_ERROR             (-1)
+#define ADXL346_SUCCESS           (0)
+#define ADXL346_ACTIVATE          (SENSORS_ACTIVE)
+#define ADXL346_READ_X            (2)
+#define ADXL346_READ_Y            (3)
+#define ADXL346_READ_Z            (4)
+#define ADXL346_NONE              (5)
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Reset the ADXL346 sensor
- */
-void adxl346_reset(void);
+#define ADXL346_SENSOR "ADXL346 Sensor"
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Check if the ADXL346 sensor is present
- */
-uint8_t adxl346_is_present(void);
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Read the x-axis from the ADXL346 sensor
- */
-uint16_t adxl346_read_x(void);
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Read the y-axis from the ADXL346 sensor
- */
-uint16_t adxl346_read_y(void);
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Read the z-axis from the ADXL346 sensor
- */
-uint16_t adxl346_read_z(void);
+extern const struct sensors_sensor adxl346;
 /*---------------------------------------------------------------------------*/
 #endif /* ADXL346_H_ */
 /*---------------------------------------------------------------------------*/
