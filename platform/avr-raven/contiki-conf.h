@@ -138,15 +138,12 @@ typedef unsigned short uip_stats_t;
 
 /* Network setup. The new NETSTACK interface requires RF230BB (as does ip4) */
 #if RF230BB
-#undef PACKETBUF_CONF_HDR_SIZE                  //Use the packetbuf default for header size
 /* TX routine passes the cca/ack result in the return parameter */
 #define RDC_CONF_HARDWARE_ACK      1
 /* TX routine does automatic cca and optional backoff */
 #define RDC_CONF_HARDWARE_CSMA     1
 /* Allow MCU sleeping between channel checks */
 #define RDC_CONF_MCU_SLEEP         0
-#else
-#define PACKETBUF_CONF_HDR_SIZE    0            //RF230 combined driver/mac handles headers internally
 #endif /*RF230BB */
 
 #if NETSTACK_CONF_WITH_IPV6
