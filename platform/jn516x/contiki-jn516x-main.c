@@ -409,7 +409,6 @@ main(void)
 #endif /* NETSTACK_CONF_WITH_IPV4 */
 
   watchdog_start();
-  NETSTACK_LLSEC.init();
 
 #if NETSTACK_CONF_WITH_IPV6
   start_uip6();
