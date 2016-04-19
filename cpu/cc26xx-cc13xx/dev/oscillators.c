@@ -37,44 +37,18 @@
  */
 /*---------------------------------------------------------------------------*/
 #include "ti-lib.h"
+#include "aux-ctrl.h"
 
 #include <stdint.h>
-/*---------------------------------------------------------------------------*/
-static uint32_t
-osc_interface_en(void)
-{
-  uint32_t smph_clk_state;
-
-  /* Enable OSC DIG interface to change clock sources */
-  ti_lib_osc_interface_enable();
-
-  /* Save the state of the SMPH clock within AUX */
-  smph_clk_state = ti_lib_aux_wuc_clock_status(AUX_WUC_SMPH_CLOCK);
-
-  /* Make sure the SMPH clock within AUX is enabled */
-  ti_lib_aux_wuc_clock_enable(AUX_WUC_SMPH_CLOCK);
-  while(ti_lib_aux_wuc_clock_status(AUX_WUC_SMPH_CLOCK) != AUX_WUC_CLOCK_READY);
-
-  return smph_clk_state;
-}
-/*---------------------------------------------------------------------------*/
-static void
-osc_interface_dis(uint32_t smph_clk_state)
-{
-  /* If the SMPH clock was off, turn it back off */
-  if(smph_clk_state == AUX_WUC_CLOCK_OFF) {
-    ti_lib_aux_wuc_clock_disable(AUX_WUC_SMPH_CLOCK);
-  }
-
-  /* Disable OSC DIG interface */
-  ti_lib_osc_interface_disable();
-}
 /*---------------------------------------------------------------------------*/
 void
 oscillators_select_lf_xosc(void)
 {
-  /* Enable the Osc interface and remember the state of the SMPH clock */
-  uint32_t smph_clk_state = osc_interface_en();
+  /* Request AUX access, with OSCCTRL and SMPH clocks */
+  aux_consumer_module_t osc = {
+    .clocks = AUX_WUC_OSCCTRL_CLOCK | AUX_WUC_SMPH_CLOCK
+  };
+  aux_ctrl_register_consumer(&osc);
 
   /* Switch LF clock source to the LF XOSC if required */
   if(ti_lib_osc_clock_source_get(OSC_SRC_CLK_LF) != OSC_XOSC_LF) {
@@ -91,15 +65,18 @@ oscillators_select_lf_xosc(void)
                                   0x3);
   }
 
-  /* Restore the SMPH clock and disable the OSC interface */
-  osc_interface_dis(smph_clk_state);
+  /* Release the OSC AUX consumer */
+  aux_ctrl_unregister_consumer(&osc);
 }
 /*---------------------------------------------------------------------------*/
 void
 oscillators_select_lf_rcosc(void)
 {
-  /* Enable the Osc interface and remember the state of the SMPH clock */
-  uint32_t smph_clk_state = osc_interface_en();
+  /* Request AUX access, with OSCCTRL and SMPH clocks */
+  aux_consumer_module_t osc = {
+    .clocks = AUX_WUC_OSCCTRL_CLOCK | AUX_WUC_SMPH_CLOCK
+  };
+  aux_ctrl_register_consumer(&osc);
 
   /* Switch LF clock source to the LF XOSC if required */
   if(ti_lib_osc_clock_source_get(OSC_SRC_CLK_LF) != OSC_RCOSC_LF) {
@@ -109,15 +86,18 @@ oscillators_select_lf_rcosc(void)
     while(ti_lib_osc_clock_source_get(OSC_SRC_CLK_LF) != OSC_RCOSC_LF);
   }
 
-  /* Restore the SMPH clock and disable the OSC interface */
-  osc_interface_dis(smph_clk_state);
+  /* Release the OSC AUX consumer */
+  aux_ctrl_unregister_consumer(&osc);
 }
 /*---------------------------------------------------------------------------*/
 void
 oscillators_request_hf_xosc(void)
 {
-  /* Enable the Osc interface and remember the state of the SMPH clock */
-  uint32_t smph_clk_state = osc_interface_en();
+  /* Request AUX access, with OSCCTRL and SMPH clocks */
+  aux_consumer_module_t osc = {
+    .clocks = AUX_WUC_OSCCTRL_CLOCK | AUX_WUC_SMPH_CLOCK
+  };
+  aux_ctrl_register_consumer(&osc);
 
   if(ti_lib_osc_clock_source_get(OSC_SRC_CLK_HF) != OSC_XOSC_HF) {
     /*
@@ -128,30 +108,36 @@ oscillators_request_hf_xosc(void)
     ti_lib_osc_clock_source_set(OSC_SRC_CLK_MF | OSC_SRC_CLK_HF, OSC_XOSC_HF);
   }
 
-  /* Restore the SMPH clock and disable the OSC interface */
-  osc_interface_dis(smph_clk_state);
+  /* Release the OSC AUX consumer */
+  aux_ctrl_unregister_consumer(&osc);
 }
 /*---------------------------------------------------------------------------*/
 void
 oscillators_switch_to_hf_xosc(void)
 {
-  /* Enable the Osc interface and remember the state of the SMPH clock */
-  uint32_t smph_clk_state = osc_interface_en();
+  /* Request AUX access, with OSCCTRL and SMPH clocks */
+  aux_consumer_module_t osc = {
+    .clocks = AUX_WUC_OSCCTRL_CLOCK | AUX_WUC_SMPH_CLOCK
+  };
+  aux_ctrl_register_consumer(&osc);
 
   if(ti_lib_osc_clock_source_get(OSC_SRC_CLK_HF) != OSC_XOSC_HF) {
     /* Switch the HF clock source (cc26xxware executes this from ROM) */
     ti_lib_osc_hf_source_switch();
   }
 
-  /* Restore the SMPH clock and disable the OSC interface */
-  osc_interface_dis(smph_clk_state);
+  /* Release the OSC AUX consumer */
+  aux_ctrl_unregister_consumer(&osc);
 }
 /*---------------------------------------------------------------------------*/
 void
 oscillators_switch_to_hf_rc(void)
 {
-  /* Enable the Osc interface and remember the state of the SMPH clock */
-  uint32_t smph_clk_state = osc_interface_en();
+  /* Request AUX access, with OSCCTRL and SMPH clocks */
+  aux_consumer_module_t osc = {
+    .clocks = AUX_WUC_OSCCTRL_CLOCK | AUX_WUC_SMPH_CLOCK
+  };
+  aux_ctrl_register_consumer(&osc);
 
   /* Set all clock sources to the HF RC Osc */
   ti_lib_osc_clock_source_set(OSC_SRC_CLK_MF | OSC_SRC_CLK_HF, OSC_RCOSC_HF);
@@ -162,8 +148,8 @@ oscillators_switch_to_hf_rc(void)
     ti_lib_osc_hf_source_switch();
   }
 
-  /* Restore the SMPH clock and disable the OSC interface */
-  osc_interface_dis(smph_clk_state);
+  /* Release the OSC AUX consumer */
+  aux_ctrl_unregister_consumer(&osc);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
