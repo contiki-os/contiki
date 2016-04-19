@@ -43,6 +43,14 @@
 /*---------------------------------------------------------------------------*/
 #include "dev/i2c.h"
 #include "dev/adxl346.h"
+#include "lib/sensors.h"
+/*---------------------------------------------------------------------------*/
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 /*---------------------------------------------------------------------------*/
 /**
  * \name ADXL346 address and device identifier
@@ -147,7 +155,9 @@
 #define ADXL346_DATA_FORMAT_RANGE_PM_16g    (3)
 /** @} */
 /*---------------------------------------------------------------------------*/
-void
+static uint8_t enabled;
+/*---------------------------------------------------------------------------*/
+static void
 adxl346_init(void)
 {
   uint8_t config[2];
@@ -167,12 +177,7 @@ adxl346_init(void)
   i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
 }
 /*---------------------------------------------------------------------------*/
-void
-adxl346_reset(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-uint8_t
+static uint8_t
 adxl346_is_present(void)
 {
   uint8_t is_present;
@@ -183,52 +188,72 @@ adxl346_is_present(void)
   return is_present == ADXL346_DEVID_VALUE;
 }
 /*---------------------------------------------------------------------------*/
-uint16_t
-adxl346_read_x(void)
-{
-  uint8_t acceleration[2];
-  uint16_t x;
-
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAX0_ADDR);
-  i2c_single_receive(ADXL346_ADDRESS, &acceleration[0]);
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAX1_ADDR);
-  i2c_single_receive(ADXL346_ADDRESS, &acceleration[1]);
-
-  x = (acceleration[0] << 8) | acceleration[1];
-
-  return x;
-}
-/*---------------------------------------------------------------------------*/
-uint16_t
-adxl346_read_y(void)
-{
-  uint8_t acceleration[2];
-  uint16_t y;
-
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAY0_ADDR);
-  i2c_single_receive(ADXL346_ADDRESS, &acceleration[0]);
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAY1_ADDR);
-  i2c_single_receive(ADXL346_ADDRESS, &acceleration[1]);
-
-  y = (acceleration[0] << 8) | acceleration[1];
-
-  return y;
-}
-/*---------------------------------------------------------------------------*/
-uint16_t
-adxl346_read_z(void)
+static uint16_t
+adxl346_read_accel(uint8_t addr1, uint8_t addr2)
 {
   uint8_t acceleration[2];
   uint16_t z;
 
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAZ0_ADDR);
+  i2c_single_send(ADXL346_ADDRESS, addr1);
   i2c_single_receive(ADXL346_ADDRESS, &acceleration[0]);
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAZ1_ADDR);
+  i2c_single_send(ADXL346_ADDRESS, addr2);
   i2c_single_receive(ADXL346_ADDRESS, &acceleration[1]);
 
   z = (acceleration[0] << 8) | acceleration[1];
 
   return z;
 }
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return enabled;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
+{
+  if(!enabled) {
+    PRINTF("ADXL346: sensor not started\n");
+    return ADXL346_ERROR;
+  }
+
+  if(type == ADXL346_READ_X) {
+    return adxl346_read_accel(ADXL346_DATAX0_ADDR, ADXL346_DATAX1_ADDR);
+  } else if(type == ADXL346_READ_Y) {
+    return adxl346_read_accel(ADXL346_DATAY0_ADDR, ADXL346_DATAY1_ADDR);
+  } else if(type == ADXL346_READ_Z) {
+    return adxl346_read_accel(ADXL346_DATAZ0_ADDR, ADXL346_DATAZ1_ADDR);
+  } else {
+    PRINTF("ADXL346: invalid value requested\n");
+    return ADXL346_ERROR;
+  }
+
+  return ADXL346_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int value)
+{
+  if(type == ADXL346_ACTIVATE) {
+    if(!adxl346_is_present()) {
+      PRINTF("ADXL346: is not present\n");
+      return ADXL346_ERROR;
+    } else {
+      adxl346_init();
+      enabled = 1;
+      return ADXL346_SUCCESS;
+    }
+  }
+
+  return ADXL346_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(adxl346, ADXL346_SENSOR, value, configure, status);
 /*---------------------------------------------------------------------------*/
 /** @} */
