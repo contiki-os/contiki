@@ -26,45 +26,61 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * This file is part of the Contiki operating system.
+ *
  */
-
 /**
  * \file
- *         A set of debugging tools
- * \author
- *         Nicolas Tsiftes <nvt@sics.se>
+ *         A set of debugging macros for the netstack
+ *
+ * \author Nicolas Tsiftes <nvt@sics.se>
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         Simon Duquennoy <simon.duquennoy@inria.fr>
  */
 
-#include "net/ip/uip-debug.h"
-#include "debug.h"
-/*---------------------------------------------------------------------------*/
-void
-uip_debug_ipaddr_print(const uip_ipaddr_t *addr)
-{
-#if NETSTACK_CONF_WITH_IPV6
-  uint16_t a;
-  unsigned int i;
-  int f;
-  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
-    a = (addr->u8[i] << 8) + addr->u8[i + 1];
-    if(a == 0 && f >= 0) {
-      if(f++ == 0) {
-        putstring("::");
-      }
-    } else {
-      if(f > 0) {
-        f = -1;
-      } else if(i > 0) {
-        putstring(":");
-      }
-      puthex(a >> 8);
-      puthex(a & 0xFF);
-    }
-  }
-#else /* NETSTACK_CONF_WITH_IPV6 */
-  PRINTA("%u.%u.%u.%u", addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
-#endif /* NETSTACK_CONF_WITH_IPV6 */
-}
-/*---------------------------------------------------------------------------*/
+#ifndef NET_DEBUG_H
+#define NET_DEBUG_H
+
+#include "net/ip/uip.h"
+#include "net/linkaddr.h"
+#include <stdio.h>
+
+void net_debug_lladdr_print(const uip_lladdr_t *addr);
+
+#define DEBUG_NONE      0
+#define DEBUG_PRINT     1
+#define DEBUG_ANNOTATE  2
+#define DEBUG_FULL      DEBUG_ANNOTATE | DEBUG_PRINT
+
+/* PRINTA will always print if the debug routines are called directly */
+#ifdef __AVR__
+#include <avr/pgmspace.h>
+#define PRINTA(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTA(...) printf(__VA_ARGS__)
+#endif
+
+#if (DEBUG) & DEBUG_ANNOTATE
+#ifdef __AVR__
+#define ANNOTATE(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define ANNOTATE(...) printf(__VA_ARGS__)
+#endif
+#else
+#define ANNOTATE(...)
+#endif /* (DEBUG) & DEBUG_ANNOTATE */
+
+#if (DEBUG) & DEBUG_PRINT
+#ifdef __AVR__
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTF(...) printf(__VA_ARGS__)
+#endif
+#define PRINTLLADDR(lladdr) net_debug_lladdr_print(lladdr)
+#else
+#define PRINTF(...)
+#define PRINTLLADDR(lladdr)
+#endif /* (DEBUG) & DEBUG_PRINT */
+
+#endif /* NET_DEBUG_H */

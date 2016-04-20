@@ -30,41 +30,36 @@
 
 /**
  * \file
- *         A set of debugging tools
+ *         A set of debugging tools for the IP stack
  * \author
  *         Nicolas Tsiftes <nvt@sics.se>
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
+ *         Simon Duquennoy <simon.duquennoy@inria.fr>
  */
 
-#include "net/ip/uip-debug.h"
-#include "debug.h"
+#include "net/net-debug.h"
+
 /*---------------------------------------------------------------------------*/
 void
-uip_debug_ipaddr_print(const uip_ipaddr_t *addr)
+net_debug_lladdr_print(const uip_lladdr_t *addr)
 {
-#if NETSTACK_CONF_WITH_IPV6
-  uint16_t a;
-  unsigned int i;
-  int f;
-  for(i = 0, f = 0; i < sizeof(uip_ipaddr_t); i += 2) {
-    a = (addr->u8[i] << 8) + addr->u8[i + 1];
-    if(a == 0 && f >= 0) {
-      if(f++ == 0) {
-        putstring("::");
+  if(addr == NULL) {
+    PRINTA("(NULL LL addr)");
+    return;
+  } else {
+#if NETSTACK_CONF_WITH_RIME
+    /* Rime uses traditionally a %u.%u format */
+    PRINTA("%u.%u", addr->addr[0], addr->addr[1]);
+#else /* NETSTACK_CONF_WITH_RIME */
+    unsigned int i;
+    for(i = 0; i < LINKADDR_SIZE; i++) {
+      if(i > 0) {
+        PRINTA(":");
       }
-    } else {
-      if(f > 0) {
-        f = -1;
-      } else if(i > 0) {
-        putstring(":");
-      }
-      puthex(a >> 8);
-      puthex(a & 0xFF);
+      PRINTA("%02x", addr->addr[i]);
     }
+#endif /* NETSTACK_CONF_WITH_RIME */
   }
-#else /* NETSTACK_CONF_WITH_IPV6 */
-  PRINTA("%u.%u.%u.%u", addr->u8[0], addr->u8[1], addr->u8[2], addr->u8[3]);
-#endif /* NETSTACK_CONF_WITH_IPV6 */
 }
 /*---------------------------------------------------------------------------*/
