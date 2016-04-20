@@ -201,21 +201,13 @@ struct log_param {
 };
 
 /*
- * The protected memory consists of structures that should not be
- * overwritten during system checkpointing because they may be used by
- * the checkpointing implementation. These structures need not be
- * protected if checkpointing is not used.
+ * Variables that keep track of opened files and internal
+ * optimization information for Coffee.
  */
-static struct protected_mem_t {
-  struct file coffee_files[COFFEE_MAX_OPEN_FILES];
-  struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
-  coffee_page_t next_free;
-  char gc_wait;
-} protected_mem;
-static struct file *const coffee_files = protected_mem.coffee_files;
-static struct file_desc *const coffee_fd_set = protected_mem.coffee_fd_set;
-static coffee_page_t *const next_free = &protected_mem.next_free;
-static char *const gc_wait = &protected_mem.gc_wait;
+static struct file coffee_files[COFFEE_MAX_OPEN_FILES];
+static struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
+static coffee_page_t next_free;
+static char gc_wait;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -387,8 +379,8 @@ collect_garbage(int mode)
     if((mode == GC_RELUCTANT && stats.free == 0) ||
        (mode == GC_GREEDY && stats.obsolete > 0)) {
       first_page = sector * COFFEE_PAGES_PER_SECTOR;
-      if(first_page < *next_free) {
-        *next_free = first_page;
+      if(first_page < next_free) {
+        next_free = first_page;
       }
 
       if(isolation_count > 0) {
@@ -539,7 +531,7 @@ find_contiguous_pages(coffee_page_t amount)
   struct file_header hdr;
 
   start = INVALID_PAGE;
-  for(page = *next_free; page < COFFEE_PAGE_COUNT;) {
+  for(page = next_free; page < COFFEE_PAGE_COUNT;) {
     read_header(&hdr, page);
     if(HDR_FREE(hdr)) {
       if(start == INVALID_PAGE) {
@@ -555,8 +547,8 @@ find_contiguous_pages(coffee_page_t amount)
       page = next_file(page, &hdr);
 
       if(start + amount <= page) {
-        if(start == *next_free) {
-          *next_free = start + amount;
+        if(start == next_free) {
+          next_free = start + amount;
         }
         return start;
       }
@@ -589,7 +581,7 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds,
   hdr.flags |= HDR_FLAG_OBSOLETE;
   write_header(&hdr, page);
 
-  *gc_wait = 0;
+  gc_wait = 0;
 
   /* Close all file descriptors that reference the removed file. */
   if(close_fds) {
@@ -638,13 +630,13 @@ reserve(const char *name, coffee_page_t pages,
 
   page = find_contiguous_pages(pages);
   if(page == INVALID_PAGE) {
-    if(*gc_wait) {
+    if(gc_wait) {
       return NULL;
     }
     collect_garbage(GC_GREEDY);
     page = find_contiguous_pages(pages);
     if(page == INVALID_PAGE) {
-      *gc_wait = 1;
+      gc_wait = 1;
       return NULL;
     }
   }
@@ -1346,24 +1338,19 @@ cfs_coffee_format(void)
 
   PRINTF("Coffee: Formatting %u sectors", COFFEE_SECTOR_COUNT);
 
-  *next_free = 0;
-
   for(i = 0; i < COFFEE_SECTOR_COUNT; i++) {
     COFFEE_ERASE(i);
     PRINTF(".");
   }
 
   /* Formatting invalidates the file information. */
-  memset(&protected_mem, 0, sizeof(protected_mem));
+  memset(&coffee_files, 0, sizeof(coffee_files));
+  memset(&coffee_fd_set, 0, sizeof(coffee_fd_set));
+  next_free = 0;
+  gc_wait = 1;
 
   PRINTF(" done!\n");
 
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-void *
-cfs_coffee_get_protected_mem(unsigned *size)
-{
-  *size = sizeof(protected_mem);
-  return &protected_mem;
-}
