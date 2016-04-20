@@ -69,8 +69,10 @@
 /* Use to collect link statistics even on Keep-Alive, even though they were
  * not sent from an upper layer and don't have a valid packet_sent callback */
 #ifndef TSCH_LINK_NEIGHBOR_CALLBACK
+#if NETSTACK_CONF_WITH_IPV6
 void uip_ds6_link_neighbor_callback(int status, int numtx);
 #define TSCH_LINK_NEIGHBOR_CALLBACK(dest, status, num) uip_ds6_link_neighbor_callback(status, num)
+#endif /* NETSTACK_CONF_WITH_IPV6 */
 #endif /* TSCH_LINK_NEIGHBOR_CALLBACK */
 
 /* 802.15.4 duplicate frame detection */
