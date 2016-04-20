@@ -1,6 +1,6 @@
 DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 
-all: fridge-node driver-node rfid-node
+all: fridge-node driver-node rfid-node driver-node-led
 
 CONTIKI_TARGET_SOURCEFILES += sht25.c rgb-bl-lcd.c tsl2563.c
 
