@@ -67,7 +67,7 @@ int
 slip_config_handle_arguments(int argc, char **argv)
 {
   const char *prog;
-  char c;
+  int c;
   int baudrate = 115200;
 
   slip_config_verbose = 0;
