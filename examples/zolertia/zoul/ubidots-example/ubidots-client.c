@@ -34,13 +34,12 @@
 #include "rpl.h"
 #include "ubidots.h"
 #include "dev/button-sensor.h"
-
 #include "dev/sht25.h"
 
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
-PROCESS(http_example_process, "Daimler Ubidots example");
-AUTOSTART_PROCESSES(&http_example_process);
+PROCESS(ubidots_example_process, "Ubidots example");
+AUTOSTART_PROCESSES(&ubidots_example_process);
 /*---------------------------------------------------------------------------*/
 static const char *headers[] = {
   "Vary",
@@ -98,7 +97,7 @@ print_reply(ubidots_reply_part_t *r)
   }
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(http_example_process, ev, data)
+PROCESS_THREAD(ubidots_example_process, ev, data)
 {
   static struct etimer et;
 
@@ -106,7 +105,7 @@ PROCESS_THREAD(http_example_process, ev, data)
 
   SENSORS_ACTIVATE(sht25);
 
-  ubidots_init(&http_example_process, headers);
+  ubidots_init(&ubidots_example_process, headers);
 
   while(1) {
 
@@ -122,9 +121,9 @@ PROCESS_THREAD(http_example_process, ev, data)
       leds_off(LEDS_GREEN);
       etimer_set(&et, POST_PERIOD);
 
-    } // else if(ev == ubidots_event_post_reply_received) {
-      // print_reply((ubidots_reply_part_t *)data);
-    // }
+    } else if(ev == ubidots_event_post_reply_received) {
+      print_reply((ubidots_reply_part_t *)data);
+    }
   }
 
   PROCESS_END();

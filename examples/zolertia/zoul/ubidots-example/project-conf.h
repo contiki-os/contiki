@@ -41,14 +41,11 @@
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
 /* User configuration */
-#define POST_PERIOD                      (CLOCK_SECOND * 30)
+#define POST_PERIOD                      (CLOCK_SECOND * 15)
 #define VARIABLE_BUF_LEN                 16
 #define UBIDOTS_CONF_AUTH_TOKEN          "oB6WLGfVlVFq6Vgig1kTuqNhQ5psXH"
 #define VARKEY_TEMPERATURE               "56fe8bc07625421d106f5d9f"
 #define VARKEY_HUMIDITY                  "570274ec76254271ba937188"
-#define VARKEY_ACCEL_X                   "56fe8bd57625421d302181da"
-#define VARKEY_ACCEL_Y                   "56fe8bec7625421d4e18f81a"
-#define VARKEY_ACCEL_Z                   "56fe8bf47625421e8694cb0e"
 #define UBIDOTS_CONF_IN_BUFFER_SIZE      64
 /*---------------------------------------------------------------------------*/
 #define UBIDOTS_CONF_REMOTE_HOST         "2607:f0d0:2101:39::2"
