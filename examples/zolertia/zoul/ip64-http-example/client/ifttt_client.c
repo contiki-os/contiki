@@ -83,6 +83,8 @@ callback(struct http_socket *s, void *ptr,
 {
   uint8_t i;
 
+  leds_off(LEDS_GREEN);
+
   if(e == HTTP_SOCKET_ERR) {
     printf("HTTP socket error\n");
   } else if(e == HTTP_SOCKET_TIMEDOUT) {
@@ -103,7 +105,6 @@ callback(struct http_socket *s, void *ptr,
       }
       printf("\n");
       bytes_received = 0;
-      leds_off(LEDS_GREEN);
     }
 
   } else if(e == HTTP_SOCKET_DATA) {
@@ -132,6 +133,7 @@ PROCESS_THREAD(http_example_process, ev, data)
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
   leds_off(LEDS_RED);
+  leds_on(LEDS_BLUE);
 
   memset(url_buffer, 0, HTTP_CLIENT_BUFFER_LEN);
   snprintf(url_buffer, HTTP_CLIENT_BUFFER_LEN,

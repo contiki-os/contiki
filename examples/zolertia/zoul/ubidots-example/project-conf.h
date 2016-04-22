@@ -41,7 +41,7 @@
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
 /* User configuration */
-#define POST_PERIOD                      (CLOCK_SECOND * 15)
+#define POST_PERIOD                      (CLOCK_SECOND * 40)
 #define VARIABLE_BUF_LEN                 16
 #define UBIDOTS_CONF_AUTH_TOKEN          "oB6WLGfVlVFq6Vgig1kTuqNhQ5psXH"
 #define VARKEY_TEMPERATURE               "56fe8bc07625421d106f5d9f"
