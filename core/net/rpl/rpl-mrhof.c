@@ -99,10 +99,10 @@ dao_ack_callback(rpl_parent_t *p, int status)
   PRINTF("RPL: MRHOF - DAO ACK received with status: %d\n", status);
   if(status >= RPL_DAO_ACK_UNABLE_TO_ACCEPT) {
     /* punish the ETX as if this was 10 packets lost */
-    neighbor_link_callback(p, MAC_TX_OK, 10);
+    link_stats_packet_sent(rpl_get_parent_lladdr(p), MAC_TX_OK, 10);
   } else if(status == RPL_DAO_ACK_TIMEOUT) { /* timeout = no ack */
     /* punish the total lack of ACK with a similar punishment */
-    neighbor_link_callback(p, MAC_TX_OK, 10);
+    link_stats_packet_sent(rpl_get_parent_lladdr(p), MAC_TX_OK, 10);
   }
 }
 #endif /* RPL_WITH_DAO_ACK */
