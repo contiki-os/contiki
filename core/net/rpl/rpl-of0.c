@@ -90,6 +90,25 @@ reset(rpl_dag_t *dag)
   PRINTF("RPL: Reset OF0\n");
 }
 /*---------------------------------------------------------------------------*/
+#if RPL_WITH_DAO_ACK
+static void
+dao_ack_callback(rpl_parent_t *p, int status)
+{
+  if(status == RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT) {
+    return;
+  }
+  /* here we need to handle failed DAO's and other stuff */
+  PRINTF("RPL: OF0 - DAO ACK received with status: %d\n", status);
+  if(status >= RPL_DAO_ACK_UNABLE_TO_ACCEPT) {
+    /* punish the ETX as if this was 10 packets lost */
+    link_stats_packet_sent(rpl_get_parent_lladdr(p), MAC_TX_OK, 10);
+  } else if(status == RPL_DAO_ACK_TIMEOUT) { /* timeout = no ack */
+    /* punish the total lack of ACK with a similar punishment */
+    link_stats_packet_sent(rpl_get_parent_lladdr(p), MAC_TX_OK, 10);
+  }
+}
+#endif /* RPL_WITH_DAO_ACK */
+/*---------------------------------------------------------------------------*/
 static uint16_t
 parent_link_metric(rpl_parent_t *p)
 {
@@ -198,7 +217,7 @@ update_metric_container(rpl_instance_t *instance)
 rpl_of_t rpl_of0 = {
   reset,
 #if RPL_WITH_DAO_ACK
-  NULL,
+  dao_ack_callback,
 #endif
   parent_link_metric,
   parent_path_cost,
