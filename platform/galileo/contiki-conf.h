@@ -46,7 +46,7 @@ typedef unsigned long clock_time_t;
 
 typedef uint64_t rtimer_clock_t;
 #define RTIMER_ARCH_SECOND 1024
-#define RTIMER_CLOCK_LT(a, b)     ((int64_t)((a) - (b)) < 0)
+#define RTIMER_CLOCK_DIFF(a, b)     ((int64_t)((a) - (b)))
 
 /* We define the following macros and types otherwise Contiki does not
  * compile.
