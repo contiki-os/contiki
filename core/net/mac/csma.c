@@ -63,26 +63,35 @@
 #define PRINTF(...)
 #endif /* DEBUG */
 
-#ifndef CSMA_MAX_BACKOFF_EXPONENT
-#ifdef CSMA_CONF_MAX_BACKOFF_EXPONENT
-#define CSMA_MAX_BACKOFF_EXPONENT CSMA_CONF_MAX_BACKOFF_EXPONENT
-#else
-#define CSMA_MAX_BACKOFF_EXPONENT 3
-#endif /* CSMA_CONF_MAX_BACKOFF_EXPONENT */
-#endif /* CSMA_MAX_BACKOFF_EXPONENT */
+/* Constants of the IEEE 802.15.4 standard */
 
-#ifndef CSMA_MAX_MAC_TRANSMISSIONS
-#ifdef CSMA_CONF_MAX_MAC_TRANSMISSIONS
-#define CSMA_MAX_MAC_TRANSMISSIONS CSMA_CONF_MAX_MAC_TRANSMISSIONS
+/* macMinBE: Initial backoff exponent. Range 0--CSMA_MAX_BE */
+#ifdef CSMA_CONF_MIN_BE
+#define CSMA_MIN_BE CSMA_CONF_MIN_BE
 #else
-#define CSMA_MAX_MAC_TRANSMISSIONS 3
-#endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS */
-#endif /* CSMA_MAX_MAC_TRANSMISSIONS */
+#define CSMA_MIN_BE 0
+#endif
 
-#if CSMA_MAX_MAC_TRANSMISSIONS < 1
-#error CSMA_CONF_MAX_MAC_TRANSMISSIONS must be at least 1.
-#error Change CSMA_CONF_MAX_MAC_TRANSMISSIONS in contiki-conf.h or in your Makefile.
-#endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS < 1 */
+/* macMaxBE: Maximum backoff exponent. Range 3--8 */
+#ifdef CSMA_CONF_MAX_BE
+#define CSMA_MAX_BE CSMA_CONF_MAX_BE
+#else
+#define CSMA_MAX_BE 4
+#endif
+
+/* macMaxCSMABackoffs: Maximum number of backoffs in case of channel busy/collision. Range 0--5 */
+#ifdef CSMA_CONF_MAX_BACKOFF
+#define CSMA_MAX_BACKOFF CSMA_CONF_MAX_BACKOFF
+#else
+#define CSMA_MAX_BACKOFF 5
+#endif
+
+/* macMaxFrameRetries: Maximum number of re-transmissions attampts. Range 0--7 */
+#ifdef CSMA_CONF_MAX_FRAME_RETRIES
+#define CSMA_MAX_MAX_FRAME_RETRIES CSMA_CONF_MAX_FRAME_RETRIES
+#else
+#define CSMA_MAX_MAX_FRAME_RETRIES 7
+#endif
 
 /* Packet metadata */
 struct qbuf_metadata {
@@ -97,7 +106,7 @@ struct neighbor_queue {
   linkaddr_t addr;
   struct ctimer transmit_timer;
   uint8_t transmissions;
-  uint8_t collisions, deferrals;
+  uint8_t collisions;
   LIST_STRUCT(queued_packet_list);
 };
 
@@ -138,18 +147,18 @@ neighbor_queue_from_addr(const linkaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 static clock_time_t
-default_timebase(void)
+backoff_period(void)
 {
   clock_time_t time;
   /* The retransmission time must be proportional to the channel
      check interval of the underlying radio duty cycling layer. */
   time = NETSTACK_RDC.channel_check_interval();
 
-  /* If the radio duty cycle has no channel check interval (i.e., it
-     does not turn the radio off), we make the retransmission time
-     proportional to the configured MAC channel check rate. */
+  /* If the radio duty cycle has no channel check interval, we use
+   * the default in IEEE 802.15.4: aUnitBackoffPeriod which is
+   * 20 symbols i.e. 320 usec. That is, 1/3125 second. */
   if(time == 0) {
-    time = (CLOCK_SECOND / 3125) ? (CLOCK_SECOND / 3125) : 1;
+    time = MAX(CLOCK_SECOND / 3125, 1);
   }
   return time;
 }
@@ -170,10 +179,28 @@ transmit_packet_list(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
+schedule_transmission(struct neighbor_queue *n)
+{
+  clock_time_t delay;
+  int backoff_exponent; /* BE in IEEE 802.15.4 */
+
+  backoff_exponent = MIN(n->collisions, CSMA_MAX_BE);
+
+  /* Compute max delay as per IEEE 802.15.4: 2^BE-1 backoff periods  */
+  delay = ((1 << backoff_exponent) - 1) * backoff_period();
+  if(delay > 0) {
+    /* Pick a time for next transmission */
+    delay = random_rand() % delay;
+  }
+
+  PRINTF("csma: scheduling transmission in %u ticks, NB=%u, BE=%u\n",
+      (unsigned)delay, n->collisions, backoff_exponent);
+  ctimer_set(&n->transmit_timer, delay, transmit_packet_list, n);
+}
+/*---------------------------------------------------------------------------*/
+static void
 free_packet(struct neighbor_queue *n, struct rdc_buf_list *p, int status)
 {
-  clock_time_t tx_delay;
-
   if(p != NULL) {
     /* Remove packet from list and deallocate */
     list_remove(n->queued_packet_list, p);
@@ -186,11 +213,9 @@ free_packet(struct neighbor_queue *n, struct rdc_buf_list *p, int status)
     if(list_head(n->queued_packet_list) != NULL) {
       /* There is a next packet. We reset current tx information */
       n->transmissions = 0;
-      n->collisions = 0;
-      n->deferrals = 0;
-      /* Set a timer for next transmissions */
-      tx_delay = (status == MAC_TX_OK) ? 0 : default_timebase();
-      ctimer_set(&n->transmit_timer, tx_delay, transmit_packet_list, n);
+      n->collisions = CSMA_MIN_BE;
+      /* Schedule next transmissions */
+      schedule_transmission(n);
     } else {
       /* This was the last packet in the queue, we free the neighbor */
       ctimer_stop(&n->transmit_timer);
@@ -232,22 +257,7 @@ tx_done(int status, struct rdc_buf_list *q, struct neighbor_queue *n)
 static void
 rexmit(struct rdc_buf_list *q, struct neighbor_queue *n)
 {
-  clock_time_t time;
-  int backoff_exponent;
-  int backoff_transmissions;
-
-  time = default_timebase();
-  backoff_exponent = n->collisions;
-
-  /* Proceed to exponentiation. */
-  backoff_transmissions = 1 << backoff_exponent;
-
-  /* Pick a time for next transmission, within the interval:
-         * [time, time + 2^backoff_exponent * time[ */
-  time = time + (random_rand() % (backoff_transmissions * time));
-
-  PRINTF("csma: retransmitting with time %lu %p\n", time, q);
-  ctimer_set(&n->transmit_timer, time, transmit_packet_list, n);
+  schedule_transmission(n);
   /* This is needed to correctly attribute energy that we spent
      transmitting this packet. */
   queuebuf_update_attr_from_packetbuf(q->buf);
@@ -263,9 +273,10 @@ collision(struct rdc_buf_list *q, struct neighbor_queue *n,
 
   n->collisions += num_transmissions;
 
-  if(n->collisions > CSMA_MAX_BACKOFF_EXPONENT) {
-    n->collisions = 0;
-    n->transmissions += num_transmissions;
+  if(n->collisions > CSMA_MAX_BACKOFF) {
+    n->collisions = CSMA_MIN_BE;
+    /* Increment to indicate a next retry */
+    n->transmissions++;
   }
 
   if(n->transmissions >= metadata->max_transmissions) {
@@ -283,8 +294,8 @@ noack(struct rdc_buf_list *q, struct neighbor_queue *n, int num_transmissions)
 
   metadata = (struct qbuf_metadata *)q->ptr;
 
+  n->collisions = CSMA_MIN_BE;
   n->transmissions += num_transmissions;
-  n->collisions = 0;
 
   if(n->transmissions >= metadata->max_transmissions) {
     tx_done(MAC_TX_NOACK, q, n);
@@ -297,6 +308,7 @@ noack(struct rdc_buf_list *q, struct neighbor_queue *n, int num_transmissions)
 static void
 tx_ok(struct rdc_buf_list *q, struct neighbor_queue *n, int num_transmissions)
 {
+  n->collisions = CSMA_MIN_BE;
   n->transmissions += num_transmissions;
   tx_done(MAC_TX_OK, q, n);
 }
@@ -341,7 +353,6 @@ packet_sent(void *ptr, int status, int num_transmissions)
     collision(q, n, num_transmissions);
     break;
   case MAC_TX_DEFERRED:
-    n->deferrals += num_transmissions;
     break;
   default:
     tx_done(status, q, n);
@@ -380,8 +391,7 @@ send_packet(mac_callback_t sent, void *ptr)
       /* Init neighbor entry */
       linkaddr_copy(&n->addr, addr);
       n->transmissions = 0;
-      n->collisions = 0;
-      n->deferrals = 0;
+      n->collisions = CSMA_MIN_BE;
       /* Init packet list for this neighbor */
       LIST_STRUCT_INIT(n, queued_packet_list);
       /* Add neighbor to the list */
@@ -402,7 +412,7 @@ send_packet(mac_callback_t sent, void *ptr)
             /* Neighbor and packet successfully allocated */
             if(packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS) == 0) {
               /* Use default configuration for max transmissions */
-              metadata->max_transmissions = CSMA_MAX_MAC_TRANSMISSIONS;
+              metadata->max_transmissions = CSMA_MAX_MAX_FRAME_RETRIES + 1;
             } else {
               metadata->max_transmissions =
                 packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS);
@@ -423,7 +433,7 @@ send_packet(mac_callback_t sent, void *ptr)
                    list_length(n->queued_packet_list), memb_numfree(&packet_memb));
             /* If q is the first packet in the neighbor's queue, send asap */
             if(list_head(n->queued_packet_list) == q) {
-              ctimer_set(&n->transmit_timer, 0, transmit_packet_list, n);
+              schedule_transmission(n);
             }
             return;
           }
