@@ -832,7 +832,7 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
 }
 /*---------------------------------------------------------------------------*/
 static rpl_parent_t *
-best_parent(rpl_dag_t *dag)
+best_parent(rpl_dag_t *dag, int fresh_only)
 {
   rpl_parent_t *p;
   rpl_of_t *of;
@@ -848,6 +848,11 @@ best_parent(rpl_dag_t *dag)
 
     /* Exclude parents from other DAGs or announcing an infinite rank */
     if(p->dag != dag || p->rank == INFINITE_RANK) {
+      continue;
+    }
+
+    if(fresh_only && !rpl_parent_is_fresh(p)) {
+      /* Filter out non-fresh parents if fresh_only is set */
       continue;
     }
 
@@ -871,13 +876,23 @@ best_parent(rpl_dag_t *dag)
 rpl_parent_t *
 rpl_select_parent(rpl_dag_t *dag)
 {
-  rpl_parent_t *best = best_parent(dag);
+  /* Look for best parent (regardless of freshness) */
+  rpl_parent_t *best = best_parent(dag, 0);
 
   if(best != NULL) {
     if(rpl_parent_is_fresh(best)) {
       rpl_set_preferred_parent(dag, best);
       dag->rank = rpl_rank_via_parent(dag->preferred_parent);
     } else {
+      /* The best is not fresh. Look for the best fresh now. */
+      rpl_parent_t *best_fresh = best_parent(dag, 1);
+      if(best_fresh == NULL) {
+        /* No fresh parent around, use best (non-fresh) */
+        rpl_set_preferred_parent(dag, best);
+      } else {
+        /* Use best fresh */
+        rpl_set_preferred_parent(dag, best_fresh);
+      }
 #if RPL_WITH_PROBING
       /* Probe the new best parent shortly in order to get a fresh estimate */
       dag->instance->urgent_probing_target = best;
