@@ -737,7 +737,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
           if(linkaddr_cmp(&destination_address, &linkaddr_node_addr)
              || linkaddr_cmp(&destination_address, &linkaddr_null)) {
             int do_nack = 0;
-            estimated_drift = ((int32_t)expected_rx_time - (int32_t)rx_start_time);
+            estimated_drift = RTIMER_CLOCK_DIFF(expected_rx_time, rx_start_time);
 
 #if TSCH_TIMESYNC_REMOVE_JITTER
             /* remove jitter due to measurement errors */
