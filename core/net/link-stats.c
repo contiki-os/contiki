@@ -143,7 +143,7 @@ link_stats_packet_sent(const linkaddr_t *lladdr, int status, int numtx)
   stats = nbr_table_get_from_lladdr(link_stats, lladdr);
   if(stats == NULL) {
     /* Add the neighbor */
-    stats = nbr_table_add_lladdr(link_stats, lladdr);
+    stats = nbr_table_add_lladdr(link_stats, lladdr, NBR_TABLE_REASON_LINK_STATS, NULL);
     if(stats != NULL) {
       stats->etx = LINK_STATS_INIT_ETX(stats);
     } else {
@@ -175,7 +175,7 @@ link_stats_input_callback(const linkaddr_t *lladdr)
   stats = nbr_table_get_from_lladdr(link_stats, lladdr);
   if(stats == NULL) {
     /* Add the neighbor */
-    stats = nbr_table_add_lladdr(link_stats, lladdr);
+    stats = nbr_table_add_lladdr(link_stats, lladdr, NBR_TABLE_REASON_LINK_STATS, NULL);
     if(stats != NULL) {
       /* Initialize */
       stats->rssi = packet_rssi;
