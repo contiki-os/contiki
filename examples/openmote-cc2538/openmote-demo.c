@@ -85,25 +85,29 @@ PROCESS_THREAD(openmote_demo_process, ev, data)
   static struct etimer et;
   static int16_t counter;
   static uint16_t adxl346_present, sht21_present, max44009_present;
-  static uint16_t accel, light, temperature, humidity;
+  static int16_t accel, light, temperature, humidity;
 
   PROCESS_EXITHANDLER(broadcast_close(&bc))
 
   PROCESS_BEGIN();
 
-  /* Initialize and activate the ADXL346 sensor */
+  /* Initialize and calibrate the ADXL346 sensor */
   adxl346_present = SENSORS_ACTIVATE(adxl346);
   if(adxl346_present == ADXL346_ERROR) {
     printf("ADXL346 sensor is NOT present!\n");
     leds_on(LEDS_YELLOW);
+  } else {
+    adxl346.configure(ADXL346_CALIB_OFFSET, 0);
   }
 
+  /* Initialize the MAX44009 sensor */
   max44009_present = SENSORS_ACTIVATE(max44009);
   if(max44009_present == MAX44009_ERROR) {
     printf("MAX44009 sensor is NOT present!\n");
     leds_on(LEDS_ORANGE);
   }
 
+  /* Initialize the SHT21 sensor */
   sht21_present = SENSORS_ACTIVATE(sht21);
   if(sht21_present == SHT21_ERROR) {
     printf("SHT21 sensor is NOT present!\n");
@@ -123,12 +127,12 @@ PROCESS_THREAD(openmote_demo_process, ev, data)
     if(ev == PROCESS_EVENT_TIMER) {
       if(adxl346_present != ADXL346_ERROR) {
         leds_on(LEDS_YELLOW);
-        accel = adxl346.value(ADXL346_READ_X);
-        printf("X Acceleration: %u\n", accel);
-        accel = adxl346.value(ADXL346_READ_Y);
-        printf("Y Acceleration: %u\n", accel);
-        accel = adxl346.value(ADXL346_READ_Z);
-        printf("Z Acceleration: %u\n", accel);
+        accel = adxl346.value(ADXL346_READ_X_mG);
+        printf("X Acceleration: %d.%u G\n", accel / 1000, accel % 1000);
+        accel = adxl346.value(ADXL346_READ_Y_mG);
+        printf("Y Acceleration: %d.%u G\n", accel / 1000, accel % 1000);
+        accel = adxl346.value(ADXL346_READ_Z_mG);
+        printf("Z Acceleration: %d.%u G\n", accel / 1000, accel % 1000);
         leds_off(LEDS_YELLOW);
       }
 
