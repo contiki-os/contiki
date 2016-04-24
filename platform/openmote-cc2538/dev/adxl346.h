@@ -51,9 +51,13 @@
 #define ADXL346_SUCCESS           (0)
 #define ADXL346_ACTIVATE          (SENSORS_ACTIVE)
 #define ADXL346_READ_X            (2)
-#define ADXL346_READ_Y            (3)
-#define ADXL346_READ_Z            (4)
-#define ADXL346_NONE              (5)
+#define ADXL346_READ_X_mG         (3)
+#define ADXL346_READ_Y            (4)
+#define ADXL346_READ_Y_mG         (5)
+#define ADXL346_READ_Z            (6)
+#define ADXL346_READ_Z_mG         (7)
+#define ADXL346_CALIB_OFFSET      (8)
+#define ADXL346_NONE              (9)
 /*---------------------------------------------------------------------------*/
 #define ADXL346_SENSOR "ADXL346 Sensor"
 /*---------------------------------------------------------------------------*/
