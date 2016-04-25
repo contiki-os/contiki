@@ -59,6 +59,7 @@
 #include "uart.h"
 #include "sys/clock.h"
 #include "sys/rtimer.h"
+#include "sys/node-id.h"
 #include "lib/sensors.h"
 #include "button-sensor.h"
 #include "dev/serial-line.h"
@@ -67,6 +68,8 @@
 #include "driverlib/driverlib_release.h"
 
 #include <stdio.h>
+/*---------------------------------------------------------------------------*/
+unsigned short node_id = 0;
 /*---------------------------------------------------------------------------*/
 /** \brief Board specific iniatialisation */
 void board_init(void);
@@ -123,6 +126,10 @@ set_rf_params(void)
     printf("%02x\n", linkaddr_node_addr.u8[i]);
   }
 #endif
+
+  /* also set the global node id */
+  node_id = short_addr;
+  printf(" Node ID: %d\n", node_id);
 }
 /*---------------------------------------------------------------------------*/
 /**
