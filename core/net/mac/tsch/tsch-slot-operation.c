@@ -769,26 +769,26 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
       TSCH_DEBUG_RX_EVENT();
       tsch_radio_off(TSCH_RADIO_CMD_OFF_WITHIN_TIMESLOT);
 
-#if TSCH_RESYNC_WITH_SFD_TIMESTAMPS
-      /* At the end of the reception, get an more accurate estimate of SFD arrival time */
-      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &rx_start_time, sizeof(rtimer_clock_t));
-#endif
-
       if(NETSTACK_RADIO.pending_packet()) {
         static int frame_valid;
         static int header_len;
         static frame802154_t frame;
         radio_value_t radio_last_rssi;
 
-        NETSTACK_RADIO.get_value(RADIO_PARAM_LAST_RSSI, &radio_last_rssi);
         /* Read packet */
         current_input->len = NETSTACK_RADIO.read((void *)current_input->payload, TSCH_PACKET_MAX_LEN);
+        NETSTACK_RADIO.get_value(RADIO_PARAM_LAST_RSSI, &radio_last_rssi);
         current_input->rx_asn = current_asn;
         current_input->rssi = (signed)radio_last_rssi;
         header_len = frame802154_parse((uint8_t *)current_input->payload, current_input->len, &frame);
         frame_valid = header_len > 0 &&
           frame802154_check_dest_panid(&frame) &&
           frame802154_extract_linkaddr(&frame, &source_address, &destination_address);
+
+#if TSCH_RESYNC_WITH_SFD_TIMESTAMPS
+        /* At the end of the reception, get an more accurate estimate of SFD arrival time */
+        NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &rx_start_time, sizeof(rtimer_clock_t));
+#endif
 
         packet_duration = TSCH_PACKET_DURATION(current_input->len);
 

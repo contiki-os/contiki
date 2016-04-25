@@ -649,11 +649,11 @@ PT_THREAD(tsch_scan(struct pt *pt))
     }
 
     if(is_packet_pending) {
-      /* Save packet timestamp */
-      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
-
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
+
+      /* Save packet timestamp */
+      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
 
       /* Parse EB and attempt to associate */
       PRINTF("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, current_channel);
