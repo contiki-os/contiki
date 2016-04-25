@@ -149,6 +149,11 @@ main(void)
   /* Set the LF XOSC as the LF system clock source */
   oscillators_select_lf_xosc();
 
+#if CC2650_FAST_RADIO_STARTUP
+  /* Also request HF XOSC to start up */
+  oscillators_request_hf_xosc();
+#endif
+
   lpm_init();
 
   board_init();
