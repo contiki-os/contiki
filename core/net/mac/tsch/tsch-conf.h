@@ -122,7 +122,7 @@
 #define TSCH_DEFAULT_TS_TIMESLOT_LENGTH    10000
 
 #elif TSCH_CONF_DEFAULT_TIMESLOT_LENGTH == 15000
-/* Default timeslot timing for platfroms requiring 15ms slots */
+/* Default timeslot timing for platforms requiring 15ms slots */
 
 #define TSCH_DEFAULT_TS_CCA_OFFSET         1800
 #define TSCH_DEFAULT_TS_CCA                128
