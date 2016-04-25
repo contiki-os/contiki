@@ -51,6 +51,7 @@
 #include "sys/energest.h"
 #include "sys/clock.h"
 #include "sys/rtimer.h"
+#include "sys/ctimer.h"
 #include "sys/cc.h"
 #include "lpm.h"
 #include "ti-lib.h"
@@ -101,6 +102,9 @@
 #else
 #define IEEE_MODE_RSSI_THRESHOLD 0xA6
 #endif /* IEEE_MODE_CONF_RSSI_THRESHOLD */
+/*---------------------------------------------------------------------------*/
+#define STATUS_CRC_OK      0x80
+#define STATUS_CORRELATION 0x7f
 /*---------------------------------------------------------------------------*/
 /* Data entry status field constants */
 #define DATA_ENTRY_STATUS_PENDING    0x00 /* Not in use by the Radio CPU */
@@ -186,6 +190,35 @@ static const output_config_t output_power[] = {
 /* Default TX Power - position in output_power[] */
 const output_config_t *tx_power_current = &output_power[0];
 /*---------------------------------------------------------------------------*/
+static volatile int8_t last_rssi = 0;
+static volatile uint8_t last_corr_lqi = 0;
+
+extern int32_t rat_offset;
+
+/*---------------------------------------------------------------------------*/
+/* SFD timestamp in RTIMER ticks */
+static volatile uint32_t last_packet_timestamp = 0;
+/* SFD timestamp in RAT ticks (but 64 bits) */
+static uint64_t last_rat_timestamp64 = 0;
+
+/* For RAT overflow handling */
+static struct ctimer rat_overflow_timer;
+static uint32_t rat_overflow_counter = 0;
+static rtimer_clock_t last_rat_overflow = 0;
+
+/* RAT has 32-bit register, overflows once 18 minutes */
+#define RAT_RANGE  4294967296ull
+/* approximate value */
+#define RAT_OVERFLOW_PERIOD_SECONDS (60 * 18)
+
+/* XXX: don't know what exactly is this, looks like the time to Tx 3 octets */
+#define TIMESTAMP_OFFSET  -(USEC_TO_RADIO(32 * 3) - 1) /* -95.75 usec */
+/*---------------------------------------------------------------------------*/
+/* Are we currently in poll mode? */
+static uint8_t poll_mode = 0;
+
+static rfc_CMD_IEEE_MOD_FILT_t filter_cmd;
+/*---------------------------------------------------------------------------*/
 /*
  * Buffers used to send commands to the RF core (generic and IEEE commands).
  * Some of those buffers are re-usable, some are not.
@@ -202,7 +235,7 @@ static uint8_t cmd_ieee_rx_buf[RF_CMD_BUFFER_SIZE] CC_ALIGN(4);
 #define DATA_ENTRY_LENSZ_BYTE 1
 #define DATA_ENTRY_LENSZ_WORD 2 /* 2 bytes */
 
-#define RX_BUF_SIZE 140
+#define RX_BUF_SIZE 144
 /* Four receive buffers entries with room for 1 IEEE802.15.4 frame in each */
 static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN(4);
 static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN(4);
@@ -544,7 +577,7 @@ init_rf_params(void)
   cmd->rxConfig.bAppendRssi = 1;
   cmd->rxConfig.bAppendCorrCrc = 1;
   cmd->rxConfig.bAppendSrcInd = 0;
-  cmd->rxConfig.bAppendTimestamp = 0;
+  cmd->rxConfig.bAppendTimestamp = 1;
 
   cmd->pRxQ = &rx_data_queue;
   cmd->pOutput = (rfc_ieeeRxOutput_t *)rf_stats;
@@ -647,12 +680,13 @@ rx_off(void)
   if(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) == IEEE_DONE_STOPPED ||
      RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) == IEEE_DONE_ABORT) {
     /* Stopped gracefully */
-    ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
     ret = RF_CORE_CMD_OK;
   } else {
     PRINTF("RX off: BG status=0x%04x\n", RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf));
     ret = RF_CORE_CMD_ERROR;
   }
+
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 
   return ret;
 }
@@ -712,6 +746,55 @@ static const rf_core_primary_mode_t mode_ieee = {
   soft_on,
 };
 /*---------------------------------------------------------------------------*/
+static void
+check_rat_overflow(bool first_time)
+{
+  static uint32_t last_value;
+  uint32_t current_value;
+  uint8_t interrupts_enabled;
+
+  interrupts_enabled = ti_lib_int_master_disable();
+  if(first_time) {
+    last_value = HWREG(RFC_RAT_BASE + RATCNT);
+  } else {
+    current_value = HWREG(RFC_RAT_BASE + RATCNT);
+    if(current_value + RAT_RANGE / 4 < last_value) {
+      /* overflow detected */
+      last_rat_overflow = RTIMER_NOW();
+      rat_overflow_counter++;
+    }
+    last_value = current_value;
+  }
+  if(interrupts_enabled) {
+    ti_lib_int_master_enable();
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+handle_rat_overflow(void *unused)
+{
+  uint8_t was_off = 0;
+
+  if(!rf_is_on()) {
+    was_off = 1;
+    if(on() != RF_CORE_CMD_OK) {
+      PRINTF("overflow: on() failed\n");
+      ctimer_set(&rat_overflow_timer, RAT_OVERFLOW_PERIOD_SECONDS * CLOCK_SECOND / 2,
+                 handle_rat_overflow, NULL);
+      return;
+    }
+  }
+
+  check_rat_overflow(false);
+
+  if(was_off) {
+    off();
+  }
+
+  ctimer_set(&rat_overflow_timer, RAT_OVERFLOW_PERIOD_SECONDS * CLOCK_SECOND / 2,
+             handle_rat_overflow, NULL);
+}
+/*---------------------------------------------------------------------------*/
 static int
 init(void)
 {
@@ -745,6 +828,10 @@ init(void)
 
   rf_core_primary_mode_register(&mode_ieee);
 
+  check_rat_overflow(true);
+  ctimer_set(&rat_overflow_timer, RAT_OVERFLOW_PERIOD_SECONDS * CLOCK_SECOND / 2,
+             handle_rat_overflow, NULL);
+
   process_start(&rf_core_process, NULL);
   return 1;
 }
@@ -768,6 +855,7 @@ transmit(unsigned short transmit_len)
   uint8_t tx_active = 0;
   rtimer_clock_t t0;
   volatile rfc_CMD_IEEE_TX_t cmd;
+  uint8_t interrupts_enabled;
 
   if(!rf_is_on()) {
     was_off = 1;
@@ -805,8 +893,19 @@ transmit(unsigned short transmit_len)
   cmd.payloadLen = transmit_len;
   cmd.pPayload = &tx_buf[TX_BUF_HDR_LEN];
 
+  cmd.startTime = 0;
+  cmd.startTrigger.triggerType = TRIG_NOW;
+
+  /* XXX: there seems to be no function that gets interrupt state w/o changing it */
+  interrupts_enabled = ti_lib_int_master_disable();
+  if(interrupts_enabled) {
+    ti_lib_int_master_enable();
+  }
+
   /* Enable the LAST_FG_COMMAND_DONE interrupt, which will wake us up */
-  rf_core_cmd_done_en(true);
+  if(interrupts_enabled) {
+    rf_core_cmd_done_en(true, poll_mode);
+  }
 
   ret = rf_core_send_cmd((uint32_t)&cmd, &cmd_status);
 
@@ -818,7 +917,14 @@ transmit(unsigned short transmit_len)
     /* Idle away while the command is running */
     while((cmd.status & RF_CORE_RADIO_OP_MASKED_STATUS)
           == RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING) {
-      lpm_sleep();
+      /* Note: for now sleeping while Tx'ing in polling mode is disabled.
+       * To enable it:
+       *  1) make the `lpm_sleep()` call here unconditional;
+       *  2) change the radio ISR priority to allow radio ISR to interrupt rtimer ISR.
+       */
+      if(interrupts_enabled) {
+        lpm_sleep();
+      }
     }
 
     stat = cmd.status;
@@ -848,12 +954,13 @@ transmit(unsigned short transmit_len)
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
-  /*
-   * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
-   * except when we are transmitting
-   */
-  rf_core_cmd_done_dis();
-
+  if(interrupts_enabled) {
+    /*
+     * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
+     * except when we are transmitting
+     */
+    rf_core_cmd_done_dis(poll_mode);
+  }
 
   if(was_off) {
     off();
@@ -880,13 +987,48 @@ release_data_entry(void)
   /* Set status to 0 "Pending" in element */
   entry->status = DATA_ENTRY_STATUS_PENDING;
   rx_read_entry = entry->pNextEntry;
-}/*---------------------------------------------------------------------------*/
+}
+/*---------------------------------------------------------------------------*/
+static uint32_t
+calc_last_packet_timestamp(uint32_t rat_timestamp)
+{
+  uint64_t rat_timestamp64;
+  uint32_t adjusted_overflow_counter = rat_overflow_counter;
+
+  /* if the timestamp is large and the last oveflow was recently,
+     assume that the timestamp refers to the time before the overflow */
+  if(rat_timestamp > (uint32_t)(RAT_RANGE * 3 / 4)) {
+    if(RTIMER_CLOCK_LT(RTIMER_NOW(),
+                       last_rat_overflow + RAT_OVERFLOW_PERIOD_SECONDS * RTIMER_SECOND / 4)) {
+      adjusted_overflow_counter--;
+    }
+  }
+
+  /* add the overflowed time to the timestamp */
+  rat_timestamp64 = rat_timestamp + RAT_RANGE * adjusted_overflow_counter;
+  /* correct timestamp so that it refers to the end of the SFD */
+  rat_timestamp64 += TIMESTAMP_OFFSET;
+
+  last_rat_timestamp64 = rat_timestamp64 - rat_offset;
+
+  return RADIO_TO_RTIMER(rat_timestamp64 - rat_offset);
+}
+/*---------------------------------------------------------------------------*/
 static int
 read_frame(void *buf, unsigned short buf_len)
 {
-  int8_t rssi;
   int len = 0;
   rfc_dataEntryGeneral_t *entry = (rfc_dataEntryGeneral_t *)rx_read_entry;
+  uint32_t rat_timestamp;
+
+  if(rf_is_on()) {
+    check_rat_overflow(false);
+  }
+
+  /* wait for entry to become finished */
+  rtimer_clock_t t0 = RTIMER_NOW();
+  while(entry->status == DATA_ENTRY_STATUS_BUSY
+      && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (RTIMER_SECOND / 250)));
 
   if(entry->status != DATA_ENTRY_STATUS_FINISHED) {
     /* No available data */
@@ -901,7 +1043,7 @@ read_frame(void *buf, unsigned short buf_len)
     return 0;
   }
 
-  len = rx_read_entry[8] - 4;
+  len = rx_read_entry[8] - 8;
 
   if(len > buf_len) {
     PRINTF("RF: too long\n");
@@ -913,9 +1055,21 @@ read_frame(void *buf, unsigned short buf_len)
 
   memcpy(buf, (char *)&rx_read_entry[9], len);
 
-  rssi = (int8_t)rx_read_entry[9 + len + 2];
+  last_rssi = (int8_t)rx_read_entry[9 + len + 2];
+  last_corr_lqi = (uint8_t)rx_read_entry[9 + len + 2] & STATUS_CORRELATION;
 
-  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+  /* get the timestamp */
+  memcpy(&rat_timestamp, (char *)rx_read_entry + 9 + len + 4, 4);
+
+  last_packet_timestamp = calc_last_packet_timestamp(rat_timestamp);
+
+  if(!poll_mode) {
+    /* Not in poll mode: packetbuf should not be accessed in interrupt context.
+     * In poll mode, the last packet RSSI and link quality can be obtained through
+     * RADIO_PARAM_LAST_RSSI and RADIO_PARAM_LAST_LINK_QUALITY */
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, last_rssi);
+    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, last_corr_lqi);
+  }
   RIMESTATS_ADD(llrx);
 
   release_data_entry();
@@ -983,9 +1137,7 @@ channel_clear(void)
 static int
 receiving_packet(void)
 {
-  int ret = 0;
   uint8_t cca_info;
-  uint8_t was_off = 0;
 
   /*
    * If we are in the middle of a BLE operation, we got called by ContikiMAC
@@ -1035,7 +1187,9 @@ pending_packet(void)
   do {
     if(entry->status == DATA_ENTRY_STATUS_FINISHED) {
       rv = 1;
-      process_poll(&rf_core_process);
+      if(!poll_mode) {
+        process_poll(&rf_core_process);
+      }
     }
 
     entry = (rfc_dataEntry_t *)entry->pNextEntry;
@@ -1076,7 +1230,7 @@ on(void)
 
   init_rx_buffers();
 
-  rf_core_setup_interrupts();
+  rf_core_setup_interrupts(poll_mode);
 
   /*
    * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
@@ -1162,6 +1316,9 @@ get_value(radio_param_t param, radio_value_t *value)
     if(cmd->frameFiltOpt.autoAckEn) {
       *value |= RADIO_RX_MODE_AUTOACK;
     }
+    if(poll_mode) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
 
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
@@ -1222,6 +1379,7 @@ set_value(radio_param_t param, radio_value_t value)
       return RADIO_RESULT_INVALID_VALUE;
     }
 
+    /* Note: this return may lead to long periods when RAT and RTC are not resynchronized */
     if(cmd->channel == (uint8_t)value) {
       /* We already have that very same channel configured.
        * Nothing to do here. */
@@ -1239,7 +1397,7 @@ set_value(radio_param_t param, radio_value_t value)
   case RADIO_PARAM_RX_MODE:
   {
     if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
-                 RADIO_RX_MODE_AUTOACK)) {
+                 RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
@@ -1252,6 +1410,8 @@ set_value(radio_param_t param, radio_value_t value)
     cmd->frameFiltOpt.bPendDataReqOnly = 0;
     cmd->frameFiltOpt.bPanCoord = 0;
     cmd->frameFiltOpt.bStrictLenFilter = 0;
+
+    poll_mode = (value & RADIO_RX_MODE_POLL_MODE) != 0;
     break;
   }
   case RADIO_PARAM_TXPOWER:
@@ -1269,28 +1429,26 @@ set_value(radio_param_t param, radio_value_t value)
     return RADIO_RESULT_NOT_SUPPORTED;
   }
 
-  /* If we reach here we had no errors. Apply new settings */
+  /* If off, the new configuration will be applied the next time radio is started */
   if(!rf_is_on()) {
-    was_off = 1;
-    if(on() != RF_CORE_CMD_OK) {
-      PRINTF("set_value: on() failed (2)\n");
-      return RADIO_RESULT_ERROR;
-    }
+    return RADIO_RESULT_OK;
   }
 
+  /* If we reach here we had no errors. Apply new settings */
   if(rx_off() != RF_CORE_CMD_OK) {
     PRINTF("set_value: rx_off() failed\n");
     rv = RADIO_RESULT_ERROR;
   }
 
+  /* Restart the radio timer (RAT).
+     This causes resynchronization between RAT and RTC: useful for TSCH. */
+  rf_core_restart_rat();
+
+  check_rat_overflow(false);
+
   if(rx_on() != RF_CORE_CMD_OK) {
     PRINTF("set_value: rx_on() failed\n");
     rv = RADIO_RESULT_ERROR;
-  }
-
-  /* If we were off, turn back off */
-  if(was_off) {
-    off();
   }
 
   return rv;
@@ -1318,13 +1476,22 @@ get_object(radio_param_t param, void *dest, size_t size)
 
     return RADIO_RESULT_OK;
   }
+
+  if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+    if(size != sizeof(rtimer_clock_t) || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    *(rtimer_clock_t *)dest = last_packet_timestamp;
+
+    return RADIO_RESULT_OK;
+  }
+
   return RADIO_RESULT_NOT_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 set_object(radio_param_t param, const void *src, size_t size)
 {
-  uint8_t was_off = 0;
   radio_result_t rv;
   int i;
   uint8_t *dst;
@@ -1341,12 +1508,9 @@ set_object(radio_param_t param, const void *src, size_t size)
       dst[i] = ((uint8_t *)src)[7 - i];
     }
 
+    /* If off, the new configuration will be applied the next time radio is started */
     if(!rf_is_on()) {
-      was_off = 1;
-      if(on() != RF_CORE_CMD_OK) {
-        PRINTF("set_object: on() failed\n");
-        return RADIO_RESULT_ERROR;
-      }
+      return RADIO_RESULT_OK;
     }
 
     if(rx_off() != RF_CORE_CMD_OK) {
@@ -1357,11 +1521,6 @@ set_object(radio_param_t param, const void *src, size_t size)
     if(rx_on() != RF_CORE_CMD_OK) {
       PRINTF("set_object: rx_on() failed\n");
       rv = RADIO_RESULT_ERROR;
-    }
-
-    /* If we were off, turn back off */
-    if(was_off) {
-      off();
     }
 
     return rv;
