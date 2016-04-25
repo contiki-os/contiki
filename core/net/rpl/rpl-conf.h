@@ -236,27 +236,6 @@
 #endif
 
 /*
- * Embed support for storing mode
- */
-#ifdef RPL_CONF_WITH_STORING
-#define RPL_WITH_STORING RPL_CONF_WITH_STORING
-#else /* RPL_CONF_WITH_STORING */
-#define RPL_WITH_STORING 1
-#endif /* RPL_CONF_WITH_STORING */
-
-/*
- * Embed support for non-storing mode
- */
-#ifdef RPL_CONF_WITH_NON_STORING
-#define RPL_WITH_NON_STORING RPL_CONF_WITH_NON_STORING
-#else /* RPL_CONF_WITH_NON_STORING */
-#define RPL_WITH_NON_STORING 0
-#endif /* RPL_CONF_WITH_NON_STORING */
-
-#define RPL_IS_STORING(instance) (RPL_WITH_STORING && ((instance) != NULL) && ((instance)->mop > RPL_MOP_NON_STORING))
-#define RPL_IS_NON_STORING(instance) (RPL_WITH_NON_STORING && ((instance) != NULL) && ((instance)->mop == RPL_MOP_NON_STORING))
-
-/*
  * RPL DAO ACK support. When enabled, DAO ACK will be sent and requested.
  * This will also enable retransmission of DAO when no ack is received.
  * */
