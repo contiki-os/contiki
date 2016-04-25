@@ -118,6 +118,9 @@ clock_init(void)
   /* GPT0 / Timer B: One shot, PWM interrupt enable */
   HWREG(GPT0_BASE + GPT_O_TBMR) =
         ((TIMER_CFG_B_ONE_SHOT >> 8) & 0xFF) | GPT_TBMR_TBPWMIE;
+
+  /* enable sync with radio timer */
+  HWREGBITW(AON_RTC_BASE + AON_RTC_O_CTL, AON_RTC_CTL_RTC_UPD_EN_BITN) = 1;
 }
 /*---------------------------------------------------------------------------*/
 static void
