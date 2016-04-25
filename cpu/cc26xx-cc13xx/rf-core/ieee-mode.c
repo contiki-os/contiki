@@ -1297,6 +1297,17 @@ off(void)
   return RF_CORE_CMD_OK;
 }
 /*---------------------------------------------------------------------------*/
+/* Enable or disable CCA before sending */
+static radio_result_t
+set_send_on_cca(uint8_t enable)
+{
+  if(enable) {
+    /* this driver does not have support for CCA on Tx */
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
+  return RADIO_RESULT_OK;
+}
+/*---------------------------------------------------------------------------*/
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
 {
@@ -1333,6 +1344,9 @@ get_value(radio_param_t param, radio_value_t *value)
     }
 
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     *value = get_tx_power();
     return RADIO_RESULT_OK;
@@ -1358,6 +1372,12 @@ get_value(radio_param_t param, radio_value_t *value)
     return RADIO_RESULT_OK;
   case RADIO_CONST_TXPOWER_MAX:
     *value = OUTPUT_POWER_MAX;
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_RSSI:
+    *value = last_rssi;
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_LINK_QUALITY:
+    *value = last_corr_lqi;
     return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
@@ -1439,6 +1459,13 @@ set_value(radio_param_t param, radio_value_t value)
     }
     break;
   }
+
+  case RADIO_PARAM_TX_MODE:
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    return set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
+
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
@@ -1447,9 +1474,11 @@ set_value(radio_param_t param, radio_value_t value)
     set_tx_power(value);
 
     return RADIO_RESULT_OK;
+
   case RADIO_PARAM_CCA_THRESHOLD:
     cmd->ccaRssiThr = (int8_t)value;
     break;
+
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
   }
