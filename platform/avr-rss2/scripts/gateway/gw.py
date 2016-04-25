@@ -236,7 +236,7 @@ def programMoteAvrRSS2(bslScript, portname, platformArgs, filename):
         log(LOG_ERROR, "Serial exception:\n\t{0}".format(ex))
         return
 
-    time.sleep(2.0) # wait for the node to reboot
+    time.sleep(0.2) # wait for the node to reboot
 
 #avrdude -p m256rfr2 -c stk500v2 -P /dev/ttyUSB0 -b 38400 -e -U flash:w:control.avr-rss2.hex
 
