@@ -1527,6 +1527,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
   }
 
+  if(!add_nbr_from_dio(from, dio)) {
+    PRINTF("RPL: Could not add parent based on DIO\n");
+    return;
+  }
+
   if(dag->rank == ROOT_RANK(instance)) {
     if(dio->rank != INFINITE_RANK) {
       instance->dio_counter++;
@@ -1546,11 +1551,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
    * a candidate parent, and let rpl_process_parent_event decide
    * whether to keep it in the set.
    */
-
-  if(!add_nbr_from_dio(from, dio)) {
-    PRINTF("RPL: Could not add parent based on DIO\n");
-    return;
-  }
 
   p = rpl_find_parent(dag, from);
   if(p == NULL) {
