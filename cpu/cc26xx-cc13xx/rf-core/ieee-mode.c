@@ -146,6 +146,13 @@ static uint8_t rf_stats[16] = { 0 };
 #define RF_CMD_CCA_REQ_CCA_STATE_IDLE      0 /* 00 */
 #define RF_CMD_CCA_REQ_CCA_STATE_BUSY      1 /* 01 */
 #define RF_CMD_CCA_REQ_CCA_STATE_INVALID   2 /* 10 */
+
+#define RF_CMD_CCA_REQ_CCA_CORR_IDLE       (0 << 4)
+#define RF_CMD_CCA_REQ_CCA_CORR_BUSY       (1 << 4)
+#define RF_CMD_CCA_REQ_CCA_CORR_INVALID    (3 << 4)
+#define RF_CMD_CCA_REQ_CCA_CORR_MASK       (3 << 4)
+
+#define RF_CMD_CCA_REQ_CCA_SYNC_BUSY       (1 << 6)
 /*---------------------------------------------------------------------------*/
 #define IEEE_MODE_CHANNEL_MIN            11
 #define IEEE_MODE_CHANNEL_MAX            26
@@ -617,9 +624,9 @@ init_rf_params(void)
   /* Configure CCA settings */
   cmd->ccaOpt.ccaEnEnergy = 1;
   cmd->ccaOpt.ccaEnCorr = 1;
-  cmd->ccaOpt.ccaEnSync = 0;
+  cmd->ccaOpt.ccaEnSync = 1;
   cmd->ccaOpt.ccaCorrOp = 1;
-  cmd->ccaOpt.ccaSyncOp = 1;
+  cmd->ccaOpt.ccaSyncOp = 0;
   cmd->ccaOpt.ccaCorrThr = 3;
 
   cmd->ccaRssiThr = IEEE_MODE_RSSI_THRESHOLD;
@@ -1167,19 +1174,17 @@ receiving_packet(void)
 
   cca_info = get_cca_info();
 
+  /* If we can't read CCA info, return "not receiving" */
   if(cca_info == RF_GET_CCA_INFO_ERROR) {
-    /* If we can't read CCA info, return "not receiving" */
-    ret = 0;
-  } else {
-    /* Return 1 (receiving) if ccaState is busy */
-    ret = (cca_info & 0x03) == RF_CMD_CCA_REQ_CCA_STATE_BUSY;
+    return 0;
   }
 
-  if(was_off) {
-    off();
+  /* If sync has been seen, return 1 (receiving) */
+  if(cca_info & RF_CMD_CCA_REQ_CCA_SYNC_BUSY) {
+    return 1;
   }
 
-  return ret;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
