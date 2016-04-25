@@ -1190,7 +1190,8 @@ pending_packet(void)
 
   /* Go through all RX buffers and check their status */
   do {
-    if(entry->status == DATA_ENTRY_STATUS_FINISHED) {
+    if(entry->status == DATA_ENTRY_STATUS_FINISHED
+        || entry->status == DATA_ENTRY_STATUS_BUSY) {
       rv = 1;
       if(!poll_mode) {
         process_poll(&rf_core_process);
@@ -1289,10 +1290,18 @@ off(void)
    * Just in case there was an ongoing RX (which started after we begun the
    * shutdown sequence), we don't want to leave the buffer in state == ongoing
    */
-  ((rfc_dataEntry_t *)rx_buf_0)->status = DATA_ENTRY_STATUS_PENDING;
-  ((rfc_dataEntry_t *)rx_buf_1)->status = DATA_ENTRY_STATUS_PENDING;
-  ((rfc_dataEntry_t *)rx_buf_2)->status = DATA_ENTRY_STATUS_PENDING;
-  ((rfc_dataEntry_t *)rx_buf_3)->status = DATA_ENTRY_STATUS_PENDING;
+  if(((rfc_dataEntry_t *)rx_buf_0)->status == DATA_ENTRY_STATUS_BUSY) {
+    ((rfc_dataEntry_t *)rx_buf_0)->status = DATA_ENTRY_STATUS_PENDING;
+  }
+  if(((rfc_dataEntry_t *)rx_buf_1)->status == DATA_ENTRY_STATUS_BUSY) {
+    ((rfc_dataEntry_t *)rx_buf_1)->status = DATA_ENTRY_STATUS_PENDING;
+  }
+  if(((rfc_dataEntry_t *)rx_buf_2)->status == DATA_ENTRY_STATUS_BUSY) {
+    ((rfc_dataEntry_t *)rx_buf_2)->status = DATA_ENTRY_STATUS_PENDING;
+  }
+  if(((rfc_dataEntry_t *)rx_buf_3)->status == DATA_ENTRY_STATUS_BUSY) {
+    ((rfc_dataEntry_t *)rx_buf_3)->status = DATA_ENTRY_STATUS_PENDING;
+  }
 
   return RF_CORE_CMD_OK;
 }
