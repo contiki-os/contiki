@@ -184,4 +184,11 @@
 #define TSCH_HW_FRAME_FILTERING 1
 #endif /* TSCH_CONF_HW_FRAME_FILTERING */
 
+/* Keep radio always on within TSCH timeslot (1) or turn it off between packet and ACK? (0) */
+#ifdef TSCH_CONF_RADIO_ON_DURING_TIMESLOT
+#define TSCH_RADIO_ON_DURING_TIMESLOT TSCH_CONF_RADIO_ON_DURING_TIMESLOT
+#else
+#define TSCH_RADIO_ON_DURING_TIMESLOT 0
+#endif
+
 #endif /* __TSCH_CONF_H__ */
