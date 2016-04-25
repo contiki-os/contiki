@@ -1,0 +1,11 @@
+{
+    "httpPort" : 12100,
+    "serialPort" : "/dev/ttyUSB0",
+    "moteSerialID" : "FTF66ZCO",
+    "serialBaudrate" : 38400,
+    "moteAddress" : "0.0",
+    "moteType" : "avr-rss2",
+    "daemonize" : false,
+    "logLevel" : 4,
+    "logFile" : "log.log"
+}
