@@ -821,7 +821,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
 
 #if TSCH_TIMESYNC_REMOVE_JITTER
             /* remove jitter due to measurement errors */
-            if(abs(estimated_drift) <= TSCH_TIMESYNC_MEASUREMENT_ERROR) {
+            if(ABS(estimated_drift) <= TSCH_TIMESYNC_MEASUREMENT_ERROR) {
               estimated_drift = 0;
             } else if(estimated_drift > 0) {
               estimated_drift -= TSCH_TIMESYNC_MEASUREMENT_ERROR;
