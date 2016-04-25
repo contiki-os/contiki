@@ -1216,11 +1216,13 @@ on(void)
     return RF_CORE_CMD_OK;
   }
 
+#if !CC2650_FAST_RADIO_STARTUP
   /*
    * Request the HF XOSC as the source for the HF clock. Needed before we can
    * use the FS. This will only request, it will _not_ perform the switch.
    */
   oscillators_request_hf_xosc();
+#endif
 
   if(rf_is_on()) {
     PRINTF("on: We were on. PD=%u, RX=0x%04x \n", rf_core_is_accessible(),
@@ -1228,21 +1230,22 @@ on(void)
     return RF_CORE_CMD_OK;
   }
 
+  init_rx_buffers();
+
+  /*
+   * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
+   * This will block until the XOSC is actually ready, but give how we
+   * requested it early on, this won't be too long a wait.
+   * This should be done before starting the RAT.
+   */
+  oscillators_switch_to_hf_xosc();
+
   if(rf_core_boot() != RF_CORE_CMD_OK) {
     PRINTF("on: rf_core_boot() failed\n");
     return RF_CORE_CMD_ERROR;
   }
 
-  init_rx_buffers();
-
   rf_core_setup_interrupts(poll_mode);
-
-  /*
-   * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
-   * This will block until the XOSC is actually ready, but give how we
-   * requested it early on, this won't be too long a wait/
-   */
-  oscillators_switch_to_hf_xosc();
 
   if(rf_radio_setup() != RF_CORE_CMD_OK) {
     PRINTF("on: radio_setup() failed\n");
@@ -1272,8 +1275,12 @@ off(void)
 
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 
-  /* Switch HF clock source to the RCOSC to preserve power */
+#if !CC2650_FAST_RADIO_STARTUP
+  /* Switch HF clock source to the RCOSC to preserve power.
+   * This must be done after stopping RAT.
+   */
   oscillators_switch_to_hf_rc();
+#endif
 
   /* We pulled the plug, so we need to restore the status manually */
   ((rfc_CMD_IEEE_RX_t *)cmd_ieee_rx_buf)->status = RF_CORE_RADIO_OP_STATUS_IDLE;
