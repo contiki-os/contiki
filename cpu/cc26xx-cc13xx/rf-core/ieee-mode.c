@@ -601,7 +601,7 @@ init_rf_params(void)
   cmd->frameFiltOpt.defaultPend = 0;
   cmd->frameFiltOpt.bPendDataReqOnly = 0;
   cmd->frameFiltOpt.bPanCoord = 0;
-  cmd->frameFiltOpt.maxFrameVersion = 1;
+  cmd->frameFiltOpt.maxFrameVersion = 2;
   cmd->frameFiltOpt.bStrictLenFilter = 0;
 
   /* Receive all frame types */
