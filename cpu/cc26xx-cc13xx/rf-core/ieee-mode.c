@@ -631,6 +631,11 @@ init_rf_params(void)
 
   cmd->endTrigger.triggerType = TRIG_NEVER;
   cmd->endTime = 0x00000000;
+
+  /* set address filter command */
+  filter_cmd.commandNo = CMD_IEEE_MOD_FILT;
+  memcpy(&filter_cmd.newFrameFiltOpt, &cmd->frameFiltOpt, sizeof(cmd->frameFiltOpt));
+  memcpy(&filter_cmd.newFrameTypes, &cmd->frameTypes, sizeof(cmd->frameTypes));
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -1355,9 +1360,9 @@ get_value(radio_param_t param, radio_value_t *value)
 static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
-  uint8_t was_off = 0;
   radio_result_t rv = RADIO_RESULT_OK;
   rfc_CMD_IEEE_RX_t *cmd = (rfc_CMD_IEEE_RX_t *)cmd_ieee_rx_buf;
+  uint8_t old_poll_mode;
 
   switch(param) {
   case RADIO_PARAM_POWER_MODE:
@@ -1411,7 +1416,20 @@ set_value(radio_param_t param, radio_value_t value)
     cmd->frameFiltOpt.bPanCoord = 0;
     cmd->frameFiltOpt.bStrictLenFilter = 0;
 
+    old_poll_mode = poll_mode;
     poll_mode = (value & RADIO_RX_MODE_POLL_MODE) != 0;
+    if(poll_mode == old_poll_mode) {
+      uint32_t cmd_status;
+
+      /* do not turn the radio on and off, just send an update command */
+      memcpy(&filter_cmd.newFrameFiltOpt, &cmd->frameFiltOpt, sizeof(cmd->frameFiltOpt));
+
+      if(rf_core_send_cmd((uint32_t)&filter_cmd, &cmd_status) == RF_CORE_CMD_ERROR) {
+        PRINTF("setting address filter failed: CMDSTA=0x%08lx\n", cmd_status);
+        return RADIO_RESULT_ERROR;
+      }
+      return RADIO_RESULT_OK;
+    }
     break;
   }
   case RADIO_PARAM_TXPOWER:
