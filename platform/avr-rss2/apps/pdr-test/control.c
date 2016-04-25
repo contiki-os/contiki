@@ -66,13 +66,12 @@ const uint16_t SCHEDULE[] = {
   49771,
   49563,
   49704,
+  49617,
   49637,
   49706,
-  49732,
-  49617,
   49740,
-  49539,
-  49551,
+  49539
+  //  49551 Spare
 };
 
 #endif
@@ -692,7 +691,7 @@ PROCESS_THREAD(controlProcess, ev, data)
 
     etimer_set(&periodic, CLOCK_SECOND);
 
-    puts("ready to accept commands");
+    //puts("ready to accept commands");
 
     for(;;) {
         PROCESS_WAIT_EVENT();
@@ -706,12 +705,12 @@ PROCESS_THREAD(controlProcess, ev, data)
             }
             numTestsInSenderRole = 0;
             if (etimer_expired(&periodic)) {
-                puts("ready to accept commands");
+	      //puts("ready to accept commands");
                 etimer_set(&periodic, READY_PRINT_INTERVAL);
                 process_poll(&samplingProcess);
             }
             if (ev == PROCESS_EVENT_POLL) {
-                puts("ready to accept commands");
+	      //puts("ready to accept commands");
                 etimer_set(&periodic, READY_PRINT_INTERVAL);
             }
 	    else if (ev == serial_line_event_message && data != NULL) {
