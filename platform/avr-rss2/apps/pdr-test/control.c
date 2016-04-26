@@ -690,6 +690,8 @@ print_pgm_info(void)
   printf("pdr-test: version=%s", VERSION);
   printf("packet_send_interval=%-d", PACKET_SEND_INTERVAL);
   printf(" preamble_send_interval=%-d", PREAMBLE_SEND_INTERVAL);
+  printf(" guard_time=%-d", GUARD_TIME);
+  printf(" pause_between_tests=%-d", PAUSE_BETWEEN_TESTS);
   printf(" Local node_id=%u\n", node_id);
 }
 
