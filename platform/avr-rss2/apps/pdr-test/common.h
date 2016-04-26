@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #define NUM_CHANNELS 16
 
 #define DEFAULT_CHANNEL  26
@@ -38,12 +37,17 @@
 
 #if 0
 // good for Z1 and sky
-#define PACKET_SEND_INTERVAL      (RTIMER_ARCH_SECOND/200) 
+#define PACKET_SEND_INTERVAL        (RTIMER_ARCH_SECOND/200) 
 #define PREAMBLE_SEND_INTERVAL      (RTIMER_ARCH_SECOND/512)
+#define GUARD_TIME                  (RTIMER_SECOND/512)
+#define PAUSE_BETWEEN_TESTS         (RTIMER_SECOND/32)
 #else
-// good for RSS2
-#define PACKET_SEND_INTERVAL      (RTIMER_ARCH_SECOND/64)
+// Approximation for RSS2
+#define PACKET_SEND_INTERVAL        (RTIMER_ARCH_SECOND/64)
 #define PREAMBLE_SEND_INTERVAL      (RTIMER_ARCH_SECOND/256)
+#define GUARD_TIME                  (RTIMER_SECOND/256)
+#define PAUSE_BETWEEN_TESTS         (RTIMER_SECOND/8)
+
 #endif
 
 

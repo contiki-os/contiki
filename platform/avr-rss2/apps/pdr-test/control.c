@@ -25,9 +25,6 @@
 #define LOCAL_ONLY 0
 #endif
 
-#define GUARD_TIME           (RTIMER_SECOND / 512)
-#define PAUSE_BETWEEN_TESTS  (RTIMER_SECOND / 32)
-
 PROCESS(controlProcess, "PDR test control process");
 PROCESS_NAME(samplingProcess);
 
