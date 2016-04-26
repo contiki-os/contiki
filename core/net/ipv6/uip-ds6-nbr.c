@@ -78,6 +78,21 @@ uip_ds6_neighbors_init(void)
 }
 /*---------------------------------------------------------------------------*/
 uip_ds6_nbr_t *
+uip_ds6_nbr_refresh(const uip_ipaddr_t *ipaddr)
+{
+  uip_ds6_nbr_t *nbr;
+
+  if((nbr = uip_ds6_nbr_lookup(ipaddr)) != NULL) {
+#if UIP_ND6_SEND_NA
+    stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
+    nbr->state = NBR_REACHABLE;
+#endif /* UIP_ND6_SEND_NA */
+    return nbr;
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/
+uip_ds6_nbr_t *
 uip_ds6_nbr_add(const uip_ipaddr_t *ipaddr, const uip_lladdr_t *lladdr,
                 uint8_t isrouter, uint8_t state, nbr_table_reason_t reason,
                 void *data)

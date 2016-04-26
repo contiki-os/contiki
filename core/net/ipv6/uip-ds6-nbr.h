@@ -100,6 +100,9 @@ const uip_lladdr_t *uip_ds6_nbr_lladdr_from_ipaddr(const uip_ipaddr_t *ipaddr);
 void uip_ds6_link_neighbor_callback(int status, int numtx);
 void uip_ds6_neighbor_periodic(void);
 int uip_ds6_nbr_num(void);
+/* uip_ds6_nbr_refresh() - used for refreshing a nbr entry from an applicaion */
+uip_ds6_nbr_t *uip_ds6_nbr_refresh(const uip_ipaddr_t *ipaddr);
+
 
 /**
  * \brief

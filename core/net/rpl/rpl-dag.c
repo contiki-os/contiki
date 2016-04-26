@@ -50,6 +50,7 @@
 #include "net/ipv6/uip-ds6-nbr.h"
 #include "net/nbr-table.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
+#include "net/packetbuf.h"
 #include "lib/list.h"
 #include "lib/memb.h"
 #include "sys/ctimer.h"
@@ -1272,12 +1273,17 @@ rpl_process_parent_event(rpl_instance_t *instance, rpl_parent_t *p)
 static int
 add_nbr_from_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
-  /* add this to the neighbor cache if not already there */
-  if(rpl_icmp6_update_nbr_table(from, NBR_TABLE_REASON_RPL_DIO, dio) == NULL) {
-    PRINTF("RPL: Out of memory, dropping DIO from ");
-    PRINT6ADDR(from);
-    PRINTF("\n");
-    return 0;
+  /* refresh and add this to the neighbor cache if not already there */
+  if(uip_ds6_nbr_lookup(from) == NULL) {
+    if(uip_ds6_nbr_add(from, (uip_lladdr_t *)
+                       packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                       0, NBR_REACHABLE, NBR_TABLE_REASON_RPL_DIO,
+                       dio) == NULL) {
+      PRINTF("RPL: Out of memory, dropping DIO from ");
+      PRINT6ADDR(from);
+      PRINTF("\n");
+      return 0;
+    }
   }
   return 1;
 }
@@ -1383,6 +1389,11 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
     }
   }
 
+  if(!add_nbr_from_dio(from, dio)) {
+    PRINTF("RPL: Could not add neighbor based on DIO\n");
+    return;
+  }
+
   if(dag->rank == ROOT_RANK(instance)) {
     if(dio->rank != INFINITE_RANK) {
       instance->dio_counter++;
@@ -1402,11 +1413,6 @@ rpl_process_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
    * a candidate parent, and let rpl_process_parent_event decide
    * whether to keep it in the set.
    */
-
-  if(!add_nbr_from_dio(from, dio)) {
-    PRINTF("RPL: Could not add parent based on DIO\n");
-    return;
-  }
 
   p = rpl_find_parent(dag, from);
   if(p == NULL) {
