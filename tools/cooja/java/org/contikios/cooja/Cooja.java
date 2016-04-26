@@ -133,6 +133,7 @@ import org.contikios.cooja.dialogs.ConfigurationWizard;
 import org.contikios.cooja.dialogs.CreateSimDialog;
 import org.contikios.cooja.dialogs.ExternalToolsDialog;
 import org.contikios.cooja.dialogs.MessageList;
+import org.contikios.cooja.dialogs.MessageListUI;
 import org.contikios.cooja.dialogs.ProjectDirectoriesDialog;
 import org.contikios.cooja.plugins.MoteTypeInformation;
 import org.contikios.cooja.plugins.ScriptRunner;
@@ -3834,7 +3835,7 @@ public class Cooja extends Observable {
           /* Contiki error */
           if (exception instanceof ContikiError) {
             String contikiError = ((ContikiError) exception).getContikiError();
-            MessageList list = new MessageList();
+            MessageListUI list = new MessageListUI();
             for (String l: contikiError.split("\n")) {
               list.addMessage(l);
             }
@@ -3843,14 +3844,14 @@ public class Cooja extends Observable {
           }
 
           /* Compilation output */
-          MessageList compilationOutput = null;
+          MessageListUI compilationOutput = null;
           if (exception instanceof MoteTypeCreationException
               && ((MoteTypeCreationException) exception).hasCompilationOutput()) {
-            compilationOutput = ((MoteTypeCreationException) exception).getCompilationOutput();
+            compilationOutput = (MessageListUI) ((MoteTypeCreationException) exception).getCompilationOutput();
           } else if (exception.getCause() != null
               && exception.getCause() instanceof MoteTypeCreationException
               && ((MoteTypeCreationException) exception.getCause()).hasCompilationOutput()) {
-            compilationOutput = ((MoteTypeCreationException) exception.getCause()).getCompilationOutput();
+            compilationOutput = (MessageListUI) ((MoteTypeCreationException) exception.getCause()).getCompilationOutput();
           }
           if (compilationOutput != null) {
             compilationOutput.addPopupMenuItem(null, true);
@@ -3858,8 +3859,8 @@ public class Cooja extends Observable {
           }
 
           /* Stack trace */
-          MessageList stackTrace = new MessageList();
-          PrintStream printStream = stackTrace.getInputStream(MessageList.NORMAL);
+          MessageListUI stackTrace = new MessageListUI();
+          PrintStream printStream = stackTrace.getInputStream(MessageListUI.NORMAL);
           exception.printStackTrace(printStream);
           stackTrace.addPopupMenuItem(null, true);
           tabbedPane.addTab("Java stack trace", new JScrollPane(stackTrace));
@@ -3931,7 +3932,7 @@ public class Cooja extends Observable {
         Box buttonBox = Box.createHorizontalBox();
 
         /* Warnings message list */
-        MessageList compilationOutput = new MessageList();
+        MessageListUI compilationOutput = new MessageListUI();
         for (String w: warnings) {
           compilationOutput.addMessage(w, MessageList.ERROR);
         }
@@ -4354,14 +4355,14 @@ public class Cooja extends Observable {
   private static JProgressBar PROGRESS_BAR = null;
   private static ArrayList<String> PROGRESS_WARNINGS = new ArrayList<String>();
   public static void setProgressMessage(String msg) {
-    setProgressMessage(msg, MessageList.NORMAL);
+    setProgressMessage(msg, MessageListUI.NORMAL);
   }
   public static void setProgressMessage(String msg, int type) {
     if (PROGRESS_BAR != null && PROGRESS_BAR.isShowing()) {
       PROGRESS_BAR.setString(msg);
       PROGRESS_BAR.setStringPainted(true);
     }
-    if (type != MessageList.NORMAL) {
+    if (type != MessageListUI.NORMAL) {
       PROGRESS_WARNINGS.add(msg);
     }
   }

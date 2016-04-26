@@ -150,7 +150,7 @@ public class ConfigurationWizard extends JDialog {
   private static int relBssSectionAddr;
   private static int bssSectionSize;
 
-  private static MessageList output;
+  private static MessageListUI output;
   private static JDialog progressDialog;
   private static JButton button;
   private static JProgressBar progressBar;
@@ -430,7 +430,7 @@ public class ConfigurationWizard extends JDialog {
   }
 
   private static void prepareShowTestProgress(JFrame parent, String desc) {
-    output = new MessageList();
+    output = new MessageListUI();
     output.addPopupMenuItem(null, true);
     progressDialog = new JDialog(parent, desc);
     button = new JButton("Close");
@@ -542,7 +542,7 @@ public class ConfigurationWizard extends JDialog {
     return (String) optionPane.getValue();
   }
 
-  public static boolean performCompileCTest(MessageList testOutput, PrintStream normalStream, PrintStream errorStream) {
+  public static boolean performCompileCTest(MessageListUI testOutput, PrintStream normalStream, PrintStream errorStream) {
     javaLibraryName = "LibTest" + testCounter;
     cLibraryName = "libtest" + testCounter;
     cLibrarySourceFile = new File(ContikiMoteType.tempOutputDirectory, cLibraryName + ".c");
@@ -642,8 +642,8 @@ public class ConfigurationWizard extends JDialog {
     return true;
   }
 
-  public static boolean performLoadTest(MessageList testOutput, PrintStream normalStream, PrintStream errorStream) {
-    MessageList dummy = new MessageList();
+  public static boolean performLoadTest(MessageListUI testOutput, PrintStream normalStream, PrintStream errorStream) {
+    MessageListUI dummy = new MessageListUI();
     PrintStream dummyStream = dummy.getInputStream(MessageList.NORMAL);
     if (!performCompileCTest(dummy, dummyStream, errorStream)) {
       return false;
@@ -696,8 +696,8 @@ public class ConfigurationWizard extends JDialog {
     return true;
   }
 
-  public static boolean performAddressTest(MessageList testOutput, PrintStream normalStream, PrintStream errorStream) {
-    MessageList dummy = new MessageList();
+  public static boolean performAddressTest(MessageListUI testOutput, PrintStream normalStream, PrintStream errorStream) {
+    MessageListUI dummy = new MessageListUI();
     PrintStream dummyStream = dummy.getInputStream(MessageList.NORMAL);
     if (!performCompileCTest(dummy, dummyStream, errorStream)) {
       return false;
@@ -743,7 +743,7 @@ public class ConfigurationWizard extends JDialog {
     return false;
   }
 
-  private static boolean performMapAddressTest(MessageList testOutput, PrintStream normalStream, PrintStream errorStream) {
+  private static boolean performMapAddressTest(MessageListUI testOutput, PrintStream normalStream, PrintStream errorStream) {
     testOutput.addMessage("### Testing map file based address parsing");
 
     File mapFile = new File(ContikiMoteType.tempOutputDirectory, cLibraryName + ContikiMoteType.mapSuffix);
@@ -839,7 +839,7 @@ public class ConfigurationWizard extends JDialog {
     return true;
   }
 
-  private static boolean performCommandAddressTest(MessageList testOutput, PrintStream normalStream, PrintStream errorStream) {
+  private static boolean performCommandAddressTest(MessageListUI testOutput, PrintStream normalStream, PrintStream errorStream) {
     testOutput.addMessage("### Testing command based address parsing");
 
     testOutput.addMessage("### Executing command");
@@ -933,8 +933,8 @@ public class ConfigurationWizard extends JDialog {
   }
 
 
-  public static boolean performMemoryReplacementTest(MessageList testOutput, PrintStream normalStream, PrintStream errorStream) {
-    MessageList dummy = new MessageList();
+  public static boolean performMemoryReplacementTest(MessageListUI testOutput, PrintStream normalStream, PrintStream errorStream) {
+    MessageListUI dummy = new MessageListUI();
     PrintStream dummyStream = dummy.getInputStream(MessageList.NORMAL);
     if (!performCompileCTest(dummy, dummyStream, errorStream)) {
       return false;
