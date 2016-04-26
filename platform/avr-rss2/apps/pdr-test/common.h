@@ -1,10 +1,13 @@
 #ifndef PDRTEST_COMMON_H
 #define PDRTEST_COMMON_H
 
+#define VERSION  "1.0-2016-04-25\n"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+
 
 #define NUM_CHANNELS 16
 

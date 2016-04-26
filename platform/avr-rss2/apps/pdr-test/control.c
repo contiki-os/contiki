@@ -611,6 +611,16 @@ RIME_SNIFFER(printSniffer, inputPacket, NULL);
 
 // -------------------------------------------------------------
 
+static print_help(void)
+{
+  printf("pdr-test: version=%s", VERSION);
+  printf("send -- start tx test\n");
+  printf("recv -- start rx test\n");
+  printf("upgr -- reboot via bootlaoder\n");
+  printf("sch  -- print scheduling table\n");
+  printf("help -- print this menu\n");
+}
+
 static void handle_serial_input(const char *line)
 {
     printf("in: '%s'\n", line);
@@ -627,7 +637,6 @@ static void handle_serial_input(const char *line)
         //     for (;;);
         // }
 
-	printf("node_id=%u\n", node_id);
         if (IS_INITIATOR(node_id)) {
             currentState = STATE_PREAMBLE_PREPARE;
             numTestsInSenderRole = 0;
@@ -640,6 +649,9 @@ static void handle_serial_input(const char *line)
 
             rtimer_set(&rt, RTIMER_NOW() + RTIMER_ARCH_SECOND, 1, rtimerCallback, NULL);
         }
+	else 
+		printf("Error node is not initiator\n");
+
     }
     else if (!strcmp(line, "recv") || !strcmp(line, "rec")) {
         // XXX always required for the GW server
@@ -648,6 +660,18 @@ static void handle_serial_input(const char *line)
         radio_set_channel(DEFAULT_CHANNEL);
         //radio_set_txpower(DEFAULT_TXPOWER);
         etimer_set(&periodic, READY_PRINT_INTERVAL);
+    }
+    else if (!strcmp(line, "schedule") || !strcmp(line, "sch")) {
+      int len = sizeof(SCHEDULE)/sizeof(SCHEDULE[0]);
+      uint8_t i;
+      puts("command accepted");
+      
+      for(i=0; i < len; i++)
+	printf("%-u %-u\n", i, SCHEDULE[i]);
+    }
+    else if (!strcmp(line, "help") || !strcmp(line, "--help")) {
+      puts("command accepted");
+      print_help();
     }
 #ifdef CONTIKI_TARGET_AVR_RSS2
     else if (!strcmp(line, "upgr") || !strcmp(line, "upgrade")) {
@@ -661,6 +685,14 @@ static void handle_serial_input(const char *line)
 
 //-------------------------------------------------------------
 
+print_pgm_info(void)
+{
+  printf("pdr-test: version=%s", VERSION);
+  printf("packet_send_interval=%-d", PACKET_SEND_INTERVAL);
+  printf(" preamble_send_interval=%-d", PREAMBLE_SEND_INTERVAL);
+  printf(" Local node_id=%u\n", node_id);
+}
+
 AUTOSTART_PROCESSES(&controlProcess, &samplingProcess);
 PROCESS_THREAD(controlProcess, ev, data)
 {
@@ -669,7 +701,7 @@ PROCESS_THREAD(controlProcess, ev, data)
     // XXX this is a fix because of invalid ID on a single node
     if (node_id == 17) node_id = 54;
 
-    printf("pdr-test-marsta, node_id=%u\n", node_id);
+    print_pgm_info();
 
 #ifndef CONTIKI_TARGET_AVR_RSS2
     // XXX: always disable the CCA checks
