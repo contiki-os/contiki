@@ -15,7 +15,6 @@ AUTOSTART_PROCESSES(&mqtt_process, &mqtt_pub_process);
 /*-----------------------------------------------------------------------------------*/
 #define ATTO_HARDWARE_ID                     150072
 #define ATTO_LOGVIEW_URL                     "mqtt.logview.com.br"
-#define ATTO_LOGVIEW_ENDPOINT                "io.logview.com.br"
 #define ATTO_API_VERSION                     1 
 #define MQTT_PERIODIC_PUB_TIME               (CLOCK_SECOND * 5)
 #define MQTT_CLIENT_CONN_KEEP_ALIVE          (CLOCK_SECOND * 20)
@@ -37,7 +36,7 @@ static char subscribe_topic[MAX_APPLICATION_BUFFER_SIZE];
 static unsigned int
 create_mqtt_topic(char * out, const char* resource)
 {
-  unsigned int len = sprintf(out, "%s/v%d/%d/%s", ATTO_LOGVIEW_ENDPOINT, ATTO_API_VERSION, ATTO_HARDWARE_ID, resource);
+  unsigned int len = sprintf(out, "v%d/%d/%s", ATTO_API_VERSION, ATTO_HARDWARE_ID, resource);
   printf("APP - create topic [%s] with len[%d]\n", out, len);
   return len;
 }
