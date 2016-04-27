@@ -1050,7 +1050,9 @@ dao_output_target_seq(rpl_parent_t *parent, uip_ipaddr_t *prefix,
   buffer[pos] |= RPL_DAO_D_FLAG;
 #endif /* RPL_DAO_SPECIFY_DAG */
 #if RPL_WITH_DAO_ACK
-  buffer[pos] |= RPL_DAO_K_FLAG;
+  if(lifetime != RPL_ZERO_LIFETIME) {
+    buffer[pos] |= RPL_DAO_K_FLAG;
+  }
 #endif /* RPL_WITH_DAO_ACK */
   ++pos;
   buffer[pos++] = 0; /* reserved */
