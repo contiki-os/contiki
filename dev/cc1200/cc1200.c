@@ -374,6 +374,17 @@ extern const cc1200_rf_cfg_t CC1200_RF_CFG;
   } while(0)
 #endif
 /*---------------------------------------------------------------------------*/
+/* Sniffer configuration */
+#if CC1200_SNIFFER
+static const uint8_t magic[] = { 0x53, 0x6E, 0x69, 0x66 };
+#include "dev/uart.h"
+#define write_byte(b) uart_write_byte(CC1200_RF_CONF_SNIFFER_UART, b)
+#define flush()
+#else /* CC1200_SNIFFER */
+#define write_byte(b)
+#define flush()
+#endif /* CC1200_SNIFFER */
+/*---------------------------------------------------------------------------*/
 /* Variables */
 /*---------------------------------------------------------------------------*/
 /* Flag indicating whether non-interrupt routines are using SPI */
@@ -870,6 +881,10 @@ read(void *buf, unsigned short buf_len)
 
   int len = 0;
 
+  #if CC1200_SNIFFER
+    uint8_t i;
+  #endif
+
   if(rx_pkt_len > 0) {
 
     int8_t rssi = rx_pkt[rx_pkt_len - 2];
@@ -896,8 +911,22 @@ read(void *buf, unsigned short buf_len)
       packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY,
                          crc_lqi & ~(1 << 7));
 
-      RIMESTATS_ADD(llrx);
 
+      #if CC1200_SNIFFER
+        write_byte(magic[0]);
+        write_byte(magic[1]);
+        write_byte(magic[2]);
+        write_byte(magic[3]);
+        write_byte(len + 2);
+        for(i = 0; i < len; ++i) {
+          write_byte(((unsigned char *)(buf))[i]);
+        }
+        write_byte(rssi);
+        write_byte(crc_lqi);
+        flush();
+      #endif
+
+      RIMESTATS_ADD(llrx);
     }
 
   }
