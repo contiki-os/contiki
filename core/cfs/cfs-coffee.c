@@ -1098,8 +1098,8 @@ cfs_read(int fd, void *buf, unsigned size)
 
   fdp = &coffee_fd_set[fd];
   file = fdp->file;
-  if(fdp->offset + size > file->end) {
-    size = file->end - fdp->offset;
+  while(fdp->offset + size > file->end) {
+    ((char*)buf)[--size] = 0;
   }
 
   /* If the file is not modified, read directly from the file extent. */
