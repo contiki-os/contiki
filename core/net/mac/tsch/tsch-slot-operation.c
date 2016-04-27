@@ -810,12 +810,6 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
               log->rx.sec_level = frame.aux_hdr.security_control.security_level;
               log->rx.estimated_drift = estimated_drift;
             );
-          } else {
-            TSCH_LOG_ADD(tsch_log_message,
-                  snprintf(log->message, sizeof(log->message),
-                      "!not for us %x:%x",
-                      destination_address.u8[LINKADDR_SIZE - 2], destination_address.u8[LINKADDR_SIZE - 1]);
-            );
           }
 
           /* Poll process for processing of pending input and logs */
