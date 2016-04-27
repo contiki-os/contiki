@@ -200,7 +200,7 @@
  * used in RPL lifetime values, in seconds.
  */
 #ifndef RPL_CONF_DEFAULT_LIFETIME_UNIT
-#define RPL_DEFAULT_LIFETIME_UNIT       0x60
+#define RPL_DEFAULT_LIFETIME_UNIT       60
 #else
 #define RPL_DEFAULT_LIFETIME_UNIT       RPL_CONF_DEFAULT_LIFETIME_UNIT
 #endif
@@ -209,7 +209,7 @@
  * Default route lifetime as a multiple of the lifetime unit.
  */
 #ifndef RPL_CONF_DEFAULT_LIFETIME
-#define RPL_DEFAULT_LIFETIME            0x30
+#define RPL_DEFAULT_LIFETIME            30
 #else
 #define RPL_DEFAULT_LIFETIME            RPL_CONF_DEFAULT_LIFETIME
 #endif
