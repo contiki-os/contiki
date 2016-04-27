@@ -936,7 +936,7 @@ handle_dao_retransmission(void *ptr)
     return;
   }
 
-  PRINTF("Should retransmit DAO - seq:%d trans:%d\n", instance->my_dao_seqno,
+  PRINTF("RPL: will retransmit DAO - seq:%d trans:%d\n", instance->my_dao_seqno,
 	 instance->my_dao_transmissions);
 
   if(get_global_addr(&prefix) == 0) {
@@ -1172,7 +1172,7 @@ dao_ack_input(void)
         uip_ds6_route_rm(re);
       }
     } else {
-      PRINTF("RPL: No route entry to fwd DAO ACK to\n");
+      PRINTF("RPL: No route entry found to forward DAO ACK (seqno %u)\n", sequence);
     }
   }
 #endif /* RPL_WITH_DAO_ACK */
