@@ -969,6 +969,7 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
     return;
   }
 
+  RPL_LOLLIPOP_INCREMENT(dao_sequence);
 #if RPL_WITH_DAO_ACK
   /* set up the state since this will be the first transmission of DAO */
   /* retransmissions will call directly to dao_output_target_seq */
@@ -995,7 +996,6 @@ dao_output(rpl_parent_t *parent, uint8_t lifetime)
 void
 dao_output_target(rpl_parent_t *parent, uip_ipaddr_t *prefix, uint8_t lifetime)
 {
-  RPL_LOLLIPOP_INCREMENT(dao_sequence);
   dao_output_target_seq(parent, prefix, lifetime, dao_sequence);
 }
 /*---------------------------------------------------------------------------*/
