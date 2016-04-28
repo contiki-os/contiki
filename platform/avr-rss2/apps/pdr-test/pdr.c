@@ -14,8 +14,14 @@
 #include <stdlib.h>
 #include "core/net/packetbuf.h"
 #include <avr/wdt.h>
-
 #include "rime/rime.h"
+#ifdef CONTIKI_TARGET_SKY
+#include "dev/sht11/sht11-sensor.h"
+#elif CONTIKI_TARGET_Z1
+#include "dev/tmp102.h"
+#elif CONTIKI_TARGET_AVR_RSS2
+#include "ds18b20.h" // for RS2
+#endif
 
 #define DEBUG 0
 #define TRACK_ERRORS 0
@@ -26,27 +32,27 @@
 #endif
 
 PROCESS(controlProcess, "PDR test control process");
-PROCESS_NAME(samplingProcess);
 
 #define MAX_NIBBLES ((TEST_PACKET_SIZE - HEADER_SIZE) * 2)
 
 #define READY_PRINT_INTERVAL (CLOCK_SECOND * 5)
 
 
+extern uint8_t  ds18b20_get_temp(int16_t *temperature);
+
+
 uint8_t packetsReceived[PACKETS_IN_TEST];
-
-uint8_t currentScheduleNr;
-int testChannel;
-
 uint8_t currentState;
 
-int8_t currentPacketNumber;
+uint8_t sendPacketNumber;
 
 struct rtimer rt;
 
 static struct etimer periodic;
 
 struct {
+    uint16_t source;
+    uint8_t channel;
     uint16_t fine;
 #if TRACK_ERRORS
     uint16_t zeroLength; // usually signal errors at radio driver level
@@ -67,7 +73,7 @@ struct {
     uint16_t symbolErrors[MAX_NIBBLES];
     uint16_t confusionMatrix[16 * 16];
     uint32_t correctCounts[16];
-} errors;
+} stats;
 
 uint16_t rssiSum;
 uint16_t lqiSum;
@@ -117,26 +123,34 @@ static void printfCrc(const char *format, ...)
 
 void clearErrors(void)
 {
-    memset(&errors, 0, sizeof(errors));
-    currentPacketNumber = -1;
-}
+    memset(&stats, 0, sizeof(stats));
+ }
 
 void printStats(void)
 {
-    int rssi;
-    uint8_t lqi;
-    if (errors.fine == 0) {
-        rssi = 0;
-        lqi = 0;
-    } else {
-        rssi = platformFixRssi(rssiSum / errors.fine);
-        lqi = lqiSum / errors.fine;
+  int16_t temp;
+  int rssi;
+  uint8_t lqi;
+  int res;
+
+  if (stats.fine == 0) {
+    rssi = 0;
+    lqi = 0;
+  } else {
+    rssi = platformFixRssi(rssiSum / stats.fine);
+    lqi = lqiSum / stats.fine;
     }
-//    printfCrc("> %u %d %u %u %u",
-//    printfCrc("%u %u %d %u %u %u",
-    printf("%u %u %d %u %u\n",
-            errors.fine, errors.total, rssi, lqi,
-            testChannel);
+  //    printfCrc("> %u %d %u %u %u",
+  //    printfCrc("%u %u %d %u %u %u",
+  
+  res = ds18b20_get_temp(&temp);
+  if (!res) {
+    temp= -9999;
+  }
+
+  printf("%u %u %d %u %u %u %i\n",
+	 stats.fine, stats.total, rssi, lqi,
+	 stats.channel, stats.source, temp);
 
 #if DEBUG
     int i;
@@ -154,21 +168,21 @@ void printStats(void)
     puts("Error statistics:");
     //printfCrc(" %u total packets, %u/%u/%u length errors, %u/%u corrupt packets",
     printf(" %u total packets, %u/%u/%u length errors, %u/%u corrupt packets\n",
-            errors.fine + errors.zeroLength +
-            errors.tooShort + errors.tooLong +
-            errors.badHeader + errors.badContents +
-            errors.badPHYCrcGoodContents,
-            errors.zeroLength,
-            errors.tooShort, errors.tooLong,
-            errors.badHeader,
-            errors.badContents);
-    if (errors.phyCrcErrors) {
-      //printfCrc(" %u bad PHY CRC",  errors.phyCrcErrors);
-      printf(" %u bad PHY CRC\n",  errors.phyCrcErrors);
+            stats.fine + stats.zeroLength +
+            stats.tooShort + stats.tooLong +
+            stats.badHeader + stats.badContents +
+            stats.badPHYCrcGoodContents,
+            stats.zeroLength,
+            stats.tooShort, stats.tooLong,
+            stats.badHeader,
+            stats.badContents);
+    if (stats.phyCrcErrors) {
+      //printfCrc(" %u bad PHY CRC",  stats.phyCrcErrors);
+      printf(" %u bad PHY CRC\n",  stats.phyCrcErrors);
     }
-    if (errors.badPHYCrcGoodContents) {
-      //printfCrc(" %u bad PHY CRC with corruption undetected", errors.badPHYCrcGoodContents);
-      printf(" %u bad PHY CRC with corruption undetected\n", errors.badPHYCrcGoodContents);
+    if (stats.badPHYCrcGoodContents) {
+      //printfCrc(" %u bad PHY CRC with corruption undetected", stats.badPHYCrcGoodContents);
+      printf(" %u bad PHY CRC with corruption undetected\n", stats.badPHYCrcGoodContents);
     }
 #endif
     clearErrors();
@@ -193,7 +207,10 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             puts("starting tx...");
 #endif
         }
-        h->packetNumber++;
+	sendPacketNumber++;
+	h->sender = node_id;
+	h->channel = radio_get_channel();
+        h->packetNumber = sendPacketNumber;
         h->crc = crc8(h, sizeof(*h) - 1);
 
         patternFill((uint16_t *)sendBuffer, TEST_PACKET_SIZE, h->packetNumber, HEADER_SIZE);
@@ -224,20 +241,20 @@ static void inputPacket(void)
     uint8_t length = packetbuf_totlen();
 //    printf("input packet, length=%d\n", (int16_t) length);
 
+    stats.total++;
+
     if (length != TEST_PACKET_SIZE) {
 #if DEBUG
         printf("rcvd length=%d\n", length);
 #endif
 
 #if TRACK_ERRORS
-        if (!isPreamblePacket) {
-            if (length <= 2) 
-                errors.zeroLength++;
-            else if (length < expectedLength) 
-                errors.tooShort++;
-            else
-                errors.tooLong++;
-        }
+	if (length <= 2) 
+	  stats.zeroLength++;
+	else if (length < expectedLength) 
+	  stats.tooShort++;
+	else
+	  stats.tooLong++;
 #endif
         return;
     }
@@ -247,7 +264,7 @@ static void inputPacket(void)
         puts("header crc bad!");
 #endif
 #if TRACK_ERRORS
-	errors.badHeader++;
+	stats.badHeader++;
 #endif
         return;
     }
@@ -258,9 +275,9 @@ static void inputPacket(void)
             h->packetNumber,
             HEADER_SIZE,
 #if TRACK_ERRORS
-            errors.symbolErrors,
-            errors.confusionMatrix,
-            errors.correctCounts
+            stats.symbolErrors,
+            stats.confusionMatrix,
+            stats.correctCounts
 #else
             NULL, NULL, NULL
 #endif
@@ -274,12 +291,12 @@ static void inputPacket(void)
 #endif
 
 #if TRACK_ERRORS
-        errors.badContents++;
-        errors.numBadNibbles += numNibbleErrors;
+        stats.badContents++;
+        stats.numBadNibbles += numNibbleErrors;
         if (numNibbleErrors > MAX_NIBBLES) {
             printf("numNibbleErrors > MAX_NIBBLES\n");
         }
-        errors.badNibbles[numNibbleErrors - 1]++;
+        stats.badNibbles[numNibbleErrors - 1]++;
 #endif
         return;
     }
@@ -289,7 +306,7 @@ static void inputPacket(void)
 #endif
         // debugHexdump(packetbuf_hdrptr(), TEST_PACKET_SIZE);
 #if TRACK_ERRORS
-        errors.badPHYCrcGoodContents++;
+        stats.badPHYCrcGoodContents++;
 #endif
         return;
     }
@@ -298,16 +315,7 @@ static void inputPacket(void)
         // whoops. all integrity checks succeeded, but the packet is obviously in error.
         printf("rx a packet with invalid number (%d)\n", h->packetNumber);
 #if TRACK_ERRORS
-        errors.badHeader++;
-#endif
-        return;
-    }
-
-    if (errors.fine != 0 && h->packetNumber <= currentPacketNumber) {
-        // received a packet with out-of-order number
-        printf("oo: %u %u\n", h->packetNumber, currentPacketNumber);
-#if TRACK_ERRORS
-        errors.badContents++; // XXX: should account as a duplicate
+        stats.badHeader++;
 #endif
         return;
     }
@@ -320,10 +328,18 @@ static void inputPacket(void)
     // putchar(to_hex(h->packetNumber & 0xf));
     // putchar('\n');
 
-    errors.fine++;
-    if (currentPacketNumber == PACKETS_IN_TEST) currentPacketNumber = -1;
+    stats.fine++;
     rssiSum += (uint8_t) ((int) packetbuf_attr(PACKETBUF_ATTR_RSSI) + 128);
     lqiSum += packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
+
+    if (h->sender != stats.source) {
+      stats.source = h->sender;
+      printf("received from new sender %u\n", h->sender);
+    }
+    if (h->channel != stats.channel) {
+      stats.channel = h->channel;
+      printf("received from new channel %u\n", h->channel);
+    }
 
 #if DEBUG || 1
     packetsReceived[h->packetNumber - 1] = 1;
@@ -340,7 +356,7 @@ static print_help(void)
   printf("send -- start tx test\n");
   printf("recv -- start rx test\n");
   printf("upgr -- reboot via bootlaoder\n");
-  printf("sch  -- print scheduling table\n");
+  printf("stat -- print stats\n");
   printf("help -- print this menu\n");
 }
 
@@ -355,6 +371,7 @@ static void handle_serial_input(const char *line)
         etimer_set(&periodic, READY_PRINT_INTERVAL);
 
 	currentState = STATE_TX;
+	sendPacketNumber = 0;
 	radio_set_channel(DEFAULT_CHANNEL);
 	rtimer_set(&rt, RTIMER_NOW() + RTIMER_ARCH_SECOND/10, 1, rtimerCallback, NULL);
     }
@@ -369,7 +386,7 @@ static void handle_serial_input(const char *line)
       puts("command accepted");
       print_help();
     }
-    else if (!strcmp(line, "stats") || !strcmp(line, "stats")) {
+    else if (!strcmp(line, "stat") || !strcmp(line, "stats")) {
       puts("command accepted");
       printStats();
       clearErrors();
@@ -396,7 +413,7 @@ print_pgm_info(void)
   printf(" Local node_id=%u\n", node_id);
 }
 
-AUTOSTART_PROCESSES(&controlProcess, &samplingProcess);
+AUTOSTART_PROCESSES(&controlProcess);
 PROCESS_THREAD(controlProcess, ev, data)
 {
     PROCESS_BEGIN();
@@ -442,7 +459,6 @@ PROCESS_THREAD(controlProcess, ev, data)
             if (etimer_expired(&periodic)) {
 	      //puts("ready to accept commands");
                 etimer_set(&periodic, READY_PRINT_INTERVAL);
-                process_poll(&samplingProcess);
             }
             if (ev == PROCESS_EVENT_POLL) {
 	      //puts("ready to accept commands");
@@ -458,8 +474,6 @@ PROCESS_THREAD(controlProcess, ev, data)
                 radio_set_channel(DEFAULT_CHANNEL);
 		//radio_set_txpower(DEFAULT_TXPOWER);
                 // do the selection here, as it may be time consuming
-                testChannel = selectNextChannel();
-
                 rtimer_set(&rt, RTIMER_NOW() + RTIMER_ARCH_SECOND, 1, rtimerCallback, NULL);
             }
 #endif
