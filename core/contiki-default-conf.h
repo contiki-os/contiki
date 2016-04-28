@@ -220,14 +220,6 @@
  * on the target platform, and are therefore platform-specific.
  */
 
-/* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS specifies how many times the
-   MAC layer should resend packets if no link-layer ACK was
-   received. This only makes sense with the csma_driver
-   NETSTACK_CONF_MAC. */
-#ifndef SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS
-#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS 4
-#endif /* SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS */
-
 /* SICSLOWPAN_CONF_FRAG specifies if 6lowpan fragmentation should be
    used or not. Fragmentation is on by default. */
 #ifndef SICSLOWPAN_CONF_FRAG
