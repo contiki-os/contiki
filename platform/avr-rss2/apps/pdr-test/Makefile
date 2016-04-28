@@ -1,6 +1,7 @@
 TARGET ?= sky
 
-CONTIKI_PROJECT = control
+#CONTIKI_PROJECT = pdr
+CONTIKI_PROJECT = pdr
 
 CONTIKI_TARGET_SOURCEFILES += sampling_process.c
 
@@ -18,14 +19,14 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\" -DCOSYNCH_CONF_ENABLED
 # to build a hex file
 hex: all
 ifeq ($(TARGET),avr-rss2)
-	$(OBJCOPY) control.$(TARGET) -j .text -j .data -O ihex control.$(TARGET).hex
+	$(OBJCOPY) pdr.$(TARGET) -j .text -j .data -O ihex pdr.$(TARGET).hex
 else
-	$(OBJCOPY) control.$(TARGET) -O ihex control.$(TARGET).hex
+	$(OBJCOPY) pdr.$(TARGET) -O ihex pdr.$(TARGET).hex
 	$(OBJCOPY) stringtest.$(TARGET) -O ihex stringtest.$(TARGET).hex
 endif
 
 scp:
-	scp control.$(TARGET).hex atis@194.17.12.253:/home/atis/images
+	scp pdr.$(TARGET).hex atis@194.17.12.253:/home/atis/images
 
 # the default for profun is zero
 CONST_SERIAL_LINE_CONF_BUFSIZE=128

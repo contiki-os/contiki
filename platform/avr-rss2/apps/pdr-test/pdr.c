@@ -32,68 +32,6 @@ PROCESS_NAME(samplingProcess);
 
 #define READY_PRINT_INTERVAL (CLOCK_SECOND * 5)
 
-#if 0
-
-// FOR SIMULATOR
-const uint16_t SCHEDULE[] = {
-    0x7a8c,
-    0x85bf,
-    0xbcde,
-    0xc087,
-
-    0x8ab7,
-    0x8d7e,
-    0x8e50,
-    0x9755,
-
-    0xa191,
-    0xa4c5,
-//    0x6c0c,
-    0xaf14,
-
-    0xc2b5,
-    0xb54f,
-    0xc400,
-    0xc75d
-};
-
-#else
-
-const uint16_t SCHEDULE[] = {
-  49704,
-  49539,
-
-  49771,
-  49563,
-  49704,
-  49617,
-  49637,
-  49706,
-  49740,
-  49539
-  //  49551 Spare
-};
-
-#endif
-
-#define NUM_NODES (sizeof(SCHEDULE) / sizeof(SCHEDULE[0]))
-
-//#define IS_INITIATOR(node)  (node == SCHEDULE[0])
-#define IS_INITIATOR(node)  (1)
-
-#define IS_RELAY(node)  (node == SCHEDULE[1]      \
-            || node == SCHEDULE[2]      \
-            || node == SCHEDULE[3])
-
-#define IS_RELAY(node)  (1)
-
-#define RELAY_NR(sender)  \
-    (sender == SCHEDULE[0] ? 0 :                 \
-            (sender == SCHEDULE[1] ? 1 :         \
-                    (sender == SCHEDULE[2] ? 2 : \
-                            3)))
-
-// -------------------------------------------------------------
 
 uint8_t packetsReceived[PACKETS_IN_TEST];
 
@@ -177,45 +115,6 @@ static void printfCrc(const char *format, ...)
     putchar('\n');
 }
 
-// -------------------------------------------------------------
-
-static int selectNextChannel(void)
-{
-    static uint8_t channelIndex;
-    static uint8_t seq[NUM_CHANNELS];
-
-    if (channelIndex == 0) {
-        // generate a new sequence
-
-        int i;
-        for (i = 0; i < NUM_CHANNELS; ++i) {
-            seq[i] = i;
-        }
-
-        // Fisher-Yates algorithm
-        for (i = 0; i < NUM_CHANNELS - 1; ++i) {
-            // j ← random integer such that i ≤ j < n
-            int j = i + (random_rand() >> 2) % (NUM_CHANNELS - i);
-
-            //  exchange a[j] and a[i]
-            uint8_t t = seq[j];
-            seq[j] = seq[i];
-            seq[i] = t;
-        }
-    }
-
-    int result = seq[channelIndex] + 11; // 11 is the minimal 802.15.4 channel
-
-    channelIndex++;
-    if (channelIndex >= NUM_CHANNELS) {
-        channelIndex = 0;
-    }
-
-    return result;
-}
-
-// -------------------------------------------------------------
-
 void clearErrors(void)
 {
     memset(&errors, 0, sizeof(errors));
@@ -235,9 +134,8 @@ void printStats(void)
     }
 //    printfCrc("> %u %d %u %u %u",
 //    printfCrc("%u %u %d %u %u %u",
-    printf("%u %u %d %u %u %u\n",
+    printf("%u %u %d %u %u\n",
             errors.fine, errors.total, rssi, lqi,
-            SCHEDULE[currentScheduleNr],
             testChannel);
 
 #if DEBUG
@@ -276,53 +174,6 @@ void printStats(void)
     clearErrors();
 }
 
-// -------------------------------------------------------------
-
-uint8_t selectNextState(void)
-{
-    watchdog_periodic();
-
-    if (currentState == STATE_RX) {
-        printStats();
-    } else {
-        clearErrors();
-        // wait a bit
-        rtimer_clock_t wait = RTIMER_NOW() + GUARD_TIME; // RTIMER_SECOND / 64;
-        while (RTIMER_CLOCK_LT(RTIMER_NOW(), wait));
-    }
-
-    currentScheduleNr++;
-
-    // schedule over?
-    if (currentScheduleNr == NUM_NODES) {
-        currentScheduleNr = 0;
-
-        currentState = STATE_IDLE;
-
-        // dump the noise floor and channel
-        printf("R=%d C=%u\n", radio_get_rssi(), radio_get_channel());
-
-        process_poll(&controlProcess);
-        process_poll(&samplingProcess);
-        radio_set_channel(DEFAULT_CHANNEL);
-        //radio_set_txpower(DEFAULT_TXPOWER);
-        printf("ns=%d\n", numTestsInSenderRole);
-	numTestsInSenderRole = 0;
-        return currentState;
-    }
-
-    // decide whether to tx or rx
-    if (SCHEDULE[currentScheduleNr] == node_id) {
-        currentState = STATE_TX;
-    } else {
-        currentState = STATE_RX;
-    }
-
-    return currentState;
-}
-
-// -------------------------------------------------------------
-
 void rtimerCallback(struct rtimer *t, void *ptr)
 {
     static uint8_t sendBuffer[TEST_PACKET_SIZE] __attribute__((aligned (2))) = {
@@ -336,46 +187,8 @@ void rtimerCallback(struct rtimer *t, void *ptr)
     case STATE_IDLE:
         return;
 
-    case STATE_PREAMBLE_PREPARE:
-        h->packetNumber = 0;
-        h->sender = node_id;
-        h->channel = testChannel;
-        currentState = STATE_PREAMBLE_TX;
-//        cc2420_without_send_cca = true;
-        // fallthrough
-
-    case STATE_PREAMBLE_TX:
-        h->packetNumber++;
-        h->crc = crc8(h, sizeof(*h) - 1);
-
-        NETSTACK_RADIO.send(sendBuffer, HEADER_SIZE /*, 0 */);
-        if (h->packetNumber >= PACKETS_IN_TEST) {
-            h->packetNumber = 0;
-//            cc2420_without_send_cca = false;
-            // switch to the first test channel
-            radio_set_channel(h->channel);
-            //radio_set_txpower(TEST_TXPOWER);
-            testChannel = h->channel;
-            next += PACKET_SEND_INTERVAL;
-            uint8_t skip = 3 - RELAY_NR(node_id);
-            while (skip--) {
-                next += PACKETS_IN_TEST * PREAMBLE_SEND_INTERVAL + PACKET_SEND_INTERVAL;
-            }
-            if (IS_INITIATOR(node_id)) {
-                next += GUARD_TIME;
-                currentState = STATE_TX;
-            } else {
-                currentState = STATE_RX;
-            }
-        } else {
-            next += PREAMBLE_SEND_INTERVAL;
-        }
-        break;
-
     case STATE_TX:
         if (h->packetNumber == 0) {
-            if (numTestsInSenderRole < 0) numTestsInSenderRole = 0;
-            numTestsInSenderRole++;
 #if DEBUG
             puts("starting tx...");
 #endif
@@ -388,38 +201,14 @@ void rtimerCallback(struct rtimer *t, void *ptr)
         NETSTACK_RADIO.send(sendBuffer, TEST_PACKET_SIZE /*, 0*/);
 
         if (h->packetNumber >= PACKETS_IN_TEST) {
-            h->packetNumber = 0;
-            selectNextState();
-            next += PAUSE_BETWEEN_TESTS - GUARD_TIME;
+	  currentState = STATE_IDLE;
         }
-        next += PACKET_SEND_INTERVAL;
+	else
+	  next += PACKET_SEND_INTERVAL;
         break;
 
-    case STATE_WAIT:
-         clearErrors();
-         h->packetNumber = 0;
-         currentState = STATE_RX;
-         // fallthrough
-
-    case STATE_RX:
-        if (h->packetNumber == 0) {
-#if DEBUG
-            puts("starting rx...");
-#endif
-        }
-        h->packetNumber++;
-        if (h->packetNumber > PACKETS_IN_TEST + 1) {
-            h->packetNumber = 0;
-            //if (selectNextState() == STATE_TX) {
-            //    next += PAUSE_BETWEEN_TESTS - PACKET_SEND_INTERVAL + GUARD_TIME;
-            //} else {
-            //    next += PAUSE_BETWEEN_TESTS - PACKET_SEND_INTERVAL;
-            //}
-        } else {
-            next += PACKET_SEND_INTERVAL;
-        }
-
-        break;
+    default:
+      break;
     }
 
     rtimer_set(t, next, 1, rtimerCallback, ptr);
@@ -432,15 +221,10 @@ static void inputPacket(void)
     void *data = packetbuf_hdrptr();
     struct packetHeader *h = (struct packetHeader *) data;
 
-    bool isPreamblePacket = (currentState == STATE_WAIT || currentState == STATE_IDLE || currentState == STATE_PREAMBLE_PREPARE);
-    uint16_t expectedLength = isPreamblePacket ? HEADER_SIZE : TEST_PACKET_SIZE;
-
-    if (!isPreamblePacket) errors.total++;
-
     uint8_t length = packetbuf_totlen();
 //    printf("input packet, length=%d\n", (int16_t) length);
 
-    if (length != expectedLength) {
+    if (length != TEST_PACKET_SIZE) {
 #if DEBUG
         printf("rcvd length=%d\n", length);
 #endif
@@ -463,72 +247,11 @@ static void inputPacket(void)
         puts("header crc bad!");
 #endif
 #if TRACK_ERRORS
-        if (!isPreamblePacket) {
-            errors.badHeader++;
-        }
+	errors.badHeader++;
 #endif
         return;
     }
 
-    if (isPreamblePacket) {
-
-        // if (h->sender != NODE_GROUPS_SINKS[node_id][1]) {
-        //     // ignore the packet; not for us
-        //     return;
-        // }
-
-        /////uint32_t rx_time = packetbuf_attr32(PACKETBUF_ATTR_TIMESTAMP);
-      uint32_t rx_time = packetbuf_attr32(PACKETBUF_ATTR_TIMESTAMP);
-        //printf("rx_time %u now %u", rx_time, RTIMER_NOW());
-
-        //printf("rx %u\n", h->packetNumber);
-
-        rx_time += (PACKETS_IN_TEST - h->packetNumber) * PREAMBLE_SEND_INTERVAL;
-        rx_time += PACKET_SEND_INTERVAL;
-
-        // save the channel, but do not set it yet
-        if (h->channel >= 11 && h->channel <= 26) {
-            testChannel = h->channel;
-        } else {
-            printf("invalid test channel: %u\n", h->channel);
-        }
-
-        uint8_t sender_nr = RELAY_NR(h->sender);
-        uint8_t to_skip;
-        if (IS_RELAY(node_id) && sender_nr < RELAY_NR(node_id)) {
-            to_skip = RELAY_NR(node_id) - sender_nr - 1;
-
-            currentState = STATE_PREAMBLE_PREPARE;
-
-            rx_time += GUARD_TIME;
-        }
-        else {
-            to_skip = 3 - sender_nr;
-
-            currentState = STATE_WAIT;
-
-            // set the test channel
-            radio_set_channel(testChannel);
-            //radio_set_txpower(TEST_TXPOWER);
-        }
-
-        while (to_skip--) {
-            rx_time += PACKETS_IN_TEST * PREAMBLE_SEND_INTERVAL + PACKET_SEND_INTERVAL;
-        }
-
-        rtimer_clock_t now = RTIMER_NOW() + 1;
-        if (!RTIMER_CLOCK_LT(now, rx_time)) {
-            rx_time = now + 1;
-        }
-
-        // fix for the case when preamble packets are sent on the same channel as main test packets
-        errors.total = errors.fine = 0;
-
-        rtimer_set(&rt, rx_time, 1, rtimerCallback, NULL);
-        return;
-    }
-
-    cli();
     uint16_t numNibbleErrors = patternCheck(
             (uint16_t *)packetbuf_hdrptr(),
             TEST_PACKET_SIZE,
@@ -542,7 +265,6 @@ static void inputPacket(void)
             NULL, NULL, NULL
 #endif
         );
-    sei();
 
     if (numNibbleErrors) {
 #if DEBUG
@@ -584,7 +306,6 @@ static void inputPacket(void)
     if (errors.fine != 0 && h->packetNumber <= currentPacketNumber) {
         // received a packet with out-of-order number
         printf("oo: %u %u\n", h->packetNumber, currentPacketNumber);
-        currentPacketNumber = h->packetNumber;
 #if TRACK_ERRORS
         errors.badContents++; // XXX: should account as a duplicate
 #endif
@@ -600,7 +321,6 @@ static void inputPacket(void)
     // putchar('\n');
 
     errors.fine++;
-    currentPacketNumber = h->packetNumber;
     if (currentPacketNumber == PACKETS_IN_TEST) currentPacketNumber = -1;
     rssiSum += (uint8_t) ((int) packetbuf_attr(PACKETBUF_ATTR_RSSI) + 128);
     lqiSum += packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
@@ -631,50 +351,28 @@ static void handle_serial_input(const char *line)
     if (*line == '\0') return;
 
     if (!strcmp(line, "send")) {
-        // XXX always required for the GW server
         puts("command accepted");
         etimer_set(&periodic, READY_PRINT_INTERVAL);
 
-        // if (x-- == 0) {
-        //     watchdog_stop();
-        //     for (;;);
-        // }
-
-        if (IS_INITIATOR(node_id)) {
-            currentState = STATE_PREAMBLE_PREPARE;
-            numTestsInSenderRole = 0;
-
-            radio_set_channel(DEFAULT_CHANNEL);
-            //radio_set_txpower(DEFAULT_TXPOWER);
-
-            // do the selection here, as it may be time consuming
-            testChannel = selectNextChannel();
-
-            rtimer_set(&rt, RTIMER_NOW() + RTIMER_ARCH_SECOND, 1, rtimerCallback, NULL);
-        }
-	else 
-		printf("Error node is not initiator\n");
-
+	currentState = STATE_TX;
+	radio_set_channel(DEFAULT_CHANNEL);
+	rtimer_set(&rt, RTIMER_NOW() + RTIMER_ARCH_SECOND/10, 1, rtimerCallback, NULL);
     }
     else if (!strcmp(line, "recv") || !strcmp(line, "rec")) {
         // XXX always required for the GW server
         puts("command accepted");
-        numTestsInSenderRole = -1;
         radio_set_channel(DEFAULT_CHANNEL);
         //radio_set_txpower(DEFAULT_TXPOWER);
         etimer_set(&periodic, READY_PRINT_INTERVAL);
     }
-    else if (!strcmp(line, "schedule") || !strcmp(line, "sch")) {
-      int len = sizeof(SCHEDULE)/sizeof(SCHEDULE[0]);
-      uint8_t i;
-      puts("command accepted");
-      
-      for(i=0; i < len; i++)
-	printf("%-u %-u\n", i, SCHEDULE[i]);
-    }
     else if (!strcmp(line, "help") || !strcmp(line, "--help")) {
       puts("command accepted");
       print_help();
+    }
+    else if (!strcmp(line, "stats") || !strcmp(line, "stats")) {
+      puts("command accepted");
+      printStats();
+      clearErrors();
     }
 #ifdef CONTIKI_TARGET_AVR_RSS2
     else if (!strcmp(line, "upgr") || !strcmp(line, "upgrade")) {
