@@ -12,6 +12,7 @@
 #include "codec.h"
 #include "dev/leds.h"
 #include <stdlib.h>
+#include <string.h>
 #include "core/net/packetbuf.h"
 #include <avr/wdt.h>
 #include "rime/rime.h"
@@ -76,8 +77,9 @@ uint16_t lqiSum;
 
 // needed to link fastrandom.h
 uint32_t fastrandomKey;
-
 int8_t numTestsInSenderRole;
+
+const char *delim = " \t\r,";
 
 // -------------------------------------------------------------
 
@@ -346,42 +348,66 @@ RIME_SNIFFER(printSniffer, inputPacket, NULL);
 static void print_help(void)
 {
   printf("pdr-test: version=%s", VERSION);
-  printf("send -- start tx test\n");
-  printf("recv -- start rx test\n");
-  printf("upgr -- reboot via bootlaoder\n");
-  printf("stat -- run statistics\n");
-  printf("stat -- print stats\n");
-  printf("temp -- board temp\n");
-  printf("help -- print this menu\n");
+  printf("send         -- start tx test\n");
+  printf("recv         -- start rx test\n");
+  printf("upgr         -- reboot via bootlaoder\n");
+  printf("stat         -- run statistics\n");
+  printf("stat         -- print stats\n");
+  printf("chan [11-26] -- board temp\n");
+  printf("temp         -- board temp\n");
+  printf("help         -- print this menu\n");
+}
+
+uint8_t channel;
+
+static void cmd_chan(void)
+{
+  uint8_t tmp;
+  char *p = strtok(NULL, delim);
+  
+  if(p) {
+    tmp  =  atoi((char *) p);
+    if( tmp >= 11 && tmp <= 26) {
+      channel = tmp;
+      radio_set_channel(channel);
+    }
+    else 
+      printf("Invalid chan=%d\n", tmp);
+  }
+  printf("chan=%d\n", channel);
 }
 
 static void handle_serial_input(const char *line)
 {
-    printf("in: '%s'\n", line);
+     char *p;
+     //printf("in: '%s'\n", line);
+     p = strtok((char *)&line[0], (const char *) delim);
+  
+    if (!p) 
+      return;
 
-    if (*line == '\0') return;
-
-    if (!strcmp(line, "send")) {
+    if (!strcmp(p, "send")) {
         puts("command accepted");
         etimer_set(&periodic, READY_PRINT_INTERVAL);
-
 	currentState = STATE_TX;
 	sendPacketNumber = 0;
-	radio_set_channel(DEFAULT_CHANNEL);
 	rtimer_set(&rt, RTIMER_NOW() + RTIMER_ARCH_SECOND/10, 1, rtimerCallback, NULL);
     }
-    else if (!strcmp(line, "recv") || !strcmp(line, "rec")) {
+    else if (!strcmp(p, "recv") || !strcmp(line, "rec")) {
         // XXX always required for the GW server
         puts("command accepted");
-        radio_set_channel(DEFAULT_CHANNEL);
         //radio_set_txpower(DEFAULT_TXPOWER);
         etimer_set(&periodic, READY_PRINT_INTERVAL);
     }
-    else if (!strcmp(line, "help") || !strcmp(line, "--help")) {
+    else if (!strcmp(p, "chan") || !strcmp(line, "channel")) {
+        puts("command accepted");
+        cmd_chan();
+    }
+    else if (!strcmp(p, "help") || !strcmp(line, "--help")) {
       puts("command accepted");
       print_help();
     }
-    else if (!strcmp(line, "stat") || !strcmp(line, "stats")) {
+    else if (!strcmp(p, "stat") || !strcmp(line, "stats")) {
       puts("command accepted");
       printStats();
       clearErrors();
@@ -391,7 +417,7 @@ static void handle_serial_input(const char *line)
       printf("temp=%i\n", temp_sensor.value(0));
     }
 #ifdef CONTIKI_TARGET_AVR_RSS2
-    else if (!strcmp(line, "upgr") || !strcmp(line, "upgrade")) {
+    else if (!strcmp(p, "upgr") || !strcmp(line, "upgrade")) {
         puts("command accepted");
 	cli();
 	wdt_enable(WDTO_15MS);
@@ -406,6 +432,7 @@ print_pgm_info(void)
 {
   printf("pdr-test: version=%s", VERSION);
   printf(" Local node_id=%u\n", node_id);
+  printf(" temp=%i\n", temp_sensor.value(0));
 }
 
 AUTOSTART_PROCESSES(&controlProcess);
@@ -424,8 +451,9 @@ PROCESS_THREAD(controlProcess, ev, data)
     rf230_set_rpc(0x0); /* Disbable all RPC features */
     NETSTACK_RADIO.on();
 #endif
-    
-    radio_set_channel(DEFAULT_CHANNEL);
+
+    channel = DEFAULT_CHANNEL;
+    radio_set_channel(channel);
     //radio_set_txpower(TEST_TXPOWER);
 
     rime_sniffer_add(&printSniffer);
@@ -458,7 +486,6 @@ PROCESS_THREAD(controlProcess, ev, data)
             else if (ev == sensors_event && data == &button_sensor) {
                 puts("click accepted!");
                 currentState = STATE_PREAMBLE_PREPARE;
-                radio_set_channel(DEFAULT_CHANNEL);
 		//radio_set_txpower(DEFAULT_TXPOWER);
                 // do the selection here, as it may be time consuming
                 rtimer_set(&rt, RTIMER_NOW() + RTIMER_ARCH_SECOND, 1, rtimerCallback, NULL);
