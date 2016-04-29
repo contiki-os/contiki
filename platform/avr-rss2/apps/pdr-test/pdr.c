@@ -20,7 +20,7 @@
 #elif CONTIKI_TARGET_Z1
 #include "dev/tmp102.h"
 #elif CONTIKI_TARGET_AVR_RSS2
-#include "ds18b20.h" // for RS2
+#include "dev/temp-sensor.h"
 #endif
 
 #define DEBUG 0
@@ -36,10 +36,6 @@ PROCESS(controlProcess, "PDR test control process");
 #define MAX_NIBBLES ((TEST_PACKET_SIZE - HEADER_SIZE) * 2)
 
 #define READY_PRINT_INTERVAL (CLOCK_SECOND * 5)
-
-
-extern uint8_t  ds18b20_get_temp(int16_t *temperature);
-
 
 uint8_t packetsReceived[PACKETS_IN_TEST];
 uint8_t currentState;
@@ -131,7 +127,6 @@ void printStats(void)
   int16_t temp;
   int rssi;
   uint8_t lqi;
-  int res;
 
   if (stats.fine == 0) {
     rssi = 0;
@@ -143,10 +138,7 @@ void printStats(void)
   //    printfCrc("> %u %d %u %u %u",
   //    printfCrc("%u %u %d %u %u %u",
   
-  res = ds18b20_get_temp(&temp);
-  if (!res) {
-    temp= -9999;
-  }
+  temp = temp_sensor.value(0);
 
   printf("%u %u %d %u %u %u %i\n",
 	 stats.fine, stats.total, rssi, lqi,
@@ -219,6 +211,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
 
         if (h->packetNumber >= PACKETS_IN_TEST) {
 	  currentState = STATE_IDLE;
+	  printf("send done\n");
         }
 	else
 	  next += PACKET_SEND_INTERVAL;
@@ -350,13 +343,15 @@ RIME_SNIFFER(printSniffer, inputPacket, NULL);
 
 // -------------------------------------------------------------
 
-static print_help(void)
+static void print_help(void)
 {
   printf("pdr-test: version=%s", VERSION);
   printf("send -- start tx test\n");
   printf("recv -- start rx test\n");
   printf("upgr -- reboot via bootlaoder\n");
+  printf("stat -- run statistics\n");
   printf("stat -- print stats\n");
+  printf("temp -- board temp\n");
   printf("help -- print this menu\n");
 }
 
@@ -391,6 +386,10 @@ static void handle_serial_input(const char *line)
       printStats();
       clearErrors();
     }
+    else if (!strcmp(line, "temp") || !strcmp(line, "temperature")) {
+      puts("command accepted");
+      printf("temp=%i\n", temp_sensor.value(0));
+    }
 #ifdef CONTIKI_TARGET_AVR_RSS2
     else if (!strcmp(line, "upgr") || !strcmp(line, "upgrade")) {
         puts("command accepted");
@@ -406,10 +405,6 @@ static void handle_serial_input(const char *line)
 print_pgm_info(void)
 {
   printf("pdr-test: version=%s", VERSION);
-  printf("packet_send_interval=%-d", PACKET_SEND_INTERVAL);
-  printf(" preamble_send_interval=%-d", PREAMBLE_SEND_INTERVAL);
-  printf(" guard_time=%-d", GUARD_TIME);
-  printf(" pause_between_tests=%-d", PAUSE_BETWEEN_TESTS);
   printf(" Local node_id=%u\n", node_id);
 }
 
@@ -417,16 +412,10 @@ AUTOSTART_PROCESSES(&controlProcess);
 PROCESS_THREAD(controlProcess, ev, data)
 {
     PROCESS_BEGIN();
-
-    // XXX this is a fix because of invalid ID on a single node
-    if (node_id == 17) node_id = 54;
-
     print_pgm_info();
 
 #ifndef CONTIKI_TARGET_AVR_RSS2
-    // XXX: always disable the CCA checks
-    cc2420_without_send_cca = true;
-
+    SENSORS_ACTIVATE(temp_sensor);
     SENSORS_ACTIVATE(button_sensor);
 #endif
 
@@ -435,15 +424,13 @@ PROCESS_THREAD(controlProcess, ev, data)
     rf230_set_rpc(0x0); /* Disbable all RPC features */
     NETSTACK_RADIO.on();
 #endif
-
+    
     radio_set_channel(DEFAULT_CHANNEL);
     //radio_set_txpower(TEST_TXPOWER);
 
     rime_sniffer_add(&printSniffer);
 
     etimer_set(&periodic, CLOCK_SECOND);
-
-    //puts("ready to accept commands");
 
     for(;;) {
         PROCESS_WAIT_EVENT();
