@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- *  Driver for the Sensortag-CC26xx WinBond W25X20CL Flash
+ *  Driver for the LaunchPad Flash and the Sensortag WinBond W25X20CL/W25X40CL
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -72,8 +72,10 @@
 /* Part specific constants */
 #define BLS_DEVICE_ID_W25X20CL    0x11
 #define BLS_DEVICE_ID_W25X40CL    0x12
+#define BLS_DEVICE_ID_MX25R8035F  0x14
 
-#define BLS_MANUFACTURER_ID       0xEF
+#define BLS_WINBOND_MID           0xEF
+#define BLS_MACRONIX_MID          0xC2
 
 #define BLS_PROGRAM_PAGE_SIZE      256
 #define BLS_ERASE_SECTOR_SIZE     4096
@@ -156,7 +158,7 @@ static uint8_t
 verify_part(void)
 {
   const uint8_t wbuf[] = { BLS_CODE_MDID, 0xFF, 0xFF, 0x00 };
-  uint8_t rbuf[2] = {0, 0};
+  uint8_t rbuf[2] = { 0, 0 };
   bool ret;
 
   select_on_bus();
@@ -175,8 +177,9 @@ verify_part(void)
     return VERIFY_PART_ERROR;
   }
 
-  if(rbuf[0] != BLS_MANUFACTURER_ID ||
-     (rbuf[1] != BLS_DEVICE_ID_W25X20CL && rbuf[1] != BLS_DEVICE_ID_W25X40CL)) {
+  if((rbuf[0] != BLS_WINBOND_MID && rbuf[0] != BLS_MACRONIX_MID) ||
+     (rbuf[1] != BLS_DEVICE_ID_W25X20CL && rbuf[1] != BLS_DEVICE_ID_W25X40CL
+      && rbuf[1] != BLS_DEVICE_ID_MX25R8035F)) {
     return VERIFY_PART_POWERED_DOWN;
   }
   return VERIFY_PART_OK;

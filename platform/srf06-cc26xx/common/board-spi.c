@@ -33,7 +33,7 @@
  * @{
  *
  * \file
- * Board-specific SPI driver for the Sensortag-CC26xx
+ * Board-specific SPI driver common to the Sensortag and LaunchPad
  */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
@@ -120,7 +120,7 @@ board_spi_open(uint32_t bit_rate, uint32_t clk_pin)
   /* First, make sure the SERIAL PD is on */
   ti_lib_prcm_power_domain_on(PRCM_DOMAIN_SERIAL);
   while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_SERIAL)
-        != PRCM_DOMAIN_POWER_ON));
+         != PRCM_DOMAIN_POWER_ON));
 
   /* Enable clock in active mode */
   ti_lib_rom_prcm_peripheral_run_enable(PRCM_PERIPH_SSI0);

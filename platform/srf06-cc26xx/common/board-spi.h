@@ -29,88 +29,86 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-cc26xx-peripherals
+ * \addtogroup cc26xx-srf-tag
  * @{
  *
- * \defgroup sensortag-cc26xx-ext-flash SensorTag 2.0 External Flash
+ * \defgroup common-cc26xx-peripherals CC13xx/CC26xx peripheral driver pool
+ *
+ * Drivers for peripherals present on more than one CC13xx/CC26xx board. For
+ * example, the same external flash driver is used for both the part found on
+ * the Sensortag as well as the part on the LaunchPad.
+ *
+ * @{
+ *
+ * \defgroup sensortag-cc26xx-spi SensorTag/LaunchPad SPI functions
  * @{
  *
  * \file
- * Header file for the Sensortag-CC26xx External Flash Driver
+ * Header file for the Sensortag/LaunchPad SPI Driver
  */
 /*---------------------------------------------------------------------------*/
-#ifndef EXT_FLASH_H_
-#define EXT_FLASH_H_
+#ifndef BOARD_SPI_H_
+#define BOARD_SPI_H_
 /*---------------------------------------------------------------------------*/
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 /**
- * \brief Initialize storage driver.
- * \return True when successful.
- */
-bool ext_flash_open(void);
-
-/**
- * \brief Close the storage driver
+ * \brief Initialize the SPI interface
+ * \param bit_rate The bit rate to use
+ * \param clk_pin The IOID for the clock pin. This can be IOID_0 etc
+ * \return none
  *
- * This call will put the device in its lower power mode (power down).
+ * This function will make sure the peripheral is powered, clocked and
+ * initialised. A chain of calls to board_spi_read(), board_spi_write() and
+ * board_spi_flush() must be preceded by a call to this function. It is
+ * recommended to call board_spi_close() after such chain of calls.
  */
-void ext_flash_close(void);
+void board_spi_open(uint32_t bit_rate, uint32_t clk_pin);
 
 /**
- * \brief Read storage content
- * \param offset Address to read from
- * \param length Number of bytes to read
- * \param buf Buffer where to store the read bytes
+ * \brief Close the SPI interface
  * \return True when successful.
  *
- * buf must be allocated by the caller
+ * This function will stop clocks to the SSI module and will set MISO, MOSI
+ * and CLK to a low leakage state. It is recommended to call this function
+ * after a chain of calls to board_spi_read() and board_spi_write()
  */
-bool ext_flash_read(size_t offset, size_t length, uint8_t *buf);
+void board_spi_close(void);
 
 /**
- * \brief Erase storage sectors corresponding to the range.
- * \param offset Address to start erasing
- * \param length Number of bytes to erase
+ * \brief Clear data from the SPI interface
+ * \return none
+ */
+void board_spi_flush(void);
+
+/**
+ * \brief Read from an SPI device
+ * \param buf The buffer to store data
+ * \param length The number of bytes to read
  * \return True when successful.
  *
- * The erase operation will be sector-wise, therefore a call to this function
- * will generally start the erase procedure at an address lower than offset
+ * Calls to this function must be preceded by a call to board_spi_open(). It is
+ * recommended to call board_spi_close() at the end of an operation.
  */
-bool ext_flash_erase(size_t offset, size_t length);
+bool board_spi_read(uint8_t *buf, size_t length);
 
 /**
- * \brief Write to storage sectors.
- * \param offset Address to write to
- * \param length Number of bytes to write
- * \param buf Buffer holding the bytes to be written
- *
+ * \brief Write to an SPI device
+ * \param buf The buffer with the data to write
+ * \param length The number of bytes to write
  * \return True when successful.
- */
-bool ext_flash_write(size_t offset, size_t length, const uint8_t *buf);
-
-/**
- * \brief Test the flash (power on self-test)
- * \return True when successful.
- */
-bool ext_flash_test(void);
-
-/**
- * \brief Initialise the external flash
  *
- * This function will explicitly put the part in its lowest power mode
- * (power-down).
- *
- * In order to perform any operation, the caller must first wake the device
- * up by calling ext_flash_open()
+ * Calls to this function must be preceded by a call to board_spi_open(). It is
+ * recommended to call board_spi_close() at the end of an operation.
  */
-void ext_flash_init(void);
+bool board_spi_write(const uint8_t *buf, size_t length);
 /*---------------------------------------------------------------------------*/
-#endif /* EXT_FLASH_H_ */
+#endif /* BOARD_SPI_H_ */
 /*---------------------------------------------------------------------------*/
 /**
+ * @}
  * @}
  * @}
  */

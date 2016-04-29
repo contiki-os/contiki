@@ -44,6 +44,7 @@
  *   This example will work for the following boards:
  *   - srf06-cc26xx: SmartRF06EB + CC26XX EM
  *   - sensortag-cc26xx: CC26XX sensortag
+ *   - The CC2650 LaunchPad
  *
  *   By default, the example will build for the srf06-cc26xx board. To switch
  *   between platforms:
@@ -114,6 +115,10 @@
 #define CC26XX_DEMO_SENSOR_3     CC26XX_DEMO_SENSOR_NONE
 #define CC26XX_DEMO_SENSOR_4     CC26XX_DEMO_SENSOR_NONE
 #define CC26XX_DEMO_SENSOR_5     &reed_relay_sensor
+#elif BOARD_LAUNCHPAD
+#define CC26XX_DEMO_SENSOR_3     CC26XX_DEMO_SENSOR_NONE
+#define CC26XX_DEMO_SENSOR_4     CC26XX_DEMO_SENSOR_NONE
+#define CC26XX_DEMO_SENSOR_5     CC26XX_DEMO_SENSOR_NONE
 #else
 #define CC26XX_DEMO_SENSOR_3     &button_up_sensor
 #define CC26XX_DEMO_SENSOR_4     &button_down_sensor
@@ -423,7 +428,7 @@ PROCESS_THREAD(cc26xx_demo_process, ev, data)
         get_tmp_reading();
       } else if(ev == sensors_event && data == &mpu_9250_sensor) {
         get_mpu_reading();
-#else
+#elif BOARD_SMARTRF06EB
         printf("Sel: Pin %d, press duration %d clock ticks\n",
                button_select_sensor.value(BUTTON_SENSOR_VALUE_STATE),
                button_select_sensor.value(BUTTON_SENSOR_VALUE_DURATION));
