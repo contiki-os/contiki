@@ -1,6 +1,6 @@
 DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 
-all: mqtt-demo
+all: mqtt-relayr
 
 CONTIKI_TARGET_SOURCEFILES += sht25.c
 
