@@ -1100,7 +1100,7 @@ cfs_read(int fd, void *buf, unsigned size)
   file = fdp->file;
   
 #if COFFEE_IO_SEMANTICS
-  if(fdp->io_flags & CFS_COFFEE_IO_FIRM_SIZE) {
+  if(fdp->io_flags & CFS_COFFEE_IO_ENSURE_READ_LENGTH) {
     while(fdp->offset + size > file->end) {
       ((char*)buf)[--size] = 0;
     }
