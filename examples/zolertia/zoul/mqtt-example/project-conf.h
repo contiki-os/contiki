@@ -45,7 +45,13 @@
 #define MQTT_DEMO_PUBLISH_TRIGGER &button_right_sensor
 
 #define DEFAULT_ORG_ID            "mqtt-demo"
-#define MQTT_DEMO_BROKER_IP_ADDR  "2001:41d0:a:3a10::1" /* test.mosquitto.org */
+
+/*
+ * test.mosquitto.org
+ * IPv6 "2001:41d0:a:3a10::1"
+ * NAT64 address "::ffff:5577:53c2" (85.119.83.194)
+*/
+#define MQTT_DEMO_BROKER_IP_ADDR  "2001:41d0:a:3a10::1"
 /*---------------------------------------------------------------------------*/
 /* Default configuration values */
 #define DEFAULT_EVENT_TYPE_ID       "status"

@@ -35,6 +35,7 @@
 #include "ubidots.h"
 #include "dev/button-sensor.h"
 #include "dev/sht25.h"
+#include "ip64-addr.h"
 
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
@@ -100,12 +101,18 @@ print_reply(ubidots_reply_part_t *r)
 PROCESS_THREAD(ubidots_example_process, ev, data)
 {
   static struct etimer et;
+  uip_ip4addr_t ip4addr;
+  uip_ip6addr_t ip6addr;
 
   PROCESS_BEGIN();
 
   SENSORS_ACTIVATE(sht25);
 
   ubidots_init(&ubidots_example_process, headers);
+
+  uip_ipaddr(&ip4addr, 8, 8, 8, 8);
+  ip64_addr_4to6(&ip4addr, &ip6addr);
+  uip_nameserver_update(&ip6addr, UIP_NAMESERVER_INFINITE_LIFETIME);
 
   while(1) {
 

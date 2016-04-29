@@ -48,7 +48,10 @@
 #define VARKEY_HUMIDITY                  "570274ec76254271ba937188"
 #define UBIDOTS_CONF_IN_BUFFER_SIZE      64
 /*---------------------------------------------------------------------------*/
-#define UBIDOTS_CONF_REMOTE_HOST         "2607:f0d0:2101:39::2"
+/* IPv6 address of things.ubidots.com is "2607:f0d0:2101:39::2", leave
+ * commented to resolve the host name.  The NAT64 address is "::ffff:3217:7c44"
+ */
+#define UBIDOTS_CONF_REMOTE_HOST         "::ffff:3217:7c44"
 /*---------------------------------------------------------------------------*/
 #undef  NETSTACK_CONF_RADIO
 #define NETSTACK_CONF_RADIO              cc2538_rf_driver

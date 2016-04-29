@@ -89,11 +89,11 @@ static uint8_t state;
 #define STATE_CONFIG_ERROR         0xFE
 #define STATE_ERROR                0xFF
 /*---------------------------------------------------------------------------*/
-#define CONFIG_EVENT_TYPE_ID_LEN     36
+#define CONFIG_EVENT_TYPE_ID_LEN     40
 #define CONFIG_CMD_TYPE_LEN           8
 #define CONFIG_IP_ADDR_STR_LEN       64
-#define CONFIG_AUTH_TOKEN_LEN        32
-#define CONFIG_AUTH_USER_LEN         32
+#define CONFIG_AUTH_TOKEN_LEN        40
+#define CONFIG_AUTH_USER_LEN         40
 /*---------------------------------------------------------------------------*/
 #define PUBLISH_INTERVAL_MAX      86400 /* secs: 1 day */
 #define PUBLISH_INTERVAL_MIN          5 /* secs */
@@ -363,7 +363,6 @@ init_config()
 static void
 subscribe(void)
 {
-  /* Publish MQTT topic in IBM quickstart format */
   mqtt_status_t status;
 
   status = mqtt_subscribe(&conn, NULL, sub_topic, MQTT_QOS_LEVEL_0);
@@ -386,7 +385,8 @@ publish(void)
   buf_ptr = app_buffer;
 
   aux = sht25.value(SHT25_VAL_TEMP);
-  len = snprintf(buf_ptr, remaining, "{\"meaning\":\"temperature\", \"value\":\"%u\"}", aux);
+
+  len = snprintf(buf_ptr, remaining, "[{\"meaning\":\"temperature\", \"value\":\"%u\"}]", aux);
 
   if(len < 0 || len >= remaining) {
     printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);

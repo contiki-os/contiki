@@ -7,7 +7,11 @@ CONTIKI_TARGET_SOURCEFILES += sht25.c
 
 all: $(CONTIKI_PROJECT)
 
-WITH_IPV6 = 1
+# If using an IPv6 connection
+CONTIKI_WITH_IPV6 = 1
+
+# If using a NAT64 address
+# WITH_IP64 = 1
 
 CONTIKI = ../../../..
 

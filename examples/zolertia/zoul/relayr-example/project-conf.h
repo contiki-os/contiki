@@ -44,23 +44,25 @@
 #define MQTT_DEMO_STATUS_LED      LEDS_GREEN
 #define MQTT_DEMO_PUBLISH_TRIGGER &button_right_sensor
 
-/* "test.mosquitto.org" is "37.187.106.16", translated to
- * "0064:ff9b:0000:0000:0000:0000:25bb:6a10"
- */
-/* "mqtt.relayr.io" */
-#define MQTT_DEMO_BROKER_IP_ADDR  "0064:ff9b:0000:0000:0000:0000:b8ac:7cbd"
-
-
-
-
-
-
+/* Host "mqtt.relayr.io" with IP 54.171.127.130 */
+#define MQTT_DEMO_BROKER_IP_ADDR  "::ffff:36ab:7f82"
 /*---------------------------------------------------------------------------*/
 /* Default configuration values */
-#define DEFAULT_EVENT_TYPE_ID       "2826729f-d677-4425-88d6-78a62ae7061f" /* DEVICE ID same as MQTT USER */
+/*
+ * This are the values from relayr.io, note we are not using the MQTT_CLIENTID,
+ * but rather using the device's address
+ *
+ * DEVICE_ID "80fafe1a-2b52-46c6-bc20-6b154e2fe682"
+ * MQTT_USER "80fafe1a-2b52-46c6-bc20-6b154e2fe682"
+ * MQTT_PASSWORD "m9xyyT8YQhuG"
+ * MQTT_CLIENTID "TgPr+GitSRsa8IGsVTi/mgg"
+ * MQTT_TOPIC "/v1/80fafe1a-2b52-46c6-bc20-6b154e2fe682/"
+ * MQTT_SERVER "mqtt.relayr.io"
+*/
+#define DEFAULT_EVENT_TYPE_ID       "80fafe1a-2b52-46c6-bc20-6b154e2fe682" /* DEVICE ID same as MQTT USER */
 #define DEFAULT_SUBSCRIBE_CMD_TYPE  "leds"
-#define DEFAULT_AUTH_USER           "TKCZyn9Z3RCWI1nimKucGHw" /* CLIENT ID */
-#define DEFAULT_AUTH_TOKEN          "Ei316V-YqznM" /* PASSWORD */
+#define DEFAULT_AUTH_USER           DEFAULT_EVENT_TYPE_ID
+#define DEFAULT_AUTH_TOKEN          "m9xyyT8YQhuG" /* PASSWORD */
 #define DEFAULT_BROKER_PORT         1883
 #define DEFAULT_PUBLISH_INTERVAL    (45 * CLOCK_SECOND)
 #define DEFAULT_KEEP_ALIVE_TIMER    60
