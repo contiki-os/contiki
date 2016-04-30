@@ -353,7 +353,7 @@ static void print_help(void)
   printf("upgr         -- reboot via bootlaoder\n");
   printf("stat         -- run statistics\n");
   printf("stat         -- print stats\n");
-  printf("chan [11-26] -- board temp\n");
+  printf("chan [11-26] -- chan read/set\n");
   printf("temp         -- board temp\n");
   printf("help         -- print this menu\n");
 }
@@ -446,9 +446,9 @@ PROCESS_THREAD(controlProcess, ev, data)
     SENSORS_ACTIVATE(button_sensor);
 #endif
 
-#if 1
+#ifdef CONTIKI_TARGET_AVR_RSS2
     NETSTACK_RADIO.off();
-    rf230_set_rpc(0x0); /* Disbable all RPC features */
+    rf230_set_rpc(0x0); /* Disbable reduced power (RPC) features */
     NETSTACK_RADIO.on();
 #endif
 
