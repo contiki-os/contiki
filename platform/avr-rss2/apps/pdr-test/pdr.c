@@ -1,5 +1,5 @@
 // -*- mode: contiki-c-mode; c-basic-offset: 4; c-indent-level: 4 -*-
-#include "common.h"
+#include "pdr.h"
 #include "sys/process.h"
 #include "dev/serial-line.h"
 #include "dev/watchdog.h"
@@ -42,14 +42,17 @@ uint8_t packetsReceived[PACKETS_IN_TEST];
 uint8_t currentState;
 
 uint8_t sendPacketNumber;
+uint8_t channel;
+uint8_t target_id;
 
 struct rtimer rt;
 
 static struct etimer periodic;
 
 struct {
-    uint16_t source;
+    uint16_t node_id;
     uint8_t channel;
+    uint8_t target_id;
     uint16_t fine;
 #if TRACK_ERRORS
     uint16_t zeroLength; // usually signal errors at radio driver level
@@ -136,15 +139,16 @@ void printStats(void)
   } else {
     rssi = platformFixRssi(rssiSum / stats.fine);
     lqi = lqiSum / stats.fine;
-    }
-  //    printfCrc("> %u %d %u %u %u",
-  //    printfCrc("%u %u %d %u %u %u",
+  }
   
   temp = temp_sensor.value(0);
 
-  printf("%u %u %d %u %u %u %i\n",
-	 stats.fine, stats.total, rssi, lqi,
-	 stats.channel, stats.source, temp);
+  printf("%3u %5u %3d %5u %u %i ",
+	 target_id, node_id, stats.target_id, stats.node_id,  
+	 stats.channel, temp);
+
+  printf("%u %u %u %u\n",
+	 stats.fine, stats.total, rssi, lqi);
 
 #if DEBUG
     int i;
@@ -204,6 +208,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
 	sendPacketNumber++;
 	h->sender = node_id;
 	h->channel = radio_get_channel();
+	h->target_id = target_id;
         h->packetNumber = sendPacketNumber;
         h->crc = crc8(h, sizeof(*h) - 1);
 
@@ -327,13 +332,12 @@ static void inputPacket(void)
     rssiSum += (uint8_t) ((int) packetbuf_attr(PACKETBUF_ATTR_RSSI) + 128);
     lqiSum += packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
 
-    if (h->sender != stats.source) {
-      stats.source = h->sender;
-      printf("received from new sender %u\n", h->sender);
-    }
-    if (h->channel != stats.channel) {
+    /* sender is a "key" */
+    if (h->sender != stats.node_id) {
+      stats.node_id = h->sender;
+      stats.target_id = h->target_id;
       stats.channel = h->channel;
-      printf("received from new channel %u\n", h->channel);
+      printf("received from new sender %u\n", h->sender);
     }
 
 #if DEBUG || 1
@@ -348,19 +352,16 @@ RIME_SNIFFER(printSniffer, inputPacket, NULL);
 static void print_help(void)
 {
   printf("pdr-test: version=%s", VERSION);
-  printf("send         -- start tx test\n");
-  printf("recv         -- start rx test\n");
+  printf("tx [11-26]   -- send on chan\n");
+  printf("rx [11-26]   -- receive on chan\n");
   printf("upgr         -- reboot via bootlaoder\n");
-  printf("stat         -- run statistics\n");
-  printf("stat         -- print stats\n");
-  printf("chan [11-26] -- chan read/set\n");
-  printf("temp         -- board temp\n");
-  printf("help         -- print this menu\n");
+  printf("stat         -- report & clear stat\n");
+  printf("ch [11-26]   -- chan read/set\n");
+  printf("te           -- board temp\n");
+  printf("help         -- this menu\n");
 }
 
-uint8_t channel;
-
-static void cmd_chan(void)
+static int cmd_chan(uint8_t verbose)
 {
   uint8_t tmp;
   char *p = strtok(NULL, delim);
@@ -371,10 +372,14 @@ static void cmd_chan(void)
       channel = tmp;
       radio_set_channel(channel);
     }
-    else 
-      printf("Invalid chan=%d\n", tmp);
+    else {
+	printf("Invalid chan=%d\n", tmp);
+	return 0;
+    }
   }
-  printf("chan=%d\n", channel);
+  if(verbose) 
+    printf("chan=%d\n", channel);
+  return 1;
 }
 
 static void handle_serial_input(const char *line)
@@ -386,24 +391,33 @@ static void handle_serial_input(const char *line)
     if (!p) 
       return;
 
-    if (!strcmp(p, "send")) {
+    if (!strcmp(p, "tx") || !strcmp(line, "TX")) {
         puts("command accepted");
+        if( !cmd_chan(0))
+	  return;
+
         etimer_set(&periodic, READY_PRINT_INTERVAL);
 	currentState = STATE_TX;
 	sendPacketNumber = 0;
 	rtimer_set(&rt, RTIMER_NOW() + RTIMER_ARCH_SECOND/10, 1, rtimerCallback, NULL);
     }
-    else if (!strcmp(p, "recv") || !strcmp(line, "rec")) {
+    else if (!strcmp(p, "rx") || !strcmp(line, "RX")) {
         // XXX always required for the GW server
         puts("command accepted");
-        //radio_set_txpower(DEFAULT_TXPOWER);
+        if( !cmd_chan(0))
+	  return;
+
+	/* report before new run */
+	printStats();
+	clearErrors();
+
         etimer_set(&periodic, READY_PRINT_INTERVAL);
     }
-    else if (!strcmp(p, "chan") || !strcmp(line, "channel")) {
+    else if (!strcmp(p, "ch") || !strcmp(line, "chan")) {
         puts("command accepted");
-        cmd_chan();
+        cmd_chan(1);
     }
-    else if (!strcmp(p, "help") || !strcmp(line, "--help")) {
+    else if (!strcmp(p, "help") || !strcmp(line, "h")) {
       puts("command accepted");
       print_help();
     }
@@ -412,7 +426,7 @@ static void handle_serial_input(const char *line)
       printStats();
       clearErrors();
     }
-    else if (!strcmp(line, "temp") || !strcmp(line, "temperature")) {
+    else if (!strcmp(line, "te") || !strcmp(line, "temp")) {
       puts("command accepted");
       printf("temp=%i\n", temp_sensor.value(0));
     }
@@ -428,10 +442,11 @@ static void handle_serial_input(const char *line)
 
 //-------------------------------------------------------------
 
-print_pgm_info(void)
+static void print_pgm_info(void)
 {
   printf("pdr-test: version=%s", VERSION);
   printf(" Local node_id=%u\n", node_id);
+  printf(" target_id=%u\n", target_id);
   printf(" temp=%i\n", temp_sensor.value(0));
 }
 
@@ -439,12 +454,9 @@ AUTOSTART_PROCESSES(&controlProcess);
 PROCESS_THREAD(controlProcess, ev, data)
 {
     PROCESS_BEGIN();
-    print_pgm_info();
 
-#ifndef CONTIKI_TARGET_AVR_RSS2
     SENSORS_ACTIVATE(temp_sensor);
     SENSORS_ACTIVATE(button_sensor);
-#endif
 
 #ifdef CONTIKI_TARGET_AVR_RSS2
     NETSTACK_RADIO.off();
@@ -452,12 +464,13 @@ PROCESS_THREAD(controlProcess, ev, data)
     NETSTACK_RADIO.on();
 #endif
 
+    target_id = TARGET_ID;
     channel = DEFAULT_CHANNEL;
     radio_set_channel(channel);
     //radio_set_txpower(TEST_TXPOWER);
 
+    print_pgm_info();
     rime_sniffer_add(&printSniffer);
-
     etimer_set(&periodic, CLOCK_SECOND);
 
     for(;;) {
@@ -503,6 +516,5 @@ PROCESS_THREAD(controlProcess, ev, data)
             break;
         }
     }
-
     PROCESS_END();
 }
