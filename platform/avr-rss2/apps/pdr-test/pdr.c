@@ -43,7 +43,7 @@ uint8_t currentState;
 
 uint8_t sendPacketNumber;
 uint8_t channel;
-uint8_t target_id;
+uint8_t platform_id;
 
 struct rtimer rt;
 
@@ -52,7 +52,7 @@ static struct etimer periodic;
 struct {
     uint16_t node_id;
     uint8_t channel;
-    uint8_t target_id;
+    uint8_t platform_id;
     uint16_t fine;
 #if TRACK_ERRORS
     uint16_t zeroLength; // usually signal errors at radio driver level
@@ -144,7 +144,7 @@ void printStats(void)
   temp = temp_sensor.value(0);
 
   printf("%3u %5u %3d %5u %u %i ",
-	 target_id, node_id, stats.target_id, stats.node_id,  
+	 platform_id, node_id, stats.platform_id, stats.node_id,  
 	 stats.channel, temp);
 
   printf("%u %u %u %u\n",
@@ -208,7 +208,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
 	sendPacketNumber++;
 	h->sender = node_id;
 	h->channel = radio_get_channel();
-	h->target_id = target_id;
+	h->platform_id = platform_id;
         h->packetNumber = sendPacketNumber;
         h->crc = crc8(h, sizeof(*h) - 1);
 
@@ -335,7 +335,7 @@ static void inputPacket(void)
     /* sender is a "key" */
     if (h->sender != stats.node_id) {
       stats.node_id = h->sender;
-      stats.target_id = h->target_id;
+      stats.platform_id = h->platform_id;
       stats.channel = h->channel;
       printf("received from new sender %u\n", h->sender);
     }
@@ -446,7 +446,7 @@ static void print_pgm_info(void)
 {
   printf("pdr-test: version=%s", VERSION);
   printf(" Local node_id=%u\n", node_id);
-  printf(" target_id=%u\n", target_id);
+  printf(" platform_id=%u\n", platform_id);
   printf(" temp=%i\n", temp_sensor.value(0));
 }
 
@@ -464,7 +464,7 @@ PROCESS_THREAD(controlProcess, ev, data)
     NETSTACK_RADIO.on();
 #endif
 
-    target_id = TARGET_ID;
+    platform_id = PLATFORM_ID;
     channel = DEFAULT_CHANNEL;
     radio_set_channel(channel);
     //radio_set_txpower(TEST_TXPOWER);

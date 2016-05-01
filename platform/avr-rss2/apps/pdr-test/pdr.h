@@ -139,7 +139,7 @@ struct packetHeader {
     uint16_t sender;
     uint8_t packetNumber;
     uint8_t channel;
-    uint8_t target_id;
+    uint8_t platform_id;
     uint8_t crc;
 };
 
@@ -156,23 +156,26 @@ struct packetHeader {
 
 extern bool cc2420_without_send_cca;
 
+#ifdef CONTIKI_TARGET_NATIVE
+#define PLATFORM_ID  1
+#endif
+#ifdef CONTIKI_TARGET_COOJA
+#define PLATFORM_ID  2
+#endif
 #ifdef CONTIKI_TARGET_AVR_RSS2
-#define TARGET_ID  1
+#define PLATFORM_ID  3
 #endif
 #ifdef CONTIKI_TARGET_Z1
-#define TARGET_ID  2
-#endif
-#ifdef CONTIKI_TARGET_Z1
-#define TARGET_ID  3
+#define PLATFORM_ID  4
 #endif
 #ifdef CONTIKI_TARGET_SKY
-#define TARGET_ID  4
+#define PLATFORM_ID  5
 #endif
 #ifdef CONTIKI_TARGET_U108 
-#define TARGET_ID  5
+#define PLATFORM_ID  6
 #endif
 #ifdef CONTIKI_TARGET_U108DEV
-#define TARGET_ID  6
+#define PLATFORM_ID  7
 #endif
 
 // --------------------------------------------
