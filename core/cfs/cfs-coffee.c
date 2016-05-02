@@ -1098,9 +1098,20 @@ cfs_read(int fd, void *buf, unsigned size)
 
   fdp = &coffee_fd_set[fd];
   file = fdp->file;
-  if(fdp->offset + size > file->end) {
-    size = file->end - fdp->offset;
+  
+#if COFFEE_IO_SEMANTICS
+  if(fdp->io_flags & CFS_COFFEE_IO_ENSURE_READ_LENGTH) {
+    while(fdp->offset + size > file->end) {
+      ((char*)buf)[--size] = 0;
+    }
+  } else {
+#endif
+    if(fdp->offset + size > file->end) {
+      size = file->end - fdp->offset;
+    }
+#if COFFEE_IO_SEMANTICS
   }
+#endif
 
   /* If the file is not modified, read directly from the file extent. */
   if(!FILE_MODIFIED(file)) {
