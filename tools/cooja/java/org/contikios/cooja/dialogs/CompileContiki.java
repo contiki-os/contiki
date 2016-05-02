@@ -127,7 +127,7 @@ public class CompileContiki {
   	/* TODO Fix me */
     final MessageList messageDialog;
   	if (compilationOutput == null) {
-  		messageDialog = new MessageList();
+  		messageDialog = new MessageListUI();
   	} else {
   		messageDialog = compilationOutput;
   	}
@@ -138,8 +138,8 @@ public class CompileContiki {
       	cmd += c + " ";
       }
       logger.info("> " + cmd);
-      messageDialog.addMessage("", MessageList.NORMAL);
-      messageDialog.addMessage("> " + cmd, MessageList.NORMAL);
+      messageDialog.addMessage("", MessageListUI.NORMAL);
+      messageDialog.addMessage("> " + cmd, MessageListUI.NORMAL);
     }
 
     final Process compileProcess;
@@ -170,7 +170,7 @@ public class CompileContiki {
             String readLine;
             while ((readLine = processNormal.readLine()) != null) {
               if (messageDialog != null) {
-                messageDialog.addMessage(readLine, MessageList.NORMAL);
+                messageDialog.addMessage(readLine, MessageListUI.NORMAL);
               }
             }
           } catch (IOException e) {
@@ -203,7 +203,7 @@ public class CompileContiki {
             compileProcess.waitFor();
           } catch (Exception e) {
             messageDialog.addMessage(e.getMessage(), MessageList.ERROR);
-            syncException.setCompilationOutput(new MessageList());
+            syncException.setCompilationOutput(new MessageListUI());
             syncException.fillInStackTrace();
             return;
           }
@@ -214,7 +214,7 @@ public class CompileContiki {
             if (onFailure != null) {
               onFailure.actionPerformed(null);
             }
-            syncException.setCompilationOutput(new MessageList());
+            syncException.setCompilationOutput(new MessageListUI());
             syncException.fillInStackTrace();
             return;
           }
@@ -232,13 +232,13 @@ public class CompileContiki {
             if (onFailure != null) {
               onFailure.actionPerformed(null);
             }
-            syncException.setCompilationOutput(new MessageList());
+            syncException.setCompilationOutput(new MessageListUI());
             syncException.fillInStackTrace();
             return;
           }
 
-          messageDialog.addMessage("", MessageList.NORMAL);
-          messageDialog.addMessage("Compilation succeded", MessageList.NORMAL);
+          messageDialog.addMessage("", MessageListUI.NORMAL);
+          messageDialog.addMessage("Compilation succeded", MessageListUI.NORMAL);
           if (onSuccess != null) {
             onSuccess.actionPerformed(null);
           }
