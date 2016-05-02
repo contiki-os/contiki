@@ -64,6 +64,15 @@
 #define CFS_COFFEE_IO_FIRM_SIZE		0x2
 
 /**
+ * Instruct Coffee to set unused bytes in the destination buffer to zero.
+ * Trailing zeros may cause a wrong file size, this option ensures that
+ * the corresponding bytes get set, so Coffee does not read unexpected data.
+ *
+ * \sa cfs_coffee_set_io_semantics()
+ */
+#define CFS_COFFEE_IO_ENSURE_READ_LENGTH		0x4
+
+/**
  * \file
  *	Header for the Coffee file system.
  * \author
