@@ -353,12 +353,12 @@ static void print_help(void)
 {
   printf("pdr-test: version=%s", VERSION);
   printf("tx [11-26]   -- send on chan\n");
-  printf("rx [11-26]   -- receive on chan\n");
-  printf("upgr         -- reboot via bootlaoder\n");
-  printf("stat         -- report & clear stat\n");
+  printf("rx [11-26]   -- report/clr & receive on chan\n");
   printf("ch [11-26]   -- chan read/set\n");
+  printf("stat         -- report/clr\n");
   printf("te           -- board temp\n");
   printf("help         -- this menu\n");
+  printf("upgr         -- reboot via bootlaoder\n");
 }
 
 static int cmd_chan(uint8_t verbose)
@@ -442,7 +442,7 @@ static void handle_serial_input(const char *line)
 
 //-------------------------------------------------------------
 
-static void print_pgm_info(void)
+static void print_local_info(void)
 {
   printf("pdr-test: version=%s", VERSION);
   printf(" Local node_id=%u\n", node_id);
@@ -465,11 +465,12 @@ PROCESS_THREAD(controlProcess, ev, data)
 #endif
 
     platform_id = PLATFORM_ID;
+    print_local_info();
+
     channel = DEFAULT_CHANNEL;
     radio_set_channel(channel);
+    currentState = STATE_RX;
     //radio_set_txpower(TEST_TXPOWER);
-
-    print_pgm_info();
     rime_sniffer_add(&printSniffer);
     etimer_set(&periodic, CLOCK_SECOND);
 

@@ -1,5 +1,5 @@
-#ifndef PDRTEST_COMMON_H
-#define PDRTEST_COMMON_H
+#ifndef PDR_H
+#define PDR_H
 
 #define VERSION  "1.3-2016-05-02\n"
 
@@ -8,10 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define NUM_CHANNELS 16
-
 #define DEFAULT_CHANNEL  26
-//#define DEFAULT_CHANNEL  16
 
 #define TEST_TXPOWER RADIO_POWER_ZERO_DB
 #define DEFAULT_TXPOWER RADIO_POWER_ZERO_DB
@@ -25,7 +22,6 @@
 // application's user interface: fine-tuning
 
 #define TEST_PACKET_SIZE            (6 + 6 * 10)
-
 #define PACKETS_IN_TEST             100u
 
 // pattern with which to fill the test packet
@@ -35,20 +31,13 @@
 
 #define PATTERN_FILL  FILL_SEQUENTIAL
 
-#if 0
+#ifdef CONTIKI_TARGET_AVR_RSS2
+// Approximation for RSS2
+#define PACKET_SEND_INTERVAL        (RTIMER_ARCH_SECOND/128)
+#else
 // good for Z1 and sky
 #define PACKET_SEND_INTERVAL        (RTIMER_ARCH_SECOND/200) 
-#define PREAMBLE_SEND_INTERVAL      (RTIMER_ARCH_SECOND/512)
-#define GUARD_TIME                  (RTIMER_SECOND/512)
-#define PAUSE_BETWEEN_TESTS         (RTIMER_SECOND/32)
-#else
-// Approximation for RSSS2
-#define PACKET_SEND_INTERVAL        (RTIMER_ARCH_SECOND/64)
-#define PREAMBLE_SEND_INTERVAL      (RTIMER_ARCH_SECOND/128)
-#define GUARD_TIME                  (RTIMER_SECOND/512)
-#define PAUSE_BETWEEN_TESTS         (RTIMER_SECOND/32)
 #endif
-
 
 #if CONTIKI_TARGET_Z1 || CONTIKI_TARGET_SKY
 // Zolertia Z1 or Sky
@@ -68,7 +57,6 @@
 
 #elif CONTIKI_TARGET_U108 || CONTIKI_TARGET_U108DEV
 // U108
-
 // make OPENOCD_CFG=interface/neodb.cfg OPENOCD="sudo openocd" send.upload TARGET=u108dev
 
 #if CONTIKI_TARGET_U108
@@ -92,10 +80,10 @@
 #elif CONTIKI_TARGET_AVR_RSS2
 
 // To compile:
-// make recv.hex TARGET=avr-RSS2
+// make  TARGET=avr-RSS2
 
 // To upload:
-// $ avrdude -p m128rfa1 -c avr109 -P /dev/ttyUSB0 -b 38400 -e -U flash:w:control.avr-RSS2.hex
+// avrdude -p m256rfr2 -c stk500v2 -P /dev/ttyUSB0 -b 38400 -e -U flash:w:pdr.avr-rss2
 
 // Check that avrdude version is correct!
 
@@ -185,4 +173,4 @@ char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u
 
 #include "pattern.h"
 
-#endif
+#endif /* PDR_H */
