@@ -143,9 +143,9 @@ void printStats(void)
   
   temp = temp_sensor.value(0);
 
-  printf("%3u %5u %3d %5u %u %i ",
-	 platform_id, node_id, stats.platform_id, stats.node_id,  
-	 stats.channel, temp);
+  printf("%s %5u %s %5u %u %i ",
+	 platform_list[platform_id], node_id, platform_list[stats.platform_id], 
+	 stats.node_id,  stats.channel, temp);
 
   printf("%u %u %u %u\n",
 	 stats.fine, stats.total, rssi, lqi);
@@ -196,7 +196,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
     rtimer_clock_t next = RTIMER_TIME(t);
 
     switch (currentState) {
-    case STATE_IDLE:
+    case STATE_RX:
         return;
 
     case STATE_TX:
@@ -217,7 +217,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
         NETSTACK_RADIO.send(sendBuffer, TEST_PACKET_SIZE /*, 0*/);
 
         if (h->packetNumber >= PACKETS_IN_TEST) {
-	  currentState = STATE_IDLE;
+	  currentState = STATE_RX;
 	  printf("send done\n");
         }
 	else
@@ -479,40 +479,21 @@ PROCESS_THREAD(controlProcess, ev, data)
         //printf("event %u (%u) at %u, data %p\n", (uint16_t)ev, (uint16_t)serial_line_event_message, currentState, data);
 
         switch(currentState) {
-        case STATE_IDLE:
+        case STATE_RX:
             if (numTestsInSenderRole < 0) {
                 puts("ns=0");
             }
             numTestsInSenderRole = 0;
             if (etimer_expired(&periodic)) {
-	      //puts("ready to accept commands");
                 etimer_set(&periodic, READY_PRINT_INTERVAL);
             }
             if (ev == PROCESS_EVENT_POLL) {
-	      //puts("ready to accept commands");
                 etimer_set(&periodic, READY_PRINT_INTERVAL);
             }
 	    else if (ev == serial_line_event_message && data != NULL) {
                 handle_serial_input((const char *) data);
             }
-#ifndef CONTIKI_TARGET_AVR_RSS2
-            else if (ev == sensors_event && data == &button_sensor) {
-                puts("click accepted!");
-                currentState = STATE_PREAMBLE_PREPARE;
-		//radio_set_txpower(DEFAULT_TXPOWER);
-                // do the selection here, as it may be time consuming
-                rtimer_set(&rt, RTIMER_NOW() + RTIMER_ARCH_SECOND, 1, rtimerCallback, NULL);
-            }
-#endif
-            break;
-        case STATE_PREAMBLE_PREPARE:
-        case STATE_PREAMBLE_TX:
-            break;
-        case STATE_WAIT:
-            break;
         case STATE_TX:
-            break;
-        case STATE_RX:
             break;
         }
     }

@@ -1,7 +1,7 @@
 #ifndef PDRTEST_COMMON_H
 #define PDRTEST_COMMON_H
 
-#define VERSION  "1.1-2016-04-31\n"
+#define VERSION  "1.3-2016-05-02\n"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -147,15 +147,14 @@ struct packetHeader {
 
 // -------------------------------------------------------------
 
-#define STATE_IDLE         0
-#define STATE_PREAMBLE_PREPARE  1
-#define STATE_PREAMBLE_TX  2
-#define STATE_WAIT         3
-#define STATE_TX           4
-#define STATE_RX           5
+#define STATE_RX           0
+#define STATE_TX           1
 
 extern bool cc2420_without_send_cca;
 
+#ifdef CONTIKI_TARGET_NONE
+#define PLATFORM_ID  0
+#endif
 #ifdef CONTIKI_TARGET_NATIVE
 #define PLATFORM_ID  1
 #endif
@@ -177,6 +176,9 @@ extern bool cc2420_without_send_cca;
 #ifdef CONTIKI_TARGET_U108DEV
 #define PLATFORM_ID  7
 #endif
+
+char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108"};
+
 
 // --------------------------------------------
 // other generic includes
