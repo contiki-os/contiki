@@ -77,7 +77,7 @@ static struct timer mgt_timer;
 #if NETSTACK_CONF_WITH_IPV4
 #include "net/ip/uip.h"
 #include "net/ipv4/uip-fw.h"
-#include "net/uip-fw-drv.h"
+#include "net/ipv4/uip-fw-drv.h"
 #include "net/ipv4/uip-over-mesh.h"
 static struct uip_fw_netif slipif =
 { UIP_FW_NETIF(192, 168, 1, 2, 255, 255, 255, 255, slip_send) };
