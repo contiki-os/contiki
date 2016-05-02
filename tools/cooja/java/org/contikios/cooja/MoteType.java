@@ -37,6 +37,7 @@ import org.jdom.Element;
 
 import org.contikios.cooja.contikimote.ContikiMoteType;
 import org.contikios.cooja.dialogs.MessageList;
+import org.contikios.cooja.dialogs.MessageListUI;
 
 /**
  * The mote type defines properties common for several motes. These properties
