@@ -86,7 +86,7 @@ $(OBJECTDIR):
 clean:
 	-rm -f *~ *core core *.srec \
 	*.lst *.map \
-	*.cprg *.bin *.elf *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
+	*.cprg *.bin *.elf *.hex *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
 	*.ce *.co
 	rm -rf $(CLEAN)
 	-rm -rf $(OBJECTDIR)
