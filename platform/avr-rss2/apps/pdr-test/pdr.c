@@ -34,8 +34,6 @@
 
 PROCESS(controlProcess, "PDR test control process");
 
-#define MAX_NIBBLES ((TEST_PACKET_SIZE - HEADER_SIZE) * 2)
-
 #define READY_PRINT_INTERVAL (CLOCK_SECOND * 5)
 
 uint8_t packetsReceived[PACKETS_IN_TEST];
@@ -49,31 +47,9 @@ struct rtimer rt;
 
 static struct etimer periodic;
 
-struct {
-    uint16_t node_id;
-    uint8_t channel;
-    uint8_t platform_id;
-    uint16_t fine;
-#if TRACK_ERRORS
-    uint16_t zeroLength; // usually signal errors at radio driver level
-    uint16_t tooShort;
-    uint16_t tooLong;
-    uint16_t badHeader;
-    uint16_t badContents;
-    // // set only when badContents=false, but the PHY level reports a CRC error
-    uint16_t badPHYCrcGoodContents;
-#endif
-    uint16_t total;
-    // set by radio driver, not included in the total count
-    uint16_t phyCrcErrors;
+uint8_t currentRX = 0;;
 
-    // number of bad nibbles...
-    uint16_t numBadNibbles;
-    uint16_t badNibbles[MAX_NIBBLES];
-    uint16_t symbolErrors[MAX_NIBBLES];
-    uint16_t confusionMatrix[16 * 16];
-    uint32_t correctCounts[16];
-} stats;
+struct stats_info stats[NODES_IN_TEST];
 
 uint16_t rssiSum;
 uint16_t lqiSum;
@@ -127,28 +103,28 @@ void clearErrors(void)
     memset(&stats, 0, sizeof(stats));
  }
 
-void printStats(void)
+void printStats(struct stats_info *s)
 {
   int16_t temp;
   int rssi;
   uint8_t lqi;
 
-  if (stats.fine == 0) {
+  if (s->fine == 0) {
     rssi = 0;
     lqi = 0;
   } else {
-    rssi = platformFixRssi(rssiSum / stats.fine);
-    lqi = lqiSum / stats.fine;
+    rssi = platformFixRssi(rssiSum / s->fine);
+    lqi = lqiSum / s->fine;
   }
   
   temp = temp_sensor.value(0);
 
   printf("%s %5u %s %5u %u %i ",
-	 platform_list[platform_id], node_id, platform_list[stats.platform_id], 
-	 stats.node_id,  stats.channel, temp);
+	 platform_list[platform_id], node_id, platform_list[s->platform_id], 
+	 s->node_id,  s->channel, temp);
 
   printf("%u %u %u %u\n",
-	 stats.fine, stats.total, rssi, lqi);
+	 s->fine, s->total, rssi, lqi);
 
 #if DEBUG
     int i;
@@ -166,20 +142,20 @@ void printStats(void)
     puts("Error statistics:");
     //printfCrc(" %u total packets, %u/%u/%u length errors, %u/%u corrupt packets",
     printf(" %u total packets, %u/%u/%u length errors, %u/%u corrupt packets\n",
-            stats.fine + stats.zeroLength +
-            stats.tooShort + stats.tooLong +
-            stats.badHeader + stats.badContents +
-            stats.badPHYCrcGoodContents,
-            stats.zeroLength,
-            stats.tooShort, stats.tooLong,
-            stats.badHeader,
-            stats.badContents);
-    if (stats.phyCrcErrors) {
-      //printfCrc(" %u bad PHY CRC",  stats.phyCrcErrors);
-      printf(" %u bad PHY CRC\n",  stats.phyCrcErrors);
+            s->fine + s->zeroLength +
+            s->tooShort + s->tooLong +
+            s->badHeader + s->badContents +
+            s->badPHYCrcGoodContents,
+            s->zeroLength,
+            s->tooShort, s->tooLong,
+            s->badHeader,
+            s->badContents);
+    if (s->phyCrcErrors) {
+      //printfCrc(" %u bad PHY CRC",  s->phyCrcErrors);
+      printf(" %u bad PHY CRC\n",  s->phyCrcErrors);
     }
-    if (stats.badPHYCrcGoodContents) {
-      //printfCrc(" %u bad PHY CRC with corruption undetected", stats.badPHYCrcGoodContents);
+    if (s->badPHYCrcGoodContents) {
+      //printfCrc(" %u bad PHY CRC with corruption undetected", s->badPHYCrcGoodContents);
       printf(" %u bad PHY CRC with corruption undetected\n", stats.badPHYCrcGoodContents);
     }
 #endif
@@ -237,11 +213,14 @@ static void inputPacket(void)
 {
     void *data = packetbuf_hdrptr();
     struct packetHeader *h = (struct packetHeader *) data;
+    struct stats_info *s;
+
+    s = &stats[currentRX];
 
     uint8_t length = packetbuf_totlen();
 //    printf("input packet, length=%d\n", (int16_t) length);
 
-    stats.total++;
+    s->total++;
 
     if (length != TEST_PACKET_SIZE) {
 #if DEBUG
@@ -250,11 +229,11 @@ static void inputPacket(void)
 
 #if TRACK_ERRORS
 	if (length <= 2) 
-	  stats.zeroLength++;
+	  s->zeroLength++;
 	else if (length < expectedLength) 
-	  stats.tooShort++;
+	  s->tooShort++;
 	else
-	  stats.tooLong++;
+	  s->tooLong++;
 #endif
         return;
     }
@@ -264,7 +243,7 @@ static void inputPacket(void)
         puts("header crc bad!");
 #endif
 #if TRACK_ERRORS
-	stats.badHeader++;
+	s->badHeader++;
 #endif
         return;
     }
@@ -275,9 +254,9 @@ static void inputPacket(void)
             h->packetNumber,
             HEADER_SIZE,
 #if TRACK_ERRORS
-            stats.symbolErrors,
-            stats.confusionMatrix,
-            stats.correctCounts
+            s->symbolErrors,
+            s->confusionMatrix,
+            s->correctCounts
 #else
             NULL, NULL, NULL
 #endif
@@ -291,12 +270,12 @@ static void inputPacket(void)
 #endif
 
 #if TRACK_ERRORS
-        stats.badContents++;
-        stats.numBadNibbles += numNibbleErrors;
+        s->badContents++;
+        s->numBadNibbles += numNibbleErrors;
         if (numNibbleErrors > MAX_NIBBLES) {
             printf("numNibbleErrors > MAX_NIBBLES\n");
         }
-        stats.badNibbles[numNibbleErrors - 1]++;
+        s->badNibbles[numNibbleErrors - 1]++;
 #endif
         return;
     }
@@ -306,7 +285,7 @@ static void inputPacket(void)
 #endif
         // debugHexdump(packetbuf_hdrptr(), TEST_PACKET_SIZE);
 #if TRACK_ERRORS
-        stats.badPHYCrcGoodContents++;
+        s->badPHYCrcGoodContents++;
 #endif
         return;
     }
@@ -315,7 +294,7 @@ static void inputPacket(void)
         // whoops. all integrity checks succeeded, but the packet is obviously in error.
         printf("rx a packet with invalid number (%d)\n", h->packetNumber);
 #if TRACK_ERRORS
-        stats.badHeader++;
+        s->badHeader++;
 #endif
         return;
     }
@@ -328,15 +307,15 @@ static void inputPacket(void)
     // putchar(to_hex(h->packetNumber & 0xf));
     // putchar('\n');
 
-    stats.fine++;
+    s->fine++;
     rssiSum += (uint8_t) ((int) packetbuf_attr(PACKETBUF_ATTR_RSSI) + 128);
     lqiSum += packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
 
     /* sender is a "key" */
-    if (h->sender != stats.node_id) {
-      stats.node_id = h->sender;
-      stats.platform_id = h->platform_id;
-      stats.channel = h->channel;
+    if (h->sender != s->node_id) {
+      s->node_id = h->sender;
+      s->platform_id = h->platform_id;
+      s->channel = h->channel;
       printf("received from new sender %u\n", h->sender);
     }
 
@@ -353,7 +332,7 @@ static void print_help(void)
 {
   printf("pdr-test: version=%s", VERSION);
   printf("tx [11-26]   -- send on chan\n");
-  printf("rx [11-26]   -- report/clr & receive on chan\n");
+  printf("rx [11-26]   -- receive on chan\n");
   printf("ch [11-26]   -- chan read/set\n");
   printf("stat         -- report/clr\n");
   printf("te           -- board temp\n");
@@ -385,6 +364,7 @@ static int cmd_chan(uint8_t verbose)
 static void handle_serial_input(const char *line)
 {
      char *p;
+     int i;
      //printf("in: '%s'\n", line);
      p = strtok((char *)&line[0], (const char *) delim);
   
@@ -407,9 +387,10 @@ static void handle_serial_input(const char *line)
         if( !cmd_chan(0))
 	  return;
 
-	/* report before new run */
-	printStats();
-	clearErrors();
+	if(currentRX < NODES_IN_TEST)
+	  currentRX++;
+	else
+	  printf("Error to many nodes. Max=%d\n", NODES_IN_TEST);
 
         etimer_set(&periodic, READY_PRINT_INTERVAL);
     }
@@ -423,8 +404,10 @@ static void handle_serial_input(const char *line)
     }
     else if (!strcmp(p, "stat") || !strcmp(line, "stats")) {
       puts("command accepted");
-      printStats();
+      for(i=0; i < currentRX; i++) 
+      printStats(&stats[i]);
       clearErrors();
+      currentRX = 0;
     }
     else if (!strcmp(line, "te") || !strcmp(line, "temp")) {
       puts("command accepted");
@@ -470,6 +453,7 @@ PROCESS_THREAD(controlProcess, ev, data)
     channel = DEFAULT_CHANNEL;
     radio_set_channel(channel);
     currentState = STATE_RX;
+    currentRX = 0;
     //radio_set_txpower(TEST_TXPOWER);
     rime_sniffer_add(&printSniffer);
     etimer_set(&periodic, CLOCK_SECOND);

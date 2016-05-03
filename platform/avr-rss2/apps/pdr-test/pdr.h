@@ -1,14 +1,14 @@
 #ifndef PDR_H
 #define PDR_H
 
-#define VERSION  "1.3-2016-05-02\n"
+#define VERSION  "1.4-2016-05-03\n"
 
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
-#define DEFAULT_CHANNEL  26
+#define DEFAULT_CHANNEL  11
 
 #define TEST_TXPOWER RADIO_POWER_ZERO_DB
 #define DEFAULT_TXPOWER RADIO_POWER_ZERO_DB
@@ -18,9 +18,7 @@
 // test ID (useful e.g. in case of multiple motes having simultaneous tests)
 #define TEST_ID 0x1
 
-// --------------------------------------------
-// application's user interface: fine-tuning
-
+#define NODES_IN_TEST               8  // Max Nodes
 #define TEST_PACKET_SIZE            (6 + 6 * 10)
 #define PACKETS_IN_TEST             100u
 
@@ -132,6 +130,33 @@ struct packetHeader {
 };
 
 #define HEADER_SIZE  sizeof(struct packetHeader)
+#define MAX_NIBBLES ((TEST_PACKET_SIZE - HEADER_SIZE) * 2)
+
+struct stats_info {
+    uint16_t node_id;
+    uint8_t channel;
+    uint8_t platform_id;
+    uint16_t fine;
+#if TRACK_ERRORS
+    uint16_t zeroLength; // usually signal errors at radio driver level
+    uint16_t tooShort;
+    uint16_t tooLong;
+    uint16_t badHeader;
+    uint16_t badContents;
+    // // set only when badContents=false, but the PHY level reports a CRC error
+    uint16_t badPHYCrcGoodContents;
+#endif
+    uint16_t total;
+    // set by radio driver, not included in the total count
+    uint16_t phyCrcErrors;
+
+    // number of bad nibbles...
+    uint16_t numBadNibbles;
+    uint16_t badNibbles[MAX_NIBBLES];
+    uint16_t symbolErrors[MAX_NIBBLES];
+    uint16_t confusionMatrix[16 * 16];
+    uint32_t correctCounts[16];
+};
 
 // -------------------------------------------------------------
 
@@ -166,10 +191,6 @@ extern bool cc2420_without_send_cca;
 #endif
 
 char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108"};
-
-
-// --------------------------------------------
-// other generic includes
 
 #include "pattern.h"
 
