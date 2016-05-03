@@ -1,7 +1,7 @@
 {
     "httpPort" : 12100,
     "serialPort" : "/dev/ttyUSB0",
-    "moteSerialID" : "FTF66ZCO",
+    "moteSerialID" : "49617",
     "serialBaudrate" : 38400,
     "moteAddress" : "0.0",
     "moteType" : "avr-rss2",
