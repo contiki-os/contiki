@@ -1412,7 +1412,7 @@ PROCESS_THREAD(rf230_process, ev, data)
       putchar(0x01);
       /* Print CMD == frame */
       putchar(0x00);
-      putchar(len+3);
+      putchar(len);
 
       for (i=0;i<len;i++)  putchar(rxdata[i]);
       printf("\n");
