@@ -9,10 +9,11 @@ The idea behind this OTA mechanism is that the cc26xx always boots to the bootlo
 
 For this example, we consider only the bootloader and a single example OTA image.
 
-Binary | Starting Position in EEPROM (bytes) | Space Allotted
+Description | Starting Position in EEPROM (bytes) | Space Allotted
 --- | --- | ---
-bootloader.bin | 0x00000000 | 0x00001000
-ota-image-example.bin | 0x00001000 | 0x0001EF50
+bootloader | 0x00000000 | 0x00001000
+ota-image-example | 0x00001000 | 0x0001EFA8
+ccfg (bootloader) | 0x0001FFA8 | 0x58
 
 > NB: 0x1000 = 1 flash sector (4096 bytes)
 
@@ -29,11 +30,13 @@ The core idea behind branching code execution to a different firmware image is t
 0x1004 is the start address of the target image 0x1000 + 0x4 bytes to get to the RESET vector.
 
 # What Should Happen?
-If this example functions properly, we should see the CC26XX boot up into the Vector table and bootloader located at 0x0000.  The bootloader should then initialize the GPIO system, illuminate an LED, and then jump to the OTA image located at 0x1000.
+If this example functions properly, we should see:
 
-*If* the OTA image begins executing, the CC26XX should then start strobing its LED at a frequency of 1Hz.
+1.  CC26XX boots up into the Vector table and bootloader located at 0x0000.
+1.  Bootloader should then initialize the GPIO system, illuminate an LED, and then jump to the OTA image located at 0x1000.
+1.  *If* the OTA image begins executing, the CC26XX should then start strobing its LED at a frequency of 1Hz.
 
-So far, the bootloader functions, but the OTA image does not begin executing.
+So far, the bootloader boots, configures GPIO, but the OTA image does not begin executing.
 
 # Get Started
 
