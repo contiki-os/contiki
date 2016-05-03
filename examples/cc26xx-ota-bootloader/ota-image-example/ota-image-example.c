@@ -12,12 +12,12 @@
 #include <string.h>
 #include "contiki.h"
 #include "contiki-lib.h"
+#include "ti-lib.h"
 #include "gpio.h"
 #include "sys/ctimer.h"
 #include "sys/timer.h"
 
-#define GPIO_CONFIG(PIN, CFG, GPIO_DIR_MODE) 	ti_lib_gpio_event_clear(1 << PIN); \
-																							ti_lib_ioc_port_configure_set(PIN, IOC_PORT_GPIO, CFG); \
+#define GPIO_CONFIG(PIN, CFG, GPIO_DIR_MODE)  ti_lib_ioc_port_configure_set(PIN, IOC_PORT_GPIO, CFG); \
 																							ti_lib_gpio_dir_mode_set((1 << PIN), GPIO_DIR_MODE)
 
 
