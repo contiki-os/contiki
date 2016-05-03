@@ -2,8 +2,23 @@ This is an attempt to create a Cortex-M3 bootloader that can jump to Contiki fir
 
 We have in one folder the `bootloader`, and in the other an example firmware image for testing (`ota-image-example`).
 
+# Dependencies
+Tools used to compile this FW
+
+```bash
+# srecord will allow us to easily merge binaries
+sudo add-apt-repository ppa:pmiller-opensource/ppa
+
+# cc26xx requires a specific gcc-arm compiler
+sudo apt-get remove binutils-arm-none-eabi gcc-arm-none-eabi
+ppa:terry.guo/gcc-arm-embedded
+
+sudo apt-get update
+sudo apt-get install srecord gcc-arm-none-eabi
+```
+
 # Clone Code
-At this step, it is critical to pull in the GIT submodules which contain TI's RTOS drivers.
+It is critical to pull in the GIT submodules which contain TI's RTOS drivers.
 
 ```bash
   git clone https://github.com/msolters/contiki
@@ -13,13 +28,13 @@ At this step, it is critical to pull in the GIT submodules which contain TI's RT
 # Build Bootloader
 ```
   cd bootloader
-  make
+  make bootloader.hex
 ```
 
 # Build "target" OTA image
 ```
   cd ota-image-example
-  make
+  make 
 ```
 
 # Merging Binaries
