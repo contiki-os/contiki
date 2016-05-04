@@ -1,8 +1,9 @@
 TARGET=srf06-cc26xx
-BOARD=sensortag/cc2650
+#BOARD=sensortag/cc2650
+BOARD=srf06/cc26xx
 
 CONTIKI = ../../..
-OTA=1
+OTA=0
 include $(CONTIKI)/Makefile.include
 
 clean:

@@ -1,11 +1,11 @@
 # Cortex-M3 OTA Example
 
-This is an attempt to create a Cortex-M3 bootloader that can jump to (Contiki) firmware binaries located elsewhere in the internal EEPROM.  Motivation is that binaries may come OTA to be stored at a later date.  Assumed system is a Texas Instruments CC2650 Sensortag.
+This is an attempt to create a Cortex-M3 bootloader that can jump to (Contiki) firmware binaries located elsewhere in the internal EEPROM.  Motivation is that binaries may come OTA to be stored at a later date.  Assumed system is a Texas Instruments CC2650 (srf06/cc26xx SmartRF Evaluation Board).
 
 We have in one folder the `bootloader`, and in the other an example firmware image for testing (`ota-image-example`).
 
 # Overview & MMap
-The idea behind this OTA mechanism is that the cc26xx always boots to the bootloader located at the origin of the EEPROM (`0x0000`).  It is the bootloader's purpose to locate and verify other firmware images (herein referred to as OTA images) stored in the flash, and then to branch processor execution to the most recent valid image.
+The idea behind this OTA mechanism is that the cc26xx always boots to the bootloader located at the origin of the EEPROM (`0x0000`).  It is the bootloader's purpose to locate and verify other firmware images (herein referred to as OTA images) stored in the flash, and then to branch processor execution to the (most recent) valid image.
 
 For this example, we consider only the bootloader and a single example OTA image.
 
@@ -17,8 +17,8 @@ ccfg (bootloader) | 0x0001FFA8 | 0x58
 
 > NB: 0x1000 = 1 flash sector (4096 bytes)
 
-*  Each of these binaries is statically linked with the Starting Position of each pre-determined and baked into the linker script.  E.G. `ota-image-example` has the flash origin set to `0x1000` in its linker file.
-*  Each binary also has its own Vector table placed at the very start of each image.  This seems to be the method recommended by TI's OAD literature.
+*  Each of the binaries is statically linked with the starting position of each pre-determined and baked into the linker script.  E.G. `ota-image-example` has the flash origin set to `0x1000` in its linker file.
+*  Each binary also has its *own* Vector table placed at the very start of each image.  This seems to be the method recommended by TI's OAD literature.
 
 The core idea behind branching code execution to a different firmware image is to branch to the RESET vector in the target image's Vector table:
 
