@@ -38,16 +38,13 @@ PROCESS(controlProcess, "PDR test control process");
 
 uint8_t packetsReceived[PACKETS_IN_TEST];
 uint8_t currentState;
-
+uint8_t currentRX = 0;;
 uint8_t sendPacketNumber;
 uint8_t channel;
 uint8_t platform_id;
 
 struct rtimer rt;
-
 static struct etimer periodic;
-
-uint8_t currentRX = 0;;
 
 struct stats_info stats[NODES_IN_TEST];
 
@@ -218,9 +215,11 @@ static void inputPacket(void)
     s = &stats[currentRX];
 
     uint8_t length = packetbuf_totlen();
-//    printf("input packet, length=%d\n", (int16_t) length);
 
     s->total++;
+
+    //printf("input packet, length=%d\n", (int16_t) length);
+    //printf("currentRX=%d\n", currentRX);
 
     if (length != TEST_PACKET_SIZE) {
 #if DEBUG
@@ -372,7 +371,6 @@ static void handle_serial_input(const char *line)
       return;
 
     if (!strcmp(p, "tx") || !strcmp(line, "TX")) {
-        puts("command accepted");
         if( !cmd_chan(0))
 	  return;
 
@@ -383,7 +381,6 @@ static void handle_serial_input(const char *line)
     }
     else if (!strcmp(p, "rx") || !strcmp(line, "RX")) {
         // XXX always required for the GW server
-        puts("command accepted");
         if( !cmd_chan(0))
 	  return;
 
@@ -395,32 +392,28 @@ static void handle_serial_input(const char *line)
         etimer_set(&periodic, READY_PRINT_INTERVAL);
     }
     else if (!strcmp(p, "ch") || !strcmp(line, "chan")) {
-        puts("command accepted");
         cmd_chan(1);
     }
     else if (!strcmp(p, "help") || !strcmp(line, "h")) {
-      puts("command accepted");
       print_help();
     }
     else if (!strcmp(p, "stat") || !strcmp(line, "stats")) {
-      puts("command accepted");
-      for(i=0; i < currentRX; i++) 
+      for(i=0; i < currentRX+1; i++) 
       printStats(&stats[i]);
       clearErrors();
       currentRX = 0;
     }
     else if (!strcmp(line, "te") || !strcmp(line, "temp")) {
-      puts("command accepted");
       printf("temp=%i\n", temp_sensor.value(0));
     }
 #ifdef CONTIKI_TARGET_AVR_RSS2
     else if (!strcmp(p, "upgr") || !strcmp(line, "upgrade")) {
-        puts("command accepted");
 	cli();
 	wdt_enable(WDTO_15MS);
 	while(1);
     }
 #endif
+    else printf("Illegal command '%s'\n", line);
 }
 
 //-------------------------------------------------------------
@@ -428,6 +421,7 @@ static void handle_serial_input(const char *line)
 static void print_local_info(void)
 {
   printf("pdr-test: version=%s", VERSION);
+  printf(" Max nodes_in_test=%d\n", NODES_IN_TEST);
   printf(" Local node_id=%u\n", node_id);
   printf(" platform_id=%u\n", platform_id);
   printf(" temp=%i\n", temp_sensor.value(0));

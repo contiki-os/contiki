@@ -1,7 +1,7 @@
 #ifndef PDR_H
 #define PDR_H
 
-#define VERSION  "1.4-2016-05-03\n"
+#define VERSION  "1.5-2016-05-04\n"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -18,7 +18,7 @@
 // test ID (useful e.g. in case of multiple motes having simultaneous tests)
 #define TEST_ID 0x1
 
-#define NODES_IN_TEST               8  // Max Nodes
+#define NODES_IN_TEST               16  // Max Nodes
 #define TEST_PACKET_SIZE            (6 + 6 * 10)
 #define PACKETS_IN_TEST             100u
 
