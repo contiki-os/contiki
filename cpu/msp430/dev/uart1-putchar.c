@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "dev/uart1.h"
 
 #if !NETSTACK_CONF_WITH_IPV4
