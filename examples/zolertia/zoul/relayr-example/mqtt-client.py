@@ -5,9 +5,10 @@
 import paho.mqtt.client as mqtt
 
 MQTT_URL         = "mqtt.relayr.io"
-MQTT_TOPIC_EVENT = "/v1/80fafe1a-2b52-46c6-bc20-6b154e2fe682"
-MQTT_USERID      = "80fafe1a-2b52-46c6-bc20-6b154e2fe682"
-MQTT_PASSWD      = "m9xyyT8YQhuG"
+MQTT_USERID      = ""
+MQTT_PASSWD      = ""
+
+MQTT_TOPIC_EVENT = "/v1/" + MQTT_USERID
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))

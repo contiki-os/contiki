@@ -42,6 +42,8 @@
 #include "dev/leds.h"
 #include "ip64-addr.h"
 #include "dev/sht25.h"
+#include "net/ip/uip-debug.h"
+#include "dev/sys-ctrl.h"
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 /*
@@ -72,8 +74,18 @@ static const char *broker_ip = MQTT_DEMO_BROKER_IP_ADDR;
  */
 #define RECONNECT_ATTEMPTS         RETRY_FOREVER
 #define CONNECTION_STABLE_TIME     (CLOCK_SECOND * 5)
+
+/*
+ * Sensor and device data publication interval
+ */
+#define DEFAULT_PUBLISH_TIME          (DEFAULT_PUBLISH_INTERVAL * CLOCK_SECOND)
+#define DEFAULT_KEEP_ALIVE_TIMER      ((DEFAULT_PUBLISH_INTERVAL * 3)/2)
+/*---------------------------------------------------------------------------*/
+/* Payload length of ICMPv6 echo requests used to measure RSSI with def rt */
+#define ECHO_REQ_PAYLOAD_LEN   20
 /*---------------------------------------------------------------------------*/
 static struct timer connection_life;
+static struct etimer alarm_expired;
 static uint8_t connect_attempt;
 /*---------------------------------------------------------------------------*/
 /* Various states */
@@ -89,18 +101,11 @@ static uint8_t state;
 #define STATE_CONFIG_ERROR         0xFE
 #define STATE_ERROR                0xFF
 /*---------------------------------------------------------------------------*/
-#define CONFIG_EVENT_TYPE_ID_LEN     40
-#define CONFIG_CMD_TYPE_LEN           8
-#define CONFIG_IP_ADDR_STR_LEN       64
-#define CONFIG_AUTH_TOKEN_LEN        40
-#define CONFIG_AUTH_USER_LEN         40
-/*---------------------------------------------------------------------------*/
-#define PUBLISH_INTERVAL_MAX      86400 /* secs: 1 day */
-#define PUBLISH_INTERVAL_MIN          5 /* secs */
-/*---------------------------------------------------------------------------*/
 /* A timeout used when waiting to connect to a network */
 #define NET_CONNECT_PERIODIC        (CLOCK_SECOND >> 2)
 #define NO_NET_LED_DURATION         (NET_CONNECT_PERIODIC >> 1)
+/*---------------------------------------------------------------------------*/
+static uint8_t sensors_status = DEFAULT_SENSOR_STATE;
 /*---------------------------------------------------------------------------*/
 PROCESS_NAME(mqtt_demo_process);
 AUTOSTART_PROCESSES(&mqtt_demo_process);
@@ -109,28 +114,31 @@ AUTOSTART_PROCESSES(&mqtt_demo_process);
  * \brief Data structure declaration for the MQTT client configuration
  */
 typedef struct mqtt_client_config {
-  char event_type_id[CONFIG_EVENT_TYPE_ID_LEN];
-  char broker_ip[CONFIG_IP_ADDR_STR_LEN];
-  char cmd_type[CONFIG_CMD_TYPE_LEN];
+  /* MQTT user strings */
   char auth_token[CONFIG_AUTH_TOKEN_LEN];
   char auth_user[CONFIG_AUTH_USER_LEN];
+  char broker_ip[CONFIG_IP_ADDR_STR_LEN];
   clock_time_t pub_interval;
+  uint16_t pub_interval_check;
   uint16_t broker_port;
 } mqtt_client_config_t;
+/*---------------------------------------------------------------------------*/
+static uint16_t temp_threshold = DEFAULT_TEMP_THRESH;
+static uint16_t humd_threshold = DEFAULT_HUMD_THRESH;
 /*---------------------------------------------------------------------------*/
 /* Maximum TCP segment size for outgoing segments of our socket */
 #define MAX_TCP_SEGMENT_SIZE    32
 /*---------------------------------------------------------------------------*/
-#define STATUS_LED LEDS_GREEN
-/*---------------------------------------------------------------------------*/
 /*
- * Buffers for Client ID and Topic.
+ * Buffers for ID and tokens
  * Make sure they are large enough to hold the entire respective string
  */
-#define BUFFER_SIZE 64
-static char client_id[BUFFER_SIZE];
-static char pub_topic[BUFFER_SIZE];
-static char sub_topic[BUFFER_SIZE];
+static char client_id[CONFIG_IP_ADDR_STR_LEN];
+static char *pub_topic = DEFAULT_PUBLISH_EVENT;
+static char *cfg_topic = DEFAULT_SUBSCRIBE_CFG;
+static char *cmd_topic = DEFAULT_SUBSCRIBE_CMD;
+
+
 /*---------------------------------------------------------------------------*/
 /*
  * The main MQTT buffers.
@@ -146,11 +154,17 @@ static struct ctimer ct;
 static char *buf_ptr;
 static uint16_t seq_nr_value = 0;
 /*---------------------------------------------------------------------------*/
+/* Parent RSSI functionality */
+static struct uip_icmp6_echo_reply_notification echo_reply_notification;
+static int def_rt_rssi = 0;
+/*---------------------------------------------------------------------------*/
+/* Holds the MQTT configuration */
 static mqtt_client_config_t conf;
 /*---------------------------------------------------------------------------*/
-PROCESS(mqtt_demo_process, "MQTT Demo");
+PROCESS(mqtt_demo_process, "Relayr MQTT App");
 /*---------------------------------------------------------------------------*/
-int
+/* Converts the IPv6 address to string */
+static int
 ipaddr_sprintf(char *buf, uint8_t buf_len, const uip_ipaddr_t *addr)
 {
   uint16_t a;
@@ -176,33 +190,202 @@ ipaddr_sprintf(char *buf, uint8_t buf_len, const uip_ipaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 static void
+ipaddr_ownaddr(char *buf)
+{
+  uint8_t i, state;
+  for(i = 0; i < UIP_DS6_ADDR_NB; i++) {
+    state = uip_ds6_if.addr_list[i].state;
+    if(uip_ds6_if.addr_list[i].isused &&
+      (state == ADDR_TENTATIVE || state == ADDR_PREFERRED)) {
+      printf("IPv6 own address: ");
+      PRINT6ADDR(&uip_ds6_if.addr_list[i].ipaddr);
+      printf("\n");
+      uip_ip6addr_copy(buf, &uip_ds6_if.addr_list[i].ipaddr);
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+/* Handles the ping response and updates the RSSI value */
+static void
+echo_reply_handler(uip_ipaddr_t *source, uint8_t ttl, uint8_t *data,
+                   uint16_t datalen)
+{
+  if(uip_ip6addr_cmp(source, uip_ds6_defrt_choose())) {
+    def_rt_rssi = sicslowpan_get_last_rssi();
+  }
+}
+/*---------------------------------------------------------------------------*/
+/* Helper function, when publishing to a topic it will turn the STATUS_LED after
+ * we are done
+ */
+static void
 publish_led_off(void *d)
 {
   leds_off(STATUS_LED);
 }
 /*---------------------------------------------------------------------------*/
+/* Helper function, enable or disable the sensor based on a received command */
+static void
+activate_sensors(uint8_t state)
+{
+  if(state) {
+    printf("*** Activating sensors!\n");
+    SENSORS_ACTIVATE(sht25);
+    return;
+  }
+  printf("*** De-activating sensors!\n");
+  SENSORS_DEACTIVATE(sht25);
+}
+/*---------------------------------------------------------------------------*/
+/* This function handler receives publications to which we are subscribed */
 static void
 pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
             uint16_t chunk_len)
 {
-  printf("Pub Handler: topic='%s' (len=%u), chunk_len=%u\n", topic, topic_len,
-      chunk_len);
+  uint16_t aux;
 
-  /* If we don't like the length, ignore */
-  if(topic_len != 17 || chunk_len != 1) {
-    printf("Incorrect topic or chunk len. Ignored\n");
+  printf("Pub Handler: topic='%s' (len=%u), chunk='%s', chunk_len=%u\n", topic,
+         topic_len, chunk, chunk_len);
+
+  /* Most of the commands follow a boolean-logic at least */
+  if(chunk_len <= 0) {
+    printf("Error: Chunk should be at least a single digit integer or string\n");
     return;
   }
 
-  if(strncmp(&topic[13], "leds", 4) == 0) {
-    if(chunk[0] == '1') {
-      leds_on(LEDS_RED);
-      printf("Turning LED RED on!\n");
-    } else if(chunk[0] == '0') {
-      leds_off(LEDS_RED);
-      printf("Turning LED RED off!\n");
+  /* This is a command event, it uses "true" and "false" strings
+   * We expect commands to have the following syntax:
+   * {"name":"enable_sensor","value":false}
+   * That is why we use an index of "9" to search for the command string
+   */
+  if(strncmp(topic, DEFAULT_SUBSCRIBE_CMD, CONFIG_SUB_CMD_TOPIC_LEN) == 0) {
+
+    /* Toggle a given LED */
+    if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_LEDS,
+               strlen(DEFAULT_SUBSCRIBE_CMD_LEDS)) == 0) {
+      printf("Command received: toggle LED\n");
+
+      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 19],
+        "true", 4) == 0) {
+        leds_on(CMD_LED);
+      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 19],
+        "false", 5) == 0) {
+        leds_off(CMD_LED);
+      } else {
+        printf("Error: invalid command argument (expected boolean)!\n");
+        return;
+      }
+
+    /* Restart the device */
+    } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_REBOOT,
+               strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT)) == 0) {
+      printf("Command received: reboot\n");
+
+      /* This is fixed to check only "true" arguments */
+      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT) + 19],
+        "true", 4) == 0) {
+        sys_ctrl_reset();
+      } else {
+        printf("Error: invalid command argument (expected only 'true')!\n");
+        return;
+      }
+
+    /* Enable or disable external sensors */
+    } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_SENSOR,
+               strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR)) == 0) {
+      printf("Command received: enable/disable sensor\n");
+
+      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 19],
+        "true", 4) == 0) {
+        sensors_status = 1;
+      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 19],
+        "false", 5) == 0) {
+        sensors_status = 0;
+      } else {
+        printf("Error: invalid command argument (expected boolean)!\n");
+        return;
+      }
+      activate_sensors(sensors_status);
+
+    } else {
+      printf("Command not recognized\n");
     }
-    return;
+
+  /* This is a configuration event
+   * We expect the configuration payload to follow the next syntax:
+   * {"name":"update_period","value":61}
+   */
+  } else if(strncmp(topic, DEFAULT_SUBSCRIBE_CFG,
+                           CONFIG_SUB_CFG_TOPIC_LEN) == 0) {
+
+    /* Change the update period */
+    if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CFG_EVENT,
+               strlen(DEFAULT_SUBSCRIBE_CFG_EVENT)) == 0) {
+
+      /* Take integers as configuration value */
+      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CFG_EVENT) + 19]);
+
+      /* Check for allowed values */
+      if((aux < DEFAULT_UPDATE_PERIOD_MIN) || (aux > DEFAULT_UPDATE_PERIOD_MAX)) {
+        printf("Error: update interval should be between %u and %u\n", 
+                DEFAULT_UPDATE_PERIOD_MIN, DEFAULT_UPDATE_PERIOD_MAX);
+        return;
+      }
+
+      printf("New update interval --> %u secs\n", aux);
+      conf.pub_interval_check = aux;
+
+    /* Change the temperature threshold (over) */
+    } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CFG_TEMPTHR,
+                      strlen(DEFAULT_SUBSCRIBE_CFG_TEMPTHR)) == 0) {
+
+      /* Take integers as configuration value */
+      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CFG_TEMPTHR) + 19]);
+
+      if((aux < DEFAULT_SHT25_TEMP_MIN) || (aux > DEFAULT_SHT25_TEMP_MAX)) {
+        printf("Error: temperature threshold should be between %d and %d\n",
+               DEFAULT_SHT25_TEMP_MIN, DEFAULT_SHT25_TEMP_MAX);
+        return;
+      }
+
+      printf("New temperature threshold --> %u\n", aux);
+      temp_threshold = aux;
+
+    /* Change the humidity threshold (over) */
+    } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CFG_HUMDTHR,
+                      strlen(DEFAULT_SUBSCRIBE_CFG_HUMDTHR)) == 0) {
+
+      /* Take integers as configuration value */
+      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CFG_HUMDTHR) + 19]);
+
+      if((aux < DEFAULT_SHT25_TEMP_MIN) || (aux > DEFAULT_SHT25_TEMP_MAX)) {
+        printf("Error: temperature threshold should be between %d and %d\n",
+               DEFAULT_SHT25_TEMP_MIN, DEFAULT_SHT25_TEMP_MAX);
+        return;
+      }
+
+      printf("New humidity threshold --> %u\n", aux);
+      humd_threshold = aux;
+
+    /* Invalid configuration topic */
+    } else {
+      printf("Configuration parameter not recognized\n");
+    }
+
+  } else {
+    printf("Incorrect topic or chunk len. Ignored\n");
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+subscribe(char * topic)
+{
+  mqtt_status_t status;
+  status = mqtt_subscribe(&conn, NULL, topic, MQTT_QOS_LEVEL_0);
+
+  printf("APP - Subscribing to %s\n", topic);
+  if(status == MQTT_STATUS_OUT_QUEUE_FULL) {
+    printf("APP - Tried to subscribe but command queue was full!\n");
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -256,157 +439,250 @@ mqtt_event(struct mqtt_connection *m, mqtt_event_t event, void *data)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
-construct_pub_topic(void)
-{
-  int len = snprintf(pub_topic, BUFFER_SIZE, "/v1/%s/data",
-                     conf.event_type_id);
-
-  if(len < 0 || len >= BUFFER_SIZE) {
-    printf("Pub Topic: %d, Buffer %d\n", len, BUFFER_SIZE);
-    return 0;
-  }
-
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
-static int
-construct_sub_topic(void)
-{
-  int len = snprintf(sub_topic, BUFFER_SIZE, "zolertia/cmd/%s",
-                     conf.cmd_type);
-
-  /* len < 0: Error. Len >= BUFFER_SIZE: Buffer too small */
-  if(len < 0 || len >= BUFFER_SIZE) {
-    printf("Sub Topic: %d, Buffer %d\n", len, BUFFER_SIZE);
-    return 0;
-  }
-
-  printf("Subscription topic %s\n", sub_topic);
-
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
-static int
+static void
 construct_client_id(void)
 {
-  int len = snprintf(client_id, BUFFER_SIZE, "d:%02x%02x%02x%02x%02x%02x",
+  int len = snprintf(client_id, CONFIG_IP_ADDR_STR_LEN, "%02x%02x%02x%02x%02x%02x",
                      linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
                      linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
                      linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
 
-  /* len < 0: Error. Len >= BUFFER_SIZE: Buffer too small */
-  if(len < 0 || len >= BUFFER_SIZE) {
-    printf("Client ID: %d, Buffer %d\n", len, BUFFER_SIZE);
-    return 0;
+  if(len < 0 || len >= CONFIG_IP_ADDR_STR_LEN) {
+    printf("Error: buffer size too small for client ID: %d\n", len);
   }
-
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static void
-update_config(void)
-{
-  if(construct_client_id() == 0) {
-    /* Fatal error. Client ID larger than the buffer */
-    state = STATE_CONFIG_ERROR;
-    return;
-  }
-
-  if(construct_sub_topic() == 0) {
-    /* Fatal error. Topic larger than the buffer */
-    state = STATE_CONFIG_ERROR;
-    return;
-  }
-
-  if(construct_pub_topic() == 0) {
-    /* Fatal error. Topic larger than the buffer */
-    state = STATE_CONFIG_ERROR;
-    return;
-  }
-
-  /* Reset the counter */
-  seq_nr_value = 0;
-
-  state = STATE_INIT;
-
-  /*
-   * Schedule next timer event ASAP
-   * If we entered an error state then we won't do anything when it fires.
-   * Since the error at this stage is a config error, we will only exit this
-   * error state if we get a new config.
-   */
-  etimer_set(&publish_periodic_timer, 0);
-
-  return;
-}
-/*---------------------------------------------------------------------------*/
-static int
 init_config()
 {
-  /* Populate configuration with default values */
+  /* Fill in the MQTT client configuration info */
   memset(&conf, 0, sizeof(mqtt_client_config_t));
-  memcpy(conf.event_type_id, DEFAULT_EVENT_TYPE_ID,
-         strlen(DEFAULT_EVENT_TYPE_ID));
-  memcpy(conf.broker_ip, broker_ip, strlen(broker_ip));
-  memcpy(conf.cmd_type, DEFAULT_SUBSCRIBE_CMD_TYPE, 4);
+  conf.broker_port = DEFAULT_BROKER_PORT;
+  conf.pub_interval = DEFAULT_SAMPLING_INTERVAL;
+  conf.pub_interval_check = DEFAULT_PUBLISH_INTERVAL;
 
+  memcpy(conf.broker_ip, broker_ip, strlen(broker_ip));
   memcpy(conf.auth_token, DEFAULT_AUTH_TOKEN, CONFIG_AUTH_TOKEN_LEN);
   memcpy(conf.auth_user, DEFAULT_AUTH_USER, CONFIG_AUTH_USER_LEN);
 
-  conf.broker_port = DEFAULT_BROKER_PORT;
-  conf.pub_interval = DEFAULT_PUBLISH_INTERVAL;
+  /* Configures a callback for a ping request to our parent node, to retrieve
+   * the RSSI value
+   */
+  def_rt_rssi = 0x8000000;
+  uip_icmp6_echo_reply_callback_add(&echo_reply_notification,
+                                    echo_reply_handler);
 
-  return 1;
+  /* Formats the device's IP address in a string */
+  construct_client_id();
 }
 /*---------------------------------------------------------------------------*/
 static void
-subscribe(void)
+publish_alarm(char *alarm, uint16_t value, uint16_t value_thresh)
 {
-  mqtt_status_t status;
+  if(etimer_expired(&alarm_expired)) {
+    printf("*** Alarm! %s %u over %u\n", alarm, value, value_thresh);
+    snprintf(app_buffer, APP_BUFFER_SIZE,
+             "[{\"meaning\":\"%s\",\"value\":%d.%u}]",
+             alarm, value / 100, value % 100);
 
-  status = mqtt_subscribe(&conn, NULL, sub_topic, MQTT_QOS_LEVEL_0);
+    printf("APP - Publish %s to %s\n", app_buffer, pub_topic);
 
-  printf("APP - Subscribing!\n");
-  if(status == MQTT_STATUS_OUT_QUEUE_FULL) {
-    printf("APP - Tried to subscribe but command queue was full!\n");
+    mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
+                 strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+
+    etimer_set(&alarm_expired, (CLOCK_SECOND * 15));
   }
+}
+/*---------------------------------------------------------------------------*/
+static int
+add_pub_topic(uint16_t length, char *meaning, char *value,
+              uint8_t first, uint8_t more)
+{
+  int len = 0;
+  int pos = 0;
+
+  if((buf_ptr == NULL) || (length <= 0)){
+    printf("Error: null buffer or lenght less than zero\n");
+    return -1;
+  }
+
+  if(first) {
+    len = snprintf(buf_ptr, length, "%s", "[");
+    pos = len;
+    buf_ptr += len;
+  }
+
+  len = snprintf(buf_ptr, (length - pos),
+                 "{\"meaning\":\"%s\",\"value\":\"%s\"}",
+                 meaning, value);
+ 
+  if(len < 0 || pos >= length) {
+    printf("Buffer too short. Have %d, need %d + \\0\n", length, len);
+    return -1;
+  }
+
+  pos += len;
+  buf_ptr += len;
+
+  if(more) {
+    len = snprintf(buf_ptr, (length - pos), "%s", ",");
+  } else {
+    len = snprintf(buf_ptr, (length - pos), "%s", "]");
+  }
+
+  pos += len;
+  buf_ptr += len;
+
+  return pos;
+}
+/*---------------------------------------------------------------------------*/
+static void
+publish_event(uint16_t temp, uint16_t humd)
+{
+  char aux[64];
+  int len = 0;
+  int remain = APP_BUFFER_SIZE;
+
+  /* Use the buf_ptr as pointer to the actual application buffer */
+  buf_ptr = app_buffer;
+
+  /* Retrieve our own IPv6 address
+   * This is the starting value to be sent, the `first` argument should be 1,
+   * and the `more` argument 1 as well, as we want to add more values to our
+   * list
+   */
+  memset(aux, 0, sizeof(aux));
+  ipaddr_ownaddr(aux);
+  printf("Checking IPv6 own address %s\n", aux);
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID, "hola", 1, 1);
+
+  remain =- len;
+
+  memset(aux, 0, sizeof(aux));
+  snprintf(aux, sizeof(aux), "%lu", clock_seconds());
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_UPTIME, aux, 0, 1);
+
+  remain =- len;
+
+  memset(aux, 0, sizeof(aux));
+  ipaddr_sprintf(aux, sizeof(aux), uip_ds6_defrt_choose());
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_PARENT, aux, 0, 1);
+
+  remain =- len;
+
+  memset(aux, 0, sizeof(aux));
+  snprintf(aux, sizeof(aux), "%d", def_rt_rssi);
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_RSSI, aux, 0, 1);
+
+  remain =- len;
+
+  memset(aux, 0, sizeof(aux));
+  snprintf(aux, sizeof(aux), "%d.%02u", temp / 100, temp % 100);
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_TEMP, aux, 0, 1);
+
+  remain =- len;
+
+  /* The last value to be sent, the `more` argument should be zero */
+  memset(aux, 0, sizeof(aux));
+  snprintf(aux, sizeof(aux), "%u.%02u", humd / 100, humd % 100);
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_HUMD, aux, 0, 0);
+
+  mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
+               strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
+
+  printf("APP - Publish %s to %s\n", app_buffer, pub_topic);
 }
 /*---------------------------------------------------------------------------*/
 static void
 publish(void)
 {
-  int len;
-  uint16_t aux;
-  int remaining = APP_BUFFER_SIZE;
+  uint16_t temp;
+  uint16_t humd;
 
   seq_nr_value++;
 
-  buf_ptr = app_buffer;
+  /* clear buffer */
+  memset(app_buffer, 0, APP_BUFFER_SIZE);
 
-  aux = sht25.value(SHT25_VAL_TEMP);
+  /* Sample sensors and check for alarms only if sensors are enabled */
+  if(sensors_status) {
+    temp = sht25.value(SHT25_VAL_TEMP);
+    humd = sht25.value(SHT25_VAL_HUM);
 
-  len = snprintf(buf_ptr, remaining, "[{\"meaning\":\"temperature\", \"value\":\"%u\"}]", aux);
+    printf("APP - Temperature %d.%02u Humidity %u.%02u\n", temp / 100, temp % 100,
+                                                           humd / 100, humd % 100);
 
-  if(len < 0 || len >= remaining) {
-    printf("Buffer too short. Have %d, need %d + \\0\n", remaining, len);
+    /* Check for valid values, if a mishap is found (i.e sensor not present but
+     * enabled, then use the default unused-value and let is skip the checks
+     * further below
+     */
+    if((temp < DEFAULT_SHT25_TEMP_MIN) || (temp > DEFAULT_SHT25_TEMP_MAX)) {
+      printf("Error: temperature value invalid: should be between %d and %d\n",
+             DEFAULT_SHT25_TEMP_MIN, DEFAULT_SHT25_TEMP_MAX);
+      temp = DEFAULT_TEMP_NOT_USED;
+    }
+
+    if((humd < DEFAULT_SHT25_HUMD_MIN) || (humd > DEFAULT_SHT25_HUMD_MAX)) {
+      printf("Error: humidity value invalid: should be between %d and %d\n",
+             DEFAULT_SHT25_HUMD_MIN, DEFAULT_SHT25_HUMD_MAX);
+      humd = DEFAULT_HUMD_NOT_USED;
+    }
+
+    /* No alarm and no periodic report event, discard */
+    if((temp < temp_threshold) && (humd < humd_threshold) &&
+       (seq_nr_value % conf.pub_interval_check)) {
+      return;
+    }
+
+    /* Publish a temperature alarm
+     * It has a higher priority than the humidity alarm, to avoid publishing
+     * to two topics at the same time
+     */
+    if(temp >= temp_threshold) {
+      publish_alarm(DEFAULT_PUBLISH_ALARM_TEMP, temp, temp_threshold);
+      return;
+    }
+
+    if(humd >= humd_threshold) {
+      publish_alarm(DEFAULT_PUBLISH_ALARM_HUMD, humd, humd_threshold);
+      return;
+    }
+
+  /* Return default temperature/humidity values */
+  } else {
+    temp = DEFAULT_TEMP_NOT_USED;
+    humd = DEFAULT_HUMD_NOT_USED;
+  }
+
+  /* Check again for period threshold as there should not be any alarm, also
+   * in case sensors are disabled
+   */
+  if(seq_nr_value % conf.pub_interval_check) {
     return;
   }
 
-  mqtt_publish(&conn, NULL, pub_topic, (uint8_t *)app_buffer,
-               strlen(app_buffer), MQTT_QOS_LEVEL_0, MQTT_RETAIN_OFF);
-
-  printf("APP - Publish to %s\n", pub_topic);
+  /* Publish our periodic data */
+  publish_event(temp, humd);
 }
 /*---------------------------------------------------------------------------*/
 static void
 connect_to_broker(void)
 {
   /* Connect to MQTT server */
-  mqtt_connect(&conn, conf.broker_ip, conf.broker_port,
-               conf.pub_interval * 3);
-
+  mqtt_connect(&conn, conf.broker_ip, conf.broker_port, conf.pub_interval * 3);
   state = STATE_CONNECTING;
+}
+/*---------------------------------------------------------------------------*/
+static void
+ping_parent(void)
+{
+  if(uip_ds6_get_global(ADDR_PREFERRED) == NULL) {
+    printf("Parent not available\n");
+    return;
+  }
+
+  uip_icmp6_send(uip_ds6_defrt_choose(), ICMP6_ECHO_REQUEST, 0,
+                 ECHO_REQ_PAYLOAD_LEN);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -432,6 +708,7 @@ state_machine(void)
     if(uip_ds6_get_global(ADDR_PREFERRED) != NULL) {
       /* Registered and with a public IP. Connect */
       printf("Registered. Connect attempt %u\n", connect_attempt);
+      ping_parent();
       connect_to_broker();
 
     } else {
@@ -465,12 +742,17 @@ state_machine(void)
     if(mqtt_ready(&conn) && conn.out_buffer_sent) {
       /* Connected. Publish */
       if(state == STATE_CONNECTED) {
-        // subscribe(); /* Not used in this application */
+
+        /* Subscribe to topics */
+        /* FIXME: there is only room for one subscription, limited by the MQTT driver */
+
+        subscribe(cfg_topic);
+        // subscribe(cmd_topic);
+
         state = STATE_PUBLISHING;
 
       } else {
         leds_on(STATUS_LED);
-        printf("Publishing\n");
         ctimer_set(&ct, PUBLISH_LED_ON_DURATION, publish_led_off, NULL);
         publish();
       }
@@ -548,41 +830,49 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 
   PROCESS_BEGIN();
 
-  printf("MQTT Demo Process\n");
+  /* Copy configuration strings to MQTT & app placeholders */
+  init_config();
 
+  /* Reset the counter */
+  seq_nr_value = 0;
+
+  /* Set the initial state */
+  state = STATE_INIT;
+
+  printf("\nZolertia & Relayr MQTT Demo Process\n");
+  printf("Client information:\n");
+  printf("  Broker IP:    %s\n", conf.broker_ip);
+  printf("  Data topic:   %s\n", pub_topic);
+  printf("  Config topic: %s\n", cfg_topic);
+  printf("  Cmd topic:    %s\n", cmd_topic);
+
+  /* Retrieve nameserver configuration, not really used since we use a NAT64
+   * address
+   */
   uip_ipaddr(&ip4addr, 8, 8, 8, 8);
   ip64_addr_4to6(&ip4addr, &ip6addr);
   uip_nameserver_update(&ip6addr, UIP_NAMESERVER_INFINITE_LIFETIME);
 
+  /* Stop and wait until the node joins the network */
   leds_on(LEDS_RED);
-
   etimer_set(&publish_periodic_timer, CLOCK_SECOND * 35);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&publish_periodic_timer));
-
   leds_off(LEDS_RED);
 
-  SENSORS_ACTIVATE(sht25);
+  /* Start/disable sensors */
+  activate_sensors(sensors_status);
 
-  if(init_config() != 1) {
-    PROCESS_EXIT();
-  }
-
-  update_config();
+  /* Schedule next timer event ASAP */
+  etimer_set(&publish_periodic_timer, 0);
 
   while(1) {
 
+    /* The update_config() should schedule a timer right away */
     PROCESS_YIELD();
 
-    if(ev == sensors_event && data == &button_sensor) {
-      if(state == STATE_ERROR) {
-        connect_attempt = 1;
-        state = STATE_REGISTERED;
-      }
-    }
-
+    /* We are waiting for the timer to kick the state_machine() */
     if((ev == PROCESS_EVENT_TIMER && data == &publish_periodic_timer) ||
-       ev == PROCESS_EVENT_POLL ||
-       (ev == sensors_event && data == &button_sensor)) {
+       ev == PROCESS_EVENT_POLL) {
       state_machine();
     }
   }
