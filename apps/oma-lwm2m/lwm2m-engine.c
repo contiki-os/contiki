@@ -639,10 +639,10 @@ write_rd_json_data(const lwm2m_context_t *context,
       value = lwm2m_object_get_resource_string(resource, context);
       slen = lwm2m_object_get_resource_strlen(resource, context);
       if(value != NULL) {
-        PRINTF("%s{\"n\":\"%u\",\"vs\":\"%.*s\"}", s,
+        PRINTF("%s{\"n\":\"%u\",\"sv\":\"%.*s\"}", s,
                resource->id, slen, value);
         len = snprintf(&buffer[rdlen], size - rdlen,
-                       "%s{\"n\":\"%u\",\"vs\":\"%.*s\"}", s,
+                       "%s{\"n\":\"%u\",\"sv\":\"%.*s\"}", s,
                        resource->id, slen, value);
       }
     } else if(lwm2m_object_is_resource_int(resource)) {
@@ -682,10 +682,10 @@ write_rd_json_data(const lwm2m_context_t *context,
     } else if(lwm2m_object_is_resource_boolean(resource)) {
       int value;
       if(lwm2m_object_get_resource_boolean(resource, context, &value)) {
-        PRINTF("%s{\"n\":\"%u\",\"v\":%s}", s, resource->id,
+        PRINTF("%s{\"n\":\"%u\",\"bv\":%s}", s, resource->id,
                value ? "true" : "false");
         len = snprintf(&buffer[rdlen], size - rdlen,
-                       "%s{\"n\":\"%u\",\"v\":%s}", s, resource->id,
+                       "%s{\"n\":\"%u\",\"bv\":%s}", s, resource->id,
                        value ? "true" : "false");
       }
     }
