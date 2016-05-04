@@ -64,7 +64,7 @@ sudo apt-get install srecord gcc-arm-none-eabi
 ```
 
 ## Building
-Here are the steps to compiling the bootloader, a simple OTA image example, and then merging them into a single flashable image.
+Here are the steps to compiling the bootloader, a simple OTA image example, and then merging them into a single flashable image (called `firmware.hex`).
 
 ```bash
   cd examples/cc26xx-ota-bootloader
@@ -81,6 +81,8 @@ Here are the steps to compiling the bootloader, a simple OTA image example, and 
   cd ..
   srec_cat bootloader/bootloader.hex -intel -exclude 0x1000 0x1FFA8 ota-image-example/ota-image-example.hex -intel -crop 0x1000 0x1FFA8 -o firmware.hex -intel
 ```
+
+Equivalently, just execute `make-all.sh` from the `/cc26xx-ota-bootloader` directory.
 
 ## Flashing
 The resulting firmware.hex can be flashed to the cc26xx using TI's SmartRF Flash Programmer 2.
