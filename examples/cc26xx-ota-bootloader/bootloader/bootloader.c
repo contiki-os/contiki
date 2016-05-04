@@ -42,6 +42,13 @@ main(void)
   __asm(" BX R0 ");
   */
 
+  // This part throws a compiler error
+  /*
+  __asm("LDR R0, =0x1000");
+  __asm("MSR VTOR, R0");
+  __asm("ISB");
+  */
+
   /**
    *  Recommendation per G. Dyess (ARM)
    */
