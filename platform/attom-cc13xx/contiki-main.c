@@ -59,7 +59,7 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup cc13xx-platforms
+ * \addtogroup cc26xx-platforms
  * @{
  *
  * \defgroup cc13xx-attom-tag AttoM+CC1310

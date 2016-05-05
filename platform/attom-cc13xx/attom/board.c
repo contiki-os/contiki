@@ -59,7 +59,7 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup attom-cc13xx-peripherals
+ * \addtogroup cc13xx-attom-mote-peripherals
  * @{
  *
  * \file

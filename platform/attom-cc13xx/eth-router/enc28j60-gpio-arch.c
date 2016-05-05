@@ -29,7 +29,7 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup attom-cc13xx-eth-router-peripherals
+ * \addtogroup cc13xx-attom-router-peripherals
  * @{
  *
  * \file

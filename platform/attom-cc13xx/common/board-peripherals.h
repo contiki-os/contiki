@@ -61,7 +61,7 @@
 /** \addtogroup cc13xx-attom-tag
  * @{
  *
- * \defgroup cc13xx-common-peripherals Peripherals for the AttoM + CC1310
+ * \defgroup cc13xx-attom-common-peripherals Peripherals for the AttoM + CC1310
  *
  * Defines related to the AttoM Router Board with a TI CC1310.
  *

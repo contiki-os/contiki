@@ -31,7 +31,7 @@
 /** \addtogroup cc13xx-attom-tag
  * @{
  *
- * \defgroup attom-cc13xx-peripherals Peripherals for the AttoM + CC1310
+ * \defgroup cc13xx-attom-mote-peripherals Peripherals for the AttoM + CC1310
  *
  * Defines related to the AttoM Board with a TI CC1310.
  *

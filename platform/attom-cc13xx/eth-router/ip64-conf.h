@@ -59,15 +59,12 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*---------------------------------------------------------------------------*/
-/** \addtogroup cc13xx-attom-tag
+/** \addtogroup cc13xx-attom-router-peripherals
  * @{
- *
- * \defgroup attom-cc13xx-eth-router-peripherals
  *
  * Defines related to the AttoM Board with a TI CC1310.
  *
  * This file is not meant to be modified by the user.
- * @{
  *
  * \file
  * Header file with definitions related to the ENC28j60 I/O connections on the AttoM
@@ -89,6 +86,5 @@
 
 #endif /* IP64_CONF_H */
 /**
- * @}
  * @}
  */
