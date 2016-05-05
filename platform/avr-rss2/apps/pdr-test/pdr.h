@@ -1,3 +1,4 @@
+// -*- mode: contiki-c-mode; c-basic-offset: 4; c-indent-level: 4 -*-
 #ifndef PDR_H
 #define PDR_H
 
@@ -7,8 +8,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include "dev/radio.h"
+#include "core/net/netstack.h"
 
 #define DEFAULT_CHANNEL  11
+
+#define CONTIKI_TARGET_UUNODE 1
 
 #define TEST_TXPOWER RADIO_POWER_ZERO_DB
 #define DEFAULT_TXPOWER RADIO_POWER_ZERO_DB
@@ -34,7 +39,7 @@
 #define PACKET_SEND_INTERVAL        (RTIMER_ARCH_SECOND/128)
 #else
 // good for Z1 and sky
-#define PACKET_SEND_INTERVAL        (RTIMER_ARCH_SECOND/200) 
+#define PACKET_SEND_INTERVAL        (RTIMER_ARCH_SECOND/200)
 #endif
 
 #if CONTIKI_TARGET_Z1 || CONTIKI_TARGET_SKY
@@ -52,6 +57,13 @@
 #define RADIO_POWER_ZERO_DB    31
 #define RADIO_POWER_MINUS7_DB  15
 #define RADIO_POWER_MINUS15_DB 7
+
+#if CONTIKI_TARGET_Z1
+#define PLATFORM_TEMP_SENSOR_HEADER "dev/tmp102.h"
+#else
+#define PLATFORM_TEMP_SENSOR_HEADER "dev/temperature-sensor.h"
+#define temp_sensor temperature_sensor   // FIXME for Z1!!!
+#endif
 
 #elif CONTIKI_TARGET_U108 || CONTIKI_TARGET_U108DEV
 // U108
@@ -99,6 +111,7 @@
 #define RADIO_POWER_MINUS7_DB  12  // actually -6.5 dBm
 #define RADIO_POWER_MINUS15_DB TX_PWR_17_2DBM  // actually -17.5 dBm
 
+#define PLATFORM_TEMP_SENSOR_HEADER "dev/temp-sensor.h"
 
 #elif CONTIKI_TARGET_NATIVE || CONTIKI_TARGET_COOJA
 // native or Cooja
@@ -114,7 +127,34 @@
 #define RADIO_POWER_MINUS7_DB  0x0
 #define RADIO_POWER_MINUS15_DB 0x0
 
-#else 
+#elif CONTIKI_TARGET_UUNODE
+// uunode (Christian Rohner)
+// To compile:
+// make  TARGET=uunode BOARD=cc26xx
+
+uint8_t get_channel() {
+    radio_value_t ch;
+    NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &ch);
+    return (uint8_t)ch;
+}
+
+#define PLATFORM_RADIO_HEADER "rf-core/rf-core.h"
+
+#define radio_set_txpower set_tx_power
+#define radio_set_channel(ch) NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, ch)
+#define radio_get_channel get_channel
+#define radio_get_rssi    get_rssi
+
+#define RADIO_POWER_MAX        OUTPUT_POWER_MAX
+#define RADIO_POWER_MIN        OUTPUT_POWER_MIN
+#define RADIO_POWER_ZERO_DB    0x21
+#define RADIO_POWER_MINUS7_DB  0x11 // actually -6 dBm
+#define RADIO_POWER_MINUS15_DB 0x0b
+
+#define PLATFORM_TEMP_SENSOR_HEADER "tmp-007-sensor.h"
+#define temp_sensor       tmp_007_sensor
+
+#else
 #error No support for your platform!
 #endif // CONTIKI_TARGET_xx
 
@@ -137,6 +177,12 @@ struct stats_info {
     uint8_t channel;
     uint8_t platform_id;
     uint16_t fine;
+    
+    uint16_t rssiSum;
+    uint16_t lqiSum;
+    uint8_t rssiMax;
+    uint8_t rssiMin;
+    
 #if TRACK_ERRORS
     uint16_t zeroLength; // usually signal errors at radio driver level
     uint16_t tooShort;
@@ -149,7 +195,7 @@ struct stats_info {
     uint16_t total;
     // set by radio driver, not included in the total count
     uint16_t phyCrcErrors;
-
+    
     // number of bad nibbles...
     uint16_t numBadNibbles;
     uint16_t badNibbles[MAX_NIBBLES];
@@ -183,14 +229,17 @@ extern bool cc2420_without_send_cca;
 #ifdef CONTIKI_TARGET_SKY
 #define PLATFORM_ID  5
 #endif
-#ifdef CONTIKI_TARGET_U108 
+#ifdef CONTIKI_TARGET_U108
 #define PLATFORM_ID  6
 #endif
 #ifdef CONTIKI_TARGET_U108DEV
 #define PLATFORM_ID  7
 #endif
+#ifdef CONTIKI_TARGET_UUNODE
+#define PLATFORM_ID  8
+#endif
 
-char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108"};
+char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108", "uunode"};
 
 #include "pattern.h"
 
