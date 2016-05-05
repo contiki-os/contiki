@@ -65,8 +65,8 @@
  *   "topic": "/v1/abcdefgh-ijkl-mnop-qrst-uvwxyz123456/"
  * }
  */
-#define DEFAULT_USER_ID               ""
-#define DEFAULT_AUTH_TOKEN            ""
+#define DEFAULT_USER_ID               "461dd1c8-18ab-44f4-9dc3-a961c51c740c"
+#define DEFAULT_AUTH_TOKEN            "VdX5gFGi8.ZW"
 #define DEFAULT_AUTH_USER             DEFAULT_USER_ID
 
 #define DEFAULT_TOPIC_STR             "/v1/"
@@ -114,8 +114,8 @@
 #define CONFIG_SUB_CMD_TOPIC_LEN      44
 #define CONFIG_SUB_CFG_TOPIC_LEN      47
 #define CONFIG_IP_ADDR_STR_LEN        64
-#define CONFIG_AUTH_USER_LEN          40
-#define CONFIG_AUTH_TOKEN_LEN         16
+#define CONFIG_AUTH_USER_LEN          37
+#define CONFIG_AUTH_TOKEN_LEN         13
 
 /* Default sensor state and thresholds */
 #define DEFAULT_SENSOR_STATE          1
@@ -148,6 +148,11 @@
 #define ANTENNA_SW_SELECT_DEF_CONF    ANTENNA_SW_SELECT_2_4GHZ
 
 #define NETSTACK_CONF_RDC             nullrdc_driver
+
+#define COFFEE_CONF_LOG_TABLE_LIMIT   16
+#define COFFEE_CONF_LOG_SIZE          128
+#define COFFEE_CONF_MICRO_LOGS        3
+#define COFFEE_CONF_APPEND_ONLY       0
 
 #endif /* PROJECT_CONF_H_ */
 /*---------------------------------------------------------------------------*/

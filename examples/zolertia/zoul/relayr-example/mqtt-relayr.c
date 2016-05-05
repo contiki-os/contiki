@@ -44,6 +44,13 @@
 #include "dev/sht25.h"
 #include "net/ip/uip-debug.h"
 #include "dev/sys-ctrl.h"
+
+#include "mqtt-relayr.h"
+#include "httpd-simple.h"
+
+#include "cfs/cfs.h"
+#include "cfs/cfs-coffee.h"
+
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 /*
@@ -110,19 +117,6 @@ static uint8_t sensors_status = DEFAULT_SENSOR_STATE;
 PROCESS_NAME(mqtt_demo_process);
 AUTOSTART_PROCESSES(&mqtt_demo_process);
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Data structure declaration for the MQTT client configuration
- */
-typedef struct mqtt_client_config {
-  /* MQTT user strings */
-  char auth_token[CONFIG_AUTH_TOKEN_LEN];
-  char auth_user[CONFIG_AUTH_USER_LEN];
-  char broker_ip[CONFIG_IP_ADDR_STR_LEN];
-  clock_time_t pub_interval;
-  uint16_t pub_interval_check;
-  uint16_t broker_port;
-} mqtt_client_config_t;
-/*---------------------------------------------------------------------------*/
 static uint16_t temp_threshold = DEFAULT_TEMP_THRESH;
 static uint16_t humd_threshold = DEFAULT_HUMD_THRESH;
 /*---------------------------------------------------------------------------*/
@@ -137,8 +131,6 @@ static char client_id[CONFIG_IP_ADDR_STR_LEN];
 static char *pub_topic = DEFAULT_PUBLISH_EVENT;
 static char *cfg_topic = DEFAULT_SUBSCRIBE_CFG;
 static char *cmd_topic = DEFAULT_SUBSCRIBE_CMD;
-
-
 /*---------------------------------------------------------------------------*/
 /*
  * The main MQTT buffers.
@@ -159,7 +151,47 @@ static struct uip_icmp6_echo_reply_notification echo_reply_notification;
 static int def_rt_rssi = 0;
 /*---------------------------------------------------------------------------*/
 /* Holds the MQTT configuration */
-static mqtt_client_config_t conf;
+mqtt_client_config_t conf;
+/*---------------------------------------------------------------------------*/
+static int
+interval_post_handler(char *key, int key_len, char *val, int val_len)
+{
+/*
+  int fd;
+  int rv = 0;
+  uint8_t buf[2];
+
+  if(key_len != strlen("interval") ||
+     strncasecmp(key, "interval", strlen("interval")) != 0) {
+    return HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
+  }
+
+  rv = atoi(val);
+
+  if(rv < WEATHER_STATION_WS_INTERVAL_MIN ||
+     rv > WEATHER_STATION_WS_INTERVAL_MAX) {
+    return HTTPD_SIMPLE_POST_HANDLER_ERROR;
+  }
+
+  ws_config.interval = rv * CLOCK_SECOND;
+  PRINTF("WS: new interval tick is: %u\n", rv);
+
+  fd = cfs_open("WS_int", CFS_READ | CFS_WRITE);
+  if(fd >= 0) {
+    buf[0] = ((uint8_t *)&ws_config.interval)[0];
+    buf[1] = ((uint8_t *)&ws_config.interval)[1];
+    if(cfs_write(fd, &buf, 2) > 0) {
+      PRINTF("WS: interval saved in flash\n");
+    }
+    cfs_close(fd);
+  }
+
+*/
+
+  return HTTPD_SIMPLE_POST_HANDLER_OK;
+}
+/*---------------------------------------------------------------------------*/
+HTTPD_SIMPLE_POST_HANDLER(interval, interval_post_handler);
 /*---------------------------------------------------------------------------*/
 PROCESS(mqtt_demo_process, "Relayr MQTT App");
 /*---------------------------------------------------------------------------*/
@@ -235,6 +267,59 @@ activate_sensors(uint8_t state)
   }
   printf("*** De-activating sensors!\n");
   SENSORS_DEACTIVATE(sht25);
+}
+/*---------------------------------------------------------------------------*/
+static int
+write_config_to_flash(char *fname, uint8_t *var, uint8_t len)
+{
+  int fd;
+  fd = cfs_open(fname, CFS_READ | CFS_WRITE);
+
+  if(fd >= 0) {
+    if(cfs_write(fd, var, len) > 0) {
+      printf("Config: %s saved in flash\n", fname);
+      cfs_close(fd);
+    } else {
+      printf("Config: failed to write %s file\n", fname);
+      cfs_close(fd);
+      return -1;
+    }
+  } else {
+    printf("Config: failed to open %s file\n", fname);
+    return -1;
+  }
+
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+read_config_from_flash(char *fname, uint8_t *var, uint8_t len)
+{
+  int fd;
+  fd = cfs_open(fname, CFS_READ | CFS_WRITE);
+
+  if(fd >= 0) {
+    if(cfs_read(fd, var, len) > 0) {
+      printf("Config: Read %s from flash\n", fname);
+
+      /* Small hack as if storing a 0x00AB, when read it will be 0xFFAB due to
+       * the trailing zeroes.  This is very app-dependant, not a generic fix, as
+       * we are not expecting values over 65280
+       */
+      if((len <= 2) && (var[1] == 0xFF)) {
+        var[1] = 0x00;
+      }
+    } else {
+      printf("Config: %s not found in flash\n", fname);
+      cfs_close(fd);
+      return -1;
+    }
+    cfs_close(fd);
+  } else {
+    printf("Config: failed to open file %s\n", fname);
+    return -1;
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
@@ -332,8 +417,9 @@ pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
         return;
       }
 
-      printf("New update interval --> %u secs\n", aux);
+      printf("Config: New update interval --> %u secs\n", aux);
       conf.pub_interval_check = aux;
+      write_config_to_flash("Relayr_interval", (uint8_t *)&conf.pub_interval_check, 2);
 
     /* Change the temperature threshold (over) */
     } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CFG_TEMPTHR,
@@ -350,6 +436,7 @@ pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 
       printf("New temperature threshold --> %u\n", aux);
       temp_threshold = aux;
+      write_config_to_flash("Relayr_tempthres", (uint8_t *)&temp_threshold, 2);
 
     /* Change the humidity threshold (over) */
     } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CFG_HUMDTHR,
@@ -358,14 +445,15 @@ pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
       /* Take integers as configuration value */
       aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CFG_HUMDTHR) + 19]);
 
-      if((aux < DEFAULT_SHT25_TEMP_MIN) || (aux > DEFAULT_SHT25_TEMP_MAX)) {
-        printf("Error: temperature threshold should be between %d and %d\n",
-               DEFAULT_SHT25_TEMP_MIN, DEFAULT_SHT25_TEMP_MAX);
+      if((aux < DEFAULT_SHT25_HUMD_MIN) || (aux > DEFAULT_SHT25_HUMD_MAX)) {
+        printf("Error: humidity threshold should be between %u and %u\n",
+               DEFAULT_SHT25_HUMD_MIN, DEFAULT_SHT25_HUMD_MAX);
         return;
       }
 
       printf("New humidity threshold --> %u\n", aux);
       humd_threshold = aux;
+      write_config_to_flash("Relayr_humdthres", (uint8_t *)&humd_threshold, 2);
 
     /* Invalid configuration topic */
     } else {
@@ -462,8 +550,18 @@ init_config()
   conf.pub_interval_check = DEFAULT_PUBLISH_INTERVAL;
 
   memcpy(conf.broker_ip, broker_ip, strlen(broker_ip));
-  memcpy(conf.auth_token, DEFAULT_AUTH_TOKEN, CONFIG_AUTH_TOKEN_LEN);
-  memcpy(conf.auth_user, DEFAULT_AUTH_USER, CONFIG_AUTH_USER_LEN);
+
+  if(strlen(DEFAULT_AUTH_USER)) {
+    memcpy(conf.auth_user, DEFAULT_USER_ID, CONFIG_AUTH_USER_LEN);
+  } else {
+    printf("Warning: No hardcoded Auth User\n");
+  }
+
+  if(strlen(DEFAULT_AUTH_TOKEN)) {
+    memcpy(conf.auth_token, DEFAULT_AUTH_TOKEN, CONFIG_AUTH_TOKEN_LEN);
+  } else {
+    printf("Warning: No hardcoded Auth Token\n");
+  }
 
   /* Configures a callback for a ping request to our parent node, to retrieve
    * the RSSI value
@@ -827,8 +925,16 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 {
   uip_ip4addr_t ip4addr;
   uip_ip6addr_t ip6addr;
+  static uint8_t mqtt_config_ready = 0;
 
   PROCESS_BEGIN();
+
+  printf("\nZolertia & Relayr MQTT Demo Process\n");
+  printf("Client information:\n");
+  printf("  Broker IP:    %s\n", conf.broker_ip);
+  printf("  Data topic:   %s\n", pub_topic);
+  printf("  Config topic: %s\n", cfg_topic);
+  printf("  Cmd topic:    %s\n\n", cmd_topic);
 
   /* Copy configuration strings to MQTT & app placeholders */
   init_config();
@@ -838,13 +944,6 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 
   /* Set the initial state */
   state = STATE_INIT;
-
-  printf("\nZolertia & Relayr MQTT Demo Process\n");
-  printf("Client information:\n");
-  printf("  Broker IP:    %s\n", conf.broker_ip);
-  printf("  Data topic:   %s\n", pub_topic);
-  printf("  Config topic: %s\n", cfg_topic);
-  printf("  Cmd topic:    %s\n", cmd_topic);
 
   /* Retrieve nameserver configuration, not really used since we use a NAT64
    * address
@@ -859,6 +958,88 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&publish_periodic_timer));
   leds_off(LEDS_RED);
 
+  /* Start the webserver */
+  process_start(&httpd_simple_process, NULL);
+
+  /* The HTTPD_SIMPLE_POST_HANDLER macro should have already created the
+   * interval_handler()
+   */
+  httpd_simple_register_post_handler(&interval_handler);
+
+  /* Check if we can start the state machine with the stored values, or we need
+   * to bootstrap until configured over httpd.  When flashing a new image, the
+   * configuration values are lost.  Default is to leave both DEFAULT_USER_ID
+   * and DEFAULT_AUTH_TOKEN as empty strings.  If both strings are not NULL or
+   * empty, then we start with the hard-coded config
+   */
+
+  if((strlen(DEFAULT_USER_ID)) && (strlen(DEFAULT_AUTH_TOKEN))) {
+
+   /* Hardcoded configuration, proceed */
+    mqtt_config_ready = 2;
+
+    printf("Hardcoded Auth User is %s\n", conf.auth_user);
+    printf("Hardcoded Auth Token is %s\n", conf.auth_token);
+
+  } else {
+
+    printf("No hardcoded auth user or token found, retrieve from flash\n");
+
+    if(read_config_from_flash("Relayr_user", (uint8_t *)conf.auth_user,
+                              CONFIG_AUTH_USER_LEN) == 0) {
+      printf("New Auth User is %s\n", conf.auth_user);
+      mqtt_config_ready += 1;
+    } else {
+      printf("No Auth User information found in flash\n");
+    }
+
+    if(read_config_from_flash("Relayr_token", (uint8_t *)conf.auth_token,
+                              CONFIG_AUTH_TOKEN_LEN) == 0) {
+      printf("New Auth User is %s\n", conf.auth_user);
+      mqtt_config_ready += 1;
+    } else {
+      printf("No Auth Token information found in flash\n");
+    }
+  }
+
+  if(mqtt_config_ready < 2) {
+    printf("Awaiting provisioning over the httpd webserver\n");
+
+    /* Bootstrap and wait until we received a valid configuration */
+    PROCESS_WAIT_EVENT_UNTIL(httpd_simple_event_new_config);
+
+    printf("*** New configuration over httpd\n");
+  }
+
+  /* Retrieve sensor configuration from flash */
+  /* FIXME: check for valid values as well... */
+
+  if(read_config_from_flash("Relayr_interval",
+                            (uint8_t *)&conf.pub_interval_check, 2) == 0) {
+    printf("Config: update interval --> %u\n", conf.pub_interval_check);
+  } else {
+    printf("Config: sensor status not saved in flash, using default\n");
+    conf.pub_interval_check = DEFAULT_PUBLISH_INTERVAL;
+  }
+
+  /* Retrieve temperature threshold from flash */
+  if(read_config_from_flash("Relayr_tempthres",
+                            (uint8_t *)&temp_threshold, 2) == 0) {
+    printf("Config: SHT25 temperature threshold --> %u\n", temp_threshold);
+  } else {
+    printf("Config: SHT25 temperature threshold not saved in flash, using default\n");
+    temp_threshold = DEFAULT_TEMP_THRESH;
+  }
+
+  /* Retrieve humidity threshold from flash */
+  if(read_config_from_flash("Relayr_humdthres",
+                            (uint8_t *)&humd_threshold, 2) == 0) {
+    printf("Config: SHT25 humidity threshold --> %u\n", humd_threshold);
+  } else {
+    printf("Config: SHT25 humidity threshold not saved in flash, using default\n");
+    humd_threshold = DEFAULT_HUMD_THRESH;
+  }
+
   /* Start/disable sensors */
   activate_sensors(sensors_status);
 
@@ -869,6 +1050,11 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 
     /* The update_config() should schedule a timer right away */
     PROCESS_YIELD();
+
+    if(ev == httpd_simple_event_new_config) {
+      printf("*** New configuration over httpd\n");
+      etimer_set(&publish_periodic_timer, 0);
+    }
 
     /* We are waiting for the timer to kick the state_machine() */
     if((ev == PROCESS_EVENT_TIMER && data == &publish_periodic_timer) ||
