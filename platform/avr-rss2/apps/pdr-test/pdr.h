@@ -13,8 +13,6 @@
 
 #define DEFAULT_CHANNEL  11
 
-#define CONTIKI_TARGET_UUNODE 1
-
 #define TEST_TXPOWER RADIO_POWER_ZERO_DB
 #define DEFAULT_TXPOWER RADIO_POWER_ZERO_DB
 //#define TEST_TXPOWER RADIO_POWER_MINUS7_DB
@@ -40,6 +38,10 @@
 #else
 // good for Z1 and sky
 #define PACKET_SEND_INTERVAL        (RTIMER_ARCH_SECOND/200)
+#endif
+
+#ifdef CONTIKI_TARGET_UUNODE
+#define CONTIKI_TARGET_SENSORTAG CONTIKI_TARGET_UUNODE
 #endif
 
 #if CONTIKI_TARGET_Z1 || CONTIKI_TARGET_SKY
@@ -127,10 +129,9 @@
 #define RADIO_POWER_MINUS7_DB  0x0
 #define RADIO_POWER_MINUS15_DB 0x0
 
-#elif CONTIKI_TARGET_UUNODE
-// uunode (Christian Rohner)
-// To compile:
+#elif CONTIKI_TARGET_SENSORTAG
 // make  TARGET=uunode BOARD=cc26xx
+// make  TARGET=srf06-cc26xx BOARD=sensortag/cc2650
 
 uint8_t get_channel() {
     radio_value_t ch;
@@ -235,11 +236,11 @@ extern bool cc2420_without_send_cca;
 #ifdef CONTIKI_TARGET_U108DEV
 #define PLATFORM_ID  7
 #endif
-#ifdef CONTIKI_TARGET_UUNODE
+#ifdef CONTIKI_TARGET_SENSORTAG
 #define PLATFORM_ID  8
 #endif
 
-char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108", "uunode"};
+char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108", "ti-sensortag"};
 
 #include "pattern.h"
 
