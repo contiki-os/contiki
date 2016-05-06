@@ -35,10 +35,10 @@ The core idea behind branching code execution to a different firmware image is t
 If this example functions properly, we should see:
 
 1.  CC26XX boots up into the Vector table and bootloader located at 0x0000.
-1.  Bootloader should then initialize the GPIO system, illuminate an LED, and then jump to the OTA image located at 0x1000.
-1.  *If* the OTA image begins executing, the CC26XX should then start strobing its LED at a frequency of 1Hz.
+1.  Bootloader should then initialize the GPIO system, illuminate the red LED, and then jump to the OTA image located at 0x1000.
+1.  *If* the OTA image should begin executing at the contiki `main()` function.  Near the end of this function, any user-defined processes should be initialized by the `autostart_start` call.  In this example, that means the CC26XX should then start strobing its LED at a frequency of 1Hz.
 
-So far, the bootloader boots, configures GPIO, but the OTA image does not begin executing.
+So far, the bootloader boots, configures GPIO, and Contiki's main() is called.  However, the user processes are never initialized and `main()` appears to hang when it reaches any networking or process-related code.
 
 # Get Started
 
