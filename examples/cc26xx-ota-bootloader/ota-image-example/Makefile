@@ -1,9 +1,14 @@
 TARGET=srf06-cc26xx
-#BOARD=sensortag/cc2650
-BOARD=srf06/cc26xx
+BOARD=sensortag/cc2650
+#BOARD=srf06/cc26xx
+
+CONTIKI_PROJECT = ota-image-example
+all: $(CONTIKI_PROJECT)
 
 CONTIKI = ../../..
-OTA=0
+OTA=1
+CFLAGS += -g
+#CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
 clean:
