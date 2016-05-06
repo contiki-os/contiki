@@ -13,7 +13,7 @@ Description | Starting Position in EEPROM (bytes) | Space Allotted
 --- | --- | ---
 bootloader | 0x00000000 | 0x00001000
 ota-image-example | 0x00001000 | 0x0001EFA8
-ccfg (bootloader) | 0x0001FFA8 | 0x58
+bootloader ccfg | 0x0001FFA8 | 0x58
 
 > NB: 0x1000 = 1 flash sector (4096 bytes)
 
@@ -23,8 +23,10 @@ ccfg (bootloader) | 0x0001FFA8 | 0x58
 The core idea behind branching code execution to a different firmware image is to branch to the RESET vector in the target image's Vector table:
 
 ```asm
-  __asm(" LDR R0, =0x1004 ");
-  __asm(" BX R0 ");
+  __asm("LDR R0, =0x1004"); //  RESET vector of target image
+  __asm("LDR R1, [R0]");    //  Get the branch address
+  __asm("ORR R1, #1");      //  Make sure the Thumb State bit is set.
+  __asm("BX R1");           //  Branch execution
 ```
 
 0x1004 is the start address of the target image 0x1000 + 0x4 bytes to get to the RESET vector.
