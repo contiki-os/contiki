@@ -436,7 +436,7 @@ static void handle_serial_input(const char *line)
         print_help();
     }
     else if (!strcmp(p, "stat") || !strcmp(line, "stats")) {
-        for(i=0; i <= NODES_IN_TEST; i++) {
+        for(i=0; i < NODES_IN_TEST; i++) {
             printStats(&stats[i]);
         }
         clearStats();
