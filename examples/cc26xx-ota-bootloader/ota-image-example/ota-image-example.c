@@ -46,12 +46,12 @@ AUTOSTART_PROCESSES(&blinker_test_loop);
 PROCESS_THREAD(blinker_test_loop, ev, data)
 {
   PROCESS_BEGIN();
+  
+  //	(1)	UART Output
+  printf("OTA Image Example: Starting\n");
 
-	//	(1)	UART Output
-	printf("OTA Image Example: Starting\n");
-
-	//	(2)	Start blinking green LED
-	GPIO_CONFIG( BLINKER_PIN, BLINKER_CFG, GPIO_DIR_MODE_OUT );
+  //	(2)	Start blinking green LED
+  GPIO_CONFIG( BLINKER_PIN, BLINKER_CFG, GPIO_DIR_MODE_OUT );
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
 
   PROCESS_END();
