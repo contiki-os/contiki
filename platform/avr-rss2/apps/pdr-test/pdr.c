@@ -101,6 +101,8 @@ void printStats(struct stats_info *s)
     int rssi;
     uint8_t lqi;
     
+    if (s->node_id == 0) return;
+    
     if (s->fine == 0) {
         rssi = 0;
         lqi = 0;
@@ -434,7 +436,7 @@ static void handle_serial_input(const char *line)
         print_help();
     }
     else if (!strcmp(p, "stat") || !strcmp(line, "stats")) {
-        for(i=0; i <= currentStatsIdx; i++) {
+        for(i=0; i <= NODES_IN_TEST; i++) {
             printStats(&stats[i]);
         }
         clearStats();
