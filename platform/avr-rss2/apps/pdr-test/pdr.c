@@ -43,7 +43,7 @@ struct rtimer rt;
 static struct etimer periodic;
 
 struct stats_info stats[NODES_IN_TEST];
-uint8_t currentStatsIdx = 0;								// -1: stats memory full
+int8_t currentStatsIdx;
 
 // needed to link fastrandom.h
 uint32_t fastrandomKey;
@@ -208,8 +208,8 @@ static void inputPacket(void)
     void *data = packetbuf_hdrptr();
     struct packetHeader *h = (struct packetHeader *) data;
     struct stats_info *s;
-    uint8_t findIdx;
-    uint8_t lastIdx;
+    int8_t findIdx;
+    int8_t lastIdx;
     uint8_t rssi;
     uint8_t i;
     
@@ -219,7 +219,7 @@ static void inputPacket(void)
     
     s = &stats[currentStatsIdx];
     
-    /* sender is a "key" */
+    /* sender and channel is  "key" */
     if (h->sender != s->node_id || h->channel != s->channel) {
         findIdx = -1;
         lastIdx = -1;
@@ -231,31 +231,36 @@ static void inputPacket(void)
                 lastIdx = i;
             }
         }
-        if (findIdx > -1) {
-            // <sender,channel> already in stats memory
-            currentStatsIdx = findIdx;
-        } else if (lastIdx == -1) {
-            // new <sender,channel>, stats memory empty
-            currentStatsIdx = 0;
-            s->node_id = h->sender;
-            s->platform_id = h->platform_id;
-            s->channel = h->channel;
-            printf("received from new sender %u (channel %u)\n", h->sender, h->channel);
-        } else if (lastIdx < NODES_IN_TEST - 1) {
-            // new <sender,channel>
-            currentStatsIdx = lastIdx + 1;
-            s->node_id = h->sender;
-            s->platform_id = h->platform_id;
-            s->channel = h->channel;
-            printf("received from new sender %u (channel %u)\n", h->sender, h->channel);
-        } else {
-            // stats memory full
+
+        if (findIdx == i) {
             currentStatsIdx = -1;
             return;
         }
-        s = &stats[currentStatsIdx];
+
+        if (findIdx > -1) {
+            // <sender,channel> already in stats memory
+            currentStatsIdx = findIdx;
+	    s = &stats[currentStatsIdx];
+	} 
+	else if (lastIdx == -1) {
+            // new <sender,channel>, stats memory empty
+            currentStatsIdx = 0;
+	    s = &stats[currentStatsIdx];
+            s->node_id = h->sender;
+            s->platform_id = h->platform_id;
+            s->channel = h->channel;
+            //printf("received from new sender %u (channel %u)\n", h->sender, h->channel);
+        } else if (lastIdx < NODES_IN_TEST - 1) {
+            // new <sender,channel>
+            currentStatsIdx = lastIdx + 1;
+	    s = &stats[currentStatsIdx];
+            s->node_id = h->sender;
+            s->platform_id = h->platform_id;
+            s->channel = h->channel;
+            //printf("received from new sender %u (channel %u)\n", h->sender, h->channel);
+        } 
     }
-    
+
     s->total++;
     
     /* error analysis */
@@ -376,7 +381,7 @@ static void print_help(void)
     printf("stat         -- report/clr\n");
     printf("te           -- board temp\n");
     printf("help         -- this menu\n");
-    printf("upgr         -- reboot via bootlaoder\n");
+    printf("upgr         -- reboot via bootloader\n");
 }
 
 static int cmd_chan(uint8_t verbose)
