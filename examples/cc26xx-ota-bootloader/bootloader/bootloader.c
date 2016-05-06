@@ -7,6 +7,7 @@
 int
 main(void)
 {
+  //  (1) Enable GPIO
   /* Disable global interrupts */
   bool int_disabled = ti_lib_int_master_disable();
 
@@ -29,22 +30,12 @@ main(void)
     ti_lib_int_master_enable();
   }
 
+  //  (2) Turn on red LED
   GPIODirModeSet(GPIO_PIN_10, GPIO_DIR_MODE_OUT);
   GPIOPinWrite(GPIO_PIN_10, 1);
 
-  // Load address of reset function from the fixed location of the image's
-  // reset vector and jump.
-  /**
-   *  Initial attempt
-   */
-
-  // This part throws a compiler error
-  /*
-  __asm("LDR R0, =0x1000");
-  __asm("MSR VTOR, R0");
-  __asm("ISB");
-  */
-
+  //  (3) Load address of reset function from the fixed location
+  //      of the image's reset vector and jump.
   __asm("LDR R0, =0x1004"); //  RESET vector of target image
   __asm("LDR R1, [R0]");    //  Get the branch address
   __asm("ORR R1, #1");      //  Make sure the Thumb State bit is set.
