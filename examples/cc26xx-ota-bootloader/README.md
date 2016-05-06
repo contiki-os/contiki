@@ -1,6 +1,6 @@
 # Cortex-M3 OTA Example
 
-This is an attempt to create a Cortex-M3 bootloader that can jump to (Contiki) firmware binaries located elsewhere in the internal EEPROM.  Motivation is that binaries may come OTA to be stored at a later date.  Assumed system is a Texas Instruments CC2650 (srf06/cc26xx SmartRF Evaluation Board).
+This is an attempt to create a Cortex-M3 bootloader that can jump to (Contiki) firmware binaries located elsewhere in the internal EEPROM.  Motivation is that binaries may come OTA to be stored at a later date.  Assumed system is a Texas Instruments CC2650 (`sensortag/cc2650` board).
 
 We have in one folder the `bootloader`, and in the other an example firmware image for testing (`ota-image-example`).
 
