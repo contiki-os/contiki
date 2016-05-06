@@ -232,7 +232,7 @@ static void inputPacket(void)
             }
         }
 
-        if (findIdx == i) {
+        if (lastIdx == i) {
             currentStatsIdx = -1;
             return;
         }
