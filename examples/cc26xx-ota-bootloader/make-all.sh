@@ -1,9 +1,11 @@
 #!/bin/bash
 
 cd ./bootloader
+make clean
 make bootloader.hex
 
 cd ../ota-image-example
+make clean
 make ota-image-example
 
 cd ..
