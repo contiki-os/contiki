@@ -232,7 +232,8 @@ static void inputPacket(void)
             }
         }
 
-        if (findIdx == i) {
+        if (lastIdx == NODES_IN_TEST - 1) {
+            // stats memory full
             currentStatsIdx = -1;
             return;
         }
@@ -245,20 +246,18 @@ static void inputPacket(void)
 	else if (lastIdx == -1) {
             // new <sender,channel>, stats memory empty
             currentStatsIdx = 0;
-	    s = &stats[currentStatsIdx];
+            s = &stats[currentStatsIdx];
             s->node_id = h->sender;
             s->platform_id = h->platform_id;
             s->channel = h->channel;
-            //printf("received from new sender %u (channel %u)\n", h->sender, h->channel);
         } else if (lastIdx < NODES_IN_TEST - 1) {
             // new <sender,channel>
             currentStatsIdx = lastIdx + 1;
-	    s = &stats[currentStatsIdx];
+            s = &stats[currentStatsIdx];
             s->node_id = h->sender;
             s->platform_id = h->platform_id;
             s->channel = h->channel;
-            //printf("received from new sender %u (channel %u)\n", h->sender, h->channel);
-        } 
+        }
     }
 
     s->total++;
