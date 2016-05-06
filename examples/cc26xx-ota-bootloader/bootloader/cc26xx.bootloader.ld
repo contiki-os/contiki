@@ -36,7 +36,7 @@ ENTRY(ResetISR)
 MEMORY
 {
     /* Flash Size 4 KB */
-    FLASH (RX) : ORIGIN = 0x00000000, LENGTH = 0x00001000
+    FLASH (RX) : ORIGIN = 0x00000000, LENGTH = 0x1000
 
     /*
      * Customer Configuration Area and Bootloader Backdoor configuration
