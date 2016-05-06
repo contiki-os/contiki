@@ -27,7 +27,7 @@
                             IOC_INT_DISABLE   | IOC_IOMODE_NORMAL | \
                             IOC_NO_WAKE_UP   | IOC_INPUT_DISABLE)
 
-#define BLINKER_PIN	IOID_25
+#define BLINKER_PIN	IOID_15
 
 struct ctimer blink_timer;
 bool blink_state = false;
@@ -48,9 +48,6 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   PROCESS_BEGIN();
 
 	printf("GPIO Blinker Test: Starting\n");
-
-	GPIODirModeSet(GPIO_PIN_27, GPIO_DIR_MODE_OUT);
-  GPIOPinWrite(GPIO_PIN_27, 1);
 
 	GPIO_CONFIG( BLINKER_PIN, BLINKER_CFG, GPIO_DIR_MODE_OUT );
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
