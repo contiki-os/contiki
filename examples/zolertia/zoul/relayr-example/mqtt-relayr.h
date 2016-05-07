@@ -58,6 +58,16 @@ typedef struct mqtt_client_config {
 
 extern mqtt_client_config_t conf; 
 /*---------------------------------------------------------------------------*/
+typedef struct config_flash {
+  uint16_t magic_word;
+  char auth_user[CONFIG_AUTH_USER_LEN];
+  char auth_token[CONFIG_AUTH_TOKEN_LEN];
+  uint16_t temp_threshold;
+  uint16_t humd_threshold;
+  uint16_t pub_interval_check;
+  uint16_t crc;
+} config_flash_t;
+/*---------------------------------------------------------------------------*/
 #endif /* RELAYR_MQTT_H_ */
 /** @} */
 

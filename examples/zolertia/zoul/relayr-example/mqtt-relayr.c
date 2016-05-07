@@ -44,7 +44,7 @@
 #include "dev/sht25.h"
 #include "net/ip/uip-debug.h"
 #include "dev/sys-ctrl.h"
-
+#include "lib/crc16.h"
 #include "mqtt-relayr.h"
 #include "httpd-simple.h"
 
@@ -269,23 +269,48 @@ activate_sensors(uint8_t state)
   SENSORS_DEACTIVATE(sht25);
 }
 /*---------------------------------------------------------------------------*/
+static void
+print_config_info(void)
+{
+  printf("Auth User --------------> %s\n", conf.auth_user);
+  printf("Auth Token -------------> %s\n", conf.auth_token);
+  printf("Pub Interval -----------> %u\n", conf.pub_interval_check);
+  printf("Temperature threshold --> %u\n", temp_threshold);
+  printf("Humidity threshold -----> %u\n", humd_threshold);
+}
+/*---------------------------------------------------------------------------*/
 static int
-write_config_to_flash(char *fname, uint8_t *var, uint8_t len)
+write_config_to_flash(void)
 {
   int fd;
-  fd = cfs_open(fname, CFS_READ | CFS_WRITE);
+  uint8_t *pCfg;
+  config_flash_t store;
+
+  pCfg = (uint8_t *) &store;
+
+  store.magic_word = 0xABCD;
+  memcpy(store.auth_user, conf.auth_user, CONFIG_AUTH_USER_LEN);
+  memcpy(store.auth_token, conf.auth_token, CONFIG_AUTH_TOKEN_LEN);
+  store.pub_interval_check = conf.pub_interval_check;
+  store.temp_threshold = temp_threshold;
+  store.humd_threshold = humd_threshold;
+  store.crc = crc16_data(pCfg, (sizeof(config_flash_t) - 2), 0);
+
+  fd = cfs_open("relayr_config", CFS_READ | CFS_WRITE);
 
   if(fd >= 0) {
-    if(cfs_write(fd, var, len) > 0) {
-      printf("Config: %s saved in flash\n", fname);
+    if(cfs_write(fd, pCfg, sizeof(config_flash_t)) > 0) {
+      printf("Config: saved in flash (MW 0x%02X, CRC16 %u, len %u)\n",
+              store.magic_word, store.crc, sizeof(config_flash_t));
+      print_config_info();
       cfs_close(fd);
     } else {
-      printf("Config: failed to write %s file\n", fname);
+      printf("Config: failed to write file\n");
       cfs_close(fd);
       return -1;
     }
   } else {
-    printf("Config: failed to open %s file\n", fname);
+    printf("Config: failed to open file\n");
     return -1;
   }
 
@@ -293,30 +318,49 @@ write_config_to_flash(char *fname, uint8_t *var, uint8_t len)
 }
 /*---------------------------------------------------------------------------*/
 static int
-read_config_from_flash(char *fname, uint8_t *var, uint8_t len)
+read_config_from_flash(void)
 {
   int fd;
-  fd = cfs_open(fname, CFS_READ | CFS_WRITE);
+  uint8_t *pCfg;
+  uint16_t crc;
+  config_flash_t store;
+
+  pCfg = (uint8_t *) &store;
+
+  // FIXME: temporal until fixing the flash problem
+  return -1;
+
+  fd = cfs_open("relayr_config", CFS_READ | CFS_WRITE);
 
   if(fd >= 0) {
-    if(cfs_read(fd, var, len) > 0) {
-      printf("Config: Read %s from flash\n", fname);
+    if(cfs_read(fd, pCfg, sizeof(config_flash_t)) > 0) {
+      printf("Config: Read from flash (MW 0x%02X, CRC16 %u len %u)\n",
+             store.magic_word, store.crc, sizeof(config_flash_t));
+      crc = crc16_data(pCfg, (sizeof(config_flash_t) - 2), 0);
 
-      /* Small hack as if storing a 0x00AB, when read it will be 0xFFAB due to
-       * the trailing zeroes.  This is very app-dependant, not a generic fix, as
-       * we are not expecting values over 65280
-       */
-      if((len <= 2) && (var[1] == 0xFF)) {
-        var[1] = 0x00;
+      if((store.magic_word == 0xABCD) && (crc == store.crc)) {
+        printf("Config: magic word and CRC check OK\n");
+        memcpy(conf.auth_user, store.auth_user, CONFIG_AUTH_USER_LEN);
+        memcpy(conf.auth_token, store.auth_token, CONFIG_AUTH_TOKEN_LEN);
+        conf.pub_interval_check = store.pub_interval_check;
+        temp_threshold = store.temp_threshold;
+        humd_threshold = store.humd_threshold;
+        print_config_info();
+
+      } else {
+        printf("Config: invalid magic word or CRC, using defaults\n");
+        cfs_close(fd);
+        return -1;
       }
+
     } else {
-      printf("Config: %s not found in flash\n", fname);
+      printf("Config: not found in flash\n");
       cfs_close(fd);
       return -1;
     }
     cfs_close(fd);
   } else {
-    printf("Config: failed to open file %s\n", fname);
+    printf("Config: failed to open file\n");
     return -1;
   }
   return 0;
@@ -419,7 +463,7 @@ pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 
       printf("Config: New update interval --> %u secs\n", aux);
       conf.pub_interval_check = aux;
-      write_config_to_flash("Relayr_interval", (uint8_t *)&conf.pub_interval_check, 2);
+      // write_config_to_flash();
 
     /* Change the temperature threshold (over) */
     } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CFG_TEMPTHR,
@@ -436,7 +480,7 @@ pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 
       printf("New temperature threshold --> %u\n", aux);
       temp_threshold = aux;
-      write_config_to_flash("Relayr_tempthres", (uint8_t *)&temp_threshold, 2);
+      // write_config_to_flash();
 
     /* Change the humidity threshold (over) */
     } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CFG_HUMDTHR,
@@ -453,7 +497,7 @@ pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 
       printf("New humidity threshold --> %u\n", aux);
       humd_threshold = aux;
-      write_config_to_flash("Relayr_humdthres", (uint8_t *)&humd_threshold, 2);
+      // write_config_to_flash();
 
     /* Invalid configuration topic */
     } else {
@@ -541,14 +585,8 @@ construct_client_id(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-init_config()
+init_relayr_config(void)
 {
-  /* Fill in the MQTT client configuration info */
-  memset(&conf, 0, sizeof(mqtt_client_config_t));
-  conf.broker_port = DEFAULT_BROKER_PORT;
-  conf.pub_interval = DEFAULT_SAMPLING_INTERVAL;
-  conf.pub_interval_check = DEFAULT_PUBLISH_INTERVAL;
-
   memcpy(conf.broker_ip, broker_ip, strlen(broker_ip));
 
   if(strlen(DEFAULT_AUTH_USER)) {
@@ -562,6 +600,16 @@ init_config()
   } else {
     printf("Warning: No hardcoded Auth Token\n");
   }
+}
+/*---------------------------------------------------------------------------*/
+static void
+init_config(void)
+{
+  /* Fill in the MQTT client configuration info */
+  memset(&conf, 0, sizeof(mqtt_client_config_t));
+  conf.broker_port = DEFAULT_BROKER_PORT;
+  conf.pub_interval = DEFAULT_SAMPLING_INTERVAL;
+  conf.pub_interval_check = DEFAULT_PUBLISH_INTERVAL;
 
   /* Configures a callback for a ping request to our parent node, to retrieve
    * the RSSI value
@@ -925,7 +973,6 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 {
   uip_ip4addr_t ip4addr;
   uip_ip6addr_t ip6addr;
-  static uint8_t mqtt_config_ready = 0;
 
   PROCESS_BEGIN();
 
@@ -935,9 +982,6 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
   printf("  Data topic:   %s\n", pub_topic);
   printf("  Config topic: %s\n", cfg_topic);
   printf("  Cmd topic:    %s\n\n", cmd_topic);
-
-  /* Copy configuration strings to MQTT & app placeholders */
-  init_config();
 
   /* Reset the counter */
   seq_nr_value = 0;
@@ -973,71 +1017,26 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
    * empty, then we start with the hard-coded config
    */
 
-  if((strlen(DEFAULT_USER_ID)) && (strlen(DEFAULT_AUTH_TOKEN))) {
+  if(read_config_from_flash() == -1) {
 
-   /* Hardcoded configuration, proceed */
-    mqtt_config_ready = 2;
+    init_config();
+    init_relayr_config();
 
-    printf("Hardcoded Auth User is %s\n", conf.auth_user);
-    printf("Hardcoded Auth Token is %s\n", conf.auth_token);
+    if((strlen(DEFAULT_USER_ID)) && (strlen(DEFAULT_AUTH_TOKEN))) {
 
-  } else {
+      printf("Hardcoded Auth User is %s\n", conf.auth_user);
+      printf("Hardcoded Auth Token is %s\n\n", conf.auth_token);
+      print_config_info();
 
-    printf("No hardcoded auth user or token found, retrieve from flash\n");
-
-    if(read_config_from_flash("Relayr_user", (uint8_t *)conf.auth_user,
-                              CONFIG_AUTH_USER_LEN) == 0) {
-      printf("New Auth User is %s\n", conf.auth_user);
-      mqtt_config_ready += 1;
     } else {
-      printf("No Auth User information found in flash\n");
+      printf("No client information found!\n");
+      printf("Awaiting provisioning over the httpd webserver\n");
+
+      /* Bootstrap and wait until we received a valid configuration */
+      PROCESS_WAIT_EVENT_UNTIL(httpd_simple_event_new_config);
+
+      printf("*** New configuration over httpd\n");
     }
-
-    if(read_config_from_flash("Relayr_token", (uint8_t *)conf.auth_token,
-                              CONFIG_AUTH_TOKEN_LEN) == 0) {
-      printf("New Auth User is %s\n", conf.auth_user);
-      mqtt_config_ready += 1;
-    } else {
-      printf("No Auth Token information found in flash\n");
-    }
-  }
-
-  if(mqtt_config_ready < 2) {
-    printf("Awaiting provisioning over the httpd webserver\n");
-
-    /* Bootstrap and wait until we received a valid configuration */
-    PROCESS_WAIT_EVENT_UNTIL(httpd_simple_event_new_config);
-
-    printf("*** New configuration over httpd\n");
-  }
-
-  /* Retrieve sensor configuration from flash */
-  /* FIXME: check for valid values as well... */
-
-  if(read_config_from_flash("Relayr_interval",
-                            (uint8_t *)&conf.pub_interval_check, 2) == 0) {
-    printf("Config: update interval --> %u\n", conf.pub_interval_check);
-  } else {
-    printf("Config: sensor status not saved in flash, using default\n");
-    conf.pub_interval_check = DEFAULT_PUBLISH_INTERVAL;
-  }
-
-  /* Retrieve temperature threshold from flash */
-  if(read_config_from_flash("Relayr_tempthres",
-                            (uint8_t *)&temp_threshold, 2) == 0) {
-    printf("Config: SHT25 temperature threshold --> %u\n", temp_threshold);
-  } else {
-    printf("Config: SHT25 temperature threshold not saved in flash, using default\n");
-    temp_threshold = DEFAULT_TEMP_THRESH;
-  }
-
-  /* Retrieve humidity threshold from flash */
-  if(read_config_from_flash("Relayr_humdthres",
-                            (uint8_t *)&humd_threshold, 2) == 0) {
-    printf("Config: SHT25 humidity threshold --> %u\n", humd_threshold);
-  } else {
-    printf("Config: SHT25 humidity threshold not saved in flash, using default\n");
-    humd_threshold = DEFAULT_HUMD_THRESH;
   }
 
   /* Start/disable sensors */
