@@ -51,6 +51,9 @@ int8_t numTestsInSenderRole;
 
 const char *delim = " \t\r,";
 
+#define END_OF_FILE 26
+uint8_t eof = END_OF_FILE;
+
 // -------------------------------------------------------------
 
 //
@@ -445,6 +448,8 @@ static void handle_serial_input(const char *line)
     }
 #ifdef CONTIKI_TARGET_AVR_RSS2
     else if (!strcmp(p, "upgr") || !strcmp(line, "upgrade")) {
+        printf("OK\n");
+	printf("%c", eof);
         cli();
         wdt_enable(WDTO_15MS);
         while(1);
