@@ -104,6 +104,8 @@ void printStats(struct stats_info *s)
     int rssi;
     uint8_t lqi;
     
+    if (s->node_id == 0) return;
+    
     if (s->fine == 0) {
         rssi = 0;
         lqi = 0;
@@ -235,7 +237,12 @@ static void inputPacket(void)
             }
         }
 
+<<<<<<< HEAD
         if (lastIdx == i) {
+=======
+        if (lastIdx == NODES_IN_TEST - 1) {
+            // stats memory full
+>>>>>>> 2dd13473d86d3c66ad6cd0e28032cb393bc3775c
             currentStatsIdx = -1;
             return;
         }
@@ -248,20 +255,18 @@ static void inputPacket(void)
 	else if (lastIdx == -1) {
             // new <sender,channel>, stats memory empty
             currentStatsIdx = 0;
-	    s = &stats[currentStatsIdx];
+            s = &stats[currentStatsIdx];
             s->node_id = h->sender;
             s->platform_id = h->platform_id;
             s->channel = h->channel;
-            //printf("received from new sender %u (channel %u)\n", h->sender, h->channel);
         } else if (lastIdx < NODES_IN_TEST - 1) {
             // new <sender,channel>
             currentStatsIdx = lastIdx + 1;
-	    s = &stats[currentStatsIdx];
+            s = &stats[currentStatsIdx];
             s->node_id = h->sender;
             s->platform_id = h->platform_id;
             s->channel = h->channel;
-            //printf("received from new sender %u (channel %u)\n", h->sender, h->channel);
-        } 
+        }
     }
 
     s->total++;
@@ -438,7 +443,7 @@ static void handle_serial_input(const char *line)
         print_help();
     }
     else if (!strcmp(p, "stat") || !strcmp(line, "stats")) {
-        for(i=0; i <= currentStatsIdx; i++) {
+        for(i=0; i < NODES_IN_TEST; i++) {
             printStats(&stats[i]);
         }
         clearStats();
