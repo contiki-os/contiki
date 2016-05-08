@@ -29,13 +29,6 @@
  * SUCH DAMAGE.
  *
  */
-/**
- * \addtogroup cc26xx-web-demo
- * @{
- *
- * \file
- *     A simple web server which displays network and sensor information
- */
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "httpd-simple.h"
@@ -51,7 +44,7 @@
 #include <strformat.h>
 #include <ctype.h>
 
-#include "mqtt-relayr.h"
+#include "mqtt-client.h"
 /*---------------------------------------------------------------------------*/
 #define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
 /*---------------------------------------------------------------------------*/
@@ -109,7 +102,7 @@ static int state;
  */
 static struct httpd_state *lock;
 /*---------------------------------------------------------------------------*/
-PROCESS(httpd_simple_process, "Weather Station Web Server");
+PROCESS(httpd_simple_process, "MQTT client Web Server");
 /*---------------------------------------------------------------------------*/
 #define ISO_nl        0x0A
 #define ISO_space     0x20
@@ -319,7 +312,6 @@ static
 PT_THREAD(generate_top_matter(struct httpd_state *s, const char *title,
                               const char **css))
 {
-
   PT_BEGIN(&s->top_matter_pt);
 
   PT_WAIT_THREAD(&s->top_matter_pt, enqueue_chunk(s, 0, http_doctype));
@@ -824,7 +816,7 @@ PROCESS_THREAD(httpd_simple_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  printf("Relayr MQTT webserver for provisioning\n");
+  printf("Started MQTT webserver for provisioning\n");
 
   httpd_simple_event_new_config = process_alloc_event();
 

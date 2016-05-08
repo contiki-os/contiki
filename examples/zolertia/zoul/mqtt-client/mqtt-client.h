@@ -40,14 +40,13 @@
  *                        <alinan@zolertia.com>
  */
 /*---------------------------------------------------------------------------*/
-#ifndef RELAYR_MQTT_H_
-#define RELAYR_MQTT_H_
+#ifndef MQTT_CLIENT_H_
+#define MQTT_CLIENT_H_
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Data structure declaration for the MQTT client configuration
  */
 typedef struct mqtt_client_config {
-  /* MQTT user strings */
   char auth_user[CONFIG_AUTH_USER_LEN];
   clock_time_t pub_interval;
   char broker_ip[CONFIG_IP_ADDR_STR_LEN];
@@ -68,6 +67,34 @@ typedef struct config_flash {
   uint16_t crc;
 } config_flash_t;
 /*---------------------------------------------------------------------------*/
-#endif /* RELAYR_MQTT_H_ */
+/* MQTT client available functions */
+void publish(uint8_t *app_buffer, uint16_t len);
+/*---------------------------------------------------------------------------*/
+/* MQTT client process events */
+extern process_event_t mqtt_client_event_connected;
+extern process_event_t mqtt_client_event_disconnected;
+/*---------------------------------------------------------------------------*/
+/* Macro to register the callback handler when a PUBLISH event is received */
+#define MQTT_PUB_REGISTER_HANDLER(ptr) pub_handler = ptr;
+extern void (*pub_handler)(const char *topic, uint16_t topic_len,
+                           const uint8_t *chunk, uint16_t chunk_len);
+/*---------------------------------------------------------------------------*/
+#define SENSOR_NAME_STRING  20
+typedef struct sensor_val {
+  int16_t value;
+  int16_t threshold;
+  int16_t min;
+  int16_t max;
+  char sensor_name[SENSOR_NAME_STRING];
+  char alarm_name[SENSOR_NAME_STRING];
+  char sensor_config[SENSOR_NAME_STRING];
+} sensor_val_t;
+
+typedef struct sensors_values {
+  uint8_t num;
+  sensor_val_t sensor[DEFAULT_CONF_SENSORS_NUM];
+} sensor_values_t;
+/*---------------------------------------------------------------------------*/
+#endif /* MQTT_CLIENT_H_ */
 /** @} */
 

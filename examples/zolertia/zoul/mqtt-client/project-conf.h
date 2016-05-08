@@ -41,6 +41,7 @@
 #define PROJECT_CONF_H_
 /*---------------------------------------------------------------------------*/
 /* User configuration */
+#define DEVICE_ID                     "Zolertia RE-Mote"
 #define STATUS_LED                    LEDS_GREEN
 #define CMD_LED                       LEDS_RED
 
@@ -101,7 +102,7 @@
 #define DEFAULT_PUBLISH_EVENT_HUMD    "humidity"
 #define DEFAULT_PUBLISH_ALARM_TEMP    "alarm_temperature"
 #define DEFAULT_PUBLISH_ALARM_HUMD    "alarm_humidity"
-#define DEFAULT_PUBLISH_EVENT_ID      "address"
+#define DEFAULT_PUBLISH_EVENT_ID      "ID"
 #define DEFAULT_PUBLISH_EVENT_RSSI    "rssi"
 #define DEFAULT_PUBLISH_EVENT_UPTIME  "uptime"
 #define DEFAULT_PUBLISH_EVENT_PARENT  "parent"
@@ -126,6 +127,9 @@
 #define DEFAULT_UPDATE_PERIOD_MIN     5
 #define DEFAULT_UPDATE_PERIOD_MAX     600
 
+/* Manimum number of sensors */
+#define DEFAULT_CONF_SENSORS_NUM  2
+
 /* Minimum and maximum values for the SHT25 sensor */
 #define DEFAULT_SHT25_TEMP_MIN        (-2000)
 #define DEFAULT_SHT25_TEMP_MAX        12000
@@ -149,6 +153,7 @@
 
 #define NETSTACK_CONF_RDC             nullrdc_driver
 
+#define COFFEE_MAGIC_WORD             0xABCD
 #define COFFEE_CONF_LOG_TABLE_LIMIT   16
 #define COFFEE_CONF_LOG_SIZE          128
 #define COFFEE_CONF_MICRO_LOGS        3
