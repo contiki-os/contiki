@@ -237,17 +237,12 @@ static void inputPacket(void)
             }
         }
 
-<<<<<<< HEAD
-        if (lastIdx == i) {
-=======
         if (lastIdx == NODES_IN_TEST - 1) {
             // stats memory full
->>>>>>> 2dd13473d86d3c66ad6cd0e28032cb393bc3775c
             currentStatsIdx = -1;
             return;
         }
-
-        if (findIdx > -1) {
+        else if (findIdx > -1) {
             // <sender,channel> already in stats memory
             currentStatsIdx = findIdx;
 	    s = &stats[currentStatsIdx];
