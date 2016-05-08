@@ -2,7 +2,7 @@
 #ifndef PDR_H
 #define PDR_H
 
-#define VERSION  "1.6-2016-05-06\n"
+#define VERSION  "1.8-2016-05-08\n"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -102,6 +102,7 @@
 #define PLATFORM_RADIO_HEADER "radio/rf230bb/rf230bb.h"
 
 #define radio_set_txpower rf230_set_txpower
+#define radio_get_txpower rf230_get_txpower
 #define radio_set_channel rf230_set_channel
 #define radio_get_channel rf230_get_channel
 #define radio_get_rssi    rf230_rssi

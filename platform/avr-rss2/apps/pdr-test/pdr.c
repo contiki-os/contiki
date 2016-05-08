@@ -383,8 +383,38 @@ static void print_help(void)
     printf("ch [11-26]   -- chan read/set\n");
     printf("stat         -- report/clr\n");
     printf("te           -- board temp\n");
+    printf("txp [max|0|-7|-15|min] -- tx pwr\n");
     printf("help         -- this menu\n");
     printf("upgr         -- reboot via bootloader\n");
+}
+
+static int cmd_txp(uint8_t verbose)
+{
+    char *p = strtok(NULL, delim);
+    
+    if(p) {
+
+      if(!strcmp(p, "max")) {
+	radio_set_txpower(RADIO_POWER_MAX);
+      }
+      else if(!strcmp(p, "0")) {
+	radio_set_txpower(RADIO_POWER_ZERO_DB);
+      }
+      else if(!strcmp(p, "-7")) {
+	radio_set_txpower(RADIO_POWER_MINUS7_DB);
+      }
+      else if(!strcmp(p, "-15")) {
+	radio_set_txpower(RADIO_POWER_MINUS15_DB);
+      }
+      else if(!strcmp(p, "min")) {
+	radio_set_txpower(RADIO_POWER_MIN);
+      }
+      else 
+	printf("Invalid power\n");;
+    }
+    if(verbose)
+      printf("plaform txp=%d\n", radio_get_txpower());
+    return 1;
 }
 
 static int cmd_chan(uint8_t verbose)
@@ -446,6 +476,9 @@ static void handle_serial_input(const char *line)
     else if (!strcmp(line, "te") || !strcmp(line, "temp")) {
         printf("temp=%i\n", temp_sensor.value(0));
     }
+    else if (!strcmp(p, "txp") || !strcmp(line, "txpower")) {
+        cmd_txp(1);
+    }
 #ifdef CONTIKI_TARGET_AVR_RSS2
     else if (!strcmp(p, "upgr") || !strcmp(line, "upgrade")) {
         printf("OK\n");
@@ -467,6 +500,8 @@ static void print_local_info(void)
     printf(" Local node_id=%u\n", node_id);
     printf(" platform_id=%u\n", platform_id);
     printf(" temp=%i\n", temp_sensor.value(0));
+    printf(" channel=%d\n",  radio_get_channel());
+    printf(" platform tx pwr=%d\n",  radio_get_txpower());
 }
 
 AUTOSTART_PROCESSES(&controlProcess);
@@ -484,14 +519,14 @@ PROCESS_THREAD(controlProcess, ev, data)
 #endif
     
     platform_id = PLATFORM_ID;
-    print_local_info();
-    clearStats();
-    
     channel = DEFAULT_CHANNEL;
     radio_set_channel(channel);
+    clearStats();
+    print_local_info();
+
     currentState = STATE_RX;
     currentStatsIdx = 0;
-    //radio_set_txpower(TEST_TXPOWER);
+    radio_set_txpower(TEST_TXPOWER);
     rime_sniffer_add(&printSniffer);
     etimer_set(&periodic, CLOCK_SECOND);
     
