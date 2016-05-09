@@ -29,16 +29,6 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-/**
- * \file
- *         Header file for the HTTPD of the cc26xx web demo example.
- * \author
- *         Adam Dunkels <adam@sics.se>
- *         Niclas Finne <nfi@sics.se>
- *         Joakim Eriksson <joakime@sics.se>
- *         Texas Instruments Incorporated - http://www.ti.com/
- */
-/*---------------------------------------------------------------------------*/
 #ifndef HTTPD_SIMPLE_H_
 #define HTTPD_SIMPLE_H_
 /*---------------------------------------------------------------------------*/

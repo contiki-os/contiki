@@ -49,17 +49,15 @@
 
 #include <string.h>
 /*---------------------------------------------------------------------------*/
+#define PLATFORM_NAME_EXPAND(x, y) x##y
+#define PLATFORM_NAME(x, y) PLATFORM_NAME_EXPAND(x, y)
+/*---------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
-/*---------------------------------------------------------------------------*/
-/*
- * Publish to an MQTT broker
- */
-static const char *broker_ip = MQTT_DEMO_BROKER_IP_ADDR;
 /*---------------------------------------------------------------------------*/
 /*
  * A timeout used when waiting for something to happen (e.g. to connect or to
@@ -113,8 +111,7 @@ static uint8_t state;
 PROCESS_NAME(mqtt_demo_process);
 AUTOSTART_PROCESSES(&mqtt_demo_process);
 /*---------------------------------------------------------------------------*/
-/* Include there the platforms processes to include */
-PROCESS_NAME(relayr_process);
+PROCESS_NAME(PLATFORM_NAME(MQTT_PLATFORM,_process));
 /*---------------------------------------------------------------------------*/
 /* Maximum TCP segment size for outgoing segments of our socket */
 #define MAX_TCP_SEGMENT_SIZE    32
@@ -123,10 +120,7 @@ PROCESS_NAME(relayr_process);
  * Buffers for ID and tokens
  * Make sure they are large enough to hold the entire respective string
  */
-static char client_id[CONFIG_IP_ADDR_STR_LEN];
-static char *pub_topic = DEFAULT_PUBLISH_EVENT;
-static char *cfg_topic = DEFAULT_SUBSCRIBE_CFG;
-static char *cmd_topic = DEFAULT_SUBSCRIBE_CMD;
+static char client_id[DEFAULT_IP_ADDR_STR_LEN];
 /*---------------------------------------------------------------------------*/
 static struct mqtt_connection conn;
 /*---------------------------------------------------------------------------*/
@@ -181,8 +175,8 @@ write_config_to_flash(void)
   pCfg = (uint8_t *) &store;
 
   store.magic_word = COFFEE_MAGIC_WORD;
-  memcpy(store.auth_user, conf.auth_user, CONFIG_AUTH_USER_LEN);
-  memcpy(store.auth_token, conf.auth_token, CONFIG_AUTH_TOKEN_LEN);
+  memcpy(store.auth_user, conf.auth_user, DEFAULT_AUTH_USER_LEN);
+  memcpy(store.auth_token, conf.auth_token, DEFAULT_AUTH_TOKEN_LEN);
   store.pub_interval_check = conf.pub_interval_check;
   store.crc = crc16_data(pCfg, (sizeof(config_flash_t) - 2), 0);
 
@@ -231,8 +225,8 @@ read_config_from_flash(void)
 
       if((store.magic_word == COFFEE_MAGIC_WORD) && (crc == store.crc)) {
         PRINTF("Client: magic word and CRC check OK\n");
-        memcpy(conf.auth_user, store.auth_user, CONFIG_AUTH_USER_LEN);
-        memcpy(conf.auth_token, store.auth_token, CONFIG_AUTH_TOKEN_LEN);
+        memcpy(conf.auth_user, store.auth_user, DEFAULT_AUTH_USER_LEN);
+        memcpy(conf.auth_token, store.auth_token, DEFAULT_AUTH_TOKEN_LEN);
         conf.pub_interval_check = store.pub_interval_check;
         print_config_info();
 
@@ -255,7 +249,7 @@ read_config_from_flash(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void
+void
 subscribe(char * topic)
 {
   mqtt_status_t status;
@@ -320,12 +314,12 @@ mqtt_event(struct mqtt_connection *m, mqtt_event_t event, void *data)
 static void
 construct_client_id(void)
 {
-  int len = snprintf(client_id, CONFIG_IP_ADDR_STR_LEN, "%02x%02x%02x%02x%02x%02x",
+  int len = snprintf(client_id, DEFAULT_IP_ADDR_STR_LEN, "%02x%02x%02x%02x%02x%02x",
                      linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
                      linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
                      linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
 
-  if(len < 0 || len >= CONFIG_IP_ADDR_STR_LEN) {
+  if(len < 0 || len >= DEFAULT_IP_ADDR_STR_LEN) {
     PRINTF("Client: buffer size too small for client ID: %d\n", len);
   }
 }
@@ -333,16 +327,14 @@ construct_client_id(void)
 static void
 init_platform_config(void)
 {
-  memcpy(conf.broker_ip, broker_ip, strlen(broker_ip));
-
   if(strlen(DEFAULT_AUTH_USER)) {
-    memcpy(conf.auth_user, DEFAULT_USER_ID, CONFIG_AUTH_USER_LEN);
+    memcpy(conf.auth_user, DEFAULT_USER_ID, DEFAULT_AUTH_USER_LEN);
   } else {
     printf("Warning: No hardcoded Auth User\n");
   }
 
   if(strlen(DEFAULT_AUTH_TOKEN)) {
-    memcpy(conf.auth_token, DEFAULT_AUTH_TOKEN, CONFIG_AUTH_TOKEN_LEN);
+    memcpy(conf.auth_token, DEFAULT_AUTH_TOKEN, DEFAULT_AUTH_TOKEN_LEN);
   } else {
     printf("Warning: No hardcoded Auth Token\n");
   }
@@ -353,7 +345,6 @@ init_config(void)
 {
   /* Fill in the MQTT client configuration info */
   memset(&conf, 0, sizeof(mqtt_client_config_t));
-  conf.broker_port = DEFAULT_BROKER_PORT;
   conf.pub_interval = DEFAULT_SAMPLING_INTERVAL;
   conf.pub_interval_check = DEFAULT_PUBLISH_INTERVAL;
 
@@ -362,7 +353,7 @@ init_config(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-publish(uint8_t *app_buffer, uint16_t len)
+publish(uint8_t *app_buffer, char *pub_topic, uint16_t len)
 {
   PRINTF("Client: Publish %s to %s\n", app_buffer, pub_topic);
 
@@ -374,7 +365,8 @@ static void
 connect_to_broker(void)
 {
   /* Connect to MQTT server */
-  mqtt_connect(&conn, conf.broker_ip, conf.broker_port, conf.pub_interval * 3);
+  mqtt_connect(&conn, MQTT_DEMO_BROKER_IP_ADDR, DEFAULT_BROKER_PORT,
+               conf.pub_interval * 3);
   state = STATE_CONNECTING;
 }
 /*---------------------------------------------------------------------------*/
@@ -434,10 +426,6 @@ state_machine(void)
     if(mqtt_ready(&conn) && conn.out_buffer_sent) {
       /* Connected and Publish */
       if(state == STATE_CONNECTED) {
-
-        /* FIXME: there is only room for one subscription, limited by the MQTT driver */
-        subscribe(cfg_topic);
-        // subscribe(cmd_topic);
 
         /* Notiy the platforms we are connected and ready to the broker */
         process_post(PROCESS_BROADCAST, mqtt_client_event_connected, NULL);
@@ -523,10 +511,8 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
   PROCESS_BEGIN();
 
   printf("\nZolertia MQTT client\n");
-  printf("  Broker IP:    %s\n", conf.broker_ip);
-  printf("  Data topic:   %s\n", pub_topic);
-  printf("  Config topic: %s\n", cfg_topic);
-  printf("  Cmd topic:    %s\n\n", cmd_topic);
+  printf("  Broker IP:    %s\n", MQTT_DEMO_BROKER_IP_ADDR);
+  printf("  Broken port:  %u\n", DEFAULT_BROKER_PORT);
 
   /* Set the initial state */
   state = STATE_INIT;
@@ -540,7 +526,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 
   /* Stop and wait until the node joins the network */
   leds_on(LEDS_RED);
-  printf("Connecting to the network... \n");
+  printf("Connecting to the network... \n\n");
   etimer_set(&publish_periodic_timer, CLOCK_SECOND * 35);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&publish_periodic_timer));
   leds_off(LEDS_RED);
@@ -590,7 +576,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
   }
 
   /* Start the platform process */
-  process_start(&relayr_process, NULL);
+  process_start(&PLATFORM_NAME(MQTT_PLATFORM,_process), NULL);
 
   /* Schedule next timer event ASAP */
   etimer_set(&publish_periodic_timer, 0);

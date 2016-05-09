@@ -30,17 +30,6 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-/**
- * \addtogroup weather-station
- * @{
- *
- * \file
- * Weather station application
- *
- * \author
- *         Antonio Lignan <antonio.lignan@gmail.com>
- */
-/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "lib/random.h"
 #include "net/rpl/rpl.h"
@@ -51,7 +40,9 @@
 #include "sys/etimer.h"
 #include "dev/sys-ctrl.h"
 #include "mqtt-client.h"
-#include "fridge-sensors.h"
+#include "relayr.h"
+
+//#include sensors_include(MQTT_SENSORS)
 
 #include <stdio.h>
 #include <string.h>
@@ -65,6 +56,9 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
+#define SENSORS_NAME_EXPAND(x, y) x##y
+#define SENSORS_NAME(x, y) SENSORS_NAME_EXPAND(x, y)
+/*---------------------------------------------------------------------------*/
 /* Payload length of ICMPv6 echo requests used to measure RSSI with def rt */
 #define ECHO_REQ_PAYLOAD_LEN   20
 /*---------------------------------------------------------------------------*/
@@ -75,7 +69,7 @@ static char app_buffer[APP_BUFFER_SIZE];
 PROCESS(relayr_process, "Relayr MQTT process");
 /*---------------------------------------------------------------------------*/
 /* Include there the sensors processes to include */
-PROCESS_NAME(fridge_sensors_process);
+PROCESS_NAME(SENSORS_NAME(MQTT_SENSORS, _sensors_process));
 /*---------------------------------------------------------------------------*/
 static struct etimer alarm_expired;
 /*---------------------------------------------------------------------------*/
@@ -137,9 +131,9 @@ void
 activate_sensors(uint8_t state)
 {
   if(state) {
-    process_start(&fridge_sensors_process, NULL);
+    process_start(&SENSORS_NAME(MQTT_SENSORS, _sensors_process), NULL);
   } else {
-    process_exit(&fridge_sensors_process);
+    process_exit(&SENSORS_NAME(MQTT_SENSORS, _sensors_process));
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -200,7 +194,8 @@ publish_alarm(sensor_val_t *sensor)
              "[{\"meaning\":\"%s\",\"value\":%d.%u}]",
              sensor->alarm_name, sensor->value / 100, sensor->value % 100);
 
-    publish((uint8_t *)app_buffer, strlen(app_buffer));
+    publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
+            strlen(app_buffer));
 
     /* Schedule the timer to prevent flooding the broker with the same event */
     etimer_set(&alarm_expired, (CLOCK_SECOND * 15));
@@ -256,7 +251,8 @@ publish_event(sensor_values_t *msg)
   len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_RSSI, aux, 0, 0);
 
   PRINTF("Relayr: publish %s (%u)\n", app_buffer, strlen(app_buffer));
-  publish((uint8_t *)app_buffer, strlen(app_buffer));
+  publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
+          strlen(app_buffer));
 }
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
@@ -367,25 +363,27 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
     }
 
     /* Change a sensor's threshold (over) */
-    for(i=0; i<fridge_sensors.num; i++) {
+    for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
 
-      if(strncmp((const char *)&chunk[9], fridge_sensors.sensor[i].sensor_name,
-                      strlen(fridge_sensors.sensor[i].sensor_name)) == 0) {
+      if(strncmp((const char *)&chunk[9], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_name),
+                      strlen(SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_name))) == 0) {
 
         /* Take integers as configuration value */
-        aux = atoi((const char*) &chunk[strlen(fridge_sensors.sensor[i].sensor_config) + 19]);
+        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config)) + 19]);
 
-        if((aux < fridge_sensors.sensor[i].min) || (aux > fridge_sensors.sensor[i].max)) {
+        if((aux < SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].min)) || 
+          (aux > SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].max))) {
           PRINTF("Relayr: %s threshold should be between %d and %d\n",
-                 fridge_sensors.sensor[i].sensor_name,
-                 fridge_sensors.sensor[i].min,
-                 fridge_sensors.sensor[i].max);
+                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
+                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].min),
+                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].max));
           return;
         }
 
-        fridge_sensors.sensor[i].threshold = aux;
-        PRINTF("Relayr: New %s threshold --> %u\n", fridge_sensors.sensor[i].sensor_name,
-                                                    fridge_sensors.sensor[i].threshold);
+        SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].threshold) = aux;
+        PRINTF("Relayr: New %s threshold --> %u\n",
+               SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
+               SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].threshold));
         // FIXME: write_config_to_flash();
         return;
       }
@@ -417,7 +415,10 @@ PROCESS_THREAD(relayr_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  printf("Relayr process started\n");
+  printf("\nRelayr process started\n");
+  printf("  Data topic:   %s\n", DEFAULT_PUBLISH_EVENT);
+  printf("  Config topic: %s\n", DEFAULT_SUBSCRIBE_CFG);
+  printf("  Cmd topic:    %s\n\n", DEFAULT_SUBSCRIBE_CMD);
 
   /* Initialize platform-specific */
   init_platform();
@@ -427,17 +428,26 @@ PROCESS_THREAD(relayr_process, ev, data)
     PROCESS_YIELD();
 
     if(ev == mqtt_client_event_connected) {
-      ping_parent();
       seq_nr_value = 0;
+
+      /* Ping our current parent to retrieve the RSSI signal level */
+      ping_parent();
+
+      /* Subscribe to topics (MQTT driver only supports 1 topic at the moment */
+      subscribe((char *)DEFAULT_SUBSCRIBE_CFG);
+      // subscribe((char *) DEFAULT_SUBSCRIBE_CMD);
+
+      /* Enable the sensor */
       activate_sensors(0x01);
     }
 
     if(ev == mqtt_client_event_disconnected) {
+      /* We are not connected, disable the sensors */
       activate_sensors(0x00);
     }
 
     /* Check for periodic publish events */
-    if(ev == fridge_sensors_data_event) {
+    if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_data_event)) {
       seq_nr_value++;
 
       /* The `pub_interval_check` is an external struct defined in mqtt-client */
@@ -448,7 +458,7 @@ PROCESS_THREAD(relayr_process, ev, data)
     }
 
     /* Check for alarms */
-    if(ev == fridge_sensors_alarm_event) {
+    if(ev == SENSORS_NAME(MQTT_SENSORS,_sensors_alarm_event)) {
       sensor_val_t *sensorPtr = (sensor_val_t *) data;
       publish_alarm(sensorPtr);
     }

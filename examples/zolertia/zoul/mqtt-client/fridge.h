@@ -28,22 +28,47 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-#ifndef FRIDGE_SENSORS_H_
-#define FRIDGE_SENSORS_H_
-/*---------------------------------------------------------------------------*/
-#include "mqtt-client.h"
+#ifndef FRIDGE_H_
+#define FRIDGE_H_
 /*---------------------------------------------------------------------------*/
 enum {
   FRIDGE_SENSOR_TEMP = 0,
   FRIDGE_SENSOR_HUMD,
 };
-
-extern sensor_values_t fridge_sensors;
 /*---------------------------------------------------------------------------*/
 /* Sensor process events */
 extern process_event_t fridge_sensors_data_event;
 extern process_event_t fridge_sensors_alarm_event;
 /*---------------------------------------------------------------------------*/
-#endif /* FRIDGE_SENSORS_H_ */
+/* Manimum number of sensors */
+#define DEFAULT_CONF_SENSORS_NUM      2
+#include "mqtt-sensors.h"
+/*---------------------------------------------------------------------------*/
+extern sensor_values_t fridge_sensors;
+/*---------------------------------------------------------------------------*/
+/* PUBLISH strings */
+#define DEFAULT_PUBLISH_EVENT_TEMP    "temperature"
+#define DEFAULT_PUBLISH_EVENT_HUMD    "humidity"
+#define DEFAULT_PUBLISH_ALARM_TEMP    "alarm_temperature"
+#define DEFAULT_PUBLISH_ALARM_HUMD    "alarm_humidity"
+
+/* SUBSCRIBE strings */
+#define DEFAULT_SUBSCRIBE_CFG_TEMPTHR "temperature_thresh"
+#define DEFAULT_SUBSCRIBE_CFG_HUMDTHR "humidity_thresh"
+
+/* Minimum and maximum values for the SHT25 sensor */
+#define DEFAULT_SHT25_TEMP_MIN        (-2000)
+#define DEFAULT_SHT25_TEMP_MAX        12000
+#define DEFAULT_SHT25_HUMD_MIN        0
+#define DEFAULT_SHT25_HUMD_MAX        10000
+
+#define DEFAULT_TEMP_NOT_USED         DEFAULT_SHT25_TEMP_MIN
+#define DEFAULT_HUMD_NOT_USED         DEFAULT_SHT25_HUMD_MIN
+
+/* Default sensor state and thresholds */
+#define DEFAULT_TEMP_THRESH           3000
+#define DEFAULT_HUMD_THRESH           8000
+/*---------------------------------------------------------------------------*/
+#endif /* FRIDGE_H_ */
 /** @} */
 

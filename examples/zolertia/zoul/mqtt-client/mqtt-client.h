@@ -28,39 +28,42 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-/**
- * \addtogroup relayr-mqtt
- * @{
- *
- * \file
- * Relayr MQTT application header
- *
- * \author
- *         Antonio Lignan <antonio.lignan@gmail.com>
- *                        <alinan@zolertia.com>
- */
-/*---------------------------------------------------------------------------*/
 #ifndef MQTT_CLIENT_H_
 #define MQTT_CLIENT_H_
+/*---------------------------------------------------------------------------*/
+#define __client_include(x) #x
+#define client_include(x) __client_include(x.h)
+/*---------------------------------------------------------------------------*/
+#include client_include(MQTT_PLATFORM)
+#include client_include(MQTT_SENSORS)
+/*---------------------------------------------------------------------------*/
+/* Connection information, this is taken from the platform header file */
+#define MQTT_DEMO_BROKER_IP_ADDR      MQTT_DEMO_CONF_BROKER_IP_ADDR
+#define DEFAULT_BROKER_PORT           1883
+#define DEFAULT_USER_ID               DEFAULT_CONF_USER_ID
+#define DEFAULT_AUTH_TOKEN            DEFAULT_CONF_AUTH_TOKEN
+#define DEFAULT_AUTH_USER             DEFAULT_CONF_AUTH_USER
+#define DEFAULT_AUTH_USER_LEN         DEFAULT_CONF_AUTH_USER_LEN
+#define DEFAULT_AUTH_TOKEN_LEN        DEFAULT_CONF_AUTH_TOKEN_LEN
+#define DEFAULT_IP_ADDR_STR_LEN       DEFAULT_CONF_IP_ADDR_STR_LEN
+#define DEFAULT_SENSORS_NUM           DEFAULT_CONF_SENSORS_NUM
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Data structure declaration for the MQTT client configuration
  */
 typedef struct mqtt_client_config {
-  char auth_user[CONFIG_AUTH_USER_LEN];
+  char auth_user[DEFAULT_AUTH_USER_LEN];
   clock_time_t pub_interval;
-  char broker_ip[CONFIG_IP_ADDR_STR_LEN];
   uint16_t pub_interval_check;
-  char auth_token[CONFIG_AUTH_TOKEN_LEN];
-  uint16_t broker_port;
+  char auth_token[DEFAULT_AUTH_TOKEN_LEN];
 } mqtt_client_config_t;
 
 extern mqtt_client_config_t conf; 
 /*---------------------------------------------------------------------------*/
 typedef struct config_flash {
   uint16_t magic_word;
-  char auth_user[CONFIG_AUTH_USER_LEN];
-  char auth_token[CONFIG_AUTH_TOKEN_LEN];
+  char auth_user[DEFAULT_AUTH_USER_LEN];
+  char auth_token[DEFAULT_AUTH_TOKEN_LEN];
   uint16_t temp_threshold;
   uint16_t humd_threshold;
   uint16_t pub_interval_check;
@@ -68,7 +71,8 @@ typedef struct config_flash {
 } config_flash_t;
 /*---------------------------------------------------------------------------*/
 /* MQTT client available functions */
-void publish(uint8_t *app_buffer, uint16_t len);
+void subscribe(char * topic);
+void publish(uint8_t *app_buffer, char *pub_topic, uint16_t len);
 /*---------------------------------------------------------------------------*/
 /* MQTT client process events */
 extern process_event_t mqtt_client_event_connected;
@@ -78,22 +82,6 @@ extern process_event_t mqtt_client_event_disconnected;
 #define MQTT_PUB_REGISTER_HANDLER(ptr) pub_handler = ptr;
 extern void (*pub_handler)(const char *topic, uint16_t topic_len,
                            const uint8_t *chunk, uint16_t chunk_len);
-/*---------------------------------------------------------------------------*/
-#define SENSOR_NAME_STRING  20
-typedef struct sensor_val {
-  int16_t value;
-  int16_t threshold;
-  int16_t min;
-  int16_t max;
-  char sensor_name[SENSOR_NAME_STRING];
-  char alarm_name[SENSOR_NAME_STRING];
-  char sensor_config[SENSOR_NAME_STRING];
-} sensor_val_t;
-
-typedef struct sensors_values {
-  uint8_t num;
-  sensor_val_t sensor[DEFAULT_CONF_SENSORS_NUM];
-} sensor_values_t;
 /*---------------------------------------------------------------------------*/
 #endif /* MQTT_CLIENT_H_ */
 /** @} */

@@ -33,8 +33,7 @@
 #include "contiki.h"
 #include "sys/etimer.h"
 #include "dev/sht25.h"
-#include "mqtt-client.h"
-#include "fridge-sensors.h"
+#include "fridge.h"
 
 #include <stdio.h>
 #include <string.h>
