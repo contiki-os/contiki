@@ -46,7 +46,6 @@
 #define DEFAULT_AUTH_USER_LEN         DEFAULT_CONF_AUTH_USER_LEN
 #define DEFAULT_AUTH_TOKEN_LEN        DEFAULT_CONF_AUTH_TOKEN_LEN
 #define DEFAULT_IP_ADDR_STR_LEN       DEFAULT_CONF_IP_ADDR_STR_LEN
-#define DEFAULT_SENSORS_NUM           DEFAULT_CONF_SENSORS_NUM
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Data structure declaration for the MQTT client configuration

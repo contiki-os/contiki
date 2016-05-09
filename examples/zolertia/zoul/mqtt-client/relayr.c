@@ -182,6 +182,8 @@ add_pub_topic(uint16_t length, char *meaning, char *value,
 static void
 publish_alarm(sensor_val_t *sensor)
 {
+  uint16_t aux_int, aux_res;
+
   if(etimer_expired(&alarm_expired)) {
 
     /* Clear buffer */
@@ -190,9 +192,19 @@ publish_alarm(sensor_val_t *sensor)
     PRINTF("Relayr: Alarm! %s --> %u over %u\n", sensor->alarm_name,
                                                  sensor->value,
                                                  sensor->threshold);
+    aux_int = sensor->value;
+    aux_res = sensor->value;
+
+    if(sensor->pres > 0) {
+      aux_int /= sensor->pres;
+      aux_res %= sensor->pres;
+    } else {
+      aux_res = 0;
+    }
+
     snprintf(app_buffer, APP_BUFFER_SIZE,
-             "[{\"meaning\":\"%s\",\"value\":%d.%u}]",
-             sensor->alarm_name, sensor->value / 100, sensor->value % 100);
+             "[{\"meaning\":\"%s\",\"value\":%d.%02u}]",
+             sensor->alarm_name, aux_int, aux_res);
 
     publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
             strlen(app_buffer));
@@ -208,6 +220,7 @@ publish_event(sensor_values_t *msg)
   char aux[64];
   int len = 0;
   uint8_t i;
+  uint16_t aux_int, aux_res;
   int remain = APP_BUFFER_SIZE;
 
   /* Clear buffer */
@@ -229,8 +242,18 @@ publish_event(sensor_values_t *msg)
   /* Include the sensor values */
   for(i=0; i < msg->num; i++) {
     memset(aux, 0, sizeof(aux));
-    snprintf(aux, sizeof(aux), "%d.%02u", msg->sensor[i].value / 100,
-             msg->sensor[i].value % 100);
+
+    aux_int = msg->sensor[i].value;
+    aux_res = msg->sensor[i].value;
+
+    if(msg->sensor[i].pres > 0) {
+      aux_int /= msg->sensor[i].pres;
+      aux_res %= msg->sensor[i].pres;
+    } else {
+      aux_res = 0;
+    }
+
+    snprintf(aux, sizeof(aux), "%d.%02u", aux_int, aux_res);
     len = add_pub_topic(remain, msg->sensor[i].sensor_name, aux, 0, 1);
     remain =- len;
   }

@@ -31,24 +31,33 @@
 #ifndef MQTT_SENSORS_H_
 #define MQTT_SENSORS_H_
 /*---------------------------------------------------------------------------*/
-#define DEFAULT_SENSORS_NUM           DEFAULT_CONF_SENSORS_NUM
-/*---------------------------------------------------------------------------*/
 #define SENSOR_NAME_STRING  20
 
 typedef struct sensor_val {
-  int16_t value;
-  int16_t threshold;
-  int16_t min;
-  int16_t max;
-  char sensor_name[SENSOR_NAME_STRING];
-  char alarm_name[SENSOR_NAME_STRING];
-  char sensor_config[SENSOR_NAME_STRING];
+  int16_t value;                            /* Sensor value */
+  int16_t threshold;                        /* Threshold (over) */
+  int16_t min;                              /* Minimum allowed value */
+  int16_t max;                              /* Maximum allowed value */
+  uint8_t pres;                             /* Number of precision digits */
+  char sensor_name[SENSOR_NAME_STRING];     /* Sensor name (string) */
+  char alarm_name[SENSOR_NAME_STRING];      /* Alarm name (string) */
+  char sensor_config[SENSOR_NAME_STRING];   /* Configuration name (string) */
 } sensor_val_t;
 
 typedef struct sensors_values {
-  uint8_t num;
-  sensor_val_t sensor[DEFAULT_SENSORS_NUM];
+  uint8_t num;                              /* Number of sensors */
+  sensor_val_t sensor[DEFAULT_SENSORS_NUM]; /* Array of sensor_val_t */
 } sensor_values_t;
+/*---------------------------------------------------------------------------*/
+/* Auxiliary function to fill the sensor_values_t structure */
+int mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val,
+                         char *name, char *alarm, char *config, uint16_t min,
+                         uint16_t max, uint16_t thres, uint16_t pres);
+
+/* Auxiliary function to check the sensor values and send alarms or publish
+ * periodic sensor events */
+void mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
+                       process_event_t data);
 /*---------------------------------------------------------------------------*/
 #endif /* MQTT_SENSORS_H_ */
 /** @} */
