@@ -13,6 +13,9 @@ S_PROG=stk500v2
 #   1. tty_talk passes the upgr command which kicks the bootloader
 #   2  we run avrdude programmming
 
+# tty_talk is availble via:
+#  https://github.com/herjulf/tty_talk
+
 stty sane
 tty_talk -38400 $DEV "upgr
 "
