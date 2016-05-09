@@ -192,7 +192,8 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             
             if (h->packetNumber >= PACKETS_IN_TEST) {
                 currentState = STATE_RX;
-                printf("send done\n");
+                printf("send done: pkts=%d channel=%d, platform_txp=%d\n", h->packetNumber, 
+		       radio_get_channel(), radio_get_txpower());
             }
             else {
                 next += PACKET_SEND_INTERVAL;
@@ -378,7 +379,7 @@ RIME_SNIFFER(printSniffer, inputPacket, NULL);
 static void print_help(void)
 {
     printf("pdr-test: version=%s", VERSION);
-    printf("tx [11-26]   -- send on chan\n");
+    printf("tx [[11-26] [max|0|-7|-15|min]]  -- send ch/pwr\n");
     printf("rx [11-26]   -- receive on chan\n");
     printf("ch [11-26]   -- chan read/set\n");
     printf("stat         -- report/clr\n");
@@ -409,11 +410,13 @@ static int cmd_txp(uint8_t verbose)
       else if(!strcmp(p, "min")) {
 	radio_set_txpower(RADIO_POWER_MIN);
       }
-      else 
+      else {
 	printf("Invalid power\n");;
+	return 0;
+      }
     }
     if(verbose)
-      printf("plaform txp=%d\n", radio_get_txpower());
+      printf("platform_txp=%d\n", radio_get_txpower());
     return 1;
 }
 
@@ -449,7 +452,10 @@ static void handle_serial_input(const char *line)
     
     if (!strcmp(p, "tx") || !strcmp(line, "TX")) {
         if( !cmd_chan(0)) return;
-        
+
+        if( !cmd_txp(0))
+	  return;
+
         etimer_set(&periodic, READY_PRINT_INTERVAL);
         currentState = STATE_TX;
         sendPacketNumber = 0;
