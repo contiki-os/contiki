@@ -2,8 +2,11 @@
 
 make TARGET=avr-rss2
 
-FIRMWARE=pdr.avr-rss2
 DEV=/dev/ttyUSB0
+[ "$1" ] && DEV=$1
+
+FIRMWARE=pdr.avr-rss2
+
 #S_PROG=avr109
 S_PROG=stk500v2
 
@@ -15,6 +18,8 @@ S_PROG=stk500v2
 
 # tty_talk is availble via:
 #  https://github.com/herjulf/tty_talk
+
+echo Using device=$DEV baud=$BAUD firmware=$FIRMWARE
 
 stty sane
 tty_talk -38400 $DEV "upgr
