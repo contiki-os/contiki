@@ -16,22 +16,23 @@ AUTOSTART_PROCESSES(&mqtt_process, &mqtt_pub_process);
 #define ATTO_HARDWARE_ID                     999999
 #define ATTO_LOGVIEW_URL                     "your.mqtt.broker.host"
 #define ATTO_API_VERSION                     1 
-#define MQTT_PERIODIC_PUB_TIME               (CLOCK_SECOND * 5)
-#define MQTT_CLIENT_CONN_KEEP_ALIVE          (CLOCK_SECOND * 20)
-#define MQTT_CLIENT_CONN_RECONNECT           (CLOCK_SECOND * 10)
+#define MQTT_PERIODIC_PUB_TIME               (CLOCK_SECOND * 15)
+#define MQTT_CLIENT_CONN_KEEP_ALIVE          (CLOCK_SECOND * 40)
+#define MQTT_CLIENT_CONN_RECONNECT           (CLOCK_SECOND * 20)
 #define MQTT_CLIENT_MAX_SEGMENT_SIZE         32
 #define MAX_APPLICATION_BUFFER_SIZE          64
 #define MIN_APPLICATION_BUFFER_SIZE          32
 #define MAX_PATHLEN                          64
 #define MAX_HOSTLEN                          64
 #define MAX_MSG_COUNTER                      65000
-#define ATTO_MQTT_USERNAME                   "MqttUsername"
-#define ATTO_MQTT_PASSWORD                   "MqttPassword"
+#define ATTO_MQTT_USERNAME                   "mqtt.username"
+#define ATTO_MQTT_PASSWORD                   "mqtt.password"
 /*---------------------------------------------------------------------------*/
 static int broker_port = 1883;
-static char *client_id = "YourClientId";
+static char *client_id = "mqtt.client_id";
 static struct mqtt_connection conn;
 static struct ctimer publish_msg_timer;
+static struct ctimer publish_counter_timer;
 static struct ctimer mqtt_conn_timer;
 static char broker_ip[MAX_APPLICATION_BUFFER_SIZE] = {0};
 static char pub_temp_topic[MAX_APPLICATION_BUFFER_SIZE] = {0};
@@ -156,9 +157,21 @@ static void publish_message(char * topic, mqtt_qos_level_t qos, uint8_t * data, 
   }
 }
 /*---------------------------------------------------------------------------*/
+static int counter = 0;
+static void publish_counter_message()
+{
+  mqtt_qos_level_t qos = 0;
+  counter = (counter + 1) % MAX_MSG_COUNTER;
+  uint8_t counterStr[10] = {0};
+  char* counterPtr = (char*) counterStr;
+  size_t counterStrSize = snprintf(counterPtr, 10, "%d", counter);
+  publish_message(pub_self_topic, qos, counterStr, counterStrSize);
+  printf("APP - Reprogramming the next counter message\r\n");
+  ctimer_reset(&publish_counter_timer);
+}
+/*---------------------------------------------------------------------------*/
 static void publish_periodic_message()
 {
-  static int counter = 0;
   char* topic;
   uint8_t data[MAX_APPLICATION_BUFFER_SIZE];
   int data_size;
@@ -171,19 +184,13 @@ static void publish_periodic_message()
     data_size = snprintf(str_data, MAX_APPLICATION_BUFFER_SIZE, "Sensor reading error");
     topic = pub_error_topic;
   } else {
-    data_size = snprintf(str_data, MAX_APPLICATION_BUFFER_SIZE, "%d.00", temp_value);
+    data_size = snprintf(str_data, MAX_APPLICATION_BUFFER_SIZE, "%d", temp_value);
     topic = pub_temp_topic;
 
     printf("APP - Trying to publish %s for %s with size %d\r\n", str_data, topic, data_size);
   }
 
-  counter = (counter + 1) % MAX_MSG_COUNTER;
-  uint8_t counterStr[10] = {0};
-  char* counterPtr = (char*) counterStr;
-  size_t counterStrSize = snprintf(counterPtr, 10, "%d", counter);
-
   publish_message(topic, qos, data, data_size);
-  publish_message(pub_self_topic, qos, counterStr, counterStrSize);
 
   printf("APP - Reprogramming the next message\r\n");
   ctimer_reset(&publish_msg_timer);
@@ -208,12 +215,14 @@ mqtt_event_handler(struct mqtt_connection *m, mqtt_event_t event, void *data)
         printf("APP - Application will start periocally send messages\r\n");
         ctimer_stop(&mqtt_conn_timer);
         ctimer_set(&publish_msg_timer, MQTT_PERIODIC_PUB_TIME, publish_periodic_message, NULL);
+        ctimer_set(&publish_counter_timer, MQTT_PERIODIC_PUB_TIME, publish_counter_message, NULL);
         break;
       }
     case MQTT_EVENT_DISCONNECTED:
       {
         printf("APP - MQTT Disconnect. Reason %u\r\n", *((mqtt_event_t *)data));
         ctimer_stop(&publish_msg_timer);
+        ctimer_stop(&publish_counter_timer);
         ctimer_set(&mqtt_conn_timer, MQTT_CLIENT_CONN_RECONNECT, mqtt_start_connection, NULL);
         break;
       }
@@ -239,7 +248,7 @@ mqtt_event_handler(struct mqtt_connection *m, mqtt_event_t event, void *data)
         break;
       }
     default:
-      printf("APP - Application got a unhandled MQTT event: %i\r\n", event);
+      printf("APP - Application got a unhandled MQTT event: 0x%02x\r\n", event);
       break;
   }
 }
@@ -250,7 +259,7 @@ unsigned int uip_ipaddr_to_string(uip_ipaddr_t * addr, char *buf)
     return 0;
   }
   printf("APP - IP to string");
-  uip_debug_ipaddr_print(addr);
+  uip_debug_ipaddr_print(addr); //TODO: 
   printf("\r\n");
   return sprintf(buf, "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x",
                 ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3],
