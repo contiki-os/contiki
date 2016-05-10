@@ -98,6 +98,20 @@ void clearStats(void)
     currentStatsIdx = 0;
 }
 
+uint8_t txpower;
+
+static uint8_t get_txpower(void)
+{
+  return txpower;
+}
+
+static char *get_txpower_string(uint8_t p)
+{
+  if((p <= TX_POWER_MIN) && (p >= TX_POWER_MAX)) 
+    return tx_power_list[p];
+  return "N/A";
+}
+
 void printStats(struct stats_info *s)
 {
     int16_t temp = 0;
@@ -116,12 +130,13 @@ void printStats(struct stats_info *s)
     
     temp = temp_sensor.value(0);
     
-    printf("%s %5u %s %5u %u %i ",
+    printf("%s %5u %s %5u %u %s %i ",
            platform_list[platform_id],
            node_id,
            platform_list[s->platform_id],
            s->node_id,
            s->channel,
+           get_txpower_string(s->txpower),
            temp);
     
     printf("%u %u %u %u\n",
@@ -182,6 +197,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             sendPacketNumber++;
             h->sender = node_id;
             h->channel = radio_get_channel();
+            h->txpower = get_txpower();
             h->platform_id = platform_id;
             h->packetNumber = sendPacketNumber;
             h->crc = crc8(h, sizeof(*h) - 1);
@@ -192,8 +208,8 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             
             if (h->packetNumber >= PACKETS_IN_TEST) {
                 currentState = STATE_RX;
-                printf("send done: pkts=%d channel=%d, platform_txp=%d\n", h->packetNumber, 
-		       radio_get_channel(), radio_get_txpower());
+                printf("send done: pkts=%d channel=%d, txpower=%s\n", h->packetNumber, 
+		       radio_get_channel(), get_txpower_string(txpower));
             }
             else {
                 next += PACKET_SEND_INTERVAL;
@@ -255,6 +271,7 @@ static void inputPacket(void)
             s->node_id = h->sender;
             s->platform_id = h->platform_id;
             s->channel = h->channel;
+            s->txpower = h->txpower;
         } else if (lastIdx < NODES_IN_TEST - 1) {
             // new <sender,channel>
             currentStatsIdx = lastIdx + 1;
@@ -262,6 +279,7 @@ static void inputPacket(void)
             s->node_id = h->sender;
             s->platform_id = h->platform_id;
             s->channel = h->channel;
+            s->txpower = h->txpower;
         }
     }
 
@@ -396,18 +414,23 @@ static int cmd_txp(uint8_t verbose)
     if(p) {
 
       if(!strcmp(p, "max")) {
+	txpower = TX_POWER_MAX;
 	radio_set_txpower(RADIO_POWER_MAX);
       }
       else if(!strcmp(p, "0")) {
+        txpower = TX_POWER_0DB;
 	radio_set_txpower(RADIO_POWER_ZERO_DB);
       }
       else if(!strcmp(p, "-7")) {
+	txpower = TX_POWER_MINUS7_DB;
 	radio_set_txpower(RADIO_POWER_MINUS7_DB);
       }
       else if(!strcmp(p, "-15")) {
+	txpower = TX_POWER_MINUS15_DB;
 	radio_set_txpower(RADIO_POWER_MINUS15_DB);
       }
       else if(!strcmp(p, "min")) {
+	txpower = TX_POWER_MIN;
 	radio_set_txpower(RADIO_POWER_MIN);
       }
       else {
@@ -416,7 +439,7 @@ static int cmd_txp(uint8_t verbose)
       }
     }
     if(verbose)
-      printf("platform_txp=%d\n", radio_get_txpower());
+      printf("txpower=%s\n", get_txpower_string(txpower));
     return 1;
 }
 
@@ -507,7 +530,7 @@ static void print_local_info(void)
     printf(" platform_id=%u\n", platform_id);
     printf(" temp=%i\n", temp_sensor.value(0));
     printf(" channel=%d\n",  radio_get_channel());
-    printf(" platform tx pwr=%d\n",  radio_get_txpower());
+    printf(" platform tx pwr=%s\n",  get_txpower_string(txpower));
 }
 
 AUTOSTART_PROCESSES(&controlProcess);
@@ -532,7 +555,8 @@ PROCESS_THREAD(controlProcess, ev, data)
 
     currentState = STATE_RX;
     currentStatsIdx = 0;
-    radio_set_txpower(TEST_TXPOWER);
+    txpower = TX_POWER_0DB;
+    radio_set_txpower(RADIO_POWER_ZERO_DB);
     rime_sniffer_add(&printSniffer);
     etimer_set(&periodic, CLOCK_SECOND);
     

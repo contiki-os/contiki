@@ -2,7 +2,7 @@
 #ifndef PDR_H
 #define PDR_H
 
-#define VERSION  "1.9-2016-05-09\n"
+#define VERSION  "2.0-2016-05-10\n"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -168,6 +168,8 @@ struct packetHeader {
     uint8_t packetNumber;
     uint8_t channel;
     uint8_t platform_id;
+    uint8_t txpower;
+    uint8_t pad;
     uint8_t crc;
 };
 
@@ -177,6 +179,7 @@ struct packetHeader {
 struct stats_info {
     uint16_t node_id;
     uint8_t channel;
+    uint8_t txpower;
     uint8_t platform_id;
     uint16_t fine;
     
@@ -242,6 +245,16 @@ extern bool cc2420_without_send_cca;
 #endif
 
 char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108", "ti-sensortag"};
+
+/* For TX between platforms */
+
+#define TX_POWER_MAX        0
+#define TX_POWER_0DB        1
+#define TX_POWER_MINUS7_DB  2
+#define TX_POWER_MINUS15_DB 3
+#define TX_POWER_MIN        4
+
+char *tx_power_list[] = { "MAXdBm", "0dBm", "-7dBm", "-15dBm", "MINdBm"};
 
 #include "pattern.h"
 
