@@ -157,7 +157,7 @@ publish_led_off(void *d)
 static void
 print_config_info(void)
 {
-  printf("Auth User --------------> %s\n", conf.auth_user);
+  printf("Auth Token -------------> %s\n", conf.auth_token);
   printf("Auth Token -------------> %s\n", conf.auth_token);
   printf("Pub Interval -----------> %u\n", conf.pub_interval_check);
 
@@ -328,7 +328,7 @@ static void
 init_platform_config(void)
 {
   if(strlen(DEFAULT_AUTH_USER)) {
-    memcpy(conf.auth_user, DEFAULT_USER_ID, DEFAULT_AUTH_USER_LEN);
+    memcpy(conf.auth_user, DEFAULT_AUTH_USER, DEFAULT_AUTH_USER_LEN);
   } else {
     printf("Warning: No hardcoded Auth User\n");
   }
@@ -378,8 +378,9 @@ state_machine(void)
     mqtt_register(&conn, &mqtt_demo_process, client_id, mqtt_event,
                   MAX_TCP_SEGMENT_SIZE);
 
+#if DEFAULT_CONF_AUTH_IS_REQUIRED
     mqtt_set_username_password(&conn, conf.auth_user, conf.auth_token);
-
+#endif
     conn.auto_reconnect = 0;
     connect_attempt = 1;
 
@@ -558,8 +559,8 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
     init_config();
     init_platform_config();
 
-    if((strlen(DEFAULT_USER_ID)) && (strlen(DEFAULT_AUTH_TOKEN))) {
-
+#if DEFAULT_CONF_AUTH_IS_REQUIRED
+    if((strlen(DEFAULT_AUTH_USER)) && (strlen(DEFAULT_AUTH_TOKEN))) {
       printf("Hardcoded Auth User is %s\n", conf.auth_user);
       printf("Hardcoded Auth Token is %s\n\n", conf.auth_token);
       print_config_info();
@@ -573,6 +574,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 
       printf("*** New configuration over httpd\n");
     }
+#endif /* DEFAULT_CONF_AUTH_IS_REQUIRED */
   }
 
   /* Start the platform process */

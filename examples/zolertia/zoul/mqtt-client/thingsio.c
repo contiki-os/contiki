@@ -41,7 +41,7 @@
 #include "dev/sys-ctrl.h"
 #include "mqtt-client.h"
 #include "mqtt-sensors.h"
-#include "relayr.h"
+#include "thingsio.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -65,7 +65,7 @@
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
-PROCESS(relayr_process, "Relayr MQTT process");
+PROCESS(thingsio_process, "The Things.io MQTT process");
 /*---------------------------------------------------------------------------*/
 /* Include there the sensors processes to include */
 PROCESS_NAME(SENSORS_NAME(MQTT_SENSORS, _sensors_process));
@@ -118,7 +118,7 @@ static void
 ping_parent(void)
 {
   if(uip_ds6_get_global(ADDR_PREFERRED) == NULL) {
-    PRINTF("Relayr: Parent not available\n");
+    PRINTF("Things.io: Parent not available\n");
     return;
   }
 
@@ -144,22 +144,22 @@ add_pub_topic(uint16_t length, char *meaning, char *value,
   int pos = 0;
 
   if((buf_ptr == NULL) || (length <= 0)){
-    PRINTF("Relayr: null buffer or lenght less than zero\n");
+    PRINTF("Things.io: null buffer or lenght less than zero\n");
     return -1;
   }
 
   if(first) {
-    len = snprintf(buf_ptr, length, "%s", "[");
+    len = snprintf(buf_ptr, length, "%s", "{\"values\":[");
     pos = len;
     buf_ptr += len;
   }
 
   len = snprintf(buf_ptr, (length - pos),
-                 "{\"meaning\":\"%s\",\"value\":\"%s\"}",
+                 "{\"key\":\"%s\",\"value\":\"%s\"}",
                  meaning, value);
  
   if(len < 0 || pos >= length) {
-    PRINTF("Relayr: Buffer too short. Have %d, need %d + \\0\n", length, len);
+    PRINTF("Things.io: Buffer too short. Have %d, need %d + \\0\n", length, len);
     return -1;
   }
 
@@ -169,7 +169,7 @@ add_pub_topic(uint16_t length, char *meaning, char *value,
   if(more) {
     len = snprintf(buf_ptr, (length - pos), "%s", ",");
   } else {
-    len = snprintf(buf_ptr, (length - pos), "%s", "]");
+    len = snprintf(buf_ptr, (length - pos), "%s", "]}");
   }
 
   pos += len;
@@ -188,7 +188,7 @@ publish_alarm(sensor_val_t *sensor)
     /* Clear buffer */
     memset(app_buffer, 0, APP_BUFFER_SIZE);
 
-    PRINTF("Relayr: Alarm! %s --> %u\n", sensor->alarm_name, sensor->value);
+    PRINTF("Things.io: Alarm! %s --> %u\n", sensor->alarm_name, sensor->value);
     aux_int = sensor->value;
     aux_res = sensor->value;
 
@@ -200,7 +200,7 @@ publish_alarm(sensor_val_t *sensor)
     }
 
     snprintf(app_buffer, APP_BUFFER_SIZE,
-             "[{\"meaning\":\"%s\",\"value\":%d.%02u}]",
+             "{\"values\":[{\"key\":\"%s\",\"value\":%d.%02u}]}",
              sensor->alarm_name, aux_int, aux_res);
 
     publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
@@ -272,20 +272,20 @@ publish_event(sensor_values_t *msg)
   snprintf(aux, sizeof(aux), "%d", def_rt_rssi);
   len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_RSSI, aux, 0, 0);
 
-  PRINTF("Relayr: publish %s (%u)\n", app_buffer, strlen(app_buffer));
+  PRINTF("Things.io: publish %s (%u)\n", app_buffer, strlen(app_buffer));
   publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
           strlen(app_buffer));
 }
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
 static void
-relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
+thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
             uint16_t chunk_len)
 {
   uint8_t i;
   uint16_t aux;
 
-  PRINTF("Relayr: Pub Handler, topic='%s' (len=%u), chunk='%s', chunk_len=%u\n",
+  PRINTF("Things.io: Pub Handler, topic='%s' (len=%u), chunk='%s', chunk_len=%u\n",
          topic, topic_len, chunk, chunk_len);
 
   /* Most of the commands follow a boolean-logic at least */
@@ -296,56 +296,56 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 
   /* This is a command event, it uses "true" and "false" strings
    * We expect commands to have the following syntax:
-   * {"name":"enable_sensor","value":false}
-   * That is why we use an index of "9" to search for the command string
+   * {"key":"enable_sensor","value":false}
+   * That is why we use an index of "8" to search for the command string
    */
   if(strncmp(topic, DEFAULT_SUBSCRIBE_CMD, CONFIG_SUB_CMD_TOPIC_LEN) == 0) {
 
     /* Toggle a given LED */
-    if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_LEDS,
+    if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_LEDS,
                strlen(DEFAULT_SUBSCRIBE_CMD_LEDS)) == 0) {
-      PRINTF("Relayr: Command received --> toggle LED\n");
+      PRINTF("Things.io: Command received --> toggle LED\n");
 
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 19],
+      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 18],
         "true", 4) == 0) {
         leds_on(CMD_LED);
-      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 19],
+      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 18],
         "false", 5) == 0) {
         leds_off(CMD_LED);
       } else {
-        PRINTF("Relayr: invalid command argument (expected boolean)!\n");
+        PRINTF("Things.io: invalid command argument (expected boolean)!\n");
       }
 
       return;
 
     /* Restart the device */
-    } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_REBOOT,
+    } else if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_REBOOT,
                strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT)) == 0) {
-      PRINTF("Relayr: Command received --> reboot\n");
+      PRINTF("Things.io: Command received --> reboot\n");
 
       /* This is fixed to check only "true" arguments */
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT) + 19],
+      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT) + 18],
         "true", 4) == 0) {
         sys_ctrl_reset();
       } else {
-        PRINTF("Relayr: invalid command argument (expected only 'true')!\n");
+        PRINTF("Things.io: invalid command argument (expected only 'true')!\n");
       }
 
       return;
 
     /* Enable or disable external sensors */
-    } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_SENSOR,
+    } else if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_SENSOR,
                strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR)) == 0) {
-      PRINTF("Relayr: Command received --> enable/disable sensor\n");
+      PRINTF("Things.io: Command received --> enable/disable sensor\n");
 
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 19],
+      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 18],
         "true", 4) == 0) {
         activate_sensors(0x01);
-      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 19],
+      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 18],
         "false", 5) == 0) {
         activate_sensors(0x00);
       } else {
-        PRINTF("Relayr: invalid command argument (expected boolean)!\n");
+        PRINTF("Things.io: invalid command argument (expected boolean)!\n");
       }
 
       return;
@@ -358,21 +358,21 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
      */
 
     /* Change the update period */
-   } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_EVENT,
+   } else if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_EVENT,
                strlen(DEFAULT_SUBSCRIBE_CMD_EVENT)) == 0) {
 
       /* Take integers as configuration value */
-      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CMD_EVENT) + 19]);
+      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CMD_EVENT) + 18]);
 
       /* Check for allowed values */
       if((aux < DEFAULT_UPDATE_PERIOD_MIN) || (aux > DEFAULT_UPDATE_PERIOD_MAX)) {
-        PRINTF("Relayr: update interval should be between %u and %u\n", 
+        PRINTF("Things.io: update interval should be between %u and %u\n", 
                 DEFAULT_UPDATE_PERIOD_MIN, DEFAULT_UPDATE_PERIOD_MAX);
         return;
       }
 
       conf.pub_interval_check = aux;
-      PRINTF("Relayr: New update interval --> %u secs\n", conf.pub_interval_check);
+      PRINTF("Things.io: New update interval --> %u secs\n", conf.pub_interval_check);
 
       // FIXME: write_config_to_flash();
       return;
@@ -382,15 +382,15 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
 
       if((SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config) != NULL) &&
-        (strncmp((const char *)&chunk[9], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config),
+        (strncmp((const char *)&chunk[8], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config),
                       strlen(SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config))) == 0)) {
 
         /* Take integers as configuration value */
-        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config)) + 19]);
+        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config)) + 18]);
 
         if((aux < SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].min)) || 
           (aux > SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].max))) {
-          PRINTF("Relayr: %s threshold should be between %d and %d\n",
+          PRINTF("Things.io: %s threshold should be between %d and %d\n",
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].min),
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].max));
@@ -405,18 +405,18 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
          * sure it matches an expected string.
          */
 
-        if(strstr((const char *)&chunk[9], "_thresh") != NULL) {
+        if(strstr((const char *)&chunk[8], "_thresh") != NULL) {
           SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold) = aux;
-          PRINTF("Relayr: New %s over threshold --> %u\n",
+          PRINTF("Things.io: New %s over threshold --> %u\n",
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold));
-        } else if(strstr((const char *)&chunk[9], "_thresl") != NULL) {
+        } else if(strstr((const char *)&chunk[8], "_thresl") != NULL) {
           SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].below_threshold) = aux;
-          PRINTF("Relayr: New %s below threshold --> %u\n",
+          PRINTF("Things.io: New %s below threshold --> %u\n",
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
                  SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].below_threshold));
         } else {
-          PRINTF("Relayr: Expected threshold configuration name to end ");
+          PRINTF("Things.io: Expected threshold configuration name to end ");
           PRINTF("either in thresh or thresl\n");
           /* Exit earlier to avoid writting in flash */
           return;
@@ -433,12 +433,12 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 #if DEFAULT_COMMANDS_NUM
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _commands.num); i++) {
 
-      if((strncmp((const char *)&chunk[9],
+      if((strncmp((const char *)&chunk[8],
           SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name),
           strlen(SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name))) == 0)) {
 
         /* Take integers as argument value */
-        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_commands.command[i].command_name)) + 19]);
+        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_commands.command[i].command_name)) + 18]);
 
         /* Invoke the command handler */
         SENSORS_NAME(MQTT_SENSORS,_commands.command[i].cmd(aux));
@@ -448,10 +448,10 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 #endif /* DEFAULT_COMMANDS_NUM */
 
     /* Invalid configuration topic, we should have returned before */
-    PRINTF("Relayr: Configuration/Command parameter not recognized\n");
+    PRINTF("Things.io: Configuration/Command parameter not recognized\n");
 
   } else {
-    PRINTF("Relayr: Incorrect topic or chunk len. Ignored\n");
+    PRINTF("Things.io: Incorrect topic or chunk len. Ignored\n");
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -459,7 +459,7 @@ static void
 init_platform(void)
 {
   /* Register the publish callback handler */
-  MQTT_PUB_REGISTER_HANDLER(relayr_pub_handler);
+  MQTT_PUB_REGISTER_HANDLER(thingsio_pub_handler);
 
   /* Configures a callback for a ping request to our parent node, to retrieve
    * the RSSI value
@@ -469,14 +469,14 @@ init_platform(void)
                                     echo_reply_handler);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(relayr_process, ev, data)
+PROCESS_THREAD(thingsio_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  printf("\nRelayr process started\n");
+  printf("\nThe Things.io process started\n");
 
   if(!(strlen(DEFAULT_CONF_USER_ID))) {
-    printf("\nRelayr: FATAL! no hardcoded User ID to create topics!!!\n");
+    printf("Things.io: FATAL! no hardcoded User ID to create topics!!!\n");
     printf("The configuration over webservice is not currently enabled\n");
     PROCESS_EXIT();
   }

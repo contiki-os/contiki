@@ -2,7 +2,7 @@ DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 
 all: mqtt-client
 
-# Platform options: relayr
+# Platform options: relayr, thingsio
 MQTT_PLATFORM = relayr
 
 # Sensor options: fridge, agriculture, remote, irrigation
@@ -15,6 +15,11 @@ PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c
 ifeq ($(MQTT_PLATFORM), relayr)
   PROJECT_SOURCEFILES += relayr.c
   CFLAGS += -DMQTT_PLATFORM="relayr"
+endif
+
+ifeq ($(MQTT_PLATFORM), thingsio)
+  PROJECT_SOURCEFILES += thingsio.c
+  CFLAGS += -DMQTT_PLATFORM="thingsio"
 endif
 
 # Sensor checks

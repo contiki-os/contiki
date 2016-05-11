@@ -46,6 +46,9 @@
 #define DEFAULT_AUTH_USER_LEN         DEFAULT_CONF_AUTH_USER_LEN
 #define DEFAULT_AUTH_TOKEN_LEN        DEFAULT_CONF_AUTH_TOKEN_LEN
 #define DEFAULT_IP_ADDR_STR_LEN       DEFAULT_CONF_IP_ADDR_STR_LEN
+
+/* Do we need to use AUTH_USER and AUTH_token? */
+#define DEFAULT_AUTH_IS_REQUIRED      DEFAULT_CONF_AUTH_IS_REQUIRED
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Data structure declaration for the MQTT client configuration
