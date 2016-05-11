@@ -763,7 +763,8 @@ class RuntimeState:
                 return '{"status":true,"ready":true}'
             return '{"status":true,"ready":false}'
 
-        if command in ["send", "recv", "end"]:
+        print("command: " + command);
+        if command in ["tx", "rx", "stat", "ch", "txp", "te", "end"]:
             if self.radioTestMoteCommandState == RADIO_TEST_COMMAND_QUEUED:
                 log(LOG_INFO, "Warning: reissuing a command!")
             # issue the command (and log time)
@@ -1275,7 +1276,7 @@ class HttpServerHandler(BaseHTTPRequestHandler):
     def serveRadioTestControl(self, qs):
         return state.serveRadioTestControl(qsExtractFloat(qs, "timestamp"),
                                            qsExtractFloat(qs, "t"),
-                                           qsExtractString(qs, "command"),
+                                           urllib.unquote(qsExtractString(qs, "command")).decode('utf8'),
                                            qsExtractBool(qs, "sync"))
 
     def serveReadings(self, qs):
