@@ -242,11 +242,11 @@ static void inputPacket(void)
     s = &stats[currentStatsIdx];
     
     /* sender and channel is  "key" */
-    if (h->sender != s->node_id || h->channel != s->channel) {
+    if (h->sender != s->node_id || h->channel != s->channel || h->txpower != s->txpower) {
         findIdx = -1;
         lastIdx = -1;
         for (i=0; i<NODES_IN_TEST; i++) {
-            if (h->sender == stats[i].node_id && h->channel == stats[i].channel) {
+            if (h->sender == stats[i].node_id && h->channel == stats[i].channel && h->txpower == s->txpower) {
                 findIdx = i;
             }
             if (stats[i].node_id != 0) {
