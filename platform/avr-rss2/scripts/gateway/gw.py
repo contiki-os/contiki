@@ -657,6 +657,8 @@ class RuntimeState:
         log(LOG_INFO, str(round(getSyncTime(), 1)) + " > " + line)
         # XXX: the fact that we need to do this may mean a bug in the middleware
         line = line.rstrip()
+        # testing pdr without return commands
+        self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
 
         # -- radio test
         if line == RADIOTEST_COMMAND_ACCEPTED:
@@ -666,6 +668,7 @@ class RuntimeState:
         if line == RADIOTEST_COMMAND_FINISHED:
             self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
             return
+
 
         # if the line has a checksum, check it
         if len(line) > 3 and line[len(line) - 3] == ',':
@@ -765,14 +768,14 @@ class RuntimeState:
             return '{"status":true,"ready":false}'
 
         if command in ["tx", "rx", "stat", "ch", "txp", "te", "end"]:
-            if self.radioTestMoteCommandState == RADIO_TEST_COMMAND_QUEUED:
-                log(LOG_INFO, "Warning: reissuing a command!")
-            # issue the command (and log time)
-            if command != "end":
-                log(LOG_INFO, "--- starting command='" + command + "', time=" + str(testTimestamp))
             self.radioTestMoteCommandState = RADIO_TEST_COMMAND_QUEUED
             with bufferLock:
                 state.writeBuffer += cmdParams + "\n"
+
+            if command in ["rx", "ch", "txp"]
+                self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
+            else
+                self.radioTestMoteCommandState = RADIO_TEST_COMMAND_ACCEPTED
 
             numSync = RADIO_TEST_MAX_RETRIES if doSync else 1
             while numSync > 0:
