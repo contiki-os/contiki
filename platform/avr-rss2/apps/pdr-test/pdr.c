@@ -125,7 +125,7 @@ void printStats(struct stats_info *s)
         lqi = 0;
     } else {
         rssi = platformFixRssi(s->rssiSum / s->fine);
-        lqi = s->lqiSum / s->fine;
+        lqi = 255 - s->lqiSumDiff / s->fine;
     }
     
     temp = temp_sensor.value(0);
@@ -380,7 +380,7 @@ static void inputPacket(void)
     s->fine++;
     rssi = (uint8_t) ((int) packetbuf_attr(PACKETBUF_ATTR_RSSI) + 128);
     s->rssiSum += rssi;
-    s->lqiSum += packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
+    s->lqiSumDiff += 255 - packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);   // sum up difference to 255 (save memory)
     if (rssi > s->rssiMax) s->rssiMax = rssi;
     if (rssi == 0 || rssi < s->rssiMin) s->rssiMin = rssi;
     
