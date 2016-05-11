@@ -184,7 +184,7 @@ struct stats_info {
     uint16_t fine;
     
     uint16_t rssiSum;
-    uint16_t lqiSum;
+    uint16_t lqiSumDiff;
     uint8_t rssiMax;
     uint8_t rssiMin;
     
