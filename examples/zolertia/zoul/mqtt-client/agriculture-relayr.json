@@ -1,0 +1,219 @@
+{
+    "owner": "1e8c0446-e273-4964-9bda-887634bda63d",
+    "id": "7ad7eb76-f87b-4f08-95a2-adf2b06c5aee",
+    "name": "Zolertia IoT Agriculture atmospheric",
+    "productNumber": "",
+    "description": "Wireless monitoring for crops  and fields, featuring temperature, humidity and ambient light sensors. \n\nNano-Power IoT device with an ARM Cortex M3 system-on-chip (32KB RAM and 512KB Flash), and dual radio (863-950MHz and 2.4GHz).",
+    "website": "http://zolertia.io",
+    "manufacturer": {
+        "name": "Zolertia SL",
+        "website": "http://zolertia.io",
+        "contactInfo": {
+            "email": "info@zolertia.io"
+        }
+    },
+    "resources": [],
+    "firmware": {
+        "1.0.0": {
+            "binaries": "",
+            "transport": {
+                "cloud": {
+                    "commands": [
+                        {
+                            "name": "pressure_thresh",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "mPa",
+                                "maximum": 10999,
+                                "minimum": 3001
+                            }
+                        },
+                        {
+                            "name": "light_thresh",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "lux",
+                                "maximum": 39999,
+                                "minimum": 1
+                            }
+                        },
+                        {
+                            "name": "humidity_thresh",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "milli RH%",
+                                "maximum": 9999,
+                                "minimum": 10
+                            }
+                        },
+                        {
+                            "name": "temperature_thresh",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "milli Celsius",
+                                "maximum": 11999,
+                                "minimum": -1999
+                            }
+                        },
+                        {
+                            "name": "update_period",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number"
+                            }
+                        },
+                        {
+                            "name": "enable_sensor",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "reboot",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "leds_toggle",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        }
+                    ],
+                    "readings": [
+                        {
+                            "path": "",
+                            "meaning": "pressure_thresh",
+                            "valueSchema": {
+                                "type": "number"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "light_thresh",
+                            "valueSchema": {
+                                "type": "number"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "humidity_thresh",
+                            "valueSchema": {
+                                "type": "number"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "temperature_thresh",
+                            "valueSchema": {
+                                "type": "number"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "alarm_pressure",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "mPa",
+                                "maximum": 11000,
+                                "minimum": 3000
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "pressure",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "hPa",
+                                "maximum": 1100,
+                                "minimum": 300
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "light",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "lux",
+                                "maximum": 40000,
+                                "minimum": 0
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "alarm_humidity",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "RH%"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "alarm_temperature",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "Celsius"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "uptime",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "seconds"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "rssi",
+                            "valueSchema": {
+                                "type": "number",
+                                "maximum": -130
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "parent",
+                            "valueSchema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "humidity",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "RH%",
+                                "maximum": 100
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "temperature",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "Celsius",
+                                "maximum": 120,
+                                "minimum": -20
+                            }
+                        }
+                    ],
+                    "configurations": []
+                }
+            },
+            "repository": "",
+            "releaseDate": "",
+            "releaseNotes": "",
+            "documentation": ""
+        }
+    }
+}
+

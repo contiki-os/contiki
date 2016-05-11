@@ -1,9 +1,9 @@
 {
     "owner": "1e8c0446-e273-4964-9bda-887634bda63d",
-    "id": "0c34e17b-b629-4c89-88a6-01d3a48ac9b0",
-    "name": "Zolertia RE-Mote",
+    "id": "d986ab95-143b-4a1b-a441-cf130525eb51",
+    "name": "Zolertia IoT Irrigation control",
     "productNumber": "",
-    "description": "Nano-Power IoT device with an ARM Cortex M3 system-on-chip (32KB RAM and 512KB Flash), and dual radio (863-950MHz and 2.4GHz).",
+    "description": "Monitor and control the soil moisture in your crops and gardens using nano-power wireless connectivity",
     "website": "http://zolertia.io",
     "manufacturer": {
         "name": "Zolertia SL",
@@ -20,7 +20,34 @@
                 "cloud": {
                     "commands": [
                         {
-                            "name": "leds_toggle",
+                            "name": "electrovalve",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "soil_moist_thresl",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "milli Celsius",
+                                "maximum": 11999,
+                                "minimum": -1999
+                            }
+                        },
+                        {
+                            "name": "update_period",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "seconds",
+                                "maximum": 3600,
+                                "minimum": 5
+                            }
+                        },
+                        {
+                            "name": "enable_sensor",
                             "path": "",
                             "valueSchema": {
                                 "type": "boolean"
@@ -34,7 +61,7 @@
                             }
                         },
                         {
-                            "name": "enable_sensor",
+                            "name": "leds_toggle",
                             "path": "",
                             "valueSchema": {
                                 "type": "boolean"
@@ -44,43 +71,12 @@
                     "readings": [
                         {
                             "path": "",
-                            "meaning": "ID",
-                            "valueSchema": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "path": "",
-                            "meaning": "temperature",
+                            "meaning": "alarm_soil_moist",
                             "valueSchema": {
                                 "type": "number",
-                                "unit": "Celsius",
-                                "maximum": 120,
-                                "minimum": -20
-                            }
-                        },
-                        {
-                            "path": "",
-                            "meaning": "humidity",
-                            "valueSchema": {
-                                "type": "number",
-                                "unit": "RH%",
-                                "maximum": 100
-                            }
-                        },
-                        {
-                            "path": "",
-                            "meaning": "parent",
-                            "valueSchema": {
-                                "type": "string"
-                            }
-                        },
-                        {
-                            "path": "",
-                            "meaning": "rssi",
-                            "valueSchema": {
-                                "type": "number",
-                                "maximum": -130
+                                "unit": "%",
+                                "maximum": 99,
+                                "minimum": 1
                             }
                         },
                         {
@@ -93,53 +89,38 @@
                         },
                         {
                             "path": "",
-                            "meaning": "alarm_temperature",
+                            "meaning": "rssi",
                             "valueSchema": {
                                 "type": "number",
-                                "unit": "Celsius"
+                                "maximum": -130
                             }
                         },
                         {
                             "path": "",
-                            "meaning": "alarm_humidity",
+                            "meaning": "parent",
+                            "valueSchema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "soil moisture",
                             "valueSchema": {
                                 "type": "number",
-                                "unit": "RH%"
+                                "unit": "%",
+                                "maximum": 100,
+                                "minimum": 0
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "ID",
+                            "valueSchema": {
+                                "type": "string"
                             }
                         }
                     ],
-                    "configurations": [
-                        {
-                            "name": "update_period",
-                            "path": "",
-                            "valueSchema": {
-                                "type": "number",
-                                "unit": "seconds",
-                                "maximum": 600,
-                                "minimum": 5
-                            }
-                        },
-                        {
-                            "name": "temperature_thresh",
-                            "path": "",
-                            "valueSchema": {
-                                "type": "number",
-                                "unit": "milli Celsius",
-                                "maximum": 11999,
-                                "minimum": -1999
-                            }
-                        },
-                        {
-                            "name": "humidity_thresh",
-                            "path": "",
-                            "valueSchema": {
-                                "type": "number",
-                                "unit": "RH%",
-                                "maximum": 9999,
-                                "minimum": 10
-                            }
-                        }
-                    ]
+                    "configurations": []
                 }
             },
             "repository": "",

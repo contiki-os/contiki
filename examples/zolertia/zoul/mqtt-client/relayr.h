@@ -45,8 +45,8 @@
  *   "topic": "/v1/abcdefgh-ijkl-mnop-qrst-uvwxyz123456/"
  * }
  */
-#define DEFAULT_CONF_USER_ID          "461dd1c8-18ab-44f4-9dc3-a961c51c740c"
-#define DEFAULT_CONF_AUTH_TOKEN       "VdX5gFGi8.ZW"
+#define DEFAULT_CONF_USER_ID          ""
+#define DEFAULT_CONF_AUTH_TOKEN       ""
 #define DEFAULT_CONF_AUTH_USER        DEFAULT_USER_ID
 #define DEFAULT_TOPIC_STR             "/v1/"
 #define DEFAULT_TOPIC_LONG            DEFAULT_TOPIC_STR DEFAULT_USER_ID
@@ -58,8 +58,9 @@
 /* This is pretty harcoded by the v1 API version */
 #define DEFAULT_PUB_STRING            "/data"
 #define DEFAULT_CMD_STRING            "/cmd"
-#define DEFAULT_CFG_STRING            "/config"
-
+#define DEFAULT_CFG_STRING            "/config" /* Currently not used as Contiki
+                                                 * allows only 1 subscription
+                                                 * maximum */
 #define CMD_LED                       LEDS_RED
 /*---------------------------------------------------------------------------*/
 /* Specific SUB command topics */
@@ -69,9 +70,11 @@
 #define DEFAULT_SUBSCRIBE_CMD_REBOOT  "reboot"
 #define DEFAULT_SUBSCRIBE_CMD_SENSOR  "enable_sensor"
 
-/* Specific SUB config topics */
+/* Specific SUB config topics (piggy-backed into CMD as Contiki only suports
+ * one subscription at the time
+ */
 #define DEFAULT_SUBSCRIBE_CFG         DEFAULT_TOPIC_LONG DEFAULT_CFG_STRING
-#define DEFAULT_SUBSCRIBE_CFG_EVENT   "update_period"
+#define DEFAULT_SUBSCRIBE_CMD_EVENT   "update_period"
 
 /* Specific PUB event topics */
 #define DEFAULT_PUBLISH_EVENT         DEFAULT_TOPIC_LONG DEFAULT_PUB_STRING

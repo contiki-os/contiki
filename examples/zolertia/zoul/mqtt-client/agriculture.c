@@ -33,6 +33,8 @@
 #include "contiki.h"
 #include "sys/etimer.h"
 #include "dev/sht25.h"
+#include "dev/tsl2563.h"
+#include "dev/bmpx8x.h"
 #include "agriculture.h"
 
 #include <stdio.h>
@@ -59,61 +61,23 @@ poll_sensors(void)
 {
   /* Poll the temperature and humidity sensor */
   SENSORS_ACTIVATE(sht25);
-  fridge_sensors.sensor[AGRI_SENSOR_TEMP].value = sht25.value(SHT25_VAL_TEMP);
-  fridge_sensors.sensor[AGRI_SENSOR_HUMD].value = sht25.value(SHT25_VAL_HUM);
+  agriculture_sensors.sensor[AGRICULTURE_SENSOR_TEMP].value = sht25.value(SHT25_VAL_TEMP);
+  agriculture_sensors.sensor[AGRICULTURE_SENSOR_HUMD].value = sht25.value(SHT25_VAL_HUM);
   SENSORS_DEACTIVATE(sht25);
 
-  PRINTF("Fridge sensors: Temperature %d.%02u Humidity %u.%02u\n",
-         fridge_sensors.sensor[AGRI_SENSOR_TEMP].value / 100,
-         fridge_sensors.sensor[AGRI_SENSOR_TEMP].value % 100,
-         fridge_sensors.sensor[AGRI_SENSOR_HUMD].value / 100,
-         fridge_sensors.sensor[AGRI_SENSOR_HUMD].value % 100);
+  SENSORS_ACTIVATE(tsl2563);
+  agriculture_sensors.sensor[AGRICULTURE_SENSOR_LIGHT].value = tsl2563.value(TSL2563_VAL_READ);
+  SENSORS_DEACTIVATE(tsl2563);
 
-  /* Check for valid values, if a mishap is found (i.e sensor not present but
-   * enabled, then use the default unused-value and let is skip the checks
-   * further below
+  SENSORS_ACTIVATE(bmpx8x);
+  agriculture_sensors.sensor[AGRICULTURE_SENSOR_PRES].value = bmpx8x.value(BMPx8x_READ_PRESSURE);
+  SENSORS_DEACTIVATE(bmpx8x);
+
+  /* Check the sensor values and publish alarms if required, else send the data
+   * to any subscriber
    */
-  if((fridge_sensors.sensor[AGRI_SENSOR_TEMP].value < DEFAULT_SHT25_TEMP_MIN)
-    || (fridge_sensors.sensor[AGRI_SENSOR_TEMP].value > DEFAULT_SHT25_TEMP_MAX)) {
-    PRINTF("Fridge sensors: temperature value invalid: should be between %d and %d\n",
-           DEFAULT_SHT25_TEMP_MIN, DEFAULT_SHT25_TEMP_MAX);
-    fridge_sensors.sensor[AGRI_SENSOR_TEMP].value = DEFAULT_TEMP_NOT_USED;
-  }
-
-  if((fridge_sensors.sensor[AGRI_SENSOR_HUMD].value < DEFAULT_SHT25_HUMD_MIN)
-    || (fridge_sensors.sensor[AGRI_SENSOR_HUMD].value > DEFAULT_SHT25_HUMD_MAX)) {
-    PRINTF("Fridge sensors: humidity value invalid: should be between %d and %d\n",
-           DEFAULT_SHT25_HUMD_MIN, DEFAULT_SHT25_HUMD_MAX);
-    fridge_sensors.sensor[AGRI_SENSOR_HUMD].value = DEFAULT_HUMD_NOT_USED;
-  }
-
-  /* Publish a temperature alarm
-   * It has a higher priority than the humidity alarm, to avoid publishing
-   * to two topics at the same time
-   */
-
-  if(fridge_sensors.sensor[AGRI_SENSOR_TEMP].value >=
-     fridge_sensors.sensor[AGRI_SENSOR_TEMP].threshold) {
-    PRINTF("Fridge sensors: temperature alarm! (over %d.%02u)\n",
-           fridge_sensors.sensor[AGRI_SENSOR_TEMP].threshold / 100,
-           fridge_sensors.sensor[AGRI_SENSOR_TEMP].threshold % 100);
-    process_post(PROCESS_BROADCAST, fridge_sensors_alarm_event,
-                 &fridge_sensors.sensor[AGRI_SENSOR_TEMP]);
-    return;
-  }
-
-  if(fridge_sensors.sensor[AGRI_SENSOR_HUMD].value >=
-     fridge_sensors.sensor[AGRI_SENSOR_HUMD].threshold) {
-    PRINTF("Fridge sensors: humidity alarm! (over %d.%02u)\n", 
-           fridge_sensors.sensor[AGRI_SENSOR_HUMD].threshold / 100,
-           fridge_sensors.sensor[AGRI_SENSOR_HUMD].threshold % 100);
-    process_post(PROCESS_BROADCAST, fridge_sensors_alarm_event,
-                 &fridge_sensors.sensor[AGRI_SENSOR_HUMD]);
-    return;
-  }
-
-  /* Post a process notifying there's new sensor data available */
-  process_post(PROCESS_BROADCAST, fridge_sensors_data_event, &fridge_sensors);
+  mqtt_sensor_check(&agriculture_sensors, agriculture_sensors_alarm_event,
+                    agriculture_sensors_data_event);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(agriculture_sensors_process, ev, data)
@@ -124,33 +88,37 @@ PROCESS_THREAD(agriculture_sensors_process, ev, data)
   PROCESS_BEGIN();
 
   /* Load sensor defaults */
-  agriculture_sensors.num = DEFAULT_CONF_SENSORS_NUM;
+  agriculture_sensors.num = 0;
 
-  agriculture_sensors.sensor[AGRI_SENSOR_TEMP].value = DEFAULT_TEMP_NOT_USED;
-  agriculture_sensors.sensor[AGRI_SENSOR_HUMD].value = DEFAULT_HUMD_NOT_USED;
+  mqtt_sensor_register(&agriculture_sensors, AGRICULTURE_SENSOR_TEMP,
+                       DEFAULT_SHT25_TEMP_MIN, DEFAULT_PUBLISH_EVENT_TEMP,
+                       DEFAULT_PUBLISH_ALARM_TEMP, DEFAULT_SUBSCRIBE_CMD_TEMPTHR,
+                       DEFAULT_SHT25_TEMP_MIN, DEFAULT_SHT25_TEMP_MAX,
+                       DEFAULT_TEMP_THRESH, DEFAULT_TEMP_THRESL, 100);
 
-  agriculture_sensors.sensor[AGRI_SENSOR_TEMP].threshold = DEFAULT_TEMP_THRESH;
-  agriculture_sensors.sensor[AGRI_SENSOR_HUMD].threshold = DEFAULT_HUMD_THRESH;
+  mqtt_sensor_register(&agriculture_sensors, AGRICULTURE_SENSOR_HUMD,
+                       DEFAULT_SHT25_HUMD_MIN, DEFAULT_PUBLISH_EVENT_HUMD,
+                       DEFAULT_PUBLISH_ALARM_HUMD, DEFAULT_SUBSCRIBE_CMD_HUMDTHR,
+                       DEFAULT_SHT25_HUMD_MIN, DEFAULT_SHT25_HUMD_MAX,
+                       DEFAULT_HUMD_THRESH, DEFAULT_HUMD_THRESL, 100);
 
-  agriculture_sensors.sensor[AGRI_SENSOR_TEMP].min = DEFAULT_SHT25_TEMP_MIN;
-  agriculture_sensors.sensor[AGRI_SENSOR_HUMD].min = DEFAULT_SHT25_HUMD_MIN;
-  agriculture_sensors.sensor[AGRI_SENSOR_TEMP].max = DEFAULT_SHT25_TEMP_MAX;
-  agriculture_sensors.sensor[AGRI_SENSOR_HUMD].max = DEFAULT_SHT25_HUMD_MAX;
+  mqtt_sensor_register(&agriculture_sensors, AGRICULTURE_SENSOR_LIGHT,
+                       DEFAULT_TSL2563_LIGHT_MIN, DEFAULT_PUBLISH_EVENT_LIGHT,
+                       DEFAULT_PUBLISH_ALARM_LIGHT, DEFAULT_SUBSCRIBE_CMD_LIGHTHR,
+                       DEFAULT_TSL2563_LIGHT_MIN, DEFAULT_TSL2563_LIGHT_MIN,
+                       DEFAULT_LIGHT_THRESH, DEFAULT_LIGHT_THRESL, 0);
 
-  memcpy(agriculture_sensors.sensor[AGRI_SENSOR_TEMP].sensor_name,
-         DEFAULT_PUBLISH_EVENT_TEMP, strlen(DEFAULT_PUBLISH_EVENT_TEMP));
-  memcpy(agriculture_sensors.sensor[AGRI_SENSOR_HUMD].sensor_name,
-         DEFAULT_PUBLISH_EVENT_HUMD, strlen(DEFAULT_PUBLISH_EVENT_HUMD));
+  mqtt_sensor_register(&agriculture_sensors, AGRICULTURE_SENSOR_PRES,
+                       DEFAULT_BMP180_PRES_MIN, DEFAULT_PUBLISH_EVENT_PRES,
+                       DEFAULT_PUBLISH_ALARM_PRES, DEFAULT_SUBSCRIBE_CMD_PRESTHR,
+                       DEFAULT_BMP180_PRES_MIN, DEFAULT_BMP180_PRES_MAX,
+                       DEFAULT_PRES_THRESH, DEFAULT_PRES_THRESL, 10);
 
-  memcpy(agriculture_sensors.sensor[AGRI_SENSOR_TEMP].alarm_name,
-         DEFAULT_PUBLISH_ALARM_TEMP, strlen(DEFAULT_PUBLISH_ALARM_TEMP));
-  memcpy(agriculture_sensors.sensor[AGRI_SENSOR_HUMD].alarm_name,
-         DEFAULT_PUBLISH_ALARM_HUMD, strlen(DEFAULT_PUBLISH_ALARM_HUMD));
-
-  memcpy(agriculture_sensors.sensor[AGRI_SENSOR_TEMP].sensor_config,
-         DEFAULT_SUBSCRIBE_CFG_TEMPTHR, strlen(DEFAULT_SUBSCRIBE_CFG_TEMPTHR));
-  memcpy(agriculture_sensors.sensor[AGRI_SENSOR_HUMD].sensor_config,
-         DEFAULT_SUBSCRIBE_CFG_HUMDTHR, strlen(DEFAULT_SUBSCRIBE_CFG_HUMDTHR));
+  /* Sanity check */
+  if(agriculture_sensors.num != DEFAULT_SENSORS_NUM) {
+    printf("Agriculture sensors: error! number of sensors mismatch!\n");
+    PROCESS_EXIT();
+  }
 
   /* Get an event ID for our events */
   agriculture_sensors_data_event = process_alloc_event();

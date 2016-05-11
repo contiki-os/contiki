@@ -28,47 +28,47 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-#ifndef FRIDGE_H_
-#define FRIDGE_H_
+#ifndef IRRIGATION_H_
+#define IRRIGATION_H_
 /*---------------------------------------------------------------------------*/
 #include "mqtt-sensors.h"
 /*---------------------------------------------------------------------------*/
 enum {
-  FRIDGE_SENSOR_TEMP = 0,
-  FRIDGE_SENSOR_HUMD,
+  IRRIGATION_SENSOR_SOIL = 0,
+};
+
+enum {
+  IRRIGATION_COMMAND_VALVE = 0,
 };
 /*---------------------------------------------------------------------------*/
 /* Sensor process events */
-extern process_event_t fridge_sensors_data_event;
-extern process_event_t fridge_sensors_alarm_event;
+extern process_event_t irrigation_sensors_data_event;
+extern process_event_t irrigation_sensors_alarm_event;
 /*---------------------------------------------------------------------------*/
-extern sensor_values_t fridge_sensors;
+extern sensor_values_t irrigation_sensors;
+/*---------------------------------------------------------------------------*/
+extern command_values_t irrigation_commands;
 /*---------------------------------------------------------------------------*/
 /* PUBLISH strings */
-#define DEFAULT_PUBLISH_EVENT_TEMP    "temperature"
-#define DEFAULT_PUBLISH_EVENT_HUMD    "humidity"
-#define DEFAULT_PUBLISH_ALARM_TEMP    "alarm_temperature"
-#define DEFAULT_PUBLISH_ALARM_HUMD    "alarm_humidity"
+#define DEFAULT_PUBLISH_EVENT_SOIL    "soil_moisture"
+#define DEFAULT_PUBLISH_ALARM_SOIL    "alarm_soil_moist"
 
 /* SUBSCRIBE strings */
-#define DEFAULT_SUBSCRIBE_CFG_TEMPTHR "temperature_thresh"
-#define DEFAULT_SUBSCRIBE_CFG_HUMDTHR "humidity_thresh"
+#define DEFAULT_SUBSCRIBE_CFG_SOILTHR "soil_moist_thresl"
 
-/* Minimum and maximum values for the SHT25 sensor */
-#define DEFAULT_SHT25_TEMP_MIN        (-2000)
-#define DEFAULT_SHT25_TEMP_MAX        12000
-#define DEFAULT_SHT25_HUMD_MIN        0
-#define DEFAULT_SHT25_HUMD_MAX        10000
+/* Minimum and maximum values for the sensor */
+#define DEFAULT_SOIL_MOIST_MIN        0
+#define DEFAULT_SOIL_MOIST_MAX        1000
 
 /* Default sensor state and thresholds
- * We are only checking for values over a given threshold (over), to avoid
- * checking for values below, we use the minimum sensor value
+ * We only care to check for the soil moisture value below a level
  */
-#define DEFAULT_TEMP_THRESH           3000
-#define DEFAULT_HUMD_THRESH           8000
-#define DEFAULT_TEMP_THRESL           DEFAULT_SHT25_TEMP_MIN
-#define DEFAULT_HUMD_THRESL           DEFAULT_SHT25_HUMD_MIN
+#define DEFAULT_SOIL_THRESH           DEFAULT_SOIL_MOIST_MAX
+#define DEFAULT_SOIL_THRESL           300
+
+/* Command string: open an electrovalve for a given period */
+#define DEFAULT_COMMAND_EVENT_VALVE   "electrovalve"
 /*---------------------------------------------------------------------------*/
-#endif /* FRIDGE_H_ */
+#endif /* IRRIGATION_H_ */
 /** @} */
 

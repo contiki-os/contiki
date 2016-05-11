@@ -28,46 +28,61 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-#ifndef FRIDGE_H_
-#define FRIDGE_H_
+#ifndef REMOTE_H_
+#define REMOTE_H_
 /*---------------------------------------------------------------------------*/
 #include "mqtt-sensors.h"
 /*---------------------------------------------------------------------------*/
 enum {
-  FRIDGE_SENSOR_TEMP = 0,
-  FRIDGE_SENSOR_HUMD,
+  REMOTE_SENSOR_TEMP = 0,
+  REMOTE_SENSOR_BATT,
+  REMOTE_SENSOR_BUTN,
+  REMOTE_SENSOR_ADC1,
+  REMOTE_SENSOR_ADC3,
 };
 /*---------------------------------------------------------------------------*/
 /* Sensor process events */
-extern process_event_t fridge_sensors_data_event;
-extern process_event_t fridge_sensors_alarm_event;
+extern process_event_t remote_sensors_data_event;
+extern process_event_t remote_sensors_alarm_event;
 /*---------------------------------------------------------------------------*/
-extern sensor_values_t fridge_sensors;
+extern sensor_values_t remote_sensors;
 /*---------------------------------------------------------------------------*/
 /* PUBLISH strings */
-#define DEFAULT_PUBLISH_EVENT_TEMP    "temperature"
-#define DEFAULT_PUBLISH_EVENT_HUMD    "humidity"
-#define DEFAULT_PUBLISH_ALARM_TEMP    "alarm_temperature"
-#define DEFAULT_PUBLISH_ALARM_HUMD    "alarm_humidity"
+#define DEFAULT_PUBLISH_EVENT_TEMP    "core_temp"
+#define DEFAULT_PUBLISH_EVENT_BATT    "battery"
+#define DEFAULT_PUBLISH_ALARM_BUTN    "button_pres"
+#define DEFAULT_PUBLISH_EVENT_ADC1    "ADC1"
+#define DEFAULT_PUBLISH_EVENT_ADC3    "ADC3"
 
-/* SUBSCRIBE strings */
-#define DEFAULT_SUBSCRIBE_CFG_TEMPTHR "temperature_thresh"
-#define DEFAULT_SUBSCRIBE_CFG_HUMDTHR "humidity_thresh"
+/* Minimum and maximum values for the sensors */
+#define DEFAULT_CC2538_TEMP_MIN       0
+#define DEFAULT_CC2538_TEMP_MAX       0xFFFF
+#define DEFAULT_CC2538_BATT_MIN       0
+#define DEFAULT_CC2538_BATT_MAX       5000
+#define DEFAULT_CC2538_ADC1_MIN       0
+#define DEFAULT_CC2538_ADC1_MAX       5000
+#define DEFAULT_CC2538_ADC3_MIN       0
+#define DEFAULT_CC2538_ADC3_MAX       5000
+#define DEFAULT_CC2538_BUTN_MIN       0
+#define DEFAULT_CC2538_BUTN_MAX       0xFFFF
 
-/* Minimum and maximum values for the SHT25 sensor */
-#define DEFAULT_SHT25_TEMP_MIN        (-2000)
-#define DEFAULT_SHT25_TEMP_MAX        12000
-#define DEFAULT_SHT25_HUMD_MIN        0
-#define DEFAULT_SHT25_HUMD_MAX        10000
+/* Default sensor state and thresholds (not checking for alarms) */
+#define DEFAULT_TEMP_THRESH           DEFAULT_CC2538_TEMP_MAX
+#define DEFAULT_BATT_THRESH           DEFAULT_CC2538_BATT_MAX
+#define DEFAULT_ADC1_THRESH           DEFAULT_CC2538_ADC1_MAX
+#define DEFAULT_ADC3_THRESH           DEFAULT_CC2538_ADC3_MAX
 
-/* Default sensor state and thresholds
- * We are only checking for values over a given threshold (over), to avoid
- * checking for values below, we use the minimum sensor value
+#define DEFAULT_TEMP_THRESL           DEFAULT_CC2538_TEMP_MIN
+#define DEFAULT_BATT_THRESL           DEFAULT_CC2538_BATT_MIN
+#define DEFAULT_ADC1_THRESL           DEFAULT_CC2538_ADC1_MIN
+#define DEFAULT_ADC3_THRESL           DEFAULT_CC2538_ADC3_MIN
+
+/* We handle every button press as an alarm, so we start low and reset the
+ * button value to avoid triggering every time we send an event to the
+ * platform process, and no button has been pressed
  */
-#define DEFAULT_TEMP_THRESH           3000
-#define DEFAULT_HUMD_THRESH           8000
-#define DEFAULT_TEMP_THRESL           DEFAULT_SHT25_TEMP_MIN
-#define DEFAULT_HUMD_THRESL           DEFAULT_SHT25_HUMD_MIN
+#define DEFAULT_BUTN_THRESH           DEFAULT_CC2538_BUTN_MIN
+#define DEFAULT_BUTN_THRESL           DEFAULT_CC2538_BUTN_MIN
 /*---------------------------------------------------------------------------*/
 #endif /* FRIDGE_H_ */
 /** @} */

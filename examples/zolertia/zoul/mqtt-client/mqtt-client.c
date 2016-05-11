@@ -526,7 +526,7 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 
   /* Stop and wait until the node joins the network */
   leds_on(LEDS_RED);
-  printf("Connecting to the network... \n\n");
+  printf("Connecting to the WSN network... \n\n");
   etimer_set(&publish_periodic_timer, CLOCK_SECOND * 35);
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&publish_periodic_timer));
   leds_off(LEDS_RED);

@@ -40,9 +40,8 @@
 #include "sys/etimer.h"
 #include "dev/sys-ctrl.h"
 #include "mqtt-client.h"
+#include "mqtt-sensors.h"
 #include "relayr.h"
-
-//#include sensors_include(MQTT_SENSORS)
 
 #include <stdio.h>
 #include <string.h>
@@ -189,9 +188,7 @@ publish_alarm(sensor_val_t *sensor)
     /* Clear buffer */
     memset(app_buffer, 0, APP_BUFFER_SIZE);
 
-    PRINTF("Relayr: Alarm! %s --> %u over %u\n", sensor->alarm_name,
-                                                 sensor->value,
-                                                 sensor->threshold);
+    PRINTF("Relayr: Alarm! %s --> %u\n", sensor->alarm_name, sensor->value);
     aux_int = sensor->value;
     aux_res = sensor->value;
 
@@ -239,23 +236,25 @@ publish_event(sensor_values_t *msg)
   len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID, DEVICE_ID, 1, 1);
   remain =- len;
 
-  /* Include the sensor values */
+  /* Include the sensor values, if `sensor_name` is NULL discard */
   for(i=0; i < msg->num; i++) {
-    memset(aux, 0, sizeof(aux));
+    if(msg->sensor[i].sensor_name != NULL) {
+      memset(aux, 0, sizeof(aux));
 
-    aux_int = msg->sensor[i].value;
-    aux_res = msg->sensor[i].value;
+      aux_int = msg->sensor[i].value;
+      aux_res = msg->sensor[i].value;
 
-    if(msg->sensor[i].pres > 0) {
-      aux_int /= msg->sensor[i].pres;
-      aux_res %= msg->sensor[i].pres;
-    } else {
-      aux_res = 0;
+      if(msg->sensor[i].pres > 0) {
+        aux_int /= msg->sensor[i].pres;
+        aux_res %= msg->sensor[i].pres;
+      } else {
+        aux_res = 0;
+      }
+
+      snprintf(aux, sizeof(aux), "%d.%02u", aux_int, aux_res);
+      len = add_pub_topic(remain, msg->sensor[i].sensor_name, aux, 0, 1);
+      remain =- len;
     }
-
-    snprintf(aux, sizeof(aux), "%d.%02u", aux_int, aux_res);
-    len = add_pub_topic(remain, msg->sensor[i].sensor_name, aux, 0, 1);
-    remain =- len;
   }
 
   memset(aux, 0, sizeof(aux));
@@ -351,25 +350,19 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 
       return;
 
-    } else {
-      PRINTF("Relayr: Command not recognized\n");
-      return;
-    }
-  }
-
-  /* This is a configuration event
-   * We expect the configuration payload to follow the next syntax:
-   * {"name":"update_period","value":61}
-   */
-  if(strncmp(topic, DEFAULT_SUBSCRIBE_CFG,
-                           CONFIG_SUB_CFG_TOPIC_LEN) == 0) {
+    /* This is a configuration event
+     * As currently Contiki's MQTT driver does not support more than one SUBSCRIBE
+     * we are handling both commands and configurations in the same "cmd" topic
+     * We expect the configuration payload to follow the next syntax:
+     * {"name":"update_period","value":61}
+     */
 
     /* Change the update period */
-    if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CFG_EVENT,
-               strlen(DEFAULT_SUBSCRIBE_CFG_EVENT)) == 0) {
+   } else if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_EVENT,
+               strlen(DEFAULT_SUBSCRIBE_CMD_EVENT)) == 0) {
 
       /* Take integers as configuration value */
-      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CFG_EVENT) + 19]);
+      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CMD_EVENT) + 19]);
 
       /* Check for allowed values */
       if((aux < DEFAULT_UPDATE_PERIOD_MIN) || (aux > DEFAULT_UPDATE_PERIOD_MAX)) {
@@ -385,11 +378,12 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
       return;
     }
 
-    /* Change a sensor's threshold (over) */
+    /* Change a sensor's threshold, skip is `sensor_config` is NULL */
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
 
-      if(strncmp((const char *)&chunk[9], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_name),
-                      strlen(SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_name))) == 0) {
+      if((SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config) != NULL) &&
+        (strncmp((const char *)&chunk[9], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config),
+                      strlen(SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config))) == 0)) {
 
         /* Take integers as configuration value */
         aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config)) + 19]);
@@ -403,17 +397,58 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
           return;
         }
 
-        SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].threshold) = aux;
-        PRINTF("Relayr: New %s threshold --> %u\n",
-               SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
-               SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].threshold));
+        /* We have now a valid threshold value, the logic is simple: each
+         * variable has a `thresh` to configure a limit over the given value,
+         * and `thresl` which respectively checks for values below this limit.
+         * As a convention we are expecting `sensor_config` strings ending in
+         * `_thresh` or `_thresl`.  The check below "should" be "safe" as we are
+         * sure it matches an expected string.
+         */
+
+        if(strstr((const char *)&chunk[9], "_thresh") != NULL) {
+          SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold) = aux;
+          PRINTF("Relayr: New %s over threshold --> %u\n",
+                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
+                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold));
+        } else if(strstr((const char *)&chunk[9], "_thresl") != NULL) {
+          SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].below_threshold) = aux;
+          PRINTF("Relayr: New %s below threshold --> %u\n",
+                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
+                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].below_threshold));
+        } else {
+          PRINTF("Relayr: Expected threshold configuration name to end ");
+          PRINTF("either in thresh or thresl\n");
+          /* Exit earlier to avoid writting in flash */
+          return;
+        }
+
         // FIXME: write_config_to_flash();
         return;
       }
     }
 
+    /* We are now checking for any string command expected by the subscribed
+     * sensor module
+     */
+#if DEFAULT_COMMANDS_NUM
+    for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _commands.num); i++) {
+
+      if((strncmp((const char *)&chunk[9],
+          SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name),
+          strlen(SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name))) == 0)) {
+
+        /* Take integers as argument value */
+        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_commands.command[i].command_name)) + 19]);
+
+        /* Invoke the command handler */
+        SENSORS_NAME(MQTT_SENSORS,_commands.command[i].cmd(aux));
+        return;
+      }
+    }
+#endif /* DEFAULT_COMMANDS_NUM */
+
     /* Invalid configuration topic, we should have returned before */
-    PRINTF("Relayr: Configuration parameter not recognized\n");
+    PRINTF("Relayr: Configuration/Command parameter not recognized\n");
 
   } else {
     PRINTF("Relayr: Incorrect topic or chunk len. Ignored\n");
@@ -457,8 +492,8 @@ PROCESS_THREAD(relayr_process, ev, data)
       ping_parent();
 
       /* Subscribe to topics (MQTT driver only supports 1 topic at the moment */
-      subscribe((char *)DEFAULT_SUBSCRIBE_CFG);
-      // subscribe((char *) DEFAULT_SUBSCRIBE_CMD);
+      subscribe((char *)DEFAULT_SUBSCRIBE_CMD);
+      // subscribe((char *) DEFAULT_SUBSCRIBE_CFG);
 
       /* Enable the sensor */
       activate_sensors(0x01);

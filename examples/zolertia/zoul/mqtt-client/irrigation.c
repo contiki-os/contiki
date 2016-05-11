@@ -32,8 +32,7 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "sys/etimer.h"
-#include "dev/sht25.h"
-#include "fridge.h"
+#include "irrigation.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -47,30 +46,32 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
-sensor_values_t fridge_sensors;
+sensor_values_t irrigation_sensors;
 /*---------------------------------------------------------------------------*/
-process_event_t fridge_sensors_data_event;
-process_event_t fridge_sensors_alarm_event;
+command_values_t irrigation_commands;
 /*---------------------------------------------------------------------------*/
-PROCESS(fridge_sensors_process, "Fridge sensor process");
+process_event_t irrigation_sensors_data_event;
+process_event_t irrigation_sensors_alarm_event;
+/*---------------------------------------------------------------------------*/
+PROCESS(irrigation_sensors_process, "Irrigation sensor process");
+/*---------------------------------------------------------------------------*/
+static int
+activate_electrovalve(int arg)
+{
+  PRINTF("Irrigation: electrovalve open\n");
+  return 0;
+}
 /*---------------------------------------------------------------------------*/
 static void
 poll_sensors(void)
 {
-  /* Poll the temperature and humidity sensor */
-  SENSORS_ACTIVATE(sht25);
-  fridge_sensors.sensor[FRIDGE_SENSOR_TEMP].value = sht25.value(SHT25_VAL_TEMP);
-  fridge_sensors.sensor[FRIDGE_SENSOR_HUMD].value = sht25.value(SHT25_VAL_HUM);
-  SENSORS_DEACTIVATE(sht25);
+  irrigation_sensors.sensor[IRRIGATION_SENSOR_SOIL].value = DEFAULT_SOIL_MOIST_MAX;
 
-  /* Check the sensor values and publish alarms if required, else send the data
-   * to any subscriber
-   */
-  mqtt_sensor_check(&fridge_sensors, fridge_sensors_alarm_event,
-                    fridge_sensors_data_event);
+  mqtt_sensor_check(&irrigation_sensors, irrigation_sensors_alarm_event,
+                    irrigation_sensors_data_event);
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(fridge_sensors_process, ev, data)
+PROCESS_THREAD(irrigation_sensors_process, ev, data)
 {
   static struct etimer et;
 
@@ -78,29 +79,35 @@ PROCESS_THREAD(fridge_sensors_process, ev, data)
   PROCESS_BEGIN();
 
   /* Load sensor defaults */
-  fridge_sensors.num = 0;
+  irrigation_sensors.num = 0;
 
-  mqtt_sensor_register(&fridge_sensors, FRIDGE_SENSOR_TEMP,
-                       DEFAULT_SHT25_TEMP_MIN, DEFAULT_PUBLISH_EVENT_TEMP,
-                       DEFAULT_PUBLISH_ALARM_TEMP, DEFAULT_SUBSCRIBE_CFG_TEMPTHR,
-                       DEFAULT_SHT25_TEMP_MIN, DEFAULT_SHT25_TEMP_MAX,
-                       DEFAULT_TEMP_THRESH, DEFAULT_TEMP_THRESL, 100);
-
-  mqtt_sensor_register(&fridge_sensors, FRIDGE_SENSOR_HUMD,
-                       DEFAULT_SHT25_HUMD_MIN, DEFAULT_PUBLISH_EVENT_HUMD,
-                       DEFAULT_PUBLISH_ALARM_HUMD, DEFAULT_SUBSCRIBE_CFG_HUMDTHR,
-                       DEFAULT_SHT25_HUMD_MIN, DEFAULT_SHT25_HUMD_MAX,
-                       DEFAULT_HUMD_THRESH, DEFAULT_HUMD_THRESL, 100);
+  mqtt_sensor_register(&irrigation_sensors, IRRIGATION_SENSOR_SOIL,
+                       DEFAULT_SOIL_MOIST_MAX, DEFAULT_PUBLISH_EVENT_SOIL,
+                       DEFAULT_PUBLISH_ALARM_SOIL, DEFAULT_SUBSCRIBE_CFG_SOILTHR,
+                       DEFAULT_SOIL_MOIST_MIN, DEFAULT_SOIL_MOIST_MAX,
+                       DEFAULT_SOIL_THRESH, DEFAULT_SOIL_THRESL, 10);
 
   /* Sanity check */
-  if(fridge_sensors.num != DEFAULT_SENSORS_NUM) {
-    printf("Fridge sensors: error! number of sensors mismatch!\n");
+  if(irrigation_sensors.num != DEFAULT_SENSORS_NUM) {
+    printf("Irrigation sensors: error! number of sensors mismatch!\n");
+    PROCESS_EXIT();
+  }
+
+  /* Load commands default */
+  irrigation_commands.num = 1;
+  memcpy(irrigation_commands.command[IRRIGATION_COMMAND_VALVE].command_name,
+         DEFAULT_COMMAND_EVENT_VALVE, strlen(DEFAULT_COMMAND_EVENT_VALVE));
+  irrigation_commands.command[IRRIGATION_COMMAND_VALVE].cmd = activate_electrovalve;
+
+  /* Sanity check */
+  if(irrigation_commands.num != DEFAULT_COMMANDS_NUM) {
+    printf("Irrigation commands: error! number of commands mismatch!\n");
     PROCESS_EXIT();
   }
 
   /* Get an event ID for our events */
-  fridge_sensors_data_event = process_alloc_event();
-  fridge_sensors_alarm_event = process_alloc_event();
+  irrigation_sensors_data_event = process_alloc_event();
+  irrigation_sensors_alarm_event = process_alloc_event();
 
   /* Start the periodic process */
   etimer_set(&et, DEFAULT_SAMPLING_INTERVAL);

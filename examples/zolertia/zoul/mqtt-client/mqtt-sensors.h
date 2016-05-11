@@ -31,11 +31,13 @@
 #ifndef MQTT_SENSORS_H_
 #define MQTT_SENSORS_H_
 /*---------------------------------------------------------------------------*/
+#if DEFAULT_SENSORS_NUM
 #define SENSOR_NAME_STRING  20
 
 typedef struct sensor_val {
   int16_t value;                            /* Sensor value */
-  int16_t threshold;                        /* Threshold (over) */
+  int16_t over_threshold;                   /* Threshold (over) */
+  int16_t below_threshold;                  /* Threshold (below) */
   int16_t min;                              /* Minimum allowed value */
   int16_t max;                              /* Maximum allowed value */
   uint8_t pres;                             /* Number of precision digits */
@@ -48,11 +50,27 @@ typedef struct sensors_values {
   uint8_t num;                              /* Number of sensors */
   sensor_val_t sensor[DEFAULT_SENSORS_NUM]; /* Array of sensor_val_t */
 } sensor_values_t;
+#endif /* DEFAULT_SENSORS_NUM */
+/*---------------------------------------------------------------------------*/
+#if DEFAULT_COMMANDS_NUM
+#define COMMAND_NAME_STRING  20
+
+typedef struct command_val {
+  int (* cmd) (int arg);
+  char command_name[COMMAND_NAME_STRING];     /* Command name (string) */
+} command_val_t;
+
+typedef struct command_values {
+  uint8_t num;                                /* Number of commands */
+  command_val_t command[DEFAULT_COMMANDS_NUM]; /* Array of command_val_t */
+} command_values_t;
+#endif /* DEFAULT_COMMANDS_NUM */
 /*---------------------------------------------------------------------------*/
 /* Auxiliary function to fill the sensor_values_t structure */
 int mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val,
                          char *name, char *alarm, char *config, uint16_t min,
-                         uint16_t max, uint16_t thres, uint16_t pres);
+                         uint16_t max, uint16_t thres, uint16_t thresl,
+                         uint16_t pres);
 
 /* Auxiliary function to check the sensor values and send alarms or publish
  * periodic sensor events */

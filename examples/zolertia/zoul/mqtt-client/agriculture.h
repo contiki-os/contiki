@@ -28,64 +28,62 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-#ifndef FRIDGE_H_
-#define FRIDGE_H_
+#ifndef AGRICULTURE_H_
+#define AGRICULTURE_H_
+/*---------------------------------------------------------------------------*/
+#include "mqtt-sensors.h"
 /*---------------------------------------------------------------------------*/
 enum {
-  AGRI_SENSOR_TEMP = 0,
-  AGRI_SENSOR_HUMD,
-  AGRI_SENSOR_PRES,
-  AGRI_SENSOR_LIGHT,
-  AGRI_SENSOR_SOILM,
+  AGRICULTURE_SENSOR_TEMP = 0,
+  AGRICULTURE_SENSOR_HUMD,
+  AGRICULTURE_SENSOR_LIGHT,
+  AGRICULTURE_SENSOR_PRES,
 };
 /*---------------------------------------------------------------------------*/
 /* Sensor process events */
-extern process_event_t fridge_sensors_data_event;
-extern process_event_t fridge_sensors_alarm_event;
-/*---------------------------------------------------------------------------*/
-/* Manimum number of sensors */
-#define DEFAULT_CONF_SENSORS_NUM      5
-#include "mqtt-sensors.h"
+extern process_event_t agriculture_sensors_data_event;
+extern process_event_t agriculture_sensors_alarm_event;
 /*---------------------------------------------------------------------------*/
 extern sensor_values_t agriculture_sensors;
 /*---------------------------------------------------------------------------*/
 /* PUBLISH strings */
 #define DEFAULT_PUBLISH_EVENT_TEMP    "temperature"
 #define DEFAULT_PUBLISH_EVENT_HUMD    "humidity"
-#define DEFAULT_PUBLISH_EVENT_PRES    "barometric_pres"
 #define DEFAULT_PUBLISH_EVENT_LIGHT   "light"
-#define DEFAULT_PUBLISH_EVENT_SOILM   "soil_moist"
+#define DEFAULT_PUBLISH_EVENT_PRES    "pressure"
 #define DEFAULT_PUBLISH_ALARM_TEMP    "alarm_temperature"
 #define DEFAULT_PUBLISH_ALARM_HUMD    "alarm_humidity"
-#define DEFAULT_PUBLISH_ALARM_PRES    "alarm_barometric"
 #define DEFAULT_PUBLISH_ALARM_LIGHT   "alarm_light"
-#define DEFAULT_PUBLISH_ALARM_SOILM   "alarm_soil_moist"
+#define DEFAULT_PUBLISH_ALARM_PRES    "alarm_pressure"
 
 /* SUBSCRIBE strings */
-#define DEFAULT_SUBSCRIBE_CFG_TEMPTHR "temperature_thresh"
-#define DEFAULT_SUBSCRIBE_CFG_HUMDTHR "humidity_thresh"
-#define DEFAULT_SUBSCRIBE_CFG_TEMPTHR "pressure_thresh"
-#define DEFAULT_SUBSCRIBE_CFG_HUMDTHR "light_thresh"
-#define DEFAULT_SUBSCRIBE_CFG_TEMPTHR "soil_moist_thresh"
+#define DEFAULT_SUBSCRIBE_CMD_TEMPTHR "temperature_thresh"
+#define DEFAULT_SUBSCRIBE_CMD_HUMDTHR "humidity_thresh"
+#define DEFAULT_SUBSCRIBE_CMD_LIGHTHR "light_thresh"
+#define DEFAULT_SUBSCRIBE_CMD_PRESTHR "pressure_thresh"
 
 /* Minimum and maximum values for the sensors */
 #define DEFAULT_SHT25_TEMP_MIN        (-2000)
 #define DEFAULT_SHT25_TEMP_MAX        12000
 #define DEFAULT_SHT25_HUMD_MIN        0
 #define DEFAULT_SHT25_HUMD_MAX        10000
-#define DEFAULT_BMP180_PRES_MIN       
-#define DEFAULT_BMP180_PRES_MAX       
 #define DEFAULT_TSL2563_LIGHT_MIN     0
 #define DEFAULT_TSL2563_LIGHT_MAX     40000
+#define DEFAULT_BMP180_PRES_MIN       3000
+#define DEFAULT_BMP180_PRES_MAX       11000
 
-#define DEFAULT_TEMP_NOT_USED         DEFAULT_SHT25_TEMP_MIN
-#define DEFAULT_HUMD_NOT_USED         DEFAULT_SHT25_HUMD_MIN
-#define DEFAULT_LIGHT_NOT_USED        DEFAULT_TSL2563_LIGHT_MIN
-
-/* Default sensor state and thresholds */
+/* Default sensor state and thresholds (only check for values above the
+ * threshold) */
 #define DEFAULT_TEMP_THRESH           3000
 #define DEFAULT_HUMD_THRESH           8000
+#define DEFAULT_LIGHT_THRESH          2000
+#define DEFAULT_PRES_THRESH           10500
+
+#define DEFAULT_TEMP_THRESL           DEFAULT_SHT25_TEMP_MIN
+#define DEFAULT_HUMD_THRESL           DEFAULT_SHT25_HUMD_MIN
+#define DEFAULT_LIGHT_THRESL          DEFAULT_TSL2563_LIGHT_MIN
+#define DEFAULT_PRES_THRESL           DEFAULT_BMP180_PRES_MIN
 /*---------------------------------------------------------------------------*/
-#endif /* FRIDGE_H_ */
+#endif /* AGRICULTURE_H_ */
 /** @} */
 

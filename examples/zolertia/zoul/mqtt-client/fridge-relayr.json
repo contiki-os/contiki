@@ -1,0 +1,151 @@
+{
+    "owner": "1e8c0446-e273-4964-9bda-887634bda63d",
+    "id": "bbbd83a4-46aa-421a-ab52-2018b1993643",
+    "name": "Zolertia IoT cold-chain",
+    "productNumber": "",
+    "description": "Monitor and control goods in a cold-chain process, with temperature and humidity sensors, able to control a switch.",
+    "website": "http://zolertia.io",
+    "manufacturer": {
+        "name": "Zolertia SL",
+        "website": "http://zolertia.io",
+        "contactInfo": {
+            "email": "info@zolertia.io"
+        }
+    },
+    "resources": [],
+    "firmware": {
+        "1.0.0": {
+            "binaries": "",
+            "transport": {
+                "cloud": {
+                    "commands": [
+                        {
+                            "name": "leds_toggle",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "reboot",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "enable_sensor",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "update_period",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "seconds",
+                                "maximum": 3600,
+                                "minimum": 5
+                            }
+                        },
+                        {
+                            "name": "temperature_thresh",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "milli Celsius",
+                                "maximum": 11999,
+                                "minimum": -1999
+                            }
+                        },
+                        {
+                            "name": "humidity_thresh",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "milli RH%",
+                                "maximum": 9999,
+                                "minimum": 10
+                            }
+                        }
+                    ],
+                    "readings": [
+                        {
+                            "path": "",
+                            "meaning": "ID",
+                            "valueSchema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "temperature",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "Celsius",
+                                "maximum": 120,
+                                "minimum": -20
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "humidity",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "RH%",
+                                "maximum": 100
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "parent",
+                            "valueSchema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "rssi",
+                            "valueSchema": {
+                                "type": "number",
+                                "maximum": -130
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "uptime",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "seconds"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "alarm_temperature",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "Celsius"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "alarm_humidity",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "RH%"
+                            }
+                        }
+                    ],
+                    "configurations": []
+                }
+            },
+            "repository": "",
+            "releaseDate": "",
+            "releaseNotes": "",
+            "documentation": ""
+        }
+    }
+}
+

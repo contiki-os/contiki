@@ -49,7 +49,7 @@
 int
 mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val, char *name,
                      char *alarm, char *config, uint16_t min, uint16_t max,
-                     uint16_t thres, uint16_t pres)
+                     uint16_t thresh, uint16_t thresl, uint16_t pres)
 {
   if((strlen(name) > SENSOR_NAME_STRING) || (strlen(alarm) > SENSOR_NAME_STRING)
      || (strlen(config) > SENSOR_NAME_STRING)) {
@@ -58,7 +58,8 @@ mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val, char *name,
 
   reg->num++;
   reg->sensor[i].value = val;
-  reg->sensor[i].threshold = thres;
+  reg->sensor[i].over_threshold = thresh;
+  reg->sensor[i].below_threshold = thresl;
   reg->sensor[i].min = min;
   reg->sensor[i].max = max;
   reg->sensor[i].pres = pres;
@@ -96,9 +97,12 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
      * the variable as "alarmed", and remove the flag after the alarm timeout,
      * allowing other variables to send an alarm during the timeout
      */
-    if(reg->sensor[i].value >= reg->sensor[i].threshold) {
-      PRINTF("MQTT sensors: %s! (over %d)\n", reg->sensor[i].alarm_name,
-                                              reg->sensor[i].threshold);
+    if((reg->sensor[i].value < reg->sensor[i].below_threshold) &&
+      (reg->sensor[i].value > reg->sensor[i].over_threshold) &&
+      (reg->sensor[i].alarm_name != NULL)) {
+      PRINTF("MQTT sensors: %s! (over %d, below %d)\n", reg->sensor[i].alarm_name,
+                                                        reg->sensor[i].over_threshold,
+                                                        reg->sensor[i].below_threshold);
       process_post(PROCESS_BROADCAST, alarm, &reg->sensor[i]);
       return;
     }
