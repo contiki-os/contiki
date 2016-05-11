@@ -48,6 +48,7 @@ else:
     from BaseHTTPServer import *
     from SocketServer import *
     from urlparse import *
+    from urllib import *
 
 ################################################
 
@@ -725,7 +726,7 @@ class RuntimeState:
                 self.port = None
         self.reset()
 
-    def serveRadioTestControl(self, testTimestamp, serverTime, command, doSync):
+    def serveRadioTestControl(self, testTimestamp, serverTime, command, cmdParams, doSync):
         global LOCAL_TIME_OFFSET
         if serverTime:
             # fix the local timestamp (with max error up to 1 second)
@@ -763,7 +764,6 @@ class RuntimeState:
                 return '{"status":true,"ready":true}'
             return '{"status":true,"ready":false}'
 
-        print("command: " + command);
         if command in ["tx", "rx", "stat", "ch", "txp", "te", "end"]:
             if self.radioTestMoteCommandState == RADIO_TEST_COMMAND_QUEUED:
                 log(LOG_INFO, "Warning: reissuing a command!")
@@ -772,7 +772,7 @@ class RuntimeState:
                 log(LOG_INFO, "--- starting command='" + command + "', time=" + str(testTimestamp))
             self.radioTestMoteCommandState = RADIO_TEST_COMMAND_QUEUED
             with bufferLock:
-                state.writeBuffer += command + "\n"
+                state.writeBuffer += cmdParams + "\n"
 
             numSync = RADIO_TEST_MAX_RETRIES if doSync else 1
             while numSync > 0:
@@ -1276,7 +1276,8 @@ class HttpServerHandler(BaseHTTPRequestHandler):
     def serveRadioTestControl(self, qs):
         return state.serveRadioTestControl(qsExtractFloat(qs, "timestamp"),
                                            qsExtractFloat(qs, "t"),
-                                           urllib.unquote(qsExtractString(qs, "command")).decode('utf8'),
+                                           unquote(qsExtractString(qs, "command")).split(' ')[0],
+                                           unquote(qsExtractString(qs, "command")),
                                            qsExtractBool(qs, "sync"))
 
     def serveReadings(self, qs):
