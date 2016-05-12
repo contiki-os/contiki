@@ -208,7 +208,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             
             if (h->packetNumber >= PACKETS_IN_TEST) {
                 currentState = STATE_RX;
-                printf("send done: pkts=%d channel=%d, txpower=%s\n", h->packetNumber, 
+                printf("%s: pkts=%d channel=%d, txpower=%s\n", COMMAND_TX_FINISHED, h->packetNumber,
 		       radio_get_channel(), get_txpower_string(txpower));
             }
             else {
@@ -497,6 +497,7 @@ static void handle_serial_input(const char *line)
         print_help();
     }
     else if (!strcmp(p, "stat") || !strcmp(line, "stats")) {
+        printf("%s\n", COMMAND_STAT_DONE);
         for(i=0; i < NODES_IN_TEST; i++) {
             printStats(&stats[i]);
         }

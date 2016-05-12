@@ -153,6 +153,8 @@ DO_WRITE_BYTEARRAY = sys.version_info[0] >= 3 or sys.version_info[1] >= 7
 
 RADIOTEST_COMMAND_ACCEPTED = "command accepted"
 RADIOTEST_COMMAND_FINISHED = "ready to accept commands"
+RADIOTEST_COMMAND_TX_FINISHED = "send done"
+RADIOTEST_COMMAND_STAT_FINISHED   "rx statistics"
 
 RADIO_TEST_NO_COMMAND       = 1
 RADIO_TEST_COMMAND_QUEUED   = 2
@@ -658,7 +660,6 @@ class RuntimeState:
         # XXX: the fact that we need to do this may mean a bug in the middleware
         line = line.rstrip()
         # testing pdr without return commands
-        self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
 
         # -- radio test
         if line == RADIOTEST_COMMAND_ACCEPTED:
@@ -668,6 +669,12 @@ class RuntimeState:
         if line == RADIOTEST_COMMAND_FINISHED:
             self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
             return
+        if line.find(RADIOTEST_COMMAND_TX_FINISHED) == 0:
+            self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
+            return
+        if line.find(RADIOTEST_COMMAND_STAT_FINISHED) == 0:
+            self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
+                return
 
 
         # if the line has a checksum, check it
@@ -774,7 +781,7 @@ class RuntimeState:
 
             if command in ["rx", "ch", "txp"]
                 self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
-            else
+            else if command in ["tx", "stat"]
                 self.radioTestMoteCommandState = RADIO_TEST_COMMAND_ACCEPTED
 
             numSync = RADIO_TEST_MAX_RETRIES if doSync else 1

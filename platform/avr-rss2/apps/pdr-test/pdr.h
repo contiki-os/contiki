@@ -62,9 +62,10 @@
 
 #if CONTIKI_TARGET_Z1
 #define PLATFORM_TEMP_SENSOR_HEADER "dev/tmp102.h"
+#define temp_sensor temperature_sensor // FIXME!
 #else
 #define PLATFORM_TEMP_SENSOR_HEADER "dev/temperature-sensor.h"
-#define temp_sensor temperature_sensor   // FIXME for Z1!!!
+#define temp_sensor temperature_sensor
 #endif
 
 #elif CONTIKI_TARGET_U108 || CONTIKI_TARGET_U108DEV
@@ -255,6 +256,10 @@ char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u
 #define TX_POWER_MIN        4
 
 char *tx_power_list[] = { "MAXdBm", "0dBm", "-7dBm", "-15dBm", "MINdBm"};
+
+#define COMMAND_TX_FINISHED   "send done"
+#define COMMAND_STAT_FINISHED   "rx statistics"
+
 
 #include "pattern.h"
 

@@ -42,7 +42,7 @@ ifeq ($(TARGET),avr-rss2)
 CONTIKI_TARGET_SOURCEFILES += ds18b20.c
 CONTIKI = ../../../../
 else
-CONTIKI = ../../../contiki-mainline-git
+CONTIKI = ../../../../
 endif
-
 include $(CONTIKI)/Makefile.include
+
