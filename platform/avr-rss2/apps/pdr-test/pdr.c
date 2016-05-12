@@ -408,6 +408,34 @@ static void print_help(void)
     printf("upgr         -- reboot via bootloader\n");
 }
 
+static int set_txpower(uint8_t p) 
+{
+      if(p == TX_POWER_MAX) {
+	txpower = TX_POWER_MAX;
+	radio_set_txpower(RADIO_POWER_MAX);
+      }
+      else if(p == TX_POWER_0DB) {
+        txpower = TX_POWER_0DB;
+	radio_set_txpower(RADIO_POWER_ZERO_DB);
+      }
+      else if(p == TX_POWER_MINUS7_DB) { 
+	txpower = TX_POWER_MINUS7_DB;
+	radio_set_txpower(RADIO_POWER_MINUS7_DB);
+      }
+      else if(p == TX_POWER_MINUS15_DB) { 
+	txpower = TX_POWER_MINUS15_DB;
+	radio_set_txpower(RADIO_POWER_MINUS15_DB);
+      }
+      else if(p == TX_POWER_MIN) {
+	txpower = TX_POWER_MIN;
+	radio_set_txpower(RADIO_POWER_MIN);
+      }
+      else {
+	printf("Invalid power\n");;
+	return 0;
+      }
+}
+
 static int cmd_txp(uint8_t verbose)
 {
     char *p = strtok(NULL, delim);
@@ -415,24 +443,19 @@ static int cmd_txp(uint8_t verbose)
     if(p) {
 
       if(!strcmp(p, "max")) {
-	txpower = TX_POWER_MAX;
-	radio_set_txpower(RADIO_POWER_MAX);
+	set_txpower(TX_POWER_MAX);
       }
       else if(!strcmp(p, "0")) {
-        txpower = TX_POWER_0DB;
-	radio_set_txpower(RADIO_POWER_ZERO_DB);
+	set_txpower(TX_POWER_0DB);
       }
       else if(!strcmp(p, "-7")) {
-	txpower = TX_POWER_MINUS7_DB;
-	radio_set_txpower(RADIO_POWER_MINUS7_DB);
+	set_txpower(TX_POWER_MINUS7_DB);
       }
       else if(!strcmp(p, "-15")) {
-	txpower = TX_POWER_MINUS15_DB;
-	radio_set_txpower(RADIO_POWER_MINUS15_DB);
+	set_txpower(TX_POWER_MINUS15_DB);
       }
       else if(!strcmp(p, "min")) {
-	txpower = TX_POWER_MIN;
-	radio_set_txpower(RADIO_POWER_MIN);
+	set_txpower(TX_POWER_MIN);
       }
       else {
 	printf("Invalid power\n");;
