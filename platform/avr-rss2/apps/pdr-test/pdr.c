@@ -497,11 +497,11 @@ static void handle_serial_input(const char *line)
         print_help();
     }
     else if (!strcmp(p, "stat") || !strcmp(line, "stats")) {
-        printf("%s\n", COMMAND_STAT_DONE);
         for(i=0; i < NODES_IN_TEST; i++) {
             printStats(&stats[i]);
         }
         clearStats();
+        printf("%s\n", COMMAND_STAT_FINISHED);
     }
     else if (!strcmp(line, "te") || !strcmp(line, "temp")) {
         printf("temp=%i\n", temp_sensor.value(0));

@@ -258,7 +258,7 @@ char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u
 char *tx_power_list[] = { "MAXdBm", "0dBm", "-7dBm", "-15dBm", "MINdBm"};
 
 #define COMMAND_TX_FINISHED   "send done"
-#define COMMAND_STAT_FINISHED   "rx statistics"
+#define COMMAND_STAT_FINISHED   "end of statistics"
 
 
 #include "pattern.h"

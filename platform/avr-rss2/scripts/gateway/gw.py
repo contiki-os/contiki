@@ -154,7 +154,7 @@ DO_WRITE_BYTEARRAY = sys.version_info[0] >= 3 or sys.version_info[1] >= 7
 RADIOTEST_COMMAND_ACCEPTED = "command accepted"
 RADIOTEST_COMMAND_FINISHED = "ready to accept commands"
 RADIOTEST_COMMAND_TX_FINISHED = "send done"
-RADIOTEST_COMMAND_STAT_FINISHED   "rx statistics"
+RADIOTEST_COMMAND_STAT_FINISHED   "end of statistics"
 
 RADIO_TEST_NO_COMMAND       = 1
 RADIO_TEST_COMMAND_QUEUED   = 2
