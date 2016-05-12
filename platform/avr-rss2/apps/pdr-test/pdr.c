@@ -61,7 +61,7 @@ uint8_t eof = END_OF_FILE;
 // This function maps the resulting value back to the CC2x20-specific valye range.
 // return value in [dBm]
 //
-static inline int16_t platformRssi_dBm(uint16_t rssi, uint8_t platform)
+static inline int16_t platform_rssi_dBm(uint16_t rssi, uint8_t platform)
 {
     if (platform == 3) {
         // ATmega128RFA1 Datasheet, page 70
@@ -131,7 +131,7 @@ void printStats(struct stats_info *s)
         rssi = 0;
         lqi = 0;
     } else {
-        rssi = platformRssi_dBm(s->rssiSum / s->fine);
+        rssi = platform_rssi_dBm(s->rssiSum / s->fine, s->platform_id);
         lqi = 255 - s->lqiSumDiff / s->fine;
     }
     
