@@ -474,13 +474,6 @@ PROCESS_THREAD(relayr_process, ev, data)
   PROCESS_BEGIN();
 
   printf("\nRelayr process started\n");
-
-  if(!(strlen(DEFAULT_CONF_USER_ID))) {
-    printf("\nRelayr: FATAL! no hardcoded User ID to create topics!!!\n");
-    printf("The configuration over webservice is not currently enabled\n");
-    PROCESS_EXIT();
-  }
-
   printf("  Data topic:   %s\n", DEFAULT_PUBLISH_EVENT);
   printf("  Config topic: %s\n", DEFAULT_SUBSCRIBE_CFG);
   printf("  Cmd topic:    %s\n\n", DEFAULT_SUBSCRIBE_CMD);

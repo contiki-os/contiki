@@ -575,6 +575,12 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
       printf("*** New configuration over httpd\n");
     }
 #endif /* DEFAULT_CONF_AUTH_IS_REQUIRED */
+
+    if(!(strlen(DEFAULT_CONF_USER_ID))) {
+      printf("\nFATAL! no hardcoded User ID to create topics!!!\n");
+      printf("The configuration over webservice is not currently enabled\n");
+      PROCESS_EXIT();
+    }
   }
 
   /* Start the platform process */

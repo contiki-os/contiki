@@ -45,7 +45,7 @@
 #define DEFAULT_CONF_USER_ID          ""
 #define DEFAULT_CONF_AUTH_TOKEN       ""
 #define DEFAULT_CONF_AUTH_USER        ""
-#define DEFAULT_TOPIC_STR             "/v2/things/"
+#define DEFAULT_TOPIC_STR             "v2/things/"
 #define DEFAULT_TOPIC_LONG            DEFAULT_TOPIC_STR DEFAULT_CONF_USER_ID
 #define DEFAULT_CONF_AUTH_IS_REQUIRED 0
 /*---------------------------------------------------------------------------*/
