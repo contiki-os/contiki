@@ -42,8 +42,6 @@
 #include <strings.h>
 #include <stdlib.h>
 /*---------------------------------------------------------------------------*/
-//#define BUTTON_PRESS_EVENT_INTERVAL (CLOCK_SECOND)
-/*---------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -61,11 +59,20 @@ PROCESS(remote_sensors_process, "RE-Mote sensor process");
 static void
 poll_sensors(void)
 {
-  /* Poll the sensors */
-  remote_sensors.sensor[REMOTE_SENSOR_TEMP].value = cc2538_temp_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED);
-  remote_sensors.sensor[REMOTE_SENSOR_BATT].value = vdd3_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED);
-  remote_sensors.sensor[REMOTE_SENSOR_ADC1].value = adc_zoul.value(ZOUL_SENSORS_ADC1);
-  remote_sensors.sensor[REMOTE_SENSOR_ADC3].value = adc_zoul.value(ZOUL_SENSORS_ADC3);
+  /* Note: as we are using int16_t values, the alarms and thresholds have this
+   * wide.  The cc2538 core, battery and ADC return values scaled down to 10^-3,
+   * so we could end up with values beyond 32767 being treated as negative.
+   * For this cases we discard the least significant digit
+   */
+
+  remote_sensors.sensor[REMOTE_SENSOR_TEMP].value =
+             cc2538_temp_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED) / 10;
+  remote_sensors.sensor[REMOTE_SENSOR_BATT].value =
+             vdd3_sensor.value(CC2538_SENSORS_VALUE_TYPE_CONVERTED) / 10;
+  remote_sensors.sensor[REMOTE_SENSOR_ADC1].value =
+             adc_zoul.value(ZOUL_SENSORS_ADC1) / 10;
+  remote_sensors.sensor[REMOTE_SENSOR_ADC3].value =
+             adc_zoul.value(ZOUL_SENSORS_ADC3) / 10;
 
   /* Check the sensor values and publish alarms if required, else send the data
    * to any subscriber
@@ -73,8 +80,6 @@ poll_sensors(void)
   mqtt_sensor_check(&remote_sensors, remote_sensors_alarm_event,
                     remote_sensors_data_event);
 
-  /* Reset the button value */
-  remote_sensors.sensor[REMOTE_SENSOR_BUTN].value = 0;
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(remote_sensors_process, ev, data)
@@ -94,29 +99,32 @@ PROCESS_THREAD(remote_sensors_process, ev, data)
                        DEFAULT_CC2538_TEMP_MIN, DEFAULT_PUBLISH_EVENT_TEMP,
                        NULL, NULL, DEFAULT_CC2538_TEMP_MIN,
                        DEFAULT_CC2538_TEMP_MAX, DEFAULT_TEMP_THRESH,
-                       DEFAULT_TEMP_THRESL, 1000);
+                       DEFAULT_TEMP_THRESL, 100);
 
   mqtt_sensor_register(&remote_sensors, REMOTE_SENSOR_BATT,
                        DEFAULT_CC2538_BATT_MIN, DEFAULT_PUBLISH_EVENT_BATT,
                        NULL, NULL, DEFAULT_CC2538_BATT_MIN,
                        DEFAULT_CC2538_BATT_MAX, DEFAULT_BATT_THRESH,
-                       DEFAULT_BATT_THRESL, 1000);
+                       DEFAULT_BATT_THRESL, 100);
 
   mqtt_sensor_register(&remote_sensors, REMOTE_SENSOR_ADC1,
                        DEFAULT_CC2538_ADC1_MIN, DEFAULT_PUBLISH_EVENT_ADC1,
                        NULL, NULL, DEFAULT_CC2538_ADC1_MIN,
                        DEFAULT_CC2538_ADC1_MAX, DEFAULT_ADC1_THRESH,
-                       DEFAULT_ADC1_THRESL, 1000);
+                       DEFAULT_ADC1_THRESL, 100);
 
   mqtt_sensor_register(&remote_sensors, REMOTE_SENSOR_ADC3,
                        DEFAULT_CC2538_ADC3_MIN, DEFAULT_PUBLISH_EVENT_ADC3,
                        NULL, NULL, DEFAULT_CC2538_ADC3_MIN,
                        DEFAULT_CC2538_ADC3_MAX, DEFAULT_ADC3_THRESH,
-                       DEFAULT_ADC3_THRESL, 1000);
+                       DEFAULT_ADC3_THRESL, 100);
 
+  /* We post alarms directly to the platform, instead of having the mqtt-sensors
+   * checking for occurences
+   */
   mqtt_sensor_register(&remote_sensors, REMOTE_SENSOR_BUTN,
-                       DEFAULT_CC2538_BUTN_MIN, DEFAULT_PUBLISH_ALARM_BUTN,
-                       NULL, NULL, DEFAULT_CC2538_BUTN_MIN,
+                       DEFAULT_CC2538_BUTN_MIN, NULL, DEFAULT_PUBLISH_ALARM_BUTN,
+                       NULL, DEFAULT_CC2538_BUTN_MIN,
                        DEFAULT_CC2538_BUTN_MAX, DEFAULT_BUTN_THRESH,
                        DEFAULT_BUTN_THRESL, 0);
 
@@ -129,10 +137,6 @@ PROCESS_THREAD(remote_sensors_process, ev, data)
   /* Get an event ID for our events */
   remote_sensors_data_event = process_alloc_event();
   remote_sensors_alarm_event = process_alloc_event();
-
-  /* Configure the user button */
-  //button_sensor.configure(BUTTON_SENSOR_CONFIG_TYPE_INTERVAL,
-  //                        BUTTON_PRESS_EVENT_INTERVAL);
 
   /* Start the periodic process */
   etimer_set(&et, DEFAULT_SAMPLING_INTERVAL);
@@ -150,13 +154,13 @@ PROCESS_THREAD(remote_sensors_process, ev, data)
         if(button_sensor.value(BUTTON_SENSOR_VALUE_TYPE_LEVEL) ==
            BUTTON_SENSOR_PRESSED_LEVEL) {
           PRINTF("RE-Mote: Button pressed\n");
-          remote_sensors.sensor[REMOTE_SENSOR_BUTN].value++;
-          poll_sensors();
         } else {
           PRINTF("RE-Mote: ...and button released!\n");
+          remote_sensors.sensor[REMOTE_SENSOR_BUTN].value++;
+          process_post(PROCESS_BROADCAST, remote_sensors_alarm_event,
+                       &remote_sensors.sensor[REMOTE_SENSOR_BUTN]);
         }
       }
-
     }
   }
 

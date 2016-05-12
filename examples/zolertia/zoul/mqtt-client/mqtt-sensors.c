@@ -101,8 +101,8 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
      * the variable as "alarmed", and remove the flag after the alarm timeout,
      * allowing other variables to send an alarm during the timeout
      */
-    if((reg->sensor[i].value < reg->sensor[i].below_threshold) &&
-      (reg->sensor[i].value > reg->sensor[i].over_threshold) &&
+    if(((reg->sensor[i].value < reg->sensor[i].below_threshold) ||
+      (reg->sensor[i].value > reg->sensor[i].over_threshold)) &&
       (reg->sensor[i].alarm_name != NULL)) {
       PRINTF("MQTT sensors: %s! (over %d, below %d)\n", reg->sensor[i].alarm_name,
                                                         reg->sensor[i].over_threshold,

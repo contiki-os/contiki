@@ -49,6 +49,15 @@
 
 /* Do we need to use AUTH_USER and AUTH_token? */
 #define DEFAULT_AUTH_IS_REQUIRED      DEFAULT_CONF_AUTH_IS_REQUIRED
+
+/* Number of seconds we keep the alarm flag high so we don't send too many
+ * alarms in a short period
+ */
+#ifndef DEFAULT_CONF_ALARM_TIME
+#define DEFAULT_ALARM_TIME            15
+#else
+#define DEFAULT_ALARM_TIME            DEFAULT_CONF_ALARM_TIME
+#endif
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Data structure declaration for the MQTT client configuration

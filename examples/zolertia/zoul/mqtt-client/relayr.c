@@ -207,7 +207,7 @@ publish_alarm(sensor_val_t *sensor)
             strlen(app_buffer));
 
     /* Schedule the timer to prevent flooding the broker with the same event */
-    etimer_set(&alarm_expired, (CLOCK_SECOND * 15));
+    etimer_set(&alarm_expired, (CLOCK_SECOND * DEFAULT_ALARM_TIME));
   }
 }
 /*---------------------------------------------------------------------------*/

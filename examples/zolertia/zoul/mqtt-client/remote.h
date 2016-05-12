@@ -77,12 +77,16 @@ extern sensor_values_t remote_sensors;
 #define DEFAULT_ADC1_THRESL           DEFAULT_CC2538_ADC1_MIN
 #define DEFAULT_ADC3_THRESL           DEFAULT_CC2538_ADC3_MIN
 
-/* We handle every button press as an alarm, so we start low and reset the
- * button value to avoid triggering every time we send an event to the
- * platform process, and no button has been pressed
+/* We post alarms directly to the platform process, so we avoid having the value
+ * being checked by the mqtt-sensors process
  */
-#define DEFAULT_BUTN_THRESH           DEFAULT_CC2538_BUTN_MIN
+#define DEFAULT_BUTN_THRESH           DEFAULT_CC2538_BUTN_MAX
 #define DEFAULT_BUTN_THRESL           DEFAULT_CC2538_BUTN_MIN
+
+/* Use a lower alarm threshold as the user button is more interactive than
+ * others type of alarms
+ */
+#define DEFAULT_CONF_ALARM_TIME       3
 /*---------------------------------------------------------------------------*/
 #endif /* FRIDGE_H_ */
 /** @} */

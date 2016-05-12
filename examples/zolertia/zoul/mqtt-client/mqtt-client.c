@@ -157,7 +157,7 @@ publish_led_off(void *d)
 static void
 print_config_info(void)
 {
-  printf("Auth Token -------------> %s\n", conf.auth_token);
+  printf("Auth User --------------> %s\n", conf.auth_user);
   printf("Auth Token -------------> %s\n", conf.auth_token);
   printf("Pub Interval -----------> %u\n", conf.pub_interval_check);
 
