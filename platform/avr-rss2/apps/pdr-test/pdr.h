@@ -255,7 +255,7 @@ char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u
 #define TX_POWER_MINUS15_DB 3
 #define TX_POWER_MIN        4
 
-char *tx_power_list[] = { "MAXdBm", "0dBm", "-7dBm", "-15dBm", "MINdBm"};
+char *tx_power_list[] = { "MAX", "0", "-7", "-15", "MIN"};
 
 #define COMMAND_TX_FINISHED   "send done"
 #define COMMAND_STAT_FINISHED   "end of statistics"
