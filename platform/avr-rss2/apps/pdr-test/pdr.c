@@ -63,7 +63,7 @@ uint8_t eof = END_OF_FILE;
 //
 static inline int16_t platform_rssi_dBm(uint16_t rssi, uint8_t platform)
 {
-    int16_t dBm;
+    int16_t dBm = 0;
     
     if (platform == 3) {
         // ATmega128RFA1 Datasheet, page 70
@@ -387,7 +387,7 @@ static void inputPacket(void)
     /* correct data */
     
     s->fine++;
-    rssi = (uint8_t) ((int) packetbuf_attr(PACKETBUF_ATTR_RSSI) + 128);
+    rssi = (uint8_t) (int) packetbuf_attr(PACKETBUF_ATTR_RSSI);
     s->rssiSum += rssi;
     s->lqiSumDiff += 255 - packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);   // sum up difference to 255 (save memory)
     if (rssi > s->rssiMax) s->rssiMax = rssi;
