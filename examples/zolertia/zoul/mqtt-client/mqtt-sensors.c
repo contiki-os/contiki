@@ -99,8 +99,10 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
              reg->sensor[i].min, reg->sensor[i].max);
       reg->sensor[i].value = reg->sensor[i].min;
     } else {
-      PRINTF("MQTT sensors: %s value %d\n", reg->sensor[i].sensor_name,
-                                            reg->sensor[i].value);
+      if(strlen(reg->sensor[i].sensor_name)) {
+        PRINTF("MQTT sensors: %s value %d\n", reg->sensor[i].sensor_name,
+                                              reg->sensor[i].value);
+      }
     }
 
     /* Currently we are limiting the alarms to be first-heard, first-served,
