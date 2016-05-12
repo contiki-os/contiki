@@ -122,7 +122,7 @@ static char *get_txpower_string(uint8_t p)
 void printStats(struct stats_info *s)
 {
     int16_t temp = 0;
-    int rssi;
+    int16_t rssi;
     uint8_t lqi;
     
     if (s->node_id == 0) return;
@@ -146,7 +146,7 @@ void printStats(struct stats_info *s)
            get_txpower_string(s->txpower),
            temp);
     
-    printf("%u %u %u %u\n",
+    printf("%u %u %d %u\n",
            s->fine,
            s->total,
            rssi,
