@@ -63,15 +63,17 @@ uint8_t eof = END_OF_FILE;
 //
 static inline int16_t platform_rssi_dBm(uint16_t rssi, uint8_t platform)
 {
+    int16_t dBm;
+    
     if (platform == 3) {
         // ATmega128RFA1 Datasheet, page 70
-        if (rssi == 0) rssi = -90;
-        else rssi = -90 + 3 * (rssi-1);
+        if (rssi == 0) dBm = -90;
+        else dBm = -90 + 3 * (rssi-1);
     } else {
         // for cc2420 and cc2520 based platfroms, the radio RSSI value is signed 8 bit integer
-        rssi -= 128;
+        dBm -= 128;
     }
-    return (int16_t) rssi;
+    return dBm;
 }
 
 // -------------------------------------------------------------
