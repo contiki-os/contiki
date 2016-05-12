@@ -2,8 +2,8 @@ DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 
 all: mqtt-client
 
-# Platform options: relayr, thingsio
-MQTT_PLATFORM ?= relayr
+# Platform options: relayr, thingsio, bluemix
+MQTT_PLATFORM ?= bluemix
 
 # Sensor options: fridge, agriculture, remote, irrigation
 MQTT_SENSORS  ?= remote
@@ -12,6 +12,11 @@ MQTT_SENSORS  ?= remote
 PROJECT_SOURCEFILES += httpd-simple.c mqtt-sensors.c
 
 # Platform checks
+ifeq ($(MQTT_PLATFORM), bluemix)
+  PROJECT_SOURCEFILES += bluemix.c
+  CFLAGS += -DMQTT_PLATFORM="bluemix"
+endif
+
 ifeq ($(MQTT_PLATFORM), relayr)
   PROJECT_SOURCEFILES += relayr.c
   CFLAGS += -DMQTT_PLATFORM="relayr"

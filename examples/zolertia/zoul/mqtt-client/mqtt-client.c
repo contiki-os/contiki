@@ -116,12 +116,6 @@ PROCESS_NAME(PLATFORM_NAME(MQTT_PLATFORM,_process));
 /* Maximum TCP segment size for outgoing segments of our socket */
 #define MAX_TCP_SEGMENT_SIZE    32
 /*---------------------------------------------------------------------------*/
-/*
- * Buffers for ID and tokens
- * Make sure they are large enough to hold the entire respective string
- */
-static char client_id[DEFAULT_IP_ADDR_STR_LEN];
-/*---------------------------------------------------------------------------*/
 static struct mqtt_connection conn;
 /*---------------------------------------------------------------------------*/
 void (*pub_handler)(const char *topic, uint16_t topic_len,
@@ -312,19 +306,6 @@ mqtt_event(struct mqtt_connection *m, mqtt_event_t event, void *data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-construct_client_id(void)
-{
-  int len = snprintf(client_id, DEFAULT_IP_ADDR_STR_LEN, "%02x%02x%02x%02x%02x%02x",
-                     linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
-                     linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
-                     linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
-
-  if(len < 0 || len >= DEFAULT_IP_ADDR_STR_LEN) {
-    PRINTF("Client: buffer size too small for client ID: %d\n", len);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static void
 init_platform_config(void)
 {
   if(strlen(DEFAULT_AUTH_USER)) {
@@ -348,8 +329,7 @@ init_config(void)
   conf.pub_interval = DEFAULT_SAMPLING_INTERVAL;
   conf.pub_interval_check = DEFAULT_PUBLISH_INTERVAL;
 
-  /* Formats the device's IP address in a string */
-  construct_client_id();
+  /* The client ID should be given by the platform process */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -375,7 +355,7 @@ state_machine(void)
 {
   switch(state) {
   case STATE_INIT:
-    mqtt_register(&conn, &mqtt_demo_process, client_id, mqtt_event,
+    mqtt_register(&conn, &mqtt_demo_process, conf.client_id, mqtt_event,
                   MAX_TCP_SEGMENT_SIZE);
 
 #if DEFAULT_CONF_AUTH_IS_REQUIRED
@@ -575,16 +555,23 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
       printf("*** New configuration over httpd\n");
     }
 #endif /* DEFAULT_CONF_AUTH_IS_REQUIRED */
-
+#if DEFAULT_USER_ID_IS_REQUIRED
     if(!(strlen(DEFAULT_CONF_USER_ID))) {
       printf("\nFATAL! no hardcoded User ID to create topics!!!\n");
       printf("The configuration over webservice is not currently enabled\n");
       PROCESS_EXIT();
     }
+#endif
   }
 
   /* Start the platform process */
   process_start(&PLATFORM_NAME(MQTT_PLATFORM,_process), NULL);
+
+  if(!(strlen(conf.client_id))) {
+    printf("\nFATAL! no Client ID found!!!\n");
+    printf("The configuration over webservice is not currently enabled\n");
+    PROCESS_EXIT();
+  }
 
   /* Schedule next timer event ASAP */
   etimer_set(&publish_periodic_timer, 0);

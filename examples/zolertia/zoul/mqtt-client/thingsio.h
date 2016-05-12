@@ -47,7 +47,9 @@
 #define DEFAULT_CONF_AUTH_USER        ""
 #define DEFAULT_TOPIC_STR             "v2/things/"
 #define DEFAULT_TOPIC_LONG            DEFAULT_TOPIC_STR DEFAULT_CONF_USER_ID
-#define DEFAULT_CONF_AUTH_IS_REQUIRED 0
+
+#define DEFAULT_CONF_AUTH_IS_REQUIRED     0
+#define DEFAULT_CONF_USER_ID_IS_REQUIRED  1
 /*---------------------------------------------------------------------------*/
 /* Host "mqtt.thethings.io" with IP 23.102.55.248 */
 #define MQTT_DEMO_CONF_BROKER_IP_ADDR  "::ffff:1766:37f8"

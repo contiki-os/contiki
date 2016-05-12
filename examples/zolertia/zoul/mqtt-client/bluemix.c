@@ -41,7 +41,7 @@
 #include "dev/sys-ctrl.h"
 #include "mqtt-client.h"
 #include "mqtt-sensors.h"
-#include "thingsio.h"
+#include "bluemix.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -65,7 +65,7 @@
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
-PROCESS(thingsio_process, "The Things.io MQTT process");
+PROCESS(bluemix_process, "IBM bluemix MQTT process");
 /*---------------------------------------------------------------------------*/
 /* Include there the sensors processes to include */
 PROCESS_NAME(SENSORS_NAME(MQTT_SENSORS, _sensors_process));
@@ -118,7 +118,7 @@ static void
 ping_parent(void)
 {
   if(uip_ds6_get_global(ADDR_PREFERRED) == NULL) {
-    PRINTF("Things.io: Parent not available\n");
+    PRINTF("bluemix: Parent not available\n");
     return;
   }
 
@@ -144,22 +144,21 @@ add_pub_topic(uint16_t length, char *meaning, char *value,
   int pos = 0;
 
   if((buf_ptr == NULL) || (length <= 0)){
-    PRINTF("Things.io: null buffer or lenght less than zero\n");
+    PRINTF("bluemix: null buffer or lenght less than zero\n");
     return -1;
   }
 
   if(first) {
-    len = snprintf(buf_ptr, length, "%s", "{\"values\":[");
+    len = snprintf(buf_ptr, length, "%s", "{\"d\":{");
     pos = len;
     buf_ptr += len;
   }
 
   len = snprintf(buf_ptr, (length - pos),
-                 "{\"key\":\"%s\",\"value\":\"%s\"}",
-                 meaning, value);
+                 "\"%s\":\"%s\"", meaning, value);
  
   if(len < 0 || pos >= length) {
-    PRINTF("Things.io: Buffer too short. Have %d, need %d + \\0\n", length, len);
+    PRINTF("bluemix: Buffer too short. Have %d, need %d + \\0\n", length, len);
     return -1;
   }
 
@@ -169,7 +168,7 @@ add_pub_topic(uint16_t length, char *meaning, char *value,
   if(more) {
     len = snprintf(buf_ptr, (length - pos), "%s", ",");
   } else {
-    len = snprintf(buf_ptr, (length - pos), "%s", "]}");
+    len = snprintf(buf_ptr, (length - pos), "%s", "}}");
   }
 
   pos += len;
@@ -188,7 +187,7 @@ publish_alarm(sensor_val_t *sensor)
     /* Clear buffer */
     memset(app_buffer, 0, APP_BUFFER_SIZE);
 
-    PRINTF("Things.io: Alarm! %s --> %u\n", sensor->alarm_name, sensor->value);
+    PRINTF("bluemix: Alarm! %s --> %u\n", sensor->alarm_name, sensor->value);
     aux_int = sensor->value;
     aux_res = sensor->value;
 
@@ -200,7 +199,7 @@ publish_alarm(sensor_val_t *sensor)
     }
 
     snprintf(app_buffer, APP_BUFFER_SIZE,
-             "{\"values\":[{\"key\":\"%s\",\"value\":%d.%02u}]}",
+             "{\"d\":{\"%s\":%d.%02u}}",
              sensor->alarm_name, aux_int, aux_res);
 
     publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
@@ -272,194 +271,26 @@ publish_event(sensor_values_t *msg)
   snprintf(aux, sizeof(aux), "%d", def_rt_rssi);
   len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_RSSI, aux, 0, 0);
 
-  PRINTF("Things.io: publish %s (%u)\n", app_buffer, strlen(app_buffer));
+  PRINTF("bluemix: publish %s (%u)\n", app_buffer, strlen(app_buffer));
   publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
           strlen(app_buffer));
 }
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
 static void
-thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
+bluemix_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
             uint16_t chunk_len)
 {
-  uint8_t i;
-  uint16_t aux;
-
-  PRINTF("Things.io: Pub Handler, topic='%s' (len=%u), chunk='%s', chunk_len=%u\n",
-         topic, topic_len, chunk, chunk_len);
-
-  /* Most of the commands follow a boolean-logic at least */
-  if(chunk_len <= 0) {
-    PRINTF("Relay: Chunk should be at least a single digit integer or string\n");
-    return;
-  }
-
-  /* This is a command event, it uses "true" and "false" strings
-   * We expect commands to have the following syntax:
-   * {"key":"enable_sensor","value":false}
-   * That is why we use an index of "8" to search for the command string
-   */
-  if(strncmp(topic, DEFAULT_SUBSCRIBE_CMD, CONFIG_SUB_CMD_TOPIC_LEN) == 0) {
-
-    /* Toggle a given LED */
-    if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_LEDS,
-               strlen(DEFAULT_SUBSCRIBE_CMD_LEDS)) == 0) {
-      PRINTF("Things.io: Command received --> toggle LED\n");
-
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 18],
-        "true", 4) == 0) {
-        leds_on(CMD_LED);
-      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_LEDS) + 18],
-        "false", 5) == 0) {
-        leds_off(CMD_LED);
-      } else {
-        PRINTF("Things.io: invalid command argument (expected boolean)!\n");
-      }
-
-      return;
-
-    /* Restart the device */
-    } else if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_REBOOT,
-               strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT)) == 0) {
-      PRINTF("Things.io: Command received --> reboot\n");
-
-      /* This is fixed to check only "true" arguments */
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_REBOOT) + 18],
-        "true", 4) == 0) {
-        sys_ctrl_reset();
-      } else {
-        PRINTF("Things.io: invalid command argument (expected only 'true')!\n");
-      }
-
-      return;
-
-    /* Enable or disable external sensors */
-    } else if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_SENSOR,
-               strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR)) == 0) {
-      PRINTF("Things.io: Command received --> enable/disable sensor\n");
-
-      if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 18],
-        "true", 4) == 0) {
-        activate_sensors(0x01);
-      } else if(strncmp((const char *)&chunk[strlen(DEFAULT_SUBSCRIBE_CMD_SENSOR) + 18],
-        "false", 5) == 0) {
-        activate_sensors(0x00);
-      } else {
-        PRINTF("Things.io: invalid command argument (expected boolean)!\n");
-      }
-
-      return;
-
-    /* This is a configuration event
-     * As currently Contiki's MQTT driver does not support more than one SUBSCRIBE
-     * we are handling both commands and configurations in the same "cmd" topic
-     * We expect the configuration payload to follow the next syntax:
-     * {"name":"update_period","value":61}
-     */
-
-    /* Change the update period */
-   } else if(strncmp((const char *)&chunk[8], DEFAULT_SUBSCRIBE_CMD_EVENT,
-               strlen(DEFAULT_SUBSCRIBE_CMD_EVENT)) == 0) {
-
-      /* Take integers as configuration value */
-      aux = atoi((const char*) &chunk[strlen(DEFAULT_SUBSCRIBE_CMD_EVENT) + 18]);
-
-      /* Check for allowed values */
-      if((aux < DEFAULT_UPDATE_PERIOD_MIN) || (aux > DEFAULT_UPDATE_PERIOD_MAX)) {
-        PRINTF("Things.io: update interval should be between %u and %u\n", 
-                DEFAULT_UPDATE_PERIOD_MIN, DEFAULT_UPDATE_PERIOD_MAX);
-        return;
-      }
-
-      conf.pub_interval_check = aux;
-      PRINTF("Things.io: New update interval --> %u secs\n", conf.pub_interval_check);
-
-      // FIXME: write_config_to_flash();
-      return;
-    }
-
-    /* Change a sensor's threshold, skip is `sensor_config` is NULL */
-    for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
-
-      if((SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config) != NULL) &&
-        (strncmp((const char *)&chunk[8], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config),
-                      strlen(SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config))) == 0)) {
-
-        /* Take integers as configuration value */
-        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config)) + 18]);
-
-        if((aux < SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].min)) || 
-          (aux > SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].max))) {
-          PRINTF("Things.io: %s threshold should be between %d and %d\n",
-                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
-                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].min),
-                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].max));
-          return;
-        }
-
-        /* We have now a valid threshold value, the logic is simple: each
-         * variable has a `thresh` to configure a limit over the given value,
-         * and `thresl` which respectively checks for values below this limit.
-         * As a convention we are expecting `sensor_config` strings ending in
-         * `_thresh` or `_thresl`.  The check below "should" be "safe" as we are
-         * sure it matches an expected string.
-         */
-
-        if(strstr((const char *)&chunk[8], "_thresh") != NULL) {
-          SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold) = aux;
-          PRINTF("Things.io: New %s over threshold --> %u\n",
-                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
-                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].over_threshold));
-        } else if(strstr((const char *)&chunk[8], "_thresl") != NULL) {
-          SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].below_threshold) = aux;
-          PRINTF("Things.io: New %s below threshold --> %u\n",
-                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_name),
-                 SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].below_threshold));
-        } else {
-          PRINTF("Things.io: Expected threshold configuration name to end ");
-          PRINTF("either in thresh or thresl\n");
-          /* Exit earlier to avoid writting in flash */
-          return;
-        }
-
-        // FIXME: write_config_to_flash();
-        return;
-      }
-    }
-
-    /* We are now checking for any string command expected by the subscribed
-     * sensor module
-     */
-#if DEFAULT_COMMANDS_NUM
-    for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _commands.num); i++) {
-
-      if((strncmp((const char *)&chunk[8],
-          SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name),
-          strlen(SENSORS_NAME(MQTT_SENSORS, _commands.command[i].command_name))) == 0)) {
-
-        /* Take integers as argument value */
-        aux = atoi((const char*) &chunk[strlen(SENSORS_NAME(MQTT_SENSORS,_commands.command[i].command_name)) + 18]);
-
-        /* Invoke the command handler */
-        SENSORS_NAME(MQTT_SENSORS,_commands.command[i].cmd(aux));
-        return;
-      }
-    }
-#endif /* DEFAULT_COMMANDS_NUM */
-
-    /* Invalid configuration topic, we should have returned before */
-    PRINTF("Things.io: Configuration/Command parameter not recognized\n");
-
-  } else {
-    PRINTF("Things.io: Incorrect topic or chunk len. Ignored\n");
-  }
+  PRINTF("bluemix: no subscription supported right now\n");
 }
 /*---------------------------------------------------------------------------*/
 static void
 init_platform(void)
 {
+  int len;
+
   /* Register the publish callback handler */
-  MQTT_PUB_REGISTER_HANDLER(thingsio_pub_handler);
+  MQTT_PUB_REGISTER_HANDLER(bluemix_pub_handler);
 
   /* Configures a callback for a ping request to our parent node, to retrieve
    * the RSSI value
@@ -468,24 +299,29 @@ init_platform(void)
   uip_icmp6_echo_reply_callback_add(&echo_reply_notification,
                                     echo_reply_handler);
 
-  snprintf(&conf.client_id, DEFAULT_IP_ADDR_STR_LEN, "%02x%02x%02x%02x%02x%02x",
-           linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
-           linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
-           linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
+  len = snprintf(conf.client_id, DEFAULT_CONF_IP_ADDR_STR_LEN,
+                 "d:%s:%s:%02x%02x%02x%02x%02x%02x", "quickstart", "Zolertia",
+                 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
+                 linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
+                 linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
+
+  printf("xxxxxxxxxxx %s\n", conf.client_id);
+
+  if(len < 0 || len >= DEFAULT_CONF_IP_ADDR_STR_LEN) {
+    printf("Client ID: %d, Buffer %d\n", len, DEFAULT_CONF_IP_ADDR_STR_LEN);
+  }
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(thingsio_process, ev, data)
+PROCESS_THREAD(bluemix_process, ev, data)
 {
   PROCESS_BEGIN();
 
   /* Initialize platform-specific */
   init_platform();
 
-  printf("\nThe Things.io process started\n");
+  printf("\nIBM bluemix process started\n");
   printf("  Client ID:    %s\n", conf.client_id);
   printf("  Data topic:   %s\n", DEFAULT_PUBLISH_EVENT);
-  printf("  Config topic: %s\n", DEFAULT_SUBSCRIBE_CFG);
-  printf("  Cmd topic:    %s\n\n", DEFAULT_SUBSCRIBE_CMD);
 
   while(1) {
 
@@ -498,7 +334,12 @@ PROCESS_THREAD(thingsio_process, ev, data)
       ping_parent();
 
       /* Subscribe to topics (MQTT driver only supports 1 topic at the moment */
-      subscribe((char *)DEFAULT_SUBSCRIBE_CMD);
+      /* IBM quickstart do not support (I think?) subscriptions, however if you
+       * register the device at IBM Bluemix and get user auth and token, it
+       * could be used
+       */
+
+      // subscribe((char *)DEFAULT_SUBSCRIBE_CMD);
       // subscribe((char *) DEFAULT_SUBSCRIBE_CFG);
 
       /* Enable the sensor */

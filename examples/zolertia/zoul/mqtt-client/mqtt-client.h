@@ -50,6 +50,9 @@
 /* Do we need to use AUTH_USER and AUTH_token? */
 #define DEFAULT_AUTH_IS_REQUIRED      DEFAULT_CONF_AUTH_IS_REQUIRED
 
+/* Required only for thethingsio and relayr */
+#define DEFAULT_USER_ID_IS_REQUIRED   DEFAULT_CONF_USER_ID_IS_REQUIRED
+
 /* Number of seconds we keep the alarm flag high so we don't send too many
  * alarms in a short period
  */
@@ -67,6 +70,7 @@ typedef struct mqtt_client_config {
   clock_time_t pub_interval;
   uint16_t pub_interval_check;
   char auth_token[DEFAULT_AUTH_TOKEN_LEN];
+  char client_id[DEFAULT_IP_ADDR_STR_LEN];
 } mqtt_client_config_t;
 
 extern mqtt_client_config_t conf; 

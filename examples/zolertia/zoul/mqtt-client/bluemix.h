@@ -28,58 +28,37 @@
  *
  */
 /*---------------------------------------------------------------------------*/
-#ifndef RELAYR_H_
-#define RELAYR_H_
+#ifndef BLUEMIX_H_
+#define BLUEMIX_H_
 /*---------------------------------------------------------------------------*/
 #include "mqtt-client.h"
 /*---------------------------------------------------------------------------*/
 /* Default configuration values */
 /*
- * This are the values from relayr.io, note we are not using the clientId,
- * but rather using the device's address
+ * The Things.io follows the next scheme:
  *
- * {
- *   "user": "abcdefgh-ijkl-mnop-qrst-uvwxyz123456",
- *   "password": "1234-abcdefg",
- *   "clientId": "TyUu7wDjlT7q2a+2KxrWBEg",
- *   "topic": "/v1/abcdefgh-ijkl-mnop-qrst-uvwxyz123456/"
- * }
+ * /v2/things/token_id  for publish and subscriptions
+ *
+ * And the content in the following format:
+ * {"values":[{"key":"sht25","value":0xABCD}]}
  */
 #define DEFAULT_CONF_USER_ID          ""
 #define DEFAULT_CONF_AUTH_TOKEN       ""
-#define DEFAULT_CONF_AUTH_USER        DEFAULT_CONF_USER_ID
-#define DEFAULT_TOPIC_STR             "/v1/"
-#define DEFAULT_TOPIC_LONG            DEFAULT_TOPIC_STR DEFAULT_CONF_USER_ID
+#define DEFAULT_CONF_AUTH_USER        ""
+#define DEFAULT_TOPIC_STR             "iot-2/evt/status/fmt/json"
 
-#define DEFAULT_CONF_AUTH_IS_REQUIRED    1
-#define DEFAULT_CONF_USER_ID_IS_REQUIRED 1
+#define DEFAULT_CONF_AUTH_IS_REQUIRED     0
+#define DEFAULT_CONF_USER_ID_IS_REQUIRED  0
 /*---------------------------------------------------------------------------*/
-/* Host "mqtt.relayr.io" with IP 54.171.127.130 */
-#define MQTT_DEMO_CONF_BROKER_IP_ADDR "::ffff:36ab:7f82"
+/* Host "messaging.quickstart.internetofthings.ibmcloud.com" with
+ * IP 184.172.124.189
+ */
+#define MQTT_DEMO_CONF_BROKER_IP_ADDR  "::ffff:b8ac:7cbd"
 
-/* This is pretty harcoded by the v1 API version */
-#define DEFAULT_PUB_STRING            "/data"
-#define DEFAULT_CMD_STRING            "/cmd"
-#define DEFAULT_CFG_STRING            "/config" /* Currently not used as Contiki
-                                                 * allows only 1 subscription
-                                                 * maximum */
 #define CMD_LED                       LEDS_RED
 /*---------------------------------------------------------------------------*/
-/* Specific SUB command topics */
-#define DEFAULT_SUBSCRIBE_CMD         DEFAULT_TOPIC_LONG DEFAULT_CMD_STRING
-
-#define DEFAULT_SUBSCRIBE_CMD_LEDS    "leds_toggle"
-#define DEFAULT_SUBSCRIBE_CMD_REBOOT  "reboot"
-#define DEFAULT_SUBSCRIBE_CMD_SENSOR  "enable_sensor"
-
-/* Specific SUB config topics (piggy-backed into CMD as Contiki only suports
- * one subscription at the time
- */
-#define DEFAULT_SUBSCRIBE_CFG         DEFAULT_TOPIC_LONG DEFAULT_CFG_STRING
-#define DEFAULT_SUBSCRIBE_CMD_EVENT   "update_period"
-
 /* Specific PUB event topics */
-#define DEFAULT_PUBLISH_EVENT         DEFAULT_TOPIC_LONG DEFAULT_PUB_STRING
+#define DEFAULT_PUBLISH_EVENT         DEFAULT_TOPIC_STR
 
 #define DEFAULT_PUBLISH_EVENT_ID      "ID"
 #define DEFAULT_PUBLISH_EVENT_RSSI    "rssi"
@@ -87,16 +66,14 @@
 #define DEFAULT_PUBLISH_EVENT_PARENT  "parent"
 
 /* Define the maximum lenght of the topics and tokens
- * The user ID string is normally 36 bytes long, the "/v1/" adds 4 bytes more
+ * The user ID string is normally 43 bytes long, the "/v2/things" adds 10 bytes more
  */
-#define CONFIG_TOPIC_LEN              40
-#define CONFIG_PUB_TOPIC_LEN          45
-#define CONFIG_SUB_CMD_TOPIC_LEN      44
-#define CONFIG_SUB_CFG_TOPIC_LEN      47
+#define CONFIG_TOPIC_LEN              53
+#define CONFIG_PUB_TOPIC_LEN          58
 #define DEFAULT_CONF_IP_ADDR_STR_LEN  64
-#define DEFAULT_CONF_AUTH_USER_LEN    37
-#define DEFAULT_CONF_AUTH_TOKEN_LEN   13
+#define DEFAULT_CONF_AUTH_USER_LEN    1
+#define DEFAULT_CONF_AUTH_TOKEN_LEN   1
 /*---------------------------------------------------------------------------*/
-#endif /* RELAYR_H_ */
+#endif /* BLUEMIX_H_ */
 /** @} */
 

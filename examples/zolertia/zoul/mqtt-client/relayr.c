@@ -467,19 +467,25 @@ init_platform(void)
   def_rt_rssi = 0x8000000;
   uip_icmp6_echo_reply_callback_add(&echo_reply_notification,
                                     echo_reply_handler);
+
+  snprintf(&conf.client_id, DEFAULT_IP_ADDR_STR_LEN, "%02x%02x%02x%02x%02x%02x",
+           linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
+           linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
+           linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(relayr_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  /* Initialize platform-specific */
+  init_platform();
+
   printf("\nRelayr process started\n");
+  printf("  Client ID:    %s\n", conf.client_id);
   printf("  Data topic:   %s\n", DEFAULT_PUBLISH_EVENT);
   printf("  Config topic: %s\n", DEFAULT_SUBSCRIBE_CFG);
   printf("  Cmd topic:    %s\n\n", DEFAULT_SUBSCRIBE_CMD);
-
-  /* Initialize platform-specific */
-  init_platform();
 
   while(1) {
 
