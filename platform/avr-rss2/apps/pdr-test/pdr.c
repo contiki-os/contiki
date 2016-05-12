@@ -71,7 +71,7 @@ static inline int16_t platform_rssi_dBm(uint16_t rssi, uint8_t platform)
         else dBm = -90 + 3 * (rssi-1);
     } else {
         // for cc2420 and cc2520 based platfroms, the radio RSSI value is signed 8 bit integer
-        dBm -= 128;
+        dBm = rssi - 128;
     }
     return dBm;
 }
