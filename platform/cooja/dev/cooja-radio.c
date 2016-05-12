@@ -124,7 +124,7 @@ radio_signal_strength_current(void)
 int
 radio_LQI(void)
 {
-	return simLQI;
+  return simLQI;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -416,5 +416,5 @@ const struct radio_driver cooja_radio_driver =
 };
 /*---------------------------------------------------------------------------*/
 SIM_INTERFACE(radio_interface,
-	      doInterfaceActionsBeforeTick,
-	      doInterfaceActionsAfterTick);
+              doInterfaceActionsBeforeTick,
+              doInterfaceActionsAfterTick);
