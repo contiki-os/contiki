@@ -64,8 +64,37 @@ int simLQI = 105;
 
 static const void *pending_data;
 
-PROCESS(cooja_radio_process, "cooja radio process");
+/* If we are in the polling mode, poll_mode is 1; otherwise 0 */
+static int poll_mode = 0; /* default 0, disabled */
+static int auto_ack = 0; /* AUTO_ACK is not supported; always 0 */
+static int addr_filter = 0; /* ADDRESS_FILTER is not supported; always 0 */
+static int send_on_cca = (COOJA_TRANSMIT_ON_CCA != 0);
 
+PROCESS(cooja_radio_process, "cooja radio process");
+/*---------------------------------------------------------------------------*/
+static void
+set_send_on_cca(uint8_t enable)
+{
+  send_on_cca = enable;
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_frame_filtering(int enable)
+{
+  addr_filter = enable;
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_auto_ack(int enable)
+{
+  auto_ack = enable;
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_poll_mode(int enable)
+{
+  poll_mode = enable;
+}
 /*---------------------------------------------------------------------------*/
 void
 radio_set_channel(int channel)
@@ -150,8 +179,10 @@ radio_read(void *buf, unsigned short bufsize)
 
   memcpy(buf, simInDataBuffer, simInSize);
   simInSize = 0;
-  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, simSignalStrength);
-  packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, simLQI);
+  if(!poll_mode) {
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, simSignalStrength);
+    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, simLQI);
+  }
 
   return tmp;
 }
@@ -196,7 +227,7 @@ radio_send(const void *payload, unsigned short payload_len)
 
   /* Transmit on CCA */
 #if COOJA_TRANSMIT_ON_CCA
-  if(!channel_clear()) {
+  if(send_on_cca && !channel_clear()) {
     return RADIO_TX_COLLISION;
   }
 #endif /* COOJA_TRANSMIT_ON_CCA */
@@ -251,6 +282,9 @@ PROCESS_THREAD(cooja_radio_process, ev, data)
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+    if(poll_mode) {
+      continue;
+    }
 
     packetbuf_clear();
     len = radio_read(packetbuf_dataptr(), PACKETBUF_SIZE);
@@ -273,13 +307,75 @@ init(void)
 static radio_result_t
 get_value(radio_param_t param, radio_value_t *value)
 {
-  return RADIO_RESULT_NOT_SUPPORTED;
+  switch(param) {
+  case RADIO_PARAM_RX_MODE:
+    *value = 0;
+    if(addr_filter) {
+      *value |= RADIO_RX_MODE_ADDRESS_FILTER;
+    }
+    if(auto_ack) {
+      *value |= RADIO_RX_MODE_AUTOACK;
+    }
+    if(poll_mode) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    if(send_on_cca) {
+      *value |= RADIO_TX_MODE_SEND_ON_CCA;
+    }
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_RSSI:
+    *value = simSignalStrength;
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_LINK_QUALITY:
+    *value = simLQI;
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
 set_value(radio_param_t param, radio_value_t value)
 {
-  return RADIO_RESULT_NOT_SUPPORTED;
+  switch(param) {
+  case RADIO_PARAM_RX_MODE:
+    if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
+        RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+
+    /* Only disabling is acceptable for RADIO_RX_MODE_ADDRESS_FILTER */
+    if ((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0) {
+      return RADIO_RESULT_NOT_SUPPORTED;
+    }
+    set_frame_filtering((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0);
+
+    /* Only disabling is acceptable for RADIO_RX_MODE_AUTOACK */
+    if ((value & RADIO_RX_MODE_ADDRESS_FILTER) != 0) {
+      return RADIO_RESULT_NOT_SUPPORTED;
+    }
+    set_auto_ack((value & RADIO_RX_MODE_AUTOACK) != 0);
+
+    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
+    return RADIO_RESULT_OK;
+  case RADIO_PARAM_CHANNEL:
+    if(value < 11 || value > 26) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    radio_set_channel(value);
+    return RADIO_RESULT_OK;
+  default:
+    return RADIO_RESULT_NOT_SUPPORTED;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
@@ -292,6 +388,7 @@ get_object(radio_param_t param, void *dest, size_t size)
     *(rtimer_clock_t *)dest = (rtimer_clock_t)simLastPacketTimestamp;
     return RADIO_RESULT_OK;
   }
+  return RADIO_RESULT_NOT_SUPPORTED;
 }
 /*---------------------------------------------------------------------------*/
 static radio_result_t
