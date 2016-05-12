@@ -304,12 +304,6 @@ init_platform(void)
                  linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
                  linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
                  linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
-
-  printf("xxxxxxxxxxx %s\n", conf.client_id);
-
-  if(len < 0 || len >= DEFAULT_CONF_IP_ADDR_STR_LEN) {
-    printf("Client ID: %d, Buffer %d\n", len, DEFAULT_CONF_IP_ADDR_STR_LEN);
-  }
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(bluemix_process, ev, data)
