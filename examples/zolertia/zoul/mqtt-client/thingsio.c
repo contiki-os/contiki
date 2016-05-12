@@ -236,9 +236,9 @@ publish_event(sensor_values_t *msg)
   len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID, DEVICE_ID, 1, 1);
   remain =- len;
 
-  /* Include the sensor values, if `sensor_name` is NULL discard */
+  /* Include the sensor values, if `sensor_name` is empty */
   for(i=0; i < msg->num; i++) {
-    if(msg->sensor[i].sensor_name != NULL) {
+    if(strlen(msg->sensor[i].sensor_name)) {
       memset(aux, 0, sizeof(aux));
 
       aux_int = msg->sensor[i].value;
@@ -378,10 +378,10 @@ thingsio_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk
       return;
     }
 
-    /* Change a sensor's threshold, skip is `sensor_config` is NULL */
+    /* Change a sensor's threshold, skip is `sensor_config` is empty */
     for(i=0; i<SENSORS_NAME(MQTT_SENSORS, _sensors.num); i++) {
 
-      if((SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config) != NULL) &&
+      if((strlen(SENSORS_NAME(MQTT_SENSORS,_sensors.sensor[i].sensor_config))) &&
         (strncmp((const char *)&chunk[8], SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config),
                       strlen(SENSORS_NAME(MQTT_SENSORS, _sensors.sensor[i].sensor_config))) == 0)) {
 

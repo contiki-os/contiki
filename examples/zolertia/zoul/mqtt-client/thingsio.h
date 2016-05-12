@@ -56,9 +56,12 @@
 
 /* This is pretty harcoded by the v2 API version
  * The v2 API only defines how to create the topic, we suggest using the
- * following substrings
+ * following substrings.  Note: to automatically visualize the reading values
+ * on the dashboard, do not publish to another topic than v2/things/{token},
+ * however if you want to publish to i.e v2/things/{topic}/data the readings
+ * will be received by the broker as expected
  */
-#define DEFAULT_PUB_STRING            "/data"
+#define DEFAULT_PUB_STRING            ""
 #define DEFAULT_CMD_STRING            "/cmd"
 #define DEFAULT_CFG_STRING            "/config"
 #define CMD_LED                       LEDS_RED

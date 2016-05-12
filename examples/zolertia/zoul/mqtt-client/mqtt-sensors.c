@@ -45,6 +45,17 @@
 #define PRINTF(...)
 #endif
 /*---------------------------------------------------------------------------*/
+static void
+mqtt_sensor_strings(char *dest, char *topic)
+{
+  if(topic != NULL) {
+    memcpy(dest, topic, strlen(topic));
+  } else {
+    /* Zero-length string */
+    dest[0] = '\0';
+  }
+}
+/*---------------------------------------------------------------------------*/
 /* Auxiliary function to fill the sensor_values_t structure */
 int
 mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val, char *name,
@@ -63,13 +74,10 @@ mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val, char *name,
   reg->sensor[i].min = min;
   reg->sensor[i].max = max;
   reg->sensor[i].pres = pres;
-  
-  memcpy(reg->sensor[i].sensor_name, name, strlen(name));
-  memcpy(reg->sensor[i].alarm_name, alarm, strlen(alarm));
-  memcpy(reg->sensor[i].sensor_config, config, strlen(config));
 
-  PRINTF("MQTT sensors: %s value pres %d\n", reg->sensor[i].sensor_name, 
-         reg->sensor[i].pres);
+  mqtt_sensor_strings(reg->sensor[i].sensor_name, name);
+  mqtt_sensor_strings(reg->sensor[i].alarm_name, alarm);
+  mqtt_sensor_strings(reg->sensor[i].sensor_config, config);
   
   return 0;
 }
@@ -103,7 +111,7 @@ mqtt_sensor_check(sensor_values_t *reg, process_event_t alarm,
      */
     if(((reg->sensor[i].value < reg->sensor[i].below_threshold) ||
       (reg->sensor[i].value > reg->sensor[i].over_threshold)) &&
-      (reg->sensor[i].alarm_name != NULL)) {
+      (strlen(reg->sensor[i].alarm_name))) {
       PRINTF("MQTT sensors: %s! (over %d, below %d)\n", reg->sensor[i].alarm_name,
                                                         reg->sensor[i].over_threshold,
                                                         reg->sensor[i].below_threshold);
