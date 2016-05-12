@@ -45,8 +45,8 @@
  *   "topic": "/v1/abcdefgh-ijkl-mnop-qrst-uvwxyz123456/"
  * }
  */
-#define DEFAULT_CONF_USER_ID          ""
-#define DEFAULT_CONF_AUTH_TOKEN       ""
+#define DEFAULT_CONF_USER_ID          "be36a572-1b16-42f1-bacf-d7e1468bf3e6"
+#define DEFAULT_CONF_AUTH_TOKEN       "AFtj8D3zUdq5"
 #define DEFAULT_CONF_AUTH_USER        DEFAULT_CONF_USER_ID
 #define DEFAULT_TOPIC_STR             "/v1/"
 #define DEFAULT_TOPIC_LONG            DEFAULT_TOPIC_STR DEFAULT_CONF_USER_ID

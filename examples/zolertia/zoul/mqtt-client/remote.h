@@ -56,7 +56,7 @@ extern sensor_values_t remote_sensors;
 
 /* Minimum and maximum values for the sensors */
 #define DEFAULT_CC2538_TEMP_MIN       0
-#define DEFAULT_CC2538_TEMP_MAX       0xFFFF
+#define DEFAULT_CC2538_TEMP_MAX       32666
 #define DEFAULT_CC2538_BATT_MIN       0
 #define DEFAULT_CC2538_BATT_MAX       5000
 #define DEFAULT_CC2538_ADC1_MIN       0
@@ -64,7 +64,7 @@ extern sensor_values_t remote_sensors;
 #define DEFAULT_CC2538_ADC3_MIN       0
 #define DEFAULT_CC2538_ADC3_MAX       5000
 #define DEFAULT_CC2538_BUTN_MIN       0
-#define DEFAULT_CC2538_BUTN_MAX       0xFFFF
+#define DEFAULT_CC2538_BUTN_MAX       32666
 
 /* Default sensor state and thresholds (not checking for alarms) */
 #define DEFAULT_TEMP_THRESH           DEFAULT_CC2538_TEMP_MAX

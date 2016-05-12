@@ -48,8 +48,8 @@
 /* Auxiliary function to fill the sensor_values_t structure */
 int
 mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val, char *name,
-                     char *alarm, char *config, uint16_t min, uint16_t max,
-                     uint16_t thresh, uint16_t thresl, uint16_t pres)
+                     char *alarm, char *config, int16_t min, int16_t max,
+                     int16_t thresh, int16_t thresl, uint16_t pres)
 {
   if((strlen(name) > SENSOR_NAME_STRING) || (strlen(alarm) > SENSOR_NAME_STRING)
      || (strlen(config) > SENSOR_NAME_STRING)) {
@@ -63,10 +63,14 @@ mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val, char *name,
   reg->sensor[i].min = min;
   reg->sensor[i].max = max;
   reg->sensor[i].pres = pres;
+  
   memcpy(reg->sensor[i].sensor_name, name, strlen(name));
   memcpy(reg->sensor[i].alarm_name, alarm, strlen(alarm));
   memcpy(reg->sensor[i].sensor_config, config, strlen(config));
 
+  PRINTF("MQTT sensors: %s value pres %d\n", reg->sensor[i].sensor_name, 
+         reg->sensor[i].pres);
+  
   return 0;
 }
 /*---------------------------------------------------------------------------*/

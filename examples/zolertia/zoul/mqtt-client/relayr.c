@@ -243,7 +243,7 @@ publish_event(sensor_values_t *msg)
 
       aux_int = msg->sensor[i].value;
       aux_res = msg->sensor[i].value;
-
+      
       if(msg->sensor[i].pres > 0) {
         aux_int /= msg->sensor[i].pres;
         aux_res %= msg->sensor[i].pres;

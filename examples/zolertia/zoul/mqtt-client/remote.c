@@ -42,7 +42,7 @@
 #include <strings.h>
 #include <stdlib.h>
 /*---------------------------------------------------------------------------*/
-#define BUTTON_PRESS_EVENT_INTERVAL (CLOCK_SECOND)
+//#define BUTTON_PRESS_EVENT_INTERVAL (CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
 #define DEBUG 1
 #if DEBUG
@@ -115,8 +115,8 @@ PROCESS_THREAD(remote_sensors_process, ev, data)
                        DEFAULT_ADC3_THRESL, 1000);
 
   mqtt_sensor_register(&remote_sensors, REMOTE_SENSOR_BUTN,
-                       DEFAULT_CC2538_BUTN_MIN, NULL, DEFAULT_PUBLISH_ALARM_BUTN,
-                       NULL, DEFAULT_CC2538_BUTN_MIN,
+                       DEFAULT_CC2538_BUTN_MIN, DEFAULT_PUBLISH_ALARM_BUTN,
+                       NULL, NULL, DEFAULT_CC2538_BUTN_MIN,
                        DEFAULT_CC2538_BUTN_MAX, DEFAULT_BUTN_THRESH,
                        DEFAULT_BUTN_THRESL, 0);
 
@@ -131,8 +131,8 @@ PROCESS_THREAD(remote_sensors_process, ev, data)
   remote_sensors_alarm_event = process_alloc_event();
 
   /* Configure the user button */
-  button_sensor.configure(BUTTON_SENSOR_CONFIG_TYPE_INTERVAL,
-                          BUTTON_PRESS_EVENT_INTERVAL);
+  //button_sensor.configure(BUTTON_SENSOR_CONFIG_TYPE_INTERVAL,
+  //                        BUTTON_PRESS_EVENT_INTERVAL);
 
   /* Start the periodic process */
   etimer_set(&et, DEFAULT_SAMPLING_INTERVAL);
@@ -157,12 +157,6 @@ PROCESS_THREAD(remote_sensors_process, ev, data)
         }
       }
 
-    } else if(ev == button_press_duration_exceeded) {
-      PRINTF("RE-Mote: Button pressed for %d ticks [%u events]\n",
-             (*((uint8_t *)data) * BUTTON_PRESS_EVENT_INTERVAL),
-             button_sensor.value(BUTTON_SENSOR_VALUE_TYPE_PRESS_DURATION));
-      remote_sensors.sensor[REMOTE_SENSOR_BUTN].value++;
-      poll_sensors();
     }
   }
 

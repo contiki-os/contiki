@@ -40,7 +40,7 @@ typedef struct sensor_val {
   int16_t below_threshold;                  /* Threshold (below) */
   int16_t min;                              /* Minimum allowed value */
   int16_t max;                              /* Maximum allowed value */
-  uint8_t pres;                             /* Number of precision digits */
+  uint16_t pres;                             /* Number of precision digits */
   char sensor_name[SENSOR_NAME_STRING];     /* Sensor name (string) */
   char alarm_name[SENSOR_NAME_STRING];      /* Alarm name (string) */
   char sensor_config[SENSOR_NAME_STRING];   /* Configuration name (string) */
@@ -68,8 +68,8 @@ typedef struct command_values {
 /*---------------------------------------------------------------------------*/
 /* Auxiliary function to fill the sensor_values_t structure */
 int mqtt_sensor_register(sensor_values_t *reg, uint8_t i, uint16_t val,
-                         char *name, char *alarm, char *config, uint16_t min,
-                         uint16_t max, uint16_t thres, uint16_t thresl,
+                         char *name, char *alarm, char *config, int16_t min,
+                         int16_t max, int16_t thres, int16_t thresl,
                          uint16_t pres);
 
 /* Auxiliary function to check the sensor values and send alarms or publish
