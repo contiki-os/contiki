@@ -176,10 +176,10 @@ send_one_packet(mac_callback_t sent, void *ptr)
               watchdog_periodic();
               while(RTIMER_CLOCK_LT(RTIMER_NOW(),
                                     wt + AFTER_ACK_DETECTED_WAIT_TIME)) {
-      #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
-                  simProcessRunValue = 1;
-                  cooja_mt_yield();
-      #endif /* CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64 */
+#if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
+                simProcessRunValue = 1;
+                cooja_mt_yield();
+#endif /* CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64 */
               }
             }
 
@@ -195,8 +195,8 @@ send_one_packet(mac_callback_t sent, void *ptr)
               }
             }
           } else {
-	    PRINTF("nullrdc tx noack\n");
-	  }
+            PRINTF("nullrdc tx noack\n");
+          }
         }
         break;
       case RADIO_TX_COLLISION:
@@ -303,7 +303,7 @@ packet_input(void)
     }
 #endif /* RDC_WITH_DUPLICATE_DETECTION */
 #endif /* NULLRDC_802154_AUTOACK */
- 
+
 #if NULLRDC_SEND_802154_ACK
     {
       frame802154_t info154;
