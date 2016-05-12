@@ -62,6 +62,7 @@ uint8_t eof = END_OF_FILE;
 //
 static inline int16_t platformFixRssi(uint16_t rssi)
 {
+
     // for cc2420 and cc2520 based platfroms, the radio RSSI value is signed 8 bit integer
     rssi -= 128;
     return (int16_t) rssi;
