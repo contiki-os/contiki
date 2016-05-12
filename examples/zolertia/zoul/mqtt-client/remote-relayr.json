@@ -73,8 +73,8 @@
                             "meaning": "battery",
                             "valueSchema": {
                                 "type": "number",
-                                "unit": "mV",
-                                "maximum": 5000,
+                                "unit": "V",
+                                "maximum": 5,
                                 "minimum": 0
                             }
                         },
@@ -84,7 +84,7 @@
                             "valueSchema": {
                                 "type": "number",
                                 "unit": "Celsius",
-                                "maximum": 100,
+                                "maximum": 85,
                                 "minimum": 0
                             }
                         },
@@ -100,7 +100,8 @@
                             "meaning": "button_pres",
                             "valueSchema": {
                                 "type": "number",
-                                "maximum": 65535
+                                "maximum": 32000,
+                                "minimum": 1
                             }
                         },
                         {
@@ -108,8 +109,8 @@
                             "meaning": "ADC1",
                             "valueSchema": {
                                 "type": "number",
-                                "unit": "mV",
-                                "maximum": 5000
+                                "unit": "V",
+                                "maximum": 5
                             }
                         },
                         {
@@ -117,8 +118,8 @@
                             "meaning": "ADC3",
                             "valueSchema": {
                                 "type": "number",
-                                "unit": "mV",
-                                "maximum": 5000
+                                "unit": "V",
+                                "maximum": 5
                             }
                         }
                     ],
@@ -132,4 +133,3 @@
         }
     }
 }
-
