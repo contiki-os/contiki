@@ -2,7 +2,7 @@
 #ifndef PDR_H
 #define PDR_H
 
-#define VERSION  "2.1-2016-05-11\n"
+#define VERSION  "2.2-2016-05-12\n"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -60,6 +60,8 @@
 #define RADIO_POWER_MINUS7_DB  15
 #define RADIO_POWER_MINUS15_DB 7
 
+char *tx_power_list[] = { "MAX", "0", "-7", "-15", "MIN"}; /* dBm */ //FIME
+
 #if CONTIKI_TARGET_Z1
 #define PLATFORM_TEMP_SENSOR_HEADER "dev/tmp102.h"
 #define temp_sensor temperature_sensor // FIXME!
@@ -90,6 +92,8 @@
 #define RADIO_POWER_MINUS7_DB  0x2C
 #define RADIO_POWER_MINUS15_DB 0x03 // actually -18 dBm
 
+char *tx_power_list[] = { "MAX", "0", "-7", "-15", "MIN"}; /* dBm */ //FIME
+
 #elif CONTIKI_TARGET_AVR_RSS2
 
 // To compile:
@@ -114,6 +118,15 @@
 #define RADIO_POWER_ZERO_DB    6   // actually 0.5 dBm
 #define RADIO_POWER_MINUS7_DB  12  // actually -6.5 dBm
 #define RADIO_POWER_MINUS15_DB TX_PWR_17_2DBM  // actually -17.5 dBm
+
+char *tx_power_list[] = { "3", "0", "-7", "-17", "-17"}; /* dBm */
+
+/*
+ Convert From RSSI to dBm.  See page 70: 
+ http://www.atmel.com/Images/Atmel-8266-MCU_Wireless-ATmega128RFA1_Datasheet.pdf
+
+ P[RF] = RSSI_BASE_VAL + 3 • (RSSI - 1) [dBm] 
+*/
 
 #define PLATFORM_TEMP_SENSOR_HEADER "dev/temp-sensor.h"
 
@@ -254,8 +267,6 @@ char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u
 #define TX_POWER_MINUS7_DB  2
 #define TX_POWER_MINUS15_DB 3
 #define TX_POWER_MIN        4
-
-char *tx_power_list[] = { "MAXdBm", "0dBm", "-7dBm", "-15dBm", "MINdBm"};
 
 #define COMMAND_TX_FINISHED   "send done"
 #define COMMAND_STAT_FINISHED   "end of statistics"
