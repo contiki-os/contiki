@@ -59,12 +59,18 @@ uint8_t eof = END_OF_FILE;
 //
 // To simplify the code, all internal RSSI calculations are done using non-negative numbers.
 // This function maps the resulting value back to the CC2x20-specific valye range.
+// return value in [dBm]
 //
-static inline int16_t platformFixRssi(uint16_t rssi)
+static inline int16_t platformRssi_dBm(uint16_t rssi)
 {
-
+#if CONTIKI_TARGET_AVR_RSS2
+    // ATmega128RFA1 Datasheet, page 70
+    if (rssi == 0) rssi = 90;
+    else rssi = 90 - 3 * (rssi-1);
+#else
     // for cc2420 and cc2520 based platfroms, the radio RSSI value is signed 8 bit integer
     rssi -= 128;
+#endif
     return (int16_t) rssi;
 }
 
@@ -125,7 +131,7 @@ void printStats(struct stats_info *s)
         rssi = 0;
         lqi = 0;
     } else {
-        rssi = platformFixRssi(s->rssiSum / s->fine);
+        rssi = platformRssi_dBm(s->rssiSum / s->fine);
         lqi = 255 - s->lqiSumDiff / s->fine;
     }
     
