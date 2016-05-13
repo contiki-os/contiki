@@ -43,7 +43,7 @@ uint8_t platform_id;
 struct rtimer rt;
 static struct etimer periodic;
 
-struct stats_info stats[(TX_POWER_MIN+1)*NODES_IN_TEST];
+struct stats_info stats[2*NODES_IN_TEST];
 int8_t currentStatsIdx;
 
 // needed to link fastrandom.h
@@ -83,6 +83,7 @@ static inline int16_t platform_rssi_dBm(uint16_t rssi, uint8_t platform)
 
 extern int vsnprintf(char *str, size_t size, const char *format, va_list ap);
 
+#if TRACK_ERRORS
 static void printfCrc(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 static void printfCrc(const char *format, ...)
 {
@@ -103,6 +104,7 @@ static void printfCrc(const char *format, ...)
     putchar(to_hex(crc & 0xf));
     putchar('\n');
 }
+#endif
 
 void clearStats(void)
 {
@@ -201,9 +203,6 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             return;
             
         case STATE_TX:
-            if (verbose && h->packetNumber == 0) {
-                puts("starting tx...");
-            }
             sendPacketNumber++;
             h->sender = node_id;
             h->channel = radio_get_channel();
