@@ -58,8 +58,10 @@
 #define PRINTF_SOIL(...)
 #endif
 /*---------------------------------------------------------------------------*/
+/*
 #define SOIL_HUM_SENSOR_PORT_BASE   GPIO_PORT_TO_BASE(SOIL_HUM_SENSOR_CTRL_PORT)
 #define SOIL_HUM_SENSOR_PIN_MASK    GPIO_PIN_MASK(SOIL_HUM_SENSOR_CTRL_PIN)
+*/
 /*---------------------------------------------------------------------------*/
 static int soil_hum_channel;
 /*---------------------------------------------------------------------------*/
@@ -78,7 +80,8 @@ configure(int type, int value)
     GPIO_SET_OUTPUT(SOIL_HUM_SENSOR_PORT_BASE, SOIL_HUM_SENSOR_PIN_MASK);
     GPIO_CLR_PIN(SOIL_HUM_SENSOR_PORT_BASE, SOIL_HUM_SENSOR_PIN_MASK);
     */
-    soil_hum_channel = (1 << value);
+    
+    soil_hum_channel = (1 << SOIL_HUM_ADC_PIN);
     return adc_zoul.configure(SENSORS_HW_INIT, soil_hum_channel);
   }
 
@@ -89,7 +92,7 @@ configure(int type, int value)
 static int
 value(int type)
 {
-  uint32_t val;
+  int32_t val;
 
   if(!soil_hum_channel) {
     return SOIL_HUM_ERROR;
@@ -100,18 +103,26 @@ value(int type)
   /* Pulse wave delay */
   /*clock_delay_usec(SOIL_HUM_SENSOR_PULSE_DELAY);*/
   /* Data acquisition */  
-  val = (uint32_t)adc_zoul.value(soil_hum_channel); 
-  PRINTF_SOIL("SOIL_HUM sensor: %u\n", val);
+  
+  val = (int32_t)adc_zoul.value(soil_hum_channel); 
+  PRINTF_SOIL("SOIL_HUM sensor: %d\n", val);
+  
+  val *= 100;
+  val /= HUM_MAX_VALUE;
+  
+  if(val > 100) {
+    val = 100;
+  }
   
   if(val == ZOUL_SENSORS_ERROR) {
     PRINTF_SOIL("SOIL_HUM sensor: failed retrieving data\n");
     return SOIL_HUM_ERROR;
   }
-
+ 
   /* Clear pulse wave pin */
-  GPIO_CLR_PIN(SOIL_HUM_SENSOR_PORT_BASE, SOIL_HUM_SENSOR_PIN_MASK);
+  /*GPIO_CLR_PIN(SOIL_HUM_SENSOR_PORT_BASE, SOIL_HUM_SENSOR_PIN_MASK);*/
   
-  return (uint16_t)val;
+  return (int16_t)val;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(soil_hum, SOIL_HUM_SENSOR, value, configure, NULL);

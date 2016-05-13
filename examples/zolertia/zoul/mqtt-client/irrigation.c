@@ -32,6 +32,8 @@
 /*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "sys/etimer.h"
+#include "dev/soil-humidity.h"
+#include "dev/grove-relay.h"
 #include "irrigation.h"
 
 #include <stdio.h>
@@ -53,19 +55,26 @@ command_values_t irrigation_commands;
 process_event_t irrigation_sensors_data_event;
 process_event_t irrigation_sensors_alarm_event;
 /*---------------------------------------------------------------------------*/
+uint8_t electrovalve_status = 0;
+/*---------------------------------------------------------------------------*/
 PROCESS(irrigation_sensors_process, "Irrigation sensor process");
 /*---------------------------------------------------------------------------*/
 static int
 activate_electrovalve(int arg)
 {
-  PRINTF("Irrigation: electrovalve open\n");
+  if (electrovalve_status == 0) {
+    PRINTF("Irrigation: electrovalve open\n");
+    electrovalve_status = 1;
+  }
+  
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static void
 poll_sensors(void)
 {
-  irrigation_sensors.sensor[IRRIGATION_SENSOR_SOIL].value = DEFAULT_SOIL_MOIST_MAX;
+  /*irrigation_sensors.sensor[IRRIGATION_SENSOR_SOIL].value = DEFAULT_SOIL_MOIST_MAX;*/
+  irrigation_sensors.sensor[IRRIGATION_SENSOR_SOIL].value = soil_hum.value(1);
 
   mqtt_sensor_check(&irrigation_sensors, irrigation_sensors_alarm_event,
                     irrigation_sensors_data_event);
@@ -74,6 +83,7 @@ poll_sensors(void)
 PROCESS_THREAD(irrigation_sensors_process, ev, data)
 {
   static struct etimer et;
+  static struct etimer elect;
 
   /* This is where our process start */
   PROCESS_BEGIN();
@@ -85,7 +95,7 @@ PROCESS_THREAD(irrigation_sensors_process, ev, data)
                        DEFAULT_SOIL_MOIST_MAX, DEFAULT_PUBLISH_EVENT_SOIL,
                        DEFAULT_PUBLISH_ALARM_SOIL, DEFAULT_SUBSCRIBE_CFG_SOILTHR,
                        DEFAULT_SOIL_MOIST_MIN, DEFAULT_SOIL_MOIST_MAX,
-                       DEFAULT_SOIL_THRESH, DEFAULT_SOIL_THRESL, 10);
+                       DEFAULT_SOIL_THRESH, DEFAULT_SOIL_THRESL, 0);
 
   /* Sanity check */
   if(irrigation_sensors.num != DEFAULT_SENSORS_NUM) {
@@ -112,10 +122,29 @@ PROCESS_THREAD(irrigation_sensors_process, ev, data)
   /* Start the periodic process */
   etimer_set(&et, DEFAULT_SAMPLING_INTERVAL);
 
+  /* Configure ADC channel for soil moisture measurements */
+  SENSORS_ACTIVATE(soil_hum);
+  /* Configure GPIO for Relay activation */
+  grove_relay_configure();
+  
   while(1) {
 
     PROCESS_YIELD();
 
+    if(electrovalve_status == 1) {
+      if((grove_relay_set(GROVE_RELAY_ON)) == GROVE_RELAY_ERROR) {
+        PRINTF("Grove Relay ERROR set\n"); 
+      }
+    
+      etimer_set(&elect, ELECTROVALVE_ON_INTERVAL);
+      if(ev == PROCESS_EVENT_TIMER && data == &elect) {
+        if((grove_relay_set(GROVE_RELAY_OFF)) == GROVE_RELAY_ERROR) {
+          printf("Grove Relay ERROR set\n"); 
+        }
+        electrovalve_status = 0;
+      }
+    }
+    
     if(ev == PROCESS_EVENT_TIMER && data == &et) {
       poll_sensors();
       etimer_reset(&et);

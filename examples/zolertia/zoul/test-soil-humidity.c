@@ -48,12 +48,9 @@
 #include "contiki.h"
 #include "dev/leds.h"
 #include "dev/adc-sensors.h"
-#include "dev/zoul-sensors.h"
-#include "lib/sensors.h"
 #include "dev/sys-ctrl.h"
 #include "dev/soil-humidity.h"
 /*---------------------------------------------------------------------------*/
-#define ADC_PIN              1
 #define SENSOR_READ_INTERVAL (CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
 PROCESS(test_soil_hum_sensor_process, "Test Soil Humidity sensor process");
@@ -65,10 +62,10 @@ PROCESS_THREAD(test_soil_hum_sensor_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  static uint16_t soil_hum_value;
-
-  /* Use pin number not mask, for example if using the PA5 pin then use 2 */
-  soil_hum.configure(SENSORS_ACTIVE, ADC_PIN);
+  static int16_t soil_hum_value;
+  
+  /* Use Contiki's sensor macro to enable the sensor */
+  SENSORS_ACTIVATE(soil_hum);
 
   /* And periodically poll the sensor */
 
@@ -80,7 +77,7 @@ PROCESS_THREAD(test_soil_hum_sensor_process, ev, data)
     soil_hum_value = soil_hum.value(1);
 
     if(soil_hum_value != ADC_WRAPPER_ERROR) {
-      printf("Soil Humidity value = %u \n", soil_hum_value);
+      printf("Soil Humidity value = %d \n", soil_hum_value);
     } else {
       printf("Error, enable the DEBUG flag in adc-wrapper.c for info\n");
       PROCESS_EXIT();

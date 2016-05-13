@@ -58,16 +58,18 @@ extern command_values_t irrigation_commands;
 
 /* Minimum and maximum values for the sensor */
 #define DEFAULT_SOIL_MOIST_MIN        0
-#define DEFAULT_SOIL_MOIST_MAX        1000
+#define DEFAULT_SOIL_MOIST_MAX        100
 
 /* Default sensor state and thresholds
  * We only care to check for the soil moisture value below a level
  */
 #define DEFAULT_SOIL_THRESH           DEFAULT_SOIL_MOIST_MAX
-#define DEFAULT_SOIL_THRESL           300
+#define DEFAULT_SOIL_THRESL           30
 
 /* Command string: open an electrovalve for a given period */
 #define DEFAULT_COMMAND_EVENT_VALVE   "electrovalve"
+
+#define ELECTROVALVE_ON_INTERVAL      ((CLOCK_SECOND)/2)
 /*---------------------------------------------------------------------------*/
 #endif /* IRRIGATION_H_ */
 /** @} */

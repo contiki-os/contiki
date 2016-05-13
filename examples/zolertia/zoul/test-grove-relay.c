@@ -50,7 +50,6 @@
 #include "dev/sys-ctrl.h"
 #include "dev/grove-relay.h"
 /*---------------------------------------------------------------------------*/
-#define ADC_PIN              2
 #define RELAY_ACTION_INTERVAL (CLOCK_SECOND*5)
 #define RELAY_ON_INTERVAL (CLOCK_SECOND)
 /*---------------------------------------------------------------------------*/
