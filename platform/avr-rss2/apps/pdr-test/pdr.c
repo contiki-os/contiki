@@ -475,6 +475,7 @@ static int cmd_txp(uint8_t verbose)
             set_txpower(TX_POWER_MIN);
         }
         else if(!strcmp(p, "sweep")) {
+            // TODO: increase the stats memory (use with care)
             set_txpower(TX_POWER_MIN);
             txpower_sweep = true;
         }
