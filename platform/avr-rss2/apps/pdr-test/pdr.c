@@ -43,7 +43,7 @@ uint8_t platform_id;
 struct rtimer rt;
 static struct etimer periodic;
 
-struct stats_info stats[2*NODES_IN_TEST];
+struct stats_info stats[NODES_IN_TEST];
 int8_t currentStatsIdx;
 
 // needed to link fastrandom.h
@@ -55,7 +55,7 @@ const char *delim = " \t\r,";
 #define END_OF_FILE 26
 uint8_t eof = END_OF_FILE;
 
-static int set_txpower(uint8_t p);
+int set_txpower(uint8_t p);
 
 // -------------------------------------------------------------
 
@@ -449,6 +449,7 @@ static int set_txpower(uint8_t p)
         printf("Invalid power\n");;
         return 0;
     }
+    return txpower;
 }
 
 static int cmd_txp(uint8_t verbose)
