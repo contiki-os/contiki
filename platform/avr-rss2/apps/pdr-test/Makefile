@@ -5,6 +5,10 @@ CONTIKI_PROJECT = pdr
 
 CONTIKI_TARGET_SOURCEFILES += sampling_process.c
 
+ifeq ($(TARGET),sky)
+CONTIKI_TARGET_SOURCEFILES +=  temperature-sensor.c
+endif
+
 all: $(CONTIKI_PROJECT)
 
 # use RIME, not IP
