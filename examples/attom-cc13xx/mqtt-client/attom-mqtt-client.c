@@ -15,7 +15,7 @@ AUTOSTART_PROCESSES(&mqtt_process, &mqtt_pub_process);
 /*-----------------------------------------------------------------------------------*/
 #define ATTO_HARDWARE_ID                     999999
 #define ATTO_LOGVIEW_URL                     "your.mqtt.broker.host"
-#define ATTO_API_VERSION                     1 
+#define ATTO_API_VERSION                     1
 #define MQTT_PERIODIC_PUB_TIME               (CLOCK_SECOND * 15)
 #define MQTT_CLIENT_CONN_KEEP_ALIVE          (CLOCK_SECOND * 40)
 #define MQTT_CLIENT_CONN_RECONNECT           (CLOCK_SECOND * 20)
@@ -34,15 +34,15 @@ static struct mqtt_connection conn;
 static struct ctimer publish_msg_timer;
 static struct ctimer publish_counter_timer;
 static struct ctimer mqtt_conn_timer;
-static char broker_ip[MAX_APPLICATION_BUFFER_SIZE] = {0};
-static char pub_temp_topic[MAX_APPLICATION_BUFFER_SIZE] = {0};
-static char pub_error_topic[MAX_APPLICATION_BUFFER_SIZE] = {0};
-static char pub_self_topic[MAX_APPLICATION_BUFFER_SIZE] = {0};
-static char mqtt_username[MIN_APPLICATION_BUFFER_SIZE] = {0};
-static char mqtt_password[MIN_APPLICATION_BUFFER_SIZE] = {0};
+static char broker_ip[MAX_APPLICATION_BUFFER_SIZE] = { 0 };
+static char pub_temp_topic[MAX_APPLICATION_BUFFER_SIZE] = { 0 };
+static char pub_error_topic[MAX_APPLICATION_BUFFER_SIZE] = { 0 };
+static char pub_self_topic[MAX_APPLICATION_BUFFER_SIZE] = { 0 };
+static char mqtt_username[MIN_APPLICATION_BUFFER_SIZE] = { 0 };
+static char mqtt_password[MIN_APPLICATION_BUFFER_SIZE] = { 0 };
 /*---------------------------------------------------------------------------*/
 static unsigned int
-create_mqtt_topic(char * out, const char* resource)
+create_mqtt_topic(char *out, const char *resource)
 {
   unsigned int len = sprintf(out, "v%d/%d/%s", ATTO_API_VERSION, ATTO_HARDWARE_ID, resource);
   printf("APP - create topic [%s] with len[%d]\r\n", out, len);
@@ -100,7 +100,7 @@ parse_url(const char *url, char *host, uint16_t *portptr, char *path)
          *urlptr == ':') {
         if(host != NULL) {
           host[i] = 0;
-      }
+        }
         break;
       }
       if(host != NULL) {
@@ -117,10 +117,10 @@ parse_url(const char *url, char *host, uint16_t *portptr, char *path)
     do {
       ++urlptr;
       if(*urlptr >= '0' && *urlptr <= '9') {
-	port = (10 * port) + (*urlptr - '0');
+        port = (10 * port) + (*urlptr - '0');
       }
     } while(*urlptr >= '0' &&
-	    *urlptr <= '9');
+            *urlptr <= '9');
   }
   if(portptr != NULL) {
     *portptr = port;
@@ -146,40 +146,43 @@ get_temperature_reading()
   return batmon_sensor.value(BATMON_SENSOR_TYPE_TEMP);
 }
 /*---------------------------------------------------------------------------*/
-static void publish_message(char * topic, mqtt_qos_level_t qos, uint8_t * data, size_t size)
+static void
+publish_message(char *topic, mqtt_qos_level_t qos, uint8_t *data, size_t size)
 {
   if(mqtt_ready(&conn)) {
     uint16_t mid = 0;
     mqtt_status_t status = mqtt_publish(&conn, &mid, topic, data, size, qos, MQTT_RETAIN_OFF);
-    if (status != MQTT_STATUS_OK) {
+    if(status != MQTT_STATUS_OK) {
       printf("APP - Error[%d] on publish\r\n", status);
     }
   }
 }
 /*---------------------------------------------------------------------------*/
 static int counter = 0;
-static void publish_counter_message()
+static void
+publish_counter_message()
 {
   mqtt_qos_level_t qos = 0;
   counter = (counter + 1) % MAX_MSG_COUNTER;
-  uint8_t counterStr[10] = {0};
-  char* counterPtr = (char*) counterStr;
+  uint8_t counterStr[10] = { 0 };
+  char *counterPtr = (char *)counterStr;
   size_t counterStrSize = snprintf(counterPtr, 10, "%d", counter);
   publish_message(pub_self_topic, qos, counterStr, counterStrSize);
   printf("APP - Reprogramming the next counter message\r\n");
   ctimer_reset(&publish_counter_timer);
 }
 /*---------------------------------------------------------------------------*/
-static void publish_periodic_message()
+static void
+publish_periodic_message()
 {
-  char* topic;
+  char *topic;
   uint8_t data[MAX_APPLICATION_BUFFER_SIZE];
   int data_size;
   mqtt_qos_level_t qos = 0;
-  char* str_data = (char*) data;
+  char *str_data = (char *)data;
 
   int temp_value = get_temperature_reading();
-  if (temp_value == CC26XX_SENSOR_READING_ERROR) {
+  if(temp_value == CC26XX_SENSOR_READING_ERROR) {
     printf("APP - msg error");
     data_size = snprintf(str_data, MAX_APPLICATION_BUFFER_SIZE, "Sensor reading error");
     topic = pub_error_topic;
@@ -196,11 +199,12 @@ static void publish_periodic_message()
   ctimer_reset(&publish_msg_timer);
 }
 /*-----------------------------------------------------------------------------------*/
-static void mqtt_start_connection()
+static void
+mqtt_start_connection()
 {
   printf("APP - Trying MQTT connection with broker ip[%s] port[%d]\r\n", broker_ip, broker_port);
   mqtt_status_t status = mqtt_connect(&conn, broker_ip, broker_port, MQTT_CLIENT_CONN_KEEP_ALIVE);
-  if (status != MQTT_STATUS_OK) {
+  if(status != MQTT_STATUS_OK) {
     printf("APP - Got error %i on connection\r\n", status);
   }
 }
@@ -209,69 +213,70 @@ static void
 mqtt_event_handler(struct mqtt_connection *m, mqtt_event_t event, void *data)
 {
   switch(event) {
-    case MQTT_EVENT_CONNECTED:
-      {
-        printf("APP - Application has a MQTT connection\r\n");
-        printf("APP - Application will start periocally send messages\r\n");
-        ctimer_stop(&mqtt_conn_timer);
-        ctimer_set(&publish_msg_timer, MQTT_PERIODIC_PUB_TIME, publish_periodic_message, NULL);
-        ctimer_set(&publish_counter_timer, MQTT_PERIODIC_PUB_TIME, publish_counter_message, NULL);
-        break;
-      }
-    case MQTT_EVENT_DISCONNECTED:
-      {
-        printf("APP - MQTT Disconnect. Reason %u\r\n", *((mqtt_event_t *)data));
-        ctimer_stop(&publish_msg_timer);
-        ctimer_stop(&publish_counter_timer);
-        ctimer_set(&mqtt_conn_timer, MQTT_CLIENT_CONN_RECONNECT, mqtt_start_connection, NULL);
-        break;
-      }
-    case MQTT_EVENT_PUBLISH:
-      {
-        struct mqtt_message * msg = (struct mqtt_message *) data;
-        printf("APP - Application received a publish on topic '%s'. Payload " "size is %i bytes. Content: %s\r\n", msg->topic, msg->payload_length, msg->payload_chunk);
-        break;
-      }
-    case MQTT_EVENT_SUBACK:
-      {
-        printf("APP - Application is subscribed to topic successfully\r\n");
-        break;
-      }
-    case MQTT_EVENT_UNSUBACK:
-      {
-        printf("APP - Application is unsubscribed to topic successfully\r\n");
-        break;
-      }
-    case MQTT_EVENT_PUBACK:
-      {
-        printf("APP - Publishing complete.\r\n");
-        break;
-      }
-    default:
-      printf("APP - Application got a unhandled MQTT event: 0x%02x\r\n", event);
-      break;
+  case MQTT_EVENT_CONNECTED:
+  {
+    printf("APP - Application has a MQTT connection\r\n");
+    printf("APP - Application will start periocally send messages\r\n");
+    ctimer_stop(&mqtt_conn_timer);
+    ctimer_set(&publish_msg_timer, MQTT_PERIODIC_PUB_TIME, publish_periodic_message, NULL);
+    ctimer_set(&publish_counter_timer, MQTT_PERIODIC_PUB_TIME, publish_counter_message, NULL);
+    break;
+  }
+  case MQTT_EVENT_DISCONNECTED:
+  {
+    printf("APP - MQTT Disconnect. Reason %u\r\n", *((mqtt_event_t *)data));
+    ctimer_stop(&publish_msg_timer);
+    ctimer_stop(&publish_counter_timer);
+    ctimer_set(&mqtt_conn_timer, MQTT_CLIENT_CONN_RECONNECT, mqtt_start_connection, NULL);
+    break;
+  }
+  case MQTT_EVENT_PUBLISH:
+  {
+    struct mqtt_message *msg = (struct mqtt_message *)data;
+    printf("APP - Application received a publish on topic '%s'. Payload " "size is %i bytes. Content: %s\r\n", msg->topic, msg->payload_length, msg->payload_chunk);
+    break;
+  }
+  case MQTT_EVENT_SUBACK:
+  {
+    printf("APP - Application is subscribed to topic successfully\r\n");
+    break;
+  }
+  case MQTT_EVENT_UNSUBACK:
+  {
+    printf("APP - Application is unsubscribed to topic successfully\r\n");
+    break;
+  }
+  case MQTT_EVENT_PUBACK:
+  {
+    printf("APP - Publishing complete.\r\n");
+    break;
+  }
+  default:
+    printf("APP - Application got a unhandled MQTT event: 0x%02x\r\n", event);
+    break;
   }
 }
 /*-----------------------------------------------------------------------------------*/
-unsigned int uip_ipaddr_to_string(uip_ipaddr_t * addr, char *buf)
+unsigned int
+uip_ipaddr_to_string(uip_ipaddr_t *addr, char *buf)
 {
-  if (addr == NULL) {
+  if(addr == NULL) {
     return 0;
   }
   printf("APP - IP to string");
-  uip_debug_ipaddr_print(addr); //TODO: 
+  uip_debug_ipaddr_print(addr); /* TODO: */
   printf("\r\n");
   return sprintf(buf, "%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x",
-                ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3],
-                ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7],
-                ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11],
-                ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15]);
-  }
+                 ((uint8_t *)addr)[0], ((uint8_t *)addr)[1], ((uint8_t *)addr)[2], ((uint8_t *)addr)[3],
+                 ((uint8_t *)addr)[4], ((uint8_t *)addr)[5], ((uint8_t *)addr)[6], ((uint8_t *)addr)[7],
+                 ((uint8_t *)addr)[8], ((uint8_t *)addr)[9], ((uint8_t *)addr)[10], ((uint8_t *)addr)[11],
+                 ((uint8_t *)addr)[12], ((uint8_t *)addr)[13], ((uint8_t *)addr)[14], ((uint8_t *)addr)[15]);
+}
 /*-----------------------------------------------------------------------------------*/
 static inline int
-update_broker_address(uip_ipaddr_t * addr, int port)
+update_broker_address(uip_ipaddr_t *addr, int port)
 {
-  if (uip_ipaddr_to_string(addr, broker_ip) > 0) {
+  if(uip_ipaddr_to_string(addr, broker_ip) > 0) {
     broker_port = port;
     return true;
   }
@@ -279,7 +284,7 @@ update_broker_address(uip_ipaddr_t * addr, int port)
 }
 /*-----------------------------------------------------------------------------------*/
 static bool
-resolv_hostname(const char* url, uip_ipaddr_t * addr)
+resolv_hostname(const char *url, uip_ipaddr_t *addr)
 {
   uip_ip4addr_t ip4addr;
   uip_ip6addr_t ip6addr;
@@ -291,7 +296,7 @@ resolv_hostname(const char* url, uip_ipaddr_t * addr)
   if(parse_url(url, host, &port, path)) {
 
     printf("url %s host %s port %d path %s\r\n",
-        url, host, port, path);
+           url, host, port, path);
 
     if(uiplib_ip6addrconv(host, &ip6addr) == 0) {
       /* First check if the host is an IP address. */
@@ -302,7 +307,7 @@ resolv_hostname(const char* url, uip_ipaddr_t * addr)
            lookup. */
         ret = resolv_lookup(host, &addr);
         if(ret == RESOLV_STATUS_UNCACHED ||
-            ret == RESOLV_STATUS_EXPIRED) {
+           ret == RESOLV_STATUS_EXPIRED) {
           resolv_query(host);
           puts("Resolving host...");
           return false;
@@ -320,7 +325,8 @@ resolv_hostname(const char* url, uip_ipaddr_t * addr)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-static void mqtt_config_setup()
+static void
+mqtt_config_setup()
 {
   snprintf(mqtt_username, MIN_APPLICATION_BUFFER_SIZE, "%s", ATTO_MQTT_USERNAME);
   snprintf(mqtt_password, MIN_APPLICATION_BUFFER_SIZE, "%s", ATTO_MQTT_PASSWORD);
@@ -328,11 +334,11 @@ static void mqtt_config_setup()
 }
 /*-----------------------------------------------------------------------------------*/
 static bool
-mqtt_connection_is_available(struct mqtt_connection * conn)
+mqtt_connection_is_available(struct mqtt_connection *conn)
 {
-  return ((!mqtt_connected(conn))
-          && (conn->state != MQTT_CONN_STATE_CONNECTING_TO_BROKER)
-          && (conn->state != MQTT_CONN_STATE_DISCONNECTING));
+  return (!mqtt_connected(conn))
+         && (conn->state != MQTT_CONN_STATE_CONNECTING_TO_BROKER)
+         && (conn->state != MQTT_CONN_STATE_DISCONNECTING);
 }
 /*-----------------------------------------------------------------------------------*/
 PROCESS_THREAD(mqtt_pub_process, ev, data)
@@ -347,7 +353,7 @@ PROCESS_THREAD(mqtt_pub_process, ev, data)
 
   SENSORS_ACTIVATE(batmon_sensor);
 
-  uip_ipaddr(&ip4addr, 8,8,8,8);
+  uip_ipaddr(&ip4addr, 8, 8, 8, 8);
   ip64_addr_4to6(&ip4addr, &ip6addr);
   uip_nameserver_update(&ip6addr, UIP_NAMESERVER_INFINITE_LIFETIME);
 
@@ -357,10 +363,10 @@ PROCESS_THREAD(mqtt_pub_process, ev, data)
   mqtt_config_setup();
 
   mqtt_status_t status = mqtt_register(&conn, &mqtt_pub_process, client_id,
-      mqtt_event_handler,
-      MQTT_CLIENT_MAX_SEGMENT_SIZE);
+                                       mqtt_event_handler,
+                                       MQTT_CLIENT_MAX_SEGMENT_SIZE);
 
-  if (status != MQTT_STATUS_OK) {
+  if(status != MQTT_STATUS_OK) {
     printf("APP - Can't initializate MQTT, dying...\r\n");
     PROCESS_EXIT();
   }
@@ -372,13 +378,13 @@ PROCESS_THREAD(mqtt_pub_process, ev, data)
   create_mqtt_topic(pub_self_topic, "status/self");
 
   while(1) {
-    if (!dns_resolved) {
+    if(!dns_resolved) {
       dns_resolved = resolv_hostname(ATTO_LOGVIEW_URL, &hostaddr);
-      if (ev == resolv_event_found) {
+      if(ev == resolv_event_found) {
         printf("APP - DNS found!\r\n");
-        if (dns_resolved) {
+        if(dns_resolved) {
           printf("APP - DNS resolved!\r\n");
-          if (mqtt_connection_is_available(&conn)) {
+          if(mqtt_connection_is_available(&conn)) {
             mqtt_start_connection();
           }
         }

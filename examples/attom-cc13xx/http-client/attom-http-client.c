@@ -32,7 +32,7 @@ get_batmon_reading(void)
   last_temp_value = value;
 }
 /*---------------------------------------------------------------------------*/
-static unsigned int postdatalen; 
+static unsigned int postdatalen;
 static char postdata[MAX_PAYLOAD_LEN];
 static void
 update_post_data(void)
@@ -42,14 +42,14 @@ update_post_data(void)
 
   memset(postdata, 0, MAX_PAYLOAD_LEN);
   postdatalen = sprintf(postdata, "{\"v\":\"%d\", \"h\":\"%d\", \"n\":\"%02d\", \"s\":\"2886\", \"temp\":\"%d.00\"}",
-      ATTO_JSON_VERSION, ATTO_HARDWARE_ID, seq, value);
+                        ATTO_JSON_VERSION, ATTO_HARDWARE_ID, seq, value);
   seq = (seq + 1) % 100;
 }
 /*---------------------------------------------------------------------------*/
 static void
 http_callback(struct http_socket *s, void *ptr,
-         http_socket_event_t e,
-         const uint8_t *data, uint16_t datalen)
+              http_socket_event_t e,
+              const uint8_t *data, uint16_t datalen)
 {
   if(e == HTTP_SOCKET_ERR) {
     printf("HTTP socket error\n");
@@ -81,7 +81,7 @@ PROCESS_THREAD(http_post_logview_process, ev, data)
 
   SENSORS_ACTIVATE(batmon_sensor);
 
-  uip_ipaddr(&ip4addr, 8,8,8,8);
+  uip_ipaddr(&ip4addr, 8, 8, 8, 8);
   ip64_addr_4to6(&ip4addr, &ip6addr);
   uip_nameserver_update(&ip6addr, UIP_NAMESERVER_INFINITE_LIFETIME);
 
