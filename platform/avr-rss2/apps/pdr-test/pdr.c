@@ -287,9 +287,9 @@ static void inputPacket(void)
         else if (findIdx > -1) {
             // <sender,channel> already in stats memory
             currentStatsIdx = findIdx;
-	    s = &stats[currentStatsIdx];
-	} 
-	else if (lastIdx == -1) {
+            s = &stats[currentStatsIdx];
+        }
+        else if (lastIdx == -1) {
             // new <sender,channel>, stats memory empty
             currentStatsIdx = 0;
             s = &stats[currentStatsIdx];

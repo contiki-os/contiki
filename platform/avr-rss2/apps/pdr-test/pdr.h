@@ -217,12 +217,14 @@ struct stats_info {
     // set by radio driver, not included in the total count
     uint16_t phyCrcErrors;
     
+#if TRACK_ERRORS
     // number of bad nibbles...
     uint16_t numBadNibbles;
     uint16_t badNibbles[MAX_NIBBLES];
     uint16_t symbolErrors[MAX_NIBBLES];
     uint16_t confusionMatrix[16 * 16];
     uint32_t correctCounts[16];
+#endif
 };
 
 // -------------------------------------------------------------
