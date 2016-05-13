@@ -35,6 +35,7 @@ PROCESS(controlProcess, "PDR test control process");
 
 uint8_t packetsReceived[PACKETS_IN_TEST];
 uint8_t currentState;
+bool txpower_sweep;
 uint8_t sendPacketNumber;
 uint8_t channel;
 uint8_t platform_id;
@@ -42,7 +43,7 @@ uint8_t platform_id;
 struct rtimer rt;
 static struct etimer periodic;
 
-struct stats_info stats[NODES_IN_TEST];
+struct stats_info stats[(TX_POWER_MIN+1)*NODES_IN_TEST];
 int8_t currentStatsIdx;
 
 // needed to link fastrandom.h
@@ -198,11 +199,9 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             return;
             
         case STATE_TX:
-#if DEBUG
-            if (h->packetNumber == 0) {
+            if (verbose && h->packetNumber == 0) {
                 puts("starting tx...");
             }
-#endif
             sendPacketNumber++;
             h->sender = node_id;
             h->channel = radio_get_channel();
@@ -216,9 +215,16 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             NETSTACK_RADIO.send(sendBuffer, TEST_PACKET_SIZE /*, 0*/);
             
             if (h->packetNumber >= PACKETS_IN_TEST) {
-                currentState = STATE_RX;
+                if (!txpower_sweep || !get_txpower()) {
+                    currentState = STATE_RX;
+                }
+                else {
+                    set_txpower(get_txpower()-1);
+                    sendPacketNumber = 0;
+                    currentState = STATE_TX;
+                }
                 printf("%s: pkts=%d channel=%d, txpower=%s\n", COMMAND_TX_FINISHED, h->packetNumber,
-		       radio_get_channel(), get_txpower_string(txpower));
+                       radio_get_channel(), get_txpower_string(txpower));
             }
             else {
                 next += PACKET_SEND_INTERVAL;
@@ -418,60 +424,64 @@ static void print_help(void)
 
 static int set_txpower(uint8_t p) 
 {
-      if(p == TX_POWER_MAX) {
-	txpower = TX_POWER_MAX;
-	radio_set_txpower(RADIO_POWER_MAX);
-      }
-      else if(p == TX_POWER_0DB) {
+    if(p == TX_POWER_MAX) {
+        txpower = TX_POWER_MAX;
+        radio_set_txpower(RADIO_POWER_MAX);
+    }
+    else if(p == TX_POWER_0DB) {
         txpower = TX_POWER_0DB;
-	radio_set_txpower(RADIO_POWER_ZERO_DB);
-      }
-      else if(p == TX_POWER_MINUS7_DB) { 
-	txpower = TX_POWER_MINUS7_DB;
-	radio_set_txpower(RADIO_POWER_MINUS7_DB);
-      }
-      else if(p == TX_POWER_MINUS15_DB) { 
-	txpower = TX_POWER_MINUS15_DB;
-	radio_set_txpower(RADIO_POWER_MINUS15_DB);
-      }
-      else if(p == TX_POWER_MIN) {
-	txpower = TX_POWER_MIN;
-	radio_set_txpower(RADIO_POWER_MIN);
-      }
-      else {
-	printf("Invalid power\n");;
-	return 0;
-      }
+        radio_set_txpower(RADIO_POWER_ZERO_DB);
+    }
+    else if(p == TX_POWER_MINUS7_DB) {
+        txpower = TX_POWER_MINUS7_DB;
+        radio_set_txpower(RADIO_POWER_MINUS7_DB);
+    }
+    else if(p == TX_POWER_MINUS15_DB) {
+        txpower = TX_POWER_MINUS15_DB;
+        radio_set_txpower(RADIO_POWER_MINUS15_DB);
+    }
+    else if(p == TX_POWER_MIN) {
+        txpower = TX_POWER_MIN;
+        radio_set_txpower(RADIO_POWER_MIN);
+    }
+    else {
+        printf("Invalid power\n");;
+        return 0;
+    }
 }
 
 static int cmd_txp(uint8_t verbose)
 {
     char *p = strtok(NULL, delim);
+    txpower_sweep = false;
     
     if(p) {
-
-      if(!strcmp(p, "max")) {
-	set_txpower(TX_POWER_MAX);
-      }
-      else if(!strcmp(p, "0")) {
-	set_txpower(TX_POWER_0DB);
-      }
-      else if(!strcmp(p, "-7")) {
-	set_txpower(TX_POWER_MINUS7_DB);
-      }
-      else if(!strcmp(p, "-15")) {
-	set_txpower(TX_POWER_MINUS15_DB);
-      }
-      else if(!strcmp(p, "min")) {
-	set_txpower(TX_POWER_MIN);
-      }
-      else {
-	printf("Invalid power\n");;
-	return 0;
-      }
+        if(!strcmp(p, "max")) {
+            set_txpower(TX_POWER_MAX);
+        }
+        else if(!strcmp(p, "0")) {
+            set_txpower(TX_POWER_0DB);
+        }
+        else if(!strcmp(p, "-7")) {
+            set_txpower(TX_POWER_MINUS7_DB);
+        }
+        else if(!strcmp(p, "-15")) {
+            set_txpower(TX_POWER_MINUS15_DB);
+        }
+        else if(!strcmp(p, "min")) {
+            set_txpower(TX_POWER_MIN);
+        }
+        else if(!strcmp(p, "sweep")) {
+            set_txpower(TX_POWER_MIN);
+            txpower_sweep = true;
+        }
+        else {
+            printf("Invalid power\n");;
+            return 0;
+        }
     }
     if(verbose)
-      printf("txpower=%s\n", get_txpower_string(txpower));
+        printf("txpower=%s\n", get_txpower_string(txpower));
     return 1;
 }
 
@@ -508,8 +518,7 @@ static void handle_serial_input(const char *line)
     if (!strcmp(p, "tx") || !strcmp(line, "TX")) {
         if( !cmd_chan(0)) return;
 
-        if( !cmd_txp(0))
-	  return;
+        if( !cmd_txp(0)) return;
 
         etimer_set(&periodic, READY_PRINT_INTERVAL);
         currentState = STATE_TX;
