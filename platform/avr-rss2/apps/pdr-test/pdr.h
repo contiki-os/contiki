@@ -183,6 +183,7 @@ struct packetHeader {
     uint8_t channel;
     uint8_t platform_id;
     uint8_t txpower;
+    int16_t txtemp;
     uint8_t pad;
     uint8_t crc;
 };
@@ -194,6 +195,7 @@ struct stats_info {
     uint16_t node_id;
     uint8_t channel;
     uint8_t txpower;
+    int16_t txtemp;
     uint8_t platform_id;
     uint16_t fine;
     

@@ -144,14 +144,15 @@ void printStats(struct stats_info *s)
     
     temp = temp_sensor.value(0);
     
-    printf("%s %5u %s %5u %u %s %i ",
+    printf("%s %5u %i | %s %5u %i | %u %s | ",
            platform_list[platform_id],
            node_id,
+           temp,
            platform_list[s->platform_id],
            s->node_id,
+           s->txtemp,
            s->channel,
-           get_txpower_string(s->txpower),
-           temp);
+           get_txpower_string(s->txpower));
     
     printf("%u %u %d %u\n",
            s->fine,
@@ -195,6 +196,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
 {
     static uint8_t sendBuffer[TEST_PACKET_SIZE] __attribute__((aligned (2))) =  { 0, 0, 0, 10 };
     struct packetHeader *h = (struct packetHeader *) sendBuffer;
+    statuc int16_t txtemp;
     
     rtimer_clock_t next = RTIMER_TIME(t);
     
@@ -203,10 +205,15 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             return;
             
         case STATE_TX:
+            if (sendPacketNumber == 0) {
+                txtemp = temp_sensor.value(0);
+            }
+                
             sendPacketNumber++;
             h->sender = node_id;
             h->channel = radio_get_channel();
             h->txpower = get_txpower();
+            h->txtemp = txtemp;
             h->platform_id = platform_id;
             h->packetNumber = sendPacketNumber;
             h->crc = crc8(h, sizeof(*h) - 1);
@@ -290,6 +297,7 @@ static void inputPacket(void)
             s->platform_id = h->platform_id;
             s->channel = h->channel;
             s->txpower = h->txpower;
+            s->txtemp = h->txtemp
         } else if (lastIdx < NODES_IN_TEST - 1) {
             // new <sender,channel>
             currentStatsIdx = lastIdx + 1;
@@ -298,6 +306,7 @@ static void inputPacket(void)
             s->platform_id = h->platform_id;
             s->channel = h->channel;
             s->txpower = h->txpower;
+            s->txtemp = h->txtemp
         }
     }
 
