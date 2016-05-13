@@ -53,11 +53,11 @@
 #define BUTTON_SENSOR_ENABLE_SHUTDOWN 1
 #endif
 /*---------------------------------------------------------------------------*/
-#define BUTTON_GPIO_CFG         (IOC_CURRENT_2MA  | IOC_STRENGTH_AUTO | \
-                                 IOC_IOPULL_UP    | IOC_SLEW_DISABLE  | \
-                                 IOC_HYST_DISABLE | IOC_BOTH_EDGES    | \
-                                 IOC_INT_ENABLE   | IOC_IOMODE_NORMAL | \
-                                 IOC_NO_WAKE_UP   | IOC_INPUT_ENABLE)
+#define BUTTON_GPIO_CFG         (IOC_CURRENT_2MA | IOC_STRENGTH_AUTO | \
+                                 IOC_IOPULL_UP | IOC_SLEW_DISABLE | \
+                                 IOC_HYST_DISABLE | IOC_BOTH_EDGES | \
+                                 IOC_INT_ENABLE | IOC_IOMODE_NORMAL | \
+                                 IOC_NO_WAKE_UP | IOC_INPUT_ENABLE)
 /*---------------------------------------------------------------------------*/
 #define DEBOUNCE_DURATION (CLOCK_SECOND >> 5)
 
@@ -68,7 +68,7 @@ struct btn_timer {
 };
 
 static struct btn_timer sel_timer, left_timer, right_timer, up_timer,
-              down_timer;
+                        down_timer;
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Handler for SmartRF button presses

@@ -81,7 +81,7 @@ wakeup_handler(void)
   /* Turn on the PERIPH PD */
   ti_lib_prcm_power_domain_on(PRCM_DOMAIN_PERIPH);
   while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH)
-        != PRCM_DOMAIN_POWER_ON));
+         != PRCM_DOMAIN_POWER_ON));
 }
 /*---------------------------------------------------------------------------*/
 /*
