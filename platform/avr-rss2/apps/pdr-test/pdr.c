@@ -221,6 +221,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
 
                 if (!txpower_sweep || !get_txpower()) {
                     currentState = STATE_RX;
+                    txpower_sweep = false;
                 }
                 else {
                     set_txpower(get_txpower()-1);
