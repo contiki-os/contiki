@@ -196,7 +196,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
 {
     static uint8_t sendBuffer[TEST_PACKET_SIZE] __attribute__((aligned (2))) =  { 0, 0, 0, 10 };
     struct packetHeader *h = (struct packetHeader *) sendBuffer;
-    statuc int16_t txtemp;
+    static int16_t txtemp;
     
     rtimer_clock_t next = RTIMER_TIME(t);
     
@@ -297,7 +297,7 @@ static void inputPacket(void)
             s->platform_id = h->platform_id;
             s->channel = h->channel;
             s->txpower = h->txpower;
-            s->txtemp = h->txtemp
+            s->txtemp = h->txtemp;
         } else if (lastIdx < NODES_IN_TEST - 1) {
             // new <sender,channel>
             currentStatsIdx = lastIdx + 1;
@@ -306,7 +306,7 @@ static void inputPacket(void)
             s->platform_id = h->platform_id;
             s->channel = h->channel;
             s->txpower = h->txpower;
-            s->txtemp = h->txtemp
+            s->txtemp = h->txtemp;
         }
     }
 
