@@ -5,28 +5,29 @@
 #include "lib/sensors.h"
 #include "batmon-sensor.h"
 #include "debug.h"
+#include "assert.h"
 
 /*-----------------------------------------------------------------------------------*/
 #define DEBUG DEBUG_PRINT
 /*-----------------------------------------------------------------------------------*/
 PROCESS_NAME(mqtt_process);
-PROCESS(mqtt_pub_process, "MQTT Periodic Publisher");
+PROCESS(mqtt_pub_process, "AttoM MQTT Periodic Publisher");
 AUTOSTART_PROCESSES(&mqtt_process, &mqtt_pub_process);
 /*-----------------------------------------------------------------------------------*/
-#define ATTO_HARDWARE_ID                     999999
-#define ATTO_LOGVIEW_URL                     "your.mqtt.broker.host"
-#define ATTO_API_VERSION                     1
-#define MQTT_PERIODIC_PUB_TIME               (CLOCK_SECOND * 15)
-#define MQTT_CLIENT_CONN_KEEP_ALIVE          (CLOCK_SECOND * 40)
-#define MQTT_CLIENT_CONN_RECONNECT           (CLOCK_SECOND * 20)
-#define MQTT_CLIENT_MAX_SEGMENT_SIZE         32
+#define ATTOM_API_VERSION                    1
+#define ATTOM_HARDWARE_ID                    999999
 #define MAX_APPLICATION_BUFFER_SIZE          64
 #define MIN_APPLICATION_BUFFER_SIZE          32
 #define MAX_PATHLEN                          64
 #define MAX_HOSTLEN                          64
 #define MAX_MSG_COUNTER                      65000
-#define ATTO_MQTT_USERNAME                   "mqtt.username"
-#define ATTO_MQTT_PASSWORD                   "mqtt.password"
+#define MQTT_BROKER_URL                      "your.mqtt.broker.host"
+#define MQTT_USERNAME                        "mqtt.username"
+#define MQTT_PASSWORD                        "mqtt.password"
+#define MQTT_PERIODIC_PUB_TIME               (CLOCK_SECOND * 15)
+#define MQTT_CLIENT_CONN_KEEP_ALIVE          (CLOCK_SECOND * 40)
+#define MQTT_CLIENT_CONN_RECONNECT           (CLOCK_SECOND * 20)
+#define MQTT_CLIENT_MAX_SEGMENT_SIZE         32
 /*---------------------------------------------------------------------------*/
 static int broker_port = 1883;
 static char *client_id = "mqtt.client_id";
@@ -44,7 +45,7 @@ static char mqtt_password[MIN_APPLICATION_BUFFER_SIZE] = { 0 };
 static unsigned int
 create_mqtt_topic(char *out, const char *resource)
 {
-  unsigned int len = sprintf(out, "v%d/%d/%s", ATTO_API_VERSION, ATTO_HARDWARE_ID, resource);
+  unsigned int len = sprintf(out, "v%d/%d/%s", ATTOM_API_VERSION, ATTOM_HARDWARE_ID, resource);
   printf("APP - create topic [%s] with len[%d]\r\n", out, len);
   return len;
 }
@@ -328,8 +329,8 @@ resolv_hostname(const char *url, uip_ipaddr_t *addr)
 static void
 mqtt_config_setup()
 {
-  snprintf(mqtt_username, MIN_APPLICATION_BUFFER_SIZE, "%s", ATTO_MQTT_USERNAME);
-  snprintf(mqtt_password, MIN_APPLICATION_BUFFER_SIZE, "%s", ATTO_MQTT_PASSWORD);
+  snprintf(mqtt_username, MIN_APPLICATION_BUFFER_SIZE, "%s", MQTT_USERNAME);
+  snprintf(mqtt_password, MIN_APPLICATION_BUFFER_SIZE, "%s", MQTT_PASSWORD);
   printf("APP - username[%s] password [%s]\r\n", mqtt_username, mqtt_password);
 }
 /*-----------------------------------------------------------------------------------*/
@@ -366,10 +367,7 @@ PROCESS_THREAD(mqtt_pub_process, ev, data)
                                        mqtt_event_handler,
                                        MQTT_CLIENT_MAX_SEGMENT_SIZE);
 
-  if(status != MQTT_STATUS_OK) {
-    printf("APP - Can't initializate MQTT, dying...\r\n");
-    PROCESS_EXIT();
-  }
+  assert(status == MQTT_STATUS_OK);
 
   mqtt_set_username_password(&conn, mqtt_username, mqtt_password);
 
@@ -379,7 +377,7 @@ PROCESS_THREAD(mqtt_pub_process, ev, data)
 
   while(1) {
     if(!dns_resolved) {
-      dns_resolved = resolv_hostname(ATTO_LOGVIEW_URL, &hostaddr);
+      dns_resolved = resolv_hostname(MQTT_BROKER_URL, &hostaddr);
       if(ev == resolv_event_found) {
         printf("APP - DNS found!\r\n");
         if(dns_resolved) {
