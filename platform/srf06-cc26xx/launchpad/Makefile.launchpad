@@ -4,3 +4,19 @@ CONTIKI_TARGET_DIRS += launchpad common
 
 BOARD_SOURCEFILES += board.c launchpad-sensors.c leds-arch.c button-sensor.c
 BOARD_SOURCEFILES += ext-flash.c board-spi.c
+
+PYTHON = python
+BSL_FLAGS += -e -w -v
+
+ifdef PORT
+  BSL_FLAGS += -p $(PORT)
+endif
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
+%.upload: %.bin
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $<
+endif
