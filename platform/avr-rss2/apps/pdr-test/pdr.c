@@ -55,6 +55,8 @@ const char *delim = " \t\r,";
 #define END_OF_FILE 26
 uint8_t eof = END_OF_FILE;
 
+static int set_txpower(uint8_t p);
+
 // -------------------------------------------------------------
 
 //
