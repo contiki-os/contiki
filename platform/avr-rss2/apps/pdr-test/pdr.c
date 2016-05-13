@@ -216,6 +216,9 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             NETSTACK_RADIO.send(sendBuffer, TEST_PACKET_SIZE /*, 0*/);
             
             if (h->packetNumber >= PACKETS_IN_TEST) {
+                printf("%s: pkts=%d channel=%d, txpower=%s\n", COMMAND_TX_FINISHED, h->packetNumber,
+                       radio_get_channel(), get_txpower_string(txpower));
+
                 if (!txpower_sweep || !get_txpower()) {
                     currentState = STATE_RX;
                 }
@@ -224,8 +227,6 @@ void rtimerCallback(struct rtimer *t, void *ptr)
                     sendPacketNumber = 0;
                     currentState = STATE_TX;
                 }
-                printf("%s: pkts=%d channel=%d, txpower=%s\n", COMMAND_TX_FINISHED, h->packetNumber,
-                       radio_get_channel(), get_txpower_string(txpower));
             }
             else {
                 next += PACKET_SEND_INTERVAL;
