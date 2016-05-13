@@ -48,18 +48,18 @@
 /*---------------------------------------------------------------------------*/
 #define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
 /*---------------------------------------------------------------------------*/
-#define CONNS                2
-#define CONTENT_LENGTH_MAX 256
-#define STATE_WAITING        0
-#define STATE_OUTPUT         1
-#define IPADDR_BUF_LEN      64
+#define CONNS                   2
+#define CONTENT_LENGTH_MAX      256
+#define STATE_WAITING           0
+#define STATE_OUTPUT            1
+#define IPADDR_BUF_LEN          64
 /*---------------------------------------------------------------------------*/
-#define RETURN_CODE_OK   0
-#define RETURN_CODE_NF   1 /* Not Found */
-#define RETURN_CODE_SU   2 /* Service Unavailable */
-#define RETURN_CODE_BR   3 /* Bad Request */
-#define RETURN_CODE_LR   4 /* Length Required */
-#define RETURN_CODE_TL   5 /* Content Length too Large */
+#define RETURN_CODE_OK          0
+#define RETURN_CODE_NF          1 /* Not Found */
+#define RETURN_CODE_SU          2 /* Service Unavailable */
+#define RETURN_CODE_BR          3 /* Bad Request */
+#define RETURN_CODE_LR          4 /* Length Required */
+#define RETURN_CODE_TL          5 /* Content Length too Large */
 /*---------------------------------------------------------------------------*/
 /* POST request machine states */
 #define PARSE_POST_STATE_INIT            0
@@ -83,13 +83,6 @@ static int state;
 /* Stringified min/max intervals */
 #define STRINGIFY(x) XSTR(x)
 #define XSTR(x)      #x
-
-/*---------------------------------------------------------------------------*/
-/* Stringified min/max intervals */
-#define STRINGIFY(x) XSTR(x)
-#define XSTR(x)      #x
-#define WS_INT_MAX  STRINGIFY(WEATHER_STATION_WS_INTERVAL_MAX)
-#define WS_INT_MIN  STRINGIFY(WEATHER_STATION_WS_INTERVAL_MIN)
 /*---------------------------------------------------------------------------*/
 /*
  * We can only handle a single POST request at a time. Since a second POST
@@ -196,8 +189,8 @@ static char generate_ws_config(struct httpd_state *s);
 
 static page_t http_ws_cfg_page = {
   NULL,
-  "relayr.html",
-  "Relay web provisioning",
+  "config.html",
+  "MQTT web provisioning",
   generate_ws_config,
 };
 /*---------------------------------------------------------------------------*/
@@ -362,10 +355,11 @@ PT_THREAD(generate_ws_config(struct httpd_state *s))
                  generate_top_matter(s, http_ws_cfg_page.title,
                                      http_config_css));
 
-  /* Weather Station configuration */
+  /* MQTT webserver configuration */
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "<h1>%s</h1>", http_ws_cfg_page.title));
 
+  /* This is the User Auth form */
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0,
                                "<form name=\"input\" action=\"%s\" ",
@@ -378,20 +372,59 @@ PT_THREAD(generate_ws_config(struct httpd_state *s))
                  enqueue_chunk(s, 0, "accept-charset=\"UTF-8\">"));
 
   PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0, "%sRelayr User ID:%s",
-                               config_div_left, config_div_close));
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0, "%s<input type=\"number\" ",
-                               config_div_right));
-  PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0, "value=\"%s\" ",
-                               conf.auth_user));
+                 enqueue_chunk(s, 0, "%sAuth User:%s", config_div_left,
+                               config_div_close));
 
   PT_WAIT_THREAD(&s->generate_pt,
-                 enqueue_chunk(s, 0,
-                               "<input type=\"submit\" value=\"Submit\">"));
+                 enqueue_chunk(s, 0, "%s<input type=\"text\" ",
+                               config_div_right));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "value=\"%s\" ", conf.auth_user));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "name=\"auth_user\">"));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "<input type=\"submit\" value=\"Submit\">%s",
+                               config_div_close));
+
   PT_WAIT_THREAD(&s->generate_pt,
                  enqueue_chunk(s, 0, "</form>"));
+
+  /* This is the User Token form */
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0,
+                               "<form name=\"input\" action=\"%s\" ",
+                               http_ws_cfg_page.filename));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "method=\"post\" enctype=\""));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "application/x-www-form-urlencoded\" "));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "accept-charset=\"UTF-8\">"));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "%sAuth Token:%s", config_div_left,
+                               config_div_close));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "%s<input type=\"text\" ",
+                               config_div_right));
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "value=\"%s\" ", conf.auth_token));
+
+  PT_WAIT_THREAD(&s->generate_pt, enqueue_chunk(s, 0, "name=\"auth_token\">"));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "<input type=\"submit\" value=\"Submit\">%s",
+                               config_div_close));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "</form>"));
+
+  PT_WAIT_THREAD(&s->generate_pt,
+                 enqueue_chunk(s, 0, "<br>%sZolertia SL, Antonio Lignan, 2016%s",
+                               config_div_left, config_div_close));
 
   PT_WAIT_THREAD(&s->generate_pt, enqueue_chunk(s, 1, http_bottom));
 

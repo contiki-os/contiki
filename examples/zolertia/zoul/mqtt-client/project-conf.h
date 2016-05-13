@@ -58,6 +58,9 @@
 /* Select the minimum low power mode the node should drop to */
 #define LPM_CONF_MAX_PM               1
 
+/* In case we need to change the default 6LoWPAN prefix context */
+#define UIP_CONF_DS6_DEFAULT_PREFIX   0xaaaa
+
 /* Use either the cc1200_driver for sub-1GHz, or cc2538_rf_driver (default)
  * for 2.4GHz built-in radio interface
  */

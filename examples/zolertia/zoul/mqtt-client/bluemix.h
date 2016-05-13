@@ -42,13 +42,22 @@
  * And the content in the following format:
  * {"values":[{"key":"sht25","value":0xABCD}]}
  */
-#define DEFAULT_CONF_USER_ID          ""
 #define DEFAULT_CONF_AUTH_TOKEN       ""
 #define DEFAULT_CONF_AUTH_USER        ""
 #define DEFAULT_TOPIC_STR             "iot-2/evt/status/fmt/json"
 
-#define DEFAULT_CONF_AUTH_IS_REQUIRED     0
-#define DEFAULT_CONF_USER_ID_IS_REQUIRED  0
+/* Using "quickstart" as DEFAULT_ORG_ID will enable to use IBM Bluemix
+ * quickstart service, not requiring to register, but only to use the six bytes
+ * of the device in the `client_id` to visualize the data.  Upon registering the
+ * device to IBM Bluemix, change this accordingly
+ */
+#ifndef DEFAULT_ORG_ID
+#define DEFAULT_ORG_ID                "quickstart"
+#endif
+
+/* If not using the quickstart service, change below to 1 to enable */
+#define DEFAULT_CONF_AUTH_IS_REQUIRED       0
+#define DEFAULT_CONF_AUTH_USER_IS_REQUIRED  0
 /*---------------------------------------------------------------------------*/
 /* Host "messaging.quickstart.internetofthings.ibmcloud.com" with
  * IP 184.172.124.189

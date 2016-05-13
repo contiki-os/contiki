@@ -45,14 +45,13 @@
  *   "topic": "/v1/abcdefgh-ijkl-mnop-qrst-uvwxyz123456/"
  * }
  */
-#define DEFAULT_CONF_USER_ID          "d543614a-835a-4e8f-95af-1fc591991434"
-#define DEFAULT_CONF_AUTH_TOKEN       "e5AmwiqRbaY3"
-#define DEFAULT_CONF_AUTH_USER        DEFAULT_CONF_USER_ID
+#define DEFAULT_CONF_AUTH_TOKEN       ""
+#define DEFAULT_CONF_AUTH_USER        ""
 #define DEFAULT_TOPIC_STR             "/v1/"
-#define DEFAULT_TOPIC_LONG            DEFAULT_TOPIC_STR DEFAULT_CONF_USER_ID
+#define DEFAULT_TOPIC_LONG            DEFAULT_TOPIC_STR DEFAULT_CONF_AUTH_USER
 
-#define DEFAULT_CONF_AUTH_IS_REQUIRED    1
-#define DEFAULT_CONF_USER_ID_IS_REQUIRED 1
+#define DEFAULT_CONF_AUTH_IS_REQUIRED      1
+#define DEFAULT_CONF_AUTH_USER_IS_REQUIRED 1
 /*---------------------------------------------------------------------------*/
 /* Host "mqtt.relayr.io" with IP 54.171.127.130 */
 #define MQTT_DEMO_CONF_BROKER_IP_ADDR "::ffff:36ab:7f82"

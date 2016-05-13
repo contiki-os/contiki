@@ -133,12 +133,45 @@ process_event_t mqtt_client_event_disconnected;
 mqtt_client_config_t conf;
 /*---------------------------------------------------------------------------*/
 static int
-interval_post_handler(char *key, int key_len, char *val, int val_len)
+auth_user_post_handler(char *key, int key_len, char *val, int val_len)
 {
+  if(key_len != strlen("auth_user") ||
+     strncasecmp(key, "auth_user", strlen(key)) != 0) {
+    return HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
+  }
+
+  if((val_len > DEFAULT_AUTH_USER_LEN) ||
+    (strlen(val) > DEFAULT_AUTH_USER_LEN)) {
+    PRINTF("Client: invalid Auth User configuration\n");
+    return HTTPD_SIMPLE_POST_HANDLER_ERROR;
+  }
+
+  memcpy(conf.auth_user, val, val_len);
+  PRINTF("Client: New Auth User config --> %s\n", conf.auth_user);
   return HTTPD_SIMPLE_POST_HANDLER_OK;
 }
 /*---------------------------------------------------------------------------*/
-HTTPD_SIMPLE_POST_HANDLER(interval, interval_post_handler);
+static int
+auth_token_post_handler(char *key, int key_len, char *val, int val_len)
+{
+  if(key_len != strlen("auth_token") ||
+     strncasecmp(key, "auth_token", strlen(key)) != 0) {
+    return HTTPD_SIMPLE_POST_HANDLER_UNKNOWN;
+  }
+
+  if((val_len > DEFAULT_AUTH_TOKEN_LEN) ||
+    (strlen(val) > DEFAULT_AUTH_TOKEN_LEN)) {
+    PRINTF("Client: invalid Auth Token configuration\n");
+    return HTTPD_SIMPLE_POST_HANDLER_ERROR;
+  }
+
+  memcpy(conf.auth_token, val, val_len);
+  PRINTF("Client: New Auth Token config --> %s\n", conf.auth_token);
+  return HTTPD_SIMPLE_POST_HANDLER_OK;
+}
+/*---------------------------------------------------------------------------*/
+HTTPD_SIMPLE_POST_HANDLER(auth_user, auth_user_post_handler);
+HTTPD_SIMPLE_POST_HANDLER(auth_token, auth_token_post_handler);
 /*---------------------------------------------------------------------------*/
 PROCESS(mqtt_demo_process, "Zolertia MQTT Client");
 /*---------------------------------------------------------------------------*/
@@ -306,22 +339,6 @@ mqtt_event(struct mqtt_connection *m, mqtt_event_t event, void *data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-init_platform_config(void)
-{
-  if(strlen(DEFAULT_AUTH_USER)) {
-    memcpy(conf.auth_user, DEFAULT_AUTH_USER, DEFAULT_AUTH_USER_LEN);
-  } else {
-    printf("Warning: No hardcoded Auth User\n");
-  }
-
-  if(strlen(DEFAULT_AUTH_TOKEN)) {
-    memcpy(conf.auth_token, DEFAULT_AUTH_TOKEN, DEFAULT_AUTH_TOKEN_LEN);
-  } else {
-    printf("Warning: No hardcoded Auth Token\n");
-  }
-}
-/*---------------------------------------------------------------------------*/
-static void
 init_config(void)
 {
   /* Fill in the MQTT client configuration info */
@@ -329,7 +346,22 @@ init_config(void)
   conf.pub_interval = DEFAULT_SAMPLING_INTERVAL;
   conf.pub_interval_check = DEFAULT_PUBLISH_INTERVAL;
 
+  if(strlen(DEFAULT_AUTH_USER)) {
+    memcpy(conf.auth_user, DEFAULT_AUTH_USER, DEFAULT_AUTH_USER_LEN);
+  } else {
+    conf.auth_user[0] = '\0';
+    printf("Warning: No hardcoded Auth User\n");
+  }
+
+  if(strlen(DEFAULT_AUTH_TOKEN)) {
+    memcpy(conf.auth_token, DEFAULT_AUTH_TOKEN, DEFAULT_AUTH_TOKEN_LEN);
+  } else {
+    conf.auth_token[0] = '\0';
+    printf("Warning: No hardcoded Auth Token\n");
+  }
+
   /* The client ID should be given by the platform process */
+  conf.client_id[0] = '\0';
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -519,25 +551,27 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
   /* Initialize the publish callback handler */
   pub_handler = NULL;
 
+  /* Initialize configuration strings */
+
   /* Start the webserver */
   process_start(&httpd_simple_process, NULL);
 
   /* The HTTPD_SIMPLE_POST_HANDLER macro should have already created the
-   * interval_handler()
+   * respective handlers
    */
-  httpd_simple_register_post_handler(&interval_handler);
+  httpd_simple_register_post_handler(&auth_user_handler);
+  httpd_simple_register_post_handler(&auth_token_handler);
 
   /* Check if we can start the state machine with the stored values, or we need
    * to bootstrap until configured over httpd.  When flashing a new image, the
-   * configuration values are lost.  Default is to leave both DEFAULT_USER_ID
+   * configuration values are lost.  Default is to leave both DEFAULT_AUTH_USER
    * and DEFAULT_AUTH_TOKEN as empty strings.  If both strings are not NULL or
    * empty, then we start with the hard-coded config
    */
 
-  if(read_config_from_flash() == -1) {
+  init_config();
 
-    init_config();
-    init_platform_config();
+  if(read_config_from_flash() == -1) {
 
 #if DEFAULT_CONF_AUTH_IS_REQUIRED
     if((strlen(DEFAULT_AUTH_USER)) && (strlen(DEFAULT_AUTH_TOKEN))) {
@@ -546,20 +580,35 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
       print_config_info();
 
     } else {
+
+      /* Bootstrap until we get the credentials over webservice */
       printf("No client information found!\n");
       printf("Awaiting provisioning over the httpd webserver\n");
 
-      /* Bootstrap and wait until we received a valid configuration */
-      PROCESS_WAIT_EVENT_UNTIL(httpd_simple_event_new_config);
-
-      printf("*** New configuration over httpd\n");
+      while(1) {
+        if((strlen(conf.auth_token)) && (strlen(conf.auth_user))) {
+          printf("Configuration found, continuing...\n");
+          break;
+        }
+        /* Bootstrap and wait until we received a valid configuration */
+        PROCESS_WAIT_EVENT_UNTIL(httpd_simple_event_new_config);
+        printf("*** New configuration over httpd\n");
+      }
     }
 #endif /* DEFAULT_CONF_AUTH_IS_REQUIRED */
-#if DEFAULT_USER_ID_IS_REQUIRED
-    if(!(strlen(DEFAULT_CONF_USER_ID))) {
-      printf("\nFATAL! no hardcoded User ID to create topics!!!\n");
-      printf("The configuration over webservice is not currently enabled\n");
-      PROCESS_EXIT();
+#if DEFAULT_AUTH_USER_IS_REQUIRED
+    if(!(strlen(DEFAULT_AUTH_USER))) {
+      printf("\nNo hardcoded User ID found\n");
+
+      while(1) {
+        if(strlen(conf.auth_user)) {
+          printf("Configuration found, continuing...\n");
+          break;
+        }
+        /* Bootstrap and wait until we received a valid configuration */
+        PROCESS_WAIT_EVENT_UNTIL(httpd_simple_event_new_config);
+        printf("*** New configuration over httpd\n");
+      }
     }
 #endif
   }

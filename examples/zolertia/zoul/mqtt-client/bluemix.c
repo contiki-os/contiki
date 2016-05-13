@@ -300,7 +300,7 @@ init_platform(void)
                                     echo_reply_handler);
 
   len = snprintf(conf.client_id, DEFAULT_CONF_IP_ADDR_STR_LEN,
-                 "d:%s:%s:%02x%02x%02x%02x%02x%02x", "quickstart", "Zolertia",
+                 "d:%s:%s:%02x%02x%02x%02x%02x%02x", DEFAULT_ORG_ID, "Zolertia",
                  linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
                  linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
                  linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);

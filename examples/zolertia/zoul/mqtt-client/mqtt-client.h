@@ -40,7 +40,6 @@
 /* Connection information, this is taken from the platform header file */
 #define MQTT_DEMO_BROKER_IP_ADDR      MQTT_DEMO_CONF_BROKER_IP_ADDR
 #define DEFAULT_BROKER_PORT           1883
-#define DEFAULT_USER_ID               DEFAULT_CONF_USER_ID
 #define DEFAULT_AUTH_TOKEN            DEFAULT_CONF_AUTH_TOKEN
 #define DEFAULT_AUTH_USER             DEFAULT_CONF_AUTH_USER
 #define DEFAULT_AUTH_USER_LEN         DEFAULT_CONF_AUTH_USER_LEN
@@ -51,7 +50,7 @@
 #define DEFAULT_AUTH_IS_REQUIRED      DEFAULT_CONF_AUTH_IS_REQUIRED
 
 /* Required only for thethingsio and relayr */
-#define DEFAULT_USER_ID_IS_REQUIRED   DEFAULT_CONF_USER_ID_IS_REQUIRED
+#define DEFAULT_AUTH_USER_IS_REQUIRED DEFAULT_CONF_AUTH_USER_IS_REQUIRED
 
 /* Number of seconds we keep the alarm flag high so we don't send too many
  * alarms in a short period
@@ -79,8 +78,6 @@ typedef struct config_flash {
   uint16_t magic_word;
   char auth_user[DEFAULT_AUTH_USER_LEN];
   char auth_token[DEFAULT_AUTH_TOKEN_LEN];
-  uint16_t temp_threshold;
-  uint16_t humd_threshold;
   uint16_t pub_interval_check;
   uint16_t crc;
 } config_flash_t;

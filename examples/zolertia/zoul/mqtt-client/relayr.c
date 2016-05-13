@@ -468,7 +468,7 @@ init_platform(void)
   uip_icmp6_echo_reply_callback_add(&echo_reply_notification,
                                     echo_reply_handler);
 
-  snprintf(&conf.client_id, DEFAULT_IP_ADDR_STR_LEN, "%02x%02x%02x%02x%02x%02x",
+  snprintf(conf.client_id, DEFAULT_IP_ADDR_STR_LEN, "%02x%02x%02x%02x%02x%02x",
            linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
            linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
            linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
