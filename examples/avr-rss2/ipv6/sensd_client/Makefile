@@ -2,7 +2,7 @@
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 all: sensd_client server
-CONTIKI=../../../../..
+CONTIKI=../../../..
 
 ifdef PERIOD
 CFLAGS+=-DPERIOD=$(PERIOD)
