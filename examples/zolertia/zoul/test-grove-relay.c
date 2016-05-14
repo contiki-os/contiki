@@ -71,18 +71,18 @@ PROCESS_THREAD(test_grove_relay_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
     if((grove_relay_set(GROVE_RELAY_ON)) == GROVE_RELAY_ERROR) {
-      printf("Grove Relay ERROR set\n"); 
+      printf("Grove Relay ERROR set\n");
+    } else {
+      leds_on(LEDS_GREEN);
+    
+      etimer_set(&et, RELAY_ON_INTERVAL);
+      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    
+      if((grove_relay_set(GROVE_RELAY_OFF)) == GROVE_RELAY_ERROR) {
+        printf("Grove Relay ERROR set\n"); 
+      }    
+      leds_off(LEDS_GREEN);
     }
-    leds_on(LEDS_GREEN);
-    
-    etimer_set(&et, RELAY_ON_INTERVAL);
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    
-    if((grove_relay_set(GROVE_RELAY_OFF)) == GROVE_RELAY_ERROR) {
-      printf("Grove Relay ERROR set\n"); 
-    }    
-    leds_off(LEDS_GREEN);
-
   }
   PROCESS_END();
 }

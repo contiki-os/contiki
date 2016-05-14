@@ -55,14 +55,14 @@ command_values_t irrigation_commands;
 process_event_t irrigation_sensors_data_event;
 process_event_t irrigation_sensors_alarm_event;
 /*---------------------------------------------------------------------------*/
-uint8_t electrovalve_status = 0;
+static uint8_t electrovalve_status = 0;
 /*---------------------------------------------------------------------------*/
 PROCESS(irrigation_sensors_process, "Irrigation sensor process");
 /*---------------------------------------------------------------------------*/
 static int
 activate_electrovalve(int arg)
 {
-  if (electrovalve_status == 0) {
+  if(!electrovalve_status) {
     PRINTF("Irrigation: electrovalve open\n");
     electrovalve_status = 1;
   }
@@ -73,7 +73,6 @@ activate_electrovalve(int arg)
 static void
 poll_sensors(void)
 {
-  /*irrigation_sensors.sensor[IRRIGATION_SENSOR_SOIL].value = DEFAULT_SOIL_MOIST_MAX;*/
   irrigation_sensors.sensor[IRRIGATION_SENSOR_SOIL].value = soil_hum.value(1);
 
   mqtt_sensor_check(&irrigation_sensors, irrigation_sensors_alarm_event,
@@ -83,7 +82,7 @@ poll_sensors(void)
 PROCESS_THREAD(irrigation_sensors_process, ev, data)
 {
   static struct etimer et;
-  static struct etimer elect;
+  static struct etimer valve;
 
   /* This is where our process start */
   PROCESS_BEGIN();
@@ -124,6 +123,7 @@ PROCESS_THREAD(irrigation_sensors_process, ev, data)
 
   /* Configure ADC channel for soil moisture measurements */
   SENSORS_ACTIVATE(soil_hum);
+
   /* Configure GPIO for Relay activation */
   grove_relay_configure();
   
@@ -131,18 +131,18 @@ PROCESS_THREAD(irrigation_sensors_process, ev, data)
 
     PROCESS_YIELD();
 
-    if(electrovalve_status == 1) {
+    if(electrovalve_status) {
       if((grove_relay_set(GROVE_RELAY_ON)) == GROVE_RELAY_ERROR) {
-        PRINTF("Grove Relay ERROR set\n"); 
-      }
-    
-      etimer_set(&elect, ELECTROVALVE_ON_INTERVAL);
-      if(ev == PROCESS_EVENT_TIMER && data == &elect) {
-        if((grove_relay_set(GROVE_RELAY_OFF)) == GROVE_RELAY_ERROR) {
-          printf("Grove Relay ERROR set\n"); 
+        PRINTF("Irrigation: Failed to open the valve\n"); 
+      } else {
+        etimer_set(&valve, ELECTROVALVE_ON_INTERVAL);
+        if(ev == PROCESS_EVENT_TIMER && data == &valve) {
+          if((grove_relay_set(GROVE_RELAY_OFF)) == GROVE_RELAY_ERROR) {
+            PRINTF("Irrigation: Failed to stop the valve\n"); 
+          }
         }
-        electrovalve_status = 0;
       }
+      electrovalve_status = 0;
     }
     
     if(ev == PROCESS_EVENT_TIMER && data == &et) {

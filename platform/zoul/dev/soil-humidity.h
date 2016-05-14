@@ -53,7 +53,7 @@
 #define SOIL_HUM_SENSOR                  "SOIL_HUM Sensor"
 #define SOIL_HUM_SENSOR_PULSE_DELAY      50
 #define HUM_MAX_VALUE                    24000
-#define SOIL_HUM_ADC_PIN              5
+#define SOIL_HUM_ADC_PIN                 5
 /* -------------------------------------------------------------------------- */
 #ifdef SOIL_HUM_SENSOR_CONF_CTRL_PIN
 #define SOIL_HUM_SENSOR_CTRL_PIN         SOIL_HUM_SENSOR_CONF_CTRL_PIN
