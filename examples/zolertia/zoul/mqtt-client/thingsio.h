@@ -62,25 +62,15 @@
  */
 #define DEFAULT_PUB_STRING            ""
 #define DEFAULT_CMD_STRING            "/cmd"
-#define DEFAULT_CFG_STRING            "/config"
 #define CMD_LED                       LEDS_RED
 /*---------------------------------------------------------------------------*/
 /* Specific SUB command topics */
-#define DEFAULT_SUBSCRIBE_CMD         DEFAULT_TOPIC_LONG DEFAULT_CMD_STRING
-
 #define DEFAULT_SUBSCRIBE_CMD_LEDS    "leds_toggle"
 #define DEFAULT_SUBSCRIBE_CMD_REBOOT  "reboot"
 #define DEFAULT_SUBSCRIBE_CMD_SENSOR  "enable_sensor"
-
-/* Specific SUB config topics (piggy-backed into CMD as Contiki only suports
- * one subscription at the time
- */
-#define DEFAULT_SUBSCRIBE_CFG         DEFAULT_TOPIC_LONG DEFAULT_CFG_STRING
 #define DEFAULT_SUBSCRIBE_CMD_EVENT   "update_period"
 
 /* Specific PUB event topics */
-#define DEFAULT_PUBLISH_EVENT         DEFAULT_TOPIC_LONG DEFAULT_PUB_STRING
-
 #define DEFAULT_PUBLISH_EVENT_ID      "ID"
 #define DEFAULT_PUBLISH_EVENT_RSSI    "rssi"
 #define DEFAULT_PUBLISH_EVENT_UPTIME  "uptime"
@@ -89,12 +79,11 @@
 /* Define the maximum lenght of the topics and tokens
  * The user ID string is normally 43 bytes long, the "/v2/things" adds 10 bytes more
  */
-#define CONFIG_TOPIC_LEN              53
-#define CONFIG_PUB_TOPIC_LEN          58
-#define CONFIG_SUB_CMD_TOPIC_LEN      57
-#define CONFIG_SUB_CFG_TOPIC_LEN      60
+#define CONFIG_TOPIC_LEN              54
+#define CONFIG_PUB_TOPIC_LEN          54
+#define CONFIG_SUB_CMD_TOPIC_LEN      58
 #define DEFAULT_CONF_IP_ADDR_STR_LEN  64
-#define DEFAULT_CONF_AUTH_USER_LEN    1
+#define DEFAULT_CONF_AUTH_USER_LEN    43
 #define DEFAULT_CONF_AUTH_TOKEN_LEN   1
 /*---------------------------------------------------------------------------*/
 #endif /* THINGSIO_H_ */

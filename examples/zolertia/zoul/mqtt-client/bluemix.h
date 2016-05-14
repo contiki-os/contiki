@@ -35,16 +35,16 @@
 /*---------------------------------------------------------------------------*/
 /* Default configuration values */
 /*
- * The Things.io follows the next scheme:
+ * Bluemix follows the next scheme:
  *
- * /v2/things/token_id  for publish and subscriptions
+ * iot-2/evt/{topic}/fmt/json to publish data to quicstart
  *
  * And the content in the following format:
- * {"values":[{"key":"sht25","value":0xABCD}]}
+ * {"d":{"var_name":var_value}}
  */
 #define DEFAULT_CONF_AUTH_TOKEN       ""
 #define DEFAULT_CONF_AUTH_USER        ""
-#define DEFAULT_TOPIC_STR             "iot-2/evt/status/fmt/json"
+#define DEFAULT_PUB_STRING            "data"
 
 /* Using "quickstart" as DEFAULT_ORG_ID will enable to use IBM Bluemix
  * quickstart service, not requiring to register, but only to use the six bytes
@@ -67,8 +67,6 @@
 #define CMD_LED                       LEDS_RED
 /*---------------------------------------------------------------------------*/
 /* Specific PUB event topics */
-#define DEFAULT_PUBLISH_EVENT         DEFAULT_TOPIC_STR
-
 #define DEFAULT_PUBLISH_EVENT_ID      "ID"
 #define DEFAULT_PUBLISH_EVENT_RSSI    "rssi"
 #define DEFAULT_PUBLISH_EVENT_UPTIME  "uptime"
@@ -77,8 +75,7 @@
 /* Define the maximum lenght of the topics and tokens
  * The user ID string is normally 43 bytes long, the "/v2/things" adds 10 bytes more
  */
-#define CONFIG_TOPIC_LEN              53
-#define CONFIG_PUB_TOPIC_LEN          58
+#define CONFIG_PUB_TOPIC_LEN          33
 #define DEFAULT_CONF_IP_ADDR_STR_LEN  64
 #define DEFAULT_CONF_AUTH_USER_LEN    1
 #define DEFAULT_CONF_AUTH_TOKEN_LEN   1

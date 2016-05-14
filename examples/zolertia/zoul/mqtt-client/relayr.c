@@ -65,6 +65,10 @@
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
+/* Topic placeholders */
+static char data_topic[CONFIG_PUB_TOPIC_LEN];
+static char cmd_topic[CONFIG_SUB_CMD_TOPIC_LEN];
+/*---------------------------------------------------------------------------*/
 PROCESS(relayr_process, "Relayr MQTT process");
 /*---------------------------------------------------------------------------*/
 /* Include there the sensors processes to include */
@@ -203,8 +207,7 @@ publish_alarm(sensor_val_t *sensor)
              "[{\"meaning\":\"%s\",\"value\":%d.%02u}]",
              sensor->alarm_name, aux_int, aux_res);
 
-    publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
-            strlen(app_buffer));
+    publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
 
     /* Schedule the timer to prevent flooding the broker with the same event */
     etimer_set(&alarm_expired, (CLOCK_SECOND * DEFAULT_ALARM_TIME));
@@ -273,8 +276,7 @@ publish_event(sensor_values_t *msg)
   len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_RSSI, aux, 0, 0);
 
   PRINTF("Relayr: publish %s (%u)\n", app_buffer, strlen(app_buffer));
-  publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
-          strlen(app_buffer));
+  publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
 }
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
@@ -299,7 +301,7 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
    * {"name":"enable_sensor","value":false}
    * That is why we use an index of "9" to search for the command string
    */
-  if(strncmp(topic, DEFAULT_SUBSCRIBE_CMD, CONFIG_SUB_CMD_TOPIC_LEN) == 0) {
+  if(strncmp(topic, cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN) == 0) {
 
     /* Toggle a given LED */
     if(strncmp((const char *)&chunk[9], DEFAULT_SUBSCRIBE_CMD_LEDS,
@@ -468,10 +470,25 @@ init_platform(void)
   uip_icmp6_echo_reply_callback_add(&echo_reply_notification,
                                     echo_reply_handler);
 
+  /* Create client id */
   snprintf(conf.client_id, DEFAULT_IP_ADDR_STR_LEN, "%02x%02x%02x%02x%02x%02x",
            linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
            linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
            linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
+
+  /* Create topics */
+  if(strlen(DEFAULT_CONF_AUTH_USER)) {
+    snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
+             DEFAULT_PUB_STRING);
+    snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s", DEFAULT_TOPIC_LONG,
+             DEFAULT_CMD_STRING);
+  } else {
+    /* If we are here it means the mqtt_client has already check credentials */
+    snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "%s%s%s", DEFAULT_TOPIC_STR,
+             conf.auth_user, DEFAULT_PUB_STRING);
+    snprintf(cmd_topic, CONFIG_SUB_CMD_TOPIC_LEN, "%s%s%s", DEFAULT_TOPIC_STR,
+             conf.auth_user, DEFAULT_CMD_STRING);
+  }
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(relayr_process, ev, data)
@@ -483,9 +500,8 @@ PROCESS_THREAD(relayr_process, ev, data)
 
   printf("\nRelayr process started\n");
   printf("  Client ID:    %s\n", conf.client_id);
-  printf("  Data topic:   %s\n", DEFAULT_PUBLISH_EVENT);
-  printf("  Config topic: %s\n", DEFAULT_SUBSCRIBE_CFG);
-  printf("  Cmd topic:    %s\n\n", DEFAULT_SUBSCRIBE_CMD);
+  printf("  Data topic:   %s\n", data_topic);
+  printf("  Cmd topic:    %s\n\n", cmd_topic);
 
   while(1) {
 
@@ -498,8 +514,7 @@ PROCESS_THREAD(relayr_process, ev, data)
       ping_parent();
 
       /* Subscribe to topics (MQTT driver only supports 1 topic at the moment */
-      subscribe((char *)DEFAULT_SUBSCRIBE_CMD);
-      // subscribe((char *) DEFAULT_SUBSCRIBE_CFG);
+      subscribe(cmd_topic);
 
       /* Enable the sensor */
       activate_sensors(0x01);

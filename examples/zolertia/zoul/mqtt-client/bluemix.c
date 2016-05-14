@@ -65,6 +65,9 @@
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
 /*---------------------------------------------------------------------------*/
+/* Topic placeholders */
+static char data_topic[CONFIG_PUB_TOPIC_LEN];
+/*---------------------------------------------------------------------------*/
 PROCESS(bluemix_process, "IBM bluemix MQTT process");
 /*---------------------------------------------------------------------------*/
 /* Include there the sensors processes to include */
@@ -202,11 +205,10 @@ publish_alarm(sensor_val_t *sensor)
              "{\"d\":{\"%s\":%d.%02u}}",
              sensor->alarm_name, aux_int, aux_res);
 
-    publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
-            strlen(app_buffer));
+    publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
 
     /* Schedule the timer to prevent flooding the broker with the same event */
-    etimer_set(&alarm_expired, (CLOCK_SECOND * 15));
+    etimer_set(&alarm_expired, (CLOCK_SECOND * DEFAULT_ALARM_TIME));
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -272,8 +274,7 @@ publish_event(sensor_values_t *msg)
   len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_RSSI, aux, 0, 0);
 
   PRINTF("bluemix: publish %s (%u)\n", app_buffer, strlen(app_buffer));
-  publish((uint8_t *)app_buffer, (char *)DEFAULT_PUBLISH_EVENT,
-          strlen(app_buffer));
+  publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
 }
 /*---------------------------------------------------------------------------*/
 /* This function handler receives publications to which we are subscribed */
@@ -287,8 +288,6 @@ bluemix_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 static void
 init_platform(void)
 {
-  int len;
-
   /* Register the publish callback handler */
   MQTT_PUB_REGISTER_HANDLER(bluemix_pub_handler);
 
@@ -299,11 +298,16 @@ init_platform(void)
   uip_icmp6_echo_reply_callback_add(&echo_reply_notification,
                                     echo_reply_handler);
 
-  len = snprintf(conf.client_id, DEFAULT_CONF_IP_ADDR_STR_LEN,
-                 "d:%s:%s:%02x%02x%02x%02x%02x%02x", DEFAULT_ORG_ID, "Zolertia",
-                 linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
-                 linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
-                 linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
+  /* Create client id */
+  snprintf(conf.client_id, DEFAULT_CONF_IP_ADDR_STR_LEN,
+           "d:%s:%s:%02x%02x%02x%02x%02x%02x", DEFAULT_ORG_ID, "Zolertia",
+           linkaddr_node_addr.u8[0], linkaddr_node_addr.u8[1],
+           linkaddr_node_addr.u8[2], linkaddr_node_addr.u8[5],
+           linkaddr_node_addr.u8[6], linkaddr_node_addr.u8[7]);
+
+  /* Create topics */
+  snprintf(data_topic, CONFIG_PUB_TOPIC_LEN, "iot-2/evt/%s/fmt/json",
+           DEFAULT_PUB_STRING);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(bluemix_process, ev, data)
@@ -315,7 +319,7 @@ PROCESS_THREAD(bluemix_process, ev, data)
 
   printf("\nIBM bluemix process started\n");
   printf("  Client ID:    %s\n", conf.client_id);
-  printf("  Data topic:   %s\n", DEFAULT_PUBLISH_EVENT);
+  printf("  Data topic:   %s\n", data_topic);
 
   while(1) {
 
@@ -327,14 +331,7 @@ PROCESS_THREAD(bluemix_process, ev, data)
       /* Ping our current parent to retrieve the RSSI signal level */
       ping_parent();
 
-      /* Subscribe to topics (MQTT driver only supports 1 topic at the moment */
-      /* IBM quickstart do not support (I think?) subscriptions, however if you
-       * register the device at IBM Bluemix and get user auth and token, it
-       * could be used
-       */
-
-      // subscribe((char *)DEFAULT_SUBSCRIBE_CMD);
-      // subscribe((char *) DEFAULT_SUBSCRIBE_CFG);
+      /* No subscription implemented at the moment, continue */
 
       /* Enable the sensor */
       activate_sensors(0x01);
