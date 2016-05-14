@@ -3,7 +3,7 @@ CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 all: report sink
 APPS=servreg-hack
-CONTIKI=../../../../..
+CONTIKI=../../../..
 
 ifdef WITH_COMPOWER
 APPS+=powertrace
