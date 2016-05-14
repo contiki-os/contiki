@@ -74,8 +74,8 @@
 
 #define COFFEE_MAGIC_WORD             0xABCD
 #define COFFEE_CONF_LOG_TABLE_LIMIT   16
-#define COFFEE_CONF_LOG_SIZE          128
-#define COFFEE_CONF_MICRO_LOGS        3
+#define COFFEE_CONF_LOG_SIZE          256
+#define COFFEE_CONF_MICRO_LOGS        1
 #define COFFEE_CONF_APPEND_ONLY       0
 
 #endif /* PROJECT_CONF_H_ */

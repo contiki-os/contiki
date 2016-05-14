@@ -82,11 +82,6 @@
  */
 #define RECONNECT_ATTEMPTS            RETRY_FOREVER
 #define CONNECTION_STABLE_TIME        (CLOCK_SECOND * 5)
-/*
- * Sensor and device data publication interval
- */
-#define DEFAULT_PUBLISH_TIME          (DEFAULT_PUBLISH_INTERVAL * CLOCK_SECOND)
-#define DEFAULT_KEEP_ALIVE_TIMER      ((DEFAULT_PUBLISH_INTERVAL * 3)/2)
 /*---------------------------------------------------------------------------*/
 /* A timeout used when waiting to connect to a network */
 #define NET_CONNECT_PERIODIC          (CLOCK_SECOND >> 2)
@@ -125,12 +120,15 @@ static struct mqtt_message *msg_ptr = 0;
 static struct etimer publish_periodic_timer;
 static struct ctimer ct;
 /*---------------------------------------------------------------------------*/
+static void init_config(void);
+/*---------------------------------------------------------------------------*/
 /* Declare process events */
 process_event_t mqtt_client_event_connected;
 process_event_t mqtt_client_event_disconnected;
 /*---------------------------------------------------------------------------*/
 /* Holds the MQTT configuration */
 mqtt_client_config_t conf;
+static uint8_t *pCfg;
 /*---------------------------------------------------------------------------*/
 static int
 auth_user_post_handler(char *key, int key_len, char *val, int val_len)
@@ -148,6 +146,7 @@ auth_user_post_handler(char *key, int key_len, char *val, int val_len)
 
   memcpy(conf.auth_user, val, val_len);
   PRINTF("Client: New Auth User config --> %s\n", conf.auth_user);
+  mqtt_write_config_to_flash("mqtt_config", pCfg, sizeof(mqtt_client_config_t));
   return HTTPD_SIMPLE_POST_HANDLER_OK;
 }
 /*---------------------------------------------------------------------------*/
@@ -167,6 +166,7 @@ auth_token_post_handler(char *key, int key_len, char *val, int val_len)
 
   memcpy(conf.auth_token, val, val_len);
   PRINTF("Client: New Auth Token config --> %s\n", conf.auth_token);
+  mqtt_write_config_to_flash("mqtt_config", pCfg, sizeof(mqtt_client_config_t));
   return HTTPD_SIMPLE_POST_HANDLER_OK;
 }
 /*---------------------------------------------------------------------------*/
@@ -191,75 +191,70 @@ print_config_info(void)
   /* FIXME: include here an arch function to print the sensor config */
 }
 /*---------------------------------------------------------------------------*/
-#if 0
-static int
-write_config_to_flash(void)
+int
+mqtt_write_config_to_flash(char *name, uint8_t *buf, uint16_t len)
 {
   int fd;
-  uint8_t *pCfg;
-  config_flash_t store;
+  uint16_t crc, mw;
 
-  pCfg = (uint8_t *) &store;
+  /* magic word */
+  mw = (uint16_t) COFFEE_MAGIC_WORD;
+  buf[0] = (uint8_t)mw & 0x00FF;
+  buf[1] = (uint8_t)((mw & 0xFF00) >> 8);
 
-  store.magic_word = COFFEE_MAGIC_WORD;
-  memcpy(store.auth_user, conf.auth_user, DEFAULT_AUTH_USER_LEN);
-  memcpy(store.auth_token, conf.auth_token, DEFAULT_AUTH_TOKEN_LEN);
-  store.pub_interval_check = conf.pub_interval_check;
-  store.crc = crc16_data(pCfg, (sizeof(config_flash_t) - 2), 0);
+  crc = crc16_data(buf, (len- 2), 0);
+  buf[len-2] = ((uint8_t *)&crc)[0];
+  buf[len-1] = ((uint8_t *)&crc)[1];
 
-  fd = cfs_open("mqtt_config", CFS_READ | CFS_WRITE);
+  fd = cfs_open(name, CFS_READ | CFS_WRITE);
 
   if(fd >= 0) {
-    if(cfs_write(fd, pCfg, sizeof(config_flash_t)) > 0) {
+    if(cfs_write(fd, buf, len) > 0) {
       PRINTF("Client: saved in flash (MW 0x%02X, CRC16 %u, len %u)\n",
-              store.magic_word, store.crc, sizeof(config_flash_t));
+              buf[0] + (buf[1] << 8), buf[len-2] + (buf[len-1] << 8), len);
       print_config_info();
       cfs_close(fd);
     } else {
-      PRINTF("Client: failed to write file\n");
+      PRINTF("Client: failed to write file %s\n", name);
       cfs_close(fd);
       return -1;
     }
   } else {
-    PRINTF("Client: failed to open file\n");
+    PRINTF("Client: failed to open file %s\n", name);
     return -1;
   }
 
   return 0;
 }
-#endif
 /*---------------------------------------------------------------------------*/
-static int
-read_config_from_flash(void)
+int
+mqtt_read_config_from_flash(char *name, uint8_t *buf, uint16_t len)
 {
   int fd;
-  uint8_t *pCfg;
   uint16_t crc;
-  config_flash_t store;
+  uint16_t mw;
+  uint16_t crc_read;
 
-  pCfg = (uint8_t *) &store;
-
-  /* FIXME: temporal until fixing the flash problem */
-  return -1;
-
-  fd = cfs_open("mqtt_config", CFS_READ | CFS_WRITE);
+  fd = cfs_open(name, CFS_READ | CFS_WRITE);
 
   if(fd >= 0) {
-    if(cfs_read(fd, pCfg, sizeof(config_flash_t)) > 0) {
-      PRINTF("Client: Read from flash (MW 0x%02X, CRC16 %u len %u)\n",
-             store.magic_word, store.crc, sizeof(config_flash_t));
-      crc = crc16_data(pCfg, (sizeof(config_flash_t) - 2), 0);
+    if(cfs_read(fd, buf, len) > 0) {
+      mw = buf[0] + (buf[1] << 8);
+      crc_read = buf[len-2] + (buf[len-1] << 8);
 
-      if((store.magic_word == COFFEE_MAGIC_WORD) && (crc == store.crc)) {
+      PRINTF("Client: Read from flash (MW 0x%02X, CRC16 %u len %u)\n", mw,
+             crc_read, len);
+      crc = crc16_data(buf, (len-2), 0);
+
+      if((mw == COFFEE_MAGIC_WORD) && (crc == crc_read)) {
         PRINTF("Client: magic word and CRC check OK\n");
-        memcpy(conf.auth_user, store.auth_user, DEFAULT_AUTH_USER_LEN);
-        memcpy(conf.auth_token, store.auth_token, DEFAULT_AUTH_TOKEN_LEN);
-        conf.pub_interval_check = store.pub_interval_check;
         print_config_info();
 
       } else {
-        PRINTF("Client: invalid magic word or CRC, using defaults\n");
+        PRINTF("Client: invalid magic word or CRC, MQ 0x%02X, CRC16 %u vs %u\n",
+               mw, crc_read, crc);
         cfs_close(fd);
+        init_config();
         return -1;
       }
 
@@ -270,7 +265,7 @@ read_config_from_flash(void)
     }
     cfs_close(fd);
   } else {
-    PRINTF("Client: failed to open file\n");
+    PRINTF("Client: failed to open file %s\n", name);
     return -1;
   }
   return 0;
@@ -369,8 +364,10 @@ publish(uint8_t *app_buffer, char *pub_topic, uint16_t len)
 {
   PRINTF("Client: Publish %s to %s\n", app_buffer, pub_topic);
 
-  mqtt_publish(&conn, NULL, pub_topic, app_buffer, len, MQTT_QOS_LEVEL_0,
-               MQTT_RETAIN_OFF);
+  if(mqtt_publish(&conn, NULL, pub_topic, app_buffer, len, MQTT_QOS_LEVEL_0,
+                  MQTT_RETAIN_OFF) != MQTT_STATUS_OK) {
+    PRINTF("Client: ongoing Publication already, not queued\n");
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -378,7 +375,7 @@ connect_to_broker(void)
 {
   /* Connect to MQTT server */
   mqtt_connect(&conn, MQTT_DEMO_BROKER_IP_ADDR, DEFAULT_BROKER_PORT,
-               conf.pub_interval * 3);
+               conf.pub_interval_check * 3);
   state = STATE_CONNECTING;
 }
 /*---------------------------------------------------------------------------*/
@@ -571,7 +568,9 @@ PROCESS_THREAD(mqtt_demo_process, ev, data)
 
   init_config();
 
-  if(read_config_from_flash() == -1) {
+  pCfg = (uint8_t *) &conf;
+  if(mqtt_read_config_from_flash("mqtt_config", pCfg,
+                                 sizeof(mqtt_client_config_t)) == -1) {
 
 #if DEFAULT_CONF_AUTH_IS_REQUIRED
     if((strlen(DEFAULT_AUTH_USER)) && (strlen(DEFAULT_AUTH_TOKEN))) {

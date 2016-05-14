@@ -375,8 +375,7 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
 
       conf.pub_interval_check = aux;
       PRINTF("Relayr: New update interval --> %u secs\n", conf.pub_interval_check);
-
-      // FIXME: write_config_to_flash();
+      // mqtt_write_config_to_flash();
       return;
     }
 
@@ -420,11 +419,8 @@ relayr_pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
         } else {
           PRINTF("Relayr: Expected threshold configuration name to end ");
           PRINTF("either in thresh or thresl\n");
-          /* Exit earlier to avoid writting in flash */
-          return;
         }
 
-        // FIXME: write_config_to_flash();
         return;
       }
     }

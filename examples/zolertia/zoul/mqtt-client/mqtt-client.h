@@ -62,29 +62,26 @@
 #endif
 /*---------------------------------------------------------------------------*/
 /**
- * \brief Data structure declaration for the MQTT client configuration
+ * \brief Data structure declaration for the MQTT client configuration, saved
+ * in flash memory
  */
 typedef struct mqtt_client_config {
+  uint16_t magic_word;
   char auth_user[DEFAULT_AUTH_USER_LEN];
+  char auth_token[DEFAULT_AUTH_TOKEN_LEN];
   clock_time_t pub_interval;
   uint16_t pub_interval_check;
-  char auth_token[DEFAULT_AUTH_TOKEN_LEN];
   char client_id[DEFAULT_IP_ADDR_STR_LEN];
+  uint16_t crc;
 } mqtt_client_config_t;
 
 extern mqtt_client_config_t conf; 
 /*---------------------------------------------------------------------------*/
-typedef struct config_flash {
-  uint16_t magic_word;
-  char auth_user[DEFAULT_AUTH_USER_LEN];
-  char auth_token[DEFAULT_AUTH_TOKEN_LEN];
-  uint16_t pub_interval_check;
-  uint16_t crc;
-} config_flash_t;
-/*---------------------------------------------------------------------------*/
 /* MQTT client available functions */
 void subscribe(char * topic);
 void publish(uint8_t *app_buffer, char *pub_topic, uint16_t len);
+int mqtt_write_config_to_flash(char *name, uint8_t *buf, uint16_t len);
+int mqtt_read_config_from_flash(char *name, uint8_t *buf, uint16_t len);
 /*---------------------------------------------------------------------------*/
 /* MQTT client process events */
 extern process_event_t mqtt_client_event_connected;
