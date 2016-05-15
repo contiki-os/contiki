@@ -21,7 +21,7 @@
 // test ID (useful e.g. in case of multiple motes having simultaneous tests)
 #define TEST_ID 0x1
 
-#define NODES_IN_TEST               16  // Max Nodes
+#define STAT_SIZE                   40
 #define TEST_PACKET_SIZE            (6 + 6 * 10)
 #define PACKETS_IN_TEST             100u
 

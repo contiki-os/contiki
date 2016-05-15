@@ -45,7 +45,7 @@ int16_t txtemp;
 struct rtimer rt;
 static struct etimer periodic;
 
-struct stats_info stats[5*NODES_IN_TEST];
+struct stats_info stats[STAT_SIZE];
 int8_t currentStatsIdx;
 
 // needed to link fastrandom.h
@@ -258,7 +258,7 @@ static void inputPacket(void)
     uint8_t rssi;
     uint8_t i;
     
-    if (currentStatsIdx < 0 || currentStatsIdx >= NODES_IN_TEST) return;
+    if (currentStatsIdx < 0 || currentStatsIdx >= STAT_SIZE) return;
     // TODO: better handling when stats memory full.
     // at the moment: ignoring new packets.
     
@@ -268,7 +268,7 @@ static void inputPacket(void)
     if (h->sender != s->node_id || h->channel != s->channel || h->txpower != s->txpower) {
         findIdx = -1;
         lastIdx = -1;
-        for (i=0; i<NODES_IN_TEST; i++) {
+        for (i=0; i<STAT_SIZE; i++) {
             if (h->sender == stats[i].node_id && h->channel == stats[i].channel && h->txpower == s->txpower) {
                 findIdx = i;
             }
@@ -277,7 +277,7 @@ static void inputPacket(void)
             }
         }
 
-        if (lastIdx == NODES_IN_TEST - 1) {
+        if (lastIdx == STAT_SIZE - 1) {
             // stats memory full
             currentStatsIdx = -1;
             return;
@@ -296,7 +296,7 @@ static void inputPacket(void)
             s->channel = h->channel;
             s->txpower = h->txpower;
             s->txtemp = h->txtemp;
-        } else if (lastIdx < NODES_IN_TEST - 1) {
+        } else if (lastIdx < STAT_SIZE - 1) {
             // new <sender,channel>
             currentStatsIdx = lastIdx + 1;
             s = &stats[currentStatsIdx];
@@ -551,7 +551,7 @@ static void handle_serial_input(const char *line)
         print_help();
     }
     else if (!strcmp(p, "stat") || !strcmp(line, "stats")) {
-        for(i=0; i < NODES_IN_TEST; i++) {
+        for(i=0; i < STAT_SIZE; i++) {
             printStats(&stats[i]);
         }
         clearStats();
@@ -580,7 +580,7 @@ static void handle_serial_input(const char *line)
 static void print_local_info(void)
 {
     printf("pdr-test: version=%s", VERSION);
-    printf(" Max nodes_in_test=%d\n", NODES_IN_TEST);
+    printf(" Max STAT_SIZE=%d\n", STAT_SIZE);
     printf(" Local node_id=%u\n", node_id);
     printf(" platform_id=%u\n", platform_id);
     printf(" temp=%i\n", temp_sensor.value(0));
