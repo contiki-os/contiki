@@ -1,0 +1,61 @@
+CONTIKI_TARGET_DIRS = . apps net loader dev
+
+CONTIKI_CORE=contiki-main
+CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c params.c battery-sensor.c i2c.c
+
+CONTIKI_TARGET_SOURCEFILES += sensors.c button-sensor.c slip_uart0.c slip.c leds.c temp_mcu-sensor.c light-sensor.c adc.c cfs-eeprom.c eeprom.c pulse-sensor.c 
+
+CONTIKI_TARGET_SOURCEFILES += temp-sensor.c
+
+CONTIKI_TARGET_SOURCEFILES += enc28j60_avr.c
+CONTIKI_TARGET_SOURCEFILES += co2_sa_kxx-sensor.c
+
+CONTIKIAVR=$(CONTIKI)/cpu/avr
+CONTIKIBOARD=.
+
+
+ifdef $(MCU)
+MCU=$(MCU)
+else
+MCU=atmega256rfr2
+endif
+
+ifeq ($(MCU),atmega128rfa1)
+CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAUTO_CRC_PADDING=2
+BOOTLOADER_START = 0x1E000
+endif
+
+ifeq ($(MCU),atmega128rfr2)
+CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAUTO_CRC_PADDING=2
+BOOTLOADER_START = 0x1E000
+endif
+
+ifeq ($(MCU),atmega256rfr2)
+CONTIKI_PLAT_DEFS = -DF_CPU=16000000UL -DAUTO_CRC_PADDING=2
+BOOTLOADER_START = 0x3E000
+endif
+
+AVRDUDE_PROGRAMMER=jtag2
+
+# For usb devices, you may either use PORT=usb, or (e.g. if you have more than one
+# programmer connected) you can use the following trick to find out the serial number:
+#
+# The example is for an JTAGICE mkII used to program an ATmega128:
+# avrdude -v -P usb:xxxx -c jtag2 -p atmega128
+AVRDUDE_PORT=usb:00B000000D79
+
+# Additional avrdude options
+# Verify off
+AVRDUDE_OPTIONS=-V
+AVRDUDE_MCU=m256rfr2
+
+include $(CONTIKIAVR)/Makefile.avr
+include $(CONTIKIAVR)/radio/Makefile.radio
+
+#MODULES += core/net/mac core/net core/net/mac/sicslowmac core/net/mac/contikimac core/net/llsec core/net/rime
+
+MODULES += core/net/mac core/net core/net/mac/sicslowmac core/net/mac/contikimac core/net/llsec 
+
+
+

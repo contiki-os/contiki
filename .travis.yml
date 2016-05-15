@@ -24,7 +24,11 @@ before_script:
     msp430-gcc --version
 
   ## Install avr toolchain
-  - sudo apt-get -qq install gcc-avr avr-libc
+  - $WGET http://atiselsts.github.io/resources/avr-gcc-4.9.2-compiled.tar.bz2 &&
+    tar xjf avr-gcc*.tar.bz2 -C /tmp/ &&
+    sudo cp -f -r /tmp/avr-gcc/* /usr/local/ &&
+    rm -rf /tmp/avr-gcc avr-gcc*.tar.bz2 &&
+    avr-gcc --version
 
   ## Install 32-bit compatibility libraries
   - sudo apt-get -qq install libc6:i386 libgcc1:i386 gcc-4.6-base:i386
@@ -140,3 +144,4 @@ env:
   - BUILD_TYPE='compile-nxp-ports' BUILD_CATEGORY='compile' BUILD_ARCH='jn516x'
   - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
   - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
+  - BUILD_TYPE='compile-avr' BUILD_CATEGORY='compile' BUILD_ARCH='avr-rss2'
