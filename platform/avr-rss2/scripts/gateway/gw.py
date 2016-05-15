@@ -779,9 +779,9 @@ class RuntimeState:
             with bufferLock:
                 state.writeBuffer += cmdParams + "\n"
 
-            if command in ["rx", "ch", "txp"]
+            if command in ["rx", "ch", "txp"]:
                 self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
-            else if command in ["tx", "stat"]
+            else if command in ["tx", "stat"]:
                 self.radioTestMoteCommandState = RADIO_TEST_COMMAND_ACCEPTED
 
             numSync = RADIO_TEST_MAX_RETRIES if doSync else 1
