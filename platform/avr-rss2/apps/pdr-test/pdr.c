@@ -231,7 +231,7 @@ void rtimerCallback(struct rtimer *t, void *ptr)
                     set_txpower(get_txpower()-1);
                     sendPacketNumber = 0;
                     currentState = STATE_TX;
-                    next += 8*PACKET_SEND_INTERVAL;
+                    next += 64*PACKET_SEND_INTERVAL;
                 }
             }
             else {
