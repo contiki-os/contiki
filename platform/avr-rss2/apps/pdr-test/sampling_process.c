@@ -19,53 +19,53 @@ PROCESS(samplingProcess, "Sampling process");
 
 PROCESS_THREAD(samplingProcess, ev, data)
 {
-//  static struct etimer et;
-//  static uint16_t r;
-
-  PROCESS_BEGIN();
-
+    //  static struct etimer et;
+    //  static uint16_t r;
+    
+    PROCESS_BEGIN();
+    
 #if CONTIKI_TARGET_SKY
-  SENSORS_ACTIVATE(sht11_sensor);
+    SENSORS_ACTIVATE(sht11_sensor);
 #elif CONTIKI_TARGET_Z1
-  tmp102_init();
+    tmp102_init();
 #else
 #endif
-
-//  etimer_set(&et, CLOCK_SECOND);
-
-  while (1) {
-//    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    PROCESS_WAIT_EVENT();
-    if (ev == PROCESS_EVENT_POLL) {
-
-    // r = (random_rand() >> 2) % (4 * CLOCK_SECOND);
-
-    // etimer_set(&et, r);
-    // PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-
+    
+    //  etimer_set(&et, CLOCK_SECOND);
+    
+    while (1) {
+        //    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+        PROCESS_WAIT_EVENT();
+        if (ev == PROCESS_EVENT_POLL) {
+            
+            // r = (random_rand() >> 2) % (4 * CLOCK_SECOND);
+            
+            // etimer_set(&et, r);
+            // PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+            
 #if CONTIKI_TARGET_SKY
-      uint16_t temp = sht11_sensor.value(SHT11_SENSOR_TEMP);
-      uint16_t humidity = sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
-
-      printf("T=%u H=%u\n", temp, humidity);
+            uint16_t temp = sht11_sensor.value(SHT11_SENSOR_TEMP);
+            uint16_t humidity = sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
+            
+            printf("T=%u H=%u\n", temp, humidity);
 #elif CONTIKI_TARGET_Z1
-      uint16_t temp = tmp102_read_temp_raw();
-      printf("T=%u A=%u\n", temp, node_id);
+            uint16_t temp = tmp102_read_temp_raw();
+            printf("T=%u A=%u\n", temp, node_id);
 #else
-      int16_t temp;
-      if (ds18b20_get_temp(&temp)) {
-        printf("T=%u A=%u\n", temp, node_id);
-      } else {
-        puts("reading temperature failed");
-      }
+            int16_t temp;
+            if (ds18b20_get_temp(&temp)) {
+                printf("T=%u A=%u\n", temp, node_id);
+            } else {
+                puts("reading temperature failed");
+            }
 #endif
-
+            
+        }
+        
+        //    etimer_set(&et, 5*CLOCK_SECOND - r);
     }
-
-//    etimer_set(&et, 5*CLOCK_SECOND - r);
-  }
-
-  PROCESS_END();
+    
+    PROCESS_END();
 }
 
 extern uint8_t  ds18b20_get_temp(int16_t *temperature);
