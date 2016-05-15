@@ -22,4 +22,8 @@ Look in the host directory
 Contiki support
 ---------------
 The code promisc for support is needed. This also adds the sensniff 
-format. See rf230-promisc.pat for the rf230bb radions.
+format. 
+
+References
+----------
+https://github.com/g-oikonomou/sensniff
