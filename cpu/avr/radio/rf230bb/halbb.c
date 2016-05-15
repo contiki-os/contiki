@@ -11,6 +11,7 @@
  *	Nate Bohlmann nate@elfwerks.com
  *	David Kopf dak664@embarqmail.com
  *  Ivan Delamer delamer@ieee.com
+ *  Cristiano De Alti cristiano_dealti@hotmail.com
  *
  *   All rights reserved.
  *
@@ -82,7 +83,7 @@ extern uint8_t debugflowsize,debugflow[DEBUGFLOWSIZE];
 
 /*============================ VARIABLES =====================================*/
 
-volatile extern signed char rf230_last_rssi;
+static uint8_t rssi;
 
 /*============================ CALLBACKS =====================================*/
 
@@ -170,6 +171,7 @@ hal_init(void)
 #elif defined(__AVR__)
 
 #define HAL_RF230_ISR() ISR(RADIO_VECT)
+#define HAL_TIMER_OVERFLOW_ISR() ISR(TIMER_VECT)
 
 void
 hal_init(void)
@@ -193,6 +195,10 @@ hal_init(void)
     /* Run SPI at max speed */
     SPCR         = (1 << SPE) | (1 << MSTR); /* Enable SPI module and master operation. */
     SPSR         = (1 << SPI2X); /* Enable doubled SPI speed in master mode. */
+
+#if RF230_CONF_PRECISE_TIMESTAMP_SECONDS
+    HAL_ENABLE_OVERFLOW_INTERRUPT(); /* Enable Timer overflow interrupt. */
+#endif /* RF230_CONF_PRECISE_TIMESTAMP_SECONDS */
 
     /* Enable interrupts from the radio transceiver. */
     hal_enable_trx_interrupt();
@@ -641,35 +647,41 @@ ISR(TRX24_RX_END_vect)
 {
 /* Get the rssi from ED if extended mode */
 #if RF230_CONF_AUTOACK
-	rf230_last_rssi=hal_register_read(RG_PHY_ED_LEVEL);
+	rssi=hal_register_read(RG_PHY_ED_LEVEL);
 #endif
 
 /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
 /* Is a ram buffer available? */
-	if (rxframe[rxframe_tail].length) {DEBUGFLOW('0');} else /*DEBUGFLOW('1')*/;
+	if (rxframe[rxframe_tail].length) {
+		DEBUGFLOW('0');
+		return; /* Drop it */
+	} else 
+		/*DEBUGFLOW('1')*/;
 
 #ifdef RF230_MIN_RX_POWER		 
 /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes */
 /* This does not prevent an autoack. TODO:rfa1 radio can be set up to not autoack weak packets */
-	if (rf230_last_rssi >= RF230_MIN_RX_POWER) {
-#else
-	if (1) {
+	if (rssi < RF230_MIN_RX_POWER)
+		return;
 #endif
-//		DEBUGFLOW('2');
-		hal_frame_read(&rxframe[rxframe_tail]);
-		rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
-		rf230_interrupt();
-	}
+//	DEBUGFLOW('2');
+	hal_frame_read(&rxframe[rxframe_tail]);
+	rxframe[rxframe_tail].rssi = rssi;
+	rxframe[rxframe_tail].timestamp = 0;
+	rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
+	rf230_interrupt();
 }
 /* Preamble detected, starting frame reception */
 ISR(TRX24_RX_START_vect)
 {
 //	DEBUGFLOW('3');
-/* Save RSSI for this packet if not in extended mode, scaling to 1dB resolution */
+/* Save RSSI for this packet if not in extended mode, scaling to 3dB resolution */
 #if !RF230_CONF_AUTOACK
-    rf230_last_rssi = 3 * hal_subregister_read(SR_RSSI);
+	/* See reference manual 9.12.10 */
+	rssi = hal_subregister_read(SR_RSSI);
+	if (rssi != 0)
+		rssi = 3 * (rssi - 1);
 #endif
-
 }
 
 /* PLL has locked, either from a transition out of TRX_OFF or a channel change while on */
@@ -714,6 +726,36 @@ ISR(TRX24_CCA_ED_DONE_vect)
 }
 
 #else /* defined(__AVR_ATmega128RFA1__) */
+
+#if RF230_CONF_PRECISE_TIMESTAMP_SECONDS
+static uint32_t timestamp;
+static uint16_t overflow_counter;
+
+static void
+timer_overflow_interrupt(void)
+{
+  overflow_counter++;
+  HAL_CLEAR_TIMER_OVERFLOW();
+}
+
+static uint32_t
+get_timestamp(void)
+{
+  /* http://www.avrfreaks.net/forum/avr-input-capture-timer-expansion-problem */
+  uint16_t timestamp = HAL_READ_TIMER_COUNTER();
+  if (HAL_TIMER_OVERFLOW_PENDING() && !(timestamp & 0x8000)) {
+    timer_overflow_interrupt();
+  }
+  
+  return timestamp | ((uint32_t)overflow_counter << 16);
+}
+
+HAL_TIMER_OVERFLOW_ISR()
+{
+  timer_overflow_interrupt();
+}
+#endif /* RF230_CONF_PRECISE_TIMESTAMP_SECONDS */
+
 /* Separate RF230 has a single radio interrupt and the source must be read from the IRQ_STATUS register */
 HAL_RF230_ISR()
 {
@@ -721,7 +763,6 @@ HAL_RF230_ISR()
     uint8_t interrupt_source; /* used after HAL_SPI_TRANSFER_OPEN/CLOSE block */
 
     INTERRUPTDEBUG(1);
-
     
     /* Using SPI bus from ISR is generally a bad idea... */
     /* Note: all IRQ are not always automatically disabled when running in ISR */
@@ -737,19 +778,21 @@ HAL_RF230_ISR()
 
     HAL_SPI_TRANSFER_CLOSE();
 
-    /*Handle the incomming interrupt. Prioritized.*/
+    /*Handle the incoming interrupt. Prioritized.*/
     if ((interrupt_source & HAL_RX_START_MASK)){
 	   INTERRUPTDEBUG(10);
-    /* Save RSSI for this packet if not in extended mode, scaling to 1dB resolution */
+
+#if RF230_CONF_PRECISE_TIMESTAMP_SECONDS
+       timestamp = get_timestamp();
+#endif /* RF230_CONF_PRECISE_TIMESTAMP_SECONDS */
+
 #if !RF230_CONF_AUTOACK
-#if 0  // 3-clock shift and add is faster on machines with no hardware multiply
-       // With -Os avr-gcc saves a byte by using the general routine for multiply by 3
-        rf230_last_rssi = hal_subregister_read(SR_RSSI);
-        rf230_last_rssi = (rf230_last_rssi <<1)  + rf230_last_rssi;
-#else  // Faster with 1-clock multiply. Raven and Jackdaw have 2-clock multiply so same speed while saving 2 bytes of program memory
-        rf230_last_rssi = 3 * hal_subregister_read(SR_RSSI);
-#endif
-#endif
+       /* Save RSSI for this packet if not in extended mode, scaling to 3dB resolution */
+       /* See reference manual 8.4.3 */
+       rssi = hal_subregister_read(SR_RSSI);
+       if (rssi != 0)
+         rssi = 3 * (rssi - 1);
+#endif /* !RF230_CONF_AUTOACK */
 
     }
     if (interrupt_source & HAL_TRX_END_MASK){
@@ -759,26 +802,32 @@ HAL_RF230_ISR()
        if((state == BUSY_RX_AACK) || (state == RX_ON) || (state == BUSY_RX) || (state == RX_AACK_ON)){
          /* Received packet interrupt */
          /* Buffer the frame and call rf230_interrupt to schedule poll for rf230 receive process */
-         if (rxframe[rxframe_tail].length) INTERRUPTDEBUG(42); else INTERRUPTDEBUG(12);
- 
-#ifdef RF230_MIN_RX_POWER		 
-         /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes.*/
-         /* Save the rssi for printing in the main loop */
-#if RF230_CONF_AUTOACK
-         //rf230_last_rssi=hal_subregister_read(SR_ED_LEVEL);
-         rf230_last_rssi=hal_register_read(RG_PHY_ED_LEVEL);
-#endif
-         if (rf230_last_rssi >= RF230_MIN_RX_POWER) {
-#endif
-           hal_frame_read(&rxframe[rxframe_tail]);
-           rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
-           rf230_interrupt();
-#ifdef RF230_MIN_RX_POWER
-         }
-#endif
+         if (rxframe[rxframe_tail].length){
+           INTERRUPTDEBUG(42);
+           return; /* Drop it */
+         } else
+           INTERRUPTDEBUG(12);
 
-       }
-              
+#if RF230_CONF_AUTOACK
+         rssi=hal_register_read(RG_PHY_ED_LEVEL);
+#endif /* RF230_CONF_AUTOACK */
+
+#ifdef RF230_MIN_RX_POWER 
+         /* Discard packets weaker than the minimum if defined. This is for testing miniature meshes.*/
+         if (rssi < RF230_MIN_RX_POWER)
+           return;
+#endif /* RF230_MIN_RX_POWER */
+
+         hal_frame_read(&rxframe[rxframe_tail]);
+         rxframe[rxframe_tail].rssi = rssi;
+#if RF230_CONF_PRECISE_TIMESTAMP_SECONDS
+         rxframe[rxframe_tail].timestamp = timestamp;
+#else
+         rxframe[rxframe_tail].timestamp = 0;
+#endif /* RF230_CONF_PRECISE_TIMESTAMP_SECONDS */
+         rxframe_tail++;if (rxframe_tail >= RF230_CONF_RX_BUFFERS) rxframe_tail=0;
+         rf230_interrupt();
+       }              
     }
     if (interrupt_source & HAL_TRX_UR_MASK){
         INTERRUPTDEBUG(13);

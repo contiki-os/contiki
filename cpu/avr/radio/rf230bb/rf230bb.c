@@ -6,6 +6,7 @@
  *
  *  David Kopf dak664@embarqmail.com
  *  Ivan Delamer delamer@ieee.com
+ *  Cristiano De Alti cristiano_dealti@hotmail.com
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -550,6 +551,44 @@ rf230_is_ready_to_send() {
 	return true;
 }
 
+/*---------------------------------------------------------------------------*/
+/*
+ * Interrupt leaves frame intact in FIFO.
+ */
+#if RF230_CONF_TIMESTAMPS
+static volatile rtimer_clock_t interrupt_time;
+static volatile int interrupt_time_set;
+#endif /* RF230_CONF_TIMESTAMPS */
+int
+rf230_interrupt(void)
+{
+  /* Poll the receive process, unless the stack thinks the radio is off */
+#if RADIOALWAYSON
+if (RF230_receive_on) {
+  DEBUGFLOW('+');
+#endif
+#if RF230_CONF_TIMESTAMPS
+  interrupt_time = timesynch_time();
+  interrupt_time_set = 1;
+#endif /* RF230_CONF_TIMESTAMPS */
+
+  process_poll(&rf230_process);
+  
+  rf230_pending = 1;
+  
+#if RADIOSTATS //TODO:This will double count buffered packets
+  RF230_receivepackets++;
+#endif
+  RIMESTATS_ADD(llrx);
+
+#if RADIOALWAYSON
+} else {
+  DEBUGFLOW('-');
+  rxframe[rxframe_head].length=0;
+}
+#endif
+  return 1;
+}
 
 static void
 flushrx(void)
@@ -855,7 +894,7 @@ rf230_init(void)
 void rf230_warm_reset(void) {
 #if RF230_CONF_SNEEZER && JACKDAW
   /* Take jackdaw radio out of test mode */
-#warning Manipulating PORTB pins for RF230 Sneezer mode!
+#pragma message "Manipulating PORTB pins for RF230 Sneezer mode!"
   PORTB &= ~(1<<7);
   DDRB  &= ~(1<<7);
 #endif
@@ -1313,44 +1352,6 @@ rf230_set_pan_addr(unsigned pan,
   }
 }
 /*---------------------------------------------------------------------------*/
-/*
- * Interrupt leaves frame intact in FIFO.
- */
-#if RF230_CONF_TIMESTAMPS
-static volatile rtimer_clock_t interrupt_time;
-static volatile int interrupt_time_set;
-#endif /* RF230_CONF_TIMESTAMPS */
-int
-rf230_interrupt(void)
-{
-  /* Poll the receive process, unless the stack thinks the radio is off */
-#if RADIOALWAYSON
-if (RF230_receive_on) {
-  DEBUGFLOW('+');
-#endif
-#if RF230_CONF_TIMESTAMPS
-  interrupt_time = timesynch_time();
-  interrupt_time_set = 1;
-#endif /* RF230_CONF_TIMESTAMPS */
-
-  process_poll(&rf230_process);
-  
-  rf230_pending = 1;
-  
-#if RADIOSTATS //TODO:This will double count buffered packets
-  RF230_receivepackets++;
-#endif
-  RIMESTATS_ADD(llrx);
-
-#if RADIOALWAYSON
-} else {
-  DEBUGFLOW('-');
-  rxframe[rxframe_head].length=0;
-}
-#endif
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
 /* Process to handle input packets
  * Receive interrupts cause this process to be polled
  * It calls the core MAC layer which calls rf230_read to get the packet
@@ -1421,6 +1422,7 @@ static int
 rf230_read(void *buf, unsigned short bufsize)
 {
   uint8_t len,*framep;
+  uint32_t timestamp;
 #if FOOTER_LEN
   uint8_t footer[FOOTER_LEN];
 #endif
@@ -1442,7 +1444,7 @@ rf230_read(void *buf, unsigned short bufsize)
  }
 #endif
 
-  /* The length includes the twp-byte checksum but not the LQI byte */
+  /* The length includes the two-byte checksum but not the LQI byte */
   len=rxframe[rxframe_head].length;
   if (len==0) {
 #if RADIOALWAYSON && DEBUGFLOWSIZE
@@ -1490,9 +1492,13 @@ rf230_read(void *buf, unsigned short bufsize)
   framep=&(rxframe[rxframe_head].data[0]);
   memcpy(buf,framep,len-AUX_LEN+CHECKSUM_LEN);
   rf230_last_correlation = rxframe[rxframe_head].lqi;
+  rf230_last_rssi = rxframe[rxframe_head].rssi;
+  timestamp = rxframe[rxframe_head].timestamp;
 
  /* Prepare to receive another packet */
   flushrx();
+
+ /* WARNING! do not use rxframe past this point */ 
   
  /* Point to the checksum */
   framep+=len-AUX_LEN; 
@@ -1518,19 +1524,6 @@ rf230_read(void *buf, unsigned short bufsize)
      checksum == crc16_data(buf, len - AUX_LEN, 0)) {
 #endif
 #endif /* RF230_CONF_CHECKSUM */
-
-/* Get the received signal strength for the packet, 0-84 dB above rx threshold */
-#if 0   //more general
-    rf230_last_rssi = rf230_get_raw_rssi();
-#else   //faster
-#if RF230_CONF_AUTOACK
- //   rf230_last_rssi = hal_subregister_read(SR_ED_LEVEL);  //0-84 resolution 1 dB
-    rf230_last_rssi = hal_register_read(RG_PHY_ED_LEVEL);  //0-84, resolution 1 dB
-#else
-/* last_rssi will have been set at RX_START interrupt */
-//  rf230_last_rssi = 3*hal_subregister_read(SR_RSSI);    //0-28 resolution 3 dB
-#endif
-#endif /* speed vs. generality */
 
   /* Save the smallest rssi. The display routine can reset by setting it to zero */
   if ((rf230_smallest_rssi==0) || (rf230_last_rssi<rf230_smallest_rssi))
@@ -1565,7 +1558,10 @@ rf230_read(void *buf, unsigned short bufsize)
 #endif
 
 #ifdef RF230BB_HOOK_RX_PACKET
-  RF230BB_HOOK_RX_PACKET(buf,len);
+  RF230BB_HOOK_RX_PACKET(buf, len,
+                         rf230_last_correlation,
+                         rf230_last_rssi,
+                         timestamp);
 #endif
 
   /* Here return just the data length. The checksum is however still in the buffer for packet sniffing */
@@ -1615,7 +1611,11 @@ rf230_get_raw_rssi(void)
      rssi = hal_subregister_read(SR_RSSI);      //0-28, resolution 3 dB
      rssi = (rssi << 1)  + rssi;                //*3
 #else  // 1 or 2 clock multiply, or compiler with correct optimization
-     rssi = 3 * hal_subregister_read(SR_RSSI);
+     /* See ATmega128RFA1 reference manual 9.12.10.
+        See AT86RF230 reference manual 8.4.3 */
+     rssi = hal_subregister_read(SR_RSSI);
+     if (rssi != 0)
+        rssi = 3 * (rssi - 1);
 #endif
 
   }

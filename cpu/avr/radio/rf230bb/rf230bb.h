@@ -11,6 +11,7 @@
  *	Nate Bohlmann nate@elfwerks.com
  *  David Kopf dak664@embarqmail.com
  *  Ivan Delamer delamer@ieee.com
+ *  Cristiano De Alti cristiano_dealti@hotmail.com
  *
  *   All rights reserved.
  *
@@ -193,7 +194,7 @@ typedef void (*radio_rx_callback) (uint16_t data);
 **	
 **	Sniffing Hooks:
 **		RF230BB_HOOK_TX_PACKET(buffer,total_len)
-**		RF230BB_HOOK_RX_PACKET(buf,len)
+**		RF230BB_HOOK_RX_PACKET(buf,len,lqi,rssi,timestamp)
 **
 **	RF230BB_HOOK_IS_SEND_ENABLED()
 **	RF230BB_HOOK_RADIO_ON()
