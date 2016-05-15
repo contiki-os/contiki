@@ -674,7 +674,7 @@ class RuntimeState:
             return
         if line.find(RADIOTEST_COMMAND_STAT_FINISHED) == 0:
             self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
-                return
+            return
 
 
         # if the line has a checksum, check it
