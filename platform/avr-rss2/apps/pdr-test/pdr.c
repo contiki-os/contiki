@@ -39,11 +39,13 @@ bool txpower_sweep;
 uint8_t sendPacketNumber;
 uint8_t channel;
 uint8_t platform_id;
+int16_t txtemp;
+
 
 struct rtimer rt;
 static struct etimer periodic;
 
-struct stats_info stats[NODES_IN_TEST];
+struct stats_info stats[5*NODES_IN_TEST];
 int8_t currentStatsIdx;
 
 // needed to link fastrandom.h
@@ -196,7 +198,6 @@ void rtimerCallback(struct rtimer *t, void *ptr)
 {
     static uint8_t sendBuffer[TEST_PACKET_SIZE] __attribute__((aligned (2))) =  { 0, 0, 0, 10 };
     struct packetHeader *h = (struct packetHeader *) sendBuffer;
-    static int16_t txtemp;
     
     rtimer_clock_t next = RTIMER_TIME(t);
     
@@ -205,10 +206,6 @@ void rtimerCallback(struct rtimer *t, void *ptr)
             return;
             
         case STATE_TX:
-            if (sendPacketNumber == 0) {
-                txtemp = temp_sensor.value(0);
-            }
-                
             sendPacketNumber++;
             h->sender = node_id;
             h->channel = radio_get_channel();
@@ -534,6 +531,7 @@ static void handle_serial_input(const char *line)
 
         if( !cmd_txp(0)) return;
 
+        txtemp = temp_sensor.value(0);
         etimer_set(&periodic, READY_PRINT_INTERVAL);
         currentState = STATE_TX;
         sendPacketNumber = 0;
