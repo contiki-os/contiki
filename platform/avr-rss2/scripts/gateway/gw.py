@@ -781,7 +781,7 @@ class RuntimeState:
 
             if command in ["rx", "ch", "txp"]:
                 self.radioTestMoteCommandState = RADIO_TEST_COMMAND_FINISHED
-            else if command in ["tx", "stat"]:
+            elif command in ["tx", "stat"]:
                 self.radioTestMoteCommandState = RADIO_TEST_COMMAND_ACCEPTED
 
             numSync = RADIO_TEST_MAX_RETRIES if doSync else 1
