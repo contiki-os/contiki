@@ -56,12 +56,12 @@
 #ifdef GROVE_RELAY_CONF_CTRL_PIN
 #define GROVE_RELAY_CTRL_PIN         GROVE_RELAY_CONF_CTRL_PIN
 #else
-#define GROVE_RELAY_CTRL_PIN         1
+#define GROVE_RELAY_CTRL_PIN         7
 #endif
 #ifdef GROVE_RELAY_CONF_CTRL_PORT
 #define GROVE_RELAY_CTRL_PORT        GROVE_RELAY_CONF_CTRL_PORT
 #else
-#define GROVE_RELAY_CTRL_PORT        GPIO_D_NUM
+#define GROVE_RELAY_CTRL_PORT        GPIO_A_NUM
 #endif
 /* -------------------------------------------------------------------------- */
 void grove_relay_configure(void);

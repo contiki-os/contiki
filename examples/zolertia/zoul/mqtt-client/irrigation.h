@@ -69,7 +69,7 @@ extern command_values_t irrigation_commands;
 /* Command string: open an electrovalve for a given period */
 #define DEFAULT_COMMAND_EVENT_VALVE   "electrovalve"
 
-#define ELECTROVALVE_ON_INTERVAL      ((CLOCK_SECOND)/2)
+#define ELECTROVALVE_ON_INTERVAL      ((CLOCK_SECOND)*2)
 /*---------------------------------------------------------------------------*/
 #endif /* IRRIGATION_H_ */
 /** @} */
