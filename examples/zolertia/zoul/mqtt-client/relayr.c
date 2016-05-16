@@ -61,6 +61,12 @@
 /* Payload length of ICMPv6 echo requests used to measure RSSI with def rt */
 #define ECHO_REQ_PAYLOAD_LEN   20
 /*---------------------------------------------------------------------------*/
+/* Pub topic types */
+enum {
+  PUB_TOPIC_RAW,
+  PUB_TOPIC_STRING
+};
+/*---------------------------------------------------------------------------*/
 #define APP_BUFFER_SIZE 512
 static char *buf_ptr;
 static char app_buffer[APP_BUFFER_SIZE];
@@ -142,10 +148,11 @@ activate_sensors(uint8_t state)
 /*---------------------------------------------------------------------------*/
 static int
 add_pub_topic(uint16_t length, char *meaning, char *value,
-              uint8_t first, uint8_t more)
+              uint8_t type, uint8_t first, uint8_t more)
 {
   int len = 0;
   int pos = 0;
+  char *topic = "{\"meaning\":\"%s\",\"value\":%s}";
 
   if((buf_ptr == NULL) || (length <= 0)){
     PRINTF("Relayr: null buffer or lenght less than zero\n");
@@ -158,10 +165,12 @@ add_pub_topic(uint16_t length, char *meaning, char *value,
     buf_ptr += len;
   }
 
-  len = snprintf(buf_ptr, (length - pos),
-                 "{\"meaning\":\"%s\",\"value\":\"%s\"}",
-                 meaning, value);
- 
+  if(type == PUB_TOPIC_STRING) {
+    topic = "{\"meaning\":\"%s\",\"value\":\"%s\"}";
+  }
+
+  len = snprintf(buf_ptr, (length - pos), topic, meaning, value);
+
   if(len < 0 || pos >= length) {
     PRINTF("Relayr: Buffer too short. Have %d, need %d + \\0\n", length, len);
     return -1;
@@ -236,7 +245,8 @@ publish_event(sensor_values_t *msg)
    */
   memset(aux, 0, sizeof(aux));
 
-  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID, DEVICE_ID, 1, 1);
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_ID,
+                      DEVICE_ID, PUB_TOPIC_STRING, 1, 1);
   remain =- len;
 
   /* Include the sensor values, if `sensor_name` lenght is zero discard */
@@ -246,7 +256,7 @@ publish_event(sensor_values_t *msg)
 
       aux_int = msg->sensor[i].value;
       aux_res = msg->sensor[i].value;
-      
+
       if(msg->sensor[i].pres > 0) {
         aux_int /= msg->sensor[i].pres;
         aux_res %= msg->sensor[i].pres;
@@ -255,25 +265,29 @@ publish_event(sensor_values_t *msg)
       }
 
       snprintf(aux, sizeof(aux), "%d.%02u", aux_int, aux_res);
-      len = add_pub_topic(remain, msg->sensor[i].sensor_name, aux, 0, 1);
+      len = add_pub_topic(remain, msg->sensor[i].sensor_name,
+                          aux, PUB_TOPIC_RAW, 0, 1);
       remain =- len;
     }
   }
 
   memset(aux, 0, sizeof(aux));
   snprintf(aux, sizeof(aux), "%lu", clock_seconds());
-  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_UPTIME, aux, 0, 1);
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_UPTIME,
+                      aux, PUB_TOPIC_RAW, 0, 1);
   remain =- len;
 
   memset(aux, 0, sizeof(aux));
   ipaddr_sprintf(aux, sizeof(aux), uip_ds6_defrt_choose());
-  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_PARENT, aux, 0, 1);
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_PARENT,
+                      aux, PUB_TOPIC_STRING, 0, 1);
   remain =- len;
 
   /* The last value to be sent, the `more` argument should be zero */
   memset(aux, 0, sizeof(aux));
   snprintf(aux, sizeof(aux), "%d", def_rt_rssi);
-  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_RSSI, aux, 0, 0);
+  len = add_pub_topic(remain, DEFAULT_PUBLISH_EVENT_RSSI,
+                      aux, PUB_TOPIC_RAW, 0, 0);
 
   PRINTF("Relayr: publish %s (%u)\n", app_buffer, strlen(app_buffer));
   publish((uint8_t *)app_buffer, data_topic, strlen(app_buffer));
