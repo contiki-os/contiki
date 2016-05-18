@@ -145,3 +145,20 @@ else
 %.upload:
 	@echo "This board cannot be programmed through the ROM bootloader and therefore does not support the .upload target."
 endif
+
+# Check if we are running under Windows
+ifeq ($(HOST_OS),Windows)
+  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-windows
+else
+ifeq ($(HOST_OS),Darwin)
+  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-macos
+else
+  # Else assume Linux
+  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-linux
+endif
+endif
+
+UART_BAUDRATE = 115200
+
+login:
+	$(SERIALDUMP) -b$(UART_BAUDRATE) $(PORT)
