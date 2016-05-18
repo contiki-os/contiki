@@ -47,7 +47,7 @@
 #include "lib/sensors.h"
 #include "tsl2563.h"
 /*---------------------------------------------------------------------------*/
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -291,10 +291,11 @@ configure(int type, int value)
       if(tsl2563_on() == TSL2563_SUCCESS) {
         if(tsl2563_id_register(&buf[0]) == TSL2563_SUCCESS) {
           if((buf[0] & TSL2563_ID_PARTNO_MASK) == TSL2563_EXPECTED_PARTNO) {
-
+            PRINTF("1\n");
             /* Read the timming/gain configuration */
             if(tsl2563_read_reg((TSL2563_COMMAND + TSL2563_TIMMING),
                                 &buf[0], 1) == TSL2563_SUCCESS) {
+              PRINTF("2\n");
               gain = buf[0] & TSL2563_TIMMING_GAIN;
               timming = buf[0] & TSL2563_TIMMING_INTEG_MASK;
               PRINTF("TSL2563: enabled, timming %u gain %u\n", timming, gain);

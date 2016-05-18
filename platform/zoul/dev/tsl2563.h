@@ -62,6 +62,8 @@
  */
 /* -------------------------------------------------------------------------- */
 #define TSL2563_ADDR                  0x39
+/* Only for TSL2561 */
+/*#define TSL2563_ADDR                  0x29*/
 /* -------------------------------------------------------------------------- */
 #define TSL2563_CONTROL               0x00
 #define TSL2563_TIMMING               0x01
@@ -122,6 +124,8 @@
 #define TSL2563_ID_PARTNO_MASK        0xF0
 #define TSL2563_ID_REV_MASK           0x0F
 #define TSL2563_EXPECTED_PARTNO       0x30
+/* Only for TSL2561 */
+/*#define TSL2563_EXPECTED_PARTNO       0x50*/
 /** @} */
 /* -------------------------------------------------------------------------- */
 /**

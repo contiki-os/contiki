@@ -136,13 +136,16 @@ PROCESS_THREAD(irrigation_sensors_process, ev, data)
         PRINTF("Irrigation: Failed to open the valve\n"); 
       } else {
         etimer_set(&valve, ELECTROVALVE_ON_INTERVAL);
-        if(ev == PROCESS_EVENT_TIMER && data == &valve) {
-          if((grove_relay_set(GROVE_RELAY_OFF)) == GROVE_RELAY_ERROR) {
-            PRINTF("Irrigation: Failed to stop the valve\n"); 
-          }
+        electrovalve_status = 0;
+      }
+    } else {  
+      if(ev == PROCESS_EVENT_TIMER && data == &valve) {
+        if((grove_relay_set(GROVE_RELAY_OFF)) == GROVE_RELAY_ERROR) {
+          PRINTF("Irrigation: Failed to stop the valve\n"); 
+        } else {
+          electrovalve_status = 0;
         }
       }
-      electrovalve_status = 0;
     }
     
     if(ev == PROCESS_EVENT_TIMER && data == &et) {
