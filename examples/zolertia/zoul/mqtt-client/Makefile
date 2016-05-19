@@ -3,7 +3,7 @@ DEFINES+=PROJECT_CONF_H=\"project-conf.h\"
 all: mqtt-client
 
 # Platform options: relayr, thingsio, bluemix
-MQTT_PLATFORM ?= relayr
+MQTT_PLATFORM ?= bluemix
 
 # Sensor options: fridge, agriculture, remote, irrigation
 MQTT_SENSORS  ?= remote
