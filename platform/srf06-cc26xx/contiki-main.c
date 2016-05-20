@@ -132,6 +132,10 @@ set_rf_params(void)
 int
 main(void)
 {
+  #if OTA
+  HWREG(NVIC_VTABLE) = 0x1000;
+  #endif
+
   /* Enable flash cache and prefetch. */
   ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_ENABLED);
   ti_lib_vims_configure(VIMS_BASE, true, true);
