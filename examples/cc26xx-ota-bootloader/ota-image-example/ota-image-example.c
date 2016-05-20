@@ -17,17 +17,7 @@
 #include "sys/ctimer.h"
 #include "sys/timer.h"
 
-#define GPIO_CONFIG(PIN, CFG, GPIO_DIR_MODE)  ti_lib_ioc_port_configure_set(PIN, IOC_PORT_GPIO, CFG); \
-																							ti_lib_gpio_dir_mode_set((1 << PIN), GPIO_DIR_MODE)
-
-
-#define BLINKER_CFG         (IOC_CURRENT_2MA  | IOC_STRENGTH_AUTO | \
-                            IOC_IOPULL_DOWN    | IOC_SLEW_ENABLE  | \
-                            IOC_HYST_DISABLE | IOC_FALLING_EDGE    | \
-                            IOC_INT_DISABLE   | IOC_IOMODE_NORMAL | \
-                            IOC_NO_WAKE_UP   | IOC_INPUT_DISABLE)
-
-#define BLINKER_PIN	IOID_15
+#define BLINKER_PIN	GPIO_PIN_10
 
 struct ctimer blink_timer;
 bool blink_state = false;
@@ -35,7 +25,7 @@ bool blink_state = false;
 void
 blink_looper()
 {
-  GPIOPinWrite( (1<<BLINKER_PIN), blink_state );
+  GPIOPinWrite( BLINKER_PIN, blink_state );
   blink_state = !blink_state;
   ctimer_reset( &blink_timer );
 }
@@ -46,12 +36,12 @@ AUTOSTART_PROCESSES(&blinker_test_loop);
 PROCESS_THREAD(blinker_test_loop, ev, data)
 {
   PROCESS_BEGIN();
-  
+
   //	(1)	UART Output
   printf("OTA Image Example: Starting\n");
 
   //	(2)	Start blinking green LED
-  GPIO_CONFIG( BLINKER_PIN, BLINKER_CFG, GPIO_DIR_MODE_OUT );
+	GPIODirModeSet( BLINKER_PIN, GPIO_DIR_MODE_OUT);
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
 
   PROCESS_END();
