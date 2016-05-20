@@ -132,35 +132,11 @@ set_rf_params(void)
 int
 main(void)
 {
-  /*  Try to move VTOR register offset to the beginning of
-   *  our OTA image.
-   */
-  /*
-  __asm__("LDR             R0, =0x1000");
-  __asm__("MSR             VTOR, R0");  //  This line generates a compiler syntax error!
-  __asm__("ISB");
-  */
-
   /* Enable flash cache and prefetch. */
   ti_lib_vims_mode_set(VIMS_BASE, VIMS_MODE_ENABLED);
   ti_lib_vims_configure(VIMS_BASE, true, true);
 
   ti_lib_int_master_disable();
-
-  /**
-   *  Overwrite the Vector table in RAM (0x20000000)
-   *  with the Vector table from flash at the
-   *   very start of our OTA image (0x1000)
-   */
-  uint8_t counter;
-  uint32_t *vectorTable =  (uint32_t*) 0x20000000;
-  uint32_t *flashVectors = (uint32_t*) 0x1000;
-
-  // Write image specific interrupt vectors into RAM vector table.
-  for(counter = 0; counter < 15; ++counter)
-  {
-    *vectorTable++ = *flashVectors++;
-  }
 
   /* Set the LF XOSC as the LF system clock source */
   oscillators_select_lf_xosc();
@@ -186,7 +162,7 @@ main(void)
    *  we are using manual GPIO control as a quick test
    *  to see where main() is hanging.
    */
-  //fade(LEDS_RED);
+  fade(LEDS_RED);
 
   ti_lib_int_master_enable();
 
@@ -204,19 +180,7 @@ main(void)
   cc26xx_uart_init();
 #endif
 
-  /**
-   *  This is the first command to hang
-   */
   serial_line_init();
-
-  /**
-   *  We are using the below code to light up the green LED
-   *  as a quick test to see how far main() executes
-   *  before the Sensortag hangs.
-   */
-  GPIODirModeSet(GPIO_PIN_15, GPIO_DIR_MODE_OUT);
-  GPIOPinWrite(GPIO_PIN_15, 1);
-  return 0;
 
   printf("Starting " CONTIKI_VERSION_STRING "\n");
   printf("With DriverLib v%u.%u\n", DRIVERLIB_RELEASE_GROUP,
@@ -229,13 +193,8 @@ main(void)
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
-  //fade(LEDS_YELLOW);
+  fade(LEDS_YELLOW);
 
-  /*  Any reference to NETSTACK_NETWORK,
-   *  NETSTACK_MAC, NETSTACK_RDC causes the
-   *  device to hang.
-   */
-  /*
   printf(" Net: ");
   printf("%s\n", NETSTACK_NETWORK.name);
   printf(" MAC: ");
@@ -252,24 +211,22 @@ main(void)
   netstack_init();
 
   set_rf_params();
+
 #if NETSTACK_CONF_WITH_IPV6
   memcpy(&uip_lladdr.addr, &linkaddr_node_addr, sizeof(uip_lladdr.addr));
   queuebuf_init();
   process_start(&tcpip_process, NULL);
 #endif
-  */
 
-  //fade(LEDS_GREEN);
 
-  /**
-   *  These calls also cause the device to hang.
-   */
+  fade(LEDS_GREEN);
+
   process_start(&sensors_process, NULL);
   autostart_start(autostart_processes);
 
   watchdog_start();
 
-  //fade(LEDS_ORANGE);
+  fade(LEDS_ORANGE);
 
   while(1) {
     uint8_t r;
