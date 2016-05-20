@@ -54,9 +54,6 @@ git submodule update --recursive --init
 Assuming a Debian machine there are a few specific tools needed to compile Contiki 3.0 and merge the resulting Intel-format .hex files.
 
 ```bash
-# srecord will allow us to easily merge binaries
-sudo add-apt-repository ppa:pmiller-opensource/ppa
-
 # cc26xx requires a very specific gcc-arm compiler version
 sudo apt-get remove binutils-arm-none-eabi gcc-arm-none-eabi
 sudo add-apt-repository ppa:terry.guo/gcc-arm-embedded
