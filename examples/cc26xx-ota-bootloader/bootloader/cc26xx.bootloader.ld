@@ -45,7 +45,7 @@ MEMORY
     FLASH_CCFG (RX) : ORIGIN = 0x0001FFA8, LENGTH = 88
 
     /* RAM Size 16KB */
-    SRAM (RWX) : ORIGIN = 0x20000000, LENGTH = 0x00002CFF
+    SRAM (RWX) : ORIGIN = 0x20000000, LENGTH = 0x00005000
 
     /* Application can use GPRAM region as RAM if cache is disabled in CCFG */
     GPRAM (RWX) : ORIGIN = 0x11000000, LENGTH = 0x00002000
