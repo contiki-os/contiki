@@ -7,7 +7,7 @@ all: $(CONTIKI_PROJECT)
 
 CONTIKI = ../../..
 OTA=1
-CFLAGS += -g
+CFLAGS += -g -DOTA=1
 #CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
