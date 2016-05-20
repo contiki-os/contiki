@@ -37,13 +37,15 @@ MEMORY
 {
     /* Flash Size 128 KB minus the CCA area below (88 bytes) */
     /* FLASH (RX) : ORIGIN = 0x00000000, LENGTH = 0x0001FFA8 */
-    FLASH (RX) : ORIGIN = 0x00001000, LENGTH = 0x0001EF50
+    /*FLASH (RX) : ORIGIN = 0x00001000, LENGTH = 0x0001EF50*/
+    FLASH (RX) : ORIGIN = 0x00001000, LENGTH = 0x0001EFA8
 
     /*
      * Customer Configuration Area and Bootloader Backdoor configuration
      * in flash, up to 88 bytes
      */
-    FLASH_CCFG (RX) : ORIGIN = 0x0001FF50, LENGTH = 88
+    /*FLASH_CCFG (RX) : ORIGIN = 0x0001FF50, LENGTH = 88*/
+    FLASH_CCFG (RX) : ORIGIN = 0x0001FFA8, LENGTH = 88
 
     /* RAM Size 20KB */
     SRAM (RWX) : ORIGIN = 0x20000000, LENGTH = 0x00005000
