@@ -24,7 +24,6 @@ LDFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian -nostartfiles
 LDFLAGS += -T $(LDSCRIPT)
 LDFLAGS += -g
 LDFLAGS += -Wl,--gc-sections,--sort-section=alignment
-#LDFLAGS += -Wl,--sort-section=alignment
 LDFLAGS += -Wl,-Map=$(@:.elf=-$(TARGET).map),--cref,--no-warn-mismatch
 OBJCOPY_FLAGS += -O binary --gap-fill 0xff
 OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
