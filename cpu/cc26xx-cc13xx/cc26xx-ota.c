@@ -28,7 +28,12 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* CC26XX linker script */
+/**
+ *  CC26XX linker script for OTA images
+ *  arm-none-eabi-gcc does not allow variables to be used in the memory
+ *  region definitions.  Therefore, this C file will be used to generate
+ *  linker scripts for OTA images at compile-time by the preprocesser.
+ */
 
 /* Entry Point */
 ENTRY(ResetISR)
@@ -37,15 +42,14 @@ MEMORY
 {
     /* Flash Size 128 KB minus the CCA area below (88 bytes) */
     /* FLASH (RX) : ORIGIN = 0x00000000, LENGTH = 0x0001FFA8 */
-    /*FLASH (RX) : ORIGIN = 0x00001000, LENGTH = 0x0001EF50*/
-    FLASH (RX) : ORIGIN = 0x00001000, LENGTH = 0x0001EFA8
+    FLASH (RX) : ORIGIN = OTA_IMAGE_OFFSET, LENGTH = OTA_IMAGE_LENGTH
 
     /*
      * Customer Configuration Area and Bootloader Backdoor configuration
-     * in flash, up to 88 bytes
+     * in flash, up to 88 bytes.
+     * NOTE: Unused when generating OTA images
      */
     /*FLASH_CCFG (RX) : ORIGIN = 0x0001FF50, LENGTH = 88*/
-    FLASH_CCFG (RX) : ORIGIN = 0x0001FFA8, LENGTH = 88
 
     /* RAM Size 20KB */
     SRAM (RWX) : ORIGIN = 0x20000000, LENGTH = 0x00005000
@@ -93,10 +97,13 @@ SECTIONS
         _ebss = .;
     } > SRAM
 
+/*  CCFG should be permanent located at the absolute end of the internal flash.
+    OTA images will not therefore contain their own CCFG regions.
     .ccfg :
     {
         KEEP(*(.ccfg))
     } > FLASH_CCFG
+*/
 
     /* User_heap_stack section, used to check that there is enough RAM left */
     ._user_heap_stack :
