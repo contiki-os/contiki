@@ -85,10 +85,16 @@ add_uc_link(const linkaddr_t *linkaddr)
 {
   if(linkaddr != NULL) {
     uint16_t timeslot = get_node_timeslot(linkaddr);
-    tsch_schedule_add_link(sf_unicast,
-        ORCHESTRA_UNICAST_SENDER_BASED ? LINK_OPTION_RX : LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG,
-        LINK_TYPE_NORMAL, &tsch_broadcast_address,
-        timeslot, channel_offset);
+    uint8_t link_options = ORCHESTRA_UNICAST_SENDER_BASED ? LINK_OPTION_RX : LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG;
+
+    if(timeslot == get_node_timeslot(&linkaddr_node_addr)) {
+      /* This is also our timeslot, add necessary flags */
+      link_options |= ORCHESTRA_UNICAST_SENDER_BASED ? LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG: LINK_OPTION_RX;
+    }
+
+    /* Add/update link */
+    tsch_schedule_add_link(sf_unicast, link_options, LINK_TYPE_NORMAL, &tsch_broadcast_address,
+          timeslot, channel_offset);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -123,7 +129,17 @@ remove_uc_link(const linkaddr_t *linkaddr)
     }
     item = nbr_table_next(nbr_routes, item);
   }
-  tsch_schedule_remove_link(sf_unicast, l);
+
+  /* Do we need this timeslot? */
+  if(timeslot == get_node_timeslot(&linkaddr_node_addr)) {
+    /* This is our link, keep it but update the link options */
+    uint8_t link_options = ORCHESTRA_UNICAST_SENDER_BASED ? LINK_OPTION_TX | UNICAST_SLOT_SHARED_FLAG: LINK_OPTION_RX;
+    tsch_schedule_add_link(sf_unicast, link_options, LINK_TYPE_NORMAL, &tsch_broadcast_address,
+              timeslot, channel_offset);
+  } else {
+    /* Remove link */
+    tsch_schedule_remove_link(sf_unicast, l);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -160,13 +176,14 @@ static void
 new_time_source(const struct tsch_neighbor *old, const struct tsch_neighbor *new)
 {
   if(new != old) {
+    const linkaddr_t *old_addr = old != NULL ? &old->addr : NULL;
     const linkaddr_t *new_addr = new != NULL ? &new->addr : NULL;
     if(new_addr != NULL) {
       linkaddr_copy(&orchestra_parent_linkaddr, new_addr);
     } else {
       linkaddr_copy(&orchestra_parent_linkaddr, &linkaddr_null);
     }
-    remove_uc_link(new_addr);
+    remove_uc_link(old_addr);
     add_uc_link(new_addr);
   }
 }

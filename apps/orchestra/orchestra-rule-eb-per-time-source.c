@@ -74,8 +74,8 @@ select_packet(uint16_t *slotframe, uint16_t *timeslot)
 static void
 new_time_source(const struct tsch_neighbor *old, const struct tsch_neighbor *new)
 {
-  uint16_t old_ts = get_node_timeslot(&old->addr);
-  uint16_t new_ts = get_node_timeslot(&new->addr);
+  uint16_t old_ts = old != NULL ? get_node_timeslot(&old->addr) : 0xffff;
+  uint16_t new_ts = new != NULL ? get_node_timeslot(&new->addr) : 0xffff;
 
   if(new_ts == old_ts) {
     return;
@@ -83,14 +83,24 @@ new_time_source(const struct tsch_neighbor *old, const struct tsch_neighbor *new
 
   if(old_ts != 0xffff) {
     /* Stop listening to the old time source's EBs */
-    tsch_schedule_remove_link_by_timeslot(sf_eb, old_ts);
+    if(old_ts == get_node_timeslot(&linkaddr_node_addr)) {
+      /* This was the same timeslot as slot. Reset original link options */
+      tsch_schedule_add_link(sf_eb, LINK_OPTION_TX, LINK_TYPE_ADVERTISING_ONLY,
+        &tsch_broadcast_address, old_ts, 0);
+    } else {
+      /* Remove slot */
+      tsch_schedule_remove_link_by_timeslot(sf_eb, old_ts);
+    }
   }
   if(new_ts != 0xffff) {
+    uint8_t link_options = LINK_OPTION_RX;
+    if(new_ts == get_node_timeslot(&linkaddr_node_addr)) {
+      /* This is also our timeslot, add necessary flags */
+      link_options |= LINK_OPTION_TX;
+    }
     /* Listen to the time source's EBs */
-    tsch_schedule_add_link(sf_eb,
-                           LINK_OPTION_RX,
-                           LINK_TYPE_ADVERTISING_ONLY, NULL,
-                           new_ts, 0);
+    tsch_schedule_add_link(sf_eb, link_options, LINK_TYPE_ADVERTISING_ONLY,
+      &tsch_broadcast_address, new_ts, 0);
   }
 }
 /*---------------------------------------------------------------------------*/
