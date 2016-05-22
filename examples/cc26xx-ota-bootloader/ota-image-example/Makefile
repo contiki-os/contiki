@@ -6,7 +6,11 @@ CONTIKI_PROJECT = ota-image-example
 all: $(CONTIKI_PROJECT)
 
 CONTIKI = ../../..
+
 OTA=1
+OTA_IMAGE_OFFSET=0x2000
+OTA_IMAGE_LENGTH=0x7000
+
 CFLAGS += -g
 #CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
