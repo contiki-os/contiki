@@ -41,7 +41,6 @@ ENTRY(ResetISR)
 MEMORY
 {
     /* Flash Size 128 KB minus the CCA area below (88 bytes) */
-    /* FLASH (RX) : ORIGIN = 0x00000000, LENGTH = 0x0001FFA8 */
     FLASH (RX) : ORIGIN = OTA_IMAGE_OFFSET, LENGTH = OTA_IMAGE_LENGTH
 
     /*

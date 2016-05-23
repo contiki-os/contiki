@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rm firmware.hex
+
 cd ./bootloader
 make clean
 make bootloader.hex
