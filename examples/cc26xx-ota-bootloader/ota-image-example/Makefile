@@ -3,17 +3,14 @@ BOARD=sensortag/cc2650
 #BOARD=srf06/cc26xx
 
 CONTIKI_PROJECT = ota-image-example
-all: $(CONTIKI_PROJECT)
 
 CONTIKI = ../../..
 
 OTA=1
 OTA_IMAGE_OFFSET=0x2000
-OTA_IMAGE_LENGTH=0x7000
-
+OTA_IMAGE_LENGTH=0x0001FFA8
 CFLAGS += -g
 #CONTIKI_WITH_IPV6 = 1
-include $(CONTIKI)/Makefile.include
 
 clean:
 	-rm -f *~ *core core *.srec \
@@ -22,3 +19,7 @@ clean:
 	*.ce *.co
 	rm -rf $(CLEAN)
 	-rm -rf $(OBJECTDIR)
+
+all: $(CONTIKI_PROJECT)
+
+include $(CONTIKI)/Makefile.include

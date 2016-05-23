@@ -2,10 +2,12 @@
 
 rm firmware.hex
 
+printf "Making OTA Bootloader\n"
 cd ./bootloader
 make clean
 make bootloader.hex
 
+printf "\nMaking OTA Example Image\n"
 cd ../ota-image-example
 make clean
 make ota-image-example

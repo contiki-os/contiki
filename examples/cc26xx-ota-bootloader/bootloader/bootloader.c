@@ -19,11 +19,10 @@
 void
 jump_to_image(uint32_t destination_address)
 {
-  destination_address += OTA_IMAGE_HEADER_LENGTH + OTA_IMAGE_RESET_VECTOR;
+  destination_address += /*OTA_IMAGE_HEADER_LENGTH +*/ OTA_IMAGE_RESET_VECTOR;
   __asm("LDR R0, [%[dest]]"::[dest]"r"(destination_address)); //  Load the destination address
-  __asm("LDR R1, [R0]");                                      //  Get the branch address
-  __asm("ORR R1, #1");                                        //  Make sure the Thumb State bit is set.
-  __asm("BX R1");                                             //  Branch execution
+  __asm("ORR R0, #1");                                        //  Make sure the Thumb State bit is set.
+  __asm("BX R0");                                             //  Branch execution
 }
 
 int
