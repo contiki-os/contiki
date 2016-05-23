@@ -16,6 +16,7 @@
 #include "gpio.h"
 #include "sys/ctimer.h"
 #include "sys/timer.h"
+#include "driverlib/flash.h"
 
 #define BLINKER_PIN	GPIO_PIN_10
 
@@ -43,6 +44,12 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   //	(2)	Start blinking green LED
 	GPIODirModeSet( BLINKER_PIN, GPIO_DIR_MODE_OUT);
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
+
+  uint8_t example_data[0x1000];
+  for (uint32_t i=0; i<0x1000; i++) {
+    example_data[i] = 42;
+  }
+  FlashProgram(example_data, 0x1000, 0x1000);
 
   PROCESS_END();
 }
