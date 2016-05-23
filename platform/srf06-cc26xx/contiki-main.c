@@ -134,7 +134,7 @@ int
 main(void)
 {
   #if OTA
-  HWREG(NVIC_VTABLE) = 0x1000;
+  HWREG(NVIC_VTABLE) = OTA_IMAGE_OFFSET;
   #endif
 
   /* Enable flash cache and prefetch. */
