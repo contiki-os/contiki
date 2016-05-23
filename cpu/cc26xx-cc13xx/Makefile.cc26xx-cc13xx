@@ -31,10 +31,12 @@ MODULES += $(TI_XXWARE_SRC)
 ###	If the OTA flag is set, we will generate a linker script at compile-time
 ###	reflecting the OTA_IMAGE_OFFSET and OTA_IMAGE_LENGTH values defined in the
 ###	target project's Makefile.
-ifeq ($(OTA),1)
-	OTAFLAGS += -P -E -DOTA_IMAGE_OFFSET=$(OTA_IMAGE_OFFSET) -DOTA_IMAGE_LENGTH=$(OTA_IMAGE_LENGTH)
-	GENERATE_LDSCRIPT = $(Q)$(LD) $(OTAFLAGS) $(CONTIKI_CPU)/cc26xx-ota.c -o $(CONTIKI_CPU)/cc26xx-ota.ld
-	LDSCRIPT = $(CONTIKI_CPU)/cc26xx-ota.ld
+ifeq ( $(OTA),1 )
+  OTAFLAGS = -DOTA_IMAGE_OFFSET=$(OTA_IMAGE_OFFSET) -DOTA_IMAGE_LENGTH=$(OTA_IMAGE_LENGTH)
+  CFLAGS += $(OTAFLAGS)
+  OTAFLAGS += -P -E
+  GENERATE_LDSCRIPT = $(Q)$(LD) $(OTAFLAGS) $(CONTIKI_CPU)/cc26xx-ota.c -o $(CONTIKI_CPU)/cc26xx-ota.ld
+  LDSCRIPT = $(CONTIKI_CPU)/cc26xx-ota.ld
 else
   LDSCRIPT = $(CONTIKI_CPU)/cc26xx.ld
 endif
@@ -90,6 +92,8 @@ CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 
 TARGET_START_SOURCEFILES += fault-handlers.c $(TI_XXWARE_STARTUP_SRCS)
 TARGET_STARTFILES = $(addprefix $(OBJECTDIR)/,$(call oname, $(TARGET_START_SOURCEFILES)))
+
+
 
 ### Don't treat the .elf as intermediate
 .PRECIOUS: %.elf %.hex %.bin
