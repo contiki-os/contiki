@@ -14,6 +14,7 @@ CFLAGS += -g -DDEBUG=1
 PROJECT_SOURCEFILES += ota.c ota-download.c
 CONTIKI_WITH_IPV6 = 1
 
+
 clean:
 	-rm -f *~ *core core *.srec \
 	*.lst *.map \
