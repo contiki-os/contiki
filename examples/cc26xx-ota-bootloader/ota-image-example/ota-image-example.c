@@ -34,6 +34,22 @@ blink_looper()
 PROCESS(blinker_test_loop, "GPIO Blinker Lifecycle");
 AUTOSTART_PROCESSES(&blinker_test_loop);
 
+/**
+ *    A helper function to read from the CC26xx Internal Flash.
+ *      pui8DataBuffer: Pointer to uint8_t array to store flash data in.
+ *      ui32Address: Flash address to begin reading from.
+ *      ui32Count: Number of bytes to read from flash, starting at ui32Address.
+ */
+void
+FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count) {
+  uint8_t *pui8ReadAddress = (uint8_t *)ui32Address;
+  while (ui32Count--) {
+    *pui8DataBuffer++ = *pui8ReadAddress++;
+  }
+}
+
+
+
 PROCESS_THREAD(blinker_test_loop, ev, data)
 {
   PROCESS_BEGIN();
@@ -44,12 +60,6 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   //	(2)	Start blinking green LED
 	GPIODirModeSet( BLINKER_PIN, GPIO_DIR_MODE_OUT);
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
-
-  uint8_t example_data[0x1000];
-  for (uint32_t i=0; i<0x1000; i++) {
-    example_data[i] = 42;
-  }
-  FlashProgram(example_data, 0x1000, 0x1000);
 
   PROCESS_END();
 }
