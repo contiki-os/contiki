@@ -47,7 +47,6 @@
 #include "contiki-conf.h"
 #include "sys/clock.h"
 #include "sys/timer.h"
-
 /*---------------------------------------------------------------------------*/
 /**
  * Set a timer.
@@ -108,6 +107,20 @@ timer_restart(struct timer *t)
 }
 /*---------------------------------------------------------------------------*/
 /**
+ * Check if the given timer is expired at the given time
+ *
+ * \param t A pointer to the timer
+ * \param at the time at which to check expiration against
+ *
+ * \return boolean value, true if timer will be expired at the given time
+ */
+int
+timer_expired_at(const struct timer *t, clock_time_t at)
+{
+  return t->interval <= (at - t->start);
+}
+/*---------------------------------------------------------------------------*/
+/**
  * Check if a timer has expired.
  *
  * This function tests if a timer has expired and returns true or
@@ -121,10 +134,7 @@ timer_restart(struct timer *t)
 int
 timer_expired(const struct timer *t)
 {
-  /* Note: Can not return diff >= t->interval so we add 1 to diff and return
-     t->interval < diff - required to avoid an internal error in mspgcc. */
-  clock_time_t diff = (clock_time() - t->start) + 1;
-  return t->interval < diff;
+  return timer_expired_at(t, clock_time());
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -147,8 +157,8 @@ timer_cmp(const struct timer *t0, const struct timer *t1, clock_time_t cmp_pt)
   clock_time_t t0_expiry = t0->start + t0->interval;
   clock_time_t t1_expiry = t1->start + t1->interval;
 
-  int t0_expired = t0->interval <= (cmp_pt - t0->start);
-  int t1_expired = t1->interval <= (cmp_pt - t1->start);
+  int t0_expired = timer_expired_at(t0, cmp_pt);
+  int t1_expired = timer_expired_at(t1, cmp_pt);
 
   if(t0_expired && !t1_expired) {
     /* t0 expired already but t1 didn't, so it compares less */

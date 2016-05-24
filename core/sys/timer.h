@@ -91,6 +91,7 @@ struct timer {
 CCIF void timer_set(struct timer *t, clock_time_t interval);
 void timer_reset(struct timer *t);
 void timer_restart(struct timer *t);
+int timer_expired_at(const struct timer *t, clock_time_t at);
 CCIF int timer_expired(const struct timer *t);
 clock_time_t timer_remaining(const struct timer *t);
 int timer_cmp(const struct timer *t0, const struct timer *t1,
