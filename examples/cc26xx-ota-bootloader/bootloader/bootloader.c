@@ -45,11 +45,10 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count) {
 void
 jump_to_image(uint32_t destination_address)
 {
-  destination_address += OTA_METADATA_LENGTH + OTA_RESET_VECTOR;
+  destination_address += /*OTA_METADATA_LENGTH +*/ OTA_RESET_VECTOR;
   __asm("LDR R0, [%[dest]]"::[dest]"r"(destination_address)); //  Load the destination address
-  __asm("LDR R1, [R0]");                                      //  Get the branch address
-  __asm("ORR R1, #1");                                        //  Make sure the Thumb State bit is set.
-  __asm("BX R1");                                             //  Branch execution
+  __asm("ORR R0, #1");                                        //  Make sure the Thumb State bit is set.
+  __asm("BX R0");                                             //  Branch execution
 }
 
 int
@@ -61,6 +60,6 @@ main(void)
   example_metadata.offset = 0x2000;
   FlashProgram((uint8_t*)&example_metadata, 0x1000, OTA_METADATA_LENGTH);
 
-  //jump_to_image( OTA_IMAGE_1 );
+  jump_to_image( CURRENT_FIRMWARE );
   return 0;
 }
