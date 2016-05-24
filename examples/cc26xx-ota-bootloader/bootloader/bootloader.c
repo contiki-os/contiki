@@ -7,7 +7,7 @@
 #define CURRENT_FIRMWARE    0x2000          //  Address where the current system firmware is stored in internal flash
 //  External Flash Addresses (To get true flash address << 12 these numbers)
 #define GOLDEN_IMAGE        0x19;           //  Address where the factory-given firmware is stored in external flash (for backup)
-uint8_t ota_images[3] = { 0x32, 0x4B, 0x64 };  //  Addresses where OTA updates are stored in external flash
+uint8_t ota_images[] = { 0x32, 0x4B, 0x64 };  //  Addresses where OTA updates are stored in external flash
 
 /**
  *    OTA defines
@@ -23,7 +23,7 @@ typedef struct OTAMetadata {
   uint16_t offset;          //  At what flash sector does this image reside?
 } OTAMetadata_t;
 
-#define OTA_METADATA_LENGTH 14  //  Length of OTA image metadata in bytes (CRC, version, data, etc.)
+#define OTA_METADATA_LENGTH sizeof(OTAMetadata_t)  //  Length of OTA image metadata in bytes (CRC, version, data, etc.)
 
 /**
  *    A helper function to read from the CC26xx Internal Flash.
@@ -54,10 +54,9 @@ jump_to_image(uint32_t destination_address)
 int
 main(void)
 {
-  OTAMetadata_t example_metadata;
-  example_metadata.version = 0;
-  example_metadata.size = 27;
-  example_metadata.offset = 0x2000;
+  OTAMetadata_t example_metadata = {
+    0, 0, 0x27, 0x1, 0x2, 0x2000
+  };
   FlashProgram((uint8_t*)&example_metadata, 0x1000, OTA_METADATA_LENGTH);
 
   jump_to_image( CURRENT_FIRMWARE );
