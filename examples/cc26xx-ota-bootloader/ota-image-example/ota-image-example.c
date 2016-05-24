@@ -31,8 +31,16 @@ blink_looper()
   ctimer_reset( &blink_timer );
 }
 
-PROCESS(blinker_test_loop, "GPIO Blinker Lifecycle");
-AUTOSTART_PROCESSES(&blinker_test_loop);
+typedef struct OTAMetadata {
+  uint16_t crc;             //
+  uint16_t crc_shadow;      //
+  uint16_t size;            //  Size of firmware image
+  uint16_t version;         //  Integer representing firmware version
+  uint32_t uid;             //  Integer representing unique firmware ID
+  uint16_t offset;          //  At what flash sector does this image reside?
+} OTAMetadata_t;
+
+#define OTA_METADATA_LENGTH 14  //  Length of OTA image metadata in bytes (CRC, version, data, etc.)
 
 /**
  *    A helper function to read from the CC26xx Internal Flash.
@@ -48,6 +56,15 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count) {
   }
 }
 
+OTAMetadata_t current_version;
+
+void
+print_metadata( OTAMetadata_t *metadata ) {
+  printf("Firmware Version: %u\n", metadata->version);
+}
+
+PROCESS(blinker_test_loop, "GPIO Blinker Lifecycle");
+AUTOSTART_PROCESSES(&blinker_test_loop);
 
 
 PROCESS_THREAD(blinker_test_loop, ev, data)
@@ -60,6 +77,10 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   //	(2)	Start blinking green LED
 	GPIODirModeSet( BLINKER_PIN, GPIO_DIR_MODE_OUT);
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
+
+  //  (1) Get metadata about the current firmware version
+  FlashRead( &current_version, 0x1000, OTA_METADATA_LENGTH );
+  print_metadata( &current_version );
 
   PROCESS_END();
 }
