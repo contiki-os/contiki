@@ -603,6 +603,9 @@ write_object_instances_link(const lwm2m_object_t *object,
   }
 
   for(i = 0; i < object->count; i++) {
+    if((object->instances[i].flag & LWM2M_INSTANCE_FLAG_USED) == 0) {
+      continue;
+    }
     instance = &object->instances[i];
     PRINTF(",</%d/%d>", object->id, instance->id);
 
