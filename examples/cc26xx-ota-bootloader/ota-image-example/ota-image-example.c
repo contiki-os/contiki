@@ -51,7 +51,7 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
 
 
   //  (1) Get metadata about the current firmware version
-  FlashRead( (uint8_t *)&current_firmware, 0x1000, OTA_METADATA_LENGTH );
+  FlashRead( (uint8_t *)&current_firmware, (CURRENT_FIRMWARE<<12), OTA_METADATA_LENGTH );
   printf("\nCurrent Firmware\n");
   print_metadata( &current_firmware );
 

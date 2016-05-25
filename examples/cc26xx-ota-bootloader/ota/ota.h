@@ -15,13 +15,14 @@
  *    OTA Image Memory Map
  */
 //  Internal Flash
-#define CURRENT_FIRMWARE    0x2000          //  Address where the current system firmware is stored in internal flash
+#define CURRENT_FIRMWARE    0x2          //  Address where the current system firmware is stored in internal flash
 //  External Flash
 #define GOLDEN_IMAGE        0x19           //  Address where the factory-given firmware is stored in external flash (for backup)
 #define OTA_ADDRESSES       { 0x32, 0x4B, 0x64 }
 extern uint8_t ota_images[3]; //  Addresses where OTA updates are stored in external flash
 
 #define OTA_RESET_VECTOR    0x4     //  RESET ISR Vector (see )
+#define FLASH_PAGE_SIZE     0x1000
 
 typedef struct OTAMetadata {
   uint16_t crc;             //
@@ -41,5 +42,8 @@ print_metadata( OTAMetadata_t *metadata );
 
 extern void
 generate_fake_metadata();
+
+extern int
+update_firmware( uint32_t ui32Address );
 
 #endif
