@@ -3,6 +3,13 @@
 
 uint8_t ota_images[3] = OTA_ADDRESSES;
 
+#define DEBUG 1
+#if DEBUG
+
+#else
+  PRINTF(_VARGS_)
+#endif
+
 /**
  *    OTA Flash-specific Functions
  */
@@ -28,10 +35,10 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count) {
  */
 void
 print_metadata( OTAMetadata_t *metadata ) {
-  printf("Firmware Version: %u\n", metadata->version);
-  printf("Firmware UID: %lu\n", metadata->uid);
-  printf("Firmware Location: %u\n", metadata->offset);
-  printf("Firmware Size: %u\n", metadata->size);
+  PRINTF("Firmware Version: %u\n", metadata->version);
+  PRINTF("Firmware UID: %lu\n", metadata->uid);
+  PRINTF("Firmware Location: %u\n", metadata->offset);
+  PRINTF("Firmware Size: %u\n", metadata->size);
 }
 
 void
@@ -48,14 +55,14 @@ generate_fake_metadata() {
     eeprom_access = ext_flash_open();
 
     if(!eeprom_access) {
-      printf("[external-flash]:\tError - could not access EEPROM.\n");
+      PRINTF("[external-flash]:\tError - could not access EEPROM.\n");
       ext_flash_close();
     }
 
     eeprom_access = ext_flash_erase( (ota_images[i] << 12), sizeof(OTAMetadata_t));
 
     if(!eeprom_access) {
-      printf("[external-flash]:\tError - Could not erase EEPROM.\n");
+      PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
       ext_flash_close();
     }
 
@@ -63,7 +70,7 @@ generate_fake_metadata() {
                          (uint8_t *)&ota_metadata);
 
     if(!eeprom_access) {
-      printf("[external-flash]:\tError - Could not write to EEPROM.\n");
+      PRINTF("[external-flash]:\tError - Could not write to EEPROM.\n");
       ext_flash_close();
     }
 
