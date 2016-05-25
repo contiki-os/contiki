@@ -54,9 +54,9 @@ main(void)
   initialize_peripherals();
 
   OTAMetadata_t example_metadata = {
-    0, 0, 0x27, 0x1, 0x2, 0x2000
+    0, 0, 0x27, 0x1, 0x2, 0x2
   };
-  //if ( FlashProgram((uint8_t*)&example_metadata, 0x1000, OTA_METADATA_LENGTH) == FAPI_STATUS_SUCCESS ) {
+  //if ( FlashProgram((uint8_t*)&example_metadata, FLASH_PAGE_SIZE, OTA_METADATA_LENGTH) == FAPI_STATUS_SUCCESS ) {
   //  return 0;
   //} else {
   //  return -1;
@@ -64,6 +64,6 @@ main(void)
 
   generate_fake_metadata();
 
-  jump_to_image( CURRENT_FIRMWARE );
+  jump_to_image( CURRENT_FIRMWARE<<12 );
   return 0;
 }

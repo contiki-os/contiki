@@ -69,3 +69,53 @@ generate_fake_metadata() {
     ext_flash_close();
   }
 }
+
+/**
+ *    Copies a new firmware image from external flash into internal flash.
+ *    Position of new firmware image is specified by ui32Address.
+ */
+extern int
+update_firmware( uint32_t ui32Address ) {
+  //  (1) Get metadata about the new version
+  OTAMetadata_t new_firmware;
+  FlashRead( (uint8_t *)&new_firmware, ui32Address, OTA_METADATA_LENGTH );
+
+  //  (2) Validate the new firmware (CRC)
+  //  return -1 if not valid!
+
+
+  //  (3) Erase internal user pages from 0x02000 to 0x27000
+  //      Overwrite them with the corresponding image pages from
+  //      external flash.
+  uint8_t sector_num;
+  uint8_t page_data[ FLASH_PAGE_SIZE ];
+  //  Each firmware image is 25 pages big at most
+  for (sector_num=0; sector_num<25; sector_num++) {
+    //  Erase internal flash page
+    FlashSectorErase( (sector_num+CURRENT_FIRMWARE) << 12 );
+
+    //  Read one page from the new external flash image
+    int eeprom_access = ext_flash_open();
+
+    if(!eeprom_access) {
+      PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
+      ext_flash_close();
+      return false;
+    }
+
+    eeprom_access = ext_flash_read( (ui32Address + (sector_num << 12)), FLASH_PAGE_SIZE, (uint8_t *)&page_data);
+
+    ext_flash_close();
+
+    if(!eeprom_access) {
+      PRINTF("[external-flash]:\tError - Could not read EEPROM.\n");
+      ext_flash_close();
+    }
+
+    FlashProgram( (uint8_t *)page_data, ((sector_num+CURRENT_FIRMWARE)<<12), FLASH_PAGE_SIZE );
+  }
+
+  //  (4) Reboot
+
+
+}
