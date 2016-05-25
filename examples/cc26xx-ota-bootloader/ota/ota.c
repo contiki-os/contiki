@@ -79,8 +79,8 @@ update_firmware( uint8_t ota_slot ) {
   uint32_t ota_image_address = ota_images[ ota_slot ] << 12;
 
   //  (1) Get metadata about the new version
-  OTAMetadata_t new_firmware;
-  FlashRead( (uint8_t *)&new_firmware, ota_image_address, OTA_METADATA_LENGTH );
+  //OTAMetadata_t new_firmware;
+  //FlashRead( (uint8_t *)&new_firmware, ota_image_address, OTA_METADATA_LENGTH );
 
   //  (2) Validate the new firmware (CRC)
   //  return -1 if not valid!
@@ -102,7 +102,6 @@ update_firmware( uint8_t ota_slot ) {
     if(!eeprom_access) {
       PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
       ext_flash_close();
-      return false;
     }
 
     eeprom_access = ext_flash_read( (ota_image_address + (sector_num << 12)), FLASH_PAGE_SIZE, (uint8_t *)&page_data);
@@ -114,12 +113,13 @@ update_firmware( uint8_t ota_slot ) {
       ext_flash_close();
     }
 
-    FlashProgram( (uint8_t *)page_data, ((sector_num+CURRENT_FIRMWARE)<<12), FLASH_PAGE_SIZE );
+    FlashProgram( page_data, ((sector_num+CURRENT_FIRMWARE)<<12), FLASH_PAGE_SIZE );
   }
 
   //  (4) Reboot
 
 
+  return 0;
 }
 
 /**
@@ -156,4 +156,5 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data ) {
   }
 
   ext_flash_close();
+  return 0;
 }
