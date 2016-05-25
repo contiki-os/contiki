@@ -71,14 +71,16 @@ generate_fake_metadata() {
 }
 
 /**
- *    Copies a new firmware image from external flash into internal flash.
- *    Position of new firmware image is specified by ui32Address.
+ *    Copies a stored firmware image from external flash into internal flash.
+ *    OTA image to copy is specified by OTA slot index (0, 1, or 2).
  */
-extern int
-update_firmware( uint32_t ui32Address ) {
+int
+update_firmware( uint8_t ota_slot ) {
+  uint32_t ota_image_address = ota_images[ ota_slot ] << 12;
+
   //  (1) Get metadata about the new version
   OTAMetadata_t new_firmware;
-  FlashRead( (uint8_t *)&new_firmware, ui32Address, OTA_METADATA_LENGTH );
+  FlashRead( (uint8_t *)&new_firmware, ota_image_address, OTA_METADATA_LENGTH );
 
   //  (2) Validate the new firmware (CRC)
   //  return -1 if not valid!
@@ -103,7 +105,7 @@ update_firmware( uint32_t ui32Address ) {
       return false;
     }
 
-    eeprom_access = ext_flash_read( (ui32Address + (sector_num << 12)), FLASH_PAGE_SIZE, (uint8_t *)&page_data);
+    eeprom_access = ext_flash_read( (ota_image_address + (sector_num << 12)), FLASH_PAGE_SIZE, (uint8_t *)&page_data);
 
     ext_flash_close();
 
@@ -118,4 +120,40 @@ update_firmware( uint32_t ui32Address ) {
   //  (4) Reboot
 
 
+}
+
+/**
+ *    Store one page of firmware data in external flash.
+ *      ext_address is the flash address to store the data
+ *      page_data is a pointer to the data buffer to be written.
+ *    NOTE: Only 1 page (the first 4096 bytes) of the buffer will be written.
+ */
+int
+store_firmware_page( uint32_t ext_address, uint8_t *page_data ) {
+
+  //  (1) Erase external flash page first!
+  int eeprom_access;
+  eeprom_access = ext_flash_open();
+
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - could not access EEPROM.\n");
+    ext_flash_close();
+  }
+
+  eeprom_access = ext_flash_erase( ext_address, FLASH_PAGE_SIZE );
+
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
+    ext_flash_close();
+  }
+
+  //  (2) Copy page_data into external flash chip.
+  eeprom_access = ext_flash_write( ext_address, FLASH_PAGE_SIZE, page_data );
+
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not write to EEPROM.\n");
+    ext_flash_close();
+  }
+
+  ext_flash_close();
 }

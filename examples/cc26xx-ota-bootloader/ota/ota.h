@@ -44,6 +44,9 @@ extern void
 generate_fake_metadata();
 
 extern int
-update_firmware( uint32_t ui32Address );
+update_firmware( uint8_t ota_slot );
+
+extern int
+store_firmware_page( uint32_t ext_address, uint8_t *page_data );
 
 #endif
