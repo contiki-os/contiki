@@ -1,6 +1,13 @@
 #ifndef OTA_H
 #define OTA_H
 
+#if DEBUG
+  #include <stdio.h>
+  #define PRINTF(...) printf(__VA_ARGS__)
+#else
+  #define PRINTF(...)
+#endif
+
 #include "ext-flash.h"
 #include "driverlib/flash.h"
 

@@ -1,14 +1,6 @@
-#include <stdio.h>
 #include "ota.h"
 
 uint8_t ota_images[3] = OTA_ADDRESSES;
-
-#define DEBUG 1
-#if DEBUG
-
-#else
-  PRINTF(_VARGS_)
-#endif
 
 /**
  *    OTA Flash-specific Functions
