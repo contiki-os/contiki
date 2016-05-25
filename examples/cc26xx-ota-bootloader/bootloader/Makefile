@@ -31,8 +31,8 @@ OBJDUMP_FLAGS += --disassemble --source --disassembler-options=force-thumb
 #	TI 26XX ware sources
 TI_XXWARE_PATH = lib/cc26xxware
 TI_XXWARE = $(CPU_ABS_PATH)/$(TI_XXWARE_PATH)
-CFLAGS += -I$(CPU_ABS_PATH) -I$(TI_XXWARE) -I$(TI_XXWARE)/driverlib -I$(TI_XXWARE)/inc
-SOURCEDIRS = . $(TI_XXWARE)/startup_files $(TI_XXWARE)/driverlib
+CFLAGS += -I$(CPU_ABS_PATH) -I./ext-flash -I$(TI_XXWARE) -I$(TI_XXWARE)/driverlib -I$(TI_XXWARE)/inc
+SOURCEDIRS = . ./ext-flash $(TI_XXWARE)/startup_files $(TI_XXWARE)/driverlib
 vpath %.c $(SOURCEDIRS)
 SOURCE_FILES = $(foreach dir, $(SOURCEDIRS), $(notdir $(wildcard $(dir)/*.c)))
 
