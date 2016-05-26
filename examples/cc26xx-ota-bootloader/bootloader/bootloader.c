@@ -63,7 +63,7 @@ main(void)
   //}
 
   //generate_fake_metadata();
-
+/*
   uint8_t fake_data[ FLASH_PAGE_SIZE ];
   uint16_t n;
   for (n=0; n<FLASH_PAGE_SIZE; n++) {
@@ -85,7 +85,7 @@ main(void)
   store_firmware_page( 0x33000, fake_data );
 
   update_firmware( 0 );
-
+*/
   jump_to_image( CURRENT_FIRMWARE<<12 );
   return 0;
 }
