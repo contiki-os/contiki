@@ -5,6 +5,7 @@ BOARD=srf06/cc26xx
 CONTIKI_PROJECT = ota-image-example
 
 CONTIKI = ../../..
+MODULES += core/net/http-socket
 
 OTA=1
 OTA_IMAGE_OFFSET=0x2000
@@ -12,7 +13,7 @@ OTA_IMAGE_LENGTH=0x0001FFA8
 CFLAGS += -g -DDEBUG=1
 
 PROJECT_SOURCEFILES += ota.c
-#CONTIKI_WITH_IPV6 = 1
+CONTIKI_WITH_IPV6 = 1
 
 clean:
 	-rm -f *~ *core core *.srec \
