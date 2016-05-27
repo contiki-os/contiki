@@ -73,7 +73,7 @@ static inline int16_t platform_rssi_dBm(uint16_t rssi, uint8_t platform)
     if (platform == 3) {
         // ATmega128RFA1 Datasheet, page 70
         if (rssi == 0) dBm = -90;
-        if (rssi >= 28) dBm = -10;
+        else if (rssi >= 28) dBm = -10;
         else dBm = -90 + 3 * (rssi-1);
     } else {
         // for cc2420 and cc2520 based platfroms, the radio RSSI value is signed 8 bit integer
