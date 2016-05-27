@@ -158,3 +158,15 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data ) {
   ext_flash_close();
   return 0;
 }
+
+/**
+ *    Begin executing a new firmware image located at destination_address.
+ */
+void
+jump_to_image(uint32_t destination_address)
+{
+  destination_address += /*OTA_METADATA_LENGTH +*/ OTA_RESET_VECTOR;
+  __asm("LDR R0, [%[dest]]"::[dest]"r"(destination_address)); //  Load the destination address
+  __asm("ORR R0, #1");                                        //  Make sure the Thumb State bit is set.
+  __asm("BX R0");                                             //  Branch execution
+}
