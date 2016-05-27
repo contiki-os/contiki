@@ -51,7 +51,6 @@ callback(struct http_socket *s, void *ptr,
               (*(data+1) == 0x4f) &&
               (*(data+2) == 0x46) )
         {
-          printf("EOF!!!!!!!!!!!!!!\n");
           page_started = false;
           img_req_position = FLASH_PAGE_SIZE;
           ota_downloading_image = false; // break out of the page downloading loop!
@@ -148,6 +147,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   }
 
   printf("Done downloading!\n");
+  jump_to_image( 0x0 );
 
   PROCESS_END();
 }
