@@ -6,3 +6,4 @@ here="$(dirname $(pwd))"
 
 ln -s $here/ota/ota.* $here/bootloader
 ln -s $here/ota/ota.* $here/ota-image-example
+ln -s $here/ota/ota-* $here/ota-image-example
