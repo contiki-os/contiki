@@ -73,6 +73,7 @@ static inline int16_t platform_rssi_dBm(uint16_t rssi, uint8_t platform)
     if (platform == 3) {
         // ATmega128RFA1 Datasheet, page 70
         if (rssi == 0) dBm = -90;
+        if (rssi >= 28) dBm = -10;
         else dBm = -90 + 3 * (rssi-1);
     } else {
         // for cc2420 and cc2520 based platfroms, the radio RSSI value is signed 8 bit integer
@@ -131,6 +132,7 @@ static char *get_txpower_string(uint8_t p)
 void printStats(struct stats_info *s)
 {
     int16_t temp = 0;
+    int16_t average_rssi;
     int16_t rssi;
     uint8_t lqi;
     
@@ -140,7 +142,8 @@ void printStats(struct stats_info *s)
         rssi = 0;
         lqi = 0;
     } else {
-        rssi = platform_rssi_dBm(s->rssiSum / s->fine, s->platform_id);
+        average_rssi = s->rssiSum / s->fine + (s->rssiSum % s->fine != 0);
+        rssi = platform_rssi_dBm(average_rssi, s->platform_id);
         lqi = 255 - s->lqiSumDiff / s->fine;
     }
     
