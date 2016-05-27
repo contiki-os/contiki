@@ -49,4 +49,7 @@ update_firmware( uint8_t ota_slot );
 extern int
 store_firmware_page( uint32_t ext_address, uint8_t *page_data );
 
+extern void
+jump_to_image(uint32_t destination_address);
+
 #endif

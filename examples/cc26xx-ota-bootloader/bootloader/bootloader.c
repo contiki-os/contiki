@@ -3,18 +3,6 @@
 
 #include "ota.h"
 
-/**
- *    Begin executing a new firmware image located at destination_address.
- */
-void
-jump_to_image(uint32_t destination_address)
-{
-  destination_address += /*OTA_METADATA_LENGTH +*/ OTA_RESET_VECTOR;
-  __asm("LDR R0, [%[dest]]"::[dest]"r"(destination_address)); //  Load the destination address
-  __asm("ORR R0, #1");                                        //  Make sure the Thumb State bit is set.
-  __asm("BX R0");                                             //  Branch execution
-}
-
 static void
 power_domains_on(void) {
   /* Turn on the PERIPH PD */
@@ -63,29 +51,8 @@ main(void)
   //}
 
   //generate_fake_metadata();
-/*
-  uint8_t fake_data[ FLASH_PAGE_SIZE ];
-  uint16_t n;
-  for (n=0; n<FLASH_PAGE_SIZE; n++) {
-    if ( n%2 ) {
-      fake_data[ n ] = 2;
-    } else {
-      fake_data[ n ] = 4;
-    }
-  }
-  store_firmware_page( 0x32000, fake_data );
 
-  for (n=0; n<FLASH_PAGE_SIZE; n++) {
-    if ( n%2 ) {
-      fake_data[ n ] = 7;
-    } else {
-      fake_data[ n ] = 2;
-    }
-  }
-  store_firmware_page( 0x33000, fake_data );
-
-  update_firmware( 0 );
-*/
+  //update_firmware( 0 );
   jump_to_image( CURRENT_FIRMWARE<<12 );
   return 0;
 }
