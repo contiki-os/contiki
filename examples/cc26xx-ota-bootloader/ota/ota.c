@@ -165,7 +165,12 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data ) {
 void
 jump_to_image(uint32_t destination_address)
 {
-  destination_address += /*OTA_METADATA_LENGTH +*/ OTA_RESET_VECTOR;
+  if ( destination_address ) {
+    //  Only add the metadata length offset if destination_address is NOT 0!
+    //  (Jumping to 0x0 is used to reboot the device)
+    destination_address += OTA_METADATA_LENGTH;
+  }
+  destination_address += OTA_RESET_VECTOR;
   __asm("LDR R0, [%[dest]]"::[dest]"r"(destination_address)); //  Load the destination address
   __asm("ORR R0, #1");                                        //  Make sure the Thumb State bit is set.
   __asm("BX R0");                                             //  Branch execution
