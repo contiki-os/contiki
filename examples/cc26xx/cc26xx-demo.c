@@ -337,6 +337,15 @@ get_sync_sensor_readings(void)
   value = batmon_sensor.value(BATMON_SENSOR_TYPE_VOLT);
   printf("Bat: Volt=%d mV\n", (value * 125) >> 5);
 
+#if BOARD_SMARTRF06EB
+  SENSORS_ACTIVATE(als_sensor);
+
+  value = als_sensor.value(0);
+  printf("ALS: %d raw\n", value);
+
+  SENSORS_DEACTIVATE(als_sensor);
+#endif
+
   return;
 }
 /*---------------------------------------------------------------------------*/
