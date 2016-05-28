@@ -52,7 +52,7 @@ main(void)
 
   //generate_fake_metadata();
 
-  //update_firmware( 0 );
-  jump_to_image( CURRENT_FIRMWARE<<12 );
+  update_firmware( 0 );
+  jump_to_image( (CURRENT_FIRMWARE<<12) );
   return 0;
 }
