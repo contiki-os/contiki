@@ -16,7 +16,8 @@ typedef enum {
   OTA_HTTP_REQUEST_SUCCESS,
   OTA_HTTP_REQUEST_FAIL,
   OTA_HTTP_REQUEST_RETRY,
-  OTA_PAGE_DOWNLOAD_COMPLETE
+  OTA_PAGE_DOWNLOAD_COMPLETE,
+  OTA_IMAGE_DOWNLOAD_COMPLETE
 } ota_event_t;
 
 #define img_req_length  1024    //  size of image data chunk we are asking for from server

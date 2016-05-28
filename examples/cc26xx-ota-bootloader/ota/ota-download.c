@@ -21,6 +21,10 @@ callback(struct http_socket *s, void *ptr,
          http_socket_event_t e,
          const uint8_t *data, uint16_t datalen)
 {
+  if (!ota_downloading_image) {
+    //  If no longer downloading, callbacks are ignored.
+    return;
+  }
   if(e == HTTP_SOCKET_ERR) {
     printf("HTTP socket error\n");
     process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
@@ -35,7 +39,7 @@ callback(struct http_socket *s, void *ptr,
     process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
   } else if(e == HTTP_SOCKET_CLOSED) {
     printf("HTTP socket closed, %d bytes received\n", bytes_received);
-    if ( img_req_position >= FLASH_PAGE_SIZE ) {
+    if ( ((img_req_position % FLASH_PAGE_SIZE) + OTA_METADATA_LENGTH) >= FLASH_PAGE_SIZE ) {
       process_post(ota_download_th_p, OTA_PAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
     } else {
       process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
@@ -51,9 +55,7 @@ callback(struct http_socket *s, void *ptr,
               (*(data+1) == 0x4f) &&
               (*(data+2) == 0x46) )
         {
-          page_started = false;
-          img_req_position = FLASH_PAGE_SIZE;
-          ota_downloading_image = false; // break out of the page downloading loop!
+          process_post(ota_download_th_p, OTA_IMAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
           return;
         }
         //  If we've reached the end of the HTTP response
@@ -66,7 +68,7 @@ callback(struct http_socket *s, void *ptr,
         else
         {
           bytes_received++;
-          page_buffer[ img_req_position++ ] = *data;
+          page_buffer[ (OTA_METADATA_LENGTH + (img_req_position++)) % FLASH_PAGE_SIZE ] = *data;
           //printf("%#x ", *data);
         }
       }
@@ -94,13 +96,12 @@ PROCESS_THREAD(ota_download_th, ev, data)
   http_socket_init(&s);
 
   ota_downloading_image = true;
+  img_req_position = 0;
 
   for (page=0; page<25; page++)
   {
     //  (1) Clear Page Buffer
     reset_page_buffer();
-    img_req_position = 0;
-
 
     //  (2) Download page
     printf("Downloading Page %u/25:\n", page);
@@ -110,20 +111,29 @@ PROCESS_THREAD(ota_download_th, ev, data)
       //  (1) Construct a URL requesting the current page of data
       char url[120];
       bytes_received = 0;
-      sprintf(url, "http://[bbbb::1]:3003/%lu/%u", (img_req_position + (page << 12)), img_req_length);
+      if ( img_req_position ) {
+        sprintf(url, "http://[bbbb::1]:3003/%lu/%u", img_req_position, img_req_length);
+      } else {
+        sprintf(url, "http://[bbbb::1]:3003/%lu/%u", img_req_position, (img_req_length-OTA_METADATA_LENGTH));
+      }
 
       //  (2) Issue HTTP GET request to server
       page_started = false;
       http_socket_get(&s, url, 0, 0, callback, NULL);
 
       //  (3) Yield until HTTP request callback returns
-      PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) );
+      PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
 
       switch ( ev ) {
         case OTA_PAGE_DOWNLOAD_COMPLETE:
         {
           ota_downloading_page = false;
         } break;
+        case OTA_IMAGE_DOWNLOAD_COMPLETE:
+        {
+          ota_downloading_page = false;
+          ota_downloading_image = false;
+        }
       }
 
     }
