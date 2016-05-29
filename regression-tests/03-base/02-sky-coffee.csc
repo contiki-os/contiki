@@ -89,7 +89,7 @@ make test-coffee.sky TARGET=sky</commands>
   <plugin>
     org.contikios.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(80000);
+      <script>TIMEOUT(180000);
 
 fileOK = null;
 gcOK = null;
