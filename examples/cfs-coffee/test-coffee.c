@@ -276,8 +276,8 @@ coffee_test_modify(void)
 
     offset = random_rand() % FILE_SIZE;
 
-    for(r = 0; r < sizeof(buf); r++) {
-      buf[r] = r;
+    for(i = 0; i < sizeof(buf); i++) {
+      buf[i] = i;
     }
 
     if(cfs_seek(wfd, offset, CFS_SEEK_SET) != offset) {
@@ -303,6 +303,8 @@ coffee_test_modify(void)
         TEST_FAIL(8);
       }
     }
+
+    cfs_close(wfd);
   }
 
   error = 0;
