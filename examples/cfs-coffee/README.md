@@ -20,6 +20,9 @@ Supported Hardware (tested or known to work)
 * z1
 * wismote
 * avr-raven
+* cc2538dk
+* openmote-cc2538
+* zoul
 
 The examples are known to build for the 'avr-raven' platform. However,
 some of them currently fail at runtime due to file system overflow.
