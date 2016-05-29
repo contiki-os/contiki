@@ -54,6 +54,7 @@ PROCESS_THREAD(cfs_process, ev, data)
     uint16_t filesize = 65000;
 #define CHUNKSIZE 128
 
+    cfs_remove("hej");
     fd = cfs_open("hej", CFS_WRITE);
     if(fd < 0) {
       printf("could not open file for writing, aborting\n");
