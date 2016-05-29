@@ -204,7 +204,7 @@ coffee_test_append(void)
 
   /* Test 1 and 2: Append data to the same file many times. */
   for(i = 0; i < APPEND_BYTES; i += BULK_SIZE) {
-    afd = cfs_open("T3", CFS_WRITE | CFS_APPEND);
+    afd = cfs_open("T2", CFS_WRITE | CFS_APPEND);
     if(afd < 0) {
       TEST_FAIL(1);
     }
@@ -220,7 +220,7 @@ coffee_test_append(void)
 
   /* Test 3-6: Read back the data written previously and verify that it
      is correct. */
-  afd = cfs_open("T3", CFS_READ);
+  afd = cfs_open("T2", CFS_READ);
   if(afd < 0) {
     TEST_FAIL(3);
   }
@@ -269,7 +269,7 @@ coffee_test_modify(void)
 
   /* Test 16: Test multiple writes at random offset. */
   for(r = 0; r < 100; r++) {
-    wfd = cfs_open("T2", CFS_WRITE | CFS_READ);
+    wfd = cfs_open("T3", CFS_WRITE | CFS_READ);
     if(wfd < 0) {
       TEST_FAIL(3);
     }
