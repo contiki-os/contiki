@@ -136,15 +136,15 @@ coffee_test_basic(void)
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
-    TEST_FAIL(14);
+    TEST_FAIL(13);
   } else if(r < sizeof(buf)) {
-    TEST_FAIL(15);
+    TEST_FAIL(14);
   }
 
   /* Test 16: Verify that the data is correct. */
   for(r = 0; r < sizeof(buf); r++) {
     if(buf[r] != r) {
-      TEST_FAIL(16);
+      TEST_FAIL(15);
     }
   }
 
@@ -153,16 +153,16 @@ coffee_test_basic(void)
     buf[r] = sizeof(buf) - r - 1;
   }
   if(cfs_seek(wfd, 0, CFS_SEEK_SET) != 0) {
-    TEST_FAIL(17);
+    TEST_FAIL(16);
   }
   r = cfs_write(wfd, buf, sizeof(buf));
   if(r < 0) {
-    TEST_FAIL(18);
+    TEST_FAIL(17);
   } else if(r < sizeof(buf)) {
-    TEST_FAIL(19);
+    TEST_FAIL(18);
   }
   if(cfs_seek(rfd, 0, CFS_SEEK_SET) != 0) {
-    TEST_FAIL(20);
+    TEST_FAIL(19);
   }
 
   /* Test 21 and 22: Read the reversed buffer. */
@@ -170,16 +170,16 @@ coffee_test_basic(void)
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
-    TEST_FAIL(21);
+    TEST_FAIL(20);
   } else if(r < sizeof(buf)) {
     printf("r = %d\n", r);
-    TEST_FAIL(22);
+    TEST_FAIL(21);
   }
 
   /* Test 23: Verify that the data is correct. */
   for(r = 0; r < sizeof(buf); r++) {
     if(buf[r] != sizeof(buf) - r - 1) {
-      TEST_FAIL(23);
+      TEST_FAIL(22);
     }
   }
 
