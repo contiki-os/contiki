@@ -60,8 +60,6 @@ coffee_test_basic(void)
   unsigned char buf[256];
   int r;
 
-  cfs_remove("T1");
-
   wfd = rfd = afd = -1;
 
   for(r = 0; r < sizeof(buf); r++) {
@@ -187,6 +185,7 @@ coffee_test_basic(void)
 end:
   cfs_close(wfd);
   cfs_close(rfd);
+  cfs_remove("T1");
   return error;
 }
 /*---------------------------------------------------------------------------*/
@@ -199,8 +198,6 @@ coffee_test_append(void)
   int r, i, j, total_read;
 #define APPEND_BYTES 1000
 #define BULK_SIZE 10
-
-  cfs_remove("T2");
 
   /* Test 1 and 2: Append data to the same file many times. */
   for(i = 0; i < APPEND_BYTES; i += BULK_SIZE) {
@@ -244,6 +241,7 @@ coffee_test_append(void)
   error = 0;
 end:
   cfs_close(afd);
+  cfs_remove("T2");
   return error;
 }
 /*---------------------------------------------------------------------------*/
@@ -256,7 +254,6 @@ coffee_test_modify(void)
   int r, i;
   unsigned offset;
 
-  cfs_remove("T3");
   wfd = -1;
 
   if(cfs_coffee_reserve("T3", FILE_SIZE) < 0) {
@@ -310,6 +307,7 @@ coffee_test_modify(void)
   error = 0;
 end:
   cfs_close(wfd);
+  cfs_remove("T3");
   return error;
 }
 /*---------------------------------------------------------------------------*/
@@ -318,21 +316,17 @@ coffee_test_gc(void)
 {
   int i;
 
-  cfs_remove("alpha");
-  cfs_remove("beta");
-
-
   for (i = 0; i < 100; i++) {
     if (i & 1) {
-      if(cfs_coffee_reserve("alpha", random_rand() & 0xffff) < 0) {
-	return i;
-      }
-      cfs_remove("beta");
-    } else {
-      if(cfs_coffee_reserve("beta", 93171) < 0) {
+      if(cfs_coffee_reserve("beta", random_rand() & 0xffff) < 0) {
 	return i;
       }
       cfs_remove("alpha");
+    } else {
+      if(cfs_coffee_reserve("alpha", 93171) < 0) {
+	return i;
+      }
+      cfs_remove("beta");
     }
   }
 
