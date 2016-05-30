@@ -30,27 +30,54 @@
  */
 
 /**
- * \addtogroup uip6-multicast
- * @{
- */
-/**
  * \file
- * Header file with definition of multicast engine constants
- *
- * When writing a new engine, add it here with a unique number and
- * then modify uip-mcast6.h accordingly
+ *         Header file for the Enhanced Stateless Multicast RPL Forwarding (ESMRF)
  *
  * \author
- *     George Oikonomou - <oikonomou@users.sourceforge.net>
+ *         Khaled Qorany	kqorany2@gmail.com
  */
 
-#ifndef UIP_MCAST6_ENGINES_H_
-#define UIP_MCAST6_ENGINES_H_
+#ifndef ESMRF_H_
+#define ESMRF_H_
 
-#define UIP_MCAST6_ENGINE_NONE        0 /**< Selecting this disables mcast */
-#define UIP_MCAST6_ENGINE_SMRF        1 /**< The SMRF engine */
-#define UIP_MCAST6_ENGINE_ROLL_TM     2 /**< The ROLL TM engine */
-#define UIP_MCAST6_ENGINE_ESMRF       3 /**< The ESMRF engine */
+#include "contiki-conf.h"
 
-#endif /* UIP_MCAST6_ENGINES_H_ */
-/** @} */
+#include <stdint.h>
+/*---------------------------------------------------------------------------*/
+/* Protocol Constants */
+/*---------------------------------------------------------------------------*/
+#define ESMRF_ICMP_CODE              0   /* ICMPv6 code field */
+#define ESMRF_IP_HOP_LIMIT        0xFF   /* Hop limit for ICMP messages */
+/*---------------------------------------------------------------------------*/
+/* Configuration */
+/*---------------------------------------------------------------------------*/
+/* Fmin */
+#ifdef ESMRF_CONF_MIN_FWD_DELAY
+#define ESMRF_MIN_FWD_DELAY ESMRF_CONF_MIN_FWD_DELAY
+#else
+#define ESMRF_MIN_FWD_DELAY 4
+#endif
+
+/* Max Spread */
+#ifdef ESMRF_CONF_MAX_SPREAD
+#define ESMRF_MAX_SPREAD ESMRF_CONF_MAX_SPREAD
+#else
+#define ESMRF_MAX_SPREAD 4
+#endif
+/*---------------------------------------------------------------------------*/
+/* Stats datatype */
+/*---------------------------------------------------------------------------*/
+struct esmrf_stats {
+  uint16_t mcast_in_unique;
+  uint16_t mcast_in_all;        /* At layer 3 */
+  uint16_t mcast_in_ours;       /* Unique and we are a group member */
+  uint16_t mcast_fwd;           /* Forwarded by us but we are not the seed */
+  uint16_t mcast_out;           /* We are the seed */
+  uint16_t mcast_bad;
+  uint16_t mcast_dropped;
+  uint16_t icmp_out;
+  uint16_t icmp_in;
+  uint16_t icmp_bad;
+};
+
+#endif /* ESMRF_H_ */
