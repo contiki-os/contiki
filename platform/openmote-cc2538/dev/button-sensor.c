@@ -53,7 +53,7 @@
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 #define BUTTON_USER_PORT_BASE  GPIO_PORT_TO_BASE(BUTTON_USER_PORT)
-#define BUTTON_USER_PIN_MASK   GPIO_PIN_MASK(BUTTON_USER_PIN)
+#define BUTTON_USER_PIN_MASK   GPIO_DIO_ALL_MASK(BUTTON_USER_PIN)
 /*---------------------------------------------------------------------------*/
 #define DEBOUNCE_DURATION (CLOCK_SECOND >> 4)
 

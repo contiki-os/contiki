@@ -58,7 +58,7 @@
 #define USB_PULLUP_PORT_BASE     GPIO_PORT_TO_BASE(USB_PULLUP_PORT)
 #endif
 #ifdef USB_PULLUP_PIN
-#define USB_PULLUP_PIN_MASK      GPIO_PIN_MASK(USB_PULLUP_PIN)
+#define USB_PULLUP_PIN_MASK      GPIO_DIO_ALL_MASK(USB_PULLUP_PIN)
 #endif
 /*---------------------------------------------------------------------------*/
 /* EP max FIFO sizes without double buffering */

@@ -57,7 +57,7 @@
 #endif
 /*---------------------------------------------------------------------------*/
 #define MOTION_SENSOR_PORT_BASE  GPIO_PORT_TO_BASE(MOTION_SENSOR_PORT)
-#define MOTION_SENSOR_PIN_MASK   GPIO_PIN_MASK(MOTION_SENSOR_PIN)
+#define MOTION_SENSOR_PIN_MASK   GPIO_DIO_ALL_MASK(MOTION_SENSOR_PIN)
 /*---------------------------------------------------------------------------*/
 void (*presence_int_callback)(uint8_t value);
 /*---------------------------------------------------------------------------*/

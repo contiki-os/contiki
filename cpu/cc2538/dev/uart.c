@@ -181,7 +181,7 @@ static const uart_regs_t uart_regs[UART_INSTANCE_COUNT] = {
     .tx = {UART0_TX_PORT, UART0_TX_PIN},
     .cts = {-1, -1},
     .rts = {-1, -1},
-    .nvic_int = NVIC_INT_UART0
+    .nvic_int = NVIC_INT_UART0_COMB
   }, {
     .sys_ctrl_rcgcuart_uart = SYS_CTRL_RCGCUART_UART1,
     .sys_ctrl_scgcuart_uart = SYS_CTRL_SCGCUART_UART1,
@@ -283,9 +283,9 @@ uart_init(uint8_t uart)
 
   /* Set RX and TX pins to peripheral mode */
   GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->tx.port),
-                          GPIO_PIN_MASK(regs->tx.pin));
+                          GPIO_DIO_ALL_MASK(regs->tx.pin));
   GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->rx.port),
-                          GPIO_PIN_MASK(regs->rx.pin));
+                          GPIO_DIO_ALL_MASK(regs->rx.pin));
 
   /*
    * UART Interrupt Masks:
@@ -314,14 +314,14 @@ uart_init(uint8_t uart)
    */
   if(regs->cts.port >= 0) {
     REG(IOC_UARTCTS_UART1) = ioc_input_sel(regs->cts.port, regs->cts.pin);
-    GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->cts.port), GPIO_PIN_MASK(regs->cts.pin));
+    GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->cts.port), GPIO_DIO_ALL_MASK(regs->cts.pin));
     ioc_set_over(regs->cts.port, regs->cts.pin, IOC_OVERRIDE_DIS);
     REG(UART_1_BASE + UART_CTL) |= UART_CTL_CTSEN;
   }
 
   if(regs->rts.port >= 0) {
     ioc_set_sel(regs->rts.port, regs->rts.pin, IOC_PXX_SEL_UART1_RTS);
-    GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->rts.port), GPIO_PIN_MASK(regs->rts.pin));
+    GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->rts.port), GPIO_DIO_ALL_MASK(regs->rts.pin));
     ioc_set_over(regs->rts.port, regs->rts.pin, IOC_OVERRIDE_OE);
     REG(UART_1_BASE + UART_CTL) |= UART_CTL_RTSEN;
   }

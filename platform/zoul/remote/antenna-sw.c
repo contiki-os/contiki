@@ -57,7 +57,7 @@
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
 #define ANTENNA_RF_SW_PORT_BASE  GPIO_PORT_TO_BASE(ANTENNA_RF_SW_PORT)
-#define ANTENNA_RF_SW_PIN_MASK   GPIO_PIN_MASK(ANTENNA_RF_SW_PIN)
+#define ANTENNA_RF_SW_PIN_MASK   GPIO_DIO_ALL_MASK(ANTENNA_RF_SW_PIN)
 /*---------------------------------------------------------------------------*/
 static uint8_t initialized = 0;
 /*---------------------------------------------------------------------------*/

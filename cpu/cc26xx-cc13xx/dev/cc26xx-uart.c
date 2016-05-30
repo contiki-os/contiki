@@ -120,7 +120,7 @@ static void
 disable_interrupts(void)
 {
   /* Acknowledge UART interrupts */
-  ti_lib_int_disable(INT_UART0);
+  ti_lib_int_disable(INT_UART0_COMB);
 
   /* Disable all UART module interrupts */
   ti_lib_uart_int_disable(UART0_BASE, CC26XX_UART_INTERRUPT_ALL);
@@ -141,7 +141,7 @@ enable_interrupts(void)
     ti_lib_uart_int_enable(UART0_BASE, CC26XX_UART_RX_INTERRUPT_TRIGGERS);
 
     /* Acknowledge UART interrupts */
-    ti_lib_int_enable(INT_UART0);
+    ti_lib_int_enable(INT_UART0_COMB);
   }
 }
 /*---------------------------------------------------------------------------*/

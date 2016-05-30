@@ -32,7 +32,7 @@ LDSCRIPT = $(CONTIKI_CPU)/cc26xx.ld
 CFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
-CFLAGS += -Wall -std=c99
+CFLAGS += -Wall -std=c99 -ggdb
 
 LDFLAGS += -mcpu=cortex-m3 -mthumb -mlittle-endian -nostartfiles
 LDFLAGS += -T $(LDSCRIPT)

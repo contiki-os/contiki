@@ -66,7 +66,7 @@ extern void(*const vectors[])(void);
 #define NVIC_INT_GPIO_PORT_B         1 /**<  GPIO port B */
 #define NVIC_INT_GPIO_PORT_C         2 /**<  GPIO port C */
 #define NVIC_INT_GPIO_PORT_D         3 /**<  GPIO port D */
-#define NVIC_INT_UART0               5 /**<  UART0 */
+#define NVIC_INT_UART0_COMB               5 /**<  UART0 */
 #define NVIC_INT_UART1               6 /**<  UART1 */
 #define NVIC_INT_SSI0                7 /**<  SSI0 */
 #define NVIC_INT_I2C                 8 /**<  I2C */

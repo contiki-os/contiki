@@ -124,10 +124,10 @@
     } \
 } while(0)
 #define SPIX_CS_CLR(port, pin) do { \
-    GPIO_CLR_PIN(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin)); \
+    GPIO_CLR_PIN(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin)); \
 } while(0)
 #define SPIX_CS_SET(port, pin) do { \
-    GPIO_SET_PIN(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin)); \
+    GPIO_SET_PIN(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin)); \
 } while(0)
 /*---------------------------------------------------------------------------*/
 /* Deprecated macros provided for compatibility reasons */

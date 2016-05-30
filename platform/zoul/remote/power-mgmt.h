@@ -84,9 +84,9 @@
 #include "dev/gpio.h"
 /* -------------------------------------------------------------------------- */
 #define PM_CMD_PORT_BASE     GPIO_PORT_TO_BASE(PM_CMD_PORT)
-#define PM_CMD_PIN_MASK      GPIO_PIN_MASK(PM_CMD_PIN)
+#define PM_CMD_PIN_MASK      GPIO_DIO_ALL_MASK(PM_CMD_PIN)
 #define PM_DONE_PORT_BASE    GPIO_PORT_TO_BASE(PM_DONE_PORT)
-#define PM_DONE_PIN_MASK     GPIO_PIN_MASK(PM_DONE_PIN)
+#define PM_DONE_PIN_MASK     GPIO_DIO_ALL_MASK(PM_DONE_PIN)
 /* -------------------------------------------------------------------------- */
 /** \name Power Management return values
  * @{
