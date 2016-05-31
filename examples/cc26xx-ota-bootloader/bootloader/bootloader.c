@@ -42,17 +42,16 @@ main(void)
   initialize_peripherals();
 
   OTAMetadata_t example_metadata = {
-    0, 0, 0x27, 0x1, 0x2, 0x2
+    0,              //  CRC
+    0,              //  CRC Shadow
+    0xd260,         //  Size
+    0x1234abcd,     //  UUID
+    0x1             //  Version
   };
-  //if ( FlashProgram((uint8_t*)&example_metadata, FLASH_PAGE_SIZE, OTA_METADATA_LENGTH) == FAPI_STATUS_SUCCESS ) {
-  //  return 0;
-  //} else {
-  //  return -1;
-  //}
+  //uint8_t erase_buf[ sizeof(OTAMetadata_t) ]
+  //FlashProgram((uint8_t*)&example_metadata, 0x2010, sizeof(OTAMetadata_t));
 
-  //generate_fake_metadata();
-
-  update_firmware( 0 );
+  update_firmware( 1 );
   jump_to_image( (CURRENT_FIRMWARE<<12) );
   return 0;
 }

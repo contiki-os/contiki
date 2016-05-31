@@ -97,7 +97,7 @@ update_firmware( uint8_t ota_slot ) {
   uint32_t ota_image_address;
   if ( ota_slot ) {
     //  If ota_slot >= 1, it means we want to copy over an OTA download
-    ota_image_address = ota_images[ ota_slot ];
+    ota_image_address = ota_images[ (ota_slot-1) ];
   } else {
     //  If ota_slot = 0, it means we want to copy over the Golden Image
     ota_image_address = GOLDEN_IMAGE;
@@ -105,8 +105,8 @@ update_firmware( uint8_t ota_slot ) {
   ota_image_address <<= 12;
 
   //  (2) Get metadata about the new version
-  OTAMetadata_t new_firmware;
-  FlashRead( (uint8_t *)&new_firmware, ota_image_address, OTA_METADATA_LENGTH );
+  //OTAMetadata_t new_firmware;
+  //FlashRead( (uint8_t *)&new_firmware, ota_image_address, OTA_METADATA_LENGTH );
 
   //  (2) Validate the new firmware (CRC)
   //  return -1 if not valid!

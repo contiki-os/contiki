@@ -47,6 +47,7 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   //	(2)	Start blinking green LED
 	GPIODirModeSet( BLINKER_PIN, GPIO_DIR_MODE_OUT);
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
+
   //  (3) Get metadata about the current firmware version
   FlashRead( (uint8_t *)&current_firmware, (CURRENT_FIRMWARE<<12), OTA_METADATA_LENGTH );
   printf("\nCurrent Firmware\n");
@@ -72,7 +73,7 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
       return false;
     }
 
-    eeprom_access = ext_flash_read((ota_images[img] << 12), OTA_METADATA_LENGTH, (uint8_t *)&ota_firmare);
+    eeprom_access = ext_flash_read((ota_images[img] << 12), OTA_METADATA_SPACE, (uint8_t *)&ota_firmare);
 
     ext_flash_close();
 
