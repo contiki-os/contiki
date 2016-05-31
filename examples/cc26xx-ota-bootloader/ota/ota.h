@@ -27,19 +27,19 @@ extern uint8_t ota_images[3]; //  Addresses where OTA updates are stored in exte
 typedef struct OTAMetadata {
   uint16_t crc;             //
   uint16_t crc_shadow;      //
-  uint16_t size;            //  Size of firmware image
-  uint16_t version;         //  Integer representing firmware version
+  uint32_t size;            //  Size of firmware image
   uint32_t uid;             //  Integer representing unique firmware ID
-  uint16_t offset;          //  At what flash sector does this image reside?
+  uint16_t version;         //  Integer representing firmware version
 } OTAMetadata_t;
 /**
- *  OTA_METADATA_LENGTH:
+ *  OTA_METADATA_SPACE:
  *    We allow some space for the OTA metadata, which is placed immediately
  *    before firmware image content.  However, the VTOR table in firmware must
  *    be 256-byte aligned.  So, the minimum space we can set for metadata is
- *    0x100, not the mere 0x10 that it requires.
+ *    0x100, not the mere 0x0C that it requires.
  */
-#define OTA_METADATA_LENGTH 0x100
+#define OTA_METADATA_SPACE 0x100
+#define OTA_METADATA_LENGTH sizeof(OTAMetadata_t)
 
 extern void
 FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count);
