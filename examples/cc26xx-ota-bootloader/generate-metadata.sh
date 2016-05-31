@@ -12,11 +12,13 @@ output_file = new Buffer( 256 + firmware_binary.length );
 output_file.writeUInt16LE(0x0, 0); // crc
 output_file.writeUInt16LE(0x0, 2); // crc shadow
 output_file.writeUInt32LE(firmware_binary.length, 4); // binary size
-output_file.writeUInt16LE(firmware_version, 8); // version
-output_file.writeUInt32LE(firmware_uuid, 10); // uuid
+output_file.writeUInt32LE(firmware_uuid, 8); // uuid
+output_file.writeUInt16LE(firmware_version, 12); // version
+
+output_file.writeUInt16LE(0x0, 14); // metadata struct must be 4-byte aligned
 
 //  Fill remaining space until start of firmware binary
-for (var j=14; j<256; j++) {
+for (var j=16; j<256; j++) {
   output_file.writeUInt8(0xff, j);
 }
 

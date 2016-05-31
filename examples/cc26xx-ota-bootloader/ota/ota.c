@@ -37,12 +37,11 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count) {
  */
 void
 print_metadata( OTAMetadata_t *metadata ) {
+  PRINTF("Firmware Size: %#x\n", metadata->size);
   PRINTF("Firmware Version: %u\n", metadata->version);
-  PRINTF("Firmware UID: %lu\n", metadata->uid);
-  PRINTF("Firmware Location: %u\n", metadata->offset);
-  PRINTF("Firmware Size: %u\n", metadata->size);
+  PRINTF("Firmware UID: %#x\n", metadata->uid);
 }
-
+/*
 void
 generate_fake_metadata() {
   //  Write some temp. fake metadata to the OTA slots
@@ -78,7 +77,7 @@ generate_fake_metadata() {
 
     ext_flash_close();
   }
-}
+}*/
 
 /*******************************************************************************
  * @fn      update_firmware
@@ -204,7 +203,7 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data ) {
  *                                the firmware binary that is to be booted into.
  *                                Since this OTA lib prepends metadata to each
  *                                binary, the true VTOR start address will be
- *                                OTA_METADATA_LENGTH bytes past this address.
+ *                                OTA_METADATA_SPACE bytes past this address.
  *
  */
 void
@@ -213,7 +212,7 @@ jump_to_image(uint32_t destination_address)
   if ( destination_address ) {
     //  Only add the metadata length offset if destination_address is NOT 0!
     //  (Jumping to 0x0 is used to reboot the device)
-    destination_address += OTA_METADATA_LENGTH;
+    destination_address += OTA_METADATA_SPACE;
   }
   destination_address += OTA_RESET_VECTOR;
   __asm("LDR R0, [%[dest]]"::[dest]"r"(destination_address)); //  Load the destination address

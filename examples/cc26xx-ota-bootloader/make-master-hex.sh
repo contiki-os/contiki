@@ -15,7 +15,7 @@ make ota-image-example
 printf "\nAdding metadata to OTA Example Image"
 cd ..
 rm firmware-with-metadata.bin
-node generate-metadata.sh ota-image-example/ota-image-example.bin 0x0 0xabcd
+node generate-metadata.sh ota-image-example/ota-image-example.bin 0x00 0xabcd
 
 printf "\nMerging OTA Example Image with Bootloader"
 #srec_cat bootloader/bootloader.hex -intel -crop 0x0 0x2000 0x1FFA8 0x20000 ota-image-example/ota-image-example.hex -intel -crop 0x2000 0x1FFA8 -o firmware.hex -intel
