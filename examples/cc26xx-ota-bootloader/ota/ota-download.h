@@ -23,6 +23,10 @@ typedef enum {
 #define img_req_length  1024    //  size of image data chunk we are asking for from server
 static uint32_t img_req_position;    //  current start byte of image data we are requesting
 
+#define HTTP_PAYLOAD_START(data)  (*data == 0xa) && (*(data - 1) == 0xd)
+#define HTTP_PAYLOAD_END(data)    (*(data+1) == 0xa) && (*data == 0xd)
+
+static OTAMetadata_t new_firmware_metadata;
 static uint8_t page_buffer[ FLASH_PAGE_SIZE ];
 static uint8_t page;
 static bool ota_downloading_page;

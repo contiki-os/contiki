@@ -16,8 +16,15 @@ reset_page_buffer() {
   }
 }
 
+
+/*******************************************************************************
+ * @fn      firmware_binary_cb
+ *
+ * @brief   Handle the HTTP GET response to a request for firmware binary data.
+ *
+ */
 static void
-callback(struct http_socket *s, void *ptr,
+firmware_binary_cb(struct http_socket *s, void *ptr,
          http_socket_event_t e,
          const uint8_t *data, uint16_t datalen)
 {
@@ -45,8 +52,79 @@ callback(struct http_socket *s, void *ptr,
       process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
     }
   } else if(e == HTTP_SOCKET_DATA) {
-    //printf("HTTP socket received %d bytes of data\n", datalen);
-    //printf("Data received: ");
+    while (datalen--)
+    {
+      if (page_started) {
+        //  If *data = "EOF"
+        if (  (*data == 0x45) &&
+              (*(data+1) == 0x4f) &&
+              (*(data+2) == 0x46) )
+        {
+          process_post(ota_download_th_p, OTA_IMAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
+          return;
+        }
+        //  If we've reached the end of the HTTP response
+        else if ( HTTP_PAYLOAD_END( data ) )
+        {
+          page_started = false;
+          break;
+        }
+        //  Otherwise, this is valid data.  Write it down.
+        else
+        {
+          bytes_received++;
+          page_buffer[ (OTA_METADATA_LENGTH + (img_req_position++)) % FLASH_PAGE_SIZE ] = *data;
+          //printf("%#x ", *data);
+        }
+      }
+      else
+      {
+        if ( HTTP_PAYLOAD_START( data ) )
+        {
+          page_started = true;
+        }
+      }
+      *data++;
+    }
+  }
+}
+
+
+/*******************************************************************************
+ * @fn      firmware_metadata_cb
+ *
+ * @brief   Handle the HTTP GET response to a request for firmware metadata.
+ *
+ */
+static void
+firmware_metadata_cb(struct http_socket *s, void *ptr,
+         http_socket_event_t e,
+         const uint8_t *data, uint16_t datalen)
+{
+  if (!ota_downloading_image) {
+    //  If no longer downloading, callbacks are ignored.
+    return;
+  }
+  if(e == HTTP_SOCKET_ERR) {
+    printf("HTTP socket error\n");
+    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
+  } else if(e == HTTP_SOCKET_TIMEDOUT) {
+    printf("HTTP socket error: timed out\n");
+    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
+  } else if(e == HTTP_SOCKET_ABORTED) {
+    printf("HTTP socket error: aborted\n");
+    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
+  } else if(e == HTTP_SOCKET_HOSTNAME_NOT_FOUND) {
+    printf("HTTP socket error: hostname not found\n");
+    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
+  } else if(e == HTTP_SOCKET_CLOSED) {
+    printf("HTTP socket closed, %d bytes received\n", bytes_received);
+    if ( ((img_req_position % FLASH_PAGE_SIZE) + OTA_METADATA_LENGTH) >= FLASH_PAGE_SIZE ) {
+      process_post(ota_download_th_p, OTA_PAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
+    } else {
+      process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
+    }
+  } else if(e == HTTP_SOCKET_DATA) {
     while (datalen--)
     {
       if (page_started) {
@@ -81,7 +159,6 @@ callback(struct http_socket *s, void *ptr,
       }
       *data++;
     }
-    //printf("\n");
   }
 }
 
@@ -90,10 +167,11 @@ PROCESS_THREAD(ota_download_th, ev, data)
 {
   PROCESS_BEGIN();
 
-  //  (1) Configure HTTP client to connect to bbbb::1
-  uip_ip6addr_t ip6addr;
-  uip_ip6addr(&ip6addr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1);
   http_socket_init(&s);
+
+  //  (1) Get firmware metadata from the OTA Image Server
+  http_socket_get(&s, "http://[bbbb::1]:3003/metadata", 0, 0, firmware_metadata_cb, NULL);
+  PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
 
   ota_downloading_image = true;
   img_req_position = 0;
@@ -119,7 +197,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
 
       //  (2) Issue HTTP GET request to server
       page_started = false;
-      http_socket_get(&s, url, 0, 0, callback, NULL);
+      http_socket_get(&s, url, 0, 0, firmware_binary_cb, NULL);
 
       //  (3) Yield until HTTP request callback returns
       PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
