@@ -1,0 +1,53 @@
+# momote001 platform makefile
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+CONTIKI_TARGET_DIRS += . dev
+
+### Include the board-specific makefile
+PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
+#-include $(PLATFORM_ROOT_DIR)/$(BOARD)/Makefile.$(notdir $(BOARD))
+
+### Will allow the inclusion of the correct CPU makefile
+CPU_FAMILY = cc26xx
+
+### Bootloader configuration
+PYTHON = python
+BSL_FLAGS += -e -w -v
+
+ifdef PORT
+  BSL_FLAGS += -p $(PORT)
+endif
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
+%.upload: %.bin
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $<
+endif
+
+CONTIKI_TARGET_SOURCEFILES += contiki-main.c board.c
+CONTIKI_TARGET_SOURCEFILES += leds-arch.c button-sensor.c ext-flash.c momote001-sensors.c
+CONTIKI_TARGET_SOURCEFILES += sensors.c leds.c
+#CONTIKI_TARGET_SOURCEFILES += $(BOARD_SOURCEFILES)
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.momote001
+
+### Unless the example dictates otherwise, build with code size optimisations
+ifndef SMALL
+  SMALL = 0
+endif
+
+### Define the CPU directory and pull in the correct CPU makefile. This will
+### be defined by one of the makefiles included above and it can be either
+### Makefile.cc26xx or Makefile.cc13xx
+CONTIKI_CPU=$(CONTIKI)/cpu/cc26xx-cc13xx
+include $(CONTIKI_CPU)/Makefile.$(CPU_FAMILY)
+
+MODULES += core/net core/net/mac core/net/mac/contikimac core/net/llsec
