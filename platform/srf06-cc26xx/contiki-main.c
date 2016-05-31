@@ -133,7 +133,7 @@ int
 main(void)
 {
   #if OTA
-  HWREG(NVIC_VTABLE) = OTA_IMAGE_OFFSET + OTA_METADATA_LENGTH;
+  HWREG(NVIC_VTABLE) = OTA_IMAGE_OFFSET + OTA_METADATA_SPACE;
   #endif
 
   /* Enable flash cache and prefetch. */
