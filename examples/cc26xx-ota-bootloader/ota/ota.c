@@ -5,11 +5,18 @@ uint8_t ota_images[3] = OTA_ADDRESSES;
 /**
  *    OTA Flash-specific Functions
  */
-/**
- *    A helper function to read from the CC26xx Internal Flash.
- *      pui8DataBuffer: Pointer to uint8_t array to store flash data in.
- *      ui32Address: Flash address to begin reading from.
- *      ui32Count: Number of bytes to read from flash, starting at ui32Address.
+/*******************************************************************************
+ * @fn      FlashRead
+ *
+ * @brief   Read data from the CC26xx Internal Flash.
+ *
+ * @param   pui8DataBuffer  - Pointer to uint8_t array to store flash data in.
+ *
+ * @param   ui32Address     - Flash address to begin reading from.
+ *
+ * @param   ui32Count       - Number of bytes to read from flash, starting at
+ *                            ui32Address.
+ *
  */
 void
 FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count) {
@@ -22,8 +29,11 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count) {
 /**
  *    OTA Metadata Functions
  */
-/**
- *  Print information read from an OTA metadata object.
+/*******************************************************************************
+ * @fn      print_metadata
+ *
+ * @brief   Print formatted OTA image metadata to UART.
+ *
  */
 void
 print_metadata( OTAMetadata_t *metadata ) {
@@ -70,9 +80,17 @@ generate_fake_metadata() {
   }
 }
 
-/**
- *    Copies a stored firmware image from external flash into internal flash.
- *    OTA image to copy is specified by OTA slot index (0, 1, or 2).
+/*******************************************************************************
+ * @fn      update_firmware
+ *
+ * @brief   Overwrite firmware located in internal flash with the firmware
+ *          stored in an external flash OTA slot.
+ *
+ * @param   ota_slot    - The OTA slot index of the firmware image to be copied.
+ *                          0 = "Golden Image" backup, aka factory restore
+ *                          1, 2, 3 = OTA Download slots
+ *
+ * @return  0 or error code
  */
 int
 update_firmware( uint8_t ota_slot ) {
@@ -122,11 +140,19 @@ update_firmware( uint8_t ota_slot ) {
   return 0;
 }
 
-/**
- *    Store one page of firmware data in external flash.
- *      ext_address is the flash address to store the data
- *      page_data is a pointer to the data buffer to be written.
- *    NOTE: Only 1 page (the first 4096 bytes) of the buffer will be written.
+/*******************************************************************************
+ * @fn      store_firmware_page
+ *
+ * @brief   Store 4096 bytes of firmware data in external flash at the specified
+ *          address.
+ *
+ * @param   ext_address   - External flash address to store page_data.
+ *
+ * @param   page_data     - Pointer to the data buffer to be written to ext_address.
+ *                          Note: page_data can be larger than 4096 bytes, but
+ *                          only the first 4096 bytes will be stored.
+ *
+ * @return  0 or error code
  */
 int
 store_firmware_page( uint32_t ext_address, uint8_t *page_data ) {
@@ -159,8 +185,18 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data ) {
   return 0;
 }
 
-/**
- *    Begin executing a new firmware image located at destination_address.
+
+/*******************************************************************************
+ * @fn      jump_to_image
+ *
+ * @brief   Begin executing another firmware binary located in internal flash.
+ *
+ * @param   destination_address - Internal flash address of the vector table for
+ *                                the firmware binary that is to be booted into.
+ *                                Since this OTA lib prepends metadata to each
+ *                                binary, the true VTOR start address will be
+ *                                OTA_METADATA_LENGTH bytes past this address.
+ *
  */
 void
 jump_to_image(uint32_t destination_address)
