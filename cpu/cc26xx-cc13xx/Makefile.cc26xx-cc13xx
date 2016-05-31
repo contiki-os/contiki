@@ -32,6 +32,8 @@ MODULES += $(TI_XXWARE_SRC)
 ###	reflecting the OTA_IMAGE_OFFSET and OTA_IMAGE_LENGTH values defined in the
 ###	target project's Makefile.
 ifeq ($(OTA),1)
+	OTA_IMAGE_OFFSET=0x2000		#	Starts on flash page 2
+	OTA_IMAGE_LENGTH=0x19000 	# 25 flash pages long
 	OTADEFINES = -DOTA_IMAGE_OFFSET=$(OTA_IMAGE_OFFSET) -DOTA_IMAGE_LENGTH=$(OTA_IMAGE_LENGTH) -DOTA=1
 	CFLAGS += $(OTADEFINES)
 	GENERATE_LDSCRIPT = $(Q)$(LD) -P -E $(OTADEFINES) $(CONTIKI_CPU)/cc26xx-ota.c -o $(CONTIKI_CPU)/cc26xx-ota.ld
