@@ -6,11 +6,12 @@ CONTIKI_PROJECT = ota-image-example
 
 CONTIKI = ../../..
 MODULES += core/net/http-socket
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
 OTA=1
 CFLAGS += -g -DDEBUG=1
 
-PROJECT_SOURCEFILES += ota.c
+PROJECT_SOURCEFILES += ota.c ota-download.c
 CONTIKI_WITH_IPV6 = 1
 
 clean:
