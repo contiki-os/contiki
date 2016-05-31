@@ -64,6 +64,9 @@ typedef  int32_t s32_t;
 
 typedef unsigned short uip_stats_t;
 
+#ifndef NETSTACK_CONF_NETWORK
+#define NETSTACK_CONF_NETWORK     eth_driver
+#endif /* NETSTACK_CONF_MAC */
 
 #if NETSTACK_CONF_WITH_IPV6
 /* The Windows build uses wpcap to connect to a host interface. It finds the interface by scanning for

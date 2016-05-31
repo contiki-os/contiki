@@ -110,6 +110,7 @@
 #include "net/mac/rdc.h"
 #include "net/mac/framer.h"
 #include "dev/radio.h"
+#include "net/linkaddr.h"
 
 /**
  * The structure of a network driver in Contiki.
@@ -122,6 +123,10 @@ struct network_driver {
 
   /** Callback for getting notified of incoming packet. */
   void (* input)(void);
+
+  /** Callback for sending outgoing packets. */
+  uint8_t (* output)(const linkaddr_t *localdest);
+
 };
 
 extern const struct network_driver NETSTACK_NETWORK;

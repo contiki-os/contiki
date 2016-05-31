@@ -57,6 +57,7 @@ tapdev_output(void)
    return 0;
 }
 #endif
+
 /*---------------------------------------------------------------------------*/
 static void
 pollhandler(void)
@@ -81,11 +82,23 @@ pollhandler(void)
        if(uip_len > 0) {
 	  tapdev_send();
        }
-#endif              
+#endif
     } else {
       uip_clear_buf();
     }
   }
+}
+/*---------------------------------------------------------------------------*/
+static uint8_t
+output(const linkaddr_t *dest)
+{
+  return tapdev_send((const uip_lladdr_t *)dest);
+}
+/*---------------------------------------------------------------------------*/
+static void
+input(void)
+{
+  /* This should not happen as this should be the "lowest" in the stack.*/
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(tapdev_process, ev, data)
@@ -94,11 +107,8 @@ PROCESS_THREAD(tapdev_process, ev, data)
 
   PROCESS_BEGIN();
 
-  tapdev_init();
 #if !NETSTACK_CONF_WITH_IPV6
   tcpip_set_outputfunc(tapdev_output);
-#else
-  tcpip_set_outputfunc(tapdev_send);
 #endif
   process_poll(&tapdev_process);
 
@@ -108,4 +118,11 @@ PROCESS_THREAD(tapdev_process, ev, data)
 
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
+const struct network_driver eth_driver = {
+  "tapdev",
+  tapdev_init,
+  input,
+  output
+};
 /*---------------------------------------------------------------------------*/
