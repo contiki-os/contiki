@@ -36,7 +36,11 @@ typedef struct OTAMetadata {
  *    We allow some space for the OTA metadata, which is placed immediately
  *    before firmware image content.  However, the VTOR table in firmware must
  *    be 256-byte aligned.  So, the minimum space we can set for metadata is
- *    0x100, not the mere 0x0C that it requires.
+ *    0x100, not the mere 0x10 that it requires.
+ *
+ *  OTA_METADATA_LENGTH:
+ *    This is just the size of the OTAMetadata_t struct, which is 4-byte
+ *    aligned.  We use 14 bytes currently, so this struct will be 16 bytes.
  */
 #define OTA_METADATA_SPACE 0x100
 #define OTA_METADATA_LENGTH sizeof(OTAMetadata_t)
