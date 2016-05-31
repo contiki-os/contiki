@@ -412,7 +412,15 @@ event(struct tcp_socket *tcps, void *ptr,
       tcp_socket_send_str(tcps, " HTTP/1.1\r\n");
       tcp_socket_send_str(tcps, "Connection: close\r\n");
       tcp_socket_send_str(tcps, "Host: ");
+      /* If we have IPv6 host, add the '[' and the ']' characters
+         to the host. As in rfc2732. */
+      if (strchr(host, ':')) {
+        tcp_socket_send_str(tcps, "[");
+      }
       tcp_socket_send_str(tcps, host);
+      if (strchr(host, ':')) {
+        tcp_socket_send_str(tcps, "]");
+      }
       tcp_socket_send_str(tcps, "\r\n");
       if(s->postdata != NULL) {
         if(s->content_type) {
