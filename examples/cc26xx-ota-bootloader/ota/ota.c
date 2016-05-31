@@ -94,11 +94,20 @@ generate_fake_metadata() {
  */
 int
 update_firmware( uint8_t ota_slot ) {
-  uint32_t ota_image_address = ota_images[ ota_slot ] << 12;
+  //  (1) Determine the external flash address corresponding to the OTA slot
+  uint32_t ota_image_address;
+  if ( ota_slot ) {
+    //  If ota_slot >= 1, it means we want to copy over an OTA download
+    ota_image_address = ota_images[ ota_slot ];
+  } else {
+    //  If ota_slot = 0, it means we want to copy over the Golden Image
+    ota_image_address = GOLDEN_IMAGE;
+  }
+  ota_image_address <<= 12;
 
-  //  (1) Get metadata about the new version
-  //OTAMetadata_t new_firmware;
-  //FlashRead( (uint8_t *)&new_firmware, ota_image_address, OTA_METADATA_LENGTH );
+  //  (2) Get metadata about the new version
+  OTAMetadata_t new_firmware;
+  FlashRead( (uint8_t *)&new_firmware, ota_image_address, OTA_METADATA_LENGTH );
 
   //  (2) Validate the new firmware (CRC)
   //  return -1 if not valid!
