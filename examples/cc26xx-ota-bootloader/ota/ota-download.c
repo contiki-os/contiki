@@ -46,7 +46,7 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
     process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
   } else if(e == HTTP_SOCKET_CLOSED) {
     printf("HTTP socket closed, %d bytes received\n", bytes_received);
-    if ( ((img_req_position % FLASH_PAGE_SIZE) + OTA_METADATA_LENGTH) >= FLASH_PAGE_SIZE ) {
+    if ( ((img_req_position % FLASH_PAGE_SIZE) + OTA_METADATA_SPACE) >= FLASH_PAGE_SIZE ) {
       process_post(ota_download_th_p, OTA_PAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
     } else {
       process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
@@ -73,7 +73,7 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
         else
         {
           bytes_received++;
-          page_buffer[ (OTA_METADATA_LENGTH + (img_req_position++)) % FLASH_PAGE_SIZE ] = *data;
+          page_buffer[ (OTA_METADATA_SPACE + (img_req_position++)) % FLASH_PAGE_SIZE ] = *data;
           //printf("%#x ", *data);
         }
       }
@@ -119,46 +119,37 @@ firmware_metadata_cb(struct http_socket *s, void *ptr,
     process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
   } else if(e == HTTP_SOCKET_CLOSED) {
     printf("HTTP socket closed, %d bytes received\n", bytes_received);
-    if ( ((img_req_position % FLASH_PAGE_SIZE) + OTA_METADATA_LENGTH) >= FLASH_PAGE_SIZE ) {
-      process_post(ota_download_th_p, OTA_PAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
-    } else {
-      process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
-    }
+    memcpy( &new_firmware_metadata, page_buffer, img_req_position );
+    print_metadata( &new_firmware_metadata );
+    process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
   } else if(e == HTTP_SOCKET_DATA) {
     while (datalen--)
     {
-      if (page_started) {
-        //  If *data = "EOF"
-        if (  (*data == 0x45) &&
-              (*(data+1) == 0x4f) &&
-              (*(data+2) == 0x46) )
-        {
-          process_post(ota_download_th_p, OTA_IMAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
-          return;
-        }
+      if (metadata_started) {
         //  If we've reached the end of the HTTP response
-        else if ( (*(data+1) == 0xa) && (*data == 0xd) )
+        if ( HTTP_PAYLOAD_END( data ) )
         {
-          page_started = false;
+          metadata_started = false;
           break;
         }
         //  Otherwise, this is valid data.  Write it down.
         else
         {
           bytes_received++;
-          page_buffer[ (OTA_METADATA_LENGTH + (img_req_position++)) % FLASH_PAGE_SIZE ] = *data;
+          page_buffer[ img_req_position++ ] = *data;
           //printf("%#x ", *data);
         }
       }
       else
       {
-        if ( (*data == 0xa) && (*(data - 1) == 0xd) )
+        if ( HTTP_PAYLOAD_START( data ) )
         {
-          page_started = true;
+          metadata_started = true;
         }
       }
       *data++;
     }
+    printf("\n");
   }
 }
 
@@ -167,19 +158,26 @@ PROCESS_THREAD(ota_download_th, ev, data)
 {
   PROCESS_BEGIN();
 
+  ota_downloading_image = true;
   http_socket_init(&s);
 
   //  (1) Get firmware metadata from the OTA Image Server
+  metadata_started = false;
+  reset_page_buffer();
+  bytes_received = 0;
+  img_req_position = 0;
   http_socket_get(&s, "http://[bbbb::1]:3003/metadata", 0, 0, firmware_metadata_cb, NULL);
   PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
 
-  ota_downloading_image = true;
+  //  (2) Begin downloading the actual firmware binary, one page at a time.
   img_req_position = 0;
-
   for (page=0; page<25; page++)
   {
     //  (1) Clear Page Buffer
-    reset_page_buffer();
+    if (page) {
+      //  Don't clear the buffer on initial page; this would erase the metadata
+      reset_page_buffer();
+    }
 
     //  (2) Download page
     printf("Downloading Page %u/25:\n", page);
@@ -192,7 +190,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
       if ( img_req_position ) {
         sprintf(url, "http://[bbbb::1]:3003/%lu/%u", img_req_position, img_req_length);
       } else {
-        sprintf(url, "http://[bbbb::1]:3003/%lu/%u", img_req_position, (img_req_length-OTA_METADATA_LENGTH));
+        sprintf(url, "http://[bbbb::1]:3003/%lu/%u", img_req_position, (img_req_length-OTA_METADATA_SPACE));
       }
 
       //  (2) Issue HTTP GET request to server
@@ -235,7 +233,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   }
 
   printf("Done downloading!\n");
-  jump_to_image( 0x0 );
+  //jump_to_image( 0x0 );
 
   PROCESS_END();
 }
