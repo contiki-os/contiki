@@ -55,10 +55,12 @@
 
 #include "contiki-conf.h"
 
-#ifndef RTIMER_CLOCK_LT
+#ifndef RTIMER_CLOCK_DIFF
 typedef unsigned short rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
-#endif /* RTIMER_CLOCK_LT */
+#define RTIMER_CLOCK_DIFF(a,b)     ((signed short)((a)-(b)))
+#endif /* RTIMER_CLOCK_DIFF */
+
+#define RTIMER_CLOCK_LT(a, b)      (RTIMER_CLOCK_DIFF((a),(b)) < 0)
 
 #include "rtimer-arch.h"
 

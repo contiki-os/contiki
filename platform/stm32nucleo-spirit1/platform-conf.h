@@ -78,7 +78,7 @@
 #define CLOCK_CONF_SECOND             128
 /* One tick: 62.5 ms */
 
-#define RTIMER_CLOCK_LT(a, b)     ((signed short)((a) - (b)) < 0)
+#define RTIMER_CLOCK_DIFF(a, b)     ((signed short)((a) - (b)))
 /*---------------------------------------------------------------------------*/
 typedef unsigned long clock_time_t;
 typedef unsigned long long rtimer_clock_t;
