@@ -166,7 +166,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   reset_page_buffer();
   bytes_received = 0;
   img_req_position = 0;
-  http_socket_get(&s, "http://[bbbb::1]:3003/metadata", 0, 0, firmware_metadata_cb, NULL);
+  http_socket_get(&s, OTA_IMAGE_SERVER "/metadata", 0, 0, firmware_metadata_cb, NULL);
   PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
 
   //  (2) Begin downloading the actual firmware binary, one page at a time.
@@ -188,9 +188,9 @@ PROCESS_THREAD(ota_download_th, ev, data)
       char url[120];
       bytes_received = 0;
       if ( img_req_position ) {
-        sprintf(url, "http://[bbbb::1]:3003/%lu/%u", img_req_position, img_req_length);
+        sprintf(url, OTA_IMAGE_SERVER "/%lu/%u", img_req_position, img_req_length);
       } else {
-        sprintf(url, "http://[bbbb::1]:3003/%lu/%u", img_req_position, (img_req_length-OTA_METADATA_SPACE));
+        sprintf(url, OTA_IMAGE_SERVER "/%lu/%u", img_req_position, (img_req_length-OTA_METADATA_SPACE));
       }
 
       //  (2) Issue HTTP GET request to server

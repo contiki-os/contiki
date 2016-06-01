@@ -8,6 +8,8 @@
 #include "ip64-addr.h"
 #include "ota.h"
 
+#define OTA_IMAGE_SERVER  "http://[bbbb::1]:3003"
+
 /* OTA Download Thread */
 extern int ota_download_th_p; // Pointer to OTA Download thread
 

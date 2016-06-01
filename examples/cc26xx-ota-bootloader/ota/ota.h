@@ -28,7 +28,7 @@ typedef struct OTAMetadata {
   uint16_t crc;             //
   uint16_t crc_shadow;      //
   uint32_t size;            //  Size of firmware image
-  uint32_t uid;             //  Integer representing unique firmware ID
+  uint32_t uuid;             //  Integer representing unique firmware ID
   uint16_t version;         //  Integer representing firmware version
 } OTAMetadata_t;
 /**
@@ -51,8 +51,11 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count);
 extern void
 print_metadata( OTAMetadata_t *metadata );
 
-extern void
-generate_fake_metadata();
+extern int
+find_oldest_ota_image();
+
+extern int
+find_newest_ota_image();
 
 extern int
 update_firmware( uint8_t ota_slot );
