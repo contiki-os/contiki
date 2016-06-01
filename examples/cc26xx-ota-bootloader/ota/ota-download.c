@@ -188,7 +188,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
     }
 
     //  (2) Download page
-    printf("Downloading Page %u/25:\n", page);
+    printf("\nDownloading Page %u/25:\n", page);
     ota_downloading_page = true;
     while (ota_downloading_page)
     {
@@ -219,7 +219,6 @@ PROCESS_THREAD(ota_download_th, ev, data)
           ota_downloading_image = false;
         }
       }
-
     }
 
     //  (3) Print/save page to console/flash
@@ -228,8 +227,8 @@ PROCESS_THREAD(ota_download_th, ev, data)
     {
       sum += page_buffer[n];
     }
-    store_firmware_page( ((page+active_ota_download_slot) << 12), page_buffer );
-    printf("\nSum: \t%lu\n", sum);
+    while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) == -1) {}
+    printf("\tSum: \t%lu\n", sum);
 
 
     //  (4) Are we done?
@@ -240,7 +239,20 @@ PROCESS_THREAD(ota_download_th, ev, data)
   }
 
   printf("Done downloading!\n");
-  jump_to_image( 0x0 );
+
+  int ota_slot;
+  OTAMetadata_t ota_metadata;
+
+  printf("\nNewest Firmware:\n");
+  ota_slot = find_newest_ota_image();
+  ota_metadata = get_ota_slot_metadata( ota_slot );
+  print_metadata( &ota_metadata );
+
+  /*
+  HWREG(NVIC_VTABLE) = 0;
+  jump_to_image( 0 );
+*/
+  //ti_lib_sys_ctrl_system_reset();
 
   PROCESS_END();
 }
