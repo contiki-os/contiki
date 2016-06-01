@@ -35,7 +35,6 @@ blink_looper()
   ctimer_reset( &blink_timer );
 }
 
-OTAMetadata_t current_firmware;
 
 PROCESS_THREAD(blinker_test_loop, ev, data)
 {
@@ -49,10 +48,10 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   ctimer_set( &blink_timer, (CLOCK_SECOND/2), blink_looper, NULL);
 
   //  (3) Get metadata about the current firmware version
+  OTAMetadata_t current_firmware;
   current_firmware = get_current_metadata();
   printf("\nCurrent Firmware\n");
   print_metadata( &current_firmware );
-  printf("\n");
 
   ext_flash_init();
 
@@ -69,12 +68,11 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   ota_metadata = get_ota_slot_metadata( ota_slot );
   print_metadata( &ota_metadata );
 
-  //erase_ota_image( 3 );
   int empty_slot = find_empty_ota_slot();
   PRINTF("\nEmpty OTA slot: #%u\n", empty_slot);
 
   //  (4) OTA Download!
-  //process_start(ota_download_th_p, NULL);
+  process_start(ota_download_th_p, NULL);
 
 
   PROCESS_END();
