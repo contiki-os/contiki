@@ -83,31 +83,33 @@ static struct broadcast_conn bc;
 PROCESS_THREAD(openmote_demo_process, ev, data)
 {
   static struct etimer et;
-  static unsigned int raw, counter;
-  static uint8_t adxl346_present, max44009_present, sht21_present;
-  static float light, temperature, humidity;
+  static int16_t counter;
+  static uint16_t adxl346_present, sht21_present, max44009_present;
+  static int16_t accel, light, temperature, humidity;
 
   PROCESS_EXITHANDLER(broadcast_close(&bc))
 
   PROCESS_BEGIN();
 
-  adxl346_init();
-  adxl346_present = adxl346_is_present();
-  if(!adxl346_present) {
+  /* Initialize and calibrate the ADXL346 sensor */
+  adxl346_present = SENSORS_ACTIVATE(adxl346);
+  if(adxl346_present == ADXL346_ERROR) {
     printf("ADXL346 sensor is NOT present!\n");
     leds_on(LEDS_YELLOW);
+  } else {
+    adxl346.configure(ADXL346_CALIB_OFFSET, 0);
   }
 
-  max44009_init();
-  max44009_present = max44009_is_present();
-  if(!max44009_present) {
+  /* Initialize the MAX44009 sensor */
+  max44009_present = SENSORS_ACTIVATE(max44009);
+  if(max44009_present == MAX44009_ERROR) {
     printf("MAX44009 sensor is NOT present!\n");
     leds_on(LEDS_ORANGE);
   }
 
-  sht21_init();
-  sht21_present = sht21_is_present();
-  if(!sht21_present) {
+  /* Initialize the SHT21 sensor */
+  sht21_present = SENSORS_ACTIVATE(sht21);
+  if(sht21_present == SHT21_ERROR) {
     printf("SHT21 sensor is NOT present!\n");
     leds_on(LEDS_RED);
   }
@@ -123,33 +125,30 @@ PROCESS_THREAD(openmote_demo_process, ev, data)
     PROCESS_YIELD();
 
     if(ev == PROCESS_EVENT_TIMER) {
-      if(adxl346_present) {
+      if(adxl346_present != ADXL346_ERROR) {
         leds_on(LEDS_YELLOW);
-        raw = adxl346_read_x();
-        printf("X Acceleration: %u\n", raw);
-        raw = adxl346_read_y();
-        printf("Y Acceleration: %u\n", raw);
-        raw = adxl346_read_z();
-        printf("Z Acceleration: %u\n", raw);
+        accel = adxl346.value(ADXL346_READ_X_mG);
+        printf("X Acceleration: %d.%u G\n", accel / 1000, accel % 1000);
+        accel = adxl346.value(ADXL346_READ_Y_mG);
+        printf("Y Acceleration: %d.%u G\n", accel / 1000, accel % 1000);
+        accel = adxl346.value(ADXL346_READ_Z_mG);
+        printf("Z Acceleration: %d.%u G\n", accel / 1000, accel % 1000);
         leds_off(LEDS_YELLOW);
       }
 
-      if(max44009_present) {
+      if(max44009_present != MAX44009_ERROR) {
         leds_on(LEDS_ORANGE);
-        raw = max44009_read_light();
-        light = max44009_convert_light(raw);
-        printf("Light: %u.%ulux\n", (unsigned int)light, (unsigned int)(light * 100) % 100);
+        light = max44009.value(MAX44009_READ_LIGHT);
+        printf("Light: %u.%ulux\n", light / 100, light % 100);
         leds_off(LEDS_ORANGE);
       }
 
-      if(sht21_present) {
+      if(sht21_present != SHT21_ERROR) {
         leds_on(LEDS_RED);
-        raw = sht21_read_temperature();
-        temperature = sht21_convert_temperature(raw);
-        printf("Temperature: %u.%uC\n", (unsigned int)temperature, (unsigned int)(temperature * 100) % 100);
-        raw = sht21_read_humidity();
-        humidity = sht21_convert_humidity(raw);
-        printf("Rel. humidity: %u.%u%%\n", (unsigned int)humidity, (unsigned int)(humidity * 100) % 100);
+        temperature = sht21.value(SHT21_READ_TEMP);
+        printf("Temperature: %u.%uC\n", temperature / 100, temperature % 100);
+        humidity = sht21.value(SHT21_READ_RHUM);
+        printf("Rel. humidity: %u.%u%%\n", humidity / 100, humidity % 100);
         leds_off(LEDS_RED);
       }
 

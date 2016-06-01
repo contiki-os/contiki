@@ -43,6 +43,14 @@
 /*---------------------------------------------------------------------------*/
 #include "dev/i2c.h"
 #include "dev/max44009.h"
+#include "lib/sensors.h"
+/*---------------------------------------------------------------------------*/
+#define DEBUG 1
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 /*---------------------------------------------------------------------------*/
 /**
  * \name MAX44009 address and device identifier
@@ -94,9 +102,17 @@
                                              MAX44009_CONFIG_AUTO | \
                                              MAX44009_CONFIG_CDR_NORMAL | \
                                              MAX44009_CONFIG_INTEGRATION_100ms)
+
+#define MAX44009_USER_CONFIGURATION         (MAX44009_CONFIG_DEFAULT | \
+                                             MAX44009_CONFIG_AUTO | \
+                                             MAX44009_CONFIG_CDR_NORMAL | \
+                                             MAX44009_CONFIG_INTEGRATION_800ms)
+
 /** @} */
 /*---------------------------------------------------------------------------*/
-void
+static uint8_t enabled;
+/*---------------------------------------------------------------------------*/
+static void
 max44009_init(void)
 {
   uint8_t max44009_address[5] = { MAX44009_INT_ENABLE_ADDR, MAX44009_CONFIG_ADDR, \
@@ -106,8 +122,8 @@ max44009_init(void)
   uint8_t max44009_data[2];
   uint8_t i;
 
-  max44009_value[0] = (MAX44009_INT_STATUS_ON);
-  max44009_value[1] = (MAX44009_DEFAULT_CONFIGURATION);
+  max44009_value[0] = (MAX44009_INT_STATUS_OFF);
+  max44009_value[1] = (MAX44009_USER_CONFIGURATION);
   max44009_value[2] = (0xFF);
   max44009_value[3] = (0x00);
   max44009_value[4] = (0xFF);
@@ -119,7 +135,7 @@ max44009_init(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 max44009_reset(void)
 {
   uint8_t max44009_address[5] = { MAX44009_INT_ENABLE_ADDR, MAX44009_CONFIG_ADDR, \
@@ -136,7 +152,7 @@ max44009_reset(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-uint8_t
+static uint8_t
 max44009_is_present(void)
 {
   uint8_t status;
@@ -151,12 +167,12 @@ max44009_is_present(void)
   return is_present != MAX44009_NOT_FOUND;
 }
 /*---------------------------------------------------------------------------*/
-uint16_t
+static uint16_t
 max44009_read_light(void)
 {
   uint8_t exponent, mantissa;
   uint8_t max44009_data[2];
-  uint16_t result;
+  uint32_t result;
 
   i2c_single_send(MAX44009_ADDRESS, MAX44009_LUX_HIGH_ADDR);
   i2c_single_receive(MAX44009_ADDRESS, &max44009_data[0]);
@@ -171,20 +187,77 @@ max44009_read_light(void)
   return result;
 }
 /*---------------------------------------------------------------------------*/
-float
+static uint16_t
 max44009_convert_light(uint16_t lux)
 {
   uint8_t exponent, mantissa;
-  float result = 0.045;
+  uint32_t result;
 
   exponent = (lux >> 8) & 0xFF;
   exponent = (exponent == 0x0F ? exponent & 0x0E : exponent);
-
   mantissa = (lux >> 0) & 0xFF;
 
-  result *= 2 ^ exponent * mantissa;
+  result = 45 * (2 ^ exponent * mantissa) / 10;
 
-  return result;
+  return (uint16_t)result;
 }
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return enabled;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
+{
+  uint16_t value;
+
+  if(!enabled) {
+    PRINTF("MAX44009: sensor not started\n");
+    return MAX44009_ERROR;
+  }
+
+  if(type == MAX44009_READ_RAW_LIGHT) {
+    return max44009_read_light();
+  } else if(type == MAX44009_READ_LIGHT) {
+    value = max44009_read_light();
+    return max44009_convert_light(value);
+  } else {
+    PRINTF("MAX44009: invalid value requested\n");
+    return MAX44009_ERROR;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int value)
+{
+  if(type == MAX44009_ACTIVATE) {
+    if(!max44009_is_present()) {
+      return MAX44009_ERROR;
+    } else {
+      max44009_init();
+      enabled = 1;
+      return MAX44009_SUCCESS;
+    }
+  }
+
+  if((type == MAX44009_RESET) && enabled) {
+    max44009_reset();
+    return MAX44009_SUCCESS;
+  } else {
+    PRINTF("MAX44009: is not enabled\n");
+    return MAX44009_ERROR;
+  }
+
+  return MAX44009_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(max44009, MAX44009_SENSOR, value, configure, status);
 /*---------------------------------------------------------------------------*/
 /** @} */

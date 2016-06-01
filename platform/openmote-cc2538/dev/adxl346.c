@@ -43,6 +43,14 @@
 /*---------------------------------------------------------------------------*/
 #include "dev/i2c.h"
 #include "dev/adxl346.h"
+#include "lib/sensors.h"
+/*---------------------------------------------------------------------------*/
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 /*---------------------------------------------------------------------------*/
 /**
  * \name ADXL346 address and device identifier
@@ -145,21 +153,24 @@
 #define ADXL346_DATA_FORMAT_RANGE_PM_4g     (1)
 #define ADXL346_DATA_FORMAT_RANGE_PM_8g     (2)
 #define ADXL346_DATA_FORMAT_RANGE_PM_16g    (3)
+
+#define ADXL346_USER_CONFIGURATION          (ADXL346_DATA_FORMAT_RANGE_PM_2g)
+
 /** @} */
 /*---------------------------------------------------------------------------*/
-void
+static uint8_t enabled;
+/*---------------------------------------------------------------------------*/
+static void
 adxl346_init(void)
 {
   uint8_t config[2];
 
   config[0] = ADXL346_BW_RATE_ADDR;
-  config[1] = (ADXL346_BW_RATE_RATE(11));
+  config[1] = (ADXL346_BW_RATE_RATE(6));
   i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
 
   config[0] = ADXL346_DATA_FORMAT_ADDR;
-  config[1] = (ADXL346_DATA_FORMAT_SELF_TEST |
-               ADXL346_DATA_FORMAT_FULL_RES |
-               ADXL346_DATA_FORMAT_RANGE_PM_16g);
+  config[1] = (ADXL346_USER_CONFIGURATION);
   i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
 
   config[0] = ADXL346_POWER_CTL_ADDR;
@@ -167,12 +178,7 @@ adxl346_init(void)
   i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
 }
 /*---------------------------------------------------------------------------*/
-void
-adxl346_reset(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-uint8_t
+static uint8_t
 adxl346_is_present(void)
 {
   uint8_t is_present;
@@ -183,52 +189,150 @@ adxl346_is_present(void)
   return is_present == ADXL346_DEVID_VALUE;
 }
 /*---------------------------------------------------------------------------*/
-uint16_t
-adxl346_read_x(void)
+static int16_t
+adxl346_read_accel(uint8_t addr1, uint8_t addr2)
 {
   uint8_t acceleration[2];
-  uint16_t x;
+  int16_t result;
 
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAX0_ADDR);
+  i2c_single_send(ADXL346_ADDRESS, addr1);
   i2c_single_receive(ADXL346_ADDRESS, &acceleration[0]);
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAX1_ADDR);
+  i2c_single_send(ADXL346_ADDRESS, addr2);
   i2c_single_receive(ADXL346_ADDRESS, &acceleration[1]);
 
-  x = (acceleration[0] << 8) | acceleration[1];
+  result = (acceleration[1] << 8) | acceleration[0];
 
-  return x;
+  return result;
 }
 /*---------------------------------------------------------------------------*/
-uint16_t
-adxl346_read_y(void)
+static int16_t
+adxl346_convert_accel(int16_t accel)
 {
-  uint8_t acceleration[2];
-  uint16_t y;
+  int32_t result;
 
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAY0_ADDR);
-  i2c_single_receive(ADXL346_ADDRESS, &acceleration[0]);
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAY1_ADDR);
-  i2c_single_receive(ADXL346_ADDRESS, &acceleration[1]);
+  result = (1000 * accel) / 256;
 
-  y = (acceleration[0] << 8) | acceleration[1];
-
-  return y;
+  return (int16_t)result;
 }
 /*---------------------------------------------------------------------------*/
-uint16_t
-adxl346_read_z(void)
+static void
+adxl346_calibrate_offset(void)
 {
-  uint8_t acceleration[2];
-  uint16_t z;
+  int32_t accum_x = 0;
+  int32_t accum_y = 0;
+  int32_t accum_z = 0;
+  uint8_t config[2];
+  int8_t offset;
 
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAZ0_ADDR);
-  i2c_single_receive(ADXL346_ADDRESS, &acceleration[0]);
-  i2c_single_send(ADXL346_ADDRESS, ADXL346_DATAZ1_ADDR);
-  i2c_single_receive(ADXL346_ADDRESS, &acceleration[1]);
+  config[0] = ADXL346_OFSX_ADDR;
+  config[1] = 0;
+  i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
+  config[0] = ADXL346_OFSY_ADDR;
+  config[1] = 0;
+  i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
+  config[0] = ADXL346_OFSZ_ADDR;
+  config[1] = 0;
+  i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
 
-  z = (acceleration[0] << 8) | acceleration[1];
+  uint16_t i;
+  for(i = 0; i < 100; i++) {
+    uint16_t x, y, z;
 
-  return z;
+    x = adxl346_read_accel(ADXL346_DATAX0_ADDR, ADXL346_DATAX1_ADDR);
+    accum_x += x;
+
+    y = adxl346_read_accel(ADXL346_DATAY0_ADDR, ADXL346_DATAY1_ADDR);
+    accum_y += y;
+
+    z = adxl346_read_accel(ADXL346_DATAZ0_ADDR, ADXL346_DATAZ1_ADDR);
+    accum_z += z;
+  }
+
+  offset = (64 * accum_x) / 25600;
+  config[0] = ADXL346_OFSX_ADDR;
+  config[1] = -offset;
+  i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
+  PRINTF("ADXL346: X calibration offset is %d\n", offset);
+
+  offset = (64 * accum_y) / 25600;
+  config[0] = ADXL346_OFSY_ADDR;
+  config[1] = -offset;
+  i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
+  PRINTF("ADXL346: Y calibration offset is %d\n", offset);
+
+  offset = (64 * accum_z) / 25600;
+  config[0] = ADXL346_OFSZ_ADDR;
+  config[1] = -offset;
+  i2c_burst_send(ADXL346_ADDRESS, config, sizeof(config));
+  PRINTF("ADXL346: Z calibration offset is %d\n", offset);
 }
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return enabled;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
+{
+  int16_t accel;
+  if(!enabled) {
+    PRINTF("ADXL346: sensor not started\n");
+    return ADXL346_ERROR;
+  }
+
+  if(type == ADXL346_READ_X) {
+    return adxl346_read_accel(ADXL346_DATAX0_ADDR, ADXL346_DATAX1_ADDR);
+  } else if(type == ADXL346_READ_Y) {
+    return adxl346_read_accel(ADXL346_DATAY0_ADDR, ADXL346_DATAY1_ADDR);
+  } else if(type == ADXL346_READ_Z) {
+    return adxl346_read_accel(ADXL346_DATAZ0_ADDR, ADXL346_DATAZ1_ADDR);
+  } else if(type == ADXL346_READ_X_mG) {
+    accel = adxl346_read_accel(ADXL346_DATAX0_ADDR, ADXL346_DATAX1_ADDR);
+    return adxl346_convert_accel(accel);
+  } else if(type == ADXL346_READ_Y_mG) {
+    accel = adxl346_read_accel(ADXL346_DATAY0_ADDR, ADXL346_DATAY1_ADDR);
+    return adxl346_convert_accel(accel);
+  } else if(type == ADXL346_READ_Z_mG) {
+    accel = adxl346_read_accel(ADXL346_DATAZ0_ADDR, ADXL346_DATAZ1_ADDR);
+    return adxl346_convert_accel(accel);
+  } else {
+    PRINTF("ADXL346: invalid value requested\n");
+    return ADXL346_ERROR;
+  }
+
+  return ADXL346_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int value)
+{
+  if(type == ADXL346_ACTIVATE) {
+    if(!adxl346_is_present()) {
+      PRINTF("ADXL346: is not present\n");
+      enabled = 0;
+      return ADXL346_ERROR;
+    } else {
+      adxl346_init();
+      enabled = 1;
+      return ADXL346_SUCCESS;
+    }
+  }
+
+  if(type == ADXL346_CALIB_OFFSET && enabled) {
+    adxl346_calibrate_offset();
+    return ADXL346_SUCCESS;
+  }
+
+  return ADXL346_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(adxl346, ADXL346_SENSOR, value, configure, status);
 /*---------------------------------------------------------------------------*/
 /** @} */
