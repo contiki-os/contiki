@@ -1,0 +1,8 @@
+### Will allow the inclusion of the correct CPU makefile
+CPU_FAMILY = cc13xx
+
+### Add to the source dirs
+CONTIKI_TARGET_DIRS += launchpad/cc1310
+
+### Include the common launchpad makefile
+include $(PLATFORM_ROOT_DIR)/launchpad/Makefile.launchpad
