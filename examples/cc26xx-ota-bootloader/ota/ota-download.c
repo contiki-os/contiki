@@ -158,18 +158,26 @@ PROCESS_THREAD(ota_download_th, ev, data)
 {
   PROCESS_BEGIN();
 
-  ota_downloading_image = true;
-  http_socket_init(&s);
+  //  (1) What OTA slot will we download into?
+  active_ota_download_slot = find_empty_ota_slot();
+  PRINTF("\nDownloading OTA update to OTA slot #%u.\n", active_ota_download_slot);
 
-  //  (1) Get firmware metadata from the OTA Image Server
-  metadata_started = false;
+  //  (2) Erase the download destination OTA slot
+  erase_ota_image( active_ota_download_slot );
+
+  //  (3) Initialize the HTTP download
+  http_socket_init(&s);
   reset_page_buffer();
-  bytes_received = 0;
   img_req_position = 0;
+  bytes_received = 0;
+  ota_downloading_image = true;
+
+  //  (4) Get firmware metadata from the OTA Image Server
+  metadata_started = false;
   http_socket_get(&s, OTA_IMAGE_SERVER "/metadata", 0, 0, firmware_metadata_cb, NULL);
   PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
 
-  //  (2) Begin downloading the actual firmware binary, one page at a time.
+  //  (5) Begin downloading the actual firmware binary, one page at a time.
   img_req_position = 0;
   for (page=0; page<25; page++)
   {
@@ -219,9 +227,8 @@ PROCESS_THREAD(ota_download_th, ev, data)
     for (uint16_t n=0; n<FLASH_PAGE_SIZE; n++)
     {
       sum += page_buffer[n];
-      //printf("%#x ", page_buffer[ n ]);
     }
-    store_firmware_page( ((page+0x32) << 12), page_buffer );
+    store_firmware_page( ((page+active_ota_download_slot) << 12), page_buffer );
     printf("\nSum: \t%lu\n", sum);
 
 
@@ -233,7 +240,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   }
 
   printf("Done downloading!\n");
-  //jump_to_image( 0x0 );
+  jump_to_image( 0x0 );
 
   PROCESS_END();
 }

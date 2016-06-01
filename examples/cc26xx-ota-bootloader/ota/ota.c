@@ -56,7 +56,7 @@ OTAMetadata_t
 get_current_metadata()
 {
   OTAMetadata_t current_metadata;
-  
+
   FlashRead( (uint8_t *)&current_metadata, (CURRENT_FIRMWARE<<12), OTA_METADATA_LENGTH );
 
   return current_metadata;
@@ -259,6 +259,7 @@ erase_ota_image( uint8_t ota_slot )
 {
   //  (1) Get page address of the ota_slot in ext-flash
   uint8_t ota_image_base_address = ota_images[ (ota_slot-1) ];
+  PRINTF("Erasing OTA slot %u [%#x, %#x)...", ota_slot, (ota_image_base_address<<12), ((ota_image_base_address+25)<<12));
 
   int eeprom_access;
   eeprom_access = ext_flash_open();
