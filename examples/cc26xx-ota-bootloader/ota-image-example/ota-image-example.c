@@ -52,39 +52,30 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   FlashRead( (uint8_t *)&current_firmware, (CURRENT_FIRMWARE<<12), OTA_METADATA_LENGTH );
   printf("\nCurrent Firmware\n");
   print_metadata( &current_firmware );
+  printf("\n");
+
+  ext_flash_init();
+
+  int ota_slot;
+  OTAMetadata_t ota_metadata;
+
+  printf("\nNewest Firmware:\n");
+  ota_slot = find_newest_ota_image();
+  ota_metadata = get_ota_slot_metadata( ota_slot );
+  print_metadata( &ota_metadata );
+
+  printf("\nOldest Firmware:\n");
+  ota_slot = find_oldest_ota_image();
+  ota_metadata = get_ota_slot_metadata( ota_slot );
+  print_metadata( &ota_metadata );
+
+  //erase_ota_image( 3 );
+  int empty_slot = find_empty_ota_slot();
+  PRINTF("\nEmpty OTA slot: #%u\n", empty_slot);
 
   //  (4) OTA Download!
-  ext_flash_init();
-  process_start(ota_download_th_p, NULL);
-/*
-*/
-  //generate_fake_metadata();
+  //process_start(ota_download_th_p, NULL);
 
-  //  (2) Get metadata about OTA firmwares stored in the external flash.
-/*  for (int img=0; img<sizeof(ota_images); img++) {
-    OTAMetadata_t ota_firmare;
-
-    // Make sure the external flash is in the lower power mode
-    int eeprom_access = ext_flash_open();
-
-    if(!eeprom_access) {
-      printf("[external-flash]:\tError - Could not access EEPROM.\n");
-      ext_flash_close();
-      return false;
-    }
-
-    eeprom_access = ext_flash_read((ota_images[img] << 12), OTA_METADATA_SPACE, (uint8_t *)&ota_firmare);
-
-    ext_flash_close();
-
-    if(!eeprom_access) {
-      printf("[external-flash]:\tError - Could not read EEPROM.\n");
-      ext_flash_close();
-    }
-
-    printf("\nOTA Firmware Slot %u\n", img);
-    print_metadata( &ota_firmare );
-  }*/
 
   PROCESS_END();
 }
