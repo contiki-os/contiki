@@ -52,6 +52,9 @@ extern void
 print_metadata( OTAMetadata_t *metadata );
 
 extern OTAMetadata_t
+get_current_metadata();
+
+extern OTAMetadata_t
 get_ota_slot_metadata( uint8_t ota_slot );
 
 extern bool

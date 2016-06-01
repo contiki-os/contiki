@@ -44,6 +44,23 @@ print_metadata( OTAMetadata_t *metadata )
   PRINTF("Firmware UUID: %#x\n", metadata->uuid);
 }
 
+/*******************************************************************************
+ * @fn      get_current_metadata
+ *
+ * @brief   Get the metadata belonging of whatever firmware is currently
+ *          installed to the internal flash.
+ *
+ * @return  OTAMetadata_t object read from the current firmware
+ */
+OTAMetadata_t
+get_current_metadata()
+{
+  OTAMetadata_t current_metadata;
+  
+  FlashRead( (uint8_t *)&current_metadata, (CURRENT_FIRMWARE<<12), OTA_METADATA_LENGTH );
+
+  return current_metadata;
+}
 
 /*******************************************************************************
  * @fn      get_ota_slot_metadata
