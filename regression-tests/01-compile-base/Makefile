@@ -37,8 +37,11 @@ settings-example/avr-raven \
 ipv6/multicast/sky \
 ipv6/rpl-tsch/z1 \
 ipv6/rpl-tsch/z1:MAKE_WITH_ORCHESTRA=1 \
-ipv6/rpl-tsch/z1:MAKE_WITH_SECURITY=1
-
+ipv6/rpl-tsch/z1:MAKE_WITH_SECURITY=1 \
+cfs-coffee/sky \
+cfs-coffee/z1 \
+cfs-coffee/wismote \
+cfs-coffee/avr-raven
 
 TOOLS=
 

@@ -29,14 +29,14 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         Basic test for CFS/Coffee.
  * \author
  *         Nicolas Tsiftes <nvt@sics.se>
  */
-
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
@@ -45,14 +45,12 @@
 
 #include <stdio.h>
 #include <string.h>
-
+/*---------------------------------------------------------------------------*/
 PROCESS(testcoffee_process, "Test CFS/Coffee process");
 AUTOSTART_PROCESSES(&testcoffee_process);
-
-#define FAIL(x) 	error = (x); goto end;
-
+/*---------------------------------------------------------------------------*/
+#define TEST_FAIL(x) 	error = (x); goto end;
 #define FILE_SIZE	4096
-
 /*---------------------------------------------------------------------------*/
 static int
 coffee_test_basic(void)
@@ -61,8 +59,6 @@ coffee_test_basic(void)
   int wfd, rfd, afd;
   unsigned char buf[256];
   int r;
-
-  cfs_remove("T1");
 
   wfd = rfd = afd = -1;
 
@@ -73,64 +69,64 @@ coffee_test_basic(void)
   /* Test 1: Open for writing. */
   wfd = cfs_open("T1", CFS_WRITE);
   if(wfd < 0) {
-    FAIL(1);
+    TEST_FAIL(1);
   }
 
   /* Test 2 and 3: Write buffer. */
   r = cfs_write(wfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(2);
+    TEST_FAIL(2);
   } else if(r < sizeof(buf)) {
-    FAIL(3);
+    TEST_FAIL(3);
   }
 
   /* Test 4: Deny reading. */
   r = cfs_read(wfd, buf, sizeof(buf));
   if(r >= 0) {
-    FAIL(4);
+    TEST_FAIL(4);
   }
 
   /* Test 5: Open for reading. */
   rfd = cfs_open("T1", CFS_READ);
   if(rfd < 0) {
-    FAIL(5);
+    TEST_FAIL(5);
   }
 
   /* Test 6: Write to read-only file. */
   r = cfs_write(rfd, buf, sizeof(buf));
   if(r >= 0) {
-    FAIL(6);
+    TEST_FAIL(6);
   }
 
   /* Test 7 and 8: Read the buffer written in Test 2. */
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(7);
+    TEST_FAIL(7);
   } else if(r < sizeof(buf)) {
     printf("r=%d\n", r);
-    FAIL(8);
+    TEST_FAIL(8);
   }
 
   /* Test 9: Verify that the buffer is correct. */
   for(r = 0; r < sizeof(buf); r++) {
     if(buf[r] != r) {
       printf("r=%d. buf[r]=%d\n", r, buf[r]);
-      FAIL(9);
+      TEST_FAIL(9);
     }
   }
 
   /* Test 10: Seek to beginning. */
   if(cfs_seek(wfd, 0, CFS_SEEK_SET) != 0) {
-    FAIL(10);
+    TEST_FAIL(10);
   }
 
   /* Test 11 and 12: Write to the log. */
   r = cfs_write(wfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(11);
+    TEST_FAIL(11);
   } else if(r < sizeof(buf)) {
-    FAIL(12);
+    TEST_FAIL(12);
   }
 
   /* Test 13 and 14: Read the data from the log. */
@@ -138,15 +134,15 @@ coffee_test_basic(void)
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(14);
+    TEST_FAIL(13);
   } else if(r < sizeof(buf)) {
-    FAIL(15);
+    TEST_FAIL(14);
   }
 
   /* Test 16: Verify that the data is correct. */
   for(r = 0; r < sizeof(buf); r++) {
     if(buf[r] != r) {
-      FAIL(16);
+      TEST_FAIL(15);
     }
   }
 
@@ -155,16 +151,16 @@ coffee_test_basic(void)
     buf[r] = sizeof(buf) - r - 1;
   }
   if(cfs_seek(wfd, 0, CFS_SEEK_SET) != 0) {
-    FAIL(17);
+    TEST_FAIL(16);
   }
   r = cfs_write(wfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(18);
+    TEST_FAIL(17);
   } else if(r < sizeof(buf)) {
-    FAIL(19);
+    TEST_FAIL(18);
   }
   if(cfs_seek(rfd, 0, CFS_SEEK_SET) != 0) {
-    FAIL(20);
+    TEST_FAIL(19);
   }
 
   /* Test 21 and 22: Read the reversed buffer. */
@@ -172,16 +168,16 @@ coffee_test_basic(void)
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
-    FAIL(21);
+    TEST_FAIL(20);
   } else if(r < sizeof(buf)) {
     printf("r = %d\n", r);
-    FAIL(22);
+    TEST_FAIL(21);
   }
 
   /* Test 23: Verify that the data is correct. */
   for(r = 0; r < sizeof(buf); r++) {
     if(buf[r] != sizeof(buf) - r - 1) {
-      FAIL(23);
+      TEST_FAIL(22);
     }
   }
 
@@ -189,6 +185,7 @@ coffee_test_basic(void)
 end:
   cfs_close(wfd);
   cfs_close(rfd);
+  cfs_remove("T1");
   return error;
 }
 /*---------------------------------------------------------------------------*/
@@ -202,50 +199,49 @@ coffee_test_append(void)
 #define APPEND_BYTES 1000
 #define BULK_SIZE 10
 
-  cfs_remove("T2");
-
   /* Test 1 and 2: Append data to the same file many times. */
   for(i = 0; i < APPEND_BYTES; i += BULK_SIZE) {
-    afd = cfs_open("T3", CFS_WRITE | CFS_APPEND);
+    afd = cfs_open("T2", CFS_WRITE | CFS_APPEND);
     if(afd < 0) {
-      FAIL(1);
+      TEST_FAIL(1);
     }
     for(j = 0; j < BULK_SIZE; j++) {
       buf[j] = 1 + ((i + j) & 0x7f);
     }
     if((r = cfs_write(afd, buf, BULK_SIZE)) != BULK_SIZE) {
       printf("r=%d\n", r);
-      FAIL(2);
+      TEST_FAIL(2);
     }
     cfs_close(afd);
   }
 
-  /* Test 3-6: Read back the data written previously and verify that it 
+  /* Test 3-6: Read back the data written previously and verify that it
      is correct. */
-  afd = cfs_open("T3", CFS_READ);
+  afd = cfs_open("T2", CFS_READ);
   if(afd < 0) {
-    FAIL(3);
+    TEST_FAIL(3);
   }
   total_read = 0;
   while((r = cfs_read(afd, buf2, sizeof(buf2))) > 0) {
     for(j = 0; j < r; j++) {
       if(buf2[j] != 1 + ((total_read + j) & 0x7f)) {
-	FAIL(4);
+	TEST_FAIL(4);
       }
     }
     total_read += r;
   }
   if(r < 0) {
-    FAIL(5);
+    TEST_FAIL(5);
   }
   if(total_read != APPEND_BYTES) {
-    FAIL(6);
+    TEST_FAIL(6);
   }
   cfs_close(afd);
 
   error = 0;
 end:
   cfs_close(afd);
+  cfs_remove("T2");
   return error;
 }
 /*---------------------------------------------------------------------------*/
@@ -258,58 +254,60 @@ coffee_test_modify(void)
   int r, i;
   unsigned offset;
 
-  cfs_remove("T3");
   wfd = -1;
 
   if(cfs_coffee_reserve("T3", FILE_SIZE) < 0) {
-    FAIL(1);
+    TEST_FAIL(1);
   }
 
   if(cfs_coffee_configure_log("T3", FILE_SIZE / 2, 11) < 0) {
-    FAIL(2);
+    TEST_FAIL(2);
   }
 
   /* Test 16: Test multiple writes at random offset. */
   for(r = 0; r < 100; r++) {
-    wfd = cfs_open("T2", CFS_WRITE | CFS_READ);
+    wfd = cfs_open("T3", CFS_WRITE | CFS_READ);
     if(wfd < 0) {
-      FAIL(3);
+      TEST_FAIL(3);
     }
 
     offset = random_rand() % FILE_SIZE;
 
-    for(r = 0; r < sizeof(buf); r++) {
-      buf[r] = r;
+    for(i = 0; i < sizeof(buf); i++) {
+      buf[i] = i;
     }
 
     if(cfs_seek(wfd, offset, CFS_SEEK_SET) != offset) {
-      FAIL(4);
+      TEST_FAIL(4);
     }
 
     if(cfs_write(wfd, buf, sizeof(buf)) != sizeof(buf)) {
-      FAIL(5);
+      TEST_FAIL(5);
     }
 
     if(cfs_seek(wfd, offset, CFS_SEEK_SET) != offset) {
-      FAIL(6);
+      TEST_FAIL(6);
     }
 
     memset(buf, 0, sizeof(buf));
     if(cfs_read(wfd, buf, sizeof(buf)) != sizeof(buf)) {
-      FAIL(7);
+      TEST_FAIL(7);
     }
 
     for(i = 0; i < sizeof(buf); i++) {
       if(buf[i] != i) {
         printf("buf[%d] != %d\n", i, buf[i]);
-        FAIL(8);
+        TEST_FAIL(8);
       }
     }
+
+    cfs_close(wfd);
   }
 
   error = 0;
 end:
   cfs_close(wfd);
+  cfs_remove("T3");
   return error;
 }
 /*---------------------------------------------------------------------------*/
@@ -318,21 +316,17 @@ coffee_test_gc(void)
 {
   int i;
 
-  cfs_remove("alpha");
-  cfs_remove("beta");
-
-
   for (i = 0; i < 100; i++) {
     if (i & 1) {
-      if(cfs_coffee_reserve("alpha", random_rand() & 0xffff) < 0) {
-	return i;
-      }
-      cfs_remove("beta");
-    } else {
-      if(cfs_coffee_reserve("beta", 93171) < 0) {
+      if(cfs_coffee_reserve("beta", random_rand() & 0xffff) < 0) {
 	return i;
       }
       cfs_remove("alpha");
+    } else {
+      if(cfs_coffee_reserve("alpha", 93171) < 0) {
+	return i;
+      }
+      cfs_remove("beta");
     }
   }
 
@@ -376,7 +370,7 @@ PROCESS_THREAD(testcoffee_process, ev, data)
   result = coffee_test_gc();
   print_result("Garbage collection", result);
 
-  printf("Coffee test finished. Duration: %d seconds\n", 
+  printf("Coffee test finished. Duration: %d seconds\n",
          (int)(clock_seconds() - start));
 
   PROCESS_END();
