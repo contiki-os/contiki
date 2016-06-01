@@ -41,16 +41,6 @@ main(void)
 {
   initialize_peripherals();
 
-  OTAMetadata_t example_metadata = {
-    0,              //  CRC
-    0,              //  CRC Shadow
-    0xd260,         //  Size
-    0x1234abcd,     //  UUID
-    0x1             //  Version
-  };
-  //uint8_t erase_buf[ sizeof(OTAMetadata_t) ]
-  //FlashProgram((uint8_t*)&example_metadata, 0x2010, sizeof(OTAMetadata_t));
-
   update_firmware( 1 );
   jump_to_image( (CURRENT_FIRMWARE<<12) );
   return 0;
