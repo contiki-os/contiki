@@ -51,6 +51,15 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count);
 extern void
 print_metadata( OTAMetadata_t *metadata );
 
+extern OTAMetadata_t
+get_ota_slot_metadata( uint8_t ota_slot );
+
+extern bool
+validate_ota_slot( OTAMetadata_t *metadata );
+
+extern int
+find_empty_ota_slot();
+
 extern int
 find_oldest_ota_image();
 
@@ -59,6 +68,9 @@ find_newest_ota_image();
 
 extern int
 update_firmware( uint8_t ota_slot );
+
+extern int
+erase_ota_image( uint8_t ota_slot );
 
 extern int
 store_firmware_page( uint32_t ext_address, uint8_t *page_data );
