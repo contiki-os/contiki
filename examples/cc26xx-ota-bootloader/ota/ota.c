@@ -19,7 +19,8 @@ uint8_t ota_images[3] = OTA_ADDRESSES;
  *
  */
 void
-FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count) {
+FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count)
+{
   uint8_t *pui8ReadAddress = (uint8_t *)ui32Address;
   while (ui32Count--) {
     *pui8DataBuffer++ = *pui8ReadAddress++;
@@ -36,48 +37,122 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count) {
  *
  */
 void
-print_metadata( OTAMetadata_t *metadata ) {
+print_metadata( OTAMetadata_t *metadata )
+{
   PRINTF("Firmware Size: %#x\n", metadata->size);
   PRINTF("Firmware Version: %u\n", metadata->version);
-  PRINTF("Firmware UID: %#x\n", metadata->uid);
+  PRINTF("Firmware UUID: %#x\n", metadata->uuid);
 }
-/*
-void
-generate_fake_metadata() {
-  //  Write some temp. fake metadata to the OTA slots
-  for (int i=0; i<sizeof(ota_images); i++) {
-    //  (1) Make fake metadata
-    OTAMetadata_t ota_metadata = {
-      0, 0, 0x27, i, (0x1230 + i), 0x2000
-    };
 
-    //  (2) Write data to external flash
-    int eeprom_access;
-    eeprom_access = ext_flash_open();
+/*******************************************************************************
+ * @fn      find_oldest_ota_image
+ *
+ * @brief   Find the OTA slot containing the most out-of-date firmware version.
+ *          OTA slots are in external flash.
+ *
+ * @return  The OTA slot index of the oldest firmware version.  The oldest
+ *          possible OTA slot is 0, which is the Golden Image.
+ */
+int
+find_oldest_ota_image()
+{
+  //  By construction, the oldest firmware should be the Golden Image, v0
+  int oldest_ota_slot = 0;
+  uint16_t oldest_firmware_version = 0;
+
+  //  Iterate through each of the 3 OTA download slots.
+  for ( int slot=0; slot<3 ; slot++ ) {
+    //  (1) Compute the external flash address of this OTA download slot.
+    uint32_t ext_address = ota_images[ slot ] << 12;
+
+    //  (2) Get the metadata of the current OTA download slot.
+    OTAMetadata_t ota_slot_metadata;
+
+    int eeprom_access = ext_flash_open();
 
     if(!eeprom_access) {
-      PRINTF("[external-flash]:\tError - could not access EEPROM.\n");
+      PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
       ext_flash_close();
     }
 
-    eeprom_access = ext_flash_erase( (ota_images[i] << 12), sizeof(OTAMetadata_t));
+    eeprom_access = ext_flash_read( ext_address, OTA_METADATA_LENGTH, (uint8_t *)&ota_slot_metadata);
 
     if(!eeprom_access) {
-      PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
-      ext_flash_close();
-    }
-
-    eeprom_access = ext_flash_write( (ota_images[i] << 12), sizeof(OTAMetadata_t),
-                         (uint8_t *)&ota_metadata);
-
-    if(!eeprom_access) {
-      PRINTF("[external-flash]:\tError - Could not write to EEPROM.\n");
+      PRINTF("[external-flash]:\tError - Could not read EEPROM.\n");
       ext_flash_close();
     }
 
     ext_flash_close();
+
+    //  (3) Is this slot populated? If not, skip.
+    //  TODO
+
+    //  (4) Is this the oldest non-Golden Image image we've found thus far?
+    if ( oldest_firmware_version ) {
+      if ( ota_slot_metadata.version < oldest_firmware_version ) {
+        oldest_ota_slot = slot;
+        oldest_firmware_version = ota_slot_metadata.version;
+      }
+    } else {
+      oldest_ota_slot = slot;
+      oldest_firmware_version = ota_slot_metadata.version;
+    }
   }
-}*/
+
+  return oldest_ota_slot;
+}
+
+/*******************************************************************************
+ * @fn      find_newest_ota_image
+ *
+ * @brief   Find the OTA slot containing the most recent firmware version.
+ *          OTA slots are in external flash.
+ *
+ * @return  The OTA slot index of the newest firmware version.
+ */
+int
+find_newest_ota_image()
+{
+  //  At first, we only assume knowledge of the Golden Image, v0
+  int newest_ota_slot = 0;
+  uint16_t newest_firmware_version = 0;
+
+  //  Iterate through each of the 3 OTA download slots.
+  for ( int slot=0; slot<3 ; slot++ ) {
+    //  (1) Compute the external flash address of this OTA download slot.
+    uint32_t ext_address = ota_images[ slot ] << 12;
+
+    //  (2) Get the metadata of the current OTA download slot.
+    OTAMetadata_t ota_slot_metadata;
+
+    int eeprom_access = ext_flash_open();
+
+    if(!eeprom_access) {
+      PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
+      ext_flash_close();
+    }
+
+    eeprom_access = ext_flash_read( ext_address, OTA_METADATA_LENGTH, (uint8_t *)&ota_slot_metadata);
+
+    if(!eeprom_access) {
+      PRINTF("[external-flash]:\tError - Could not read EEPROM.\n");
+      ext_flash_close();
+    }
+
+    ext_flash_close();
+
+    //  (3) Is this slot populated? If not, skip.
+    //  TODO
+
+    //  (4) Is this the newest non-Golden Image image we've found thus far?
+    if ( ota_slot_metadata.version > newest_firmware_version ) {
+      newest_ota_slot = slot;
+      newest_firmware_version = ota_slot_metadata.version;
+    }
+  }
+
+  return newest_ota_slot;
+}
 
 /*******************************************************************************
  * @fn      update_firmware
@@ -92,7 +167,8 @@ generate_fake_metadata() {
  * @return  0 or error code
  */
 int
-update_firmware( uint8_t ota_slot ) {
+update_firmware( uint8_t ota_slot )
+{
   //  (1) Determine the external flash address corresponding to the OTA slot
   uint32_t ota_image_address;
   if ( ota_slot ) {
@@ -132,12 +208,12 @@ update_firmware( uint8_t ota_slot ) {
 
     eeprom_access = ext_flash_read( (ota_image_address + (sector_num << 12)), FLASH_PAGE_SIZE, (uint8_t *)&page_data);
 
-    ext_flash_close();
-
     if(!eeprom_access) {
       PRINTF("[external-flash]:\tError - Could not read EEPROM.\n");
       ext_flash_close();
     }
+
+    ext_flash_close();
 
     FlashProgram( page_data, ((sector_num+CURRENT_FIRMWARE)<<12), FLASH_PAGE_SIZE );
   }
@@ -163,8 +239,8 @@ update_firmware( uint8_t ota_slot ) {
  * @return  0 or error code
  */
 int
-store_firmware_page( uint32_t ext_address, uint8_t *page_data ) {
-
+store_firmware_page( uint32_t ext_address, uint8_t *page_data )
+{
   //  (1) Erase external flash page first!
   int eeprom_access;
   eeprom_access = ext_flash_open();
