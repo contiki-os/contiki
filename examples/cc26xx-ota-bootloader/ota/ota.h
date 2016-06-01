@@ -8,6 +8,7 @@
   #define PRINTF(...)
 #endif
 
+#include "ti-lib.h"
 #include "ext-flash.h"
 #include "driverlib/flash.h"
 

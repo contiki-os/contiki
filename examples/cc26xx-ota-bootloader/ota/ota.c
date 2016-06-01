@@ -187,7 +187,9 @@ find_oldest_ota_image()
     OTAMetadata_t ota_slot_metadata = get_ota_slot_metadata( slot );
 
     //  (3) Is this slot populated? If not, skip.
-    //  TODO
+    if ( validate_ota_slot( &ota_slot_metadata) == false ) {
+      continue;
+    }
 
     //  (4) Is this the oldest non-Golden Image image we've found thus far?
     if ( oldest_firmware_version ) {
@@ -259,7 +261,7 @@ erase_ota_image( uint8_t ota_slot )
 {
   //  (1) Get page address of the ota_slot in ext-flash
   uint8_t ota_image_base_address = ota_images[ (ota_slot-1) ];
-  PRINTF("Erasing OTA slot %u [%#x, %#x)...", ota_slot, (ota_image_base_address<<12), ((ota_image_base_address+25)<<12));
+  PRINTF("Erasing OTA slot %u [%#x, %#x)...\n", ota_slot, (ota_image_base_address<<12), ((ota_image_base_address+25)<<12));
 
   int eeprom_access;
   eeprom_access = ext_flash_open();
@@ -381,6 +383,7 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data )
   if(!eeprom_access) {
     PRINTF("[external-flash]:\tError - could not access EEPROM.\n");
     ext_flash_close();
+    return -1;
   }
 
   eeprom_access = ext_flash_erase( ext_address, FLASH_PAGE_SIZE );
@@ -388,6 +391,7 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data )
   if(!eeprom_access) {
     PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
     ext_flash_close();
+    return -1;
   }
 
   //  (2) Copy page_data into external flash chip.
@@ -396,9 +400,12 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data )
   if(!eeprom_access) {
     PRINTF("[external-flash]:\tError - Could not write to EEPROM.\n");
     ext_flash_close();
+    return -1;
   }
 
   ext_flash_close();
+
+  PRINTF("[external-flash]:\tPage successfully written to %#x.\n", ext_address);
   return 0;
 }
 
