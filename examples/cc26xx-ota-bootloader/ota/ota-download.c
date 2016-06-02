@@ -248,11 +248,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   while( get_ota_slot_metadata( ota_slot, &ota_metadata ) );
   print_metadata( &ota_metadata );
 
-  /*
-  HWREG(NVIC_VTABLE) = 0;
-  jump_to_image( 0 );
-*/
-  //ti_lib_sys_ctrl_system_reset();
+  ti_lib_sys_ctrl_system_reset();
 
   PROCESS_END();
 }
