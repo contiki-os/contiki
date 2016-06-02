@@ -67,10 +67,15 @@ get_current_metadata()
  *
  * @brief   Get the metadata belonging to an OTA slot in external flash.
  *
- * @return  OTAMetadata_t object read from the corresponding ota_slot
+ * @param   ota_slot    - The OTA slot to be read for metadata.
+ *
+ * @param   *metadata   - Pointer to the OTAMetadata_t struct where the metadata
+ *                        is to be written.
+ *
+ * @return  0 on success or error code
  */
-OTAMetadata_t
-get_ota_slot_metadata( uint8_t ota_slot )
+int
+get_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata )
 {
   //  (1) Determine the external flash address corresponding to the OTA slot
   uint32_t ota_image_address;
@@ -83,25 +88,25 @@ get_ota_slot_metadata( uint8_t ota_slot )
   }
   ota_image_address <<= 12;
 
-  OTAMetadata_t ota_slot_metadata;
-
   int eeprom_access = ext_flash_open();
 
   if(!eeprom_access) {
     PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
     ext_flash_close();
+    return -1;
   }
 
-  eeprom_access = ext_flash_read( ota_image_address, OTA_METADATA_LENGTH, (uint8_t *)&ota_slot_metadata);
+  eeprom_access = ext_flash_read( ota_image_address, OTA_METADATA_LENGTH, (uint8_t *)ota_slot_metadata);
 
   if(!eeprom_access) {
     PRINTF("[external-flash]:\tError - Could not read EEPROM.\n");
     ext_flash_close();
+    return -1;
   }
 
   ext_flash_close();
 
-  return ota_slot_metadata;
+  return 0;
 }
 
 
@@ -152,7 +157,8 @@ find_empty_ota_slot()
   for ( int slot=1; slot<4 ; slot++ ) {
 
     //  (1) Get the metadata of the current OTA download slot.
-    OTAMetadata_t ota_slot_metadata = get_ota_slot_metadata( slot );
+    OTAMetadata_t ota_slot_metadata;
+    while( get_ota_slot_metadata( slot, &ota_slot_metadata ) );
 
     //  (2) Is this slot empty? If yes, return corresponding OTA index.
     if ( validate_ota_slot( &ota_slot_metadata ) == false ) {
@@ -182,9 +188,10 @@ find_oldest_ota_image()
   uint16_t oldest_firmware_version = 0;
 
   //  Iterate through each of the 3 OTA download slots.
-  for ( int slot=1; slot<4 ; slot++ ) {
+  for ( int slot=1; slot<4; slot++ ) {
     //  (1) Get the metadata of the current OTA download slot.
-    OTAMetadata_t ota_slot_metadata = get_ota_slot_metadata( slot );
+    OTAMetadata_t ota_slot_metadata;
+    while( get_ota_slot_metadata( slot, &ota_slot_metadata ) );
 
     //  (3) Is this slot populated? If not, skip.
     if ( validate_ota_slot( &ota_slot_metadata) == false ) {
@@ -194,7 +201,7 @@ find_oldest_ota_image()
     //  (4) Is this the oldest non-Golden Image image we've found thus far?
     if ( oldest_firmware_version ) {
       if ( ota_slot_metadata.version < oldest_firmware_version ) {
-        oldest_ota_slot = (slot+1);
+        oldest_ota_slot = slot;
         oldest_firmware_version = ota_slot_metadata.version;
       }
     } else {
@@ -226,7 +233,8 @@ find_newest_ota_image()
   //  Iterate through each of the 3 OTA download slots.
   for ( int slot=1; slot<4 ; slot++ ) {
     //  (1) Get the metadata of the current OTA download slot.
-    OTAMetadata_t ota_slot_metadata = get_ota_slot_metadata( slot );
+    OTAMetadata_t ota_slot_metadata;
+    while( get_ota_slot_metadata( slot, &ota_slot_metadata ) );
 
     //  (2) Is this slot populated? If not, skip.
     if ( validate_ota_slot( &ota_slot_metadata) == false ) {
@@ -265,9 +273,11 @@ erase_ota_image( uint8_t ota_slot )
 
   int eeprom_access;
   eeprom_access = ext_flash_open();
+
   if(!eeprom_access) {
     PRINTF("[external-flash]:\tError - could not access EEPROM.\n");
     ext_flash_close();
+    return -1;
   }
 
   //  (2) Erase each page in the OTA download slot!
@@ -279,6 +289,7 @@ erase_ota_image( uint8_t ota_slot )
     if(!eeprom_access) {
       PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
       ext_flash_close();
+      return -1;
     }
   }
 
@@ -288,6 +299,39 @@ erase_ota_image( uint8_t ota_slot )
 
 }
 
+static int
+update_firmware_page( uint32_t source_page, uint32_t destination_page )
+{
+  uint8_t page_data[ FLASH_PAGE_SIZE ];
+
+  //  Erase internal flash page
+  while(  FlashSectorErase( destination_page ) !=
+          FAPI_STATUS_SUCCESS );
+
+  //  Read one page from the new external flash image
+  int eeprom_access = ext_flash_open();
+
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
+    ext_flash_close();
+    return -1;
+  }
+
+  eeprom_access = ext_flash_read( source_page, FLASH_PAGE_SIZE, (uint8_t *)&page_data);
+
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not read EEPROM.\n");
+    ext_flash_close();
+    return -1;
+  }
+
+  ext_flash_close();
+
+  while(  FlashProgram( page_data, destination_page, FLASH_PAGE_SIZE )
+          != FAPI_STATUS_SUCCESS );
+
+  return 0;
+}
 
 /*******************************************************************************
  * @fn      update_firmware
@@ -326,33 +370,9 @@ update_firmware( uint8_t ota_slot )
   //  (3) Erase internal user pages from 0x02000 to 0x27000
   //      Overwrite them with the corresponding image pages from
   //      external flash.
-  uint8_t sector_num;
-  uint8_t page_data[ FLASH_PAGE_SIZE ];
   //  Each firmware image is 25 pages big at most
-  for (sector_num=0; sector_num<25; sector_num++) {
-    //  Erase internal flash page
-    while(  FlashSectorErase( (sector_num+CURRENT_FIRMWARE) << 12 ) !=
-            FAPI_STATUS_SUCCESS );
-
-    //  Read one page from the new external flash image
-    int eeprom_access = ext_flash_open();
-
-    if(!eeprom_access) {
-      PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
-      ext_flash_close();
-    }
-
-    eeprom_access = ext_flash_read( (ota_image_address + (sector_num << 12)), FLASH_PAGE_SIZE, (uint8_t *)&page_data);
-
-    if(!eeprom_access) {
-      PRINTF("[external-flash]:\tError - Could not read EEPROM.\n");
-      ext_flash_close();
-    }
-
-    ext_flash_close();
-
-    while(  FlashProgram( page_data, ((sector_num+CURRENT_FIRMWARE)<<12), FLASH_PAGE_SIZE )
-            != FAPI_STATUS_SUCCESS );
+  for (uint8_t sector_num=0; sector_num<25; sector_num++) {
+    while( update_firmware_page( (ota_image_address + (sector_num << 12)), ((sector_num+CURRENT_FIRMWARE) << 12) ) );
   }
 
   //  (4) Reboot
