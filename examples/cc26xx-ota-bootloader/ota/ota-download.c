@@ -158,24 +158,31 @@ PROCESS_THREAD(ota_download_th, ev, data)
 {
   PROCESS_BEGIN();
 
-  //  (1) What OTA slot will we download into?
-  active_ota_download_slot = find_empty_ota_slot();
-  PRINTF("\nDownloading OTA update to OTA slot #%u.\n", active_ota_download_slot);
-
-  //  (2) Erase the download destination OTA slot
-  while( erase_ota_image( active_ota_download_slot ) );
-
-  //  (3) Initialize the HTTP download
+  //  (1) Initialize the HTTP download
   http_socket_init(&s);
   reset_page_buffer();
   img_req_position = 0;
   bytes_received = 0;
   ota_downloading_image = true;
 
-  //  (4) Get firmware metadata from the OTA Image Server
+  //  (2) Get firmware metadata from the OTA Image Server
   metadata_started = false;
   http_socket_get(&s, OTA_IMAGE_SERVER "/metadata", 0, 0, firmware_metadata_cb, NULL);
   PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
+
+  //  (3) What OTA slot will we download into?  First, check to see if we have
+  //      any OTA slots already containing firmware of the same version number
+  //      and overwrite that.
+  active_ota_download_slot = find_matching_ota_slot( new_firmware_metadata.version );
+  if ( active_ota_download_slot == -1 ) {
+    //  We don't already have a copy of this firmware version, let's download
+    //  to an empty OTA slot!
+    active_ota_download_slot = find_empty_ota_slot();
+  }
+  PRINTF("\nDownloading OTA update to OTA slot #%u.\n", active_ota_download_slot);
+
+  //  (4) Erase the download destination OTA slot
+  while( erase_ota_image( active_ota_download_slot ) );
 
   //  (5) Begin downloading the actual firmware binary, one page at a time.
   img_req_position = 0;
@@ -221,14 +228,8 @@ PROCESS_THREAD(ota_download_th, ev, data)
       }
     }
 
-    //  (3) Print/save page to console/flash
-    uint32_t sum = 0;
-    for (uint16_t n=0; n<FLASH_PAGE_SIZE; n++)
-    {
-      sum += page_buffer[n];
-    }
+    //  (3) Save firmware page to flash
     while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) );
-    printf("\tSum: \t%lu\n", sum);
 
 
     //  (4) Are we done?
@@ -238,17 +239,9 @@ PROCESS_THREAD(ota_download_th, ev, data)
 
   }
 
-  printf("Done downloading!\n");
+  PRINTF("Done downloading!\n");
 
-  int ota_slot;
-  OTAMetadata_t ota_metadata;
-
-  printf("\nNewest Firmware:\n");
-  ota_slot = find_newest_ota_image();
-  while( get_ota_slot_metadata( ota_slot, &ota_metadata ) );
-  print_metadata( &ota_metadata );
-
-  ti_lib_sys_ctrl_system_reset();
+  ti_lib_sys_ctrl_system_reset(); // Reboot!
 
   PROCESS_END();
 }

@@ -42,7 +42,9 @@ main(void)
   initialize_peripherals();
 
   //  (1) Get the metadata of whatever firmware is currently installed
-  OTAMetadata_t current_firmware = get_current_metadata();
+  OTAMetadata_t current_firmware;
+  get_current_metadata( &current_firmware );
+  
   //  (2) Are there any newer firmware images in ext-flash?
   uint8_t newest_ota_slot = find_newest_ota_image();
   OTAMetadata_t newest_firmware;

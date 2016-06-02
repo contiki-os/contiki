@@ -49,7 +49,7 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
 
   //  (3) Get metadata about the current firmware version
   OTAMetadata_t current_firmware;
-  current_firmware = get_current_metadata();
+  get_current_metadata( &current_firmware );
   printf("\nCurrent Firmware\n");
   print_metadata( &current_firmware );
 
@@ -72,8 +72,10 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   PRINTF("\nEmpty OTA slot: #%u\n", empty_slot);
 
   //  (4) OTA Download!
+/*  erase_ota_image( 1 );
+  erase_ota_image( 2 );
+  erase_ota_image( 3 );*/
   process_start(ota_download_th_p, NULL);
-
 
   PROCESS_END();
 }
