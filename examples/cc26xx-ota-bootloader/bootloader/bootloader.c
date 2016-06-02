@@ -45,7 +45,8 @@ main(void)
   OTAMetadata_t current_firmware = get_current_metadata();
   //  (2) Are there any newer firmware images in ext-flash?
   uint8_t newest_ota_slot = find_newest_ota_image();
-  OTAMetadata_t newest_firmware = get_ota_slot_metadata( newest_ota_slot );
+  OTAMetadata_t newest_firmware;
+  while( get_ota_slot_metadata( newest_ota_slot, &newest_firmware ) );
 /*
   erase_ota_image( 1 );
   erase_ota_image( 2 );
