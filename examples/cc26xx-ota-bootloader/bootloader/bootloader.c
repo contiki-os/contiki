@@ -56,9 +56,6 @@ main(void)
   uint32_t led_pin;
   switch (newest_ota_slot)
   {
-    case 0:
-      led_pin = IOID_25;
-      break;
     case 1:
       led_pin = IOID_27;
       break;
@@ -67,6 +64,9 @@ main(void)
       break;
     case 3:
       led_pin = IOID_6;
+      break;
+    default:
+      led_pin = IOID_25;
       break;
   }
   GPIODirModeSet( (1 << led_pin), GPIO_DIR_MODE_OUT);
@@ -77,9 +77,9 @@ main(void)
     update_firmware( newest_ota_slot );
   }
 
-  GPIOPinWrite( (1 << led_pin), false );
+  //  ( ) Boot to the current firmware
   jump_to_image( (CURRENT_FIRMWARE<<12) );
 
-  //  ( ) Boot to the current firmware
+  //  This function should never return
   return 0;
 }
