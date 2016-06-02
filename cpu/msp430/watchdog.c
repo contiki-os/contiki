@@ -106,7 +106,7 @@ watchdog_init(void)
      initialization. */
   counter = 0;
   watchdog_stop();
-#if CONTIKI_TARGET_WISMOTE
+#if CONTIKI_TARGET_WISMOTE || CONTIKI_TARGET_Z1X
   SFRIFG1 &= ~WDTIFG;
   SFRIE1 |= WDTIE;
 #else
