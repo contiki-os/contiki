@@ -110,7 +110,7 @@ static void
 board_init(void)
 {
 #ifdef SOFTDEVICE_PRESENT
-  // Initialize the SoftDevice handler module.
+  /* Initialize the SoftDevice handler module */
   SOFTDEVICE_HANDLER_INIT(NRF_CLOCK_LFCLKSRC_XTAL_20_PPM, NULL);
 #endif
 #ifdef PLATFORM_HAS_BUTTON
@@ -167,12 +167,10 @@ main(void)
   netstack_init();
   linkaddr_t linkaddr;
   ble_get_mac(linkaddr.u8);
-  // Set link layer address
+  /* Set link layer address */
   linkaddr_set_node_addr(&linkaddr);
-  // Set device link layer address in uip stack.
+  /* Set device link layer address in uip stack */
   memcpy(&uip_lladdr.addr, &linkaddr, sizeof(uip_lladdr.addr));
-  uip_debug_lladdr_print(&uip_lladdr);
-  PRINTF("\n");
   process_start(&ble_iface_observer, NULL);
   process_start(&tcpip_process, NULL);
 #endif /* NETSTACK_CONF_WITH_IPV6 */
