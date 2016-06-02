@@ -52,14 +52,12 @@ print_metadata( OTAMetadata_t *metadata )
  *
  * @return  OTAMetadata_t object read from the current firmware
  */
-OTAMetadata_t
-get_current_metadata()
+int
+get_current_metadata( OTAMetadata_t *ota_slot_metadata  )
 {
-  OTAMetadata_t current_metadata;
+  FlashRead( (uint8_t *)ota_slot_metadata, (CURRENT_FIRMWARE<<12), OTA_METADATA_LENGTH );
 
-  FlashRead( (uint8_t *)&current_metadata, (CURRENT_FIRMWARE<<12), OTA_METADATA_LENGTH );
-
-  return current_metadata;
+  return 0;
 }
 
 /*******************************************************************************
@@ -140,6 +138,43 @@ validate_ota_slot( OTAMetadata_t *metadata )
   return false;
 }
 
+/*******************************************************************************
+ * @fn      find_matching_ota_slot
+ *
+ * @brief   Find an OTA slot containing firmware matching the supplied firmware
+ *          version number.  Will only find the first matching slot.
+ *
+ * @return  The OTA slot index of the matching OTA slot.  Return -1 in the event
+ *          of no match.
+ */
+int
+find_matching_ota_slot( uint16_t version )
+{
+  int matching_slot = -1; // Assume there is no matching OTA slot.
+
+  //  Iterate through each of the 3 OTA download slots.
+  for ( int slot=1; slot<4 ; slot++ ) {
+
+    //  (1) Get the metadata of the current OTA download slot.
+    OTAMetadata_t ota_slot_metadata;
+    while( get_ota_slot_metadata( slot, &ota_slot_metadata ) );
+
+    //  (2) Is this slot empty? If yes, skip.
+    if ( validate_ota_slot( &ota_slot_metadata ) == false ) {
+      continue;
+    }
+
+    //  (3) Does this slot's FW version match our search parameter?
+    if ( ota_slot_metadata.version == version ) {
+      matching_slot = slot;
+      break;
+    }
+  }
+
+  PRINTF("OTA slot #%u matches Firmware v%u.\n", matching_slot, version);
+
+  return matching_slot;
+}
 
 /*******************************************************************************
  * @fn      find_empty_ota_slot
@@ -166,6 +201,7 @@ find_empty_ota_slot()
     }
   }
 
+  PRINTF("Could not find any empty OTA slots!\nSearching for oldest OTA slot...\n");
   //  If execution goes this far, no empty slot was found.  Now, we look for
   //  the oldest OTA slot instead.
   return find_oldest_ota_image();

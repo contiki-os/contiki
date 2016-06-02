@@ -52,14 +52,17 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count);
 extern void
 print_metadata( OTAMetadata_t *metadata );
 
-extern OTAMetadata_t
-get_current_metadata();
+extern int
+get_current_metadata( OTAMetadata_t *ota_slot_metadata  );
 
 extern int
 get_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata );
 
 extern bool
 validate_ota_slot( OTAMetadata_t *metadata );
+
+extern int
+find_matching_ota_slot( uint16_t version );
 
 extern int
 find_empty_ota_slot();
