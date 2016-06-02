@@ -163,7 +163,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   PRINTF("\nDownloading OTA update to OTA slot #%u.\n", active_ota_download_slot);
 
   //  (2) Erase the download destination OTA slot
-  erase_ota_image( active_ota_download_slot );
+  while( erase_ota_image( active_ota_download_slot ) );
 
   //  (3) Initialize the HTTP download
   http_socket_init(&s);
@@ -227,7 +227,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
     {
       sum += page_buffer[n];
     }
-    while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) == -1) {}
+    while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) );
     printf("\tSum: \t%lu\n", sum);
 
 
@@ -245,7 +245,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
 
   printf("\nNewest Firmware:\n");
   ota_slot = find_newest_ota_image();
-  ota_metadata = get_ota_slot_metadata( ota_slot );
+  while( get_ota_slot_metadata( ota_slot, &ota_metadata ) );
   print_metadata( &ota_metadata );
 
   /*
