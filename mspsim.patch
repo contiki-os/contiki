@@ -1,9 +1,9 @@
-diff --git a/se/sics/mspsim/platform/z1x/Z1XGui.java b/se/sics/mspsim/platform/z1x/Z1XGui.java
+diff --git a/tools/mspsim/se/sics/mspsim/platform/z1x/Z1XGui.java b/tools/mspsim/se/sics/mspsim/platform/z1x/Z1XGui.java
 new file mode 100644
 index 0000000..40daa7c
 --- /dev/null
-+++ b/se/sics/mspsim/platform/z1x/Z1XGui.java
-@@ -0,0 +1,160 @@
++++ b/tools/mspsim/se/sics/mspsim/platform/z1x/Z1XGui.java
+@@ -0,0 +1,161 @@
 +/**
 + * Copyright (c) 2012, Swedish Institute of Computer Science.
 + * Copyright (c) 2016, University of Bristol
@@ -165,12 +165,12 @@ index 0000000..40daa7c
 +    }
 +
 +}
-diff --git a/se/sics/mspsim/platform/z1x/Z1XNode.java b/se/sics/mspsim/platform/z1x/Z1XNode.java
+diff --git a/tools/mspsim/se/sics/mspsim/platform/z1x/Z1XNode.java b/tools/mspsim/se/sics/mspsim/platform/z1x/Z1XNode.java
 new file mode 100644
 index 0000000..3750fbf
 --- /dev/null
-+++ b/se/sics/mspsim/platform/z1x/Z1XNode.java
-@@ -0,0 +1,186 @@
++++ b/tools/mspsim/se/sics/mspsim/platform/z1x/Z1XNode.java
+@@ -0,0 +1,185 @@
 +package se.sics.mspsim.platform.z1x;
 +
 +import java.io.IOException;
