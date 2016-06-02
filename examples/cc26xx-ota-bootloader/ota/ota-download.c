@@ -179,7 +179,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
     //  to an empty OTA slot!
     active_ota_download_slot = find_empty_ota_slot();
   }
-  PRINTF("\nDownloading OTA update to OTA slot #%u.\n", active_ota_download_slot);
+  PRINTF("\nDownloading OTA update to OTA slot #%i.\n", active_ota_download_slot);
 
   //  (4) Erase the download destination OTA slot
   while( erase_ota_image( active_ota_download_slot ) );
@@ -240,6 +240,8 @@ PROCESS_THREAD(ota_download_th, ev, data)
   }
 
   PRINTF("Done downloading!\n");
+
+  //  Make OTA slot metadata as "valid"
 
   ti_lib_sys_ctrl_system_reset(); // Reboot!
 

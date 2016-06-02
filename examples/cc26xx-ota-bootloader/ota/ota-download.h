@@ -29,7 +29,7 @@ static uint32_t img_req_position;    //  current start byte of image data we are
 #define HTTP_PAYLOAD_END(data)    (*(data+1) == 0xa) && (*data == 0xd)
 
 static OTAMetadata_t new_firmware_metadata;
-static uint8_t active_ota_download_slot;
+static int active_ota_download_slot;
 static uint8_t page_buffer[ FLASH_PAGE_SIZE ];
 static uint8_t page;
 static bool ota_downloading_page;
