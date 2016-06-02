@@ -60,12 +60,12 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
 
   printf("\nNewest Firmware:\n");
   ota_slot = find_newest_ota_image();
-  ota_metadata = get_ota_slot_metadata( ota_slot );
+  while( get_ota_slot_metadata( ota_slot, &ota_metadata ) );
   print_metadata( &ota_metadata );
 
   printf("\nOldest Firmware:\n");
   ota_slot = find_oldest_ota_image();
-  ota_metadata = get_ota_slot_metadata( ota_slot );
+  while( get_ota_slot_metadata( ota_slot, &ota_metadata ) );
   print_metadata( &ota_metadata );
 
   int empty_slot = find_empty_ota_slot();
