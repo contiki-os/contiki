@@ -331,7 +331,8 @@ update_firmware( uint8_t ota_slot )
   //  Each firmware image is 25 pages big at most
   for (sector_num=0; sector_num<25; sector_num++) {
     //  Erase internal flash page
-    FlashSectorErase( (sector_num+CURRENT_FIRMWARE) << 12 );
+    while(  FlashSectorErase( (sector_num+CURRENT_FIRMWARE) << 12 ) !=
+            FAPI_STATUS_SUCCESS );
 
     //  Read one page from the new external flash image
     int eeprom_access = ext_flash_open();
@@ -350,7 +351,8 @@ update_firmware( uint8_t ota_slot )
 
     ext_flash_close();
 
-    FlashProgram( page_data, ((sector_num+CURRENT_FIRMWARE)<<12), FLASH_PAGE_SIZE );
+    while(  FlashProgram( page_data, ((sector_num+CURRENT_FIRMWARE)<<12), FLASH_PAGE_SIZE )
+            != FAPI_STATUS_SUCCESS );
   }
 
   //  (4) Reboot
