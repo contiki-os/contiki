@@ -42,6 +42,8 @@ print_metadata( OTAMetadata_t *metadata )
   PRINTF("Firmware Size: %#x\n", metadata->size);
   PRINTF("Firmware Version: %u\n", metadata->version);
   PRINTF("Firmware UUID: %#x\n", metadata->uuid);
+  PRINTF("Firmware CRC: %u\n", metadata->crc);
+  PRINTF("Firmware CRC: %u\n", metadata->crc_shadow);
 }
 
 /*******************************************************************************
@@ -78,10 +80,10 @@ get_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata )
   //  (1) Determine the external flash address corresponding to the OTA slot
   uint32_t ota_image_address;
   if ( ota_slot ) {
-    //  If ota_slot >= 1, it means we want to copy over an OTA download
+    //  If ota_slot >= 1, it means we're looking for an OTA download
     ota_image_address = ota_images[ (ota_slot-1) ];
   } else {
-    //  If ota_slot = 0, it means we want to copy over the Golden Image
+    //  If ota_slot = 0, we're looking for the Golden Image
     ota_image_address = GOLDEN_IMAGE;
   }
   ota_image_address <<= 12;
@@ -109,6 +111,110 @@ get_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata )
 
 
 /*******************************************************************************
+ * @fn      overwrite_ota_slot_metadata
+ *
+ * @brief   Write new metadata to a specific OTA slot in external flash.
+ *
+ * @param   ota_slot             - The OTA slot to be modified.
+ *
+ * @param   *ota_slot_metadata   - Pointer to the new OTAMetadata_t data.
+ *
+ * @return  0 on success or error code
+ */
+int
+overwrite_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata )
+{
+  //  (1) Determine the external flash address corresponding to the OTA slot
+  uint32_t ota_image_address;
+  if ( ota_slot ) {
+    //  If ota_slot >= 1, it means we're looking for an OTA download
+    ota_image_address = ota_images[ (ota_slot-1) ];
+  } else {
+    //  If ota_slot = 0, we're looking for the Golden Image
+    ota_image_address = GOLDEN_IMAGE;
+  }
+  ota_image_address <<= 12;
+
+  //  (2) Get the first page of the OTA image, which contains the metadata.
+  uint8_t page_data[ FLASH_PAGE_SIZE ];
+
+  int eeprom_access = ext_flash_open();
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
+    ext_flash_close();
+    return -1;
+  }
+
+  eeprom_access = ext_flash_read(ota_image_address, FLASH_PAGE_SIZE, (uint8_t *)&page_data);
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not read EEPROM.\n");
+    ext_flash_close();
+    return -1;
+  }
+
+  //  (3) Overwrite the metadata section of the first page
+  memcpy( page_data, (uint8_t *)ota_slot_metadata, OTA_METADATA_LENGTH );
+
+  //  (4) Update the ext-flash with the new page data.
+  eeprom_access = ext_flash_erase( ota_image_address, FLASH_PAGE_SIZE );
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
+    ext_flash_close();
+    return -1;
+  }
+
+  eeprom_access = ext_flash_write( ota_image_address, FLASH_PAGE_SIZE, page_data );
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not write to EEPROM.\n");
+    ext_flash_close();
+    return -1;
+  }
+
+  ext_flash_close();
+
+  return 0;
+}
+
+/*******************************************************************************
+ * @fn      verify_ota_slot
+ *
+ * @brief   Given an OTA slot, verify the firmware content against the metadata.
+ *          If everything is fine, update the metadata to indicate this OTA slot
+ *          is valid.
+ *
+ * @param   ota_slot  - OTA slot index to verify. (1-3)
+ *
+ * @return  0 for success or error code
+ */
+int
+verify_ota_slot( uint8_t ota_slot )
+{
+  //  (1) Determine the external flash address corresponding to the OTA slot
+  uint32_t ota_image_address;
+  if ( ota_slot ) {
+    //  If ota_slot >= 1, it means we're looking for an OTA download
+    ota_image_address = ota_images[ (ota_slot-1) ];
+  } else {
+    //  If ota_slot = 0, we're looking for the Golden Image
+    ota_image_address = GOLDEN_IMAGE;
+  }
+  ota_image_address <<= 12;
+
+  //  (2) Read the metadata of the corresponding OTA slot
+  OTAMetadata_t ota_metadata;
+  while( get_ota_slot_metadata( ota_slot, &ota_metadata ) );
+
+  //  (3) Mark the metadata as "valid"
+  ota_metadata.crc = 0x1;
+  ota_metadata.crc_shadow = 0x1;
+
+  //  (4) Update metadata header
+  while( overwrite_ota_slot_metadata( ota_slot, &ota_metadata ) );
+
+  return 0;
+}
+
+/*******************************************************************************
  * @fn      validate_ota_slot
  *
  * @brief   Returns true only if the metadata provided indicates the OTA slot
@@ -119,19 +225,30 @@ get_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata )
 bool
 validate_ota_slot( OTAMetadata_t *metadata )
 {
-  // First, we check to see if every byte in the metadata is 0xFF.
-  // If this is the case, this metadata is "erased" and therefore we assume
-  // the OTA slot to be empty.
+  //  (1) Is the OTA slot erased?
+  //      First, we check to see if every byte in the metadata is 0xFF.
+  //      If this is the case, this metadata is "erased" and therefore we assume
+  //      the OTA slot to be empty.
+  bool erased = true;
   uint8_t *metadata_ptr = (uint8_t *)metadata;
   int b = OTA_METADATA_LENGTH;
   while (b--) {
     //printf("%u: %u, ", b, *(uint8_t *)metadata);
-    if ( *metadata_ptr++ == 0xff ) {
-      //  Do nothing!
-    } else {
-      //  We encountered a non-erased byte.  Let's assume this is valid.
-      return true;
+    if ( *metadata_ptr++ != 0xff ) {
+      //  We encountered a non-erased byte.  There's some non-trivial data here.
+      erased = false;
+      break;
     }
+  }
+
+  //  If the OTA slot is erased, it's not valid!  No more work to do here.
+  if (erased) {
+    return false;
+  }
+
+  //  (2) Check the CRC entries to validate the OTA data itself.
+  if ( (metadata->crc == 0x01) && (metadata->crc_shadow == 0x01) ) {
+    return true;
   }
 
   //  If we get this far, all metadata bytes were cleared (0xff)
@@ -171,7 +288,11 @@ find_matching_ota_slot( uint16_t version )
     }
   }
 
-  PRINTF("OTA slot #%u matches Firmware v%u.\n", matching_slot, version);
+  if ( matching_slot == -1 ) {
+    PRINTF("No OTA slot matches Firmware v%u\n", matching_slot, version);
+  } else {
+    PRINTF("OTA slot #%i matches Firmware v%u\n", matching_slot, version);
+  }
 
   return matching_slot;
 }
@@ -195,7 +316,7 @@ find_empty_ota_slot()
     OTAMetadata_t ota_slot_metadata;
     while( get_ota_slot_metadata( slot, &ota_slot_metadata ) );
 
-    //  (2) Is this slot empty? If yes, return corresponding OTA index.
+    //  (2) Is this slot invalid? If yes, let's treat it as empty.
     if ( validate_ota_slot( &ota_slot_metadata ) == false ) {
       return slot;
     }

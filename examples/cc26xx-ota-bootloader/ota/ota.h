@@ -58,6 +58,12 @@ get_current_metadata( OTAMetadata_t *ota_slot_metadata  );
 extern int
 get_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata );
 
+extern int
+overwrite_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata );
+
+extern int
+verify_ota_slot( uint8_t ota_slot );
+
 extern bool
 validate_ota_slot( OTAMetadata_t *metadata );
 
