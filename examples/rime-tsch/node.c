@@ -45,7 +45,6 @@
 #include "net/mac/tsch/tsch.h"
 
 const linkaddr_t coordinator_addr =    { { 1, 0 } };
-const linkaddr_t sender_addr =         { { 2, 0 } };
 const linkaddr_t destination_addr =    { { 1, 0 } };
 
 /*---------------------------------------------------------------------------*/
@@ -89,7 +88,7 @@ PROCESS_THREAD(unicast_test_process, ev, data)
 
     packetbuf_copyfrom("Hello", 5);
 
-    if(linkaddr_cmp(&sender_addr, &linkaddr_node_addr)) {
+    if(!linkaddr_cmp(&destination_addr, &linkaddr_node_addr)) {
       printf("App: sending unicast message to %u.%u\n", destination_addr.u8[0], destination_addr.u8[1]);
       unicast_send(&uc, &destination_addr);
     }
