@@ -880,9 +880,9 @@ rpl_select_parent(rpl_dag_t *dag)
   rpl_parent_t *best = best_parent(dag, 0);
 
   if(best != NULL) {
+#if RPL_WITH_PROBING
     if(rpl_parent_is_fresh(best)) {
       rpl_set_preferred_parent(dag, best);
-      dag->rank = rpl_rank_via_parent(dag->preferred_parent);
     } else {
       /* The best is not fresh. Look for the best fresh now. */
       rpl_parent_t *best_fresh = best_parent(dag, 1);
@@ -893,18 +893,20 @@ rpl_select_parent(rpl_dag_t *dag)
         /* Use best fresh */
         rpl_set_preferred_parent(dag, best_fresh);
       }
-#if RPL_WITH_PROBING
-      /* Probe the new best parent shortly in order to get a fresh estimate */
+      /* Probe the best parent shortly in order to get a fresh estimate */
       dag->instance->urgent_probing_target = best;
       rpl_schedule_probing(dag->instance);
+#else /* RPL_WITH_PROBING */
+      rpl_set_preferred_parent(dag, best);
+      dag->rank = rpl_rank_via_parent(dag->preferred_parent);
 #endif /* RPL_WITH_PROBING */
     }
   } else {
-    rpl_set_preferred_parent(dag, best);
-    dag->rank = INFINITE_RANK;
+    rpl_set_preferred_parent(dag, NULL);
   }
 
-  return best;
+  dag->rank = rpl_rank_via_parent(dag->preferred_parent);
+  return dag->preferred_parent;
 }
 /*---------------------------------------------------------------------------*/
 void
