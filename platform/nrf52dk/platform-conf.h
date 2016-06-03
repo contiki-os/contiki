@@ -131,10 +131,10 @@ typedef uint32_t uip_stats_t;
 #define RTIMER_ARCH_SECOND 62500
 /*
  * rtimer.h typedefs rtimer_clock_t as unsigned short. We need to define
- * RTIMER_CLOCK_LT to override this
+ * RTIMER_CLOCK_DIFF to override this
+ */
 typedef uint32_t rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a, b)     ((int32_t)((a) - (b)) < 0)
-*/
+#define RTIMER_CLOCK_DIFF(a,b)     ((int32_t)((a)-(b)))
 
 /** @} */
 /*---------------------------------------------------------------------------*/
