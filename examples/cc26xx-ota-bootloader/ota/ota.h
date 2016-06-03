@@ -49,6 +49,9 @@ typedef struct OTAMetadata {
 extern void
 FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count);
 
+extern uint16_t
+crc16(uint16_t crc, uint8_t val);
+
 extern void
 print_metadata( OTAMetadata_t *metadata );
 
