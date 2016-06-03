@@ -46,7 +46,7 @@ crcCalcWord(uint8_t *_word, uint16_t imageCRC)
   int idx;
   for (idx = 0; idx < HAL_WORD_SIZE; idx++)
   {
-    printf("%#x ", _word[idx]);
+    //printf("%#x ", _word[idx]);
     imageCRC = crc16(imageCRC, _word[idx]);
   }
   return imageCRC;
@@ -78,7 +78,7 @@ crcCalc(void)
     imageCRC = crcCalcWord( _word, imageCRC );
   }
 
-  printf("\n");
+  //printf("\n");
 
   // IAR note explains that poly must be run with value zero for each byte of
   // the crc.
