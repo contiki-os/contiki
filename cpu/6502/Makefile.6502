@@ -31,10 +31,6 @@
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
 
-ifndef CC65_HOME
-  ${error CC65_HOME not defined! You must specify where cc65 resides}
-endif
-
 .SUFFIXES:
 
 CONTIKI_TARGET_DIRS = . lib sys
@@ -70,3 +66,5 @@ ASFLAGS = -t $(TARGET)
 CFLAGS += -t $(TARGET) -Or -W -unused-param
 LDFLAGS = -t $(TARGET) -m contiki-$(TARGET).map -D __STACKSIZE__=0x200
 AROPTS  = a
+
+CC65_TARGET_DIR := $(shell $(CC) --print-target-path)/$(TARGET)
