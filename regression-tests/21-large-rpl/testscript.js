@@ -1,5 +1,5 @@
 
-TIMEOUT(2400000); /* 40 minutes */
+TIMEOUT(3000000); /* 50 minutes */
 
 var NR_FEATHERS = mote.getSimulation().getMotesCount() - 1;
 
