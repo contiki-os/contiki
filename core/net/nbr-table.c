@@ -178,6 +178,25 @@ nbr_set_bit(uint8_t *bitmap, nbr_table_t *table, nbr_table_item_t *item, int val
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static void
+remove_key(nbr_table_key_t *least_used_key)
+{
+  int i;
+  for(i = 0; i < MAX_NUM_TABLES; i++) {
+    if(all_tables[i] != NULL && all_tables[i]->callback != NULL) {
+      /* Call table callback for each table that uses this item */
+      nbr_table_item_t *removed_item = item_from_key(all_tables[i], least_used_key);
+      if(nbr_get_bit(used_map, all_tables[i], removed_item) == 1) {
+        all_tables[i]->callback(removed_item);
+      }
+    }
+  }
+  /* Empty used map */
+  used_map[index_from_key(least_used_key)] = 0;
+  /* Remove neighbor from list */
+  list_remove(nbr_table_keys, least_used_key);
+}
+/*---------------------------------------------------------------------------*/
 static nbr_table_key_t *
 nbr_table_allocate(nbr_table_reason_t reason, void *data)
 {
@@ -253,21 +272,7 @@ nbr_table_allocate(nbr_table_reason_t reason, void *data)
       return NULL;
     } else {
       /* Reuse least used item */
-      int i;
-      for(i = 0; i<MAX_NUM_TABLES; i++) {
-        if(all_tables[i] != NULL && all_tables[i]->callback != NULL) {
-          /* Call table callback for each table that uses this item */
-          nbr_table_item_t *removed_item = item_from_key(all_tables[i], least_used_key);
-          if(nbr_get_bit(used_map, all_tables[i], removed_item) == 1) {
-            all_tables[i]->callback(removed_item);
-          }
-        }
-      }
-      /* Empty used map */
-      used_map[index_from_key(least_used_key)] = 0;
-      /* Remove neighbor from list */
-      list_remove(nbr_table_keys, least_used_key);
-      /* Return associated key */
+      remove_key(least_used_key);
       return least_used_key;
     }
   }
@@ -414,6 +419,39 @@ nbr_table_get_lladdr(nbr_table_t *table, const void *item)
 {
   nbr_table_key_t *key = key_from_item(table, item);
   return key != NULL ? &key->lladdr : NULL;
+}
+/*---------------------------------------------------------------------------*/
+/* Update link-layer address of an item */
+int
+nbr_table_update_lladdr(const linkaddr_t *old_addr, const linkaddr_t *new_addr,
+                        int remove_if_duplicate)
+{
+  int index;
+  int new_index;
+  nbr_table_key_t *key;
+  index = index_from_lladdr(old_addr);
+  if(index == -1) {
+    /* Failure to change since there is nothing to change. */
+    return 0;
+  }
+  if((new_index = index_from_lladdr(new_addr)) != -1) {
+    /* check if it is a change or not - do not remove / fail if same */
+    if(new_index == index) {
+      return 1;
+    }
+    /* This new entry already exists - failure! - remove if requested. */
+    if(remove_if_duplicate) {
+      remove_key(key_from_index(index));
+    }
+    return 0;
+  }
+  key = key_from_index(index);
+  /**
+   * Copy the new lladdr into the key - since we know that there is no
+   * conflicting entry.
+   */
+  memcpy(&key->lladdr, new_addr, sizeof(linkaddr_t));
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 #if DEBUG
