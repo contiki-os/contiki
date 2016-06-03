@@ -14,7 +14,8 @@ FILE *firmware_bin;
  *
  * @return      crc - Updated for the run.
  */
-static uint16_t crc16(uint16_t crc, uint8_t val)
+static uint16_t
+crc16(uint16_t crc, uint8_t val)
 {
   const uint16_t poly = 0x1021;
   uint8_t cnt;
@@ -39,6 +40,18 @@ static uint16_t crc16(uint16_t crc, uint8_t val)
   return crc;
 }
 
+static uint16_t
+crcCalcWord(uint8_t *_word, uint16_t imageCRC)
+{
+  int idx;
+  for (idx = 0; idx < HAL_WORD_SIZE; idx++)
+  {
+    printf("%#x ", _word[idx]);
+    imageCRC = crc16(imageCRC, _word[idx]);
+  }
+  return imageCRC;
+}
+
 /*********************************************************************
  * @fn      crcCalc
  *
@@ -48,22 +61,24 @@ static uint16_t crc16(uint16_t crc, uint8_t val)
  *
  * @return  The CRC16 calculated.
  */
-static uint16_t crcCalc(void)
+static uint16_t
+crcCalc(void)
 {
   uint16_t imageCRC = 0;
 
-  while( !feof( firmware_bin ) )
-  {
-    uint8_t idx;
-    uint8_t _word[ HAL_WORD_SIZE ]; //  a 4-byte buffer
+  uint8_t idx;
+  uint8_t _word[ HAL_WORD_SIZE ]; //  a 4-byte buffer
+  size_t nret;
 
-    fread(_word, HAL_WORD_SIZE, 1, firmware_bin);
-
-    for (idx = 0; idx < HAL_WORD_SIZE; idx++)
-    {
-      imageCRC = crc16(imageCRC, _word[idx]);
-    }
+  while ( 1 == (nret = fread(_word, HAL_WORD_SIZE, 1, firmware_bin)) ) {
+    imageCRC = crcCalcWord( _word, imageCRC );
   }
+
+  if (nret) {
+    imageCRC = crcCalcWord( _word, imageCRC );
+  }
+
+  printf("\n");
 
   // IAR note explains that poly must be run with value zero for each byte of
   // the crc.
