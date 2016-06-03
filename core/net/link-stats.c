@@ -180,9 +180,8 @@ link_stats_input_callback(const linkaddr_t *lladdr)
       /* Initialize */
       stats->rssi = packet_rssi;
       stats->etx = LINK_STATS_INIT_ETX(stats);
-    } else {
-      return; /* No space left, return */
     }
+    return;
   }
 
   /* Update RSSI EWMA */
