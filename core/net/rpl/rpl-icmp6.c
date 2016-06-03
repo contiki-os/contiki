@@ -479,6 +479,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 {
   unsigned char *buffer;
   int pos;
+  int is_root;
   rpl_dag_t *dag = instance->current_dag;
 #if !RPL_LEAF_ONLY
   uip_ipaddr_t addr;
@@ -499,6 +500,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   buffer = UIP_ICMP_PAYLOAD;
   buffer[pos++] = instance->instance_id;
   buffer[pos++] = dag->version;
+  is_root = (dag->rank == ROOT_RANK(instance));
 
 #if RPL_LEAF_ONLY
   PRINTF("RPL: LEAF ONLY DIO rank set to INFINITE_RANK\n");
@@ -519,7 +521,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
   buffer[pos++] = instance->dtsn_out;
 
-  if(RPL_DIO_REFRESH_DAO_ROUTES && uc_addr == NULL) {
+  if(RPL_DIO_REFRESH_DAO_ROUTES && is_root && uc_addr == NULL) {
     /* Request new DAO to refresh route. We do not do this for unicast DIO
      * in order to avoid DAO messages after a DIS-DIO update,
      * or upon unicast DIO probing. */
