@@ -44,7 +44,7 @@ main(void)
   //  (1) Get the metadata of whatever firmware is currently installed
   OTAMetadata_t current_firmware;
   get_current_metadata( &current_firmware );
-  
+
   //  (2) Are there any newer firmware images in ext-flash?
   uint8_t newest_ota_slot = find_newest_ota_image();
   OTAMetadata_t newest_firmware;
@@ -74,12 +74,20 @@ main(void)
   GPIODirModeSet( (1 << led_pin), GPIO_DIR_MODE_OUT);
   GPIOPinWrite( (1 << led_pin), true );
 
-  //  (3) If there's any newer images in storage, update the current firmware!
-  if ( newest_ota_slot && (newest_firmware.version > current_firmware.version) ) {
+  //  (3) Is the current firmware valid?
+  if ( validate_ota_slot( &current_firmware ) ) {
+    //  Great!  We have valid firmware!  But is there any newer firmware available?
+    if ( newest_ota_slot && (newest_firmware.version > current_firmware.version) ) {
+      update_firmware( newest_ota_slot );
+    }
+  } else {
+    //  We need to install some valid firmware!  We don't care if it's newer
+    //  than what we have, only that it's the newest option available in our
+    //  OTA download slots.
     update_firmware( newest_ota_slot );
   }
 
-  //  ( ) Boot to the current firmware
+  //  (4) Boot to the current firmware
   jump_to_image( (CURRENT_FIRMWARE<<12) );
 
   //  This function should never return
