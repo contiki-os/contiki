@@ -115,8 +115,7 @@ CUSTOM_RULE_LINK=1
 	cp $< $@
 
 ### This rule is used to generate the correct linker script
-LDGENFLAGS += $(addprefix -D,$(subst $(COMMA), ,$(DEFINES)))
-LDGENFLAGS += $(addprefix -I,$(SOURCEDIRS))
+LDGENFLAGS += $(CFLAGS)
 LDGENFLAGS += -imacros "contiki-conf.h" -imacros "dev/cc2538-dev.h"
 LDGENFLAGS += -imacros "dev/flash.h" -imacros "cfs-coffee-arch.h"
 LDGENFLAGS += -x c -P -E

@@ -47,40 +47,19 @@
 #ifndef SHT21_H_
 #define SHT21_H_
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Initialize the SHT21 sensor
- */
-void sht21_init(void);
+#define SHT21_ERROR             (-1)
+#define SHT21_SUCCESS           (0)
+#define SHT21_ACTIVATE          (SENSORS_ACTIVE)
+#define SHT21_READ_RAW_TEMP     (2)
+#define SHT21_READ_RAW_RHUM     (3)
+#define SHT21_READ_TEMP         (4)
+#define SHT21_READ_RHUM         (5)
+#define SHT21_RESET             (6)
+#define SHT21_NONE              (7)
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Reset the SHT21 sensor
- */
-void sht21_reset(void);
+#define SHT21_SENSOR "SHT21 Sensor"
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Check if the SHT21 sensor is present
- */
-uint8_t sht21_is_present(void);
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Read the temperature from the SHT21 sensor
- */
-uint16_t sht21_read_temperature(void);
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Convert the temperature from the SHT21 sensor
- */
-float sht21_convert_temperature(uint16_t temperature);
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Read the relative humidity from the SHT21 sensor
- */
-uint16_t sht21_read_humidity(void);
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Convert the relative humidity from the SHT21 sensor
- */
-float sht21_convert_humidity(uint16_t humidity);
+extern const struct sensors_sensor sht21;
 /*---------------------------------------------------------------------------*/
 #endif /* SHT21_H_ */
 /*---------------------------------------------------------------------------*/

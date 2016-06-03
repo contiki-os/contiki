@@ -28,31 +28,31 @@
  *
  * This file is part of the Contiki operating system.
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         Example on how to use CFS/Coffee.
  * \author
  *         Nicolas Tsiftes <nvt@sics.se>
  */
-
+/*---------------------------------------------------------------------------*/
 #include <stdio.h>
-
+#include <string.h>
 #include "contiki.h"
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
-
+/*---------------------------------------------------------------------------*/
 PROCESS(example_coffee_process, "Coffee example");
 AUTOSTART_PROCESSES(&example_coffee_process);
-
+/*---------------------------------------------------------------------------*/
 #define FILENAME "test"
 
-/* Formatting is needed if the storage device is in an unknown state; 
+/* Formatting is needed if the storage device is in an unknown state;
    e.g., when using Coffee on the storage device for the first time. */
 #ifndef NEED_FORMATTING
 #define NEED_FORMATTING 0
 #endif
-
+/*---------------------------------------------------------------------------*/
 static int
 file_test(const char *filename, char *msg)
 {
@@ -65,12 +65,12 @@ file_test(const char *filename, char *msg)
   } record;
 
   /*
-   * Coffee determines the file length by finding the last non-zero byte 
-   * of the file. This I/O semantic requires that each record should end 
-   * with a non-zero, if we are writing multiple records and closing the 
+   * Coffee determines the file length by finding the last non-zero byte
+   * of the file. This I/O semantic requires that each record should end
+   * with a non-zero, if we are writing multiple records and closing the
    * file descriptor in between.
    *
-   * In this example, in which the file_test function can be called 
+   * In this example, in which the file_test function can be called
    * multiple times, we ensure that the sequence counter starts at 1.
    */
 
@@ -84,7 +84,7 @@ file_test(const char *filename, char *msg)
   record.message[sizeof(record.message) - 1] = '\0';
   record.sequence = sequence;
 
-  /* Obtain a file descriptor for the file, capable of handling both 
+  /* Obtain a file descriptor for the file, capable of handling both
      reads and writes. */
   fd = cfs_open(FILENAME, CFS_WRITE | CFS_APPEND | CFS_READ);
   if(fd < 0) {
@@ -103,7 +103,7 @@ file_test(const char *filename, char *msg)
   printf("Wrote message \"%s\", sequence %u\n",
          record.message, record.sequence);
 
-  /* To read back the message, we need to move the file pointer to the 
+  /* To read back the message, we need to move the file pointer to the
      beginning of the file. */
   if(cfs_seek(fd, 0, CFS_SEEK_SET) != 0) {
     printf("seek failed\n");
@@ -133,7 +133,7 @@ file_test(const char *filename, char *msg)
 
   return 1;
 }
-
+/*---------------------------------------------------------------------------*/
 static int
 dir_test(void)
 {
@@ -156,7 +156,7 @@ dir_test(void)
 
   return 1;
 }
-
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(example_coffee_process, ev, data)
 {
   PROCESS_BEGIN();

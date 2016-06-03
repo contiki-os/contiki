@@ -41,8 +41,16 @@
  * Pere Tuset <peretuset@openmote.com>
  */
 /*---------------------------------------------------------------------------*/
-#include "i2c.h"
-#include "sht21.h"
+#include "dev/i2c.h"
+#include "dev/sht21.h"
+#include "lib/sensors.h"
+/*---------------------------------------------------------------------------*/
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 /*---------------------------------------------------------------------------*/
 /**
  * \name SHT21 address
@@ -87,13 +95,15 @@
                                          SHT21_BATTERY_ABOVE_2V25 | \
                                          SHT21_OTP_RELOAD_DISABLE)
 
-#define SHT21_USER_CONFIG               (SHT21_RESOLUTION_8b_12b | \
+#define SHT21_USER_CONFIG               (SHT21_RESOLUTION_12b_14b | \
                                          SHT21_ONCHIP_HEATER_DISABLE | \
                                          SHT21_BATTERY_ABOVE_2V25 | \
                                          SHT21_OTP_RELOAD_DISABLE)
 /** @} */
 /*---------------------------------------------------------------------------*/
-void
+static uint8_t enabled;
+/*---------------------------------------------------------------------------*/
+static void
 sht21_init(void)
 {
   uint8_t config[2];
@@ -116,14 +126,14 @@ sht21_init(void)
   i2c_burst_send(SHT21_ADDRESS, config, sizeof(config));
 }
 /*---------------------------------------------------------------------------*/
-void
+static void
 sht21_reset(void)
 {
   /* Send a soft-reset command according to the datasheet (pag. 9, fig. 17) */
   i2c_single_send(SHT21_ADDRESS, SHT21_RESET_CMD);
 }
 /*---------------------------------------------------------------------------*/
-uint8_t
+static uint8_t
 sht21_is_present(void)
 {
   uint8_t status;
@@ -142,7 +152,7 @@ sht21_is_present(void)
   return (is_present == SHT21_USER_CONFIG) || (is_present == SHT21_DEFAULT_CONFIG);
 }
 /*---------------------------------------------------------------------------*/
-uint16_t
+static uint32_t
 sht21_read_temperature(void)
 {
   uint8_t sht21_temperature[2];
@@ -152,23 +162,24 @@ sht21_read_temperature(void)
   i2c_single_send(SHT21_ADDRESS, SHT21_TEMPERATURE_HM_CMD);
   i2c_burst_receive(SHT21_ADDRESS, sht21_temperature, sizeof(sht21_temperature));
 
-  temperature = (sht21_temperature[0] << 8) | (sht21_temperature[1] & SHT21_STATUS_MASK);
+  temperature = (sht21_temperature[0] << 8) | ((sht21_temperature[1] & SHT21_STATUS_MASK));
 
   return temperature;
 }
 /*---------------------------------------------------------------------------*/
-float
-sht21_convert_temperature(uint16_t temperature)
+static int16_t
+sht21_convert_temperature(uint32_t temperature)
 {
-  float result;
+  int16_t result;
 
-  result = -46.85;
-  result += 175.72 * (float)temperature / 65536.0;
+  temperature *= 17572;
+  temperature = temperature >> 16;
+  result = (int16_t)temperature - 4685;
 
   return result;
 }
 /*---------------------------------------------------------------------------*/
-uint16_t
+static uint32_t
 sht21_read_humidity(void)
 {
   uint8_t sht21_humidity[2];
@@ -178,20 +189,86 @@ sht21_read_humidity(void)
   i2c_single_send(SHT21_ADDRESS, SHT21_HUMIDITY_HM_CMD);
   i2c_burst_receive(SHT21_ADDRESS, sht21_humidity, sizeof(sht21_humidity));
 
-  humidity = (sht21_humidity[0] << 8) | (sht21_humidity[1] & SHT21_STATUS_MASK);
+  humidity = (sht21_humidity[0] << 8) | ((sht21_humidity[1] & SHT21_STATUS_MASK));
 
   return humidity;
 }
 /*---------------------------------------------------------------------------*/
-float
-sht21_convert_humidity(uint16_t humidity)
+static int16_t
+sht21_convert_humidity(uint32_t humidity)
 {
-  float result;
+  int16_t result;
 
-  result = -6.0;
-  result += 125.0 * (float)humidity / 65536.0;
+  humidity *= 12500;
+  humidity = humidity >> 16;
+  result = (int16_t)humidity - 600;
+  result = (result > 10000) ? 10000 : result;
 
   return result;
 }
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return enabled;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
+{
+  uint32_t value;
+
+  if(!enabled) {
+    PRINTF("SHT21: sensor not started\n");
+    return SHT21_ERROR;
+  }
+
+  if(type == SHT21_READ_RAW_TEMP) {
+    return sht21_read_temperature();
+  } else if(type == SHT21_READ_RAW_RHUM) {
+    return sht21_read_humidity();
+  } else if(type == SHT21_READ_TEMP) {
+    value = sht21_read_temperature();
+    return sht21_convert_temperature(value);
+  } else if(type == SHT21_READ_RHUM) {
+    value = sht21_read_humidity();
+    return sht21_convert_humidity(value);
+  } else {
+    PRINTF("SHT21: invalid value requested\n");
+    return SHT21_ERROR;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static int
+configure(int type, int value)
+{
+  if(type == SHT21_ACTIVATE) {
+    if(!sht21_is_present()) {
+      PRINTF("SHT21: is not present\n");
+      return SHT21_ERROR;
+    } else {
+      sht21_init();
+      enabled = 1;
+      return SHT21_SUCCESS;
+    }
+  }
+
+  if(type == SHT21_RESET && enabled) {
+    sht21_reset();
+    return SHT21_SUCCESS;
+  } else {
+    PRINTF("SHT21: is not enabled\n");
+    return SHT21_ERROR;
+  }
+
+  return SHT21_ERROR;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(sht21, SHT21_SENSOR, value, configure, status);
 /*---------------------------------------------------------------------------*/
 /** @} */

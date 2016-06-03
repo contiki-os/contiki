@@ -74,7 +74,6 @@ before_script:
       git clone https://github.com/cc65/cc65 /tmp/cc65 &&
       make -C /tmp/cc65 bin apple2enh atarixl c64 c128 &&
       sudo make -C /tmp/cc65 avail &&
-      export CC65_HOME=/tmp/cc65/ &&
       cc65 --version ;
     fi
 
@@ -92,6 +91,18 @@ before_script:
       export PATH=/usr/ba-elf-gcc/bin:$PATH &&
       rm -rf /tmp/ba-elf-gcc* /tmp/jn516x-sdk* &&
       ba-elf-gcc --version ;
+    fi
+    
+  ## Install mainline ARM toolchain and download nRF52 SDK
+  - if [ ${BUILD_ARCH:-0} = nrf52dk ] ; then
+      sudo add-apt-repository -y ppa:team-gcc-arm-embedded/ppa &&
+      sudo apt-get -qq update &&
+      sudo apt-get -qq install gcc-arm-embedded srecord &&
+      arm-none-eabi-gcc --version &&
+      $WGET https://developer.nordicsemi.com/nRF5_IoT_SDK/nRF5_IoT_SDK_v0.9.x/nrf5_iot_sdk_3288530.zip &&
+      mkdir /tmp/nrf52-sdk &&
+      unzip nrf5_iot_sdk_3288530.zip -d /tmp/nrf52-sdk &&
+      export NRF52_SDK_ROOT=/tmp/nrf52-sdk ;
     fi
 
   ## Compile cooja.jar only when it's going to be needed
@@ -142,6 +153,7 @@ env:
   - BUILD_TYPE='compile-6502-ports' BUILD_CATEGORY='compile' BUILD_ARCH='6502'
   - BUILD_TYPE='compile-arm-ports' BUILD_CATEGORY='compile' BUILD_ARCH='arm-aapcs'
   - BUILD_TYPE='compile-nxp-ports' BUILD_CATEGORY='compile' BUILD_ARCH='jn516x'
+  - BUILD_TYPE='compile-nrf52-ports' BUILD_CATEGORY='compile' BUILD_ARCH='nrf52dk'
   - BUILD_TYPE='slip-radio' MAKE_TARGETS='cooja'
   - BUILD_TYPE='llsec' MAKE_TARGETS='cooja'
   - BUILD_TYPE='compile-avr' BUILD_CATEGORY='compile' BUILD_ARCH='avr-rss2'
