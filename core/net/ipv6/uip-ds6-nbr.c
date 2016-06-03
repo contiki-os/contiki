@@ -47,6 +47,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include "lib/list.h"
+#include "net/link-stats.h"
 #include "net/linkaddr.h"
 #include "net/packetbuf.h"
 #include "net/ipv6/uip-ds6-nbr.h"
@@ -74,6 +75,7 @@ NBR_TABLE_GLOBAL(uip_ds6_nbr_t, ds6_neighbors);
 void
 uip_ds6_neighbors_init(void)
 {
+  link_stats_init();
   nbr_table_register(ds6_neighbors, (nbr_table_callback *)uip_ds6_nbr_rm);
 }
 /*---------------------------------------------------------------------------*/
@@ -204,6 +206,9 @@ uip_ds6_link_neighbor_callback(int status, int numtx)
     return;
   }
 
+  /* Update neighbor link statistics */
+  link_stats_packet_sent(dest, status, numtx);
+  /* Call upper-layer callback (e.g. RPL) */
   LINK_NEIGHBOR_CALLBACK(dest, status, numtx);
 
 #if UIP_DS6_LL_NUD

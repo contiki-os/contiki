@@ -144,11 +144,28 @@
           ((unsigned long)(instance)->lifetime_unit * (lifetime))
 
 #ifndef RPL_CONF_MIN_HOPRANKINC
+/* RFC6550 defines the default MIN_HOPRANKINC as 256.
+ * However, we use MRHOF as a default Objective Function (RFC6719),
+ * which recommends setting MIN_HOPRANKINC with care, in particular
+ * when used with ETX as a metric. ETX is computed as a fixed point
+ * real with a divisor of 128 (RFC6719, RFC6551). We choose to also
+ * use 128 for RPL_MIN_HOPRANKINC, resulting in a rank equal to the
+ * ETX path cost. Larger values may also be desirable, as discussed
+ * in section 6.1 of RFC6719. */
+#if RPL_OF_OCP == RPL_OCP_MRHOF
+#define RPL_MIN_HOPRANKINC          128
+#else /* RPL_OF_OCP == RPL_OCP_MRHOF */
 #define RPL_MIN_HOPRANKINC          256
-#else
+#endif /* RPL_OF_OCP == RPL_OCP_MRHOF */
+#else /* RPL_CONF_MIN_HOPRANKINC */
 #define RPL_MIN_HOPRANKINC          RPL_CONF_MIN_HOPRANKINC
-#endif
+#endif /* RPL_CONF_MIN_HOPRANKINC */
+
+#ifndef RPL_CONF_MAX_RANKINC
 #define RPL_MAX_RANKINC             (7 * RPL_MIN_HOPRANKINC)
+#else /* RPL_CONF_MAX_RANKINC */
+#define RPL_MAX_RANKINC             RPL_CONF_MAX_RANKINC
+#endif /* RPL_CONF_MAX_RANKINC */
 
 #define DAG_RANK(fixpt_rank, instance) \
   ((fixpt_rank) / (instance)->min_hoprankinc)
@@ -198,13 +215,6 @@
 #else
 #define RPL_MCAST_LIFETIME 3
 #endif
-
-/*
- * The ETX in the metric container is expressed as a fixed-point value 
- * whose integer part can be obtained by dividing the value by 
- * RPL_DAG_MC_ETX_DIVISOR.
- */
-#define RPL_DAG_MC_ETX_DIVISOR		256
 
 /* DIS related */
 #define RPL_DIS_SEND                    1
