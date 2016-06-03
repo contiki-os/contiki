@@ -77,7 +77,7 @@ do_rssi(void)
   printf("RSSI:");
   for(channel = 0; channel <= 85; ++channel) {
     set_frq(channel);
-    printf("%d ", cc2420_rssi() + 55);
+    printf("%d ", cc2420_rssi() + 100);
   }
   printf("\n");
 }
