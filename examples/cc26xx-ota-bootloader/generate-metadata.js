@@ -11,7 +11,7 @@ output_file = new Buffer( 256 + firmware_binary.length );
 
 //  Write OTA metadata
 output_file.writeUInt16LE(firmware_crc, 0); // crc
-output_file.writeUInt16LE(0x0, 2); // crc shadow
+output_file.writeUInt16LE(firmware_crc, 2); // crc shadow
 output_file.writeUInt32LE(firmware_binary.length, 4); // binary size
 output_file.writeUInt32LE(firmware_uuid, 8); // uuid
 output_file.writeUInt16LE(firmware_version, 12); // version
