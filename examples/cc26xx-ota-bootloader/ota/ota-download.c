@@ -64,23 +64,19 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
           return;
         }
         //  If we've reached the end of the HTTP response
-        else if ( HTTP_PAYLOAD_END( data ) )
-        {
+        else if ( HTTP_PAYLOAD_END( data ) ) {
           page_started = false;
           break;
         }
         //  Otherwise, this is valid data.  Write it down.
-        else
-        {
+        else {
           bytes_received++;
           page_buffer[ (OTA_METADATA_SPACE + (img_req_position++)) % FLASH_PAGE_SIZE ] = *data;
           //printf("%#x ", *data);
         }
       }
-      else
-      {
-        if ( HTTP_PAYLOAD_START( data ) )
-        {
+      else {
+        if ( HTTP_PAYLOAD_START( data ) ) {
           page_started = true;
         }
       }
@@ -127,23 +123,19 @@ firmware_metadata_cb(struct http_socket *s, void *ptr,
     {
       if (metadata_started) {
         //  If we've reached the end of the HTTP response
-        if ( HTTP_PAYLOAD_END( data ) )
-        {
+        if ( HTTP_PAYLOAD_END( data ) ) {
           metadata_started = false;
           break;
         }
         //  Otherwise, this is valid data.  Write it down.
-        else
-        {
+        else {
           bytes_received++;
           page_buffer[ img_req_position++ ] = *data;
           //printf("%#x ", *data);
         }
       }
-      else
-      {
-        if ( HTTP_PAYLOAD_START( data ) )
-        {
+      else {
+        if ( HTTP_PAYLOAD_START( data ) ) {
           metadata_started = true;
         }
       }
@@ -224,7 +216,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
         {
           ota_downloading_page = false;
           ota_downloading_image = false;
-        }
+        } break;
       }
     }
 
@@ -242,6 +234,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   PRINTF("Done downloading!\n");
 
   //  Make OTA slot metadata as "valid"
+  verify_ota_slot( active_ota_download_slot );
 
   ti_lib_sys_ctrl_system_reset(); // Reboot!
 
