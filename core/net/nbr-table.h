@@ -83,7 +83,8 @@ typedef enum {
 	NBR_TABLE_REASON_ROUTE,
 	NBR_TABLE_REASON_IPV6_ND,
 	NBR_TABLE_REASON_MAC,
-	NBR_TABLE_REASON_LLSEC
+	NBR_TABLE_REASON_LLSEC,
+	NBR_TABLE_REASON_LINK_STATS,
 } nbr_table_reason_t;
 
 /** \name Neighbor tables: register and loop through table elements */

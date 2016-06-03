@@ -138,7 +138,7 @@ update_nbr(void)
                 parent->rank > 0 &&
                 parent->dag != NULL &&
                 parent->dag->instance != NULL &&
-                (rank = parent->dag->instance->of->calculate_rank(parent, 0)) > worst_rank) {
+                (rank = parent->dag->instance->of->rank_via_parent(parent)) > worst_rank) {
         /* This is the worst-rank neighbor - this is a good candidate for removal */
         worst_rank = rank;
         worst_rank_nbr = lladdr;
@@ -190,7 +190,6 @@ const linkaddr_t *
 find_removable_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
 {
   rpl_instance_t *instance;
-  rpl_rank_t rank;
 
   update_nbr();
 
@@ -201,8 +200,7 @@ find_removable_dio(uip_ipaddr_t *from, rpl_dio_t *dio)
   }
 
   /* Add the new neighbor only if it is better than the worst parent. */
-  rank = instance->of->calculate_rank(NULL, dio->rank);
-  if(rank < worst_rank - instance->min_hoprankinc / 2) {
+  if(dio->rank + instance->min_hoprankinc < worst_rank - instance->min_hoprankinc / 2) {
     /* Found *great* neighbor - add! */
     PRINTF("Found better neighbor %d < %d - add to cache...\n",
            rank, worst_rank);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Swedish Institute of Computer Science.
+ * Copyright (c) 2015, SICS Swedish ICT.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,42 +25,41 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ *
+ * Authors: Simon Duquennoy <simonduq@sics.se>
  */
 
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
+#ifndef LINK_STATS_H_
+#define LINK_STATS_H_
 
-#undef NBR_TABLE_CONF_MAX_NEIGHBORS
-#undef UIP_CONF_MAX_ROUTES
+#include "core/net/linkaddr.h"
 
-#ifdef TEST_MORE_ROUTES
-/* configure number of neighbors and routes */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     10
-#define UIP_CONF_MAX_ROUTES   30
-#else
-/* configure number of neighbors and routes */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     10
-#define UIP_CONF_MAX_ROUTES   10
-#endif /* TEST_MORE_ROUTES */
+/* ETX fixed point divisor. 128 is the value used by RPL (RFC 6551 and RFC 6719) */
+#ifdef LINK_STATS_CONF_ETX_DIVISOR
+#define LINK_STATS_ETX_DIVISOR              LINK_STATS_CONF_ETX_DIVISOR
+#else /* LINK_STATS_CONF_ETX_DIVISOR */
+#define LINK_STATS_ETX_DIVISOR              128
+#endif /* LINK_STATS_CONF_ETX_DIVISOR */
 
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
-#undef NULLRDC_CONF_802154_AUTOACK
-#define NULLRDC_CONF_802154_AUTOACK       1
+/* All statistics of a given link */
+struct link_stats {
+  uint16_t etx;               /* ETX using ETX_DIVISOR as fixed point divisor */
+  int16_t rssi;               /* RSSI (received signal strength) */
+  uint8_t freshness;          /* Freshness of the statistics */
+  clock_time_t last_tx_time;  /* Last Tx timestamp */
+};
 
-/* Define as minutes */
-#define RPL_CONF_DEFAULT_LIFETIME_UNIT   60
+/* Returns the neighbor's link statistics */
+const struct link_stats *link_stats_from_lladdr(const linkaddr_t *lladdr);
+/* Are the statistics fresh? */
+int link_stats_is_fresh(const struct link_stats *stats);
 
-/* 10 minutes lifetime of routes */
-#define RPL_CONF_DEFAULT_LIFETIME        10
+/* Initializes link-stats module */
+void link_stats_init(void);
+/* Packet sent callback. Updates statistics for transmissions on a given link */
+void link_stats_packet_sent(const linkaddr_t *lladdr, int status, int numtx);
+/* Packet input callback. Updates statistics for receptions on a given link */
+void link_stats_input_callback(const linkaddr_t *lladdr);
 
-#define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME 1
-
-/* Save some ROM */
-#undef UIP_CONF_TCP
-#define UIP_CONF_TCP                   0
-
-#undef SICSLOWPAN_CONF_FRAG
-#define SICSLOWPAN_CONF_FRAG           0
-
-#endif /* PROJECT_CONF_H_ */
+#endif /* LINK_STATS_H_ */

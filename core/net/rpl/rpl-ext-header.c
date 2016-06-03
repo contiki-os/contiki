@@ -125,14 +125,6 @@ rpl_verify_header(int uip_ext_opt_offset)
   }
 
   sender_rank = UIP_HTONS(UIP_EXT_HDR_OPT_RPL_BUF->senderrank);
-  sender_closer = sender_rank < instance->current_dag->rank;
-
-  PRINTF("RPL: Packet going %s, sender closer %d (%d < %d)\n", down == 1 ? "down" : "up",
-	 sender_closer,
-	 sender_rank,
-	 instance->current_dag->rank
-	 );
-
   sender = nbr_table_get_from_lladdr(rpl_parents, packetbuf_addr(PACKETBUF_ADDR_SENDER));
 
   if(sender != NULL && (UIP_EXT_HDR_OPT_RPL_BUF->flags & RPL_HDR_OPT_RANK_ERR)) {
@@ -141,6 +133,14 @@ rpl_verify_header(int uip_ext_opt_offset)
     sender->rank = sender_rank;
     rpl_select_dag(instance, sender);
   }
+
+  sender_closer = sender_rank < instance->current_dag->rank;
+
+  PRINTF("RPL: Packet going %s, sender closer %d (%d < %d)\n", down == 1 ? "down" : "up",
+   sender_closer,
+   sender_rank,
+   instance->current_dag->rank
+   );
 
   if((down && !sender_closer) || (!down && sender_closer)) {
     PRINTF("RPL: Loop detected - senderrank: %d my-rank: %d sender_closer: %d\n",
