@@ -59,7 +59,7 @@
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
-#include "net/ip/uip-debug.h"
+#include "net/net-debug.h"
 
 /* TSCH debug macros, i.e. to set LEDs or GPIOs on various TSCH
  * timeslot events */
@@ -493,9 +493,11 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               uint8_t ack_hdrlen;
               frame802154_t frame;
 
+#if TSCH_HW_FRAME_FILTERING
               /* Entering promiscuous mode so that the radio accepts the enhanced ACK */
               NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
               NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode & (~RADIO_RX_MODE_ADDRESS_FILTER));
+#endif /* TSCH_HW_FRAME_FILTERING */
               /* Unicast: wait for ack after tx: sleep until ack time */
               TSCH_SCHEDULE_AND_YIELD(pt, t, current_slot_start,
                   tsch_timing[tsch_ts_tx_offset] + tx_duration + tsch_timing[tsch_ts_rx_ack_delay] - RADIO_DELAY_BEFORE_RX, "TxBeforeAck");
@@ -514,9 +516,11 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               TSCH_DEBUG_TX_EVENT();
               NETSTACK_RADIO.off();
 
+#if TSCH_HW_FRAME_FILTERING
               /* Leaving promiscuous mode */
               NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
               NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode | RADIO_RX_MODE_ADDRESS_FILTER);
+#endif /* TSCH_HW_FRAME_FILTERING */
 
               /* Read ack frame */
               ack_len = NETSTACK_RADIO.read((void *)ackbuf, sizeof(ackbuf));
@@ -737,7 +741,7 @@ PT_THREAD(tsch_rx_slot(struct pt *pt, struct rtimer *t))
           if(linkaddr_cmp(&destination_address, &linkaddr_node_addr)
              || linkaddr_cmp(&destination_address, &linkaddr_null)) {
             int do_nack = 0;
-            estimated_drift = ((int32_t)expected_rx_time - (int32_t)rx_start_time);
+            estimated_drift = RTIMER_CLOCK_DIFF(expected_rx_time, rx_start_time);
 
 #if TSCH_TIMESYNC_REMOVE_JITTER
             /* remove jitter due to measurement errors */

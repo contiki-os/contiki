@@ -61,7 +61,7 @@
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
-#include "net/ip/uip-debug.h"
+#include "net/net-debug.h"
 
 /* Check if TSCH_QUEUE_NUM_PER_NEIGHBOR is power of two */
 #if (TSCH_QUEUE_NUM_PER_NEIGHBOR & (TSCH_QUEUE_NUM_PER_NEIGHBOR - 1)) != 0

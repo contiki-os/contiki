@@ -46,6 +46,7 @@
 #include "lwm2m-object.h"
 #include "lwm2m-device.h"
 #include "lwm2m-plain-text.h"
+#include "lwm2m-json.h"
 #include "rest-engine.h"
 #include "er-coap-constants.h"
 #include "er-coap-engine.h"
@@ -726,6 +727,10 @@ lwm2m_engine_select_writer(lwm2m_context_t *context, unsigned int accept)
     case LWM2M_TEXT_PLAIN:
     case TEXT_PLAIN:
       context->writer = &lwm2m_plain_text_writer;
+      break;
+    case LWM2M_JSON:
+    case APPLICATION_JSON:
+      context->writer = &lwm2m_json_writer;
       break;
     default:
       PRINTF("Unknown Accept type %u, using LWM2M plain text\n", accept);

@@ -81,6 +81,15 @@ CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(DEBUG_IO_SOURCEFILES)
 TARGET_START_SOURCEFILES += fault-handlers.c $(TI_XXWARE_STARTUP_SRCS)
 TARGET_STARTFILES = $(addprefix $(OBJECTDIR)/,$(call oname, $(TARGET_START_SOURCEFILES)))
 
+PYTHON = python
+BSL_FLAGS += -e -w -v
+
+ifdef PORT
+  BSL_FLAGS += -p $(PORT)
+endif
+
+BSL = $(CONTIKI)/tools/cc2538-bsl/cc2538-bsl.py
+
 ### Don't treat the .elf as intermediate
 .PRECIOUS: %.elf %.hex %.bin
 
@@ -125,3 +134,31 @@ STACK_SIZE = 0
 	@$(SIZE) -A $< | egrep "data|bss" | awk '{s+=$$2} END {s=s+$(STACK_SIZE); f=$(RAM_SIZE)-s; printf "[RAM]   used %6d, free %6d\n",s,f;}'
 	@$(SIZE) -A $< | egrep "text|isr_vector" | awk '{s+=$$2} END {f=$(FLASH_SIZE)-s; printf "[Flash] used %6d, free %6d\n",s,f;}'
 
+ifeq ($(BOARD_SUPPORTS_BSL),1)
+%.upload: %.bin
+ifeq ($(wildcard $(BSL)), )
+	@echo "ERROR: Could not find the cc2538-bsl script. Did you run 'git submodule update --init' ?"
+else
+	$(PYTHON) $(BSL) $(BSL_FLAGS) $<
+endif
+else
+%.upload:
+	@echo "This board cannot be programmed through the ROM bootloader and therefore does not support the .upload target."
+endif
+
+# Check if we are running under Windows
+ifeq ($(HOST_OS),Windows)
+  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-windows
+else
+ifeq ($(HOST_OS),Darwin)
+  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-macos
+else
+  # Else assume Linux
+  SERIALDUMP ?= $(CONTIKI)/tools/sky/serialdump-linux
+endif
+endif
+
+UART_BAUDRATE = 115200
+
+login:
+	$(SERIALDUMP) -b$(UART_BAUDRATE) $(PORT)
