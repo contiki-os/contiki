@@ -74,7 +74,6 @@ before_script:
       git clone https://github.com/cc65/cc65 /tmp/cc65 &&
       make -C /tmp/cc65 bin apple2enh atarixl c64 c128 &&
       sudo make -C /tmp/cc65 avail &&
-      export CC65_HOME=/tmp/cc65/ &&
       cc65 --version ;
     fi
 
