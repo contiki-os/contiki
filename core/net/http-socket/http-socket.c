@@ -419,11 +419,11 @@ event(struct tcp_socket *tcps, void *ptr,
       tcp_socket_send_str(tcps, "Host: ");
       /* If we have IPv6 host, add the '[' and the ']' characters
          to the host. As in rfc2732. */
-      if (strchr(host, ':')) {
+      if (memchr(host, ':', MAX_HOSTLEN)) {
         tcp_socket_send_str(tcps, "[");
       }
       tcp_socket_send_str(tcps, host);
-      if (strchr(host, ':')) {
+      if (memchr(host, ':', MAX_HOSTLEN)) {
         tcp_socket_send_str(tcps, "]");
       }
       tcp_socket_send_str(tcps, "\r\n");
