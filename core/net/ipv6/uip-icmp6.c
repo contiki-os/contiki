@@ -301,7 +301,9 @@ uip_icmp6_send(const uip_ipaddr_t *dest, int type, int code, int payload_len)
   UIP_STAT(++uip_stat.icmp.sent);
   UIP_STAT(++uip_stat.ip.sent);
 
+#if UIP_CONF_IPV6_RPL
   rpl_insert_header();
+#endif /* UIP_CONF_IPV6_RPL */
   tcpip_ipv6_output();
 }
 /*---------------------------------------------------------------------------*/
