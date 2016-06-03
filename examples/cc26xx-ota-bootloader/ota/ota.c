@@ -27,6 +27,42 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count)
   }
 }
 
+/*********************************************************************
+ * @fn          crc16
+ *
+ * @brief       Run the CRC16 Polynomial calculation over the byte parameter.
+ *
+ * @param       crc - Running CRC calculated so far.
+ * @param       val - Value on which to run the CRC16.
+ *
+ * @return      crc - Updated for the run.
+ */
+uint16_t
+crc16(uint16_t crc, uint8_t val)
+{
+  const uint16_t poly = 0x1021;
+  uint8_t cnt;
+
+  for (cnt = 0; cnt < 8; cnt++, val <<= 1)
+  {
+    uint8_t msb = (crc & 0x8000) ? 1 : 0;
+
+    crc <<= 1;
+
+    if (val & 0x80)
+    {
+      crc |= 0x0001;
+    }
+
+    if (msb)
+    {
+      crc ^= poly;
+    }
+  }
+
+  return crc;
+}
+
 /**
  *    OTA Metadata Functions
  */
@@ -204,9 +240,47 @@ verify_ota_slot( uint8_t ota_slot )
   OTAMetadata_t ota_metadata;
   while( get_ota_slot_metadata( ota_slot, &ota_metadata ) );
 
+  //  (3) Compute the CRC16 over the entire image
+  uint16_t imageCRC = 0;
+  ota_image_address += OTA_METADATA_SPACE; // this is where the OTA binary starts
+  uint32_t ota_image_end_address = ota_image_address + ota_metadata.size;
+
+  int eeprom_access = ext_flash_open();
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
+    ext_flash_close();
+    return -1;
+  }
+
+  //  Read the firmware image, one word at a time
+  uint8_t idx;
+  while (ota_image_address < ota_image_end_address) {
+    uint8_t _word[4];
+
+    eeprom_access = ext_flash_read(ota_image_address, 4, _word);
+    if(!eeprom_access) {
+      PRINTF("[external-flash]:\tError - Could not read EEPROM.\n");
+      ext_flash_close();
+      return -1;
+    }
+
+    for (idx = 0; idx < 4; idx++)
+    {
+      imageCRC = crc16(imageCRC, _word[idx]);
+    }
+    ota_image_address += 4; // move 4 bytes forward
+  }
+
+  imageCRC = crc16(imageCRC, 0);
+  imageCRC = crc16(imageCRC, 0);
+
+  ext_flash_close();
+
+  printf("CRC Calculated: %#x\n", imageCRC);
+
   //  (3) Mark the metadata as "valid"
-  ota_metadata.crc = 0x1;
-  ota_metadata.crc_shadow = 0x1;
+  //ota_metadata.crc = 0x1;
+  ota_metadata.crc_shadow = imageCRC;
 
   //  (4) Update metadata header
   while( overwrite_ota_slot_metadata( ota_slot, &ota_metadata ) );
@@ -247,7 +321,7 @@ validate_ota_slot( OTAMetadata_t *metadata )
   }
 
   //  (2) Check the CRC entries to validate the OTA data itself.
-  if ( (metadata->crc == 0x01) && (metadata->crc_shadow == 0x01) ) {
+  if ( (metadata->crc) == (metadata->crc_shadow) ) {
     return true;
   }
 
