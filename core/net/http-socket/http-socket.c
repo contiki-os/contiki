@@ -349,6 +349,11 @@ parse_url(const char *url, char *host, uint16_t *portptr, char *path)
     }
   }
 
+  /* check if host is null terminated */
+  if (!memchr(host, 0, MAX_HOSTLEN)) {
+    return 0;
+  }
+
   /* Find the port. Default is 80. */
   port = 80;
   if(*urlptr == ':') {
