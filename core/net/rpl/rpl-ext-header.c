@@ -136,7 +136,12 @@ rpl_verify_hbh_header(int uip_ext_opt_offset)
     /* A rank error was signalled, attempt to repair it by updating
      * the sender's rank from ext header */
     sender->rank = sender_rank;
-    rpl_select_dag(instance, sender);
+    if(RPL_IS_NON_STORING(instance)) {
+      /* Select DAG and preferred parent only in non-storing mode. In storing mode,
+       * a parent switch would result in an immediate No-path DAO transmission, dropping
+       * current incoming packet. */
+      rpl_select_dag(instance, sender);
+    }
   }
 
   sender_closer = sender_rank < instance->current_dag->rank;
