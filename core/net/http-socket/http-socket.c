@@ -324,6 +324,7 @@ parse_url(const char *url, char *host, uint16_t *portptr, char *path)
         if(host != NULL) {
           host[i] = 0;
         }
+        urlptr++;
         break;
       }
       if(host != NULL) {
