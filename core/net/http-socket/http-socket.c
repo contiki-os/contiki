@@ -350,7 +350,7 @@ parse_url(const char *url, char *host, uint16_t *portptr, char *path)
   }
 
   /* check if host is null terminated */
-  if (!memchr(host, 0, MAX_HOSTLEN)) {
+  if(!memchr(host, 0, MAX_HOSTLEN)) {
     return 0;
   }
 
@@ -419,11 +419,11 @@ event(struct tcp_socket *tcps, void *ptr,
       tcp_socket_send_str(tcps, "Host: ");
       /* If we have IPv6 host, add the '[' and the ']' characters
          to the host. As in rfc2732. */
-      if (memchr(host, ':', MAX_HOSTLEN)) {
+      if(memchr(host, ':', MAX_HOSTLEN)) {
         tcp_socket_send_str(tcps, "[");
       }
       tcp_socket_send_str(tcps, host);
-      if (memchr(host, ':', MAX_HOSTLEN)) {
+      if(memchr(host, ':', MAX_HOSTLEN)) {
         tcp_socket_send_str(tcps, "]");
       }
       tcp_socket_send_str(tcps, "\r\n");
