@@ -1,2 +1,2 @@
-generate-crc:
-	gcc -o generate-crc generate-crc.c
+generate-metadata:
+	gcc -std=c99 -o generate-metadata generate-metadata.c
