@@ -16,6 +16,7 @@ SREC_CAT = srec_cat
 
 CONTIKI = ../../..
 OTA_SOURCE = ../ota
+
 CPU_ABS_PATH = $(CONTIKI)/cpu/cc26xx-cc13xx
 TARGET=srf06-cc26xx
 OBJECTDIR=obj_$(TARGET)

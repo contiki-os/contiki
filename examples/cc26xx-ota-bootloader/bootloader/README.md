@@ -1,20 +1,28 @@
 # OTA Bootloader
 
-You can use this bootloader with your own applications on the CC2650 platform.  To build, simply enter the `/bootloader` directory and use
+You can use this bootloader with your own OTA-ready applications on the CC2650 platform.  To build, simply enter the `/bootloader` directory and use:
 
 ```bash
 make bootloader.hex
 ```
 
-This bootloader is made as simple as it can be.  There's only a few things to be aware of regarding its configuration:
+This bootloader is made to be as simple as it can be.  There's only a few things to be aware of regarding its configuration.
 
 ## Compiling
-In order to strip away everything that wasn't strictly necessary, this bootloader does not compile through Contiki's master `Makefile.include`.  It has its own custom `Makefile` that only depends on TI's cc26xxware (located under `/cpu/cc26xx-cc13xx/`).
+In order to strip away everything that wasn't strictly necessary, this bootloader does not compile through Contiki's master `Makefile.include`.  It has an independent `Makefile` which only depends on TI's cc26xxware (located under `/cpu/cc26xx-cc13xx/`), as well as its own linker script `cc26xx.bootloader.ld`.
 
-If you copy the `/bootloader` folder somewhere else in this Contiki tree, the bootloader's Makefile may not be able to find the correct relative location of the Contiki root directory.  To fix this, just modify the `CONTIKI` var inside `Makefile`:
+### Contiki Location
+Although the bootloader does not depend on any Contiki source code, it still must know where your Contiki directory is to find cc26xxware.  If you copy the `/bootloader` folder somewhere else in this Contiki tree, the bootloader's `Makefile` may not be able to find the correct relative location of the Contiki root directory.  To fix this, just modify the `CONTIKI` var inside the bootloader's `Makefile`:
 
 ```
 CONTIKI = ../../..
+```
+
+### OTA Location
+The bootloader `Makefile` will also look for the `/ota` folder, which contains `ota.c`, `ota.h`, etc.  If `/bootloader` is copied elsewhere, make sure the `/ota` directory is also copied to the same destination, or alternatively change the `OTA_SOURCE` variable inside `Makefile`:
+
+```
+OTA_SOURCE = ../ota
 ```
 
 ## Use of External Flash
