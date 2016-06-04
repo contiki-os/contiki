@@ -111,6 +111,9 @@ strcasecmp(const char *s1, const char *s2)
   /* TODO: Add case support! */
   return strcmp(s1, s2);
 }
+#else
+int strcasecmp(const char *s1, const char *s2);
+int strncasecmp(const char *s1, const char *s2, size_t n);
 #endif /* __SDCC */
 
 #define UIP_UDP_BUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
