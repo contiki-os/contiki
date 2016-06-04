@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
-FILE *firmware_bin;
-FILE *firmware_out;
-#define HAL_WORD_SIZE 4
+FILE *firmware_bin; // firmware input .bin file
+FILE *metadata_bin; // metadata output .bin file
+#define FLASH_WORD_SIZE 4
 
 const int i = 1;
 #define is_bigendian() ( (*(char*)&i) == 0 )
@@ -58,7 +58,7 @@ static uint16_t
 crcCalcWord(uint8_t *_word, uint16_t imageCRC)
 {
   int idx;
-  for (idx = 0; idx < HAL_WORD_SIZE; idx++)
+  for (idx = 0; idx < FLASH_WORD_SIZE; idx++)
   {
     //printf("%#x ", _word[idx]);
     imageCRC = crc16(imageCRC, _word[idx]);
@@ -82,10 +82,10 @@ crcCalc(void)
   uint16_t imageCRC = 0;
 
   uint8_t idx;
-  uint8_t _word[ HAL_WORD_SIZE ]; //  a 4-byte buffer
+  uint8_t _word[ FLASH_WORD_SIZE ]; //  a 4-byte buffer
   size_t nret;
 
-  while ( 1 == (nret = fread(_word, HAL_WORD_SIZE, 1, firmware_bin)) ) {
+  while ( 1 == (nret = fread(_word, FLASH_WORD_SIZE, 1, firmware_bin)) ) {
     imageCRC = crcCalcWord( _word, imageCRC );
   }
 
@@ -154,26 +154,26 @@ main(int argc, char *argv[]) {
   metadata.size = firmware_size;
   sscanf( argv[2], "%xu", &(metadata.version) );
   sscanf( argv[3], "%xu", &(metadata.uuid) );
-
-  //swap_endian_32( &metadata.uuid );
-
   uint8_t output_buffer[ sizeof(OTAMetadata_t) ];
   memcpy( output_buffer, (uint8_t *)&metadata, sizeof(OTAMetadata_t) );
 
-  //  (4) Open the output firmware .bin file
-  firmware_out = fopen( "firmware-metadata.bin", "wb" );
+  //swap_endian_32( &metadata.uuid );
 
-  //  (5) Write the metadata
-  fwrite(output_buffer, sizeof(output_buffer), 1, firmware_out);
+  //  (5) Open the output firmware .bin file
+  metadata_bin = fopen( "firmware-metadata.bin", "wb" );
 
-  //  (6) 0xff spacing until firmware binary starts
+  //  (6) Write the metadata
+  fwrite(output_buffer, sizeof(output_buffer), 1, metadata_bin);
+
+  //  (7) 0xff spacing until firmware binary starts
   uint8_t blank_buffer[240];
   for (int b=0; b<240; b++) {
     blank_buffer[ b ] = 0xff;
   }
-  fwrite( blank_buffer, 240, 1, firmware_out);
+  fwrite( blank_buffer, 240, 1, metadata_bin);
 
-  fclose( firmware_out );
+  //  (8) Close the metadata file
+  fclose( metadata_bin );
 
   return 0;
 }
