@@ -34,7 +34,6 @@ static uint8_t page_buffer[ FLASH_PAGE_SIZE ];
 static uint8_t page;
 static bool ota_downloading_page;
 static bool page_started;
-static bool metadata_started;
 static uint16_t bytes_received;
 
 static bool ota_downloading_image;
