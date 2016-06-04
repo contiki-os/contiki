@@ -1,54 +1,112 @@
-# Cortex-M3 OTA Example
+# CC26XX OTA
+This is an example Contiki application that demonstrates how to send complete firmware updates over-the-air (OTA) to a Texas Instruments CC2650.  (In this example, assumed platform is a Sensortag.)
 
-This is an attempt to create a Cortex-M3 bootloader that can jump to (Contiki) firmware binaries located elsewhere in the internal EEPROM.  Motivation is that binaries may come OTA to be stored at a later date.  Assumed system is a Texas Instruments CC2650 (`sensortag/cc2650` board).
+The OTA system depends on compiling two separate binaries, which are both placed into the CC2650's internal flash.
 
-We have in one folder the `bootloader`, and in the other an example firmware image for testing (`ota-image-example`).
+*  A **bootloader**, which remains permanently fixed in the CC2650's flash.  It manages, verifies, and repairs the CC2650 firmware but is never overwritten.
+*  The actual **OTA image**, which is your Contiki application.  This will change in the future as you compile and release new versions.  The very first OTA image is actually flashed manually from a .bin file.
 
-# Overview & MMap
-The idea behind this OTA mechanism is that the cc26xx always boots to the bootloader located at the origin of the EEPROM (`0x0000`).  It is the bootloader's purpose to locate and verify other firmware images (herein referred to as OTA images) stored in the flash, and then to branch processor execution to the (most recent) valid image.
-
-For this example, we consider only the bootloader and a single example OTA image.
-
-Description | Starting Position in EEPROM (bytes) | Space Allotted
---- | --- | ---
-bootloader | 0x00000000 | 0x00001000
-ota-image-example | 0x00001000 | 0x0001EFA8
-bootloader ccfg | 0x0001FFA8 | 0x58
-
-> NB: 0x1000 = 1 flash sector (4096 bytes)
-
-*  Each of the binaries is statically linked with the starting position of each pre-determined and baked into the linker script.  E.G. `ota-image-example` has the flash origin set to `0x1000` in its linker file.
-*  Each binary also has its *own* Vector table placed at the very start of each image.  This seems to be the method recommended by TI's OAD literature.
-
-The core idea behind branching code execution to a different firmware image is to branch to the RESET vector in the target image's Vector table:
-
-```asm
-  __asm("LDR R0, =0x1004"); //  RESET vector of target image
-  __asm("LDR R1, [R0]");    //  Get the branch address
-  __asm("ORR R1, #1");      //  Make sure the Thumb State bit is set.
-  __asm("BX R1");           //  Branch execution
-```
-
-0x1004 is the start address of the target image 0x1000 + 0x4 bytes to get to the RESET vector.
-
-# What Should Happen?
-If this example functions properly, we should see:
-
-1.  CC26XX boots up into the Vector table and bootloader located at 0x0000.
-1.  Bootloader should then initialize the GPIO system, illuminate the red LED, and then jump to the OTA image located at 0x1000.
-1.  *If* the OTA image should begin executing at the contiki `main()` function.  Near the end of this function, any user-defined processes should be initialized by the `autostart_start` call.  In this example, that means the CC26XX should then start strobing its LED at a frequency of 1Hz.
-
-So far, the bootloader boots, configures GPIO, and Contiki's main() is called.  However, the user processes are never initialized and `main()` appears to hang when it reaches any networking or process-related code.
-
-# Get Started
-
-## Clone Code
-It is critical to pull in the GIT submodules which contain TI's RTOS drivers.
+## Quick Start
+Please note that there are a handful of changes made to the Contiki tree outside of this example folder.  You cannot simply copy this example into the vanilla Contiki tree.  You must clone this fork and and compile using it.
 
 ```bash
 git clone https://github.com/msolters/contiki
 git submodule update --recursive --init
 ```
+
+### Compile Firmware
+To use this example out-of-the-box, just run the `./make-master-hex.sh` script, and flash the resulting `firmware.hex` to your Sensortag.  
+
+`make-master-hex.sh` will compile the `/bootloader`, and then compile `/ota-image-example` as your initial "OTA image".  `ota-image-example` is a very simple Contiki app that simply blinks the red LED, and then starts an OTA download request.
+
+The script will then generate some metadata for you (version number, UUID value, etc.), and finally fuse the bootloader and initial OTA image all into one big `firmware.hex` that you can conveniently flash to the Sensortag via e.g SmartRF Programmer 2.
+
+### Start a Firmware Server
+Now, you just need an OTA image server.  You can clone my working OTA server (written in NodeJS) [from here](https://github.com/msolters/ota-server).
+
+This server can be run by simply invoking
+
+```
+node ota-server.js
+```
+
+The `ota-server` repo includes another compiled Contiki app, `ota-image-example.bin`.  This is merely a variant of the `ota-image-example` found here, except it blinks the *other* LED.
+
+The only rule with the OTA server is that it must be run on a host that your Sensortag can resolve!  Using 6LBR as a BR, `bbbb::` is typically a decent choice for subnet.  Therefore,  `ota-server.js` comes out of the box with a default IP address of `bbbb::1` and will listen on port `3003`.  If your network is considerably different, these values can be very easily changed by looking at the first few lines of `ota-server.js`.  Please note that you do not have to use IPv6 for this.  You can use IPv4 values such as `http://10.0.0.1:80` or whatever you want!
+
+>  Note: If you change the IP/port host configuration of `ota-server.js`, make sure to make the same changes to the `#define OTA_IMAGE_SERVER` inside `ota/ota-download.h`.  Then recompile with `./make-master-hex.sh` and reflash your Sensortag!
+
+Once your OTA image server is up, the Sensortag should begin downloading the new `ota-image-example.bin`.  This can take several minutes!  You can check the progress via UART.  When the download is complete, the Sensortag should reboot, and the bootloader should update the internal OTA image with the new download.  Then, you should see the Sensortag start to blink the green LED!  Congratulations!
+
+## Overview of OTA Update Mechanism
+Internal Flash Memory Map
+
+Description | Starting Position in EEPROM (bytes) | Space Allotted
+--- | --- | ---
+Bootloader | 0x00000000 | 0x00002000
+OTA image | 0x00002000 | 0x00019000
+bootloader ccfg | 0x0001FFA8 | 0x58
+
+The overall concept of the OTA update mechanism is that the CC2650 will *always* power-up to the **bootloader**.
+
+1.  The bootloader will first check the internal flash to see if the current **OTA image** is valid.
+1.  The bootloader will next check the external flash chip (required, included by default in the Sensortag boards) to see if there are any newer **OTA images** that have been downloaded from the server.
+1.  If there (a) are newer OTA images, or (b) if the current OTA image is invalid, the bootloader will overwrite the internal OTA image with the most recent download.
+1.  Finally, the bootloader continues on to allow the internal OTA image firmware to execute as usual.
+
+>  Note:  The bootloader does not do any downloading!  This is the job of the OTA images themselves.
+
+## Making your own Contiki App OTA-ready
+So you already have your Contiki app, and you just want to make it work like the `ota-image-example` here.  This is actually very easy.  By following the steps here, you can use the same exact `bootloader` provided here to send your own custom firmware over-the-air to your motes from an HTTP OTA image server.
+
+>  Note:  First, make sure you are working inside this fork; these methods will not work in vanilla Contiki.
+
+### Copy the OTA feature source
+Copy `/ota` into your project's root folder.  We will need the source inside.
+
+### Update Makefile
+Make sure you have the following lines in your project's makefile:
+
+```
+CONTIKI_WITH_IPV6 = 1
+MODULES += core/net/http-socket
+
+OTA=1
+OTA_SOURCE = ../ota
+vpath %.c $(OTA_SOURCE)
+CFLAGS += -I$(OTA_SOURCE)
+PROJECT_SOURCEFILES += ota.c ota-download.c
+```
+
+The `OTA_SOURCE` variable should point to the location of the `/ota` folder you copied.
+
+### Configure your OTA Image server URL
+Make sure the IP address and port that your `ota-server.js` is running on is reflected in the `#define OTA_IMAGE_SERVER` value found inside `ota/ota-download.h` before you compile.  Default value is below:
+
+```c
+#define OTA_IMAGE_SERVER  "http://[bbbb::1]:3003"
+```
+
+### Include the OTA Download Headers
+Make sure your Contiki app uses the following headers:
+
+```c
+#include "ota-download.h"
+```
+
+### Start an OTA Download in your app
+Provided the above steps have been followed, you can use the following code to start the OTA download process in your Contiki app:
+
+```c
+process_start(ota_download_th_p, NULL);
+```
+
+
+
+
+## Clone Code
+It is critical to pull in the GIT submodules which contain TI's RTOS drivers.
+
 
 ## Dependencies
 Assuming a Debian machine there are a few specific tools needed to compile Contiki 3.0 and merge the resulting Intel-format .hex files.
