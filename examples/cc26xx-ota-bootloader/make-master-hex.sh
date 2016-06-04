@@ -15,6 +15,7 @@ make ota-image-example
 printf "\nAdding metadata to OTA Example Image\n"
 cd ..
 rm -f firmware-with-metadata.bin
+make generate-crc
 CRC=`./generate-crc ota-image-example/ota-image-example.bin`
 node generate-metadata.js ota-image-example/ota-image-example.bin 0x0 0xabcd $CRC
 
