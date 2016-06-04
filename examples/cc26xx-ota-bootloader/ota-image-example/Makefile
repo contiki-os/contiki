@@ -5,18 +5,19 @@ BOARD=sensortag/cc2650
 CONTIKI_PROJECT = ota-image-example
 
 CONTIKI = ../../..
-OTA_SOURCE = ../ota
-MODULES += core/net/http-socket
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 
-OTA=1
 CFLAGS += -g -DDEBUG=1
 
+CONTIKI_WITH_IPV6 = 1
+MODULES += core/net/http-socket
+
+OTA=1
+OTA_SOURCE = ../ota
 vpath %.c $(OTA_SOURCE)
 CFLAGS += -I$(OTA_SOURCE)
 PROJECT_SOURCEFILES += ota.c ota-download.c
 
-CONTIKI_WITH_IPV6 = 1
 
 clean:
 	-rm -f *~ *core core *.srec \
