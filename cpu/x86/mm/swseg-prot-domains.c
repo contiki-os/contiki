@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,47 +28,56 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "eth-conf.h"
-#include "net/eth-proc.h"
-#include "contiki-net.h"
-#include "net/linkaddr.h"
-
-#if NETSTACK_CONF_WITH_IPV6
-const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
-#else
-/* 192.0.2.0/24 is a block reserved for documentation by RFC 5737. */
-#define SUBNET_IP       192, 0, 2
-#define NETMASK_IP      255, 255, 255, 0
-#define HOST_IP         SUBNET_IP, 2
-#define GATEWAY_IP      SUBNET_IP, 1
-#define NAMESERVER_IP   GATEWAY_IP
-#endif
+#include "gdt.h"
+#include "helpers.h"
+#include "multi-segment.h"
+#include "prot-domains.h"
 
 /*---------------------------------------------------------------------------*/
 void
-eth_init(void)
+prot_domains_reg(dom_client_data_t ATTR_KERN_ADDR_SPACE *dcd,
+                 uintptr_t mmio, size_t mmio_sz,
+                 uintptr_t meta, size_t meta_sz,
+                 bool pio)
 {
-#if !NETSTACK_CONF_WITH_IPV6
-  uip_ipaddr_t ip_addr;
+  volatile dom_kern_data_t ATTR_KERN_ADDR_SPACE *dkd;
+  dom_id_t dom_id;
 
-#define SET_IP_ADDR(x) \
-  uip_ipaddr(&ip_addr, x)
+  KERN_READL(dom_id, dcd->dom_id);
 
-  SET_IP_ADDR(HOST_IP);
-  uip_sethostaddr(&ip_addr);
+  if(PROT_DOMAINS_ACTUAL_CNT <= dom_id) {
+    halt();
+  }
 
-  SET_IP_ADDR(NETMASK_IP);
-  uip_setnetmask(&ip_addr);
+  dkd = prot_domains_kern_data + dom_id;
 
-  SET_IP_ADDR(GATEWAY_IP);
-  uip_setdraddr(&ip_addr);
+  prot_domains_reg_multi_seg(dkd, mmio, mmio_sz, meta, meta_sz);
 
-#if WITH_DNS
-  SET_IP_ADDR(NAMESERVER_IP);
-  uip_nameserver_update(&ip_addr, UIP_NAMESERVER_INFINITE_LIFETIME);
-#endif
-#endif
-
-  process_start(&eth_process, NULL);
+  KERN_WRITEL(dkd->flags, pio ? PROT_DOMAINS_FLAG_PIO : 0);
 }
 /*---------------------------------------------------------------------------*/
+static inline void __attribute__((always_inline))
+prot_domains_switch(dom_id_t from_id, dom_id_t to_id,
+                    interrupt_stack_t *intr_stk)
+{
+  __asm__ __volatile__ (
+    "lldt %[_ldt_]\n\t"
+    "mov %[_meta_seg_], %%eax\n\t"
+    "lsl %%eax, %%ecx\n\t"
+    "jz 1f\n\t" /* ZF will only be set if the segment descriptor is valid. */
+    "xor %%eax, %%eax\n\t" /* Nullify metadata selector */
+    "1: mov %%eax, %%" SEG_META "s\n\t"
+    "mov %[_kern_seg_], %%eax\n\t"
+    "mov %%eax, %%" SEG_KERN "s\n\t"
+    :
+    : [_ldt_] "r" ((uint16_t)GDT_SEL_LDT(to_id)),
+      [_meta_seg_] "i" (LDT_SEL_META),
+      [_kern_seg_] "i" (LDT_SEL_KERN)
+    : "cc", "eax", "ecx"
+    );
+}
+/*---------------------------------------------------------------------------*/
+
+/* Enable inter-procedural optimization with procedures in the following file:
+ */
+#include "syscalls-int.c"

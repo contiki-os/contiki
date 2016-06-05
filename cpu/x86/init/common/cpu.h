@@ -31,6 +31,8 @@
 #ifndef CPU_H
 #define CPU_H
 
-void cpu_init(void);
+#include "prot-domains.h"
+
+void cpu_boot_stage0(void) ATTR_CODE_BOOT;
 
 #endif /* CPU_H */

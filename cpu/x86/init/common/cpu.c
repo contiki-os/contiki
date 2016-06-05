@@ -28,11 +28,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "cpu.h"
 #include "gdt.h"
 #include "helpers.h"
 #include "idt.h"
 #include "interrupt.h"
 #include "irq.h"
+#include "stacks.h"
 
 static void
 double_fault_handler(struct interrupt_context context)
@@ -40,16 +42,83 @@ double_fault_handler(struct interrupt_context context)
   halt();
 }
 /*---------------------------------------------------------------------------*/
-void
-cpu_init(void)
+/* The OS has switched to its own segment descriptors.  When multi-segment
+ * protection domain support is enabled, this routine runs with the
+ * necessary address translations configured to invoke other routines that
+ * require those translations to be in place.  However, the protection domain
+ * support, if enabled, has not yet been fully activated.
+ */
+static void
+boot_stage1(void)
 {
-  gdt_init();
   idt_init();
 
   /* Set an interrupt handler for Double Fault exception. This way, we avoid
    * the system to triple fault, leaving no trace about what happened.
    */
-  SET_INTERRUPT_HANDLER(8, 1, double_fault_handler);
+  SET_EXCEPTION_HANDLER(8, 1, double_fault_handler);
 
-  irq_init();
+  /* Initialize protection domain support, if enabled */
+  prot_domains_init();
+
+  prot_domains_leave_boot_stage1();
+}
+/*---------------------------------------------------------------------------*/
+int main(void);
+/* This routine runs with the initial, flat address space, even if protection
+ * domain support is enabled.  The goal behind the design of this routine is to
+ * keep it as short as possible, since it is unable to directly reference data
+ * and invoke functions that are intended to be accessible later after the
+ * system has booted when a multi-segment protection domain model is in use.
+ */
+void
+cpu_boot_stage0(void)
+{
+  /* Reserve three stack slots for return addresses */
+  uintptr_t top_of_stack = STACKS_INIT_TOP;
+
+#if X86_CONF_PROT_DOMAINS != X86_CONF_PROT_DOMAINS__NONE
+  uintptr_t *top_of_stack_ptr =
+    (uintptr_t *)DATA_OFF_TO_PHYS_ADDR(top_of_stack);
+
+  top_of_stack_ptr[0] = (uintptr_t)prot_domains_launch_kernel;
+  top_of_stack_ptr[1] = (uintptr_t)prot_domains_launch_app;
+#endif
+
+  /* Perform common GDT initialization */
+  gdt_init();
+
+  /* Switch all data segment registers to the newly-initialized flat data
+   * descriptor.
+   */
+  __asm__(
+    "mov %0, %%ds\n\t"
+    "mov %0, %%es\n\t"
+    "mov %0, %%fs\n\t"
+    "mov %0, %%gs\n\t"
+    :
+    : "r" (GDT_SEL_DATA_FLAT)
+    );
+
+  /**
+   * Perform specific GDT initialization tasks for the protection domain
+   * implementation that is enabled, if any.
+   */
+  prot_domains_gdt_init();
+
+  /* Do not pass memory operands to the asm block below, since it is
+   * switching from the flat address space to a multi-segment address space
+   * model if such a model is used by the enabled protection domain
+   * implementation, if any.
+   */
+  __asm__(
+    "mov %[_ss_], %%ss\n\t"
+    "mov %[_esp_], %%esp\n\t"
+    "ljmp %[_cs_], %[_stage1_]\n\t"
+    :
+    : [_ss_] "r" (GDT_SEL_STK_EXC),
+      [_esp_] "r" (top_of_stack),
+      [_cs_] "i" ((uint16_t)GDT_SEL_CODE_EXC),
+      [_stage1_] "i" (boot_stage1)
+    );
 }

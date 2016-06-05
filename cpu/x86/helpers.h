@@ -37,6 +37,17 @@
 
 void halt(void) __attribute__((__noreturn__));
 
+#define STRINGIFY(x) #x
+/* The C preprocessor will not expand macro arguments that are converted to
+ * strings in the macro body using the '#' operator.  The EXP_STRINGIFY macro
+ * introduces an additional level of argument expansion for instances where
+ * the developer wishes to convert the expanded argument to a string.
+ */
+#define EXP_STRINGIFY(x) STRINGIFY(x)
+
+#define ALIGN(x, amt) \
+  (((x) & ~((amt) - 1)) + ((((x) & ((amt) - 1)) == 0) ? 0 : (amt)))
+
 /** Wrappers for the assembly 'out' instruction. */
 void outb(uint16_t port, uint8_t val);
 void outl(uint16_t port, uint32_t val);

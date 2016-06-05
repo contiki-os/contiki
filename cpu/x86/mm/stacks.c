@@ -28,16 +28,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IDT_H
-#define IDT_H
+#include "stacks.h"
 
-#include <stdint.h>
-#include "prot-domains.h"
-
-void idt_init(void);
-void idt_set_intr_gate_desc(int intr_num,
-                            uint32_t offset,
-                            uint16_t cs,
-                            uint16_t dpl);
-
-#endif /* IDT_H */
+uint8_t stacks_main[STACKS_SIZE_MAIN]
+  __attribute__((section(".main_stack"), aligned(4)));
+#if X86_CONF_PROT_DOMAINS != X86_CONF_PROT_DOMAINS__NONE
+uint8_t stacks_int[STACKS_SIZE_INT]
+  __attribute__((section(".int_stack"), aligned(4)));
+uint8_t stacks_exc[STACKS_SIZE_EXC]
+  __attribute__((section(".exc_stack"), aligned(4)));
+#endif

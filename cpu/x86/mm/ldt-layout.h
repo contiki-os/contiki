@@ -28,16 +28,32 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IDT_H
-#define IDT_H
+#ifndef CPU_X86_MM_LDT_LAYOUT_H_
+#define CPU_X86_MM_LDT_LAYOUT_H_
 
-#include <stdint.h>
-#include "prot-domains.h"
+#include "gdt-layout.h"
 
-void idt_init(void);
-void idt_set_intr_gate_desc(int intr_num,
-                            uint32_t offset,
-                            uint16_t cs,
-                            uint16_t dpl);
+/* Each LDT can contain up to this many descriptors, but some protection
+ * domains may not use all of the slots.
+ */
+#define LDT_NUM_DESC 3
 
-#endif /* IDT_H */
+/**
+ * Provides access to kernel data.  Most protection domains are granted at most
+ * read-only access, but the kernel protection domain is granted read/write
+ * access.
+ */
+#define LDT_IDX_KERN 0
+/** Maps a device MMIO range */
+#define LDT_IDX_MMIO 1
+/** Maps domain-defined metadata */
+#define LDT_IDX_META 2
+
+#define LDT_SEL(idx, rpl) (GDT_SEL(idx, rpl) | (1 << 2))
+
+#define LDT_SEL_KERN      LDT_SEL(LDT_IDX_KERN, PRIV_LVL_USER)
+#define LDT_SEL_MMIO      LDT_SEL(LDT_IDX_MMIO, PRIV_LVL_USER)
+#define LDT_SEL_META      LDT_SEL(LDT_IDX_META, PRIV_LVL_USER)
+#define LDT_SEL_STK       LDT_SEL(LDT_IDX_STK, PRIV_LVL_USER)
+
+#endif /* CPU_X86_MM_LDT_LAYOUT_H_ */
