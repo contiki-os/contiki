@@ -28,16 +28,38 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IDT_H
-#define IDT_H
+#ifndef CPU_X86_MM_PAGING_H_
+#define CPU_X86_MM_PAGING_H_
 
 #include <stdint.h>
-#include "prot-domains.h"
 
-void idt_init(void);
-void idt_set_intr_gate_desc(int intr_num,
-                            uint32_t offset,
-                            uint16_t cs,
-                            uint16_t dpl);
+/**
+ * Page table entry format for PAE mode page table.  See Intel Combined Manual,
+ * Vol. 3, Section 4.4 for more details.
+ */
+typedef union pte {
+  struct {
+    uint64_t present         : 1;
+    uint64_t writable        : 1;
+    uint64_t user_accessible : 1;
+    uint64_t pwt             : 1; /**< Specify write-through cache policy */
+    uint64_t pcd             : 1; /**< Disable caching */
+    uint64_t accessed        : 1;
+    uint64_t dirty           : 1;
+    uint64_t                 : 5;
+    uint64_t addr            : 51;
+    uint64_t exec_disable    : 1;
+  };
+  uint64_t raw;
+} pte_t;
 
-#endif /* IDT_H */
+#define ENTRIES_PER_PDPT 4
+#define ENTRIES_PER_PAGE_TABLE 512
+
+typedef pte_t pdpt_t[ENTRIES_PER_PDPT];
+typedef pte_t page_table_t[ENTRIES_PER_PAGE_TABLE];
+
+#define MIN_PAGE_SIZE_SHAMT 12
+#define MIN_PAGE_SIZE (1 << MIN_PAGE_SIZE_SHAMT)
+
+#endif /* CPU_X86_MM_PAGING_H_ */

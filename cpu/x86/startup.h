@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,16 +28,19 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IDT_H
-#define IDT_H
+#ifndef CPU_X86_STARTUP_H_
+#define CPU_X86_STARTUP_H_
 
-#include <stdint.h>
-#include "prot-domains.h"
+/**
+ * \brief Declare a function that will be automatically invoked from the kernel
+ *        protection domain during boot, after all of the default device
+ *        initialization has been completed.
+ */
+#define KERN_STARTUP_FUNC(f)                                   \
+static void f(void);                                           \
+static uintptr_t                                               \
+  __attribute__((used, section(".kern_startup_func")))         \
+  __kern_startup_f = (uintptr_t)f;                             \
+static void f(void)
 
-void idt_init(void);
-void idt_set_intr_gate_desc(int intr_num,
-                            uint32_t offset,
-                            uint16_t cs,
-                            uint16_t dpl);
-
-#endif /* IDT_H */
+#endif /* CPU_X86_STARTUP_H_ */

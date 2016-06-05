@@ -28,16 +28,51 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IDT_H
-#define IDT_H
-
-#include <stdint.h>
 #include "prot-domains.h"
 
-void idt_init(void);
-void idt_set_intr_gate_desc(int intr_num,
-                            uint32_t offset,
-                            uint16_t cs,
-                            uint16_t dpl);
+#include "gdt.h"
+#include <stdio.h>
+#include "interrupt.h"
+#include <stdint.h>
+#include <assert.h>
+#include "syscalls.h"
+#include "stacks.h"
 
-#endif /* IDT_H */
+static dom_kern_data_t __attribute__((section(".kern_prot_dom_bss")))
+  ATTR_KERN_ADDR_SPACE PROT_DOMAINS_PDCS_NM(kern_dcd);
+PROT_DOMAINS_ALLOC_IMPL(kern_dcd);
+static dom_client_data_t ATTR_BSS_KERN kern_dcd;
+static dom_kern_data_t __attribute__((section(".app_prot_dom_bss")))
+  ATTR_KERN_ADDR_SPACE PROT_DOMAINS_PDCS_NM(app_dcd);
+PROT_DOMAINS_ALLOC_IMPL(app_dcd);
+static dom_client_data_t ATTR_BSS_KERN app_dcd;
+
+/*---------------------------------------------------------------------------*/
+void
+prot_domains_init(void)
+{
+  segment_desc_t desc;
+
+  gdt_lookup(GDT_IDX_CODE_EXC, &desc);
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__SWSEG
+  /* The exception code segment needs to be readable so that the general
+   * protection fault handler can decode instructions, but the interrupt and
+   * user level code segments should not be.
+   */
+  SEG_SET_FLAG(desc, TYPE, SEG_TYPE_CODE_EX);
+#endif
+
+  SEG_SET_FLAG(desc, DPL, PRIV_LVL_INT);
+  gdt_insert(GDT_IDX_CODE_INT, desc);
+
+  SEG_SET_FLAG(desc, DPL, PRIV_LVL_USER);
+  gdt_insert(GDT_IDX_CODE, desc);
+
+  PROT_DOMAINS_INIT_ID(kern_dcd);
+  prot_domains_reg(&kern_dcd, 0, 0, 0, 0, true);
+  PROT_DOMAINS_INIT_ID(app_dcd);
+  prot_domains_reg(&app_dcd, 0, 0, 0, 0, false);
+
+  prot_domains_impl_init();
+}
+/*---------------------------------------------------------------------------*/
