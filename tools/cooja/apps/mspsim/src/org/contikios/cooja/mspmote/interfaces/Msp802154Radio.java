@@ -69,16 +69,16 @@ public class Msp802154Radio extends Radio implements CustomDataRadio {
 
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
 
-  private final MspMote mote;
-  private final Radio802154 radio;
+  protected final MspMote mote;
+  protected final Radio802154 radio;
 
   private boolean isInterfered = false;
   private boolean isTransmitting = false;
   private boolean isReceiving = false;
   private boolean isSynchronized = false;
 
-  private byte lastOutgoingByte;
-  private byte lastIncomingByte;
+  protected byte lastOutgoingByte;
+  protected byte lastIncomingByte;
 
   private RadioPacket lastOutgoingPacket = null;
   private RadioPacket lastIncomingPacket = null;
