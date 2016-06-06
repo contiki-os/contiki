@@ -196,7 +196,7 @@ struct file_header {
 /* This is needed because of a buggy compiler. */
 struct log_param {
   cfs_offset_t offset;
-  const char *buf;
+  char *buf;
   uint16_t size;
 };
 
@@ -1055,7 +1055,12 @@ cfs_seek(int fd, cfs_offset_t offset, int whence)
   }
 
   if(fdp->file->end < new_offset) {
-    fdp->file->end = new_offset;
+    if(FD_WRITABLE(fd)) {
+      fdp->file->end = new_offset;
+    } else {
+      /* Disallow seeking past the end of the file for read only FDs */
+      return (cfs_offset_t)-1;
+    }
   }
 
   return fdp->offset = new_offset;
@@ -1193,7 +1198,7 @@ cfs_write(int fd, const void *buf, unsigned size)
     need_dummy_write = 0;
     for(bytes_left = size; bytes_left > 0;) {
       lp.offset = fdp->offset;
-      lp.buf = buf;
+      lp.buf = (void *)buf;
       lp.size = bytes_left;
       i = write_log_page(file, &lp);
       if(i < 0) {

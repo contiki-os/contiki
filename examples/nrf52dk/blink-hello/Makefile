@@ -1,0 +1,9 @@
+CONTIKI_PROJECT = blink-hello
+
+CONTIKI_WITH_RPL=0
+NRF52_WITHOUT_SOFTDEVICE=1
+
+all: $(CONTIKI_PROJECT) 
+
+CONTIKI = ../../..
+include $(CONTIKI)/Makefile.include

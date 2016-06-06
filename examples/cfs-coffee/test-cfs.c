@@ -29,19 +29,18 @@
  * This file is part of the Contiki operating system.
  *
  */
-
+/*---------------------------------------------------------------------------*/
 /**
  * \file
  *         A quick program for testing the CFS xmem driver
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
-
+/*---------------------------------------------------------------------------*/
 #include "contiki.h"
 #include "cfs/cfs.h"
-
 #include <stdio.h>
-
+/*---------------------------------------------------------------------------*/
 PROCESS(cfs_process, "Test CFS process");
 AUTOSTART_PROCESSES(&cfs_process);
 /*---------------------------------------------------------------------------*/
@@ -55,6 +54,7 @@ PROCESS_THREAD(cfs_process, ev, data)
     uint16_t filesize = 65000;
 #define CHUNKSIZE 128
 
+    cfs_remove("hej");
     fd = cfs_open("hej", CFS_WRITE);
     if(fd < 0) {
       printf("could not open file for writing, aborting\n");

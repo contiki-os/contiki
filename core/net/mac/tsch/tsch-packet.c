@@ -60,7 +60,7 @@
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
-#include "net/ip/uip-debug.h"
+#include "net/net-debug.h"
 
 /*---------------------------------------------------------------------------*/
 /* Construct enhanced ACK packet and return ACK length */

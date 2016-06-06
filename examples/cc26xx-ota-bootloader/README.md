@@ -1,87 +1,165 @@
-# Cortex-M3 OTA Example
+# CC26XX OTA
+This is an example Contiki application that demonstrates how to send complete firmware updates over-the-air (OTA) to a Texas Instruments CC2650.  (In this example, assumed platform is a Sensortag.)
 
-This is an attempt to create a Cortex-M3 bootloader that can jump to (Contiki) firmware binaries located elsewhere in the internal EEPROM.  Motivation is that binaries may come OTA to be stored at a later date.  Assumed system is a Texas Instruments CC2650 (`sensortag/cc2650` board).
+The OTA system depends on compiling two separate binaries, which are both placed into the CC2650's internal flash.
 
-We have in one folder the `bootloader`, and in the other an example firmware image for testing (`ota-image-example`).
+*  A **bootloader**, which remains permanently fixed in the CC2650's flash.  It manages, verifies, and repairs the CC2650 firmware but is never overwritten.
+*  The actual **OTA image**, which is your Contiki application.  This will change in the future as you compile and release new versions.  The very first OTA image is actually flashed manually from a .bin file.
 
-# Overview & MMap
-The idea behind this OTA mechanism is that the cc26xx always boots to the bootloader located at the origin of the EEPROM (`0x0000`).  It is the bootloader's purpose to locate and verify other firmware images (herein referred to as OTA images) stored in the flash, and then to branch processor execution to the (most recent) valid image.
-
-For this example, we consider only the bootloader and a single example OTA image.
-
-Description | Starting Position in EEPROM (bytes) | Space Allotted
---- | --- | ---
-bootloader | 0x00000000 | 0x00001000
-ota-image-example | 0x00001000 | 0x0001EFA8
-bootloader ccfg | 0x0001FFA8 | 0x58
-
-> NB: 0x1000 = 1 flash sector (4096 bytes)
-
-*  Each of the binaries is statically linked with the starting position of each pre-determined and baked into the linker script.  E.G. `ota-image-example` has the flash origin set to `0x1000` in its linker file.
-*  Each binary also has its *own* Vector table placed at the very start of each image.  This seems to be the method recommended by TI's OAD literature.
-
-The core idea behind branching code execution to a different firmware image is to branch to the RESET vector in the target image's Vector table:
-
-```asm
-  __asm("LDR R0, =0x1004"); //  RESET vector of target image
-  __asm("LDR R1, [R0]");    //  Get the branch address
-  __asm("ORR R1, #1");      //  Make sure the Thumb State bit is set.
-  __asm("BX R1");           //  Branch execution
-```
-
-0x1004 is the start address of the target image 0x1000 + 0x4 bytes to get to the RESET vector.
-
-# What Should Happen?
-If this example functions properly, we should see:
-
-1.  CC26XX boots up into the Vector table and bootloader located at 0x0000.
-1.  Bootloader should then initialize the GPIO system, illuminate the red LED, and then jump to the OTA image located at 0x1000.
-1.  *If* the OTA image should begin executing at the contiki `main()` function.  Near the end of this function, any user-defined processes should be initialized by the `autostart_start` call.  In this example, that means the CC26XX should then start strobing its LED at a frequency of 1Hz.
-
-So far, the bootloader boots, configures GPIO, and Contiki's main() is called.  However, the user processes are never initialized and `main()` appears to hang when it reaches any networking or process-related code.
-
-# Get Started
-
-## Clone Code
-It is critical to pull in the GIT submodules which contain TI's RTOS drivers.
+## Quick Start
+Please note that there are a handful of changes made to the Contiki tree outside of this example folder.  You cannot simply copy this example into the vanilla Contiki tree.  You must clone this fork and and compile using it.
 
 ```bash
 git clone https://github.com/msolters/contiki
 git submodule update --recursive --init
 ```
 
-## Dependencies
-Assuming a Debian machine there are a few specific tools needed to compile Contiki 3.0 and merge the resulting Intel-format .hex files.
+### Compile Firmware
+To use this entire example out-of-the-box, just run
 
 ```bash
-# cc26xx requires a very specific gcc-arm compiler version
-sudo apt-get remove binutils-arm-none-eabi gcc-arm-none-eabi
-sudo add-apt-repository ppa:terry.guo/gcc-arm-embedded
-
-sudo apt-get update
-sudo apt-get install srecord gcc-arm-none-eabi
+make master-hex
 ```
 
-## Building
-Here are the steps to compiling the bootloader, a simple OTA image example, and then merging them into a single flashable image (called `firmware.hex`).
+This will produce a single file called `firmware.hex`, which you can flash to your Sensortag.  
+
+Building the master `firmware.hex` involves compiling the `/bootloader`, and then compiling `/ota-image-example` as your initial "OTA image" firmware.  `ota-image-example` is a very simple Contiki app that simply blinks the red LED, and then starts an OTA download request.
+
+The script will then generate some metadata (see below for more about OTA metadata) for your OTA image (version number `0`, UUID value `0x0000abcd`, CRC checksum, etc.).  Finally, `srec_cat` is used to merge the bootloader and initial OTA image binaries into one big `firmware.hex`.  This allows you to flash a ready-to-use bootloader/firmware combo in one step using e.g SmartRF Programmer 2.
+
+### Start a Firmware Server
+Now, you just need an OTA image server.  You can clone my working OTA server (written in NodeJS) [from here](https://github.com/msolters/ota-server).
+
+This server can be run by simply invoking
+
+```
+node ota-server.js ota-image-example.bin
+```
+
+The `ota-server` repo includes another compiled Contiki app, `ota-image-example.bin`.  This is merely a variant of the `ota-image-example` found here, except it blinks the *other* LED.
+
+The only rule with the OTA server is that it must be run on a host that your Sensortag can resolve!  Using 6LBR as a BR, `bbbb::` is typically a decent choice for subnet.  Therefore,  `ota-server.js` comes out of the box with a default IP address of `bbbb::1` and will listen on port `3003`.  If your network is considerably different, these values can be very easily changed by looking at the first few lines of `ota-server.js`.  Please note that you do not have to use an IPv6 host address.  You can use IPv4 values such as `http://10.0.0.1:80` or whatever you want!
+
+>  Note: If you change the IP/port host configuration of `ota-server.js`, make sure to make the same changes to the `#define OTA_IMAGE_SERVER` inside `ota/ota-download.h`.  Then recompile with `make master-hex` and reflash your Sensortag!
+
+Once your OTA image server is up, the Sensortag should begin downloading the new `ota-image-example.bin`.  This can take several minutes!  You can check the progress via UART.  When the download is complete, the Sensortag should reboot, and the bootloader should update the internal OTA image with the new download.  Then, you should see the Sensortag start to blink the green LED!  Congratulations!
+
+## Overview of OTA Update Mechanism
+Internal Flash Memory Map
+
+Description | Starting Position in EEPROM (bytes) | Space Allotted
+--- | --- | ---
+Bootloader | 0x00000000 | 0x00002000
+OTA image | 0x00002000 | 0x00019000
+bootloader ccfg | 0x0001FFA8 | 0x58
+
+The overall concept of the OTA update mechanism is that the CC2650 will *always* power-up to the **bootloader**.
+
+1.  The bootloader will first check the internal flash to see if the current **OTA image** is valid.
+1.  The bootloader will next check the external flash chip (required, included by default in the Sensortag boards) to see if there are any newer **OTA images** that have been downloaded from the server.
+1.  If there (a) are newer OTA images, or (b) if the current OTA image is invalid, the bootloader will overwrite the internal OTA image with the most recent download.
+1.  Finally, the bootloader continues on to allow the internal OTA image firmware to execute as usual.
+
+>  Note:  The bootloader does not do any downloading!  This is the job of the OTA images themselves.
+
+## Building your own OTA-Ready Contiki App
+So you already have your Contiki app, and you just want to make it work like the `ota-image-example` here.  By following the steps here, you can use the same exact `bootloader` provided here to send your own custom firmware over-the-air to your motes from an HTTP OTA image server.
+
+>  Note:  First, make sure you are working inside this fork; these methods will not work in vanilla Contiki.
+
+### Get You a Bootloader!
+To build *just* the bootloader, run
+
+```
+make bootloader
+```
+
+This will leave a `bootloader.hex` in the `/bootloader` folder.  You'll need this for the final step when we merge your custom firmware binary with the bootloader binary.
+
+### Copy the OTA feature source
+Copy `/ota` into your Contiki example's root folder.  We will need the source inside.
+
+### Update Makefile
+Make sure you have the following lines in your project's makefile:
+
+```
+CONTIKI_WITH_IPV6 = 1
+MODULES += core/net/http-socket
+
+OTA=1
+OTA_SOURCE = ../ota
+vpath %.c $(OTA_SOURCE)
+CFLAGS += -I$(OTA_SOURCE)
+PROJECT_SOURCEFILES += ota.c ota-download.c
+```
+
+The `OTA_SOURCE` variable should point to the location of the `/ota` folder you copied.
+
+### Configure your OTA Image server URL
+Make sure the IP address and port that your `ota-server.js` is running on is reflected in the `#define OTA_IMAGE_SERVER` value found inside `ota/ota-download.h` before you compile.  Default value is below:
+
+```c
+#define OTA_IMAGE_SERVER  "http://[bbbb::1]:3003"
+```
+
+### Include the OTA Download Headers
+Make sure your Contiki app uses the following headers:
+
+```c
+#include "ota-download.h"
+```
+
+### Start an OTA Download in your app
+From within your source, to actually begin the OTA download process, just use the following code:
+
+```c
+process_start(ota_download_th_p, NULL);
+```
+
+The logic of when to trigger this process is entirely up to you.  For example, you could trigger the download process in the callback of a COAP request which would be sent to the Contiki node when the server receives new firmware.  Just keep in mind:  when this process is complete, the device will reboot!  Once you start the `ota_download_th` thread, assume the device could reboot at any time.
+
+### Compile
+With the above changes, you should be able to simply compile your app as per usual.  One important rule to follow when compiling firmware as an OTA image though -- it must be a .bin!  That's because we still need to add the OTA metadata to the firmware image, and the `generate-metadata` tool only works with .bin files.
+
+>  Note:  It's important to use a .bin target because when producing & injecting OTA metadata, we need the raw byte-by-byte firmware image.  An Intel-format .hex file would have to be parsed into a memory buffer first, which introduces significant opportunity for error.
+
+### Add OTA Metadata
+OTA metadata consists of the following:
+
+Metadata Property | Size | Description | Example
+Version | `uint16_t` | This is an integer used to represent the version of the firmware.  This is the value used to determine how "new" a firmware update is.  The bootloader will always prefer OTA images with higher version numbers.  You should use a value of 0x0 for your initial factory-given firmware. | 0x0, 0x1, ... 0xffff
+UUID | `uint32_t` | This is a unique integer used as an identifier for the firmware release.  This is primarily of use internally, to index software changes or to use as a hash of e.g. the commit # the firmware is based off. | 0xdeadbeef
+
+There are two other OTA metadata properties -- CRC16 value (computed by the provided tool), CRC16 shadow value (computed by the recipient device to verify the image integrity) and firmware size (in bytes).  However, none of these require your direct input.
+
+#### Creating OTA Metadata from the Firmware .bin
+I have included a C program that will allow you to easily create OTA metadata, called `generate-metadata`.  When running `make master-hex`, it's automatically built from `generate-metadata.c`.  In case it's not, you can simply run `make generate-metadata`.
+
+`generate-metadata` accepts 3 arguments; the path to the firmware .bin, the version number and the UUID.
+
+>  Note:  Both version number and UUID should be given as **hex** integers.  Example usage:
 
 ```bash
-  cd examples/cc26xx-ota-bootloader
-
-  # (1) Build the bootloader
-  cd bootloader
-  make bootloader.hex
-
-  # (2) Build the target (OTA) image
-  cd ../ota-image-example
-  make
-
-  # (3) Merge the binaries
-  cd ..
-  srec_cat bootloader/bootloader.hex -intel -exclude 0x1000 0x1FFA8 ota-image-example/ota-image-example.hex -intel -crop 0x1000 0x1FFA8 -o firmware.hex -intel
+make generate-metadata
+./generate-metadata ota-image-example/ota-image-example.bin 0x0 0xdeadbeef
 ```
 
-Equivalently, just execute `make-all.sh` from the `/cc26xx-ota-bootloader` directory.
+After running the program, you will get a `firmware-metadata.bin` file in the same directory as the `generate-metadata` executable.
 
-## Flashing
-The resulting firmware.hex can be flashed to the cc26xx using TI's SmartRF Flash Programmer 2.
+#### Merging OTA Metadata with your Firmware Binary
+Now, to complete the construction of your custom OTA image, all you need to do is merge the `firmware-metadata.bin` with the firmware .bin.  To do that, use the `srec_cat` utility:
+
+```bash
+srec_cat firmware-metadata.bin -binary ota-image-example/ota-image-example.bin -binary -offset 0x100 -o firmware-with-metadata.bin -binary
+```
+
+Obviously, you should replace `ota-image-example/ota-image-example.bin` with your own firmware binary.  This command will then ouput a final .bin file, `firmware-with-metadata.bin`.  This is a complete OTA image!  This is the type of .bin file that can be loaded using e.g. `ota-server.js`.  It contains appropriate metadata header and a Contiki app compiled with the `OTA=1` flag.
+
+### Merge the Bootloader and the OTA Image
+For the initial flash operation, we will need our Sensortag to have both a working bootloader and an initial OTA image.  To do this, we need to merge the bootloader and OTA image binaries into one .hex file.  To do that, we can once again use the `srec_cat` command:
+
+```bash
+srec_cat bootloader/bootloader.hex -intel -crop 0x0 0x2000 0x1FFA8 0x20000 firmware-with-metadata.bin -binary -offset 0x2000 -crop 0x2000 0x1B000 -o firmware.hex -intel
+```
+
+While you may change the location of your `bootloader.hex` or `firmware-with-metadata.bin`, it is important to keep all numeric arguments as they are!  The final file produced by this operation is `firmware.hex`.  This will represent a working bootloader, as well as your own firmware compiled as an OTA image with OTA metadata!

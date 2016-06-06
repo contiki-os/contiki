@@ -55,8 +55,8 @@ typedef unsigned short uip_stats_t;
 
 typedef uint32_t clock_time_t;
 
-/* Core rtimer.h defaults to 16 bit timer unless RTIMER_CLOCK_LT is defined */
+/* Core rtimer.h defaults to 16 bit timer unless RTIMER_CLOCK_DIFF is defined */
 typedef unsigned long rtimer_clock_t;
-#define RTIMER_CLOCK_LT(a,b)     ((signed long)((a)-(b)) < 0)
+#define RTIMER_CLOCK_DIFF(a,b)     ((signed long)((a)-(b)))
 
 #endif

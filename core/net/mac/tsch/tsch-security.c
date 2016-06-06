@@ -58,7 +58,7 @@
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
-#include "net/ip/uip-debug.h"
+#include "net/net-debug.h"
 
 /* The two keys K1 and K2 from 6TiSCH minimal configuration
  * K1: well-known, used for EBs

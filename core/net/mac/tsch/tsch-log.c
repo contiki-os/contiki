@@ -56,7 +56,7 @@
 #else /* TSCH_LOG_LEVEL */
 #define DEBUG DEBUG_NONE
 #endif /* TSCH_LOG_LEVEL */
-#include "net/ip/uip-debug.h"
+#include "net/net-debug.h"
 
 #if TSCH_LOG_LEVEL >= 2 /* Skip this file for log levels 0 or 1 */
 
@@ -107,7 +107,7 @@ tsch_log_process_pending(void)
         break;
       case tsch_log_rx:
         printf("%s-%u-%u %u rx %d",
-            log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data, log->tx.sec_level,
+            log->rx.is_unicast == 0 ? "bc" : "uc", log->rx.is_data, log->rx.sec_level,
                 log->rx.datalen,
                 log->rx.src);
         if(log->rx.drift_used) {

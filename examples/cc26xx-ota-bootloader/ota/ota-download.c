@@ -5,6 +5,7 @@ ota_download_th_p = &ota_download_th;
 
 static bool ota_downloading_page = false;
 static bool ota_downloading_image = false;
+static bool metadata_received = false;
 static uint16_t bytes_received = 0;
 static struct http_socket s;
 
@@ -46,7 +47,7 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
     process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
   } else if(e == HTTP_SOCKET_CLOSED) {
     printf("HTTP socket closed, %d bytes received\n", bytes_received);
-    if ( ((img_req_position % FLASH_PAGE_SIZE) + OTA_METADATA_SPACE) >= FLASH_PAGE_SIZE ) {
+    if ( img_req_position >= FLASH_PAGE_SIZE ) {
       process_post(ota_download_th_p, OTA_PAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
     } else {
       process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
@@ -54,6 +55,7 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
   } else if(e == HTTP_SOCKET_DATA) {
     while (datalen--)
     {
+      //printf("%#x ", *data);
       if (page_started) {
         //  If *data = "EOF"
         if (  (*data == 0x45) &&
@@ -64,15 +66,14 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
           return;
         }
         //  If we've reached the end of the HTTP response
-        else if ( HTTP_PAYLOAD_END( data ) ) {
+        else if ( (HTTP_PAYLOAD_END( data )) || img_req_position > FLASH_PAGE_SIZE ) {
           page_started = false;
           break;
         }
         //  Otherwise, this is valid data.  Write it down.
         else {
           bytes_received++;
-          page_buffer[ (OTA_METADATA_SPACE + (img_req_position++)) % FLASH_PAGE_SIZE ] = *data;
-          //printf("%#x ", *data);
+          page_buffer[ img_req_position++ ] = *data;
         }
       }
       else {
@@ -82,123 +83,37 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
       }
       *data++;
     }
+    //printf("\n");
   }
 }
-
-
-/*******************************************************************************
- * @fn      firmware_metadata_cb
- *
- * @brief   Handle the HTTP GET response to a request for firmware metadata.
- *
- */
-static void
-firmware_metadata_cb(struct http_socket *s, void *ptr,
-         http_socket_event_t e,
-         const uint8_t *data, uint16_t datalen)
-{
-  if (!ota_downloading_image) {
-    //  If no longer downloading, callbacks are ignored.
-    return;
-  }
-  if(e == HTTP_SOCKET_ERR) {
-    printf("HTTP socket error\n");
-    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
-  } else if(e == HTTP_SOCKET_TIMEDOUT) {
-    printf("HTTP socket error: timed out\n");
-    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
-  } else if(e == HTTP_SOCKET_ABORTED) {
-    printf("HTTP socket error: aborted\n");
-    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
-  } else if(e == HTTP_SOCKET_HOSTNAME_NOT_FOUND) {
-    printf("HTTP socket error: hostname not found\n");
-    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
-  } else if(e == HTTP_SOCKET_CLOSED) {
-    printf("HTTP socket closed, %d bytes received\n", bytes_received);
-    memcpy( &new_firmware_metadata, page_buffer, img_req_position );
-    print_metadata( &new_firmware_metadata );
-    process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
-  } else if(e == HTTP_SOCKET_DATA) {
-    while (datalen--)
-    {
-      if (metadata_started) {
-        //  If we've reached the end of the HTTP response
-        if ( HTTP_PAYLOAD_END( data ) ) {
-          metadata_started = false;
-          break;
-        }
-        //  Otherwise, this is valid data.  Write it down.
-        else {
-          bytes_received++;
-          page_buffer[ img_req_position++ ] = *data;
-          //printf("%#x ", *data);
-        }
-      }
-      else {
-        if ( HTTP_PAYLOAD_START( data ) ) {
-          metadata_started = true;
-        }
-      }
-      *data++;
-    }
-    printf("\n");
-  }
-}
-
 
 PROCESS_THREAD(ota_download_th, ev, data)
 {
+
   PROCESS_BEGIN();
 
   //  (1) Initialize the HTTP download
   http_socket_init(&s);
-  reset_page_buffer();
-  img_req_position = 0;
   bytes_received = 0;
   ota_downloading_image = true;
 
-  //  (2) Get firmware metadata from the OTA Image Server
-  metadata_started = false;
-  http_socket_get(&s, OTA_IMAGE_SERVER "/metadata", 0, 0, firmware_metadata_cb, NULL);
-  PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
-
-  //  (3) What OTA slot will we download into?  First, check to see if we have
-  //      any OTA slots already containing firmware of the same version number
-  //      and overwrite that.
-  active_ota_download_slot = find_matching_ota_slot( new_firmware_metadata.version );
-  if ( active_ota_download_slot == -1 ) {
-    //  We don't already have a copy of this firmware version, let's download
-    //  to an empty OTA slot!
-    active_ota_download_slot = find_empty_ota_slot();
-  }
-  PRINTF("\nDownloading OTA update to OTA slot #%i.\n", active_ota_download_slot);
-
-  //  (4) Erase the download destination OTA slot
-  while( erase_ota_image( active_ota_download_slot ) );
-
-  //  (5) Begin downloading the actual firmware binary, one page at a time.
-  img_req_position = 0;
+  //  (2) Begin downloading the OTA update, page by page.
   for (page=0; page<25; page++)
   {
+    printf("\nDownloading Page %u/25:\n", page);
+
     //  (1) Clear Page Buffer
-    if (page) {
-      //  Don't clear the buffer on initial page; this would erase the metadata
-      reset_page_buffer();
-    }
+    reset_page_buffer();
+    img_req_position = 0;
 
     //  (2) Download page
-    printf("\nDownloading Page %u/25:\n", page);
     ota_downloading_page = true;
     while (ota_downloading_page)
     {
       //  (1) Construct a URL requesting the current page of data
       char url[120];
       bytes_received = 0;
-      if ( img_req_position ) {
-        sprintf(url, OTA_IMAGE_SERVER "/%lu/%u", img_req_position, img_req_length);
-      } else {
-        sprintf(url, OTA_IMAGE_SERVER "/%lu/%u", img_req_position, (img_req_length-OTA_METADATA_SPACE));
-      }
+      sprintf(url, OTA_IMAGE_SERVER "/%lu/%u", (img_req_position+(page<<12)), img_req_length);
 
       //  (2) Issue HTTP GET request to server
       page_started = false;
@@ -206,6 +121,36 @@ PROCESS_THREAD(ota_download_th, ev, data)
 
       //  (3) Yield until HTTP request callback returns
       PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
+      if ( (ev == OTA_HTTP_REQUEST_FAIL) ) {
+        PRINTF("Failed HTTP request.  Retrying.\n");
+        continue;
+      }
+
+      //  (3) What OTA slot should we download into?
+      //      This depends on metadata, so we only do this on the first page of
+      //      the image download.
+      if ( !metadata_received ) {
+        //  (1) Extract metadata from the page_buffer
+        memcpy( &new_firmware_metadata, page_buffer, OTA_METADATA_LENGTH );
+        print_metadata( &new_firmware_metadata );
+        metadata_received = true;
+
+        //  (2) Check to see if we have any OTA slots already containing
+        //      firmware of the same version number as the metadata has.
+        active_ota_download_slot = find_matching_ota_slot( new_firmware_metadata.version );
+        if ( active_ota_download_slot == -1 ) {
+          //  We don't already have a copy of this firmware version, let's download
+          //  to an empty OTA slot!
+          active_ota_download_slot = find_empty_ota_slot();
+          if ( !active_ota_download_slot ) {
+            active_ota_download_slot = 1;
+          }
+        }
+        PRINTF("\nDownloading OTA update to OTA slot #%i.\n", active_ota_download_slot);
+
+        //  (3) Erase the destination OTA download slot
+        while( erase_ota_image( active_ota_download_slot ) );
+      }
 
       switch ( ev ) {
         case OTA_PAGE_DOWNLOAD_COMPLETE:
@@ -220,11 +165,11 @@ PROCESS_THREAD(ota_download_th, ev, data)
       }
     }
 
-    //  (3) Save firmware page to flash
+    //  (4) Save firmware page to flash
     while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) );
 
 
-    //  (4) Are we done?
+    //  (5) Are we done?
     if (!ota_downloading_image) {
       break;
     }
@@ -236,7 +181,8 @@ PROCESS_THREAD(ota_download_th, ev, data)
   //  Make OTA slot metadata as "valid"
   verify_ota_slot( active_ota_download_slot );
 
-  ti_lib_sys_ctrl_system_reset(); // Reboot!
+  // Reboot!
+  ti_lib_sys_ctrl_system_reset();
 
   PROCESS_END();
 }

@@ -239,6 +239,7 @@ verify_ota_slot( uint8_t ota_slot )
   //  (2) Read the metadata of the corresponding OTA slot
   OTAMetadata_t ota_metadata;
   while( get_ota_slot_metadata( ota_slot, &ota_metadata ) );
+  print_metadata( &ota_metadata );
 
   //  (3) Compute the CRC16 over the entire image
   uint16_t imageCRC = 0;
@@ -253,7 +254,7 @@ verify_ota_slot( uint8_t ota_slot )
   }
 
   //  Read the firmware image, one word at a time
-  uint8_t idx;
+  int idx;
   while (ota_image_address < ota_image_end_address) {
     uint8_t _word[4];
 
@@ -266,9 +267,11 @@ verify_ota_slot( uint8_t ota_slot )
 
     for (idx = 0; idx < 4; idx++)
     {
+      //printf("%#x ", _word[idx]);
       imageCRC = crc16(imageCRC, _word[idx]);
     }
     ota_image_address += 4; // move 4 bytes forward
+    //printf("\t=>%#x\n", imageCRC);
   }
 
   imageCRC = crc16(imageCRC, 0);
@@ -278,8 +281,8 @@ verify_ota_slot( uint8_t ota_slot )
 
   printf("CRC Calculated: %#x\n", imageCRC);
 
-  //  (3) Mark the metadata as "valid"
-  //ota_metadata.crc = 0x1;
+
+  //  (3) Update the CRC shadow with our newly calculated value
   ota_metadata.crc_shadow = imageCRC;
 
   //  (4) Update metadata header
@@ -363,9 +366,9 @@ find_matching_ota_slot( uint16_t version )
   }
 
   if ( matching_slot == -1 ) {
-    PRINTF("No OTA slot matches Firmware v%u\n", matching_slot, version);
+    PRINTF("No OTA slot matches Firmware v%i\n", version);
   } else {
-    PRINTF("OTA slot #%i matches Firmware v%u\n", matching_slot, version);
+    PRINTF("OTA slot #%i matches Firmware v%i\n", matching_slot, version);
   }
 
   return matching_slot;

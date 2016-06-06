@@ -1,0 +1,34 @@
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+### Include the board-specific makefile
+PLATFORM_ROOT_DIR = $(CONTIKI)/platform/$(TARGET)
+
+CONTIKI_TARGET_DIRS += . dev config
+CONTIKI_SOURCEFILES += contiki-main.c leds-arch.c nrf52dk-sensors.c button-sensor.c temperature-sensor.c
+
+ifeq ($(NRF52_USE_RTT),1)
+### Use the existing debug I/O in cpu/arm/common
+CONTIKI_TARGET_DIRS += rtt
+CONTIKI_SOURCEFILES += rtt-printf.c segger-rtt.c segger-rtt-printf.c
+else
+CONTIKI_TARGET_DIRS += dbg-io
+CONTIKI_SOURCEFILES += dbg.c
+CONTIKI_CPU_DIRS += ../arm/common/dbg-io
+CONTIKI_CPU_SOURCEFILES += dbg-printf.c dbg-putchar.c dbg-snprintf.c dbg-sprintf.c strformat.c
+endif
+
+CLEAN += *.nrf52dk
+
+### Unless the example dictates otherwise, build with code size optimisations switched
+### off
+ifndef SMALL
+  SMALL = 0
+endif
+
+### Define the CPU directory and pull in the correct CPU makefile.
+CONTIKI_CPU=$(CONTIKI)/cpu/nrf52832
+include $(CONTIKI_CPU)/Makefile.nrf52832
+
+MODULES += core/net core/net/mac core/net/llsec

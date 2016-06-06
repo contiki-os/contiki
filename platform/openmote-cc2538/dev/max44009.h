@@ -47,30 +47,17 @@
 #ifndef MAX44009_H_
 #define MAX44009_H_
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Initialize the MAX44009 sensor
- */
-void max44009_init(void);
+#define MAX44009_ERROR            (-1)
+#define MAX44009_SUCCESS          (0)
+#define MAX44009_ACTIVATE         (SENSORS_ACTIVE)
+#define MAX44009_READ_RAW_LIGHT   (2)
+#define MAX44009_READ_LIGHT       (3)
+#define MAX44009_RESET            (4)
+#define MAX44009_NONE             (5)
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Reset the MAX44009 sensor
- */
-void max44009_reset(void);
+#define MAX44009_SENSOR "MAX44009 Sensor"
 /*---------------------------------------------------------------------------*/
-/**
- * \brief Check if the MAX44009 sensor is present
- */
-uint8_t max44009_is_present(void);
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Read the light from the MAX44009 sensor
- */
-uint16_t max44009_read_light(void);
-/*---------------------------------------------------------------------------*/
-/**
- * \brief Convert the light from the MAX44009 sensor
- */
-float max44009_convert_light(uint16_t light);
+extern const struct sensors_sensor max44009;
 /*---------------------------------------------------------------------------*/
 #endif /* MAX44009_H_ */
 /*---------------------------------------------------------------------------*/

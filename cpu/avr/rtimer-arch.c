@@ -64,7 +64,7 @@
 #define OCF3C	OCF3B
 #endif
 
-#if defined(__AVR_ATmega1281__) || defined(__AVR_AT90USB1287__) || defined(__AVR_ATmega128RFA1__)
+#if defined(__AVR_ATmega1281__) || defined(__AVR_AT90USB1287__) || defined(__AVR_ATmega128RFA1__) || defined(__AVR_ATmega128RFR2__) || defined(__AVR_ATmega256RFR2__)
 #define ETIMSK TIMSK3
 #define ETIFR TIFR3
 #define TICIE3 ICIE3

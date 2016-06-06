@@ -32,9 +32,9 @@
 #ifndef ENC28J60_H
 #define ENC28J60_H
 
-void enc28j60_init(uint8_t *mac_addr);
+void enc28j60_init(const uint8_t *mac_addr);
 
-int enc28j60_send(uint8_t *data, uint16_t datalen);
+int enc28j60_send(const uint8_t *data, uint16_t datalen);
 
 int enc28j60_read(uint8_t *buffer, uint16_t bufsize);
 

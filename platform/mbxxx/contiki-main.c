@@ -179,7 +179,7 @@ main(void)
                                   NETSTACK_RDC.channel_check_interval()));
   printf("802.15.4 PAN ID 0x%x, EUI-%d:",
       IEEE802154_CONF_PANID, UIP_CONF_LL_802154?64:16);
-  uip_debug_lladdr_print((const uip_lladdr_t *)&linkaddr_node_addr);
+  net_debug_lladdr_print((const uip_lladdr_t *)&linkaddr_node_addr);
   printf(", radio channel %u\n", RF_CHANNEL);
 
   procinit_init();
