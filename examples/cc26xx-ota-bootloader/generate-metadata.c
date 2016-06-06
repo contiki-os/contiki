@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 FILE *firmware_bin; // firmware input .bin file
 FILE *metadata_bin; // metadata output .bin file
@@ -57,14 +58,16 @@ crc16(uint16_t crc, uint8_t val)
 static uint16_t
 crcCalcWord(uint8_t *_word, uint16_t imageCRC)
 {
+  uint16_t _crc = imageCRC;
   int idx;
   for (idx = 0; idx < FLASH_WORD_SIZE; idx++)
   {
     //printf("%#x ", _word[idx]);
-    imageCRC = crc16(imageCRC, _word[idx]);
+    _crc = crc16(_crc, _word[idx]);
   }
   firmware_size += 4;
-  return imageCRC;
+  //printf("\t=>%#x\n", _crc);
+  return _crc;
 }
 
 /*********************************************************************
@@ -81,7 +84,6 @@ crcCalc(void)
 {
   uint16_t imageCRC = 0;
 
-  uint8_t idx;
   uint8_t _word[ FLASH_WORD_SIZE ]; //  a 4-byte buffer
   size_t nret;
 
@@ -104,21 +106,6 @@ crcCalc(void)
   return imageCRC;
 }
 
-inline uint16_t
-swap_endian_16(uint16_t val)
-{
-	uint16_t swapped_val = (val<<8) | (val>>8);
-  return swapped_val;
-}
-
-inline uint32_t
-swap_endian_32(uint32_t val)
-{
-	uint32_t swapped_val = (val<<24) | ((val<<8) & 0x00ff0000) |
-		  ((val>>8) & 0x0000ff00) | (val>>24);
-  return swapped_val;
-}
-
 int
 main(int argc, char *argv[]) {
 
@@ -137,8 +124,15 @@ main(int argc, char *argv[]) {
     return -1;
   }
 
+  if ( !argv[4] ) {
+    printf("Please provide 0 or 1 to indicate whether this image is pre-verified or not as the fourth argument.\n");
+    return -1;
+  }
+
   //  (1) Open the firmware .bin file
   firmware_bin = fopen( argv[1], "rb" );
+  int firmware_verified;
+  sscanf( argv[4], "%d", &firmware_verified );
 
   //  (2) Run the CRC16 calculation over the file.  Print result.
   uint16_t crc_result = crcCalc();
@@ -150,7 +144,11 @@ main(int argc, char *argv[]) {
   //  (4) Generate OTA image metadata
   OTAMetadata_t metadata;
   metadata.crc = crc_result;
-  metadata.crc_shadow = crc_result;
+  if (firmware_verified) {
+    metadata.crc_shadow = crc_result;
+  } else {
+    metadata.crc_shadow = 0;
+  }
   metadata.size = firmware_size;
   sscanf( argv[2], "%xu", &(metadata.version) );
   sscanf( argv[3], "%xu", &(metadata.uuid) );

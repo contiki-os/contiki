@@ -20,7 +20,7 @@ ota-image-example: generate-metadata
 		make clean;								\
 		make ota-image-example;		\
 	printf "\nAdding metadata to OTA Example Image\n";
-	./generate-metadata ota-image-example/ota-image-example.bin 0x1 0xabcd
+	./generate-metadata ota-image-example/ota-image-example.bin 0x0 0xabcd 1
 	srec_cat firmware-metadata.bin -binary ota-image-example/ota-image-example.bin -binary -offset 0x100 -o firmware-with-metadata.bin -binary
 
 master-hex: bootloader ota-image-example
