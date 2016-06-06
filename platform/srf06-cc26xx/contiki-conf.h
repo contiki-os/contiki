@@ -329,6 +329,55 @@ typedef uint32_t uip_stats_t;
  */
 typedef uint32_t rtimer_clock_t;
 #define RTIMER_CLOCK_DIFF(a, b)     ((int32_t)((a) - (b)))
+
+/* --------------------------------------------------------------------- */
+/* TSCH related defines */
+
+/* Delay between GO signal and SFD */
+#define RADIO_DELAY_BEFORE_TX ((unsigned)US_TO_RTIMERTICKS(81))
+/* Delay between GO signal and start listening.
+ * This value is so small because the radio is constantly on within each timeslot. */
+#define RADIO_DELAY_BEFORE_RX ((unsigned)US_TO_RTIMERTICKS(15))
+/* Delay between the SFD finishes arriving and it is detected in software.
+ * Not important on this platform as it uses hardware timestamps for SFD */
+#define RADIO_DELAY_BEFORE_DETECT ((unsigned)US_TO_RTIMERTICKS(0))
+
+/* Timer conversion; radio is running at 4 MHz */
+#define RADIO_TIMER_SECOND   4000000u
+#if (RTIMER_SECOND % 256) || (RADIO_TIMER_SECOND % 256)
+#error RADIO_TO_RTIMER macro must be fixed!
+#endif
+#define RADIO_TO_RTIMER(X)   ((uint32_t)(((uint64_t)(X) * (RTIMER_SECOND / 256)) / (RADIO_TIMER_SECOND / 256)))
+#define USEC_TO_RADIO(X)     ((X) * 4)
+
+/* The PHY header (preamble + SFD, 4+1 bytes) duration is equivalent to 10 symbols */
+#define RADIO_IEEE_802154_PHY_HEADER_DURATION_USEC 160
+
+/* Do not turn off TSCH within a timeslot: not enough time */
+#define TSCH_CONF_RADIO_ON_DURING_TIMESLOT 1
+
+/* Disable TSCH frame filtering */
+#define TSCH_CONF_HW_FRAME_FILTERING	0
+
+/* Disable turning off HF oscillator when radio is off;
+   enable this for TSCH, disable to save more energy. */
+#ifndef CC2650_FAST_RADIO_STARTUP
+#define CC2650_FAST_RADIO_STARTUP     1
+#endif
+
+/* Use hardware timestamps */
+#ifndef TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS
+#define TSCH_CONF_RESYNC_WITH_SFD_TIMESTAMPS 1
+#define TSCH_CONF_TIMESYNC_REMOVE_JITTER 0
+#endif
+
+/* The drift compared to "true" 10ms slots.
+   Enable adaptive sync to enable compensation for this. */
+#define TSCH_CONF_BASE_DRIFT_PPM -977
+
+/* 10 times per second */
+#define TSCH_CONF_ASSOCIATION_CHANNEL_SWITCH_FREQUENCY 10
+
 /** @} */
 /*---------------------------------------------------------------------------*/
 /* board.h assumes that basic configuration is done */
