@@ -33,7 +33,7 @@ include $(CONTIKI_CPU)/Makefile.cc2538
 
 MODULES += core/net core/net/mac \
            core/net/mac/contikimac \
-           core/net/llsec core/net/llsec/noncoresec
+           core/net/llsec
 
 PYTHON = python
 BSL_FLAGS += -e --bootloader-invert-lines -w -v -b 450000
