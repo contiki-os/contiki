@@ -191,4 +191,11 @@
 #define TSCH_RADIO_ON_DURING_TIMESLOT 0
 #endif
 
+/* How long to scan each channel in the scanning phase */
+#ifdef TSCH_CONF_CHANNEL_SCAN_DURATION
+#define TSCH_CHANNEL_SCAN_DURATION TSCH_CONF_CHANNEL_SCAN_DURATION
+#else
+#define TSCH_CHANNEL_SCAN_DURATION CLOCK_SECOND
+#endif
+
 #endif /* __TSCH_CONF_H__ */
