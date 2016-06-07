@@ -28,6 +28,7 @@ FlashRead(uint8_t *pui8DataBuffer, uint32_t ui32Address, uint32_t ui32Count)
 }
 
 /*********************************************************************
+
  * @fn          crc16
  *
  * @brief       Run the CRC16 Polynomial calculation over the byte parameter.
@@ -76,10 +77,10 @@ void
 print_metadata( OTAMetadata_t *metadata )
 {
   PRINTF("Firmware Size: %#x\n", metadata->size);
-  PRINTF("Firmware Version: %u\n", metadata->version);
+  PRINTF("Firmware Version: %x\n", metadata->version);
   PRINTF("Firmware UUID: %#x\n", metadata->uuid);
-  PRINTF("Firmware CRC: %u\n", metadata->crc);
-  PRINTF("Firmware CRC: %u\n", metadata->crc_shadow);
+  PRINTF("Firmware CRC: %x\n", metadata->crc);
+  PRINTF("Firmware CRC: %x\n", metadata->crc_shadow);
 }
 
 /*******************************************************************************
@@ -253,7 +254,7 @@ verify_ota_slot( uint8_t ota_slot )
     return -1;
   }
 
-  //  Read the firmware image, one word at a time
+  //  (4) Read the firmware image, one word at a time
   int idx;
   while (ota_image_address < ota_image_end_address) {
     uint8_t _word[4];
@@ -274,6 +275,7 @@ verify_ota_slot( uint8_t ota_slot )
     //printf("\t=>%#x\n", imageCRC);
   }
 
+  //  (5) Compute two more CRC iterations using value of 0
   imageCRC = crc16(imageCRC, 0);
   imageCRC = crc16(imageCRC, 0);
 
@@ -281,11 +283,10 @@ verify_ota_slot( uint8_t ota_slot )
 
   printf("CRC Calculated: %#x\n", imageCRC);
 
-
-  //  (3) Update the CRC shadow with our newly calculated value
+  //  (6) Update the CRC shadow with our newly calculated value
   ota_metadata.crc_shadow = imageCRC;
 
-  //  (4) Update metadata header
+  //  (4) Finally, update Metadata stored in ext-flash
   while( overwrite_ota_slot_metadata( ota_slot, &ota_metadata ) );
 
   return 0;

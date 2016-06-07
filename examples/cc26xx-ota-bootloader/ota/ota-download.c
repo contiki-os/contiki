@@ -108,7 +108,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
 
     //  (2) Download page
     ota_downloading_page = true;
-    while (ota_downloading_page)
+    while ( ota_downloading_page )
     {
       //  (1) Construct a URL requesting the current page of data
       char url[120];
@@ -127,8 +127,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
       }
 
       //  (3) What OTA slot should we download into?
-      //      This depends on metadata, so we only do this on the first page of
-      //      the image download.
+      //      Note: This code only executes on the very first GET.
       if ( !metadata_received ) {
         //  (1) Extract metadata from the page_buffer
         memcpy( &new_firmware_metadata, page_buffer, OTA_METADATA_LENGTH );
@@ -167,7 +166,6 @@ PROCESS_THREAD(ota_download_th, ev, data)
 
     //  (4) Save firmware page to flash
     while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) );
-
 
     //  (5) Are we done?
     if (!ota_downloading_image) {
