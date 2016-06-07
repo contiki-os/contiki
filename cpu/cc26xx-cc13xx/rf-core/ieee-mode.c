@@ -176,6 +176,7 @@ static const output_config_t output_power[] = {
   {-21, 0x07, 0x03, 0x0c },
 };
 
+static int8_t rssi;
 #define OUTPUT_CONFIG_COUNT (sizeof(output_power) / sizeof(output_config_t))
 
 /* Max and Min Output Power in dBm */
@@ -888,7 +889,6 @@ release_data_entry(void)
 static int
 read_frame(void *buf, unsigned short buf_len)
 {
-  int8_t rssi;
   int len = 0;
   rfc_dataEntryGeneral_t *entry = (rfc_dataEntryGeneral_t *)rx_read_entry;
 
@@ -1189,6 +1189,9 @@ get_value(radio_param_t param, radio_value_t *value)
     } else {
       return RADIO_RESULT_OK;
     }
+  case RADIO_PARAM_LAST_RSSI:
+    *value = rssi;
+    return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = IEEE_MODE_CHANNEL_MIN;
     return RADIO_RESULT_OK;
