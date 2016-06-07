@@ -1445,7 +1445,6 @@ const struct radio_driver ieee_mode_driver = {
   set_object,
 };
 /*---------------------------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
 /* Enable or disable radio interrupts (both FIFOP and SFD timer capture) */
 static void
 set_poll_mode(uint8_t enable)
