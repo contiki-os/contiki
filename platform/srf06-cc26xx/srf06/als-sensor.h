@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, University of Bristol - http://www.bris.ac.uk/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,84 +29,22 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-common-peripherals
+ * \addtogroup srf06-common-peripherals
  * @{
  *
  * \file
- *  Board-initialisation for the Srf06EB with a CC13xx/CC26xx EM.
+ * Header file for the SmartRF06EB + CC13xx/CC26xxEM ALS Driver
  */
 /*---------------------------------------------------------------------------*/
-#include "contiki-conf.h"
-#include "ti-lib.h"
-#include "lpm.h"
-#include "prcm.h"
-#include "hw_sysctl.h"
-
-#include <stdint.h>
-#include <string.h>
+#ifndef ALS_SENSOR_H_
+#define ALS_SENSOR_H_
 /*---------------------------------------------------------------------------*/
-static void
-lpm_handler(uint8_t mode)
-{
-  /* Ambient light sensor (off, output low) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ALS_PWR);
-  ti_lib_gpio_pin_write(BOARD_ALS_PWR, 0);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_ALS_OUT);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_ALS_OUT, IOC_NO_IOPULL);
-}
+#include "lib/sensors.h"
 /*---------------------------------------------------------------------------*/
-static void
-wakeup_handler(void)
-{
-  /* Turn on the PERIPH PD */
-  ti_lib_prcm_power_domain_on(PRCM_DOMAIN_PERIPH);
-  while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH)
-        != PRCM_DOMAIN_POWER_ON));
-}
+#define ALS_SENSOR "ALS"
 /*---------------------------------------------------------------------------*/
-/*
- * Declare a data structure to register with LPM.
- * We don't care about what power mode we'll drop to, we don't care about
- * getting notified before deep sleep. All we need is to be notified when we
- * wake up so we can turn power domains back on
- */
-LPM_MODULE(srf_module, NULL, lpm_handler, wakeup_handler, LPM_DOMAIN_NONE);
+extern const struct sensors_sensor als_sensor;
 /*---------------------------------------------------------------------------*/
-static void
-configure_unused_pins(void)
-{
-  /* Turn off 3.3-V domain (lcd/sdcard power, output low) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_3V3_EN);
-  ti_lib_gpio_pin_write(BOARD_3V3_EN, 0);
-
-  /* Accelerometer (PWR output low, CSn output, high) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ACC_PWR);
-  ti_lib_gpio_pin_write(BOARD_ACC_PWR, 0);
-}
-/*---------------------------------------------------------------------------*/
-void
-board_init()
-{
-  uint8_t int_disabled = ti_lib_int_master_disable();
-
-  /* Turn on relevant PDs */
-  wakeup_handler();
-
-  /* Enable GPIO peripheral */
-  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);
-
-  /* Apply settings and wait for them to take effect */
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
-
-  lpm_register_module(&srf_module);
-
-  configure_unused_pins();
-
-  /* Re-enable interrupt if initially enabled. */
-  if(!int_disabled) {
-    ti_lib_int_master_enable();
-  }
-}
+#endif /* ALS_SENSOR_H_ */
 /*---------------------------------------------------------------------------*/
 /** @} */

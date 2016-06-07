@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, University of Bristol - http://www.bristol.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,22 +29,33 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup srf06-common-peripherals
+ * \addtogroup cc26xx
+ * @{
+ *
+ * \defgroup cc26xx-adc-sensor CC13xx/CC26xx ADC Sensor
  * @{
  *
  * \file
- * Generic module controlling sensors on the SmartRF06EB when a CC26xx is
- * mounted on the board
+ * Header file for the CC13xx/CC26xx ADC driver
  */
 /*---------------------------------------------------------------------------*/
-#include "contiki.h"
-#include "srf06/button-sensor.h"
-#include "srf06/als-sensor.h"
-
-#include <string.h>
+#ifndef ADC_SENSOR_H_
+#define ADC_SENSOR_H_
 /*---------------------------------------------------------------------------*/
-/** \brief Exports a global symbol to be used by the sensor API */
-SENSORS(&button_select_sensor, &button_left_sensor, &button_right_sensor,
-        &button_up_sensor, &button_down_sensor, &als_sensor);
+#include "lib/sensors.h"
 /*---------------------------------------------------------------------------*/
-/** @} */
+#define ADC_SENSOR "ADC"
+/*---------------------------------------------------------------------------*/
+#define ADC_SENSOR_VALUE    0
+/*---------------------------------------------------------------------------*/
+/* configuration commands */
+#define ADC_SENSOR_SET_CHANNEL 1 /* takes ADC_COMPB_IN_AUXIxx as parameter */
+/*---------------------------------------------------------------------------*/
+extern const struct sensors_sensor adc_sensor;
+/*---------------------------------------------------------------------------*/
+#endif /* ADC_SENSOR_H_ */
+/*---------------------------------------------------------------------------*/
+/**
+ * @}
+ * @}
+ */

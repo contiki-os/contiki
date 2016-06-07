@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, University of Bristol - http://www.bristol.ac.uk
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,84 +29,105 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-common-peripherals
+ * \addtogroup cc26xx-adc-sensor
  * @{
  *
  * \file
- *  Board-initialisation for the Srf06EB with a CC13xx/CC26xx EM.
+ * Driver for the CC13xx/CC26xx ADC
  */
 /*---------------------------------------------------------------------------*/
-#include "contiki-conf.h"
-#include "ti-lib.h"
+#include "contiki.h"
+#include "lib/sensors.h"
+#include "dev/adc-sensor.h"
+#include "gpio-interrupt.h"
+#include "sys/timer.h"
 #include "lpm.h"
-#include "prcm.h"
-#include "hw_sysctl.h"
 
-#include <stdint.h>
-#include <string.h>
+#include "ti-lib.h"
+#include "driverlib/aux_adc.h"
+#include "aux-ctrl.h"
+
+#include <stdio.h>
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
-static void
-lpm_handler(uint8_t mode)
+static uint8_t channel = ADC_COMPB_IN_AUXIO0;
+static bool is_active = false;
+
+static aux_consumer_module_t adc_aux = {
+  .clocks = AUX_WUC_ADI_CLOCK | AUX_WUC_ANAIF_CLOCK | AUX_WUC_SMPH_CLOCK
+};
+/*---------------------------------------------------------------------------*/
+static int
+config(int type, int c)
 {
-  /* Ambient light sensor (off, output low) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ALS_PWR);
-  ti_lib_gpio_pin_write(BOARD_ALS_PWR, 0);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_ALS_OUT);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_ALS_OUT, IOC_NO_IOPULL);
-}
-/*---------------------------------------------------------------------------*/
-static void
-wakeup_handler(void)
-{
-  /* Turn on the PERIPH PD */
-  ti_lib_prcm_power_domain_on(PRCM_DOMAIN_PERIPH);
-  while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH)
-        != PRCM_DOMAIN_POWER_ON));
-}
-/*---------------------------------------------------------------------------*/
-/*
- * Declare a data structure to register with LPM.
- * We don't care about what power mode we'll drop to, we don't care about
- * getting notified before deep sleep. All we need is to be notified when we
- * wake up so we can turn power domains back on
- */
-LPM_MODULE(srf_module, NULL, lpm_handler, wakeup_handler, LPM_DOMAIN_NONE);
-/*---------------------------------------------------------------------------*/
-static void
-configure_unused_pins(void)
-{
-  /* Turn off 3.3-V domain (lcd/sdcard power, output low) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_3V3_EN);
-  ti_lib_gpio_pin_write(BOARD_3V3_EN, 0);
+  switch(type) {
+  case SENSORS_ACTIVE:
+    is_active = c;
 
-  /* Accelerometer (PWR output low, CSn output, high) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ACC_PWR);
-  ti_lib_gpio_pin_write(BOARD_ACC_PWR, 0);
-}
-/*---------------------------------------------------------------------------*/
-void
-board_init()
-{
-  uint8_t int_disabled = ti_lib_int_master_disable();
+    if(is_active) {
+      /* Request AUX access, with ADI and SMPH clocks */
+      aux_ctrl_register_consumer(&adc_aux);
 
-  /* Turn on relevant PDs */
-  wakeup_handler();
+      ti_lib_aux_adc_select_input(channel);
+    } else {
+      aux_ctrl_unregister_consumer(&adc_aux);
+    }
+    break;
 
-  /* Enable GPIO peripheral */
-  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);
+  case ADC_SENSOR_SET_CHANNEL:
+    channel = c;
+    if(is_active) {
+      ti_lib_aux_adc_select_input(channel);
+    }
+    break;
 
-  /* Apply settings and wait for them to take effect */
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
-
-  lpm_register_module(&srf_module);
-
-  configure_unused_pins();
-
-  /* Re-enable interrupt if initially enabled. */
-  if(!int_disabled) {
-    ti_lib_int_master_enable();
+  default:
+    break;
   }
+
+  return 1;
 }
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  switch(type) {
+  case SENSORS_ACTIVE:
+    if(is_active) {
+      return 1;
+    }
+    break;
+  default:
+    break;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
+{
+  if(type == ADC_SENSOR_VALUE) {
+    int val;
+
+    if(!is_active) {
+      puts("ADC not active");
+      return 0;
+    }
+
+    ti_lib_aux_adc_enable_sync(AUXADC_REF_FIXED, AUXADC_SAMPLE_TIME_2P7_US,
+                               AUXADC_TRIGGER_MANUAL);
+
+    ti_lib_aux_adc_gen_manual_trigger();
+    val = ti_lib_aux_adc_read_fifo();
+
+    ti_lib_aux_adc_disable();
+
+    return val;
+  }
+
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(adc_sensor, ADC_SENSOR, value, config, status);
 /*---------------------------------------------------------------------------*/
 /** @} */
