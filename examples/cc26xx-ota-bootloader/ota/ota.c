@@ -77,10 +77,10 @@ void
 print_metadata( OTAMetadata_t *metadata )
 {
   PRINTF("Firmware Size: %#x\n", metadata->size);
-  PRINTF("Firmware Version: %x\n", metadata->version);
+  PRINTF("Firmware Version: %#x\n", metadata->version);
   PRINTF("Firmware UUID: %#x\n", metadata->uuid);
-  PRINTF("Firmware CRC: %x\n", metadata->crc);
-  PRINTF("Firmware CRC: %x\n", metadata->crc_shadow);
+  PRINTF("Firmware CRC: %#x\n", metadata->crc);
+  PRINTF("Firmware CRC: %#x\n", metadata->crc_shadow);
 }
 
 /*******************************************************************************
