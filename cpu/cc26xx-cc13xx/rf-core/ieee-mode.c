@@ -238,10 +238,14 @@ static uint32_t ieee_overrides[] = {
   0x002082C3, /* Increase synth programming timeout */
   0xFFFFFFFF, /* End of override list */
 };
+
+/* CCA before sending? Disabled by default. */
+static uint8_t send_on_cca = 0;
 /*---------------------------------------------------------------------------*/
 static int on(void);
 static int off(void);
 static void set_poll_mode(uint8_t enable);
+static void set_send_on_cca(uint8_t enable);
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Checks whether the RFC domain is accessible and the RFC is in IEEE RX
@@ -1175,6 +1179,12 @@ get_value(radio_param_t param, radio_value_t *value)
       *value |= RADIO_RX_MODE_POLL_MODE;
     }
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    if(send_on_cca) {
+      *value |= RADIO_TX_MODE_SEND_ON_CCA;
+    }
+    return RADIO_RESULT_OK;    
   case RADIO_PARAM_TXPOWER:
     *value = get_tx_power();
     return RADIO_RESULT_OK;
@@ -1269,6 +1279,12 @@ set_value(radio_param_t param, radio_value_t value)
     set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
     break;
   }
+  case RADIO_PARAM_TX_MODE:
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
+    break;
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
@@ -1419,6 +1435,13 @@ set_poll_mode(uint8_t enable)
 	  ti_lib_int_enable(INT_RF_CPE0);
 	  ti_lib_int_enable(INT_RF_CPE1);
   }
+}
+/*---------------------------------------------------------------------------*/
+/* Enable or disable CCA before sending */
+static void
+set_send_on_cca(uint8_t enable)
+{
+  send_on_cca = enable;
 }
 /**
  * @}
