@@ -115,6 +115,8 @@ static uint8_t rf_stats[16] = { 0 };
 /* The size of the RF commands buffer */
 #define RF_CMD_BUFFER_SIZE             128
 /*---------------------------------------------------------------------------*/
+#define RAT_TO_RTIMER(X)  ((X*256)/15625)
+/*---------------------------------------------------------------------------*/
 /**
  * \brief Returns the current status of a running Radio Op command
  * \param a A pointer with the buffer used to initiate the command
@@ -1352,6 +1354,27 @@ get_object(radio_param_t param, void *dest, size_t size)
       target[i] = src[7 - i];
     }
 
+    return RADIO_RESULT_OK;
+  }
+  if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+    int len = 0;
+    if(size != sizeof(rtimer_clock_t) || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    len = rx_read_entry[8] - 8;
+    /* Since this may not be always aligned, we need to fetch the
+       data in a bytewise way */
+    last_timestamp = (uint8_t)rx_read_entry[9 + len + 4 + 3];
+    last_timestamp <<= 8;
+    last_timestamp |= (uint8_t)rx_read_entry[9 + len + 4 + 2];
+    last_timestamp <<= 8;
+    last_timestamp |= (uint8_t)rx_read_entry[9 + len + 4 + 1];
+    last_timestamp <<= 8;
+    last_timestamp |= (uint8_t)rx_read_entry[9 + len + 4 + 0];
+    last_timestamp -= start_timestamp_rat;
+    last_timestamp = RAT_TO_RTIMER(last_timestamp);
+    last_timestamp += start_timestamp_rtimer;
+    *(rtimer_clock_t *)dest = last_timestamp;
     return RADIO_RESULT_OK;
   }
   return RADIO_RESULT_NOT_SUPPORTED;
