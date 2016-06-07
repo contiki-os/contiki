@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, Texas Instruments Incorporated - http://www.ti.com/
+ * Copyright (c) 2016, University of Bristol - http://www.bris.ac.uk/
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,84 +29,77 @@
  */
 /*---------------------------------------------------------------------------*/
 /**
- * \addtogroup sensortag-common-peripherals
+ * \addtogroup srf06-common-peripherals
  * @{
  *
  * \file
- *  Board-initialisation for the Srf06EB with a CC13xx/CC26xx EM.
+ *  Driver for the SmartRF06EB ALS when a CC13xx/CC26xxEM is mounted on it
  */
 /*---------------------------------------------------------------------------*/
-#include "contiki-conf.h"
+#include "contiki.h"
+#include "lib/sensors.h"
+#include "srf06/als-sensor.h"
+#include "sys/timer.h"
+#include "dev/adc-sensor.h"
+#include "dev/aux-ctrl.h"
+
 #include "ti-lib.h"
-#include "lpm.h"
-#include "prcm.h"
-#include "hw_sysctl.h"
 
 #include <stdint.h>
-#include <string.h>
 /*---------------------------------------------------------------------------*/
-static void
-lpm_handler(uint8_t mode)
+static aux_consumer_module_t als_aux = {
+  .clocks = AUX_WUC_ADI_CLOCK | AUX_WUC_ANAIF_CLOCK | AUX_WUC_SMPH_CLOCK
+};
+/*---------------------------------------------------------------------------*/
+static int
+config(int type, int enable)
 {
-  /* Ambient light sensor (off, output low) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ALS_PWR);
-  ti_lib_gpio_pin_write(BOARD_ALS_PWR, 0);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_ALS_OUT);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_ALS_OUT, IOC_NO_IOPULL);
-}
-/*---------------------------------------------------------------------------*/
-static void
-wakeup_handler(void)
-{
-  /* Turn on the PERIPH PD */
-  ti_lib_prcm_power_domain_on(PRCM_DOMAIN_PERIPH);
-  while((ti_lib_prcm_power_domain_status(PRCM_DOMAIN_PERIPH)
-        != PRCM_DOMAIN_POWER_ON));
-}
-/*---------------------------------------------------------------------------*/
-/*
- * Declare a data structure to register with LPM.
- * We don't care about what power mode we'll drop to, we don't care about
- * getting notified before deep sleep. All we need is to be notified when we
- * wake up so we can turn power domains back on
- */
-LPM_MODULE(srf_module, NULL, lpm_handler, wakeup_handler, LPM_DOMAIN_NONE);
-/*---------------------------------------------------------------------------*/
-static void
-configure_unused_pins(void)
-{
-  /* Turn off 3.3-V domain (lcd/sdcard power, output low) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_3V3_EN);
-  ti_lib_gpio_pin_write(BOARD_3V3_EN, 0);
+  switch(type) {
+  case SENSORS_HW_INIT:
+    ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ALS_PWR);
+    break;
+  case SENSORS_ACTIVE:
+    ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ALS_PWR);
+    ti_lib_ioc_port_configure_set(BOARD_IOID_ALS_OUT, IOC_PORT_GPIO,
+                                  IOC_STD_OUTPUT);
+    ti_lib_gpio_dir_mode_set(BOARD_ALS_OUT, GPIO_DIR_MODE_IN);
 
-  /* Accelerometer (PWR output low, CSn output, high) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ACC_PWR);
-  ti_lib_gpio_pin_write(BOARD_ACC_PWR, 0);
-}
-/*---------------------------------------------------------------------------*/
-void
-board_init()
-{
-  uint8_t int_disabled = ti_lib_int_master_disable();
-
-  /* Turn on relevant PDs */
-  wakeup_handler();
-
-  /* Enable GPIO peripheral */
-  ti_lib_prcm_peripheral_run_enable(PRCM_PERIPH_GPIO);
-
-  /* Apply settings and wait for them to take effect */
-  ti_lib_prcm_load_set();
-  while(!ti_lib_prcm_load_get());
-
-  lpm_register_module(&srf_module);
-
-  configure_unused_pins();
-
-  /* Re-enable interrupt if initially enabled. */
-  if(!int_disabled) {
-    ti_lib_int_master_enable();
+    if(enable) {
+      ti_lib_gpio_pin_write(BOARD_ALS_PWR, 1);
+      aux_ctrl_register_consumer(&als_aux);
+      ti_lib_aux_adc_select_input(ADC_COMPB_IN_AUXIO7);
+      clock_delay_usec(2000);
+    } else {
+      ti_lib_gpio_pin_write(BOARD_ALS_PWR, 0);
+      aux_ctrl_unregister_consumer(&als_aux);
+    }
+    break;
+  default:
+    break;
   }
+  return 1;
 }
+/*---------------------------------------------------------------------------*/
+static int
+value(int type)
+{
+  int val;
+
+  ti_lib_aux_adc_enable_sync(AUXADC_REF_VDDS_REL, AUXADC_SAMPLE_TIME_2P7_US,
+                             AUXADC_TRIGGER_MANUAL);
+  ti_lib_aux_adc_gen_manual_trigger();
+  val = ti_lib_aux_adc_read_fifo();
+  ti_lib_aux_adc_disable();
+
+  return val;
+}
+/*---------------------------------------------------------------------------*/
+static int
+status(int type)
+{
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(als_sensor, ALS_SENSOR, value, config, status);
 /*---------------------------------------------------------------------------*/
 /** @} */
