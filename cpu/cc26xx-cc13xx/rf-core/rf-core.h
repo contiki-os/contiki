@@ -231,6 +231,7 @@ typedef struct rf_core_primary_mode_s {
 /* Make the main driver process visible to mode drivers */
 PROCESS_NAME(rf_core_process);
 /*---------------------------------------------------------------------------*/
+extern uint8_t volatile poll_mode;
 /**
  * \brief Check whether the RF core is accessible
  * \retval RF_CORE_ACCESSIBLE The core is powered and ready for access

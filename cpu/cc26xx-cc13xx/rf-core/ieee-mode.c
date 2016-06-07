@@ -240,6 +240,7 @@ static uint32_t ieee_overrides[] = {
 /*---------------------------------------------------------------------------*/
 static int on(void);
 static int off(void);
+static void set_poll_mode(uint8_t enable);
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Checks whether the RFC domain is accessible and the RFC is in IEEE RX
@@ -736,6 +737,7 @@ init(void)
   /* Populate the RF parameters data structure with default values */
   init_rf_params();
 
+  set_poll_mode(0);
   if(on() != RF_CORE_CMD_OK) {
     PRINTF("init: on() failed\n");
     return RF_CORE_CMD_ERROR;
@@ -818,7 +820,9 @@ transmit(unsigned short transmit_len)
     /* Idle away while the command is running */
     while((cmd.status & RF_CORE_RADIO_OP_MASKED_STATUS)
           == RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING) {
-      lpm_sleep();
+      if(!poll_mode) {
+        lpm_sleep();  
+      }
     }
 
     stat = cmd.status;
@@ -915,7 +919,12 @@ read_frame(void *buf, unsigned short buf_len)
 
   rssi = (int8_t)rx_read_entry[9 + len + 2];
 
-  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+  if(!poll_mode) {
+    /* Not in poll mode: packetbuf should not be accessed in interrupt context.
+     * In poll mode, the last packet RSSI and link quality can be obtained through
+     * RADIO_PARAM_LAST_RSSI and RADIO_PARAM_LAST_LINK_QUALITY */
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+  }
   RIMESTATS_ADD(llrx);
 
   release_data_entry();
@@ -1162,7 +1171,9 @@ get_value(radio_param_t param, radio_value_t *value)
     if(cmd->frameFiltOpt.autoAckEn) {
       *value |= RADIO_RX_MODE_AUTOACK;
     }
-
+    if(poll_mode) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
     return RADIO_RESULT_OK;
   case RADIO_PARAM_TXPOWER:
     *value = get_tx_power();
@@ -1239,7 +1250,7 @@ set_value(radio_param_t param, radio_value_t value)
   case RADIO_PARAM_RX_MODE:
   {
     if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
-                 RADIO_RX_MODE_AUTOACK)) {
+                 RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
@@ -1252,6 +1263,7 @@ set_value(radio_param_t param, radio_value_t value)
     cmd->frameFiltOpt.bPendDataReqOnly = 0;
     cmd->frameFiltOpt.bPanCoord = 0;
     cmd->frameFiltOpt.bStrictLenFilter = 0;
+    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
     break;
   }
   case RADIO_PARAM_TXPOWER:
@@ -1386,6 +1398,25 @@ const struct radio_driver ieee_mode_driver = {
   set_object,
 };
 /*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+/* Enable or disable radio interrupts (both FIFOP and SFD timer capture) */
+static void
+set_poll_mode(uint8_t enable)
+{
+  poll_mode = enable;
+  if(enable)
+  {
+	  ti_lib_int_disable(INT_RF_CPE0);
+	  ti_lib_int_disable(INT_RF_CPE1);
+  }
+  else
+  {
+	  ti_lib_int_pend_clear(INT_RF_CPE0);
+	  ti_lib_int_pend_clear(INT_RF_CPE1);
+	  ti_lib_int_enable(INT_RF_CPE0);
+	  ti_lib_int_enable(INT_RF_CPE1);
+  }
+}
 /**
  * @}
  * @}

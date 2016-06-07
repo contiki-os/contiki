@@ -106,6 +106,10 @@ PROCESS(rf_core_process, "CC13xx / CC26xx RF driver");
 #define RF_CORE_CLOCKS_MASK (RFC_PWR_PWMCLKEN_RFC_M | RFC_PWR_PWMCLKEN_CPE_M \
                              | RFC_PWR_PWMCLKEN_CPERAM_M)
 /*---------------------------------------------------------------------------*/
+
+/* Are we currently in poll mode? */
+uint8_t volatile poll_mode = 0;
+
 uint8_t
 rf_core_is_accessible()
 {
@@ -464,7 +468,7 @@ PROCESS_THREAD(rf_core_process, ev, data)
   PROCESS_BEGIN();
 
   while(1) {
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+    PROCESS_YIELD_UNTIL(!poll_mode && ev == PROCESS_EVENT_POLL);
     do {
       watchdog_periodic();
       packetbuf_clear();
@@ -524,7 +528,9 @@ cc26xx_rf_cpe0_isr(void)
   if(HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) & RX_FRAME_IRQ) {
     /* Clear the RX_ENTRY_DONE interrupt flag */
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0xFF7FFFFF;
-    process_poll(&rf_core_process);
+    if(!poll_mode) {
+      process_poll(&rf_core_process);
+    }
   }
 
   if(RF_CORE_DEBUG_CRC) {
