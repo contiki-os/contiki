@@ -32,11 +32,14 @@
 
 #include "pci.h"
 #include "helpers.h"
+#include "syscalls.h"
 
 /* I/O port for PCI configuration address */
 #define PCI_CONFIG_ADDR_PORT 0xCF8
 /* I/O port for PCI configuration data */
 #define PCI_CONFIG_DATA_PORT 0xCFC
+
+PROT_DOMAINS_ALLOC(dom_client_data_t, root_complex_drv);
 
 /*---------------------------------------------------------------------------*/
 /* Initialize PCI configuration register address in preparation for accessing
@@ -101,47 +104,43 @@ pci_command_enable(pci_config_addr_t addr, uint32_t flags)
  * \param agent Interrupt Queue Agent to be used, IRQAGENT[0:3].
  * \param pin   Interrupt Pin Route to be used, INT[A:D].
  * \param pirq  PIRQ to be used, PIRQ[A:H].
- * \return      Returns 0 on success and a negative number otherwise.
  */
-int
-pci_irq_agent_set_pirq(IRQAGENT agent, INTR_PIN pin, PIRQ pirq)
+SYSCALLS_DEFINE_SINGLETON(pci_irq_agent_set_pirq,
+                          root_complex_drv,
+                          IRQAGENT agent, INTR_PIN pin, PIRQ pirq)
 {
-  pci_config_addr_t pci;
   uint16_t value;
   uint32_t rcba_addr, offset = 0;
+
+  rcba_addr = PROT_DOMAINS_MMIO(root_complex_drv);
 
   assert(agent >= IRQAGENT0 && agent <= IRQAGENT3);
   assert(pin >= INTA && pin <= INTD);
   assert(pirq >= PIRQA && pirq <= PIRQH);
 
-  pci.raw = 0;
-  pci.bus = 0;
-  pci.dev = 31;
-  pci.func = 0;
-  pci.reg_off = 0xF0; /* Root Complex Base Address Register */
-
-  /* masked to clear non-address bits. */
-  rcba_addr = pci_config_read(pci) & ~0x3FFF;
-
   switch(agent) {
   case IRQAGENT0:
-    if (pin != INTA)
-      return -1;
+    if(pin != INTA) {
+      halt();
+    }
     offset = 0x3140;
     break;
   case IRQAGENT1:
     offset = 0x3142;
     break;
   case IRQAGENT2:
-    if (pin != INTA)
-      return -1;
+    if(pin != INTA) {
+      halt();
+    }
     offset = 0x3144;
     break;
   case IRQAGENT3:
     offset = 0x3146;
   }
 
-  value = *(uint16_t*)(rcba_addr + offset);
+  prot_domains_enable_mmio();
+
+  MMIO_READW(value, *(uint16_t ATTR_MMIO_ADDR_SPACE *)(rcba_addr + offset));
 
   /* clear interrupt pin route and set corresponding pirq. */
   switch(pin) {
@@ -162,9 +161,9 @@ pci_irq_agent_set_pirq(IRQAGENT agent, INTR_PIN pin, PIRQ pirq)
     value |= (pirq << 12);
   }
 
-  *(uint16_t*)(rcba_addr + offset) = value;
+  MMIO_WRITEW(*(uint16_t ATTR_MMIO_ADDR_SPACE *)(rcba_addr + offset), value);
 
-  return 0;
+  prot_domains_disable_mmio();
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -231,13 +230,51 @@ pci_pirq_set_irq(PIRQ pirq, uint8_t irq, uint8_t route_to_legacy)
  *                 firmware.
  * \param c_this   Structure that will be initialized to represent the driver.
  * \param pci_addr PCI base address of device.
+ * \param mmio_sz  Size of MMIO region.
  * \param meta     Base address of optional driver-defined metadata.
+ * \param meta_sz  Size of optional driver-defined metadata.
  */
 void
-pci_init(pci_driver_t *c_this, pci_config_addr_t pci_addr, uintptr_t meta)
+pci_init(pci_driver_t ATTR_KERN_ADDR_SPACE *c_this,
+         pci_config_addr_t pci_addr,
+         size_t mmio_sz,
+         uintptr_t meta,
+         size_t meta_sz)
 {
+  uintptr_t mmio;
+
   /* The BAR value is masked to clear non-address bits. */
-  c_this->mmio = pci_config_read(pci_addr) & ~0xFFF;
-  c_this->meta = meta;
+  mmio = pci_config_read(pci_addr) & ~0xFFF;
+
+  prot_domains_reg(c_this, mmio, mmio_sz, meta, meta_sz, false);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Initialize the PCI root complex driver.
+ */
+void
+pci_root_complex_init(void)
+{
+  uint32_t rcba_addr;
+  pci_config_addr_t pci = { .raw = 0 };
+  pci.dev = 31;
+  pci.reg_off = 0xF0; /* Root Complex Base Address Register */
+
+  /* masked to clear non-address bits. */
+  rcba_addr = pci_config_read(pci) & ~0x3FFF;
+
+  PROT_DOMAINS_INIT_ID(root_complex_drv);
+  prot_domains_reg(&root_complex_drv, rcba_addr, 0x4000, 0, 0, false);
+  SYSCALLS_INIT(pci_irq_agent_set_pirq);
+  SYSCALLS_AUTHZ(pci_irq_agent_set_pirq, root_complex_drv);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief Prevent further invocations of pci_irq_agent_set_pirq.
+ */
+void
+pci_root_complex_lock(void)
+{
+  SYSCALLS_DEAUTHZ(pci_irq_agent_set_pirq, root_complex_drv);
 }
 /*---------------------------------------------------------------------------*/

@@ -33,6 +33,8 @@
 
 #include <stdint.h>
 #include "helpers.h"
+#include <stdlib.h>
+#include "prot-domains.h"
 
 /** PCI configuration register identifier for Base Address Registers */
 #define PCI_CONFIG_REG_BAR0 0x10
@@ -98,22 +100,25 @@ uint32_t pci_config_read(pci_config_addr_t addr);
 void pci_config_write(pci_config_addr_t addr, uint32_t data);
 void pci_command_enable(pci_config_addr_t addr, uint32_t flags);
 
-/**
- * PCI device driver instance with an optional single MMIO range and optional
- * metadata.
- */
-typedef struct pci_driver {
-  uintptr_t mmio; /**< MMIO range base address */
-  uintptr_t meta; /**< Driver-defined metadata base address */
-} pci_driver_t;
+typedef dom_client_data_t pci_driver_t;
 
-void pci_init(pci_driver_t *c_this, pci_config_addr_t pci_addr, uintptr_t meta);
-int pci_irq_agent_set_pirq(IRQAGENT agent, INTR_PIN pin, PIRQ pirq);
+void pci_init(pci_driver_t ATTR_KERN_ADDR_SPACE *c_this,
+              pci_config_addr_t pci_addr,
+              size_t mmio_sz,
+              uintptr_t meta,
+              size_t meta_sz);
+void pci_irq_agent_set_pirq(IRQAGENT agent, INTR_PIN pin, PIRQ pirq);
 void pci_pirq_set_irq(PIRQ pirq, uint8_t irq, uint8_t route_to_legacy);
+void pci_root_complex_init(void);
+void pci_root_complex_lock(void);
 
 #define PCI_MMIO_READL(c_this, dest, reg_addr)                                \
-  dest = *((volatile uint32_t *)((c_this).mmio + (reg_addr)))
+  MMIO_READL(dest,                                                            \
+             *((volatile uint32_t ATTR_MMIO_ADDR_SPACE *)                     \
+               (((uintptr_t)PROT_DOMAINS_MMIO(c_this)) + (reg_addr))))
 #define PCI_MMIO_WRITEL(c_this, reg_addr, src)                                \
-  *((volatile uint32_t *)((c_this).mmio + (reg_addr))) = (src)
+  MMIO_WRITEL(*((volatile uint32_t ATTR_MMIO_ADDR_SPACE *)                    \
+                (((uintptr_t)PROT_DOMAINS_MMIO(c_this)) + (reg_addr))),       \
+              src)
 
 #endif /* CPU_X86_DRIVERS_LEGACY_PC_PCI_H_ */

@@ -32,8 +32,12 @@
 #define IDT_H
 
 #include <stdint.h>
+#include "prot-domains.h"
 
 void idt_init(void);
-void idt_set_intr_gate_desc(int intr_num, uint32_t offset);
+void idt_set_intr_gate_desc(int intr_num,
+                            uint32_t offset,
+                            uint16_t cs,
+                            uint16_t dpl);
 
 #endif /* IDT_H */
