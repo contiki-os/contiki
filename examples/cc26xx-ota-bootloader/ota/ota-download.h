@@ -22,11 +22,12 @@ typedef enum {
   OTA_IMAGE_DOWNLOAD_COMPLETE
 } ota_event_t;
 
-#define img_req_length  1024    //  size of image data chunk we are asking for from server
-static uint32_t img_req_position;    //  current start byte of image data we are requesting
+#define img_req_length  1024          //  size of image data chunk we are asking for from server
+static uint32_t img_req_position;     //  current start byte of image data we are requesting
+static uint32_t img_req_position_last;//  keeps track of the last value of img_req_position in case a download must be re-done
 
 #define HTTP_PAYLOAD_START(data)  (*data == 0xa) && (*(data - 1) == 0xd) && (datalen > 6)
-#define HTTP_PAYLOAD_END(data)    (*(data+1) == 0xa) && (*data == 0xd) && (datalen <= 6)
+#define HTTP_PAYLOAD_END(data)    (*data == 0xd) && (*(data+1) == 0xa) && (*(data+2) == 0x30) && (*(data+3) == 0xd) && (*(data+4) == 0xa) && (*(data+5) == 0xd) && (*(data+6) == 0xa)// && (datalen <= 6)
 
 static OTAMetadata_t new_firmware_metadata;
 static int active_ota_download_slot;

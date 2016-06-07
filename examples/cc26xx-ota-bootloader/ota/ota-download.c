@@ -53,9 +53,10 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
       process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
     }
   } else if(e == HTTP_SOCKET_DATA) {
+    //printf("\n");
     while (datalen--)
     {
-      //printf("%#x ", *data);
+      //printf("%#x (%u) ", *data, datalen);
       if (page_started) {
         //  If *data = "EOF"
         if (  (*data == 0x45) &&
@@ -66,7 +67,7 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
           return;
         }
         //  If we've reached the end of the HTTP response
-        else if ( (HTTP_PAYLOAD_END( data )) || img_req_position > FLASH_PAGE_SIZE ) {
+        else if ( (HTTP_PAYLOAD_END( data )) || (img_req_position > FLASH_PAGE_SIZE) ) {
           page_started = false;
           break;
         }
@@ -96,6 +97,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   http_socket_init(&s);
   bytes_received = 0;
   ota_downloading_image = true;
+  img_req_position_last = 0;
 
   //  (2) Begin downloading the OTA update, page by page.
   for (page=0; page<25; page++)
@@ -105,6 +107,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
     //  (1) Clear Page Buffer
     reset_page_buffer();
     img_req_position = 0;
+    img_req_position_last = 0;
 
     //  (2) Download page
     ota_downloading_page = true;
@@ -121,14 +124,49 @@ PROCESS_THREAD(ota_download_th, ev, data)
 
       //  (3) Yield until HTTP request callback returns
       PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
-      if ( (ev == OTA_HTTP_REQUEST_FAIL) ) {
-        PRINTF("Failed HTTP request.  Retrying.\n");
-        continue;
+
+      switch ( ev ) {
+        case OTA_HTTP_REQUEST_SUCCESS:
+        {
+          PRINTF("Download complete!\n");
+          if ( (bytes_received != img_req_length) && ( ((page<<12) + img_req_position) < new_firmware_metadata.size ) ) {
+            //  Something's not right.  Redo this download!
+            PRINTF("Something was wrong with that download!  Retrying.\n");
+            //  Re-erase the destination area of the page buffer
+            for (int b=img_req_position_last; b<img_req_position; b++) {
+              page_buffer[ b ] = 0xff;
+            }
+            //  Roll back the page_data pointer to the last position
+            img_req_position = img_req_position_last; // rewind our image data pointer
+            PRINTF("Rolling back to byte %u of page %u\n", img_req_position_last, page);
+            continue;
+          } else {
+            PRINTF("Now at byte %u of page %u\n", img_req_position, page);
+            img_req_position_last = img_req_position;
+          }
+        } break;
+        case OTA_HTTP_REQUEST_FAIL:
+        {
+          PRINTF("Failed HTTP request.  Retrying.\n");
+          continue;
+        } break;
+        case OTA_PAGE_DOWNLOAD_COMPLETE:
+        {
+          ota_downloading_page = false;
+        } break;
+        case OTA_IMAGE_DOWNLOAD_COMPLETE:
+        {
+          ota_downloading_page = false;
+          ota_downloading_image = false;
+        } break;
       }
 
       //  (3) What OTA slot should we download into?
       //      Note: This code only executes on the very first GET.
-      if ( !metadata_received ) {
+      if ( metadata_received ) {
+        int percent = 10000.0 * ((float)((page<<12) + img_req_position) / (float)new_firmware_metadata.size);
+        PRINTF("========> OTA download %u.%u%%\tcomplete\n\n", percent/100, (percent - ((percent/100)*100)));
+      } else {
         //  (1) Extract metadata from the page_buffer
         memcpy( &new_firmware_metadata, page_buffer, OTA_METADATA_LENGTH );
         print_metadata( &new_firmware_metadata );
@@ -150,22 +188,12 @@ PROCESS_THREAD(ota_download_th, ev, data)
         //  (3) Erase the destination OTA download slot
         while( erase_ota_image( active_ota_download_slot ) );
       }
-
-      switch ( ev ) {
-        case OTA_PAGE_DOWNLOAD_COMPLETE:
-        {
-          ota_downloading_page = false;
-        } break;
-        case OTA_IMAGE_DOWNLOAD_COMPLETE:
-        {
-          ota_downloading_page = false;
-          ota_downloading_image = false;
-        } break;
-      }
     }
 
     //  (4) Save firmware page to flash
+    PRINTF("\n============================================\n");
     while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) );
+    PRINTF("============================================\n");
 
     //  (5) Are we done?
     if (!ota_downloading_image) {
