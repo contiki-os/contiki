@@ -177,6 +177,10 @@ static const output_config_t output_power[] = {
 };
 
 static int8_t rssi;
+static uint32_t last_timestamp;
+static uint32_t start_timestamp_rat;
+static uint32_t start_timestamp_rtimer;
+
 #define OUTPUT_CONFIG_COUNT (sizeof(output_power) / sizeof(output_config_t))
 
 /* Max and Min Output Power in dBm */
@@ -203,7 +207,7 @@ static uint8_t cmd_ieee_rx_buf[RF_CMD_BUFFER_SIZE] CC_ALIGN(4);
 #define DATA_ENTRY_LENSZ_BYTE 1
 #define DATA_ENTRY_LENSZ_WORD 2 /* 2 bytes */
 
-#define RX_BUF_SIZE 140
+#define RX_BUF_SIZE 144
 /* Four receive buffers entries with room for 1 IEEE802.15.4 frame in each */
 static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN(4);
 static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN(4);
@@ -488,7 +492,8 @@ rf_cmd_ieee_rx()
   }
 
   t0 = RTIMER_NOW();
-
+  start_timestamp_rat = HWREG(RFC_RAT_BASE + RFC_RAT_O_RATCNT);
+  start_timestamp_rtimer = t0;
   while(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) != RF_CORE_RADIO_OP_STATUS_ACTIVE &&
         (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ENTER_RX_WAIT_TIMEOUT)));
 
@@ -550,7 +555,7 @@ init_rf_params(void)
   cmd->rxConfig.bAppendRssi = 1;
   cmd->rxConfig.bAppendCorrCrc = 1;
   cmd->rxConfig.bAppendSrcInd = 0;
-  cmd->rxConfig.bAppendTimestamp = 0;
+  cmd->rxConfig.bAppendTimestamp = 1;
 
   cmd->pRxQ = &rx_data_queue;
   cmd->pOutput = (rfc_ieeeRxOutput_t *)rf_stats;
@@ -901,7 +906,7 @@ read_frame(void *buf, unsigned short buf_len)
     return 0;
   }
 
-  if(rx_read_entry[8] < 4) {
+  if(rx_read_entry[8] < 8) {
     PRINTF("RF: too short\n");
     RIMESTATS_ADD(tooshort);
 
@@ -909,7 +914,7 @@ read_frame(void *buf, unsigned short buf_len)
     return 0;
   }
 
-  len = rx_read_entry[8] - 4;
+  len = rx_read_entry[8] - 8;
 
   if(len > buf_len) {
     PRINTF("RF: too long\n");

@@ -345,6 +345,9 @@ rf_core_start_rat()
     return RF_CORE_CMD_ERROR;
   }
 
+  HWREG(RFC_RAT_BASE + RFC_RAT_O_RATCNT) = 0;
+  HWREG(AON_RTC_BASE + AON_RTC_O_SEC) = 0;
+  HWREG(AON_RTC_BASE + AON_RTC_O_SUBSEC) = 0;
   return RF_CORE_CMD_OK;
 }
 /*---------------------------------------------------------------------------*/
