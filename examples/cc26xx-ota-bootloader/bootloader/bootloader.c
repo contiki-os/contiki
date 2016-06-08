@@ -41,6 +41,16 @@ main(void)
 {
   initialize_peripherals();
 
+  #if CLEAR_OTA_SLOTS
+  erase_ota_image( 1 );
+  erase_ota_image( 2 );
+  erase_ota_image( 3 );
+  #endif
+
+  #if BURN_GOLDEN_IMAGE
+
+  #endif
+
   //  (1) Get the metadata of whatever firmware is currently installed
   OTAMetadata_t current_firmware;
   get_current_metadata( &current_firmware );
@@ -70,12 +80,6 @@ main(void)
   update_firmware( newest_ota_slot );
   ti_lib_sys_ctrl_system_reset(); // reboot
 
-/*
-  erase_ota_image( 1 );
-  erase_ota_image( 2 );
-  erase_ota_image( 3 );
-  return 0;
-*/
   //  This function should never return
   return 0;
 }

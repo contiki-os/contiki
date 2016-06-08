@@ -47,6 +47,18 @@ CFLAGS += -fshort-enums -fomit-frame-pointer -fno-strict-aliasing
 CFLAGS += -Wall -std=c99
 CFLAGS += -g
 
+#	If CLEAR_OTA_SLOTS=1, the bootloader will always delete OTA slots 1-3
+#	before executing any other code.  This can be used to clear the ext-flash.
+ifeq ($(CLEAR_OTA_SLOTS),1)
+	CFLAGS += -DCLEAR_OTA_SLOTS=1
+endif
+
+# If BURN_GOLDEN_IMAGE=1, the bootloader will backup the current firmware
+#	to OTA slot 0 before executing any other code.
+ifeq ($(BURN_GOLDEN_IMAGE),1)
+	CFLAGS += -DBURN_GOLDEN_IMAGE=1
+endif
+
 ### Are we building with code size optimisations?
 ifdef WERROR
 CFLAGS += -Werror
