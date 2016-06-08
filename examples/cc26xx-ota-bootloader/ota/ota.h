@@ -70,6 +70,9 @@ extern int
 overwrite_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata );
 
 extern int
+backup_golden_image();
+
+extern int
 verify_current_firmware( OTAMetadata_t *current_firmware_metadata );
 
 extern int

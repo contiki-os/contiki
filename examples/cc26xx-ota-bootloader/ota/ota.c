@@ -221,6 +221,29 @@ overwrite_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata 
 }
 
 /*******************************************************************************
+ * @fn      backup_golden_image
+ *
+ * @brief   Copy the current firmware into OTA slot 0 as the "Golden Image"
+ *
+ * @return  0 for success or error code
+ */
+int
+backup_golden_image()
+{
+  int page;
+  uint8_t firmware_page[ FLASH_PAGE_SIZE ];
+  for ( page=0; page<25; page++ ) {
+    //  (2) Read a page of the current flash
+    FlashRead( firmware_page, ((CURRENT_FIRMWARE + page) << 12), FLASH_PAGE_SIZE );
+
+    //  (3) Write that page to the external storage
+    while( store_firmware_page( ((GOLDEN_IMAGE + page) << 12), firmware_page) );
+  }
+
+  return 0;
+}
+
+/*******************************************************************************
  * @fn      verify_current_firmware
  *
  * @brief   Rerun the CRC16 algorithm over the contents of internal flash.

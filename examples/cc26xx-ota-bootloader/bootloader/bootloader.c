@@ -48,7 +48,7 @@ main(void)
   #endif
 
   #if BURN_GOLDEN_IMAGE
-
+  backup_golden_image();
   #endif
 
   //  (1) Get the metadata of whatever firmware is currently installed
