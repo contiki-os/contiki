@@ -1,3 +1,8 @@
+/** @file   ota.h
+ *  @brief  OTA Image R/W and Verification
+ *  @author Mark Solters <msolters@gmail.com>
+ */
+
 #ifndef OTA_H
 #define OTA_H
 

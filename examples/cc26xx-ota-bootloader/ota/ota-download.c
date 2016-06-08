@@ -1,3 +1,8 @@
+/** @file   ota-download.c
+ *  @brief  OTA Image Download Mechanism
+ *  @author Mark Solters <msolters@gmail.com>
+ */
+
 #include "ota-download.h"
 
 PROCESS(ota_download_th, "OTA Download Agent");

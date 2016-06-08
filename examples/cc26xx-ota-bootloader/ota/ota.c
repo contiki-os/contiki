@@ -1,3 +1,11 @@
+/** @file   ota.c
+ *  @brief  OTA Image R/W and Verification
+ *  @author Mark Solters <msolters@gmail.com>
+ *
+ *  Notes:
+ *  uint16_t crc16() function is Copyright Texas Instruments
+ */
+
 #include "ota.h"
 
 uint8_t ota_images[3] = OTA_ADDRESSES;
