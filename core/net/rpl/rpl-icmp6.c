@@ -1020,14 +1020,10 @@ dao_input(void)
     goto discard;
   }
 
-  if(instance->mop != RPL_MOP_NON_STORING) {
-    if(RPL_IS_STORING(instance)) {
-      dao_input_storing();
-    }
-  } else {
-    if(RPL_IS_NON_STORING(instance)) {
-      dao_input_nonstoring();
-    }
+  if(RPL_IS_STORING(instance)) {
+    dao_input_storing();
+  } else if(RPL_IS_NON_STORING(instance)) {
+    dao_input_nonstoring();
   }
 
  discard:
