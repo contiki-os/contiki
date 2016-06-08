@@ -135,6 +135,7 @@ env:
   - BUILD_TYPE='collect'
   - BUILD_TYPE='collect-lossy'
   - BUILD_TYPE='rpl'
+  - BUILD_TYPE='rpl-non-storing'
   - BUILD_TYPE='large-rpl'
   - BUILD_TYPE='rime'
   - BUILD_TYPE='ipv6'

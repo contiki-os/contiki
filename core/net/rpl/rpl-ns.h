@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, Inria.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,52 +25,48 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
  */
 
-#ifndef PROJECT_CONF_H_
-#define PROJECT_CONF_H_
+/**
+ * \file
+ *         RPL non-storing mode specific functions. Includes support for
+ *         source routing.
+ *
+ * \author Simon Duquennoy <simon.duquennoy@inria.fr>
+ */
 
-#ifndef WITH_NON_STORING
-#define WITH_NON_STORING 0 /* Set this to run with non-storing mode */
-#endif /* WITH_NON_STORING */
 
-#undef NBR_TABLE_CONF_MAX_NEIGHBORS
-#undef UIP_CONF_MAX_ROUTES
+#ifndef RPL_NS_H
+#define RPL_NS_H
 
-#ifdef TEST_MORE_ROUTES
-/* configure number of neighbors and routes */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     10
-#define UIP_CONF_MAX_ROUTES   30
-#else
-/* configure number of neighbors and routes */
-#define NBR_TABLE_CONF_MAX_NEIGHBORS     10
-#define UIP_CONF_MAX_ROUTES   10
-#endif /* TEST_MORE_ROUTES */
+#include "rpl-conf.h"
 
-#undef NETSTACK_CONF_RDC
-#define NETSTACK_CONF_RDC     nullrdc_driver
-#undef NULLRDC_CONF_802154_AUTOACK
-#define NULLRDC_CONF_802154_AUTOACK       1
+#ifdef RPL_NS_CONF_LINK_NUM
+#define RPL_NS_LINK_NUM RPL_NS_CONF_LINK_NUM
+#else /* RPL_NS_CONF_LINK_NUM */
+#define RPL_NS_LINK_NUM 32
+#endif /* RPL_NS_CONF_LINK_NUM */
 
-/* Define as minutes */
-#define RPL_CONF_DEFAULT_LIFETIME_UNIT   60
+typedef struct rpl_ns_node {
+  struct rpl_ns_node *next;
+  uint32_t lifetime;
+  rpl_dag_t *dag;
+  /* Store only IPv6 link identifiers as all nodes in the DAG share the same prefix */
+  unsigned char link_identifier[8];
+  struct rpl_ns_node *parent;
+} rpl_ns_node_t;
 
-/* 10 minutes lifetime of routes */
-#define RPL_CONF_DEFAULT_LIFETIME        10
+int rpl_ns_num_nodes(void);
+void rpl_ns_expire_parent(rpl_dag_t *dag, const uip_ipaddr_t *child, const uip_ipaddr_t *parent);
+rpl_ns_node_t *rpl_ns_update_node(rpl_dag_t *dag, const uip_ipaddr_t *child, const uip_ipaddr_t *parent, uint32_t lifetime);
+void rpl_ns_init(void);
+rpl_ns_node_t *rpl_ns_node_head(void);
+rpl_ns_node_t *rpl_ns_node_next(rpl_ns_node_t *item);
+rpl_ns_node_t *rpl_ns_get_node(const rpl_dag_t *dag, const uip_ipaddr_t *addr);
+int rpl_ns_is_node_reachable(const rpl_dag_t *dag, const uip_ipaddr_t *addr);
+void rpl_ns_get_node_global_addr(uip_ipaddr_t *addr, rpl_ns_node_t *node);
+void rpl_ns_periodic();
 
-#define RPL_CONF_DEFAULT_ROUTE_INFINITE_LIFETIME 1
-
-#ifndef RPL_CONF_WITH_NON_STORING
-#define RPL_CONF_WITH_NON_STORING 0 /* Set this to run with non-storing mode */
-#endif /* RPL_CONF_WITH_NON_STORING */
-
-#if WITH_NON_STORING
-#undef RPL_NS_CONF_LINK_NUM
-#define RPL_NS_CONF_LINK_NUM 40 /* Number of links maintained at the root. Can be set to 0 at non-root nodes. */
-#undef UIP_CONF_MAX_ROUTES
-#define UIP_CONF_MAX_ROUTES 0 /* No need for routes */
-#undef RPL_CONF_MOP
-#define RPL_CONF_MOP RPL_MOP_NON_STORING /* Mode of operation*/
-#endif /* WITH_NON_STORING */
-
-#endif
+#endif /* RPL_NS_H */

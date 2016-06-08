@@ -47,6 +47,7 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/uip-icmp6.h"
 #include "net/rpl/rpl-private.h"
+#include "net/rpl/rpl-ns.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 
 #define DEBUG DEBUG_NONE
@@ -344,6 +345,10 @@ rpl_init(void)
 #if RPL_CONF_STATS
   memset(&rpl_stats, 0, sizeof(rpl_stats));
 #endif
+
+#if RPL_WITH_NON_STORING
+  rpl_ns_init();
+#endif /* RPL_WITH_NON_STORING */
 }
 /*---------------------------------------------------------------------------*/
 

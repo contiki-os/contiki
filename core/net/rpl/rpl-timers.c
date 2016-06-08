@@ -43,6 +43,7 @@
 
 #include "contiki-conf.h"
 #include "net/rpl/rpl-private.h"
+#include "net/rpl/rpl-ns.h"
 #include "net/link-stats.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 #include "lib/random.h"
@@ -80,14 +81,21 @@ static uint8_t dio_send_ok;
 static void
 handle_periodic_timer(void *ptr)
 {
+  rpl_dag_t *dag = rpl_get_any_dag();
+
   rpl_purge_dags();
-  rpl_purge_routes();
+  if(dag != NULL && RPL_IS_STORING(dag->instance)) {
+    rpl_purge_routes();
+  }
+  if(dag != NULL && RPL_IS_NON_STORING(dag->instance)) {
+    rpl_ns_periodic();
+  }
   rpl_recalculate_ranks();
 
   /* handle DIS */
 #if RPL_DIS_SEND
   next_dis++;
-  if(rpl_get_any_dag() == NULL && next_dis >= RPL_DIS_INTERVAL) {
+  if(dag == NULL && next_dis >= RPL_DIS_INTERVAL) {
     next_dis = 0;
     dis_output(NULL);
   }
@@ -459,7 +467,7 @@ handle_probing_timer(void *ptr)
     const struct link_stats *stats = rpl_get_parent_link_stats(probing_target);
     (void)stats;
     PRINTF("RPL: probing %u %s last tx %u min ago\n",
-        rpl_get_parent_llpaddr(probing_target)->u8[7],
+        rpl_get_parent_lladdr(probing_target)->u8[7],
         instance->urgent_probing_target != NULL ? "(urgent)" : "",
         probing_target != NULL ?
         (unsigned)((clock_time() - stats->last_tx_time) / (60 * CLOCK_SECOND)) : 0
