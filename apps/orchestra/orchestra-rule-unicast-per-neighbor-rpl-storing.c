@@ -29,12 +29,13 @@
  */
 /**
  * \file
- *         Orchestra: a slotframe dedicated to unicast data transmission.
- *         If sender-based:
+ *         Orchestra: a slotframe dedicated to unicast data transmission. Designed for
+ *         RPL storing mode only, as this is based on the knowledge of the children (and parent).
+ *         If receiver-based:
  *           Nodes listen at a timeslot defined as hash(MAC) % ORCHESTRA_SB_UNICAST_PERIOD
  *           Nodes transmit at: for each nbr in RPL children and RPL preferred parent,
  *                                             hash(nbr.MAC) % ORCHESTRA_SB_UNICAST_PERIOD
- *         If receiver-based: the opposite
+ *         If sender-based: the opposite
  *
  * \author Simon Duquennoy <simonduq@sics.se>
  */
@@ -43,6 +44,7 @@
 #include "orchestra.h"
 #include "net/ipv6/uip-ds6-route.h"
 #include "net/packetbuf.h"
+#include "net/rpl/rpl-conf.h"
 
 #if ORCHESTRA_UNICAST_SENDER_BASED && ORCHESTRA_COLLISION_FREE_HASH
 #define UNICAST_SLOT_SHARED_FLAG    ((ORCHESTRA_UNICAST_PERIOD < (ORCHESTRA_MAX_HASH + 1)) ? LINK_OPTION_SHARED : 0)
@@ -202,7 +204,7 @@ init(uint16_t sf_handle)
             timeslot, channel_offset);
 }
 /*---------------------------------------------------------------------------*/
-struct orchestra_rule unicast_per_neighbor = {
+struct orchestra_rule unicast_per_neighbor_rpl_storing = {
   init,
   new_time_source,
   select_packet,

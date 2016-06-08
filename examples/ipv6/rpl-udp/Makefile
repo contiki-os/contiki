@@ -15,5 +15,9 @@ ifdef PERIOD
 CFLAGS+=-DPERIOD=$(PERIOD)
 endif
 
+ifeq ($(MAKE_WITH_NON_STORING),1)
+CFLAGS += -DWITH_NON_STORING=1
+endif
+
 CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
