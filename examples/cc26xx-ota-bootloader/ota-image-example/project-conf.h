@@ -6,7 +6,7 @@
 
 
 /**
-*  For srf06 board we must specify SPI connections
+*  For srf06 board we must specify SPI connections by uncommenting these
 */
 /*
 #define BOARD_IOID_FLASH_CS       IOID_14
