@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010, Swedish Institute of Computer Science.
+ * Copyright (c) 2016, University of Bristol.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +30,7 @@
 
 /**
  * \file
- *         Platform configuration for the Z1 platform
- * \author
- *         Joakim Eriksson <joakime@sics.se>
+ *         Platform configuration for the Z1x platform
  */
 
 #ifndef PLATFORM_CONF_H_
@@ -41,7 +40,6 @@
  * Definitions below are dictated by the hardware and not really
  * changeable!
  */
-#define ZOLERTIA_Z1X 1  /* Enric */
 
 /* Delay between GO signal and SFD: radio fixed delay + 4Bytes preample + 1B SFD -- 1Byte time is 32us
  * ~327us + 129preample = 456 us; subtract 100 to deal with the mspsim bug */
@@ -71,29 +69,6 @@
 #define HAVE_STDINT_H
 #include "msp430def.h"
 
-/* XXX Temporary place for defines that are lacking in mspgcc4's gpio.h */
-// #ifdef __IAR_SYSTEMS_ICC__
-// #ifndef P1SEL2_
-// #define P1SEL2_              (0x0041u)  /* Port 1 Selection 2*/
-// DEFC(P1SEL2, P1SEL2_)
-// #endif
-// #ifndef P5SEL2_
-// #define P5SEL2_              (0x0045u)  /* Port 5 Selection 2*/
-// DEFC(P5SEL2, P5SEL2_)
-// #endif
-// #else /* __IAR_SYSTEMS_ICC__ */
-// #ifdef __GNUC__
-// #ifndef P1SEL2_
-// #define P1SEL2_             0x0041    /* Port 1 Selection 2*/
-// sfrb(P1SEL2, P1SEL2_);
-// #endif
-// #ifndef P5SEL2_
-// #define P5SEL2_             0x0045    /* Port 5 Selection 2*/
-// sfrb(P5SEL2, P5SEL2_);
-// #endif
-// #endif /* __GNUC__ */
-// #endif /* __IAR_SYSTEMS_ICC__ */
-
 /* Types for clocks and uip_stats */
 typedef unsigned short uip_stats_t;
 typedef unsigned long clock_time_t;
@@ -108,23 +83,15 @@ typedef unsigned long off_t;
  */
 
 /* LED ports */
-// #ifdef Z1_IS_Z1SP
-// #define LEDS_PxDIR P4DIR
-// #define LEDS_PxOUT P4OUT
-// #define LEDS_CONF_RED    0x04
-// #define LEDS_CONF_GREEN  0x01
-// #define LEDS_CONF_YELLOW 0x80
-// #else
 #define LEDS_PxDIR P5DIR
 #define LEDS_PxOUT P5OUT
 #define LEDS_CONF_RED    0x10
 #define LEDS_CONF_GREEN  0x40
 #define LEDS_CONF_YELLOW 0x20
-//#endif /* Z1_IS_Z1SP */
 
 /* DCO speed resynchronization for more robust UART, etc. */
-// #define DCOSYNCH_CONF_ENABLED 0
-// #define DCOSYNCH_CONF_PERIOD 30
+#define DCOSYNCH_CONF_ENABLED 0
+#define DCOSYNCH_CONF_PERIOD 30
 
 #define ROM_ERASE_UNIT_SIZE  512
 #define XMEM_ERASE_UNIT_SIZE (64 * 1024L)
@@ -156,20 +123,11 @@ typedef unsigned long off_t;
 #define SPI_WAITFOREORx() while ((UCB0IFG & UCRXIFG) == 0)
                                 /* USART0 Tx buffer ready? */
 #define SPI_WAITFORTxREADY() while ((UCB0IFG & UCTXIFG) == 0)
-/*                                 /\* USART0 Tx ready? *\/ */
-/* #define SPI_WAITFOREOTx() while (!(UCB0IFG & UCRXIFG)) */
-/*                                 /\* USART0 Rx ready? *\/ */
-/* #define SPI_WAITFOREORx() while (!(UCB0IFG & UCRXIFG)) */
-/*                                 /\* USART0 Tx buffer ready? *\/ */
-/* #define SPI_WAITFORTxREADY() while (!(UCB0IFG & UCRXIFG)) */
-/* #define SPI_BUSY_WAIT() 		while ((UCB0STAT & UCBUSY) == 1) */
+#define SPI_BUSY_WAIT() 		while ((UCB0STAT & UCBUSY) == 1)
 
 #define MOSI           1  /* P3.1 - Output: SPI Master out - slave in (MOSI) */
 #define MISO           2  /* P3.2 - Input:  SPI Master in - slave out (MISO) */
 #define SCK            3  /* P3.3 - Output: SPI Serial Clock (SCLK) */
-/* #define SCK            1  /\* P3.1 - Output: SPI Serial Clock (SCLK) *\/ */
-/* #define MOSI           2  /\* P3.2 - Output: SPI Master out - slave in (MOSI) *\/ */
-/* #define MISO           3  /\* P3.3 - Input:  SPI Master in - slave out (MISO) *\/ */
 
 /*
  * SPI bus - M25P80 external flash configuration.
@@ -189,21 +147,6 @@ typedef unsigned long off_t;
 #define SPI_FLASH_HOLD()               // ( P4OUT &= ~BV(FLASH_HOLD) )
 #define SPI_FLASH_UNHOLD()              //( P4OUT |=  BV(FLASH_HOLD) )
 
-
-/*
- * SPI bus - M25P80 external flash configuration.
- */
-/* FLASH_PWR P4.3 Output ALWAYS POWERED ON Z1 */
-// #define FLASH_CS  4 /* P4.4 Output */
-// #define FLASH_HOLD  7 /* P5.7 Output */
-
-/* Enable/disable flash access to the SPI bus (active low). */
-
-// #define SPI_FLASH_ENABLE()  (P4OUT &= ~BV(FLASH_CS))
-// #define SPI_FLASH_DISABLE() (P4OUT |= BV(FLASH_CS))
-
-// #define SPI_FLASH_HOLD()    (P5OUT &= ~BV(FLASH_HOLD))
-// #define SPI_FLASH_UNHOLD()    (P5OUT |= BV(FLASH_HOLD))
 
 /*
  * SPI bus - CC2420 pin configuration.
@@ -270,41 +213,5 @@ typedef unsigned long off_t;
 /* DISABLE CSn (active low) */
 #define CC2420_SPI_DISABLE()    (CC2420_CSN_PORT(OUT) |= BV(CC2420_CSN_PIN))
 #define CC2420_SPI_IS_ENABLED() ((CC2420_CSN_PORT(OUT) & BV(CC2420_CSN_PIN)) != BV(CC2420_CSN_PIN))
-
-/*
- * I2C configuration
- */
-
-// #define I2C_PxDIR   P5DIR
-// #define I2C_PxIN    P5IN
-// #define I2C_PxOUT   P5OUT
-// #define I2C_PxSEL   P5SEL
-// #define I2C_PxSEL2  P5SEL2
-// #define I2C_PxREN   P5REN
-
-// #define I2C_SDA       (1 << 1)    /* SDA == P5.1 */
-// #define I2C_SCL       (1 << 2)    /* SCL == P5.2 */
-// #define I2C_PRESC_1KHZ_LSB      0x00
-// #define I2C_PRESC_1KHZ_MSB      0x20
-// #define I2C_PRESC_100KHZ_LSB    0x50
-// #define I2C_PRESC_100KHZ_MSB    0x00
-// #define I2C_PRESC_400KHZ_LSB    0x14
-// #define I2C_PRESC_400KHZ_MSB    0x00
-
-// /* Set rate as high as possible by default */
-// #ifndef I2C_PRESC_Z1_LSB
-// #define I2C_PRESC_Z1_LSB I2C_PRESC_400KHZ_LSB
-// #endif
-
-// #ifndef I2C_PRESC_Z1_MSB
-// #define I2C_PRESC_Z1_MSB I2C_PRESC_400KHZ_MSB
-// #endif
-
-// /* I2C configuration with RX interrupts */
-// #ifdef I2C_CONF_RX_WITH_INTERRUPT
-// #define I2C_RX_WITH_INTERRUPT I2C_CONF_RX_WITH_INTERRUPT
-// #else /* I2C_CONF_RX_WITH_INTERRUPT */
-// #define I2C_RX_WITH_INTERRUPT 1
-// #endif /* I2C_CONF_RX_WITH_INTERRUPT */
 
 #endif /* PLATFORM_CONF_H_ */
