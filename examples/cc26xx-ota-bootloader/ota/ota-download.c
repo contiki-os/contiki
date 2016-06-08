@@ -34,29 +34,29 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
     return;
   }
   if(e == HTTP_SOCKET_ERR) {
-    printf("HTTP socket error\n");
+    PRINTF("HTTP socket error\n");
     process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
   } else if(e == HTTP_SOCKET_TIMEDOUT) {
-    printf("HTTP socket error: timed out\n");
+    PRINTF("HTTP socket error: timed out\n");
     process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
   } else if(e == HTTP_SOCKET_ABORTED) {
-    printf("HTTP socket error: aborted\n");
+    PRINTF("HTTP socket error: aborted\n");
     process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
   } else if(e == HTTP_SOCKET_HOSTNAME_NOT_FOUND) {
-    printf("HTTP socket error: hostname not found\n");
+    PRINTF("HTTP socket error: hostname not found\n");
     process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
   } else if(e == HTTP_SOCKET_CLOSED) {
-    printf("HTTP socket closed, %d bytes received\n", bytes_received);
+    PRINTF("HTTP socket closed, %d bytes received\n", bytes_received);
     if ( img_req_position >= FLASH_PAGE_SIZE ) {
       process_post(ota_download_th_p, OTA_PAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
     } else {
       process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
     }
   } else if(e == HTTP_SOCKET_DATA) {
-    //printf("\n");
+    //PRINTF("\n");
     while (datalen--)
     {
-      //printf("%#x (%u) ", *data, datalen);
+      //PRINTF("%#x (%u) ", *data, datalen);
       if (page_started) {
         //  If *data = "EOF"
         if (  (*data == 0x45) &&
@@ -84,7 +84,7 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
       }
       *data++;
     }
-    //printf("\n");
+    //PRINTF("\n");
   }
 }
 
@@ -102,7 +102,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   //  (2) Begin downloading the OTA update, page by page.
   for (page=0; page<25; page++)
   {
-    printf("\nDownloading Page %u/25:\n", page);
+    PRINTF("\nDownloading Page %u/25:\n", page);
 
     //  (1) Clear Page Buffer
     reset_page_buffer();
@@ -116,7 +116,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
       //  (1) Construct a URL requesting the current page of data
       char url[120];
       bytes_received = 0;
-      sprintf(url, OTA_IMAGE_SERVER "/%lu/%u", (img_req_position+(page<<12)), img_req_length);
+      sPRINTF(url, OTA_IMAGE_SERVER "/%lu/%u", (img_req_position+(page<<12)), img_req_length);
 
       //  (2) Issue HTTP GET request to server
       page_started = false;

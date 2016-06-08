@@ -239,18 +239,18 @@ verify_current_firmware( OTAMetadata_t *current_firmware_metadata )
     FlashRead( _word, firmware_address, 4 );
     for (idx = 0; idx < 4; idx++)
     {
-      //printf("%#x ", _word[idx]);
+      //PRINTF("%#x ", _word[idx]);
       imageCRC = crc16(imageCRC, _word[idx]);
     }
     firmware_address += 4; // move 4 bytes forward
-    //printf("\t=>%#x\n", imageCRC);
+    //PRINTF("\t=>%#x\n", imageCRC);
   }
 
   //  (5) Compute two more CRC iterations using value of 0
   imageCRC = crc16(imageCRC, 0);
   imageCRC = crc16(imageCRC, 0);
 
-  printf("CRC Calculated: %#x\n", imageCRC);
+  PRINTF("CRC Calculated: %#x\n", imageCRC);
 
   //  (6) Update the CRC shadow with our newly calculated value
   current_firmware_metadata->crc_shadow = imageCRC;
@@ -318,11 +318,11 @@ verify_ota_slot( uint8_t ota_slot )
 
     for (idx = 0; idx < 4; idx++)
     {
-      //printf("%#x ", _word[idx]);
+      //PRINTF("%#x ", _word[idx]);
       imageCRC = crc16(imageCRC, _word[idx]);
     }
     ota_image_address += 4; // move 4 bytes forward
-    //printf("\t=>%#x\n", imageCRC);
+    //PRINTF("\t=>%#x\n", imageCRC);
   }
 
   //  (5) Compute two more CRC iterations using value of 0
@@ -331,7 +331,7 @@ verify_ota_slot( uint8_t ota_slot )
 
   ext_flash_close();
 
-  printf("CRC Calculated: %#x\n", imageCRC);
+  PRINTF("CRC Calculated: %#x\n", imageCRC);
 
   //  (6) Update the CRC shadow with our newly calculated value
   ota_metadata.crc_shadow = imageCRC;
@@ -361,7 +361,7 @@ validate_ota_metadata( OTAMetadata_t *metadata )
   uint8_t *metadata_ptr = (uint8_t *)metadata;
   int b = OTA_METADATA_LENGTH;
   while (b--) {
-    //printf("%u: %u, ", b, *(uint8_t *)metadata);
+    //PRINTF("%u: %u, ", b, *(uint8_t *)metadata);
     if ( *metadata_ptr++ != 0xff ) {
       //  We encountered a non-erased byte.  There's some non-trivial data here.
       erased = false;
