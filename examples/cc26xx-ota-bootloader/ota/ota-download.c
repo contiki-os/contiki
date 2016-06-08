@@ -121,7 +121,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
       //  (1) Construct a URL requesting the current page of data
       char url[120];
       bytes_received = 0;
-      sPRINTF(url, OTA_IMAGE_SERVER "/%lu/%u", (img_req_position+(page<<12)), img_req_length);
+      sprintf(url, OTA_IMAGE_SERVER "/%lu/%u", (img_req_position+(page<<12)), img_req_length);
 
       //  (2) Issue HTTP GET request to server
       page_started = false;
