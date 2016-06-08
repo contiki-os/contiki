@@ -261,6 +261,7 @@ extern bool cc2420_without_send_cca;
 #ifdef CONTIKI_TARGET_SENSORTAG
 #define PLATFORM_ID  8
 #endif
+#define PLATFORM_ID_MAX 8
 
 char *platform_list[] = { "none", "native", "cooja", "avr-rss2", "z1", "sky", "u108", "ti-sensortag"};
 

@@ -267,6 +267,7 @@ static void inputPacket(void)
     
     /* sanity check */
     if (h->channel != channel) return;
+    if (h->platform_id == 0 || h->platform_id > PLATFORM_ID_MAX) return;
     
     s = &stats[currentStatsIdx];
     
