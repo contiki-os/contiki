@@ -134,6 +134,7 @@ int
 main(void)
 {
   #if OTA
+  //  OTA firmware VTOR table address must be specified, it is not 0x00000000.
   HWREG(NVIC_VTABLE) = OTA_IMAGE_OFFSET + OTA_METADATA_SPACE;
   #endif
 
@@ -162,11 +163,6 @@ main(void)
    */
   ti_lib_pwr_ctrl_io_freeze_disable();
 
-  /**
-   *  LED fades are disabled throughout because
-   *  we are using manual GPIO control as a quick test
-   *  to see where main() is hanging.
-   */
   fade(LEDS_RED);
 
   ti_lib_int_master_enable();
