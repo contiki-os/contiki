@@ -6,7 +6,7 @@ CLEAN += *.z1
 MODULES += core/net \
            core/net/mac core/net/mac/contikimac \
            core/net/llsec \
-           dev/cc2420 dev/sht11
+           dev/cc2420
 
 TARGET_MEMORY_MODEL=large
 
@@ -15,12 +15,6 @@ SMALL=1
 ifdef GCC
 CFLAGS+=-Os -g
 endif
-
-#ifdef IAR
-#CFLAGS += -D__MSP430F2617__=1 -e --vla -Ohz --multiplier=16s --core=430X --double=32
-#else
-#LDFLAGS += -Wl,--defsym -Wl,__P1SEL2=0x0041 -Wl,--defsym -Wl,__P5SEL2=0x0045
-#endif
 
 CLEAN += symbols.c symbols.h
 
@@ -40,25 +34,18 @@ CFLAGS += -DMACID=$(nodemac)
 endif
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS)
-#CONTIKI_TARGET_SOURCEFILES += i2cmaster.c adxl345.c
 
 MCU=msp430f5437
 
 # Platform has a MSP430X MCU with 20-bit support
 CPU_HAS_MSP430X=1
 
+# Disable elfloader
 ELFLOADER=
 
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
-# Add LDFLAGS after IAR_PATH is set
-ifdef IAR
-LDFLAGSNO += -xm "$(IAR_PATH)/lib/dlib/dl430xsfn.r43" -f "$(IAR_PATH)/config/lnk430f2617.xcl"
-LDFLAGS += $(LDFLAGSNO) -Felf -yn
-endif
-
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
-#	$(AR) rcf $@ $^
 
 
 NUMPAR=20
