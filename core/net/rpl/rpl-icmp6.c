@@ -181,34 +181,6 @@ set16(uint8_t *buffer, int pos, uint16_t value)
   buffer[pos++] = value & 0xff;
 }
 /*---------------------------------------------------------------------------*/
-uip_ds6_nbr_t *
-rpl_icmp6_update_nbr_table(uip_ipaddr_t *from, nbr_table_reason_t reason, void *data)
-{
-  uip_ds6_nbr_t *nbr;
-
-  if((nbr = uip_ds6_nbr_lookup(from)) == NULL) {
-    if((nbr = uip_ds6_nbr_add(from, (uip_lladdr_t *)
-                              packetbuf_addr(PACKETBUF_ADDR_SENDER),
-                              0, NBR_REACHABLE, reason, data)) != NULL) {
-      PRINTF("RPL: Neighbor added to neighbor cache ");
-      PRINT6ADDR(from);
-      PRINTF(", ");
-      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-      PRINTF("\n");
-    }
-  }
-
-  if(nbr != NULL) {
-#if UIP_ND6_SEND_NA
-    /* set reachable timer if we added or found the nbr entry - and update
-       neighbor entry to reachable to avoid sending NS/NA, etc.  */
-    stimer_set(&nbr->reachable, UIP_ND6_REACHABLE_TIME / 1000);
-    nbr->state = NBR_REACHABLE;
-#endif /* UIP_ND6_SEND_NA */
-  }
-  return nbr;
- }
-/*---------------------------------------------------------------------------*/
 static void
 dis_input(void)
 {
@@ -233,18 +205,21 @@ dis_input(void)
       } else {
 #endif /* !RPL_LEAF_ONLY */
 	/* Check if this neighbor should be added according to the policy. */
-        if(rpl_icmp6_update_nbr_table(&UIP_IP_BUF->srcipaddr,
-                                      NBR_TABLE_REASON_RPL_DIS, NULL) == NULL) {
-          PRINTF("RPL: Out of Memory, not sending unicast DIO, DIS from ");
-          PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-          PRINTF(", ");
-          PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-          PRINTF("\n");
-        } else {
-          PRINTF("RPL: Unicast DIS, reply to sender\n");
-          dio_output(instance, &UIP_IP_BUF->srcipaddr);
-        }
-	/* } */
+        if(uip_ds6_nbr_refresh(&UIP_IP_BUF->srcipaddr) == NULL) {
+          if(uip_ds6_nbr_add(&UIP_IP_BUF->srcipaddr, (uip_lladdr_t *)
+                             packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                             0, NBR_REACHABLE, NBR_TABLE_REASON_RPL_DIS,
+                             NULL) == NULL) {
+            PRINTF("RPL: Out of Memory, not sending unicast DIO, DIS from ");
+            PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+            PRINTF(", ");
+            PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+            PRINTF("\n");
+          } else {
+            PRINTF("RPL: Unicast DIS, reply to sender\n");
+            dio_output(instance, &UIP_IP_BUF->srcipaddr);
+          }
+	}
       }
     }
   }
@@ -650,7 +625,6 @@ dao_input(void)
   int i;
   int learned_from;
   rpl_parent_t *parent;
-  uip_ds6_nbr_t *nbr;
   int is_root;
 
   prefixlen = 0;
@@ -691,11 +665,11 @@ dao_input(void)
   }
 
   learned_from = uip_is_addr_mcast(&dao_sender_addr) ?
-                 RPL_ROUTE_FROM_MULTICAST_DAO : RPL_ROUTE_FROM_UNICAST_DAO;
+    RPL_ROUTE_FROM_MULTICAST_DAO : RPL_ROUTE_FROM_UNICAST_DAO;
 
   /* Destination Advertisement Object */
   PRINTF("RPL: Received a (%s) DAO with sequence number %u from ",
-      learned_from == RPL_ROUTE_FROM_UNICAST_DAO? "unicast": "multicast", sequence);
+         learned_from == RPL_ROUTE_FROM_UNICAST_DAO? "unicast": "multicast", sequence);
   PRINT6ADDR(&dao_sender_addr);
   PRINTF("\n");
 
@@ -707,7 +681,7 @@ dao_input(void)
     if(parent != NULL &&
        DAG_RANK(parent->rank, instance) < DAG_RANK(dag->rank, instance)) {
       PRINTF("RPL: Loop detected when receiving a unicast DAO from a node with a lower rank! (%u < %u)\n",
-          DAG_RANK(parent->rank, instance), DAG_RANK(dag->rank, instance));
+             DAG_RANK(parent->rank, instance), DAG_RANK(dag->rank, instance));
       parent->rank = INFINITE_RANK;
       parent->flags |= RPL_PARENT_FLAG_UPDATED;
       goto discard;
@@ -750,7 +724,7 @@ dao_input(void)
   }
 
   PRINTF("RPL: DAO lifetime: %u, prefix length: %u prefix: ",
-          (unsigned)lifetime, (unsigned)prefixlen);
+         (unsigned)lifetime, (unsigned)prefixlen);
   PRINT6ADDR(&prefix);
   PRINTF("\n");
 
@@ -810,20 +784,25 @@ dao_input(void)
 
   PRINTF("RPL: Adding DAO route\n");
 
-  /* Update and add neighbor - if no room - fail. */
-  if((nbr = rpl_icmp6_update_nbr_table(&dao_sender_addr, NBR_TABLE_REASON_RPL_DAO, instance)) == NULL) {
-    PRINTF("RPL: Out of Memory, dropping DAO from ");
-    PRINT6ADDR(&dao_sender_addr);
-    PRINTF(", ");
-    PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
-    PRINTF("\n");
-    if(flags & RPL_DAO_K_FLAG) {
-      /* signal the failure to add the node */
-      dao_ack_output(instance, &dao_sender_addr, sequence,
-		     is_root ? RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT :
-		     RPL_DAO_ACK_UNABLE_TO_ACCEPT);
+  /* Update and if not there add neighbor - if no room - fail. */
+  if(uip_ds6_nbr_refresh(&dao_sender_addr) == NULL) {
+    if(uip_ds6_nbr_add(&dao_sender_addr, (uip_lladdr_t *)
+                       packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                       0, NBR_REACHABLE, NBR_TABLE_REASON_RPL_DAO,
+                       instance) == NULL) {
+      PRINTF("RPL: Out of Memory, dropping DAO from ");
+      PRINT6ADDR(&dao_sender_addr);
+      PRINTF(", ");
+      PRINTLLADDR((uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
+      PRINTF("\n");
+      if(flags & RPL_DAO_K_FLAG) {
+        /* signal the failure to add the node - will not work? No NBR entry? */
+        dao_ack_output(instance, &dao_sender_addr, sequence,
+                       is_root ? RPL_DAO_ACK_UNABLE_TO_ADD_ROUTE_AT_ROOT :
+                       RPL_DAO_ACK_UNABLE_TO_ACCEPT);
+      }
+      goto discard;
     }
-    goto discard;
   }
 
   rep = rpl_add_route(dag, &prefix, prefixlen, &dao_sender_addr);
