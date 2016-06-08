@@ -265,6 +265,9 @@ static void inputPacket(void)
     // TODO: better handling when stats memory full.
     // at the moment: ignoring new packets.
     
+    /* sanity check */
+    if (h->channel != channel) return;
+    
     s = &stats[currentStatsIdx];
     
     /* sender and channel is  "key" */
