@@ -1,3 +1,8 @@
+/** @file   ota-download.h
+ *  @brief  OTA Image Download Mechanism
+ *  @author Mark Solters <msolters@gmail.com>
+ */
+
 #ifndef OTA_DOWNLOAD_H
 #define OTA_DOWNLOAD_H
 
