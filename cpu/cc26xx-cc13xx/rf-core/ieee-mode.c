@@ -115,6 +115,8 @@ static uint8_t rf_stats[16] = { 0 };
 /* The size of the RF commands buffer */
 #define RF_CMD_BUFFER_SIZE             128
 /*---------------------------------------------------------------------------*/
+#define RAT_TO_RTIMER(X)  ((X*256)/15625)
+/*---------------------------------------------------------------------------*/
 /**
  * \brief Returns the current status of a running Radio Op command
  * \param a A pointer with the buffer used to initiate the command
@@ -176,6 +178,11 @@ static const output_config_t output_power[] = {
   {-21, 0x07, 0x03, 0x0c },
 };
 
+static int8_t rssi;
+static uint32_t last_timestamp;
+static uint32_t start_timestamp_rat;
+static uint32_t start_timestamp_rtimer;
+
 #define OUTPUT_CONFIG_COUNT (sizeof(output_power) / sizeof(output_config_t))
 
 /* Max and Min Output Power in dBm */
@@ -202,7 +209,7 @@ static uint8_t cmd_ieee_rx_buf[RF_CMD_BUFFER_SIZE] CC_ALIGN(4);
 #define DATA_ENTRY_LENSZ_BYTE 1
 #define DATA_ENTRY_LENSZ_WORD 2 /* 2 bytes */
 
-#define RX_BUF_SIZE 140
+#define RX_BUF_SIZE 144
 /* Four receive buffers entries with room for 1 IEEE802.15.4 frame in each */
 static uint8_t rx_buf_0[RX_BUF_SIZE] CC_ALIGN(4);
 static uint8_t rx_buf_1[RX_BUF_SIZE] CC_ALIGN(4);
@@ -237,9 +244,14 @@ static uint32_t ieee_overrides[] = {
   0x002082C3, /* Increase synth programming timeout */
   0xFFFFFFFF, /* End of override list */
 };
+
+/* CCA before sending? Disabled by default. */
+static uint8_t send_on_cca = 0;
 /*---------------------------------------------------------------------------*/
 static int on(void);
 static int off(void);
+static void set_poll_mode(uint8_t enable);
+static void set_send_on_cca(uint8_t enable);
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Checks whether the RFC domain is accessible and the RFC is in IEEE RX
@@ -482,7 +494,8 @@ rf_cmd_ieee_rx()
   }
 
   t0 = RTIMER_NOW();
-
+  start_timestamp_rat = HWREG(RFC_RAT_BASE + RFC_RAT_O_RATCNT);
+  start_timestamp_rtimer = t0;
   while(RF_RADIO_OP_GET_STATUS(cmd_ieee_rx_buf) != RF_CORE_RADIO_OP_STATUS_ACTIVE &&
         (RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + ENTER_RX_WAIT_TIMEOUT)));
 
@@ -544,7 +557,7 @@ init_rf_params(void)
   cmd->rxConfig.bAppendRssi = 1;
   cmd->rxConfig.bAppendCorrCrc = 1;
   cmd->rxConfig.bAppendSrcInd = 0;
-  cmd->rxConfig.bAppendTimestamp = 0;
+  cmd->rxConfig.bAppendTimestamp = 1;
 
   cmd->pRxQ = &rx_data_queue;
   cmd->pOutput = (rfc_ieeeRxOutput_t *)rf_stats;
@@ -736,6 +749,7 @@ init(void)
   /* Populate the RF parameters data structure with default values */
   init_rf_params();
 
+  set_poll_mode(0);
   if(on() != RF_CORE_CMD_OK) {
     PRINTF("init: on() failed\n");
     return RF_CORE_CMD_ERROR;
@@ -755,7 +769,7 @@ prepare(const void *payload, unsigned short payload_len)
   int len = MIN(payload_len, TX_BUF_PAYLOAD_LEN);
 
   memcpy(&tx_buf[TX_BUF_HDR_LEN], payload, len);
-  return RF_CORE_CMD_OK;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -818,7 +832,9 @@ transmit(unsigned short transmit_len)
     /* Idle away while the command is running */
     while((cmd.status & RF_CORE_RADIO_OP_MASKED_STATUS)
           == RF_CORE_RADIO_OP_MASKED_STATUS_RUNNING) {
-      lpm_sleep();
+      if(!poll_mode) {
+        lpm_sleep();  
+      }
     }
 
     stat = cmd.status;
@@ -884,7 +900,6 @@ release_data_entry(void)
 static int
 read_frame(void *buf, unsigned short buf_len)
 {
-  int8_t rssi;
   int len = 0;
   rfc_dataEntryGeneral_t *entry = (rfc_dataEntryGeneral_t *)rx_read_entry;
 
@@ -893,7 +908,7 @@ read_frame(void *buf, unsigned short buf_len)
     return 0;
   }
 
-  if(rx_read_entry[8] < 4) {
+  if(rx_read_entry[8] < 8) {
     PRINTF("RF: too short\n");
     RIMESTATS_ADD(tooshort);
 
@@ -901,7 +916,7 @@ read_frame(void *buf, unsigned short buf_len)
     return 0;
   }
 
-  len = rx_read_entry[8] - 4;
+  len = rx_read_entry[8] - 8;
 
   if(len > buf_len) {
     PRINTF("RF: too long\n");
@@ -915,7 +930,12 @@ read_frame(void *buf, unsigned short buf_len)
 
   rssi = (int8_t)rx_read_entry[9 + len + 2];
 
-  packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+  if(!poll_mode) {
+    /* Not in poll mode: packetbuf should not be accessed in interrupt context.
+     * In poll mode, the last packet RSSI and link quality can be obtained through
+     * RADIO_PARAM_LAST_RSSI and RADIO_PARAM_LAST_LINK_QUALITY */
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rssi);
+  }
   RIMESTATS_ADD(llrx);
 
   release_data_entry();
@@ -1162,8 +1182,16 @@ get_value(radio_param_t param, radio_value_t *value)
     if(cmd->frameFiltOpt.autoAckEn) {
       *value |= RADIO_RX_MODE_AUTOACK;
     }
-
+    if(poll_mode) {
+      *value |= RADIO_RX_MODE_POLL_MODE;
+    }
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_TX_MODE:
+    *value = 0;
+    if(send_on_cca) {
+      *value |= RADIO_TX_MODE_SEND_ON_CCA;
+    }
+    return RADIO_RESULT_OK;    
   case RADIO_PARAM_TXPOWER:
     *value = get_tx_power();
     return RADIO_RESULT_OK;
@@ -1178,6 +1206,9 @@ get_value(radio_param_t param, radio_value_t *value)
     } else {
       return RADIO_RESULT_OK;
     }
+  case RADIO_PARAM_LAST_RSSI:
+    *value = rssi;
+    return RADIO_RESULT_OK;
   case RADIO_CONST_CHANNEL_MIN:
     *value = IEEE_MODE_CHANNEL_MIN;
     return RADIO_RESULT_OK;
@@ -1239,7 +1270,7 @@ set_value(radio_param_t param, radio_value_t value)
   case RADIO_PARAM_RX_MODE:
   {
     if(value & ~(RADIO_RX_MODE_ADDRESS_FILTER |
-                 RADIO_RX_MODE_AUTOACK)) {
+                 RADIO_RX_MODE_AUTOACK | RADIO_RX_MODE_POLL_MODE)) {
       return RADIO_RESULT_INVALID_VALUE;
     }
 
@@ -1252,8 +1283,15 @@ set_value(radio_param_t param, radio_value_t value)
     cmd->frameFiltOpt.bPendDataReqOnly = 0;
     cmd->frameFiltOpt.bPanCoord = 0;
     cmd->frameFiltOpt.bStrictLenFilter = 0;
+    set_poll_mode((value & RADIO_RX_MODE_POLL_MODE) != 0);
     break;
   }
+  case RADIO_PARAM_TX_MODE:
+    if(value & ~(RADIO_TX_MODE_SEND_ON_CCA)) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    set_send_on_cca((value & RADIO_TX_MODE_SEND_ON_CCA) != 0);
+    break;
   case RADIO_PARAM_TXPOWER:
     if(value < OUTPUT_POWER_MIN || value > OUTPUT_POWER_MAX) {
       return RADIO_RESULT_INVALID_VALUE;
@@ -1316,6 +1354,27 @@ get_object(radio_param_t param, void *dest, size_t size)
       target[i] = src[7 - i];
     }
 
+    return RADIO_RESULT_OK;
+  }
+  if(param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+    int len = 0;
+    if(size != sizeof(rtimer_clock_t) || !dest) {
+      return RADIO_RESULT_INVALID_VALUE;
+    }
+    len = rx_read_entry[8] - 8;
+    /* Since this may not be always aligned, we need to fetch the
+       data in a bytewise way */
+    last_timestamp = (uint8_t)rx_read_entry[9 + len + 4 + 3];
+    last_timestamp <<= 8;
+    last_timestamp |= (uint8_t)rx_read_entry[9 + len + 4 + 2];
+    last_timestamp <<= 8;
+    last_timestamp |= (uint8_t)rx_read_entry[9 + len + 4 + 1];
+    last_timestamp <<= 8;
+    last_timestamp |= (uint8_t)rx_read_entry[9 + len + 4 + 0];
+    last_timestamp -= start_timestamp_rat;
+    last_timestamp = RAT_TO_RTIMER(last_timestamp);
+    last_timestamp += start_timestamp_rtimer;
+    *(rtimer_clock_t *)dest = last_timestamp;
     return RADIO_RESULT_OK;
   }
   return RADIO_RESULT_NOT_SUPPORTED;
@@ -1386,6 +1445,31 @@ const struct radio_driver ieee_mode_driver = {
   set_object,
 };
 /*---------------------------------------------------------------------------*/
+/* Enable or disable radio interrupts (both FIFOP and SFD timer capture) */
+static void
+set_poll_mode(uint8_t enable)
+{
+  poll_mode = enable;
+  if(enable)
+  {
+	  ti_lib_int_disable(INT_RF_CPE0);
+	  ti_lib_int_disable(INT_RF_CPE1);
+  }
+  else
+  {
+	  ti_lib_int_pend_clear(INT_RF_CPE0);
+	  ti_lib_int_pend_clear(INT_RF_CPE1);
+	  ti_lib_int_enable(INT_RF_CPE0);
+	  ti_lib_int_enable(INT_RF_CPE1);
+  }
+}
+/*---------------------------------------------------------------------------*/
+/* Enable or disable CCA before sending */
+static void
+set_send_on_cca(uint8_t enable)
+{
+  send_on_cca = enable;
+}
 /**
  * @}
  * @}
