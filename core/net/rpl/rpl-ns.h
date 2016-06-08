@@ -58,11 +58,11 @@ typedef struct rpl_ns_node {
   struct rpl_ns_node *parent;
 } rpl_ns_node_t;
 
-int rpl_ns_num_nodes();
+int rpl_ns_num_nodes(void);
 void rpl_ns_expire_parent(rpl_dag_t *dag, const uip_ipaddr_t *child, const uip_ipaddr_t *parent);
 rpl_ns_node_t *rpl_ns_update_node(rpl_dag_t *dag, const uip_ipaddr_t *child, const uip_ipaddr_t *parent, uint32_t lifetime);
-void rpl_ns_init();
-rpl_ns_node_t *rpl_ns_node_head();
+void rpl_ns_init(void);
+rpl_ns_node_t *rpl_ns_node_head(void);
 rpl_ns_node_t *rpl_ns_node_next(rpl_ns_node_t *item);
 rpl_ns_node_t *rpl_ns_get_node(const rpl_dag_t *dag, const uip_ipaddr_t *addr);
 int rpl_ns_is_node_reachable(const rpl_dag_t *dag, const uip_ipaddr_t *addr);
