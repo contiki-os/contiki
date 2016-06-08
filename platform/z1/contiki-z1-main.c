@@ -222,7 +222,7 @@ main(int argc, char **argv)
 #ifdef SERIALNUM
     if(!node_id) {
       PRINTF("Node id is not set, using Z1 product ID\n");
-      node_id = SERIALNUM;
+      node_id = 0xABCD;
     }
 #endif
     node_mac[0] = 0xc1;  /* Hardcoded for Z1 */
@@ -297,7 +297,7 @@ main(int argc, char **argv)
   leds_off(LEDS_ALL);
 
 #ifdef SERIALNUM
-  PRINTF("Ref ID: %u\n", SERIALNUM);
+  PRINTF("Ref ID: %u\n", 0xABCD);
 #endif
   PRINTF(CONTIKI_VERSION_STRING " started. ");
 
