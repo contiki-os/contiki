@@ -65,7 +65,7 @@ MEMB(nodememb, rpl_ns_node_t, RPL_NS_LINK_NUM);
 
 /*---------------------------------------------------------------------------*/
 int
-rpl_ns_num_nodes()
+rpl_ns_num_nodes(void)
 {
   return num_nodes;
 }
@@ -154,19 +154,21 @@ rpl_ns_update_node(rpl_dag_t *dag, const uip_ipaddr_t *child, const uip_ipaddr_t
 }
 /*---------------------------------------------------------------------------*/
 void
-rpl_ns_init()
+rpl_ns_init(void)
 {
   num_nodes = 0;
   memb_init(&nodememb);
   list_init(nodelist);
 }
 /*---------------------------------------------------------------------------*/
-rpl_ns_node_t *rpl_ns_node_head()
+rpl_ns_node_t *
+rpl_ns_node_head(void)
 {
   return list_head(nodelist);
 }
 /*---------------------------------------------------------------------------*/
-rpl_ns_node_t *rpl_ns_node_next(rpl_ns_node_t *item)
+rpl_ns_node_t *
+rpl_ns_node_next(rpl_ns_node_t *item)
 {
   return list_item_next(item);
 }
@@ -181,7 +183,7 @@ rpl_ns_get_node_global_addr(uip_ipaddr_t *addr, rpl_ns_node_t *node)
 }
 /*---------------------------------------------------------------------------*/
 void
-rpl_ns_periodic()
+rpl_ns_periodic(void)
 {
   rpl_ns_node_t *l;
   /* First pass, decrement lifetime for all nodes with non-infinite lifetime */
