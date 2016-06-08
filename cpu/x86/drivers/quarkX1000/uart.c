@@ -32,8 +32,8 @@
 #include "uart-16x50.h"
 #include <assert.h>
 
-static uart_16x50_driver_t quarkX1000_uart0;
-static uart_16x50_driver_t quarkX1000_uart1;
+PROT_DOMAINS_ALLOC(uart_16x50_driver_t, quarkX1000_uart0);
+PROT_DOMAINS_ALLOC(uart_16x50_driver_t, quarkX1000_uart1);
 
 /* Divisor setting for 115200 baud from section 18.2.2 of Intel Quark SoC
  * X1000 Datasheet.
@@ -49,6 +49,7 @@ void
 quarkX1000_uart_init(quarkX1000_uart_dev_t dev)
 {
   pci_config_addr_t pci_addr;
+  uart_16x50_driver_t ATTR_KERN_ADDR_SPACE *drv;
 
   assert((dev == QUARK_X1000_UART_0) || (dev == QUARK_X1000_UART_1));
 
@@ -59,7 +60,14 @@ quarkX1000_uart_init(quarkX1000_uart_dev_t dev)
   pci_addr.func = (dev == QUARK_X1000_UART_0) ? 1 : 5;
   pci_addr.reg_off = PCI_CONFIG_REG_BAR0;
 
-  uart_16x50_init((dev == QUARK_X1000_UART_0) ? &quarkX1000_uart0 : &quarkX1000_uart1, pci_addr, QUARK_X1000_UART_DL_115200);
+  if(dev == QUARK_X1000_UART_0) {
+    drv = &quarkX1000_uart0;
+    PROT_DOMAINS_INIT_ID(quarkX1000_uart0);
+  } else {
+    drv = &quarkX1000_uart1;
+    PROT_DOMAINS_INIT_ID(quarkX1000_uart1);
+  }
+  uart_16x50_init(drv, pci_addr, QUARK_X1000_UART_DL_115200);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -70,7 +78,11 @@ quarkX1000_uart_init(quarkX1000_uart_dev_t dev)
 void
 quarkX1000_uart_tx(quarkX1000_uart_dev_t dev, uint8_t c)
 {
+  uart_16x50_driver_t drv;
   assert((dev == QUARK_X1000_UART_0) || (dev == QUARK_X1000_UART_1));
-  uart_16x50_tx((dev == QUARK_X1000_UART_0) ? quarkX1000_uart0 : quarkX1000_uart1, c);
+  prot_domains_copy_dcd(&drv,
+                        (dev == QUARK_X1000_UART_0) ?
+                          &quarkX1000_uart0 : &quarkX1000_uart1);
+  uart_16x50_tx(drv, c);
 }
 /*---------------------------------------------------------------------------*/

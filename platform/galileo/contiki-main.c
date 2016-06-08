@@ -33,12 +33,17 @@
 #include "contiki.h"
 #include "contiki-net.h"
 #include "cpu.h"
+#include "eth.h"
 #include "eth-conf.h"
 #include "galileo-pinmux.h"
 #include "gpio.h"
+#include "helpers.h"
 #include "i2c.h"
 #include "imr-conf.h"
 #include "interrupt.h"
+#include "irq.h"
+#include "pci.h"
+#include "prot-domains.h"
 #include "shared-isr.h"
 #include "uart.h"
 
@@ -49,30 +54,13 @@ PROCINIT(  &etimer_process
 #endif
          );
 
-int
-main(void)
+extern int _sdata_kern_startup_func, _edata_kern_startup_func;
+
+/*---------------------------------------------------------------------------*/
+void
+app_main(void)
 {
-  cpu_init();
-#ifdef X86_CONF_RESTRICT_DMA
-  quarkX1000_imr_conf();
-#endif
-  /* Initialize UART connected to Galileo Gen2 FTDI header */
-  quarkX1000_uart_init(QUARK_X1000_UART_1);
-  clock_init();
-  rtimer_init();
-
   printf("Starting Contiki\n");
-
-  quarkX1000_i2c_init();
-  quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED_STANDARD,
-                           QUARKX1000_I2C_ADDR_MODE_7BIT);
-  /* use default pinmux configuration */
-  if(galileo_pinmux_initialize() < 0) {
-    fprintf(stderr, "Failed to initialize pinmux\n");
-  }
-  quarkX1000_gpio_init();
-
-  ENABLE_IRQ();
 
   process_init();
   procinit_init();
@@ -81,11 +69,54 @@ main(void)
 
   eth_init();
 
-  shared_isr_init();
-
   while(1) {
     process_run();
   }
 
+  halt();
+}
+/*---------------------------------------------------------------------------*/
+/* Kernel entrypoint */
+int
+main(void)
+{
+  uintptr_t *func_ptr;
+
+#ifdef X86_CONF_RESTRICT_DMA
+  quarkX1000_imr_conf();
+#endif
+  irq_init();
+  /* Initialize UART connected to Galileo Gen2 FTDI header */
+  quarkX1000_uart_init(QUARK_X1000_UART_1);
+  clock_init();
+  rtimer_init();
+
+  pci_root_complex_init();
+  quarkX1000_eth_init();
+  quarkX1000_i2c_init();
+  quarkX1000_i2c_configure(QUARKX1000_I2C_SPEED_STANDARD,
+                           QUARKX1000_I2C_ADDR_MODE_7BIT);
+  /* use default pinmux configuration */
+  if(galileo_pinmux_initialize() < 0) {
+    fprintf(stderr, "Failed to initialize pinmux\n");
+  }
+  quarkX1000_gpio_init();
+  shared_isr_init();
+
+  /* The ability to remap interrupts is not needed after this point and should
+   * thus be disabled according to the principle of least privilege.
+   */
+  pci_root_complex_lock();
+
+  func_ptr = (uintptr_t *)&_sdata_kern_startup_func;
+  while(func_ptr != (uintptr_t *)&_edata_kern_startup_func) {
+    ((void (*)(void))*func_ptr)();
+
+    func_ptr++;
+  }
+
+  prot_domains_leave_main();
+
   return 0;
 }
+/*---------------------------------------------------------------------------*/

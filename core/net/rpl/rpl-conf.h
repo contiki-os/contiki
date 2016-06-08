@@ -45,30 +45,51 @@
 #define RPL_CONF_STATS 0
 #endif /* RPL_CONF_STATS */
 
-/* 
- * Select routing metric supported at runtime. This must be a valid
- * DAG Metric Container Object Type (see below). Currently, we only 
- * support RPL_DAG_MC_ETX and RPL_DAG_MC_ENERGY.
- * When MRHOF (RFC6719) is used with ETX, no metric container must
- * be used; instead the rank carries ETX directly.
+/*
+ * The objective function (OF) used by a RPL root is configurable through
+ * the RPL_CONF_OF_OCP parameter. This is defined as the objective code
+ * point (OCP) of the OF, RPL_OCP_OF0 or RPL_OCP_MRHOF. This flag is of
+ * no relevance to non-root nodes, which run the OF advertised in the
+ * instance they join.
+ * Make sure the selected of is inRPL_SUPPORTED_OFS.
  */
+#ifdef RPL_CONF_OF_OCP
+#define RPL_OF_OCP RPL_CONF_OF_OCP
+#else /* RPL_CONF_OF_OCP */
+#define RPL_OF_OCP RPL_OCP_MRHOF
+#endif /* RPL_CONF_OF_OCP */
+
+/*
+ * The set of objective functions supported at runtime. Nodes are only
+ * able to join instances that advertise an OF in this set. To include
+ * both OF0 and MRHOF, use {&rpl_of0, &rpl_mrhof}.
+ */
+#ifdef RPL_CONF_SUPPORTED_OFS
+#define RPL_SUPPORTED_OFS RPL_CONF_SUPPORTED_OFS
+#else /* RPL_CONF_SUPPORTED_OFS */
+#define RPL_SUPPORTED_OFS {&rpl_mrhof}
+#endif /* RPL_CONF_SUPPORTED_OFS */
+
+/*
+ * Enable/disable RPL Metric Containers (MC). The actual MC in use
+ * for a given DODAG is decided at runtime, when joining. Note that
+ * OF0 (RFC6552) operates without MC, and so does MRHOF (RFC6719) when
+ * used with ETX as a metric (the rank is the metric). We disable MC
+ * by default, but note it must be enabled to support joining a DODAG
+ * that requires MC (e.g., MRHOF with a metric other than ETX).
+ */
+#ifdef RPL_CONF_WITH_MC
+#define RPL_WITH_MC RPL_CONF_WITH_MC
+#else /* RPL_CONF_WITH_MC */
+#define RPL_WITH_MC 0
+#endif /* RPL_CONF_WITH_MC */
+
+/* The MC advertised in DIOs and propagating from the root */
 #ifdef RPL_CONF_DAG_MC
 #define RPL_DAG_MC RPL_CONF_DAG_MC
 #else
 #define RPL_DAG_MC RPL_DAG_MC_NONE
 #endif /* RPL_CONF_DAG_MC */
-
-/*
- * The objective function used by RPL is configurable through the 
- * RPL_CONF_OF parameter. This should be defined to be the name of an 
- * rpl_of object linked into the system image, e.g., rpl_of0.
- */
-#ifdef RPL_CONF_OF
-#define RPL_OF RPL_CONF_OF
-#else
-/* ETX is the default objective function. */
-#define RPL_OF rpl_mrhof
-#endif /* RPL_CONF_OF */
 
 /* This value decides which DAG instance we should participate in by default. */
 #ifdef RPL_CONF_DEFAULT_INSTANCE
@@ -187,15 +208,6 @@
 #endif
 
 /*
- * Initial metric attributed to a link when the ETX is unknown
- */
-#ifndef RPL_CONF_INIT_LINK_METRIC
-#define RPL_INIT_LINK_METRIC        2
-#else
-#define RPL_INIT_LINK_METRIC        RPL_CONF_INIT_LINK_METRIC
-#endif
-
-/*
  * Default route lifetime unit. This is the granularity of time
  * used in RPL lifetime values, in seconds.
  */
@@ -288,21 +300,12 @@
 #endif
 
 /*
- * RPL probing expiration time.
- */
-#ifdef RPL_CONF_PROBING_EXPIRATION_TIME
-#define RPL_PROBING_EXPIRATION_TIME RPL_CONF_PROBING_EXPIRATION_TIME
-#else
-#define RPL_PROBING_EXPIRATION_TIME (10 * 60 * CLOCK_SECOND)
-#endif
-
-/*
  * Function used to select the next parent to be probed.
  */
 #ifdef RPL_CONF_PROBING_SELECT_FUNC
 #define RPL_PROBING_SELECT_FUNC RPL_CONF_PROBING_SELECT_FUNC
 #else
-#define RPL_PROBING_SELECT_FUNC(dag) get_probing_target((dag))
+#define RPL_PROBING_SELECT_FUNC get_probing_target
 #endif
 
 /*
@@ -325,8 +328,7 @@
 #ifdef RPL_CONF_PROBING_DELAY_FUNC
 #define RPL_PROBING_DELAY_FUNC RPL_CONF_PROBING_DELAY_FUNC
 #else
-#define RPL_PROBING_DELAY_FUNC() ((RPL_PROBING_INTERVAL / 2) \
-    + random_rand() % (RPL_PROBING_INTERVAL))
+#define RPL_PROBING_DELAY_FUNC get_probing_delay
 #endif
 
 /*

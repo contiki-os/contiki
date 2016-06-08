@@ -93,6 +93,17 @@ Intel Quark X1000 SoC Isolated Memory Regions (IMRs), the Host System
 Management Mode Controls register, and the Host Memory I/O Boundary
 register.
 
+Protection Domains
+------------------
+
+### Protection Domain Switch Latency (EXAMPLE=prot-domain-switch-latency)
+
+This application measures and prints the average latency of repeatedly
+switching from one protection domain to another and back, in ping-pong
+fashion.  It can optionally perform memory accesses to metadata
+associated with the destination protection domain.  This feature can
+be enabled by specifying SAMPLE_METADATA=1 on the build command line.
+
 References
 ----------
 

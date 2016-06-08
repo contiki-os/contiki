@@ -46,6 +46,7 @@
 #include "lpm.h"
 #include "sys/energest.h"
 #include "lib/list.h"
+#include "dev/aux-ctrl.h"
 #include "dev/leds.h"
 #include "dev/watchdog.h"
 #include "dev/soc-rtc.h"
@@ -53,6 +54,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 /*---------------------------------------------------------------------------*/
 #if ENERGEST_CONF_ON
 static unsigned long irq_energest = 0;
@@ -90,8 +92,8 @@ lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
 {
   lpm_registered_module_t *module;
   int i;
-  uint32_t io_cfg = (IOC_STD_INPUT & ~IOC_IOPULL_M) | io_pull |
-    wake_on;
+  uint32_t io_cfg = (IOC_STD_INPUT & ~IOC_IOPULL_M) | io_pull | wake_on;
+  aux_consumer_module_t aux = { .clocks = AUX_WUC_OSCCTRL_CLOCK };
 
   /* This procedure may not be interrupted */
   ti_lib_int_master_disable();
@@ -135,16 +137,16 @@ lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
   ti_lib_prcm_power_domain_off(PRCM_DOMAIN_RFCORE | PRCM_DOMAIN_SERIAL |
                                PRCM_DOMAIN_PERIPH);
 
+  /* Register an aux-ctrl consumer to avoid powercycling AUX twice in a row */
+  aux_ctrl_register_consumer(&aux);
   oscillators_switch_to_hf_rc();
   oscillators_select_lf_rcosc();
 
-  /* Configure clock sources for MCU and AUX: No clock */
+  /* Configure clock sources for MCU: No clock */
   ti_lib_aon_wuc_mcu_power_down_config(AONWUC_NO_CLOCK);
-  ti_lib_aon_wuc_aux_power_down_config(AONWUC_NO_CLOCK);
 
-  /* Disable SRAM and AUX retentions */
+  /* Disable SRAM retention */
   ti_lib_aon_wuc_mcu_sram_config(0);
-  ti_lib_aon_wuc_aux_sram_config(false);
 
   /*
    * Request CPU, SYSBYS and VIMS PD off.
@@ -157,9 +159,8 @@ lpm_shutdown(uint32_t wakeup_pin, uint32_t io_pull, uint32_t wake_on)
   ti_lib_aon_wuc_jtag_power_off();
 
   /* Turn off AUX */
-  ti_lib_aux_wuc_power_ctrl(AUX_WUC_POWER_OFF);
+  aux_ctrl_power_down(true);
   ti_lib_aon_wuc_domain_power_down_enable();
-  while(ti_lib_aon_wuc_power_status_get() & AONWUC_AUX_POWER_ON);
 
   /*
    * Request MCU VD power off.
@@ -221,6 +222,9 @@ wake_up(void)
 
   /* Check operating conditions, optimally choose DCDC versus GLDO */
   ti_lib_sys_ctrl_dcdc_voltage_conditional_control();
+
+  /* Fire up AUX is the user has requested this */
+  aux_ctrl_power_up();
 
   /*
    * We may or may not have been woken up by an AON RTC tick. If not, we need
@@ -306,16 +310,15 @@ deep_sleep(void)
    */
   oscillators_switch_to_hf_rc();
 
-  /* Configure clock sources for MCU and AUX: No clock */
+  /* Shut Down the AUX if the user application is not using it */
+  aux_ctrl_power_down(false);
+
+  /* Configure clock sources for MCU: No clock */
   ti_lib_aon_wuc_mcu_power_down_config(AONWUC_NO_CLOCK);
-  ti_lib_aon_wuc_aux_power_down_config(AONWUC_NO_CLOCK);
 
   /* Full RAM retention. */
   ti_lib_aon_wuc_mcu_sram_config(MCU_RAM0_RETENTION | MCU_RAM1_RETENTION |
                                  MCU_RAM2_RETENTION | MCU_RAM3_RETENTION);
-
-  /* Disable retention of AUX RAM */
-  ti_lib_aon_wuc_aux_sram_config(false);
 
   /*
    * Always turn off RFCORE, CPU, SYSBUS and VIMS. RFCORE should be off
@@ -327,10 +330,8 @@ deep_sleep(void)
   /* Request JTAG domain power off */
   ti_lib_aon_wuc_jtag_power_off();
 
-  /* Turn off AUX */
-  ti_lib_aux_wuc_power_ctrl(AUX_WUC_POWER_OFF);
+  /* Allow MCU and AUX powerdown */
   ti_lib_aon_wuc_domain_power_down_enable();
-  while(ti_lib_aon_wuc_power_status_get() & AONWUC_AUX_POWER_ON);
 
   /* Configure the recharge controller */
   ti_lib_sys_ctrl_set_recharge_before_power_down(XOSC_IN_HIGH_POWER_MODE);

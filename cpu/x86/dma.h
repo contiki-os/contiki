@@ -31,10 +31,18 @@
 #ifndef CPU_X86_DMA_H_
 #define CPU_X86_DMA_H_
 
+#include "prot-domains.h"
+
 #ifdef X86_CONF_RESTRICT_DMA
 #define ATTR_BSS_DMA __attribute__((section(".dma_bss")))
 #else
+#if X86_CONF_PROT_DOMAINS == X86_CONF_PROT_DOMAINS__NONE
 #define ATTR_BSS_DMA
+#else
+#define ATTR_BSS_DMA ATTR_BSS_META
 #endif
+#endif
+
+extern int _ebss_pre_dma_addr, _sbss_dma_addr, _ebss_dma_addr;
 
 #endif /* CPU_X86_DMA_H_ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015, Intel Corporation. All rights reserved.
+ * Copyright (C) 2015-2016, Intel Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,7 +29,6 @@
  */
 
 #include "eth-conf.h"
-#include "eth.h"
 #include "net/eth-proc.h"
 #include "contiki-net.h"
 #include "net/linkaddr.h"
@@ -45,6 +44,7 @@ const linkaddr_t linkaddr_null = { { 0, 0, 0, 0, 0, 0 } };
 #define NAMESERVER_IP   GATEWAY_IP
 #endif
 
+/*---------------------------------------------------------------------------*/
 void
 eth_init(void)
 {
@@ -69,7 +69,6 @@ eth_init(void)
 #endif
 #endif
 
-  quarkX1000_eth_init();
-
   process_start(&eth_process, NULL);
 }
+/*---------------------------------------------------------------------------*/

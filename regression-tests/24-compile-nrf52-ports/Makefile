@@ -11,7 +11,8 @@ hello-world/nrf52dk \
 nrf52dk/coap-demo/nrf52dk:coap-server \
 nrf52dk/coap-demo/nrf52dk:coap-client:SERVER_IPV6_ADDR=ffff \
 nrf52dk/mqtt-demo/nrf52dk \
-nrf52dk/blink-hello/nrf52dk
+nrf52dk/blink-hello/nrf52dk \
+nrf52dk/timer-test/nrf52dk
 
 TOOLS=
 

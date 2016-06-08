@@ -46,6 +46,16 @@
 #include <string.h>
 /*---------------------------------------------------------------------------*/
 static void
+lpm_handler(uint8_t mode)
+{
+  /* Ambient light sensor (off, output low) */
+  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ALS_PWR);
+  ti_lib_gpio_pin_write(BOARD_ALS_PWR, 0);
+  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_ALS_OUT);
+  ti_lib_ioc_io_port_pull_set(BOARD_IOID_ALS_OUT, IOC_NO_IOPULL);
+}
+/*---------------------------------------------------------------------------*/
+static void
 wakeup_handler(void)
 {
   /* Turn on the PERIPH PD */
@@ -60,7 +70,7 @@ wakeup_handler(void)
  * getting notified before deep sleep. All we need is to be notified when we
  * wake up so we can turn power domains back on
  */
-LPM_MODULE(srf_module, NULL, NULL, wakeup_handler, LPM_DOMAIN_NONE);
+LPM_MODULE(srf_module, NULL, lpm_handler, wakeup_handler, LPM_DOMAIN_NONE);
 /*---------------------------------------------------------------------------*/
 static void
 configure_unused_pins(void)
@@ -72,12 +82,6 @@ configure_unused_pins(void)
   /* Accelerometer (PWR output low, CSn output, high) */
   ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ACC_PWR);
   ti_lib_gpio_pin_write(BOARD_ACC_PWR, 0);
-
-  /* Ambient light sensor (off, output low) */
-  ti_lib_ioc_pin_type_gpio_output(BOARD_IOID_ALS_PWR);
-  ti_lib_gpio_pin_write(BOARD_ALS_PWR, 0);
-  ti_lib_ioc_pin_type_gpio_input(BOARD_IOID_ALS_OUT);
-  ti_lib_ioc_io_port_pull_set(BOARD_IOID_ALS_OUT, IOC_NO_IOPULL);
 }
 /*---------------------------------------------------------------------------*/
 void

@@ -207,7 +207,7 @@ setregbank(uint8_t new_bank)
 }
 /*---------------------------------------------------------------------------*/
 static void
-writedata(uint8_t *data, int datalen)
+writedata(const uint8_t *data, int datalen)
 {
   int i;
   enc28j60_arch_spi_select();
@@ -477,7 +477,7 @@ reset(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-enc28j60_init(uint8_t *mac_addr)
+enc28j60_init(const uint8_t *mac_addr)
 {
   if(initialized) {
     return;
@@ -496,7 +496,7 @@ enc28j60_init(uint8_t *mac_addr)
 }
 /*---------------------------------------------------------------------------*/
 int
-enc28j60_send(uint8_t *data, uint16_t datalen)
+enc28j60_send(const uint8_t *data, uint16_t datalen)
 {
   uint16_t dataend;
 

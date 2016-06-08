@@ -62,6 +62,7 @@
 
 #include "contiki.h"
 #include "dev/watchdog.h"
+#include "net/link-stats.h"
 #include "net/ip/tcpip.h"
 #include "net/ip/uip.h"
 #include "net/ipv6/uip-ds6.h"
@@ -1515,6 +1516,9 @@ input(void)
   uint16_t frag_tag = 0;
   uint8_t first_fragment = 0, last_fragment = 0;
 #endif /*SICSLOWPAN_CONF_FRAG*/
+
+  /* Update link statistics */
+  link_stats_input_callback(packetbuf_addr(PACKETBUF_ADDR_SENDER));
 
   /* init */
   uncomp_hdr_len = 0;
