@@ -65,10 +65,13 @@ extern int
 overwrite_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata );
 
 extern int
+verify_current_firmware( OTAMetadata_t *current_firmware_metadata );
+
+extern int
 verify_ota_slot( uint8_t ota_slot );
 
 extern bool
-validate_ota_slot( OTAMetadata_t *metadata );
+validate_ota_metadata( OTAMetadata_t *metadata );
 
 extern int
 find_matching_ota_slot( uint16_t version );

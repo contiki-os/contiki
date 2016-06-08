@@ -213,6 +213,56 @@ overwrite_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata 
 }
 
 /*******************************************************************************
+ * @fn      verify_current_firmware
+ *
+ * @brief   Rerun the CRC16 algorithm over the contents of internal flash.
+ *
+ * @return  0 for success or error code
+ */
+int
+verify_current_firmware( OTAMetadata_t *current_firmware_metadata )
+{
+  PRINTF("Recomputing CRC16 on internal flash image within range [0x2000, 0x1B000).\n");
+
+  //  (1) Determine the external flash address corresponding to the OTA slot
+  uint32_t firmware_address = 0x2000 + OTA_METADATA_SPACE;
+  uint32_t firmware_end_address = firmware_address + (current_firmware_metadata->size);
+
+  //  (3) Compute the CRC16 over the entire image
+  uint16_t imageCRC = 0;
+
+  //  (4) Read the firmware image, one word at a time
+  int idx;
+  while (firmware_address < firmware_end_address) {
+    uint8_t _word[4];
+
+    FlashRead( _word, firmware_address, 4 );
+    for (idx = 0; idx < 4; idx++)
+    {
+      //printf("%#x ", _word[idx]);
+      imageCRC = crc16(imageCRC, _word[idx]);
+    }
+    firmware_address += 4; // move 4 bytes forward
+    //printf("\t=>%#x\n", imageCRC);
+  }
+
+  //  (5) Compute two more CRC iterations using value of 0
+  imageCRC = crc16(imageCRC, 0);
+  imageCRC = crc16(imageCRC, 0);
+
+  printf("CRC Calculated: %#x\n", imageCRC);
+
+  //  (6) Update the CRC shadow with our newly calculated value
+  current_firmware_metadata->crc_shadow = imageCRC;
+
+  //  (4) Finally, update Metadata stored in ext-flash
+  while(  FlashProgram( (uint8_t *)current_firmware_metadata, (CURRENT_FIRMWARE<<12), OTA_METADATA_LENGTH )
+  != FAPI_STATUS_SUCCESS );
+
+  return 0;
+}
+
+/*******************************************************************************
  * @fn      verify_ota_slot
  *
  * @brief   Given an OTA slot, verify the firmware content against the metadata.
@@ -293,7 +343,7 @@ verify_ota_slot( uint8_t ota_slot )
 }
 
 /*******************************************************************************
- * @fn      validate_ota_slot
+ * @fn      validate_ota_metadata
  *
  * @brief   Returns true only if the metadata provided indicates the OTA slot
  *          is populated and valid.
@@ -301,7 +351,7 @@ verify_ota_slot( uint8_t ota_slot )
  * @return  True if the OTA slot is populated and valid.  Otherwise, false.
  */
 bool
-validate_ota_slot( OTAMetadata_t *metadata )
+validate_ota_metadata( OTAMetadata_t *metadata )
 {
   //  (1) Is the OTA slot erased?
   //      First, we check to see if every byte in the metadata is 0xFF.
@@ -355,7 +405,7 @@ find_matching_ota_slot( uint16_t version )
     while( get_ota_slot_metadata( slot, &ota_slot_metadata ) );
 
     //  (2) Is this slot empty? If yes, skip.
-    if ( validate_ota_slot( &ota_slot_metadata ) == false ) {
+    if ( validate_ota_metadata( &ota_slot_metadata ) == false ) {
       continue;
     }
 
@@ -395,7 +445,7 @@ find_empty_ota_slot()
     while( get_ota_slot_metadata( slot, &ota_slot_metadata ) );
 
     //  (2) Is this slot invalid? If yes, let's treat it as empty.
-    if ( validate_ota_slot( &ota_slot_metadata ) == false ) {
+    if ( validate_ota_metadata( &ota_slot_metadata ) == false ) {
       return slot;
     }
   }
@@ -429,7 +479,7 @@ find_oldest_ota_image()
     while( get_ota_slot_metadata( slot, &ota_slot_metadata ) );
 
     //  (3) Is this slot populated? If not, skip.
-    if ( validate_ota_slot( &ota_slot_metadata) == false ) {
+    if ( validate_ota_metadata( &ota_slot_metadata) == false ) {
       continue;
     }
 
@@ -472,7 +522,7 @@ find_newest_ota_image()
     while( get_ota_slot_metadata( slot, &ota_slot_metadata ) );
 
     //  (2) Is this slot populated? If not, skip.
-    if ( validate_ota_slot( &ota_slot_metadata) == false ) {
+    if ( validate_ota_metadata( &ota_slot_metadata) == false ) {
       continue;
     }
 
