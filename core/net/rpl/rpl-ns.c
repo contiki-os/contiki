@@ -122,6 +122,7 @@ rpl_ns_update_node(rpl_dag_t *dag, const uip_ipaddr_t *child, const uip_ipaddr_t
 {
   rpl_ns_node_t *child_node = rpl_ns_get_node(dag, child);
   rpl_ns_node_t *parent_node = rpl_ns_get_node(dag, parent);
+  rpl_ns_node_t *old_parent_node;
 
   if(parent != NULL) {
     /* No node for the parent, add one with infinite lifetime */
@@ -140,6 +141,7 @@ rpl_ns_update_node(rpl_dag_t *dag, const uip_ipaddr_t *child, const uip_ipaddr_t
     if(child_node == NULL) {
       return NULL;
     }
+    child_node->parent = NULL;
     list_add(nodelist, child_node);
     num_nodes++;
   }
@@ -147,8 +149,23 @@ rpl_ns_update_node(rpl_dag_t *dag, const uip_ipaddr_t *child, const uip_ipaddr_t
   /* Initialize node */
   child_node->dag = dag;
   child_node->lifetime = lifetime;
-  child_node->parent = parent_node;
   memcpy(child_node->link_identifier, ((const unsigned char *)child) + 8, 8);
+
+  /* Is the node reachable before the update? */
+  if(rpl_ns_is_node_reachable(dag, child)) {
+    old_parent_node = child_node->parent;
+    /* Update node */
+    child_node->parent = parent_node;
+    /* Has the node become unreachable? May happen if we create a loop. */
+    if(!rpl_ns_is_node_reachable(dag, child)) {
+      /* The new parent makes the node unreachable, restore old parent.
+       * We will take the update next time, with chances we know more of
+       * the topology and the loop is gone. */
+      child_node->parent = old_parent_node;
+    }
+  } else {
+    child_node->parent = parent_node;
+  }
 
   return child_node;
 }
