@@ -49,47 +49,33 @@ main(void)
   uint8_t newest_ota_slot = find_newest_ota_image();
   OTAMetadata_t newest_firmware;
   while( get_ota_slot_metadata( newest_ota_slot, &newest_firmware ) );
+
+  //  (3) If there's a newer image, install that version!
+  if ( ( newest_ota_slot > 0 ) && (newest_firmware.version > current_firmware.version) ) {
+    update_firmware( newest_ota_slot );
+    get_current_metadata( &current_firmware ); // update the current firmware metadata!
+  }
+
+  //  (4) Verify the current firmware! (Recompute the CRC over the internal flash image)
+  verify_current_firmware( &current_firmware );
+
+  //  (5) If the current image is valid, jump to it.
+  if ( validate_ota_metadata( &current_firmware ) ) {
+    jump_to_image( (CURRENT_FIRMWARE<<12) );
+  }
+
+  //  (6) If we've gotten here, something's wrong.  Install the latest valid firmware!
+  //      We no longer care if it's newer than what we have now, because we assume it is
+  //      invalid data.
+  update_firmware( newest_ota_slot );
+  ti_lib_sys_ctrl_system_reset(); // reboot
+
 /*
   erase_ota_image( 1 );
   erase_ota_image( 2 );
   erase_ota_image( 3 );
   return 0;
 */
-  uint32_t led_pin;
-  switch (newest_ota_slot)
-  {
-    case 1:
-      led_pin = IOID_27;
-      break;
-    case 2:
-      led_pin = IOID_7;
-      break;
-    case 3:
-      led_pin = IOID_6;
-      break;
-    default:
-      led_pin = IOID_25;
-      break;
-  }
-  GPIODirModeSet( (1 << led_pin), GPIO_DIR_MODE_OUT);
-  GPIOPinWrite( (1 << led_pin), true );
-
-  //  (3) Is the current firmware valid?
-  if ( validate_ota_slot( &current_firmware ) ) {
-    //  Great!  We have valid firmware!  But is there any newer firmware available?
-    if ( newest_ota_slot && (newest_firmware.version > current_firmware.version) ) {
-      update_firmware( newest_ota_slot );
-    }
-  } else {
-    //  We need to install some valid firmware!  We don't care if it's newer
-    //  than what we have, only that it's the newest option available in our
-    //  OTA download slots.
-    update_firmware( newest_ota_slot );
-  }
-
-  //  (4) Boot to the current firmware
-  jump_to_image( (CURRENT_FIRMWARE<<12) );
-
   //  This function should never return
   return 0;
 }
