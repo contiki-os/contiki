@@ -983,12 +983,14 @@ cc2420_read(void *buf, unsigned short bufsize)
          * RADIO_PARAM_LAST_RSSI and RADIO_PARAM_LAST_LINK_QUALITY */
         packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
         packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
+	packetbuf_set_attr(PACKETBUF_ATTR_CRC_OK, 1);
       }
 
       RIMESTATS_ADD(llrx);
     } else {
       RIMESTATS_ADD(badcrc);
       len = FOOTER_LEN;
+      packetbuf_set_attr(PACKETBUF_ATTR_CRC_OK, 0);
     }
 
     if(!poll_mode) {
