@@ -1606,7 +1606,6 @@ rf230_read(void *buf, unsigned short bufsize)
 #endif
 #endif
 
-  packetbuf_set_attr32(PACKETBUF_ATTR_TIMESTAMP, t.time);
 #if RF230_CONF_CHECKSUM
   packetbuf_set_attr(PACKETBUF_ATTR_CRC_OK, footer[1] & FOOTER1_CRC_OK);
 #else
