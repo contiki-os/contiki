@@ -6,6 +6,8 @@ The OTA system depends on compiling two separate binaries, which are both placed
 *  A **bootloader**, which remains permanently fixed in the CC2650's flash.  It manages, verifies, and repairs the CC2650 firmware but is never overwritten.
 *  The actual **OTA image**, which is your Contiki application.  This will change in the future as you compile and release new versions.  The very first OTA image is actually flashed manually from a .bin file.
 
+You can also read my [article on OTA](http://marksolters.com/programming/2016/06/07/contiki-ota.html) for more detail about this example.
+
 ## Quick Start
 Please note that there are a handful of changes made to the Contiki tree outside of this example folder.  You cannot simply copy this example into the vanilla Contiki tree.  You must clone this fork and and compile using it.
 
