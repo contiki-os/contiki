@@ -272,7 +272,7 @@ static void inputPacket(void)
     s = &stats[currentStatsIdx];
     
     /* sender and channel is  "key" */
-    if (h->sender != s->node_id || h->channel != s->channel || h->txpower != s->txpower) {
+    if ((crc8(h, sizeof(*h)) == 0) && (h->sender != s->node_id || h->channel != s->channel || h->txpower != s->txpower)) {
         findIdx = -1;
         lastIdx = -1;
         for (i=0; i<STAT_SIZE; i++) {
