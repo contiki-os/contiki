@@ -78,7 +78,7 @@ rpl_verify_hbh_header(int uip_ext_opt_offset)
   uip_ds6_route_t *route;
   rpl_parent_t *sender = NULL;
 
-  if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
+  if(UIP_HBHO_BUF->len != ((RPL_HOP_BY_HOP_LEN - 8) / 8)) {
     PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
     return 1;
   }
@@ -492,7 +492,7 @@ update_hbh_header(void)
 
   switch(UIP_IP_BUF->proto) {
   case UIP_PROTO_HBHO:
-    if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
+    if(UIP_HBHO_BUF->len != ((RPL_HOP_BY_HOP_LEN - 8) / 8)) {
       PRINTF("RPL: Hop-by-hop extension header has wrong size\n");
       uip_ext_len = last_uip_ext_len;
       return 1;
@@ -604,7 +604,7 @@ insert_hbh_header(void)
   UIP_EXT_HDR_OPT_RPL_BUF->senderrank = 0;
   uip_len += RPL_HOP_BY_HOP_LEN;
   temp_len = UIP_IP_BUF->len[1];
-  UIP_IP_BUF->len[1] += UIP_HBHO_BUF->len + 8;
+  UIP_IP_BUF->len[1] += RPL_HOP_BY_HOP_LEN;
   if(UIP_IP_BUF->len[1] < temp_len) {
     UIP_IP_BUF->len[0]++;
   }
@@ -625,7 +625,7 @@ rpl_finalize_header(uip_ipaddr_t *addr)
   uip_ext_opt_offset = 2;
 
   if(UIP_IP_BUF->proto == UIP_PROTO_HBHO) {
-    if(UIP_HBHO_BUF->len != RPL_HOP_BY_HOP_LEN - 8) {
+    if(UIP_HBHO_BUF->len != ((RPL_HOP_BY_HOP_LEN - 8) / 8)) {
       PRINTF("RPL: Non RPL Hop-by-hop options support not implemented\n");
       uip_ext_len = last_uip_ext_len;
       return 1;
