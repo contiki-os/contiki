@@ -320,7 +320,10 @@ static void inputPacket(void)
     /* error analysis */
     
     uint8_t length = packetbuf_totlen();
-    
+    /* Temp fix length check */
+#if CONTIKI_TARGET_Z1 || CONTIKI_TARGET_SKY    
+    length -= 5;
+#endif
     if (length != TEST_PACKET_SIZE) {
 #if DEBUG
         printf("rcvd length=%d\n", length);
