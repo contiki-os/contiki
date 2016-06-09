@@ -11,6 +11,17 @@ This bootloader is made to be as simple as it can be.  There's only a few things
 ## Compiling
 In order to strip away everything that wasn't strictly necessary, this bootloader does not compile through Contiki's master `Makefile.include`.  It has an independent `Makefile` which only depends on TI's cc26xxware (located under `/cpu/cc26xx-cc13xx/`), as well as its own linker script `cc26xx.bootloader.ld`.
 
+The compiler has two optional flags.  They can be used together, alone, or not at all.
+
+```bash
+make bootloader.hex BURN_GOLDEN_IMAGE=1 CLEAR_OTA_SLOTS=1
+```
+
+Compiler Flag | Purpose
+---|---
+`BURN_GOLDEN_IMAGE=1` | The bootloader will copy the current firmware from internal flash and store it in OTA slot 0 before running any other code.  To flash firmware as the Golden Image, simply merge it with a bootloader thus configured.
+`CLEAR_OTA_SLOTS=1` | Use this flag if you want the bootloader to erase all OTA slots in external flash before running any other code.  This will not erase the Golden Image.
+
 ### Contiki Location
 Although the bootloader does not depend on any Contiki source code, it still must know where your Contiki directory is to find cc26xxware.  If you copy the `/bootloader` folder somewhere else in this Contiki tree, the bootloader's `Makefile` may not be able to find the correct relative location of the Contiki root directory.  To fix this, just modify the `CONTIKI` var inside the bootloader's `Makefile`:
 
