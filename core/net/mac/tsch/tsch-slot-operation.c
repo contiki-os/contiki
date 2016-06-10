@@ -563,12 +563,12 @@ PT_THREAD(tsch_tx_slot(struct pt *pt, struct rtimer *t))
               int ack_len;
               rtimer_clock_t ack_start_time;
               int is_time_source;
-              radio_value_t radio_rx_mode;
               struct ieee802154_ies ack_ies;
               uint8_t ack_hdrlen;
               frame802154_t frame;
 
 #if TSCH_HW_FRAME_FILTERING
+              radio_value_t radio_rx_mode;
               /* Entering promiscuous mode so that the radio accepts the enhanced ACK */
               NETSTACK_RADIO.get_value(RADIO_PARAM_RX_MODE, &radio_rx_mode);
               NETSTACK_RADIO.set_value(RADIO_PARAM_RX_MODE, radio_rx_mode & (~RADIO_RX_MODE_ADDRESS_FILTER));
