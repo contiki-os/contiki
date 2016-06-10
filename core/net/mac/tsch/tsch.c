@@ -45,6 +45,7 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "net/queuebuf.h"
+#include "net/nbr-table.h"
 #include "net/mac/framer-802154.h"
 #include "net/mac/tsch/tsch.h"
 #include "net/mac/tsch/tsch-slot-operation.h"
@@ -282,13 +283,13 @@ eb_input(struct input_packet *current_input)
 #if TSCH_AUTOSELECT_TIME_SOURCE
     if(!tsch_is_coordinator) {
       /* Maintain EB received counter for every neighbor */
-      struct eb_stat *stat = (struct eb_stat *)nbr_table_get_from_lladdr(eb_stats, &frame.src_addr);
+      struct eb_stat *stat = (struct eb_stat *)nbr_table_get_from_lladdr(eb_stats, (linkaddr_t *)&frame.src_addr);
       if(stat == NULL) {
-        stat = (struct eb_stat *)nbr_table_add_lladdr(eb_stats, &frame.src_addr);
+        stat = (struct eb_stat *)nbr_table_add_lladdr(eb_stats, (linkaddr_t *)&frame.src_addr, NBR_TABLE_REASON_MAC, NULL);
       }
       if(stat != NULL) {
         stat->rx_count++;
-        stat->jp = eb_ies.join_priority;
+        stat->jp = eb_ies.ie_join_priority;
         best_neighbor_eb_count = MAX(best_neighbor_eb_count, stat->rx_count);
       }
       /* Select best time source */
