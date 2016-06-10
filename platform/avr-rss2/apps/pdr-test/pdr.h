@@ -2,7 +2,7 @@
 #ifndef PDR_H
 #define PDR_H
 
-#define VERSION  "2.5-2016-06-09\n"
+#define VERSION  "2.5-2016-06-10\n"
 
 #include <stdint.h>
 #include <stdbool.h>

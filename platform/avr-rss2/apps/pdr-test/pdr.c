@@ -432,11 +432,12 @@ RIME_SNIFFER(printSniffer, inputPacket, NULL);
 static void print_help(void)
 {
     printf("pdr-test: version=%s", VERSION);
-    printf("tx [[11-26] [max|0|-7|-15|min]]  -- send ch/pwr\n");
+    printf("tx [[11-26] [max|0|-7|-15|min|sweep]]  -- send ch/pwr\n");
     printf("rx [11-26]   -- receive on chan\n");
     printf("ch [11-26]   -- chan read/set\n");
-    printf("stat         -- report/clr\n");
-    printf("te           -- board temp\n");
+    printf("stat         -- report received stats\n");
+    printf("info         -- node info\n");
+    printf("te           -- node temp\n");
     printf("txp [max|0|-7|-15|min] -- tx pwr\n");
     printf("help         -- this menu\n");
     printf("upgr         -- reboot via bootloader\n");
@@ -528,6 +529,17 @@ static int cmd_chan(uint8_t verbose)
     return 1;
 }
 
+static void print_info(void)
+{
+    printf("pdr-test: version=%s", VERSION);
+    printf(" Max STAT_SIZE=%d\n", STAT_SIZE);
+    printf(" platform=%s\n", platform_list[platform_id]);
+    printf(" node_id=%u\n", node_id);
+    printf(" temp=%i\n", temp_sensor.value(0));
+    printf(" channel=%d\n",  radio_get_channel());
+    printf(" tx pwr=%s\n",  get_txpower_string(txpower));
+}
+
 static void handle_serial_input(const char *line)
 {
     char *p;
@@ -573,6 +585,9 @@ static void handle_serial_input(const char *line)
     else if (!strcmp(p, "txp") || !strcmp(line, "txpower")) {
         cmd_txp(1);
     }
+    else if (!strcmp(p, "i") || !strcmp(line, "info")) {
+      print_info();
+    }
 #ifdef CONTIKI_TARGET_AVR_RSS2
     else if (!strcmp(p, "upgr") || !strcmp(line, "upgrade")) {
         printf("OK\n");
@@ -583,19 +598,6 @@ static void handle_serial_input(const char *line)
     }
 #endif
     else printf("Illegal command '%s'\n", line);
-}
-
-//-------------------------------------------------------------
-
-static void print_local_info(void)
-{
-    printf("pdr-test: version=%s", VERSION);
-    printf(" Max STAT_SIZE=%d\n", STAT_SIZE);
-    printf(" Local node_id=%u\n", node_id);
-    printf(" platform_id=%u\n", platform_id);
-    printf(" temp=%i\n", temp_sensor.value(0));
-    printf(" channel=%d\n",  radio_get_channel());
-    printf(" platform tx pwr=%s\n",  get_txpower_string(txpower));
 }
 
 AUTOSTART_PROCESSES(&controlProcess);
@@ -616,7 +618,7 @@ PROCESS_THREAD(controlProcess, ev, data)
     channel = DEFAULT_CHANNEL;
     radio_set_channel(channel);
     clearStats();
-    print_local_info();
+    print_info();
 
     currentState = STATE_RX;
     currentStatsIdx = 0;
