@@ -47,6 +47,11 @@
 #include "net/ipv6/uip-ds6.h"
 #endif
 
+#if UIP_CONF_IPV6_RPL
+#include "net/rpl/rpl.h"
+#include "net/rpl/rpl-private.h"
+#endif
+
 #include <string.h>
 
 #define DEBUG DEBUG_NONE
@@ -525,7 +530,7 @@ void
 tcpip_ipv6_output(void)
 {
   uip_ds6_nbr_t *nbr = NULL;
-  uip_ipaddr_t *nexthop;
+  uip_ipaddr_t *nexthop = NULL;
 
   if(uip_len == 0) {
     return;
@@ -545,14 +550,25 @@ tcpip_ipv6_output(void)
 
   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     /* Next hop determination */
+
+#if UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING
+    uip_ipaddr_t ipaddr;
+    /* Look for a RPL Source Route */
+    if(rpl_srh_get_next_hop(&ipaddr)) {
+      nexthop = &ipaddr;
+    }
+#endif /* UIP_CONF_IPV6_RPL && RPL_WITH_NON_STORING */
+
     nbr = NULL;
 
     /* We first check if the destination address is on our immediate
        link. If so, we simply use the destination address as our
        nexthop address. */
-    if(uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
+    if(nexthop == NULL && uip_ds6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
       nexthop = &UIP_IP_BUF->destipaddr;
-    } else {
+    }
+
+    if(nexthop == NULL) {
       uip_ds6_route_t *route;
       /* Check if we have a route to the destination address. */
       route = uip_ds6_route_lookup(&UIP_IP_BUF->destipaddr);
@@ -636,7 +652,7 @@ tcpip_ipv6_output(void)
     /* End of next hop determination */
 
 #if UIP_CONF_IPV6_RPL
-    if(rpl_update_header_final(nexthop)) {
+    if(!rpl_finalize_header(nexthop)) {
       uip_clear_buf();
       return;
     }
@@ -646,6 +662,7 @@ tcpip_ipv6_output(void)
 #if UIP_ND6_SEND_NA
       if((nbr = uip_ds6_nbr_add(nexthop, NULL, 0, NBR_INCOMPLETE, NBR_TABLE_REASON_IPV6_ND, NULL)) == NULL) {
         uip_clear_buf();
+        PRINTF("tcpip_ipv6_output: failed to add neighbor to cache\n");
         return;
       } else {
 #if UIP_CONF_IPV6_QUEUE_PKT
@@ -672,6 +689,7 @@ tcpip_ipv6_output(void)
         /* Send the first NS try from here (multicast destination IP address). */
       }
 #else /* UIP_ND6_SEND_NA */
+      PRINTF("tcpip_ipv6_output: neighbor not in cache\n");
       uip_len = 0;
       return;  
 #endif /* UIP_ND6_SEND_NA */
