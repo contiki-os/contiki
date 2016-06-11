@@ -86,7 +86,7 @@ button_press_handler(uint8_t ioid)
      * Start press duration counter on press (falling), notify on release
      * (rising)
      */
-    if(ti_lib_gpio_pin_read(BOARD_KEY_LEFT) == 0) {
+    if(ti_lib_gpio_read_dio(BOARD_IOID_KEY_LEFT) == 0) {
       left_timer.start = clock_time();
       left_timer.duration = 0;
     } else {
@@ -107,7 +107,7 @@ button_press_handler(uint8_t ioid)
        * Start press duration counter on press (falling), notify on release
        * (rising)
        */
-      if(ti_lib_gpio_pin_read(BOARD_KEY_RIGHT) == 0) {
+      if(ti_lib_gpio_read_dio(BOARD_IOID_KEY_RIGHT) == 0) {
         right_timer.start = clock_time();
         right_timer.duration = 0;
       } else {
@@ -132,19 +132,19 @@ config_buttons(int type, int c, uint32_t key)
 {
   switch(type) {
   case SENSORS_HW_INIT:
-    ti_lib_gpio_event_clear(1 << key);
-    ti_lib_ioc_port_configure_set(key, IOC_PORT_GPIO, BUTTON_GPIO_CFG);
-    ti_lib_gpio_dir_mode_set((1 << key), GPIO_DIR_MODE_IN);
+    ti_lib_gpio_clear_event_dio(key);
+    ti_lib_rom_ioc_pin_type_gpio_input(key);
+    ti_lib_rom_ioc_port_configure_set(key, IOC_PORT_GPIO, BUTTON_GPIO_CFG);
     gpio_interrupt_register_handler(key, button_press_handler);
     break;
   case SENSORS_ACTIVE:
     if(c) {
-      ti_lib_gpio_event_clear(1 << key);
-      ti_lib_ioc_port_configure_set(key, IOC_PORT_GPIO, BUTTON_GPIO_CFG);
-      ti_lib_gpio_dir_mode_set((1 << key), GPIO_DIR_MODE_IN);
-      ti_lib_ioc_int_enable(key);
+      ti_lib_gpio_clear_event_dio(key);
+      ti_lib_rom_ioc_pin_type_gpio_input(key);
+      ti_lib_rom_ioc_port_configure_set(key, IOC_PORT_GPIO, BUTTON_GPIO_CFG);
+      ti_lib_rom_ioc_int_enable(key);
     } else {
-      ti_lib_ioc_int_disable(key);
+      ti_lib_rom_ioc_int_disable(key);
     }
     break;
   default:
@@ -225,7 +225,7 @@ static int
 value_left(int type)
 {
   if(type == BUTTON_SENSOR_VALUE_STATE) {
-    return ti_lib_gpio_pin_read(BOARD_KEY_LEFT) == 0 ?
+    return ti_lib_gpio_read_dio(BOARD_IOID_KEY_LEFT) == 0 ?
            BUTTON_SENSOR_VALUE_PRESSED : BUTTON_SENSOR_VALUE_RELEASED;
   } else if(type == BUTTON_SENSOR_VALUE_DURATION) {
     return (int)left_timer.duration;
@@ -237,7 +237,7 @@ static int
 value_right(int type)
 {
   if(type == BUTTON_SENSOR_VALUE_STATE) {
-    return ti_lib_gpio_pin_read(BOARD_KEY_RIGHT) == 0 ?
+    return ti_lib_gpio_read_dio(BOARD_IOID_KEY_RIGHT) == 0 ?
            BUTTON_SENSOR_VALUE_PRESSED : BUTTON_SENSOR_VALUE_RELEASED;
   } else if(type == BUTTON_SENSOR_VALUE_DURATION) {
     return (int)right_timer.duration;
