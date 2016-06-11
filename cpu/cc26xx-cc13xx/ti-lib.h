@@ -228,14 +228,24 @@
 /* gpio.h */
 #include "driverlib/gpio.h"
 
-#define ti_lib_gpio_dir_mode_set(...) GPIODirModeSet(__VA_ARGS__)
-#define ti_lib_gpio_dir_mode_get(...) GPIODirModeGet(__VA_ARGS__)
-#define ti_lib_gpio_pin_write(...)    GPIOPinWrite(__VA_ARGS__)
-#define ti_lib_gpio_pin_read(...)     GPIOPinRead(__VA_ARGS__)
-#define ti_lib_gpio_pin_clear(...)    GPIOPinClear(__VA_ARGS__)
-#define ti_lib_gpio_pin_toggle(...)   GPIOPinToggle(__VA_ARGS__)
-#define ti_lib_gpio_event_get(...)    GPIOEventGet(__VA_ARGS__)
-#define ti_lib_gpio_event_clear(...)  GPIOEventClear(__VA_ARGS__)
+#define ti_lib_gpio_read_dio(...)                    GPIO_readDio(__VA_ARGS__)
+#define ti_lib_gpio_read_multi_dio(...)              GPIO_readMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_write_dio(...)                   GPIO_writeDio(__VA_ARGS__)
+#define ti_lib_gpio_write_multi_dio(...)             GPIO_writeMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_set_dio(...)                     GPIO_setDio(__VA_ARGS__)
+#define ti_lib_gpio_set_multi_dio(...)               GPIO_setMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_clear_dio(...)                   GPIO_clearDio(__VA_ARGS__)
+#define ti_lib_gpio_clear_multi_dio(...)             GPIO_clearMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_toggle_dio(...)                  GPIO_toggleDio(__VA_ARGS__)
+#define ti_lib_gpio_toggle_multi_dio(...)            GPIO_toggleMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_get_output_enable_dio(...)       GPIO_getOutputEnableDio(__VA_ARGS__)
+#define ti_lib_gpio_get_output_enable_multi_dio(...) GPIO_getOutputEnableMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_set_output_enable_dio(...)       GPIO_setOutputEnableDio(__VA_ARGS__)
+#define ti_lib_gpio_set_output_enable_multi_dio(...) GPIO_setOutputEnableMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_get_event_dio(...)               GPIO_getEventDio(__VA_ARGS__)
+#define ti_lib_gpio_get_event_multi_dio(...)         GPIO_getEventMultiDio(__VA_ARGS__)
+#define ti_lib_gpio_clear_event_dio(...)             GPIO_clearEventDio(__VA_ARGS__)
+#define ti_lib_gpio_clear_event_multi_dio(...)       GPIO_clearEventMultiDio(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* i2c.h */
 #include "driverlib/i2c.h"
