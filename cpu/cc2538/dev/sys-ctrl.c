@@ -50,6 +50,26 @@
 #define SYS_CTRL_OSCS   SYS_CTRL_CLOCK_CTRL_OSC32K
 #endif
 /*---------------------------------------------------------------------------*/
+int
+sys_ctrl_get_reset_cause(void)
+{
+  return (REG(SYS_CTRL_CLOCK_STA) & SYS_CTRL_CLOCK_STA_RST) >>
+         SYS_CTRL_CLOCK_STA_RST_S;
+}
+/*---------------------------------------------------------------------------*/
+const char *
+sys_ctrl_get_reset_cause_str(void)
+{
+  static const char *reset_cause[] = {
+    "POR",
+    "External reset",
+    "WDT",
+    "CLD or software reset"
+  };
+
+  return reset_cause[sys_ctrl_get_reset_cause()];
+}
+/*---------------------------------------------------------------------------*/
 void
 sys_ctrl_init()
 {

@@ -115,6 +115,11 @@
 #define SYS_CTRL_CLOCK_STA_OSC32K_CALDIS    0x02000000
 #define SYS_CTRL_CLOCK_STA_OSC32K           0x01000000
 #define SYS_CTRL_CLOCK_STA_RST              0x00C00000
+#define SYS_CTRL_CLOCK_STA_RST_S            22
+#define SYS_CTRL_CLOCK_STA_RST_POR          0
+#define SYS_CTRL_CLOCK_STA_RST_EXT          1
+#define SYS_CTRL_CLOCK_STA_RST_WDT          2
+#define SYS_CTRL_CLOCK_STA_RST_CLD_SW       3
 #define SYS_CTRL_CLOCK_STA_SOURCE_CHANGE    0x00100000
 #define SYS_CTRL_CLOCK_STA_XOSC_STB         0x00080000
 #define SYS_CTRL_CLOCK_STA_HSOSC_STB        0x00040000
@@ -302,6 +307,17 @@
 /** \name SysCtrl functions
  * @{
  */
+
+/** \brief Gets the cause of the last reset
+ * \return A \c SYS_CTRL_CLOCK_STA_RST_x reset cause
+ */
+int sys_ctrl_get_reset_cause(void);
+
+/** \brief Gets a string describing the cause of the last reset
+ * \return Last reset cause as a string
+ */
+const char *sys_ctrl_get_reset_cause_str(void);
+
 /** \brief Initialises the System Control Driver. The main purpose of this
  * function is to power up and select clocks and oscillators
  * \note This function depends on ioc_init() having been called beforehand. */
