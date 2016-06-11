@@ -100,7 +100,7 @@ soc_rtc_init(void)
   ti_lib_aon_rtc_channel_enable(AON_RTC_CH1);
   ti_lib_aon_rtc_enable();
 
-  ti_lib_int_enable(INT_AON_RTC);
+  ti_lib_rom_int_enable(INT_AON_RTC_COMB);
 
   /* Re-enable interrupts */
   if(!interrupts_disabled) {
