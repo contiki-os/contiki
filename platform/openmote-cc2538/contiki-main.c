@@ -67,6 +67,7 @@
 #include "net/ip/tcpip.h"
 #include "net/ip/uip.h"
 #include "net/mac/frame802154.h"
+#include "soc.h"
 #include "cpu.h"
 #include "reg.h"
 #include "ieee-addr.h"
@@ -181,6 +182,9 @@ main(void)
 
   PUTS(CONTIKI_VERSION_STRING);
   PUTS(BOARD_STRING);
+#if STARTUP_CONF_VERBOSE
+  soc_print_info();
+#endif
 
   random_init(0);
 
