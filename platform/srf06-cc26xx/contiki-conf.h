@@ -289,6 +289,19 @@
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**
+ * \name ROM Bootloader configuration
+ *
+ * Enable/Disable the ROM bootloader in your image, if the board supports it.
+ * Look in board.h to choose the DIO and corresponding level that will cause
+ * the chip to enter bootloader mode.
+ * @{
+ */
+#ifndef ROM_BOOTLOADER_ENABLE
+#define ROM_BOOTLOADER_ENABLE              0
+#endif
+/** @} */
+/*---------------------------------------------------------------------------*/
+/**
  * \name Button configurations
  *
  * Configure a button as power on/off: We use the right button for both boards.
