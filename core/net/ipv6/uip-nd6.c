@@ -522,14 +522,11 @@ na_input(void)
         goto discard;
       }
 
-      if(is_solicited) {
-        nbr->state = NBR_REACHABLE;
-        nbr->nscount = 0;
-
-        /* reachable time is stored in ms */
-        stimer_set(&(nbr->reachable), uip_ds6_if.reachable_time / 1000);
-
-      } else {
+      /* Note: No need to refresh the state of the nbr here.
+       * It has already been refreshed upon receiving the unicast IPv6 ND packet.
+       * See: uip_ds6_nbr_refresh_reachable_state()
+       */
+      if(!is_solicited) {
         nbr->state = NBR_STALE;
       }
       nbr->isrouter = is_router;
@@ -552,11 +549,10 @@ na_input(void)
               goto discard;
             }
           }
-          if(is_solicited) {
-            nbr->state = NBR_REACHABLE;
-            /* reachable time is stored in ms */
-            stimer_set(&(nbr->reachable), uip_ds6_if.reachable_time / 1000);
-          }
+          /* Note: No need to refresh the state of the nbr here.
+           * It has already been refreshed upon receiving the unicast IPv6 ND packet.
+           * See: uip_ds6_nbr_refresh_reachable_state()
+           */
         }
       }
       if(nbr->isrouter && !is_router) {
