@@ -757,22 +757,17 @@ rpl_select_dag(rpl_instance_t *instance, rpl_parent_t *p)
   old_rank = instance->current_dag->rank;
   last_parent = instance->current_dag->preferred_parent;
 
-  best_dag = instance->current_dag;
-  if(best_dag->rank != ROOT_RANK(instance)) {
-    if(rpl_select_parent(p->dag) != NULL) {
-      if(p->dag != best_dag) {
-        best_dag = instance->of->best_dag(best_dag, p->dag);
-      }
-    } else if(p->dag == best_dag) {
-      best_dag = NULL;
-      for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
-        if(dag->used && dag->preferred_parent != NULL && dag->preferred_parent->rank != INFINITE_RANK) {
-          if(best_dag == NULL) {
-            best_dag = dag;
-          } else {
-            best_dag = instance->of->best_dag(best_dag, dag);
-          }
-        }
+  if(instance->current_dag->rank != ROOT_RANK(instance)) {
+    rpl_select_parent(p->dag);
+  }
+
+  best_dag = NULL;
+  for(dag = &instance->dag_table[0], end = dag + RPL_MAX_DAG_PER_INSTANCE; dag < end; ++dag) {
+    if(dag->used && dag->preferred_parent != NULL && dag->preferred_parent->rank != INFINITE_RANK) {
+      if(best_dag == NULL) {
+        best_dag = dag;
+      } else {
+        best_dag = instance->of->best_dag(best_dag, dag);
       }
     }
   }
