@@ -240,11 +240,11 @@ spix_init(uint8_t spi)
 
   /* Put all the SSI gpios into peripheral mode */
   GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->clk.port),
-                          GPIO_PIN_MASK(regs->clk.pin));
+                          GPIO_DIO_ALL_MASK(regs->clk.pin));
   GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->tx.port),
-                          GPIO_PIN_MASK(regs->tx.pin));
+                          GPIO_DIO_ALL_MASK(regs->tx.pin));
   GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(regs->rx.port),
-                          GPIO_PIN_MASK(regs->rx.pin));
+                          GPIO_DIO_ALL_MASK(regs->rx.pin));
 
   /* Disable any pull ups or the like */
   ioc_set_over(regs->clk.port, regs->clk.pin, IOC_OVERRIDE_DIS);
@@ -317,9 +317,9 @@ void
 spix_cs_init(uint8_t port, uint8_t pin)
 {
   GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(port),
-                        GPIO_PIN_MASK(pin));
+                        GPIO_DIO_ALL_MASK(pin));
   ioc_set_over(port, pin, IOC_OVERRIDE_DIS);
-  GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin));
-  GPIO_SET_PIN(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin));
+  GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin));
+  GPIO_SET_PIN(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin));
 }
 /** @} */

@@ -230,10 +230,10 @@ rf_core_power_up()
   uint32_t cmd_status;
   bool interrupts_disabled = ti_lib_int_master_disable();
 
-  ti_lib_int_pend_clear(INT_RF_CPE0);
-  ti_lib_int_pend_clear(INT_RF_CPE1);
-  ti_lib_int_disable(INT_RF_CPE0);
-  ti_lib_int_disable(INT_RF_CPE1);
+  ti_lib_int_pend_clear(INT_RFC_CPE_0);
+  ti_lib_int_pend_clear(INT_RFC_CPE_1);
+  ti_lib_int_disable(INT_RFC_CPE_0);
+  ti_lib_int_disable(INT_RFC_CPE_1);
 
   /* Enable RF Core power domain */
   ti_lib_prcm_power_domain_on(PRCM_DOMAIN_RFCORE);
@@ -246,8 +246,8 @@ rf_core_power_up()
 
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = 0x0;
-  ti_lib_int_enable(INT_RF_CPE0);
-  ti_lib_int_enable(INT_RF_CPE1);
+  ti_lib_int_enable(INT_RFC_CPE_0);
+  ti_lib_int_enable(INT_RFC_CPE_1);
 
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
@@ -269,8 +269,8 @@ void
 rf_core_power_down()
 {
   bool interrupts_disabled = ti_lib_int_master_disable();
-  ti_lib_int_disable(INT_RF_CPE0);
-  ti_lib_int_disable(INT_RF_CPE1);
+  ti_lib_int_disable(INT_RFC_CPE_0);
+  ti_lib_int_disable(INT_RFC_CPE_1);
 
   if(rf_core_is_accessible()) {
     HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
@@ -290,10 +290,10 @@ rf_core_power_down()
   while(ti_lib_prcm_power_domain_status(PRCM_DOMAIN_RFCORE)
         != PRCM_DOMAIN_POWER_OFF);
 
-  ti_lib_int_pend_clear(INT_RF_CPE0);
-  ti_lib_int_pend_clear(INT_RF_CPE1);
-  ti_lib_int_enable(INT_RF_CPE0);
-  ti_lib_int_enable(INT_RF_CPE1);
+  ti_lib_int_pend_clear(INT_RFC_CPE_0);
+  ti_lib_int_pend_clear(INT_RFC_CPE_1);
+  ti_lib_int_enable(INT_RFC_CPE_0);
+  ti_lib_int_enable(INT_RFC_CPE_1);
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();
   }
@@ -389,10 +389,10 @@ rf_core_setup_interrupts()
   /* Clear interrupt flags, active low clear(?) */
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
 
-  ti_lib_int_pend_clear(INT_RF_CPE0);
-  ti_lib_int_pend_clear(INT_RF_CPE1);
-  ti_lib_int_enable(INT_RF_CPE0);
-  ti_lib_int_enable(INT_RF_CPE1);
+  ti_lib_int_pend_clear(INT_RFC_CPE_0);
+  ti_lib_int_pend_clear(INT_RFC_CPE_1);
+  ti_lib_int_enable(INT_RFC_CPE_0);
+  ti_lib_int_enable(INT_RFC_CPE_1);
 
   if(!interrupts_disabled) {
     ti_lib_int_master_enable();

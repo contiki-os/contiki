@@ -46,8 +46,8 @@
 #include <stdint.h>
 
 #define ADC_ALS_PWR_PORT_BASE    GPIO_PORT_TO_BASE(ADC_ALS_PWR_PORT)
-#define ADC_ALS_PWR_PIN_MASK     GPIO_PIN_MASK(ADC_ALS_PWR_PIN)
-#define ADC_ALS_OUT_PIN_MASK     GPIO_PIN_MASK(ADC_ALS_OUT_PIN)
+#define ADC_ALS_PWR_PIN_MASK     GPIO_DIO_ALL_MASK(ADC_ALS_PWR_PIN)
+#define ADC_ALS_OUT_PIN_MASK     GPIO_DIO_ALL_MASK(ADC_ALS_OUT_PIN)
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)

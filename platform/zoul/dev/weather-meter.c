@@ -65,9 +65,9 @@
 #define DEBOUNCE_DURATION  (CLOCK_SECOND >> 6)
 /*---------------------------------------------------------------------------*/
 #define ANEMOMETER_SENSOR_PORT_BASE  GPIO_PORT_TO_BASE(ANEMOMETER_SENSOR_PORT)
-#define ANEMOMETER_SENSOR_PIN_MASK   GPIO_PIN_MASK(ANEMOMETER_SENSOR_PIN)
+#define ANEMOMETER_SENSOR_PIN_MASK   GPIO_DIO_ALL_MASK(ANEMOMETER_SENSOR_PIN)
 #define RAIN_GAUGE_SENSOR_PORT_BASE  GPIO_PORT_TO_BASE(RAIN_GAUGE_SENSOR_PORT)
-#define RAIN_GAUGE_SENSOR_PIN_MASK   GPIO_PIN_MASK(RAIN_GAUGE_SENSOR_PIN)
+#define RAIN_GAUGE_SENSOR_PIN_MASK   GPIO_DIO_ALL_MASK(RAIN_GAUGE_SENSOR_PIN)
 /*---------------------------------------------------------------------------*/
 void (*rain_gauge_int_callback)(uint16_t value);
 void (*anemometer_int_callback)(uint16_t value);

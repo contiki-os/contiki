@@ -134,14 +134,14 @@ config_buttons(int type, int c, uint32_t key)
   case SENSORS_HW_INIT:
     ti_lib_gpio_event_clear(1 << key);
     ti_lib_ioc_port_configure_set(key, IOC_PORT_GPIO, BUTTON_GPIO_CFG);
-    ti_lib_gpio_dir_mode_set((1 << key), GPIO_DIR_MODE_IN);
+    ti_lib_gpio_dir_mode_set((1 << key), GPIO_OUTPUT_DISABLE);
     gpio_interrupt_register_handler(key, button_press_handler);
     break;
   case SENSORS_ACTIVE:
     if(c) {
       ti_lib_gpio_event_clear(1 << key);
       ti_lib_ioc_port_configure_set(key, IOC_PORT_GPIO, BUTTON_GPIO_CFG);
-      ti_lib_gpio_dir_mode_set((1 << key), GPIO_DIR_MODE_IN);
+      ti_lib_gpio_dir_mode_set((1 << key), GPIO_OUTPUT_DISABLE);
       ti_lib_ioc_int_enable(key);
     } else {
       ti_lib_ioc_int_disable(key);

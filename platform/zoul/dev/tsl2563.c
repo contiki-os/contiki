@@ -55,7 +55,7 @@
 #endif
 /*---------------------------------------------------------------------------*/
 #define TSL2563_INT_PORT_BASE  GPIO_PORT_TO_BASE(I2C_INT_PORT)
-#define TSL2563_INT_PIN_MASK   GPIO_PIN_MASK(I2C_INT_PIN)
+#define TSL2563_INT_PIN_MASK   GPIO_DIO_ALL_MASK(I2C_INT_PIN)
 /*---------------------------------------------------------------------------*/
 static uint8_t enabled;
 static uint8_t gain;

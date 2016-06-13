@@ -63,7 +63,7 @@
 #endif
 /*---------------------------------------------------------------------------*/
 #define RTC_INT1_PORT_BASE  GPIO_PORT_TO_BASE(RTC_INT1_PORT)
-#define RTC_INT1_PIN_MASK   GPIO_PIN_MASK(RTC_INT1_PIN)
+#define RTC_INT1_PIN_MASK   GPIO_DIO_ALL_MASK(RTC_INT1_PIN)
 /*---------------------------------------------------------------------------*/
 /* Callback pointers when interrupt occurs */
 void (*rtcc_int1_callback)(uint8_t value);

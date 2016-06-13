@@ -58,7 +58,7 @@
 #endif
 /*---------------------------------------------------------------------------*/
 #define ZONIK_INT1_PORT_BASE  GPIO_PORT_TO_BASE(ZONIK_INT_PORT)
-#define ZONIK_INT1_PIN_MASK   GPIO_PIN_MASK(ZONIK_INT_PIN)
+#define ZONIK_INT1_PIN_MASK   GPIO_DIO_ALL_MASK(ZONIK_INT_PIN)
 /*---------------------------------------------------------------------------*/
 static uint8_t zonik_buffer[ZONIK_FRAME_SIZE+1];
 static uint16_t zonik_status = ZONIK_DISABLED;

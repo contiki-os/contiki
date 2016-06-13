@@ -318,7 +318,7 @@ typedef void (* gpio_callback_t)(uint8_t port, uint8_t pin);
  * \return A pin mask which can be used as the PIN_MASK argument of the macros
  * in this category
  */
-#define GPIO_PIN_MASK(PIN) (1 << (PIN))
+#define GPIO_DIO_ALL_MASK(PIN) (1 << (PIN))
 
 /**
  * \brief Converts a port number to the port base address

@@ -225,14 +225,14 @@
 /* gpio.h */
 #include "driverlib/gpio.h"
 
-#define ti_lib_gpio_dir_mode_set(...) GPIODirModeSet(__VA_ARGS__)
-#define ti_lib_gpio_dir_mode_get(...) GPIODirModeGet(__VA_ARGS__)
-#define ti_lib_gpio_pin_write(...)    GPIOPinWrite(__VA_ARGS__)
-#define ti_lib_gpio_pin_read(...)     GPIOPinRead(__VA_ARGS__)
-#define ti_lib_gpio_pin_clear(...)    GPIOPinClear(__VA_ARGS__)
-#define ti_lib_gpio_pin_toggle(...)   GPIOPinToggle(__VA_ARGS__)
-#define ti_lib_gpio_event_get(...)    GPIOEventGet(__VA_ARGS__)
-#define ti_lib_gpio_event_clear(...)  GPIOEventClear(__VA_ARGS__)
+#define ti_lib_gpio_dir_mode_set(...) GPIO_setOutputEnableDio(__VA_ARGS__)
+#define ti_lib_gpio_dir_mode_get(...) GPIO_getOutputEnableDio(__VA_ARGS__)
+#define ti_lib_gpio_pin_write(...)    GPIO_writeDio(__VA_ARGS__)
+#define ti_lib_gpio_pin_read(...)     GPIO_readDio(__VA_ARGS__)
+#define ti_lib_gpio_pin_clear(...)    GPIO_clearDio(__VA_ARGS__)
+#define ti_lib_gpio_pin_toggle(...)   GPIO_toggleDio(__VA_ARGS__)
+#define ti_lib_gpio_event_get(...)    GPIO_getEventDio(__VA_ARGS__)
+#define ti_lib_gpio_event_clear(...)  GPIO_clearEventDio(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
 /* i2c.h */
 #include "driverlib/i2c.h"

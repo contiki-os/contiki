@@ -61,12 +61,12 @@ i2c_init(uint8_t port_sda, uint8_t pin_sda, uint8_t port_scl, uint8_t pin_scl,
   REG(SYS_CTRL_SRI2C) &= ~1;  /* Normal position */
 
   /* Set pins in input */
-  GPIO_SET_INPUT(GPIO_PORT_TO_BASE(port_sda), GPIO_PIN_MASK(pin_sda));
-  GPIO_SET_INPUT(GPIO_PORT_TO_BASE(port_scl), GPIO_PIN_MASK(pin_scl));
+  GPIO_SET_INPUT(GPIO_PORT_TO_BASE(port_sda), GPIO_DIO_ALL_MASK(pin_sda));
+  GPIO_SET_INPUT(GPIO_PORT_TO_BASE(port_scl), GPIO_DIO_ALL_MASK(pin_scl));
 
   /* Set peripheral control for the pins */
-  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(port_sda), GPIO_PIN_MASK(pin_sda));
-  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(port_scl), GPIO_PIN_MASK(pin_scl));
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(port_sda), GPIO_DIO_ALL_MASK(pin_sda));
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(port_scl), GPIO_DIO_ALL_MASK(pin_scl));
 
   /* Set the pad to no drive type */
   ioc_set_over(port_sda, pin_sda, IOC_OVERRIDE_DIS);

@@ -212,12 +212,12 @@ pwm_stop(uint8_t timer, uint8_t ab, uint8_t port, uint8_t pin, uint8_t state)
 
   /* Configure the port/pin as GPIO, input */
   ioc_set_over(port, pin, IOC_OVERRIDE_DIS);
-  GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin));
-  GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin));
+  GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin));
+  GPIO_SET_OUTPUT(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin));
   if(state) {
-    GPIO_SET_PIN(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin));
+    GPIO_SET_PIN(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin));
   } else {
-    GPIO_CLR_PIN(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin));
+    GPIO_CLR_PIN(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin));
   }
   PRINTF("PWM: OFF -> Timer %u (%u)\n", timer, ab);
   return PWM_SUCCESS;
@@ -252,7 +252,7 @@ pwm_start(uint8_t timer, uint8_t ab, uint8_t port, uint8_t pin)
   }
   ioc_set_sel(port, pin, gpt_sel);
   ioc_set_over(port, pin, IOC_OVERRIDE_OE);
-  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin));
+  GPIO_PERIPHERAL_CONTROL(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin));
 
   gpt_base = PWM_GPTIMER_NUM_TO_BASE(timer);
   gpt_en = (ab == PWM_TIMER_B) ? GPTIMER_CTL_TBEN : GPTIMER_CTL_TAEN;
@@ -352,8 +352,8 @@ pwm_disable(uint8_t timer, uint8_t ab, uint8_t port, uint8_t pin)
 
   /* Configure the port/pin as GPIO, input */
   ioc_set_over(port, pin, IOC_OVERRIDE_DIS);
-  GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin));
-  GPIO_SET_INPUT(GPIO_PORT_TO_BASE(port), GPIO_PIN_MASK(pin));
+  GPIO_SOFTWARE_CONTROL(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin));
+  GPIO_SET_INPUT(GPIO_PORT_TO_BASE(port), GPIO_DIO_ALL_MASK(pin));
 
   return PWM_SUCCESS;
 }

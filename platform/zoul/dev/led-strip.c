@@ -54,7 +54,7 @@
 #define LED_STRIP_PIN       6
 #endif
 #define LED_STRIP_PORT_BASE GPIO_PORT_TO_BASE(LED_STRIP_PORT)
-#define LED_STRIP_PIN_MASK  GPIO_PIN_MASK(LED_STRIP_PIN)
+#define LED_STRIP_PIN_MASK  GPIO_DIO_ALL_MASK(LED_STRIP_PIN)
 /*---------------------------------------------------------------------------*/
 static uint8_t initialized = 0;
 /*---------------------------------------------------------------------------*/

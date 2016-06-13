@@ -161,7 +161,7 @@ value(int type)
 static int
 configure(int type, int value)
 {
-  uint8_t pin_mask = GPIO_PIN_MASK(value);
+  uint8_t pin_mask = GPIO_DIO_ALL_MASK(value);
 
   if((type != ANALOG_GROVE_LIGHT) && (type != ANALOG_PHIDGET_ROTATION_1109) &&
      (type != ANALOG_GROVE_LOUDNESS) && (type != ANALOG_VAC_SENSOR) && 

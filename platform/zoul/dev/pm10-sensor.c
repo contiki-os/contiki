@@ -52,7 +52,7 @@
 #include "dev/ioc.h"
 /*---------------------------------------------------------------------------*/
 #define PM10_SENSOR_PORT_BASE   GPIO_PORT_TO_BASE(PM10_SENSOR_CTRL_PORT)
-#define PM10_SENSOR_PIN_MASK    GPIO_PIN_MASK(PM10_SENSOR_CTRL_PIN)
+#define PM10_SENSOR_PIN_MASK    GPIO_DIO_ALL_MASK(PM10_SENSOR_CTRL_PIN)
 /*---------------------------------------------------------------------------*/
 static int pm10_channel;
 /*---------------------------------------------------------------------------*/
