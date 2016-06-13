@@ -1,0 +1,135 @@
+{
+    "owner": "1e8c0446-e273-4964-9bda-887634bda63d",
+    "id": "0c34e17b-b629-4c89-88a6-01d3a48ac9b0",
+    "name": "Zolertia RE-Mote",
+    "productNumber": "",
+    "description": "Nano-Power IoT device with an ARM Cortex M3 system-on-chip (32KB RAM and 512KB Flash), and dual radio (863-950MHz and 2.4GHz).",
+    "website": "http://zolertia.io",
+    "manufacturer": {
+        "name": "Zolertia SL",
+        "website": "http://zolertia.io",
+        "contactInfo": {
+            "email": "info@zolertia.io"
+        }
+    },
+    "resources": [],
+    "firmware": {
+        "1.0.0": {
+            "binaries": "",
+            "transport": {
+                "cloud": {
+                    "commands": [
+                        {
+                            "name": "update_period",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "seconds",
+                                "maximum": 3600,
+                                "minimum": 5
+                            }
+                        },
+                        {
+                            "name": "reboot",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        },
+                        {
+                            "name": "leds_toggle",
+                            "path": "",
+                            "valueSchema": {
+                                "type": "boolean"
+                            }
+                        }
+                    ],
+                    "readings": [
+                        {
+                            "path": "",
+                            "meaning": "uptime",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "seconds"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "rssi",
+                            "valueSchema": {
+                                "type": "number",
+                                "maximum": -130
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "parent",
+                            "valueSchema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "battery",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "V",
+                                "maximum": 5,
+                                "minimum": 0
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "core_temp",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "Celsius",
+                                "maximum": 85,
+                                "minimum": 0
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "ID",
+                            "valueSchema": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "button_pres",
+                            "valueSchema": {
+                                "type": "number",
+                                "maximum": 32000,
+                                "minimum": 1
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "ADC1",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "V",
+                                "maximum": 5
+                            }
+                        },
+                        {
+                            "path": "",
+                            "meaning": "ADC3",
+                            "valueSchema": {
+                                "type": "number",
+                                "unit": "V",
+                                "maximum": 5
+                            }
+                        }
+                    ],
+                    "configurations": []
+                }
+            },
+            "repository": "",
+            "releaseDate": "",
+            "releaseNotes": "",
+            "documentation": ""
+        }
+    }
+}
