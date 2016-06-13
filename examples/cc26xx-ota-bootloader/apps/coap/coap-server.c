@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2014, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,39 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
  */
 
 /**
  * \file
- *      CoAP module for separate responses.
+ *         Simple CoAP Library
  * \author
- *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ *         6LBR Team <6lbr@cetic.be>
  */
+#include "contiki.h"
 
-#ifndef COAP_SEPARATE_H_
-#define COAP_SEPARATE_H_
+#include "coap-common.h"
 
-#include "er-coap.h"
+#include "coap-push.h"
+#include "core-interface.h"
+#include "rd-client.h"
 
-typedef struct coap_separate {
+#define DEBUG 0
+#include "uip-debug.h"
 
-  uip_ipaddr_t addr;
-  uint16_t port;
-  context_t * ctx;
 
-  coap_message_type_t type;
-  uint16_t mid;
+void
+coap_server_init(void)
+{
+  rest_init_engine();
+#if COAP_PUSH_ENABLED
+  coap_push_init();
+#endif
+#if RD_CLIENT_ENABLED
+  rd_client_init();
+#endif
+#if COAP_BINDING_ENABLED
+  coap_binding_init();
+#endif
 
-  uint8_t token_len;
-  uint8_t token[COAP_TOKEN_LEN];
-
-  uint32_t block1_num;
-  uint16_t block1_size;
-
-  uint32_t block2_num;
-  uint16_t block2_size;
-} coap_separate_t;
-
-int coap_separate_handler(resource_t *resource, void *request,
-                          void *response);
-void coap_separate_reject();
-void coap_separate_accept(void *request, coap_separate_t *separate_store);
-void coap_separate_resume(void *response, coap_separate_t *separate_store,
-                          uint8_t code);
-
-#endif /* COAP_SEPARATE_H_ */
+  printf("CoAP server started\n");
+}

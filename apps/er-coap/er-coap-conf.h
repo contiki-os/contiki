@@ -40,8 +40,18 @@
 #define ER_COAP_CONF_H_
 
 /* Features that can be disabled to achieve smaller memory footprint */
-#define COAP_LINK_FORMAT_FILTERING     0
+#ifndef COAP_LINK_FORMAT_FILTERING
+#define COAP_LINK_FORMAT_FILTERING           1
+#endif
 #define COAP_PROXY_OPTION_PROCESSING   0
+
+#ifndef WITH_WELL_KNOWN_CORE
+#define WITH_WELL_KNOWN_CORE                 1
+#endif
+
+#ifndef COAP_CORE_OBSERVE
+#define COAP_CORE_OBSERVE                    1
+#endif
 
 /* Listening port for the CoAP REST Engine */
 #ifndef COAP_SERVER_PORT

@@ -60,12 +60,13 @@ PROCESS(coap_engine, "CoAP Engine");
 /*- Variables ---------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 static service_callback_t service_cbk = NULL;
+context_t * coap_default_context = NULL;
 
 /*---------------------------------------------------------------------------*/
 /*- Internal API ------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
-static int
-coap_receive(void)
+int
+coap_receive(context_t * ctx)
 {
   erbium_status_code = NO_ERROR;
 
@@ -107,6 +108,7 @@ coap_receive(void)
           uint16_t block_size = COAP_MAX_BLOCK_SIZE;
           uint32_t block_offset = 0;
           int32_t new_offset = 0;
+          coap_set_transaction_context(transaction, ctx);
 
           /* prepare response */
           if(message->type == COAP_TYPE_CON) {
@@ -236,8 +238,10 @@ coap_receive(void)
         } else if(message->type == COAP_TYPE_RST) {
           PRINTF("Received RST\n");
           /* cancel possible subscriptions */
+#if COAP_CORE_OBSERVE
           coap_remove_observer_by_mid(&UIP_IP_BUF->srcipaddr,
                                       UIP_UDP_BUF->srcport, message->mid);
+#endif
         }
 
         if((transaction = coap_get_transaction_by_mid(message->mid))) {
@@ -260,7 +264,7 @@ coap_receive(void)
         if((message->type == COAP_TYPE_CON || message->type == COAP_TYPE_NON)
               && IS_OPTION(message, COAP_OPTION_OBSERVE)) {
           PRINTF("Observe [%u]\n", message->observe);
-          coap_handle_notification(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
+          coap_handle_notification(ctx, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
               message);
         }
 #endif /* COAP_OBSERVE_CLIENT */
@@ -293,7 +297,7 @@ coap_receive(void)
                         message->mid);
       coap_set_payload(message, coap_error_message,
                        strlen(coap_error_message));
-      coap_send_message(&UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
+      coap_send_message(ctx, &UIP_IP_BUF->srcipaddr, UIP_UDP_BUF->srcport,
                         uip_appdata, coap_serialize_message(message,
                                                             uip_appdata));
     }
@@ -337,7 +341,9 @@ PROCESS_THREAD(coap_engine, ev, data)
   PROCESS_BEGIN();
   PRINTF("Starting %s receiver...\n", coap_rest_implementation.name);
 
+#if WITH_WELL_KNOWN_CORE
   rest_activate_resource(&res_well_known_core, ".well-known/core");
+#endif
 
   coap_register_as_transaction_handler();
   coap_init_connection(SERVER_LISTEN_PORT);
@@ -346,7 +352,7 @@ PROCESS_THREAD(coap_engine, ev, data)
     PROCESS_YIELD();
 
     if(ev == tcpip_event) {
-      coap_receive();
+      coap_handle_receive(coap_default_context);
     } else if(ev == PROCESS_EVENT_TIMER) {
       /* retransmissions are handled here */
       coap_check_transactions();
@@ -369,7 +375,7 @@ coap_blocking_request_callback(void *callback_data, void *response)
 /*---------------------------------------------------------------------------*/
 PT_THREAD(coap_blocking_request
             (struct request_state_t *state, process_event_t ev,
-            uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
+            context_t *ctx, uip_ipaddr_t *remote_ipaddr, uint16_t remote_port,
             coap_packet_t *request,
             blocking_response_handler request_callback))
 {
@@ -391,6 +397,7 @@ PT_THREAD(coap_blocking_request
     request->mid = coap_get_mid();
     if((state->transaction = coap_new_transaction(request->mid, remote_ipaddr,
                                                   remote_port))) {
+      coap_set_transaction_context(state->transaction, ctx);
       state->transaction->callback = coap_blocking_request_callback;
       state->transaction->callback_data = state;
 

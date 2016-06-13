@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2014, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,46 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
  */
 
 /**
  * \file
- *      CoAP module for separate responses.
+ *         Simple CoAP Library
  * \author
- *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ *         6LBR Team <6lbr@cetic.be>
  */
+#ifndef COAP_PUSH_H_
+#define COAP_PUSH_H_
 
-#ifndef COAP_SEPARATE_H_
-#define COAP_SEPARATE_H_
+#include "contiki.h"
+#include "coap-binding.h"
 
-#include "er-coap.h"
+#ifdef COAP_PUSH_CONF_ENABLED
+#define COAP_PUSH_ENABLED COAP_PUSH_CONF_ENABLED
+#else
+#define COAP_PUSH_ENABLED 1
+#endif
 
-typedef struct coap_separate {
+#define COAP_PUSH_CONF_DEFAULT_PMIN 10
+#define COAP_PUSH_CONF_DEFAULT_PMAX 0
 
-  uip_ipaddr_t addr;
-  uint16_t port;
-  context_t * ctx;
+#define COAP_BINDING(name, resource_name) \
+  extern resource_t resource_##resource_name; \
+  coap_binding_t binding_##name = { NULL, &resource_##resource_name, {}, COAP_DEFAULT_PORT, {}, 0, COAP_PUSH_CONF_DEFAULT_PMIN, COAP_PUSH_CONF_DEFAULT_PMAX };
 
-  coap_message_type_t type;
-  uint16_t mid;
+void
+coap_push_init();
 
-  uint8_t token_len;
-  uint8_t token[COAP_TOKEN_LEN];
+list_t
+coap_push_get_bindings(void);
 
-  uint32_t block1_num;
-  uint16_t block1_size;
+int
+coap_push_add_binding(coap_binding_t * binding);
 
-  uint32_t block2_num;
-  uint16_t block2_size;
-} coap_separate_t;
+int
+coap_push_remove_binding(coap_binding_t * binding);
 
-int coap_separate_handler(resource_t *resource, void *request,
-                          void *response);
-void coap_separate_reject();
-void coap_separate_accept(void *request, coap_separate_t *separate_store);
-void coap_separate_resume(void *response, coap_separate_t *separate_store,
-                          uint8_t code);
+void
+coap_push_update_binding(resource_t *event_resource, int value);
 
-#endif /* COAP_SEPARATE_H_ */
+#endif /* COAP_PUSH_H_ */

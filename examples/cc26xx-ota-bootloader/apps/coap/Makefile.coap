@@ -1,0 +1,6 @@
+CFLAGS += -DWITH_COAPSERVER=1
+CFLAGS += -DREST=coap_rest_implementation
+coap_src += coap-server.c \
+	block-transfer.c coap-common.c coap-push.c core-interface.c \
+	coap-binding.c coap-linked-batch.c rd-client.c \
+	rest-type-text.c rest-type-json.c rest-type-senml.c rest-type-xml.c

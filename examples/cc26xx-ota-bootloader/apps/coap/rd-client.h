@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2015, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,50 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
  */
 
 /**
  * \file
- *      CoAP module for separate responses.
+ *         Simple CoAP Library
  * \author
- *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ *         6LBR Team <6lbr@cetic.be>
  */
+#ifndef RD_CLIENT_H_
+#define RD_CLIENT_H_
 
-#ifndef COAP_SEPARATE_H_
-#define COAP_SEPARATE_H_
+#include "contiki.h"
+#include "contiki-net.h"
 
-#include "er-coap.h"
+#ifdef RD_CLIENT_CONF_ENABLED
+#define RD_CLIENT_ENABLED RD_CLIENT_CONF_ENABLED
+#else
+#define RD_CLIENT_ENABLED 1
+#endif
 
-typedef struct coap_separate {
+#ifdef RD_CLIENT_CONF_LIFETIME
+#define RD_CLIENT_LIFETIME RD_CLIENT_CONF_LIFETIME
+#else
+#define RD_CLIENT_LIFETIME 60
+#endif
 
-  uip_ipaddr_t addr;
-  uint16_t port;
-  context_t * ctx;
+enum rd_client_status_t
+{
+  RD_CLIENT_UNCONFIGURED,
+  RD_CLIENT_BOOTSTRAPPING,
+  RD_CLIENT_REGISTERING,
+  RD_CLIENT_REGISTERED,
+};
 
-  coap_message_type_t type;
-  uint16_t mid;
+void
+rd_client_init(void);
 
-  uint8_t token_len;
-  uint8_t token[COAP_TOKEN_LEN];
+int
+rd_client_status(void);
 
-  uint32_t block1_num;
-  uint16_t block1_size;
+void
+rd_client_set_rd_address(uip_ipaddr_t const *new_rd_server_ipaddr, uint16_t port);
 
-  uint32_t block2_num;
-  uint16_t block2_size;
-} coap_separate_t;
+void
+rd_client_set_resources_list(char const * resources_list);
 
-int coap_separate_handler(resource_t *resource, void *request,
-                          void *response);
-void coap_separate_reject();
-void coap_separate_accept(void *request, coap_separate_t *separate_store);
-void coap_separate_resume(void *response, coap_separate_t *separate_store,
-                          uint8_t code);
-
-#endif /* COAP_SEPARATE_H_ */
+#endif /* RD_CLIENT_H_ */

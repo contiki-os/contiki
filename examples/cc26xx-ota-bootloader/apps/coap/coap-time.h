@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, Institute for Pervasive Computing, ETH Zurich
+ * Copyright (c) 2014, CETIC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,29 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * This file is part of the Contiki operating system.
  */
 
 /**
  * \file
- *      CoAP module for separate responses.
+ *         Simple CoAP Library
  * \author
- *      Matthias Kovatsch <kovatsch@inf.ethz.ch>
+ *         6LBR Team <6lbr@cetic.be>
  */
+#ifndef COAP_TIME_H
+#define COAP_TIME_H
 
-#ifndef COAP_SEPARATE_H_
-#define COAP_SEPARATE_H_
+#include "contiki.h"
 
-#include "er-coap.h"
+void
+coap_time_init(void);
 
-typedef struct coap_separate {
+uint32_t
+coap_time_get_uptime(void);
 
-  uip_ipaddr_t addr;
-  uint16_t port;
-  context_t * ctx;
+uint32_t
+coap_time_get_time(void);
 
-  coap_message_type_t type;
-  uint16_t mid;
+void
+coap_time_set_time(uint32_t time);
 
-  uint8_t token_len;
-  uint8_t token[COAP_TOKEN_LEN];
-
-  uint32_t block1_num;
-  uint16_t block1_size;
-
-  uint32_t block2_num;
-  uint16_t block2_size;
-} coap_separate_t;
-
-int coap_separate_handler(resource_t *resource, void *request,
-                          void *response);
-void coap_separate_reject();
-void coap_separate_accept(void *request, coap_separate_t *separate_store);
-void coap_separate_resume(void *response, coap_separate_t *separate_store,
-                          uint8_t code);
-
-#endif /* COAP_SEPARATE_H_ */
+#endif /* COAP_TIME_H */
