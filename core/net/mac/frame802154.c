@@ -146,30 +146,18 @@ frame802154_has_panid(frame802154_fcf_t *fcf, int *has_src_pan_id, int *has_dest
   }
 
   if(fcf->frame_version == FRAME802154_IEEE802154E_2012) {
+    /* IEEE 802.15.4e-2012, Table 2a, PAN ID Compression */
     if(!fcf->panid_compression) {
-      /* Compressed PAN ID == no PAN ID at all */
-      if(fcf->dest_addr_mode == fcf->dest_addr_mode) {
-        /* No address or both addresses: include destination PAN ID */
-        dest_pan_id = 1;
-      } else if(fcf->dest_addr_mode) {
-        /* Only dest address, include dest PAN ID */
+      if(fcf->dest_addr_mode) {
+        /* Use destination PAN ID if destination address is present */
         dest_pan_id = 1;
       } else if(fcf->src_addr_mode) {
         /* Only src address, include src PAN ID */
         src_pan_id = 1;
       }
-    }
-    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 1) {
-      /* No address included, include dest PAN ID conditionally */
-      if(!fcf->panid_compression) {
-        dest_pan_id = 1;
-      }
-    }
-    /* Remove the following rule the day rows 2 and 3 from table 2a are fixed: */
-    if(fcf->dest_addr_mode == 0 && fcf->dest_addr_mode == 0) {
-      /* Not meaningful, we include a PAN ID iff the compress flag is set, but
-       * this is what the standard currently stipulates */
-      dest_pan_id = fcf->panid_compression;
+    } else if((fcf->dest_addr_mode == 0) && (fcf->src_addr_mode == 0)) {
+      /* No address included: PAN ID compression flag changes meaning */
+      dest_pan_id = 1;
     }
   } else {
     /* No PAN ID in ACK */
