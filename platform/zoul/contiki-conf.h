@@ -77,6 +77,14 @@ typedef uint32_t rtimer_clock_t;
 #define RTIMER_CLOCK_DIFF(a, b)     ((int32_t)((a) - (b)))
 /** @} */
 /*---------------------------------------------------------------------------*/
+#define TSCH_CONF_HW_FRAME_FILTERING    0
+
+/* 352us from calling transmit() until the SFD byte has been sent */
+#define RADIO_DELAY_BEFORE_TX     ((unsigned)US_TO_RTIMERTICKS(352))
+/* 192us as in datasheet but ACKs are not always received, so adjusted to 250us */
+#define RADIO_DELAY_BEFORE_RX     ((unsigned)US_TO_RTIMERTICKS(250))
+#define RADIO_DELAY_BEFORE_DETECT 0
+/*---------------------------------------------------------------------------*/
 /**
  * \name Serial Boot Loader Backdoor configuration
  *
