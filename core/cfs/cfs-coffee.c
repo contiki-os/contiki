@@ -75,12 +75,6 @@
 #error "Cannot have COFFEE_APPEND_ONLY set when COFFEE_MICRO_LOGS is set."
 #endif
 
-/* I/O semantics can be set on file descriptors in order to optimize
-   file access on certain storage types. */
-#ifndef COFFEE_IO_SEMANTICS
-#define COFFEE_IO_SEMANTICS 0
-#endif
-
 /*
  * Prevent sectors from being erased directly after file removal.
  * This will level the wear across sectors better, but may lead
@@ -94,24 +88,29 @@
 #error COFFEE_START must point to the first byte in a sector.
 #endif
 
+/* File descriptor flags. */
 #define COFFEE_FD_FREE    0x0
 #define COFFEE_FD_READ    0x1
 #define COFFEE_FD_WRITE   0x2
 #define COFFEE_FD_APPEND  0x4
 
+/* File object flags. */
 #define COFFEE_FILE_MODIFIED  0x1
 
-#define INVALID_PAGE    ((coffee_page_t)-1)
+/* Internal Coffee markers. */
+#define INVALID_PAGE      ((coffee_page_t)-1)
 #define UNKNOWN_OFFSET    ((cfs_offset_t)-1)
 
-#define REMOVE_LOG    1
-#define CLOSE_FDS   1
-#define ALLOW_GC    1
+/* File removal actions. They can have the same values because
+   they are passed as separate parameters. */
+#define REMOVE_LOG        1
+#define CLOSE_FDS         1
+#define ALLOW_GC          1
 
 /* "Greedy" garbage collection erases as many sectors as possible. */
-#define GC_GREEDY   0
+#define GC_GREEDY         0
 /* "Reluctant" garbage collection stops after erasing one sector. */
-#define GC_RELUCTANT    1
+#define GC_RELUCTANT      1
 
 /* File descriptor macros. */
 #define FD_VALID(fd)      ((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && \
@@ -176,9 +175,7 @@ struct file_desc {
   cfs_offset_t offset;
   struct file *file;
   uint8_t flags;
-#if COFFEE_IO_SEMANTICS
   uint8_t io_flags;
-#endif
 };
 
 /* The file header structure mimics the representation of file headers
@@ -221,11 +218,9 @@ static void
 read_header(struct file_header *hdr, coffee_page_t page)
 {
   COFFEE_READ(hdr, sizeof(*hdr), page * COFFEE_PAGE_SIZE);
-#if DEBUG
-  if(HDR_ACTIVE(*hdr) && !HDR_VALID(*hdr)) {
-    PRINTF("Invalid header at page %u!\n", (unsigned)page);
+  if(DEBUG && HDR_ACTIVE(*hdr) && !HDR_VALID(*hdr)) {
+    PRINTF("Coffee: Invalid header at page %u!\n", (unsigned)page);
   }
-#endif
 }
 /*---------------------------------------------------------------------------*/
 static cfs_offset_t
@@ -561,8 +556,8 @@ find_contiguous_pages(coffee_page_t amount)
 }
 /*---------------------------------------------------------------------------*/
 static int
-remove_by_page(coffee_page_t page, int remove_log, int close_fds,
-               int gc_allowed)
+remove_by_page(coffee_page_t page, int remove_log,
+	       int close_fds, int gc_allowed)
 {
   struct file_header hdr;
   int i;
@@ -600,11 +595,9 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds,
     }
   }
 
-#if !COFFEE_EXTENDED_WEAR_LEVELLING
-  if(gc_allowed) {
+  if(!COFFEE_EXTENDED_WEAR_LEVELLING && gc_allowed) {
     collect_garbage(GC_RELUCTANT);
   }
-#endif
 
   return 0;
 }
@@ -1104,19 +1097,13 @@ cfs_read(int fd, void *buf, unsigned size)
   fdp = &coffee_fd_set[fd];
   file = fdp->file;
   
-#if COFFEE_IO_SEMANTICS
   if(fdp->io_flags & CFS_COFFEE_IO_ENSURE_READ_LENGTH) {
     while(fdp->offset + size > file->end) {
-      ((char*)buf)[--size] = 0;
+      ((char *)buf)[--size] = '\0';
     }
-  } else {
-#endif
-    if(fdp->offset + size > file->end) {
-      size = file->end - fdp->offset;
-    }
-#if COFFEE_IO_SEMANTICS
+  } else if(fdp->offset + size > file->end) {
+    size = file->end - fdp->offset;
   }
-#endif
 
   /* If the file is not modified, read directly from the file extent. */
   if(!FILE_MODIFIED(file)) {
@@ -1173,28 +1160,20 @@ cfs_write(int fd, const void *buf, unsigned size)
   file = fdp->file;
 
   /* Attempt to extend the file if we try to write past the end. */
-#if COFFEE_IO_SEMANTICS
   if(!(fdp->io_flags & CFS_COFFEE_IO_FIRM_SIZE)) {
-#endif
-  while(size + fdp->offset + sizeof(struct file_header) >
-        (file->max_pages * COFFEE_PAGE_SIZE)) {
-    if(merge_log(file->page, 1) < 0) {
-      return -1;
+    while(size + fdp->offset + sizeof(struct file_header) >
+	  (file->max_pages * COFFEE_PAGE_SIZE)) {
+      if(merge_log(file->page, 1) < 0) {
+	return -1;
+      }
+      file = fdp->file;
+      PRINTF("Extended the file at page %u\n", (unsigned)file->page);
     }
-    file = fdp->file;
-    PRINTF("Extended the file at page %u\n", (unsigned)file->page);
   }
-#if COFFEE_IO_SEMANTICS
-}
-#endif
 
 #if COFFEE_MICRO_LOGS
-#if COFFEE_IO_SEMANTICS
   if(!(fdp->io_flags & CFS_COFFEE_IO_FLASH_AWARE) &&
      (FILE_MODIFIED(file) || fdp->offset < file->end)) {
-#else
-  if(FILE_MODIFIED(file) || fdp->offset < file->end) {
-#endif
     need_dummy_write = 0;
     for(bytes_left = size; bytes_left > 0;) {
       lp.offset = fdp->offset;
@@ -1236,16 +1215,14 @@ cfs_write(int fd, const void *buf, unsigned size)
     }
   } else {
 #endif /* COFFEE_MICRO_LOGS */
-#if COFFEE_APPEND_ONLY
-  if(fdp->offset < file->end) {
-    return -1;
-  }
-#endif /* COFFEE_APPEND_ONLY */
+    if(COFFEE_APPEND_ONLY && fdp->offset < file->end) {
+      return -1;
+    }
 
-  COFFEE_WRITE(buf, size, absolute_offset(file->page, fdp->offset));
-  fdp->offset += size;
+    COFFEE_WRITE(buf, size, absolute_offset(file->page, fdp->offset));
+    fdp->offset += size;
 #if COFFEE_MICRO_LOGS
-}
+  }
 #endif /* COFFEE_MICRO_LOGS */
 
   if(fdp->offset > file->end) {
