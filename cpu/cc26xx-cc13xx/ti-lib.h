@@ -639,6 +639,22 @@
 #define ti_lib_timer_match_update_mode(...)       TimerMatchUpdateMode(__VA_ARGS__)
 #define ti_lib_timer_interval_load_mode(...)      TimerIntervalLoadMode(__VA_ARGS__)
 /*---------------------------------------------------------------------------*/
+/* trng.h */
+#include "driverlib/trng.h"
+
+#define ti_lib_trng_configure(...)      TRNGConfigure(__VA_ARGS__)
+#define ti_lib_trng_enable(...)         TRNGEnable(__VA_ARGS__)
+#define ti_lib_trng_disable(...)        TRNGDisable(__VA_ARGS__)
+#define ti_lib_trng_number_get(...)     TRNGNumberGet(__VA_ARGS__)
+#define ti_lib_trng_status_get(...)     TRNGStatusGet(__VA_ARGS__)
+#define ti_lib_trng_reset(...)          TRNGReset(__VA_ARGS__)
+#define ti_lib_trng_int_enable(...)     TRNGIntEnable(__VA_ARGS__)
+#define ti_lib_trng_int_disable(...)    TRNGIntDisable(__VA_ARGS__)
+#define ti_lib_trng_int_status(...)     TRNGIntStatus(__VA_ARGS__)
+#define ti_lib_trng_int_clear(...)      TRNGIntClear(__VA_ARGS__)
+#define ti_lib_trng_int_register(...)   TRNGIntRegister(__VA_ARGS__)
+#define ti_lib_trng_int_unregister(...) TRNGIntUnregister(__VA_ARGS__)
+/*---------------------------------------------------------------------------*/
 /* uart.h */
 #include "driverlib/uart.h"
 
