@@ -9,8 +9,12 @@
 #include "contiki.h"
 #include "contiki-lib.h"
 #include "contiki-net.h"
-#include "http-socket.h"
 #include "ip64-addr.h"
+
+#include "coap-common.h"
+#include "core-interface.h"
+#include "block-transfer.h"
+
 #include "ota.h"
 
 #define OTA_IMAGE_SERVER  "http://[bbbb::1]:3003"

@@ -28,7 +28,7 @@ reset_page_buffer() {
  *
  * @brief   Handle the HTTP GET response to a request for firmware binary data.
  *
- */
+ *//*
 static void
 firmware_binary_cb(struct http_socket *s, void *ptr,
          http_socket_event_t e,
@@ -91,13 +91,17 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
     }
     //PRINTF("\n");
   }
-}
+}*/
 
 PROCESS_THREAD(ota_download_th, ev, data)
 {
 
   PROCESS_BEGIN();
 
+
+
+
+/*
   //  (1) Initialize the HTTP download
   http_socket_init(&s);
   bytes_received = 0;
@@ -214,6 +218,6 @@ PROCESS_THREAD(ota_download_th, ev, data)
 
   // Reboot!
   ti_lib_sys_ctrl_system_reset();
-
+*/
   PROCESS_END();
 }
