@@ -1,8 +1,14 @@
 TARGET=srf06-cc26xx
-BOARD=sensortag/cc2650
-#BOARD=srf06/cc26xx
+#BOARD=sensortag/cc2650
+BOARD=srf06/cc26xx
 
 CONTIKI_PROJECT = ota-image-example
+PROJECTDIR?=.
+APPDIRS += $(PROJECTDIR)/../apps
+
+OTA=1
+APPS += ota
+PROJECT_SOURCEFILES += ota.c ota-download.c
 
 CONTIKI = ../../..
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
@@ -11,12 +17,6 @@ CFLAGS += -g -DDEBUG=1
 
 CONTIKI_WITH_IPV6 = 1
 MODULES += core/net/http-socket
-
-OTA=1
-OTA_SOURCE = ../ota
-vpath %.c $(OTA_SOURCE)
-CFLAGS += -I$(OTA_SOURCE)
-PROJECT_SOURCEFILES += ota.c ota-download.c
 
 clean:
 	-rm -f *~ *core core *.srec \

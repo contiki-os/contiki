@@ -15,7 +15,7 @@ SIZE    = arm-none-eabi-size
 SREC_CAT = srec_cat
 
 CONTIKI = ../../..
-OTA_SOURCE = ../ota
+OTA_SOURCE = ../apps/ota
 
 CPU_ABS_PATH = $(CONTIKI)/cpu/cc26xx-cc13xx
 TARGET=srf06-cc26xx
