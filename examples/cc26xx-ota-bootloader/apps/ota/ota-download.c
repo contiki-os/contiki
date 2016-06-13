@@ -8,11 +8,12 @@
 PROCESS(ota_download_th, "OTA Download Agent");
 ota_download_th_p = &ota_download_th;
 
+#define REMOTE_PORT     UIP_HTONS(COAP_DEFAULT_PORT)
+
 static bool ota_downloading_page = false;
 static bool ota_downloading_image = false;
 static bool metadata_received = false;
 static uint16_t bytes_received = 0;
-static struct http_socket s;
 
 static void
 reset_page_buffer() {
@@ -93,12 +94,44 @@ firmware_binary_cb(struct http_socket *s, void *ptr,
   }
 }*/
 
+void
+client_chunk_handler(void *response)
+{
+  const uint8_t *chunk;
+
+  int len = coap_get_payload(response, &chunk);
+
+  printf("|%.*s", len, (char *)chunk);
+}
+
 PROCESS_THREAD(ota_download_th, ev, data)
 {
 
   PROCESS_BEGIN();
 
+  //  (1) Set the IP of our CoAP server to bbbb::1
+  uip_ipaddr_t server_ipaddr;
+  uip_ip6addr(&server_ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1);
+  char *test_url = "/test/me";
 
+  static coap_packet_t request[1];
+
+  coap_init_engine();
+
+  //  Send a CoAP message: confirmable; POST
+  coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
+  coap_set_header_uri_path(request, test_url);
+
+  const char msg[] = "hello world!";
+
+  coap_set_payload(request, (uint8_t *)msg, sizeof(msg) - 1);
+
+  // DEBUG: printf server hostname
+  //PRINT6ADDR(&server_ipaddr);
+  //PRINTF(" : %u\n", UIP_HTONS(REMOTE_PORT));
+
+  COAP_BLOCKING_REQUEST(&server_ipaddr, REMOTE_PORT, request,
+                        client_chunk_handler);
 
 
 /*
