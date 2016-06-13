@@ -522,14 +522,16 @@ rpl_set_prefix(rpl_dag_t *dag, uip_ipaddr_t *prefix, unsigned len)
   dag->prefix_info.length = len;
   dag->prefix_info.flags = UIP_ND6_RA_FLAG_AUTONOMOUS;
   PRINTF("RPL: Prefix set - will announce this in DIOs\n");
-  /* Autoconfigure an address if this node does not already have an address
-     with this prefix. Otherwise, update the prefix */
-  if(last_len == 0) {
-    PRINTF("rpl_set_prefix - prefix NULL\n");
-    check_prefix(NULL, &dag->prefix_info);
-  } else {
-    PRINTF("rpl_set_prefix - prefix NON-NULL\n");
-    check_prefix(&last_prefix, &dag->prefix_info);
+  if(dag->rank != ROOT_RANK(dag->instance)) {
+    /* Autoconfigure an address if this node does not already have an address
+       with this prefix. Otherwise, update the prefix */
+    if(last_len == 0) {
+      PRINTF("rpl_set_prefix - prefix NULL\n");
+      check_prefix(NULL, &dag->prefix_info);
+    } else {
+      PRINTF("rpl_set_prefix - prefix NON-NULL\n");
+      check_prefix(&last_prefix, &dag->prefix_info);
+    }
   }
   return 1;
 }
