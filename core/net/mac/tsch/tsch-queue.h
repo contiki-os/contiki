@@ -39,6 +39,7 @@
 #include "lib/ringbufindex.h"
 #include "net/linkaddr.h"
 #include "net/mac/tsch/tsch-schedule.h"
+#include "net/mac/mac.h"
 
 /******** Configuration *******/
 
