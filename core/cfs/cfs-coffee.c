@@ -445,10 +445,7 @@ load_file(coffee_page_t start, struct file_header *hdr)
   file->page = start;
   file->end = UNKNOWN_OFFSET;
   file->max_pages = hdr->max_pages;
-  file->flags = 0;
-  if(HDR_MODIFIED(*hdr)) {
-    file->flags |= COFFEE_FILE_MODIFIED;
-  }
+  file->flags = HDR_MODIFIED(*hdr) ? COFFEE_FILE_MODIFIED : 0;
   /* We don't know the amount of records yet. */
   file->record_count = -1;
 
@@ -990,6 +987,7 @@ cfs_open(const char *name, int flags)
 
   fdp = &coffee_fd_set[fd];
   fdp->flags = 0;
+  fdp->io_flags = 0;
 
   fdp->file = find_file(name);
   if(fdp->file == NULL) {
@@ -1239,7 +1237,7 @@ cfs_opendir(struct cfs_dir *dir, const char *name)
    * Coffee is only guaranteed to support the directory names "/" and ".",
    * but it does not enforce this currently.
    */
-  memset(dir->dummy_space, 0, sizeof(coffee_page_t));
+  memset(dir->state, 0, sizeof(coffee_page_t));
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -1250,7 +1248,7 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *record)
   coffee_page_t page;
   coffee_page_t next_page;
 
-  memcpy(&page, dir->dummy_space, sizeof(coffee_page_t));
+  memcpy(&page, dir->state, sizeof(coffee_page_t));
 
   while(page < COFFEE_PAGE_COUNT) {
     read_header(&hdr, page);
@@ -1260,7 +1258,7 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *record)
       record->size = file_end(page);
 
       next_page = next_file(page, &hdr);
-      memcpy(dir->dummy_space, &next_page, sizeof(coffee_page_t));
+      memcpy(dir->state, &next_page, sizeof(coffee_page_t));
       return 0;
     }
     page = next_file(page, &hdr);
