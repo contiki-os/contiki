@@ -252,6 +252,7 @@ struct rpl_instance {
 #if RPL_WITH_PROBING
   struct ctimer probing_timer;
   rpl_parent_t *urgent_probing_target;
+  int last_dag;
 #endif /* RPL_WITH_PROBING */
   struct ctimer dio_timer;
   struct ctimer dao_timer;

@@ -457,11 +457,29 @@ get_probing_target(rpl_dag_t *dag)
   return probing_target;
 }
 /*---------------------------------------------------------------------------*/
+static rpl_dag_t *
+get_next_dag(rpl_instance_t *instance)
+{
+  rpl_dag_t *dag = NULL;
+  int new_dag = instance->last_dag;
+  do {
+    new_dag++;
+    if(new_dag >= RPL_MAX_DAG_PER_INSTANCE) {
+      new_dag = 0;
+    }
+    if(instance->dag_table[new_dag].used) {
+      dag = &instance->dag_table[new_dag];
+    }
+  } while(new_dag != instance->last_dag && dag == NULL);
+  instance->last_dag = new_dag;
+  return dag;
+}
+/*---------------------------------------------------------------------------*/
 static void
 handle_probing_timer(void *ptr)
 {
   rpl_instance_t *instance = (rpl_instance_t *)ptr;
-  rpl_parent_t *probing_target = RPL_PROBING_SELECT_FUNC(instance->current_dag);
+  rpl_parent_t *probing_target = RPL_PROBING_SELECT_FUNC(get_next_dag(instance));
   uip_ipaddr_t *target_ipaddr = rpl_get_parent_ipaddr(probing_target);
 
   /* Perform probing */
