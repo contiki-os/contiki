@@ -609,24 +609,25 @@ PT_THREAD(tsch_scan(struct pt *pt))
 
   static struct input_packet input_eb;
   static struct etimer scan_timer;
+  /* Time when we started scanning on current_channel */
+  static clock_time_t current_channel_since;
 
   ASN_INIT(current_asn, 0, 0);
 
   etimer_set(&scan_timer, CLOCK_SECOND / TSCH_ASSOCIATION_POLL_FREQUENCY);
+  current_channel_since = clock_time();
 
   while(!tsch_is_associated && !tsch_is_coordinator) {
     /* Hop to any channel offset */
-    static int current_channel = 0;
-    /* Time when we started scanning on current_channel */
-    static clock_time_t current_channel_since = 0;
+    static uint8_t current_channel = 0;
 
     /* We are not coordinator, try to associate */
     rtimer_clock_t t0;
     int is_packet_pending = 0;
-    clock_time_t now_seconds = clock_seconds();
+    clock_time_t now_time = clock_time();
 
     /* Switch to a (new) channel for scanning */
-    if(current_channel == 0 || now_seconds != current_channel_since) {
+    if(current_channel == 0 || now_time - current_channel_since > TSCH_CHANNEL_SCAN_DURATION) {
       /* Pick a channel at random in TSCH_JOIN_HOPPING_SEQUENCE */
       uint8_t scan_channel = TSCH_JOIN_HOPPING_SEQUENCE[
           random_rand() % sizeof(TSCH_JOIN_HOPPING_SEQUENCE)];
@@ -635,7 +636,7 @@ PT_THREAD(tsch_scan(struct pt *pt))
         current_channel = scan_channel;
         PRINTF("TSCH: scanning on channel %u\n", scan_channel);
       }
-      current_channel_since = now_seconds;
+      current_channel_since = now_time;
     }
 
     /* Turn radio on and wait for EB */
@@ -649,11 +650,11 @@ PT_THREAD(tsch_scan(struct pt *pt))
     }
 
     if(is_packet_pending) {
-      /* Save packet timestamp */
-      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
-
       /* Read packet */
       input_eb.len = NETSTACK_RADIO.read(input_eb.payload, TSCH_PACKET_MAX_LEN);
+
+      /* Save packet timestamp */
+      NETSTACK_RADIO.get_object(RADIO_PARAM_LAST_PACKET_TIMESTAMP, &t0, sizeof(rtimer_clock_t));
 
       /* Parse EB and attempt to associate */
       PRINTF("TSCH: association: received packet (%u bytes) on channel %u\n", input_eb.len, current_channel);
