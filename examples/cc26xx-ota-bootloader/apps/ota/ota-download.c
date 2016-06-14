@@ -101,7 +101,14 @@ client_chunk_handler(void *response)
 
   int len = coap_get_payload(response, &chunk);
 
-  printf("|%.*s", len, (char *)chunk);
+  printf("\n");
+  printf("Received chunk (%u bytes): ", len);
+  int b;
+  for (b=0; b<len; b++) {
+    printf("%#x ", *(chunk+b));
+  }
+  //printf("%.*s", len, (char *)chunk);
+  printf("\n");
 }
 
 PROCESS_THREAD(ota_download_th, ev, data)
@@ -112,7 +119,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   //  (1) Set the IP of our CoAP server to bbbb::1
   uip_ipaddr_t server_ipaddr;
   uip_ip6addr(&server_ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1);
-  char *test_url = "/test/me";
+  char *test_url = "/0/4096";
 
   static coap_packet_t request[1];
 
@@ -121,6 +128,7 @@ PROCESS_THREAD(ota_download_th, ev, data)
   //  Send a CoAP message: confirmable; POST
   coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
   coap_set_header_uri_path(request, test_url);
+  coap_set_header_block2(request, 0, 0, 1024); // get data in 1Kb chunks
 
   const char msg[] = "hello world!";
 
