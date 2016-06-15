@@ -6,18 +6,15 @@ CONTIKI_PROJECT = ota-image-example
 PROJECTDIR?=.
 APPDIRS += $(PROJECTDIR)/../apps
 
+CONTIKI = ../../..
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+CFLAGS += -g -DDEBUG=1
+
 OTA=1
 APPS += ota
 PROJECT_SOURCEFILES += ota.c ota-download.c
 
-PROJECTDIRS += $(PROJECTDIR)/../apps/coap/rest-types
-APPS += er-coap rest-engine coap
-PROJECTDIRS +=
-
-CONTIKI = ../../..
-CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-
-CFLAGS += -g -DDEBUG=1
+APPS += er-coap rest-engine
 
 CONTIKI_WITH_IPV6 = 1
 

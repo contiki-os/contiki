@@ -8,12 +8,8 @@
 PROCESS(ota_download_th, "OTA Download Agent");
 ota_download_th_p = &ota_download_th;
 
+#define LOCAL_PORT      UIP_HTONS(COAP_DEFAULT_PORT + 1)
 #define REMOTE_PORT     UIP_HTONS(COAP_DEFAULT_PORT)
-
-static bool ota_downloading_page = false;
-static bool ota_downloading_image = false;
-static bool metadata_received = false;
-static uint16_t bytes_received = 0;
 
 static void
 reset_page_buffer() {
@@ -23,242 +19,108 @@ reset_page_buffer() {
   }
 }
 
-
 /*******************************************************************************
- * @fn      firmware_binary_cb
+ * @fn      firmware_chunk_handler
  *
- * @brief   Handle the HTTP GET response to a request for firmware binary data.
+ * @brief   Handle incoming data from the CoAP request.
+ *          This mostly involves writing the data to the page_buffer[] array.
+ *          When page_buffer is full, we copy it into external flash.
  *
- *//*
-static void
-firmware_binary_cb(struct http_socket *s, void *ptr,
-         http_socket_event_t e,
-         const uint8_t *data, uint16_t datalen)
-{
-  if (!ota_downloading_image) {
-    //  If no longer downloading, callbacks are ignored.
-    return;
-  }
-  if(e == HTTP_SOCKET_ERR) {
-    PRINTF("HTTP socket error\n");
-    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
-  } else if(e == HTTP_SOCKET_TIMEDOUT) {
-    PRINTF("HTTP socket error: timed out\n");
-    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
-  } else if(e == HTTP_SOCKET_ABORTED) {
-    PRINTF("HTTP socket error: aborted\n");
-    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
-  } else if(e == HTTP_SOCKET_HOSTNAME_NOT_FOUND) {
-    PRINTF("HTTP socket error: hostname not found\n");
-    process_post(ota_download_th_p, OTA_HTTP_REQUEST_FAIL, (process_data_t)NULL);
-  } else if(e == HTTP_SOCKET_CLOSED) {
-    PRINTF("HTTP socket closed, %d bytes received\n", bytes_received);
-    if ( img_req_position >= FLASH_PAGE_SIZE ) {
-      process_post(ota_download_th_p, OTA_PAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
-    } else {
-      process_post(ota_download_th_p, OTA_HTTP_REQUEST_SUCCESS, (process_data_t)NULL);
-    }
-  } else if(e == HTTP_SOCKET_DATA) {
-    //PRINTF("\n");
-    while (datalen--)
-    {
-      //PRINTF("%#x (%u) ", *data, datalen);
-      if (page_started) {
-        //  If *data = "EOF"
-        if (  (*data == 0x45) &&
-              (*(data+1) == 0x4f) &&
-              (*(data+2) == 0x46) )
-        {
-          process_post(ota_download_th_p, OTA_IMAGE_DOWNLOAD_COMPLETE, (process_data_t)NULL);
-          return;
-        }
-        //  If we've reached the end of the HTTP response
-        else if ( (HTTP_PAYLOAD_END( data )) || (img_req_position > FLASH_PAGE_SIZE) ) {
-          page_started = false;
-          break;
-        }
-        //  Otherwise, this is valid data.  Write it down.
-        else {
-          bytes_received++;
-          page_buffer[ img_req_position++ ] = *data;
-        }
-      }
-      else {
-        if ( HTTP_PAYLOAD_START( data ) ) {
-          page_started = true;
-        }
-      }
-      *data++;
-    }
-    //PRINTF("\n");
-  }
-}*/
-
+ */
 void
-client_chunk_handler(void *response)
+firmware_chunk_handler(void *response)
 {
   const uint8_t *chunk;
 
   int len = coap_get_payload(response, &chunk);
+  bytes_received += len;
 
-  printf("\n");
-  printf("Received chunk (%u bytes): ", len);
-  int b;
-  for (b=0; b<len; b++) {
-    printf("%#x ", *(chunk+b));
+  printf("Downloaded %u bytes\t(%#x)\n", len, bytes_received);
+
+  while (len--) {
+    page_buffer[ img_req_position++ ] = *chunk++;
   }
-  //printf("%.*s", len, (char *)chunk);
-  printf("\n");
+
+  //  ( ) Once we have a whole page of firmware data saved:
+  if (img_req_position >= FLASH_PAGE_SIZE) {
+    //  (1) Handle metadata-specific information
+    if ( metadata_received ) {
+      //  If we have metadata already, calculate how much of the download is done.
+      int percent = 10000.0 * ((float)((page<<12) + img_req_position) / (float)new_firmware_metadata.size);
+      PRINTF("========> OTA download %u.%u%%\tcomplete\n\n", percent/100, (percent - ((percent/100)*100)));
+    } else {
+      //  If we don't have metadata yet, get it from the first page
+      //  (1) Extract metadata from the page_buffer
+      memcpy( &new_firmware_metadata, page_buffer, OTA_METADATA_LENGTH );
+      print_metadata( &new_firmware_metadata );
+      metadata_received = true;
+
+      //  (2) Check to see if we have any OTA slots already containing
+      //      firmware of the same version number as the metadata has.
+      active_ota_download_slot = find_matching_ota_slot( new_firmware_metadata.version );
+      if ( active_ota_download_slot == -1 ) {
+        //  We don't already have a copy of this firmware version, let's download
+        //  to an empty OTA slot!
+        active_ota_download_slot = find_empty_ota_slot();
+        if ( !active_ota_download_slot ) {
+          active_ota_download_slot = 1;
+        }
+      }
+      PRINTF("\nDownloading OTA update to OTA slot #%i.\n", active_ota_download_slot);
+
+      //  (3) Erase the destination OTA download slot
+      while( erase_ota_image( active_ota_download_slot ) );
+    }
+
+    //  (2) Save the latest page to flash!
+    PRINTF("\n============================================\n");
+    while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) );
+    page++;
+    img_req_position = 0;
+    reset_page_buffer();
+    PRINTF("============================================\n");
+  }
 }
 
 PROCESS_THREAD(ota_download_th, ev, data)
 {
-
   PROCESS_BEGIN();
 
-  //  (1) Set the IP of our CoAP server to bbbb::1
-  uip_ipaddr_t server_ipaddr;
-  uip_ip6addr(&server_ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1);
-  char *test_url = "/0/4096";
+  //  (1) Set the IP of our CoAP server
+  OTA_SERVER_IP();
+  const char *ota_url = "/ota";
 
+  //  (2) Initialize download parameters
+  reset_page_buffer();
+  metadata_received = false;
+  bytes_received = 0;
+  page = 0;
+  img_req_position = 0;
+
+  //  (3) Initialize CoAP engine
+  coap_init_engine();
   static coap_packet_t request[1];
 
-  coap_init_engine();
+  //  (4) Issue a GET request to the OTA server
+  //      We will add a block2 header, so that we get the firmware blockwise
+  coap_init_message(request, COAP_TYPE_CON, COAP_GET, 0);
+  coap_set_header_uri_path(request, ota_url);
+  coap_set_header_block2(request, 0, 0, 1024); // get data blockwise
+  COAP_BLOCKING_REQUEST(&ota_server_ipaddr, REMOTE_PORT, request, firmware_chunk_handler);
 
-  //  Send a CoAP message: confirmable; POST
-  coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
-  coap_set_header_uri_path(request, test_url);
-  coap_set_header_block2(request, 0, 0, 1024); // get data in 1Kb chunks
+  //  (5) When the download is complete:
+  PRINTF("-----done-----\n");
 
-  const char msg[] = "hello world!";
-
-  coap_set_payload(request, (uint8_t *)msg, sizeof(msg) - 1);
-
-  // DEBUG: printf server hostname
-  //PRINT6ADDR(&server_ipaddr);
-  //PRINTF(" : %u\n", UIP_HTONS(REMOTE_PORT));
-
-  COAP_BLOCKING_REQUEST(&server_ipaddr, REMOTE_PORT, request,
-                        client_chunk_handler);
-
-
-/*
-  //  (1) Initialize the HTTP download
-  http_socket_init(&s);
-  bytes_received = 0;
-  ota_downloading_image = true;
-  img_req_position_last = 0;
-
-  //  (2) Begin downloading the OTA update, page by page.
-  for (page=0; page<25; page++)
-  {
-    PRINTF("\nDownloading Page %u/25:\n", page);
-
-    //  (1) Clear Page Buffer
-    reset_page_buffer();
-    img_req_position = 0;
-    img_req_position_last = 0;
-
-    //  (2) Download page
-    ota_downloading_page = true;
-    while ( ota_downloading_page )
-    {
-      //  (1) Construct a URL requesting the current page of data
-      char url[120];
-      bytes_received = 0;
-      sprintf(url, OTA_IMAGE_SERVER "/%lu/%u", (img_req_position+(page<<12)), img_req_length);
-
-      //  (2) Issue HTTP GET request to server
-      page_started = false;
-      http_socket_get(&s, url, 0, 0, firmware_binary_cb, NULL);
-
-      //  (3) Yield until HTTP request callback returns
-      PROCESS_YIELD_UNTIL( (ev == OTA_HTTP_REQUEST_SUCCESS) || (ev == OTA_HTTP_REQUEST_FAIL) || (ev == OTA_HTTP_REQUEST_RETRY) || (ev == OTA_PAGE_DOWNLOAD_COMPLETE) || (ev == OTA_IMAGE_DOWNLOAD_COMPLETE) );
-
-      switch ( ev ) {
-        case OTA_HTTP_REQUEST_SUCCESS:
-        {
-          PRINTF("Download complete!\n");
-          if ( (bytes_received != img_req_length) && ( ((page<<12) + img_req_position) < new_firmware_metadata.size ) ) {
-            //  Something's not right.  Redo this download!
-            PRINTF("Something was wrong with that download!  Retrying.\n");
-            //  Re-erase the destination area of the page buffer
-            for (int b=img_req_position_last; b<img_req_position; b++) {
-              page_buffer[ b ] = 0xff;
-            }
-            //  Roll back the page_data pointer to the last position
-            img_req_position = img_req_position_last; // rewind our image data pointer
-            PRINTF("Rolling back to byte %u of page %u\n", img_req_position_last, page);
-            continue;
-          } else {
-            PRINTF("Now at byte %u of page %u\n", img_req_position, page);
-            img_req_position_last = img_req_position;
-          }
-        } break;
-        case OTA_HTTP_REQUEST_FAIL:
-        {
-          PRINTF("Failed HTTP request.  Retrying.\n");
-          continue;
-        } break;
-        case OTA_PAGE_DOWNLOAD_COMPLETE:
-        {
-          ota_downloading_page = false;
-        } break;
-        case OTA_IMAGE_DOWNLOAD_COMPLETE:
-        {
-          ota_downloading_page = false;
-          ota_downloading_image = false;
-        } break;
-      }
-
-      //  (3) What OTA slot should we download into?
-      //      Note: This code only executes on the very first GET.
-      if ( metadata_received ) {
-        int percent = 10000.0 * ((float)((page<<12) + img_req_position) / (float)new_firmware_metadata.size);
-        PRINTF("========> OTA download %u.%u%%\tcomplete\n\n", percent/100, (percent - ((percent/100)*100)));
-      } else {
-        //  (1) Extract metadata from the page_buffer
-        memcpy( &new_firmware_metadata, page_buffer, OTA_METADATA_LENGTH );
-        print_metadata( &new_firmware_metadata );
-        metadata_received = true;
-
-        //  (2) Check to see if we have any OTA slots already containing
-        //      firmware of the same version number as the metadata has.
-        active_ota_download_slot = find_matching_ota_slot( new_firmware_metadata.version );
-        if ( active_ota_download_slot == -1 ) {
-          //  We don't already have a copy of this firmware version, let's download
-          //  to an empty OTA slot!
-          active_ota_download_slot = find_empty_ota_slot();
-          if ( !active_ota_download_slot ) {
-            active_ota_download_slot = 1;
-          }
-        }
-        PRINTF("\nDownloading OTA update to OTA slot #%i.\n", active_ota_download_slot);
-
-        //  (3) Erase the destination OTA download slot
-        while( erase_ota_image( active_ota_download_slot ) );
-      }
-    }
-
-    //  (4) Save firmware page to flash
-    PRINTF("\n============================================\n");
-    while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) );
-    PRINTF("============================================\n");
-
-    //  (5) Are we done?
-    if (!ota_downloading_image) {
-      break;
-    }
-
-  }
-
-  PRINTF("Done downloading!\n");
+  //  (6)  Save the last page!
+  PRINTF("\n============================================\n");
+  while( store_firmware_page( ((page+ota_images[active_ota_download_slot-1]) << 12), page_buffer ) );
+  PRINTF("============================================\n");
 
   //  Make OTA slot metadata as "valid"
-  verify_ota_slot( active_ota_download_slot );
+  while( verify_ota_slot( active_ota_download_slot ) );
 
   // Reboot!
-  ti_lib_sys_ctrl_system_reset();
-*/
+  //ti_lib_sys_ctrl_system_reset();
+
   PROCESS_END();
 }
