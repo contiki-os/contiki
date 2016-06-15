@@ -228,6 +228,9 @@ typedef struct rf_core_primary_mode_s {
 #define RF_CORE_COMMAND_PROTOCOL_IEEE                    0x2000
 #define RF_CORE_COMMAND_PROTOCOL_PROP                    0x3000
 /*---------------------------------------------------------------------------*/
+/* Radio timer register */
+#define RATCNT  0x00000004
+/*---------------------------------------------------------------------------*/
 /* Make the main driver process visible to mode drivers */
 PROCESS_NAME(rf_core_process);
 /*---------------------------------------------------------------------------*/
@@ -311,6 +314,24 @@ uint8_t rf_core_set_modesel(void);
 uint8_t rf_core_start_rat(void);
 
 /**
+ * \brief Stop the CM0 RAT synchronously
+ * \return RF_CORE_CMD_OK or RF_CORE_CMD_ERROR
+ *
+ * This function is not strictly necessary, but through calling it it's possibly
+ * to learn the RAT / RTC offset, which useful to get accurate radio timestamps.
+ */
+uint8_t rf_core_stop_rat(void);
+
+/**
+ * \brief Restart the CM0 RAT
+ * \return RF_CORE_CMD_OK or RF_CORE_CMD_ERROR
+ *
+ * This function restarts the CM0 RAT and therefore resynchornizes it with RTC.
+ * To achieve good timing accuracy, it should be called periodically.
+ */
+uint8_t rf_core_restart_rat(void);
+
+/**
  * \brief Boot the RF Core
  * \return RF_CORE_CMD_OK or RF_CORE_CMD_ERROR
  *
@@ -327,19 +348,20 @@ uint8_t rf_core_boot(void);
 /**
  * \brief Setup RF core interrupts
  */
-void rf_core_setup_interrupts(void);
+void rf_core_setup_interrupts(bool poll_mode);
 
 /**
  * \brief Enable interrupt on command done.
  * \param fg set true to enable irq on foreground command done and false for
  * background commands or if not in ieee mode.
+ * \param poll_mode true if the driver is in poll mode
  *
  * This is used within TX routines in order to be able to sleep the CM3 and
  * wake up after TX has finished
  *
  * \sa rf_core_cmd_done_dis()
  */
-void rf_core_cmd_done_en(bool fg);
+void rf_core_cmd_done_en(bool fg, bool poll_mode);
 
 /**
  * \brief Disable the LAST_CMD_DONE and LAST_FG_CMD_DONE interrupts.
@@ -348,7 +370,7 @@ void rf_core_cmd_done_en(bool fg);
  *
  * \sa rf_core_cmd_done_en()
  */
-void rf_core_cmd_done_dis(void);
+void rf_core_cmd_done_dis(bool poll_mode);
 
 /**
  * \brief Returns a pointer to the most recent proto-dependent Radio Op
