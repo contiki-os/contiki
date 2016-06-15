@@ -92,6 +92,8 @@
 #define ENABLED_IRQS (RX_FRAME_IRQ | ERROR_IRQ)
 #endif
 
+#define ENABLED_IRQS_POLL_MODE (ENABLED_IRQS & ~(RX_FRAME_IRQ | ERROR_IRQ))
+
 #define cc26xx_rf_cpe0_isr RFCCPE0IntHandler
 #define cc26xx_rf_cpe1_isr RFCCPE1IntHandler
 /*---------------------------------------------------------------------------*/
@@ -100,6 +102,10 @@ static rfc_radioOp_t *last_radio_op = NULL;
 /*---------------------------------------------------------------------------*/
 /* A struct holding pointers to the primary mode's abort() and restore() */
 static const rf_core_primary_mode_t *primary_mode = NULL;
+/*---------------------------------------------------------------------------*/
+/* Radio timer (RAT) offset as compared to the rtimer counter (RTC) */
+int32_t rat_offset = 0;
+static bool rat_offset_known = false;
 /*---------------------------------------------------------------------------*/
 PROCESS(rf_core_process, "CC13xx / CC26xx RF driver");
 /*---------------------------------------------------------------------------*/
@@ -265,6 +271,66 @@ rf_core_power_up()
   return RF_CORE_CMD_OK;
 }
 /*---------------------------------------------------------------------------*/
+uint8_t
+rf_core_start_rat(void)
+{
+  uint32_t cmd_status;
+  rfc_CMD_SYNC_START_RAT_t cmd_start;
+
+  /* Start radio timer (RAT) */
+  rf_core_init_radio_op((rfc_radioOp_t *)&cmd_start, sizeof(cmd_start), CMD_SYNC_START_RAT);
+
+  /* copy the value and send back */
+  cmd_start.rat0 = rat_offset;
+
+  if(rf_core_send_cmd((uint32_t)&cmd_start, &cmd_status) != RF_CORE_CMD_OK) {
+    PRINTF("rf_core_get_rat_rtc_offset: SYNC_START_RAT fail, CMDSTA=0x%08lx\n",
+           cmd_status);
+    return RF_CORE_CMD_ERROR;
+  }
+
+  /* Wait until done (?) */
+  if(rf_core_wait_cmd_done(&cmd_start) != RF_CORE_CMD_OK) {
+    PRINTF("rf_core_cmd_ok: SYNC_START_RAT wait, CMDSTA=0x%08lx, status=0x%04x\n",
+           cmd_status, cmd_start.status);
+    return RF_CORE_CMD_ERROR;
+  }
+
+  return RF_CORE_CMD_OK;
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+rf_core_stop_rat(void)
+{
+  rfc_CMD_SYNC_STOP_RAT_t cmd_stop;
+  uint32_t cmd_status;
+
+  rf_core_init_radio_op((rfc_radioOp_t *)&cmd_stop, sizeof(cmd_stop), CMD_SYNC_STOP_RAT);
+
+  int ret = rf_core_send_cmd((uint32_t)&cmd_stop, &cmd_status);
+  if(ret != RF_CORE_CMD_OK) {
+    PRINTF("rf_core_get_rat_rtc_offset: SYNC_STOP_RAT fail, ret %d CMDSTA=0x%08lx\n",
+           ret, cmd_status);
+    return ret;
+  }
+
+  /* Wait until done */
+  ret = rf_core_wait_cmd_done(&cmd_stop);
+  if(ret != RF_CORE_CMD_OK) {
+    PRINTF("rf_core_cmd_ok: SYNC_STOP_RAT wait, CMDSTA=0x%08lx, status=0x%04x\n",
+        cmd_status, cmd_stop.status);
+    return ret;
+  }
+
+  if(!rat_offset_known) {
+    /* save the offset, but only if this is the first time */
+    rat_offset_known = true;
+    rat_offset = cmd_stop.rat0;
+  }
+
+  return RF_CORE_CMD_OK;
+}
+/*---------------------------------------------------------------------------*/
 void
 rf_core_power_down()
 {
@@ -279,6 +345,8 @@ rf_core_power_down()
     /* need to send FS_POWERDOWN or analog components will use power */
     fs_powerdown();
   }
+
+  rf_core_stop_rat();
 
   /* Shut down the RFCORE clock domain in the MCU VD */
   ti_lib_prcm_domain_disable(PRCM_DOMAIN_RFCORE);
@@ -329,22 +397,6 @@ rf_core_set_modesel()
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
-rf_core_start_rat()
-{
-  uint32_t cmd_status;
-
-  /* Start radio timer (RAT) */
-  if(rf_core_send_cmd(CMDR_DIR_CMD(CMD_START_RAT), &cmd_status)
-     != RF_CORE_CMD_OK) {
-    PRINTF("rf_core_apply_patches: START_RAT fail, CMDSTA=0x%08lx\n",
-           cmd_status);
-    return RF_CORE_CMD_ERROR;
-  }
-
-  return RF_CORE_CMD_OK;
-}
-/*---------------------------------------------------------------------------*/
-uint8_t
 rf_core_boot()
 {
   if(rf_core_power_up() != RF_CORE_CMD_OK) {
@@ -366,10 +418,31 @@ rf_core_boot()
   return RF_CORE_CMD_OK;
 }
 /*---------------------------------------------------------------------------*/
+uint8_t
+rf_core_restart_rat(void)
+{
+  if(rf_core_stop_rat() != RF_CORE_CMD_OK) {
+    PRINTF("rf_core_restart_rat: rf_core_stop_rat() failed\n");
+
+    return RF_CORE_CMD_ERROR;
+  }
+
+  if(rf_core_start_rat() != RF_CORE_CMD_OK) {
+    PRINTF("rf_core_restart_rat: rf_core_start_rat() failed\n");
+
+    rf_core_power_down();
+
+    return RF_CORE_CMD_ERROR;
+  }
+
+  return RF_CORE_CMD_OK;
+}
+/*---------------------------------------------------------------------------*/
 void
-rf_core_setup_interrupts()
+rf_core_setup_interrupts(bool poll_mode)
 {
   bool interrupts_disabled;
+  const uint32_t enabled_irqs = poll_mode ? ENABLED_IRQS_POLL_MODE : ENABLED_IRQS;
 
   /* We are already turned on by the caller, so this should not happen */
   if(!rf_core_is_accessible()) {
@@ -384,7 +457,7 @@ rf_core_setup_interrupts()
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEISL) = ERROR_IRQ;
 
   /* Acknowledge configured interrupts */
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = ENABLED_IRQS;
+  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = enabled_irqs;
 
   /* Clear interrupt flags, active low clear(?) */
   HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = 0x0;
@@ -400,18 +473,20 @@ rf_core_setup_interrupts()
 }
 /*---------------------------------------------------------------------------*/
 void
-rf_core_cmd_done_en(bool fg)
+rf_core_cmd_done_en(bool fg, bool poll_mode)
 {
   uint32_t irq = fg ? IRQ_LAST_FG_COMMAND_DONE : IRQ_LAST_COMMAND_DONE;
+  const uint32_t enabled_irqs = poll_mode ? ENABLED_IRQS_POLL_MODE : ENABLED_IRQS;
 
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = ENABLED_IRQS;
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = ENABLED_IRQS | irq;
+  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIFG) = enabled_irqs;
+  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = enabled_irqs | irq;
 }
 /*---------------------------------------------------------------------------*/
 void
-rf_core_cmd_done_dis()
+rf_core_cmd_done_dis(bool poll_mode)
 {
-  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = ENABLED_IRQS;
+  const uint32_t enabled_irqs = poll_mode ? ENABLED_IRQS_POLL_MODE : ENABLED_IRQS;
+  HWREG(RFC_DBELL_NONBUF_BASE + RFC_DBELL_O_RFCPEIEN) = enabled_irqs;
 }
 /*---------------------------------------------------------------------------*/
 rfc_radioOp_t *

@@ -634,7 +634,7 @@ prepare(const void *payload, unsigned short payload_len)
   int len = MIN(payload_len, TX_BUF_PAYLOAD_LEN);
 
   memcpy(&tx_buf[TX_BUF_HDR_LEN], payload, len);
-  return RF_CORE_CMD_OK;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -683,7 +683,7 @@ transmit(unsigned short transmit_len)
   rx_off_prop();
 
   /* Enable the LAST_COMMAND_DONE interrupt to wake us up */
-  rf_core_cmd_done_en(false);
+  rf_core_cmd_done_en(false, false);
 
   ret = rf_core_send_cmd((uint32_t)cmd_tx_adv, &cmd_status);
 
@@ -728,7 +728,7 @@ transmit(unsigned short transmit_len)
    * Disable LAST_FG_COMMAND_DONE interrupt. We don't really care about it
    * except when we are transmitting
    */
-  rf_core_cmd_done_dis();
+  rf_core_cmd_done_dis(false);
 
   /* Workaround. Set status to IDLE */
   cmd_tx_adv->status = RF_CORE_RADIO_OP_STATUS_IDLE;
@@ -933,7 +933,7 @@ on(void)
     }
   }
 
-  rf_core_setup_interrupts();
+  rf_core_setup_interrupts(false);
 
   /*
    * Trigger a switch to the XOSC, so that we can subsequently use the RF FS
