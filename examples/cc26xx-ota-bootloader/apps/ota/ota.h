@@ -100,7 +100,7 @@ extern int
 erase_ota_image( uint8_t ota_slot );
 
 extern int
-store_firmware_page( uint32_t ext_address, uint8_t *page_data );
+store_firmware_data( uint32_t ext_address, uint8_t *data, size_t data_length );
 
 extern void
 jump_to_image(uint32_t destination_address);

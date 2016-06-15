@@ -22,11 +22,12 @@ extern int ota_download_th_p; // Pointer to OTA Download thread
 
 static OTAMetadata_t new_firmware_metadata;
 static int active_ota_download_slot;
-static uint8_t page_buffer[ FLASH_PAGE_SIZE ];
-static uint8_t page;
+#define OTA_BUFFER_SIZE 1024
+static uint8_t ota_buffer[ OTA_BUFFER_SIZE ];
 static bool metadata_received;
 static uint32_t ota_bytes_received;
-static uint32_t ota_start_address;
+static uint32_t ota_bytes_saved;
+static uint32_t ota_req_start;
 static uint32_t img_req_position;
 static bool ota_download_active;
 static int coap_request_count;
