@@ -84,11 +84,13 @@ handle_periodic_timer(void *ptr)
   rpl_dag_t *dag = rpl_get_any_dag();
 
   rpl_purge_dags();
-  if(dag != NULL && RPL_IS_STORING(dag->instance)) {
-    rpl_purge_routes();
-  }
-  if(dag != NULL && RPL_IS_NON_STORING(dag->instance)) {
-    rpl_ns_periodic();
+  if(dag != NULL) {
+    if(RPL_IS_STORING(dag->instance)) {
+      rpl_purge_routes();
+    }
+    if(RPL_IS_NON_STORING(dag->instance)) {
+      rpl_ns_periodic();
+    }
   }
   rpl_recalculate_ranks();
 
