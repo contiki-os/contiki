@@ -1,23 +1,26 @@
-#undef UIP_CONF_BUFFER_SIZE
-#define UIP_CONF_BUFFER_SIZE           1280
-
-#undef REST_MAX_CHUNK_SIZE
-//#define REST_MAX_CHUNK_SIZE            256
-
 /*---------------------------------------------------------------------------*/
 /* COAP                                                                      */
 /*---------------------------------------------------------------------------*/
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE           1280
 
-#define COAP_SERVER_PORT 5683
+/* Disabling TCP on CoAP nodes. */
+#undef UIP_CONF_TCP
+#define UIP_CONF_TCP                   0
 
-/* Uncomment to remove /.well-known/core resource to save code */
-//#define WITH_WELL_KNOWN_CORE            0
+/* Increase rpl-border-router IP-buffer when using more than 64. */
+#undef REST_MAX_CHUNK_SIZE
+#define REST_MAX_CHUNK_SIZE            256
 
-/* COAP content type definition */
-#ifndef COAP_CONF_DATA_FORMAT
-#define COAP_CONF_DATA_FORMAT coap_data_format_text
-#endif
-#define REST_MAX_CHUNK_SIZE     64
+/* Multiplies with chunk size, be aware of memory constraints. */
+#undef COAP_MAX_OPEN_TRANSACTIONS
+#define COAP_MAX_OPEN_TRANSACTIONS     2
+
+/* Filtering .well-known/core per query can be disabled to save space. */
+#undef COAP_LINK_FORMAT_FILTERING
+#define COAP_LINK_FORMAT_FILTERING     0
+#undef COAP_PROXY_OPTION_PROCESSING
+#define COAP_PROXY_OPTION_PROCESSING   0
 
 /**
 *  For srf06 board we must specify SPI connections
