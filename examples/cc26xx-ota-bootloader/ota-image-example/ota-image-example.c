@@ -72,9 +72,6 @@ PROCESS_THREAD(blinker_test_loop, ev, data)
   PRINTF("\nEmpty OTA slot: #%u\n", empty_slot);
 
   //  (4) OTA Download!
-/*  erase_ota_image( 1 );
-  erase_ota_image( 2 );
-  erase_ota_image( 3 );*/
   process_start(ota_download_th_p, NULL);
 
   PROCESS_END();

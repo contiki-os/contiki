@@ -20,22 +20,15 @@ static uip_ipaddr_t ota_server_ipaddr;
 /* OTA Download Thread */
 extern int ota_download_th_p; // Pointer to OTA Download thread
 
-//  OTA Download Events
-typedef enum {
-  OTA_HTTP_REQUEST_SUCCESS,
-  OTA_HTTP_REQUEST_FAIL,
-  OTA_HTTP_REQUEST_RETRY,
-  OTA_PAGE_DOWNLOAD_COMPLETE,
-  OTA_IMAGE_DOWNLOAD_COMPLETE
-} ota_event_t;
-
 static OTAMetadata_t new_firmware_metadata;
 static int active_ota_download_slot;
 static uint8_t page_buffer[ FLASH_PAGE_SIZE ];
 static uint8_t page;
 static bool metadata_received;
-static uint32_t bytes_received;
+static uint32_t ota_bytes_received;
+static uint32_t ota_start_address;
 static uint32_t img_req_position;
+static bool ota_download_active;
+static int coap_request_count;
 
-static bool ota_downloading_image;
 #endif
