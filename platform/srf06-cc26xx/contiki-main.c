@@ -60,6 +60,7 @@
 #include "sys/clock.h"
 #include "sys/rtimer.h"
 #include "sys/node-id.h"
+#include "lib/random.h"
 #include "lib/sensors.h"
 #include "button-sensor.h"
 #include "dev/serial-line.h"
