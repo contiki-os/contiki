@@ -9,7 +9,7 @@ The OTA system depends on compiling two separate binaries, which are both placed
 You can also read my [article on OTA](http://marksolters.com/programming/2016/06/07/contiki-ota.html) for more detail about this example.
 
 ## Quick Start
-Please note that there are a handful of changes made to the Contiki tree outside of this example folder.  You cannot simply copy this example into the vanilla Contiki tree.  You must clone this fork and and compile using it.
+Please note that there are a handful of changes made to the Contiki tree outside of this example folder.  You cannot simply copy this example into the vanilla Contiki tree.  You must clone this fork and and compile using it.  For example, the `apps/er-coap` used in this fork is derived from that found in the [6LBR](https://github.com/cetic/6lbr/tree/develop/apps/er-coap) tree.
 
 ```bash
 git clone https://github.com/msolters/contiki
@@ -40,9 +40,7 @@ node ota-server.js ota-image-example.bin
 
 The `ota-server` repo includes another compiled Contiki app, `ota-image-example.bin`.  This is merely a variant of the `ota-image-example` found here, except it blinks the *other* LED.
 
-The only rule with the OTA server is that it must be run on a host that your Sensortag can resolve!  Using 6LBR as a BR, `bbbb::` is typically a decent choice for subnet.  Therefore,  `ota-server.js` comes out of the box with a default IP address of `bbbb::1` and will listen on port `3003`.  If your network is considerably different, these values can be very easily changed by looking at the first few lines of `ota-server.js`.  Please note that you do not have to use an IPv6 host address.  You can use IPv4 values such as `http://10.0.0.1:80` or whatever you want!
-
->  Note: If you change the IP/port host configuration of `ota-server.js`, make sure to make the same changes to the `#define OTA_IMAGE_SERVER` inside `ota/ota-download.h`.  Then recompile with `make master-hex` and reflash your Sensortag!
+The only rule with the OTA server is that it must be run on a host that your Sensortag can resolve!  You can enter your OTA server's IP address by filling in the values of `#define OTA_SERVER_IP()` inside `ota/ota-download.h`.  Then recompile with `make master-hex` and reflash your Sensortag!
 
 Once your OTA image server is up, the Sensortag should begin downloading the new `ota-image-example.bin`.  This can take several minutes!  You can check the progress via UART.  When the download is complete, the Sensortag should reboot, and the bootloader should update the internal OTA image with the new download.  Then, you should see the Sensortag start to blink the green LED!  Congratulations!
 
@@ -52,7 +50,7 @@ Internal Flash Memory Map
 Description | Starting Position in EEPROM (bytes) | Space Allotted
 --- | --- | ---
 Bootloader | 0x00000000 | 0x00002000
-OTA image | 0x00002000 | 0x00019000
+OTA image | 0x00002000 | 0x0001B000
 bootloader ccfg | 0x0001FFA8 | 0x58
 
 The overall concept of the OTA update mechanism is that the CC2650 will *always* power-up to the **bootloader**.
@@ -79,30 +77,59 @@ make bootloader
 This will leave a `bootloader.hex` in the `/bootloader` folder.  You'll need this for the final step when we merge your custom firmware binary with the bootloader binary.
 
 ### Copy the OTA feature source
-Copy `/ota` into your Contiki example's root folder.  We will need the source inside.
+Copy `apps/ota` into your Contiki example's root folder.  We will need the source inside.
 
 ### Update Makefile
 Make sure you have the following lines in your project's makefile:
 
 ```
-CONTIKI_WITH_IPV6 = 1
-MODULES += core/net/http-socket
-
+PROJECTDIR?=.
+APPDIRS += $(PROJECTDIR)/apps
+APPS += er-coap rest-engine ota
 OTA=1
-OTA_SOURCE = ../ota
-vpath %.c $(OTA_SOURCE)
-CFLAGS += -I$(OTA_SOURCE)
-PROJECT_SOURCEFILES += ota.c ota-download.c
+
+CONTIKI_WITH_IPV6 = 1
 ```
 
-The `OTA_SOURCE` variable should point to the location of the `/ota` folder you copied.
+The `APPDIRS` variable should point to the `apps` folder you copied in the previous step.
 
-### Configure your OTA Image server URL
-Make sure the IP address and port that your `ota-server.js` is running on is reflected in the `#define OTA_IMAGE_SERVER` value found inside `ota/ota-download.h` before you compile.  Default value is below:
+### Update `project.conf`
+For CoAP to work correctly, we have to make some defines.  I've found the bare minimum is as follows in my project's `project.conf`:
 
 ```c
-#define OTA_IMAGE_SERVER  "http://[bbbb::1]:3003"
+/*---------------------------------------------------------------------------*/
+/* COAP                                                                      */
+/*---------------------------------------------------------------------------*/
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE           1280
+
+/* Disabling TCP on CoAP nodes. */
+#undef UIP_CONF_TCP
+#define UIP_CONF_TCP                   0
+
+/* Increase rpl-border-router IP-buffer when using more than 64. */
+#undef REST_MAX_CHUNK_SIZE
+#define REST_MAX_CHUNK_SIZE            256
+
+/* Multiplies with chunk size, be aware of memory constraints. */
+#undef COAP_MAX_OPEN_TRANSACTIONS
+#define COAP_MAX_OPEN_TRANSACTIONS     2
+
+/* Filtering .well-known/core per query can be disabled to save space. */
+#undef COAP_LINK_FORMAT_FILTERING
+#define COAP_LINK_FORMAT_FILTERING     0
+#undef COAP_PROXY_OPTION_PROCESSING
+#define COAP_PROXY_OPTION_PROCESSING   0
 ```
+
+### Configure your OTA Image server URL
+Make sure the IP address of `ota-server.js` is reflected in the `#define OTA_SERVER_IP()` line found inside `apps/ota/ota-download.h` before you compile.  Default value is to look for an OTA server at `bbbb::1`.  
+
+```c
+#define OTA_SERVER_IP() uip_ip6addr(&ota_server_ipaddr, 0xbbbb, 0, 0, 0, 0, 0, 0, 0x1)
+```
+
+Remember, the CoAP port is by default `5683`.
 
 ### Include the OTA Download Headers
 Make sure your Contiki app uses the following headers:
@@ -111,14 +138,16 @@ Make sure your Contiki app uses the following headers:
 #include "ota-download.h"
 ```
 
-### Start an OTA Download in your app
-From within your source, to actually begin the OTA download process, just use the following code:
+### Start an OTA Download Thread to Update
+To actually trigger a CoAP update attempt in Contiki:
 
 ```c
 process_start(ota_download_th_p, NULL);
 ```
 
-The logic of when to trigger this process is entirely up to you.  For example, you could trigger the download process in the callback of a COAP request which would be sent to the Contiki node when the server receives new firmware.  Just keep in mind:  when this process is complete, the device will reboot!  Once you start the `ota_download_th` thread, assume the device could reboot at any time.
+The logic of when to trigger this process is entirely up to you.  For example, you could trigger the download process in the callback of a COAP request which would be sent to the Contiki node when the server receives new firmware.
+
+Just keep in mind:  when this process is complete, the device will reboot!  Once you start the `ota_download_th` thread, assume the device could reboot at any time.  Also, this version will continue to attempt to complete the download theoretically forever.  Feel free to implement an error catching or retry counting scheme if you like.
 
 ### Compile
 With the above changes, you should be able to simply compile your app as per usual.  One important rule to follow when compiling firmware as an OTA image though -- it must be a .bin!  That's because we still need to add the OTA metadata to the firmware image, and the `generate-metadata` tool only works with .bin files.
