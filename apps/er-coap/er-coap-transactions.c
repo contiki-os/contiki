@@ -39,6 +39,7 @@
 #include "contiki.h"
 #include "contiki-net.h"
 #include "er-coap-transactions.h"
+#include "er-coap-engine.h"
 #include "er-coap-observe.h"
 
 #define DEBUG 0
@@ -76,6 +77,7 @@ coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
     t->mid = mid;
     t->retrans_counter = 0;
 
+    t->ctx = coap_default_context;
     /* save client address */
     uip_ipaddr_copy(&t->addr, addr);
     t->port = port;
@@ -87,11 +89,17 @@ coap_new_transaction(uint16_t mid, uip_ipaddr_t *addr, uint16_t port)
 }
 /*---------------------------------------------------------------------------*/
 void
+coap_set_transaction_context(coap_transaction_t *t, context_t *ctx)
+{
+  t->ctx = ctx;
+}
+/*---------------------------------------------------------------------------*/
+void
 coap_send_transaction(coap_transaction_t *t)
 {
   PRINTF("Sending transaction %u\n", t->mid);
 
-  coap_send_message(&t->addr, t->port, t->packet, t->packet_len);
+  coap_send_message(t->ctx, &t->addr, t->port, t->packet, t->packet_len);
 
   if(COAP_TYPE_CON ==
      ((COAP_HEADER_TYPE_MASK & t->packet[0]) >> COAP_HEADER_TYPE_POSITION)) {
@@ -113,9 +121,15 @@ coap_send_transaction(coap_transaction_t *t)
                (float)t->retrans_timer.timer.interval / CLOCK_SECOND);
       }
 
-      PROCESS_CONTEXT_BEGIN(transaction_handler_process);
+      /*FIXME
+       * Hack: Setting timer for responsible process.
+       * Maybe there is a better way, but avoid posting everything to the process.
+       */
+      struct process *process_actual = PROCESS_CURRENT();
+
+      process_current = transaction_handler_process;
       etimer_restart(&t->retrans_timer);        /* interval updated above */
-      PROCESS_CONTEXT_END(transaction_handler_process);
+      process_current = process_actual;
 
       t = NULL;
     } else {
@@ -125,8 +139,9 @@ coap_send_transaction(coap_transaction_t *t)
       void *callback_data = t->callback_data;
 
       /* handle observers */
+#if COAP_CORE_OBSERVE
       coap_remove_observer_by_client(&t->addr, t->port);
-
+#endif
       coap_clear_transaction(t);
 
       if(callback) {

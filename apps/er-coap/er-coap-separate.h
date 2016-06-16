@@ -45,6 +45,7 @@ typedef struct coap_separate {
 
   uip_ipaddr_t addr;
   uint16_t port;
+  context_t * ctx;
 
   coap_message_type_t type;
   uint16_t mid;
@@ -61,7 +62,7 @@ typedef struct coap_separate {
 
 int coap_separate_handler(resource_t *resource, void *request,
                           void *response);
-void coap_separate_reject(void);
+void coap_separate_reject();
 void coap_separate_accept(void *request, coap_separate_t *separate_store);
 void coap_separate_resume(void *response, coap_separate_t *separate_store,
                           uint8_t code);

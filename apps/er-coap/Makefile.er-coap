@@ -4,3 +4,11 @@ er-coap_src = er-coap.c er-coap-engine.c er-coap-transactions.c      \
 
 # Erbium will implement the REST Engine
 CFLAGS += -DREST=coap_rest_implementation
+
+ifeq ($(WITH_DTLS_COAP),1)
+CFLAGS += -DWITH_DTLS_COAP=1
+er-coap_src += er-coap-dtls.c
+else
+CFLAGS += -DWITH_DTLS_COAP=0
+er-coap_src += er-coap-udp.c
+endif

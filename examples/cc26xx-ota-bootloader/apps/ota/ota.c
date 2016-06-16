@@ -230,14 +230,18 @@ overwrite_ota_slot_metadata( uint8_t ota_slot, OTAMetadata_t *ota_slot_metadata 
 int
 backup_golden_image()
 {
+  //  (1) Erase the Golden Image OTA slot first
+  while( erase_ota_image( 0 ) );
+
+  //  (2) Copy the current firmware into the Golden Image OTA slot.
   int page;
   uint8_t firmware_page[ FLASH_PAGE_SIZE ];
   for ( page=0; page<25; page++ ) {
-    //  (2) Read a page of the current flash
+    //  (1) Read a page of the current flash
     FlashRead( firmware_page, ((CURRENT_FIRMWARE + page) << 12), FLASH_PAGE_SIZE );
 
-    //  (3) Write that page to the external storage
-    while( store_firmware_page( ((GOLDEN_IMAGE + page) << 12), firmware_page) );
+    //  (2) Write that page to the external storage
+    while( store_firmware_data( ((GOLDEN_IMAGE + page) << 12), firmware_page, FLASH_PAGE_SIZE) );
   }
 
   return 0;
@@ -568,6 +572,36 @@ find_newest_ota_image()
   return newest_ota_slot;
 }
 
+/*******************************************************************************
+ * @fn      erase_extflash_page
+ *
+ * @brief   Erase a page of external flash, starting at the given address.
+ *
+ * @param   ext_address    - The external flash address representing the start
+ *                           of the page to be erased.
+ *
+ * @return  0 or error code
+ */
+int
+erase_extflash_page( uint32_t ext_address )
+{
+  //  (1) Open the external flash
+  int eeprom_access = ext_flash_open();
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not access EEPROM.\n");
+    ext_flash_close();
+    return -1;
+  }
+
+  eeprom_access = ext_flash_erase( ext_address, FLASH_PAGE_SIZE );
+  if(!eeprom_access) {
+    PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
+    ext_flash_close();
+    return -1;
+  }
+
+  return 0;
+}
 
 /*******************************************************************************
  * @fn      erase_ota_image
@@ -575,8 +609,9 @@ find_newest_ota_image()
  * @brief   Clear an OTA slot in external flash.
  *
  * @param   ota_slot    - The OTA slot index of the firmware image to be copied.
- *                          Only 1-3 are valid arguments, as the Golden Image
- *                          should never be erased.
+ *                        You can erase the Golden Image (0), but be extra
+ *                        careful your application could never accidentally
+ *                        do this!
  *
  * @return  0 or error code
  */
@@ -584,35 +619,20 @@ int
 erase_ota_image( uint8_t ota_slot )
 {
   //  (1) Get page address of the ota_slot in ext-flash
-  uint8_t ota_image_base_address = ota_images[ (ota_slot-1) ];
-  PRINTF("Erasing OTA slot %u [%#x, %#x)...\n", ota_slot, (ota_image_base_address<<12), ((ota_image_base_address+25)<<12));
-
-  int eeprom_access;
-  eeprom_access = ext_flash_open();
-
-  if(!eeprom_access) {
-    PRINTF("[external-flash]:\tError - could not access EEPROM.\n");
-    ext_flash_close();
-    return -1;
+  uint8_t ota_image_base_address;
+  if ( ota_slot ) {
+    ota_image_base_address = ota_images[ (ota_slot-1) ];
+  } else {
+    ota_image_base_address = GOLDEN_IMAGE;
   }
+  PRINTF("Erasing OTA slot %u [%#x, %#x)...\n", ota_slot, (ota_image_base_address<<12), ((ota_image_base_address+25)<<12));
 
   //  (2) Erase each page in the OTA download slot!
   for (int page=0; page<25; page++) {
-    uint32_t ext_address = ( ota_image_base_address + page ) << 12;
-
-    eeprom_access = ext_flash_erase( ext_address, FLASH_PAGE_SIZE );
-
-    if(!eeprom_access) {
-      PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
-      ext_flash_close();
-      return -1;
-    }
+    while( erase_extflash_page( (( ota_image_base_address + page ) << 12) ) );
   }
 
-  ext_flash_close();
-
   return 0;
-
 }
 
 static int
@@ -698,21 +718,21 @@ update_firmware( uint8_t ota_slot )
 }
 
 /*******************************************************************************
- * @fn      store_firmware_page
+ * @fn      store_firmware_data
  *
- * @brief   Store 4096 bytes of firmware data in external flash at the specified
+ * @brief   Store firmware data in external flash at the specified
  *          address.
  *
- * @param   ext_address   - External flash address to store page_data.
+ * @param   ext_address   - External flash address to begin writing data.
  *
- * @param   page_data     - Pointer to the data buffer to be written to ext_address.
+ * @param   data          - Pointer to the data buffer to be written.
  *                          Note: page_data can be larger than 4096 bytes, but
- *                          only the first 4096 bytes will be stored.
+ *                          only the first 4096 bytes will be written!
  *
  * @return  0 or error code
  */
 int
-store_firmware_page( uint32_t ext_address, uint8_t *page_data )
+store_firmware_data( uint32_t ext_address, uint8_t *data, size_t data_length )
 {
   //  (1) Erase external flash page first!
   int eeprom_access;
@@ -724,16 +744,8 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data )
     return -1;
   }
 
-  eeprom_access = ext_flash_erase( ext_address, FLASH_PAGE_SIZE );
-
-  if(!eeprom_access) {
-    PRINTF("[external-flash]:\tError - Could not erase EEPROM.\n");
-    ext_flash_close();
-    return -1;
-  }
-
   //  (2) Copy page_data into external flash chip.
-  eeprom_access = ext_flash_write( ext_address, FLASH_PAGE_SIZE, page_data );
+  eeprom_access = ext_flash_write( ext_address, data_length, data );
 
   if(!eeprom_access) {
     PRINTF("[external-flash]:\tError - Could not write to EEPROM.\n");
@@ -743,7 +755,7 @@ store_firmware_page( uint32_t ext_address, uint8_t *page_data )
 
   ext_flash_close();
 
-  PRINTF("[external-flash]:\tPage successfully written to %#x.\n", ext_address);
+  PRINTF("[external-flash]:\tFirmware data successfully written to %#x.\n", ext_address);
   return 0;
 }
 

@@ -107,7 +107,7 @@ int coap_obs_remove_observee_by_token(uip_ipaddr_t *addr, uint16_t port,
 int coap_obs_remove_observee_by_url(uip_ipaddr_t *addr, uint16_t port,
                                     const char *url);
 
-void coap_handle_notification(uip_ipaddr_t *, uint16_t port,
+void coap_handle_notification(context_t *ctx, uip_ipaddr_t *addr, uint16_t port,
                               coap_packet_t *notification);
 
 coap_observee_t *coap_obs_request_registration(uip_ipaddr_t *addr,
