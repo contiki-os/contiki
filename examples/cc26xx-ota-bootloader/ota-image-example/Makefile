@@ -2,21 +2,17 @@ TARGET=srf06-cc26xx
 #BOARD=sensortag/cc2650
 BOARD=srf06/cc26xx
 
+CONTIKI = ../../..
 CONTIKI_PROJECT = ota-image-example
 PROJECTDIR?=.
 APPDIRS += $(PROJECTDIR)/../apps
-
-CONTIKI = ../../..
-CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-CFLAGS += -g -DDEBUG=1
-
+APPS += er-coap rest-engine ota
 OTA=1
-#PROJECT_SOURCEFILES += ota.c ota-download.c
-
-APPS += ota
-APPS += er-coap rest-engine
 
 CONTIKI_WITH_IPV6 = 1
+
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+CFLAGS += -g -DDEBUG=1
 
 clean:
 	-rm -f *~ *core core *.srec \
